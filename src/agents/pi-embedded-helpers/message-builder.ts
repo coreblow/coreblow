@@ -1,0 +1,1 @@
+/** CoreBlow — PI Message Builder */ export function buildMessages(system: string, history: Array<{ role: string; content: string }>, userMsg: string): Array<{ role: string; content: string }> { return [{ role: "system", content: system }, ...history, { role: "user", content: userMsg }]; }

@@ -1,0 +1,17 @@
+{
+  "name": "matrix",
+  "version": "0.1.0",
+  "description": "Matrix extension",
+  "main": "index.ts",
+  "permissions": [
+    "messages.read",
+    "messages.write"
+  ],
+  "channels": [
+    "matrix"
+  ],
+  "hooks": [
+    "onMessage",
+    "onCommand"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "@coreblow/ext-synology-chat",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Synology Chat integration",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "lint": "eslint src/"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^4.1.4"
+  }
+}

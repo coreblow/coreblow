@@ -1,0 +1,104 @@
+/**
+ * CoreBlow — Memory Bootstrap
+ *
+ * Factory that creates a MemoryOrchestrator from CoreBlow config.
+ * Resolves ~ paths, validates config, and wires everything up.
+ */
+
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { MemoryOrchestrator, type MemoryConfig } from './memory-orchestrator.js';
+
+/**
+ * Resolve ~ to home directory.
+ */
+function resolvePath(p: string): string {
+    if (p.startsWith('~/')) {
+        return path.join(os.homedir(), p.slice(2));
+    }
+    if (p === '~') {
+        return os.homedir();
+    }
+    return path.resolve(p);
+}
+
+/**
+ * Memory config from CoreBlow config schema.
+ * Matches the shape of ValidatedCoreBlowConfig['memory'].
+ */
+export interface MemorySchemaConfig {
+    transcriptDir: string;
+    defaultRetrievalCount: number;
+    maxFileSizeBytes: number;
+    compactionStrategy: 'truncate' | 'summarize';
+    rag: {
+        enabled: boolean;
+        engine: 'local' | 'ollama' | 'openai' | 'gemini' | 'voyage' | 'mistral' | 'auto';
+        apiKey?: string;
+        maxDocuments: number;
+    };
+}
+
+/**
+ * Create a MemoryOrchestrator from CoreBlow config.
+ *
+ * Usage:
+ * ```ts
+ * import { validateConfig } from './config/config.schema.js';
+ * import { createMemoryOrchestrator } from './memory/memory-bootstrap.js';
+ *
+ * const config = validateConfig(rawConfig);
+ * const memory = createMemoryOrchestrator(config.memory);
+ *
+ * // Record messages
+ * memory.recordMessage('session-1', { role: 'user', content: 'Hello' });
+ *
+ * // Build context for LLM
+ * const ctx = await memory.buildContext('session-1', 'current query');
+ * console.log(ctx.contextText);
+ * ```
+ */
+export function createMemoryOrchestrator(memoryConfig: MemorySchemaConfig): MemoryOrchestrator {
+    const transcriptDir = resolvePath(memoryConfig.transcriptDir);
+
+    const config: MemoryConfig = {
+        transcriptDir,
+        transcript: {
+            defaultRetrievalCount: memoryConfig.defaultRetrievalCount,
+            maxFileSizeBytes: memoryConfig.maxFileSizeBytes,
+            compactionStrategy: memoryConfig.compactionStrategy,
+        },
+    };
+
+    // Wire RAG if enabled
+    if (memoryConfig.rag.enabled) {
+        config.rag = {
+            enabled: true,
+            engine: memoryConfig.rag.engine,
+            apiKey: memoryConfig.rag.apiKey,
+            maxDocuments: memoryConfig.rag.maxDocuments,
+        };
+    }
+
+    return new MemoryOrchestrator(config);
+}
+
+/**
+ * Create a default MemoryOrchestrator with sensible defaults.
+ * Useful for quick setup without a config file.
+ *
+ * Default: JSONL-only, no RAG, ~/.coreblow/sessions/
+ */
+export function createDefaultMemoryOrchestrator(): MemoryOrchestrator {
+    return createMemoryOrchestrator({
+        transcriptDir: '~/.coreblow/sessions',
+        defaultRetrievalCount: 20,
+        maxFileSizeBytes: 512 * 1024,
+        compactionStrategy: 'truncate',
+        rag: {
+            enabled: false,
+            engine: 'local',
+            maxDocuments: 10_000,
+        },
+    });
+}

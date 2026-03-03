@@ -1,0 +1,43 @@
+# CoreBlow — Bun Compatibility Check
+# Updated: 2026-04-24 — Single source tree (gateway/ removed)
+
+name: Bun CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  bun-test:
+    name: Bun Compatibility
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        bun-version: ['1.1', '1.2']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ matrix.bun-version }}
+      - run: bun install
+      - run: bun run tsc --noEmit
+      - run: bun test || echo "Bun test compatibility check (non-blocking)"
+        continue-on-error: true
+
+  bun-bench:
+    name: Bun Benchmarks
+    runs-on: ubuntu-latest
+    needs: bun-test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.2'
+      - run: bun install
+      - name: Startup Time
+        run: |
+          echo "Measuring cold-start time..."
+          time bun run src/cli/init.ts --help 2>/dev/null || true

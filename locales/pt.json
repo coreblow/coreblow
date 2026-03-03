@@ -1,0 +1,72 @@
+{
+    "app": {
+        "name": "CoreBlow AI Gateway",
+        "description": "Gateway de IA universal para todas as suas plataformas de mensagens"
+    },
+    "gateway": {
+        "starting": "Iniciando gateway na porta {{port}}...",
+        "started": "Gateway iniciado na porta {{port}}",
+        "stopped": "Gateway parado",
+        "error": "Erro do gateway: {{error}}",
+        "health": "Gateway está funcionando corretamente",
+        "unhealthy": "Gateway com problemas"
+    },
+    "channels": {
+        "connecting": "Conectando a {{channel}}...",
+        "connected": "Conectado a {{channel}}",
+        "disconnected": "Desconectado de {{channel}}",
+        "error": "Erro do canal {{channel}}: {{error}}",
+        "message_received": "Mensagem recebida de {{sender}} em {{channel}}",
+        "message_sent": "Mensagem enviada para {{target}} em {{channel}}"
+    },
+    "providers": {
+        "connecting": "Conectando a {{provider}}...",
+        "connected": "Conectado a {{provider}}",
+        "error": "Erro do provedor {{provider}}: {{error}}",
+        "response": "Resposta de {{provider}} ({{tokens}} tokens, {{time}}ms)"
+    },
+    "tools": {
+        "executing": "Executando ferramenta: {{tool}}",
+        "completed": "Ferramenta {{tool}} concluída",
+        "error": "Ferramenta {{tool}} falhou: {{error}}",
+        "not_found": "Ferramenta {{tool}} não encontrada"
+    },
+    "memory": {
+        "stored": "Memória armazenada: \"{{text}}\"",
+        "recalled": "{{count}} memórias encontradas",
+        "forgotten": "Memória {{id}} removida",
+        "no_results": "Nenhuma memória encontrada para \"{{query}}\"",
+        "stats": "Estatísticas de memória: {{count}} memórias, {{size}} armazenamento"
+    },
+    "skills": {
+        "installed": "Habilidade \"{{name}}\" instalada",
+        "removed": "Habilidade \"{{name}}\" removida",
+        "not_found": "Habilidade \"{{name}}\" não encontrada",
+        "requires_env": "Esta habilidade requer: {{env}}"
+    },
+    "extensions": {
+        "loaded": "Extensão \"{{name}}\" carregada (v{{version}})",
+        "init_failed": "Extensão \"{{name}}\" falhou ao inicializar: {{error}}",
+        "stopped": "Extensão \"{{name}}\" parada"
+    },
+    "cli": {
+        "welcome": "Bem-vindo ao CoreBlow AI Gateway!",
+        "version": "Versão {{version}}",
+        "help": "Execute 'coreblow --help' para ver os comandos disponíveis",
+        "doctor_ok": "Todos os sistemas operando normalmente",
+        "doctor_fail": "Problemas detectados — execute 'coreblow doctor' para detalhes"
+    },
+    "pairing": {
+        "code_generated": "Código de emparelhamento: {{code}} (expira em {{ttl}} minutos)",
+        "paired": "Dispositivo emparelhado com sucesso!",
+        "invalid_code": "Código de emparelhamento inválido ou expirado",
+        "already_paired": "Este dispositivo já está emparelhado"
+    },
+    "errors": {
+        "connection_failed": "Falha na conexão",
+        "auth_failed": "Falha na autenticação",
+        "rate_limited": "Limite de taxa — por favor aguarde",
+        "timeout": "Tempo limite excedido",
+        "unknown": "Ocorreu um erro desconhecido"
+    }
+}

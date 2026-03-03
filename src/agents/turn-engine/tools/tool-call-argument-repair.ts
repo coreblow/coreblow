@@ -1,0 +1,376 @@
+/**
+ * CoreBlow — Tool Call Argument Repair (CoreBlow Parity)
+ *
+ * When an LLM produces malformed tool call arguments (broken JSON, missing fields,
+ * wrong types), this module attempts automatic repair before failing the turn.
+ *
+ * Repair strategies (in order):
+ *  1. JSON syntax repair (trailing commas, unquoted keys, single quotes)
+ *  2. Schema-based default injection (fill missing required fields)
+ *  3. Type coercion (string "true" → boolean true, "42" → number 42)
+ *  4. Truncation repair (incomplete JSON from token limit cutoff)
+ *
+ * If all strategies fail, returns a structured error message for the LLM
+ * to self-correct in the next turn iteration.
+ */
+
+// ─── Types ──────────────────────────────────────────────────────
+
+export interface ToolCallRepairResult {
+    /** Whether the repair was successful */
+    repaired: boolean;
+    /** The repaired arguments (if successful) */
+    args: Record<string, unknown> | null;
+    /** The repair strategy that worked */
+    strategy: RepairStrategy | null;
+    /** Error message if repair failed (for LLM feedback) */
+    errorFeedback: string | null;
+    /** Original raw string */
+    originalRaw: string;
+}
+
+export type RepairStrategy =
+    | 'json_syntax'
+    | 'trailing_comma'
+    | 'single_quotes'
+    | 'unquoted_keys'
+    | 'truncation_close'
+    | 'schema_defaults'
+    | 'type_coercion'
+    | 'extract_json';
+
+export interface ToolParameterSchema {
+    name: string;
+    type: 'string' | 'number' | 'boolean' | 'object' | 'array';
+    required?: boolean;
+    default?: unknown;
+    description?: string;
+}
+
+export interface ToolSchema {
+    name: string;
+    parameters: ToolParameterSchema[];
+}
+
+// ─── Repair Pipeline ────────────────────────────────────────────
+
+/**
+ * Attempt to repair malformed tool call arguments.
+ * Tries multiple strategies in order of likelihood.
+ */
+export function repairToolCallArguments(
+    rawArgs: string,
+    schema?: ToolSchema,
+): ToolCallRepairResult {
+    const originalRaw = rawArgs;
+
+    // Strategy 0: Already valid JSON
+    const directParse = tryParseJSON(rawArgs);
+    if (directParse !== null) {
+        const coerced = schema ? applyTypeCoercion(directParse, schema) : directParse;
+        const withDefaults = schema ? applySchemaDefaults(coerced, schema) : coerced;
+        return {
+            repaired: true,
+            args: withDefaults,
+            strategy: null,
+            errorFeedback: null,
+            originalRaw,
+        };
+    }
+
+    // Strategy 1: Extract JSON from markdown code blocks or surrounding text
+    const extracted = extractJSON(rawArgs);
+    if (extracted) {
+        const parsed = tryParseJSON(extracted);
+        if (parsed !== null) {
+            return success(parsed, 'extract_json', originalRaw, schema);
+        }
+    }
+
+    // Strategy 2: Fix trailing commas
+    const noTrailingComma = fixTrailingCommas(rawArgs);
+    const tcParsed = tryParseJSON(noTrailingComma);
+    if (tcParsed !== null) {
+        return success(tcParsed, 'trailing_comma', originalRaw, schema);
+    }
+
+    // Strategy 3: Fix single quotes → double quotes
+    const doubleQuoted = fixSingleQuotes(rawArgs);
+    const sqParsed = tryParseJSON(doubleQuoted);
+    if (sqParsed !== null) {
+        return success(sqParsed, 'single_quotes', originalRaw, schema);
+    }
+
+    // Strategy 4: Fix unquoted keys
+    const quotedKeys = fixUnquotedKeys(rawArgs);
+    const ukParsed = tryParseJSON(quotedKeys);
+    if (ukParsed !== null) {
+        return success(ukParsed, 'unquoted_keys', originalRaw, schema);
+    }
+
+    // Strategy 5: Truncation repair (close unclosed brackets/braces)
+    const closed = closeTruncatedJSON(rawArgs);
+    const clParsed = tryParseJSON(closed);
+    if (clParsed !== null) {
+        return success(clParsed, 'truncation_close', originalRaw, schema);
+    }
+
+    // Strategy 6: Combined repair (all fixes together)
+    const combined = closeTruncatedJSON(fixUnquotedKeys(fixSingleQuotes(fixTrailingCommas(rawArgs))));
+    const combParsed = tryParseJSON(combined);
+    if (combParsed !== null) {
+        return success(combParsed, 'json_syntax', originalRaw, schema);
+    }
+
+    // All strategies failed — generate feedback for LLM
+    return {
+        repaired: false,
+        args: null,
+        strategy: null,
+        errorFeedback: generateRepairFeedback(rawArgs, schema),
+        originalRaw,
+    };
+}
+
+// ─── Repair Strategies ──────────────────────────────────────────
+
+function fixTrailingCommas(s: string): string {
+    // Remove trailing commas before } or ]
+    return s.replace(/,\s*([\]}])/g, '$1');
+}
+
+function fixSingleQuotes(s: string): string {
+    // Replace single quotes with double quotes (careful with apostrophes in values)
+    let result = '';
+    let inDoubleQuote = false;
+    let inSingleQuote = false;
+    let escaped = false;
+
+    for (let i = 0; i < s.length; i++) {
+        const ch = s[i]!;
+        if (escaped) {
+            result += ch;
+            escaped = false;
+            continue;
+        }
+        if (ch === '\\') {
+            result += ch;
+            escaped = true;
+            continue;
+        }
+        if (ch === '"' && !inSingleQuote) {
+            inDoubleQuote = !inDoubleQuote;
+            result += ch;
+        } else if (ch === "'" && !inDoubleQuote) {
+            inSingleQuote = !inSingleQuote;
+            result += '"';
+        } else {
+            result += ch;
+        }
+    }
+    return result;
+}
+
+function fixUnquotedKeys(s: string): string {
+    // Match unquoted keys like { key: "value" } → { "key": "value" }
+    return s.replace(/(\{|,)\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, '$1"$2":');
+}
+
+function closeTruncatedJSON(s: string): string {
+    const trimmed = s.trim();
+    if (!trimmed) return s;
+
+    // Count unclosed brackets
+    let braces = 0;
+    let brackets = 0;
+    let inString = false;
+    let escaped = false;
+
+    for (const ch of trimmed) {
+        if (escaped) { escaped = false; continue; }
+        if (ch === '\\') { escaped = true; continue; }
+        if (ch === '"') { inString = !inString; continue; }
+        if (inString) continue;
+
+        if (ch === '{') braces++;
+        else if (ch === '}') braces--;
+        else if (ch === '[') brackets++;
+        else if (ch === ']') brackets--;
+    }
+
+    // Close the string if we're in one
+    let result = trimmed;
+    if (inString) result += '"';
+
+    // Remove trailing comma before closing
+    result = result.replace(/,\s*$/, '');
+
+    // Close unclosed brackets/braces
+    for (let i = 0; i < brackets; i++) result += ']';
+    for (let i = 0; i < braces; i++) result += '}';
+
+    return result;
+}
+
+function extractJSON(s: string): string | null {
+    // Extract from markdown code blocks: ```json ... ``` or ``` ... ```
+    const codeBlockMatch = s.match(/```(?:json)?\s*\n?([\s\S]*?)\n?\s*```/);
+    if (codeBlockMatch?.[1]) return codeBlockMatch[1].trim();
+
+    // Extract first JSON object from surrounding text
+    const firstBrace = s.indexOf('{');
+    const lastBrace = s.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+        return s.slice(firstBrace, lastBrace + 1);
+    }
+
+    return null;
+}
+
+// ─── Schema-Based Repair ────────────────────────────────────────
+
+function applySchemaDefaults(
+    args: Record<string, unknown>,
+    schema: ToolSchema,
+): Record<string, unknown> {
+    const result = { ...args };
+    for (const param of schema.parameters) {
+        if (!(param.name in result) && param.default !== undefined) {
+            result[param.name] = param.default;
+        }
+    }
+    return result;
+}
+
+function applyTypeCoercion(
+    args: Record<string, unknown>,
+    schema: ToolSchema,
+): Record<string, unknown> {
+    const result = { ...args };
+    for (const param of schema.parameters) {
+        if (!(param.name in result)) continue;
+        const value = result[param.name];
+
+        switch (param.type) {
+            case 'number':
+                if (typeof value === 'string') {
+                    const n = Number(value);
+                    if (!isNaN(n)) result[param.name] = n;
+                }
+                break;
+            case 'boolean':
+                if (typeof value === 'string') {
+                    if (value.toLowerCase() === 'true') result[param.name] = true;
+                    else if (value.toLowerCase() === 'false') result[param.name] = false;
+                }
+                break;
+            case 'array':
+                if (typeof value === 'string') {
+                    const parsed = tryParseJSON(value);
+                    if (Array.isArray(parsed)) result[param.name] = parsed;
+                }
+                break;
+            case 'object':
+                if (typeof value === 'string') {
+                    const parsed = tryParseJSON(value);
+                    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                        result[param.name] = parsed;
+                    }
+                }
+                break;
+        }
+    }
+    return result;
+}
+
+// ─── LLM Feedback Generator ────────────────────────────────────
+
+function generateRepairFeedback(rawArgs: string, schema?: ToolSchema): string {
+    const lines: string[] = [
+        'ERROR: Your tool call arguments could not be parsed as valid JSON.',
+        '',
+        `Raw input received: ${rawArgs.slice(0, 200)}${rawArgs.length > 200 ? '...' : ''}`,
+        '',
+        'Common issues:',
+        '  1. Missing closing braces } or brackets ]',
+        '  2. Trailing commas before } or ]',
+        '  3. Unquoted property names',
+        '  4. Single quotes instead of double quotes',
+        '  5. Missing required fields',
+        '',
+        'Please retry with valid JSON arguments.',
+    ];
+
+    if (schema) {
+        lines.push('', 'Expected schema:');
+        for (const p of schema.parameters) {
+            const req = p.required ? ' (REQUIRED)' : ' (optional)';
+            lines.push(`  "${p.name}": ${p.type}${req}${p.description ? ' — ' + p.description : ''}`);
+        }
+    }
+
+    return lines.join('\n');
+}
+
+// ─── Helpers ────────────────────────────────────────────────────
+
+function tryParseJSON(s: string): Record<string, unknown> | null {
+    try {
+        const parsed = JSON.parse(s);
+        if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+            return parsed as Record<string, unknown>;
+        }
+        return null;
+    } catch {
+        return null;
+    }
+}
+
+function success(
+    args: Record<string, unknown>,
+    strategy: RepairStrategy,
+    originalRaw: string,
+    schema?: ToolSchema,
+): ToolCallRepairResult {
+    const coerced = schema ? applyTypeCoercion(args, schema) : args;
+    const withDefaults = schema ? applySchemaDefaults(coerced, schema) : coerced;
+    return {
+        repaired: true,
+        args: withDefaults,
+        strategy,
+        errorFeedback: null,
+        originalRaw,
+    };
+}
+
+// ─── Repair Stats Tracker ───────────────────────────────────────
+
+export class RepairTracker {
+    private repairs: Array<{ strategy: RepairStrategy; tool: string; timestamp: number }> = [];
+    private failures: Array<{ tool: string; timestamp: number }> = [];
+
+    recordRepair(strategy: RepairStrategy, toolName: string): void {
+        this.repairs.push({ strategy, tool: toolName, timestamp: Date.now() });
+    }
+
+    recordFailure(toolName: string): void {
+        this.failures.push({ tool: toolName, timestamp: Date.now() });
+    }
+
+    stats(): { totalRepairs: number; totalFailures: number; byStrategy: Record<string, number> } {
+        const byStrategy: Record<string, number> = {};
+        for (const r of this.repairs) {
+            byStrategy[r.strategy] = (byStrategy[r.strategy] ?? 0) + 1;
+        }
+        return {
+            totalRepairs: this.repairs.length,
+            totalFailures: this.failures.length,
+            byStrategy,
+        };
+    }
+
+    clear(): void {
+        this.repairs = [];
+        this.failures = [];
+    }
+}

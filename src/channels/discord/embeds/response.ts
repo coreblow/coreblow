@@ -1,0 +1,65 @@
+/**
+ * src/channels/discord/embeds/response.ts
+ * AI response embed — auto-format with provider colors
+ */
+
+import type { DiscordEmbed } from '../types.js';
+import { PROVIDER_COLORS } from '../constants.js';
+import { RichResponse } from '../components/rich-response.js';
+
+/**
+ * Get provider color from model name
+ */
+export function getProviderColor(model?: string): number {
+ if (!model) return PROVIDER_COLORS.default;
+ const lower = model.toLowerCase();
+ if (lower.includes('gpt') || lower.includes('openai') || lower.includes('o1') || lower.includes('o3')) return PROVIDER_COLORS.openai;
+ if (lower.includes('claude') || lower.includes('anthropic')) return PROVIDER_COLORS.anthropic;
+ if (lower.includes('gemini') || lower.includes('google')) return PROVIDER_COLORS.gemini;
+ if (lower.includes('llama') || lower.includes('mistral') || lower.includes('ollama') || lower.includes('phi') || lower.includes('qwen')) return PROVIDER_COLORS.ollama;
+ if (lower.includes('openrouter')) return PROVIDER_COLORS.openrouter;
+ return PROVIDER_COLORS.default;
+}
+
+/**
+ * Create an AI response embed
+ */
+export function createResponseEmbed(text: string, opts?: { model?: string; tokens?: number; latencyMs?: number }): DiscordEmbed {
+ const color = getProviderColor(opts?.model);
+ const footerParts: string[] = [];
+ if (opts?.model) footerParts.push(` ${opts.model}`);
+ if (opts?.tokens) footerParts.push(` ${opts.tokens} tokens`);
+ if (opts?.latencyMs !== undefined) {
+ footerParts.push(`⏱ ${opts.latencyMs < 1000 ? `${opts.latencyMs}ms` : `${(opts.latencyMs / 1000).toFixed(1)}s`}`);
+ }
+
+ return {
+ description: text,
+ color,
+ footer: footerParts.length > 0 ? { text: footerParts.join(' │ ') } : undefined,
+ timestamp: new Date().toISOString(),
+ };
+}
+
+/**
+ * Convert AI response to RichResponse (with pagination for long text)
+ */
+export function formatAIResponse(opts: {
+ text: string;
+ model?: string;
+ tokens?: number;
+ latencyMs?: number;
+ sessionId?: string;
+}): RichResponse {
+ const response = new RichResponse();
+ const embed = createResponseEmbed(opts.text, opts);
+
+ if (opts.text.length > 4000) {
+ response.paginate(opts.text, 4000);
+ response.embed({ ...embed, description: response.getPage(0) });
+ } else {
+ response.embed(embed);
+ }
+
+ return response;
+}

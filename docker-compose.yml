@@ -1,0 +1,67 @@
+services:
+  coreblow-gateway:
+    image: ${COREBLOW_IMAGE:-coreblow:local}
+    environment:
+      HOME: /home/node
+      TERM: xterm-256color
+      COREBLOW_GATEWAY_TOKEN: ${COREBLOW_GATEWAY_TOKEN:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      TZ: ${COREBLOW_TZ:-UTC}
+    volumes:
+      - ${COREBLOW_CONFIG_DIR:-~/.coreblow}:/home/node/.coreblow
+      - ${COREBLOW_WORKSPACE_DIR:-~/.coreblow/workspace}:/home/node/.coreblow/workspace
+    ports:
+      - "${COREBLOW_GATEWAY_PORT:-3000}:3000"
+    init: true
+    restart: unless-stopped
+    command:
+      [
+        "node",
+        "coreblow.mjs",
+        "gateway",
+        "--bind",
+        "${COREBLOW_GATEWAY_BIND:-lan}",
+        "--port",
+        "3000",
+      ]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/healthz').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  coreblow-cli:
+    image: ${COREBLOW_IMAGE:-coreblow:local}
+    network_mode: "service:coreblow-gateway"
+    cap_drop:
+      - NET_RAW
+      - NET_ADMIN
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      HOME: /home/node
+      TERM: xterm-256color
+      COREBLOW_GATEWAY_TOKEN: ${COREBLOW_GATEWAY_TOKEN:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      BROWSER: echo
+      TZ: ${COREBLOW_TZ:-UTC}
+    volumes:
+      - ${COREBLOW_CONFIG_DIR:-~/.coreblow}:/home/node/.coreblow
+      - ${COREBLOW_WORKSPACE_DIR:-~/.coreblow/workspace}:/home/node/.coreblow/workspace
+    stdin_open: true
+    tty: true
+    init: true
+    entrypoint: ["node", "coreblow.mjs"]
+    depends_on:
+      - coreblow-gateway

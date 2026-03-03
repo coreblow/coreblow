@@ -1,0 +1,14 @@
+/**
+ * CoreBlow AutoPilot — Abort Types
+ *
+ * CoreBlow equivalent: auto-reply/types.ts (AbortRecord domain)
+ */
+import type { AbortReason } from '../types.js';
+
+export type AbortRecord = {
+    controller: AbortController;
+    sessionKey: string;
+    runId: string;
+    reason?: AbortReason;
+    abortedAt?: number;
+};

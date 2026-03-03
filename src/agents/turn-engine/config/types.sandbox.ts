@@ -1,0 +1,11 @@
+export type SandboxConfig = {
+    mode?: 'docker' | 'ssh' | 'off';
+    image?: string;
+    workspaceRoot?: string;
+    network?: string;
+    cpus?: number;
+    memoryMb?: number;
+    idleTimeoutHours?: number;
+    maxAgeDays?: number;
+    setupCommand?: string;
+};

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicolo-ribaudo/oxlint-config-schema/main/schema.json",
+  "rules": {
+    "no-debugger": "error",
+    "no-duplicate-case": "error",
+    "no-self-compare": "warn",
+    "no-template-curly-in-string": "warn",
+    "no-unused-vars": "off",
+    "no-console": "off",
+    "eqeqeq": "off",
+    "no-var": "off",
+    "prefer-const": "off",
+    "no-empty": "off",
+    "no-extra-boolean-cast": "off",
+    "no-constant-condition": "off",
+    "no-case-declarations": "off",
+    "no-fallthrough": "off",
+    "no-inner-declarations": "off",
+    "no-prototype-builtins": "off",
+    "no-useless-escape": "off",
+    "no-empty-pattern": "off",
+    "no-redeclare": "off",
+    "getter-return": "off",
+    "no-unsafe-finally": "off",
+    "no-unsafe-negation": "off",
+    "no-loss-of-precision": "off",
+    "no-sparse-arrays": "off",
+    "no-control-regex": "off",
+    "no-nonoctal-decimal-escape": "off",
+    "no-regex-spaces": "off",
+    "valid-typeof": "off",
+    "typescript/no-unused-vars": "off"
+  },
+  "ignorePatterns": [
+    "dist/",
+    "node_modules/",
+    "*.d.ts",
+    "generated/",
+    "stubs/"
+  ]
+}

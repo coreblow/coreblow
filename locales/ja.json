@@ -1,0 +1,72 @@
+{
+    "app": {
+        "name": "CoreBlow AI Gateway",
+        "description": "すべてのメッセージプラットフォーム用ユニバーサルAIゲートウェイ"
+    },
+    "gateway": {
+        "starting": "ポート{{port}}でゲートウェイを起動中...",
+        "started": "ポート{{port}}でゲートウェイが起動しました",
+        "stopped": "ゲートウェイが停止しました",
+        "error": "ゲートウェイエラー: {{error}}",
+        "health": "ゲートウェイは正常です",
+        "unhealthy": "ゲートウェイに問題があります"
+    },
+    "channels": {
+        "connecting": "{{channel}}に接続中...",
+        "connected": "{{channel}}に接続しました",
+        "disconnected": "{{channel}}から切断されました",
+        "error": "チャンネル{{channel}}エラー: {{error}}",
+        "message_received": "{{channel}}の{{sender}}からメッセージを受信",
+        "message_sent": "{{channel}}の{{target}}にメッセージを送信"
+    },
+    "providers": {
+        "connecting": "{{provider}}に接続中...",
+        "connected": "{{provider}}に接続しました",
+        "error": "プロバイダー{{provider}}エラー: {{error}}",
+        "response": "{{provider}}からの応答（{{tokens}}トークン、{{time}}ms）"
+    },
+    "tools": {
+        "executing": "ツール実行中: {{tool}}",
+        "completed": "ツール{{tool}}が完了しました",
+        "error": "ツール{{tool}}が失敗: {{error}}",
+        "not_found": "ツール{{tool}}が見つかりません"
+    },
+    "memory": {
+        "stored": "メモリ保存: \"{{text}}\"",
+        "recalled": "{{count}}件のメモリが見つかりました",
+        "forgotten": "メモリ{{id}}を削除しました",
+        "no_results": "\"{{query}}\"に関するメモリは見つかりません",
+        "stats": "メモリ統計: {{count}}件、{{size}}ストレージ"
+    },
+    "skills": {
+        "installed": "スキル\"{{name}}\"をインストールしました",
+        "removed": "スキル\"{{name}}\"を削除しました",
+        "not_found": "スキル\"{{name}}\"が見つかりません",
+        "requires_env": "このスキルには{{env}}が必要です"
+    },
+    "extensions": {
+        "loaded": "拡張機能\"{{name}}\"を読み込みました（v{{version}}）",
+        "init_failed": "拡張機能\"{{name}}\"の初期化に失敗: {{error}}",
+        "stopped": "拡張機能\"{{name}}\"を停止しました"
+    },
+    "cli": {
+        "welcome": "CoreBlow AI Gatewayへようこそ！",
+        "version": "バージョン {{version}}",
+        "help": "'coreblow --help'で利用可能なコマンドを確認",
+        "doctor_ok": "すべてのシステムが正常に動作しています",
+        "doctor_fail": "問題が検出されました — 'coreblow doctor'で詳細を確認"
+    },
+    "pairing": {
+        "code_generated": "ペアリングコード: {{code}}（{{ttl}}分で期限切れ）",
+        "paired": "デバイスのペアリングに成功しました！",
+        "invalid_code": "無効または期限切れのペアリングコード",
+        "already_paired": "このデバイスは既にペアリングされています"
+    },
+    "errors": {
+        "connection_failed": "接続に失敗しました",
+        "auth_failed": "認証に失敗しました",
+        "rate_limited": "レート制限中 — お待ちください",
+        "timeout": "リクエストがタイムアウトしました",
+        "unknown": "不明なエラーが発生しました"
+    }
+}

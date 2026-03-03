@@ -1,0 +1,203 @@
+/**
+ * config/config.schema.ts
+ * Zod runtime validation for CoreBlow gateway configuration.
+ *
+ * Following CoreBlow pattern: full config.json schema validation at
+ * startup + runtime patching. Every field has a default and explicit validation.
+ */
+
+import { z } from 'zod';
+
+// ── Gateway Config ───────────────────────────────────────────────────────
+
+export const AuthSchema = z.object({
+    token: z.string().optional(),
+    password: z.string().optional(),
+}).optional();
+
+export const ReloadSchema = z.object({
+    mode: z.enum(['hybrid', 'full', 'off']).default('hybrid'),
+}).optional();
+
+export const GatewaySchema = z.object({
+    port: z.number().int().min(1).max(65535).default(3577),
+    host: z.string().default('127.0.0.1'),
+    cors: z.boolean().default(true),
+    maxConnections: z.number().int().min(1).default(100),
+    timeout: z.number().int().min(1000).default(30000),
+    auth: AuthSchema,
+    reload: ReloadSchema,
+}).default({
+    port: 3577, host: '127.0.0.1', cors: true, maxConnections: 100, timeout: 30000,
+});
+
+// ── Agent Config ─────────────────────────────────────────────────────────
+
+export const AgentDefaultsSchema = z.object({
+    model: z.string().optional(),
+    provider: z.string().optional(),
+    temperature: z.number().min(0).max(2).default(0.7),
+    maxTokens: z.number().int().min(1).max(2_000_000).default(8192),
+    timeout: z.number().int().min(1).max(3600).default(300),
+    maxTurns: z.number().int().min(1).max(100).default(25),
+    autoCompact: z.boolean().default(true),
+    compactThreshold: z.number().min(0).max(1).default(0.8),
+    systemPrompt: z.string().optional(),
+}).default({
+    temperature: 0.7, maxTokens: 8192, timeout: 300, maxTurns: 25, autoCompact: true, compactThreshold: 0.8,
+});
+
+export const AgentEntrySchema = z.object({
+    id: z.string().min(1),
+    name: z.string().min(1),
+    workspace: z.string().optional(),
+    model: z.string().optional(),
+    tools: z.object({
+        profile: z.enum(['minimal', 'coding', 'messaging', 'full']).default('coding'),
+    }).optional(),
+});
+
+export const AgentsSchema = z.object({
+    defaults: AgentDefaultsSchema,
+    list: z.array(AgentEntrySchema).optional(),
+}).default({
+    defaults: { temperature: 0.7, maxTokens: 8192, timeout: 300, maxTurns: 25, autoCompact: true, compactThreshold: 0.8 },
+});
+
+// ── Sandbox Config ───────────────────────────────────────────────────────
+
+export const SandboxSchema = z.object({
+    mode: z.enum(['off', 'container', 'firecracker']).default('off'),
+    image: z.string().default('coreblow/sandbox:latest'),
+    network: z.enum(['none', 'host', 'bridge']).default('none'),
+    cpus: z.number().int().min(1).max(16).default(2),
+    memoryMb: z.number().int().min(256).max(32768).default(2048),
+    idleTimeoutHours: z.number().min(0.1).default(4),
+    maxAgeDays: z.number().int().min(1).default(7),
+}).default({
+    mode: 'off', image: 'coreblow/sandbox:latest', network: 'none', cpus: 2, memoryMb: 2048, idleTimeoutHours: 4, maxAgeDays: 7,
+});
+
+// ── Tools Config ─────────────────────────────────────────────────────────
+
+export const ExecConfigSchema = z.object({
+    ask: z.enum(['off', 'on-miss', 'always']).default('on-miss'),
+    allowlist: z.array(z.string()).default([]),
+    denylist: z.array(z.string()).default([]),
+}).optional();
+
+export const ToolsSchema = z.object({
+    profile: z.enum(['minimal', 'coding', 'messaging', 'full']).default('coding'),
+    exec: ExecConfigSchema,
+}).default({ profile: 'coding' });
+
+// ── Channel Config ───────────────────────────────────────────────────────
+
+export const ChannelEntrySchema = z.object({
+    enabled: z.boolean().default(false),
+}).passthrough();
+
+export const ChannelsSchema = z.record(z.string(), ChannelEntrySchema).optional();
+
+// ── Models Config ────────────────────────────────────────────────────────
+
+export const ModelsSchema = z.object({
+    default: z.string().default('anthropic/claude-sonnet-4-20250514'),
+    aliases: z.record(z.string(), z.string()).default({}),
+}).default({ default: 'anthropic/claude-sonnet-4-20250514', aliases: {} });
+
+// ── Features Config ──────────────────────────────────────────────────────
+
+export const FeaturesSchema = z.object({
+    dashboard: z.boolean().default(true),
+    cron: z.boolean().default(true),
+    canvas: z.boolean().default(true),
+    autoReply: z.boolean().default(true),
+    webSearch: z.boolean().default(false),
+}).default({ dashboard: true, cron: true, canvas: true, autoReply: true, webSearch: false });
+
+// ── Logging Config ───────────────────────────────────────────────────────
+
+export const LoggingSchema = z.object({
+    level: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
+    format: z.enum(['text', 'json']).default('text'),
+}).default({ level: 'info', format: 'text' });
+
+// ── Memory Config ─────────────────────────────────────────────────────────────
+
+export const MemoryRagSchema = z.object({
+    enabled: z.boolean().default(false),
+    engine: z.enum(['local', 'ollama', 'openai', 'gemini', 'voyage', 'mistral', 'auto']).default('local'),
+    apiKey: z.string().optional(),
+    maxDocuments: z.number().int().min(100).max(1_000_000).default(10_000),
+}).default({ enabled: false, engine: 'local', maxDocuments: 10_000 });
+
+export const MemorySchema = z.object({
+    /** Directory for JSONL transcripts (default: ~/.coreblow/sessions/) */
+    transcriptDir: z.string().default('~/.coreblow/sessions'),
+    /** Max messages to retrieve for context */
+    defaultRetrievalCount: z.number().int().min(1).max(200).default(20),
+    /** Max file size before auto-compaction (bytes) */
+    maxFileSizeBytes: z.number().int().min(1024).default(512 * 1024),
+    /** Compaction strategy */
+    compactionStrategy: z.enum(['truncate', 'summarize']).default('truncate'),
+    /** RAG settings (optional — default OFF for self-host) */
+    rag: MemoryRagSchema,
+}).default({
+    transcriptDir: '~/.coreblow/sessions',
+    defaultRetrievalCount: 20,
+    maxFileSizeBytes: 512 * 1024,
+    compactionStrategy: 'truncate',
+    rag: { enabled: false, engine: 'local', maxDocuments: 10_000 },
+});
+
+// ── Root Schema ──────────────────────────────────────────────────────────
+
+export const CoreBlowConfigSchema = z.object({
+    version: z.string().default('1.0'),
+    gateway: GatewaySchema,
+    agents: AgentsSchema,
+    sandbox: SandboxSchema,
+    tools: ToolsSchema,
+    channels: ChannelsSchema,
+    models: ModelsSchema,
+    features: FeaturesSchema,
+    logging: LoggingSchema,
+    memory: MemorySchema,
+});
+
+export type ValidatedCoreBlowConfig = z.infer<typeof CoreBlowConfigSchema>;
+
+// ── Validation Helpers ───────────────────────────────────────────────────
+
+/**
+ * Validate and return a fully-defaulted config, or throw with formatted errors.
+ */
+export function validateConfig(raw: unknown): ValidatedCoreBlowConfig {
+    return CoreBlowConfigSchema.parse(raw);
+}
+
+/**
+ * Safe validation — returns result + errors without throwing.
+ */
+export function safeValidateConfig(raw: unknown): {
+    success: boolean;
+    data?: ValidatedCoreBlowConfig;
+    errors?: string[];
+} {
+    const result = CoreBlowConfigSchema.safeParse(raw);
+    if (result.success) {
+        return { success: true, data: result.data };
+    }
+    const errors = result.error.issues.map(
+        (issue) => `${issue.path.join('.')}: ${issue.message}`,
+    );
+    return { success: false, errors };
+}
+
+/**
+ * Merge partial config into defaults (for config patching).
+ */
+export function mergeWithDefaults(partial: Record<string, unknown>): ValidatedCoreBlowConfig {
+    return CoreBlowConfigSchema.parse(partial);
+}

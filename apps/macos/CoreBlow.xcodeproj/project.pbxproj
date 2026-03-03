@@ -1,0 +1,2 @@
+// Xcode project - managed by Xcode
+// CoreBlow macOS Application

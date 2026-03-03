@@ -1,0 +1,17 @@
+{
+  "name": "shared",
+  "version": "0.1.0",
+  "description": "Shared extension",
+  "main": "index.ts",
+  "permissions": [
+    "messages.read",
+    "messages.write"
+  ],
+  "channels": [
+    "shared"
+  ],
+  "hooks": [
+    "onMessage",
+    "onCommand"
+  ]
+}

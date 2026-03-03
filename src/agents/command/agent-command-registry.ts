@@ -1,0 +1,1 @@
+/** CoreBlow — Agent Command Registry */ const commands = new Map<string, Function>(); export function registerAgentCommand(name: string, handler: Function): void { commands.set(name, handler); } export function getAgentCommand(name: string): Function | undefined { return commands.get(name); }

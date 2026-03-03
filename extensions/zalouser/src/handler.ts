@@ -1,0 +1,19 @@
+// @ts-nocheck
+/**
+ * Zalouser Message Handler
+ */
+import type { ZalouserMessage } from './types.js';
+
+export class ZalouserHandler {
+  async onMessage(message: ZalouserMessage) {
+    return { processed: true };
+  }
+
+  async onCommand(command: string, args: string[]) {
+    return { command, args, handled: true };
+  }
+
+  async onReaction(messageId: string, emoji: string) {
+    return { messageId, emoji, handled: true };
+  }
+}

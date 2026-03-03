@@ -1,0 +1,92 @@
+# CoreBlow Gateway — CI/CD Pipeline
+# Runs the full test suite on every push and PR
+# Updated: 2026-04-24 — Single source tree (gateway/ removed)
+
+name: Gateway CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths: ['src/**', 'extensions/**', 'packages/**']
+  pull_request:
+    branches: [main]
+    paths: ['src/**', 'extensions/**', 'packages/**']
+
+jobs:
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      matrix:
+        node-version: [20, 22]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run gateway tests
+        run: pnpm test:gateway
+        env:
+          CI: true
+
+      - name: Type check
+        run: pnpm typecheck
+
+      - name: Build declarations
+        run: npx tsc -p tsconfig.build.json
+
+  lint:
+    name: Lint & Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+        continue-on-error: true
+
+      - name: Check for @ts-nocheck
+        run: |
+          count=$(grep -rl "@ts-nocheck" src --include="*.ts" | grep -v test | grep -v node_modules | wc -l)
+          echo "Found $count @ts-nocheck files in source"
+          if [ "$count" -gt 0 ]; then
+            echo "::error::@ts-nocheck found in $count source files. Must be 0."
+            exit 1
+          fi
+
+      - name: Check for empty files
+        run: |
+          count=$(find src -name "*.ts" -empty | wc -l)
+          echo "Found $count empty .ts files"
+          if [ "$count" -gt 0 ]; then
+            echo "::error::Found $count empty .ts files"
+            exit 1
+          fi

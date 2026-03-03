@@ -1,0 +1,17 @@
+{
+  "name": "irc",
+  "version": "0.1.0",
+  "description": "Irc extension",
+  "main": "index.ts",
+  "permissions": [
+    "messages.read",
+    "messages.write"
+  ],
+  "channels": [
+    "irc"
+  ],
+  "hooks": [
+    "onMessage",
+    "onCommand"
+  ]
+}

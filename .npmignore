@@ -1,0 +1,50 @@
+# Dev-only directories
+test/
+tests/
+scripts/
+docs/
+patches/
+dist/
+git-hooks/
+
+# Test files in src/
+src/**/*.test.*
+src/**/*.spec.*
+src/**/*.test-support.*
+
+# Dev config files
+vitest.*.config.ts
+vitest.*.mjs
+vitest.pattern-file.ts
+vitest.scoped-config.ts
+vitest.performance-config.ts
+knip.config.ts
+vite.config.js
+.jscpd.json
+.oxlintrc.json
+.pre-commit-config.yaml
+pyproject.toml
+
+# Infrastructure configs
+docker-compose.yml
+fly.toml
+render.yaml
+pnpm-workspace.yaml
+pnpm-lock.yaml
+Dockerfile
+
+# Audit / analysis outputs
+audit-parity-full.json
+audit-parity-results.json
+seam-inventory.json
+
+# Analysis documents
+CODEBASE_ANALYSIS.md
+CODEBASE_DETOX_REPORT.md
+PHASE1_INVESTIGATION_RESULTS.md
+VISION.md
+
+# Git / CI
+.github/
+.husky/
+.git/

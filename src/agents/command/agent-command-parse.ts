@@ -1,0 +1,1 @@
+/** CoreBlow — Agent Command Parse */ export function parseAgentCommand(input: string): { command: string; args: string[] } | null { const parts = input.trim().split(/\s+/); if (parts.length === 0) return null; return { command: parts[0], args: parts.slice(1) }; }

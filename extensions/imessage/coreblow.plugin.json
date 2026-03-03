@@ -1,0 +1,17 @@
+{
+  "name": "imessage",
+  "version": "0.1.0",
+  "description": "Imessage extension",
+  "main": "index.ts",
+  "permissions": [
+    "messages.read",
+    "messages.write"
+  ],
+  "channels": [
+    "imessage"
+  ],
+  "hooks": [
+    "onMessage",
+    "onCommand"
+  ]
+}

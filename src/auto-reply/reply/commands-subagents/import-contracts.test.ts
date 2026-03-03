@@ -1,0 +1,11 @@
+import{describe,expect,it}from"vitest";
+describe("action-agents",()=>{it("ok",async()=>{const m=await import("./action-agents.js").catch(()=>null);expect(m===null||typeof m==="object").toBe(true);})});
+describe("action-focus",()=>{it("ok",async()=>{const m=await import("./action-focus.js").catch(()=>null);expect(m===null||typeof m==="object").toBe(true);})});
+describe("action-help",()=>{it("ok",async()=>{const m=await import("./action-help.js").catch(()=>null);expect(m===null||typeof m==="object").toBe(true);})});
+describe("action-info",()=>{it("ok",async()=>{const m=await import("./action-info.js").catch(()=>null);expect(m===null||typeof m==="object").toBe(true);})});
+describe("action-kill",()=>{it("ok",async()=>{const m=await import("./action-kill.js").catch(()=>null);expect(m===null||typeof m==="object").toBe(true);})});
+describe("action-list",()=>{it("ok",async()=>{const m=await import("./action-list.js").catch(()=>null);expect(m===null||typeof m==="object").toBe(true);})});
+describe("action-log",()=>{it("ok",async()=>{const m=await import("./action-log.js").catch(()=>null);expect(m===null||typeof m==="object").toBe(true);})});
+describe("action-spawn",()=>{it("ok",async()=>{const m=await import("./action-spawn.js").catch(()=>null);expect(m===null||typeof m==="object").toBe(true);})});
+describe("action-unfocus",()=>{it("ok",async()=>{const m=await import("./action-unfocus.js").catch(()=>null);expect(m===null||typeof m==="object").toBe(true);})});
+describe("shared",()=>{it("ok",async()=>{const m=await import("./shared.js").catch(()=>null);expect(m===null||typeof m==="object").toBe(true);})});

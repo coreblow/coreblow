@@ -1,0 +1,1 @@
+export function createInfraLogger(name: string) { return { info: (...args: unknown[]) => {}, error: (...args: unknown[]) => {}, warn: (...args: unknown[]) => {}, debug: (...args: unknown[]) => {} }; }

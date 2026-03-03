@@ -1,0 +1,17 @@
+{
+  "name": "talk-voice",
+  "version": "0.1.0",
+  "description": "Talk Voice extension",
+  "main": "index.ts",
+  "permissions": [
+    "messages.read",
+    "messages.write"
+  ],
+  "channels": [
+    "talk"
+  ],
+  "hooks": [
+    "onMessage",
+    "onCommand"
+  ]
+}

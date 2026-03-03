@@ -1,0 +1,19 @@
+// @ts-nocheck
+/**
+ * Irc Message Handler
+ */
+import type { IrcMessage } from './types.js';
+
+export class IrcHandler {
+  async onMessage(message: IrcMessage) {
+    return { processed: true };
+  }
+
+  async onCommand(command: string, args: string[]) {
+    return { command, args, handled: true };
+  }
+
+  async onReaction(messageId: string, emoji: string) {
+    return { messageId, emoji, handled: true };
+  }
+}

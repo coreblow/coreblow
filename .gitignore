@@ -1,0 +1,54 @@
+node_modules/
+dist/
+.wrangler/
+.DS_Store
+*.log
+.env
+.env.local
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Build artifacts
+coverage/
+.build/
+.artifacts/
+*.tsbuildinfo
+
+# Legacy / removed directories
+gateway/
+discord-plugin/
+full-plugin/
+my-plugin/
+my-tool-plugin/
+named-plugin/
+__coreblow_vitest__/
+test-fixtures/
+test/
+tests/
+
+# Audit artifacts
+audit-parity-full.json
+audit-parity-results.json
+seam-inventory.json
+CODEBASE_ANALYSIS.md
+CODEBASE_DETOX_REPORT.md
+PHASE1_INVESTIGATION_RESULTS.md
+.gateway.env
+
+# Secrets baseline is TRACKED intentionally
+# .secrets.baseline
+
+# Internal planning docs
+aigateway-plan3-integrations.md
+coreblow-implementation-plan.md
+ultra-skills-plan-v2.md
+super-scraper-plan-v2.md
+implementation_plan.md
+package.json.web-backup
+
+# CI workflow (if generated)
+.github/workflows/ci.yml
+.tmp.driveupload/

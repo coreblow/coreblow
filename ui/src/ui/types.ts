@@ -1,0 +1,18 @@
+export type Tab =
+  | "chat"
+  | "overview"
+  | "channels"
+  | "instances"
+  | "sessions"
+  | "usage"
+  | "cron"
+  | "skills"
+  | "nodes"
+  | "config"
+  | "communications"
+  | "appearance"
+  | "automation"
+  | "infrastructure"
+  | "aiAgents"
+  | "debug"
+  | "logs";

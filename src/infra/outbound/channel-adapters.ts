@@ -1,0 +1,49 @@
+import { getChannelPlugin } from "../../channels/plugins/index.js";
+import type { ChannelId, ChannelStructuredComponents } from "../../channels/plugins/types.js";
+import type { CoreBlowConfig } from "../../config/config.js";
+
+export type CrossContextComponentsBuilder = (message: string) => ChannelStructuredComponents;
+
+export type CrossContextComponentsFactory = (params: {
+  originLabel: string;
+  message: string;
+  cfg: CoreBlowConfig;
+  accountId?: string | null;
+}) => ChannelStructuredComponents;
+
+export type ChannelMessageAdapter = {
+  supportsComponentsV2: boolean;
+  buildCrossContextComponents?: CrossContextComponentsFactory;
+};
+
+const DEFAULT_ADAPTER: ChannelMessageAdapter = {
+  supportsComponentsV2: false,
+};
+
+export function getChannelMessageAdapter(channel: ChannelId): ChannelMessageAdapter {
+  const adapter = getChannelPlugin(channel)?.messaging?.buildCrossContextComponents;
+  if (adapter) {
+    return {
+      supportsComponentsV2: true,
+      buildCrossContextComponents: adapter,
+    };
+  }
+  return DEFAULT_ADAPTER;
+}
+
+// ---------------------------------------------------------------------------
+// ChannelAdapterService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createStandaloneSingleton } from "../service-patterns.js";
+export class ChannelAdapterService {
+  getChannelMessageAdapter(channel: ChannelId) {
+    return getChannelMessageAdapter(channel);
+  }
+}
+
+
+const { getInstance: getChannelAdapterService, __testing: __testing_channelAdapter } =
+  createStandaloneSingleton({ create: () => new ChannelAdapterService(), defaultDeps: {} });
+
+export { getChannelAdapterService, __testing_channelAdapter };

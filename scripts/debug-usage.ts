@@ -1,0 +1,1 @@
+export function debugUsage(model: string) { console.log(`Debug usage for ${model}`); return { model, requests: 0, tokens: 0, cost: 0 }; }

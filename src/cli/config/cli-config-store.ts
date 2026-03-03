@@ -1,0 +1,4 @@
+/**
+ * cli/config/cli-config-store.ts
+ */
+import fs from 'node:fs'; export class CLIConfigStore { private path: string; constructor(p: string) { this.path = p; } save(config: unknown) { fs.writeFileSync(this.path, JSON.stringify(config, null, 2)); } load() { try { return JSON.parse(fs.readFileSync(this.path, 'utf-8')); } catch { return {}; } } }

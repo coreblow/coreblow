@@ -1,0 +1,17 @@
+{
+  "name": "google-gemini-cli-auth",
+  "version": "0.1.0",
+  "description": "Google Gemini Cli Auth extension",
+  "main": "index.ts",
+  "permissions": [
+    "messages.read",
+    "messages.write"
+  ],
+  "channels": [
+    "google"
+  ],
+  "hooks": [
+    "onMessage",
+    "onCommand"
+  ]
+}

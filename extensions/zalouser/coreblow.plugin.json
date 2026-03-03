@@ -1,0 +1,17 @@
+{
+  "name": "zalouser",
+  "version": "0.1.0",
+  "description": "Zalouser extension",
+  "main": "index.ts",
+  "permissions": [
+    "messages.read",
+    "messages.write"
+  ],
+  "channels": [
+    "zalouser"
+  ],
+  "hooks": [
+    "onMessage",
+    "onCommand"
+  ]
+}

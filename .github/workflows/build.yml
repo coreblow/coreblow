@@ -1,0 +1,46 @@
+# CoreBlow — Build Check
+# Validates TypeScript compilation and declaration output
+# Updated: 2026-04-24 — Single source tree (gateway/ removed)
+
+name: CI — Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Build declarations
+        run: npx tsc -p tsconfig.build.json
+
+      - name: Verify dist output
+        run: |
+          count=$(find dist -name "*.d.ts" | wc -l)
+          echo "Generated $count .d.ts files"
+          if [ "$count" -lt 1000 ]; then
+            echo "::error::Expected 1000+ .d.ts files, got $count"
+            exit 1
+          fi
+          echo "✅ Build check passed"
