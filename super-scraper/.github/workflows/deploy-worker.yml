@@ -1,0 +1,42 @@
+name: Deploy Worker
+on:
+  push:
+    branches: [main]
+    paths:
+      - "super-scraper/worker/**"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Wrangler
+        run: npm install -g wrangler
+
+      - name: Deploy Worker
+        working-directory: super-scraper/worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: wrangler deploy
+
+      - name: Verify deployment
+        env:
+          WORKER_URL: ${{ secrets.WORKER_URL }}
+        run: |
+          sleep 5
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$WORKER_URL/api/health")
+          echo "Health check: HTTP $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "❌ Deployment verification failed"
+            exit 1
+          fi
+          echo "✅ Worker deployed and healthy"

@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import Targets from './pages/Targets';
 import Jobs from './pages/Jobs';
 import Data from './pages/Data';
+import Settings from './pages/Settings';
 
 export default function App() {
     const [authed, setAuthed] = useState(isAuthenticated());
@@ -23,6 +24,7 @@ export default function App() {
                     <Route path="/targets" element={<Targets />} />
                     <Route path="/jobs" element={<Jobs />} />
                     <Route path="/data" element={<Data />} />
+                    <Route path="/settings" element={<Settings />} />
                     <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
             </Layout>
