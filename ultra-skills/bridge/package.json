@@ -1,0 +1,16 @@
+{
+    "name": "@coreblow/scraper-bridge",
+    "version": "1.0.0",
+    "description": "Node.js bridge for Ultra Skills v2 Python engine",
+    "main": "index.js",
+    "scripts": {
+        "test": "node test.js"
+    },
+    "keywords": [
+        "scraper",
+        "bridge",
+        "playwright",
+        "coreblow"
+    ],
+    "license": "SEE LICENSE IN ../../LICENSE"
+}
