@@ -44,4 +44,7 @@ class Config:
             "timeout": self.timeout,
             "max_retries": self.max_retries,
             "proxy_urls": self.proxy_urls,
+            "telegram_token": self.telegram_token,
+            "telegram_chat_id": self.telegram_chat_id,
+            "discord_webhook": self.discord_webhook,
         }

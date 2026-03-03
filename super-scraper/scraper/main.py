@@ -18,7 +18,9 @@ import requests
 from datetime import datetime
 
 from engine import ScraperEngine
+from change_detector import ChangeDetector
 from config import Config
+from utils.notifier import Notifier
 from utils.logger import logger
 
 
@@ -72,22 +74,30 @@ def main():
         for job_data in pending:
             target = {
                 "id": job_data.get("target_id"),
+                "name": job_data.get("target_name", ""),
                 "url": job_data.get("target_url") or job_data.get("url"),
                 "selectors": job_data.get("selectors", "{}"),
                 "selector_type": job_data.get("selector_type", "css"),
+                "pagination_config": job_data.get("pagination_config"),
                 "proxy_required": job_data.get("proxy_required", 0),
                 "screenshot_enabled": job_data.get("screenshot_enabled", 0),
                 "headers": job_data.get("headers", "{}"),
                 "cookies": job_data.get("cookies", "[]"),
                 "wait_for_selector": job_data.get("wait_for_selector"),
+                "notification_channels": job_data.get("notification_channels"),
+                "notify_on_change_only": job_data.get("notify_on_change_only", 0),
+                "webhook_url": job_data.get("webhook_url"),
             }
-            run_scrape(engine, api, target, job_data, dry_run=args.dry_run)
+
+            notifier = Notifier(config.to_dict())
+            run_scrape(engine, api, target, job_data, notifier=notifier, dry_run=args.dry_run)
 
 
-def run_scrape(engine, api, target, job, dry_run=False):
-    """Execute a single scrape job."""
+def run_scrape(engine, api, target, job, notifier=None, dry_run=False):
+    """Execute a single scrape job with change detection and notifications."""
     job_id = job.get("id")
     started_at = datetime.utcnow().isoformat()
+    detector = ChangeDetector()
 
     # Update job status to running
     if not dry_run and job_id:
@@ -101,15 +111,51 @@ def run_scrape(engine, api, target, job, dry_run=False):
 
         for result in results:
             if result.get("status") == "success":
+                changes = None
+
                 # Check for changes vs previous scrape
                 if not dry_run:
                     previous = api.get_latest_data(target.get("id"))
                     if previous:
                         result["previous_hash"] = previous.get("content_hash")
-                        result["has_changes"] = result["content_hash"] != previous.get("content_hash")
+                        result["has_changes"] = detector.has_changed(
+                            result["content_hash"], previous.get("content_hash")
+                        )
+                        if result["has_changes"]:
+                            changes = detector.get_diff(
+                                previous.get("extracted_data"),
+                                result.get("extracted_data")
+                            )
+                            logger.info(f"🔔 Changes detected for {target['url']}!")
 
                     # Store result
                     api.store_data(result)
+
+                # Send notification
+                if notifier and not dry_run:
+                    notify_change_only = target.get("notify_on_change_only", 0)
+                    should_notify = (not notify_change_only) or (result.get("has_changes"))
+
+                    if should_notify:
+                        channels = target.get("notification_channels")
+                        if isinstance(channels, str):
+                            try:
+                                channels = json.loads(channels)
+                            except Exception:
+                                channels = ["telegram"]
+
+                        message = notifier.format_scrape_notification(
+                            target.get("name", target["url"]),
+                            target["url"],
+                            result["status"],
+                            result.get("extracted_data"),
+                            changes,
+                        )
+                        notifier.notify(message, channels=channels, data={
+                            "url": target["url"],
+                            "status": result["status"],
+                            "webhook_url": target.get("webhook_url"),
+                        })
 
                 logger.info(f"✅ Success: {target['url']} ({duration_ms}ms)")
             else:
