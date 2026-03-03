@@ -5,3 +5,13 @@ dist/
 *.log
 .env
 .env.local
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Internal planning docs (Indonesian)
+aigateway-plan3-integrations.md
+openclaw-implementation-plan.md
+super-scraper-plan-v2.md
