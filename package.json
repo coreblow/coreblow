@@ -1,5 +1,5 @@
 {
-    "name": "@dnda/openflow",
+    "name": "@coreblow/coreblow",
     "version": "1.0.0",
     "private": true,
     "type": "module",
