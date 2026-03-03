@@ -2,8 +2,8 @@
 """
 scraper/engine.py
 Ultra Skills — Core Scraping Engine
-CoreBlow Plan 1 · Production-Grade · Playwright + Stealth + Retry
-Fase 3: + Proxy Rotation, Pagination, Change Detection
+CoreBlow · Production-Grade · Playwright + Stealth + Retry
+Features: Proxy Rotation, Pagination, Change Detection
 """
 
 import os
