@@ -5,11 +5,12 @@ compatibility_date = "2024-01-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "super-scraper-db"
-database_id = "YOUR_DATABASE_ID_HERE"
+database_id = "5acf1e08-1366-4299-bd80-bdb6c336dcc9"
 
-[[r2_buckets]]
-binding = "STORAGE"
-bucket_name = "super-scraper-storage"
+# R2 Storage (enable in Cloudflare Dashboard first, then uncomment)
+# [[r2_buckets]]
+# binding = "STORAGE"
+# bucket_name = "super-scraper-storage"
 
 [vars]
 ENVIRONMENT = "production"

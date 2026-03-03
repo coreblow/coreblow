@@ -39,6 +39,8 @@ class ScraperEngine:
         results = []
         proxy = target.get("proxy") if target.get("proxy_required") else None
 
+        user_agent = self._random_ua()
+
         with sync_playwright() as p:
             browser = p.chromium.launch(
                 headless=True,
@@ -52,7 +54,7 @@ class ScraperEngine:
             )
 
             context = browser.new_context(
-                user_agent=self._random_ua(),
+                user_agent=user_agent,
                 viewport={"width": 1920, "height": 1080},
                 locale="en-US",
                 timezone_id="America/New_York",
@@ -121,7 +123,7 @@ class ScraperEngine:
                     "metadata": {
                         "status_code": response.status,
                         "scraped_at": datetime.utcnow().isoformat(),
-                        "user_agent": context._options.get("user_agent", ""),
+                        "user_agent": user_agent,
                         "proxy_used": proxy,
                         "duration_ms": int(time.time() * 1000) % 100000,
                     },
