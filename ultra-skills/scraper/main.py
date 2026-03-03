@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 scraper/main.py
-Ultra Skills v2 — Main Entry Point
+Ultra Skills — Main Entry Point
 Reads targets from Worker API → Scrapes → Posts results back
 
 Usage:
@@ -25,7 +25,7 @@ from utils.logger import logger
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Ultra Skills v2 — CoreBlow")
+    parser = argparse.ArgumentParser(description="Ultra Skills — CoreBlow")
     parser.add_argument("--target-id", type=int, help="Scrape specific target by ID")
     parser.add_argument("--url", type=str, help="Quick scrape a URL")
     parser.add_argument("--selectors", type=str, help="JSON selectors for --url mode")

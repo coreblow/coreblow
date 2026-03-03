@@ -1,4 +1,4 @@
-# Ultra Skills v2 — Setup Guide
+# Ultra Skills — Setup Guide
 
 ## Prerequisites
 

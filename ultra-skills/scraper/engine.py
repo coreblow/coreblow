@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 scraper/engine.py
-Ultra Skills v2 — Core Scraping Engine
+Ultra Skills — Core Scraping Engine
 CoreBlow Plan 1 · Production-Grade · Playwright + Stealth + Retry
 Fase 3: + Proxy Rotation, Pagination, Change Detection
 """

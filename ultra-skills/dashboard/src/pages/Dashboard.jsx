@@ -23,7 +23,7 @@ export default function Dashboard() {
         <div className="page">
             <div className="page-header">
                 <h1>Dashboard</h1>
-                <p>Ultra Skills v2.0 — CoreBlow</p>
+                <p>Ultra Skills — CoreBlow</p>
             </div>
 
             <div className="stats-grid">

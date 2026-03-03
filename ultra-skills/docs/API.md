@@ -1,4 +1,4 @@
-# Ultra Skills v2 — API Reference
+# Ultra Skills — API Reference
 
 ## Base URL
 

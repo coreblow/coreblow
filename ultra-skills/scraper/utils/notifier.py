@@ -118,5 +118,5 @@ class Notifier:
                 for k, v in list(changes.items())[:3]:
                     lines.append(f"  • {k}: `{str(v.get('new', ''))[:50]}`")
 
-        lines.append(f"\n_CoreBlow Ultra Skills v2_")
+        lines.append(f"\n_CoreBlow Ultra Skills_")
         return "\n".join(lines)

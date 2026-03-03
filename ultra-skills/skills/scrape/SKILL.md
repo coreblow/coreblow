@@ -1,6 +1,6 @@
 ---
 name: scrape
-description: Web scraping and data extraction tool powered by Ultra Skills v2
+description: Web scraping and data extraction tool powered by Ultra Skills
 version: 2.0.0
 author: CoreBlow
 category: bundled

@@ -1,4 +1,4 @@
-# 🕷️ Ultra Skills v2.0
+# 🕷️ Ultra Skills
 
 ### Production-Grade Web Scraping Engine by CoreBlow
 

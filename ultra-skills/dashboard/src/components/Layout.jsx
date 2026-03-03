@@ -7,7 +7,7 @@ export default function Layout({ children, onLogout }) {
                 <div className="sidebar-brand">
                     <span className="brand-icon">🕷️</span>
                     <span className="brand-text">Ultra Skills</span>
-                    <span className="brand-badge">v2</span>
+                    
                 </div>
 
                 <nav className="sidebar-nav">

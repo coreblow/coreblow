@@ -1,4 +1,4 @@
-# Ultra Skills v2 — Dashboard Guide
+# Ultra Skills — Dashboard Guide
 
 ## Overview
 

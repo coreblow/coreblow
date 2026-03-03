@@ -1,5 +1,5 @@
 // worker/src/index.js
-// Ultra Skills v2 — Cloudflare Worker API Gateway
+// Ultra Skills — Cloudflare Worker API Gateway
 // CoreBlow Plan 1 · Production-Grade
 
 import { handleTargets } from './routes/targets.js';

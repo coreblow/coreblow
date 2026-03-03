@@ -55,7 +55,7 @@ export default function Login({ onLogin }) {
                     </button>
                 </form>
                 <div className="login-footer">
-                    <span>CoreBlow · Ultra Skills v2.0</span>
+                    <span>CoreBlow · Ultra Skills</span>
                 </div>
             </div>
         </div>

@@ -1,4 +1,4 @@
-# Contributing to Ultra Skills v2
+# Contributing to Ultra Skills
 
 Thank you for your interest in contributing! Here's how you can help.
 
