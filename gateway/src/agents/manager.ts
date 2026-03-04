@@ -46,19 +46,52 @@ export class AgentManager {
     }
 
     /**
-     * Get the configured provider
+     * Get the configured provider with automatic fallback chain
+     * Order: configured → ollama → openai → anthropic → openrouter
      */
     getProvider(name?: string): AIProvider {
         const providerName = name || getConfig().agent.provider;
         const provider = this.providers.get(providerName);
 
-        if (!provider) {
-            // Fallback to Ollama
-            log.warn({ requested: providerName }, 'Provider not configured, falling back to Ollama');
-            return this.providers.get('ollama') || new OllamaProvider();
+        if (provider) return provider;
+
+        // Fallback chain
+        const fallbackOrder = ['ollama', 'openai', 'anthropic', 'openrouter'];
+        for (const fallback of fallbackOrder) {
+            if (fallback === providerName) continue; // already tried
+            const fb = this.providers.get(fallback);
+            if (fb) {
+                log.warn({ requested: providerName, fallback }, 'Provider unavailable, falling back');
+                return fb;
+            }
         }
 
-        return provider;
+        log.error('No providers available at all');
+        return new OllamaProvider(); // absolute last resort
+    }
+
+    /**
+     * Get provider with availability check (async fallback)
+     */
+    async getAvailableProvider(name?: string): Promise<AIProvider> {
+        const providerName = name || getConfig().agent.provider;
+        const primary = this.providers.get(providerName);
+
+        if (primary && await primary.isAvailable()) return primary;
+
+        // Try fallback chain with availability check
+        const fallbackOrder = ['ollama', 'openai', 'anthropic', 'openrouter'];
+        for (const fallback of fallbackOrder) {
+            if (fallback === providerName) continue;
+            const fb = this.providers.get(fallback);
+            if (fb && await fb.isAvailable()) {
+                log.warn({ requested: providerName, fallback }, 'Primary down, using fallback');
+                return fb;
+            }
+        }
+
+        log.error('All providers unavailable, using default Ollama');
+        return this.providers.get('ollama') || new OllamaProvider();
     }
 
     /**

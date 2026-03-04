@@ -4,6 +4,7 @@
  */
 
 import http from 'node:http';
+import path from 'node:path';
 import express from 'express';
 import cors from 'cors';
 import { WebSocketServer, WebSocket } from 'ws';
@@ -201,15 +202,15 @@ export class GatewayServer {
         toolRegistry.register(webFetchTool);
         toolRegistry.register(cronTool);
 
-        // Try to register optional tools
-        try {
-            const { webSearchTool } = await import('../tools/web_search.js');
-            toolRegistry.register(webSearchTool);
-        } catch { /* optional */ }
-        try {
-            const { imageTool } = await import('../tools/image.js');
-            toolRegistry.register(imageTool);
-        } catch { /* optional */ }
+        // Register optional tools (may fail if deps missing)
+        try { const { webSearchTool } = await import('../tools/web_search.js'); toolRegistry.register(webSearchTool); } catch { /* optional */ }
+        try { const { imageTool } = await import('../tools/image.js'); toolRegistry.register(imageTool); } catch { /* optional */ }
+        try { const { canvasTool } = await import('../tools/canvas.js'); toolRegistry.register(canvasTool); } catch { /* optional */ }
+        try { const { nodesTool } = await import('../tools/nodes.js'); toolRegistry.register(nodesTool); } catch { /* optional */ }
+
+        // Serve canvas files
+        const canvasDir = path.join(homeDir, 'canvas');
+        this.app.use('/canvas', express.static(canvasDir));
 
         // Create agent turn loop
         const turn = new AgentTurn(agentManager, this.router);
