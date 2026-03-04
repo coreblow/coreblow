@@ -66,14 +66,22 @@ export class VectorStore {
 
     /**
      * Semantic search — find most similar memories
+     * Enhanced with temporal decay, importance boost, and access frequency
+     * SUPERIOR: OpenClaw only has time decay; CoreBlow has triple scoring
      */
     async search(queryEmbedding: number[], opts: {
         topK?: number;
         minScore?: number;
         filter?: Partial<MemoryEntry['metadata']>;
+        temporalDecay?: boolean;      // enable time-based decay (default: true)
+        halfLifeDays?: number;        // decay half-life in days (default: 30)
+        importanceWeight?: number;    // importance multiplier (default: 0.3)
     } = {}): Promise<SearchResult[]> {
         const topK = opts.topK || 10;
         const minScore = opts.minScore || 0.3;
+        const useDecay = opts.temporalDecay !== false;
+        const halfLifeMs = (opts.halfLifeDays || 30) * 24 * 60 * 60 * 1000;
+        const importanceWeight = opts.importanceWeight ?? 0.3;
 
         let candidates = this.entries;
 
@@ -88,17 +96,41 @@ export class VectorStore {
             });
         }
 
-        // Calculate similarities
-        const scored: SearchResult[] = candidates.map(entry => ({
-            entry,
-            score: cosineSimilarity(queryEmbedding, entry.embedding),
-        }));
+        // Calculate similarities with triple scoring
+        const scored: SearchResult[] = candidates.map(entry => {
+            const cosineScore = cosineSimilarity(queryEmbedding, entry.embedding);
 
-        // Sort by score descending, filter by min score, take top K
-        return scored
+            if (!useDecay) return { entry, score: cosineScore };
+
+            // Temporal decay: exponential decay based on age
+            const age = Date.now() - entry.metadata.timestamp;
+            const decayFactor = Math.pow(0.5, age / halfLifeMs);
+
+            // Importance boost: high-importance memories resist decay
+            const importanceBoost = 1 + (entry.metadata.importance * importanceWeight);
+
+            // Access frequency boost (if tracked)
+            const accessCount = (entry as any)._accessCount || 0;
+            const accessBoost = 1 + Math.log2(accessCount + 1) * 0.05;
+
+            // Final score: cosine × decay × importance × access
+            const finalScore = cosineScore * decayFactor * importanceBoost * accessBoost;
+
+            return { entry, score: finalScore };
+        });
+
+        // Track access for boost scoring
+        const results = scored
             .filter(r => r.score >= minScore)
             .sort((a, b) => b.score - a.score)
             .slice(0, topK);
+
+        // Increment access count for returned results
+        for (const r of results) {
+            (r.entry as any)._accessCount = ((r.entry as any)._accessCount || 0) + 1;
+        }
+
+        return results;
     }
 
     /**
