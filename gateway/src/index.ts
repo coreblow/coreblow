@@ -7,6 +7,8 @@
 import { Command } from 'commander';
 import { gatewayCommand } from './cli/gateway.js';
 import { doctorCommand } from './cli/doctor.js';
+import { onboardCommand } from './cli/onboard.js';
+import { configureCommand } from './cli/configure.js';
 
 const program = new Command();
 
@@ -31,6 +33,21 @@ program
     });
 
 program
+    .command('onboard')
+    .description('Interactive first-time setup wizard')
+    .action(async () => {
+        await onboardCommand();
+    });
+
+program
+    .command('configure')
+    .description('Edit config interactively')
+    .argument('[section]', 'provider | channels | port')
+    .action(async (section?: string) => {
+        await configureCommand(section);
+    });
+
+program
     .command('start')
     .description('Shortcut for: coreblow gateway start')
     .action(async () => {
@@ -38,3 +55,4 @@ program
     });
 
 program.parse();
+
