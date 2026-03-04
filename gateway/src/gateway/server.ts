@@ -129,6 +129,54 @@ export class GatewayServer {
             log.info('Config reloaded');
         });
 
+        // Initialize agent system
+        const { AgentManager } = await import('../agents/manager.js');
+        const { AgentTurn } = await import('../agents/turn.js');
+        const { ToolRegistry } = await import('../tools/registry.js');
+        const { execTool } = await import('../tools/exec.js');
+        const { webFetchTool } = await import('../tools/web_fetch.js');
+        const { cronTool } = await import('../tools/cron.js');
+
+        const agentManager = new AgentManager();
+        await agentManager.init();
+
+        // Register tools
+        const toolRegistry = new ToolRegistry();
+        toolRegistry.register(execTool);
+        toolRegistry.register(webFetchTool);
+        toolRegistry.register(cronTool);
+
+        // Try to register optional tools
+        try {
+            const { webSearchTool } = await import('../tools/web_search.js');
+            toolRegistry.register(webSearchTool);
+        } catch { /* optional */ }
+        try {
+            const { imageTool } = await import('../tools/image.js');
+            toolRegistry.register(imageTool);
+        } catch { /* optional */ }
+
+        // Create agent turn loop
+        const turn = new AgentTurn(agentManager, this.router);
+        turn.setToolExecutor((name, args) => toolRegistry.execute(name, args));
+
+        // Connect router to turn loop
+        this.router.onMessage(async (inbound) => {
+            await turn.runTurn(inbound);
+        });
+
+        // Start channels
+        if (config.channels.telegram?.token) {
+            try {
+                const { TelegramChannel } = await import('../channels/telegram.js');
+                const telegram = new TelegramChannel(config.channels.telegram.token);
+                await telegram.start(this.router);
+                log.info('📱 Telegram channel started');
+            } catch (err: any) {
+                log.error({ err: err.message }, 'Failed to start Telegram');
+            }
+        }
+
         return new Promise<void>((resolve) => {
             this.server.listen(config.port, config.host, () => {
                 log.info(
