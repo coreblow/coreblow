@@ -10,6 +10,9 @@ import { doctorCommand } from './cli/doctor.js';
 import { onboardCommand } from './cli/onboard.js';
 import { configureCommand } from './cli/configure.js';
 import { pairCommand } from './cli/pair.js';
+import { channelsCommand } from './cli/channels.js';
+import { logsCommand } from './cli/logs.js';
+import { platformCommand } from './cli/platform.js';
 
 const program = new Command();
 
@@ -57,6 +60,31 @@ program
     });
 
 program
+    .command('channels')
+    .description('View and test channel connections')
+    .argument('[action]', 'list | test')
+    .action(async (action?: string) => {
+        await channelsCommand(action);
+    });
+
+program
+    .command('logs')
+    .description('View gateway logs, sessions, and audit trail')
+    .argument('[action]', 'tail | sessions | audit | clear')
+    .argument('[arg]', 'Optional argument (e.g. number of lines)')
+    .action(async (action?: string, arg?: string) => {
+        await logsCommand(action, arg);
+    });
+
+program
+    .command('platform')
+    .description('Install/manage auto-start service (LaunchAgent/systemd)')
+    .argument('[action]', 'install | uninstall | status')
+    .action(async (action?: string) => {
+        await platformCommand(action);
+    });
+
+program
     .command('start')
     .description('Shortcut for: coreblow gateway start')
     .action(async () => {
@@ -64,4 +92,3 @@ program
     });
 
 program.parse();
-
