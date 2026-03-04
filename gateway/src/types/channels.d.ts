@@ -41,10 +41,21 @@ declare module '@slack/bolt' {
 }
 
 declare module '@whiskeysockets/baileys' {
+    export default function makeWASocket(options: any): any;
     export function makeWASocket(options: any): any;
     export function useMultiFileAuthState(path: string): Promise<any>;
-    export function DisconnectReason(): any;
+    export function makeCacheableSignalKeyStore(keys: any, logger: any): any;
     export function fetchLatestBaileysVersion(): Promise<any>;
+    export const DisconnectReason: {
+        loggedOut: number;
+        connectionClosed: number;
+        connectionLost: number;
+        connectionReplaced: number;
+        timedOut: number;
+        badSession: number;
+        restartRequired: number;
+        multideviceMismatch: number;
+    };
 }
 
 declare module '@line/bot-sdk' {
