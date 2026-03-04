@@ -73,6 +73,43 @@ export class GatewayServer {
             res.json(safe);
         });
 
+        // Device pairing endpoints
+        this.app.post('/api/pair/generate', (req, res) => {
+            if (!this.checkAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
+            const { PairingManager } = require('./pairing.js');
+            const pairing = new PairingManager(getHomeDir());
+            const result = pairing.generateCode();
+            res.json(result);
+        });
+
+        this.app.post('/api/pair', (req, res) => {
+            const { code, deviceName, platform } = req.body;
+            if (!code) return res.status(400).json({ error: 'Missing pairing code' });
+            const { PairingManager } = require('./pairing.js');
+            const pairing = new PairingManager(getHomeDir());
+            const result = pairing.pair(code, deviceName || 'Remote Device', platform, req.ip);
+            if (result.success) {
+                res.json(result);
+            } else {
+                res.status(400).json(result);
+            }
+        });
+
+        this.app.get('/api/pair/devices', (req, res) => {
+            if (!this.checkAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
+            const { PairingManager } = require('./pairing.js');
+            const pairing = new PairingManager(getHomeDir());
+            res.json({ devices: pairing.listDevices() });
+        });
+
+        this.app.delete('/api/pair/:deviceId', (req, res) => {
+            if (!this.checkAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
+            const { PairingManager } = require('./pairing.js');
+            const pairing = new PairingManager(getHomeDir());
+            const revoked = pairing.revoke(req.params.deviceId);
+            res.json({ revoked });
+        });
+
         // Dashboard
         mountDashboard(this.app);
 

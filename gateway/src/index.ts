@@ -9,6 +9,7 @@ import { gatewayCommand } from './cli/gateway.js';
 import { doctorCommand } from './cli/doctor.js';
 import { onboardCommand } from './cli/onboard.js';
 import { configureCommand } from './cli/configure.js';
+import { pairCommand } from './cli/pair.js';
 
 const program = new Command();
 
@@ -45,6 +46,14 @@ program
     .argument('[section]', 'provider | channels | port')
     .action(async (section?: string) => {
         await configureCommand(section);
+    });
+
+program
+    .command('pair')
+    .description('Device pairing (generate code / list / revoke)')
+    .argument('[action]', 'generate | list | revoke')
+    .action(async (action?: string) => {
+        await pairCommand(action);
     });
 
 program
