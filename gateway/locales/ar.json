@@ -1,0 +1,72 @@
+{
+    "app": {
+        "name": "CoreBlow AI Gateway",
+        "description": "بوابة ذكاء اصطناعي شاملة لجميع منصات المراسلة"
+    },
+    "gateway": {
+        "starting": "جارٍ بدء البوابة على المنفذ {{port}}...",
+        "started": "تم بدء البوابة على المنفذ {{port}}",
+        "stopped": "تم إيقاف البوابة",
+        "error": "خطأ في البوابة: {{error}}",
+        "health": "البوابة تعمل بشكل سليم",
+        "unhealthy": "البوابة تواجه مشاكل"
+    },
+    "channels": {
+        "connecting": "جارٍ الاتصال بـ {{channel}}...",
+        "connected": "تم الاتصال بـ {{channel}}",
+        "disconnected": "تم قطع الاتصال بـ {{channel}}",
+        "error": "خطأ في القناة {{channel}}: {{error}}",
+        "message_received": "تم استلام رسالة من {{sender}} على {{channel}}",
+        "message_sent": "تم إرسال رسالة إلى {{target}} على {{channel}}"
+    },
+    "providers": {
+        "connecting": "جارٍ الاتصال بـ {{provider}}...",
+        "connected": "تم الاتصال بـ {{provider}}",
+        "error": "خطأ في المزود {{provider}}: {{error}}",
+        "response": "استجابة من {{provider}} ({{tokens}} رمز، {{time}} مللي ثانية)"
+    },
+    "tools": {
+        "executing": "جارٍ تنفيذ الأداة: {{tool}}",
+        "completed": "اكتملت الأداة {{tool}}",
+        "error": "فشلت الأداة {{tool}}: {{error}}",
+        "not_found": "الأداة {{tool}} غير موجودة"
+    },
+    "memory": {
+        "stored": "تم حفظ الذاكرة: \"{{text}}\"",
+        "recalled": "تم العثور على {{count}} ذكريات",
+        "forgotten": "تم حذف الذاكرة {{id}}",
+        "no_results": "لم يتم العثور على ذكريات لـ \"{{query}}\"",
+        "stats": "إحصائيات الذاكرة: {{count}} ذكريات، {{size}} تخزين"
+    },
+    "skills": {
+        "installed": "تم تثبيت المهارة \"{{name}}\"",
+        "removed": "تم إزالة المهارة \"{{name}}\"",
+        "not_found": "المهارة \"{{name}}\" غير موجودة",
+        "requires_env": "هذه المهارة تتطلب: {{env}}"
+    },
+    "extensions": {
+        "loaded": "تم تحميل الإضافة \"{{name}}\" (الإصدار {{version}})",
+        "init_failed": "فشل تهيئة الإضافة \"{{name}}\": {{error}}",
+        "stopped": "تم إيقاف الإضافة \"{{name}}\""
+    },
+    "cli": {
+        "welcome": "!CoreBlow AI Gateway مرحباً بك في",
+        "version": "الإصدار {{version}}",
+        "help": "لعرض الأوامر المتاحة 'coreblow --help' شغّل",
+        "doctor_ok": "جميع الأنظمة تعمل بشكل طبيعي",
+        "doctor_fail": "تم اكتشاف مشاكل — شغّل 'coreblow doctor' للتفاصيل"
+    },
+    "pairing": {
+        "code_generated": "رمز الإقران: {{code}} (ينتهي خلال {{ttl}} دقيقة)",
+        "paired": "!تم إقران الجهاز بنجاح",
+        "invalid_code": "رمز إقران غير صالح أو منتهي الصلاحية",
+        "already_paired": "هذا الجهاز مقترن بالفعل"
+    },
+    "errors": {
+        "connection_failed": "فشل الاتصال",
+        "auth_failed": "فشل المصادقة",
+        "rate_limited": "تم تجاوز الحد — يرجى الانتظار",
+        "timeout": "انتهت مهلة الطلب",
+        "unknown": "حدث خطأ غير معروف"
+    }
+}

@@ -1,0 +1,72 @@
+{
+    "app": {
+        "name": "CoreBlow AI Gateway",
+        "description": "Universelles AI-Gateway für alle Ihre Messaging-Plattformen"
+    },
+    "gateway": {
+        "starting": "Gateway wird auf Port {{port}} gestartet...",
+        "started": "Gateway auf Port {{port}} gestartet",
+        "stopped": "Gateway gestoppt",
+        "error": "Gateway-Fehler: {{error}}",
+        "health": "Gateway funktioniert einwandfrei",
+        "unhealthy": "Gateway hat Probleme"
+    },
+    "channels": {
+        "connecting": "Verbindung zu {{channel}} wird hergestellt...",
+        "connected": "Verbunden mit {{channel}}",
+        "disconnected": "Von {{channel}} getrennt",
+        "error": "Kanal {{channel}} Fehler: {{error}}",
+        "message_received": "Nachricht von {{sender}} auf {{channel}} empfangen",
+        "message_sent": "Nachricht an {{target}} auf {{channel}} gesendet"
+    },
+    "providers": {
+        "connecting": "Verbindung zu {{provider}} wird hergestellt...",
+        "connected": "Verbunden mit {{provider}}",
+        "error": "Anbieter {{provider}} Fehler: {{error}}",
+        "response": "Antwort von {{provider}} ({{tokens}} Tokens, {{time}}ms)"
+    },
+    "tools": {
+        "executing": "Werkzeug wird ausgeführt: {{tool}}",
+        "completed": "Werkzeug {{tool}} abgeschlossen",
+        "error": "Werkzeug {{tool}} fehlgeschlagen: {{error}}",
+        "not_found": "Werkzeug {{tool}} nicht gefunden"
+    },
+    "memory": {
+        "stored": "Erinnerung gespeichert: \"{{text}}\"",
+        "recalled": "{{count}} Erinnerungen gefunden",
+        "forgotten": "Erinnerung {{id}} gelöscht",
+        "no_results": "Keine Erinnerungen für \"{{query}}\" gefunden",
+        "stats": "Speicherstatistik: {{count}} Erinnerungen, {{size}} Speicher"
+    },
+    "skills": {
+        "installed": "Fähigkeit \"{{name}}\" installiert",
+        "removed": "Fähigkeit \"{{name}}\" entfernt",
+        "not_found": "Fähigkeit \"{{name}}\" nicht gefunden",
+        "requires_env": "Diese Fähigkeit benötigt: {{env}}"
+    },
+    "extensions": {
+        "loaded": "Erweiterung \"{{name}}\" geladen (v{{version}})",
+        "init_failed": "Erweiterung \"{{name}}\" Initialisierung fehlgeschlagen: {{error}}",
+        "stopped": "Erweiterung \"{{name}}\" gestoppt"
+    },
+    "cli": {
+        "welcome": "Willkommen bei CoreBlow AI Gateway!",
+        "version": "Version {{version}}",
+        "help": "Führen Sie 'coreblow --help' aus, um verfügbare Befehle anzuzeigen",
+        "doctor_ok": "Alle Systeme funktionieren normal",
+        "doctor_fail": "Probleme erkannt — führen Sie 'coreblow doctor' für Details aus"
+    },
+    "pairing": {
+        "code_generated": "Kopplungscode: {{code}} (läuft in {{ttl}} Minuten ab)",
+        "paired": "Gerät erfolgreich gekoppelt!",
+        "invalid_code": "Ungültiger oder abgelaufener Kopplungscode",
+        "already_paired": "Dieses Gerät ist bereits gekoppelt"
+    },
+    "errors": {
+        "connection_failed": "Verbindung fehlgeschlagen",
+        "auth_failed": "Authentifizierung fehlgeschlagen",
+        "rate_limited": "Ratenbegrenzung — bitte warten",
+        "timeout": "Zeitüberschreitung",
+        "unknown": "Ein unbekannter Fehler ist aufgetreten"
+    }
+}
