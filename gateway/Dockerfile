@@ -1,45 +1,23 @@
-FROM node:22-slim AS builder
-
+FROM node:22-alpine AS builder
 WORKDIR /app
+COPY package.json pnpm-lock.yaml* ./
+RUN npm install -g pnpm && pnpm install --frozen-lockfile || npm ci
+COPY . .
+RUN npm run build 2>/dev/null || echo "No build step"
 
-# Install build dependencies
-COPY gateway/package.json gateway/package-lock.json ./
-RUN npm ci --ignore-scripts
-
-# Copy source
-COPY gateway/tsconfig.json ./
-COPY gateway/src/ ./src/
-
-# Build TypeScript
-RUN npx tsc
-
-# --- Production stage ---
-FROM node:22-slim
-
+FROM node:22-alpine AS runtime
 WORKDIR /app
-
-# Install Python for Ultra Skills bridge (optional)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 python3-pip curl && \
-    rm -rf /var/lib/apt/lists/*
-
-# Production dependencies only
-COPY gateway/package.json gateway/package-lock.json ./
-RUN npm ci --omit=dev --ignore-scripts
-
-# Copy compiled JS
-COPY --from=builder /app/dist/ ./dist/
-
-# Create data directory
-RUN mkdir -p /data/.coreblow/state /data/.coreblow/auth
-
 ENV NODE_ENV=production
-ENV COREBLOW_HOME=/data/.coreblow
-ENV LOG_LEVEL=info
-
-EXPOSE 3120
-
-HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-  CMD curl -f http://127.0.0.1:3120/api/health || exit 1
-
-CMD ["node", "dist/index.js", "gateway", "start"]
+RUN addgroup -g 1001 coreblow && adduser -u 1001 -G coreblow -s /bin/sh -D coreblow
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/src ./src
+COPY --from=builder /app/extensions ./extensions
+COPY --from=builder /app/locales ./locales
+COPY --from=builder /app/skills ./skills
+COPY --from=builder /app/tsconfig.json ./
+USER coreblow
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
+  CMD wget -qO- http://localhost:3000/api/health || exit 1
+CMD ["node", "--import", "tsx", "src/index.ts"]
