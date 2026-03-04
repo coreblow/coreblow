@@ -15,3 +15,5 @@ __pycache__/
 aigateway-plan3-integrations.md
 openclaw-implementation-plan.md
 ultra-skills-plan-v2.md
+gateway/node_modules/
+gateway/dist/
