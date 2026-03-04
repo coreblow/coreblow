@@ -17,3 +17,4 @@ openclaw-implementation-plan.md
 ultra-skills-plan-v2.md
 gateway/node_modules/
 gateway/dist/
+.github/workflows/ci.yml
