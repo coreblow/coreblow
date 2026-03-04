@@ -82,15 +82,29 @@ export class GatewayServer {
         });
     }
 
+    private wsClients: Map<string, WebSocket> = new Map();
+
     private setupWebSocket() {
+        // Register WebChat sender once
+        this.router.registerChannelSender('webchat', async (msg) => {
+            const ws = this.wsClients.get(msg.senderId);
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'message',
+                    data: { text: msg.text, from: 'assistant', timestamp: Date.now() },
+                }));
+            }
+        });
+
         this.wss.on('connection', (ws: WebSocket, req) => {
             const clientId = randomUUID();
             const ip = req.socket.remoteAddress || 'unknown';
             log.info({ clientId, ip }, 'WebSocket connection');
 
+            this.wsClients.set(clientId, ws);
             this.protocol.handleConnection(ws, clientId);
 
-            // Register WebChat message handler
+            // Handle WebChat messages
             this.protocol.on('message', (client, msg) => {
                 if (!msg.data?.text) return;
 
@@ -104,6 +118,10 @@ export class GatewayServer {
                 };
 
                 this.router.routeInbound(inbound);
+            });
+
+            ws.on('close', () => {
+                this.wsClients.delete(clientId);
             });
         });
     }

@@ -5,7 +5,7 @@
 
 import type { ChannelAdapter, ChannelStatus } from './interface.js';
 import { chunkMessage } from './interface.js';
-import type { MessageRouter } from '../gateway/router.js';
+import { MessageRouter } from '../gateway/router.js';
 import { createChildLogger } from '../utils/logger.js';
 
 const log = createChildLogger('channel:telegram');
