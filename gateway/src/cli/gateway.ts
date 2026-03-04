@@ -46,7 +46,7 @@ async function checkStatus() {
     try {
         const res = await fetch('http://127.0.0.1:3120/api/health');
         if (res.ok) {
-            const data = await res.json();
+            const data = await res.json() as any;
             console.log('✅ Gateway is running');
             console.log(`   Uptime: ${data.uptimeHuman}`);
             console.log(`   Model: ${data.agent.provider}/${data.agent.model}`);

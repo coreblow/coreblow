@@ -116,6 +116,15 @@ export interface CoreBlowExtension {
 }
 
 /**
+ * Loaded extension (used by registry)
+ */
+export interface LoadedExtension {
+    extension: CoreBlowExtension;
+    enabled: boolean;
+    dataDir: string;
+}
+
+/**
  * Helper: create a simple extension
  */
 export function defineExtension(ext: CoreBlowExtension): CoreBlowExtension {

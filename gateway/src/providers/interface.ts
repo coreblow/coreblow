@@ -45,13 +45,31 @@ export interface StreamChunk {
     error?: string;
 }
 
+/**
+ * Chat options (alias for ProviderOptions for convenience)
+ */
+export type ChatOptions = ProviderOptions;
+
+/**
+ * Non-streaming chat response
+ */
+export interface ChatResponse {
+    text: string;
+    toolCalls?: ToolCall[];
+    usage?: {
+        promptTokens: number;
+        completionTokens: number;
+    };
+    raw?: any;
+}
+
 export interface AIProvider {
     name: string;
 
     /**
-     * Send a chat completion request with streaming
+     * Send a chat completion request (streaming or non-streaming)
      */
-    chat(messages: ChatMessage[], options: ProviderOptions): AsyncIterable<StreamChunk>;
+    chat(messages: ChatMessage[], options?: ProviderOptions): AsyncIterable<StreamChunk> | Promise<ChatResponse>;
 
     /**
      * Check if provider is available
@@ -61,5 +79,5 @@ export interface AIProvider {
     /**
      * List available models
      */
-    listModels(): Promise<string[]>;
+    listModels(): Promise<string[]> | string[];
 }
