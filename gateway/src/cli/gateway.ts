@@ -37,6 +37,9 @@ async function startGateway() {
     process.on('SIGTERM', shutdown);
 
     await server.start();
+
+    // Keep the process alive — wait forever until shutdown signal
+    await new Promise(() => { });
 }
 
 async function checkStatus() {
