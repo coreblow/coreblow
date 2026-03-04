@@ -1,0 +1,62 @@
+version: "3.8"
+
+services:
+  gateway:
+    build: .
+    container_name: coreblow-gateway
+    restart: unless-stopped
+    ports:
+      - "3120:3120"
+    volumes:
+      - coreblow-data:/data/.coreblow
+      - ./skills:/app/skills:ro
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=info
+      - COREBLOW_HOME=/data/.coreblow
+      # Uncomment and set your API keys:
+      # - OPENAI_API_KEY=sk-...
+      # - ANTHROPIC_API_KEY=sk-ant-...
+      # - BRAVE_SEARCH_API_KEY=BSA...
+    networks:
+      - coreblow-net
+
+  # Optional: Ollama for local AI (FREE)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: coreblow-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
+    networks:
+      - coreblow-net
+
+  # Optional: SearXNG for web search (FREE, no API key)
+  searxng:
+    image: searxng/searxng:latest
+    container_name: coreblow-searxng
+    restart: unless-stopped
+    ports:
+      - "8888:8080"
+    environment:
+      - SEARXNG_BASE_URL=http://searxng:8080
+    networks:
+      - coreblow-net
+
+volumes:
+  coreblow-data:
+  ollama-data:
+
+
+networks:
+  coreblow-net:
+    driver: bridge
