@@ -37,7 +37,15 @@ export interface GatewayConfig {
     channels: {
         telegram?: { token: string };
         discord?: { token: string };
+        whatsapp?: { enabled: boolean };
+        slack?: { token: string; signingSecret?: string };
+        signal?: { enabled: boolean; number?: string };
+        irc?: { server: string; nick: string; channels: string[] };
+        line?: { channelAccessToken: string; channelSecret: string };
+        teams?: { appId: string; appPassword: string };
+        matrix?: { homeserverUrl: string; accessToken: string };
         webchat?: { enabled: boolean };
+        [key: string]: any;
     };
 
     // Features

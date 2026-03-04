@@ -82,12 +82,24 @@ export class AgentTurn {
             let hasToolCalls = false;
 
             // Stream from model
-            for await (const chunk of provider.chat(messages, {
+            const chatResult = provider.chat(messages, {
                 model: config.agent.model,
                 maxTokens: config.agent.maxTokens,
                 temperature: config.agent.temperature,
                 tools: tools.length > 0 ? tools : undefined,
-            })) {
+            });
+
+            // Handle both streaming and non-streaming providers
+            const stream = Symbol.asyncIterator in Object(chatResult)
+                ? (chatResult as AsyncIterable<StreamChunk>)
+                : (async function* () {
+                    const res = await (chatResult as any);
+                    yield { type: 'text' as const, content: res.text } satisfies StreamChunk;
+                    if (res.toolCalls) for (const tc of res.toolCalls) yield { type: 'tool_call' as const, toolCall: tc } satisfies StreamChunk;
+                    yield { type: 'done' as const, usage: res.usage } satisfies StreamChunk;
+                })();
+
+            for await (const chunk of stream) {
                 chunks.push(chunk);
 
                 if (chunk.type === 'text' && chunk.content) {
