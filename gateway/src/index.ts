@@ -13,6 +13,7 @@ import { pairCommand } from './cli/pair.js';
 import { channelsCommand } from './cli/channels.js';
 import { logsCommand } from './cli/logs.js';
 import { platformCommand } from './cli/platform.js';
+import { skillhubCommand } from './cli/skillhub.js';
 
 const program = new Command();
 
@@ -82,6 +83,15 @@ program
     .argument('[action]', 'install | uninstall | status')
     .action(async (action?: string) => {
         await platformCommand(action);
+    });
+
+program
+    .command('skillhub')
+    .description('Manage skills — install, list, remove, catalog')
+    .argument('[action]', 'install | list | remove | catalog')
+    .argument('[name]', 'Skill name')
+    .action(async (action?: string, name?: string) => {
+        await skillhubCommand(action, name);
     });
 
 program
