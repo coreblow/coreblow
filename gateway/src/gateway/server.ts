@@ -13,6 +13,7 @@ import { ProtocolHandler } from './protocol.js';
 import { MessageRouter } from './router.js';
 import { healthHandler } from './health.js';
 import { getStore, closeStore } from '../utils/store.js';
+import { mountDashboard } from '../dashboard/serve.js';
 import { createChildLogger } from '../utils/logger.js';
 
 const log = createChildLogger('server');
@@ -71,6 +72,9 @@ export class GatewayServer {
             if (safe.token) safe.token = '***';
             res.json(safe);
         });
+
+        // Dashboard
+        mountDashboard(this.app);
 
         // Fallback
         this.app.use((_req, res) => {

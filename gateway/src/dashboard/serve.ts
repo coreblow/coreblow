@@ -5,7 +5,7 @@
 
 import path from 'node:path';
 import fs from 'node:fs';
-import type { Express, Request, Response } from 'express';
+import type { Application, Request, Response } from 'express';
 import { getConfig } from '../gateway/config.js';
 import { readAuditLog } from '../security/audit.js';
 import { createChildLogger } from '../utils/logger.js';
@@ -15,46 +15,48 @@ const log = createChildLogger('dashboard');
 /**
  * Mount dashboard routes on the Express app
  */
-export function mountDashboard(app: Express) {
-    const config = getConfig();
-    if (!config.features.dashboard) {
-        log.info('Dashboard disabled');
-        return;
-    }
+export function mountDashboard(app: Application) {
+  const config = getConfig();
+  if (!config.features.dashboard) {
+    log.info('Dashboard disabled');
+    return;
+  }
 
-    // Dashboard API endpoints
-    app.get('/api/dashboard/status', (_req: Request, res: Response) => {
-        res.json({
-            gateway: { status: 'running', version: '1.0.0' },
-            agent: { model: config.agent.model, provider: config.agent.provider },
-            channels: config.channels,
-            features: config.features,
-        });
+  // Dashboard API endpoints
+  app.get('/api/dashboard/status', (_req: Request, res: Response) => {
+    res.json({
+      gateway: { status: 'running', version: '1.0.0' },
+      agent: { model: config.agent.model, provider: config.agent.provider },
+      channels: config.channels,
+      features: config.features,
     });
+  });
 
-    app.get('/api/dashboard/audit', (req: Request, res: Response) => {
-        const date = req.query.date as string | undefined;
-        const entries = readAuditLog(date);
-        res.json({ entries, count: entries.length });
+  app.get('/api/dashboard/audit', (req: Request, res: Response) => {
+    const date = req.query.date as string | undefined;
+    const entries = readAuditLog(date);
+    res.json({ entries, count: entries.length });
+  });
+
+  // Serve static dashboard files
+  const dashboardDir = path.join(path.dirname(new URL(import.meta.url).pathname), '../../dashboard-ui');
+  if (fs.existsSync(dashboardDir)) {
+    // Dynamic import to get express.static
+    import('express').then(({ default: exp }) => {
+      app.use('/dashboard', exp.static(dashboardDir));
+      log.info({ path: dashboardDir }, 'Dashboard UI mounted at /dashboard');
     });
-
-    // Serve static dashboard files
-    const dashboardDir = path.join(path.dirname(new URL(import.meta.url).pathname), '../../dashboard-ui');
-    if (fs.existsSync(dashboardDir)) {
-        const { default: express } = await import('express') as any;
-        app.use('/dashboard', express.static(dashboardDir));
-        log.info({ path: dashboardDir }, 'Dashboard UI mounted at /dashboard');
-    } else {
-        // Serve a minimal built-in dashboard
-        app.get('/dashboard', (_req: Request, res: Response) => {
-            res.send(getMinimalDashboard());
-        });
-        log.info('Minimal dashboard mounted at /dashboard');
-    }
+  } else {
+    // Serve a minimal built-in dashboard
+    app.get('/dashboard', (_req: Request, res: Response) => {
+      res.send(getMinimalDashboard());
+    });
+    log.info('Minimal dashboard mounted at /dashboard');
+  }
 }
 
 function getMinimalDashboard(): string {
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
