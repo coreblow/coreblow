@@ -63,7 +63,11 @@ export class FallbackProvider implements AIProvider {
 
             try {
                 let hasOutput = false;
-                for await (const chunk of provider.provider.chat(messages, options)) {
+                const result = provider.provider.chat(messages, options);
+                const iterable = Symbol.asyncIterator in Object(result)
+                    ? result as AsyncIterable<StreamChunk>
+                    : async function* () { yield* [] as StreamChunk[]; }();
+                for await (const chunk of iterable) {
                     if (chunk.type === 'error') {
                         throw new Error(chunk.error || 'Unknown error');
                     }
@@ -137,5 +141,21 @@ export class FallbackProvider implements AIProvider {
             p.totalSuccess = 0;
             p.cooldownUntil = 0;
         }
+    }
+
+    async isAvailable(): Promise<boolean> {
+        for (const p of this.chain) {
+            if (await p.provider.isAvailable()) return true;
+        }
+        return false;
+    }
+
+    async listModels(): Promise<string[]> {
+        const models: string[] = [];
+        for (const p of this.chain) {
+            const m = await p.provider.listModels();
+            models.push(...m.map(name => `${p.name}/${name}`));
+        }
+        return models;
     }
 }

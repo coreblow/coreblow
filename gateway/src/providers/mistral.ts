@@ -31,10 +31,7 @@ export class MistralProvider implements AIProvider {
         };
 
         if (options.tools?.length) {
-            body.tools = options.tools.map(t => ({
-                type: 'function',
-                function: { name: t.name, description: t.description, parameters: t.parameters },
-            }));
+            body.tools = options.tools;
         }
 
         try {
@@ -92,8 +89,11 @@ export class MistralProvider implements AIProvider {
                                         type: 'tool_call',
                                         toolCall: {
                                             id: tc.id || `mistral_${Date.now()}`,
-                                            name: tc.function.name,
-                                            arguments: tc.function.arguments ? JSON.parse(tc.function.arguments) : {},
+                                            type: 'function' as const,
+                                            function: {
+                                                name: tc.function.name,
+                                                arguments: tc.function.arguments || '{}',
+                                            },
                                         },
                                     };
                                 }
@@ -118,4 +118,7 @@ export class MistralProvider implements AIProvider {
             yield { type: 'error', error: err.message };
         }
     }
+
+    async isAvailable(): Promise<boolean> { return Boolean(this.apiKey); }
+    listModels(): string[] { return ['mistral-large-latest', 'mistral-small-latest', 'codestral-latest']; }
 }

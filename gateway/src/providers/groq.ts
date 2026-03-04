@@ -29,10 +29,7 @@ export class GroqProvider implements AIProvider {
         };
 
         if (options.tools?.length) {
-            body.tools = options.tools.map(t => ({
-                type: 'function',
-                function: { name: t.name, description: t.description, parameters: t.parameters },
-            }));
+            body.tools = options.tools;
         }
 
         try {
@@ -79,7 +76,7 @@ export class GroqProvider implements AIProvider {
                         if (delta?.tool_calls) {
                             for (const tc of delta.tool_calls) {
                                 if (tc.function?.name) {
-                                    yield { type: 'tool_call', toolCall: { id: tc.id, name: tc.function.name, arguments: JSON.parse(tc.function.arguments || '{}') } };
+                                    yield { type: 'tool_call', toolCall: { id: tc.id, type: 'function' as const, function: { name: tc.function.name, arguments: tc.function.arguments || '{}' } } };
                                 }
                             }
                         }
@@ -100,4 +97,7 @@ export class GroqProvider implements AIProvider {
             yield { type: 'error', error: err.message };
         }
     }
+
+    async isAvailable(): Promise<boolean> { return Boolean(this.apiKey); }
+    listModels(): string[] { return ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'mixtral-8x7b-32768']; }
 }

@@ -51,9 +51,9 @@ export class GeminiProvider implements AIProvider {
         if (options.tools?.length) {
             body.tools = [{
                 functionDeclarations: options.tools.map(t => ({
-                    name: t.name,
-                    description: t.description,
-                    parameters: t.parameters,
+                    name: t.function.name,
+                    description: t.function.description,
+                    parameters: t.function.parameters,
                 })),
             }];
         }
@@ -108,8 +108,11 @@ export class GeminiProvider implements AIProvider {
                                     type: 'tool_call',
                                     toolCall: {
                                         id: `gemini_${Date.now()}`,
-                                        name: part.functionCall.name,
-                                        arguments: part.functionCall.args || {},
+                                        type: 'function',
+                                        function: {
+                                            name: part.functionCall.name,
+                                            arguments: JSON.stringify(part.functionCall.args || {}),
+                                        },
                                     },
                                 };
                             }
@@ -136,4 +139,7 @@ export class GeminiProvider implements AIProvider {
             yield { type: 'error', error: err.message };
         }
     }
+
+    async isAvailable(): Promise<boolean> { return Boolean(this.apiKey); }
+    listModels(): string[] { return ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash']; }
 }

@@ -28,10 +28,7 @@ export class OpenRouterProvider implements AIProvider {
         };
 
         if (options.tools?.length) {
-            body.tools = options.tools.map(t => ({
-                type: 'function',
-                function: { name: t.name, description: t.description, parameters: t.parameters },
-            }));
+            body.tools = options.tools;
         }
 
         try {
@@ -80,7 +77,7 @@ export class OpenRouterProvider implements AIProvider {
                         if (delta?.tool_calls) {
                             for (const tc of delta.tool_calls) {
                                 if (tc.function?.name) {
-                                    yield { type: 'tool_call', toolCall: { id: tc.id, name: tc.function.name, arguments: JSON.parse(tc.function.arguments || '{}') } };
+                                    yield { type: 'tool_call', toolCall: { id: tc.id, type: 'function' as const, function: { name: tc.function.name, arguments: tc.function.arguments || '{}' } } };
                                 }
                             }
                         }
@@ -92,4 +89,7 @@ export class OpenRouterProvider implements AIProvider {
             yield { type: 'error', error: err.message };
         }
     }
+
+    async isAvailable(): Promise<boolean> { return Boolean(this.apiKey); }
+    listModels(): string[] { return ['anthropic/claude-3.5-sonnet', 'openai/gpt-4o', 'google/gemini-pro-1.5']; }
 }
