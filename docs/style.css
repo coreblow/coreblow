@@ -1,0 +1,2 @@
+:root { --primary: #6366f1; --bg: #0f172a; --text: #e2e8f0; }
+body { font-family: Inter, sans-serif; background: var(--bg); color: var(--text); }

@@ -1,0 +1,17 @@
+{
+  "name": "googlechat",
+  "version": "0.1.0",
+  "description": "Googlechat extension",
+  "main": "index.ts",
+  "permissions": [
+    "messages.read",
+    "messages.write"
+  ],
+  "channels": [
+    "googlechat"
+  ],
+  "hooks": [
+    "onMessage",
+    "onCommand"
+  ]
+}

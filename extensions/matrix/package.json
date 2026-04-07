@@ -1,0 +1,17 @@
+{
+  "name": "@coreblow/ext-matrix",
+  "version": "0.1.0",
+  "description": "Matrix protocol integration for decentralized messaging",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "lint": "eslint src/"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0"
+  }
+}

@@ -46,10 +46,10 @@ describe("Phase 17: Gateway RPC Full Surface", () => {
 
     // ── Chat ──
     describe("Chat RPC", () => {
-        it("chat.send returns started status", () => {
+        it("chat.send returns unavailable without engine", () => {
             const r = invokeRpc("chat.send", { sessionKey: "s1", message: "Hello" });
-            expect(r.ok).toBe(true);
-            expect(r.payload.status).toBe("started");
+            expect(r.ok).toBe(false);
+            expect(r.error.code).toBe("unavailable");
         });
         it("chat.abort returns aborted", () => {
             const r = invokeRpc("chat.abort", { sessionKey: "s1" });

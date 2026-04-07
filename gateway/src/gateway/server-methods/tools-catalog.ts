@@ -1,12 +1,6 @@
 import { ErrorCodes, errorShape, validateToolsCatalogParams } from "../protocol/index.js";
 import type { GatewayRequestHandlers } from "./types.js";
-
-// Basic CoreBlow representation of tools catalog
-const CORE_TOOLS = [
-    { id: "read_file", label: "Read File", description: "Read contents of a file", source: "core", defaultProfiles: ["coding"] },
-    { id: "write_file", label: "Write File", description: "Write contents to a file", source: "core", defaultProfiles: ["coding"] },
-    { id: "run_command", label: "Run Command", description: "Execute a CLI command", source: "core", defaultProfiles: ["coding", "full"] },
-];
+import { getAgentEngine } from "./chat.js";
 
 export const toolsCatalogHandlers: GatewayRequestHandlers = {
     "tools.catalog": ({ params, respond }) => {
@@ -15,21 +9,42 @@ export const toolsCatalogHandlers: GatewayRequestHandlers = {
             return;
         }
 
+        const engine = getAgentEngine();
+        if (!engine) {
+            respond(true, { agentId: "coreblow_builtin", profiles: [], groups: [] }, undefined);
+            return;
+        }
+
+        const catalog = engine.getToolCatalog();
+        const tools = Array.from(catalog.list()).map(t => ({
+            id: t.name,
+            label: t.name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+            description: t.description,
+            source: "core",
+            category: t.category,
+            requiresApproval: t.requiresApproval ?? false,
+            riskLevel: t.riskLevel ?? 'safe',
+        }));
+
+        const policy = engine.getToolPolicy();
+        const effectiveTools = tools.map(t => ({
+            ...t,
+            policyDecision: policy.evaluate(t.id).decision,
+        }));
+
         respond(true, {
-            agentId: (params as any).agentId || "coreblow_builtin",
+            agentId: (params as Record<string, unknown>).agentId || "coreblow_builtin",
             profiles: [
-                { id: "minimal", label: "Minimal" },
-                { id: "coding", label: "Coding Assistant" },
-                { id: "full", label: "Full Powers" }
+                { id: "minimal", label: "Minimal — Read only" },
+                { id: "coding", label: "Coding Assistant — Read/Write/Exec" },
+                { id: "full", label: "Full Powers — All tools" },
             ],
-            groups: [
-                {
-                    id: "core",
-                    label: "Core Capabilities",
-                    source: "core",
-                    tools: CORE_TOOLS
-                }
-            ]
+            groups: [{
+                id: "core",
+                label: "Core Capabilities",
+                source: "core",
+                tools: effectiveTools,
+            }],
         }, undefined);
     }
 };

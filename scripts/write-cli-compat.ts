@@ -1,0 +1,1 @@
+import fs from 'node:fs'; export function writeCliCompat() { console.log('Writing CLI compat layer...'); }

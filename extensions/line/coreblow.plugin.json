@@ -1,0 +1,17 @@
+{
+  "name": "line",
+  "version": "0.1.0",
+  "description": "Line extension",
+  "main": "index.ts",
+  "permissions": [
+    "messages.read",
+    "messages.write"
+  ],
+  "channels": [
+    "line"
+  ],
+  "hooks": [
+    "onMessage",
+    "onCommand"
+  ]
+}

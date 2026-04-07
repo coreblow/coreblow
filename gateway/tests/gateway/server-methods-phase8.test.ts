@@ -26,10 +26,10 @@ describe('Gateway RPC - End-to-End Surface Tests (Phase 8 Mocks)', () => {
         return result;
     }
 
-    it('chat.send should return mock started status', () => {
+    it('chat.send returns unavailable when engine not set', () => {
         const res = testRpc('chat.send', { sessionKey: 'test_session', message: 'Hello!' });
-        expect(res.ok).toBe(true);
-        expect(res.payload.status).toBe('started');
+        expect(res.ok).toBe(false);
+        expect(res.error.code).toBe('unavailable');
     });
 
     it('sessions.create should mock creation', () => {
@@ -38,11 +38,10 @@ describe('Gateway RPC - End-to-End Surface Tests (Phase 8 Mocks)', () => {
         expect(res.payload.sessionKey).toBeDefined();
     });
 
-    it('agents.list should return mock agent', () => {
+    it('agents.list returns empty when no engine', () => {
         const res = testRpc('agents.list', {});
         expect(res.ok).toBe(true);
-        expect(res.payload.length).toBeGreaterThan(0);
-        expect(res.payload[0].id).toBe('builtin_agent');
+        expect(res.payload).toEqual([]);
     });
 
     it('system-event should validate params successfully', () => {

@@ -1,0 +1,17 @@
+{
+  "name": "@coreblow/ext-google-gemini-cli-auth",
+  "version": "0.1.0",
+  "description": "Google Gemini CLI authentication",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "lint": "eslint src/"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0"
+  }
+}

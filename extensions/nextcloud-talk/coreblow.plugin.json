@@ -1,0 +1,17 @@
+{
+  "name": "nextcloud-talk",
+  "version": "0.1.0",
+  "description": "Nextcloud Talk extension",
+  "main": "index.ts",
+  "permissions": [
+    "messages.read",
+    "messages.write"
+  ],
+  "channels": [
+    "nextcloud"
+  ],
+  "hooks": [
+    "onMessage",
+    "onCommand"
+  ]
+}

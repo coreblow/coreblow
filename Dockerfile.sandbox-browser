@@ -1,0 +1,8 @@
+FROM node:20-slim
+RUN apt-get update && apt-get install -y --no-install-recommends chromium fonts-liberation libatk1.0-0 libnss3 && rm -rf /var/lib/apt/lists/*
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV CHROMIUM_PATH=/usr/bin/chromium
+RUN useradd -m -s /bin/bash sandbox
+USER sandbox
+WORKDIR /home/sandbox
+CMD ["node"]

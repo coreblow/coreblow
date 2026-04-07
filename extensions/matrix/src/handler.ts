@@ -1,0 +1,18 @@
+/**
+ * Matrix Message Handler
+ */
+import type { MatrixMessage } from './types';
+
+export class MatrixHandler {
+  async onMessage(message: MatrixMessage) {
+    return { processed: true };
+  }
+
+  async onCommand(command: string, args: string[]) {
+    return { command, args, handled: true };
+  }
+
+  async onReaction(messageId: string, emoji: string) {
+    return { messageId, emoji, handled: true };
+  }
+}

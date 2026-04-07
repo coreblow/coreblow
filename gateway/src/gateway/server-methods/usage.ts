@@ -1,10 +1,26 @@
 import { validateUsageSessionsParams } from "../protocol/index.js";
 import type { GatewayRequestHandlers } from "./types.js";
 import { assertValidParams } from "./validation.js";
+import { getAgentEngine } from "./chat.js";
 
 export const usageHandlers: GatewayRequestHandlers = {
     "usage.sessions": ({ params, respond }) => {
         if (!assertValidParams(params, validateUsageSessionsParams, "usage.sessions", respond)) return;
-        respond(true, { total: 0, active: 0, time_series: [] }, undefined);
+        const engine = getAgentEngine();
+        if (!engine) { respond(true, { total: 0, active: 0, time_series: [] }, undefined); return; }
+
+        const tracker = engine.getUsageTracker();
+        const summary = tracker.getSummary();
+        const sessions = engine.listSessions();
+
+        respond(true, {
+            total: summary.turns,
+            active: sessions.filter(s => s.state === 'running' || s.state === 'streaming').length,
+            sessions: sessions.length,
+            totalInputTokens: summary.totalInputTokens,
+            totalOutputTokens: summary.totalOutputTokens,
+            totalCost: summary.totalCost,
+            byModel: Object.fromEntries(summary.byModel),
+        }, undefined);
     }
 };

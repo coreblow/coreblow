@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  coreblow:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    volumes:
+      - coreblow-data:/app/data
+
+  sandbox:
+    build:
+      context: .
+      dockerfile: Dockerfile.sandbox
+    network_mode: none
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+
+  sandbox-browser:
+    build:
+      context: .
+      dockerfile: Dockerfile.sandbox-browser
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+
+volumes:
+  coreblow-data:

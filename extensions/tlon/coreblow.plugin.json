@@ -1,0 +1,17 @@
+{
+  "name": "tlon",
+  "version": "0.1.0",
+  "description": "Tlon extension",
+  "main": "index.ts",
+  "permissions": [
+    "messages.read",
+    "messages.write"
+  ],
+  "channels": [
+    "tlon"
+  ],
+  "hooks": [
+    "onMessage",
+    "onCommand"
+  ]
+}

@@ -1,0 +1,1 @@
+export function testCompletion() { console.log('Shell completion test'); }

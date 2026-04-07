@@ -1,0 +1,8 @@
+/**
+ * @coreblow/ext-acpx
+ * Agent Communication Protocol extensions
+ */
+
+export { AcpxExtension } from './extension';
+export { AcpxConfig } from './config';
+export type * from './types';

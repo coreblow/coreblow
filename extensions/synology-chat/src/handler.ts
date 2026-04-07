@@ -1,0 +1,18 @@
+/**
+ * SynologyChat Message Handler
+ */
+import type { SynologyChatMessage } from './types';
+
+export class SynologyChatHandler {
+  async onMessage(message: SynologyChatMessage) {
+    return { processed: true };
+  }
+
+  async onCommand(command: string, args: string[]) {
+    return { command, args, handled: true };
+  }
+
+  async onReaction(messageId: string, emoji: string) {
+    return { messageId, emoji, handled: true };
+  }
+}

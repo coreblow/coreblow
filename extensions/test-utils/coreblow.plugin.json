@@ -1,0 +1,17 @@
+{
+  "name": "test-utils",
+  "version": "0.1.0",
+  "description": "Test Utils extension",
+  "main": "index.ts",
+  "permissions": [
+    "messages.read",
+    "messages.write"
+  ],
+  "channels": [
+    "test"
+  ],
+  "hooks": [
+    "onMessage",
+    "onCommand"
+  ]
+}

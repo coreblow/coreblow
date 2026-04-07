@@ -1,0 +1,8 @@
+/**
+ * @coreblow/ext-twitch
+ * Twitch chat bot with channel point redemptions
+ */
+
+export { TwitchExtension } from './extension';
+export { TwitchConfig } from './config';
+export type * from './types';

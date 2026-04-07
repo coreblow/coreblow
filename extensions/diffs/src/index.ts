@@ -1,0 +1,8 @@
+/**
+ * @coreblow/ext-diffs
+ * Code diff rendering and analysis
+ */
+
+export { DiffsExtension } from './extension';
+export { DiffsConfig } from './config';
+export type * from './types';

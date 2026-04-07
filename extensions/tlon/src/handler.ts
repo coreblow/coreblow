@@ -1,0 +1,18 @@
+/**
+ * Tlon Message Handler
+ */
+import type { TlonMessage } from './types';
+
+export class TlonHandler {
+  async onMessage(message: TlonMessage) {
+    return { processed: true };
+  }
+
+  async onCommand(command: string, args: string[]) {
+    return { command, args, handled: true };
+  }
+
+  async onReaction(messageId: string, emoji: string) {
+    return { messageId, emoji, handled: true };
+  }
+}

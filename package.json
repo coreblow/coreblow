@@ -2,6 +2,7 @@
     "name": "@coreblow/coreblow",
     "version": "1.0.0",
     "private": true,
+    "packageManager": "pnpm@10.23.0",
     "type": "module",
     "scripts": {
         "dev": "vite",
@@ -22,5 +23,6 @@
     "devDependencies": {
         "@vitejs/plugin-react": "^5.1.1",
         "vite": "^7.2.4"
-    }
+    },
+    "packageManager": "pnpm@10.23.0+sha512.21c4e5698002ade97e4efe8b8b4a89a8de3c85a37919f957e7a0f30f38fbc5bbdd05980ffe29179b2fb6e6e691242e098d945d1601772cad0fef5fb6411e2a4b"
 }

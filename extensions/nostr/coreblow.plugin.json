@@ -1,0 +1,17 @@
+{
+  "name": "nostr",
+  "version": "0.1.0",
+  "description": "Nostr extension",
+  "main": "index.ts",
+  "permissions": [
+    "messages.read",
+    "messages.write"
+  ],
+  "channels": [
+    "nostr"
+  ],
+  "hooks": [
+    "onMessage",
+    "onCommand"
+  ]
+}
