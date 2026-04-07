@@ -13,7 +13,8 @@ import { createMessage } from './pi-embedded-messaging.js';
 import { buildPayload } from './pi-embedded-payloads.js';
 import { chunkBlocks } from './pi-embedded-block-chunker.js';
 import { createErrorObservation } from './pi-embedded-error-observation.js';
-import { MessageQueue } from './pi-embedded-queue.runtime.js';
+/** Inline MessageQueue (previously in pi-embedded-queue.runtime.ts) */
+class MessageQueue<T> { private items: T[] = []; enqueue(item: T): void { this.items.push(item); } dequeue(): T | undefined { return this.items.shift(); } peek(): T | undefined { return this.items[0]; } size(): number { return this.items.length; } clear(): void { this.items = []; } isEmpty(): boolean { return this.items.length === 0; } }
 
 // PI Subscribe
 import { createSubscription } from './pi-embedded-subscribe.js';
