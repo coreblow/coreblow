@@ -7,6 +7,7 @@ import "./views/chat.ts";
 import "./views/sessions.ts";
 import "./views/config.ts";
 import "./views/agents.ts";
+import "./views/debug.ts";
 
 export function renderApp(app: CoreBlowApp) {
   return html`
@@ -114,7 +115,9 @@ function renderCurrentTab(app: CoreBlowApp) {
   if (app.tab === "aiAgents") {
      return html`<coreblow-agents-view .app=${app}></coreblow-agents-view>`;
   }
-  
+  if (app.tab === "debug") {
+     return html`<coreblow-debug-view .app=${app}></coreblow-debug-view>`;
+  }  
   return html`
      <div class="card">
        <div class="card-title">Under Construction</div>
