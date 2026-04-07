@@ -4,18 +4,13 @@ export const TAB_GROUPS = [
   { label: "chat", tabs: ["chat"] },
   {
     label: "control",
-    tabs: ["overview", "channels", "instances", "sessions", "usage", "cron"],
+    tabs: ["overview", "sessions", "usage", "cron"],
   },
-  { label: "agent", tabs: ["skills", "nodes"] },
+  { label: "agent", tabs: ["aiAgents", "skills"] },
   {
     label: "settings",
     tabs: [
       "config",
-      "communications",
-      "appearance",
-      "automation",
-      "infrastructure",
-      "aiAgents",
       "debug",
       "logs",
     ],
@@ -30,10 +25,6 @@ export function iconForTab(tab: Tab): string {
       return "messageSquare";
     case "overview":
       return "barChart";
-    case "channels":
-      return "link";
-    case "instances":
-      return "radio";
     case "sessions":
       return "fileText";
     case "usage":
@@ -42,20 +33,10 @@ export function iconForTab(tab: Tab): string {
       return "loader";
     case "skills":
       return "zap";
-    case "nodes":
-      return "monitor";
-    case "config":
-      return "settings";
-    case "communications":
-      return "send";
-    case "appearance":
-      return "spark";
-    case "automation":
-      return "terminal";
-    case "infrastructure":
-      return "globe";
     case "aiAgents":
       return "brain";
+    case "config":
+      return "settings";
     case "debug":
       return "bug";
     case "logs":
@@ -66,21 +47,14 @@ export function iconForTab(tab: Tab): string {
 }
 
 export function titleForTab(tab: Tab) {
-  const titles: Record<Tab, string> = {
+  const titles: Record<string, string> = {
     chat: "Chat",
     overview: "Overview",
-    channels: "Channels",
-    instances: "Instances",
     sessions: "Sessions",
     usage: "Usage",
-    cron: "Cron",
+    cron: "Cron Jobs",
     skills: "Skills",
-    nodes: "Nodes",
     config: "Config",
-    communications: "Communications",
-    appearance: "Appearance",
-    automation: "Automation",
-    infrastructure: "Infrastructure",
     aiAgents: "AI Agents",
     debug: "Debug",
     logs: "Logs",

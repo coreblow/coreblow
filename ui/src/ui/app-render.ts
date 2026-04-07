@@ -12,6 +12,7 @@ import "./views/usage.ts";
 import "./views/logs.ts";
 import "./views/skills.ts";
 import "./views/command-palette.ts";
+import "./views/cron.ts";
 
 export function renderApp(app: CoreBlowApp) {
   return html`
@@ -131,6 +132,9 @@ function renderCurrentTab(app: CoreBlowApp) {
    }
    if (app.tab === "skills") {
       return html`<coreblow-skills-view .app=${app}></coreblow-skills-view>`;
+   }
+   if (app.tab === "cron") {
+      return html`<coreblow-cron-view .app=${app}></coreblow-cron-view>`;
    }
    return html`
      <div class="card">
