@@ -9,6 +9,9 @@ import "./views/config.ts";
 import "./views/agents.ts";
 import "./views/debug.ts";
 import "./views/usage.ts";
+import "./views/logs.ts";
+import "./views/skills.ts";
+import "./views/command-palette.ts";
 
 export function renderApp(app: CoreBlowApp) {
   return html`
@@ -97,6 +100,7 @@ export function renderApp(app: CoreBlowApp) {
       </main>
       
     </div>
+    <coreblow-command-palette .app=${app}></coreblow-command-palette>
   `;
 }
 
@@ -121,6 +125,12 @@ function renderCurrentTab(app: CoreBlowApp) {
    }
    if (app.tab === "usage") {
       return html`<coreblow-usage-view .app=${app}></coreblow-usage-view>`;
+   }
+   if (app.tab === "logs") {
+      return html`<coreblow-logs-view .app=${app}></coreblow-logs-view>`;
+   }
+   if (app.tab === "skills") {
+      return html`<coreblow-skills-view .app=${app}></coreblow-skills-view>`;
    }
    return html`
      <div class="card">
