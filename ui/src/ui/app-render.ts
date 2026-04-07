@@ -8,6 +8,7 @@ import "./views/sessions.ts";
 import "./views/config.ts";
 import "./views/agents.ts";
 import "./views/debug.ts";
+import "./views/usage.ts";
 
 export function renderApp(app: CoreBlowApp) {
   return html`
@@ -117,8 +118,11 @@ function renderCurrentTab(app: CoreBlowApp) {
   }
   if (app.tab === "debug") {
      return html`<coreblow-debug-view .app=${app}></coreblow-debug-view>`;
-  }  
-  return html`
+   }
+   if (app.tab === "usage") {
+      return html`<coreblow-usage-view .app=${app}></coreblow-usage-view>`;
+   }
+   return html`
      <div class="card">
        <div class="card-title">Under Construction</div>
        <div class="card-sub">The ${titleForTab(app.tab)} page is being built.</div>
