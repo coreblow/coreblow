@@ -1,7 +1,7 @@
 /**
  * views/tool-approval-modal.ts
  * Full modal for tool execution approval.
- * Follows OpenClaw's exec.approval pattern.
+ * Follows CoreBlow's exec.approval pattern.
  */
 import { LitElement, html } from "lit";
 import { customElement, property } from "lit/decorators.js";

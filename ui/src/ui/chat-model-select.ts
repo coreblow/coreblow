@@ -1,7 +1,7 @@
 /**
  * chat-model-select.ts
  * Per-session model override state management.
- * Follows OpenClaw's chat-model-select-state.ts pattern.
+ * Follows CoreBlow's chat-model-select-state.ts pattern.
  */
 import type { GatewayBrowserClient } from "./gateway.ts";
 import type { ModelCatalogEntry } from "./controllers/models.ts";

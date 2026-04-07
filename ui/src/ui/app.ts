@@ -86,9 +86,8 @@ export class CoreBlowApp extends LitElement {
     this.theme = next;
     this.applySettings({ ...this.settings, theme: next });
     
-    // Try to trigger the data-theme immediately
+    // Apply data-theme attribute for CSS variable switching
     try {
-       const legacyMap: any = { dark: "claw:dark", light: "claw:light" };
        const resolved = next === "knot" ? "openknot" : next === "dash" ? "dash" : "dark";
        document.documentElement.setAttribute("data-theme", resolved);
     } catch {}

@@ -16,7 +16,7 @@ const DEFAULT_SETTINGS: UiSettings = {
   gatewayUrl: "ws://127.0.0.1:18789",
   token: "",
   sessionKey: "",
-  theme: "claw",
+  theme: "core",
   themeMode: "system",
   splitRatio: 0.5,
 };

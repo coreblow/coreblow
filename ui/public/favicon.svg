@@ -1,22 +1,33 @@
 <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="lobster-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ff4d4d"/>
-      <stop offset="100%" stop-color="#991b1b"/>
+    <linearGradient id="octo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff6b6b"/>
+      <stop offset="100%" stop-color="#c44569"/>
+    </linearGradient>
+    <linearGradient id="tentacle-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ff6b6b"/>
+      <stop offset="100%" stop-color="#a83279"/>
     </linearGradient>
   </defs>
-  <!-- Body -->
-  <path d="M60 10 C30 10 15 35 15 55 C15 75 30 95 45 100 L45 110 L55 110 L55 100 C55 100 60 102 65 100 L65 110 L75 110 L75 100 C90 95 105 75 105 55 C105 35 90 10 60 10Z" fill="url(#lobster-gradient)"/>
-  <!-- Left Claw -->
-  <path d="M20 45 C5 40 0 50 5 60 C10 70 20 65 25 55 C28 48 25 45 20 45Z" fill="url(#lobster-gradient)"/>
-  <!-- Right Claw -->
-  <path d="M100 45 C115 40 120 50 115 60 C110 70 100 65 95 55 C92 48 95 45 100 45Z" fill="url(#lobster-gradient)"/>
-  <!-- Antenna -->
-  <path d="M45 15 Q35 5 30 8" stroke="#ff4d4d" stroke-width="3" stroke-linecap="round"/>
-  <path d="M75 15 Q85 5 90 8" stroke="#ff4d4d" stroke-width="3" stroke-linecap="round"/>
+  <!-- Head -->
+  <ellipse cx="60" cy="45" rx="35" ry="32" fill="url(#octo-grad)"/>
+  <!-- Tentacles -->
+  <path d="M30 65 Q22 85 18 100 Q16 108 22 105 Q28 102 32 90 Q35 80 38 72" fill="url(#tentacle-grad)"/>
+  <path d="M42 70 Q38 90 35 102 Q33 110 40 107 Q46 104 46 92 Q46 82 45 75" fill="url(#tentacle-grad)"/>
+  <path d="M54 72 Q52 92 50 104 Q49 112 56 108 Q62 104 58 92 Q56 82 55 76" fill="url(#tentacle-grad)"/>
+  <path d="M66 72 Q68 92 70 104 Q71 112 64 108 Q58 104 62 92 Q64 82 65 76" fill="url(#tentacle-grad)"/>
+  <path d="M78 70 Q82 90 85 102 Q87 110 80 107 Q74 104 74 92 Q74 82 75 75" fill="url(#tentacle-grad)"/>
+  <path d="M90 65 Q98 85 102 100 Q104 108 98 105 Q92 102 88 90 Q85 80 82 72" fill="url(#tentacle-grad)"/>
   <!-- Eyes -->
-  <circle cx="45" cy="35" r="6" fill="#050810"/>
-  <circle cx="75" cy="35" r="6" fill="#050810"/>
-  <circle cx="46" cy="34" r="2.5" fill="#00e5cc"/>
-  <circle cx="76" cy="34" r="2.5" fill="#00e5cc"/>
+  <ellipse cx="45" cy="40" rx="8" ry="9" fill="#050810"/>
+  <ellipse cx="75" cy="40" rx="8" ry="9" fill="#050810"/>
+  <circle cx="47" cy="38" r="3.5" fill="#00e5cc"/>
+  <circle cx="77" cy="38" r="3.5" fill="#00e5cc"/>
+  <circle cx="49" cy="36" r="1.5" fill="white"/>
+  <circle cx="79" cy="36" r="1.5" fill="white"/>
+  <!-- Smile -->
+  <path d="M48 54 Q60 62 72 54" stroke="#050810" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <!-- Cheek blush -->
+  <circle cx="35" cy="50" r="5" fill="rgba(255,150,150,0.3)"/>
+  <circle cx="85" cy="50" r="5" fill="rgba(255,150,150,0.3)"/>
 </svg>

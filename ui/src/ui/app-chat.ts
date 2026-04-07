@@ -135,7 +135,7 @@ export class ChatController {
       }
    }
 
-   // ─── Handle Gateway Events (OpenClaw pattern) ─────────────────
+   // ─── Handle Gateway Events (CoreBlow pattern) ─────────────────
 
    handleChatEvent(payload: ChatEventPayload) {
       if (!payload) return;
@@ -223,7 +223,7 @@ export class ChatController {
    // ─── Helpers ──────────────────────────────────────────────────
 
    private extractFinalText(payload: ChatEventPayload): string {
-      // Try content array first (OpenClaw format)
+      // Try content array first (CoreBlow format)
       if (payload.message?.content && Array.isArray(payload.message.content)) {
          return payload.message.content
             .filter(c => c.type === 'text')

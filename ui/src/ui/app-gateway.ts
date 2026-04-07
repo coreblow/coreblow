@@ -46,7 +46,7 @@ export class GatewayController {
      return this.client;
   }
 
-  // ─── Event Dispatch (OpenClaw pattern) ──────────────────────
+  // ─── Event Dispatch (CoreBlow pattern) ──────────────────────
 
   private handleGatewayEvent(evt: GatewayEventFrame) {
      // Log all events
