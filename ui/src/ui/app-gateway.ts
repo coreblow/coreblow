@@ -1,6 +1,8 @@
 import { CoreBlowApp } from "./app.ts";
 import { GatewayBrowserClient, type GatewayEventFrame } from "./gateway.ts";
 import type { ChatEventPayload, AgentEventPayload } from "./app-chat.ts";
+import { loadModels } from "./controllers/models.ts";
+import type { ToolApprovalEntry } from "./views/tool-approval-modal.ts";
 
 export class GatewayController {
   private client: GatewayBrowserClient | null = null;
@@ -15,6 +17,7 @@ export class GatewayController {
            this.app.connected = true;
            this.app.addEventLog("Connected to Gateway Server");
            this.requestInitialData();
+           this.loadModelCatalog();
         },
         onEvent: (evt) => {
            this.handleGatewayEvent(evt);
@@ -65,6 +68,11 @@ export class GatewayController {
         return;
      }
 
+     if (evt.event === "exec.approval.requested") {
+        this.handleApprovalRequest(evt.payload as Record<string, unknown>);
+        return;
+     }
+
      if (evt.event === "shutdown") {
         this.app.addEventLog("Gateway shutting down...");
         this.app.connected = false;
@@ -80,9 +88,34 @@ export class GatewayController {
        
        const presence = await this.client.request<{entries: unknown[]}>("sys.presence");
        this.app.presenceCount = presence?.entries?.length || 0;
-     } catch (err: unknown) {
+      } catch (err: unknown) {
        const msg = err instanceof Error ? err.message : String(err);
        this.app.addEventLog(`Data fetch error: ${msg}`);
      }
+  }
+
+  private async loadModelCatalog() {
+     if (!this.client) return;
+     this.app.chatModelsLoading = true;
+     this.app.chatModelCatalog = await loadModels(this.client);
+     this.app.chatModelsLoading = false;
+  }
+
+  private handleApprovalRequest(payload: Record<string, unknown>) {
+     const entry: ToolApprovalEntry = {
+        id: String(payload.id ?? `ap_${Date.now()}`),
+        toolCallId: String(payload.toolCallId ?? ''),
+        sessionKey: String(payload.sessionKey ?? ''),
+        name: String(payload.name ?? 'unknown'),
+        args: payload.args,
+        riskLevel: (payload.riskLevel as 'low' | 'medium' | 'high') ?? 'medium',
+        expiresAtMs: typeof payload.expiresAtMs === 'number' ? payload.expiresAtMs : Date.now() + 30_000,
+        requestedAt: Date.now(),
+     };
+     this.app.approvalQueue = [...this.app.approvalQueue, entry];
+     const delay = Math.max(0, entry.expiresAtMs - Date.now() + 500);
+     window.setTimeout(() => {
+        this.app.approvalQueue = this.app.approvalQueue.filter(e => e.id !== entry.id);
+     }, delay);
   }
 }

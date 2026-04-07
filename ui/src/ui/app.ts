@@ -33,9 +33,17 @@ export class CoreBlowApp extends LitElement {
   configController = new ConfigController(this);
   agentsController = new AgentsController(this);
 
-  // Dashboard mock state
+  // Dashboard state
   @state() sessionsCount = 0;
   @state() presenceCount = 0;
+  
+  // Model catalog
+  @state() chatModelCatalog: import('./controllers/models.ts').ModelCatalogEntry[] = [];
+  @state() chatModelsLoading = false;
+  @state() chatModelOverrides: Record<string, string | null> = {};
+
+  // Tool approval queue
+  @state() approvalQueue: import('./views/tool-approval-modal.ts').ToolApprovalEntry[] = [];
   
   createRenderRoot() {
     // Render in light DOM for simpler CSS sharing

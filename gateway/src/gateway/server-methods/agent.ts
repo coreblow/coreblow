@@ -66,5 +66,18 @@ export const agentsHandlers: GatewayRequestHandlers = {
         if (!assertValidParams(params, validateAgentsFilesSetParams, "agents.files.set", respond)) return;
         const p = params as { agentId: string; name: string; content: string };
         respond(true, { agentId: p.agentId, file: { name: p.name } }, undefined);
+    },
+
+    "sessions.patch": ({ params, respond }) => {
+        const engine = getAgentEngine();
+        if (!engine) { respond(false, undefined, { code: "unavailable", message: "Engine not initialized" }); return; }
+        const p = params as { key: string; model?: string | null };
+        if (!p.key) { respond(false, undefined, { code: "invalid_request", message: "Missing session key" }); return; }
+        const session = engine.getSession(p.key);
+        if (!session) { respond(false, undefined, { code: "not_found", message: "Session not found" }); return; }
+        if (p.model !== undefined) {
+            engine.setSessionModel(p.key, p.model ?? engine.config.defaultModel ?? 'claude-sonnet-4-20250514');
+        }
+        respond(true, { ok: true, key: p.key, model: session.model }, undefined);
     }
 };

@@ -4,6 +4,9 @@ import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import type { CoreBlowApp } from "../app.ts";
 import { renderMarkdown } from "../markdown.ts";
 import type { ChatMessage, ToolStreamEntry } from "../app-chat.ts";
+import { resolveChatModelSelectState, switchChatModel } from "../chat-model-select.ts";
+import type { ApprovalDecision } from "./tool-approval-modal.ts";
+import "./tool-approval-modal.ts";
 
 @customElement("coreblow-chat-view")
 export class ChatView extends LitElement {
@@ -38,14 +41,32 @@ export class ChatView extends LitElement {
      this.app.chat.newSession();
   }
 
+  private async handleModelChange(e: Event) {
+     const next = (e.target as HTMLSelectElement).value.trim();
+     const client = this.app.gateway.getClient();
+     if (!client?.connected || !this.app.chat.sessionKey) return;
+     this.app.chatModelOverrides = await switchChatModel(
+        client, this.app.chat.sessionKey, next, this.app.chatModelOverrides
+     );
+  }
+
+  private handleApprovalDecision(id: string, decision: ApprovalDecision) {
+     // Remove from queue
+     this.app.approvalQueue = this.app.approvalQueue.filter(e => e.id !== id);
+     // Send decision to gateway
+     const client = this.app.gateway.getClient();
+     if (client?.connected) {
+        client.request("tools.approve", { id, decision }).catch(() => {});
+     }
+  }
+
   updated() {
-     // Auto-scroll on new content
      if (this.historyEl) {
         this.historyEl.scrollTop = this.historyEl.scrollHeight;
      }
   }
 
-  // ─── Tool Card Render ─────────────────────────────────────────
+  // ─── Tool Card ────────────────────────────────────────────────
 
   private renderToolCard(tool: ToolStreamEntry) {
      const isRunning = tool.phase === "start" || tool.phase === "update";
@@ -74,7 +95,7 @@ export class ChatView extends LitElement {
      `;
   }
 
-  // ─── Message Render ───────────────────────────────────────────
+  // ─── Message ──────────────────────────────────────────────────
 
   private renderMessage(msg: ChatMessage) {
      const isUser = msg.role === "user";
@@ -99,7 +120,6 @@ export class ChatView extends LitElement {
      const chat = this.app.chat;
      if (!chat.chatRunId && !chat.chatSending) return "";
 
-     // Collect active tool cards
      const activeTools = chat.toolStreamOrder
         .map(id => chat.toolStream.get(id))
         .filter((e): e is ToolStreamEntry => Boolean(e));
@@ -118,20 +138,62 @@ export class ChatView extends LitElement {
      `;
   }
 
+  // ─── Model Dropdown ───────────────────────────────────────────
+
+  private renderModelSelect() {
+     const busy = this.app.chat.isBusy;
+     const loading = this.app.chatModelsLoading;
+     const sessionKey = this.app.chat.sessionKey;
+     const defaultModel = "claude-sonnet-4-20250514";
+
+     const { currentOverride, defaultLabel, options } = resolveChatModelSelectState(
+        this.app.chatModelCatalog, this.app.chatModelOverrides, sessionKey, defaultModel
+     );
+
+     const disabled = !this.app.connected || busy || (loading && options.length === 0);
+
+     return html`
+        <select class="chat-model-select" 
+                style="font-size: 11px; padding: 3px 8px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--foreground); cursor: pointer;"
+                ?disabled=${disabled} 
+                aria-label="Chat model"
+                @change=${this.handleModelChange}>
+           <option value="" ?selected=${currentOverride === ""}>${loading ? "Loading models..." : defaultLabel}</option>
+           ${options.map(opt => html`
+              <option value=${opt.value} ?selected=${opt.value === currentOverride}>${opt.label}</option>
+           `)}
+        </select>
+     `;
+  }
+
+  // ─── Approval Modal ───────────────────────────────────────────
+
+  private renderApprovalModal() {
+     const entry = this.app.approvalQueue[0];
+     if (!entry) return "";
+     return html`
+        <coreblow-tool-approval-modal
+           .entry=${entry}
+           .onDecision=${(id: string, decision: ApprovalDecision) => this.handleApprovalDecision(id, decision)}
+        ></coreblow-tool-approval-modal>
+     `;
+  }
+
   // ─── Main Render ──────────────────────────────────────────────
 
   render() {
     const chat = this.app.chat;
     const busy = chat.isBusy;
-    const model = "claude-sonnet-4";
 
     return html`
+      ${this.renderApprovalModal()}
+
       <div class="chat-container" style="display: flex; flex-direction: column; height: 100%;">
          
          <!-- Header -->
          <div class="chat-header" style="padding: 12px var(--shell-pad); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px;">
             <span style="font-weight: 600; flex: 1;">💬 Chat</span>
-            <span class="chat-model-badge" style="font-size: 11px; padding: 2px 8px; background: var(--bg-elevated); border-radius: 12px; color: var(--muted);">${model}</span>
+            ${this.renderModelSelect()}
             ${chat.sessionKey ? html`<span style="font-size: 11px; color: var(--muted);">${chat.sessionKey.slice(0, 12)}…</span>` : ""}
             <button class="btn btn-sm" style="font-size: 11px; padding: 4px 12px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground);"
              @click=${this.handleNewSession}>+ New</button>
@@ -143,7 +205,6 @@ export class ChatView extends LitElement {
                <div style="margin: auto; text-align: center; color: var(--muted); opacity: 0.6;">
                  <div style="font-size: 48px; margin-bottom: 16px;">🐙</div>
                  <div>Send a message to CoreBlow</div>
-                 <div style="font-size: 12px; margin-top: 4px; opacity: 0.6;">Model: ${model}</div>
                </div>
             ` : ""}
             

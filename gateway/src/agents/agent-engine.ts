@@ -14,6 +14,7 @@ import { ToolPolicy } from './tool-policy.js';
 import { Sandbox, createDefaultSandbox } from './sandbox.js';
 import { UsageTracker } from './usage.js';
 import { InternalEventBus } from './internal-events.js';
+import { ModelCatalog } from './model-catalog.js';
 import { StreamAccumulator, type StreamChunk, type StreamHandler } from './provider-stream.js';
 import { BootstrapCache } from './bootstrap-cache.js';
 import { estimateMessagesTokens, pruneHistoryForContextShare, type CompactionMessage } from './compaction.js';
@@ -75,6 +76,8 @@ export class AgentEngine {
     private writeLock: SimpleWriteLock;
     private circuitBreaker: ToolCircuitBreaker;
 
+    private modelCatalog: import('./model-catalog.js').ModelCatalog;
+
     constructor(config?: Partial<AgentEngineConfig>) {
         this.config = mergeEngineConfig(config);
         this.toolCatalog = new ToolCatalog();
@@ -90,6 +93,7 @@ export class AgentEngine {
         this.lanes = new LaneManager(this.config.maxConcurrentSessions);
         this.writeLock = new SimpleWriteLock();
         this.circuitBreaker = new ToolCircuitBreaker(10, 60_000, 3);
+        this.modelCatalog = new ModelCatalog();
     }
 
     // ─── Provider Management ─────────────────────────────────────
@@ -119,6 +123,14 @@ export class AgentEngine {
     getToolCatalog(): ToolCatalog { return this.toolCatalog; }
     getToolPolicy(): ToolPolicy { return this.toolPolicy; }
     getToolHandler(name: string): ToolHandler | undefined { return this.toolHandlers.get(name); }
+    getModelCatalog() { return this.modelCatalog; }
+
+    setSessionModel(sessionId: string, model: string): boolean {
+        const session = this.sessions.get(sessionId);
+        if (!session) return false;
+        session.model = model;
+        return true;
+    }
 
     // ─── Session Management ──────────────────────────────────────
 
