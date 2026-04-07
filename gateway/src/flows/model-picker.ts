@@ -1,0 +1,85 @@
+/**
+ * flows/model-picker.ts — Interactive model selection flow.
+ */
+
+import type { FlowDefinition } from './types.js';
+
+export interface ModelCandidate { id: string; provider: string; contextWindow: number; costPer1k: number; speed: 'fast' | 'medium' | 'slow'; capabilities: string[] }
+
+export function rankModels(candidates: ModelCandidate[], criteria: { priority: 'cost' | 'speed' | 'context' | 'capabilities'; requiredCaps?: string[] }): ModelCandidate[] {
+    let filtered = candidates;
+    if (criteria.requiredCaps?.length) filtered = filtered.filter(m => criteria.requiredCaps!.every(c => m.capabilities.includes(c)));
+    const speedOrder = { fast: 3, medium: 2, slow: 1 };
+    return filtered.sort((a, b) => {
+        switch (criteria.priority) {
+            case 'cost': return a.costPer1k - b.costPer1k;
+            case 'speed': return speedOrder[b.speed] - speedOrder[a.speed];
+            case 'context': return b.contextWindow - a.contextWindow;
+            default: return b.capabilities.length - a.capabilities.length;
+        }
+    });
+}
+
+export function formatModelComparison(models: ModelCandidate[]): string {
+    const lines = ['🤖 Model Comparison\n', `${'Model'.padEnd(25)} ${'Provider'.padEnd(12)} ${'Context'.padEnd(10)} ${'Cost'.padEnd(8)} ${'Speed'.padEnd(8)} Caps`, '─'.repeat(80)];
+    for (const m of models) lines.push(`${m.id.padEnd(25)} ${m.provider.padEnd(12)} ${(m.contextWindow / 1000 + 'K').padEnd(10)} ${'$' + m.costPer1k.toFixed(4).padEnd(7)} ${m.speed.padEnd(8)} ${m.capabilities.join(', ')}`);
+    return lines.join('\n');
+}
+
+/**
+ * Creates an interactive model picker flow.
+ */
+export function createModelPickerFlow(
+    availableModels: ModelCandidate[],
+    onCompleteAction?: (data: Record<string, unknown>) => Promise<void> | void
+): FlowDefinition {
+    return {
+        name: 'Model Picker',
+        description: 'Interactively rank and select a model provider',
+        initialStep: 'criteria',
+        timeoutMs: 300000,
+        onComplete: async (data) => {
+            if (onCompleteAction) await onCompleteAction(data);
+        },
+        steps: [
+            {
+                id: 'criteria',
+                prompt: 'What is your primary priority? (cost / speed / context / capabilities)',
+                validator: (input: string) => {
+                    const val = input.toLowerCase().trim();
+                    return ['cost', 'speed', 'context', 'capabilities'].includes(val) 
+                        ? { valid: true } 
+                        : { valid: false, error: 'Please choose cost, speed, context, or capabilities.' };
+                },
+                transform: (input: string) => input.toLowerCase().trim(),
+                next: 'evaluate'
+            },
+            {
+                id: 'evaluate',
+                prompt: 'Any required capabilities? (comma separated, or "none")',
+                transform: (input: string) => {
+                    if (input.toLowerCase().trim() === 'none') return [];
+                    return input.split(',').map(s => s.trim().toLowerCase());
+                },
+                onEnter: async () => {
+                   // We don't have direct access to previous step data in onEnter yet,
+                   // but FlowEngine could be enhanced to pass it. 
+                },
+                next: 'selection'
+            },
+            {
+                id: 'selection',
+                // For a dynamic prompt we could interpolate based on data, but let's keep it static for now
+                prompt: 'Please enter the ID of the model you wish to select from the ranked list:',
+                validator: (input: string) => {
+                    const val = input.trim();
+                    return availableModels.some(m => m.id === val) 
+                        ? { valid: true } 
+                        : { valid: false, error: 'Model ID not found in available models.' };
+                },
+                transform: (input: string) => input.trim(),
+                next: null
+            }
+        ]
+    };
+}

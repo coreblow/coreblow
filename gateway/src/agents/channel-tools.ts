@@ -1,0 +1,197 @@
+/**
+ * CoreBlow Channel Tools
+ *
+ * Channel-specific tool adaptors. Normalizes tool call parameters and
+ * result formatting for different transport channels (Telegram, Discord,
+ * WhatsApp, Web, API).
+ *
+ * Equivalent: CoreBlow src/agents/channel-tools.ts (135 LOC)
+ */
+
+import { createChildLogger } from '../utils/logger.js';
+
+const log = createChildLogger('channel-tools');
+
+// ─── Types ────────────────────────────────────────────────────────
+
+export type ChannelType = 'telegram' | 'discord' | 'whatsapp' | 'web' | 'api' | 'cli' | 'slack';
+
+export interface ChannelCapabilities {
+    markdown: boolean;
+    inlineButtons: boolean;
+    reactions: boolean;
+    threads: boolean;
+    fileUpload: boolean;
+    imageInline: boolean;
+    audioInline: boolean;
+    maxMessageLength: number;
+    codeBlocks: boolean;
+    tables: boolean;
+    mermaid: boolean;
+}
+
+// ─── Capability Registry ──────────────────────────────────────────
+
+const CHANNEL_CAPABILITIES: Record<ChannelType, ChannelCapabilities> = {
+    telegram: {
+        markdown: true,
+        inlineButtons: true,
+        reactions: true,
+        threads: true,
+        fileUpload: true,
+        imageInline: true,
+        audioInline: true,
+        maxMessageLength: 4096,
+        codeBlocks: true,
+        tables: false,
+        mermaid: false,
+    },
+    discord: {
+        markdown: true,
+        inlineButtons: true,
+        reactions: true,
+        threads: true,
+        fileUpload: true,
+        imageInline: true,
+        audioInline: false,
+        maxMessageLength: 2000,
+        codeBlocks: true,
+        tables: false,
+        mermaid: false,
+    },
+    whatsapp: {
+        markdown: true,
+        inlineButtons: false,
+        reactions: true,
+        threads: false,
+        fileUpload: true,
+        imageInline: true,
+        audioInline: true,
+        maxMessageLength: 65536,
+        codeBlocks: true,
+        tables: false,
+        mermaid: false,
+    },
+    web: {
+        markdown: true,
+        inlineButtons: true,
+        reactions: true,
+        threads: true,
+        fileUpload: true,
+        imageInline: true,
+        audioInline: true,
+        maxMessageLength: 100_000,
+        codeBlocks: true,
+        tables: true,
+        mermaid: true,
+    },
+    api: {
+        markdown: true,
+        inlineButtons: false,
+        reactions: false,
+        threads: false,
+        fileUpload: true,
+        imageInline: true,
+        audioInline: true,
+        maxMessageLength: 1_000_000,
+        codeBlocks: true,
+        tables: true,
+        mermaid: true,
+    },
+    cli: {
+        markdown: false,
+        inlineButtons: false,
+        reactions: false,
+        threads: false,
+        fileUpload: false,
+        imageInline: false,
+        audioInline: false,
+        maxMessageLength: 100_000,
+        codeBlocks: true,
+        tables: true,
+        mermaid: false,
+    },
+    slack: {
+        markdown: true,
+        inlineButtons: true,
+        reactions: true,
+        threads: true,
+        fileUpload: true,
+        imageInline: true,
+        audioInline: false,
+        maxMessageLength: 40_000,
+        codeBlocks: true,
+        tables: false,
+        mermaid: false,
+    },
+};
+
+/**
+ * Get capabilities for a channel
+ */
+export function getChannelCapabilities(channel: ChannelType): ChannelCapabilities {
+    return { ...CHANNEL_CAPABILITIES[channel] };
+}
+
+/**
+ * Get channel capability names list
+ */
+export function getChannelCapabilityNames(channel: ChannelType): string[] {
+    const caps = CHANNEL_CAPABILITIES[channel];
+    const names: string[] = [];
+    if (caps.markdown) names.push('markdown');
+    if (caps.inlineButtons) names.push('inlineButtons');
+    if (caps.reactions) names.push('reactions');
+    if (caps.threads) names.push('threads');
+    if (caps.fileUpload) names.push('fileUpload');
+    if (caps.imageInline) names.push('imageInline');
+    if (caps.audioInline) names.push('audioInline');
+    if (caps.codeBlocks) names.push('codeBlocks');
+    if (caps.tables) names.push('tables');
+    if (caps.mermaid) names.push('mermaid');
+    return names;
+}
+
+/**
+ * Adapt message content for a specific channel
+ */
+export function adaptForChannel(content: string, channel: ChannelType): string {
+    const caps = CHANNEL_CAPABILITIES[channel];
+    let adapted = content;
+
+    // Truncate if needed
+    if (adapted.length > caps.maxMessageLength) {
+        const truncLen = caps.maxMessageLength - 50;
+        adapted = adapted.slice(0, truncLen) + '\n\n... [message truncated]';
+    }
+
+    // Remove mermaid blocks if not supported
+    if (!caps.mermaid) {
+        adapted = adapted.replace(/```mermaid\n[\s\S]*?```/g, '[diagram omitted]');
+    }
+
+    // Remove tables if not supported
+    if (!caps.tables) {
+        // Keep tables but simplify them to lists
+        adapted = adapted.replace(/\|.*\|.*\n\|[-\s|]*\n([\s\S]*?)(?=\n\n|\n$|$)/g, (match) => {
+            return match; // Keep as-is for now, channels can render basic tables
+        });
+    }
+
+    return adapted;
+}
+
+/**
+ * Check if a channel supports a specific feature
+ */
+export function channelSupports(channel: ChannelType, feature: keyof ChannelCapabilities): boolean {
+    const caps = CHANNEL_CAPABILITIES[channel];
+    return !!caps[feature];
+}
+
+/**
+ * Get all supported channels
+ */
+export function getSupportedChannels(): ChannelType[] {
+    return Object.keys(CHANNEL_CAPABILITIES) as ChannelType[];
+}

@@ -1,0 +1,23 @@
+{
+    "// CoreBlow Gateway — Telegram Bot": "",
+    "// Get your token from @BotFather on Telegram": "",
+    "port": 3120,
+    "host": "0.0.0.0",
+    "agent": {
+        "provider": "ollama",
+        "model": "llama3.2",
+        "maxTokens": 4096,
+        "temperature": 0.7,
+        "workspace": "."
+    },
+    "providers": {
+        "ollama": {
+            "baseUrl": "http://127.0.0.1:11434"
+        }
+    },
+    "channels": {
+        "telegram": {
+            "token": "YOUR_TELEGRAM_BOT_TOKEN"
+        }
+    }
+}

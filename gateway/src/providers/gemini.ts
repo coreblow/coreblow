@@ -1,56 +1,123 @@
 /**
- * src/providers/gemini.ts
- * Google Gemini provider — gemini-pro, gemini-1.5-flash, gemini-2.0
- * All code is 100% original, inspired by public Gemini API docs
+ * CoreBlow Provider — Google Gemini
+ *
+ * Production adapter for Google's Gemini API (Gemini 2.5, 2.0, 1.5).
+ * Translates between OpenAI-compatible format and Gemini's
+ * generateContent API.
  */
 
-import { createChildLogger } from '../utils/logger.js';
-import type { AIProvider, ChatMessage, ProviderOptions, StreamChunk, ChatResponse } from './interface.js';
+import type { ModelProvider } from '../agents/runtime.js';
 
-const log = createChildLogger('provider:gemini');
+/** Gemini configuration */
+export interface GeminiConfig {
+    apiKey: string;
+    baseUrl?: string;
+    defaultModel?: string;
+    timeout?: number;
+}
 
-const GEMINI_API = 'https://generativelanguage.googleapis.com/v1beta';
+/** Gemini content part */
+interface GeminiPart {
+    text?: string;
+    functionCall?: { name: string; args: Record<string, unknown> };
+    functionResponse?: { name: string; response: { content: string } };
+}
 
-export class GeminiProvider implements AIProvider {
-    name = 'gemini';
-    private apiKey: string;
-    private baseUrl: string;
+/** Gemini response */
+interface GeminiResponse {
+    candidates: Array<{
+        content: {
+            parts: GeminiPart[];
+            role: string;
+        };
+        finishReason: string;
+    }>;
+    usageMetadata?: {
+        promptTokenCount: number;
+        candidatesTokenCount: number;
+        totalTokenCount: number;
+        cachedContentTokenCount?: number;
+    };
+}
 
-    constructor(opts: { apiKey?: string; baseUrl?: string } = {}) {
-        this.apiKey = opts.apiKey || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || '';
-        this.baseUrl = opts.baseUrl || GEMINI_API;
+/** Available Gemini models */
+export const GEMINI_MODELS = {
+    'gemini-2.5-flash': { contextWindow: 1_048_576, outputTokens: 65_536, vision: true },
+    'gemini-2.5-pro': { contextWindow: 1_048_576, outputTokens: 65_536, vision: true },
+    'gemini-2.0-flash': { contextWindow: 1_048_576, outputTokens: 8_192, vision: true },
+    'gemini-1.5-pro': { contextWindow: 2_097_152, outputTokens: 8_192, vision: true },
+    'gemini-1.5-flash': { contextWindow: 1_048_576, outputTokens: 8_192, vision: true },
+} as const;
+
+/**
+ * Gemini Provider
+ */
+export class GeminiProvider implements ModelProvider {
+    readonly id = 'google';
+    readonly name = 'Google Gemini';
+    private config: GeminiConfig;
+
+    constructor(config: GeminiConfig) {
+        this.config = {
+            baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
+            defaultModel: 'gemini-2.5-flash',
+            timeout: 120_000,
+            ...config,
+        };
     }
 
-    async *chat(messages: ChatMessage[], options: ProviderOptions): AsyncIterable<StreamChunk> {
-        const model = options.model || 'gemini-1.5-flash';
-        const url = `${this.baseUrl}/models/${model}:streamGenerateContent?alt=sse&key=${this.apiKey}`;
+    async chat(params: {
+        model: string;
+        messages: Array<{ role: string; content: string; name?: string; tool_call_id?: string }>;
+        tools?: Array<{ type: 'function'; function: { name: string; description: string; parameters: unknown } }>;
+        temperature?: number;
+        max_tokens?: number;
+        stream?: boolean;
+    }) {
+        const model = params.model || this.config.defaultModel || 'gemini-2.5-flash';
 
         // Convert messages to Gemini format
-        const contents = messages
-            .filter(m => m.role !== 'system')
-            .map(m => ({
-                role: m.role === 'assistant' ? 'model' : 'user',
-                parts: [{ text: m.content }],
-            }));
+        let systemInstruction: string | undefined;
+        const contents: Array<{ role: string; parts: GeminiPart[] }> = [];
 
-        const systemInstruction = messages.find(m => m.role === 'system');
-
-        const body: Record<string, any> = {
-            contents,
-            generationConfig: {
-                maxOutputTokens: options.maxTokens || 4096,
-                temperature: options.temperature ?? 0.7,
-            },
-        };
-
-        if (systemInstruction) {
-            body.systemInstruction = { parts: [{ text: systemInstruction.content }] };
+        for (const msg of params.messages) {
+            if (msg.role === 'system') {
+                systemInstruction = msg.content;
+            } else if (msg.role === 'user') {
+                contents.push({ role: 'user', parts: [{ text: msg.content }] });
+            } else if (msg.role === 'assistant') {
+                contents.push({ role: 'model', parts: [{ text: msg.content }] });
+            } else if (msg.role === 'tool') {
+                contents.push({
+                    role: 'user',
+                    parts: [{
+                        functionResponse: {
+                            name: msg.name ?? 'tool',
+                            response: { content: msg.content },
+                        },
+                    }],
+                });
+            }
         }
 
-        // Add tools if provided
-        if (options.tools?.length) {
+        // Build request
+        const body: Record<string, unknown> = { contents };
+
+        if (systemInstruction) {
+            body.systemInstruction = { parts: [{ text: systemInstruction }] };
+        }
+
+        if (params.temperature !== undefined) {
+            body.generationConfig = {
+                temperature: params.temperature,
+                maxOutputTokens: params.max_tokens,
+            };
+        }
+
+        // Convert tools
+        if (params.tools?.length) {
             body.tools = [{
-                functionDeclarations: options.tools.map(t => ({
+                functionDeclarations: params.tools.map((t) => ({
                     name: t.function.name,
                     description: t.function.description,
                     parameters: t.function.parameters,
@@ -58,88 +125,65 @@ export class GeminiProvider implements AIProvider {
             }];
         }
 
+        const endpoint = `/models/${model}:generateContent?key=${this.config.apiKey}`;
+        const response = await this.request<GeminiResponse>(endpoint, body);
+        const candidate = response.candidates[0]!;
+
+        // Extract text
+        const textParts = candidate.content.parts.filter((p) => p.text);
+        const content = textParts.map((p) => p.text ?? '').join('');
+
+        // Extract function calls
+        const funcCalls = candidate.content.parts.filter((p) => p.functionCall);
+        const toolCalls = funcCalls.length > 0
+            ? funcCalls.map((p, i) => ({
+                id: `call-${Date.now()}-${i}`,
+                name: p.functionCall!.name,
+                arguments: JSON.stringify(p.functionCall!.args),
+            }))
+            : undefined;
+
+        return {
+            content,
+            toolCalls,
+            usage: response.usageMetadata ? {
+                input: response.usageMetadata.promptTokenCount,
+                output: response.usageMetadata.candidatesTokenCount,
+                total: response.usageMetadata.totalTokenCount,
+                cacheRead: response.usageMetadata.cachedContentTokenCount,
+            } : undefined,
+            finishReason: candidate.finishReason,
+        };
+    }
+
+    getModels(): string[] {
+        return Object.keys(GEMINI_MODELS);
+    }
+
+    // === Private ===
+
+    private async request<T>(endpoint: string, body: unknown): Promise<T> {
+        const url = `${this.config.baseUrl}${endpoint}`;
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+
         try {
             const res = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body),
+                signal: controller.signal,
             });
 
             if (!res.ok) {
-                const err = await res.text();
-                log.error({ status: res.status, err }, 'Gemini API error');
-                yield { type: 'error', error: `Gemini ${res.status}: ${err}` };
-                return;
+                const text = await res.text();
+                throw new Error(`Gemini API error ${res.status}: ${text}`);
             }
 
-            const reader = res.body?.getReader();
-            if (!reader) return;
-
-            const decoder = new TextDecoder();
-            let buffer = '';
-            let totalTokens = 0;
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || '';
-
-                for (const line of lines) {
-                    if (!line.startsWith('data: ')) continue;
-                    const data = line.slice(6).trim();
-                    if (data === '[DONE]') continue;
-
-                    try {
-                        const json = JSON.parse(data);
-                        const candidate = json.candidates?.[0];
-                        if (!candidate) continue;
-
-                        // Text content
-                        const parts = candidate.content?.parts || [];
-                        for (const part of parts) {
-                            if (part.text) {
-                                yield { type: 'text', content: part.text };
-                            }
-                            if (part.functionCall) {
-                                yield {
-                                    type: 'tool_call',
-                                    toolCall: {
-                                        id: `gemini_${Date.now()}`,
-                                        type: 'function',
-                                        function: {
-                                            name: part.functionCall.name,
-                                            arguments: JSON.stringify(part.functionCall.args || {}),
-                                        },
-                                    },
-                                };
-                            }
-                        }
-
-                        // Usage
-                        if (json.usageMetadata) {
-                            totalTokens = json.usageMetadata.totalTokenCount || 0;
-                        }
-                    } catch { /* skip malformed */ }
-                }
-            }
-
-            yield {
-                type: 'done',
-                usage: {
-                    promptTokens: 0,
-                    completionTokens: totalTokens,
-                    totalTokens,
-                },
-            };
-        } catch (err: any) {
-            log.error({ err: err.message }, 'Gemini connection error');
-            yield { type: 'error', error: err.message };
+            return await res.json() as T;
+        } finally {
+            clearTimeout(timeoutId);
         }
     }
-
-    async isAvailable(): Promise<boolean> { return Boolean(this.apiKey); }
-    listModels(): string[] { return ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash']; }
 }

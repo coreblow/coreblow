@@ -20,7 +20,7 @@ export class GroqProvider implements AIProvider {
     async *chat(messages: ChatMessage[], options: ProviderOptions): AsyncIterable<StreamChunk> {
         const model = options.model || 'llama-3.3-70b-versatile';
 
-        const body: Record<string, any> = {
+        const body: Record<string, unknown> = {
             model,
             messages: messages.map(m => ({ role: m.role, content: m.content })),
             max_tokens: options.maxTokens || 4096,
@@ -92,9 +92,10 @@ export class GroqProvider implements AIProvider {
                     } catch { /* skip */ }
                 }
             }
-        } catch (err: any) {
-            log.error({ err: err.message }, 'Groq error');
-            yield { type: 'error', error: err.message };
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            log.error({ err: msg }, 'Groq error');
+            yield { type: 'error', error: msg };
         }
     }
 

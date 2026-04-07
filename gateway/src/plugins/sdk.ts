@@ -40,7 +40,7 @@ export interface ConfigField {
     label: string;
     type: 'string' | 'number' | 'boolean' | 'select' | 'password';
     required?: boolean;
-    default?: any;
+    default?: unknown;
     options?: string[];  // for select type
     description?: string;
 }
@@ -49,22 +49,22 @@ export interface ConfigField {
  * Lifecycle hooks
  */
 export interface ExtensionHooks {
-    onMessage?(message: any): Promise<void>;         // intercept inbound
-    onResponse?(response: any): Promise<void>;       // intercept outbound
-    onToolCall?(toolName: string, args: any): Promise<any>;  // intercept tool
+    onMessage?(message: unknown): Promise<void>;         // intercept inbound
+    onResponse?(response: unknown): Promise<void>;       // intercept outbound
+    onToolCall?(toolName: string, args: unknown): Promise<unknown>;  // intercept tool
     onSessionStart?(sessionId: string): Promise<void>;
     onSessionEnd?(sessionId: string): Promise<void>;
-    onConfigChange?(config: any): Promise<void>;
+    onConfigChange?(config: unknown): Promise<void>;
 }
 
 /**
  * Context passed to extensions during initialization
  */
 export interface ExtensionContext {
-    config: Record<string, any>;        // extension config from config.json
+    config: Record<string, unknown>;        // extension config from config.json
     homeDir: string;                     // ~/.coreblow/
     dataDir: string;                     // ~/.coreblow/extensions/<name>/
-    logger: any;                         // child logger
+    logger: { info(msg: string): void; warn(msg: string): void; error(msg: string): void; debug(msg: string): void };
     gateway: {
         port: number;
         host: string;

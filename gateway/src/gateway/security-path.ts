@@ -1,0 +1,22 @@
+import path from "node:path";
+
+export function isPathSafe(baseDir: string, targetPath: string): boolean {
+    if (!targetPath) return false;
+    
+    // Check for null bytes wrapper
+    if (targetPath.indexOf('\0') !== -1) return false;
+
+    try {
+        const resolvedBase = path.resolve(baseDir);
+        const resolvedTarget = path.resolve(baseDir, targetPath);
+        
+        return resolvedTarget.startsWith(resolvedBase);
+    } catch {
+        return false;
+    }
+}
+
+export function sanitizePath(input: string): string {
+    if (!input) return "";
+    return input.replace(/[\0<>:"|?*]/g, ''); // Basic invalid chars for cross-platform
+}

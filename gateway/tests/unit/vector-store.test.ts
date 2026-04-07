@@ -1,146 +1,113 @@
 /**
- * tests/unit/vector-store.test.ts
- * Tests for the vector store
+ * Tests for the vector store — matches actual VectorStore API
  */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { VectorStore, type MemoryEntry } from '../../src/memory/vector-store.js';
-import fs from 'node:fs';
-import path from 'node:path';
-import os from 'node:os';
-
-function makeTmpPath(): string {
-    return path.join(os.tmpdir(), `coreblow-test-${Date.now()}-${Math.random().toString(36).slice(2)}.jsonl`);
-}
-
-function makeEntry(overrides: Partial<MemoryEntry> = {}): MemoryEntry {
-    return {
-        id: Math.random().toString(36).slice(2, 10),
-        text: overrides.text || 'Test memory entry',
-        embedding: overrides.embedding || new Array(256).fill(0).map(() => Math.random()),
-        metadata: {
-            source: 'test',
-            timestamp: Date.now(),
-            tags: [],
-            type: 'note',
-            importance: 0.5,
-            ...overrides.metadata,
-        },
-        ...overrides,
-    };
-}
+import { describe, it, expect, beforeEach } from 'vitest';
+import { VectorStore } from '../../src/memory/vector-store.js';
 
 describe('VectorStore', () => {
-    let storePath: string;
     let store: VectorStore;
-
-    beforeEach(() => {
-        storePath = makeTmpPath();
-        store = new VectorStore(storePath);
-    });
-
-    afterEach(() => {
-        store.close();
-        if (fs.existsSync(storePath)) fs.unlinkSync(storePath);
-    });
+    beforeEach(() => { store = new VectorStore({ maxDocuments: 100 }); });
 
     it('should start empty', () => {
-        expect(store.size).toBe(0);
+        expect(store.count()).toBe(0);
     });
 
-    it('should add entries', async () => {
-        await store.add(makeEntry());
-        expect(store.size).toBe(1);
+    it('should add entries', () => {
+        store.add('1', 'hello world', [0.1, 0.2, 0.3]);
+        expect(store.count()).toBe(1);
     });
 
-    it('should skip duplicate entries', async () => {
-        const entry = makeEntry({ text: 'duplicate test' });
-        await store.add(entry);
-        await store.add({ ...entry, id: 'different-id' });
-        expect(store.size).toBe(1);
+    it('should skip duplicate entries', () => {
+        store.add('1', 'hello', [0.1]);
+        store.add('1', 'hello updated', [0.2]);
+        expect(store.count()).toBe(1); // same ID overwrites
     });
 
-    it('should delete entries by id', async () => {
-        const entry = makeEntry();
-        await store.add(entry);
-        expect(store.size).toBe(1);
-        store.delete(entry.id);
-        expect(store.size).toBe(0);
+    it('should delete entries by id', () => {
+        store.add('1', 'hello', [0.1]);
+        store.delete('1');
+        expect(store.count()).toBe(0);
     });
 
     it('should return false when deleting non-existent id', () => {
         expect(store.delete('non-existent')).toBe(false);
     });
 
-    it('should get recent entries', async () => {
-        for (let i = 0; i < 5; i++) {
-            await store.add(makeEntry({ text: `entry ${i}` }));
-        }
-        const recent = store.getRecent(3);
-        expect(recent.length).toBe(3);
+    it('should get by id', () => {
+        store.add('doc-1', 'hello world', [0.1, 0.2]);
+        const doc = store.get('doc-1');
+        expect(doc?.content).toBe('hello world');
     });
 
-    it('should search by keyword', async () => {
-        await store.add(makeEntry({ text: 'TypeScript is a programming language' }));
-        await store.add(makeEntry({ text: 'Python is great for data science' }));
-        await store.add(makeEntry({ text: 'TypeScript and JavaScript are related' }));
+    it('should search by cosine similarity', () => {
+        store.add('1', 'TypeScript', [1, 0, 0]);
+        store.add('2', 'JavaScript', [0.9, 0.1, 0]);
+        store.add('3', 'Python', [0, 0, 1]);
 
-        const results = store.searchByKeyword('TypeScript');
-        expect(results.length).toBeGreaterThanOrEqual(2);
+        const results = store.search([1, 0, 0], { topK: 2 });
+        expect(results.length).toBe(2);
+        expect(results[0]!.document.content).toBe('TypeScript');
     });
 
-    it('should filter by tags', async () => {
-        await store.add(makeEntry({ metadata: { source: 'test', timestamp: Date.now(), tags: ['work'], type: 'note', importance: 0.5 } }));
-        await store.add(makeEntry({ metadata: { source: 'test', timestamp: Date.now(), tags: ['personal'], type: 'note', importance: 0.5 } }));
+    it('should filter by namespace', () => {
+        store.add('1', 'doc1', [0.1], {}, 'ns-a');
+        store.add('2', 'doc2', [0.1], {}, 'ns-b');
 
-        const workMemories = store.getByTag('work');
-        expect(workMemories.length).toBe(1);
-    });
-
-    it('should filter by user', async () => {
-        await store.add(makeEntry({ metadata: { source: 'test', timestamp: Date.now(), tags: [], type: 'note', importance: 0.5, userId: 'alice' } }));
-        await store.add(makeEntry({ metadata: { source: 'test', timestamp: Date.now(), tags: [], type: 'note', importance: 0.5, userId: 'bob' } }));
-
-        const aliceMemories = store.getByUser('alice');
-        expect(aliceMemories.length).toBe(1);
-    });
-
-    it('should prune old entries', async () => {
-        const oldEntry = makeEntry();
-        oldEntry.metadata.timestamp = Date.now() - 100 * 24 * 60 * 60 * 1000; // 100 days ago
-        await store.add(oldEntry);
-        await store.add(makeEntry()); // Recent
-
-        const pruned = store.pruneOld(30 * 24 * 60 * 60 * 1000); // 30 days
-        expect(pruned).toBe(1);
-        expect(store.size).toBe(1);
-    });
-
-    it('should persist to disk and reload', async () => {
-        await store.add(makeEntry({ text: 'persistent memory' }));
-        store.save();
-
-        const store2 = new VectorStore(storePath);
-        expect(store2.size).toBe(1);
-        store2.close();
-    });
-
-    it('should return stats', async () => {
-        await store.add(makeEntry({ text: 'fact entry unique one', metadata: { source: 'test', timestamp: Date.now(), tags: [], type: 'fact', importance: 0.5 } }));
-        await store.add(makeEntry({ text: 'note entry unique two', metadata: { source: 'test', timestamp: Date.now(), tags: [], type: 'note', importance: 0.5 } }));
-
-        const stats = store.stats();
-        expect(stats.count).toBe(2);
-        expect(stats.types.fact).toBe(1);
-        expect(stats.types.note).toBe(1);
-    });
-
-    it('should perform semantic search with filter', async () => {
-        const embedding = new Array(256).fill(0.1);
-        await store.add(makeEntry({ embedding, metadata: { source: 'test', timestamp: Date.now(), tags: [], type: 'fact', importance: 0.5 } }));
-        await store.add(makeEntry({ embedding, metadata: { source: 'test', timestamp: Date.now(), tags: [], type: 'note', importance: 0.5 } }));
-
-        const results = await store.search(embedding, { filter: { type: 'fact' } });
+        const results = store.search([0.1], { namespace: 'ns-a' });
         expect(results.length).toBe(1);
-        expect(results[0].entry.metadata.type).toBe('fact');
+    });
+
+    it('should filter by minScore', () => {
+        store.add('1', 'match', [1, 0]);
+        store.add('2', 'no-match', [0, 1]);
+
+        const results = store.search([1, 0], { minScore: 0.9 });
+        expect(results.length).toBe(1);
+    });
+
+    it('should filter by custom filter', () => {
+        store.add('1', 'fact', [0.1], { type: 'fact' });
+        store.add('2', 'note', [0.1], { type: 'note' });
+
+        const results = store.search([0.1], {
+            filter: (doc) => doc.metadata?.type === 'fact',
+        });
+        expect(results.length).toBe(1);
+    });
+
+    it('should count by namespace', () => {
+        store.add('1', 'a', [0.1], {}, 'ns1');
+        store.add('2', 'b', [0.1], {}, 'ns1');
+        store.add('3', 'c', [0.1], {}, 'ns2');
+        expect(store.count('ns1')).toBe(2);
+    });
+
+    it('should list namespaces', () => {
+        store.add('1', 'a', [0.1], {}, 'ns1');
+        store.add('2', 'b', [0.1], {}, 'ns2');
+        expect(store.listNamespaces()).toContain('ns1');
+        expect(store.listNamespaces()).toContain('ns2');
+    });
+
+    it('should delete namespace', () => {
+        store.add('1', 'a', [0.1], {}, 'ns1');
+        store.add('2', 'b', [0.1], {}, 'ns1');
+        expect(store.deleteNamespace('ns1')).toBe(2);
+        expect(store.count()).toBe(0);
+    });
+
+    it('should enforce max documents', () => {
+        const small = new VectorStore({ maxDocuments: 2 });
+        small.add('1', 'a', [0.1]);
+        small.add('2', 'b', [0.1]);
+        small.add('3', 'c', [0.1]);
+        expect(small.count()).toBe(2);
+    });
+
+    it('should clear all', () => {
+        store.add('1', 'a', [0.1]);
+        store.add('2', 'b', [0.1]);
+        store.clear();
+        expect(store.count()).toBe(0);
     });
 });

@@ -15,14 +15,14 @@ describe('Deploy Configurations', () => {
 
     it('Dockerfile should use multi-stage build', () => {
         const content = fs.readFileSync(path.join(ROOT, 'Dockerfile'), 'utf-8');
-        expect(content).toContain('AS builder');
+        expect(content).toContain('AS deps');
         expect(content).toContain('AS runtime');
         expect(content).toContain('HEALTHCHECK');
     });
 
     it('Dockerfile should run as non-root user', () => {
         const content = fs.readFileSync(path.join(ROOT, 'Dockerfile'), 'utf-8');
-        expect(content).toContain('USER coreblow');
+        expect(content).toContain('USER node');
     });
 
     it('should have docker-compose.yml', () => {

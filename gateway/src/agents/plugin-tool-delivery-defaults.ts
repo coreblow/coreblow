@@ -1,0 +1,4 @@
+/** Plugin tool delivery defaults. */
+export const PLUGIN_TOOL_TIMEOUT_MS = 30_000;
+export const PLUGIN_TOOL_MAX_OUTPUT = 100_000;
+export const PLUGIN_TOOL_MAX_CONCURRENT = 3;

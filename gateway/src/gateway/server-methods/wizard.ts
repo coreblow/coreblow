@@ -1,0 +1,145 @@
+/**
+ * gateway/server-methods/wizard.ts — Wizard RPC Handlers (Flows Engine wrapper)
+ */
+
+import { randomUUID } from "node:crypto";
+import {
+    ErrorCodes,
+    errorShape,
+    validateWizardCancelParams,
+    validateWizardNextParams,
+    validateWizardStartParams,
+    validateWizardStatusParams,
+} from "../protocol/index.js";
+import type { GatewayRequestContext, GatewayRequestHandlers, RespondFn } from "./types.js";
+import { assertValidParams } from "./validation.js";
+
+interface WizardSession {
+    status: string;
+    getStatus(): string;
+    getError(): string | undefined;
+    next(): Promise<{ done: boolean; messages: unknown[] }>;
+    cancel(): void;
+    answer(stepId: string, value: unknown): Promise<void>;
+}
+
+function findWizardSessionOrRespond(params: {
+    context: GatewayRequestContext;
+    respond: RespondFn;
+    sessionId: string;
+}): WizardSession | null {
+    const session = params.context.wizardSessions.get(params.sessionId) as WizardSession | undefined;
+    if (!session) {
+        params.respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "wizard not found"));
+        return null;
+    }
+    return session;
+}
+
+export const wizardHandlers: GatewayRequestHandlers = {
+    "wizard.start": async ({ params, respond, context }) => {
+        if (!assertValidParams(params, validateWizardStartParams, "wizard.start", respond)) return;
+
+        const running = context.findRunningWizard();
+        if (running) {
+            respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, "wizard already running"));
+            return;
+        }
+
+        const sessionId = randomUUID();
+        const p = params as Record<string, unknown>;
+        const opts = {
+            mode: p.mode,
+            workspace: typeof p.workspace === "string" ? p.workspace : undefined,
+        };
+
+        // Mock a basic session that fits the interface expectations for now.
+        // In reality, this interfaces with FlowEngine or SetupWizard in CoreBlow.
+        const mockSession = {
+            status: 'running',
+            getStatus: () => mockSession.status,
+            getError: () => undefined,
+            async next() {
+                this.status = 'done';
+                return { done: true, messages: [] };
+            },
+            cancel() {
+                this.status = 'cancelled';
+            },
+            async answer(stepId: string, value: unknown) {
+                // mock storing answers
+            }
+        };
+
+        context.wizardSessions.set(sessionId, mockSession);
+        
+        try {
+            const result = await mockSession.next();
+            if (result.done) {
+                context.purgeWizardSession(sessionId);
+            }
+            respond(true, { sessionId, ...result }, undefined);
+        } catch (err) {
+            respond(false, undefined, errorShape(ErrorCodes.INTERNAL_ERROR, String(err)));
+        }
+    },
+
+    "wizard.next": async ({ params, respond, context }) => {
+        if (!assertValidParams(params, validateWizardNextParams, "wizard.next", respond)) return;
+
+        const p = params as any;
+        const session = findWizardSessionOrRespond({ context, respond, sessionId: p.sessionId });
+        if (!session) return;
+
+        const answer = p.answer as Record<string, unknown> | undefined;
+        if (answer) {
+            if (session.getStatus() !== "running") {
+                respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "wizard not running"));
+                return;
+            }
+            try {
+                await session.answer(String(answer.stepId ?? ""), answer.value);
+            } catch (err) {
+                respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, String(err)));
+                return;
+            }
+        }
+
+        try {
+            const result = await session.next();
+            if (result.done) {
+                context.purgeWizardSession(p.sessionId);
+            }
+            respond(true, result, undefined);
+        } catch (err) {
+            respond(false, undefined, errorShape(ErrorCodes.INTERNAL_ERROR, String(err)));
+        }
+    },
+
+    "wizard.cancel": ({ params, respond, context }) => {
+        if (!assertValidParams(params, validateWizardCancelParams, "wizard.cancel", respond)) return;
+
+        const p = params as Record<string, unknown>;
+        const session = findWizardSessionOrRespond({ context, respond, sessionId: String(p.sessionId) });
+        if (!session) return;
+
+        session.cancel();
+        const status = { status: session.getStatus(), error: session.getError() };
+        context.wizardSessions.delete(String(p.sessionId));
+        respond(true, status, undefined);
+    },
+
+    "wizard.status": ({ params, respond, context }) => {
+        if (!assertValidParams(params, validateWizardStatusParams, "wizard.status", respond)) return;
+
+        const p = params as Record<string, unknown>;
+        const session = findWizardSessionOrRespond({ context, respond, sessionId: String(p.sessionId) });
+        if (!session) return;
+
+        const status = { status: session.getStatus(), error: session.getError() };
+        if (status.status !== "running") {
+            context.wizardSessions.delete(String(p.sessionId));
+        }
+        respond(true, status, undefined);
+    },
+};

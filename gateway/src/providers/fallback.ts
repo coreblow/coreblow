@@ -1,7 +1,7 @@
 /**
  * src/providers/fallback.ts
  * Auto-Fallback Chain — cross-provider failover
- * SUPERIOR TO OpenClaw: OpenClaw only rotates keys within same provider
+ * SUPERIOR TO CoreBlow: CoreBlow only rotates keys within same provider
  * CoreBlow rotates across DIFFERENT providers
  */
 
@@ -80,10 +80,11 @@ export class FallbackProvider implements AIProvider {
                     this.markSuccess(provider, latency);
                     return; // Success — exit
                 }
-            } catch (err: any) {
-                lastError = `${provider.name}: ${err.message}`;
-                log.warn({ provider: provider.name, err: err.message, attempt }, 'Provider failed, trying next');
-                this.markFailure(provider, err.message);
+            } catch (err: unknown) {
+                const msg = err instanceof Error ? err.message : String(err);
+                lastError = `${provider.name}: ${msg}`;
+                log.warn({ provider: provider.name, err: msg, attempt }, 'Provider failed, trying next');
+                this.markFailure(provider, msg);
                 continue; // Try next provider
             }
         }
@@ -153,8 +154,8 @@ export class FallbackProvider implements AIProvider {
     async listModels(): Promise<string[]> {
         const models: string[] = [];
         for (const p of this.chain) {
-            const m = await p.provider.listModels();
-            models.push(...m.map(name => `${p.name}/${name}`));
+            const m = await Promise.resolve(p.provider.listModels());
+            models.push(...m.map((name: string) => `${p.name}/${name}`));
         }
         return models;
     }

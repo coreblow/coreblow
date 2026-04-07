@@ -1,0 +1,2 @@
+/** Subagent run manager — concurrent execution slots. */
+export class RunManager { private running = new Set<string>(); private maxConcurrent: number; constructor(max = 5) { this.maxConcurrent = max; } canRun(): boolean { return this.running.size < this.maxConcurrent; } start(id: string): boolean { if (!this.canRun()) return false; this.running.add(id); return true; } stop(id: string): void { this.running.delete(id); } count(): number { return this.running.size; } clear(): void { this.running.clear(); } }

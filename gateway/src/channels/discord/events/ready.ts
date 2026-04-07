@@ -1,0 +1,15 @@
+/**
+ * src/channels/discord/events/ready.ts
+ */
+import type { EventContext } from './index.js';
+import { discordLog } from '../utils/logger.js';
+import { syncCommands } from '../commands/index.js';
+
+export async function onReady(ctx: EventContext): Promise<void> {
+ ctx.onConnected();
+ discordLog.info({ tag: ctx.client.user?.tag, guilds: ctx.client.guilds.cache.size }, 'Discord bot ready');
+
+ if (ctx.config.registerSlashCommands && ctx.commands.size > 0) {
+ await syncCommands(ctx.client, ctx.config.token, ctx.commands);
+ }
+}

@@ -1,0 +1,163 @@
+/**
+ * Wave 44: E2E Integration (Auto-Reply & Channels)
+ * End-to-end tests covering the full pipeline lifecycle.
+ */
+
+import { describe, it, expect, vi } from 'vitest';
+import { matchTrigger } from '../../src/auto-reply/command-detection.js';
+import { buildInboundContext } from '../../src/auto-reply/inbound-context.js';
+import { parseDirectives } from '../../src/auto-reply/reply/directive-parser.js';
+import { applyDirectives } from '../../src/auto-reply/reply/directive-handler.js';
+import { AgentRunner } from '../../src/auto-reply/reply/agent-runner.js';
+import { ProviderDispatcher } from '../../src/auto-reply/reply/provider-dispatcher.js';
+import { normalizeReply } from '../../src/auto-reply/reply/normalize-reply.js';
+import { ReplyQueue } from '../../src/auto-reply/reply/queue.js';
+import { chunkMessage } from '../../src/auto-reply/chunk.js';
+
+describe('Wave 44: E2E Integration', () => {
+
+    // E2E Test Suite simulating the full inbound -> reply -> outbound lifecycle
+    
+    it('Full Auto-Reply Lifecycle: Standard Query Flow', async () => {
+        // 1. Inbound Message Arrives
+        const inboundMsg = { 
+            id: 'msg-1', 
+            channel: 'discord', 
+            author: 'user1', 
+            content: '@coreblow what is the weather today? @model xyz' 
+        };
+        
+        // 2. Command/Trigger Detection
+        const trigger = matchTrigger(inboundMsg as any, [{ type: 'mention', enabled: true }]);
+        expect(trigger).not.toBeNull();
+        expect(trigger?.type).toBe('mention');
+
+        // 3. Build Context
+        const context = buildInboundContext(inboundMsg as any);
+        expect(context.cleanContent).toBe('what is the weather today? @model xyz');
+        expect(context.isQuestion).toBe(true);
+
+        // 4. Parse Directives
+        const directives = parseDirectives(context.cleanContent);
+        expect(directives).toHaveLength(1);
+        expect(directives[0].type).toBe('model');
+        expect(directives[0].value).toBe('xyz');
+
+        // 5. Apply Directives
+        const replyCtx = applyDirectives(directives, { model: 'default' });
+        expect(replyCtx.model).toBe('xyz');
+
+        // 6. Queueing
+        const queue = new ReplyQueue(10, 10);
+        const envelope: any = { sessionId: 'sess-1', inbound: inboundMsg, context: replyCtx };
+        const enqueued = queue.enqueue(envelope);
+        expect(enqueued).toBe(true);
+
+        const dequeued = queue.dequeue();
+        expect(dequeued).toBe(envelope);
+
+        // 7. Dispatch to Provider (Mocked)
+        const dispatcher = new ProviderDispatcher();
+        dispatcher.configureRoutes([{ providerId: 'prov-1', model: 'xyz', priority: 1, maxRetries: 1, timeoutMs: 1000, isAvailable: true }]);
+        
+        const generateFn = vi.fn().mockResolvedValue({
+            content: '<thinking>Checking...</thinking>\nThe weather is sunny.',
+            usage: { prompt_tokens: 5, completion_tokens: 5, total_tokens: 10 }
+        });
+
+        // Simulating the AgentRunner loop for tools (none in this case)
+        const runner = new AgentRunner();
+        const runRes = await runner.run([{ role: 'user', content: inboundMsg.content }],
+            async (msgs: unknown[]) => {
+                const res = await dispatcher.dispatch(msgs as any[], { model: replyCtx.model }, generateFn);
+                return {
+                    content: res.response,
+                    toolCalls: [],
+                    usage: { total_tokens: res.tokensUsed.total }
+                };
+            },
+            vi.fn()
+        );
+
+        expect(runRes.finalResponse).toBe('<thinking>Checking...</thinking>\nThe weather is sunny.');
+
+        // 8. Normalization
+        const normalized = normalizeReply(runRes.finalResponse, 'discord');
+        expect(normalized).toBe('The weather is sunny.'); // Stripped thinking tags
+
+        // 9. Chunking
+        const chunks = chunkMessage(normalized, 'discord');
+        expect(chunks).toHaveLength(1);
+        expect(chunks[0]).toBe('The weather is sunny.');
+
+        // 10. Complete in Queue
+        queue.complete(envelope.sessionId);
+        expect(queue.processingCount).toBe(0);
+    });
+
+    it('Full Auto-Reply Lifecycle: Tool Recursion Flow', async () => {
+        const dispatcher = new ProviderDispatcher();
+        dispatcher.configureRoutes([{ providerId: 'p1', model: 'm1', priority: 1, maxRetries: 1, timeoutMs: 1000, isAvailable: true }]);
+        
+        // Mock LLM returning a tool call, then a final response
+        let calls = 0;
+        const generateFn = vi.fn().mockImplementation(async () => {
+            calls++;
+            if (calls === 1) {
+                return { content: null, toolCalls: [{ id: 't1', name: 'calc', arguments: { eq: '2+2' } }], usage: {} };
+            } else {
+                return { content: '2+2 is 4', usage: {} };
+            }
+        });
+
+        const executeToolFn = vi.fn().mockResolvedValue({ content: '4', isError: false });
+
+        const runner = new AgentRunner({ maxIterations: 5, maxToolCalls: 5, timeoutMs: 5000, requireApproval: false });
+        // Instead of actually dispatching, we proxy the mock through runner
+        const runRes = await runner.run([{ role: 'user', content: '2+2' }], generateFn as any, executeToolFn);
+
+        expect(runRes.iterations).toBe(2);
+        expect(runRes.toolCallsExecuted).toBe(1);
+        expect(runRes.finalResponse).toBe('2+2 is 4');
+        expect(executeToolFn).toHaveBeenCalledWith(expect.objectContaining({ name: 'calc' }));
+    });
+
+    it('Full Auto-Reply Lifecycle: Abort Flow', async () => {
+        const runner = new AgentRunner();
+        const generateFn = vi.fn().mockImplementation(async () => {
+            runner.abort();
+            return { content: 'unfinished', toolCalls: [{ id: 't1', name: 'wait', arguments: {} }], usage: { total_tokens: 10 } };
+        });
+        
+        const runRes = await runner.run([], generateFn as any, vi.fn());
+        expect(runRes.abortReason).toBe('aborted');
+        expect(runRes.iterations).toBe(1);
+    });
+
+    it('Full Auto-Reply Lifecycle: Fallback Dispatcher Flow', async () => {
+        const dispatcher = new ProviderDispatcher();
+        dispatcher.configureRoutes([
+            { providerId: 'fail', model: 'x', priority: 10, maxRetries: 1, timeoutMs: 1000, isAvailable: true },
+            { providerId: 'success', model: 'x', priority: 5, maxRetries: 1, timeoutMs: 1000, isAvailable: true }
+        ]);
+
+        const generateFn = vi.fn().mockImplementation(async (pid) => {
+            if (pid === 'fail') throw new Error('API down');
+            return { content: 'Fallback worked', usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 } };
+        });
+
+        const res = await dispatcher.dispatch([], { model: 'x' }, generateFn);
+        expect(res.providerId).toBe('success');
+        expect(res.fromFallback).toBe(true);
+        expect(res.response).toBe('Fallback worked');
+    });
+
+    it('Full Auto-Reply Lifecycle: Chunking large responses', async () => {
+        const hugeMarkdown = 'Assistant: # Chapter 1\n\n' + 'A'.repeat(8000);
+        const normalized = normalizeReply(hugeMarkdown, 'discord');
+        const chunks = chunkMessage(normalized, 'discord');
+        
+        expect(chunks.length).toBeGreaterThan(3);
+        expect(chunks[0].includes('Chapter 1')).toBe(true); // markdown stripped
+    });
+});

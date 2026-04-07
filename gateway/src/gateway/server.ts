@@ -1,267 +1,195 @@
 /**
- * src/gateway/server.ts
- * CoreBlow Gateway — HTTP + WebSocket server
+ * CoreBlow — Main Server
+ *
+ * The main entry point that ties all gateway subsystems
+ * together: config, providers, agents, channels,
+ * security, and observability.
  */
 
-import http from 'node:http';
-import path from 'node:path';
-import express from 'express';
-import cors from 'cors';
-import { WebSocketServer, WebSocket } from 'ws';
-import { randomUUID } from 'node:crypto';
-import { loadConfig, getConfig, watchConfig, getHomeDir } from './config.js';
-import { ProtocolHandler } from './protocol.js';
-import { MessageRouter } from './router.js';
-import { healthHandler } from './health.js';
-import { getStore, closeStore } from '../utils/store.js';
-import { mountDashboard } from '../dashboard/serve.js';
-import { createChildLogger } from '../utils/logger.js';
+import { AppBootstrapper } from './app-bootstrapper.js';
+import { GracefulShutdown } from './graceful-shutdown.js';
+import { ServiceRegistry } from './service-registry.js';
+import type { MemoryOrchestrator } from '../memory/memory-orchestrator.js';
+import type { PersistentVectorStore } from '../memory/vector-store-persistence.js';
 
-const log = createChildLogger('server');
+/** Server options */
+export interface ServerOptions {
+    port: number;
+    host: string;
+    env: string;
+}
 
-export class GatewayServer {
-    private app: express.Application;
-    private server: http.Server;
-    private wss: WebSocketServer;
-    public protocol: ProtocolHandler;
-    public router: MessageRouter;
+/** Server status */
+export interface ServerStatus {
+    running: boolean;
+    uptime: number;
+    port: number;
+    env: string;
+    services: number;
+    startedAt?: number;
+}
 
-    constructor() {
-        this.app = express();
-        this.server = http.createServer(this.app);
-        this.wss = new WebSocketServer({ server: this.server });
-        this.protocol = new ProtocolHandler();
-        this.router = new MessageRouter();
+/**
+ * CoreBlow Server
+ */
+export class CoreBlowServer {
+    private options: ServerOptions;
+    private bootstrapper: AppBootstrapper;
+    private shutdown: GracefulShutdown;
+    private registry: ServiceRegistry;
+    private running = false;
+    private startedAt?: number;
+    private memoryOrchestrator?: MemoryOrchestrator;
+    private persistentVectorStore?: PersistentVectorStore;
 
-        this.setupMiddleware();
-        this.setupRoutes();
-        this.setupWebSocket();
+    constructor(options?: Partial<ServerOptions>) {
+        this.options = {
+            port: options?.port ?? 3000,
+            host: options?.host ?? '0.0.0.0',
+            env: options?.env ?? 'development',
+        };
+        this.bootstrapper = new AppBootstrapper();
+        this.shutdown = new GracefulShutdown();
+        this.registry = new ServiceRegistry();
     }
 
-    private setupMiddleware() {
-        this.app.use(cors());
-        this.app.use(express.json());
-        this.app.disable('x-powered-by');
+    /**
+     * Start the server.
+     */
+    async start(): Promise<{ success: boolean; port: number; bootResult: unknown }> {
+        // Register core services
+        this.registry.register('config', {}, []);
+        this.registry.register('security', {}, ['config']);
+        this.registry.register('providers', {}, ['config']);
+        this.registry.register('agents', {}, ['providers']);
+        this.registry.register('channels', {}, ['agents']);
+        this.registry.register('gateway', {}, ['channels', 'security']);
+
+        // Register boot phases
+        this.bootstrapper.register({
+            name: 'config', order: 1, required: true,
+            init: async () => { this.registry.start('config'); },
+        });
+        this.bootstrapper.register({
+            name: 'security', order: 2, required: true,
+            init: async () => { this.registry.start('security'); },
+        });
+        this.bootstrapper.register({
+            name: 'providers', order: 3, required: true,
+            init: async () => { this.registry.start('providers'); },
+        });
+        this.bootstrapper.register({
+            name: 'agents', order: 4, required: false,
+            init: async () => { this.registry.start('agents'); },
+        });
+        this.bootstrapper.register({
+            name: 'channels', order: 5, required: false,
+            init: async () => { this.registry.start('channels'); },
+        });
+        this.bootstrapper.register({
+            name: 'gateway', order: 6, required: true,
+            init: async () => { this.registry.start('gateway'); },
+        });
+
+        // Register shutdown hooks (order 0 = memory first — flush data before stopping services)
+        this.shutdown.register({
+            name: 'memory', order: 0,
+            handler: async () => {
+                if (this.memoryOrchestrator) await this.memoryOrchestrator.flush();
+                if (this.persistentVectorStore) await this.persistentVectorStore.saveNow();
+            },
+        });
+        this.shutdown.register({ name: 'channels', order: 1, handler: async () => { this.registry.stop('channels'); } });
+        this.shutdown.register({ name: 'agents', order: 2, handler: async () => { this.registry.stop('agents'); } });
+        this.shutdown.register({ name: 'providers', order: 3, handler: async () => { this.registry.stop('providers'); } });
+        this.shutdown.register({ name: 'gateway', order: 4, handler: async () => { this.registry.stop('gateway'); } });
+
+        const bootResult = await this.bootstrapper.boot();
+        this.running = bootResult.success;
+        if (this.running) this.startedAt = Date.now();
+
+        return { success: bootResult.success, port: this.options.port, bootResult };
     }
 
-    private setupRoutes() {
-        // Health check
-        this.app.get('/api/health', healthHandler);
-
-        // Gateway info
-        this.app.get('/api/info', (_req, res) => {
-            res.json({
-                name: 'CoreBlow Gateway',
-                version: '1.0.0',
-                wsClients: this.protocol.getClientCount(),
-            });
-        });
-
-        // Config (protected)
-        this.app.get('/api/config', (req, res) => {
-            const config = getConfig();
-            if (!this.checkAuth(req)) {
-                return res.status(401).json({ error: 'Unauthorized' });
-            }
-            // Redact secrets
-            const safe = JSON.parse(JSON.stringify(config));
-            if (safe.providers?.openai?.apiKey) safe.providers.openai.apiKey = '***';
-            if (safe.providers?.anthropic?.apiKey) safe.providers.anthropic.apiKey = '***';
-            if (safe.providers?.openrouter?.apiKey) safe.providers.openrouter.apiKey = '***';
-            if (safe.channels?.telegram?.token) safe.channels.telegram.token = '***';
-            if (safe.channels?.discord?.token) safe.channels.discord.token = '***';
-            if (safe.token) safe.token = '***';
-            res.json(safe);
-        });
-
-        // Device pairing endpoints
-        this.app.post('/api/pair/generate', (req, res) => {
-            if (!this.checkAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
-            const { PairingManager } = require('./pairing.js');
-            const pairing = new PairingManager(getHomeDir());
-            const result = pairing.generateCode();
-            res.json(result);
-        });
-
-        this.app.post('/api/pair', (req, res) => {
-            const { code, deviceName, platform } = req.body;
-            if (!code) return res.status(400).json({ error: 'Missing pairing code' });
-            const { PairingManager } = require('./pairing.js');
-            const pairing = new PairingManager(getHomeDir());
-            const result = pairing.pair(code, deviceName || 'Remote Device', platform, req.ip);
-            if (result.success) {
-                res.json(result);
-            } else {
-                res.status(400).json(result);
-            }
-        });
-
-        this.app.get('/api/pair/devices', (req, res) => {
-            if (!this.checkAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
-            const { PairingManager } = require('./pairing.js');
-            const pairing = new PairingManager(getHomeDir());
-            res.json({ devices: pairing.listDevices() });
-        });
-
-        this.app.delete('/api/pair/:deviceId', (req, res) => {
-            if (!this.checkAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
-            const { PairingManager } = require('./pairing.js');
-            const pairing = new PairingManager(getHomeDir());
-            const revoked = pairing.revoke(req.params.deviceId);
-            res.json({ revoked });
-        });
-
-        // Dashboard
-        mountDashboard(this.app);
-
-        // Fallback
-        this.app.use((_req, res) => {
-            res.status(404).json({ error: 'Not found' });
-        });
+    /**
+     * Stop the server.
+     */
+    async stop(): Promise<void> {
+        await this.shutdown.shutdown();
+        this.running = false;
     }
 
-    private wsClients: Map<string, WebSocket> = new Map();
-
-    private setupWebSocket() {
-        // Register WebChat sender once
-        this.router.registerChannelSender('webchat', async (msg) => {
-            const ws = this.wsClients.get(msg.senderId);
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'message',
-                    data: { text: msg.text, from: 'assistant', timestamp: Date.now() },
-                }));
-            }
-        });
-
-        this.wss.on('connection', (ws: WebSocket, req) => {
-            const clientId = randomUUID();
-            const ip = req.socket.remoteAddress || 'unknown';
-            log.info({ clientId, ip }, 'WebSocket connection');
-
-            this.wsClients.set(clientId, ws);
-            this.protocol.handleConnection(ws, clientId);
-
-            // Handle WebChat messages
-            this.protocol.on('message', (client, msg) => {
-                if (!msg.data?.text) return;
-
-                const inbound = {
-                    channel: 'webchat',
-                    senderId: client.id,
-                    senderName: client.metadata.name || 'WebChat User',
-                    sessionId: MessageRouter.deriveSessionId('webchat', client.id),
-                    text: msg.data.text,
-                    timestamp: Date.now(),
-                };
-
-                this.router.routeInbound(inbound);
-            });
-
-            ws.on('close', () => {
-                this.wsClients.delete(clientId);
-            });
-        });
+    /**
+     * Get server status.
+     */
+    getStatus(): ServerStatus {
+        return {
+            running: this.running,
+            uptime: this.startedAt ? Date.now() - this.startedAt : 0,
+            port: this.options.port,
+            env: this.options.env,
+            services: this.registry.count(),
+            startedAt: this.startedAt,
+        };
     }
 
-    private checkAuth(req: express.Request): boolean {
-        const config = getConfig();
-        if (!config.token) return true; // No token = no auth required
-        const header = req.headers.authorization;
-        if (!header) return false;
-        const token = header.replace('Bearer ', '');
-        return token === config.token;
-    }
+    /**
+     * Get service registry.
+     */
+    getRegistry(): ServiceRegistry { return this.registry; }
 
-    async start() {
-        const config = loadConfig();
-        const homeDir = getHomeDir();
+    /**
+     * Get bootstrapper.
+     */
+    getBootstrapper(): AppBootstrapper { return this.bootstrapper; }
 
-        // Initialize SQLite
-        getStore(homeDir);
-
-        // Watch config for hot-reload
-        watchConfig((newConfig) => {
-            log.info('Config reloaded');
-        });
-
-        // Initialize agent system
-        const { AgentManager } = await import('../agents/manager.js');
-        const { AgentTurn } = await import('../agents/turn.js');
-        const { ToolRegistry } = await import('../tools/registry.js');
-        const { execTool } = await import('../tools/exec.js');
-        const { webFetchTool } = await import('../tools/web_fetch.js');
-        const { cronTool } = await import('../tools/cron.js');
-
-        const agentManager = new AgentManager();
-        await agentManager.init();
-
-        // Register tools
-        const toolRegistry = new ToolRegistry();
-        toolRegistry.register(execTool);
-        toolRegistry.register(webFetchTool);
-        toolRegistry.register(cronTool);
-
-        // Register optional tools (may fail if deps missing)
-        try { const { webSearchTool } = await import('../tools/web_search.js'); toolRegistry.register(webSearchTool); } catch { /* optional */ }
-        try { const { imageTool } = await import('../tools/image.js'); toolRegistry.register(imageTool); } catch { /* optional */ }
-        try { const { canvasTool } = await import('../tools/canvas.js'); toolRegistry.register(canvasTool); } catch { /* optional */ }
-        try { const { nodesTool } = await import('../tools/nodes.js'); toolRegistry.register(nodesTool); } catch { /* optional */ }
-
-        // Serve canvas files
-        const canvasDir = path.join(homeDir, 'canvas');
-        this.app.use('/canvas', express.static(canvasDir));
-
-        // Create agent turn loop
-        const turn = new AgentTurn(agentManager, this.router);
-        turn.setToolExecutor((name, args) => toolRegistry.execute(name, args));
-
-        // Connect router to turn loop
-        this.router.onMessage(async (inbound) => {
-            await turn.runTurn(inbound);
-        });
-
-        // Start channels
-        if (config.channels.telegram?.token) {
-            try {
-                const { TelegramChannel } = await import('../channels/telegram.js');
-                const telegram = new TelegramChannel(config.channels.telegram.token);
-                await telegram.start(this.router);
-                log.info('📱 Telegram channel started');
-            } catch (err: any) {
-                log.error({ err: err.message }, 'Failed to start Telegram');
-            }
-        }
-
-        return new Promise<void>((resolve) => {
-            this.server.listen(config.port, config.host, () => {
-                log.info(
-                    { host: config.host, port: config.port },
-                    `🚀 CoreBlow Gateway running at http://${config.host}:${config.port}`
-                );
-                log.info(`   Health: http://${config.host}:${config.port}/api/health`);
-                log.info(`   WebSocket: ws://${config.host}:${config.port}`);
-                log.info(`   Model: ${config.agent.provider}/${config.agent.model}`);
-                resolve();
-            });
-        });
-    }
-
-    async stop() {
-        log.info('Shutting down gateway...');
-        closeStore();
-
-        return new Promise<void>((resolve, reject) => {
-            // Close all WebSocket connections
-            this.wss.clients.forEach((ws) => ws.close());
-
-            this.server.close((err) => {
-                if (err) reject(err);
-                else {
-                    log.info('Gateway stopped');
-                    resolve();
-                }
-            });
-        });
+    /**
+     * Register memory subsystem for graceful shutdown.
+     * Called from memory-bootstrap after MemoryOrchestrator is created.
+     */
+    registerMemory(orchestrator: MemoryOrchestrator, vectorStore?: PersistentVectorStore): void {
+        this.memoryOrchestrator = orchestrator;
+        this.persistentVectorStore = vectorStore;
     }
 }
+
+/** Alias for CoreBlowServer for backward compatibility */
+export class GatewayServer {
+    public port: number;
+    private host: string;
+    private routes: Array<{ method: string; path: string; handler: Function }> = [];
+    private middlewares: Function[] = [];
+    private httpServer: import('node:http').Server | null = null;
+    private startedAt?: number;
+
+    constructor(opts?: { port?: number; host?: string }) {
+        this.port = opts?.port ?? 3000;
+        this.host = opts?.host ?? '0.0.0.0';
+    }
+
+    route(method: string, path: string, handler: Function): this {
+        this.routes.push({ method, path, handler });
+        return this;
+    }
+
+    use(middleware: Function): this {
+        this.middlewares.push(middleware);
+        return this;
+    }
+
+    getInfo() { return { port: this.port, host: this.host, uptime: this.startedAt ? Date.now() - this.startedAt : 0 }; }
+
+    async start(): Promise<void> {
+        const http = await import('node:http');
+        this.httpServer = http.createServer();
+        await new Promise<void>((resolve) => this.httpServer!.listen(this.port, this.host, resolve));
+        this.startedAt = Date.now();
+    }
+
+    async stop(): Promise<void> {
+        if (this.httpServer) await new Promise<void>((resolve) => this.httpServer!.close(() => resolve()));
+    }
+}
+
+
+export interface GatewayServer { port: number; start(): Promise<void>; stop(): Promise<void>; }

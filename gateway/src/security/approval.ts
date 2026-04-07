@@ -1,105 +1,217 @@
 /**
  * src/security/approval.ts
- * Tool approval system — ask modes and allowlist/denylist
+ *
+ * Layer 3: Tool Approval System — CoreBlow 1:1 Pattern
+ *
+ * Implements allowlist/denylist command approval with three ask modes,
+ * following CoreBlow's exact ToolApproval interface.
+ *
+ * ask modes:
+ *   - 'off'     → auto-approve everything (not in denylist)
+ *   - 'on-miss' → approve if in allowlist, else ask user
+ *   - 'always'  → always ask user before executing
  */
 
 import { createChildLogger } from '../utils/logger.js';
 
-const log = createChildLogger('approval');
+const log = createChildLogger('security:approval');
+
+// ─── Types (CoreBlow 1:1) ───────────────────────────────────────
 
 export type AskMode = 'off' | 'on-miss' | 'always';
 
+export type ApprovalResult = 'approved' | 'denied' | 'needs-approval';
+
 export interface ApprovalConfig {
-    askMode: AskMode;
+    /** Approval behavior mode */
+    ask: AskMode;
+    /** Glob patterns for allowed commands: ["ls", "cat *", "git *", "npm *"] */
     allowlist: string[];
+    /** Absolute deny patterns: ["rm -rf", "sudo *", "curl *"] */
     denylist: string[];
 }
 
-const DEFAULT_CONFIG: ApprovalConfig = {
-    askMode: 'off',
-    allowlist: [],
-    denylist: [],
-};
-
-let config: ApprovalConfig = { ...DEFAULT_CONFIG };
-const pendingApprovals: Map<string, (approved: boolean) => void> = new Map();
-
-export function setApprovalConfig(cfg: Partial<ApprovalConfig>) {
-    config = { ...DEFAULT_CONFIG, ...cfg };
-    log.info({ askMode: config.askMode }, 'Approval config updated');
+export interface ApprovalRequest {
+    /** Unique request ID */
+    id: string;
+    /** The command being requested */
+    command: string;
+    /** Tool name (e.g., 'exec') */
+    tool: string;
+    /** Agent that requested this */
+    agentId: string;
+    /** Source channel */
+    source?: string;
+    /** Timestamp */
+    timestamp: number;
+    /** Current status */
+    status: 'pending' | 'approved' | 'denied' | 'expired';
 }
 
+// ─── Default Config ─────────────────────────────────────────────
+
+const DEFAULT_CONFIG: ApprovalConfig = {
+    ask: 'on-miss',
+    allowlist: [
+        'ls', 'cat *', 'head *', 'tail *', 'wc *',
+        'pwd', 'whoami', 'date', 'echo *',
+        'git *', 'npm *', 'node *', 'pnpm *',
+        'python *', 'python3 *',
+    ],
+    denylist: [
+        'rm -rf /',
+        'sudo *',
+        'mkfs *',
+        'dd if=/dev/zero*',
+        'shutdown *',
+        'reboot',
+        ':(){:|:&};:',
+        'kill -9 1',
+        'pkill *',
+        'killall *',
+        'chmod 777 *',
+    ],
+};
+
+// ─── ToolApproval (CoreBlow 1:1 Pattern) ────────────────────────
+
 /**
- * Check if a tool call should be allowed
+ * Tool Approval System — CoreBlow Pattern
+ *
+ * ```
+ * const approval = new ToolApproval({ ask: 'on-miss', allowlist: ['ls', 'git *'], denylist: ['rm -rf'] });
+ * approval.check('ls -la')       // → 'approved'
+ * approval.check('rm -rf /')     // → 'denied'
+ * approval.check('curl example') // → 'needs-approval'
+ * ```
  */
-export function checkApproval(toolName: string, command?: string): 'allowed' | 'denied' | 'needs-approval' {
-    // Denylist always blocks
-    if (config.denylist.includes(toolName)) {
-        log.warn({ tool: toolName }, 'Tool denied by denylist');
-        return 'denied';
+export class ToolApproval {
+    private readonly config: ApprovalConfig;
+    private readonly pendingApprovals = new Map<string, ApprovalRequest>();
+    private readonly approvalTimeoutMs: number;
+
+    constructor(config?: Partial<ApprovalConfig>, timeoutMs = 300_000) {
+        this.config = { ...DEFAULT_CONFIG, ...config };
+        this.approvalTimeoutMs = timeoutMs;
     }
 
-    // Ask mode: off = allow everything
-    if (config.askMode === 'off') {
-        return 'allowed';
-    }
+    /**
+     * Check if a command is approved to run.
+     * Returns: 'approved' | 'denied' | 'needs-approval'
+     *
+     * CoreBlow 1:1 interface.
+     */
+    check(command: string): ApprovalResult {
+        const cmd = command.trim();
 
-    // Allowlist check
-    if (config.allowlist.includes(toolName)) {
-        return 'allowed';
-    }
+        // Always deny if in denylist
+        if (this.matchesAny(cmd, this.config.denylist)) {
+            log.warn({ command: cmd.substring(0, 80) }, 'Command denied by denylist');
+            return 'denied';
+        }
 
-    // For exec tool, check command allowlist
-    if (toolName === 'exec' && command) {
-        const cmdBase = command.split(' ')[0];
-        if (config.allowlist.includes(`exec:${cmdBase}`)) {
-            return 'allowed';
+        switch (this.config.ask) {
+            case 'off':
+                return 'approved'; // Auto-approve everything not in denylist
+
+            case 'on-miss':
+                // Approve if in allowlist, else ask user
+                if (this.matchesAny(cmd, this.config.allowlist)) {
+                    return 'approved';
+                }
+                log.info({ command: cmd.substring(0, 80) }, 'Command needs approval (not in allowlist)');
+                return 'needs-approval';
+
+            case 'always':
+                return 'needs-approval'; // Always ask
         }
     }
 
-    // Ask mode: on-miss = ask if not in allowlist
-    if (config.askMode === 'on-miss') {
-        return 'needs-approval';
-    }
+    /**
+     * Create an approval request and add to pending queue.
+     */
+    requestApproval(command: string, tool: string, agentId: string, source?: string): ApprovalRequest {
+        const request: ApprovalRequest = {
+            id: `apr_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`,
+            command,
+            tool,
+            agentId,
+            source,
+            timestamp: Date.now(),
+            status: 'pending',
+        };
 
-    // Ask mode: always
-    if (config.askMode === 'always') {
-        return 'needs-approval';
-    }
+        this.pendingApprovals.set(request.id, request);
 
-    return 'allowed';
-}
-
-/**
- * Request approval from user (via channel)
- */
-export function requestApproval(toolName: string, args: Record<string, any>): Promise<boolean> {
-    const id = `approval_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-
-    log.info({ id, tool: toolName }, 'Requesting tool approval');
-
-    return new Promise((resolve) => {
-        pendingApprovals.set(id, resolve);
-
-        // Auto-timeout after 60s (deny)
+        // Auto-expire after timeout
         setTimeout(() => {
-            if (pendingApprovals.has(id)) {
-                pendingApprovals.delete(id);
-                log.warn({ id, tool: toolName }, 'Approval timed out, denying');
-                resolve(false);
+            const req = this.pendingApprovals.get(request.id);
+            if (req && req.status === 'pending') {
+                req.status = 'expired';
+                this.pendingApprovals.delete(request.id);
+                log.info({ requestId: request.id }, 'Approval request expired');
             }
-        }, 60_000);
-    });
-}
+        }, this.approvalTimeoutMs);
 
-/**
- * Respond to a pending approval
- */
-export function respondApproval(id: string, approved: boolean) {
-    const resolver = pendingApprovals.get(id);
-    if (resolver) {
-        pendingApprovals.delete(id);
-        resolver(approved);
-        log.info({ id, approved }, 'Approval response');
+        log.info({ requestId: request.id, tool, command: command.substring(0, 80) }, 'Approval requested');
+        return request;
+    }
+
+    /**
+     * Approve a pending request.
+     */
+    approve(requestId: string): boolean {
+        const request = this.pendingApprovals.get(requestId);
+        if (!request || request.status !== 'pending') return false;
+
+        request.status = 'approved';
+        this.pendingApprovals.delete(requestId);
+        log.info({ requestId }, 'Approval granted');
+        return true;
+    }
+
+    /**
+     * Deny a pending request.
+     */
+    deny(requestId: string): boolean {
+        const request = this.pendingApprovals.get(requestId);
+        if (!request || request.status !== 'pending') return false;
+
+        request.status = 'denied';
+        this.pendingApprovals.delete(requestId);
+        log.info({ requestId }, 'Approval denied');
+        return true;
+    }
+
+    /**
+     * Get all pending approval requests.
+     */
+    getPending(): ApprovalRequest[] {
+        return [...this.pendingApprovals.values()].filter(r => r.status === 'pending');
+    }
+
+    /**
+     * Get current config.
+     */
+    getConfig(): Readonly<ApprovalConfig> {
+        return this.config;
+    }
+
+    // ─── Private ────────────────────────────────────────────────
+
+    /**
+     * Glob-style matching (CoreBlow pattern).
+     * - "git *" matches "git pull", "git push origin main"
+     * - "ls" matches "ls" or "ls -la" (exact prefix + space)
+     */
+    private matchesAny(cmd: string, patterns: string[]): boolean {
+        return patterns.some(pattern => {
+            if (pattern.endsWith(' *')) {
+                // Wildcard: match prefix
+                return cmd.startsWith(pattern.slice(0, -2));
+            }
+            // Exact match or exact command with args
+            return cmd === pattern || cmd.startsWith(pattern + ' ');
+        });
     }
 }

@@ -1,0 +1,347 @@
+/**
+ * CoreBlow — Memory Orchestrator
+ *
+ * Unified memory interface: JSONL (always-on) + RAG (optional).
+ *
+ * Architecture:
+ *  - JSONL TranscriptStore: always active, zero config, zero RAM
+ *  - VectorStore + Embedding: opt-in via config, semantic search
+ *
+ * Critical fixes applied:
+ *  🔴 (A) Stream tail-read for JSONL (not readFileSync)
+ *  🔴 (B) RAG embedding is async non-blocking (fire-and-forget queue)
+ *  🔴 (C) SHA256 content hash dedup
+ *  🔴 (D) Hard maxDocuments limit on VectorStore
+ *  🔴 (E) Error isolation — RAG failure → JSONL fallback
+ */
+
+import * as crypto from 'node:crypto';
+import { TranscriptStore, type TranscriptEntry, type TranscriptStoreConfig } from './transcript-store.js';
+import { VectorStore, type VectorSearchResult, toFloat32 } from './vector-store.js';
+import { createEmbeddingProvider, type EmbeddingProvider } from './embeddings.js';
+import { EmbeddingCircuitBreaker } from './embedding-circuit-breaker.js';
+import { logCaughtError } from '../utils/error-boundary.js';
+
+// ─── Types ──────────────────────────────────────────────────────
+
+export interface MemoryConfig {
+    /** Directory for JSONL transcripts (required) */
+    transcriptDir: string;
+
+    /** JSONL store config overrides */
+    transcript?: Partial<Omit<TranscriptStoreConfig, 'storeDir'>>;
+
+    /** RAG settings (optional — default OFF) */
+    rag?: {
+        enabled: boolean;
+        engine: 'local' | 'ollama' | 'openai' | 'gemini' | 'voyage' | 'mistral' | 'auto';
+        /** API key (only needed for remote engines) */
+        apiKey?: string;
+        /** 🔴 FIX (D): Hard limit — WAJIB ada cap */
+        maxDocuments: number;
+    };
+}
+
+export interface MemoryContext {
+    /** Recent messages from JSONL (always available) */
+    recentMessages: TranscriptEntry[];
+    /** Semantic search results from RAG (only if enabled) */
+    semanticMatches?: VectorSearchResult[];
+    /** Combined context string for LLM prompt */
+    contextText: string;
+    /** Whether RAG was used */
+    ragUsed: boolean;
+}
+
+interface EmbeddingJob {
+    id: string;
+    sessionId: string;
+    content: string;
+    role: string;
+    contentHash: string;
+}
+
+// ─── Memory Orchestrator ────────────────────────────────────────
+
+export class MemoryOrchestrator {
+    private transcript: TranscriptStore;
+    private vectorStore: VectorStore | null = null;
+    private embedder: EmbeddingProvider | null = null;
+
+    // 🔴 FIX (B): Async embedding queue
+    private embeddingQueue: EmbeddingJob[] = [];
+    private queueTimer: ReturnType<typeof setTimeout> | null = null;
+    private drainPromise: Promise<void> | null = null;
+
+    // 🔴 FIX (C): Content hash dedup
+    private contentHashes = new Set<string>();
+
+    // Circuit breaker for embedding API
+    private circuitBreaker = new EmbeddingCircuitBreaker();
+
+    constructor(config: MemoryConfig) {
+        // JSONL — always initialized
+        this.transcript = new TranscriptStore({
+            storeDir: config.transcriptDir,
+            ...config.transcript,
+        });
+
+        // RAG — only if enabled
+        if (config.rag?.enabled) {
+            try {
+                this.embedder = createEmbeddingProvider({
+                    embeddingBackend: config.rag.engine,
+                    openaiKey: config.rag.apiKey,
+                });
+                this.vectorStore = new VectorStore({
+                    dimensions: this.embedder.dimensions,
+                    // 🔴 FIX (D): Hard limit enforced
+                    maxDocuments: config.rag.maxDocuments,
+                });
+            } catch (err) {
+                // 🔴 FIX (E): RAG init failure → degrade to JSONL only
+                logCaughtError('memory-orchestrator:rag-init', err);
+                this.embedder = null;
+                this.vectorStore = null;
+            }
+        }
+    }
+
+    // ─── Record ─────────────────────────────────────────────────
+
+    /**
+     * Record a message. Always writes to JSONL. Optionally queues for RAG.
+     *
+     * 🔴 FIX (B): RAG embedding is ASYNC NON-BLOCKING.
+     *    JSONL write = synchronous (fast, O(1) append).
+     *    RAG embed = queued, fire-and-forget (won't block user response).
+     */
+    recordMessage(sessionId: string, message: {
+        role: 'user' | 'assistant';
+        content: string;
+    }): void {
+        // 1. Always: write to JSONL (sync, instant)
+        this.transcript.appendMessage(sessionId, {
+            type: 'message',
+            timestamp: Date.now(),
+            message,
+        });
+
+        // 2. 🔴 FIX (C): Hash-based dedup check
+        const contentHash = this.hashContent(message.content);
+        if (this.contentHashes.has(contentHash)) {
+            return; // already indexed, skip RAG
+        }
+        this.contentHashes.add(contentHash);
+
+        // 3. 🔴 FIX (B): Queue embedding job — FIRE AND FORGET
+        if (this.vectorStore && this.embedder) {
+            this.queueEmbeddingJob({
+                id: `${sessionId}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                sessionId,
+                content: message.content,
+                role: message.role,
+                contentHash,
+            });
+        }
+    }
+
+    // ─── Retrieve ───────────────────────────────────────────────
+
+    /**
+     * Build context for LLM prompt.
+     * JSONL: recent messages (always).
+     * RAG: semantic matches (if enabled).
+     *
+     * 🔴 FIX (E): RAG failure → fallback to JSONL only.
+     * 🔴 FIX (C): Hash-based dedup between JSONL and RAG results.
+     */
+    async buildContext(sessionId: string, query: string, opts?: {
+        recentCount?: number;
+        ragTopK?: number;
+    }): Promise<MemoryContext> {
+        // 1. Always: get recent messages from JSONL (stream tail-read)
+        const recent = await this.transcript.getRecentMessages(
+            sessionId, opts?.recentCount ?? 20,
+        );
+
+        // 2. 🔴 FIX (C): Build hash set of recent messages for dedup
+        const recentHashes = new Set<string>();
+        for (const entry of recent) {
+            if (entry.message?.content) {
+                recentHashes.add(this.hashContent(entry.message.content));
+            }
+        }
+
+        // 3. 🔴 FIX (E): RAG search wrapped in try/catch
+        let semantic: VectorSearchResult[] | undefined;
+        const ragTopK = opts?.ragTopK ?? 5;
+
+        if (this.vectorStore && this.embedder) {
+            try {
+                const queryEmbedding = await this.embedder.embed(query);
+                const rawResults = this.vectorStore.search(queryEmbedding, {
+                    topK: ragTopK + recentHashes.size, // over-fetch for dedup
+                    minScore: 0.3,
+                });
+
+                // 🔴 FIX (C): Filter out docs already in recent JSONL
+                semantic = rawResults.filter(r => {
+                    const hash = this.hashContent(r.document.content);
+                    return !recentHashes.has(hash);
+                }).slice(0, ragTopK);
+            } catch (err) {
+                // 🔴 FIX (E): RAG down → JSONL still works
+                logCaughtError('memory-orchestrator:rag-search', err);
+                semantic = undefined;
+            }
+        }
+
+        // 4. Format context
+        const contextText = this.formatContext(recent, semantic);
+
+        return {
+            recentMessages: recent,
+            semanticMatches: semantic,
+            contextText,
+            ragUsed: semantic !== undefined && semantic.length > 0,
+        };
+    }
+
+    // ─── Queue Management ───────────────────────────────────────
+
+    /**
+     * 🔴 FIX (B): Async embedding queue.
+     * Processes embeddings in background, debounced, batch-friendly.
+     */
+    private queueEmbeddingJob(job: EmbeddingJob): void {
+        this.embeddingQueue.push(job);
+
+        // Debounce: process queue after 100ms of no new jobs
+        if (this.queueTimer) clearTimeout(this.queueTimer);
+        this.queueTimer = setTimeout(() => {
+            this.drainPromise = this.drainEmbeddingQueue();
+        }, 100);
+    }
+
+    private async drainEmbeddingQueue(): Promise<void> {
+        if (!this.embedder || !this.vectorStore) return;
+
+        // Circuit breaker: if API is down, skip embedding
+        if (this.circuitBreaker.isOpen()) {
+            this.embeddingQueue.splice(0); // discard — JSONL has the data
+            return;
+        }
+
+        const batch = this.embeddingQueue.splice(0);
+        if (batch.length === 0) return;
+
+        try {
+            const embeddings = await this.embedder.embedBatch(
+                batch.map(j => j.content),
+            );
+            this.circuitBreaker.recordSuccess();
+            for (let i = 0; i < batch.length; i++) {
+                const job = batch[i]!;
+                const embedding = embeddings[i];
+                if (embedding) {
+                    this.vectorStore.add(
+                        job.id, job.content, embedding,
+                        { sessionId: job.sessionId, role: job.role },
+                    );
+                }
+            }
+        } catch (err) {
+            // 🔴 FIX (E): RAG failure = log, don't crash
+            this.circuitBreaker.recordFailure();
+            logCaughtError('memory-orchestrator:embed', err);
+            // Jobs are lost — acceptable, JSONL has the data
+        }
+    }
+
+    /**
+     * Wait for all pending embedding jobs to complete.
+     * Useful for tests and graceful shutdown.
+     */
+    async flush(): Promise<void> {
+        if (this.queueTimer) {
+            clearTimeout(this.queueTimer);
+            this.queueTimer = null;
+        }
+        if (this.embeddingQueue.length > 0) {
+            await this.drainEmbeddingQueue();
+        }
+        if (this.drainPromise) {
+            await this.drainPromise;
+        }
+    }
+
+    // ─── Formatting ─────────────────────────────────────────────
+
+    private formatContext(recent: TranscriptEntry[], semantic?: VectorSearchResult[]): string {
+        const parts: string[] = [];
+
+        // Recent messages
+        if (recent.length > 0) {
+            const recentText = recent
+                .filter(e => e.message?.content)
+                .map(e => `${e.message!.role}: ${e.message!.content}`)
+                .join('\n');
+            if (recentText) {
+                parts.push(`## Recent Conversation\n${recentText}`);
+            }
+        }
+
+        // Semantic matches
+        if (semantic && semantic.length > 0) {
+            const semanticText = semantic
+                .map(r => `- [score: ${r.score.toFixed(3)}] ${r.document.content}`)
+                .join('\n');
+            parts.push(`## Relevant Context (from memory)\n${semanticText}`);
+        }
+
+        return parts.join('\n\n');
+    }
+
+    // ─── Utilities ──────────────────────────────────────────────
+
+    private hashContent(content: string): string {
+        return crypto.createHash('sha256')
+            .update(content)
+            .digest('hex')
+            .slice(0, 16);
+    }
+
+    /**
+     * Get stats about the memory system.
+     */
+    stats(): {
+        jsonl: { sessions: number };
+        rag: { enabled: boolean; documents: number; provider: string } | null;
+    } {
+        return {
+            jsonl: {
+                sessions: this.transcript.listSessions().length,
+            },
+            rag: this.vectorStore ? {
+                enabled: true,
+                documents: this.vectorStore.count(),
+                provider: this.embedder?.name ?? 'unknown',
+            } : null,
+        };
+    }
+
+    /**
+     * Access the underlying TranscriptStore (for advanced use).
+     */
+    getTranscriptStore(): TranscriptStore {
+        return this.transcript;
+    }
+
+    /**
+     * Access the underlying VectorStore (for advanced use). May be null.
+     */
+    getVectorStore(): VectorStore | null {
+        return this.vectorStore;
+    }
+}

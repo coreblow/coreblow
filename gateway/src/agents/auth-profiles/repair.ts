@@ -1,0 +1,168 @@
+/**
+ * CoreBlow — Auth Profile Repair (CoreBlow Parity)
+ *
+ * Auto-fix broken profile references and migrate stale config entries.
+ */
+
+import type { AuthProfileStore, AuthProfileIdRepairResult } from './types.js';
+import { normalizeProviderId } from './order.js';
+
+/**
+ * Repair broken auth profile IDs in the store.
+ *
+ * Common issues:
+ * - Profile IDs that don't follow the "provider:name" format
+ * - Provider references that use aliases instead of canonical names
+ * - Dangling references in order/lastGood
+ */
+export function repairAuthProfileIds(
+    store: AuthProfileStore,
+): AuthProfileIdRepairResult {
+    const changes: string[] = [];
+    let migrated = false;
+
+    // 1. Normalize profile IDs to "provider:name" format
+    const profileEntries = Object.entries(store.profiles);
+    for (const [oldId, credential] of profileEntries) {
+        const normalizedProvider = normalizeProviderId(credential.provider);
+        const expectedPrefix = `${normalizedProvider}:`;
+
+        // Fix profiles without proper prefix
+        if (!oldId.includes(':')) {
+            const newId = `${normalizedProvider}:default`;
+            if (!store.profiles[newId]) {
+                store.profiles[newId] = { ...credential, provider: normalizedProvider };
+                delete store.profiles[oldId];
+                changes.push(`Renamed "${oldId}" → "${newId}"`);
+                migrated = true;
+
+                // Update references
+                updateReferences(store, oldId, newId);
+            }
+        } else if (!oldId.startsWith(expectedPrefix)) {
+            // Provider alias in ID
+            const name = oldId.split(':').slice(1).join(':');
+            const newId = `${normalizedProvider}:${name}`;
+            if (!store.profiles[newId]) {
+                store.profiles[newId] = { ...credential, provider: normalizedProvider };
+                delete store.profiles[oldId];
+                changes.push(`Normalized "${oldId}" → "${newId}"`);
+                migrated = true;
+
+                updateReferences(store, oldId, newId);
+            }
+        }
+
+        // Fix provider field alias
+        if (credential.provider !== normalizedProvider) {
+            credential.provider = normalizedProvider;
+            changes.push(`Normalized provider in "${oldId}": "${credential.provider}" → "${normalizedProvider}"`);
+            migrated = true;
+        }
+    }
+
+    // 2. Clean up dangling order references
+    if (store.order) {
+        for (const [provider, order] of Object.entries(store.order)) {
+            const validIds = order.filter(id => store.profiles[id]);
+            if (validIds.length !== order.length) {
+                const removed = order.filter(id => !store.profiles[id]);
+                changes.push(`Removed dangling order entries for ${provider}: ${removed.join(', ')}`);
+                migrated = true;
+                if (validIds.length > 0) {
+                    store.order[provider] = validIds;
+                } else {
+                    delete store.order[provider];
+                }
+            }
+        }
+        if (Object.keys(store.order).length === 0) {
+            store.order = undefined;
+        }
+    }
+
+    // 3. Clean up dangling lastGood references
+    if (store.lastGood) {
+        for (const [provider, profileId] of Object.entries(store.lastGood)) {
+            if (!store.profiles[profileId]) {
+                changes.push(`Removed dangling lastGood for ${provider}: "${profileId}"`);
+                delete store.lastGood[provider];
+                migrated = true;
+            }
+        }
+        if (Object.keys(store.lastGood).length === 0) {
+            store.lastGood = undefined;
+        }
+    }
+
+    // 4. Clean up dangling usageStats references
+    if (store.usageStats) {
+        for (const profileId of Object.keys(store.usageStats)) {
+            if (!store.profiles[profileId]) {
+                changes.push(`Removed dangling usageStats for "${profileId}"`);
+                delete store.usageStats[profileId];
+                migrated = true;
+            }
+        }
+        if (Object.keys(store.usageStats).length === 0) {
+            store.usageStats = undefined;
+        }
+    }
+
+    return { changes, migrated };
+}
+
+function updateReferences(store: AuthProfileStore, oldId: string, newId: string): void {
+    // Update order
+    if (store.order) {
+        for (const [provider, order] of Object.entries(store.order)) {
+            const idx = order.indexOf(oldId);
+            if (idx >= 0) order[idx] = newId;
+        }
+    }
+
+    // Update lastGood
+    if (store.lastGood) {
+        for (const [provider, goodId] of Object.entries(store.lastGood)) {
+            if (goodId === oldId) store.lastGood[provider] = newId;
+        }
+    }
+
+    // Update usageStats
+    if (store.usageStats && store.usageStats[oldId]) {
+        store.usageStats[newId] = store.usageStats[oldId]!;
+        delete store.usageStats[oldId];
+    }
+}
+
+/**
+ * Detect potential issues in auth profiles (for diagnostic tooling).
+ */
+export function detectAuthProfileIssues(store: AuthProfileStore): string[] {
+    const issues: string[] = [];
+
+    for (const [id, cred] of Object.entries(store.profiles)) {
+        if (!id.includes(':')) {
+            issues.push(`Profile "${id}" missing provider prefix (expected "provider:name")`);
+        }
+
+        if (cred.type === 'api_key' && !cred.key && !cred.keyRef) {
+            issues.push(`Profile "${id}" (api_key) has no key or keyRef`);
+        }
+
+        if (cred.type === 'token' && !cred.token && !cred.tokenRef) {
+            issues.push(`Profile "${id}" (token) has no token or tokenRef`);
+        }
+
+        if (cred.type === 'oauth') {
+            if (!cred.access && !cred.refresh) {
+                issues.push(`Profile "${id}" (oauth) has no access or refresh token`);
+            }
+            if (cred.expires && cred.expires < Date.now()) {
+                issues.push(`Profile "${id}" (oauth) token is expired`);
+            }
+        }
+    }
+
+    return issues;
+}

@@ -1,135 +1,178 @@
 /**
- * src/skills/loader.ts
- * Skills loader — scans directories, watches for changes, injects into agent context
+ * CoreBlow Skills Framework — Skill Loader
+ *
+ * Discovers and parses SKILL.md files from filesystem directories.
+ * Each skill is a folder containing a SKILL.md with YAML frontmatter
+ * that describes the skill's metadata, and optionally a handler module.
+ *
+ * This is CoreBlow's authentic YAML frontmatter parser and directory scanner,
+ * inspired by CoreBlow's hooks/frontmatter.ts + hooks/workspace.ts pattern
+ * but written cleanly without any shared CoreBlow manifest utilities.
  */
 
-import fs from 'node:fs';
-import path from 'node:path';
-import { createChildLogger } from '../utils/logger.js';
-import { parseSkillFile, type ParsedSkill } from './parser.js';
-import { getHomeDir } from '../gateway/config.js';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import type { SkillEntry, SkillMetadata } from './types.js';
 
-const log = createChildLogger('skills:loader');
+const SKILL_FILENAME = 'SKILL.md';
 
-export class SkillsManager {
-    private skills: Map<string, ParsedSkill> = new Map();
-    private watchers: fs.FSWatcher[] = [];
-    private envOverrides: Map<string, Record<string, string>> = new Map();
+/**
+ * Parse YAML frontmatter from a markdown string.
+ * Expects the format:
+ * ```
+ * ---
+ * name: My Skill
+ * description: Does something cool
+ * ---
+ * # Instructions
+ * ...
+ * ```
+ */
+export function parseFrontmatter(content: string): { metadata: Record<string, unknown>; body: string } {
+    const trimmed = content.trimStart();
 
-    /**
-     * Load skills from multiple directories
-     */
-    async loadAll(): Promise<void> {
-        const homeDir = getHomeDir();
-        const searchPaths = [
-            path.join(path.dirname(new URL(import.meta.url).pathname), '../../skills'),  // bundled
-            path.join(homeDir, 'skills'),                                                  // user
-            path.join(process.cwd(), 'skills'),                                            // workspace
-        ];
-
-        for (const searchPath of searchPaths) {
-            if (!fs.existsSync(searchPath)) continue;
-            await this.scanDirectory(searchPath);
-        }
-
-        log.info({ count: this.skills.size }, 'Skills loaded');
+    if (!trimmed.startsWith('---')) {
+        return { metadata: {}, body: content };
     }
 
-    /**
-     * Scan a directory for SKILL.md files
-     */
-    private async scanDirectory(dir: string): Promise<void> {
-        const entries = fs.readdirSync(dir, { withFileTypes: true });
+    const endIdx = trimmed.indexOf('---', 3);
+    if (endIdx === -1) {
+        return { metadata: {}, body: content };
+    }
 
-        for (const entry of entries) {
-            if (!entry.isDirectory()) continue;
+    const yamlBlock = trimmed.slice(3, endIdx).trim();
+    const body = trimmed.slice(endIdx + 3).trim();
 
-            const skillFile = path.join(dir, entry.name, 'SKILL.md');
-            if (!fs.existsSync(skillFile)) continue;
+    // Simple YAML key-value parser (handles strings, booleans, lists)
+    const metadata: Record<string, unknown> = {};
 
-            const skill = parseSkillFile(skillFile);
-            if (skill) {
-                this.skills.set(skill.meta.name, skill);
-                log.debug({ name: skill.meta.name }, 'Skill loaded');
+    let currentKey: string | null = null;
+    let listValues: string[] | null = null;
+
+    for (const line of yamlBlock.split('\n')) {
+        const trimmedLine = line.trim();
+
+        // Check if this is a list item under the current key
+        if (trimmedLine.startsWith('- ') && currentKey && listValues !== null) {
+            listValues.push(trimmedLine.slice(2).trim().replace(/^['"]|['"]$/g, ''));
+            continue;
+        }
+
+        // Flush any pending list
+        if (currentKey && listValues !== null) {
+            metadata[currentKey] = listValues;
+            listValues = null;
+            currentKey = null;
+        }
+
+        const colonIdx = trimmedLine.indexOf(':');
+        if (colonIdx === -1) continue;
+
+        const key = trimmedLine.slice(0, colonIdx).trim();
+        const rawValue = trimmedLine.slice(colonIdx + 1).trim();
+
+        if (rawValue === '' || rawValue === '[]') {
+            // Might be the start of a list
+            currentKey = key;
+            listValues = [];
+            continue;
+        }
+
+        // Parse inline lists: [a, b, c]
+        if (rawValue.startsWith('[') && rawValue.endsWith(']')) {
+            const items = rawValue
+                .slice(1, -1)
+                .split(',')
+                .map((s) => s.trim().replace(/^['"]|['"]$/g, ''))
+                .filter(Boolean);
+            metadata[key] = items;
+            continue;
+        }
+
+        // Parse booleans
+        if (rawValue === 'true') { metadata[key] = true; continue; }
+        if (rawValue === 'false') { metadata[key] = false; continue; }
+
+        // Parse numbers
+        const num = Number(rawValue);
+        if (!isNaN(num) && rawValue !== '') { metadata[key] = num; continue; }
+
+        // Default: string (strip quotes)
+        metadata[key] = rawValue.replace(/^['"]|['"]$/g, '');
+    }
+
+    // Flush trailing list
+    if (currentKey && listValues !== null) {
+        metadata[currentKey] = listValues;
+    }
+
+    return { metadata, body };
+}
+
+/**
+ * Convert raw parsed frontmatter into a typed SkillMetadata object.
+ */
+function resolveMetadata(raw: Record<string, unknown>): SkillMetadata {
+    return {
+        name: typeof raw.name === 'string' ? raw.name : 'Unnamed Skill',
+        description: typeof raw.description === 'string' ? raw.description : '',
+        events: Array.isArray(raw.events) ? raw.events.map(String) : undefined,
+        handler: typeof raw.handler === 'string' ? raw.handler : undefined,
+        export: typeof raw.export === 'string' ? raw.export : undefined,
+        always: typeof raw.always === 'boolean' ? raw.always : undefined,
+        os: Array.isArray(raw.os) ? raw.os.map(String) : undefined,
+        requires: Array.isArray(raw.requires) ? raw.requires.map(String) : undefined,
+        emoji: typeof raw.emoji === 'string' ? raw.emoji : undefined,
+    };
+}
+
+/**
+ * Scan a directory for skill subdirectories containing SKILL.md files.
+ * Returns an array of fully parsed SkillEntry objects.
+ */
+export function discoverSkills(
+    searchDir: string,
+    source: 'bundled' | 'workspace' | 'remote' = 'workspace',
+): SkillEntry[] {
+    const entries: SkillEntry[] = [];
+
+    try {
+        const items = fs.readdirSync(searchDir, { withFileTypes: true });
+
+        for (const item of items) {
+            if (!item.isDirectory() || item.name.startsWith('.')) continue;
+
+            const skillDir = path.join(searchDir, item.name);
+            const markdownPath = path.join(skillDir, SKILL_FILENAME);
+
+            if (!fs.existsSync(markdownPath)) continue;
+
+            try {
+                const content = fs.readFileSync(markdownPath, 'utf-8');
+                const { metadata: rawMeta, body } = parseFrontmatter(content);
+                const metadata = resolveMetadata(rawMeta);
+
+                // Check OS compatibility
+                if (metadata.os && metadata.os.length > 0) {
+                    if (!metadata.os.includes(process.platform)) continue;
+                }
+
+                entries.push({
+                    id: item.name,
+                    baseDir: skillDir,
+                    markdownPath,
+                    instructions: body,
+                    metadata,
+                    source,
+                });
+            } catch {
+                // Skip unreadable skill files
+                continue;
             }
         }
+    } catch {
+        // Search directory might not exist
     }
 
-    /**
-     * Watch skill directories for changes (auto-reload)
-     */
-    watch(): void {
-        const homeDir = getHomeDir();
-        const dirs = [
-            path.join(homeDir, 'skills'),
-            path.join(process.cwd(), 'skills'),
-        ];
-
-        for (const dir of dirs) {
-            if (!fs.existsSync(dir)) continue;
-
-            const watcher = fs.watch(dir, { recursive: true }, async (event, filename) => {
-                if (filename?.endsWith('SKILL.md')) {
-                    log.info({ filename }, 'Skill file changed, reloading...');
-                    this.skills.clear();
-                    await this.loadAll();
-                }
-            });
-
-            this.watchers.push(watcher);
-        }
-    }
-
-    /**
-     * Set environment overrides for a skill (from config.json)
-     */
-    setEnvOverrides(skillName: string, env: Record<string, string>): void {
-        this.envOverrides.set(skillName, env);
-    }
-
-    /**
-     * Get environment for a skill execution
-     */
-    getSkillEnv(skillName: string): Record<string, string> {
-        return this.envOverrides.get(skillName) || {};
-    }
-
-    /**
-     * Build system prompt additions from all active skills
-     */
-    buildSystemPrompt(): string {
-        const parts: string[] = [];
-
-        for (const skill of this.skills.values()) {
-            if (skill.meta['disable-model-invocation']) continue;
-
-            parts.push(`\n## Skill: ${skill.meta.name}\n${skill.meta.description}\n\n${skill.instructions}`);
-        }
-
-        return parts.length > 0
-            ? `\n\n# Available Skills\n${parts.join('\n\n---\n')}`
-            : '';
-    }
-
-    /**
-     * Get a specific skill
-     */
-    get(name: string): ParsedSkill | undefined {
-        return this.skills.get(name);
-    }
-
-    /**
-     * List all loaded skills
-     */
-    list(): ParsedSkill[] {
-        return Array.from(this.skills.values());
-    }
-
-    /**
-     * Stop watching
-     */
-    stopWatching(): void {
-        for (const w of this.watchers) w.close();
-        this.watchers = [];
-    }
+    return entries;
 }

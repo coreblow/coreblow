@@ -1,104 +1,113 @@
-#!/usr/bin/env node
 /**
- * src/index.ts
- * CoreBlow Gateway — CLI Entry Point
+ * CoreBlow Gateway — Public API
+ *
+ * CoreBlow pattern: direct imports from specific files.
+ *
+ * @packageDocumentation
  */
 
-import { Command } from 'commander';
-import { gatewayCommand } from './cli/gateway.js';
-import { doctorCommand } from './cli/doctor.js';
-import { onboardCommand } from './cli/onboard.js';
-import { configureCommand } from './cli/configure.js';
-import { pairCommand } from './cli/pair.js';
-import { channelsCommand } from './cli/channels.js';
-import { logsCommand } from './cli/logs.js';
-import { platformCommand } from './cli/platform.js';
-import { skillhubCommand } from './cli/skillhub.js';
+// === Auth ===
+export { JWTManager } from './auth/jwt-manager.js';
+export type { JWTPayload, JWTOptions } from './auth/jwt-manager.js';
+export { ApiKeyManager } from './auth/api-key-manager.js';
+export type { ApiKey } from './auth/api-key-manager.js';
+export { OAuthHandler } from './auth/oauth-handler.js';
+export type { OAuthProvider, OAuthToken } from './auth/oauth-handler.js';
+export { PermissionResolver } from './auth/permission-resolver.js';
+export type { Permission, RoleDefinition } from './auth/permission-resolver.js';
+export { SessionAuth } from './auth/session-auth.js';
+export type { Session } from './auth/session-auth.js';
 
-const program = new Command();
+// === Gateway ===
+export { ApiGateway } from './gateway/api-gateway.js';
+export { RouteMatcher } from './gateway/route-matcher.js';
+export { RequestPipeline } from './gateway/request-pipeline.js';
+export { ResponseBuilder } from './gateway/response-builder.js';
+export { MiddlewareChain } from './gateway/middleware-chain.js';
+export { ApiDocsGenerator } from './gateway/api-docs.js';
+export type { RouteDoc, ApiInfo } from './gateway/api-docs.js';
 
-program
-    .name('coreblow')
-    .description('CoreBlow AI Gateway — Self-hosted AI assistant platform')
-    .version('1.0.0');
+// === Infrastructure — Caching & Performance ===
+export { LRUCache } from './infra/lru-cache.js';
+export { CacheInvalidation } from './infra/cache-invalidation.js';
+export type { InvalidationEntry } from './infra/cache-invalidation.js';
+export { ResponseCompression } from './infra/response-compression.js';
+export type { CompressionResult } from './infra/response-compression.js';
+export { ConnectionPoolV2 } from './infra/connection-pool-v2.js';
+export type { PoolConnection } from './infra/connection-pool-v2.js';
+export { LazyLoader } from './infra/lazy-loader.js';
 
-program
-    .command('gateway')
-    .description('Manage the gateway daemon')
-    .argument('<action>', 'start | status | stop')
-    .action(async (action: string) => {
-        await gatewayCommand(action);
-    });
+// === Infrastructure — Search & Indexing ===
+export { SearchEngine } from './infra/search-engine.js';
+export type { SearchDocument, SearchHit, SearchResult } from './infra/search-engine.js';
+export { InvertedIndex } from './infra/inverted-index.js';
+export type { Posting } from './infra/inverted-index.js';
+export { FuzzySearch } from './infra/fuzzy-search.js';
+export type { FuzzyMatch } from './infra/fuzzy-search.js';
+export { SearchRanking } from './infra/search-ranking.js';
+export type { RankableItem, RankedResult } from './infra/search-ranking.js';
+export { QueryParser } from './infra/query-parser.js';
+export type { QueryToken, ParsedQuery } from './infra/query-parser.js';
 
-program
-    .command('doctor')
-    .description('Check system health and dependencies')
-    .action(async () => {
-        await doctorCommand();
-    });
+// === Infrastructure — Messaging ===
+export { MessageBroker } from './infra/message-broker.js';
+export type { BrokerMessage, Consumer } from './infra/message-broker.js';
+export { PubSub } from './infra/pub-sub.js';
+export type { Subscription } from './infra/pub-sub.js';
+export { DeadLetterQueue } from './infra/dead-letter-queue.js';
+export type { DeadLetter } from './infra/dead-letter-queue.js';
+export { EventBus } from './infra/event-bus.js';
+export type { EventEntry } from './infra/event-bus.js';
+export { MessageReplay } from './infra/message-replay.js';
+export type { RecordedMessage, ReplayResult } from './infra/message-replay.js';
 
-program
-    .command('onboard')
-    .description('Interactive first-time setup wizard')
-    .action(async () => {
-        await onboardCommand();
-    });
+// === Infrastructure — Deployment ===
+export { DeploymentManager } from './infra/deployment-manager.js';
+export type { Deployment } from './infra/deployment-manager.js';
+export { HealthProbe } from './infra/health-probe.js';
+export type { ProbeTarget, ProbeResult } from './infra/health-probe.js';
+export { BlueGreenDeployer } from './infra/blue-green-deployer.js';
+export type { DeploySlot } from './infra/blue-green-deployer.js';
+export { RollbackManager } from './infra/rollback-manager.js';
+export type { RollbackPoint } from './infra/rollback-manager.js';
 
-program
-    .command('configure')
-    .description('Edit config interactively')
-    .argument('[section]', 'provider | channels | port')
-    .action(async (section?: string) => {
-        await configureCommand(section);
-    });
+// === Infrastructure — Data Processing ===
+export { DataTransformer } from './infra/data-transformer.js';
+export { ETLPipeline } from './infra/etl-pipeline.js';
+export { DataValidator } from './infra/data-validator.js';
+export { FormatConverter } from './infra/format-converter.js';
+export { DataEnricher } from './infra/data-enricher.js';
 
-program
-    .command('pair')
-    .description('Device pairing (generate code / list / revoke)')
-    .argument('[action]', 'generate | list | revoke')
-    .action(async (action?: string) => {
-        await pairCommand(action);
-    });
+// === Observability ===
+export { AlertManager } from './observability/alert-manager.js';
+export { MetricAggregator } from './observability/metric-aggregator.js';
+export { LogShipper } from './observability/log-shipper.js';
+export { IncidentTracker } from './observability/incident-tracker.js';
 
-program
-    .command('channels')
-    .description('View and test channel connections')
-    .argument('[action]', 'list | test')
-    .action(async (action?: string) => {
-        await channelsCommand(action);
-    });
+// === Config ===
+export { ConfigHotReload } from './config/config-hot-reload.js';
 
-program
-    .command('logs')
-    .description('View gateway logs, sessions, and audit trail')
-    .argument('[action]', 'tail | sessions | audit | clear')
-    .argument('[arg]', 'Optional argument (e.g. number of lines)')
-    .action(async (action?: string, arg?: string) => {
-        await logsCommand(action, arg);
-    });
+// === Tools ===
+export { CoreAPIGenerator } from './tools/coreapi-generator.js';
+export type { PathOperation, CoreAPISpec } from './tools/coreapi-generator.js';
+export { RouteDocs } from './tools/route-docs.js';
+export { TypeDocs } from './tools/type-docs.js';
+export { ExampleGenerator } from './tools/example-generator.js';
+export { ApiVersioningDocs } from './tools/api-versioning-docs.js';
 
-program
-    .command('platform')
-    .description('Install/manage auto-start service (LaunchAgent/systemd)')
-    .argument('[action]', 'install | uninstall | status')
-    .action(async (action?: string) => {
-        await platformCommand(action);
-    });
+/** CoreBlow Gateway version */
+export const VERSION = '1.0.0';
 
-program
-    .command('skillhub')
-    .description('Manage skills — install, list, remove, catalog')
-    .argument('[action]', 'install | list | remove | catalog')
-    .argument('[name]', 'Skill name')
-    .action(async (action?: string, name?: string) => {
-        await skillhubCommand(action, name);
-    });
+/** CoreBlow Gateway name */
+export const NAME = 'CoreBlow Gateway';
 
-program
-    .command('start')
-    .description('Shortcut for: coreblow gateway start')
-    .action(async () => {
-        await gatewayCommand('start');
-    });
-
-program.parse();
+// === Memory ===
+export { MemoryOrchestrator } from './memory/memory-orchestrator.js';
+export type { MemoryConfig, MemoryContext } from './memory/memory-orchestrator.js';
+export { TranscriptStore } from './memory/transcript-store.js';
+export type { TranscriptEntry, TranscriptStoreConfig } from './memory/transcript-store.js';
+export { VectorStore, toFloat32 } from './memory/vector-store.js';
+export type { VectorDocument, VectorSearchResult, EmbeddingVector } from './memory/vector-store.js';
+export { VectorStorePersistence, PersistentVectorStore } from './memory/vector-store-persistence.js';
+export { createEmbeddingProvider } from './memory/embeddings.js';
+export type { EmbeddingProvider } from './memory/embeddings.js';

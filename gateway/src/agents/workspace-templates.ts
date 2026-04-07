@@ -1,0 +1,9 @@
+/** Workspace template detection. */
+export type WorkspaceTemplate = 'nextjs' | 'vite' | 'express' | 'fastapi' | 'unknown';
+export function detectTemplate(files: string[]): WorkspaceTemplate {
+    if (files.includes('next.config.js') || files.includes('next.config.ts')) return 'nextjs';
+    if (files.includes('vite.config.ts') || files.includes('vite.config.js')) return 'vite';
+    if (files.some((f) => f.includes('express'))) return 'express';
+    if (files.includes('main.py') || files.includes('app.py')) return 'fastapi';
+    return 'unknown';
+}

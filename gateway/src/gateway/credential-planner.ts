@@ -1,0 +1,17 @@
+import type { GatewayCredentialMode } from "./credentials.js";
+import type { CoreBlowConfig } from "./gateway-types.js";
+
+export function planCredentialResolution(cfg: CoreBlowConfig): {
+    mode: GatewayCredentialMode;
+    allowWeakFallback: boolean;
+} {
+    const auth = cfg?.gateway?.auth;
+    const rawMode = auth && 'mode' in auth ? (auth as Record<string, unknown>).mode : undefined;
+    const mode: GatewayCredentialMode = 
+        rawMode === "token" || rawMode === "password" || rawMode === "none" ? rawMode : "token";
+
+    return {
+        mode,
+        allowWeakFallback: false
+    };
+}

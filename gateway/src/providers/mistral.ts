@@ -22,7 +22,7 @@ export class MistralProvider implements AIProvider {
     async *chat(messages: ChatMessage[], options: ProviderOptions): AsyncIterable<StreamChunk> {
         const model = options.model || 'mistral-large-latest';
 
-        const body: Record<string, any> = {
+        const body: Record<string, unknown> = {
             model,
             messages: messages.map(m => ({ role: m.role, content: m.content })),
             max_tokens: options.maxTokens || 4096,
@@ -113,9 +113,10 @@ export class MistralProvider implements AIProvider {
                     } catch { /* skip */ }
                 }
             }
-        } catch (err: any) {
-            log.error({ err: err.message }, 'Mistral connection error');
-            yield { type: 'error', error: err.message };
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            log.error({ err: msg }, 'Mistral connection error');
+            yield { type: 'error', error: msg };
         }
     }
 

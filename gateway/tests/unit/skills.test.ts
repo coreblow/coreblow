@@ -45,7 +45,7 @@ Do something useful.
         fs.writeFileSync(skillPath, '# Just Content\n\nNo frontmatter here.');
         const result = parseSkillFile(skillPath);
         // Should still parse or return null depending on implementation
-        expect(result === null || result.content !== undefined).toBe(true);
+        expect(result === null || result.instructions !== undefined).toBe(true);
     });
 
     it('should extract command-tool from frontmatter', () => {

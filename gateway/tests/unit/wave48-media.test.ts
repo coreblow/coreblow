@@ -1,0 +1,229 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import * as fs from 'node:fs';
+import { AttachmentPipeline } from '../../src/media/attachments.js';
+import { MediaUnderstanding } from '../../src/media/understanding.js';
+import { MediaProcessor } from '../../src/media/media-processor.js';
+import { getMimeType, isTextMime, isImageMime, detectMime } from '../../src/media/mime.js';
+import { sanitizeImage, isImageSafe } from '../../src/media/image-sanitization.js';
+
+describe('Wave 48: Media Understanding', () => {
+
+    describe('AttachmentPipeline (attachments.ts)', () => {
+        let pipeline: AttachmentPipeline;
+
+        beforeEach(() => {
+            pipeline = new AttachmentPipeline({ cacheDir: '/tmp/coreblow-test-cache' });
+        });
+
+        afterEach(() => {
+            pipeline.clearCache();
+        });
+
+        it('detects type correctly based on MIME and filename', () => {
+            expect(pipeline.detectType('image/png')).toBe('image');
+            expect(pipeline.detectType('audio/mpeg')).toBe('audio');
+            expect(pipeline.detectType('application/octet-stream', 'video.mp4')).toBe('video');
+            expect(pipeline.detectType('text/plain', 'readme.txt')).toBe('document');
+            expect(pipeline.detectType('application/unknown')).toBe('document'); // fallback logic
+        });
+
+        it('validates file size', () => {
+            const valid = pipeline.validate({ filename: 'test.jpg', mimeType: 'image/jpeg', size: 1024, channel: '' });
+            expect(valid.valid).toBe(true);
+
+            // 51MB > 50MB default
+            const invalid = pipeline.validate({ filename: 'big.mp4', mimeType: 'video/mp4', size: 55 * 1024 * 1024, channel: '' });
+            expect(invalid.valid).toBe(false);
+            expect(invalid.reason).toContain('File too large');
+        });
+
+        it('rejects blocked MIME types', () => {
+            const valid = pipeline.validate({ filename: 'test.png', mimeType: 'image/png', size: 100, channel: '' });
+            expect(valid.valid).toBe(true);
+            
+            const blocked = pipeline.validate({ filename: 'virus.exe', mimeType: 'application/x-executable', size: 100, channel: '' });
+            expect(blocked.valid).toBe(false);
+            expect(blocked.reason).toContain('Blocked');
+        });
+
+        it('normalizes attachment properties', () => {
+            const raw = { filename: 'test.wav', mimeType: 'audio/wav', size: 500, channel: 'discord' };
+            const norm = pipeline.normalize(raw);
+            
+            expect(norm.id).toBeDefined();
+            expect(norm.type).toBe('audio');
+            expect(norm.localPath).toContain(norm.id);
+            expect(norm.cached).toBe(false);
+        });
+
+        it('builds context string correctly', () => {
+            const norm1 = pipeline.normalize({ filename: 'img.png', mimeType: 'image/png', size: 1024, channel: '' });
+            norm1.description = 'A red balloon';
+            
+            const norm2 = pipeline.normalize({ filename: 'msg.mp3', mimeType: 'audio/mpeg', size: 2048, channel: '' });
+            norm2.transcription = 'Hello world';
+
+            const ctx = pipeline.buildContext([norm1, norm2]);
+            expect(ctx).toContain('[Attachments]');
+            expect(ctx).toContain('img.png');
+            expect(ctx).toContain('A red balloon');
+            expect(ctx).toContain('msg.mp3');
+            expect(ctx).toContain('Hello world');
+        });
+
+        it('process saves buffer and returns processed attachment', async () => {
+            const raw = { 
+                filename: 'test.png', 
+                mimeType: 'image/png', 
+                size: 100, 
+                channel: 'test',
+                buffer: Buffer.from('fake data')
+            };
+
+            const processed = await pipeline.process(raw);
+            expect(processed).toBeDefined();
+            expect(processed?.cached).toBe(false);
+            
+            // Check cache
+            expect(pipeline.getStats().cached).toBe(1);
+
+            // Re-processing hits cache
+            const cached = await pipeline.process(raw);
+            expect(cached?.cached).toBe(true);
+        });
+    });
+
+    describe('MediaUnderstanding (understanding.ts)', () => {
+        let mu: MediaUnderstanding;
+
+        beforeEach(() => {
+            mu = new MediaUnderstanding({ visionProvider: 'openai', whisperProvider: 'groq', openaiKey: 'test-key' });
+        });
+
+        afterEach(() => {
+            vi.restoreAllMocks();
+        });
+
+        it('detects type based on URL extension', async () => {
+            // Internal method, we test it through the fact that analyze route to the right sub-method
+            // by mocking fetch
+            const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue(new Response('raw data'));
+            
+            await mu.analyze('http://example.com/file.jpg');
+            expect(fetchSpy.mock.calls[0][0]).toContain('api.openai.com/v1/chat/completions'); // Image analysis endpoint
+        });
+
+        it('parseDocument extracts textual content', async () => {
+            const fakeTxt = 'Hello document';
+            vi.spyOn(global, 'fetch').mockResolvedValue(new Response(fakeTxt));
+            
+            const res = await mu.parseDocument('http://example.com/test.txt');
+            expect(res.type).toBe('document');
+            expect(res.text).toBe(fakeTxt);
+        });
+
+        it('parseDocument handles basic PDF text extraction', async () => {
+            const fakePdf = '%PDF\n(Hello World) Tj\nET';
+            vi.spyOn(global, 'fetch').mockResolvedValue(new Response(fakePdf));
+            
+            const res = await mu.parseDocument('http://example.com/test.pdf');
+            expect(res.type).toBe('document');
+            expect(res.text).toBe('Hello World');
+        });
+
+        it('analyzeImage parses OpenAI OCR correctly', async () => {
+            vi.spyOn(global, 'fetch').mockResolvedValue(new Response(JSON.stringify({
+                choices: [{ message: { content: 'Image description. text: "Read me".' } }]
+            })));
+            
+            const res = await mu.analyzeImage('http://example.com/test.jpg');
+            expect(res.type).toBe('image');
+            expect(res.text).toBe('"Read me"'); 
+            expect(res.metadata.model).toBe('gpt-4o');
+        });
+        
+        it('transcribeAudio returns text', async () => {
+            // Mock fetch to download blob
+            const fetchSpy = vi.spyOn(global, 'fetch');
+            fetchSpy.mockResolvedValueOnce(new Response(new Blob(['fake audio']))); // Audio download
+            fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({ text: 'Spoken text' }))); // API call
+            
+            const res = await mu.transcribeAudio('http://example.com/test.mp3');
+            expect(res.type).toBe('audio');
+            expect(res.text).toBe('Spoken text');
+        });
+    });
+
+    describe('MediaProcessor (media-processor.ts)', () => {
+        let processor: MediaProcessor;
+
+        beforeEach(() => {
+            processor = new MediaProcessor();
+        });
+
+        it('processBuffer extracts metadata correctly', () => {
+            const buf = Buffer.from('hello world');
+            const meta = processor.processBuffer(buf, 'test.png');
+            
+            expect(meta.id).toBeDefined();
+            expect(meta.filename).toBe('test.png');
+            expect(meta.type).toBe('image');
+            expect(meta.mimeType).toBe('image/png');
+            expect(meta.size).toBe(11);
+            expect(meta.hash).toBeDefined();
+        });
+
+        it('validates against channel constraints', () => {
+            // Discord allows 25MB
+            const meta = processor.processBuffer(Buffer.from('a'), 'test.png');
+            
+            // Should pass
+            const valid = processor.validate(meta, 'discord');
+            expect(valid.valid).toBe(true);
+
+            // Too big
+            meta.size = 30 * 1024 * 1024;
+            const sizeInvalid = processor.validate(meta, 'discord');
+            expect(sizeInvalid.valid).toBe(false);
+            expect(sizeInvalid.errors[0]).toContain('File too large');
+
+            // Unsupported type (if we change meta)
+            meta.size = 10;
+            meta.type = 'unknown';
+            const typeInvalid = processor.validate(meta, 'discord');
+            expect(typeInvalid.valid).toBe(false);
+            expect(typeInvalid.errors[0]).toContain('Unsupported type');
+        });
+
+        it('getMimeType resolves extension', () => {
+            expect(processor.getMimeType('json')).toBe('application/json');
+            expect(processor.getMimeType('unknownExt')).toBe('application/octet-stream');
+        });
+    });
+
+    describe('Small Config Utilities (mime, sanitization)', () => {
+        it('mime detect resolves types', () => {
+            expect(getMimeType('test.txt')).toBe('text/plain');
+            expect(isTextMime('text/plain')).toBe(true);
+            expect(isImageMime('image/png')).toBe(true);
+            
+            // detectMime magic bytes
+            const pngBytes = Buffer.from([0x89, 0x50, 0x4E, 0x47]);
+            expect(detectMime(pngBytes)).toBe('image/png');
+            
+            const jpegBytes = Buffer.from([0xFF, 0xD8, 0xFF, 0xE0]);
+            expect(detectMime(jpegBytes)).toBe('image/jpeg');
+        });
+
+        it('image sanitization', () => {
+            const buf = Buffer.from('data');
+            // Mock just reflects buffer back currently
+            expect(sanitizeImage(buf)).toBe(buf);
+            
+            // isImageSafe limit check (10MB map)
+            expect(isImageSafe(buf)).toBe(true);
+            const bigBuf = Buffer.alloc(11 * 1024 * 1024);
+            expect(isImageSafe(bigBuf)).toBe(false); // >10MB
+        });
+    });
+});

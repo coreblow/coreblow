@@ -1,0 +1,198 @@
+/**
+ * secrets/audit.ts
+ * Security audit module — scans config for hardcoded secrets and permission issues.
+ * Ported from OpenClaw src/secrets/audit.ts (745 LOC → ~200 LOC compressed).
+ */
+
+import fs from 'node:fs';
+import path from 'node:path';
+import type { AuditSeverity, SecretAuditEntry, SecretAuditReport } from './types.js';
+import { isRecord, isNonEmptyString, maskSecret } from './shared.js';
+
+// ─── Patterns ─────────────────────────────────────────────────────
+
+const SENSITIVE_KEY_PATTERNS = [
+    /token/i, /password/i, /secret/i, /api[_-]?key/i, /app[_-]?password/i,
+    /credential/i, /private[_-]?key/i, /signing[_-]?key/i, /auth/i,
+    /webhook[_-]?secret/i, /client[_-]?secret/i, /access[_-]?key/i,
+];
+
+const HARDCODED_SECRET_PATTERNS = [
+    /^sk-[a-zA-Z0-9]{20,}$/,           // OpenAI API keys
+    /^ghp_[a-zA-Z0-9]{36}$/,           // GitHub personal access tokens
+    /^xoxb-[0-9-]+$/,                  // Slack bot tokens
+    /^[0-9]+:[A-Za-z0-9_-]{35}$/,      // Telegram bot tokens
+    /^AIza[a-zA-Z0-9_-]{35}$/,         // Google API keys
+    /^AKIA[0-9A-Z]{16}$/,              // AWS access keys
+];
+
+const SAFE_PLACEHOLDER_PATTERNS = [
+    /^your[-_]/, /^xxx+$/i, /^placeholder$/i, /^change[-_]?me$/i,
+    /^TODO/i, /^FIXME/i, /^\*+$/, /^secret:/,
+];
+
+// ─── Audit Engine ─────────────────────────────────────────────────
+
+/**
+ * Run a comprehensive security audit on a config object.
+ */
+export function auditSecrets(config: Record<string, unknown>): SecretAuditReport {
+    const entries: SecretAuditEntry[] = [];
+
+    // 1. Scan for hardcoded secrets
+    scanForHardcodedSecrets(config, [], entries);
+
+    // 2. Check provider file permissions
+    scanProviderPermissions(config, entries);
+
+    // 3. Check for leaked env patterns
+    scanForLeakedEnvPatterns(entries);
+
+    // 4. Check encryption key presence
+    checkEncryptionConfig(config, entries);
+
+    const summary = { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
+    for (const entry of entries) {
+        summary[entry.severity]++;
+    }
+
+    return { timestamp: Date.now(), entries, summary };
+}
+
+function addEntry(
+    entries: SecretAuditEntry[],
+    severity: AuditSeverity,
+    code: string,
+    message: string,
+    path?: string,
+    recommendation?: string,
+): void {
+    entries.push({ severity, code, message, path, recommendation });
+}
+
+// ─── Hardcoded Secret Scanner ─────────────────────────────────────
+
+function scanForHardcodedSecrets(
+    obj: unknown,
+    currentPath: string[],
+    entries: SecretAuditEntry[],
+): void {
+    if (typeof obj === 'string') {
+        const key = currentPath[currentPath.length - 1] ?? '';
+        const isSensitiveKey = SENSITIVE_KEY_PATTERNS.some(p => p.test(key));
+        const isPlaceholder = SAFE_PLACEHOLDER_PATTERNS.some(p => p.test(obj));
+        const isHardcodedPattern = HARDCODED_SECRET_PATTERNS.some(p => p.test(obj));
+
+        if (isSensitiveKey && !isPlaceholder && obj.length > 8) {
+            const dotPath = currentPath.join('.');
+            if (isHardcodedPattern) {
+                addEntry(entries, 'critical', 'HARDCODED_API_KEY', `Hardcoded API key detected at "${dotPath}": ${maskSecret(obj)}`, dotPath, 'Use secret:env:default:ENV_VAR_NAME or a file/exec provider.');
+            } else {
+                addEntry(entries, 'high', 'PLAINTEXT_SECRET', `Plaintext secret value at "${dotPath}"`, dotPath, 'Move to environment variable or secret provider.');
+            }
+        }
+    } else if (isRecord(obj)) {
+        for (const [key, value] of Object.entries(obj)) {
+            scanForHardcodedSecrets(value, [...currentPath, key], entries);
+        }
+    } else if (Array.isArray(obj)) {
+        obj.forEach((item, i) => scanForHardcodedSecrets(item, [...currentPath, String(i)], entries));
+    }
+}
+
+// ─── Provider Permission Scanner ──────────────────────────────────
+
+function scanProviderPermissions(config: Record<string, unknown>, entries: SecretAuditEntry[]): void {
+    const secrets = config.secrets as Record<string, unknown> | undefined;
+    const providers = secrets?.providers as Record<string, Record<string, unknown>> | undefined;
+    if (!providers) return;
+
+    for (const [name, provider] of Object.entries(providers)) {
+        if (provider.source === 'file' && isNonEmptyString(provider.path)) {
+            const filePath = path.resolve(provider.path as string);
+            try {
+                const stat = fs.statSync(filePath);
+                const mode = stat.mode & 0o777;
+                if ((mode & 0o077) !== 0) {
+                    addEntry(entries, 'high', 'INSECURE_FILE_PERMS',
+                        `Secret file "${filePath}" has permissive mode ${mode.toString(8)} (expected 0600).`,
+                        `secrets.providers.${name}.path`,
+                        `Run: chmod 600 ${filePath}`);
+                }
+            } catch {
+                addEntry(entries, 'medium', 'FILE_NOT_FOUND',
+                    `Secret file "${filePath}" not found.`,
+                    `secrets.providers.${name}.path`);
+            }
+        }
+
+        if (provider.source === 'exec' && isNonEmptyString(provider.command)) {
+            const cmdPath = path.resolve(provider.command as string);
+            try {
+                const stat = fs.statSync(cmdPath);
+                const mode = stat.mode & 0o777;
+                if ((mode & 0o002) !== 0) {
+                    addEntry(entries, 'critical', 'WORLD_WRITABLE_EXEC',
+                        `Exec provider command "${cmdPath}" is world-writable!`,
+                        `secrets.providers.${name}.command`,
+                        `Run: chmod 755 ${cmdPath}`);
+                }
+            } catch {
+                addEntry(entries, 'medium', 'EXEC_NOT_FOUND',
+                    `Exec provider command "${cmdPath}" not found.`,
+                    `secrets.providers.${name}.command`);
+            }
+        }
+    }
+}
+
+// ─── Env Leak Scanner ─────────────────────────────────────────────
+
+function scanForLeakedEnvPatterns(entries: SecretAuditEntry[]): void {
+    const sensitiveEnvVars = [
+        'OPENAI_API_KEY', 'ANTHROPIC_API_KEY', 'GOOGLE_AI_KEY',
+        'DISCORD_TOKEN', 'TELEGRAM_BOT_TOKEN', 'SLACK_BOT_TOKEN',
+        'AWS_SECRET_ACCESS_KEY', 'GITHUB_TOKEN',
+    ];
+
+    for (const envVar of sensitiveEnvVars) {
+        if (process.env[envVar]) {
+            addEntry(entries, 'info', 'SENSITIVE_ENV_SET',
+                `Sensitive environment variable ${envVar} is set.`,
+                undefined,
+                'Ensure this variable is not logged. Use log redaction.');
+        }
+    }
+}
+
+// ─── Encryption Config Check ──────────────────────────────────────
+
+function checkEncryptionConfig(config: Record<string, unknown>, entries: SecretAuditEntry[]): void {
+    const secrets = config.secrets as Record<string, unknown> | undefined;
+    const encryption = secrets?.encryption as Record<string, unknown> | undefined;
+
+    if (!encryption?.key && !process.env.COREBLOW_ENCRYPTION_KEY) {
+        addEntry(entries, 'medium', 'NO_ENCRYPTION_KEY',
+            'No encryption key configured for secret storage.',
+            'secrets.encryption.key',
+            'Set COREBLOW_ENCRYPTION_KEY environment variable or configure secrets.encryption.key.');
+    }
+}
+
+/**
+ * Format audit report for display.
+ */
+export function formatAuditReport(report: SecretAuditReport): string {
+    const lines: string[] = [];
+    lines.push(`\n🔒 CoreBlow Security Audit — ${new Date(report.timestamp).toISOString()}`);
+    lines.push(`   ${report.entries.length} findings: ${report.summary.critical} critical, ${report.summary.high} high, ${report.summary.medium} medium, ${report.summary.low} low, ${report.summary.info} info\n`);
+
+    const severityIcon: Record<AuditSeverity, string> = { critical: '🔴', high: '🟠', medium: '🟡', low: '🔵', info: 'ℹ️' };
+
+    for (const entry of report.entries) {
+        lines.push(`   ${severityIcon[entry.severity]} [${entry.code}] ${entry.message}`);
+        if (entry.recommendation) lines.push(`      → ${entry.recommendation}`);
+    }
+
+    return lines.join('\n');
+}

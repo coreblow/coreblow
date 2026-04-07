@@ -1,0 +1,244 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { HealthAggregator } from '../../src/infra/health.js';
+import { HealthProbe } from '../../src/infra/health-probe.js';
+import { HeartbeatRunner } from '../../src/infra/heartbeat-runner.js';
+
+describe('Wave 52: Health & Monitoring Infrastructure', () => {
+
+    beforeEach(() => {
+        vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
+        vi.restoreAllMocks();
+    });
+
+    describe('HealthAggregator (health.ts)', () => {
+        it('aggregates healthy components correctly', async () => {
+            const h = new HealthAggregator('1.0.0');
+            h.register('db', async () => ({
+                name: 'db', status: 'healthy', lastCheckedAt: Date.now()
+            }));
+            h.register('cache', async () => ({
+                name: 'cache', status: 'healthy', lastCheckedAt: Date.now()
+            }));
+
+            const result = await h.check();
+            expect(result.status).toBe('healthy');
+            expect(result.components).toHaveLength(2);
+            expect(result.components.every(c => c.status === 'healthy')).toBe(true);
+            expect(result.version).toBe('1.0.0');
+        });
+
+        it('reports unhealthy if any component is unhealthy', async () => {
+             const h = new HealthAggregator();
+             h.register('db', async () => ({ name: 'db', status: 'healthy', lastCheckedAt: Date.now() }));
+             h.register('cache', async () => ({ name: 'cache', status: 'unhealthy', lastCheckedAt: Date.now() }));
+
+             const result = await h.check();
+             expect(result.status).toBe('unhealthy');
+        });
+
+        it('reports degraded if no unhealthy but at least one degraded', async () => {
+             const h = new HealthAggregator();
+             h.register('db', async () => ({ name: 'db', status: 'healthy', lastCheckedAt: Date.now() }));
+             h.register('cache', async () => ({ name: 'cache', status: 'degraded', lastCheckedAt: Date.now() }));
+
+             const result = await h.check();
+             expect(result.status).toBe('degraded');
+        });
+
+        it('handles check function throwing an error as unhealthy', async () => {
+            const h = new HealthAggregator();
+            h.register('db', async () => { throw new Error('connection lost'); });
+
+            const result = await h.check();
+            expect(result.status).toBe('unhealthy');
+            expect(result.components[0]?.message).toBe('connection lost');
+        });
+
+        it('caches results based on TTL', async () => {
+            const h = new HealthAggregator();
+            let checks = 0;
+            h.register('db', async () => {
+                checks++;
+                return { name: 'db', status: 'healthy', lastCheckedAt: Date.now() };
+            });
+
+            await h.check();
+            await h.check();
+            await h.check();
+
+            // Default TTL is 10_000ms. If we haven't advanced time, it should only check once.
+            expect(checks).toBe(1);
+
+            // Advance past TTL
+            await vi.advanceTimersByTimeAsync(11_000);
+            await h.check();
+            expect(checks).toBe(2);
+        });
+
+        it('times out long running checks', async () => {
+            const h = new HealthAggregator();
+            h.register('slow', async () => {
+                await new Promise(r => setTimeout(r, 10000));
+                return { name: 'slow', status: 'healthy', lastCheckedAt: Date.now() };
+            });
+
+            const p = h.check();
+            
+            // The health aggregator has an internal timeout of 5000ms for checks
+            await vi.advanceTimersByTimeAsync(5001);
+            
+            const result = await p;
+            expect(result.status).toBe('unhealthy');
+            expect(result.components[0]?.message).toContain('timed out');
+        });
+
+        it('provides quick ping() method', async () => {
+            const h = new HealthAggregator();
+            h.register('db', async () => ({ name: 'db', status: 'healthy', lastCheckedAt: Date.now() }));
+            
+            const result = await h.ping();
+            expect(result.status).toBe('healthy');
+            expect(result.uptime).toBeTypeOf('number');
+        });
+        
+        it('registers defaults without error', async () => {
+            const h = new HealthAggregator();
+            h.registerDefaults();
+            
+            const p = h.check();
+            await vi.runAllTimersAsync();
+            const result = await p;
+            expect(result.components.length).toBeGreaterThanOrEqual(2); // memory and event-loop
+        });
+    });
+
+    describe('HealthProbe (health-probe.ts)', () => {
+        it('probes a target and returns result', async () => {
+            const probe = new HealthProbe();
+            probe.register('service1', async () => true);
+
+            const result = await probe.probe('service1');
+            expect(result.healthy).toBe(true);
+            expect(result.name).toBe('service1');
+        });
+
+        it('changes status to unhealthy after failure threshold met', async () => {
+            const probe = new HealthProbe();
+            
+            let isHealthy = true;
+            probe.register('flaky', async () => {
+                 if (!isHealthy) throw new Error('fail');
+                 return true;
+            }, 30000, 3); // failureThreshold = 3
+
+            // Initial success
+            await probe.probe('flaky');
+            expect(probe.getTarget('flaky')?.status).toBe('healthy');
+
+            // Fails
+            isHealthy = false;
+            
+            // Failure 1
+            let res = await probe.probe('flaky');
+            expect(res.healthy).toBe(false);
+            expect(probe.getTarget('flaky')?.status).toBe('healthy'); // Not yet reached threshold
+            expect(probe.getTarget('flaky')?.consecutiveFailures).toBe(1);
+
+            // Failure 2
+            await probe.probe('flaky');
+            
+            // Failure 3 (reaches threshold)
+            await probe.probe('flaky');
+            expect(probe.getTarget('flaky')?.status).toBe('unhealthy');
+        });
+
+        it('recovers status to healthy on successful probe', async () => {
+            const probe = new HealthProbe();
+            let isHealthy = false;
+            probe.register('service', async () => {
+                if (!isHealthy) throw new Error('fail');
+                return true;
+            }, 30000, 1);
+
+            await probe.probe('service');
+            expect(probe.getTarget('service')?.status).toBe('unhealthy');
+
+            isHealthy = true;
+            await probe.probe('service');
+            expect(probe.getTarget('service')?.status).toBe('healthy');
+            expect(probe.getTarget('service')?.consecutiveFailures).toBe(0);
+        });
+
+        it('probes all targets and computes overall health', async () => {
+             const probe = new HealthProbe();
+             probe.register('api', async () => true);
+             probe.register('db', async () => true);
+
+             const results = await probe.probeAll();
+             expect(results).toHaveLength(2);
+             
+             const overall = probe.getOverallHealth();
+             expect(overall.healthy).toBe(true);
+             
+             // Check count
+             expect(probe.count()).toBe(2);
+        });
+    });
+
+    describe('HeartbeatRunner (heartbeat-runner.ts)', () => {
+        let runner: HeartbeatRunner;
+
+        beforeEach(() => {
+            runner = new HeartbeatRunner();
+        });
+
+        afterEach(() => {
+            runner.stop();
+        });
+
+        it('registers checks and runs them on start', async () => {
+            const checkFn = vi.fn().mockResolvedValue({ healthy: true });
+            runner.register({ name: 'main', check: checkFn });
+            
+            runner.start(10000);
+            
+            // Immediately runs checks on start
+            expect(checkFn).toHaveBeenCalledTimes(1);
+            expect(runner.isHealthy).toBe(true);
+            
+            await vi.advanceTimersByTimeAsync(10000);
+            expect(checkFn).toHaveBeenCalledTimes(2);
+        });
+
+        it('handles check failures cleanly', async () => {
+            runner.register({ name: 'fail-check', check: async () => { throw new Error('bang'); } });
+            runner.start();
+            await Promise.resolve();
+            await Promise.resolve();
+            
+            const status = runner.getStatus();
+            expect(status['fail-check']?.healthy).toBe(false);
+            expect(status['fail-check']?.detail).toContain('bang');
+            expect(runner.isHealthy).toBe(false);
+        });
+
+        it('stops running when requested', async () => {
+            const checkFn = vi.fn().mockResolvedValue({ healthy: true });
+            runner.register({ name: 'main', check: checkFn });
+            
+            runner.start(10_000);
+            expect(checkFn).toHaveBeenCalledTimes(1);
+            
+            runner.stop();
+            await vi.advanceTimersByTimeAsync(10_000);
+            
+            // Check should not be called again
+            expect(checkFn).toHaveBeenCalledTimes(1);
+        });
+    });
+
+});

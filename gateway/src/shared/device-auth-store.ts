@@ -1,0 +1,116 @@
+/**
+ * src/shared/device-auth-store.ts
+ * Persistent device token store.
+ * Ported from CoreBlow shared/device-auth-store.ts and shared/device-auth.ts.
+ */
+
+// ── Types (from OC device-auth.ts) ──
+
+export type DeviceAuthEntry = {
+    token: string;
+    role: string;
+    scopes: string[];
+    updatedAtMs: number;
+};
+
+export type DeviceAuthStore = {
+    version: 1;
+    deviceId: string;
+    tokens: Record<string, DeviceAuthEntry>;
+};
+
+export function normalizeDeviceAuthRole(role: string): string {
+    return role.trim();
+}
+
+export function normalizeDeviceAuthScopes(scopes: string[] | undefined): string[] {
+    if (!Array.isArray(scopes)) return [];
+    
+    const out = new Set<string>();
+    for (const scope of scopes) {
+        const trimmed = scope.trim();
+        if (trimmed) out.add(trimmed);
+    }
+    
+    if (out.has("operator.admin")) {
+        out.add("operator.read");
+        out.add("operator.write");
+    } else if (out.has("operator.write")) {
+        out.add("operator.read");
+    }
+    
+    return [...out].sort();
+}
+
+// ── Store Adapter (from OC device-auth-store.ts) ──
+
+export type DeviceAuthStoreAdapter = {
+    readStore: () => DeviceAuthStore | null;
+    writeStore: (store: DeviceAuthStore) => void;
+};
+
+export function loadDeviceAuthTokenFromStore(params: {
+    adapter: DeviceAuthStoreAdapter;
+    deviceId: string;
+    role: string;
+}): DeviceAuthEntry | null {
+    const store = params.adapter.readStore();
+    if (!store || store.deviceId !== params.deviceId) return null;
+    
+    const role = normalizeDeviceAuthRole(params.role);
+    const entry = store.tokens[role];
+    if (!entry || typeof entry.token !== "string") return null;
+    
+    return entry;
+}
+
+export function storeDeviceAuthTokenInStore(params: {
+    adapter: DeviceAuthStoreAdapter;
+    deviceId: string;
+    role: string;
+    token: string;
+    scopes?: string[];
+}): DeviceAuthEntry {
+    const role = normalizeDeviceAuthRole(params.role);
+    const existing = params.adapter.readStore();
+    
+    const next: DeviceAuthStore = {
+        version: 1,
+        deviceId: params.deviceId,
+        tokens: existing && existing.deviceId === params.deviceId && existing.tokens
+            ? { ...existing.tokens }
+            : {},
+    };
+    
+    const entry: DeviceAuthEntry = {
+        token: params.token,
+        role,
+        scopes: normalizeDeviceAuthScopes(params.scopes),
+        updatedAtMs: Date.now(),
+    };
+    
+    next.tokens[role] = entry;
+    params.adapter.writeStore(next);
+    return entry;
+}
+
+export function clearDeviceAuthTokenFromStore(params: {
+    adapter: DeviceAuthStoreAdapter;
+    deviceId: string;
+    role: string;
+}): void {
+    const store = params.adapter.readStore();
+    if (!store || store.deviceId !== params.deviceId) return;
+    
+    const role = normalizeDeviceAuthRole(params.role);
+    if (!store.tokens[role]) return;
+    
+    const next: DeviceAuthStore = {
+        version: 1,
+        deviceId: store.deviceId,
+        tokens: { ...store.tokens },
+    };
+    
+    delete next.tokens[role];
+    params.adapter.writeStore(next);
+}

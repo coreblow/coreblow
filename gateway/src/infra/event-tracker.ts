@@ -1,0 +1,111 @@
+/**
+ * CoreBlow — Event Tracker
+ *
+ * A high-performance, in-memory event tracking buffer.
+ * It batches events to prevent blocking the main thread
+ * and flushes them to a registered sink.
+ */
+
+export interface TrackedEvent {
+    id: string;
+    name: string;
+    payload: Record<string, unknown>;
+    timestamp: number;
+    source?: string;
+}
+
+export interface EventSink {
+    /**
+     * Flush a batch of events to the underlying storage or broker.
+     */
+    flush(events: TrackedEvent[]): Promise<void> | void;
+}
+
+export interface EventTrackerConfig {
+    /** Max events to keep in memory before forcing a flush */
+    maxBufferSize?: number;
+    /** Output sink. Defaults to console if not provided. */
+    sink?: EventSink;
+}
+
+/**
+ * CoreBlow Event Tracker
+ */
+export class EventTracker {
+    private buffer: TrackedEvent[] = [];
+    private readonly maxBufferSize: number;
+    private sink: EventSink;
+    private flushCount = 0;
+    private eventCount = 0;
+
+    constructor(config: EventTrackerConfig = {}) {
+        this.maxBufferSize = config.maxBufferSize ?? 100;
+        this.sink = config.sink ?? {
+            flush: (events) => {
+                // Default sink: no-op in production unless bridged, 
+                // but prevents memory leaks.
+            }
+        };
+    }
+
+    /**
+     * Track a new event.
+     */
+    track(name: string, payload: Record<string, unknown>, source?: string): void {
+        const event: TrackedEvent = {
+            id: crypto.randomUUID(),
+            name,
+            payload,
+            timestamp: Date.now(),
+            source
+        };
+
+        this.buffer.push(event);
+        this.eventCount++;
+
+        if (this.buffer.length >= this.maxBufferSize) {
+            this.flush();
+        }
+    }
+
+    /**
+     * Force flush the current buffer to the sink.
+     */
+    flush(): void {
+        if (this.buffer.length === 0) return;
+
+        const eventsToFlush = [...this.buffer];
+        this.buffer = [];
+        this.flushCount++;
+
+        // Fire and forget to sink
+        try {
+            const result = this.sink.flush(eventsToFlush);
+            if (result instanceof Promise) {
+                result.catch((/*err*/) => {
+                    // Swallow sink errors to prevent crashing the main thread
+                });
+            }
+        } catch (err) {
+            // Swallow sink synchronous errors
+        }
+    }
+
+    /**
+     * Override the active sink. Useful for wiring up MessageBroker later.
+     */
+    setSink(sink: EventSink): void {
+        this.sink = sink;
+    }
+
+    /**
+     * Get tracker statistics.
+     */
+    getStats() {
+        return {
+            buffered: this.buffer.length,
+            totalTracked: this.eventCount,
+            flushes: this.flushCount
+        };
+    }
+}

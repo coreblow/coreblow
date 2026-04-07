@@ -19,7 +19,7 @@ export class OpenRouterProvider implements AIProvider {
     async *chat(messages: ChatMessage[], options: ProviderOptions): AsyncIterable<StreamChunk> {
         const model = options.model || 'anthropic/claude-3.5-sonnet';
 
-        const body: Record<string, any> = {
+        const body: Record<string, unknown> = {
             model,
             messages: messages.map(m => ({ role: m.role, content: m.content })),
             max_tokens: options.maxTokens || 4096,
@@ -84,9 +84,10 @@ export class OpenRouterProvider implements AIProvider {
                     } catch { /* skip */ }
                 }
             }
-        } catch (err: any) {
-            log.error({ err: err.message }, 'OpenRouter error');
-            yield { type: 'error', error: err.message };
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            log.error({ err: msg }, 'OpenRouter error');
+            yield { type: 'error', error: msg };
         }
     }
 

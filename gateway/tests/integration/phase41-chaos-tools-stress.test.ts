@@ -1,0 +1,83 @@
+/**
+ * CoreBlow Phase 41 — MCP & Tools Chaos Tests
+ *
+ * Layer 3 (Adversarial):
+ *   - ToolExecutor: concurrency storms, overlapping timeouts
+ *   - ToolRegistry: mass registration
+ *   - MCP Bridge: spamming events and approvals
+ */
+import { describe, it, expect } from 'vitest';
+import { ToolExecutor } from '../../src/tools/tool-executor.js';
+import { ToolRegistry } from '../../src/tools/tool-registry.js';
+import { CoreBlowChannelBridge } from '../../src/mcp/channel-bridge.js';
+
+describe('Phase41 Chaos: Tools & MCP Stress', () => {
+
+    it('ToolRegistry mass registration and retrieval', () => {
+        const reg = new ToolRegistry();
+        for (let i = 0; i < 500; i++) {
+            reg.register({
+                name: `tool_${i}`,
+                description: '',
+                parameters: { type: 'object', properties: {} },
+                handler: async () => 'ok',
+            });
+        }
+        expect(reg.count()).toBe(500);
+        expect(reg.toOpenAI()).toHaveLength(500);
+    });
+
+    it('ToolExecutor concurrent execution bomb with timeouts', async () => {
+        const reg = new ToolRegistry();
+        const exec = new ToolExecutor(reg, { maxConcurrent: 100, timeoutMs: 50, maxRetries: 0 });
+
+        reg.register({
+            name: 'sleep',
+            description: '',
+            parameters: { type: 'object', properties: {} },
+            handler: () => new Promise(r => setTimeout(r, 100)), // Slower than timeout
+        });
+
+        // Launch 100 identical long-running processes
+        const promises = [];
+        for (let i = 0; i < 100; i++) {
+            promises.push(exec.execute('sleep', {}));
+        }
+
+        const results = await Promise.all(promises);
+        
+        // All should fail due to timeout
+        expect(results).toHaveLength(100);
+        expect(results.every(r => !r.success && r.error?.includes('timed out'))).toBe(true);
+
+        const stats = exec.getStats();
+        expect(stats.activeCalls).toBe(0); // Cleaned up properly
+    });
+
+    it('MCP Bridge event spam', async () => {
+        const bridge = new CoreBlowChannelBridge({});
+        await bridge.start();
+
+        // Spam 2000 messages (buffer limit is 500/1000)
+        for (let i = 0; i < 2000; i++) {
+            await bridge.sendMessage('s1', `Spam ${i}`);
+        }
+        // Wait for event should return a truncated message (not Spam 0)
+        const event = await bridge.waitForEvent({ type: 'message' });
+        // Since we spam 2000 msgs and it slices -500 at 1000, 
+        // the oldest message in buffer should be roughly Spam 1501.
+        // We just assert it's not Spam 0 and it contains 'Spam'.
+        expect((event as any)?.text).not.toBe('Spam 0');
+        expect((event as any)?.text).toMatch(/Spam 1\d{3}/);
+    });
+
+    it('MCP Bridge ghost approval resolutions', async () => {
+        const bridge = new CoreBlowChannelBridge({});
+        await bridge.start();
+
+        // Resolve approvals that don't exist
+        for (let i = 0; i < 50; i++) {
+            expect(await bridge.handleApproval(`ghost-${i}`, 'approved')).toBe(false);
+        }
+    });
+});

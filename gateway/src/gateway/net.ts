@@ -1,0 +1,144 @@
+import net from "node:net";
+
+/**
+ * Check if a hostname or IP refers to the local machine.
+ * Handles: localhost, 127.x.x.x, ::1, [::1], ::ffff:127.x.x.x
+ * Note: 0.0.0.0 and :: are NOT loopback - they bind to all interfaces.
+ */
+export function isLoopbackHost(host: string): boolean {
+  const parsed = parseHostForAddressChecks(host);
+  if (!parsed) {
+    return false;
+  }
+  if (parsed.isLocalhost) {
+    return true;
+  }
+  return isLoopbackAddress(parsed.unbracketedHost);
+}
+
+function isLoopbackAddress(ip: string | undefined): boolean {
+  if (!ip) {
+    return false;
+  }
+  const normalized = ip.trim().toLowerCase();
+  if (normalized === "::1" || normalized === "127.0.0.1" || normalized === "0:0:0:0:0:0:0:1") {
+    return true;
+  }
+  // IPv4 loopback range: 127.0.0.0/8
+  if (/^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(normalized)) {
+    return true;
+  }
+  // IPv4-mapped IPv6 loopback: ::ffff:127.x.x.x
+  if (/^::ffff:127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(normalized)) {
+    return true;
+  }
+  return false;
+}
+
+function isPrivateOrLoopbackHost(host: string): boolean {
+  const parsed = parseHostForAddressChecks(host);
+  if (!parsed) {
+    return false;
+  }
+  if (parsed.isLocalhost) {
+    return true;
+  }
+  const ip = parsed.unbracketedHost.trim().toLowerCase();
+  if (isLoopbackAddress(ip)) {
+    return true;
+  }
+  // RFC 1918 ranges
+  if (/^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(ip)) {
+    return true;
+  }
+  if (/^172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}$/.test(ip)) {
+    return true;
+  }
+  if (/^192\.168\.\d{1,3}\.\d{1,3}$/.test(ip)) {
+    return true;
+  }
+  // Link-local IPv4
+  if (/^169\.254\.\d{1,3}\.\d{1,3}$/.test(ip)) {
+    return true;
+  }
+  // CGNAT range 100.64/10
+  if (/^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.\d{1,3}\.\d{1,3}$/.test(ip)) {
+    return true;
+  }
+  // IPv6 link-local
+  if (ip.startsWith("fe80:")) {
+    return true;
+  }
+  // IPv6 ULA
+  if (ip.startsWith("fc") || ip.startsWith("fd")) {
+    return true;
+  }
+  return false;
+}
+
+function parseHostForAddressChecks(
+  host: string,
+): { isLocalhost: boolean; unbracketedHost: string } | null {
+  if (!host) {
+    return null;
+  }
+  const normalizedHost = host.trim().toLowerCase();
+  if (normalizedHost === "localhost") {
+    return { isLocalhost: true, unbracketedHost: normalizedHost };
+  }
+  return {
+    isLocalhost: false,
+    unbracketedHost:
+      normalizedHost.startsWith("[") && normalizedHost.endsWith("]")
+        ? normalizedHost.slice(1, -1)
+        : normalizedHost,
+  };
+}
+
+/**
+ * Security check for WebSocket URLs (CWE-319: Cleartext Transmission of Sensitive Information).
+ *
+ * Returns true if the URL is secure for transmitting data:
+ * - wss:// (TLS) is always secure
+ * - ws:// is secure only for loopback addresses by default
+ * - optional break-glass: private ws:// can be enabled for trusted networks
+ */
+export function isSecureWebSocketUrl(
+  url: string,
+  opts?: {
+    allowPrivateWs?: boolean;
+  },
+): boolean {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return false;
+  }
+
+  const protocol =
+    parsed.protocol === "https:" ? "wss:" : parsed.protocol === "http:" ? "ws:" : parsed.protocol;
+
+  if (protocol === "wss:") {
+    return true;
+  }
+
+  if (protocol !== "ws:") {
+    return false;
+  }
+
+  if (isLoopbackHost(parsed.hostname)) {
+    return true;
+  }
+  if (opts?.allowPrivateWs) {
+    if (isPrivateOrLoopbackHost(parsed.hostname)) {
+      return true;
+    }
+    const hostForIpCheck =
+      parsed.hostname.startsWith("[") && parsed.hostname.endsWith("]")
+        ? parsed.hostname.slice(1, -1)
+        : parsed.hostname;
+    return net.isIP(hostForIpCheck) === 0;
+  }
+  return false;
+}

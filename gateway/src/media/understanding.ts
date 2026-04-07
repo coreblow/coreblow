@@ -1,7 +1,7 @@
 /**
  * src/media/understanding.ts
  * Media Understanding — image, audio, video, OCR, document parsing
- * SUPERIOR: OpenClaw only does image+audio; CoreBlow adds video frames, OCR, PDF/DOCX
+ * SUPERIOR: CoreBlow only does image+audio; CoreBlow adds video frames, OCR, PDF/DOCX
  */
 
 import { createChildLogger } from '../utils/logger.js';
@@ -11,7 +11,7 @@ const log = createChildLogger('media:understanding');
 export interface MediaAnalysis {
     type: 'image' | 'audio' | 'video' | 'document';
     description: string;
-    metadata: Record<string, any>;
+    metadata: Record<string, unknown>;
     text?: string;         // OCR or transcription
     duration?: number;     // audio/video duration in seconds
     frames?: string[];     // video frame descriptions
@@ -87,7 +87,7 @@ export class MediaUnderstanding {
                 }),
             });
 
-            const data = await res.json() as any;
+            const data = await res.json() as { choices?: { message?: { content?: string } }[] };
             const description = data.choices?.[0]?.message?.content || 'Failed to analyze';
 
             // Extract OCR text from description
@@ -99,9 +99,10 @@ export class MediaUnderstanding {
                 text: ocrMatch?.[1],
                 metadata: { model: 'gpt-4o', provider: 'openai' },
             };
-        } catch (err: any) {
-            log.error({ err: err.message }, 'Image analysis failed');
-            return { type: 'image', description: `Error: ${err.message}`, metadata: {} };
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            log.error({ err: msg }, 'Image analysis failed');
+            return { type: 'image', description: `Error: ${msg}`, metadata: {} };
         }
     }
 
@@ -122,7 +123,7 @@ export class MediaUnderstanding {
             }
         );
 
-        const data = await res.json() as any;
+        const data = await res.json() as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
         const description = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Failed';
 
         return { type: 'image', description, metadata: { model: 'gemini-1.5-flash', provider: 'gemini' } };
@@ -157,7 +158,7 @@ export class MediaUnderstanding {
                 body: formData,
             });
 
-            const data = await res.json() as any;
+            const data = await res.json() as { text?: string; duration?: number };
 
             return {
                 type: 'audio',
@@ -166,15 +167,16 @@ export class MediaUnderstanding {
                 duration: data.duration,
                 metadata: { provider: this.config.whisperProvider, model: 'whisper-large-v3' },
             };
-        } catch (err: any) {
-            log.error({ err: err.message }, 'Audio transcription failed');
-            return { type: 'audio', description: `Error: ${err.message}`, metadata: {} };
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            log.error({ err: msg }, 'Audio transcription failed');
+            return { type: 'audio', description: `Error: ${msg}`, metadata: {} };
         }
     }
 
     /**
      * Analyze video — extract key frames and describe each
-     * SUPERIOR: OpenClaw doesn't have video analysis
+     * SUPERIOR: CoreBlow doesn't have video analysis
      */
     async analyzeVideo(url: string): Promise<MediaAnalysis> {
         log.info({ url: url.substring(0, 100) }, 'Analyzing video');
@@ -197,7 +199,7 @@ export class MediaUnderstanding {
                         }),
                     }
                 );
-                const data = await res.json() as any;
+                const data = await res.json() as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
                 const desc = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Analysis failed';
                 return {
                     type: 'video',
@@ -207,14 +209,15 @@ export class MediaUnderstanding {
             }
 
             return { type: 'video', description: 'Video analysis requires Gemini API key', metadata: {} };
-        } catch (err: any) {
-            return { type: 'video', description: `Error: ${err.message}`, metadata: {} };
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            return { type: 'video', description: `Error: ${msg}`, metadata: {} };
         }
     }
 
     /**
      * Parse documents — PDF, DOCX, XLSX text extraction
-     * SUPERIOR: OpenClaw doesn't have document parsing
+     * SUPERIOR: CoreBlow doesn't have document parsing
      */
     async parseDocument(url: string): Promise<MediaAnalysis> {
         log.info({ url: url.substring(0, 100) }, 'Parsing document');
@@ -245,8 +248,9 @@ export class MediaUnderstanding {
                 text,
                 metadata: { format: ext, sizeBytes: buffer.length },
             };
-        } catch (err: any) {
-            return { type: 'document', description: `Error: ${err.message}`, metadata: {} };
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            return { type: 'document', description: `Error: ${msg}`, metadata: {} };
         }
     }
 

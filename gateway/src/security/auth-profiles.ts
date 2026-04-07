@@ -1,7 +1,7 @@
 /**
  * src/security/auth-profiles.ts
  * OAuth Auth Profiles + Smart Key Management + Cost Tracking
- * SUPERIOR: OpenClaw has key rotation; CoreBlow adds cost tracking, budget alerts, smart routing
+ * SUPERIOR: CoreBlow has key rotation; CoreBlow adds cost tracking, budget alerts, smart routing
  */
 
 import fs from 'node:fs';
@@ -41,7 +41,7 @@ export interface AuthProfile {
     // Rate limit tracking
     cooldowns: Map<number, number>;   // credIndex → cooldownUntil
     failures: Map<number, number>;    // credIndex → failureCount
-    // Cost tracking (SUPERIOR — OpenClaw doesn't have this)
+    // Cost tracking (SUPERIOR — CoreBlow doesn't have this)
     usage: {
         dailyCostUsd: number;
         monthlyCostUsd: number;
@@ -181,7 +181,7 @@ export class AuthProfileStore {
 
     /**
      * Mark successful usage — reset failures, track cost
-     * SUPERIOR: OpenClaw doesn't track costs
+     * SUPERIOR: CoreBlow doesn't track costs
      */
     markSuccess(provider: string, usage: { promptTokens: number; completionTokens: number }): void {
         const profile = this.profiles.get(provider);
@@ -255,7 +255,7 @@ export class AuthProfileStore {
         budgetUsedPct?: number;
         healthyKeys: number;
     }> {
-        const stats: Record<string, any> = {};
+        const stats: Record<string, { provider: string; keyCount: number; activeKey: number; dailyCost: string; monthlyCost: string; totalTokens: number; budget?: string; budgetUsedPct?: number; healthyKeys: number; }> = {};
         const now = Date.now();
 
         for (const [provider, profile] of this.profiles) {
@@ -316,8 +316,9 @@ export class AuthProfileStore {
                 });
             }
             log.info({ count: this.profiles.size }, 'Auth profiles loaded');
-        } catch (err: any) {
-            log.error({ err: err.message }, 'Failed to load auth profiles');
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            log.error({ err: msg }, 'Failed to load auth profiles');
         }
     }
 
@@ -342,8 +343,9 @@ export class AuthProfileStore {
             }
 
             fs.writeFileSync(this.storePath, JSON.stringify(data, null, 2));
-        } catch (err: any) {
-            log.error({ err: err.message }, 'Failed to save auth profiles');
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            log.error({ err: msg }, 'Failed to save auth profiles');
         }
     }
 }

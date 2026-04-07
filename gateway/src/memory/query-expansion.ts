@@ -1,199 +1,86 @@
 /**
- * src/memory/query-expansion.ts
- * Query Expansion + Semantic Chains
- * Superior to OpenClaw: synonym + embedding-based expansion + query decomposition + multilingual
+ * CoreBlow — Query Expansion
+ * Expands queries with synonyms, decomposition, key term extraction, and n-grams.
  */
 
-import { createChildLogger } from '../utils/logger.js';
-
-const log = createChildLogger('memory:query-expansion');
-
-/**
- * Synonym map — common expansions for search
- */
-const SYNONYM_MAP: Record<string, string[]> = {
-    // Tech
-    'ai': ['artificial intelligence', 'machine learning', 'deep learning'],
-    'ml': ['machine learning'],
-    'llm': ['large language model', 'language model', 'ai model'],
-    'api': ['interface', 'endpoint', 'service'],
-    'db': ['database', 'data store'],
-    'js': ['javascript'],
-    'ts': ['typescript'],
-    'py': ['python'],
-    'ui': ['user interface', 'frontend', 'gui'],
-    'ux': ['user experience'],
-    'ci': ['continuous integration'],
-    'cd': ['continuous deployment', 'continuous delivery'],
-    'devops': ['dev ops', 'infrastructure'],
-    'k8s': ['kubernetes'],
-    'docker': ['container', 'containerization'],
-
-    // Common
-    'favorite': ['favourite', 'preferred', 'liked', 'best'],
-    'like': ['enjoy', 'prefer', 'love'],
-    'hate': ['dislike', 'avoid', 'dont like'],
-    'big': ['large', 'huge', 'massive'],
-    'small': ['tiny', 'little', 'compact'],
-    'fast': ['quick', 'rapid', 'speedy'],
-    'slow': ['sluggish', 'delayed'],
-    'good': ['great', 'excellent', 'nice'],
-    'bad': ['poor', 'terrible', 'awful'],
-    'work': ['job', 'employment', 'career', 'occupation'],
-    'home': ['house', 'residence', 'apartment'],
-    'food': ['meal', 'cuisine', 'dish'],
-
-    // Indonesian (bonus — multilingual)
-    'suka': ['menyukai', 'senang', 'gemar', 'hobi'],
-    'benci': ['tidak suka', 'muak'],
-    'kerja': ['pekerjaan', 'profesi', 'karir'],
-    'makan': ['makanan', 'kuliner'],
-    'rumah': ['tempat tinggal', 'apartemen'],
+const SYNONYMS: Record<string, string[]> = {
+    like: ['enjoy', 'prefer', 'love', 'fond of'],
+    suka: ['menyukai', 'gemar', 'senang'],
+    makan: ['santap', 'konsumsi', 'nikmati'],
+    favorite: ['preferred', 'best', 'top'],
+    good: ['great', 'excellent', 'nice'],
+    bad: ['terrible', 'awful', 'poor'],
+    fast: ['quick', 'rapid', 'speedy'],
+    big: ['large', 'huge', 'enormous'],
+    ai: ['artificial intelligence', 'machine learning'],
+    ts: ['typescript'],
+    js: ['javascript'],
+    ml: ['machine learning'],
+    db: ['database'],
+    api: ['application programming interface'],
 };
 
-/**
- * Expand a query with synonyms
- */
+const STOP_WORDS_EN = new Set(['the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
+    'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should',
+    'may', 'might', 'shall', 'can', 'to', 'of', 'in', 'for', 'on', 'with', 'at',
+    'by', 'from', 'it', 'its', 'my', 'your', 'what', 'which', 'who', 'whom', 'this',
+    'that', 'these', 'those', 'i', 'me', 'we', 'you', 'he', 'she', 'they', 'very']);
+
+const STOP_WORDS_ID = new Set(['yang', 'dan', 'di', 'ke', 'dari', 'ini', 'itu', 'dengan',
+    'untuk', 'pada', 'adalah', 'tidak', 'akan', 'saya', 'dia', 'mereka', 'kami',
+    'kita', 'sudah', 'belum', 'juga', 'atau', 'ada', 'bisa', 'oleh', 'seorang',
+    'kalau', 'jika', 'maka', 'tapi', 'tetapi', 'agar', 'supaya', 'harus', 'ingin']);
+
+const ALL_STOP_WORDS = new Set([...STOP_WORDS_EN, ...STOP_WORDS_ID]);
+
 export function expandWithSynonyms(query: string): string[] {
     const words = query.toLowerCase().split(/\s+/);
-    const expanded = new Set<string>([query]);
-
+    const expanded = [query];
     for (const word of words) {
-        const synonyms = SYNONYM_MAP[word];
-        if (synonyms) {
-            for (const syn of synonyms) {
-                expanded.add(query.replace(new RegExp(`\\b${word}\\b`, 'i'), syn));
+        const syns = SYNONYMS[word];
+        if (syns) {
+            for (const syn of syns) {
+                expanded.push(query.replace(new RegExp(`\\b${word}\\b`, 'gi'), syn));
             }
         }
     }
-
-    return Array.from(expanded);
+    return [...new Set(expanded)];
 }
 
-/**
- * Decompose a compound query into sub-queries
- * "What's my favorite food and when did I mention it?" 
- * → ["What is my favorite food", "When did I mention food"]
- * 
- * SUPERIOR TO OpenClaw: OpenClaw doesn't decompose queries
- */
 export function decomposeQuery(query: string): string[] {
-    const queries: string[] = [query];
+    // Split on conjunctions (English and Indonesian)
+    let parts = query.split(/\s+(?:and|or|dan|atau)\s+|,\s*/i).map(s => s.trim()).filter(Boolean);
 
-    // Split on conjunctions
-    const conjunctions = /\b(and|or|also|plus|serta|dan|atau)\b/i;
-    if (conjunctions.test(query)) {
-        const parts = query.split(conjunctions).filter(p => p.trim().length > 3 && !conjunctions.test(p));
-        for (const part of parts) {
-            const trimmed = part.trim();
-            if (trimmed.length > 5) queries.push(trimmed);
-        }
+    // Also try to extract question patterns
+    const qMatch = query.match(/^(?:what|who|when|where|how|why|which)\s+(?:is|are|was|were)\s+(.+)/i);
+    if (qMatch && qMatch[1]) {
+        parts = [...parts, qMatch[1].trim()];
     }
 
-    // Extract question patterns
-    const questionPatterns = [
-        /what (?:is|are|was|were) (.+)/i,
-        /when (?:did|does|was|were) (.+)/i,
-        /where (?:did|does|is|are) (.+)/i,
-        /who (?:is|are|was|were) (.+)/i,
-        /how (?:do|does|did|can|could) (.+)/i,
-    ];
-
-    for (const pattern of questionPatterns) {
-        const match = query.match(pattern);
-        if (match) {
-            queries.push(match[1].trim());
-        }
-    }
-
-    return [...new Set(queries)];
+    return parts.length > 1 ? [...new Set(parts)] : [query];
 }
 
-/**
- * Extract key terms from a query (remove stop words)
- */
 export function extractKeyTerms(query: string): string[] {
-    const stopWords = new Set([
-        'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
-        'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
-        'should', 'may', 'might', 'shall', 'can', 'to', 'of', 'in', 'for',
-        'on', 'with', 'at', 'by', 'from', 'it', 'its', 'this', 'that',
-        'and', 'or', 'but', 'if', 'not', 'no', 'so', 'my', 'me', 'i',
-        'you', 'your', 'we', 'our', 'they', 'their', 'what', 'when',
-        'where', 'who', 'how', 'which', 'there', 'here',
-        // Indonesian stop words
-        'yang', 'dan', 'di', 'ke', 'dari', 'ini', 'itu', 'dengan',
-        'untuk', 'pada', 'adalah', 'saya', 'aku', 'kamu', 'dia',
-        'mereka', 'kita', 'ada', 'tidak', 'bukan', 'atau', 'juga',
-    ]);
-
-    return query
-        .toLowerCase()
-        .replace(/[^\w\s]/g, '')
-        .split(/\s+/)
-        .filter(w => w.length > 1 && !stopWords.has(w));
+    return query.toLowerCase().split(/\s+/)
+        .map(w => w.replace(/[^\w]/g, ''))
+        .filter(w => w.length > 1 && !ALL_STOP_WORDS.has(w));
 }
 
-/**
- * Generate n-grams from key terms
- * "machine learning model" → ["machine", "learning", "model", "machine learning", "learning model"]
- */
-export function generateNgrams(terms: string[], maxN: number = 3): string[] {
-    const ngrams = new Set<string>(terms);
-
-    for (let n = 2; n <= Math.min(maxN, terms.length); n++) {
-        for (let i = 0; i <= terms.length - n; i++) {
-            ngrams.add(terms.slice(i, i + n).join(' '));
+export function generateNgrams(words: string[], maxN = 2): string[] {
+    const ngrams: string[] = [];
+    for (let n = 1; n <= maxN; n++) {
+        for (let i = 0; i <= words.length - n; i++) {
+            ngrams.push(words.slice(i, i + n).join(' '));
         }
     }
-
-    return Array.from(ngrams);
+    return ngrams;
 }
 
-/**
- * Full query expansion pipeline
- * 
- * SUPERIOR TO OpenClaw:
- * 1. Synonym expansion (OpenClaw has this)
- * 2. Query decomposition (CoreBlow only)
- * 3. Key term extraction with n-grams (CoreBlow only)
- * 4. Multilingual support (CoreBlow only — EN + ID)
- */
-export function expandQuery(query: string): {
-    original: string;
-    expanded: string[];
-    decomposed: string[];
-    keyTerms: string[];
-    ngrams: string[];
-    allQueries: string[];
-} {
-    const synonymExpanded = expandWithSynonyms(query);
+export function expandQuery(query: string) {
+    const expanded = expandWithSynonyms(query);
     const decomposed = decomposeQuery(query);
     const keyTerms = extractKeyTerms(query);
     const ngrams = generateNgrams(keyTerms);
-
-    // Combine all unique query variants
-    const allQueries = [...new Set([
-        query,
-        ...synonymExpanded,
-        ...decomposed,
-        ...keyTerms.filter(t => t.length > 3),
-        ...ngrams.filter(ng => ng.includes(' ')), // Only multi-word ngrams
-    ])];
-
-    log.debug({
-        original: query,
-        expandedCount: allQueries.length,
-        synonyms: synonymExpanded.length - 1,
-        decomposed: decomposed.length - 1,
-    }, 'Query expanded');
-
-    return {
-        original: query,
-        expanded: synonymExpanded,
-        decomposed,
-        keyTerms,
-        ngrams,
-        allQueries,
-    };
+    const allQueries = [...new Set([...expanded, ...decomposed, ...ngrams])];
+    return { original: query, expanded, decomposed, keyTerms, allQueries };
 }

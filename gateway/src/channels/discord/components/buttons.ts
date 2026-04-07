@@ -1,0 +1,2 @@
+export function createButton(opts: { label: string; customId: string; style?: number }) { return { type: 2, ...opts }; }
+export function createButtonRow(buttons: unknown[]) { return { type: 1, components: buttons }; }

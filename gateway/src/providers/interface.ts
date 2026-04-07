@@ -1,7 +1,10 @@
 /**
  * src/providers/interface.ts
- * Base AI provider interface
+ * Core provider interface — shared types for all AI providers
+ * Used by: deepseek, groq, mistral, openrouter, fallback, and agent context
  */
+
+// ─── Chat Message ─────────────────────────────────────────────────
 
 export interface ChatMessage {
     role: 'system' | 'user' | 'assistant' | 'tool';
@@ -20,64 +23,49 @@ export interface ToolCall {
     };
 }
 
-export interface ToolDefinition {
+// ─── Provider Options ─────────────────────────────────────────────
+
+export interface ProviderOptions {
+    model?: string;
+    temperature?: number;
+    maxTokens?: number;
+    topP?: number;
+    frequencyPenalty?: number;
+    presencePenalty?: number;
+    stop?: string[];
+    tools?: ProviderTool[];
+    stream?: boolean;
+    responseFormat?: { type: string };
+}
+
+export interface ProviderTool {
     type: 'function';
     function: {
         name: string;
         description: string;
-        parameters: Record<string, any>;
+        parameters: unknown;
     };
 }
 
-export interface ProviderOptions {
-    model: string;
-    maxTokens?: number;
-    temperature?: number;
-    tools?: ToolDefinition[];
-    stream?: boolean;
+// ─── Stream Chunks ────────────────────────────────────────────────
+
+export type StreamChunk =
+    | { type: 'text'; content: string }
+    | { type: 'tool_call'; toolCall: ToolCall }
+    | { type: 'done'; usage?: TokenUsage }
+    | { type: 'error'; error: string };
+
+export interface TokenUsage {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
 }
 
-export interface StreamChunk {
-    type: 'text' | 'tool_call' | 'done' | 'error';
-    content?: string;
-    toolCall?: ToolCall;
-    usage?: { promptTokens: number; completionTokens: number; totalTokens: number };
-    error?: string;
-}
-
-/**
- * Chat options (alias for ProviderOptions for convenience)
- */
-export type ChatOptions = ProviderOptions;
-
-/**
- * Non-streaming chat response
- */
-export interface ChatResponse {
-    text: string;
-    toolCalls?: ToolCall[];
-    usage?: {
-        promptTokens: number;
-        completionTokens: number;
-    };
-    raw?: any;
-}
+// ─── Provider Interface ──────────────────────────────────────────
 
 export interface AIProvider {
     name: string;
-
-    /**
-     * Send a chat completion request (streaming or non-streaming)
-     */
-    chat(messages: ChatMessage[], options?: ProviderOptions): AsyncIterable<StreamChunk> | Promise<ChatResponse>;
-
-    /**
-     * Check if provider is available
-     */
+    chat(messages: ChatMessage[], options: ProviderOptions): AsyncIterable<StreamChunk>;
     isAvailable(): Promise<boolean>;
-
-    /**
-     * List available models
-     */
-    listModels(): Promise<string[]> | string[];
+    listModels(): string[] | Promise<string[]>;
 }

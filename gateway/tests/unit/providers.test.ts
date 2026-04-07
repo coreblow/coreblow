@@ -16,7 +16,7 @@ import { AnthropicProvider } from '../../src/providers/anthropic.js';
 describe('Provider Instantiation', () => {
     it('should create GeminiProvider', () => {
         const p = new GeminiProvider({ apiKey: 'test' });
-        expect(p.name).toBe('gemini');
+        expect(p.name).toBe('Google Gemini');
     });
 
     it('should create MistralProvider', () => {
@@ -46,12 +46,12 @@ describe('Provider Instantiation', () => {
 
     it('should create OpenAIProvider', () => {
         const p = new OpenAIProvider({ apiKey: 'test' });
-        expect(p.name).toBe('openai');
+        expect(p.name).toBe('OpenAI');
     });
 
     it('should create AnthropicProvider', () => {
         const p = new AnthropicProvider({ apiKey: 'test' });
-        expect(p.name).toBe('anthropic');
+        expect(p.name).toBe('Anthropic');
     });
 });
 

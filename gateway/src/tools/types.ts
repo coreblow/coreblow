@@ -6,6 +6,6 @@
 export interface ToolHandler {
     name: string;
     description: string;
-    parameters: Record<string, any>;
-    execute: (args: Record<string, any>) => Promise<string>;
+    parameters: Record<string, unknown>;
+    execute: (args: Record<string, unknown>) => Promise<string>;
 }

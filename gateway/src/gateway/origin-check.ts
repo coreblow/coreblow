@@ -1,0 +1,26 @@
+export function checkOrigin(origin: string | undefined, allowedOrigins: string[]): boolean {
+    if (!origin) {
+        return true; // Same-origin or non-browser clients usually don't send Origin
+    }
+    
+    if (!allowedOrigins || allowedOrigins.length === 0) {
+        return true; // No restrictions
+    }
+
+    try {
+        const originUrl = new URL(origin);
+        return allowedOrigins.some(allowed => {
+            if (allowed === "*") return true;
+            try {
+                const allowedUrl = new URL(allowed);
+                return originUrl.protocol === allowedUrl.protocol && 
+                       originUrl.host === allowedUrl.host;
+            } catch {
+                return originUrl.hostname === allowed || origin === allowed;
+            }
+        });
+    } catch {
+        // If Origin is not a valid URL (e.g. 'null'), we fallback to strict equality
+        return allowedOrigins.includes(origin) || allowedOrigins.includes("*");
+    }
+}

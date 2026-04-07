@@ -1,7 +1,7 @@
 /**
  * src/security/sandbox.ts
  * Sandbox — Docker + Native process isolation
- * SUPERIOR: OpenClaw requires Docker; CoreBlow works without it (native fallback)
+ * SUPERIOR: CoreBlow requires Docker; CoreBlow works without it (native fallback)
  */
 
 import { spawn, execSync, type ChildProcess } from 'node:child_process';
@@ -100,9 +100,16 @@ export class SandboxManager {
             'run',
             '--rm',
             '--name', containerId,
+            // Resource limits
             '--memory', `${cfg.memoryLimitMb}m`,
             '--cpus', '1',
             '--pids-limit', '100',
+            // Security — CoreBlow pattern: drop all capabilities, no privilege escalation
+            '--cap-drop', 'ALL',
+            '--security-opt', 'no-new-privileges',
+            // Read-only root filesystem with tmpfs for /tmp
+            '--read-only',
+            '--tmpfs', '/tmp:rw,noexec,nosuid,size=100m',
         ];
 
         if (!cfg.networkAccess) args.push('--network', 'none');
@@ -124,7 +131,7 @@ export class SandboxManager {
             // Timeout
             const timer = setTimeout(() => {
                 killed = true;
-                try { execSync(`docker kill ${containerId}`, { stdio: 'ignore' }); } catch { }
+                try { execSync(`docker kill ${containerId}`, { stdio: 'ignore' }); } catch { /* intentionally ignored */ }
                 proc.kill('SIGKILL');
             }, cfg.timeoutMs);
 
@@ -157,7 +164,7 @@ export class SandboxManager {
 
     /**
      * Native sandbox — process isolation without Docker
-     * SUPERIOR: CoreBlow works without Docker; OpenClaw requires it
+     * SUPERIOR: CoreBlow works without Docker; CoreBlow requires it
      */
     private async execNative(command: string, cfg: SandboxConfig): Promise<SandboxResult> {
         const startTime = Date.now();

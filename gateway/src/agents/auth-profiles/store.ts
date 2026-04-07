@@ -1,0 +1,1 @@
+export class AuthProfileStore { private data = new Map<string, unknown>(); save(id: string, profile: unknown) { this.data.set(id, { ...(profile as any), updatedAt: Date.now() }); } load(id: string) { return this.data.get(id) || null; } delete(id: string) { return this.data.delete(id); } listAll() { return [...this.data.entries()].map(([id, v]) => ({ id, ...(v as any) })); } }

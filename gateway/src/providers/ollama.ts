@@ -107,9 +107,10 @@ export class OllamaProvider implements AIProvider {
                     }
                 }
             }
-        } catch (err: any) {
-            log.error({ err: err.message }, 'Ollama request failed');
-            yield { type: 'error', error: `Connection failed: ${err.message}` };
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            log.error({ err: msg }, 'Ollama request failed');
+            yield { type: 'error', error: `Connection failed: ${msg}` };
         }
     }
 
@@ -126,8 +127,8 @@ export class OllamaProvider implements AIProvider {
         try {
             const res = await fetch(`${this.baseUrl}/api/tags`);
             if (!res.ok) return [];
-            const data: any = await res.json();
-            return (data.models || []).map((m: any) => m.name);
+            const data = await res.json() as { models?: Array<{ name: string }> };
+            return (data.models || []).map((m) => m.name);
         } catch {
             return [];
         }

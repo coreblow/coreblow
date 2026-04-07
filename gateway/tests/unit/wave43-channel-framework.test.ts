@@ -1,0 +1,259 @@
+/**
+ * Wave 43: Channel Framework
+ * Tests for unified adapter interface, registry, capabilities, and directory routing.
+ */
+
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { 
+    registerAdapter, 
+    getAdapter, 
+    listAdapters, 
+    clearAdapters, 
+    isAccountAware, 
+    isQrLoginCapable,
+    type ChannelAdapter,
+    type AccountAwareAdapter,
+    type QrLoginAdapter
+} from '../../src/channels/adapter.js';
+import { getDefaultCapabilities } from '../../src/channels/capabilities.js';
+import { 
+    registerDirectoryProvider, 
+    getDirectoryProvider, 
+    resolveTargets, 
+    searchContacts,
+    type DirectoryProvider
+} from '../../src/channels/directory.js';
+
+describe('Wave 43: Channel Framework', () => {
+
+    describe('Adapter Registry (adapter.ts)', () => {
+        beforeEach(() => {
+            clearAdapters();
+        });
+
+        // Mock adapter implementations
+        const mockBaseAdapter: ChannelAdapter = {
+            id: 'discord',
+            name: 'Discord',
+            connect: vi.fn(),
+            disconnect: vi.fn(),
+            health: vi.fn(),
+            send: vi.fn(),
+            onMessage: vi.fn()
+        };
+
+        const mockAccountAdapter: AccountAwareAdapter = {
+            ...mockBaseAdapter,
+            id: 'slack',
+            listAccounts: vi.fn(),
+            resolveAccount: vi.fn(),
+            setAccountEnabled: vi.fn(),
+            deleteAccount: vi.fn(),
+            getAccountSnapshot: vi.fn()
+        };
+
+        const mockQrAdapter: QrLoginAdapter = {
+            ...mockBaseAdapter,
+            id: 'whatsapp',
+            loginWithQrStart: vi.fn(),
+            loginWithQrWait: vi.fn(),
+            logout: vi.fn()
+        };
+
+        it('registerAdapter saves adapter to registry', () => {
+            registerAdapter(mockBaseAdapter);
+            expect(getAdapter('discord')).toBe(mockBaseAdapter);
+        });
+
+        it('getAdapter returns null for unknown adapter', () => {
+            expect(getAdapter('telegram')).toBeNull();
+        });
+
+        it('listAdapters returns all registered adapters', () => {
+            registerAdapter(mockBaseAdapter);
+            registerAdapter(mockAccountAdapter);
+            const adapters = listAdapters();
+            expect(adapters).toHaveLength(2);
+            expect(adapters.map(a => a.id)).toContain('discord');
+            expect(adapters.map(a => a.id)).toContain('slack');
+        });
+
+        it('clearAdapters clears the registry', () => {
+            registerAdapter(mockBaseAdapter);
+            expect(listAdapters()).toHaveLength(1);
+            clearAdapters();
+            expect(listAdapters()).toHaveLength(0);
+        });
+
+        it('isAccountAware correctly identifies multi-account adapters', () => {
+            expect(isAccountAware(mockAccountAdapter)).toBe(true);
+            expect(isAccountAware(mockBaseAdapter)).toBe(false);
+        });
+
+        it('isQrLoginCapable correctly identifies QR-capable adapters', () => {
+            expect(isQrLoginCapable(mockQrAdapter)).toBe(true);
+            expect(isQrLoginCapable(mockBaseAdapter)).toBe(false);
+        });
+    });
+
+    describe('Channel Capabilities (capabilities.ts)', () => {
+        it('getDefaultCapabilities returns text true and others false', () => {
+            const caps = getDefaultCapabilities();
+            expect(caps.text).toBe(true);
+            expect(caps.images).toBe(false);
+            expect(caps.threads).toBe(false);
+        });
+    });
+
+    describe('Directory Framework (directory.ts)', () => {
+        const mockProvider1: DirectoryProvider = {
+            listPeers: vi.fn().mockResolvedValue([{ id: 'u1', kind: 'user', name: 'User 1' }]),
+            resolveTargets: vi.fn().mockImplementation(async (inputs) => inputs.map((i: string) => ({
+                input: i, resolved: true, id: i + '-resolved'
+            })))
+        };
+
+        const mockProvider2: DirectoryProvider = {
+            listPeers: vi.fn().mockResolvedValue([{ id: 'u2', kind: 'user', name: 'User 2' }]),
+            // Intentionally omit resolveTargets entirely for testing fallback
+        };
+
+        beforeEach(() => {
+            registerDirectoryProvider('discord', 'acc1', mockProvider1);
+            registerDirectoryProvider('slack', 'acc2', mockProvider2);
+        });
+
+        it('registerDirectoryProvider saves provider with channel+account key', () => {
+            expect(getDirectoryProvider('discord', 'acc1')).toBe(mockProvider1);
+            expect(getDirectoryProvider('discord', 'acc2')).toBeNull(); // Wrong account
+        });
+
+        it('resolveTargets uses provider logic if available', async () => {
+            const res = await resolveTargets('discord', 'acc1', ['raw1'], 'user');
+            expect(res[0].resolved).toBe(true);
+            expect(res[0].id).toBe('raw1-resolved');
+        });
+
+        it('resolveTargets provides fallback logic if provider lacks resolver', async () => {
+            const res = await resolveTargets('slack', 'acc2', ['rawXYZ'], 'group');
+            expect(res[0].resolved).toBe(true);
+            expect(res[0].id).toBe('rawXYZ'); // Echoes back
+            expect(res[0].note).toContain('passthrough');
+        });
+
+        it('resolveTargets provides fallback logic if no provider registered', async () => {
+            const res = await resolveTargets('telegram', 'acc3', ['unknown'], 'user');
+            expect(res[0].resolved).toBe(true);
+            expect(res[0].id).toBe('unknown'); // Echoes back
+        });
+
+        it('searchContacts queries across all registered providers with listPeers', async () => {
+            const results = await searchContacts('User');
+            expect(results).toHaveLength(2);
+            expect(results.find(r => r.id === 'u1')).toBeDefined();
+            expect(results.find(r => r.id === 'u2')).toBeDefined();
+            
+            // Should append channel metadata
+            const u1 = results.find(r => r.id === 'u1');
+            expect(u1?.channel).toBe('discord');
+            expect(u1?.accountId).toBe('acc1');
+        });
+
+        it('searchContacts respects channel filters', async () => {
+            const results = await searchContacts('User', { channels: ['discord'] });
+            expect(results).toHaveLength(1);
+            expect(results[0].id).toBe('u1');
+        });
+
+        it('searchContacts gracefully handles provider errors', async () => {
+            const errorProvider: DirectoryProvider = {
+                listPeers: vi.fn().mockRejectedValue(new Error('Network drop'))
+            };
+            registerDirectoryProvider('telegram', 'acc4', errorProvider);
+            
+            // Should still return available results from others
+            const results = await searchContacts('User', { channels: ['telegram', 'discord'] });
+            expect(results).toHaveLength(1);
+            expect(results[0].id).toBe('u1');
+        });
+    });
+
+    // ================================================================
+    // GAP FIX: webhook-manager.ts (184 LOC — previously untested)
+    // ================================================================
+    describe('Webhook Manager (webhook-manager.ts)', () => {
+        let manager: any;
+
+        beforeEach(async () => {
+            const mod = await import('../../src/channels/webhook-manager.js');
+            manager = new mod.WebhookManager();
+        });
+
+        it('register creates a webhook with auto-generated id', () => {
+            const wh = manager.register('https://example.com/hook', ['message.new']);
+            expect(wh.id).toMatch(/^wh-/);
+            expect(wh.url).toBe('https://example.com/hook');
+            expect(wh.events).toEqual(['message.new']);
+            expect(wh.active).toBe(true);
+        });
+
+        it('get returns registered webhook by id', () => {
+            const wh = manager.register('https://example.com/hook', ['*']);
+            expect(manager.get(wh.id)).toBe(wh);
+        });
+
+        it('get returns null for unknown id', () => {
+            expect(manager.get('wh-999')).toBeNull();
+        });
+
+        it('list returns all registered webhooks', () => {
+            manager.register('https://a.com', ['*']);
+            manager.register('https://b.com', ['*']);
+            const list = manager.list();
+            expect(list).toHaveLength(2);
+        });
+
+        it('delete removes a webhook', () => {
+            const wh = manager.register('https://a.com', ['*']);
+            expect(manager.delete(wh.id)).toBe(true);
+            expect(manager.get(wh.id)).toBeNull();
+        });
+
+        it('setActive enables/disables a webhook', () => {
+            const wh = manager.register('https://a.com', ['*']);
+            expect(manager.setActive(wh.id, false)).toBe(true);
+            expect(manager.get(wh.id).active).toBe(false);
+            expect(manager.setActive(wh.id, true)).toBe(true);
+            expect(manager.get(wh.id).active).toBe(true);
+        });
+
+        it('setActive returns false for unknown webhook', () => {
+            expect(manager.setActive('wh-999', true)).toBe(false);
+        });
+
+        it('signPayload generates HMAC-SHA256', () => {
+            const sig = manager.signPayload('{"event":"test"}', 'my-secret');
+            expect(sig).toBeTruthy();
+            expect(sig.length).toBe(64); // hex SHA256
+        });
+
+        it('getStats returns correct metrics', () => {
+            manager.register('https://a.com', ['*']);
+            manager.register('https://b.com', ['*']);
+            const stats = manager.getStats();
+            expect(stats.total).toBe(2);
+            expect(stats.active).toBe(2);
+            expect(stats.totalDeliveries).toBe(0);
+        });
+
+        it('count returns number of webhooks', () => {
+            expect(manager.count()).toBe(0);
+            manager.register('https://a.com', ['*']);
+            expect(manager.count()).toBe(1);
+        });
+
+        it('getDeliveries returns empty for fresh manager', () => {
+            expect(manager.getDeliveries()).toHaveLength(0);
+        });
+    });
+});
