@@ -1,5 +1,6 @@
 import { CoreBlowApp } from "./app.ts";
-import { GatewayBrowserClient } from "./gateway.ts";
+import { GatewayBrowserClient, type GatewayEventFrame } from "./gateway.ts";
+import type { ChatEventPayload, AgentEventPayload } from "./app-chat.ts";
 
 export class GatewayController {
   private client: GatewayBrowserClient | null = null;
@@ -16,9 +17,7 @@ export class GatewayController {
            this.requestInitialData();
         },
         onEvent: (evt) => {
-           if (evt.event === "session.patch") {
-              // We'll wire this up later
-           }
+           this.handleGatewayEvent(evt);
         },
         onClose: (info) => {
            this.app.connected = false;
@@ -43,19 +42,47 @@ export class GatewayController {
   getClient() {
      return this.client;
   }
+
+  // ─── Event Dispatch (OpenClaw pattern) ──────────────────────
+
+  private handleGatewayEvent(evt: GatewayEventFrame) {
+     // Log all events
+     this.app.addEventLog(`[${evt.event}] ${JSON.stringify(evt.payload ?? {}).slice(0, 120)}`);
+
+     if (evt.event === "chat") {
+        this.app.chat.handleChatEvent(evt.payload as ChatEventPayload);
+        return;
+     }
+
+     if (evt.event === "agent") {
+        this.app.chat.handleAgentEvent(evt.payload as AgentEventPayload);
+        return;
+     }
+
+     if (evt.event === "session.patch" || evt.event === "sessions.changed") {
+        // Refresh session data
+        this.requestInitialData();
+        return;
+     }
+
+     if (evt.event === "shutdown") {
+        this.app.addEventLog("Gateway shutting down...");
+        this.app.connected = false;
+        return;
+     }
+  }
   
   private async requestInitialData() {
      if (!this.client) return;
      try {
-       // Request snapshot data
-       const health = await this.client.request<any>("health.snapshot");
+       const health = await this.client.request<{sessions?: {count?: number}}>("health.snapshot");
        this.app.sessionsCount = health?.sessions?.count || 0;
        
-       const presence = await this.client.request<{entries: any[]}>("sys.presence");
+       const presence = await this.client.request<{entries: unknown[]}>("sys.presence");
        this.app.presenceCount = presence?.entries?.length || 0;
-     } catch (err: any) {
-       console.error("Failed to fetch initial data", err);
-       this.app.addEventLog(`Data fetch error: ${err.message}`);
+     } catch (err: unknown) {
+       const msg = err instanceof Error ? err.message : String(err);
+       this.app.addEventLog(`Data fetch error: ${msg}`);
      }
   }
 }

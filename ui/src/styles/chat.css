@@ -1,5 +1,166 @@
-@import "./chat/layout.css";
-@import "./chat/text.css";
-@import "./chat/grouped.css";
-@import "./chat/tool-cards.css";
-@import "./chat/sidebar.css";
+/* ─── Chat Streaming Styles ─────────────────────────────────── */
+
+/* ─── Typing Dots Animation ─────────────────────────────────── */
+.typing-dots {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+}
+.typing-dots span {
+  font-size: 18px;
+  opacity: 0.4;
+  animation: typingDot 1.4s ease-in-out infinite;
+}
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingDot {
+  0%, 60%, 100% { opacity: 0.2; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
+/* ─── Stream Cursor ─────────────────────────────────────────── */
+.stream-cursor {
+  display: inline-block;
+  color: var(--accent, #6366f1);
+  animation: cursorBlink 0.8s ease-in-out infinite;
+  font-weight: bold;
+  margin-left: 1px;
+}
+
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ─── Streaming Bubble ──────────────────────────────────────── */
+.streaming-bubble {
+  border-left: 3px solid var(--accent, #6366f1);
+  animation: streamPulse 2s ease-in-out infinite;
+}
+
+@keyframes streamPulse {
+  0%, 100% { border-left-color: var(--accent, #6366f1); }
+  50% { border-left-color: transparent; }
+}
+
+/* ─── Tool Cards ────────────────────────────────────────────── */
+.tool-card {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm, 6px);
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border, #333);
+  font-size: 12px;
+}
+
+.tool-card--running {
+  border-left: 3px solid var(--warning, #f59e0b);
+  animation: toolPulse 1.5s ease-in-out infinite;
+}
+
+.tool-card--done {
+  border-left: 3px solid var(--success, #22c55e);
+}
+
+@keyframes toolPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.tool-card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.tool-card-icon {
+  font-size: 14px;
+}
+
+.tool-card-name {
+  font-family: var(--mono, 'JetBrains Mono', monospace);
+  color: var(--accent, #6366f1);
+}
+
+.tool-card-duration {
+  margin-left: auto;
+  color: var(--muted, #888);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.tool-card-args {
+  margin-top: 4px;
+}
+
+.tool-card-args summary {
+  cursor: pointer;
+  color: var(--muted, #888);
+  font-size: 11px;
+  user-select: none;
+}
+
+.tool-card-args pre,
+.tool-card-output pre {
+  margin: 4px 0 0;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: var(--mono, monospace);
+  overflow-x: auto;
+  max-height: 200px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--foreground, #e0e0e0);
+}
+
+.tool-card-output {
+  margin-top: 4px;
+}
+
+/* ─── Stop Button ───────────────────────────────────────────── */
+.btn-abort {
+  transition: background 0.15s ease;
+}
+.btn-abort:hover {
+  background: var(--destructive-hover, #dc2626) !important;
+  filter: brightness(1.1);
+}
+
+/* ─── Chat Model Badge ─────────────────────────────────────── */
+.chat-model-badge {
+  transition: opacity 0.2s ease;
+}
+.chat-model-badge:hover {
+  opacity: 0.7;
+}
+
+/* ─── Auto-scroll ───────────────────────────────────────────── */
+.chat-history {
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+}
+
+/* ─── Message Hover ─────────────────────────────────────────── */
+.chat-message {
+  transition: opacity 0.15s ease;
+}
+
+.chat-bubble code {
+  font-size: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.chat-bubble pre {
+  background: rgba(0, 0, 0, 0.25);
+  padding: 10px 12px;
+  border-radius: var(--radius-sm, 6px);
+  overflow-x: auto;
+  font-size: 12px;
+}

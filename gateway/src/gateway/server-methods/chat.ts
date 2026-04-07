@@ -9,19 +9,25 @@ import { assertValidParams } from "./validation.js";
 import { sanitizeChatSendMessageInput } from "./chat-sanitize.js";
 import { AgentEngine } from "../../agents/agent-engine.js";
 import { AgentStreamBridge } from "../../agents/agent-stream-bridge.js";
+import type { StreamChunk } from "../../agents/provider-stream.js";
 
-// Shared engine instance — bootstrapped by server startup
+// ─── Shared Engine + Broadcast ───────────────────────────────────
+
 let engine: AgentEngine | null = null;
 let streamBridge: AgentStreamBridge | null = null;
+let broadcastFn: ((event: string, data: unknown) => void) | null = null;
 
 export function setAgentEngine(e: AgentEngine): void { engine = e; }
 export function setStreamBridge(b: AgentStreamBridge): void { streamBridge = b; }
+export function setBroadcast(fn: (event: string, data: unknown) => void): void { broadcastFn = fn; }
 export function getAgentEngine(): AgentEngine | null { return engine; }
+
+// ─── Handlers ────────────────────────────────────────────────────
 
 export const chatHandlers: GatewayRequestHandlers = {
     "chat.send": async ({ params, respond }) => {
         if (!assertValidParams(params, validateChatSendParams, "chat.send", respond)) return;
-        const p = params as { sessionKey: string; message: string };
+        const p = params as { sessionKey: string; message: string; model?: string };
         const sanitation = sanitizeChatSendMessageInput(p.message);
         if (!sanitation.ok) {
             respond(false, undefined, { code: "invalid_request", message: sanitation.error! });
@@ -36,37 +42,104 @@ export const chatHandlers: GatewayRequestHandlers = {
         // Create or resume session
         let sessionId = p.sessionKey;
         if (!engine.getSession(sessionId)) {
-            sessionId = engine.createSession({ model: engine.config.defaultModel });
+            sessionId = engine.createSession({ model: p.model ?? engine.config.defaultModel });
         }
 
-        const onChunk = streamBridge
-            ? streamBridge.createStreamHandler(sessionId)
-            : undefined;
+        const runId = `run_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        let streamedText = '';
 
-        // Start the turn asynchronously
-        const runId = `run_${Date.now()}`;
+        // Stream handler: broadcasts OpenClaw-compatible events
+        const onChunk = (chunk: StreamChunk) => {
+            if (!broadcastFn) return;
+
+            if (chunk.type === 'text') {
+                streamedText += chunk.content ?? '';
+                broadcastFn('chat', {
+                    state: 'delta',
+                    sessionKey: sessionId,
+                    runId,
+                    message: { text: streamedText },
+                    ts: Date.now(),
+                });
+            } else if (chunk.type === 'tool_use') {
+                broadcastFn('agent', {
+                    stream: 'tool',
+                    sessionKey: sessionId,
+                    runId,
+                    ts: Date.now(),
+                    data: {
+                        toolCallId: chunk.toolUse?.id ?? `tc_${Date.now()}`,
+                        name: chunk.toolUse?.name ?? 'unknown',
+                        phase: 'start',
+                        args: chunk.toolUse?.input,
+                    },
+                });
+            } else if (chunk.type === 'error') {
+                broadcastFn('chat', {
+                    state: 'error',
+                    sessionKey: sessionId,
+                    runId,
+                    message: { text: chunk.content ?? 'Unknown error' },
+                    ts: Date.now(),
+                });
+            }
+            // Also forward to stream bridge subscribers
+            if (streamBridge) {
+                const bridgeHandler = streamBridge.createStreamHandler(sessionId);
+                bridgeHandler(chunk);
+            }
+        };
+
+        // Respond immediately with started status
         respond(true, { status: "started", runId, sessionId }, undefined);
 
         try {
             const result = await engine.runTurn(sessionId, p.message, onChunk);
-            // Final result broadcast (for non-streaming clients)
-            if (streamBridge) {
-                const payload = JSON.stringify({
-                    event: 'chat.completed',
-                    sessionId,
+
+            // Broadcast tool results
+            if (broadcastFn) {
+                for (const tc of result.toolCalls) {
+                    broadcastFn('agent', {
+                        stream: 'tool',
+                        sessionKey: sessionId,
+                        runId,
+                        ts: Date.now(),
+                        data: {
+                            toolCallId: tc.id,
+                            name: tc.name,
+                            phase: 'result',
+                            result: tc.output,
+                            durationMs: tc.durationMs,
+                        },
+                    });
+                }
+
+                // Broadcast final
+                broadcastFn('chat', {
+                    state: 'final',
+                    sessionKey: sessionId,
                     runId,
-                    result: {
-                        text: result.responseText,
-                        usage: result.usage,
-                        toolCalls: result.toolCalls.length,
-                        turnNumber: result.turnNumber,
-                        durationMs: result.durationMs,
+                    ts: Date.now(),
+                    message: {
+                        role: 'assistant',
+                        content: [{ type: 'text', text: result.responseText }],
+                        timestamp: Date.now(),
                     },
+                    usage: result.usage,
+                    turnNumber: result.turnNumber,
+                    durationMs: result.durationMs,
                 });
-                // The bridge will handle delivery
             }
         } catch (err) {
-            // Error already handled in engine, but log for gateway
+            if (broadcastFn) {
+                broadcastFn('chat', {
+                    state: 'error',
+                    sessionKey: sessionId,
+                    runId,
+                    ts: Date.now(),
+                    message: { text: err instanceof Error ? err.message : String(err) },
+                });
+            }
         }
     },
 
@@ -77,6 +150,13 @@ export const chatHandlers: GatewayRequestHandlers = {
             const session = engine.getSession(p.sessionKey);
             if (session) {
                 session.abortController.abort();
+                if (broadcastFn) {
+                    broadcastFn('chat', {
+                        state: 'aborted',
+                        sessionKey: p.sessionKey,
+                        ts: Date.now(),
+                    });
+                }
                 respond(true, { aborted: true, sessionId: p.sessionKey }, undefined);
                 return;
             }
