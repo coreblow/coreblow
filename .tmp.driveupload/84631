@@ -1,0 +1,8 @@
+/** plugin-sdk/litellm.ts [ADAPT] openclaw-main */
+export const LITELLM_BASE_URL = "http://localhost:4000";
+export const LITELLM_DEFAULT_MODEL_ID = "gpt-4o";
+export const LITELLM_DEFAULT_MODEL_REF = "litellm:gpt-4o";
+export function buildLitellmModelDefinition(params) { return { id: params.id, label: params.label }; }
+export function applyLitellmConfig(cfg) { return cfg; }
+export function applyLitellmProviderConfig(cfg) { return cfg; }
+//# sourceMappingURL=litellm.js.map

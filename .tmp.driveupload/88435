@@ -1,0 +1,110 @@
+/**
+ * CoreBlow — Subagent Announce Output (CoreBlow Parity)
+ *
+ * Output reading, snapshot summarization, outcome resolution,
+ * child completion findings, and stats line formatting.
+ */
+export type AgentWaitResult = {
+    status?: string;
+    startedAt?: number;
+    endedAt?: number;
+    error?: string;
+};
+export type SubagentRunOutcome = {
+    status: 'ok' | 'error' | 'timeout' | 'unknown';
+    error?: string;
+};
+export type SubagentOutputSnapshot = {
+    latestAssistantText?: string;
+    latestSilentText?: string;
+    latestRawText?: string;
+    assistantFragments: string[];
+    toolCallCount: number;
+};
+export declare function isSilentReplyText(text?: string): boolean;
+export declare function isAnnounceSkip(text?: string): boolean;
+export declare function extractAssistantText(message: unknown): string;
+export declare function summarizeSubagentOutputHistory(messages: Array<unknown>): SubagentOutputSnapshot;
+export declare function selectSubagentOutputText(snapshot: SubagentOutputSnapshot, outcome?: SubagentRunOutcome): string | undefined;
+export declare function applySubagentWaitOutcome(params: {
+    wait: AgentWaitResult | undefined;
+    outcome: SubagentRunOutcome | undefined;
+    startedAt?: number;
+    endedAt?: number;
+}): {
+    outcome: SubagentRunOutcome | undefined;
+    startedAt?: number;
+    endedAt?: number;
+};
+export declare function buildChildCompletionFindings(children: Array<{
+    childSessionKey: string;
+    task: string;
+    label?: string;
+    createdAt: number;
+    endedAt?: number;
+    frozenResultText?: string | null;
+    outcome?: SubagentRunOutcome;
+}>): string | undefined;
+export declare function dedupeLatestChildCompletionRows<T extends {
+    childSessionKey: string;
+    createdAt: number;
+}>(children: T[]): T[];
+export declare function filterCurrentDirectChildCompletionRows<T extends {
+    runId: string;
+    childSessionKey: string;
+    requesterSessionKey: string;
+}>(children: T[], params: {
+    requesterSessionKey: string;
+    getLatestByChildKey?: (key: string) => {
+        runId: string;
+        requesterSessionKey: string;
+    } | null | undefined;
+}): T[];
+export declare function buildCompactAnnounceStatsLine(params: {
+    startedAt?: number;
+    endedAt?: number;
+    inputTokens?: number;
+    outputTokens?: number;
+    totalTokens?: number;
+}): string;
+export declare function normalizeOutputText(text: string): string;
+export declare function stripControlCharacters(text: string): string;
+export declare function sanitizeOutputForDisplay(text: string): string;
+export declare const MAX_OUTPUT_CHARS = 100000;
+export declare const MAX_OUTPUT_LINES = 2000;
+export declare const SUMMARY_HEAD_LINES = 50;
+export declare const SUMMARY_TAIL_LINES = 50;
+export declare function truncateOutput(text: string, maxChars?: number): {
+    text: string;
+    truncated: boolean;
+    originalLength: number;
+};
+export declare function truncateByLines(text: string, maxLines?: number): {
+    text: string;
+    truncated: boolean;
+    lineCount: number;
+};
+export declare function buildOutputSummary(text: string): string;
+export declare function formatOutcomeStatus(outcome?: SubagentRunOutcome): string;
+export declare function formatOutcomeForDisplay(outcome?: SubagentRunOutcome, label?: string): string;
+export declare function isSuccessOutcome(outcome?: SubagentRunOutcome): boolean;
+export declare function isErrorOutcome(outcome?: SubagentRunOutcome): boolean;
+export declare function isTimeoutOutcome(outcome?: SubagentRunOutcome): boolean;
+export declare function isEmptyOutput(text?: string): boolean;
+export declare function isUsefulOutput(text?: string): boolean;
+export declare function estimateOutputQuality(text?: string): 'none' | 'silent' | 'minimal' | 'substantial';
+export type ChildSummaryEntry = {
+    label: string;
+    outcome: SubagentRunOutcome;
+    resultPreview?: string;
+    runtimeMs?: number;
+};
+export declare function buildMultiChildSummary(children: ChildSummaryEntry[]): string;
+export declare function countChildOutcomes(children: ChildSummaryEntry[]): {
+    total: number;
+    succeeded: number;
+    failed: number;
+    timedOut: number;
+    unknown: number;
+};
+//# sourceMappingURL=subagent-announce-output.d.ts.map

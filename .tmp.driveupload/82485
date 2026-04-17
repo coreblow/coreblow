@@ -1,0 +1,228 @@
+/**
+ * plugins/plugin-loader.ts
+ *
+ * Production-Grade Plugin Loader — Gateway Integration
+ *
+ * Orchestrates the full plugin lifecycle by wiring together all
+ * subsystems built in Waves 4-9:
+ *   - PluginRegistry       (Wave 4) — Registration + Data Store
+ *   - HookRunner           (Wave 4) — Hook execution patterns
+ *   - PluginDiscovery      (Wave 4) — Multi-source scanning
+ *   - PluginConfigState    (Wave 4) — Config normalization + validation
+ *   - PluginServiceManager (Wave 4) — Service lifecycle
+ *   - PluginSandbox        (Wave 5) — Permission enforcement
+ *   - ResourceLimiter      (Wave 5) — Resource budget enforcement
+ *   - PathJail             (Wave 5) — Filesystem isolation
+ *   - AuditLog             (Wave 5) — Security event logging
+ *   - DependencyGraph      (Wave 7) — DAG resolution + cycle detection
+ *   - VersionManager       (Wave 7) — Semver compatibility checks
+ *   - PluginHotReload      (Wave 7) — File-watch reload cycles
+ *
+ * Following CoreBlow's loader.ts (1,410 LOC) pattern:
+ *   - discover → validate → sort → load → activate pipeline
+ *   - registry caching with LRU eviction
+ *   - graceful error handling per-plugin
+ *   - diagnostic collection throughout
+ */
+import { PluginRegistry } from './registry.js';
+import { HookRunner } from './hooks.js';
+import { PluginServiceManager } from './services.js';
+import { PluginSandbox } from './sandbox.js';
+import { ResourceLimiter } from './resource-limiter.js';
+import { PathJail } from './path-jail.js';
+import { AuditLog } from './audit-log.js';
+import { DependencyGraph } from './dependency-graph.js';
+import { PluginConfigValidator } from './config-validator.js';
+import { VersionManager } from './version-manager.js';
+import { PluginHotReload } from './hot-reload.js';
+import { HotReloadManager } from './hot-reload-manager.js';
+import { PermissionManager } from './permission-manager.js';
+import { MarketplaceApi } from './marketplace-api.js';
+import { TelemetryCollector } from './telemetry.js';
+import { DependencyResolver } from './dependency-resolver.js';
+import { ConfigEditor } from './config-editor.js';
+/** Plugin load options */
+export interface PluginLoadOptions {
+    /** Workspace directory (for plugin discovery) */
+    workspaceDir?: string;
+    /** Additional plugin directories to scan */
+    pluginPaths?: string[];
+    /** Plugin configuration from config.json */
+    pluginsConfig?: Record<string, unknown>;
+    /** Host version for compatibility checks */
+    hostVersion?: string;
+    /** Resource enforcement profile */
+    resourceProfile?: Record<string, unknown>;
+    /** Enable hot-reload watcher */
+    hotReload?: boolean;
+    /** Hot-reload debounce ms */
+    hotReloadDebounceMs?: number;
+    /** Enable caching */
+    cache?: boolean;
+    /** Only load these plugin IDs */
+    onlyPluginIds?: string[];
+    /** Throw on load error instead of collecting diagnostics */
+    throwOnLoadError?: boolean;
+    /** Activate plugins after loading */
+    activate?: boolean;
+}
+/** Plugin load result */
+export interface PluginLoadResult {
+    registry: PluginRegistry;
+    hookRunner: HookRunner;
+    loadOrder: string[];
+    loaded: number;
+    failed: number;
+    skipped: number;
+    diagnostics: PluginDiagnostic[];
+    duration: number;
+}
+/** Plugin diagnostic record */
+export interface PluginDiagnostic {
+    level: 'info' | 'warn' | 'error';
+    pluginId?: string;
+    source?: string;
+    message: string;
+    timestamp: number;
+}
+/** Plugin load failure error */
+export declare class PluginLoadFailureError extends Error {
+    readonly pluginIds: string[];
+    readonly registry: PluginRegistry;
+    constructor(registry: PluginRegistry, failedIds: string[]);
+}
+/**
+ * CoreBlow Production Plugin Loader
+ *
+ * Orchestrates the full plugin lifecycle using a phased pipeline:
+ *   Phase 1: Discover → scan directories for plugin manifests
+ *   Phase 2: Configure → normalize config, resolve enable states
+ *   Phase 3: Validate → check versions, dependencies, permissions
+ *   Phase 4: Sort → topological ordering via DependencyGraph
+ *   Phase 5: Load → execute plugin modules in dependency order
+ *   Phase 6: Activate → call plugin activate() hooks
+ *   Phase 7: Services → start plugin-registered services
+ */
+export declare class PluginLoader {
+    private registry;
+    private hookRunner;
+    private discovery;
+    private configState;
+    private serviceManager;
+    private sandboxes;
+    private limiters;
+    private jails;
+    private auditLog;
+    private depGraph;
+    private versionManager;
+    private hotReload;
+    private hotReloadManager;
+    private configValidator;
+    private permissionManager;
+    private marketplaceApi;
+    private telemetry;
+    private depResolver;
+    private configEditor;
+    private loaded;
+    private resolvedConfigs;
+    private diagnostics;
+    private options;
+    private normalizedConfig;
+    private state;
+    constructor(options?: PluginLoadOptions);
+    /**
+     * Execute the full plugin load pipeline.
+     */
+    loadAll(): Promise<PluginLoadResult>;
+    /**
+     * Phase 2: Discover plugin manifests from configured paths.
+     */
+    private discoverPlugins;
+    /**
+     * Phase 3: Filter by enable state and optional ID filter.
+     */
+    private filterEnabled;
+    /**
+     * Phase 4: Build dependency graph and validate versions.
+     */
+    private buildDependencyGraph;
+    /**
+     * Phase 5: Load a single plugin.
+     */
+    private loadPlugin;
+    /**
+     * Phase 6: Activate all loaded plugins.
+     */
+    private activateAll;
+    /**
+     * Phase 7: Setup hot-reload watcher.
+     */
+    private setupHotReload;
+    /**
+     * Reload a specific plugin (unload → re-load → re-activate).
+     */
+    reloadPlugin(pluginId: string): Promise<void>;
+    /**
+     * Deactivate a specific plugin.
+     */
+    deactivatePlugin(pluginId: string): Promise<void>;
+    /**
+     * Start all plugin services.
+     */
+    startServices(): Promise<{
+        started: number;
+        failed: number;
+    }>;
+    /**
+     * Stop all plugin services.
+     */
+    stopServices(): Promise<void>;
+    /**
+     * Graceful shutdown — stop services, deactivate plugins, clean up.
+     */
+    shutdown(): Promise<void>;
+    private createPluginContext;
+    private createApiSurface;
+    getRegistry(): PluginRegistry;
+    getHookRunner(): HookRunner;
+    getAuditLog(): AuditLog;
+    getDependencyGraph(): DependencyGraph;
+    getVersionManager(): VersionManager;
+    getHotReload(): PluginHotReload | null;
+    getServiceManager(): PluginServiceManager;
+    getConfigValidator(): PluginConfigValidator;
+    getHotReloadManager(): HotReloadManager;
+    getPermissionManager(): PermissionManager;
+    getMarketplaceApi(): MarketplaceApi;
+    getTelemetry(): TelemetryCollector;
+    getDependencyResolver(): DependencyResolver;
+    getConfigEditor(): ConfigEditor;
+    getDiagnostics(): PluginDiagnostic[];
+    getState(): string;
+    getSandbox(pluginId: string): PluginSandbox | undefined;
+    getLimiter(pluginId: string): ResourceLimiter | undefined;
+    getJail(pluginId: string): PathJail | undefined;
+    getLoadedPlugins(): string[];
+    getPluginCount(): number;
+    isLoaded(pluginId: string): boolean;
+    isActivated(pluginId: string): boolean;
+    /**
+     * Get full system health report.
+     */
+    getHealth(): {
+        state: string;
+        plugins: number;
+        activated: number;
+        services: number;
+        auditEvents: number;
+        diagnostics: number;
+        hotReload: boolean;
+    };
+    /** Clear loader cache */
+    static clearCache(): void;
+    /** Get cache size */
+    static getCacheSize(): number;
+    private buildCacheKey;
+    private addDiagnostic;
+}
+//# sourceMappingURL=plugin-loader.d.ts.map

@@ -1,0 +1,30 @@
+type Message = string;
+interface Status {
+    status: number;
+    statusText: string;
+}
+interface ErrorDetails {
+    signature?: string;
+    raw?: any;
+}
+interface FetchErrorDetails extends Status {
+    headers: Headers;
+    body: string;
+}
+export declare class SignatureValidationFailed extends Error {
+    signature?: string;
+    constructor(message: Message, { signature }?: ErrorDetails);
+}
+export declare class JSONParseError extends Error {
+    raw: any;
+    constructor(message: Message, { raw }?: ErrorDetails);
+}
+export declare class HTTPFetchError extends Error {
+    status: number;
+    statusText: string;
+    headers: Headers;
+    body: string;
+    constructor(message: Message, { status, statusText, headers, body }: FetchErrorDetails);
+}
+export {};
+//# sourceMappingURL=exceptions.d.ts.map

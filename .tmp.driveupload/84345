@@ -1,0 +1,11 @@
+/** plugin-sdk/browser-runtime.ts [ADAPT] openclaw-main */
+export { detectBrowserEnvironment, isBrowserGlobalDisabled } from "./browser-support.js";
+/** Stub: implemented by @coreblow/browser extension. */
+export async function runBrowserProxyCommand(_params) {
+    throw new Error("runBrowserProxyCommand requires @coreblow/browser extension");
+}
+/** Resolve browser config from system config. Accepts optional extra config. */
+export function resolveBrowserConfig(browserSection, _extraCfg) {
+    return { headless: true, enabled: Boolean(browserSection?.enabled) };
+}
+//# sourceMappingURL=browser-runtime.js.map

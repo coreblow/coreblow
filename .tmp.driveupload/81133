@@ -1,0 +1,10 @@
+/**
+ * utils/json-utils.ts
+ */
+export function safeJsonParse(s, fb) { try {
+    return JSON.parse(s);
+}
+catch {
+    return fb;
+} }
+//# sourceMappingURL=json-utils.js.map

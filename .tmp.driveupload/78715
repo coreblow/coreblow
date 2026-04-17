@@ -1,0 +1,12 @@
+/**
+ * logging/context-logger.ts
+ */
+export class ContextLogger {
+    context;
+    constructor(context = {}) { this.context = context; }
+    child(extra) { return new ContextLogger({ ...this.context, ...extra }); }
+    info(msg, extra) { const ext = typeof extra === 'object' && extra !== null ? extra : { extra }; console.log(JSON.stringify({ level: 'info', msg, ...this.context, ...ext, ts: Date.now() })); }
+    error(msg, extra) { const ext = typeof extra === 'object' && extra !== null ? extra : { extra }; console.error(JSON.stringify({ level: 'error', msg, ...this.context, ...ext, ts: Date.now() })); }
+    warn(msg, extra) { const ext = typeof extra === 'object' && extra !== null ? extra : { extra }; console.warn(JSON.stringify({ level: 'warn', msg, ...this.context, ...ext, ts: Date.now() })); }
+}
+//# sourceMappingURL=context-logger.js.map

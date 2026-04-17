@@ -1,0 +1,11 @@
+export const MINIMAX_API_BASE_URL = "https://api.minimax.chat";
+export const MINIMAX_CN_API_BASE_URL = "https://api.minimax.chat";
+export const MINIMAX_DEFAULT_MODEL_ID = "abab6.5s-chat";
+export const MINIMAX_DEFAULT_MODEL_REF = "minimax:abab6.5s-chat";
+export const MINIMAX_TEXT_MODEL_CATALOG = [];
+export const MINIMAX_TEXT_MODEL_ORDER = [];
+export const MINIMAX_TEXT_MODEL_REFS = [];
+export function isMiniMaxModernModelId(id) { return false; }
+export function buildMinimaxProvider(_p) { throw new Error("buildMinimaxProvider requires @coreblow/minimax extension"); }
+export function buildMinimaxPortalProvider(_p) { throw new Error("buildMinimaxPortalProvider requires @coreblow/minimax extension"); }
+//# sourceMappingURL=minimax.js.map

@@ -1,0 +1,3 @@
+/** Discord message handler */
+export declare function handleMessage(_msg: unknown, _router: unknown): Promise<void>;
+//# sourceMappingURL=message-handler.d.ts.map

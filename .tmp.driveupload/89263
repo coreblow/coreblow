@@ -1,0 +1,3 @@
+/** PI LSP bundle runtime. */
+export { createLspConfig } from './embedded-pi-lsp.js';
+//# sourceMappingURL=pi-bundle-lsp-runtime.js.map

@@ -1,0 +1,35 @@
+/**
+ * hooks/loader.ts — Dynamic hook loader.
+ *
+ * Mirrors CoreBlow's hooks/loader.ts:
+ * - loadInternalHooks() — main entry point for loading all hooks
+ * - Boundary-safe file loading
+ * - Legacy config handler support
+ * - Cache-busting for mutable (workspace/managed) hooks
+ */
+/**
+ * Resolve a module export as a function, matching CoreBlow's module-loader.ts.
+ */
+export declare function resolveFunctionModuleExport<T extends (...args: never[]) => unknown>(params: {
+    mod: Record<string, unknown>;
+    exportName?: string;
+    fallbackExportNames?: string[];
+}): T | undefined;
+/**
+ * Build an import URL for a handler module.
+ * Mutable sources (workspace, managed) get cache-busting timestamps.
+ */
+export declare function buildImportUrl(handlerPath: string, source: string): string;
+/**
+ * Load and register all hook handlers from directory-based discovery.
+ *
+ * @param workspaceDir - Workspace directory for hook discovery
+ * @param opts - Optional overrides for managed/bundled hook directories
+ * @returns Number of handlers successfully loaded
+ */
+export declare function loadInternalHooks(workspaceDir: string, opts?: {
+    managedHooksDir?: string;
+    bundledHooksDir?: string;
+    hooksEnabled?: boolean;
+}): Promise<number>;
+//# sourceMappingURL=loader.d.ts.map

@@ -1,0 +1,6 @@
+/** OpenAI WS message format conversion. */
+export declare function convertWsToContentBlock(msg: Record<string, unknown>): {
+    type: string;
+    content?: string;
+};
+//# sourceMappingURL=openai-ws-message-conversion.d.ts.map

@@ -1,0 +1,6 @@
+/**
+ * config/dotenv.ts
+ * Simple .env file parser
+ */
+export declare function parseDotenv(content: string): Record<string, string>;
+//# sourceMappingURL=dotenv.d.ts.map

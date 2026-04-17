@@ -1,0 +1,34 @@
+/**
+ * config/bindings.ts
+ * Agent ↔ channel binding configuration.
+ * Ported from CoreBlow reference src/config/bindings.ts.
+ */
+export interface AgentRouteBinding {
+    type: 'route';
+    agent: string;
+    channel: string;
+    accountId?: string;
+    model?: string;
+    toolProfile?: string;
+}
+export interface AgentAcpBinding {
+    type: 'acp';
+    agent: string;
+    provider: string;
+    model?: string;
+}
+export type AgentBinding = AgentRouteBinding | AgentAcpBinding;
+export declare function isRouteBinding(binding: AgentBinding): binding is AgentRouteBinding;
+export declare function isAcpBinding(binding: AgentBinding): binding is AgentAcpBinding;
+export declare function listConfiguredBindings(cfg: Record<string, unknown>): AgentBinding[];
+export declare function listRouteBindings(cfg: Record<string, unknown>): AgentRouteBinding[];
+export declare function listAcpBindings(cfg: Record<string, unknown>): AgentAcpBinding[];
+/**
+ * Find the agent bound to a specific channel+account.
+ */
+export declare function resolveAgentForChannel(cfg: Record<string, unknown>, channel: string, accountId?: string): string | undefined;
+/**
+ * Get all channels an agent is bound to.
+ */
+export declare function resolveChannelsForAgent(cfg: Record<string, unknown>, agentName: string): string[];
+//# sourceMappingURL=bindings.d.ts.map

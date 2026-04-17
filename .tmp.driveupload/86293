@@ -1,0 +1,10 @@
+/**
+ * src/infra/parse-finite-number.ts
+ * Numeric string parsing.
+ * Ported from CoreBlow infra/parse-finite-number.ts.
+ */
+export declare function parseFiniteNumber(value: unknown): number | undefined;
+export declare function parseStrictInteger(value: unknown): number | undefined;
+export declare function parseStrictPositiveInteger(value: unknown): number | undefined;
+export declare function parseStrictNonNegativeInteger(value: unknown): number | undefined;
+//# sourceMappingURL=parse-finite-number.d.ts.map

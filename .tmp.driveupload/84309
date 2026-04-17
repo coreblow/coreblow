@@ -1,0 +1,108 @@
+/**
+ * plugin-sdk/provider-auth.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/provider-auth.ts
+ *
+ * Public auth/onboarding helpers for provider plugins.
+ */
+export { buildOauthProviderAuthResult } from './provider-auth-result.js';
+export { createProviderApiKeyAuthMethod } from './provider-entry.js';
+export function coerceSecretRef(value) {
+    if (!value)
+        return null;
+    if (typeof value === 'object')
+        return value;
+    if (value.startsWith('$'))
+        return { type: 'env', envVar: value.slice(1) };
+    if (value.startsWith('ref:'))
+        return { type: 'ref', ref: value.slice(4) };
+    return { type: 'literal', value };
+}
+export function normalizeSecretInput(value) {
+    return coerceSecretRef(value);
+}
+export function normalizeOptionalSecretInput(value) {
+    return coerceSecretRef(value) ?? undefined;
+}
+// ─── API Key Helpers ──────────────────────────────────────────────────────────
+export function formatApiKeyPreview(apiKey) {
+    if (apiKey.length <= 8)
+        return '••••••••';
+    return `${apiKey.slice(0, 4)}${'•'.repeat(Math.min(8, apiKey.length - 8))}${apiKey.slice(-4)}`;
+}
+export function normalizeApiKeyInput(raw) {
+    return raw.trim();
+}
+export function validateApiKeyInput(raw) {
+    const trimmed = raw.trim();
+    if (!trimmed)
+        return { valid: false, error: 'API key cannot be empty' };
+    if (trimmed.length < 8)
+        return { valid: false, error: 'API key is too short' };
+    return { valid: true };
+}
+export const CLAUDE_CLI_PROFILE_ID = 'claude-cli:default';
+export const CODEX_CLI_PROFILE_ID = 'codex-cli:default';
+export function buildApiKeyCredential(params) {
+    return { type: 'api-key', provider: params.provider, apiKey: params.apiKey };
+}
+export function applyAuthProfileConfig(cfg, profile) {
+    return { ...cfg };
+}
+// ─── Prompt Helpers ───────────────────────────────────────────────────────────
+export async function ensureApiKeyFromOptionEnvOrPrompt(params) {
+    if (params.option)
+        return params.option;
+    if (params.envVar) {
+        const envVal = process.env[params.envVar];
+        if (envVal)
+            return envVal;
+    }
+    return params.prompt(params.message ?? 'Enter API key: ');
+}
+export function resolveDefaultSecretProviderAlias(provider) {
+    return `${provider}-api-key`;
+}
+export function resolveRequiredHomeDir() {
+    const home = process.env.HOME ?? process.env.USERPROFILE;
+    if (!home)
+        throw new Error('Could not determine home directory');
+    return home;
+}
+export function listKnownProviderAuthEnvVarNames(providerId) {
+    const upper = providerId.toUpperCase().replace(/-/g, '_');
+    return [`${upper}_API_KEY`];
+}
+export function omitEnvKeysCaseInsensitive(env, keysToOmit) {
+    const lower = keysToOmit.map((k) => k.toLowerCase());
+    return Object.fromEntries(Object.entries(env).filter(([k]) => !lower.includes(k.toLowerCase())));
+}
+export function normalizeSecretInputModeInput(raw) {
+    return raw.trim();
+}
+export async function promptSecretRefForSetup(params) {
+    const value = await params.prompt(params.label ?? 'Enter secret: ');
+    return coerceSecretRef(value) ?? { type: 'literal', value };
+}
+export function resolveSecretInputModeForEnvSelection(envVar) {
+    return { type: 'env', envVar };
+}
+export function buildTokenProfileId(params) {
+    const preview = params.token.slice(0, 8);
+    return `${params.provider}:${preview}`;
+}
+export function validateAnthropicSetupToken(token) {
+    if (!token.startsWith('sk-ant-')) {
+        return { valid: false, error: 'Anthropic tokens must start with sk-ant-' };
+    }
+    return { valid: true };
+}
+export function generatePkceVerifierChallenge() {
+    const verifier = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+    return { verifier, challenge: verifier };
+}
+export function toFormUrlEncoded(params) {
+    return Object.entries(params)
+        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+        .join('&');
+}
+//# sourceMappingURL=provider-auth.js.map

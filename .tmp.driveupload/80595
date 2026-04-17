@@ -1,0 +1,17 @@
+export class DiscordMiddlewarePipeline {
+    middlewares = [];
+    use(fn) { this.middlewares.push(fn); }
+    async execute(ctx) {
+        let index = 0;
+        const next = async () => {
+            if (index < this.middlewares.length) {
+                const fn = this.middlewares[index++];
+                await fn(ctx, next);
+            }
+        };
+        await next();
+        return ctx;
+    }
+    get count() { return this.middlewares.length; }
+}
+//# sourceMappingURL=pipeline.js.map

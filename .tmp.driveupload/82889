@@ -1,0 +1,39 @@
+/**
+ * auto-reply/types.ts
+ * Core types for the auto-reply pipeline.
+ */
+/** Inbound message from any channel */
+export interface InboundMessage {
+    id: string;
+    content: string;
+    channel: string;
+    sender: string;
+    timestamp?: number;
+    attachments?: Array<{
+        url: string;
+        type?: string;
+        name?: string;
+    }>;
+    replyTo?: string;
+    threadId?: string;
+    metadata?: Record<string, unknown>;
+}
+/** Trigger that decides when auto-reply should activate */
+export interface ReplyTrigger {
+    type: 'always' | 'dm' | 'mention' | 'command' | 'keyword' | 'regex';
+    enabled: boolean;
+    channels?: string[];
+    pattern?: string;
+    regex?: RegExp;
+    priority?: number;
+}
+/** Envelope wrapping an inbound message with reply context */
+export interface ReplyEnvelope {
+    inbound: InboundMessage;
+    sessionId: string;
+    agentId: string;
+    priority: number;
+    trigger?: ReplyTrigger;
+    metadata?: Record<string, unknown>;
+}
+//# sourceMappingURL=types.d.ts.map

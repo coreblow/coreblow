@@ -1,0 +1,4 @@
+/** Model alias line parsing. */
+export function parseModelAlias(line) { const m = line.match(/^([\w-]+)\s*=\s*([\w\/-]+)/); return m ? { alias: m[1], target: m[2] } : null; }
+export function formatModelAlias(alias, target) { return `${alias} = ${target}`; }
+//# sourceMappingURL=model-alias-lines.js.map

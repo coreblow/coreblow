@@ -1,0 +1,14 @@
+const DEFAULT_POLICY = { level: 'full', redactToolResults: false, maxMessageLength: 50_000 };
+export function resolveTranscriptPolicy(overrides) { return { ...DEFAULT_POLICY, ...overrides }; }
+export function shouldStoreMessage(policy, role) {
+    if (policy.level === 'none')
+        return false;
+    if (policy.excludeRoles?.includes(role))
+        return false;
+    return true;
+}
+export function truncateForTranscript(content, policy) {
+    const max = policy.maxMessageLength ?? 50_000;
+    return content.length <= max ? content : content.slice(0, max) + `\n[truncated: ${content.length - max} chars]`;
+}
+//# sourceMappingURL=transcript-policy.js.map

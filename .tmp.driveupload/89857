@@ -1,0 +1,8 @@
+/** Model config planning. */
+export interface ModelPlan {
+    primary: string;
+    fallbacks: string[];
+    maxRetries: number;
+}
+export declare function createModelPlan(primary: string, fallbacks?: string[]): ModelPlan;
+//# sourceMappingURL=models-config.plan.d.ts.map

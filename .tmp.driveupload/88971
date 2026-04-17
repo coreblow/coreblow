@@ -1,0 +1,83 @@
+/**
+ * agents/workspace.ts
+ * Agent workspace management.
+ * Ported from CoreBlow reference src/agents/workspace.ts.
+ */
+export interface WorkspaceInfo {
+    path: string;
+    exists: boolean;
+    isGitRepo: boolean;
+    fileCount: number;
+    totalSizeBytes: number;
+    /** Legacy compat */
+    projectType?: string;
+    hasGit?: boolean;
+    mainLanguage?: string;
+    configFiles?: string[];
+}
+/**
+ * Resolve the effective workspace directory.
+ */
+export declare function resolveWorkspaceDir(params: {
+    configured?: string;
+    agentDir?: string;
+    env?: NodeJS.ProcessEnv;
+}): string;
+export declare function getWorkspaceInfo(workspaceDir: string): WorkspaceInfo;
+/**
+ * List workspace context files (.coreblow/*.md, AGENTS.md etc).
+ */
+export declare function listContextFiles(workspaceDir: string): Array<{
+    path: string;
+    content: string;
+}>;
+/**
+ * Ensure workspace directory exists.
+ */
+export declare function ensureWorkspace(workspaceDir: string): void;
+/**
+ * Format workspace info for display.
+ */
+export declare function formatWorkspaceInfo(info: WorkspaceInfo): string;
+/**
+ * Detect project type from directory contents.
+ */
+export declare function detectProjectType(dir: string): string;
+/**
+ * Detect package manager from lockfile.
+ */
+export declare function detectPackageManager(dir: string): string | undefined;
+export interface ScanEntry {
+    relativePath: string;
+    type: 'file' | 'directory';
+    size?: number;
+}
+/**
+ * Scan workspace files.
+ */
+export declare function scanWorkspace(dir: string, opts?: {
+    maxDepth?: number;
+    maxFiles?: number;
+}): ScanEntry[];
+/**
+ * Find files matching a glob pattern (simplified).
+ */
+export declare function findFiles(dir: string, pattern: string): string[];
+/**
+ * Resolve workspace-relative directories.
+ */
+export declare function resolveWorkspaceDirs(workspace: string): {
+    workspace: string;
+    config: string;
+    sessions: string;
+    logs: string;
+};
+/**
+ * Ensure directory exists.
+ */
+export declare function ensureDir(dir: string): void;
+/**
+ * Get/create a session directory.
+ */
+export declare function getSessionDir(workspace: string, sessionId: string): string;
+//# sourceMappingURL=workspace.d.ts.map

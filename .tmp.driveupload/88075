@@ -1,0 +1,6 @@
+/** Tool result state tracking. */
+const toolResultState = new Map();
+export function recordToolResult(sessionId, chars) { const s = toolResultState.get(sessionId) ?? { count: 0, totalChars: 0 }; s.count++; s.totalChars += chars; toolResultState.set(sessionId, s); }
+export function getToolResultState(sessionId) { return toolResultState.get(sessionId) ?? { count: 0, totalChars: 0 }; }
+export function clearToolResultState() { toolResultState.clear(); }
+//# sourceMappingURL=session-tool-result-state.js.map

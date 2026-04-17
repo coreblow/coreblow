@@ -1,0 +1,7 @@
+export type RouteSpec = {
+    match: (path: string[]) => boolean;
+    loadPlugins?: boolean | ((argv: string[]) => boolean);
+    run: (argv: string[]) => Promise<boolean>;
+};
+export declare function findRoutedCommand(path: string[]): RouteSpec | null;
+//# sourceMappingURL=routes.d.ts.map

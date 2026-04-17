@@ -1,0 +1,46 @@
+/**
+ * CoreBlow — Subagent Depth (CoreBlow Parity)
+ *
+ * Resolves the nesting depth of a subagent session from
+ * the session key encoding and/or session store.
+ */
+type SessionDepthEntry = {
+    sessionId?: unknown;
+    spawnDepth?: unknown;
+    spawnedBy?: unknown;
+};
+/**
+ * Extract subagent depth from session key encoding.
+ * Convention: keys like "agent:main:sub:0:sub:1:..." encode depth as segment count.
+ */
+export declare function getSubagentDepthFromKey(sessionKey: string): number;
+/**
+ * Check if a session key represents a subagent session.
+ */
+export declare function isSubagentSessionKey(sessionKey: string): boolean;
+/**
+ * Strict format check: matches agent:<id>:subagent:<subId> or agent:<id>:sub:<n>:<child> patterns.
+ */
+export declare function isSubagentKeyStrictFormat(sessionKey: string): boolean;
+/**
+ * Extract the subagent segments from a session key.
+ * Returns the segments after the agent:id: prefix.
+ */
+export declare function extractSubagentSegments(sessionKey: string): string[];
+/**
+ * Parse subagent depth from extracted segments by counting 'sub' and 'subagent' tokens.
+ */
+export declare function parseSubagentDepthFromSegments(segments: string[]): number;
+/**
+ * Parse agent session key into components.
+ */
+export declare function parseAgentSessionKey(sessionKey: string): {
+    agentId: string;
+    sessionId: string;
+    depth: number;
+} | null;
+export declare function getSubagentDepthFromSessionStore(sessionKey: string | undefined | null, opts?: {
+    store?: Record<string, SessionDepthEntry>;
+}): number;
+export {};
+//# sourceMappingURL=subagent-depth.d.ts.map

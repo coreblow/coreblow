@@ -1,0 +1,17 @@
+// session-utils.ts
+function loadConfig() { return {}; }
+import { SessionManager } from "./session-manager.js";
+// Global SessionManager instance for the gateway
+export const globalSessionManager = new SessionManager();
+export function loadSessionEntry(sessionKey) {
+    const entry = globalSessionManager.get(sessionKey);
+    return {
+        entry,
+        cfg: loadConfig(),
+        canonicalKey: entry ? entry.id : sessionKey,
+    };
+}
+export function resolveSessionModelRef(cfg, entry, sessionAgentId) {
+    return { provider: "default", model: "default" };
+}
+//# sourceMappingURL=session-utils.js.map

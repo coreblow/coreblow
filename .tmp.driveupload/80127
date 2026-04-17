@@ -1,0 +1,1 @@
+{"version":3,"file":"channel-router.d.ts","sourceRoot":"","sources":["../../src/routing/channel-router.ts"],"names":[],"mappings":"AAAA;;GAEG;AACH,qBAAa,aAAa;IAAG,OAAO,CAAC,QAAQ,CAA+B;IAAC,QAAQ,CAAC,OAAO,EAAE,MAAM,EAAE,OAAO,EAAE,QAAQ;IAAiD,KAAK,CAAC,OAAO,EAAE,MAAM,EAAE,OAAO,EAAE,OAAO;IAAoF,UAAU,CAAC,EAAE,EAAE,MAAM;CAAqC"}

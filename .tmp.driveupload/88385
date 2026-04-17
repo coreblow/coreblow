@@ -1,0 +1,7 @@
+export function pauseSubAgent(id) { return { paused: true, id }; }
+export function cancelSubAgent(id) { return { cancelled: true, id }; }
+export function cancelAllSubAgents() { return { cancelled: 0 }; }
+export function killSubagentRunAdmin(id) { return true; }
+export function killSubagentsByLabel(label) { return 0; }
+export function killSubagentsByAge(maxAgeMs) { return 0; }
+//# sourceMappingURL=subagent-control.js.map

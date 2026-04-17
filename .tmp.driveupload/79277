@@ -1,0 +1,27 @@
+/**
+ * src/skills/status.ts
+ *
+ * Skill status report builder. Generates a comprehensive snapshot
+ * of all available skills in the workspace.
+ */
+export interface SkillStatusEntry {
+    id: string;
+    name: string;
+    description: string;
+    source: 'bundled' | 'workspace' | 'remote';
+    events: string[];
+    loadable: boolean;
+    missingRequirements?: string[];
+    filePath: string;
+}
+export interface SkillStatusReport {
+    total: number;
+    bundled: number;
+    workspace: number;
+    remote: number;
+    loadable: number;
+    skills: SkillStatusEntry[];
+}
+export declare function hasBinary(bin: string): boolean;
+export declare function buildSkillStatusReport(): SkillStatusReport;
+//# sourceMappingURL=status.d.ts.map

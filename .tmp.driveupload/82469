@@ -1,0 +1,97 @@
+/**
+ * plugins/path-jail.ts
+ *
+ * Filesystem isolation — constrains plugin file operations to
+ * designated directories, preventing path traversal attacks.
+ *
+ * Following CoreBlow's sandbox bind-mount + readOnlyRoot pattern
+ * adapted for CoreBlow's process-level enforcement.
+ */
+/** Path jail configuration */
+export interface PathJailConfig {
+    /** Plugin identifier */
+    pluginId: string;
+    /** Allowed root directories for read/write */
+    allowedRoots: string[];
+    /** Read-only directories (can read but not write) */
+    readOnlyRoots?: string[];
+    /** Explicitly blocked paths (even if under allowed roots) */
+    blockedPaths?: string[];
+    /** Blocked filename patterns (regex) */
+    blockedPatterns?: RegExp[];
+    /** Whether to allow following symlinks outside jail */
+    allowSymlinkEscape?: boolean;
+    /** Maximum path depth from root */
+    maxPathDepth?: number;
+}
+/** Path check result */
+export type PathCheckResult = {
+    allowed: true;
+    resolvedPath: string;
+} | {
+    allowed: false;
+    reason: string;
+};
+/** Access mode */
+export type AccessMode = 'read' | 'write' | 'delete' | 'list';
+/**
+ * CoreBlow Path Jail
+ *
+ * Constrains plugin filesystem access to designated directories.
+ * Prevents path traversal attacks, symlink escapes, and access to
+ * sensitive system files.
+ */
+export declare class PathJail {
+    private config;
+    private resolvedAllowedRoots;
+    private resolvedReadOnlyRoots;
+    private blockedPaths;
+    private blockedPatterns;
+    private violations;
+    constructor(config: PathJailConfig);
+    /**
+     * Create a jail for a plugin data directory.
+     */
+    static forPlugin(pluginId: string, dataDir: string, workspaceDir?: string): PathJail;
+    /**
+     * Check if a path is allowed for the given access mode.
+     */
+    check(targetPath: string, mode: AccessMode): PathCheckResult;
+    /**
+     * Check read access.
+     */
+    checkRead(targetPath: string): PathCheckResult;
+    /**
+     * Check write access.
+     */
+    checkWrite(targetPath: string): PathCheckResult;
+    /**
+     * Check delete access.
+     */
+    checkDelete(targetPath: string): PathCheckResult;
+    /**
+     * Guard function — throws on violation.
+     */
+    guard(targetPath: string, mode: AccessMode): string;
+    getViolations(): {
+        path: string;
+        mode: AccessMode;
+        reason: string;
+        timestamp: number;
+    }[];
+    getViolationCount(): number;
+    getAllowedRoots(): string[];
+    getReadOnlyRoots(): string[];
+    getInfo(): {
+        pluginId: string;
+        allowedRoots: string[];
+        readOnlyRoots: string[];
+        violations: number;
+    };
+    private hasTraversal;
+    private isUnderAllowedRoot;
+    private isUnderReadOnlyRoot;
+    private isUnderWritableRoot;
+    private deny;
+}
+//# sourceMappingURL=path-jail.d.ts.map

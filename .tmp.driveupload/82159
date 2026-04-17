@@ -1,0 +1,5 @@
+import { createHash } from "node:crypto";
+export function computeBaseHash(input) {
+    return createHash("sha256").update(input).digest("hex").slice(0, 16);
+}
+//# sourceMappingURL=base-hash.js.map

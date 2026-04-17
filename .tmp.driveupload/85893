@@ -1,0 +1,17 @@
+export declare function readFileSafe(p: string): string | null;
+export declare function writeFileSafe(p: string, data: string): boolean;
+export declare function existsSafe(p: string): boolean;
+export declare function mkdirSafe(p: string): boolean;
+export declare class SafeOpenError extends Error {
+    constructor(msg: string);
+}
+export interface SafeOpenResult {
+    content: string;
+    path: string;
+    stats: {
+        size: number;
+        mtime: Date;
+    };
+}
+export declare function openFileWithinRoot(rootDir: string, relPath: string): Promise<SafeOpenResult>;
+//# sourceMappingURL=fs-safe.d.ts.map

@@ -1,0 +1,4 @@
+/** PI embedded helper utilities. */
+export function truncateContent(content, maxLen = 50_000) { return content.length <= maxLen ? content : content.slice(0, maxLen) + '\n[truncated]'; }
+export function formatTimestamp(ts) { return new Date(ts).toISOString(); }
+//# sourceMappingURL=pi-embedded-helpers.js.map

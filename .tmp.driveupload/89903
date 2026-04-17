@@ -1,0 +1,37 @@
+/**
+ * process/child-process-bridge.ts
+ * stdio bridge for child processes.
+ * Ported from CoreBlow reference src/process/child-process-bridge.ts.
+ */
+import type { ChildProcess } from 'node:child_process';
+import { EventEmitter } from 'node:events';
+export interface BridgeMessage {
+    type: string;
+    data: unknown;
+    timestamp: number;
+}
+/**
+ * Child process bridge for structured IPC communication.
+ */
+export declare class ChildProcessBridge extends EventEmitter {
+    private child;
+    private buffer;
+    private alive;
+    constructor(child: ChildProcess);
+    /**
+     * Send a structured message to the child process.
+     */
+    send(type: string, data: unknown): boolean;
+    /**
+     * Send raw text to stdin.
+     */
+    sendRaw(text: string): boolean;
+    /**
+     * Close the bridge (end stdin).
+     */
+    close(): void;
+    isAlive(): boolean;
+    getPid(): number | undefined;
+    private processBuffer;
+}
+//# sourceMappingURL=child-process-bridge.d.ts.map

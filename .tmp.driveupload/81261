@@ -1,0 +1,72 @@
+/**
+ * CoreBlow — API Versioning
+ *
+ * Manages API version routing, deprecation notices,
+ * version negotiation, and backward compatibility.
+ */
+/** API version */
+export interface ApiVersion {
+    version: string;
+    status: 'current' | 'supported' | 'deprecated' | 'removed';
+    releaseDate: number;
+    sunsetDate?: number;
+    description?: string;
+    routes: Map<string, ApiRoute>;
+}
+/** API route */
+export interface ApiRoute {
+    path: string;
+    method: string;
+    handler: string;
+    deprecated?: boolean;
+    replacedBy?: string;
+}
+/** Version negotiation result */
+export interface VersionResult {
+    version: string;
+    status: string;
+    warnings: string[];
+}
+/**
+ * CoreBlow API Versioning
+ */
+export declare class ApiVersioning {
+    private versions;
+    private defaultVersion;
+    constructor();
+    /**
+     * Register an API version.
+     */
+    registerVersion(version: ApiVersion): void;
+    /**
+     * Negotiate version from request.
+     */
+    negotiate(requestedVersion?: string): VersionResult;
+    /**
+     * Get routes for a version.
+     */
+    getRoutes(version: string): ApiRoute[];
+    /**
+     * Resolve a route for a version.
+     */
+    resolveRoute(version: string, path: string): ApiRoute | null;
+    /**
+     * Deprecate a version.
+     */
+    deprecate(version: string, sunsetDate?: number): boolean;
+    /**
+     * List all versions.
+     */
+    list(): Array<{
+        version: string;
+        status: string;
+        routeCount: number;
+    }>;
+    /**
+     * Set default version.
+     */
+    setDefault(version: string): boolean;
+    /** Count */
+    count(): number;
+}
+//# sourceMappingURL=api-versioning.d.ts.map

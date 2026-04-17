@@ -1,0 +1,30 @@
+/**
+ * plugin-sdk/runtime-env.ts
+ * [PORT] openclaw-main/src/plugin-sdk/runtime-env.ts
+ *
+ * Shared process/runtime utilities for plugins — logger wiring, runtime env
+ * shims, and global verbose console helpers.
+ */
+export type { RuntimeEnv, OutputRuntimeEnv, LoggerLike } from './runtime.js';
+export { createNonExitingRuntime, defaultRuntime, createLoggerBackedRuntime, resolveRuntimeEnv } from './runtime.js';
+/** Check if an env value is truthy (1, true, yes, on). */
+export declare function isTruthyEnvValue(value: string | undefined): boolean;
+/** Wait until an AbortSignal is aborted, then resolve. */
+export declare function waitForAbortSignal(signal: AbortSignal): Promise<void>;
+/** Register a global handler to log unhandled promise rejections. */
+export declare function registerUnhandledRejectionHandler(logger?: {
+    error: (msg: string) => void;
+}): void;
+/** Compute exponential backoff delay. */
+export declare function computeBackoff(attempt: number, baseMs?: number, maxMs?: number): number;
+/** Sleep for ms, or until signal is aborted. */
+export declare function sleepWithAbort(ms: number, signal?: AbortSignal): Promise<void>;
+/** Policy for exponential backoff. */
+export type BackoffPolicy = {
+    baseMs?: number;
+    maxMs?: number;
+    maxAttempts?: number;
+};
+/** Retry an async function with exponential backoff. */
+export declare function retryAsync<T>(fn: () => Promise<T>, policy?: BackoffPolicy): Promise<T>;
+//# sourceMappingURL=runtime-env.d.ts.map

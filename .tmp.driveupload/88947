@@ -1,0 +1,9 @@
+/** PI embedded utility functions. */
+export function safeJsonParse(json, fallback) { try {
+    return JSON.parse(json);
+}
+catch {
+    return fallback;
+} }
+export function generateRequestId() { return `req_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`; }
+//# sourceMappingURL=pi-embedded-utils.js.map

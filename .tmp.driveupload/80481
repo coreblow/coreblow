@@ -1,0 +1,15 @@
+/**
+ * Discord Cache — In-memory cache for Discord objects (messages, users, guilds).
+ */
+export declare class DiscordCache<T> {
+    private store;
+    private maxSize;
+    private ttlMs;
+    constructor(maxSize?: number, ttlMs?: number);
+    set(key: string, value: T): void;
+    get(key: string): T | undefined;
+    delete(key: string): boolean;
+    clear(): void;
+    get size(): number;
+}
+//# sourceMappingURL=cache.d.ts.map

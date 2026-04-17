@@ -1,0 +1,77 @@
+/**
+ * CoreBlow — Command Parser
+ *
+ * Parses slash commands from user input for the CLI
+ * and chat interfaces. Supports nested commands,
+ * arguments, flags, and command aliases.
+ */
+/** Parsed command */
+export interface ParsedCommand {
+    command: string;
+    args: string[];
+    flags: Record<string, string | boolean>;
+    raw: string;
+}
+/** Command definition */
+export interface CommandDefinition {
+    name: string;
+    aliases?: string[];
+    description: string;
+    usage?: string;
+    args?: Array<{
+        name: string;
+        required?: boolean;
+        description?: string;
+    }>;
+    flags?: Array<{
+        name: string;
+        short?: string;
+        description?: string;
+        hasValue?: boolean;
+    }>;
+    handler?: (cmd: ParsedCommand) => Promise<string> | string;
+}
+/**
+ * CoreBlow Command Parser
+ */
+export declare class CommandParser {
+    private commands;
+    private aliasMap;
+    private prefix;
+    constructor(prefix?: string);
+    /**
+     * Register a command.
+     */
+    register(def: CommandDefinition): void;
+    /**
+     * Check if input is a command.
+     */
+    isCommand(input: string): boolean;
+    /**
+     * Parse a command string.
+     */
+    parse(input: string): ParsedCommand | null;
+    /**
+     * Execute a command.
+     */
+    execute(input: string): Promise<string>;
+    /**
+     * Generate help text.
+     */
+    generateHelp(): string;
+    /**
+     * Get command definition.
+     */
+    getCommand(name: string): CommandDefinition | null;
+    /**
+     * List commands.
+     */
+    list(): Array<{
+        name: string;
+        description: string;
+    }>;
+    /** Count */
+    count(): number;
+    private tokenize;
+}
+//# sourceMappingURL=command-parser.d.ts.map

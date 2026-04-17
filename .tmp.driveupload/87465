@@ -1,0 +1,26 @@
+import type { ProviderProfileStore } from './types.js';
+/**
+ * Load provider-profiles store dari disk.
+ * Gunakan mtime cache — tidak baca disk jika tidak ada perubahan.
+ * Port dari openclaw-main/src/agents/auth-profiles/store.ts loadAuthProfileStore()
+ */
+export declare function loadProviderProfileStore(): ProviderProfileStore;
+/**
+ * Save provider-profiles store ke disk dan update cache.
+ * Port dari openclaw-main/src/agents/auth-profiles/store.ts saveAuthProfileStore()
+ */
+export declare function saveProviderProfileStore(store: ProviderProfileStore): void;
+/**
+ * Atomic update dengan file lock.
+ * Lock → load fresh from disk → apply updater → save if changed → release.
+ * Port dari openclaw-main/src/agents/auth-profiles/store.ts updateAuthProfileStoreWithLock()
+ */
+export declare function updateProviderProfileStoreWithLock(params: {
+    updater: (store: ProviderProfileStore) => boolean;
+}): Promise<ProviderProfileStore | null>;
+/**
+ * Clear all in-memory caches (untuk testing).
+ * Port dari openclaw-main/src/agents/auth-profiles/store.ts clearRuntimeAuthProfileStoreSnapshots()
+ */
+export declare function clearProviderProfileStoreCache(): void;
+//# sourceMappingURL=store.d.ts.map

@@ -1,0 +1,86 @@
+/**
+ * CoreBlow — Tenant Manager
+ *
+ * Manages multi-tenant environments with tenant
+ * registration, suspension, metadata, and isolation.
+ */
+/**
+ * CoreBlow Tenant Manager
+ */
+export class TenantManager {
+    tenants = new Map();
+    idCounter = 0;
+    /**
+     * Create a tenant.
+     */
+    create(name, plan = 'free', limits) {
+        const id = `tenant-${++this.idCounter}`;
+        const tenant = {
+            id, name, slug: name.toLowerCase().replace(/\s+/g, '-'),
+            status: 'active', plan, createdAt: Date.now(),
+            limits: { maxUsers: limits?.maxUsers ?? 10, maxChannels: limits?.maxChannels ?? 3, maxAgents: limits?.maxAgents ?? 5 },
+            userCount: 0,
+        };
+        this.tenants.set(id, tenant);
+        return tenant;
+    }
+    /**
+     * Get a tenant.
+     */
+    get(id) { return this.tenants.get(id) ?? null; }
+    /**
+     * Find by slug.
+     */
+    findBySlug(slug) {
+        return Array.from(this.tenants.values()).find((t) => t.slug === slug) ?? null;
+    }
+    /**
+     * Suspend a tenant.
+     */
+    suspend(id, reason) {
+        const t = this.tenants.get(id);
+        if (!t)
+            return false;
+        t.status = 'suspended';
+        if (reason)
+            t.metadata = { ...t.metadata, suspendReason: reason };
+        return true;
+    }
+    /**
+     * Reactivate a tenant.
+     */
+    activate(id) {
+        const t = this.tenants.get(id);
+        if (!t)
+            return false;
+        t.status = 'active';
+        return true;
+    }
+    /**
+     * Update plan.
+     */
+    updatePlan(id, plan, limits) {
+        const t = this.tenants.get(id);
+        if (!t)
+            return false;
+        t.plan = plan;
+        if (limits)
+            t.limits = { ...t.limits, ...limits };
+        return true;
+    }
+    /**
+     * List tenants.
+     */
+    list(status) {
+        return Array.from(this.tenants.values())
+            .filter((t) => !status || t.status === status)
+            .map((t) => ({ id: t.id, name: t.name, status: t.status, plan: t.plan }));
+    }
+    /**
+     * Delete a tenant.
+     */
+    delete(id) { return this.tenants.delete(id); }
+    /** Count */
+    count() { return this.tenants.size; }
+}
+//# sourceMappingURL=tenant-manager.js.map

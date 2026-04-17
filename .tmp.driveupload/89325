@@ -1,0 +1,41 @@
+/**
+ * agents/bootstrap-budget.ts
+ * Token/cost budget tracking and enforcement for agent turns.
+ * Ported from CoreBlow reference src/agents/bootstrap-budget.ts.
+ */
+export interface BudgetConfig {
+    maxTokensPerTurn: number;
+    maxTokensPerSession: number;
+    maxCostPerTurn: number;
+    maxCostPerSession: number;
+    warningThresholdPct: number;
+}
+export interface BudgetSnapshot {
+    turnTokens: number;
+    sessionTokens: number;
+    turnCost: number;
+    sessionCost: number;
+    turnPct: number;
+    sessionPct: number;
+    exceeded: boolean;
+    warnings: string[];
+}
+export declare class BudgetTracker {
+    private config;
+    private turnTokens;
+    private sessionTokens;
+    private turnCost;
+    private sessionCost;
+    constructor(config?: Partial<BudgetConfig>);
+    record(params: {
+        inputTokens: number;
+        outputTokens: number;
+        cost?: number;
+    }): void;
+    resetTurn(): void;
+    snapshot(): BudgetSnapshot;
+    isExceeded(): boolean;
+    formatStatus(): string;
+}
+export declare function resolveBudgetConfig(cfg?: Record<string, unknown>): BudgetConfig;
+//# sourceMappingURL=bootstrap-budget.d.ts.map

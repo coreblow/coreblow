@@ -1,0 +1,9 @@
+export declare class RateLimiter {
+    private max;
+    private windowMs;
+    private hits;
+    constructor(max?: number, windowMs?: number);
+    check(key: string): boolean;
+    reset(key: string): void;
+}
+//# sourceMappingURL=rate-limiter.d.ts.map

@@ -1,0 +1,71 @@
+/**
+ * CoreBlow Model Scan / Discovery Engine
+ *
+ * Scans configured providers for available models, merges with static catalog,
+ * and provides live model discovery with caching.
+ *
+ * Equivalent: CoreBlow src/agents/model-scan.ts (499 LOC)
+ */
+import { type ModelCatalogEntry, type CoreBlowConfig } from './model-selection.js';
+import { type ProviderCredentials } from './model-auth.js';
+export interface ScanResult {
+    provider: string;
+    models: ModelCatalogEntry[];
+    source: 'live' | 'cached' | 'static';
+    scannedAt: number;
+    error?: string;
+    latencyMs: number;
+}
+export interface ModelScanOptions {
+    /** Providers to scan (default: all configured) */
+    providers?: string[];
+    /** Use cached results if available */
+    useCache?: boolean;
+    /** Cache TTL in milliseconds */
+    cacheTtlMs?: number;
+    /** Timeout per provider in milliseconds */
+    timeoutMs?: number;
+    /** Include static catalog entries */
+    includeStatic?: boolean;
+}
+export interface FullScanResult {
+    results: ScanResult[];
+    catalog: ModelCatalogEntry[];
+    totalModels: number;
+    scannedProviders: number;
+    errors: string[];
+    durationMs: number;
+}
+type ProviderScanner = (credentials: ProviderCredentials) => Promise<ModelCatalogEntry[]>;
+/**
+ * Register a model scanner for a provider
+ */
+export declare function registerModelScanner(provider: string, scanner: ProviderScanner): void;
+/**
+ * Scan a single provider for available models
+ */
+export declare function scanProvider(provider: string, credentials?: ProviderCredentials, options?: {
+    timeoutMs?: number;
+}): Promise<ScanResult>;
+/**
+ * Scan all configured providers
+ */
+export declare function scanAllProviders(cfg: CoreBlowConfig, options?: ModelScanOptions): Promise<FullScanResult>;
+/**
+ * Clear the scan cache
+ */
+export declare function clearScanCache(): void;
+/**
+ * Find a model in the catalog
+ */
+export declare function findModel(catalog: ModelCatalogEntry[], provider: string, modelId: string): ModelCatalogEntry | undefined;
+/**
+ * Get models with reasoning capability
+ */
+export declare function getReasoningModels(catalog: ModelCatalogEntry[]): ModelCatalogEntry[];
+/**
+ * Get models by provider
+ */
+export declare function getModelsByProvider(catalog: ModelCatalogEntry[], provider: string): ModelCatalogEntry[];
+export {};
+//# sourceMappingURL=model-scan.d.ts.map

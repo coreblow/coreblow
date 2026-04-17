@@ -1,0 +1,9 @@
+/**
+ * plugin-sdk/telegram-account.ts
+ * [ADAPT] openclaw-main — Generated facade, CoreBlow stub.
+ * Full implementation lives in @coreblow/telegram extension.
+ */
+export async function resolveTelegramAccount(params) {
+    return null; // Implemented by @coreblow/telegram extension
+}
+//# sourceMappingURL=telegram-account.js.map

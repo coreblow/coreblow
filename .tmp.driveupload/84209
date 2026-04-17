@@ -1,0 +1,37 @@
+/**
+ * plugin-sdk/provider-auth-runtime.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/provider-auth-runtime.ts
+ *
+ * Runtime auth helpers for provider plugins.
+ */
+/** Resolve API key from environment variable. */
+export function resolveEnvApiKey(envVar) {
+    return process.env[envVar];
+}
+/** Require an API key or throw. */
+export function requireApiKey(params) {
+    const key = params.apiKey ?? (params.envVar ? process.env[params.envVar] : undefined);
+    if (!key) {
+        const hint = params.envVar ? ` Set ${params.envVar} or configure in settings.` : '';
+        throw new Error(`No API key configured for provider: ${params.providerId}.${hint}`);
+    }
+    return key;
+}
+/** Resolve the AWS SDK env var name for a given region. */
+export function resolveAwsSdkEnvVarName(region) {
+    return `AWS_REGION_${region.toUpperCase().replace(/-/g, '_')}`;
+}
+/** Resolve API key for a provider with profile fallback. */
+export async function resolveApiKeyForProvider(params) {
+    if (params.configApiKey) {
+        return { apiKey: params.configApiKey, providerId: params.providerId, source: 'config' };
+    }
+    if (params.envVar) {
+        const envKey = process.env[params.envVar];
+        if (envKey) {
+            return { apiKey: envKey, providerId: params.providerId, source: 'env' };
+        }
+    }
+    return null;
+}
+//# sourceMappingURL=provider-auth-runtime.js.map

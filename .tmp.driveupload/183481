@@ -1,0 +1,16 @@
+/**
+ * @create-markdown/preview - Theme Exports
+ */
+export declare const themeNames: {
+    readonly github: "github";
+    readonly githubDark: "github-dark";
+    readonly minimal: "minimal";
+    readonly system: "system";
+};
+export type ThemeName = keyof typeof themeNames;
+/**
+ * Get the CSS file path for a theme
+ */
+export declare function getThemePath(theme: ThemeName): string;
+export { themeCSS as themes } from './css-strings';
+//# sourceMappingURL=index.d.ts.map

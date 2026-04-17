@@ -1,0 +1,92 @@
+/**
+ * gateway/gateway-types.ts
+ * Shared type definitions for CoreBlow Gateway — eliminates `:any` usage.
+ * Follows OpenClaw pattern: strict typed config (`OpenClawConfig` → `ValidatedCoreBlowConfig`).
+ */
+
+import type { IncomingMessage, ServerResponse } from 'node:http';
+import type { ValidatedCoreBlowConfig } from '../config/config.schema.js';
+
+// Re-export for convenience — all gateway modules import from here
+export type CoreBlowConfig = ValidatedCoreBlowConfig;
+
+// ─── Logger Interface ─────────────────────────────────────────────
+// Mirrors OpenClaw's implicit logger shape used across gateway modules.
+
+export interface GatewayLogger {
+    info(msg: string): void;
+    warn(msg: string): void;
+    error(msg: string): void;
+    debug(msg: string): void;
+}
+
+// ─── Credential Resolution ────────────────────────────────────────
+
+export interface CredentialResolveOptions {
+    config?: CoreBlowConfig;
+    cfg?: CoreBlowConfig;
+    modeOverride?: string;
+}
+
+export interface ConnectionAuthOptions {
+    config?: CoreBlowConfig;
+    cfg?: CoreBlowConfig;
+    modeOverride?: string;
+    env?: NodeJS.ProcessEnv;
+    localTokenPrecedence?: string;
+    localPasswordPrecedence?: string;
+    remoteTokenPrecedence?: string;
+    remotePasswordPrecedence?: string;
+}
+
+// ─── Node Events ──────────────────────────────────────────────────
+
+export interface NodeEventContext {
+    logGateway: GatewayLogger;
+    nodeSubscribe?: (nodeId: string, sessionKey: string) => void;
+    nodeUnsubscribe?: (nodeId: string, sessionKey: string) => void;
+}
+
+export interface NodeEvent {
+    event: string;
+    payloadJSON?: string;
+}
+
+// ─── Chat State ───────────────────────────────────────────────────
+
+export interface ChatRunState {
+    abort?: () => void;
+    aborted?: boolean;
+    sessionKey?: string;
+}
+
+// ─── Server Method Helpers ────────────────────────────────────────
+
+export interface RpcResponder {
+    (payload: Record<string, unknown>): void;
+}
+
+export interface ChatAttachment {
+    path?: string;
+    mimeType?: string;
+    name?: string;
+    size?: number;
+}
+
+export interface WizardStepResult {
+    step: string;
+    completed: boolean;
+    data?: Record<string, unknown>;
+}
+
+// ─── Server Hooks ─────────────────────────────────────────────────
+
+export interface ServerHooksConfig {
+    logHooks: GatewayLogger;
+    dispatchAgentHook?: (value: Record<string, unknown>) => string;
+}
+
+// ─── HTTP Types (re-exports for convenience) ─────────────────────
+
+export type HttpRequest = IncomingMessage;
+export type HttpResponse = ServerResponse;

@@ -1,0 +1,71 @@
+/**
+ * gateway/gateway-auth.ts — Dual Auth Engine
+ *
+ * Implements CoreBlow-compatible auth modes (token, password, trusted-proxy, none)
+ * alongside existing CoreBlow enterprise modes (api-key, bearer, hmac).
+ *
+ * The gateway uses this module to resolve which auth mode is active and
+ * to authorize WebSocket connect frames from dashboard UI and device clients.
+ *
+ * Ported from CoreBlow reference src/gateway/auth.ts (494 LOC) — adapted for CoreBlow
+ * dual-engine architecture.
+ */
+import type { IncomingMessage } from 'node:http';
+import type { TailscaleWhoisIdentity } from '../infra/tailscale.js';
+/** All supported auth modes — CoreBlow enterprise + CoreBlow dashboard */
+export type GatewayAuthMode = 'none' | 'token' | 'password' | 'trusted-proxy' | 'api-key' | 'bearer' | 'hmac';
+export type GatewayAuthModeSource = 'config' | 'override' | 'env' | 'default';
+export interface GatewayAuthConfig {
+    mode?: GatewayAuthMode;
+    token?: string;
+    password?: string;
+    allowTailscale?: boolean;
+    rateLimit?: number;
+    trustedProxy?: string[];
+}
+export interface ResolvedGatewayAuth {
+    mode: GatewayAuthMode;
+    modeSource: GatewayAuthModeSource;
+    token?: string;
+    password?: string;
+    allowTailscale: boolean;
+    trustedProxy: string[];
+}
+export type GatewayConnectAuthMethod = 'token' | 'password' | 'trusted-proxy' | 'tailscale' | 'local-none' | 'none';
+export interface GatewayConnectAuthResult {
+    ok: boolean;
+    method: GatewayConnectAuthMethod;
+    reason?: string;
+    user?: {
+        login?: string;
+        name?: string;
+    };
+}
+/**
+ * Resolve the effective gateway auth mode from config, env, and overrides.
+ * Priority: override > env > config > default(token)
+ *
+ * Ported from CoreBlow reference `resolveGatewayAuth()`.
+ */
+export declare function resolveGatewayAuth(params: {
+    authConfig?: GatewayAuthConfig;
+    authOverride?: GatewayAuthConfig;
+    env?: NodeJS.ProcessEnv;
+}): ResolvedGatewayAuth;
+/**
+ * Authorize a WebSocket connect frame.
+ * This is the main auth dispatcher for dashboard UI and device connections.
+ *
+ * Ported from CoreBlow reference `authorizeGatewayConnect()`.
+ */
+export declare function authorizeGatewayConnect(params: {
+    resolvedAuth: ResolvedGatewayAuth;
+    connectToken?: string;
+    connectPassword?: string;
+    isLocalRequest: boolean;
+    req?: IncomingMessage;
+    tailscaleIdentity?: TailscaleWhoisIdentity | null;
+}): GatewayConnectAuthResult;
+/** Check if request originates from loopback address. */
+export declare function isLocalDirectRequest(req?: IncomingMessage): boolean;
+//# sourceMappingURL=gateway-auth.d.ts.map

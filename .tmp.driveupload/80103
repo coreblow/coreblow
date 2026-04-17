@@ -1,0 +1,7 @@
+/**
+ * routing/load-balance.ts
+ */
+export declare function roundRobin<T>(items: T[], counter: {
+    value: number;
+}): T;
+//# sourceMappingURL=load-balance.d.ts.map

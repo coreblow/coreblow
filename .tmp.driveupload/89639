@@ -1,0 +1,4 @@
+/** PI embedded utility functions. */
+export declare function safeJsonParse<T>(json: string, fallback: T): T;
+export declare function generateRequestId(): string;
+//# sourceMappingURL=pi-embedded-utils.d.ts.map

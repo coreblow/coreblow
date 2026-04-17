@@ -1,0 +1,47 @@
+/**
+ * CoreBlow Channel Framework — Unified Adapter Interface
+ *
+ * Defines the universal channel adapter contract that all messaging
+ * integrations (Discord, Telegram, Slack, Signal, Line) implement.
+ * Consolidates CoreBlow's 9 separate adapter types (Setup, Config,
+ * Outbound, Gateway, Heartbeat, Directory, Security, etc.) into a
+ * single clean interface with method groups.
+ */
+/** Type guard to check if an adapter supports multi-account */
+export function isAccountAware(adapter) {
+    return 'listAccounts' in adapter && typeof adapter.listAccounts === 'function';
+}
+/** Type guard to check if an adapter supports QR login */
+export function isQrLoginCapable(adapter) {
+    return 'loginWithQrStart' in adapter && typeof adapter.loginWithQrStart === 'function';
+}
+// ============================================================
+// Adapter Registry
+// ============================================================
+/** Channel adapter registry */
+const adapterRegistry = new Map();
+/**
+ * Register a channel adapter.
+ */
+export function registerAdapter(adapter) {
+    adapterRegistry.set(adapter.id, adapter);
+}
+/**
+ * Get a registered adapter by ID.
+ */
+export function getAdapter(id) {
+    return adapterRegistry.get(id) ?? null;
+}
+/**
+ * List all registered adapters.
+ */
+export function listAdapters() {
+    return Array.from(adapterRegistry.values());
+}
+/**
+ * Clear all registered adapters (for testing).
+ */
+export function clearAdapters() {
+    adapterRegistry.clear();
+}
+//# sourceMappingURL=adapter.js.map

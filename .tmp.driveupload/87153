@@ -1,0 +1,6 @@
+/** Runtime auth token refresh. */
+export declare function refreshAuthToken(refreshToken: string, endpoint: string): Promise<{
+    accessToken: string;
+    expiresAt: number;
+} | null>;
+//# sourceMappingURL=runtime-auth-refresh.d.ts.map

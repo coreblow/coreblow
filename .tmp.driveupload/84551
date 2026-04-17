@@ -1,0 +1,7 @@
+export async function resolveOutboundMedia(_p) { return null; }
+export function isDataUrl(url) { return url.startsWith("data:"); }
+export function assertMediaNotDataUrl(url) { if (isDataUrl(url))
+    throw new Error("data: URLs not supported for outbound media"); }
+export function getAgentScopedMediaLocalRoots(_agentId) { return []; }
+export function isPrivateOrLoopbackHost(hostname) { return /^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(hostname); }
+//# sourceMappingURL=outbound-media.js.map

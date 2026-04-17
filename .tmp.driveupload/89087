@@ -1,0 +1,68 @@
+/**
+ * CoreBlow — Auth Profile Session Override (CoreBlow Parity)
+ *
+ * Per-session auth profile overrides that let you use different
+ * credentials for different sessions without changing global config.
+ */
+import type { AuthProfileCredential, AuthProfileStore } from './types.js';
+export interface SessionAuthOverride {
+    sessionKey: string;
+    provider: string;
+    profileId: string;
+    credential?: AuthProfileCredential;
+    expiresAt?: number;
+    createdAt: number;
+}
+/**
+ * Set a per-session auth profile override.
+ */
+export declare function setSessionAuthOverride(params: {
+    sessionKey: string;
+    provider: string;
+    profileId: string;
+    credential?: AuthProfileCredential;
+    durationMs?: number;
+}): SessionAuthOverride;
+/**
+ * Get the active override for a session + provider.
+ */
+export declare function getSessionAuthOverride(sessionKey: string, provider: string, now?: number): SessionAuthOverride | null;
+/**
+ * Clear override for a session + provider.
+ */
+export declare function clearSessionAuthOverride(sessionKey: string, provider?: string): void;
+/**
+ * List all overrides for a session.
+ */
+export declare function listSessionAuthOverrides(sessionKey: string): SessionAuthOverride[];
+/**
+ * Apply session override to profile resolution.
+ * If an override exists, it replaces the normal profile selection.
+ */
+export declare function resolveEffectiveProfile(params: {
+    sessionKey: string;
+    provider: string;
+    store: AuthProfileStore;
+    fallback: () => {
+        profileId: string;
+        credential: AuthProfileCredential;
+    } | null;
+    now?: number;
+}): {
+    profileId: string;
+    credential: AuthProfileCredential;
+    overridden: boolean;
+} | null;
+/**
+ * Prune expired overrides.
+ */
+export declare function pruneExpiredOverrides(now?: number): number;
+/**
+ * Get total count of active overrides.
+ */
+export declare function countActiveOverrides(): number;
+/**
+ * Reset for testing.
+ */
+export declare function resetSessionOverridesForTests(): void;
+//# sourceMappingURL=session-override.d.ts.map

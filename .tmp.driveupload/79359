@@ -1,0 +1,8 @@
+export declare class MediaHandler {
+    process(input: Buffer, type: string): Promise<{
+        processed: boolean;
+        type: string;
+        size: number;
+    }>;
+}
+//# sourceMappingURL=handler.d.ts.map

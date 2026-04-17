@@ -1,0 +1,51 @@
+/**
+ * CoreBlow — PII Scanner
+ *
+ * Detects and masks personally identifiable information
+ * in text. Supports emails, phones, SSNs, credit cards,
+ * IPs, and custom patterns.
+ */
+/** PII type */
+export type PIIType = 'email' | 'phone' | 'ssn' | 'credit_card' | 'ip_address' | 'custom';
+/** PII match */
+export interface PIIMatch {
+    type: PIIType;
+    value: string;
+    masked: string;
+    startIndex: number;
+    endIndex: number;
+}
+/** PII scan result */
+export interface PIIScanResult {
+    hasPII: boolean;
+    matches: PIIMatch[];
+    maskedText: string;
+    piiCount: number;
+}
+/**
+ * CoreBlow PII Scanner
+ */
+export declare class PIIScanner {
+    private patterns;
+    private stats;
+    constructor();
+    /**
+     * Scan text for PII.
+     */
+    scan(text: string): PIIScanResult;
+    /**
+     * Add custom pattern.
+     */
+    addPattern(type: string, regex: RegExp, maskFn: (v: string) => string): void;
+    /**
+     * Get stats.
+     */
+    getStats(): typeof this.stats;
+    /**
+     * List pattern types.
+     */
+    listTypes(): string[];
+    /** Count pattern types */
+    count(): number;
+}
+//# sourceMappingURL=pii-scanner.d.ts.map

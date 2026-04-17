@@ -1,0 +1,5 @@
+/** CLI backend selection. */
+export type CliBackend = 'anthropic' | 'openai' | 'google' | 'ollama' | 'custom';
+export declare function resolveCliBackend(provider?: string): CliBackend;
+export declare function getCliBackendLabel(backend: CliBackend): string;
+//# sourceMappingURL=cli-backends.d.ts.map

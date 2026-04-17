@@ -1,0 +1,73 @@
+/**
+ * CoreBlow — Error Reporter
+ *
+ * Centralized error reporting with deduplication,
+ * stack trace analysis, error grouping, and alerting.
+ */
+/** Error report */
+export interface ErrorReport {
+    id: string;
+    name: string;
+    message: string;
+    stack?: string;
+    source: string;
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    count: number;
+    firstSeen: number;
+    lastSeen: number;
+    metadata?: Record<string, unknown>;
+    resolved: boolean;
+}
+/** Error alert */
+export interface ErrorAlert {
+    reportId: string;
+    severity: string;
+    message: string;
+    timestamp: number;
+}
+/**
+ * CoreBlow Error Reporter
+ */
+export declare class ErrorReporter {
+    private reports;
+    private alerts;
+    private maxAlerts;
+    private idCounter;
+    /**
+     * Report an error.
+     */
+    report(error: Error | string, source: string, severity?: ErrorReport['severity'], metadata?: Record<string, unknown>): ErrorReport;
+    /**
+     * Resolve an error.
+     */
+    resolve(reportId: string): boolean;
+    /**
+     * Get unresolved errors.
+     */
+    getUnresolved(severity?: ErrorReport['severity']): ErrorReport[];
+    /**
+     * Get top errors by count.
+     */
+    getTopErrors(limit?: number): ErrorReport[];
+    /**
+     * Get alerts.
+     */
+    getAlerts(limit?: number): ErrorAlert[];
+    /**
+     * Get stats.
+     */
+    getStats(): {
+        total: number;
+        unresolved: number;
+        critical: number;
+        totalOccurrences: number;
+    };
+    /**
+     * Clear resolved errors.
+     */
+    clearResolved(): number;
+    /** Count */
+    count(): number;
+    private addAlert;
+}
+//# sourceMappingURL=error-reporter.d.ts.map

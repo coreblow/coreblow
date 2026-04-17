@@ -1,0 +1,74 @@
+/**
+ * CoreBlow — API Playground
+ *
+ * Interactive API testing environment that builds
+ * request forms from API definitions, tracks history,
+ * and provides response formatting.
+ */
+/** Playground request */
+export interface PlaygroundRequest {
+    id: string;
+    endpoint: string;
+    method: string;
+    headers: Record<string, string>;
+    body?: string;
+    timestamp: number;
+}
+/** Playground response */
+export interface PlaygroundResponse {
+    requestId: string;
+    status: number;
+    headers: Record<string, string>;
+    body: unknown;
+    durationMs: number;
+    size: number;
+}
+/** Request-response pair */
+export interface PlaygroundEntry {
+    request: PlaygroundRequest;
+    response?: PlaygroundResponse;
+}
+/**
+ * CoreBlow API Playground
+ */
+export declare class ApiPlayground {
+    private history;
+    private maxHistory;
+    private idCounter;
+    private savedRequests;
+    /**
+     * Create a request.
+     */
+    createRequest(endpoint: string, method: string, headers?: Record<string, string>, body?: string): PlaygroundRequest;
+    /**
+     * Record a response for a request.
+     */
+    recordResponse(request: PlaygroundRequest, status: number, body: unknown, durationMs: number, headers?: Record<string, string>): PlaygroundEntry;
+    /**
+     * Save a request for reuse.
+     */
+    saveRequest(name: string, request: PlaygroundRequest): void;
+    /**
+     * Load a saved request.
+     */
+    loadRequest(name: string): PlaygroundRequest | null;
+    /**
+     * Format response for display.
+     */
+    formatResponse(response: PlaygroundResponse): string;
+    /**
+     * Get history.
+     */
+    getHistory(limit?: number): PlaygroundEntry[];
+    /**
+     * List saved requests.
+     */
+    listSaved(): string[];
+    /**
+     * Clear history.
+     */
+    clearHistory(): void;
+    /** Count history */
+    count(): number;
+}
+//# sourceMappingURL=api-playground.d.ts.map

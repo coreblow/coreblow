@@ -1,0 +1,11 @@
+/**
+ * security/api-key-validator.ts
+ */
+export declare function validateApiKey(key: string): {
+    valid: boolean;
+    reason: string;
+} | {
+    valid: boolean;
+    reason?: undefined;
+};
+//# sourceMappingURL=api-key-validator.d.ts.map

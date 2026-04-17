@@ -1,0 +1,40 @@
+/**
+ * CoreBlow Infra — Port Finder
+ *
+ * Available port scanning, conflict detection, and default port resolution.
+ * Used by the gateway, dashboard, and channel adapters during startup.
+ */
+/** Default port untuk CoreBlow Gateway — dedicated port, tidak konflik dengan dev server (e.g. Vite 5173, CRA 3000).
+ *  Pola: identik dengan OpenClaw yang pakai DEFAULT_GATEWAY_PORT = 18789 (src/config/paths.ts).
+ */
+export declare const DEFAULT_GATEWAY_PORT = 3100;
+/** Default port assignments per service */
+export declare const DEFAULT_PORTS: {
+    readonly gateway: 3100;
+    readonly dashboard: 3101;
+    readonly websocket: 3102;
+    readonly playwright: 19003;
+    readonly metrics: 9090;
+};
+/**
+ * Check if a port is available.
+ */
+export declare function isPortAvailable(port: number, host?: string): Promise<boolean>;
+/**
+ * Find an available port starting from the given port.
+ * Scans up to maxAttempts ports sequentially.
+ */
+export declare function findAvailablePort(startPort?: number, opts?: {
+    host?: string;
+    maxAttempts?: number;
+}): Promise<number>;
+/**
+ * Resolve the port for a service, checking availability.
+ * Falls back to finding the next available port if the default is taken.
+ */
+export declare function resolvePort(service: keyof typeof DEFAULT_PORTS, configuredPort?: number): Promise<number>;
+/**
+ * Check multiple ports and return their availability status.
+ */
+export declare function checkPorts(ports: number[], host?: string): Promise<Record<number, boolean>>;
+//# sourceMappingURL=port-finder.d.ts.map

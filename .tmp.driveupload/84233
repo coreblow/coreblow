@@ -1,0 +1,7 @@
+/**
+ * plugin-sdk/discord-timeouts.ts
+ * [PORT] openclaw-main
+ */
+export declare const DISCORD_DEFAULT_INBOUND_WORKER_TIMEOUT_MS = 60000;
+export declare const DISCORD_DEFAULT_LISTENER_TIMEOUT_MS = 120000;
+//# sourceMappingURL=discord-timeouts.d.ts.map

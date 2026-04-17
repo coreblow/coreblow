@@ -1,0 +1,88 @@
+/**
+ * plugin-sdk/channel-feedback.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/channel-feedback.ts
+ *
+ * Ack reactions, typing indicators, status reaction helpers.
+ * Adaptasi: self-contained implementations.
+ */
+export function shouldAckReaction(params) {
+    const { scope = 'all', chatType } = params;
+    if (scope === 'all')
+        return true;
+    if (scope === 'dm')
+        return chatType === 'direct';
+    if (scope === 'group')
+        return chatType === 'group' || chatType === 'channel';
+    return false;
+}
+export function shouldAckReactionForWhatsApp(mode, chatType) {
+    switch (mode) {
+        case 'always': return true;
+        case 'never': return false;
+        case 'groups-only': return chatType === 'group' || chatType === 'channel';
+        case 'dm-only': return chatType === 'direct';
+        default: return false;
+    }
+}
+export async function removeAckReactionAfterReply(params) {
+    try {
+        await params.remove();
+    }
+    catch (err) {
+        params.onError?.(err);
+    }
+}
+export function logAckFailure(log, channel, err) {
+    log(`[${channel}] Failed to send ack reaction: ${err instanceof Error ? err.message : String(err)}`);
+}
+export function logTypingFailure(log, channel, err) {
+    log(`[${channel}] Failed to send typing indicator: ${err instanceof Error ? err.message : String(err)}`);
+}
+/** Create a generic missing target error. */
+export function missingTargetError(target) {
+    return new Error(`Missing or unresolvable target: ${target}`);
+}
+export const DEFAULT_EMOJIS = {
+    thinking: '🤔',
+    working: '⚙️',
+    done: '✅',
+    error: '❌',
+};
+export const CODING_TOOL_TOKENS = ['code', 'exec', 'bash', 'shell'];
+export const WEB_TOOL_TOKENS = ['search', 'browse', 'web', 'fetch'];
+export const DEFAULT_TIMING = {
+    thinkingDelayMs: 500,
+    workingDelayMs: 1000,
+};
+export function resolveToolEmoji(toolName, emojis = {}) {
+    const lower = toolName.toLowerCase();
+    if (CODING_TOOL_TOKENS.some((t) => lower.includes(t)))
+        return emojis.working ?? DEFAULT_EMOJIS.working;
+    if (WEB_TOOL_TOKENS.some((t) => lower.includes(t)))
+        return emojis.working ?? DEFAULT_EMOJIS.working;
+    return emojis.working ?? DEFAULT_EMOJIS.working;
+}
+export function createStatusReactionController(params) {
+    const emojis = { ...DEFAULT_EMOJIS, ...params.emojis };
+    let current = null;
+    async function set(emoji) {
+        if (current && params.adapter.unreact) {
+            await params.adapter.unreact(current).catch(() => undefined);
+        }
+        current = emoji;
+        await params.adapter.react(emoji).catch(() => undefined);
+    }
+    return {
+        setThinking: () => set(emojis.thinking),
+        setWorking: () => set(emojis.working),
+        setDone: () => set(emojis.done),
+        setError: () => set(emojis.error),
+        clear: async () => {
+            if (current && params.adapter.unreact) {
+                await params.adapter.unreact(current).catch(() => undefined);
+            }
+            current = null;
+        },
+    };
+}
+//# sourceMappingURL=channel-feedback.js.map

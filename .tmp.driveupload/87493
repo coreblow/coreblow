@@ -1,0 +1,11 @@
+/** Subagent announcement queue. */
+declare const queue: Array<{
+    agentId: string;
+    message: string;
+    timestamp: number;
+}>;
+export declare function enqueueAnnouncement(agentId: string, message: string): void;
+export declare function drainQueue(): typeof queue;
+export declare function queueSize(): number;
+export {};
+//# sourceMappingURL=subagent-announce-queue.d.ts.map

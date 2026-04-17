@@ -1,0 +1,3 @@
+/** agents/apply-patch-update.ts — re-export */
+export { applyPatch } from '../tools/builtin/apply-patch.js';
+//# sourceMappingURL=apply-patch-update.js.map

@@ -1,0 +1,51 @@
+/** plugin-sdk/routing.ts [ADAPT] openclaw-main */
+export { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "./account-id.js";
+export type ResolvedAgentRoute = {
+    agentId: string;
+    sessionKey: string;
+    accountId?: string;
+};
+export type RoutePeerKind = "user" | "group" | "channel" | "dm";
+export type RoutePeer = {
+    kind: RoutePeerKind;
+    id: string;
+    label?: string;
+};
+export declare function buildAgentSessionKey(params: {
+    agentId: string;
+    channel?: string;
+    accountId?: string;
+    userId?: string;
+}): string;
+export declare function buildAgentMainSessionKey(params: {
+    agentId: string;
+    channel?: string;
+    accountId?: string;
+}): string;
+export declare const DEFAULT_MAIN_KEY = "main";
+export declare function normalizeAgentId(id: string): string;
+export declare function normalizeMainKey(key: string): string;
+export declare function normalizeOptionalAccountId(id?: string | null): string | null;
+export declare function sanitizeAgentId(id: string): string;
+export declare function parseAgentSessionKey(key: string): {
+    agentId: string;
+    channel?: string;
+    accountId?: string;
+    userId?: string;
+};
+export declare function resolveAgentIdFromSessionKey(key: string): string;
+export declare function isCronSessionKey(key: string): boolean;
+export declare function isSubagentSessionKey(key: string): boolean;
+export declare function buildGroupHistoryKey(params: {
+    sessionKey: string;
+}): string;
+export declare function resolveThreadSessionKeys(sessionKey: string): string[];
+export declare function resolveAgentRoute(_p: unknown): Promise<ResolvedAgentRoute | null>;
+export declare function deriveLastRoutePolicy(_p: unknown): string;
+export declare function resolveInboundLastRouteSessionKey(_p: unknown): string | null;
+export declare function resolveAccountEntry(_p: unknown): unknown;
+export declare function listBoundAccountIds(_p: unknown): string[];
+export declare function resolveDefaultAgentBoundAccountId(_p: unknown): string | null;
+export declare function formatSetExplicitDefaultInstruction(_p: unknown): string;
+export declare function formatSetExplicitDefaultToConfiguredInstruction(_p: unknown): string;
+//# sourceMappingURL=routing.d.ts.map

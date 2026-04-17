@@ -1,0 +1,8 @@
+/**
+ * plugin-sdk/discord-session-key.ts
+ * [ADAPT] openclaw-main — Stub, implemented by @coreblow/discord.
+ */
+export function normalizeExplicitDiscordSessionKey(key) {
+    return key.toLowerCase().replace(/[^a-z0-9:_-]/g, "_");
+}
+//# sourceMappingURL=discord-session-key.js.map

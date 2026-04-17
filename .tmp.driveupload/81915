@@ -1,0 +1,2 @@
+export declare function computeBaseHash(input: string): string;
+//# sourceMappingURL=base-hash.d.ts.map

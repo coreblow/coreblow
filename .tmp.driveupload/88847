@@ -1,0 +1,12 @@
+/** Subagent completion tracking. */
+export interface CompletionRecord {
+    agentId: string;
+    sessionId: string;
+    status: 'success' | 'failure' | 'timeout';
+    duration: number;
+    timestamp: number;
+}
+export declare function recordCompletion(record: Omit<CompletionRecord, 'timestamp'>): void;
+export declare function getCompletions(): readonly CompletionRecord[];
+export declare function clearCompletions(): void;
+//# sourceMappingURL=subagent-registry-completion.d.ts.map

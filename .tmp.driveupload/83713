@@ -1,0 +1,50 @@
+/**
+ * plugin-sdk/channel-reply-pipeline.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/channel-reply-pipeline.ts
+ *
+ * Reply prefix options and typing callback utilities for channel plugins.
+ */
+import type { CoreBlowConfig } from '../config/config.js';
+export type ReplyPrefixOptions = {
+    prefix?: string | null;
+    prefixContext?: ReplyPrefixContext;
+};
+export type ReplyPrefixContextBundle = {
+    prefixContext: ReplyPrefixContext;
+    options: ReplyPrefixOptions;
+};
+export type ReplyPrefixContext = {
+    agentId?: string;
+    channelId?: string;
+    accountId?: string;
+    [key: string]: unknown;
+};
+/** Create reply prefix options from config and routing context. */
+export declare function createReplyPrefixOptions(params: {
+    cfg: CoreBlowConfig;
+    agentId: string;
+    channel?: string;
+    accountId?: string;
+}): ReplyPrefixOptions;
+export type TypingCallbacks = {
+    startTyping?: () => Promise<void> | void;
+    stopTyping?: () => Promise<void> | void;
+};
+export type CreateTypingCallbacksParams = {
+    startTyping?: () => Promise<void> | void;
+    stopTyping?: () => Promise<void> | void;
+    onError?: (err: unknown) => void;
+};
+export declare function createTypingCallbacks(params: CreateTypingCallbacksParams): TypingCallbacks;
+export type ChannelReplyPipeline = ReplyPrefixOptions & {
+    typingCallbacks?: TypingCallbacks;
+};
+export declare function createChannelReplyPipeline(params: {
+    cfg: CoreBlowConfig;
+    agentId: string;
+    channel?: string;
+    accountId?: string;
+    typing?: CreateTypingCallbacksParams;
+    typingCallbacks?: TypingCallbacks;
+}): ChannelReplyPipeline;
+//# sourceMappingURL=channel-reply-pipeline.d.ts.map

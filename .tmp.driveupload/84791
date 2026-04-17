@@ -1,0 +1,9 @@
+/**
+ * plugin-sdk/channel-config-writes.ts
+ * [PORT] openclaw-main/src/plugin-sdk/channel-config-writes.ts
+ *
+ * Re-exports config-write helpers from channel-config-helpers.
+ */
+export { authorizeConfigWrite, canBypassConfigWritePolicy, formatConfigWriteDeniedMessage, resolveChannelConfigWrites, } from './channel-config-helpers.js';
+export type { ConfigWriteAuthorizationResult, ConfigWriteScope, ConfigWriteTarget, } from './channel-config-helpers.js';
+//# sourceMappingURL=channel-config-writes.d.ts.map

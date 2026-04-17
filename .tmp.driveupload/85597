@@ -1,0 +1,86 @@
+/**
+ * CoreBlow — Stream Processor
+ *
+ * Processes streaming data (SSE, WebSocket, chunked responses)
+ * with buffering, transformation, back-pressure, and
+ * token-level streaming for AI model responses.
+ */
+/** Stream chunk */
+export interface StreamChunk {
+    type: 'text' | 'tool_call' | 'done' | 'error';
+    content?: string;
+    toolCallId?: string;
+    toolName?: string;
+    toolArgs?: string;
+    finishReason?: string;
+    usage?: {
+        input: number;
+        output: number;
+    };
+}
+/** Stream handler */
+export type StreamHandler = (chunk: StreamChunk) => void | Promise<void>;
+/** Stream options */
+export interface StreamOptions {
+    /** Buffer size before flushing */
+    bufferSize?: number;
+    /** Flush interval (ms) */
+    flushIntervalMs?: number;
+    /** Transform function applied to each chunk */
+    transform?: (chunk: StreamChunk) => StreamChunk | null;
+}
+/**
+ * CoreBlow Stream Processor
+ */
+export declare class StreamProcessor {
+    private handlers;
+    private buffer;
+    private options;
+    private flushTimer;
+    private totalChunks;
+    private totalBytes;
+    private active;
+    constructor(opts?: StreamOptions);
+    /**
+     * Add a stream handler.
+     */
+    onChunk(handler: StreamHandler): void;
+    /**
+     * Start the stream processor.
+     */
+    start(): void;
+    /**
+     * Push a chunk into the stream.
+     */
+    push(chunk: StreamChunk): Promise<void>;
+    /**
+     * Flush buffered chunks.
+     */
+    flush(): Promise<void>;
+    /**
+     * End the stream.
+     */
+    end(usage?: {
+        input: number;
+        output: number;
+    }): Promise<void>;
+    /**
+     * Stop the processor.
+     */
+    stop(): void;
+    /**
+     * Get stream stats.
+     */
+    getStats(): {
+        totalChunks: number;
+        totalBytes: number;
+        active: boolean;
+        buffered: number;
+    };
+    /**
+     * Parse SSE (Server-Sent Events) text into chunks.
+     */
+    static parseSSE(text: string): StreamChunk[];
+    private dispatch;
+}
+//# sourceMappingURL=stream-processor.d.ts.map

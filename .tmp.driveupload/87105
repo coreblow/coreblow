@@ -1,0 +1,25 @@
+const pendingApprovals = new Map();
+let reqCounter = 0;
+export function requestApproval(request) {
+    const id = `req_${++reqCounter}`;
+    return new Promise((resolve) => { pendingApprovals.set(id, { request, resolve }); });
+}
+export function approveRequest(requestId, approvedBy) {
+    const pending = pendingApprovals.get(requestId);
+    if (!pending)
+        return false;
+    pending.resolve({ requestId, status: 'approved', approvedBy, timestamp: Date.now() });
+    pendingApprovals.delete(requestId);
+    return true;
+}
+export function denyRequest(requestId) {
+    const pending = pendingApprovals.get(requestId);
+    if (!pending)
+        return false;
+    pending.resolve({ requestId, status: 'denied', timestamp: Date.now() });
+    pendingApprovals.delete(requestId);
+    return true;
+}
+export function getPendingCount() { return pendingApprovals.size; }
+export function clearPendingApprovals() { pendingApprovals.clear(); }
+//# sourceMappingURL=bash-tools.exec-approval-request.js.map

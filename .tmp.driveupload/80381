@@ -1,0 +1,13 @@
+/**
+ * Discord Auto-Thread — Automatically creates threads for conversations.
+ */
+export interface AutoThreadConfig {
+    enabled: boolean;
+    namePrefix: string;
+    archiveAfterMs: number;
+    slowMode?: number;
+}
+export declare function shouldAutoThread(config: AutoThreadConfig, channelId: string, allowedChannels: string[]): boolean;
+export declare function generateThreadName(prefix: string, username: string, topic?: string): string;
+export declare function getDefaultConfig(): AutoThreadConfig;
+//# sourceMappingURL=auto-thread.d.ts.map

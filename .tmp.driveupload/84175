@@ -1,0 +1,11 @@
+export const CHUTES_BASE_URL = "https://llm.chutes.ai";
+export const CHUTES_DEFAULT_MODEL_ID = "deepseek-ai/DeepSeek-V3-0324";
+export const CHUTES_DEFAULT_MODEL_REF = "chutes:deepseek-ai/DeepSeek-V3-0324";
+export const CHUTES_MODEL_CATALOG = [];
+export function buildChutesModelDefinition(params) { return { id: params.id, label: params.label }; }
+export function buildChutesProvider(_p) { throw new Error("buildChutesProvider requires @coreblow/chutes extension"); }
+export function applyChutesApiKeyConfig(cfg) { return cfg; }
+export function applyChutesConfig(cfg) { return cfg; }
+export function applyChutesProviderConfig(cfg) { return cfg; }
+export async function discoverChutesModels(_p) { return []; }
+//# sourceMappingURL=chutes.js.map

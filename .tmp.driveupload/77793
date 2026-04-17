@@ -1,0 +1,14 @@
+{
+  "name": "discord-plugin",
+  "version": "0.1.0",
+  "description": "CoreBlow plugin: discord-plugin",
+  "author": "",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "permissions": [
+    "network"
+  ],
+  "coreblow": {
+    "minVersion": "1.0.0"
+  }
+}

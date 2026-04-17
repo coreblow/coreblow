@@ -1,0 +1,136 @@
+/**
+ * CoreBlow — Provider Registry
+ *
+ * Central registry for AI model providers. Handles provider
+ * discovery, model-to-provider routing, fallback chains,
+ * and health-based provider selection.
+ */
+/**
+ * CoreBlow Provider Registry
+ */
+export class ProviderRegistry {
+    providers = new Map();
+    modelIndex = new Map(); // model → provider IDs
+    defaultProviderId = null;
+    /**
+     * Register a provider with its supported models.
+     */
+    register(provider, models, priority = 0) {
+        this.providers.set(provider.id, {
+            provider,
+            models,
+            priority,
+            enabled: true,
+            healthy: true,
+        });
+        // Index models
+        for (const model of models) {
+            const providerIds = this.modelIndex.get(model) ?? [];
+            providerIds.push(provider.id);
+            this.modelIndex.set(model, providerIds);
+        }
+        // Set default
+        if (!this.defaultProviderId) {
+            this.defaultProviderId = provider.id;
+        }
+    }
+    /**
+     * Route a model to its provider.
+     */
+    route(model) {
+        // Direct model match
+        const providerIds = this.modelIndex.get(model);
+        if (providerIds && providerIds.length > 0) {
+            // Pick the highest-priority, enabled, healthy provider
+            const sorted = providerIds
+                .map((id) => this.providers.get(id))
+                .filter((e) => !!e && e.enabled && e.healthy)
+                .sort((a, b) => b.priority - a.priority);
+            if (sorted.length > 0) {
+                return {
+                    provider: sorted[0].provider,
+                    model,
+                    fallbacks: sorted.slice(1).map((e) => e.provider),
+                };
+            }
+        }
+        // Prefix match (e.g., "gpt" → openai)
+        for (const [registeredModel, ids] of Array.from(this.modelIndex)) {
+            if (model.startsWith(registeredModel.split('-')[0])) {
+                const entry = ids
+                    .map((id) => this.providers.get(id))
+                    .filter((e) => !!e && e.enabled && e.healthy)
+                    .sort((a, b) => b.priority - a.priority)[0];
+                if (entry) {
+                    return { provider: entry.provider, model, fallbacks: [] };
+                }
+            }
+        }
+        // Default provider
+        if (this.defaultProviderId) {
+            const entry = this.providers.get(this.defaultProviderId);
+            if (entry?.enabled && entry.healthy) {
+                return { provider: entry.provider, model, fallbacks: [] };
+            }
+        }
+        return null;
+    }
+    /**
+     * Get a provider by ID.
+     */
+    get(id) {
+        return this.providers.get(id)?.provider ?? null;
+    }
+    /**
+     * Enable/disable a provider.
+     */
+    setEnabled(id, enabled) {
+        const entry = this.providers.get(id);
+        if (!entry)
+            return false;
+        entry.enabled = enabled;
+        return true;
+    }
+    /**
+     * Mark a provider as healthy or unhealthy.
+     */
+    setHealthy(id, healthy) {
+        const entry = this.providers.get(id);
+        if (!entry)
+            return false;
+        entry.healthy = healthy;
+        return true;
+    }
+    /**
+     * List all registered providers.
+     */
+    list() {
+        return Array.from(this.providers.values()).map((e) => ({
+            id: e.provider.id,
+            name: e.provider.name,
+            models: e.models,
+            enabled: e.enabled,
+            healthy: e.healthy,
+            priority: e.priority,
+        }));
+    }
+    /**
+     * List all available models across all providers.
+     */
+    listModels() {
+        return Array.from(this.modelIndex.entries()).map(([model, providerIds]) => ({
+            model,
+            providers: providerIds,
+        }));
+    }
+    /**
+     * Set the default provider.
+     */
+    setDefault(id) {
+        if (!this.providers.has(id))
+            return false;
+        this.defaultProviderId = id;
+        return true;
+    }
+}
+//# sourceMappingURL=provider-registry.js.map

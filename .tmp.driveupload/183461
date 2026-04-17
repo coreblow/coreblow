@@ -1,0 +1,20 @@
+/**
+ * @create-markdown/preview - HTML Serializer
+ * Convert blocks to HTML strings
+ */
+import type { Block } from '@create-markdown/core';
+import type { PreviewOptions } from './plugins/types';
+/**
+ * Converts blocks to HTML string
+ */
+export declare function blocksToHTML(blocks: Block[], options?: PreviewOptions): string;
+/**
+ * Converts markdown string to HTML.
+ * Requires `@create-markdown/core` to be installed.
+ */
+export declare function markdownToHTML(markdown: string, options?: PreviewOptions): Promise<string>;
+/**
+ * Async version with plugin initialization
+ */
+export declare function renderAsync(blocks: Block[], options?: PreviewOptions): Promise<string>;
+//# sourceMappingURL=html-serializer.d.ts.map

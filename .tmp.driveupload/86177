@@ -1,0 +1,64 @@
+/**
+ * CoreBlow — Search Engine
+ *
+ * Full-text search engine with document indexing,
+ * querying, highlighting, and pagination.
+ */
+/**
+ * CoreBlow Search Engine
+ */
+export class SearchEngine {
+    documents = new Map();
+    fieldWeights = {};
+    /**
+     * Index a document.
+     */
+    index(id, fields, metadata) {
+        this.documents.set(id, { id, fields, metadata, indexedAt: Date.now() });
+    }
+    /**
+     * Set field weights for scoring.
+     */
+    setWeights(weights) { this.fieldWeights = weights; }
+    /**
+     * Search documents.
+     */
+    search(query, page = 1, pageSize = 10) {
+        const start = Date.now();
+        const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+        const hits = [];
+        for (const doc of Array.from(this.documents.values())) {
+            let totalScore = 0;
+            const highlights = {};
+            for (const [field, value] of Object.entries(doc.fields)) {
+                const lower = value.toLowerCase();
+                const weight = this.fieldWeights[field] ?? 1;
+                for (const term of terms) {
+                    const idx = lower.indexOf(term);
+                    if (idx !== -1) {
+                        totalScore += weight;
+                        const snippetStart = Math.max(0, idx - 20);
+                        const snippetEnd = Math.min(value.length, idx + term.length + 20);
+                        highlights[field] = `...${value.slice(snippetStart, idx)}<em>${value.slice(idx, idx + term.length)}</em>${value.slice(idx + term.length, snippetEnd)}...`;
+                    }
+                }
+            }
+            if (totalScore > 0)
+                hits.push({ id: doc.id, score: totalScore, highlights, document: doc });
+        }
+        hits.sort((a, b) => b.score - a.score);
+        const offset = (page - 1) * pageSize;
+        return { hits: hits.slice(offset, offset + pageSize), total: hits.length, took: Date.now() - start, page, pageSize };
+    }
+    /**
+     * Remove a document.
+     */
+    remove(id) { return this.documents.delete(id); }
+    /**
+     * Get a document.
+     */
+    get(id) { return this.documents.get(id) ?? null; }
+    /** Count */
+    count() { return this.documents.size; }
+}
+//# sourceMappingURL=search-engine.js.map

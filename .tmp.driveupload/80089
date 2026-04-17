@@ -1,0 +1,10 @@
+export function defaultSummarizer(entries) { return entries.map(e => `[${e.role}] ${e.content}`).join("\n"); }
+export function createSummaryEntry(summary, tokens) { return { role: "assistant", content: summary, timestamp: Date.now(), tokens }; }
+export function partitionForSummary(entries, maxTokens) { let total = 0; const keep = []; const summarize = []; for (const e of [...entries].reverse()) {
+    total += e.tokens;
+    if (total <= maxTokens)
+        keep.unshift(e);
+    else
+        summarize.unshift(e);
+} return { keep, summarize }; }
+//# sourceMappingURL=context-summarizer.js.map

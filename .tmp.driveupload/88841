@@ -1,0 +1,1 @@
+{"version":3,"file":"skills-clawhub.d.ts","sourceRoot":"","sources":["../../src/agents/skills-clawhub.ts"],"names":[],"mappings":"AAAA,uCAAuC;AACvC,MAAM,WAAW,YAAY;IAAG,EAAE,EAAE,MAAM,CAAC;IAAC,IAAI,EAAE,MAAM,CAAC;IAAC,OAAO,EAAE,MAAM,CAAC;IAAC,GAAG,EAAE,MAAM,CAAC;CAAE;AACzF,wBAAgB,eAAe,CAAC,OAAO,EAAE,MAAM,GAAG,MAAM,CAAoD"}

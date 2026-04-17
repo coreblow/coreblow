@@ -1,0 +1,18 @@
+/**
+ * agents/subagent-capabilities.ts — Subagent capability declarations.
+ */
+export type SubagentCapability = 'code' | 'exec' | 'search' | 'browser' | 'files' | 'mcp' | 'image';
+export interface SubagentCapabilitySet {
+    capabilities: SubagentCapability[];
+    maxTools?: number;
+    allowExec?: boolean;
+    sandbox?: boolean;
+}
+export declare function createCapabilitySet(caps: SubagentCapability[], opts?: {
+    maxTools?: number;
+    allowExec?: boolean;
+    sandbox?: boolean;
+}): SubagentCapabilitySet;
+export declare function hasCapability(set: SubagentCapabilitySet, cap: SubagentCapability): boolean;
+export declare const DEFAULT_CAPABILITIES: SubagentCapabilitySet;
+//# sourceMappingURL=subagent-capabilities.d.ts.map

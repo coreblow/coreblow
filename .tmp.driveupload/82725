@@ -1,0 +1,32 @@
+/**
+ * media-understanding/image-analysis.ts
+ * Image analysis engine.
+ * Ported from CoreBlow reference src/media-understanding/image.ts.
+ */
+import type { ImageDescriptionRequest, MediaSource } from './types.js';
+export declare function resolveImagePayload(source: MediaSource): Promise<{
+    data: string;
+    mimeType: string;
+}>;
+export declare function buildImageDescriptionParams(request: ImageDescriptionRequest, cfg?: Record<string, unknown>): {
+    prompt: string;
+    model: string;
+    maxTokens: number;
+    detail: "auto" | "low" | "high";
+};
+export declare function buildImageMessages(params: {
+    prompt: string;
+    payload: {
+        data: string;
+        mimeType: string;
+    };
+    detail: 'auto' | 'low' | 'high';
+}): Array<{
+    role: string;
+    content: unknown;
+}>;
+export declare function estimateImageDimensions(base64Data: string, mimeType: string): {
+    width: number;
+    height: number;
+} | undefined;
+//# sourceMappingURL=image-analysis.d.ts.map

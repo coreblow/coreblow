@@ -1,0 +1,42 @@
+/**
+ * plugin-sdk/account-core.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/account-core.ts
+ *
+ * Core account resolution utilities for multi-account channel plugins.
+ * Adaptasi: CoreBlowConfig → base config, self-contained implementations.
+ */
+import type { CoreBlowConfig } from '../config/config.js';
+import { DEFAULT_ACCOUNT_ID, normalizeAccountId, normalizeOptionalAccountId } from './account-id.js';
+import { createAccountListHelpers, describeAccountSnapshot, mergeAccountConfig, resolveMergedAccountConfig, resolveListedDefaultAccountId } from './account-helpers.js';
+export type { CoreBlowConfig };
+export { DEFAULT_ACCOUNT_ID, normalizeAccountId, normalizeOptionalAccountId };
+export { createAccountListHelpers, describeAccountSnapshot, mergeAccountConfig, resolveMergedAccountConfig, resolveListedDefaultAccountId };
+/** Normalize a chat type string to a canonical value. */
+export declare function normalizeChatType(type?: string | null): 'direct' | 'group' | 'channel' | 'unknown';
+/** Resolve an account entry, throwing if not found. */
+export declare function resolveAccountEntry<TAccount>(accounts: Record<string, TAccount>, accountId?: string | null): TAccount;
+/** Resolve a normalized account entry, falling back to default. */
+export declare function resolveNormalizedAccountEntry<TAccount>(accounts: Record<string, TAccount>, accountId?: string | null): {
+    accountId: string;
+    account: TAccount;
+};
+/**
+ * Resolve an account by id, then fall back to the default account when
+ * the primary lacks credentials.
+ * [PORT] openclaw resolveAccountWithDefaultFallback
+ */
+export declare function resolveAccountWithDefaultFallback<TAccount>(params: {
+    accountId?: string | null;
+    normalizeAccountId: (accountId?: string | null) => string;
+    resolvePrimary: (accountId: string) => TAccount;
+    hasCredential: (account: TAccount) => boolean;
+    resolveDefaultAccountId: () => string;
+}): TAccount;
+/** List normalized configured account IDs from a raw channel account record map. */
+export declare function listConfiguredAccountIds(params: {
+    accounts: Record<string, unknown> | undefined;
+    normalizeAccountId: (accountId: string) => string;
+}): string[];
+/** Normalize a phone/E.164 number string. */
+export declare function normalizeE164(value: string): string;
+//# sourceMappingURL=account-core.d.ts.map

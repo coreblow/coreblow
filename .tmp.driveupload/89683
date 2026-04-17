@@ -1,0 +1,4 @@
+/** Lifecycle event handlers. */
+export function handleStart() { }
+export function handleStop() { }
+//# sourceMappingURL=pi-embedded-subscribe.handlers.lifecycle.js.map

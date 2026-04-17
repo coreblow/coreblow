@@ -1,0 +1,56 @@
+/**
+ * CoreBlow — Mock Factory
+ *
+ * Creates mock objects, spy functions, and stub
+ * services for testing. Supports call tracking,
+ * return value configuration, and auto-mocking.
+ */
+/** Spy call record */
+export interface SpyCall {
+    args: unknown[];
+    returnValue: unknown;
+    timestamp: number;
+}
+/** Spy function */
+export interface SpyFn {
+    (...args: unknown[]): unknown;
+    calls: SpyCall[];
+    callCount: number;
+    lastCall: SpyCall | null;
+    reset: () => void;
+}
+/**
+ * CoreBlow Mock Factory
+ */
+export declare class MockFactory {
+    private mocks;
+    /**
+     * Create a spy function.
+     */
+    createSpy(returnValue?: unknown): SpyFn;
+    /**
+     * Create a spy that returns different values in sequence.
+     */
+    createSequenceSpy(values: unknown[]): SpyFn;
+    /**
+     * Create a mock object from template.
+     */
+    createMock<T extends Record<string, unknown>>(template: T): T & {
+        __mocks: Record<string, SpyFn>;
+    };
+    /**
+     * Register a named mock.
+     */
+    register(name: string, mock: unknown): void;
+    /**
+     * Get a named mock.
+     */
+    get<T = unknown>(name: string): T | null;
+    /**
+     * Clear all mocks.
+     */
+    clear(): void;
+    /** Count */
+    count(): number;
+}
+//# sourceMappingURL=mock-factory.d.ts.map

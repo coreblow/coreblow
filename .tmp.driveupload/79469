@@ -1,0 +1,7 @@
+/**
+ * src/tts/types.ts
+ * TTS engine types
+ * SUPERIOR: CoreBlow = single provider; CoreBlow = multi-provider + offline + SSML + streaming
+ */
+export {};
+//# sourceMappingURL=types.js.map

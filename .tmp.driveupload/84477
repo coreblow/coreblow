@@ -1,0 +1,12 @@
+/** plugin-sdk/conversation-runtime.ts [ADAPT] openclaw-main */
+export type ConversationHistoryEntry = {
+    role: "user" | "assistant";
+    text: string;
+    timestamp?: number;
+};
+export declare function createConversationHistory(): {
+    push: (e: ConversationHistoryEntry) => void;
+    list: () => ConversationHistoryEntry[];
+    clear: () => void;
+};
+//# sourceMappingURL=conversation-runtime.d.ts.map

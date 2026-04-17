@@ -1,0 +1,124 @@
+/**
+ * plugin-sdk/channel-lifecycle.ts
+ * [PORT] openclaw-main/src/plugin-sdk/channel-lifecycle.ts
+ *
+ * Channel lifecycle helpers: passive account lifecycle, status sinks,
+ * stall watchdogs, and HTTP server task utilities.
+ */
+/** Create a draft stream controls object. */
+export function createDraftStreamControls() {
+    let state = 'idle';
+    return {
+        pause: () => { state = 'paused'; },
+        resume: () => { if (state === 'paused')
+            state = 'streaming'; },
+        cancel: () => { state = 'cancelled'; },
+    };
+}
+export function createRunStateMachine() {
+    let state = 'idle';
+    return {
+        getState: () => state,
+        start: () => { state = 'running'; },
+        stop: async () => { state = 'stopped'; },
+    };
+}
+/** Create an armable stall watchdog that fires a callback if no reset within stallMs. */
+export function createArmableStallWatchdog(params) {
+    let armed = false;
+    let timer = null;
+    function clearTimer() {
+        if (timer !== null) {
+            clearTimeout(timer);
+            timer = null;
+        }
+    }
+    function scheduleTimeout() {
+        clearTimer();
+        if (!armed)
+            return;
+        timer = setTimeout(() => {
+            params.onTimeout({ stallMs: params.stallMs, triggeredAt: Date.now() });
+        }, params.stallMs);
+    }
+    return {
+        arm() {
+            armed = true;
+            scheduleTimeout();
+        },
+        disarm() {
+            armed = false;
+            clearTimer();
+        },
+        reset() {
+            if (armed)
+                scheduleTimeout();
+        },
+        isArmed() {
+            return armed;
+        },
+    };
+}
+// ─── Account Status Sink ──────────────────────────────────────────────────────
+/** Bind a fixed account id into a status writer so lifecycle code can emit partial snapshots. */
+export function createAccountStatusSink(params) {
+    return (patch) => {
+        params.setStatus({ accountId: params.accountId, ...patch });
+    };
+}
+// ─── Abort Signal Utilities ───────────────────────────────────────────────────
+/** Return a promise that resolves when the signal is aborted. */
+export function waitUntilAbort(signal, onAbort) {
+    return new Promise((resolve, reject) => {
+        const complete = () => {
+            Promise.resolve(onAbort?.()).then(() => resolve(), reject);
+        };
+        if (!signal)
+            return;
+        if (signal.aborted) {
+            complete();
+            return;
+        }
+        signal.addEventListener('abort', complete, { once: true });
+    });
+}
+/** Keep a passive account task alive until abort, then run optional cleanup. */
+export async function runPassiveAccountLifecycle(params) {
+    const handle = await params.start();
+    try {
+        await waitUntilAbort(params.abortSignal);
+    }
+    finally {
+        await params.stop?.(handle);
+        await params.onStop?.();
+    }
+}
+/** Keep a channel/provider task pending until the HTTP server closes. */
+export async function keepHttpServerTaskAlive(params) {
+    const { server, abortSignal, onAbort } = params;
+    let abortTask = Promise.resolve();
+    let abortTriggered = false;
+    const triggerAbort = () => {
+        if (abortTriggered)
+            return;
+        abortTriggered = true;
+        abortTask = Promise.resolve(onAbort?.()).then(() => undefined);
+    };
+    const onAbortSignal = () => { triggerAbort(); };
+    if (abortSignal) {
+        if (abortSignal.aborted) {
+            triggerAbort();
+        }
+        else {
+            abortSignal.addEventListener('abort', onAbortSignal, { once: true });
+        }
+    }
+    await new Promise((resolve) => {
+        server.once('close', () => resolve());
+    });
+    if (abortSignal) {
+        abortSignal.removeEventListener('abort', onAbortSignal);
+    }
+    await abortTask;
+}
+//# sourceMappingURL=channel-lifecycle.js.map

@@ -1,0 +1,10 @@
+/**
+ * plugin-sdk/signal-account.ts
+ * [ADAPT] openclaw-main — Stub for @coreblow/signal.
+ */
+export type ResolvedSignalAccount = {
+    accountId: string;
+    number?: string | null;
+};
+export declare function resolveSignalAccount(_p: unknown): Promise<ResolvedSignalAccount | null>;
+//# sourceMappingURL=signal-account.d.ts.map

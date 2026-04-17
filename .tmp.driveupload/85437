@@ -1,0 +1,13 @@
+export function warn(msg) {
+    console.warn(`[WARN] ${msg}`);
+}
+export function danger(msg) {
+    console.error(`[DANGER] ${msg}`);
+}
+export function info(msg) {
+    console.info(`[INFO] ${msg}`);
+}
+export function shouldLogVerbose() {
+    return false;
+}
+//# sourceMappingURL=globals.js.map

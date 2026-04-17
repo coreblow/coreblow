@@ -1,0 +1,122 @@
+import { readConfigFileRaw, resolveWritableConfigPath, writeConfigFile, } from './config-io.js';
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function isRecord(value) {
+    return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+// ─── normalizeConfiguredMcpServers ────────────────────────────────────────────
+// [PORT] openclaw L25-34
+/**
+ * Coerce arbitrary config value to a record of MCP server entries.
+ * Returns {} for null/invalid input.
+ */
+export function normalizeConfiguredMcpServers(value) {
+    if (!isRecord(value)) {
+        return {};
+    }
+    return Object.fromEntries(Object.entries(value)
+        .filter(([, server]) => isRecord(server))
+        .map(([name, server]) => [name, { ...server }]));
+}
+// ─── listConfiguredMcpServers ─────────────────────────────────────────────────
+// [ADAPT] openclaw L36-52: reads from config file on disk via config-io.ts
+/**
+ * List all configured MCP servers from the config file.
+ */
+export async function listConfiguredMcpServers() {
+    const configPath = resolveWritableConfigPath();
+    const read = readConfigFileRaw(configPath);
+    if (!read.ok) {
+        return { ok: false, error: read.error };
+    }
+    return {
+        ok: true,
+        config: read.config,
+        mcpServers: normalizeConfiguredMcpServers(read.config.mcp?.servers),
+        path: configPath,
+    };
+}
+// ─── setConfiguredMcpServer ───────────────────────────────────────────────────
+// [PORT] openclaw L53-94
+/**
+ * Set (add or update) a named MCP server entry and persist to disk.
+ */
+export async function setConfiguredMcpServer(params) {
+    const name = params.name.trim();
+    if (!name) {
+        return { ok: false, error: 'MCP server name is required.' };
+    }
+    if (!isRecord(params.server)) {
+        return { ok: false, error: 'MCP server config must be a JSON object.' };
+    }
+    const loaded = await listConfiguredMcpServers();
+    if (!loaded.ok) {
+        return loaded;
+    }
+    const next = structuredClone(loaded.config);
+    const servers = normalizeConfiguredMcpServers(next.mcp?.servers);
+    servers[name] = { ...params.server };
+    next.mcp = {
+        ...next.mcp,
+        servers,
+    };
+    // Persist to disk via config-io.ts
+    const written = await writeConfigFile(next);
+    if (!written.ok) {
+        return { ok: false, error: written.error };
+    }
+    return {
+        ok: true,
+        config: next,
+        mcpServers: servers,
+        path: written.path,
+    };
+}
+// ─── unsetConfiguredMcpServer ─────────────────────────────────────────────────
+// [PORT] openclaw L96-148
+/**
+ * Remove a named MCP server entry and persist to disk.
+ */
+export async function unsetConfiguredMcpServer(params) {
+    const name = params.name.trim();
+    if (!name) {
+        return { ok: false, error: 'MCP server name is required.' };
+    }
+    const loaded = await listConfiguredMcpServers();
+    if (!loaded.ok) {
+        return loaded;
+    }
+    if (!Object.hasOwn(loaded.mcpServers, name)) {
+        return {
+            ok: true,
+            config: loaded.config,
+            mcpServers: loaded.mcpServers,
+            path: loaded.path,
+            removed: false,
+        };
+    }
+    const next = structuredClone(loaded.config);
+    const servers = normalizeConfiguredMcpServers(next.mcp?.servers);
+    delete servers[name];
+    if (Object.keys(servers).length > 0) {
+        next.mcp = { ...next.mcp, servers };
+    }
+    else if (next.mcp) {
+        delete next.mcp.servers;
+        if (Object.keys(next.mcp).length === 0) {
+            delete next.mcp;
+        }
+    }
+    // Persist to disk via config-io.ts
+    const written = await writeConfigFile(next);
+    if (!written.ok) {
+        return { ok: false, error: written.error };
+    }
+    return {
+        ok: true,
+        config: next,
+        mcpServers: servers,
+        path: written.path,
+        removed: true,
+    };
+}
+//# sourceMappingURL=mcp-config.js.map

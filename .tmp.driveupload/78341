@@ -1,0 +1,13 @@
+import path from "node:path";
+export function resolveStateDir(env = process.env) {
+    const override = env.COREBLOW_STATE_DIR?.trim();
+    if (override) {
+        return override;
+    }
+    const home = env.HOME || env.USERPROFILE || "/tmp";
+    return path.join(home, ".coreblow");
+}
+export function resolveDataDir(env = process.env) {
+    return path.join(resolveStateDir(env), "data");
+}
+//# sourceMappingURL=paths.js.map

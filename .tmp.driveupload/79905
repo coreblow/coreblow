@@ -1,0 +1,59 @@
+/**
+ * CoreBlow — Test Runner
+ *
+ * Lightweight test runner for integration tests.
+ * Supports suites, hooks (before/after), timeouts,
+ * and detailed reporting.
+ */
+/** Test case */
+export interface TestCase {
+    name: string;
+    fn: () => Promise<void>;
+    timeout?: number;
+    skip?: boolean;
+    only?: boolean;
+}
+/** Test suite */
+export interface TestSuite {
+    name: string;
+    tests: TestCase[];
+    beforeAll?: () => Promise<void>;
+    afterAll?: () => Promise<void>;
+    beforeEach?: () => Promise<void>;
+    afterEach?: () => Promise<void>;
+}
+/** Test result */
+export interface TestResult {
+    suite: string;
+    test: string;
+    status: 'passed' | 'failed' | 'skipped' | 'timeout';
+    durationMs: number;
+    error?: string;
+}
+/** Run report */
+export interface RunReport {
+    suites: number;
+    total: number;
+    passed: number;
+    failed: number;
+    skipped: number;
+    durationMs: number;
+    results: TestResult[];
+}
+/**
+ * CoreBlow Test Runner
+ */
+export declare class TestRunner {
+    private suites;
+    /**
+     * Add a test suite.
+     */
+    addSuite(suite: TestSuite): void;
+    /**
+     * Run all suites.
+     */
+    run(): Promise<RunReport>;
+    /** Count suites */
+    count(): number;
+}
+//# sourceMappingURL=test-runner.d.ts.map

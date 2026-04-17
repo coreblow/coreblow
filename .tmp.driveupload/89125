@@ -1,0 +1,133 @@
+/**
+ * CoreBlow Bootstrap System
+ *
+ * Manages agent bootstrap: budget allocation, file preloading, caching,
+ * and hook registration. Consolidates bootstrap-budget, bootstrap-files,
+ * bootstrap-cache, and bootstrap-hooks functionality.
+ *
+ * Equivalent: CoreBlow bootstrap-budget.ts (375), bootstrap-files.ts (118),
+ *             bootstrap-cache.ts (36), bootstrap-hooks.ts (31) = 560 LOC
+ */
+export interface BootstrapBudget {
+    /** Maximum tokens for bootstrap context */
+    maxTokens: number;
+    /** Tokens allocated to system prompt */
+    systemPromptTokens: number;
+    /** Tokens allocated to context files */
+    contextFileTokens: number;
+    /** Tokens allocated to skills */
+    skillsTokens: number;
+    /** Tokens allocated to memory/facts */
+    memoryTokens: number;
+    /** Remaining tokens */
+    remaining: number;
+}
+export interface BootstrapFile {
+    path: string;
+    content: string;
+    tokenEstimate: number;
+    priority: 'required' | 'high' | 'medium' | 'low';
+    source: 'workspace' | 'config' | 'skill' | 'memory';
+}
+export interface BootstrapHook {
+    name: string;
+    phase: 'pre-boot' | 'post-boot' | 'pre-prompt' | 'post-prompt';
+    handler: (context: BootstrapContext) => Promise<void>;
+    priority?: number;
+}
+export interface BootstrapContext {
+    workspaceDir: string;
+    agentId: string;
+    sessionId: string;
+    budget: BootstrapBudget;
+    files: BootstrapFile[];
+}
+export interface BootstrapCacheEntry {
+    key: string;
+    files: BootstrapFile[];
+    budget: BootstrapBudget;
+    cachedAt: number;
+    expiresAt: number;
+    hits: number;
+}
+/**
+ * Calculate the bootstrap budget based on context window size
+ */
+export declare function calculateBootstrapBudget(params: {
+    contextWindowTokens: number;
+    systemPromptTokens?: number;
+    reserveForResponse?: number;
+    reserveForHistory?: number;
+}): BootstrapBudget;
+/**
+ * Check if a file fits within the remaining budget
+ */
+export declare function fitsInBudget(budget: BootstrapBudget, tokenEstimate: number): boolean;
+/**
+ * Deduct tokens from the budget
+ */
+export declare function deductFromBudget(budget: BootstrapBudget, tokens: number, category: keyof BootstrapBudget): BootstrapBudget;
+/**
+ * Sort and prioritize bootstrap files to fit within budget
+ */
+export declare function prioritizeFiles(files: BootstrapFile[], budget: BootstrapBudget): BootstrapFile[];
+/**
+ * Create a bootstrap file entry
+ */
+export declare function createBootstrapFile(filePath: string, content: string, options?: {
+    priority?: BootstrapFile['priority'];
+    source?: BootstrapFile['source'];
+}): BootstrapFile;
+/**
+ * Get a cached bootstrap result
+ */
+export declare function getCachedBootstrap(key: string): BootstrapCacheEntry | null;
+/**
+ * Cache a bootstrap result
+ */
+export declare function cacheBootstrap(key: string, files: BootstrapFile[], budget: BootstrapBudget, ttlMs?: number): void;
+/**
+ * Clear the bootstrap cache
+ */
+export declare function clearBootstrapCache(): void;
+/**
+ * Get cache statistics
+ */
+export declare function getBootstrapCacheStats(): {
+    size: number;
+    totalHits: number;
+    entries: Array<{
+        key: string;
+        hits: number;
+        expiresIn: number;
+    }>;
+};
+/**
+ * Register a bootstrap hook
+ */
+export declare function registerBootstrapHook(hook: BootstrapHook): void;
+/**
+ * Execute hooks for a specific phase
+ */
+export declare function executeBootstrapHooks(phase: BootstrapHook['phase'], context: BootstrapContext): Promise<void>;
+/**
+ * Clear all registered hooks
+ */
+export declare function clearBootstrapHooks(): void;
+/**
+ * List registered hooks
+ */
+export declare function listBootstrapHooks(): BootstrapHook[];
+/**
+ * Run the complete bootstrap pipeline for an agent session
+ */
+export declare function runBootstrap(params: {
+    workspaceDir: string;
+    agentId: string;
+    sessionId: string;
+    contextWindowTokens: number;
+    files?: BootstrapFile[];
+    useCache?: boolean;
+    cacheTtlMs?: number;
+}): Promise<BootstrapContext>;
+//# sourceMappingURL=bootstrap.d.ts.map

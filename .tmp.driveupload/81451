@@ -1,0 +1,87 @@
+import { randomUUID } from "node:crypto";
+export class ExecApprovalManager {
+    pending = new Map();
+    create(request, timeoutMs, explicitId = null) {
+        const id = explicitId || randomUUID();
+        const now = Date.now();
+        return {
+            id,
+            request,
+            decision: null,
+            createdAtMs: now,
+            expiresAtMs: now + timeoutMs,
+        };
+    }
+    async register(snapshot, timeoutMs) {
+        if (this.pending.has(snapshot.id)) {
+            throw new Error(`Approval ${snapshot.id} already pending`);
+        }
+        return new Promise((resolve) => {
+            const timer = setTimeout(() => {
+                this.expire(snapshot.id, "timeout");
+            }, timeoutMs);
+            timer.unref?.();
+            this.pending.set(snapshot.id, {
+                snapshot,
+                resolveDecision: resolve,
+                timer
+            });
+        });
+    }
+    resolve(id, decision, resolvedBy = null) {
+        const entry = this.pending.get(id);
+        if (!entry)
+            return false;
+        const { snapshot, resolveDecision, timer } = entry;
+        clearTimeout(timer);
+        this.pending.delete(id);
+        snapshot.decision = decision;
+        snapshot.resolvedAtMs = Date.now();
+        snapshot.resolvedBy = resolvedBy;
+        resolveDecision(decision);
+        return true;
+    }
+    expire(id, reason) {
+        const entry = this.pending.get(id);
+        if (!entry)
+            return false;
+        const { resolveDecision, timer } = entry;
+        clearTimeout(timer);
+        this.pending.delete(id);
+        resolveDecision(null);
+        return true;
+    }
+    getSnapshot(id) {
+        return this.pending.get(id)?.snapshot;
+    }
+    lookupPendingId(prefix) {
+        const matches = [];
+        for (const id of this.pending.keys()) {
+            if (id === prefix) {
+                return { kind: "exact", id };
+            }
+            if (id.startsWith(prefix)) {
+                matches.push(id);
+            }
+        }
+        if (matches.length === 0)
+            return { kind: "none" };
+        if (matches.length === 1)
+            return { kind: "exact", id: matches[0] };
+        return { kind: "ambiguous", ids: matches };
+    }
+    awaitDecision(id) {
+        const entry = this.pending.get(id);
+        if (!entry)
+            return null;
+        return new Promise((resolve) => {
+            // Intercept without replacing the main promise
+            const originalResolve = entry.resolveDecision;
+            entry.resolveDecision = (decision) => {
+                resolve(decision);
+                originalResolve(decision);
+            };
+        });
+    }
+}
+//# sourceMappingURL=exec-approval-manager.js.map

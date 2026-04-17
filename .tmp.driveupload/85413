@@ -1,0 +1,10 @@
+/**
+ * acp/capability.ts
+ */
+export interface ACPCapability {
+    name: string;
+    version: string;
+    methods: string[];
+}
+export declare function negotiateCapabilities(local: ACPCapability[], remote: ACPCapability[]): ACPCapability[];
+//# sourceMappingURL=capability.d.ts.map

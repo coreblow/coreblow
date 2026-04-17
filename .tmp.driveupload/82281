@@ -1,0 +1,7 @@
+/**
+ * gateway/gateway-types.ts
+ * Shared type definitions for CoreBlow Gateway — eliminates `:any` usage.
+ * Follows CoreBlow pattern: strict typed config (`CoreBlowConfig` → `ValidatedCoreBlowConfig`).
+ */
+export {};
+//# sourceMappingURL=gateway-types.js.map

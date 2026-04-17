@@ -1,0 +1,30 @@
+/**
+ * auto-reply/heartbeat.ts
+ * Typing indicator and heartbeat management.
+ * Ported from CoreBlow reference src/auto-reply/heartbeat.ts.
+ */
+export declare const HEARTBEAT_PROMPT = "Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK.";
+export declare const DEFAULT_HEARTBEAT_EVERY = "30m";
+export declare const DEFAULT_HEARTBEAT_ACK_MAX_CHARS = 300;
+/**
+ * Check if HEARTBEAT.md content is effectively empty.
+ */
+export declare function isHeartbeatContentEffectivelyEmpty(content: string | undefined | null): boolean;
+export declare function resolveHeartbeatPrompt(raw?: string): string;
+/**
+ * Parse heartbeat interval string to milliseconds.
+ * Supports: "30m", "1h", "45s", "2h30m"
+ */
+export declare function parseHeartbeatInterval(raw: string): number;
+/**
+ * Typing indicator controller.
+ */
+export declare class TypingIndicator {
+    private interval;
+    private sendTyping;
+    private intervalMs;
+    constructor(sendTyping: () => void, intervalMs?: number);
+    start(): void;
+    stop(): void;
+}
+//# sourceMappingURL=heartbeat.d.ts.map

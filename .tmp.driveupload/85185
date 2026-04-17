@@ -1,0 +1,10 @@
+export declare class MemoryTools {
+    private store;
+    remember(key: string, value: unknown): void;
+    recall(key: string): unknown;
+    forget(key: string): void;
+    search(query: string): {
+        key: string;
+    }[];
+}
+//# sourceMappingURL=tools.d.ts.map

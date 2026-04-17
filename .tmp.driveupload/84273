@@ -1,0 +1,7 @@
+/**
+ * plugin-sdk/anthropic-cli.ts
+ * [ADAPT] openclaw-main — Stub for @coreblow/anthropic.
+ */
+export declare const CLAUDE_CLI_BACKEND_ID = "claude-cli";
+export declare function isClaudeCliProvider(providerId: string): boolean;
+//# sourceMappingURL=anthropic-cli.d.ts.map

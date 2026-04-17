@@ -1,0 +1,10 @@
+/**
+ * cli/gateway-cli.ts
+ *
+ * Commander.js subcommand registrar untuk `coreblow gateway`.
+ * [PORT] openclaw-main/src/cli/gateway-cli/register.js (adapted)
+ * Adaptasi: CoreBlow gateway start/stop/status/reload via GatewayClient RPC
+ */
+import type { Command } from 'commander';
+export declare function registerGatewayCli(program: Command): void;
+//# sourceMappingURL=gateway-cli.d.ts.map

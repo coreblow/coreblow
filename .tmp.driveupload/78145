@@ -1,0 +1,68 @@
+/**
+ * CoreBlow — Health Dashboard
+ *
+ * Aggregates health from all subsystems into a unified
+ * dashboard with status indicators, dependency checks,
+ * uptime tracking, and health history.
+ */
+/** Service health */
+export interface ServiceHealth {
+    name: string;
+    status: 'healthy' | 'degraded' | 'unhealthy' | 'unknown';
+    latencyMs?: number;
+    message?: string;
+    lastCheck: number;
+    uptime?: number;
+    metadata?: Record<string, unknown>;
+}
+/** Health check function */
+export type HealthCheck = () => Promise<ServiceHealth> | ServiceHealth;
+/** Dashboard snapshot */
+export interface HealthSnapshot {
+    overall: 'healthy' | 'degraded' | 'unhealthy';
+    services: ServiceHealth[];
+    timestamp: number;
+    uptimeMs: number;
+}
+/**
+ * CoreBlow Health Dashboard
+ */
+export declare class HealthDashboard {
+    private checks;
+    private results;
+    private history;
+    private maxHistory;
+    private startTime;
+    /**
+     * Register a health check.
+     */
+    register(name: string, check: HealthCheck): void;
+    /**
+     * Run all health checks.
+     */
+    checkAll(): Promise<HealthSnapshot>;
+    /**
+     * Get last known status for a service.
+     */
+    getService(name: string): ServiceHealth | null;
+    /**
+     * Get current overall status.
+     */
+    getOverallStatus(): 'healthy' | 'degraded' | 'unhealthy' | 'unknown';
+    /**
+     * Get uptime in ms.
+     */
+    getUptime(): number;
+    /**
+     * Get health history.
+     */
+    getHistory(limit?: number): HealthSnapshot[];
+    /**
+     * List all registered checks.
+     */
+    list(): string[];
+    /** Count */
+    count(): number;
+    private computeOverall;
+}
+//# sourceMappingURL=health-dashboard.d.ts.map

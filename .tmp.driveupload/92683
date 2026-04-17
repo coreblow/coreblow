@@ -1,0 +1,91 @@
+/**
+ * auto-reply/reply/commands-session.ts
+ * Session management commands within reply context.
+ * Follows CoreBlow's commands-session.ts pattern.
+ */
+
+import { createChildLogger } from '../../utils/logger.js';
+
+const log = createChildLogger('reply:session-commands');
+
+export type SessionCommandResult = {
+    success: boolean;
+    message: string;
+    data?: Record<string, unknown>;
+};
+
+export type SessionCommand = 'new' | 'clear' | 'fork' | 'archive' | 'export' | 'rename' | 'info';
+
+export interface SessionCommandContext {
+    sessionId: string;
+    userId: string;
+    args: string[];
+}
+
+export interface SessionOps {
+    createSession: (userId: string) => string;
+    clearSession: (sessionId: string) => void;
+    archiveSession: (sessionId: string) => void;
+    exportSession: (sessionId: string) => string;
+    renameSession: (sessionId: string, name: string) => void;
+    getSessionInfo: (sessionId: string) => Record<string, unknown> | null;
+}
+
+/** Handle a session management command. */
+export function handleSessionCommand(
+    command: SessionCommand,
+    ctx: SessionCommandContext,
+    ops: SessionOps,
+): SessionCommandResult {
+    switch (command) {
+        case 'new': {
+            const newId = ops.createSession(ctx.userId);
+            return { success: true, message: `✨ New session created: ${newId}`, data: { sessionId: newId } };
+        }
+
+        case 'clear':
+            ops.clearSession(ctx.sessionId);
+            return { success: true, message: '🗑️ Session cleared. Starting fresh!' };
+
+        case 'fork': {
+            const label = ctx.args[0] ?? 'Branch';
+            return { success: true, message: `🔀 Session forked as "${label}"` };
+        }
+
+        case 'archive':
+            ops.archiveSession(ctx.sessionId);
+            return { success: true, message: '📦 Session archived.' };
+
+        case 'export': {
+            const json = ops.exportSession(ctx.sessionId);
+            return { success: true, message: '📤 Session exported.', data: { export: json } };
+        }
+
+        case 'rename': {
+            const name = ctx.args.join(' ');
+            if (!name) return { success: false, message: '❌ Please provide a name: /rename My Chat' };
+            ops.renameSession(ctx.sessionId, name);
+            return { success: true, message: `✏️ Session renamed to "${name}"` };
+        }
+
+        case 'info': {
+            const info = ops.getSessionInfo(ctx.sessionId);
+            if (!info) return { success: false, message: '❌ Session not found.' };
+            const lines = Object.entries(info).map(([k, v]) => `• **${k}:** ${v}`);
+            return { success: true, message: `📋 Session Info:\n${lines.join('\n')}`, data: info };
+        }
+
+        default:
+            return { success: false, message: `❌ Unknown session command: ${command}` };
+    }
+}
+
+/** Parse a session command from text. */
+export function parseSessionCommand(text: string): { command: SessionCommand; args: string[] } | null {
+    const match = text.match(/^\/(new|clear|fork|archive|export|rename|info)(?:\s+(.*))?$/i);
+    if (!match) return null;
+    return {
+        command: match[1].toLowerCase() as SessionCommand,
+        args: match[2]?.split(/\s+/).filter(Boolean) ?? [],
+    };
+}

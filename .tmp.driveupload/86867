@@ -1,0 +1,36 @@
+/**
+ * canvas-host/server.ts — CoreBlow Canvas Host Server
+ *
+ * Serves static canvas web content with live-reload support.
+ * Uses native Node.js fs.watch instead of chokidar to avoid
+ * external dependencies.
+ *
+ * Ported from CoreBlow reference src/canvas-host/server.ts (520 LOC) —
+ * streamlined for CoreBlow (no chokidar, no RuntimeEnv, no CLI prompts).
+ */
+import { type IncomingMessage, type ServerResponse } from 'node:http';
+import type { Duplex } from 'node:stream';
+import { WebSocketServer } from 'ws';
+export interface CanvasHostOpts {
+    rootDir?: string;
+    port?: number;
+    listenHost?: string;
+    liveReload?: boolean;
+    basePath?: string;
+    webSocketServerClass?: typeof WebSocketServer;
+}
+export interface CanvasHostServer {
+    port: number;
+    rootDir: string;
+    close: () => Promise<void>;
+}
+export interface CanvasHostHandler {
+    rootDir: string;
+    basePath: string;
+    handleHttpRequest: (req: IncomingMessage, res: ServerResponse) => Promise<boolean>;
+    handleUpgrade: (req: IncomingMessage, socket: Duplex, head: Buffer) => boolean;
+    close: () => Promise<void>;
+}
+export declare function createCanvasHostHandler(opts: CanvasHostOpts): Promise<CanvasHostHandler>;
+export declare function startCanvasHost(opts: CanvasHostOpts): Promise<CanvasHostServer>;
+//# sourceMappingURL=server.d.ts.map

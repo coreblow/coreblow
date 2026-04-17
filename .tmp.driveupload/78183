@@ -1,0 +1,94 @@
+/**
+ * CoreBlow — Config Hot Reload
+ *
+ * Watches configuration changes and applies them
+ * without restart. Supports change listeners,
+ * validation, and rollback on error.
+ */
+/**
+ * CoreBlow Config Hot Reload
+ */
+export class ConfigHotReload {
+    current;
+    history = [];
+    listeners = [];
+    validator;
+    version = 0;
+    constructor(initial = {}) {
+        this.current = { version: ++this.version, data: { ...initial }, timestamp: Date.now() };
+    }
+    /**
+     * Set a validator.
+     */
+    setValidator(fn) { this.validator = fn; }
+    /**
+     * Update a config value.
+     */
+    set(key, value) {
+        const oldValue = this.current.data[key];
+        const newData = { ...this.current.data, [key]: value };
+        if (this.validator && !this.validator(newData)) {
+            return { success: false, error: 'Validation failed' };
+        }
+        this.history.push({ ...this.current });
+        this.current = { version: ++this.version, data: newData, timestamp: Date.now() };
+        for (const listener of this.listeners) {
+            if (listener.key === null || listener.key === key) {
+                listener.fn(key, value, oldValue);
+            }
+        }
+        return { success: true };
+    }
+    /**
+     * Bulk update.
+     */
+    setMany(updates) {
+        const newData = { ...this.current.data, ...updates };
+        if (this.validator && !this.validator(newData)) {
+            return { success: false, error: 'Validation failed' };
+        }
+        this.history.push({ ...this.current });
+        const oldData = this.current.data;
+        this.current = { version: ++this.version, data: newData, timestamp: Date.now() };
+        for (const [key, value] of Object.entries(updates)) {
+            for (const listener of this.listeners) {
+                if (listener.key === null || listener.key === key) {
+                    listener.fn(key, value, oldData[key]);
+                }
+            }
+        }
+        return { success: true };
+    }
+    /**
+     * Get a config value.
+     */
+    get(key) { return this.current.data[key]; }
+    /**
+     * Get all config.
+     */
+    getAll() { return { ...this.current.data }; }
+    /**
+     * Listen for changes.
+     */
+    onChange(fn, key) {
+        this.listeners.push({ key: key ?? null, fn });
+    }
+    /**
+     * Rollback to previous version.
+     */
+    rollback() {
+        if (this.history.length === 0)
+            return false;
+        this.current = this.history.pop();
+        return true;
+    }
+    /**
+     * Get version.
+     */
+    getVersion() { return this.current.version; }
+    /**
+     * Get history.
+     */
+    getHistory() { return [...this.history]; }
+}
+//# sourceMappingURL=config-hot-reload.js.map

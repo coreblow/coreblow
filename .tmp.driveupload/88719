@@ -1,0 +1,6 @@
+/** Tool result guard — validate results before sending. */
+export declare function guardToolResult(result: string, maxLen?: number): {
+    content: string;
+    truncated: boolean;
+};
+//# sourceMappingURL=session-tool-result-guard.d.ts.map

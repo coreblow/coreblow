@@ -1,0 +1,30 @@
+/** plugin-sdk/webhook-targets.ts [ADAPT] openclaw-main */
+import { normalizeWebhookPath, resolveWebhookPath } from "./webhook-path.js";
+export type RegisteredWebhookTarget<T> = {
+    target: T;
+    unregister: () => void;
+};
+export type RegisterWebhookTargetOptions<T extends {
+    path: string;
+}> = {
+    onFirstPathTarget?: (p: {
+        path: string;
+        target: T;
+    }) => void | (() => void);
+    onLastPathTargetRemoved?: (p: {
+        path: string;
+    }) => void;
+};
+export type RegisterWebhookPluginRouteOptions = Record<string, unknown>;
+export { normalizeWebhookPath, resolveWebhookPath };
+export declare function registerPluginHttpRoute(_p: unknown): () => void;
+export declare function registerWebhookTarget<T extends {
+    path: string;
+}>(_target: T, _opts?: RegisterWebhookTargetOptions<T>): RegisteredWebhookTarget<T>;
+export declare function registerWebhookTargetWithPluginRoute<T extends {
+    path: string;
+}>(_p: {
+    target: T;
+    [k: string]: unknown;
+}): RegisteredWebhookTarget<T>;
+//# sourceMappingURL=webhook-targets.d.ts.map

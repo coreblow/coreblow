@@ -1,0 +1,53 @@
+import type { InboundMessage } from '../gateway/router.js';
+export interface ToolCallRecord {
+    id: string;
+    name: string;
+    arguments?: Record<string, unknown>;
+    result?: unknown;
+}
+export interface GuardrailOptions {
+    toxicity?: boolean;
+    pii?: boolean;
+    bias?: boolean;
+    customRules?: string[];
+}
+export interface UsageRecord {
+    promptTokens?: number;
+    completionTokens?: number;
+    totalTokens?: number;
+    model?: string;
+    cost?: number;
+    channel?: string;
+    agentId?: string;
+    timestamp?: number;
+    inputTokens?: number;
+    outputTokens?: number;
+    toolCalls?: number;
+    durationMs?: number;
+    provider?: string;
+    estimatedCost?: number;
+}
+export interface TurnContext {
+    id: string;
+    sessionId: string;
+    channelId: string;
+    model: string;
+    agentId?: string;
+    response?: string | Record<string, unknown>;
+    error?: Error | string;
+    toolCalls?: ToolCallRecord[];
+    startedAt?: number;
+}
+export declare class LifecycleManager {
+    private active;
+    start(ctx: TurnContext): string;
+    stop(sessionId: string): void;
+    getActive(): unknown[];
+    setGuardrails(options: GuardrailOptions | Record<string, unknown>): void;
+    createContext(msg: InboundMessage): TurnContext;
+    checkGuardrails(text: string, sessionId?: string): string | null;
+    emit(event: string, ctx: TurnContext): Promise<void>;
+    checkOutputGuardrails(text: string): string | null;
+    recordUsage(usage: UsageRecord): void;
+}
+//# sourceMappingURL=lifecycle.d.ts.map

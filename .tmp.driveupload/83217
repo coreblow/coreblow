@@ -1,0 +1,39 @@
+/**
+ * plugin-sdk/discord-surface.ts
+ * [ADAPT] openclaw-main — Stub surface for @coreblow/discord.
+ */
+export type DiscordProbe = {
+    ok: boolean;
+    latencyMs?: number;
+    guildCount?: number;
+};
+export type ResolvedDiscordAccount = {
+    accountId: string;
+    token?: string | null;
+    botId?: string | null;
+};
+export type InspectedDiscordAccount = ResolvedDiscordAccount & {
+    configured: boolean;
+    running: boolean;
+};
+export type DiscordSendResult = {
+    channel: "discord";
+    messageId?: string;
+    success: boolean;
+};
+export type DiscordTokenResolution = {
+    token: string;
+    botId?: string;
+};
+export declare function inspectDiscordAccount(_p: unknown): Promise<InspectedDiscordAccount | null>;
+export declare function listDiscordAccountIds(_cfg: Record<string, unknown>): string[];
+export declare function probeDiscord(_p: unknown): Promise<DiscordProbe>;
+export declare function sendMessageDiscord(_p: unknown): Promise<DiscordSendResult>;
+export declare function resolveDiscordGroupRequireMention(_p: unknown): boolean;
+export declare function resolveDiscordGroupToolPolicy(_p: unknown): string;
+export declare function normalizeDiscordMessagingTarget(_raw: string): unknown;
+export declare function looksLikeDiscordTargetId(raw: string): boolean;
+export declare function resolveDiscordChannelId(_p: unknown): string | null;
+export declare const DISCORD_DEFAULT_INBOUND_WORKER_TIMEOUT_MS = 60000;
+export declare const DISCORD_DEFAULT_LISTENER_TIMEOUT_MS = 120000;
+//# sourceMappingURL=discord-surface.d.ts.map

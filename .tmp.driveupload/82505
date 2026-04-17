@@ -1,0 +1,22 @@
+/**
+ * plugins/web-search-providers.shared.ts
+ * Web search provider registry shared between plugins & tools.
+ */
+export type WebSearchProvider = {
+    id: string;
+    name: string;
+    search: (query: string, options?: {
+        maxResults?: number;
+    }) => Promise<WebSearchResult[]>;
+};
+export type WebSearchResult = {
+    title: string;
+    url: string;
+    snippet: string;
+    source: string;
+};
+export declare function registerSearchProvider(provider: WebSearchProvider): void;
+export declare function getSearchProvider(id: string): WebSearchProvider | undefined;
+export declare function listSearchProviders(): WebSearchProvider[];
+export declare function resetSearchProviders(): void;
+//# sourceMappingURL=web-search-providers.shared.d.ts.map

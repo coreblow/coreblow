@@ -1,0 +1,100 @@
+/**
+ * CoreBlow Session Write Lock
+ *
+ * Implements a session-level write lock to prevent concurrent mutations
+ * on the same session. Ensures transcript integrity during multi-turn
+ * conversations and tool execution.
+ *
+ * Equivalent: CoreBlow src/agents/session-write-lock.ts (591 LOC)
+ */
+export interface LockState {
+    sessionId: string;
+    holder: string;
+    acquiredAt: number;
+    expiresAt: number;
+    depth: number;
+    metadata?: Record<string, unknown>;
+}
+export interface LockOptions {
+    /** Who is acquiring the lock */
+    holder: string;
+    /** Lock timeout in milliseconds (default: 30000) */
+    timeoutMs?: number;
+    /** Whether to allow re-entrant locking by the same holder */
+    reentrant?: boolean;
+    /** Maximum wait time for acquiring the lock */
+    waitMs?: number;
+    /** Metadata to attach to the lock */
+    metadata?: Record<string, unknown>;
+}
+export interface LockResult {
+    acquired: boolean;
+    lock?: LockState;
+    error?: string;
+    waitedMs?: number;
+}
+export interface LockStats {
+    activeLocks: number;
+    totalAcquired: number;
+    totalReleased: number;
+    totalTimedOut: number;
+    totalContended: number;
+    averageHoldTimeMs: number;
+}
+export declare class SessionWriteLockManager {
+    private cleanupIntervalMs;
+    private locks;
+    private waitQueues;
+    private stats;
+    private cleanupInterval;
+    constructor(cleanupIntervalMs?: number);
+    /**
+     * Acquire a write lock for a session
+     */
+    acquire(sessionId: string, options: LockOptions): Promise<LockResult>;
+    /**
+     * Release a write lock
+     */
+    release(sessionId: string, holder: string): boolean;
+    /**
+     * Force-release a lock (for cleanup/admin)
+     */
+    forceRelease(sessionId: string): boolean;
+    /**
+     * Check if a session is locked
+     */
+    isLocked(sessionId: string): boolean;
+    /**
+     * Get lock info for a session
+     */
+    getLockInfo(sessionId: string): LockState | null;
+    /**
+     * Execute a function while holding the lock
+     */
+    withLock<T>(sessionId: string, options: LockOptions, fn: () => Promise<T>): Promise<{
+        result?: T;
+        error?: string;
+    }>;
+    /**
+     * Get lock statistics
+     */
+    getStats(): LockStats;
+    /**
+     * List all active locks
+     */
+    listActiveLocks(): LockState[];
+    /**
+     * Extend a lock's expiry
+     */
+    extend(sessionId: string, holder: string, additionalMs: number): boolean;
+    /**
+     * Shutdown the lock manager
+     */
+    shutdown(): void;
+    private waitForLock;
+    private processWaitQueue;
+    private startCleanup;
+}
+export declare function getSessionWriteLockManager(): SessionWriteLockManager;
+export declare function resetSessionWriteLockManager(): void;
+//# sourceMappingURL=session-write-lock.d.ts.map

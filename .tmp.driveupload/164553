@@ -1,0 +1,394 @@
+import { BaseListener } from "../abstracts/BaseListener.js";
+import { ListenerEvent, type ListenerEventData, type ListenerEventRawData } from "../types/index.js";
+import type { Client } from "./Client.js";
+export declare abstract class GuildAvailableListener extends BaseListener<typeof ListenerEvent.GuildAvailable> {
+    readonly type: "GUILD_AVAILABLE";
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildUnavailableListener extends BaseListener<typeof ListenerEvent.GuildUnavailable> {
+    readonly type: "GUILD_UNAVAILABLE";
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class ApplicationAuthorizedListener extends BaseListener<typeof ListenerEvent.ApplicationAuthorized> {
+    readonly type = ApplicationWebhookEventType.ApplicationAuthorized;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class EntitlementCreateListener extends BaseListener<typeof ListenerEvent.EntitlementCreate> {
+    readonly type = ApplicationWebhookEventType.EntitlementCreate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class QuestUserEnrollmentListener extends BaseListener<typeof ListenerEvent.QuestUserEnrollment> {
+    readonly type = ApplicationWebhookEventType.QuestUserEnrollment;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]]): ListenerEventData[this["type"]];
+}
+export declare abstract class ApplicationCommandPermissionsUpdateListener extends BaseListener<typeof ListenerEvent.ApplicationCommandPermissionsUpdate> {
+    readonly type = GatewayDispatchEvents.ApplicationCommandPermissionsUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class AutoModerationActionExecutionListener extends BaseListener<typeof ListenerEvent.AutoModerationActionExecution> {
+    readonly type = GatewayDispatchEvents.AutoModerationActionExecution;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class AutoModerationRuleCreateListener extends BaseListener<typeof ListenerEvent.AutoModerationRuleCreate> {
+    readonly type = GatewayDispatchEvents.AutoModerationRuleCreate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class AutoModerationRuleDeleteListener extends BaseListener<typeof ListenerEvent.AutoModerationRuleDelete> {
+    readonly type = GatewayDispatchEvents.AutoModerationRuleDelete;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class AutoModerationRuleUpdateListener extends BaseListener<typeof ListenerEvent.AutoModerationRuleUpdate> {
+    readonly type = GatewayDispatchEvents.AutoModerationRuleUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class ChannelCreateListener extends BaseListener<typeof ListenerEvent.ChannelCreate> {
+    readonly type = GatewayDispatchEvents.ChannelCreate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class ChannelDeleteListener extends BaseListener<typeof ListenerEvent.ChannelDelete> {
+    readonly type = GatewayDispatchEvents.ChannelDelete;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class ChannelPinsUpdateListener extends BaseListener<typeof ListenerEvent.ChannelPinsUpdate> {
+    readonly type = GatewayDispatchEvents.ChannelPinsUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class ChannelUpdateListener extends BaseListener<typeof ListenerEvent.ChannelUpdate> {
+    readonly type = GatewayDispatchEvents.ChannelUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class EntitlementDeleteListener extends BaseListener<typeof ListenerEvent.EntitlementDelete> {
+    readonly type = ApplicationWebhookEventType.EntitlementDelete;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class EntitlementUpdateListener extends BaseListener<typeof ListenerEvent.EntitlementUpdate> {
+    readonly type = ApplicationWebhookEventType.EntitlementUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildAuditLogEntryCreateListener extends BaseListener<typeof ListenerEvent.GuildAuditLogEntryCreate> {
+    readonly type = GatewayDispatchEvents.GuildAuditLogEntryCreate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildBanAddListener extends BaseListener<typeof ListenerEvent.GuildBanAdd> {
+    readonly type = GatewayDispatchEvents.GuildBanAdd;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildBanRemoveListener extends BaseListener<typeof ListenerEvent.GuildBanRemove> {
+    readonly type = GatewayDispatchEvents.GuildBanRemove;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildCreateListener extends BaseListener<typeof ListenerEvent.GuildCreate> {
+    readonly type = GatewayDispatchEvents.GuildCreate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildDeleteListener extends BaseListener<typeof ListenerEvent.GuildDelete> {
+    readonly type = GatewayDispatchEvents.GuildDelete;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildEmojisUpdateListener extends BaseListener<typeof ListenerEvent.GuildEmojisUpdate> {
+    readonly type = GatewayDispatchEvents.GuildEmojisUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildIntegrationsUpdateListener extends BaseListener<typeof ListenerEvent.GuildIntegrationsUpdate> {
+    readonly type = GatewayDispatchEvents.GuildIntegrationsUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildMemberAddListener extends BaseListener<typeof ListenerEvent.GuildMemberAdd> {
+    readonly type = GatewayDispatchEvents.GuildMemberAdd;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildMemberRemoveListener extends BaseListener<typeof ListenerEvent.GuildMemberRemove> {
+    readonly type = GatewayDispatchEvents.GuildMemberRemove;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildMemberUpdateListener extends BaseListener<typeof ListenerEvent.GuildMemberUpdate> {
+    readonly type = GatewayDispatchEvents.GuildMemberUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildMembersChunkListener extends BaseListener<typeof ListenerEvent.GuildMembersChunk> {
+    readonly type = GatewayDispatchEvents.GuildMembersChunk;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildRoleCreateListener extends BaseListener<typeof ListenerEvent.GuildRoleCreate> {
+    readonly type = GatewayDispatchEvents.GuildRoleCreate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildRoleDeleteListener extends BaseListener<typeof ListenerEvent.GuildRoleDelete> {
+    readonly type = GatewayDispatchEvents.GuildRoleDelete;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildRoleUpdateListener extends BaseListener<typeof ListenerEvent.GuildRoleUpdate> {
+    readonly type = GatewayDispatchEvents.GuildRoleUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildScheduledEventCreateListener extends BaseListener<typeof ListenerEvent.GuildScheduledEventCreate> {
+    readonly type = GatewayDispatchEvents.GuildScheduledEventCreate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildScheduledEventDeleteListener extends BaseListener<typeof ListenerEvent.GuildScheduledEventDelete> {
+    readonly type = GatewayDispatchEvents.GuildScheduledEventDelete;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildScheduledEventUpdateListener extends BaseListener<typeof ListenerEvent.GuildScheduledEventUpdate> {
+    readonly type = GatewayDispatchEvents.GuildScheduledEventUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildScheduledEventUserAddListener extends BaseListener<typeof ListenerEvent.GuildScheduledEventUserAdd> {
+    readonly type = GatewayDispatchEvents.GuildScheduledEventUserAdd;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildScheduledEventUserRemoveListener extends BaseListener<typeof ListenerEvent.GuildScheduledEventUserRemove> {
+    readonly type = GatewayDispatchEvents.GuildScheduledEventUserRemove;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildSoundboardSoundCreateListener extends BaseListener<typeof ListenerEvent.GuildSoundboardSoundCreate> {
+    readonly type = GatewayDispatchEvents.GuildSoundboardSoundCreate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildSoundboardSoundDeleteListener extends BaseListener<typeof ListenerEvent.GuildSoundboardSoundDelete> {
+    readonly type = GatewayDispatchEvents.GuildSoundboardSoundDelete;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildSoundboardSoundUpdateListener extends BaseListener<typeof ListenerEvent.GuildSoundboardSoundUpdate> {
+    readonly type = GatewayDispatchEvents.GuildSoundboardSoundUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildSoundboardSoundsUpdateListener extends BaseListener<typeof ListenerEvent.GuildSoundboardSoundsUpdate> {
+    readonly type = GatewayDispatchEvents.GuildSoundboardSoundsUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildStickersUpdateListener extends BaseListener<typeof ListenerEvent.GuildStickersUpdate> {
+    readonly type = GatewayDispatchEvents.GuildStickersUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class GuildUpdateListener extends BaseListener<typeof ListenerEvent.GuildUpdate> {
+    readonly type = GatewayDispatchEvents.GuildUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class IntegrationCreateListener extends BaseListener<typeof ListenerEvent.IntegrationCreate> {
+    readonly type = GatewayDispatchEvents.IntegrationCreate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class IntegrationDeleteListener extends BaseListener<typeof ListenerEvent.IntegrationDelete> {
+    readonly type = GatewayDispatchEvents.IntegrationDelete;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class IntegrationUpdateListener extends BaseListener<typeof ListenerEvent.IntegrationUpdate> {
+    readonly type = GatewayDispatchEvents.IntegrationUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class InteractionCreateListener extends BaseListener<typeof ListenerEvent.InteractionCreate> {
+    readonly type = GatewayDispatchEvents.InteractionCreate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class InviteCreateListener extends BaseListener<typeof ListenerEvent.InviteCreate> {
+    readonly type = GatewayDispatchEvents.InviteCreate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class InviteDeleteListener extends BaseListener<typeof ListenerEvent.InviteDelete> {
+    readonly type = GatewayDispatchEvents.InviteDelete;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class MessageCreateListener extends BaseListener<typeof ListenerEvent.MessageCreate> {
+    readonly type = GatewayDispatchEvents.MessageCreate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class MessageDeleteListener extends BaseListener<typeof ListenerEvent.MessageDelete> {
+    readonly type = GatewayDispatchEvents.MessageDelete;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class MessageDeleteBulkListener extends BaseListener<typeof ListenerEvent.MessageDeleteBulk> {
+    readonly type = GatewayDispatchEvents.MessageDeleteBulk;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class MessageReactionAddListener extends BaseListener<typeof ListenerEvent.MessageReactionAdd> {
+    readonly type = GatewayDispatchEvents.MessageReactionAdd;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class MessageReactionRemoveListener extends BaseListener<typeof ListenerEvent.MessageReactionRemove> {
+    readonly type = GatewayDispatchEvents.MessageReactionRemove;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class MessageReactionRemoveAllListener extends BaseListener<typeof ListenerEvent.MessageReactionRemoveAll> {
+    readonly type = GatewayDispatchEvents.MessageReactionRemoveAll;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class MessageReactionRemoveEmojiListener extends BaseListener<typeof ListenerEvent.MessageReactionRemoveEmoji> {
+    readonly type = GatewayDispatchEvents.MessageReactionRemoveEmoji;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class MessageUpdateListener extends BaseListener<typeof ListenerEvent.MessageUpdate> {
+    readonly type = GatewayDispatchEvents.MessageUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class PresenceUpdateListener extends BaseListener<typeof ListenerEvent.PresenceUpdate> {
+    readonly type = GatewayDispatchEvents.PresenceUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class ReadyListener extends BaseListener<typeof ListenerEvent.Ready> {
+    readonly type = GatewayDispatchEvents.Ready;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class ResumedListener extends BaseListener<typeof ListenerEvent.Resumed> {
+    readonly type = GatewayDispatchEvents.Resumed;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]]): ListenerEventData[this["type"]];
+}
+export declare abstract class StageInstanceCreateListener extends BaseListener<typeof ListenerEvent.StageInstanceCreate> {
+    readonly type = GatewayDispatchEvents.StageInstanceCreate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class StageInstanceDeleteListener extends BaseListener<typeof ListenerEvent.StageInstanceDelete> {
+    readonly type = GatewayDispatchEvents.StageInstanceDelete;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class StageInstanceUpdateListener extends BaseListener<typeof ListenerEvent.StageInstanceUpdate> {
+    readonly type = GatewayDispatchEvents.StageInstanceUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class SubscriptionCreateListener extends BaseListener<typeof ListenerEvent.SubscriptionCreate> {
+    readonly type = GatewayDispatchEvents.SubscriptionCreate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class SubscriptionDeleteListener extends BaseListener<typeof ListenerEvent.SubscriptionDelete> {
+    readonly type = GatewayDispatchEvents.SubscriptionDelete;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class SubscriptionUpdateListener extends BaseListener<typeof ListenerEvent.SubscriptionUpdate> {
+    readonly type = GatewayDispatchEvents.SubscriptionUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class ThreadCreateListener extends BaseListener<typeof ListenerEvent.ThreadCreate> {
+    readonly type = GatewayDispatchEvents.ThreadCreate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class ThreadDeleteListener extends BaseListener<typeof ListenerEvent.ThreadDelete> {
+    readonly type = GatewayDispatchEvents.ThreadDelete;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class ThreadListSyncListener extends BaseListener<typeof ListenerEvent.ThreadListSync> {
+    readonly type = GatewayDispatchEvents.ThreadListSync;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class ThreadMemberUpdateListener extends BaseListener<typeof ListenerEvent.ThreadMemberUpdate> {
+    readonly type = GatewayDispatchEvents.ThreadMemberUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class ThreadMembersUpdateListener extends BaseListener<typeof ListenerEvent.ThreadMembersUpdate> {
+    readonly type = GatewayDispatchEvents.ThreadMembersUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class ThreadUpdateListener extends BaseListener<typeof ListenerEvent.ThreadUpdate> {
+    readonly type = GatewayDispatchEvents.ThreadUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class TypingStartListener extends BaseListener<typeof ListenerEvent.TypingStart> {
+    readonly type = GatewayDispatchEvents.TypingStart;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class UserUpdateListener extends BaseListener<typeof ListenerEvent.UserUpdate> {
+    readonly type = GatewayDispatchEvents.UserUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class VoiceServerUpdateListener extends BaseListener<typeof ListenerEvent.VoiceServerUpdate> {
+    readonly type = GatewayDispatchEvents.VoiceServerUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class VoiceStateUpdateListener extends BaseListener<typeof ListenerEvent.VoiceStateUpdate> {
+    readonly type = GatewayDispatchEvents.VoiceStateUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class WebhooksUpdateListener extends BaseListener<typeof ListenerEvent.WebhooksUpdate> {
+    readonly type = GatewayDispatchEvents.WebhooksUpdate;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class MessagePollVoteAddListener extends BaseListener<typeof ListenerEvent.MessagePollVoteAdd> {
+    readonly type = GatewayDispatchEvents.MessagePollVoteAdd;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class MessagePollVoteRemoveListener extends BaseListener<typeof ListenerEvent.MessagePollVoteRemove> {
+    readonly type = GatewayDispatchEvents.MessagePollVoteRemove;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+export declare abstract class VoiceChannelEffectSendListener extends BaseListener<typeof ListenerEvent.VoiceChannelEffectSend> {
+    readonly type = GatewayDispatchEvents.VoiceChannelEffectSend;
+    abstract handle(data: ListenerEventData[this["type"]], client: Client): Promise<void>;
+    parseRawData(data: ListenerEventRawData[this["type"]], client: Client): ListenerEventData[this["type"]];
+}
+//# sourceMappingURL=Listener.d.ts.map

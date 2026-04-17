@@ -1,0 +1,8 @@
+export declare class AuthProfileStore {
+    private data;
+    save(id: string, profile: unknown): void;
+    load(id: string): {} | null;
+    delete(id: string): boolean;
+    listAll(): any[];
+}
+//# sourceMappingURL=store.d.ts.map

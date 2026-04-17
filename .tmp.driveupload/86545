@@ -1,0 +1,66 @@
+/**
+ * CoreBlow — Content Filter
+ *
+ * Filters harmful, inappropriate, or policy-violating
+ * content. Supports keyword-based, regex, and category
+ * filtering with configurable severity levels.
+ */
+/** Filter rule */
+export interface FilterRule {
+    id: string;
+    category: string;
+    patterns: RegExp[];
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    action: 'flag' | 'block' | 'redact';
+    enabled: boolean;
+}
+/** Filter result */
+export interface FilterResult {
+    passed: boolean;
+    violations: Array<{
+        ruleId: string;
+        category: string;
+        severity: string;
+        match: string;
+        action: string;
+    }>;
+    filteredContent?: string;
+}
+/**
+ * CoreBlow Content Filter
+ */
+export declare class ContentFilter {
+    private rules;
+    private idCounter;
+    private stats;
+    constructor();
+    /**
+     * Add a filter rule.
+     */
+    addRule(category: string, patterns: RegExp[], severity: FilterRule['severity'], action: FilterRule['action']): string;
+    /**
+     * Scan content.
+     */
+    scan(content: string): FilterResult;
+    /**
+     * Enable/disable a rule.
+     */
+    setEnabled(ruleId: string, enabled: boolean): boolean;
+    /**
+     * Get stats.
+     */
+    getStats(): typeof this.stats;
+    /**
+     * List rules.
+     */
+    list(): Array<{
+        id: string;
+        category: string;
+        severity: string;
+        action: string;
+        enabled: boolean;
+    }>;
+    /** Count rules */
+    count(): number;
+}
+//# sourceMappingURL=content-filter.d.ts.map

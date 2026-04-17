@@ -1,0 +1,2 @@
+export const queues = new Map();
+//# sourceMappingURL=queue.data.js.map

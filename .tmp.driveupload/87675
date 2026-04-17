@@ -1,0 +1,2 @@
+export declare function hasActiveRun(sessionKey: string): boolean;
+//# sourceMappingURL=has-active-run.d.ts.map

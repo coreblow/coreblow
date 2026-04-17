@@ -1,0 +1,3 @@
+/** Commands barrel export */
+export { CommandRegistry } from './registry.js';
+//# sourceMappingURL=index.js.map

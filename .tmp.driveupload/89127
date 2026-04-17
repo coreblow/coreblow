@@ -1,0 +1,4 @@
+/** Tool policy pipeline — chain multiple policies. */
+import { ToolPolicy, type ToolPolicyResult } from './tool-policy.js';
+export declare function evaluatePipeline(policies: ToolPolicy[], toolName: string): ToolPolicyResult;
+//# sourceMappingURL=tool-policy-pipeline.d.ts.map

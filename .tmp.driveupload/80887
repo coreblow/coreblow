@@ -1,0 +1,212 @@
+/**
+ * CoreBlow — IRC Channel Adapter
+ *
+ * Production adapter for IRC protocol. Handles connection,
+ * channel join/part, messaging, nick tracking, and CTCP.
+ * Uses raw TCP socket — zero external dependencies.
+ */
+import { createChildLogger } from '../utils/logger.js';
+const log = createChildLogger('channel:irc');
+/**
+ * CoreBlow IRC Adapter
+ *
+ * Implements IRC protocol via raw TCP. Handles PING/PONG keepalive,
+ * nick collision recovery, and channel management.
+ */
+export class IRCAdapter {
+    config;
+    socket = null;
+    messageHandler = null;
+    running = false;
+    buffer = '';
+    currentNick;
+    joinedChannels = new Set();
+    constructor(config) {
+        this.config = {
+            port: config.ssl ? 6697 : 6667,
+            username: config.nick,
+            realname: `CoreBlow IRC Bridge`,
+            autoReconnect: true,
+            reconnectDelayMs: 5000,
+            commandPrefix: '!',
+            ...config,
+        };
+        this.currentNick = config.nick;
+    }
+    onMessage(handler) {
+        this.messageHandler = handler;
+    }
+    /** Connect to IRC server */
+    async connect() {
+        const net = await import('node:net');
+        return new Promise((resolve, reject) => {
+            const socket = new net.Socket();
+            this.socket = socket;
+            socket.setEncoding((this.config.encoding ?? 'utf-8'));
+            socket.on('connect', () => {
+                if (this.config.password)
+                    this.raw(`PASS ${this.config.password}`);
+                this.raw(`NICK ${this.config.nick}`);
+                this.raw(`USER ${this.config.username} 0 * :${this.config.realname}`);
+                this.running = true;
+                log.info({ server: this.config.server, nick: this.config.nick }, 'IRC connected');
+                resolve();
+            });
+            socket.on('data', (data) => this.handleData(data));
+            socket.on('error', (err) => {
+                log.error({ err }, 'IRC socket error');
+                if (!this.running)
+                    reject(err);
+            });
+            socket.on('close', () => {
+                this.running = false;
+                if (this.config.autoReconnect) {
+                    setTimeout(() => this.connect().catch(() => { }), this.config.reconnectDelayMs);
+                }
+            });
+            socket.connect(this.config.port, this.config.server);
+        });
+    }
+    /** Disconnect from IRC server */
+    async disconnect(quitMessage = 'CoreBlow signing off') {
+        this.config.autoReconnect = false;
+        if (this.socket) {
+            this.raw(`QUIT :${quitMessage}`);
+            this.socket.destroy();
+            this.socket = null;
+        }
+        this.running = false;
+        this.joinedChannels.clear();
+        log.info('IRC disconnected');
+    }
+    /** Send a message to a channel or user */
+    async sendMessage(target, text) {
+        const lines = text.split('\n');
+        for (const line of lines) {
+            if (line.trim()) {
+                this.raw(`PRIVMSG ${target} :${line}`);
+            }
+        }
+    }
+    /** Send a NOTICE */
+    async sendNotice(target, text) {
+        this.raw(`NOTICE ${target} :${text}`);
+    }
+    /** Join a channel */
+    async joinChannel(channel, key) {
+        this.raw(key ? `JOIN ${channel} ${key}` : `JOIN ${channel}`);
+        this.joinedChannels.add(channel);
+    }
+    /** Part (leave) a channel */
+    async partChannel(channel, reason) {
+        this.raw(reason ? `PART ${channel} :${reason}` : `PART ${channel}`);
+        this.joinedChannels.delete(channel);
+    }
+    /** Change nick */
+    async setNick(nick) {
+        this.raw(`NICK ${nick}`);
+        this.currentNick = nick;
+    }
+    /** Get adapter status */
+    getStatus() {
+        return {
+            running: this.running,
+            nick: this.currentNick,
+            channels: [...this.joinedChannels],
+            server: this.config.server,
+        };
+    }
+    // === Private ===
+    raw(line) {
+        if (!this.socket || this.socket.destroyed)
+            return;
+        this.socket.write(`${line}\r\n`);
+    }
+    handleData(data) {
+        this.buffer += data;
+        const lines = this.buffer.split('\r\n');
+        this.buffer = lines.pop() ?? '';
+        for (const line of lines) {
+            if (!line)
+                continue;
+            const parsed = this.parseLine(line);
+            if (!parsed)
+                continue;
+            this.handleMessage(parsed);
+        }
+    }
+    parseLine(line) {
+        let prefix;
+        let rest = line;
+        if (rest.startsWith(':')) {
+            const spaceIdx = rest.indexOf(' ');
+            if (spaceIdx < 0)
+                return null;
+            prefix = rest.slice(1, spaceIdx);
+            rest = rest.slice(spaceIdx + 1);
+        }
+        const parts = rest.split(' ');
+        const command = parts.shift()?.toUpperCase() ?? '';
+        const params = [];
+        for (let i = 0; i < parts.length; i++) {
+            if (parts[i].startsWith(':')) {
+                params.push(parts.slice(i).join(' ').slice(1));
+                break;
+            }
+            params.push(parts[i]);
+        }
+        let nick;
+        let user;
+        let host;
+        if (prefix) {
+            const bangIdx = prefix.indexOf('!');
+            const atIdx = prefix.indexOf('@');
+            if (bangIdx > 0) {
+                nick = prefix.slice(0, bangIdx);
+                user = atIdx > bangIdx ? prefix.slice(bangIdx + 1, atIdx) : prefix.slice(bangIdx + 1);
+                host = atIdx > 0 ? prefix.slice(atIdx + 1) : undefined;
+            }
+            else {
+                nick = prefix;
+            }
+        }
+        return { prefix, command, params, nick, user, host, raw: line };
+    }
+    handleMessage(msg) {
+        switch (msg.command) {
+            case 'PING':
+                this.raw(`PONG :${msg.params[0] ?? ''}`);
+                break;
+            case '001': // RPL_WELCOME
+                for (const ch of this.config.channels) {
+                    this.joinChannel(ch);
+                }
+                break;
+            case '433': // ERR_NICKNAMEINUSE
+                this.currentNick += '_';
+                this.raw(`NICK ${this.currentNick}`);
+                break;
+            case 'PRIVMSG': {
+                const target = msg.params[0] ?? '';
+                const text = msg.params[1] ?? '';
+                const isPrivate = target === this.currentNick;
+                if (this.messageHandler && msg.nick) {
+                    this.messageHandler({
+                        nick: msg.nick,
+                        channel: isPrivate ? msg.nick : target,
+                        text,
+                        isPrivate,
+                        raw: msg,
+                    });
+                }
+                break;
+            }
+            case 'NICK':
+                if (msg.nick === this.currentNick) {
+                    this.currentNick = msg.params[0] ?? this.currentNick;
+                }
+                break;
+        }
+    }
+}
+//# sourceMappingURL=irc-adapter.js.map

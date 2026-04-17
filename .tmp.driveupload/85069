@@ -1,0 +1,51 @@
+/**
+ * CoreBlow — Memory Bootstrap
+ *
+ * Factory that creates a MemoryOrchestrator from CoreBlow config.
+ * Resolves ~ paths, validates config, and wires everything up.
+ */
+import { MemoryOrchestrator } from './memory-orchestrator.js';
+/**
+ * Memory config from CoreBlow config schema.
+ * Matches the shape of ValidatedCoreBlowConfig['memory'].
+ */
+export interface MemorySchemaConfig {
+    transcriptDir: string;
+    defaultRetrievalCount: number;
+    maxFileSizeBytes: number;
+    compactionStrategy: 'truncate' | 'summarize';
+    rag: {
+        enabled: boolean;
+        engine: 'local' | 'ollama' | 'openai' | 'gemini' | 'voyage' | 'mistral' | 'auto';
+        apiKey?: string;
+        maxDocuments: number;
+    };
+}
+/**
+ * Create a MemoryOrchestrator from CoreBlow config.
+ *
+ * Usage:
+ * ```ts
+ * import { validateConfig } from './config/config.schema.js';
+ * import { createMemoryOrchestrator } from './memory/memory-bootstrap.js';
+ *
+ * const config = validateConfig(rawConfig);
+ * const memory = createMemoryOrchestrator(config.memory);
+ *
+ * // Record messages
+ * memory.recordMessage('session-1', { role: 'user', content: 'Hello' });
+ *
+ * // Build context for LLM
+ * const ctx = await memory.buildContext('session-1', 'current query');
+ * console.log(ctx.contextText);
+ * ```
+ */
+export declare function createMemoryOrchestrator(memoryConfig: MemorySchemaConfig): MemoryOrchestrator;
+/**
+ * Create a default MemoryOrchestrator with sensible defaults.
+ * Useful for quick setup without a config file.
+ *
+ * Default: JSONL-only, no RAG, ~/.coreblow/sessions/
+ */
+export declare function createDefaultMemoryOrchestrator(): MemoryOrchestrator;
+//# sourceMappingURL=memory-bootstrap.d.ts.map

@@ -1,0 +1,6 @@
+/**
+ * Discord Action Rows — Container for interactive components.
+ */
+export declare function createActionRow(components: Record<string, unknown>[]): Record<string, unknown>;
+export declare function createMultiRow(rows: Record<string, unknown>[][]): Record<string, unknown>[];
+//# sourceMappingURL=action-rows.d.ts.map

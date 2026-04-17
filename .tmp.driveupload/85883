@@ -1,0 +1,45 @@
+/**
+ * CoreBlow — Performance Monitor
+ *
+ * Provides high-resolution timing utilities to measure
+ * sub-millisecond latencies for hot-path analysis.
+ */
+export interface TimingStats {
+    count: number;
+    totalMs: number;
+    meanMs: number;
+    minMs: number;
+    maxMs: number;
+}
+/**
+ * CoreBlow Performance Monitor
+ */
+export declare class PerformanceMonitor {
+    private timings;
+    /**
+     * Start a timer. Returns a function to stop the timer and record it.
+     */
+    startTimer(label: string): () => number;
+    /**
+     * Wraps an async function and measures its execution time.
+     */
+    monitorAsync<T>(label: string, fn: () => Promise<T>): Promise<T>;
+    /**
+     * Wraps a synchronous function and measures its execution time.
+     */
+    monitorSync<T>(label: string, fn: () => T): T;
+    /**
+     * Get statistics for a specific label.
+     */
+    getStats(label: string): TimingStats | null;
+    /**
+     * Get aggregate statistics for all tracked labels.
+     */
+    getAllStats(): Record<string, TimingStats>;
+    /**
+     * Clear recorded timings.
+     */
+    clear(): void;
+    private record;
+}
+//# sourceMappingURL=performance-monitor.d.ts.map

@@ -1,0 +1,203 @@
+/**
+ * CoreBlow Gateway — Channel Policy Engine (Facade)
+ *
+ * CoreBlow-specific — tidak ada di OpenClaw.
+ *
+ * Mengorkestrasikan semua policy checks dalam satu panggilan:
+ * 1. Allowlist check (siapa yang boleh mengirim)
+ * 2. Command gating (apakah command authorized)
+ * 3. Mention gating (apakah bot di-mention jika wajib)
+ * 4. Debounce resolution (berapa ms debounce untuk channel ini)
+ *
+ * Channel adapter cukup panggil `applyChannelPolicy()` satu kali
+ * tanpa perlu tahu detail setiap policy engine individu.
+ *
+ * @example
+ * // Di Discord adapter:
+ * const policy = applyChannelPolicy({
+ *   config: channelConfig.policy,
+ *   message: {
+ *     senderId: message.author.id,
+ *     senderName: message.author.username,
+ *     content: message.content,
+ *     isGroup: message.guild !== null,
+ *     wasMentioned: message.mentions.has(client.user),
+ *     canDetectMention: true,
+ *     hasControlCommand: message.content.startsWith('/'),
+ *   },
+ * });
+ *
+ * if (!policy.allowed) {
+ *   return; // skip message
+ * }
+ */
+import { resolveAllowlistMatchSimple, } from './allowlist-match.js';
+import { mergeDmAllowFromSources, resolveGroupAllowFromSources, } from './allow-from.js';
+import { resolveMentionGatingWithBypass, } from './mention-gating.js';
+import { resolveControlCommandGate, } from './command-gating.js';
+import { resolveInboundDebounceMs, } from './inbound-debounce-policy.js';
+// ─── Engine ───────────────────────────────────────────────────────────────────
+/**
+ * Apply semua channel policies dalam urutan:
+ *
+ * 1. **Allowlist check** — apakah sender diizinkan?
+ * 2. **Command gating** — apakah command authorized?
+ * 3. **Mention gating** — apakah mention requirement terpenuhi?
+ * 4. **Debounce resolution** — berapa ms debounce?
+ *
+ * Short-circuit: jika allowlist deny, langsung return tanpa cek gating.
+ *
+ * @example
+ * const result = applyChannelPolicy({
+ *   config: { allowFrom: ['*'], requireMention: true },
+ *   message: {
+ *     senderId: 'user123', content: 'hello', isGroup: true,
+ *     wasMentioned: false, canDetectMention: true,
+ *   },
+ * });
+ * // result.allowed === false, result.reason === 'mention_required'
+ */
+export function applyChannelPolicy(params) {
+    const { config, message } = params;
+    const allowTextCommands = config.allowTextCommands ?? true;
+    const useAccessGroups = config.useAccessGroups ?? false;
+    const hasControlCommand = message.hasControlCommand ?? false;
+    const canDetectMention = message.canDetectMention ?? true;
+    const channelName = message.channelName ?? 'unknown';
+    // ── 1. Debounce resolution (selalu, regardless of allow/deny) ──────────
+    const debounceMs = resolveInboundDebounceMs({
+        policy: config.debounce,
+        channel: channelName,
+    });
+    const shouldDebounce = debounceMs > 0 && !message.hasMedia;
+    // ── 2. Allowlist check ─────────────────────────────────────────────────
+    const effectiveAllowFrom = message.isGroup
+        ? resolveGroupAllowFromSources({
+            allowFrom: config.allowFrom,
+            groupAllowFrom: config.groupAllowFrom,
+        })
+        : mergeDmAllowFromSources({
+            allowFrom: config.allowFrom,
+            storeAllowFrom: config.storeAllowFrom,
+            dmPolicy: config.dmPolicy,
+        });
+    // Jika allowFrom tidak dikonfigurasi sama sekali → open (allow all)
+    const hasAllowConfig = config.allowFrom !== undefined ||
+        (message.isGroup && config.groupAllowFrom !== undefined);
+    let allowlistDeny = false;
+    let allowlistMatchSource;
+    if (hasAllowConfig && effectiveAllowFrom.length === 0) {
+        // Allowlist dikonfigurasi tapi kosong → deny all
+        allowlistDeny = true;
+    }
+    else if (effectiveAllowFrom.length > 0) {
+        const allowlistMatch = resolveAllowlistMatchSimple({
+            allowFrom: effectiveAllowFrom,
+            senderId: message.senderId,
+            senderName: message.senderName,
+            allowNameMatching: config.allowNameMatching,
+        });
+        allowlistMatchSource = allowlistMatch.matchSource;
+        if (!allowlistMatch.allowed) {
+            allowlistDeny = true;
+        }
+        else if (allowlistMatch.matchSource === 'wildcard') {
+            return {
+                allowed: true,
+                reason: 'wildcard',
+                matchSource: 'wildcard',
+                shouldDebounce,
+                debounceMs,
+                gating: {
+                    allowlistChecked: true,
+                    mentionChecked: false,
+                    commandChecked: false,
+                    bypassedMentionViaCommand: false,
+                },
+            };
+        }
+    }
+    if (allowlistDeny) {
+        return {
+            allowed: false,
+            reason: 'allowlist_deny',
+            matchSource: allowlistMatchSource,
+            shouldDebounce: false,
+            debounceMs,
+            gating: {
+                allowlistChecked: true,
+                mentionChecked: false,
+                commandChecked: false,
+                bypassedMentionViaCommand: false,
+            },
+        };
+    }
+    // ── 3. Command gating ─────────────────────────────────────────────────
+    const { commandAuthorized, shouldBlock: commandBlocked } = resolveControlCommandGate({
+        useAccessGroups,
+        authorizers: [], // Authorizers diisi oleh channel adapter jika useAccessGroups
+        allowTextCommands,
+        hasControlCommand,
+        modeWhenOff: config.commandGatingMode,
+    });
+    if (commandBlocked) {
+        return {
+            allowed: false,
+            reason: 'command_blocked',
+            matchSource: allowlistMatchSource,
+            shouldDebounce: false,
+            debounceMs,
+            gating: {
+                allowlistChecked: true,
+                mentionChecked: false,
+                commandChecked: true,
+                bypassedMentionViaCommand: false,
+            },
+        };
+    }
+    // ── 4. Mention gating (hanya untuk grup) ─────────────────────────────
+    const requireMention = config.requireMention ?? false;
+    // DM (isGroup=false) → skip mention check, mention tidak relevan di DM
+    const effectiveRequireMention = requireMention && message.isGroup;
+    const mentionResult = resolveMentionGatingWithBypass({
+        isGroup: message.isGroup,
+        requireMention: effectiveRequireMention,
+        canDetectMention,
+        wasMentioned: message.wasMentioned,
+        implicitMention: false,
+        hasAnyMention: message.hasAnyMention,
+        allowTextCommands,
+        hasControlCommand,
+        commandAuthorized,
+    });
+    if (mentionResult.shouldSkip) {
+        return {
+            allowed: false,
+            reason: 'mention_required',
+            matchSource: allowlistMatchSource,
+            shouldDebounce: false,
+            debounceMs,
+            gating: {
+                allowlistChecked: true,
+                mentionChecked: true,
+                commandChecked: true,
+                bypassedMentionViaCommand: false,
+            },
+        };
+    }
+    // ── Allow ─────────────────────────────────────────────────────────────
+    return {
+        allowed: true,
+        reason: 'allowed',
+        matchSource: allowlistMatchSource,
+        shouldDebounce,
+        debounceMs,
+        gating: {
+            allowlistChecked: hasAllowConfig,
+            mentionChecked: requireMention,
+            commandChecked: useAccessGroups || commandBlocked,
+            bypassedMentionViaCommand: mentionResult.shouldBypassMention,
+        },
+    };
+}
+//# sourceMappingURL=channel-policy-engine.js.map

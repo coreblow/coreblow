@@ -1,0 +1,11 @@
+/**
+ * routing/channel-router.ts
+ */
+export class ChannelRouter {
+    handlers = new Map();
+    register(channel, handler) { this.handlers.set(channel, handler); }
+    async route(channel, message) { const h = this.handlers.get(channel); if (!h)
+        return null; return h(message); }
+    hasChannel(ch) { return this.handlers.has(ch); }
+}
+//# sourceMappingURL=channel-router.js.map

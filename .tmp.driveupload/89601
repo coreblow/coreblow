@@ -1,0 +1,7 @@
+/** Subagent registry helper utilities. */
+export declare function generateRegistryKey(parentId: string, agentId: string): string;
+export declare function parseRegistryKey(key: string): {
+    parentId: string;
+    agentId: string;
+};
+//# sourceMappingURL=subagent-registry-helpers.d.ts.map

@@ -1,0 +1,13 @@
+export declare function isAllowedImageType(mimeType: string): boolean;
+export declare function isAllowedImageSize(sizeBytes: number): boolean;
+export declare function validateImageInput(input: {
+    mimeType: string;
+    sizeBytes: number;
+    data?: string;
+}): {
+    valid: boolean;
+    errors: string[];
+};
+export declare function isValidBase64(data: string): boolean;
+export declare function inferMimeType(filename: string): string | null;
+//# sourceMappingURL=image-sanitization.d.ts.map

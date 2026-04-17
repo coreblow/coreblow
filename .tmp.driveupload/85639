@@ -1,0 +1,75 @@
+/**
+ * CoreBlow — Rollback Manager
+ *
+ * Manages rollback points and automated rollback
+ * for deployments, configurations, and database
+ * migrations.
+ */
+/**
+ * CoreBlow Rollback Manager
+ */
+export class RollbackManager {
+    points = new Map();
+    idCounter = 0;
+    maxPoints = 50;
+    history = [];
+    /**
+     * Create a rollback point.
+     */
+    create(type, description, state) {
+        const id = `rb-${++this.idCounter}`;
+        const serialized = JSON.stringify(state);
+        const point = { id, type, description, state, createdAt: Date.now(), size: serialized.length };
+        this.points.set(id, point);
+        // Evict old points
+        if (this.points.size > this.maxPoints) {
+            const oldest = Array.from(this.points.keys())[0];
+            this.points.delete(oldest);
+        }
+        return point;
+    }
+    /**
+     * Rollback to a point.
+     */
+    rollback(pointId, reason = 'manual') {
+        const point = this.points.get(pointId);
+        if (!point)
+            return { success: false };
+        this.history.push({ pointId, rolledBackAt: Date.now(), reason });
+        return { success: true, state: { ...point.state } };
+    }
+    /**
+     * Rollback to latest of a type.
+     */
+    rollbackLatest(type, reason = 'auto') {
+        const latest = Array.from(this.points.values())
+            .filter((p) => p.type === type)
+            .sort((a, b) => b.createdAt - a.createdAt)[0];
+        if (!latest)
+            return { success: false };
+        return this.rollback(latest.id, reason);
+    }
+    /**
+     * Get a point.
+     */
+    get(id) { return this.points.get(id) ?? null; }
+    /**
+     * List by type.
+     */
+    listByType(type) {
+        return Array.from(this.points.values()).filter((p) => p.type === type);
+    }
+    /**
+     * Get rollback history.
+     */
+    getHistory() { return [...this.history]; }
+    /**
+     * Get total storage size.
+     */
+    getTotalSize() {
+        return Array.from(this.points.values()).reduce((s, p) => s + p.size, 0);
+    }
+    /** Count */
+    count() { return this.points.size; }
+}
+//# sourceMappingURL=rollback-manager.js.map

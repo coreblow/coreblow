@@ -1,0 +1,4 @@
+/** Source-managed provider configurations. */
+export type ProviderSource = 'env' | 'config' | 'oauth' | 'managed';
+export declare function resolveProviderSource(provider: string): ProviderSource;
+//# sourceMappingURL=models-config.providers.source-managed.d.ts.map

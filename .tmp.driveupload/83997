@@ -1,0 +1,5 @@
+/** plugin-sdk/line-core.ts [ADAPT] openclaw-main */
+export type { CoreBlowConfig } from "../config/config.js";
+export { getChatChannelMeta, } from "./channel-plugin-common.js";
+export { buildChannelConfigSchema } from "./channel-config-schema.js";
+//# sourceMappingURL=line-core.d.ts.map

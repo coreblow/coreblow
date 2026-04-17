@@ -1,0 +1,94 @@
+/**
+ * plugin-sdk/provider-entry.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/provider-entry.ts
+ *
+ * Canonical entry helpers for provider plugins (single and multi-provider).
+ * Adaptasi: OpenClaw* → CoreBlow* types.
+ */
+import type { PluginApiSurface, PluginProvider } from '../plugins/types.js';
+import { type CoreBlowPluginConfigSchema, type CoreBlowPluginDefinition, type CoreBlowPluginKind } from './plugin-entry.js';
+export type { CoreBlowPluginConfigSchema, CoreBlowPluginDefinition, CoreBlowPluginKind };
+export type { PluginProvider };
+export type ProviderAuthMethod = {
+    methodId: string;
+    label: string;
+    hint?: string;
+    envVar?: string;
+    wizard?: ProviderPluginWizardSetup | false;
+    expectedProviders?: string[];
+};
+export type ProviderPluginWizardSetup = {
+    choiceId: string;
+    choiceLabel: string;
+    choiceHint?: string;
+    groupId: string;
+    groupLabel: string;
+    groupHint?: string;
+    methodId: string;
+    onboardingScopes?: string[];
+    modelAllowlist?: string[];
+};
+export type ProviderCatalogContext = {
+    providerId: string;
+    configApiKey?: string | null;
+    [key: string]: unknown;
+};
+export type ProviderCatalogResult = {
+    models: Array<{
+        id: string;
+        label?: string;
+        contextLength?: number;
+        [key: string]: unknown;
+    }>;
+};
+export type SingleProviderPluginCatalogOptions = {
+    buildProvider: (ctx: ProviderCatalogContext) => unknown;
+    allowExplicitBaseUrl?: boolean;
+};
+export type SingleProviderPluginApiKeyAuthOptions = {
+    methodId: string;
+    label: string;
+    hint?: string;
+    envVar?: string;
+    wizard?: Partial<ProviderPluginWizardSetup> | false;
+    expectedProviders?: string[];
+};
+export declare function createProviderApiKeyAuthMethod(params: {
+    methodId: string;
+    label: string;
+    hint?: string;
+    envVar?: string;
+    providerId: string;
+    expectedProviders?: string[];
+    wizard?: ProviderPluginWizardSetup;
+}): ProviderAuthMethod;
+export declare function buildSingleProviderApiKeyCatalog(params: {
+    ctx: ProviderCatalogContext;
+    providerId: string;
+    buildProvider: SingleProviderPluginCatalogOptions['buildProvider'];
+    allowExplicitBaseUrl?: boolean;
+}): unknown;
+export type SingleProviderPluginOptions = {
+    id: string;
+    name: string;
+    description: string;
+    kind?: CoreBlowPluginKind;
+    configSchema?: CoreBlowPluginConfigSchema | (() => CoreBlowPluginConfigSchema);
+    provider?: {
+        id?: string;
+        label: string;
+        docsPath: string;
+        aliases?: string[];
+        envVars?: string[];
+        auth?: SingleProviderPluginApiKeyAuthOptions[];
+        catalog: SingleProviderPluginCatalogOptions;
+    } & Omit<PluginProvider, 'id' | 'label' | 'docsPath' | 'aliases' | 'envVars' | 'auth' | 'catalog'>;
+    register?: (api: PluginApiSurface) => void;
+};
+/**
+ * Canonical helper for plugins that register a single provider with API-key auth.
+ *
+ * [ADAPT] openclaw defineSingleProviderPluginEntry — same logic, CoreBlow types.
+ */
+export declare function defineSingleProviderPluginEntry(options: SingleProviderPluginOptions): CoreBlowPluginDefinition;
+//# sourceMappingURL=provider-entry.d.ts.map

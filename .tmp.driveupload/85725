@@ -1,0 +1,74 @@
+/**
+ * CoreBlow — Rate Limiter
+ *
+ * Token bucket implementation for API rate limiting
+ * and resource throttling.
+ */
+/**
+ * CoreBlow Rate Limiter
+ */
+export class RateLimiter {
+    buckets = new Map();
+    /**
+     * Get or create a bucket.
+     */
+    getBucket(key, config) {
+        if (!this.buckets.has(key)) {
+            this.buckets.set(key, {
+                tokens: config.maxTokens,
+                lastRefilled: Date.now(),
+                config,
+            });
+        }
+        const bucket = this.buckets.get(key);
+        this.refill(bucket);
+        return bucket;
+    }
+    /**
+     * Refill bucket based on time passed.
+     */
+    refill(bucket) {
+        const now = Date.now();
+        const deltaMs = now - bucket.lastRefilled;
+        // Tokens per ms
+        const tokensToPromote = deltaMs * (bucket.config.refillRate / 1000);
+        if (tokensToPromote > 0) {
+            bucket.tokens = Math.min(bucket.config.maxTokens, bucket.tokens + tokensToPromote);
+            bucket.lastRefilled = now;
+        }
+    }
+    /**
+     * Check if request is allowed, optionally consuming tokens.
+     */
+    allow(key, config, tokens = 1) {
+        const bucket = this.getBucket(key, config);
+        if (bucket.tokens >= tokens) {
+            bucket.tokens -= tokens;
+            return true;
+        }
+        return false;
+    }
+    /**
+     * Check cost but do not consume tokens.
+     */
+    inspect(key, config) {
+        const bucket = this.getBucket(key, config);
+        return {
+            allowed: bucket.tokens >= 1,
+            remaining: Math.floor(bucket.tokens),
+        };
+    }
+    /**
+     * Reset bucket explicitly.
+     */
+    reset(key) {
+        return this.buckets.delete(key);
+    }
+    /**
+     * Clear all buckets.
+     */
+    clear() {
+        this.buckets.clear();
+    }
+}
+//# sourceMappingURL=rate-limiter.js.map

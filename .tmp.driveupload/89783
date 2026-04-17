@@ -1,0 +1,6 @@
+/** Live model filtering. */
+export declare function filterModels(models: Array<{
+    id: string;
+    disabled?: boolean;
+}>, query?: string): typeof models;
+//# sourceMappingURL=live-model-filter.d.ts.map

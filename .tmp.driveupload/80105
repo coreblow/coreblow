@@ -1,0 +1,9 @@
+/**
+ * routing/message-router.ts
+ */
+export declare class MessageRouter {
+    private routes;
+    add(pattern: string, handler: Function): void;
+    route(text: string, ctx: unknown): Promise<any>;
+}
+//# sourceMappingURL=message-router.d.ts.map

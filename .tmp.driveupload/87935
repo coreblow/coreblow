@@ -1,0 +1,93 @@
+/**
+ * CoreBlow — Context Window Guard (CoreBlow Parity)
+ *
+ * Monitors and enforces context window limits during agent turns.
+ * Prevents "Maximum Token Limit Exceeded" errors by proactively
+ * pruning or compacting history before it exceeds the model's limit.
+ *
+ * Features:
+ *  - Per-model token limit awareness
+ *  - Configurable threshold (default 80% of max)
+ *  - Automatic oldest-first pruning
+ *  - Summary-based compaction for important messages
+ *  - Emergency truncation as last resort
+ */
+export interface Message {
+    role: 'system' | 'user' | 'assistant' | 'tool';
+    content: string;
+    timestamp?: number;
+    /** If true, this message is protected from pruning */
+    pinned?: boolean;
+    /** Token count (cached after first computation) */
+    _tokenCount?: number;
+}
+export interface ContextWindowConfig {
+    /** Maximum tokens for this model */
+    maxTokens: number;
+    /** Threshold ratio to trigger pruning (0.0–1.0, default 0.80) */
+    pruneThreshold?: number;
+    /** Minimum messages to always keep (default 4: system + last 3 turns) */
+    minKeepMessages?: number;
+    /** Whether to use summary compaction instead of deletion (default true) */
+    useSummaryCompaction?: boolean;
+    /** Maximum tokens reserved for response (default 4096) */
+    reservedResponseTokens?: number;
+}
+export interface ContextGuardResult {
+    /** Final messages after pruning/compaction */
+    messages: Message[];
+    /** Whether any pruning occurred */
+    pruned: boolean;
+    /** Number of messages removed */
+    removedCount: number;
+    /** Number of messages compacted (summarized) */
+    compactedCount: number;
+    /** Total tokens after pruning */
+    totalTokens: number;
+    /** Available tokens for response */
+    availableForResponse: number;
+}
+export declare function getModelTokenLimit(model: string): number;
+/**
+ * Estimate token count for a string.
+ * Uses the common ~4 chars per token approximation.
+ * For production, integrate tiktoken or similar.
+ */
+export declare function estimateTokens(text: string): number;
+export declare class ContextWindowGuard {
+    private config;
+    private pruneCount;
+    private compactCount;
+    constructor(config: ContextWindowConfig);
+    /**
+     * Create a guard with auto-detected model limits.
+     */
+    static forModel(model: string, overrides?: Partial<ContextWindowConfig>): ContextWindowGuard;
+    /**
+     * Check if messages exceed the context window and apply pruning if needed.
+     */
+    enforce(messages: Message[]): ContextGuardResult;
+    /**
+     * Compact old messages into summaries.
+     * Groups consecutive assistant/user messages and summarizes them.
+     */
+    private compactOldMessages;
+    /**
+     * Check if adding a new message would exceed the limit.
+     */
+    wouldExceed(currentMessages: Message[], newContent: string): boolean;
+    /**
+     * Get remaining token budget.
+     */
+    remainingBudget(currentMessages: Message[]): number;
+    /**
+     * Get guard statistics.
+     */
+    stats(): {
+        totalPruned: number;
+        totalCompacted: number;
+        maxTokens: number;
+        threshold: number;
+    };
+}
+//# sourceMappingURL=context-window-guard.d.ts.map

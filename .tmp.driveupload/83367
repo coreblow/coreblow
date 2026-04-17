@@ -1,0 +1,6 @@
+/** plugin-sdk/resolution-notes.ts [PORT] openclaw-main */
+export declare function formatResolvedUnresolvedNote(params: {
+    resolved: string[];
+    unresolved: string[];
+}): string | undefined;
+//# sourceMappingURL=resolution-notes.d.ts.map

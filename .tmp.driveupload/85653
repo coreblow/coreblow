@@ -1,0 +1,86 @@
+/**
+ * CoreBlow — Data Validator
+ *
+ * Validates data records against rules with detailed
+ * error reporting, batch validation, and custom rules.
+ */
+/**
+ * CoreBlow Data Validator
+ */
+export class DataValidator {
+    rules = [];
+    /**
+     * Add a rule.
+     */
+    addRule(rule) { this.rules.push(rule); return this; }
+    /**
+     * Add required rule.
+     */
+    required(field, message) { return this.addRule({ field, check: 'required', message }); }
+    /**
+     * Add min length rule.
+     */
+    minLength(field, min, message) { return this.addRule({ field, check: 'minLength', value: min, message }); }
+    /**
+     * Add max rule.
+     */
+    max(field, maxVal, message) { return this.addRule({ field, check: 'max', value: maxVal, message }); }
+    /**
+     * Add pattern rule.
+     */
+    pattern(field, regex, message) { return this.addRule({ field, check: 'pattern', value: regex, message }); }
+    /**
+     * Add custom rule.
+     */
+    custom(field, fn, message) { return this.addRule({ field, check: 'custom', customFn: fn, message }); }
+    /**
+     * Validate a record.
+     */
+    validate(record) {
+        const errors = [];
+        for (const rule of this.rules) {
+            const val = record[rule.field];
+            let passed = true;
+            switch (rule.check) {
+                case 'required':
+                    passed = val !== undefined && val !== null && val !== '';
+                    break;
+                case 'minLength':
+                    passed = typeof val === 'string' && val.length >= rule.value;
+                    break;
+                case 'maxLength':
+                    passed = typeof val === 'string' && val.length <= rule.value;
+                    break;
+                case 'min':
+                    passed = typeof val === 'number' && val >= rule.value;
+                    break;
+                case 'max':
+                    passed = typeof val === 'number' && val <= rule.value;
+                    break;
+                case 'pattern':
+                    passed = typeof val === 'string' && rule.value.test(val);
+                    break;
+                case 'custom':
+                    passed = rule.customFn ? rule.customFn(val) : true;
+                    break;
+            }
+            if (!passed) {
+                errors.push({ field: rule.field, rule: rule.check, message: rule.message ?? `${rule.field} failed ${rule.check}`, value: val });
+            }
+        }
+        return { valid: errors.length === 0, errors };
+    }
+    /**
+     * Validate many.
+     */
+    validateMany(records) {
+        return records.map((r, i) => ({ index: i, result: this.validate(r) })).filter((r) => !r.result.valid);
+    }
+    /**
+     * Reset rules.
+     */
+    reset() { this.rules = []; }
+    /** Count */
+    count() { return this.rules.length; }
+}
+//# sourceMappingURL=data-validator.js.map

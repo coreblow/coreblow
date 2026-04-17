@@ -1,0 +1,4 @@
+/** MiniMax VLM integration. */
+export declare const MINIMAX_MODELS: readonly ["minimax-01"];
+export declare function isMinimaxModel(id: string): boolean;
+//# sourceMappingURL=minimax-vlm.d.ts.map

@@ -1,0 +1,10 @@
+/** plugin-sdk/zai.ts [ADAPT] openclaw-main — Z.AI is OpenClaw-specific; CoreBlow stub. */
+export const ZAI_GLOBAL_BASE_URL = "https://api.z.ai";
+export const ZAI_CN_BASE_URL = "https://api.z.ai";
+export const ZAI_CODING_GLOBAL_BASE_URL = "https://api.z.ai";
+export const ZAI_CODING_CN_BASE_URL = "https://api.z.ai";
+export const ZAI_DEFAULT_MODEL_ID = "zai-default";
+export const ZAI_DEFAULT_MODEL_REF = "zai:zai-default";
+export function applyZaiConfig(cfg) { return cfg; }
+export function applyZaiProviderConfig(cfg) { return cfg; }
+//# sourceMappingURL=zai.js.map

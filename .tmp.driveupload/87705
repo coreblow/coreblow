@@ -1,0 +1,9 @@
+import { abortRun } from './abort-run.js';
+import { activeAborts } from './abort.data.js';
+export function createRunAbort(sessionKey, runId) {
+    abortRun(sessionKey, 'new_message');
+    const controller = new AbortController();
+    activeAborts.set(sessionKey, { controller, sessionKey, runId });
+    return controller;
+}
+//# sourceMappingURL=create-run-abort.js.map

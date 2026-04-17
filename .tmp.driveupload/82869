@@ -1,0 +1,26 @@
+/**
+ * auto-reply/group-activation.ts
+ * Group chat mention gating and activation modes.
+ * Ported from CoreBlow reference src/auto-reply/group-activation.ts.
+ */
+export type GroupActivationMode = 'mention' | 'always';
+export declare function normalizeGroupActivation(raw?: string | null): GroupActivationMode | undefined;
+export declare function parseActivationCommand(raw?: string): {
+    hasCommand: boolean;
+    mode?: GroupActivationMode;
+};
+/**
+ * Determine if a message should activate a reply in a group context.
+ */
+export declare function shouldActivateInGroup(params: {
+    mode: GroupActivationMode;
+    isMentioned: boolean;
+    isReplyToBot: boolean;
+    isDirectMessage: boolean;
+    isDM?: boolean;
+}): boolean;
+/**
+ * Resolve group activation mode from config.
+ */
+export declare function resolveGroupActivationMode(cfg: Record<string, unknown>, channel?: string): GroupActivationMode;
+//# sourceMappingURL=group-activation.d.ts.map

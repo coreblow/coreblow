@@ -1,0 +1,44 @@
+/**
+ * Plugin Base Types
+ *
+ * Foundation types shared across all plugin subsystems.
+ * Following CoreBlow's types.ts pattern but split into focused modules
+ * per CoreBlow's feature-per-file architecture.
+ */
+/** Create a PluginId from a raw string */
+export function toPluginId(raw) {
+    return raw;
+}
+/** Create an empty PluginRecord */
+export function createPluginRecord(params) {
+    return {
+        id: params.id,
+        name: params.name ?? params.id,
+        description: params.description,
+        version: params.version,
+        format: params.format ?? 'coreblow',
+        bundleFormat: params.bundleFormat,
+        bundleCapabilities: params.bundleCapabilities,
+        source: params.source,
+        rootDir: params.rootDir,
+        origin: params.origin,
+        workspaceDir: params.workspaceDir,
+        enabled: params.enabled,
+        status: params.enabled ? 'loaded' : 'disabled',
+        toolNames: [],
+        hookNames: [],
+        channelIds: [],
+        providerIds: [],
+        speechProviderIds: [],
+        imageGenerationProviderIds: [],
+        webSearchProviderIds: [],
+        gatewayMethods: [],
+        cliCommands: [],
+        services: [],
+        commands: [],
+        httpRoutes: 0,
+        hookCount: 0,
+        configSchema: params.configSchema ?? false,
+    };
+}
+//# sourceMappingURL=types.base.js.map

@@ -1,0 +1,6 @@
+/** plugin-sdk/webhook-ingress.ts [PORT] openclaw-main */
+export * from "./webhook-memory-guards.js";
+export * from "./webhook-request-guards.js";
+export { normalizeWebhookPath, resolveWebhookPath, registerPluginHttpRoute, registerWebhookTarget, registerWebhookTargetWithPluginRoute } from "./webhook-targets.js";
+export type { RegisteredWebhookTarget, RegisterWebhookTargetOptions, RegisterWebhookPluginRouteOptions } from "./webhook-targets.js";
+//# sourceMappingURL=webhook-ingress.d.ts.map

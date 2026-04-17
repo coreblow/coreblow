@@ -1,0 +1,102 @@
+/**
+ * CoreBlow Provider — OpenAI
+ *
+ * Production adapter for OpenAI API (GPT-4o, GPT-4, GPT-3.5).
+ * Implements the ModelProvider interface for the agent runtime.
+ * Supports chat completions, streaming, function calling, and
+ * vision (image) inputs.
+ */
+/**
+ * Available OpenAI models with metadata.
+ */
+export const OPENAI_MODELS = {
+    'gpt-4o': { contextWindow: 128_000, outputTokens: 16_384, vision: true },
+    'gpt-4o-mini': { contextWindow: 128_000, outputTokens: 16_384, vision: true },
+    'gpt-4-turbo': { contextWindow: 128_000, outputTokens: 4_096, vision: true },
+    'gpt-4': { contextWindow: 8_192, outputTokens: 4_096, vision: false },
+    'gpt-3.5-turbo': { contextWindow: 16_385, outputTokens: 4_096, vision: false },
+    'o1': { contextWindow: 200_000, outputTokens: 100_000, vision: true },
+    'o1-mini': { contextWindow: 128_000, outputTokens: 65_536, vision: false },
+    'o3-mini': { contextWindow: 200_000, outputTokens: 100_000, vision: false },
+};
+/**
+ * OpenAI Provider — implements ModelProvider.
+ */
+export class OpenAIProvider {
+    id = 'openai';
+    name = 'OpenAI';
+    config;
+    constructor(config) {
+        this.config = {
+            baseUrl: 'https://api.openai.com/v1',
+            defaultModel: 'gpt-4o',
+            timeout: 120_000,
+            ...config,
+        };
+    }
+    async chat(params) {
+        const model = params.model || this.config.defaultModel || 'gpt-4o';
+        const body = {
+            model,
+            messages: params.messages,
+            temperature: params.temperature ?? 0.7,
+        };
+        if (params.max_tokens)
+            body.max_tokens = params.max_tokens;
+        if (params.tools?.length)
+            body.tools = params.tools;
+        const response = await this.request('/chat/completions', body);
+        const choice = response.choices[0];
+        return {
+            content: choice.message.content ?? '',
+            toolCalls: choice.message.tool_calls?.map((tc) => ({
+                id: tc.id,
+                name: tc.function.name,
+                arguments: tc.function.arguments,
+            })),
+            usage: response.usage ? {
+                input: response.usage.prompt_tokens,
+                output: response.usage.completion_tokens,
+                total: response.usage.total_tokens,
+                cacheRead: response.usage.prompt_tokens_details?.cached_tokens,
+            } : undefined,
+            finishReason: choice.finish_reason,
+        };
+    }
+    /**
+     * List available models from OpenAI.
+     */
+    getModels() {
+        return Object.keys(OPENAI_MODELS);
+    }
+    // === Private ===
+    async request(endpoint, body) {
+        const url = `${this.config.baseUrl}${endpoint}`;
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.config.apiKey}`,
+        };
+        if (this.config.organization) {
+            headers['OpenAI-Organization'] = this.config.organization;
+        }
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(body),
+                signal: controller.signal,
+            });
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`OpenAI API error ${res.status}: ${text}`);
+            }
+            return await res.json();
+        }
+        finally {
+            clearTimeout(timeoutId);
+        }
+    }
+}
+//# sourceMappingURL=openai.js.map

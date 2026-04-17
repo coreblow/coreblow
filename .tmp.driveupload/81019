@@ -1,0 +1,20 @@
+/**
+ * channels/typing-start-guard.ts
+ * Guard that trips (disables typing) after consecutive failures.
+ * Ported from CoreBlow reference src/channels/typing-start-guard.ts.
+ */
+export type TypingStartGuard = {
+    run: (fn: () => Promise<void>) => Promise<void>;
+    reset: () => void;
+    isTripped: () => boolean;
+};
+/**
+ * Create a guard that stops retrying typing after N consecutive errors.
+ */
+export declare function createTypingStartGuard(params: {
+    isSealed: () => boolean;
+    onStartError: (err: unknown) => void;
+    maxConsecutiveFailures: number;
+    onTrip: () => void;
+}): TypingStartGuard;
+//# sourceMappingURL=typing-start-guard.d.ts.map

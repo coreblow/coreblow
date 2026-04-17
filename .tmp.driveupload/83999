@@ -1,0 +1,62 @@
+/**
+ * plugin-sdk/runtime.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/runtime.ts
+ *
+ * Minimal logger contract, runtime env adapters, and logging helpers for plugins.
+ * Adaptasi: import dari CoreBlow runtime equivalents.
+ */
+import { format } from 'node:util';
+/** Adapt a simple logger into the RuntimeEnv contract used by shared plugin SDK helpers. */
+export function createLoggerBackedRuntime(params) {
+    return {
+        log: (...args) => {
+            params.logger.info(format(...args));
+        },
+        error: (...args) => {
+            params.logger.error(format(...args));
+        },
+        writeStdout: (value) => {
+            params.logger.info(value);
+        },
+        writeJson: (value, space = 2) => {
+            params.logger.info(JSON.stringify(value, null, space > 0 ? space : undefined));
+        },
+        exit: (code) => {
+            throw params.exitError?.(code) ?? new Error(`exit ${code}`);
+        },
+    };
+}
+/** Default no-op runtime — exits via error throw. */
+export const defaultRuntime = {
+    log: (...args) => process.stdout.write(format(...args) + '\n'),
+    error: (...args) => process.stderr.write(format(...args) + '\n'),
+    writeStdout: (value) => process.stdout.write(value),
+    writeJson: (value, space = 2) => process.stdout.write(JSON.stringify(value, null, space > 0 ? space : undefined) + '\n'),
+    exit: (code) => process.exit(code),
+};
+/** Create a runtime that throws instead of calling process.exit(). */
+export function createNonExitingRuntime(base, exitMessage = 'Runtime exit not available') {
+    return createLoggerBackedRuntime({
+        logger: base,
+        exitError: () => new Error(exitMessage),
+    });
+}
+/** Reuse an existing runtime when present, otherwise synthesize one from the provided logger. */
+export function resolveRuntimeEnv(params) {
+    return params.runtime ?? createLoggerBackedRuntime(params);
+}
+/** Resolve a runtime that treats exit requests as unsupported errors instead of process termination. */
+export function resolveRuntimeEnvWithUnavailableExit(params) {
+    if (params.runtime) {
+        return resolveRuntimeEnv({
+            runtime: params.runtime,
+            logger: params.logger,
+            exitError: () => new Error(params.unavailableMessage ?? 'Runtime exit not available'),
+        });
+    }
+    return resolveRuntimeEnv({
+        logger: params.logger,
+        exitError: () => new Error(params.unavailableMessage ?? 'Runtime exit not available'),
+    });
+}
+//# sourceMappingURL=runtime.js.map

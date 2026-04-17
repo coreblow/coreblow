@@ -1,0 +1,5 @@
+/**
+ * cron/next-run.ts
+ */
+export function shouldRun(lastRun, intervalMs) { return Date.now() - lastRun >= intervalMs; }
+//# sourceMappingURL=next-run.js.map

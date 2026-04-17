@@ -1,0 +1,79 @@
+/**
+ * CoreBlow — Data Enricher
+ *
+ * Enriches data records by merging from multiple
+ * sources, computing derived fields, and applying
+ * lookup tables.
+ */
+/**
+ * CoreBlow Data Enricher
+ */
+export class DataEnricher {
+    sources = new Map();
+    derivedFields = [];
+    stats = { enriched: 0, lookupHits: 0, lookupMisses: 0 };
+    /**
+     * Add a lookup source.
+     */
+    addSource(name, lookupKey, records) {
+        const data = new Map();
+        for (const r of records) {
+            const key = String(r[lookupKey] ?? '');
+            if (key)
+                data.set(key, r);
+        }
+        this.sources.set(name, { name, lookupKey, data });
+    }
+    /**
+     * Add a derived field.
+     */
+    addDerivedField(name, fn) {
+        this.derivedFields.push({ name, fn });
+    }
+    /**
+     * Enrich a single record.
+     */
+    enrich(record, sourceNames) {
+        let result = { ...record };
+        this.stats.enriched++;
+        // Lookup enrichment
+        const srcs = sourceNames
+            ? sourceNames.map((n) => this.sources.get(n)).filter(Boolean)
+            : Array.from(this.sources.values());
+        for (const src of srcs) {
+            const key = String(result[src.lookupKey] ?? '');
+            const lookup = src.data.get(key);
+            if (lookup) {
+                result = { ...result, ...lookup };
+                this.stats.lookupHits++;
+            }
+            else {
+                this.stats.lookupMisses++;
+            }
+        }
+        // Derived fields
+        for (const { name, fn } of this.derivedFields) {
+            result[name] = fn(result);
+        }
+        return result;
+    }
+    /**
+     * Enrich many.
+     */
+    enrichMany(records, sourceNames) {
+        return records.map((r) => this.enrich(r, sourceNames));
+    }
+    /**
+     * Get stats.
+     */
+    getStats() { return { ...this.stats }; }
+    /**
+     * List sources.
+     */
+    list() {
+        return Array.from(this.sources.values()).map((s) => ({ name: s.name, lookupKey: s.lookupKey, size: s.data.size }));
+    }
+    /** Count sources */
+    count() { return this.sources.size; }
+}
+//# sourceMappingURL=data-enricher.js.map

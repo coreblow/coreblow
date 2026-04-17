@@ -1,0 +1,104 @@
+/**
+ * mcp/channel-server.ts
+ *
+ * MCP server factory for the CoreBlow channel bridge.
+ * Entry point untuk mengintegrasikan CoreBlowChannelBridge dengan McpServer.
+ *
+ * [PORT] openclaw-main/src/mcp/channel-server.ts L1-102
+ * Adaptasi:
+ *   - `createOpenClawChannelMcpServer` → `createCoreBlowChannelMcpServer`
+ *   - `serveOpenClawChannelMcp` → `serveCoreBlowChannelMcp`
+ *   - `OpenClawMcpServeOptions` → `CoreBlowMcpServeOptions`
+ *   - `{ name: 'openclaw' }` → `{ name: 'coreblow' }`
+ *   - `loadConfig` dari CoreBlow config
+ */
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { loadConfig } from '../config/config.js';
+import { VERSION } from '../version.js';
+import { CoreBlowChannelBridge } from './channel-bridge.js';
+import { ClaudePermissionRequestSchema } from './channel-shared.js';
+import { getChannelMcpCapabilities, registerChannelMcpTools } from './channel-tools.js';
+// [PORT] openclaw L20-65 (createOpenClawChannelMcpServer → createCoreBlowChannelMcpServer)
+/**
+ * Create a CoreBlow channel MCP server with bridge and lifecycle controls.
+ * Returns { server, bridge, start, close }.
+ */
+export async function createCoreBlowChannelMcpServer(opts = {}) {
+    const cfg = opts.config ?? loadConfig();
+    const claudeChannelMode = opts.claudeChannelMode ?? 'auto';
+    const capabilities = getChannelMcpCapabilities(claudeChannelMode);
+    const server = new McpServer({ name: 'coreblow', version: VERSION }, capabilities ? { capabilities } : undefined);
+    const bridge = new CoreBlowChannelBridge(cfg, {
+        gatewayUrl: opts.gatewayUrl,
+        gatewayToken: opts.gatewayToken,
+        gatewayPassword: opts.gatewayPassword,
+        claudeChannelMode,
+        verbose: opts.verbose ?? false,
+    });
+    bridge.setServer(server);
+    server.server.setNotificationHandler(ClaudePermissionRequestSchema, async ({ params }) => {
+        await bridge.handleClaudePermissionRequest({
+            requestId: params.request_id,
+            toolName: params.tool_name,
+            description: params.description,
+            inputPreview: params.input_preview,
+        });
+    });
+    registerChannelMcpTools(server, bridge);
+    return {
+        server,
+        bridge,
+        start: async () => {
+            await bridge.start();
+        },
+        close: async () => {
+            await bridge.close();
+            await server.close();
+        },
+    };
+}
+// [PORT] openclaw L67-102 (serveOpenClawChannelMcp → serveCoreBlowChannelMcp)
+/**
+ * Create and start a CoreBlow channel MCP server on stdio transport.
+ * Handles SIGINT/SIGTERM and stdin close for graceful shutdown.
+ */
+export async function serveCoreBlowChannelMcp(opts = {}) {
+    const { server, start, close } = await createCoreBlowChannelMcpServer(opts);
+    const transport = new StdioServerTransport();
+    let shuttingDown = false;
+    let resolveClosed;
+    const closed = new Promise((resolve) => {
+        resolveClosed = resolve;
+    });
+    const shutdown = () => {
+        if (shuttingDown) {
+            return;
+        }
+        shuttingDown = true;
+        process.stdin.off('end', shutdown);
+        process.stdin.off('close', shutdown);
+        process.off('SIGINT', shutdown);
+        process.off('SIGTERM', shutdown);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        transport['onclose'] = undefined;
+        void close().finally(resolveClosed);
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    transport['onclose'] = shutdown;
+    process.stdin.once('end', shutdown);
+    process.stdin.once('close', shutdown);
+    process.once('SIGINT', shutdown);
+    process.once('SIGTERM', shutdown);
+    try {
+        await server.connect(transport);
+        await start();
+        await closed;
+    }
+    finally {
+        shutdown();
+        await closed;
+    }
+}
+export { CoreBlowChannelBridge } from './channel-bridge.js';
+//# sourceMappingURL=channel-server.js.map

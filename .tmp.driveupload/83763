@@ -1,0 +1,47 @@
+/** plugin-sdk/channel-send-result.ts [ADAPT] openclaw-main */
+export type OutboundDeliveryResult = {
+    channel: string;
+    messageId?: string | null;
+    success: boolean;
+    error?: string | null;
+};
+export type ChannelPollResult = {
+    pollId?: string | null;
+    success: boolean;
+    error?: string | null;
+};
+export type ChannelOutboundAdapter = {
+    channel: string;
+    sendText?: (ctx: {
+        cfg: Record<string, unknown>;
+        channel: string;
+        accountId: string;
+        to: string;
+        text: string;
+        threadId?: string | number;
+    }) => Promise<Omit<OutboundDeliveryResult, "channel">>;
+    sendMedia?: (ctx: {
+        cfg: Record<string, unknown>;
+        channel: string;
+        accountId: string;
+        to: string;
+        mediaUrl: string;
+        caption?: string;
+    }) => Promise<Omit<OutboundDeliveryResult, "channel">>;
+    sendPoll?: (ctx: {
+        cfg: Record<string, unknown>;
+        channel: string;
+        accountId: string;
+        to: string;
+        question: string;
+        options: string[];
+    }) => Promise<ChannelPollResult>;
+};
+/** Stamp a result with the channel identifier used by shared outbound flows. */
+export declare function attachChannelToResult<T extends object>(channel: string, result: T): T & {
+    channel: string;
+};
+export declare function buildOutboundDeliveryResult(channel: string, result: Partial<OutboundDeliveryResult>): OutboundDeliveryResult;
+export declare function isSuccessfulDelivery(result: OutboundDeliveryResult): boolean;
+export declare function registerOutboundAdapter(_adapter: ChannelOutboundAdapter): () => void;
+//# sourceMappingURL=channel-send-result.d.ts.map

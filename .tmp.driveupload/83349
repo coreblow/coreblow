@@ -1,0 +1,3 @@
+/** plugin-sdk/boolean-param.ts [PORT] openclaw-main */
+export { readBooleanParam } from "./param-readers.js";
+//# sourceMappingURL=boolean-param.js.map

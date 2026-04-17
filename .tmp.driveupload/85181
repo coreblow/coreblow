@@ -1,0 +1,47 @@
+/**
+ * memory/search.ts
+ * Memory search — uses BM25 index for text-based similarity search.
+ *
+ * Replaces the stub with real BM25-based search using the existing
+ * BM25Index implementation in bm25.ts.
+ */
+export interface MemorySearchResult {
+    id: string;
+    content: string;
+    score: number;
+    metadata?: Record<string, unknown>;
+}
+export interface MemorySearchOptions {
+    topK?: number;
+    threshold?: number;
+    filter?: Record<string, unknown>;
+}
+/**
+ * Index a memory entry for search.
+ */
+export declare function indexMemory(id: string, content: string, metadata?: Record<string, unknown>): void;
+/**
+ * Remove a memory entry from the search index.
+ */
+export declare function removeMemory(id: string): boolean;
+/**
+ * Search memory entries by text similarity (BM25).
+ */
+export declare function searchMemory(query: string, options?: MemorySearchOptions): Promise<MemorySearchResult[]>;
+/**
+ * Rank results by score (highest first).
+ */
+export declare function rankResults(results: MemorySearchResult[]): MemorySearchResult[];
+/**
+ * Get index statistics.
+ */
+export declare function getSearchStats(): {
+    documents: number;
+    terms: number;
+    avgDocLength: number;
+};
+/**
+ * Clear all indexed memory.
+ */
+export declare function clearSearchIndex(): void;
+//# sourceMappingURL=search.d.ts.map

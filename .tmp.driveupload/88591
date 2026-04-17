@@ -1,0 +1,15 @@
+const PROVIDER_CAPS = {
+    openai: { supportsTools: true, supportsVision: true, supportsStreaming: true, supportsThinking: true, supportsCaching: false, supportsJsonMode: true, maxContextWindow: 200_000, maxOutputTokens: 100_000 },
+    anthropic: { supportsTools: true, supportsVision: true, supportsStreaming: true, supportsThinking: true, supportsCaching: true, supportsJsonMode: false, maxContextWindow: 200_000, maxOutputTokens: 64_000 },
+    google: { supportsTools: true, supportsVision: true, supportsStreaming: true, supportsThinking: true, supportsCaching: true, supportsJsonMode: true, maxContextWindow: 1_048_576, maxOutputTokens: 65_536 },
+    deepseek: { supportsTools: true, supportsVision: false, supportsStreaming: true, supportsThinking: true, supportsCaching: false, supportsJsonMode: true, maxContextWindow: 128_000, maxOutputTokens: 8_192 },
+    groq: { supportsTools: true, supportsVision: false, supportsStreaming: true, supportsThinking: false, supportsCaching: false, supportsJsonMode: true, maxContextWindow: 131_072, maxOutputTokens: 8_192 },
+    mistral: { supportsTools: true, supportsVision: true, supportsStreaming: true, supportsThinking: false, supportsCaching: false, supportsJsonMode: true, maxContextWindow: 128_000, maxOutputTokens: 8_192 },
+    ollama: { supportsTools: true, supportsVision: true, supportsStreaming: true, supportsThinking: false, supportsCaching: false, supportsJsonMode: true, maxContextWindow: 128_000, maxOutputTokens: 8_192 },
+};
+export function getProviderCapabilities(provider) {
+    return PROVIDER_CAPS[provider] ?? { supportsTools: true, supportsVision: false, supportsStreaming: true, supportsThinking: false, supportsCaching: false, supportsJsonMode: false, maxContextWindow: 128_000, maxOutputTokens: 8_192 };
+}
+export function supportsFeature(provider, feature) { return !!getProviderCapabilities(provider)[feature]; }
+export function listSupportedProviders() { return Object.keys(PROVIDER_CAPS); }
+//# sourceMappingURL=provider-capabilities.js.map

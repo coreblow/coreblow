@@ -1,0 +1,36 @@
+/**
+ * cli/channel-auth.ts
+ * Interactive channel authentication wizard.
+ * Ported from CoreBlow reference src/cli/channel-auth.ts.
+ */
+import { type ChannelId } from '../config/allowed-values.js';
+export interface ChannelAuthResult {
+    channel: ChannelId;
+    credentials: Record<string, string>;
+    testPassed: boolean;
+}
+export interface ChannelAuthField {
+    name: string;
+    label: string;
+    envVar: string;
+    sensitive: boolean;
+    required: boolean;
+    hint?: string;
+}
+/**
+ * Get required auth fields for a channel.
+ */
+export declare function getChannelAuthFields(channel: string): ChannelAuthField[];
+/**
+ * Check if channel auth is configured.
+ */
+export declare function isChannelAuthConfigured(channel: string, env?: NodeJS.ProcessEnv): boolean;
+/**
+ * Get missing required auth fields.
+ */
+export declare function getMissingAuthFields(channel: string, env?: NodeJS.ProcessEnv): ChannelAuthField[];
+/**
+ * Format auth status for display.
+ */
+export declare function formatChannelAuthStatus(env?: NodeJS.ProcessEnv): string;
+//# sourceMappingURL=channel-auth.d.ts.map

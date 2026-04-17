@@ -1,0 +1,3 @@
+/** Tool result guard wrapper. */
+export { guardToolResult } from './session-tool-result-guard.js';
+//# sourceMappingURL=session-tool-result-guard-wrapper.js.map

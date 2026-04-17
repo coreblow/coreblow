@@ -1,0 +1,5 @@
+/**
+ * agents/console-sanitize.ts
+ * Console output sanitization (re-export from sanitize-for-prompt).
+ */
+export { stripAnsi, sanitizeConsoleOutput, truncateForPrompt } from './sanitize-for-prompt.js';

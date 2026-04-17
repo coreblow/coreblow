@@ -1,0 +1,28 @@
+export class SignatureValidationFailed extends Error {
+    signature;
+    constructor(message, { signature } = {}) {
+        super(message);
+        this.name = this.constructor.name;
+        Object.assign(this, { signature });
+    }
+}
+export class JSONParseError extends Error {
+    raw;
+    constructor(message, { raw } = {}) {
+        super(message);
+        this.name = this.constructor.name;
+        Object.assign(this, { raw });
+    }
+}
+export class HTTPFetchError extends Error {
+    status;
+    statusText;
+    headers;
+    body;
+    constructor(message, { status, statusText, headers, body }) {
+        super(message);
+        this.name = this.constructor.name;
+        Object.assign(this, { status, statusText, headers, body });
+    }
+}
+//# sourceMappingURL=exceptions.js.map

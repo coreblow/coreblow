@@ -1,0 +1,105 @@
+/**
+ * CoreBlow — API Key Manager
+ *
+ * Manages API key lifecycle: creation, validation,
+ * rotation, rate limiting, and scope control.
+ */
+/**
+ * CoreBlow API Key Manager
+ */
+export class ApiKeyManager {
+    keys = new Map();
+    keyIndex = new Map(); // key → id
+    idCounter = 0;
+    stats = { created: 0, validated: 0, rejected: 0, rotated: 0 };
+    /**
+     * Create an API key.
+     */
+    create(name, owner, scopes = ['*'], rateLimit = 1000, expiresInMs) {
+        const id = `apikey-${++this.idCounter}`;
+        const key = `cb_${this.generateKey()}`;
+        const apiKey = {
+            id, key, name, owner, scopes, rateLimit, usage: 0, active: true,
+            createdAt: Date.now(), expiresAt: expiresInMs ? Date.now() + expiresInMs : undefined,
+        };
+        this.keys.set(id, apiKey);
+        this.keyIndex.set(key, id);
+        this.stats.created++;
+        return apiKey;
+    }
+    /**
+     * Validate an API key.
+     */
+    validate(key, requiredScope) {
+        const id = this.keyIndex.get(key);
+        if (!id) {
+            this.stats.rejected++;
+            return { valid: false, error: 'Key not found' };
+        }
+        const apiKey = this.keys.get(id);
+        if (!apiKey.active) {
+            this.stats.rejected++;
+            return { valid: false, error: 'Key inactive' };
+        }
+        if (apiKey.expiresAt && Date.now() > apiKey.expiresAt) {
+            this.stats.rejected++;
+            return { valid: false, error: 'Key expired' };
+        }
+        if (apiKey.usage >= apiKey.rateLimit) {
+            this.stats.rejected++;
+            return { valid: false, error: 'Rate limit exceeded' };
+        }
+        if (requiredScope && !apiKey.scopes.includes('*') && !apiKey.scopes.includes(requiredScope)) {
+            this.stats.rejected++;
+            return { valid: false, error: 'Insufficient scope' };
+        }
+        apiKey.usage++;
+        apiKey.lastUsedAt = Date.now();
+        this.stats.validated++;
+        return { valid: true, apiKey };
+    }
+    /**
+     * Rotate a key (new key, same ID).
+     */
+    rotate(id) {
+        const apiKey = this.keys.get(id);
+        if (!apiKey)
+            return null;
+        this.keyIndex.delete(apiKey.key);
+        apiKey.key = `cb_${this.generateKey()}`;
+        this.keyIndex.set(apiKey.key, id);
+        this.stats.rotated++;
+        return apiKey;
+    }
+    /**
+     * Deactivate.
+     */
+    deactivate(id) {
+        const apiKey = this.keys.get(id);
+        if (!apiKey)
+            return false;
+        apiKey.active = false;
+        return true;
+    }
+    /**
+     * List keys for an owner.
+     */
+    listByOwner(owner) {
+        return Array.from(this.keys.values()).filter((k) => k.owner === owner);
+    }
+    /**
+     * Get stats.
+     */
+    getStats() { return { ...this.stats }; }
+    /** Count */
+    count() { return this.keys.size; }
+    // === Private ===
+    generateKey() {
+        const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        let result = '';
+        for (let i = 0; i < 32; i++)
+            result += chars[Math.floor(Math.random() * chars.length)];
+        return result;
+    }
+}
+//# sourceMappingURL=api-key-manager.js.map

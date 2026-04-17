@@ -1,0 +1,40 @@
+/**
+ * Discord Channel Constants
+ */
+export const PROVIDER_COLORS = {
+    openai: 0x10a37f,
+    anthropic: 0xd4a574,
+    gemini: 0x4285f4,
+    mistral: 0xff7000,
+    groq: 0x00d4aa,
+    deepseek: 0x0066ff,
+    ollama: 0x333333,
+    openrouter: 0x9333ea,
+};
+export const LIMITS = {
+    MESSAGE_LENGTH: 2000,
+    EMBED_DESCRIPTION: 4096,
+    EMBED_TITLE: 256,
+    EMBED_FIELDS: 25,
+    FIELD_NAME: 256,
+    FIELD_VALUE: 1024,
+    FOOTER_TEXT: 2048,
+    BUTTONS_PER_ROW: 5,
+    ACTION_ROWS: 5,
+    SELECT_OPTIONS: 25,
+    SELECT_OPTION_LABEL: 100,
+    SELECT_OPTION_VALUE: 100,
+    SELECT_OPTION_DESC: 100,
+    MODAL_TITLE: 45,
+    MODAL_FIELDS: 5,
+    MODAL_INPUT_PLACEHOLDER: 100,
+};
+export const BUTTON_STYLES = { PRIMARY: 1, SECONDARY: 2, SUCCESS: 3, DANGER: 4, LINK: 5 };
+export const COMPONENT_TYPES = { ACTION_ROW: 1, BUTTON: 2, SELECT_MENU: 3, TEXT_INPUT: 4, MODAL: 5 };
+export const OPTION_TYPES = { STRING: 3, INTEGER: 4, BOOLEAN: 5, USER: 6, CHANNEL: 7, ROLE: 8, NUMBER: 10, ATTACHMENT: 11 };
+export const DEFAULT_CONFIG = { prefix: '/', richResponses: true, threadMode: 'off' };
+export const PAGINATION = { PAGE_SIZE: 1800, BUTTON_TIMEOUT: 120_000, MAX_PAGES: 20 };
+export const COOLDOWN = { DEFAULT_MS: 3000, MAX_MS: 60_000 };
+export const FEATURES = { RICH_RESPONSES: true, PAGINATION: true, MODALS: true, SELECT_MENUS: true, VOICE: false, THREADS: true };
+export const TEXT_INPUT_STYLES = { SHORT: 1, PARAGRAPH: 2 };
+//# sourceMappingURL=constants.js.map

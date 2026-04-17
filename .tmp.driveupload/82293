@@ -1,0 +1,64 @@
+/**
+ * CoreBlow — Service Registry
+ *
+ * Central registry for all gateway services with
+ * dependency injection, lifecycle management, and
+ * health aggregation.
+ */
+/** Service entry */
+export interface ServiceEntry {
+    name: string;
+    instance: unknown;
+    status: 'registered' | 'started' | 'stopped' | 'error';
+    dependencies: string[];
+    startedAt?: number;
+    metadata?: Record<string, unknown>;
+}
+/**
+ * CoreBlow Service Registry
+ */
+export declare class ServiceRegistry {
+    private services;
+    /**
+     * Register a service.
+     */
+    register(name: string, instance: unknown, dependencies?: string[]): void;
+    /**
+     * Resolve a service.
+     */
+    resolve<T = unknown>(name: string): T | null;
+    /**
+     * Start a service.
+     */
+    start(name: string): boolean;
+    /**
+     * Start all in dependency order.
+     */
+    startAll(): {
+        started: string[];
+        failed: string[];
+    };
+    /**
+     * Stop a service.
+     */
+    stop(name: string): boolean;
+    /**
+     * Get health summary.
+     */
+    getHealth(): Array<{
+        name: string;
+        status: string;
+        uptime?: number;
+    }>;
+    /**
+     * List services.
+     */
+    list(): Array<{
+        name: string;
+        status: string;
+        deps: string[];
+    }>;
+    /** Count */
+    count(): number;
+}
+//# sourceMappingURL=service-registry.d.ts.map

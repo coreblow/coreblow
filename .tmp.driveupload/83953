@@ -1,0 +1,15 @@
+export function chunkTextForOutbound(text, maxLength = 4096) {
+    if (text.length <= maxLength)
+        return [text];
+    const chunks = [];
+    let i = 0;
+    while (i < text.length) {
+        chunks.push(text.slice(i, i + maxLength));
+        i += maxLength;
+    }
+    return chunks;
+}
+export function chunkText(text, opts) {
+    return chunkTextForOutbound(text, opts?.maxLength);
+}
+//# sourceMappingURL=text-chunking.js.map

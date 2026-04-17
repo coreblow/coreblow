@@ -1,0 +1,16 @@
+import { sessions } from './session.data.js';
+export function getOrCreateSession(sessionKey, agentId) {
+    let session = sessions.get(sessionKey);
+    if (!session) {
+        session = {
+            sessionKey, agentId,
+            createdAt: Date.now(), lastAccessedAt: Date.now(),
+            turnCount: 0, totalInputTokens: 0, totalOutputTokens: 0,
+            compactionCount: 0, isActive: true,
+        };
+        sessions.set(sessionKey, session);
+    }
+    session.lastAccessedAt = Date.now();
+    return session;
+}
+//# sourceMappingURL=get-or-create-session.js.map

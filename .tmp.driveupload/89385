@@ -1,0 +1,9 @@
+/** PI auth credential management. */
+export interface PiCredential {
+    provider: string;
+    token: string;
+    expiresAt?: number;
+}
+export declare function isCredentialValid(cred: PiCredential): boolean;
+export declare function createCredential(provider: string, token: string, expiresAt?: number): PiCredential;
+//# sourceMappingURL=pi-auth-credentials.d.ts.map

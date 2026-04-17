@@ -1,0 +1,85 @@
+/**
+ * plugin-sdk/channel-pairing.ts
+ * [PORT] openclaw-main/src/plugin-sdk/channel-pairing.ts — Q3: [PORT]
+ *
+ * Pairing helpers scoped to one channel account.
+ * Provides createChannelPairingController, createChannelPairingChallengeIssuer,
+ * createLoggedPairingApprovalNotifier, createPairingPrefixStripper,
+ * createTextPairingAdapter.
+ */
+// ─── Allow-From Utilities ─────────────────────────────────────────────────────
+/** Strip a known prefix from a raw allow-from entry (e.g. "telegram:123" → "123"). */
+export function createPairingPrefixStripper(prefix) {
+    const lower = `${prefix.toLowerCase()}:`;
+    return (raw) => {
+        const trimmed = raw.trim();
+        if (trimmed.toLowerCase().startsWith(lower)) {
+            return trimmed.slice(lower.length).trim();
+        }
+        return trimmed;
+    };
+}
+// ─── Text Pairing Adapter ─────────────────────────────────────────────────────
+/** Create a text-based pairing adapter that sends a message on approval. */
+export function createTextPairingAdapter(params) {
+    return {
+        idLabel: params.idLabel,
+        normalizeAllowEntry: params.normalizeAllowEntry,
+        notifyApproval: async (ctx) => {
+            await params.notify({ ...ctx, message: params.message });
+        },
+    };
+}
+// ─── Logged Approval Notifier ─────────────────────────────────────────────────
+/** Create a pairing approval notifier that logs on success/failure. */
+export function createLoggedPairingApprovalNotifier(params) {
+    return async (ctx) => {
+        try {
+            await params.notify(ctx);
+            params.log(`Pairing approved for ${ctx.approvedId}`);
+        }
+        catch (err) {
+            params.log(`Pairing approval notification failed: ${err instanceof Error ? err.message : String(err)}`);
+        }
+    };
+}
+/** Issue a pairing challenge for a channel account. */
+export async function issuePairingChallenge(params) {
+    const challengeId = params.challengeId ?? `${params.channel}:${params.accountId}:${Date.now()}`;
+    return params.upsertPairingRequest({
+        channel: params.channel,
+        accountId: params.accountId,
+        challengeId,
+        expiresAt: params.expiresAt,
+        metadata: params.metadata,
+    });
+}
+export function createScopedPairingAccess(params) {
+    const upsertFn = params.core.upsertPairingRequest ?? (async (p) => ({ challengeId: p.challengeId }));
+    return {
+        channel: params.channel,
+        accountId: params.accountId,
+        upsertPairingRequest: (req) => upsertFn({ ...req, channel: params.channel, accountId: params.accountId }),
+    };
+}
+// ─── Channel Pairing Controller ───────────────────────────────────────────────
+/** Create a challenge issuer pre-bound to a channel + upsert function. */
+export function createChannelPairingChallengeIssuer(params) {
+    return (challenge) => issuePairingChallenge({
+        channel: params.channel,
+        upsertPairingRequest: params.upsertPairingRequest,
+        ...challenge,
+    });
+}
+/** Build the full scoped pairing controller used by channel runtime code. */
+export function createChannelPairingController(params) {
+    const access = createScopedPairingAccess(params);
+    return {
+        ...access,
+        issueChallenge: createChannelPairingChallengeIssuer({
+            channel: params.channel,
+            upsertPairingRequest: access.upsertPairingRequest,
+        }),
+    };
+}
+//# sourceMappingURL=channel-pairing.js.map

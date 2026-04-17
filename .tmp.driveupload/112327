@@ -1,0 +1,13 @@
+fix: Remove all OpenClaw branding from UI
+
+- favicon.svg: Replace lobster icon with CoreBlow octopus mascot
+- base.css: openclaw-app → coreblow-app selector
+- theme.ts: Theme name 'claw' → 'core'
+- storage.ts: Default theme 'claw' → 'core'
+- app.ts: Remove 'claw:dark/light' legacy map
+- app-render.ts: Fix theme toggle cycle
+- tool-approval-modal.ts, app-gateway.ts, app-chat.ts,
+  chat-model-select.ts: Replace OpenClaw comments with CoreBlow
+
+Verification: grep 'openclaw|claw' → 0 results
+TSC 0 errors, Vite build ✅ (198KB JS)

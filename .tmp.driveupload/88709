@@ -1,0 +1,6 @@
+/** PI tool abort handling. */
+export declare function createAbortController(timeoutMs?: number): {
+    controller: AbortController;
+    cleanup: () => void;
+};
+//# sourceMappingURL=pi-tools.abort.d.ts.map

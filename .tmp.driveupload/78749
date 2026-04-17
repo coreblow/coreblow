@@ -1,0 +1,15 @@
+/**
+ * commands/status-json.ts
+ *
+ * `coreblow status --json` fast path — pure JSON output.
+ * [PORT] openclaw-main/src/commands/status-json.ts (adapted)
+ */
+import type { Runtime } from '../runtime.js';
+export type StatusJsonCommandOptions = {
+    deep?: boolean;
+    all?: boolean;
+    usage?: boolean;
+    timeoutMs?: number;
+};
+export declare function statusJsonCommand(opts: StatusJsonCommandOptions, runtime: Runtime): Promise<void>;
+//# sourceMappingURL=status-json.d.ts.map

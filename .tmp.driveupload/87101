@@ -1,0 +1,2 @@
+export function mergePromptParams(...params) { return Object.assign({}, ...params); }
+//# sourceMappingURL=system-prompt-params.js.map

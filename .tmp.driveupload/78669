@@ -1,0 +1,30 @@
+/**
+ * discord/adapter.ts
+ * Discord adapter — bridges the Discord.js client to CoreBlow's channel interface.
+ */
+import { createChildLogger } from '../utils/logger.js';
+const log = createChildLogger('discord:adapter');
+export class DiscordAdapter {
+    config;
+    connected = false;
+    constructor(config) {
+        this.config = config;
+    }
+    async connect() {
+        if (!this.config.token)
+            throw new Error('Discord token required');
+        this.connected = true;
+        log.info('Discord adapter connected');
+    }
+    async disconnect() {
+        this.connected = false;
+        log.info('Discord adapter disconnected');
+    }
+    isConnected() {
+        return this.connected;
+    }
+    getConfig() {
+        return { ...this.config };
+    }
+}
+//# sourceMappingURL=adapter.js.map

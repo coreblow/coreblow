@@ -1,0 +1,12 @@
+/** plugin-sdk/provider-auth-login.ts [ADAPT] openclaw-main — Lazy-loaded login helpers. */
+export async function getLoginRuntime() {
+    return {
+        loginOpenAICompatible: async (_params) => {
+            throw new Error("loginOpenAICompatible requires an interactive runtime");
+        },
+    };
+}
+export async function loginOpenAICompatible(_params) {
+    throw new Error("loginOpenAICompatible requires an interactive runtime");
+}
+//# sourceMappingURL=provider-auth-login.js.map

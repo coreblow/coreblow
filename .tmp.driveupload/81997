@@ -1,0 +1,3 @@
+import type { GatewayRequestHandlers } from "./types.js";
+export declare const execApprovalsHandlers: GatewayRequestHandlers;
+//# sourceMappingURL=exec-approvals.d.ts.map

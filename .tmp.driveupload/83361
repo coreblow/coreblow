@@ -1,0 +1,106 @@
+/**
+ * plugin-sdk/channel-inbound.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/channel-inbound.ts
+ *
+ * Shared inbound parsing helpers for channel plugins: debouncing,
+ * mentions, envelope formatting, location, and session context.
+ */
+export type InboundDebouncerHandle = {
+    flush: () => void;
+    cancel: () => void;
+};
+export declare function resolveInboundDebounceMs(config: {
+    debounceMs?: number | null;
+    defaultMs?: number;
+}): number;
+export declare function createInboundDebouncer(params: {
+    debounceMs: number;
+    onFlush: () => void;
+}): InboundDebouncerHandle;
+export declare function createChannelInboundDebouncer(params: {
+    channelId: string;
+    debounceMs: number;
+    onFlush: (channelId: string) => void;
+}): InboundDebouncerHandle;
+export declare function shouldDebounceTextInbound(params: {
+    text: string;
+    lastText?: string | null;
+    minLengthDelta?: number;
+}): boolean;
+export type DirectDmPreCryptoGuardPolicy = 'open' | 'allowlist' | 'none';
+export type DirectDmPreCryptoGuardPolicyOverrides = {
+    policy?: DirectDmPreCryptoGuardPolicy;
+    allowFrom?: Array<string | number>;
+};
+export declare function createDirectDmPreCryptoGuardPolicy(params: DirectDmPreCryptoGuardPolicyOverrides): DirectDmPreCryptoGuardPolicy;
+export declare function dispatchInboundDirectDmWithRuntime(params: {
+    userId: string;
+    message: string;
+    policy: DirectDmPreCryptoGuardPolicy;
+    allowFrom?: Array<string | number>;
+    dispatch: (userId: string, message: string) => Promise<void>;
+}): Promise<void>;
+export type EnvelopeFormatOptions = {
+    includeFrom?: boolean;
+    includeTo?: boolean;
+    includeChannel?: boolean;
+    separator?: string;
+};
+export declare function resolveEnvelopeFormatOptions(options?: Partial<EnvelopeFormatOptions>): EnvelopeFormatOptions;
+export declare function formatInboundFromLabel(params: {
+    channelId: string;
+    accountId?: string;
+    userId?: string;
+    username?: string;
+}): string;
+export declare function formatInboundEnvelope(params: {
+    from: string;
+    to?: string;
+    text: string;
+    options?: EnvelopeFormatOptions;
+}): string;
+export type MentionGateParams = {
+    text: string;
+    mentionPatterns: RegExp[];
+    botName?: string;
+};
+export type MentionGateResult = {
+    matched: boolean;
+    cleanText: string;
+};
+export type MentionGateWithBypassParams = MentionGateParams & {
+    bypassInDm?: boolean;
+    chatType?: 'direct' | 'group' | 'channel';
+};
+export type MentionGateWithBypassResult = MentionGateResult & {
+    bypassed: boolean;
+};
+export declare function buildMentionRegexes(names: string[]): RegExp[];
+export declare function matchesMentionPatterns(text: string, patterns: RegExp[]): boolean;
+export declare function matchesMentionWithExplicit(text: string, patterns: RegExp[], explicitMentions?: string[]): boolean;
+export declare function normalizeMentionText(text: string, patterns: RegExp[]): string;
+export declare function resolveMentionGating(params: MentionGateParams): MentionGateResult;
+export declare function resolveMentionGatingWithBypass(params: MentionGateWithBypassParams): MentionGateWithBypassResult;
+export type NormalizedLocation = {
+    latitude: number;
+    longitude: number;
+    accuracy?: number;
+    label?: string;
+};
+export declare function formatLocationText(location: NormalizedLocation): string;
+export declare function toLocationContext(location: NormalizedLocation): Record<string, unknown>;
+export type InboundSessionEnvelopeContext = {
+    sessionKey: string;
+    channelId: string;
+    accountId: string;
+    userId?: string;
+    chatType?: 'direct' | 'group' | 'channel';
+};
+export declare function resolveInboundSessionEnvelopeContext(params: {
+    channelId: string;
+    accountId: string;
+    userId?: string;
+    chatType?: 'direct' | 'group' | 'channel';
+}): InboundSessionEnvelopeContext;
+export declare function logInboundDrop(log: (msg: string) => void, reason: string, params: Record<string, unknown>): void;
+//# sourceMappingURL=channel-inbound.d.ts.map

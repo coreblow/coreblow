@@ -1,0 +1,19 @@
+export class ThreadManager {
+    threads = new Map();
+    track(id, name, parentId) {
+        this.threads.set(id, { id, name, parentId, createdAt: Date.now(), archived: false, locked: false, messageCount: 0 });
+    }
+    archive(id) { const t = this.threads.get(id); if (!t)
+        return false; t.archived = true; return true; }
+    unarchive(id) { const t = this.threads.get(id); if (!t)
+        return false; t.archived = false; return true; }
+    lock(id) { const t = this.threads.get(id); if (!t)
+        return false; t.locked = true; return true; }
+    incrementMessages(id) { const t = this.threads.get(id); if (t)
+        t.messageCount++; }
+    get(id) { return this.threads.get(id); }
+    listByParent(parentId) { return [...this.threads.values()].filter((t) => t.parentId === parentId); }
+    listActive() { return [...this.threads.values()].filter((t) => !t.archived); }
+    get count() { return this.threads.size; }
+}
+//# sourceMappingURL=manager.js.map

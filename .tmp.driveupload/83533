@@ -1,0 +1,4 @@
+export function listLineAccountIds(_cfg) { return []; }
+export async function probeLineSdk(_p) { return { ok: false }; }
+export async function sendMessageLine(_p) { return null; }
+//# sourceMappingURL=line-surface.js.map

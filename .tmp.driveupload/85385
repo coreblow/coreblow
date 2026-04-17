@@ -1,0 +1,5 @@
+/**
+ * link-understanding/og-parser.ts
+ */
+export declare function parseOpenGraph(html: string): Record<string, string>;
+//# sourceMappingURL=og-parser.d.ts.map

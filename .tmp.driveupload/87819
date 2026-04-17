@@ -1,0 +1,7 @@
+import { diagnostics } from './heartbeat.data.js';
+export function getDiagnostics(category) {
+    if (category)
+        return diagnostics.filter(d => d.category === category);
+    return [...diagnostics];
+}
+//# sourceMappingURL=get-diagnostics.js.map

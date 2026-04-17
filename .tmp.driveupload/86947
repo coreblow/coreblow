@@ -1,0 +1,3 @@
+/** PI embedded subscribe tool integration. */
+export function shouldExecuteTool(toolName, allowedTools) { return !allowedTools || allowedTools.includes(toolName); }
+//# sourceMappingURL=pi-embedded-subscribe.tools.js.map

@@ -1,0 +1,18 @@
+/**
+ * auto-reply/reply/auto-topic.ts
+ * Auto-generate conversation topic labels.
+ * Follows CoreBlow's auto-topic-label.ts pattern.
+ */
+/** Generate a topic label from the first user message. */
+export declare function generateTopicLabel(messages: Array<{
+    role: string;
+    content: string;
+}>): string;
+/** Extract keywords from text for topic categorization. */
+export declare function extractKeywords(text: string, maxKeywords?: number): string[];
+/** Categorize a conversation based on content. */
+export declare function categorizeConversation(messages: Array<{
+    role: string;
+    content: string;
+}>): string;
+//# sourceMappingURL=auto-topic.d.ts.map

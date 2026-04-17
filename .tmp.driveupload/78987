@@ -1,0 +1,1 @@
+{"version":3,"file":"cooldown.d.ts","sourceRoot":"","sources":["../../src/commands/cooldown.ts"],"names":[],"mappings":"AAAA;;GAEG;AACH,qBAAa,eAAe;IAAG,OAAO,CAAC,SAAS,CAA6B;IAAC,OAAO,CAAC,SAAS,CAAS;gBAAa,SAAS,SAAO;IAAkC,KAAK,CAAC,MAAM,EAAE,MAAM,EAAE,OAAO,EAAE,MAAM,GAAG,OAAO;IAA4L,SAAS,CAAC,MAAM,EAAE,MAAM,EAAE,OAAO,EAAE,MAAM,GAAG,MAAM;CAA+I"}

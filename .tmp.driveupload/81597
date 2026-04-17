@@ -1,0 +1,10 @@
+export function planCredentialResolution(cfg) {
+    const auth = cfg?.gateway?.auth;
+    const rawMode = auth && 'mode' in auth ? auth.mode : undefined;
+    const mode = rawMode === "token" || rawMode === "password" || rawMode === "none" ? rawMode : "token";
+    return {
+        mode,
+        allowWeakFallback: false
+    };
+}
+//# sourceMappingURL=credential-planner.js.map

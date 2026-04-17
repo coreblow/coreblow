@@ -1,0 +1,24 @@
+/**
+ * auto-reply/inbound-debounce.ts
+ * Inbound message debouncing with key-based batching.
+ * Ported from CoreBlow reference src/auto-reply/inbound-debounce.ts.
+ */
+export declare function resolveInboundDebounceMs(params: {
+    cfg: Record<string, unknown>;
+    channel: string;
+    overrideMs?: number;
+}): number;
+export type InboundDebounceCreateParams<T> = {
+    debounceMs: number;
+    maxTrackedKeys?: number;
+    buildKey: (item: T) => string | null | undefined;
+    shouldDebounce?: (item: T) => boolean;
+    resolveDebounceMs?: (item: T) => number | undefined;
+    onFlush: (items: T[]) => Promise<void>;
+    onError?: (err: unknown, items: T[]) => void;
+};
+export declare function createInboundDebouncer<T>(params: InboundDebounceCreateParams<T>): {
+    enqueue: (item: T) => Promise<void>;
+    flushKey: (key: string) => Promise<void>;
+};
+//# sourceMappingURL=inbound-debounce.d.ts.map

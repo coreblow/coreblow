@@ -1,0 +1,6 @@
+export declare function execOnGateway(cmd: string, opts?: Record<string, unknown>): Promise<{
+    stdout: string;
+    stderr: string;
+    exitCode: number;
+}>;
+//# sourceMappingURL=bash-tools-exec-host-gateway.d.ts.map

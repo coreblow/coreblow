@@ -1,0 +1,158 @@
+/**
+ * src/gateway/priority.ts
+ * Priority routing — VIP users, channel priority, load balancing
+ * SUPERIOR: CoreBlow = flat routing; CoreBlow = priority tiers + VIP + load-aware
+ */
+import { createChildLogger } from '../utils/logger.js';
+const log = createChildLogger('priority');
+// ─── Priority Router ─────────────────────────────────────────────
+const TIER_WEIGHTS = {
+    critical: 100,
+    high: 75,
+    normal: 50,
+    low: 25,
+    bulk: 10,
+};
+export class PriorityRouter {
+    rules = [];
+    vipUsers = new Set();
+    channelLoad = new Map();
+    tierCounts = new Map();
+    /**
+     * Add a priority rule
+     */
+    addRule(rule) {
+        this.rules.push(rule);
+        this.rules.sort((a, b) => TIER_WEIGHTS[b.priority] - TIER_WEIGHTS[a.priority]);
+        log.debug({ id: rule.id, priority: rule.priority }, 'Priority rule added');
+    }
+    /**
+     * Remove a rule
+     */
+    removeRule(id) {
+        const idx = this.rules.findIndex(r => r.id === id);
+        if (idx < 0)
+            return false;
+        this.rules.splice(idx, 1);
+        return true;
+    }
+    /**
+     * Add VIP users
+     */
+    addVip(userId) {
+        this.vipUsers.add(userId);
+    }
+    /**
+     * Remove VIP
+     */
+    removeVip(userId) {
+        return this.vipUsers.delete(userId);
+    }
+    /**
+     * Check if user is VIP
+     */
+    isVip(userId) {
+        return this.vipUsers.has(userId);
+    }
+    /**
+     * Resolve priority for a message
+     */
+    resolve(message) {
+        // VIP users always get high priority
+        if (this.vipUsers.has(message.senderId)) {
+            return {
+                tier: 'high',
+                weight: TIER_WEIGHTS.high,
+            };
+        }
+        // Check rules
+        for (const rule of this.rules) {
+            if (this.matchesRule(message, rule)) {
+                return {
+                    tier: rule.priority,
+                    rule,
+                    weight: TIER_WEIGHTS[rule.priority],
+                    model: rule.model,
+                    provider: rule.provider,
+                };
+            }
+        }
+        // Default: normal
+        return { tier: 'normal', weight: TIER_WEIGHTS.normal };
+    }
+    /**
+     * Update load info for a channel
+     */
+    updateLoad(channel, activeRequests, avgResponseTime, errorRate) {
+        this.channelLoad.set(channel, {
+            channel,
+            activeRequests,
+            avgResponseTime,
+            errorRate,
+            lastUpdated: Date.now(),
+        });
+    }
+    /**
+     * Get the least-loaded channel (for load balancing)
+     */
+    getLeastLoaded() {
+        let best;
+        let bestScore = Infinity;
+        for (const [channel, load] of this.channelLoad) {
+            // Score = active requests * (1 + error rate) * response time
+            const score = load.activeRequests * (1 + load.errorRate) * (load.avgResponseTime || 1);
+            if (score < bestScore) {
+                bestScore = score;
+                best = channel;
+            }
+        }
+        return best;
+    }
+    /**
+     * Get load info for all channels
+     */
+    getLoadInfo() {
+        return [...this.channelLoad.values()];
+    }
+    /**
+     * Record a tier usage for stats
+     */
+    recordTierUsage(tier) {
+        this.tierCounts.set(tier, (this.tierCounts.get(tier) || 0) + 1);
+    }
+    /**
+     * Get stats
+     */
+    getStats() {
+        const tierUsage = {};
+        for (const [tier, count] of this.tierCounts) {
+            tierUsage[tier] = count;
+        }
+        return {
+            rules: this.rules.length,
+            vipUsers: this.vipUsers.size,
+            tierUsage,
+            channels: this.channelLoad.size,
+        };
+    }
+    /**
+     * List all rules
+     */
+    listRules() {
+        return [...this.rules];
+    }
+    // ─── Private ─────────────────────────────────────────────
+    matchesRule(message, rule) {
+        const { match } = rule;
+        if (match.userId && message.senderId !== match.userId)
+            return false;
+        if (match.userIds && !match.userIds.includes(message.senderId))
+            return false;
+        if (match.channel && message.channel !== match.channel)
+            return false;
+        if (match.pattern && !match.pattern.test(message.text))
+            return false;
+        return true;
+    }
+}
+//# sourceMappingURL=priority.js.map

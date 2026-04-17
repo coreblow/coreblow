@@ -1,0 +1,7 @@
+/**
+ * acp/types.ts
+ * Agent Communication Protocol — Core type definitions.
+ * Used across the gateway for agent-to-agent messaging contracts.
+ */
+export {};
+//# sourceMappingURL=types.js.map

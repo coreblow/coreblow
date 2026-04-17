@@ -1,0 +1,147 @@
+/**
+ * CoreBlow — Conversation Memory Store
+ *
+ * Persistent conversation storage with session management,
+ * message history, summarization triggers, search, and
+ * retention policies. Supports both in-memory and file-backed storage.
+ */
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import * as crypto from 'node:crypto';
+/**
+ * CoreBlow Conversation Memory Store
+ */
+export class MemoryStore {
+    conversations = new Map();
+    options;
+    constructor(opts) {
+        this.options = {
+            persistDir: opts?.persistDir ?? '',
+            maxMessages: opts?.maxMessages ?? 200,
+            maxConversations: opts?.maxConversations ?? 1000,
+            summarizer: opts?.summarizer ?? (async (msgs) => `Summary of ${msgs.length} messages`),
+        };
+        if (this.options.persistDir)
+            this.loadFromDisk();
+    }
+    /** Create a new conversation */
+    create(title, metadata) {
+        const conv = {
+            id: crypto.randomBytes(8).toString('hex'),
+            title,
+            messages: [],
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            metadata,
+        };
+        this.conversations.set(conv.id, conv);
+        this.enforceLimit();
+        return conv;
+    }
+    /** Add a message to a conversation */
+    addMessage(conversationId, role, content, metadata) {
+        const conv = this.conversations.get(conversationId);
+        if (!conv)
+            return null;
+        const msg = {
+            id: crypto.randomBytes(6).toString('hex'),
+            role,
+            content,
+            timestamp: Date.now(),
+            metadata,
+        };
+        conv.messages.push(msg);
+        conv.updatedAt = Date.now();
+        if (this.options.persistDir)
+            this.saveToDisk(conv);
+        return msg;
+    }
+    /** Get a conversation by ID */
+    get(conversationId) {
+        return this.conversations.get(conversationId) ?? null;
+    }
+    /** Get recent messages from a conversation */
+    getMessages(conversationId, limit) {
+        const conv = this.conversations.get(conversationId);
+        if (!conv)
+            return [];
+        return conv.messages.slice(-(limit ?? 50));
+    }
+    /** Search messages across all conversations */
+    search(query, limit = 20) {
+        const results = [];
+        const lower = query.toLowerCase();
+        for (const conv of Array.from(this.conversations.values())) {
+            for (const msg of conv.messages) {
+                if (msg.content.toLowerCase().includes(lower)) {
+                    results.push({ conversationId: conv.id, message: msg });
+                    if (results.length >= limit)
+                        return results;
+                }
+            }
+        }
+        return results;
+    }
+    /** Summarize and compact a conversation */
+    async summarize(conversationId) {
+        const conv = this.conversations.get(conversationId);
+        if (!conv || conv.messages.length === 0)
+            return null;
+        const summary = await this.options.summarizer(conv.messages);
+        conv.summary = summary;
+        conv.updatedAt = Date.now();
+        if (this.options.persistDir)
+            this.saveToDisk(conv);
+        return summary;
+    }
+    /** List all conversations */
+    list(limit = 50) {
+        return Array.from(this.conversations.values())
+            .sort((a, b) => b.updatedAt - a.updatedAt)
+            .slice(0, limit)
+            .map((c) => ({ id: c.id, title: c.title, messageCount: c.messages.length, updatedAt: c.updatedAt }));
+    }
+    /** Delete a conversation */
+    delete(conversationId) {
+        return this.conversations.delete(conversationId);
+    }
+    /** Get total message count */
+    getStats() {
+        let totalMessages = 0;
+        for (const conv of Array.from(this.conversations.values()))
+            totalMessages += conv.messages.length;
+        return { conversations: this.conversations.size, totalMessages };
+    }
+    // === Private ===
+    enforceLimit() {
+        if (this.conversations.size > this.options.maxConversations) {
+            const sorted = Array.from(this.conversations.entries())
+                .sort((a, b) => a[1].updatedAt - b[1].updatedAt);
+            const toRemove = sorted.slice(0, this.conversations.size - this.options.maxConversations);
+            for (const [id] of toRemove)
+                this.conversations.delete(id);
+        }
+    }
+    saveToDisk(conv) {
+        try {
+            const dir = this.options.persistDir;
+            if (!fs.existsSync(dir))
+                fs.mkdirSync(dir, { recursive: true });
+            fs.writeFileSync(path.join(dir, `${conv.id}.json`), JSON.stringify(conv, null, 2));
+        }
+        catch { /* skip */ }
+    }
+    loadFromDisk() {
+        try {
+            const dir = this.options.persistDir;
+            if (!fs.existsSync(dir))
+                return;
+            for (const file of fs.readdirSync(dir).filter((f) => f.endsWith('.json'))) {
+                const data = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf-8'));
+                this.conversations.set(data.id, data);
+            }
+        }
+        catch { /* skip */ }
+    }
+}
+//# sourceMappingURL=memory-store.js.map

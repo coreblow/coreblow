@@ -1,0 +1,5 @@
+/**
+ * version.ts
+ */
+export declare const VERSION = "0.0.0-mock";
+//# sourceMappingURL=version.d.ts.map

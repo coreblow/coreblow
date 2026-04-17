@@ -1,0 +1,231 @@
+/**
+ * src/gateway/queue.ts
+ * Message queue — buffer, priority, concurrency, dead letter
+ * SUPERIOR: CoreBlow processes messages synchronously; CoreBlow has async queue with backpressure
+ */
+import { createChildLogger } from '../utils/logger.js';
+const log = createChildLogger('queue');
+// ─── Message Queue ───────────────────────────────────────────────
+export class MessageQueue {
+    queues = {
+        high: [], normal: [], low: [],
+    };
+    deadLetter = [];
+    processing = new Set();
+    processor;
+    timer;
+    config;
+    stats = { processed: 0, failed: 0, totalProcessTimeMs: 0 };
+    counter = 0;
+    paused = false;
+    constructor(config) {
+        this.config = {
+            maxSize: config?.maxSize ?? 1000,
+            concurrency: config?.concurrency ?? 5,
+            maxAttempts: config?.maxAttempts ?? 3,
+            processIntervalMs: config?.processIntervalMs ?? 100,
+            deadLetterMaxSize: config?.deadLetterMaxSize ?? 100,
+        };
+    }
+    /**
+     * Set the message processor
+     */
+    setProcessor(processor) {
+        this.processor = processor;
+    }
+    /**
+     * Enqueue a message
+     */
+    enqueue(message, priority = 'normal', metadata) {
+        const totalSize = this.size();
+        if (totalSize >= this.config.maxSize) {
+            log.warn({ size: totalSize, max: this.config.maxSize }, 'Queue full — backpressure');
+            return null;
+        }
+        const item = {
+            id: `q_${++this.counter}_${Date.now()}`,
+            message,
+            priority,
+            enqueuedAt: Date.now(),
+            attempts: 0,
+            maxAttempts: this.config.maxAttempts,
+            metadata,
+        };
+        this.queues[priority].push(item);
+        log.debug({ id: item.id, priority, queueSize: totalSize + 1 }, 'Message enqueued');
+        return item;
+    }
+    /**
+     * Enqueue with delay
+     */
+    enqueueDelayed(message, delayMs, priority = 'normal') {
+        const item = this.enqueue(message, priority);
+        if (item) {
+            item.processAfter = Date.now() + delayMs;
+        }
+        return item;
+    }
+    /**
+     * Start processing the queue
+     */
+    start() {
+        if (this.timer)
+            return;
+        this.paused = false;
+        this.timer = setInterval(() => this.tick(), this.config.processIntervalMs);
+        log.info({ concurrency: this.config.concurrency }, 'Queue processing started');
+    }
+    /**
+     * Stop processing
+     */
+    stop() {
+        if (this.timer) {
+            clearInterval(this.timer);
+            this.timer = undefined;
+        }
+        log.info('Queue processing stopped');
+    }
+    /**
+     * Pause processing (keeps items in queue)
+     */
+    pause() {
+        this.paused = true;
+    }
+    /**
+     * Resume processing
+     */
+    resume() {
+        this.paused = false;
+    }
+    /**
+     * Process one tick — dequeue and process items up to concurrency limit
+     */
+    async tick() {
+        if (this.paused || !this.processor)
+            return;
+        const available = this.config.concurrency - this.processing.size;
+        if (available <= 0)
+            return;
+        const now = Date.now();
+        for (let i = 0; i < available; i++) {
+            const item = this.dequeue(now);
+            if (!item)
+                break;
+            this.processing.add(item.id);
+            this.processItem(item).catch(() => { }); // errors handled inside
+        }
+    }
+    /**
+     * Dequeue highest priority item that's ready
+     */
+    dequeue(now) {
+        // Priority order: high → normal → low
+        for (const priority of ['high', 'normal', 'low']) {
+            const queue = this.queues[priority];
+            const idx = queue.findIndex(item => !item.processAfter || item.processAfter <= now);
+            if (idx >= 0) {
+                return queue.splice(idx, 1)[0];
+            }
+        }
+        return undefined;
+    }
+    /**
+     * Process a single item
+     */
+    async processItem(item) {
+        item.attempts++;
+        const start = Date.now();
+        try {
+            await this.processor(item);
+            this.stats.processed++;
+            this.stats.totalProcessTimeMs += Date.now() - start;
+        }
+        catch (err) {
+            log.error({ id: item.id, attempt: item.attempts, err: (err instanceof Error ? err.message : String(err)) }, 'Processing failed');
+            if (item.attempts < item.maxAttempts) {
+                // Re-enqueue with exponential backoff delay
+                item.processAfter = Date.now() + Math.pow(2, item.attempts) * 1000;
+                this.queues[item.priority].push(item);
+                log.debug({ id: item.id, retryIn: item.processAfter - Date.now() }, 'Requeueing');
+            }
+            else {
+                // Move to dead letter queue
+                this.deadLetter.push(item);
+                if (this.deadLetter.length > this.config.deadLetterMaxSize) {
+                    this.deadLetter.shift();
+                }
+                this.stats.failed++;
+                log.warn({ id: item.id, attempts: item.attempts }, 'Message moved to dead letter');
+            }
+        }
+        finally {
+            this.processing.delete(item.id);
+        }
+    }
+    /**
+     * Process all items immediately (for testing / shutdown)
+     */
+    async flush() {
+        if (!this.processor)
+            return;
+        const now = Date.now();
+        let item;
+        while ((item = this.dequeue(now))) {
+            await this.processItem(item);
+        }
+    }
+    /**
+     * Get total queue size
+     */
+    size() {
+        return this.queues.high.length + this.queues.normal.length + this.queues.low.length;
+    }
+    /**
+     * Get dead letter queue
+     */
+    getDeadLetters() {
+        return [...this.deadLetter];
+    }
+    /**
+     * Retry a dead letter item
+     */
+    retryDeadLetter(itemId) {
+        const idx = this.deadLetter.findIndex(i => i.id === itemId);
+        if (idx < 0)
+            return false;
+        const item = this.deadLetter.splice(idx, 1)[0];
+        item.attempts = 0;
+        item.processAfter = undefined;
+        this.queues[item.priority].push(item);
+        return true;
+    }
+    /**
+     * Clear the queue
+     */
+    clear() {
+        this.queues = { high: [], normal: [], low: [] };
+        this.deadLetter = [];
+    }
+    /**
+     * Get stats
+     */
+    getStats() {
+        const now = Date.now();
+        const allItems = [...this.queues.high, ...this.queues.normal, ...this.queues.low];
+        const oldest = allItems.length > 0
+            ? now - Math.min(...allItems.map(i => i.enqueuedAt))
+            : 0;
+        return {
+            size: this.size(),
+            processing: this.processing.size,
+            processed: this.stats.processed,
+            failed: this.stats.failed,
+            deadLetterSize: this.deadLetter.length,
+            avgProcessTimeMs: this.stats.processed > 0
+                ? Math.round(this.stats.totalProcessTimeMs / this.stats.processed)
+                : 0,
+            oldestItemAge: oldest,
+        };
+    }
+}
+//# sourceMappingURL=queue.js.map

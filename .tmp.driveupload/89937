@@ -1,0 +1,18 @@
+/**
+ * process/kill-tree.ts
+ * Process tree termination with graceful shutdown.
+ * Ported 1:1 from CoreBlow reference src/process/kill-tree.ts.
+ */
+/**
+ * Best-effort process-tree termination with graceful shutdown.
+ * - Windows: use taskkill /T for descendants.
+ * - Unix: SIGTERM to process group first, then SIGKILL after grace period.
+ */
+export declare function killProcessTree(pid: number, opts?: {
+    graceMs?: number;
+}): void;
+/**
+ * Send SIGTERM to a process and wait for it to exit.
+ */
+export declare function gracefulKill(pid: number, timeoutMs?: number): Promise<boolean>;
+//# sourceMappingURL=kill-tree.d.ts.map

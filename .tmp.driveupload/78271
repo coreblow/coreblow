@@ -1,0 +1,61 @@
+/**
+ * CoreBlow Config Paths
+ *
+ * Resolves config file paths across different environments (XDG, home dir, project dir).
+ * Supports multiple config formats and custom search paths.
+ *
+ * Equivalent: CoreBlow config/config-paths.ts + config-env-vars.ts (~310 LOC)
+ */
+export interface ConfigPathResolution {
+    configPath: string | null;
+    source: 'project' | 'home' | 'xdg' | 'env' | 'none';
+    searchedPaths: string[];
+    format: 'json' | 'yaml' | 'toml' | 'unknown';
+}
+export interface ConfigPaths {
+    /** Project-level config (./coreblow.json) */
+    project: string;
+    /** Home directory config (~/.config/coreblow/config.json) */
+    home: string;
+    /** XDG config ($XDG_CONFIG_HOME/coreblow/config.json) */
+    xdg: string;
+    /** Data directory for runtime state */
+    data: string;
+    /** Cache directory */
+    cache: string;
+    /** Logs directory */
+    logs: string;
+}
+/**
+ * Resolve all standard config paths
+ */
+export declare function getConfigPaths(projectDir?: string): ConfigPaths;
+/**
+ * Find the config file by searching standard locations
+ */
+export declare function findConfigFile(projectDir?: string): ConfigPathResolution;
+/**
+ * Get the default config file path (for writing new configs)
+ */
+export declare function getDefaultConfigPath(projectDir?: string): string;
+/**
+ * Ensure a directory exists (create if missing)
+ */
+export declare function ensureDirectoryExists(dirPath: string): boolean;
+/**
+ * Get the data directory, creating it if needed
+ */
+export declare function getDataDirectory(projectDir?: string): string;
+/**
+ * Get the cache directory, creating it if needed
+ */
+export declare function getCacheDirectory(projectDir?: string): string;
+/**
+ * Get the logs directory, creating it if needed
+ */
+export declare function getLogsDirectory(projectDir?: string): string;
+/**
+ * Resolve a path relative to config dir
+ */
+export declare function resolveConfigRelative(relativePath: string, configPath?: string): string;
+//# sourceMappingURL=config-paths.d.ts.map

@@ -1,0 +1,37 @@
+import { Base } from "../abstracts/Base.js";
+import type { ListenerEventAdditionalData, ListenerEventRawData } from "../types/index.js";
+/**
+ * Handles Discord gateway events and dispatches them to registered listeners.
+ * @internal
+ */
+export declare class EventHandler extends Base {
+    private eventQueue;
+    constructor(client: typeof Base.prototype.client);
+    handleEvent<T extends keyof ListenerEventRawData>(payload: ListenerEventRawData[T] & ListenerEventAdditionalData, type: T): boolean;
+    getMetrics(): {
+        queueSize: number;
+        queueSizeByLane: {
+            critical: number;
+            standard: number;
+            background: number;
+        };
+        processingByLane: {
+            critical: number;
+            standard: number;
+            background: number;
+        };
+        processed: number;
+        dropped: number;
+        droppedStale: number;
+        timeouts: number;
+        zombieExecutions: number;
+        oldestAgeMsByLane: {
+            critical: number;
+            standard: number;
+            background: number;
+        };
+        laneConfig: Record<"critical" | "standard" | "background", Required<import("./EventQueue.js").EventQueueLaneOptions>>;
+    };
+    hasCapacity(): boolean;
+}
+//# sourceMappingURL=EventHandler.d.ts.map

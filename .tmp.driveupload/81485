@@ -1,0 +1,65 @@
+/**
+ * CoreBlow — Middleware Chain
+ *
+ * Composable middleware chain with next() support,
+ * error handling, and timing.
+ */
+/**
+ * CoreBlow Middleware Chain
+ */
+export class MiddlewareChain {
+    middlewares = [];
+    stats = { executed: 0, errors: 0 };
+    /**
+     * Add middleware.
+     */
+    use(name, fn, path) {
+        this.middlewares.push({ name, fn, path });
+    }
+    /**
+     * Execute the chain.
+     */
+    async execute(ctx) {
+        this.stats.executed++;
+        const applicable = this.middlewares.filter((m) => !m.path || ctx.request.path.startsWith(m.path));
+        let index = 0;
+        const next = async () => {
+            if (index >= applicable.length)
+                return;
+            const mw = applicable[index++];
+            try {
+                await mw.fn(ctx, next);
+            }
+            catch (err) {
+                this.stats.errors++;
+                ctx.response.status = 500;
+                ctx.response.body = { error: err instanceof Error ? err.message : 'Middleware error' };
+            }
+        };
+        await next();
+        return ctx;
+    }
+    /**
+     * Create a default context.
+     */
+    createContext(method, path, headers) {
+        return {
+            request: { method, path, headers: headers ?? {} },
+            response: { status: 200, body: null, headers: {} },
+            state: {},
+        };
+    }
+    /**
+     * Get stats.
+     */
+    getStats() { return { ...this.stats }; }
+    /**
+     * List middlewares.
+     */
+    list() {
+        return this.middlewares.map((m) => ({ name: m.name, path: m.path }));
+    }
+    /** Count */
+    count() { return this.middlewares.length; }
+}
+//# sourceMappingURL=middleware-chain.js.map

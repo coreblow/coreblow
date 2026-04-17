@@ -1,0 +1,4 @@
+/** PI tool parameter extraction. */
+export declare function extractParam<T>(input: Record<string, unknown>, key: string, fallback: T): T;
+export declare function requireParam(input: Record<string, unknown>, key: string): unknown;
+//# sourceMappingURL=pi-tools.params.d.ts.map

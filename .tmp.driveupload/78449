@@ -1,0 +1,11 @@
+/**
+ * src/daemon/schtasks-exec.ts
+ * schtasks command execution.
+ * Ported from CoreBlow daemon/schtasks-exec.ts.
+ */
+export declare function execSchtasks(args: string[]): Promise<{
+    stdout: string;
+    stderr: string;
+    code: number;
+}>;
+//# sourceMappingURL=schtasks-exec.d.ts.map

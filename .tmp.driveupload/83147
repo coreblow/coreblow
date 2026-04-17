@@ -1,0 +1,55 @@
+/**
+ * plugin-sdk/error-runtime.ts
+ * [PORT] openclaw-main/src/plugin-sdk/error-runtime.ts
+ *
+ * Shared error graph/format helpers without the full infra-runtime surface.
+ */
+/** Collect error chain candidates from an error (self + causes). */
+export function collectErrorGraphCandidates(err) {
+    const candidates = [];
+    let current = err;
+    while (current) {
+        candidates.push(current);
+        current = current?.cause;
+    }
+    return candidates;
+}
+/** Extract a string error code from an error object. */
+export function extractErrorCode(err) {
+    if (!err || typeof err !== 'object')
+        return undefined;
+    const code = err.code;
+    if (typeof code === 'string' || typeof code === 'number')
+        return String(code);
+    return undefined;
+}
+/** Format a human-readable error message from an unknown error. */
+export function formatErrorMessage(err) {
+    if (err instanceof Error)
+        return err.message;
+    if (typeof err === 'string')
+        return err;
+    if (err && typeof err === 'object') {
+        const msg = err.message;
+        if (typeof msg === 'string')
+            return msg;
+    }
+    return String(err);
+}
+/** Format an uncaught error into a displayable string. */
+export function formatUncaughtError(err) {
+    if (err instanceof Error) {
+        const parts = [err.message];
+        if (err.stack)
+            parts.push(err.stack);
+        return parts.join('\n');
+    }
+    return formatErrorMessage(err);
+}
+/** Read the error name from an unknown error. */
+export function readErrorName(err) {
+    if (err instanceof Error)
+        return err.name;
+    return 'Error';
+}
+//# sourceMappingURL=error-runtime.js.map

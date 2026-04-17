@@ -1,0 +1,17 @@
+/** agents/bash-tools.exec-types.ts — Exec tool type definitions. */
+export type ExecApprovalStatus = 'pending' | 'approved' | 'denied' | 'auto_approved';
+export interface ExecRequest {
+    command: string;
+    cwd?: string;
+    timeout?: number;
+    requiresApproval: boolean;
+    riskLevel: 'safe' | 'moderate' | 'dangerous';
+}
+export interface ExecApproval {
+    requestId: string;
+    status: ExecApprovalStatus;
+    approvedBy?: string;
+    timestamp: number;
+}
+export declare function createExecRequest(command: string, opts?: Partial<ExecRequest>): ExecRequest;
+//# sourceMappingURL=bash-tools.exec-types.d.ts.map

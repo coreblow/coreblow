@@ -1,0 +1,2 @@
+export declare function isInputAllowed(input: unknown): boolean;
+//# sourceMappingURL=input-allowlist.d.ts.map

@@ -1,0 +1,9 @@
+/**
+ * CoreBlow Skills Framework — Type Definitions
+ *
+ * Defines the metadata and runtime structures for dynamically loaded skills.
+ * Skills are markdown files with YAML frontmatter that describe agent capabilities,
+ * optionally backed by executable handler modules.
+ */
+export {};
+//# sourceMappingURL=types.js.map

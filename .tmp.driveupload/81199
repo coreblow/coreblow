@@ -1,0 +1,26 @@
+/**
+ * gateway/startup-auth-profiles.ts
+ * Load auth profiles from CoreBlow config into the model auth system.
+ *
+ * CoreBlow pattern: auth profiles live in config.json under `auth.profiles`,
+ * supporting multi-key rotation, cost tracking, and budget limits.
+ *
+ * Resolution order:
+ *   1. config.json → auth.profiles.{provider}
+ *   2. Environment variables (ANTHROPIC_API_KEY, etc.)
+ *   3. ~/.coreblow/auth-profiles.json (runtime store with usage tracking)
+ */
+/**
+ * Load and register auth profiles from config + env into the model-auth registry.
+ * Called once at gateway startup.
+ */
+export declare function loadAuthProfiles(configPath: string): {
+    loaded: number;
+    providers: string[];
+};
+/**
+ * Resolve the CoreBlow config file path.
+ * Priority: COREBLOW_CONFIG env → ~/.coreblow/config.json
+ */
+export declare function resolveConfigPath(): string;
+//# sourceMappingURL=startup-auth-profiles.d.ts.map

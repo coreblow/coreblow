@@ -1,0 +1,12 @@
+/** plugin-sdk/together.ts [ADAPT] openclaw-main */
+import type { ProviderModelDefinition } from "./provider-model-shared.js";
+export declare const TOGETHER_BASE_URL = "https://api.together.xyz";
+export declare const TOGETHER_DEFAULT_MODEL_REF = "together:meta-llama/Llama-3-8b-chat-hf";
+export declare const TOGETHER_MODEL_CATALOG: ProviderModelDefinition[];
+export declare function buildTogetherModelDefinition(params: {
+    id: string;
+    label?: string;
+}): ProviderModelDefinition;
+export declare function buildTogetherProvider(_p: unknown): unknown;
+export declare function applyTogetherConfig(cfg: Record<string, unknown>): Record<string, unknown>;
+//# sourceMappingURL=together.d.ts.map

@@ -1,0 +1,28 @@
+/**
+ * agents/bootstrap-files.ts
+ * Bootstrap file discovery & loading for agent initialization.
+ * Ported from CoreBlow reference src/agents/bootstrap-files.ts.
+ */
+export interface BootstrapFile {
+    path: string;
+    content: string;
+    size: number;
+    relativePath: string;
+}
+/**
+ * Discover bootstrap files in a workspace directory.
+ */
+export declare function discoverBootstrapFiles(workspaceDir: string, extraPatterns?: string[]): BootstrapFile[];
+/**
+ * Load a single bootstrap file.
+ */
+export declare function loadBootstrapFile(filePath: string): BootstrapFile | null;
+/**
+ * Merge bootstrap file contents into a single string for system prompt injection.
+ */
+export declare function mergeBootstrapContents(files: BootstrapFile[], separator?: string): string;
+/**
+ * Check if a workspace has any bootstrap files.
+ */
+export declare function hasBootstrapFiles(workspaceDir: string): boolean;
+//# sourceMappingURL=bootstrap-files.d.ts.map

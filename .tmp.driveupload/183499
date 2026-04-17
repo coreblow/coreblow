@@ -1,0 +1,20 @@
+/**
+ * @create-markdown/preview - Apply Theme
+ * Decorate raw HTML (from any markdown parser) with cm-* classes
+ */
+export interface ApplyThemeOptions {
+    /** CSS class prefix (default: 'cm-') */
+    classPrefix?: string;
+    /** Sanitize the final HTML output */
+    sanitize?: boolean | ((html: string) => string);
+    /** Override the wrapper element's class */
+    wrapperClass?: string;
+}
+/**
+ * Takes raw HTML from any markdown parser and decorates standard elements
+ * with cm-* classes so theme CSS applies.
+ *
+ * Works server-side (pure string manipulation, no DOM required).
+ */
+export declare function applyPreviewTheme(html: string, options?: ApplyThemeOptions): string;
+//# sourceMappingURL=apply-theme.d.ts.map

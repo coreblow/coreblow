@@ -1,0 +1,2 @@
+export function createCliRunnerConfig(overrides) { return { interactive: true, maxTurns: 100, ...overrides }; }
+//# sourceMappingURL=cli-runner.js.map

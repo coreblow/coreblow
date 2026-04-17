@@ -1,0 +1,59 @@
+/**
+ * CoreBlow — Graceful Shutdown
+ *
+ * Manages clean shutdown of all subsystems with
+ * configurable timeout, hook ordering, and forced
+ * exit fallback.
+ */
+/** Shutdown hook */
+export interface ShutdownHook {
+    name: string;
+    order: number;
+    handler: () => Promise<void>;
+    timeoutMs?: number;
+}
+/** Shutdown result */
+export interface ShutdownResult {
+    completed: string[];
+    timedOut: string[];
+    failed: Array<{
+        name: string;
+        error: string;
+    }>;
+    totalDurationMs: number;
+}
+/**
+ * CoreBlow Graceful Shutdown
+ */
+export declare class GracefulShutdown {
+    private hooks;
+    private isShuttingDown;
+    private defaultTimeoutMs;
+    private lastResult;
+    /**
+     * Register a shutdown hook.
+     */
+    register(hook: ShutdownHook): void;
+    /**
+     * Execute graceful shutdown.
+     */
+    shutdown(): Promise<ShutdownResult>;
+    /**
+     * Check if shutting down.
+     */
+    isInProgress(): boolean;
+    /**
+     * Get last result.
+     */
+    getLastResult(): ShutdownResult | null;
+    /**
+     * List hooks.
+     */
+    list(): Array<{
+        name: string;
+        order: number;
+    }>;
+    /** Count */
+    count(): number;
+}
+//# sourceMappingURL=graceful-shutdown.d.ts.map

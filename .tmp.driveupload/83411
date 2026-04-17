@@ -1,0 +1,6 @@
+/**
+ * plugin-sdk/signal-account.ts
+ * [ADAPT] openclaw-main — Stub for @coreblow/signal.
+ */
+export async function resolveSignalAccount(_p) { return null; }
+//# sourceMappingURL=signal-account.js.map

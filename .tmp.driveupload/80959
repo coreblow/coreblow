@@ -1,0 +1,123 @@
+/**
+ * CoreBlow — Discord Channel Adapter
+ *
+ * Production adapter for Discord. Handles bot lifecycle, message
+ * events, slash commands, reactions, embeds, file uploads,
+ * thread support, and presence management via Discord Gateway/REST.
+ */
+/** Discord bot configuration */
+export interface DiscordConfig {
+    token: string;
+    applicationId: string;
+    guildIds?: string[];
+    intents?: number[];
+    prefix?: string;
+}
+/** Discord message event */
+export interface DiscordMessage {
+    id: string;
+    channelId: string;
+    guildId?: string;
+    authorId: string;
+    authorTag: string;
+    content: string;
+    attachments: Array<{
+        id: string;
+        url: string;
+        filename: string;
+        size: number;
+    }>;
+    embeds: DiscordEmbed[];
+    referencedMessageId?: string;
+    timestamp: number;
+    isBot: boolean;
+    isDM: boolean;
+    threadId?: string;
+}
+/** Discord embed */
+export interface DiscordEmbed {
+    title?: string;
+    description?: string;
+    url?: string;
+    color?: number;
+    fields?: Array<{
+        name: string;
+        value: string;
+        inline?: boolean;
+    }>;
+    thumbnail?: {
+        url: string;
+    };
+    image?: {
+        url: string;
+    };
+    footer?: {
+        text: string;
+        icon_url?: string;
+    };
+    timestamp?: string;
+}
+/** Discord slash command */
+export interface DiscordSlashCommand {
+    name: string;
+    description: string;
+    options?: Array<{
+        name: string;
+        description: string;
+        type: number;
+        required?: boolean;
+        choices?: Array<{
+            name: string;
+            value: string;
+        }>;
+    }>;
+}
+/** Message handler callback */
+export type DiscordMessageHandler = (msg: DiscordMessage) => Promise<string | DiscordEmbed | void>;
+/**
+ * CoreBlow Discord Adapter
+ */
+export declare class DiscordAdapter {
+    private config;
+    private connected;
+    private messageHandler;
+    private commands;
+    private baseUrl;
+    constructor(config: DiscordConfig);
+    /**
+     * Set the message handler.
+     */
+    onMessage(handler: DiscordMessageHandler): void;
+    /**
+     * Register a slash command.
+     */
+    registerCommand(command: DiscordSlashCommand): void;
+    sendMessage(channelId: string, content: string): Promise<string>;
+    sendEmbed(channelId: string, embed: DiscordEmbed): Promise<string>;
+    /**
+     * Edit a message.
+     */
+    editMessage(channelId: string, messageId: string, content: string): Promise<void>;
+    /**
+     * Add a reaction to a message.
+     */
+    addReaction(channelId: string, messageId: string, emoji: string): Promise<void>;
+    createThread(channelId: string, messageId: string, name: string): Promise<string>;
+    /**
+     * Get adapter status.
+     */
+    getStatus(): {
+        connected: boolean;
+        commands: number;
+    };
+    /**
+     * Connect (send gateway identify — simplified for type safety).
+     */
+    connect(): Promise<void>;
+    /**
+     * Disconnect the bot.
+     */
+    disconnect(): Promise<void>;
+    private apiRequest;
+}
+//# sourceMappingURL=discord-adapter.d.ts.map

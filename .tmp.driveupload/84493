@@ -1,0 +1,20 @@
+export const WEBHOOK_RATE_LIMIT_DEFAULTS = { maxRequests: 100, windowMs: 60_000 };
+export const WEBHOOK_ANOMALY_COUNTER_DEFAULTS = { maxCount: 50 };
+export const WEBHOOK_ANOMALY_STATUS_CODES = [400, 401, 403, 422, 429];
+export function createBoundedCounter(max) {
+    let v = 0;
+    return { increment: () => Math.min(++v, max), reset: () => { v = 0; }, value: () => v };
+}
+export function createFixedWindowRateLimiter(opts) {
+    let count = 0, win = Date.now();
+    const max = opts?.maxRequests ?? 100, wMs = opts?.windowMs ?? 60_000;
+    return { check: () => { const now = Date.now(); if (now - win > wMs) {
+            count = 0;
+            win = now;
+        } return ++count <= max; }, reset: () => { count = 0; } };
+}
+export function createWebhookAnomalyTracker() {
+    const c = {};
+    return { track: (code) => { c[code] = (c[code] ?? 0) + 1; }, counts: () => ({ ...c }) };
+}
+//# sourceMappingURL=webhook-memory-guards.js.map

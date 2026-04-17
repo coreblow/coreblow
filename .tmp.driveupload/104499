@@ -1,0 +1,19 @@
+{
+  "": {
+    "swift-dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.build/master.swiftdeps"
+  },
+  "/Users/febrinanda/coreblow.com/apps/macos/Sources/App.swift": {
+    "dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.build/App.d",
+    "object": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.build/App.swift.o",
+    "swiftmodule": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.build/App~partial.swiftmodule",
+    "swift-dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.build/App.swiftdeps",
+    "diagnostics": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.build/App.dia"
+  },
+  "/Users/febrinanda/coreblow.com/apps/macos/Sources/ContentView.swift": {
+    "dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.build/ContentView.d",
+    "object": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.build/ContentView.swift.o",
+    "swiftmodule": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.build/ContentView~partial.swiftmodule",
+    "swift-dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.build/ContentView.swiftdeps",
+    "diagnostics": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.build/ContentView.dia"
+  }
+}

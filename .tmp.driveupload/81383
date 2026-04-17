@@ -1,0 +1,58 @@
+/**
+ * gateway/server-impl.ts
+ * HTTP Server factory — raw node:http, same as CoreBlow
+ * Creates HTTP/HTTPS server with manual middleware chain.
+ */
+import { type Server as HttpServer, type IncomingMessage, type ServerResponse } from 'node:http';
+import type { TlsOptions } from 'node:tls';
+import type { ResolvedGatewayAuth, GatewayAuthConfig } from './gateway-auth.js';
+export type RouteHandler = (req: IncomingMessage, res: ServerResponse) => void | Promise<void>;
+export interface GatewayServerConfig {
+    port: number;
+    host: string;
+    corsOrigin?: string;
+    tls?: TlsOptions;
+    maxBodyBytes?: number;
+    trustProxy?: boolean;
+    authConfig?: GatewayAuthConfig;
+}
+export declare class GatewayServer {
+    private server;
+    private routes;
+    private config;
+    private startedAt;
+    private context;
+    private _resolvedAuth;
+    private _bootReady;
+    /**
+     * ReadinessChecker — pola OpenClaw createReadinessChecker().
+     * Di-init awal di constructor (isReady: false) sehingga tidak pernah undefined.
+     * Di-replace dengan checker baru setelah listen() agar startedAt akurat.
+     */
+    private _getReadiness;
+    constructor(config: GatewayServerConfig);
+    /** Get the resolved gateway auth (available after start). */
+    get resolvedAuth(): ResolvedGatewayAuth;
+    /** Register a route handler. */
+    route(method: string, path: string, handler: RouteHandler): this;
+    /** Shorthand route registrations. */
+    get(path: string, handler: RouteHandler): this;
+    post(path: string, handler: RouteHandler): this;
+    put(path: string, handler: RouteHandler): this;
+    del(path: string, handler: RouteHandler): this;
+    /** Create and start the HTTP server. */
+    start(): Promise<void>;
+    /** Graceful shutdown. */
+    stop(): Promise<void>;
+    /** Get the underlying HTTP server (for WebSocket upgrade). */
+    getHttpServer(): HttpServer | null;
+    /** Get server uptime in ms. */
+    uptime(): number;
+    private createRequestHandler;
+    private handleRpcRequest;
+    /** Simple path matching — supports exact match and prefix match with trailing wildcard. */
+    private matchPath;
+}
+/** Create a new GatewayServer instance. */
+export declare function createGatewayServer(config?: Partial<GatewayServerConfig>): GatewayServer;
+//# sourceMappingURL=server-impl.d.ts.map

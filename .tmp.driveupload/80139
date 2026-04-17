@@ -1,0 +1,24 @@
+/**
+ * markdown/fences.ts
+ * Code fence detection and extraction.
+ * Ported from CoreBlow reference src/markdown/fences.ts.
+ */
+export interface CodeFence {
+    language: string;
+    code: string;
+    startLine: number;
+    endLine: number;
+}
+/**
+ * Extract all code fences from markdown text.
+ */
+export declare function extractCodeFences(markdown: string): CodeFence[];
+/**
+ * Strip code fences from markdown, replacing with placeholder.
+ */
+export declare function stripCodeFences(markdown: string, placeholder?: string): string;
+/**
+ * Detect the language of a code fence from its content (heuristic).
+ */
+export declare function detectLanguage(code: string): string | null;
+//# sourceMappingURL=fences.d.ts.map

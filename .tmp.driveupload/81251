@@ -1,0 +1,35 @@
+export class NodeSubscriptionManager {
+    // Maps sessionKey -> Set of nodeIds
+    subscriptions = new Map();
+    subscribe(nodeId, sessionKey) {
+        if (!this.subscriptions.has(sessionKey)) {
+            this.subscriptions.set(sessionKey, new Set());
+        }
+        this.subscriptions.get(sessionKey).add(nodeId);
+    }
+    unsubscribe(nodeId, sessionKey) {
+        const subs = this.subscriptions.get(sessionKey);
+        if (subs) {
+            subs.delete(nodeId);
+            if (subs.size === 0) {
+                this.subscriptions.delete(sessionKey);
+            }
+        }
+    }
+    getSubscribers(sessionKey) {
+        const subs = this.subscriptions.get(sessionKey);
+        return subs ? Array.from(subs) : [];
+    }
+    // Clean up all subscriptions for a node when it disconnects
+    handleNodeDisconnect(nodeId) {
+        for (const [sessionKey, subs] of this.subscriptions.entries()) {
+            if (subs.has(nodeId)) {
+                subs.delete(nodeId);
+                if (subs.size === 0) {
+                    this.subscriptions.delete(sessionKey);
+                }
+            }
+        }
+    }
+}
+//# sourceMappingURL=server-node-subscriptions.js.map

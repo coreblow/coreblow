@@ -1,0 +1,20 @@
+/**
+ * Discord Component Collectors — Await user interactions on components.
+ */
+export interface CollectorOptions {
+    timeout: number;
+    maxCollect?: number;
+    filter?: (interaction: Record<string, unknown>) => boolean;
+}
+export declare class ComponentCollector {
+    private collected;
+    private options;
+    private ended;
+    constructor(options: CollectorOptions);
+    collect(interaction: Record<string, unknown>): boolean;
+    end(): void;
+    getCollected(): Record<string, unknown>[];
+    get isEnded(): boolean;
+    get count(): number;
+}
+//# sourceMappingURL=collectors.d.ts.map

@@ -1,0 +1,148 @@
+/**
+ * CoreBlow — Sub-Agent Orchestrator
+ *
+ * Coordinates multiple specialized sub-agents for complex tasks.
+ * Supports parallel execution, sequential chains, result aggregation,
+ * and agent routing based on task type.
+ */
+/**
+ * CoreBlow Sub-Agent Orchestrator
+ */
+export class SubAgentOrchestrator {
+    agents = new Map();
+    history = [];
+    maxHistory = 50;
+    /**
+     * Register a sub-agent.
+     */
+    register(agent) {
+        this.agents.set(agent.id, agent);
+    }
+    /**
+     * Route to the best agent for a task.
+     */
+    route(task) {
+        const lower = task.toLowerCase();
+        let best = null;
+        let bestScore = 0;
+        for (const agent of Array.from(this.agents.values())) {
+            let score = 0;
+            for (const cap of agent.capabilities) {
+                if (lower.includes(cap.toLowerCase()))
+                    score++;
+            }
+            score += (agent.priority ?? 0) * 0.1;
+            if (score > bestScore) {
+                bestScore = score;
+                best = agent;
+            }
+        }
+        return best;
+    }
+    /**
+     * Execute a single agent.
+     */
+    async executeSingle(agentId, input) {
+        const agent = this.agents.get(agentId);
+        if (!agent)
+            return null;
+        const start = Date.now();
+        try {
+            const result = await agent.handler(input);
+            result.durationMs = Date.now() - start;
+            return result;
+        }
+        catch (err) {
+            return {
+                agentId,
+                result: `Error: ${err instanceof Error ? err.message : String(err)}`,
+                confidence: 0,
+                durationMs: Date.now() - start,
+            };
+        }
+    }
+    /**
+     * Execute multiple agents in parallel.
+     */
+    async executeParallel(agentIds, input) {
+        const start = Date.now();
+        const results = await Promise.all(agentIds.map((id) => this.executeSingle(id, input)));
+        const validResults = results.filter((r) => r !== null);
+        const best = validResults.sort((a, b) => b.confidence - a.confidence)[0];
+        const result = {
+            strategy: 'parallel',
+            results: validResults,
+            finalOutput: best?.result ?? 'No results',
+            totalDurationMs: Date.now() - start,
+        };
+        this.record(result);
+        return result;
+    }
+    /**
+     * Execute agents in a chain (output → input).
+     */
+    async executeChain(agentIds, initialInput) {
+        const start = Date.now();
+        const results = [];
+        let currentInput = initialInput;
+        for (const id of agentIds) {
+            const output = await this.executeSingle(id, currentInput);
+            if (!output)
+                break;
+            results.push(output);
+            currentInput = { ...currentInput, task: output.result, context: { ...currentInput.context, previousResult: output.result } };
+        }
+        const lastResult = results[results.length - 1];
+        const result = {
+            strategy: 'chain',
+            results,
+            finalOutput: lastResult?.result ?? 'Chain failed',
+            totalDurationMs: Date.now() - start,
+        };
+        this.record(result);
+        return result;
+    }
+    /**
+     * Auto-route and execute.
+     */
+    async autoExecute(input) {
+        const agent = this.route(input.task);
+        if (!agent) {
+            return { strategy: 'single', results: [], finalOutput: 'No suitable agent found', totalDurationMs: 0 };
+        }
+        const output = await this.executeSingle(agent.id, input);
+        const result = {
+            strategy: 'single',
+            results: output ? [output] : [],
+            finalOutput: output?.result ?? 'Execution failed',
+            totalDurationMs: output?.durationMs ?? 0,
+        };
+        this.record(result);
+        return result;
+    }
+    /**
+     * List registered agents.
+     */
+    list() {
+        return Array.from(this.agents.values()).map((a) => ({
+            id: a.id,
+            name: a.name,
+            capabilities: a.capabilities,
+        }));
+    }
+    /**
+     * Get history.
+     */
+    getHistory(limit) {
+        return this.history.slice(-(limit ?? 20));
+    }
+    /** Count */
+    count() { return this.agents.size; }
+    // === Private ===
+    record(result) {
+        this.history.push(result);
+        if (this.history.length > this.maxHistory)
+            this.history = this.history.slice(-this.maxHistory);
+    }
+}
+//# sourceMappingURL=sub-agent-orchestrator.js.map

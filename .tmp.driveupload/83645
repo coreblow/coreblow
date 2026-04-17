@@ -1,0 +1,18 @@
+export function buildAuthHeaders(opts) {
+    const h = { ...opts.headers };
+    if (opts.bearerToken)
+        h["Authorization"] = `Bearer ${opts.bearerToken}`;
+    if (opts.apiKey)
+        h[opts.apiKeyHeader ?? "X-API-Key"] = opts.apiKey;
+    return h;
+}
+export async function fetchWithAuth(url, init) {
+    const { bearerToken, apiKey, apiKeyHeader, headers: rawHeaders, ...rest } = init;
+    const authHeaders = buildAuthHeaders({ bearerToken, apiKey, apiKeyHeader, headers: rawHeaders });
+    const mergedHeaders = {
+        ...authHeaders,
+        ...(rawHeaders ?? {}),
+    };
+    return fetch(url, { ...rest, headers: mergedHeaders });
+}
+//# sourceMappingURL=fetch-auth.js.map

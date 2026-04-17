@@ -1,0 +1,3 @@
+import type { GatewayRequestHandlers } from "./types.js";
+export declare const ttsHandlers: GatewayRequestHandlers;
+//# sourceMappingURL=tts.d.ts.map

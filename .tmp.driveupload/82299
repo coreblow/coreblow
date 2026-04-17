@@ -1,0 +1,15 @@
+import type { CredentialResolveOptions } from "./gateway-types.js";
+export type GatewayCredentialMode = "token" | "password" | "none";
+export type GatewayCredentialPrecedence = "cli" | "env" | "config" | "default";
+export type GatewayRemoteCredentialFallback = "allow" | "deny";
+export type GatewayRemoteCredentialPrecedence = "cli" | "env" | "config";
+export interface GatewayCredentials {
+    mode: GatewayCredentialMode;
+    token?: string;
+    password?: string;
+}
+export declare function resolveGatewayCredentialsFromConfig(options: CredentialResolveOptions): {
+    token?: string;
+    password?: string;
+};
+//# sourceMappingURL=credentials.d.ts.map

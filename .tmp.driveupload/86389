@@ -1,0 +1,71 @@
+/**
+ * CoreBlow — Notification System
+ *
+ * Manages notifications across channels and users.
+ * Supports priority levels, read tracking, batching,
+ * and notification preferences.
+ */
+/** Notification */
+export interface Notification {
+    id: string;
+    type: 'info' | 'warning' | 'error' | 'success' | 'system';
+    title: string;
+    message: string;
+    userId?: string;
+    channel?: string;
+    read: boolean;
+    createdAt: number;
+    expiresAt?: number;
+    metadata?: Record<string, unknown>;
+}
+/** Notification preferences */
+export interface NotificationPreferences {
+    enabled: boolean;
+    channels: string[];
+    muteUntil?: number;
+    types: Array<Notification['type']>;
+}
+/**
+ * CoreBlow Notification System
+ */
+export declare class NotificationSystem {
+    private notifications;
+    private preferences;
+    private idCounter;
+    private maxNotifications;
+    /**
+     * Send a notification.
+     */
+    send(type: Notification['type'], title: string, message: string, userId?: string, channel?: string): Notification;
+    /**
+     * Get notifications for a user.
+     */
+    getForUser(userId: string, unreadOnly?: boolean): Notification[];
+    /**
+     * Mark as read.
+     */
+    markRead(notifId: string): boolean;
+    /**
+     * Mark all as read for a user.
+     */
+    markAllRead(userId: string): number;
+    /**
+     * Set user preferences.
+     */
+    setPreferences(userId: string, prefs: NotificationPreferences): void;
+    /**
+     * Get unread count.
+     */
+    getUnreadCount(userId: string): number;
+    /**
+     * Get recent notifications.
+     */
+    getRecent(limit?: number): Notification[];
+    /**
+     * Clear old notifications.
+     */
+    clearExpired(): number;
+    /** Count */
+    count(): number;
+}
+//# sourceMappingURL=notification-system.d.ts.map

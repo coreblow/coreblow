@@ -1,0 +1,6 @@
+import type { DiscordMessage } from '../types-sdk.js';
+import type { ResolvedConfig } from '../config.js';
+export declare function checkPermissions(_message: DiscordMessage, _config: ResolvedConfig): {
+    allowed: boolean;
+};
+//# sourceMappingURL=permissions.d.ts.map

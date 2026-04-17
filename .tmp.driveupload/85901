@@ -1,0 +1,65 @@
+/**
+ * CoreBlow — Dependency Graph
+ *
+ * Tracks module dependencies and provides topological
+ * sorting, circular dependency detection, and impact
+ * analysis for changes.
+ */
+/** Graph node */
+export interface GraphNode {
+    id: string;
+    label: string;
+    type: string;
+    dependencies: string[];
+    dependents: string[];
+    metadata?: Record<string, unknown>;
+}
+/** Impact analysis result */
+export interface ImpactAnalysis {
+    directDependents: string[];
+    transitiveDependents: string[];
+    totalImpacted: number;
+}
+/**
+ * CoreBlow Dependency Graph
+ */
+export declare class DependencyGraph {
+    private nodes;
+    /**
+     * Add a node.
+     */
+    addNode(id: string, label: string, type: string): void;
+    /**
+     * Add a dependency edge (from depends on to).
+     */
+    addEdge(fromId: string, toId: string): boolean;
+    /**
+     * Get a node.
+     */
+    getNode(id: string): GraphNode | null;
+    /**
+     * Detect circular dependencies.
+     */
+    detectCycles(): string[][];
+    /**
+     * Topological sort.
+     */
+    topologicalSort(): string[];
+    /**
+     * Analyze impact of changing a node.
+     */
+    analyzeImpact(id: string): ImpactAnalysis;
+    /**
+     * List all nodes.
+     */
+    list(): Array<{
+        id: string;
+        label: string;
+        type: string;
+        deps: number;
+        dependents: number;
+    }>;
+    /** Count */
+    count(): number;
+}
+//# sourceMappingURL=dependency-graph.d.ts.map

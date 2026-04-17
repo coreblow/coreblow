@@ -1,0 +1,154 @@
+/**
+ * mcp/channel-shared.ts
+ *
+ * Shared types and pure utility functions for the MCP channel subsystem.
+ * Used by channel-bridge, channel-tools, and channel-server.
+ *
+ * [PORT] openclaw-main/src/mcp/channel-shared.ts L1-210
+ * Adaptasi:
+ *   - `__openclaw` → `__coreblow` di resolveMessageId() [ADAPT]
+ *   - Import paths adjusted for CoreBlow structure
+ */
+import { z } from 'zod';
+export type ClaudeChannelMode = 'off' | 'on' | 'auto';
+export type ConversationDescriptor = {
+    sessionKey: string;
+    channel: string;
+    to: string;
+    accountId?: string;
+    threadId?: string | number;
+    label?: string;
+    displayName?: string;
+    derivedTitle?: string;
+    lastMessagePreview?: string;
+    updatedAt?: number | null;
+};
+export type SessionRow = {
+    key: string;
+    channel?: string;
+    lastChannel?: string;
+    lastTo?: string;
+    lastAccountId?: string;
+    lastThreadId?: string | number;
+    deliveryContext?: {
+        channel?: string;
+        to?: string;
+        accountId?: string;
+        threadId?: string | number;
+    };
+    origin?: {
+        provider?: string;
+        accountId?: string;
+        threadId?: string | number;
+    };
+    label?: string;
+    displayName?: string;
+    derivedTitle?: string;
+    lastMessagePreview?: string;
+    updatedAt?: number | null;
+};
+export type SessionListResult = {
+    sessions?: SessionRow[];
+};
+export type ChatHistoryResult = {
+    messages?: Array<{
+        id?: string;
+        role?: string;
+        content?: unknown;
+        [key: string]: unknown;
+    }>;
+};
+export type SessionMessagePayload = {
+    sessionKey?: string;
+    messageId?: string;
+    messageSeq?: number;
+    message?: {
+        role?: string;
+        content?: unknown;
+        [key: string]: unknown;
+    };
+    lastChannel?: string;
+    lastTo?: string;
+    lastAccountId?: string;
+    lastThreadId?: string | number;
+    [key: string]: unknown;
+};
+export type ApprovalKind = 'exec' | 'plugin';
+export type ApprovalDecision = 'allow-once' | 'allow-always' | 'deny';
+export type PendingApproval = {
+    kind: ApprovalKind;
+    id: string;
+    request?: Record<string, unknown>;
+    createdAtMs?: number;
+    expiresAtMs?: number;
+};
+export type QueueEvent = {
+    cursor: number;
+    type: 'message';
+    sessionKey: string;
+    conversation?: ConversationDescriptor;
+    messageId?: string;
+    messageSeq?: number;
+    role?: string;
+    text?: string;
+    raw: SessionMessagePayload;
+} | {
+    cursor: number;
+    type: 'claude_permission_request';
+    requestId: string;
+    toolName: string;
+    description: string;
+    inputPreview: string;
+} | {
+    cursor: number;
+    type: 'exec_approval_requested' | 'exec_approval_resolved';
+    raw: Record<string, unknown>;
+} | {
+    cursor: number;
+    type: 'plugin_approval_requested' | 'plugin_approval_resolved';
+    raw: Record<string, unknown>;
+};
+export type ClaudePermissionRequest = {
+    toolName: string;
+    description: string;
+    inputPreview: string;
+};
+export type WaitFilter = {
+    afterCursor: number;
+    sessionKey?: string;
+};
+export declare const ClaudePermissionRequestSchema: z.ZodObject<{
+    method: z.ZodLiteral<"notifications/claude/channel/permission_request">;
+    params: z.ZodObject<{
+        request_id: z.ZodString;
+        tool_name: z.ZodString;
+        description: z.ZodString;
+        input_preview: z.ZodString;
+    }, z.core.$strip>;
+}, z.core.$strip>;
+/** Trim to non-empty string or undefined. [PORT] openclaw L125-127 */
+export declare function toText(value: unknown): string | undefined;
+/**
+ * Resolve message ID from entry — check top-level `id` first,
+ * then fall back to `__coreblow.id` metadata field.
+ * [ADAPT] openclaw L129-138: `__openclaw` → `__coreblow`
+ */
+export declare function resolveMessageId(entry: Record<string, unknown>): string | undefined;
+/** Build MCP text content result. [PORT] openclaw L140-144 */
+export declare function summarizeResult(label: string, count: number): {
+    content: Array<{
+        type: 'text';
+        text: string;
+    }>;
+};
+/** Resolve the canonical channel string from a SessionRow. [PORT] openclaw L146-155 */
+export declare function resolveConversationChannel(row: SessionRow): string | undefined;
+/** Convert a SessionRow to a ConversationDescriptor, or null if incomplete. [PORT] openclaw L157-176 */
+export declare function toConversation(row: SessionRow): ConversationDescriptor | null;
+/** Returns true if event passes cursor + optional session filter. [PORT] openclaw L178-186 */
+export declare function matchEventFilter(event: QueueEvent, filter: WaitFilter): boolean;
+/** Extract non-text content blocks (attachments) from a message. [PORT] openclaw L188-200 */
+export declare function extractAttachmentsFromMessage(message: unknown): unknown[];
+/** Normalize an approval ID value to a trimmed string. [PORT] openclaw L202-205 */
+export declare function normalizeApprovalId(value: unknown): string | undefined;
+//# sourceMappingURL=channel-shared.d.ts.map

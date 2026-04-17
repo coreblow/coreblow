@@ -1,0 +1,3 @@
+/** plugin-sdk/provider-google.ts [PORT] openclaw-main — Deprecated compat alias. */
+export * from "./google.js";
+//# sourceMappingURL=provider-google.d.ts.map

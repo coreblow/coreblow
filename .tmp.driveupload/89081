@@ -1,0 +1,7 @@
+export class OAuthProfileManager {
+    profiles = new Map();
+    add(id, profile) { this.profiles.set(id, profile); }
+    get(id) { return this.profiles.get(id); }
+    list() { return [...this.profiles.values()]; }
+}
+//# sourceMappingURL=oauth.js.map

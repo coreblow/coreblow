@@ -1,0 +1,3 @@
+/** plugin-sdk/memory-lancedb.ts [ADAPT] openclaw-main — Stub for LanceDB integration. */
+export declare function createLanceDbMemoryStore(_path: string): Promise<unknown>;
+//# sourceMappingURL=memory-lancedb.d.ts.map

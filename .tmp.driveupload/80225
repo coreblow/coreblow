@@ -1,0 +1,141 @@
+/**
+ * CoreBlow Gateway — Channel Policy Engine (Facade)
+ *
+ * CoreBlow-specific — tidak ada di OpenClaw.
+ *
+ * Mengorkestrasikan semua policy checks dalam satu panggilan:
+ * 1. Allowlist check (siapa yang boleh mengirim)
+ * 2. Command gating (apakah command authorized)
+ * 3. Mention gating (apakah bot di-mention jika wajib)
+ * 4. Debounce resolution (berapa ms debounce untuk channel ini)
+ *
+ * Channel adapter cukup panggil `applyChannelPolicy()` satu kali
+ * tanpa perlu tahu detail setiap policy engine individu.
+ *
+ * @example
+ * // Di Discord adapter:
+ * const policy = applyChannelPolicy({
+ *   config: channelConfig.policy,
+ *   message: {
+ *     senderId: message.author.id,
+ *     senderName: message.author.username,
+ *     content: message.content,
+ *     isGroup: message.guild !== null,
+ *     wasMentioned: message.mentions.has(client.user),
+ *     canDetectMention: true,
+ *     hasControlCommand: message.content.startsWith('/'),
+ *   },
+ * });
+ *
+ * if (!policy.allowed) {
+ *   return; // skip message
+ * }
+ */
+import { type AllowlistMatchSource } from './allowlist-match.js';
+import { type CommandGatingMode } from './command-gating.js';
+import { type InboundDebouncePolicyConfig } from './inbound-debounce-policy.js';
+/**
+ * Policy configuration untuk sebuah channel.
+ * Diset di `ChannelConfig.policy` atau per-channel override.
+ */
+export type ChannelPolicyConfig = {
+    /** Daftar sender ID/name yang diizinkan (DM). Kosong = blokir semua. `['*']` = izinkan semua. */
+    allowFrom?: Array<string | number>;
+    /** Daftar sender ID/name untuk grup. Jika tidak diset, fallback ke `allowFrom`. */
+    groupAllowFrom?: Array<string | number>;
+    /** Allowlist dari store (runtime-added, e.g. dari dashboard) */
+    storeAllowFrom?: Array<string | number>;
+    /** Match juga by display name (tidak hanya ID). Default: false */
+    allowNameMatching?: boolean;
+    /** Policy DM: 'allowlist' = hanya gunakan allowFrom, 'open' = gabungkan dengan store. Default: 'open' */
+    dmPolicy?: 'allowlist' | 'open';
+    /** Wajib di-mention di grup. Default: false */
+    requireMention?: boolean;
+    /** Apakah channel bisa detect mention. Default: true */
+    canDetectMention?: boolean;
+    /** Izinkan /commands. Default: true */
+    allowTextCommands?: boolean;
+    /** Aktifkan access group system untuk commands. Default: false */
+    useAccessGroups?: boolean;
+    /** Behavior saat access groups off. Default: 'allow' */
+    commandGatingMode?: CommandGatingMode;
+    /** Debounce config untuk channel ini */
+    debounce?: InboundDebouncePolicyConfig;
+};
+/**
+ * Alasan kenapa pesan di-allow atau di-deny.
+ */
+export type ChannelPolicyReason = 'allowed' | 'wildcard' | 'allowlist_deny' | 'mention_required' | 'command_blocked';
+/**
+ * Hasil `applyChannelPolicy()`.
+ */
+export type ChannelPolicyResult = {
+    /** True jika pesan boleh diproses */
+    allowed: boolean;
+    /** Alasan decision */
+    reason: ChannelPolicyReason;
+    /** Dari field apa allowlist match ditemukan */
+    matchSource?: AllowlistMatchSource | string;
+    /** True jika pesan sebaiknya di-debounce sebelum diproses */
+    shouldDebounce: boolean;
+    /** Debounce window dalam ms (0 = tidak di-debounce) */
+    debounceMs: number;
+    /** Detail gating untuk logging */
+    gating: {
+        allowlistChecked: boolean;
+        mentionChecked: boolean;
+        commandChecked: boolean;
+        bypassedMentionViaCommand: boolean;
+    };
+};
+/**
+ * Message context yang perlu diketahui channel policy engine.
+ * Channel adapter menyediakan ini dari message yang diterima.
+ */
+export type ChannelPolicyMessage = {
+    /** Unique ID sender (platform-specific: user ID, bot ID, dll) */
+    senderId: string;
+    /** Display name sender (untuk name-based allowlist matching) */
+    senderName?: string;
+    /** Konten pesan (untuk deteksi command) */
+    content: string;
+    /** Apakah ini group chat (bukan DM) */
+    isGroup: boolean;
+    /** Apakah bot di-mention dalam pesan ini */
+    wasMentioned: boolean;
+    /** Apakah platform bisa detect mention. Default: true */
+    canDetectMention?: boolean;
+    /** Apakah ada mention siapapun (bukan hanya bot) */
+    hasAnyMention?: boolean;
+    /** Apakah pesan ini mengandung control command (e.g. /help) */
+    hasControlCommand?: boolean;
+    /** Apakah pesan berisi media (image, video, dll) */
+    hasMedia?: boolean;
+    /** Nama channel platform (e.g. 'discord', 'telegram') */
+    channelName?: string;
+};
+/**
+ * Apply semua channel policies dalam urutan:
+ *
+ * 1. **Allowlist check** — apakah sender diizinkan?
+ * 2. **Command gating** — apakah command authorized?
+ * 3. **Mention gating** — apakah mention requirement terpenuhi?
+ * 4. **Debounce resolution** — berapa ms debounce?
+ *
+ * Short-circuit: jika allowlist deny, langsung return tanpa cek gating.
+ *
+ * @example
+ * const result = applyChannelPolicy({
+ *   config: { allowFrom: ['*'], requireMention: true },
+ *   message: {
+ *     senderId: 'user123', content: 'hello', isGroup: true,
+ *     wasMentioned: false, canDetectMention: true,
+ *   },
+ * });
+ * // result.allowed === false, result.reason === 'mention_required'
+ */
+export declare function applyChannelPolicy(params: {
+    config: ChannelPolicyConfig;
+    message: ChannelPolicyMessage;
+}): ChannelPolicyResult;
+//# sourceMappingURL=channel-policy-engine.d.ts.map

@@ -1,0 +1,1 @@
+{"version":3,"file":"diagnostic-runtime.d.ts","sourceRoot":"","sources":["../../src/plugin-sdk/diagnostic-runtime.ts"],"names":[],"mappings":"AAAA,6DAA6D;AAC7D,MAAM,MAAM,kBAAkB,GAAG;IAAE,SAAS,EAAE,MAAM,CAAC;IAAC,MAAM,EAAE,MAAM,CAAC;IAAC,WAAW,EAAE,MAAM,CAAC,WAAW,CAAC;IAAC,OAAO,EAAE,MAAM,CAAA;CAAE,CAAC;AACzH,wBAAgB,yBAAyB,IAAI,kBAAkB,CAA8H"}

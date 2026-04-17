@@ -1,0 +1,17 @@
+/**
+ * secrets/apply.ts
+ * Config mutation engine — applies resolved secrets back into config.
+ * Ported from CoreBlow reference src/secrets/apply.ts (855 LOC → ~130 LOC compressed).
+ */
+import type { SecretApplyResult } from './types.js';
+/**
+ * Apply resolved secrets into a config object, replacing `secret:source:provider:id` strings.
+ * Mutates the config in place for efficiency. Returns a summary of applied changes.
+ */
+export declare function applyResolvedSecrets(config: Record<string, unknown>, resolved: Map<string, unknown>): SecretApplyResult;
+/**
+ * Redact resolved secret values from a config for safe logging.
+ * Returns a deep clone with secret values replaced by `[REDACTED]`.
+ */
+export declare function redactSecretsFromConfig(config: Record<string, unknown>): Record<string, unknown>;
+//# sourceMappingURL=apply.d.ts.map

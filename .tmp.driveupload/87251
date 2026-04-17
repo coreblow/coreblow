@@ -1,0 +1,9 @@
+/** PI agent settings. */
+export interface PiSettings {
+    theme?: 'dark' | 'light';
+    verbose?: boolean;
+    autoApprove?: boolean;
+    maxTurns?: number;
+}
+export declare const DEFAULT_PI_SETTINGS: PiSettings;
+//# sourceMappingURL=pi-settings.d.ts.map

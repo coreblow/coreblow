@@ -1,0 +1,74 @@
+/**
+ * CoreBlow — Feature Flags
+ *
+ * Runtime feature flag management for gradual rollouts,
+ * A/B testing, and kill switches. Supports user/channel
+ * targeting and percentage-based rollouts.
+ */
+/** Feature flag */
+export interface FeatureFlag {
+    id: string;
+    name: string;
+    description?: string;
+    enabled: boolean;
+    /** Percentage rollout (0-100) */
+    rolloutPercent?: number;
+    /** Target specific users */
+    targetUsers?: string[];
+    /** Target specific channels */
+    targetChannels?: string[];
+    createdAt: number;
+    updatedAt: number;
+}
+/** Flag evaluation context */
+export interface FlagContext {
+    userId?: string;
+    channel?: string;
+}
+/**
+ * CoreBlow Feature Flags
+ */
+export declare class FeatureFlags {
+    private flags;
+    /**
+     * Define a feature flag.
+     */
+    define(id: string, name: string, enabled?: boolean, opts?: Partial<FeatureFlag>): void;
+    /**
+     * Check if a flag is enabled for given context.
+     */
+    isEnabled(flagId: string, ctx?: FlagContext): boolean;
+    /**
+     * Toggle a flag.
+     */
+    toggle(flagId: string): boolean;
+    /**
+     * Set enabled state.
+     */
+    setEnabled(flagId: string, enabled: boolean): boolean;
+    /**
+     * Set rollout percentage.
+     */
+    setRollout(flagId: string, percent: number): boolean;
+    /**
+     * Get a flag.
+     */
+    get(flagId: string): FeatureFlag | null;
+    /**
+     * List all flags.
+     */
+    list(): Array<{
+        id: string;
+        name: string;
+        enabled: boolean;
+        rollout?: number;
+    }>;
+    /**
+     * Delete a flag.
+     */
+    delete(flagId: string): boolean;
+    /** Count */
+    count(): number;
+    private hashString;
+}
+//# sourceMappingURL=feature-flags.d.ts.map

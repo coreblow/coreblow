@@ -1,0 +1,34 @@
+/**
+ * gateway/protocol/schema.ts
+ * JSON-RPC protocol schema definitions for the gateway.
+ */
+export interface RPCRequest {
+    jsonrpc: '2.0';
+    method: string;
+    params?: Record<string, unknown> | unknown[];
+    id?: string | number;
+}
+export interface RPCResponse {
+    jsonrpc: '2.0';
+    result?: unknown;
+    error?: RPCError;
+    id?: string | number;
+}
+export interface RPCError {
+    code: number;
+    message: string;
+    data?: unknown;
+}
+export declare const RPC_ERROR_CODES: {
+    readonly PARSE_ERROR: -32700;
+    readonly INVALID_REQUEST: -32600;
+    readonly METHOD_NOT_FOUND: -32601;
+    readonly INVALID_PARAMS: -32602;
+    readonly INTERNAL_ERROR: -32603;
+    readonly UNAUTHORIZED: -32001;
+    readonly FORBIDDEN: -32003;
+};
+export declare function createRPCResponse(id: string | number | undefined, result: unknown): RPCResponse;
+export declare function createRPCError(id: string | number | undefined, code: number, message: string): RPCResponse;
+export declare function isValidRPCRequest(data: unknown): data is RPCRequest;
+//# sourceMappingURL=schema.d.ts.map

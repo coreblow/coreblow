@@ -1,0 +1,119 @@
+/**
+ * plugins/resource-limiter.ts
+ *
+ * Plugin resource limits — enforces CPU time, memory, I/O, and
+ * concurrent operation budgets for sandboxed plugin execution.
+ *
+ * Following CoreBlow's Docker sandbox resource pattern (types.sandbox.ts)
+ * adapted for CoreBlow's non-Docker, process-level enforcement.
+ */
+/** Resource limit configuration per plugin */
+export interface ResourceLimits {
+    /** Max heap memory in MB (0 = unlimited) */
+    maxMemoryMB: number;
+    /** Max CPU time per operation in ms (0 = unlimited) */
+    maxCpuTimeMs: number;
+    /** Max concurrent async operations */
+    maxConcurrentOps: number;
+    /** Max total operations per minute */
+    maxOpsPerMinute: number;
+    /** Max file size for write operations in bytes */
+    maxFileSizeBytes: number;
+    /** Max network requests per minute */
+    maxNetworkReqPerMinute: number;
+    /** Max store entries (KV store size limit) */
+    maxStoreEntries: number;
+}
+/** Resource usage snapshot */
+export interface ResourceUsage {
+    pluginId: string;
+    currentOps: number;
+    opsThisMinute: number;
+    networkReqThisMinute: number;
+    storeEntries: number;
+    violations: ResourceViolation[];
+    lastReset: number;
+}
+/** A recorded violation */
+export interface ResourceViolation {
+    pluginId: string;
+    resource: keyof ResourceLimits;
+    limit: number;
+    actual: number;
+    timestamp: number;
+    action: string;
+}
+/** Predefined limit profiles */
+export type LimitProfile = 'strict' | 'standard' | 'permissive' | 'unlimited';
+/** Get a preset limit profile */
+export declare function getLimitProfile(profile: LimitProfile): ResourceLimits;
+/**
+ * CoreBlow Resource Limiter
+ *
+ * Tracks and enforces per-plugin resource budgets. Each plugin gets its
+ * own limiter instance with operation counters, rate limiting, and
+ * violation recording.
+ */
+export declare class ResourceLimiter {
+    private pluginId;
+    private limits;
+    private currentOps;
+    private opsThisMinute;
+    private networkReqThisMinute;
+    private storeEntries;
+    private violations;
+    private lastMinuteReset;
+    private minuteTimer;
+    constructor(pluginId: string, limits?: Partial<ResourceLimits> | LimitProfile);
+    /**
+     * Check and consume a concurrent operation slot.
+     * Returns true if allowed, false if limit exceeded.
+     */
+    acquireOp(action: string): boolean;
+    /**
+     * Release a concurrent operation slot.
+     */
+    releaseOp(): void;
+    /**
+     * Check if a network request is allowed.
+     */
+    checkNetwork(action: string): boolean;
+    /**
+     * Check if a file write is within size limits.
+     */
+    checkFileSize(sizeBytes: number, action: string): boolean;
+    /**
+     * Check if a store entry can be added.
+     */
+    checkStoreEntry(currentCount: number, action: string): boolean;
+    /**
+     * Wrap an async operation with CPU time limit.
+     */
+    withTimeout<T>(fn: () => Promise<T>, action: string): Promise<T>;
+    getUsage(): ResourceUsage;
+    getLimits(): ResourceLimits;
+    getViolations(): ResourceViolation[];
+    getViolationCount(): number;
+    /**
+     * Check if the plugin has exceeded any limits recently.
+     */
+    hasViolations(): boolean;
+    /**
+     * Reset all counters (e.g., on plugin reload).
+     */
+    reset(): void;
+    /**
+     * Stop this limiter (clean up timer).
+     */
+    dispose(): void;
+    private maybeResetMinute;
+    private recordViolation;
+}
+export interface ResourceProfile {
+    maxMemoryMb?: number;
+    maxCpuPercent?: number;
+    maxConcurrentOps?: number;
+    maxOpsPerMinute?: number;
+    maxNetworkReqPerMinute?: number;
+}
+//# sourceMappingURL=resource-limiter.d.ts.map

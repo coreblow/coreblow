@@ -1,0 +1,21 @@
+/** plugin-sdk/xai.ts [ADAPT] openclaw-main */
+import type { ProviderModelDefinition } from "./provider-model-shared.js";
+export declare const XAI_BASE_URL = "https://api.x.ai";
+export declare const XAI_DEFAULT_MODEL_ID = "grok-beta";
+export declare const XAI_DEFAULT_MODEL_REF = "xai:grok-beta";
+export declare const XAI_DEFAULT_CONTEXT_WINDOW = 131072;
+export declare const XAI_DEFAULT_MAX_TOKENS = 8192;
+export declare const XAI_TOOL_SCHEMA_PROFILE = "xai";
+export declare const HTML_ENTITY_TOOL_CALL_ARGUMENTS_ENCODING = false;
+export declare function normalizeXaiModelId(id: string): string;
+export declare function isModernXaiModel(id: string): boolean;
+export declare function buildXaiModelDefinition(params: {
+    id: string;
+    label?: string;
+}): ProviderModelDefinition;
+export declare function buildXaiCatalogModels(): ProviderModelDefinition[];
+export declare function buildXaiProvider(_p: unknown): unknown;
+export declare function applyXaiModelCompat(id: string): string;
+export declare function resolveXaiCatalogEntry(_id: string): ProviderModelDefinition | null;
+export declare function resolveXaiForwardCompatModel(id: string): string;
+//# sourceMappingURL=xai.d.ts.map

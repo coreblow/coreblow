@@ -1,0 +1,10 @@
+/**
+ * cron/cron-lock.ts
+ */
+export class CronLock {
+    locked = new Set();
+    acquire(id) { if (this.locked.has(id))
+        return false; this.locked.add(id); return true; }
+    release(id) { this.locked.delete(id); }
+}
+//# sourceMappingURL=cron-lock.js.map

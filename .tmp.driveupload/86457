@@ -1,0 +1,117 @@
+/**
+ * src/tui/renderer.ts
+ * ANSI Terminal Renderer — zero dependencies, pure Node.js
+ * Handles colors, box drawing, positioning, and screen management
+ */
+export declare const colors: {
+    reset: string;
+    bold: string;
+    dim: string;
+    italic: string;
+    underline: string;
+    blink: string;
+    inverse: string;
+    hidden: string;
+    strikethrough: string;
+    black: string;
+    red: string;
+    green: string;
+    yellow: string;
+    blue: string;
+    magenta: string;
+    cyan: string;
+    white: string;
+    gray: string;
+    brightRed: string;
+    brightGreen: string;
+    brightYellow: string;
+    brightBlue: string;
+    brightMagenta: string;
+    brightCyan: string;
+    brightWhite: string;
+    bgBlack: string;
+    bgRed: string;
+    bgGreen: string;
+    bgYellow: string;
+    bgBlue: string;
+    bgMagenta: string;
+    bgCyan: string;
+    bgWhite: string;
+    bgGray: string;
+    bgBrightBlue: string;
+    fg256: (n: number) => string;
+    bg256: (n: number) => string;
+    fgRgb: (r: number, g: number, b: number) => string;
+    bgRgb: (r: number, g: number, b: number) => string;
+};
+export declare const box: {
+    topLeft: string;
+    topRight: string;
+    bottomLeft: string;
+    bottomRight: string;
+    horizontal: string;
+    vertical: string;
+    teeRight: string;
+    teeLeft: string;
+    teeDown: string;
+    teeUp: string;
+    cross: string;
+    thinTopLeft: string;
+    thinTopRight: string;
+    thinBottomLeft: string;
+    thinBottomRight: string;
+    thinHorizontal: string;
+    thinVertical: string;
+    thinTeeRight: string;
+    thinTeeLeft: string;
+    thinTeeDown: string;
+    thinTeeUp: string;
+    roundTopLeft: string;
+    roundTopRight: string;
+    roundBottomLeft: string;
+    roundBottomRight: string;
+};
+export declare const symbols: {
+    check: string;
+    cross: string;
+    dot: string;
+    circle: string;
+    arrow: string;
+    arrowLeft: string;
+    arrowUp: string;
+    arrowDown: string;
+    star: string;
+    heart: string;
+    diamond: string;
+    square: string;
+    play: string;
+    pause: string;
+    stop: string;
+    online: string;
+    offline: string;
+    warning: string;
+    loading: string;
+};
+export declare class TerminalRenderer {
+    private buffer;
+    width: number;
+    height: number;
+    constructor();
+    clear(): void;
+    clearLine(): void;
+    hideCursor(): void;
+    showCursor(): void;
+    moveTo(x: number, y: number): void;
+    enterAltScreen(): void;
+    exitAltScreen(): void;
+    private write;
+    drawBox(x: number, y: number, w: number, h: number, title?: string, style?: 'double' | 'thin' | 'round'): void;
+    writeAt(x: number, y: number, text: string): void;
+    drawHLine(x: number, y: number, w: number, char?: string): void;
+    drawProgressBar(x: number, y: number, w: number, value: number, max: number, color?: string): void;
+    drawSparkline(x: number, y: number, data: number[], w: number, color?: string): void;
+    statusIndicator(online: boolean): string;
+    pad(str: string, len: number, align?: 'left' | 'right' | 'center'): string;
+    flush(): void;
+}
+//# sourceMappingURL=renderer.d.ts.map

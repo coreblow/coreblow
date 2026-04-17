@@ -1,0 +1,71 @@
+/**
+ * CoreBlow — Schema Validator
+ *
+ * Validates JSON data against schemas with nested
+ * object support, array validation, enums, and
+ * detailed error paths.
+ */
+/** Schema definition */
+export interface SchemaField {
+    type: 'string' | 'number' | 'boolean' | 'object' | 'array' | 'enum';
+    required?: boolean;
+    items?: SchemaField;
+    properties?: Record<string, SchemaField>;
+    enum?: unknown[];
+    description?: string;
+    default?: unknown;
+}
+export type Schema = Record<string, SchemaField>;
+/** Validation error */
+export interface SchemaError {
+    path: string;
+    message: string;
+    expected: string;
+    actual: string;
+}
+/**
+ * CoreBlow Schema Validator
+ */
+export declare class SchemaValidator {
+    private schemas;
+    /**
+     * Register a named schema.
+     */
+    register(name: string, schema: Schema): void;
+    /**
+     * Validate data against a named schema.
+     */
+    validate(schemaName: string, data: Record<string, unknown>): {
+        valid: boolean;
+        errors: SchemaError[];
+    };
+    /**
+     * Validate directly against a schema object.
+     */
+    validateDirect(data: Record<string, unknown>, schema: Schema): {
+        valid: boolean;
+        errors: SchemaError[];
+    };
+    /**
+     * Apply defaults from schema.
+     */
+    applyDefaults(data: Record<string, unknown>, schema: Schema): Record<string, unknown>;
+    /**
+     * Generate sample data from schema.
+     */
+    generateSample(schema: Schema): Record<string, unknown>;
+    /**
+     * List registered schemas.
+     */
+    list(): string[];
+    /**
+     * Get a schema.
+     */
+    get(name: string): Schema | null;
+    /** Count */
+    count(): number;
+    private validateObject;
+    private checkType;
+    private sampleValue;
+}
+//# sourceMappingURL=schema-validator.d.ts.map

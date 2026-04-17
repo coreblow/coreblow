@@ -1,0 +1,20 @@
+/**
+ * CoreBlow — Google Image Generation Provider
+ *
+ * Supports: Imagen 3
+ * API: Generative Language API - generateImages
+ */
+import type { ImageGenerationProvider, ImageGenerationCapabilities, ImageGenerationRequest, ImageGenerationResult } from '../types.js';
+export declare class GoogleImageProvider implements ImageGenerationProvider {
+    readonly id = "google";
+    readonly name = "Google (Imagen)";
+    readonly models: string[];
+    readonly capabilities: ImageGenerationCapabilities;
+    private apiKey;
+    constructor(opts?: {
+        apiKey?: string;
+    });
+    isAvailable(): boolean;
+    generateImage(request: ImageGenerationRequest): Promise<ImageGenerationResult>;
+}
+//# sourceMappingURL=google-provider.d.ts.map

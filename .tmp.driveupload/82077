@@ -1,0 +1,4 @@
+export function resolveAgentTimestamp(ts) {
+    return typeof ts === 'number' && Number.isFinite(ts) ? ts : Date.now();
+}
+//# sourceMappingURL=agent-timestamp.js.map

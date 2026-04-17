@@ -1,0 +1,12 @@
+export interface ChunkConfig {
+    maxChunkSize?: number;
+    overlap?: number;
+    separators?: string[];
+}
+export interface Chunk {
+    content: string;
+    index: number;
+    metadata?: Record<string, unknown>;
+}
+export declare function recursiveChunk(text: string, config?: ChunkConfig): Chunk[];
+//# sourceMappingURL=recursive-chunker.d.ts.map

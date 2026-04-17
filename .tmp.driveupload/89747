@@ -1,0 +1,62 @@
+/**
+ * CoreBlow API Key Rotation
+ *
+ * Manages per-provider API key rotation with health tracking,
+ * rate limit awareness, and automatic failover.
+ *
+ * Equivalent: CoreBlow src/agents/api-key-rotation.ts (72 LOC)
+ */
+export interface RotatableKey {
+    key: string;
+    label?: string;
+    weight: number;
+    healthy: boolean;
+    lastUsed: number;
+    errorCount: number;
+    rateLimitedUntil: number;
+}
+export interface KeyPoolStats {
+    provider: string;
+    totalKeys: number;
+    healthyKeys: number;
+    rateLimitedKeys: number;
+    totalErrors: number;
+    rotations: number;
+}
+/**
+ * Register API keys for rotation
+ */
+export declare function registerKeys(provider: string, keys: Array<{
+    key: string;
+    label?: string;
+    weight?: number;
+}>): void;
+/**
+ * Get the next available key using weighted round-robin
+ */
+export declare function getNextKey(provider: string): string | null;
+/**
+ * Report an error for a key
+ */
+export declare function reportKeyError(provider: string, key: string, isRateLimit?: boolean): void;
+/**
+ * Report a key success (reset error count)
+ */
+export declare function reportKeySuccess(provider: string, key: string): void;
+/**
+ * Get pool statistics
+ */
+export declare function getPoolStats(provider: string): KeyPoolStats | null;
+/**
+ * Clear a provider's key pool
+ */
+export declare function clearPool(provider: string): void;
+/**
+ * Clear all key pools
+ */
+export declare function clearAllPools(): void;
+/**
+ * Check if the pool has any healthy keys
+ */
+export declare function hasHealthyKeys(provider: string): boolean;
+//# sourceMappingURL=api-key-rotation.d.ts.map

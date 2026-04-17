@@ -1,0 +1,10 @@
+/**
+ * plugin-sdk/setup-tools.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/setup-tools.ts
+ *
+ * Setup tool helpers: format CLI commands, detect binaries, docs links.
+ */
+export { formatCliCommand } from './provider-web-search.js';
+export { formatDocsLink } from './channel-setup.js';
+export { detectBinary, installSignalCli } from './setup.js';
+//# sourceMappingURL=setup-tools.js.map

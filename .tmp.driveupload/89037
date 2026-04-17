@@ -1,0 +1,27 @@
+/**
+ * CoreBlow — Auth State Observation (CoreBlow Parity)
+ *
+ * Observable auth state changes and event emission.
+ */
+const listeners = new Set();
+export function onAuthStateChange(listener) {
+    listeners.add(listener);
+    return () => listeners.delete(listener);
+}
+export function emitAuthStateEvent(event) {
+    for (const listener of listeners) {
+        try {
+            listener(event);
+        }
+        catch {
+            // Ignore listener errors
+        }
+    }
+}
+export function clearAuthStateListeners() {
+    listeners.clear();
+}
+export function authStateListenerCount() {
+    return listeners.size;
+}
+//# sourceMappingURL=state-observation.js.map

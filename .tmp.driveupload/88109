@@ -1,0 +1,8 @@
+export function encodeParentMessage(msg) { return JSON.stringify(msg); }
+export function decodeParentMessage(data) { try {
+    return JSON.parse(data);
+}
+catch {
+    return null;
+} }
+//# sourceMappingURL=acp-spawn-parent-stream.js.map

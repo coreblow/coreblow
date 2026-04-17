@@ -1,0 +1,1 @@
+{"version":3,"file":"voice-call.d.ts","sourceRoot":"","sources":["../../src/plugin-sdk/voice-call.ts"],"names":[],"mappings":"AAAA,qDAAqD;AACrD,MAAM,MAAM,eAAe,GAAG;IAAE,EAAE,EAAE,MAAM,CAAC;IAAC,IAAI,CAAC,EAAE,MAAM,CAAC;IAAC,IAAI,CAAC,EAAE,MAAM,CAAA;CAAE,CAAC;AAC3E,wBAAsB,iBAAiB,CAAC,OAAO,EAAE,eAAe,GAAG,OAAO,CAAC;IAAE,MAAM,EAAE,MAAM,CAAA;CAAE,GAAG,IAAI,CAAC,CAEpG"}

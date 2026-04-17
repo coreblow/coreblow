@@ -1,0 +1,87 @@
+/**
+ * CoreBlow — API Docs Generator
+ *
+ * Auto-generates CoreAPI 3.0 specification from registered routes
+ * and serves a JSON/YAML spec endpoint plus a Swagger UI redirect.
+ */
+/** Route documentation */
+export interface RouteDoc {
+    path: string;
+    method: string;
+    summary: string;
+    description?: string;
+    tags?: string[];
+    parameters?: Array<{
+        name: string;
+        in: 'query' | 'path' | 'header';
+        required?: boolean;
+        schema: {
+            type: string;
+        };
+        description?: string;
+    }>;
+    requestBody?: {
+        required?: boolean;
+        content: Record<string, {
+            schema: Record<string, unknown>;
+        }>;
+    };
+    responses: Record<string, {
+        description: string;
+        content?: Record<string, {
+            schema: Record<string, unknown>;
+        }>;
+    }>;
+    security?: Array<Record<string, string[]>>;
+    deprecated?: boolean;
+}
+/** API info */
+export interface ApiInfo {
+    title: string;
+    version: string;
+    description?: string;
+    contact?: {
+        name?: string;
+        url?: string;
+        email?: string;
+    };
+    license?: {
+        name: string;
+        url?: string;
+    };
+}
+/**
+ * CoreBlow API Docs Generator
+ */
+export declare class ApiDocsGenerator {
+    private routes;
+    private info;
+    private servers;
+    private tags;
+    constructor(info: ApiInfo);
+    /**
+     * Add a route documentation.
+     */
+    addRoute(doc: RouteDoc): void;
+    /**
+     * Add a server.
+     */
+    addServer(url: string, description?: string): void;
+    /**
+     * Add a tag.
+     */
+    addTag(name: string, description?: string): void;
+    /**
+     * Generate CoreAPI 3.0 spec.
+     */
+    generate(): Record<string, unknown>;
+    /**
+     * Generate JSON string.
+     */
+    toJSON(): string;
+    /**
+     * Get route count.
+     */
+    routeCount(): number;
+}
+//# sourceMappingURL=api-docs.d.ts.map

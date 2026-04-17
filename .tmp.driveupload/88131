@@ -1,0 +1,3 @@
+/** Tool description summarization. */
+export declare function summarizeToolDescription(desc: string, maxLen?: number): string;
+//# sourceMappingURL=tool-description-summary.d.ts.map

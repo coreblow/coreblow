@@ -1,0 +1,4 @@
+export async function executeTool(_toolName, _params) {
+    return { ok: false, error: "executeTool requires a CoreBlow agent runtime" };
+}
+//# sourceMappingURL=tool-send.js.map

@@ -1,0 +1,15 @@
+export { projectCredentialSnapshotFields, resolveConfiguredFromCredentialStatuses, resolveConfiguredFromRequiredCredentialStatuses, buildTokenChannelStatusSummary, buildComputedAccountStatusSnapshot, } from "./channel-status.js";
+export function isRecord(val) {
+    return typeof val === "object" && val !== null && !Array.isArray(val);
+}
+export function appendMatchMetadata(_result, _meta) { }
+export function asString(val) { return val == null ? "" : String(val); }
+export function collectIssuesForEnabledAccounts(_p) { return []; }
+export function formatMatchMetadata(_meta) { return JSON.stringify(_meta); }
+export function resolveEnabledConfiguredAccountId(_accounts) { return null; }
+export function buildProbeChannelStatusSummary(_p) { return ""; }
+export function collectStatusIssuesFromLastError(_p) { return []; }
+export function buildBaseAccountStatusSnapshot(params) { return { accountId: params.accountId, configured: false, running: false }; }
+export function buildBaseChannelStatusSummary(_p) { return ""; }
+export function createDefaultChannelRuntimeState() { return { running: false, lastError: null, lastInboundAt: null, lastOutboundAt: null }; }
+//# sourceMappingURL=status-helpers.js.map

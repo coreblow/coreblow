@@ -1,0 +1,10 @@
+import { validateWebStatusParams } from "../protocol/index.js";
+import { assertValidParams } from "./validation.js";
+export const webHandlers = {
+    "web.status": ({ params, respond }) => {
+        if (!assertValidParams(params, validateWebStatusParams, "web.status", respond))
+            return;
+        respond(true, { online: true }, undefined);
+    }
+};
+//# sourceMappingURL=web.js.map

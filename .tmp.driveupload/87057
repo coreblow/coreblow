@@ -1,0 +1,6 @@
+export function createCapabilitySet(caps, opts) {
+    return { capabilities: caps, maxTools: opts?.maxTools ?? 50, allowExec: opts?.allowExec ?? true, sandbox: opts?.sandbox ?? true };
+}
+export function hasCapability(set, cap) { return set.capabilities.includes(cap); }
+export const DEFAULT_CAPABILITIES = createCapabilitySet(['code', 'exec', 'files', 'search']);
+//# sourceMappingURL=subagent-capabilities.js.map

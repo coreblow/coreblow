@@ -1,0 +1,62 @@
+/**
+ * CoreBlow — Migration System
+ *
+ * Manages data and config migrations when upgrading.
+ * Supports versioned migrations, rollback, dry-run,
+ * and migration history tracking.
+ */
+/** Migration definition */
+export interface Migration {
+    version: string;
+    name: string;
+    description?: string;
+    up: () => Promise<void>;
+    down?: () => Promise<void>;
+}
+/** Migration record */
+export interface MigrationRecord {
+    version: string;
+    name: string;
+    status: 'applied' | 'rolled-back' | 'failed';
+    appliedAt: number;
+    durationMs: number;
+    error?: string;
+}
+/**
+ * CoreBlow Migration System
+ */
+export declare class MigrationSystem {
+    private migrations;
+    private applied;
+    private currentVersion;
+    /**
+     * Register a migration.
+     */
+    register(migration: Migration): void;
+    /**
+     * Run all pending migrations.
+     */
+    migrate(): Promise<MigrationRecord[]>;
+    /**
+     * Rollback the last applied migration.
+     */
+    rollback(): Promise<MigrationRecord | null>;
+    /**
+     * Get pending migrations.
+     */
+    getPending(): Migration[];
+    /**
+     * Get migration history.
+     */
+    getHistory(): MigrationRecord[];
+    /**
+     * Get current version.
+     */
+    getVersion(): string;
+    /** Count registered */
+    count(): number;
+    private applyMigration;
+    private updateCurrentVersion;
+    private compareVersion;
+}
+//# sourceMappingURL=migration-system.d.ts.map

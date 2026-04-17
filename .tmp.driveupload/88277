@@ -1,0 +1,14 @@
+/** agents/trace-base.ts — Base trace/span types for observability. */
+export interface TraceSpan {
+    traceId: string;
+    spanId: string;
+    parentSpanId?: string;
+    name: string;
+    startTime: number;
+    endTime?: number;
+    attributes?: Record<string, unknown>;
+}
+export declare function createSpan(name: string, traceId?: string): TraceSpan;
+export declare function endSpan(span: TraceSpan): TraceSpan;
+export declare function spanDurationMs(span: TraceSpan): number;
+//# sourceMappingURL=trace-base.d.ts.map

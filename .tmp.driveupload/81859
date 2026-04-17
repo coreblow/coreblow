@@ -1,0 +1,3 @@
+import type { GatewayRequestHandlers } from "./types.js";
+export declare const sessionsHandlers: GatewayRequestHandlers;
+//# sourceMappingURL=sessions.d.ts.map

@@ -1,0 +1,2 @@
+export declare function resetDiagnostics(): void;
+//# sourceMappingURL=reset-diagnostics.d.ts.map

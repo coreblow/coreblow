@@ -1,0 +1,104 @@
+/**
+ * src/channels/signal.ts
+ * Signal channel adapter — via signal-cli JSON-RPC daemon
+ * SUPERIOR: CoreBlow = 19 files; CoreBlow = 1 file with all features
+ * Features: daemon management, SSE, typing, read receipts, reactions, groups, attachments, reconnect
+ */
+import type { ChannelAdapter, ChannelStatus } from './interface.js';
+import type { MessageRouter } from '../gateway/router.js';
+export interface SignalConfig {
+    /** Phone number registered with Signal (e.g. +628123456789) */
+    phoneNumber: string;
+    /** Path to signal-cli binary — default: 'signal-cli' */
+    cliPath?: string;
+    /** JSON-RPC mode: 'stdio' (stdin/stdout) or 'http' (HTTP server) */
+    mode?: 'stdio' | 'http';
+    /** HTTP base URL for signal-cli daemon (if mode='http') */
+    httpUrl?: string;
+    /** Auto-reconnect on daemon crash */
+    autoReconnect?: boolean;
+    /** Max reconnect attempts */
+    maxReconnectAttempts?: number;
+    /** Reconnect delay (ms) */
+    reconnectDelayMs?: number;
+    /** Send read receipts */
+    sendReadReceipts?: boolean;
+    /** Send typing indicators */
+    sendTypingIndicators?: boolean;
+    /** Allowed groups (empty = all) */
+    allowedGroups?: string[];
+    /** Blocked numbers */
+    blockedNumbers?: string[];
+}
+export interface SignalTarget {
+    type: 'recipient' | 'group' | 'username';
+    value: string;
+}
+export declare class SignalChannel implements ChannelAdapter {
+    name: string;
+    private process;
+    private config;
+    private connected;
+    private startedAt;
+    private router?;
+    private reconnectAttempts;
+    private reconnectTimer;
+    private pendingRpc;
+    private rpcIdCounter;
+    private messagesSent;
+    private messagesReceived;
+    constructor(config: SignalConfig);
+    start(router: MessageRouter): Promise<void>;
+    stop(): Promise<void>;
+    isConnected(): boolean;
+    getStatus(): ChannelStatus;
+    /**
+    * Check if signal-cli binary is available
+    */
+    probe(): boolean;
+    private spawnDaemon;
+    private buildDaemonArgs;
+    private killDaemon;
+    private scheduleReconnect;
+    private handleRpcMessage;
+    private handleIncoming;
+    /**
+    * Send JSON-RPC request to signal-cli
+    */
+    private rpc;
+    private failAllPending;
+    /**
+    * Send a text message (with optional attachments)
+    */
+    sendMessage(to: string, text: string, opts?: {
+        attachments?: string[];
+    }): Promise<{
+        timestamp?: number;
+    }>;
+    /**
+    * Send typing indicator
+    */
+    sendTyping(to: string, stop?: boolean): Promise<void>;
+    /**
+    * Send read receipt
+    */
+    sendReadReceipt(to: string, targetTimestamp: number): Promise<void>;
+    /**
+    * Send reaction emoji
+    */
+    sendReaction(to: string, emoji: string, targetAuthor: string, targetTimestamp: number): Promise<void>;
+    /**
+    * Parse target string into type + value
+    * Supports: phone number, group:<id>, username:<name>
+    */
+    parseTarget(raw: string): SignalTarget;
+    /**
+    * List registered accounts
+    */
+    listAccounts(): Promise<unknown>;
+    /**
+    * Get group info
+    */
+    getGroupInfo(groupId: string): Promise<unknown>;
+}
+//# sourceMappingURL=signal.d.ts.map

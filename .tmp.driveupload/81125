@@ -1,0 +1,20 @@
+/**
+ * CoreBlow — Error Boundary
+ *
+ * Simple error logging for catch blocks.
+ * Replaces silent `catch {}` with observable `catch (e) { logCaughtError(...) }`.
+ *
+ * Self-host pattern: stderr output so user sees it in terminal / docker logs.
+ * NOT a structured logger — no Loki, no CloudWatch, no JSON.
+ */
+/**
+ * Log a caught error to stderr with module context.
+ * Use this instead of silent `catch {}` blocks.
+ */
+export declare function logCaughtError(module: string, error: unknown): void;
+/**
+ * Log a caught error and return a fallback value.
+ * Useful for `readJsonFile`-style patterns.
+ */
+export declare function logAndReturn<T>(module: string, error: unknown, fallback: T): T;
+//# sourceMappingURL=error-boundary.d.ts.map

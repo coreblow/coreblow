@@ -1,0 +1,74 @@
+/**
+ * CoreBlow — State Machine
+ *
+ * Finite state machine for managing complex state
+ * transitions with guards, actions, and history.
+ */
+/** Transition */
+export interface Transition {
+    from: string;
+    to: string;
+    event: string;
+    guard?: (ctx: Record<string, unknown>) => boolean;
+    action?: (ctx: Record<string, unknown>) => void;
+}
+/** State machine definition */
+export interface StateMachineDef {
+    id: string;
+    initialState: string;
+    states: string[];
+    transitions: Transition[];
+}
+/** Machine instance */
+export interface MachineInstance {
+    id: string;
+    definitionId: string;
+    currentState: string;
+    context: Record<string, unknown>;
+    history: Array<{
+        from: string;
+        to: string;
+        event: string;
+        timestamp: number;
+    }>;
+    createdAt: number;
+}
+/**
+ * CoreBlow State Machine
+ */
+export declare class StateMachine {
+    private definitions;
+    private instances;
+    private idCounter;
+    /**
+     * Register a machine definition.
+     */
+    define(def: StateMachineDef): void;
+    /**
+     * Create a new instance.
+     */
+    create(definitionId: string, context?: Record<string, unknown>): MachineInstance | null;
+    /**
+     * Send an event to transition.
+     */
+    send(instanceId: string, event: string): {
+        success: boolean;
+        newState?: string;
+        error?: string;
+    };
+    /**
+     * Get current state.
+     */
+    getState(instanceId: string): string | null;
+    /**
+     * Get instance.
+     */
+    getInstance(instanceId: string): MachineInstance | null;
+    /**
+     * Get available events for current state.
+     */
+    getAvailableEvents(instanceId: string): string[];
+    /** Count instances */
+    count(): number;
+}
+//# sourceMappingURL=state-machine.d.ts.map

@@ -1,0 +1,3 @@
+/** Subagent registry type definitions. */
+export type { SubagentEntry } from './subagent-registry.js';
+//# sourceMappingURL=subagent-registry.types.d.ts.map

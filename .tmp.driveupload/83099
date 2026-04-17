@@ -1,0 +1,18 @@
+export async function withRetry(fn, opts) {
+    const max = opts?.maxAttempts ?? 3, delay = opts?.delayMs ?? 500, factor = opts?.backoffFactor ?? 2;
+    let lastErr;
+    for (let i = 0; i < max; i++) {
+        try {
+            return await fn();
+        }
+        catch (err) {
+            lastErr = err;
+            if (opts?.shouldRetry && !opts.shouldRetry(err, i))
+                break;
+            if (i < max - 1)
+                await new Promise(r => setTimeout(r, delay * Math.pow(factor, i)));
+        }
+    }
+    throw lastErr;
+}
+//# sourceMappingURL=retry-runtime.js.map

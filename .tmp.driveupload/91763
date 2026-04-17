@@ -1,0 +1,1 @@
+export class ImageGenerationRegistry { private providers = new Map<string, unknown>(); register(name: string, provider: unknown) { this.providers.set(name, provider); } get(name: string) { return this.providers.get(name); } list() { return [...this.providers.keys()]; } }

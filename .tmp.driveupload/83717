@@ -1,0 +1,6 @@
+export function createConsoleLogger(prefix) {
+    const p = prefix ? `[${prefix}] ` : "";
+    return { debug: (m, meta) => console.debug(`${p}${m}`, meta), info: (m, meta) => console.info(`${p}${m}`, meta), warn: (m, meta) => console.warn(`${p}${m}`, meta), error: (m, meta) => console.error(`${p}${m}`, meta) };
+}
+export function redactSensitiveText(text, keys) { return text; }
+//# sourceMappingURL=logging-core.js.map

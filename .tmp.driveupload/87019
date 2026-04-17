@@ -1,0 +1,4 @@
+/** Model auth environment variable names. */
+export declare const AUTH_ENV_VARS: Record<string, string>;
+export declare function getAuthEnvVar(provider: string): string | undefined;
+//# sourceMappingURL=model-auth-env-vars.d.ts.map

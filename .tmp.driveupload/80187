@@ -1,0 +1,18 @@
+/**
+ * markdown/whatsapp.ts
+ * WhatsApp-flavored markdown conversion.
+ * Ported from CoreBlow reference src/markdown/whatsapp.ts.
+ */
+/**
+ * Convert standard markdown to WhatsApp formatting.
+ */
+export declare function markdownToWhatsApp(markdown: string): string;
+/**
+ * Convert WhatsApp formatting to standard markdown.
+ */
+export declare function whatsAppToMarkdown(text: string): string;
+/**
+ * Strip all WhatsApp formatting.
+ */
+export declare function stripWhatsAppFormatting(text: string): string;
+//# sourceMappingURL=whatsapp.d.ts.map

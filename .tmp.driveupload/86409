@@ -1,0 +1,62 @@
+/**
+ * CoreBlow — Health Probe
+ *
+ * Runs periodic health checks against registered
+ * endpoints/services with configurable intervals,
+ * thresholds, and alerting.
+ */
+/** Probe target */
+export interface ProbeTarget {
+    name: string;
+    checker: () => Promise<boolean>;
+    intervalMs: number;
+    failureThreshold: number;
+    status: 'healthy' | 'unhealthy' | 'unknown';
+    consecutiveFailures: number;
+    lastChecked?: number;
+    lastHealthy?: number;
+}
+/** Probe result */
+export interface ProbeResult {
+    name: string;
+    healthy: boolean;
+    timestamp: number;
+    durationMs: number;
+}
+/**
+ * CoreBlow Health Probe
+ */
+export declare class HealthProbe {
+    private targets;
+    private history;
+    private maxHistory;
+    /**
+     * Register a probe target.
+     */
+    register(name: string, checker: () => Promise<boolean>, intervalMs?: number, failureThreshold?: number): void;
+    /**
+     * Run probe for a target.
+     */
+    probe(name: string): Promise<ProbeResult>;
+    /**
+     * Run all probes.
+     */
+    probeAll(): Promise<ProbeResult[]>;
+    /**
+     * Get overall health.
+     */
+    getOverallHealth(): {
+        healthy: boolean;
+        targets: Array<{
+            name: string;
+            status: string;
+        }>;
+    };
+    /**
+     * Get target status.
+     */
+    getTarget(name: string): ProbeTarget | null;
+    /** Count */
+    count(): number;
+}
+//# sourceMappingURL=health-probe.d.ts.map

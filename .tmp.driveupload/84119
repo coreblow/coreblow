@@ -1,0 +1,7 @@
+/** plugin-sdk/browser-support.ts [ADAPT] openclaw-main */
+export function detectBrowserEnvironment() {
+    return typeof globalThis !== "undefined" && "document" in globalThis;
+}
+export function disableGlobally() { }
+export function isBrowserGlobalDisabled() { return false; }
+//# sourceMappingURL=browser-support.js.map

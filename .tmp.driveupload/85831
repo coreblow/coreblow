@@ -1,0 +1,147 @@
+/**
+ * CoreBlow — Cron Scheduler
+ *
+ * Manages scheduled tasks with cron-like expressions.
+ * Supports recurring jobs, one-shot timers, job history,
+ * and pause/resume functionality.
+ */
+/**
+ * CoreBlow Cron Scheduler
+ */
+export class CronScheduler {
+    jobs = new Map();
+    timers = new Map();
+    history = [];
+    maxHistory = 200;
+    idCounter = 0;
+    /**
+     * Schedule a recurring job.
+     */
+    schedule(name, intervalMs, handler, maxRuns) {
+        const id = `job-${++this.idCounter}`;
+        const job = {
+            id, name, intervalMs, handler, status: 'active',
+            nextRun: Date.now() + intervalMs, runCount: 0, maxRuns, errors: 0,
+        };
+        this.jobs.set(id, job);
+        const timer = setInterval(async () => { await this.runJob(id); }, intervalMs);
+        this.timers.set(id, timer);
+        return id;
+    }
+    /**
+     * Schedule a one-shot timer.
+     */
+    scheduleOnce(name, delayMs, handler) {
+        const id = `once-${++this.idCounter}`;
+        const job = {
+            id, name, intervalMs: delayMs, handler, status: 'active',
+            nextRun: Date.now() + delayMs, runCount: 0, maxRuns: 1, errors: 0,
+        };
+        this.jobs.set(id, job);
+        const timer = setTimeout(async () => {
+            await this.runJob(id);
+            this.cancel(id);
+        }, delayMs);
+        this.timers.set(id, timer);
+        return id;
+    }
+    /**
+     * Pause a job.
+     */
+    pause(jobId) {
+        const job = this.jobs.get(jobId);
+        if (!job || job.status !== 'active')
+            return false;
+        const timer = this.timers.get(jobId);
+        if (timer)
+            clearInterval(timer);
+        this.timers.delete(jobId);
+        job.status = 'paused';
+        return true;
+    }
+    /**
+     * Resume a paused job.
+     */
+    resume(jobId) {
+        const job = this.jobs.get(jobId);
+        if (!job || job.status !== 'paused')
+            return false;
+        job.status = 'active';
+        const timer = setInterval(async () => { await this.runJob(jobId); }, job.intervalMs);
+        this.timers.set(jobId, timer);
+        return true;
+    }
+    /**
+     * Cancel a job.
+     */
+    cancel(jobId) {
+        const timer = this.timers.get(jobId);
+        if (timer)
+            clearInterval(timer);
+        this.timers.delete(jobId);
+        const job = this.jobs.get(jobId);
+        if (job)
+            job.status = 'stopped';
+        return this.jobs.delete(jobId);
+    }
+    /**
+     * Get job info.
+     */
+    get(jobId) {
+        return this.jobs.get(jobId) ?? null;
+    }
+    /**
+     * List all jobs.
+     */
+    list() {
+        return Array.from(this.jobs.values()).map((j) => ({
+            id: j.id, name: j.name, status: j.status, runCount: j.runCount,
+        }));
+    }
+    /**
+     * Get job history.
+     */
+    getHistory(limit) {
+        return this.history.slice(-(limit ?? 50));
+    }
+    /**
+     * Stop all jobs.
+     */
+    stopAll() {
+        let count = 0;
+        for (const [id] of Array.from(this.timers)) {
+            this.cancel(id);
+            count++;
+        }
+        return count;
+    }
+    /** Count */
+    count() { return this.jobs.size; }
+    // === Private ===
+    async runJob(jobId) {
+        const job = this.jobs.get(jobId);
+        if (!job || job.status !== 'active')
+            return;
+        const start = Date.now();
+        try {
+            await job.handler();
+            job.runCount++;
+            job.lastRun = Date.now();
+            job.nextRun = Date.now() + job.intervalMs;
+            this.recordHistory({ jobId, success: true, durationMs: Date.now() - start, timestamp: Date.now() });
+            if (job.maxRuns && job.runCount >= job.maxRuns) {
+                this.cancel(jobId);
+            }
+        }
+        catch (err) {
+            job.errors++;
+            this.recordHistory({ jobId, success: false, durationMs: Date.now() - start, error: String(err), timestamp: Date.now() });
+        }
+    }
+    recordHistory(result) {
+        this.history.push(result);
+        if (this.history.length > this.maxHistory)
+            this.history = this.history.slice(-this.maxHistory);
+    }
+}
+//# sourceMappingURL=cron-scheduler.js.map

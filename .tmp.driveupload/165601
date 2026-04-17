@@ -1,0 +1,131 @@
+import type { RuntimeProfile } from "../classes/RequestClient.js";
+export type RequestLane = "critical" | "standard" | "background";
+export type RequestSchedulerLaneOptions = {
+    weight?: number;
+    maxQueueSize?: number;
+    staleAfterMs?: number;
+};
+export type RequestSchedulerOptions = {
+    maxConcurrency?: number;
+    maxRateLimitRetries?: number;
+    lanes?: Partial<Record<RequestLane, RequestSchedulerLaneOptions>>;
+};
+export declare const requestSchedulerProfileDefaults: {
+    serverless: {
+        maxConcurrency: number;
+        maxRateLimitRetries: number;
+        lanes: {
+            critical: {
+                weight: number;
+                maxQueueSize: number;
+            };
+            standard: {
+                weight: number;
+                maxQueueSize: number;
+                staleAfterMs: number;
+            };
+            background: {
+                weight: number;
+                maxQueueSize: number;
+                staleAfterMs: number;
+            };
+        };
+    };
+    persistent: {
+        maxConcurrency: number;
+        maxRateLimitRetries: number;
+        lanes: {
+            critical: {
+                weight: number;
+                maxQueueSize: number;
+            };
+            standard: {
+                weight: number;
+                maxQueueSize: number;
+                staleAfterMs: number;
+            };
+            background: {
+                weight: number;
+                maxQueueSize: number;
+                staleAfterMs: number;
+            };
+        };
+    };
+};
+export declare function normalizeRequestSchedulerOptions({ runtimeProfile, maxQueueSize, scheduler }: {
+    runtimeProfile: RuntimeProfile;
+    maxQueueSize?: number;
+    scheduler?: RequestSchedulerOptions;
+}): {
+    maxConcurrency: number;
+    maxRateLimitRetries: number;
+    lanes: {
+        critical: {
+            weight: number;
+            maxQueueSize: number;
+            staleAfterMs: number | undefined;
+        };
+        standard: {
+            weight: number;
+            maxQueueSize: number;
+            staleAfterMs: number;
+        };
+        background: {
+            weight: number;
+            maxQueueSize: number;
+            staleAfterMs: number;
+        };
+    };
+};
+export declare class RequestScheduler<T extends {
+    routeKey: string;
+    priority: RequestLane;
+    enqueuedAt: number;
+    reject(reason?: unknown): void;
+}> {
+    private pendingByRoute;
+    private laneCounts;
+    private laneDropped;
+    private laneSchedule;
+    private laneCursor;
+    private routeCursorByLane;
+    private laneConfig;
+    constructor(config: {
+        lanes: Record<RequestLane, {
+            weight: number;
+            maxQueueSize: number;
+            staleAfterMs?: number;
+        }>;
+    });
+    enqueue(request: T): Error | null;
+    takeNext(options: {
+        isRouteReady(routeKey: string): number;
+        isBucketActive(routeKey: string): boolean;
+    }): {
+        request: T | null;
+        waitMs: number | null;
+    };
+    clear(reason?: Error): void;
+    get size(): number;
+    getMetrics(): {
+        laneCounts: {
+            critical: number;
+            standard: number;
+            background: number;
+        };
+        laneDropped: {
+            critical: number;
+            standard: number;
+            background: number;
+        };
+        oldestByLane: {
+            critical: number;
+            standard: number;
+            background: number;
+        };
+    };
+    private compactRoute;
+    private isStale;
+    private getOldestAgeForLane;
+}
+//# sourceMappingURL=RequestScheduler.d.ts.map

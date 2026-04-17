@@ -1,0 +1,5 @@
+export function createThreadOwnershipStore() {
+    const m = new Map();
+    return { get: k => m.get(k), set: (k, v) => { m.set(k, v); }, delete: k => { m.delete(k); } };
+}
+//# sourceMappingURL=thread-ownership.js.map

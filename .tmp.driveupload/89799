@@ -1,0 +1,4 @@
+/** Message event handlers. */
+export function handleTextDelta(text) { return text; }
+export function handleMessageComplete(content) { return { role: 'assistant', content }; }
+//# sourceMappingURL=pi-embedded-subscribe.handlers.messages.js.map

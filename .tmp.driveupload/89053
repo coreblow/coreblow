@@ -1,0 +1,90 @@
+/**
+ * CoreBlow — External CLI Credential Sync (CoreBlow Parity)
+ *
+ * Sync credentials from external CLI tools:
+ * - gcloud CLI → Google credentials
+ * - aws CLI → AWS credentials
+ * - az CLI → Azure credentials
+ * - Environment variables → Various providers
+ */
+// ─── Environment Variable Mapping ───────────────────────────────
+const ENV_CREDENTIAL_MAP = [
+    { envVar: 'OPENAI_API_KEY', provider: 'openai', profileId: 'openai:env', displayName: 'OpenAI (env)' },
+    { envVar: 'ANTHROPIC_API_KEY', provider: 'anthropic', profileId: 'anthropic:env', displayName: 'Anthropic (env)' },
+    { envVar: 'GOOGLE_API_KEY', provider: 'google', profileId: 'google:env', displayName: 'Google (env)' },
+    { envVar: 'GEMINI_API_KEY', provider: 'google', profileId: 'google:gemini-env', displayName: 'Google Gemini (env)' },
+    { envVar: 'MISTRAL_API_KEY', provider: 'mistral', profileId: 'mistral:env', displayName: 'Mistral (env)' },
+    { envVar: 'GROQ_API_KEY', provider: 'groq', profileId: 'groq:env', displayName: 'Groq (env)' },
+    { envVar: 'COHERE_API_KEY', provider: 'cohere', profileId: 'cohere:env', displayName: 'Cohere (env)' },
+    { envVar: 'FIREWORKS_API_KEY', provider: 'fireworks', profileId: 'fireworks:env', displayName: 'Fireworks (env)' },
+    { envVar: 'TOGETHER_API_KEY', provider: 'together', profileId: 'together:env', displayName: 'Together (env)' },
+    { envVar: 'OPENROUTER_API_KEY', provider: 'openrouter', profileId: 'openrouter:env', displayName: 'OpenRouter (env)' },
+    { envVar: 'DEEPSEEK_API_KEY', provider: 'deepseek', profileId: 'deepseek:env', displayName: 'DeepSeek (env)' },
+    { envVar: 'VOYAGE_API_KEY', provider: 'voyage', profileId: 'voyage:env', displayName: 'Voyage (env)' },
+    { envVar: 'HF_TOKEN', provider: 'huggingface', profileId: 'huggingface:env', displayName: 'HuggingFace (env)' },
+    { envVar: 'REPLICATE_API_TOKEN', provider: 'replicate', profileId: 'replicate:env', displayName: 'Replicate (env)' },
+];
+/**
+ * Sync environment variable credentials into the auth store.
+ *
+ * Only adds credentials that don't already exist in the store.
+ * Returns true if any credentials were added.
+ */
+export function syncExternalCliCredentials(store, options) {
+    let mutated = false;
+    for (const mapping of ENV_CREDENTIAL_MAP) {
+        const value = process.env[mapping.envVar];
+        if (!value || value.trim().length === 0)
+            continue;
+        // Don't overwrite existing profiles
+        if (store.profiles[mapping.profileId])
+            continue;
+        // Don't overwrite if another profile for same provider exists with same key
+        const existingForProvider = Object.entries(store.profiles)
+            .filter(([, cred]) => cred.provider === mapping.provider && cred.type === 'api_key')
+            .some(([, cred]) => cred.key === value.trim());
+        if (existingForProvider)
+            continue;
+        store.profiles[mapping.profileId] = {
+            type: 'api_key',
+            provider: mapping.provider,
+            key: value.trim(),
+            displayName: mapping.displayName,
+        };
+        mutated = true;
+    }
+    return mutated;
+}
+/**
+ * Get list of detected environment credentials (without revealing keys).
+ */
+export function detectEnvironmentCredentials() {
+    return ENV_CREDENTIAL_MAP.map(mapping => {
+        const value = process.env[mapping.envVar];
+        const detected = !!value && value.trim().length > 0;
+        return {
+            envVar: mapping.envVar,
+            provider: mapping.provider,
+            detected,
+            masked: detected ? maskKey(value) : '',
+        };
+    });
+}
+/**
+ * Mask an API key for display (show first 4 and last 4 chars).
+ */
+function maskKey(key) {
+    if (key.length <= 8)
+        return '****';
+    return `${key.slice(0, 4)}...${key.slice(-4)}`;
+}
+/**
+ * Check if any supported credentials are available.
+ */
+export function hasAnyEnvironmentCredentials() {
+    return ENV_CREDENTIAL_MAP.some(m => {
+        const value = process.env[m.envVar];
+        return !!value && value.trim().length > 0;
+    });
+}
+//# sourceMappingURL=external-cli-sync.js.map

@@ -1,0 +1,67 @@
+/**
+ * CoreBlow — Message Replay
+ *
+ * Records and replays messages for debugging,
+ * testing, and disaster recovery scenarios.
+ */
+/** Recorded message */
+export interface RecordedMessage {
+    id: string;
+    topic: string;
+    payload: unknown;
+    timestamp: number;
+    metadata?: Record<string, unknown>;
+}
+/** Replay result */
+export interface ReplayResult {
+    replayed: number;
+    failed: number;
+    duration: number;
+}
+/**
+ * CoreBlow Message Replay
+ */
+export declare class MessageReplay {
+    private recordings;
+    private idCounter;
+    private recording;
+    private currentSession?;
+    /**
+     * Start recording.
+     */
+    startRecording(sessionId?: string): string;
+    /**
+     * Stop recording.
+     */
+    stopRecording(): string | null;
+    /**
+     * Record a message.
+     */
+    record(topic: string, payload: unknown, metadata?: Record<string, unknown>): boolean;
+    /**
+     * Replay a session.
+     */
+    replay(sessionId: string, handler: (msg: RecordedMessage) => Promise<void>): Promise<ReplayResult>;
+    /**
+     * Get session messages.
+     */
+    getSession(sessionId: string): RecordedMessage[];
+    /**
+     * Filter messages.
+     */
+    filter(sessionId: string, topic?: string, fromTs?: number, toTs?: number): RecordedMessage[];
+    /**
+     * List sessions.
+     */
+    listSessions(): Array<{
+        id: string;
+        messageCount: number;
+    }>;
+    /**
+     * Is recording?
+     */
+    isRecording(): boolean;
+    /** Count sessions */
+    count(): number;
+}
+//# sourceMappingURL=message-replay.d.ts.map

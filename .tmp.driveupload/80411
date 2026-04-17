@@ -1,0 +1,13 @@
+export function resolveConfig(config) {
+    return {
+        ...config,
+        prefix: config.prefix ?? '/',
+        allowedChannels: config.allowedChannels ?? [],
+        richResponses: config.richResponses ?? true,
+        threadMode: config.threadMode ?? 'off',
+    };
+}
+export function validateConfig(config) {
+    return typeof config === 'object' && config !== null && 'token' in config;
+}
+//# sourceMappingURL=config.js.map

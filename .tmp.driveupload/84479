@@ -1,0 +1,19 @@
+/**
+ * plugin-sdk/provider-catalog-shared.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/provider-catalog-shared.ts
+ *
+ * Shared provider catalog helpers without provider-specific facades.
+ */
+/** Find a model definition by ID in a catalog template. */
+export function findCatalogTemplate(catalog, modelId) {
+    return catalog.find((m) => m.id === modelId);
+}
+/** Build a single-provider catalog from an API key context. */
+export function buildSingleProviderApiKeyCatalog(params) {
+    return params.buildProvider(params.ctx);
+}
+/** Build a paired-provider catalog (primary + secondary failover). */
+export function buildPairedProviderApiKeyCatalog(params) {
+    return params.buildProvider(params.ctx);
+}
+//# sourceMappingURL=provider-catalog-shared.js.map

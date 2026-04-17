@@ -1,0 +1,2 @@
+export declare function getMachineDisplayName(): Promise<string>;
+//# sourceMappingURL=machine-name.d.ts.map

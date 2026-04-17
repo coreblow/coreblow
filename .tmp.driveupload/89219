@@ -1,0 +1,3 @@
+/** PI embedded subscribe handlers aggregate. */
+export { createSubscription } from './pi-embedded-subscribe.js';
+//# sourceMappingURL=pi-embedded-subscribe.handlers.d.ts.map

@@ -1,0 +1,55 @@
+/**
+ * CoreBlow — Subagent Orphan Recovery (CoreBlow Parity)
+ *
+ * Scans for orphaned subagent runs, attempts re-attach or cleanup,
+ * with exponential backoff and idempotent recovery.
+ */
+import type { SubagentRunRecord } from './subagent-registry-types.js';
+export type OrphanScanResult = {
+    scannedAt: number;
+    orphansDetected: number;
+    orphansRecovered: number;
+    orphansKilled: number;
+    orphansSkipped: number;
+};
+export declare function scanForOrphans(params: {
+    activeSessionKeys: Set<string>;
+    gracePeriodMs?: number;
+    onRecover?: (run: SubagentRunRecord) => Promise<boolean>;
+    now?: number;
+}): Promise<OrphanScanResult>;
+export declare function startOrphanScanner(params: {
+    getActiveSessionKeys: () => Set<string>;
+    onRecover?: (run: SubagentRunRecord) => Promise<boolean>;
+    intervalMs?: number;
+    gracePeriodMs?: number;
+}): void;
+export declare function stopOrphanScanner(): void;
+export declare function immediateOrphanKill(runId: string): boolean;
+export declare function resetOrphanRecoveryState(): void;
+export type OrphanRecoveryMetrics = {
+    totalScans: number;
+    totalOrphansDetected: number;
+    totalRecovered: number;
+    totalKilled: number;
+    totalSkipped: number;
+    avgOrphansPerScan: number;
+    lastScanAt?: number;
+};
+export declare function recordScanResult(result: OrphanScanResult): void;
+export declare function getRecoveryMetrics(): OrphanRecoveryMetrics;
+export declare function resetRecoveryMetrics(): void;
+export declare function formatRecoveryMetrics(metrics: OrphanRecoveryMetrics): string;
+export type OrphanDiagnostics = {
+    pendingRecovery: number;
+    maxAttemptsReached: number;
+    activeOrphans: string[];
+    recoveryAttemptCounts: Record<string, number>;
+};
+export declare function getOrphanDiagnostics(): OrphanDiagnostics;
+export type OrphanEventType = 'detected' | 'recovered' | 'killed' | 'retry' | 'skipped';
+export type OrphanEventHandler = (type: OrphanEventType, runId: string, detail?: Record<string, unknown>) => void;
+export declare function onOrphanEvent(handler: OrphanEventHandler): () => void;
+export declare function emitOrphanEvent(type: OrphanEventType, runId: string, detail?: Record<string, unknown>): void;
+export declare function clearOrphanEventHandlers(): void;
+//# sourceMappingURL=subagent-orphan-recovery.d.ts.map

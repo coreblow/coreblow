@@ -1,0 +1,30 @@
+/**
+ * CoreBlow — Subagent Registry Completion (CoreBlow Parity)
+ *
+ * Emit ended hook and resolve outcome for completed runs.
+ */
+import type { SubagentRunRecord, SubagentRunOutcome } from './subagent-registry-types.js';
+import { type SubagentLifecycleEndedReason, type SubagentLifecycleEndedOutcome } from './subagent-lifecycle-events.js';
+export declare function resolveOutcomeFromEndedReason(reason: SubagentLifecycleEndedReason): SubagentRunOutcome;
+export declare function resolveLifecycleOutcomeFromRunOutcome(outcome: SubagentRunOutcome): SubagentLifecycleEndedOutcome;
+export type SubagentEndedHookPayload = {
+    runId: string;
+    childSessionKey: string;
+    requesterSessionKey: string;
+    outcome: SubagentRunOutcome;
+    endedReason: SubagentLifecycleEndedReason;
+    durationMs: number;
+    task: string;
+    label?: string;
+    frozenResultText?: string | null;
+};
+export declare function onSubagentEnded(listener: (payload: SubagentEndedHookPayload) => void): () => void;
+export declare function emitSubagentEndedHook(run: SubagentRunRecord): boolean;
+export declare function clearEndedHookListeners(): void;
+export declare function getEndedHookListenerCount(): number;
+export declare function hasEndedHookListeners(): boolean;
+export declare function isSuccessOutcome(outcome: SubagentRunOutcome): boolean;
+export declare function isFailureOutcome(outcome: SubagentRunOutcome): boolean;
+export declare function isTerminationOutcome(outcome: SubagentRunOutcome): boolean;
+export declare function classifyOutcome(outcome: SubagentRunOutcome): 'success' | 'failure' | 'termination';
+//# sourceMappingURL=subagent-registry-completion.d.ts.map

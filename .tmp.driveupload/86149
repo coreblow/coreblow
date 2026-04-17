@@ -1,0 +1,88 @@
+/**
+ * CoreBlow — State Machine
+ *
+ * Finite state machine for managing complex state
+ * transitions with guards, actions, and history.
+ */
+/**
+ * CoreBlow State Machine
+ */
+export class StateMachine {
+    definitions = new Map();
+    instances = new Map();
+    idCounter = 0;
+    /**
+     * Register a machine definition.
+     */
+    define(def) {
+        this.definitions.set(def.id, def);
+    }
+    /**
+     * Create a new instance.
+     */
+    create(definitionId, context) {
+        const def = this.definitions.get(definitionId);
+        if (!def)
+            return null;
+        const instance = {
+            id: `sm-${++this.idCounter}`, definitionId,
+            currentState: def.initialState,
+            context: context ?? {}, history: [], createdAt: Date.now(),
+        };
+        this.instances.set(instance.id, instance);
+        return instance;
+    }
+    /**
+     * Send an event to transition.
+     */
+    send(instanceId, event) {
+        const instance = this.instances.get(instanceId);
+        if (!instance)
+            return { success: false, error: 'Instance not found' };
+        const def = this.definitions.get(instance.definitionId);
+        if (!def)
+            return { success: false, error: 'Definition not found' };
+        const transition = def.transitions.find((t) => t.from === instance.currentState && t.event === event);
+        if (!transition)
+            return { success: false, error: `No transition for event "${event}" from state "${instance.currentState}"` };
+        // Check guard
+        if (transition.guard && !transition.guard(instance.context)) {
+            return { success: false, error: 'Guard condition failed' };
+        }
+        // Execute action
+        if (transition.action)
+            transition.action(instance.context);
+        // Transition
+        const from = instance.currentState;
+        instance.currentState = transition.to;
+        instance.history.push({ from, to: transition.to, event, timestamp: Date.now() });
+        return { success: true, newState: transition.to };
+    }
+    /**
+     * Get current state.
+     */
+    getState(instanceId) {
+        return this.instances.get(instanceId)?.currentState ?? null;
+    }
+    /**
+     * Get instance.
+     */
+    getInstance(instanceId) {
+        return this.instances.get(instanceId) ?? null;
+    }
+    /**
+     * Get available events for current state.
+     */
+    getAvailableEvents(instanceId) {
+        const instance = this.instances.get(instanceId);
+        if (!instance)
+            return [];
+        const def = this.definitions.get(instance.definitionId);
+        if (!def)
+            return [];
+        return def.transitions.filter((t) => t.from === instance.currentState).map((t) => t.event);
+    }
+    /** Count instances */
+    count() { return this.instances.size; }
+}
+//# sourceMappingURL=state-machine.js.map

@@ -1,0 +1,94 @@
+/**
+ * src/sandbox/command-classifier.ts
+ * Classify commands by risk level for fallback mode
+ * High-risk = MUST have Docker or fail closed
+ * Low-risk = allowed in restricted-native mode
+ */
+// ─── Low-risk commands (safe to run on host in restricted mode) ───
+const LOW_RISK_COMMANDS = new Set([
+    'ls', 'cat', 'echo', 'pwd', 'whoami', 'date', 'head', 'tail',
+    'wc', 'grep', 'find', 'sort', 'uniq', 'tr', 'cut', 'awk',
+    'sed', 'diff', 'file', 'which', 'type', 'env', 'printenv',
+    'uname', 'hostname', 'uptime', 'df', 'du', 'stat', 'id',
+    'basename', 'dirname', 'realpath', 'readlink', 'true', 'false',
+    'test', 'expr', 'seq', 'printf', 'tee', 'xargs',
+    // Node/dev tools (read-only)
+    'node', 'npx', 'tsc', 'eslint', 'prettier',
+]);
+// ─── High-risk patterns (BLOCK unless Docker available) ───
+const HIGH_RISK_PATTERNS = [
+    // Destructive filesystem
+    { pattern: /\brm\s+(-[a-zA-Z]*r|-[a-zA-Z]*f|--recursive|--force)/i, reason: 'recursive/forced file deletion' },
+    { pattern: /\bmkfs\b/i, reason: 'filesystem format' },
+    { pattern: /\bdd\s+(if|of)=/i, reason: 'raw disk operation' },
+    { pattern: /\bformat\b/i, reason: 'disk format' },
+    // Privilege escalation
+    { pattern: /\bsudo\b/i, reason: 'privilege escalation' },
+    { pattern: /\bsu\s/i, reason: 'switch user' },
+    { pattern: /\bchmod\s+[0-7]{3,4}/i, reason: 'permission change' },
+    { pattern: /\bchown\b/i, reason: 'ownership change' },
+    // Remote code execution
+    { pattern: /\bcurl\b.*\|\s*(sh|bash|zsh)/i, reason: 'pipe remote script to shell' },
+    { pattern: /\bwget\b.*\|\s*(sh|bash|zsh)/i, reason: 'pipe remote script to shell' },
+    { pattern: /\beval\s/i, reason: 'eval execution' },
+    // System control
+    { pattern: /\breboot\b/i, reason: 'system reboot' },
+    { pattern: /\bshutdown\b/i, reason: 'system shutdown' },
+    { pattern: /\bkill\s+-9\s+1\b/i, reason: 'kill init process' },
+    { pattern: /\bkillall\b/i, reason: 'kill all processes' },
+    { pattern: /\bsystemctl\b/i, reason: 'system service control' },
+    { pattern: /\blaunchctl\b/i, reason: 'macOS service control' },
+    // Package installation (side effects)
+    { pattern: /\bpip\s+install\b/i, reason: 'Python package install' },
+    { pattern: /\bnpm\s+(install|i|add)\b/i, reason: 'npm package install' },
+    { pattern: /\bbrew\s+install\b/i, reason: 'Homebrew install' },
+    { pattern: /\bapt(-get)?\s+install\b/i, reason: 'apt package install' },
+    // Docker/container escape
+    { pattern: /\bdocker\s+(run|exec|create)/i, reason: 'Docker operation from inside sandbox' },
+];
+// ─── Medium-risk patterns (allowed with warning) ───
+const MEDIUM_RISK_PATTERNS = [
+    { pattern: /\bcurl\b/i, reason: 'network request' },
+    { pattern: /\bwget\b/i, reason: 'network download' },
+    { pattern: /\bgit\s+(clone|push|pull)/i, reason: 'git remote operation' },
+    { pattern: /\bssh\b/i, reason: 'SSH connection' },
+    { pattern: /\bnc\b|\bnetcat\b/i, reason: 'raw network connection' },
+    { pattern: /\bpython3?\s+-c/i, reason: 'inline Python execution' },
+    { pattern: /\bnode\s+-e/i, reason: 'inline Node execution' },
+    { pattern: />\s*\/[a-zA-Z]/, reason: 'redirect to absolute path' },
+    { pattern: /\bmv\s+.*\//, reason: 'file move' },
+    { pattern: /\bcp\s+-r/i, reason: 'recursive copy' },
+];
+// ─── Classifier ───
+export function classifyCommandRisk(command) {
+    // Check high-risk first
+    for (const { pattern, reason } of HIGH_RISK_PATTERNS) {
+        if (pattern.test(command)) {
+            return { level: 'high', reason };
+        }
+    }
+    // Check medium-risk
+    for (const { pattern, reason } of MEDIUM_RISK_PATTERNS) {
+        if (pattern.test(command)) {
+            return { level: 'medium', reason };
+        }
+    }
+    // Extract base command
+    const baseCmd = command.trim().split(/[\s;|&]/)[0].replace(/^.*\//, '');
+    if (LOW_RISK_COMMANDS.has(baseCmd)) {
+        return { level: 'low' };
+    }
+    // Unknown commands default to medium
+    return { level: 'medium', reason: `unknown command: ${baseCmd}` };
+}
+/**
+ * Check if a command should be blocked in restricted-native mode
+ */
+export function isBlockedInRestrictedMode(command) {
+    const { level, reason } = classifyCommandRisk(command);
+    if (level === 'high') {
+        return { blocked: true, reason: `Blocked: ${reason}. Docker required for this command.` };
+    }
+    return { blocked: false };
+}
+//# sourceMappingURL=command-classifier.js.map

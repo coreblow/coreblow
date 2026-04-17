@@ -1,0 +1,5 @@
+export function createChannelAllowlistEditor(_p) { return {}; }
+export function createScopedChannelAllowlistEditor(_p) { return {}; }
+export function createTopLevelChannelAllowlistEditor(_p) { return {}; }
+export function createHybridChannelAllowlistEditor(_p) { return {}; }
+//# sourceMappingURL=allowlist-config-edit.js.map

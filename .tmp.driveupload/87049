@@ -1,0 +1,2 @@
+export const DEFAULT_PROVIDER_POLICY = { maxRequestsPerMinute: 60, maxConcurrent: 5, allowStreaming: true };
+//# sourceMappingURL=models-config.providers.policy.js.map

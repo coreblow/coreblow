@@ -1,0 +1,8 @@
+export declare class FileLock {
+    private path;
+    constructor(path: string);
+    acquire(): boolean;
+    release(): void;
+    isLocked(): boolean;
+}
+//# sourceMappingURL=file-lock.d.ts.map

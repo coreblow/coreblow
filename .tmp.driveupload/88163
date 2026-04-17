@@ -1,0 +1,9 @@
+/** Skills from ClawHub marketplace. */
+export interface ClawHubSkill {
+    id: string;
+    name: string;
+    version: string;
+    url: string;
+}
+export declare function buildClawHubUrl(skillId: string): string;
+//# sourceMappingURL=skills-clawhub.d.ts.map

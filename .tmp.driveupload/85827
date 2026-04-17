@@ -1,0 +1,144 @@
+/**
+ * CoreBlow — Cache Manager
+ *
+ * Multi-layer caching with TTL, LRU eviction, namespaces,
+ * statistics tracking, and batch operations.
+ * Used for API responses, embeddings, and computed results.
+ */
+/**
+ * CoreBlow Cache Manager
+ */
+export class CacheManager {
+    store = new Map();
+    options;
+    hits = 0;
+    misses = 0;
+    constructor(opts) {
+        this.options = {
+            defaultTTL: opts?.defaultTTL ?? 300_000, // 5 min
+            maxEntries: opts?.maxEntries ?? 1000,
+            eviction: opts?.eviction ?? 'lru',
+        };
+    }
+    /**
+     * Get a cached value.
+     */
+    get(key) {
+        const entry = this.store.get(key);
+        if (!entry) {
+            this.misses++;
+            return undefined;
+        }
+        // Check expiry
+        if (entry.expiresAt > 0 && Date.now() > entry.expiresAt) {
+            this.store.delete(key);
+            this.misses++;
+            return undefined;
+        }
+        entry.accessCount++;
+        entry.lastAccessed = Date.now();
+        this.hits++;
+        return entry.value;
+    }
+    /**
+     * Set a cached value.
+     */
+    set(key, value, ttlMs, namespace) {
+        const ttl = ttlMs ?? this.options.defaultTTL;
+        this.store.set(key, {
+            value,
+            expiresAt: ttl > 0 ? Date.now() + ttl : 0,
+            createdAt: Date.now(),
+            accessCount: 0,
+            lastAccessed: Date.now(),
+            namespace,
+        });
+        this.evict();
+    }
+    /**
+     * Check if key exists and not expired.
+     */
+    has(key) {
+        const entry = this.store.get(key);
+        if (!entry)
+            return false;
+        if (entry.expiresAt > 0 && Date.now() > entry.expiresAt) {
+            this.store.delete(key);
+            return false;
+        }
+        return true;
+    }
+    /**
+     * Delete a key.
+     */
+    delete(key) {
+        return this.store.delete(key);
+    }
+    /**
+     * Get or compute a value.
+     */
+    async getOrSet(key, factory, ttlMs) {
+        const cached = this.get(key);
+        if (cached !== undefined)
+            return cached;
+        const value = await factory();
+        this.set(key, value, ttlMs);
+        return value;
+    }
+    /**
+     * Clear all entries (optionally by namespace).
+     */
+    clear(namespace) {
+        if (!namespace) {
+            const count = this.store.size;
+            this.store.clear();
+            return count;
+        }
+        let count = 0;
+        for (const [key, entry] of Array.from(this.store)) {
+            if (entry.namespace === namespace) {
+                this.store.delete(key);
+                count++;
+            }
+        }
+        return count;
+    }
+    /**
+     * Get cache statistics.
+     */
+    getStats() {
+        const total = this.hits + this.misses;
+        return {
+            entries: this.store.size,
+            hits: this.hits,
+            misses: this.misses,
+            hitRate: total > 0 ? this.hits / total : 0,
+        };
+    }
+    /** Total entries */
+    size() { return this.store.size; }
+    // === Private ===
+    evict() {
+        while (this.store.size > this.options.maxEntries) {
+            if (this.options.eviction === 'lru') {
+                let oldest = null;
+                let oldestTime = Infinity;
+                for (const [key, entry] of Array.from(this.store)) {
+                    if (entry.lastAccessed < oldestTime) {
+                        oldestTime = entry.lastAccessed;
+                        oldest = key;
+                    }
+                }
+                if (oldest)
+                    this.store.delete(oldest);
+            }
+            else {
+                // FIFO — remove the first entry
+                const first = Array.from(this.store.keys())[0];
+                if (first)
+                    this.store.delete(first);
+            }
+        }
+    }
+}
+//# sourceMappingURL=cache-manager.js.map

@@ -1,0 +1,1 @@
+{"version":"2.1.9","results":[["performance:tests/performance/channel-policy.perf.test.ts",{"duration":143.32095799999996,"failed":false}],["performance:tests/performance/safe-regex.perf.test.ts",{"duration":20.147207999999978,"failed":false}],["performance:tests/performance/readiness-checker.perf.test.ts",{"duration":2.203625000000045,"failed":false}]]}

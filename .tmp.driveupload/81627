@@ -1,0 +1,111 @@
+/**
+ * CoreBlow — Request Interceptor
+ *
+ * Intercepts and transforms HTTP requests/responses before
+ * they reach handlers. Supports request logging, response
+ * transformation, header injection, and request ID tracking.
+ */
+import * as crypto from 'node:crypto';
+/**
+ * CoreBlow Request Interceptor
+ */
+export class RequestInterceptor {
+    requestHooks = [];
+    responseHooks = [];
+    log = [];
+    maxLog = 1000;
+    /**
+     * Add a request interceptor.
+     */
+    onRequest(name, hook) {
+        this.requestHooks.push({ name, hook });
+    }
+    /**
+     * Add a response interceptor.
+     */
+    onResponse(name, hook) {
+        this.responseHooks.push({ name, hook });
+    }
+    /**
+     * Create an intercepted request.
+     */
+    createRequest(method, path, headers, body) {
+        return {
+            id: crypto.randomBytes(8).toString('hex'),
+            method: method.toUpperCase(),
+            path,
+            headers: headers ?? {},
+            body,
+            timestamp: Date.now(),
+            ip: headers?.['x-forwarded-for'],
+            userAgent: headers?.['user-agent'],
+        };
+    }
+    /**
+     * Process request through hooks.
+     * Returns null if request should be blocked.
+     */
+    processRequest(req) {
+        let current = req;
+        for (const { hook } of this.requestHooks) {
+            if (!current)
+                return null;
+            current = hook(current);
+        }
+        return current;
+    }
+    /**
+     * Process response through hooks.
+     */
+    processResponse(req, res) {
+        let current = res;
+        for (const { hook } of this.responseHooks) {
+            current = hook(req, current);
+        }
+        // Log
+        this.log.push({
+            id: req.id,
+            method: req.method,
+            path: req.path,
+            status: current.status,
+            durationMs: current.durationMs,
+            timestamp: req.timestamp,
+            ip: req.ip,
+        });
+        if (this.log.length > this.maxLog)
+            this.log = this.log.slice(-this.maxLog);
+        return current;
+    }
+    /**
+     * Get request log.
+     */
+    getLog(limit) {
+        return this.log.slice(-(limit ?? 50));
+    }
+    /**
+     * Get log stats.
+     */
+    getStats() {
+        const statusCodes = {};
+        let totalDuration = 0;
+        for (const entry of this.log) {
+            statusCodes[entry.status] = (statusCodes[entry.status] ?? 0) + 1;
+            totalDuration += entry.durationMs;
+        }
+        return {
+            totalRequests: this.log.length,
+            avgDurationMs: this.log.length > 0 ? totalDuration / this.log.length : 0,
+            statusCodes,
+        };
+    }
+    /**
+     * List registered hooks.
+     */
+    listHooks() {
+        return {
+            request: this.requestHooks.map((h) => h.name),
+            response: this.responseHooks.map((h) => h.name),
+        };
+    }
+}
+//# sourceMappingURL=interceptor.js.map

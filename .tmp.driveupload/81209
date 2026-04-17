@@ -1,0 +1,15 @@
+export interface RuntimeStateSnapshot {
+    channels: Record<string, any>;
+    presenceVersion: number;
+    healthVersion: number;
+    lastStarted: number;
+}
+export declare class ServerRuntimeState {
+    private presenceVersion;
+    private healthVersion;
+    private lastStarted;
+    bumpPresence(): number;
+    bumpHealth(): number;
+    getSnapshot(): RuntimeStateSnapshot;
+}
+//# sourceMappingURL=server-runtime-state.d.ts.map

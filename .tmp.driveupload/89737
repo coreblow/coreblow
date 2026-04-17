@@ -1,0 +1,113 @@
+/**
+ * CoreBlow — Auto-Reply Engine
+ *
+ * Configurable auto-reply system for common patterns.
+ * Supports regex matching, keyword triggers, time-based
+ * responses, and custom reply chains.
+ */
+/**
+ * CoreBlow Auto-Reply Engine
+ */
+export class AutoReplyEngine {
+    rules = [];
+    userCounts = new Map();
+    lastTrigger = new Map(); // ruleId → timestamp
+    constructor() {
+        // Built-in rules
+        this.addRule({
+            id: 'greeting', name: 'Greeting', pattern: /^(hi|hello|hey|halo)\b/i,
+            reply: 'Hello! How can I help you today? 😊', enabled: true, priority: 1,
+        });
+        this.addRule({
+            id: 'thanks', name: 'Thanks', pattern: /^(thanks|thank you|thx|terima kasih)\b/i,
+            reply: "You're welcome! Let me know if you need anything else.", enabled: true, priority: 1,
+        });
+        this.addRule({
+            id: 'bye', name: 'Goodbye', pattern: /^(bye|goodbye|selamat tinggal)\b/i,
+            reply: 'Goodbye! Have a great day! 👋', enabled: true, priority: 1,
+        });
+    }
+    /**
+     * Add a reply rule.
+     */
+    addRule(rule) {
+        this.rules.push(rule);
+        this.rules.sort((a, b) => b.priority - a.priority);
+    }
+    /**
+     * Process a message and get auto-reply.
+     */
+    process(message, userId, channel) {
+        for (const rule of this.rules) {
+            if (!rule.enabled)
+                continue;
+            if (rule.channels && rule.channels.length > 0 && channel && !rule.channels.includes(channel))
+                continue;
+            // Cooldown check
+            if (rule.cooldownMs) {
+                const last = this.lastTrigger.get(rule.id) ?? 0;
+                if (Date.now() - last < rule.cooldownMs)
+                    continue;
+            }
+            const regex = rule.pattern instanceof RegExp ? rule.pattern : new RegExp(rule.pattern, 'i');
+            const match = message.match(regex);
+            if (match) {
+                // Rate limit check
+                if (rule.rateLimit && userId) {
+                    if (this.isRateLimited(userId, rule.id, rule.rateLimit, rule.rateLimitWindow ?? 60_000)) {
+                        return { matched: true, ruleId: rule.id, rateLimited: true };
+                    }
+                }
+                this.lastTrigger.set(rule.id, Date.now());
+                const reply = typeof rule.reply === 'function'
+                    ? rule.reply(match[0], match.groups)
+                    : rule.reply;
+                return { matched: true, ruleId: rule.id, reply };
+            }
+        }
+        return { matched: false };
+    }
+    /**
+     * Enable/disable a rule.
+     */
+    setEnabled(ruleId, enabled) {
+        const rule = this.rules.find((r) => r.id === ruleId);
+        if (!rule)
+            return false;
+        rule.enabled = enabled;
+        return true;
+    }
+    /**
+     * Remove a rule.
+     */
+    removeRule(ruleId) {
+        const idx = this.rules.findIndex((r) => r.id === ruleId);
+        if (idx === -1)
+            return false;
+        this.rules.splice(idx, 1);
+        return true;
+    }
+    /**
+     * List rules.
+     */
+    list() {
+        return this.rules.map((r) => ({ id: r.id, name: r.name, enabled: r.enabled, priority: r.priority }));
+    }
+    /** Count */
+    count() { return this.rules.length; }
+    // === Private ===
+    isRateLimited(userId, ruleId, limit, windowMs) {
+        if (!this.userCounts.has(userId))
+            this.userCounts.set(userId, new Map());
+        const userMap = this.userCounts.get(userId);
+        const entry = userMap.get(ruleId);
+        const now = Date.now();
+        if (!entry || now > entry.resetAt) {
+            userMap.set(ruleId, { count: 1, resetAt: now + windowMs });
+            return false;
+        }
+        entry.count++;
+        return entry.count > limit;
+    }
+}
+//# sourceMappingURL=auto-reply.js.map

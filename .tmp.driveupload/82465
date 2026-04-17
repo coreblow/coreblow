@@ -1,0 +1,218 @@
+/**
+ * plugins/config-editor.ts
+ *
+ * Plugin Config Editor — Admin API for plugin config management UI.
+ *
+ * Following CoreBlow's config management patterns upgraded to CoreBlow OOP.
+ * Provides a full API surface for an admin config editor:
+ *   - Read current config with resolved defaults
+ *   - Edit individual fields or entire config
+ *   - Preview changes with validation before applying
+ *   - Diff current vs proposed config
+ *   - Reset to defaults (full or per-field)
+ *   - Config history with undo/redo
+ *   - Schema introspection for form rendering
+ *   - Config presets (save/load named configs)
+ *   - Export/import config bundles
+ */
+import { PluginConfigValidator, type PluginConfigValidationResult } from './config-validator.js';
+import type { ManifestConfigField } from './manifest.js';
+/** Config field metadata for UI form rendering */
+export interface ConfigFieldMeta {
+    key: string;
+    type: string;
+    label: string;
+    description?: string;
+    required: boolean;
+    default?: unknown;
+    currentValue: unknown;
+    options?: string[];
+    sensitive: boolean;
+    validation?: {
+        min?: number;
+        max?: number;
+        pattern?: string;
+    };
+}
+/** Config diff entry */
+export interface ConfigDiff {
+    field: string;
+    oldValue: unknown;
+    newValue: unknown;
+    type: 'added' | 'changed' | 'removed' | 'unchanged';
+}
+/** Config change preview */
+export interface ConfigPreview {
+    pluginId: string;
+    valid: boolean;
+    errors: string[];
+    warnings: string[];
+    diff: ConfigDiff[];
+    resolvedConfig: Record<string, unknown>;
+}
+/** Config history entry */
+export interface ConfigHistoryEntry {
+    pluginId: string;
+    config: Record<string, unknown>;
+    timestamp: number;
+    source: 'user' | 'reset' | 'preset' | 'import';
+    label?: string;
+}
+/** Named config preset */
+export interface ConfigPreset {
+    name: string;
+    pluginId: string;
+    config: Record<string, unknown>;
+    description?: string;
+    createdAt: number;
+}
+/** Config editor statistics */
+export interface ConfigEditorStats {
+    totalPlugins: number;
+    totalEdits: number;
+    totalPresets: number;
+    pluginsWithErrors: number;
+}
+/** Plugin config bundle for export/import */
+export interface ConfigBundle {
+    version: string;
+    exportedAt: number;
+    configs: Record<string, Record<string, unknown>>;
+    presets: ConfigPreset[];
+}
+/**
+ * CoreBlow Plugin Config Editor
+ *
+ * Admin API for managing plugin configurations at runtime.
+ * Provides read, edit, preview, diff, reset, history, presets,
+ * and export/import for a config editor UI.
+ */
+export declare class ConfigEditor {
+    private validator;
+    /** Schema definitions per plugin */
+    private schemas;
+    /** Current configs per plugin */
+    private configs;
+    /** Config history per plugin */
+    private history;
+    /** Named presets */
+    private presets;
+    /** Max history entries per plugin */
+    private maxHistory;
+    /** Edit counter */
+    private editCount;
+    constructor(options?: {
+        validator?: PluginConfigValidator;
+        maxHistory?: number;
+    });
+    /**
+     * Register a plugin's config schema.
+     */
+    registerSchema(pluginId: string, schema: ManifestConfigField[]): void;
+    /**
+     * Get a plugin's config schema.
+     */
+    getSchema(pluginId: string): ManifestConfigField[] | null;
+    /**
+     * Get schema as field metadata for UI form rendering.
+     */
+    getFieldMetas(pluginId: string): ConfigFieldMeta[];
+    /**
+     * Get current config for a plugin (with defaults applied).
+     */
+    getConfig(pluginId: string): Record<string, unknown>;
+    /**
+     * Get a single config field value.
+     */
+    getField(pluginId: string, fieldKey: string): unknown;
+    /**
+     * Check if a plugin has a registered schema.
+     */
+    hasSchema(pluginId: string): boolean;
+    /**
+     * Set the entire config for a plugin.
+     */
+    setConfig(pluginId: string, config: Record<string, unknown>): PluginConfigValidationResult;
+    /**
+     * Set a single config field.
+     */
+    setField(pluginId: string, fieldKey: string, value: unknown): PluginConfigValidationResult;
+    /**
+     * Remove a single config field (revert to default).
+     */
+    removeField(pluginId: string, fieldKey: string): PluginConfigValidationResult;
+    /**
+     * Preview a config change without applying it.
+     */
+    preview(pluginId: string, proposed: Record<string, unknown>): ConfigPreview;
+    /**
+     * Compute diff between current and proposed config.
+     */
+    diff(pluginId: string, proposed: Record<string, unknown>): ConfigDiff[];
+    /**
+     * Reset config to schema defaults.
+     */
+    resetToDefaults(pluginId: string): PluginConfigValidationResult;
+    /**
+     * Reset a single field to its default.
+     */
+    resetField(pluginId: string, fieldKey: string): unknown;
+    /**
+     * Get config history for a plugin.
+     */
+    getHistory(pluginId: string, limit?: number): ConfigHistoryEntry[];
+    /**
+     * Revert to a specific history entry.
+     */
+    revertToHistory(pluginId: string, index: number): PluginConfigValidationResult | null;
+    /**
+     * Undo last config change.
+     */
+    undo(pluginId: string): PluginConfigValidationResult | null;
+    /**
+     * Save current config as a named preset.
+     */
+    savePreset(pluginId: string, name: string, description?: string): ConfigPreset;
+    /**
+     * Load a preset into a plugin's config.
+     */
+    loadPreset(pluginId: string, name: string): PluginConfigValidationResult | null;
+    /**
+     * Get all presets for a plugin.
+     */
+    getPresets(pluginId: string): ConfigPreset[];
+    /**
+     * Delete a preset.
+     */
+    deletePreset(pluginId: string, name: string): boolean;
+    /**
+     * Export all configs as a bundle.
+     */
+    exportBundle(): ConfigBundle;
+    /**
+     * Import configs from a bundle.
+     */
+    importBundle(bundle: ConfigBundle): {
+        imported: number;
+        errors: string[];
+    };
+    /**
+     * Get editor statistics.
+     */
+    getStats(): ConfigEditorStats;
+    /**
+     * Get all plugin IDs with configs.
+     */
+    getConfiguredPlugins(): string[];
+    /**
+     * Remove all config data for a plugin.
+     */
+    removePlugin(pluginId: string): void;
+    /**
+     * Clear all data.
+     */
+    clear(): void;
+    private pushHistory;
+    private computeDiff;
+}
+//# sourceMappingURL=config-editor.d.ts.map

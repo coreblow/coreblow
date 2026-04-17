@@ -1,0 +1,44 @@
+/**
+ * plugin-sdk/runtime.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/runtime.ts
+ *
+ * Minimal logger contract, runtime env adapters, and logging helpers for plugins.
+ * Adaptasi: import dari CoreBlow runtime equivalents.
+ */
+/** Minimal logger contract accepted by runtime-adapter helpers. */
+export type LoggerLike = {
+    info: (message: string) => void;
+    error: (message: string) => void;
+};
+/** Minimal output runtime env contract. */
+export type OutputRuntimeEnv = {
+    log: (...args: unknown[]) => void;
+    error: (...args: unknown[]) => void;
+    writeStdout: (value: string) => void;
+    writeJson: (value: unknown, space?: number) => void;
+    exit: (code: number) => never;
+};
+/** Full runtime env contract (may or may not have exit). */
+export type RuntimeEnv = Partial<OutputRuntimeEnv> & Pick<OutputRuntimeEnv, 'log' | 'error'>;
+/** Adapt a simple logger into the RuntimeEnv contract used by shared plugin SDK helpers. */
+export declare function createLoggerBackedRuntime(params: {
+    logger: LoggerLike;
+    exitError?: (code: number) => Error;
+}): OutputRuntimeEnv;
+/** Default no-op runtime — exits via error throw. */
+export declare const defaultRuntime: OutputRuntimeEnv;
+/** Create a runtime that throws instead of calling process.exit(). */
+export declare function createNonExitingRuntime(base: LoggerLike, exitMessage?: string): OutputRuntimeEnv;
+/** Reuse an existing runtime when present, otherwise synthesize one from the provided logger. */
+export declare function resolveRuntimeEnv(params: {
+    runtime?: RuntimeEnv;
+    logger: LoggerLike;
+    exitError?: (code: number) => Error;
+}): RuntimeEnv | OutputRuntimeEnv;
+/** Resolve a runtime that treats exit requests as unsupported errors instead of process termination. */
+export declare function resolveRuntimeEnvWithUnavailableExit(params: {
+    runtime?: RuntimeEnv;
+    logger: LoggerLike;
+    unavailableMessage?: string;
+}): RuntimeEnv | OutputRuntimeEnv;
+//# sourceMappingURL=runtime.d.ts.map

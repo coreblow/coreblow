@@ -1,0 +1,30 @@
+export type FileLockOptions = {
+    retries: {
+        retries: number;
+        factor: number;
+        minTimeout: number;
+        maxTimeout: number;
+        randomize?: boolean;
+    };
+    stale: number;
+};
+export type FileLockHandle = {
+    lockPath: string;
+    release: () => Promise<void>;
+};
+export declare function resetFileLockStateForTest(): void;
+export declare function drainFileLockStateForTest(): Promise<void>;
+/**
+ * Acquire a re-entrant process-local file lock backed by a `.lock` sidecar file.
+ * Re-entrant: if the same process already holds the lock, increments ref count.
+ *
+ * @see openclaw-main/src/plugin-sdk/file-lock.ts
+ */
+export declare function acquireFileLock(filePath: string, options: FileLockOptions): Promise<FileLockHandle>;
+/**
+ * Run an async callback while holding a file lock, always releasing afterward.
+ *
+ * @see openclaw-main/src/plugin-sdk/file-lock.ts
+ */
+export declare function withFileLock<T>(filePath: string, options: FileLockOptions, fn: () => Promise<T>): Promise<T>;
+//# sourceMappingURL=file-lock.d.ts.map

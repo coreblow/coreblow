@@ -1,0 +1,1 @@
+{"version":3,"file":"model-auth-runtime-shared.d.ts","sourceRoot":"","sources":["../../src/agents/model-auth-runtime-shared.ts"],"names":[],"mappings":"AAAA,2CAA2C;AAC3C,wBAAgB,aAAa,CAAC,GAAG,EAAE,MAAM,GAAG,SAAS,GAAG,OAAO,CAA8D;AAC7H,wBAAgB,eAAe,CAAC,GAAG,EAAE,MAAM,GAAG,MAAM,CAAuB"}

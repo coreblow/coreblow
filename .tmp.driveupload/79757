@@ -1,0 +1,63 @@
+/**
+ * CoreBlow — URL Scraper
+ *
+ * Extracts content from URLs for agent consumption.
+ * Supports HTML-to-text conversion, metadata extraction,
+ * link discovery, and content caching.
+ */
+/** Scraped content */
+export interface ScrapedContent {
+    url: string;
+    title: string;
+    description?: string;
+    text: string;
+    links: string[];
+    metadata: Record<string, string>;
+    wordCount: number;
+    scrapedAt: number;
+    durationMs: number;
+}
+/** Scraper options */
+export interface ScraperOptions {
+    /** Max content length */
+    maxLength?: number;
+    /** Timeout in ms */
+    timeoutMs?: number;
+    /** User agent */
+    userAgent?: string;
+    /** Cache TTL in ms */
+    cacheTTL?: number;
+}
+/**
+ * CoreBlow URL Scraper
+ */
+export declare class URLScraper {
+    private cache;
+    private options;
+    private history;
+    constructor(opts?: ScraperOptions);
+    /**
+     * Scrape a URL.
+     */
+    scrape(url: string): Promise<ScrapedContent | null>;
+    /**
+     * Parse raw HTML into structured content.
+     */
+    parseHTML(url: string, html: string, durationMs?: number): ScrapedContent;
+    /**
+     * Get cached content.
+     */
+    getCached(url: string): ScrapedContent | null;
+    /**
+     * Clear cache.
+     */
+    clearCache(): number;
+    /**
+     * Get scrape history.
+     */
+    getHistory(limit?: number): typeof this.history;
+    private extractTag;
+    private extractMeta;
+    private recordHistory;
+}
+//# sourceMappingURL=url-scraper.d.ts.map

@@ -1,0 +1,25 @@
+/**
+ * Discord Voice Queue — Manages a queue of audio tracks for playback.
+ */
+export interface QueueItem {
+    url: string;
+    title: string;
+    requestedBy: string;
+    addedAt: number;
+}
+export declare class VoiceQueue {
+    private items;
+    private currentIndex;
+    private loopMode;
+    add(url: string, title: string, requestedBy: string): number;
+    next(): QueueItem | null;
+    skip(): QueueItem | null;
+    remove(index: number): boolean;
+    clear(): void;
+    shuffle(): void;
+    setLoop(mode: 'none' | 'single' | 'all'): void;
+    getQueue(): QueueItem[];
+    getCurrent(): QueueItem | null;
+    get length(): number;
+}
+//# sourceMappingURL=queue.d.ts.map

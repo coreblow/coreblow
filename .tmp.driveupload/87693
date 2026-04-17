@@ -1,0 +1,2 @@
+export declare function resetAborts(): void;
+//# sourceMappingURL=reset-aborts.d.ts.map

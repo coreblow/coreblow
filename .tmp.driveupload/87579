@@ -1,0 +1,25 @@
+/**
+ * CoreBlow AutoPilot — splitIntoBlocks
+ */
+export function splitIntoBlocks(text, maxBlockSize) {
+    const max = maxBlockSize ?? 4000;
+    if (text.length <= max)
+        return [text];
+    const blocks = [];
+    const paragraphs = text.split('\n\n');
+    let current = '';
+    for (const para of paragraphs) {
+        if (current.length + para.length + 2 > max) {
+            if (current)
+                blocks.push(current.trim());
+            current = para;
+        }
+        else {
+            current += (current ? '\n\n' : '') + para;
+        }
+    }
+    if (current)
+        blocks.push(current.trim());
+    return blocks;
+}
+//# sourceMappingURL=split-into-blocks.js.map

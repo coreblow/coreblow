@@ -1,0 +1,16 @@
+/**
+ * plugin-sdk/signal-core.ts
+ * [ADAPT] openclaw-main
+ */
+export { DEFAULT_ACCOUNT_ID, PAIRING_APPROVED_MESSAGE, deleteAccountFromConfigSection, getChatChannelMeta, setAccountEnabledInConfigSection, } from "./channel-plugin-common.js";
+export { buildChannelConfigSchema } from "./channel-config-schema.js";
+export { normalizeE164 } from "./account-core.js";
+export function looksLikeSignalTargetId(raw) {
+    return /^\+?[\d\s()\-]{7,15}$/.test(raw.trim());
+}
+export function normalizeSignalMessagingTarget(raw) {
+    if (looksLikeSignalTargetId(raw))
+        return { kind: "user", id: raw.trim() };
+    return null;
+}
+//# sourceMappingURL=signal-core.js.map

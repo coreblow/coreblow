@@ -1,0 +1,51 @@
+/**
+ * gateway/server/ws-connection/auth-context.ts
+ *
+ * Layer 1: Gateway Authentication — CoreBlow Pattern
+ *
+ * Implements timing-safe token/password verification with SHA256 hashing.
+ * Local connections (127.0.0.1) are auto-approved when no auth is configured,
+ * following CoreBlow's `GatewayAuth.verifyConnect()` pattern.
+ */
+export interface ConnectionContext {
+    connectionId: string;
+    authenticated: boolean;
+    connectedAt: number;
+    userId?: string;
+}
+interface AuthConfig {
+    token?: string;
+    password?: string;
+}
+/**
+ * Gateway authentication following CoreBlow's GatewayAuth pattern.
+ * Uses SHA256 hashing + crypto.timingSafeEqual for timing-safe comparison.
+ */
+export declare class GatewayAuth {
+    private readonly tokenHash;
+    private readonly passwordHash;
+    constructor(config: AuthConfig);
+    /**
+     * Timing-safe compare to prevent timing attacks.
+     * Returns true if the provided credential matches.
+     */
+    verify(credential: string, type: 'token' | 'password'): boolean;
+    /**
+     * Verify connect frame from WebSocket client.
+     * Local connections (127.0.0.1) auto-approved if no auth configured.
+     */
+    verifyConnect(frame: {
+        token?: string;
+        password?: string;
+    }, isLocal: boolean): boolean;
+    /** Check if any auth is configured */
+    hasAuth(): boolean;
+}
+/** Validate a WebSocket connection token. */
+export declare function authenticateWsConnection(token: string | null, remoteAddress?: string): ConnectionContext;
+/** Extract token from WebSocket upgrade request. */
+export declare function extractWsToken(url: string | undefined, headers: Record<string, string | string[] | undefined>): string | null;
+/** Reset the singleton (for testing) */
+export declare function resetGatewayAuth(): void;
+export {};
+//# sourceMappingURL=auth-context.d.ts.map

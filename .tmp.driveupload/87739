@@ -1,0 +1,2 @@
+export declare function queueSize(sessionKey: string): number;
+//# sourceMappingURL=queue-size.d.ts.map

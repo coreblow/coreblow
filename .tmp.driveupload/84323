@@ -1,0 +1,3 @@
+export function buildTextReplyPayload(text, metadata) { return { text, metadata }; }
+export function isTextReplyPayload(p) { return typeof p.text === "string"; }
+//# sourceMappingURL=reply-payload.js.map

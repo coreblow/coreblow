@@ -1,0 +1,140 @@
+/**
+ * pairing/pairing-store.ts
+ * Persistent pairing request storage with file-lock safety.
+ * Ported from CoreBlow reference src/pairing/pairing-store.ts.
+ */
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+const PAIRING_CODE_LENGTH = 8;
+const PAIRING_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const PAIRING_PENDING_TTL_MS = 60 * 60 * 1000; // 1 hour
+const PAIRING_PENDING_MAX = 3;
+/**
+ * Generate a human-readable pairing code (no ambiguous chars).
+ */
+export function generatePairingCode(length = PAIRING_CODE_LENGTH) {
+    const bytes = crypto.randomBytes(length);
+    let code = '';
+    for (let i = 0; i < length; i++) {
+        code += PAIRING_CODE_ALPHABET[bytes[i] % PAIRING_CODE_ALPHABET.length];
+    }
+    return code;
+}
+export class PairingStore {
+    storeDir;
+    constructor(storeDir) {
+        this.storeDir = storeDir;
+        fs.mkdirSync(storeDir, { recursive: true });
+    }
+    get storePath() { return path.join(this.storeDir, 'pairing-requests.json'); }
+    get allowFromPath() { return path.join(this.storeDir, 'allow-from.json'); }
+    /**
+     * Upsert a pairing request. Returns existing code if within TTL, otherwise creates new.
+     */
+    async upsert(params) {
+        const data = this.readStore();
+        const now = new Date().toISOString();
+        // Prune expired
+        data.requests = data.requests.filter((r) => Date.now() - new Date(r.createdAt).getTime() < PAIRING_PENDING_TTL_MS);
+        const existing = data.requests.find((r) => r.id === params.id);
+        if (existing) {
+            existing.lastSeenAt = now;
+            this.writeStore(data);
+            return { code: existing.code, created: false };
+        }
+        // Enforce max pending
+        if (data.requests.length >= PAIRING_PENDING_MAX) {
+            data.requests.shift(); // drop oldest
+        }
+        const code = generatePairingCode();
+        data.requests.push({ id: params.id, code, createdAt: now, lastSeenAt: now, meta: params.meta });
+        this.writeStore(data);
+        return { code, created: true };
+    }
+    /**
+     * Accept a pairing request by code.
+     */
+    async accept(code) {
+        const data = this.readStore();
+        const idx = data.requests.findIndex((r) => r.code === code);
+        if (idx < 0)
+            return null;
+        const [request] = data.requests.splice(idx, 1);
+        this.writeStore(data);
+        // Add to allow-from list
+        const allow = this.readAllowFrom();
+        if (!allow.allowFrom.includes(request.id)) {
+            allow.allowFrom.push(request.id);
+            this.writeAllowFrom(allow);
+        }
+        return request;
+    }
+    /**
+     * Reject a pairing request by code.
+     */
+    async reject(code) {
+        const data = this.readStore();
+        const idx = data.requests.findIndex((r) => r.code === code);
+        if (idx < 0)
+            return null;
+        const [request] = data.requests.splice(idx, 1);
+        this.writeStore(data);
+        return request;
+    }
+    /**
+     * Check if a sender is in the allow-from list.
+     */
+    isAllowed(senderId) {
+        const allow = this.readAllowFrom();
+        return allow.allowFrom.includes(senderId);
+    }
+    /**
+     * List pending pairing requests.
+     */
+    listPending() {
+        const data = this.readStore();
+        return data.requests.filter((r) => Date.now() - new Date(r.createdAt).getTime() < PAIRING_PENDING_TTL_MS);
+    }
+    /**
+     * List allowed sender IDs.
+     */
+    listAllowed() {
+        return this.readAllowFrom().allowFrom;
+    }
+    /**
+     * Revoke a paired sender.
+     */
+    revoke(senderId) {
+        const allow = this.readAllowFrom();
+        const idx = allow.allowFrom.indexOf(senderId);
+        if (idx < 0)
+            return false;
+        allow.allowFrom.splice(idx, 1);
+        this.writeAllowFrom(allow);
+        return true;
+    }
+    readStore() {
+        try {
+            return JSON.parse(fs.readFileSync(this.storePath, 'utf-8'));
+        }
+        catch {
+            return { version: 1, requests: [] };
+        }
+    }
+    writeStore(data) {
+        fs.writeFileSync(this.storePath, JSON.stringify(data, null, 2));
+    }
+    readAllowFrom() {
+        try {
+            return JSON.parse(fs.readFileSync(this.allowFromPath, 'utf-8'));
+        }
+        catch {
+            return { version: 1, allowFrom: [] };
+        }
+    }
+    writeAllowFrom(data) {
+        fs.writeFileSync(this.allowFromPath, JSON.stringify(data, null, 2));
+    }
+}
+//# sourceMappingURL=pairing-store.js.map

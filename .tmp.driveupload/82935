@@ -1,0 +1,10 @@
+export interface Envelope {
+    id: string;
+    channelId: string;
+    content: string;
+    createdAt: number;
+    expiresAt?: number;
+}
+export declare function createEnvelope(channelId: string, content: string, ttlMs?: number): Envelope;
+export declare function isEnvelopeExpired(env: Envelope): boolean;
+//# sourceMappingURL=envelope.d.ts.map

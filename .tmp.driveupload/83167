@@ -1,0 +1,28 @@
+/**
+ * plugin-sdk/provider-onboard.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/provider-onboard.ts
+ *
+ * Provider onboarding preset helpers.
+ */
+import type { CoreBlowConfig } from '../config/config.js';
+export type { CoreBlowConfig };
+export type ProviderOnboardPresetAppliers<TArgs extends unknown[]> = {
+    applyProviderConfig: (cfg: CoreBlowConfig, ...args: TArgs) => CoreBlowConfig;
+    applyConfig: (cfg: CoreBlowConfig, ...args: TArgs) => CoreBlowConfig;
+};
+/** Build onboard preset appliers for a provider. */
+export declare function buildProviderOnboardPresetAppliers<TArgs extends unknown[]>(params: {
+    providerId: string;
+    applyProviderConfig: (cfg: CoreBlowConfig, ...args: TArgs) => CoreBlowConfig;
+    applyConfig?: (cfg: CoreBlowConfig, ...args: TArgs) => CoreBlowConfig;
+}): ProviderOnboardPresetAppliers<TArgs>;
+/** Apply a default model to the config. */
+export declare function applyProviderDefaultModel(params: {
+    cfg: CoreBlowConfig;
+    modelRef: string;
+}): CoreBlowConfig;
+export type AgentModelAliasEntry = string | {
+    modelRef: string;
+    alias?: string;
+};
+//# sourceMappingURL=provider-onboard.d.ts.map

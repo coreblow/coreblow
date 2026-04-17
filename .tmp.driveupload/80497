@@ -1,0 +1,30 @@
+/**
+ * Discord Rate Limiter — Per-channel/user rate limiting for API calls.
+ */
+export class DiscordRateLimiter {
+    buckets = new Map();
+    maxTokens;
+    refillRateMs;
+    constructor(maxTokens = 5, refillRateMs = 5000) { this.maxTokens = maxTokens; this.refillRateMs = refillRateMs; }
+    consume(key) {
+        const now = Date.now();
+        let bucket = this.buckets.get(key);
+        if (!bucket) {
+            bucket = { tokens: this.maxTokens, lastRefill: now };
+            this.buckets.set(key, bucket);
+        }
+        const elapsed = now - bucket.lastRefill;
+        const refills = Math.floor(elapsed / this.refillRateMs);
+        if (refills > 0) {
+            bucket.tokens = Math.min(this.maxTokens, bucket.tokens + refills);
+            bucket.lastRefill = now;
+        }
+        if (bucket.tokens > 0) {
+            bucket.tokens--;
+            return { allowed: true, retryAfterMs: 0 };
+        }
+        return { allowed: false, retryAfterMs: this.refillRateMs - (elapsed % this.refillRateMs) };
+    }
+    reset(key) { this.buckets.delete(key); }
+}
+//# sourceMappingURL=rate-limit.js.map

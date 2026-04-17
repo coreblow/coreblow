@@ -1,0 +1,91 @@
+/**
+ * CoreBlow — WebSocket Manager
+ *
+ * Manages WebSocket connections for real-time bidirectional
+ * communication. Supports rooms, broadcasting, heartbeat,
+ * and connection lifecycle tracking.
+ */
+/** WS connection */
+export interface WSConnection {
+    id: string;
+    userId?: string;
+    rooms: Set<string>;
+    connectedAt: number;
+    lastPing: number;
+    metadata?: Record<string, unknown>;
+    status: 'open' | 'closing' | 'closed';
+    messageCount: number;
+}
+/** WS message */
+export interface WSMessage {
+    type: string;
+    data: unknown;
+    from?: string;
+    room?: string;
+    timestamp: number;
+}
+/**
+ * CoreBlow WebSocket Manager
+ */
+export declare class WebSocketManager {
+    private connections;
+    private rooms;
+    private messageLog;
+    private maxLog;
+    private idCounter;
+    /**
+     * Register a new connection.
+     */
+    connect(userId?: string): WSConnection;
+    /**
+     * Disconnect.
+     */
+    disconnect(connId: string): boolean;
+    /**
+     * Join a room.
+     */
+    joinRoom(connId: string, room: string): boolean;
+    /**
+     * Leave a room.
+     */
+    leaveRoom(connId: string, room: string): boolean;
+    /**
+     * Send to a specific connection.
+     */
+    send(connId: string, type: string, data: unknown): boolean;
+    /**
+     * Broadcast to a room.
+     */
+    broadcast(room: string, type: string, data: unknown, excludeId?: string): number;
+    /**
+     * Broadcast to all connections.
+     */
+    broadcastAll(type: string, data: unknown): number;
+    /**
+     * Get connection.
+     */
+    get(connId: string): WSConnection | null;
+    /**
+     * Get room members.
+     */
+    getRoomMembers(room: string): string[];
+    /**
+     * List rooms.
+     */
+    listRooms(): Array<{
+        name: string;
+        members: number;
+    }>;
+    /**
+     * Get stats.
+     */
+    getStats(): {
+        connections: number;
+        rooms: number;
+        totalMessages: number;
+    };
+    /** Count */
+    count(): number;
+    private logMessage;
+}
+//# sourceMappingURL=websocket-manager.d.ts.map

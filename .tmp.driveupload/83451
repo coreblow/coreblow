@@ -1,0 +1,9 @@
+/** plugin-sdk/moonshot.ts [ADAPT] openclaw-main */
+export const MOONSHOT_BASE_URL = "https://api.moonshot.cn";
+export const MOONSHOT_CN_BASE_URL = "https://api.moonshot.cn";
+export const MOONSHOT_DEFAULT_MODEL_ID = "moonshot-v1-8k";
+export const MOONSHOT_DEFAULT_MODEL_REF = "moonshot:moonshot-v1-8k";
+export function buildMoonshotProvider(_p) { throw new Error("buildMoonshotProvider requires @coreblow/moonshot extension"); }
+export function isNativeMoonshotBaseUrl(url) { return url.includes("moonshot.cn"); }
+export function applyMoonshotNativeStreamingUsageCompat(payload) { return payload; }
+//# sourceMappingURL=moonshot.js.map

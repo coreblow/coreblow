@@ -1,0 +1,43 @@
+/**
+ * CoreBlow — Format Converter
+ *
+ * Converts data between JSON, CSV, XML-like, and
+ * key-value formats for data interchange.
+ */
+/**
+ * CoreBlow Format Converter
+ */
+export declare class FormatConverter {
+    /**
+     * JSON to CSV.
+     */
+    jsonToCsv(data: Array<Record<string, unknown>>): string;
+    /**
+     * CSV to JSON.
+     */
+    csvToJson(csv: string): Array<Record<string, string>>;
+    /**
+     * JSON to key-value pairs.
+     */
+    jsonToKeyValue(data: Record<string, unknown>, prefix?: string): Array<{
+        key: string;
+        value: string;
+    }>;
+    /**
+     * Key-value pairs to JSON.
+     */
+    keyValueToJson(pairs: Array<{
+        key: string;
+        value: string;
+    }>): Record<string, unknown>;
+    /**
+     * Flatten nested object.
+     */
+    flatten(data: Record<string, unknown>, prefix?: string): Record<string, unknown>;
+    /**
+     * Unflatten dot-notation object.
+     */
+    unflatten(data: Record<string, unknown>): Record<string, unknown>;
+    private parseCsvLine;
+}
+//# sourceMappingURL=format-converter.d.ts.map

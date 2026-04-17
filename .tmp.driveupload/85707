@@ -1,0 +1,171 @@
+/**
+ * infra/tailscale.ts — Tailscale Integration for CoreBlow
+ *
+ * Provides Tailscale binary discovery, whois identity lookup (with cache),
+ * serve/funnel management, and hostname resolution.
+ *
+ * Ported from CoreBlow reference src/infra/tailscale.ts (501 LOC) — streamlined
+ * for CoreBlow architecture (simplified exec wrapper, no CLI prompts).
+ */
+import { existsSync } from 'node:fs';
+import { execFile } from 'node:child_process';
+import { createChildLogger } from '../utils/logger.js';
+const log = createChildLogger('tailscale');
+// ─── Exec Helper ────────────────────────────────────────────────────
+function runExec(cmd, args, opts) {
+    return new Promise((resolve, reject) => {
+        const child = execFile(cmd, args, {
+            timeout: opts?.timeoutMs ?? 10_000,
+            maxBuffer: opts?.maxBuffer ?? 200_000,
+        }, (err, stdout, stderr) => {
+            if (err)
+                reject(err);
+            else
+                resolve({ stdout: stdout ?? '', stderr: stderr ?? '' });
+        });
+    });
+}
+// ─── Binary Discovery ───────────────────────────────────────────────
+let cachedBinary = null;
+/**
+ * Find the Tailscale binary. Tries:
+ * 1. $COREBLOW_TAILSCALE_BINARY env override
+ * 2. `which tailscale`
+ * 3. Known macOS app path
+ */
+export async function findTailscaleBinary() {
+    const override = process.env.COREBLOW_TAILSCALE_BINARY?.trim();
+    if (override)
+        return override;
+    // which
+    try {
+        const { stdout } = await runExec('which', ['tailscale'], { timeoutMs: 3000 });
+        const fromPath = stdout.trim();
+        if (fromPath && existsSync(fromPath))
+            return fromPath;
+    }
+    catch { /* continue */ }
+    // macOS app bundle
+    const macPath = '/Applications/Tailscale.app/Contents/MacOS/Tailscale';
+    if (existsSync(macPath))
+        return macPath;
+    return null;
+}
+export async function getTailscaleBinary() {
+    if (cachedBinary)
+        return cachedBinary;
+    cachedBinary = await findTailscaleBinary();
+    return cachedBinary ?? 'tailscale';
+}
+// ─── Tailnet Hostname ───────────────────────────────────────────────
+/**
+ * Get the Tailscale DNS hostname or IP for this machine.
+ */
+export async function getTailnetHostname() {
+    const bin = await getTailscaleBinary();
+    const { stdout } = await runExec(bin, ['status', '--json'], {
+        timeoutMs: 5000,
+        maxBuffer: 400_000,
+    });
+    const parsed = stdout ? parsePossiblyNoisyJsonObject(stdout) : {};
+    const self = typeof parsed.Self === 'object' && parsed.Self !== null
+        ? parsed.Self
+        : undefined;
+    const dns = typeof self?.DNSName === 'string' ? self.DNSName : undefined;
+    const ips = Array.isArray(self?.TailscaleIPs) ? self.TailscaleIPs : [];
+    if (dns && dns.length > 0)
+        return dns.replace(/\.$/, '');
+    if (ips.length > 0)
+        return ips[0];
+    throw new Error('Could not determine Tailscale DNS or IP');
+}
+// ─── Whois Identity ─────────────────────────────────────────────────
+const whoisCache = new Map();
+/**
+ * Look up a Tailscale identity by IP address.
+ * Results are cached for 60s (success) or 5s (error).
+ */
+export async function readTailscaleWhoisIdentity(ip, opts) {
+    const normalized = ip.trim();
+    if (!normalized)
+        return null;
+    const now = Date.now();
+    const cached = whoisCache.get(normalized);
+    if (cached && cached.expiresAt > now)
+        return cached.value;
+    if (cached)
+        whoisCache.delete(normalized);
+    const cacheTtlMs = opts?.cacheTtlMs ?? 60_000;
+    const errorTtlMs = opts?.errorTtlMs ?? 5_000;
+    try {
+        const bin = await getTailscaleBinary();
+        const { stdout } = await runExec(bin, ['whois', '--json', normalized], {
+            timeoutMs: opts?.timeoutMs ?? 5_000,
+            maxBuffer: 200_000,
+        });
+        const parsed = stdout ? parsePossiblyNoisyJsonObject(stdout) : {};
+        const identity = parseWhoisIdentity(parsed);
+        whoisCache.set(normalized, { value: identity, expiresAt: now + cacheTtlMs });
+        return identity;
+    }
+    catch {
+        whoisCache.set(normalized, { value: null, expiresAt: now + errorTtlMs });
+        return null;
+    }
+}
+// ─── Serve / Funnel ─────────────────────────────────────────────────
+export async function enableTailscaleServe(port) {
+    const bin = await getTailscaleBinary();
+    await runExec(bin, ['serve', '--bg', `${port}`], { timeoutMs: 15_000 });
+    log.info({ port }, 'Tailscale serve enabled');
+}
+export async function disableTailscaleServe() {
+    const bin = await getTailscaleBinary();
+    await runExec(bin, ['serve', '--bg', 'off'], { timeoutMs: 15_000 });
+    log.info('Tailscale serve disabled');
+}
+export async function enableTailscaleFunnel(port) {
+    const bin = await getTailscaleBinary();
+    await runExec(bin, ['funnel', '--yes', '--bg', `${port}`], { timeoutMs: 15_000 });
+    log.info({ port }, 'Tailscale funnel enabled');
+}
+export async function disableTailscaleFunnel() {
+    const bin = await getTailscaleBinary();
+    await runExec(bin, ['funnel', '--bg', 'off'], { timeoutMs: 15_000 });
+    log.info('Tailscale funnel disabled');
+}
+// ─── Helpers ────────────────────────────────────────────────────────
+function parsePossiblyNoisyJsonObject(stdout) {
+    const trimmed = stdout.trim();
+    const start = trimmed.indexOf('{');
+    const end = trimmed.lastIndexOf('}');
+    if (start >= 0 && end > start) {
+        return JSON.parse(trimmed.slice(start, end + 1));
+    }
+    return JSON.parse(trimmed);
+}
+function parseWhoisIdentity(payload) {
+    const userProfile = readRecord(payload.UserProfile) ?? readRecord(payload.userProfile) ?? readRecord(payload.User);
+    const login = getString(userProfile?.LoginName) ??
+        getString(userProfile?.Login) ??
+        getString(userProfile?.login) ??
+        getString(payload.LoginName) ??
+        getString(payload.login);
+    if (!login)
+        return null;
+    const name = getString(userProfile?.DisplayName) ??
+        getString(userProfile?.Name) ??
+        getString(userProfile?.displayName) ??
+        getString(payload.DisplayName) ??
+        getString(payload.name);
+    return { login, name };
+}
+function readRecord(v) {
+    return typeof v === 'object' && v !== null && !Array.isArray(v)
+        ? v
+        : undefined;
+}
+function getString(v) {
+    return typeof v === 'string' && v.length > 0 ? v : undefined;
+}
+//# sourceMappingURL=tailscale.js.map

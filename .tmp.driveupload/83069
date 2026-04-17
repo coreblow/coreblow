@@ -1,0 +1,28 @@
+/**
+ * auto-reply/reply/queue.ts
+ * Reply queue — prevent duplicate replies, rate limiting.
+ */
+import type { ReplyEnvelope } from '../types.js';
+export declare class ReplyQueue {
+    private queue;
+    private processing;
+    private recentReplies;
+    private maxSize;
+    private rateLimitPerMinute;
+    constructor(maxSize?: number, rateLimitPerMinute?: number);
+    /** Add a reply to the queue. Returns false if rejected. */
+    enqueue(envelope: ReplyEnvelope): boolean;
+    /** Get the next reply from the queue. */
+    dequeue(): ReplyEnvelope | null;
+    /** Mark a reply as completed. */
+    complete(sessionId: string): void;
+    /** Mark a reply as failed, re-enqueue if retries remain. */
+    fail(envelope: ReplyEnvelope, maxRetries?: number): boolean;
+    /** Check if a channel is rate limited. */
+    private isRateLimited;
+    /** Clean up old entries. */
+    cleanup(maxAgeMs?: number): void;
+    get size(): number;
+    get processingCount(): number;
+}
+//# sourceMappingURL=queue.d.ts.map

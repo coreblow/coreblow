@@ -1,0 +1,30 @@
+{
+    "compilerOptions": {
+        "allowImportingTsExtensions": true,
+        "allowSyntheticDefaultImports": true,
+        "target": "es2023",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "lib": ["DOM", "DOM.Iterable", "ES2023", "ScriptHost"],
+        "outDir": "dist",
+        "noEmit": true,
+        "noEmitOnError": true,
+        "strict": true,
+        "noImplicitAny": true,
+        "esModuleInterop": true,
+        "experimentalDecorators": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "resolveJsonModule": true,
+        "declaration": true,
+        "useDefineForClassFields": false,
+        "paths": {
+            "coreblow/extension-api": ["./src/extensionAPI.ts"],
+            "coreblow/plugin-sdk": ["./src/plugin-sdk/index.ts"],
+            "coreblow/plugin-sdk/*": ["./src/plugin-sdk/*.ts"],
+            "coreblow/plugin-sdk/account-id": ["./src/plugin-sdk/account-id.ts"]
+        }
+    },
+    "include": ["src/**/*", "ui/**/*", "extensions/**/*", "packages/**/*"],
+    "exclude": ["node_modules", "dist"]
+}

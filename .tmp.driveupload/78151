@@ -1,0 +1,8 @@
+export class MetricsDashboard {
+    metrics = new Map();
+    record(name, value) { this.metrics.set(name, (this.metrics.get(name) || 0) + value); }
+    get(name) { return this.metrics.get(name) || 0; }
+    getAll() { return Object.fromEntries(this.metrics); }
+    reset() { this.metrics.clear(); }
+}
+//# sourceMappingURL=metrics-dashboard.js.map

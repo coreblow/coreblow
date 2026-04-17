@@ -1,0 +1,90 @@
+import { saveProviderProfileStore, updateProviderProfileStoreWithLock } from './store.js';
+import type { CooldownConfig, ProviderProfileStore, ProviderUsageStats } from './types.js';
+import type { FailoverReason } from '../failover-error.js';
+export declare const __testing: {
+    setDepsForTest(overrides: Partial<{
+        saveProviderProfileStore: typeof saveProviderProfileStore;
+        updateProviderProfileStoreWithLock: typeof updateProviderProfileStoreWithLock;
+    }> | null): void;
+};
+export declare function resolveProviderUnusableUntil(stats: Pick<ProviderUsageStats, 'cooldownUntil' | 'disabledUntil'>): number | null;
+/**
+ * Check apakah provider:model pair sedang dalam cooldown.
+ *
+ * Model-scoped bypass: jika cooldown disebabkan rate_limit pada model tertentu,
+ * request untuk model LAIN tetap diizinkan (profile-wide billing/auth tetap blocked).
+ *
+ * Port identik dari openclaw-main/src/agents/auth-profiles/usage.ts isProfileInCooldown()
+ */
+export declare function isProviderInCooldown(store: ProviderProfileStore, profileId: string, options?: {
+    now?: number;
+    forModel?: string;
+}): boolean;
+/**
+ * Return earliest cooldown expiry timestamp (ms epoch) di antara profileIds.
+ * Return null jika tidak ada cooldown aktif.
+ *
+ * Port identik dari openclaw-main/src/agents/auth-profiles/usage.ts getSoonestCooldownExpiry()
+ */
+export declare function getSoonestCooldownExpiry(store: ProviderProfileStore, profileIds: string[], options?: {
+    now?: number;
+    forModel?: string;
+}): number | null;
+/**
+ * Infer the most likely reason all candidate profiles are unavailable.
+ * Menggunakan weighted scoring — explicit disabledReason weights lebih tinggi.
+ *
+ * Port identik dari openclaw-main/src/agents/auth-profiles/usage.ts resolveProfilesUnavailableReason()
+ */
+export declare function resolveProvidersUnavailableReason(params: {
+    store: ProviderProfileStore;
+    profileIds: string[];
+    now?: number;
+}): FailoverReason | null;
+/**
+ * Stepped cooldown backoff: 30s → 60s → 5 minutes (capped).
+ * Port identik dari openclaw-main/src/agents/auth-profiles/usage.ts calculateAuthProfileCooldownMs()
+ */
+export declare function calculateProviderCooldownMs(errorCount: number): number;
+/**
+ * Mark provider:model sebagai failed. Billing/auth_permanent → disabledUntil
+ * (exponential backoff 5h–24h). Lainnya → cooldownUntil (30s, 60s, 5m).
+ *
+ * Gunakan file lock untuk atomic concurrent write.
+ * Port identik dari openclaw-main/src/agents/auth-profiles/usage.ts markAuthProfileFailure()
+ */
+export declare function markProviderFailure(params: {
+    store: ProviderProfileStore;
+    profileId: string;
+    reason: FailoverReason;
+    modelId?: string;
+    config?: Partial<CooldownConfig>;
+    runId?: string;
+}): Promise<void>;
+/**
+ * Mark provider:model sebagai sukses digunakan.
+ * Reset error count, update lastUsed.
+ *
+ * Port identik dari openclaw-main/src/agents/auth-profiles/usage.ts markAuthProfileUsed()
+ */
+export declare function markProviderUsed(params: {
+    store: ProviderProfileStore;
+    profileId: string;
+}): Promise<void>;
+/**
+ * Clear cooldown untuk profile (e.g. manual reset / probe success).
+ * Port identik dari openclaw-main/src/agents/auth-profiles/usage.ts clearAuthProfileCooldown()
+ */
+export declare function clearProviderCooldown(params: {
+    store: ProviderProfileStore;
+    profileId: string;
+}): Promise<void>;
+/**
+ * Clear expired cooldowns dari semua profiles.
+ * Reset error counters saat semua cooldowns expired (circuit-breaker half-open → closed).
+ * Mutates in-memory; disk persistence lazy on next write.
+ *
+ * Port identik dari openclaw-main/src/agents/auth-profiles/usage.ts clearExpiredCooldowns()
+ */
+export declare function clearExpiredCooldowns(store: ProviderProfileStore, now?: number): boolean;
+//# sourceMappingURL=usage.d.ts.map

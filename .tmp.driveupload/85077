@@ -1,0 +1,39 @@
+/**
+ * CoreBlow — Memory Compaction
+ * Prunes old/low-importance memories, merges similar ones.
+ */
+interface CompactOpts {
+    maxMemories?: number;
+    targetMemories?: number;
+    pruneAgeMs?: number;
+    tier2AgeMs?: number;
+    keepImportanceThreshold?: number;
+}
+interface MemEntry {
+    id: string;
+    text: string;
+    embedding: Float32Array | number[];
+    metadata: {
+        timestamp: number;
+        importance: number;
+        type?: string;
+        [k: string]: unknown;
+    };
+}
+export declare class MemoryCompactor {
+    private opts;
+    constructor(opts?: CompactOpts);
+    shouldCompact(count: number): boolean;
+    compact(entries: MemEntry[]): {
+        entries: MemEntry[];
+        result: {
+            merged: number;
+            pruned: number;
+            preserved: number;
+            remaining: number;
+            freedBytes: number;
+        };
+    };
+}
+export {};
+//# sourceMappingURL=compaction.d.ts.map

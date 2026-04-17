@@ -1,0 +1,6 @@
+export declare const matrixSetupWizard: import("./channel-setup.js").ChannelSetupWizard;
+export declare const matrixSetupAdapter: import("./channel-setup.js").ChannelSetupAdapter;
+export * from "./matrix-helper.js";
+export * from "./matrix-surface.js";
+export * from "./matrix-thread-bindings.js";
+//# sourceMappingURL=matrix.d.ts.map

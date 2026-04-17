@@ -1,0 +1,13 @@
+import { queues } from './queue.data.js';
+export function enqueue(sessionKey, message, options, priority) {
+    let queue = queues.get(sessionKey);
+    if (!queue) {
+        queue = [];
+        queues.set(sessionKey, queue);
+    }
+    const item = { id: crypto.randomUUID(), message, options, enqueuedAt: Date.now(), priority: priority ?? 0 };
+    queue.push(item);
+    queue.sort((a, b) => b.priority - a.priority);
+    return item;
+}
+//# sourceMappingURL=enqueue.js.map

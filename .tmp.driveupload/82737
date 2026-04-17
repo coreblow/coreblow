@@ -1,0 +1,25 @@
+/**
+ * media-understanding/runner.ts — Media processing pipeline runner.
+ */
+export type MediaType = 'image' | 'audio' | 'video' | 'document';
+export interface MediaItem {
+    id: string;
+    type: MediaType;
+    url: string;
+    mimeType: string;
+    size: number;
+}
+export interface MediaResult {
+    itemId: string;
+    description: string;
+    metadata: Record<string, unknown>;
+    processingMs: number;
+}
+export interface MediaProcessor {
+    supports: MediaType[];
+    process(item: MediaItem): Promise<MediaResult>;
+}
+export declare function registerProcessor(processor: MediaProcessor): void;
+export declare function processMedia(items: MediaItem[]): Promise<MediaResult[]>;
+export declare function clearProcessors(): void;
+//# sourceMappingURL=runner.d.ts.map

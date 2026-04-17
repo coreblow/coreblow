@@ -1,0 +1,3 @@
+/** plugin-sdk/xai-model-id.ts [PORT] openclaw-main */
+export { normalizeXaiModelId } from "./xai.js";
+//# sourceMappingURL=xai-model-id.js.map

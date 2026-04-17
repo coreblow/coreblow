@@ -1,0 +1,102 @@
+/**
+ * src/agents/context.ts
+ * Advanced context window management
+ * SUPERIOR: CoreBlow = naive truncation; CoreBlow = smart budgeting + priorities + cross-session
+ */
+import type { ChatMessage } from '../providers/interface.js';
+export interface ContextBudget {
+    /** Max total tokens for context window */
+    maxTokens: number;
+    /** Reserved tokens for system prompt */
+    systemReserve: number;
+    /** Reserved tokens for model response */
+    responseReserve: number;
+    /** Available for conversation history */
+    historyBudget: number;
+}
+export interface PinnedMessage {
+    message: ChatMessage;
+    priority: number;
+    reason: string;
+    pinnedAt: number;
+}
+export interface ContextStats {
+    totalMessages: number;
+    estimatedTokens: number;
+    pinnedCount: number;
+    budgetUsed: number;
+    budgetRemaining: number;
+}
+export interface SharedContext {
+    id: string;
+    summary: string;
+    facts: string[];
+    createdAt: number;
+    sourceSession: string;
+}
+/**
+ * Estimate token count from text (rough: ~4 chars per token for English)
+ */
+export declare function estimateTokens(text: string): number;
+/**
+ * Estimate tokens for a message array
+ */
+export declare function estimateMessageTokens(messages: ChatMessage[]): number;
+export declare class ContextManager {
+    private pinned;
+    private sharedContexts;
+    private sessionFacts;
+    /**
+     * Calculate token budget
+     */
+    calculateBudget(maxTokens?: number): ContextBudget;
+    /**
+     * Smart context window — fits messages within token budget
+     * Priority: system > pinned > recent > old
+     * SUPERIOR: CoreBlow just truncates from the front
+     */
+    fitToWindow(messages: ChatMessage[], budget: ContextBudget, sessionId?: string): ChatMessage[];
+    /**
+     * Pin a message (survives compression)
+     */
+    pin(sessionId: string, message: ChatMessage, priority?: number, reason?: string): void;
+    /**
+     * Unpin messages for a session
+     */
+    unpin(sessionId: string, index?: number): void;
+    /**
+     * Get pinned messages for a session
+     */
+    getPinned(sessionId: string): PinnedMessage[];
+    /**
+     * Add a fact extracted from conversation
+     * SUPERIOR: CoreBlow doesn't track per-session facts
+     */
+    addFact(sessionId: string, fact: string): void;
+    /**
+     * Get facts for a session
+     */
+    getFacts(sessionId: string): string[];
+    /**
+     * Share context from one session to others
+     * SUPERIOR: CoreBlow sessions are completely isolated
+     */
+    shareContext(sourceSession: string, summary: string, facts: string[]): string;
+    /**
+     * Remove a shared context
+     */
+    removeSharedContext(id: string): boolean;
+    /**
+     * List shared contexts
+     */
+    listSharedContexts(): SharedContext[];
+    /**
+     * Get context stats for a session
+     */
+    getStats(sessionId: string, messages: ChatMessage[]): ContextStats;
+    /**
+     * Clear all data for a session
+     */
+    clearSession(sessionId: string): void;
+}
+//# sourceMappingURL=context.d.ts.map

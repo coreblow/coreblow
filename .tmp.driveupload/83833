@@ -1,0 +1,4 @@
+/** plugin-sdk/outbound-runtime.ts [ADAPT] openclaw-main */
+export { resolveOutboundSendDep, getSessionBindingService, registerSessionBindingAdapter, unregisterSessionBindingAdapter } from "./thread-bindings-runtime.js";
+export type { BindingTargetKind, SessionBindingRecord } from "./thread-bindings-runtime.js";
+//# sourceMappingURL=outbound-runtime.d.ts.map

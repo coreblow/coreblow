@@ -1,0 +1,38 @@
+/**
+ * src/acp/session-store.ts
+ * In-memory ACP session store with idle TTL, max sessions, and eviction
+ * All code written from scratch, inspired by session management concepts
+ */
+import type { AcpSession } from './types.js';
+export interface SessionStoreConfig {
+    maxSessions?: number;
+    idleTtlMs?: number;
+    now?: () => number;
+}
+export declare class AcpSessionStore {
+    private sessions;
+    private runIdToSessionId;
+    private maxSessions;
+    private idleTtlMs;
+    private now;
+    constructor(config?: SessionStoreConfig);
+    create(params: {
+        sessionKey: string;
+        cwd: string;
+        sessionId?: string;
+        metadata?: Record<string, unknown>;
+    }): AcpSession;
+    has(sessionId: string): boolean;
+    get(sessionId: string): AcpSession | undefined;
+    getByRunId(runId: string): AcpSession | undefined;
+    setActiveRun(sessionId: string, runId: string, abortController: AbortController): void;
+    clearActiveRun(sessionId: string): void;
+    cancelActiveRun(sessionId: string): boolean;
+    remove(sessionId: string): boolean;
+    list(): AcpSession[];
+    get size(): number;
+    clear(): void;
+    private reapIdle;
+    private evictOldest;
+}
+//# sourceMappingURL=session-store.d.ts.map

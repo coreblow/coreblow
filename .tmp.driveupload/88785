@@ -1,0 +1,2 @@
+export declare function isMediaPath(filePath: string): boolean;
+//# sourceMappingURL=sandbox-media-paths.d.ts.map

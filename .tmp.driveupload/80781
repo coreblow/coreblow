@@ -1,0 +1,1 @@
+{"version":3,"file":"guildMemberAdd.js","sourceRoot":"","sources":["../../../../src/channels/discord/events/guildMemberAdd.ts"],"names":[],"mappings":"AAKA,OAAO,EAAE,UAAU,EAAE,MAAM,oBAAoB,CAAC;AAEhD,MAAM,UAAU,gBAAgB,CAAC,MAAoD,EAAE,GAAiB;IACvG,UAAU,CAAC,KAAK,CAAC,EAAE,MAAM,EAAE,MAAM,CAAC,IAAI,EAAE,EAAE,EAAE,KAAK,EAAE,MAAM,CAAC,KAAK,EAAE,IAAI,EAAE,EAAE,eAAe,CAAC,CAAC;AAC3F,CAAC"}

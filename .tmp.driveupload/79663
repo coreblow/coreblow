@@ -1,0 +1,68 @@
+/**
+ * extensions/session-manager.ts
+ * Session manager extension runtime.
+ * Ported from CoreBlow reference src/agents/pi-extensions/session-manager-runtime-registry.ts.
+ */
+export class SessionManagerRegistry {
+    managers = new Map();
+    register(manager) {
+        this.managers.set(manager.id, manager);
+    }
+    unregister(id) {
+        return this.managers.delete(id);
+    }
+    get(id) {
+        return this.managers.get(id);
+    }
+    list() {
+        return [...this.managers.values()];
+    }
+    async notifyCreate(sessionId, metadata) {
+        for (const manager of this.managers.values()) {
+            try {
+                await manager.onSessionCreate?.(sessionId, metadata);
+            }
+            catch { /* extension error is non-fatal */ }
+        }
+    }
+    async notifyResume(sessionId) {
+        for (const manager of this.managers.values()) {
+            try {
+                await manager.onSessionResume?.(sessionId);
+            }
+            catch { /* non-fatal */ }
+        }
+    }
+    async notifyEnd(sessionId) {
+        for (const manager of this.managers.values()) {
+            try {
+                await manager.onSessionEnd?.(sessionId);
+            }
+            catch { /* non-fatal */ }
+        }
+    }
+    async exportAll(sessionId) {
+        const result = {};
+        for (const [id, manager] of this.managers) {
+            try {
+                const data = await manager.onSessionExport?.(sessionId);
+                if (data)
+                    result[id] = data;
+            }
+            catch { /* non-fatal */ }
+        }
+        return result;
+    }
+    async importAll(sessionId, data) {
+        for (const [id, extData] of Object.entries(data)) {
+            const manager = this.managers.get(id);
+            if (manager) {
+                try {
+                    await manager.onSessionImport?.(sessionId, extData);
+                }
+                catch { /* non-fatal */ }
+            }
+        }
+    }
+}
+//# sourceMappingURL=session-manager.js.map

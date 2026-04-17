@@ -1,0 +1,39 @@
+/**
+ * agents/model-catalog.ts
+ * Model catalog — registry of available models and capabilities.
+ * Ported from CoreBlow reference src/agents/model-catalog.ts.
+ */
+export interface ModelCatalogEntry {
+    id: string;
+    provider: string;
+    displayName: string;
+    contextWindow: number;
+    maxOutputTokens?: number;
+    supportsTools: boolean;
+    supportsVision: boolean;
+    supportsStreaming: boolean;
+    supportsThinking?: boolean;
+    costPer1kInput?: number;
+    costPer1kOutput?: number;
+    tags?: string[];
+}
+export declare class ModelCatalog {
+    private entries;
+    constructor();
+    get(modelId: string): ModelCatalogEntry | undefined;
+    add(entry: ModelCatalogEntry): void;
+    remove(modelId: string): boolean;
+    list(): ModelCatalogEntry[];
+    listByProvider(provider: string): ModelCatalogEntry[];
+    listByTag(tag: string): ModelCatalogEntry[];
+    findByCapability(caps: {
+        tools?: boolean;
+        vision?: boolean;
+        thinking?: boolean;
+    }): ModelCatalogEntry[];
+    resolveContextWindow(modelId: string): number;
+    estimateCost(modelId: string, inputTokens: number, outputTokens: number): number | null;
+    providers(): string[];
+    size(): number;
+}
+//# sourceMappingURL=model-catalog.d.ts.map

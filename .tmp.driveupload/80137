@@ -1,0 +1,34 @@
+/**
+ * markdown/ir.ts
+ * Markdown Intermediate Representation.
+ * Ported from CoreBlow reference src/markdown/ir.ts.
+ */
+export type MarkdownStyle = 'bold' | 'italic' | 'strikethrough' | 'code' | 'code_block' | 'spoiler' | 'blockquote';
+export interface MarkdownStyleSpan {
+    start: number;
+    end: number;
+    style: MarkdownStyle;
+}
+export interface MarkdownLinkSpan {
+    start: number;
+    end: number;
+    href: string;
+}
+export interface MarkdownIR {
+    text: string;
+    styles: MarkdownStyleSpan[];
+    links: MarkdownLinkSpan[];
+}
+/**
+ * Parse markdown text into an intermediate representation.
+ */
+export declare function parseMarkdownToIR(markdown: string): MarkdownIR;
+/**
+ * Create an empty IR.
+ */
+export declare function emptyIR(): MarkdownIR;
+/**
+ * Merge multiple IRs.
+ */
+export declare function mergeIR(parts: MarkdownIR[], separator?: string): MarkdownIR;
+//# sourceMappingURL=ir.d.ts.map

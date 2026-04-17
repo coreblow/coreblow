@@ -1,0 +1,21 @@
+export function normalizeRpcAttachmentsToChatAttachments(attachments) {
+    if (!attachments || !Array.isArray(attachments))
+        return [];
+    return attachments.map((att) => {
+        const a = att;
+        return {
+            type: a.type || (typeof a.mimeType === 'string' && a.mimeType.startsWith("image/") ? "image" : "file"),
+            mimeType: a.mimeType || "application/octet-stream",
+            fileName: a.fileName || "unnamed",
+            content: a.content
+        };
+    });
+}
+export async function parseMessageWithAttachments(message, attachments, opts) {
+    // Mock parsing
+    return {
+        message: message + "\n[parsed " + attachments.length + " attachments]",
+        images: attachments.filter(a => a.mimeType?.startsWith("image/"))
+    };
+}
+//# sourceMappingURL=chat-attachments.js.map

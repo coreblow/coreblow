@@ -1,0 +1,72 @@
+/**
+ * plugins/manifest.schema.ts
+ * Zod validation for plugin manifest files.
+ *
+ * Every plugin must have a valid manifest. This schema ensures
+ * structural integrity before loading any plugin code.
+ */
+import { z } from 'zod';
+export declare const SemVerRegex: RegExp;
+export declare const PluginPermissionSchema: z.ZodEnum<{
+    env: "env";
+    exec: "exec";
+    network: "network";
+    fs: "fs";
+    clipboard: "clipboard";
+    notifications: "notifications";
+}>;
+export declare const PluginToolSchema: z.ZodObject<{
+    name: z.ZodString;
+    description: z.ZodOptional<z.ZodString>;
+    parameters: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+}, z.core.$strip>;
+export declare const PluginHookSchema: z.ZodObject<{
+    event: z.ZodString;
+    handler: z.ZodString;
+    priority: z.ZodDefault<z.ZodNumber>;
+}, z.core.$strip>;
+export declare const PluginManifestSchema: z.ZodObject<{
+    name: z.ZodString;
+    version: z.ZodString;
+    description: z.ZodOptional<z.ZodString>;
+    author: z.ZodOptional<z.ZodString>;
+    license: z.ZodOptional<z.ZodString>;
+    homepage: z.ZodOptional<z.ZodString>;
+    repository: z.ZodOptional<z.ZodString>;
+    permissions: z.ZodDefault<z.ZodArray<z.ZodEnum<{
+        env: "env";
+        exec: "exec";
+        network: "network";
+        fs: "fs";
+        clipboard: "clipboard";
+        notifications: "notifications";
+    }>>>;
+    hooks: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        event: z.ZodString;
+        handler: z.ZodString;
+        priority: z.ZodDefault<z.ZodNumber>;
+    }, z.core.$strip>>>;
+    tools: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        name: z.ZodString;
+        description: z.ZodOptional<z.ZodString>;
+        parameters: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+    }, z.core.$strip>>>;
+    commands: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        name: z.ZodString;
+        description: z.ZodOptional<z.ZodString>;
+        aliases: z.ZodOptional<z.ZodArray<z.ZodString>>;
+    }, z.core.$strip>>>;
+    entrypoint: z.ZodDefault<z.ZodString>;
+    minGatewayVersion: z.ZodOptional<z.ZodString>;
+    maxGatewayVersion: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>;
+export type ValidatedPluginManifest = z.infer<typeof PluginManifestSchema>;
+/** Validate a plugin manifest, throwing on error. */
+export declare function validatePluginManifest(raw: unknown): ValidatedPluginManifest;
+/** Safe validation for plugin manifests. */
+export declare function safeValidatePluginManifest(raw: unknown): {
+    success: boolean;
+    data?: ValidatedPluginManifest;
+    errors?: string[];
+};
+//# sourceMappingURL=manifest.schema.d.ts.map

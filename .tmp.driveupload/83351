@@ -1,0 +1,16 @@
+/** plugin-sdk/modelstudio-definitions.ts [ADAPT] openclaw-main */
+import type { ModelCost } from "./provider-model-shared.js";
+export declare const MODELSTUDIO_CN_BASE_URL = "https://dashscope.aliyuncs.com";
+export declare const MODELSTUDIO_GLOBAL_BASE_URL = "https://dashscope-intl.aliyuncs.com";
+export declare const MODELSTUDIO_STANDARD_CN_BASE_URL = "https://dashscope.aliyuncs.com";
+export declare const MODELSTUDIO_STANDARD_GLOBAL_BASE_URL = "https://dashscope-intl.aliyuncs.com";
+export declare const MODELSTUDIO_DEFAULT_MODEL_ID = "qwen-plus";
+export declare const MODELSTUDIO_DEFAULT_MODEL_REF = "modelstudio:qwen-plus";
+export declare const MODELSTUDIO_DEFAULT_COST: ModelCost;
+export declare function buildModelStudioModelDefinition(params: {
+    id: string;
+    label?: string;
+    cost?: ModelCost;
+}): import("./provider-model-shared.js").ProviderModelDefinition;
+export declare function buildModelStudioDefaultModelDefinition(): import("./provider-model-shared.js").ProviderModelDefinition;
+//# sourceMappingURL=modelstudio-definitions.d.ts.map

@@ -1,0 +1,106 @@
+/**
+ * gateway/api.schema.ts
+ * Zod validation for API request/response payloads.
+ *
+ * Validates incoming API requests before they reach handlers.
+ * Covers chat completions, session management, cron jobs, and webhooks.
+ */
+import { z } from 'zod';
+export declare const ChatMessageSchema: z.ZodObject<{
+    role: z.ZodEnum<{
+        user: "user";
+        assistant: "assistant";
+        tool: "tool";
+        system: "system";
+    }>;
+    content: z.ZodString;
+    name: z.ZodOptional<z.ZodString>;
+    toolCallId: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>;
+export declare const ChatCompletionRequestSchema: z.ZodObject<{
+    messages: z.ZodArray<z.ZodObject<{
+        role: z.ZodEnum<{
+            user: "user";
+            assistant: "assistant";
+            tool: "tool";
+            system: "system";
+        }>;
+        content: z.ZodString;
+        name: z.ZodOptional<z.ZodString>;
+        toolCallId: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    model: z.ZodOptional<z.ZodString>;
+    temperature: z.ZodOptional<z.ZodNumber>;
+    maxTokens: z.ZodOptional<z.ZodNumber>;
+    stream: z.ZodDefault<z.ZodBoolean>;
+    tools: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        type: z.ZodLiteral<"function">;
+        function: z.ZodObject<{
+            name: z.ZodString;
+            description: z.ZodOptional<z.ZodString>;
+            parameters: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+        }, z.core.$strip>;
+    }, z.core.$strip>>>;
+    stop: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodString>]>>;
+    sessionId: z.ZodOptional<z.ZodString>;
+    agentId: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>;
+export type ValidatedChatCompletionRequest = z.infer<typeof ChatCompletionRequestSchema>;
+export declare const SessionCreateSchema: z.ZodObject<{
+    sessionKey: z.ZodString;
+    agentId: z.ZodDefault<z.ZodString>;
+    cwd: z.ZodOptional<z.ZodString>;
+    metadata: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+}, z.core.$strip>;
+export declare const SessionUpdateSchema: z.ZodObject<{
+    systemPrompt: z.ZodOptional<z.ZodString>;
+    model: z.ZodOptional<z.ZodString>;
+    temperature: z.ZodOptional<z.ZodNumber>;
+    maxTokens: z.ZodOptional<z.ZodNumber>;
+    metadata: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+}, z.core.$strip>;
+export type ValidatedSessionCreate = z.infer<typeof SessionCreateSchema>;
+export declare const CronJobSchema: z.ZodObject<{
+    name: z.ZodString;
+    schedule: z.ZodString;
+    agentId: z.ZodDefault<z.ZodString>;
+    prompt: z.ZodString;
+    enabled: z.ZodDefault<z.ZodBoolean>;
+    timezone: z.ZodDefault<z.ZodString>;
+    maxRetries: z.ZodDefault<z.ZodNumber>;
+    timeoutMs: z.ZodDefault<z.ZodNumber>;
+}, z.core.$strip>;
+export type ValidatedCronJob = z.infer<typeof CronJobSchema>;
+export declare const ExecApprovalSchema: z.ZodObject<{
+    command: z.ZodString;
+    approved: z.ZodBoolean;
+    reason: z.ZodOptional<z.ZodString>;
+    sessionId: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>;
+export declare const HealthResponseSchema: z.ZodObject<{
+    status: z.ZodEnum<{
+        error: "error";
+        ok: "ok";
+        degraded: "degraded";
+    }>;
+    version: z.ZodString;
+    uptime: z.ZodNumber;
+    uptimeHuman: z.ZodString;
+    agent: z.ZodObject<{
+        model: z.ZodString;
+        provider: z.ZodString;
+    }, z.core.$strip>;
+    channels: z.ZodRecord<z.ZodString, z.ZodBoolean>;
+    features: z.ZodRecord<z.ZodString, z.ZodBoolean>;
+}, z.core.$strip>;
+/** Validate a chat completion request. */
+export declare function validateChatRequest(raw: unknown): ValidatedChatCompletionRequest;
+/** Safe validation for chat requests. */
+export declare function safeValidateChatRequest(raw: unknown): {
+    success: boolean;
+    data?: ValidatedChatCompletionRequest;
+    errors?: string[];
+};
+/** Validate a cron job definition. */
+export declare function validateCronJob(raw: unknown): ValidatedCronJob;
+//# sourceMappingURL=api.schema.d.ts.map

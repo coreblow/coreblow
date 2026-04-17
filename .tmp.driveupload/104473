@@ -1,0 +1,82 @@
+{
+  "": {
+    "swift-dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/master.swiftdeps"
+  },
+  "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/AssistantTextParser.swift": {
+    "dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/AssistantTextParser.d",
+    "object": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/AssistantTextParser.swift.o",
+    "swiftmodule": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/AssistantTextParser~partial.swiftmodule",
+    "swift-dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/AssistantTextParser.swiftdeps",
+    "diagnostics": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/AssistantTextParser.dia"
+  },
+  "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatMarkdownPreprocessor.swift": {
+    "dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatMarkdownPreprocessor.d",
+    "object": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatMarkdownPreprocessor.swift.o",
+    "swiftmodule": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatMarkdownPreprocessor~partial.swiftmodule",
+    "swift-dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatMarkdownPreprocessor.swiftdeps",
+    "diagnostics": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatMarkdownPreprocessor.dia"
+  },
+  "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatMarkdownRenderer.swift": {
+    "dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatMarkdownRenderer.d",
+    "object": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatMarkdownRenderer.swift.o",
+    "swiftmodule": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatMarkdownRenderer~partial.swiftmodule",
+    "swift-dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatMarkdownRenderer.swiftdeps",
+    "diagnostics": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatMarkdownRenderer.dia"
+  },
+  "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatModels.swift": {
+    "dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatModels.d",
+    "object": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatModels.swift.o",
+    "swiftmodule": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatModels~partial.swiftmodule",
+    "swift-dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatModels.swiftdeps",
+    "diagnostics": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatModels.dia"
+  },
+  "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatSessions.swift": {
+    "dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatSessions.d",
+    "object": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatSessions.swift.o",
+    "swiftmodule": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatSessions~partial.swiftmodule",
+    "swift-dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatSessions.swiftdeps",
+    "diagnostics": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatSessions.dia"
+  },
+  "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatSheets.swift": {
+    "dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatSheets.d",
+    "object": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatSheets.swift.o",
+    "swiftmodule": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatSheets~partial.swiftmodule",
+    "swift-dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatSheets.swiftdeps",
+    "diagnostics": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatSheets.dia"
+  },
+  "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatTheme.swift": {
+    "dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatTheme.d",
+    "object": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatTheme.swift.o",
+    "swiftmodule": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatTheme~partial.swiftmodule",
+    "swift-dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatTheme.swiftdeps",
+    "diagnostics": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatTheme.dia"
+  },
+  "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatTransport.swift": {
+    "dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatTransport.d",
+    "object": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatTransport.swift.o",
+    "swiftmodule": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatTransport~partial.swiftmodule",
+    "swift-dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatTransport.swiftdeps",
+    "diagnostics": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatTransport.dia"
+  },
+  "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatView.swift": {
+    "dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatView.d",
+    "object": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatView.swift.o",
+    "swiftmodule": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatView~partial.swiftmodule",
+    "swift-dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatView.swiftdeps",
+    "diagnostics": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatView.dia"
+  },
+  "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatViewModel.swift": {
+    "dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatViewModel.d",
+    "object": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatViewModel.swift.o",
+    "swiftmodule": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatViewModel~partial.swiftmodule",
+    "swift-dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatViewModel.swiftdeps",
+    "diagnostics": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatViewModel.dia"
+  },
+  "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ToolResultTextFormatter.swift": {
+    "dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ToolResultTextFormatter.d",
+    "object": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ToolResultTextFormatter.swift.o",
+    "swiftmodule": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ToolResultTextFormatter~partial.swiftmodule",
+    "swift-dependencies": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ToolResultTextFormatter.swiftdeps",
+    "diagnostics": "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ToolResultTextFormatter.dia"
+  }
+}

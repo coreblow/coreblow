@@ -1,0 +1,95 @@
+/**
+ * CoreBlow — Bias Detector
+ *
+ * Production-grade bias detection with intersectional analysis,
+ * balanced representation checking, counter-example awareness,
+ * and comprehensive reporting for AI output fairness auditing.
+ */
+/** Bias category */
+export type BiasCategory = 'gender' | 'racial' | 'age' | 'political' | 'socioeconomic' | 'disability' | 'religious' | 'cultural';
+/** Bias severity */
+export type BiasSeverity = 'none' | 'low' | 'medium' | 'high';
+/** Bias indicator */
+export interface BiasIndicator {
+    category: BiasCategory;
+    score: number;
+    severity: BiasSeverity;
+    indicators: string[];
+    suggestion: string;
+    mitigated: boolean;
+}
+/** Bias result */
+export interface BiasResult {
+    biased: boolean;
+    overallScore: number;
+    severity: BiasSeverity;
+    indicators: BiasIndicator[];
+    recommendation: string;
+    balanceScore: number;
+}
+/** Batch bias result */
+export interface BatchBiasResult {
+    results: BiasResult[];
+    totalBiased: number;
+    averageScore: number;
+    prevalentCategory?: BiasCategory;
+}
+/** Bias detector configuration */
+export interface BiasConfig {
+    /** Detection threshold (0-1, default: 0.4) */
+    threshold?: number;
+    /** Categories to scan */
+    enabledCategories?: BiasCategory[];
+    /** Check for balanced representation */
+    checkBalance?: boolean;
+}
+/**
+ * CoreBlow Bias Detector
+ *
+ * Scans text for potential biases across 8 categories with
+ * stereotype detection, inclusive language checking, and
+ * balance scoring.
+ */
+export declare class BiasDetector {
+    private categories;
+    private threshold;
+    private enabledCategories;
+    private checkBalance;
+    private stats;
+    private history;
+    private maxHistory;
+    constructor(config?: BiasConfig);
+    /**
+     * Analyze text for bias.
+     */
+    analyze(text: string): BiasResult;
+    /**
+     * Batch scan multiple texts.
+     */
+    analyzeBatch(texts: string[]): BatchBiasResult;
+    /**
+     * Quick check.
+     */
+    isBiased(text: string): boolean;
+    setThreshold(threshold: number): void;
+    getThreshold(): number;
+    enableCategory(cat: BiasCategory): void;
+    disableCategory(cat: BiasCategory): void;
+    getEnabledCategories(): BiasCategory[];
+    getStats(): {
+        scanned: number;
+        biasDetected: number;
+        biasRate: number;
+        byCategory: Record<string, number>;
+    };
+    getHistory(): Array<{
+        text: string;
+        result: BiasResult;
+        timestamp: number;
+    }>;
+    resetStats(): void;
+    private scoreSeverity;
+    private severityRank;
+    private recordHistory;
+}
+//# sourceMappingURL=bias-detector.d.ts.map

@@ -1,0 +1,64 @@
+/**
+ * process/spawn-utils.ts
+ * Spawn helpers with fallback and error formatting.
+ * Ported from CoreBlow reference src/process/spawn-utils.ts.
+ */
+import { spawn } from 'node:child_process';
+export function resolveCommandStdio(params) {
+    const stdin = params.hasInput ? 'pipe' : params.preferInherit ? 'inherit' : 'pipe';
+    return [stdin, 'pipe', 'pipe'];
+}
+export function formatSpawnError(err) {
+    if (!(err instanceof Error))
+        return String(err);
+    const details = err;
+    const parts = [];
+    if (err.message?.trim())
+        parts.push(err.message.trim());
+    if (details.code)
+        parts.push(`code: ${details.code}`);
+    if (details.errno !== undefined)
+        parts.push(`errno: ${details.errno}`);
+    if (details.syscall)
+        parts.push(`syscall: ${details.syscall}`);
+    if (details.path)
+        parts.push(`path: ${details.path}`);
+    return parts.join(', ');
+}
+/**
+ * Spawn with retries using fallback configurations.
+ */
+export function spawnWithFallback(params) {
+    const retryCodes = params.retryCodes ?? ['EBADF'];
+    try {
+        const child = spawn(params.argv[0], params.argv.slice(1), params.options);
+        return { child, usedFallback: false };
+    }
+    catch (err) {
+        const code = err.code;
+        if (!code || !retryCodes.includes(code) || !params.fallbacks?.length)
+            throw err;
+        for (const fallback of params.fallbacks) {
+            try {
+                const child = spawn(params.argv[0], params.argv.slice(1), { ...params.options, ...fallback.options });
+                return { child, usedFallback: true, fallbackLabel: fallback.label };
+            }
+            catch { /* try next */ }
+        }
+        throw err;
+    }
+}
+/**
+ * Collect output from a child process.
+ */
+export function collectOutput(child) {
+    return new Promise((resolve) => {
+        const stdout = [];
+        const stderr = [];
+        child.stdout?.on('data', (data) => stdout.push(data.toString()));
+        child.stderr?.on('data', (data) => stderr.push(data.toString()));
+        child.on('close', (code) => resolve({ stdout: stdout.join(''), stderr: stderr.join(''), exitCode: code ?? 1 }));
+        child.on('error', () => resolve({ stdout: stdout.join(''), stderr: stderr.join(''), exitCode: 1 }));
+    });
+}
+//# sourceMappingURL=spawn-utils.js.map

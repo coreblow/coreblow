@@ -1,0 +1,5 @@
+import type { IncomingMessage, ServerResponse } from "node:http";
+import type { HttpEndpoint } from "./http-endpoint-helpers.js";
+export declare const httpEndpoints: HttpEndpoint[];
+export declare function handleHttpRequest(req: IncomingMessage, res: ServerResponse): void | Promise<void>;
+//# sourceMappingURL=server-http.d.ts.map

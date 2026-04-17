@@ -1,0 +1,58 @@
+/**
+ * plugin-sdk/channel-setup.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/channel-setup.ts
+ *
+ * Channel setup wizard and adapter helpers for optional/conditional channels.
+ */
+import { DEFAULT_ACCOUNT_ID } from './account-id.js';
+export { DEFAULT_ACCOUNT_ID };
+export function createOptionalChannelSetupAdapter(params) {
+    return {
+        isConfigured: () => false,
+        configure: async () => {
+            throw new Error(`Channel "${params.channel}" is not installed. Install with: ${params.npmSpec ?? `@coreblow/plugin-${params.channel}`}`);
+        },
+    };
+}
+export function createOptionalChannelSetupWizard(params) {
+    return {
+        label: params.label,
+        docsPath: params.docsPath,
+        steps: [
+            {
+                id: 'install',
+                label: `Install ${params.label}`,
+                description: `Run: ${params.npmSpec ?? `@coreblow/plugin-${params.channel}`}`,
+            },
+        ],
+    };
+}
+export function createOptionalChannelSetupSurface(params) {
+    return {
+        setupAdapter: createOptionalChannelSetupAdapter(params),
+        setupWizard: createOptionalChannelSetupWizard(params),
+    };
+}
+// ─── Setup Helpers ────────────────────────────────────────────────────────────
+export function setSetupChannelEnabled(params) {
+    const section = params.cfg[params.channelKey] ?? {};
+    return {
+        ...params.cfg,
+        [params.channelKey]: { ...section, enabled: params.enabled },
+    };
+}
+export function splitSetupEntries(entries) {
+    const valid = [];
+    const invalid = [];
+    for (const entry of entries) {
+        (entry.trim() ? valid : invalid).push(entry);
+    }
+    return { valid, invalid };
+}
+export function formatDocsLink(docsPath, base = 'https://docs.coreblow.dev') {
+    return new URL(docsPath, base).toString();
+}
+export function createTopLevelChannelDmPolicy(policy) {
+    return { policy: policy ?? 'none' };
+}
+//# sourceMappingURL=channel-setup.js.map

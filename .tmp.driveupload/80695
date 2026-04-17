@@ -1,0 +1,8 @@
+/**
+ * Discord Sanitizer — Removes potentially dangerous content for safe embed rendering.
+ */
+export declare function sanitize(text: string): string;
+export declare function escapeMarkdown(text: string): string;
+export declare function stripMentions(text: string): string;
+export declare function sanitizeEmbed(text: string, maxLength?: number): string;
+//# sourceMappingURL=sanitizer.d.ts.map

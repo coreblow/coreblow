@@ -1,0 +1,213 @@
+/**
+ * plugins/telemetry.ts
+ *
+ * Plugin Telemetry Collector — Higher-level metrics collection,
+ * counters, gauges, histograms, and dashboard API for plugin system.
+ *
+ * Following CoreBlow's observability patterns upgraded to CoreBlow OOP.
+ * Integrates with PluginPerfMonitor for low-level timing and adds:
+ *   - Named counters (monotonic increment)
+ *   - Gauges (current value tracking)
+ *   - Histograms (distribution tracking with percentiles)
+ *   - Per-plugin metric namespacing
+ *   - Dashboard-ready aggregated views
+ *   - Metric alerting (threshold-based)
+ *   - Export for external monitoring (Prometheus-compatible)
+ */
+/** Counter — monotonically increasing value */
+export interface Counter {
+    name: string;
+    value: number;
+    labels: Record<string, string>;
+    createdAt: number;
+    updatedAt: number;
+}
+/** Gauge — current value that can go up/down */
+export interface Gauge {
+    name: string;
+    value: number;
+    labels: Record<string, string>;
+    min: number;
+    max: number;
+    updatedAt: number;
+}
+/** Histogram bucket */
+export interface HistogramBucket {
+    le: number;
+    count: number;
+}
+/** Histogram — distribution of values */
+export interface Histogram {
+    name: string;
+    values: number[];
+    count: number;
+    sum: number;
+    labels: Record<string, string>;
+    buckets: HistogramBucket[];
+    updatedAt: number;
+}
+/** Metric alert rule */
+export interface AlertRule {
+    id: string;
+    metricName: string;
+    condition: 'gt' | 'lt' | 'gte' | 'lte' | 'eq';
+    threshold: number;
+    message: string;
+    severity: 'info' | 'warn' | 'critical';
+}
+/** Triggered alert */
+export interface Alert {
+    rule: AlertRule;
+    currentValue: number;
+    timestamp: number;
+    pluginId?: string;
+}
+/** Telemetry dashboard data */
+export interface TelemetryDashboard {
+    timestamp: number;
+    counters: Counter[];
+    gauges: Gauge[];
+    histograms: Array<{
+        name: string;
+        count: number;
+        sum: number;
+        avg: number;
+        min: number;
+        max: number;
+        p50: number;
+        p95: number;
+        p99: number;
+        labels: Record<string, string>;
+    }>;
+    alerts: Alert[];
+    pluginMetrics: Record<string, {
+        counters: Counter[];
+        gauges: Gauge[];
+    }>;
+}
+/** Prometheus-compatible export line */
+export interface PrometheusMetric {
+    name: string;
+    type: 'counter' | 'gauge' | 'histogram';
+    help?: string;
+    lines: string[];
+}
+/**
+ * CoreBlow Plugin Telemetry Collector
+ *
+ * Higher-level metrics collection for the plugin system.
+ * Provides counters, gauges, histograms, alerting, and
+ * dashboard-ready aggregated views.
+ */
+export declare class TelemetryCollector {
+    private counters;
+    private gauges;
+    private histograms;
+    private alertRules;
+    private activeAlerts;
+    private alertHandlers;
+    private maxValues;
+    /**
+     * Increment a counter.
+     */
+    increment(name: string, amount?: number, labels?: Record<string, string>): number;
+    /**
+     * Get a counter value.
+     */
+    getCounter(name: string, labels?: Record<string, string>): number;
+    /**
+     * Get all counters.
+     */
+    getCounters(): Counter[];
+    /**
+     * Set a gauge value.
+     */
+    setGauge(name: string, value: number, labels?: Record<string, string>): void;
+    /**
+     * Get a gauge value.
+     */
+    getGauge(name: string, labels?: Record<string, string>): number;
+    /**
+     * Get all gauges.
+     */
+    getGauges(): Gauge[];
+    /**
+     * Observe a value in a histogram.
+     */
+    observe(name: string, value: number, labels?: Record<string, string>): void;
+    /**
+     * Get histogram stats.
+     */
+    getHistogramStats(name: string, labels?: Record<string, string>): {
+        count: number;
+        sum: number;
+        avg: number;
+        min: number;
+        max: number;
+        p50: number;
+        p95: number;
+        p99: number;
+    } | null;
+    /**
+     * Get all histograms.
+     */
+    getHistograms(): Histogram[];
+    /**
+     * Increment a plugin-scoped counter.
+     */
+    pluginIncrement(pluginId: string, metric: string, amount?: number): number;
+    /**
+     * Set a plugin-scoped gauge.
+     */
+    pluginSetGauge(pluginId: string, metric: string, value: number): void;
+    /**
+     * Observe a plugin-scoped histogram value.
+     */
+    pluginObserve(pluginId: string, metric: string, value: number): void;
+    /**
+     * Get all metrics for a specific plugin.
+     */
+    getPluginMetrics(pluginId: string): {
+        counters: Counter[];
+        gauges: Gauge[];
+    };
+    /**
+     * Add an alert rule.
+     */
+    addAlertRule(rule: AlertRule): void;
+    /**
+     * Remove an alert rule.
+     */
+    removeAlertRule(ruleId: string): boolean;
+    /**
+     * Get active alerts.
+     */
+    getAlerts(): Alert[];
+    /**
+     * Subscribe to alert triggers.
+     */
+    onAlert(handler: (alert: Alert) => void): () => void;
+    /**
+     * Clear active alerts.
+     */
+    clearAlerts(): void;
+    /**
+     * Get full dashboard data.
+     */
+    getDashboard(): TelemetryDashboard;
+    /**
+     * Export metrics in Prometheus text format.
+     */
+    exportPrometheus(): string;
+    /**
+     * Reset all metrics.
+     */
+    reset(): void;
+    /**
+     * Get total metric count.
+     */
+    getMetricCount(): number;
+    private makeKey;
+    private checkAlerts;
+}
+//# sourceMappingURL=telemetry.d.ts.map

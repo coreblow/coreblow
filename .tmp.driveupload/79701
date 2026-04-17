@@ -1,0 +1,134 @@
+/**
+ * CoreBlow — RAG Pipeline Orchestrator
+ *
+ * Full pipeline: Load → Chunk → Embed → Store → Query → Fuse → Rerank → Context
+ *
+ * Combines all RAG foundation components:
+ *  - DocumentLoader (multi-format)
+ *  - RecursiveChunker (contextual prepending)
+ *  - EmbeddingProvider (auto-select + fallback)
+ *  - HybridSearch v2 (BM25 + RRF)
+ *  - MMR reranking (diversity)
+ */
+import { type LoaderConfig } from './document-loader.js';
+import { type ChunkConfig, type Chunk } from './recursive-chunker.js';
+import { type HybridSearchConfig } from '../memory/hybrid-search.js';
+export interface RAGPipelineConfig {
+    /** Document loader options */
+    loader?: LoaderConfig;
+    /** Chunker options */
+    chunker?: Partial<ChunkConfig>;
+    /** Search options */
+    search?: Partial<HybridSearchConfig>;
+    /** Embedding backend */
+    embeddingBackend?: 'local' | 'ollama' | 'openai';
+    /** OpenAI key for embeddings */
+    openaiKey?: string;
+    /** Embedding dimensions */
+    embeddingDims?: number;
+    /** MMR lambda for reranking (0 = max diversity, 1 = max relevance) */
+    mmrLambda?: number;
+    /** Maximum context tokens to return */
+    maxContextTokens?: number;
+}
+export interface RAGDocument {
+    /** Unique chunk ID */
+    id: string;
+    /** Chunk text (with context prefix) */
+    text: string;
+    /** Raw text (without prefix) */
+    rawText: string;
+    /** Source file path */
+    sourcePath: string;
+    /** Context heading hierarchy */
+    context: string[];
+    /** Embedding vector */
+    embedding: Float32Array;
+    /** Ingestion timestamp */
+    ingestedAt: number;
+}
+export interface RAGQueryResult {
+    /** Relevant document chunks */
+    documents: RAGDocument[];
+    /** Combined context string for LLM */
+    contextText: string;
+    /** Query expansion info */
+    queryInfo: {
+        original: string;
+        fusionMode: string;
+        totalCandidates: number;
+        returnedResults: number;
+    };
+}
+export interface RAGStats {
+    totalDocuments: number;
+    totalChunks: number;
+    embeddingProvider: string;
+    fusionMode: string;
+}
+export declare class RAGPipeline {
+    private config;
+    private loader;
+    private embeddingProvider;
+    private searchEngine;
+    private store;
+    /** Callbacks for pipeline stages */
+    onChunk?: (chunk: Chunk, sourcePath: string) => void;
+    onEmbed?: (docId: string) => void;
+    onStore?: (doc: RAGDocument) => void;
+    onQuery?: (query: string, resultCount: number) => void;
+    constructor(config?: RAGPipelineConfig);
+    /**
+     * Ingest documents from file paths or directories.
+     * Load → Chunk → Embed → Store
+     */
+    ingest(sources: string[]): Promise<{
+        ingested: number;
+        chunks: number;
+    }>;
+    /**
+     * Ingest a single directory recursively.
+     */
+    ingestDirectory(dirPath: string): Promise<{
+        ingested: number;
+        chunks: number;
+    }>;
+    /**
+     * Ingest raw text directly (no file loading needed).
+     */
+    ingestText(text: string, sourcePath?: string): Promise<{
+        chunks: number;
+    }>;
+    /**
+     * Process raw documents through the pipeline.
+     */
+    private ingestRawDocuments;
+    /**
+     * Query the RAG store.
+     * Returns relevant chunks + assembled context string for LLM.
+     */
+    query(queryText: string, topK?: number): Promise<RAGQueryResult>;
+    /**
+     * Get pipeline statistics.
+     */
+    stats(): RAGStats;
+    /**
+     * Clear all stored documents.
+     */
+    clear(): void;
+    /**
+     * Get all stored documents.
+     */
+    getDocuments(): RAGDocument[];
+    /**
+     * Remove documents from a specific source path.
+     */
+    removeSource(sourcePath: string): number;
+    private createRAGDocument;
+    private rebuildSearchIndex;
+    /**
+     * Assemble context string from documents, respecting token limit.
+     */
+    private assembleContext;
+}
+//# sourceMappingURL=rag-pipeline.d.ts.map

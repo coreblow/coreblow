@@ -1,0 +1,18 @@
+/**
+ * agents/auth-profiles/identity.ts
+ * Identity resolution for auth profiles.
+ */
+export interface AuthIdentity {
+    userId: string;
+    displayName?: string;
+    provider?: string;
+    channel?: string;
+    roles?: string[];
+}
+export declare function resolveIdentity(params: {
+    userId?: string;
+    channel?: string;
+    provider?: string;
+}): AuthIdentity;
+export declare function isAuthenticated(identity: AuthIdentity): boolean;
+//# sourceMappingURL=identity.d.ts.map

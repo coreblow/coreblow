@@ -1,0 +1,8 @@
+/** plugin-sdk/tool-send.ts [ADAPT] openclaw-main */
+export type ToolSendResult = {
+    ok: boolean;
+    error?: string;
+    data?: unknown;
+};
+export declare function executeTool(_toolName: string, _params: Record<string, unknown>): Promise<ToolSendResult>;
+//# sourceMappingURL=tool-send.d.ts.map

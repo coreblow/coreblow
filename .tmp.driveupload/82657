@@ -1,0 +1,181 @@
+/**
+ * plugins/discovery.ts
+ *
+ * Multi-source plugin discovery — scans workspace, global, and bundled
+ * directories for plugins with valid manifests.
+ *
+ * Following CoreBlow's discovery.ts (946 LOC) pattern.
+ * CoreBlow OOP equivalent: PluginDiscovery class.
+ */
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { createChildLogger } from '../utils/logger.js';
+import { readBoundaryFileSync } from '../infra/boundary-file-read.js';
+const log = createChildLogger('plugin:discovery');
+// ─── PluginDiscovery ─────────────────────────────────────────────
+/**
+ * CoreBlow Plugin Discovery
+ *
+ * Scans multiple sources (workspace, global, bundled, config loadPaths)
+ * for plugin directories containing valid manifests.
+ * OOP equivalent of CoreBlow's discoverCoreBlowPlugins().
+ */
+export class PluginDiscovery {
+    logger;
+    constructor(logger) {
+        this.logger = logger ?? {
+            info: (msg) => log.info(msg),
+            warn: (msg) => log.warn(msg),
+            error: (msg) => log.error(msg),
+            debug: (msg) => log.debug(msg),
+        };
+    }
+    /**
+     * Run full discovery scan across all configured sources.
+     */
+    discover(options = {}) {
+        const start = Date.now();
+        const candidates = [];
+        const errors = [];
+        const seenIds = new Set();
+        // 1. Scan bundled plugins
+        if (options.bundledDir) {
+            this.scanDirectory(options.bundledDir, 'bundled', candidates, errors, seenIds);
+        }
+        // 2. Scan global plugins
+        if (options.globalDir) {
+            this.scanDirectory(options.globalDir, 'global', candidates, errors, seenIds);
+        }
+        // 3. Scan workspace plugins
+        if (options.workspaceDir) {
+            const wsPluginDir = path.join(options.workspaceDir, '.coreblow', 'plugins');
+            if (fs.existsSync(wsPluginDir)) {
+                this.scanDirectory(wsPluginDir, 'workspace', candidates, errors, seenIds);
+            }
+        }
+        // 4. Scan config load paths
+        if (options.loadPaths) {
+            for (const loadPath of options.loadPaths) {
+                const resolved = loadPath.trim();
+                if (!resolved)
+                    continue;
+                if (fs.existsSync(resolved)) {
+                    const stat = fs.statSync(resolved);
+                    if (stat.isDirectory()) {
+                        this.scanDirectory(resolved, 'config', candidates, errors, seenIds);
+                    }
+                    else if (stat.isFile()) {
+                        this.scanSingleFile(resolved, 'config', candidates, errors, seenIds);
+                    }
+                }
+            }
+        }
+        // 5. Filter by onlyPluginIds if specified
+        let filtered = candidates;
+        if (options.onlyPluginIds && options.onlyPluginIds.length > 0) {
+            const allowSet = new Set(options.onlyPluginIds);
+            filtered = candidates.filter((c) => allowSet.has(c.id));
+        }
+        return {
+            candidates: filtered,
+            errors,
+            scanTime: Date.now() - start,
+        };
+    }
+    /**
+     * Scan a single directory for plugin subdirectories.
+     */
+    scanDirectory(dir, origin, candidates, errors, seenIds) {
+        if (!fs.existsSync(dir))
+            return;
+        let entries;
+        try {
+            entries = fs.readdirSync(dir, { withFileTypes: true });
+        }
+        catch (err) {
+            errors.push({ path: dir, error: `Failed to read directory: ${String(err)}` });
+            return;
+        }
+        for (const entry of entries) {
+            if (!entry.isDirectory())
+                continue;
+            const pluginDir = path.join(dir, entry.name);
+            this.scanPluginDir(pluginDir, origin, candidates, errors, seenIds);
+        }
+    }
+    /**
+     * Scan a specific directory for a plugin manifest.
+     */
+    scanPluginDir(pluginDir, origin, candidates, errors, seenIds) {
+        // Try plugin.json, then package.json, then manifest.json
+        const manifestNames = ['plugin.json', 'package.json', 'manifest.json'];
+        let manifestPath = null;
+        for (const name of manifestNames) {
+            const candidate = path.join(pluginDir, name);
+            if (fs.existsSync(candidate)) {
+                manifestPath = candidate;
+                break;
+            }
+        }
+        if (!manifestPath)
+            return;
+        try {
+            const read = readBoundaryFileSync({
+                filePath: manifestPath,
+                rootDir: pluginDir,
+                boundaryLabel: 'plugin discovery',
+                rejectHardlinks: true,
+                maxBytes: 1_048_576,
+            });
+            if (!read.ok) {
+                errors.push({ path: manifestPath, error: read.error });
+                return;
+            }
+            const raw = JSON.parse(read.content);
+            const id = raw.name ?? raw.id ?? path.basename(pluginDir);
+            const version = raw.version ?? '0.0.0';
+            const main = raw.main ?? 'index.js';
+            if (seenIds.has(id)) {
+                this.logger.debug?.(`[discovery] skipping duplicate: ${id} from ${pluginDir}`);
+                return;
+            }
+            seenIds.add(id);
+            candidates.push({
+                id,
+                name: raw.name ?? id,
+                version,
+                description: raw.description,
+                source: manifestPath,
+                rootDir: pluginDir,
+                origin,
+                main,
+                provides: raw.provides,
+                permissions: raw.permissions,
+                hasManifest: true,
+            });
+        }
+        catch (err) {
+            errors.push({ path: manifestPath, error: `Invalid manifest: ${String(err)}` });
+        }
+    }
+    /**
+     * Scan a single file as a plugin entry point (no manifest).
+     */
+    scanSingleFile(filePath, origin, candidates, errors, seenIds) {
+        const id = path.basename(filePath, path.extname(filePath));
+        if (seenIds.has(id))
+            return;
+        seenIds.add(id);
+        candidates.push({
+            id,
+            name: id,
+            version: '0.0.0',
+            source: filePath,
+            rootDir: path.dirname(filePath),
+            origin,
+            main: path.basename(filePath),
+            hasManifest: false,
+        });
+    }
+}
+//# sourceMappingURL=discovery.js.map

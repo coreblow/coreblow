@@ -1,0 +1,16 @@
+/** Process management utilities. */
+export function killProcess(pid, signal = 'SIGTERM') { try {
+    process.kill(pid, signal);
+    return true;
+}
+catch {
+    return false;
+} }
+export function isProcessAlive(pid) { try {
+    process.kill(pid, 0);
+    return true;
+}
+catch {
+    return false;
+} }
+//# sourceMappingURL=bash-tools.process.js.map

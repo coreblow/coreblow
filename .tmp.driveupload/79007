@@ -1,0 +1,10 @@
+/**
+ * commands/autocomplete.ts
+ */
+export class AutoComplete {
+    commands = [];
+    setCommands(cmds) { this.commands = cmds; }
+    complete(partial) { return this.commands.filter(c => c.startsWith(partial)).sort(); }
+    completeArgs(command, partial) { return []; }
+}
+//# sourceMappingURL=autocomplete.js.map

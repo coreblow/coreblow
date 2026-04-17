@@ -1,0 +1,10 @@
+/** PI embedded agent — main entry. */
+export interface PiEmbeddedConfig {
+    model: string;
+    provider: string;
+    apiKey: string;
+    maxTurns?: number;
+    tools?: string[];
+}
+export declare function createPiEmbeddedConfig(model: string, provider: string, apiKey: string): PiEmbeddedConfig;
+//# sourceMappingURL=pi-embedded.d.ts.map

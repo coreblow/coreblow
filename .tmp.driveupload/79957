@@ -1,0 +1,203 @@
+/**
+ * hooks/workspace.ts — Workspace-level hook discovery and snapshot.
+ *
+ * Mirrors CoreBlow's hooks/workspace.ts:
+ * - discoverWorkspaceHookEntries() — scan bundled, managed, workspace, plugin dirs
+ * - buildWorkspaceHookSnapshot() — serializable snapshot for agent context
+ * - loadWorkspaceHookEntries() — resolved entries with collision handling
+ * - loadHookEntriesFromDir() — single-directory hook scanning
+ */
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { createChildLogger } from "../utils/logger.js";
+import { parseFrontmatter, resolveHookMetadata, resolveHookInvocationPolicy } from "./frontmatter.js";
+import { resolveHookEntries } from "./policy.js";
+import { shouldIncludeHook } from "./config.js";
+const log = createChildLogger("hooks/workspace");
+// ─── Single Hook Loading ─────────────────────────────────────────
+/**
+ * Load a single hook from a directory containing HOOK.md + handler.{ts,js}.
+ */
+function loadHookFromDir(params) {
+    const hookMdPath = path.join(params.hookDir, "HOOK.md");
+    if (!fs.existsSync(hookMdPath))
+        return null;
+    try {
+        const content = fs.readFileSync(hookMdPath, "utf-8");
+        const frontmatter = parseFrontmatter(content);
+        const name = frontmatter.name || params.nameHint || path.basename(params.hookDir);
+        const description = frontmatter.description || "";
+        // Find handler file
+        const handlerCandidates = ["handler.ts", "handler.js", "index.ts", "index.js"];
+        let handlerPath;
+        for (const candidate of handlerCandidates) {
+            const candidatePath = path.join(params.hookDir, candidate);
+            if (fs.existsSync(candidatePath)) {
+                handlerPath = candidatePath;
+                break;
+            }
+        }
+        if (!handlerPath) {
+            log.warn({ hookName: name, dir: params.hookDir }, "Hook has HOOK.md but no handler file");
+            return null;
+        }
+        let baseDir = params.hookDir;
+        try {
+            baseDir = fs.realpathSync(params.hookDir);
+        }
+        catch {
+            // keep discovered path
+        }
+        return {
+            hook: {
+                name,
+                description,
+                source: params.source,
+                pluginId: params.pluginId,
+                filePath: hookMdPath,
+                baseDir,
+                handlerPath,
+            },
+            frontmatter,
+        };
+    }
+    catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        log.warn({ dir: params.hookDir, err: message }, "Failed to load hook");
+        return null;
+    }
+}
+// ─── Directory Scanning ──────────────────────────────────────────
+/**
+ * Scan a directory for hooks (subdirectories containing HOOK.md).
+ */
+function loadHooksFromDir(params) {
+    const { dir, source, pluginId } = params;
+    if (!fs.existsSync(dir))
+        return [];
+    const stat = fs.statSync(dir);
+    if (!stat.isDirectory())
+        return [];
+    const hooks = [];
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+        if (!entry.isDirectory())
+            continue;
+        // Skip hidden directories
+        if (entry.name.startsWith("."))
+            continue;
+        const hookDir = path.join(dir, entry.name);
+        const hook = loadHookFromDir({
+            hookDir,
+            source,
+            pluginId,
+            nameHint: entry.name,
+        });
+        if (hook)
+            hooks.push(hook);
+    }
+    return hooks;
+}
+/**
+ * Load hook entries from a directory with metadata resolution.
+ */
+export function loadHookEntriesFromDir(params) {
+    const hooks = loadHooksFromDir({
+        dir: params.dir,
+        source: params.source,
+        pluginId: params.pluginId,
+    });
+    return hooks.map(({ hook, frontmatter }) => {
+        const entry = {
+            hook: {
+                ...hook,
+                source: params.source,
+                pluginId: params.pluginId,
+            },
+            frontmatter,
+            metadata: resolveHookMetadata(frontmatter),
+            invocation: resolveHookInvocationPolicy(frontmatter),
+        };
+        return entry;
+    });
+}
+// ─── Workspace Discovery ─────────────────────────────────────────
+/**
+ * Discover all hooks from bundled, managed, plugin, and workspace directories.
+ */
+export function discoverWorkspaceHookEntries(workspaceDir, opts) {
+    const managedHooksDir = opts?.managedHooksDir ?? path.join(workspaceDir, ".coreblow", "hooks");
+    const workspaceHooksDir = path.join(workspaceDir, "hooks");
+    const bundledHooksDir = opts?.bundledHooksDir ?? resolveBundledHooksDir();
+    const bundledHooks = bundledHooksDir
+        ? loadHookEntriesFromDir({ dir: bundledHooksDir, source: "coreblow-bundled" })
+        : [];
+    const managedHooks = loadHookEntriesFromDir({
+        dir: managedHooksDir,
+        source: "coreblow-managed",
+    });
+    const workspaceHooks = loadHookEntriesFromDir({
+        dir: workspaceHooksDir,
+        source: "coreblow-workspace",
+    });
+    return [...bundledHooks, ...managedHooks, ...workspaceHooks];
+}
+// ─── Snapshot ────────────────────────────────────────────────────
+/**
+ * Build a serializable snapshot of workspace hooks.
+ */
+export function buildWorkspaceHookSnapshot(workspaceDir, opts) {
+    const hookEntries = opts?.entries ?? loadWorkspaceHookEntries(workspaceDir, opts);
+    const eligible = hookEntries.filter((entry) => shouldIncludeHook({ entry }));
+    return {
+        hooks: eligible.map((entry) => ({
+            name: entry.hook.name,
+            events: entry.metadata?.events ?? [],
+        })),
+        resolvedHooks: eligible.map((entry) => entry.hook),
+        version: opts?.snapshotVersion,
+    };
+}
+/**
+ * Load workspace hook entries with collision resolution.
+ */
+export function loadWorkspaceHookEntries(workspaceDir, opts) {
+    return resolveHookEntries(opts?.entries ?? discoverWorkspaceHookEntries(workspaceDir, opts), {
+        onCollisionIgnored: ({ name, kept, ignored }) => {
+            log.warn({ hookName: name, keptSource: kept.hook.source, ignoredSource: ignored.hook.source }, "Ignoring hook due to source precedence collision");
+        },
+    });
+}
+// ─── Bundled Dir Resolution ──────────────────────────────────────
+/**
+ * Resolve the bundled hooks directory.
+ * Mirrors CoreBlow's bundled-dir.ts resolution chain.
+ */
+function resolveBundledHooksDir() {
+    // 1. Environment override
+    const override = process.env.COREBLOW_BUNDLED_HOOKS_DIR?.trim();
+    if (override)
+        return override;
+    // 2. Sibling to executable (compiled binary)
+    try {
+        const execDir = path.dirname(process.execPath);
+        const sibling = path.join(execDir, "hooks", "bundled");
+        if (fs.existsSync(sibling))
+            return sibling;
+    }
+    catch {
+        // ignore
+    }
+    // 3. Relative to this module (src/hooks/bundled)
+    try {
+        const moduleDir = path.dirname(new URL(import.meta.url).pathname);
+        const srcBundled = path.join(moduleDir, "bundled");
+        if (fs.existsSync(srcBundled))
+            return srcBundled;
+    }
+    catch {
+        // ignore
+    }
+    return undefined;
+}
+//# sourceMappingURL=workspace.js.map

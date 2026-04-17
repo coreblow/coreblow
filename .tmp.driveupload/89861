@@ -1,0 +1,3 @@
+/** Exec tool display formatting. */
+export function formatExecDisplay(command, exitCode) { const icon = exitCode === 0 ? '✅' : '❌'; return `${icon} $ ${command} → exit ${exitCode ?? '?'}`; }
+//# sourceMappingURL=tool-display-exec.js.map

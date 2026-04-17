@@ -1,0 +1,11 @@
+/** plugin-sdk/provider-env-vars.ts [ADAPT] openclaw-main */
+/** Get all environment variables associated with a provider ID (by convention PROVIDER_ID -> PROVIDERID_API_KEY etc.) */
+export function getProviderEnvVars(providerId) {
+    const prefix = providerId.toUpperCase().replace(/[^A-Z0-9]/g, "_");
+    return Object.fromEntries(Object.entries(process.env).filter(([k]) => k.startsWith(prefix)));
+}
+export function resolveProviderApiKeyFromEnv(providerId) {
+    const prefix = providerId.toUpperCase().replace(/[^A-Z0-9]/g, "_");
+    return process.env[`${prefix}_API_KEY`] ?? null;
+}
+//# sourceMappingURL=provider-env-vars.js.map

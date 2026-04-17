@@ -1,0 +1,20 @@
+/**
+ * plugin-sdk/agent-media-payload.ts
+ * [PORT] openclaw-main/src/plugin-sdk/agent-media-payload.ts
+ *
+ * Media payload types and builders for agent message adapters.
+ */
+export type AgentMediaPayload = {
+    MediaPath?: string;
+    MediaType?: string;
+    MediaUrl?: string;
+    MediaPaths?: string[];
+    MediaUrls?: string[];
+    MediaTypes?: string[];
+};
+/** Convert outbound media descriptors into the legacy agent payload field layout. */
+export declare function buildAgentMediaPayload(mediaList: Array<{
+    path: string;
+    contentType?: string | null;
+}>): AgentMediaPayload;
+//# sourceMappingURL=agent-media-payload.d.ts.map

@@ -1,0 +1,58 @@
+/** plugin-sdk/approval-runtime.ts [ADAPT] openclaw-main */
+export declare const DEFAULT_EXEC_APPROVAL_TIMEOUT_MS = 60000;
+export declare const DEFAULT_PLUGIN_APPROVAL_TIMEOUT_MS = 30000;
+export declare const MAX_PLUGIN_APPROVAL_TIMEOUT_MS = 300000;
+export type ExecApprovalDecision = "approved" | "rejected" | "timeout";
+export type ExecApprovalRequest = {
+    id: string;
+    command: string;
+    args: string[];
+    cwd?: string;
+    timeoutMs?: number;
+};
+export type ExecApprovalRequestPayload = ExecApprovalRequest & {
+    sessionKey: string;
+    agentId: string;
+};
+export type ExecApprovalResolved = {
+    decision: ExecApprovalDecision;
+    requestId: string;
+};
+export type ExecHost = {
+    approve: (requestId: string) => Promise<void>;
+    reject: (requestId: string) => Promise<void>;
+};
+export type PluginApprovalRequest = {
+    id: string;
+    pluginId: string;
+    action: string;
+    timeoutMs?: number;
+};
+export type PluginApprovalRequestPayload = PluginApprovalRequest & {
+    sessionKey: string;
+};
+export type PluginApprovalResolved = {
+    decision: ExecApprovalDecision;
+    requestId: string;
+};
+export type ExecApprovalReplyDecision = "approved" | "rejected";
+export type ExecApprovalReplyMetadata = {
+    requestId: string;
+    decision: ExecApprovalReplyDecision;
+};
+export type ExecApprovalPendingReplyParams = {
+    requestId: string;
+};
+export type ExecApprovalSessionTarget = {
+    sessionKey: string;
+    accountId?: string;
+};
+export declare function buildExecApprovalPendingReplyPayload(_p: ExecApprovalPendingReplyParams): unknown;
+export declare function getExecApprovalApproverDmNoticeText(_p: unknown): string;
+export declare function getExecApprovalReplyMetadata(_p: unknown): ExecApprovalReplyMetadata | null;
+export declare function resolveExecApprovalCommandDisplay(_p: unknown): string;
+export declare function resolveExecApprovalSessionTarget(_p: unknown): ExecApprovalSessionTarget | null;
+export declare function buildPluginApprovalExpiredMessage(_p: unknown): string;
+export declare function buildPluginApprovalRequestMessage(_p: unknown): string;
+export declare function buildPluginApprovalResolvedMessage(_p: unknown): string;
+//# sourceMappingURL=approval-runtime.d.ts.map

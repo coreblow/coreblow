@@ -1,0 +1,3 @@
+/** plugin-sdk/talk-voice.ts [ADAPT] openclaw-main */
+export { textToSpeech, speechToText } from "./speech-core.js";
+//# sourceMappingURL=talk-voice.js.map

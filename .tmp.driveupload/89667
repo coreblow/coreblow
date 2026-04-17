@@ -1,0 +1,9 @@
+export declare function normalizeSandboxPath(p: string, baseDir: string): string;
+export declare function isPathTraversal(p: string): boolean;
+export declare function stripPathPrefix(fullPath: string, baseDir: string): string;
+export declare function isHiddenPath(p: string): boolean;
+export declare function ensureWithinBase(targetPath: string, baseDir: string): {
+    valid: boolean;
+    resolved: string;
+};
+//# sourceMappingURL=sandbox-paths.d.ts.map

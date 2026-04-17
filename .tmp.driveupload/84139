@@ -1,0 +1,3 @@
+/** plugin-sdk/speech.ts [PORT] openclaw-main */
+export * from "./speech-core.js";
+//# sourceMappingURL=speech.d.ts.map

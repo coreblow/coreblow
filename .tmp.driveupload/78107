@@ -1,0 +1,70 @@
+/**
+ * CoreBlow — Analytics Tracker
+ *
+ * Tracks usage analytics for agents, channels, and users.
+ * Provides aggregation, trend analysis, and exportable reports.
+ */
+/** Analytics event */
+export interface AnalyticsEvent {
+    name: string;
+    category: string;
+    userId?: string;
+    channel?: string;
+    value?: number;
+    metadata?: Record<string, unknown>;
+    timestamp: number;
+}
+/** Analytics summary */
+export interface AnalyticsSummary {
+    totalEvents: number;
+    uniqueUsers: number;
+    eventsByCategory: Record<string, number>;
+    eventsByName: Record<string, number>;
+    topChannels: Array<{
+        channel: string;
+        count: number;
+    }>;
+    period: {
+        from: number;
+        to: number;
+    };
+}
+/**
+ * CoreBlow Analytics Tracker
+ */
+export declare class AnalyticsTracker {
+    private events;
+    private maxEvents;
+    /**
+     * Track an event.
+     */
+    track(name: string, category: string, opts?: {
+        userId?: string;
+        channel?: string;
+        value?: number;
+        metadata?: Record<string, unknown>;
+    }): void;
+    /**
+     * Get summary for a time window.
+     */
+    summarize(windowMs?: number): AnalyticsSummary;
+    /**
+     * Count events by name.
+     */
+    countByName(name: string, windowMs?: number): number;
+    /**
+     * Get events for a user.
+     */
+    getUserEvents(userId: string, limit?: number): AnalyticsEvent[];
+    /**
+     * Export all events.
+     */
+    export(): AnalyticsEvent[];
+    /**
+     * Clear events.
+     */
+    clear(): void;
+    /** Count */
+    count(): number;
+}
+//# sourceMappingURL=analytics-tracker.d.ts.map

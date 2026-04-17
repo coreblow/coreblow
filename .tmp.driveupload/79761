@@ -1,0 +1,70 @@
+/**
+ * CoreBlow — Coverage Reporter
+ *
+ * Tracks and reports code coverage metrics.
+ * Supports file-level, function-level, and overall
+ * coverage with thresholds and trend analysis.
+ */
+/** File coverage */
+export interface FileCoverage {
+    file: string;
+    lines: {
+        total: number;
+        covered: number;
+    };
+    functions: {
+        total: number;
+        covered: number;
+    };
+    branches: {
+        total: number;
+        covered: number;
+    };
+}
+/** Coverage summary */
+export interface CoverageSummary {
+    totalFiles: number;
+    lineCoverage: number;
+    functionCoverage: number;
+    branchCoverage: number;
+    overallCoverage: number;
+    belowThreshold: string[];
+}
+/**
+ * CoreBlow Coverage Reporter
+ */
+export declare class CoverageReporter {
+    private files;
+    private threshold;
+    private history;
+    /**
+     * Add file coverage.
+     */
+    addFile(coverage: FileCoverage): void;
+    /**
+     * Get file coverage.
+     */
+    getFile(file: string): FileCoverage | null;
+    /**
+     * Generate summary.
+     */
+    getSummary(): CoverageSummary;
+    /**
+     * Set threshold.
+     */
+    setThreshold(threshold: number): void;
+    /**
+     * Get trend.
+     */
+    getTrend(limit?: number): Array<{
+        timestamp: number;
+        coverage: number;
+    }>;
+    /**
+     * Generate markdown report.
+     */
+    generateReport(): string;
+    /** Count files */
+    count(): number;
+}
+//# sourceMappingURL=coverage-reporter.d.ts.map

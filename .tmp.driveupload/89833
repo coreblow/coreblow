@@ -1,0 +1,7 @@
+/** Subagent registry read operations. */
+export function getRegistrySnapshot(registry) { return [...registry.entries()]; }
+export function findInRegistry(registry, predicate) { for (const v of registry.values()) {
+    if (predicate(v))
+        return v;
+} return undefined; }
+//# sourceMappingURL=subagent-registry-read.js.map

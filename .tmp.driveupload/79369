@@ -1,0 +1,63 @@
+/**
+ * CoreBlow — Media Processor
+ *
+ * Processes media attachments (images, audio, documents) for
+ * cross-channel delivery. Handles format detection, size validation,
+ * thumbnail generation metadata, and channel-specific constraints.
+ */
+/** Supported media types */
+export type MediaType = 'image' | 'audio' | 'video' | 'document' | 'unknown';
+/** Media metadata */
+export interface MediaMetadata {
+    id: string;
+    filename: string;
+    type: MediaType;
+    mimeType: string;
+    size: number;
+    hash: string;
+    url?: string;
+    width?: number;
+    height?: number;
+    duration?: number;
+    thumbnail?: string;
+    createdAt: number;
+}
+/** Channel media constraints */
+export interface ChannelMediaConstraints {
+    maxFileSize: number;
+    supportedTypes: MediaType[];
+    supportedFormats: string[];
+    maxImageDimension?: number;
+}
+/**
+ * CoreBlow Media Processor
+ */
+export declare class MediaProcessor {
+    private uploadDir;
+    constructor(uploadDir?: string);
+    /**
+     * Process a file from a buffer.
+     */
+    processBuffer(buffer: Buffer, filename: string): MediaMetadata;
+    /**
+     * Process a file from disk.
+     */
+    processFile(filePath: string): MediaMetadata | null;
+    /**
+     * Validate media against channel constraints.
+     */
+    validate(meta: MediaMetadata, channel: string): {
+        valid: boolean;
+        errors: string[];
+    };
+    /**
+     * Get channel constraints.
+     */
+    getConstraints(channel: string): ChannelMediaConstraints | null;
+    /**
+     * Get MIME type for extension.
+     */
+    getMimeType(ext: string): string;
+    private detectType;
+}
+//# sourceMappingURL=media-processor.d.ts.map

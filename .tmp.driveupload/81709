@@ -1,0 +1,214 @@
+/**
+ * gateway/protocol/index.ts — Core RPC protocol types, errors, and validation primitives.
+ */
+export declare const ErrorCodes: {
+    readonly INVALID_REQUEST: "invalid_request";
+    readonly UNAUTHORIZED: "unauthorized";
+    readonly UNAVAILABLE: "unavailable";
+    readonly NOT_FOUND: "not_found";
+    readonly INTERNAL_ERROR: "internal_error";
+};
+export type ErrorCode = typeof ErrorCodes[keyof typeof ErrorCodes];
+export interface ErrorShape {
+    code: string;
+    message: string;
+    details?: unknown;
+}
+export declare function errorShape(code: string, message: string, details?: unknown): ErrorShape;
+export declare const PROTOCOL_VERSION: 3;
+export interface RequestFrame {
+    type: "req";
+    id: string;
+    method: string;
+    params?: unknown;
+}
+export interface ResponseFrame {
+    type: "res";
+    id: string;
+    ok: boolean;
+    payload?: unknown;
+    error?: {
+        code?: string;
+        message?: string;
+        details?: unknown;
+    };
+}
+export interface EventFrame {
+    type: "evt";
+    event: string;
+    payload?: unknown;
+    seq?: number;
+}
+export interface HelloOk {
+    protocol: number;
+    sessionKey?: string;
+    auth?: {
+        deviceToken?: string;
+        role?: string;
+        scopes?: string[];
+    };
+    policy?: {
+        tickIntervalMs?: number;
+    };
+}
+export interface ConnectParams {
+    minProtocol?: number;
+    maxProtocol?: number;
+    auth?: {
+        token?: string;
+        bootstrapToken?: string;
+        deviceToken?: string;
+        password?: string;
+    };
+    role?: string;
+    scopes?: string[];
+    caps?: string[];
+    commands?: string[];
+    permissions?: Record<string, boolean>;
+    pathEnv?: string;
+    device?: {
+        id: string;
+        publicKey?: string;
+        signature?: string;
+        signedAt?: number;
+        nonce?: string;
+    };
+    client?: {
+        id: string;
+        displayName?: string;
+        version?: string;
+        platform?: string;
+        deviceFamily?: string;
+        mode?: string;
+        instanceId?: string;
+    };
+}
+export declare const validateRequestFrame: ((data: unknown) => data is RequestFrame) & {
+    errors?: unknown[];
+};
+export declare const validateResponseFrame: ((data: unknown) => data is ResponseFrame) & {
+    errors?: unknown[];
+};
+export declare const validateEventFrame: ((data: unknown) => data is EventFrame) & {
+    errors?: unknown[];
+};
+export interface ValidationError {
+    path?: string;
+    message: string;
+}
+export declare function formatValidationErrors(errors?: ValidationError[]): string;
+/**
+ * Lightweight ad-hoc validator definition (zero-deps, replaces Ajv)
+ */
+export interface Validator<T = unknown> {
+    (data: unknown): data is T;
+    errors?: ValidationError[];
+}
+/**
+ * Helper to build custom lightweight object validators manually (no Ajv dependency).
+ */
+export declare function buildObjectValidator<T>(schema: {
+    required?: string[];
+    properties?: Record<string, {
+        type: string;
+        enum?: unknown[];
+    }>;
+}): Validator<T>;
+export declare const validateWakeParams: Validator<any>;
+export declare const validateCronListParams: Validator<any>;
+export declare const validateCronStatusParams: Validator<any>;
+export declare const validateCronAddParams: Validator<any>;
+export declare const validateCronUpdateParams: Validator<any>;
+export declare const validateCronRemoveParams: Validator<any>;
+export declare const validateCronRunParams: Validator<any>;
+export declare const validateCronRunsParams: Validator<any>;
+export declare const validateSkillsStatusParams: Validator<any>;
+export declare const validateSkillsBinsParams: Validator<any>;
+export declare const validateSkillsInstallParams: Validator<any>;
+export declare const validateSkillsUpdateParams: Validator<any>;
+export declare const validateDoctorMemoryStatusParams: Validator<any>;
+export declare const validateHealthStatusParams: Validator<any>;
+export declare const validateWizardStartParams: Validator<any>;
+export declare const validateWizardNextParams: Validator<any>;
+export declare const validateWizardCancelParams: Validator<any>;
+export declare const validateWizardStatusParams: Validator<any>;
+export declare const validateConfigGetParams: Validator<any>;
+export declare const validateConfigSetParams: Validator<any>;
+export declare const validateModelsListParams: Validator<any>;
+export declare const validateModelsCatalogParams: Validator<any>;
+export declare const validateSessionsListParams: Validator<any>;
+export declare const validateSessionsCreateParams: Validator<any>;
+export declare const validateSessionsPreviewParams: Validator<any>;
+export declare const validateSessionsResolveParams: Validator<any>;
+export declare const validateSessionsPatchParams: Validator<any>;
+export declare const validateSessionsDeleteParams: Validator<any>;
+export declare const validateSessionsResetParams: Validator<any>;
+export declare const validateSessionsCompactParams: Validator<any>;
+export declare const validateSessionsAbortParams: Validator<any>;
+export declare const validateSessionsSendParams: Validator<any>;
+export declare const validateSessionsMessagesSubscribeParams: Validator<any>;
+export declare const validateSessionsMessagesUnsubscribeParams: Validator<any>;
+export declare const validateChatSendParams: Validator<any>;
+export declare const validateChatAbortParams: Validator<any>;
+export declare const validateChatHistoryParams: Validator<any>;
+export declare const validateChatInjectParams: Validator<any>;
+export declare const validateAgentsListParams: Validator<any>;
+export declare const validateAgentsCreateParams: Validator<any>;
+export declare const validateAgentsUpdateParams: Validator<any>;
+export declare const validateAgentsDeleteParams: Validator<any>;
+export declare const validateAgentsFilesListParams: Validator<any>;
+export declare const validateAgentsFilesGetParams: Validator<any>;
+export declare const validateAgentsFilesSetParams: Validator<any>;
+export declare const validateSendParams: Validator<any>;
+export declare const validatePollParams: Validator<any>;
+export declare const validateChannelsStatusParams: Validator<any>;
+export declare const validateChannelsLogoutParams: Validator<any>;
+export declare const validateNodeListParams: Validator<any>;
+export declare const validateNodeDescribeParams: Validator<any>;
+export declare const validateNodeInvokeParams: Validator<any>;
+export declare const validateNodeEventParams: Validator<any>;
+export declare const validateNodePairRequestParams: Validator<any>;
+export declare const validateNodePairListParams: Validator<any>;
+export declare const validateNodePairApproveParams: Validator<any>;
+export declare const validateNodePairRejectParams: Validator<any>;
+export declare const validateNodePairVerifyParams: Validator<any>;
+export declare const validateNodeRenameParams: Validator<any>;
+export declare const validateNodePendingAckParams: Validator<any>;
+export declare const validateNodePendingDrainParams: Validator<any>;
+export declare const validateNodePendingEnqueueParams: Validator<any>;
+export declare const validateLogsTailParams: Validator<any>;
+export declare const validateDevicesListParams: Validator<any>;
+export declare const validateDevicesUnpairParams: Validator<any>;
+export declare const validateSetHeartbeatsParams: Validator<any>;
+export declare const validateSystemEventParams: Validator<any>;
+export declare const validateTtsSynthesizeParams: Validator<any>;
+export declare const validateTtsVoicesParams: Validator<any>;
+export declare const validateTalkStartParams: Validator<any>;
+export declare const validateTalkStopParams: Validator<any>;
+export declare const validateTalkTranscribeParams: Validator<any>;
+export declare const validateWebStatusParams: Validator<any>;
+export declare const validatePushRegisterParams: Validator<any>;
+export declare const validatePushUnregisterParams: Validator<any>;
+export declare const validateUpdateCheckParams: Validator<any>;
+export declare const validateUpdateApplyParams: Validator<any>;
+export declare const validateVoicewakeConfigureParams: Validator<any>;
+export declare const validateUsageSessionsParams: Validator<any>;
+export declare const validateExecApprovalRequestParams: Validator<any>;
+export declare const validateExecApprovalResolveParams: Validator<any>;
+export declare const validatePluginApprovalRequestParams: Validator<any>;
+export declare const validatePluginApprovalResolveParams: Validator<any>;
+export declare const validateExecApprovalsGetParams: Validator<any>;
+export declare const validateExecApprovalsSetParams: Validator<any>;
+export declare const validateExecApprovalsNodeGetParams: Validator<any>;
+export declare const validateExecApprovalsNodeSetParams: Validator<any>;
+export declare const validateSecretsResolveParams: Validator<any>;
+export declare const validateSecretsResolveResult: Validator<any>;
+export declare const validateToolsCatalogParams: Validator<any>;
+export declare const validateToolsEffectiveParams: Validator<any>;
+export declare const validateAgentWaitParams: Validator<any>;
+export declare const validateSessionPatchParams: Validator<any>;
+export declare const validateSessionResetParams: Validator<any>;
+export declare const validateSessionResolveParams: Validator<any>;
+export declare const validateSessionCompactParams: Validator<any>;
+export { validateConnectParams, formatConnectValidationErrors, type ConnectValidationError, type ConnectValidationResult, } from './connect-schema.js';
+//# sourceMappingURL=index.d.ts.map

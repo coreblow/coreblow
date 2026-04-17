@@ -1,0 +1,81 @@
+/**
+ * plugins/migration.ts
+ *
+ * Plugin Data Migration — manages versioned data migrations between
+ * plugin versions to ensure smooth upgrades.
+ *
+ * Following CoreBlow's plugins/migration.ts (~400 LOC) +
+ * plugins/schema-migrate.ts (~250 LOC) pattern, consolidated into a
+ * single OOP migration engine with ordered step execution and rollback.
+ *
+ * Features:
+ *   - Versioned migration steps
+ *   - Ordered execution (oldest → newest)
+ *   - Dry run mode
+ *   - Rollback support
+ *   - Migration history tracking
+ */
+export interface MigrationStep {
+    version: string;
+    description: string;
+    up: (data: Record<string, unknown>) => Record<string, unknown> | Promise<Record<string, unknown>>;
+    down?: (data: Record<string, unknown>) => Record<string, unknown> | Promise<Record<string, unknown>>;
+}
+export interface MigrationResult {
+    success: boolean;
+    fromVersion: string;
+    toVersion: string;
+    stepsApplied: string[];
+    data: Record<string, unknown>;
+    errors: string[];
+    dryRun: boolean;
+}
+export interface MigrationHistory {
+    pluginId: string;
+    version: string;
+    appliedAt: number;
+    direction: 'up' | 'down';
+}
+/**
+ * PluginMigrationEngine
+ *
+ * OOP equivalent of CoreBlow's migration pipeline.
+ * Manages versioned data transformations for plugin config/data upgrades.
+ */
+export declare class PluginMigrationEngine {
+    private steps;
+    private history;
+    /**
+     * Register migration steps for a plugin.
+     */
+    registerSteps(pluginId: string, steps: MigrationStep[]): void;
+    /**
+     * Get migration steps for a plugin.
+     */
+    getSteps(pluginId: string): MigrationStep[];
+    /**
+     * Migrate data from one version to another.
+     */
+    migrate(pluginId: string, fromVersion: string, toVersion: string, data: Record<string, unknown>, dryRun?: boolean): Promise<MigrationResult>;
+    /**
+     * Rollback a specific version step.
+     */
+    rollback(pluginId: string, version: string, data: Record<string, unknown>): Promise<MigrationResult>;
+    /**
+     * Check if migration is needed.
+     */
+    needsMigration(pluginId: string, fromVersion: string, toVersion: string): boolean;
+    /**
+     * Get pending migration versions.
+     */
+    getPendingVersions(pluginId: string, fromVersion: string, toVersion: string): string[];
+    /**
+     * Get migration history.
+     */
+    getHistory(pluginId?: string): MigrationHistory[];
+    /**
+     * Clear all data.
+     */
+    clear(): void;
+}
+//# sourceMappingURL=migration.d.ts.map

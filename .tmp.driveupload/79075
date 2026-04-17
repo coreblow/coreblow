@@ -1,0 +1,41 @@
+/**
+ * flows/types.ts
+ * Conversation flow types — multi-step interaction state machines.
+ */
+export type FlowState = 'idle' | 'active' | 'waiting_input' | 'waiting_confirm' | 'completed' | 'cancelled' | 'error';
+export interface FlowStep {
+    id: string;
+    prompt: string;
+    validator?: (input: string) => {
+        valid: boolean;
+        error?: string;
+    };
+    transform?: (input: string) => unknown;
+    next?: string | null | ((input: unknown) => string | null | undefined);
+    onEnter?: () => Promise<void> | void;
+    onExit?: () => Promise<void> | void;
+}
+export interface FlowDefinition {
+    name: string;
+    description: string;
+    steps: FlowStep[];
+    initialStep: string;
+    onComplete?: (data: Record<string, unknown>) => Promise<void> | void;
+    onCancel?: () => Promise<void> | void;
+    timeoutMs?: number;
+}
+export interface FlowInstance {
+    id: string;
+    definition: FlowDefinition;
+    currentStep: string;
+    state: FlowState;
+    data: Record<string, unknown>;
+    startedAt: number;
+    lastActivityAt: number;
+    history: Array<{
+        step: string;
+        input: unknown;
+        at: number;
+    }>;
+}
+//# sourceMappingURL=types.d.ts.map

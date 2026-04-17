@@ -1,0 +1,106 @@
+/**
+ * CoreBlow — Content Filter
+ *
+ * Filters harmful, inappropriate, or policy-violating
+ * content. Supports keyword-based, regex, and category
+ * filtering with configurable severity levels.
+ */
+
+/** Filter rule */
+export interface FilterRule {
+    id: string;
+    category: string;
+    patterns: RegExp[];
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    action: 'flag' | 'block' | 'redact';
+    enabled: boolean;
+}
+
+/** Filter result */
+export interface FilterResult {
+    passed: boolean;
+    violations: Array<{ ruleId: string; category: string; severity: string; match: string; action: string }>;
+    filteredContent?: string;
+}
+
+/**
+ * CoreBlow Content Filter
+ */
+export class ContentFilter {
+    private rules: FilterRule[] = [];
+    private idCounter = 0;
+    private stats = { scanned: 0, blocked: 0, flagged: 0, redacted: 0 };
+
+    constructor() {
+        // Built-in rules
+        this.addRule('profanity', [/\b(fuck|shit|damn|ass)\b/gi], 'medium', 'redact');
+        this.addRule('threats', [/\b(kill|murder|attack|bomb|threat)\b/gi], 'high', 'block');
+        this.addRule('spam', [/\b(buy now|click here|free money|winner)\b/gi], 'low', 'flag');
+        this.addRule('self-harm', [/\b(suicide|self.?harm|cut myself)\b/gi], 'critical', 'block');
+    }
+
+    /**
+     * Add a filter rule.
+     */
+    addRule(category: string, patterns: RegExp[], severity: FilterRule['severity'], action: FilterRule['action']): string {
+        const id = `filter-${++this.idCounter}`;
+        this.rules.push({ id, category, patterns, severity, action, enabled: true });
+        return id;
+    }
+
+    /**
+     * Scan content.
+     */
+    scan(content: string): FilterResult {
+        this.stats.scanned++;
+        const violations: FilterResult['violations'] = [];
+        let filtered = content;
+
+        for (const rule of this.rules) {
+            if (!rule.enabled) continue;
+            for (const pattern of rule.patterns) {
+                const matches = content.match(pattern);
+                if (matches) {
+                    for (const match of matches) {
+                        violations.push({ ruleId: rule.id, category: rule.category, severity: rule.severity, match, action: rule.action });
+                    }
+                    if (rule.action === 'redact') {
+                        filtered = filtered.replace(pattern, (m) => '*'.repeat(m.length));
+                        this.stats.redacted++;
+                    }
+                }
+            }
+        }
+
+        const hasBlock = violations.some((v) => v.action === 'block');
+        if (hasBlock) this.stats.blocked++;
+        else if (violations.length > 0) this.stats.flagged++;
+
+        return { passed: !hasBlock, violations, filteredContent: filtered !== content ? filtered : undefined };
+    }
+
+    /**
+     * Enable/disable a rule.
+     */
+    setEnabled(ruleId: string, enabled: boolean): boolean {
+        const rule = this.rules.find((r) => r.id === ruleId);
+        if (!rule) return false;
+        rule.enabled = enabled;
+        return true;
+    }
+
+    /**
+     * Get stats.
+     */
+    getStats(): typeof this.stats { return { ...this.stats }; }
+
+    /**
+     * List rules.
+     */
+    list(): Array<{ id: string; category: string; severity: string; action: string; enabled: boolean }> {
+        return this.rules.map((r) => ({ id: r.id, category: r.category, severity: r.severity, action: r.action, enabled: r.enabled }));
+    }
+
+    /** Count rules */
+    count(): number { return this.rules.length; }
+}

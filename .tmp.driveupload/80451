@@ -1,0 +1,12 @@
+/**
+ * src/channels/discord/handlers/autocomplete.ts
+ * Autocomplete suggestions for slash command options
+ */
+import type { DiscordInteraction } from '../types-sdk.js';
+export declare function handleAutocomplete(interaction: DiscordInteraction & {
+    respond?: (choices: Array<{
+        name: string;
+        value: string;
+    }>) => Promise<void>;
+}): Promise<void>;
+//# sourceMappingURL=autocomplete.d.ts.map

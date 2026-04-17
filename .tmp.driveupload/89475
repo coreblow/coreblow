@@ -1,0 +1,6 @@
+/** PTY Device Status Report handling. */
+export declare function parseDsr(data: string): {
+    row: number;
+    col: number;
+} | null;
+//# sourceMappingURL=pty-dsr.d.ts.map

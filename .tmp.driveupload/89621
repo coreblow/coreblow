@@ -1,0 +1,3 @@
+/** Provider attribution display. */
+export declare function formatAttribution(provider: string, model: string): string;
+//# sourceMappingURL=provider-attribution.d.ts.map

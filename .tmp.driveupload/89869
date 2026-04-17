@@ -1,0 +1,6 @@
+/** Subagent registry memory management. */
+export declare function estimateEntryMemory(entry: {
+    messages?: unknown[];
+    aggregated?: string;
+}): number;
+//# sourceMappingURL=subagent-registry-memory.d.ts.map

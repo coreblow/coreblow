@@ -1,0 +1,64 @@
+/**
+ * CoreBlow — Apply Patch Tool
+ *
+ * Applies unified diff patches to files with validation,
+ * dry-run support, backup creation, and conflict detection.
+ * Follows CoreBlow's patch application semantics.
+ */
+/** Patch hunk — a single change block */
+export interface PatchHunk {
+    oldStart: number;
+    oldLines: number;
+    newStart: number;
+    newLines: number;
+    lines: string[];
+}
+/** Parsed patch for a single file */
+export interface FilePatch {
+    oldPath: string;
+    newPath: string;
+    hunks: PatchHunk[];
+    isNew: boolean;
+    isDeleted: boolean;
+    isBinary: boolean;
+}
+/** Patch application result */
+export interface PatchResult {
+    success: boolean;
+    filesModified: string[];
+    filesCreated: string[];
+    filesDeleted: string[];
+    errors: string[];
+    /** If dry-run, contains the would-be result */
+    preview?: Record<string, string>;
+}
+/** Apply patch options */
+export interface ApplyPatchOptions {
+    /** Don't actually write — just validate and return preview */
+    dryRun?: boolean;
+    /** Create .bak backups before modifying */
+    backup?: boolean;
+    /** Fuzz factor for context matching (lines of tolerance) */
+    fuzz?: number;
+    /** Strip leading path components (like `patch -p1`) */
+    stripPrefix?: number;
+    /** Base directory to apply patch relative to */
+    cwd?: string;
+}
+/**
+ * Parse a unified diff string into structured FilePatch objects.
+ */
+export declare function parseUnifiedDiff(diff: string): FilePatch[];
+/**
+ * Apply a parsed patch to file contents.
+ */
+export declare function applyPatchToContent(original: string, hunks: PatchHunk[], fuzz?: number): {
+    success: boolean;
+    result: string;
+    errors: string[];
+};
+/**
+ * Apply a full unified diff to the filesystem.
+ */
+export declare function applyPatch(diff: string, options?: ApplyPatchOptions): Promise<PatchResult>;
+//# sourceMappingURL=apply-patch.d.ts.map

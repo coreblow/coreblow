@@ -1,0 +1,68 @@
+/**
+ * CoreBlow — Config Loader
+ *
+ * Unified configuration loading from multiple sources:
+ * files (JSON/YAML-like), environment variables, CLI args,
+ * and defaults. Supports nested keys, type coercion,
+ * and config merging with precedence.
+ */
+/** Config source precedence (highest wins) */
+export type ConfigSource = 'default' | 'file' | 'env' | 'cli' | 'runtime';
+/**
+ * CoreBlow Config Loader
+ */
+export declare class ConfigLoader {
+    private config;
+    private defaults;
+    private envPrefix;
+    constructor(envPrefix?: string);
+    /**
+     * Set default values.
+     */
+    setDefaults(defaults: Record<string, unknown>): void;
+    /**
+     * Load from a JSON file.
+     */
+    loadFile(filePath: string): boolean;
+    /**
+     * Load from environment variables.
+     * Maps CB_AGENTS_MODEL → agents.model
+     */
+    loadEnv(env?: Record<string, string | undefined>): number;
+    /**
+     * Load from CLI arguments.
+     * --model=gpt-4o → model: "gpt-4o"
+     */
+    loadArgs(args: string[]): number;
+    /**
+     * Set a config value at runtime.
+     */
+    set(key: string, value: unknown, source?: ConfigSource): void;
+    /**
+     * Get a config value.
+     */
+    get<T = unknown>(key: string, defaultValue?: T): T;
+    /**
+     * Get a required config value (throws if missing).
+     */
+    getRequired<T = unknown>(key: string): T;
+    /**
+     * Check if a key exists.
+     */
+    has(key: string): boolean;
+    /**
+     * Get all config as a flat object.
+     */
+    getAll(): Record<string, unknown>;
+    /**
+     * Get config provenance (where each value came from).
+     */
+    getProvenance(): Array<{
+        key: string;
+        source: ConfigSource;
+        value: unknown;
+    }>;
+    private mergeObject;
+    private coerce;
+}
+//# sourceMappingURL=config-loader.d.ts.map

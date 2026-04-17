@@ -1,0 +1,20 @@
+/**
+ * agents/vendor-models.ts
+ * Vendor-specific model registries — DeepSeek, Together, Venice, BytePlus, Chutes, Doubao, Kilocode.
+ */
+export interface VendorModel {
+    id: string;
+    name: string;
+    provider: string;
+    contextWindow: number;
+    maxOutput: number;
+    pricing?: {
+        input: number;
+        output: number;
+    };
+}
+export declare function getVendorModels(vendor: string): VendorModel[];
+export declare function getAllVendorModels(): VendorModel[];
+export declare function findVendorModel(modelId: string): VendorModel | undefined;
+export declare function listVendors(): string[];
+//# sourceMappingURL=vendor-models.d.ts.map

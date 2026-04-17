@@ -1,0 +1,98 @@
+/**
+ * CoreBlow — Alert Manager
+ *
+ * Manages alert rules, firing conditions, escalation
+ * policies, silencing, and alert history.
+ */
+/**
+ * CoreBlow Alert Manager
+ */
+export class AlertManager {
+    rules = new Map();
+    alerts = [];
+    silenced = new Set();
+    idCounter = 0;
+    alertCounter = 0;
+    /**
+     * Add an alert rule.
+     */
+    addRule(name, metric, condition, threshold, severity = 'warning', cooldownMs = 60_000) {
+        const id = `rule-${++this.idCounter}`;
+        this.rules.set(id, { id, name, metric, condition, threshold, severity, cooldownMs, enabled: true });
+        return id;
+    }
+    /**
+     * Evaluate a metric value against rules.
+     */
+    evaluate(metric, value) {
+        const fired = [];
+        for (const rule of Array.from(this.rules.values())) {
+            if (!rule.enabled || rule.metric !== metric || this.silenced.has(rule.id))
+                continue;
+            if (rule.lastFired && Date.now() - rule.lastFired < rule.cooldownMs)
+                continue;
+            const triggered = this.checkCondition(value, rule.condition, rule.threshold);
+            if (triggered) {
+                rule.lastFired = Date.now();
+                const alert = {
+                    id: `alert-${++this.alertCounter}`, ruleId: rule.id, ruleName: rule.name,
+                    severity: rule.severity, value, threshold: rule.threshold,
+                    message: `${rule.name}: ${metric} is ${value} (threshold: ${rule.condition} ${rule.threshold})`,
+                    firedAt: Date.now(), acknowledged: false,
+                };
+                this.alerts.push(alert);
+                fired.push(alert);
+            }
+        }
+        return fired;
+    }
+    /**
+     * Acknowledge an alert.
+     */
+    acknowledge(alertId) {
+        const alert = this.alerts.find((a) => a.id === alertId);
+        if (!alert)
+            return false;
+        alert.acknowledged = true;
+        return true;
+    }
+    /**
+     * Resolve an alert.
+     */
+    resolve(alertId) {
+        const alert = this.alerts.find((a) => a.id === alertId);
+        if (!alert)
+            return false;
+        alert.resolvedAt = Date.now();
+        return true;
+    }
+    /**
+     * Silence a rule.
+     */
+    silence(ruleId) { this.silenced.add(ruleId); }
+    /**
+     * Unsilence a rule.
+     */
+    unsilence(ruleId) { this.silenced.delete(ruleId); }
+    /**
+     * Get active (unresolved) alerts.
+     */
+    getActive() { return this.alerts.filter((a) => !a.resolvedAt); }
+    /**
+     * Get alert history.
+     */
+    getHistory(limit) { return this.alerts.slice(-(limit ?? 50)); }
+    /** Count rules */
+    countRules() { return this.rules.size; }
+    // === Private ===
+    checkCondition(value, condition, threshold) {
+        switch (condition) {
+            case 'gt': return value > threshold;
+            case 'lt': return value < threshold;
+            case 'eq': return value === threshold;
+            case 'gte': return value >= threshold;
+            case 'lte': return value <= threshold;
+        }
+    }
+}
+//# sourceMappingURL=alert-manager.js.map

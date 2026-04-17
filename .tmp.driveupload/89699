@@ -1,0 +1,4 @@
+/** Lifecycle event handlers. */
+export declare function handleStart(): void;
+export declare function handleStop(): void;
+//# sourceMappingURL=pi-embedded-subscribe.handlers.lifecycle.d.ts.map

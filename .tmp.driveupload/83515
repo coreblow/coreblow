@@ -1,0 +1,16 @@
+/** plugin-sdk/ssrf-policy.ts [ADAPT] openclaw-main */
+export type SsrFPolicy = {
+    allowPrivateNetwork?: boolean;
+    pinnedHostnames?: string[];
+};
+export type LookupFn = (hostname: string) => Promise<string[]>;
+export declare function ssrfPolicyFromAllowPrivateNetwork(allow: boolean | null | undefined): SsrFPolicy | undefined;
+export declare function buildHostnameAllowlistPolicyFromSuffixAllowlist(suffixes: string[]): SsrFPolicy;
+export declare function assertHttpUrlTargetsPrivateNetwork(url: string, params?: {
+    allowPrivateNetwork?: boolean | null;
+    errorMessage?: string;
+}): Promise<void>;
+export declare function isPrivateIpAddress(ip: string): boolean;
+export declare function isBlockedHostnameOrIp(hostname: string): boolean;
+export declare function resolvePinnedHostnameWithPolicy(hostname: string, _p?: unknown): Promise<string | null>;
+//# sourceMappingURL=ssrf-policy.d.ts.map

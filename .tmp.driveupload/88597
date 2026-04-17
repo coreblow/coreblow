@@ -1,0 +1,4 @@
+/** Exec host — Node.js mode. */
+export { execCommand } from './bash-tools.js';
+export function isNodeMode() { return typeof process !== 'undefined'; }
+//# sourceMappingURL=bash-tools.exec-host-node.js.map

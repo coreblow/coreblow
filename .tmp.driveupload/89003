@@ -1,0 +1,8 @@
+/**
+ * CoreBlow — Auth Profiles Types (CoreBlow Parity)
+ *
+ * Type definitions for the auth profile system.
+ * Supports 3 credential types: api_key, token, oauth
+ */
+export {};
+//# sourceMappingURL=types.js.map

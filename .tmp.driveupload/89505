@@ -1,0 +1,21 @@
+/**
+ * agents/bootstrap-hooks.ts
+ * Hook points for agent bootstrap lifecycle.
+ * Ported from CoreBlow reference src/agents/bootstrap-hooks.ts.
+ */
+export type BootstrapPhase = 'pre_init' | 'post_init' | 'pre_turn' | 'post_turn' | 'pre_shutdown' | 'post_shutdown';
+export type BootstrapHookFn = (context: BootstrapHookContext) => void | Promise<void>;
+export interface BootstrapHookContext {
+    phase: BootstrapPhase;
+    sessionId: string;
+    agentId: string;
+    metadata?: Record<string, unknown>;
+}
+export declare class BootstrapHooks {
+    private hooks;
+    register(phase: BootstrapPhase, fn: BootstrapHookFn): void;
+    fire(context: BootstrapHookContext): Promise<void>;
+    count(phase?: BootstrapPhase): number;
+    clear(phase?: BootstrapPhase): void;
+}
+//# sourceMappingURL=bootstrap-hooks.d.ts.map

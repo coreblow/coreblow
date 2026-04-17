@@ -1,0 +1,5 @@
+import { discordLog } from '../utils/logger.js';
+export function onGuildMemberAdd(member, ctx) {
+    discordLog.debug({ userId: member.user?.id, guild: member.guild?.name }, 'Member joined');
+}
+//# sourceMappingURL=guildMemberAdd.js.map

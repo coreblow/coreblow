@@ -1,0 +1,1 @@
+{"version":3,"file":"plugin-approval.d.ts","sourceRoot":"","sources":["../../../src/gateway/server-methods/plugin-approval.ts"],"names":[],"mappings":"AACA,OAAO,KAAK,EAAE,sBAAsB,EAAE,MAAM,YAAY,CAAC;AACzD,OAAO,KAAK,EAAE,mBAAmB,EAAwB,MAAM,6BAA6B,CAAC;AAK7F,wBAAgB,4BAA4B,CACxC,OAAO,EAAE,mBAAmB,GAC7B,sBAAsB,CAgHxB"}

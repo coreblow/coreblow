@@ -1,0 +1,27 @@
+export interface ModelConfig {
+    id: string;
+    provider: string;
+    contextWindow?: number;
+    maxOutputTokens?: number;
+    temperature?: number;
+    topP?: number;
+    apiKey?: string;
+    baseUrl?: string;
+    headers?: Record<string, string>;
+    disabled?: boolean;
+}
+export interface ModelsConfig {
+    default?: string;
+    models: Record<string, ModelConfig>;
+    providerDefaults?: Record<string, Partial<ModelConfig>>;
+}
+export declare function mergeModelConfigs(base: ModelsConfig, override: Partial<ModelsConfig>): ModelsConfig;
+export declare function resolveModelConfig(config: ModelsConfig, modelId?: string): ModelConfig | undefined;
+export declare function listAvailableModels(config: ModelsConfig): ModelConfig[];
+export declare function listModelsByProvider(config: ModelsConfig, provider: string): ModelConfig[];
+export declare function getDefaultModel(config: ModelsConfig): ModelConfig | undefined;
+export declare function validateModelsConfig(config: ModelsConfig): {
+    valid: boolean;
+    errors: string[];
+};
+//# sourceMappingURL=models-config.d.ts.map

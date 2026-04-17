@@ -1,0 +1,74 @@
+/**
+ * CoreBlow — CoreAPI Generator
+ *
+ * Generates CoreAPI 3.0 specification from registered
+ * routes, schemas, and documentation metadata.
+ */
+/**
+ * CoreBlow CoreAPI Generator
+ */
+export class CoreAPIGenerator {
+    operations = [];
+    schemas = new Map();
+    info = { title: 'CoreBlow API', version: '1.0.0', description: '' };
+    servers = [];
+    /**
+     * Set API info.
+     */
+    setInfo(title, version, description) {
+        this.info = { title, version, description: description ?? '' };
+    }
+    /**
+     * Add server.
+     */
+    addServer(url, description) {
+        this.servers.push({ url, description });
+    }
+    /**
+     * Add an operation.
+     */
+    addOperation(op) { this.operations.push(op); }
+    /**
+     * Add a schema.
+     */
+    addSchema(name, schema) {
+        this.schemas.set(name, schema);
+    }
+    /**
+     * Generate CoreAPI spec.
+     */
+    generate() {
+        const paths = {};
+        for (const op of this.operations) {
+            if (!paths[op.path])
+                paths[op.path] = {};
+            const method = op.method.toLowerCase();
+            const operation = {
+                summary: op.summary, description: op.description, tags: op.tags,
+                responses: Object.fromEntries(Object.entries(op.responses).map(([code, r]) => [code, {
+                        description: r.description,
+                        ...(r.schema ? { content: { 'application/json': { schema: r.schema } } } : {}),
+                    }])),
+            };
+            if (op.parameters)
+                operation.parameters = op.parameters;
+            if (op.requestBody) {
+                operation.requestBody = { content: { [op.requestBody.contentType]: { schema: op.requestBody.schema } } };
+            }
+            paths[op.path][method] = operation;
+        }
+        return {
+            coreapi: '3.0.3', info: this.info,
+            servers: this.servers.length > 0 ? this.servers : [{ url: 'http://localhost:3100' }],
+            paths,
+            components: { schemas: Object.fromEntries(this.schemas) },
+        };
+    }
+    /**
+     * Generate as JSON string.
+     */
+    toJSON() { return JSON.stringify(this.generate(), null, 2); }
+    /** Count operations */
+    count() { return this.operations.length; }
+}
+//# sourceMappingURL=coreapi-generator.js.map

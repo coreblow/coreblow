@@ -1,0 +1,4 @@
+/** agents/btw.ts — "By the way" message injection for agent hints. */
+export declare function formatBtw(message: string): string;
+export declare function shouldShowBtw(turnCount: number, interval?: number): boolean;
+//# sourceMappingURL=btw.d.ts.map

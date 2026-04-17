@@ -1,0 +1,3 @@
+import { commands } from './commands.data.js';
+export function resetCommands() { commands.clear(); }
+//# sourceMappingURL=reset-commands.js.map

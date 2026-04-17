@@ -1,0 +1,29 @@
+/**
+ * agents/prompt-composition.ts
+ * Compose final prompt from system + persona + context + tools + user.
+ */
+export interface PromptBudget {
+    maxTokens: number;
+    systemBudget: number;
+    contextBudget: number;
+    toolsBudget: number;
+}
+export interface ComposedPrompt {
+    system: string;
+    messages: Array<{
+        role: string;
+        content: string;
+    }>;
+    estimatedTokens: number;
+    truncated: boolean;
+}
+export declare function composePrompt(opts: {
+    systemPrompt: string;
+    messages: Array<{
+        role: string;
+        content: string;
+    }>;
+    budget: PromptBudget;
+}): ComposedPrompt;
+export declare function createDefaultBudget(maxContextTokens: number): PromptBudget;
+//# sourceMappingURL=prompt-composition.d.ts.map

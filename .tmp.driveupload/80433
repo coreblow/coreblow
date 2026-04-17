@@ -1,0 +1,30 @@
+/**
+ * src/channels/discord/handlers/modal.ts
+ */
+import { MessageRouter } from '../../../gateway/router.js';
+import { discordLog } from '../utils/logger.js';
+export async function handleModal(interaction, router, stats) {
+    stats.componentsHandled++;
+    stats.modalsOpened++;
+    const customId = interaction.customId || '';
+    const fields = {};
+    if (interaction.fields?.fields) {
+        for (const [key, field] of interaction.fields.fields) {
+            fields[key] = field.value || '';
+        }
+    }
+    discordLog.debug({ customId, fieldCount: Object.keys(fields).length }, 'Modal submitted');
+    const inbound = {
+        channel: 'discord',
+        senderId: interaction.user.id,
+        senderName: interaction.user.displayName || interaction.user.username || '',
+        sessionId: MessageRouter.deriveSessionId('discord', interaction.user.id, interaction.channel?.id),
+        groupId: interaction.channel?.id,
+        text: `[modal:${customId}:${JSON.stringify(fields)}]`,
+        timestamp: Date.now(),
+        raw: interaction,
+        metadata: { customId, fields },
+    };
+    await router.routeInbound(inbound);
+}
+//# sourceMappingURL=modal.js.map

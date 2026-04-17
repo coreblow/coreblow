@@ -1,0 +1,10 @@
+/** plugin-sdk/directory-runtime.ts [ADAPT] openclaw-main */
+export type ChannelDirectoryEntry = {
+    id: string;
+    label?: string;
+    type?: string;
+    [key: string]: unknown;
+};
+export declare function listDirectoryGroups(_p: unknown): Promise<ChannelDirectoryEntry[]>;
+export declare function listDirectoryPeers(_p: unknown): Promise<ChannelDirectoryEntry[]>;
+//# sourceMappingURL=directory-runtime.d.ts.map

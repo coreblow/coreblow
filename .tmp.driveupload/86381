@@ -1,0 +1,47 @@
+/**
+ * CoreBlow — Fuzzy Search
+ *
+ * Approximate string matching using Levenshtein
+ * distance with configurable threshold and scoring.
+ */
+/** Fuzzy match */
+export interface FuzzyMatch {
+    value: string;
+    score: number;
+    distance: number;
+    id?: string;
+}
+/**
+ * CoreBlow Fuzzy Search
+ */
+export declare class FuzzySearch {
+    private entries;
+    private maxDistance;
+    /**
+     * Add an entry.
+     */
+    add(id: string, value: string): void;
+    /**
+     * Add many entries.
+     */
+    addMany(entries: Array<{
+        id: string;
+        value: string;
+    }>): void;
+    /**
+     * Set max distance.
+     */
+    setMaxDistance(max: number): void;
+    /**
+     * Search with fuzzy matching.
+     */
+    search(query: string, limit?: number): FuzzyMatch[];
+    /**
+     * Get best match.
+     */
+    bestMatch(query: string): FuzzyMatch | null;
+    /** Count */
+    count(): number;
+    private levenshtein;
+}
+//# sourceMappingURL=fuzzy-search.d.ts.map

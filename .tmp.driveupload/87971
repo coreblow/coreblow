@@ -1,0 +1,8 @@
+export interface ApprovalRequest {
+    id: string;
+    command: string;
+    reason: string;
+}
+export declare function createApprovalRequest(command: string, reason: string): ApprovalRequest;
+export declare function isApproved(requestId: string): boolean;
+//# sourceMappingURL=bash-tools-exec-approval.d.ts.map

@@ -1,0 +1,8 @@
+/**
+ * utils/string-utils2.ts
+ */
+export declare function capitalize(s: string): string;
+export declare function camelToKebab(s: string): string;
+export declare function kebabToCamel(s: string): string;
+export declare function truncateLengthString(s: string, l: number): string;
+//# sourceMappingURL=string-utils2.d.ts.map

@@ -1,0 +1,11 @@
+/**
+ * config/legacy.shared.ts
+ * Legacy config detection shared between migration & validation.
+ */
+/** Legacy keys that indicate an old config format. */
+export declare const LEGACY_KEYS: readonly ["model", "apiKey", "prompt", "maxTokens"];
+/** Check if config uses legacy format. */
+export declare function isLegacyConfig(config: Record<string, unknown>): boolean;
+/** List which legacy keys are present. */
+export declare function detectLegacyKeys(config: Record<string, unknown>): string[];
+//# sourceMappingURL=legacy.shared.d.ts.map

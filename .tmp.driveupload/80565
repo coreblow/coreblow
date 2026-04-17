@@ -1,0 +1,5 @@
+/**
+ * Discord Model Embed — Shows current AI model information.
+ */
+export declare function createModelEmbed(model: string, provider: string, contextWindow?: number, description?: string): Record<string, unknown>;
+//# sourceMappingURL=model.d.ts.map

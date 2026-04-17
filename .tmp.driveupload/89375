@@ -1,0 +1,5 @@
+/** System prompt report generation. */
+export function generatePromptReport(prompt) {
+    return { charCount: prompt.length, estimatedTokens: Math.ceil(prompt.length / 4), sections: (prompt.match(/^##/gm) ?? []).length };
+}
+//# sourceMappingURL=system-prompt-report.js.map

@@ -1,0 +1,4 @@
+/** PI tool definitions aggregate. */
+export declare const PI_TOOLS: readonly ["bash", "read_file", "write_file", "edit_file", "search", "glob", "browser"];
+export type PiTool = typeof PI_TOOLS[number];
+//# sourceMappingURL=pi-tools.d.ts.map

@@ -1,0 +1,52 @@
+/**
+ * plugin-sdk/plugin-entry.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/plugin-entry.ts
+ *
+ * Canonical entry helpers for non-channel and channel plugins.
+ * Adaptasi: OpenClaw* → CoreBlow*, OpenClawConfig → CoreBlowConfig,
+ *           OpenClawPluginApi → PluginApiSurface
+ */
+import type { CoreBlowConfig } from '../config/config.js';
+import type { PluginApiSurface, PluginCommand, PluginProvider, PluginTool, PluginHook } from '../plugins/types.js';
+export type { CoreBlowConfig };
+export type { PluginApiSurface, PluginCommand, PluginProvider, PluginTool, PluginHook };
+/** Minimal config schema type for plugins. */
+export type CoreBlowPluginConfigSchema = {
+    parse: (input: unknown) => any;
+    _def?: unknown;
+};
+/** Empty config schema — used as default for plugins with no config. */
+export declare const emptyPluginConfigSchema: CoreBlowPluginConfigSchema;
+/** Resolve either a concrete config schema or a lazy schema factory. */
+export declare function resolvePluginConfigSchema(configSchema?: CoreBlowPluginConfigSchema | (() => CoreBlowPluginConfigSchema)): CoreBlowPluginConfigSchema;
+/** Shape of `kind` field on plugin definitions. */
+export type CoreBlowPluginKind = 'channel' | 'provider' | 'tool' | 'command' | 'service' | 'memory';
+/** Full CoreBlow plugin definition shape (equivalent to OpenClawPluginDefinition). */
+export interface CoreBlowPluginDefinition {
+    id: string;
+    name: string;
+    description: string;
+    kind?: CoreBlowPluginKind;
+    configSchema: CoreBlowPluginConfigSchema;
+    register: (api: PluginApiSurface) => void;
+}
+/** Options for definePluginEntry(). */
+export type DefinePluginEntryOptions = {
+    id: string;
+    name: string;
+    description: string;
+    kind?: CoreBlowPluginKind;
+    configSchema?: CoreBlowPluginConfigSchema | (() => CoreBlowPluginConfigSchema);
+    register: (api: PluginApiSurface) => void;
+};
+/**
+ * Canonical entry helper for non-channel plugins.
+ *
+ * Use this for provider, tool, command, service, memory, and context-engine
+ * plugins. Channel plugins should use `defineChannelPluginEntry(...)` from
+ * `coreblow/plugin-sdk/core` so they inherit the channel capability wiring.
+ *
+ * [ADAPT] openclaw definePluginEntry — identical logic, CoreBlow types.
+ */
+export declare function definePluginEntry({ id, name, description, kind, configSchema, register, }: DefinePluginEntryOptions): CoreBlowPluginDefinition;
+//# sourceMappingURL=plugin-entry.d.ts.map

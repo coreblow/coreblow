@@ -1,0 +1,12 @@
+{
+  "": {
+    "swift-dependencies": "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/.build/arm64-apple-macosx/debug/CoreBlowKitPackageTests.build/master.swiftdeps"
+  },
+  "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/.build/arm64-apple-macosx/debug/CoreBlowKitPackageTests.derived/runner.swift": {
+    "dependencies": "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/.build/arm64-apple-macosx/debug/CoreBlowKitPackageTests.build/runner.d",
+    "object": "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/.build/arm64-apple-macosx/debug/CoreBlowKitPackageTests.build/runner.swift.o",
+    "swiftmodule": "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/.build/arm64-apple-macosx/debug/CoreBlowKitPackageTests.build/runner~partial.swiftmodule",
+    "swift-dependencies": "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/.build/arm64-apple-macosx/debug/CoreBlowKitPackageTests.build/runner.swiftdeps",
+    "diagnostics": "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/.build/arm64-apple-macosx/debug/CoreBlowKitPackageTests.build/runner.dia"
+  }
+}

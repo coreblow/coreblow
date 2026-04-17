@@ -1,0 +1,62 @@
+/**
+ * CoreBlow Agent Command Handler
+ *
+ * Routes and executes agent-level commands (slash commands, model switching,
+ * status queries, etc.). Provides the command dispatch pipeline for interactive
+ * agent sessions.
+ *
+ * Equivalent: CoreBlow src/agents/agent-command.ts (912 LOC)
+ */
+import { type ModelRef, type CoreBlowConfig } from './model-selection.js';
+export type CommandResult = {
+    success: boolean;
+    output: string;
+    silent?: boolean;
+    metadata?: Record<string, unknown>;
+};
+export type CommandHandler = (args: string[], context: CommandContext) => Promise<CommandResult> | CommandResult;
+export interface CommandContext {
+    sessionId: string;
+    agentId: string;
+    cfg: CoreBlowConfig;
+    currentModel?: ModelRef;
+    userTimezone?: string;
+}
+export interface RegisteredCommand {
+    name: string;
+    aliases: string[];
+    description: string;
+    usage?: string;
+    category: CommandCategory;
+    handler: CommandHandler;
+    requiresAuth?: 'owner' | 'admin' | 'user';
+}
+export type CommandCategory = 'model' | 'session' | 'config' | 'debug' | 'agent' | 'gateway' | 'general';
+/**
+ * Register a command
+ */
+export declare function registerCommand(cmd: RegisteredCommand): void;
+/**
+ * Resolve a command name (including aliases)
+ */
+export declare function resolveCommandName(input: string): string | undefined;
+/**
+ * Get a registered command
+ */
+export declare function getCommand(name: string): RegisteredCommand | undefined;
+/**
+ * List all registered commands
+ */
+export declare function listCommands(category?: CommandCategory): RegisteredCommand[];
+/**
+ * Parse a command string into name and arguments
+ */
+export declare function parseCommand(input: string): {
+    name: string;
+    args: string[];
+} | null;
+/**
+ * Execute a command
+ */
+export declare function executeCommand(input: string, context: CommandContext): Promise<CommandResult>;
+//# sourceMappingURL=agent-command.d.ts.map

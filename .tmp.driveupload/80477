@@ -1,0 +1,1 @@
+{"version":3,"file":"permissions.d.ts","sourceRoot":"","sources":["../../../../src/channels/discord/utils/permissions.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,cAAc,EAAE,MAAM,iBAAiB,CAAC;AACtD,OAAO,KAAK,EAAE,cAAc,EAAE,MAAM,cAAc,CAAC;AAEnD,wBAAgB,gBAAgB,CAAC,QAAQ,EAAE,cAAc,EAAE,OAAO,EAAE,cAAc,GAAG;IAAE,OAAO,EAAE,OAAO,CAAA;CAAE,CAA8B"}

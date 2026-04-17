@@ -1,0 +1,129 @@
+/**
+ * CoreBlow — Dependency Graph
+ *
+ * Tracks module dependencies and provides topological
+ * sorting, circular dependency detection, and impact
+ * analysis for changes.
+ */
+/**
+ * CoreBlow Dependency Graph
+ */
+export class DependencyGraph {
+    nodes = new Map();
+    /**
+     * Add a node.
+     */
+    addNode(id, label, type) {
+        if (!this.nodes.has(id)) {
+            this.nodes.set(id, { id, label, type, dependencies: [], dependents: [] });
+        }
+    }
+    /**
+     * Add a dependency edge (from depends on to).
+     */
+    addEdge(fromId, toId) {
+        const from = this.nodes.get(fromId);
+        const to = this.nodes.get(toId);
+        if (!from || !to)
+            return false;
+        if (!from.dependencies.includes(toId))
+            from.dependencies.push(toId);
+        if (!to.dependents.includes(fromId))
+            to.dependents.push(fromId);
+        return true;
+    }
+    /**
+     * Get a node.
+     */
+    getNode(id) {
+        return this.nodes.get(id) ?? null;
+    }
+    /**
+     * Detect circular dependencies.
+     */
+    detectCycles() {
+        const cycles = [];
+        const visited = new Set();
+        const stack = new Set();
+        const dfs = (id, path) => {
+            if (stack.has(id)) {
+                const cycleStart = path.indexOf(id);
+                if (cycleStart >= 0)
+                    cycles.push(path.slice(cycleStart));
+                return;
+            }
+            if (visited.has(id))
+                return;
+            visited.add(id);
+            stack.add(id);
+            path.push(id);
+            const node = this.nodes.get(id);
+            if (node) {
+                for (const dep of node.dependencies)
+                    dfs(dep, [...path]);
+            }
+            stack.delete(id);
+        };
+        for (const id of Array.from(this.nodes.keys())) {
+            dfs(id, []);
+        }
+        return cycles;
+    }
+    /**
+     * Topological sort.
+     */
+    topologicalSort() {
+        const result = [];
+        const visited = new Set();
+        const visit = (id) => {
+            if (visited.has(id))
+                return;
+            visited.add(id);
+            const node = this.nodes.get(id);
+            if (node) {
+                for (const dep of node.dependencies)
+                    visit(dep);
+            }
+            result.push(id);
+        };
+        for (const id of Array.from(this.nodes.keys()))
+            visit(id);
+        return result;
+    }
+    /**
+     * Analyze impact of changing a node.
+     */
+    analyzeImpact(id) {
+        const node = this.nodes.get(id);
+        if (!node)
+            return { directDependents: [], transitiveDependents: [], totalImpacted: 0 };
+        const transitive = new Set();
+        const queue = [...node.dependents];
+        while (queue.length > 0) {
+            const depId = queue.shift();
+            if (transitive.has(depId))
+                continue;
+            transitive.add(depId);
+            const dep = this.nodes.get(depId);
+            if (dep)
+                queue.push(...dep.dependents);
+        }
+        return {
+            directDependents: [...node.dependents],
+            transitiveDependents: Array.from(transitive),
+            totalImpacted: transitive.size,
+        };
+    }
+    /**
+     * List all nodes.
+     */
+    list() {
+        return Array.from(this.nodes.values()).map((n) => ({
+            id: n.id, label: n.label, type: n.type,
+            deps: n.dependencies.length, dependents: n.dependents.length,
+        }));
+    }
+    /** Count */
+    count() { return this.nodes.size; }
+}
+//# sourceMappingURL=dependency-graph.js.map

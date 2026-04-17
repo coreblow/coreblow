@@ -1,0 +1,15 @@
+export declare function pauseSubAgent(id: string): {
+    paused: boolean;
+    id: string;
+};
+export declare function cancelSubAgent(id: string): {
+    cancelled: boolean;
+    id: string;
+};
+export declare function cancelAllSubAgents(): {
+    cancelled: number;
+};
+export declare function killSubagentRunAdmin(id: string): boolean;
+export declare function killSubagentsByLabel(label: string): number;
+export declare function killSubagentsByAge(maxAgeMs: number): number;
+//# sourceMappingURL=subagent-control.d.ts.map

@@ -1,0 +1,41 @@
+/**
+ * CoreBlow — Safe Eval Command
+ *
+ * Executes expressions through SandboxExecutor (vm.createContext)
+ * instead of raw eval(). Provides timeout protection and
+ * restricted global access.
+ */
+
+import { SandboxExecutor } from '../../sandbox/sandbox.js';
+
+const sandbox = new SandboxExecutor({
+    timeoutMs: 5_000,
+    maxOutput: 10_000,
+});
+
+export async function evalCommand(args: string[]): Promise<string> {
+    if (!args.length) return 'Usage: /eval <expression>';
+
+    const expression = args.join(' ');
+
+    // Block obviously dangerous patterns
+    const blocked = [
+        'require(', 'import(', 'process.', 'child_process',
+        'fs.', 'net.', 'http.', 'https.', '__proto__',
+        'constructor.', 'globalThis', 'Function(',
+    ];
+    for (const pattern of blocked) {
+        if (expression.includes(pattern)) {
+            return `Error: Expression contains blocked pattern: ${pattern}`;
+        }
+    }
+
+    const result = sandbox.execute(expression);
+    if (result.success) {
+        const output = result.output || String(result.returnValue ?? '(undefined)');
+        return result.truncated
+            ? `${output}\n(output truncated, ${result.durationMs}ms)`
+            : output;
+    }
+    return `Error: ${result.error}`;
+}

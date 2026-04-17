@@ -1,0 +1,20 @@
+/**
+ * cli/auth/auth-store.ts
+ */
+import fs from 'node:fs';
+export class AuthStore {
+    path;
+    constructor(p) { this.path = p; }
+    save(token) { fs.writeFileSync(this.path, token); }
+    load() { try {
+        return fs.readFileSync(this.path, 'utf-8').trim();
+    }
+    catch {
+        return null;
+    } }
+    clear() { try {
+        fs.unlinkSync(this.path);
+    }
+    catch { /* intentionally ignored */ } }
+}
+//# sourceMappingURL=auth-store.js.map

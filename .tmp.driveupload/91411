@@ -1,0 +1,1 @@
+export class OAuthProfileManager { private profiles = new Map<string, unknown>(); add(id: string, profile: unknown) { this.profiles.set(id, profile); } get(id: string) { return this.profiles.get(id); } list() { return [...this.profiles.values()]; } }

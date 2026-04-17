@@ -1,0 +1,60 @@
+/**
+ * CoreBlow — Document Loader
+ *
+ * Multi-format document loader for the RAG pipeline.
+ * Supports: .md, .mdx, .txt, .json, .csv, .ts, .js, .py, .html
+ *
+ * Auto-detects format by extension and extracts text content
+ * suitable for chunking and embedding.
+ */
+export interface RawDocument {
+    /** File path (relative or absolute) */
+    path: string;
+    /** Extracted text content */
+    content: string;
+    /** Detected format */
+    format: DocumentFormat;
+    /** File metadata */
+    metadata: {
+        sizeBytes: number;
+        modifiedAt: number;
+        extension: string;
+    };
+}
+export type DocumentFormat = 'markdown' | 'text' | 'json' | 'csv' | 'typescript' | 'javascript' | 'python' | 'html' | 'unknown';
+export interface LoaderConfig {
+    /** File extensions to include (default: all supported) */
+    extensions?: string[];
+    /** Max file size in bytes (default: 1MB) */
+    maxFileSize?: number;
+    /** Directories to skip */
+    skipDirs?: string[];
+    /** Whether to extract only comments from code files */
+    codeCommentsOnly?: boolean;
+}
+export declare function detectFormat(filePath: string): DocumentFormat;
+export declare class DocumentLoader {
+    private config;
+    constructor(config?: LoaderConfig);
+    /**
+     * Load a single file and extract text content.
+     */
+    loadFile(filePath: string): Promise<RawDocument | null>;
+    /**
+     * Load all supported files from a directory (recursive).
+     */
+    loadDirectory(dirPath: string): Promise<RawDocument[]>;
+    /**
+     * Load from multiple sources (files and/or directories).
+     */
+    loadSources(sources: string[]): Promise<RawDocument[]>;
+    /**
+     * Extract text content based on format.
+     */
+    private extractContent;
+    /**
+     * Recursively walk directory collecting documents.
+     */
+    private walkDirectory;
+}
+//# sourceMappingURL=document-loader.d.ts.map

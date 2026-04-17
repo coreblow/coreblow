@@ -1,0 +1,11 @@
+export function detectProjectSettings(configFiles) {
+    const settings = {};
+    if (configFiles.includes('tsconfig.json'))
+        settings.language = 'typescript';
+    if (configFiles.includes('next.config.js'))
+        settings.framework = 'nextjs';
+    if (configFiles.includes('vitest.config.ts'))
+        settings.testRunner = 'vitest';
+    return settings;
+}
+//# sourceMappingURL=pi-project-settings.js.map

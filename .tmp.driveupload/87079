@@ -1,0 +1,6 @@
+const lifecycleLog = [];
+export function recordLifecycleEvent(record) { const r = { ...record, timestamp: Date.now() }; lifecycleLog.push(r); if (lifecycleLog.length > 500)
+    lifecycleLog.splice(0, lifecycleLog.length - 500); return r; }
+export function getLifecycleLog(sessionId) { return sessionId ? lifecycleLog.filter((r) => r.sessionId === sessionId) : [...lifecycleLog]; }
+export function clearLifecycleLog() { lifecycleLog.length = 0; }
+//# sourceMappingURL=subagent-lifecycle-events.js.map

@@ -1,0 +1,11 @@
+/** plugin-sdk/request-url.ts [PORT] openclaw-main */
+export function resolveRequestUrl(input) {
+    if (typeof input === "string")
+        return input;
+    if (input instanceof URL)
+        return input.toString();
+    if (typeof input === "object" && input && "url" in input)
+        return input.url;
+    return "";
+}
+//# sourceMappingURL=request-url.js.map

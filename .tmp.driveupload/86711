@@ -1,0 +1,59 @@
+/**
+ * src/security/sandbox.ts
+ * Sandbox — Docker + Native process isolation
+ * SUPERIOR: CoreBlow requires Docker; CoreBlow works without it (native fallback)
+ */
+export interface SandboxConfig {
+    mode: 'auto' | 'docker' | 'native' | 'none';
+    timeoutMs: number;
+    memoryLimitMb: number;
+    networkAccess: boolean;
+    workDir?: string;
+    readonlyFs?: boolean;
+    allowedCommands?: string[];
+    blockedCommands?: string[];
+}
+export interface SandboxResult {
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+    durationMs: number;
+    sandboxMode: 'docker' | 'native' | 'none';
+    killed: boolean;
+    killReason?: string;
+}
+export declare class SandboxManager {
+    private config;
+    private dockerAvailable;
+    constructor(config?: Partial<SandboxConfig>);
+    /**
+     * Execute a command in sandbox
+     */
+    exec(command: string, opts?: Partial<SandboxConfig>): Promise<SandboxResult>;
+    /**
+     * Docker sandbox — full isolation
+     */
+    private execDocker;
+    /**
+     * Native sandbox — process isolation without Docker
+     * SUPERIOR: CoreBlow works without Docker; CoreBlow requires it
+     */
+    private execNative;
+    /**
+     * Unsandboxed execution (with command blocking only)
+     */
+    private execUnsandboxed;
+    /**
+     * Check if command is blocked
+     */
+    private isBlocked;
+    /**
+     * Resolve mode — auto-detect Docker availability
+     */
+    private resolveMode;
+    /**
+     * Check Docker availability
+     */
+    isDockerAvailable(): boolean;
+}
+//# sourceMappingURL=sandbox.d.ts.map

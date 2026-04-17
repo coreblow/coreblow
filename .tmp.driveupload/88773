@@ -1,0 +1,7 @@
+/** Handler type definitions. */
+export type HandlerResult = {
+    handled: boolean;
+    shouldContinue: boolean;
+};
+export declare function createHandlerResult(handled: boolean, shouldContinue?: boolean): HandlerResult;
+//# sourceMappingURL=pi-embedded-subscribe.handlers.types.d.ts.map

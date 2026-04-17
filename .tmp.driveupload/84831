@@ -1,0 +1,69 @@
+/**
+ * plugin-sdk/channel-config-primitives.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/channel-config-primitives.ts
+ *
+ * Narrow channel config-schema primitives without provider-schema re-exports.
+ */
+import { z } from 'zod';
+import { ReplyRuntimeConfigSchemaShape, ToolPolicySchema } from './agent-config-primitives.js';
+export { ReplyRuntimeConfigSchemaShape, ToolPolicySchema };
+// ─── Allow-From Schema ────────────────────────────────────────────────────────
+export const AllowFromListSchema = z
+    .array(z.union([z.string(), z.number()]))
+    .optional()
+    .describe('List of permitted sender IDs. Use "*" to allow everyone.');
+// ─── DM Policy Schemas ────────────────────────────────────────────────────────
+export const DmPolicySchema = z
+    .enum(['open', 'allowlist', 'none'])
+    .optional()
+    .describe('DM access policy: open (all), allowlist (permitted), or none (disabled)');
+export const DmConfigSchema = z
+    .object({
+    policy: DmPolicySchema,
+    allowFrom: AllowFromListSchema,
+    defaultTo: z.union([z.string(), z.number()]).optional(),
+})
+    .optional();
+// ─── Group Policy Schema ──────────────────────────────────────────────────────
+export const GroupPolicySchema = z
+    .enum(['open', 'allowlist', 'none'])
+    .optional()
+    .describe('Group access policy: open, allowlist, or none');
+// ─── Markdown / Streaming Schemas ─────────────────────────────────────────────
+export const MarkdownConfigSchema = z
+    .object({
+    enabled: z.boolean().optional(),
+    strict: z.boolean().optional(),
+})
+    .optional();
+export const BlockStreamingCoalesceSchema = z
+    .boolean()
+    .optional()
+    .describe('Whether to coalesce block-streamed messages before sending');
+// ─── requireOpenAllowFrom ─────────────────────────────────────────────────────
+export function requireOpenAllowFrom(params) {
+    if (params.policy === 'open') {
+        const hasWildcard = (params.allowFrom ?? []).includes('*');
+        if (!hasWildcard) {
+            params.ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: params.path,
+                message: params.message,
+            });
+        }
+    }
+}
+export function buildChannelConfigSchema(shape) {
+    return z.object(shape);
+}
+export function buildCatchallMultiAccountChannelSchema(accountShape) {
+    return z.object({
+        accounts: z.record(z.string(), z.object(accountShape)).optional(),
+    });
+}
+export function buildNestedDmConfigSchema(accountShape) {
+    return z.object({
+        dm: z.object(accountShape).optional(),
+    });
+}
+//# sourceMappingURL=channel-config-primitives.js.map

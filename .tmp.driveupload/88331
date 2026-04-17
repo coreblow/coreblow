@@ -1,0 +1,4 @@
+export declare function generateToolCallId(prefix?: string): string;
+export declare function isValidToolCallId(id: string): boolean;
+export declare function extractToolCallPrefix(id: string): string | null;
+//# sourceMappingURL=tool-call-id.d.ts.map

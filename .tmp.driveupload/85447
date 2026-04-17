@@ -1,0 +1,447 @@
+/**
+ * mcp/channel-bridge.ts
+ *
+ * Bridge between MCP protocol and CoreBlow Gateway.
+ * Manages a real-time WebSocket connection to the Gateway and
+ * exposes conversation, message, event, and approval APIs.
+ *
+ * [PORT] openclaw-main/src/mcp/channel-bridge.ts L1-520
+ * Adaptasi:
+ *   - `OpenClawChannelBridge` → `CoreBlowChannelBridge`
+ *   - `OpenClawConfig` → `CoreBlowConfig`
+ *   - `clientDisplayName: 'OpenClaw MCP'` → `'CoreBlow MCP'`
+ *   - `process.stderr.write('openclaw...')` → log.info/warn
+ *   - Import dari `channel-types.js` → `channel-shared.js` (setelah Step 1)
+ */
+import { randomUUID } from 'node:crypto';
+import { createChildLogger } from '../utils/logger.js';
+import { GATEWAY_CLIENT_MODES, GATEWAY_CLIENT_NAMES } from '../utils/message-channel.js';
+import { matchEventFilter, normalizeApprovalId, toConversation, toText } from './channel-shared.js';
+const log = createChildLogger('mcp:channel-bridge');
+// ─── Constants ────────────────────────────────────────────────────────────────
+// [PORT] openclaw L38-39
+const CLAUDE_PERMISSION_REPLY_RE = /^(yes|no)\s+([a-km-z]{5})$/i;
+const QUEUE_LIMIT = 1_000;
+// ─── CoreBlowChannelBridge ────────────────────────────────────────────────────
+// [PORT] openclaw L41-520 (OpenClawChannelBridge → CoreBlowChannelBridge)
+export class CoreBlowChannelBridge {
+    cfg;
+    params;
+    // [PORT] openclaw L42-57 — private state
+    gateway = null;
+    verbose;
+    claudeChannelMode;
+    queue = [];
+    pendingWaiters = new Set();
+    pendingClaudePermissions = new Map();
+    pendingApprovals = new Map();
+    server = null;
+    cursor = 0;
+    closed = false;
+    ready = false;
+    started = false;
+    readyPromise;
+    resolveReady;
+    rejectReady;
+    readySettled = false;
+    constructor(cfg, params) {
+        this.cfg = cfg;
+        this.params = params;
+        this.verbose = params.verbose ?? false;
+        this.claudeChannelMode = params.claudeChannelMode ?? 'auto';
+        this.readyPromise = new Promise((resolve, reject) => {
+            this.resolveReady = resolve;
+            this.rejectReady = reject;
+        });
+    }
+    // [PORT] openclaw L77-79
+    setServer(server) {
+        this.server = server;
+    }
+    // [PORT] openclaw L81-138
+    async start() {
+        if (this.started) {
+            await this.readyPromise;
+            return;
+        }
+        this.started = true;
+        try {
+            // Dynamic imports to avoid circular deps — gateway modules not always needed
+            const { GatewayClient } = await import('../gateway/client.js');
+            const { resolveGatewayConnectionAuth } = await import('../gateway/connection-auth.js');
+            const { APPROVALS_SCOPE, READ_SCOPE, WRITE_SCOPE } = await import('../gateway/method-scopes.js');
+            const { VERSION } = await import('../version.js');
+            // Resolve URL from explicit override or config gateway settings
+            // [ADAPT] openclaw uses buildGatewayConnectionDetails (call.js) — not in CoreBlow;
+            //         CoreBlow resolves URL directly from params or config.
+            const gatewayUrl = this.params.gatewayUrl ??
+                (typeof this.cfg.gateway === 'object' && this.cfg.gateway !== null
+                    ? this.cfg.gateway.url
+                    : undefined) ??
+                'ws://127.0.0.1:18789';
+            // [ADAPT] ConnectionAuthOptions does not take token/password directly.
+            // Explicit params are passed to GatewayClient; config-based creds are fallback.
+            const configCreds = await resolveGatewayConnectionAuth({
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                config: this.cfg,
+            });
+            const creds = {
+                token: this.params.gatewayToken ?? configCreds.token,
+                password: this.params.gatewayPassword ?? configCreds.password,
+            };
+            if (this.closed) {
+                this.resolveReadyOnce();
+                return;
+            }
+            this.gateway = new GatewayClient({
+                url: gatewayUrl,
+                token: creds.token,
+                password: creds.password,
+                clientName: GATEWAY_CLIENT_NAMES.CLI,
+                clientDisplayName: 'CoreBlow MCP',
+                clientVersion: VERSION,
+                mode: GATEWAY_CLIENT_MODES.CLI,
+                scopes: [READ_SCOPE, WRITE_SCOPE, APPROVALS_SCOPE],
+                onEvent: (event) => {
+                    void this.handleGatewayEvent(event);
+                },
+                onHelloOk: () => {
+                    void this.handleHelloOk();
+                },
+                onConnectError: (error) => {
+                    this.rejectReadyOnce(error instanceof Error ? error : new Error(String(error)));
+                },
+                onClose: (code, reason) => {
+                    if (!this.ready && !this.closed) {
+                        this.rejectReadyOnce(new Error(`gateway closed before ready (${code}): ${reason}`));
+                    }
+                },
+            });
+            this.gateway.start();
+            await this.readyPromise;
+        }
+        catch (err) {
+            this.rejectReadyOnce(err instanceof Error ? err : new Error(String(err)));
+        }
+    }
+    // [PORT] openclaw L140-142
+    async waitUntilReady() {
+        await this.readyPromise;
+    }
+    // [PORT] openclaw L144-160
+    async close() {
+        if (this.closed) {
+            return;
+        }
+        this.closed = true;
+        this.resolveReadyOnce();
+        for (const waiter of this.pendingWaiters) {
+            if (waiter.timeout) {
+                clearTimeout(waiter.timeout);
+            }
+            waiter.resolve(null);
+        }
+        this.pendingWaiters.clear();
+        const gateway = this.gateway;
+        this.gateway = null;
+        await gateway?.stopAndWait().catch(() => undefined);
+    }
+    // ─── Conversation APIs ────────────────────────────────────────────────────
+    // [PORT] openclaw L162-225
+    async listConversations(params) {
+        await this.waitUntilReady();
+        const response = await this.requestGateway('sessions.list', {
+            limit: params?.limit ?? 50,
+            search: params?.search,
+            includeDerivedTitles: params?.includeDerivedTitles ?? true,
+            includeLastMessage: params?.includeLastMessage ?? true,
+        });
+        const requestedChannel = toText(params?.channel)?.toLowerCase();
+        return (response.sessions ?? [])
+            .map(toConversation)
+            .filter((conversation) => Boolean(conversation))
+            .filter((conversation) => requestedChannel ? conversation.channel.toLowerCase() === requestedChannel : true);
+    }
+    async getConversation(sessionKey) {
+        const normalizedSessionKey = sessionKey.trim();
+        if (!normalizedSessionKey) {
+            return null;
+        }
+        const conversations = await this.listConversations({ limit: 500, includeLastMessage: true });
+        return (conversations.find((conversation) => conversation.sessionKey === normalizedSessionKey) ?? null);
+    }
+    async readMessages(sessionKey, limit = 20) {
+        await this.waitUntilReady();
+        const response = await this.requestGateway('chat.history', {
+            sessionKey,
+            limit,
+        });
+        return response.messages ?? [];
+    }
+    async sendMessage(params) {
+        const conversation = await this.getConversation(params.sessionKey);
+        if (!conversation) {
+            throw new Error(`Conversation not found for session ${params.sessionKey}`);
+        }
+        return await this.requestGateway('send', {
+            to: conversation.to,
+            channel: conversation.channel,
+            accountId: conversation.accountId,
+            threadId: conversation.threadId == null ? undefined : String(conversation.threadId),
+            message: params.text,
+            sessionKey: conversation.sessionKey,
+            idempotencyKey: randomUUID(),
+        });
+    }
+    // ─── Approval APIs ────────────────────────────────────────────────────────
+    // [PORT] openclaw L227-248
+    listPendingApprovals() {
+        return [...this.pendingApprovals.values()].toSorted((a, b) => {
+            return (a.createdAtMs ?? 0) - (b.createdAtMs ?? 0);
+        });
+    }
+    async respondToApproval(params) {
+        if (params.kind === 'exec') {
+            return await this.requestGateway('exec.approval.resolve', {
+                id: params.id,
+                decision: params.decision,
+            });
+        }
+        return await this.requestGateway('plugin.approval.resolve', {
+            id: params.id,
+            decision: params.decision,
+        });
+    }
+    // ─── Event Queue APIs ─────────────────────────────────────────────────────
+    // [PORT] openclaw L250-276
+    pollEvents(filter, limit = 20) {
+        const events = this.queue.filter((event) => matchEventFilter(event, filter)).slice(0, limit);
+        const nextCursor = events.at(-1)?.cursor ?? filter.afterCursor;
+        return { events, nextCursor };
+    }
+    async waitForEvent(filter, timeoutMs = 30_000) {
+        const existing = this.queue.find((event) => matchEventFilter(event, filter));
+        if (existing) {
+            return existing;
+        }
+        return await new Promise((resolve) => {
+            const waiter = {
+                filter,
+                resolve: (value) => {
+                    this.pendingWaiters.delete(waiter);
+                    resolve(value);
+                },
+                timeout: null,
+            };
+            if (timeoutMs > 0) {
+                waiter.timeout = setTimeout(() => {
+                    waiter.resolve(null);
+                }, timeoutMs);
+            }
+            this.pendingWaiters.add(waiter);
+        });
+    }
+    // ─── Claude Permission Request ────────────────────────────────────────────
+    // [PORT] openclaw L279-301
+    async handleClaudePermissionRequest(params) {
+        this.pendingClaudePermissions.set(params.requestId, {
+            toolName: params.toolName,
+            description: params.description,
+            inputPreview: params.inputPreview,
+        });
+        this.enqueue({
+            cursor: this.nextCursor(),
+            type: 'claude_permission_request',
+            requestId: params.requestId,
+            toolName: params.toolName,
+            description: params.description,
+            inputPreview: params.inputPreview,
+        });
+        if (this.verbose) {
+            log.info({ requestId: params.requestId }, 'coreblow mcp: pending Claude permission');
+        }
+    }
+    // ─── Private: Gateway RPC ─────────────────────────────────────────────────
+    async requestGateway(method, params) {
+        if (!this.gateway) {
+            throw new Error('Gateway client is not ready');
+        }
+        return await this.gateway.request(method, params);
+    }
+    async sendNotification(notification) {
+        if (!this.server || this.closed) {
+            return;
+        }
+        try {
+            await this.server.server.notification(notification);
+        }
+        catch (error) {
+            if (this.verbose && !this.closed) {
+                log.warn({ method: notification.method, error }, 'coreblow mcp: notification failed');
+            }
+        }
+    }
+    async handleHelloOk() {
+        try {
+            await this.requestGateway('sessions.subscribe', {});
+            this.ready = true;
+            this.resolveReadyOnce();
+        }
+        catch (error) {
+            this.rejectReadyOnce(error instanceof Error ? error : new Error(String(error)));
+        }
+    }
+    resolveReadyOnce() {
+        if (this.readySettled) {
+            return;
+        }
+        this.readySettled = true;
+        this.resolveReady();
+    }
+    rejectReadyOnce(error) {
+        if (this.readySettled) {
+            return;
+        }
+        this.readySettled = true;
+        this.rejectReady(error);
+    }
+    nextCursor() {
+        this.cursor += 1;
+        return this.cursor;
+    }
+    enqueue(event) {
+        this.queue.push(event);
+        while (this.queue.length > QUEUE_LIMIT) {
+            this.queue.shift();
+        }
+        for (const waiter of this.pendingWaiters) {
+            if (!matchEventFilter(event, waiter.filter)) {
+                continue;
+            }
+            if (waiter.timeout) {
+                clearTimeout(waiter.timeout);
+            }
+            waiter.resolve(event);
+        }
+    }
+    trackApproval(kind, payload) {
+        const id = normalizeApprovalId(payload.id);
+        if (!id) {
+            return;
+        }
+        this.pendingApprovals.set(id, {
+            kind,
+            id,
+            request: payload.request && typeof payload.request === 'object'
+                ? payload.request
+                : undefined,
+            createdAtMs: typeof payload.createdAtMs === 'number' ? payload.createdAtMs : undefined,
+            expiresAtMs: typeof payload.expiresAtMs === 'number' ? payload.expiresAtMs : undefined,
+        });
+    }
+    resolveTrackedApproval(payload) {
+        const id = normalizeApprovalId(payload.id);
+        if (id) {
+            this.pendingApprovals.delete(id);
+        }
+    }
+    async handleGatewayEvent(event) {
+        switch (event.event) {
+            case 'session.message':
+                await this.handleSessionMessageEvent(event.payload);
+                return;
+            case 'exec.approval.requested': {
+                const raw = (event.payload ?? {});
+                this.trackApproval('exec', raw);
+                this.enqueue({ cursor: this.nextCursor(), type: 'exec_approval_requested', raw });
+                return;
+            }
+            case 'exec.approval.resolved': {
+                const raw = (event.payload ?? {});
+                this.resolveTrackedApproval(raw);
+                this.enqueue({ cursor: this.nextCursor(), type: 'exec_approval_resolved', raw });
+                return;
+            }
+            case 'plugin.approval.requested': {
+                const raw = (event.payload ?? {});
+                this.trackApproval('plugin', raw);
+                this.enqueue({ cursor: this.nextCursor(), type: 'plugin_approval_requested', raw });
+                return;
+            }
+            case 'plugin.approval.resolved': {
+                const raw = (event.payload ?? {});
+                this.resolveTrackedApproval(raw);
+                this.enqueue({ cursor: this.nextCursor(), type: 'plugin_approval_resolved', raw });
+            }
+        }
+    }
+    async handleSessionMessageEvent(payload) {
+        const sessionKey = toText(payload.sessionKey);
+        if (!sessionKey) {
+            return;
+        }
+        const { extractFirstTextBlock } = await import('../shared/chat-envelope.js');
+        const conversation = toConversation({
+            key: sessionKey,
+            lastChannel: toText(payload.lastChannel),
+            lastTo: toText(payload.lastTo),
+            lastAccountId: toText(payload.lastAccountId),
+            lastThreadId: payload.lastThreadId,
+        }) ?? undefined;
+        const role = toText(payload.message?.role);
+        const text = extractFirstTextBlock(payload.message);
+        const permissionMatch = text ? CLAUDE_PERMISSION_REPLY_RE.exec(text) : null;
+        if (permissionMatch) {
+            const requestId = permissionMatch[2]?.toLowerCase();
+            if (requestId && this.pendingClaudePermissions.has(requestId)) {
+                this.pendingClaudePermissions.delete(requestId);
+                await this.sendNotification({
+                    method: 'notifications/claude/channel/permission',
+                    params: {
+                        request_id: requestId,
+                        behavior: permissionMatch[1]?.toLowerCase().startsWith('y') ? 'allow' : 'deny',
+                    },
+                });
+                return;
+            }
+        }
+        this.enqueue({
+            cursor: this.nextCursor(),
+            type: 'message',
+            sessionKey,
+            conversation,
+            messageId: toText(payload.messageId),
+            messageSeq: typeof payload.messageSeq === 'number' ? payload.messageSeq : undefined,
+            role,
+            text,
+            raw: payload,
+        });
+        if (!this.shouldEmitClaudeChannel(role, conversation)) {
+            return;
+        }
+        await this.sendNotification({
+            method: 'notifications/claude/channel',
+            params: {
+                content: text ?? '[non-text message]',
+                meta: {
+                    session_key: sessionKey,
+                    channel: conversation?.channel ?? '',
+                    to: conversation?.to ?? '',
+                    account_id: conversation?.accountId ?? '',
+                    thread_id: conversation?.threadId == null ? '' : String(conversation.threadId),
+                    message_id: toText(payload.messageId) ?? '',
+                },
+            },
+        });
+    }
+    shouldEmitClaudeChannel(role, conversation) {
+        if (this.claudeChannelMode === 'off') {
+            return false;
+        }
+        if (role !== 'user') {
+            return false;
+        }
+        return Boolean(conversation);
+    }
+}
+//# sourceMappingURL=channel-bridge.js.map

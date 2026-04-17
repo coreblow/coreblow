@@ -1,0 +1,90 @@
+/**
+ * cli/program/build-program.ts
+ *
+ * Entry point untuk Commander.js CLI program CoreBlow.
+ * [PORT] openclaw-main/src/cli/program/build-program.ts
+ * Adaptasi: branding CoreBlow, registerCoreBlowCommands
+ */
+import { Command } from 'commander';
+import { VERSION } from '../../version.js';
+import { createProgramContext, setProgramContext } from './program-context.js';
+// ─── buildProgram ─────────────────────────────────────────────────────────────
+/**
+ * Build the CoreBlow Commander.js CLI program.
+ * Called from src/index.ts → dist/index.js → coreblow.mjs
+ */
+export function buildProgram() {
+    const program = new Command();
+    program
+        .name('coreblow')
+        .description('CoreBlow — AI-powered messaging gateway')
+        .version(VERSION, '-V, --version', 'Print version and exit')
+        .helpOption('-h, --help', 'Display help')
+        .enablePositionalOptions();
+    const ctx = createProgramContext();
+    setProgramContext(program, ctx);
+    // Register all sub-commands
+    registerCoreBlowCommands(program);
+    return program;
+}
+/**
+ * Register all subcommands on the program (async — awaited before parse).
+ */
+async function registerCoreBlowCommands(program) {
+    // ── Gateway ──
+    const { registerGatewayCli } = await import('../gateway-cli.js');
+    registerGatewayCli(program);
+    // ── MCP ──
+    const { registerMcpCli } = await import('../mcp-cli.js');
+    registerMcpCli(program);
+    // ── Config ──
+    const { registerConfigCli } = await import('../config-cli.js');
+    registerConfigCli(program);
+    // ── Plugins (optional) ──
+    try {
+        const mod = await import('../plugin-commands.js');
+        const fn = mod['registerPluginCli'];
+        if (typeof fn === 'function')
+            fn(program);
+    }
+    catch {
+        // plugin-commands.ts may not export registerPluginCli — ignore
+    }
+}
+/**
+ * Build program with all subcommands registered (async version).
+ */
+async function buildProgramAsync() {
+    const program = new Command();
+    program
+        .name('coreblow')
+        .description('CoreBlow — AI-powered messaging gateway')
+        .version(VERSION, '-V, --version', 'Print version and exit')
+        .helpOption('-h, --help', 'Display help')
+        .enablePositionalOptions();
+    const ctx = createProgramContext();
+    setProgramContext(program, ctx);
+    await registerCoreBlowCommands(program);
+    return program;
+}
+/**
+ * Build and run the program from process.argv.
+ * This is called directly from dist/index.js when coreblow.mjs loads it.
+ */
+export async function runProgram() {
+    const { findRoutedCommand } = await import('./routes.js');
+    const argv = process.argv;
+    const path = argv.slice(2).filter((a) => !a.startsWith('-'));
+    // Fast-path: try RouteSpec match first (no Commander overhead)
+    const route = findRoutedCommand(path);
+    if (route) {
+        const ok = await route.run(argv);
+        if (ok)
+            return;
+        // If route returns false → fall through to Commander
+    }
+    // Full Commander parse — await all subcommands registered first
+    const program = await buildProgramAsync();
+    await program.parseAsync(argv);
+}
+//# sourceMappingURL=build-program.js.map

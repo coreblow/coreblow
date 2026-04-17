@@ -1,0 +1,29 @@
+/**
+ * media-understanding/video.ts
+ * Video analysis engine with frame extraction.
+ * Ported from CoreBlow reference src/media-understanding/video.ts.
+ */
+import type { VideoDescriptionRequest } from './types.js';
+/**
+ * Build video analysis parameters.
+ */
+export declare function buildVideoAnalysisParams(request: VideoDescriptionRequest, cfg?: Record<string, unknown>): {
+    prompt: string;
+    model: string;
+    maxTokens: number;
+    sampleFrames: number;
+    includeAudio: boolean;
+};
+/**
+ * Calculate optimal frame sample points for video analysis.
+ */
+export declare function calculateFrameSamplePoints(durationSec: number, frameCount: number): number[];
+/**
+ * Build a composite video analysis prompt.
+ */
+export declare function buildCompositeVideoPrompt(params: {
+    basePrompt: string;
+    frameDescriptions: string[];
+    audioTranscription?: string;
+}): string;
+//# sourceMappingURL=video.d.ts.map

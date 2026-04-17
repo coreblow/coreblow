@@ -1,0 +1,12 @@
+export function respondInvalidParams({ respond, method }) {
+    respond({ ok: false, error: { code: "INVALID_PARAMS", message: `Invalid params for ${method}` } });
+}
+export async function respondUnavailableOnThrow(respond, block) {
+    try {
+        await block();
+    }
+    catch (err) {
+        respond({ ok: false, error: { code: "UNAVAILABLE", message: (err instanceof Error ? err.message : String(err)) } });
+    }
+}
+//# sourceMappingURL=nodes.helpers.js.map

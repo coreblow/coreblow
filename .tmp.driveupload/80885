@@ -1,0 +1,22 @@
+/**
+ * Discord Voice Player — Plays audio resources in voice channels.
+ */
+export type PlayerState = 'idle' | 'playing' | 'paused' | 'stopped';
+export declare class VoicePlayer {
+    private state;
+    private currentResource?;
+    private volume;
+    play(url: string, title: string): boolean;
+    pause(): boolean;
+    resume(): boolean;
+    stop(): void;
+    setVolume(vol: number): void;
+    getVolume(): number;
+    getState(): PlayerState;
+    getCurrent(): {
+        url: string;
+        title: string;
+        durationMs: number;
+    } | null;
+}
+//# sourceMappingURL=player.d.ts.map

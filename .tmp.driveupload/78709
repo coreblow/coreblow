@@ -1,0 +1,14 @@
+/**
+ * logging/log-levels.ts
+ */
+export declare const LOG_LEVELS: {
+    readonly trace: 0;
+    readonly debug: 1;
+    readonly info: 2;
+    readonly warn: 3;
+    readonly error: 4;
+    readonly fatal: 5;
+};
+export type LogLevel = keyof typeof LOG_LEVELS;
+export declare function shouldLog(messageLevel: LogLevel, configLevel: LogLevel): boolean;
+//# sourceMappingURL=log-levels.d.ts.map

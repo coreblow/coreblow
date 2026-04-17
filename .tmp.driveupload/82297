@@ -1,0 +1,4 @@
+export function createEndpoint(method, pathPrefix, handler) {
+    return { method, pathPrefix, handler };
+}
+//# sourceMappingURL=http-endpoint-helpers.js.map

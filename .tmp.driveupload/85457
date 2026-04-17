@@ -1,0 +1,88 @@
+export interface SessionRow {
+    id: string;
+    channel: string;
+    model: string;
+    createdAt: number;
+}
+export interface QueueEvent {
+    cursor?: number;
+    type: string;
+    channel?: string;
+    sessionKey?: string;
+    messageId?: string;
+    content?: string;
+    role?: string;
+    pending?: PendingApproval;
+    timestamp?: number;
+    data?: unknown;
+    raw?: unknown;
+    requestId?: string;
+    toolName?: string;
+    description?: string;
+    inputPreview?: string;
+    text?: string;
+}
+export interface WaitFilter {
+    type?: string;
+    channel?: string;
+    sessionKey?: string;
+    types?: string[];
+}
+export interface ConversationDescriptor {
+    id?: string;
+    sessionKey: string;
+    channel: string;
+    startedAt?: number;
+    lastActivity: number;
+    displayName?: string;
+    derivedTitle?: string;
+    lastMessagePreview?: string;
+}
+export interface PendingApproval {
+    id: string;
+    tool?: string;
+    args?: unknown;
+    kind?: string;
+    request?: Record<string, unknown>;
+    createdAtMs?: number;
+    expiresAtMs?: number;
+}
+export interface SessionListResult {
+    conversations?: ConversationDescriptor[];
+    total?: number;
+    sessions?: unknown[];
+}
+export interface ClaudeChannelMode {
+    enabled?: boolean;
+}
+export interface ClaudePermissionRequest {
+    requestId: string;
+    toolName: string;
+    description?: string;
+    inputPreview?: string;
+}
+export interface ApprovalDecision {
+    approved: boolean;
+    [key: string]: unknown;
+}
+export interface ChatHistoryResult {
+    messages: unknown[];
+}
+export interface SessionMessagePayload {
+    sessionKey: string;
+    content: string;
+    role?: string;
+}
+export declare function toText(value: unknown): string | undefined;
+export declare function resolveMessageId(entry: Record<string, unknown>): string | undefined;
+export declare function summarizeResult(label: string, count: number): {
+    content: Array<{
+        type: "text";
+        text: string;
+    }>;
+};
+export declare function extractAttachmentsFromMessage(message: unknown): unknown[];
+export declare function toConversation(row: SessionRow): ConversationDescriptor | null;
+export declare function matchEventFilter(event: QueueEvent, filter: WaitFilter): boolean;
+export declare function normalizeApprovalId(value: unknown): string | undefined;
+//# sourceMappingURL=channel-types.d.ts.map

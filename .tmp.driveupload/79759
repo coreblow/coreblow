@@ -1,0 +1,85 @@
+/**
+ * CoreBlow — API Playground
+ *
+ * Interactive API testing environment that builds
+ * request forms from API definitions, tracks history,
+ * and provides response formatting.
+ */
+/**
+ * CoreBlow API Playground
+ */
+export class ApiPlayground {
+    history = [];
+    maxHistory = 100;
+    idCounter = 0;
+    savedRequests = new Map();
+    /**
+     * Create a request.
+     */
+    createRequest(endpoint, method, headers, body) {
+        return {
+            id: `req-${++this.idCounter}`, endpoint, method,
+            headers: { 'Content-Type': 'application/json', ...headers },
+            body, timestamp: Date.now(),
+        };
+    }
+    /**
+     * Record a response for a request.
+     */
+    recordResponse(request, status, body, durationMs, headers) {
+        const response = {
+            requestId: request.id, status,
+            headers: headers ?? {}, body,
+            durationMs, size: JSON.stringify(body).length,
+        };
+        const entry = { request, response };
+        this.history.push(entry);
+        if (this.history.length > this.maxHistory)
+            this.history = this.history.slice(-this.maxHistory);
+        return entry;
+    }
+    /**
+     * Save a request for reuse.
+     */
+    saveRequest(name, request) {
+        this.savedRequests.set(name, request);
+    }
+    /**
+     * Load a saved request.
+     */
+    loadRequest(name) {
+        return this.savedRequests.get(name) ?? null;
+    }
+    /**
+     * Format response for display.
+     */
+    formatResponse(response) {
+        const lines = [
+            `HTTP ${response.status}`,
+            `Duration: ${response.durationMs}ms`,
+            `Size: ${response.size} bytes`,
+            ``,
+            typeof response.body === 'string' ? response.body : JSON.stringify(response.body, null, 2),
+        ];
+        return lines.join('\n');
+    }
+    /**
+     * Get history.
+     */
+    getHistory(limit) {
+        return this.history.slice(-(limit ?? 20));
+    }
+    /**
+     * List saved requests.
+     */
+    listSaved() {
+        return Array.from(this.savedRequests.keys());
+    }
+    /**
+     * Clear history.
+     */
+    clearHistory() { this.history = []; }
+    /** Count history */
+    count() { return this.history.length; }
+}
+//# sourceMappingURL=api-playground.js.map

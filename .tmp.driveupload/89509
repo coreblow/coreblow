@@ -1,0 +1,3 @@
+/** Workspace directory resolution. */
+export { getWorkspaceDirs } from './workspace-dirs.js';
+//# sourceMappingURL=workspace-dir.js.map

@@ -1,0 +1,3 @@
+import type { CoreBlowConfig, GatewayLogger } from "./gateway-types.js";
+export declare function logGatewayStartupDiagnostics(log: GatewayLogger, cfg: CoreBlowConfig, port: number): void;
+//# sourceMappingURL=server-startup-log.d.ts.map

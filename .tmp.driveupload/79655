@@ -1,0 +1,26 @@
+/**
+ * extensions/session-manager.ts
+ * Session manager extension runtime.
+ * Ported from CoreBlow reference src/agents/pi-extensions/session-manager-runtime-registry.ts.
+ */
+export interface SessionManagerExtension {
+    id: string;
+    onSessionCreate?: (sessionId: string, metadata: Record<string, unknown>) => Promise<void>;
+    onSessionResume?: (sessionId: string) => Promise<void>;
+    onSessionEnd?: (sessionId: string) => Promise<void>;
+    onSessionExport?: (sessionId: string) => Promise<Record<string, unknown>>;
+    onSessionImport?: (sessionId: string, data: Record<string, unknown>) => Promise<void>;
+}
+export declare class SessionManagerRegistry {
+    private managers;
+    register(manager: SessionManagerExtension): void;
+    unregister(id: string): boolean;
+    get(id: string): SessionManagerExtension | undefined;
+    list(): SessionManagerExtension[];
+    notifyCreate(sessionId: string, metadata: Record<string, unknown>): Promise<void>;
+    notifyResume(sessionId: string): Promise<void>;
+    notifyEnd(sessionId: string): Promise<void>;
+    exportAll(sessionId: string): Promise<Record<string, Record<string, unknown>>>;
+    importAll(sessionId: string, data: Record<string, Record<string, unknown>>): Promise<void>;
+}
+//# sourceMappingURL=session-manager.d.ts.map

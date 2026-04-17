@@ -1,0 +1,90 @@
+/**
+ * media-understanding/types.ts
+ * Core types for multi-modal media analysis.
+ * Ported from CoreBlow reference src/media-understanding/types.ts.
+ */
+export type MediaType = 'image' | 'audio' | 'video' | 'document';
+export type MediaMimeType = string;
+export interface MediaDescriptionRequest {
+    type: MediaType;
+    source: MediaSource;
+    prompt?: string;
+    model?: string;
+    provider?: string;
+    maxTokens?: number;
+    agentDir?: string;
+}
+export type MediaSource = {
+    kind: 'url';
+    url: string;
+} | {
+    kind: 'base64';
+    data: string;
+    mimeType: MediaMimeType;
+} | {
+    kind: 'file';
+    path: string;
+} | {
+    kind: 'buffer';
+    buffer: Buffer;
+    mimeType: MediaMimeType;
+};
+export interface MediaDescriptionResult {
+    description: string;
+    model: string;
+    provider: string;
+    tokens?: {
+        prompt: number;
+        completion: number;
+        total: number;
+    };
+    durationMs: number;
+    cached: boolean;
+}
+export interface ImageDescriptionRequest extends Omit<MediaDescriptionRequest, 'type'> {
+    type: 'image';
+    detail?: 'auto' | 'low' | 'high';
+}
+export interface ImageDescriptionResult extends MediaDescriptionResult {
+    dimensions?: {
+        width: number;
+        height: number;
+    };
+}
+export interface AudioTranscriptionRequest {
+    source: MediaSource;
+    model?: string;
+    provider?: string;
+    language?: string;
+    prompt?: string;
+}
+export interface AudioTranscriptionResult {
+    text: string;
+    language?: string;
+    model: string;
+    provider: string;
+    durationMs: number;
+    segments?: Array<{
+        start: number;
+        end: number;
+        text: string;
+    }>;
+}
+export interface VideoDescriptionRequest extends Omit<MediaDescriptionRequest, 'type'> {
+    type: 'video';
+    sampleFrames?: number;
+    includeAudio?: boolean;
+}
+export interface VideoDescriptionResult extends MediaDescriptionResult {
+    duration?: number;
+    frameCount?: number;
+    audioTranscription?: string;
+}
+export interface MediaUnderstandingScope {
+    allowedTypes: MediaType[];
+    maxFileSizeBytes: number;
+    maxImageDimensionPx: number;
+    maxVideoDurationSec: number;
+    maxAudioDurationSec: number;
+}
+//# sourceMappingURL=types.d.ts.map

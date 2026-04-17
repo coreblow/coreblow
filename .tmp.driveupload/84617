@@ -1,0 +1,57 @@
+/**
+ * plugin-sdk/channel-reply-pipeline.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/channel-reply-pipeline.ts
+ *
+ * Reply prefix options and typing callback utilities for channel plugins.
+ */
+/** Create reply prefix options from config and routing context. */
+export function createReplyPrefixOptions(params) {
+    return {
+        prefix: null,
+        prefixContext: {
+            agentId: params.agentId,
+            channelId: params.channel,
+            accountId: params.accountId,
+        },
+    };
+}
+export function createTypingCallbacks(params) {
+    return {
+        startTyping: params.startTyping
+            ? async () => {
+                try {
+                    await params.startTyping();
+                }
+                catch (err) {
+                    params.onError?.(err);
+                }
+            }
+            : undefined,
+        stopTyping: params.stopTyping
+            ? async () => {
+                try {
+                    await params.stopTyping();
+                }
+                catch (err) {
+                    params.onError?.(err);
+                }
+            }
+            : undefined,
+    };
+}
+export function createChannelReplyPipeline(params) {
+    return {
+        ...createReplyPrefixOptions({
+            cfg: params.cfg,
+            agentId: params.agentId,
+            channel: params.channel,
+            accountId: params.accountId,
+        }),
+        ...(params.typingCallbacks
+            ? { typingCallbacks: params.typingCallbacks }
+            : params.typing
+                ? { typingCallbacks: createTypingCallbacks(params.typing) }
+                : {}),
+    };
+}
+//# sourceMappingURL=channel-reply-pipeline.js.map

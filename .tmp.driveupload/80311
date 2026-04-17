@@ -1,0 +1,90 @@
+/**
+ * CoreBlow — Webhook Manager
+ *
+ * Manages outgoing webhooks for event notifications.
+ * Supports retry logic, payload signing, delivery tracking,
+ * and webhook health monitoring.
+ */
+/** Webhook endpoint */
+export interface WebhookEndpoint {
+    id: string;
+    url: string;
+    events: string[];
+    secret?: string;
+    active: boolean;
+    createdAt: number;
+    deliveries: number;
+    failures: number;
+    lastDelivery?: number;
+}
+/** Delivery record */
+export interface DeliveryRecord {
+    id: string;
+    webhookId: string;
+    event: string;
+    status: 'success' | 'failed' | 'pending';
+    statusCode?: number;
+    durationMs: number;
+    timestamp: number;
+    retries: number;
+}
+/**
+ * CoreBlow Webhook Manager
+ */
+export declare class WebhookManager {
+    private webhooks;
+    private deliveries;
+    private maxDeliveries;
+    private idCounter;
+    /**
+     * Register a webhook.
+     */
+    register(url: string, events: string[], secret?: string): WebhookEndpoint;
+    /**
+     * Fire an event to matching webhooks.
+     */
+    fire(event: string, payload: unknown): Promise<DeliveryRecord[]>;
+    /**
+     * Get a webhook.
+     */
+    get(id: string): WebhookEndpoint | null;
+    /**
+     * Enable/disable a webhook.
+     */
+    setActive(id: string, active: boolean): boolean;
+    /**
+     * Delete a webhook.
+     */
+    delete(id: string): boolean;
+    /**
+     * Sign a payload.
+     */
+    signPayload(payload: string, secret: string): string;
+    /**
+     * Get delivery history.
+     */
+    getDeliveries(webhookId?: string, limit?: number): DeliveryRecord[];
+    /**
+     * Get webhook stats.
+     */
+    getStats(): {
+        total: number;
+        active: number;
+        totalDeliveries: number;
+        totalFailures: number;
+    };
+    /**
+     * List webhooks.
+     */
+    list(): Array<{
+        id: string;
+        url: string;
+        events: string[];
+        active: boolean;
+    }>;
+    /** Count */
+    count(): number;
+    private deliver;
+    private recordDelivery;
+}
+//# sourceMappingURL=webhook-manager.d.ts.map

@@ -1,0 +1,32 @@
+/**
+ * agents/tool-catalog.ts
+ * Tool catalog — registry of available tools for agents.
+ */
+export type ToolCategory = 'file' | 'exec' | 'search' | 'browser' | 'mcp' | 'plugin' | 'system' | 'custom';
+export interface ToolDefinition {
+    name: string;
+    description: string;
+    category: ToolCategory;
+    inputSchema?: Record<string, unknown>;
+    requiresApproval?: boolean;
+    riskLevel?: 'safe' | 'moderate' | 'dangerous';
+    tags?: string[];
+    enabled?: boolean;
+}
+export declare class ToolCatalog {
+    private tools;
+    register(tool: ToolDefinition): void;
+    unregister(name: string): boolean;
+    get(name: string): ToolDefinition | undefined;
+    has(name: string): boolean;
+    list(): ToolDefinition[];
+    listEnabled(): ToolDefinition[];
+    listByCategory(category: ToolCategory): ToolDefinition[];
+    listByRisk(level: string): ToolDefinition[];
+    setEnabled(name: string, enabled: boolean): boolean;
+    size(): number;
+    categories(): ToolCategory[];
+    toJSON(): ToolDefinition[];
+    buildToolPrompt(): string;
+}
+//# sourceMappingURL=tool-catalog.d.ts.map

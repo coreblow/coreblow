@@ -1,0 +1,16 @@
+export type PathAction = 'read' | 'write' | 'delete' | 'list';
+export interface PathPolicyRule {
+    pattern: string;
+    actions: PathAction[];
+    allow: boolean;
+}
+export declare class PathPolicy {
+    private rules;
+    constructor(rules?: PathPolicyRule[]);
+    addRule(rule: PathPolicyRule): void;
+    check(filePath: string, action: PathAction): {
+        allowed: boolean;
+        reason?: string;
+    };
+}
+//# sourceMappingURL=path-policy.d.ts.map

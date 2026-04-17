@@ -1,0 +1,18 @@
+export declare const PROVIDER_STORE_VERSION = 1;
+export declare const PROVIDER_PROFILE_FILENAME = "provider-profiles.json";
+/**
+ * File lock options untuk provider-profiles.json.
+ * Port identik dari OpenClaw AUTH_STORE_LOCK_OPTIONS.
+ */
+export declare const PROVIDER_STORE_LOCK_OPTIONS: {
+    readonly retries: {
+        readonly retries: 10;
+        readonly factor: 2;
+        readonly minTimeout: 100;
+        readonly maxTimeout: 10000;
+        readonly randomize: true;
+    };
+    readonly stale: 30000;
+};
+export declare const log: import("pino").Logger;
+//# sourceMappingURL=constants.d.ts.map

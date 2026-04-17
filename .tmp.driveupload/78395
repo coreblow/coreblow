@@ -1,0 +1,23 @@
+/**
+ * config/byte-size.ts
+ * Human-readable byte size parsing.
+ * Ported from CoreBlow reference src/config/byte-size.ts.
+ */
+/**
+ * Parse a human-readable byte size string into bytes.
+ * Accepts: "1.5GB", "512kb", "100mb", "1024", etc.
+ */
+export declare function parseByteSize(value: string, opts?: {
+    defaultUnit?: string;
+}): number;
+/**
+ * Parse an optional byte-size value from config.
+ * Accepts non-negative numbers or strings like "2mb".
+ */
+export declare function parseNonNegativeByteSize(value: unknown): number | null;
+export declare function isValidNonNegativeByteSizeString(value: string): boolean;
+/**
+ * Format bytes into a human-readable string.
+ */
+export declare function formatByteSize(bytes: number): string;
+//# sourceMappingURL=byte-size.d.ts.map

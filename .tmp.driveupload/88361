@@ -1,0 +1,30 @@
+/**
+ * agents/tool-mutation.ts
+ * Track tool mutations for undo/audit.
+ */
+export type MutationType = 'create' | 'update' | 'delete' | 'move' | 'exec';
+export interface ToolMutation {
+    id: string;
+    toolName: string;
+    type: MutationType;
+    target: string;
+    timestamp: number;
+    details?: Record<string, unknown>;
+    reversible: boolean;
+}
+export declare class MutationTracker {
+    private mutations;
+    private maxHistory;
+    private counter;
+    constructor(maxHistory?: number);
+    record(mutation: Omit<ToolMutation, 'id' | 'timestamp'>): ToolMutation;
+    getHistory(): readonly ToolMutation[];
+    getRecent(n: number): ToolMutation[];
+    getByType(type: MutationType): ToolMutation[];
+    getByTool(toolName: string): ToolMutation[];
+    getReversible(): ToolMutation[];
+    count(): number;
+    clear(): void;
+    format(): string;
+}
+//# sourceMappingURL=tool-mutation.d.ts.map

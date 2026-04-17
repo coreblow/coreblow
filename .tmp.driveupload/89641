@@ -1,0 +1,3 @@
+/** Model config merge utilities. */
+export { mergeModelConfigs } from './models-config.js';
+//# sourceMappingURL=models-config.merge.d.ts.map

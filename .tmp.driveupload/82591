@@ -1,0 +1,344 @@
+/**
+ * plugins/marketplace-api.ts
+ *
+ * Plugin Marketplace API — REST-style controller for plugin lifecycle
+ * management: search, install, update, uninstall, enable/disable.
+ *
+ * Following CoreBlow's marketplace.ts (910 LOC) + install.ts (793 LOC)
+ * pattern, upgraded to CoreBlow OOP with unified API surface.
+ *
+ * This is NOT an HTTP server — it's a controller class exposing
+ * typed methods that can be mounted on any HTTP framework (Express,
+ * Fastify, Hono, etc.) or called directly from gateway internals.
+ *
+ * Responsibilities:
+ *   - Plugin search/browse/featured/categories
+ *   - Plugin install from npm/git/local/marketplace
+ *   - Plugin update with version diff
+ *   - Plugin uninstall with cleanup
+ *   - Plugin enable/disable toggling
+ *   - Plugin detail with full metadata + permissions + status
+ *   - Batch operations for admin dashboard
+ *   - Action audit trail
+ */
+import { createChildLogger } from '../utils/logger.js';
+import { PluginMarketplace } from './marketplace.js';
+import { PluginInstaller } from './install.js';
+import { PermissionManager } from './permission-manager.js';
+const log = createChildLogger('plugin:marketplace-api');
+// ─── MarketplaceApi ──────────────────────────────────────────────
+/**
+ * CoreBlow Plugin Marketplace API
+ *
+ * Unified REST-style controller for the full plugin lifecycle.
+ * Orchestrates marketplace (search/browse), installer (install/update/uninstall),
+ * and permission manager (grant/revoke on install).
+ */
+export class MarketplaceApi {
+    marketplace;
+    installer;
+    permissions;
+    enabledPlugins = new Set();
+    actionLog = [];
+    maxLogEntries = 500;
+    constructor(options) {
+        this.marketplace = options?.marketplace ?? new PluginMarketplace();
+        this.installer = options?.installer ?? new PluginInstaller();
+        this.permissions = options?.permissions ?? new PermissionManager();
+    }
+    // ─── Search & Browse ─────────────────────────────────────────
+    /**
+     * Search plugins in the marketplace catalog.
+     */
+    search(options) {
+        try {
+            const result = this.marketplace.search(options ?? {});
+            return this.ok(result);
+        }
+        catch (err) {
+            return this.fail('Search failed', err);
+        }
+    }
+    /**
+     * Get a specific plugin's detail with install/permission status.
+     */
+    getPluginDetail(pluginId) {
+        try {
+            const plugin = this.marketplace.getPlugin(pluginId);
+            if (!plugin) {
+                return this.fail(`Plugin not found: ${pluginId}`);
+            }
+            const installRecord = this.installer.getInstall(pluginId);
+            const installed = !!installRecord;
+            const enabled = this.enabledPlugins.has(pluginId);
+            const permSummary = this.permissions.getTrackedPlugins().includes(pluginId)
+                ? this.permissions.getPluginSummary(pluginId)
+                : null;
+            const detail = {
+                plugin,
+                installed,
+                enabled,
+                installedVersion: installRecord?.version,
+                latestVersion: plugin.version,
+                hasUpdate: installed && installRecord?.version !== plugin.version,
+                permissions: permSummary,
+                installPath: installRecord?.installPath,
+                installedAt: installRecord?.installedAt,
+            };
+            return this.ok(detail);
+        }
+        catch (err) {
+            return this.fail('Failed to get plugin detail', err);
+        }
+    }
+    /**
+     * Get featured plugins.
+     */
+    getFeatured() {
+        try {
+            return this.ok(this.marketplace.getFeatured());
+        }
+        catch (err) {
+            return this.fail('Failed to get featured', err);
+        }
+    }
+    /**
+     * Get marketplace categories.
+     */
+    getCategories() {
+        try {
+            return this.ok(this.marketplace.getCategories());
+        }
+        catch (err) {
+            return this.fail('Failed to get categories', err);
+        }
+    }
+    /**
+     * Get verified plugins only.
+     */
+    getVerified() {
+        try {
+            return this.ok(this.marketplace.getVerified());
+        }
+        catch (err) {
+            return this.fail('Failed to get verified', err);
+        }
+    }
+    // ─── Install / Uninstall / Update ────────────────────────────
+    /**
+     * Install a plugin.
+     */
+    async install(request) {
+        try {
+            let result;
+            switch (request.sourceType) {
+                case 'local':
+                    result = await this.installer.installFromLocal(request.source, request.targetDir);
+                    break;
+                case 'npm':
+                    result = await this.installer.installFromNpm(request.source, request.targetDir);
+                    break;
+                default:
+                    // Git and marketplace sources also use npm-based install
+                    result = await this.installer.installFromNpm(request.source, request.targetDir);
+                    break;
+            }
+            if (result.success) {
+                const pid = result.pluginId ?? request.pluginId;
+                // Auto-enable
+                if (request.autoEnable !== false) {
+                    this.enabledPlugins.add(pid);
+                }
+                // Auto-grant manifest permissions
+                if (request.grantPermissions) {
+                    const plugin = this.marketplace.getPlugin(pid);
+                    if (plugin?.permissions) {
+                        this.permissions.grantManifestPermissions(pid, plugin.permissions);
+                    }
+                }
+                this.logAction('install', pid, true, `Installed from ${request.sourceType}`);
+                log.info(`Plugin installed: ${pid}`);
+            }
+            else {
+                this.logAction('install', request.pluginId, false, result.error);
+            }
+            return this.ok(result);
+        }
+        catch (err) {
+            this.logAction('install', request.pluginId, false, String(err));
+            return this.fail('Install failed', err);
+        }
+    }
+    /**
+     * Uninstall a plugin.
+     */
+    async uninstall(pluginId) {
+        try {
+            const result = await this.installer.uninstall(pluginId);
+            if (result.success) {
+                this.enabledPlugins.delete(pluginId);
+                this.permissions.removePlugin(pluginId);
+                this.logAction('uninstall', pluginId, true);
+                log.info(`Plugin uninstalled: ${pluginId}`);
+            }
+            else {
+                this.logAction('uninstall', pluginId, false, result.error);
+            }
+            return this.ok(result);
+        }
+        catch (err) {
+            this.logAction('uninstall', pluginId, false, String(err));
+            return this.fail('Uninstall failed', err);
+        }
+    }
+    /**
+     * Check for plugin updates.
+     */
+    async checkUpdate(pluginId) {
+        try {
+            const result = await this.installer.checkUpdate(pluginId);
+            this.logAction('check-update', pluginId, result.success);
+            return this.ok(result);
+        }
+        catch (err) {
+            return this.fail('Update check failed', err);
+        }
+    }
+    // ─── Enable / Disable ────────────────────────────────────────
+    /**
+     * Enable a plugin.
+     */
+    enable(pluginId) {
+        this.enabledPlugins.add(pluginId);
+        this.logAction('enable', pluginId, true);
+        return this.ok({ pluginId, enabled: true });
+    }
+    /**
+     * Disable a plugin.
+     */
+    disable(pluginId) {
+        this.enabledPlugins.delete(pluginId);
+        this.logAction('disable', pluginId, true);
+        return this.ok({ pluginId, enabled: false });
+    }
+    /**
+     * Check if a plugin is enabled.
+     */
+    isEnabled(pluginId) {
+        return this.enabledPlugins.has(pluginId);
+    }
+    // ─── Batch Operations ────────────────────────────────────────
+    /**
+     * Batch install multiple plugins.
+     */
+    async batchInstall(requests) {
+        const results = [];
+        let succeeded = 0;
+        let failed = 0;
+        for (const req of requests) {
+            const response = await this.install(req);
+            if (response.ok && response.data?.success) {
+                results.push({ pluginId: req.pluginId, success: true });
+                succeeded++;
+            }
+            else {
+                results.push({ pluginId: req.pluginId, success: false, error: response.error ?? response.data?.error });
+                failed++;
+            }
+        }
+        return this.ok({ total: requests.length, succeeded, failed, results });
+    }
+    /**
+     * Batch uninstall multiple plugins.
+     */
+    async batchUninstall(pluginIds) {
+        const results = [];
+        let succeeded = 0;
+        let failed = 0;
+        for (const id of pluginIds) {
+            const response = await this.uninstall(id);
+            if (response.ok && response.data?.success) {
+                results.push({ pluginId: id, success: true });
+                succeeded++;
+            }
+            else {
+                results.push({ pluginId: id, success: false, error: response.error });
+                failed++;
+            }
+        }
+        return this.ok({ total: pluginIds.length, succeeded, failed, results });
+    }
+    /**
+     * Batch enable/disable.
+     */
+    batchSetEnabled(pluginIds, enabled) {
+        const results = [];
+        for (const id of pluginIds) {
+            if (enabled) {
+                this.enabledPlugins.add(id);
+            }
+            else {
+                this.enabledPlugins.delete(id);
+            }
+            results.push({ pluginId: id, success: true });
+        }
+        return this.ok({ total: pluginIds.length, succeeded: pluginIds.length, failed: 0, results });
+    }
+    // ─── Stats & Logs ────────────────────────────────────────────
+    /**
+     * Get marketplace API statistics.
+     */
+    getStats() {
+        return this.ok({
+            catalogSize: this.marketplace.count(),
+            installedCount: this.installer.getInstalls().size,
+            enabledCount: this.enabledPlugins.size,
+            totalActions: this.actionLog.length,
+            pendingPermissions: this.permissions.getPendingRequests().length,
+        });
+    }
+    /**
+     * Get action log.
+     */
+    getActionLog(limit = 50) {
+        return this.ok(this.actionLog.slice(-limit));
+    }
+    /**
+     * Get all installed plugins with their status.
+     */
+    getInstalled() {
+        const installs = this.installer.getInstalls();
+        const result = Array.from(installs.entries()).map(([id, record]) => ({
+            pluginId: id,
+            version: record.version,
+            enabled: this.enabledPlugins.has(id),
+            installPath: record.installPath,
+        }));
+        return this.ok(result);
+    }
+    /**
+     * Get enabled plugin IDs.
+     */
+    getEnabledPlugins() {
+        return Array.from(this.enabledPlugins);
+    }
+    // ─── Accessors ───────────────────────────────────────────────
+    getMarketplace() { return this.marketplace; }
+    getInstaller() { return this.installer; }
+    getPermissions() { return this.permissions; }
+    // ─── Private ─────────────────────────────────────────────────
+    ok(data) {
+        return { ok: true, data, timestamp: Date.now() };
+    }
+    fail(message, err) {
+        const error = err instanceof Error ? `${message}: ${err.message}` : message;
+        return { ok: false, error, timestamp: Date.now() };
+    }
+    logAction(action, pluginId, success, detail) {
+        this.actionLog.push({ action, pluginId, timestamp: Date.now(), success, detail });
+        if (this.actionLog.length > this.maxLogEntries) {
+            this.actionLog = this.actionLog.slice(-this.maxLogEntries);
+        }
+    }
+}
+//# sourceMappingURL=marketplace-api.js.map

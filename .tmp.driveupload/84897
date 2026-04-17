@@ -1,0 +1,10 @@
+/**
+ * plugin-sdk/whatsapp-shared.ts
+ * [ADAPT] openclaw-main
+ */
+export type { CoreBlowConfig } from "../config/config.js";
+export * from "./whatsapp-targets.js";
+export declare function createWhatsAppOutboundBase(_cfg: Record<string, unknown>): unknown;
+export declare function resolveWhatsAppMentionStripRegexes(_p: unknown): RegExp[];
+export declare function resolveWhatsAppHeartbeatRecipients(_p: unknown): string[];
+//# sourceMappingURL=whatsapp-shared.d.ts.map

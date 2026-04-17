@@ -1,0 +1,149 @@
+/**
+ * CoreBlow — Hybrid Search v2
+ *
+ * Combines vector similarity and BM25 keyword scoring using either:
+ *  - Reciprocal Rank Fusion (RRF) — default, rank-based, bias-free
+ *  - Linear weight fusion — legacy, score-based
+ *
+ * Upgrades from v1:
+ *  - Naive `includes()` → proper BM25 (TF-IDF saturation)
+ *  - Linear-only fusion → RRF option (superiority over CoreBlow)
+ *  - Query expansion integration
+ */
+import { cosineSimilarity } from './embeddings.js';
+import { BM25Index } from './bm25.js';
+import { fuseVectorAndKeyword } from './rrf.js';
+// ─── Default Config ─────────────────────────────────────────────
+const DEFAULT_CONFIG = {
+    fusionMode: 'rrf',
+    vectorWeight: 0.6,
+    keywordWeight: 0.3,
+    rrfK: 60,
+    recencyBoost: false,
+    topK: 10,
+    minScore: 0,
+};
+// ─── Hybrid Search Engine ───────────────────────────────────────
+export class HybridSearch {
+    config;
+    bm25Index;
+    constructor(config) {
+        this.config = { ...DEFAULT_CONFIG, ...config };
+        this.bm25Index = new BM25Index(this.config.bm25);
+    }
+    /**
+     * Build the BM25 index from a set of entries.
+     * Call this before search(), or whenever documents change.
+     */
+    buildIndex(entries) {
+        this.bm25Index.clear();
+        for (const entry of entries) {
+            this.bm25Index.addDocument(entry.id, entry.text);
+        }
+    }
+    /**
+     * Search entries using hybrid vector + BM25 scoring.
+     */
+    search(entries, queryEmbedding, queryText) {
+        // Ensure BM25 index is built
+        if (this.bm25Index.stats().documents === 0) {
+            this.buildIndex(entries);
+        }
+        if (this.config.fusionMode === 'rrf') {
+            return this.searchRRF(entries, queryEmbedding, queryText);
+        }
+        return this.searchLinear(entries, queryEmbedding, queryText);
+    }
+    /**
+     * RRF-based hybrid search (default).
+     * Fuses vector and keyword rankings using Reciprocal Rank Fusion.
+     */
+    searchRRF(entries, queryEmbedding, queryText) {
+        const entryMap = new Map(entries.map(e => [e.id, e]));
+        // Rank by vector similarity
+        const vectorScores = new Map();
+        const vectorRanked = entries
+            .map(entry => {
+            const score = cosineSimilarity(queryEmbedding, entry.embedding);
+            vectorScores.set(entry.id, score);
+            return { id: entry.id, score };
+        })
+            .sort((a, b) => b.score - a.score);
+        // Rank by BM25
+        const bm25Results = this.bm25Index.search(queryText, entries.length);
+        const keywordScores = new Map(bm25Results.map((r) => [r.id, r.score]));
+        const keywordRanked = bm25Results;
+        // Fuse with RRF
+        const fused = fuseVectorAndKeyword(vectorScores, keywordScores, this.config.rrfK);
+        // Map back to entries with scores
+        let results = fused
+            .map(f => {
+            const entry = entryMap.get(f.id);
+            if (!entry)
+                return null;
+            return {
+                entry,
+                score: f.score,
+                vectorScore: vectorScores.get(f.id) ?? 0,
+                keywordScore: keywordScores.get(f.id) ?? 0,
+                fusionMode: 'rrf',
+            };
+        })
+            .filter((r) => r !== null);
+        // Apply importance + recency boost
+        results = this.applyBoosts(results);
+        return results
+            .filter((r) => r.score >= this.config.minScore)
+            .slice(0, this.config.topK);
+    }
+    /**
+     * Linear weight hybrid search (legacy, compatible with CoreBlow pattern).
+     */
+    searchLinear(entries, queryEmbedding, queryText) {
+        let results = entries.map(entry => {
+            const vectorScore = cosineSimilarity(queryEmbedding, entry.embedding);
+            const keywordScore = this.bm25Index.scoreDocument(entry.id, queryText);
+            // Normalize BM25 score to [0,1] range for linear combination
+            const maxBM25 = Math.max(1, ...entries.map(e => this.bm25Index.scoreDocument(e.id, queryText)));
+            const normalizedKeyword = maxBM25 > 0 ? keywordScore / maxBM25 : 0;
+            const score = vectorScore * this.config.vectorWeight + normalizedKeyword * this.config.keywordWeight;
+            return {
+                entry,
+                score,
+                vectorScore,
+                keywordScore,
+                fusionMode: 'linear',
+            };
+        });
+        results = this.applyBoosts(results);
+        return results
+            .filter((r) => r.score >= this.config.minScore)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, this.config.topK);
+    }
+    /**
+     * Apply importance and recency boosts to results.
+     */
+    applyBoosts(results) {
+        return results.map((r) => {
+            let boostedScore = r.score + r.entry.metadata.importance * 0.1;
+            if (this.config.recencyBoost) {
+                const ageMs = Date.now() - r.entry.metadata.timestamp;
+                const ageDays = ageMs / (1000 * 60 * 60 * 24);
+                // Decay over 90 days
+                boostedScore += Math.max(0, 0.05 * (1 - ageDays / 90));
+            }
+            return { ...r, score: boostedScore };
+        });
+    }
+    /**
+     * Get BM25 index statistics.
+     */
+    getStats() {
+        return {
+            fusionMode: this.config.fusionMode,
+            bm25: this.bm25Index.stats(),
+        };
+    }
+}
+//# sourceMappingURL=hybrid-search.js.map

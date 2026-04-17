@@ -1,0 +1,1 @@
+{"version":3,"file":"subagent-announce-output.d.ts","sourceRoot":"","sources":["../../src/agents/subagent-announce-output.ts"],"names":[],"mappings":"AAAA,+CAA+C;AAC/C,OAAO,EAAE,kBAAkB,EAAE,MAAM,wBAAwB,CAAC;AAC5D,wBAAgB,sBAAsB,CAAC,aAAa,EAAE,KAAK,CAAC;IAAE,OAAO,EAAE,MAAM,CAAC;IAAC,MAAM,EAAE,MAAM,CAAC;IAAC,IAAI,EAAE,MAAM,CAAA;CAAE,CAAC,GAAG,MAAM,CAAyF"}

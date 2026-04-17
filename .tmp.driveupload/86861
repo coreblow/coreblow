@@ -1,0 +1,20 @@
+/**
+ * canvas-host/file-resolver.ts — Safe File Resolution
+ *
+ * Resolves URL paths to real file system paths within a root directory.
+ * Prevents path traversal attacks by validating resolved paths stay
+ * within the allowed root.
+ *
+ * Ported from CoreBlow reference src/canvas-host/file-resolver.ts (51 LOC).
+ */
+export declare function normalizeUrlPath(rawPath: string): string;
+export interface SafeFileResult {
+    realPath: string;
+    data: Buffer;
+}
+/**
+ * Safely resolve and open a file within a root directory.
+ * Returns null if path traversal is detected or file doesn't exist.
+ */
+export declare function resolveFileWithinRoot(rootReal: string, urlPath: string): Promise<SafeFileResult | null>;
+//# sourceMappingURL=file-resolver.d.ts.map

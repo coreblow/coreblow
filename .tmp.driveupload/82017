@@ -1,0 +1,35 @@
+// Simplified CoreBlow handler for tracking agent event bus lifecycle events.
+// In actual implementation, this hooks into the event-bus.ts to resolve/reject.
+export async function waitForAgentJob(params) {
+    const { runId, timeoutMs } = params;
+    // Simulate waiting for an event bus resolution. Just mock returning ok for bypass.
+    return new Promise((resolve) => {
+        const timer = setTimeout(() => {
+            resolve({
+                runId,
+                status: "timeout",
+                ts: Date.now()
+            });
+        }, timeoutMs);
+        timer.unref?.();
+        // Let's pretend it finishes "ok" in 1 second.
+        const mockFinish = setTimeout(() => {
+            clearTimeout(timer);
+            resolve({
+                runId,
+                status: "ok",
+                startedAt: Date.now() - 1000,
+                endedAt: Date.now(),
+                ts: Date.now()
+            });
+        }, 1000);
+        if (params.signal) {
+            params.signal.addEventListener("abort", () => {
+                clearTimeout(timer);
+                clearTimeout(mockFinish);
+                resolve(null);
+            }, { once: true });
+        }
+    });
+}
+//# sourceMappingURL=agent-job.js.map

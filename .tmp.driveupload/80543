@@ -1,0 +1,29 @@
+/**
+ * src/channels/discord/embeds/response.ts
+ * AI response embed — auto-format with provider colors
+ */
+import type { DiscordEmbed } from '../types.js';
+import { RichResponse } from '../components/rich-response.js';
+/**
+ * Get provider color from model name
+ */
+export declare function getProviderColor(model?: string): number;
+/**
+ * Create an AI response embed
+ */
+export declare function createResponseEmbed(text: string, opts?: {
+    model?: string;
+    tokens?: number;
+    latencyMs?: number;
+}): DiscordEmbed;
+/**
+ * Convert AI response to RichResponse (with pagination for long text)
+ */
+export declare function formatAIResponse(opts: {
+    text: string;
+    model?: string;
+    tokens?: number;
+    latencyMs?: number;
+    sessionId?: string;
+}): RichResponse;
+//# sourceMappingURL=response.d.ts.map

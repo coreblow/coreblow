@@ -1,0 +1,32 @@
+/**
+ * pairing/pairing-labels.ts
+ * Human-readable labels and formatting for pairing state.
+ * Ported from CoreBlow reference src/pairing/pairing-labels.ts.
+ */
+import type { PairingRequest } from './pairing-store.js';
+export type PairingStatus = 'pending' | 'accepted' | 'rejected' | 'expired';
+/**
+ * Format a pairing request for CLI/dashboard display.
+ */
+export declare function formatPairingRequest(request: PairingRequest): string;
+/**
+ * Format pending requests list for display.
+ */
+export declare function formatPendingList(requests: PairingRequest[]): string;
+/**
+ * Format allowed list for display.
+ */
+export declare function formatAllowedList(senderIds: string[]): string;
+/**
+ * Get human-readable channel label for pairing UI.
+ */
+export declare function getChannelPairingLabel(channel: string): string;
+/**
+ * Build a pairing summary for the status command.
+ */
+export declare function buildPairingSummary(params: {
+    pendingCount: number;
+    pairedCount: number;
+    channel?: string;
+}): string;
+//# sourceMappingURL=pairing-labels.d.ts.map

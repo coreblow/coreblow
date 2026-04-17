@@ -1,0 +1,1 @@
+{"version":3,"file":"file-lock.d.ts","sourceRoot":"","sources":["../../../src/infra/lock/file-lock.ts"],"names":[],"mappings":"AAG0B,qBAAa,QAAQ;IAAG,OAAO,CAAC,IAAI,CAAS;gBAAa,IAAI,EAAE,MAAM;IAAkC,OAAO,IAAI,OAAO;IAAkH,OAAO;IAA+E,QAAQ,IAAI,OAAO;CAAuC"}

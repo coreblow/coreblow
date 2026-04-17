@@ -1,0 +1,111 @@
+/**
+ * CoreBlow Gateway — Channel Policy: Command Gating
+ *
+ * Port identik dari OpenClaw `src/channels/command-gating.ts`.
+ *
+ * Pure functions untuk memutuskan apakah sender diizinkan
+ * menggunakan control commands (e.g. /clear, /model, /status).
+ *
+ * Mendukung access group system — jika access groups diaktifkan,
+ * hanya member access group yang bisa menjalankan commands.
+ *
+ * @see openclaw-main/src/channels/command-gating.ts
+ */
+// ─── Core Resolution ─────────────────────────────────────────────────────────
+/**
+ * Resolve apakah command diizinkan dari array authorizers.
+ *
+ * Logic (identik OpenClaw `resolveCommandAuthorizedFromAuthorizers()`):
+ *
+ * **Jika `useAccessGroups` = false:**
+ * - mode `'allow'` → true
+ * - mode `'deny'` → false
+ * - mode `'configured'` → true jika ada authorizer yang configured AND allowed
+ *
+ * **Jika `useAccessGroups` = true:**
+ * - true hanya jika ada authorizer yang configured AND allowed
+ *
+ * @example
+ * // Access groups off, default allow:
+ * resolveCommandAuthorized({ useAccessGroups: false, authorizers: [] });
+ * // → true
+ *
+ * // Access groups on, user ada di group:
+ * resolveCommandAuthorized({
+ *   useAccessGroups: true,
+ *   authorizers: [{ configured: true, allowed: true }],
+ * });
+ * // → true
+ */
+export function resolveCommandAuthorized(params) {
+    const { useAccessGroups, authorizers } = params;
+    const mode = params.modeWhenOff ?? 'allow';
+    if (!useAccessGroups) {
+        if (mode === 'allow')
+            return true;
+        if (mode === 'deny')
+            return false;
+        // mode === 'configured'
+        const anyConfigured = authorizers.some((a) => a.configured);
+        if (!anyConfigured)
+            return true;
+        return authorizers.some((a) => a.configured && a.allowed);
+    }
+    return authorizers.some((a) => a.configured && a.allowed);
+}
+/**
+ * Full gate check: apakah command authorized AND apakah harus di-block.
+ *
+ * `shouldBlock` = pesan mengandung command AND commands diizinkan config
+ *               AND command tersebut TIDAK authorized.
+ *
+ * Identik `resolveControlCommandGate()`.
+ *
+ * @example
+ * resolveControlCommandGate({
+ *   useAccessGroups: true,
+ *   authorizers: [{ configured: true, allowed: false }],
+ *   allowTextCommands: true,
+ *   hasControlCommand: true,
+ * });
+ * // { commandAuthorized: false, shouldBlock: true }
+ */
+export function resolveControlCommandGate(params) {
+    const commandAuthorized = resolveCommandAuthorized({
+        useAccessGroups: params.useAccessGroups,
+        authorizers: params.authorizers,
+        modeWhenOff: params.modeWhenOff,
+    });
+    const shouldBlock = params.allowTextCommands &&
+        params.hasControlCommand &&
+        !commandAuthorized;
+    return { commandAuthorized, shouldBlock };
+}
+/**
+ * Dual gate — dua authorizer (misal: DM allowlist + group allowlist).
+ *
+ * Identik `resolveDualTextControlCommandGate()`.
+ *
+ * @example
+ * // DM sender ada di allowlist, group tidak dikonfigurasi:
+ * resolveDualCommandGate({
+ *   useAccessGroups: true,
+ *   primaryConfigured: true, primaryAllowed: true,     // DM allowlist check
+ *   secondaryConfigured: false, secondaryAllowed: false, // group check
+ *   hasControlCommand: true,
+ * });
+ * // { commandAuthorized: true, shouldBlock: false }
+ */
+export function resolveDualCommandGate(params) {
+    return resolveControlCommandGate({
+        useAccessGroups: params.useAccessGroups,
+        authorizers: [
+            { configured: params.primaryConfigured, allowed: params.primaryAllowed },
+            { configured: params.secondaryConfigured, allowed: params.secondaryAllowed },
+        ],
+        allowTextCommands: true,
+        hasControlCommand: params.hasControlCommand,
+        modeWhenOff: params.modeWhenOff,
+    });
+}
+//# sourceMappingURL=command-gating.js.map

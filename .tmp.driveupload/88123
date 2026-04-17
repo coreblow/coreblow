@@ -1,0 +1,11 @@
+/** Context passed to spawned agents. */
+export interface SpawnedContext {
+    parentSessionId: string;
+    depth: number;
+    task: string;
+    model?: string;
+    tools?: string[];
+    maxTurns?: number;
+}
+export declare function createSpawnedContext(parentSessionId: string, task: string, depth?: number): SpawnedContext;
+//# sourceMappingURL=spawned-context.d.ts.map

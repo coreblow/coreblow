@@ -1,0 +1,5 @@
+/**
+ * tts/ssml-build.ts
+ */
+export declare function ssml(text: string): string;
+//# sourceMappingURL=ssml-build.d.ts.map

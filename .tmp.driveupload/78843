@@ -1,0 +1,23 @@
+/**
+ * commands/impl/types.ts
+ * Shared types for all command implementations.
+ */
+/** Parse flags from args: --flag, --key=value, -f */
+export function parseFlags(args) {
+    const positional = [];
+    const flags = {};
+    for (const arg of args) {
+        if (arg.startsWith('--')) {
+            const [key, ...val] = arg.slice(2).split('=');
+            flags[key] = val.length > 0 ? val.join('=') : true;
+        }
+        else if (arg.startsWith('-') && arg.length === 2) {
+            flags[arg.slice(1)] = true;
+        }
+        else {
+            positional.push(arg);
+        }
+    }
+    return { positional, flags };
+}
+//# sourceMappingURL=types.js.map

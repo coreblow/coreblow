@@ -1,0 +1,8 @@
+/** Claude-specific CLI runner. */
+export interface ClaudeCliConfig {
+    apiKey?: string;
+    model?: string;
+    maxTokens?: number;
+}
+export declare function resolveClaudeCliConfig(env?: Record<string, string | undefined>): ClaudeCliConfig;
+//# sourceMappingURL=claude-cli-runner.d.ts.map

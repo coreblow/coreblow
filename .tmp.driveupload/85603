@@ -1,0 +1,57 @@
+/**
+ * CoreBlow — Boundary File Read
+ *
+ * Ported from CoreBlow reference's boundary-file-read.ts.
+ * Combines boundary path check + safe open into one API.
+ *
+ * Used for plugin manifest loading:
+ *   1. Check file is inside plugin root directory (boundary check)
+ *   2. Check realpath doesn't escape via symlink
+ *   3. Open with O_NOFOLLOW + hardlink rejection (safe-open)
+ *   4. Read content from verified fd
+ *
+ * This is the SINGLE entry point for all plugin file reads.
+ */
+import fs from 'node:fs';
+export type BoundaryFileReadResult = {
+    ok: true;
+    content: string;
+    path: string;
+    stat: fs.Stats;
+} | {
+    ok: false;
+    error: string;
+};
+export type BoundaryFileReadParams = {
+    /** Absolute path to the file to read */
+    filePath: string;
+    /** Root directory that the file must be inside of */
+    rootDir: string;
+    /** Human-readable label for error messages */
+    boundaryLabel: string;
+    /** Reject files with nlink > 1 (hardlink attack prevention) */
+    rejectHardlinks?: boolean;
+    /** Maximum file size in bytes */
+    maxBytes?: number;
+};
+/**
+ * Read a file with full boundary + security validation.
+ *
+ * CoreBlow pattern (boundary-file-read.ts + safe-open-sync.ts combined):
+ *   1. Resolve rootDir to canonical path
+ *   2. Check filePath is lexically inside rootDir
+ *   3. Resolve filePath to canonical path (follow symlinks)
+ *   4. Check canonical path is still inside rootDir (symlink escape detection)
+ *   5. openVerifiedFileSync() with O_NOFOLLOW + hardlink rejection
+ *   6. Read content from verified fd
+ *   7. Close fd
+ */
+export declare function readBoundaryFileSync(params: BoundaryFileReadParams): BoundaryFileReadResult;
+/**
+ * Match failure reasons (CoreBlow pattern from matchBoundaryFileOpenFailure).
+ */
+export declare function matchBoundaryReadFailure<T>(result: BoundaryFileReadResult, handlers: {
+    ok: (content: string, path: string) => T;
+    error: (error: string) => T;
+}): T;
+//# sourceMappingURL=boundary-file-read.d.ts.map

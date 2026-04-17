@@ -1,0 +1,28 @@
+/**
+ * plugin-sdk/signal-surface.ts
+ * [ADAPT] openclaw-main — Stub surface for @coreblow/signal.
+ */
+export type SignalProbe = {
+    ok: boolean;
+    latencyMs?: number;
+};
+export type ResolvedSignalAccount = {
+    accountId: string;
+    number?: string | null;
+};
+export type SignalSender = {
+    number?: string;
+    uuid?: string;
+};
+export declare function monitorSignalProvider(_p: unknown): Promise<void>;
+export declare function probeSignal(_p: unknown): Promise<SignalProbe>;
+export declare function sendMessageSignal(_p: unknown): Promise<unknown>;
+export declare function sendReactionSignal(_p: unknown): Promise<void>;
+export declare function removeReactionSignal(_p: unknown): Promise<void>;
+export declare function listSignalAccountIds(_cfg: Record<string, unknown>): string[];
+export declare function listEnabledSignalAccounts(_cfg: Record<string, unknown>): string[];
+export declare function resolveDefaultSignalAccountId(_cfg: Record<string, unknown>): string | null;
+export declare function isSignalSenderAllowed(_p: unknown): boolean;
+export declare function resolveSignalReactionLevel(_p: unknown): string;
+export declare const signalMessageActions: unknown[];
+//# sourceMappingURL=signal-surface.d.ts.map

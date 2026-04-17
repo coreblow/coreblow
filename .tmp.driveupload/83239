@@ -1,0 +1,18 @@
+/** plugin-sdk/run-command.ts [ADAPT] openclaw-main */
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+const execFileAsync = promisify(execFile);
+export async function runPluginCommandWithTimeout(opts) {
+    const [command, ...args] = opts.argv;
+    if (!command)
+        return { code: 1, stdout: "", stderr: "command is required" };
+    try {
+        const { stdout, stderr } = await execFileAsync(command, args, { timeout: opts.timeoutMs, cwd: opts.cwd, env: opts.env });
+        return { code: 0, stdout: String(stdout), stderr: String(stderr) };
+    }
+    catch (err) {
+        const e = err;
+        return { code: e.code ?? 1, stdout: String(e.stdout ?? ""), stderr: String(e.stderr ?? e.message ?? "") };
+    }
+}
+//# sourceMappingURL=run-command.js.map

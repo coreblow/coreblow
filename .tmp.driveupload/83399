@@ -1,0 +1,3 @@
+/** plugin-sdk/tlon.ts [ADAPT] openclaw-main — Stub for @coreblow/tlon. */
+export declare function buildTlonProvider(_p: unknown): unknown;
+//# sourceMappingURL=tlon.d.ts.map

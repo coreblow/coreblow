@@ -1,0 +1,1 @@
+{"version":3,"file":"subagent-registry-state.d.ts","sourceRoot":"","sources":["../../src/agents/subagent-registry-state.ts"],"names":[],"mappings":"AAAA,qCAAqC;AACrC,MAAM,MAAM,aAAa,GAAG,OAAO,GAAG,QAAQ,GAAG,UAAU,GAAG,UAAU,CAAC;AACzE,wBAAgB,oBAAoB,CAAC,WAAW,EAAE,MAAM,EAAE,cAAc,EAAE,OAAO,GAAG,aAAa,CAAuH"}

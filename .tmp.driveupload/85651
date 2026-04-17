@@ -1,0 +1,63 @@
+/**
+ * CoreBlow — Connection Pool
+ *
+ * Manages reusable connections to external services
+ * (databases, APIs, etc.) with max pool size, idle
+ * timeout, health checks, and connection tracking.
+ */
+/** Pool connection */
+export interface PoolConnection {
+    id: string;
+    target: string;
+    status: 'idle' | 'active' | 'closed';
+    createdAt: number;
+    lastUsed: number;
+    useCount: number;
+}
+/** Pool options */
+export interface PoolOptions {
+    maxSize: number;
+    idleTimeoutMs: number;
+    acquireTimeoutMs: number;
+}
+/**
+ * CoreBlow Connection Pool
+ */
+export declare class ConnectionPool {
+    private connections;
+    private options;
+    private idCounter;
+    constructor(opts?: Partial<PoolOptions>);
+    /**
+     * Acquire a connection.
+     */
+    acquire(target: string): PoolConnection | null;
+    /**
+     * Release a connection back to pool.
+     */
+    release(connId: string): boolean;
+    /**
+     * Close a connection.
+     */
+    close(connId: string): boolean;
+    /**
+     * Evict idle connections past timeout.
+     */
+    evictIdle(): number;
+    /**
+     * Get pool stats.
+     */
+    getStats(): {
+        total: number;
+        active: number;
+        idle: number;
+        maxSize: number;
+    };
+    /**
+     * Drain all connections.
+     */
+    drain(): number;
+    /** Count */
+    count(): number;
+}
+//# sourceMappingURL=connection-pool.d.ts.map

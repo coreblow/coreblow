@@ -1,0 +1,27 @@
+/**
+ * agents/lanes.ts
+ * Execution lanes — concurrent slot management for parallel agents.
+ */
+export interface Lane {
+    id: string;
+    agentId: string;
+    status: 'idle' | 'busy' | 'paused';
+    startedAt?: number;
+    task?: string;
+}
+export declare class LaneManager {
+    private lanes;
+    private maxLanes;
+    constructor(maxLanes?: number);
+    acquire(agentId: string, task?: string): Lane | null;
+    release(laneId: string): boolean;
+    pause(laneId: string): boolean;
+    resume(laneId: string): boolean;
+    get(laneId: string): Lane | undefined;
+    list(): Lane[];
+    listBusy(): Lane[];
+    busyCount(): number;
+    availableSlots(): number;
+    clear(): void;
+}
+//# sourceMappingURL=lanes.d.ts.map

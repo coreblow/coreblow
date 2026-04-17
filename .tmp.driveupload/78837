@@ -1,0 +1,9 @@
+/**
+ * commands/handlers/tools.ts — Tool management commands
+ */
+import type { CommandContext } from '../types.js';
+export declare function handleToolsList(ctx: CommandContext): Promise<string>;
+export declare function handleToolsEnable(ctx: CommandContext): Promise<string>;
+export declare function handleToolsDisable(ctx: CommandContext): Promise<string>;
+export declare function handleToolsProfile(ctx: CommandContext): Promise<string>;
+//# sourceMappingURL=tools.d.ts.map

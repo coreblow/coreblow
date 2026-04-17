@@ -1,0 +1,110 @@
+/**
+ * plugins/dependency-graph.ts
+ *
+ * Plugin dependency resolution — builds a DAG of plugin dependencies,
+ * performs topological sort for correct load order, detects cycles,
+ * and validates version constraints.
+ */
+/** A dependency declaration in plugin.json */
+export interface PluginDependency {
+    /** Dependent plugin ID */
+    pluginId: string;
+    /** Semver version constraint (e.g., ">=1.0.0", "^2.0.0") */
+    versionConstraint?: string;
+    /** Optional: soft dependency (proceed without it) */
+    optional?: boolean;
+}
+/** Dependency graph node */
+export interface DependencyNode {
+    id: string;
+    version?: string;
+    dependencies: PluginDependency[];
+    dependents: string[];
+}
+/** Resolved load order result */
+export interface LoadOrderResult {
+    /** Topologically sorted plugin IDs (load in this order) */
+    order: string[];
+    /** Detected cycles */
+    cycles: string[][];
+    /** Missing required dependencies */
+    missing: Array<{
+        pluginId: string;
+        requiredBy: string;
+        versionConstraint?: string;
+    }>;
+    /** Optional dependencies that are missing */
+    optionalMissing: Array<{
+        pluginId: string;
+        requiredBy: string;
+    }>;
+    /** All warnings */
+    warnings: string[];
+    /** True if load order is valid (no cycles, no missing required deps) */
+    valid: boolean;
+}
+/** Parse semver into [major, minor, patch] */
+export declare function parseSemver(version: string): [number, number, number] | null;
+/** Compare two semver tuples: -1, 0, 1 */
+export declare function compareSemver(a: [number, number, number], b: [number, number, number]): number;
+/** Check if a version satisfies a constraint */
+export declare function satisfiesConstraint(version: string, constraint: string): boolean;
+/**
+ * CoreBlow Plugin Dependency Graph
+ *
+ * Builds a directed acyclic graph from plugin dependency declarations,
+ * performs topological sort for correct load order, detects cycles,
+ * and validates version constraints.
+ */
+export declare class DependencyGraph {
+    private nodes;
+    /**
+     * Add a plugin to the graph.
+     */
+    addPlugin(id: string, version?: string, dependencies?: PluginDependency[]): void;
+    /**
+     * Remove a plugin from the graph.
+     */
+    removePlugin(id: string): void;
+    /**
+     * Get a node by ID.
+     */
+    getNode(id: string): DependencyNode | undefined;
+    /**
+     * Get all nodes.
+     */
+    getNodes(): DependencyNode[];
+    /**
+     * Get direct dependencies of a plugin.
+     */
+    getDependencies(id: string): PluginDependency[];
+    /**
+     * Get plugins that depend on the given plugin.
+     */
+    getDependents(id: string): string[];
+    /**
+     * Get transitive dependencies (all dependencies, recursively).
+     */
+    getTransitiveDependencies(id: string): string[];
+    /**
+     * Resolve the correct load order via topological sort (Kahn's algorithm).
+     * Also detects cycles, missing deps, and version mismatches.
+     */
+    resolveLoadOrder(): LoadOrderResult;
+    /**
+     * Check if unloading a plugin is safe (no active dependents).
+     */
+    canUnload(id: string): {
+        safe: boolean;
+        blockedBy: string[];
+    };
+    /**
+     * Get the unload order for a plugin and its dependents (reverse topological).
+     */
+    getUnloadOrder(id: string): string[];
+    /** Number of plugins in the graph */
+    size(): number;
+    /** Clear the graph */
+    clear(): void;
+}
+//# sourceMappingURL=dependency-graph.d.ts.map

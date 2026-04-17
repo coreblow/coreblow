@@ -1,0 +1,5 @@
+/** Compaction test helpers. */
+export function createTestMessages(count) {
+    return Array.from({ length: count }, (_, i) => ({ role: i % 2 === 0 ? 'user' : 'assistant', content: `Message ${i}`, timestamp: Date.now() + i }));
+}
+//# sourceMappingURL=pi-embedded-subscribe.compaction-test-helpers.js.map

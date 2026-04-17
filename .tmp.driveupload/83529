@@ -1,0 +1,39 @@
+/**
+ * plugin-sdk/provider-auth-result.ts
+ * [PORT] openclaw-main/src/plugin-sdk/provider-auth-result.ts
+ *
+ * OAuth provider auth result builder.
+ */
+function buildAuthProfileId(params) {
+    const parts = [params.profilePrefix ?? params.providerId];
+    if (params.profileName)
+        parts.push(params.profileName);
+    return parts.join(':');
+}
+/** Build the standard auth result payload for OAuth-style provider login flows. */
+export function buildOauthProviderAuthResult(params) {
+    const email = params.email ?? undefined;
+    const displayName = params.displayName ?? undefined;
+    const profileId = buildAuthProfileId({
+        providerId: params.providerId,
+        profilePrefix: params.profilePrefix,
+        profileName: params.profileName ?? email,
+    });
+    const credential = {
+        type: 'oauth',
+        provider: params.providerId,
+        access: params.access,
+        ...(params.refresh ? { refresh: params.refresh } : {}),
+        ...(Number.isFinite(params.expires) ? { expires: params.expires } : {}),
+        ...(email ? { email } : {}),
+        ...(displayName ? { displayName } : {}),
+        ...params.credentialExtra,
+    };
+    return {
+        profiles: [{ profileId, credential }],
+        configPatch: params.configPatch ?? undefined,
+        defaultModel: params.defaultModel,
+        notes: params.notes,
+    };
+}
+//# sourceMappingURL=provider-auth-result.js.map

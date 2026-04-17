@@ -1,0 +1,30 @@
+/**
+ * channels/typing-policy.ts
+ * Typing policy resolution per context.
+ * Ported from CoreBlow reference src/auto-reply/reply/typing-policy.ts.
+ */
+export type TypingPolicy = 'auto' | 'always' | 'never' | 'heartbeat' | 'internal_webchat' | 'system_event';
+export type ResolveRunTypingPolicyParams = {
+    requestedPolicy?: TypingPolicy;
+    suppressTyping?: boolean;
+    isHeartbeat?: boolean;
+    originatingChannel?: string;
+    systemEvent?: boolean;
+};
+export type ResolvedRunTypingPolicy = {
+    typingPolicy: TypingPolicy;
+    suppressTyping: boolean;
+};
+/**
+ * Resolve the effective typing policy for a reply run.
+ */
+export declare function resolveRunTypingPolicy(params: ResolveRunTypingPolicyParams): ResolvedRunTypingPolicy;
+/**
+ * Should typing be shown for this policy?
+ */
+export declare function shouldShowTyping(policy: TypingPolicy): boolean;
+/**
+ * Resolve typing keepalive interval for a channel.
+ */
+export declare function resolveTypingIntervalMs(channel: string): number;
+//# sourceMappingURL=typing-policy.d.ts.map

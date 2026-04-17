@@ -1,0 +1,87 @@
+/**
+ * CoreBlow — Secret Watcher
+ *
+ * Monitors secrets (API keys, tokens) for rotation, expiry,
+ * and leakage detection. Provides rotation callbacks,
+ * expiry alerts, and secret validation.
+ */
+/** Secret entry */
+export interface SecretEntry {
+    key: string;
+    value: string;
+    /** Hash of value (never expose raw) */
+    hash: string;
+    provider?: string;
+    expiresAt?: number;
+    rotatedAt: number;
+    createdAt: number;
+    rotationCount: number;
+}
+/** Rotation callback */
+export type RotationCallback = (key: string, oldHash: string) => Promise<string | null>;
+/** Watcher alert */
+export interface SecretAlert {
+    type: 'expired' | 'expiring-soon' | 'rotated' | 'leaked';
+    key: string;
+    message: string;
+    timestamp: number;
+}
+/**
+ * CoreBlow Secret Watcher
+ */
+export declare class SecretWatcher {
+    private secrets;
+    private rotationCallbacks;
+    private alerts;
+    private maxAlerts;
+    /**
+     * Register a secret.
+     */
+    register(key: string, value: string, provider?: string, expiresAt?: number): void;
+    /**
+     * Get a secret value.
+     */
+    get(key: string): string | null;
+    /**
+     * Rotate a secret.
+     */
+    rotate(key: string, newValue: string): boolean;
+    /**
+     * Set rotation callback for auto-rotation.
+     */
+    onRotation(key: string, callback: RotationCallback): void;
+    /**
+     * Check all secrets for expiry.
+     */
+    checkExpiry(warningMs?: number): SecretAlert[];
+    /**
+     * Scan text for leaked secrets.
+     */
+    scanForLeaks(text: string): SecretAlert[];
+    /**
+     * Get masked value (shows only last 4 chars).
+     */
+    getMasked(key: string): string | null;
+    /**
+     * Delete a secret.
+     */
+    delete(key: string): boolean;
+    /**
+     * List secrets (masked).
+     */
+    list(): Array<{
+        key: string;
+        provider?: string;
+        masked: string;
+        rotationCount: number;
+    }>;
+    /**
+     * Get alerts.
+     */
+    getAlerts(limit?: number): SecretAlert[];
+    /** Count */
+    count(): number;
+    private hashValue;
+    private addAlert;
+}
+//# sourceMappingURL=secret-watcher.d.ts.map

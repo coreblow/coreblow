@@ -1,0 +1,21 @@
+/**
+ * cli/config-cli.ts
+ *
+ * Commander.js subcommand registrar untuk `coreblow config`.
+ * Juga mengeksport runConfigGet/runConfigUnset untuk RouteSpec fast-path.
+ *
+ * [PORT] openclaw-main/src/cli/config-cli.ts (adapted)
+ * Adaptasi: setConfigValue/unsetConfigValue via config-io.ts, no JSON5
+ */
+import type { Command } from 'commander';
+/** Fast-path handler for `coreblow config get <path>` */
+export declare function runConfigGet(params: {
+    path: string;
+    json?: boolean;
+}): Promise<void>;
+/** Fast-path handler for `coreblow config unset <path>` */
+export declare function runConfigUnset(params: {
+    path: string;
+}): Promise<void>;
+export declare function registerConfigCli(program: Command): void;
+//# sourceMappingURL=config-cli.d.ts.map

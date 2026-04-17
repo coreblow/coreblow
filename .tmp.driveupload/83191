@@ -1,0 +1,17 @@
+/** plugin-sdk/llm-task.ts [ADAPT] openclaw-main */
+export type LlmTaskOptions = {
+    model?: string;
+    systemPrompt?: string;
+    temperature?: number;
+    maxTokens?: number;
+};
+export type LlmTaskResult = {
+    text: string;
+    model: string;
+    usage?: {
+        inputTokens: number;
+        outputTokens: number;
+    };
+};
+export declare function runLlmTask(_prompt: string, _opts?: LlmTaskOptions): Promise<LlmTaskResult>;
+//# sourceMappingURL=llm-task.d.ts.map

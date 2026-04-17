@@ -1,0 +1,211 @@
+/**
+ * plugins/hot-reload-manager.ts
+ *
+ * Hot Reload Manager — Higher-level orchestration for live plugin updates
+ * without gateway restart.
+ *
+ * Following CoreBlow's config-reload.ts pattern (chokidar watcher +
+ * reload plans) upgraded to CoreBlow OOP with:
+ *   - State preservation across reloads (config snapshots)
+ *   - Health checks before/after reload
+ *   - Automatic rollback on failed reload
+ *   - Batch reload for dependency chains
+ *   - Reload policies (immediate, batched, manual)
+ *   - Event emission for monitoring
+ */
+import { type ReloadResult } from './hot-reload.js';
+import type { DependencyGraph } from './dependency-graph.js';
+/** Reload policy — controls when reloads happen */
+export type ReloadPolicy = 'immediate' | 'batched' | 'manual';
+/** Hot reload manager configuration */
+export interface HotReloadManagerConfig {
+    /** Reload policy (default: 'immediate') */
+    policy?: ReloadPolicy;
+    /** Batch window in ms for 'batched' policy (default: 1000) */
+    batchWindowMs?: number;
+    /** Max concurrent reloads (default: 1) */
+    maxConcurrent?: number;
+    /** Whether to run health checks after reload (default: true) */
+    healthCheckEnabled?: boolean;
+    /** Health check timeout in ms (default: 5000) */
+    healthCheckTimeoutMs?: number;
+    /** Whether to auto-rollback on failed health check (default: true) */
+    autoRollback?: boolean;
+    /** Max reload attempts before marking plugin as unhealthy (default: 3) */
+    maxRetries?: number;
+}
+/** Plugin state snapshot — preserved across reloads */
+export interface PluginStateSnapshot {
+    pluginId: string;
+    config: Record<string, unknown>;
+    version: string;
+    timestamp: number;
+    metadata?: Record<string, unknown>;
+}
+/** Health check result */
+export interface HealthCheckResult {
+    pluginId: string;
+    healthy: boolean;
+    duration: number;
+    error?: string;
+    checks: HealthCheckItem[];
+}
+/** Individual health check item */
+export interface HealthCheckItem {
+    name: string;
+    passed: boolean;
+    message?: string;
+}
+/** Reload plan — what to reload and in what order */
+export interface ReloadPlan {
+    pluginId: string;
+    dependents: string[];
+    order: string[];
+    timestamp: number;
+    reason: string;
+}
+/** Reload attempt record */
+export interface ReloadAttempt {
+    plan: ReloadPlan;
+    result: 'success' | 'failed' | 'rolled-back';
+    duration: number;
+    healthCheck?: HealthCheckResult;
+    error?: string;
+    timestamp: number;
+}
+/** Manager state */
+type ManagerState = 'idle' | 'active' | 'reloading' | 'stopped';
+/** Event types */
+export type HotReloadManagerEvent = {
+    type: 'reload-start';
+    plan: ReloadPlan;
+} | {
+    type: 'reload-success';
+    attempt: ReloadAttempt;
+} | {
+    type: 'reload-failed';
+    attempt: ReloadAttempt;
+} | {
+    type: 'rollback';
+    pluginId: string;
+    reason: string;
+} | {
+    type: 'health-check';
+    result: HealthCheckResult;
+} | {
+    type: 'policy-change';
+    from: ReloadPolicy;
+    to: ReloadPolicy;
+};
+type EventHandler = (event: HotReloadManagerEvent) => void;
+/**
+ * CoreBlow Hot Reload Manager
+ *
+ * Orchestrates live plugin updates with state preservation,
+ * health checks, automatic rollback, and dependency-aware ordering.
+ */
+export declare class HotReloadManager {
+    private config;
+    private state;
+    private snapshots;
+    private failCounts;
+    private reloadQueue;
+    private activeReloads;
+    private attempts;
+    private batchTimer;
+    private healthCheckers;
+    private reloadExecutor;
+    private eventHandlers;
+    private depGraph;
+    constructor(config?: HotReloadManagerConfig);
+    /**
+     * Set the dependency graph for ordered reloading.
+     */
+    setDependencyGraph(graph: DependencyGraph): void;
+    /**
+     * Set the reload executor — the function that actually reloads a plugin.
+     */
+    setReloadExecutor(executor: (pluginId: string) => Promise<ReloadResult>): void;
+    /**
+     * Register a health checker for a plugin.
+     */
+    registerHealthChecker(pluginId: string, checker: () => Promise<HealthCheckResult>): void;
+    /**
+     * Subscribe to reload events.
+     */
+    onEvent(handler: EventHandler): () => void;
+    /**
+     * Save a plugin state snapshot (called before reload).
+     */
+    saveSnapshot(snapshot: PluginStateSnapshot): void;
+    /**
+     * Get the last saved snapshot for a plugin.
+     */
+    getSnapshot(pluginId: string): PluginStateSnapshot | undefined;
+    /**
+     * Clear snapshot for a plugin.
+     */
+    clearSnapshot(pluginId: string): void;
+    /**
+     * Request a plugin reload.
+     * Behavior depends on the reload policy.
+     */
+    requestReload(pluginId: string, reason?: string): Promise<ReloadAttempt | null>;
+    /**
+     * Flush all queued reloads (for manual/batched policy).
+     */
+    flushQueue(): Promise<ReloadAttempt[]>;
+    /**
+     * Change the reload policy at runtime.
+     */
+    setPolicy(policy: ReloadPolicy): void;
+    /**
+     * Start the manager.
+     */
+    start(): void;
+    /**
+     * Stop the manager.
+     */
+    stop(): void;
+    getState(): ManagerState;
+    getPolicy(): ReloadPolicy;
+    getQueueLength(): number;
+    getActiveReloads(): string[];
+    getAttempts(): ReloadAttempt[];
+    getSnapshotCount(): number;
+    getFailCount(pluginId: string): number;
+    isHealthy(pluginId: string): boolean;
+    getStats(): {
+        state: ManagerState;
+        policy: ReloadPolicy;
+        totalAttempts: number;
+        successCount: number;
+        failCount: number;
+        rollbackCount: number;
+        queueLength: number;
+        activeReloads: number;
+        snapshots: number;
+    };
+    /**
+     * Build a reload plan with dependency ordering.
+     */
+    private buildReloadPlan;
+    /**
+     * Execute a reload plan.
+     */
+    private executeReloadPlan;
+    /**
+     * Run health check for a plugin.
+     */
+    private runHealthCheck;
+    /**
+     * Schedule a batch flush.
+     */
+    private scheduleBatchFlush;
+    /**
+     * Emit event to all handlers.
+     */
+    private emit;
+}
+export {};
+//# sourceMappingURL=hot-reload-manager.d.ts.map

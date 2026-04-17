@@ -1,0 +1,6 @@
+export const nodesInvokeResultHandlers = {
+    "node.invoke.result": async ({ params, respond }) => {
+        respond(true, { ok: true });
+    }
+};
+//# sourceMappingURL=nodes.handlers.invoke-result.js.map

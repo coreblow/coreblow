@@ -1,0 +1,5 @@
+#!/bin/bash
+set -e
+echo "Running pre-push checks..."
+npm test --if-present
+echo "✅ Pre-push checks passed"

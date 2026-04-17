@@ -1,0 +1,36 @@
+export class ToolPolicy {
+    rules = [];
+    defaultDecision = 'allow';
+    constructor(rules, defaultDecision) {
+        if (rules)
+            this.rules = [...rules].sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
+        if (defaultDecision)
+            this.defaultDecision = defaultDecision;
+    }
+    addRule(rule) {
+        this.rules.push(rule);
+        this.rules.sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
+    }
+    evaluate(toolName, args) {
+        for (const rule of this.rules) {
+            if (this.matchesPattern(toolName, rule.toolPattern)) {
+                return { decision: rule.decision, matchedRule: rule, reason: rule.reason };
+            }
+        }
+        return { decision: this.defaultDecision };
+    }
+    matchesPattern(name, pattern) {
+        if (pattern === '*')
+            return true;
+        if (pattern.endsWith('*'))
+            return name.startsWith(pattern.slice(0, -1));
+        if (pattern.startsWith('*'))
+            return name.endsWith(pattern.slice(1));
+        return name === pattern;
+    }
+    listRules() { return this.rules; }
+    clearRules() { this.rules = []; }
+}
+export const DANGEROUS_TOOLS = new Set(['rm', 'rmdir', 'format', 'mkfs', 'dd', 'fdisk']);
+export function isDangerousTool(name) { return DANGEROUS_TOOLS.has(name.toLowerCase()); }
+//# sourceMappingURL=tool-policy.js.map

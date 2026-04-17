@@ -1,0 +1,28 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.HTTPFetchError = exports.JSONParseError = exports.SignatureValidationFailed = void 0;
+class SignatureValidationFailed extends Error {
+    constructor(message, { signature } = {}) {
+        super(message);
+        this.name = this.constructor.name;
+        Object.assign(this, { signature });
+    }
+}
+exports.SignatureValidationFailed = SignatureValidationFailed;
+class JSONParseError extends Error {
+    constructor(message, { raw } = {}) {
+        super(message);
+        this.name = this.constructor.name;
+        Object.assign(this, { raw });
+    }
+}
+exports.JSONParseError = JSONParseError;
+class HTTPFetchError extends Error {
+    constructor(message, { status, statusText, headers, body }) {
+        super(message);
+        this.name = this.constructor.name;
+        Object.assign(this, { status, statusText, headers, body });
+    }
+}
+exports.HTTPFetchError = HTTPFetchError;
+//# sourceMappingURL=exceptions.js.map

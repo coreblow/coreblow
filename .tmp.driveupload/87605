@@ -1,0 +1,3 @@
+import type { CommandMatch } from '../commands-registry.types.js';
+export declare function matchCommand(text: string): CommandMatch | null;
+//# sourceMappingURL=match-command.d.ts.map

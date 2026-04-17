@@ -1,0 +1,17 @@
+interface ScoredResult {
+    entry: {
+        id?: string;
+        text?: string;
+    };
+    score: number;
+    embedding: Float32Array | number[];
+}
+export declare function euclideanDistance(a: Float32Array | number[], b: Float32Array | number[]): number;
+export declare function kMeansClustering(vectors: (Float32Array | number[])[], k: number, maxIter?: number): {
+    assignments: number[];
+    centroids: (Float32Array | number[])[];
+};
+export declare function mmrRerank(results: ScoredResult[], lambda: number, topK: number): ScoredResult[];
+export declare function clusterDiverseRerank(results: ScoredResult[], numClusters: number, topK: number): ScoredResult[];
+export {};
+//# sourceMappingURL=mmr.d.ts.map

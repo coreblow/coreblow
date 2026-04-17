@@ -1,0 +1,2 @@
+export function negotiateCapabilities(local, remote) { return local.filter(l => remote.some(r => r.name === l.name && r.version === l.version)); }
+//# sourceMappingURL=capability.js.map

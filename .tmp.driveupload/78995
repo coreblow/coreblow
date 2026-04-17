@@ -1,0 +1,1 @@
+{"version":3,"file":"status-json.js","sourceRoot":"","sources":["../../src/commands/status-json.ts"],"names":[],"mappings":"AAOA,OAAO,EAAE,aAAa,EAAE,MAAM,aAAa,CAAC;AAS5C,MAAM,CAAC,KAAK,UAAU,iBAAiB,CACnC,IAA8B,EAC9B,OAAgB;IAEhB,MAAM,aAAa,CAAC,EAAE,GAAG,IAAI,EAAE,IAAI,EAAE,IAAI,EAAE,EAAE,OAAO,CAAC,CAAC;AAC1D,CAAC"}

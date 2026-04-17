@@ -1,0 +1,4 @@
+/** Workspace template detection. */
+export type WorkspaceTemplate = 'nextjs' | 'vite' | 'express' | 'fastapi' | 'unknown';
+export declare function detectTemplate(files: string[]): WorkspaceTemplate;
+//# sourceMappingURL=workspace-templates.d.ts.map

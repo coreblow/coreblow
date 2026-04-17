@@ -1,0 +1,3 @@
+/** Subagent registry store. */
+export { SubagentRegistry } from './subagent-registry.js';
+//# sourceMappingURL=subagent-registry.store.js.map

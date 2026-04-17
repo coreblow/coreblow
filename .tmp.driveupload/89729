@@ -1,0 +1,3 @@
+/** Skill installation output formatting. */
+export declare function formatDownloadProgress(downloaded: number, total: number): string;
+//# sourceMappingURL=skills-install-output.d.ts.map

@@ -1,0 +1,28 @@
+{
+    "name": "@coreblow/coreblow",
+    "version": "1.0.0",
+    "private": true,
+    "packageManager": "pnpm@10.23.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview",
+        "deploy": "npm run build && wrangler pages deploy dist"
+    },
+    "dependencies": {
+        "@react-three/drei": "^10.7.7",
+        "@react-three/fiber": "^9.5.0",
+        "@splinetool/react-spline": "^4.1.0",
+        "@splinetool/runtime": "^1.12.58",
+        "react": "^19.2.0",
+        "react-dom": "^19.2.0",
+        "react-router-dom": "^6.30.3",
+        "three": "^0.183.0"
+    },
+    "devDependencies": {
+        "@vitejs/plugin-react": "^5.1.1",
+        "vite": "^7.2.4"
+    },
+    "packageManager": "pnpm@10.23.0+sha512.21c4e5698002ade97e4efe8b8b4a89a8de3c85a37919f957e7a0f30f38fbc5bbdd05980ffe29179b2fb6e6e691242e098d945d1601772cad0fef5fb6411e2a4b"
+}

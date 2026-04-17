@@ -1,0 +1,2 @@
+export declare function resolveAgentTimestamp(ts: number | undefined | null): number;
+//# sourceMappingURL=agent-timestamp.d.ts.map

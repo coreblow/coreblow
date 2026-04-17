@@ -1,0 +1,60 @@
+export interface MemoryEntry {
+    id: string;
+    text: string;
+    embedding: Float32Array;
+    type: 'fact' | 'preference' | 'note' | 'summary' | 'message';
+    tags: string[];
+    source?: string;
+    userId?: string;
+    timestamp: number;
+    importance: number;
+}
+export interface MemoryManagerConfig {
+    embeddingBackend?: 'local' | 'ollama' | 'openai';
+    openaiKey?: string;
+    maxMemories?: number;
+    autoMemorize?: boolean;
+    autoSummarize?: boolean;
+}
+export declare class MemoryManager {
+    private entries;
+    private embedder;
+    private config;
+    private recentTexts;
+    constructor(config?: MemoryManagerConfig);
+    init(): Promise<void>;
+    store_memory(text: string, opts?: {
+        type?: MemoryEntry['type'];
+        tags?: string[];
+        source?: string;
+        userId?: string;
+        importance?: number;
+    }): Promise<string>;
+    recall(query: string, opts?: {
+        topK?: number;
+        minScore?: number;
+    }): Promise<MemoryEntry[]>;
+    forget(id: string): boolean;
+    recent(count?: number): MemoryEntry[];
+    byTag(tag: string): MemoryEntry[];
+    searchKeyword(query: string): MemoryEntry[];
+    processMessage(text: string, meta?: {
+        source?: string;
+        userId?: string;
+    }): Promise<string[]>;
+    summarizeSession(sessionId: string, messages: Array<{
+        role: string;
+        content: string;
+    }>): Promise<string | null>;
+    buildContext(query: string, opts?: {
+        topK?: number;
+    }): Promise<string>;
+    stats(): {
+        count: number;
+        embeddingBackend: "local" | "ollama" | "openai";
+        embeddingDimensions: number;
+        autoMemorize: boolean;
+        maxMemories: number;
+    };
+}
+//# sourceMappingURL=manager.d.ts.map

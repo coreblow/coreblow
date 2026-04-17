@@ -1,0 +1,48 @@
+/**
+ * src/auto-reply/reply/session-fork.ts
+ * Session isolation and forking for the auto-reply pipeline.
+ * Follows CoreBlow session isolation pattern:
+ * - DM = shared main session
+ * - Group = isolated per group
+ *
+ * Bridges auto-reply context with agents/fork.ts ForkManager.
+ */
+import { ForkManager } from '../../agents/fork.js';
+import type { ChatMessage } from '../../providers/interface.js';
+export interface SessionForkOptions {
+    /** Whether this is a direct message or a group chat */
+    chatType: 'dm' | 'group';
+    /** Unique ID of the chat/group */
+    chatId: string;
+    /** The agent handling this session */
+    agentId: string;
+}
+export declare class SessionFork {
+    private forkManager;
+    constructor(forkManager?: ForkManager);
+    /**
+     * Resolve the base session ID based on chat type (DM vs Group pattern)
+     */
+    resolveBaseSessionId(opts: SessionForkOptions): string;
+    /**
+     * Initialize or resume a session branch
+     */
+    initOrResume(opts: SessionForkOptions, initialMessages?: ChatMessage[]): string;
+    /**
+     * Fork the current session into a new exploration branch
+     */
+    fork(opts: SessionForkOptions, branchName: string): string;
+    /**
+     * Switch back to the main branch or another branch
+     */
+    switchBranch(opts: SessionForkOptions, branchId: string): boolean;
+    /**
+     * Merge an exploration branch back into the active branch
+     */
+    mergeBranch(opts: SessionForkOptions, branchId: string): number;
+    /**
+     * Access the underlying ForkManager
+     */
+    getManager(): ForkManager;
+}
+//# sourceMappingURL=session-fork.d.ts.map

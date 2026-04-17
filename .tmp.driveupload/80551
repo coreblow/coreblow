@@ -1,0 +1,22 @@
+export function createStatusEmbed(status) {
+    const upH = status.uptime ? Math.floor(status.uptime / 3600000) : 0;
+    const upM = status.uptime ? Math.floor((status.uptime % 3600000) / 60000) : 0;
+    return {
+        title: ' CoreBlow Gateway Status',
+        color: status.connected ? 0x10A37F : 0xEF4444,
+        fields: [
+            { name: ' Status', value: status.connected ? ' Online' : ' Offline', inline: true },
+            { name: '⏱ Uptime', value: `${upH}h ${upM}m`, inline: true },
+            { name: ' Messages', value: `${status.details?.messagesProcessed ?? 0}`, inline: true },
+            { name: ' Commands', value: `${status.details?.slashCommands ?? 0}`, inline: true },
+            { name: ' Guilds', value: `${status.details?.guilds ?? 0}`, inline: true },
+            { name: ' Reactions', value: `${status.details?.reactions ?? 0}`, inline: true },
+            { name: ' Components', value: `${status.details?.componentsHandled ?? 0}`, inline: true },
+            { name: ' Menus', value: `${status.details?.selectMenusUsed ?? 0}`, inline: true },
+            { name: ' Modals', value: `${status.details?.modalsOpened ?? 0}`, inline: true },
+        ],
+        footer: { text: `CoreBlow Gateway • ${status.details?.tag || 'Unknown'}` },
+        timestamp: new Date().toISOString(),
+    };
+}
+//# sourceMappingURL=status.js.map

@@ -1,0 +1,13 @@
+/**
+ * Detects obfuscated or encoded commands that could bypass allowlist-based
+ * security filters.
+ *
+ * Addresses: https://github.com/coreblow/coreblow/issues/8592
+ */
+export type ObfuscationDetection = {
+    detected: boolean;
+    reasons: string[];
+    matchedPatterns: string[];
+};
+export declare function detectCommandObfuscation(command: string): ObfuscationDetection;
+//# sourceMappingURL=exec-obfuscation-detect.d.ts.map

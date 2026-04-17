@@ -1,0 +1,30 @@
+/**
+ * flows/flow-engine.ts
+ * Conversation flow engine — run multi-step interactive dialogs.
+ */
+import type { FlowDefinition, FlowInstance } from './types.js';
+export declare class FlowEngine {
+    private flows;
+    /** Start a new flow. */
+    start(definition: FlowDefinition, sessionId: string): Promise<FlowInstance>;
+    /** Process user input for an active flow. */
+    processInput(sessionId: string, flowId: string, input: string): Promise<{
+        prompt?: string;
+        completed: boolean;
+        error?: string;
+    }>;
+    /** Cancel a flow. */
+    cancel(sessionId: string, flowId: string): Promise<void>;
+    /** Get the active flow for a session. */
+    getActiveFlow(sessionId: string): FlowInstance | null;
+    /** List all flows, optionally filtered by session ID. */
+    listFlows(sessionId?: string): FlowInstance[];
+    /** Get a specific flow by its ID. */
+    getFlowById(flowId: string, sessionId?: string): FlowInstance | undefined;
+    /** Clean up expired flows. */
+    cleanExpired(): Promise<number>;
+    private getStep;
+    get activeCount(): number;
+}
+export declare function getFlowEngine(): FlowEngine;
+//# sourceMappingURL=flow-engine.d.ts.map

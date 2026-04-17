@@ -1,0 +1,7 @@
+import type { RpcResponder } from "../gateway-types.js";
+export declare function respondInvalidParams({ respond, method }: {
+    respond: RpcResponder;
+    method: string;
+}): void;
+export declare function respondUnavailableOnThrow(respond: RpcResponder, block: () => Promise<void>): Promise<void>;
+//# sourceMappingURL=nodes.helpers.d.ts.map

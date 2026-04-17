@@ -1,0 +1,1 @@
+{"version":3,"file":"reactionRemove.d.ts","sourceRoot":"","sources":["../../../../src/channels/discord/events/reactionRemove.ts"],"names":[],"mappings":"AAAA;;GAEG;AACH,OAAO,KAAK,EAAE,YAAY,EAAE,MAAM,YAAY,CAAC;AAC/C,OAAO,KAAK,EAAE,eAAe,EAAE,WAAW,EAAE,MAAM,iBAAiB,CAAC;AAGpE,wBAAgB,gBAAgB,CAAC,QAAQ,EAAE,eAAe,EAAE,IAAI,EAAE,WAAW,EAAE,GAAG,EAAE,YAAY,GAAG,IAAI,CAGtG"}

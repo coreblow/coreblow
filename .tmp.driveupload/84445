@@ -1,0 +1,94 @@
+/**
+ * plugin-sdk/channel-config-helpers.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/channel-config-helpers.ts
+ *
+ * Config-write helpers, account config accessors, and DM security resolvers.
+ */
+import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from './account-id.js';
+import { resolveMergedAccountConfig } from './account-helpers.js';
+export { DEFAULT_ACCOUNT_ID, normalizeAccountId, resolveMergedAccountConfig };
+// ─── Config Write Authorization ───────────────────────────────────────────────
+export function resolveChannelConfigWrites(params) {
+    if (!params.channelId)
+        return { kind: 'global' };
+    if (!params.accountId) {
+        return { kind: 'channel', scope: { channelId: params.channelId } };
+    }
+    return {
+        kind: 'account',
+        scope: { channelId: params.channelId, accountId: params.accountId },
+    };
+}
+export function canBypassConfigWritePolicy(params) {
+    return params.target.kind === 'global';
+}
+export function authorizeConfigWrite(params) {
+    if (params.enabled === false) {
+        return {
+            allowed: false,
+            reason: 'target-disabled',
+            blockedScope: params.origin
+                ? { kind: 'origin', scope: params.origin }
+                : undefined,
+        };
+    }
+    return { allowed: true };
+}
+export function formatConfigWriteDeniedMessage(result) {
+    switch (result.reason) {
+        case 'ambiguous-target':
+            return 'Config write denied: ambiguous target scope.';
+        case 'origin-disabled':
+            return 'Config write denied: origin configuration writes are disabled.';
+        case 'target-disabled':
+            return 'Config write denied: target configuration writes are disabled.';
+        default:
+            return 'Config write denied.';
+    }
+}
+export function createScopedAccountConfigAccessors(params) {
+    const defaultId = params.defaultAccountId ?? DEFAULT_ACCOUNT_ID;
+    return {
+        resolveAccount: (accountId) => {
+            const normalized = normalizeAccountId(accountId);
+            return params.accounts[normalized] ?? params.accounts[defaultId];
+        },
+        listAccountIds: () => Object.keys(params.accounts),
+        getDefaultAccountId: () => defaultId,
+    };
+}
+export function createScopedDmSecurityResolver(params) {
+    return ({ account }) => params.resolvePolicy(account) ?? params.defaultPolicy ?? null;
+}
+export function createScopedChannelConfigBase(opts) {
+    return {
+        channelKey: opts.channelKey,
+        resolveAccount: (cfg, accountId) => opts.resolveAccount(cfg, accountId),
+        listAccountIds: (cfg) => opts.listAccountIds(cfg),
+    };
+}
+export function createTopLevelChannelConfigBase(opts) {
+    return createScopedChannelConfigBase(opts);
+}
+export function createHybridChannelConfigBase(opts) {
+    return createScopedChannelConfigBase(opts);
+}
+export function createScopedChannelConfigAdapter(opts) {
+    return createScopedChannelConfigBase(opts);
+}
+export function createTopLevelChannelConfigAdapter(opts) {
+    return createScopedChannelConfigBase(opts);
+}
+export function createHybridChannelConfigAdapter(opts) {
+    return createScopedChannelConfigBase(opts);
+}
+export function createScopedDmSecurityAdapter(opts) {
+    return {
+        ...createScopedChannelConfigBase(opts),
+        resolveDmPolicy: opts.resolveDmPolicy,
+    };
+}
+export function mapAllowFromEntries(entries, normalize) {
+    return entries.map((e) => (typeof e === 'string' ? normalize(e) : e));
+}
+//# sourceMappingURL=channel-config-helpers.js.map

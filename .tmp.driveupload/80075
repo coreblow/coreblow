@@ -1,0 +1,28 @@
+/**
+ * context-engine/context-window.ts
+ * Context window manager — sliding window over conversation history.
+ */
+import type { ContextEntry, ContextWindow, ContextStrategy } from './types.js';
+export declare class ContextWindowManager {
+    private windows;
+    /** Create a new context window. */
+    create(sessionId: string, model: string, maxTokens?: number): ContextWindow;
+    /** Get or create a context window for a session. */
+    getOrCreate(sessionId: string, model: string, maxTokens?: number): ContextWindow;
+    /** Add an entry to the context window. */
+    addEntry(sessionId: string, entry: ContextEntry): void;
+    /** Compact context using a strategy. */
+    compact(sessionId: string, strategy?: ContextStrategy): void;
+    /** Get the full context for sending to LLM. */
+    getMessages(sessionId: string): ContextEntry[];
+    /** Remove a context window. */
+    remove(sessionId: string): void;
+    /** Get token count for a session. */
+    getTokenCount(sessionId: string): number;
+    /** Get total windows. */
+    get size(): number;
+}
+/** Keep first + last entries, summarize middle. */
+export declare const firstLastStrategy: ContextStrategy;
+export declare function getContextWindowManager(): ContextWindowManager;
+//# sourceMappingURL=context-window.d.ts.map

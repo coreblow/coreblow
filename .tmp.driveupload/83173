@@ -1,0 +1,18 @@
+/**
+ * plugin-sdk/anthropic-vertex.ts
+ * [ADAPT] openclaw-main — Stub for @coreblow/anthropic-vertex.
+ */
+export const ANTHROPIC_VERTEX_DEFAULT_MODEL_ID = "claude-3-5-sonnet@20241022";
+export function buildAnthropicVertexProvider(_params) {
+    throw new Error("buildAnthropicVertexProvider requires @coreblow/anthropic-vertex extension");
+}
+export function hasAnthropicVertexAvailableAuth(_cfg) { return false; }
+export function hasAnthropicVertexCredentials(_cfg) { return false; }
+export function mergeImplicitAnthropicVertexProvider(cfg) { return cfg; }
+export function resolveAnthropicVertexClientRegion(_cfg) { return null; }
+export function resolveAnthropicVertexConfigApiKey(_cfg) { return null; }
+export function resolveImplicitAnthropicVertexProvider(_cfg) { return null; }
+export function resolveAnthropicVertexProjectId(_cfg) { return null; }
+export function resolveAnthropicVertexRegion(_cfg) { return "us-east5"; }
+export function resolveAnthropicVertexRegionFromBaseUrl(_url) { return null; }
+//# sourceMappingURL=anthropic-vertex.js.map

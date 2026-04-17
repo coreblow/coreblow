@@ -1,0 +1,3 @@
+/** Skill archive extraction. */
+export declare function getExtractDir(baseDir: string, skillId: string): string;
+//# sourceMappingURL=skills-install-extract.d.ts.map

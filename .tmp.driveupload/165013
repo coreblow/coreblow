@@ -1,0 +1,16 @@
+import { type Context, Plugin } from "../../abstracts/Plugin.js";
+import type { Client } from "../../classes/Client.js";
+import type { CloudflareGatewayPluginOptions } from "./types.js";
+export declare class CloudflareGatewayPlugin extends Plugin {
+    readonly id = "cloudflare-gateway";
+    readonly options: Required<Omit<CloudflareGatewayPluginOptions, "reconnect" | "autoInteractions">> & Pick<CloudflareGatewayPluginOptions, "reconnect" | "autoInteractions">;
+    protected client?: Client;
+    protected lastConnectAttempt: number;
+    constructor(options: CloudflareGatewayPluginOptions);
+    registerClient(client: Client): void;
+    registerRoutes(client: Client): void;
+    onRequest(req: Request, ctx: Context): undefined;
+    protected handleForwardRequest(req: Request): Promise<Response>;
+    protected connectDurableObject(env: Record<string, unknown>): Promise<void>;
+}
+//# sourceMappingURL=CloudflareGatewayPlugin.d.ts.map

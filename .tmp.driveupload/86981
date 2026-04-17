@@ -1,0 +1,83 @@
+/**
+ * CoreBlow — Persona Engine
+ *
+ * Manages AI agent personas — pre-configured personality templates
+ * with system prompts, tone settings, guardrails, and dynamic
+ * persona switching per conversation.
+ */
+/** Persona definition */
+export interface Persona {
+    id: string;
+    name: string;
+    description?: string;
+    systemPrompt: string;
+    tone?: 'professional' | 'casual' | 'technical' | 'friendly' | 'formal';
+    language?: string;
+    maxTokens?: number;
+    temperature?: number;
+    guardrails?: {
+        blockedTopics?: string[];
+        maxResponseLength?: number;
+        requireCitation?: boolean;
+    };
+    examples?: Array<{
+        user: string;
+        assistant: string;
+    }>;
+    metadata?: Record<string, unknown>;
+}
+/**
+ * CoreBlow Persona Engine
+ */
+export declare class PersonaEngine {
+    private personas;
+    private activePersonas;
+    constructor();
+    /**
+     * Register a persona.
+     */
+    register(persona: Persona): void;
+    /**
+     * Get a persona by ID.
+     */
+    get(id: string): Persona | null;
+    /**
+     * Activate a persona for a conversation.
+     */
+    activate(conversationId: string, personaId: string): boolean;
+    /**
+     * Get the active persona for a conversation.
+     */
+    getActive(conversationId: string): Persona | null;
+    /**
+     * Build system messages for a persona.
+     */
+    buildSystemMessages(conversationId: string): Array<{
+        role: 'system';
+        content: string;
+    }>;
+    /**
+     * Get model parameters for a persona.
+     */
+    getModelParams(conversationId: string): {
+        temperature: number;
+        maxTokens: number;
+    };
+    /**
+     * Deactivate persona for a conversation.
+     */
+    deactivate(conversationId: string): boolean;
+    /**
+     * List all personas.
+     */
+    list(): Array<{
+        id: string;
+        name: string;
+        tone?: string;
+    }>;
+    /**
+     * Delete a persona.
+     */
+    delete(id: string): boolean;
+}
+//# sourceMappingURL=persona-engine.d.ts.map

@@ -1,0 +1,51 @@
+/**
+ * CoreBlow — SDK Builder
+ *
+ * Generates SDK client code for multiple languages
+ * from API route definitions. Supports TypeScript,
+ * Python, and cURL snippet generation.
+ */
+/** SDK endpoint */
+export interface SDKEndpoint {
+    path: string;
+    method: string;
+    name: string;
+    description?: string;
+    params?: Array<{
+        name: string;
+        type: string;
+        required: boolean;
+    }>;
+    responseType?: string;
+}
+/** SDK config */
+export interface SDKConfig {
+    baseUrl: string;
+    apiName: string;
+    version: string;
+    endpoints: SDKEndpoint[];
+}
+/**
+ * CoreBlow SDK Builder
+ */
+export declare class SDKBuilder {
+    /**
+     * Generate TypeScript SDK.
+     */
+    generateTypeScript(config: SDKConfig): string;
+    /**
+     * Generate Python SDK.
+     */
+    generatePython(config: SDKConfig): string;
+    /**
+     * Generate cURL snippets.
+     */
+    generateCurl(config: SDKConfig): string;
+    /**
+     * List supported languages.
+     */
+    supportedLanguages(): string[];
+    private toPascal;
+    private toSnake;
+}
+//# sourceMappingURL=sdk-builder.d.ts.map

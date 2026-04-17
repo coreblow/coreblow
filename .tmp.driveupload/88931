@@ -1,0 +1,52 @@
+/**
+ * agents/bash-tools-types.ts
+ * Bash/exec tool type definitions.
+ * Ported from CoreBlow reference src/agents/bash-tools.exec-types.ts.
+ */
+export type ExecApprovalPolicy = 'auto' | 'manual' | 'allowlist' | 'sandbox';
+export interface ExecRequest {
+    command: string;
+    args?: string[];
+    cwd?: string;
+    env?: Record<string, string>;
+    timeoutMs?: number;
+    stdin?: string;
+    shell?: boolean;
+    elevated?: boolean;
+}
+export interface ExecResult {
+    exitCode: number | null;
+    stdout: string;
+    stderr: string;
+    killed: boolean;
+    timedOut: boolean;
+    durationMs: number;
+    signal?: string;
+}
+export interface ExecApprovalRequest {
+    requestId: string;
+    sessionId: string;
+    command: string;
+    args: string[];
+    cwd: string;
+    reason?: string;
+    risk: 'low' | 'medium' | 'high' | 'critical';
+    timestamp: number;
+}
+export interface ExecApprovalResponse {
+    requestId: string;
+    approved: boolean;
+    respondedBy?: string;
+    respondedAt: number;
+    reason?: string;
+}
+/**
+ * Command risk classifier.
+ */
+export declare function classifyCommandRisk(command: string): ExecApprovalRequest['risk'];
+/**
+ * Check if command should auto-approve based on policy.
+ */
+export declare function shouldAutoApprove(command: string, policy: ExecApprovalPolicy, allowlist?: string[]): boolean;
+export declare function isSafeCommand(command: string): boolean;
+//# sourceMappingURL=bash-tools-types.d.ts.map

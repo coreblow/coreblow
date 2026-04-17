@@ -1,0 +1,15 @@
+/**
+ * process/manager.ts
+ */
+export declare class ProcessManager {
+    private procs;
+    register(name: string, pid: number): void;
+    stop(name: string): void;
+    getAll(): {
+        [k: string]: {
+            pid: number;
+            status: string;
+        };
+    };
+}
+//# sourceMappingURL=manager.d.ts.map

@@ -1,0 +1,2 @@
+export declare function loadIdentityFile(dir: string): Record<string, unknown> | null;
+//# sourceMappingURL=identity-file.d.ts.map

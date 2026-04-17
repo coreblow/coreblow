@@ -1,0 +1,13 @@
+/**
+ * infra/boundary-path.ts
+ * Path boundary enforcement — prevent directory traversal.
+ */
+/** Check if a path stays within a boundary directory. */
+export declare function isWithinBoundary(targetPath: string, boundaryDir: string): boolean;
+/** Sanitize a filename to prevent traversal. */
+export declare function sanitizeFilename(filename: string): string;
+/** Resolve a path safely within a boundary. Throws if it escapes. */
+export declare function safePath(targetPath: string, boundaryDir: string): string;
+/** Check if a path looks suspicious. */
+export declare function isSuspiciousPath(path: string): boolean;
+//# sourceMappingURL=boundary-path.d.ts.map

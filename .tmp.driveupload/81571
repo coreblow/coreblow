@@ -1,0 +1,61 @@
+/**
+ * CoreBlow HTTP Common Utilities
+ *
+ * Shared HTTP utilities: status codes, content negotiation, CORS,
+ * request parsing, and response helpers.
+ */
+import type { IncomingMessage, ServerResponse } from 'node:http';
+export declare const HTTP_STATUS: {
+    readonly OK: 200;
+    readonly CREATED: 201;
+    readonly NO_CONTENT: 204;
+    readonly BAD_REQUEST: 400;
+    readonly UNAUTHORIZED: 401;
+    readonly FORBIDDEN: 403;
+    readonly NOT_FOUND: 404;
+    readonly METHOD_NOT_ALLOWED: 405;
+    readonly CONFLICT: 409;
+    readonly TOO_MANY_REQUESTS: 429;
+    readonly INTERNAL: 500;
+    readonly BAD_GATEWAY: 502;
+    readonly SERVICE_UNAVAILABLE: 503;
+    readonly GATEWAY_TIMEOUT: 504;
+};
+export interface CorsOptions {
+    origins: string[];
+    methods?: string[];
+    headers?: string[];
+    maxAge?: number;
+    credentials?: boolean;
+}
+export declare function buildCorsHeaders(origin: string, options: CorsOptions): Record<string, string>;
+export type ContentType = 'json' | 'text' | 'sse' | 'html' | 'unknown';
+export declare function negotiateContentType(acceptHeader?: string): ContentType;
+export declare function contentTypeHeader(type: ContentType): string;
+export declare function parseQueryString(url: string): Record<string, string>;
+export declare function extractBearerToken(authHeader?: string): string | null;
+export declare function getClientIp(headers: Record<string, string | undefined>, remoteAddress?: string): string;
+export interface ApiResponse<T = unknown> {
+    ok: boolean;
+    data?: T;
+    error?: {
+        code: string;
+        message: string;
+        details?: unknown;
+    };
+    meta?: {
+        requestId?: string;
+        timestamp?: number;
+        duration?: number;
+    };
+}
+export declare function successResponse<T>(data: T, meta?: ApiResponse['meta']): ApiResponse<T>;
+export declare function errorResponse(code: string, message: string, details?: unknown): ApiResponse;
+export declare function formatSSEEvent(data: unknown, event?: string, id?: string): string;
+export declare function formatSSEComment(comment: string): string;
+export declare function handleCors(req: IncomingMessage, res: ServerResponse, origin?: string): boolean;
+export declare function getPathname(req: IncomingMessage): string;
+export declare function sendError(res: ServerResponse, status: number, message: string, code: string): void;
+export declare function sendJson(res: ServerResponse, status: number, body: unknown): void;
+export declare function requestId(): string;
+//# sourceMappingURL=http-common.d.ts.map

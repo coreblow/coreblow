@@ -1,0 +1,41 @@
+/**
+ * agents/sandbox.ts
+ * Filesystem sandbox — path validation and confinement.
+ */
+import path from 'node:path';
+export function createSandbox(config) { return new Sandbox(config); }
+export class Sandbox {
+    config;
+    constructor(config) { this.config = config; }
+    isPathAllowed(targetPath) {
+        const resolved = path.resolve(targetPath);
+        for (const pattern of this.config.deniedPatterns ?? []) {
+            if (pattern.test(resolved))
+                return { allowed: false, reason: `Path matches denied pattern: ${pattern.source}` };
+        }
+        const inAllowedDir = this.config.allowedDirs.some((dir) => resolved.startsWith(path.resolve(dir)));
+        if (!inAllowedDir)
+            return { allowed: false, reason: `Path outside allowed directories` };
+        return { allowed: true };
+    }
+    isPathReadOnly(targetPath) {
+        const resolved = path.resolve(targetPath);
+        return (this.config.readOnlyDirs ?? []).some((dir) => resolved.startsWith(path.resolve(dir)));
+    }
+    isWriteAllowed(targetPath) {
+        const readCheck = this.isPathAllowed(targetPath);
+        if (!readCheck.allowed)
+            return readCheck;
+        if (this.isPathReadOnly(targetPath))
+            return { allowed: false, reason: 'Path is read-only' };
+        return { allowed: true };
+    }
+    validateFileSize(size) { return !this.config.maxFileSize || size <= this.config.maxFileSize; }
+    getAllowedDirs() { return [...this.config.allowedDirs]; }
+    getConfig() { return this.config; }
+}
+export const DEFAULT_DENIED_PATTERNS = [/node_modules/, /\.git\/objects/, /\.env$/, /\.ssh/, /\/proc\//, /\/sys\//];
+export function createDefaultSandbox(workspaceDir) {
+    return createSandbox({ allowedDirs: [workspaceDir], deniedPatterns: DEFAULT_DENIED_PATTERNS, maxFileSize: 10 * 1024 * 1024 });
+}
+//# sourceMappingURL=sandbox.js.map

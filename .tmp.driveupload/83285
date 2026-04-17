@@ -1,0 +1,30 @@
+/**
+ * plugin-sdk/telegram-surface.ts
+ * [ADAPT] openclaw-main — Stub surface for @coreblow/telegram extension.
+ */
+export type TelegramProbe = {
+    ok: boolean;
+    botId?: string;
+    botUsername?: string;
+    latencyMs?: number;
+};
+export type ResolvedTelegramAccount = {
+    accountId: string;
+    token?: string | null;
+    botId?: string | null;
+    botUsername?: string | null;
+};
+export type InspectedTelegramAccount = ResolvedTelegramAccount & {
+    configured: boolean;
+    running: boolean;
+};
+export declare function inspectTelegramAccount(_params: unknown): Promise<InspectedTelegramAccount | null>;
+export declare function listTelegramAccountIds(_cfg: Record<string, unknown>): string[];
+export declare function probeTelegram(_params: unknown): Promise<TelegramProbe>;
+export declare function sendMessageTelegram(_params: unknown): Promise<unknown>;
+export declare function resolveTelegramGroupRequireMention(_params: unknown): boolean;
+export declare function resolveTelegramGroupToolPolicy(_params: unknown): string;
+export declare function parseTelegramTarget(_raw: string): unknown;
+export declare function normalizeTelegramMessagingTarget(_raw: string): unknown;
+export declare function looksLikeTelegramTargetId(_raw: string): boolean;
+//# sourceMappingURL=telegram-surface.d.ts.map

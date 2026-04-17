@@ -1,0 +1,16 @@
+/**
+ * plugin-sdk/openai.ts
+ * [ADAPT] openclaw-main — Stub facade for @coreblow/openai extension.
+ */
+export declare const OPENAI_DEFAULT_MODEL = "gpt-4o";
+export declare const OPENAI_CODEX_DEFAULT_MODEL = "gpt-4o";
+export declare const OPENAI_DEFAULT_EMBEDDING_MODEL = "text-embedding-3-small";
+export declare const OPENAI_DEFAULT_IMAGE_MODEL = "dall-e-3";
+export declare const OPENAI_DEFAULT_AUDIO_TRANSCRIPTION_MODEL = "whisper-1";
+export declare const OPENAI_DEFAULT_TTS_MODEL = "tts-1";
+export declare const OPENAI_DEFAULT_TTS_VOICE = "alloy";
+export declare function buildOpenAIProvider(_params: unknown): unknown;
+export declare function buildOpenAICodexProvider(_params: unknown): unknown;
+export declare function applyOpenAIConfig(cfg: Record<string, unknown>): Record<string, unknown>;
+export declare function applyOpenAIProviderConfig(cfg: Record<string, unknown>): Record<string, unknown>;
+//# sourceMappingURL=openai.d.ts.map

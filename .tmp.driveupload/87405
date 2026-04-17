@@ -1,0 +1,25 @@
+/**
+ * agents/multi.ts
+ * Multi-agent router — dispatches requests to the appropriate agent based on routing rules.
+ */
+export interface AgentRoute {
+    agentId: string;
+    pattern?: RegExp;
+    channels?: string[];
+    priority?: number;
+}
+export declare class MultiAgentRouter {
+    private routes;
+    private defaultAgentId;
+    constructor(defaultAgentId?: string);
+    addRoute(route: AgentRoute): void;
+    resolve(input: string, channel?: string): string;
+    listRoutes(): AgentRoute[];
+    removeRoute(agentId: string): boolean;
+    getStats(): {
+        routesEvaluated: number;
+        defaultHit: number;
+        totalAgents: number;
+    };
+}
+//# sourceMappingURL=multi.d.ts.map

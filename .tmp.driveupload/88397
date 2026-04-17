@@ -1,0 +1,78 @@
+/**
+ * CoreBlow — Subagent Registry Lifecycle (CoreBlow Parity)
+ *
+ * Start/end transitions, retry logic, grace period handling,
+ * frozen result capture, and cleanup orchestration.
+ */
+import type { SubagentRunRecord, SubagentRunOutcome } from './subagent-registry-types.js';
+import { type SubagentLifecycleEndedReason } from './subagent-lifecycle-events.js';
+export type LifecycleControllerParams = {
+    onAnnounce?: (params: {
+        run: SubagentRunRecord;
+        frozenResultText?: string | null;
+    }) => Promise<boolean>;
+    onEndedHook?: (run: SubagentRunRecord) => Promise<void>;
+};
+export declare function createSubagentRegistryLifecycleController(controllerParams?: LifecycleControllerParams): {
+    completeSubagentRun: (params: {
+        runId: string;
+        endedAt?: number;
+        outcome: SubagentRunOutcome;
+        reason: SubagentLifecycleEndedReason;
+        resultText?: string;
+        triggerCleanup: boolean;
+    }) => Promise<void>;
+    completeCleanupBookkeeping: (params: {
+        runId: string;
+        entry: SubagentRunRecord;
+        cleanup: "delete" | "keep";
+        completedAt: number;
+    }) => void;
+    startAnnounceCleanupFlow: (runId: string, entry: SubagentRunRecord) => boolean;
+    refreshFrozenResultFromSession: (sessionKey: string, newResultText: string) => boolean;
+    freezeRunResultAtCompletion: (entry: SubagentRunRecord, resultText?: string) => Promise<boolean>;
+};
+export type LifecycleMetrics = {
+    totalCompleted: number;
+    totalFailed: number;
+    totalTimedOut: number;
+    totalKilled: number;
+    totalRetries: number;
+    avgCompletionMs: number;
+    avgCleanupMs: number;
+};
+export declare function recordLifecycleCompletion(params: {
+    outcome: string;
+    completionMs?: number;
+    cleanupMs?: number;
+    retried?: boolean;
+}): void;
+export declare function getLifecycleMetrics(): LifecycleMetrics;
+export declare function resetLifecycleMetrics(): void;
+export declare function formatLifecycleMetrics(metrics: LifecycleMetrics): string;
+export type GracePeriodConfig = {
+    defaultMs: number;
+    maxMs: number;
+    perOutcome?: Record<string, number>;
+};
+export declare function resolveGracePeriodMs(outcome: string, config?: GracePeriodConfig): number;
+export type BulkCompletionResult = {
+    total: number;
+    completed: number;
+    skipped: number;
+    errors: number;
+};
+export declare function bulkMarkRunsEnded(params: {
+    runIds: string[];
+    outcome: SubagentRunOutcome;
+    reason: SubagentLifecycleEndedReason;
+    now?: number;
+}): BulkCompletionResult;
+export type LifecycleDiagnostics = {
+    pendingCleanup: number;
+    pendingAnnounce: number;
+    staleFrozenResults: number;
+    expiredRuns: number;
+};
+export declare function getLifecycleDiagnostics(now?: number): LifecycleDiagnostics;
+//# sourceMappingURL=subagent-registry-lifecycle.d.ts.map

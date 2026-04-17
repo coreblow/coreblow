@@ -1,0 +1,15 @@
+"use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var _config = await jitiImport("vitest/config");var _default = exports.default =
+
+(0, _config.defineConfig)({
+  test: {
+    exclude: [
+    // canvas-host tests require 'chokidar' which cannot be installed
+    // due to the deno2node post-install hook. These are OpenClaw-specific
+    // integration tests that need a full chokidar installation.
+    'src/canvas-host/**/*.test.ts',
+    // Default vitest excludes
+    '**/node_modules/**',
+    '**/dist/**']
+
+  }
+}); /* v9-1a90b6b8d5ef032d */

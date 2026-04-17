@@ -1,0 +1,8 @@
+export class BashProcessRegistry {
+    procs = new Map();
+    register(id, pid, cmd) { this.procs.set(id, { pid, cmd, startedAt: Date.now() }); }
+    unregister(id) { this.procs.delete(id); }
+    get(id) { return this.procs.get(id); }
+    listAll() { return [...this.procs.entries()].map(([id, v]) => ({ id, ...v })); }
+}
+//# sourceMappingURL=bash-process-registry.js.map

@@ -1,0 +1,7 @@
+/** plugin-sdk/request-url.ts [PORT] openclaw-main */
+type RequestInfoLike = string | {
+    url: string;
+} | URL;
+export declare function resolveRequestUrl(input: RequestInfoLike): string;
+export {};
+//# sourceMappingURL=request-url.d.ts.map

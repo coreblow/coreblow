@@ -1,0 +1,1 @@
+{"version":3,"file":"legacy.shared.d.ts","sourceRoot":"","sources":["../../src/config/legacy.shared.ts"],"names":[],"mappings":"AAAA;;;GAGG;AAEH,sDAAsD;AACtD,eAAO,MAAM,WAAW,qDAAsD,CAAC;AAE/E,0CAA0C;AAC1C,wBAAgB,cAAc,CAAC,MAAM,EAAE,MAAM,CAAC,MAAM,EAAE,OAAO,CAAC,GAAG,OAAO,CAEvE;AAED,0CAA0C;AAC1C,wBAAgB,gBAAgB,CAAC,MAAM,EAAE,MAAM,CAAC,MAAM,EAAE,OAAO,CAAC,GAAG,MAAM,EAAE,CAE1E"}

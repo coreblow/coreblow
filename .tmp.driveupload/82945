@@ -1,0 +1,17 @@
+/**
+ * auto-reply/reply/model-selection.ts
+ * Model selection logic for the auto-reply subsystem.
+ */
+export interface ModelSelectionCriteria {
+    channel?: string;
+    complexity?: 'low' | 'medium' | 'high';
+    budget?: 'economy' | 'standard' | 'premium';
+}
+export interface ModelSelection {
+    provider: string;
+    model: string;
+    reason: string;
+}
+export declare function selectModel(criteria?: ModelSelectionCriteria): ModelSelection;
+export declare function listAvailableModels(): ModelSelection[];
+//# sourceMappingURL=model-selection.d.ts.map

@@ -1,0 +1,33 @@
+/**
+ * CoreBlow Concurrency Limiter (Expanded)
+ *
+ * Advanced concurrency control with named semaphores, priority queues,
+ * timeout support, and per-key limiting.
+ */
+export declare class ConcurrencyLimiter {
+    private max;
+    private defaultTimeoutMs;
+    private active;
+    private queue;
+    private totalAcquired;
+    private totalRejected;
+    constructor(max?: number, defaultTimeoutMs?: number);
+    acquire(priority?: number, timeoutMs?: number): Promise<void>;
+    release(): void;
+    withLimit<T>(fn: () => Promise<T>, priority?: number): Promise<T>;
+    getActive(): number;
+    getQueued(): number;
+    getMax(): number;
+    setMax(max: number): void;
+    getStats(): {
+        active: number;
+        queued: number;
+        max: number;
+        totalAcquired: number;
+        totalRejected: number;
+    };
+    private drainQueue;
+}
+export declare function getKeyLimiter(key: string, max?: number): ConcurrencyLimiter;
+export declare function clearKeyLimiters(): void;
+//# sourceMappingURL=concurrency.d.ts.map

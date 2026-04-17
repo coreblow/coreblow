@@ -1,0 +1,3 @@
+export function isCredentialValid(cred) { return !!cred.token && (cred.expiresAt === undefined || cred.expiresAt > Date.now()); }
+export function createCredential(provider, token, expiresAt) { return { provider, token, expiresAt }; }
+//# sourceMappingURL=pi-auth-credentials.js.map

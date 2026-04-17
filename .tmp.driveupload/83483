@@ -1,0 +1,17 @@
+/** plugin-sdk/memory-core.ts [ADAPT] openclaw-main */
+export type MemoryEntry = {
+    id: string;
+    content: string;
+    metadata?: Record<string, unknown>;
+    createdAt?: number;
+};
+export type MemoryQuery = {
+    text: string;
+    limit?: number;
+    filter?: Record<string, unknown>;
+};
+export type MemoryQueryResult = {
+    entries: MemoryEntry[];
+    query: MemoryQuery;
+};
+//# sourceMappingURL=memory-core.d.ts.map

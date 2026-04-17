@@ -1,0 +1,3 @@
+export function createEnvelope(channelId, content, ttlMs = 300000) { return { id: `env_${Date.now()}`, channelId, content, createdAt: Date.now(), expiresAt: Date.now() + ttlMs }; }
+export function isEnvelopeExpired(env) { return env.expiresAt ? Date.now() > env.expiresAt : false; }
+//# sourceMappingURL=envelope.js.map

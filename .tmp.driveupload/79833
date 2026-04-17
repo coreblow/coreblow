@@ -1,0 +1,228 @@
+/**
+ * CoreBlow — Cross-Channel Message Tool
+ *
+ * Enables agents to send messages across any connected channel
+ * (Discord, Telegram, Slack, etc.) with unified routing,
+ * format adaptation, and delivery tracking.
+ */
+import { createChildLogger } from '../../utils/logger.js';
+const log = createChildLogger('tool:message');
+/** Default format adapters for known channels */
+const formatAdapters = {
+    discord: {
+        channelId: 'discord',
+        convert: (text, from) => from === 'html' ? stripHtml(text) : text,
+        maxLength: () => 2000,
+    },
+    telegram: {
+        channelId: 'telegram',
+        convert: (text, from) => from === 'markdown' ? markdownToHtml(text) : text,
+        maxLength: () => 4096,
+    },
+    slack: {
+        channelId: 'slack',
+        convert: (text, from) => from === 'markdown' ? markdownToMrkdwn(text) : text,
+        maxLength: () => 40000,
+    },
+    irc: {
+        channelId: 'irc',
+        convert: (text) => stripFormatting(text),
+        maxLength: () => 512,
+    },
+    webchat: {
+        channelId: 'webchat',
+        convert: (text) => text,
+        maxLength: () => 10000,
+    },
+    teams: {
+        channelId: 'teams',
+        convert: (text) => text,
+        maxLength: () => 28000,
+    },
+    line: {
+        channelId: 'line',
+        convert: (text) => stripFormatting(text),
+        maxLength: () => 5000,
+    },
+    matrix: {
+        channelId: 'matrix',
+        convert: (text) => text,
+        maxLength: () => 65536,
+    },
+};
+/**
+ * CoreBlow Cross-Channel Messenger
+ *
+ * Routes messages to the appropriate channel adapter with
+ * automatic format conversion and chunking.
+ */
+export class CrossChannelMessenger {
+    adapters = new Map();
+    /** Register a channel adapter */
+    registerAdapter(adapter) {
+        this.adapters.set(adapter.id, adapter);
+    }
+    /** Unregister a channel adapter */
+    unregisterAdapter(channelId) {
+        return this.adapters.delete(channelId);
+    }
+    /** List registered channels */
+    listChannels() {
+        return [...this.adapters.keys()];
+    }
+    /**
+     * Send a message to one or more targets across channels.
+     */
+    async send(message) {
+        const result = {
+            totalTargets: message.targets.length,
+            delivered: 0,
+            failed: 0,
+            reports: [],
+        };
+        for (const target of message.targets) {
+            const report = await this.deliverToTarget(target, message);
+            result.reports.push(report);
+            if (report.success)
+                result.delivered++;
+            else
+                result.failed++;
+        }
+        log.info({
+            targets: result.totalTargets,
+            delivered: result.delivered,
+            failed: result.failed,
+        }, 'Cross-channel send complete');
+        return result;
+    }
+    /**
+     * Send to a single target with format conversion.
+     */
+    async sendToOne(channel, to, text, options) {
+        return this.deliverToTarget({ channel, to, threadId: options?.threadId }, { targets: [{ channel, to }], text, format: options?.format, silent: options?.silent });
+    }
+    /**
+     * Broadcast to all registered channels.
+     */
+    async broadcast(text, options) {
+        const targets = [];
+        for (const channelId of this.adapters.keys()) {
+            if (options?.excludeChannels?.includes(channelId))
+                continue;
+            if (options?.defaultTo) {
+                targets.push({ channel: channelId, to: options.defaultTo });
+            }
+        }
+        return this.send({ targets, text, format: options?.format });
+    }
+    // === Private ===
+    async deliverToTarget(target, message) {
+        const adapter = this.adapters.get(target.channel);
+        if (!adapter) {
+            return {
+                target,
+                success: false,
+                error: `No adapter registered for channel: ${target.channel}`,
+            };
+        }
+        try {
+            // Format conversion
+            const fmt = formatAdapters[target.channel];
+            const formattedText = fmt
+                ? fmt.convert(message.text, message.format ?? 'plain')
+                : message.text;
+            // Chunk if needed
+            const maxLen = fmt?.maxLength() ?? 4096;
+            const chunks = chunkText(formattedText, maxLen);
+            let lastMessageId;
+            for (const chunk of chunks) {
+                const outbound = {
+                    to: target.to,
+                    text: chunk,
+                    threadId: target.threadId,
+                    silent: message.silent,
+                    attachments: message.attachments,
+                };
+                const delivery = await adapter.send(outbound);
+                if (!delivery.success) {
+                    return {
+                        target,
+                        success: false,
+                        error: delivery.error ?? 'Delivery failed',
+                        formattedText,
+                    };
+                }
+                lastMessageId = delivery.messageId;
+            }
+            return {
+                target,
+                success: true,
+                messageId: lastMessageId,
+                deliveredAt: Date.now(),
+                formattedText,
+            };
+        }
+        catch (err) {
+            return {
+                target,
+                success: false,
+                error: err instanceof Error ? err.message : String(err),
+            };
+        }
+    }
+}
+// === Format Helpers ===
+function chunkText(text, maxLen) {
+    if (text.length <= maxLen)
+        return [text];
+    const chunks = [];
+    for (let i = 0; i < text.length; i += maxLen) {
+        chunks.push(text.slice(i, i + maxLen));
+    }
+    return chunks;
+}
+function stripHtml(html) {
+    return html.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+}
+function stripFormatting(text) {
+    return text.replace(/[*_~`]/g, '');
+}
+function markdownToHtml(md) {
+    return md
+        .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+        .replace(/\*(.*?)\*/g, '<i>$1</i>')
+        .replace(/`(.*?)`/g, '<code>$1</code>');
+}
+function markdownToMrkdwn(md) {
+    // Slack mrkdwn is similar to markdown but uses * for bold and _ for italic
+    return md.replace(/\*\*(.*?)\*\*/g, '*$1*');
+}
+/**
+ * Create a tool definition for the cross-channel messenger.
+ */
+export function createMessageToolDefinition(messenger) {
+    return {
+        name: 'message',
+        description: 'Send messages across channels (Discord, Telegram, Slack, IRC, Teams, LINE, Matrix, WebChat).',
+        category: 'messaging',
+        parameters: {
+            type: 'object',
+            properties: {
+                channel: { type: 'string', description: 'Target channel (discord, telegram, slack, irc, teams, line, matrix, webchat)' },
+                to: { type: 'string', description: 'Target user/chat/room ID' },
+                text: { type: 'string', description: 'Message text (supports markdown)' },
+                format: { type: 'string', enum: ['plain', 'markdown', 'html'], description: 'Text format' },
+                threadId: { type: 'string', description: 'Thread ID for threaded conversations' },
+            },
+            required: ['channel', 'to', 'text'],
+        },
+        handler: async (args) => {
+            const report = await messenger.sendToOne(args.channel, args.to, args.text, {
+                format: args.format,
+                threadId: args.threadId,
+            });
+            return JSON.stringify(report);
+        },
+    };
+}
+//# sourceMappingURL=message.js.map

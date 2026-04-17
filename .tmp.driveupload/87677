@@ -1,0 +1,11 @@
+import { activeAborts } from './abort.data.js';
+import { abortRun } from './abort-run.js';
+export function abortAll(reason) {
+    let count = 0;
+    for (const [sessionKey] of activeAborts) {
+        if (abortRun(sessionKey, reason ?? 'system'))
+            count++;
+    }
+    return count;
+}
+//# sourceMappingURL=abort-all.js.map

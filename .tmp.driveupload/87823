@@ -1,0 +1,7 @@
+/**
+ * heartbeat.data.ts — Shared heartbeat diagnostic data store
+ */
+import type { AutoPilotDiagnostic } from './types.js';
+export type DiagnosticEntry = AutoPilotDiagnostic;
+export declare const diagnostics: DiagnosticEntry[];
+//# sourceMappingURL=heartbeat.data.d.ts.map

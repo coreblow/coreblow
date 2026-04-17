@@ -1,0 +1,64 @@
+/**
+ * CoreBlow — Event Sourcing
+ *
+ * Event sourcing pattern for reconstructing state from
+ * an ordered sequence of events. Supports snapshots,
+ * projections, and event replay.
+ */
+/** Domain event */
+export interface DomainEvent {
+    id: string;
+    type: string;
+    aggregateId: string;
+    payload: Record<string, unknown>;
+    timestamp: number;
+    version: number;
+}
+/** Snapshot */
+export interface Snapshot {
+    aggregateId: string;
+    state: Record<string, unknown>;
+    version: number;
+    createdAt: number;
+}
+/**
+ * CoreBlow Event Sourcing
+ */
+export declare class EventStore {
+    private events;
+    private snapshots;
+    private projections;
+    private idCounter;
+    private versionCounters;
+    /**
+     * Append an event.
+     */
+    append(type: string, aggregateId: string, payload: Record<string, unknown>): DomainEvent;
+    /**
+     * Get events for an aggregate.
+     */
+    getEvents(aggregateId: string, afterVersion?: number): DomainEvent[];
+    /**
+     * Register a projection (reducer function).
+     */
+    registerProjection(name: string, reducer: (state: Record<string, unknown>, event: DomainEvent) => Record<string, unknown>): void;
+    /**
+     * Replay events through a projection to build state.
+     */
+    project(projectionName: string, aggregateId: string): Record<string, unknown>;
+    /**
+     * Create a snapshot.
+     */
+    createSnapshot(aggregateId: string, state: Record<string, unknown>): Snapshot;
+    /**
+     * Get all events by type.
+     */
+    getByType(type: string): DomainEvent[];
+    /**
+     * Get latest version for aggregate.
+     */
+    getVersion(aggregateId: string): number;
+    /** Count events */
+    count(): number;
+}
+//# sourceMappingURL=event-sourcing.d.ts.map

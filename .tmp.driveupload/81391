@@ -1,0 +1,168 @@
+/**
+ * src/gateway/retry.ts
+ * Retry logic + circuit breaker pattern
+ * SUPERIOR: CoreBlow = no retry; CoreBlow = exponential backoff + jitter + circuit breaker
+ */
+import { createChildLogger } from '../utils/logger.js';
+const log = createChildLogger('retry');
+// ─── Retry ───────────────────────────────────────────────────────
+const DEFAULT_RETRY = {
+    maxAttempts: 3,
+    baseDelayMs: 1000,
+    maxDelayMs: 30000,
+    jitter: true,
+    backoffMultiplier: 2,
+};
+/**
+ * Calculate delay with exponential backoff + optional jitter
+ */
+export function calculateDelay(attempt, config = DEFAULT_RETRY) {
+    const exponential = config.baseDelayMs * Math.pow(config.backoffMultiplier, attempt - 1);
+    const capped = Math.min(exponential, config.maxDelayMs);
+    if (config.jitter) {
+        // Full jitter: random between 0 and capped
+        return Math.floor(Math.random() * capped);
+    }
+    return capped;
+}
+/**
+ * Execute a function with retry logic
+ */
+export async function withRetry(fn, config = {}) {
+    const cfg = { ...DEFAULT_RETRY, ...config };
+    const start = Date.now();
+    for (let attempt = 1; attempt <= cfg.maxAttempts; attempt++) {
+        try {
+            const result = await fn();
+            return { success: true, result, attempts: attempt, totalTimeMs: Date.now() - start };
+        }
+        catch (err) {
+            // Check if error is non-retryable
+            if (cfg.nonRetryableErrors?.some(e => (err instanceof Error ? err.message : String(err)).includes(e))) {
+                return { success: false, error: err, attempts: attempt, totalTimeMs: Date.now() - start };
+            }
+            if (attempt < cfg.maxAttempts) {
+                const delay = calculateDelay(attempt, cfg);
+                log.debug({ attempt, maxAttempts: cfg.maxAttempts, delay, err: (err instanceof Error ? err.message : String(err)) }, 'Retrying');
+                await sleep(delay);
+            }
+            else {
+                return { success: false, error: err, attempts: attempt, totalTimeMs: Date.now() - start };
+            }
+        }
+    }
+    return { success: false, error: new Error('Max attempts reached'), attempts: cfg.maxAttempts, totalTimeMs: Date.now() - start };
+}
+// ─── Circuit Breaker ─────────────────────────────────────────────
+const DEFAULT_CIRCUIT = {
+    failureThreshold: 5,
+    resetTimeMs: 30000,
+    successThreshold: 2,
+};
+export class CircuitBreaker {
+    state = 'closed';
+    failures = 0;
+    successes = 0;
+    lastFailureAt = 0;
+    config;
+    name;
+    stateChangeListeners = [];
+    constructor(name, config) {
+        this.name = name;
+        this.config = { ...DEFAULT_CIRCUIT, ...config };
+    }
+    /**
+     * Execute a function through the circuit breaker
+     */
+    async execute(fn) {
+        // Check state
+        if (this.state === 'open') {
+            // Check if reset time has passed
+            if (Date.now() - this.lastFailureAt >= this.config.resetTimeMs) {
+                this.transition('half-open');
+            }
+            else {
+                throw new Error(`Circuit breaker "${this.name}" is OPEN`);
+            }
+        }
+        try {
+            const result = await fn();
+            this.onSuccess();
+            return result;
+        }
+        catch (err) {
+            this.onFailure();
+            throw err;
+        }
+    }
+    onSuccess() {
+        this.failures = 0;
+        if (this.state === 'half-open') {
+            this.successes++;
+            if (this.successes >= this.config.successThreshold) {
+                this.transition('closed');
+            }
+        }
+    }
+    onFailure() {
+        this.failures++;
+        this.lastFailureAt = Date.now();
+        this.successes = 0;
+        if (this.state === 'closed' && this.failures >= this.config.failureThreshold) {
+            this.transition('open');
+        }
+        else if (this.state === 'half-open') {
+            this.transition('open');
+        }
+    }
+    transition(newState) {
+        const old = this.state;
+        this.state = newState;
+        if (newState === 'closed') {
+            this.failures = 0;
+            this.successes = 0;
+        }
+        log.info({ breaker: this.name, from: old, to: newState }, 'Circuit state changed');
+        for (const listener of this.stateChangeListeners) {
+            listener(newState);
+        }
+    }
+    /**
+     * Listen for state changes
+     */
+    onStateChange(listener) {
+        this.stateChangeListeners.push(listener);
+    }
+    /**
+     * Get current state
+     */
+    getState() {
+        // Auto-check if reset time passed
+        if (this.state === 'open' && Date.now() - this.lastFailureAt >= this.config.resetTimeMs) {
+            return 'half-open';
+        }
+        return this.state;
+    }
+    /**
+     * Force reset
+     */
+    reset() {
+        this.transition('closed');
+    }
+    /**
+     * Get info
+     */
+    getInfo() {
+        return {
+            name: this.name,
+            state: this.getState(),
+            failures: this.failures,
+            successes: this.successes,
+        };
+    }
+}
+// ─── Helpers ─────────────────────────────────────────────────────
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+//# sourceMappingURL=retry.js.map

@@ -1,0 +1,2 @@
+export declare function patchSessionMetadata(sessionKey: string, patch: Record<string, any>): boolean;
+//# sourceMappingURL=sessions-patch.d.ts.map

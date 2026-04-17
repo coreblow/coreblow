@@ -1,0 +1,33 @@
+/**
+ * gateway/server-constants.ts — Gateway Protocol Constants
+ *
+ * Shared constants for the gateway protocol including seq tracking,
+ * gap detection thresholds, and tick intervals.
+ *
+ * Ported from CoreBlow gateway constants.
+ */
+/** Minimum protocol version supported */
+export const MIN_PROTOCOL_VERSION = 2;
+/** Maximum protocol version supported */
+export const MAX_PROTOCOL_VERSION = 3;
+/** Heartbeat / tick interval in ms */
+export const TICK_INTERVAL_MS = 30_000;
+/** WebSocket close code for unauthorized connections */
+export const WS_CLOSE_UNAUTHORIZED = 4001;
+/** WebSocket close code for schema validation failure */
+export const WS_CLOSE_INVALID_CONNECT = 4002;
+/** WebSocket close code for heartbeat timeout */
+export const WS_CLOSE_HEARTBEAT = 1001;
+/** Max allowed event sequence gap before client should reconnect */
+export const MAX_SEQ_GAP = 100;
+/** Max time for signature freshness (5 minutes) */
+export const MAX_SIGNATURE_AGE_MS = 5 * 60_000;
+/** Max body size for RPC requests */
+export const MAX_RPC_BODY_BYTES = 10 * 1024 * 1024;
+/** Max bytes buffered per WebSocket client before backpressure kicks in (5 MB) */
+export const MAX_BUFFERED_BYTES = 5 * 1024 * 1024;
+/** Max allowed WebSocket message size (10 MB) */
+export const MAX_MESSAGE_SIZE = 10 * 1024 * 1024;
+/** Heartbeat interval in ms (30 s) — keep-alive ping to detect stale connections */
+export const HEARTBEAT_INTERVAL_MS = 30_000;
+//# sourceMappingURL=server-constants.js.map

@@ -1,0 +1,74 @@
+/**
+ * CoreBlow — Data Validator
+ *
+ * Validates data records against rules with detailed
+ * error reporting, batch validation, and custom rules.
+ */
+/** Validation rule */
+export interface ValidationRule {
+    field: string;
+    check: 'required' | 'minLength' | 'maxLength' | 'min' | 'max' | 'pattern' | 'custom';
+    value?: unknown;
+    message?: string;
+    customFn?: (val: unknown) => boolean;
+}
+/** Validation error */
+export interface ValidationError {
+    field: string;
+    rule: string;
+    message: string;
+    value: unknown;
+}
+/** Validation result */
+export interface ValidationResult {
+    valid: boolean;
+    errors: ValidationError[];
+}
+/**
+ * CoreBlow Data Validator
+ */
+export declare class DataValidator {
+    private rules;
+    /**
+     * Add a rule.
+     */
+    addRule(rule: ValidationRule): this;
+    /**
+     * Add required rule.
+     */
+    required(field: string, message?: string): this;
+    /**
+     * Add min length rule.
+     */
+    minLength(field: string, min: number, message?: string): this;
+    /**
+     * Add max rule.
+     */
+    max(field: string, maxVal: number, message?: string): this;
+    /**
+     * Add pattern rule.
+     */
+    pattern(field: string, regex: RegExp, message?: string): this;
+    /**
+     * Add custom rule.
+     */
+    custom(field: string, fn: (val: unknown) => boolean, message?: string): this;
+    /**
+     * Validate a record.
+     */
+    validate(record: Record<string, unknown>): ValidationResult;
+    /**
+     * Validate many.
+     */
+    validateMany(records: Array<Record<string, unknown>>): Array<{
+        index: number;
+        result: ValidationResult;
+    }>;
+    /**
+     * Reset rules.
+     */
+    reset(): void;
+    /** Count */
+    count(): number;
+}
+//# sourceMappingURL=data-validator.d.ts.map

@@ -1,0 +1,303 @@
+/**
+ * channels/webhook.schema.ts
+ * Zod validation for incoming webhook payloads from external channels.
+ *
+ * Each channel has its own webhook shape. This module normalizes
+ * and validates payloads before they enter the auto-reply pipeline.
+ */
+import { z } from 'zod';
+export declare const TelegramUserSchema: z.ZodObject<{
+    id: z.ZodNumber;
+    is_bot: z.ZodDefault<z.ZodBoolean>;
+    first_name: z.ZodString;
+    last_name: z.ZodOptional<z.ZodString>;
+    username: z.ZodOptional<z.ZodString>;
+    language_code: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>;
+export declare const TelegramChatSchema: z.ZodObject<{
+    id: z.ZodNumber;
+    type: z.ZodEnum<{
+        private: "private";
+        channel: "channel";
+        group: "group";
+        supergroup: "supergroup";
+    }>;
+    title: z.ZodOptional<z.ZodString>;
+    username: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>;
+export declare const TelegramMessageSchema: z.ZodObject<{
+    message_id: z.ZodNumber;
+    from: z.ZodOptional<z.ZodObject<{
+        id: z.ZodNumber;
+        is_bot: z.ZodDefault<z.ZodBoolean>;
+        first_name: z.ZodString;
+        last_name: z.ZodOptional<z.ZodString>;
+        username: z.ZodOptional<z.ZodString>;
+        language_code: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    chat: z.ZodObject<{
+        id: z.ZodNumber;
+        type: z.ZodEnum<{
+            private: "private";
+            channel: "channel";
+            group: "group";
+            supergroup: "supergroup";
+        }>;
+        title: z.ZodOptional<z.ZodString>;
+        username: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>;
+    date: z.ZodNumber;
+    text: z.ZodOptional<z.ZodString>;
+    reply_to_message: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+    photo: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        file_id: z.ZodString;
+        width: z.ZodNumber;
+        height: z.ZodNumber;
+    }, z.core.$strip>>>;
+    document: z.ZodOptional<z.ZodObject<{
+        file_id: z.ZodString;
+        file_name: z.ZodOptional<z.ZodString>;
+        mime_type: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+}, z.core.$strip>;
+export declare const TelegramUpdateSchema: z.ZodObject<{
+    update_id: z.ZodNumber;
+    message: z.ZodOptional<z.ZodObject<{
+        message_id: z.ZodNumber;
+        from: z.ZodOptional<z.ZodObject<{
+            id: z.ZodNumber;
+            is_bot: z.ZodDefault<z.ZodBoolean>;
+            first_name: z.ZodString;
+            last_name: z.ZodOptional<z.ZodString>;
+            username: z.ZodOptional<z.ZodString>;
+            language_code: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>>;
+        chat: z.ZodObject<{
+            id: z.ZodNumber;
+            type: z.ZodEnum<{
+                private: "private";
+                channel: "channel";
+                group: "group";
+                supergroup: "supergroup";
+            }>;
+            title: z.ZodOptional<z.ZodString>;
+            username: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>;
+        date: z.ZodNumber;
+        text: z.ZodOptional<z.ZodString>;
+        reply_to_message: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+        photo: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            file_id: z.ZodString;
+            width: z.ZodNumber;
+            height: z.ZodNumber;
+        }, z.core.$strip>>>;
+        document: z.ZodOptional<z.ZodObject<{
+            file_id: z.ZodString;
+            file_name: z.ZodOptional<z.ZodString>;
+            mime_type: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>>;
+    }, z.core.$strip>>;
+    edited_message: z.ZodOptional<z.ZodObject<{
+        message_id: z.ZodNumber;
+        from: z.ZodOptional<z.ZodObject<{
+            id: z.ZodNumber;
+            is_bot: z.ZodDefault<z.ZodBoolean>;
+            first_name: z.ZodString;
+            last_name: z.ZodOptional<z.ZodString>;
+            username: z.ZodOptional<z.ZodString>;
+            language_code: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>>;
+        chat: z.ZodObject<{
+            id: z.ZodNumber;
+            type: z.ZodEnum<{
+                private: "private";
+                channel: "channel";
+                group: "group";
+                supergroup: "supergroup";
+            }>;
+            title: z.ZodOptional<z.ZodString>;
+            username: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>;
+        date: z.ZodNumber;
+        text: z.ZodOptional<z.ZodString>;
+        reply_to_message: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+        photo: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            file_id: z.ZodString;
+            width: z.ZodNumber;
+            height: z.ZodNumber;
+        }, z.core.$strip>>>;
+        document: z.ZodOptional<z.ZodObject<{
+            file_id: z.ZodString;
+            file_name: z.ZodOptional<z.ZodString>;
+            mime_type: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>>;
+    }, z.core.$strip>>;
+    callback_query: z.ZodOptional<z.ZodObject<{
+        id: z.ZodString;
+        from: z.ZodObject<{
+            id: z.ZodNumber;
+            is_bot: z.ZodDefault<z.ZodBoolean>;
+            first_name: z.ZodString;
+            last_name: z.ZodOptional<z.ZodString>;
+            username: z.ZodOptional<z.ZodString>;
+            language_code: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>;
+        data: z.ZodOptional<z.ZodString>;
+        message: z.ZodOptional<z.ZodObject<{
+            message_id: z.ZodNumber;
+            from: z.ZodOptional<z.ZodObject<{
+                id: z.ZodNumber;
+                is_bot: z.ZodDefault<z.ZodBoolean>;
+                first_name: z.ZodString;
+                last_name: z.ZodOptional<z.ZodString>;
+                username: z.ZodOptional<z.ZodString>;
+                language_code: z.ZodOptional<z.ZodString>;
+            }, z.core.$strip>>;
+            chat: z.ZodObject<{
+                id: z.ZodNumber;
+                type: z.ZodEnum<{
+                    private: "private";
+                    channel: "channel";
+                    group: "group";
+                    supergroup: "supergroup";
+                }>;
+                title: z.ZodOptional<z.ZodString>;
+                username: z.ZodOptional<z.ZodString>;
+            }, z.core.$strip>;
+            date: z.ZodNumber;
+            text: z.ZodOptional<z.ZodString>;
+            reply_to_message: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+            photo: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                file_id: z.ZodString;
+                width: z.ZodNumber;
+                height: z.ZodNumber;
+            }, z.core.$strip>>>;
+            document: z.ZodOptional<z.ZodObject<{
+                file_id: z.ZodString;
+                file_name: z.ZodOptional<z.ZodString>;
+                mime_type: z.ZodOptional<z.ZodString>;
+            }, z.core.$strip>>;
+        }, z.core.$strip>>;
+    }, z.core.$strip>>;
+}, z.core.$strip>;
+export type ValidatedTelegramUpdate = z.infer<typeof TelegramUpdateSchema>;
+export declare const DiscordWebhookSchema: z.ZodObject<{
+    type: z.ZodNumber;
+    token: z.ZodOptional<z.ZodString>;
+    data: z.ZodOptional<z.ZodObject<{
+        id: z.ZodOptional<z.ZodString>;
+        name: z.ZodOptional<z.ZodString>;
+        type: z.ZodOptional<z.ZodNumber>;
+        options: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            name: z.ZodString;
+            type: z.ZodNumber;
+            value: z.ZodOptional<z.ZodUnknown>;
+        }, z.core.$strip>>>;
+    }, z.core.$strip>>;
+    member: z.ZodOptional<z.ZodObject<{
+        user: z.ZodOptional<z.ZodObject<{
+            id: z.ZodString;
+            username: z.ZodString;
+            discriminator: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>>;
+    }, z.core.$strip>>;
+    channel_id: z.ZodOptional<z.ZodString>;
+    guild_id: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>;
+export type ValidatedDiscordWebhook = z.infer<typeof DiscordWebhookSchema>;
+export declare const SlackEventSchema: z.ZodObject<{
+    type: z.ZodString;
+    event: z.ZodOptional<z.ZodObject<{
+        type: z.ZodString;
+        user: z.ZodOptional<z.ZodString>;
+        text: z.ZodOptional<z.ZodString>;
+        channel: z.ZodOptional<z.ZodString>;
+        ts: z.ZodOptional<z.ZodString>;
+        thread_ts: z.ZodOptional<z.ZodString>;
+        bot_id: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    challenge: z.ZodOptional<z.ZodString>;
+    token: z.ZodOptional<z.ZodString>;
+    team_id: z.ZodOptional<z.ZodString>;
+    event_id: z.ZodOptional<z.ZodString>;
+    event_time: z.ZodOptional<z.ZodNumber>;
+}, z.core.$strip>;
+export type ValidatedSlackEvent = z.infer<typeof SlackEventSchema>;
+export declare const WhatsAppMessageSchema: z.ZodObject<{
+    from: z.ZodString;
+    id: z.ZodString;
+    timestamp: z.ZodString;
+    type: z.ZodEnum<{
+        text: "text";
+        image: "image";
+        audio: "audio";
+        interactive: "interactive";
+        document: "document";
+        button: "button";
+        video: "video";
+        sticker: "sticker";
+        reaction: "reaction";
+        location: "location";
+        contacts: "contacts";
+    }>;
+    text: z.ZodOptional<z.ZodObject<{
+        body: z.ZodString;
+    }, z.core.$strip>>;
+    image: z.ZodOptional<z.ZodObject<{
+        id: z.ZodString;
+        caption: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+}, z.core.$strip>;
+export declare const WhatsAppWebhookSchema: z.ZodObject<{
+    object: z.ZodLiteral<"whatsapp_business_account">;
+    entry: z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        changes: z.ZodArray<z.ZodObject<{
+            field: z.ZodString;
+            value: z.ZodObject<{
+                messages: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                    from: z.ZodString;
+                    id: z.ZodString;
+                    timestamp: z.ZodString;
+                    type: z.ZodEnum<{
+                        text: "text";
+                        image: "image";
+                        audio: "audio";
+                        interactive: "interactive";
+                        document: "document";
+                        button: "button";
+                        video: "video";
+                        sticker: "sticker";
+                        reaction: "reaction";
+                        location: "location";
+                        contacts: "contacts";
+                    }>;
+                    text: z.ZodOptional<z.ZodObject<{
+                        body: z.ZodString;
+                    }, z.core.$strip>>;
+                    image: z.ZodOptional<z.ZodObject<{
+                        id: z.ZodString;
+                        caption: z.ZodOptional<z.ZodString>;
+                    }, z.core.$strip>>;
+                }, z.core.$strip>>>;
+                metadata: z.ZodOptional<z.ZodObject<{
+                    phone_number_id: z.ZodString;
+                    display_phone_number: z.ZodString;
+                }, z.core.$strip>>;
+            }, z.core.$strip>;
+        }, z.core.$strip>>;
+    }, z.core.$strip>>;
+}, z.core.$strip>;
+export type ValidatedWhatsAppWebhook = z.infer<typeof WhatsAppWebhookSchema>;
+export declare const GenericWebhookSchema: z.ZodObject<{
+    source: z.ZodString;
+    event: z.ZodString;
+    data: z.ZodRecord<z.ZodString, z.ZodUnknown>;
+    timestamp: z.ZodOptional<z.ZodNumber>;
+    signature: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>;
+export type ValidatedGenericWebhook = z.infer<typeof GenericWebhookSchema>;
+export declare function validateTelegramUpdate(raw: unknown): ValidatedTelegramUpdate;
+export declare function validateSlackEvent(raw: unknown): ValidatedSlackEvent;
+export declare function validateWhatsAppWebhook(raw: unknown): ValidatedWhatsAppWebhook;
+//# sourceMappingURL=webhook.schema.d.ts.map

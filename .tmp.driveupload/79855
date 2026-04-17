@@ -1,0 +1,54 @@
+/**
+ * CoreBlow — Snapshot Testing
+ *
+ * Compares output against stored snapshots for
+ * regression testing. Supports update mode, diff
+ * generation, and multiple snapshot formats.
+ */
+/** Snapshot entry */
+export interface SnapshotEntry {
+    key: string;
+    value: string;
+    createdAt: number;
+    updatedAt: number;
+}
+/**
+ * CoreBlow Snapshot Testing
+ */
+export declare class SnapshotTesting {
+    private snapshots;
+    private updateMode;
+    private stats;
+    /**
+     * Set update mode.
+     */
+    setUpdateMode(enabled: boolean): void;
+    /**
+     * Match against snapshot.
+     */
+    match(key: string, value: unknown): {
+        match: boolean;
+        diff?: string;
+    };
+    /**
+     * Get a stored snapshot.
+     */
+    get(key: string): string | null;
+    /**
+     * Delete a snapshot.
+     */
+    delete(key: string): boolean;
+    /**
+     * Get stats.
+     */
+    getStats(): typeof this.stats;
+    /**
+     * List snapshot keys.
+     */
+    list(): string[];
+    /** Count */
+    count(): number;
+    private serialize;
+    private generateDiff;
+}
+//# sourceMappingURL=snapshot-testing.d.ts.map

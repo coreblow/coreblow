@@ -1,0 +1,8 @@
+/**
+ * markdown/parser.ts
+ */
+export declare function parseMarkdown(md: string): {
+    type: string;
+    content: string;
+}[];
+//# sourceMappingURL=parser.d.ts.map

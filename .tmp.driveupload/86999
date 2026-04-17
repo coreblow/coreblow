@@ -1,0 +1,9 @@
+/** PI embedded subscription — event stream handler. */
+export type SubscriptionEvent = 'message' | 'tool_use' | 'thinking' | 'error' | 'done';
+export interface Subscription {
+    id: string;
+    events: SubscriptionEvent[];
+    handler: (event: SubscriptionEvent, data: unknown) => void;
+}
+export declare function createSubscription(events: SubscriptionEvent[], handler: Subscription['handler']): Subscription;
+//# sourceMappingURL=pi-embedded-subscribe.d.ts.map

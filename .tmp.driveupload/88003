@@ -1,0 +1,4 @@
+export function sanitizeCommand(cmd) { return cmd.replace(/[;&|`$]/g, ""); }
+export function isCommandAllowed(cmd, allowlist = []) { const base = cmd.split(/\s+/)[0]; return allowlist.length === 0 || allowlist.includes(base); }
+export function formatExecResult(stdout, stderr, exitCode) { return exitCode === 0 ? stdout : `Error (${exitCode}): ${stderr}`; }
+//# sourceMappingURL=bash-tools-exec-host-shared.js.map

@@ -1,0 +1,8 @@
+export declare class AuthStore {
+    private path;
+    constructor(p: string);
+    save(token: string): void;
+    load(): string | null;
+    clear(): void;
+}
+//# sourceMappingURL=auth-store.d.ts.map

@@ -1,0 +1,32 @@
+export type ExecApprovalDecision = "allow-once" | "allow-always" | "deny";
+export interface ExecApprovalSnapshot<TRequest = any> {
+    id: string;
+    request: TRequest;
+    decision: ExecApprovalDecision | null;
+    createdAtMs: number;
+    expiresAtMs: number;
+    resolvedAtMs?: number;
+    resolvedBy?: string | null;
+    requestedByConnId?: string | null;
+    requestedByDeviceId?: string | null;
+    requestedByClientId?: string | null;
+}
+export declare class ExecApprovalManager<TRequest = any> {
+    private pending;
+    create(request: TRequest, timeoutMs: number, explicitId?: string | null): ExecApprovalSnapshot<TRequest>;
+    register(snapshot: ExecApprovalSnapshot<TRequest>, timeoutMs: number): Promise<ExecApprovalDecision | null>;
+    resolve(id: string, decision: ExecApprovalDecision, resolvedBy?: string | null): boolean;
+    expire(id: string, reason: string): boolean;
+    getSnapshot(id: string): ExecApprovalSnapshot<TRequest> | undefined;
+    lookupPendingId(prefix: string): {
+        kind: "none";
+    } | {
+        kind: "exact";
+        id: string;
+    } | {
+        kind: "ambiguous";
+        ids: string[];
+    };
+    awaitDecision(id: string): Promise<ExecApprovalDecision | null> | null;
+}
+//# sourceMappingURL=exec-approval-manager.d.ts.map

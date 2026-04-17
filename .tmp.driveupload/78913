@@ -1,0 +1,61 @@
+/**
+ * healthCommand — ping the local Gateway and report status.
+ */
+export async function healthCommand(opts, runtime) {
+    const startMs = Date.now();
+    const url = 'ws://127.0.0.1:18789';
+    const timeoutMs = opts.timeoutMs ?? 5000;
+    let result;
+    try {
+        const { GatewayClient } = await import('../gateway/client.js');
+        const connectResult = await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                reject(new Error(`Gateway health check timed out after ${timeoutMs}ms`));
+            }, timeoutMs);
+            const options = {
+                url,
+                onHelloOk: (hello) => {
+                    clearTimeout(timeout);
+                    resolve({ ok: true, version: hello?.serverVersion });
+                    void client.stopAndWait();
+                },
+                onConnectError: (err) => {
+                    clearTimeout(timeout);
+                    reject(err);
+                },
+            };
+            const client = new GatewayClient(options);
+            client.start();
+        });
+        result = {
+            ok: true,
+            status: 'connected',
+            version: connectResult.version,
+            latencyMs: Date.now() - startMs,
+        };
+    }
+    catch (err) {
+        result = {
+            ok: false,
+            status: 'unreachable',
+            error: err instanceof Error ? err.message : String(err),
+            latencyMs: Date.now() - startMs,
+        };
+    }
+    if (opts.json) {
+        runtime.writeJson(result);
+        return;
+    }
+    if (result.ok) {
+        runtime.log(`✅ Gateway: connected (${result.latencyMs}ms)`);
+        if (result.version)
+            runtime.log(`   Version: ${result.version}`);
+    }
+    else {
+        runtime.error(`❌ Gateway: ${result.status}`);
+        if (result.error)
+            runtime.error(`   ${result.error}`);
+        runtime.exit(1);
+    }
+}
+//# sourceMappingURL=health.js.map

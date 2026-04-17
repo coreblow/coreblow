@@ -1,0 +1,2 @@
+export declare const sessionsHistoryEndpoint: import("./http-endpoint-helpers.js").HttpEndpoint;
+//# sourceMappingURL=sessions-history-http.d.ts.map

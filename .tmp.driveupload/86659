@@ -1,0 +1,75 @@
+/**
+ * src/security/tool-profiles.ts
+ *
+ * Layer 4: Tool Profiles + Access Profiles — CoreBlow Pattern
+ *
+ * Two-tier access control:
+ * 1. ToolProfile (minimal/coding/messaging/full) — restricts which tools an agent can use
+ * 2. AccessProfile (full/read-only/no-exec) — restricts agent capabilities
+ *
+ * Supports per-provider profile overrides following CoreBlow's `byProvider` config.
+ */
+export type ToolProfile = 'minimal' | 'coding' | 'messaging' | 'full';
+export type AccessProfile = 'full' | 'read-only' | 'no-exec';
+export interface ProfileRules {
+    canExec: boolean;
+    canWriteFiles: boolean;
+    canAccessNetwork: boolean;
+    canManageGateway: boolean;
+    canMessageOtherChannels: boolean;
+    allowedTools: string[] | 'all';
+}
+export interface ToolProfileConfig {
+    /** Default profile for all agents */
+    profile: ToolProfile;
+    /** Additional tools to allow beyond the profile */
+    allow?: string[];
+    /** Specific tools to deny */
+    deny?: string[];
+    /** Per-provider profile overrides (CoreBlow pattern) */
+    byProvider?: Record<string, {
+        profile: ToolProfile;
+    }>;
+}
+/**
+ * Access Control following CoreBlow's dual-profile system.
+ *
+ * ```typescript
+ * const ac = new AccessControl();
+ * ac.canUseTool('read-only', 'exec');    // false
+ * ac.canUseTool('full', 'exec');         // true
+ * ac.canUseTool('no-exec', 'exec');      // false
+ * ac.canUseTool('no-exec', 'web_search'); // true
+ *
+ * ac.isToolAllowed('coding', 'exec');     // true (in coding profile)
+ * ac.isToolAllowed('minimal', 'exec');    // false
+ * ```
+ */
+export declare class AccessControl {
+    private readonly config;
+    constructor(config?: Partial<ToolProfileConfig>);
+    /**
+     * Check if an AccessProfile allows a specific tool.
+     * CoreBlow 1:1 interface.
+     */
+    canUseTool(profile: AccessProfile, toolName: string): boolean;
+    /**
+     * Check if a ToolProfile allows a specific tool.
+     * Takes into account allow/deny overrides and byProvider.
+     */
+    isToolAllowed(toolName: string, provider?: string): boolean;
+    /**
+     * Get the ProfileRules for an AccessProfile.
+     */
+    getProfile(name: AccessProfile): ProfileRules;
+    /**
+     * Get the effective ToolProfile for a provider.
+     */
+    getEffectiveProfile(provider?: string): ToolProfile;
+    /**
+     * Get all tool names allowed by a ToolProfile (expanded).
+     */
+    getAllowedTools(profile?: ToolProfile): string[];
+    private expandGroups;
+}
+//# sourceMappingURL=tool-profiles.d.ts.map

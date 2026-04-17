@@ -1,0 +1,49 @@
+/**
+ * auto-reply/model-runtime.ts
+ * Model selection engine with fallback chains and token budget enforcement.
+ * Ported from CoreBlow reference src/auto-reply/model-runtime.ts.
+ */
+export interface ModelConfig {
+    provider: string;
+    modelId: string;
+    maxContextTokens?: number;
+    maxOutputTokens?: number;
+    temperature?: number;
+    topP?: number;
+}
+export interface ModelFallbackChain {
+    primary: ModelConfig;
+    fallbacks: ModelConfig[];
+}
+/**
+ * Parse a model string into provider + model ID.
+ * Supports: "openai/gpt-4o", "anthropic/claude-3.5-sonnet", "gpt-4o" (infer provider)
+ */
+export declare function parseModelString(model: string): {
+    provider: string;
+    modelId: string;
+};
+/**
+ * Resolve the model configuration from config.
+ */
+export declare function resolveModelConfig(cfg: Record<string, unknown>, agentName?: string): ModelConfig | null;
+/**
+ * Build a fallback chain from config.
+ */
+export declare function resolveModelFallbackChain(cfg: Record<string, unknown>, agentName?: string): ModelFallbackChain | null;
+/**
+ * Estimate token count for a text (rough approximation).
+ * ~4 characters per token for English text.
+ */
+export declare function estimateTokenCount(text: string): number;
+/**
+ * Truncate context to fit within token budget.
+ */
+export declare function truncateContextToFit(messages: Array<{
+    role: string;
+    content: string;
+}>, maxTokens: number): Array<{
+    role: string;
+    content: string;
+}>;
+//# sourceMappingURL=model-runtime.d.ts.map

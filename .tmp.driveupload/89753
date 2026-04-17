@@ -1,0 +1,26 @@
+export interface SandboxConfig {
+    allowedDirs: string[];
+    deniedPatterns?: RegExp[];
+    readOnlyDirs?: string[];
+    maxFileSize?: number;
+}
+export declare function createSandbox(config: SandboxConfig): Sandbox;
+export declare class Sandbox {
+    private config;
+    constructor(config: SandboxConfig);
+    isPathAllowed(targetPath: string): {
+        allowed: boolean;
+        reason?: string;
+    };
+    isPathReadOnly(targetPath: string): boolean;
+    isWriteAllowed(targetPath: string): {
+        allowed: boolean;
+        reason?: string;
+    };
+    validateFileSize(size: number): boolean;
+    getAllowedDirs(): string[];
+    getConfig(): Readonly<SandboxConfig>;
+}
+export declare const DEFAULT_DENIED_PATTERNS: RegExp[];
+export declare function createDefaultSandbox(workspaceDir: string): Sandbox;
+//# sourceMappingURL=sandbox.d.ts.map

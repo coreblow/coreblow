@@ -1,0 +1,74 @@
+/**
+ * plugin-sdk/channel-plugin-common.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/channel-plugin-common.ts
+ *
+ * Canonical shared prelude for channel-oriented plugin SDK surfaces.
+ */
+export { emptyPluginConfigSchema } from './plugin-entry.js';
+export { DEFAULT_ACCOUNT_ID, normalizeAccountId } from './account-id.js';
+export { PAIRING_APPROVED_MESSAGE } from './channel-status.js';
+// ─── Channel Config Helpers ───────────────────────────────────────────────────
+/** Apply a friendly account name when migrating from single → multi-account setup. */
+export function applyAccountNameToChannelSection(params) {
+    const channelSection = params.cfg[params.channelKey] ?? {};
+    if (channelSection['accounts']) {
+        return params.cfg;
+    }
+    return {
+        ...params.cfg,
+        [params.channelKey]: {
+            accounts: { [params.accountName]: channelSection },
+        },
+    };
+}
+/** Migrate a base-name config to use a named default account. */
+export function migrateBaseNameToDefaultAccount(params) {
+    return applyAccountNameToChannelSection({
+        cfg: params.cfg,
+        channelKey: params.channelKey,
+        accountName: params.defaultAccountName ?? 'default',
+    });
+}
+/** Delete an account entry from a config section. */
+export function deleteAccountFromConfigSection(params) {
+    const section = params.cfg[params.channelKey] ?? {};
+    const accounts = { ...(section['accounts'] ?? {}) };
+    delete accounts[params.accountId];
+    return {
+        ...params.cfg,
+        [params.channelKey]: { ...section, accounts },
+    };
+}
+/** Set account enabled/disabled in a config section. */
+export function setAccountEnabledInConfigSection(params) {
+    const section = params.cfg[params.channelKey] ?? {};
+    const accounts = { ...(section['accounts'] ?? {}) };
+    const account = { ...(accounts[params.accountId] ?? {}) };
+    account['enabled'] = params.enabled;
+    accounts[params.accountId] = account;
+    return {
+        ...params.cfg,
+        [params.channelKey]: { ...section, accounts },
+    };
+}
+/** Format the pairing approve hint. */
+export function formatPairingApproveHint(params) {
+    const account = params.accountId ? ` (account: ${params.accountId})` : '';
+    return `Approve pairing for ${params.channelId}${account}`;
+}
+/** Get channel metadata by ID. */
+export function getChatChannelMeta(channelId) {
+    const META = {
+        telegram: { label: 'Telegram', emoji: '✈️' },
+        discord: { label: 'Discord', emoji: '🎮' },
+        slack: { label: 'Slack', emoji: '💼' },
+        whatsapp: { label: 'WhatsApp', emoji: '💬' },
+        signal: { label: 'Signal', emoji: '🔒' },
+        irc: { label: 'IRC', emoji: '🌐' },
+        twitch: { label: 'Twitch', emoji: '🎮' },
+        line: { label: 'LINE', emoji: '💚' },
+        feishu: { label: 'Feishu', emoji: '🪶' },
+    };
+    return META[channelId.toLowerCase()] ?? { label: channelId };
+}
+//# sourceMappingURL=channel-plugin-common.js.map

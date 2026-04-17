@@ -1,0 +1,62 @@
+export function compileAllowlist(entries) {
+    const normalized = entries.map(e => String(e).trim().toLowerCase()).filter(Boolean);
+    return { entries: normalized, hasWildcard: normalized.includes("*") };
+}
+export function resolveCompiledAllowlistMatch(compiled, senderId) {
+    if (compiled.hasWildcard)
+        return { matched: true, source: "config", entry: "*" };
+    const normalized = senderId.trim().toLowerCase();
+    const entry = compiled.entries.find(e => e === normalized);
+    return { matched: Boolean(entry), source: entry ? "config" : undefined, entry };
+}
+export function resolveAllowlistMatchSimple(entries, senderId) {
+    return resolveCompiledAllowlistMatch(compileAllowlist(entries), senderId);
+}
+export function resolveAllowlistMatchByCandidates(entries, candidates) {
+    const compiled = compileAllowlist(entries);
+    for (const c of candidates) {
+        const m = resolveCompiledAllowlistMatch(compiled, c);
+        if (m.matched)
+            return m;
+    }
+    return { matched: false };
+}
+export function resolveAllowlistCandidates(senderId, extras) {
+    return [senderId, ...(extras ?? [])].map(s => s.trim().toLowerCase());
+}
+export function formatAllowlistMatchMeta(m) {
+    return m.matched ? `matched:${m.entry ?? "?"}` : "not-matched";
+}
+export function isSenderIdAllowed(senderId, allowFrom) {
+    return resolveAllowlistMatchSimple(allowFrom, senderId).matched;
+}
+export function firstDefined(...values) {
+    return values.find(v => v != null);
+}
+export function mergeDmAllowFromSources(...sources) {
+    const seen = new Set();
+    const result = [];
+    for (const s of sources) {
+        for (const e of s) {
+            const k = String(e);
+            if (!seen.has(k)) {
+                seen.add(k);
+                result.push(e);
+            }
+        }
+    }
+    return result;
+}
+export function resolveGroupAllowFromSources(...sources) {
+    return mergeDmAllowFromSources(...sources);
+}
+export function formatAllowFromLowercase(params) {
+    return params.allowFrom.map(e => String(e).trim()).filter(Boolean).map(e => params.stripPrefixRe ? e.replace(params.stripPrefixRe, "") : e).map(e => e.toLowerCase());
+}
+export function addAllowlistUserEntriesFromConfigEntry(_p) { }
+export function buildAllowlistResolutionSummary(_p) { return ""; }
+export function canonicalizeAllowlistWithResolvedIds(_p) { return []; }
+export function mergeAllowlist(a, b) { return mergeDmAllowFromSources(a, b); }
+export function patchAllowlistUsersInConfigEntries(_p) { return {}; }
+export function summarizeMapping(_p) { return ""; }
+//# sourceMappingURL=allow-from.js.map

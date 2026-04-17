@@ -1,0 +1,11 @@
+/**
+ * plugin-sdk/slack-account.ts
+ * [ADAPT] openclaw-main — Stub for @coreblow/slack.
+ */
+export type ResolvedSlackAccount = {
+    accountId: string;
+    token?: string | null;
+    teamId?: string | null;
+};
+export declare function resolveSlackAccount(_p: unknown): Promise<ResolvedSlackAccount | null>;
+//# sourceMappingURL=slack-account.d.ts.map

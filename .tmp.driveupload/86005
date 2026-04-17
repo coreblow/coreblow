@@ -1,0 +1,22 @@
+/**
+ * src/infra/runtime-guard.ts
+ */
+export type RuntimeKind = "node" | "unknown";
+type Semver = {
+    major: number;
+    minor: number;
+    patch: number;
+};
+export type RuntimeDetails = {
+    kind: RuntimeKind;
+    version: string | null;
+    execPath: string | null;
+    pathEnv: string;
+};
+export declare function parseSemver(version: string | null): Semver | null;
+export declare function isAtLeast(version: Semver | null, minimum: Semver): boolean;
+export declare function detectRuntime(): RuntimeDetails;
+export declare function runtimeSatisfies(details: RuntimeDetails): boolean;
+export declare function isSupportedNodeVersion(version: string | null): boolean;
+export {};
+//# sourceMappingURL=runtime-guard.d.ts.map

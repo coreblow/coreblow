@@ -1,0 +1,219 @@
+/**
+ * src/daemon/service-env.ts
+ * Environment assembly for daemon services.
+ * Ported from CoreBlow daemon/service-env.ts.
+ */
+import os from "node:os";
+import path from "node:path";
+import { isNodeVersionManagerRuntime, resolveLinuxSystemCaBundle, } from "../bootstrap/node-extra-ca-certs.js";
+import { resolveNodeStartupTlsEnvironment } from "../bootstrap/node-startup-env.js";
+import { VERSION } from "../version.js";
+import { GATEWAY_SERVICE_KIND, GATEWAY_SERVICE_MARKER, resolveGatewayLaunchAgentLabel, resolveGatewaySystemdServiceName, resolveGatewayWindowsTaskName, NODE_SERVICE_KIND, NODE_SERVICE_MARKER, NODE_WINDOWS_TASK_SCRIPT_NAME, resolveNodeLaunchAgentLabel, resolveNodeSystemdServiceName, resolveNodeWindowsTaskName, } from "./constants.js";
+export { isNodeVersionManagerRuntime, resolveLinuxSystemCaBundle };
+const SERVICE_PROXY_ENV_KEYS = [
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+    "NO_PROXY",
+    "ALL_PROXY",
+    "http_proxy",
+    "https_proxy",
+    "no_proxy",
+    "all_proxy",
+];
+function readServiceProxyEnvironment(env) {
+    const out = {};
+    for (const key of SERVICE_PROXY_ENV_KEYS) {
+        const value = env[key];
+        if (typeof value !== "string")
+            continue;
+        const trimmed = value.trim();
+        if (!trimmed)
+            continue;
+        out[key] = trimmed;
+    }
+    return out;
+}
+function addNonEmptyDir(dirs, dir) {
+    if (dir)
+        dirs.push(dir);
+}
+function appendSubdir(base, subdir) {
+    if (!base)
+        return undefined;
+    return base.endsWith(`/${subdir}`) ? base : path.posix.join(base, subdir);
+}
+function addCommonUserBinDirs(dirs, home) {
+    dirs.push(`${home}/.local/bin`);
+    dirs.push(`${home}/.npm-global/bin`);
+    dirs.push(`${home}/bin`);
+    dirs.push(`${home}/.volta/bin`);
+    dirs.push(`${home}/.asdf/shims`);
+    dirs.push(`${home}/.bun/bin`);
+}
+function addCommonEnvConfiguredBinDirs(dirs, env) {
+    addNonEmptyDir(dirs, env?.PNPM_HOME);
+    addNonEmptyDir(dirs, appendSubdir(env?.NPM_CONFIG_PREFIX, "bin"));
+    addNonEmptyDir(dirs, appendSubdir(env?.BUN_INSTALL, "bin"));
+    addNonEmptyDir(dirs, appendSubdir(env?.VOLTA_HOME, "bin"));
+    addNonEmptyDir(dirs, appendSubdir(env?.ASDF_DATA_DIR, "shims"));
+}
+function resolveSystemPathDirs(platform) {
+    if (platform === "darwin") {
+        return ["/opt/homebrew/bin", "/usr/local/bin", "/usr/bin", "/bin"];
+    }
+    if (platform === "linux") {
+        return ["/usr/local/bin", "/usr/bin", "/bin"];
+    }
+    return [];
+}
+export function resolveDarwinUserBinDirs(home, env) {
+    if (!home)
+        return [];
+    const dirs = [];
+    addCommonEnvConfiguredBinDirs(dirs, env);
+    addNonEmptyDir(dirs, env?.NVM_DIR);
+    addNonEmptyDir(dirs, appendSubdir(env?.FNM_DIR, "aliases/default/bin"));
+    addCommonUserBinDirs(dirs, home);
+    dirs.push(`${home}/Library/Application Support/fnm/aliases/default/bin`);
+    dirs.push(`${home}/.fnm/aliases/default/bin`);
+    dirs.push(`${home}/Library/pnpm`);
+    dirs.push(`${home}/.local/share/pnpm`);
+    return dirs;
+}
+export function resolveLinuxUserBinDirs(home, env) {
+    if (!home)
+        return [];
+    const dirs = [];
+    addCommonEnvConfiguredBinDirs(dirs, env);
+    addNonEmptyDir(dirs, appendSubdir(env?.NVM_DIR, "current/bin"));
+    addNonEmptyDir(dirs, appendSubdir(env?.FNM_DIR, "current/bin"));
+    addCommonUserBinDirs(dirs, home);
+    dirs.push(`${home}/.nvm/current/bin`);
+    dirs.push(`${home}/.fnm/current/bin`);
+    dirs.push(`${home}/.local/share/pnpm`);
+    return dirs;
+}
+export function getMinimalServicePathParts(options = {}) {
+    const platform = options.platform ?? process.platform;
+    if (platform === "win32")
+        return [];
+    const parts = [];
+    const extraDirs = options.extraDirs ?? [];
+    const systemDirs = resolveSystemPathDirs(platform);
+    const userDirs = platform === "linux"
+        ? resolveLinuxUserBinDirs(options.home, options.env)
+        : platform === "darwin"
+            ? resolveDarwinUserBinDirs(options.home, options.env)
+            : [];
+    const add = (dir) => {
+        if (!dir)
+            return;
+        if (!parts.includes(dir))
+            parts.push(dir);
+    };
+    for (const dir of extraDirs)
+        add(dir);
+    for (const dir of userDirs)
+        add(dir);
+    for (const dir of systemDirs)
+        add(dir);
+    return parts;
+}
+export function getMinimalServicePathPartsFromEnv(options = {}) {
+    const env = options.env ?? process.env;
+    return getMinimalServicePathParts({
+        ...options,
+        home: options.home ?? env.HOME,
+        env,
+    });
+}
+export function buildMinimalServicePath(options = {}) {
+    const env = options.env ?? process.env;
+    const platform = options.platform ?? process.platform;
+    if (platform === "win32")
+        return env.PATH ?? "";
+    return getMinimalServicePathPartsFromEnv({ ...options, env }).join(path.posix.delimiter);
+}
+export function buildServiceEnvironment(params) {
+    const { env, port, launchdLabel, extraPathDirs } = params;
+    const platform = params.platform ?? process.platform;
+    const sharedEnv = resolveSharedServiceEnvironmentFields(env, platform, extraPathDirs, params.execPath);
+    const profile = env.COREBLOW_PROFILE ?? env.COREBLOW_PROFILE;
+    const resolvedLaunchdLabel = launchdLabel || (platform === "darwin" ? resolveGatewayLaunchAgentLabel(profile) : undefined);
+    const systemdUnit = `${resolveGatewaySystemdServiceName(profile)}.service`;
+    return {
+        ...buildCommonServiceEnvironment(env, sharedEnv),
+        COREBLOW_PROFILE: profile,
+        COREBLOW_GATEWAY_PORT: String(port),
+        COREBLOW_LAUNCHD_LABEL: resolvedLaunchdLabel,
+        COREBLOW_SYSTEMD_UNIT: systemdUnit,
+        COREBLOW_WINDOWS_TASK_NAME: resolveGatewayWindowsTaskName(profile),
+        COREBLOW_SERVICE_MARKER: GATEWAY_SERVICE_MARKER,
+        COREBLOW_SERVICE_KIND: GATEWAY_SERVICE_KIND,
+        COREBLOW_SERVICE_VERSION: VERSION,
+    };
+}
+export function buildNodeServiceEnvironment(params) {
+    const { env, extraPathDirs } = params;
+    const platform = params.platform ?? process.platform;
+    const sharedEnv = resolveSharedServiceEnvironmentFields(env, platform, extraPathDirs, params.execPath);
+    const gatewayTokenRaw = env.COREBLOW_GATEWAY_TOKEN?.trim() ?? env.COREBLOW_GATEWAY_TOKEN?.trim();
+    const gatewayToken = gatewayTokenRaw || undefined;
+    return {
+        ...buildCommonServiceEnvironment(env, sharedEnv),
+        COREBLOW_GATEWAY_TOKEN: gatewayToken,
+        COREBLOW_LAUNCHD_LABEL: resolveNodeLaunchAgentLabel(),
+        COREBLOW_SYSTEMD_UNIT: resolveNodeSystemdServiceName(),
+        COREBLOW_WINDOWS_TASK_NAME: resolveNodeWindowsTaskName(),
+        COREBLOW_TASK_SCRIPT_NAME: NODE_WINDOWS_TASK_SCRIPT_NAME,
+        COREBLOW_LOG_PREFIX: "node",
+        COREBLOW_SERVICE_MARKER: NODE_SERVICE_MARKER,
+        COREBLOW_SERVICE_KIND: NODE_SERVICE_KIND,
+        COREBLOW_SERVICE_VERSION: VERSION,
+    };
+}
+function buildCommonServiceEnvironment(env, sharedEnv) {
+    const serviceEnv = {
+        HOME: env.HOME,
+        TMPDIR: sharedEnv.tmpDir,
+        ...sharedEnv.proxyEnv,
+        NODE_EXTRA_CA_CERTS: sharedEnv.nodeCaCerts,
+        NODE_USE_SYSTEM_CA: sharedEnv.nodeUseSystemCa,
+        COREBLOW_STATE_DIR: sharedEnv.stateDir,
+        COREBLOW_CONFIG_PATH: sharedEnv.configPath,
+    };
+    if (sharedEnv.minimalPath) {
+        serviceEnv.PATH = sharedEnv.minimalPath;
+    }
+    return serviceEnv;
+}
+function resolveSharedServiceEnvironmentFields(env, platform, extraPathDirs, execPath) {
+    const stateDir = env.COREBLOW_STATE_DIR ?? env.COREBLOW_STATE_DIR;
+    const configPath = env.COREBLOW_CONFIG_PATH ?? env.COREBLOW_CONFIG_PATH;
+    const tmpDir = env.TMPDIR?.trim() || os.tmpdir();
+    const proxyEnv = readServiceProxyEnvironment(env);
+    // We mock resolveNodeStartupTlsEnvironment just returning undefined if bootstrap hasn't ported properly yet.
+    // Replace with correct fallback if it doesn't exist yet, but we rely on CoreBlow compat path here.
+    let nodeCaCerts;
+    let nodeUseSystemCa;
+    try {
+        const startupTlsEnv = resolveNodeStartupTlsEnvironment({ env, platform, execPath });
+        if (startupTlsEnv) {
+            nodeCaCerts = startupTlsEnv.NODE_EXTRA_CA_CERTS;
+            nodeUseSystemCa = startupTlsEnv.NODE_USE_SYSTEM_CA;
+        }
+    }
+    catch { }
+    return {
+        stateDir,
+        configPath,
+        tmpDir,
+        minimalPath: platform === "win32"
+            ? undefined
+            : buildMinimalServicePath({ env, platform, extraDirs: extraPathDirs }),
+        proxyEnv,
+        nodeCaCerts,
+        nodeUseSystemCa,
+    };
+}
+//# sourceMappingURL=service-env.js.map

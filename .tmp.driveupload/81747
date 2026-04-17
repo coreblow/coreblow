@@ -1,0 +1,75 @@
+/**
+ * CoreBlow — Session Manager
+ *
+ * Manages user sessions across channels. Tracks active sessions,
+ * session metadata, timeouts, and cross-channel session linking.
+ */
+/** Session */
+export interface Session {
+    id: string;
+    userId: string;
+    channelId: string;
+    channelType: string;
+    conversationId?: string;
+    personaId?: string;
+    activeSkills: string[];
+    metadata: Record<string, unknown>;
+    createdAt: number;
+    lastActivity: number;
+    expiresAt: number;
+}
+/** Session options */
+export interface SessionManagerOptions {
+    /** Default session TTL in ms */
+    defaultTTL?: number;
+    /** Max sessions per user */
+    maxPerUser?: number;
+}
+/**
+ * CoreBlow Session Manager
+ */
+export declare class SessionManager {
+    private sessions;
+    private userIndex;
+    private options;
+    private cleanupTimer;
+    constructor(opts?: SessionManagerOptions);
+    /**
+     * Create a new session.
+     */
+    create(userId: string, channelId: string, channelType: string, ttlMs?: number): Session;
+    /**
+     * Get a session by ID.
+     */
+    get(sessionId: string): Session | null;
+    /**
+     * Touch a session (refresh activity).
+     */
+    touch(sessionId: string): boolean;
+    /**
+     * Get sessions for a user.
+     */
+    getUserSessions(userId: string): Session[];
+    /**
+     * Find session by channel.
+     */
+    findByChannel(userId: string, channelType: string): Session | null;
+    /**
+     * Destroy a session.
+     */
+    destroy(sessionId: string): boolean;
+    /**
+     * Get stats.
+     */
+    getStats(): {
+        activeSessions: number;
+        uniqueUsers: number;
+    };
+    /**
+     * Stop the cleanup timer.
+     */
+    shutdown(): void;
+    private enforceUserLimit;
+    private cleanup;
+}
+//# sourceMappingURL=session-manager.d.ts.map

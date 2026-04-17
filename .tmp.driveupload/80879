@@ -1,0 +1,39 @@
+export class VoiceQueue {
+    items = [];
+    currentIndex = -1;
+    loopMode = 'none';
+    add(url, title, requestedBy) {
+        this.items.push({ url, title, requestedBy, addedAt: Date.now() });
+        return this.items.length;
+    }
+    next() {
+        if (this.items.length === 0)
+            return null;
+        if (this.loopMode === 'single' && this.currentIndex >= 0)
+            return this.items[this.currentIndex] ?? null;
+        this.currentIndex++;
+        if (this.currentIndex >= this.items.length) {
+            if (this.loopMode === 'all') {
+                this.currentIndex = 0;
+            }
+            else {
+                return null;
+            }
+        }
+        return this.items[this.currentIndex] ?? null;
+    }
+    skip() { return this.next(); }
+    remove(index) { if (index < 0 || index >= this.items.length)
+        return false; this.items.splice(index, 1); if (index <= this.currentIndex)
+        this.currentIndex--; return true; }
+    clear() { this.items = []; this.currentIndex = -1; }
+    shuffle() { for (let i = this.items.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [this.items[i], this.items[j]] = [this.items[j], this.items[i]];
+    } }
+    setLoop(mode) { this.loopMode = mode; }
+    getQueue() { return [...this.items]; }
+    getCurrent() { return this.currentIndex >= 0 ? this.items[this.currentIndex] ?? null : null; }
+    get length() { return this.items.length; }
+}
+//# sourceMappingURL=queue.js.map

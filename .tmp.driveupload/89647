@@ -1,0 +1,34 @@
+/**
+ * agents/agent-stream-bridge.ts
+ * Bridge between AgentEngine streaming and WebSocket clients.
+ */
+import type { StreamHandler } from './provider-stream.js';
+export interface StreamClient {
+    sessionId: string;
+    clientId: string;
+    send: (data: string) => void;
+}
+export declare class AgentStreamBridge {
+    private clients;
+    /**
+     * Register a client to receive stream events for a session.
+     */
+    subscribe(sessionId: string, clientId: string, send: (data: string) => void): () => void;
+    /**
+     * Unsubscribe a client.
+     */
+    unsubscribe(sessionId: string, clientId: string): void;
+    /**
+     * Create a StreamHandler that forwards chunks to all subscribed clients.
+     */
+    createStreamHandler(sessionId: string): StreamHandler;
+    /**
+     * Get count of subscribed clients for a session.
+     */
+    getSubscriberCount(sessionId: string): number;
+    /**
+     * Clear all subscriptions.
+     */
+    clear(): void;
+}
+//# sourceMappingURL=agent-stream-bridge.d.ts.map

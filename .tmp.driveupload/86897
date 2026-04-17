@@ -1,0 +1,10 @@
+/**
+ * src/dashboard/serve.ts
+ * Dashboard — 8-page control UI with tab navigation
+ */
+import type { Application } from 'express';
+/**
+ * Mount dashboard routes on the Express app
+ */
+export declare function mountDashboard(app: Application): void;
+//# sourceMappingURL=serve.d.ts.map

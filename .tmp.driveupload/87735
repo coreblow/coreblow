@@ -1,0 +1,2 @@
+export declare function resetQueues(): void;
+//# sourceMappingURL=reset-queues.d.ts.map

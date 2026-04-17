@@ -1,0 +1,12 @@
+/**
+ * src/infra/windows-install-roots.ts
+ */
+export type WindowsInstallRoots = {
+    systemRoot: string;
+    programFiles: string;
+    programFilesX86: string;
+    programW6432: string | null;
+};
+export declare function getWindowsInstallRoots(env?: Record<string, string | undefined>): WindowsInstallRoots;
+export declare function getWindowsProgramFilesRoots(env?: Record<string, string | undefined>): readonly string[];
+//# sourceMappingURL=windows-install-roots.d.ts.map

@@ -1,0 +1,10 @@
+/** WebSocket utilities */
+export interface WSMessage {
+    type: string;
+    data?: unknown;
+    id?: string;
+}
+export declare function parseWSMessage(raw: string): WSMessage | null;
+export declare function serializeWSMessage(msg: WSMessage): string;
+export declare function rawDataToString(data: unknown): string;
+//# sourceMappingURL=ws.d.ts.map

@@ -1,0 +1,3 @@
+/** plugin-sdk/speech-runtime.ts [PORT] openclaw-main */
+export { textToSpeech, speechToText } from "./speech-core.js";
+//# sourceMappingURL=speech-runtime.js.map

@@ -1,0 +1,23 @@
+/**
+ * markdown/tables.ts
+ * Markdown table parsing and formatting.
+ * Ported from CoreBlow reference src/markdown/tables.ts.
+ */
+export interface MarkdownTable {
+    headers: string[];
+    rows: string[][];
+    alignments: Array<'left' | 'center' | 'right' | null>;
+}
+/**
+ * Parse a markdown table.
+ */
+export declare function parseMarkdownTable(markdown: string): MarkdownTable | null;
+/**
+ * Format a table as markdown.
+ */
+export declare function formatMarkdownTable(table: MarkdownTable): string;
+/**
+ * Convert a table to CSV.
+ */
+export declare function tableToCSV(table: MarkdownTable): string;
+//# sourceMappingURL=tables.d.ts.map

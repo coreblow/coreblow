@@ -1,0 +1,1 @@
+{"version":3,"file":"RequestBody.d.ts","sourceRoot":"","sources":["../../../src/internals/RequestBody.ts"],"names":[],"mappings":"AAEA,MAAM,MAAM,uBAAuB,GAAG;IACrC,IAAI,CAAC,EAAE,OAAO,CAAA;IACd,OAAO,CAAC,EAAE,OAAO,CAAA;CACjB,CAAA;AAED,wBAAgB,oBAAoB,CACnC,IAAI,EAAE,uBAAuB,GAAG,SAAS,EACzC,OAAO,EAAE,OAAO,GACd,QAAQ,GAAG,SAAS,CAoFtB"}

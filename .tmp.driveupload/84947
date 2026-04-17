@@ -1,0 +1,24 @@
+/**
+ * plugin-sdk/discord-send.ts
+ * [PORT] openclaw-main
+ */
+import { attachChannelToResult } from "./channel-send-result.js";
+export function buildDiscordSendOptions(input) {
+    return {
+        verbose: false,
+        replyTo: input.replyToId ?? undefined,
+        accountId: input.accountId ?? undefined,
+        silent: input.silent ?? undefined,
+    };
+}
+export function buildDiscordSendMediaOptions(input) {
+    return {
+        ...buildDiscordSendOptions(input),
+        mediaUrl: input.mediaUrl,
+        mediaLocalRoots: input.mediaLocalRoots,
+    };
+}
+export function tagDiscordChannelResult(result) {
+    return attachChannelToResult("discord", result);
+}
+//# sourceMappingURL=discord-send.js.map

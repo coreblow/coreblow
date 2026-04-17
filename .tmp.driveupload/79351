@@ -1,0 +1,240 @@
+/**
+ * src/media/attachments.ts
+ * Attachment Pipeline — normalize, cache, process, and inject media into AI context
+ * Handles: images, audio, video, documents from any channel
+ */
+import fs from 'node:fs';
+import path from 'node:path';
+import { createChildLogger } from '../utils/logger.js';
+const log = createChildLogger('media:attachments');
+const DEFAULT_CONFIG = {
+    maxFileSize: 50 * 1024 * 1024,
+    concurrency: 3,
+    cacheDir: '/tmp/coreblow-media-cache',
+    cacheTTLMs: 24 * 60 * 60 * 1000,
+    allowedMimeTypes: [],
+    blockedMimeTypes: ['application/x-executable', 'application/x-msdownload'],
+    autoDescribeImages: false,
+    autoTranscribeAudio: false,
+};
+// ─── MIME Type Detection ─────────────────────────────────────────
+const MIME_MAP = {
+    'image/jpeg': 'image', 'image/png': 'image', 'image/webp': 'image',
+    'image/gif': 'image', 'image/svg+xml': 'image', 'image/bmp': 'image',
+    'audio/mpeg': 'audio', 'audio/wav': 'audio', 'audio/ogg': 'audio',
+    'audio/webm': 'audio', 'audio/aac': 'audio', 'audio/flac': 'audio',
+    'audio/x-m4a': 'audio', 'audio/mp4': 'audio',
+    'video/mp4': 'video', 'video/webm': 'video', 'video/quicktime': 'video',
+    'video/x-msvideo': 'video', 'video/x-matroska': 'video',
+    'application/pdf': 'document', 'text/plain': 'document',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'document',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'document',
+    'text/csv': 'document', 'text/markdown': 'document',
+};
+const EXT_MAP = {
+    '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png',
+    '.webp': 'image/webp', '.gif': 'image/gif', '.svg': 'image/svg+xml',
+    '.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.ogg': 'audio/ogg',
+    '.m4a': 'audio/x-m4a', '.flac': 'audio/flac', '.aac': 'audio/aac',
+    '.mp4': 'video/mp4', '.webm': 'video/webm', '.mov': 'video/quicktime',
+    '.avi': 'video/x-msvideo', '.mkv': 'video/x-matroska',
+    '.pdf': 'application/pdf', '.txt': 'text/plain',
+    '.doc': 'application/msword', '.csv': 'text/csv', '.md': 'text/markdown',
+};
+// ─── Pipeline ────────────────────────────────────────────────────
+export class AttachmentPipeline {
+    config;
+    cache = new Map();
+    activeDownloads = 0;
+    queue = [];
+    constructor(config) {
+        this.config = { ...DEFAULT_CONFIG, ...config };
+        fs.mkdirSync(this.config.cacheDir, { recursive: true });
+    }
+    /**
+     * Process a single attachment through the pipeline
+     */
+    async process(attachment) {
+        // 1. Validate
+        const validation = this.validate(attachment);
+        if (!validation.valid) {
+            log.warn({ filename: attachment.filename, reason: validation.reason }, 'Attachment rejected');
+            return null;
+        }
+        // 2. Check cache
+        const cacheKey = this.getCacheKey(attachment);
+        const cached = this.cache.get(cacheKey);
+        if (cached && (Date.now() - cached.processedAt) < this.config.cacheTTLMs) {
+            log.debug({ filename: attachment.filename }, 'Cache hit');
+            return { ...cached, cached: true };
+        }
+        // 3. Process with concurrency control
+        return this.enqueue(attachment);
+    }
+    /**
+     * Process multiple attachments (batch)
+     */
+    async processBatch(attachments) {
+        const results = await Promise.all(attachments.map(a => this.process(a)));
+        return results.filter((r) => r !== null);
+    }
+    /**
+     * Normalize an attachment — detect type, generate ID
+     */
+    normalize(attachment) {
+        const type = this.detectType(attachment.mimeType, attachment.filename);
+        const id = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+        const ext = path.extname(attachment.filename) || this.getExtFromMime(attachment.mimeType);
+        const localPath = path.join(this.config.cacheDir, `${id}${ext}`);
+        return {
+            id,
+            type,
+            filename: attachment.filename,
+            mimeType: attachment.mimeType,
+            size: attachment.size,
+            localPath,
+            cached: false,
+            processedAt: Date.now(),
+        };
+    }
+    /**
+     * Validate an attachment against pipeline rules
+     */
+    validate(attachment) {
+        if (attachment.size > this.config.maxFileSize) {
+            return { valid: false, reason: `File too large: ${(attachment.size / 1024 / 1024).toFixed(1)}MB > ${(this.config.maxFileSize / 1024 / 1024).toFixed(0)}MB` };
+        }
+        if (this.config.blockedMimeTypes.includes(attachment.mimeType)) {
+            return { valid: false, reason: `Blocked MIME type: ${attachment.mimeType}` };
+        }
+        if (this.config.allowedMimeTypes.length > 0 && !this.config.allowedMimeTypes.includes(attachment.mimeType)) {
+            return { valid: false, reason: `MIME type not allowed: ${attachment.mimeType}` };
+        }
+        return { valid: true };
+    }
+    /**
+     * Detect media type from MIME type or filename
+     */
+    detectType(mimeType, filename) {
+        if (MIME_MAP[mimeType])
+            return MIME_MAP[mimeType];
+        // Fallback to extension
+        if (filename) {
+            const ext = path.extname(filename).toLowerCase();
+            const inferredMime = EXT_MAP[ext];
+            if (inferredMime && MIME_MAP[inferredMime])
+                return MIME_MAP[inferredMime];
+        }
+        // Fallback to category
+        if (mimeType.startsWith('image/'))
+            return 'image';
+        if (mimeType.startsWith('audio/'))
+            return 'audio';
+        if (mimeType.startsWith('video/'))
+            return 'video';
+        if (mimeType.startsWith('text/') || mimeType.startsWith('application/'))
+            return 'document';
+        return 'unknown';
+    }
+    /**
+     * Build AI context string from processed attachments
+     */
+    buildContext(attachments) {
+        if (attachments.length === 0)
+            return '';
+        const parts = ['[Attachments]'];
+        for (const att of attachments) {
+            const desc = att.description ? `: ${att.description}` : '';
+            const text = att.transcription ? ` — Transcription: "${att.transcription}"` : '';
+            const docText = att.text ? ` — Content: "${att.text.substring(0, 500)}"` : '';
+            parts.push(`- ${att.type}: ${att.filename} (${(att.size / 1024).toFixed(0)}KB)${desc}${text}${docText}`);
+        }
+        return parts.join('\n');
+    }
+    /**
+     * Get pipeline stats
+     */
+    getStats() {
+        return {
+            cached: this.cache.size,
+            activeDownloads: this.activeDownloads,
+            queued: this.queue.length,
+        };
+    }
+    /**
+     * Clear cache
+     */
+    clearCache() {
+        this.cache.clear();
+        try {
+            const files = fs.readdirSync(this.config.cacheDir);
+            for (const f of files) {
+                fs.unlinkSync(path.join(this.config.cacheDir, f));
+            }
+        }
+        catch { /* ignore */ }
+        log.info('Cache cleared');
+    }
+    // ─── Private ─────────────────────────────────────────────────
+    getCacheKey(attachment) {
+        return `${attachment.channel}:${attachment.filename}:${attachment.size}`;
+    }
+    getExtFromMime(mimeType) {
+        for (const [ext, mime] of Object.entries(EXT_MAP)) {
+            if (mime === mimeType)
+                return ext;
+        }
+        return '';
+    }
+    enqueue(attachment) {
+        return new Promise(resolve => {
+            this.queue.push({ attachment, resolve });
+            this.processQueue();
+        });
+    }
+    async processQueue() {
+        while (this.queue.length > 0 && this.activeDownloads < this.config.concurrency) {
+            const item = this.queue.shift();
+            if (!item)
+                break;
+            this.activeDownloads++;
+            try {
+                const result = await this.download(item.attachment);
+                item.resolve(result);
+            }
+            catch (err) {
+                log.error({ err: (err instanceof Error ? err.message : String(err)), filename: item.attachment.filename }, 'Download failed');
+                item.resolve(null);
+            }
+            finally {
+                this.activeDownloads--;
+                // Process next in queue
+                if (this.queue.length > 0)
+                    this.processQueue();
+            }
+        }
+    }
+    async download(attachment) {
+        const processed = this.normalize(attachment);
+        // Save to local path
+        if (attachment.buffer) {
+            fs.writeFileSync(processed.localPath, attachment.buffer);
+        }
+        else if (attachment.base64) {
+            fs.writeFileSync(processed.localPath, Buffer.from(attachment.base64, 'base64'));
+        }
+        else if (attachment.url) {
+            const res = await fetch(attachment.url, { signal: AbortSignal.timeout(30000) });
+            if (!res.ok)
+                throw new Error(`HTTP ${res.status}`);
+            const buf = Buffer.from(await res.arrayBuffer());
+            fs.writeFileSync(processed.localPath, buf);
+        }
+        // Cache result
+        const cacheKey = this.getCacheKey(attachment);
+        this.cache.set(cacheKey, processed);
+        log.debug({ id: processed.id, type: processed.type, filename: processed.filename }, 'Attachment processed');
+        return processed;
+    }
+}
+//# sourceMappingURL=attachments.js.map

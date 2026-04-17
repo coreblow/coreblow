@@ -1,0 +1,15 @@
+/** Test helpers for live/integration tests. */
+export declare function createMockResponse(content: string): {
+    id: string;
+    content: {
+        type: string;
+        text: string;
+    }[];
+    model: string;
+    usage: {
+        input_tokens: number;
+        output_tokens: number;
+    };
+};
+export declare function waitMs(ms: number): Promise<void>;
+//# sourceMappingURL=live-test-helpers.d.ts.map

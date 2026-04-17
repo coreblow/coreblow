@@ -1,0 +1,14 @@
+/**
+ * i18n/engine.ts
+ * Internationalization engine — string key resolution with locale fallback.
+ */
+export type Locale = string;
+export type TranslationMap = Record<string, string>;
+export declare function setLocale(locale: Locale): void;
+export declare function getLocale(): Locale;
+export declare function registerTranslations(locale: Locale, strings: TranslationMap): void;
+export declare function t(key: string, params?: Record<string, string | number>): string;
+export declare function hasTranslation(key: string, locale?: Locale): boolean;
+export declare function listLocales(): Locale[];
+export declare function clearTranslations(): void;
+//# sourceMappingURL=engine.d.ts.map

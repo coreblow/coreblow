@@ -1,0 +1,4 @@
+/** plugin-sdk/openrouter.ts [ADAPT] openclaw-main */
+export const OPENROUTER_DEFAULT_MODEL_REF = "openrouter:openai/gpt-4o";
+export function buildOpenrouterProvider(_p) { throw new Error("buildOpenrouterProvider requires @coreblow/openrouter extension"); }
+//# sourceMappingURL=openrouter.js.map

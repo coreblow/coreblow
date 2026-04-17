@@ -1,0 +1,53 @@
+/**
+ * CoreBlow Config Backup Rotation
+ *
+ * Manages config file backups with automatic rotation, maintenance,
+ * and restoration capabilities. Keeps N versioned backups.
+ *
+ * Equivalent: CoreBlow config/backup-rotation.ts (125 LOC)
+ */
+export interface BackupRotationOptions {
+    maxBackups: number;
+    backupSuffix: string;
+    preservePermissions: boolean;
+}
+export interface BackupEntry {
+    path: string;
+    index: number;
+    size: number;
+    modifiedAt: number;
+    exists: boolean;
+}
+export interface BackupResult {
+    success: boolean;
+    backupsRotated: number;
+    backupPath: string;
+    error?: string;
+}
+export interface RestoreResult {
+    success: boolean;
+    restoredFrom: string;
+    error?: string;
+}
+/**
+ * Rotate config backups: .bak.4 → .bak.5 (delete), .bak.3 → .bak.4, etc.
+ * Then copy current → .bak.1
+ */
+export declare function rotateConfigBackups(configPath: string, options?: Partial<BackupRotationOptions>): Promise<BackupResult>;
+/**
+ * List all available backups for a config file
+ */
+export declare function listBackups(configPath: string, options?: Partial<BackupRotationOptions>): BackupEntry[];
+/**
+ * Restore config from a specific backup
+ */
+export declare function restoreFromBackup(configPath: string, backupIndex?: number, options?: Partial<BackupRotationOptions>): Promise<RestoreResult>;
+/**
+ * Clean up old backups beyond maxBackups
+ */
+export declare function cleanupBackups(configPath: string, options?: Partial<BackupRotationOptions>): Promise<number>;
+/**
+ * Get the most recent backup path (if exists)
+ */
+export declare function getLatestBackupPath(configPath: string, options?: Partial<BackupRotationOptions>): string | null;
+//# sourceMappingURL=backup-rotation.d.ts.map

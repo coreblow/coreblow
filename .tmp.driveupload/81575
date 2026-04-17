@@ -1,0 +1,1 @@
+{"version":3,"file":"session-utils.d.ts","sourceRoot":"","sources":["../../src/gateway/session-utils.ts"],"names":[],"mappings":"AAEA,OAAO,EAAE,cAAc,EAAE,MAAM,sBAAsB,CAAC;AAGtD,eAAO,MAAM,oBAAoB,gBAAuB,CAAC;AAEzD,wBAAgB,gBAAgB,CAAC,UAAU,EAAE,MAAM;;;;EAOlD;AAED,wBAAgB,sBAAsB,CAAC,GAAG,EAAE,OAAO,EAAE,KAAK,EAAE,OAAO,EAAE,cAAc,CAAC,EAAE,MAAM;;;EAE3F"}

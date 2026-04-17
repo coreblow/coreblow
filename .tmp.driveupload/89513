@@ -1,0 +1,1 @@
+{"version":3,"file":"subagent-registry-cleanup.d.ts","sourceRoot":"","sources":["../../src/agents/subagent-registry-cleanup.ts"],"names":[],"mappings":"AAAA,iCAAiC;AACjC,wBAAgB,mBAAmB,CAAC,CAAC,SAAS;IAAE,cAAc,EAAE,MAAM,CAAA;CAAE,EAAE,OAAO,EAAE,GAAG,CAAC,MAAM,EAAE,CAAC,CAAC,EAAE,QAAQ,EAAE,MAAM,GAAG,MAAM,CAA8K"}

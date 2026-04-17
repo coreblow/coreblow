@@ -1,0 +1,77 @@
+/**
+ * CoreBlow Session Transcript Repair Engine
+ *
+ * Detects and repairs corrupted or incomplete session transcripts.
+ * Handles orphaned tool calls, missing tool results, duplicate messages,
+ * role sequence violations, and truncated responses.
+ *
+ * Equivalent: CoreBlow src/agents/session-transcript-repair.ts (522 LOC)
+ */
+export interface TranscriptMessage {
+    role: 'system' | 'user' | 'assistant' | 'tool';
+    content: string;
+    name?: string;
+    toolCallId?: string;
+    toolCalls?: Array<{
+        id: string;
+        name: string;
+        arguments: string;
+    }>;
+    timestamp?: number;
+}
+export type RepairIssue = {
+    type: RepairIssueType;
+    index: number;
+    description: string;
+    action: 'remove' | 'inject' | 'modify' | 'reorder';
+    severity: 'warning' | 'error' | 'critical';
+};
+export type RepairIssueType = 'orphaned_tool_call' | 'missing_tool_result' | 'duplicate_message' | 'role_sequence_violation' | 'empty_content' | 'truncated_response' | 'missing_system_prompt' | 'orphaned_tool_result' | 'malformed_tool_call';
+export interface RepairResult {
+    repaired: TranscriptMessage[];
+    issues: RepairIssue[];
+    removedCount: number;
+    injectedCount: number;
+    modifiedCount: number;
+}
+export interface RepairOptions {
+    /** Remove empty-content messages */
+    removeEmpty?: boolean;
+    /** Remove exact duplicate messages */
+    removeDuplicates?: boolean;
+    /** Fix orphaned tool calls by injecting placeholder results */
+    fixOrphanedToolCalls?: boolean;
+    /** Fix orphaned tool results by removing them */
+    fixOrphanedToolResults?: boolean;
+    /** Fix role sequence violations */
+    fixRoleSequence?: boolean;
+    /** Strict mode: treat warnings as errors */
+    strict?: boolean;
+}
+/**
+ * Detect issues in a transcript without modifying it
+ */
+export declare function detectIssues(messages: TranscriptMessage[]): RepairIssue[];
+/**
+ * Repair a transcript by fixing detected issues
+ */
+export declare function repairTranscript(messages: TranscriptMessage[], options?: RepairOptions): RepairResult;
+/**
+ * Validate a transcript and return a summary
+ */
+export declare function validateTranscript(messages: TranscriptMessage[]): {
+    valid: boolean;
+    messageCount: number;
+    issueCount: number;
+    issues: RepairIssue[];
+    roles: Record<string, number>;
+};
+/**
+ * Trim transcript to a maximum number of messages, keeping system messages
+ */
+export declare function trimTranscript(messages: TranscriptMessage[], maxMessages: number): TranscriptMessage[];
+/**
+ * Count tokens in a transcript (rough estimate)
+ */
+export declare function estimateTranscriptTokens(messages: TranscriptMessage[]): number;
+//# sourceMappingURL=session-transcript-repair.d.ts.map

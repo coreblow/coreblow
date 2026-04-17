@@ -1,0 +1,73 @@
+/**
+ * CoreBlow — Provider Registry
+ *
+ * Central registry for AI model providers. Handles provider
+ * discovery, model-to-provider routing, fallback chains,
+ * and health-based provider selection.
+ */
+import type { ModelProvider } from '../agents/runtime.js';
+/** Provider registration entry */
+export interface ProviderEntry {
+    provider: ModelProvider;
+    models: string[];
+    priority: number;
+    enabled: boolean;
+    healthy: boolean;
+}
+/** Model routing result */
+export interface ModelRoute {
+    provider: ModelProvider;
+    model: string;
+    fallbacks: ModelProvider[];
+}
+/**
+ * CoreBlow Provider Registry
+ */
+export declare class ProviderRegistry {
+    private providers;
+    private modelIndex;
+    private defaultProviderId;
+    /**
+     * Register a provider with its supported models.
+     */
+    register(provider: ModelProvider, models: string[], priority?: number): void;
+    /**
+     * Route a model to its provider.
+     */
+    route(model: string): ModelRoute | null;
+    /**
+     * Get a provider by ID.
+     */
+    get(id: string): ModelProvider | null;
+    /**
+     * Enable/disable a provider.
+     */
+    setEnabled(id: string, enabled: boolean): boolean;
+    /**
+     * Mark a provider as healthy or unhealthy.
+     */
+    setHealthy(id: string, healthy: boolean): boolean;
+    /**
+     * List all registered providers.
+     */
+    list(): Array<{
+        id: string;
+        name: string;
+        models: string[];
+        enabled: boolean;
+        healthy: boolean;
+        priority: number;
+    }>;
+    /**
+     * List all available models across all providers.
+     */
+    listModels(): Array<{
+        model: string;
+        providers: string[];
+    }>;
+    /**
+     * Set the default provider.
+     */
+    setDefault(id: string): boolean;
+}
+//# sourceMappingURL=provider-registry.d.ts.map

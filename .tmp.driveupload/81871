@@ -1,0 +1,1 @@
+{"version":3,"file":"exec-approval.d.ts","sourceRoot":"","sources":["../../../src/gateway/server-methods/exec-approval.ts"],"names":[],"mappings":"AACA,OAAO,KAAK,EAAE,sBAAsB,EAAE,MAAM,YAAY,CAAC;AACzD,OAAO,KAAK,EAAE,mBAAmB,EAAwB,MAAM,6BAA6B,CAAC;AAK7F,wBAAgB,0BAA0B,CACtC,OAAO,EAAE,mBAAmB,GAC7B,sBAAsB,CAgHxB"}

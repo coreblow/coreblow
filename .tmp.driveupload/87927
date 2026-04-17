@@ -1,0 +1,2 @@
+export {};
+//# sourceMappingURL=types.gateway.js.map

@@ -1,0 +1,27 @@
+/** plugin-sdk/command-auth.ts [ADAPT] openclaw-main */
+export { resolveSenderScopedGroupPolicy, evaluateGroupRouteAccessForPolicy } from "./group-access.js";
+export type { CoreBlowConfig } from "../config/config.js";
+export declare function hasControlCommand(text: string): boolean;
+export declare function hasInlineCommandTokens(text: string): boolean;
+export declare function isControlCommandMessage(text: string): boolean;
+export declare function shouldComputeCommandAuthorized(_text: string, _cfg: unknown): boolean;
+export declare function isCommandEnabled(_cmd: unknown, _cfg: unknown): boolean;
+export declare function isCommandMessage(text: string): boolean;
+export declare function isNativeCommandSurface(_surface: string): boolean;
+export declare function listChatCommands(_cfg: unknown): unknown[];
+export declare function listChatCommandsForConfig(_cfg: unknown): unknown[];
+export declare function listNativeCommandSpecs(): unknown[];
+export declare function listNativeCommandSpecsForConfig(_cfg: unknown): unknown[];
+export declare function maybeResolveTextAlias(text: string, _cfg: unknown): string | null;
+export declare function normalizeCommandBody(text: string): string;
+export declare function parseCommandArgs(text: string): string[];
+export declare function resolveCommandArgChoices(_p: unknown): unknown[];
+export declare function resolveCommandArgMenu(_p: unknown): unknown;
+export declare function resolveTextCommand(text: string, _cfg: unknown): unknown;
+export declare function serializeCommandArgs(args: string[]): string;
+export declare function shouldHandleTextCommands(_cfg: unknown): boolean;
+export declare function buildCommandText(_cmd: unknown): string;
+export declare function buildCommandTextFromArgs(args: string[]): string;
+export declare function findCommandByNativeName(_name: string, _cfg: unknown): unknown;
+export declare function getCommandDetection(_cfg: unknown): unknown;
+//# sourceMappingURL=command-auth.d.ts.map

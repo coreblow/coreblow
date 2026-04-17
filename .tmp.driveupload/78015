@@ -1,0 +1,7 @@
+/**
+ * src/bootstrap/node-extra-ca-certs.ts
+ * Mock missing bootstrap dependencies
+ */
+export declare function isNodeVersionManagerRuntime(execPath: string): boolean;
+export declare function resolveLinuxSystemCaBundle(): string | undefined;
+//# sourceMappingURL=node-extra-ca-certs.d.ts.map

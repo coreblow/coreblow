@@ -1,0 +1,8 @@
+export declare function recordModelError(model: string, error: string): void;
+export declare function getRecentErrors(n?: number): {
+    model: string;
+    error: string;
+    timestamp: number;
+}[];
+export declare function clearModelErrors(): void;
+//# sourceMappingURL=live-model-errors.d.ts.map

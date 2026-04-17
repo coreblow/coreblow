@@ -1,0 +1,11 @@
+/**
+ * plugin-sdk/channel-runtime.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/channel-runtime.ts
+ *
+ * Legacy compatibility shim for older channel helpers.
+ * Prefer the dedicated plugin-sdk subpaths instead.
+ */
+export { createAccountStatusSink, waitUntilAbort, keepHttpServerTaskAlive, runPassiveAccountLifecycle } from './channel-lifecycle.js';
+export { DEFAULT_ACCOUNT_ID, normalizeAccountId } from './account-id.js';
+export { createPluginRuntimeStore } from './runtime-store.js';
+//# sourceMappingURL=channel-runtime.js.map

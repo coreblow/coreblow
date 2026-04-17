@@ -1,0 +1,5 @@
+/** plugin-sdk/line-runtime.ts [ADAPT] openclaw-main — Stub for @coreblow/line. */
+export async function monitorLineProvider(_p) { }
+export async function probeLineSdk(_p) { return { ok: false }; }
+export async function sendMessageLine(_p) { return null; }
+//# sourceMappingURL=line-runtime.js.map

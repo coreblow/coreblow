@@ -1,0 +1,50 @@
+/**
+ * CoreBlow — API Versioning Docs
+ *
+ * Documents API versions, migration guides,
+ * deprecation notices, and breaking changes.
+ */
+/** API version */
+export interface ApiVersion {
+    version: string;
+    releaseDate: string;
+    status: 'current' | 'deprecated' | 'sunset';
+    changes: Array<{
+        type: 'added' | 'changed' | 'deprecated' | 'removed' | 'fixed';
+        description: string;
+    }>;
+    migrationGuide?: string;
+    sunsetDate?: string;
+}
+/**
+ * CoreBlow API Versioning Docs
+ */
+export declare class ApiVersioningDocs {
+    private versions;
+    /**
+     * Add a version.
+     */
+    addVersion(version: ApiVersion): void;
+    /**
+     * Get current version.
+     */
+    getCurrent(): ApiVersion | null;
+    /**
+     * Get deprecated versions.
+     */
+    getDeprecated(): ApiVersion[];
+    /**
+     * Get breaking changes between versions.
+     */
+    getBreakingChanges(fromVersion: string, toVersion: string): Array<{
+        version: string;
+        changes: string[];
+    }>;
+    /**
+     * Generate changelog markdown.
+     */
+    toMarkdown(): string;
+    /** Count */
+    count(): number;
+}
+//# sourceMappingURL=api-versioning-docs.d.ts.map

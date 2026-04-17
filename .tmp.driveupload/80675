@@ -1,0 +1,4 @@
+export declare function mentionUser(id: string): string;
+export declare function mentionRole(id: string): string;
+export declare function mentionChannel(id: string): string;
+//# sourceMappingURL=mention.d.ts.map

@@ -1,0 +1,74 @@
+/**
+ * CoreBlow — Response Compression
+ *
+ * Compresses response payloads using various algorithms
+ * with configurable thresholds and content-type filtering.
+ */
+/**
+ * CoreBlow Response Compression
+ */
+export class ResponseCompression {
+    minSize = 1024; // bytes
+    preferredAlgorithm = 'gzip';
+    compressibleTypes = new Set(['application/json', 'text/html', 'text/plain', 'text/css', 'application/javascript', 'text/xml']);
+    stats = { compressed: 0, skipped: 0, bytesSaved: 0 };
+    /**
+     * Set minimum size for compression.
+     */
+    setMinSize(bytes) { this.minSize = bytes; }
+    /**
+     * Set preferred algorithm.
+     */
+    setAlgorithm(algo) { this.preferredAlgorithm = algo; }
+    /**
+     * Add compressible content type.
+     */
+    addType(contentType) { this.compressibleTypes.add(contentType); }
+    /**
+     * Should compress?
+     */
+    shouldCompress(contentType, size) {
+        if (size < this.minSize)
+            return false;
+        const baseType = contentType.split(';')[0].trim();
+        return this.compressibleTypes.has(baseType);
+    }
+    /**
+     * Simulate compression (actual zlib would be used in real impl).
+     */
+    compress(data, contentType) {
+        const original = data.length;
+        if (!this.shouldCompress(contentType, original)) {
+            this.stats.skipped++;
+            return { original, compressed: original, ratio: 1, algorithm: 'none', skipped: true };
+        }
+        // Simulate compression ratio based on content type
+        const ratios = { 'application/json': 0.3, 'text/html': 0.25, 'text/plain': 0.4 };
+        const baseType = contentType.split(';')[0].trim();
+        const ratio = ratios[baseType] ?? 0.5;
+        const compressed = Math.floor(original * ratio);
+        this.stats.compressed++;
+        this.stats.bytesSaved += original - compressed;
+        return { original, compressed, ratio, algorithm: this.preferredAlgorithm, skipped: false };
+    }
+    /**
+     * Negotiate algorithm from Accept-Encoding.
+     */
+    negotiate(acceptEncoding) {
+        if (acceptEncoding.includes('br'))
+            return 'br';
+        if (acceptEncoding.includes('gzip'))
+            return 'gzip';
+        if (acceptEncoding.includes('deflate'))
+            return 'deflate';
+        return 'none';
+    }
+    /**
+     * Get stats.
+     */
+    getStats() {
+        const total = this.stats.compressed + this.stats.skipped;
+        return { ...this.stats, compressionRate: total > 0 ? this.stats.compressed / total : 0 };
+    }
+}
+//# sourceMappingURL=response-compression.js.map

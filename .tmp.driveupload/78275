@@ -1,0 +1,61 @@
+/**
+ * CoreBlow — Environment Manager
+ *
+ * Manages environment variables with validation,
+ * type coercion, defaults, required checks, and
+ * .env file parsing.
+ */
+/** Env var definition */
+export interface EnvVar {
+    key: string;
+    type: 'string' | 'number' | 'boolean';
+    required: boolean;
+    default?: unknown;
+    description?: string;
+}
+/**
+ * CoreBlow Environment Manager
+ */
+export declare class EnvManager {
+    private definitions;
+    private values;
+    /**
+     * Define an env var.
+     */
+    define(key: string, type: EnvVar['type'], required?: boolean, defaultValue?: unknown, description?: string): void;
+    /**
+     * Load from a Record (simulating process.env).
+     */
+    load(env: Record<string, string | undefined>): {
+        valid: boolean;
+        errors: string[];
+    };
+    /**
+     * Get a value.
+     */
+    get<T = unknown>(key: string): T | undefined;
+    /**
+     * Get with fallback.
+     */
+    getOrDefault<T = unknown>(key: string, fallback: T): T;
+    /**
+     * Set a value.
+     */
+    set(key: string, value: unknown): void;
+    /**
+     * Parse .env file content.
+     */
+    parseEnvFile(content: string): Record<string, string>;
+    /**
+     * List definitions.
+     */
+    list(): Array<{
+        key: string;
+        type: string;
+        required: boolean;
+        hasValue: boolean;
+    }>;
+    /** Count */
+    count(): number;
+}
+//# sourceMappingURL=env-manager.d.ts.map

@@ -1,0 +1,81 @@
+/**
+ * CoreBlow — Generic Webhook Adapter
+ *
+ * Universal webhook adapter for custom integrations.
+ * Accepts incoming webhooks and forwards outbound messages
+ * via configurable HTTP endpoints. Great for custom bots,
+ * internal tools, and third-party integrations.
+ */
+/** Webhook configuration */
+export interface WebhookConfig {
+    id: string;
+    name: string;
+    /** URL to send outbound messages to */
+    outboundUrl: string;
+    /** Secret for HMAC signature verification */
+    secret?: string;
+    /** Signature header name */
+    signatureHeader?: string;
+    /** Custom headers for outbound requests */
+    headers?: Record<string, string>;
+    /** Transform inbound payload to standard format */
+    inboundTransform?: (payload: unknown) => WebhookInboundMessage;
+}
+/** Standardized inbound message from webhook */
+export interface WebhookInboundMessage {
+    id: string;
+    senderId: string;
+    senderName?: string;
+    channelId: string;
+    text: string;
+    timestamp: number;
+    metadata?: Record<string, unknown>;
+}
+/** Outbound message */
+export interface WebhookOutboundMessage {
+    channelId: string;
+    text: string;
+    metadata?: Record<string, unknown>;
+}
+/** Message handler */
+export type WebhookMessageHandler = (msg: WebhookInboundMessage) => Promise<string | void>;
+/**
+ * CoreBlow Webhook Adapter
+ */
+export declare class WebhookAdapter {
+    private webhooks;
+    private messageHandler;
+    private deliveryLog;
+    /**
+     * Register a webhook configuration.
+     */
+    register(config: WebhookConfig): void;
+    /**
+     * Remove a webhook.
+     */
+    unregister(id: string): boolean;
+    onMessage(handler: WebhookMessageHandler): void;
+    /**
+     * Process an inbound webhook payload.
+     */
+    processInbound(webhookId: string, payload: unknown, signature?: string): Promise<WebhookInboundMessage | null>;
+    /**
+     * Send an outbound message via webhook.
+     */
+    sendOutbound(webhookId: string, message: WebhookOutboundMessage): Promise<boolean>;
+    /**
+     * List registered webhooks.
+     */
+    list(): Array<{
+        id: string;
+        name: string;
+        outboundUrl: string;
+    }>;
+    /**
+     * Get delivery log.
+     */
+    getDeliveryLog(limit?: number): typeof this.deliveryLog;
+    private verifySignature;
+    private defaultTransform;
+}
+//# sourceMappingURL=webhook-adapter.d.ts.map

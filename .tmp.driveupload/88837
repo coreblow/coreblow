@@ -1,0 +1,9 @@
+/** PI embedded runner — orchestrates the agent loop. */
+export interface RunnerState {
+    turnCount: number;
+    isRunning: boolean;
+    lastError?: string;
+}
+export declare function createRunnerState(): RunnerState;
+export declare function incrementTurn(state: RunnerState): void;
+//# sourceMappingURL=pi-embedded-runner.d.ts.map

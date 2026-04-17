@@ -1,0 +1,2 @@
+export const activeAborts = new Map();
+//# sourceMappingURL=abort.data.js.map

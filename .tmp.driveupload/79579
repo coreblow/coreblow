@@ -1,0 +1,141 @@
+/**
+ * src/cron/scheduler.ts
+ * Cron scheduler — job management, cron parsing, natural language scheduling
+ * SUPERIOR: CoreBlow = 65 files basic cron; CoreBlow = clean scheduler + natural language + timezone + dependencies
+ */
+export type SchedulerJobStatus = 'active' | 'paused' | 'completed' | 'expired' | 'error';
+export type SchedulerScheduleType = 'cron' | 'natural' | 'interval';
+export type SchedulerJobAction = 'execute' | 'webhook' | 'message' | 'agent-turn';
+export interface SchedulerRunResult {
+    jobId: string;
+    jobName: string;
+    startedAt: number;
+    completedAt: number;
+    success: boolean;
+    output?: string;
+    error?: string;
+    durationMs: number;
+}
+export interface SchedulerConfig {
+    enabled?: boolean;
+    maxConcurrent?: number;
+    defaultTimezone?: string;
+    maxJobsPerChannel?: number;
+    staggerMs?: number;
+    maxHistoryPerJob?: number;
+}
+export interface SchedulerJob {
+    id: string;
+    name: string;
+    schedule: {
+        type: SchedulerScheduleType;
+        expression: string;
+        timezone: string;
+    };
+    action: SchedulerJobAction;
+    channel?: string;
+    payload: string;
+    webhookUrl?: string;
+    status: SchedulerJobStatus;
+    maxRuns?: number;
+    expiresAt?: number;
+    dependsOn?: string;
+    createdAt: number;
+    updatedAt: number;
+    nextRunAt?: number;
+    lastRunAt?: number;
+    runCount: number;
+    failCount: number;
+    meta?: Record<string, unknown>;
+}
+interface CronField {
+    values: number[];
+    any: boolean;
+}
+export declare function parseCronExpression(expr: string): CronField[];
+export declare function cronMatchesDate(fields: CronField[], date: Date): boolean;
+/**
+ * Calculate next run time from a cron expression
+ */
+export declare function getNextCronTime(fields: CronField[], after?: Date): Date;
+export declare function parseNaturalSchedule(text: string): string;
+export declare class CronScheduler {
+    private jobs;
+    private timers;
+    private history;
+    private running;
+    private config;
+    private onExecute?;
+    constructor(config?: SchedulerConfig);
+    /**
+     * Set the job executor
+     */
+    setExecutor(fn: (job: SchedulerJob) => Promise<SchedulerRunResult>): void;
+    /**
+     * Create a new cron job
+     */
+    createJob(params: {
+        name: string;
+        schedule: string;
+        action: SchedulerJobAction;
+        channel?: string;
+        payload: string;
+        webhookUrl?: string;
+        maxRuns?: number;
+        expiresAt?: number;
+        dependsOn?: string;
+        meta?: Record<string, unknown>;
+    }): SchedulerJob;
+    /**
+     * Get a job
+     */
+    getJob(id: string): SchedulerJob | undefined;
+    /**
+     * List all jobs
+     */
+    listJobs(filter?: {
+        status?: SchedulerJobStatus;
+        channel?: string;
+    }): SchedulerJob[];
+    /**
+     * Pause a job
+     */
+    pauseJob(id: string): boolean;
+    /**
+     * Resume a paused job
+     */
+    resumeJob(id: string): boolean;
+    /**
+     * Delete a job
+     */
+    deleteJob(id: string): boolean;
+    /**
+     * Get run history for a job
+     */
+    getHistory(jobId: string, limit?: number): SchedulerRunResult[];
+    /**
+     * Get scheduler stats
+     */
+    getStats(): {
+        totalJobs: number;
+        activeJobs: number;
+        pausedJobs: number;
+        runningNow: number;
+        totalRuns: number;
+        totalFailures: number;
+    };
+    /**
+     * Fire a job immediately (manual trigger)
+     */
+    fireNow(id: string): Promise<SchedulerRunResult>;
+    /**
+     * Destroy scheduler — clear all timers
+     */
+    destroy(): void;
+    private scheduleNext;
+    private tick;
+    private executeJob;
+    private clearTimer;
+}
+export {};
+//# sourceMappingURL=scheduler.d.ts.map

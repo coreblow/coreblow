@@ -1,0 +1,1 @@
+{"version":3,"file":"message-channel.d.ts","sourceRoot":"","sources":["../../src/utils/message-channel.ts"],"names":[],"mappings":"AAAA,OAAO,EACL,oBAAoB,EACpB,oBAAoB,EACpB,KAAK,iBAAiB,EACtB,KAAK,iBAAiB,EACtB,0BAA0B,EAC1B,0BAA0B,GAC3B,MAAM,oCAAoC,CAAC;AAE5C,eAAO,MAAM,wBAAwB,EAAG,SAAkB,CAAC;AAC3D,MAAM,MAAM,sBAAsB,GAAG,OAAO,wBAAwB,CAAC"}

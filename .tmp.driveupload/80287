@@ -1,0 +1,116 @@
+/**
+ * CoreBlow — Slack Channel Adapter
+ *
+ * Production adapter for Slack. Handles messages via Web API,
+ * slash commands, interactive components, Block Kit messages,
+ * file uploads, and thread replies.
+ */
+/**
+ * CoreBlow Slack Adapter
+ */
+export class SlackAdapter {
+    config;
+    baseUrl = 'https://slack.com/api';
+    messageHandler = null;
+    connected = false;
+    constructor(config) {
+        this.config = config;
+    }
+    onMessage(handler) {
+        this.messageHandler = handler;
+    }
+    /**
+     * Send a text message.
+     */
+    async sendMessage(channel, text, options) {
+        const body = { channel, text };
+        if (options?.threadTs)
+            body.thread_ts = options.threadTs;
+        if (options?.blocks)
+            body.blocks = options.blocks;
+        if (options?.unfurlLinks !== undefined)
+            body.unfurl_links = options.unfurlLinks;
+        const data = await this.api('chat.postMessage', body);
+        return data.ts;
+    }
+    /**
+     * Send Block Kit message.
+     */
+    async sendBlocks(channel, blocks, text) {
+        return this.sendMessage(channel, text ?? '', { blocks });
+    }
+    /**
+     * Update a message.
+     */
+    async updateMessage(channel, ts, text, blocks) {
+        await this.api('chat.update', { channel, ts, text, blocks });
+    }
+    /**
+     * Delete a message.
+     */
+    async deleteMessage(channel, ts) {
+        await this.api('chat.delete', { channel, ts });
+    }
+    /**
+     * Add a reaction.
+     */
+    async addReaction(channel, ts, emoji) {
+        await this.api('reactions.add', { channel, timestamp: ts, name: emoji });
+    }
+    /**
+     * Reply in a thread.
+     */
+    async replyInThread(channel, threadTs, text) {
+        return this.sendMessage(channel, text, { threadTs });
+    }
+    /**
+     * Upload a file.
+     */
+    async uploadFile(channels, filename, content, title) {
+        const data = await this.api('files.upload', {
+            channels: channels.join(','),
+            filename,
+            content,
+            title,
+        });
+        return data.file?.id ?? '';
+    }
+    /**
+     * Get channel list.
+     */
+    async getChannels(limit = 100) {
+        const data = await this.api('conversations.list', { limit, types: 'public_channel,private_channel' });
+        return (data.channels ?? []).map((c) => ({ id: c.id, name: c.name }));
+    }
+    /**
+     * Verify Slack request signature.
+     */
+    verifySignature(signature, timestamp, body) {
+        const crypto = require('node:crypto');
+        const baseString = `v0:${timestamp}:${body}`;
+        const hmac = crypto.createHmac('sha256', this.config.signingSecret).update(baseString).digest('hex');
+        const expected = `v0=${hmac}`;
+        return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+    }
+    getStatus() { return { connected: this.connected }; }
+    async connect() { this.connected = true; }
+    async disconnect() { this.connected = false; }
+    // === Private ===
+    async api(method, body) {
+        const res = await fetch(`${this.baseUrl}/${method}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.config.botToken}`,
+            },
+            body: JSON.stringify(body),
+        });
+        if (!res.ok)
+            throw new Error(`Slack API error ${res.status}`);
+        const data = await res.json();
+        if (!data.ok)
+            throw new Error(`Slack error: ${data.error}`);
+        return data;
+    }
+}
+//# sourceMappingURL=slack-adapter.js.map

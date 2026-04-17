@@ -1,0 +1,13 @@
+/**
+ * process/pool.ts
+ */
+export class ProcessPool {
+    workers = [];
+    maxSize;
+    constructor(maxSize = 4) { this.maxSize = maxSize; }
+    acquire() { return this.workers.pop() || null; }
+    release(worker) { if (this.workers.length < this.maxSize)
+        this.workers.push(worker); }
+    size() { return this.workers.length; }
+}
+//# sourceMappingURL=pool.js.map

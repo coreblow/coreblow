@@ -1,0 +1,199 @@
+/**
+ * src/agents/context.ts
+ * Advanced context window management
+ * SUPERIOR: CoreBlow = naive truncation; CoreBlow = smart budgeting + priorities + cross-session
+ */
+import { createChildLogger } from '../utils/logger.js';
+const log = createChildLogger('context');
+// ─── Token Estimation ────────────────────────────────────────────
+/**
+ * Estimate token count from text (rough: ~4 chars per token for English)
+ */
+export function estimateTokens(text) {
+    if (!text)
+        return 0;
+    // Rough heuristic: ~4 chars per token for English, ~2 for CJK
+    const cjkCount = (text.match(/[\u3000-\u9fff\uac00-\ud7af]/g) || []).length;
+    const nonCjk = text.length - cjkCount;
+    return Math.ceil(nonCjk / 4 + cjkCount / 2);
+}
+/**
+ * Estimate tokens for a message array
+ */
+export function estimateMessageTokens(messages) {
+    let total = 0;
+    for (const msg of messages) {
+        total += estimateTokens(msg.content || '');
+        total += 4; // role overhead
+        if (msg.tool_calls) {
+            for (const tc of msg.tool_calls) {
+                total += estimateTokens(tc.function.name + tc.function.arguments);
+            }
+        }
+    }
+    return total;
+}
+// ─── Context Manager ─────────────────────────────────────────────
+export class ContextManager {
+    pinned = new Map(); // sessionId → pinned
+    sharedContexts = new Map();
+    sessionFacts = new Map(); // sessionId → extracted facts
+    /**
+     * Calculate token budget
+     */
+    calculateBudget(maxTokens = 8192) {
+        const systemReserve = 1000;
+        const responseReserve = 2000;
+        const historyBudget = maxTokens - systemReserve - responseReserve;
+        return {
+            maxTokens,
+            systemReserve,
+            responseReserve,
+            historyBudget: Math.max(historyBudget, 500),
+        };
+    }
+    /**
+     * Smart context window — fits messages within token budget
+     * Priority: system > pinned > recent > old
+     * SUPERIOR: CoreBlow just truncates from the front
+     */
+    fitToWindow(messages, budget, sessionId) {
+        const system = messages.filter(m => m.role === 'system');
+        const nonSystem = messages.filter(m => m.role !== 'system');
+        let tokenBudget = budget.historyBudget;
+        // 1. Always include system messages
+        const systemTokens = estimateMessageTokens(system);
+        tokenBudget -= systemTokens;
+        // 2. Include pinned messages
+        const pinnedMsgs = sessionId ? this.getPinned(sessionId) : [];
+        const pinnedChatMsgs = pinnedMsgs
+            .sort((a, b) => b.priority - a.priority)
+            .map(p => p.message);
+        const pinnedTokens = estimateMessageTokens(pinnedChatMsgs);
+        tokenBudget -= pinnedTokens;
+        // 3. Include shared context as system injection
+        const sharedInjections = [];
+        if (sessionId) {
+            for (const ctx of this.sharedContexts.values()) {
+                if (ctx.sourceSession !== sessionId) {
+                    const injection = {
+                        role: 'system',
+                        content: `[Shared context: ${ctx.summary}]\nFacts: ${ctx.facts.join('; ')}`,
+                    };
+                    const injTokens = estimateTokens(injection.content || '');
+                    if (tokenBudget - injTokens > 500) {
+                        sharedInjections.push(injection);
+                        tokenBudget -= injTokens;
+                    }
+                }
+            }
+        }
+        // 4. Fill remaining budget with recent messages (newest first)
+        const selected = [];
+        for (let i = nonSystem.length - 1; i >= 0; i--) {
+            const msg = nonSystem[i];
+            // Skip if already pinned
+            if (pinnedChatMsgs.includes(msg))
+                continue;
+            const tokens = estimateTokens(msg.content || '') + 4;
+            if (tokenBudget - tokens < 0)
+                break;
+            tokenBudget -= tokens;
+            selected.unshift(msg);
+        }
+        return [...system, ...sharedInjections, ...pinnedChatMsgs, ...selected];
+    }
+    /**
+     * Pin a message (survives compression)
+     */
+    pin(sessionId, message, priority = 5, reason = '') {
+        const pins = this.pinned.get(sessionId) || [];
+        pins.push({ message, priority, reason, pinnedAt: Date.now() });
+        this.pinned.set(sessionId, pins);
+        log.debug({ sessionId, priority, reason }, 'Message pinned');
+    }
+    /**
+     * Unpin messages for a session
+     */
+    unpin(sessionId, index) {
+        if (index !== undefined) {
+            const pins = this.pinned.get(sessionId) || [];
+            pins.splice(index, 1);
+            this.pinned.set(sessionId, pins);
+        }
+        else {
+            this.pinned.delete(sessionId);
+        }
+    }
+    /**
+     * Get pinned messages for a session
+     */
+    getPinned(sessionId) {
+        return this.pinned.get(sessionId) || [];
+    }
+    /**
+     * Add a fact extracted from conversation
+     * SUPERIOR: CoreBlow doesn't track per-session facts
+     */
+    addFact(sessionId, fact) {
+        const facts = this.sessionFacts.get(sessionId) || new Set();
+        facts.add(fact);
+        this.sessionFacts.set(sessionId, facts);
+    }
+    /**
+     * Get facts for a session
+     */
+    getFacts(sessionId) {
+        return [...(this.sessionFacts.get(sessionId) || [])];
+    }
+    /**
+     * Share context from one session to others
+     * SUPERIOR: CoreBlow sessions are completely isolated
+     */
+    shareContext(sourceSession, summary, facts) {
+        const id = `shared_${Date.now()}`;
+        this.sharedContexts.set(id, {
+            id,
+            summary,
+            facts,
+            createdAt: Date.now(),
+            sourceSession: sourceSession,
+        });
+        log.info({ id, sourceSession, factCount: facts.length }, 'Context shared');
+        return id;
+    }
+    /**
+     * Remove a shared context
+     */
+    removeSharedContext(id) {
+        return this.sharedContexts.delete(id);
+    }
+    /**
+     * List shared contexts
+     */
+    listSharedContexts() {
+        return [...this.sharedContexts.values()];
+    }
+    /**
+     * Get context stats for a session
+     */
+    getStats(sessionId, messages) {
+        const budget = this.calculateBudget();
+        const estimatedTokens = estimateMessageTokens(messages);
+        return {
+            totalMessages: messages.length,
+            estimatedTokens,
+            pinnedCount: this.getPinned(sessionId).length,
+            budgetUsed: Math.round((estimatedTokens / budget.historyBudget) * 100),
+            budgetRemaining: Math.max(0, budget.historyBudget - estimatedTokens),
+        };
+    }
+    /**
+     * Clear all data for a session
+     */
+    clearSession(sessionId) {
+        this.pinned.delete(sessionId);
+        this.sessionFacts.delete(sessionId);
+    }
+}
+//# sourceMappingURL=context.js.map

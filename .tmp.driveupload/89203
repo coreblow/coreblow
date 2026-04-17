@@ -1,0 +1,2 @@
+export function createAcpSpawnOptions(agentId, task) { return { agentId, task, timeout: 300_000 }; }
+//# sourceMappingURL=acp-spawn.js.map

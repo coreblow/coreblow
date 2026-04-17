@@ -1,0 +1,50 @@
+/**
+ * CoreBlow — Subagent Capabilities (CoreBlow Parity)
+ *
+ * Role/scope/depth capability detection for subagent sessions.
+ */
+export declare const DEFAULT_SUBAGENT_MAX_SPAWN_DEPTH = 3;
+export declare const SUBAGENT_SESSION_ROLES: readonly ["main", "orchestrator", "leaf"];
+export type SubagentSessionRole = (typeof SUBAGENT_SESSION_ROLES)[number];
+export declare const SUBAGENT_CONTROL_SCOPES: readonly ["children", "none"];
+export type SubagentControlScope = (typeof SUBAGENT_CONTROL_SCOPES)[number];
+type SessionCapabilityEntry = {
+    sessionId?: unknown;
+    spawnDepth?: unknown;
+    subagentRole?: unknown;
+    subagentControlScope?: unknown;
+};
+export declare function resolveSubagentRoleForDepth(params: {
+    depth: number;
+    maxSpawnDepth?: number;
+}): SubagentSessionRole;
+export declare function resolveSubagentControlScopeForRole(role: SubagentSessionRole): SubagentControlScope;
+export type SubagentCapabilities = {
+    depth: number;
+    role: SubagentSessionRole;
+    controlScope: SubagentControlScope;
+    canSpawn: boolean;
+    canControlChildren: boolean;
+};
+export declare function resolveSubagentCapabilities(params: {
+    depth: number;
+    maxSpawnDepth?: number;
+}): SubagentCapabilities;
+export declare function resolveStoredSubagentCapabilities(sessionKey: string | undefined | null, opts?: {
+    store?: Record<string, SessionCapabilityEntry>;
+    maxSpawnDepth?: number;
+}): SubagentCapabilities;
+export declare function canSpawnAtDepth(depth: number, maxSpawnDepth?: number): boolean;
+export declare function describeCapabilities(caps: SubagentCapabilities): string;
+export declare function getMaxChildrenForRole(role: SubagentSessionRole): number;
+export declare function isSpawnAllowed(params: {
+    depth: number;
+    activeChildren: number;
+    maxSpawnDepth?: number;
+    maxChildren?: number;
+}): {
+    allowed: boolean;
+    reason?: string;
+};
+export {};
+//# sourceMappingURL=subagent-capabilities.d.ts.map

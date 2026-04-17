@@ -1,0 +1,37 @@
+export class InternalEventBus {
+    handlers = new Map();
+    on(event, handler) {
+        const list = this.handlers.get(event) ?? [];
+        list.push(handler);
+        this.handlers.set(event, list);
+        return () => { const idx = list.indexOf(handler); if (idx >= 0)
+            list.splice(idx, 1); };
+    }
+    once(event, handler) {
+        const wrapper = (data) => { unsub(); handler(data); };
+        const unsub = this.on(event, wrapper);
+        return unsub;
+    }
+    async emit(event, data) {
+        const list = this.handlers.get(event) ?? [];
+        for (const handler of [...list])
+            await handler(data);
+    }
+    emitSync(event, data) {
+        const list = this.handlers.get(event) ?? [];
+        for (const handler of [...list]) {
+            try {
+                const result = handler(data);
+                if (result instanceof Promise)
+                    result.catch(() => { });
+            }
+            catch { /* swallow sync errors */ }
+        }
+    }
+    off(event) { this.handlers.delete(event); }
+    clear() { this.handlers.clear(); }
+    listenerCount(event) { return (this.handlers.get(event) ?? []).length; }
+    events() { return [...this.handlers.keys()]; }
+}
+export const agentEvents = new InternalEventBus();
+//# sourceMappingURL=internal-events.js.map

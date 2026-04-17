@@ -1,0 +1,8 @@
+export function validateEdit(op) {
+    if (!op.filePath)
+        return { valid: false, error: 'Missing file path' };
+    if (!op.oldContent && !op.newContent)
+        return { valid: false, error: 'Empty edit' };
+    return { valid: true };
+}
+//# sourceMappingURL=pi-tools.host-edit.js.map

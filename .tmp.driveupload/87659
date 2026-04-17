@@ -1,0 +1,6 @@
+/**
+ * CoreBlow AutoPilot — getOrCreateSession
+ */
+import type { SessionState } from './types.js';
+export declare function getOrCreateSession(sessionKey: string, agentId: string): SessionState;
+//# sourceMappingURL=get-or-create-session.d.ts.map

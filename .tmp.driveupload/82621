@@ -1,0 +1,77 @@
+/**
+ * plugins/discovery.ts
+ *
+ * Multi-source plugin discovery — scans workspace, global, and bundled
+ * directories for plugins with valid manifests.
+ *
+ * Following CoreBlow's discovery.ts (946 LOC) pattern.
+ * CoreBlow OOP equivalent: PluginDiscovery class.
+ */
+import type { PluginLogger, PluginOrigin } from './types.js';
+/** Discovered plugin candidate */
+export interface PluginCandidate {
+    id: string;
+    name: string;
+    version: string;
+    description?: string;
+    source: string;
+    rootDir: string;
+    origin: PluginOrigin;
+    main: string;
+    provides?: string[];
+    permissions?: string[];
+    hasManifest: boolean;
+}
+/** Discovery scan options */
+export interface DiscoveryOptions {
+    workspaceDir?: string;
+    globalDir?: string;
+    bundledDir?: string;
+    loadPaths?: string[];
+    /** Only discover plugins with these IDs */
+    onlyPluginIds?: string[];
+    logger?: PluginLogger;
+}
+/** Discovery scan result */
+export interface DiscoveryResult {
+    candidates: PluginCandidate[];
+    errors: Array<{
+        path: string;
+        error: string;
+    }>;
+    scanTime: number;
+}
+/**
+ * CoreBlow Plugin Discovery
+ *
+ * Scans multiple sources (workspace, global, bundled, config loadPaths)
+ * for plugin directories containing valid manifests.
+ * OOP equivalent of CoreBlow's discoverCoreBlowPlugins().
+ */
+export declare class PluginDiscovery {
+    private logger;
+    constructor(logger?: PluginLogger);
+    /**
+     * Run full discovery scan across all configured sources.
+     */
+    discover(options?: DiscoveryOptions): DiscoveryResult;
+    /**
+     * Scan a single directory for plugin subdirectories.
+     */
+    scanDirectory(dir: string, origin: PluginOrigin, candidates: PluginCandidate[], errors: Array<{
+        path: string;
+        error: string;
+    }>, seenIds: Set<string>): void;
+    /**
+     * Scan a specific directory for a plugin manifest.
+     */
+    scanPluginDir(pluginDir: string, origin: PluginOrigin, candidates: PluginCandidate[], errors: Array<{
+        path: string;
+        error: string;
+    }>, seenIds: Set<string>): void;
+    /**
+     * Scan a single file as a plugin entry point (no manifest).
+     */
+    private scanSingleFile;
+}
+//# sourceMappingURL=discovery.d.ts.map

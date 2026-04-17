@@ -1,0 +1,104 @@
+import { loadConfig } from '../config/config.js';
+import { setConfigValue, unsetConfigValue, readConfigFileRaw, resolveWritableConfigPath } from '../config/config-io.js';
+import { defaultRuntime } from '../runtime.js';
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function getNestedValue(obj, pathParts) {
+    let current = obj;
+    for (const part of pathParts) {
+        if (current == null || typeof current !== 'object')
+            return undefined;
+        current = current[part];
+    }
+    return current;
+}
+// ─── runConfigGet ─────────────────────────────────────────────────────────────
+/** Fast-path handler for `coreblow config get <path>` */
+export async function runConfigGet(params) {
+    const configPath = resolveWritableConfigPath();
+    const read = readConfigFileRaw(configPath);
+    if (!read.ok) {
+        defaultRuntime.error(read.error);
+        defaultRuntime.exit(1);
+        return;
+    }
+    const cfg = read.config;
+    const parts = params.path.split('.');
+    const value = getNestedValue(cfg, parts);
+    if (value === undefined) {
+        defaultRuntime.error(`Config key not found: ${params.path}`);
+        defaultRuntime.exit(1);
+        return;
+    }
+    if (params.json) {
+        defaultRuntime.writeJson(value);
+        return;
+    }
+    defaultRuntime.log(typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value));
+}
+// ─── runConfigUnset ───────────────────────────────────────────────────────────
+/** Fast-path handler for `coreblow config unset <path>` */
+export async function runConfigUnset(params) {
+    const result = await unsetConfigValue(params.path);
+    if (!result.ok) {
+        defaultRuntime.error(`config unset failed: ${result.error}`);
+        defaultRuntime.exit(1);
+        return;
+    }
+    defaultRuntime.log(`Unset '${params.path}' in ${result.path}.`);
+}
+// ─── registerConfigCli ────────────────────────────────────────────────────────
+export function registerConfigCli(program) {
+    const config = program
+        .command('config')
+        .description('View and manage CoreBlow configuration');
+    // coreblow config get <path>
+    config
+        .command('get <path>')
+        .description('Get a config value by dot-path (e.g. gateway.port)')
+        .option('--json', 'Print JSON')
+        .action(async (path, opts) => {
+        await runConfigGet({ path, json: opts.json });
+    });
+    // coreblow config set <path> <value>
+    config
+        .command('set <path> <value>')
+        .description('Set a config value by dot-path (e.g. gateway.mode remote)')
+        .action(async (dotPath, rawValue) => {
+        // Parse value: try JSON, fall back to string
+        let parsed;
+        try {
+            parsed = JSON.parse(rawValue);
+        }
+        catch {
+            parsed = rawValue;
+        }
+        const result = await setConfigValue(dotPath, parsed);
+        if (!result.ok) {
+            defaultRuntime.error(`config set failed: ${result.error}`);
+            defaultRuntime.exit(1);
+            return;
+        }
+        defaultRuntime.log(`Set '${dotPath}' in ${result.path}.`);
+    });
+    // coreblow config unset <path>
+    config
+        .command('unset <path>')
+        .description('Unset (delete) a config value by dot-path')
+        .action(async (dotPath) => {
+        await runConfigUnset({ path: dotPath });
+    });
+    // coreblow config list
+    config
+        .command('list')
+        .description('List all current config values')
+        .option('--json', 'Print JSON')
+        .action(async (opts) => {
+        const cfg = loadConfig();
+        if (opts.json) {
+            defaultRuntime.writeJson(cfg);
+            return;
+        }
+        defaultRuntime.log(JSON.stringify(cfg, null, 2));
+    });
+}
+//# sourceMappingURL=config-cli.js.map

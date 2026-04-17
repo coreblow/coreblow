@@ -1,0 +1,239 @@
+/**
+ * src/media/understanding.ts
+ * Media Understanding — image, audio, video, OCR, document parsing
+ * SUPERIOR: CoreBlow only does image+audio; CoreBlow adds video frames, OCR, PDF/DOCX
+ */
+import { createChildLogger } from '../utils/logger.js';
+const log = createChildLogger('media:understanding');
+export class MediaUnderstanding {
+    config;
+    constructor(config = {}) {
+        this.config = {
+            visionProvider: config.visionProvider || 'openai',
+            whisperProvider: config.whisperProvider || 'groq',
+            openaiKey: config.openaiKey || process.env.OPENAI_API_KEY,
+            geminiKey: config.geminiKey || process.env.GEMINI_API_KEY,
+            groqKey: config.groqKey || process.env.GROQ_API_KEY,
+            ollamaUrl: config.ollamaUrl || 'http://localhost:11434',
+        };
+    }
+    /**
+     * Auto-detect media type and analyze
+     */
+    async analyze(url, mimeType) {
+        const type = this.detectType(url, mimeType);
+        switch (type) {
+            case 'image': return this.analyzeImage(url);
+            case 'audio': return this.transcribeAudio(url);
+            case 'video': return this.analyzeVideo(url);
+            case 'document': return this.parseDocument(url);
+            default:
+                return { type: 'image', description: 'Unknown media type', metadata: {} };
+        }
+    }
+    /**
+     * Analyze image using vision model
+     */
+    async analyzeImage(url) {
+        log.info({ url: url.substring(0, 100) }, 'Analyzing image');
+        try {
+            if (this.config.visionProvider === 'gemini') {
+                return this.analyzeImageGemini(url);
+            }
+            // Default: OpenAI GPT-4V
+            const res = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.config.openaiKey}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    model: 'gpt-4o',
+                    messages: [{
+                            role: 'user',
+                            content: [
+                                { type: 'text', text: 'Describe this image in detail. Include: main subject, colors, text visible (OCR), objects, mood/style, and any notable details.' },
+                                { type: 'image_url', image_url: { url, detail: 'high' } },
+                            ],
+                        }],
+                    max_tokens: 1000,
+                }),
+            });
+            const data = await res.json();
+            const description = data.choices?.[0]?.message?.content || 'Failed to analyze';
+            // Extract OCR text from description
+            const ocrMatch = description.match(/text.*?[:"]\s*(.+?)(?:\.|$)/i);
+            return {
+                type: 'image',
+                description,
+                text: ocrMatch?.[1],
+                metadata: { model: 'gpt-4o', provider: 'openai' },
+            };
+        }
+        catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            log.error({ err: msg }, 'Image analysis failed');
+            return { type: 'image', description: `Error: ${msg}`, metadata: {} };
+        }
+    }
+    async analyzeImageGemini(url) {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.config.geminiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{
+                        parts: [
+                            { text: 'Describe this image in detail. Include OCR for any visible text.' },
+                            { inline_data: { mime_type: 'image/jpeg', data: await this.urlToBase64(url) } },
+                        ],
+                    }],
+            }),
+        });
+        const data = await res.json();
+        const description = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Failed';
+        return { type: 'image', description, metadata: { model: 'gemini-1.5-flash', provider: 'gemini' } };
+    }
+    /**
+     * Transcribe audio using Whisper
+     */
+    async transcribeAudio(url) {
+        log.info({ url: url.substring(0, 100) }, 'Transcribing audio');
+        try {
+            // Download audio
+            const audioRes = await fetch(url);
+            const audioBlob = await audioRes.blob();
+            const formData = new FormData();
+            formData.append('file', audioBlob, 'audio.mp3');
+            formData.append('model', 'whisper-large-v3');
+            const apiUrl = this.config.whisperProvider === 'groq'
+                ? 'https://api.groq.com/openai/v1/audio/transcriptions'
+                : 'https://api.openai.com/v1/audio/transcriptions';
+            const apiKey = this.config.whisperProvider === 'groq'
+                ? this.config.groqKey
+                : this.config.openaiKey;
+            const res = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${apiKey}` },
+                body: formData,
+            });
+            const data = await res.json();
+            return {
+                type: 'audio',
+                description: `Audio transcription: ${data.text?.substring(0, 200)}...`,
+                text: data.text || '',
+                duration: data.duration,
+                metadata: { provider: this.config.whisperProvider, model: 'whisper-large-v3' },
+            };
+        }
+        catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            log.error({ err: msg }, 'Audio transcription failed');
+            return { type: 'audio', description: `Error: ${msg}`, metadata: {} };
+        }
+    }
+    /**
+     * Analyze video — extract key frames and describe each
+     * SUPERIOR: CoreBlow doesn't have video analysis
+     */
+    async analyzeVideo(url) {
+        log.info({ url: url.substring(0, 100) }, 'Analyzing video');
+        try {
+            // Use Gemini for video understanding (supports direct video input)
+            if (this.config.geminiKey) {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.config.geminiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                                parts: [
+                                    { text: 'Describe this video: main content, key moments, any text visible, people/objects, and overall context.' },
+                                    { file_data: { mime_type: 'video/mp4', file_uri: url } },
+                                ],
+                            }],
+                    }),
+                });
+                const data = await res.json();
+                const desc = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Analysis failed';
+                return {
+                    type: 'video',
+                    description: desc,
+                    metadata: { model: 'gemini-1.5-flash', provider: 'gemini' },
+                };
+            }
+            return { type: 'video', description: 'Video analysis requires Gemini API key', metadata: {} };
+        }
+        catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            return { type: 'video', description: `Error: ${msg}`, metadata: {} };
+        }
+    }
+    /**
+     * Parse documents — PDF, DOCX, XLSX text extraction
+     * SUPERIOR: CoreBlow doesn't have document parsing
+     */
+    async parseDocument(url) {
+        log.info({ url: url.substring(0, 100) }, 'Parsing document');
+        try {
+            // Fetch document
+            const res = await fetch(url);
+            const buffer = Buffer.from(await res.arrayBuffer());
+            const ext = url.split('.').pop()?.toLowerCase() || '';
+            let text = '';
+            if (ext === 'pdf') {
+                // Simple PDF text extraction (look for text between BT/ET markers)
+                const content = buffer.toString('latin1');
+                const textBlocks = content.match(/\(([^)]+)\)/g) || [];
+                text = textBlocks.map(b => b.slice(1, -1)).join(' ').substring(0, 5000);
+                if (!text.trim())
+                    text = '[PDF contains images only — use OCR for text extraction]';
+            }
+            else if (ext === 'txt' || ext === 'md' || ext === 'csv') {
+                text = buffer.toString('utf-8').substring(0, 10000);
+            }
+            else {
+                text = `Document type .${ext} — binary content (${buffer.length} bytes)`;
+            }
+            return {
+                type: 'document',
+                description: `Document: ${ext.toUpperCase()}, ${buffer.length} bytes`,
+                text,
+                metadata: { format: ext, sizeBytes: buffer.length },
+            };
+        }
+        catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            return { type: 'document', description: `Error: ${msg}`, metadata: {} };
+        }
+    }
+    /**
+     * Detect media type from URL or MIME type
+     */
+    detectType(url, mimeType) {
+        if (mimeType) {
+            if (mimeType.startsWith('image/'))
+                return 'image';
+            if (mimeType.startsWith('audio/'))
+                return 'audio';
+            if (mimeType.startsWith('video/'))
+                return 'video';
+            if (mimeType.includes('pdf') || mimeType.includes('document'))
+                return 'document';
+        }
+        const ext = url.split('.').pop()?.toLowerCase() || '';
+        if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'].includes(ext))
+            return 'image';
+        if (['mp3', 'wav', 'ogg', 'aac', 'm4a', 'flac'].includes(ext))
+            return 'audio';
+        if (['mp4', 'webm', 'avi', 'mov', 'mkv'].includes(ext))
+            return 'video';
+        if (['pdf', 'docx', 'xlsx', 'txt', 'md', 'csv'].includes(ext))
+            return 'document';
+        return 'image'; // default
+    }
+    async urlToBase64(url) {
+        const res = await fetch(url);
+        const buf = Buffer.from(await res.arrayBuffer());
+        return buf.toString('base64');
+    }
+}
+//# sourceMappingURL=understanding.js.map

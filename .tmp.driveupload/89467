@@ -1,0 +1,2 @@
+export function parseModelRef(ref) { const [provider, ...rest] = ref.split('/'); return { provider, modelId: rest.join('/') || provider }; }
+//# sourceMappingURL=model-ref-profile.js.map

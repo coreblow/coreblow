@@ -1,0 +1,178 @@
+/**
+ * CoreBlow Skills Framework — Skill Loader
+ *
+ * Discovers and parses SKILL.md files from filesystem directories.
+ * Each skill is a folder containing a SKILL.md with YAML frontmatter
+ * that describes the skill's metadata, and optionally a handler module.
+ *
+ * This is CoreBlow's authentic YAML frontmatter parser and directory scanner,
+ * inspired by CoreBlow's hooks/frontmatter.ts + hooks/workspace.ts pattern
+ * but written cleanly without any shared CoreBlow manifest utilities.
+ */
+
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import type { SkillEntry, SkillMetadata } from './types.js';
+
+const SKILL_FILENAME = 'SKILL.md';
+
+/**
+ * Parse YAML frontmatter from a markdown string.
+ * Expects the format:
+ * ```
+ * ---
+ * name: My Skill
+ * description: Does something cool
+ * ---
+ * # Instructions
+ * ...
+ * ```
+ */
+export function parseFrontmatter(content: string): { metadata: Record<string, unknown>; body: string } {
+    const trimmed = content.trimStart();
+
+    if (!trimmed.startsWith('---')) {
+        return { metadata: {}, body: content };
+    }
+
+    const endIdx = trimmed.indexOf('---', 3);
+    if (endIdx === -1) {
+        return { metadata: {}, body: content };
+    }
+
+    const yamlBlock = trimmed.slice(3, endIdx).trim();
+    const body = trimmed.slice(endIdx + 3).trim();
+
+    // Simple YAML key-value parser (handles strings, booleans, lists)
+    const metadata: Record<string, unknown> = {};
+
+    let currentKey: string | null = null;
+    let listValues: string[] | null = null;
+
+    for (const line of yamlBlock.split('\n')) {
+        const trimmedLine = line.trim();
+
+        // Check if this is a list item under the current key
+        if (trimmedLine.startsWith('- ') && currentKey && listValues !== null) {
+            listValues.push(trimmedLine.slice(2).trim().replace(/^['"]|['"]$/g, ''));
+            continue;
+        }
+
+        // Flush any pending list
+        if (currentKey && listValues !== null) {
+            metadata[currentKey] = listValues;
+            listValues = null;
+            currentKey = null;
+        }
+
+        const colonIdx = trimmedLine.indexOf(':');
+        if (colonIdx === -1) continue;
+
+        const key = trimmedLine.slice(0, colonIdx).trim();
+        const rawValue = trimmedLine.slice(colonIdx + 1).trim();
+
+        if (rawValue === '' || rawValue === '[]') {
+            // Might be the start of a list
+            currentKey = key;
+            listValues = [];
+            continue;
+        }
+
+        // Parse inline lists: [a, b, c]
+        if (rawValue.startsWith('[') && rawValue.endsWith(']')) {
+            const items = rawValue
+                .slice(1, -1)
+                .split(',')
+                .map((s) => s.trim().replace(/^['"]|['"]$/g, ''))
+                .filter(Boolean);
+            metadata[key] = items;
+            continue;
+        }
+
+        // Parse booleans
+        if (rawValue === 'true') { metadata[key] = true; continue; }
+        if (rawValue === 'false') { metadata[key] = false; continue; }
+
+        // Parse numbers
+        const num = Number(rawValue);
+        if (!isNaN(num) && rawValue !== '') { metadata[key] = num; continue; }
+
+        // Default: string (strip quotes)
+        metadata[key] = rawValue.replace(/^['"]|['"]$/g, '');
+    }
+
+    // Flush trailing list
+    if (currentKey && listValues !== null) {
+        metadata[currentKey] = listValues;
+    }
+
+    return { metadata, body };
+}
+
+/**
+ * Convert raw parsed frontmatter into a typed SkillMetadata object.
+ */
+function resolveMetadata(raw: Record<string, unknown>): SkillMetadata {
+    return {
+        name: typeof raw.name === 'string' ? raw.name : 'Unnamed Skill',
+        description: typeof raw.description === 'string' ? raw.description : '',
+        events: Array.isArray(raw.events) ? raw.events.map(String) : undefined,
+        handler: typeof raw.handler === 'string' ? raw.handler : undefined,
+        export: typeof raw.export === 'string' ? raw.export : undefined,
+        always: typeof raw.always === 'boolean' ? raw.always : undefined,
+        os: Array.isArray(raw.os) ? raw.os.map(String) : undefined,
+        requires: Array.isArray(raw.requires) ? raw.requires.map(String) : undefined,
+        emoji: typeof raw.emoji === 'string' ? raw.emoji : undefined,
+    };
+}
+
+/**
+ * Scan a directory for skill subdirectories containing SKILL.md files.
+ * Returns an array of fully parsed SkillEntry objects.
+ */
+export function discoverSkills(
+    searchDir: string,
+    source: 'bundled' | 'workspace' | 'remote' = 'workspace',
+): SkillEntry[] {
+    const entries: SkillEntry[] = [];
+
+    try {
+        const items = fs.readdirSync(searchDir, { withFileTypes: true });
+
+        for (const item of items) {
+            if (!item.isDirectory() || item.name.startsWith('.')) continue;
+
+            const skillDir = path.join(searchDir, item.name);
+            const markdownPath = path.join(skillDir, SKILL_FILENAME);
+
+            if (!fs.existsSync(markdownPath)) continue;
+
+            try {
+                const content = fs.readFileSync(markdownPath, 'utf-8');
+                const { metadata: rawMeta, body } = parseFrontmatter(content);
+                const metadata = resolveMetadata(rawMeta);
+
+                // Check OS compatibility
+                if (metadata.os && metadata.os.length > 0) {
+                    if (!metadata.os.includes(process.platform)) continue;
+                }
+
+                entries.push({
+                    id: item.name,
+                    baseDir: skillDir,
+                    markdownPath,
+                    instructions: body,
+                    metadata,
+                    source,
+                });
+            } catch {
+                // Skip unreadable skill files
+                continue;
+            }
+        }
+    } catch {
+        // Search directory might not exist
+    }
+
+    return entries;
+}

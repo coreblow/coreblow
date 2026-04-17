@@ -1,0 +1,90 @@
+/**
+ * CoreBlow — VectorStore Persistence
+ *
+ * Save/load VectorStore to/from disk for restart survival.
+ * Uses JSONL format for debuggability (binary format as future optimization).
+ *
+ * Format: One JSON line per document:
+ *   {"id":"...","content":"...","embedding":[...],"metadata":{...},"namespace":"...","createdAt":...}
+ *
+ * Features:
+ *  - Full save: writes entire store to file
+ *  - Full load: reads file and populates store
+ *  - Incremental append: append a single document without rewriting
+ *  - Debounced auto-save: coalesce rapid writes
+ */
+import { VectorStore, type VectorDocument } from './vector-store.js';
+export declare class VectorStorePersistence {
+    /**
+     * Save entire VectorStore to a JSONL file.
+     */
+    static save(store: VectorStore, filePath: string): void;
+    /**
+     * Save documents to JSONL file.
+     * Takes an array of VectorDocuments directly.
+     */
+    static saveDocuments(documents: VectorDocument[], filePath: string): void;
+    /**
+     * Load documents from JSONL file into a VectorStore.
+     * Creates a new VectorStore and populates it.
+     */
+    static load(filePath: string, opts?: {
+        maxDocuments?: number;
+        dimensions?: number;
+    }): VectorStore;
+    /**
+     * Append a single document to an existing JSONL file.
+     * Does NOT rewrite the entire file — O(1) append.
+     */
+    static appendDocument(filePath: string, doc: VectorDocument): void;
+    /**
+     * Get approximate file size.
+     */
+    static getFileSize(filePath: string): number;
+}
+export declare class PersistentVectorStore {
+    private store;
+    private filePath;
+    private saveTimer;
+    private pendingAppends;
+    private saveDebounceMs;
+    constructor(opts: {
+        filePath: string;
+        maxDocuments?: number;
+        dimensions?: number;
+        saveDebounceMs?: number;
+    });
+    /**
+     * Add a document and schedule persistence.
+     */
+    add(id: string, content: string, embedding: Float32Array | number[], metadata?: Record<string, unknown>, namespace?: string): VectorDocument;
+    /**
+     * Search the vector store.
+     */
+    search(queryEmbedding: Float32Array | number[], options?: Parameters<VectorStore['search']>[1]): import("./vector-store.js").VectorSearchResult[];
+    /**
+     * Delete a document and schedule full save.
+     */
+    delete(id: string): boolean;
+    /**
+     * Get a document by ID.
+     */
+    get(id: string): VectorDocument | null;
+    /**
+     * Document count.
+     */
+    count(namespace?: string): number;
+    /**
+     * Force save now (for graceful shutdown).
+     */
+    saveNow(): Promise<void>;
+    /**
+     * Access the underlying VectorStore.
+     */
+    getStore(): VectorStore;
+    private scheduleSave;
+    private scheduleFullSave;
+    private flushAppends;
+    private fullSave;
+}
+//# sourceMappingURL=vector-store-persistence.d.ts.map

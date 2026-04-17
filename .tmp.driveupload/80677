@@ -1,0 +1,3 @@
+export declare function toDiscordMarkdown(text: string): string;
+export declare function stripMarkdown(text: string): string;
+//# sourceMappingURL=markdown.d.ts.map

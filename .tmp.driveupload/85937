@@ -1,0 +1,76 @@
+/**
+ * CoreBlow — Data Transformer
+ *
+ * Applies chainable transformations to data records.
+ * Supports map, filter, rename, pick, omit, compute,
+ * and custom transform functions.
+ */
+/** Transform operation */
+export type TransformOp = {
+    type: 'rename';
+    from: string;
+    to: string;
+} | {
+    type: 'pick';
+    fields: string[];
+} | {
+    type: 'omit';
+    fields: string[];
+} | {
+    type: 'compute';
+    field: string;
+    fn: (record: Record<string, unknown>) => unknown;
+} | {
+    type: 'default';
+    field: string;
+    value: unknown;
+} | {
+    type: 'cast';
+    field: string;
+    to: 'string' | 'number' | 'boolean';
+};
+/**
+ * CoreBlow Data Transformer
+ */
+export declare class DataTransformer {
+    private ops;
+    /**
+     * Add a rename operation.
+     */
+    rename(from: string, to: string): this;
+    /**
+     * Pick only specified fields.
+     */
+    pick(fields: string[]): this;
+    /**
+     * Omit specified fields.
+     */
+    omit(fields: string[]): this;
+    /**
+     * Add a computed field.
+     */
+    compute(field: string, fn: (record: Record<string, unknown>) => unknown): this;
+    /**
+     * Set default value.
+     */
+    default(field: string, value: unknown): this;
+    /**
+     * Cast field type.
+     */
+    cast(field: string, to: 'string' | 'number' | 'boolean'): this;
+    /**
+     * Apply all transforms to a single record.
+     */
+    transform(record: Record<string, unknown>): Record<string, unknown>;
+    /**
+     * Apply to an array.
+     */
+    transformMany(records: Array<Record<string, unknown>>): Array<Record<string, unknown>>;
+    /**
+     * Reset operations.
+     */
+    reset(): void;
+    /** Count ops */
+    count(): number;
+}
+//# sourceMappingURL=data-transformer.d.ts.map

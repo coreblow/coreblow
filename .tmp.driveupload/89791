@@ -1,0 +1,8 @@
+/** Subagent registry cleanup. */
+export function cleanupStaleEntries(entries, maxAgeMs) { const cutoff = Date.now() - maxAgeMs; let removed = 0; for (const [k, v] of entries) {
+    if (v.lastActivityAt < cutoff) {
+        entries.delete(k);
+        removed++;
+    }
+} return removed; }
+//# sourceMappingURL=subagent-registry-cleanup.js.map

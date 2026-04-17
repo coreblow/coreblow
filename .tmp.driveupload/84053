@@ -1,0 +1,5 @@
+export async function resolveInboundDirectDmAccessWithRuntime(_p) {
+    return { access: { decision: "block", reasonCode: "no_policy", reason: "No DM policy configured", effectiveAllowFrom: [] }, shouldComputeAuth: false, senderAllowedForCommands: false, commandAuthorized: undefined };
+}
+export function createPreCryptoDirectDmAuthorizer(_p) { return {}; }
+//# sourceMappingURL=direct-dm.js.map

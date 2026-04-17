@@ -1,0 +1,11 @@
+import { createEndpoint } from "./http-endpoint-helpers.js";
+import { sendJsonResponse } from "./http-utils.js";
+export const modelsEndpoint = createEndpoint("GET", "/v1/models", (req, res) => {
+    sendJsonResponse(res, 200, {
+        object: "list",
+        data: [
+            { id: "gpt-4", object: "model", created: Date.now(), owned_by: "openai" }
+        ]
+    });
+});
+//# sourceMappingURL=models-http.js.map

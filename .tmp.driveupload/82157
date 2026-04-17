@@ -1,0 +1,1 @@
+{"version":3,"file":"connect.js","sourceRoot":"","sources":["../../../src/gateway/server-methods/connect.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,UAAU,EAAE,UAAU,EAAE,MAAM,sBAAsB,CAAC;AAG9D,MAAM,CAAC,MAAM,eAAe,GAA2B;IACnD,SAAS,EAAE,CAAC,EAAE,OAAO,EAAE,EAAE,EAAE;QACvB,OAAO,CACH,KAAK,EACL,SAAS,EACT,UAAU,CAAC,UAAU,CAAC,eAAe,EAAE,4CAA4C,CAAC,CACvF,CAAC;IACN,CAAC;CACJ,CAAC"}

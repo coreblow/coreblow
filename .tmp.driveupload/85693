@@ -1,0 +1,13 @@
+/**
+ * src/infra/ports.ts
+ * Mock port inspect to fix compilation.
+ */
+export async function inspectPortUsage(port) {
+    return {
+        port,
+        status: "free",
+        listeners: [],
+        hints: []
+    };
+}
+//# sourceMappingURL=ports.js.map

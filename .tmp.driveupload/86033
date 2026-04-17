@@ -1,0 +1,67 @@
+/**
+ * CoreBlow — ETL Pipeline
+ *
+ * Extract-Transform-Load pipeline with configurable
+ * stages, error handling, and progress tracking.
+ */
+/**
+ * CoreBlow ETL Pipeline
+ */
+export class ETLPipeline {
+    pipelines = new Map();
+    history = [];
+    idCounter = 0;
+    /**
+     * Create a pipeline.
+     */
+    create(name, stages) {
+        const id = `etl-${++this.idCounter}`;
+        this.pipelines.set(id, { name, stages });
+        return id;
+    }
+    /**
+     * Run a pipeline.
+     */
+    async run(pipelineId, input) {
+        const pipeline = this.pipelines.get(pipelineId);
+        if (!pipeline) {
+            return { pipelineId, status: 'failed', inputCount: input.length, outputCount: 0, stages: [], totalDurationMs: 0, error: 'Pipeline not found' };
+        }
+        const start = Date.now();
+        const stageResults = [];
+        let data = [...input];
+        for (const stage of pipeline.stages) {
+            const stageStart = Date.now();
+            const inputCount = data.length;
+            try {
+                data = await stage.handler(data);
+                stageResults.push({ name: stage.name, inputCount, outputCount: data.length, durationMs: Date.now() - stageStart });
+            }
+            catch (err) {
+                const result = {
+                    pipelineId, status: 'failed', inputCount: input.length, outputCount: 0,
+                    stages: stageResults, totalDurationMs: Date.now() - start,
+                    error: err instanceof Error ? err.message : String(err),
+                };
+                this.history.push(result);
+                return result;
+            }
+        }
+        const result = { pipelineId, status: 'completed', inputCount: input.length, outputCount: data.length, stages: stageResults, totalDurationMs: Date.now() - start };
+        this.history.push(result);
+        return result;
+    }
+    /**
+     * Get history.
+     */
+    getHistory(limit) { return this.history.slice(-(limit ?? 20)); }
+    /**
+     * List pipelines.
+     */
+    list() {
+        return Array.from(this.pipelines.entries()).map(([id, p]) => ({ id, name: p.name, stages: p.stages.length }));
+    }
+    /** Count */
+    count() { return this.pipelines.size; }
+}
+//# sourceMappingURL=etl-pipeline.js.map

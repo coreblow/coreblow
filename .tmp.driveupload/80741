@@ -1,0 +1,8 @@
+import { discordLog } from '../utils/logger.js';
+export function onReactionAdd(reaction, user, ctx) {
+    if (user.bot)
+        return;
+    ctx.stats.reactionCount++;
+    discordLog.debug({ emoji: reaction.emoji.name, user: user.id }, 'Reaction added');
+}
+//# sourceMappingURL=reactionAdd.js.map

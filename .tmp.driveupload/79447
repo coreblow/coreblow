@@ -1,0 +1,14 @@
+/**
+ * tts/queue.ts
+ */
+export class TTSQueue {
+    queue = [];
+    processing = false;
+    add(text, voice) { return new Promise(resolve => { this.queue.push({ text, voice, resolve }); if (!this.processing)
+        this.processNext(); }); }
+    async processNext() { this.processing = true; while (this.queue.length > 0) {
+        const item = this.queue.shift();
+        item.resolve(Buffer.alloc(0));
+    } this.processing = false; }
+}
+//# sourceMappingURL=queue.js.map

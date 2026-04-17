@@ -1,0 +1,69 @@
+/**
+ * src/commands/types.ts
+ * Command framework types
+ */
+export interface CommandArgument {
+    name: string;
+    description: string;
+    required: boolean;
+    type: 'string' | 'number' | 'boolean' | 'choice';
+    choices?: string[];
+    default?: unknown;
+}
+export interface CommandFlag {
+    name: string;
+    alias?: string;
+    description: string;
+    type: 'string' | 'number' | 'boolean';
+    default?: unknown;
+}
+export interface CommandDefinition {
+    name: string;
+    description: string;
+    /** Category for grouping in help */
+    category: string;
+    /** Usage example */
+    usage?: string;
+    /** Aliases (e.g., /h for /help) */
+    aliases?: string[];
+    /** Positional arguments */
+    args?: CommandArgument[];
+    /** Named flags (--flag) */
+    flags?: CommandFlag[];
+    /** Required permission level */
+    permission?: 'user' | 'admin' | 'owner';
+    /** Channels where this command is available (empty = all) */
+    channels?: string[];
+    /** Whether command is hidden from help */
+    hidden?: boolean;
+    /** Subcommands */
+    subcommands?: CommandDefinition[];
+    /** The handler function */
+    handler: CommandHandler;
+}
+export interface ParsedCommand {
+    name: string;
+    args: Record<string, unknown>;
+    flags: Record<string, unknown>;
+    raw: string;
+    subcommand?: string;
+}
+export interface CommandContext {
+    command: ParsedCommand;
+    senderId: string;
+    senderName: string;
+    sessionId: string;
+    channel: string;
+    /** Reply function */
+    reply: (text: string) => Promise<void>;
+    /** Metadata */
+    metadata: Record<string, unknown>;
+}
+export type CommandHandler = (ctx: CommandContext) => Promise<string | void>;
+export interface CommandResult {
+    success: boolean;
+    output?: string;
+    error?: string;
+    durationMs: number;
+}
+//# sourceMappingURL=types.d.ts.map

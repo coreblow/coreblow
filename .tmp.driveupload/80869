@@ -1,0 +1,16 @@
+export class VoiceConnection {
+    state = 'disconnected';
+    guildId;
+    channelId;
+    joinedAt;
+    constructor(guildId, channelId) { this.guildId = guildId; this.channelId = channelId; }
+    async connect() { this.state = 'connecting'; this.state = 'connected'; this.joinedAt = Date.now(); return true; }
+    async disconnect() { this.state = 'disconnected'; this.joinedAt = undefined; }
+    setSpeaking(speaking) { this.state = speaking ? 'speaking' : 'connected'; }
+    getState() { return this.state; }
+    getGuildId() { return this.guildId; }
+    getChannelId() { return this.channelId; }
+    getUptime() { return this.joinedAt ? Date.now() - this.joinedAt : 0; }
+    get isConnected() { return this.state === 'connected' || this.state === 'speaking'; }
+}
+//# sourceMappingURL=connection.js.map

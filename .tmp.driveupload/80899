@@ -1,0 +1,2 @@
+export function getDefaultCapabilities() { return { text: true, images: false, audio: false, video: false, reactions: false, threads: false, embeds: false }; }
+//# sourceMappingURL=capabilities.js.map

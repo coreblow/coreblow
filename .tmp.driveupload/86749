@@ -1,0 +1,125 @@
+/**
+ * CoreBlow — Token Bucket Rate Limiter
+ *
+ * Token bucket algorithm for fine-grained rate limiting.
+ * Supports per-key buckets, burst capacity, refill rates,
+ * and usage statistics.
+ */
+/**
+ * CoreBlow Token Bucket
+ */
+export class TokenBucket {
+    buckets = new Map();
+    defaultMax;
+    defaultRefillRate;
+    constructor(maxTokens = 100, refillRate = 10) {
+        this.defaultMax = maxTokens;
+        this.defaultRefillRate = refillRate;
+    }
+    /**
+     * Try to consume tokens. Returns true if allowed.
+     */
+    consume(key, tokens = 1) {
+        const bucket = this.getOrCreate(key);
+        this.refill(bucket);
+        if (bucket.tokens >= tokens) {
+            bucket.tokens -= tokens;
+            bucket.totalConsumed += tokens;
+            return true;
+        }
+        bucket.totalRejected += tokens;
+        return false;
+    }
+    /**
+     * Check if tokens are available (without consuming).
+     */
+    check(key, tokens = 1) {
+        const bucket = this.getOrCreate(key);
+        this.refill(bucket);
+        return bucket.tokens >= tokens;
+    }
+    /**
+     * Get remaining tokens.
+     */
+    remaining(key) {
+        const bucket = this.getOrCreate(key);
+        this.refill(bucket);
+        return Math.floor(bucket.tokens);
+    }
+    /**
+     * Get time until N tokens available (ms).
+     */
+    waitTime(key, tokens = 1) {
+        const bucket = this.getOrCreate(key);
+        this.refill(bucket);
+        if (bucket.tokens >= tokens)
+            return 0;
+        const needed = tokens - bucket.tokens;
+        return Math.ceil((needed / bucket.refillRate) * 1000);
+    }
+    /**
+     * Reset a bucket.
+     */
+    reset(key) {
+        const bucket = this.buckets.get(key);
+        if (!bucket)
+            return false;
+        bucket.tokens = bucket.maxTokens;
+        bucket.lastRefill = Date.now();
+        return true;
+    }
+    /**
+     * Configure a specific key bucket.
+     */
+    configure(key, maxTokens, refillRate) {
+        const existing = this.buckets.get(key);
+        if (existing) {
+            existing.maxTokens = maxTokens;
+            existing.refillRate = refillRate;
+        }
+        else {
+            this.buckets.set(key, {
+                key, tokens: maxTokens, maxTokens, refillRate,
+                lastRefill: Date.now(), totalConsumed: 0, totalRejected: 0,
+            });
+        }
+    }
+    /**
+     * Get bucket stats.
+     */
+    getStats(key) {
+        const bucket = this.buckets.get(key);
+        if (!bucket)
+            return null;
+        this.refill(bucket);
+        return { tokens: Math.floor(bucket.tokens), max: bucket.maxTokens, consumed: bucket.totalConsumed, rejected: bucket.totalRejected };
+    }
+    /**
+     * Remove a bucket.
+     */
+    remove(key) {
+        return this.buckets.delete(key);
+    }
+    /** Count */
+    count() { return this.buckets.size; }
+    // === Private ===
+    getOrCreate(key) {
+        let bucket = this.buckets.get(key);
+        if (!bucket) {
+            bucket = {
+                key, tokens: this.defaultMax, maxTokens: this.defaultMax,
+                refillRate: this.defaultRefillRate, lastRefill: Date.now(),
+                totalConsumed: 0, totalRejected: 0,
+            };
+            this.buckets.set(key, bucket);
+        }
+        return bucket;
+    }
+    refill(bucket) {
+        const now = Date.now();
+        const elapsed = (now - bucket.lastRefill) / 1000;
+        bucket.tokens = Math.min(bucket.maxTokens, bucket.tokens + elapsed * bucket.refillRate);
+        bucket.lastRefill = now;
+    }
+}
+//# sourceMappingURL=token-bucket.js.map

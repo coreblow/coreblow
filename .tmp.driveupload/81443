@@ -1,0 +1,33 @@
+/** Gateway Router */
+export interface InboundMessage {
+    channel: string;
+    senderId: string;
+    senderName?: string;
+    sessionId: string;
+    groupId?: string;
+    text: string;
+    timestamp: number;
+    raw?: Record<string, unknown>;
+    metadata?: Record<string, unknown>;
+}
+export interface OutboundMessage {
+    channel: string;
+    targetId: string;
+    senderId?: string;
+    groupId?: string;
+    text: string;
+    raw?: Record<string, unknown>;
+    metadata?: Record<string, unknown>;
+}
+export interface MessageRouter {
+    route(message: InboundMessage): Promise<void>;
+    routeInbound(message: InboundMessage): Promise<void>;
+    registerChannelSender(channel: string, sender: (msg: OutboundMessage) => Promise<void>): void;
+    onMessage(handler: (msg: InboundMessage) => Promise<void>): void;
+    sendReply(request: Pick<InboundMessage, 'channel' | 'text'> & Partial<InboundMessage>, content?: string): Promise<void>;
+}
+export declare const MessageRouter: {
+    deriveSessionId(channel: string, userId: string, channelId?: string): string;
+};
+export declare function createRouter(): MessageRouter;
+//# sourceMappingURL=router.d.ts.map

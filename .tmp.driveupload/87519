@@ -1,0 +1,29 @@
+/**
+ * agents/turn-engine/exclusives/observability.ts
+ * Observability hooks for the turn engine — metrics, tracing, logging.
+ */
+const hooks = [];
+export function registerObservabilityHook(hook) {
+    hooks.push(hook);
+    return () => {
+        const idx = hooks.indexOf(hook);
+        if (idx >= 0)
+            hooks.splice(idx, 1);
+    };
+}
+export function emitTurnStart(sessionKey, turnId) {
+    for (const h of hooks)
+        h.onTurnStart?.(sessionKey, turnId);
+}
+export function emitTurnEnd(sessionKey, turnId, durationMs) {
+    for (const h of hooks)
+        h.onTurnEnd?.(sessionKey, turnId, durationMs);
+}
+export function emitObservabilityError(sessionKey, error) {
+    for (const h of hooks)
+        h.onError?.(sessionKey, error);
+}
+export function clearObservabilityHooks() {
+    hooks.length = 0;
+}
+//# sourceMappingURL=observability.js.map

@@ -1,0 +1,3 @@
+/** plugin-sdk/imessage-policy.ts [ADAPT] openclaw-main */
+export declare function resolveIMessageGroupPolicy(_cfg: Record<string, unknown>): string;
+//# sourceMappingURL=imessage-policy.d.ts.map

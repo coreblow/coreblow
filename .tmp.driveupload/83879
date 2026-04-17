@@ -1,0 +1,60 @@
+/**
+ * plugin-sdk/runtime-env.ts
+ * [PORT] openclaw-main/src/plugin-sdk/runtime-env.ts
+ *
+ * Shared process/runtime utilities for plugins — logger wiring, runtime env
+ * shims, and global verbose console helpers.
+ */
+export { createNonExitingRuntime, defaultRuntime, createLoggerBackedRuntime, resolveRuntimeEnv } from './runtime.js';
+/** Check if an env value is truthy (1, true, yes, on). */
+export function isTruthyEnvValue(value) {
+    if (!value)
+        return false;
+    return ['1', 'true', 'yes', 'on'].includes(value.toLowerCase().trim());
+}
+/** Wait until an AbortSignal is aborted, then resolve. */
+export function waitForAbortSignal(signal) {
+    if (signal.aborted)
+        return Promise.resolve();
+    return new Promise((resolve) => {
+        signal.addEventListener('abort', () => resolve(), { once: true });
+    });
+}
+/** Register a global handler to log unhandled promise rejections. */
+export function registerUnhandledRejectionHandler(logger) {
+    process.on('unhandledRejection', (reason) => {
+        const message = reason instanceof Error ? reason.message : String(reason);
+        (logger ?? console).error(`Unhandled rejection: ${message}`);
+    });
+}
+/** Compute exponential backoff delay. */
+export function computeBackoff(attempt, baseMs = 1000, maxMs = 30_000) {
+    return Math.min(baseMs * 2 ** attempt, maxMs);
+}
+/** Sleep for ms, or until signal is aborted. */
+export async function sleepWithAbort(ms, signal) {
+    return new Promise((resolve) => {
+        const timer = setTimeout(resolve, ms);
+        signal?.addEventListener('abort', () => {
+            clearTimeout(timer);
+            resolve();
+        }, { once: true });
+    });
+}
+/** Retry an async function with exponential backoff. */
+export async function retryAsync(fn, policy = {}) {
+    const { baseMs = 1000, maxMs = 30_000, maxAttempts = 5 } = policy;
+    let attempt = 0;
+    while (true) {
+        try {
+            return await fn();
+        }
+        catch (err) {
+            attempt++;
+            if (attempt >= maxAttempts)
+                throw err;
+            await sleepWithAbort(computeBackoff(attempt, baseMs, maxMs));
+        }
+    }
+}
+//# sourceMappingURL=runtime-env.js.map

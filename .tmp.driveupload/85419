@@ -1,0 +1,7 @@
+export class ACPServer {
+    running = false;
+    async start(port = 3100) { this.running = true; return port; }
+    async stop() { this.running = false; }
+    isRunning() { return this.running; }
+}
+//# sourceMappingURL=server.js.map

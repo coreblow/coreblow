@@ -1,0 +1,19 @@
+/** plugin-sdk/kilocode.ts [ADAPT] openclaw-main */
+import type { ProviderModelDefinition, ModelCost } from "./provider-model-shared.js";
+export declare const KILOCODE_BASE_URL = "https://api.kilocode.ai";
+export declare const KILOCODE_DEFAULT_CONTEXT_WINDOW = 65536;
+export declare const KILOCODE_DEFAULT_MAX_TOKENS = 8192;
+export declare const KILOCODE_DEFAULT_COST: ModelCost;
+export declare const KILOCODE_DEFAULT_MODEL_ID = "kilo-chat";
+export declare const KILOCODE_DEFAULT_MODEL_NAME = "Kilo Chat";
+export declare const KILOCODE_DEFAULT_MODEL_REF = "kilocode:kilo-chat";
+export declare const KILOCODE_MODELS_URL = "https://api.kilocode.ai/v1/models";
+export declare const KILOCODE_MODEL_CATALOG: ProviderModelDefinition[];
+export declare function buildKilocodeModelDefinition(params: {
+    id: string;
+    label?: string;
+}): ProviderModelDefinition;
+export declare function buildKilocodeProvider(_p: unknown): unknown;
+export declare function buildKilocodeProviderWithDiscovery(_p: unknown): unknown;
+export declare function discoverKilocodeModels(_p: unknown): Promise<ProviderModelDefinition[]>;
+//# sourceMappingURL=kilocode.d.ts.map

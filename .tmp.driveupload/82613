@@ -1,0 +1,79 @@
+/**
+ * src/plugins/sandbox.ts
+ * Plugin sandbox — isolated execution with permission enforcement
+ * SUPERIOR: CoreBlow doesn't sandbox plugins; CoreBlow enforces declared permissions
+ */
+import type { PluginManifest } from './manifest.js';
+export type Permission = 'network' | 'filesystem' | 'exec' | 'env' | 'secrets';
+export interface SandboxConfig {
+    /** Allowed permissions from manifest */
+    permissions: Permission[];
+    /** Max memory in MB (0 = unlimited) */
+    maxMemoryMB?: number;
+    /** Max execution time in ms (0 = unlimited) */
+    maxTimeMs?: number;
+    /** Plugin name for logging */
+    pluginName: string;
+}
+export interface SandboxedAPI {
+    /** Safe fetch — only if 'network' permission */
+    fetch: typeof globalThis.fetch | (() => never);
+    /** Safe fs — only if 'filesystem' permission */
+    readFile: (path: string) => string | never;
+    writeFile: (path: string, content: string) => void | never;
+    /** Safe exec — only if 'exec' permission */
+    exec: (cmd: string) => Promise<string> | never;
+    /** Safe env — only if 'env' permission */
+    getEnv: (key: string) => string | undefined | never;
+    /** Safe secrets — only if 'secrets' permission */
+    getSecret: (key: string) => string | undefined | never;
+    /** Logging (always allowed) */
+    log: {
+        info: Function;
+        warn: Function;
+        error: Function;
+        debug: Function;
+    };
+    /** KV store (always allowed, scoped to plugin) */
+    store: {
+        get: (key: string) => unknown;
+        set: (key: string, value: unknown) => void;
+        delete: (key: string) => void;
+    };
+}
+export declare class PluginSandbox {
+    private config;
+    private store;
+    private violations;
+    constructor(config: SandboxConfig);
+    /**
+     * Create sandbox from a manifest
+     */
+    static fromManifest(manifest: PluginManifest): PluginSandbox;
+    /**
+     * Check if a permission is granted
+     */
+    hasPermission(permission: Permission): boolean;
+    /**
+     * Record a permission violation
+     */
+    private deny;
+    /**
+     * Create a sandboxed API object for the plugin
+     */
+    createAPI(secretsProvider?: (key: string) => string | undefined): SandboxedAPI;
+    /**
+     * Get violation history
+     */
+    getViolations(): typeof this.violations;
+    /**
+     * Get sandbox info
+     */
+    getInfo(): {
+        pluginName: string;
+        permissions: Permission[];
+        violations: number;
+        storeSize: number;
+    };
+}
+//# sourceMappingURL=sandbox.d.ts.map

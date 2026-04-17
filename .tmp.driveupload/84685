@@ -1,0 +1,11 @@
+/** plugin-sdk/twitch.ts [ADAPT] openclaw-main — Stub for @coreblow/twitch. */
+export type { CoreBlowConfig } from "../config/config.js";
+export { getChatChannelMeta, } from "./channel-plugin-common.js";
+export { buildChannelConfigSchema } from "./channel-config-schema.js";
+export type TwitchProbe = {
+    ok: boolean;
+};
+export declare function listTwitchAccountIds(_cfg: Record<string, unknown>): string[];
+export declare function probeTwitch(_p: unknown): Promise<TwitchProbe>;
+export declare function sendMessageTwitch(_p: unknown): Promise<unknown>;
+//# sourceMappingURL=twitch.d.ts.map

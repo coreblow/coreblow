@@ -1,0 +1,1 @@
+{"version":3,"file":"webhook-path.d.ts","sourceRoot":"","sources":["../../src/plugin-sdk/webhook-path.ts"],"names":[],"mappings":"AAAA,sDAAsD;AACtD,wBAAgB,oBAAoB,CAAC,GAAG,EAAE,MAAM,GAAG,MAAM,CAKxD;AACD,wBAAgB,kBAAkB,CAAC,MAAM,EAAE;IAAE,WAAW,CAAC,EAAE,MAAM,CAAC;IAAC,UAAU,CAAC,EAAE,MAAM,CAAC;IAAC,WAAW,CAAC,EAAE,MAAM,GAAG,IAAI,CAAA;CAAE,GAAG,MAAM,GAAG,IAAI,CAKpI"}

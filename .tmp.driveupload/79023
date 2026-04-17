@@ -1,0 +1,12 @@
+/**
+ * terminal/table.ts — Rich terminal table rendering.
+ */
+export interface TableOptions {
+    borders?: boolean;
+    headerColor?: string;
+    maxWidth?: number;
+    padding?: number;
+}
+export declare function renderTable(headers: string[], rows: string[][], opts?: TableOptions): string;
+export declare function renderKeyValue(pairs: Array<[string, string]>, labelWidth?: number): string;
+//# sourceMappingURL=table.d.ts.map

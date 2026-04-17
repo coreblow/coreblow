@@ -1,0 +1,126 @@
+/**
+ * CoreBlow Hooks Engine
+ *
+ * Event-driven hook execution system. Hooks listen for specific events
+ * (e.g., "message:inbound", "session:start", "command:new") and execute
+ * their handlers when fired. Supports sync/async execution, priority
+ * ordering, fire-and-forget mode, and bundled hook discovery.
+ *
+ * Expanded with: unregister, getHookById, snapshot, wildcard matching.
+ */
+/** Hook metadata describing when and how a hook runs */
+export interface HookMetadata {
+    /** Events this hook handles */
+    events: string[];
+    /** Execution priority (lower = earlier). Default: 100 */
+    priority?: number;
+    /** Run asynchronously without blocking the event pipeline */
+    fireAndForget?: boolean;
+    /** Required OS (e.g., ["darwin", "linux"]) */
+    os?: string[];
+    /** Required environment variables */
+    requiresEnv?: string[];
+    /** Human-friendly emoji for logging */
+    emoji?: string;
+    /** Hook homepage/docs URL */
+    homepage?: string;
+    /** Whether hook is always enabled */
+    always?: boolean;
+}
+/** Hook handler function signature */
+export type HookHandler = (ctx: HookContext) => Promise<void> | void;
+/** Context passed to each hook handler */
+export interface HookContext {
+    /** Event name that triggered the hook */
+    event: string;
+    /** Event payload */
+    payload: Record<string, unknown>;
+    /** Timestamp when the event was emitted */
+    timestamp: number;
+    /** Shared mutable bag for hooks to communicate during a pipeline */
+    shared: Record<string, unknown>;
+}
+/** Registered hook entry */
+export interface HookEntry {
+    id: string;
+    name: string;
+    source: 'bundled' | 'installed' | 'workspace' | 'plugin';
+    metadata: HookMetadata;
+    handler: HookHandler;
+    enabled: boolean;
+}
+/** Hook execution result */
+export interface HookResult {
+    hookId: string;
+    event: string;
+    durationMs: number;
+    error?: string;
+}
+/** Lightweight snapshot of engine state (serializable, no handler refs) */
+export interface HookSnapshot {
+    hooks: Array<{
+        id: string;
+        name: string;
+        source: string;
+        events: string[];
+        enabled: boolean;
+        priority: number;
+    }>;
+    totalHistory: number;
+    version: number;
+}
+/**
+ * CoreBlow Hooks Engine
+ */
+export declare class HooksEngine {
+    private hooks;
+    private history;
+    private maxHistory;
+    private snapshotVersion;
+    /**
+     * Register a hook.
+     */
+    register(entry: HookEntry): void;
+    /**
+     * Unregister a hook by ID.
+     */
+    unregister(hookId: string): boolean;
+    /**
+     * Get a hook by ID.
+     */
+    getHookById(hookId: string): HookEntry | undefined;
+    /**
+     * Emit an event to all matching hooks.
+     * Supports exact event names and wildcard (`*`) matching.
+     */
+    emit(event: string, payload?: Record<string, unknown>): Promise<HookResult[]>;
+    /**
+     * Enable/disable a hook.
+     */
+    setEnabled(hookId: string, enabled: boolean): boolean;
+    /**
+     * List all registered hooks.
+     */
+    list(): HookEntry[];
+    /**
+     * Get recent execution history.
+     */
+    getHistory(limit?: number): HookResult[];
+    /**
+     * Create a serializable snapshot of the current engine state.
+     */
+    snapshot(): HookSnapshot;
+    /**
+     * Discover and register bundled hooks from a directory.
+     * Each hook is a subdirectory containing handler.ts/js.
+     */
+    discoverBundled(baseDir: string): Promise<number>;
+    /**
+     * Remove all hooks (for testing).
+     */
+    clear(): void;
+    private eventMatches;
+    private executeHook;
+    private recordResult;
+}
+//# sourceMappingURL=engine.d.ts.map

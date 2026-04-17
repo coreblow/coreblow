@@ -1,0 +1,16 @@
+/**
+ * CoreBlow — Query Expansion
+ * Expands queries with synonyms, decomposition, key term extraction, and n-grams.
+ */
+export declare function expandWithSynonyms(query: string): string[];
+export declare function decomposeQuery(query: string): string[];
+export declare function extractKeyTerms(query: string): string[];
+export declare function generateNgrams(words: string[], maxN?: number): string[];
+export declare function expandQuery(query: string): {
+    original: string;
+    expanded: string[];
+    decomposed: string[];
+    keyTerms: string[];
+    allQueries: string[];
+};
+//# sourceMappingURL=query-expansion.d.ts.map

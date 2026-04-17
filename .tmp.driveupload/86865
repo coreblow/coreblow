@@ -1,0 +1,67 @@
+/**
+ * canvas-host/file-resolver.ts — Safe File Resolution
+ *
+ * Resolves URL paths to real file system paths within a root directory.
+ * Prevents path traversal attacks by validating resolved paths stay
+ * within the allowed root.
+ *
+ * Ported from CoreBlow reference src/canvas-host/file-resolver.ts (51 LOC).
+ */
+import fs from 'node:fs/promises';
+import path from 'node:path';
+export function normalizeUrlPath(rawPath) {
+    const decoded = decodeURIComponent(rawPath || '/');
+    const normalized = path.posix.normalize(decoded);
+    return normalized.startsWith('/') ? normalized : `/${normalized}`;
+}
+/**
+ * Safely resolve and open a file within a root directory.
+ * Returns null if path traversal is detected or file doesn't exist.
+ */
+export async function resolveFileWithinRoot(rootReal, urlPath) {
+    const normalized = normalizeUrlPath(urlPath);
+    const rel = normalized.replace(/^\/+/, '');
+    // Block explicit traversal
+    if (rel.split('/').some((p) => p === '..')) {
+        return null;
+    }
+    // Try exact path first
+    const tryRead = async (relative) => {
+        const candidate = path.join(rootReal, relative);
+        try {
+            const realPath = await fs.realpath(candidate);
+            // Security: ensure resolved path is within root
+            if (!realPath.startsWith(rootReal)) {
+                return null;
+            }
+            const stat = await fs.lstat(realPath);
+            if (stat.isSymbolicLink() || stat.isDirectory()) {
+                return null;
+            }
+            const data = await fs.readFile(realPath);
+            return { realPath, data };
+        }
+        catch {
+            return null;
+        }
+    };
+    // If path ends with /, try index.html
+    if (normalized.endsWith('/')) {
+        return tryRead(path.posix.join(rel, 'index.html'));
+    }
+    // Check if it's a directory → serve index.html
+    const candidate = path.join(rootReal, rel);
+    try {
+        const st = await fs.lstat(candidate);
+        if (st.isSymbolicLink())
+            return null;
+        if (st.isDirectory()) {
+            return tryRead(path.posix.join(rel, 'index.html'));
+        }
+    }
+    catch {
+        // not a directory, try as file
+    }
+    return tryRead(rel);
+}
+//# sourceMappingURL=file-resolver.js.map

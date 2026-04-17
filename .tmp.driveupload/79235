@@ -1,0 +1,9 @@
+/**
+ * cli/completion.ts
+ * Shell completion generation (bash, zsh, fish).
+ * Ported from CoreBlow reference src/cli/completion-cli.ts + completion-fish.ts.
+ */
+export type Shell = 'bash' | 'zsh' | 'fish';
+export declare function generateCompletion(shell: Shell): string;
+export declare function detectShell(): Shell;
+//# sourceMappingURL=completion.d.ts.map

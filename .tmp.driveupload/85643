@@ -1,0 +1,88 @@
+/**
+ * CoreBlow — Lazy Loader
+ *
+ * Lazy initialization of expensive resources with
+ * caching, TTL, and dependency-aware loading.
+ */
+/**
+ * CoreBlow Lazy Loader
+ */
+export class LazyLoader {
+    resources = new Map();
+    stats = { loaded: 0, cached: 0, reloaded: 0 };
+    /**
+     * Register a lazy resource.
+     */
+    register(name, factory, options) {
+        this.resources.set(name, {
+            name, factory, loaded: false, loading: false,
+            ttlMs: options?.ttlMs, deps: options?.deps ?? [],
+        });
+    }
+    /**
+     * Get a resource (loads on first access).
+     */
+    async get(name) {
+        const resource = this.resources.get(name);
+        if (!resource)
+            return null;
+        // Check TTL
+        if (resource.loaded && resource.ttlMs && resource.loadedAt) {
+            if (Date.now() - resource.loadedAt > resource.ttlMs) {
+                resource.loaded = false;
+                this.stats.reloaded++;
+            }
+        }
+        // Return cached
+        if (resource.loaded) {
+            this.stats.cached++;
+            return resource.instance;
+        }
+        // Load deps first
+        for (const dep of resource.deps) {
+            await this.get(dep);
+        }
+        // Load
+        resource.loading = true;
+        try {
+            resource.instance = await resource.factory();
+            resource.loaded = true;
+            resource.loadedAt = Date.now();
+            this.stats.loaded++;
+        }
+        finally {
+            resource.loading = false;
+        }
+        return resource.instance;
+    }
+    /**
+     * Check if loaded.
+     */
+    isLoaded(name) {
+        return this.resources.get(name)?.loaded ?? false;
+    }
+    /**
+     * Invalidate (force reload next access).
+     */
+    invalidate(name) {
+        const resource = this.resources.get(name);
+        if (!resource)
+            return false;
+        resource.loaded = false;
+        resource.instance = undefined;
+        return true;
+    }
+    /**
+     * Get stats.
+     */
+    getStats() { return { ...this.stats }; }
+    /**
+     * List resources.
+     */
+    list() {
+        return Array.from(this.resources.values()).map((r) => ({ name: r.name, loaded: r.loaded, deps: r.deps }));
+    }
+    /** Count */
+    count() { return this.resources.size; }
+}
+//# sourceMappingURL=lazy-loader.js.map

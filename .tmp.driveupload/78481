@@ -1,0 +1,7 @@
+/**
+ * src/daemon/service-runtime.ts
+ * Daemon service runtime state.
+ * Ported from CoreBlow daemon/service-runtime.ts.
+ */
+export {};
+//# sourceMappingURL=service-runtime.js.map

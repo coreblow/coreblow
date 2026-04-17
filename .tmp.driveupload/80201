@@ -1,0 +1,85 @@
+/**
+ * CoreBlow — Microsoft Teams Channel Adapter
+ *
+ * Production adapter for MS Teams via Bot Framework REST API.
+ * Handles messages, adaptive cards, mentions, and conversations.
+ * Uses raw HTTP — zero SDK dependency.
+ */
+/** Teams bot configuration */
+export interface TeamsConfig {
+    appId: string;
+    appPassword: string;
+    tenantId?: string;
+}
+/** Teams activity (incoming message) */
+export interface TeamsActivity {
+    type: 'message' | 'conversationUpdate' | 'invoke' | 'event';
+    id: string;
+    timestamp: string;
+    channelId: string;
+    from: {
+        id: string;
+        name?: string;
+        aadObjectId?: string;
+    };
+    conversation: {
+        id: string;
+        tenantId?: string;
+        isGroup?: boolean;
+    };
+    recipient: {
+        id: string;
+        name?: string;
+    };
+    text?: string;
+    attachments?: Array<{
+        contentType: string;
+        content: unknown;
+    }>;
+    value?: unknown;
+    serviceUrl: string;
+}
+/** Adaptive card action */
+export interface AdaptiveCardAction {
+    type: 'Action.Submit' | 'Action.OpenUrl' | 'Action.ShowCard';
+    title: string;
+    data?: unknown;
+    url?: string;
+}
+/** Teams message handler */
+export type TeamsMessageHandler = (activity: TeamsActivity) => Promise<string | void>;
+/**
+ * CoreBlow Teams Adapter
+ *
+ * Communicates with Bot Framework via REST API. Manages OAuth2
+ * token lifecycle for service-to-service auth.
+ */
+export declare class TeamsAdapter {
+    private config;
+    private accessToken;
+    private tokenExpiresAt;
+    private messageHandler;
+    private running;
+    constructor(config: TeamsConfig);
+    onMessage(handler: TeamsMessageHandler): void;
+    /** Process an incoming activity (called from webhook endpoint) */
+    processActivity(activity: TeamsActivity): Promise<string | null>;
+    /** Send a message to a conversation */
+    sendMessage(serviceUrl: string, conversationId: string, text: string): Promise<string>;
+    /** Reply to a specific activity */
+    replyToActivity(activity: TeamsActivity, text: string): Promise<string>;
+    /** Send an adaptive card */
+    sendAdaptiveCard(serviceUrl: string, conversationId: string, card: Record<string, unknown>): Promise<string>;
+    /** Update an existing message */
+    updateActivity(serviceUrl: string, conversationId: string, activityId: string, text: string): Promise<void>;
+    /** Create a mention tag for a user */
+    formatMention(userId: string, name: string): string;
+    getStatus(): {
+        running: boolean;
+        appId: string;
+    };
+    start(): Promise<void>;
+    stop(): Promise<void>;
+    private getToken;
+}
+//# sourceMappingURL=teams-adapter.d.ts.map

@@ -1,0 +1,50 @@
+/**
+ * src/sandbox/sandbox-security.ts
+ *
+ * Layer 2 Extension: Sandbox Security Policy
+ *
+ * Pre-execution security checks for sandbox code — scans for dangerous
+ * patterns before code reaches the SandboxExecutor or DockerSandbox.
+ */
+export interface SandboxSecurityConfig {
+    /** Max code length (bytes) */
+    maxCodeLength: number;
+    /** Max execution timeout (ms) */
+    maxTimeoutMs: number;
+    /** Max memory limit (MB) */
+    maxMemoryMb: number;
+    /** Block network access in sandbox */
+    blockNetwork: boolean;
+    /** Additional blocked patterns */
+    blockedPatterns: string[];
+}
+export interface SecurityCheckResult {
+    allowed: boolean;
+    reason?: string;
+    blockedPattern?: string;
+}
+/**
+ * Pre-execution security policy for sandbox environments.
+ * Scans code for dangerous patterns and validates resource limits.
+ */
+export declare class SandboxSecurityPolicy {
+    private readonly config;
+    constructor(config?: Partial<SandboxSecurityConfig>);
+    /**
+     * Check if code is safe to execute in sandbox.
+     */
+    checkCode(code: string): SecurityCheckResult;
+    /**
+     * Validate resource limit configuration.
+     */
+    validateLimits(timeoutMs?: number, memoryMb?: number): SecurityCheckResult;
+    /**
+     * Validate a shell command for sandbox execution.
+     */
+    checkCommand(command: string): SecurityCheckResult;
+    /**
+     * Get the current security config.
+     */
+    getConfig(): Readonly<SandboxSecurityConfig>;
+}
+//# sourceMappingURL=sandbox-security.d.ts.map

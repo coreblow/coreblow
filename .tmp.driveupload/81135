@@ -1,0 +1,5 @@
+/**
+ * utils/url-parse.ts
+ */
+export declare function isUrl(s: string): boolean;
+//# sourceMappingURL=url-parse.d.ts.map

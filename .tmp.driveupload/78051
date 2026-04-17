@@ -1,0 +1,20 @@
+/**
+ * CoreBlow — Fal.ai Image Generation Provider
+ *
+ * Supports: Flux Pro, Flux Dev, Flux Schnell
+ * API: https://fal.run/fal-ai/flux-pro/v1.1
+ */
+import type { ImageGenerationProvider, ImageGenerationCapabilities, ImageGenerationRequest, ImageGenerationResult } from '../types.js';
+export declare class FalImageProvider implements ImageGenerationProvider {
+    readonly id = "fal";
+    readonly name = "Fal.ai (Flux)";
+    readonly models: string[];
+    readonly capabilities: ImageGenerationCapabilities;
+    private apiKey;
+    constructor(opts?: {
+        apiKey?: string;
+    });
+    isAvailable(): boolean;
+    generateImage(request: ImageGenerationRequest): Promise<ImageGenerationResult>;
+}
+//# sourceMappingURL=fal-provider.d.ts.map

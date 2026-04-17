@@ -1,0 +1,68 @@
+/**
+ * plugin-sdk/account-helpers.ts
+ * [PORT] openclaw-main/src/plugin-sdk/account-helpers.ts
+ *
+ * Account list helpers for multi-account channel plugins.
+ */
+import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from './account-id.js';
+export { DEFAULT_ACCOUNT_ID, normalizeAccountId };
+/**
+ * Build a set of account-list accessor helpers scoped to a record of accounts.
+ * [PORT] openclaw createAccountListHelpers
+ */
+export function createAccountListHelpers(accounts) {
+    return {
+        listAccountIds: () => Object.keys(accounts),
+        requireAccount: (accountId) => {
+            const normalized = normalizeAccountId(accountId);
+            const account = accounts[normalized];
+            if (!account) {
+                throw new Error(`Account not found: ${accountId}`);
+            }
+            return account;
+        },
+        getAccount: (accountId) => {
+            return accounts[normalizeAccountId(accountId)];
+        },
+        listAccounts: () => Object.entries(accounts).map(([accountId, account]) => ({ accountId, account })),
+    };
+}
+/** Describe an account snapshot in human-readable form. */
+export function describeAccountSnapshot(snapshot) {
+    if (snapshot.label)
+        return snapshot.label;
+    if (snapshot.accountId)
+        return `Account(${snapshot.accountId})`;
+    return 'Unknown account';
+}
+/** Merge base account config with account-specific overrides. */
+export function mergeAccountConfig(base, override) {
+    return { ...base, ...override };
+}
+/** Resolve merged account config with deep merge for nested objects. */
+export function resolveMergedAccountConfig(base, override) {
+    const result = { ...base };
+    for (const key of Object.keys(override)) {
+        const overrideVal = override[key];
+        const baseVal = base[key];
+        if (overrideVal !== null &&
+            overrideVal !== undefined &&
+            typeof overrideVal === 'object' &&
+            !Array.isArray(overrideVal) &&
+            baseVal !== null &&
+            baseVal !== undefined &&
+            typeof baseVal === 'object' &&
+            !Array.isArray(baseVal)) {
+            result[key] = { ...baseVal, ...overrideVal };
+        }
+        else if (overrideVal !== undefined) {
+            result[key] = overrideVal;
+        }
+    }
+    return result;
+}
+/** Resolve the first configured account ID that matches the default. */
+export function resolveListedDefaultAccountId(accountIds, defaultId = DEFAULT_ACCOUNT_ID) {
+    return accountIds.find((id) => id === defaultId) ?? accountIds[0] ?? defaultId;
+}
+//# sourceMappingURL=account-helpers.js.map

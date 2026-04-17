@@ -1,0 +1,88 @@
+/**
+ * plugin-sdk/setup.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/setup.ts
+ *
+ * Shared setup wizard/types/helpers for plugin and channel setup surfaces.
+ */
+export { DEFAULT_ACCOUNT_ID, createTopLevelChannelDmPolicy, formatDocsLink, setSetupChannelEnabled, splitSetupEntries, createOptionalChannelSetupAdapter, createOptionalChannelSetupWizard, createOptionalChannelSetupSurface, } from './channel-setup.js';
+export { normalizeAccountId } from './account-id.js';
+export { normalizeE164 } from './account-core.js';
+export { coerceSecretRef } from './provider-auth.js';
+// ─── Wizard helpers ───────────────────────────────────────────────────────────
+export class WizardCancelledError extends Error {
+    constructor(message = 'Setup wizard cancelled') {
+        super(message);
+        this.name = 'WizardCancelledError';
+    }
+}
+// ─── Setup helpers ────────────────────────────────────────────────────────────
+export function hasConfiguredSecretInput(input) {
+    if (!input)
+        return false;
+    if (input.type === 'literal')
+        return Boolean(input.value);
+    if (input.type === 'env')
+        return Boolean(process.env[input.envVar]);
+    return Boolean(input.ref);
+}
+export function normalizeSecretInputString(input) {
+    if (!input)
+        return null;
+    if (typeof input === 'string')
+        return input;
+    if (input.type === 'literal')
+        return input.value;
+    if (input.type === 'env')
+        return process.env[input.envVar] ?? null;
+    return null;
+}
+export async function detectBinary(name) {
+    const { runProcess: execCommand_impl } = await import('./process-runtime.js');
+    const result = await execCommand_impl(process.platform === 'win32' ? ['where', name] : ['which', name]);
+    return result.code === 0;
+}
+export async function installSignalCli() {
+    throw new Error('installSignalCli: not supported in CoreBlow Gateway');
+}
+/** Patch setup config for a scoped account. */
+export function patchScopedAccountConfig(cfg, channelKey, accountId, patch) {
+    const section = cfg[channelKey] ?? {};
+    const accounts = { ...(section['accounts'] ?? {}) };
+    accounts[accountId] = { ...(accounts[accountId] ?? {}), ...patch };
+    return { ...cfg, [channelKey]: { ...section, accounts } };
+}
+export function prepareScopedSetupConfig(cfg, channelKey, accountId) {
+    const section = cfg[channelKey] ?? {};
+    const accounts = section['accounts'] ?? {};
+    return accounts[accountId] ?? {};
+}
+export function applySetupAccountConfigPatch(cfg, channelKey, accountId, patch) {
+    return patchScopedAccountConfig(cfg, channelKey, accountId, patch);
+}
+export function createSetupInputPresenceValidator(fields) {
+    return (input) => fields.every((f) => Boolean(input[f]));
+}
+export function createPatchedAccountSetupAdapter(params) {
+    return {
+        isConfigured: (cfg) => {
+            const section = cfg[params.channelKey] ?? {};
+            const accounts = section['accounts'] ?? {};
+            return Boolean(accounts[params.accountId]);
+        },
+    };
+}
+export function createEnvPatchedAccountSetupAdapter(params) {
+    return {
+        isConfigured: () => Boolean(process.env[params.envVar]),
+    };
+}
+export function createZodSetupInputValidator(schema) {
+    return (v) => schema.parse(v);
+}
+export function migrateBaseNameToDefaultAccount(params) {
+    return patchScopedAccountConfig(params.cfg, params.channelKey, params.defaultAccountName ?? 'default', {});
+}
+export function applyAccountNameToChannelSection(params) {
+    return params.cfg;
+}
+//# sourceMappingURL=setup.js.map

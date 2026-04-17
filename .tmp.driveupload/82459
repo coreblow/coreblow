@@ -1,0 +1,105 @@
+/**
+ * plugins/hot-reload.ts
+ *
+ * Plugin hot-reload — watches plugin directories for file changes
+ * and triggers reload/restart cycles with debounce, dependency
+ * awareness, and safe unload ordering.
+ *
+ * Following CoreBlow's config-reload.ts pattern (chokidar watcher,
+ * debounce, reload plans) adapted for CoreBlow's plugin system.
+ */
+import type { DependencyGraph } from './dependency-graph.js';
+/** Hot reload configuration */
+export interface HotReloadConfig {
+    /** Watch directories */
+    watchPaths: string[];
+    /** Debounce delay in ms (default: 300) */
+    debounceMs?: number;
+    /** File patterns to watch (default: ['*.ts', '*.js', '*.json']) */
+    patterns?: string[];
+    /** Ignore patterns */
+    ignorePatterns?: string[];
+    /** Whether to auto-reload on change (default: true) */
+    autoReload?: boolean;
+    /** Max reload retries */
+    maxRetries?: number;
+}
+/** Reload event */
+export interface ReloadEvent {
+    pluginId: string;
+    changedFiles: string[];
+    timestamp: number;
+    type: 'file-change' | 'manual' | 'dependency-update';
+}
+/** Reload result */
+export interface ReloadResult {
+    pluginId: string;
+    success: boolean;
+    duration: number;
+    error?: string;
+    reloadedDeps?: string[];
+}
+/** Reload handler callback */
+export type ReloadHandler = (event: ReloadEvent) => Promise<ReloadResult>;
+/** Watcher state */
+type WatcherState = 'idle' | 'watching' | 'reloading' | 'stopped';
+/**
+ * CoreBlow Plugin Hot Reload
+ *
+ * Watches plugin source directories for changes and triggers
+ * reload cycles with debounce and dependency awareness.
+ * Uses native fs.watch (no chokidar dependency needed).
+ */
+export declare class PluginHotReload {
+    private config;
+    private watchers;
+    private pendingReloads;
+    private pluginPathMap;
+    private reloadHandler;
+    private dependencyGraph;
+    private state;
+    private reloadHistory;
+    private changeBuffer;
+    private listeners;
+    constructor(config: HotReloadConfig);
+    /**
+     * Set the reload handler.
+     */
+    onReload(handler: ReloadHandler): void;
+    /**
+     * Set the dependency graph for ordered reloading.
+     */
+    setDependencyGraph(graph: DependencyGraph): void;
+    /**
+     * Register a plugin's source directory for watching.
+     */
+    registerPlugin(pluginId: string, sourcePath: string): void;
+    /**
+     * Start watching all registered paths.
+     */
+    start(): void;
+    /**
+     * Stop watching all paths.
+     */
+    stop(): void;
+    /**
+     * Trigger a manual reload for a specific plugin.
+     */
+    triggerReload(pluginId: string): Promise<ReloadResult>;
+    getState(): WatcherState;
+    getWatchedPaths(): string[];
+    getRegisteredPlugins(): Map<string, string>;
+    getReloadHistory(): ReloadResult[];
+    getReloadCount(): number;
+    getSuccessRate(): number;
+    on(listener: (event: 'change' | 'reload' | 'error', data: unknown) => void): () => void;
+    private handleFileChange;
+    private scheduleReload;
+    private executeReload;
+    private resolvePluginId;
+    private shouldIgnore;
+    private matchesPattern;
+    private emit;
+}
+export {};
+//# sourceMappingURL=hot-reload.d.ts.map

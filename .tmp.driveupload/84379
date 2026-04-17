@@ -1,0 +1,17 @@
+/**
+ * plugin-sdk/whatsapp-core.ts
+ * [ADAPT] openclaw-main
+ */
+export { DEFAULT_ACCOUNT_ID } from "./channel-plugin-common.js";
+export { getChatChannelMeta } from "./channel-plugin-common.js";
+export { buildChannelConfigSchema } from "./channel-config-schema.js";
+export { jsonResult, readStringParam } from "./provider-web-search.js";
+export { normalizeE164 } from "./account-core.js";
+export function resolveWhatsAppConfigAllowFrom(_cfg, _accountId) { return []; }
+export function resolveWhatsAppConfigDefaultTo(_cfg, _accountId) { return null; }
+export function formatWhatsAppConfigAllowFromEntries(entries) { return entries.join(", "); }
+export function resolveWhatsAppGroupRequireMention(_p) { return false; }
+export function resolveWhatsAppGroupToolPolicy(_p) { return "none"; }
+export function resolveWhatsAppGroupIntroHint(_p) { return ""; }
+export function resolveWhatsAppOutboundTarget(_p) { return null; }
+//# sourceMappingURL=whatsapp-core.js.map

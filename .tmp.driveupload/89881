@@ -1,0 +1,4 @@
+/** Live auth key monitoring. */
+export declare function maskKey(key: string): string;
+export declare function isKeyExpiring(expiresAt: number, warnMs?: number): boolean;
+//# sourceMappingURL=live-auth-keys.d.ts.map

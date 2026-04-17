@@ -1,0 +1,9 @@
+/** plugin-sdk/param-readers.ts [PORT] openclaw-main */
+export { readNumberParam, readStringParam, readStringArrayParam, jsonResult } from "./provider-web-search.js";
+export declare function readStringOrNumberParam(params: Record<string, unknown>, key: string): string | number | undefined;
+export declare function readReactionParams(params: Record<string, unknown>): {
+    emoji?: string;
+    messageId?: string;
+};
+export declare function readBooleanParam(params: Record<string, unknown>, key: string): boolean | undefined;
+//# sourceMappingURL=param-readers.d.ts.map

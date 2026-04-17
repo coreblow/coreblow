@@ -1,0 +1,1 @@
+{"version":3,"file":"strip-inbound-meta.d.ts","sourceRoot":"","sources":["../../../../../src/agents/turn-engine/autopilot/dispatch/strip-inbound-meta.ts"],"names":[],"mappings":"AAAA;;;;GAIG;AACH,wBAAgB,gBAAgB,CAAC,IAAI,EAAE,MAAM,GAAG;IAAE,SAAS,EAAE,MAAM,CAAC;IAAC,IAAI,EAAE,MAAM,CAAC,MAAM,EAAE,MAAM,CAAC,CAAA;CAAE,CAgBlG"}

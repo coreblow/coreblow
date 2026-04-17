@@ -1,0 +1,5 @@
+/**
+ * logging/log-formatter.ts
+ */
+export function formatLog(level, mod, msg) { return `[${new Date().toISOString()}] [${level}] [${mod}] ${msg}`; }
+//# sourceMappingURL=log-formatter.js.map

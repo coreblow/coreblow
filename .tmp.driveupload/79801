@@ -1,0 +1,80 @@
+/**
+ * CoreBlow — Tool Registry
+ *
+ * Central registry for agent tools. Handles tool discovery,
+ * schema validation, permission management, and OpenAI-compatible
+ * function definitions for the chat API.
+ */
+/** Tool definition */
+export interface ToolDefinition {
+    name: string;
+    description: string;
+    parameters: {
+        type: 'object';
+        properties: Record<string, {
+            type: string;
+            description?: string;
+            enum?: string[];
+            default?: unknown;
+        }>;
+        required?: string[];
+    };
+    /** Handler function */
+    handler: (args: Record<string, unknown>) => Promise<string>;
+    /** Permission level */
+    permission?: 'public' | 'owner' | 'admin';
+    /** Category for grouping */
+    category?: string;
+    /** Whether the tool is enabled */
+    enabled?: boolean;
+}
+/** OpenAI-compatible tool format */
+export interface OpenAITool {
+    type: 'function';
+    function: {
+        name: string;
+        description: string;
+        parameters: unknown;
+    };
+}
+/**
+ * CoreBlow Tool Registry
+ */
+export declare class ToolRegistry {
+    private tools;
+    /**
+     * Register a tool.
+     */
+    register(tool: ToolDefinition): void;
+    /**
+     * Register multiple tools.
+     */
+    registerMany(tools: ToolDefinition[]): void;
+    /**
+     * Get a tool by name.
+     */
+    get(name: string): ToolDefinition | null;
+    /**
+     * Check if a tool exists.
+     */
+    has(name: string): boolean;
+    /**
+     * Enable or disable a tool.
+     */
+    setEnabled(name: string, enabled: boolean): boolean;
+    /**
+     * List all enabled tools as OpenAI-compatible definitions.
+     */
+    toOpenAI(permission?: string): OpenAITool[];
+    /**
+     * List tools by category.
+     */
+    listByCategory(): Record<string, string[]>;
+    /**
+     * List all tool names.
+     */
+    listNames(): string[];
+    /** Total count */
+    count(): number;
+}
+//# sourceMappingURL=tool-registry.d.ts.map

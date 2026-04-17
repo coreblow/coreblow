@@ -1,0 +1,81 @@
+/**
+ * src/dashboard/config-guard.ts
+ *
+ * Base-Hash Config Guard — CoreBlow Pattern
+ *
+ * Prevents concurrent config edits by using MD5 hash comparison.
+ * Client reads config + hash, then submits edit with original hash.
+ * If another session edited the config, the hashes won't match → reject.
+ */
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import { createChildLogger } from '../utils/logger.js';
+const log = createChildLogger('dashboard:config-guard');
+/**
+ * ConfigGuard — CoreBlow Pattern (src/dashboard/config-guard.ts)
+ *
+ * ```typescript
+ * const guard = new ConfigGuard();
+ * const { config, hash } = await guard.load('/path/to/config.json');
+ * // ... user edits config ...
+ * const result = await guard.save('/path/to/config.json', newConfig, hash);
+ * if (!result.ok) alert(result.error); // "Config was modified by another session"
+ * ```
+ */
+export class ConfigGuard {
+    currentHash = '';
+    /**
+     * Load config and compute its hash.
+     */
+    async load(configPath) {
+        const content = await fs.promises.readFile(configPath, 'utf-8');
+        this.currentHash = crypto.createHash('md5').update(content).digest('hex');
+        return { config: JSON.parse(content), hash: this.currentHash };
+    }
+    /**
+     * Save config with concurrency check.
+     * Only writes if client's hash matches current file hash.
+     */
+    async save(configPath, newConfig, clientHash) {
+        // Read current file hash
+        try {
+            const content = await fs.promises.readFile(configPath, 'utf-8');
+            const serverHash = crypto.createHash('md5').update(content).digest('hex');
+            // If client hash doesn't match server, someone else edited
+            if (clientHash !== serverHash) {
+                log.warn({ clientHash, serverHash }, 'Config conflict detected');
+                return {
+                    ok: false,
+                    error: 'Config was modified by another session. Reload and try again.',
+                };
+            }
+        }
+        catch (err) {
+            // File doesn't exist — that's OK for first write
+            if (err.code !== 'ENOENT') {
+                return { ok: false, error: `Failed to read config: ${err.message}` };
+            }
+        }
+        // Safe to write
+        const json = JSON.stringify(newConfig, null, 2);
+        // Backup existing config before overwrite
+        try {
+            const backupPath = `${configPath}.backup`;
+            if (fs.existsSync(configPath)) {
+                await fs.promises.copyFile(configPath, backupPath);
+            }
+        }
+        catch { /* backup failure is non-fatal */ }
+        await fs.promises.writeFile(configPath, json, 'utf-8');
+        this.currentHash = crypto.createHash('md5').update(json).digest('hex');
+        log.info('Config saved via config guard');
+        return { ok: true, hash: this.currentHash };
+    }
+    /**
+     * Get current hash without reading file.
+     */
+    getCurrentHash() {
+        return this.currentHash;
+    }
+}
+//# sourceMappingURL=config-guard.js.map

@@ -1,0 +1,8 @@
+/** Subagent registry query utilities. */
+export declare function filterByStatus<T extends {
+    status: string;
+}>(entries: T[], status: string): T[];
+export declare function sortByTimestamp<T extends {
+    timestamp?: number;
+}>(entries: T[]): T[];
+//# sourceMappingURL=subagent-registry-queries.d.ts.map

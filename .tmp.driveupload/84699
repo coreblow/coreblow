@@ -1,0 +1,15 @@
+/**
+ * plugin-sdk/telegram-surface.ts
+ * [ADAPT] openclaw-main — Stub surface for @coreblow/telegram extension.
+ */
+// Stubs — implemented by @coreblow/telegram extension
+export async function inspectTelegramAccount(_params) { return null; }
+export function listTelegramAccountIds(_cfg) { return []; }
+export async function probeTelegram(_params) { return { ok: false }; }
+export async function sendMessageTelegram(_params) { return null; }
+export function resolveTelegramGroupRequireMention(_params) { return false; }
+export function resolveTelegramGroupToolPolicy(_params) { return "none"; }
+export function parseTelegramTarget(_raw) { return null; }
+export function normalizeTelegramMessagingTarget(_raw) { return null; }
+export function looksLikeTelegramTargetId(_raw) { return /^\d+$/.test(_raw); }
+//# sourceMappingURL=telegram-surface.js.map

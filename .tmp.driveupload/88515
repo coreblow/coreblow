@@ -1,0 +1,9 @@
+export declare function runSubagentAnnounceFlow(params: {
+    parentId: string;
+    name: string;
+    channel: string;
+}): Promise<{
+    announced: boolean;
+    subagentId: string;
+}>;
+//# sourceMappingURL=subagent-announce.d.ts.map

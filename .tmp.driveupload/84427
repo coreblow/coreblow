@@ -1,0 +1,4 @@
+/** plugin-sdk/optional-channel-setup.ts [PORT] openclaw-main */
+export { createOptionalChannelSetupAdapter, createOptionalChannelSetupWizard, createOptionalChannelSetupSurface } from "./channel-setup.js";
+export type { OptionalChannelSetupSurface } from "./channel-setup.js";
+//# sourceMappingURL=optional-channel-setup.d.ts.map

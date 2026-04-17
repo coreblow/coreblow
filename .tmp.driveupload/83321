@@ -1,0 +1,12 @@
+export function ssrfPolicyFromAllowPrivateNetwork(allow) { return allow ? { allowPrivateNetwork: true } : undefined; }
+export function buildHostnameAllowlistPolicyFromSuffixAllowlist(suffixes) { return { pinnedHostnames: suffixes }; }
+export async function assertHttpUrlTargetsPrivateNetwork(url, params = {}) {
+    if (new URL(url).protocol !== "http:")
+        return;
+    if (!params.allowPrivateNetwork)
+        throw new Error(params.errorMessage ?? "HTTP URL must target a trusted private/internal host");
+}
+export function isPrivateIpAddress(ip) { return /^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|127\.|::1|fc|fd)/.test(ip); }
+export function isBlockedHostnameOrIp(hostname) { return isPrivateIpAddress(hostname); }
+export async function resolvePinnedHostnameWithPolicy(hostname, _p) { return hostname; }
+//# sourceMappingURL=ssrf-policy.js.map

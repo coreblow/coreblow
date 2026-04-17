@@ -1,0 +1,51 @@
+/**
+ * CoreBlow — Response Builder
+ *
+ * Fluent API for building HTTP-like responses with
+ * status codes, headers, body, and serialization.
+ */
+/** Response */
+export interface BuiltResponse {
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
+    body: unknown;
+    serialized: string;
+}
+/**
+ * CoreBlow Response Builder
+ */
+export declare class ResponseBuilder {
+    private _status;
+    private _headers;
+    private _body;
+    /**
+     * Set status code.
+     */
+    status(code: number): this;
+    /**
+     * Set header.
+     */
+    header(key: string, value: string): this;
+    /**
+     * Set JSON body.
+     */
+    json(data: unknown): this;
+    /**
+     * Set text body.
+     */
+    text(data: string): this;
+    /**
+     * Set HTML body.
+     */
+    html(data: string): this;
+    /**
+     * Build the response.
+     */
+    build(): BuiltResponse;
+    static ok(data: unknown): BuiltResponse;
+    static created(data: unknown): BuiltResponse;
+    static notFound(message?: string): BuiltResponse;
+    static error(message?: string, code?: number): BuiltResponse;
+}
+//# sourceMappingURL=response-builder.d.ts.map

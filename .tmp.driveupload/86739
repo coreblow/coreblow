@@ -1,0 +1,86 @@
+/**
+ * CoreBlow — Namespace Isolation
+ *
+ * Provides data isolation between tenants using
+ * namespaced keys. Prevents cross-tenant data access.
+ */
+/**
+ * CoreBlow Namespace Isolation
+ */
+export class NamespaceIsolation {
+    data = new Map();
+    /**
+     * Set a value in a namespace.
+     */
+    set(namespace, key, value) {
+        const fullKey = `${namespace}:${key}`;
+        const existing = this.data.get(fullKey);
+        this.data.set(fullKey, {
+            namespace, key, value,
+            createdAt: existing?.createdAt ?? Date.now(), updatedAt: Date.now(),
+        });
+    }
+    /**
+     * Get a value from a namespace.
+     */
+    get(namespace, key) {
+        return this.data.get(`${namespace}:${key}`)?.value;
+    }
+    /**
+     * Delete from a namespace.
+     */
+    delete(namespace, key) {
+        return this.data.delete(`${namespace}:${key}`);
+    }
+    /**
+     * Check if key exists.
+     */
+    has(namespace, key) {
+        return this.data.has(`${namespace}:${key}`);
+    }
+    /**
+     * List all keys in a namespace.
+     */
+    keys(namespace) {
+        return Array.from(this.data.values())
+            .filter((e) => e.namespace === namespace)
+            .map((e) => e.key);
+    }
+    /**
+     * Get all entries in a namespace.
+     */
+    getAll(namespace) {
+        const result = {};
+        for (const entry of Array.from(this.data.values())) {
+            if (entry.namespace === namespace)
+                result[entry.key] = entry.value;
+        }
+        return result;
+    }
+    /**
+     * Clear entire namespace.
+     */
+    clearNamespace(namespace) {
+        let count = 0;
+        for (const [key, entry] of Array.from(this.data)) {
+            if (entry.namespace === namespace) {
+                this.data.delete(key);
+                count++;
+            }
+        }
+        return count;
+    }
+    /**
+     * List all namespaces.
+     */
+    listNamespaces() {
+        const counts = new Map();
+        for (const entry of Array.from(this.data.values())) {
+            counts.set(entry.namespace, (counts.get(entry.namespace) ?? 0) + 1);
+        }
+        return Array.from(counts.entries()).map(([namespace, entryCount]) => ({ namespace, entryCount }));
+    }
+    /** Total count */
+    count() { return this.data.size; }
+}
+//# sourceMappingURL=namespace-isolation.js.map

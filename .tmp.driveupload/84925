@@ -1,0 +1,132 @@
+/**
+ * plugin-sdk/channel-config-helpers.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/channel-config-helpers.ts
+ *
+ * Config-write helpers, account config accessors, and DM security resolvers.
+ */
+import type { CoreBlowConfig } from '../config/config.js';
+import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from './account-id.js';
+import { resolveMergedAccountConfig } from './account-helpers.js';
+export { DEFAULT_ACCOUNT_ID, normalizeAccountId, resolveMergedAccountConfig };
+export type ConfigWriteScope = {
+    channelId?: string | null;
+    accountId?: string | null;
+};
+export type ConfigWriteTarget = {
+    kind: 'global';
+} | {
+    kind: 'channel';
+    scope: {
+        channelId: string;
+    };
+} | {
+    kind: 'account';
+    scope: {
+        channelId: string;
+        accountId: string;
+    };
+} | {
+    kind: 'ambiguous';
+    scopes: ConfigWriteScope[];
+};
+export type ConfigWriteAuthorizationResult = {
+    allowed: true;
+} | {
+    allowed: false;
+    reason: 'ambiguous-target' | 'origin-disabled' | 'target-disabled';
+    blockedScope?: {
+        kind: 'origin' | 'target';
+        scope: ConfigWriteScope;
+    };
+};
+export declare function resolveChannelConfigWrites(params: {
+    cfg: CoreBlowConfig;
+    channelId: string;
+    accountId?: string | null;
+}): ConfigWriteTarget;
+export declare function canBypassConfigWritePolicy(params: {
+    target: ConfigWriteTarget;
+    origin?: ConfigWriteScope;
+}): boolean;
+export declare function authorizeConfigWrite(params: {
+    target: ConfigWriteTarget;
+    origin?: ConfigWriteScope;
+    enabled?: boolean;
+}): ConfigWriteAuthorizationResult;
+export declare function formatConfigWriteDeniedMessage(result: ConfigWriteAuthorizationResult & {
+    allowed: false;
+}): string;
+export type ScopedAccountConfigAccessors<TAccount> = {
+    resolveAccount: (accountId?: string | null) => TAccount;
+    listAccountIds: () => string[];
+    getDefaultAccountId: () => string;
+};
+export declare function createScopedAccountConfigAccessors<TAccount>(params: {
+    accounts: Record<string, TAccount>;
+    defaultAccountId?: string;
+}): ScopedAccountConfigAccessors<TAccount>;
+export declare function createScopedDmSecurityResolver<TAccount extends {
+    accountId?: string | null;
+}>(params: {
+    channelKey: string;
+    resolvePolicy: (account: TAccount) => string | null | undefined;
+    resolveAllowFrom: (account: TAccount) => Array<string | number> | null | undefined;
+    resolveFallbackAccountId?: (account: TAccount) => string | null | undefined;
+    defaultPolicy?: string;
+    allowFromPathSuffix?: string;
+    policyPathSuffix?: string;
+    approveChannelId?: string;
+    approveHint?: string;
+    normalizeEntry?: (raw: string) => string;
+}): (opts: {
+    cfg: CoreBlowConfig;
+    accountId: string;
+    account: TAccount;
+}) => string | null | undefined;
+export type HybridChannelConfigAdapterOptions<TAccount> = {
+    channelKey: string;
+    resolveAccount: (cfg: CoreBlowConfig, accountId?: string | null) => TAccount;
+    normalizeAccountId?: (raw?: string | null) => string;
+    listAccountIds: (cfg: CoreBlowConfig) => string[];
+    defaultAccountId?: string;
+};
+export declare function createScopedChannelConfigBase<TAccount>(opts: HybridChannelConfigAdapterOptions<TAccount>): {
+    channelKey: string;
+    resolveAccount: (cfg: CoreBlowConfig, accountId?: string | null) => TAccount;
+    listAccountIds: (cfg: CoreBlowConfig) => string[];
+};
+export declare function createTopLevelChannelConfigBase<TAccount>(opts: HybridChannelConfigAdapterOptions<TAccount>): {
+    channelKey: string;
+    resolveAccount: (cfg: CoreBlowConfig, accountId?: string | null) => TAccount;
+    listAccountIds: (cfg: CoreBlowConfig) => string[];
+};
+export declare function createHybridChannelConfigBase<TAccount>(opts: HybridChannelConfigAdapterOptions<TAccount>): {
+    channelKey: string;
+    resolveAccount: (cfg: CoreBlowConfig, accountId?: string | null) => TAccount;
+    listAccountIds: (cfg: CoreBlowConfig) => string[];
+};
+export declare function createScopedChannelConfigAdapter<TAccount>(opts: HybridChannelConfigAdapterOptions<TAccount>): {
+    channelKey: string;
+    resolveAccount: (cfg: CoreBlowConfig, accountId?: string | null) => TAccount;
+    listAccountIds: (cfg: CoreBlowConfig) => string[];
+};
+export declare function createTopLevelChannelConfigAdapter<TAccount>(opts: HybridChannelConfigAdapterOptions<TAccount>): {
+    channelKey: string;
+    resolveAccount: (cfg: CoreBlowConfig, accountId?: string | null) => TAccount;
+    listAccountIds: (cfg: CoreBlowConfig) => string[];
+};
+export declare function createHybridChannelConfigAdapter<TAccount>(opts: HybridChannelConfigAdapterOptions<TAccount>): {
+    channelKey: string;
+    resolveAccount: (cfg: CoreBlowConfig, accountId?: string | null) => TAccount;
+    listAccountIds: (cfg: CoreBlowConfig) => string[];
+};
+export declare function createScopedDmSecurityAdapter<TAccount>(opts: HybridChannelConfigAdapterOptions<TAccount> & {
+    resolveDmPolicy: (account: TAccount) => string | null | undefined;
+}): {
+    resolveDmPolicy: (account: TAccount) => string | null | undefined;
+    channelKey: string;
+    resolveAccount: (cfg: CoreBlowConfig, accountId?: string | null) => TAccount;
+    listAccountIds: (cfg: CoreBlowConfig) => string[];
+};
+export declare function mapAllowFromEntries(entries: Array<string | number>, normalize: (entry: string) => string): Array<string | number>;
+//# sourceMappingURL=channel-config-helpers.d.ts.map

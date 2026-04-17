@@ -1,0 +1,5 @@
+import type { IncomingMessage, ServerResponse } from "node:http";
+export declare function parseJsonBody(req: IncomingMessage): Promise<any>;
+export declare function sendJsonResponse(res: ServerResponse, statusCode: number, data: unknown): void;
+export declare function sendErrorResponse(res: ServerResponse, statusCode: number, message: string): void;
+//# sourceMappingURL=http-utils.d.ts.map

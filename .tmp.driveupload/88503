@@ -1,0 +1,41 @@
+/**
+ * CoreBlow — Subagent Announce Queue (CoreBlow Parity)
+ *
+ * Buffered announce delivery with debounce, cap/drop policy,
+ * collect mode, summary, and exponential backoff on drain fail.
+ */
+import type { DeliveryContext } from './subagent-registry-types.js';
+export type QueueMode = 'followup' | 'collect' | 'steer' | 'steer-backlog' | 'interrupt';
+export type QueueDropPolicy = 'summarize' | 'new' | 'old';
+export type AnnounceQueueItem = {
+    announceId?: string;
+    prompt: string;
+    summaryLine?: string;
+    internalEvents?: Array<{
+        type: string;
+        [key: string]: unknown;
+    }>;
+    enqueuedAt: number;
+    sessionKey: string;
+    origin?: DeliveryContext;
+    originKey?: string;
+    sourceSessionKey?: string;
+    sourceChannel?: string;
+    sourceTool?: string;
+};
+export type AnnounceQueueSettings = {
+    mode: QueueMode;
+    debounceMs?: number;
+    cap?: number;
+    dropPolicy?: QueueDropPolicy;
+};
+export declare function resetAnnounceQueuesForTests(): void;
+export declare function enqueueAnnounce(params: {
+    key: string;
+    item: AnnounceQueueItem;
+    settings: AnnounceQueueSettings;
+    send: (item: AnnounceQueueItem) => Promise<void>;
+}): boolean;
+export declare function getQueueSize(key: string): number;
+export declare function isQueueDraining(key: string): boolean;
+//# sourceMappingURL=subagent-announce-queue.d.ts.map

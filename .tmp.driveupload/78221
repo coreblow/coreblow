@@ -1,0 +1,351 @@
+/**
+ * config/config.schema.ts
+ * Zod runtime validation for CoreBlow gateway configuration.
+ *
+ * Following CoreBlow pattern: full config.json schema validation at
+ * startup + runtime patching. Every field has a default and explicit validation.
+ */
+import { z } from 'zod';
+export declare const AuthSchema: z.ZodOptional<z.ZodObject<{
+    token: z.ZodOptional<z.ZodString>;
+    password: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>>;
+export declare const ReloadSchema: z.ZodOptional<z.ZodObject<{
+    mode: z.ZodDefault<z.ZodEnum<{
+        full: "full";
+        off: "off";
+        hybrid: "hybrid";
+    }>>;
+}, z.core.$strip>>;
+export declare const GatewaySchema: z.ZodDefault<z.ZodObject<{
+    port: z.ZodDefault<z.ZodNumber>;
+    host: z.ZodDefault<z.ZodString>;
+    cors: z.ZodDefault<z.ZodBoolean>;
+    maxConnections: z.ZodDefault<z.ZodNumber>;
+    timeout: z.ZodDefault<z.ZodNumber>;
+    auth: z.ZodOptional<z.ZodObject<{
+        token: z.ZodOptional<z.ZodString>;
+        password: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    reload: z.ZodOptional<z.ZodObject<{
+        mode: z.ZodDefault<z.ZodEnum<{
+            full: "full";
+            off: "off";
+            hybrid: "hybrid";
+        }>>;
+    }, z.core.$strip>>;
+}, z.core.$strip>>;
+export declare const AgentDefaultsSchema: z.ZodDefault<z.ZodObject<{
+    model: z.ZodOptional<z.ZodString>;
+    provider: z.ZodOptional<z.ZodString>;
+    temperature: z.ZodDefault<z.ZodNumber>;
+    maxTokens: z.ZodDefault<z.ZodNumber>;
+    timeout: z.ZodDefault<z.ZodNumber>;
+    maxTurns: z.ZodDefault<z.ZodNumber>;
+    autoCompact: z.ZodDefault<z.ZodBoolean>;
+    compactThreshold: z.ZodDefault<z.ZodNumber>;
+    systemPrompt: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>>;
+export declare const AgentEntrySchema: z.ZodObject<{
+    id: z.ZodString;
+    name: z.ZodString;
+    workspace: z.ZodOptional<z.ZodString>;
+    model: z.ZodOptional<z.ZodString>;
+    tools: z.ZodOptional<z.ZodObject<{
+        profile: z.ZodDefault<z.ZodEnum<{
+            full: "full";
+            minimal: "minimal";
+            coding: "coding";
+            messaging: "messaging";
+        }>>;
+    }, z.core.$strip>>;
+}, z.core.$strip>;
+export declare const AgentsSchema: z.ZodDefault<z.ZodObject<{
+    defaults: z.ZodDefault<z.ZodObject<{
+        model: z.ZodOptional<z.ZodString>;
+        provider: z.ZodOptional<z.ZodString>;
+        temperature: z.ZodDefault<z.ZodNumber>;
+        maxTokens: z.ZodDefault<z.ZodNumber>;
+        timeout: z.ZodDefault<z.ZodNumber>;
+        maxTurns: z.ZodDefault<z.ZodNumber>;
+        autoCompact: z.ZodDefault<z.ZodBoolean>;
+        compactThreshold: z.ZodDefault<z.ZodNumber>;
+        systemPrompt: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    list: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        name: z.ZodString;
+        workspace: z.ZodOptional<z.ZodString>;
+        model: z.ZodOptional<z.ZodString>;
+        tools: z.ZodOptional<z.ZodObject<{
+            profile: z.ZodDefault<z.ZodEnum<{
+                full: "full";
+                minimal: "minimal";
+                coding: "coding";
+                messaging: "messaging";
+            }>>;
+        }, z.core.$strip>>;
+    }, z.core.$strip>>>;
+}, z.core.$strip>>;
+export declare const SandboxSchema: z.ZodDefault<z.ZodObject<{
+    mode: z.ZodDefault<z.ZodEnum<{
+        off: "off";
+        container: "container";
+        firecracker: "firecracker";
+    }>>;
+    image: z.ZodDefault<z.ZodString>;
+    network: z.ZodDefault<z.ZodEnum<{
+        none: "none";
+        host: "host";
+        bridge: "bridge";
+    }>>;
+    cpus: z.ZodDefault<z.ZodNumber>;
+    memoryMb: z.ZodDefault<z.ZodNumber>;
+    idleTimeoutHours: z.ZodDefault<z.ZodNumber>;
+    maxAgeDays: z.ZodDefault<z.ZodNumber>;
+}, z.core.$strip>>;
+export declare const ExecConfigSchema: z.ZodOptional<z.ZodObject<{
+    ask: z.ZodDefault<z.ZodEnum<{
+        off: "off";
+        "on-miss": "on-miss";
+        always: "always";
+    }>>;
+    allowlist: z.ZodDefault<z.ZodArray<z.ZodString>>;
+    denylist: z.ZodDefault<z.ZodArray<z.ZodString>>;
+}, z.core.$strip>>;
+export declare const ToolsSchema: z.ZodDefault<z.ZodObject<{
+    profile: z.ZodDefault<z.ZodEnum<{
+        full: "full";
+        minimal: "minimal";
+        coding: "coding";
+        messaging: "messaging";
+    }>>;
+    exec: z.ZodOptional<z.ZodObject<{
+        ask: z.ZodDefault<z.ZodEnum<{
+            off: "off";
+            "on-miss": "on-miss";
+            always: "always";
+        }>>;
+        allowlist: z.ZodDefault<z.ZodArray<z.ZodString>>;
+        denylist: z.ZodDefault<z.ZodArray<z.ZodString>>;
+    }, z.core.$strip>>;
+}, z.core.$strip>>;
+export declare const ChannelEntrySchema: z.ZodObject<{
+    enabled: z.ZodDefault<z.ZodBoolean>;
+}, z.core.$loose>;
+export declare const ChannelsSchema: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodObject<{
+    enabled: z.ZodDefault<z.ZodBoolean>;
+}, z.core.$loose>>>;
+export declare const ModelsSchema: z.ZodDefault<z.ZodObject<{
+    default: z.ZodDefault<z.ZodString>;
+    aliases: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodString>>;
+}, z.core.$strip>>;
+export declare const FeaturesSchema: z.ZodDefault<z.ZodObject<{
+    dashboard: z.ZodDefault<z.ZodBoolean>;
+    cron: z.ZodDefault<z.ZodBoolean>;
+    canvas: z.ZodDefault<z.ZodBoolean>;
+    autoReply: z.ZodDefault<z.ZodBoolean>;
+    webSearch: z.ZodDefault<z.ZodBoolean>;
+}, z.core.$strip>>;
+export declare const LoggingSchema: z.ZodDefault<z.ZodObject<{
+    level: z.ZodDefault<z.ZodEnum<{
+        error: "error";
+        debug: "debug";
+        info: "info";
+        fatal: "fatal";
+        warn: "warn";
+        trace: "trace";
+    }>>;
+    format: z.ZodDefault<z.ZodEnum<{
+        text: "text";
+        json: "json";
+    }>>;
+}, z.core.$strip>>;
+export declare const MemoryRagSchema: z.ZodDefault<z.ZodObject<{
+    enabled: z.ZodDefault<z.ZodBoolean>;
+    engine: z.ZodDefault<z.ZodEnum<{
+        local: "local";
+        auto: "auto";
+        ollama: "ollama";
+        openai: "openai";
+        gemini: "gemini";
+        voyage: "voyage";
+        mistral: "mistral";
+    }>>;
+    apiKey: z.ZodOptional<z.ZodString>;
+    maxDocuments: z.ZodDefault<z.ZodNumber>;
+}, z.core.$strip>>;
+export declare const MemorySchema: z.ZodDefault<z.ZodObject<{
+    transcriptDir: z.ZodDefault<z.ZodString>;
+    defaultRetrievalCount: z.ZodDefault<z.ZodNumber>;
+    maxFileSizeBytes: z.ZodDefault<z.ZodNumber>;
+    compactionStrategy: z.ZodDefault<z.ZodEnum<{
+        truncate: "truncate";
+        summarize: "summarize";
+    }>>;
+    rag: z.ZodDefault<z.ZodObject<{
+        enabled: z.ZodDefault<z.ZodBoolean>;
+        engine: z.ZodDefault<z.ZodEnum<{
+            local: "local";
+            auto: "auto";
+            ollama: "ollama";
+            openai: "openai";
+            gemini: "gemini";
+            voyage: "voyage";
+            mistral: "mistral";
+        }>>;
+        apiKey: z.ZodOptional<z.ZodString>;
+        maxDocuments: z.ZodDefault<z.ZodNumber>;
+    }, z.core.$strip>>;
+}, z.core.$strip>>;
+export declare const CoreBlowConfigSchema: z.ZodObject<{
+    version: z.ZodDefault<z.ZodString>;
+    gateway: z.ZodDefault<z.ZodObject<{
+        port: z.ZodDefault<z.ZodNumber>;
+        host: z.ZodDefault<z.ZodString>;
+        cors: z.ZodDefault<z.ZodBoolean>;
+        maxConnections: z.ZodDefault<z.ZodNumber>;
+        timeout: z.ZodDefault<z.ZodNumber>;
+        auth: z.ZodOptional<z.ZodObject<{
+            token: z.ZodOptional<z.ZodString>;
+            password: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>>;
+        reload: z.ZodOptional<z.ZodObject<{
+            mode: z.ZodDefault<z.ZodEnum<{
+                full: "full";
+                off: "off";
+                hybrid: "hybrid";
+            }>>;
+        }, z.core.$strip>>;
+    }, z.core.$strip>>;
+    agents: z.ZodDefault<z.ZodObject<{
+        defaults: z.ZodDefault<z.ZodObject<{
+            model: z.ZodOptional<z.ZodString>;
+            provider: z.ZodOptional<z.ZodString>;
+            temperature: z.ZodDefault<z.ZodNumber>;
+            maxTokens: z.ZodDefault<z.ZodNumber>;
+            timeout: z.ZodDefault<z.ZodNumber>;
+            maxTurns: z.ZodDefault<z.ZodNumber>;
+            autoCompact: z.ZodDefault<z.ZodBoolean>;
+            compactThreshold: z.ZodDefault<z.ZodNumber>;
+            systemPrompt: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>>;
+        list: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            id: z.ZodString;
+            name: z.ZodString;
+            workspace: z.ZodOptional<z.ZodString>;
+            model: z.ZodOptional<z.ZodString>;
+            tools: z.ZodOptional<z.ZodObject<{
+                profile: z.ZodDefault<z.ZodEnum<{
+                    full: "full";
+                    minimal: "minimal";
+                    coding: "coding";
+                    messaging: "messaging";
+                }>>;
+            }, z.core.$strip>>;
+        }, z.core.$strip>>>;
+    }, z.core.$strip>>;
+    sandbox: z.ZodDefault<z.ZodObject<{
+        mode: z.ZodDefault<z.ZodEnum<{
+            off: "off";
+            container: "container";
+            firecracker: "firecracker";
+        }>>;
+        image: z.ZodDefault<z.ZodString>;
+        network: z.ZodDefault<z.ZodEnum<{
+            none: "none";
+            host: "host";
+            bridge: "bridge";
+        }>>;
+        cpus: z.ZodDefault<z.ZodNumber>;
+        memoryMb: z.ZodDefault<z.ZodNumber>;
+        idleTimeoutHours: z.ZodDefault<z.ZodNumber>;
+        maxAgeDays: z.ZodDefault<z.ZodNumber>;
+    }, z.core.$strip>>;
+    tools: z.ZodDefault<z.ZodObject<{
+        profile: z.ZodDefault<z.ZodEnum<{
+            full: "full";
+            minimal: "minimal";
+            coding: "coding";
+            messaging: "messaging";
+        }>>;
+        exec: z.ZodOptional<z.ZodObject<{
+            ask: z.ZodDefault<z.ZodEnum<{
+                off: "off";
+                "on-miss": "on-miss";
+                always: "always";
+            }>>;
+            allowlist: z.ZodDefault<z.ZodArray<z.ZodString>>;
+            denylist: z.ZodDefault<z.ZodArray<z.ZodString>>;
+        }, z.core.$strip>>;
+    }, z.core.$strip>>;
+    channels: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodObject<{
+        enabled: z.ZodDefault<z.ZodBoolean>;
+    }, z.core.$loose>>>;
+    models: z.ZodDefault<z.ZodObject<{
+        default: z.ZodDefault<z.ZodString>;
+        aliases: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodString>>;
+    }, z.core.$strip>>;
+    features: z.ZodDefault<z.ZodObject<{
+        dashboard: z.ZodDefault<z.ZodBoolean>;
+        cron: z.ZodDefault<z.ZodBoolean>;
+        canvas: z.ZodDefault<z.ZodBoolean>;
+        autoReply: z.ZodDefault<z.ZodBoolean>;
+        webSearch: z.ZodDefault<z.ZodBoolean>;
+    }, z.core.$strip>>;
+    logging: z.ZodDefault<z.ZodObject<{
+        level: z.ZodDefault<z.ZodEnum<{
+            error: "error";
+            debug: "debug";
+            info: "info";
+            fatal: "fatal";
+            warn: "warn";
+            trace: "trace";
+        }>>;
+        format: z.ZodDefault<z.ZodEnum<{
+            text: "text";
+            json: "json";
+        }>>;
+    }, z.core.$strip>>;
+    memory: z.ZodDefault<z.ZodObject<{
+        transcriptDir: z.ZodDefault<z.ZodString>;
+        defaultRetrievalCount: z.ZodDefault<z.ZodNumber>;
+        maxFileSizeBytes: z.ZodDefault<z.ZodNumber>;
+        compactionStrategy: z.ZodDefault<z.ZodEnum<{
+            truncate: "truncate";
+            summarize: "summarize";
+        }>>;
+        rag: z.ZodDefault<z.ZodObject<{
+            enabled: z.ZodDefault<z.ZodBoolean>;
+            engine: z.ZodDefault<z.ZodEnum<{
+                local: "local";
+                auto: "auto";
+                ollama: "ollama";
+                openai: "openai";
+                gemini: "gemini";
+                voyage: "voyage";
+                mistral: "mistral";
+            }>>;
+            apiKey: z.ZodOptional<z.ZodString>;
+            maxDocuments: z.ZodDefault<z.ZodNumber>;
+        }, z.core.$strip>>;
+    }, z.core.$strip>>;
+}, z.core.$strip>;
+export type ValidatedCoreBlowConfig = z.infer<typeof CoreBlowConfigSchema>;
+/**
+ * Validate and return a fully-defaulted config, or throw with formatted errors.
+ */
+export declare function validateConfig(raw: unknown): ValidatedCoreBlowConfig;
+/**
+ * Safe validation — returns result + errors without throwing.
+ */
+export declare function safeValidateConfig(raw: unknown): {
+    success: boolean;
+    data?: ValidatedCoreBlowConfig;
+    errors?: string[];
+};
+/**
+ * Merge partial config into defaults (for config patching).
+ */
+export declare function mergeWithDefaults(partial: Record<string, unknown>): ValidatedCoreBlowConfig;
+//# sourceMappingURL=config.schema.d.ts.map

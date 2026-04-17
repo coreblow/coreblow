@@ -1,0 +1,215 @@
+/**
+ * CoreBlow — Matrix Channel Adapter
+ *
+ * Production adapter for Matrix protocol (Element/Synapse compatible).
+ * Handles room management, messaging, events, and sync.
+ * Uses raw Client-Server REST API — zero SDK dependency.
+ */
+import { createChildLogger } from '../utils/logger.js';
+const log = createChildLogger('channel:matrix');
+/**
+ * CoreBlow Matrix Adapter
+ *
+ * Communicates with Matrix homeserver via Client-Server API.
+ * Supports long-poll sync for real-time events.
+ */
+export class MatrixAdapter {
+    config;
+    messageHandler = null;
+    running = false;
+    syncToken = null;
+    syncAbort = null;
+    joinedRooms = new Set();
+    constructor(config) {
+        this.config = {
+            autoJoinInvites: true,
+            syncTimeoutMs: 30_000,
+            ...config,
+        };
+    }
+    onMessage(handler) {
+        this.messageHandler = handler;
+    }
+    /** Connect and start syncing */
+    async connect() {
+        // Verify credentials
+        const whoami = await this.api('GET', '/_matrix/client/v3/account/whoami');
+        log.info({ userId: whoami.user_id }, 'Matrix authenticated');
+        // Get initial joined rooms
+        const joined = await this.api('GET', '/_matrix/client/v3/joined_rooms');
+        if (joined.joined_rooms) {
+            for (const room of joined.joined_rooms) {
+                this.joinedRooms.add(room);
+            }
+        }
+        this.running = true;
+        this.startSyncLoop();
+        log.info({ homeserver: this.config.homeserverUrl, rooms: this.joinedRooms.size }, 'Matrix adapter connected');
+    }
+    /** Disconnect and stop syncing */
+    async disconnect() {
+        this.running = false;
+        this.syncAbort?.abort();
+        this.syncAbort = null;
+        this.joinedRooms.clear();
+        log.info('Matrix adapter disconnected');
+    }
+    /** Send a text message to a room */
+    async sendMessage(roomId, text) {
+        const txnId = `m${Date.now()}${Math.random().toString(36).slice(2)}`;
+        const data = await this.api('PUT', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/send/m.room.message/${txnId}`, {
+            msgtype: 'm.text',
+            body: text,
+        });
+        return data.event_id;
+    }
+    /** Send a formatted (HTML) message */
+    async sendFormattedMessage(roomId, text, html) {
+        const txnId = `m${Date.now()}${Math.random().toString(36).slice(2)}`;
+        const data = await this.api('PUT', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/send/m.room.message/${txnId}`, {
+            msgtype: 'm.text',
+            body: text,
+            format: 'org.matrix.custom.html',
+            formatted_body: html,
+        });
+        return data.event_id;
+    }
+    /** Send a notice (non-highlighted message) */
+    async sendNotice(roomId, text) {
+        const txnId = `m${Date.now()}${Math.random().toString(36).slice(2)}`;
+        const data = await this.api('PUT', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/send/m.room.message/${txnId}`, { msgtype: 'm.notice', body: text });
+        return data.event_id;
+    }
+    /** Join a room by ID or alias */
+    async joinRoom(roomIdOrAlias) {
+        const data = await this.api('POST', `/_matrix/client/v3/join/${encodeURIComponent(roomIdOrAlias)}`, {});
+        const roomId = data.room_id;
+        this.joinedRooms.add(roomId);
+        return roomId;
+    }
+    /** Leave a room */
+    async leaveRoom(roomId) {
+        await this.api('POST', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/leave`, {});
+        this.joinedRooms.delete(roomId);
+    }
+    /** Set room topic */
+    async setRoomTopic(roomId, topic) {
+        await this.api('PUT', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/state/m.room.topic`, { topic });
+    }
+    /** Get room members */
+    async getRoomMembers(roomId) {
+        const data = await this.api('GET', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/members`);
+        const members = [];
+        if (data.chunk) {
+            for (const event of data.chunk) {
+                if (event.content?.membership === 'join') {
+                    members.push({
+                        userId: event.sender,
+                        displayName: event.content?.displayname,
+                    });
+                }
+            }
+        }
+        return members;
+    }
+    /** Set typing indicator */
+    async setTyping(roomId, typing, timeoutMs = 5000) {
+        await this.api('PUT', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/typing/${encodeURIComponent(this.config.userId)}`, { typing, timeout: typing ? timeoutMs : undefined });
+    }
+    /** Get adapter status */
+    getStatus() {
+        return {
+            running: this.running,
+            homeserver: this.config.homeserverUrl,
+            rooms: this.joinedRooms.size,
+            userId: this.config.userId,
+        };
+    }
+    listJoinedRooms() {
+        return [...this.joinedRooms];
+    }
+    // === Private ===
+    async startSyncLoop() {
+        while (this.running) {
+            try {
+                this.syncAbort = new AbortController();
+                const params = new URLSearchParams({
+                    timeout: String(this.config.syncTimeoutMs),
+                });
+                if (this.syncToken)
+                    params.set('since', this.syncToken);
+                const data = await this.api('GET', `/_matrix/client/v3/sync?${params}`, undefined, this.syncAbort.signal);
+                this.syncToken = data.next_batch;
+                // Process room events
+                const rooms = data.rooms?.join;
+                if (rooms) {
+                    for (const [roomId, roomData] of Object.entries(rooms)) {
+                        const timeline = roomData.timeline;
+                        if (!timeline?.events)
+                            continue;
+                        for (const event of timeline.events) {
+                            await this.handleEvent(roomId, event);
+                        }
+                    }
+                }
+                // Auto-join invites
+                const invites = data.rooms?.invite;
+                if (invites && this.config.autoJoinInvites) {
+                    for (const roomId of Object.keys(invites)) {
+                        try {
+                            await this.joinRoom(roomId);
+                        }
+                        catch { /* skip */ }
+                    }
+                }
+            }
+            catch (err) {
+                if (this.running) {
+                    log.warn({ err }, 'Matrix sync error — retrying in 5s');
+                    await new Promise(r => setTimeout(r, 5000));
+                }
+            }
+        }
+    }
+    async handleEvent(roomId, event) {
+        if (event.type !== 'm.room.message')
+            return;
+        if (event.sender === this.config.userId)
+            return; // Ignore own messages
+        const body = event.content?.body;
+        if (!body)
+            return;
+        if (this.config.filterRooms && !this.config.filterRooms.includes(roomId))
+            return;
+        if (this.messageHandler) {
+            const reply = await this.messageHandler({
+                roomId,
+                sender: event.sender,
+                body,
+                eventId: event.eventId,
+                formatted: event.content?.formatted_body,
+                raw: event,
+            });
+            if (reply)
+                await this.sendMessage(roomId, reply);
+        }
+    }
+    async api(method, path, body, signal) {
+        const url = `${this.config.homeserverUrl}${path}`;
+        const opts = {
+            method,
+            headers: {
+                'Authorization': `Bearer ${this.config.accessToken}`,
+                'Content-Type': 'application/json',
+            },
+            signal,
+        };
+        if (body !== undefined)
+            opts.body = JSON.stringify(body);
+        const res = await fetch(url, opts);
+        if (!res.ok)
+            throw new Error(`Matrix API error ${res.status}: ${await res.text()}`);
+        return await res.json();
+    }
+}
+//# sourceMappingURL=matrix-adapter.js.map

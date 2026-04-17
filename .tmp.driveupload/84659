@@ -1,0 +1,4 @@
+export declare function resolveDefaultConfigDir(): string;
+export declare function resolveDefaultConfigPath(): string;
+export declare function resolveConfigPath(override?: string | null): string;
+//# sourceMappingURL=config-paths.d.ts.map

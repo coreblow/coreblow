@@ -1,0 +1,6 @@
+/**
+ * config/watch.ts
+ */
+import fs from 'node:fs';
+export declare function watchConfig(path: string, onChange: (config: unknown) => void): fs.FSWatcher;
+//# sourceMappingURL=watch.d.ts.map

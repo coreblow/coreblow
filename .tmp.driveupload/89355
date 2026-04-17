@@ -1,0 +1,8 @@
+/** PI model discovery — enumerate available models. */
+export interface DiscoveredModel {
+    id: string;
+    provider: string;
+    contextWindow: number;
+}
+export declare function discoverModels(provider: string, apiKey: string): Promise<DiscoveredModel[]>;
+//# sourceMappingURL=pi-model-discovery.d.ts.map

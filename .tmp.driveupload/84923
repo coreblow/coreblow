@@ -1,0 +1,1 @@
+{"version":3,"file":"account-id.d.ts","sourceRoot":"","sources":["../../src/plugin-sdk/account-id.ts"],"names":[],"mappings":"AAAA;;;;;GAKG;AAEH,6EAA6E;AAC7E,eAAO,MAAM,kBAAkB,YAAY,CAAC;AAE5C,6EAA6E;AAC7E,wBAAgB,kBAAkB,CAAC,SAAS,CAAC,EAAE,MAAM,GAAG,IAAI,GAAG,MAAM,CAGpE;AAED,2EAA2E;AAC3E,wBAAgB,0BAA0B,CAAC,SAAS,CAAC,EAAE,MAAM,GAAG,IAAI,GAAG,MAAM,GAAG,SAAS,CAGxF"}

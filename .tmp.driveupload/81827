@@ -1,0 +1,19 @@
+/** Gateway Config */
+export interface GatewayConfig {
+    port?: number;
+    host?: string;
+    cors?: boolean;
+    maxConnections?: number;
+    timeout?: number;
+    auth?: {
+        enabled: boolean;
+        secret?: string;
+    };
+}
+export declare const defaultGatewayConfig: GatewayConfig;
+export declare function resolveGatewayConfig(partial?: Partial<GatewayConfig>): GatewayConfig;
+export interface HttpCommon {
+    headers?: Record<string, string>;
+    timeout?: number;
+}
+//# sourceMappingURL=config.d.ts.map

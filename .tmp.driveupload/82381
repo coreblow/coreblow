@@ -1,0 +1,16 @@
+import { resolveGatewayCredentialsFromConfig } from "./credentials.js";
+export async function resolveGatewayConnectionAuthWithSecretInputs(options) {
+    // In CoreBlow we skip complex secret resolution for now
+    // Fallback to config resolution
+    return resolveGatewayCredentialsFromConfig(options);
+}
+export async function resolveGatewayConnectionAuth(params) {
+    return await resolveGatewayConnectionAuthWithSecretInputs({
+        ...params,
+        cfg: params.config
+    });
+}
+export function resolveGatewayConnectionAuthFromConfig(params) {
+    return resolveGatewayCredentialsFromConfig({ ...params, cfg: params.config });
+}
+//# sourceMappingURL=connection-auth.js.map

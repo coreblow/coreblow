@@ -1,0 +1,50 @@
+/**
+ * CoreBlow — Sandbox Executor
+ *
+ * Safely executes user-provided code in an isolated environment
+ * with timeout, memory limits, output capture, and restricted
+ * module access. Supports JavaScript/TypeScript evaluation.
+ */
+/** Sandbox configuration */
+export interface SandboxConfig {
+    /** Execution timeout (ms) */
+    timeoutMs?: number;
+    /** Maximum output length */
+    maxOutput?: number;
+    /** Allowed global variables */
+    allowedGlobals?: string[];
+    /** Custom context variables */
+    context?: Record<string, unknown>;
+}
+/** Sandbox execution result */
+export interface SandboxResult {
+    success: boolean;
+    output: string;
+    returnValue?: unknown;
+    error?: string;
+    durationMs: number;
+    truncated: boolean;
+}
+/**
+ * CoreBlow Sandbox Executor
+ */
+export declare class SandboxExecutor {
+    private config;
+    private history;
+    private maxHistory;
+    constructor(config?: SandboxConfig);
+    /**
+     * Execute code in sandbox.
+     */
+    execute(code: string, extraContext?: Record<string, unknown>): SandboxResult;
+    /**
+     * Execute code and return just the output string.
+     */
+    eval(code: string): string;
+    /**
+     * Get execution history.
+     */
+    getHistory(limit?: number): SandboxResult[];
+    private record;
+}
+//# sourceMappingURL=sandbox.d.ts.map

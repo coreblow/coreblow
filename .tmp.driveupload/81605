@@ -1,0 +1,75 @@
+/**
+ * CoreBlow — SSE Handler
+ *
+ * Server-Sent Events handler for one-way real-time
+ * streaming from server to client. Supports channels,
+ * retry intervals, and connection management.
+ */
+/** SSE client */
+export interface SSEClient {
+    id: string;
+    channel: string;
+    userId?: string;
+    connectedAt: number;
+    eventCount: number;
+    lastEventId?: string;
+    status: 'active' | 'closed';
+}
+/** SSE event */
+export interface SSEEvent {
+    id?: string;
+    event?: string;
+    data: unknown;
+    retry?: number;
+}
+/**
+ * CoreBlow SSE Handler
+ */
+export declare class SSEHandler {
+    private clients;
+    private channels;
+    private idCounter;
+    private eventCounter;
+    /**
+     * Register a new SSE client.
+     */
+    subscribe(channel: string, userId?: string): SSEClient;
+    /**
+     * Unsubscribe a client.
+     */
+    unsubscribe(clientId: string): boolean;
+    /**
+     * Send event to a specific client.
+     */
+    sendTo(clientId: string, event: SSEEvent): boolean;
+    /**
+     * Broadcast to a channel.
+     */
+    broadcast(channel: string, event: SSEEvent): number;
+    /**
+     * Format SSE event string.
+     */
+    formatEvent(event: SSEEvent): string;
+    /**
+     * Get client.
+     */
+    get(clientId: string): SSEClient | null;
+    /**
+     * List channels.
+     */
+    listChannels(): Array<{
+        name: string;
+        subscribers: number;
+    }>;
+    /**
+     * Get stats.
+     */
+    getStats(): {
+        clients: number;
+        channels: number;
+        totalEvents: number;
+    };
+    /** Count */
+    count(): number;
+}
+//# sourceMappingURL=sse-handler.d.ts.map

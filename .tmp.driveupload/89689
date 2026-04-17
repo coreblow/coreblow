@@ -1,0 +1,33 @@
+export class ToolCatalog {
+    tools = new Map();
+    register(tool) { this.tools.set(tool.name, { enabled: true, ...tool }); }
+    unregister(name) { return this.tools.delete(name); }
+    get(name) { return this.tools.get(name); }
+    has(name) { return this.tools.has(name); }
+    list() { return [...this.tools.values()]; }
+    listEnabled() { return this.list().filter((t) => t.enabled !== false); }
+    listByCategory(category) { return this.list().filter((t) => t.category === category); }
+    listByRisk(level) { return this.list().filter((t) => t.riskLevel === level); }
+    setEnabled(name, enabled) { const t = this.tools.get(name); if (!t)
+        return false; t.enabled = enabled; return true; }
+    size() { return this.tools.size; }
+    categories() { return [...new Set(this.list().map((t) => t.category))]; }
+    toJSON() { return this.list(); }
+    buildToolPrompt() {
+        const enabled = this.listEnabled();
+        if (enabled.length === 0)
+            return 'No tools available.';
+        const byCategory = new Map();
+        for (const t of enabled) {
+            const list = byCategory.get(t.category) ?? [];
+            list.push(t);
+            byCategory.set(t.category, list);
+        }
+        const lines = [];
+        for (const [cat, tools] of byCategory) {
+            lines.push(`## ${cat}`, ...tools.map((t) => `- **${t.name}**: ${t.description}`), '');
+        }
+        return lines.join('\n');
+    }
+}
+//# sourceMappingURL=tool-catalog.js.map

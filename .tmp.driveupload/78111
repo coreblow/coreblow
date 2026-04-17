@@ -1,0 +1,70 @@
+/**
+ * CoreBlow — Dashboard Widgets
+ *
+ * Widget system for building monitoring dashboards.
+ * Supports counters, charts, tables, and status
+ * indicators with real-time data binding.
+ */
+/** Widget type */
+export type WidgetType = 'counter' | 'chart' | 'table' | 'status' | 'text';
+/** Widget definition */
+export interface Widget {
+    id: string;
+    type: WidgetType;
+    title: string;
+    data: unknown;
+    position: {
+        row: number;
+        col: number;
+        width: number;
+        height: number;
+    };
+    refreshIntervalMs?: number;
+    updatedAt: number;
+}
+/** Dashboard */
+export interface Dashboard {
+    id: string;
+    name: string;
+    widgets: Widget[];
+    createdAt: number;
+}
+/**
+ * CoreBlow Dashboard Widgets
+ */
+export declare class DashboardWidgets {
+    private dashboards;
+    private idCounter;
+    private widgetCounter;
+    /**
+     * Create a dashboard.
+     */
+    createDashboard(name: string): Dashboard;
+    /**
+     * Add a widget to a dashboard.
+     */
+    addWidget(dashboardId: string, type: WidgetType, title: string, data: unknown, position: Widget['position']): Widget | null;
+    /**
+     * Update widget data.
+     */
+    updateWidget(dashboardId: string, widgetId: string, data: unknown): boolean;
+    /**
+     * Remove widget.
+     */
+    removeWidget(dashboardId: string, widgetId: string): boolean;
+    /**
+     * Get dashboard.
+     */
+    getDashboard(id: string): Dashboard | null;
+    /**
+     * List dashboards.
+     */
+    list(): Array<{
+        id: string;
+        name: string;
+        widgetCount: number;
+    }>;
+    /** Count */
+    count(): number;
+}
+//# sourceMappingURL=dashboard-widgets.d.ts.map

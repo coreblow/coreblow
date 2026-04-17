@@ -1,0 +1,8 @@
+/**
+ * hooks/types.ts — Unified hook type definitions.
+ *
+ * Mirrors CoreBlow's hooks/types.ts to provide a single source of truth
+ * for all hook-related types across the hooks subsystem.
+ */
+export {};
+//# sourceMappingURL=types.js.map

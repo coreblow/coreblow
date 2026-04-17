@@ -1,0 +1,4 @@
+/** plugin-sdk/imessage-targets.ts [ADAPT] openclaw-main */
+export function normalizeIMessageTarget(raw) { return raw.trim(); }
+export function looksLikeIMessageTarget(raw) { return /^[\w.@+-]+$/.test(raw); }
+//# sourceMappingURL=imessage-targets.js.map

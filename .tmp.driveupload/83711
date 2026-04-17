@@ -1,0 +1,1 @@
+{"version":3,"file":"channel-config-writes.d.ts","sourceRoot":"","sources":["../../src/plugin-sdk/channel-config-writes.ts"],"names":[],"mappings":"AAAA;;;;;GAKG;AAEH,OAAO,EACH,oBAAoB,EACpB,0BAA0B,EAC1B,8BAA8B,EAC9B,0BAA0B,GAC7B,MAAM,6BAA6B,CAAC;AAErC,YAAY,EACR,8BAA8B,EAC9B,gBAAgB,EAChB,iBAAiB,GACpB,MAAM,6BAA6B,CAAC"}

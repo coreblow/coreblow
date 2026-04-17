@@ -1,0 +1,3 @@
+/** Static provider definitions. */
+export const STATIC_PROVIDERS = ['openai', 'anthropic', 'google', 'deepseek', 'groq', 'mistral', 'together', 'fireworks'];
+//# sourceMappingURL=models-config.providers.static.js.map

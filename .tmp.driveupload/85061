@@ -1,0 +1,34 @@
+import { type ExecAsk, type ExecSecurity } from "../infra/exec-approvals.js";
+export type ExecApprovalDecision = "allow-once" | "allow-always" | null;
+export type SystemRunPolicyDecision = {
+    analysisOk: boolean;
+    allowlistSatisfied: boolean;
+    shellWrapperBlocked: boolean;
+    windowsShellWrapperBlocked: boolean;
+    requiresAsk: boolean;
+    approvalDecision: ExecApprovalDecision;
+    approvedByAsk: boolean;
+} & ({
+    allowed: true;
+} | {
+    allowed: false;
+    eventReason: "security=deny" | "approval-required" | "allowlist-miss";
+    errorMessage: string;
+});
+export declare function resolveExecApprovalDecision(value: unknown): ExecApprovalDecision;
+export declare function formatSystemRunAllowlistMissMessage(params?: {
+    shellWrapperBlocked?: boolean;
+    windowsShellWrapperBlocked?: boolean;
+}): string;
+export declare function evaluateSystemRunPolicy(params: {
+    security: ExecSecurity;
+    ask: ExecAsk;
+    analysisOk: boolean;
+    allowlistSatisfied: boolean;
+    approvalDecision: ExecApprovalDecision;
+    approved?: boolean;
+    isWindows: boolean;
+    cmdInvocation: boolean;
+    shellWrapperInvocation: boolean;
+}): SystemRunPolicyDecision;
+//# sourceMappingURL=exec-policy.d.ts.map

@@ -1,0 +1,4 @@
+/** Static provider definitions. */
+export declare const STATIC_PROVIDERS: readonly ["openai", "anthropic", "google", "deepseek", "groq", "mistral", "together", "fireworks"];
+export type StaticProvider = typeof STATIC_PROVIDERS[number];
+//# sourceMappingURL=models-config.providers.static.d.ts.map

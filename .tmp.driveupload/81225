@@ -1,0 +1,11 @@
+/**
+ * gateway/shutdown.ts
+ */
+export declare class GracefulShutdown {
+    private handlers;
+    private shuttingDown;
+    onShutdown(handler: () => Promise<void>): void;
+    shutdown(signal?: string): Promise<void>;
+    isShuttingDown(): boolean;
+}
+//# sourceMappingURL=shutdown.d.ts.map

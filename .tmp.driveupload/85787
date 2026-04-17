@@ -1,0 +1,74 @@
+/**
+ * CoreBlow — Fuzzy Search
+ *
+ * Approximate string matching using Levenshtein
+ * distance with configurable threshold and scoring.
+ */
+/**
+ * CoreBlow Fuzzy Search
+ */
+export class FuzzySearch {
+    entries = [];
+    maxDistance = 2;
+    /**
+     * Add an entry.
+     */
+    add(id, value) { this.entries.push({ id, value }); }
+    /**
+     * Add many entries.
+     */
+    addMany(entries) { this.entries.push(...entries); }
+    /**
+     * Set max distance.
+     */
+    setMaxDistance(max) { this.maxDistance = max; }
+    /**
+     * Search with fuzzy matching.
+     */
+    search(query, limit = 10) {
+        const q = query.toLowerCase();
+        const matches = [];
+        for (const entry of this.entries) {
+            const val = entry.value.toLowerCase();
+            // Exact contains
+            if (val.includes(q)) {
+                matches.push({ value: entry.value, score: 1, distance: 0, id: entry.id });
+                continue;
+            }
+            // Levenshtein
+            const distance = this.levenshtein(q, val.slice(0, q.length + this.maxDistance));
+            if (distance <= this.maxDistance) {
+                const score = 1 - (distance / Math.max(q.length, val.length));
+                matches.push({ value: entry.value, score, distance, id: entry.id });
+            }
+        }
+        matches.sort((a, b) => b.score - a.score);
+        return matches.slice(0, limit);
+    }
+    /**
+     * Get best match.
+     */
+    bestMatch(query) {
+        const results = this.search(query, 1);
+        return results[0] ?? null;
+    }
+    /** Count */
+    count() { return this.entries.length; }
+    // === Private ===
+    levenshtein(a, b) {
+        const matrix = [];
+        for (let i = 0; i <= a.length; i++) {
+            matrix[i] = [i];
+            for (let j = 1; j <= b.length; j++) {
+                if (i === 0) {
+                    matrix[i][j] = j;
+                    continue;
+                }
+                const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+                matrix[i][j] = Math.min(matrix[i - 1][j] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j - 1] + cost);
+            }
+        }
+        return matrix[a.length][b.length];
+    }
+}
+//# sourceMappingURL=fuzzy-search.js.map

@@ -1,0 +1,57 @@
+export class ContextCache {
+    entries = new Map();
+    maxEntries;
+    constructor(maxEntries = 50) { this.maxEntries = maxEntries; }
+    set(key, entry) {
+        if (this.entries.size >= this.maxEntries)
+            this.evictExpired() || this.evictLRU();
+        this.entries.set(key, { ...entry, hitCount: 0 });
+    }
+    get(key) {
+        const entry = this.entries.get(key);
+        if (!entry)
+            return undefined;
+        if (Date.now() > entry.expiresAt) {
+            this.entries.delete(key);
+            return undefined;
+        }
+        entry.hitCount++;
+        return entry;
+    }
+    has(key) { return this.get(key) !== undefined; }
+    delete(key) { return this.entries.delete(key); }
+    clear() { this.entries.clear(); }
+    size() { return this.entries.size; }
+    evictExpired() {
+        const now = Date.now();
+        let evicted = false;
+        for (const [key, entry] of this.entries) {
+            if (now > entry.expiresAt) {
+                this.entries.delete(key);
+                evicted = true;
+            }
+        }
+        return evicted;
+    }
+    evictLRU() {
+        let lruKey;
+        let lruHits = Infinity;
+        for (const [key, entry] of this.entries) {
+            if (entry.hitCount < lruHits) {
+                lruKey = key;
+                lruHits = entry.hitCount;
+            }
+        }
+        if (lruKey)
+            this.entries.delete(lruKey);
+    }
+    stats() {
+        let totalHits = 0, totalTokens = 0;
+        for (const e of this.entries.values()) {
+            totalHits += e.hitCount;
+            totalTokens += e.tokens;
+        }
+        return { size: this.entries.size, totalHits, totalTokensCached: totalTokens };
+    }
+}
+//# sourceMappingURL=context-cache.js.map

@@ -1,0 +1,84 @@
+/**
+ * CoreBlow Model Authentication Engine
+ *
+ * Manages API key resolution, auth profile selection, and credential
+ * validation for model providers. Supports per-provider auth, env var
+ * fallbacks, and multi-profile configurations.
+ *
+ * Equivalent: CoreBlow src/agents/model-auth.ts (533 LOC)
+ */
+import { type ModelRef } from './model-selection.js';
+export interface AuthProfile {
+    id: string;
+    name?: string;
+    provider: string;
+    apiKey: string;
+    baseUrl?: string;
+    orgId?: string;
+    headers?: Record<string, string>;
+    priority?: number;
+    rateLimit?: {
+        requestsPerMinute?: number;
+        tokensPerMinute?: number;
+    };
+    metadata?: Record<string, unknown>;
+}
+export interface AuthResolution {
+    profile: AuthProfile;
+    source: 'config' | 'env' | 'default' | 'override';
+}
+export interface AuthValidationResult {
+    valid: boolean;
+    provider: string;
+    errors: string[];
+    warnings: string[];
+}
+export interface ProviderCredentials {
+    apiKey: string;
+    baseUrl?: string;
+    orgId?: string;
+    headers?: Record<string, string>;
+}
+export declare function registerAuthProfile(profile: AuthProfile): void;
+export declare function getAuthProfile(provider: string, profileId: string): AuthProfile | undefined;
+export declare function listAuthProfiles(provider?: string): AuthProfile[];
+export declare function removeAuthProfile(provider: string, profileId: string): boolean;
+export declare function clearAuthProfiles(): void;
+/**
+ * Resolve credentials for a model reference.
+ * Priority: explicit override → registered profile → env var → error
+ */
+export declare function resolveAuth(ref: ModelRef, profileId?: string, override?: Partial<ProviderCredentials>): AuthResolution | null;
+/**
+ * Resolve API key from environment variables
+ */
+export declare function resolveEnvApiKey(provider: string): string | undefined;
+/**
+ * Get the default base URL for a provider
+ */
+export declare function getDefaultBaseUrl(provider: string): string | undefined;
+/**
+ * Check if a provider has any configured credentials
+ */
+export declare function hasCredentials(provider: string): boolean;
+/**
+ * Validate provider credentials
+ */
+export declare function validateAuth(provider: string, credentials: ProviderCredentials): AuthValidationResult;
+/**
+ * Mask an API key for safe logging
+ */
+export declare function maskApiKey(key: string): string;
+/**
+ * Check if an API key is masked
+ */
+export declare function isApiKeyMasked(key: string): boolean;
+/**
+ * Discover all providers with configured credentials
+ */
+export declare function discoverConfiguredProviders(): Array<{
+    provider: string;
+    source: 'config' | 'env';
+    profileCount: number;
+}>;
+//# sourceMappingURL=model-auth.d.ts.map

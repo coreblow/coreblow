@@ -1,0 +1,10 @@
+/**
+ * CoreBlow AutoPilot — stripInboundMeta
+ *
+ * Strip metadata prefixes from inbound text.
+ */
+export declare function stripInboundMeta(text: string): {
+    cleanText: string;
+    meta: Record<string, string>;
+};
+//# sourceMappingURL=strip-inbound-meta.d.ts.map

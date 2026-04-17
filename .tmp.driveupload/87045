@@ -1,0 +1,9 @@
+/** PI auth JSON serialization. */
+export function serializeAuth(data) { return JSON.stringify(data, null, 2); }
+export function deserializeAuth(json) { try {
+    return JSON.parse(json);
+}
+catch {
+    return null;
+} }
+//# sourceMappingURL=pi-auth-json.js.map

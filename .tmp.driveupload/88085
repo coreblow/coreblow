@@ -1,0 +1,2 @@
+export function createMessage(role, content) { return { role, content, timestamp: Date.now() }; }
+//# sourceMappingURL=pi-embedded-messaging.js.map

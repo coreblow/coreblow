@@ -1,0 +1,185 @@
+/**
+ * @create-markdown/preview - Minimal Theme
+ * A clean, minimal theme with subtle styling
+ */
+
+.cm-preview {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  color: #333;
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+
+/* Headings */
+.cm-heading {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.cm-h1 { font-size: 1.75em; }
+.cm-h2 { font-size: 1.5em; }
+.cm-h3 { font-size: 1.25em; }
+.cm-h4 { font-size: 1.1em; }
+.cm-h5 { font-size: 1em; }
+.cm-h6 { font-size: 0.9em; color: #666; }
+
+/* Paragraphs */
+.cm-paragraph {
+  margin-top: 0;
+  margin-bottom: 1em;
+}
+
+/* Lists */
+.cm-bullet-list,
+.cm-numbered-list {
+  margin-top: 0;
+  margin-bottom: 1em;
+  padding-left: 1.5em;
+}
+
+.cm-bullet-list li,
+.cm-numbered-list li {
+  margin-bottom: 0.25em;
+}
+
+/* Checklist */
+.cm-checklist-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.25em;
+}
+
+.cm-checked {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+/* Code */
+.cm-code-block {
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  padding: 1em;
+  overflow-x: auto;
+  margin-bottom: 1em;
+  font-size: 0.9em;
+}
+
+.cm-code {
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
+  background: transparent;
+  padding: 0;
+  white-space: pre;
+}
+
+code {
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
+  font-size: 0.9em;
+  background-color: #f0f0f0;
+  padding: 0.15em 0.3em;
+  border-radius: 3px;
+}
+
+/* Blockquote */
+.cm-blockquote {
+  margin: 0 0 1em 0;
+  padding: 0 1em;
+  color: #666;
+  border-left: 3px solid #ddd;
+  font-style: italic;
+}
+
+/* Divider */
+.cm-divider {
+  height: 1px;
+  padding: 0;
+  margin: 2em 0;
+  background-color: #eee;
+  border: 0;
+}
+
+/* Table */
+.cm-table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow: auto;
+  border-spacing: 0;
+  border-collapse: collapse;
+  margin-bottom: 1em;
+}
+
+.cm-table th,
+.cm-table td {
+  padding: 0.5em 1em;
+  border: 1px solid #ddd;
+}
+
+.cm-table th {
+  font-weight: 600;
+  background-color: #f9f9f9;
+}
+
+/* Image */
+.cm-image {
+  margin: 0 0 1em 0;
+}
+
+.cm-image img {
+  max-width: 100%;
+  height: auto;
+}
+
+.cm-image figcaption {
+  font-size: 0.875em;
+  color: #666;
+  margin-top: 0.5em;
+  text-align: center;
+}
+
+/* Callout */
+.cm-callout {
+  padding: 1em;
+  margin-bottom: 1em;
+  border-radius: 4px;
+  border-left: 3px solid;
+  background-color: #f9f9f9;
+}
+
+.cm-callout-title {
+  display: block;
+  text-transform: capitalize;
+  font-weight: 600;
+  margin-bottom: 0.5em;
+}
+
+.cm-callout-info { border-left-color: #3b82f6; }
+.cm-callout-warning { border-left-color: #f59e0b; }
+.cm-callout-tip { border-left-color: #10b981; }
+.cm-callout-danger { border-left-color: #ef4444; }
+.cm-callout-note { border-left-color: #6b7280; }
+
+/* Links */
+.cm-preview a {
+  color: #0066cc;
+  text-decoration: none;
+}
+
+.cm-preview a:hover {
+  text-decoration: underline;
+}
+
+/* Inline styles */
+.cm-preview mark {
+  background-color: #fff3cd;
+  padding: 0.1em 0.2em;
+  border-radius: 2px;
+}
+
+.cm-preview del {
+  opacity: 0.6;
+}

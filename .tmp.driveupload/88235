@@ -1,0 +1,391 @@
+/**
+ * CoreBlow Model Selection Engine
+ *
+ * Handles model reference parsing, normalization, alias resolution,
+ * allowlist management, and model catalog operations. Provides the
+ * complete model resolution pipeline from user input to provider/model pair.
+ *
+ * Equivalent: CoreBlow src/agents/model-selection.ts (773 LOC)
+ */
+import { createChildLogger } from '../utils/logger.js';
+const log = createChildLogger('model-selection');
+// ─── Constants ────────────────────────────────────────────────────
+export const DEFAULT_PROVIDER = 'anthropic';
+export const DEFAULT_MODEL = 'claude-sonnet-4-5';
+// ─── Provider Normalization ───────────────────────────────────────
+const PROVIDER_ALIASES = {
+    'openai': 'openai',
+    'gpt': 'openai',
+    'anthropic': 'anthropic',
+    'claude': 'anthropic',
+    'google': 'google',
+    'gemini': 'google',
+    'google-vertex': 'google-vertex',
+    'vertex': 'google-vertex',
+    'xai': 'xai',
+    'grok': 'xai',
+    'openrouter': 'openrouter',
+    'deepseek': 'deepseek',
+    'mistral': 'mistral',
+    'cohere': 'cohere',
+    'groq': 'groq',
+    'together': 'together',
+    'fireworks': 'fireworks',
+    'perplexity': 'perplexity',
+    'ollama': 'ollama',
+    'local': 'ollama',
+};
+export function normalizeProviderId(raw) {
+    const trimmed = raw.trim().toLowerCase();
+    return PROVIDER_ALIASES[trimmed] ?? trimmed;
+}
+export function normalizeProviderIdForAuth(provider) {
+    return normalizeProviderId(provider);
+}
+// ─── Model ID Normalization ───────────────────────────────────────
+function normalizeAnthropicModelId(model) {
+    const trimmed = model.trim();
+    if (!trimmed)
+        return trimmed;
+    const lower = trimmed.toLowerCase();
+    switch (lower) {
+        case 'opus-4.6': return 'claude-opus-4-6';
+        case 'opus-4.5': return 'claude-opus-4-5';
+        case 'sonnet-4.6': return 'claude-sonnet-4-6';
+        case 'sonnet-4.5': return 'claude-sonnet-4-5';
+        case 'haiku-3.5': return 'claude-3-5-haiku-20241022';
+        default: return trimmed;
+    }
+}
+function normalizeGoogleModelId(model) {
+    const trimmed = model.trim();
+    if (!trimmed)
+        return trimmed;
+    const lower = trimmed.toLowerCase();
+    // Normalize common aliases
+    if (lower === 'gemini-2.5-pro' || lower === 'gemini-pro')
+        return 'gemini-2.5-pro-preview-05-06';
+    if (lower === 'gemini-2.5-flash' || lower === 'gemini-flash')
+        return 'gemini-2.5-flash-preview-05-20';
+    return trimmed;
+}
+function normalizeXaiModelId(model) {
+    const trimmed = model.trim();
+    if (!trimmed)
+        return trimmed;
+    const lower = trimmed.toLowerCase();
+    if (lower === 'grok' || lower === 'grok-3')
+        return 'grok-3';
+    if (lower === 'grok-mini' || lower === 'grok-3-mini')
+        return 'grok-3-mini';
+    return trimmed;
+}
+function normalizeProviderModelId(provider, model) {
+    switch (provider) {
+        case 'anthropic': return normalizeAnthropicModelId(model);
+        case 'google':
+        case 'google-vertex': return normalizeGoogleModelId(model);
+        case 'xai': return normalizeXaiModelId(model);
+        case 'openrouter': return model.includes('/') ? model : `openrouter/${model}`;
+        default: return model;
+    }
+}
+// ─── Model Key ────────────────────────────────────────────────────
+export function modelKey(provider, model) {
+    const p = provider.trim();
+    const m = model.trim();
+    if (!p)
+        return m;
+    if (!m)
+        return p;
+    return m.toLowerCase().startsWith(`${p.toLowerCase()}/`) ? m : `${p}/${m}`;
+}
+export function legacyModelKey(provider, model) {
+    const p = provider.trim();
+    const m = model.trim();
+    if (!p || !m)
+        return null;
+    const rawKey = `${p}/${m}`;
+    const canonicalKey = modelKey(p, m);
+    return rawKey === canonicalKey ? null : rawKey;
+}
+// ─── Model Ref Parsing ───────────────────────────────────────────
+export function normalizeModelRef(provider, model) {
+    const normalizedProvider = normalizeProviderId(provider);
+    const normalizedModel = normalizeProviderModelId(normalizedProvider, model.trim());
+    return { provider: normalizedProvider, model: normalizedModel };
+}
+export function parseModelRef(raw, defaultProvider) {
+    const trimmed = raw.trim();
+    if (!trimmed)
+        return null;
+    const slash = trimmed.indexOf('/');
+    if (slash === -1) {
+        return normalizeModelRef(defaultProvider, trimmed);
+    }
+    const providerRaw = trimmed.slice(0, slash).trim();
+    const model = trimmed.slice(slash + 1).trim();
+    if (!providerRaw || !model)
+        return null;
+    return normalizeModelRef(providerRaw, model);
+}
+/**
+ * Split a trailing auth profile from a model ref string.
+ * Format: "provider/model@profile" → { model: "provider/model", profile: "profile" }
+ */
+export function splitTrailingAuthProfile(raw) {
+    const trimmed = raw.trim();
+    const atIndex = trimmed.lastIndexOf('@');
+    if (atIndex === -1 || atIndex === 0)
+        return { model: trimmed };
+    return {
+        model: trimmed.slice(0, atIndex),
+        profile: trimmed.slice(atIndex + 1),
+    };
+}
+// ─── Alias System ─────────────────────────────────────────────────
+function normalizeAliasKey(value) {
+    return value.trim().toLowerCase();
+}
+export function buildModelAliasIndex(params) {
+    const byAlias = new Map();
+    const byKey = new Map();
+    const rawModels = params.cfg.agents?.defaults?.models ?? {};
+    for (const [keyRaw, entryRaw] of Object.entries(rawModels)) {
+        const parsed = parseModelRef(String(keyRaw ?? ''), params.defaultProvider);
+        if (!parsed)
+            continue;
+        const alias = String(entryRaw?.alias ?? '').trim();
+        if (!alias)
+            continue;
+        const aliasKey = normalizeAliasKey(alias);
+        byAlias.set(aliasKey, { alias, ref: parsed });
+        const key = modelKey(parsed.provider, parsed.model);
+        const existing = byKey.get(key) ?? [];
+        existing.push(alias);
+        byKey.set(key, existing);
+    }
+    return { byAlias, byKey };
+}
+export function resolveModelRefFromString(params) {
+    const { model } = splitTrailingAuthProfile(params.raw);
+    if (!model)
+        return null;
+    if (!model.includes('/')) {
+        const aliasKey = normalizeAliasKey(model);
+        const aliasMatch = params.aliasIndex?.byAlias.get(aliasKey);
+        if (aliasMatch) {
+            return { ref: aliasMatch.ref, alias: aliasMatch.alias };
+        }
+    }
+    const parsed = parseModelRef(model, params.defaultProvider);
+    if (!parsed)
+        return null;
+    return { ref: parsed };
+}
+// ─── Configured Model Resolution ─────────────────────────────────
+function resolveAgentModelPrimaryValue(model) {
+    if (typeof model === 'string')
+        return model.trim() || undefined;
+    if (model && typeof model === 'object' && 'primary' in model) {
+        const primary = model.primary;
+        if (typeof primary === 'string')
+            return primary.trim() || undefined;
+    }
+    return undefined;
+}
+export function resolveConfiguredModelRef(params) {
+    const rawModel = resolveAgentModelPrimaryValue(params.cfg.agents?.defaults?.model) ?? '';
+    if (rawModel) {
+        const trimmed = rawModel.trim();
+        const aliasIndex = buildModelAliasIndex({
+            cfg: params.cfg,
+            defaultProvider: params.defaultProvider,
+        });
+        if (!trimmed.includes('/')) {
+            const aliasKey = normalizeAliasKey(trimmed);
+            const aliasMatch = aliasIndex.byAlias.get(aliasKey);
+            if (aliasMatch)
+                return aliasMatch.ref;
+            log.warn(`Model "${trimmed}" specified without provider. Falling back to "anthropic/${trimmed}".`);
+            return { provider: 'anthropic', model: trimmed };
+        }
+        const resolved = resolveModelRefFromString({
+            raw: trimmed,
+            defaultProvider: params.defaultProvider,
+            aliasIndex,
+        });
+        if (resolved)
+            return resolved.ref;
+        log.warn(`Model "${trimmed}" could not be resolved. Falling back to default "${params.defaultProvider}/${params.defaultModel}".`);
+    }
+    return { provider: params.defaultProvider, model: params.defaultModel };
+}
+export function resolveDefaultModelForAgent(params) {
+    return resolveConfiguredModelRef({
+        cfg: params.cfg,
+        defaultProvider: DEFAULT_PROVIDER,
+        defaultModel: DEFAULT_MODEL,
+    });
+}
+// ─── Allowlist ────────────────────────────────────────────────────
+export function buildAllowedModelSet(params) {
+    const rawAllowlist = Object.keys(params.cfg.agents?.defaults?.models ?? {});
+    const allowAny = rawAllowlist.length === 0;
+    const defaultModel = params.defaultModel?.trim();
+    const defaultRef = defaultModel && params.defaultProvider
+        ? parseModelRef(defaultModel, params.defaultProvider)
+        : null;
+    const defaultKey = defaultRef ? modelKey(defaultRef.provider, defaultRef.model) : undefined;
+    const catalogKeys = new Set(params.catalog.map((entry) => modelKey(entry.provider, entry.id)));
+    if (allowAny) {
+        if (defaultKey)
+            catalogKeys.add(defaultKey);
+        return { allowAny: true, allowedCatalog: params.catalog, allowedKeys: catalogKeys };
+    }
+    const allowedKeys = new Set();
+    const syntheticCatalogEntries = new Map();
+    for (const raw of rawAllowlist) {
+        const parsed = parseModelRef(String(raw), params.defaultProvider);
+        if (!parsed)
+            continue;
+        const key = modelKey(parsed.provider, parsed.model);
+        allowedKeys.add(key);
+        if (!catalogKeys.has(key) && !syntheticCatalogEntries.has(key)) {
+            syntheticCatalogEntries.set(key, {
+                id: parsed.model,
+                name: parsed.model,
+                provider: parsed.provider,
+            });
+        }
+    }
+    if (defaultKey)
+        allowedKeys.add(defaultKey);
+    const allowedCatalog = [
+        ...params.catalog.filter((entry) => allowedKeys.has(modelKey(entry.provider, entry.id))),
+        ...syntheticCatalogEntries.values(),
+    ];
+    if (allowedCatalog.length === 0 && allowedKeys.size === 0) {
+        if (defaultKey)
+            catalogKeys.add(defaultKey);
+        return { allowAny: true, allowedCatalog: params.catalog, allowedKeys: catalogKeys };
+    }
+    return { allowAny: false, allowedCatalog, allowedKeys };
+}
+export function buildConfiguredModelCatalog(params) {
+    const providers = params.cfg.models?.providers;
+    if (!providers || typeof providers !== 'object')
+        return [];
+    const catalog = [];
+    for (const [providerRaw, provider] of Object.entries(providers)) {
+        const providerId = normalizeProviderId(providerRaw);
+        if (!providerId || !Array.isArray(provider?.models))
+            continue;
+        for (const model of provider.models) {
+            const id = typeof model?.id === 'string' ? model.id.trim() : '';
+            if (!id)
+                continue;
+            catalog.push({
+                provider: providerId,
+                id,
+                name: typeof model?.name === 'string' && model.name.trim() ? model.name.trim() : id,
+                contextWindow: typeof model?.contextWindow === 'number' && model.contextWindow > 0 ? model.contextWindow : undefined,
+                reasoning: typeof model?.reasoning === 'boolean' ? model.reasoning : undefined,
+                input: Array.isArray(model?.input) ? model.input : undefined,
+            });
+        }
+    }
+    return catalog;
+}
+// ─── Status & Validation ──────────────────────────────────────────
+export function getModelRefStatus(params) {
+    const allowed = buildAllowedModelSet({
+        cfg: params.cfg,
+        catalog: params.catalog,
+        defaultProvider: params.defaultProvider,
+        defaultModel: params.defaultModel,
+    });
+    const key = modelKey(params.ref.provider, params.ref.model);
+    return {
+        key,
+        inCatalog: params.catalog.some((entry) => modelKey(entry.provider, entry.id) === key),
+        allowAny: allowed.allowAny,
+        allowed: allowed.allowAny || allowed.allowedKeys.has(key),
+    };
+}
+export function resolveAllowedModelRef(params) {
+    const trimmed = params.raw.trim();
+    if (!trimmed)
+        return { error: 'invalid model: empty' };
+    const aliasIndex = buildModelAliasIndex({
+        cfg: params.cfg,
+        defaultProvider: params.defaultProvider,
+    });
+    const resolved = resolveModelRefFromString({
+        raw: trimmed,
+        defaultProvider: params.defaultProvider,
+        aliasIndex,
+    });
+    if (!resolved)
+        return { error: `invalid model: ${trimmed}` };
+    const status = getModelRefStatus({
+        cfg: params.cfg,
+        catalog: params.catalog,
+        ref: resolved.ref,
+        defaultProvider: params.defaultProvider,
+        defaultModel: params.defaultModel,
+    });
+    if (!status.allowed)
+        return { error: `model not allowed: ${status.key}` };
+    return { ref: resolved.ref, key: status.key };
+}
+export function resolveThinkingDefault(params) {
+    const canonicalKey = modelKey(params.provider, params.model);
+    const configuredModels = params.cfg.agents?.defaults?.models;
+    const perModelThinking = configuredModels?.[canonicalKey]?.params?.thinking;
+    const validLevels = ['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'adaptive'];
+    if (perModelThinking && validLevels.includes(perModelThinking)) {
+        return perModelThinking;
+    }
+    const configured = params.cfg.agents?.defaults?.thinkingDefault;
+    if (configured && validLevels.includes(configured)) {
+        return configured;
+    }
+    // Default: reasoning models get 'medium', others get 'off'
+    const candidate = params.catalog?.find((entry) => entry.provider === params.provider && entry.id === params.model);
+    return candidate?.reasoning === true ? 'medium' : 'off';
+}
+export function resolveReasoningDefault(params) {
+    const candidate = params.catalog?.find((entry) => entry.provider === params.provider && entry.id === params.model);
+    return candidate?.reasoning === true ? 'on' : 'off';
+}
+// ─── Normalize Model Selection ────────────────────────────────────
+export function normalizeModelSelection(value) {
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        return trimmed || undefined;
+    }
+    if (!value || typeof value !== 'object')
+        return undefined;
+    const primary = value.primary;
+    if (typeof primary === 'string' && primary.trim())
+        return primary.trim();
+    return undefined;
+}
+// ─── Gmail Hook Model ─────────────────────────────────────────────
+export function resolveHooksGmailModel(params) {
+    const hooksModel = params.cfg.hooks?.gmail?.model;
+    if (!hooksModel?.trim())
+        return null;
+    const aliasIndex = buildModelAliasIndex({
+        cfg: params.cfg,
+        defaultProvider: params.defaultProvider,
+    });
+    const resolved = resolveModelRefFromString({
+        raw: hooksModel,
+        defaultProvider: params.defaultProvider,
+        aliasIndex,
+    });
+    return resolved?.ref ?? null;
+}
+//# sourceMappingURL=model-selection.js.map

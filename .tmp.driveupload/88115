@@ -1,0 +1,41 @@
+/**
+ * agents/command-poll-backoff.ts
+ * Exponential backoff for command polling loops.
+ * Ported from CoreBlow reference src/agents/command-poll-backoff.ts.
+ */
+export interface BackoffPolicy {
+    initialMs: number;
+    maxMs: number;
+    factor: number;
+    jitter: number;
+}
+export interface BackoffState {
+    attempt: number;
+    nextDelayMs: number;
+    totalWaitedMs: number;
+}
+/**
+ * Compute the backoff delay for a given attempt.
+ */
+export declare function computeBackoff(attempt: number, policy?: Partial<BackoffPolicy>): number;
+/**
+ * Create a stateful backoff tracker.
+ */
+export declare function createBackoffTracker(policy?: Partial<BackoffPolicy>): {
+    next: () => number;
+    reset: () => void;
+    state: () => BackoffState;
+};
+/**
+ * Sleep with backoff.
+ */
+export declare function sleepWithBackoff(attempt: number, policy?: Partial<BackoffPolicy>): Promise<void>;
+/**
+ * Retry a function with exponential backoff.
+ */
+export declare function retryWithBackoff<T>(fn: (attempt: number) => Promise<T>, opts?: {
+    maxAttempts?: number;
+    policy?: Partial<BackoffPolicy>;
+    shouldRetry?: (err: unknown) => boolean;
+}): Promise<T>;
+//# sourceMappingURL=command-poll-backoff.d.ts.map

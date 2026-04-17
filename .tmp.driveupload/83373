@@ -1,0 +1,4 @@
+/** plugin-sdk/pairing-access.ts [PORT] openclaw-main */
+export { createChannelPairingController, createScopedPairingAccess, issuePairingChallenge } from "./channel-pairing.js";
+export type { ChannelPairingController, ScopedPairingAccess } from "./channel-pairing.js";
+//# sourceMappingURL=pairing-access.d.ts.map

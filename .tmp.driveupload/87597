@@ -1,0 +1,3 @@
+import type { CommandDefinition } from '../commands-registry.types.js';
+export declare const commands: Map<string, CommandDefinition>;
+//# sourceMappingURL=commands.data.d.ts.map

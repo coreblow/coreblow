@@ -1,0 +1,65 @@
+/**
+ * CoreBlow — Extension Registry
+ *
+ * Manages loadable extensions that add capabilities to the runtime.
+ * Extensions can provide tools, channels, providers, or middleware.
+ */
+/** Extension type */
+export type ExtensionType = 'tool' | 'channel' | 'provider' | 'middleware' | 'skill' | 'other';
+/** Extension definition */
+export interface Extension {
+    id: string;
+    name: string;
+    type: ExtensionType;
+    version: string;
+    description?: string;
+    author?: string;
+    config?: Record<string, unknown>;
+    setup?: (config: Record<string, unknown>) => Promise<void>;
+    teardown?: () => Promise<void>;
+    status: 'registered' | 'active' | 'inactive' | 'error';
+    error?: string;
+    registeredAt: number;
+}
+/**
+ * CoreBlow Extension Registry
+ */
+export declare class ExtensionRegistry {
+    private extensions;
+    /**
+     * Register an extension.
+     */
+    register(ext: Omit<Extension, 'status' | 'registeredAt'>): boolean;
+    /**
+     * Activate an extension.
+     */
+    activate(id: string, config?: Record<string, unknown>): Promise<boolean>;
+    /**
+     * Deactivate an extension.
+     */
+    deactivate(id: string): Promise<boolean>;
+    /**
+     * Get an extension.
+     */
+    get(id: string): Extension | null;
+    /**
+     * Unregister an extension.
+     */
+    unregister(id: string): boolean;
+    /**
+     * List by type.
+     */
+    listByType(type?: ExtensionType): Array<{
+        id: string;
+        name: string;
+        type: ExtensionType;
+        status: string;
+    }>;
+    /**
+     * Get active extensions.
+     */
+    getActive(): Extension[];
+    /** Count */
+    count(): number;
+}
+//# sourceMappingURL=extension-registry.d.ts.map

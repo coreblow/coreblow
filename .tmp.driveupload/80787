@@ -1,0 +1,5 @@
+import { handleMessage } from '../handlers/message.js';
+export async function onMessageCreate(message, ctx) {
+    await handleMessage(message, ctx.client, ctx.config, ctx.router, ctx.stats);
+}
+//# sourceMappingURL=messageCreate.js.map

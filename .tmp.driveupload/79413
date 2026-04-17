@@ -1,0 +1,77 @@
+/**
+ * CoreBlow Web — Session Management
+ *
+ * Cookie-based web session management for the dashboard.
+ * Supports login/logout flow, session creation/validation,
+ * and QR code endpoint for channel pairing.
+ */
+/** Web session data */
+export interface WebSession {
+    id: string;
+    userId?: string;
+    createdAt: number;
+    expiresAt: number;
+    data: Record<string, unknown>;
+}
+/** Session store configuration */
+export interface SessionConfig {
+    /** Session time-to-live in milliseconds. Default: 24 hours */
+    ttlMs?: number;
+    /** Cookie name. Default: "cb-session" */
+    cookieName?: string;
+    /** Cookie secure flag */
+    secure?: boolean;
+    /** Maximum concurrent sessions */
+    maxSessions?: number;
+}
+/**
+ * CoreBlow Session Manager
+ */
+export declare class SessionManager {
+    private sessions;
+    private config;
+    constructor(config?: SessionConfig);
+    /**
+     * Create a new session.
+     */
+    create(userId?: string, data?: Record<string, unknown>): WebSession;
+    /**
+     * Get a session by ID.
+     */
+    get(sessionId: string): WebSession | null;
+    /**
+     * Validate a session ID and return the session if valid.
+     */
+    validate(sessionId: string): WebSession | null;
+    /**
+     * Destroy a session (logout).
+     */
+    destroy(sessionId: string): boolean;
+    /**
+     * Update session data.
+     */
+    update(sessionId: string, data: Partial<Record<string, unknown>>): boolean;
+    /**
+     * Extend session expiry.
+     */
+    touch(sessionId: string): boolean;
+    /**
+     * Build a Set-Cookie header value for a session.
+     */
+    buildCookie(sessionId: string): string;
+    /**
+     * Build a Set-Cookie header to clear the session cookie.
+     */
+    buildClearCookie(): string;
+    /**
+     * Extract session ID from cookie header.
+     */
+    extractFromCookie(cookieHeader: string | undefined): string | null;
+    /**
+     * Get active session count.
+     */
+    getActiveCount(): number;
+    private cleanup;
+    private getOldest;
+}
+//# sourceMappingURL=session.d.ts.map

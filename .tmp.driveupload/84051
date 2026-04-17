@@ -1,0 +1,1 @@
+{"version":3,"file":"self-hosted-provider-setup.js","sourceRoot":"","sources":["../../src/plugin-sdk/self-hosted-provider-setup.ts"],"names":[],"mappings":"AAAA,oEAAoE;AACpE,OAAO,EACH,mCAAmC,EACnC,0CAA0C,EAC1C,yDAAyD,GAC5D,MAAM,qBAAqB,CAAC;AAE7B,MAAM,UAAU,yBAAyB,CAAC,GAA4B,EAAE,OAAe;IACnF,OAAO,EAAE,GAAG,GAAG,EAAE,KAAK,EAAE,GAAG,CAAC,OAAO,CAAC,IAAI,OAAO,EAAE,CAAC;AACtD,CAAC"}

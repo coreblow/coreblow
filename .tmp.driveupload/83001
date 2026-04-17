@@ -1,0 +1,21 @@
+/**
+ * auto-reply/reply/commands-allowlist.ts
+ * Command allowlist/blocklist per user level and channel.
+ */
+export type UserLevel = 'public' | 'user' | 'trusted' | 'admin' | 'owner';
+export interface CommandPermission {
+    command: string;
+    minLevel: UserLevel;
+    channels?: string[];
+    description: string;
+}
+/** Check if a user can execute a command. */
+export declare function isCommandAllowed(command: string, userLevel: UserLevel, channel?: string): boolean;
+/** Register a custom command permission (from plugins). */
+export declare function registerCommandPermission(perm: CommandPermission): void;
+/** Get all commands available to a user level. */
+export declare function getAvailableCommands(userLevel: UserLevel, channel?: string): CommandPermission[];
+/** Format help text for available commands. */
+export declare function formatCommandHelp(userLevel: UserLevel, channel?: string): string;
+export declare function clearCustomPermissions(): void;
+//# sourceMappingURL=commands-allowlist.d.ts.map

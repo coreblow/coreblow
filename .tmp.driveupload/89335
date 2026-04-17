@@ -1,0 +1,3 @@
+/** Tool description summarization. */
+export function summarizeToolDescription(desc, maxLen = 80) { return desc.length <= maxLen ? desc : desc.slice(0, maxLen) + '…'; }
+//# sourceMappingURL=tool-description-summary.js.map

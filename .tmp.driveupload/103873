@@ -1,0 +1,3 @@
+module CoreBlowProtocol {
+    header "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build/include/CoreBlowProtocol-Swift.h"
+}

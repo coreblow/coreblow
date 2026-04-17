@@ -1,0 +1,69 @@
+/**
+ * CoreBlow Infra — Warning Filter
+ *
+ * Suppresses noisy Node.js process warnings (ExperimentalWarning,
+ * DeprecationWarning) that clutter the terminal. Configurable
+ * pattern-based filtering with optional logging of suppressed warnings.
+ */
+/** Default filters for common Node.js noise */
+const DEFAULT_FILTERS = [
+    { type: 'ExperimentalWarning', silent: true },
+    { type: 'DeprecationWarning', messagePattern: /Buffer\(\)/, silent: true },
+    { type: 'DeprecationWarning', messagePattern: /punycode/, silent: true },
+    { messagePattern: /fetch.*experimental/i, silent: true },
+];
+let installed = false;
+let customFilters = [];
+let suppressedCount = 0;
+/**
+ * Install the global warning filter.
+ */
+export function installWarningFilter(extraFilters) {
+    if (installed)
+        return;
+    if (extraFilters) {
+        customFilters = extraFilters;
+    }
+    const originalEmit = process.emit.bind(process);
+    // @ts-ignore — process.emit override
+    process.emit = function (event, ...args) {
+        if (event === 'warning') {
+            const warning = args[0];
+            if (warning && shouldSuppress(warning)) {
+                suppressedCount++;
+                return false;
+            }
+        }
+        return originalEmit.call(process, event, ...args);
+    };
+    installed = true;
+}
+/**
+ * Get count of suppressed warnings.
+ */
+export function getSuppressedCount() {
+    return suppressedCount;
+}
+/**
+ * Add a custom filter at runtime.
+ */
+export function addFilter(filter) {
+    customFilters.push(filter);
+}
+function shouldSuppress(warning) {
+    const allFilters = [...DEFAULT_FILTERS, ...customFilters];
+    for (const filter of allFilters) {
+        if (filter.type && warning.name !== filter.type)
+            continue;
+        if (filter.messagePattern) {
+            const pattern = filter.messagePattern instanceof RegExp
+                ? filter.messagePattern
+                : new RegExp(filter.messagePattern, 'i');
+            if (!pattern.test(warning.message ?? ''))
+                continue;
+        }
+        return true;
+    }
+    return false;
+}
+//# sourceMappingURL=warning-filter.js.map

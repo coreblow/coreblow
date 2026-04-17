@@ -1,0 +1,8 @@
+/**
+ * src/shared/model-param.ts
+ * AI Model parameter parsing.
+ * Ported from CoreBlow shared/model-param-b.ts.
+ */
+export declare function resolveModelParam(raw: string): number | null;
+export declare function normalizeModelId(id: string): string;
+//# sourceMappingURL=model-param.d.ts.map

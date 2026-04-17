@@ -1,0 +1,95 @@
+/**
+ * plugin-sdk/extension-shared.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/extension-shared.ts
+ *
+ * Shared utilities for passive channel monitoring, status summaries,
+ * and deferred promise helpers.
+ *
+ * Adaptasi: runPassiveAccountLifecycle diimplementasikan inline.
+ */
+import { createLoggerBackedRuntime } from './runtime.js';
+export { createLoggerBackedRuntime };
+export function buildPassiveChannelStatusSummary(snapshot, extra) {
+    return {
+        configured: snapshot.configured ?? false,
+        ...(extra ?? {}),
+        running: snapshot.running ?? false,
+        lastStartAt: snapshot.lastStartAt ?? null,
+        lastStopAt: snapshot.lastStopAt ?? null,
+        lastError: snapshot.lastError ?? null,
+    };
+}
+export function buildPassiveProbedChannelStatusSummary(snapshot, extra) {
+    return {
+        ...buildPassiveChannelStatusSummary(snapshot, extra),
+        probe: snapshot.probe,
+        lastProbeAt: snapshot.lastProbeAt ?? null,
+    };
+}
+export function buildTrafficStatusSummary(snapshot) {
+    return {
+        lastInboundAt: snapshot?.lastInboundAt ?? null,
+        lastOutboundAt: snapshot?.lastOutboundAt ?? null,
+    };
+}
+/** Run a lifecycle loop that starts a monitor and stops it when aborted. */
+async function runPassiveAccountLifecycle(params) {
+    const monitor = await params.start();
+    const abortSignal = params.abortSignal;
+    if (abortSignal) {
+        await new Promise((resolve) => {
+            abortSignal.addEventListener('abort', () => resolve(), { once: true });
+        });
+    }
+    await params.stop?.(monitor);
+    await params.onStop?.();
+}
+export async function runStoppablePassiveMonitor(params) {
+    await runPassiveAccountLifecycle({
+        abortSignal: params.abortSignal,
+        start: params.start,
+        stop: async (monitor) => {
+            monitor.stop();
+        },
+    });
+}
+export function resolveLoggerBackedRuntime(runtime, logger) {
+    return (runtime ??
+        createLoggerBackedRuntime({
+            logger,
+            exitError: () => new Error('Runtime exit not available'),
+        }));
+}
+export function requireChannelOpenAllowFrom(params) {
+    params.requireOpenAllowFrom({
+        policy: params.policy,
+        allowFrom: params.allowFrom,
+        ctx: params.ctx,
+        path: ['allowFrom'],
+        message: `channels.${params.channel}.dmPolicy="open" requires channels.${params.channel}.allowFrom to include "*"`,
+    });
+}
+export function readStatusIssueFields(value, fields) {
+    if (!value || typeof value !== 'object')
+        return null;
+    const record = value;
+    const result = {};
+    for (const field of fields) {
+        result[field] = record[field];
+    }
+    return result;
+}
+export function coerceStatusIssueAccountId(value) {
+    return typeof value === 'string' ? value : typeof value === 'number' ? String(value) : undefined;
+}
+/** Create a deferred promise with external resolve/reject. */
+export function createDeferred() {
+    let resolve;
+    let reject;
+    const promise = new Promise((res, rej) => {
+        resolve = res;
+        reject = rej;
+    });
+    return { promise, resolve, reject };
+}
+//# sourceMappingURL=extension-shared.js.map

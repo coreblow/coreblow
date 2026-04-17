@@ -1,0 +1,34 @@
+/**
+ * media-understanding/audio.ts
+ * Audio transcription engine.
+ * Ported from CoreBlow reference src/media-understanding/openai-compatible-audio.ts.
+ */
+import type { AudioTranscriptionRequest, MediaSource } from './types.js';
+/**
+ * Resolve audio source to a file buffer.
+ */
+export declare function resolveAudioPayload(source: MediaSource): Promise<{
+    buffer: Buffer;
+    filename: string;
+}>;
+/**
+ * Validate audio format.
+ */
+export declare function validateAudioFormat(filename: string): void;
+/**
+ * Build transcription request params.
+ */
+export declare function buildTranscriptionParams(request: AudioTranscriptionRequest, cfg?: Record<string, unknown>): {
+    model: string;
+    language?: string;
+    prompt?: string;
+};
+/**
+ * Format transcription segments into readable text.
+ */
+export declare function formatTranscriptionSegments(segments: Array<{
+    start: number;
+    end: number;
+    text: string;
+}>): string;
+//# sourceMappingURL=audio.d.ts.map

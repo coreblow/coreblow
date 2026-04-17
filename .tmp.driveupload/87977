@@ -1,0 +1,17 @@
+export declare class BashProcessRegistry {
+    private procs;
+    register(id: string, pid: number, cmd: string): void;
+    unregister(id: string): void;
+    get(id: string): {
+        pid: number;
+        cmd: string;
+        startedAt: number;
+    } | undefined;
+    listAll(): {
+        pid: number;
+        cmd: string;
+        startedAt: number;
+        id: string;
+    }[];
+}
+//# sourceMappingURL=bash-process-registry.d.ts.map

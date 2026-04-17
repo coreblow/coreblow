@@ -1,0 +1,108 @@
+/**
+ * plugin-sdk/config-builder.ts
+ *
+ * Fluent config schema builder for plugin authors.
+ * Lets plugins declaratively define their config shape with
+ * types, defaults, validation, and UI hints.
+ */
+import type { PluginConfigSchema, PluginConfigUiHint } from '../plugins/types.js';
+type FieldType = 'string' | 'number' | 'boolean' | 'array' | 'object';
+interface FieldDef {
+    type: FieldType;
+    required: boolean;
+    default?: unknown;
+    description?: string;
+    uiHint?: PluginConfigUiHint;
+    validator?: (value: unknown) => boolean;
+    enum?: unknown[];
+}
+/**
+ * Fluent config schema builder for plugin authors.
+ *
+ * @example
+ * ```ts
+ * const schema = new ConfigBuilder()
+ *   .string('apiKey', { required: true, sensitive: true, label: 'API Key' })
+ *   .number('maxRetries', { default: 3, label: 'Max Retries' })
+ *   .boolean('debug', { default: false })
+ *   .build();
+ * ```
+ */
+export declare class ConfigBuilder {
+    private fields;
+    /**
+     * Add a string field.
+     */
+    string(name: string, opts?: {
+        required?: boolean;
+        default?: string;
+        description?: string;
+        label?: string;
+        help?: string;
+        placeholder?: string;
+        sensitive?: boolean;
+        advanced?: boolean;
+        enum?: string[];
+    }): this;
+    /**
+     * Add a number field.
+     */
+    number(name: string, opts?: {
+        required?: boolean;
+        default?: number;
+        description?: string;
+        label?: string;
+        help?: string;
+        min?: number;
+        max?: number;
+        advanced?: boolean;
+    }): this;
+    /**
+     * Add a boolean field.
+     */
+    boolean(name: string, opts?: {
+        required?: boolean;
+        default?: boolean;
+        description?: string;
+        label?: string;
+        help?: string;
+        advanced?: boolean;
+    }): this;
+    /**
+     * Add an array field.
+     */
+    array(name: string, opts?: {
+        required?: boolean;
+        default?: unknown[];
+        description?: string;
+        label?: string;
+        help?: string;
+        advanced?: boolean;
+    }): this;
+    /**
+     * Add an object field.
+     */
+    object(name: string, opts?: {
+        required?: boolean;
+        default?: Record<string, unknown>;
+        description?: string;
+        label?: string;
+        help?: string;
+        advanced?: boolean;
+    }): this;
+    /**
+     * Build the config schema.
+     */
+    build(): PluginConfigSchema;
+    /**
+     * Get all field definitions.
+     */
+    getFields(): Map<string, FieldDef>;
+    /**
+     * Get defaults object.
+     */
+    getDefaults(): Record<string, unknown>;
+    private buildUiHint;
+}
+export {};
+//# sourceMappingURL=config-builder.d.ts.map

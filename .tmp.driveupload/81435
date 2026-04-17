@@ -1,0 +1,107 @@
+/**
+ * CoreBlow — Middleware Composer
+ *
+ * Koa/Express-style middleware composition for the gateway.
+ * Supports async middleware, error handling, named middleware,
+ * conditional execution, and timing metrics.
+ */
+/**
+ * CoreBlow Middleware Composer
+ */
+export class MiddlewareComposer {
+    middleware = [];
+    errorHandler = null;
+    metrics = [];
+    maxMetrics = 500;
+    /**
+     * Add middleware.
+     */
+    use(name, fn, options) {
+        this.middleware.push({
+            name,
+            fn,
+            condition: options?.condition,
+            order: options?.order ?? this.middleware.length,
+        });
+        this.middleware.sort((a, b) => a.order - b.order);
+        return this;
+    }
+    /**
+     * Set error handler.
+     */
+    onError(handler) {
+        this.errorHandler = handler;
+        return this;
+    }
+    /**
+     * Compose and execute all middleware.
+     */
+    async execute(ctx) {
+        const entries = this.middleware.filter((m) => !m.condition || m.condition(ctx));
+        let index = 0;
+        const next = async () => {
+            if (index >= entries.length)
+                return;
+            const entry = entries[index++];
+            const start = Date.now();
+            try {
+                await entry.fn(ctx, next);
+                this.recordMetric(entry.name, Date.now() - start);
+            }
+            catch (err) {
+                const error = err instanceof Error ? err : new Error(String(err));
+                if (this.errorHandler) {
+                    this.errorHandler(error, ctx);
+                }
+                else {
+                    throw error;
+                }
+            }
+        };
+        await next();
+    }
+    /**
+     * Create a new context.
+     */
+    static createContext(method, path, headers, body) {
+        return {
+            path,
+            method: method.toUpperCase(),
+            headers: headers ?? {},
+            body,
+            params: {},
+            query: {},
+            state: {},
+            response: { status: 200, headers: {}, body: undefined },
+        };
+    }
+    /**
+     * Get middleware names.
+     */
+    list() {
+        return this.middleware.map((m) => m.name);
+    }
+    /**
+     * Get metrics.
+     */
+    getMetrics(limit) {
+        return this.metrics.slice(-(limit ?? 50));
+    }
+    /**
+     * Remove middleware by name.
+     */
+    remove(name) {
+        const idx = this.middleware.findIndex((m) => m.name === name);
+        if (idx === -1)
+            return false;
+        this.middleware.splice(idx, 1);
+        return true;
+    }
+    // === Private ===
+    recordMetric(name, durationMs) {
+        this.metrics.push({ name, durationMs, timestamp: Date.now() });
+        if (this.metrics.length > this.maxMetrics)
+            this.metrics = this.metrics.slice(-this.maxMetrics);
+    }
+}
+//# sourceMappingURL=middleware.js.map

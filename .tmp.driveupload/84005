@@ -1,0 +1,4 @@
+/** plugin-sdk/image-generation.ts [PORT] openclaw-main */
+export * from "./image-generation-core.js";
+export * from "./image-generation-runtime.js";
+//# sourceMappingURL=image-generation.js.map

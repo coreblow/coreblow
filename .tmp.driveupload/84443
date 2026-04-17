@@ -1,0 +1,11 @@
+/** plugin-sdk/msteams.ts [ADAPT] openclaw-main — Stub for @coreblow/msteams. */
+export type { CoreBlowConfig } from "../config/config.js";
+export { getChatChannelMeta, } from "./channel-plugin-common.js";
+export { buildChannelConfigSchema } from "./channel-config-schema.js";
+export type MsTeamsProbe = {
+    ok: boolean;
+};
+export declare function listMsTeamsAccountIds(_cfg: Record<string, unknown>): string[];
+export declare function probeMsTeams(_p: unknown): Promise<MsTeamsProbe>;
+export declare function sendMessageMsTeams(_p: unknown): Promise<unknown>;
+//# sourceMappingURL=msteams.d.ts.map

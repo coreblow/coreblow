@@ -1,0 +1,71 @@
+/**
+ * gateway/startup-auth.ts — Gateway Startup Auth Bootstrap
+ *
+ * Ensures the gateway has valid auth credentials before starting.
+ * If token mode is active but no token exists, auto-generates one.
+ *
+ * Ported from CoreBlow reference src/gateway/startup-auth.ts (317 LOC) — streamlined
+ * for CoreBlow architecture (no secret-ref resolution, no Tailscale override).
+ */
+import { type GatewayAuthConfig, type ResolvedGatewayAuth } from './gateway-auth.js';
+export interface StartupAuthResult {
+    auth: ResolvedGatewayAuth;
+    generatedToken?: string;
+    persistedGeneratedToken: boolean;
+}
+/**
+ * Merge gateway auth config with overrides.
+ * Ported from CoreBlow reference `mergeGatewayAuthConfig()`.
+ */
+export declare function mergeGatewayAuthConfig(base?: GatewayAuthConfig, override?: GatewayAuthConfig): GatewayAuthConfig;
+/**
+ * Ensure the gateway has valid auth on startup.
+ *
+ * If token mode is selected but no token is configured:
+ * 1. Generate a random 48-char hex token
+ * 2. Log it so the operator can use it
+ * 3. Optionally persist it to config
+ *
+ * Ported from CoreBlow reference `ensureGatewayStartupAuth()`.
+ */
+export declare function ensureGatewayStartupAuth(params: {
+    authConfig?: GatewayAuthConfig;
+    authOverride?: GatewayAuthConfig;
+    env?: NodeJS.ProcessEnv;
+    persist?: boolean;
+}): StartupAuthResult;
+/**
+ * Assert that hooks token is distinct from gateway auth token.
+ * Prevents circular auth where a hook endpoint could authenticate
+ * with the gateway token.
+ *
+ * Ported from CoreBlow reference `assertHooksTokenSeparateFromGatewayAuth()`.
+ */
+export declare function assertHooksTokenSeparateFromGatewayAuth(params: {
+    hooksEnabled?: boolean;
+    hooksToken?: string;
+    auth: ResolvedGatewayAuth;
+}): void;
+/**
+ * Validate gateway auth configuration without mutating state.
+ * Returns `true` if the config results in a valid, operable auth mode.
+ *
+ * Rules (pola OpenClaw validateStartupAuth):
+ * - `mode: 'none'`  → always valid (insecure but intentional)
+ * - `mode: 'token'` → valid only if a non-empty token is provided
+ * - `mode: 'password'` → valid only if a non-empty password is provided
+ *
+ * Used by tests and diagnostics to pre-check config before server start.
+ *
+ * @example
+ * ```typescript
+ * // In setup-wizard or config validation:
+ * if (!validateStartupAuth(rawConfig, log)) {
+ *   throw new Error('Gateway auth config is invalid');
+ * }
+ * ```
+ */
+export declare function validateStartupAuth(rawConfig: Record<string, unknown>, log?: {
+    warn: (...args: unknown[]) => void;
+}): boolean;
+//# sourceMappingURL=startup-auth.d.ts.map

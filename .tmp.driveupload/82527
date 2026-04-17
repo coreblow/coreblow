@@ -1,0 +1,77 @@
+/**
+ * plugins/services.ts
+ *
+ * Plugin service lifecycle management — start, stop, health check.
+ * Following CoreBlow's services.ts (78 LOC) pattern, expanded with
+ * CoreBlow's OOP lifecycle patterns.
+ */
+import type { PluginLogger, PluginServiceRegistration } from './types.js';
+export interface ServiceHealth {
+    serviceId: string;
+    pluginId: string;
+    healthy: boolean;
+    error?: string;
+    lastChecked: number;
+}
+export interface ServiceManagerStats {
+    total: number;
+    running: number;
+    stopped: number;
+    errored: number;
+}
+/**
+ * CoreBlow Plugin Service Manager
+ *
+ * Manages plugin-owned background services with start/stop lifecycle,
+ * health monitoring, and graceful shutdown.
+ */
+export declare class PluginServiceManager {
+    private logger;
+    private services;
+    private runningServices;
+    private healthCache;
+    constructor(logger?: PluginLogger);
+    /**
+     * Register a service.
+     */
+    register(registration: PluginServiceRegistration): void;
+    /**
+     * Register multiple services.
+     */
+    registerAll(registrations: PluginServiceRegistration[]): void;
+    /**
+     * Start all registered services.
+     */
+    startAll(): Promise<{
+        started: number;
+        failed: number;
+    }>;
+    /**
+     * Stop all running services.
+     */
+    stopAll(): Promise<{
+        stopped: number;
+        failed: number;
+    }>;
+    /**
+     * Health check all services.
+     */
+    healthCheckAll(): Promise<ServiceHealth[]>;
+    /**
+     * Get service health from cache.
+     */
+    getHealth(pluginId: string, serviceId: string): ServiceHealth | undefined;
+    /**
+     * Get stats.
+     */
+    getStats(): ServiceManagerStats;
+    /**
+     * Check if a specific service is running.
+     */
+    isRunning(pluginId: string, serviceId: string): boolean;
+    /**
+     * Get all registered services.
+     */
+    getServices(): PluginServiceRegistration[];
+}
+//# sourceMappingURL=services.d.ts.map

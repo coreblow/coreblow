@@ -1,0 +1,49 @@
+/**
+ * CoreBlow — Inverted Index
+ *
+ * Token-based inverted index for fast term lookup.
+ * Supports tokenization, stopwords, and term frequency.
+ */
+/** Posting */
+export interface Posting {
+    docId: string;
+    field: string;
+    positions: number[];
+    tf: number;
+}
+/**
+ * CoreBlow Inverted Index
+ */
+export declare class InvertedIndex {
+    private index;
+    private docCount;
+    private stopwords;
+    /**
+     * Add a document to the index.
+     */
+    add(docId: string, field: string, text: string): void;
+    /**
+     * Search for a term.
+     */
+    search(term: string): Posting[];
+    /**
+     * Search multiple terms (AND).
+     */
+    searchAll(terms: string[]): string[];
+    /**
+     * Get IDF (inverse document frequency).
+     */
+    idf(term: string): number;
+    /**
+     * Get term count.
+     */
+    termCount(): number;
+    /**
+     * Add stopword.
+     */
+    addStopword(word: string): void;
+    /** Doc count */
+    getDocCount(): number;
+    private tokenize;
+}
+//# sourceMappingURL=inverted-index.d.ts.map

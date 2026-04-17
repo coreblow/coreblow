@@ -1,0 +1,1 @@
+{"version":3,"file":"model.d.ts","sourceRoot":"","sources":["../../../../src/channels/discord/commands/model.ts"],"names":[],"mappings":"AAAA;;GAEG;AACH,OAAO,KAAK,EAAE,YAAY,EAAE,MAAM,aAAa,CAAC;AAChD,OAAO,KAAK,EAAE,aAAa,EAAE,MAAM,oBAAoB,CAAC;AAIxD,UAAU,iBAAiB;IAC1B,SAAS,IAAI,aAAa,CAAC;IAC3B,mBAAmB,IAAI,YAAY,EAAE,CAAC;CACtC;AAED,wBAAgB,YAAY,CAAC,QAAQ,EAAE,iBAAiB,GAAG,YAAY,CAyBtE"}

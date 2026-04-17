@@ -1,0 +1,60 @@
+/**
+ * CoreBlow Environment Variable Substitution
+ *
+ * Supports ${VAR_NAME} syntax in config string values, substituted at load time.
+ * Features: nested object traversal, missing var detection, escape sequences,
+ * default values (${VAR:-default}), and strict mode.
+ *
+ * Equivalent: CoreBlow config/env-substitution.ts (203 LOC)
+ */
+export interface EnvSubstitutionOptions {
+    /** Environment variables source (defaults to process.env) */
+    env?: Record<string, string | undefined>;
+    /** Throw on missing env vars (default: false) */
+    strict?: boolean;
+    /** Replace missing vars with empty string (default: true) */
+    replaceUndefined?: boolean;
+    /** Prefix filter for env vars (e.g., 'CB_') */
+    prefix?: string;
+}
+export interface SubstitutionResult {
+    value: unknown;
+    substitutions: SubstitutionEntry[];
+    missingVars: string[];
+    errors: string[];
+}
+export interface SubstitutionEntry {
+    path: string;
+    variable: string;
+    originalValue: string;
+    resolvedValue: string;
+}
+export declare class MissingEnvVarError extends Error {
+    readonly variable: string;
+    readonly configPath: string;
+    constructor(variable: string, configPath: string);
+}
+/**
+ * Substitute environment variables in a config value (string, object, or array)
+ */
+export declare function substituteEnvVars(value: unknown, options?: EnvSubstitutionOptions): SubstitutionResult;
+/**
+ * Substitute env vars in a single string
+ */
+export declare function substituteString(input: string, env?: Record<string, string | undefined>, strict?: boolean): string;
+/**
+ * Check if a string contains env var references
+ */
+export declare function hasEnvVarReferences(value: string): boolean;
+/**
+ * Extract all env var names referenced in a value
+ */
+export declare function extractEnvVarNames(value: unknown): string[];
+/**
+ * Validate that all referenced env vars exist
+ */
+export declare function validateEnvVars(value: unknown, env?: Record<string, string | undefined>): {
+    valid: boolean;
+    missing: string[];
+};
+//# sourceMappingURL=env-substitution.d.ts.map

@@ -1,0 +1,57 @@
+/**
+ * CoreBlow — Tool Call Argument Repair (CoreBlow Parity)
+ *
+ * When an LLM produces malformed tool call arguments (broken JSON, missing fields,
+ * wrong types), this module attempts automatic repair before failing the turn.
+ *
+ * Repair strategies (in order):
+ *  1. JSON syntax repair (trailing commas, unquoted keys, single quotes)
+ *  2. Schema-based default injection (fill missing required fields)
+ *  3. Type coercion (string "true" → boolean true, "42" → number 42)
+ *  4. Truncation repair (incomplete JSON from token limit cutoff)
+ *
+ * If all strategies fail, returns a structured error message for the LLM
+ * to self-correct in the next turn iteration.
+ */
+export interface ToolCallRepairResult {
+    /** Whether the repair was successful */
+    repaired: boolean;
+    /** The repaired arguments (if successful) */
+    args: Record<string, unknown> | null;
+    /** The repair strategy that worked */
+    strategy: RepairStrategy | null;
+    /** Error message if repair failed (for LLM feedback) */
+    errorFeedback: string | null;
+    /** Original raw string */
+    originalRaw: string;
+}
+export type RepairStrategy = 'json_syntax' | 'trailing_comma' | 'single_quotes' | 'unquoted_keys' | 'truncation_close' | 'schema_defaults' | 'type_coercion' | 'extract_json';
+export interface ToolParameterSchema {
+    name: string;
+    type: 'string' | 'number' | 'boolean' | 'object' | 'array';
+    required?: boolean;
+    default?: unknown;
+    description?: string;
+}
+export interface ToolSchema {
+    name: string;
+    parameters: ToolParameterSchema[];
+}
+/**
+ * Attempt to repair malformed tool call arguments.
+ * Tries multiple strategies in order of likelihood.
+ */
+export declare function repairToolCallArguments(rawArgs: string, schema?: ToolSchema): ToolCallRepairResult;
+export declare class RepairTracker {
+    private repairs;
+    private failures;
+    recordRepair(strategy: RepairStrategy, toolName: string): void;
+    recordFailure(toolName: string): void;
+    stats(): {
+        totalRepairs: number;
+        totalFailures: number;
+        byStrategy: Record<string, number>;
+    };
+    clear(): void;
+}
+//# sourceMappingURL=tool-call-argument-repair.d.ts.map

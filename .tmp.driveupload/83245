@@ -1,0 +1,14 @@
+/** plugin-sdk/matrix.ts [PORT] openclaw-main */
+import { createOptionalChannelSetupSurface } from "./channel-setup.js";
+const matrixSetup = createOptionalChannelSetupSurface({
+    channel: "matrix",
+    label: "Matrix",
+    npmSpec: "@coreblow/matrix",
+    docsPath: "/channels/matrix",
+});
+export const matrixSetupWizard = matrixSetup.setupWizard;
+export const matrixSetupAdapter = matrixSetup.setupAdapter;
+export * from "./matrix-helper.js";
+export * from "./matrix-surface.js";
+export * from "./matrix-thread-bindings.js";
+//# sourceMappingURL=matrix.js.map

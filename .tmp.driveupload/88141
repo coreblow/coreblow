@@ -1,0 +1,5 @@
+/** Memory/conversation search. */
+export declare function searchMessages(messages: Array<{
+    content: string;
+}>, query: string): number[];
+//# sourceMappingURL=memory-search.d.ts.map

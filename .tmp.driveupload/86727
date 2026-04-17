@@ -1,0 +1,38 @@
+/**
+ * CoreBlow — Safe Path Resolution
+ *
+ * Prevents path traversal attacks by enforcing that resolved
+ * paths stay within a declared base directory boundary.
+ */
+/**
+ * Resolve a user-supplied path safely, ensuring it stays within the base directory.
+ * Returns the resolved absolute path, or null if it escapes the boundary.
+ *
+ * @param base - The trusted base directory (must be absolute)
+ * @param userInput - The untrusted user-supplied path segment
+ * @returns Resolved absolute path within base, or null if unsafe
+ */
+export declare function resolveSafePath(base: string, userInput: string): string | null;
+/**
+ * Check if a resolved path is within the base directory boundary.
+ */
+export declare function isWithinBase(base: string, resolved: string): boolean;
+/**
+ * Join path segments safely, preventing traversal beyond base.
+ * Unlike path.join, this ensures the result stays within base.
+ */
+export declare function safeJoin(base: string, ...segments: string[]): string | null;
+/**
+ * Validate that a path doesn't contain dangerous components.
+ */
+export declare function hasTraversalComponents(input: string): boolean;
+/**
+ * Create a safe path resolver bound to a specific base directory.
+ */
+export declare function createPathResolver(base: string): {
+    resolve(userInput: string): string | null;
+    isWithin(target: string): boolean;
+    join(...segments: string[]): string | null;
+    base: string;
+};
+//# sourceMappingURL=safe-path.d.ts.map

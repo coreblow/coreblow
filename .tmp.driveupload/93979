@@ -1,0 +1,14 @@
+{
+  "name": "full-plugin",
+  "version": "0.1.0",
+  "description": "CoreBlow plugin: full-plugin",
+  "author": "",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "permissions": [
+    "network"
+  ],
+  "coreblow": {
+    "minVersion": "1.0.0"
+  }
+}

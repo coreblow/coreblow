@@ -1,0 +1,24 @@
+/**
+ * auto-reply/reply/directive-handler.ts
+ * Apply parsed directives to the reply context.
+ * Follows CoreBlow's directive-handling.impl.ts pattern.
+ */
+import type { ParsedDirective } from './directive-parser.js';
+export interface ReplyContext {
+    model: string;
+    temperature: number;
+    maxTokens: number;
+    systemPrompt: string;
+    style: string;
+    persona: string;
+    compact: boolean;
+    shouldReset: boolean;
+}
+/** Apply directives to a reply context, returning modified context. */
+export declare function applyDirectives(directives: ParsedDirective[], current?: Partial<ReplyContext>): ReplyContext;
+/** Validate that a user has permission to use specific directives. */
+export declare function validateDirectivePermissions(directives: ParsedDirective[], userLevel: 'public' | 'user' | 'admin' | 'owner'): {
+    allowed: ParsedDirective[];
+    denied: ParsedDirective[];
+};
+//# sourceMappingURL=directive-handler.d.ts.map

@@ -1,0 +1,5 @@
+/** agents/docs-path.ts — Documentation path resolution. */
+import path from 'node:path';
+export function resolveDocsPath(baseDir) { return path.join(baseDir, '.coreblow', 'docs'); }
+export function resolveApiDocsPath(baseDir) { return path.join(resolveDocsPath(baseDir), 'api'); }
+//# sourceMappingURL=docs-path.js.map

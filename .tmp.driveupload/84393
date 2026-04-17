@@ -1,0 +1,36 @@
+/** plugin-sdk/allow-from.ts [ADAPT] openclaw-main */
+export type AllowlistMatchSource = "dm" | "group" | "config";
+export type AllowlistMatch = {
+    matched: boolean;
+    source?: AllowlistMatchSource;
+    entry?: string;
+};
+export type CompiledAllowlist = {
+    entries: string[];
+    hasWildcard: boolean;
+};
+export type AllowlistUserResolutionLike = {
+    userId: string;
+    username?: string | null;
+};
+export declare function compileAllowlist(entries: Array<string | number>): CompiledAllowlist;
+export declare function resolveCompiledAllowlistMatch(compiled: CompiledAllowlist, senderId: string): AllowlistMatch;
+export declare function resolveAllowlistMatchSimple(entries: Array<string | number>, senderId: string): AllowlistMatch;
+export declare function resolveAllowlistMatchByCandidates(entries: Array<string | number>, candidates: string[]): AllowlistMatch;
+export declare function resolveAllowlistCandidates(senderId: string, extras?: string[]): string[];
+export declare function formatAllowlistMatchMeta(m: AllowlistMatch): string;
+export declare function isSenderIdAllowed(senderId: string, allowFrom: Array<string | number>): boolean;
+export declare function firstDefined<T>(...values: Array<T | undefined | null>): T | undefined;
+export declare function mergeDmAllowFromSources(...sources: Array<Array<string | number>>): Array<string | number>;
+export declare function resolveGroupAllowFromSources(...sources: Array<Array<string | number>>): Array<string | number>;
+export declare function formatAllowFromLowercase(params: {
+    allowFrom: Array<string | number>;
+    stripPrefixRe?: RegExp;
+}): string[];
+export declare function addAllowlistUserEntriesFromConfigEntry(_p: unknown): void;
+export declare function buildAllowlistResolutionSummary(_p: unknown): string;
+export declare function canonicalizeAllowlistWithResolvedIds(_p: unknown): unknown;
+export declare function mergeAllowlist(a: Array<string | number>, b: Array<string | number>): Array<string | number>;
+export declare function patchAllowlistUsersInConfigEntries(_p: unknown): unknown;
+export declare function summarizeMapping(_p: unknown): string;
+//# sourceMappingURL=allow-from.d.ts.map

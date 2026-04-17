@@ -1,0 +1,4 @@
+export function hasContent(payload) {
+    return !!(payload.text?.trim() || payload.mediaUrl || payload.mediaUrls?.length);
+}
+//# sourceMappingURL=has-content.js.map

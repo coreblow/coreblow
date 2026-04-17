@@ -1,0 +1,129 @@
+/**
+ * CoreBlow — Migration System
+ *
+ * Manages data and config migrations when upgrading.
+ * Supports versioned migrations, rollback, dry-run,
+ * and migration history tracking.
+ */
+/**
+ * CoreBlow Migration System
+ */
+export class MigrationSystem {
+    migrations = [];
+    applied = new Map();
+    currentVersion = '0.0.0';
+    /**
+     * Register a migration.
+     */
+    register(migration) {
+        this.migrations.push(migration);
+        this.migrations.sort((a, b) => this.compareVersion(a.version, b.version));
+    }
+    /**
+     * Run all pending migrations.
+     */
+    async migrate() {
+        const results = [];
+        for (const migration of this.migrations) {
+            if (this.applied.has(migration.version))
+                continue;
+            const record = await this.applyMigration(migration);
+            results.push(record);
+            if (record.status === 'failed')
+                break;
+        }
+        return results;
+    }
+    /**
+     * Rollback the last applied migration.
+     */
+    async rollback() {
+        const appliedList = Array.from(this.applied.values())
+            .filter((r) => r.status === 'applied')
+            .sort((a, b) => b.appliedAt - a.appliedAt);
+        if (appliedList.length === 0)
+            return null;
+        const last = appliedList[0];
+        const migration = this.migrations.find((m) => m.version === last.version);
+        if (!migration?.down)
+            return null;
+        const start = Date.now();
+        try {
+            await migration.down();
+            const record = {
+                version: migration.version, name: migration.name,
+                status: 'rolled-back', appliedAt: Date.now(), durationMs: Date.now() - start,
+            };
+            this.applied.set(migration.version, record);
+            this.updateCurrentVersion();
+            return record;
+        }
+        catch (err) {
+            return {
+                version: migration.version, name: migration.name,
+                status: 'failed', appliedAt: Date.now(), durationMs: Date.now() - start,
+                error: err instanceof Error ? err.message : String(err),
+            };
+        }
+    }
+    /**
+     * Get pending migrations.
+     */
+    getPending() {
+        return this.migrations.filter((m) => !this.applied.has(m.version) ||
+            this.applied.get(m.version)?.status === 'rolled-back');
+    }
+    /**
+     * Get migration history.
+     */
+    getHistory() {
+        return Array.from(this.applied.values()).sort((a, b) => a.appliedAt - b.appliedAt);
+    }
+    /**
+     * Get current version.
+     */
+    getVersion() {
+        return this.currentVersion;
+    }
+    /** Count registered */
+    count() { return this.migrations.length; }
+    // === Private ===
+    async applyMigration(migration) {
+        const start = Date.now();
+        try {
+            await migration.up();
+            const record = {
+                version: migration.version, name: migration.name,
+                status: 'applied', appliedAt: Date.now(), durationMs: Date.now() - start,
+            };
+            this.applied.set(migration.version, record);
+            this.currentVersion = migration.version;
+            return record;
+        }
+        catch (err) {
+            const record = {
+                version: migration.version, name: migration.name,
+                status: 'failed', appliedAt: Date.now(), durationMs: Date.now() - start,
+                error: err instanceof Error ? err.message : String(err),
+            };
+            this.applied.set(migration.version, record);
+            return record;
+        }
+    }
+    updateCurrentVersion() {
+        const appliedVersions = Array.from(this.applied.values())
+            .filter((r) => r.status === 'applied')
+            .map((r) => r.version);
+        this.currentVersion = appliedVersions.length > 0 ? appliedVersions[appliedVersions.length - 1] : '0.0.0';
+    }
+    compareVersion(a, b) {
+        const pa = a.split('.').map(Number);
+        const pb = b.split('.').map(Number);
+        for (let i = 0; i < 3; i++) {
+            if ((pa[i] ?? 0) !== (pb[i] ?? 0))
+                return (pa[i] ?? 0) - (pb[i] ?? 0);
+        }
+        return 0;
+    }
+}
+//# sourceMappingURL=migration-system.js.map

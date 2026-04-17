@@ -1,0 +1,64 @@
+import { validateNodeListParams, validateNodeDescribeParams, validateNodeInvokeParams, validateNodeEventParams, validateNodePairRequestParams, validateNodePairListParams, validateNodePairApproveParams, validateNodePairRejectParams, validateNodePairVerifyParams, validateNodeRenameParams, validateNodePendingAckParams } from "../protocol/index.js";
+import { assertValidParams } from "./validation.js";
+export const nodeHandlers = {
+    "node.list": ({ params, respond }) => {
+        if (!assertValidParams(params, validateNodeListParams, "node.list", respond))
+            return;
+        respond(true, { ts: Date.now(), nodes: [] }, undefined);
+    },
+    "node.describe": ({ params, respond }) => {
+        if (!assertValidParams(params, validateNodeDescribeParams, "node.describe", respond))
+            return;
+        const p = params;
+        respond(true, { ts: Date.now(), nodeId: p.nodeId, paired: false, connected: false }, undefined);
+    },
+    "node.invoke": ({ params, respond }) => {
+        if (!assertValidParams(params, validateNodeInvokeParams, "node.invoke", respond))
+            return;
+        respond(false, undefined, { code: "unavailable", message: "Nodes are not supported in CoreBlow." });
+    },
+    "node.event": ({ params, respond }) => {
+        if (!assertValidParams(params, validateNodeEventParams, "node.event", respond))
+            return;
+        respond(true, { ok: true }, undefined);
+    },
+    "node.pair.request": ({ params, respond }) => {
+        if (!assertValidParams(params, validateNodePairRequestParams, "node.pair.request", respond))
+            return;
+        respond(false, undefined, { code: "unavailable", message: "Node pairing is disabled." });
+    },
+    "node.pair.list": ({ params, respond }) => {
+        if (!assertValidParams(params, validateNodePairListParams, "node.pair.list", respond))
+            return;
+        respond(true, { requests: [] }, undefined);
+    },
+    "node.pair.approve": ({ params, respond }) => {
+        if (!assertValidParams(params, validateNodePairApproveParams, "node.pair.approve", respond))
+            return;
+        respond(false, undefined, { code: "unavailable", message: "Node pairing is disabled." });
+    },
+    "node.pair.reject": ({ params, respond }) => {
+        if (!assertValidParams(params, validateNodePairRejectParams, "node.pair.reject", respond))
+            return;
+        respond(false, undefined, { code: "unavailable", message: "Node pairing is disabled." });
+    },
+    "node.pair.verify": ({ params, respond }) => {
+        if (!assertValidParams(params, validateNodePairVerifyParams, "node.pair.verify", respond))
+            return;
+        respond(false, undefined, { code: "unavailable", message: "Node pairing is disabled." });
+    },
+    "node.rename": ({ params, respond }) => {
+        if (!assertValidParams(params, validateNodeRenameParams, "node.rename", respond))
+            return;
+        respond(false, undefined, { code: "unavailable", message: "Node pairing is disabled." });
+    },
+    "node.pending.ack": ({ params, respond }) => {
+        if (!assertValidParams(params, validateNodePendingAckParams, "node.pending.ack", respond))
+            return;
+        respond(true, { pending: [] }, undefined);
+    },
+    "node.canvas.capability.refresh": ({ respond }) => {
+        respond(true, { capabilities: [] }, undefined);
+    }
+};
+//# sourceMappingURL=nodes.js.map

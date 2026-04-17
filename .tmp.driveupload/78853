@@ -1,0 +1,11 @@
+/**
+ * commands/alias.ts
+ */
+export class CommandAliases {
+    aliases = new Map();
+    set(alias, command) { this.aliases.set(alias, command); }
+    resolve(input) { return this.aliases.get(input) || input; }
+    list() { return Object.fromEntries(this.aliases); }
+    remove(alias) { this.aliases.delete(alias); }
+}
+//# sourceMappingURL=alias.js.map

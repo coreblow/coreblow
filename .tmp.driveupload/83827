@@ -1,0 +1,4 @@
+export async function generateImage(_params) {
+    throw new Error("generateImage requires @coreblow/openai or an image-capable provider");
+}
+//# sourceMappingURL=image-generation-core.js.map

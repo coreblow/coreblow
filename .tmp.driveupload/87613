@@ -1,0 +1,10 @@
+import { commands } from './commands.data.js';
+export function matchCommand(text) {
+    if (!text.startsWith('/'))
+        return null;
+    const [cmd, ...rest] = text.slice(1).split(/\s+/);
+    if (!cmd || !commands.has(cmd))
+        return null;
+    return { name: cmd, args: rest.join(' ') };
+}
+//# sourceMappingURL=match-command.js.map

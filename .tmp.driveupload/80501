@@ -1,0 +1,14 @@
+/**
+ * Discord Cooldown — Per-user command cooldown tracking.
+ */
+export declare class CooldownManager {
+    private cooldowns;
+    set(userId: string, command: string, durationMs: number): void;
+    check(userId: string, command: string): {
+        onCooldown: boolean;
+        remainingMs: number;
+    };
+    clear(userId: string): void;
+    clearAll(): void;
+}
+//# sourceMappingURL=cooldown.d.ts.map

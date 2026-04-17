@@ -1,0 +1,8 @@
+export declare function isRestrictedPath(filePath: string): boolean;
+export declare function isWritableExtension(filePath: string): boolean;
+export declare function validateFilePath(filePath: string, baseDir: string): {
+    valid: boolean;
+    reason?: string;
+};
+export declare function classifyFileOperation(operation: string): 'read' | 'write' | 'delete' | 'exec' | 'unknown';
+//# sourceMappingURL=tool-fs-policy.d.ts.map

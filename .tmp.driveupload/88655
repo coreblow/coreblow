@@ -1,0 +1,18 @@
+/**
+ * agents/internal-events.ts
+ * Internal event bus for agent subsystem communication.
+ */
+export type EventHandler<T = unknown> = (data: T) => void | Promise<void>;
+export declare class InternalEventBus {
+    private handlers;
+    on<T>(event: string, handler: EventHandler<T>): () => void;
+    once<T>(event: string, handler: EventHandler<T>): () => void;
+    emit<T>(event: string, data: T): Promise<void>;
+    emitSync<T>(event: string, data: T): void;
+    off(event: string): void;
+    clear(): void;
+    listenerCount(event: string): number;
+    events(): string[];
+}
+export declare const agentEvents: InternalEventBus;
+//# sourceMappingURL=internal-events.d.ts.map

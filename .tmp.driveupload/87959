@@ -1,0 +1,4 @@
+export declare function sanitizeCommand(cmd: string): string;
+export declare function isCommandAllowed(cmd: string, allowlist?: string[]): boolean;
+export declare function formatExecResult(stdout: string, stderr: string, exitCode: number): string;
+//# sourceMappingURL=bash-tools-exec-host-shared.d.ts.map

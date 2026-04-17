@@ -1,0 +1,15 @@
+/**
+ * agents/auth-profiles/identity.ts
+ * Identity resolution for auth profiles.
+ */
+export function resolveIdentity(params) {
+    return {
+        userId: params.userId ?? 'anonymous',
+        channel: params.channel,
+        provider: params.provider,
+    };
+}
+export function isAuthenticated(identity) {
+    return identity.userId !== 'anonymous';
+}
+//# sourceMappingURL=identity.js.map

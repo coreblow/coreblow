@@ -1,0 +1,72 @@
+/**
+ * src/gateway/config-validator.ts
+ * Deep config validation + migration + schema versioning
+ * SUPERIOR: CoreBlow has 217 files for config; CoreBlow has smart validation in one file
+ */
+export interface ValidationRule {
+    path: string;
+    type: 'string' | 'number' | 'boolean' | 'object' | 'array';
+    required?: boolean;
+    min?: number;
+    max?: number;
+    pattern?: RegExp;
+    enum?: unknown[];
+    default?: unknown;
+    description?: string;
+    /** Custom validator */
+    validate?: (value: unknown) => string | null;
+}
+export interface ValidationResult {
+    valid: boolean;
+    errors: {
+        path: string;
+        message: string;
+    }[];
+    warnings: {
+        path: string;
+        message: string;
+    }[];
+    applied: {
+        path: string;
+        action: string;
+    }[];
+}
+export interface ConfigMigration {
+    fromVersion: number;
+    toVersion: number;
+    description: string;
+    migrate: (config: Record<string, unknown>) => Record<string, unknown>;
+}
+export declare class ConfigValidator {
+    private rules;
+    private migrations;
+    /**
+     * Add custom validation rules
+     */
+    addRules(rules: ValidationRule[]): void;
+    /**
+     * Register a config migration
+     */
+    addMigration(migration: ConfigMigration): void;
+    /**
+     * Validate a config object against the schema
+     */
+    validate(config: Record<string, unknown>): ValidationResult;
+    /**
+     * Run migrations on a config object
+     */
+    migrate(config: Record<string, unknown>, fromVersion: number, toVersion: number): Record<string, unknown>;
+    /**
+     * Get schema documentation
+     */
+    getSchema(): {
+        path: string;
+        type: string;
+        required: boolean;
+        default?: unknown;
+        description?: string;
+    }[];
+}
+export declare function getNestedValue(obj: Record<string, unknown>, path: string): unknown;
+export declare function setNestedValue(obj: Record<string, unknown>, path: string, value: unknown): void;
+//# sourceMappingURL=config-validator.d.ts.map

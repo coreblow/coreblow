@@ -1,0 +1,32 @@
+/**
+ * plugin-sdk/sdk.ts
+ * Public SDK for plugin authors: definePlugin(), defineCommand(), defineTool()
+ */
+/** Define a plugin — main SDK entry point for plugin authors. */
+export function definePlugin(definition) {
+    return {
+        activate: definition.activate,
+        deactivate: definition.deactivate,
+        commands: definition.commands ?? [],
+        hooks: definition.hooks ?? [],
+        providers: definition.providers ?? [],
+        tools: definition.tools ?? [],
+    };
+}
+/** Define a command for use in a plugin. */
+export function defineCommand(name, description, handler) {
+    return { name, description, handler };
+}
+/** Define a tool for use in a plugin. */
+export function defineTool(name, description, parameters, execute) {
+    return { name, description, parameters, execute };
+}
+/** Define a hook for use in a plugin. */
+export function defineHook(event, handler, priority = 50) {
+    return { event, handler, priority };
+}
+/** Define a provider for use in a plugin. */
+export function defineProvider(name, models, chat) {
+    return { name, models, chat };
+}
+//# sourceMappingURL=sdk.js.map

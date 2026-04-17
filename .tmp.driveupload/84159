@@ -1,0 +1,16 @@
+/**
+ * plugin-sdk/discord-surface.ts
+ * [ADAPT] openclaw-main — Stub surface for @coreblow/discord.
+ */
+export async function inspectDiscordAccount(_p) { return null; }
+export function listDiscordAccountIds(_cfg) { return []; }
+export async function probeDiscord(_p) { return { ok: false }; }
+export async function sendMessageDiscord(_p) { return { channel: "discord", success: false }; }
+export function resolveDiscordGroupRequireMention(_p) { return false; }
+export function resolveDiscordGroupToolPolicy(_p) { return "none"; }
+export function normalizeDiscordMessagingTarget(_raw) { return null; }
+export function looksLikeDiscordTargetId(raw) { return /^\d{17,19}$/.test(raw); }
+export function resolveDiscordChannelId(_p) { return null; }
+export const DISCORD_DEFAULT_INBOUND_WORKER_TIMEOUT_MS = 60_000;
+export const DISCORD_DEFAULT_LISTENER_TIMEOUT_MS = 120_000;
+//# sourceMappingURL=discord-surface.js.map

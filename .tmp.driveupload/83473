@@ -1,0 +1,6 @@
+/** plugin-sdk/self-hosted-provider-setup.ts [PORT] openclaw-main */
+export { discoverOpenAICompatibleLocalModels, discoverOpenAICompatibleSelfHostedProvider, configureOpenAICompatibleSelfHostedProviderNonInteractive, } from "./provider-setup.js";
+export function applyProviderDefaultModel(cfg, modelId) {
+    return { ...cfg, model: cfg["model"] ?? modelId };
+}
+//# sourceMappingURL=self-hosted-provider-setup.js.map

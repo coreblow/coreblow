@@ -1,0 +1,5 @@
+/** Self-hosted provider defaults (Ollama, LM Studio, etc). */
+export declare const OLLAMA_DEFAULT_URL = "http://localhost:11434";
+export declare const LMSTUDIO_DEFAULT_URL = "http://localhost:1234/v1";
+export declare function resolveSelfHostedUrl(provider: string): string | undefined;
+//# sourceMappingURL=self-hosted-provider-defaults.d.ts.map

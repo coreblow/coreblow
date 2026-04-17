@@ -1,0 +1,21 @@
+/**
+ * channels/typing-controller.ts
+ * Full typing controller with keepalive, guard, and TTL.
+ * Ported from CoreBlow reference src/channels/typing.ts.
+ */
+export type TypingCallbacks = {
+    onReplyStart: () => Promise<void>;
+    onIdle?: () => void;
+    onCleanup?: () => void;
+};
+export type CreateTypingCallbacksParams = {
+    start: () => Promise<void>;
+    stop?: () => Promise<void>;
+    onStartError: (err: unknown) => void;
+    onStopError?: (err: unknown) => void;
+    keepaliveIntervalMs?: number;
+    maxConsecutiveFailures?: number;
+    maxDurationMs?: number;
+};
+export declare function createTypingCallbacks(params: CreateTypingCallbacksParams): TypingCallbacks;
+//# sourceMappingURL=typing-controller.d.ts.map

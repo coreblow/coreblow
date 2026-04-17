@@ -1,0 +1,16 @@
+/**
+ * bundled/command-logger/handler.ts — Command logger hook.
+ *
+ * Fires on `command:*` events to log all user commands to a structured
+ * audit log. Useful for debugging, analytics, and compliance.
+ */
+import type { HookContext } from "../../engine.js";
+export declare const metadata: {
+    events: string[];
+    priority: number;
+    emoji: string;
+    fireAndForget: boolean;
+};
+export declare function handler(ctx: HookContext): Promise<void>;
+export default handler;
+//# sourceMappingURL=handler.d.ts.map

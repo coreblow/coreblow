@@ -1,0 +1,44 @@
+/**
+ * CoreBlow — CLI Banner
+ *
+ * Beautiful ASCII art banner with system status display,
+ * version info, and dynamic stats for the CLI interface.
+ */
+/** Banner options */
+export interface BannerOptions {
+    version?: string;
+    agentName?: string;
+    provider?: string;
+    model?: string;
+    channels?: string[];
+    plugins?: number;
+    skills?: number;
+    port?: number;
+}
+/**
+ * CoreBlow CLI Banner
+ */
+export declare class CLIBanner {
+    /**
+     * Generate the full startup banner.
+     */
+    static generate(opts?: BannerOptions): string;
+    /**
+     * Generate a compact status line.
+     */
+    static statusLine(opts?: {
+        uptime?: number;
+        requests?: number;
+        errors?: number;
+    }): string;
+    /**
+     * Get available commands help.
+     */
+    static helpText(): string;
+    static label(text: string): string;
+    static dim(text: string): string;
+    static success(text: string): string;
+    static error(text: string): string;
+    static formatUptime(ms: number): string;
+}
+//# sourceMappingURL=cli-banner.d.ts.map

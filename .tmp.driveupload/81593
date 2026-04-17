@@ -1,0 +1,51 @@
+/**
+ * CoreBlow Channel Health Monitor
+ *
+ * Monitors channel health with heartbeat tracking, automatic recovery,
+ * and status reporting per-channel.
+ *
+ * Equivalent: CoreBlow gateway/channel-health-monitor.ts + channel-health-policy.ts (~351 LOC)
+ */
+import { EventEmitter } from 'node:events';
+export type ChannelHealthStatus = 'connected' | 'degraded' | 'disconnected' | 'unknown';
+export interface ChannelHealthState {
+    channelId: string;
+    status: ChannelHealthStatus;
+    lastHeartbeat: number;
+    lastError?: string;
+    errorCount: number;
+    successCount: number;
+    latencyMs?: number;
+    connectedSince?: number;
+    metadata?: Record<string, unknown>;
+}
+export interface HealthPolicy {
+    heartbeatIntervalMs: number;
+    heartbeatTimeoutMs: number;
+    maxConsecutiveErrors: number;
+    autoRecover: boolean;
+    recoveryDelayMs: number;
+}
+export declare class ChannelHealthMonitor extends EventEmitter {
+    private channels;
+    private timers;
+    private policy;
+    constructor(policy?: Partial<HealthPolicy>);
+    register(channelId: string, metadata?: Record<string, unknown>): void;
+    recordHeartbeat(channelId: string, latencyMs?: number): void;
+    recordError(channelId: string, error: string): void;
+    getStatus(channelId: string): ChannelHealthState | undefined;
+    getAllStatuses(): ChannelHealthState[];
+    getHealthySummary(): {
+        total: number;
+        healthy: number;
+        degraded: number;
+        disconnected: number;
+    };
+    startMonitoring(channelId: string, heartbeatFn: () => Promise<void>): void;
+    stopMonitoring(channelId: string): void;
+    stopAll(): void;
+    remove(channelId: string): void;
+    clear(): void;
+}
+//# sourceMappingURL=channel-health.d.ts.map

@@ -1,0 +1,25 @@
+/**
+ * plugin-sdk/sdk.ts
+ * Public SDK for plugin authors: definePlugin(), defineCommand(), defineTool()
+ */
+import type { PluginExports, PluginCommand, PluginHook, PluginProvider, PluginTool, PluginContext } from '../plugins/types.js';
+/** Plugin definition builder. */
+export interface PluginDefinition {
+    activate?: (ctx: PluginContext) => Promise<void>;
+    deactivate?: () => Promise<void>;
+    commands?: PluginCommand[];
+    hooks?: PluginHook[];
+    providers?: PluginProvider[];
+    tools?: PluginTool[];
+}
+/** Define a plugin — main SDK entry point for plugin authors. */
+export declare function definePlugin(definition: PluginDefinition): PluginExports;
+/** Define a command for use in a plugin. */
+export declare function defineCommand(name: string, description: string, handler: (args: string[]) => Promise<string>): PluginCommand;
+/** Define a tool for use in a plugin. */
+export declare function defineTool(name: string, description: string, parameters: Record<string, unknown>, execute: (params: Record<string, unknown>) => Promise<unknown>): PluginTool;
+/** Define a hook for use in a plugin. */
+export declare function defineHook(event: string, handler: (...args: unknown[]) => Promise<unknown>, priority?: number): PluginHook;
+/** Define a provider for use in a plugin. */
+export declare function defineProvider(name: string, models: string[], chat: (messages: unknown[], options: unknown) => Promise<unknown>): PluginProvider;
+//# sourceMappingURL=sdk.d.ts.map

@@ -1,0 +1,23 @@
+/**
+ * tui/chat-view.ts
+ * Full-screen chat TUI.
+ */
+export interface ChatMessage {
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+    timestamp: number;
+    id?: string;
+}
+export interface ChatViewState {
+    messages: ChatMessage[];
+    inputBuffer: string;
+    scrollOffset: number;
+    width: number;
+    height: number;
+}
+export declare function createChatViewState(width?: number, height?: number): ChatViewState;
+export declare function renderChatView(state: ChatViewState): string;
+export declare function addMessage(state: ChatViewState, msg: ChatMessage): void;
+export declare function scrollUp(state: ChatViewState, lines?: number): void;
+export declare function scrollDown(state: ChatViewState, lines?: number): void;
+//# sourceMappingURL=chat-view.d.ts.map

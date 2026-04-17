@@ -1,0 +1,2 @@
+export async function discoverModels(provider, apiKey) { return []; /* implement per provider */ }
+//# sourceMappingURL=pi-model-discovery.js.map

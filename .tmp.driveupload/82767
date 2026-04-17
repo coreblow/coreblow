@@ -1,0 +1,27 @@
+/**
+ * media-understanding/image.ts — Image analysis.
+ */
+export interface ImageAnalysis {
+    description: string;
+    objects: string[];
+    text?: string;
+    colors: string[];
+    dimensions?: {
+        width: number;
+        height: number;
+    };
+}
+export interface ImageAnalyzer {
+    analyze(imageUrl: string, opts?: {
+        ocr?: boolean;
+    }): Promise<ImageAnalysis>;
+}
+/** Mock image analyzer for testing. */
+export declare class DefaultImageAnalyzer implements ImageAnalyzer {
+    analyze(imageUrl: string, opts?: {
+        ocr?: boolean;
+    }): Promise<ImageAnalysis>;
+}
+/** Format image analysis for context injection. */
+export declare function formatImageAnalysis(analysis: ImageAnalysis): string;
+//# sourceMappingURL=image.d.ts.map

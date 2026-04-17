@@ -1,0 +1,2 @@
+export const sessions = new Map();
+//# sourceMappingURL=session.data.js.map

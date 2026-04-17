@@ -1,0 +1,10 @@
+import { RichResponse } from '../components/rich-response.js';
+import { createStatusEmbed } from '../embeds/status.js';
+export function statusCommand(channel) {
+    return {
+        name: 'status',
+        description: 'Show CoreBlow gateway status',
+        handler: async () => new RichResponse().embed(createStatusEmbed(channel.getStatus())),
+    };
+}
+//# sourceMappingURL=status.js.map

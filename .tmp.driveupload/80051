@@ -1,0 +1,63 @@
+/**
+ * hooks/policy.ts — Hook invocation policy with precedence-based collision resolution.
+ *
+ * Mirrors CoreBlow's policy.ts: source-based precedence, enable/disable state
+ * resolution, and deterministic hook deduplication across bundled, plugin,
+ * managed, and workspace sources.
+ */
+import type { HookSource, HookEntry } from "./types.js";
+export type PolicyHookEntry = HookEntry;
+export type { HookSource };
+export type HookEnableStateReason = "disabled in config" | "workspace hook (disabled by default)";
+export type HookEnableState = {
+    enabled: boolean;
+    reason?: HookEnableStateReason;
+};
+export type HookSourcePolicy = {
+    precedence: number;
+    trustedLocalCode: boolean;
+    defaultEnableMode: "default-on" | "explicit-opt-in";
+    canOverride: HookSource[];
+    canBeOverriddenBy: HookSource[];
+};
+export type HookResolutionCollision = {
+    name: string;
+    kept: PolicyHookEntry;
+    ignored: PolicyHookEntry;
+};
+export type HookConfig = {
+    enabled?: boolean;
+    env?: Record<string, string>;
+};
+export type CoreBlowHooksConfig = {
+    hooks?: {
+        internal?: {
+            entries?: Record<string, HookConfig | undefined>;
+        };
+    };
+};
+/**
+ * Get the source policy for a given hook source.
+ */
+export declare function getHookSourcePolicy(source: HookSource): HookSourcePolicy;
+/**
+ * Resolve the hook config entry for a given hook key from config.
+ */
+export declare function resolveHookConfig(config: CoreBlowHooksConfig | undefined, hookKey: string): HookConfig | undefined;
+/**
+ * Determine whether a hook should be enabled based on its source policy and config.
+ */
+export declare function resolveHookEnableState(params: {
+    entry: PolicyHookEntry;
+    config?: CoreBlowHooksConfig;
+    hookConfig?: HookConfig;
+}): HookEnableState;
+/**
+ * Resolve hook entries by deduplicating based on source precedence.
+ * When two hooks share the same name, the higher-precedence source wins
+ * unless the lower one explicitly cannot be overridden.
+ */
+export declare function resolveHookEntries(entries: PolicyHookEntry[], opts?: {
+    onCollisionIgnored?: (collision: HookResolutionCollision) => void;
+}): PolicyHookEntry[];
+//# sourceMappingURL=policy.d.ts.map

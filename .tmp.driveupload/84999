@@ -1,0 +1,40 @@
+import { GatewayClient } from "../gateway/client.js";
+import type { SkillBinsProvider } from "./invoke-types.js";
+export type NodeInvokeRequestPayload = {
+    id: string;
+    nodeId: string;
+    command: string;
+    paramsJSON?: string | null;
+    timeoutMs?: number | null;
+    idempotencyKey?: string | null;
+};
+export type { SkillBinsProvider } from "./invoke-types.js";
+export declare function sanitizeEnv(overrides?: Record<string, string> | null): Record<string, string>;
+export declare function parseWindowsCodePage(raw: string): number | null;
+export declare function decodeCapturedOutputBuffer(params: {
+    buffer: Buffer;
+    platform?: NodeJS.Platform;
+    windowsEncoding?: string | null;
+}): string;
+export declare function handleInvoke(frame: NodeInvokeRequestPayload, client: GatewayClient, skillBins: SkillBinsProvider): Promise<void>;
+export declare function coerceNodeInvokePayload(payload: unknown): NodeInvokeRequestPayload | null;
+export declare function buildNodeInvokeResultParams(frame: NodeInvokeRequestPayload, result: {
+    ok: boolean;
+    payload?: unknown;
+    payloadJSON?: string | null;
+    error?: {
+        code?: string;
+        message?: string;
+    } | null;
+}): {
+    id: string;
+    nodeId: string;
+    ok: boolean;
+    payload?: unknown;
+    payloadJSON?: string;
+    error?: {
+        code?: string;
+        message?: string;
+    };
+};
+//# sourceMappingURL=invoke.d.ts.map

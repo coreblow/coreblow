@@ -1,0 +1,95 @@
+/**
+ * CoreBlow — CLI Banner
+ *
+ * Beautiful ASCII art banner with system status display,
+ * version info, and dynamic stats for the CLI interface.
+ */
+/**
+ * CoreBlow CLI Banner
+ */
+export class CLIBanner {
+    /**
+     * Generate the full startup banner.
+     */
+    static generate(opts) {
+        const version = opts?.version ?? '1.0.0';
+        const agentName = opts?.agentName ?? 'CoreBlow';
+        const provider = opts?.provider ?? 'openai';
+        const model = opts?.model ?? 'gpt-4o';
+        const channels = opts?.channels ?? ['webhook'];
+        const plugins = opts?.plugins ?? 0;
+        const skills = opts?.skills ?? 5;
+        const port = opts?.port ?? 3100;
+        const lines = [
+            '',
+            '  ██████╗ ██████╗ ██████╗ ███████╗██████╗ ██╗      ██████╗ ██╗    ██╗',
+            '  ██╔════╝██╔═══██╗██╔══██╗██╔════╝██╔══██╗██║     ██╔═══██╗██║    ██║',
+            '  ██║     ██║   ██║██████╔╝█████╗  ██████╔╝██║     ██║   ██║██║ █╗ ██║',
+            '  ██║     ██║   ██║██╔══██╗██╔══╝  ██╔══██╗██║     ██║   ██║██║███╗██║',
+            '  ╚██████╗╚██████╔╝██║  ██║███████╗██████╔╝███████╗╚██████╔╝╚███╔███╔╝',
+            '   ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═════╝ ╚══════╝ ╚═════╝  ╚══╝╚══╝',
+            '',
+            `  ${CLIBanner.dim('AI Gateway')} v${version}`,
+            '',
+            `  ${CLIBanner.label('Agent')}    ${agentName}`,
+            `  ${CLIBanner.label('Provider')} ${provider} → ${model}`,
+            `  ${CLIBanner.label('Channels')} ${channels.join(', ')}`,
+            `  ${CLIBanner.label('Plugins')}  ${plugins} loaded  |  ${CLIBanner.label('Skills')} ${skills} active`,
+            `  ${CLIBanner.label('Server')}   http://localhost:${port}`,
+            '',
+            `  ${CLIBanner.dim('──────────────────────────────────────────────')}`,
+            `  ${CLIBanner.success('✓ Ready')} — Type /help for commands`,
+            '',
+        ];
+        return lines.join('\n');
+    }
+    /**
+     * Generate a compact status line.
+     */
+    static statusLine(opts) {
+        const uptime = opts?.uptime ?? 0;
+        const requests = opts?.requests ?? 0;
+        const errors = opts?.errors ?? 0;
+        const uptimeStr = CLIBanner.formatUptime(uptime);
+        return `  ↑ ${uptimeStr}  |  ${requests} req  |  ${errors} err`;
+    }
+    /**
+     * Get available commands help.
+     */
+    static helpText() {
+        return [
+            '',
+            '  Available Commands:',
+            '  ──────────────────',
+            '  /help          Show this help',
+            '  /status        System status',
+            '  /persona <id>  Switch persona',
+            '  /skills        List skills',
+            '  /plugins       List plugins',
+            '  /config        Show configuration',
+            '  /clear         Clear conversation',
+            '  /export        Export conversation',
+            '  /quit          Exit CoreBlow',
+            '',
+        ].join('\n');
+    }
+    // === Helpers ===
+    static label(text) { return `\x1b[36m${text.padEnd(8)}\x1b[0m`; }
+    static dim(text) { return `\x1b[2m${text}\x1b[0m`; }
+    static success(text) { return `\x1b[32m${text}\x1b[0m`; }
+    static error(text) { return `\x1b[31m${text}\x1b[0m`; }
+    static formatUptime(ms) {
+        const s = Math.floor(ms / 1000);
+        const m = Math.floor(s / 60);
+        const h = Math.floor(m / 60);
+        const d = Math.floor(h / 24);
+        if (d > 0)
+            return `${d}d ${h % 24}h`;
+        if (h > 0)
+            return `${h}h ${m % 60}m`;
+        if (m > 0)
+            return `${m}m ${s % 60}s`;
+        return `${s}s`;
+    }
+}
+//# sourceMappingURL=cli-banner.js.map

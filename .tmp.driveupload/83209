@@ -1,0 +1,1 @@
+{"version":3,"file":"anthropic-cli.js","sourceRoot":"","sources":["../../src/plugin-sdk/anthropic-cli.ts"],"names":[],"mappings":"AAAA;;;GAGG;AAEH,MAAM,CAAC,MAAM,qBAAqB,GAAG,YAAY,CAAC;AAElD,MAAM,UAAU,mBAAmB,CAAC,UAAkB;IAClD,OAAO,UAAU,KAAK,qBAAqB,IAAI,UAAU,CAAC,UAAU,CAAC,aAAa,CAAC,CAAC;AACxF,CAAC"}

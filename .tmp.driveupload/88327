@@ -1,0 +1,35 @@
+/**
+ * agents/subagent-registry.ts
+ * Registry for managing subagent sessions.
+ * Ported from CoreBlow reference src/agents/subagent-registry.ts.
+ */
+export type SubagentStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+export interface SubagentEntry {
+    id: string;
+    parentSessionId: string;
+    agentId: string;
+    task: string;
+    status: SubagentStatus;
+    createdAt: number;
+    startedAt?: number;
+    completedAt?: number;
+    result?: string;
+    error?: string;
+    metadata?: Record<string, unknown>;
+}
+export declare class SubagentRegistry {
+    private entries;
+    register(entry: Omit<SubagentEntry, 'createdAt' | 'status'>): SubagentEntry;
+    start(id: string): boolean;
+    complete(id: string, result: string): boolean;
+    fail(id: string, error: string): boolean;
+    cancel(id: string): boolean;
+    get(id: string): SubagentEntry | undefined;
+    listForParent(parentSessionId: string): SubagentEntry[];
+    listRunning(): SubagentEntry[];
+    listByAgent(agentId: string): SubagentEntry[];
+    prune(maxAge?: number): number;
+    size(): number;
+    clear(): void;
+}
+//# sourceMappingURL=subagent-registry.d.ts.map

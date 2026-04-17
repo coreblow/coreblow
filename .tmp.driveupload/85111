@@ -1,0 +1,89 @@
+/**
+ * CoreBlow — JSONL Transcript Store
+ *
+ * Always-on session memory layer. Append-only JSONL file per session.
+ * Stream-based tail-read for retrieval (never loads full file).
+ *
+ * Features:
+ *  - O(1) append (fs append mode)
+ *  - Stream tail-read via fs.open + seek from EOF (64KB chunks)
+ *  - Size-based auto-compaction
+ *  - Corrupted line handling (graceful skip)
+ *  - Zero RAM overhead (disk-based)
+ *  - Zero external dependency (no API needed)
+ */
+export interface TranscriptMessage {
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+    tokens?: number;
+}
+export interface TranscriptEntry {
+    type: 'message' | 'system' | 'compaction';
+    timestamp: number;
+    message?: TranscriptMessage;
+    summary?: string;
+}
+export interface TranscriptStoreConfig {
+    /** Directory to store .jsonl files */
+    storeDir: string;
+    /** Max messages to retrieve for context (default: 20) */
+    defaultRetrievalCount: number;
+    /** Max file size in bytes before auto-compaction (default: 512KB) */
+    maxFileSizeBytes: number;
+    /** Compaction strategy */
+    compactionStrategy: 'truncate' | 'summarize';
+    /** Tail-read chunk size in bytes (default: 64KB) */
+    tailChunkBytes: number;
+}
+export declare class TranscriptStore {
+    private config;
+    constructor(config: Partial<TranscriptStoreConfig> & {
+        storeDir: string;
+    });
+    /**
+     * Get the file path for a session.
+     */
+    getSessionFilePath(sessionId: string): string;
+    /**
+     * Append a message to a session transcript.
+     * O(1) — uses fs append mode, atomic at OS level.
+     */
+    appendMessage(sessionId: string, entry: TranscriptEntry): void;
+    /**
+     * Stream-based tail read — reads last N messages from EOF.
+     *
+     * Algorithm (inspired by CoreBlow's readLastNonzeroUsageFromSessionLog):
+     * 1. fs.open(path, 'r')
+     * 2. stat → get file size
+     * 3. seek to (fileSize - chunkSize)
+     * 4. read chunk, split by \n
+     * 5. parse last N valid JSON lines
+     * 6. if not enough, seek backwards again
+     */
+    getRecentMessages(sessionId: string, count?: number): Promise<TranscriptEntry[]>;
+    /**
+     * Check if a session transcript should be compacted.
+     */
+    shouldCompact(sessionId: string): boolean;
+    /**
+     * Compact a session transcript (truncate strategy).
+     * Keeps only the last N messages (2x defaultRetrievalCount).
+     */
+    compact(sessionId: string): Promise<{
+        before: number;
+        after: number;
+    }>;
+    /**
+     * List all session IDs with transcripts.
+     */
+    listSessions(): string[];
+    /**
+     * Delete a session transcript.
+     */
+    deleteSession(sessionId: string): boolean;
+    /**
+     * Get file size for a session transcript.
+     */
+    getSessionFileSize(sessionId: string): number;
+}
+//# sourceMappingURL=transcript-store.d.ts.map

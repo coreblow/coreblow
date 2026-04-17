@@ -1,0 +1,27 @@
+/**
+ * commands/wizard/models-wizard.ts
+ * Interactive model listing and selection.
+ */
+export interface ModelInfo {
+    id: string;
+    provider: string;
+    displayName: string;
+    contextWindow: number;
+    pricing: {
+        inputPer1k: number;
+        outputPer1k: number;
+    };
+    capabilities: string[];
+}
+export declare function formatModelList(models: ModelInfo[]): string;
+export declare function filterModels(models: ModelInfo[], opts: {
+    provider?: string;
+    capability?: string;
+    maxCost?: number;
+}): ModelInfo[];
+export declare function recommendModel(models: ModelInfo[], ctx: {
+    needsTools: boolean;
+    needsVision: boolean;
+    budgetSensitive: boolean;
+}): ModelInfo | null;
+//# sourceMappingURL=models-wizard.d.ts.map

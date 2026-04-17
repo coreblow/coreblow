@@ -1,0 +1,3 @@
+/** Volcengine model definitions. */
+export declare function isVolcModel(id: string): boolean;
+//# sourceMappingURL=volc-models.shared.d.ts.map

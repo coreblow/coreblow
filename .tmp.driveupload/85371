@@ -1,0 +1,13 @@
+/**
+ * src/shared/string-sample.ts
+ * String summarization and sampling.
+ * Ported from CoreBlow shared/string-sample.ts.
+ */
+export declare function summarizeStringEntries(params: {
+    entries?: ReadonlyArray<string> | null;
+    limit?: number;
+    emptyText?: string;
+}): string;
+export declare function sampleString(str: string, maxLen: number): string;
+export declare function sampleLines(str: string, maxLines: number): string;
+//# sourceMappingURL=string-sample.d.ts.map

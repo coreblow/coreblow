@@ -1,0 +1,7 @@
+/** plugin-sdk/config-paths.ts [ADAPT] openclaw-main */
+import path from "node:path";
+import os from "node:os";
+export function resolveDefaultConfigDir() { return path.join(os.homedir(), ".coreblow"); }
+export function resolveDefaultConfigPath() { return path.join(resolveDefaultConfigDir(), "config.json"); }
+export function resolveConfigPath(override) { return override ?? process.env["COREBLOW_CONFIG"] ?? resolveDefaultConfigPath(); }
+//# sourceMappingURL=config-paths.js.map

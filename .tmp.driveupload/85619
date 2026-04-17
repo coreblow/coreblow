@@ -1,0 +1,103 @@
+/**
+ * CoreBlow — Notification System
+ *
+ * Manages notifications across channels and users.
+ * Supports priority levels, read tracking, batching,
+ * and notification preferences.
+ */
+/**
+ * CoreBlow Notification System
+ */
+export class NotificationSystem {
+    notifications = [];
+    preferences = new Map();
+    idCounter = 0;
+    maxNotifications = 1000;
+    /**
+     * Send a notification.
+     */
+    send(type, title, message, userId, channel) {
+        const notification = {
+            id: `notif-${++this.idCounter}`,
+            type, title, message, userId, channel,
+            read: false, createdAt: Date.now(),
+        };
+        // Check preferences
+        if (userId) {
+            const prefs = this.preferences.get(userId);
+            if (prefs) {
+                if (!prefs.enabled)
+                    return notification;
+                if (prefs.muteUntil && Date.now() < prefs.muteUntil)
+                    return notification;
+                if (!prefs.types.includes(type))
+                    return notification;
+            }
+        }
+        this.notifications.push(notification);
+        if (this.notifications.length > this.maxNotifications) {
+            this.notifications = this.notifications.slice(-this.maxNotifications);
+        }
+        return notification;
+    }
+    /**
+     * Get notifications for a user.
+     */
+    getForUser(userId, unreadOnly) {
+        return this.notifications
+            .filter((n) => n.userId === userId && (!unreadOnly || !n.read));
+    }
+    /**
+     * Mark as read.
+     */
+    markRead(notifId) {
+        const notif = this.notifications.find((n) => n.id === notifId);
+        if (!notif)
+            return false;
+        notif.read = true;
+        return true;
+    }
+    /**
+     * Mark all as read for a user.
+     */
+    markAllRead(userId) {
+        let count = 0;
+        for (const n of this.notifications) {
+            if (n.userId === userId && !n.read) {
+                n.read = true;
+                count++;
+            }
+        }
+        return count;
+    }
+    /**
+     * Set user preferences.
+     */
+    setPreferences(userId, prefs) {
+        this.preferences.set(userId, prefs);
+    }
+    /**
+     * Get unread count.
+     */
+    getUnreadCount(userId) {
+        return this.notifications.filter((n) => n.userId === userId && !n.read).length;
+    }
+    /**
+     * Get recent notifications.
+     */
+    getRecent(limit) {
+        return this.notifications.slice(-(limit ?? 20));
+    }
+    /**
+     * Clear old notifications.
+     */
+    clearExpired() {
+        const now = Date.now();
+        const before = this.notifications.length;
+        this.notifications = this.notifications.filter((n) => !n.expiresAt || n.expiresAt > now);
+        return before - this.notifications.length;
+    }
+    /** Count */
+    count() { return this.notifications.length; }
+}
+//# sourceMappingURL=notification-system.js.map

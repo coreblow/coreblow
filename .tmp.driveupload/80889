@@ -1,0 +1,83 @@
+/**
+ * CoreBlow — WhatsApp Channel Adapter
+ *
+ * Production adapter for WhatsApp Business Cloud API.
+ * Handles text, media, template messages, interactive buttons,
+ * webhook verification, and delivery status tracking.
+ */
+/** WhatsApp configuration */
+export interface WhatsAppConfig {
+    phoneNumberId: string;
+    accessToken: string;
+    verifyToken: string;
+    businessAccountId?: string;
+    apiVersion?: string;
+}
+/** WhatsApp incoming message */
+export interface WhatsAppMessage {
+    messageId: string;
+    from: string;
+    timestamp: number;
+    type: 'text' | 'image' | 'audio' | 'video' | 'document' | 'location' | 'reaction';
+    text?: string;
+    mediaId?: string;
+    mediaUrl?: string;
+    caption?: string;
+    location?: {
+        latitude: number;
+        longitude: number;
+    };
+}
+/** Interactive button */
+export interface WAButton {
+    id: string;
+    title: string;
+}
+/** Message handler */
+export type WhatsAppMessageHandler = (msg: WhatsAppMessage) => Promise<string | void>;
+/**
+ * CoreBlow WhatsApp Adapter
+ */
+export declare class WhatsAppAdapter {
+    private config;
+    private baseUrl;
+    private messageHandler;
+    private deliveryStatus;
+    constructor(config: WhatsAppConfig);
+    onMessage(handler: WhatsAppMessageHandler): void;
+    /**
+     * Send a text message.
+     */
+    sendText(to: string, text: string): Promise<string>;
+    /**
+     * Send an image.
+     */
+    sendImage(to: string, imageUrl: string, caption?: string): Promise<string>;
+    /**
+     * Send a document.
+     */
+    sendDocument(to: string, docUrl: string, filename: string, caption?: string): Promise<string>;
+    /**
+     * Send interactive buttons.
+     */
+    sendButtons(to: string, bodyText: string, buttons: WAButton[]): Promise<string>;
+    /**
+     * Send a template message.
+     */
+    sendTemplate(to: string, templateName: string, languageCode?: string): Promise<string>;
+    /**
+     * Mark message as read.
+     */
+    markRead(messageId: string): Promise<void>;
+    /**
+     * Verify webhook challenge (GET request).
+     */
+    verifyWebhook(mode: string, token: string, challenge: string): string | null;
+    /**
+     * Track delivery status.
+     */
+    updateDeliveryStatus(messageId: string, status: string): void;
+    getDeliveryStatus(messageId: string): string | undefined;
+    private api;
+}
+//# sourceMappingURL=whatsapp-adapter.d.ts.map

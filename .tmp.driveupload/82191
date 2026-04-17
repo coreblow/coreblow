@@ -1,0 +1,6 @@
+/**
+ * gateway/server-methods/cron.ts — Cron RPC Handlers
+ */
+import type { GatewayRequestHandlers } from "./types.js";
+export declare const cronHandlers: GatewayRequestHandlers;
+//# sourceMappingURL=cron.d.ts.map

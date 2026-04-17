@@ -1,0 +1,106 @@
+/**
+ * CoreBlow Gateway — WebSocket Connection Handler
+ *
+ * Manages WebSocket connections for real-time streaming, method
+ * dispatch, client tracking, and heartbeat keepalive.
+ *
+ * Wave 3: Now uses CoreBlow-compatible protocol:
+ *   Request:  { type: "req", id, method, params }
+ *   Response: { type: "res", id, ok, payload, error }
+ *   Event:    { type: "event", event, payload, seq }
+ *
+ * Implements the `connect` handshake method with schema validation
+ * and timing-safe authentication via gateway-auth.
+ */
+import type { IncomingMessage } from 'node:http';
+import { type ConnectParams } from './protocol/index.js';
+import { type ResolvedGatewayAuth } from './gateway-auth.js';
+/** Connected WebSocket client */
+export interface WsClient {
+    id: string;
+    connId: string;
+    sessionId?: string;
+    connectedAt: number;
+    lastPingAt: number;
+    authenticated: boolean;
+    scopes: string[];
+    role?: string;
+    connect: ConnectParams;
+    send: (data: string) => void;
+    close: (code?: number, reason?: string) => void;
+}
+/** WebSocket method handler */
+export type WsMethodHandler = (client: WsClient, params: Record<string, unknown>) => Promise<unknown>;
+/**
+ * CoreBlow WebSocket Handler — CoreBlow-compatible protocol
+ */
+export declare class WsHandler {
+    private clients;
+    private methods;
+    private heartbeatInterval;
+    private resolvedAuth;
+    /**
+     * Set the resolved auth config (called after server startup).
+     */
+    setAuth(auth: ResolvedGatewayAuth): void;
+    /**
+     * Register a method that clients can invoke via WebSocket messages.
+     */
+    registerMethod(name: string, handler: WsMethodHandler): void;
+    /**
+     * Handle a new WebSocket connection.
+     * Sends `connect.challenge` event to prompt the client to authenticate.
+     */
+    onConnect(ws: {
+        send: (data: string) => void;
+        close: (code?: number, reason?: string) => void;
+    }, onMessage: (handler: (data: string) => void) => void, onClose: (handler: () => void) => void, req?: IncomingMessage): WsClient;
+    /**
+     * Handle an incoming WebSocket message.
+     *
+     * CoreBlow protocol format:
+     *   { type: "req", id: "uuid", method: "connect", params: { ... } }
+     *
+     * Legacy CoreBlow format (backward compat):
+     *   { method: "ping", id: "123", params: {} }
+     */
+    private handleMessage;
+    /**
+     * Handle the `connect` method — authenticate and establish session.
+     *
+     * CoreBlow protocol flow:
+     * 1. Validate connect params (schema check)
+     * 2. Authorize credentials (token/password/trusted-proxy)
+     * 3. Respond with `hello-ok` payload
+     */
+    private handleConnect;
+    /**
+     * Send a success response: { type: "res", id, ok: true, payload }
+     */
+    private sendOkResponse;
+    /**
+     * Send an error response: { type: "res", id, ok: false, error: { code, message } }
+     */
+    private sendErrorResponse;
+    /**
+     * Send an event: { type: "event", event, payload, seq }
+     */
+    sendEvent(client: WsClient, event: string, payload: unknown, seq?: number): void;
+    /**
+     * Broadcast an event to all connected (authenticated) clients.
+     */
+    broadcast(event: string, data: unknown, opts?: {
+        requireAuth?: boolean;
+    }): void;
+    /** Get the count of connected clients. */
+    getClientCount(): number;
+    /** Get all connected client IDs. */
+    getConnectedClients(): WsClient[];
+    /** Start periodic heartbeat checks to clean up stale connections. */
+    startHeartbeat(intervalMs?: number, timeoutMs?: number): void;
+    /** Stop heartbeat checks. */
+    stopHeartbeat(): void;
+    /** Disconnect all clients and clean up. */
+    closeAll(reason?: string): void;
+}
+//# sourceMappingURL=ws-handler.d.ts.map

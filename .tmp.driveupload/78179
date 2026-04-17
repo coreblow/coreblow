@@ -1,0 +1,87 @@
+/**
+ * CoreBlow Config Validation Engine
+ *
+ * Schema-based configuration validation with typed per-module schemas,
+ * config merging with precedence, validation error reporting,
+ * and default value resolution. Zero external dependencies.
+ */
+/** Validation result */
+export interface ValidationResult {
+    valid: boolean;
+    errors: ValidationError[];
+    /** Config with defaults applied */
+    resolved: Record<string, unknown>;
+}
+/** Validation error */
+export interface ValidationError {
+    path: string;
+    message: string;
+    expected?: string;
+    received?: string;
+}
+/** Schema field types */
+export type FieldType = 'string' | 'number' | 'boolean' | 'array' | 'object' | 'enum';
+/** Schema field definition */
+export interface FieldSchema {
+    type: FieldType;
+    required?: boolean;
+    default?: unknown;
+    description?: string;
+    /** For enum type */
+    values?: string[];
+    /** For string type */
+    pattern?: RegExp;
+    minLength?: number;
+    maxLength?: number;
+    /** For number type */
+    min?: number;
+    max?: number;
+    /** For array type */
+    items?: FieldSchema;
+    /** For object type — nested schema */
+    properties?: Record<string, FieldSchema>;
+}
+/** Config schema for a module */
+export interface ConfigSchema {
+    name: string;
+    description?: string;
+    properties: Record<string, FieldSchema>;
+}
+/** Config source precedence */
+export type ConfigSource = 'default' | 'file' | 'env' | 'override';
+/** Config layer for merging */
+export interface ConfigLayer {
+    source: ConfigSource;
+    data: Record<string, unknown>;
+}
+/** Agent configuration schema */
+export declare const AGENT_SCHEMA: ConfigSchema;
+/** Channel configuration schema */
+export declare const CHANNEL_SCHEMA: ConfigSchema;
+/** Security configuration schema */
+export declare const SECURITY_SCHEMA: ConfigSchema;
+/** Provider configuration schema */
+export declare const PROVIDER_SCHEMA: ConfigSchema;
+/** All built-in schemas */
+export declare const SCHEMAS: Record<string, ConfigSchema>;
+/**
+ * Validate a config object against a schema.
+ */
+export declare function validateConfig(config: Record<string, unknown>, schema: ConfigSchema): ValidationResult;
+/**
+ * Merge config layers with precedence: default < file < env < override.
+ */
+export declare function mergeConfigs(layers: ConfigLayer[]): Record<string, unknown>;
+/**
+ * Resolve environment variable overrides.
+ * Convention: CB_AGENTS_MODEL → agents.model
+ */
+export declare function resolveEnvOverrides(prefix?: string): Record<string, unknown>;
+/**
+ * Validate all top-level config sections.
+ */
+export declare function validateFullConfig(config: Record<string, unknown>): {
+    valid: boolean;
+    results: Record<string, ValidationResult>;
+};
+//# sourceMappingURL=validator.d.ts.map

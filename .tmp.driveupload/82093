@@ -1,0 +1,106 @@
+import { ErrorCodes, errorShape, validatePluginApprovalRequestParams, validatePluginApprovalResolveParams } from "../protocol/index.js";
+import { randomUUID } from "node:crypto";
+const DEFAULT_TIMEOUT_MS = 60000;
+export function createPluginApprovalHandlers(manager) {
+    return {
+        "plugin.approval.request": async ({ params, respond, context, client }) => {
+            if (!validatePluginApprovalRequestParams(params)) {
+                respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, `Invalid request`));
+                return;
+            }
+            const p = params;
+            const timeoutMs = typeof p.timeoutMs === "number" ? p.timeoutMs : DEFAULT_TIMEOUT_MS;
+            const request = {
+                title: p.title,
+                description: p.description,
+                pluginId: p.pluginId || null,
+                severity: p.severity || null,
+                toolName: p.toolName || null,
+                toolCallId: p.toolCallId || null,
+            };
+            const record = manager.create(request, timeoutMs, `plugin:${randomUUID()}`);
+            record.requestedByConnId = client?.connId ?? null;
+            let decisionPromise;
+            try {
+                decisionPromise = manager.register(record, timeoutMs);
+            }
+            catch (err) {
+                respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, err.message));
+                return;
+            }
+            if (context.broadcast) {
+                context.broadcast("plugin.approval.requested", {
+                    id: record.id,
+                    request: record.request,
+                    createdAtMs: record.createdAtMs,
+                    expiresAtMs: record.expiresAtMs,
+                }, { dropIfSlow: true });
+            }
+            const hasClients = context.hasExecApprovalClients?.(client?.connId) ?? false;
+            // plugins require a route, otherwise we auto expire immediately
+            if (!hasClients) {
+                manager.expire(record.id, "no-approval-route");
+                respond(true, {
+                    id: record.id,
+                    decision: null,
+                    createdAtMs: record.createdAtMs,
+                    expiresAtMs: record.expiresAtMs,
+                }, undefined);
+                return;
+            }
+            if (p.twoPhase) {
+                respond(true, {
+                    status: "accepted",
+                    id: record.id,
+                    createdAtMs: record.createdAtMs,
+                    expiresAtMs: record.expiresAtMs,
+                }, undefined);
+            }
+            const decision = await decisionPromise;
+            respond(true, {
+                id: record.id,
+                decision,
+                createdAtMs: record.createdAtMs,
+                expiresAtMs: record.expiresAtMs,
+            }, undefined);
+        },
+        "plugin.approval.waitDecision": async ({ params, respond }) => {
+            const p = params;
+            if (!p.id) {
+                respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "id is required"));
+                return;
+            }
+            const decisionPromise = manager.awaitDecision(p.id);
+            if (!decisionPromise) {
+                respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "approval expired or not found"));
+                return;
+            }
+            const decision = await decisionPromise;
+            respond(true, { id: p.id, decision }, undefined);
+        },
+        "plugin.approval.resolve": async ({ params, respond, client, context }) => {
+            if (!validatePluginApprovalResolveParams(params)) {
+                respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, `Invalid params`));
+                return;
+            }
+            const p = params;
+            const decision = p.decision;
+            const resolvedId = manager.lookupPendingId(p.id);
+            if (resolvedId.kind !== "exact") {
+                respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "invalid or ambiguous id"));
+                return;
+            }
+            const resolvedBy = client?.connect?.client?.displayName ?? client?.connect?.client?.id;
+            const ok = manager.resolve(resolvedId.id, decision, resolvedBy ?? null);
+            if (!ok) {
+                respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown or expired approval id"));
+                return;
+            }
+            if (context.broadcast) {
+                context.broadcast("plugin.approval.resolved", { id: resolvedId.id, decision, resolvedBy, ts: Date.now() }, { dropIfSlow: true });
+            }
+            respond(true, { ok: true }, undefined);
+        }
+    };
+}
+//# sourceMappingURL=plugin-approval.js.map

@@ -1,0 +1,6 @@
+/** Skill download test utilities. */
+export declare function createMockDownload(content: string): {
+    data: Buffer;
+    size: number;
+};
+//# sourceMappingURL=skills-install.download-test-utils.d.ts.map

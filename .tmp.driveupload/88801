@@ -1,0 +1,74 @@
+/**
+ * agents/bash-process-registry.ts
+ * Background process session registry for exec/process tools.
+ * Ported from CoreBlow reference src/agents/bash-process-registry.ts (312 LOC).
+ */
+export type ProcessStatus = 'running' | 'completed' | 'failed' | 'killed';
+export interface SessionStdin {
+    write: (data: string, cb?: (err?: Error | null) => void) => void;
+    end: () => void;
+    destroy?: () => void;
+    destroyed?: boolean;
+}
+export interface ProcessSession {
+    id: string;
+    command: string;
+    scopeKey?: string;
+    sessionKey?: string;
+    notifyOnExit?: boolean;
+    notifyOnExitEmptySuccess?: boolean;
+    exitNotified?: boolean;
+    stdin?: SessionStdin;
+    pid?: number;
+    startedAt: number;
+    cwd?: string;
+    maxOutputChars: number;
+    pendingMaxOutputChars?: number;
+    totalOutputChars: number;
+    pendingStdout: string[];
+    pendingStderr: string[];
+    pendingStdoutChars: number;
+    pendingStderrChars: number;
+    aggregated: string;
+    tail: string;
+    exitCode?: number | null;
+    exitSignal?: string | number | null;
+    exited: boolean;
+    truncated: boolean;
+    backgrounded: boolean;
+}
+export interface FinishedSession {
+    id: string;
+    command: string;
+    scopeKey?: string;
+    startedAt: number;
+    endedAt: number;
+    cwd?: string;
+    status: ProcessStatus;
+    exitCode?: number | null;
+    exitSignal?: string | number | null;
+    aggregated: string;
+    tail: string;
+    truncated: boolean;
+    totalOutputChars: number;
+}
+export declare function createSessionSlug(): string;
+export declare function addSession(session: ProcessSession): void;
+export declare function getSession(id: string): ProcessSession | undefined;
+export declare function getFinishedSession(id: string): FinishedSession | undefined;
+export declare function deleteSession(id: string): void;
+export declare function appendOutput(session: ProcessSession, stream: 'stdout' | 'stderr', chunk: string): void;
+export declare function drainSession(session: ProcessSession): {
+    stdout: string;
+    stderr: string;
+};
+export declare function markExited(session: ProcessSession, exitCode: number | null, exitSignal: string | number | null, status: ProcessStatus): void;
+export declare function markBackgrounded(session: ProcessSession): void;
+export declare function tail(text: string, max?: number): string;
+export declare function trimWithCap(text: string, max: number): string;
+export declare function listRunningSessions(): ProcessSession[];
+export declare function listFinishedSessions(): FinishedSession[];
+export declare function clearFinished(): void;
+export declare function resetProcessRegistryForTests(): void;
+export declare function setJobTtlMs(value?: number): void;
+//# sourceMappingURL=bash-process-registry.d.ts.map

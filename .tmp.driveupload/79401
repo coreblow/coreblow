@@ -1,0 +1,151 @@
+/**
+ * CoreBlow Web — Session Management
+ *
+ * Cookie-based web session management for the dashboard.
+ * Supports login/logout flow, session creation/validation,
+ * and QR code endpoint for channel pairing.
+ */
+import * as crypto from 'node:crypto';
+/**
+ * CoreBlow Session Manager
+ */
+export class SessionManager {
+    sessions = new Map();
+    config;
+    constructor(config) {
+        this.config = {
+            ttlMs: config?.ttlMs ?? 24 * 60 * 60_000,
+            cookieName: config?.cookieName ?? 'cb-session',
+            secure: config?.secure ?? false,
+            maxSessions: config?.maxSessions ?? 1000,
+        };
+    }
+    /**
+     * Create a new session.
+     */
+    create(userId, data) {
+        // Evict expired sessions first
+        this.cleanup();
+        // Enforce max sessions limit
+        if (this.sessions.size >= this.config.maxSessions) {
+            // Evict oldest session
+            const oldest = this.getOldest();
+            if (oldest)
+                this.sessions.delete(oldest.id);
+        }
+        const session = {
+            id: crypto.randomUUID(),
+            userId,
+            createdAt: Date.now(),
+            expiresAt: Date.now() + this.config.ttlMs,
+            data: data ?? {},
+        };
+        this.sessions.set(session.id, session);
+        return session;
+    }
+    /**
+     * Get a session by ID.
+     */
+    get(sessionId) {
+        const session = this.sessions.get(sessionId);
+        if (!session)
+            return null;
+        // Check expiry
+        if (Date.now() > session.expiresAt) {
+            this.sessions.delete(sessionId);
+            return null;
+        }
+        return session;
+    }
+    /**
+     * Validate a session ID and return the session if valid.
+     */
+    validate(sessionId) {
+        return this.get(sessionId);
+    }
+    /**
+     * Destroy a session (logout).
+     */
+    destroy(sessionId) {
+        return this.sessions.delete(sessionId);
+    }
+    /**
+     * Update session data.
+     */
+    update(sessionId, data) {
+        const session = this.get(sessionId);
+        if (!session)
+            return false;
+        Object.assign(session.data, data);
+        return true;
+    }
+    /**
+     * Extend session expiry.
+     */
+    touch(sessionId) {
+        const session = this.get(sessionId);
+        if (!session)
+            return false;
+        session.expiresAt = Date.now() + this.config.ttlMs;
+        return true;
+    }
+    /**
+     * Build a Set-Cookie header value for a session.
+     */
+    buildCookie(sessionId) {
+        const parts = [
+            `${this.config.cookieName}=${sessionId}`,
+            'Path=/',
+            'HttpOnly',
+            'SameSite=Lax',
+        ];
+        if (this.config.secure)
+            parts.push('Secure');
+        const maxAge = Math.floor(this.config.ttlMs / 1000);
+        parts.push(`Max-Age=${maxAge}`);
+        return parts.join('; ');
+    }
+    /**
+     * Build a Set-Cookie header to clear the session cookie.
+     */
+    buildClearCookie() {
+        return `${this.config.cookieName}=; Path=/; HttpOnly; Max-Age=0`;
+    }
+    /**
+     * Extract session ID from cookie header.
+     */
+    extractFromCookie(cookieHeader) {
+        if (!cookieHeader)
+            return null;
+        const prefix = `${this.config.cookieName}=`;
+        const cookies = cookieHeader.split(';').map((c) => c.trim());
+        const match = cookies.find((c) => c.startsWith(prefix));
+        return match ? match.slice(prefix.length) : null;
+    }
+    /**
+     * Get active session count.
+     */
+    getActiveCount() {
+        this.cleanup();
+        return this.sessions.size;
+    }
+    // === Private ===
+    cleanup() {
+        const now = Date.now();
+        for (const [id, session] of Array.from(this.sessions)) {
+            if (now > session.expiresAt) {
+                this.sessions.delete(id);
+            }
+        }
+    }
+    getOldest() {
+        let oldest = null;
+        for (const session of Array.from(this.sessions.values())) {
+            if (!oldest || session.createdAt < oldest.createdAt) {
+                oldest = session;
+            }
+        }
+        return oldest;
+    }
+}
+//# sourceMappingURL=session.js.map

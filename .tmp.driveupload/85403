@@ -1,0 +1,27 @@
+/**
+ * src/acp/event-mapper.ts
+ * Maps internal gateway events to ACP session updates
+ * Extracts text and attachments from ACP content blocks
+ */
+import type { ContentBlock, ToolKind } from './types.js';
+/**
+ * Extract plain text from ACP content blocks
+ */
+export declare function extractTextFromPrompt(blocks: ContentBlock[], maxBytes?: number): string;
+/**
+ * Extract image attachments from content blocks
+ */
+export declare function extractAttachments(blocks: ContentBlock[]): {
+    type: string;
+    mimeType: string;
+    content: string;
+}[];
+/**
+ * Infer tool kind from tool name
+ */
+export declare function inferToolKind(name?: string): ToolKind;
+/**
+ * Format tool title with arguments for display
+ */
+export declare function formatToolTitle(name: string | undefined, args?: Record<string, unknown>): string;
+//# sourceMappingURL=event-mapper.d.ts.map

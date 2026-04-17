@@ -1,0 +1,39 @@
+/**
+ * web-search/types.ts
+ * Web search types — provider entries, tool definitions, runtime params.
+ */
+export type WebSearchProviderEntry = {
+    id: string;
+    label?: string;
+    envVars: string[];
+    requiresCredential: boolean;
+    credentialPath?: string;
+    priority?: number;
+    getCredentialValue: (searchConfig: Record<string, unknown> | undefined) => unknown;
+    getConfiguredCredentialValue?: (config: Record<string, unknown> | undefined) => unknown;
+    createTool: (params: {
+        config?: Record<string, unknown>;
+        searchConfig?: Record<string, unknown>;
+        runtimeMetadata?: unknown;
+    }) => WebSearchProviderToolDefinition | null;
+};
+export type WebSearchProviderToolDefinition = {
+    name: string;
+    description: string;
+    parameters: Record<string, unknown>;
+    execute: (args: Record<string, unknown>) => Promise<Record<string, unknown>>;
+};
+export type ResolveWebSearchParams = {
+    config?: Record<string, unknown>;
+    sandboxed?: boolean;
+    providerId?: string;
+    preferRuntimeProviders?: boolean;
+};
+export type RunWebSearchParams = ResolveWebSearchParams & {
+    args: Record<string, unknown>;
+};
+export type WebSearchResult = {
+    provider: string;
+    result: Record<string, unknown>;
+};
+//# sourceMappingURL=types.d.ts.map

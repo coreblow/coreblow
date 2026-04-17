@@ -1,0 +1,4 @@
+/** plugin-sdk/diagnostics-otel.ts [ADAPT] openclaw-main */
+export function initOtelTracing(_params) { }
+export function getOtelTracer(_name) { return null; }
+//# sourceMappingURL=diagnostics-otel.js.map

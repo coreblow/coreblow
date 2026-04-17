@@ -1,0 +1,14 @@
+/**
+ * plugin-sdk/whatsapp-targets.ts
+ * [ADAPT] openclaw-main — Stub for @coreblow/whatsapp.
+ */
+export declare function isWhatsAppGroupJid(jid: string): boolean;
+export declare function isWhatsAppUserTarget(raw: string): boolean;
+export declare function normalizeWhatsAppTarget(raw: string): string;
+export declare function looksLikeWhatsAppTargetId(raw: string): boolean;
+export declare function normalizeWhatsAppAllowFromEntries(entries: string[]): string[];
+export declare function normalizeWhatsAppMessagingTarget(raw: string): {
+    kind: string;
+    id: string;
+} | null;
+//# sourceMappingURL=whatsapp-targets.d.ts.map

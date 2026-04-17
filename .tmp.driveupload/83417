@@ -1,0 +1,11 @@
+/**
+ * plugin-sdk/slack-targets.ts
+ * [PORT] openclaw-main
+ */
+export { parseSlackTarget, resolveSlackChannelId } from "./slack-target-parser.js";
+export declare function looksLikeSlackTargetId(raw: string): boolean;
+export declare function normalizeSlackMessagingTarget(raw: string): {
+    kind: string;
+    id: string;
+} | null;
+//# sourceMappingURL=slack-targets.d.ts.map

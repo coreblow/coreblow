@@ -1,0 +1,20 @@
+/**
+ * CoreBlow — Debounce & Throttle
+ *
+ * Async-safe execution rate controllers for rapid incoming
+ * events, preventing resource exhaustion during heavy load.
+ */
+/**
+ * Creates a debounced function that delays invoking the provided function
+ * until after `waitMs` milliseconds have elapsed since the last time it was invoked.
+ */
+export declare function debounce<Args extends any[], R>(fn: (...args: Args) => Promise<R> | R, waitMs: number): ((...args: Args) => Promise<R>) & {
+    cancel: () => void;
+};
+/**
+ * Creates a throttled function that only invokes `fn` at most once per
+ * every `limitMs` milliseconds. Successive calls within the limit
+ * will return the result of the last successful invocation or throw if none exists yet.
+ */
+export declare function throttle<Args extends any[], R>(fn: (...args: Args) => Promise<R> | R, limitMs: number): ((...args: Args) => Promise<R>);
+//# sourceMappingURL=debounce-throttle.d.ts.map

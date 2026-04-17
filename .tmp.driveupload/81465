@@ -1,0 +1,147 @@
+/**
+ * gateway/startup-auth.ts — Gateway Startup Auth Bootstrap
+ *
+ * Ensures the gateway has valid auth credentials before starting.
+ * If token mode is active but no token exists, auto-generates one.
+ *
+ * Ported from CoreBlow reference src/gateway/startup-auth.ts (317 LOC) — streamlined
+ * for CoreBlow architecture (no secret-ref resolution, no Tailscale override).
+ */
+import crypto from 'node:crypto';
+import { createChildLogger } from '../utils/logger.js';
+import { resolveGatewayAuth, } from './gateway-auth.js';
+const log = createChildLogger('startup-auth');
+// ─── Config Merge ───────────────────────────────────────────────────
+/**
+ * Merge gateway auth config with overrides.
+ * Ported from CoreBlow reference `mergeGatewayAuthConfig()`.
+ */
+export function mergeGatewayAuthConfig(base, override) {
+    const merged = { ...base };
+    if (!override)
+        return merged;
+    if (override.mode !== undefined)
+        merged.mode = override.mode;
+    if (override.token !== undefined)
+        merged.token = override.token;
+    if (override.password !== undefined)
+        merged.password = override.password;
+    if (override.allowTailscale !== undefined)
+        merged.allowTailscale = override.allowTailscale;
+    if (override.rateLimit !== undefined)
+        merged.rateLimit = override.rateLimit;
+    if (override.trustedProxy !== undefined)
+        merged.trustedProxy = override.trustedProxy;
+    return merged;
+}
+// ─── Startup Auth ───────────────────────────────────────────────────
+/**
+ * Ensure the gateway has valid auth on startup.
+ *
+ * If token mode is selected but no token is configured:
+ * 1. Generate a random 48-char hex token
+ * 2. Log it so the operator can use it
+ * 3. Optionally persist it to config
+ *
+ * Ported from CoreBlow reference `ensureGatewayStartupAuth()`.
+ */
+export function ensureGatewayStartupAuth(params) {
+    const mergedAuth = mergeGatewayAuthConfig(params.authConfig, params.authOverride);
+    const resolved = resolveGatewayAuth({
+        authConfig: mergedAuth,
+        env: params.env,
+    });
+    // If token mode and token exists — we're good
+    if (resolved.mode !== 'token' || (resolved.token?.trim().length ?? 0) > 0) {
+        return { auth: resolved, persistedGeneratedToken: false };
+    }
+    // Token mode but no token — auto-generate
+    const generatedToken = crypto.randomBytes(24).toString('hex');
+    log.info('No gateway token configured — generated a runtime token for this session.');
+    log.info(`  Token: ${generatedToken}`);
+    log.info('Persist with: coreblow config set gateway.auth.token <token>');
+    const persistRequested = params.persist === true;
+    const shouldPersist = persistRequested && resolved.modeSource !== 'override';
+    // Re-resolve with the generated token
+    const nextAuth = resolveGatewayAuth({
+        authConfig: { ...mergedAuth, token: generatedToken, mode: 'token' },
+        env: params.env,
+    });
+    return {
+        auth: nextAuth,
+        generatedToken,
+        persistedGeneratedToken: shouldPersist,
+    };
+}
+// ─── Hook Token Validation ──────────────────────────────────────────
+/**
+ * Assert that hooks token is distinct from gateway auth token.
+ * Prevents circular auth where a hook endpoint could authenticate
+ * with the gateway token.
+ *
+ * Ported from CoreBlow reference `assertHooksTokenSeparateFromGatewayAuth()`.
+ */
+export function assertHooksTokenSeparateFromGatewayAuth(params) {
+    if (!params.hooksEnabled)
+        return;
+    const hooksToken = params.hooksToken?.trim();
+    if (!hooksToken)
+        return;
+    const gatewayToken = params.auth.mode === 'token' && typeof params.auth.token === 'string'
+        ? params.auth.token.trim()
+        : '';
+    if (!gatewayToken)
+        return;
+    if (hooksToken === gatewayToken) {
+        throw new Error('Invalid config: hooks.token must not match gateway auth token. Set a distinct hooks.token for hook ingress.');
+    }
+}
+// ─── Validate Startup Auth ──────────────────────────────────────────
+/**
+ * Validate gateway auth configuration without mutating state.
+ * Returns `true` if the config results in a valid, operable auth mode.
+ *
+ * Rules (pola OpenClaw validateStartupAuth):
+ * - `mode: 'none'`  → always valid (insecure but intentional)
+ * - `mode: 'token'` → valid only if a non-empty token is provided
+ * - `mode: 'password'` → valid only if a non-empty password is provided
+ *
+ * Used by tests and diagnostics to pre-check config before server start.
+ *
+ * @example
+ * ```typescript
+ * // In setup-wizard or config validation:
+ * if (!validateStartupAuth(rawConfig, log)) {
+ *   throw new Error('Gateway auth config is invalid');
+ * }
+ * ```
+ */
+export function validateStartupAuth(rawConfig, log) {
+    const gateway = rawConfig?.gateway;
+    const auth = gateway?.auth;
+    const mode = auth?.mode ?? 'token'; // default to token mode
+    if (mode === 'none') {
+        log?.warn('Gateway auth mode is "none" — gateway is publicly accessible');
+        return true;
+    }
+    if (mode === 'token') {
+        const token = auth?.token;
+        const hasToken = typeof token === 'string' && token.trim().length > 0;
+        if (!hasToken) {
+            log?.warn('Gateway auth mode is "token" but no token is configured');
+        }
+        return hasToken;
+    }
+    if (mode === 'password') {
+        const password = auth?.password;
+        const hasPassword = typeof password === 'string' && password.trim().length > 0;
+        if (!hasPassword) {
+            log?.warn('Gateway auth mode is "password" but no password is configured');
+        }
+        return hasPassword;
+    }
+    // Unknown mode
+    log?.warn(`Unknown gateway auth mode: "${mode}"`);
+    return false;
+}
+//# sourceMappingURL=startup-auth.js.map

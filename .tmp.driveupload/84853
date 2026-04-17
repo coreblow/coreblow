@@ -1,0 +1,28 @@
+/**
+ * plugin-sdk/discord-runtime-surface.ts
+ * [ADAPT] openclaw-main — Stub runtime surface for @coreblow/discord.
+ */
+export declare function monitorDiscordProvider(_p: unknown): Promise<void>;
+export declare function probeDiscord(_p: unknown): Promise<{
+    ok: boolean;
+}>;
+export declare function sendMessageDiscord(_p: unknown): Promise<unknown>;
+export declare function sendPollDiscord(_p: unknown): Promise<unknown>;
+export declare function sendTypingDiscord(_p: unknown): Promise<void>;
+export declare function deleteMessageDiscord(_p: unknown): Promise<void>;
+export declare function editMessageDiscord(_p: unknown): Promise<void>;
+export declare function createThreadDiscord(_p: unknown): Promise<string | null>;
+export declare function reactMessageDiscord(_p: unknown): Promise<void>;
+export declare function readMessagesDiscord(_p: unknown): Promise<unknown[]>;
+export declare function pinMessageDiscord(_p: unknown): Promise<void>;
+export declare function unpinMessageDiscord(_p: unknown): Promise<void>;
+export declare function fetchChannelInfoDiscord(_p: unknown): Promise<unknown>;
+export declare function fetchMemberInfoDiscord(_p: unknown): Promise<unknown>;
+export declare function listGuildChannelsDiscord(_p: unknown): Promise<unknown[]>;
+export declare function listDiscordDirectoryGroupsLive(_p: unknown): Promise<unknown[]>;
+export declare function listDiscordDirectoryPeersLive(_p: unknown): Promise<unknown[]>;
+export declare function getGateway(_p: unknown): unknown;
+export declare function getPresence(_p: unknown): unknown;
+export declare function resolveDiscordOutboundSessionRoute(_p: unknown): unknown;
+export declare const discordMessageActions: unknown[];
+//# sourceMappingURL=discord-runtime-surface.d.ts.map

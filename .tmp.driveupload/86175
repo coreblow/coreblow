@@ -1,0 +1,63 @@
+/**
+ * CoreBlow — Cache Manager
+ *
+ * Multi-layer caching with TTL, LRU eviction, namespaces,
+ * statistics tracking, and batch operations.
+ * Used for API responses, embeddings, and computed results.
+ */
+/** Cache options */
+export interface CacheOptions {
+    /** Default TTL in ms (0 = no expiry) */
+    defaultTTL?: number;
+    /** Maximum entries */
+    maxEntries?: number;
+    /** Eviction policy */
+    eviction?: 'lru' | 'fifo';
+}
+/**
+ * CoreBlow Cache Manager
+ */
+export declare class CacheManager<T = unknown> {
+    private store;
+    private options;
+    private hits;
+    private misses;
+    constructor(opts?: CacheOptions);
+    /**
+     * Get a cached value.
+     */
+    get(key: string): T | undefined;
+    /**
+     * Set a cached value.
+     */
+    set(key: string, value: T, ttlMs?: number, namespace?: string): void;
+    /**
+     * Check if key exists and not expired.
+     */
+    has(key: string): boolean;
+    /**
+     * Delete a key.
+     */
+    delete(key: string): boolean;
+    /**
+     * Get or compute a value.
+     */
+    getOrSet(key: string, factory: () => Promise<T>, ttlMs?: number): Promise<T>;
+    /**
+     * Clear all entries (optionally by namespace).
+     */
+    clear(namespace?: string): number;
+    /**
+     * Get cache statistics.
+     */
+    getStats(): {
+        entries: number;
+        hits: number;
+        misses: number;
+        hitRate: number;
+    };
+    /** Total entries */
+    size(): number;
+    private evict;
+}
+//# sourceMappingURL=cache-manager.d.ts.map

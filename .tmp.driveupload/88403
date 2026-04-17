@@ -1,0 +1,7 @@
+/**
+ * CoreBlow — Subagent Registry Types (CoreBlow Parity)
+ *
+ * Core type definitions for the subagent run record.
+ */
+export {};
+//# sourceMappingURL=subagent-registry-types.js.map

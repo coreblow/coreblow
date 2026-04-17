@@ -1,0 +1,12 @@
+export declare function createBoundedExecutor<T>({ concurrency, run, getQueuedAt }: {
+    concurrency: number;
+    run: (task: T) => Promise<void>;
+    getQueuedAt?: (task: T) => number | undefined;
+}): {
+    schedule(task: T): void;
+    onIdle(): Promise<void>;
+    getInFlight(): number;
+    getQueueDepth(): number;
+    getOldestQueuedAgeMs(): number;
+};
+//# sourceMappingURL=BoundedExecutor.d.ts.map

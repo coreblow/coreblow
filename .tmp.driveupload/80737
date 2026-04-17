@@ -1,0 +1,13 @@
+import { discordLog } from '../utils/logger.js';
+export async function onThreadCreate(thread, ctx) {
+    try {
+        if (thread.joinable && !thread.joined) {
+            await thread.join?.();
+            discordLog.debug({ threadId: thread.id, name: thread.name }, 'Auto-joined thread');
+        }
+    }
+    catch (err) {
+        discordLog.debug({ err: (err instanceof Error ? err.message : String(err)) }, 'Failed to join thread');
+    }
+}
+//# sourceMappingURL=threadCreate.js.map

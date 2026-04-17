@@ -1,0 +1,80 @@
+/**
+ * CoreBlow — Input Sanitization Utilities
+ *
+ * Central module for sanitizing user-supplied inputs before
+ * they reach dangerous sinks (shell, filesystem, eval).
+ */
+/**
+ * Sanitize a string for safe inclusion as a shell argument.
+ * Wraps in single quotes and escapes internal single quotes.
+ */
+export declare function sanitizeShellArg(input: string): string;
+/**
+ * Validate that a command name contains only safe characters.
+ */
+export declare function isValidCommandName(name: string): boolean;
+/**
+ * Sanitize an array of arguments for shell execution.
+ */
+export declare function sanitizeShellArgs(args: string[]): string[];
+/**
+ * Remove path traversal sequences from user input.
+ */
+export declare function sanitizePath(input: string): string;
+/**
+ * Validate a filename (no path separators, no traversal).
+ */
+export declare function isValidFilename(name: string): boolean;
+/**
+ * Check if an expression contains dangerous patterns.
+ */
+export declare function findDangerousPattern(input: string): string | null;
+/**
+ * Validate that a math expression only contains safe characters.
+ */
+export declare function isValidMathExpression(expr: string): boolean;
+/**
+ * Sanitize a string for safe inclusion in AppleScript.
+ */
+export declare function sanitizeForAppleScript(input: string): string;
+/**
+ * Strip ANSI escape codes from a string.
+ */
+export declare function stripAnsi(input: string): string;
+/**
+ * Truncate a string to maxLen, adding ellipsis if truncated.
+ */
+export declare function truncate(input: string, maxLen: number): string;
+/**
+ * Validate that a URL uses an allowed protocol.
+ */
+export declare function isValidHttpUrl(url: string): boolean;
+/**
+ * Sanitize a URL — block dangerous protocols.
+ */
+export declare function sanitizeUrl(url: string): string | null;
+/**
+ * Sanitize text — strip HTML tags, path traversal, null bytes, and truncate.
+ */
+export declare function sanitizeText(input: string, options?: {
+    allowTags?: string[];
+    maxLength?: number;
+}): string;
+/**
+ * Sanitize a filename — replace dangerous chars with underscores.
+ */
+export declare function sanitizeFilename(input: string): string;
+/**
+ * Detect potential injection attacks in text.
+ */
+export declare function detectInjection(input: string): {
+    safe: boolean;
+    threats?: string[];
+    type?: string;
+    pattern?: string;
+};
+/**
+ * Recursively sanitize all string values in an object.
+ */
+export declare function sanitizeObject(obj: Record<string, unknown>): Record<string, unknown>;
+//# sourceMappingURL=input-sanitizer.d.ts.map

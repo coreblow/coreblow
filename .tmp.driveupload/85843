@@ -1,0 +1,8 @@
+/**
+ * src/infra/gateway-processes.ts
+ * Mock to fix compilation.
+ */
+export declare function readGatewayProcessArgsSync(pid: number): string[] | null;
+export declare function signalVerifiedGatewayPidSync(pid: number, signal: "SIGTERM" | "SIGUSR1"): void;
+export declare function findVerifiedGatewayListenerPidsOnPortSync(port: number): number[];
+//# sourceMappingURL=gateway-processes.d.ts.map

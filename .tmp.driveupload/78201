@@ -1,0 +1,58 @@
+/**
+ * config/mcp-config.ts
+ *
+ * CRUD operations for MCP server configuration.
+ * Provides list/set/unset for named MCP server entries in CoreBlow config.
+ *
+ * [PORT] openclaw-main/src/config/mcp-config.ts L1-150
+ * Adaptasi:
+ *   - `readConfigFileSnapshot` → `readConfigFileRaw` from config-io.ts
+ *   - `writeConfigFile` → real persistence via config-io.ts
+ *   - `validateConfigObjectWithPlugins` → CoreBlow validator.ts
+ *   - `OpenClawConfig` → `CoreBlowConfig`
+ */
+import type { CoreBlowConfig } from './config.js';
+export type ConfigMcpServers = Record<string, Record<string, unknown>>;
+type ConfigMcpReadResult = {
+    ok: true;
+    config: CoreBlowConfig;
+    mcpServers: ConfigMcpServers;
+    path: string;
+} | {
+    ok: false;
+    error: string;
+};
+type ConfigMcpWriteResult = {
+    ok: true;
+    config: CoreBlowConfig;
+    mcpServers: ConfigMcpServers;
+    path: string;
+    removed?: boolean;
+} | {
+    ok: false;
+    error: string;
+};
+/**
+ * Coerce arbitrary config value to a record of MCP server entries.
+ * Returns {} for null/invalid input.
+ */
+export declare function normalizeConfiguredMcpServers(value: unknown): ConfigMcpServers;
+/**
+ * List all configured MCP servers from the config file.
+ */
+export declare function listConfiguredMcpServers(): Promise<ConfigMcpReadResult>;
+/**
+ * Set (add or update) a named MCP server entry and persist to disk.
+ */
+export declare function setConfiguredMcpServer(params: {
+    name: string;
+    server: unknown;
+}): Promise<ConfigMcpWriteResult>;
+/**
+ * Remove a named MCP server entry and persist to disk.
+ */
+export declare function unsetConfiguredMcpServer(params: {
+    name: string;
+}): Promise<ConfigMcpWriteResult>;
+export {};
+//# sourceMappingURL=mcp-config.d.ts.map

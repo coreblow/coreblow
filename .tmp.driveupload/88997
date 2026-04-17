@@ -1,0 +1,11 @@
+/**
+ * agents/auth-profiles/order.ts
+ * Auth profile ordering — normalize provider IDs for consistent lookup.
+ */
+export declare function normalizeProviderId(raw: string | undefined): string;
+export declare function compareProfilePriority(a: {
+    priority?: number;
+}, b: {
+    priority?: number;
+}): number;
+//# sourceMappingURL=order.d.ts.map

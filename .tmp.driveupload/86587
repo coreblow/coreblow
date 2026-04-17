@@ -1,0 +1,97 @@
+/**
+ * security/guardrails.ts
+ *
+ * Unified Guardrails Engine — orchestrates all safety checks
+ * (content filter, toxicity, PII, bias) into a single pipeline
+ * with configurable enforcement policies and safety reports.
+ */
+import { ToxicityDetector, type ToxicityResult, type ToxicityConfig } from './toxicity-detector.js';
+import { BiasDetector, type BiasResult, type BiasConfig } from './bias-detector.js';
+import { PIIScanner, type PIIScanResult } from './pii-scanner.js';
+import { ContentFilter, type FilterResult } from './content-filter.js';
+import { SafetyReport, type SafetyReportData } from './safety-report.js';
+/** Guardrails enforcement policy */
+export type EnforcementPolicy = 'strict' | 'standard' | 'permissive' | 'monitor';
+/** Guardrails configuration */
+export interface GuardrailsConfig {
+    policy?: EnforcementPolicy;
+    toxicity?: ToxicityConfig & {
+        enabled?: boolean;
+    };
+    bias?: BiasConfig & {
+        enabled?: boolean;
+    };
+    pii?: {
+        enabled?: boolean;
+        mask?: boolean;
+    };
+    content?: {
+        enabled?: boolean;
+    };
+}
+/** Complete scan result from all guardrails */
+export interface GuardrailsScanResult {
+    safe: boolean;
+    blocked: boolean;
+    policy: EnforcementPolicy;
+    text: string;
+    filteredText?: string;
+    toxicity?: ToxicityResult;
+    bias?: BiasResult;
+    pii?: PIIScanResult;
+    content?: FilterResult;
+    report: SafetyReportData;
+    enforcements: string[];
+}
+/**
+ * CoreBlow Guardrails Engine
+ *
+ * Unified safety pipeline orchestrating toxicity detection,
+ * bias detection, PII scanning, and content filtering with
+ * configurable enforcement policies.
+ */
+export declare class GuardrailsEngine {
+    private toxicity;
+    private bias;
+    private pii;
+    private contentFilter;
+    private safetyReport;
+    private policy;
+    private enabledChecks;
+    private stats;
+    constructor(config?: GuardrailsConfig);
+    /**
+     * Run all guardrails on input text.
+     */
+    scan(text: string): GuardrailsScanResult;
+    /**
+     * Quick safe check — returns just true/false.
+     */
+    isSafe(text: string): boolean;
+    /**
+     * Batch scan multiple texts.
+     */
+    scanBatch(texts: string[]): GuardrailsScanResult[];
+    setPolicy(policy: EnforcementPolicy): void;
+    getPolicy(): EnforcementPolicy;
+    enableCheck(check: 'toxicity' | 'bias' | 'pii' | 'content'): void;
+    disableCheck(check: 'toxicity' | 'bias' | 'pii' | 'content'): void;
+    getEnabledChecks(): Record<string, boolean>;
+    getStats(): {
+        scans: number;
+        blocked: number;
+        warnings: number;
+        blockRate: number;
+        toxicity: ReturnType<ToxicityDetector['getStats']>;
+        bias: ReturnType<BiasDetector['getStats']>;
+        pii: ReturnType<PIIScanner['getStats']>;
+        contentFilter: ReturnType<ContentFilter['getStats']>;
+        safetyReports: ReturnType<SafetyReport['getStats']>;
+    };
+    getRecentReports(limit?: number): SafetyReportData[];
+    getToxicity(): ToxicityDetector;
+    getBias(): BiasDetector;
+    getPII(): PIIScanner;
+    getContentFilter(): ContentFilter;
+}
+//# sourceMappingURL=guardrails.d.ts.map

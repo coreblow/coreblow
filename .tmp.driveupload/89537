@@ -1,0 +1,2 @@
+export function getEffectiveTools(catalog, policy) { return catalog.listEnabled().filter((t) => policy.evaluate(t.name).decision !== 'deny').map((t) => t.name); }
+//# sourceMappingURL=tools-effective-inventory.js.map

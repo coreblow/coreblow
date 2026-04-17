@@ -1,0 +1,17 @@
+/** plugin-sdk/status-helpers.ts [PORT] openclaw-main */
+export type { ChannelAccountSnapshot } from "./core.js";
+export { projectCredentialSnapshotFields, resolveConfiguredFromCredentialStatuses, resolveConfiguredFromRequiredCredentialStatuses, buildTokenChannelStatusSummary, buildComputedAccountStatusSnapshot, } from "./channel-status.js";
+export declare function isRecord(val: unknown): val is Record<string, unknown>;
+export declare function appendMatchMetadata(_result: unknown, _meta: Record<string, unknown>): void;
+export declare function asString(val: unknown): string;
+export declare function collectIssuesForEnabledAccounts(_p: unknown): unknown[];
+export declare function formatMatchMetadata(_meta: Record<string, unknown>): string;
+export declare function resolveEnabledConfiguredAccountId(_accounts: Record<string, unknown>): string | null;
+export declare function buildProbeChannelStatusSummary(_p: unknown): string;
+export declare function collectStatusIssuesFromLastError(_p: unknown): string[];
+export declare function buildBaseAccountStatusSnapshot(params: {
+    accountId: string;
+}): Record<string, unknown>;
+export declare function buildBaseChannelStatusSummary(_p: unknown): string;
+export declare function createDefaultChannelRuntimeState(): Record<string, unknown>;
+//# sourceMappingURL=status-helpers.d.ts.map

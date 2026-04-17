@@ -1,0 +1,9 @@
+export function createSubsystemLogger(name) {
+    return {
+        info: console.info,
+        warn: console.warn,
+        error: console.error,
+        debug: console.debug,
+    };
+}
+//# sourceMappingURL=subsystem.js.map

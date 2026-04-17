@@ -1,0 +1,7 @@
+/** Custom API endpoint registry. */
+const customApis = new Map();
+export function registerCustomApi(name, baseUrl, headers) { customApis.set(name, { baseUrl, headers }); }
+export function getCustomApi(name) { return customApis.get(name); }
+export function listCustomApis() { return [...customApis.keys()]; }
+export function clearCustomApis() { customApis.clear(); }
+//# sourceMappingURL=custom-api-registry.js.map

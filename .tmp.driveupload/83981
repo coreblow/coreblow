@@ -1,0 +1,6 @@
+/** plugin-sdk/opencode-go.ts [ADAPT] openclaw-main */
+export const OPENCODE_GO_DEFAULT_MODEL_REF = "opencode-go:opencode-go";
+export function applyOpencodeGoConfig(cfg) { return cfg; }
+export function applyOpencodeGoModelDefault(cfg) { return cfg; }
+export function applyOpencodeGoProviderConfig(cfg) { return cfg; }
+//# sourceMappingURL=opencode-go.js.map

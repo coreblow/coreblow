@@ -1,0 +1,6 @@
+export function createReplyHistory(maxEntries = 100) {
+    const entries = [];
+    return { push: (e) => { entries.push(e); if (entries.length > maxEntries)
+            entries.shift(); }, list: () => [...entries] };
+}
+//# sourceMappingURL=reply-history.js.map

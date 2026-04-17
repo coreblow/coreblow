@@ -1,0 +1,31 @@
+/** plugin-sdk/routing.ts [ADAPT] openclaw-main */
+export { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "./account-id.js";
+export function buildAgentSessionKey(params) {
+    return [params.agentId, params.channel, params.accountId, params.userId].filter(Boolean).join(":");
+}
+export function buildAgentMainSessionKey(params) {
+    return [params.agentId, params.channel, params.accountId].filter(Boolean).join(":");
+}
+export const DEFAULT_MAIN_KEY = "main";
+export function normalizeAgentId(id) { return id.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "_"); }
+export function normalizeMainKey(key) { return key.trim() || DEFAULT_MAIN_KEY; }
+export function normalizeOptionalAccountId(id) { return id?.trim() || null; }
+export function sanitizeAgentId(id) { return normalizeAgentId(id); }
+export function parseAgentSessionKey(key) {
+    const [agentId, channel, accountId, userId] = key.split(":");
+    return { agentId: agentId ?? "", channel, accountId, userId };
+}
+export function resolveAgentIdFromSessionKey(key) { return parseAgentSessionKey(key).agentId; }
+export function isCronSessionKey(key) { return key.includes(":cron:"); }
+export function isSubagentSessionKey(key) { return key.includes(":sub:"); }
+export function buildGroupHistoryKey(params) { return `${params.sessionKey}:history`; }
+export function resolveThreadSessionKeys(sessionKey) { return [sessionKey]; }
+export async function resolveAgentRoute(_p) { return null; }
+export function deriveLastRoutePolicy(_p) { return "none"; }
+export function resolveInboundLastRouteSessionKey(_p) { return null; }
+export function resolveAccountEntry(_p) { return null; }
+export function listBoundAccountIds(_p) { return []; }
+export function resolveDefaultAgentBoundAccountId(_p) { return null; }
+export function formatSetExplicitDefaultInstruction(_p) { return ""; }
+export function formatSetExplicitDefaultToConfiguredInstruction(_p) { return ""; }
+//# sourceMappingURL=routing.js.map

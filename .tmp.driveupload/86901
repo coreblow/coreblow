@@ -1,0 +1,10 @@
+/**
+ * agents/tool-display.ts
+ * Format tool calls/results for display.
+ */
+export declare function formatToolCall(name: string, args: Record<string, unknown>): string;
+export declare function formatToolResult(name: string, result: string, maxLen?: number): string;
+export declare function formatToolCallBrief(name: string): string;
+export declare function formatToolError(name: string, error: string): string;
+export declare function formatToolCallId(id: string): string;
+//# sourceMappingURL=tool-display.d.ts.map

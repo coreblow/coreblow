@@ -1,0 +1,10 @@
+/**
+ * infra/scheduler/task-scheduler.ts
+ */
+export declare class TaskScheduler {
+    private tasks;
+    add(id: string, fn: () => Promise<void>, intervalMs: number): void;
+    start(id: string): void;
+    stop(id: string): void;
+}
+//# sourceMappingURL=task-scheduler.d.ts.map

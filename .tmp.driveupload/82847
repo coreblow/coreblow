@@ -1,0 +1,18 @@
+/**
+ * auto-reply/command-detection.ts
+ * Detect slash commands & keywords in inbound messages.
+ */
+import type { InboundMessage, ReplyTrigger } from './types.js';
+/** Check if a message matches any configured trigger. */
+export declare function matchTrigger(msg: InboundMessage, triggers: ReplyTrigger[]): ReplyTrigger | null;
+/** Check if message starts with a slash command. */
+export declare function isSlashCommand(content: string): boolean;
+/** Parse slash command from message text. */
+export declare function parseSlashCommand(content: string): {
+    command: string;
+    args: string[];
+    raw: string;
+} | null;
+/** Strip bot mention from message content. */
+export declare function stripBotMention(content: string): string;
+//# sourceMappingURL=command-detection.d.ts.map

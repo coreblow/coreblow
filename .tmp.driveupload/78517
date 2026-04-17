@@ -1,0 +1,1 @@
+{"version":3,"file":"arg-split.d.ts","sourceRoot":"","sources":["../../src/daemon/arg-split.ts"],"names":[],"mappings":"AAAA;;;;GAIG;AAEH,MAAM,MAAM,kBAAkB,GAAG,MAAM,GAAG,WAAW,GAAG,sBAAsB,CAAC;AAE/E,wBAAgB,yBAAyB,CACrC,KAAK,EAAE,MAAM,EACb,OAAO,CAAC,EAAE;IAAE,UAAU,CAAC,EAAE,kBAAkB,CAAA;CAAE,GAC9C,MAAM,EAAE,CA0CV"}

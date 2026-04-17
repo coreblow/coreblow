@@ -1,0 +1,10 @@
+/** Exec runtime environment detection. */
+export function detectRuntime() {
+    if (typeof process !== 'undefined' && process.versions?.bun)
+        return 'bun';
+    if (typeof process !== 'undefined' && process.versions?.node)
+        return 'node';
+    return 'unknown';
+}
+export function getRuntimeVersion() { return process.version ?? 'unknown'; }
+//# sourceMappingURL=bash-tools.exec-runtime.js.map

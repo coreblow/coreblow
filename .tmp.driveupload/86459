@@ -1,0 +1,175 @@
+/**
+ * src/tui/renderer.ts
+ * ANSI Terminal Renderer — zero dependencies, pure Node.js
+ * Handles colors, box drawing, positioning, and screen management
+ */
+// ANSI escape codes
+const ESC = '\x1b';
+const CSI = `${ESC}[`;
+export const colors = {
+    reset: `${CSI}0m`,
+    bold: `${CSI}1m`,
+    dim: `${CSI}2m`,
+    italic: `${CSI}3m`,
+    underline: `${CSI}4m`,
+    blink: `${CSI}5m`,
+    inverse: `${CSI}7m`,
+    hidden: `${CSI}8m`,
+    strikethrough: `${CSI}9m`,
+    // Foreground
+    black: `${CSI}30m`,
+    red: `${CSI}31m`,
+    green: `${CSI}32m`,
+    yellow: `${CSI}33m`,
+    blue: `${CSI}34m`,
+    magenta: `${CSI}35m`,
+    cyan: `${CSI}36m`,
+    white: `${CSI}37m`,
+    gray: `${CSI}90m`,
+    // Bright foreground
+    brightRed: `${CSI}91m`,
+    brightGreen: `${CSI}92m`,
+    brightYellow: `${CSI}93m`,
+    brightBlue: `${CSI}94m`,
+    brightMagenta: `${CSI}95m`,
+    brightCyan: `${CSI}96m`,
+    brightWhite: `${CSI}97m`,
+    // Background
+    bgBlack: `${CSI}40m`,
+    bgRed: `${CSI}41m`,
+    bgGreen: `${CSI}42m`,
+    bgYellow: `${CSI}43m`,
+    bgBlue: `${CSI}44m`,
+    bgMagenta: `${CSI}45m`,
+    bgCyan: `${CSI}46m`,
+    bgWhite: `${CSI}47m`,
+    bgGray: `${CSI}100m`,
+    bgBrightBlue: `${CSI}104m`,
+    // 256-color
+    fg256: (n) => `${CSI}38;5;${n}m`,
+    bg256: (n) => `${CSI}48;5;${n}m`,
+    // RGB
+    fgRgb: (r, g, b) => `${CSI}38;2;${r};${g};${b}m`,
+    bgRgb: (r, g, b) => `${CSI}48;2;${r};${g};${b}m`,
+};
+// Box drawing characters (Unicode)
+export const box = {
+    topLeft: '╔', topRight: '╗', bottomLeft: '╚', bottomRight: '╝',
+    horizontal: '═', vertical: '║',
+    teeRight: '╠', teeLeft: '╣', teeDown: '╦', teeUp: '╩', cross: '╬',
+    // Thin
+    thinTopLeft: '┌', thinTopRight: '┐', thinBottomLeft: '└', thinBottomRight: '┘',
+    thinHorizontal: '─', thinVertical: '│',
+    thinTeeRight: '├', thinTeeLeft: '┤', thinTeeDown: '┬', thinTeeUp: '┴',
+    // Rounded
+    roundTopLeft: '╭', roundTopRight: '╮', roundBottomLeft: '╰', roundBottomRight: '╯',
+};
+export const symbols = {
+    check: '✓', cross: '✗', dot: '●', circle: '○',
+    arrow: '→', arrowLeft: '←', arrowUp: '↑', arrowDown: '↓',
+    star: '★', heart: '♥', diamond: '◆', square: '■',
+    play: '▶', pause: '⏸', stop: '⏹',
+    online: '🟢', offline: '🔴', warning: '🟡', loading: '⟳',
+};
+export class TerminalRenderer {
+    buffer = [];
+    width;
+    height;
+    constructor() {
+        this.width = process.stdout.columns || 80;
+        this.height = process.stdout.rows || 24;
+        process.stdout.on('resize', () => {
+            this.width = process.stdout.columns || 80;
+            this.height = process.stdout.rows || 24;
+        });
+    }
+    // Screen control
+    clear() { this.write(`${CSI}2J${CSI}H`); }
+    clearLine() { this.write(`${CSI}2K`); }
+    hideCursor() { this.write(`${CSI}?25l`); }
+    showCursor() { this.write(`${CSI}?25h`); }
+    moveTo(x, y) { this.write(`${CSI}${y};${x}H`); }
+    enterAltScreen() { this.write(`${CSI}?1049h`); }
+    exitAltScreen() { this.write(`${CSI}?1049l`); }
+    write(s) { process.stdout.write(s); }
+    // Draw a box with title
+    drawBox(x, y, w, h, title, style = 'thin') {
+        const chars = style === 'double' ? {
+            tl: box.topLeft, tr: box.topRight, bl: box.bottomLeft, br: box.bottomRight,
+            h: box.horizontal, v: box.vertical,
+        } : style === 'round' ? {
+            tl: box.roundTopLeft, tr: box.roundTopRight, bl: box.roundBottomLeft, br: box.roundBottomRight,
+            h: box.thinHorizontal, v: box.thinVertical,
+        } : {
+            tl: box.thinTopLeft, tr: box.thinTopRight, bl: box.thinBottomLeft, br: box.thinBottomRight,
+            h: box.thinHorizontal, v: box.thinVertical,
+        };
+        // Top border
+        this.moveTo(x, y);
+        let top = chars.tl + chars.h.repeat(w - 2) + chars.tr;
+        if (title) {
+            const titleStr = ` ${title} `;
+            const pos = 2;
+            top = chars.tl + chars.h.repeat(pos) + `${colors.bold}${colors.brightCyan}${titleStr}${colors.reset}${colors.fg256(240)}` + chars.h.repeat(Math.max(0, w - pos - titleStr.length - 2)) + chars.tr;
+        }
+        this.write(`${colors.fg256(240)}${top}`);
+        // Sides
+        for (let i = 1; i < h - 1; i++) {
+            this.moveTo(x, y + i);
+            this.write(`${colors.fg256(240)}${chars.v}${' '.repeat(w - 2)}${chars.v}`);
+        }
+        // Bottom
+        this.moveTo(x, y + h - 1);
+        this.write(`${colors.fg256(240)}${chars.bl}${chars.h.repeat(w - 2)}${chars.br}${colors.reset}`);
+    }
+    // Write text at position
+    writeAt(x, y, text) {
+        this.moveTo(x, y);
+        this.write(text);
+    }
+    // Draw a horizontal line
+    drawHLine(x, y, w, char = box.thinHorizontal) {
+        this.moveTo(x, y);
+        this.write(`${colors.fg256(240)}${char.repeat(w)}${colors.reset}`);
+    }
+    // Draw a progress bar
+    drawProgressBar(x, y, w, value, max, color = colors.brightGreen) {
+        const pct = Math.min(1, value / max);
+        const filled = Math.round((w - 2) * pct);
+        const empty = w - 2 - filled;
+        const bar = `${colors.fg256(240)}[${color}${'█'.repeat(filled)}${colors.fg256(237)}${'░'.repeat(empty)}${colors.fg256(240)}]${colors.reset}`;
+        this.writeAt(x, y, bar);
+    }
+    // Draw a sparkline
+    drawSparkline(x, y, data, w, color = colors.brightCyan) {
+        const chars = '▁▂▃▄▅▆▇█';
+        const max = Math.max(...data, 1);
+        const line = data.slice(-w).map(v => {
+            const idx = Math.round((v / max) * (chars.length - 1));
+            return chars[idx];
+        }).join('');
+        this.writeAt(x, y, `${color}${line}${colors.reset}`);
+    }
+    // Format status indicator
+    statusIndicator(online) {
+        return online ? `${colors.brightGreen}●${colors.reset}` : `${colors.red}●${colors.reset}`;
+    }
+    // Pad/truncate string
+    pad(str, len, align = 'left') {
+        // Strip ANSI for length calculation
+        const stripped = str.replace(/\x1b\[[0-9;]*m/g, '');
+        const diff = len - stripped.length;
+        if (diff <= 0)
+            return str.substring(0, len);
+        if (align === 'right')
+            return ' '.repeat(diff) + str;
+        if (align === 'center')
+            return ' '.repeat(Math.floor(diff / 2)) + str + ' '.repeat(Math.ceil(diff / 2));
+        return str + ' '.repeat(diff);
+    }
+    // Flush
+    flush() {
+        // All writes go directly to stdout
+    }
+}
+//# sourceMappingURL=renderer.js.map

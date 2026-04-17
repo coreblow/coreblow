@@ -1,0 +1,7 @@
+export declare class ImageGenerationRegistry {
+    private providers;
+    register(name: string, provider: unknown): void;
+    get(name: string): unknown;
+    list(): string[];
+}
+//# sourceMappingURL=provider-registry.d.ts.map

@@ -1,0 +1,95 @@
+/**
+ * CoreBlow — Matrix Channel Adapter
+ *
+ * Production adapter for Matrix protocol (Element/Synapse compatible).
+ * Handles room management, messaging, events, and sync.
+ * Uses raw Client-Server REST API — zero SDK dependency.
+ */
+/** Matrix homeserver configuration */
+export interface MatrixConfig {
+    homeserverUrl: string;
+    userId: string;
+    accessToken: string;
+    deviceId?: string;
+    autoJoinInvites?: boolean;
+    syncTimeoutMs?: number;
+    filterRooms?: string[];
+}
+/** Matrix room event */
+export interface MatrixEvent {
+    type: string;
+    eventId: string;
+    roomId: string;
+    sender: string;
+    content: Record<string, unknown>;
+    originServerTs: number;
+    unsigned?: Record<string, unknown>;
+}
+/** Matrix room */
+export interface MatrixRoom {
+    roomId: string;
+    name?: string;
+    topic?: string;
+    memberCount?: number;
+    joined: boolean;
+}
+/** Matrix message handler */
+export type MatrixMessageHandler = (event: {
+    roomId: string;
+    sender: string;
+    body: string;
+    eventId: string;
+    formatted?: string;
+    raw: MatrixEvent;
+}) => Promise<string | void>;
+/**
+ * CoreBlow Matrix Adapter
+ *
+ * Communicates with Matrix homeserver via Client-Server API.
+ * Supports long-poll sync for real-time events.
+ */
+export declare class MatrixAdapter {
+    private config;
+    private messageHandler;
+    private running;
+    private syncToken;
+    private syncAbort;
+    private joinedRooms;
+    constructor(config: MatrixConfig);
+    onMessage(handler: MatrixMessageHandler): void;
+    /** Connect and start syncing */
+    connect(): Promise<void>;
+    /** Disconnect and stop syncing */
+    disconnect(): Promise<void>;
+    /** Send a text message to a room */
+    sendMessage(roomId: string, text: string): Promise<string>;
+    /** Send a formatted (HTML) message */
+    sendFormattedMessage(roomId: string, text: string, html: string): Promise<string>;
+    /** Send a notice (non-highlighted message) */
+    sendNotice(roomId: string, text: string): Promise<string>;
+    /** Join a room by ID or alias */
+    joinRoom(roomIdOrAlias: string): Promise<string>;
+    /** Leave a room */
+    leaveRoom(roomId: string): Promise<void>;
+    /** Set room topic */
+    setRoomTopic(roomId: string, topic: string): Promise<void>;
+    /** Get room members */
+    getRoomMembers(roomId: string): Promise<Array<{
+        userId: string;
+        displayName?: string;
+    }>>;
+    /** Set typing indicator */
+    setTyping(roomId: string, typing: boolean, timeoutMs?: number): Promise<void>;
+    /** Get adapter status */
+    getStatus(): {
+        running: boolean;
+        homeserver: string;
+        rooms: number;
+        userId: string;
+    };
+    listJoinedRooms(): string[];
+    private startSyncLoop;
+    private handleEvent;
+    private api;
+}
+//# sourceMappingURL=matrix-adapter.d.ts.map

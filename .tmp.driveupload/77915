@@ -1,0 +1,74 @@
+/**
+ * CoreBlow — Provider Usage Tracker
+ *
+ * Tracks AI model usage across all providers: token counts,
+ * request counts, costs, latency, and error rates.
+ * Provides per-model, per-provider, and aggregate statistics.
+ */
+/** Single request usage record */
+export interface UsageRecord {
+    provider: string;
+    model: string;
+    inputTokens: number;
+    outputTokens: number;
+    totalTokens: number;
+    cacheReadTokens?: number;
+    cacheWriteTokens?: number;
+    latencyMs: number;
+    success: boolean;
+    timestamp: number;
+    estimatedCostUsd?: number;
+}
+/** Aggregate stats */
+export interface UsageStats {
+    totalRequests: number;
+    totalTokens: number;
+    totalInputTokens: number;
+    totalOutputTokens: number;
+    totalCacheTokens: number;
+    totalCostUsd: number;
+    avgLatencyMs: number;
+    errorCount: number;
+    errorRate: number;
+}
+/**
+ * CoreBlow Usage Tracker
+ */
+export declare class UsageTracker {
+    private records;
+    private maxRecords;
+    /**
+     * Record a usage event.
+     */
+    record(usage: Omit<UsageRecord, 'timestamp' | 'estimatedCostUsd'>): UsageRecord;
+    /**
+     * Get aggregate stats.
+     */
+    getStats(filter?: {
+        provider?: string;
+        model?: string;
+        since?: number;
+    }): UsageStats;
+    /**
+     * Get per-model breakdown.
+     */
+    getModelBreakdown(): Array<{
+        model: string;
+        provider: string;
+    } & UsageStats>;
+    /**
+     * Get total estimated cost.
+     */
+    getTotalCost(since?: number): number;
+    /**
+     * Get recent records.
+     */
+    getRecent(limit?: number): UsageRecord[];
+    /**
+     * Reset all records.
+     */
+    reset(): void;
+    private estimateCost;
+    private computeStats;
+}
+//# sourceMappingURL=provider-usage.d.ts.map

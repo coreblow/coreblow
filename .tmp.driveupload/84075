@@ -1,0 +1,7 @@
+export async function textToSpeech(_params) {
+    throw new Error("textToSpeech requires @coreblow/openai TTS or compatible provider");
+}
+export async function speechToText(_data, _params) {
+    throw new Error("speechToText requires @coreblow/openai Whisper or compatible provider");
+}
+//# sourceMappingURL=speech-core.js.map

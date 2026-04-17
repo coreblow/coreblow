@@ -1,0 +1,62 @@
+/**
+ * CoreBlow — Metric Aggregator
+ *
+ * In-memory aggregation engine for metrics (Counters, Gauges).
+ * Fast, synchronous, and thread-safe for Node.js event loop.
+ */
+/**
+ * CoreBlow Metric Aggregator
+ */
+export class MetricAggregator {
+    counters = new Map();
+    gauges = new Map();
+    /**
+     * Increment a counter. Defaults to increment by 1.
+     */
+    increment(key, value = 1) {
+        const current = this.counters.get(key) ?? 0;
+        this.counters.set(key, current + value);
+    }
+    /**
+     * Decrement a counter.
+     */
+    decrement(key, value = 1) {
+        this.increment(key, -value);
+    }
+    /**
+     * Set a gauge to a specific value.
+     * Gauges represent a value that can go up and down (like memory).
+     */
+    setGauge(key, value) {
+        this.gauges.set(key, value);
+    }
+    /**
+     * Get the current value of a counter.
+     */
+    getCounter(key) {
+        return this.counters.get(key) ?? 0;
+    }
+    /**
+     * Get the current value of a gauge.
+     */
+    getGauge(key) {
+        return this.gauges.get(key) ?? 0;
+    }
+    /**
+     * Returns a point-in-time snapshot of all metrics.
+     */
+    getSnapshot() {
+        return {
+            counters: Object.fromEntries(this.counters),
+            gauges: Object.fromEntries(this.gauges)
+        };
+    }
+    /**
+     * Clear all accrued metrics.
+     */
+    clear() {
+        this.counters.clear();
+        this.gauges.clear();
+    }
+}
+//# sourceMappingURL=metric-aggregator.js.map

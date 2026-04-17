@@ -1,0 +1,167 @@
+/**
+ * CoreBlow Subagent Control Engine
+ *
+ * Manages subagent lifecycle: spawn, communicate, monitor, and terminate.
+ * Supports parallel execution, result aggregation, resource budgeting,
+ * and fault isolation.
+ *
+ * Equivalent: CoreBlow src/agents/subagent-control.ts (995 LOC)
+ */
+import { EventEmitter } from 'node:events';
+export type SubagentStatus = 'idle' | 'starting' | 'running' | 'waiting' | 'complete' | 'error' | 'timeout' | 'cancelled';
+export interface SubagentConfig {
+    id: string;
+    name: string;
+    parentSessionId: string;
+    model?: string;
+    systemPrompt?: string;
+    tools?: string[];
+    maxTurns?: number;
+    maxTokens?: number;
+    timeoutMs?: number;
+    metadata?: Record<string, unknown>;
+}
+export interface SubagentInstance {
+    config: SubagentConfig;
+    status: SubagentStatus;
+    startedAt?: number;
+    completedAt?: number;
+    turns: number;
+    tokensUsed: number;
+    messages: SubagentMessage[];
+    result?: SubagentResult;
+    error?: string;
+}
+export interface SubagentMessage {
+    role: 'user' | 'assistant' | 'system' | 'tool';
+    content: string;
+    timestamp: number;
+    toolCalls?: Array<{
+        id: string;
+        name: string;
+        arguments: string;
+    }>;
+    toolCallId?: string;
+}
+export interface SubagentResult {
+    success: boolean;
+    output: string;
+    summary?: string;
+    artifacts?: Array<{
+        name: string;
+        content: string;
+        type: string;
+    }>;
+    tokensUsed: number;
+    turns: number;
+    durationMs: number;
+}
+export interface SubagentGroupResult {
+    all: SubagentResult[];
+    successful: SubagentResult[];
+    failed: Array<{
+        id: string;
+        error: string;
+    }>;
+    totalTokensUsed: number;
+    totalDurationMs: number;
+}
+export interface ResourceBudget {
+    maxConcurrent: number;
+    maxTotalTokens: number;
+    maxDurationMs: number;
+    tokensUsed: number;
+    startedAt: number;
+}
+/**
+ * Spawn a new subagent
+ */
+export declare function spawnSubagent(config: SubagentConfig): SubagentInstance;
+/**
+ * Get a subagent instance
+ */
+export declare function getSubagent(id: string): SubagentInstance | undefined;
+/**
+ * List all subagents for a session
+ */
+export declare function listSubagents(parentSessionId?: string): SubagentInstance[];
+/**
+ * Send a message to a subagent
+ */
+export declare function sendMessage(id: string, message: SubagentMessage): boolean;
+/**
+ * Mark a subagent as complete with result
+ */
+export declare function completeSubagent(id: string, result: SubagentResult): void;
+/**
+ * Mark a subagent as failed
+ */
+export declare function failSubagent(id: string, error: string): void;
+/**
+ * Cancel a subagent
+ */
+export declare function cancelSubagent(id: string, reason?: string): boolean;
+/**
+ * Remove a subagent from registry
+ */
+export declare function removeSubagent(id: string): boolean;
+/**
+ * Clear all subagents for a session
+ */
+export declare function clearSessionSubagents(parentSessionId: string): number;
+/**
+ * Clear all subagents
+ */
+export declare function clearAllSubagents(): void;
+/**
+ * Spawn multiple subagents and run them in parallel
+ */
+export declare function spawnParallel(configs: SubagentConfig[], executor: (instance: SubagentInstance) => Promise<SubagentResult>, options?: {
+    maxConcurrent?: number;
+}): Promise<SubagentGroupResult>;
+/**
+ * Spawn a sequential chain of subagents (output of one feeds into next)
+ */
+export declare function spawnChain(configs: SubagentConfig[], executor: (instance: SubagentInstance, previousResult?: SubagentResult) => Promise<SubagentResult>): Promise<SubagentGroupResult>;
+/**
+ * Create a resource budget for a session's subagents
+ */
+export declare function createBudget(sessionId: string, options?: {
+    maxConcurrent?: number;
+    maxTotalTokens?: number;
+    maxDurationMs?: number;
+}): ResourceBudget;
+/**
+ * Check if budget allows spawning more subagents
+ */
+export declare function canSpawnWithinBudget(sessionId: string): {
+    allowed: boolean;
+    reason?: string;
+};
+/**
+ * Get budget status
+ */
+export declare function getBudgetStatus(sessionId: string): ResourceBudget | undefined;
+/**
+ * Check for timed-out subagents
+ */
+export declare function checkTimeouts(): SubagentInstance[];
+/**
+ * Get summary stats for monitoring
+ */
+export declare function getSubagentStats(parentSessionId?: string): {
+    total: number;
+    byStatus: Record<SubagentStatus, number>;
+    totalTokensUsed: number;
+    avgDurationMs: number;
+};
+export declare const subagentBus: EventEmitter<[never]>;
+/**
+ * Emit a subagent event
+ */
+export declare function emitSubagentEvent(event: string, data: Record<string, unknown>): void;
+/**
+ * Listen for subagent events
+ */
+export declare function onSubagentEvent(event: string, handler: (data: Record<string, unknown>) => void): void;
+//# sourceMappingURL=subagent-control.d.ts.map

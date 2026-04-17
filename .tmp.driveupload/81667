@@ -1,0 +1,64 @@
+import { ADMIN_SCOPE, APPROVALS_SCOPE, PAIRING_SCOPE, READ_SCOPE, WRITE_SCOPE, } from "./method-scopes.js";
+const EVENT_SCOPE_GUARDS = {
+    "exec.approval.requested": [APPROVALS_SCOPE],
+    "exec.approval.resolved": [APPROVALS_SCOPE],
+    "plugin.approval.requested": [APPROVALS_SCOPE],
+    "plugin.approval.resolved": [APPROVALS_SCOPE],
+    "device.pair.requested": [PAIRING_SCOPE],
+    "device.pair.resolved": [PAIRING_SCOPE],
+    "node.pair.requested": [PAIRING_SCOPE],
+    "node.pair.resolved": [PAIRING_SCOPE],
+    "sessions.changed": [READ_SCOPE],
+    "session.message": [READ_SCOPE],
+    "session.tool": [READ_SCOPE],
+};
+function hasEventScope(client, event) {
+    const required = EVENT_SCOPE_GUARDS[event];
+    if (!required) {
+        return true;
+    }
+    const role = client.connect.role ?? "operator";
+    if (role !== "operator") {
+        return false;
+    }
+    const scopes = Array.isArray(client.connect.scopes) ? client.connect.scopes : [];
+    if (scopes.includes(ADMIN_SCOPE)) {
+        return true;
+    }
+    if (required.includes(READ_SCOPE)) {
+        return scopes.includes(READ_SCOPE) || scopes.includes(WRITE_SCOPE);
+    }
+    return required.some((scope) => scopes.includes(scope));
+}
+export function createGatewayBroadcaster(params) {
+    let seq = 0;
+    const broadcastInternal = (event, payload, opts, targetConnIds) => {
+        const isTargeted = Boolean(targetConnIds);
+        const eventSeq = isTargeted ? undefined : ++seq;
+        const frame = JSON.stringify({
+            type: "event",
+            event,
+            payload,
+            seq: eventSeq,
+            stateVersion: opts?.stateVersion,
+        });
+        for (const c of params.getClients()) {
+            if (targetConnIds && !targetConnIds.has(c.connId)) {
+                continue;
+            }
+            if (!hasEventScope(c, event)) {
+                continue;
+            }
+            c.sendEvent(frame, opts?.dropIfSlow);
+        }
+    };
+    const broadcast = (event, payload, opts) => broadcastInternal(event, payload, opts);
+    const broadcastToConnIds = (event, payload, connIds, opts) => {
+        if (connIds.size === 0) {
+            return;
+        }
+        broadcastInternal(event, payload, opts, connIds);
+    };
+    return { broadcast, broadcastToConnIds };
+}
+//# sourceMappingURL=server-broadcast.js.map

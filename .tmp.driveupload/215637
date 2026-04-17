@@ -1,0 +1,215 @@
+{
+  "lastValidatedTimestamp": 1776172675804,
+  "projects": {
+    "/Users/febrinanda/coreblow.com": {
+      "name": "@coreblow/coreblow",
+      "version": "1.0.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/acpx": {
+      "name": "@coreblow/ext-acpx",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/bluebubbles": {
+      "name": "@coreblow/ext-bluebubbles",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/copilot-proxy": {
+      "name": "@coreblow/ext-copilot-proxy",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/device-pair": {
+      "name": "@coreblow/ext-device-pair",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/diagnostics-otel": {
+      "name": "@coreblow/ext-diagnostics-otel",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/diffs": {
+      "name": "@coreblow/ext-diffs",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/discord": {
+      "name": "@coreblow/ext-discord",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/feishu": {
+      "name": "@coreblow/ext-feishu",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/google-gemini-cli-auth": {
+      "name": "@coreblow/ext-google-gemini-cli-auth",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/googlechat": {
+      "name": "@coreblow/ext-googlechat",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/imessage": {
+      "name": "@coreblow/ext-imessage",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/irc": {
+      "name": "@coreblow/ext-irc",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/line": {
+      "name": "@coreblow/ext-line",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/llm-task": {
+      "name": "@coreblow/ext-llm-task",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/lobster": {
+      "name": "@coreblow/ext-lobster",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/matrix": {
+      "name": "@coreblow/ext-matrix",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/mattermost": {
+      "name": "@coreblow/ext-mattermost",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/memory-core": {
+      "name": "@coreblow/ext-memory-core",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/memory-lancedb": {
+      "name": "@coreblow/ext-memory-lancedb",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/minimax-portal-auth": {
+      "name": "@coreblow/ext-minimax-portal-auth",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/msteams": {
+      "name": "@coreblow/ext-msteams",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/nextcloud-talk": {
+      "name": "@coreblow/ext-nextcloud-talk",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/nostr": {
+      "name": "@coreblow/ext-nostr",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/open-prose": {
+      "name": "@coreblow/ext-open-prose",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/phone-control": {
+      "name": "@coreblow/ext-phone-control",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/qwen-portal-auth": {
+      "name": "@coreblow/ext-qwen-portal-auth",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/shared": {
+      "name": "@coreblow/ext-shared",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/signal": {
+      "name": "@coreblow/ext-signal",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/slack": {
+      "name": "@coreblow/ext-slack",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/synology-chat": {
+      "name": "@coreblow/ext-synology-chat",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/talk-voice": {
+      "name": "@coreblow/ext-talk-voice",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/telegram": {
+      "name": "@coreblow/ext-telegram",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/test-utils": {
+      "name": "@coreblow/ext-test-utils",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/thread-ownership": {
+      "name": "@coreblow/ext-thread-ownership",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/tlon": {
+      "name": "@coreblow/ext-tlon",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/twitch": {
+      "name": "@coreblow/ext-twitch",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/voice-call": {
+      "name": "@coreblow/ext-voice-call",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/whatsapp": {
+      "name": "@coreblow/ext-whatsapp",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/zalo": {
+      "name": "@coreblow/ext-zalo",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/extensions/zalouser": {
+      "name": "@coreblow/ext-zalouser",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/gateway": {
+      "name": "coreblow",
+      "version": "1.0.0"
+    },
+    "/Users/febrinanda/coreblow.com/packages/corebot": {
+      "name": "@coreblow/corebot",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/packages/gateway-sdk": {
+      "name": "@coreblow/gateway-sdk",
+      "version": "0.1.0"
+    },
+    "/Users/febrinanda/coreblow.com/ui": {
+      "name": "coreblow-control-ui"
+    }
+  },
+  "pnpmfiles": [],
+  "settings": {
+    "autoInstallPeers": true,
+    "catalogs": {},
+    "dedupeDirectDeps": false,
+    "dedupeInjectedDeps": true,
+    "dedupePeerDependents": true,
+    "dev": true,
+    "excludeLinksFromLockfile": false,
+    "hoistPattern": [
+      "*"
+    ],
+    "hoistWorkspacePackages": true,
+    "injectWorkspacePackages": false,
+    "linkWorkspacePackages": false,
+    "nodeLinker": "isolated",
+    "optional": true,
+    "preferWorkspacePackages": false,
+    "production": true,
+    "publicHoistPattern": [
+      "*"
+    ],
+    "workspacePackagePatterns": [
+      "gateway",
+      "packages/*",
+      "extensions/*",
+      "ui",
+      "apps/*"
+    ]
+  },
+  "filteredInstall": true
+}

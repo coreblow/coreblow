@@ -1,0 +1,15 @@
+/**
+ * plugin-sdk/whatsapp-surface.ts
+ * [ADAPT] openclaw-main — Stub surface for @coreblow/whatsapp.
+ */
+export const DEFAULT_WEB_MEDIA_BYTES = 64 * 1024 * 1024; // 64MB
+export function hasAnyWhatsAppAuth(_cfg) { return false; }
+export function listEnabledWhatsAppAccounts(_cfg) { return []; }
+export async function resolveWhatsAppAccount(_p) { return null; }
+export function resolveWhatsAppGroupRequireMention(_p) { return false; }
+export function resolveWhatsAppGroupToolPolicy(_p) { return "none"; }
+export function resolveWhatsAppOutboundTarget(_p) { return null; }
+export function listWhatsAppDirectoryGroupsFromConfig(_p) { return []; }
+export function listWhatsAppDirectoryPeersFromConfig(_p) { return []; }
+export const whatsappAccessControlTesting = {};
+//# sourceMappingURL=whatsapp-surface.js.map

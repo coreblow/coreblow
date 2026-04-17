@@ -1,0 +1,19 @@
+/**
+ * src/channels/discord/handlers/button.ts
+ * Button click handler including pagination
+ */
+import { MessageRouter } from '../../../gateway/router.js';
+import type { ChannelStats } from '../types.js';
+import type { DiscordInteraction, PaginationState } from '../types-sdk.js';
+export declare function handleButton(interaction: DiscordInteraction & {
+    update?: (payload: unknown) => Promise<void>;
+    channel?: {
+        id: string;
+    };
+    user: {
+        id: string;
+        displayName?: string;
+        username?: string;
+    };
+}, router: MessageRouter, stats: ChannelStats, paginationState: Map<string, PaginationState>): Promise<void>;
+//# sourceMappingURL=button.d.ts.map

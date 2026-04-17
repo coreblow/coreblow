@@ -1,0 +1,3 @@
+/** Model auth from environment variables. */
+export declare function resolveApiKeyFromEnv(provider: string): string | undefined;
+//# sourceMappingURL=model-auth-env.d.ts.map

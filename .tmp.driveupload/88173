@@ -1,0 +1,20 @@
+export interface ExecOptions {
+    command: string;
+    cwd?: string;
+    env?: Record<string, string>;
+    timeout?: number;
+    maxOutputChars?: number;
+    background?: boolean;
+    stdin?: string;
+}
+export interface ExecResult {
+    exitCode: number | null;
+    stdout: string;
+    stderr: string;
+    duration: number;
+    truncated: boolean;
+    sessionId?: string;
+}
+export declare function execCommand(opts: ExecOptions): Promise<ExecResult>;
+export declare function buildExecToolSchema(): Record<string, unknown>;
+//# sourceMappingURL=bash-tools.d.ts.map

@@ -1,0 +1,6 @@
+/**
+ * utils/debounce.ts
+ */
+export declare function debounce<T extends (...args: unknown[]) => any>(fn: T, ms: number): T;
+export declare function throttle<T extends (...args: unknown[]) => any>(fn: T, ms: number): T;
+//# sourceMappingURL=debounce.d.ts.map

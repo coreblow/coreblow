@@ -1,0 +1,11 @@
+export interface BashExecOptions {
+    timeout?: number;
+    cwd?: string;
+    env?: Record<string, string>;
+}
+export declare function bashExecRuntime(cmd: string, opts?: BashExecOptions): Promise<{
+    stdout: string;
+    stderr: string;
+    exitCode: number;
+}>;
+//# sourceMappingURL=bash-tools-exec-runtime.d.ts.map

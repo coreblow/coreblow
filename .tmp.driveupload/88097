@@ -1,0 +1,1 @@
+{"version":3,"file":"openai-ws-message-conversion.d.ts","sourceRoot":"","sources":["../../src/agents/openai-ws-message-conversion.ts"],"names":[],"mappings":"AAAA,2CAA2C;AAC3C,wBAAgB,uBAAuB,CAAC,GAAG,EAAE,MAAM,CAAC,MAAM,EAAE,OAAO,CAAC,GAAG;IAAE,IAAI,EAAE,MAAM,CAAC;IAAC,OAAO,CAAC,EAAE,MAAM,CAAA;CAAE,CAKxG"}

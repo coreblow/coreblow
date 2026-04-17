@@ -1,0 +1,11 @@
+export declare function sanitizeChatInput(input: string): string;
+/**
+ * Validate and sanitize a chat.send message input.
+ * Returns { ok, sanitized, error? }.
+ */
+export declare function sanitizeChatSendMessageInput(msg: string): {
+    ok: boolean;
+    sanitized: string;
+    error?: string;
+};
+//# sourceMappingURL=chat-sanitize.d.ts.map

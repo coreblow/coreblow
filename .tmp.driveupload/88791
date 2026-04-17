@@ -1,0 +1,17 @@
+export declare function escapeShellArg(arg: string): string;
+export declare function escapeShellCmd(parts: string[]): string;
+export declare function splitShellCommand(cmd: string): {
+    program: string;
+    args: string[];
+};
+export declare function isUnsafeCommand(cmd: string): {
+    unsafe: boolean;
+    reason?: string;
+};
+export declare function detectShell(): string;
+export declare function buildShellExec(command: string, shell?: string): {
+    cmd: string;
+    args: string[];
+};
+export declare function sanitizeEnvVars(env: Record<string, string | undefined>, allowList?: string[]): Record<string, string>;
+//# sourceMappingURL=shell-utils.d.ts.map

@@ -1,0 +1,4 @@
+/** Subagent registry read operations. */
+export declare function getRegistrySnapshot<T>(registry: Map<string, T>): Array<[string, T]>;
+export declare function findInRegistry<T>(registry: Map<string, T>, predicate: (v: T) => boolean): T | undefined;
+//# sourceMappingURL=subagent-registry-read.d.ts.map

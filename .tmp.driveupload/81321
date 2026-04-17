@@ -1,0 +1,17 @@
+import type { Server as HttpServer } from "node:http";
+import type { WebSocketServer } from "ws";
+export declare function createGatewayCloseHandler(params: {
+    broadcast: (event: string, payload: unknown) => void;
+    clients: Set<{
+        socket: {
+            close: (code: number, reason: string) => void;
+        };
+    }>;
+    wss: WebSocketServer;
+    httpServer: HttpServer;
+    httpServers?: HttpServer[];
+}): (opts?: {
+    reason?: string;
+    restartExpectedMs?: number | null;
+}) => Promise<void>;
+//# sourceMappingURL=server-close.d.ts.map

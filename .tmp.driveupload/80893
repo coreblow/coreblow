@@ -1,0 +1,395 @@
+/**
+ * src/channels/signal.ts
+ * Signal channel adapter — via signal-cli JSON-RPC daemon
+ * SUPERIOR: CoreBlow = 19 files; CoreBlow = 1 file with all features
+ * Features: daemon management, SSE, typing, read receipts, reactions, groups, attachments, reconnect
+ */
+import { chunkMessage } from './interface.js';
+import { createChildLogger } from '../utils/logger.js';
+import { spawn, execSync } from 'node:child_process';
+import { createInterface } from 'node:readline';
+const log = createChildLogger('channel:signal');
+// ─── Channel ──────────────────────────────────────────────────────
+export class SignalChannel {
+    name = 'signal';
+    process = null;
+    config;
+    connected = false;
+    startedAt = 0;
+    router;
+    reconnectAttempts = 0;
+    reconnectTimer = null;
+    pendingRpc = new Map();
+    rpcIdCounter = 0;
+    messagesSent = 0;
+    messagesReceived = 0;
+    constructor(config) {
+        this.config = {
+            cliPath: 'signal-cli',
+            mode: 'stdio',
+            autoReconnect: true,
+            maxReconnectAttempts: 10,
+            reconnectDelayMs: 5000,
+            sendReadReceipts: false,
+            sendTypingIndicators: false,
+            ...config,
+        };
+    }
+    // ─── Lifecycle ───────────────────────────────────────────────
+    async start(router) {
+        this.router = router;
+        // Probe signal-cli
+        if (!this.probe()) {
+            log.warn('signal-cli not found — Signal channel disabled');
+            log.warn('Install: https://github.com/AsamK/signal-cli');
+            return;
+        }
+        await this.spawnDaemon();
+        // Register sender
+        router.registerChannelSender('signal', async (msg) => {
+            await this.sendMessage((msg.groupId || msg.senderId), msg.text, {
+                attachments: msg.raw?.attachments,
+            });
+        });
+        log.info({ phone: this.config.phoneNumber, mode: this.config.mode }, 'Signal channel started');
+    }
+    async stop() {
+        if (this.reconnectTimer) {
+            clearTimeout(this.reconnectTimer);
+            this.reconnectTimer = null;
+        }
+        this.killDaemon();
+        log.info('Signal channel stopped');
+    }
+    isConnected() {
+        return this.connected;
+    }
+    getStatus() {
+        return {
+            name: 'signal',
+            connected: this.connected,
+            uptime: this.connected ? Date.now() - this.startedAt : 0,
+            details: {
+                phone: this.config.phoneNumber,
+                mode: this.config.mode,
+                sent: this.messagesSent,
+                received: this.messagesReceived,
+                reconnectAttempts: this.reconnectAttempts,
+            },
+        };
+    }
+    // ─── Probe ───────────────────────────────────────────────────
+    /**
+    * Check if signal-cli binary is available
+    */
+    probe() {
+        try {
+            execSync(`${this.config.cliPath} --version`, { stdio: 'pipe', timeout: 5000 });
+            return true;
+        }
+        catch {
+            return false;
+        }
+    }
+    // ─── Daemon Management ───────────────────────────────────────
+    async spawnDaemon() {
+        const args = this.buildDaemonArgs();
+        this.process = spawn(this.config.cliPath, args, {
+            stdio: ['pipe', 'pipe', 'pipe'],
+        });
+        if (!this.process.stdout) {
+            throw new Error('Failed to start signal-cli process');
+        }
+        const rl = createInterface({ input: this.process.stdout });
+        rl.on('line', (line) => {
+            const trimmed = line.trim();
+            if (!trimmed)
+                return;
+            try {
+                const data = JSON.parse(trimmed);
+                this.handleRpcMessage(data);
+            }
+            catch {
+                // Non-JSON output from signal-cli (status messages)
+                log.debug({ raw: trimmed.substring(0, 100) }, 'signal-cli output');
+            }
+        });
+        this.process.stderr?.on('data', (data) => {
+            const msg = data.toString().trim();
+            if (msg) {
+                if (/error|warn|failed|severe/i.test(msg)) {
+                    log.warn({ stderr: msg.substring(0, 200) }, 'signal-cli warning');
+                }
+                else {
+                    log.debug({ stderr: msg.substring(0, 100) }, 'signal-cli stderr');
+                }
+            }
+        });
+        this.process.on('close', (code, signal) => {
+            this.connected = false;
+            this.failAllPending(new Error(`signal-cli exited (code=${code} signal=${signal})`));
+            log.info({ code, signal }, 'signal-cli process exited');
+            if (this.config.autoReconnect && this.reconnectAttempts < (this.config.maxReconnectAttempts || 10)) {
+                this.scheduleReconnect();
+            }
+        });
+        this.process.on('error', (err) => {
+            log.error({ err: (err instanceof Error ? err.message : String(err)) }, 'signal-cli spawn error');
+            this.connected = false;
+        });
+        this.connected = true;
+        this.startedAt = Date.now();
+        this.reconnectAttempts = 0;
+    }
+    buildDaemonArgs() {
+        const args = [];
+        if (this.config.phoneNumber) {
+            args.push('-u', this.config.phoneNumber);
+        }
+        if (this.config.mode === 'http' && this.config.httpUrl) {
+            const url = new URL(this.config.httpUrl);
+            args.push('daemon', '--http', `${url.hostname}:${url.port || '8080'}`);
+            args.push('--no-receive-stdout');
+        }
+        else {
+            args.push('jsonRpc');
+        }
+        return args;
+    }
+    killDaemon() {
+        if (this.process) {
+            this.process.kill('SIGTERM');
+            this.process = null;
+            this.connected = false;
+        }
+    }
+    scheduleReconnect() {
+        this.reconnectAttempts++;
+        const delay = (this.config.reconnectDelayMs || 5000) * Math.min(this.reconnectAttempts, 5);
+        log.info({ attempt: this.reconnectAttempts, delayMs: delay }, 'Scheduling Signal reconnect');
+        this.reconnectTimer = setTimeout(async () => {
+            try {
+                await this.spawnDaemon();
+                log.info('Signal reconnected successfully');
+            }
+            catch (err) {
+                log.error({ err: (err instanceof Error ? err.message : String(err)) }, 'Signal reconnect failed');
+                if (this.reconnectAttempts < (this.config.maxReconnectAttempts || 10)) {
+                    this.scheduleReconnect();
+                }
+            }
+        }, delay);
+    }
+    // ─── RPC Communication ───────────────────────────────────────
+    handleRpcMessage(data) {
+        // Response to our request
+        if (data.id && this.pendingRpc.has(String(data.id))) {
+            const pending = this.pendingRpc.get(String(data.id));
+            this.pendingRpc.delete(String(data.id));
+            clearTimeout(pending.timer);
+            if (data.error) {
+                pending.reject(new Error(`Signal RPC: ${data.error.message || JSON.stringify(data.error)}`));
+            }
+            else {
+                pending.resolve(data.result);
+            }
+            return;
+        }
+        // Incoming notification (message received)
+        if (data.method === 'receive') {
+            this.handleIncoming(data.params);
+        }
+    }
+    async handleIncoming(params) {
+        if (!params?.envelope)
+            return;
+        const envelope = params.envelope;
+        // Data message (text, attachments)
+        if (envelope.dataMessage) {
+            const dm = envelope.dataMessage;
+            const sender = envelope.source || envelope.sourceNumber || "";
+            const groupId = dm.groupInfo?.groupId;
+            // Check blocked
+            if (this.config.blockedNumbers?.includes(sender))
+                return;
+            // Check allowed groups
+            if (groupId && this.config.allowedGroups?.length) {
+                if (!this.config.allowedGroups.includes(groupId))
+                    return;
+            }
+            const text = dm.message || '';
+            if (!text && !dm.attachments?.length)
+                return;
+            this.messagesReceived++;
+            // Build attachment info
+            const attachments = dm.attachments?.map((a) => ({
+                contentType: a.contentType,
+                filename: a.filename || a.id,
+                size: a.size,
+                id: a.id,
+            })) || [];
+            const inbound = {
+                channel: 'signal',
+                senderId: sender,
+                senderName: envelope.sourceName || envelope.sourceUuid || sender,
+                sessionId: `signal:${groupId || sender}`,
+                groupId,
+                text,
+                timestamp: envelope.timestamp || Date.now(),
+                raw: { ...envelope, attachments },
+            };
+            // Send read receipt
+            if (this.config.sendReadReceipts && envelope.timestamp) {
+                this.sendReadReceipt(sender, envelope.timestamp).catch(() => { });
+            }
+            await this.router?.routeInbound(inbound);
+        }
+        // Reaction
+        if (envelope.dataMessage?.reaction) {
+            const r = envelope.dataMessage.reaction;
+            log.debug({ emoji: r.emoji, target: r.targetAuthor, from: envelope.source }, 'Reaction received');
+        }
+        // Typing indicator
+        if (envelope.typingMessage) {
+            const action = envelope.typingMessage.action; // STARTED / STOPPED
+            log.debug({ from: envelope.source, action }, 'Typing indicator');
+        }
+    }
+    /**
+    * Send JSON-RPC request to signal-cli
+    */
+    rpc(method, params, timeoutMs = 10000) {
+        return new Promise((resolve, reject) => {
+            if (!this.process?.stdin) {
+                reject(new Error('signal-cli not running'));
+                return;
+            }
+            const id = String(++this.rpcIdCounter);
+            const request = { jsonrpc: '2.0', method, id, params };
+            const timer = setTimeout(() => {
+                this.pendingRpc.delete(id);
+                reject(new Error(`Signal RPC timeout: ${method}`));
+            }, timeoutMs);
+            this.pendingRpc.set(id, { resolve, reject, timer });
+            this.process.stdin.write(JSON.stringify(request) + '\n');
+        });
+    }
+    failAllPending(err) {
+        for (const [id, pending] of this.pendingRpc) {
+            clearTimeout(pending.timer);
+            pending.reject(err);
+        }
+        this.pendingRpc.clear();
+    }
+    // ─── Sending ─────────────────────────────────────────────────
+    /**
+    * Send a text message (with optional attachments)
+    */
+    async sendMessage(to, text, opts) {
+        const target = this.parseTarget(to);
+        const chunks = chunkMessage(text, 2000);
+        let lastResult;
+        for (const chunk of chunks) {
+            const params = { message: chunk };
+            if (target.type === 'group') {
+                params.groupId = target.value;
+            }
+            else if (target.type === 'username') {
+                params.username = [target.value];
+            }
+            else {
+                params.recipient = [target.value];
+            }
+            if (opts?.attachments?.length) {
+                params.attachments = opts.attachments;
+            }
+            if (this.config.phoneNumber) {
+                params.account = this.config.phoneNumber;
+            }
+            lastResult = await this.rpc('send', params);
+            this.messagesSent++;
+        }
+        return { timestamp: lastResult?.timestamp };
+    }
+    /**
+    * Send typing indicator
+    */
+    async sendTyping(to, stop = false) {
+        if (!this.config.sendTypingIndicators)
+            return;
+        const target = this.parseTarget(to);
+        const params = {};
+        if (target.type === 'group') {
+            params.groupId = target.value;
+        }
+        else {
+            params.recipient = [target.value];
+        }
+        if (stop)
+            params.stop = true;
+        if (this.config.phoneNumber)
+            params.account = this.config.phoneNumber;
+        await this.rpc('sendTyping', params).catch(() => { });
+    }
+    /**
+    * Send read receipt
+    */
+    async sendReadReceipt(to, targetTimestamp) {
+        const params = {
+            recipient: [to],
+            targetTimestamp,
+            type: 'read',
+        };
+        if (this.config.phoneNumber)
+            params.account = this.config.phoneNumber;
+        await this.rpc('sendReceipt', params).catch(() => { });
+    }
+    /**
+    * Send reaction emoji
+    */
+    async sendReaction(to, emoji, targetAuthor, targetTimestamp) {
+        const target = this.parseTarget(to);
+        const params = {
+            emoji,
+            targetAuthor,
+            targetTimestamp,
+        };
+        if (target.type === 'group') {
+            params.groupId = target.value;
+        }
+        else {
+            params.recipient = [target.value];
+        }
+        if (this.config.phoneNumber)
+            params.account = this.config.phoneNumber;
+        await this.rpc('sendReaction', params);
+    }
+    // ─── Utilities ───────────────────────────────────────────────
+    /**
+    * Parse target string into type + value
+    * Supports: phone number, group:<id>, username:<name>
+    */
+    parseTarget(raw) {
+        const value = raw.trim().replace(/^signal:/i, '');
+        if (value.toLowerCase().startsWith('group:')) {
+            return { type: 'group', value: value.slice(6).trim() };
+        }
+        if (value.toLowerCase().startsWith('username:')) {
+            return { type: 'username', value: value.slice(9).trim() };
+        }
+        return { type: 'recipient', value };
+    }
+    /**
+    * List registered accounts
+    */
+    async listAccounts() {
+        return this.rpc('listAccounts');
+    }
+    /**
+    * Get group info
+    */
+    async getGroupInfo(groupId) {
+        return this.rpc('listGroups', { groupId });
+    }
+}
+//# sourceMappingURL=signal.js.map

@@ -1,0 +1,3 @@
+export function createRunnerState() { return { turnCount: 0, isRunning: false }; }
+export function incrementTurn(state) { state.turnCount++; }
+//# sourceMappingURL=pi-embedded-runner.js.map

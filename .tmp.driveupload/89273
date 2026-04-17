@@ -1,0 +1,128 @@
+/**
+ * CoreBlow Skills Install & Hub System
+ *
+ * Manages skill discovery, installation, validation, and hub operations.
+ * Skills are self-contained instruction packs that extend agent capabilities.
+ *
+ * Consolidates: CoreBlow skills-install.ts (514), skills-hub.ts (502) = 1,016 LOC total.
+ */
+export interface SkillManifest {
+    name: string;
+    version: string;
+    description: string;
+    author?: string;
+    license?: string;
+    tags?: string[];
+    requires?: string[];
+    instructions: string;
+    examples?: string[];
+    scripts?: string[];
+    icon?: string;
+}
+export interface InstalledSkill {
+    manifest: SkillManifest;
+    installPath: string;
+    installedAt: number;
+    source: 'local' | 'hub' | 'url' | 'inline';
+    enabled: boolean;
+    usageCount: number;
+}
+export interface SkillHubEntry {
+    name: string;
+    version: string;
+    description: string;
+    author: string;
+    downloads: number;
+    rating: number;
+    tags: string[];
+    url: string;
+    sha256?: string;
+    updatedAt: string;
+}
+export interface SkillSearchResult {
+    query: string;
+    total: number;
+    results: SkillHubEntry[];
+}
+export interface SkillValidation {
+    valid: boolean;
+    errors: string[];
+    warnings: string[];
+}
+/**
+ * Get all installed skills
+ */
+export declare function getInstalledSkills(): InstalledSkill[];
+/**
+ * Get a specific installed skill
+ */
+export declare function getSkill(name: string): InstalledSkill | undefined;
+/**
+ * Check if a skill is installed
+ */
+export declare function isSkillInstalled(name: string): boolean;
+/**
+ * Install a skill from a local directory
+ */
+export declare function installSkillFromDir(skillDir: string): InstalledSkill | null;
+/**
+ * Install a skill from inline content
+ */
+export declare function installSkillInline(name: string, instructions: string, meta?: Partial<SkillManifest>): InstalledSkill;
+/**
+ * Uninstall a skill
+ */
+export declare function uninstallSkill(name: string): boolean;
+/**
+ * Enable or disable a skill
+ */
+export declare function setSkillEnabled(name: string, enabled: boolean): boolean;
+/**
+ * Increment usage count for a skill
+ */
+export declare function recordSkillUsage(name: string): void;
+/**
+ * Clear all installed skills
+ */
+export declare function clearInstalledSkills(): void;
+/**
+ * Scan a workspace for skills directories
+ */
+export declare function discoverWorkspaceSkills(workspaceDir: string): string[];
+/**
+ * Auto-install all skills found in a workspace
+ */
+export declare function autoInstallWorkspaceSkills(workspaceDir: string): InstalledSkill[];
+/**
+ * Load a skill manifest from a directory
+ */
+export declare function loadSkillManifest(skillDir: string): SkillManifest | null;
+/**
+ * Parse SKILL.md format (YAML frontmatter + markdown body)
+ */
+export declare function parseSkillMarkdown(content: string, dir?: string): SkillManifest;
+/**
+ * Validate a skill manifest
+ */
+export declare function validateManifest(manifest: SkillManifest): SkillValidation;
+/**
+ * Build the skills section for the system prompt
+ */
+export declare function buildSkillsPrompt(skills?: InstalledSkill[]): string;
+/**
+ * Register a hub entry (for testing/local hub)
+ */
+export declare function registerHubEntry(entry: SkillHubEntry): void;
+/**
+ * Search the skills hub
+ */
+export declare function searchHub(query: string, limit?: number): SkillSearchResult;
+/**
+ * Get hub entry by name
+ */
+export declare function getHubEntry(name: string): SkillHubEntry | undefined;
+/**
+ * Clear the hub registry
+ */
+export declare function clearHubRegistry(): void;
+//# sourceMappingURL=skills.d.ts.map

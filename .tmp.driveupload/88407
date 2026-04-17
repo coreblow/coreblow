@@ -1,0 +1,46 @@
+/**
+ * agents/subagent/subagent-registry.ts
+ * Core subagent registry — tracks sub-agents by parent/name with status updates.
+ */
+import { createChildLogger } from '../../utils/logger.js';
+const log = createChildLogger('subagent:registry');
+const agents = new Map();
+export function registerSubAgent(parentId, name, config) {
+    const id = `${parentId}:${name}:${Date.now()}`;
+    const agent = {
+        id, parentId, name, config,
+        status: 'idle',
+        createdAt: Date.now(),
+    };
+    agents.set(id, agent);
+    log.info({ id, parentId, name }, 'Sub-agent registered');
+    return agent;
+}
+export function updateSubAgentStatus(id, status, data) {
+    const agent = agents.get(id);
+    if (!agent)
+        return;
+    agent.status = status;
+    if (status === 'running')
+        agent.startedAt = Date.now();
+    if (status === 'completed' || status === 'failed')
+        agent.completedAt = Date.now();
+    if (data?.result)
+        agent.result = data.result;
+    if (data?.error)
+        agent.error = data.error;
+}
+export function getSubAgent(id) {
+    return agents.get(id);
+}
+export function listSubAgents(parentId) {
+    const all = [...agents.values()];
+    return parentId ? all.filter(a => a.parentId === parentId) : all;
+}
+export function removeSubAgent(id) {
+    return agents.delete(id);
+}
+export function clearSubAgents() {
+    agents.clear();
+}
+//# sourceMappingURL=subagent-registry.js.map

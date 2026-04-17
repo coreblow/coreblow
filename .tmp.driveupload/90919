@@ -1,0 +1,3 @@
+/** Simple completion transport. */
+export interface CompletionRequest { model: string; messages: Array<{ role: string; content: string }>; maxTokens?: number; }
+export interface CompletionResponse { content: string; usage: { inputTokens: number; outputTokens: number }; }

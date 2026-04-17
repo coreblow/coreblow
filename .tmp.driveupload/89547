@@ -1,0 +1,3 @@
+/** agents/owner-display.ts — Owner/user display formatting. */
+export function formatOwner(name, email) { return name ? (email ? `${name} <${email}>` : name) : 'unknown'; }
+//# sourceMappingURL=owner-display.js.map

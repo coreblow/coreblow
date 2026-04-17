@@ -1,0 +1,7 @@
+/** Tool result guard — validate results before sending. */
+export function guardToolResult(result, maxLen = 200_000) {
+    if (result.length <= maxLen)
+        return { content: result, truncated: false };
+    return { content: result.slice(0, maxLen) + '\n[truncated]', truncated: true };
+}
+//# sourceMappingURL=session-tool-result-guard.js.map

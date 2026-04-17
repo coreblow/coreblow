@@ -1,0 +1,69 @@
+/**
+ * CoreBlow — Auto-Reply Engine
+ *
+ * Configurable auto-reply system for common patterns.
+ * Supports regex matching, keyword triggers, time-based
+ * responses, and custom reply chains.
+ */
+/** Auto-reply rule */
+export interface AutoReplyRule {
+    id: string;
+    name: string;
+    pattern: string | RegExp;
+    reply: string | ((match: string, groups?: Record<string, string>) => string);
+    /** Channels to apply to (empty = all) */
+    channels?: string[];
+    /** Max replies per user per window */
+    rateLimit?: number;
+    /** Rate limit window in ms */
+    rateLimitWindow?: number;
+    enabled: boolean;
+    priority: number;
+    /** Cooldown between triggers in ms */
+    cooldownMs?: number;
+}
+/** Reply result */
+export interface ReplyResult {
+    matched: boolean;
+    ruleId?: string;
+    reply?: string;
+    rateLimited?: boolean;
+}
+/**
+ * CoreBlow Auto-Reply Engine
+ */
+export declare class AutoReplyEngine {
+    private rules;
+    private userCounts;
+    private lastTrigger;
+    constructor();
+    /**
+     * Add a reply rule.
+     */
+    addRule(rule: AutoReplyRule): void;
+    /**
+     * Process a message and get auto-reply.
+     */
+    process(message: string, userId?: string, channel?: string): ReplyResult;
+    /**
+     * Enable/disable a rule.
+     */
+    setEnabled(ruleId: string, enabled: boolean): boolean;
+    /**
+     * Remove a rule.
+     */
+    removeRule(ruleId: string): boolean;
+    /**
+     * List rules.
+     */
+    list(): Array<{
+        id: string;
+        name: string;
+        enabled: boolean;
+        priority: number;
+    }>;
+    /** Count */
+    count(): number;
+    private isRateLimited;
+}
+//# sourceMappingURL=auto-reply.d.ts.map

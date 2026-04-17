@@ -1,0 +1,2 @@
+export function createMcpBridge(name, transport = 'stdio') { return { serverName: name, transport }; }
+//# sourceMappingURL=embedded-pi-mcp.js.map

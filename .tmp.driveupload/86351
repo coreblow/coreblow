@@ -1,0 +1,50 @@
+/**
+ * CoreBlow — LRU Cache
+ *
+ * Least Recently Used cache with TTL support,
+ * max size eviction, and hit/miss statistics.
+ */
+/**
+ * CoreBlow LRU Cache
+ */
+export declare class LRUCache<T = unknown> {
+    private cache;
+    private maxSize;
+    private defaultTTL?;
+    private stats;
+    constructor(maxSize?: number, defaultTTL?: number);
+    /**
+     * Get a value.
+     */
+    get(key: string): T | undefined;
+    /**
+     * Set a value.
+     */
+    set(key: string, value: T, ttlMs?: number): void;
+    /**
+     * Check if key exists (not expired).
+     */
+    has(key: string): boolean;
+    /**
+     * Delete a key.
+     */
+    delete(key: string): boolean;
+    /**
+     * Clear all.
+     */
+    clear(): void;
+    /**
+     * Get stats.
+     */
+    getStats(): {
+        hits: number;
+        misses: number;
+        evictions: number;
+        size: number;
+        hitRate: number;
+    };
+    /** Size */
+    size(): number;
+    private evictIfNeeded;
+}
+//# sourceMappingURL=lru-cache.d.ts.map

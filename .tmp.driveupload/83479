@@ -1,0 +1,5 @@
+/** plugin-sdk/memory-lancedb.ts [ADAPT] openclaw-main — Stub for LanceDB integration. */
+export async function createLanceDbMemoryStore(_path) {
+    throw new Error("createLanceDbMemoryStore requires @lancedb/lancedb package");
+}
+//# sourceMappingURL=memory-lancedb.js.map

@@ -1,0 +1,9 @@
+/**
+ * Timing-safe secret comparison — CoreBlow Security
+ *
+ * Ported from CoreBlow reference src/security/secret-equal.ts
+ * Uses SHA256 hashing to normalize length, then crypto.timingSafeEqual
+ * to prevent timing attacks on credential comparison.
+ */
+export declare function safeEqualSecret(provided: string | undefined | null, expected: string | undefined | null): boolean;
+//# sourceMappingURL=secret-equal.d.ts.map

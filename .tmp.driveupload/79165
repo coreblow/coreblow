@@ -1,0 +1,7 @@
+import type { Command } from 'commander';
+/**
+ * Register `coreblow mcp` subcommands on the Commander program.
+ * [PORT] openclaw L49-end
+ */
+export declare function registerMcpCli(program: Command): void;
+//# sourceMappingURL=mcp-cli.d.ts.map

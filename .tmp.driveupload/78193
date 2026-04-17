@@ -1,0 +1,46 @@
+/**
+ * CoreBlow Identity & Avatar Configuration
+ *
+ * Manages bot identity (name, avatar, bio) with per-channel overrides,
+ * avatar validation (URL, data URI, file path), and identity profiles.
+ */
+export interface BotIdentity {
+    name: string;
+    displayName?: string;
+    avatar?: AvatarConfig;
+    bio?: string;
+    statusMessage?: string;
+    language?: string;
+    timezone?: string;
+}
+export interface AvatarConfig {
+    type: 'url' | 'data-uri' | 'file' | 'none';
+    value: string;
+    fallback?: string;
+}
+export interface IdentityProfile {
+    id: string;
+    identity: BotIdentity;
+    channels?: string[];
+    description?: string;
+}
+export interface AvatarValidationResult {
+    valid: boolean;
+    type: AvatarConfig['type'];
+    errors: string[];
+    warnings: string[];
+}
+export declare function registerProfile(profile: IdentityProfile): void;
+export declare function getProfile(id: string): IdentityProfile | undefined;
+export declare function setDefaultProfile(id: string): void;
+export declare function getDefaultProfile(): IdentityProfile | undefined;
+export declare function listProfiles(): IdentityProfile[];
+export declare function clearProfiles(): void;
+export declare function resolveIdentity(channelId?: string): BotIdentity;
+export declare function parseAvatar(value: string | undefined): AvatarConfig;
+export declare function validateAvatar(avatar: AvatarConfig, rootDir?: string): AvatarValidationResult;
+export declare function createIdentity(partial: Partial<BotIdentity>): BotIdentity;
+export declare function isHttpUrl(v: string): boolean;
+export declare function isDataUri(v: string): boolean;
+export declare function isPathWithinRoot(fp: string, root: string): boolean;
+//# sourceMappingURL=identity-avatar.d.ts.map

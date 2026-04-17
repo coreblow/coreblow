@@ -1,0 +1,8 @@
+export class AuthProfileStore {
+    data = new Map();
+    save(id, profile) { this.data.set(id, { ...profile, updatedAt: Date.now() }); }
+    load(id) { return this.data.get(id) || null; }
+    delete(id) { return this.data.delete(id); }
+    listAll() { return [...this.data.entries()].map(([id, v]) => ({ id, ...v })); }
+}
+//# sourceMappingURL=store.js.map

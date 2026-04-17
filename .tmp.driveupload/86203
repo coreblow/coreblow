@@ -1,0 +1,17 @@
+/**
+ * infra/scheduler/task-scheduler.ts
+ */
+export class TaskScheduler {
+    tasks = new Map();
+    add(id, fn, intervalMs) { this.tasks.set(id, { fn, interval: intervalMs, running: false }); }
+    start(id) { const t = this.tasks.get(id); if (!t || t.running)
+        return; t.running = true; t.timer = setInterval(async () => { try {
+        await t.fn();
+    }
+    catch { /* intentionally ignored */ } }, t.interval); }
+    stop(id) { const t = this.tasks.get(id); if (t?.timer) {
+        clearInterval(t.timer);
+        t.running = false;
+    } }
+}
+//# sourceMappingURL=task-scheduler.js.map

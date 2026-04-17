@@ -1,0 +1,37 @@
+/**
+ * security/audit.shared.ts
+ * Audit utilities shared across security modules.
+ */
+
+/** Standard audit event categories. */
+export const AUDIT_CATEGORIES = [
+    'auth', 'config', 'plugin', 'command', 'session', 'api', 'security',
+] as const;
+
+export type AuditCategory = typeof AUDIT_CATEGORIES[number];
+
+/** Severity levels for audit events. */
+export type AuditSeverity = 'info' | 'warning' | 'critical';
+
+/** Format audit entry for logging. */
+export function formatAuditEntry(entry: {
+    category: AuditCategory;
+    severity: AuditSeverity;
+    action: string;
+    details?: string;
+}): string {
+    const ts = new Date().toISOString();
+    return `[${ts}] [${entry.severity.toUpperCase()}] [${entry.category}] ${entry.action}${entry.details ? ` — ${entry.details}` : ''}`;
+}
+
+/** Sanitize sensitive fields before audit logging. */
+export function sanitizeForAudit(data: Record<string, unknown>): Record<string, unknown> {
+    const sensitiveKeys = /key|token|secret|password|credential/i;
+    const result = { ...data };
+    for (const key of Object.keys(result)) {
+        if (sensitiveKeys.test(key) && typeof result[key] === 'string') {
+            result[key] = '***REDACTED***';
+        }
+    }
+    return result;
+}

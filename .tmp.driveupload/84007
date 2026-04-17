@@ -1,0 +1,13 @@
+/**
+ * plugin-sdk/telegram-runtime-surface.ts
+ * [ADAPT] openclaw-main — Runtime surface stub for @coreblow/telegram.
+ */
+// All runtime functions implemented by @coreblow/telegram extension
+export async function monitorTelegramProvider(_params) { }
+export async function probeTelegram(_params) { return { ok: false }; }
+export async function sendMessageTelegram(_params) { return null; }
+export async function sendPollTelegram(_params) { return null; }
+export async function sendTypingTelegram(_params) { }
+export async function resolveTelegramToken(_params) { return null; }
+export const telegramMessageActions = [];
+//# sourceMappingURL=telegram-runtime-surface.js.map

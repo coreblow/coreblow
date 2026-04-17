@@ -1,0 +1,104 @@
+/**
+ * src/gateway/orchestrator.ts
+ * Orchestrator — wires ALL CoreBlow modules into a unified pipeline
+ *
+ * This is the central integration point that connects:
+ *   Phase 6A: Persona, Context, Lifecycle, Fork, Multi-Agent
+ *   Phase 6B: Command Registry
+ *   Phase 6C: Plugin Marketplace, Config Validator, Session Persistence
+ *
+ * The Orchestrator hooks into the MessageRouter's message flow and adds:
+ *   1. Config validation on startup
+ *   2. Lifecycle hooks (onTurnStart, onTurnEnd, onError)
+ *   3. Command detection + registry execution
+ *   4. Multi-agent routing with persona
+ *   5. Context window management
+ *   6. Session persistence (TTL, cleanup)
+ *   7. Plugin hook chain
+ *   8. Usage tracking
+ */
+import type { InboundMessage, MessageRouter } from './router.js';
+import { PersonaManager, type PersonaConfig } from '../agents/persona.js';
+import { ContextManager } from '../agents/context.js';
+import { LifecycleManager } from '../agents/lifecycle.js';
+import { ForkManager } from '../agents/fork.js';
+import { MultiAgentRouter } from '../agents/multi.js';
+import { CommandRegistry } from '../commands/registry.js';
+import { SessionPersistenceManager } from '../agents/session-persistence.js';
+import { ConfigValidator } from './config-validator.js';
+export interface OrchestratorConfig {
+    /** Command prefix */
+    commandPrefix?: string;
+    /** Default persona */
+    defaultPersona?: string;
+    /** Session TTL in ms */
+    sessionTtlMs?: number;
+    /** Max sessions */
+    maxSessions?: number;
+    /** Enable lifecycle hooks */
+    enableLifecycle?: boolean;
+    /** Enable fork/branching */
+    enableFork?: boolean;
+    /** Rate limit per minute per session */
+    rateLimitPerMinute?: number;
+    /** Max input length */
+    maxInputLength?: number;
+}
+export interface OrchestratorModules {
+    persona: PersonaManager;
+    context: ContextManager;
+    lifecycle: LifecycleManager;
+    fork: ForkManager;
+    multiAgent: MultiAgentRouter;
+    commands: CommandRegistry;
+    sessions: SessionPersistenceManager;
+    configValidator: ConfigValidator;
+}
+export interface OrchestratorStats {
+    messagesProcessed: number;
+    commandsExecuted: number;
+    turnsCompleted: number;
+    errorsCount: number;
+    uptime: number;
+    modules: {
+        personas: number;
+        agents: number;
+        commands: number;
+        sessions: number;
+        branches: number;
+    };
+}
+export declare class Orchestrator {
+    modules: OrchestratorModules;
+    private config;
+    private stats;
+    private startedAt;
+    constructor(config?: OrchestratorConfig);
+    /**
+     * Validate gateway config on startup
+     */
+    validateConfig(config: Record<string, unknown>): {
+        valid: boolean;
+        errors: string[];
+    };
+    /**
+     * Wire into the message router — this is the main integration point
+     *
+     * Instead of: router → agentTurn directly
+     * Now:        router → orchestrator.handleMessage → (commands | agentTurn)
+     */
+    wire(router: MessageRouter, agentTurnRunner: (inbound: InboundMessage, persona?: PersonaConfig) => Promise<string | void>): void;
+    /**
+     * Main message pipeline — the core integration flow
+     */
+    private handleMessage;
+    /**
+     * Get orchestrator stats
+     */
+    getStats(): OrchestratorStats;
+    /**
+     * Stop the orchestrator — cleanup
+     */
+    stop(): void;
+}
+//# sourceMappingURL=orchestrator.d.ts.map

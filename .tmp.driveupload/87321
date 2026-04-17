@@ -1,0 +1,1 @@
+{"version":3,"file":"subagent-registry-lifecycle.d.ts","sourceRoot":"","sources":["../../src/agents/subagent-registry-lifecycle.ts"],"names":[],"mappings":"AAAA,8CAA8C;AAC9C,MAAM,MAAM,sBAAsB,GAAG,SAAS,GAAG,UAAU,GAAG,SAAS,GAAG,UAAU,GAAG,SAAS,GAAG,OAAO,CAAC;AAC3G,wBAAgB,kBAAkB,CAAC,IAAI,EAAE,sBAAsB,EAAE,EAAE,EAAE,sBAAsB,GAAG,OAAO,CAGpG"}

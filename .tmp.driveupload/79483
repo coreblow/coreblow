@@ -1,0 +1,10 @@
+/**
+ * tts/streaming.ts
+ */
+export declare class TTSStreamer {
+    private chunks;
+    addChunk(chunk: Buffer): void;
+    flush(): Buffer;
+    clear(): void;
+}
+//# sourceMappingURL=streaming.d.ts.map

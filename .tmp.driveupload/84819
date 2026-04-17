@@ -1,0 +1,12 @@
+/**
+ * plugin-sdk/discord-account.ts
+ * [ADAPT] openclaw-main — Stub, implemented by @coreblow/discord.
+ */
+export type ResolvedDiscordAccount = {
+    accountId: string;
+    token?: string | null;
+    botId?: string | null;
+    guildIds?: string[];
+};
+export declare function resolveDiscordAccount(_params: unknown): Promise<ResolvedDiscordAccount | null>;
+//# sourceMappingURL=discord-account.d.ts.map

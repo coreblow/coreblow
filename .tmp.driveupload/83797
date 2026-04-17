@@ -1,0 +1,62 @@
+/**
+ * plugin-sdk/channel-setup.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/channel-setup.ts
+ *
+ * Channel setup wizard and adapter helpers for optional/conditional channels.
+ */
+import { DEFAULT_ACCOUNT_ID } from './account-id.js';
+export { DEFAULT_ACCOUNT_ID };
+export type ChannelSetupDmPolicy = {
+    policy?: 'open' | 'allowlist' | 'none';
+    allowFrom?: Array<string | number>;
+};
+export type ChannelSetupInput = {
+    channelId: string;
+    accountId?: string;
+    token?: string;
+    [key: string]: unknown;
+};
+export type ChannelSetupAdapter = {
+    isConfigured: (cfg: Record<string, unknown>) => boolean;
+    configure?: (params: {
+        cfg: Record<string, unknown>;
+        accountId: string;
+    }) => Promise<void>;
+};
+export type ChannelSetupWizard = {
+    label: string;
+    docsPath?: string;
+    steps?: Array<{
+        id: string;
+        label: string;
+        description?: string;
+    }>;
+    run?: (params: {
+        accountId: string;
+    }) => Promise<void>;
+};
+type OptionalChannelSetupParams = {
+    channel: string;
+    label: string;
+    npmSpec?: string;
+    docsPath?: string;
+};
+export type OptionalChannelSetupSurface = {
+    setupAdapter: ChannelSetupAdapter;
+    setupWizard: ChannelSetupWizard;
+};
+export declare function createOptionalChannelSetupAdapter(params: OptionalChannelSetupParams): ChannelSetupAdapter;
+export declare function createOptionalChannelSetupWizard(params: OptionalChannelSetupParams): ChannelSetupWizard;
+export declare function createOptionalChannelSetupSurface(params: OptionalChannelSetupParams): OptionalChannelSetupSurface;
+export declare function setSetupChannelEnabled(params: {
+    cfg: Record<string, unknown>;
+    channelKey: string;
+    enabled: boolean;
+}): Record<string, unknown>;
+export declare function splitSetupEntries(entries: string[]): {
+    valid: string[];
+    invalid: string[];
+};
+export declare function formatDocsLink(docsPath: string, base?: string): string;
+export declare function createTopLevelChannelDmPolicy(policy?: string): ChannelSetupDmPolicy;
+//# sourceMappingURL=channel-setup.d.ts.map

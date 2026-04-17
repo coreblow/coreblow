@@ -1,0 +1,7 @@
+/**
+ * secrets/types.ts
+ * Core type definitions for CoreBlow secrets engine.
+ * Ported from CoreBlow reference's secrets subsystem with CoreBlow OOP compression.
+ */
+export {};
+//# sourceMappingURL=types.js.map

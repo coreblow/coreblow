@@ -1,0 +1,2 @@
+export type GatewayEventName = "exec.approval.requested" | "exec.approval.resolved" | "plugin.approval.requested" | "plugin.approval.resolved" | "device.pair.requested" | "device.pair.resolved" | "node.pair.requested" | "node.pair.resolved" | "sessions.changed" | "session.message" | "session.tool";
+//# sourceMappingURL=events.d.ts.map

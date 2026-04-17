@@ -1,0 +1,120 @@
+/**
+ * CoreBlow — Format Converter
+ *
+ * Converts data between JSON, CSV, XML-like, and
+ * key-value formats for data interchange.
+ */
+/**
+ * CoreBlow Format Converter
+ */
+export class FormatConverter {
+    /**
+     * JSON to CSV.
+     */
+    jsonToCsv(data) {
+        if (data.length === 0)
+            return '';
+        const headers = Object.keys(data[0]);
+        const lines = [headers.join(',')];
+        for (const row of data) {
+            lines.push(headers.map((h) => {
+                const val = row[h];
+                const str = val === null || val === undefined ? '' : String(val);
+                return str.includes(',') || str.includes('"') ? `"${str.replace(/"/g, '""')}"` : str;
+            }).join(','));
+        }
+        return lines.join('\n');
+    }
+    /**
+     * CSV to JSON.
+     */
+    csvToJson(csv) {
+        const lines = csv.split('\n').filter((l) => l.trim());
+        if (lines.length < 2)
+            return [];
+        const headers = this.parseCsvLine(lines[0]);
+        return lines.slice(1).map((line) => {
+            const values = this.parseCsvLine(line);
+            const obj = {};
+            headers.forEach((h, i) => { obj[h] = values[i] ?? ''; });
+            return obj;
+        });
+    }
+    /**
+     * JSON to key-value pairs.
+     */
+    jsonToKeyValue(data, prefix = '') {
+        const result = [];
+        for (const [key, value] of Object.entries(data)) {
+            const fullKey = prefix ? `${prefix}.${key}` : key;
+            if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                result.push(...this.jsonToKeyValue(value, fullKey));
+            }
+            else {
+                result.push({ key: fullKey, value: String(value) });
+            }
+        }
+        return result;
+    }
+    /**
+     * Key-value pairs to JSON.
+     */
+    keyValueToJson(pairs) {
+        const result = {};
+        for (const { key, value } of pairs) {
+            const parts = key.split('.');
+            let current = result;
+            for (let i = 0; i < parts.length - 1; i++) {
+                if (!current[parts[i]] || typeof current[parts[i]] !== 'object')
+                    current[parts[i]] = {};
+                current = current[parts[i]];
+            }
+            current[parts[parts.length - 1]] = value;
+        }
+        return result;
+    }
+    /**
+     * Flatten nested object.
+     */
+    flatten(data, prefix = '') {
+        const result = {};
+        for (const [key, value] of Object.entries(data)) {
+            const fullKey = prefix ? `${prefix}.${key}` : key;
+            if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                Object.assign(result, this.flatten(value, fullKey));
+            }
+            else {
+                result[fullKey] = value;
+            }
+        }
+        return result;
+    }
+    /**
+     * Unflatten dot-notation object.
+     */
+    unflatten(data) {
+        return this.keyValueToJson(Object.entries(data).map(([key, value]) => ({ key, value: String(value) })));
+    }
+    // === Private ===
+    parseCsvLine(line) {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (ch === '"') {
+                inQuotes = !inQuotes;
+            }
+            else if (ch === ',' && !inQuotes) {
+                result.push(current);
+                current = '';
+            }
+            else {
+                current += ch;
+            }
+        }
+        result.push(current);
+        return result;
+    }
+}
+//# sourceMappingURL=format-converter.js.map

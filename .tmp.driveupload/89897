@@ -1,0 +1,38 @@
+/**
+ * process/spawn-utils.ts
+ * Spawn helpers with fallback and error formatting.
+ * Ported from CoreBlow reference src/process/spawn-utils.ts.
+ */
+import type { ChildProcess, SpawnOptions } from 'node:child_process';
+export type SpawnFallback = {
+    label: string;
+    options: SpawnOptions;
+};
+export type SpawnWithFallbackResult = {
+    child: ChildProcess;
+    usedFallback: boolean;
+    fallbackLabel?: string;
+};
+export declare function resolveCommandStdio(params: {
+    hasInput: boolean;
+    preferInherit: boolean;
+}): ['pipe' | 'inherit' | 'ignore', 'pipe', 'pipe'];
+export declare function formatSpawnError(err: unknown): string;
+/**
+ * Spawn with retries using fallback configurations.
+ */
+export declare function spawnWithFallback(params: {
+    argv: string[];
+    options: SpawnOptions;
+    fallbacks?: SpawnFallback[];
+    retryCodes?: string[];
+}): SpawnWithFallbackResult;
+/**
+ * Collect output from a child process.
+ */
+export declare function collectOutput(child: ChildProcess): Promise<{
+    stdout: string;
+    stderr: string;
+    exitCode: number;
+}>;
+//# sourceMappingURL=spawn-utils.d.ts.map

@@ -1,0 +1,89 @@
+/**
+ * plugins/status.ts
+ *
+ * Plugin status reporting — aggregated status, diagnostics,
+ * and formatted output for CLI/dashboard.
+ *
+ * Following CoreBlow's status.ts (434 LOC) pattern.
+ */
+import type { PluginDiagnostic, PluginRegistryData } from './types.js';
+/** Plugin status summary */
+export interface PluginStatusSummary {
+    total: number;
+    loaded: number;
+    disabled: number;
+    errored: number;
+    tools: number;
+    hooks: number;
+    channels: number;
+    providers: number;
+    services: number;
+    commands: number;
+    httpRoutes: number;
+}
+/** Individual plugin status */
+export interface PluginStatusEntry {
+    id: string;
+    name: string;
+    version?: string;
+    status: string;
+    origin: string;
+    error?: string;
+    capabilities: {
+        tools: string[];
+        hooks: string[];
+        channels: string[];
+        providers: string[];
+        services: string[];
+        commands: string[];
+        httpRoutes: number;
+    };
+}
+/** Diagnostic report */
+export interface DiagnosticReport {
+    errors: PluginDiagnostic[];
+    warnings: PluginDiagnostic[];
+    info: PluginDiagnostic[];
+    total: number;
+}
+/**
+ * CoreBlow Plugin Status Reporter
+ *
+ * Aggregates plugin status information and generates reports
+ * for CLI output and dashboard display.
+ */
+export declare class PluginStatusReporter {
+    /**
+     * Generate summary from registry data.
+     */
+    summarize(data: PluginRegistryData): PluginStatusSummary;
+    /**
+     * Get detailed status for each plugin.
+     */
+    getPluginStatuses(data: PluginRegistryData): PluginStatusEntry[];
+    /**
+     * Get diagnostic report grouped by severity.
+     */
+    getDiagnosticReport(data: PluginRegistryData): DiagnosticReport;
+    /**
+     * Get diagnostics for a specific plugin.
+     */
+    getPluginDiagnostics(data: PluginRegistryData, pluginId: string): PluginDiagnostic[];
+    /**
+     * Format status for CLI output.
+     */
+    formatForCli(data: PluginRegistryData): string;
+    /**
+     * Format status as JSON for dashboard API.
+     */
+    formatForApi(data: PluginRegistryData): {
+        summary: PluginStatusSummary;
+        plugins: PluginStatusEntry[];
+        diagnostics: DiagnosticReport;
+    };
+    /**
+     * Check overall health — returns true if no errors.
+     */
+    isHealthy(data: PluginRegistryData): boolean;
+}
+//# sourceMappingURL=status.d.ts.map

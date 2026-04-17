@@ -1,0 +1,2 @@
+export declare function resolveHookPolicy(hookName: string, cfg: Record<string, unknown>): boolean;
+//# sourceMappingURL=hooks-policy.d.ts.map

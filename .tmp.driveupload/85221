@@ -1,0 +1,22 @@
+/**
+ * src/shared/frontmatter.ts
+ * Parse frontmatter metadata arrays and requirements.
+ * Ported from CoreBlow shared/frontmatter.ts.
+ */
+export declare function normalizeStringList(input: unknown): string[];
+export declare function getFrontmatterString(frontmatter: Record<string, unknown>, key: string): string | undefined;
+export declare function parseFrontmatterBool(value: string | undefined, fallback: boolean): boolean;
+export declare function resolveManifestBlock(params: {
+    frontmatter: Record<string, unknown>;
+    key?: string;
+}): Record<string, unknown> | undefined;
+export type ManifestRequires = {
+    bins: string[];
+    anyBins: string[];
+    env: string[];
+    config: string[];
+};
+export declare function resolveManifestRequires(metadataObj: Record<string, unknown>): ManifestRequires | undefined;
+export declare function resolveManifestInstall<T>(metadataObj: Record<string, unknown>, parseInstallSpec: (input: unknown) => T | undefined): T[];
+export declare function resolveManifestOs(metadataObj: Record<string, unknown>): string[];
+//# sourceMappingURL=frontmatter.d.ts.map

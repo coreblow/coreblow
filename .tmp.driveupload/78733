@@ -1,0 +1,5 @@
+/**
+ * logging/log-formatter.ts
+ */
+export declare function formatLog(level: string, mod: string, msg: string): string;
+//# sourceMappingURL=log-formatter.d.ts.map

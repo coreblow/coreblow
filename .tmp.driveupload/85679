@@ -1,0 +1,53 @@
+/**
+ * CoreBlow — Cache Invalidation
+ *
+ * Manages cache invalidation patterns: tag-based,
+ * pattern-based, event-driven, and TTL-based.
+ */
+/** Invalidation entry */
+export interface InvalidationEntry {
+    key: string;
+    tags: string[];
+    invalidatedAt?: number;
+}
+/**
+ * CoreBlow Cache Invalidation
+ */
+export declare class CacheInvalidation {
+    private entries;
+    private tagIndex;
+    private listeners;
+    private stats;
+    /**
+     * Register a cache key with tags.
+     */
+    register(key: string, tags: string[]): void;
+    /**
+     * Invalidate by key.
+     */
+    invalidateKey(key: string): boolean;
+    /**
+     * Invalidate by tag.
+     */
+    invalidateByTag(tag: string): string[];
+    /**
+     * Invalidate by pattern (glob-like).
+     */
+    invalidateByPattern(pattern: string): string[];
+    /**
+     * Check if a key is invalidated.
+     */
+    isInvalidated(key: string): boolean;
+    /**
+     * On invalidation listener.
+     */
+    onInvalidate(fn: (keys: string[]) => void): void;
+    /**
+     * Get stats.
+     */
+    getStats(): typeof this.stats;
+    /** Count */
+    count(): number;
+    private notifyListeners;
+}
+//# sourceMappingURL=cache-invalidation.d.ts.map

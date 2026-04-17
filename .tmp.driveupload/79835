@@ -1,0 +1,25 @@
+/**
+ * tools/builtin/calculator.ts
+ *
+ * Safe math expression evaluator using a recursive descent parser.
+ * NO eval(), NO new Function() — pure computation only.
+ *
+ * Supported:
+ *   - Basic arithmetic: +, -, *, /, %, ^
+ *   - Parentheses: (2+3)*4
+ *   - Unary minus: -5, -(3+2)
+ *   - Functions: sin, cos, tan, abs, sqrt, pow, log, ceil, floor, round, min, max
+ *   - Constants: PI, E
+ */
+/**
+ * Sanitize a math expression by removing non-math characters.
+ */
+export declare function sanitizeMathExpression(expr: string): string;
+/**
+ * Safely evaluate a math expression using a recursive descent parser.
+ * No eval() or new Function() — pure computation.
+ *
+ * @throws Error if expression is invalid or contains dangerous patterns
+ */
+export declare function safeEvaluateMath(expr: string): number;
+//# sourceMappingURL=calculator.d.ts.map

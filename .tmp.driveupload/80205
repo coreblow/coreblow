@@ -1,0 +1,134 @@
+/**
+ * CoreBlow — LINE Channel Adapter
+ *
+ * Production adapter for LINE Messaging API. Handles text,
+ * stickers, images, flex messages, and rich menus.
+ * Uses raw HTTP — zero SDK dependency.
+ */
+import { createChildLogger } from '../utils/logger.js';
+import { createHmac } from 'node:crypto';
+const log = createChildLogger('channel:line');
+const LINE_API = 'https://api.line.me/v2/bot';
+const LINE_DATA_API = 'https://api-data.line.me/v2/bot';
+/**
+ * CoreBlow LINE Adapter
+ */
+export class LINEAdapter {
+    config;
+    messageHandler = null;
+    running = false;
+    constructor(config) {
+        this.config = config;
+    }
+    onMessage(handler) {
+        this.messageHandler = handler;
+    }
+    /** Verify webhook signature */
+    verifySignature(body, signature) {
+        const hash = createHmac('SHA256', this.config.channelSecret)
+            .update(body)
+            .digest('base64');
+        return hash === signature;
+    }
+    /** Process webhook events */
+    async processWebhookEvents(events) {
+        for (const event of events) {
+            if (event.type === 'message' && event.message?.type === 'text' && this.messageHandler) {
+                const reply = await this.messageHandler(event);
+                if (reply && event.replyToken) {
+                    await this.replyText(event.replyToken, reply);
+                }
+            }
+        }
+    }
+    /** Reply with text using a reply token */
+    async replyText(replyToken, text) {
+        await this.api('/message/reply', {
+            replyToken,
+            messages: [{ type: 'text', text }],
+        });
+    }
+    /** Reply with multiple messages */
+    async replyMessages(replyToken, messages) {
+        await this.api('/message/reply', { replyToken, messages });
+    }
+    /** Push a message to a user/group */
+    async pushMessage(to, text) {
+        await this.api('/message/push', {
+            to,
+            messages: [{ type: 'text', text }],
+        });
+    }
+    /** Push an image */
+    async pushImage(to, originalUrl, previewUrl) {
+        await this.api('/message/push', {
+            to,
+            messages: [{
+                    type: 'image',
+                    originalContentUrl: originalUrl,
+                    previewImageUrl: previewUrl ?? originalUrl,
+                }],
+        });
+    }
+    /** Push a flex message */
+    async pushFlexMessage(to, altText, contents) {
+        await this.api('/message/push', {
+            to,
+            messages: [{ type: 'flex', altText, contents }],
+        });
+    }
+    /** Get user profile */
+    async getUserProfile(userId) {
+        const res = await fetch(`${LINE_API}/profile/${userId}`, {
+            headers: { 'Authorization': `Bearer ${this.config.channelAccessToken}` },
+        });
+        if (!res.ok)
+            throw new Error(`LINE profile error ${res.status}`);
+        return await res.json();
+    }
+    /** Get message content (image/video/audio binary) */
+    async getMessageContent(messageId) {
+        const res = await fetch(`${LINE_DATA_API}/message/${messageId}/content`, {
+            headers: { 'Authorization': `Bearer ${this.config.channelAccessToken}` },
+        });
+        if (!res.ok)
+            throw new Error(`LINE content error ${res.status}`);
+        return await res.arrayBuffer();
+    }
+    /** Set rich menu for a user */
+    async setRichMenu(userId, richMenuId) {
+        const res = await fetch(`${LINE_API}/user/${userId}/richmenu/${richMenuId}`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${this.config.channelAccessToken}` },
+        });
+        if (!res.ok)
+            throw new Error(`LINE richmenu error ${res.status}`);
+    }
+    getStatus() {
+        return { running: this.running };
+    }
+    async start() {
+        this.running = true;
+        log.info('LINE adapter started');
+    }
+    async stop() {
+        this.running = false;
+        log.info('LINE adapter stopped');
+    }
+    // === Private ===
+    async api(path, body) {
+        const res = await fetch(`${LINE_API}${path}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${this.config.channelAccessToken}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+        });
+        if (!res.ok)
+            throw new Error(`LINE API error ${res.status}: ${await res.text()}`);
+        const text = await res.text();
+        return text ? JSON.parse(text) : {};
+    }
+}
+//# sourceMappingURL=line-adapter.js.map

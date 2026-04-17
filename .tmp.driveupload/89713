@@ -1,0 +1,69 @@
+/**
+ * agents/auth-profiles.ts
+ * Auth profile management — per-provider credential rotation.
+ * Ported from CoreBlow reference src/agents/auth-profiles.ts.
+ */
+export type AuthProfileStatus = 'active' | 'cooldown' | 'disabled' | 'expired';
+export interface AuthProfile {
+    id: string;
+    provider: string;
+    label?: string;
+    priority: number;
+    status: AuthProfileStatus;
+    cooldownUntil?: number;
+    lastUsedAt?: number;
+    usageCount: number;
+    errorCount: number;
+    metadata?: Record<string, unknown>;
+}
+export interface AuthProfileStore {
+    version: 1;
+    profiles: AuthProfile[];
+}
+/**
+ * Auth profile manager — handles rotation, cooldown, and selection.
+ */
+export declare class AuthProfileManager {
+    private profiles;
+    constructor(initial?: AuthProfile[]);
+    addProfile(profile: Omit<AuthProfile, 'usageCount' | 'errorCount' | 'status'>): AuthProfile;
+    /**
+     * Select best available profile for a provider.
+     */
+    selectProfile(provider: string): AuthProfile | null;
+    /**
+     * Record successful use of a profile.
+     */
+    recordSuccess(profileId: string): void;
+    /**
+     * Record failure and potentially enter cooldown.
+     */
+    recordFailure(profileId: string, cooldownMs?: number): void;
+    /**
+     * Restore a disabled/cooldown profile.
+     */
+    restore(profileId: string): boolean;
+    /**
+     * List profiles for a provider.
+     */
+    listForProvider(provider: string): AuthProfile[];
+    /**
+     * List all profiles.
+     */
+    listAll(): AuthProfile[];
+    /**
+     * Remove a profile.
+     */
+    remove(profileId: string): boolean;
+    /**
+     * Resolve order for fallback.
+     */
+    resolveOrder(provider: string): AuthProfile[];
+    /**
+     * Prune expired cooldowns back to active.
+     */
+    pruneExpiredCooldowns(): number;
+    toStore(): AuthProfileStore;
+    static fromStore(store: AuthProfileStore): AuthProfileManager;
+}
+//# sourceMappingURL=auth-profiles.d.ts.map

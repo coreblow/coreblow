@@ -1,0 +1,106 @@
+/**
+ * cli/progress.ts
+ * Terminal progress indicators (spinner, progress bar).
+ * Ported from CoreBlow reference cli-utils + progress patterns.
+ */
+const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+const SPINNER_INTERVAL = 80;
+export class Spinner {
+    frameIndex = 0;
+    interval = null;
+    message;
+    stream;
+    constructor(message, stream = process.stderr) {
+        this.message = message;
+        this.stream = stream;
+    }
+    start() {
+        if (this.interval)
+            return this;
+        if (!this.stream.isTTY) {
+            this.stream.write(`${this.message}...\n`);
+            return this;
+        }
+        this.render();
+        this.interval = setInterval(() => this.render(), SPINNER_INTERVAL);
+        return this;
+    }
+    update(message) {
+        this.message = message;
+        if (this.stream.isTTY)
+            this.render();
+    }
+    succeed(message) {
+        this.stop(`✅ ${message ?? this.message}`);
+    }
+    fail(message) {
+        this.stop(`❌ ${message ?? this.message}`);
+    }
+    warn(message) {
+        this.stop(`⚠️  ${message ?? this.message}`);
+    }
+    stop(finalMessage) {
+        if (this.interval) {
+            clearInterval(this.interval);
+            this.interval = null;
+        }
+        if (this.stream.isTTY) {
+            this.stream.write('\r\x1b[K');
+        }
+        if (finalMessage)
+            this.stream.write(`${finalMessage}\n`);
+    }
+    render() {
+        const frame = SPINNER_FRAMES[this.frameIndex % SPINNER_FRAMES.length];
+        this.frameIndex++;
+        this.stream.write(`\r\x1b[K${frame} ${this.message}`);
+    }
+}
+export class ProgressBar {
+    current = 0;
+    total;
+    width;
+    label;
+    stream;
+    constructor(label, total, width = 30, stream = process.stderr) {
+        this.label = label;
+        this.total = total;
+        this.width = width;
+        this.stream = stream;
+    }
+    update(current) {
+        this.current = Math.min(current, this.total);
+        if (!this.stream.isTTY)
+            return;
+        const pct = this.total > 0 ? this.current / this.total : 0;
+        const filled = Math.round(pct * this.width);
+        const empty = this.width - filled;
+        const bar = '█'.repeat(filled) + '░'.repeat(empty);
+        this.stream.write(`\r\x1b[K${this.label} [${bar}] ${Math.round(pct * 100)}%`);
+    }
+    increment(amount = 1) { this.update(this.current + amount); }
+    finish(message) {
+        this.update(this.total);
+        if (this.stream.isTTY)
+            this.stream.write('\r\x1b[K');
+        if (message)
+            this.stream.write(`${message}\n`);
+    }
+}
+/**
+ * Run a task with a spinner.
+ */
+export async function withSpinner(message, fn) {
+    const spinner = new Spinner(message);
+    spinner.start();
+    try {
+        const result = await fn(spinner);
+        spinner.succeed();
+        return result;
+    }
+    catch (err) {
+        spinner.fail();
+        throw err;
+    }
+}
+//# sourceMappingURL=progress.js.map

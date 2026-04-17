@@ -1,0 +1,15 @@
+export declare function createButton(opts: {
+    label: string;
+    customId: string;
+    style?: number;
+}): {
+    label: string;
+    customId: string;
+    style?: number;
+    type: number;
+};
+export declare function createButtonRow(buttons: unknown[]): {
+    type: number;
+    components: unknown[];
+};
+//# sourceMappingURL=buttons.d.ts.map

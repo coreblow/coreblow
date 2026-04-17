@@ -1,0 +1,55 @@
+/**
+ * auto-reply/reply/commands-acp/lifecycle.ts
+ * ACP lifecycle management in reply context.
+ * Follows CoreBlow's commands-acp/lifecycle.ts pattern.
+ */
+export type ACPSessionStatus = 'initializing' | 'active' | 'paused' | 'completed' | 'failed' | 'cancelled';
+export interface ACPSession {
+    id: string;
+    agentId: string;
+    parentSessionId: string;
+    status: ACPSessionStatus;
+    createdAt: number;
+    startedAt?: number;
+    completedAt?: number;
+    model?: string;
+    tools: string[];
+    messageCount: number;
+    tokensUsed: number;
+    error?: string;
+}
+export interface ACPLifecycleOps {
+    createAgent(config: {
+        model?: string;
+        tools?: string[];
+        systemPrompt?: string;
+    }): Promise<string>;
+    startAgent(agentId: string): Promise<void>;
+    pauseAgent(agentId: string): Promise<void>;
+    resumeAgent(agentId: string): Promise<void>;
+    stopAgent(agentId: string): Promise<void>;
+    getAgentStatus(agentId: string): ACPSessionStatus;
+    sendToAgent(agentId: string, message: string): Promise<string>;
+}
+/** Start a new ACP session from a reply command. */
+export declare function acpStart(parentSessionId: string, config: {
+    model?: string;
+    tools?: string[];
+    systemPrompt?: string;
+}, ops: ACPLifecycleOps): Promise<ACPSession>;
+/** Pause an active ACP session. */
+export declare function acpPause(acpId: string, ops: ACPLifecycleOps): Promise<boolean>;
+/** Resume a paused ACP session. */
+export declare function acpResume(acpId: string, ops: ACPLifecycleOps): Promise<boolean>;
+/** Stop an ACP session. */
+export declare function acpStop(acpId: string, ops: ACPLifecycleOps): Promise<boolean>;
+/** Send a message to an ACP session and get response. */
+export declare function acpSendMessage(acpId: string, message: string, ops: ACPLifecycleOps): Promise<string | null>;
+/** Get ACP session by ID. */
+export declare function getACPSession(acpId: string): ACPSession | null;
+/** List all ACP sessions for a parent session. */
+export declare function listACPSessions(parentSessionId: string): ACPSession[];
+/** Format ACP session status for reply. */
+export declare function formatACPStatus(session: ACPSession): string;
+export declare function clearACPSessions(): void;
+//# sourceMappingURL=lifecycle.d.ts.map

@@ -1,0 +1,138 @@
+/**
+ * channels/webhook.schema.ts
+ * Zod validation for incoming webhook payloads from external channels.
+ *
+ * Each channel has its own webhook shape. This module normalizes
+ * and validates payloads before they enter the auto-reply pipeline.
+ */
+import { z } from 'zod';
+// ── Telegram ─────────────────────────────────────────────────────────────
+export const TelegramUserSchema = z.object({
+    id: z.number(),
+    is_bot: z.boolean().default(false),
+    first_name: z.string(),
+    last_name: z.string().optional(),
+    username: z.string().optional(),
+    language_code: z.string().optional(),
+});
+export const TelegramChatSchema = z.object({
+    id: z.number(),
+    type: z.enum(['private', 'group', 'supergroup', 'channel']),
+    title: z.string().optional(),
+    username: z.string().optional(),
+});
+export const TelegramMessageSchema = z.object({
+    message_id: z.number(),
+    from: TelegramUserSchema.optional(),
+    chat: TelegramChatSchema,
+    date: z.number(),
+    text: z.string().optional(),
+    reply_to_message: z.record(z.string(), z.unknown()).optional(),
+    photo: z.array(z.object({
+        file_id: z.string(),
+        width: z.number(),
+        height: z.number(),
+    })).optional(),
+    document: z.object({
+        file_id: z.string(),
+        file_name: z.string().optional(),
+        mime_type: z.string().optional(),
+    }).optional(),
+});
+export const TelegramUpdateSchema = z.object({
+    update_id: z.number(),
+    message: TelegramMessageSchema.optional(),
+    edited_message: TelegramMessageSchema.optional(),
+    callback_query: z.object({
+        id: z.string(),
+        from: TelegramUserSchema,
+        data: z.string().optional(),
+        message: TelegramMessageSchema.optional(),
+    }).optional(),
+});
+// ── Discord ──────────────────────────────────────────────────────────────
+export const DiscordWebhookSchema = z.object({
+    type: z.number(),
+    token: z.string().optional(),
+    data: z.object({
+        id: z.string().optional(),
+        name: z.string().optional(),
+        type: z.number().optional(),
+        options: z.array(z.object({
+            name: z.string(),
+            type: z.number(),
+            value: z.unknown().optional(),
+        })).optional(),
+    }).optional(),
+    member: z.object({
+        user: z.object({
+            id: z.string(),
+            username: z.string(),
+            discriminator: z.string().optional(),
+        }).optional(),
+    }).optional(),
+    channel_id: z.string().optional(),
+    guild_id: z.string().optional(),
+});
+// ── Slack ────────────────────────────────────────────────────────────────
+export const SlackEventSchema = z.object({
+    type: z.string(),
+    event: z.object({
+        type: z.string(),
+        user: z.string().optional(),
+        text: z.string().optional(),
+        channel: z.string().optional(),
+        ts: z.string().optional(),
+        thread_ts: z.string().optional(),
+        bot_id: z.string().optional(),
+    }).optional(),
+    challenge: z.string().optional(),
+    token: z.string().optional(),
+    team_id: z.string().optional(),
+    event_id: z.string().optional(),
+    event_time: z.number().optional(),
+});
+// ── WhatsApp (Cloud API) ─────────────────────────────────────────────────
+export const WhatsAppMessageSchema = z.object({
+    from: z.string(),
+    id: z.string(),
+    timestamp: z.string(),
+    type: z.enum(['text', 'image', 'audio', 'video', 'document', 'sticker', 'location', 'contacts', 'interactive', 'button', 'reaction']),
+    text: z.object({ body: z.string() }).optional(),
+    image: z.object({ id: z.string(), caption: z.string().optional() }).optional(),
+});
+export const WhatsAppWebhookSchema = z.object({
+    object: z.literal('whatsapp_business_account'),
+    entry: z.array(z.object({
+        id: z.string(),
+        changes: z.array(z.object({
+            field: z.string(),
+            value: z.object({
+                messages: z.array(WhatsAppMessageSchema).optional(),
+                metadata: z.object({
+                    phone_number_id: z.string(),
+                    display_phone_number: z.string(),
+                }).optional(),
+            }),
+        })),
+    })),
+});
+// ── Generic Webhook ──────────────────────────────────────────────────────
+export const GenericWebhookSchema = z.object({
+    source: z.string().min(1),
+    event: z.string().min(1),
+    data: z.record(z.string(), z.unknown()),
+    timestamp: z.number().optional(),
+    signature: z.string().optional(),
+});
+// ── Validation Helpers ───────────────────────────────────────────────────
+export function validateTelegramUpdate(raw) {
+    return TelegramUpdateSchema.parse(raw);
+}
+export function validateSlackEvent(raw) {
+    return SlackEventSchema.parse(raw);
+}
+export function validateWhatsAppWebhook(raw) {
+    return WhatsAppWebhookSchema.parse(raw);
+}
+//# sourceMappingURL=webhook.schema.js.map

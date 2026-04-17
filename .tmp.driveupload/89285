@@ -1,0 +1,12 @@
+export declare function getWorkspaceDirs(baseDir: string): {
+    root: string;
+    src: string;
+    tests: string;
+    config: string;
+    sessions: string;
+    logs: string;
+    cache: string;
+    plugins: string;
+    skills: string;
+};
+//# sourceMappingURL=workspace-dirs.d.ts.map

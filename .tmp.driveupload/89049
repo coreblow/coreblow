@@ -1,0 +1,7 @@
+export declare class OAuthProfileManager {
+    private profiles;
+    add(id: string, profile: unknown): void;
+    get(id: string): unknown;
+    list(): unknown[];
+}
+//# sourceMappingURL=oauth.d.ts.map

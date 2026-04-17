@@ -1,0 +1,11 @@
+/** PI host edit tool. */
+export interface EditOperation {
+    filePath: string;
+    oldContent: string;
+    newContent: string;
+}
+export declare function validateEdit(op: EditOperation): {
+    valid: boolean;
+    error?: string;
+};
+//# sourceMappingURL=pi-tools.host-edit.d.ts.map

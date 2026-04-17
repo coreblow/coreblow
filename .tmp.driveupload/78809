@@ -1,0 +1,10 @@
+/**
+ * commands/handlers/config.ts
+ * Config management commands: /config show, set, reset, validate.
+ */
+import type { CommandContext } from '../types.js';
+export declare function handleConfigShow(ctx: CommandContext): Promise<string>;
+export declare function handleConfigSet(ctx: CommandContext): Promise<string>;
+export declare function handleConfigReset(ctx: CommandContext): Promise<string>;
+export declare function handleConfigValidate(ctx: CommandContext): Promise<string>;
+//# sourceMappingURL=config.d.ts.map

@@ -1,0 +1,22 @@
+/** plugin-sdk/process-runtime.ts [ADAPT] openclaw-main */
+import { exec } from "node:child_process";
+import { promisify } from "node:util";
+const execP = promisify(exec);
+export async function runProcess(argv, opts) {
+    if (!argv.length)
+        return { code: 1, stdout: "", stderr: "no command" };
+    const cmd = argv.map(a => JSON.stringify(a)).join(" ");
+    try {
+        const r = await execP(cmd, { timeout: opts?.timeoutMs, cwd: opts?.cwd, env: opts?.env, maxBuffer: 10 * 1024 * 1024 });
+        return { code: 0, stdout: r.stdout.trim(), stderr: r.stderr.trim() };
+    }
+    catch (e) {
+        const err = e;
+        return {
+            code: typeof err.code === "number" ? err.code : 1,
+            stdout: (err.stdout ?? "").trim(),
+            stderr: (err.stderr ?? err.message ?? "").trim(),
+        };
+    }
+}
+//# sourceMappingURL=process-runtime.js.map

@@ -1,0 +1,5 @@
+/**
+ * tts/ssml-build.ts
+ */
+export function ssml(text) { return '<speak>' + text + '</speak>'; }
+//# sourceMappingURL=ssml-build.js.map

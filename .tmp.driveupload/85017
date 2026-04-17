@@ -1,0 +1,1 @@
+{"version":3,"file":"with-timeout.d.ts","sourceRoot":"","sources":["../../src/node-host/with-timeout.ts"],"names":[],"mappings":"AAAA,wBAAsB,WAAW,CAAC,CAAC,EACjC,IAAI,EAAE,CAAC,MAAM,EAAE,WAAW,GAAG,SAAS,KAAK,OAAO,CAAC,CAAC,CAAC,EACrD,SAAS,CAAC,EAAE,MAAM,EAClB,KAAK,CAAC,EAAE,MAAM,GACb,OAAO,CAAC,CAAC,CAAC,CA8BZ"}

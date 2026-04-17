@@ -1,0 +1,15 @@
+const announcements = [];
+export function announceSubagent(ann) {
+    const full = { ...ann, timestamp: Date.now() };
+    announcements.push(full);
+    if (announcements.length > 200)
+        announcements.splice(0, announcements.length - 200);
+    return full;
+}
+export function getAnnouncements(parentId) { return parentId ? announcements.filter((a) => a.parentId === parentId) : [...announcements]; }
+export function clearAnnouncements() { announcements.length = 0; }
+export function formatAnnouncement(ann) {
+    const icon = ann.status === 'completed' ? '✅' : ann.status === 'failed' ? '❌' : ann.status === 'started' ? '🔄' : '⏹';
+    return `${icon} [${ann.agentId}] ${ann.task} — ${ann.status}${ann.duration ? ` (${ann.duration}ms)` : ''}`;
+}
+//# sourceMappingURL=subagent-announce.js.map

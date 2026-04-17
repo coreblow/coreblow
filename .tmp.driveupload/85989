@@ -1,0 +1,143 @@
+/**
+ * CoreBlow Health Aggregator
+ *
+ * Aggregates health status from all subsystems (gateway, channels,
+ * agents, cron, plugins) into a unified health report. Supports
+ * component-level health checks, degradation detection, and
+ * dashboard-ready status output.
+ */
+/**
+ * CoreBlow Health Aggregator
+ */
+export class HealthAggregator {
+    checks = new Map();
+    cache = new Map();
+    cacheTtlMs = 10_000; // 10 seconds
+    version;
+    constructor(version = '1.0.0') {
+        this.version = version;
+    }
+    /**
+     * Register a health check for a component.
+     */
+    register(name, check) {
+        this.checks.set(name, check);
+    }
+    /**
+     * Run all health checks and aggregate results.
+     */
+    async check() {
+        const components = [];
+        for (const [name, checkFn] of Array.from(this.checks)) {
+            // Check cache
+            const cached = this.cache.get(name);
+            if (cached && Date.now() - cached.lastCheckedAt < this.cacheTtlMs) {
+                components.push(cached);
+                continue;
+            }
+            try {
+                const start = Date.now();
+                const result = await Promise.race([
+                    checkFn(),
+                    this.timeout(5000, name),
+                ]);
+                result.latencyMs = result.latencyMs ?? Date.now() - start;
+                this.cache.set(name, result);
+                components.push(result);
+            }
+            catch (err) {
+                const fallback = {
+                    name,
+                    status: 'unhealthy',
+                    message: err instanceof Error ? err.message : 'Check failed',
+                    lastCheckedAt: Date.now(),
+                };
+                this.cache.set(name, fallback);
+                components.push(fallback);
+            }
+        }
+        const overallStatus = this.aggregateStatus(components);
+        const mem = process.memoryUsage();
+        return {
+            status: overallStatus,
+            uptime: process.uptime(),
+            uptimeFormatted: this.formatUptime(process.uptime()),
+            components,
+            timestamp: Date.now(),
+            version: this.version,
+            memory: {
+                rss: mem.rss,
+                heapUsed: mem.heapUsed,
+                heapTotal: mem.heapTotal,
+            },
+        };
+    }
+    /**
+     * Quick health check — returns overall status without details.
+     */
+    async ping() {
+        const health = await this.check();
+        return { status: health.status, uptime: health.uptime };
+    }
+    /**
+     * Register standard built-in checks.
+     */
+    registerDefaults() {
+        // Memory check
+        this.register('memory', async () => {
+            const mem = process.memoryUsage();
+            const heapPercent = mem.heapUsed / mem.heapTotal;
+            return {
+                name: 'memory',
+                status: heapPercent > 0.95 ? 'unhealthy' : heapPercent > 0.8 ? 'degraded' : 'healthy',
+                message: `${Math.round(mem.heapUsed / 1024 / 1024)}MB / ${Math.round(mem.heapTotal / 1024 / 1024)}MB (${Math.round(heapPercent * 100)}%)`,
+                lastCheckedAt: Date.now(),
+                metadata: { rss: mem.rss, heapUsed: mem.heapUsed, heapTotal: mem.heapTotal },
+            };
+        });
+        // Event loop check
+        this.register('event-loop', async () => {
+            const start = Date.now();
+            await new Promise((r) => setImmediate(r));
+            const lag = Date.now() - start;
+            return {
+                name: 'event-loop',
+                status: lag > 100 ? 'degraded' : 'healthy',
+                latencyMs: lag,
+                message: `Event loop lag: ${lag}ms`,
+                lastCheckedAt: Date.now(),
+            };
+        });
+    }
+    // === Private ===
+    aggregateStatus(components) {
+        if (components.length === 0)
+            return 'unknown';
+        if (components.some((c) => c.status === 'unhealthy'))
+            return 'unhealthy';
+        if (components.some((c) => c.status === 'degraded'))
+            return 'degraded';
+        if (components.every((c) => c.status === 'healthy'))
+            return 'healthy';
+        return 'degraded';
+    }
+    formatUptime(seconds) {
+        const d = Math.floor(seconds / 86400);
+        const h = Math.floor((seconds % 86400) / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+        const parts = [];
+        if (d > 0)
+            parts.push(`${d}d`);
+        if (h > 0)
+            parts.push(`${h}h`);
+        if (m > 0)
+            parts.push(`${m}m`);
+        parts.push(`${s}s`);
+        return parts.join(' ');
+    }
+    timeout(ms, name) {
+        return new Promise((_, reject) => setTimeout(() => reject(new Error(`Health check "${name}" timed out after ${ms}ms`)), ms));
+    }
+}
+//# sourceMappingURL=health.js.map

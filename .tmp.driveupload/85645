@@ -1,0 +1,58 @@
+/**
+ * CoreBlow — Search Engine
+ *
+ * Full-text search engine with document indexing,
+ * querying, highlighting, and pagination.
+ */
+/** Searchable document */
+export interface SearchDocument {
+    id: string;
+    fields: Record<string, string>;
+    metadata?: Record<string, unknown>;
+    indexedAt: number;
+}
+/** Search hit */
+export interface SearchHit {
+    id: string;
+    score: number;
+    highlights: Record<string, string>;
+    document: SearchDocument;
+}
+/** Search result */
+export interface SearchResult {
+    hits: SearchHit[];
+    total: number;
+    took: number;
+    page: number;
+    pageSize: number;
+}
+/**
+ * CoreBlow Search Engine
+ */
+export declare class SearchEngine {
+    private documents;
+    private fieldWeights;
+    /**
+     * Index a document.
+     */
+    index(id: string, fields: Record<string, string>, metadata?: Record<string, unknown>): void;
+    /**
+     * Set field weights for scoring.
+     */
+    setWeights(weights: Record<string, number>): void;
+    /**
+     * Search documents.
+     */
+    search(query: string, page?: number, pageSize?: number): SearchResult;
+    /**
+     * Remove a document.
+     */
+    remove(id: string): boolean;
+    /**
+     * Get a document.
+     */
+    get(id: string): SearchDocument | null;
+    /** Count */
+    count(): number;
+}
+//# sourceMappingURL=search-engine.d.ts.map

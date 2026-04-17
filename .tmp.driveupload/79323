@@ -1,0 +1,6 @@
+/**
+ * i18n/pluralization.ts
+ */
+export function pluralize(count, singular, plural) { return count === 1 ? singular : plural; }
+export function formatCount(count, singular, plural) { return `${count} ${pluralize(count, singular, plural)}`; }
+//# sourceMappingURL=pluralization.js.map

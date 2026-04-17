@@ -1,0 +1,2 @@
+export declare function resolveSessionKey(query: Record<string, any>): string | null;
+//# sourceMappingURL=sessions-resolve.d.ts.map

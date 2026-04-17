@@ -1,0 +1,54 @@
+import fs from "node:fs";
+import type { SystemRunApprovalFileOperand, SystemRunApprovalPlan } from "../infra/exec-approvals.js";
+export type ApprovedCwdSnapshot = {
+    cwd: string;
+    stat: fs.Stats;
+};
+export declare function resolveMutableFileOperandSnapshotSync(params: {
+    argv: string[];
+    cwd: string | undefined;
+    shellCommand: string | null;
+}): {
+    ok: true;
+    snapshot: SystemRunApprovalFileOperand | null;
+} | {
+    ok: false;
+    message: string;
+};
+export declare function revalidateApprovedCwdSnapshot(params: {
+    snapshot: ApprovedCwdSnapshot;
+}): boolean;
+export declare function revalidateApprovedMutableFileOperand(params: {
+    snapshot: SystemRunApprovalFileOperand;
+    argv: string[];
+    cwd: string | undefined;
+}): boolean;
+export declare function hardenApprovedExecutionPaths(params: {
+    approvedByAsk: boolean;
+    argv: string[];
+    shellCommand: string | null;
+    cwd: string | undefined;
+}): {
+    ok: true;
+    argv: string[];
+    argvChanged: boolean;
+    cwd: string | undefined;
+    approvedCwdSnapshot: ApprovedCwdSnapshot | undefined;
+} | {
+    ok: false;
+    message: string;
+};
+export declare function buildSystemRunApprovalPlan(params: {
+    command?: unknown;
+    rawCommand?: unknown;
+    cwd?: unknown;
+    agentId?: unknown;
+    sessionKey?: unknown;
+}): {
+    ok: true;
+    plan: SystemRunApprovalPlan;
+} | {
+    ok: false;
+    message: string;
+};
+//# sourceMappingURL=invoke-system-run-plan.d.ts.map

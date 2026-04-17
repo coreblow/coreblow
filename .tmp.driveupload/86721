@@ -1,0 +1,89 @@
+/**
+ * src/security/approval.ts
+ *
+ * Layer 3: Tool Approval System — CoreBlow 1:1 Pattern
+ *
+ * Implements allowlist/denylist command approval with three ask modes,
+ * following CoreBlow's exact ToolApproval interface.
+ *
+ * ask modes:
+ *   - 'off'     → auto-approve everything (not in denylist)
+ *   - 'on-miss' → approve if in allowlist, else ask user
+ *   - 'always'  → always ask user before executing
+ */
+export type AskMode = 'off' | 'on-miss' | 'always';
+export type ApprovalResult = 'approved' | 'denied' | 'needs-approval';
+export interface ApprovalConfig {
+    /** Approval behavior mode */
+    ask: AskMode;
+    /** Glob patterns for allowed commands: ["ls", "cat *", "git *", "npm *"] */
+    allowlist: string[];
+    /** Absolute deny patterns: ["rm -rf", "sudo *", "curl *"] */
+    denylist: string[];
+}
+export interface ApprovalRequest {
+    /** Unique request ID */
+    id: string;
+    /** The command being requested */
+    command: string;
+    /** Tool name (e.g., 'exec') */
+    tool: string;
+    /** Agent that requested this */
+    agentId: string;
+    /** Source channel */
+    source?: string;
+    /** Timestamp */
+    timestamp: number;
+    /** Current status */
+    status: 'pending' | 'approved' | 'denied' | 'expired';
+}
+/**
+ * Tool Approval System — CoreBlow Pattern
+ *
+ * ```
+ * const approval = new ToolApproval({ ask: 'on-miss', allowlist: ['ls', 'git *'], denylist: ['rm -rf'] });
+ * approval.check('ls -la')       // → 'approved'
+ * approval.check('rm -rf /')     // → 'denied'
+ * approval.check('curl example') // → 'needs-approval'
+ * ```
+ */
+export declare class ToolApproval {
+    private readonly config;
+    private readonly pendingApprovals;
+    private readonly approvalTimeoutMs;
+    constructor(config?: Partial<ApprovalConfig>, timeoutMs?: number);
+    /**
+     * Check if a command is approved to run.
+     * Returns: 'approved' | 'denied' | 'needs-approval'
+     *
+     * CoreBlow 1:1 interface.
+     */
+    check(command: string): ApprovalResult;
+    /**
+     * Create an approval request and add to pending queue.
+     */
+    requestApproval(command: string, tool: string, agentId: string, source?: string): ApprovalRequest;
+    /**
+     * Approve a pending request.
+     */
+    approve(requestId: string): boolean;
+    /**
+     * Deny a pending request.
+     */
+    deny(requestId: string): boolean;
+    /**
+     * Get all pending approval requests.
+     */
+    getPending(): ApprovalRequest[];
+    /**
+     * Get current config.
+     */
+    getConfig(): Readonly<ApprovalConfig>;
+    /**
+     * Glob-style matching (CoreBlow pattern).
+     * - "git *" matches "git pull", "git push origin main"
+     * - "ls" matches "ls" or "ls -la" (exact prefix + space)
+     */
+    private matchesAny;
+}
+//# sourceMappingURL=approval.d.ts.map

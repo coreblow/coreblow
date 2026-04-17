@@ -1,0 +1,29 @@
+/**
+ * CoreBlow Infra — Warning Filter
+ *
+ * Suppresses noisy Node.js process warnings (ExperimentalWarning,
+ * DeprecationWarning) that clutter the terminal. Configurable
+ * pattern-based filtering with optional logging of suppressed warnings.
+ */
+/** Warning filter rule */
+export interface WarningFilter {
+    /** Warning type to match (e.g., "ExperimentalWarning") */
+    type?: string;
+    /** Pattern to match in the warning message */
+    messagePattern?: RegExp | string;
+    /** Whether to silently suppress or log the suppression */
+    silent?: boolean;
+}
+/**
+ * Install the global warning filter.
+ */
+export declare function installWarningFilter(extraFilters?: WarningFilter[]): void;
+/**
+ * Get count of suppressed warnings.
+ */
+export declare function getSuppressedCount(): number;
+/**
+ * Add a custom filter at runtime.
+ */
+export declare function addFilter(filter: WarningFilter): void;
+//# sourceMappingURL=warning-filter.d.ts.map

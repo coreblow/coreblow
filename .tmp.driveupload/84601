@@ -1,0 +1,1 @@
+{"version":3,"file":"googlechat.js","sourceRoot":"","sources":["../../src/plugin-sdk/googlechat.ts"],"names":[],"mappings":"AAEA,OAAO,EACH,kBAAkB,GACrB,MAAM,4BAA4B,CAAC;AACpC,OAAO,EAAE,wBAAwB,EAAE,MAAM,4BAA4B,CAAC;AACtE,MAAM,UAAU,uBAAuB,CAAC,EAAW;IAC/C,MAAM,IAAI,KAAK,CAAC,iEAAiE,CAAC,CAAC;AACvF,CAAC"}

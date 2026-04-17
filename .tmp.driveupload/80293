@@ -1,0 +1,125 @@
+/**
+ * src/channels/gmail.ts
+ * Gmail channel adapter — IMAP polling + SMTP sending
+ * SUPERIOR: CoreBlow = 5 files + external `gog` binary + Google Cloud Pub/Sub setup
+ * CoreBlow = 1 file, zero external deps, just Gmail credentials
+ * Features: IMAP polling, SMTP send, label filtering, auto-reply, thread tracking, attachments
+ */
+import type { ChannelAdapter, ChannelStatus } from './interface.js';
+import type { MessageRouter } from '../gateway/router.js';
+export interface GmailConfig {
+    /** Gmail address */
+    email: string;
+    /** App password (not regular password — Google requires app-specific passwords) */
+    appPassword: string;
+    /** IMAP server — default: imap.gmail.com */
+    imapHost?: string;
+    /** IMAP port — default: 993 */
+    imapPort?: number;
+    /** SMTP server — default: smtp.gmail.com */
+    smtpHost?: string;
+    /** SMTP port — default: 587 */
+    smtpPort?: number;
+    /** Labels to monitor — default: ['INBOX'] */
+    labels?: string[];
+    /** Poll interval (ms) — default: 30000 (30s) */
+    pollIntervalMs?: number;
+    /** Mark as read after processing */
+    markAsRead?: boolean;
+    /** Max email body length to process — default: 20000 chars */
+    maxBodyLength?: number;
+    /** Include email body in AI context */
+    includeBody?: boolean;
+    /** Auto-reply enabled */
+    autoReply?: boolean;
+    /** Allowed senders (empty = all) */
+    allowedSenders?: string[];
+    /** Blocked senders */
+    blockedSenders?: string[];
+    /** Only process unread emails */
+    unreadOnly?: boolean;
+}
+export interface EmailMessage {
+    id: string;
+    messageId: string;
+    from: string;
+    fromName: string;
+    to: string;
+    subject: string;
+    body: string;
+    date: Date;
+    threadId?: string;
+    inReplyTo?: string;
+    references?: string;
+    labels: string[];
+    hasAttachments: boolean;
+    isRead: boolean;
+}
+export interface EmailSendOptions {
+    to: string;
+    subject: string;
+    body: string;
+    inReplyTo?: string;
+    references?: string;
+    threadId?: string;
+    html?: boolean;
+}
+/**
+ * Parse email address from "Name <email>" format
+ */
+export declare function parseEmailAddress(raw: string): {
+    name: string;
+    email: string;
+};
+/**
+ * Extract plain text from HTML email
+ */
+export declare function htmlToText(html: string): string;
+/**
+ * Clean email body — remove quoted replies, signatures
+ */
+export declare function cleanEmailBody(body: string): string;
+/**
+ * Build MIME email for sending
+ */
+export declare function buildMimeMessage(opts: EmailSendOptions & {
+    from: string;
+}): string;
+/**
+ * Simple IMAP command builder
+ * Full IMAP requires a library; this provides the command structure
+ */
+export declare function buildImapSearchCommand(labels: string[], unreadOnly: boolean): string;
+export declare class GmailChannel implements ChannelAdapter {
+    name: string;
+    private config;
+    private connected;
+    private startedAt;
+    private router?;
+    private pollTimer;
+    private processedIds;
+    private processedMaxSize;
+    private emailsSent;
+    private emailsReceived;
+    private lastPollAt;
+    private lastError?;
+    constructor(config: GmailConfig);
+    start(router: MessageRouter): Promise<void>;
+    stop(): Promise<void>;
+    isConnected(): boolean;
+    getStatus(): ChannelStatus;
+    private startPolling;
+    private stopPolling;
+    /**
+    * Poll for new emails via Gmail API (using fetch — no external deps)
+    */
+    poll(): Promise<EmailMessage[]>;
+    private fetchMessage;
+    /**
+    * Send an email reply
+    */
+    send(opts: EmailSendOptions): Promise<{
+        messageId?: string;
+    }>;
+}
+//# sourceMappingURL=gmail.d.ts.map

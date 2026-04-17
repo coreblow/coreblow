@@ -1,0 +1,86 @@
+/**
+ * plugin-sdk/account-core.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/account-core.ts
+ *
+ * Core account resolution utilities for multi-account channel plugins.
+ * Adaptasi: CoreBlowConfig → base config, self-contained implementations.
+ */
+import { DEFAULT_ACCOUNT_ID, normalizeAccountId, normalizeOptionalAccountId } from './account-id.js';
+import { createAccountListHelpers, describeAccountSnapshot, mergeAccountConfig, resolveMergedAccountConfig, resolveListedDefaultAccountId } from './account-helpers.js';
+export { DEFAULT_ACCOUNT_ID, normalizeAccountId, normalizeOptionalAccountId };
+export { createAccountListHelpers, describeAccountSnapshot, mergeAccountConfig, resolveMergedAccountConfig, resolveListedDefaultAccountId };
+/** Normalize a chat type string to a canonical value. */
+export function normalizeChatType(type) {
+    switch (type?.toLowerCase()) {
+        case 'direct':
+        case 'dm':
+        case 'private':
+            return 'direct';
+        case 'group':
+            return 'group';
+        case 'channel':
+        case 'public':
+            return 'channel';
+        default:
+            return 'unknown';
+    }
+}
+/** Resolve an account entry, throwing if not found. */
+export function resolveAccountEntry(accounts, accountId) {
+    const normalized = normalizeAccountId(accountId);
+    const account = accounts[normalized];
+    if (!account) {
+        throw new Error(`Account not configured: ${normalized}`);
+    }
+    return account;
+}
+/** Resolve a normalized account entry, falling back to default. */
+export function resolveNormalizedAccountEntry(accounts, accountId) {
+    const normalized = normalizeAccountId(accountId);
+    const account = accounts[normalized] ?? accounts[DEFAULT_ACCOUNT_ID];
+    if (!account) {
+        throw new Error(`No account found for: ${normalized}`);
+    }
+    return { accountId: normalized, account };
+}
+/**
+ * Resolve an account by id, then fall back to the default account when
+ * the primary lacks credentials.
+ * [PORT] openclaw resolveAccountWithDefaultFallback
+ */
+export function resolveAccountWithDefaultFallback(params) {
+    const hasExplicitAccountId = Boolean(params.accountId?.trim());
+    const normalizedAccountId = params.normalizeAccountId(params.accountId);
+    const primary = params.resolvePrimary(normalizedAccountId);
+    if (hasExplicitAccountId || params.hasCredential(primary)) {
+        return primary;
+    }
+    const fallbackId = params.resolveDefaultAccountId();
+    if (fallbackId === normalizedAccountId) {
+        return primary;
+    }
+    const fallback = params.resolvePrimary(fallbackId);
+    if (!params.hasCredential(fallback)) {
+        return primary;
+    }
+    return fallback;
+}
+/** List normalized configured account IDs from a raw channel account record map. */
+export function listConfiguredAccountIds(params) {
+    if (!params.accounts)
+        return [];
+    const ids = new Set();
+    for (const key of Object.keys(params.accounts)) {
+        if (!key)
+            continue;
+        ids.add(params.normalizeAccountId(key));
+    }
+    return [...ids];
+}
+/** Normalize a phone/E.164 number string. */
+export function normalizeE164(value) {
+    // Strip everything except digits and leading +
+    const digits = value.replace(/[^0-9+]/g, '');
+    return digits.startsWith('+') ? digits : `+${digits}`;
+}
+//# sourceMappingURL=account-core.js.map

@@ -1,0 +1,6 @@
+/**
+ * utils/rate-utils.ts
+ */
+export function tokensPerSecond(tokens, durationMs) { return durationMs > 0 ? Math.round(tokens / (durationMs / 1000)) : 0; }
+export function costPerToken(totalCost, totalTokens) { return totalTokens > 0 ? totalCost / totalTokens : 0; }
+//# sourceMappingURL=rate-utils.js.map

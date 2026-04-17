@@ -1,0 +1,8 @@
+/** plugin-sdk/provider-auth-login.ts [ADAPT] openclaw-main — Lazy-loaded login helpers. */
+type LoginRuntime = {
+    loginOpenAICompatible: (_params: unknown) => Promise<never>;
+};
+export declare function getLoginRuntime(): Promise<LoginRuntime>;
+export declare function loginOpenAICompatible(_params: unknown): Promise<never>;
+export {};
+//# sourceMappingURL=provider-auth-login.d.ts.map

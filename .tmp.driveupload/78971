@@ -1,0 +1,34 @@
+/**
+ * commands/configure.shared.ts
+ * Configuration prompt utilities shared between CLI configure & gateway setup wizard.
+ */
+/** Standard model provider choices. */
+export declare const MODEL_PROVIDERS: readonly [{
+    readonly id: "openai";
+    readonly name: "OpenAI";
+    readonly envVar: "OPENAI_API_KEY";
+}, {
+    readonly id: "anthropic";
+    readonly name: "Anthropic";
+    readonly envVar: "ANTHROPIC_API_KEY";
+}, {
+    readonly id: "google";
+    readonly name: "Google AI";
+    readonly envVar: "GOOGLE_API_KEY";
+}, {
+    readonly id: "groq";
+    readonly name: "Groq";
+    readonly envVar: "GROQ_API_KEY";
+}, {
+    readonly id: "openrouter";
+    readonly name: "OpenRouter";
+    readonly envVar: "OPENROUTER_API_KEY";
+}];
+/** Validate a provider API key format. */
+export declare function validateProviderKey(provider: string, key: string): {
+    valid: boolean;
+    error?: string;
+};
+/** Get environment variable name for a provider. */
+export declare function getProviderEnvVar(providerId: string): string | undefined;
+//# sourceMappingURL=configure.shared.d.ts.map

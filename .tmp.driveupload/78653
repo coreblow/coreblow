@@ -1,0 +1,9 @@
+/**
+ * src/daemon/cmd-argv.ts
+ * Command script argument parsing.
+ * Ported from CoreBlow daemon/cmd-argv.ts.
+ */
+export declare function quoteCmdScriptArg(value: string): string;
+export declare function unescapeCmdScriptArg(value: string): string;
+export declare function parseCmdScriptCommandLine(value: string): string[];
+//# sourceMappingURL=cmd-argv.d.ts.map

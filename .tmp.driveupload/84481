@@ -1,0 +1,50 @@
+/**
+ * plugin-sdk/channel-actions.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/channel-actions.ts
+ *
+ * Schema helpers for channel message actions (buttons, cards).
+ * Adaptasi: self-contained, tidak bergantung @sinclair/typebox.
+ */
+export type { ChannelMessageActionAdapter, ChannelMessageActionContext, ChannelMessageActionName } from './channel-contract.js';
+/** A button in a message action row. */
+export type MessageButton = {
+    text: string;
+    callback_data: string;
+    style?: 'danger' | 'success' | 'primary';
+};
+/** Rows of buttons for inline keyboard actions. */
+export type MessageButtonRows = MessageButton[][];
+/** Card payload for channels that support card-style messages. */
+export type MessageCard = Record<string, unknown>;
+/** Describe a union action gate that blocks unless all conditions pass. */
+export type UnionActionGate = {
+    check: (params: {
+        accountId: string;
+        userId?: string;
+    }) => boolean;
+};
+export declare function createUnionActionGate(gates: Array<(params: {
+    accountId: string;
+    userId?: string;
+}) => boolean>): UnionActionGate;
+/** List account IDs that sourced their auth from a token (API key). */
+export declare function listTokenSourcedAccounts(accounts: Record<string, {
+    token?: string | null;
+}>): string[];
+/** Resolve the message ID from a reaction event payload. */
+export declare function resolveReactionMessageId(payload: {
+    messageId?: string;
+    replyToMessageId?: string;
+}): string | undefined;
+/** Optional string enum schema shape (for JSON schema / typebox compat). */
+export declare function optionalStringEnum(values: readonly string[]): {
+    type: 'string';
+    enum: string[];
+    optional: true;
+};
+/** String enum schema shape. */
+export declare function stringEnum(values: readonly string[]): {
+    type: 'string';
+    enum: string[];
+};
+//# sourceMappingURL=channel-actions.d.ts.map

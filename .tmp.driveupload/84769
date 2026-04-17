@@ -1,0 +1,56 @@
+/**
+ * plugin-sdk/provider-helpers.ts
+ * LLM provider integration helpers for plugins.
+ */
+import { parseModelString } from '../auto-reply/model-runtime.js';
+/**
+ * Resolve provider configuration from config.
+ */
+export function resolveProviderConfig(model, cfg) {
+    const { provider, modelId } = parseModelString(model);
+    const models = cfg?.models;
+    const providerCfg = models?.[provider];
+    return {
+        provider,
+        modelId,
+        apiKey: providerCfg?.apiKey,
+        endpoint: providerCfg?.endpoint,
+    };
+}
+/**
+ * Get list of available models from config.
+ */
+export function getAvailableModels(cfg) {
+    const models = [];
+    const modelsCfg = cfg?.models;
+    if (!modelsCfg)
+        return models;
+    for (const [provider, providerCfg] of Object.entries(modelsCfg)) {
+        if (typeof providerCfg === 'object' && providerCfg !== null) {
+            const pc = providerCfg;
+            if (pc.apiKey || pc.endpoint) {
+                models.push(`${provider}/*`);
+            }
+            if (Array.isArray(pc.models)) {
+                for (const m of pc.models) {
+                    if (typeof m === 'string')
+                        models.push(`${provider}/${m}`);
+                }
+            }
+        }
+    }
+    return models;
+}
+/**
+ * Validate a model string.
+ */
+export function isValidModelString(model) {
+    try {
+        const { provider, modelId } = parseModelString(model);
+        return provider.length > 0 && modelId.length > 0;
+    }
+    catch {
+        return false;
+    }
+}
+//# sourceMappingURL=provider-helpers.js.map

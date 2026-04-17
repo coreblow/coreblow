@@ -1,0 +1,8 @@
+/**
+ * src/channels/discord/embeds/status.ts
+ * Gateway status embed with fields
+ */
+import type { DiscordEmbed } from '../types.js';
+import type { ChannelStatus } from '../../interface.js';
+export declare function createStatusEmbed(status: ChannelStatus): DiscordEmbed;
+//# sourceMappingURL=status.d.ts.map

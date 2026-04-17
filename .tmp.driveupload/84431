@@ -1,0 +1,13 @@
+/** plugin-sdk/volcengine.ts [ADAPT] openclaw-main */
+import type { ProviderModelDefinition } from "./provider-model-shared.js";
+export declare const DOUBAO_BASE_URL = "https://ark.cn-beijing.volces.com";
+export declare const DOUBAO_CODING_BASE_URL = "https://ark.cn-beijing.volces.com";
+export declare const DOUBAO_MODEL_CATALOG: ProviderModelDefinition[];
+export declare const DOUBAO_CODING_MODEL_CATALOG: ProviderModelDefinition[];
+export declare function buildDoubaoModelDefinition(params: {
+    id: string;
+    label?: string;
+}): ProviderModelDefinition;
+export declare function buildDoubaoProvider(_p: unknown): unknown;
+export declare function buildDoubaoCodingProvider(_p: unknown): unknown;
+//# sourceMappingURL=volcengine.d.ts.map

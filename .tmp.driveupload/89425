@@ -1,0 +1,128 @@
+/**
+ * CoreBlow Agent Scope Management
+ *
+ * Manages per-agent configuration overrides, model selection scoping,
+ * and agent-specific settings resolution. Each agent can have its own
+ * model, tools, and behavior configuration that overrides defaults.
+ *
+ * Equivalent: CoreBlow src/agents/agent-scope.ts (354 LOC)
+ */
+import type { CoreBlowConfig } from './model-selection.js';
+export interface AgentConfig {
+    /** Display name */
+    name?: string;
+    /** Model override for this agent (provider/model) */
+    model?: string | {
+        primary?: string;
+        fallback?: string[];
+    };
+    /** Model override for subagents spawned by this agent */
+    subagents?: {
+        model?: string;
+        maxConcurrent?: number;
+    };
+    /** System prompt override */
+    systemPrompt?: string;
+    /** Extra system prompt appended to default */
+    extraSystemPrompt?: string;
+    /** Tool policy: which tools are available */
+    tools?: {
+        allow?: string[];
+        deny?: string[];
+        exec?: import("../config/config.js").ExecToolConfig;
+    };
+    /** Max context tokens override */
+    maxContextTokens?: number;
+    /** Max output tokens override */
+    maxOutputTokens?: number;
+    /** Temperature override */
+    temperature?: number;
+    /** Thinking level override */
+    thinkingDefault?: string;
+    /** Whether this agent is allowed to spawn subagents */
+    canSpawnSubagents?: boolean;
+    /** Whether this agent can use ACP */
+    acpEnabled?: boolean;
+    /** Workspace directory override */
+    workspaceDir?: string;
+    /** Skills prompt override */
+    skillsPrompt?: string;
+    /** Tags for categorization */
+    tags?: string[];
+    /** Custom metadata */
+    metadata?: Record<string, unknown>;
+}
+export interface AgentScope {
+    agentId: string;
+    config: AgentConfig;
+    resolvedModel: string | undefined;
+    resolvedFallbacks: string[];
+    effectiveTools: {
+        allow: string[];
+        deny: string[];
+    };
+}
+/**
+ * Register an agent configuration
+ */
+export declare function registerAgentConfig(agentId: string, config: AgentConfig): void;
+/**
+ * Get a registered agent configuration
+ */
+export declare function getAgentConfig(agentId: string): AgentConfig | undefined;
+/**
+ * List all registered agent configurations
+ */
+export declare function listAgentConfigs(): Array<{
+    id: string;
+    config: AgentConfig;
+}>;
+/**
+ * Remove an agent configuration
+ */
+export declare function removeAgentConfig(agentId: string): boolean;
+/**
+ * Clear all agent configurations
+ */
+export declare function clearAgentConfigs(): void;
+export declare function normalizeAgentId(agentId: string): string;
+export declare function isValidAgentId(agentId: string): boolean;
+/**
+ * Resolve the effective agent config from global + per-agent settings
+ */
+export declare function resolveAgentConfig(cfg: CoreBlowConfig, agentId: string): AgentConfig | undefined;
+/**
+ * Resolve the effective model for an agent (agent override → global default)
+ */
+export declare function resolveAgentEffectiveModelPrimary(cfg: CoreBlowConfig, agentId: string): string | undefined;
+/**
+ * Resolve fallback models for an agent
+ */
+export declare function resolveAgentModelFallbacksOverride(cfg: CoreBlowConfig, agentId: string): string[] | undefined;
+/**
+ * Resolve the effective tool policy for an agent
+ */
+export declare function resolveAgentToolPolicy(cfg: CoreBlowConfig, agentId: string): {
+    allow: string[];
+    deny: string[];
+};
+/**
+ * Check if a specific tool is allowed for an agent
+ */
+export declare function isToolAllowedForAgent(cfg: CoreBlowConfig, agentId: string, toolName: string): boolean;
+/**
+ * Resolve the full agent scope with all resolved values
+ */
+export declare function resolveAgentScope(cfg: CoreBlowConfig, agentId: string): AgentScope;
+/**
+ * Merge two agent configs (override wins over base)
+ */
+export declare function mergeAgentConfigs(base: AgentConfig, override: AgentConfig): AgentConfig;
+/**
+ * Validate an agent config
+ */
+export declare function validateAgentConfig(config: AgentConfig): {
+    valid: boolean;
+    errors: string[];
+};
+//# sourceMappingURL=agent-scope.d.ts.map

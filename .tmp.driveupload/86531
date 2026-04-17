@@ -1,0 +1,272 @@
+/**
+ * CoreBlow — Toxicity Detector
+ *
+ * Production-grade toxicity detection with multi-category scoring,
+ * severity classification, context-aware analysis, custom dictionaries,
+ * batch scanning, and configurable enforcement policies.
+ */
+import { createChildLogger } from '../utils/logger.js';
+import { testRegexWithBoundedInput, compileSafeRegexDetailed } from './safe-regex.js';
+const log = createChildLogger('security:toxicity');
+// ─── ToxicityDetector ────────────────────────────────────────────
+/**
+ * CoreBlow Toxicity Detector
+ *
+ * Scans text for toxic content across 9 categories with
+ * weighted scoring, severity classification, and contextual analysis.
+ */
+export class ToxicityDetector {
+    categories;
+    customPatterns = new Map();
+    allowlist = new Set();
+    threshold;
+    enabledCategories;
+    contextAware;
+    maxTextLength;
+    stats = { scanned: 0, toxic: 0, byCategory: new Map() };
+    history = [];
+    maxHistory = 200;
+    constructor(config) {
+        this.threshold = config?.threshold ?? 0.5;
+        this.contextAware = config?.contextAware ?? true;
+        this.maxTextLength = config?.maxTextLength ?? 10000;
+        this.enabledCategories = new Set(config?.enabledCategories ?? [
+            'insult', 'threat', 'sexual', 'hate_speech', 'harassment',
+            'spam', 'violence', 'self_harm', 'dangerous_content',
+        ]);
+        this.categories = new Map([
+            ['insult', {
+                    patterns: [
+                        /\b(idiot|stupid|moron|dumb|loser|fool|incompetent|worthless|pathetic)\b/gi,
+                    ],
+                    weight: 1.0, severity: 'medium', contextualBoost: 0.1,
+                }],
+            ['threat', {
+                    patterns: [
+                        /\b(kill\s+you|hurt\s+you|destroy\s+you|attack\s+you|find\s+you)\b/gi,
+                        /\b(i\s+will\s+(?:kill|hurt|destroy|attack|find))\b/gi,
+                    ],
+                    weight: 1.0, severity: 'critical', contextualBoost: 0.2,
+                }],
+            ['sexual', {
+                    patterns: [
+                        /\b(explicit\s+sexual\s+content)\b/gi,
+                    ],
+                    weight: 0.8, severity: 'high', contextualBoost: 0.1,
+                }],
+            ['hate_speech', {
+                    patterns: [
+                        /\b(all\s+\w+\s+are\s+(?:stupid|evil|bad|inferior))\b/gi,
+                    ],
+                    weight: 1.0, severity: 'critical', contextualBoost: 0.3,
+                }],
+            ['harassment', {
+                    patterns: [
+                        /\b(stalk|harass|bully|intimidate|torment|persecute)\b/gi,
+                    ],
+                    weight: 1.0, severity: 'high', contextualBoost: 0.15,
+                }],
+            ['spam', {
+                    patterns: [
+                        /\b(buy\s+now|click\s+here|free\s+money|act\s+now|limited\s+offer|congratulations\s+you\s+won)\b/gi,
+                    ],
+                    weight: 0.5, severity: 'low', contextualBoost: 0.05,
+                }],
+            ['violence', {
+                    patterns: [
+                        /\b(murder|torture|massacre|slaughter|bloodshed|dismember)\b/gi,
+                    ],
+                    weight: 0.9, severity: 'high', contextualBoost: 0.2,
+                }],
+            ['self_harm', {
+                    patterns: [
+                        /\b(suicide|self.?harm|cut\s+myself|end\s+my\s+life|kill\s+myself)\b/gi,
+                    ],
+                    weight: 1.0, severity: 'critical', contextualBoost: 0.3,
+                }],
+            ['dangerous_content', {
+                    patterns: [
+                        /\b(how\s+to\s+make\s+(?:a\s+)?(?:bomb|weapon|poison|drug))\b/gi,
+                        /\b(instructions\s+for\s+(?:harm|illegal|criminal))\b/gi,
+                    ],
+                    weight: 1.0, severity: 'critical', contextualBoost: 0.3,
+                }],
+        ]);
+    }
+    // ─── Analysis ────────────────────────────────────────────────
+    /**
+     * Analyze text for toxicity.
+     */
+    analyze(text) {
+        this.stats.scanned++;
+        const truncated = text.slice(0, this.maxTextLength);
+        const lowerText = truncated.toLowerCase();
+        // Check allowlist
+        if (this.isAllowlisted(lowerText)) {
+            return this.safeResult();
+        }
+        const categoryResults = [];
+        let maxScore = 0;
+        let highestSeverity = 'none';
+        for (const [cat, def] of this.categories) {
+            if (!this.enabledCategories.has(cat))
+                continue;
+            const matched = [];
+            const allPatterns = [...def.patterns, ...(this.customPatterns.get(cat) ?? [])];
+            for (const pattern of allPatterns) {
+                const re = new RegExp(pattern.source, pattern.flags);
+                // Use bounded input testing to prevent O(n) on long strings (ReDoS mitigation)
+                const matches = testRegexWithBoundedInput(re, truncated)
+                    ? truncated.match(re)
+                    : null;
+                if (matches)
+                    matched.push(...matches.map((m) => m.trim()));
+            }
+            if (matched.length > 0) {
+                let score = Math.min(1, matched.length * def.weight * 0.5);
+                // Context boost: repeated offenses in same text increase score
+                if (this.contextAware && matched.length > 2) {
+                    score = Math.min(1, score + def.contextualBoost * (matched.length - 2));
+                }
+                const catSeverity = this.scoreSeverity(score, def.severity);
+                categoryResults.push({ category: cat, score, severity: catSeverity, matched: [...new Set(matched)] });
+                maxScore = Math.max(maxScore, score);
+                if (this.severityRank(catSeverity) > this.severityRank(highestSeverity)) {
+                    highestSeverity = catSeverity;
+                }
+                // Track stats
+                this.stats.byCategory.set(cat, (this.stats.byCategory.get(cat) ?? 0) + 1);
+            }
+        }
+        const toxic = maxScore >= this.threshold;
+        if (toxic)
+            this.stats.toxic++;
+        const severity = toxic ? highestSeverity : 'none';
+        const topCats = categoryResults
+            .filter((c) => c.score > 0)
+            .sort((a, b) => b.score - a.score)
+            .map((c) => c.category);
+        const result = {
+            toxic,
+            score: maxScore,
+            severity,
+            categories: categoryResults,
+            explanation: toxic
+                ? `Toxic content detected (${severity}): ${topCats.join(', ')}`
+                : 'Content appears safe',
+        };
+        this.recordHistory(truncated.slice(0, 100), result);
+        return result;
+    }
+    /**
+     * Batch scan multiple texts.
+     */
+    analyzeBatch(texts) {
+        const results = texts.map((t) => this.analyze(t));
+        const totalToxic = results.filter((r) => r.toxic).length;
+        const averageScore = results.length > 0
+            ? results.reduce((s, r) => s + r.score, 0) / results.length
+            : 0;
+        // Find worst category
+        const catCounts = new Map();
+        for (const r of results) {
+            for (const c of r.categories) {
+                catCounts.set(c.category, (catCounts.get(c.category) ?? 0) + 1);
+            }
+        }
+        let worstCategory;
+        let worstCount = 0;
+        for (const [cat, count] of catCounts) {
+            if (count > worstCount) {
+                worstCategory = cat;
+                worstCount = count;
+            }
+        }
+        return { results, totalToxic, averageScore, worstCategory };
+    }
+    /**
+     * Quick check — returns just true/false for performance.
+     */
+    isToxic(text) {
+        return this.analyze(text).toxic;
+    }
+    // ─── Configuration ───────────────────────────────────────────
+    setThreshold(threshold) {
+        this.threshold = Math.max(0, Math.min(1, threshold));
+    }
+    getThreshold() { return this.threshold; }
+    enableCategory(cat) { this.enabledCategories.add(cat); }
+    disableCategory(cat) { this.enabledCategories.delete(cat); }
+    getEnabledCategories() { return Array.from(this.enabledCategories); }
+    /**
+     * Add custom patterns to a category.
+     * Validates pattern safety (ReDoS protection) before adding.
+     * User-supplied patterns are checked via `compileSafeRegexDetailed`.
+     */
+    addCustomPattern(category, pattern) {
+        // Validate pattern safety if it looks like it came from user input
+        const check = compileSafeRegexDetailed(pattern.source, pattern.flags);
+        if (check.reason === 'unsafe-nested-repetition') {
+            log.warn({ source: pattern.source }, 'Rejected custom toxicity pattern: unsafe nested repetition (ReDoS risk)');
+            return;
+        }
+        if (!this.customPatterns.has(category))
+            this.customPatterns.set(category, []);
+        this.customPatterns.get(category).push(pattern);
+    }
+    /**
+     * Add a term to the allowlist (won't trigger detection).
+     */
+    addToAllowlist(term) { this.allowlist.add(term.toLowerCase()); }
+    // ─── Statistics ──────────────────────────────────────────────
+    getStats() {
+        const byCategory = {};
+        for (const [cat, count] of this.stats.byCategory)
+            byCategory[cat] = count;
+        return {
+            scanned: this.stats.scanned,
+            toxic: this.stats.toxic,
+            toxicRate: this.stats.scanned > 0 ? this.stats.toxic / this.stats.scanned : 0,
+            byCategory,
+        };
+    }
+    getHistory() {
+        return [...this.history];
+    }
+    resetStats() {
+        this.stats = { scanned: 0, toxic: 0, byCategory: new Map() };
+        this.history = [];
+    }
+    // ─── Private ─────────────────────────────────────────────────
+    safeResult() {
+        return { toxic: false, score: 0, severity: 'none', categories: [], explanation: 'Content appears safe' };
+    }
+    isAllowlisted(text) {
+        for (const term of this.allowlist) {
+            if (text.includes(term))
+                return false; // allowlist items override
+        }
+        return false;
+    }
+    scoreSeverity(score, baseSeverity) {
+        if (score >= 0.9)
+            return 'critical';
+        if (score >= 0.7)
+            return baseSeverity === 'critical' ? 'critical' : 'high';
+        if (score >= 0.4)
+            return this.severityRank(baseSeverity) >= 3 ? baseSeverity : 'medium';
+        if (score >= 0.2)
+            return 'low';
+        return 'none';
+    }
+    severityRank(s) {
+        return { none: 0, low: 1, medium: 2, high: 3, critical: 4 }[s];
+    }
+    recordHistory(text, result) {
+        this.history.push({ text, result, timestamp: Date.now() });
+        if (this.history.length > this.maxHistory) {
+            this.history = this.history.slice(-this.maxHistory);
+        }
+    }
+}
+//# sourceMappingURL=toxicity-detector.js.map

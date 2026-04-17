@@ -1,0 +1,105 @@
+/**
+ * CoreBlow — Slack Channel Adapter
+ *
+ * Production adapter for Slack. Handles messages via Web API,
+ * slash commands, interactive components, Block Kit messages,
+ * file uploads, and thread replies.
+ */
+/** Slack configuration */
+export interface SlackConfig {
+    botToken: string;
+    appToken?: string;
+    signingSecret: string;
+    defaultChannel?: string;
+}
+/** Slack message */
+export interface SlackMessage {
+    ts: string;
+    channel: string;
+    userId: string;
+    text: string;
+    threadTs?: string;
+    files?: Array<{
+        id: string;
+        name: string;
+        url: string;
+        size: number;
+    }>;
+    isBot: boolean;
+    isDM: boolean;
+}
+/** Slack Block Kit block */
+export interface SlackBlock {
+    type: 'section' | 'divider' | 'header' | 'actions' | 'context' | 'image';
+    text?: {
+        type: 'mrkdwn' | 'plain_text';
+        text: string;
+    };
+    accessory?: Record<string, unknown>;
+    elements?: Array<Record<string, unknown>>;
+    image_url?: string;
+    alt_text?: string;
+}
+/** Message handler */
+export type SlackMessageHandler = (msg: SlackMessage) => Promise<string | void>;
+/**
+ * CoreBlow Slack Adapter
+ */
+export declare class SlackAdapter {
+    private config;
+    private baseUrl;
+    private messageHandler;
+    private connected;
+    constructor(config: SlackConfig);
+    onMessage(handler: SlackMessageHandler): void;
+    /**
+     * Send a text message.
+     */
+    sendMessage(channel: string, text: string, options?: {
+        threadTs?: string;
+        blocks?: SlackBlock[];
+        unfurlLinks?: boolean;
+    }): Promise<string>;
+    /**
+     * Send Block Kit message.
+     */
+    sendBlocks(channel: string, blocks: SlackBlock[], text?: string): Promise<string>;
+    /**
+     * Update a message.
+     */
+    updateMessage(channel: string, ts: string, text: string, blocks?: SlackBlock[]): Promise<void>;
+    /**
+     * Delete a message.
+     */
+    deleteMessage(channel: string, ts: string): Promise<void>;
+    /**
+     * Add a reaction.
+     */
+    addReaction(channel: string, ts: string, emoji: string): Promise<void>;
+    /**
+     * Reply in a thread.
+     */
+    replyInThread(channel: string, threadTs: string, text: string): Promise<string>;
+    /**
+     * Upload a file.
+     */
+    uploadFile(channels: string[], filename: string, content: string, title?: string): Promise<string>;
+    /**
+     * Get channel list.
+     */
+    getChannels(limit?: number): Promise<Array<{
+        id: string;
+        name: string;
+    }>>;
+    /**
+     * Verify Slack request signature.
+     */
+    verifySignature(signature: string, timestamp: string, body: string): boolean;
+    getStatus(): {
+        connected: boolean;
+    };
+    connect(): Promise<void>;
+    disconnect(): Promise<void>;
+    private api;
+}
+//# sourceMappingURL=slack-adapter.d.ts.map

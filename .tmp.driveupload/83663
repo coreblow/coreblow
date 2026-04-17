@@ -1,0 +1,8 @@
+/** plugin-sdk/modelstudio.ts [ADAPT] openclaw-main */
+export * from "./modelstudio-definitions.js";
+export declare const MODELSTUDIO_BASE_URL = "https://dashscope.aliyuncs.com";
+export declare const MODELSTUDIO_MODEL_CATALOG: import("./provider-model-shared.js").ProviderModelDefinition[];
+export declare function buildModelStudioProvider(_p: unknown): unknown;
+export declare function applyModelStudioNativeStreamingUsageCompat(payload: unknown): unknown;
+export declare function isNativeModelStudioBaseUrl(url: string): boolean;
+//# sourceMappingURL=modelstudio.d.ts.map

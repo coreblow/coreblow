@@ -1,0 +1,1 @@
+{"version":3,"file":"chat-attachments.d.ts","sourceRoot":"","sources":["../../../src/gateway/server-methods/chat-attachments.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,cAAc,EAAE,MAAM,qBAAqB,CAAC;AAE1D,wBAAgB,wCAAwC,CAAC,WAAW,EAAE,OAAO,EAAE,GAAG,SAAS;;;;;IAW1F;AAED,wBAAsB,2BAA2B,CAAC,OAAO,EAAE,MAAM,EAAE,WAAW,EAAE,cAAc,EAAE,EAAE,IAAI,EAAE,OAAO;;;GAM9G"}

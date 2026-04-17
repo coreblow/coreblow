@@ -1,0 +1,36 @@
+/**
+ * plugin-sdk/provider-stream.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/provider-stream.ts
+ *
+ * Stream wrapper helpers for provider plugins.
+ * Adaptasi: CoreBlow-compatible stubs — full stream wrappers require
+ * provider-specific AI SDK integrations (Wave 5).
+ */
+export type StreamPayloadPatch = {
+    model?: string;
+    temperature?: number;
+    maxTokens?: number;
+    [key: string]: unknown;
+};
+/** Apply a patch to a stream payload before sending. */
+export declare function streamWithPayloadPatch<T extends Record<string, unknown>>(payload: T, patch: Partial<StreamPayloadPatch>): T;
+/** Check if a model is an Anthropic Bedrock model. */
+export declare function isAnthropicBedrockModel(modelId: string): boolean;
+/** Check if proxy reasoning is unsupported for a model. */
+export declare function isProxyReasoningUnsupported(modelId: string): boolean;
+export type StreamWrapper<T = unknown> = (stream: T) => T;
+export declare const createBedrockNoCacheWrapper: () => StreamWrapper;
+export declare const createGoogleThinkingPayloadWrapper: () => StreamWrapper;
+export declare const sanitizeGoogleThinkingPayload: (payload: unknown) => unknown;
+export declare const createKilocodeWrapper: () => StreamWrapper;
+export declare const createOpenRouterSystemCacheWrapper: () => StreamWrapper;
+export declare const createOpenRouterWrapper: () => StreamWrapper;
+export declare const createMoonshotThinkingWrapper: () => StreamWrapper;
+export declare const resolveMoonshotThinkingType: (_modelId: string) => string;
+export declare const createOpenAIAttributionHeadersWrapper: () => StreamWrapper;
+export declare const createOpenAIDefaultTransportWrapper: () => StreamWrapper;
+export declare const createToolStreamWrapper: () => StreamWrapper;
+export declare const createZaiToolStreamWrapper: () => StreamWrapper;
+export declare function getOpenRouterModelCapabilities(_modelId: string): Promise<Record<string, unknown>>;
+export declare function loadOpenRouterModelCapabilities(): Promise<void>;
+//# sourceMappingURL=provider-stream.d.ts.map

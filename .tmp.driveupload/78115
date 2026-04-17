@@ -1,0 +1,10 @@
+export declare class MetricsDashboard {
+    private metrics;
+    record(name: string, value: number): void;
+    get(name: string): number;
+    getAll(): {
+        [k: string]: number;
+    };
+    reset(): void;
+}
+//# sourceMappingURL=metrics-dashboard.d.ts.map

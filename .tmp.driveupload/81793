@@ -1,0 +1,17 @@
+/**
+ * gateway/server-tailscale.ts — Gateway Tailscale Exposure
+ *
+ * Manages Tailscale serve/funnel exposure for the gateway.
+ * When enabled, exposes the gateway port via Tailscale's
+ * secure tunneling infrastructure (serve for tailnet-only,
+ * funnel for public internet).
+ *
+ * Ported from CoreBlow reference src/gateway/server-tailscale.ts (59 LOC).
+ */
+export declare function startGatewayTailscaleExposure(params: {
+    tailscaleMode: 'off' | 'serve' | 'funnel';
+    resetOnExit?: boolean;
+    port: number;
+    controlUiBasePath?: string;
+}): Promise<(() => Promise<void>) | null>;
+//# sourceMappingURL=server-tailscale.d.ts.map

@@ -1,0 +1,115 @@
+/**
+ * src/agents/fork.ts
+ * Conversation branching — fork, explore, merge, compare
+ * SUPERIOR: CoreBlow = linear only; CoreBlow = branching + parallel exploration
+ */
+import type { ChatMessage } from '../providers/interface.js';
+export interface Branch {
+    id: string;
+    name: string;
+    parentId: string | null;
+    messages: ChatMessage[];
+    createdAt: number;
+    /** Summary of what this branch explored */
+    summary?: string;
+    /** Whether this branch is active */
+    active: boolean;
+    /** Branch metadata */
+    metadata?: Record<string, unknown>;
+}
+export interface ForkResult {
+    branchId: string;
+    name: string;
+    parentId: string;
+}
+export interface MergeResult {
+    mergedInto: string;
+    mergedFrom: string;
+    addedMessages: number;
+}
+export interface BranchComparison {
+    branchA: {
+        id: string;
+        name: string;
+        messageCount: number;
+        lastMessage?: string;
+    };
+    branchB: {
+        id: string;
+        name: string;
+        messageCount: number;
+        lastMessage?: string;
+    };
+    commonAncestorMessages: number;
+    divergedAt: number;
+}
+export declare class ForkManager {
+    private branches;
+    private sessionBranches;
+    private activeBranch;
+    /**
+     * Initialize root branch for a session
+     */
+    initSession(sessionId: string, messages?: ChatMessage[]): string;
+    /**
+     * Fork a conversation into a new branch
+     * The new branch starts with a copy of the parent's messages
+     */
+    fork(sessionId: string, name: string, fromBranchId?: string): ForkResult;
+    /**
+     * Switch active branch for a session
+     */
+    switchBranch(sessionId: string, branchId: string): boolean;
+    /**
+     * Get the active branch for a session
+     */
+    getActiveBranch(sessionId: string): Branch | undefined;
+    /**
+     * Get messages for a branch
+     */
+    getMessages(branchId: string): ChatMessage[];
+    /**
+     * Append a message to a branch
+     */
+    appendMessage(branchId: string, message: ChatMessage): void;
+    /**
+     * Append message to the active branch of a session
+     */
+    appendToActive(sessionId: string, message: ChatMessage): void;
+    /**
+     * Merge a branch into another
+     * Only merges messages that diverged from the common ancestor
+     */
+    merge(sessionId: string, fromBranchId: string, intoBranchId?: string): MergeResult;
+    /**
+     * Compare two branches
+     */
+    compare(branchIdA: string, branchIdB: string): BranchComparison;
+    /**
+     * List all branches for a session
+     */
+    listBranches(sessionId: string): Branch[];
+    /**
+     * Delete a branch
+     */
+    deleteBranch(branchId: string): boolean;
+    /**
+     * Get branch tree (for visualization)
+     */
+    getTree(sessionId: string): {
+        id: string;
+        name: string;
+        parent: string | null;
+        active: boolean;
+        messageCount: number;
+    }[];
+    /**
+     * Get stats
+     */
+    getStats(): {
+        totalBranches: number;
+        totalSessions: number;
+        activeBranches: number;
+    };
+}
+//# sourceMappingURL=fork.d.ts.map

@@ -1,0 +1,18 @@
+/**
+ * plugin-sdk/provider-onboard.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/provider-onboard.ts
+ *
+ * Provider onboarding preset helpers.
+ */
+/** Build onboard preset appliers for a provider. */
+export function buildProviderOnboardPresetAppliers(params) {
+    return {
+        applyProviderConfig: params.applyProviderConfig,
+        applyConfig: params.applyConfig ?? params.applyProviderConfig,
+    };
+}
+/** Apply a default model to the config. */
+export function applyProviderDefaultModel(params) {
+    return { ...params.cfg };
+}
+//# sourceMappingURL=provider-onboard.js.map

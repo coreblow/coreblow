@@ -1,0 +1,65 @@
+/**
+ * src/commands/registry.ts
+ * Command registry + parser + executor
+ * SUPERIOR: CoreBlow = 331 files scattered; CoreBlow = single registry with parser + permissions + help
+ */
+import type { CommandDefinition, CommandContext, CommandResult, ParsedCommand } from './types.js';
+export declare class CommandRegistry {
+    private commands;
+    private aliases;
+    private prefix;
+    private history;
+    constructor(prefix?: string);
+    /**
+     * Register a command
+     */
+    register(definition: CommandDefinition): void;
+    /**
+     * Unregister a command
+     */
+    unregister(name: string): boolean;
+    /**
+     * Check if text is a command
+     */
+    isCommand(text: string): boolean;
+    /**
+     * Parse a command string into structured data
+     * Supports: /command arg1 arg2 --flag value --bool-flag
+     */
+    parse(text: string): ParsedCommand | null;
+    /**
+     * Execute a parsed command
+     */
+    execute(parsed: ParsedCommand, context: Omit<CommandContext, 'command'>): Promise<CommandResult>;
+    /**
+     * Convenience: parse + execute
+     */
+    run(text: string, context: Omit<CommandContext, 'command'>): Promise<CommandResult | null>;
+    /**
+     * Generate help text for all commands or a specific command
+     */
+    generateHelp(commandName?: string): string;
+    /**
+     * Get command list (for bot command registration)
+     */
+    getCommandList(): {
+        name: string;
+        description: string;
+    }[];
+    /**
+     * Get history
+     */
+    getHistory(limit?: number): typeof this.history;
+    /**
+     * Get stats
+     */
+    getStats(): {
+        totalCommands: number;
+        totalAliases: number;
+        totalExecutions: number;
+        successRate: number;
+    };
+    private formatCommandHelp;
+    private tokenize;
+}
+//# sourceMappingURL=registry.d.ts.map

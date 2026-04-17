@@ -1,0 +1,1 @@
+{"version":3,"file":"request-url.d.ts","sourceRoot":"","sources":["../../src/plugin-sdk/request-url.ts"],"names":[],"mappings":"AAAA,qDAAqD;AAErD,KAAK,eAAe,GAAG,MAAM,GAAG;IAAE,GAAG,EAAE,MAAM,CAAA;CAAE,GAAG,GAAG,CAAC;AAEtD,wBAAgB,iBAAiB,CAAC,KAAK,EAAE,eAAe,GAAG,MAAM,CAKhE"}

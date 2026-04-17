@@ -1,0 +1,31 @@
+/**
+ * plugin-sdk/channel-actions.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/channel-actions.ts
+ *
+ * Schema helpers for channel message actions (buttons, cards).
+ * Adaptasi: self-contained, tidak bergantung @sinclair/typebox.
+ */
+export function createUnionActionGate(gates) {
+    return {
+        check: (params) => gates.every((gate) => gate(params)),
+    };
+}
+/** List account IDs that sourced their auth from a token (API key). */
+export function listTokenSourcedAccounts(accounts) {
+    return Object.entries(accounts)
+        .filter(([, config]) => config.token)
+        .map(([id]) => id);
+}
+/** Resolve the message ID from a reaction event payload. */
+export function resolveReactionMessageId(payload) {
+    return payload.messageId ?? payload.replyToMessageId;
+}
+/** Optional string enum schema shape (for JSON schema / typebox compat). */
+export function optionalStringEnum(values) {
+    return { type: 'string', enum: [...values], optional: true };
+}
+/** String enum schema shape. */
+export function stringEnum(values) {
+    return { type: 'string', enum: [...values] };
+}
+//# sourceMappingURL=channel-actions.js.map

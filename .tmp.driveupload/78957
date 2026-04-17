@@ -1,0 +1,13 @@
+/**
+ * commands/agents.ts
+ *
+ * `coreblow agents list` — list configured agents.
+ * [PORT] openclaw-main/src/commands/agents.ts (adapted)
+ */
+import type { Runtime } from '../runtime.js';
+export type AgentsListCommandOptions = {
+    json?: boolean;
+    bindings?: boolean;
+};
+export declare function agentsListCommand(opts: AgentsListCommandOptions, runtime: Runtime): Promise<void>;
+//# sourceMappingURL=agents.d.ts.map

@@ -1,0 +1,95 @@
+/**
+ * plugins/marketplace.ts
+ *
+ * Plugin marketplace client — search, browse, and get metadata for
+ * plugins from the CoreBlow plugin registry.
+ *
+ * Following CoreBlow's marketplace.ts (910 LOC) pattern, adapted
+ * for CoreBlow's OOP architecture.
+ */
+import type { MarketplacePlugin, MarketplaceSearchOptions, PluginLogger } from './types.js';
+export interface MarketplaceSearchResult {
+    plugins: MarketplacePlugin[];
+    total: number;
+    page: number;
+    pageSize: number;
+    query?: string;
+}
+export interface MarketplaceCategory {
+    id: string;
+    name: string;
+    description: string;
+    count: number;
+}
+/**
+ * CoreBlow Plugin Marketplace
+ *
+ * Client for browsing, searching, and getting metadata from the
+ * CoreBlow plugin marketplace. Supports both remote API and
+ * local/offline plugin catalogs.
+ */
+export declare class PluginMarketplace {
+    private logger;
+    private registryUrl;
+    private catalog;
+    private featured;
+    constructor(options?: {
+        registryUrl?: string;
+        logger?: PluginLogger;
+    });
+    /**
+     * Search plugins in the marketplace.
+     */
+    search(options?: MarketplaceSearchOptions): MarketplaceSearchResult;
+    /**
+     * Get a specific plugin by ID.
+     */
+    getPlugin(id: string): MarketplacePlugin | undefined;
+    /**
+     * Get featured plugins.
+     */
+    getFeatured(): MarketplacePlugin[];
+    /**
+     * Get categories with plugin counts.
+     */
+    getCategories(): MarketplaceCategory[];
+    /**
+     * Get plugins by a specific provider capability.
+     */
+    getByProvider(providerType: string): MarketplacePlugin[];
+    /**
+     * Load catalog from a local JSON array (offline mode).
+     */
+    loadCatalog(plugins: MarketplacePlugin[]): void;
+    /**
+     * Register a plugin in the local catalog.
+     */
+    register(plugin: MarketplacePlugin): void;
+    /**
+     * Set featured plugin IDs.
+     */
+    setFeatured(ids: string[]): void;
+    /**
+     * Get the total number of plugins in the catalog.
+     */
+    count(): number;
+    /**
+     * List all plugins (unfiltered).
+     */
+    list(): MarketplacePlugin[];
+    /**
+     * Get verified plugins only.
+     */
+    getVerified(): MarketplacePlugin[];
+    /**
+     * Fetch remote catalog from the plugin registry API.
+     * Uses native fetch() with timeout and error handling.
+     * Falls back gracefully if the registry is unreachable.
+     */
+    fetchRemoteCatalog(): Promise<{
+        success: boolean;
+        count: number;
+        error?: string;
+    }>;
+}
+//# sourceMappingURL=marketplace.d.ts.map

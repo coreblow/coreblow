@@ -1,0 +1,47 @@
+/**
+ * CoreBlow — Request Pipeline
+ *
+ * Processes incoming requests through ordered stages:
+ * parsing, validation, auth, rate limiting, and handler
+ * execution.
+ */
+/**
+ * CoreBlow Request Pipeline
+ */
+export class RequestPipeline {
+    stages = [];
+    stats = { processed: 0, aborted: 0 };
+    /**
+     * Add a stage.
+     */
+    use(name, handler) {
+        this.stages.push({ name, handler });
+    }
+    /**
+     * Process a request through the pipeline.
+     */
+    async process(ctx) {
+        this.stats.processed++;
+        let current = ctx;
+        for (const stage of this.stages) {
+            const result = await stage.handler(current);
+            if (result === null) {
+                this.stats.aborted++;
+                return current;
+            }
+            current = result;
+        }
+        return current;
+    }
+    /**
+     * Get stats.
+     */
+    getStats() { return { ...this.stats }; }
+    /**
+     * List stages.
+     */
+    list() { return this.stages.map((s) => s.name); }
+    /** Count */
+    count() { return this.stages.length; }
+}
+//# sourceMappingURL=request-pipeline.js.map

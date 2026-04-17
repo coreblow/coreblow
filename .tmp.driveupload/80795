@@ -1,0 +1,1 @@
+{"version":3,"file":"error.js","sourceRoot":"","sources":["../../../../src/channels/discord/events/error.ts"],"names":[],"mappings":"AAIA,OAAO,EAAE,UAAU,EAAE,MAAM,oBAAoB,CAAC;AAEhD,MAAM,UAAU,OAAO,CAAC,GAAU,EAAE,GAAiB;IACpD,UAAU,CAAC,KAAK,CAAC,EAAE,GAAG,EAAE,GAAG,EAAE,OAAO,IAAI,MAAM,CAAC,GAAG,CAAC,EAAE,EAAE,sBAAsB,CAAC,CAAC;AAChF,CAAC"}

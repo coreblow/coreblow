@@ -1,0 +1,36 @@
+/**
+ * secrets/resolve.ts
+ * 3-source secret resolution engine (env / file / exec).
+ * Ported from CoreBlow reference src/secrets/resolve.ts (959 LOC → ~450 LOC compressed).
+ */
+import type { ResolveSecretRefOptions, SecretRef, SecretRefSource } from './types.js';
+export declare class SecretProviderResolutionError extends Error {
+    readonly scope: "provider";
+    readonly source: SecretRefSource;
+    readonly provider: string;
+    constructor(params: {
+        source: SecretRefSource;
+        provider: string;
+        message: string;
+        cause?: unknown;
+    });
+}
+export declare class SecretRefResolutionError extends Error {
+    readonly scope: "ref";
+    readonly source: SecretRefSource;
+    readonly provider: string;
+    readonly refId: string;
+    constructor(params: {
+        source: SecretRefSource;
+        provider: string;
+        refId: string;
+        message: string;
+        cause?: unknown;
+    });
+}
+/**
+ * Resolve a batch of secret references.
+ * Groups refs by provider, resolves with concurrency limits.
+ */
+export declare function resolveSecretRefs(refs: SecretRef[], options: ResolveSecretRefOptions): Promise<Map<string, unknown>>;
+//# sourceMappingURL=resolve.d.ts.map

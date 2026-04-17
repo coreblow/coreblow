@@ -1,0 +1,6 @@
+export type SerializableRequestData = {
+    body?: unknown;
+    rawBody?: boolean;
+};
+export declare function serializeRequestBody(data: SerializableRequestData | undefined, headers: Headers): BodyInit | undefined;
+//# sourceMappingURL=RequestBody.d.ts.map

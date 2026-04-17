@@ -1,0 +1,23 @@
+export function createGatewayCloseHandler(params) {
+    return async (opts) => {
+        const reason = opts?.reason || "gateway stopping";
+        const restartExpectedMs = opts?.restartExpectedMs ?? null;
+        params.broadcast("shutdown", { reason, restartExpectedMs });
+        for (const c of params.clients) {
+            try {
+                c.socket.close(1012, "service restart");
+            }
+            catch { }
+        }
+        params.clients.clear();
+        await new Promise(resolve => params.wss.close(() => resolve()));
+        const servers = params.httpServers?.length ? params.httpServers : [params.httpServer];
+        for (const server of servers) {
+            const hs = server;
+            if (typeof hs.closeIdleConnections === "function")
+                hs.closeIdleConnections();
+            await new Promise((resolve, reject) => server.close((err) => err ? reject(err) : resolve()));
+        }
+    };
+}
+//# sourceMappingURL=server-close.js.map

@@ -1,0 +1,21 @@
+/**
+ * plugin-sdk/google.ts
+ * [ADAPT] openclaw-main — Stub facade for @coreblow/google extension.
+ */
+export declare const GOOGLE_GEMINI_DEFAULT_MODEL = "gemini-1.5-pro";
+export declare const DEFAULT_GOOGLE_API_BASE_URL = "https://generativelanguage.googleapis.com";
+export declare function normalizeGoogleModelId(modelId: string): string;
+export declare function normalizeAntigravityModelId(modelId: string): string;
+export declare function normalizeGoogleGenerativeAiBaseUrl(url: string): string;
+export declare function normalizeGoogleApiBaseUrl(url: string): string;
+export declare function resolveGoogleGenerativeAiApiOrigin(_cfg: unknown): string;
+export declare function resolveGoogleGenerativeAiTransport(_cfg: unknown): string;
+export declare function isGoogleGenerativeAiApi(url: string): boolean;
+export declare function shouldNormalizeGoogleProviderConfig(_cfg: unknown): boolean;
+export declare function shouldNormalizeGoogleGenerativeAiProviderConfig(_cfg: unknown): boolean;
+export declare function normalizeGoogleProviderConfig(cfg: Record<string, unknown>): Record<string, unknown>;
+export declare function applyGoogleGeminiModelDefault(cfg: Record<string, unknown>): Record<string, unknown>;
+export declare function parseGeminiAuth(_cfg: unknown): {
+    apiKey?: string;
+};
+//# sourceMappingURL=google.d.ts.map

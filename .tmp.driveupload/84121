@@ -1,0 +1,6 @@
+/** plugin-sdk/imessage-core.ts [ADAPT] openclaw-main — Stub for @coreblow/imessage (macOS only). */
+export declare function listIMessageAccountIds(_cfg: Record<string, unknown>): string[];
+export declare function probeIMessage(_p: unknown): Promise<{
+    ok: boolean;
+}>;
+//# sourceMappingURL=imessage-core.d.ts.map

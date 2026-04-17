@@ -1,0 +1,50 @@
+/**
+ * CoreBlow Prompt Composition Scenarios
+ *
+ * Advanced prompt composition patterns for different scenarios: code review,
+ * debugging, refactoring, testing, documentation, security audit, and more.
+ *
+ * Equivalent: CoreBlow src/agents/prompt-composition-scenarios.ts (693 LOC)
+ */
+export type ScenarioId = 'code-review' | 'debugging' | 'refactoring' | 'testing' | 'documentation' | 'security-audit' | 'performance' | 'architecture' | 'migration' | 'onboarding' | 'devops' | 'data-analysis' | 'api-design' | 'custom';
+export interface PromptScenario {
+    id: ScenarioId;
+    name: string;
+    description: string;
+    systemPromptAdditions: string;
+    suggestedTools: string[];
+    priority: number;
+    tags: string[];
+}
+export interface ScenarioContext {
+    projectType?: string;
+    language?: string;
+    framework?: string;
+    domain?: string;
+    urgency?: 'low' | 'medium' | 'high' | 'critical';
+}
+/**
+ * Get a scenario by ID
+ */
+export declare function getScenario(id: ScenarioId): PromptScenario | undefined;
+/**
+ * List all scenarios
+ */
+export declare function listScenarios(): PromptScenario[];
+/**
+ * Search scenarios by query
+ */
+export declare function searchScenarios(query: string): PromptScenario[];
+/**
+ * Auto-detect the best scenario from user message
+ */
+export declare function detectScenario(message: string): ScenarioId | undefined;
+/**
+ * Get system prompt additions for active scenarios
+ */
+export declare function getScenarioPromptAdditions(scenarioIds: ScenarioId[]): string;
+/**
+ * Register a custom scenario
+ */
+export declare function registerCustomScenario(scenario: PromptScenario): void;
+//# sourceMappingURL=prompt-composition-scenarios.d.ts.map

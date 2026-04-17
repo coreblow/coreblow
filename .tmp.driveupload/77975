@@ -1,0 +1,19 @@
+/**
+ * src/providers/mistral.ts
+ * Mistral AI provider — mistral-large, codestral, mistral-small
+ * Uses OpenAI-compatible API endpoint
+ */
+import type { AIProvider, ChatMessage, ProviderOptions, StreamChunk } from './interface.js';
+export declare class MistralProvider implements AIProvider {
+    name: string;
+    private apiKey;
+    private baseUrl;
+    constructor(opts?: {
+        apiKey?: string;
+        baseUrl?: string;
+    });
+    chat(messages: ChatMessage[], options: ProviderOptions): AsyncIterable<StreamChunk>;
+    isAvailable(): Promise<boolean>;
+    listModels(): string[];
+}
+//# sourceMappingURL=mistral.d.ts.map

@@ -1,0 +1,10 @@
+/**
+ * plugin-sdk/discord-core.ts
+ * [ADAPT] openclaw-main
+ */
+export type { ChannelPlugin } from "./channel-plugin-common.js";
+export type { CoreBlowConfig } from "../config/config.js";
+export { getChatChannelMeta, } from "./channel-plugin-common.js";
+export { buildChannelConfigSchema } from "./channel-config-schema.js";
+export { jsonResult, readNumberParam, readStringParam, readStringArrayParam } from "./provider-web-search.js";
+//# sourceMappingURL=discord-core.d.ts.map

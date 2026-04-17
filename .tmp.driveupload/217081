@@ -1,0 +1,340 @@
+/**
+ * CoreBlow — WebChat Channel Adapter
+ *
+ * Built-in WebSocket-based chat widget server. Provides a real-time
+ * bidirectional channel without external dependencies.
+ * Supports rooms, broadcast, and connection management.
+ */
+
+import { createChildLogger } from '../utils/logger.js';
+
+const log = createChildLogger('channel:webchat');
+
+/** WebChat server configuration */
+export interface WebChatConfig {
+    port?: number;
+    path?: string;
+    cors?: string[];
+    maxConnections?: number;
+    heartbeatIntervalMs?: number;
+    messageMaxLength?: number;
+    authRequired?: boolean;
+    authToken?: string;
+}
+
+/** WebChat client connection */
+export interface WebChatClient {
+    id: string;
+    socket: import('node:stream').Duplex;
+    userId?: string;
+    displayName?: string;
+    room?: string;
+    connectedAt: number;
+    lastActivity: number;
+}
+
+/** WebChat incoming message */
+export interface WebChatMessage {
+    type: 'message' | 'join' | 'leave' | 'typing';
+    clientId: string;
+    userId?: string;
+    displayName?: string;
+    room?: string;
+    text?: string;
+    timestamp: number;
+}
+
+/** Message handler */
+export type WebChatMessageHandler = (msg: WebChatMessage) => void;
+
+/**
+ * CoreBlow WebChat Adapter
+ *
+ * Minimal WebSocket server for browser-based chat. Uses raw
+ * `node:http` + WebSocket upgrade — zero external dependencies.
+ */
+export class WebChatAdapter {
+    private config: WebChatConfig;
+    private server: import('node:http').Server | null = null;
+    private clients = new Map<string, WebChatClient>();
+    private messageHandler: WebChatMessageHandler | null = null;
+    private running = false;
+    private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+
+    constructor(config: WebChatConfig = {}) {
+        this.config = {
+            port: 3001,
+            path: '/ws/chat',
+            maxConnections: 100,
+            heartbeatIntervalMs: 30_000,
+            messageMaxLength: 10_000,
+            authRequired: false,
+            ...config,
+        };
+    }
+
+    onMessage(handler: WebChatMessageHandler): void {
+        this.messageHandler = handler;
+    }
+
+    /** Start the WebSocket server */
+    async start(): Promise<void> {
+        const http = await import('node:http');
+        const crypto = await import('node:crypto');
+
+        this.server = http.createServer((req, res) => {
+            // CORS preflight
+            if (req.method === 'OPTIONS') {
+                res.writeHead(204, {
+                    'Access-Control-Allow-Origin': this.config.cors?.join(',') ?? '*',
+                    'Access-Control-Allow-Methods': 'GET',
+                    'Access-Control-Allow-Headers': 'Authorization',
+                });
+                res.end();
+                return;
+            }
+
+            // Health endpoint
+            if (req.url === '/health') {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    status: 'ok',
+                    clients: this.clients.size,
+                    uptime: process.uptime(),
+                }));
+                return;
+            }
+
+            res.writeHead(426);
+            res.end('WebSocket upgrade required');
+        });
+
+        this.server.on('upgrade', (req, socket, head) => {
+            if (req.url !== this.config.path) {
+                socket.destroy();
+                return;
+            }
+
+            if (this.clients.size >= this.config.maxConnections!) {
+                socket.write('HTTP/1.1 503 Too Many Connections\r\n\r\n');
+                socket.destroy();
+                return;
+            }
+
+            // Auth check
+            if (this.config.authRequired && this.config.authToken) {
+                const auth = req.headers.authorization;
+                if (auth !== `Bearer ${this.config.authToken}`) {
+                    socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+                    socket.destroy();
+                    return;
+                }
+            }
+
+            // WebSocket handshake
+            const key = req.headers['sec-websocket-key'];
+            if (!key) { socket.destroy(); return; }
+
+            const accept = crypto.createHash('sha1')
+                .update(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11')
+                .digest('base64');
+
+            socket.write([
+                'HTTP/1.1 101 Switching Protocols',
+                'Upgrade: websocket',
+                'Connection: Upgrade',
+                `Sec-WebSocket-Accept: ${accept}`,
+                '', '',
+            ].join('\r\n'));
+
+            const clientId = crypto.randomUUID();
+            const client: WebChatClient = {
+                id: clientId,
+                socket,
+                connectedAt: Date.now(),
+                lastActivity: Date.now(),
+            };
+            this.clients.set(clientId, client);
+
+            this.messageHandler?.({
+                type: 'join',
+                clientId,
+                timestamp: Date.now(),
+            });
+
+            socket.on('data', (data: Buffer) => {
+                try {
+                    const text = this.decodeFrame(data);
+                    if (text === null) return; // control frame
+                    client.lastActivity = Date.now();
+
+                    if (text.length > this.config.messageMaxLength!) return;
+
+                    this.messageHandler?.({
+                        type: 'message',
+                        clientId,
+                        userId: client.userId,
+                        displayName: client.displayName,
+                        room: client.room,
+                        text,
+                        timestamp: Date.now(),
+                    });
+                } catch { /* malformed frame */ }
+            });
+
+            socket.on('close', () => {
+                this.clients.delete(clientId);
+                this.messageHandler?.({ type: 'leave', clientId, timestamp: Date.now() });
+            });
+
+            socket.on('error', () => {
+                this.clients.delete(clientId);
+            });
+
+            log.info({ clientId }, 'WebChat client connected');
+        });
+
+        return new Promise((resolve) => {
+            this.server!.listen(this.config.port, () => {
+                this.running = true;
+                this.startHeartbeat();
+                log.info({ port: this.config.port, path: this.config.path }, 'WebChat server started');
+                resolve();
+            });
+        });
+    }
+
+    /** Stop the server */
+    async stop(): Promise<void> {
+        this.stopHeartbeat();
+        for (const client of this.clients.values()) {
+            try { client.socket.destroy(); } catch { /* */ }
+        }
+        this.clients.clear();
+        if (this.server) {
+            this.server.close();
+            this.server = null;
+        }
+        this.running = false;
+        log.info('WebChat server stopped');
+    }
+
+    /** Send a message to a specific client */
+    async sendToClient(clientId: string, text: string): Promise<boolean> {
+        const client = this.clients.get(clientId);
+        if (!client) return false;
+        this.sendFrame(client.socket, text);
+        return true;
+    }
+
+    /** Broadcast a message to all connected clients */
+    async broadcast(text: string, excludeClientId?: string): Promise<number> {
+        let sent = 0;
+        for (const [id, client] of this.clients) {
+            if (id === excludeClientId) continue;
+            try {
+                this.sendFrame(client.socket, text);
+                sent++;
+            } catch { /* dead socket */ }
+        }
+        return sent;
+    }
+
+    /** Broadcast to clients in a specific room */
+    async broadcastToRoom(room: string, text: string, excludeClientId?: string): Promise<number> {
+        let sent = 0;
+        for (const [id, client] of this.clients) {
+            if (client.room !== room || id === excludeClientId) continue;
+            try {
+                this.sendFrame(client.socket, text);
+                sent++;
+            } catch { /* */ }
+        }
+        return sent;
+    }
+
+    /** Get adapter status */
+    getStatus(): { running: boolean; port: number; clients: number } {
+        return {
+            running: this.running,
+            port: this.config.port!,
+            clients: this.clients.size,
+        };
+    }
+
+    /** List connected clients */
+    listClients(): Array<{ id: string; userId?: string; room?: string; connectedAt: number }> {
+        return [...this.clients.values()].map(c => ({
+            id: c.id,
+            userId: c.userId,
+            room: c.room,
+            connectedAt: c.connectedAt,
+        }));
+    }
+
+    // === Private ===
+
+    private sendFrame(socket: import('node:stream').Duplex, text: string): void {
+        const payload = Buffer.from(text, 'utf-8');
+        const header = Buffer.alloc(payload.length < 126 ? 2 : 4);
+        header[0] = 0x81; // FIN + TEXT
+        if (payload.length < 126) {
+            header[1] = payload.length;
+        } else {
+            header[1] = 126;
+            header.writeUInt16BE(payload.length, 2);
+        }
+        socket.write(Buffer.concat([header, payload]));
+    }
+
+    private decodeFrame(data: Buffer): string | null {
+        const opcode = data[0]! & 0x0f;
+        if (opcode === 0x8) return null; // close
+        if (opcode === 0x9) return null; // ping
+        if (opcode === 0xa) return null; // pong
+
+        const masked = (data[1]! & 0x80) !== 0;
+        let payloadLen = data[1]! & 0x7f;
+        let offset = 2;
+
+        if (payloadLen === 126) {
+            payloadLen = data.readUInt16BE(2);
+            offset = 4;
+        } else if (payloadLen === 127) {
+            payloadLen = Number(data.readBigUInt64BE(2));
+            offset = 10;
+        }
+
+        if (masked) {
+            const mask = data.subarray(offset, offset + 4);
+            offset += 4;
+            const payload = data.subarray(offset, offset + payloadLen);
+            for (let i = 0; i < payload.length; i++) {
+                payload[i] = payload[i]! ^ mask[i % 4]!;
+            }
+            return payload.toString('utf-8');
+        }
+
+        return data.subarray(offset, offset + payloadLen).toString('utf-8');
+    }
+
+    private startHeartbeat(): void {
+        this.heartbeatTimer = setInterval(() => {
+            const now = Date.now();
+            for (const [id, client] of this.clients) {
+                if (now - client.lastActivity > this.config.heartbeatIntervalMs! * 3) {
+                    client.socket.destroy();
+                    this.clients.delete(id);
+                }
+            }
+        }, this.config.heartbeatIntervalMs);
+        if (this.heartbeatTimer?.unref) this.heartbeatTimer.unref();
+    }
+
+    private stopHeartbeat(): void {
+        if (this.heartbeatTimer) {
+            clearInterval(this.heartbeatTimer);
+            this.heartbeatTimer = null;
+        }
+    }
+}

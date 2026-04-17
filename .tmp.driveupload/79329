@@ -1,0 +1,5 @@
+export declare function getMimeType(filename: string): string;
+export declare function isTextMime(mime: string): boolean;
+export declare function isImageMime(mime: string): boolean;
+export declare function detectMime(buffer: Buffer | Uint8Array): string;
+//# sourceMappingURL=mime.d.ts.map

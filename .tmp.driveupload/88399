@@ -1,0 +1,26 @@
+/**
+ * agents/subagent/subagent-registry-queries.ts
+ * Query functions for the subagent run registry.
+ */
+import { subagentRuns } from './subagent-registry-memory.js';
+export function isActiveRun(run) {
+    return typeof run.endedAt !== 'number';
+}
+export function isEndedRun(run) {
+    return typeof run.endedAt === 'number';
+}
+export function isArchivedRun(run) {
+    return typeof run.cleanupCompletedAt === 'number';
+}
+export function listActiveRuns() {
+    return [...subagentRuns.values()].filter(isActiveRun);
+}
+export function countActiveRunsByRequester(requesterSessionKey) {
+    let count = 0;
+    for (const run of subagentRuns.values()) {
+        if (run.requesterSessionKey === requesterSessionKey && isActiveRun(run))
+            count++;
+    }
+    return count;
+}
+//# sourceMappingURL=subagent-registry-queries.js.map

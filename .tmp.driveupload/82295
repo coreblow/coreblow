@@ -1,0 +1,3 @@
+import type { NodeEventContext, NodeEvent } from "./gateway-types.js";
+export declare function handleNodeEvent(ctx: NodeEventContext, nodeId: string, evt: NodeEvent): void;
+//# sourceMappingURL=server-node-events.d.ts.map

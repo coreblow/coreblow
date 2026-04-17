@@ -1,0 +1,8 @@
+/** plugin-sdk/line-surface.ts [ADAPT] openclaw-main — Stub surface for @coreblow/line. */
+export type LineProbe = {
+    ok: boolean;
+};
+export declare function listLineAccountIds(_cfg: Record<string, unknown>): string[];
+export declare function probeLineSdk(_p: unknown): Promise<LineProbe>;
+export declare function sendMessageLine(_p: unknown): Promise<unknown>;
+//# sourceMappingURL=line-surface.d.ts.map

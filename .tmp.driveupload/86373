@@ -1,0 +1,57 @@
+/**
+ * CoreBlow — ETL Pipeline
+ *
+ * Extract-Transform-Load pipeline with configurable
+ * stages, error handling, and progress tracking.
+ */
+/** ETL stage */
+export interface ETLStage {
+    name: string;
+    handler: (data: unknown[]) => Promise<unknown[]>;
+}
+/** ETL result */
+export interface ETLResult {
+    pipelineId: string;
+    status: 'completed' | 'failed';
+    inputCount: number;
+    outputCount: number;
+    stages: Array<{
+        name: string;
+        inputCount: number;
+        outputCount: number;
+        durationMs: number;
+    }>;
+    totalDurationMs: number;
+    error?: string;
+}
+/**
+ * CoreBlow ETL Pipeline
+ */
+export declare class ETLPipeline {
+    private pipelines;
+    private history;
+    private idCounter;
+    /**
+     * Create a pipeline.
+     */
+    create(name: string, stages: ETLStage[]): string;
+    /**
+     * Run a pipeline.
+     */
+    run(pipelineId: string, input: unknown[]): Promise<ETLResult>;
+    /**
+     * Get history.
+     */
+    getHistory(limit?: number): ETLResult[];
+    /**
+     * List pipelines.
+     */
+    list(): Array<{
+        id: string;
+        name: string;
+        stages: number;
+    }>;
+    /** Count */
+    count(): number;
+}
+//# sourceMappingURL=etl-pipeline.d.ts.map

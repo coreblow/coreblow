@@ -1,0 +1,64 @@
+/**
+ * CoreBlow — OAuth Handler
+ *
+ * Handles OAuth 2.0 authorization code flow,
+ * token exchange, and provider management.
+ */
+/** OAuth provider */
+export interface OAuthProvider {
+    name: string;
+    clientId: string;
+    clientSecret: string;
+    authUrl: string;
+    tokenUrl: string;
+    scopes: string[];
+    redirectUri: string;
+}
+/** OAuth token */
+export interface OAuthToken {
+    accessToken: string;
+    refreshToken?: string;
+    expiresAt: number;
+    provider: string;
+    userId: string;
+    scopes: string[];
+}
+/**
+ * CoreBlow OAuth Handler
+ */
+export declare class OAuthHandler {
+    private providers;
+    private tokens;
+    private states;
+    private idCounter;
+    /**
+     * Register a provider.
+     */
+    registerProvider(provider: OAuthProvider): void;
+    /**
+     * Generate authorization URL.
+     */
+    getAuthUrl(providerName: string): {
+        url: string;
+        state: string;
+    } | null;
+    /**
+     * Exchange code for token (simulated).
+     */
+    exchangeCode(code: string, state: string, userId: string): Promise<OAuthToken | null>;
+    /**
+     * Get token for user.
+     */
+    getToken(userId: string): OAuthToken | null;
+    /**
+     * Check if token is expired.
+     */
+    isExpired(userId: string): boolean;
+    /**
+     * List providers.
+     */
+    listProviders(): string[];
+    /** Count tokens */
+    countTokens(): number;
+}
+//# sourceMappingURL=oauth-handler.d.ts.map

@@ -1,0 +1,13 @@
+/**
+ * commands/command-parser.ts
+ * Parse `/command arg1 arg2 --flag` syntax.
+ */
+export interface ParsedCommand {
+    command: string;
+    args: string[];
+    flags: Record<string, string | boolean>;
+    raw: string;
+}
+/** Parse a raw command string into structured form. */
+export declare function parseCommand(input: string): ParsedCommand | null;
+//# sourceMappingURL=command-parser.d.ts.map

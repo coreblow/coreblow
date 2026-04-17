@@ -1,0 +1,12 @@
+/**
+ * web-search/runtime.ts
+ * Web search runtime — resolves and executes web search queries via providers.
+ */
+import type { WebSearchProviderEntry, WebSearchResult, ResolveWebSearchParams, RunWebSearchParams } from './types.js';
+export declare function registerWebSearchProvider(provider: WebSearchProviderEntry): void;
+export declare function getWebSearchProvider(id: string): WebSearchProviderEntry | undefined;
+export declare function listWebSearchProviders(): WebSearchProviderEntry[];
+export declare function resolveWebSearchProvider(params?: ResolveWebSearchParams): WebSearchProviderEntry | null;
+export declare function runWebSearch(params: RunWebSearchParams): Promise<WebSearchResult | null>;
+export declare function clearWebSearchProviders(): void;
+//# sourceMappingURL=runtime.d.ts.map

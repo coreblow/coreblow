@@ -1,0 +1,56 @@
+/**
+ * CoreBlow — Response Compression
+ *
+ * Compresses response payloads using various algorithms
+ * with configurable thresholds and content-type filtering.
+ */
+/** Compression algorithm */
+export type CompressionAlgorithm = 'gzip' | 'deflate' | 'br' | 'none';
+/** Compression result */
+export interface CompressionResult {
+    original: number;
+    compressed: number;
+    ratio: number;
+    algorithm: CompressionAlgorithm;
+    skipped: boolean;
+}
+/**
+ * CoreBlow Response Compression
+ */
+export declare class ResponseCompression {
+    private minSize;
+    private preferredAlgorithm;
+    private compressibleTypes;
+    private stats;
+    /**
+     * Set minimum size for compression.
+     */
+    setMinSize(bytes: number): void;
+    /**
+     * Set preferred algorithm.
+     */
+    setAlgorithm(algo: CompressionAlgorithm): void;
+    /**
+     * Add compressible content type.
+     */
+    addType(contentType: string): void;
+    /**
+     * Should compress?
+     */
+    shouldCompress(contentType: string, size: number): boolean;
+    /**
+     * Simulate compression (actual zlib would be used in real impl).
+     */
+    compress(data: string, contentType: string): CompressionResult;
+    /**
+     * Negotiate algorithm from Accept-Encoding.
+     */
+    negotiate(acceptEncoding: string): CompressionAlgorithm;
+    /**
+     * Get stats.
+     */
+    getStats(): typeof this.stats & {
+        compressionRate: number;
+    };
+}
+//# sourceMappingURL=response-compression.d.ts.map

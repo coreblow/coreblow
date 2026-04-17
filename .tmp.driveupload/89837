@@ -1,0 +1,6 @@
+export declare function suppressModel(modelId: string): void;
+export declare function unsuppressModel(modelId: string): void;
+export declare function isModelSuppressed(modelId: string): boolean;
+export declare function listSuppressedModels(): string[];
+export declare function clearSuppressedModels(): void;
+//# sourceMappingURL=model-suppression.d.ts.map

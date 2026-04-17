@@ -1,0 +1,22 @@
+export function createPersistentDedupe(opts) {
+    const cache = new Map();
+    return {
+        checkAndRecord: async (key, o) => {
+            const now = o?.now ?? Date.now();
+            const exp = cache.get(key);
+            if (exp && now < exp)
+                return true;
+            cache.set(key, now + opts.ttlMs);
+            if (cache.size > opts.memoryMaxSize) {
+                const oldest = [...cache.entries()].sort(([, a], [, b]) => a - b)[0];
+                if (oldest)
+                    cache.delete(oldest[0]);
+            }
+            return false;
+        },
+        warmup: async () => 0,
+        clearMemory: () => cache.clear(),
+        memorySize: () => cache.size,
+    };
+}
+//# sourceMappingURL=persistent-dedupe.js.map

@@ -1,0 +1,7 @@
+import type { GatewayLogger } from "./gateway-types.js";
+export declare function createRestartSentinel(log: GatewayLogger): {
+    isRestartPending: () => boolean;
+    triggerRestart: (reason: string, delayMs?: number) => void;
+    cancelRestart: () => void;
+};
+//# sourceMappingURL=server-restart-sentinel.d.ts.map

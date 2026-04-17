@@ -1,0 +1,6 @@
+/** plugin-sdk/testing.ts [ADAPT] openclaw-main */
+export function createTestPluginRuntime() { return {}; }
+export function createTestCoreBlowConfig(overrides) { return { agents: {}, channels: {}, ...overrides }; }
+export function createTestChannelPlugin(overrides) { return { channelId: "test", ...overrides }; }
+export function createTestAccountSnapshot(overrides) { return { accountId: "default", configured: false, running: false, ...overrides }; }
+//# sourceMappingURL=testing.js.map

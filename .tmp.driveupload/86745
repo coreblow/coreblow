@@ -1,0 +1,58 @@
+/**
+ * CoreBlow — Namespace Isolation
+ *
+ * Provides data isolation between tenants using
+ * namespaced keys. Prevents cross-tenant data access.
+ */
+/** Namespace entry */
+export interface NamespaceEntry {
+    namespace: string;
+    key: string;
+    value: unknown;
+    createdAt: number;
+    updatedAt: number;
+}
+/**
+ * CoreBlow Namespace Isolation
+ */
+export declare class NamespaceIsolation {
+    private data;
+    /**
+     * Set a value in a namespace.
+     */
+    set(namespace: string, key: string, value: unknown): void;
+    /**
+     * Get a value from a namespace.
+     */
+    get(namespace: string, key: string): unknown | undefined;
+    /**
+     * Delete from a namespace.
+     */
+    delete(namespace: string, key: string): boolean;
+    /**
+     * Check if key exists.
+     */
+    has(namespace: string, key: string): boolean;
+    /**
+     * List all keys in a namespace.
+     */
+    keys(namespace: string): string[];
+    /**
+     * Get all entries in a namespace.
+     */
+    getAll(namespace: string): Record<string, unknown>;
+    /**
+     * Clear entire namespace.
+     */
+    clearNamespace(namespace: string): number;
+    /**
+     * List all namespaces.
+     */
+    listNamespaces(): Array<{
+        namespace: string;
+        entryCount: number;
+    }>;
+    /** Total count */
+    count(): number;
+}
+//# sourceMappingURL=namespace-isolation.d.ts.map

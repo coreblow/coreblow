@@ -1,0 +1,4 @@
+/** PI embedded content block chunking. */
+export function chunkBlocks(blocks, maxPerChunk = 10) { const chunks = []; for (let i = 0; i < blocks.length; i += maxPerChunk)
+    chunks.push(blocks.slice(i, i + maxPerChunk)); return chunks; }
+//# sourceMappingURL=pi-embedded-block-chunker.js.map

@@ -1,0 +1,4 @@
+/** plugin-sdk/windows-spawn.ts [ADAPT] openclaw-main */
+export declare function resolveWindowsSpawnPrefix(): string[];
+export declare function buildPortableArgv(argv: string[]): string[];
+//# sourceMappingURL=windows-spawn.d.ts.map

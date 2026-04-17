@@ -1,0 +1,8 @@
+/**
+ * src/shared/text-chunking.ts
+ * Smart text splitting.
+ * Ported from CoreBlow shared/text-chunking.ts.
+ */
+export declare function chunkTextByBreakResolver(text: string, limit: number, resolveBreakIndex: (window: string) => number): string[];
+export declare function estimateTokenCount(text: string): number;
+//# sourceMappingURL=text-chunking.d.ts.map

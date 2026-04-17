@@ -1,0 +1,1 @@
+{"version":3,"file":"inbound-envelope.js","sourceRoot":"","sources":["../../src/plugin-sdk/inbound-envelope.ts"],"names":[],"mappings":"AAGA,MAAM,UAAU,6CAA6C,CAAC,EAAW;IACrE,OAAO,CAAC,IAAY,EAAE,EAAE,CAAC,IAAI,CAAC;AAClC,CAAC;AACD,MAAM,UAAU,0BAA0B,CAAC,IAAY,EAAE,GAA2B,IAAY,OAAO,IAAI,GAAG,CAAC,SAAS,IAAI,GAAG,CAAC,SAAS,KAAK,IAAI,EAAE,CAAC,CAAC,CAAC"}

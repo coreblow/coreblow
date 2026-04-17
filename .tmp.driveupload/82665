@@ -1,0 +1,143 @@
+/**
+ * src/plugins/manifest.ts
+ * Plugin manifest — standardized plugin.json validation and parsing
+ * SUPERIOR: CoreBlow has config-schema.ts + discovery.ts scattered; CoreBlow has unified manifest
+ */
+import fs from 'node:fs';
+import path from 'node:path';
+import { createChildLogger } from '../utils/logger.js';
+import { readBoundaryFileSync } from '../infra/boundary-file-read.js';
+const log = createChildLogger('plugin:manifest');
+// ─── Validation ──────────────────────────────────────────────────
+const REQUIRED_FIELDS = ['name', 'version', 'description', 'main'];
+const VALID_PROVIDES = ['channel', 'tool', 'provider', 'skill', 'hook'];
+const VALID_PERMISSIONS = ['network', 'filesystem', 'exec', 'env', 'secrets'];
+/**
+ * Parse and validate a plugin manifest from a directory
+ */
+export function parseManifest(pluginDir) {
+    const errors = [];
+    const warnings = [];
+    // Try plugin.json, then package.json
+    let manifestPath = path.join(pluginDir, 'plugin.json');
+    if (!fs.existsSync(manifestPath)) {
+        manifestPath = path.join(pluginDir, 'package.json');
+    }
+    if (!fs.existsSync(manifestPath)) {
+        return { valid: false, errors: ['No plugin.json or package.json found'], warnings };
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw JSON, validated field-by-field below
+    let raw;
+    try {
+        const read = readBoundaryFileSync({
+            filePath: manifestPath,
+            rootDir: pluginDir,
+            boundaryLabel: 'plugin manifest',
+            rejectHardlinks: true,
+            maxBytes: 1_048_576, // 1MB cap
+        });
+        if (!read.ok) {
+            return { valid: false, errors: [read.error], warnings };
+        }
+        raw = JSON.parse(read.content);
+    }
+    catch (err) {
+        return { valid: false, errors: ['Invalid JSON in manifest file'], warnings };
+    }
+    // Check required fields
+    for (const field of REQUIRED_FIELDS) {
+        if (!raw[field])
+            errors.push(`Missing required field: ${field}`);
+    }
+    // Validate name format
+    if (raw.name && !/^(@[\w-]+\/)?[\w-]+$/.test(raw.name)) {
+        errors.push(`Invalid plugin name: "${raw.name}". Must be alphanumeric with optional @scope/`);
+    }
+    // Validate version format (loose SemVer)
+    if (raw.version && !/^\d+\.\d+\.\d+/.test(raw.version)) {
+        warnings.push(`Version "${raw.version}" should follow SemVer (1.0.0)`);
+    }
+    // Validate entry point exists and stays inside plugin root
+    if (raw.main) {
+        const mainPath = path.join(pluginDir, raw.main);
+        if (fs.existsSync(mainPath)) {
+            try {
+                const mainReal = fs.realpathSync(mainPath);
+                const rootReal = fs.realpathSync(pluginDir);
+                if (!mainReal.startsWith(rootReal + path.sep) && mainReal !== rootReal) {
+                    errors.push(`Entry point escapes plugin root: ${raw.main}`);
+                }
+            }
+            catch {
+                // realpathSync failed — file might not exist yet
+            }
+        }
+        else {
+            errors.push(`Entry point not found: ${raw.main}`);
+        }
+    }
+    // Validate provides
+    if (raw.provides) {
+        for (const p of raw.provides) {
+            if (!VALID_PROVIDES.includes(p)) {
+                warnings.push(`Unknown provides value: "${p}"`);
+            }
+        }
+    }
+    // Validate permissions
+    if (raw.permissions) {
+        for (const p of raw.permissions) {
+            if (!VALID_PERMISSIONS.includes(p)) {
+                warnings.push(`Unknown permission: "${p}"`);
+            }
+        }
+    }
+    // Validate config schema
+    if (raw.config) {
+        for (const field of raw.config) {
+            if (!field.key || !field.type) {
+                errors.push(`Config field missing key or type`);
+            }
+        }
+    }
+    if (!raw.main && errors.length === 0)
+        raw.main = 'index.js';
+    if (errors.length > 0) {
+        return { valid: false, errors, warnings };
+    }
+    const manifest = {
+        name: raw.name,
+        version: raw.version,
+        description: raw.description,
+        author: raw.author,
+        homepage: raw.homepage,
+        license: raw.license,
+        main: raw.main || 'index.js',
+        coreblowVersion: raw.coreblowVersion,
+        dependencies: raw.dependencies,
+        peerPlugins: raw.peerPlugins,
+        provides: raw.provides,
+        permissions: raw.permissions,
+        config: raw.config,
+        tags: raw.tags,
+        engines: raw.engines,
+    };
+    return { valid: true, errors: [], warnings, manifest };
+}
+/**
+ * Generate a plugin.json template
+ */
+export function generateManifestTemplate(name) {
+    return {
+        name,
+        version: '1.0.0',
+        description: `CoreBlow plugin: ${name}`,
+        main: 'index.js',
+        coreblowVersion: '>=1.0.0',
+        provides: ['hook'],
+        permissions: [],
+        config: [],
+        tags: [],
+    };
+}
+//# sourceMappingURL=manifest.js.map

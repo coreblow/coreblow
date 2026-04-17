@@ -1,0 +1,1596 @@
+{
+  "builtTestProducts" : [
+
+  ],
+  "copyCommands" : {
+    "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit_CoreBlowKit.bundle/tool-display.json" : {
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Resources/tool-display.json"
+        }
+      ],
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit_CoreBlowKit.bundle/tool-display.json"
+        }
+      ]
+    }
+  },
+  "explicitTargetDependencyImportCheckingMode" : {
+    "none" : {
+
+    }
+  },
+  "generatedSourceTargetSet" : [
+
+  ],
+  "pluginDescriptions" : [
+
+  ],
+  "swiftCommands" : {
+    "C.CoreBlow-arm64-apple-macosx15.0-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.build/sources",
+      "importPath" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/Sources/App.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/Sources/ContentView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/Modules/CoreBlowKit.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/Modules/CoreBlowChatUI.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/Modules/CoreBlowProtocol.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.build/sources"
+        }
+      ],
+      "isLibrary" : false,
+      "moduleName" : "CoreBlow",
+      "moduleOutputPath" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/Modules/CoreBlow.swiftmodule",
+      "objects" : [
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.build/App.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.build/ContentView.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j8",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-Xfrontend",
+        "-entry-point-function-name",
+        "-Xfrontend",
+        "CoreBlow_main",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "macos"
+      ],
+      "outputFileMapPath" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.build/App.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.build/ContentView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/Modules/CoreBlow.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/febrinanda/coreblow.com/apps/macos/Sources/App.swift",
+        "/Users/febrinanda/coreblow.com/apps/macos/Sources/ContentView.swift"
+      ],
+      "tempsPath" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.CoreBlowChatUI-arm64-apple-macosx15.0-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/sources",
+      "importPath" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/AssistantTextParser.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatMarkdownPreprocessor.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatMarkdownRenderer.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatModels.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatSessions.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatSheets.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatTheme.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatTransport.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatViewModel.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ToolResultTextFormatter.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/Modules/CoreBlowKit.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "CoreBlowChatUI",
+      "moduleOutputPath" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/Modules/CoreBlowChatUI.swiftmodule",
+      "objects" : [
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/AssistantTextParser.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatMarkdownPreprocessor.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatMarkdownRenderer.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatModels.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatSessions.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatSheets.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatTheme.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatTransport.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatView.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatViewModel.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ToolResultTextFormatter.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j8",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/include/CoreBlowChatUI-Swift.h",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "coreblowkit"
+      ],
+      "outputFileMapPath" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/AssistantTextParser.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatMarkdownPreprocessor.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatMarkdownRenderer.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatModels.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatSessions.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatSheets.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatTheme.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatTransport.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatViewModel.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ToolResultTextFormatter.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/Modules/CoreBlowChatUI.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/AssistantTextParser.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatMarkdownPreprocessor.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatMarkdownRenderer.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatModels.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatSessions.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatSheets.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatTheme.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatTransport.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatView.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatViewModel.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ToolResultTextFormatter.swift"
+      ],
+      "tempsPath" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.CoreBlowKit-arm64-apple-macosx15.0-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/sources",
+      "importPath" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Commands/Capabilities.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Commands/CommandDefinitions.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/CoreBlowKit.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Features/CanvasA2UI.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Features/MediaCapture.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Features/ShareToAgent.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Features/TalkEngine.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/AsyncTimeout.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/BridgeFrames.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/DeepLinks.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/GatewayChannel.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/GatewayDiscovery.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/GatewayErrors.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/GatewayNodeSession.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/LoopbackHost.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/NetworkInterfaces.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/ToolDisplay.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Identity/DeviceAuthPayload.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Identity/DeviceAuthStore.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Identity/DeviceIdentity.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Identity/InstanceIdentity.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Identity/StoragePaths.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Security/KeychainStore.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Security/TLSPinning.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/DerivedSources/resource_bundle_accessor.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "virtual",
+          "name" : "<CoreBlowKit-arm64-apple-macosx15.0-debug.module-resources>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/Modules/CoreBlowProtocol.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "CoreBlowKit",
+      "moduleOutputPath" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/Modules/CoreBlowKit.swiftmodule",
+      "objects" : [
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/Capabilities.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/CommandDefinitions.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/CoreBlowKit.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/CanvasA2UI.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/MediaCapture.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/ShareToAgent.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/TalkEngine.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/AsyncTimeout.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/BridgeFrames.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/DeepLinks.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/GatewayChannel.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/GatewayDiscovery.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/GatewayErrors.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/GatewayNodeSession.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/LoopbackHost.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/NetworkInterfaces.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/ToolDisplay.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/DeviceAuthPayload.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/DeviceAuthStore.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/DeviceIdentity.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/InstanceIdentity.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/StoragePaths.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/KeychainStore.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/TLSPinning.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/resource_bundle_accessor.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j8",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_AVAILABLE",
+        "-module-cache-path",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/include/CoreBlowKit-Swift.h",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "coreblowkit"
+      ],
+      "outputFileMapPath" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/Capabilities.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/CommandDefinitions.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/CoreBlowKit.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/CanvasA2UI.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/MediaCapture.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/ShareToAgent.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/TalkEngine.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/AsyncTimeout.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/BridgeFrames.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/DeepLinks.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/GatewayChannel.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/GatewayDiscovery.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/GatewayErrors.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/GatewayNodeSession.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/LoopbackHost.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/NetworkInterfaces.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/ToolDisplay.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/DeviceAuthPayload.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/DeviceAuthStore.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/DeviceIdentity.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/InstanceIdentity.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/StoragePaths.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/KeychainStore.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/TLSPinning.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/resource_bundle_accessor.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/Modules/CoreBlowKit.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Commands/Capabilities.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Commands/CommandDefinitions.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/CoreBlowKit.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Features/CanvasA2UI.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Features/MediaCapture.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Features/ShareToAgent.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Features/TalkEngine.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/AsyncTimeout.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/BridgeFrames.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/DeepLinks.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/GatewayChannel.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/GatewayDiscovery.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/GatewayErrors.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/GatewayNodeSession.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/LoopbackHost.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/NetworkInterfaces.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/ToolDisplay.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Identity/DeviceAuthPayload.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Identity/DeviceAuthStore.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Identity/DeviceIdentity.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Identity/InstanceIdentity.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Identity/StoragePaths.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Security/KeychainStore.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Security/TLSPinning.swift",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/DerivedSources/resource_bundle_accessor.swift"
+      ],
+      "tempsPath" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.CoreBlowProtocol-arm64-apple-macosx15.0-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build/sources",
+      "importPath" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowProtocol/FlexValue.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowProtocol/FlexValueHelpers.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowProtocol/GatewayEnums.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowProtocol/GatewayFrames.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowProtocol/GatewayModels.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "CoreBlowProtocol",
+      "moduleOutputPath" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/Modules/CoreBlowProtocol.swiftmodule",
+      "objects" : [
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build/FlexValue.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build/FlexValueHelpers.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build/GatewayEnums.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build/GatewayFrames.swift.o",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build/GatewayModels.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j8",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build/include/CoreBlowProtocol-Swift.h",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "coreblowkit"
+      ],
+      "outputFileMapPath" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build/FlexValue.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build/FlexValueHelpers.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build/GatewayEnums.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build/GatewayFrames.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build/GatewayModels.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/Modules/CoreBlowProtocol.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowProtocol/FlexValue.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowProtocol/FlexValueHelpers.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowProtocol/GatewayEnums.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowProtocol/GatewayFrames.swift",
+        "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowProtocol/GatewayModels.swift"
+      ],
+      "tempsPath" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build",
+      "wholeModuleOptimization" : false
+    }
+  },
+  "swiftFrontendCommands" : {
+
+  },
+  "swiftTargetScanArgs" : {
+    "CoreBlow" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "CoreBlow",
+      "-package-name",
+      "macos",
+      "-c",
+      "/Users/febrinanda/coreblow.com/apps/macos/Sources/App.swift",
+      "/Users/febrinanda/coreblow.com/apps/macos/Sources/ContentView.swift",
+      "-I",
+      "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx14.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j8",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-Xfrontend",
+      "-entry-point-function-name",
+      "-Xfrontend",
+      "CoreBlow_main",
+      "-swift-version",
+      "5",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "macos",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "CoreBlowChatUI" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "CoreBlowChatUI",
+      "-package-name",
+      "coreblowkit",
+      "-c",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/AssistantTextParser.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatMarkdownPreprocessor.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatMarkdownRenderer.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatModels.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatSessions.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatSheets.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatTheme.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatTransport.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatView.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatViewModel.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ToolResultTextFormatter.swift",
+      "-I",
+      "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx14.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j8",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/include/CoreBlowChatUI-Swift.h",
+      "-swift-version",
+      "5",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "coreblowkit",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "CoreBlowKit" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "CoreBlowKit",
+      "-package-name",
+      "coreblowkit",
+      "-c",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Commands/Capabilities.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Commands/CommandDefinitions.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/CoreBlowKit.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Features/CanvasA2UI.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Features/MediaCapture.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Features/ShareToAgent.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Features/TalkEngine.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/AsyncTimeout.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/BridgeFrames.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/DeepLinks.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/GatewayChannel.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/GatewayDiscovery.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/GatewayErrors.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/GatewayNodeSession.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/LoopbackHost.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/NetworkInterfaces.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/ToolDisplay.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Identity/DeviceAuthPayload.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Identity/DeviceAuthStore.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Identity/DeviceIdentity.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Identity/InstanceIdentity.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Identity/StoragePaths.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Security/KeychainStore.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Security/TLSPinning.swift",
+      "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/DerivedSources/resource_bundle_accessor.swift",
+      "-I",
+      "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx14.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j8",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_AVAILABLE",
+      "-module-cache-path",
+      "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/include/CoreBlowKit-Swift.h",
+      "-swift-version",
+      "5",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "coreblowkit",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "CoreBlowProtocol" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "CoreBlowProtocol",
+      "-package-name",
+      "coreblowkit",
+      "-c",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowProtocol/FlexValue.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowProtocol/FlexValueHelpers.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowProtocol/GatewayEnums.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowProtocol/GatewayFrames.swift",
+      "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowProtocol/GatewayModels.swift",
+      "-I",
+      "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx14.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j8",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build/include/CoreBlowProtocol-Swift.h",
+      "-swift-version",
+      "5",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "coreblowkit",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ]
+  },
+  "targetDependencyMap" : {
+    "CoreBlow" : [
+      "CoreBlowChatUI",
+      "CoreBlowKit",
+      "CoreBlowProtocol"
+    ],
+    "CoreBlowChatUI" : [
+      "CoreBlowKit",
+      "CoreBlowProtocol"
+    ],
+    "CoreBlowKit" : [
+      "CoreBlowProtocol"
+    ],
+    "CoreBlowProtocol" : [
+
+    ]
+  },
+  "testDiscoveryCommands" : {
+
+  },
+  "testEntryPointCommands" : {
+
+  },
+  "traitConfiguration" : {
+    "default" : {
+
+    }
+  },
+  "writeCommands" : {
+    "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow-entitlement.plist" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<entitlement-plist>"
+        },
+        {
+          "kind" : "virtual",
+          "name" : "<com.apple.security.get-task-allow>"
+        }
+      ],
+      "outputFilePath" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow-entitlement.plist"
+    },
+    "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/Sources/App.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/Sources/ContentView.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.build/sources"
+    },
+    "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.build/App.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.build/ContentView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/AssistantTextParser.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatMarkdownPreprocessor.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatMarkdownRenderer.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatModels.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatSessions.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatSheets.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatTheme.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatTransport.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ChatViewModel.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/ToolResultTextFormatter.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/AsyncTimeout.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/BridgeFrames.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/CanvasA2UI.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/Capabilities.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/CommandDefinitions.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/CoreBlowKit.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/DeepLinks.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/DeviceAuthPayload.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/DeviceAuthStore.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/DeviceIdentity.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/GatewayChannel.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/GatewayDiscovery.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/GatewayErrors.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/GatewayNodeSession.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/InstanceIdentity.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/KeychainStore.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/LoopbackHost.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/MediaCapture.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/NetworkInterfaces.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/ShareToAgent.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/StoragePaths.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/TLSPinning.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/TalkEngine.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/ToolDisplay.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/resource_bundle_accessor.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build/FlexValue.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build/FlexValueHelpers.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build/GatewayEnums.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build/GatewayFrames.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build/GatewayModels.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlow.product/Objects.LinkFileList"
+    },
+    "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/AssistantTextParser.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatMarkdownPreprocessor.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatMarkdownRenderer.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatModels.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatSessions.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatSheets.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatTheme.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatTransport.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ChatViewModel.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowChatUI/ToolResultTextFormatter.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowChatUI.build/sources"
+    },
+    "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Commands/Capabilities.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Commands/CommandDefinitions.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/CoreBlowKit.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Features/CanvasA2UI.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Features/MediaCapture.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Features/ShareToAgent.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Features/TalkEngine.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/AsyncTimeout.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/BridgeFrames.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/DeepLinks.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/GatewayChannel.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/GatewayDiscovery.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/GatewayErrors.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/GatewayNodeSession.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/LoopbackHost.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/NetworkInterfaces.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Gateway/ToolDisplay.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Identity/DeviceAuthPayload.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Identity/DeviceAuthStore.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Identity/DeviceIdentity.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Identity/InstanceIdentity.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Identity/StoragePaths.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Security/KeychainStore.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowKit/Security/TLSPinning.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/DerivedSources/resource_bundle_accessor.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowKit.build/sources"
+    },
+    "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowProtocol/FlexValue.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowProtocol/FlexValueHelpers.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowProtocol/GatewayEnums.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowProtocol/GatewayFrames.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/febrinanda/coreblow.com/apps/shared/CoreBlowKit/Sources/CoreBlowProtocol/GatewayModels.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/CoreBlowProtocol.build/sources"
+    },
+    "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt" : {
+      "alwaysOutOfDate" : true,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<swift-get-version>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+        }
+      ],
+      "outputFilePath" : "/Users/febrinanda/coreblow.com/apps/macos/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+/**
+ * process/command-queue.ts — Sequential command execution queue.
+ */
+export type QueuePriority = 'low' | 'normal' | 'high' | 'critical';
+export interface QueuedCommand {
+    id: string;
+    command: string;
+    priority: QueuePriority;
+    addedAt: number;
+    startedAt?: number;
+    completedAt?: number;
+    output?: string;
+    error?: string;
+    status: 'pending' | 'running' | 'completed' | 'failed';
+}
+export declare function enqueueCommand(id: string, command: string, priority?: QueuePriority): QueuedCommand;
+export declare function getNextCommand(): QueuedCommand | null;
+export declare function startCommand(id: string): boolean;
+export declare function completeCommand(id: string, output: string): boolean;
+export declare function failCommand(id: string, error: string): boolean;
+export declare function getQueueStatus(): {
+    pending: number;
+    running: number;
+    completed: number;
+    failed: number;
+};
+export declare function setMaxConcurrent(n: number): void;
+export declare function clearQueue(): void;
+//# sourceMappingURL=command-queue.d.ts.map

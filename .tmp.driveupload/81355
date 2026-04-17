@@ -1,0 +1,55 @@
+/**
+ * CoreBlow — Rate Limit Middleware
+ *
+ * Gateway middleware that integrates the advanced rate limiter
+ * with the middleware composer. Provides per-route, per-user,
+ * and global rate limiting with proper HTTP headers.
+ */
+import type { MiddlewareContext, NextFn } from './middleware.js';
+/** Rate limit rule */
+export interface RateLimitRule {
+    /** Route pattern (glob-like) */
+    pattern: string;
+    /** Max requests */
+    limit: number;
+    /** Window in ms */
+    windowMs: number;
+    /** Key extractor */
+    keyBy?: 'ip' | 'user' | 'global';
+    /** Skip condition */
+    skip?: (ctx: MiddlewareContext) => boolean;
+}
+/**
+ * CoreBlow Rate Limit Middleware
+ */
+export declare class RateLimitMiddleware {
+    private rules;
+    private store;
+    private cleanupTimer;
+    constructor(rules?: RateLimitRule[]);
+    /**
+     * Add a rate limit rule.
+     */
+    addRule(rule: RateLimitRule): void;
+    /**
+     * Get the middleware function.
+     */
+    middleware(): (ctx: MiddlewareContext, next: NextFn) => Promise<void>;
+    /**
+     * Get current rate for a key.
+     */
+    getRate(key: string): {
+        count: number;
+        remaining: number;
+        resetAt: number;
+    } | null;
+    /**
+     * Stop the cleanup timer.
+     */
+    destroy(): void;
+    private matchRule;
+    private extractKey;
+    private getOrCreate;
+    private cleanup;
+}
+//# sourceMappingURL=rate-limit-middleware.d.ts.map

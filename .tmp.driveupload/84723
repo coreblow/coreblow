@@ -1,0 +1,52 @@
+/**
+ * plugin-sdk/event-emitter.ts
+ * Plugin event subscription system.
+ */
+/**
+ * Create a typed event emitter for plugin events.
+ */
+export function createPluginEventEmitter() {
+    const handlers = new Map();
+    function on(type, handler) {
+        if (!handlers.has(type))
+            handlers.set(type, new Set());
+        handlers.get(type).add(handler);
+        return () => off(type, handler);
+    }
+    function off(type, handler) {
+        handlers.get(type)?.delete(handler);
+    }
+    function once(type, handler) {
+        const wrapper = (event) => {
+            off(type, wrapper);
+            return handler(event);
+        };
+        return on(type, wrapper);
+    }
+    async function emit(type, data, source = 'plugin') {
+        const event = { type, timestamp: Date.now(), source, data };
+        const typeHandlers = handlers.get(type);
+        if (!typeHandlers || typeHandlers.size === 0)
+            return;
+        const promises = [...typeHandlers].map((handler) => {
+            try {
+                return Promise.resolve(handler(event));
+            }
+            catch (err) {
+                return Promise.reject(err);
+            }
+        });
+        await Promise.allSettled(promises);
+    }
+    function listenerCount(type) {
+        return handlers.get(type)?.size ?? 0;
+    }
+    function removeAllListeners(type) {
+        if (type)
+            handlers.delete(type);
+        else
+            handlers.clear();
+    }
+    return { on, off, once, emit, listenerCount, removeAllListeners };
+}
+//# sourceMappingURL=event-emitter.js.map

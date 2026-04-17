@@ -1,0 +1,66 @@
+/**
+ * gateway/server/ws-connection/connect-policy.ts
+ * Connection limits and flood protection for WebSocket.
+ */
+import { createChildLogger } from '../../../utils/logger.js';
+const log = createChildLogger('ws-policy');
+const DEFAULT_POLICY = {
+    maxConnectionsPerIp: 10,
+    maxTotalConnections: 1000,
+    connectionRatePerMinute: 30,
+};
+/** Track active connections. */
+const connectionsByIp = new Map();
+const connectionTimestamps = new Map();
+let totalConnections = 0;
+/** Check if a new connection should be allowed. */
+export function shouldAllowConnection(ip, config = {}) {
+    const policy = { ...DEFAULT_POLICY, ...config };
+    // Total connection limit
+    if (totalConnections >= policy.maxTotalConnections) {
+        log.warn({ ip, total: totalConnections }, 'Total connection limit reached');
+        return { allowed: false, reason: 'Server connection limit reached' };
+    }
+    // Per-IP limit
+    const ipCount = connectionsByIp.get(ip) ?? 0;
+    if (ipCount >= policy.maxConnectionsPerIp) {
+        log.warn({ ip, count: ipCount }, 'Per-IP connection limit reached');
+        return { allowed: false, reason: 'Too many connections from this IP' };
+    }
+    // Rate limit
+    const now = Date.now();
+    const timestamps = connectionTimestamps.get(ip) ?? [];
+    const recentCount = timestamps.filter(t => now - t < 60_000).length;
+    if (recentCount >= policy.connectionRatePerMinute) {
+        log.warn({ ip, rate: recentCount }, 'Connection rate limit exceeded');
+        return { allowed: false, reason: 'Connection rate limit exceeded' };
+    }
+    return { allowed: true };
+}
+/** Record a new connection. */
+export function recordConnection(ip) {
+    totalConnections++;
+    connectionsByIp.set(ip, (connectionsByIp.get(ip) ?? 0) + 1);
+    const timestamps = connectionTimestamps.get(ip) ?? [];
+    timestamps.push(Date.now());
+    connectionTimestamps.set(ip, timestamps.slice(-100)); // keep last 100
+}
+/** Record a disconnection. */
+export function recordDisconnection(ip) {
+    totalConnections = Math.max(0, totalConnections - 1);
+    const count = connectionsByIp.get(ip) ?? 0;
+    if (count <= 1) {
+        connectionsByIp.delete(ip);
+    }
+    else {
+        connectionsByIp.set(ip, count - 1);
+    }
+}
+/** Get current connection stats. */
+export function getConnectionStats() {
+    return {
+        total: totalConnections,
+        byIp: Object.fromEntries(connectionsByIp),
+    };
+}
+//# sourceMappingURL=connect-policy.js.map

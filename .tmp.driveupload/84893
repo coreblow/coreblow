@@ -1,0 +1,103 @@
+/**
+ * plugin-sdk/provider-web-search.ts
+ * [ADAPT] openclaw-main/src/plugin-sdk/provider-web-search.ts
+ *
+ * Web-search registration helpers for provider plugins.
+ */
+// ─── Cache helpers ────────────────────────────────────────────────────────────
+export const DEFAULT_CACHE_TTL_MINUTES = 60;
+export const DEFAULT_TIMEOUT_SECONDS = 30;
+export const DEFAULT_SEARCH_COUNT = 10;
+export const MAX_SEARCH_COUNT = 50;
+export function normalizeCacheKey(key) {
+    return key.toLowerCase().replace(/\s+/g, '-');
+}
+export async function readCache(_key) { return null; }
+export async function writeCache(_key, _value, _ttlMs) { }
+export async function readResponseText(response) { return response.text(); }
+export function resolveCacheTtlMs(ttlMinutes) {
+    return (ttlMinutes ?? DEFAULT_CACHE_TTL_MINUTES) * 60_000;
+}
+export function resolveTimeoutSeconds(timeoutSeconds) {
+    return timeoutSeconds ?? DEFAULT_TIMEOUT_SECONDS;
+}
+// ─── Search helpers ───────────────────────────────────────────────────────────
+export const FRESHNESS_TO_RECENCY = {
+    'last-hour': '1h', 'last-day': '1d', 'last-week': '7d', 'last-month': '30d',
+};
+export function buildSearchCacheKey(params) {
+    return normalizeCacheKey(`search:${params.query}:${params.count ?? 10}`);
+}
+export function buildUnsupportedSearchFilterResponse(filter) {
+    return { error: `Search filter not supported: ${filter}` };
+}
+export function isoToPerplexityDate(date) { return date; }
+export function normalizeFreshness(freshness) { return freshness ? FRESHNESS_TO_RECENCY[freshness] : undefined; }
+export function normalizeToIsoDate(date) { return date; }
+export function parseIsoDateRange(range) {
+    const parts = range.split('/');
+    return { from: parts[0], to: parts[1] };
+}
+export async function readCachedSearchPayload(_key) { return null; }
+export async function writeCachedSearchPayload(_key, _payload) { }
+export function readConfiguredSecretString(config, key) {
+    const val = config[key];
+    return typeof val === 'string' ? val : undefined;
+}
+export function readProviderEnvValue(envVar) { return process.env[envVar]; }
+export function resolveSearchCacheTtlMs(config) {
+    const ttl = config?.['cacheTtlMinutes'];
+    return typeof ttl === 'number' ? ttl * 60_000 : resolveCacheTtlMs();
+}
+export function resolveSearchCount(count) {
+    return typeof count === 'number' ? Math.min(Math.max(1, count), MAX_SEARCH_COUNT) : DEFAULT_SEARCH_COUNT;
+}
+export function resolveSearchTimeoutSeconds(config) {
+    const t = config?.['timeoutSeconds'];
+    return typeof t === 'number' ? t : DEFAULT_TIMEOUT_SECONDS;
+}
+export function resolveSiteName(url) {
+    try {
+        return new URL(url).hostname;
+    }
+    catch {
+        return url;
+    }
+}
+export async function postTrustedWebToolsJson(url, body, headers) {
+    return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify(body) });
+}
+export function throwWebSearchApiError(message) { throw new Error(message); }
+export async function withTrustedWebSearchEndpoint(fn) { return fn(); }
+export async function withTrustedWebToolsEndpoint(fn) { return fn(); }
+// ─── Credential helpers ───────────────────────────────────────────────────────
+export function getScopedCredentialValue(config, key) { return config[key]; }
+export function getTopLevelCredentialValue(config, key) { return config[key]; }
+export function mergeScopedSearchConfig(base, scoped) { return { ...base, ...scoped }; }
+export function resolveProviderWebSearchPluginConfig(_pluginId, cfg) { return cfg; }
+export function setScopedCredentialValue(config, key, value) { return { ...config, [key]: value }; }
+export function setProviderWebSearchPluginConfigValue(_pluginId, cfg, key, value) { return { ...cfg, [key]: value }; }
+export function setTopLevelCredentialValue(config, key, value) { return { ...config, [key]: value }; }
+export function resolveWebSearchProviderCredential(_pluginId, _source) { return undefined; }
+// ─── Text helpers ─────────────────────────────────────────────────────────────
+export function markdownToText(md) { return md.replace(/[#*_`[\]]/g, '').trim(); }
+export function truncateText(text, maxLength = 1000) { return text.length > maxLength ? text.slice(0, maxLength) + '…' : text; }
+export function resolveCitationRedirectUrl(url) { return url; }
+export function jsonResult(val) { return JSON.stringify(val, null, 2); }
+export function readNumberParam(params, key) { const v = params[key]; return typeof v === 'number' ? v : undefined; }
+export function readStringParam(params, key) { const v = params[key]; return typeof v === 'string' ? v : undefined; }
+export function readStringArrayParam(params, key) { const v = params[key]; return Array.isArray(v) ? v.filter((x) => typeof x === 'string') : undefined; }
+export function wrapWebContent(content, _source) { return content; }
+export function formatCliCommand(cmd) { return `\`${cmd}\``; }
+export function enablePluginInConfig(cfg, pluginId) {
+    const plugins = cfg['plugins'] ?? {};
+    return { ...cfg, plugins: { ...plugins, [pluginId]: { enabled: true } } };
+}
+/** @deprecated Use provider-owned createTool(...) directly. */
+export function createPluginBackedWebSearchProvider(provider) {
+    return {
+        ...provider,
+        createTool: () => { throw new Error(`createPluginBackedWebSearchProvider(${provider.id}) is no longer supported.`); },
+    };
+}
+//# sourceMappingURL=provider-web-search.js.map

@@ -1,0 +1,4 @@
+/** plugin-sdk/imessage.ts [PORT] — Main iMessage stub barrel. */
+export * from "./imessage-core.js";
+export * from "./imessage-policy.js";
+//# sourceMappingURL=imessage.d.ts.map

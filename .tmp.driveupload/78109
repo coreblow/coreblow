@@ -1,0 +1,1 @@
+{"version":3,"file":"metrics-dashboard.d.ts","sourceRoot":"","sources":["../../src/observability/metrics-dashboard.ts"],"names":[],"mappings":"AAAA,qBAAa,gBAAgB;IAAG,OAAO,CAAC,OAAO,CAA6B;IAAC,MAAM,CAAC,IAAI,EAAE,MAAM,EAAE,KAAK,EAAE,MAAM;IAAqE,GAAG,CAAC,IAAI,EAAE,MAAM;IAA0C,MAAM;;;IAAgD,KAAK;CAA8B"}

@@ -1,0 +1,17 @@
+/**
+ * plugin-sdk/error-runtime.ts
+ * [PORT] openclaw-main/src/plugin-sdk/error-runtime.ts
+ *
+ * Shared error graph/format helpers without the full infra-runtime surface.
+ */
+/** Collect error chain candidates from an error (self + causes). */
+export declare function collectErrorGraphCandidates(err: unknown): unknown[];
+/** Extract a string error code from an error object. */
+export declare function extractErrorCode(err: unknown): string | undefined;
+/** Format a human-readable error message from an unknown error. */
+export declare function formatErrorMessage(err: unknown): string;
+/** Format an uncaught error into a displayable string. */
+export declare function formatUncaughtError(err: unknown): string;
+/** Read the error name from an unknown error. */
+export declare function readErrorName(err: unknown): string;
+//# sourceMappingURL=error-runtime.d.ts.map

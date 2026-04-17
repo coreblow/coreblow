@@ -1,0 +1,17 @@
+/** plugin-sdk/diffs.ts [ADAPT] openclaw-main */
+export function diffLines(a, b) {
+    const la = a.split("\n"), lb = b.split("\n");
+    const diff = [];
+    const max = Math.max(la.length, lb.length);
+    for (let i = 0; i < max; i++) {
+        if (la[i] !== lb[i]) {
+            if (la[i])
+                diff.push(`- ${la[i]}`);
+            if (lb[i])
+                diff.push(`+ ${lb[i]}`);
+        }
+    }
+    return diff;
+}
+export function formatDiff(lines) { return lines.join("\n"); }
+//# sourceMappingURL=diffs.js.map

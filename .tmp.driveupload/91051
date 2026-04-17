@@ -1,0 +1,16 @@
+/**
+ * CoreBlow AutoPilot — Queue Types
+ *
+ * CoreBlow equivalent: auto-reply/reply/queue/types.ts
+ */
+import type { InboundMessage, GetReplyOptions } from './types.js';
+
+export type QueueItem = {
+    id: string;
+    message: InboundMessage;
+    options?: GetReplyOptions;
+    enqueuedAt: number;
+    priority: number;
+};
+
+export type QueuePolicy = 'fifo' | 'latest' | 'priority';

@@ -1,0 +1,48 @@
+/**
+ * config/bindings.ts
+ * Agent ↔ channel binding configuration.
+ * Ported from CoreBlow reference src/config/bindings.ts.
+ */
+function normalizeBindingType(binding) {
+    return binding.type === 'acp' ? 'acp' : 'route';
+}
+export function isRouteBinding(binding) {
+    return normalizeBindingType(binding) === 'route';
+}
+export function isAcpBinding(binding) {
+    return normalizeBindingType(binding) === 'acp';
+}
+export function listConfiguredBindings(cfg) {
+    const bindings = cfg.bindings;
+    return Array.isArray(bindings) ? bindings : [];
+}
+export function listRouteBindings(cfg) {
+    return listConfiguredBindings(cfg).filter(isRouteBinding);
+}
+export function listAcpBindings(cfg) {
+    return listConfiguredBindings(cfg).filter(isAcpBinding);
+}
+/**
+ * Find the agent bound to a specific channel+account.
+ */
+export function resolveAgentForChannel(cfg, channel, accountId) {
+    const routes = listRouteBindings(cfg);
+    // Exact match first (channel + account)
+    if (accountId) {
+        const exact = routes.find((b) => b.channel === channel && b.accountId === accountId);
+        if (exact)
+            return exact.agent;
+    }
+    // Channel-only match
+    const channelMatch = routes.find((b) => b.channel === channel && !b.accountId);
+    return channelMatch?.agent;
+}
+/**
+ * Get all channels an agent is bound to.
+ */
+export function resolveChannelsForAgent(cfg, agentName) {
+    return listRouteBindings(cfg)
+        .filter((b) => b.agent === agentName)
+        .map((b) => b.channel);
+}
+//# sourceMappingURL=bindings.js.map

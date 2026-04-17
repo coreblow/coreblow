@@ -1,0 +1,72 @@
+/**
+ * CoreBlow Apply Patch Engine
+ *
+ * Apply unified diff patches with fuzzy matching, reverse-patch support,
+ * multi-file patch handling, conflict detection, and dry-run mode.
+ *
+ * Equivalent: CoreBlow src/agents/apply-patch.ts (602 LOC)
+ */
+export interface PatchHunk {
+    oldStart: number;
+    oldCount: number;
+    newStart: number;
+    newCount: number;
+    lines: string[];
+    header?: string;
+}
+export interface PatchResult {
+    success: boolean;
+    output: string;
+    hunksApplied: number;
+    hunksTotal: number;
+    fuzzyMatches: number;
+    conflicts: PatchConflict[];
+    stats: {
+        additions: number;
+        deletions: number;
+        unchanged: number;
+    };
+}
+export interface PatchConflict {
+    hunkIndex: number;
+    expected: string[];
+    actual: string[];
+    line: number;
+}
+export interface MultiFilePatch {
+    files: Array<{
+        oldPath: string;
+        newPath: string;
+        hunks: PatchHunk[];
+        isNew: boolean;
+        isDeleted: boolean;
+        mode?: string;
+    }>;
+}
+export interface ApplyOptions {
+    /** Fuzzy match tolerance (lines to search around target) */
+    fuzz?: number;
+    /** Whether this is a reverse patch (unapply) */
+    reverse?: boolean;
+    /** Dry run - don't modify content, just check */
+    dryRun?: boolean;
+    /** Strip path prefix depth (like patch -p1) */
+    strip?: number;
+    /** Ignore whitespace differences in context matching */
+    ignoreWhitespace?: boolean;
+}
+/** Parse a unified diff into hunks. */
+export declare function parsePatch(diff: string): PatchHunk[];
+/** Parse a multi-file unified diff */
+export declare function parseMultiFilePatch(diff: string): MultiFilePatch;
+/** Apply patch to file content. */
+export declare function applyPatch(content: string, diff: string, options?: ApplyOptions): PatchResult;
+/** Validate a patch diff string */
+export declare function validatePatch(diff: string): {
+    valid: boolean;
+    errors: string[];
+    hunkCount: number;
+};
+/** Generate a summary of patch changes */
+export declare function summarizePatch(diff: string): string;
+//# sourceMappingURL=apply-patch.d.ts.map

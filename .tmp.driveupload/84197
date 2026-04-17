@@ -1,0 +1,4 @@
+/** plugin-sdk/irc.ts [PORT] openclaw-main */
+export type { CoreBlowConfig } from "../config/config.js";
+export * from "./irc-surface.js";
+//# sourceMappingURL=irc.d.ts.map

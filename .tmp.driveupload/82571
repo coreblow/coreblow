@@ -1,0 +1,138 @@
+/**
+ * plugins/audit-log.ts
+ *
+ * Plugin audit logging — records all security-relevant plugin actions
+ * for compliance, debugging, and forensic analysis.
+ *
+ * Following CoreBlow's audit-channel.ts + audit-extra.ts pattern
+ * adapted for CoreBlow's plugin sandbox model.
+ */
+import type { Permission } from './sandbox.js';
+/** Audit event severity */
+export type AuditSeverity = 'info' | 'warn' | 'critical';
+/** Audit event category */
+export type AuditCategory = 'permission' | 'lifecycle' | 'resource' | 'filesystem' | 'network' | 'exec' | 'config' | 'security' | 'hook' | 'registration';
+/** A single audit event */
+export interface AuditEvent {
+    id: string;
+    pluginId: string;
+    category: AuditCategory;
+    severity: AuditSeverity;
+    action: string;
+    detail?: string;
+    metadata?: Record<string, unknown>;
+    timestamp: number;
+}
+/** Audit query options */
+export interface AuditQueryOptions {
+    pluginId?: string;
+    category?: AuditCategory;
+    severity?: AuditSeverity;
+    since?: number;
+    until?: number;
+    limit?: number;
+    offset?: number;
+}
+/** Audit statistics */
+export interface AuditStats {
+    totalEvents: number;
+    byCategory: Record<AuditCategory, number>;
+    bySeverity: Record<AuditSeverity, number>;
+    byPlugin: Record<string, number>;
+    oldestEvent?: number;
+    newestEvent?: number;
+}
+/** Security audit finding (CoreBlow-style) */
+export interface SecurityAuditFinding {
+    checkId: string;
+    severity: AuditSeverity;
+    title: string;
+    detail?: string;
+    remediation?: string;
+}
+/**
+ * CoreBlow Plugin Audit Log
+ *
+ * Records all security-relevant plugin actions with structured events.
+ * Supports querying, filtering, statistics, and export for compliance.
+ */
+export declare class AuditLog {
+    private events;
+    private maxEvents;
+    private idCounter;
+    private listeners;
+    constructor(options?: {
+        maxEvents?: number;
+    });
+    /**
+     * Record an audit event.
+     */
+    record(params: {
+        pluginId: string;
+        category: AuditCategory;
+        severity: AuditSeverity;
+        action: string;
+        detail?: string;
+        metadata?: Record<string, unknown>;
+    }): AuditEvent;
+    /** Record a permission check */
+    recordPermissionCheck(pluginId: string, permission: Permission, granted: boolean, action: string): AuditEvent;
+    /** Record a plugin lifecycle event */
+    recordLifecycle(pluginId: string, action: string, detail?: string): AuditEvent;
+    /** Record a resource limit violation */
+    recordResourceViolation(pluginId: string, resource: string, limit: number, actual: number, action: string): AuditEvent;
+    /** Record a filesystem operation */
+    recordFilesystem(pluginId: string, operation: string, targetPath: string, allowed: boolean): AuditEvent;
+    /** Record a network request */
+    recordNetwork(pluginId: string, method: string, url: string, allowed: boolean): AuditEvent;
+    /** Record a command execution */
+    recordExec(pluginId: string, command: string, allowed: boolean): AuditEvent;
+    /** Record a security finding */
+    recordFinding(finding: SecurityAuditFinding): AuditEvent;
+    /**
+     * Query audit events with filters.
+     */
+    query(options?: AuditQueryOptions): AuditEvent[];
+    /**
+     * Get the most recent N events.
+     */
+    recent(count?: number): AuditEvent[];
+    /**
+     * Get events for a specific plugin.
+     */
+    forPlugin(pluginId: string, limit?: number): AuditEvent[];
+    /**
+     * Get all critical events.
+     */
+    getCritical(): AuditEvent[];
+    /**
+     * Get all warnings.
+     */
+    getWarnings(): AuditEvent[];
+    /**
+     * Get audit statistics.
+     */
+    getStats(): AuditStats;
+    /**
+     * Subscribe to new audit events.
+     */
+    onEvent(listener: (event: AuditEvent) => void): () => void;
+    /**
+     * Export events as JSON lines (one event per line).
+     */
+    exportJsonLines(options?: AuditQueryOptions): string;
+    /**
+     * Export events as formatted text for CLI.
+     */
+    exportText(options?: AuditQueryOptions): string;
+    /**
+     * Total event count.
+     */
+    count(): number;
+    /**
+     * Clear all events.
+     */
+    clear(): void;
+    private sanitizeUrl;
+}
+//# sourceMappingURL=audit-log.d.ts.map

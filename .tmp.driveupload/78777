@@ -1,0 +1,19 @@
+export async function handleAgentList(ctx) {
+    return '🤖 Configured agents:\n  • default — Primary agent';
+}
+export async function handleAgentSwitch(ctx) {
+    const name = ctx.command.args.name;
+    if (!name)
+        return 'Usage: /agent switch <name>';
+    return `✅ Switched to agent \`${name}\`.`;
+}
+export async function handleAgentConfig(ctx) {
+    return '🤖 Agent Config:\n  • Model: auto\n  • Thinking: medium\n  • Tools: default profile';
+}
+export async function handleAgentPersona(ctx) {
+    const name = ctx.command.args.name;
+    if (!name)
+        return 'Usage: /agent persona <name>\nAvailable: default, coding, creative, teacher';
+    return `✅ Agent persona set to \`${name}\`.`;
+}
+//# sourceMappingURL=agent.js.map

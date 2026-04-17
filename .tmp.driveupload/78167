@@ -1,0 +1,70 @@
+/**
+ * CoreBlow — Log Shipper
+ *
+ * Buffers and ships structured logs to configurable
+ * destinations. Supports batch shipping, formatting,
+ * and log levels.
+ */
+/** Log entry */
+export interface LogEntry {
+    level: 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+    message: string;
+    timestamp: number;
+    metadata?: Record<string, unknown>;
+    source?: string;
+}
+/** Ship destination */
+export interface LogDestination {
+    name: string;
+    handler: (entries: LogEntry[]) => Promise<void>;
+    minLevel: LogEntry['level'];
+    enabled: boolean;
+}
+/**
+ * CoreBlow Log Shipper
+ */
+export declare class LogShipper {
+    private buffer;
+    private destinations;
+    private maxBuffer;
+    private levelOrder;
+    private shipCount;
+    /**
+     * Add a destination.
+     */
+    addDestination(name: string, handler: LogDestination['handler'], minLevel?: LogEntry['level']): void;
+    /**
+     * Log a message.
+     */
+    log(level: LogEntry['level'], message: string, metadata?: Record<string, unknown>, source?: string): void;
+    /**
+     * Convenience methods.
+     */
+    debug(msg: string, meta?: Record<string, unknown>): void;
+    info(msg: string, meta?: Record<string, unknown>): void;
+    warn(msg: string, meta?: Record<string, unknown>): void;
+    error(msg: string, meta?: Record<string, unknown>): void;
+    /**
+     * Flush buffer to destinations.
+     */
+    flush(): Promise<number>;
+    /**
+     * Get buffer size.
+     */
+    getBufferSize(): number;
+    /**
+     * Get ship count.
+     */
+    getShipCount(): number;
+    /**
+     * List destinations.
+     */
+    list(): Array<{
+        name: string;
+        minLevel: string;
+        enabled: boolean;
+    }>;
+    /** Count destinations */
+    count(): number;
+}
+//# sourceMappingURL=log-shipper.d.ts.map

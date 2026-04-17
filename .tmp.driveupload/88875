@@ -1,0 +1,67 @@
+import { AgentEngine } from '../agent-engine.js';
+import { AgentStreamBridge } from '../agent-stream-bridge.js';
+import type { ModelProvider, ToolCall, TokenUsage } from '../runtime.js';
+import type { StreamChunk, StreamHandler } from '../provider-stream.js';
+export interface E2ETestWorkspace {
+    tempRoot: string;
+    agentDir: string;
+    workspaceDir: string;
+}
+export declare function createE2EWorkspace(prefix?: string): Promise<E2ETestWorkspace>;
+export declare function cleanupE2EWorkspace(ws: E2ETestWorkspace | undefined): Promise<void>;
+export declare function createMockUsage(input?: number, output?: number): TokenUsage;
+export interface MockProviderScenario {
+    responses: Array<{
+        content: string;
+        toolCalls?: ToolCall[];
+        usage?: TokenUsage;
+        finishReason?: string;
+    }>;
+}
+/**
+ * Create a mock provider that returns scripted responses.
+ * Follows CoreBlow's buildAssistantMessage pattern.
+ */
+export declare function createScriptedProvider(scenario: MockProviderScenario): ModelProvider;
+/**
+ * Create a provider that always responds "ok".
+ * Equivalent to CoreBlow's LIVE_OK_PROMPT pattern.
+ */
+export declare function createOkProvider(): ModelProvider;
+/**
+ * Create a provider that triggers tool calls then responds.
+ */
+export declare function createToolCallingProvider(toolCalls: ToolCall[], finalResponse?: string): ModelProvider;
+/**
+ * Create a provider that simulates an error.
+ */
+export declare function createErrorProvider(errorMessage?: string): ModelProvider;
+/**
+ * Create a provider that returns max_tokens finish reason.
+ */
+export declare function createMaxTokensProvider(): ModelProvider;
+/**
+ * Create a fully wired AgentEngine with mock provider and built-in tools.
+ */
+export declare function createE2EEngine(provider?: ModelProvider, sandboxDir?: string): AgentEngine;
+/**
+ * Create engine + stream bridge.
+ */
+export declare function createE2EEngineWithBridge(provider?: ModelProvider): {
+    engine: AgentEngine;
+    bridge: AgentStreamBridge;
+};
+export interface CollectedStream {
+    chunks: StreamChunk[];
+    texts: string[];
+    toolUses: string[];
+    errors: string[];
+    done: boolean;
+}
+export declare function createStreamCollector(): {
+    handler: StreamHandler;
+    collected: CollectedStream;
+};
+export declare const LIVE_OK_PROMPT = "Reply with the word ok.";
+export declare function isLiveTestEnabled(extraEnvVars?: string[]): boolean;
+//# sourceMappingURL=e2e-fixtures.d.ts.map

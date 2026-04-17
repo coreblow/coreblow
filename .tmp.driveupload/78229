@@ -1,0 +1,63 @@
+/**
+ * CoreBlow Legacy Config Migration
+ *
+ * Detects legacy/deprecated config formats and migrates them to current schema.
+ * Supports versioned migrations, rollback safety, and change tracking.
+ *
+ * Equivalent: CoreBlow config/legacy-migrate.ts + legacy.migrations.ts (~540 LOC)
+ */
+export interface MigrationRule {
+    id: string;
+    description: string;
+    fromVersion?: string;
+    toVersion?: string;
+    /** Test whether this migration applies */
+    detect: (config: Record<string, unknown>) => boolean;
+    /** Apply the migration, returning modified config */
+    migrate: (config: Record<string, unknown>) => Record<string, unknown>;
+    /** Priority (higher = applied first) */
+    priority: number;
+}
+export interface MigrationResult {
+    config: Record<string, unknown>;
+    changes: MigrationChange[];
+    migrationsApplied: number;
+    hasChanges: boolean;
+    errors: string[];
+}
+export interface MigrationChange {
+    ruleId: string;
+    description: string;
+    path: string;
+    oldValue?: unknown;
+    newValue?: unknown;
+}
+/**
+ * Register a migration rule
+ */
+export declare function registerMigrationRule(rule: MigrationRule): void;
+/**
+ * Clear all migration rules
+ */
+export declare function clearMigrationRules(): void;
+/**
+ * Get all registered rules
+ */
+export declare function getMigrationRules(): MigrationRule[];
+/**
+ * Detect which migrations apply to a config
+ */
+export declare function detectLegacyConfig(config: Record<string, unknown>): MigrationRule[];
+/**
+ * Apply all applicable migrations
+ */
+export declare function migrateConfig(config: Record<string, unknown>): MigrationResult;
+/**
+ * Check if a config needs migration (without applying)
+ */
+export declare function needsMigration(config: Record<string, unknown>): boolean;
+/**
+ * Get a summary of needed migrations
+ */
+export declare function getMigrationSummary(config: Record<string, unknown>): string[];
+//# sourceMappingURL=legacy-migration.d.ts.map

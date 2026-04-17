@@ -1,0 +1,10 @@
+/** plugin-sdk/runtime-store.ts [ADAPT] openclaw-main */
+export type PluginStateStore<T = Record<string, unknown>> = {
+    get: (key: string) => T | undefined;
+    set: (key: string, value: T) => void;
+    delete: (key: string) => void;
+    clear: () => void;
+    entries: () => [string, T][];
+};
+export declare function createPluginRuntimeStore<T = Record<string, unknown>>(): PluginStateStore<T>;
+//# sourceMappingURL=runtime-store.d.ts.map

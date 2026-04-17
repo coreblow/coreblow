@@ -1,0 +1,17 @@
+/**
+ * commands/health.ts
+ *
+ * `coreblow health` — check gateway connectivity and basic diagnostics.
+ * [PORT] openclaw-main/src/commands/health.ts (adapted)
+ */
+import type { Runtime } from '../runtime.js';
+export type HealthCommandOptions = {
+    json?: boolean;
+    timeoutMs?: number;
+    verbose?: boolean;
+};
+/**
+ * healthCommand — ping the local Gateway and report status.
+ */
+export declare function healthCommand(opts: HealthCommandOptions, runtime: Runtime): Promise<void>;
+//# sourceMappingURL=health.d.ts.map

@@ -1,0 +1,137 @@
+/**
+ * CoreBlow Plugin Runtime
+ *
+ * Manages the full plugin lifecycle: discovery, manifest validation,
+ * installation, enable/disable toggling, runtime event bus, and
+ * permission-scoped execution. Plugins can extend channels, tools,
+ * commands, and hooks.
+ *
+ * Inspired by CoreBlow's plugin system (78 files) but consolidated
+ * into a single lean runtime module.
+ */
+/** Plugin manifest schema */
+export interface PluginManifest {
+    /** Unique plugin identifier (reverse domain preferred) */
+    id: string;
+    /** Human-readable name */
+    name: string;
+    /** Semver version */
+    version: string;
+    /** Plugin description */
+    description?: string;
+    /** Plugin author */
+    author?: string;
+    /** Homepage URL */
+    homepage?: string;
+    /** Entry point file (relative to plugin dir) */
+    main: string;
+    /** Plugin capabilities */
+    provides?: Array<'channel' | 'tool' | 'command' | 'hook' | 'middleware'>;
+    /** Required permissions */
+    permissions?: Array<'network' | 'filesystem' | 'process' | 'config'>;
+    /** Minimum CoreBlow version */
+    minVersion?: string;
+    /** Config schema (JSON Schema subset) */
+    configSchema?: Record<string, unknown>;
+}
+/** Plugin runtime state */
+export interface PluginState {
+    manifest: PluginManifest;
+    directory: string;
+    enabled: boolean;
+    loaded: boolean;
+    error?: string;
+    instance?: PluginInstance;
+    installedAt: number;
+    lastLoadedAt?: number;
+}
+/** Plugin instance — what the plugin exports */
+export interface PluginInstance {
+    activate?(ctx: PluginContext): Promise<void> | void;
+    deactivate?(): Promise<void> | void;
+    onConfigChange?(config: Record<string, unknown>): void;
+    [key: string]: unknown;
+}
+/** Context provided to plugins during activation */
+export interface PluginContext {
+    pluginId: string;
+    pluginDir: string;
+    config: Record<string, unknown>;
+    log: PluginLogger;
+    events: PluginEventBus;
+}
+/** Plugin logger */
+export interface PluginLogger {
+    info(msg: string, ...args: unknown[]): void;
+    warn(msg: string, ...args: unknown[]): void;
+    error(msg: string, ...args: unknown[]): void;
+    debug(msg: string, ...args: unknown[]): void;
+}
+/** Plugin event bus for plugin ↔ core communication */
+export interface PluginEventBus {
+    emit(event: string, data?: unknown): void;
+    on(event: string, handler: (data: unknown) => void): void;
+    off(event: string, handler: (data: unknown) => void): void;
+}
+/**
+ * CoreBlow Plugin Runtime
+ */
+export declare class PluginRuntime {
+    private plugins;
+    private eventHandlers;
+    private pluginConfigs;
+    /**
+     * Discover plugins from a directory.
+     * Each subdirectory with a manifest.json is a plugin.
+     */
+    discover(pluginsDir: string): Promise<string[]>;
+    /**
+     * Load and activate a plugin.
+     */
+    load(pluginId: string): Promise<boolean>;
+    /**
+     * Unload and deactivate a plugin.
+     */
+    unload(pluginId: string): Promise<boolean>;
+    /**
+     * Enable/disable a plugin.
+     */
+    setEnabled(pluginId: string, enabled: boolean): boolean;
+    /**
+     * Install a plugin from a directory path.
+     */
+    install(sourcePath: string): Promise<string | null>;
+    /**
+     * Uninstall a plugin.
+     */
+    uninstall(pluginId: string): Promise<boolean>;
+    /**
+     * Get plugin state.
+     */
+    getPlugin(pluginId: string): PluginState | null;
+    /**
+     * List all plugins.
+     */
+    listPlugins(): PluginState[];
+    /**
+     * Update plugin config.
+     */
+    setConfig(pluginId: string, config: Record<string, unknown>): void;
+    /**
+     * Load all enabled plugins.
+     */
+    loadAll(): Promise<{
+        loaded: number;
+        failed: number;
+    }>;
+    /**
+     * Unload all plugins.
+     */
+    unloadAll(): Promise<void>;
+    private validateManifest;
+    private createContext;
+    private emitEvent;
+    private onEvent;
+    private offEvent;
+}
+//# sourceMappingURL=runtime.d.ts.map

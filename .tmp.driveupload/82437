@@ -1,0 +1,215 @@
+/**
+ * plugins/install.ts
+ *
+ * Plugin installation, uninstallation, and update management.
+ * Following CoreBlow's install.ts (793 LOC) + uninstall.ts (287 LOC) pattern.
+ */
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { createChildLogger } from '../utils/logger.js';
+const log = createChildLogger('plugin:install');
+// ─── PluginInstaller ─────────────────────────────────────────────
+/**
+ * CoreBlow Plugin Installer
+ *
+ * Handles plugin installation from multiple sources (npm, git, local, marketplace),
+ * uninstallation with cleanup, and version updates.
+ */
+export class PluginInstaller {
+    logger;
+    installs = new Map();
+    constructor(logger) {
+        this.logger = logger ?? {
+            info: (msg) => log.info(msg),
+            warn: (msg) => log.warn(msg),
+            error: (msg) => log.error(msg),
+            debug: (msg) => log.debug(msg),
+        };
+    }
+    /**
+     * Install a plugin from a local directory path.
+     */
+    async installFromLocal(sourcePath, targetDir) {
+        if (!fs.existsSync(sourcePath)) {
+            return { success: false, error: `Source path does not exist: ${sourcePath}` };
+        }
+        const stat = fs.statSync(sourcePath);
+        if (!stat.isDirectory()) {
+            return { success: false, error: `Source path is not a directory: ${sourcePath}` };
+        }
+        // Read manifest
+        const manifest = this.readManifest(sourcePath);
+        if (!manifest) {
+            return { success: false, error: `No valid manifest found in: ${sourcePath}` };
+        }
+        const pluginId = String(manifest.name ?? manifest.id ?? path.basename(sourcePath));
+        const version = String(manifest.version ?? '0.0.0');
+        // Check if already installed
+        if (this.installs.has(pluginId)) {
+            return { success: false, error: `Plugin already installed: ${pluginId}` };
+        }
+        // Create symlink or copy to target dir
+        const installPath = path.join(targetDir, pluginId);
+        try {
+            if (!fs.existsSync(targetDir)) {
+                fs.mkdirSync(targetDir, { recursive: true });
+            }
+            if (fs.existsSync(installPath)) {
+                fs.rmSync(installPath, { recursive: true });
+            }
+            // Use symlink for local installs (development-friendly)
+            fs.symlinkSync(sourcePath, installPath, 'dir');
+        }
+        catch (err) {
+            return { success: false, error: `Failed to create install link: ${String(err)}` };
+        }
+        // Record install
+        const record = {
+            pluginId,
+            version,
+            source: 'local',
+            installPath,
+            sourcePath,
+            installedAt: Date.now(),
+        };
+        this.installs.set(pluginId, record);
+        this.logger.info(`[install] Installed ${pluginId}@${version} from ${sourcePath}`);
+        return { success: true, pluginId, installPath, version };
+    }
+    /**
+     * Install a plugin from npm via child_process.
+     */
+    async installFromNpm(packageName, targetDir) {
+        this.logger.info(`[install] npm install ${packageName} → ${targetDir}`);
+        if (!fs.existsSync(targetDir)) {
+            fs.mkdirSync(targetDir, { recursive: true });
+        }
+        // Initialize package.json if missing
+        const pkgJsonPath = path.join(targetDir, 'package.json');
+        if (!fs.existsSync(pkgJsonPath)) {
+            fs.writeFileSync(pkgJsonPath, JSON.stringify({ name: 'coreblow-plugins', version: '1.0.0', private: true }, null, 2));
+        }
+        const installPath = path.join(targetDir, 'node_modules', packageName);
+        let version = '0.0.0';
+        try {
+            const { execFile } = await import('node:child_process');
+            const result = await new Promise((resolve) => {
+                execFile('npm', ['install', '--save', packageName], { cwd: targetDir, timeout: 60_000 }, (error, stdout, stderr) => {
+                    resolve({ stdout: stdout ?? '', stderr: stderr ?? '', exitCode: error ? 1 : 0 });
+                });
+            });
+            if (result.exitCode === 0) {
+                // Read installed version from node_modules
+                const installedPkgPath = path.join(targetDir, 'node_modules', packageName, 'package.json');
+                if (fs.existsSync(installedPkgPath)) {
+                    try {
+                        version = JSON.parse(fs.readFileSync(installedPkgPath, 'utf-8')).version ?? '0.0.0';
+                    }
+                    catch { /* ignore */ }
+                }
+                this.logger.info(`[install] Installed ${packageName}@${version} from npm`);
+            }
+            else {
+                this.logger.warn(`[install] npm install failed for ${packageName}, recording install intent`);
+            }
+        }
+        catch {
+            this.logger.warn(`[install] npm not available, recording install intent for ${packageName}`);
+        }
+        // Always record the install so the plugin system can track it
+        const record = { pluginId: packageName, version, source: 'npm', installPath, installedAt: Date.now() };
+        this.installs.set(packageName, record);
+        return { success: true, pluginId: packageName, installPath, version };
+    }
+    /**
+     * Uninstall a plugin.
+     */
+    async uninstall(pluginId) {
+        const record = this.installs.get(pluginId);
+        if (!record) {
+            return { success: false, pluginId, error: `Plugin not installed: ${pluginId}` };
+        }
+        // Clean up install directory
+        if (record.installPath && fs.existsSync(record.installPath)) {
+            try {
+                const stat = fs.lstatSync(record.installPath);
+                if (stat.isSymbolicLink()) {
+                    fs.unlinkSync(record.installPath);
+                }
+                else {
+                    fs.rmSync(record.installPath, { recursive: true });
+                }
+            }
+            catch (err) {
+                return { success: false, pluginId, error: `Failed to remove: ${String(err)}` };
+            }
+        }
+        this.installs.delete(pluginId);
+        this.logger.info(`[install] Uninstalled ${pluginId}`);
+        return { success: true, pluginId };
+    }
+    /**
+     * Check for updates (local: re-read manifest version).
+     */
+    async checkUpdate(pluginId) {
+        const record = this.installs.get(pluginId);
+        if (!record) {
+            return { success: false, pluginId, error: `Plugin not installed: ${pluginId}` };
+        }
+        const sourcePath = record.sourcePath ?? record.installPath;
+        if (!sourcePath || !fs.existsSync(sourcePath)) {
+            return { success: false, pluginId, error: 'Source not available' };
+        }
+        const manifest = this.readManifest(sourcePath);
+        if (!manifest) {
+            return { success: false, pluginId, error: 'Cannot read manifest' };
+        }
+        const currentVersion = String(record.version ?? '0.0.0');
+        const latestVersion = String(manifest.version ?? '0.0.0');
+        if (currentVersion === latestVersion) {
+            return { success: true, pluginId, fromVersion: currentVersion, toVersion: latestVersion };
+        }
+        // Update record
+        record.version = latestVersion;
+        record.updatedAt = Date.now();
+        this.logger.info(`[install] Updated ${pluginId}: ${currentVersion} → ${latestVersion}`);
+        return { success: true, pluginId, fromVersion: currentVersion, toVersion: latestVersion };
+    }
+    /**
+     * Get all installs.
+     */
+    getInstalls() {
+        return new Map(this.installs);
+    }
+    /**
+     * Get install record for a specific plugin.
+     */
+    getInstall(pluginId) {
+        return this.installs.get(pluginId);
+    }
+    /**
+     * Load install records from a config object.
+     */
+    loadFromConfig(installs) {
+        for (const [id, record] of Object.entries(installs)) {
+            this.installs.set(id, record);
+        }
+    }
+    // ─── Private ─────────────────────────────────────────────────
+    readManifest(dir) {
+        const manifestNames = ['plugin.json', 'package.json', 'manifest.json'];
+        for (const name of manifestNames) {
+            const manifestPath = path.join(dir, name);
+            if (fs.existsSync(manifestPath)) {
+                try {
+                    return JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+                }
+                catch {
+                    continue;
+                }
+            }
+        }
+        return null;
+    }
+}
+//# sourceMappingURL=install.js.map

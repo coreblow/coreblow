@@ -1,0 +1,29 @@
+/**
+ * hooks/frontmatter.ts — HOOK.md frontmatter parser.
+ *
+ * Mirrors CoreBlow's hooks/frontmatter.ts:
+ * - parseFrontmatter() — raw key/value extraction from HOOK.md
+ * - resolveCoreBlowMetadata() — structured metadata resolution
+ * - resolveHookInvocationPolicy() — enable/disable state
+ * - resolveHookKey() — unique key derivation
+ */
+import type { CoreBlowHookMetadata, HookEntry, HookInvocationPolicy, ParsedHookFrontmatter } from "./types.js";
+/**
+ * Parse raw frontmatter block from HOOK.md content.
+ * Extracts key-value pairs between `---` delimiters.
+ */
+export declare function parseFrontmatter(content: string): ParsedHookFrontmatter;
+/**
+ * Resolve structured CoreBlow hook metadata from raw frontmatter.
+ */
+export declare function resolveHookMetadata(frontmatter: ParsedHookFrontmatter): CoreBlowHookMetadata | undefined;
+/**
+ * Resolve invocation policy from frontmatter (enabled/disabled).
+ */
+export declare function resolveHookInvocationPolicy(frontmatter: ParsedHookFrontmatter): HookInvocationPolicy;
+/**
+ * Resolve the unique hook key. Uses metadata.hookKey if present,
+ * otherwise falls back to the hook name.
+ */
+export declare function resolveHookKey(hookName: string, entry?: HookEntry): string;
+//# sourceMappingURL=frontmatter.d.ts.map

@@ -1,0 +1,18 @@
+/** plugin-sdk/param-readers.ts [PORT] openclaw-main */
+export { readNumberParam, readStringParam, readStringArrayParam, jsonResult } from "./provider-web-search.js";
+export function readStringOrNumberParam(params, key) { const v = params[key]; return (typeof v === "string" || typeof v === "number") ? v : undefined; }
+export function readReactionParams(params) { return { emoji: params["emoji"], messageId: params["messageId"] }; }
+export function readBooleanParam(params, key) {
+    const raw = params[key];
+    if (typeof raw === "boolean")
+        return raw;
+    if (typeof raw === "string") {
+        const t = raw.trim().toLowerCase();
+        if (t === "true")
+            return true;
+        if (t === "false")
+            return false;
+    }
+    return undefined;
+}
+//# sourceMappingURL=param-readers.js.map

@@ -1,0 +1,4 @@
+/** Subagent registry lifecycle management. */
+export type RegistryLifecyclePhase = 'created' | 'starting' | 'running' | 'stopping' | 'stopped' | 'error';
+export declare function validateTransition(from: RegistryLifecyclePhase, to: RegistryLifecyclePhase): boolean;
+//# sourceMappingURL=subagent-registry-lifecycle.d.ts.map

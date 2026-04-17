@@ -1,0 +1,52 @@
+/**
+ * CoreBlow — I18n System
+ *
+ * Internationalization and localization for agent responses,
+ * UI messages, and error strings. Supports locale switching,
+ * pluralization, interpolation, and fallback chains.
+ */
+/** Locale messages */
+export type LocaleMessages = Record<string, string | Record<string, string>>;
+/** Pluralization rule */
+export type PluralRule = (count: number) => string;
+/**
+ * CoreBlow I18n System
+ */
+export declare class I18n {
+    private locales;
+    private currentLocale;
+    private fallbackLocale;
+    private pluralRules;
+    constructor(defaultLocale?: string);
+    /**
+     * Add a locale.
+     */
+    addLocale(locale: string, messages: LocaleMessages): void;
+    /**
+     * Set current locale.
+     */
+    setLocale(locale: string): boolean;
+    /**
+     * Get current locale.
+     */
+    getLocale(): string;
+    /**
+     * Translate a key.
+     */
+    t(key: string, params?: Record<string, string | number>): string;
+    /**
+     * Translate with pluralization.
+     */
+    tp(key: string, count: number, params?: Record<string, string | number>): string;
+    /**
+     * Check if a key exists.
+     */
+    has(key: string): boolean;
+    /**
+     * List available locales.
+     */
+    listLocales(): string[];
+    private resolve;
+    private interpolate;
+}
+//# sourceMappingURL=i18n.d.ts.map

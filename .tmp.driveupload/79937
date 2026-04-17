@@ -1,0 +1,52 @@
+/**
+ * hooks/hooks-status.ts — Hook status report builder.
+ *
+ * Generates a comprehensive snapshot of all hooks in the workspace:
+ * their enable state, requirements satisfaction, and blocked reasons.
+ */
+import { type CoreBlowHooksConfig, type HookEnableStateReason, type PolicyHookEntry } from "./policy.js";
+import { type HookEligibilityContext } from "./config.js";
+export type HookStatusConfigCheck = {
+    path: string;
+    satisfied: boolean;
+};
+export type HookInstallOption = {
+    id: string;
+    kind: "bundled" | "npm" | "git";
+    label: string;
+    bins: string[];
+};
+export type HookStatusEntry = {
+    name: string;
+    description: string;
+    source: string;
+    pluginId?: string;
+    filePath: string;
+    baseDir: string;
+    handlerPath: string;
+    hookKey: string;
+    emoji?: string;
+    homepage?: string;
+    events: string[];
+    always: boolean;
+    enabledByConfig: boolean;
+    requirementsSatisfied: boolean;
+    loadable: boolean;
+    blockedReason?: HookEnableStateReason | "missing requirements";
+    managedByPlugin: boolean;
+};
+export type HookStatusReport = {
+    workspaceDir: string;
+    managedHooksDir: string;
+    hooks: HookStatusEntry[];
+};
+/**
+ * Build a hook status report for a workspace.
+ */
+export declare function buildWorkspaceHookStatus(workspaceDir: string, opts?: {
+    config?: CoreBlowHooksConfig;
+    managedHooksDir?: string;
+    entries?: PolicyHookEntry[];
+    eligibility?: HookEligibilityContext;
+}): HookStatusReport;
+//# sourceMappingURL=hooks-status.d.ts.map

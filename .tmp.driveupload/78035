@@ -1,0 +1,1 @@
+{"version":3,"file":"provider-registry.d.ts","sourceRoot":"","sources":["../../src/image-generation/provider-registry.ts"],"names":[],"mappings":"AAAA,qBAAa,uBAAuB;IAAG,OAAO,CAAC,SAAS,CAA8B;IAAC,QAAQ,CAAC,IAAI,EAAE,MAAM,EAAE,QAAQ,EAAE,OAAO;IAA0C,GAAG,CAAC,IAAI,EAAE,MAAM;IAAuC,IAAI;CAA2C"}

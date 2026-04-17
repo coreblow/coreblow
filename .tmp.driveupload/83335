@@ -1,0 +1,5 @@
+export function createConversationHistory() {
+    const h = [];
+    return { push: e => { h.push(e); }, list: () => [...h], clear: () => { h.length = 0; } };
+}
+//# sourceMappingURL=conversation-runtime.js.map

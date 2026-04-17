@@ -1,0 +1,41 @@
+/**
+ * agents/provider-id.ts
+ * Provider ID normalization and resolution.
+ * Ported from CoreBlow reference src/agents/provider-id.ts.
+ */
+/**
+ * Normalize a provider ID to canonical form.
+ */
+export declare function normalizeProviderId(raw: string): string;
+/**
+ * Normalize for auth profile lookups (some providers share auth).
+ */
+export declare function normalizeProviderIdForAuth(raw: string): string;
+/**
+ * Find the canonical key in a config map.
+ */
+export declare function findNormalizedProviderKey(providers: Record<string, unknown>, raw: string): string | undefined;
+/**
+ * Find the value for a provider in a config map.
+ */
+export declare function findNormalizedProviderValue<T>(providers: Record<string, T>, raw: string): T | undefined;
+/**
+ * Parse a "provider/model" ref string.
+ */
+export declare function parseModelRef(ref: string): {
+    provider: string;
+    model: string;
+} | null;
+/**
+ * Build a "provider/model" ref string.
+ */
+export declare function buildModelRef(provider: string, model: string): string;
+/**
+ * List all known providers.
+ */
+export declare function listKnownProviders(): string[];
+/**
+ * Check if a provider is known.
+ */
+export declare function isKnownProvider(raw: string): boolean;
+//# sourceMappingURL=provider-id.d.ts.map

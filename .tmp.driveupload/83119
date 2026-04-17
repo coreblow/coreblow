@@ -1,0 +1,4 @@
+/** plugin-sdk/openrouter.ts [ADAPT] openclaw-main */
+export declare const OPENROUTER_DEFAULT_MODEL_REF = "openrouter:openai/gpt-4o";
+export declare function buildOpenrouterProvider(_p: unknown): unknown;
+//# sourceMappingURL=openrouter.d.ts.map

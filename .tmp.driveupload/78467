@@ -1,0 +1,7 @@
+/**
+ * src/daemon/service-types.ts
+ * Core types for daemon service management.
+ * Ported from CoreBlow daemon/service-types.ts.
+ */
+export {};
+//# sourceMappingURL=service-types.js.map

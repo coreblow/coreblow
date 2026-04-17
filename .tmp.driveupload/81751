@@ -1,0 +1,18 @@
+import os from "node:os";
+export function getMemoryStatus() {
+    const mem = process.memoryUsage();
+    return {
+        rssMB: Math.round(mem.rss / 1024 / 1024),
+        heapTotalMB: Math.round(mem.heapTotal / 1024 / 1024),
+        heapUsedMB: Math.round(mem.heapUsed / 1024 / 1024),
+        systemFreeMB: Math.round(os.freemem() / 1024 / 1024)
+    };
+}
+export function checkStartupMemorySettings(log) {
+    const memInfo = getMemoryStatus();
+    log.info(`Startup Memory: RSS=${memInfo.rssMB}MB, Heap=${memInfo.heapUsedMB}/${memInfo.heapTotalMB}MB`);
+    if (memInfo.systemFreeMB < 512) {
+        log.warn(`LOW SYSTEM MEMORY: Only ${memInfo.systemFreeMB}MB available. Gateway may crash.`);
+    }
+}
+//# sourceMappingURL=server-startup-memory.js.map

@@ -1,0 +1,98 @@
+/**
+ * CoreBlow — Health Dashboard
+ *
+ * Aggregates health from all subsystems into a unified
+ * dashboard with status indicators, dependency checks,
+ * uptime tracking, and health history.
+ */
+/**
+ * CoreBlow Health Dashboard
+ */
+export class HealthDashboard {
+    checks = new Map();
+    results = new Map();
+    history = [];
+    maxHistory = 100;
+    startTime = Date.now();
+    /**
+     * Register a health check.
+     */
+    register(name, check) {
+        this.checks.set(name, check);
+    }
+    /**
+     * Run all health checks.
+     */
+    async checkAll() {
+        const services = [];
+        for (const [name, check] of Array.from(this.checks)) {
+            try {
+                const result = await check();
+                result.lastCheck = Date.now();
+                services.push(result);
+                this.results.set(name, result);
+            }
+            catch (err) {
+                const result = {
+                    name, status: 'unhealthy',
+                    message: err instanceof Error ? err.message : String(err),
+                    lastCheck: Date.now(),
+                };
+                services.push(result);
+                this.results.set(name, result);
+            }
+        }
+        const overall = this.computeOverall(services);
+        const snapshot = {
+            overall, services, timestamp: Date.now(),
+            uptimeMs: Date.now() - this.startTime,
+        };
+        this.history.push(snapshot);
+        if (this.history.length > this.maxHistory)
+            this.history = this.history.slice(-this.maxHistory);
+        return snapshot;
+    }
+    /**
+     * Get last known status for a service.
+     */
+    getService(name) {
+        return this.results.get(name) ?? null;
+    }
+    /**
+     * Get current overall status.
+     */
+    getOverallStatus() {
+        if (this.results.size === 0)
+            return 'unknown';
+        return this.computeOverall(Array.from(this.results.values()));
+    }
+    /**
+     * Get uptime in ms.
+     */
+    getUptime() {
+        return Date.now() - this.startTime;
+    }
+    /**
+     * Get health history.
+     */
+    getHistory(limit) {
+        return this.history.slice(-(limit ?? 20));
+    }
+    /**
+     * List all registered checks.
+     */
+    list() {
+        return Array.from(this.checks.keys());
+    }
+    /** Count */
+    count() { return this.checks.size; }
+    // === Private ===
+    computeOverall(services) {
+        if (services.some((s) => s.status === 'unhealthy'))
+            return 'unhealthy';
+        if (services.some((s) => s.status === 'degraded'))
+            return 'degraded';
+        return 'healthy';
+    }
+}
+//# sourceMappingURL=health-dashboard.js.map

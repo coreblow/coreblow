@@ -1,0 +1,33 @@
+/**
+ * plugin-sdk/discord-thread-bindings.ts
+ * [ADAPT] openclaw-main — Stub, implemented by @coreblow/discord.
+ */
+export type ThreadBindingTargetKind = "thread" | "channel" | "dm";
+export type ThreadBindingRecord = {
+    sessionKey: string;
+    targetKind: ThreadBindingTargetKind;
+    targetId: string;
+    createdAt: number;
+    idleTimeoutMs?: number;
+    maxAgeMs?: number;
+};
+export type ThreadBindingManager = {
+    get: (sessionKey: string) => ThreadBindingRecord | undefined;
+    set: (sessionKey: string, record: ThreadBindingRecord) => void;
+    delete: (sessionKey: string) => void;
+    list: () => ThreadBindingRecord[];
+};
+export declare function createThreadBindingManager(): ThreadBindingManager;
+export declare function getThreadBindingManager(): ThreadBindingManager;
+export declare function listThreadBindingsBySessionKey(_sessionKey: string): ThreadBindingRecord[];
+export declare function resolveThreadBindingIdleTimeoutMs(_p: unknown): number;
+export declare function resolveThreadBindingInactivityExpiresAt(_p: unknown): number | null;
+export declare function resolveThreadBindingMaxAgeExpiresAt(_p: unknown): number | null;
+export declare function resolveThreadBindingMaxAgeMs(_p: unknown): number;
+export declare function setThreadBindingIdleTimeoutBySessionKey(_sessionKey: string, _ms: number): void;
+export declare function setThreadBindingMaxAgeBySessionKey(_sessionKey: string, _ms: number): void;
+export declare function unbindThreadBindingsBySessionKey(_sessionKey: string): void;
+export declare function autoBindSpawnedDiscordSubagent(_p: unknown): void;
+export declare function resetDiscordThreadBindingsForTests(): void;
+export declare const __testing: {};
+//# sourceMappingURL=discord-thread-bindings.d.ts.map

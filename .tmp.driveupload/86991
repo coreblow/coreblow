@@ -1,0 +1,9 @@
+export function evaluatePipeline(policies, toolName) {
+    for (const policy of policies) {
+        const result = policy.evaluate(toolName);
+        if (result.decision !== 'allow')
+            return result;
+    }
+    return { decision: 'allow' };
+}
+//# sourceMappingURL=tool-policy-pipeline.js.map

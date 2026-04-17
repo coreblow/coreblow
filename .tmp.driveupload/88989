@@ -1,0 +1,185 @@
+/**
+ * CoreBlow Agent Runtime Engine
+ *
+ * Core agent execution engine: session lifecycle, multi-turn conversation
+ * with context window management, tool execution pipeline, model routing,
+ * token budget tracking, and streaming response support.
+ *
+ * This is the heart of CoreBlow — where user messages become AI responses.
+ */
+/** Agent session state */
+export type SessionState = 'idle' | 'processing' | 'streaming' | 'tool-calling' | 'complete' | 'error';
+/** Message in the conversation */
+export interface ConversationMessage {
+    role: 'system' | 'user' | 'assistant' | 'tool';
+    content: string;
+    name?: string;
+    toolCallId?: string;
+    toolCalls?: ToolCall[];
+    timestamp: number;
+    tokenEstimate?: number;
+}
+/** Tool call request from the model */
+export interface ToolCall {
+    id: string;
+    name: string;
+    arguments: string;
+}
+/** Tool execution result */
+export interface ToolResult {
+    callId: string;
+    name: string;
+    output: string;
+    error?: string;
+    durationMs: number;
+}
+/** Token usage tracking */
+export interface TokenUsage {
+    input: number;
+    output: number;
+    total: number;
+    cacheRead?: number;
+    cacheWrite?: number;
+}
+/** Agent session configuration */
+export interface AgentSessionConfig {
+    /** Model to use (e.g., "gpt-4o", "claude-3-opus") */
+    model: string;
+    /** Provider (e.g., "openai", "anthropic", "google") */
+    provider?: string;
+    /** System prompt */
+    systemPrompt?: string;
+    /** Maximum context window tokens */
+    maxContextTokens?: number;
+    /** Maximum output tokens */
+    maxOutputTokens?: number;
+    /** Temperature */
+    temperature?: number;
+    /** Available tools */
+    tools?: ToolDefinition[];
+    /** Token budget (total tokens allowed for this session) */
+    tokenBudget?: number;
+    /** Whether to stream responses */
+    stream?: boolean;
+}
+/** Tool definition for the model */
+export interface ToolDefinition {
+    name: string;
+    description: string;
+    parameters: Record<string, unknown>;
+    handler: (args: Record<string, unknown>) => Promise<string>;
+}
+/** Streaming chunk callback */
+export type StreamCallback = (chunk: string, done: boolean) => void;
+/** Model provider interface */
+export interface ModelProvider {
+    id: string;
+    name: string;
+    chat(params: {
+        model: string;
+        messages: Array<{
+            role: string;
+            content: string;
+            name?: string;
+            tool_call_id?: string;
+        }>;
+        tools?: Array<{
+            type: 'function';
+            function: {
+                name: string;
+                description: string;
+                parameters: unknown;
+            };
+        }>;
+        temperature?: number;
+        max_tokens?: number;
+        stream?: boolean;
+    }): Promise<{
+        content: string;
+        toolCalls?: ToolCall[];
+        usage?: TokenUsage;
+        finishReason?: string;
+    }>;
+}
+/**
+ * CoreBlow Agent Runtime
+ */
+export declare class AgentRuntime {
+    private sessions;
+    private providers;
+    private defaultProvider;
+    /**
+     * Register a model provider.
+     */
+    registerProvider(provider: ModelProvider, isDefault?: boolean): void;
+    /**
+     * Create a new agent session.
+     */
+    createSession(sessionId: string, config: AgentSessionConfig): AgentSession;
+    /**
+     * Get an existing session.
+     */
+    getSession(sessionId: string): AgentSession | null;
+    /**
+     * Destroy a session.
+     */
+    destroySession(sessionId: string): boolean;
+    /**
+     * List active sessions.
+     */
+    listSessions(): Array<{
+        id: string;
+        state: SessionState;
+        messageCount: number;
+        tokenUsage: TokenUsage;
+    }>;
+}
+/**
+ * Individual Agent Session — manages a conversation.
+ */
+export declare class AgentSession {
+    readonly id: string;
+    private config;
+    private provider;
+    private messages;
+    private state;
+    private tokenUsage;
+    private toolMap;
+    private createdAt;
+    constructor(id: string, config: AgentSessionConfig, provider: ModelProvider);
+    /**
+     * Send a user message and get a response.
+     * Handles multi-turn tool calling automatically.
+     */
+    chat(userMessage: string, onStream?: StreamCallback): Promise<string>;
+    /**
+     * Get all messages in the conversation.
+     */
+    getMessages(): ConversationMessage[];
+    /**
+     * Get current session state.
+     */
+    getState(): SessionState;
+    /**
+     * Get token usage.
+     */
+    getTokenUsage(): TokenUsage;
+    /**
+     * Check if token budget is exceeded.
+     */
+    isBudgetExceeded(): boolean;
+    /**
+     * Reset the conversation (keep system prompt).
+     */
+    reset(): void;
+    /**
+     * Get messages that fit the context window.
+     * Keeps system prompt + as many recent messages as fit.
+     */
+    private getContextWindow;
+    /**
+     * Execute a tool call.
+     */
+    private executeTool;
+}
+//# sourceMappingURL=runtime.d.ts.map

@@ -1,0 +1,3 @@
+/** Skill archive extraction. */
+export function getExtractDir(baseDir, skillId) { return `${baseDir}/.coreblow/skills/${skillId}`; }
+//# sourceMappingURL=skills-install-extract.js.map

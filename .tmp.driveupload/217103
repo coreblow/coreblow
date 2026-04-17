@@ -1,0 +1,17 @@
+/**
+ * CoreBlow Gateway — Channel Policy: Public API
+ *
+ * Re-export semua types dan functions dari channel policy modules.
+ * Import dari sini untuk akses ke seluruh policy layer.
+ *
+ * @example
+ * import { applyChannelPolicy, compileAllowlist } from '../channels/policy/index.js';
+ */
+
+export * from './allowlist-match.js';
+export * from './allow-from.js';
+export * from './inbound-debounce.js';
+export * from './inbound-debounce-policy.js';
+export * from './mention-gating.js';
+export * from './command-gating.js';
+export * from './channel-policy-engine.js';

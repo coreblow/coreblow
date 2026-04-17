@@ -1,0 +1,179 @@
+/**
+ * cli/mcp-cli.ts
+ *
+ * Commander.js subcommand registrar untuk `coreblow mcp`.
+ * [PORT] openclaw-main/src/cli/mcp-cli.ts
+ * Adaptasi:
+ *   - `serveOpenClawChannelMcp` → `serveCoreBlowChannelMcp`
+ *   - `OpenClaw MCP` → `CoreBlow MCP` di descriptions
+ *   - Hapus import dari `../acp/secret-file.js` (tidak ada di CoreBlow) → inline impl
+ *   - Hapus `parseConfigValue` dari auto-reply (belum ada) → JSON.parse langsung
+ */
+import { readFileSync } from 'node:fs';
+import { listConfiguredMcpServers, setConfiguredMcpServer, unsetConfiguredMcpServer, } from '../config/mcp-config.js';
+import { serveCoreBlowChannelMcp } from '../mcp/channel-server.js';
+import { defaultRuntime } from '../runtime.js';
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function fail(message) {
+    defaultRuntime.error(message);
+    defaultRuntime.exit(1);
+    throw new Error(message);
+}
+function printJson(value) {
+    defaultRuntime.writeJson(value);
+}
+/**
+ * [ADAPT] openclaw uses readSecretFromFile from acp/secret-file.js.
+ * CoreBlow: inline implementation (acp module not ported).
+ */
+function readSecretFromFile(filePath, label) {
+    try {
+        return readFileSync(filePath, 'utf8').trim();
+    }
+    catch {
+        throw new Error(`Failed to read ${label} from file: ${filePath}`);
+    }
+}
+function resolveSecretOption(params) {
+    const direct = params.direct?.trim();
+    const file = params.file?.trim();
+    if (direct && file) {
+        throw new Error(`Use either ${params.directFlag} or ${params.fileFlag} for ${params.label}.`);
+    }
+    if (file) {
+        return readSecretFromFile(file, params.label);
+    }
+    return direct || undefined;
+}
+function warnSecretCliFlag(flag) {
+    defaultRuntime.error(`Warning: ${flag} can be exposed via process listings. Prefer ${flag}-file or environment variables.`);
+}
+// ─── registerMcpCli ───────────────────────────────────────────────────────────
+/**
+ * Register `coreblow mcp` subcommands on the Commander program.
+ * [PORT] openclaw L49-end
+ */
+export function registerMcpCli(program) {
+    const mcp = program
+        .command('mcp')
+        .description('Manage CoreBlow MCP config and channel bridge');
+    // coreblow mcp serve
+    mcp.command('serve')
+        .description('Expose CoreBlow channels over MCP stdio')
+        .option('--url <url>', 'Gateway WebSocket URL')
+        .option('--token <token>', 'Gateway token (if required)')
+        .option('--token-file <path>', 'Read gateway token from file')
+        .option('--password <password>', 'Gateway password (if required)')
+        .option('--password-file <path>', 'Read gateway password from file')
+        .option('--claude-channel-mode <mode>', 'Claude channel notification mode: auto, on, or off', 'auto')
+        .option('-v, --verbose', 'Verbose logging to stderr', false)
+        .action(async (opts) => {
+        try {
+            const gatewayToken = resolveSecretOption({
+                direct: opts.token,
+                file: opts.tokenFile,
+                directFlag: '--token',
+                fileFlag: '--token-file',
+                label: 'Gateway token',
+            });
+            const gatewayPassword = resolveSecretOption({
+                direct: opts.password,
+                file: opts.passwordFile,
+                directFlag: '--password',
+                fileFlag: '--password-file',
+                label: 'Gateway password',
+            });
+            if (opts.token)
+                warnSecretCliFlag('--token');
+            if (opts.password)
+                warnSecretCliFlag('--password');
+            const rawMode = String(opts.claudeChannelMode ?? 'auto').trim().toLowerCase();
+            if (rawMode !== 'auto' && rawMode !== 'on' && rawMode !== 'off') {
+                throw new Error('Invalid --claude-channel-mode value. Use auto, on, or off.');
+            }
+            await serveCoreBlowChannelMcp({
+                gatewayUrl: opts.url,
+                gatewayToken,
+                gatewayPassword,
+                claudeChannelMode: rawMode,
+                verbose: Boolean(opts.verbose),
+            });
+        }
+        catch (err) {
+            defaultRuntime.error(String(err));
+            defaultRuntime.exit(1);
+        }
+    });
+    // coreblow mcp list
+    mcp.command('list')
+        .description('List configured MCP servers')
+        .option('--json', 'Print JSON')
+        .action(async (opts) => {
+        const loaded = await listConfiguredMcpServers();
+        if (!loaded.ok)
+            fail(loaded.error);
+        if (opts.json) {
+            printJson(loaded.mcpServers);
+            return;
+        }
+        const names = Object.keys(loaded.mcpServers).sort();
+        if (names.length === 0) {
+            defaultRuntime.log(`No MCP servers configured.`);
+            return;
+        }
+        defaultRuntime.log(`MCP servers:`);
+        for (const name of names) {
+            defaultRuntime.log(`- ${name}`);
+        }
+    });
+    // coreblow mcp show [name]
+    mcp.command('show')
+        .description('Show one configured MCP server or the full MCP config')
+        .argument('[name]', 'MCP server name')
+        .option('--json', 'Print JSON')
+        .action(async (name, opts) => {
+        const loaded = await listConfiguredMcpServers();
+        if (!loaded.ok)
+            fail(loaded.error);
+        const value = name ? loaded.mcpServers[name] : loaded.mcpServers;
+        if (name && !value)
+            fail(`No MCP server named "${name}".`);
+        if (opts.json) {
+            printJson(value ?? {});
+            return;
+        }
+        defaultRuntime.log(name ? `MCP server "${name}":` : 'MCP servers:');
+        printJson(value ?? {});
+    });
+    // coreblow mcp set <name> <value>
+    mcp.command('set')
+        .description('Set one configured MCP server from a JSON object')
+        .argument('<name>', 'MCP server name')
+        .argument('<value>', 'JSON object, e.g. {"command":"uvx","args":["context7-mcp"]}')
+        .action(async (name, rawValue) => {
+        let parsed;
+        try {
+            parsed = JSON.parse(rawValue);
+        }
+        catch {
+            fail(`Invalid JSON value: ${rawValue}`);
+        }
+        const result = await setConfiguredMcpServer({ name, server: parsed });
+        if (!result.ok)
+            fail(result.error);
+        defaultRuntime.log(`Saved MCP server "${name}".`);
+    });
+    // coreblow mcp unset <name>
+    mcp.command('unset')
+        .description('Remove one configured MCP server')
+        .argument('<name>', 'MCP server name')
+        .action(async (name) => {
+        const result = await unsetConfiguredMcpServer({ name });
+        if (!result.ok)
+            fail(result.error);
+        if (!result.removed)
+            fail(`No MCP server named "${name}".`);
+        defaultRuntime.log(`Removed MCP server "${name}".`);
+    });
+}
+//# sourceMappingURL=mcp-cli.js.map

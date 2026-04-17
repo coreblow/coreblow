@@ -1,0 +1,8 @@
+/**
+ * plugin-sdk/setup-adapter-runtime.ts
+ * [PORT] openclaw-main/src/plugin-sdk/setup-adapter-runtime.ts
+ *
+ * Minimal setup adapter runtime helper.
+ */
+export { createEnvPatchedAccountSetupAdapter } from './setup.js';
+//# sourceMappingURL=setup-adapter-runtime.js.map

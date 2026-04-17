@@ -1,0 +1,27 @@
+/**
+ * secrets/plan.ts
+ * Resolution plan builder — collects SecretRefs from config tree.
+ * Ported from CoreBlow reference src/secrets/plan.ts.
+ */
+import type { SecretRef, SecretRefSource } from './types.js';
+/**
+ * Scan a config tree for secret references.
+ * Secret refs in config are strings like: `secret:env:default:OPENAI_API_KEY`
+ */
+export declare function collectSecretRefs(config: Record<string, unknown>): SecretRef[];
+/**
+ * Group refs by provider for batch resolution.
+ */
+export declare function groupRefsByProvider(refs: SecretRef[]): Map<string, SecretRef[]>;
+/**
+ * Build a resolution plan summary for logging/audit.
+ */
+export declare function buildResolutionPlanSummary(refs: SecretRef[]): {
+    totalRefs: number;
+    providers: Array<{
+        source: SecretRefSource;
+        provider: string;
+        refCount: number;
+    }>;
+};
+//# sourceMappingURL=plan.d.ts.map

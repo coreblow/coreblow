@@ -1,0 +1,4 @@
+/** Shared model auth runtime utilities. */
+export declare function isApiKeyValid(key: string | undefined): boolean;
+export declare function normalizeApiKey(key: string): string;
+//# sourceMappingURL=model-auth-runtime-shared.d.ts.map

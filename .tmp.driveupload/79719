@@ -1,0 +1,52 @@
+/**
+ * CoreBlow — Route Docs
+ *
+ * Generates human-readable documentation for
+ * registered API routes with examples.
+ */
+/** Route doc */
+export interface RouteDoc {
+    method: string;
+    path: string;
+    summary: string;
+    description?: string;
+    auth?: string;
+    params?: Array<{
+        name: string;
+        type: string;
+        description: string;
+        required: boolean;
+    }>;
+    requestExample?: unknown;
+    responseExample?: unknown;
+    tags?: string[];
+}
+/**
+ * CoreBlow Route Docs
+ */
+export declare class RouteDocs {
+    private docs;
+    /**
+     * Add route documentation.
+     */
+    add(doc: RouteDoc): void;
+    /**
+     * Get docs by tag.
+     */
+    getByTag(tag: string): RouteDoc[];
+    /**
+     * Get all tags.
+     */
+    getTags(): string[];
+    /**
+     * Generate markdown documentation.
+     */
+    toMarkdown(): string;
+    /**
+     * Search docs.
+     */
+    search(query: string): RouteDoc[];
+    /** Count */
+    count(): number;
+}
+//# sourceMappingURL=route-docs.d.ts.map

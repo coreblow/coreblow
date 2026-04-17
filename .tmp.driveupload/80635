@@ -1,0 +1,12 @@
+/**
+ * src/channels/discord/commands/status.ts
+ */
+import type { SlashCommand } from '../types.js';
+import type { ChannelStatus } from '../../interface.js';
+interface DiscordChannelRef {
+    getStatus(): ChannelStatus;
+    getAllSlashCommands(): SlashCommand[];
+}
+export declare function statusCommand(channel: DiscordChannelRef): SlashCommand;
+export {};
+//# sourceMappingURL=status.d.ts.map

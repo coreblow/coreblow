@@ -1,0 +1,23 @@
+/**
+ * CoreBlow — Safe Code Interpreter
+ *
+ * Executes code through vm.createContext sandbox instead of raw eval().
+ * Provides timeout, output capture, and restricted global access.
+ */
+export declare class CodeInterpreter {
+    private sandbox;
+    constructor(options?: {
+        timeoutMs?: number;
+        maxOutput?: number;
+    });
+    execute(code: string, _lang?: string): Promise<{
+        stdout: string;
+        stderr: string;
+        exitCode: number;
+    }>;
+    /**
+     * Get execution history for debugging.
+     */
+    getHistory(limit?: number): import("../../sandbox/sandbox.js").SandboxResult[];
+}
+//# sourceMappingURL=code-interpreter.d.ts.map

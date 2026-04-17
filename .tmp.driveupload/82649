@@ -1,0 +1,131 @@
+/**
+ * plugins/message-bridge.ts
+ *
+ * Plugin Message Bridge — connects the HookRunner into the Gateway
+ * message pipeline so plugin hooks fire at every stage of message processing.
+ *
+ * Following CoreBlow's hook-pipeline.ts (~450 LOC) + chat/pipeline.ts (~350 LOC)
+ * pattern, adapted for CoreBlow's OOP architecture with stage-based
+ * hook orchestration and per-stage error isolation.
+ *
+ * Flow:
+ *   Inbound → message_received → before_dispatch → [LLM] → message_sending → Send → message_sent
+ *
+ * This is the core integration layer that makes plugins "live" in the
+ * gateway. Without this bridge, hooks are registered but never called.
+ */
+import type { HookRunner } from './hooks.js';
+/** Inbound message entering the pipeline */
+export interface PipelineMessage {
+    /** Unique message ID */
+    id: string;
+    /** Session/conversation key */
+    sessionKey: string;
+    /** Channel source (discord, telegram, ws, etc.) */
+    channel: string;
+    /** Raw message content */
+    content: string;
+    /** Sender info */
+    sender: {
+        id: string;
+        name?: string;
+        role?: 'user' | 'admin' | 'system';
+    };
+    /** Message metadata */
+    metadata?: Record<string, unknown>;
+    /** Timestamp */
+    timestamp: number;
+}
+/** Outbound message leaving the pipeline */
+export interface PipelineResponse {
+    /** Original message ID this responds to */
+    inReplyTo: string;
+    /** Session key */
+    sessionKey: string;
+    /** Response content */
+    content: string;
+    /** Whether this was cancelled by a plugin */
+    cancelled: boolean;
+    /** Metadata from plugin hooks */
+    metadata?: Record<string, unknown>;
+}
+/** Pipeline stage outcome */
+export interface PipelineStageResult<T = unknown> {
+    stage: string;
+    success: boolean;
+    duration: number;
+    result?: T;
+    error?: string;
+}
+/** Full pipeline result */
+export interface PipelineResult {
+    message: PipelineMessage;
+    response: PipelineResponse | null;
+    stages: PipelineStageResult[];
+    totalDuration: number;
+    claimedBy?: string;
+}
+/** Message handler — the actual processing function (LLM, commands, etc.) */
+export type MessageHandler = (message: PipelineMessage, ctx: PipelineContext) => Promise<string>;
+/** Pipeline context passed through all stages */
+export interface PipelineContext {
+    sessionKey: string;
+    channel: string;
+    model?: string;
+    provider?: string;
+    /** Cumulative metadata from hooks */
+    hookData: Record<string, unknown>;
+    /** Response override from hooks */
+    responseOverride?: string;
+    /** Whether pipeline was cancelled */
+    cancelled: boolean;
+    /** Which plugin claimed the message (if any) */
+    claimedBy?: string;
+}
+/**
+ * PluginMessageBridge
+ *
+ * Integrates the HookRunner into the message processing pipeline.
+ * Each message passes through:
+ *   1. message_received (void — observe inbound)
+ *   2. before_dispatch (claiming — plugin can take over)
+ *   3. before_model_resolve (modifying — plugin can override model)
+ *   4. [MessageHandler execution]
+ *   5. message_sending (modifying — plugin can modify/cancel response)
+ *   6. [Send response]
+ *   7. message_sent (void — observe outbound)
+ */
+export declare class PluginMessageBridge {
+    private hookRunner;
+    private handler;
+    private stats;
+    constructor(hookRunner: HookRunner);
+    /**
+     * Set the message handler (LLM/command processor).
+     * This is called between the inbound and outbound hook stages.
+     */
+    setHandler(handler: MessageHandler): void;
+    /**
+     * Process a message through the full plugin-augmented pipeline.
+     */
+    processMessage(message: PipelineMessage): Promise<PipelineResult>;
+    /**
+     * Run a named pipeline stage with timing and error handling.
+     */
+    private runStage;
+    /**
+     * Get pipeline statistics.
+     */
+    getStats(): {
+        messagesProcessed: number;
+        hooksFired: number;
+        pluginClaims: number;
+        pluginCancels: number;
+        errors: number;
+    };
+    /**
+     * Reset statistics.
+     */
+    resetStats(): void;
+}
+//# sourceMappingURL=message-bridge.d.ts.map

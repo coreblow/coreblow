@@ -1,0 +1,5 @@
+/** plugin-sdk/matrix-surface.ts [ADAPT] openclaw-main — Stub for @coreblow/matrix. */
+export function createMatrixThreadBindingManager() { return {}; }
+export function resetMatrixThreadBindingsForTests() { }
+export const matrixSessionBindingAdapterChannels = [];
+//# sourceMappingURL=matrix-surface.js.map

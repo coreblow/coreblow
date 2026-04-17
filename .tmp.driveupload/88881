@@ -1,0 +1,2 @@
+export function createErrorObservation(error, provider, model, retryable = false) { return { error, provider, model, timestamp: Date.now(), retryable }; }
+//# sourceMappingURL=pi-embedded-error-observation.js.map

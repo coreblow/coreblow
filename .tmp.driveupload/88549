@@ -1,0 +1,11 @@
+/**
+ * agents/subagent/subagent-registry-queries.ts
+ * Query functions for the subagent run registry.
+ */
+import type { SubagentRunRecord } from './subagent-registry-types.js';
+export declare function isActiveRun(run: SubagentRunRecord): boolean;
+export declare function isEndedRun(run: SubagentRunRecord): boolean;
+export declare function isArchivedRun(run: SubagentRunRecord): boolean;
+export declare function listActiveRuns(): SubagentRunRecord[];
+export declare function countActiveRunsByRequester(requesterSessionKey: string): number;
+//# sourceMappingURL=subagent-registry-queries.d.ts.map

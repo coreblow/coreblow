@@ -1,0 +1,5 @@
+export const MAX_BUFFERED_BYTES = 5 * 1024 * 1024; // 5MB
+export const MAX_MESSAGE_SIZE = 10 * 1024 * 1024; // 10MB
+export const HEARTBEAT_INTERVAL_MS = 30_000;
+export const NODE_WAKE_RECONNECT_WAIT_MS = 8_000;
+export const NODE_WAKE_RECONNECT_RETRY_WAIT_MS = 12_000;

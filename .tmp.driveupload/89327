@@ -1,0 +1,79 @@
+/**
+ * agents/agent-engine.ts
+ * AgentEngine — unified facade for the CoreBlow agent runtime.
+ *
+ * Composes all Phase A modules into a coherent execution engine:
+ *   Model selection → System prompt → Tool pipeline → Streaming → Compaction
+ */
+import { type AgentEngineConfig, type TurnResult, type SessionConfig } from './agent-engine-config.js';
+import { ToolCatalog } from './tool-catalog.js';
+import { ToolPolicy } from './tool-policy.js';
+import { Sandbox } from './sandbox.js';
+import { UsageTracker } from './usage.js';
+import { InternalEventBus } from './internal-events.js';
+import { ModelCatalog } from './model-catalog.js';
+import { type StreamHandler } from './provider-stream.js';
+import { type ToolCallRecord } from './tool-loop-detection.js';
+import type { ModelProvider, ConversationMessage } from './runtime.js';
+export type ToolHandler = (args: Record<string, unknown>) => Promise<string>;
+export interface EngineSession {
+    id: string;
+    model: string;
+    provider: string;
+    messages: ConversationMessage[];
+    toolCallHistory: ToolCallRecord[];
+    turnCount: number;
+    totalTokens: number;
+    createdAt: number;
+    lastActivityAt: number;
+    state: 'idle' | 'running' | 'tool_use' | 'streaming' | 'compacting' | 'error';
+    config: SessionConfig;
+    abortController: AbortController;
+}
+export declare class AgentEngine {
+    readonly config: AgentEngineConfig;
+    private sessions;
+    private providers;
+    private toolCatalog;
+    private toolHandlers;
+    private toolPolicy;
+    private sandbox;
+    private usageTracker;
+    private eventBus;
+    private sessionCache;
+    private lanes;
+    private writeLock;
+    private circuitBreaker;
+    private modelCatalog;
+    constructor(config?: Partial<AgentEngineConfig>);
+    registerProvider(provider: ModelProvider, isDefault?: boolean): void;
+    getProvider(id?: string): ModelProvider | null;
+    registerTool(def: {
+        name: string;
+        description: string;
+        parameters: Record<string, unknown>;
+        handler: ToolHandler;
+    }): void;
+    getToolCatalog(): ToolCatalog;
+    getToolPolicy(): ToolPolicy;
+    getToolHandler(name: string): ToolHandler | undefined;
+    getModelCatalog(): ModelCatalog;
+    setSessionModel(sessionId: string, model: string): boolean;
+    createSession(sessionConfig?: SessionConfig): string;
+    getSession(id: string): EngineSession | null;
+    destroySession(id: string): boolean;
+    listSessions(): Array<{
+        id: string;
+        model: string;
+        state: string;
+        turnCount: number;
+        totalTokens: number;
+    }>;
+    runTurn(sessionId: string, userMessage: string, onChunk?: StreamHandler): Promise<TurnResult>;
+    getUsageTracker(): UsageTracker;
+    getEventBus(): InternalEventBus;
+    getSandbox(): Sandbox;
+    getSessionCount(): number;
+    shutdown(): void;
+}
+//# sourceMappingURL=agent-engine.d.ts.map

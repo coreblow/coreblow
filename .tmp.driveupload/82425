@@ -1,0 +1,122 @@
+/**
+ * plugins/config-validator.ts
+ *
+ * Plugin Config Validator — Schema-based plugin config validation with defaults.
+ *
+ * Following CoreBlow's config-schema.ts (128 LOC) pattern, upgraded to CoreBlow's
+ * OOP class-based architecture with additional type coercion, nested defaults,
+ * and rich structured error reporting.
+ *
+ * Responsibilities:
+ *   - Convert ManifestConfigField[] → PluginConfigSchema
+ *   - Validate user-provided config values against schema
+ *   - Apply defaults for missing optional fields
+ *   - Coerce env-string values to proper types
+ *   - Report structured validation errors with field paths
+ */
+import type { ManifestConfigField } from './manifest.js';
+import type { PluginConfigSchema } from './types.js';
+/** Validation result for a single plugin's config */
+export interface PluginConfigValidationResult {
+    /** Whether validation passed */
+    valid: boolean;
+    /** Plugin ID */
+    pluginId: string;
+    /** Field-level errors */
+    errors: PluginConfigFieldError[];
+    /** Non-fatal warnings */
+    warnings: string[];
+    /** Config with defaults applied and types coerced */
+    resolvedConfig: Record<string, unknown>;
+    /** Default values that were applied */
+    appliedDefaults: Record<string, unknown>;
+    /** Original schema fields */
+    schemaFields: ManifestConfigField[];
+}
+/** Structured field-level error */
+export interface PluginConfigFieldError {
+    /** Field key path */
+    field: string;
+    /** Human-readable error message */
+    message: string;
+    /** Expected type or value */
+    expected?: string;
+    /** Received type or value */
+    received?: string;
+    /** Constraint that failed (e.g., "min:0", "pattern:/^https/") */
+    constraint?: string;
+}
+/** Batch validation report across all plugins */
+export interface ConfigValidationReport {
+    /** All plugins valid */
+    allValid: boolean;
+    /** Per-plugin results */
+    results: Map<string, PluginConfigValidationResult>;
+    /** Total error count */
+    totalErrors: number;
+    /** Total warning count */
+    totalWarnings: number;
+}
+/**
+ * CoreBlow Plugin Config Validator
+ *
+ * OOP equivalent of CoreBlow's config-schema.ts validation functions.
+ * Provides schema-based plugin config validation with defaults, type coercion,
+ * and structured error reporting.
+ */
+export declare class PluginConfigValidator {
+    /** Per-plugin validation results */
+    private results;
+    /**
+     * Validate a plugin's config against its manifest schema.
+     *
+     * Pipeline: schema parse → defaults → coerce → validate → report
+     */
+    validatePluginConfig(pluginId: string, schemaFields: ManifestConfigField[], userConfig?: Record<string, unknown>): PluginConfigValidationResult;
+    /**
+     * Build a PluginConfigSchema from manifest config fields.
+     * Returns an object implementing the PluginConfigSchema contract
+     * (validate + jsonSchema + uiHints).
+     */
+    buildSchemaFromManifest(fields: ManifestConfigField[]): PluginConfigSchema;
+    /**
+     * Apply defaults from schema to a config object.
+     * Returns a new object, does not mutate the input.
+     */
+    applyDefaults(fields: ManifestConfigField[], config: Record<string, unknown>): Record<string, unknown>;
+    /**
+     * Coerce string environment values to proper types based on schema.
+     * Returns a new object, does not mutate the input.
+     */
+    coerceConfig(fields: ManifestConfigField[], config: Record<string, unknown>): Record<string, unknown>;
+    /**
+     * Get validation result for a specific plugin.
+     */
+    getResult(pluginId: string): PluginConfigValidationResult | undefined;
+    /**
+     * Get batch validation report across all validated plugins.
+     */
+    getReport(): ConfigValidationReport;
+    /**
+     * Clear all stored validation results.
+     */
+    clear(): void;
+    /**
+     * Validate a single field value against its schema definition.
+     */
+    private validateField;
+    /**
+     * Validate string-specific constraints (pattern, minLength via validation.min).
+     */
+    private validateStringConstraints;
+    /**
+     * Validate number-specific constraints (min, max).
+     */
+    private validateNumberConstraints;
+    /**
+     * Coerce a value to the expected type based on field schema.
+     * Useful when config comes from environment variables (always strings).
+     */
+    private coerceType;
+}
+//# sourceMappingURL=config-validator.d.ts.map

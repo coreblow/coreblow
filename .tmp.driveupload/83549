@@ -1,0 +1,13 @@
+/** plugin-sdk/approval-runtime.ts [ADAPT] openclaw-main */
+export const DEFAULT_EXEC_APPROVAL_TIMEOUT_MS = 60_000;
+export const DEFAULT_PLUGIN_APPROVAL_TIMEOUT_MS = 30_000;
+export const MAX_PLUGIN_APPROVAL_TIMEOUT_MS = 300_000;
+export function buildExecApprovalPendingReplyPayload(_p) { return {}; }
+export function getExecApprovalApproverDmNoticeText(_p) { return ""; }
+export function getExecApprovalReplyMetadata(_p) { return null; }
+export function resolveExecApprovalCommandDisplay(_p) { return ""; }
+export function resolveExecApprovalSessionTarget(_p) { return null; }
+export function buildPluginApprovalExpiredMessage(_p) { return "Plugin approval expired."; }
+export function buildPluginApprovalRequestMessage(_p) { return "Plugin approval required."; }
+export function buildPluginApprovalResolvedMessage(_p) { return "Plugin approval resolved."; }
+//# sourceMappingURL=approval-runtime.js.map

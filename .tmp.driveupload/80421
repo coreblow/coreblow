@@ -1,0 +1,22 @@
+/**
+ * src/channels/discord/handlers/modal.ts
+ */
+import { MessageRouter } from '../../../gateway/router.js';
+import type { ChannelStats } from '../types.js';
+import type { DiscordInteraction } from '../types-sdk.js';
+export declare function handleModal(interaction: DiscordInteraction & {
+    channel?: {
+        id: string;
+    };
+    user: {
+        id: string;
+        displayName?: string;
+        username?: string;
+    };
+    fields?: {
+        fields?: Map<string, {
+            value?: string;
+        }>;
+    };
+}, router: MessageRouter, stats: ChannelStats): Promise<void>;
+//# sourceMappingURL=modal.d.ts.map

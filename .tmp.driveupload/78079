@@ -1,0 +1,4 @@
+{
+  "generatedBy": "scripts/write-cli-startup-metadata.mjs",
+  "rootHelpText": "Usage: coreblow [options] [command]\n\nCoreBlow — AI-powered messaging gateway\n\nOptions:\n  -V, --version   Print version and exit\n  -h, --help      Display help\n\nCommands:\n  gateway         Manage the CoreBlow Gateway server\n  mcp             Manage CoreBlow MCP config and channel bridge\n  config          View and manage CoreBlow configuration\n  help [command]  display help for command\n"
+}

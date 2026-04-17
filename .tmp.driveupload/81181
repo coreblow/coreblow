@@ -1,0 +1,18 @@
+import { isNodeRoleMethod } from "./method-scopes.js";
+export const GATEWAY_ROLES = ["operator", "node"];
+export function parseGatewayRole(roleRaw) {
+    if (roleRaw === "operator" || roleRaw === "node") {
+        return roleRaw;
+    }
+    return null;
+}
+export function roleCanSkipDeviceIdentity(role, sharedAuthOk) {
+    return role === "operator" && sharedAuthOk;
+}
+export function isRoleAuthorizedForMethod(role, method) {
+    if (isNodeRoleMethod(method)) {
+        return role === "node";
+    }
+    return role === "operator";
+}
+//# sourceMappingURL=role-policy.js.map

@@ -1,0 +1,11 @@
+/** plugin-sdk/logging-core.ts [ADAPT] openclaw-main */
+export type LogLevel = "debug" | "info" | "warn" | "error";
+export type Logger = {
+    debug: (msg: string, meta?: Record<string, unknown>) => void;
+    info: (msg: string, meta?: Record<string, unknown>) => void;
+    warn: (msg: string, meta?: Record<string, unknown>) => void;
+    error: (msg: string, meta?: Record<string, unknown>) => void;
+};
+export declare function createConsoleLogger(prefix?: string): Logger;
+export declare function redactSensitiveText(text: string, keys?: string[]): string;
+//# sourceMappingURL=logging-core.d.ts.map

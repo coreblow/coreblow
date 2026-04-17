@@ -1,0 +1,8 @@
+/**
+ * CoreBlow AutoPilot — abortRun
+ *
+ * Abort a run for a session.
+ */
+import type { AbortReason } from '../types.js';
+export declare function abortRun(sessionKey: string, reason?: AbortReason): boolean;
+//# sourceMappingURL=abort-run.d.ts.map

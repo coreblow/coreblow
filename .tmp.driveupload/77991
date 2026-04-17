@@ -1,0 +1,14 @@
+/**
+ * src/providers/ollama.ts
+ * Ollama local AI provider (FREE)
+ */
+import type { AIProvider, ChatMessage, ProviderOptions, StreamChunk } from './interface.js';
+export declare class OllamaProvider implements AIProvider {
+    name: string;
+    private baseUrl;
+    constructor(baseUrl?: string);
+    chat(messages: ChatMessage[], options: ProviderOptions): AsyncIterable<StreamChunk>;
+    isAvailable(): Promise<boolean>;
+    listModels(): Promise<string[]>;
+}
+//# sourceMappingURL=ollama.d.ts.map

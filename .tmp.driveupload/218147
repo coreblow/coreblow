@@ -1,0 +1,37 @@
+/**
+ * CoreBlow AutoPilot — Command Types
+ *
+ * CoreBlow equivalent: auto-reply/commands-registry.types.ts
+ *                    + auto-reply/reply/commands-types.ts
+ */
+import type { ReplyPayload, InboundMessage } from './types.js';
+
+export type CommandResult = {
+    handled: boolean;
+    output?: string;
+    replies?: ReplyPayload[];
+    error?: string;
+    shouldContinue?: boolean;
+};
+
+export type CommandHandler = (params: {
+    args: string;
+    message: InboundMessage;
+    sessionKey: string;
+    config: Record<string, unknown>;
+}) => Promise<CommandResult>;
+
+export type CommandDefinition = {
+    name: string;
+    aliases?: string[];
+    description: string;
+    usage?: string;
+    handler: CommandHandler;
+    hidden?: boolean;
+    requiresAuth?: boolean;
+};
+
+export type CommandMatch = {
+    name: string;
+    args: string;
+};

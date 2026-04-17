@@ -1,0 +1,22 @@
+/**
+ * memory/rrf.ts
+ * Reciprocal Rank Fusion — merges vector and keyword search results.
+ */
+export declare function rrfFuse(results: Array<{
+    id: string;
+    scores: number[];
+}>, k?: number): Array<{
+    id: string;
+    score: number;
+}>;
+export interface RankedItem {
+    id: string;
+    score: number;
+}
+export interface RRFResult {
+    id: string;
+    score: number;
+    sources: string[];
+}
+export declare function fuseVectorAndKeyword(vectorScores: Map<string, number>, keywordScores: Map<string, number>, k?: number): RRFResult[];
+//# sourceMappingURL=rrf.d.ts.map

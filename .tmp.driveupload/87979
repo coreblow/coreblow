@@ -1,0 +1,85 @@
+/**
+ * CoreBlow — Bash Tools Shared Utilities (CoreBlow Parity)
+ *
+ * Command sanitization, arg validation, working directory checks,
+ * env var filtering, and PATH manipulation.
+ */
+export declare function sanitizeCommand(command: string): string;
+export declare function isMultilineCommand(command: string): boolean;
+export declare function hasShellMetaChars(command: string): boolean;
+/**
+ * Extract the base command name (first word) from a command string.
+ */
+export declare function extractBaseCommand(command: string): string;
+export declare function validateWorkingDirectory(cwd: string, mode?: 'strict' | 'lenient' | 'none'): {
+    valid: boolean;
+    resolved: string;
+    error?: string;
+};
+export declare function resolveWorkingDirectory(cwd?: string, fallback?: string): string;
+export declare function filterEnvironment(env: Record<string, string | undefined>, options?: {
+    allowAll?: boolean;
+    inject?: Record<string, string>;
+    block?: string[];
+}): Record<string, string>;
+export declare function prependToPath(currentPath: string, ...dirs: string[]): string;
+export declare function appendToPath(currentPath: string, ...dirs: string[]): string;
+export declare function removeFromPath(currentPath: string, ...dirs: string[]): string;
+/**
+ * Resolve executable path by searching PATH.
+ */
+export declare function resolveExecutable(name: string, pathEnv?: string): string | null;
+export declare function detectDefaultShell(): string;
+export declare function resolveShell(preferred?: string): string;
+export declare function describeSignal(signal: string): string;
+export declare function describeExitCode(code: number | null, signal: string | null): string;
+export declare function readEnvInt(name: string): number | undefined;
+export declare function clampWithDefault(value: number | undefined, defaultValue: number, min: number, max: number): number;
+export declare function truncateMiddle(text: string, maxLen: number): string;
+export declare function chunkString(str: string, maxChunkSize?: number): string[];
+export declare function coerceEnv(env: NodeJS.ProcessEnv): Record<string, string>;
+export type BashSandboxConfig = {
+    containerName: string;
+    containerWorkdir: string;
+    env?: Record<string, string>;
+    buildExecSpec?: (params: {
+        command: string;
+        workdir: string;
+        env: Record<string, string>;
+        usePty: boolean;
+    }) => Promise<{
+        argv: string[];
+        env?: NodeJS.ProcessEnv;
+        stdinMode?: 'pipe-open' | 'pipe-closed';
+        finalizeToken?: unknown;
+    } | null>;
+    finalizeExec?: (params: {
+        status: string;
+        exitCode: number | null;
+        timedOut: boolean;
+        token?: unknown;
+    }) => Promise<void>;
+};
+export declare function buildDockerExecArgs(params: {
+    containerName: string;
+    command: string;
+    workdir: string;
+    env: Record<string, string>;
+    tty?: boolean;
+}): string[];
+export declare function buildSandboxEnv(params: {
+    defaultPath: string;
+    paramsEnv?: Record<string, string>;
+    sandboxEnv?: Record<string, string>;
+    containerWorkdir?: string;
+}): Record<string, string>;
+export declare function resolveSandboxWorkdir(params: {
+    workdir: string;
+    sandbox: BashSandboxConfig;
+    warnings: string[];
+}): Promise<{
+    hostWorkdir: string;
+    containerWorkdir: string;
+}>;
+export declare function resolveWorkdir(rawWorkdir: string, warnings: string[]): string;
+//# sourceMappingURL=bash-tools-shared.d.ts.map

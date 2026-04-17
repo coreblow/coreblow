@@ -1,0 +1,180 @@
+/**
+ * CoreBlow — Browser Tool
+ *
+ * Headless browser tool for web page interaction  — navigation,
+ * screenshot capture, DOM extraction, and JavaScript execution.
+ * Uses raw CDP (Chrome DevTools Protocol) via WebSocket.
+ * No Playwright/Puppeteer SDK dependency.
+ */
+/** Browser tool configuration */
+export interface BrowserConfig {
+    /** CDP WebSocket endpoint (e.g. ws://localhost:9222) */
+    cdpEndpoint?: string;
+    /** Default viewport dimensions */
+    viewport?: {
+        width: number;
+        height: number;
+    };
+    /** Default navigation timeout (ms) */
+    navigationTimeoutMs?: number;
+    /** Max concurrent pages */
+    maxPages?: number;
+    /** User agent override */
+    userAgent?: string;
+    /** Block resource types (images, fonts, etc) for performance */
+    blockResources?: string[];
+}
+/** Navigation result */
+export interface NavigationResult {
+    url: string;
+    status: number;
+    title: string;
+    loadTimeMs: number;
+}
+/** Screenshot result */
+export interface ScreenshotResult {
+    data: string;
+    format: 'png' | 'jpeg';
+    width: number;
+    height: number;
+    sizeBytes: number;
+}
+/** DOM extraction result */
+export interface DOMExtractionResult {
+    text: string;
+    html?: string;
+    links: Array<{
+        text: string;
+        href: string;
+    }>;
+    images: Array<{
+        alt: string;
+        src: string;
+    }>;
+    meta: Record<string, string>;
+    truncated: boolean;
+}
+/** JavaScript evaluation result */
+export interface EvalResult {
+    value: unknown;
+    type: string;
+    error?: string;
+}
+/** Page state */
+export interface PageState {
+    id: string;
+    url: string;
+    title: string;
+    createdAt: number;
+    lastNavigatedAt: number;
+}
+/**
+ * CoreBlow Browser Tool
+ *
+ * Provides headless browser capabilities for agents.
+ * Communicates with Chrome/Chromium via CDP WebSocket.
+ */
+export declare class BrowserTool {
+    private config;
+    private pages;
+    private connected;
+    private ws;
+    private messageId;
+    private pendingCommands;
+    constructor(config?: BrowserConfig);
+    /** Connect to Chrome DevTools Protocol */
+    connect(): Promise<void>;
+    /** Disconnect */
+    disconnect(): Promise<void>;
+    /**
+     * Navigate to a URL and return page info.
+     */
+    navigate(url: string, pageId?: string): Promise<NavigationResult>;
+    /**
+     * Take a screenshot of the current page.
+     */
+    screenshot(pageId: string, options?: {
+        format?: 'png' | 'jpeg';
+        quality?: number;
+        fullPage?: boolean;
+        clip?: {
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+        };
+    }): Promise<ScreenshotResult>;
+    /**
+     * Extract text content, links, and images from the page DOM.
+     */
+    extractDOM(pageId: string, options?: {
+        selector?: string;
+        includeHtml?: boolean;
+        maxLength?: number;
+    }): Promise<DOMExtractionResult>;
+    /**
+     * Execute JavaScript on the page.
+     */
+    evaluate(pageId: string, expression: string): Promise<EvalResult>;
+    /**
+     * Click an element on the page.
+     */
+    click(pageId: string, selector: string): Promise<boolean>;
+    /**
+     * Type text into a focused element.
+     */
+    type(pageId: string, selector: string, text: string): Promise<void>;
+    /**
+     * Wait for a selector to appear.
+     */
+    waitForSelector(pageId: string, selector: string, timeoutMs?: number): Promise<boolean>;
+    /** List open pages */
+    listPages(): PageState[];
+    /** Close a page */
+    closePage(pageId: string): boolean;
+    /** Get connection status */
+    isConnected(): boolean;
+    private validateUrl;
+    private generatePageId;
+}
+/**
+ * Register browser tool with the tool registry.
+ */
+export declare function createBrowserToolDefinition(browser: BrowserTool): {
+    name: string;
+    description: string;
+    category: string;
+    parameters: {
+        type: "object";
+        properties: {
+            action: {
+                type: string;
+                enum: string[];
+                description: string;
+            };
+            url: {
+                type: string;
+                description: string;
+            };
+            pageId: {
+                type: string;
+                description: string;
+            };
+            selector: {
+                type: string;
+                description: string;
+            };
+            text: {
+                type: string;
+                description: string;
+            };
+            expression: {
+                type: string;
+                description: string;
+            };
+        };
+        required: string[];
+    };
+    handler: (args: Record<string, unknown>) => Promise<string>;
+};
+//# sourceMappingURL=browser.d.ts.map

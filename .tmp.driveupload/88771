@@ -1,0 +1,4 @@
+/** Skill status reporting. */
+export type SkillStatus = 'installed' | 'available' | 'outdated' | 'error';
+export declare function formatSkillStatus(name: string, status: SkillStatus): string;
+//# sourceMappingURL=skills-status.d.ts.map

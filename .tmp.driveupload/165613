@@ -1,0 +1,90 @@
+import type { Client } from "../classes/Client.js";
+import type { ListenerEventAdditionalData, ListenerEventRawData } from "../types/index.js";
+type RuntimeProfile = "serverless" | "persistent";
+type EventQueueLane = "critical" | "standard" | "background";
+export interface EventQueueLaneOptions {
+    maxQueueSize?: number;
+    maxConcurrency?: number;
+    listenerTimeout?: number;
+    listenerConcurrency?: number;
+    maxEventAgeMs?: number;
+}
+export interface EventQueueOptions {
+    runtimeProfile?: RuntimeProfile;
+    lanes?: Partial<Record<EventQueueLane, EventQueueLaneOptions>>;
+    /**
+     * Global fallback maximum queue size.
+     */
+    maxQueueSize?: number;
+    /**
+     * Global fallback max event concurrency.
+     */
+    maxConcurrency?: number;
+    /**
+     * Global fallback listener timeout.
+     */
+    listenerTimeout?: number;
+    /**
+     * Global fallback per-event listener concurrency.
+     */
+    listenerConcurrency?: number;
+    yieldIntervalMs?: number;
+    /**
+     * Whether to log slow listeners
+     * @default true
+     */
+    logSlowListeners?: boolean;
+    /**
+     * Threshold (in ms) for logging slow listeners
+     * @default 1000 (1 second)
+     */
+    slowListenerThreshold?: number;
+}
+export declare class EventQueue {
+    private client;
+    private queues;
+    private processingByLane;
+    private options;
+    private lastYieldAt;
+    private processedCount;
+    private droppedCount;
+    private droppedStaleCount;
+    private timeoutCount;
+    private zombieExecutionCount;
+    constructor(client: Client, options?: EventQueueOptions);
+    enqueue<T extends keyof ListenerEventRawData>(payload: ListenerEventRawData[T] & ListenerEventAdditionalData, type: T): boolean;
+    private processLane;
+    private processEvent;
+    private processListener;
+    private getLane;
+    private maybeYield;
+    getMetrics(): {
+        queueSize: number;
+        queueSizeByLane: {
+            critical: number;
+            standard: number;
+            background: number;
+        };
+        processingByLane: {
+            critical: number;
+            standard: number;
+            background: number;
+        };
+        processed: number;
+        dropped: number;
+        droppedStale: number;
+        timeouts: number;
+        zombieExecutions: number;
+        oldestAgeMsByLane: {
+            critical: number;
+            standard: number;
+            background: number;
+        };
+        laneConfig: Record<EventQueueLane, Required<EventQueueLaneOptions>>;
+    };
+    hasCapacity(): boolean;
+    getUtilization(): number;
+    private getOldestAgeMs;
+}
+export {};
+//# sourceMappingURL=EventQueue.d.ts.map

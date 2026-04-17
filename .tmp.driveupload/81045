@@ -1,0 +1,42 @@
+/**
+ * utils/logger.ts
+ * Structured logging pipeline with module-scoped loggers, redaction, and correlation.
+ * Upgraded from 26 LOC to full CoreBlow-pattern pipeline.
+ */
+import type { Logger as PinoLogger } from 'pino';
+export declare const logger: PinoLogger;
+/**
+ * Create a child logger scoped to a module.
+ * Uses caching to avoid creating duplicate loggers.
+ */
+export declare function createChildLogger(module: string): PinoLogger;
+/**
+ * Create a request-scoped logger with correlation ID.
+ */
+export declare function createRequestLogger(opts: {
+    module: string;
+    requestId?: string;
+    sessionId?: string;
+    channel?: string;
+}): PinoLogger;
+/**
+ * Create a turn-scoped logger for agent interactions.
+ */
+export declare function createTurnLogger(opts: {
+    sessionId: string;
+    turnId: string;
+    agentId?: string;
+}): PinoLogger;
+/**
+ * Set the log level at runtime.
+ */
+export declare function setLogLevel(level: string): void;
+/**
+ * Get the current log level.
+ */
+export declare function getLogLevel(): string;
+/**
+ * Flush all pending log writes (for graceful shutdown).
+ */
+export declare function flushLogs(): Promise<void>;
+//# sourceMappingURL=logger.d.ts.map

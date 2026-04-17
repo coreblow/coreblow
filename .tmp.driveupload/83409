@@ -1,0 +1,1 @@
+{"version":3,"file":"provider-catalog.d.ts","sourceRoot":"","sources":["../../src/plugin-sdk/provider-catalog.ts"],"names":[],"mappings":"AAAA;;;;;GAKG;AAEH,YAAY,EAAE,sBAAsB,EAAE,qBAAqB,EAAE,MAAM,8BAA8B,CAAC;AAClG,OAAO,EACH,mBAAmB,EACnB,gCAAgC,EAChC,gCAAgC,EAChC,KAAK,eAAe,EACpB,KAAK,eAAe,GACvB,MAAM,8BAA8B,CAAC"}

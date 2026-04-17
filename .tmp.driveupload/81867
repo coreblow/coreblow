@@ -1,0 +1,9 @@
+import type { GatewayRequestHandlers } from "./types.js";
+import { AgentEngine } from "../../agents/agent-engine.js";
+import { AgentStreamBridge } from "../../agents/agent-stream-bridge.js";
+export declare function setAgentEngine(e: AgentEngine): void;
+export declare function setStreamBridge(b: AgentStreamBridge): void;
+export declare function setBroadcast(fn: (event: string, data: unknown) => void): void;
+export declare function getAgentEngine(): AgentEngine | null;
+export declare const chatHandlers: GatewayRequestHandlers;
+//# sourceMappingURL=chat.d.ts.map

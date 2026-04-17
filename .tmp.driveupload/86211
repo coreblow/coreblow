@@ -1,0 +1,1 @@
+{"version":3,"file":"file-identity.d.ts","sourceRoot":"","sources":["../../src/infra/file-identity.ts"],"names":[],"mappings":"AAAA,MAAM,MAAM,gBAAgB,GAAG;IAC7B,GAAG,EAAE,MAAM,GAAG,MAAM,CAAC;IACrB,GAAG,EAAE,MAAM,GAAG,MAAM,CAAC;CACtB,CAAC;AAMF,wBAAgB,gBAAgB,CAC9B,IAAI,EAAE,gBAAgB,EACtB,KAAK,EAAE,gBAAgB,EACvB,QAAQ,GAAE,MAAM,CAAC,QAA2B,GAC3C,OAAO,CAWT"}

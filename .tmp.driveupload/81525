@@ -1,0 +1,9 @@
+import type { IncomingMessage } from 'node:http';
+export interface ClientConnectionDetails {
+    ip: string;
+    userAgent: string;
+    clientId: string;
+    deviceType: string;
+}
+export declare function extractConnectionDetails(req: IncomingMessage): ClientConnectionDetails;
+//# sourceMappingURL=connection-details.d.ts.map

@@ -1,0 +1,31 @@
+/**
+ * agents/model-fallback.types.ts
+ *
+ * Canonical type definitions untuk model fallback subsystem.
+ * Port dari openclaw-main/src/agents/model-fallback.types.ts
+ * + CoreBlow FallbackEntry / FallbackChain types.
+ */
+import type { FailoverReason } from './failover-error.js';
+export type ModelCandidate = {
+    provider: string;
+    model: string;
+};
+export type FallbackAttempt = {
+    provider: string;
+    model: string;
+    error: string;
+    reason?: FailoverReason;
+    status?: number;
+    code?: string;
+};
+export interface FallbackEntry {
+    model: string;
+    provider: string;
+    priority: number;
+}
+export interface FallbackChain {
+    entries: FallbackEntry[];
+    currentIndex: number;
+}
+export type FallbackDecision = 'skip_candidate' | 'probe_cooldown_candidate' | 'candidate_failed' | 'candidate_succeeded';
+//# sourceMappingURL=model-fallback.types.d.ts.map

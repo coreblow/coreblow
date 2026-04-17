@@ -1,0 +1,6 @@
+/**
+ * gateway/server-methods/doctor.ts — Doctor RPC Handlers
+ */
+import type { GatewayRequestHandlers } from "./types.js";
+export declare const doctorHandlers: GatewayRequestHandlers;
+//# sourceMappingURL=doctor.d.ts.map

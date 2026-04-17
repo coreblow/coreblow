@@ -1,0 +1,7 @@
+/** plugin-sdk/webhook-targets.ts [ADAPT] openclaw-main */
+import { normalizeWebhookPath, resolveWebhookPath } from "./webhook-path.js";
+export { normalizeWebhookPath, resolveWebhookPath };
+export function registerPluginHttpRoute(_p) { return () => { }; }
+export function registerWebhookTarget(_target, _opts) { return { target: _target, unregister: () => { } }; }
+export function registerWebhookTargetWithPluginRoute(_p) { return { target: _p.target, unregister: () => { } }; }
+//# sourceMappingURL=webhook-targets.js.map

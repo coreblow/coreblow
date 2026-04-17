@@ -1,0 +1,14 @@
+/**
+ * CoreBlow runtime adapter for CLI commands and canvas-host.
+ * [ADAPT] Extended to match OpenClaw's defaultRuntime API:
+ *   log, error, writeJson, exit
+ */
+export interface Runtime {
+    log: (...args: unknown[]) => void;
+    error: (...args: unknown[]) => void;
+    writeJson: (value: unknown) => void;
+    exit: (code?: number) => never;
+    env: Record<string, string>;
+}
+export declare const defaultRuntime: Runtime;
+//# sourceMappingURL=runtime.d.ts.map

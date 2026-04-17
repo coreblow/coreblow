@@ -1,0 +1,58 @@
+/**
+ * plugin-sdk/provider-http.ts
+ * [PORT] openclaw-main/src/plugin-sdk/provider-http.ts
+ *
+ * Shared provider-facing HTTP helpers.
+ */
+/** Assert response is OK or throw an HTTP error. */
+export async function assertOkOrThrowHttpError(response) {
+    if (!response.ok) {
+        const body = await response.text().catch(() => '');
+        throw new Error(`HTTP ${response.status} ${response.statusText}: ${body}`);
+    }
+}
+/** Fetch with a configurable timeout. */
+export async function fetchWithTimeout(url, init, timeoutMs = 30_000) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        return await fetch(url, { ...init, signal: controller.signal });
+    }
+    finally {
+        clearTimeout(timer);
+    }
+}
+/** Fetch with timeout and OK assertion. */
+export async function fetchWithTimeoutGuarded(url, init, timeoutMs = 30_000) {
+    const response = await fetchWithTimeout(url, init, timeoutMs);
+    await assertOkOrThrowHttpError(response);
+    return response;
+}
+/** Normalize a base URL (strip trailing slash). */
+export function normalizeBaseUrl(url) {
+    return url.trim().replace(/\/$/, '');
+}
+/** POST a JSON body and return Response. */
+export async function postJsonRequest(url, body, headers) {
+    return fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...headers },
+        body: JSON.stringify(body),
+    });
+}
+/** POST a transcription request (multipart/form-data). */
+export async function postTranscriptionRequest(url, formData, headers) {
+    return fetch(url, {
+        method: 'POST',
+        headers: { ...headers },
+        body: formData,
+    });
+}
+/** Require transcription text from a response body. */
+export async function requireTranscriptionText(response) {
+    const data = await response.json();
+    if (!data.text)
+        throw new Error('No transcription text in response');
+    return data.text;
+}
+//# sourceMappingURL=provider-http.js.map

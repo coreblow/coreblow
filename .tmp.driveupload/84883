@@ -1,0 +1,9 @@
+/** plugin-sdk/media-runtime.ts [ADAPT] openclaw-main */
+export { resolveOutboundMedia, assertMediaNotDataUrl } from "./outbound-media.js";
+export async function loadWebMedia(_url) { return null; }
+export async function loadWebMediaRaw(_url) { return null; }
+export async function optimizeImageToJpeg(_data) { return _data; }
+export function getDefaultLocalRoots() { return []; }
+export async function getWebAuthAgeMs(_p) { return null; }
+export async function getActiveWebListener(_p) { return null; }
+//# sourceMappingURL=media-runtime.js.map

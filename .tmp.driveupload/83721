@@ -1,0 +1,13 @@
+/** plugin-sdk/file-lock.ts [ADAPT] openclaw-main */
+export type FileLockOptions = {
+    retries: {
+        retries: number;
+        factor: number;
+        minTimeout: number;
+        maxTimeout: number;
+        randomize?: boolean;
+    };
+    stale: number;
+};
+export declare function withFileLock<T>(lockPath: string, fn: () => Promise<T>, _opts?: Partial<FileLockOptions>): Promise<T>;
+//# sourceMappingURL=file-lock.d.ts.map

@@ -1,0 +1,10 @@
+/**
+ * commands/autocomplete.ts
+ */
+export declare class AutoComplete {
+    private commands;
+    setCommands(cmds: string[]): void;
+    complete(partial: string): string[];
+    completeArgs(command: string, partial: string): string[];
+}
+//# sourceMappingURL=autocomplete.d.ts.map

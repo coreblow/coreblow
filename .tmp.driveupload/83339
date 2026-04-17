@@ -1,0 +1,34 @@
+/**
+ * plugin-sdk/whatsapp-surface.ts
+ * [ADAPT] openclaw-main — Stub surface for @coreblow/whatsapp.
+ */
+export declare const DEFAULT_WEB_MEDIA_BYTES: number;
+export type WebChannelStatus = {
+    running: boolean;
+    error?: string | null;
+};
+export type WebInboundMessage = {
+    from: string;
+    body: string;
+    timestamp?: number;
+    messageId?: string;
+};
+export type WebListenerCloseReason = "logout" | "timeout" | "error" | "abort";
+export type WebMonitorTuning = {
+    reconnectDelayMs?: number;
+    heartbeatIntervalMs?: number;
+};
+export type ResolvedWhatsAppAccount = {
+    accountId: string;
+    jid?: string | null;
+};
+export declare function hasAnyWhatsAppAuth(_cfg: Record<string, unknown>): boolean;
+export declare function listEnabledWhatsAppAccounts(_cfg: Record<string, unknown>): string[];
+export declare function resolveWhatsAppAccount(_p: unknown): Promise<ResolvedWhatsAppAccount | null>;
+export declare function resolveWhatsAppGroupRequireMention(_p: unknown): boolean;
+export declare function resolveWhatsAppGroupToolPolicy(_p: unknown): string;
+export declare function resolveWhatsAppOutboundTarget(_p: unknown): string | null;
+export declare function listWhatsAppDirectoryGroupsFromConfig(_p: unknown): unknown[];
+export declare function listWhatsAppDirectoryPeersFromConfig(_p: unknown): unknown[];
+export declare const whatsappAccessControlTesting: {};
+//# sourceMappingURL=whatsapp-surface.d.ts.map

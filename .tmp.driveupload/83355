@@ -1,0 +1,90 @@
+/**
+ * plugin-sdk/hooks-api.ts
+ *
+ * Public hooks API for plugin authors — typed hook registration
+ * and hook chain composition utilities.
+ */
+import type { PluginHook } from '../plugins/types.js';
+/** Hook registration options */
+export interface HookRegistrationOptions {
+    name?: string;
+    description?: string;
+    priority?: number;
+}
+/** Hook pair — before/after hook combination */
+export interface HookPair {
+    before: PluginHook;
+    after: PluginHook;
+}
+/**
+ * CoreBlow Plugin Hooks API
+ *
+ * Provides a typed, fluent API for plugin authors to register hooks
+ * with priority management and chain composition.
+ */
+export declare class HooksAPI {
+    private hooks;
+    /**
+     * Register a hook for a specific event.
+     */
+    on(event: string, handler: (...args: unknown[]) => Promise<unknown>, options?: HookRegistrationOptions): this;
+    /**
+     * Register a before/after hook pair.
+     */
+    wrap(beforeEvent: string, afterEvent: string, handlers: {
+        before: (...args: unknown[]) => Promise<unknown>;
+        after: (...args: unknown[]) => Promise<unknown>;
+    }, priority?: number): HookPair;
+    /**
+     * Register a message_received hook.
+     */
+    onMessageReceived(handler: (event: unknown, ctx: unknown) => Promise<void>, priority?: number): this;
+    /**
+     * Register a message_sending hook (can modify or cancel).
+     */
+    onMessageSending(handler: (event: unknown, ctx: unknown) => Promise<{
+        content?: string;
+        cancel?: boolean;
+    } | void>, priority?: number): this;
+    /**
+     * Register a before_tool_call hook (can modify params or block).
+     */
+    onBeforeToolCall(handler: (event: unknown, ctx: unknown) => Promise<{
+        params?: unknown;
+        block?: boolean;
+        blockReason?: string;
+    } | void>, priority?: number): this;
+    /**
+     * Register a session_start hook.
+     */
+    onSessionStart(handler: (event: unknown, ctx: unknown) => Promise<void>, priority?: number): this;
+    /**
+     * Register a session_end hook.
+     */
+    onSessionEnd(handler: (event: unknown, ctx: unknown) => Promise<void>, priority?: number): this;
+    /**
+     * Register an llm_input hook (observe LLM input).
+     */
+    onLlmInput(handler: (event: unknown, ctx: unknown) => Promise<void>, priority?: number): this;
+    /**
+     * Register an llm_output hook (observe LLM output).
+     */
+    onLlmOutput(handler: (event: unknown, ctx: unknown) => Promise<void>, priority?: number): this;
+    /**
+     * Get all registered hooks.
+     */
+    getHooks(): PluginHook[];
+    /**
+     * Get hooks sorted by priority (highest first).
+     */
+    getSortedHooks(): PluginHook[];
+    /**
+     * Clear all registered hooks.
+     */
+    clear(): void;
+    /**
+     * Count registered hooks.
+     */
+    count(): number;
+}
+//# sourceMappingURL=hooks-api.d.ts.map

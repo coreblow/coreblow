@@ -1,0 +1,7 @@
+export declare function createInfraLogger(name: string): {
+    info: (...args: unknown[]) => void;
+    error: (...args: unknown[]) => void;
+    warn: (...args: unknown[]) => void;
+    debug: (...args: unknown[]) => void;
+};
+//# sourceMappingURL=logger.d.ts.map

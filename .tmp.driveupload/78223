@@ -1,0 +1,26 @@
+/**
+ * config/allowed-values.ts
+ * Enum validation and allowed value summarization.
+ * Ported from CoreBlow reference src/config/allowed-values.ts.
+ */
+export type AllowedValuesSummary = {
+    values: string[];
+    hiddenCount: number;
+    formatted: string;
+};
+export declare function summarizeAllowedValues(values: ReadonlyArray<unknown>): AllowedValuesSummary | null;
+export declare const AUTO_REPLY_MODES: readonly ["always", "mention", "reply", "never"];
+export type AutoReplyMode = (typeof AUTO_REPLY_MODES)[number];
+export declare const SANDBOX_MODES: readonly ["off", "non-main", "all"];
+export type SandboxMode = (typeof SANDBOX_MODES)[number];
+export declare const LOG_LEVELS: readonly ["fatal", "error", "warn", "info", "debug", "trace"];
+export type LogLevel = (typeof LOG_LEVELS)[number];
+export declare const TOOL_APPROVAL_MODES: readonly ["off", "on-miss", "always"];
+export type ToolApprovalMode = (typeof TOOL_APPROVAL_MODES)[number];
+export declare const CHANNEL_IDS: readonly ["discord", "telegram", "slack", "signal", "gmail", "whatsapp", "imessage"];
+export type ChannelId = (typeof CHANNEL_IDS)[number];
+export declare function isValidAutoReplyMode(value: unknown): value is AutoReplyMode;
+export declare function isValidSandboxMode(value: unknown): value is SandboxMode;
+export declare function isValidLogLevel(value: unknown): value is LogLevel;
+export declare function isValidChannelId(value: unknown): value is ChannelId;
+//# sourceMappingURL=allowed-values.d.ts.map

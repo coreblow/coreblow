@@ -1,0 +1,8 @@
+export interface ProviderFallbackConfig {
+    primary: string;
+    fallbacks: string[];
+    maxRetries?: number;
+}
+export declare function resolveProviderChain(config: ProviderFallbackConfig): string[];
+export declare function nextProvider(chain: string[], current: string): string | null;
+//# sourceMappingURL=configured-provider-fallback.d.ts.map

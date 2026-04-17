@@ -1,0 +1,5 @@
+const completions = [];
+export function recordCompletion(record) { completions.push({ ...record, timestamp: Date.now() }); }
+export function getCompletions() { return completions; }
+export function clearCompletions() { completions.length = 0; }
+//# sourceMappingURL=subagent-registry-completion.js.map

@@ -1,0 +1,3 @@
+/** PI tool JSON schema definitions. */
+export declare function buildToolSchema(name: string, description: string, properties: Record<string, unknown>): Record<string, unknown>;
+//# sourceMappingURL=pi-tools.schema.d.ts.map

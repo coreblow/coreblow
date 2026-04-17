@@ -1,0 +1,85 @@
+/**
+ * CoreBlow — Tenant Config
+ *
+ * Per-tenant configuration overrides with inheritance
+ * from default config. Supports feature toggles,
+ * branding, and custom settings per tenant.
+ */
+/**
+ * CoreBlow Tenant Config
+ */
+export class TenantConfig {
+    configs = new Map();
+    defaults = {};
+    /**
+     * Set global defaults.
+     */
+    setDefaults(defaults) {
+        this.defaults = defaults;
+    }
+    /**
+     * Set tenant overrides.
+     */
+    set(tenantId, overrides) {
+        const existing = this.configs.get(tenantId);
+        this.configs.set(tenantId, {
+            tenantId,
+            overrides: { ...(existing?.overrides ?? {}), ...overrides },
+            features: existing?.features ?? {},
+            branding: existing?.branding,
+            updatedAt: Date.now(),
+        });
+    }
+    /**
+     * Get resolved config (defaults + overrides).
+     */
+    resolve(tenantId) {
+        const entry = this.configs.get(tenantId);
+        return { ...this.defaults, ...(entry?.overrides ?? {}) };
+    }
+    /**
+     * Set a feature flag for a tenant.
+     */
+    setFeature(tenantId, feature, enabled) {
+        const entry = this.getOrCreate(tenantId);
+        entry.features[feature] = enabled;
+        entry.updatedAt = Date.now();
+    }
+    /**
+     * Check if tenant has a feature.
+     */
+    hasFeature(tenantId, feature) {
+        const entry = this.configs.get(tenantId);
+        return entry?.features[feature] ?? false;
+    }
+    /**
+     * Set branding.
+     */
+    setBranding(tenantId, branding) {
+        const entry = this.getOrCreate(tenantId);
+        entry.branding = { ...(entry.branding ?? {}), ...branding };
+        entry.updatedAt = Date.now();
+    }
+    /**
+     * Get branding.
+     */
+    getBranding(tenantId) {
+        return this.configs.get(tenantId)?.branding ?? null;
+    }
+    /**
+     * Get raw entry.
+     */
+    get(tenantId) {
+        return this.configs.get(tenantId) ?? null;
+    }
+    /** Count */
+    count() { return this.configs.size; }
+    // === Private ===
+    getOrCreate(tenantId) {
+        if (!this.configs.has(tenantId)) {
+            this.configs.set(tenantId, { tenantId, overrides: {}, features: {}, updatedAt: Date.now() });
+        }
+        return this.configs.get(tenantId);
+    }
+}
+//# sourceMappingURL=tenant-config.js.map

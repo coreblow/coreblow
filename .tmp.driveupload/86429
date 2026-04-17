@@ -1,0 +1,28 @@
+/**
+ * infra/heartbeat-runner.ts
+ * Background heartbeat for health monitoring.
+ */
+export interface HeartbeatCheck {
+    name: string;
+    check: () => Promise<{
+        healthy: boolean;
+        detail?: string;
+    }>;
+}
+export declare class HeartbeatRunner {
+    private checks;
+    private interval;
+    private lastResults;
+    private running;
+    register(check: HeartbeatCheck): void;
+    start(intervalMs?: number): void;
+    stop(): void;
+    private runChecks;
+    getStatus(): Record<string, {
+        healthy: boolean;
+        detail?: string;
+        checkedAt: number;
+    }>;
+    get isHealthy(): boolean;
+}
+//# sourceMappingURL=heartbeat-runner.d.ts.map

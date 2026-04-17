@@ -1,0 +1,53 @@
+/**
+ * plugin-sdk/setup-runtime.ts
+ * [PORT] openclaw-main/src/plugin-sdk/setup-runtime.ts
+ *
+ * Setup runtime helpers for channel wizards.
+ */
+export { DEFAULT_ACCOUNT_ID } from './account-id.js';
+export { createEnvPatchedAccountSetupAdapter, createPatchedAccountSetupAdapter, createSetupInputPresenceValidator, WizardCancelledError, patchScopedAccountConfig, } from './setup.js';
+export { createOptionalChannelSetupAdapter } from './channel-setup.js';
+// ─── Setup wizard runtime helpers ─────────────────────────────────────────────
+export function createAccountScopedAllowFromSection(params) {
+    return {};
+}
+export function createAccountScopedGroupAccessSection(params) {
+    return {};
+}
+export function createTopLevelChannelDmPolicy(policy) {
+    return { policy: policy ?? 'none' };
+}
+export function createLegacyCompatChannelDmPolicy(params) {
+    return { [params.channelKey]: { policy: params.policy ?? 'none' } };
+}
+export function createStandardChannelSetupStatus(params) {
+    return { configured: params.configured, error: params.error ?? null };
+}
+export function mergeAllowFromEntries(base, additions) {
+    return [...new Set([...base, ...additions])];
+}
+export function parseSetupEntriesAllowingWildcard(raw) {
+    return raw.split(',').map((e) => e.trim()).filter(Boolean);
+}
+export function parseMentionOrPrefixedId(raw, prefix) {
+    if (prefix && raw.toLowerCase().startsWith(`${prefix.toLowerCase()}:`)) {
+        return raw.slice(prefix.length + 1).trim();
+    }
+    return raw.replace(/^@/, '').trim();
+}
+export function patchChannelConfigForAccount(params) {
+    return import('./setup.js').then(({ patchScopedAccountConfig }) => patchScopedAccountConfig(params.cfg, params.channelKey, params.accountId, params.patch));
+}
+export async function promptLegacyChannelAllowFromForAccount(_params) { return []; }
+export async function promptParsedAllowFromForAccount(_params) { return []; }
+export function resolveEntriesWithOptionalToken(entries, _token) { return entries; }
+export function resolveSetupAccountId(accountId) { return accountId?.trim() || 'default'; }
+export function setAccountAllowFromForChannel(_params) { return {}; }
+export function setSetupChannelEnabled(params) {
+    return { ...params.cfg, [params.channelKey]: { ...(params.cfg[params.channelKey] ?? {}), enabled: params.enabled } };
+}
+export function createAllowlistSetupWizardProxy(_params) { return {}; }
+export function createCliPathTextInput(_params) { return {}; }
+export function createDelegatedTextInputShouldPrompt(_params) { return {}; }
+export function createDelegatedSetupWizardProxy(_params) { return {}; }
+//# sourceMappingURL=setup-runtime.js.map

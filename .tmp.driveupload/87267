@@ -1,0 +1,26 @@
+export class MutationTracker {
+    mutations = [];
+    maxHistory;
+    counter = 0;
+    constructor(maxHistory = 500) { this.maxHistory = maxHistory; }
+    record(mutation) {
+        const entry = { ...mutation, id: `mut_${++this.counter}`, timestamp: Date.now() };
+        this.mutations.push(entry);
+        if (this.mutations.length > this.maxHistory)
+            this.mutations.splice(0, this.mutations.length - this.maxHistory);
+        return entry;
+    }
+    getHistory() { return this.mutations; }
+    getRecent(n) { return this.mutations.slice(-n); }
+    getByType(type) { return this.mutations.filter((m) => m.type === type); }
+    getByTool(toolName) { return this.mutations.filter((m) => m.toolName === toolName); }
+    getReversible() { return this.mutations.filter((m) => m.reversible); }
+    count() { return this.mutations.length; }
+    clear() { this.mutations = []; }
+    format() {
+        if (this.mutations.length === 0)
+            return 'No mutations recorded.';
+        return this.mutations.slice(-10).map((m) => `[${m.type}] ${m.toolName} → ${m.target}${m.reversible ? ' ↩' : ''}`).join('\n');
+    }
+}
+//# sourceMappingURL=tool-mutation.js.map

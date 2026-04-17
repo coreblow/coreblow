@@ -1,0 +1,20 @@
+/**
+ * plugin-sdk/slack-runtime-surface.ts
+ * [ADAPT] openclaw-main — Stub runtime surface for @coreblow/slack.
+ */
+export type SlackActionContext = {
+    accountId: string;
+    actionId: string;
+    value?: string;
+};
+export declare function monitorSlackProvider(_p: unknown): Promise<void>;
+export declare function probeSlack(_p: unknown): Promise<{
+    ok: boolean;
+}>;
+export declare function sendMessageSlack(_p: unknown): Promise<unknown>;
+export declare function handleSlackAction(_p: unknown): Promise<void>;
+export declare function resolveSlackChannelAllowlist(_p: unknown): Promise<string[]>;
+export declare function resolveSlackUserAllowlist(_p: unknown): Promise<string[]>;
+export declare function listSlackDirectoryGroupsLive(_p: unknown): Promise<unknown[]>;
+export declare function listSlackDirectoryPeersLive(_p: unknown): Promise<unknown[]>;
+//# sourceMappingURL=slack-runtime-surface.d.ts.map

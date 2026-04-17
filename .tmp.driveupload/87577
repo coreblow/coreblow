@@ -1,0 +1,6 @@
+/**
+ * CoreBlow AutoPilot — hasContent
+ */
+import type { ReplyPayload } from '../types.js';
+export declare function hasContent(payload: ReplyPayload): boolean;
+//# sourceMappingURL=has-content.d.ts.map

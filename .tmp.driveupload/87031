@@ -1,0 +1,44 @@
+/**
+ * CoreBlow Channel Tools
+ *
+ * Channel-specific tool adaptors. Normalizes tool call parameters and
+ * result formatting for different transport channels (Telegram, Discord,
+ * WhatsApp, Web, API).
+ *
+ * Equivalent: CoreBlow src/agents/channel-tools.ts (135 LOC)
+ */
+export type ChannelType = 'telegram' | 'discord' | 'whatsapp' | 'web' | 'api' | 'cli' | 'slack';
+export interface ChannelCapabilities {
+    markdown: boolean;
+    inlineButtons: boolean;
+    reactions: boolean;
+    threads: boolean;
+    fileUpload: boolean;
+    imageInline: boolean;
+    audioInline: boolean;
+    maxMessageLength: number;
+    codeBlocks: boolean;
+    tables: boolean;
+    mermaid: boolean;
+}
+/**
+ * Get capabilities for a channel
+ */
+export declare function getChannelCapabilities(channel: ChannelType): ChannelCapabilities;
+/**
+ * Get channel capability names list
+ */
+export declare function getChannelCapabilityNames(channel: ChannelType): string[];
+/**
+ * Adapt message content for a specific channel
+ */
+export declare function adaptForChannel(content: string, channel: ChannelType): string;
+/**
+ * Check if a channel supports a specific feature
+ */
+export declare function channelSupports(channel: ChannelType, feature: keyof ChannelCapabilities): boolean;
+/**
+ * Get all supported channels
+ */
+export declare function getSupportedChannels(): ChannelType[];
+//# sourceMappingURL=channel-tools.d.ts.map

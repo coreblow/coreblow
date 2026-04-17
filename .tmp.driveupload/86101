@@ -1,0 +1,105 @@
+/**
+ * CoreBlow — Message Broker
+ *
+ * In-memory message broker with queues, consumers,
+ * acknowledgment, retry, and priority support.
+ */
+/**
+ * CoreBlow Message Broker
+ */
+export class MessageBroker {
+    queues = new Map();
+    consumers = new Map();
+    idCounter = 0;
+    stats = { published: 0, consumed: 0, failed: 0, retried: 0 };
+    /**
+     * Publish a message.
+     */
+    publish(queue, payload, priority = 0, maxAttempts = 3) {
+        if (!this.queues.has(queue))
+            this.queues.set(queue, []);
+        const msg = {
+            id: `msg-${++this.idCounter}`, queue, payload, priority, attempts: 0,
+            maxAttempts, createdAt: Date.now(), status: 'pending',
+        };
+        this.queues.get(queue).push(msg);
+        this.queues.get(queue).sort((a, b) => b.priority - a.priority);
+        this.stats.published++;
+        return msg;
+    }
+    /**
+     * Subscribe a consumer.
+     */
+    subscribe(queue, handler) {
+        if (!this.consumers.has(queue))
+            this.consumers.set(queue, []);
+        const id = `consumer-${++this.idCounter}`;
+        this.consumers.get(queue).push({ id, queue, handler });
+        return id;
+    }
+    /**
+     * Process next message in queue.
+     */
+    async processNext(queue) {
+        const messages = this.queues.get(queue);
+        const consumers = this.consumers.get(queue);
+        if (!messages || !consumers || consumers.length === 0)
+            return null;
+        const msg = messages.find((m) => m.status === 'pending');
+        if (!msg)
+            return null;
+        msg.status = 'processing';
+        msg.attempts++;
+        const consumer = consumers[0];
+        try {
+            const success = await consumer.handler(msg);
+            if (success) {
+                msg.status = 'completed';
+                msg.processedAt = Date.now();
+                this.stats.consumed++;
+            }
+            else {
+                if (msg.attempts >= msg.maxAttempts) {
+                    msg.status = 'failed';
+                    this.stats.failed++;
+                }
+                else {
+                    msg.status = 'pending';
+                    this.stats.retried++;
+                }
+            }
+        }
+        catch {
+            if (msg.attempts >= msg.maxAttempts) {
+                msg.status = 'failed';
+                this.stats.failed++;
+            }
+            else {
+                msg.status = 'pending';
+                this.stats.retried++;
+            }
+        }
+        return msg;
+    }
+    /**
+     * Get queue depth.
+     */
+    depth(queue) {
+        return this.queues.get(queue)?.filter((m) => m.status === 'pending').length ?? 0;
+    }
+    /**
+     * Get stats.
+     */
+    getStats() { return { ...this.stats }; }
+    /**
+     * List queues.
+     */
+    listQueues() {
+        const result = [];
+        for (const [name, msgs] of Array.from(this.queues)) {
+            result.push({ name, depth: msgs.filter((m) => m.status === 'pending').length, consumers: this.consumers.get(name)?.length ?? 0 });
+        }
+        return result;
+    }
+}
+//# sourceMappingURL=message-broker.js.map

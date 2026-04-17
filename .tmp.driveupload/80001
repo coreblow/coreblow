@@ -1,0 +1,17 @@
+/**
+ * bundled/boot-md/handler.ts — Boot markdown hook.
+ *
+ * Fires on `agent:bootstrap` to inject workspace markdown files
+ * (e.g., AGENTS.md, README.md) into the agent's bootstrap context.
+ * Ensures the agent always has workspace-specific instructions loaded.
+ */
+import type { HookContext } from "../../engine.js";
+export declare const metadata: {
+    events: string[];
+    priority: number;
+    emoji: string;
+    always: boolean;
+};
+export declare function handler(ctx: HookContext): Promise<void>;
+export default handler;
+//# sourceMappingURL=handler.d.ts.map

@@ -1,0 +1,14 @@
+/** plugin-sdk/matrix-helper.ts [ADAPT] openclaw-main — Stub for @coreblow/matrix. */
+import path from "node:path";
+export function resolveMatrixAccountStorageRoot(accountId) { return path.join(".coreblow", "matrix", accountId); }
+export function resolveMatrixCredentialsDir(accountId) { return path.join(".coreblow", "matrix", accountId, "creds"); }
+export function resolveMatrixCredentialsPath(accountId) { return path.join(".coreblow", "matrix", accountId, "creds", "session.json"); }
+export function resolveMatrixLegacyFlatStoragePaths(accountId) { return []; }
+export function resolveMatrixAccountStringValues(_p) { return {}; }
+export function resolveMatrixChannelConfig(_cfg, _accountId) { return {}; }
+export function resolveMatrixDefaultOrOnlyAccountId(_cfg) { return null; }
+export function resolveConfiguredMatrixAccountIds(_cfg) { return []; }
+export function findMatrixAccountEntry(_cfg, _accountId) { return null; }
+export function getMatrixScopedEnvVarNames() { return []; }
+export function requiresExplicitMatrixDefaultAccount(_cfg) { return false; }
+//# sourceMappingURL=matrix-helper.js.map

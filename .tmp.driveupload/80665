@@ -1,0 +1,4 @@
+export function mentionUser(id) { return `<@${id}>`; }
+export function mentionRole(id) { return `<@&${id}>`; }
+export function mentionChannel(id) { return `<#${id}>`; }
+//# sourceMappingURL=mention.js.map

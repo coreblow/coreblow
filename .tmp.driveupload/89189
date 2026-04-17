@@ -1,0 +1,2 @@
+export function createSpawnedContext(parentSessionId, task, depth = 0) { return { parentSessionId, depth, task, maxTurns: 20 }; }
+//# sourceMappingURL=spawned-context.js.map

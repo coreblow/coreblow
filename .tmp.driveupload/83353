@@ -1,0 +1,8 @@
+/**
+ * plugin-sdk/discord-account.ts
+ * [ADAPT] openclaw-main — Stub, implemented by @coreblow/discord.
+ */
+export async function resolveDiscordAccount(_params) {
+    return null;
+}
+//# sourceMappingURL=discord-account.js.map

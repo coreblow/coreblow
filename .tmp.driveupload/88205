@@ -1,0 +1,2 @@
+export function resolveProviderSource(provider) { return process.env[`${provider.toUpperCase()}_API_KEY`] ? 'env' : 'config'; }
+//# sourceMappingURL=models-config.providers.source-managed.js.map

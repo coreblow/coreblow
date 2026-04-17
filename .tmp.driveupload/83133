@@ -1,0 +1,11 @@
+/** plugin-sdk/reply-payload.ts [ADAPT] openclaw-main */
+export type OutboundReplyPayload = {
+    text?: string;
+    imageUrl?: string;
+    voiceUrl?: string;
+    metadata?: Record<string, unknown>;
+    [key: string]: unknown;
+};
+export declare function buildTextReplyPayload(text: string, metadata?: Record<string, unknown>): OutboundReplyPayload;
+export declare function isTextReplyPayload(p: OutboundReplyPayload): boolean;
+//# sourceMappingURL=reply-payload.d.ts.map

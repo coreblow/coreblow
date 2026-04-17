@@ -1,0 +1,14 @@
+export interface MiddlewareConfig {
+    channelSecret: string;
+    skipSignatureVerification?: () => boolean;
+}
+export declare const LINE_REQUEST_ID_HTTP_HEADER_NAME = "x-line-request-id";
+export type MessageAPIResponseBase = {
+    [LINE_REQUEST_ID_HTTP_HEADER_NAME]?: string;
+};
+export declare const LINE_SIGNATURE_HTTP_HEADER_NAME = "x-line-signature";
+export interface ApiResponseType<T> {
+    httpResponse: Response;
+    body: T;
+}
+//# sourceMappingURL=types.d.ts.map

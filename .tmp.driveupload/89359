@@ -1,0 +1,12 @@
+/** Subagent run manager — concurrent execution slots. */
+export declare class RunManager {
+    private running;
+    private maxConcurrent;
+    constructor(max?: number);
+    canRun(): boolean;
+    start(id: string): boolean;
+    stop(id: string): void;
+    count(): number;
+    clear(): void;
+}
+//# sourceMappingURL=subagent-registry-run-manager.d.ts.map

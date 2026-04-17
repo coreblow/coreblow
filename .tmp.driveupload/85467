@@ -1,0 +1,47 @@
+/**
+ * mcp/channel-tools.ts
+ *
+ * MCP tool registration for the CoreBlow channel bridge.
+ * Registers all conversation, message, event, and approval tools onto an MCP server.
+ *
+ * [PORT] openclaw-main/src/mcp/channel-tools.ts L1-188
+ * Adaptasi:
+ *   - `OpenClawChannelBridge` → `CoreBlowChannelBridge`
+ *   - Tool descriptions updated: "OpenClaw" → "CoreBlow"
+ *   - CoreBlow custom registry kept as @deprecated for backward compat
+ */
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { CoreBlowChannelBridge } from './channel-bridge.js';
+/**
+ * Returns McpServer capabilities object for Claude channel mode.
+ * Returns undefined when mode is "off" (disables claude/channel extensions).
+ */
+export declare function getChannelMcpCapabilities(claudeChannelMode: 'off' | 'on' | 'auto'): {
+    experimental: {
+        'claude/channel': {};
+        'claude/channel/permission': {};
+    };
+} | undefined;
+/**
+ * Register all CoreBlow channel MCP tools onto the given MCP server.
+ * Tools: conversations_list, conversation_get, messages_read, attachments_fetch,
+ *        events_poll, events_wait, messages_send, permissions_list_open, permissions_respond
+ */
+export declare function registerChannelMcpTools(server: McpServer, bridge: CoreBlowChannelBridge): void;
+/** @deprecated Gunakan registerChannelMcpTools(server, bridge) sebagai gantinya. */
+export interface MCPChannelTool {
+    name: string;
+    description: string;
+    handler: (params: Record<string, unknown>) => Promise<unknown>;
+}
+/** @deprecated */
+export declare function registerChannelTool(tool: MCPChannelTool): void;
+/** @deprecated */
+export declare function getChannelTool(name: string): MCPChannelTool | undefined;
+/** @deprecated */
+export declare function listChannelTools(): MCPChannelTool[];
+/** @deprecated */
+export declare function removeChannelTool(name: string): boolean;
+/** @deprecated */
+export declare function clearChannelTools(): void;
+//# sourceMappingURL=channel-tools.d.ts.map

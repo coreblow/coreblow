@@ -1,0 +1,102 @@
+/**
+ * CoreBlow Gateway — Channel Policy: Allow-From Utilities
+ *
+ * Port dari OpenClaw `src/channels/allow-from.ts`.
+ * Menyediakan helper untuk menggabungkan dan mengevaluasi sumber
+ * allow-from dari config dan store untuk DM dan group chats.
+ *
+ * @see openclaw-main/src/channels/allow-from.ts
+ */
+/**
+ * Gabungkan sumber allow-from untuk DM (direct message).
+ *
+ * Jika `dmPolicy` adalah `'allowlist'`, hanya pakai `allowFrom` dari config.
+ * Jika tidak, gabungkan `allowFrom` + `storeAllowFrom` (runtime-added entries).
+ *
+ * Pola OpenClaw `mergeDmAllowFromSources()`.
+ *
+ * @example
+ * const entries = mergeDmAllowFromSources({
+ *   allowFrom: ['user1', 'user2'],
+ *   storeAllowFrom: ['user3'],
+ *   dmPolicy: 'open',
+ * });
+ * // ['user1', 'user2', 'user3']
+ */
+export declare function mergeDmAllowFromSources(params: {
+    allowFrom?: Array<string | number>;
+    storeAllowFrom?: Array<string | number>;
+    dmPolicy?: 'allowlist' | 'open';
+}): string[];
+/**
+ * Resolve allow-from entries untuk group chat.
+ *
+ * Priority: `groupAllowFrom` (explicit) → `allowFrom` (DM fallback, default) → `[]`
+ *
+ * Jika `fallbackToAllowFrom` === false → tidak fallback ke DM allowlist.
+ *
+ * Pola OpenClaw `resolveGroupAllowFromSources()`.
+ *
+ * @example
+ * // Grup punya allow-from sendiri:
+ * resolveGroupAllowFromSources({
+ *   allowFrom: ['dm-user'],
+ *   groupAllowFrom: ['group-admin'],
+ * });
+ * // → ['group-admin'] (explicit groupAllowFrom dipakai)
+ *
+ * // Grup pakai fallback ke DM allowlist:
+ * resolveGroupAllowFromSources({
+ *   allowFrom: ['dm-user'],
+ *   groupAllowFrom: [],
+ * });
+ * // → ['dm-user'] (fallback ke allowFrom)
+ */
+export declare function resolveGroupAllowFromSources(params: {
+    allowFrom?: Array<string | number>;
+    groupAllowFrom?: Array<string | number>;
+    /** Default: true — fallback ke allowFrom jika groupAllowFrom kosong */
+    fallbackToAllowFrom?: boolean;
+}): string[];
+/**
+ * Pre-compiled allow-from check — lebih efisien dari `resolveAllowlistMatchSimple()`
+ * jika allow-from sudah di-compile sebelumnya.
+ *
+ * Pola OpenClaw `isSenderIdAllowed()`.
+ *
+ * @param allow - Pre-computed allow state (compile sekali, pakai berkali-kali)
+ * @param senderId - Sender ID untuk di-check
+ * @param allowWhenEmpty - Return value jika list kosong (true = open, false = closed)
+ *
+ * @example
+ * const allow = buildAllowState(['user1', 'user2']);
+ * isSenderIdAllowed(allow, 'user1', false); // → true
+ * isSenderIdAllowed(allow, 'user3', false); // → false
+ */
+export declare function isSenderIdAllowed(allow: {
+    entries: string[];
+    hasWildcard: boolean;
+    hasEntries: boolean;
+}, senderId: string | undefined, allowWhenEmpty: boolean): boolean;
+/**
+ * Build pre-computed allow state dari raw entries.
+ * Companion untuk `isSenderIdAllowed()`.
+ *
+ * @example
+ * const allow = buildAllowState(['user1', '*']);
+ * allow.hasWildcard; // true
+ */
+export declare function buildAllowState(entries: Array<string | number>): {
+    entries: string[];
+    hasWildcard: boolean;
+    hasEntries: boolean;
+};
+/**
+ * Return first defined value dari varargs — helper kecil pola OpenClaw.
+ *
+ * @example
+ * firstDefined(undefined, null, 'hello'); // 'hello'
+ * firstDefined(undefined, undefined);     // undefined
+ */
+export declare function firstDefined<T>(...values: Array<T | undefined>): T | undefined;
+//# sourceMappingURL=allow-from.d.ts.map

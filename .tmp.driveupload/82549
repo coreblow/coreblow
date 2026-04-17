@@ -1,0 +1,68 @@
+/**
+ * src/plugins/manifest.ts
+ * Plugin manifest — standardized plugin.json validation and parsing
+ * SUPERIOR: CoreBlow has config-schema.ts + discovery.ts scattered; CoreBlow has unified manifest
+ */
+export interface PluginManifest {
+    /** Unique plugin name (e.g., "@coreblow/plugin-weather") */
+    name: string;
+    /** SemVer version */
+    version: string;
+    /** Description */
+    description: string;
+    /** Author */
+    author?: string;
+    /** Homepage/repo URL */
+    homepage?: string;
+    /** License */
+    license?: string;
+    /** Entry point relative to plugin directory */
+    main: string;
+    /** CoreBlow SDK version compatibility */
+    coreblowVersion?: string;
+    /** Plugin dependencies */
+    dependencies?: Record<string, string>;
+    /** Plugin peer dependencies (other CoreBlow plugins) */
+    peerPlugins?: string[];
+    /** Capabilities this plugin provides */
+    provides?: ('channel' | 'tool' | 'provider' | 'skill' | 'hook')[];
+    /** Permissions this plugin requires */
+    permissions?: ('network' | 'filesystem' | 'exec' | 'env' | 'secrets')[];
+    /** Config schema */
+    config?: ManifestConfigField[];
+    /** Tags for discovery */
+    tags?: string[];
+    /** Minimum Node.js version */
+    engines?: {
+        node?: string;
+    };
+}
+export interface ManifestConfigField {
+    key: string;
+    label: string;
+    type: 'string' | 'number' | 'boolean' | 'select' | 'password' | 'array';
+    required?: boolean;
+    default?: unknown;
+    options?: string[];
+    description?: string;
+    validation?: {
+        min?: number;
+        max?: number;
+        pattern?: string;
+    };
+}
+export interface ManifestValidationResult {
+    valid: boolean;
+    errors: string[];
+    warnings: string[];
+    manifest?: PluginManifest;
+}
+/**
+ * Parse and validate a plugin manifest from a directory
+ */
+export declare function parseManifest(pluginDir: string): ManifestValidationResult;
+/**
+ * Generate a plugin.json template
+ */
+export declare function generateManifestTemplate(name: string): PluginManifest;
+//# sourceMappingURL=manifest.d.ts.map

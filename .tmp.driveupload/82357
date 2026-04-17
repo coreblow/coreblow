@@ -1,0 +1,76 @@
+/**
+ * CoreBlow Gateway — Readiness Checker
+ *
+ * Factory untuk `ReadinessChecker` yang dipakai `/readyz` health probe.
+ * Pola: identik dengan OpenClaw src/gateway/server/readiness.ts
+ *
+ * Perbedaan dari OpenClaw:
+ * - OpenClaw: cek kesehatan setiap channel account + cache 1s
+ * - CoreBlow: cek `isReady` flag (boot-phase readiness) + uptime
+ *   Kita bisa extend di masa depan dengan channel health checks sesuai kebutuhan.
+ *
+ * @see https://github.com/coreblow/coreblow (reference: openclaw readiness.ts)
+ */
+/** Full readiness result — sama dengan OpenClaw ReadinessResult */
+export type ReadinessResult = {
+    ready: boolean;
+    /** List of subsystem IDs yang sedang failing (kosong jika semua sehat) */
+    failing: string[];
+    /** Waktu server sudah berjalan dalam ms */
+    uptimeMs: number;
+};
+/** Fungsi yang men-check readiness — dipanggil per-request di /readyz */
+export type ReadinessChecker = () => ReadinessResult;
+/**
+ * Factory untuk membuat `ReadinessChecker`.
+ *
+ * Supports optional subsystem checks — array of named check functions.
+ * Hasilnya di-cache selama `cacheTtlMs` untuk menghindari overhead per-request.
+ *
+ * Pola: identik dengan OpenClaw `createReadinessChecker()`.
+ *
+ * @example Basic usage (boot-phase readiness only):
+ * ```typescript
+ * import { createReadinessChecker } from './server/readiness.js';
+ *
+ * const startTime = Date.now();
+ * let bootComplete = false;
+ *
+ * const getReadiness = createReadinessChecker({
+ *   startedAt: startTime,
+ *   isReady: () => bootComplete,
+ * });
+ *
+ * // ... boot ...
+ * bootComplete = true;
+ * ```
+ *
+ * @example With subsystem health checks:
+ * ```typescript
+ * const getReadiness = createReadinessChecker({
+ *   startedAt: Date.now(),
+ *   isReady: () => bootComplete,
+ *   subsystems: [
+ *     { id: 'database', check: () => db.isConnected() },
+ *     { id: 'redis',    check: () => redis.ping() },
+ *   ],
+ * });
+ * ```
+ */
+export declare function createReadinessChecker(deps: {
+    /** Timestamp saat server mulai listen (dari Date.now()) */
+    startedAt: number;
+    /**
+     * Fungsi yang return true jika server sudah selesai boot dan siap menerima request.
+     * Default: () => true
+     */
+    isReady?: () => boolean;
+    /** Optional: list of subsystem health checks (pola OpenClaw channel health checks) */
+    subsystems?: Array<{
+        id: string;
+        check: () => boolean | Promise<boolean>;
+    }>;
+    /** Cache TTL dalam ms. Default: 1_000ms (pola OpenClaw) */
+    cacheTtlMs?: number;
+}): ReadinessChecker;
+//# sourceMappingURL=readiness.d.ts.map

@@ -1,0 +1,68 @@
+/**
+ * CoreBlow Health Aggregator
+ *
+ * Aggregates health status from all subsystems (gateway, channels,
+ * agents, cron, plugins) into a unified health report. Supports
+ * component-level health checks, degradation detection, and
+ * dashboard-ready status output.
+ */
+/** Health status */
+export type HealthStatus = 'healthy' | 'degraded' | 'unhealthy' | 'unknown';
+/** Individual component health check */
+export interface ComponentHealth {
+    name: string;
+    status: HealthStatus;
+    latencyMs?: number;
+    message?: string;
+    lastCheckedAt: number;
+    metadata?: Record<string, unknown>;
+}
+/** Aggregated system health */
+export interface SystemHealth {
+    status: HealthStatus;
+    uptime: number;
+    uptimeFormatted: string;
+    components: ComponentHealth[];
+    timestamp: number;
+    version: string;
+    memory: {
+        rss: number;
+        heapUsed: number;
+        heapTotal: number;
+    };
+}
+/** Health check function */
+export type HealthCheck = () => Promise<ComponentHealth>;
+/**
+ * CoreBlow Health Aggregator
+ */
+export declare class HealthAggregator {
+    private checks;
+    private cache;
+    private cacheTtlMs;
+    private version;
+    constructor(version?: string);
+    /**
+     * Register a health check for a component.
+     */
+    register(name: string, check: HealthCheck): void;
+    /**
+     * Run all health checks and aggregate results.
+     */
+    check(): Promise<SystemHealth>;
+    /**
+     * Quick health check — returns overall status without details.
+     */
+    ping(): Promise<{
+        status: HealthStatus;
+        uptime: number;
+    }>;
+    /**
+     * Register standard built-in checks.
+     */
+    registerDefaults(): void;
+    private aggregateStatus;
+    private formatUptime;
+    private timeout;
+}
+//# sourceMappingURL=health.d.ts.map

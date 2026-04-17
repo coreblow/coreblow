@@ -1,0 +1,15 @@
+import { validateSendParams, validatePollParams } from "../protocol/index.js";
+import { assertValidParams } from "./validation.js";
+export const sendHandlers = {
+    "send": ({ params, respond }) => {
+        if (!assertValidParams(params, validateSendParams, "send", respond))
+            return;
+        respond(true, { ok: true, channel: "mocked" }, undefined);
+    },
+    "poll": ({ params, respond }) => {
+        if (!assertValidParams(params, validatePollParams, "poll", respond))
+            return;
+        respond(true, { ok: true, channel: "mocked", pollId: "mock-poll-id" }, undefined);
+    }
+};
+//# sourceMappingURL=send.js.map

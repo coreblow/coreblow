@@ -1,0 +1,12 @@
+/**
+ * plugin-sdk/plugin-runtime.ts
+ * [PORT] openclaw-main/src/plugin-sdk/plugin-runtime.ts
+ *
+ * Public plugin-command/hook helpers for plugins that extend shared
+ * command or hook flows.
+ *
+ * Adaptasi: re-export dari CoreBlow plugins/ equivalents.
+ */
+export type { PluginCommand, PluginTool, PluginHook, PluginProvider, PluginExports, PluginContext, PluginApiSurface, PluginHookName, PluginHookHandlerMap, PluginHookRegistration, PluginToolRegistration, PluginCommandRegistration, PluginServiceRegistration, PluginProviderRegistration, PluginHttpRouteRegistration, PluginLegacyHookRegistration, } from '../plugins/types.js';
+export { isPluginHookName, createEmptyPluginRegistryData, } from '../plugins/types.js';
+//# sourceMappingURL=plugin-runtime.d.ts.map

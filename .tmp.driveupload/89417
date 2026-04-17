@@ -1,0 +1,80 @@
+/**
+ * CoreBlow Cache Trace
+ *
+ * Tracing layer for context cache operations. Tracks cache hits/misses,
+ * token savings, and provides diagnostic information for prompt caching.
+ *
+ * Equivalent: CoreBlow src/agents/cache-trace.ts (260 LOC)
+ */
+export interface CacheTraceEntry {
+    id: string;
+    sessionId: string;
+    provider: string;
+    model: string;
+    operation: 'read' | 'write' | 'hit' | 'miss' | 'evict';
+    tokensSaved: number;
+    cacheKey?: string;
+    timestamp: number;
+    metadata?: Record<string, unknown>;
+}
+export interface CacheTraceStats {
+    totalOperations: number;
+    hits: number;
+    misses: number;
+    hitRate: number;
+    totalTokensSaved: number;
+    evictions: number;
+    byProvider: Record<string, {
+        hits: number;
+        misses: number;
+        tokensSaved: number;
+    }>;
+}
+/**
+ * Record a cache operation
+ */
+export declare function recordCacheOp(params: {
+    sessionId: string;
+    provider: string;
+    model: string;
+    operation: CacheTraceEntry['operation'];
+    tokensSaved?: number;
+    cacheKey?: string;
+    metadata?: Record<string, unknown>;
+}): CacheTraceEntry;
+/**
+ * Record a cache hit
+ */
+export declare function recordCacheHit(params: {
+    sessionId: string;
+    provider: string;
+    model: string;
+    tokensSaved: number;
+    cacheKey?: string;
+}): CacheTraceEntry;
+/**
+ * Record a cache miss
+ */
+export declare function recordCacheMiss(params: {
+    sessionId: string;
+    provider: string;
+    model: string;
+    cacheKey?: string;
+}): CacheTraceEntry;
+/**
+ * Get trace statistics
+ */
+export declare function getCacheTraceStats(sessionId?: string): CacheTraceStats;
+/**
+ * Get recent traces for a session
+ */
+export declare function getRecentTraces(sessionId: string, limit?: number): CacheTraceEntry[];
+/**
+ * Clear all traces
+ */
+export declare function clearCacheTraces(): void;
+/**
+ * Format trace stats for display
+ */
+export declare function formatCacheTraceStats(stats: CacheTraceStats): string;
+//# sourceMappingURL=cache-trace.d.ts.map

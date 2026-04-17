@@ -1,0 +1,92 @@
+/**
+ * src/shared/usage-tracker.ts
+ * Usage data aggregation and tracking.
+ * Ported from CoreBlow shared/usage-aggregates.ts and shared/usage-types.ts.
+ */
+export type UsageRecord = {
+    model: string;
+    inputTokens: number;
+    outputTokens: number;
+    cost: number;
+    timestamp: number;
+};
+export type LatencyTotalsLike = {
+    count: number;
+    sum: number;
+    min: number;
+    max: number;
+    p95Max: number;
+};
+export type DailyLatencyLike = {
+    date: string;
+    count: number;
+    sum: number;
+    min: number;
+    max: number;
+    p95Max: number;
+};
+export type DailyLike = {
+    date: string;
+};
+export type LatencyLike = {
+    count: number;
+    avgMs: number;
+    minMs: number;
+    maxMs: number;
+    p95Ms: number;
+};
+export type DailyLatencyInput = LatencyLike & {
+    date: string;
+};
+export declare function mergeUsageLatency(totals: LatencyTotalsLike, latency: LatencyLike | undefined): void;
+export declare function mergeUsageDailyLatency(dailyLatencyMap: Map<string, DailyLatencyLike>, dailyLatency?: DailyLatencyInput[] | null): void;
+export declare function buildUsageAggregateTail<TTotals extends {
+    totalCost: number;
+}, TDaily extends DailyLike, TModelDaily extends {
+    date: string;
+    cost: number;
+}>(params: {
+    byChannelMap: Map<string, TTotals>;
+    latencyTotals: LatencyTotalsLike;
+    dailyLatencyMap: Map<string, DailyLatencyLike>;
+    modelDailyMap: Map<string, TModelDaily>;
+    dailyMap: Map<string, TDaily>;
+}): {
+    byChannel: {
+        channel: string;
+        totals: TTotals;
+    }[];
+    latency: {
+        count: number;
+        avgMs: number;
+        minMs: number;
+        maxMs: number;
+        p95Ms: number;
+    } | undefined;
+    dailyLatency: {
+        date: string;
+        count: number;
+        avgMs: number;
+        minMs: number;
+        maxMs: number;
+        p95Ms: number;
+    }[];
+    modelDaily: TModelDaily[];
+    daily: TDaily[];
+};
+export declare class UsageTracker {
+    private records;
+    recordUsage(record: UsageRecord): void;
+    getUsageSummary(): {
+        totalTokens: number;
+        totalCost: number;
+        recordCount: number;
+    };
+    getUsageByModel(): Map<string, {
+        tokens: number;
+        cost: number;
+    }>;
+    resetUsage(): void;
+    exportUsage(): UsageRecord[];
+}
+//# sourceMappingURL=usage-tracker.d.ts.map

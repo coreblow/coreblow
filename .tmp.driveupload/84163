@@ -1,0 +1,12 @@
+/** plugin-sdk/thread-ownership.ts [ADAPT] openclaw-main */
+export type ThreadOwnershipRecord = {
+    sessionKey: string;
+    ownerId?: string;
+    createdAt: number;
+};
+export declare function createThreadOwnershipStore(): {
+    get: (k: string) => ThreadOwnershipRecord | undefined;
+    set: (k: string, v: ThreadOwnershipRecord) => void;
+    delete: (k: string) => void;
+};
+//# sourceMappingURL=thread-ownership.d.ts.map

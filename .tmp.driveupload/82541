@@ -1,0 +1,14 @@
+/**
+ * src/plugins/sdk.ts
+ * CoreBlow Plugin SDK — Extension interface & types
+ *
+ * Every extension implements CoreBlowExtension.
+ * Extensions can provide: channels, tools, skills, providers, or hooks.
+ */
+/**
+ * Helper: create a simple extension
+ */
+export function defineExtension(ext) {
+    return ext;
+}
+//# sourceMappingURL=sdk.js.map

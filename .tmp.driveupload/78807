@@ -1,0 +1,22 @@
+export async function handleMemorySearch(ctx) {
+    const query = ctx.command.args.query;
+    if (!query)
+        return 'Usage: /memory search <query>';
+    return `🔍 Searching memory for "${query}"...\n  No results found.`;
+}
+export async function handleMemoryAdd(ctx) {
+    const fact = ctx.command.args.fact;
+    if (!fact)
+        return 'Usage: /memory add <fact>';
+    return `✅ Added to memory: "${fact}"`;
+}
+export async function handleMemoryForget(ctx) {
+    const id = ctx.command.args.id;
+    if (!id)
+        return 'Usage: /memory forget <id>';
+    return `🗑️ Forgotten memory entry \`${id}\`.`;
+}
+export async function handleMemoryStats(ctx) {
+    return '📊 Memory Stats:\n  • Entries: 0\n  • Size: 0 KB\n  • Last updated: never';
+}
+//# sourceMappingURL=memory.js.map

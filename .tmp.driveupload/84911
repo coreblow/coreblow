@@ -1,0 +1,8 @@
+/** plugin-sdk/modelstudio.ts [ADAPT] openclaw-main */
+export * from "./modelstudio-definitions.js";
+export const MODELSTUDIO_BASE_URL = "https://dashscope.aliyuncs.com";
+export const MODELSTUDIO_MODEL_CATALOG = [];
+export function buildModelStudioProvider(_p) { throw new Error("buildModelStudioProvider requires @coreblow/modelstudio extension"); }
+export function applyModelStudioNativeStreamingUsageCompat(payload) { return payload; }
+export function isNativeModelStudioBaseUrl(url) { return url.includes("dashscope"); }
+//# sourceMappingURL=modelstudio.js.map
