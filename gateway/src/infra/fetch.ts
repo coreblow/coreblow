@@ -106,7 +106,7 @@ export async function coreblowFetch(options: CoreBlowFetchOptions): Promise<Core
     const response = await globalThis.fetch(options.url, {
       method: options.method ?? 'GET',
       headers: options.headers,
-      body: options.body as BodyInit | undefined,
+      body: options.body as any,
       signal,
       ...options.init,
     });

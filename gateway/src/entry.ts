@@ -86,7 +86,7 @@ function ensureCoreBlowExecMarkerOnProcess(): void {
 
 // ─── Environment Normalization ───────────────────────────────────
 
-function normalizeEnv(): void {
+async function normalizeEnv(): Promise<void> {
     // Ensure HOME is set (some Docker images strip it)
     if (!process.env.HOME) {
         try {
@@ -105,67 +105,69 @@ ensureSupportedNodeVersion();
 if (!isMainModule()) {
     // Imported as a dependency — skip all entry-point side effects.
 } else {
-    // Set process title for easy identification in ps/top
-    process.title = 'coreblow';
+    void (async () => {
+        // Set process title for easy identification in ps/top
+        process.title = 'coreblow';
 
-    // Set exec marker
-    ensureCoreBlowExecMarkerOnProcess();
+        // Set exec marker
+        ensureCoreBlowExecMarkerOnProcess();
 
-    // Enable Node.js compile cache (22.1+)
-    // https://nodejs.org/api/module.html#module-compile-cache
-    if (enableCompileCache && !process.env.NODE_DISABLE_COMPILE_CACHE) {
+        // Enable Node.js compile cache (22.1+)
+        // https://nodejs.org/api/module.html#module-compile-cache
+        if (enableCompileCache && !process.env.NODE_DISABLE_COMPILE_CACHE) {
+            try {
+                enableCompileCache();
+            } catch {
+                // Best-effort only; never block startup.
+            }
+        }
+
+        // Install process warning filter (suppress punycode, DEP0040, etc)
         try {
-            enableCompileCache();
+            const { installWarningFilter } = await import('./infra/warning-filter.js');
+            if (typeof installWarningFilter === 'function') {
+                installWarningFilter();
+            }
         } catch {
-            // Best-effort only; never block startup.
+            // warning-filter is optional; don't crash if missing
         }
-    }
 
-    // Install process warning filter (suppress punycode, DEP0040, etc)
-    try {
-        const { installProcessWarningFilter } = await import('./infra/warning-filter.js');
-        if (typeof installProcessWarningFilter === 'function') {
-            installProcessWarningFilter();
+        // Normalize environment
+        await normalizeEnv();
+
+        // Handle --no-color flag
+        if (process.argv.includes('--no-color')) {
+            process.env.NO_COLOR = '1';
+            process.env.FORCE_COLOR = '0';
         }
-    } catch {
-        // warning-filter is optional; don't crash if missing
-    }
 
-    // Normalize environment
-    normalizeEnv();
+        // Global error handlers
+        process.on('uncaughtException', (error) => {
+            console.error(
+                '[coreblow] Uncaught exception:',
+                error instanceof Error ? (error.stack ?? error.message) : error,
+            );
+            process.exit(1);
+        });
 
-    // Handle --no-color flag
-    if (process.argv.includes('--no-color')) {
-        process.env.NO_COLOR = '1';
-        process.env.FORCE_COLOR = '0';
-    }
+        process.on('unhandledRejection', (reason) => {
+            console.error(
+                '[coreblow] Unhandled rejection:',
+                reason instanceof Error ? (reason.stack ?? reason.message) : reason,
+            );
+            process.exit(1);
+        });
 
-    // Global error handlers
-    process.on('uncaughtException', (error) => {
-        console.error(
-            '[coreblow] Uncaught exception:',
-            error instanceof Error ? (error.stack ?? error.message) : error,
-        );
-        process.exit(1);
-    });
-
-    process.on('unhandledRejection', (reason) => {
-        console.error(
-            '[coreblow] Unhandled rejection:',
-            reason instanceof Error ? (reason.stack ?? reason.message) : reason,
-        );
-        process.exit(1);
-    });
-
-    // Launch CLI
-    const { runCli } = await import('./cli/program.js');
-    void runCli(process.argv).catch((err) => {
-        console.error(
-            '[coreblow] CLI failed:',
-            err instanceof Error ? (err.stack ?? err.message) : err,
-        );
-        process.exit(1);
-    });
+        // Launch CLI
+        const { runCli } = await import('./cli/program.js');
+        void runCli(process.argv).catch((err) => {
+            console.error(
+                '[coreblow] CLI failed:',
+                err instanceof Error ? (err.stack ?? err.message) : err,
+            );
+            process.exit(1);
+        });
+    })();
 }
 
 export { };

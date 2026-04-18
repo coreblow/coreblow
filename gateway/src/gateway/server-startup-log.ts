@@ -63,4 +63,3 @@ export function logGatewayStartupDiagnostics(log: GatewayLogger, cfg: CoreBlowCo
     log.info(`V8 Memory Limit: ${maxOldSpace ? maxOldSpace.split('=')[1] + 'MB' : 'Default'}`);
     log.info(`====================================================`);
 }
-

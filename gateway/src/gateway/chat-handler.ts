@@ -153,7 +153,7 @@ export class ChatHandler {
         if (scan.blocked) {
             jsonResponse(res, 422, {
                 error: 'Message blocked by safety policy',
-                categories: scan.categories,
+                categories: scan.enforcements,
             });
             return;
         }

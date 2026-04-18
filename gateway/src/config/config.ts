@@ -102,4 +102,3 @@ export function loadConfig(): CoreBlowConfig {
     return {};
   }
 }
-

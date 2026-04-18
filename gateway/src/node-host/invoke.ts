@@ -156,6 +156,7 @@ export function decodeCapturedOutputBuffer(params: {
     return utf8;
   }
   try {
+    // @ts-expect-error — Node string vs DOM Encoding type mismatch
     return new TextDecoder(encoding).decode(params.buffer);
   } catch {
     return utf8;

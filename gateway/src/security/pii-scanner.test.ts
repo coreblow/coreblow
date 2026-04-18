@@ -199,7 +199,7 @@ describe('PIIScanner', () => {
             scanner.addPattern('custom_id', /\bCORE-\d{6}\b/g, () => 'CORE-******');
             const result = scanner.scan('ID: CORE-123456');
             expect(result.hasPII).toBe(true);
-            expect(result.matches.some(m => m.type === 'custom_id')).toBe(true);
+            expect(result.matches.some(m => (m.type as string) === 'custom_id')).toBe(true);
         });
     });
 

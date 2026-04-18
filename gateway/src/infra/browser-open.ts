@@ -90,7 +90,6 @@ export async function openInBrowser(
   try {
     await execFileAsync(cmd.bin, cmd.args, {
       timeout: timeoutMs,
-      stdio: 'ignore',
       windowsHide: true,
     });
     return { success: true, command: `${cmd.bin} ${cmd.args.join(' ')}` };

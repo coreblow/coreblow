@@ -72,7 +72,7 @@ export class GatewayServer {
     /** Create and start the HTTP server. */
     async start(): Promise<void> {
         // Boot all core subsystems
-        this.context = await bootstrapCoreSubsystems(this.config) as GatewayRequestContext;
+        this.context = await bootstrapCoreSubsystems(this.config) as unknown as GatewayRequestContext;
 
         const handler = this.createRequestHandler();
 
