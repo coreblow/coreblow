@@ -1,8 +1,0 @@
-/**
- * CoreBlow AutoPilot — abort store
- *
- * Shared state for abort management.
- */
-import type { AbortRecord } from './types.js';
-export declare const activeAborts: Map<string, AbortRecord>;
-//# sourceMappingURL=abort.data.d.ts.map

@@ -1,1 +1,0 @@
-export class MetricsDashboard { private metrics = new Map<string, number>(); record(name: string, value: number) { this.metrics.set(name, (this.metrics.get(name) || 0) + value); } get(name: string) { return this.metrics.get(name) || 0; } getAll() { return Object.fromEntries(this.metrics); } reset() { this.metrics.clear(); } }

@@ -1,1 +1,0 @@
-/** CoreBlow — Commands Registry Runtime */ let initialized = false; export function initCommandsRegistry(): void { initialized = true; } export function isRegistryInitialized(): boolean { return initialized; }

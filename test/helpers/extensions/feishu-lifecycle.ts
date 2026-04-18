@@ -15,15 +15,15 @@ type InboundDebouncerParams<T> = {
 };
 
 export function setFeishuLifecycleStateDir(prefix: string) {
-  process.env.OPENCLAW_STATE_DIR = `/tmp/${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  process.env.COREBLOW_STATE_DIR = `/tmp/${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 export function restoreFeishuLifecycleStateDir(originalStateDir: string | undefined) {
   if (originalStateDir === undefined) {
-    delete process.env.OPENCLAW_STATE_DIR;
+    delete process.env.COREBLOW_STATE_DIR;
     return;
   }
-  process.env.OPENCLAW_STATE_DIR = originalStateDir;
+  process.env.COREBLOW_STATE_DIR = originalStateDir;
 }
 
 export const FEISHU_PREFETCHED_BOT_OPEN_ID_SOURCE = {

@@ -1,3 +1,0 @@
-import type { GatewayRequestHandlers } from "./types.js";
-export declare const nodesPendingHandlers: GatewayRequestHandlers;
-//# sourceMappingURL=nodes-pending.d.ts.map

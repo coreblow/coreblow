@@ -1,1 +1,0 @@
-/** CoreBlow — Server Lanes */ export type Lane = "fast" | "standard" | "background"; export function resolveLane(priority?: number): Lane { if (priority && priority > 8) return "fast"; if (priority && priority < 3) return "background"; return "standard"; }

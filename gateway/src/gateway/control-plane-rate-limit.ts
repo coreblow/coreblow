@@ -1,1 +1,0 @@
-/** CoreBlow — Control Plane Rate Limit */ export class ControlPlaneRateLimiter { private counts = new Map<string, number>(); constructor(private maxPerMinute = 60) {} allow(key: string): boolean { const c = this.counts.get(key) ?? 0; if (c >= this.maxPerMinute) return false; this.counts.set(key, c + 1); return true; } reset(): void { this.counts.clear(); } }

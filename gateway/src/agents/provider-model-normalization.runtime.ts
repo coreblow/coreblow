@@ -1,1 +1,0 @@
-/** CoreBlow — Provider Model Normalization Runtime */ const normalizations = new Map<string, string>(); export function registerModelNormalization(alias: string, canonical: string): void { normalizations.set(alias.toLowerCase(), canonical); } export function normalizeModelName(name: string): string { return normalizations.get(name.toLowerCase()) ?? name; }

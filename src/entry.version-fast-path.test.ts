@@ -77,8 +77,8 @@ describe("entry root version fast path", () => {
     vi.resetModules();
     vi.clearAllMocks();
     originalArgv = [...process.argv];
-    originalGatewayToken = process.env.OPENCLAW_GATEWAY_TOKEN;
-    delete process.env.OPENCLAW_GATEWAY_TOKEN;
+    originalGatewayToken = process.env.COREBLOW_GATEWAY_TOKEN;
+    delete process.env.COREBLOW_GATEWAY_TOKEN;
     process.argv = ["node", "coreblow", "--version"];
     exitSpy = vi
       .spyOn(process, "exit")
@@ -88,9 +88,9 @@ describe("entry root version fast path", () => {
   afterEach(() => {
     process.argv = originalArgv;
     if (originalGatewayToken === undefined) {
-      delete process.env.OPENCLAW_GATEWAY_TOKEN;
+      delete process.env.COREBLOW_GATEWAY_TOKEN;
     } else {
-      process.env.OPENCLAW_GATEWAY_TOKEN = originalGatewayToken;
+      process.env.COREBLOW_GATEWAY_TOKEN = originalGatewayToken;
     }
     exitSpy.mockRestore();
   });
@@ -139,7 +139,7 @@ describe("entry root version fast path", () => {
 
   it("allows root version container mode when gateway override env vars are set", async () => {
     resolveCliContainerTargetMock.mockReturnValue("demo");
-    process.env.OPENCLAW_GATEWAY_TOKEN = "demo-token";
+    process.env.COREBLOW_GATEWAY_TOKEN = "demo-token";
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     await import("./entry.js");

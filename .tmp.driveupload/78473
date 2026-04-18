@@ -1,8 +1,0 @@
-/**
- * src/daemon/runtime-binary.ts
- * Javascript runtime detection.
- * Ported from CoreBlow daemon/runtime-binary.ts.
- */
-export declare function isNodeRuntime(execPath: string): boolean;
-export declare function isBunRuntime(execPath: string): boolean;
-//# sourceMappingURL=runtime-binary.d.ts.map

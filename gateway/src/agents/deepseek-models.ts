@@ -1,1 +1,0 @@
-/** CoreBlow — DeepSeek Models */ export const DEEPSEEK_MODELS = ["deepseek-chat", "deepseek-coder", "deepseek-reasoner"]; export function isDeepSeekModel(m: string): boolean { return DEEPSEEK_MODELS.some((d) => m.includes(d)); }

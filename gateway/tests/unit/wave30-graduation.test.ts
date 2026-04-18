@@ -1,7 +1,7 @@
 /**
  * Wave 30: Final E2E & Plugin System Graduation
  *
- * Following OpenClaw's integration test patterns — comprehensive end-to-end
+ * Following CoreBlow's integration test patterns — comprehensive end-to-end
  * validation of the entire plugin system from boot → discovery → load →
  * hook execution → hot-reload → shutdown.
  *

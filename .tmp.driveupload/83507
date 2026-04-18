@@ -1,8 +1,0 @@
-export const BYTEPLUS_BASE_URL = "https://api.byteplus.com";
-export const BYTEPLUS_CODING_BASE_URL = "https://api.byteplus.com";
-export const BYTEPLUS_MODEL_CATALOG = [];
-export const BYTEPLUS_CODING_MODEL_CATALOG = [];
-export function buildBytePlusModelDefinition(params) { return { id: params.id, label: params.label }; }
-export function buildBytePlusProvider(_p) { throw new Error("buildBytePlusProvider requires @coreblow/byteplus extension"); }
-export function buildBytePlusCodingProvider(_p) { throw new Error("buildBytePlusCodingProvider requires @coreblow/byteplus extension"); }
-//# sourceMappingURL=byteplus.js.map

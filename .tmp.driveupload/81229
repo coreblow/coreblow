@@ -1,6 +1,0 @@
-/**
- * gateway/server-methods.ts — Aggregator for all Gateway RPC handler maps.
- */
-import type { GatewayRequestHandlers } from './server-methods/types.js';
-export declare const coreGatewayHandlers: GatewayRequestHandlers;
-//# sourceMappingURL=server-methods.d.ts.map

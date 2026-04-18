@@ -1,6 +1,0 @@
-/** Raw SSE stream parsing. */
-export declare function parseSSELine(line: string): {
-    event?: string;
-    data?: string;
-} | null;
-//# sourceMappingURL=pi-embedded-subscribe.raw-stream.d.ts.map

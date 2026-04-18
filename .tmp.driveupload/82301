@@ -1,1 +1,0 @@
-{"version":3,"file":"server-http.d.ts","sourceRoot":"","sources":["../../src/gateway/server-http.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,eAAe,EAAE,cAAc,EAAE,MAAM,WAAW,CAAC;AACjE,OAAO,KAAK,EAAE,YAAY,EAAE,MAAM,4BAA4B,CAAC;AAS/D,eAAO,MAAM,aAAa,EAAE,YAAY,EAIvC,CAAC;AAEF,wBAAgB,iBAAiB,CAAC,GAAG,EAAE,eAAe,EAAE,GAAG,EAAE,cAAc,wBAe1E"}

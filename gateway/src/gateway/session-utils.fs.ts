@@ -1,1 +1,0 @@
-/** CoreBlow — Session Utils FS */ import fs from "node:fs"; import path from "node:path"; export function listSessionDirs(sessionsRoot: string): string[] { try { return fs.readdirSync(sessionsRoot, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => path.join(sessionsRoot, d.name)); } catch { return []; } }

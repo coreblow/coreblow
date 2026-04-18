@@ -1,2 +1,0 @@
-export declare const modelsEndpoint: import("./http-endpoint-helpers.js").HttpEndpoint;
-//# sourceMappingURL=models-http.d.ts.map

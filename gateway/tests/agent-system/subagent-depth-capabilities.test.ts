@@ -1,5 +1,5 @@
 /**
- * C5 Tests: Subagent Depth & Capabilities (Parity with OpenClaw depth.test.ts)
+ * C5 Tests: Subagent Depth & Capabilities (Parity with CoreBlow depth.test.ts)
  */
 import { describe, it, expect } from 'vitest';
 import {

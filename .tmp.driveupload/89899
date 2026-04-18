@@ -1,1 +1,0 @@
-{"version":3,"file":"pool.d.ts","sourceRoot":"","sources":["../../src/process/pool.ts"],"names":[],"mappings":"AAAA;;GAEG;AACH,qBAAa,WAAW;IAAG,OAAO,CAAC,OAAO,CAAiB;IAAC,OAAO,CAAC,OAAO,CAAS;gBAAa,OAAO,SAAI;IAA8B,OAAO,IAAI,OAAO;IAAwC,OAAO,CAAC,MAAM,EAAE,OAAO;IAAyE,IAAI;CAAoC"}

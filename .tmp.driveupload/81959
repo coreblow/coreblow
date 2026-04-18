@@ -1,1 +1,0 @@
-{"version":3,"file":"agent-timestamp.js","sourceRoot":"","sources":["../../../src/gateway/server-methods/agent-timestamp.ts"],"names":[],"mappings":"AAAA,MAAM,UAAU,qBAAqB,CAAC,EAA6B;IAC/D,OAAO,OAAO,EAAE,KAAK,QAAQ,IAAI,MAAM,CAAC,QAAQ,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,IAAI,CAAC,GAAG,EAAE,CAAC;AAC3E,CAAC"}

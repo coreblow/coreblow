@@ -1,2 +1,0 @@
-export function captureDiagnosticSnapshot() { return { timestamp: Date.now(), uptime: process.uptime(), memoryUsage: process.memoryUsage(), version: process.version }; }
-//# sourceMappingURL=diagnostic-runtime.js.map

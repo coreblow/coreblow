@@ -16,8 +16,8 @@ export function createBrowserPluginService(): CoreBlowPluginService {
         return;
       }
       handle = await startLazyPluginServiceModule({
-        skipEnvVar: "OPENCLAW_SKIP_BROWSER_CONTROL_SERVER",
-        overrideEnvVar: "OPENCLAW_BROWSER_CONTROL_MODULE",
+        skipEnvVar: "COREBLOW_SKIP_BROWSER_CONTROL_SERVER",
+        overrideEnvVar: "COREBLOW_BROWSER_CONTROL_MODULE",
         // Keep the default module import static so compiled builds still bundle it.
         loadDefaultModule: async () => await import("./server.js"),
         startExportNames: [

@@ -1,3 +1,0 @@
-/** Discord message handler */
-export async function handleMessage(_msg, _router) { }
-//# sourceMappingURL=message-handler.js.map

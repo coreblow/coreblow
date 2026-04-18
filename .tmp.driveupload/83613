@@ -1,6 +1,0 @@
-/** plugin-sdk/reply-runtime.ts [ADAPT] openclaw-main */
-export { createReplyPrefixOptions, createTypingCallbacks, createChannelReplyPipeline } from "./channel-reply-pipeline.js";
-export type { ReplyPrefixOptions, TypingCallbacks, ChannelReplyPipeline } from "./channel-reply-pipeline.js";
-export type { OutboundReplyPayload } from "./reply-payload.js";
-export { buildTextReplyPayload, isTextReplyPayload } from "./reply-payload.js";
-//# sourceMappingURL=reply-runtime.d.ts.map

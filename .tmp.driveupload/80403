@@ -1,9 +1,0 @@
-/**
- * src/channels/discord/types-sdk.ts
- * Strict SDK boundary types for Discord.
- * By defining these interfaces, we eliminate `unknown` types from our implementation
- * without needing to tightly couple to the actual discord.js package types which change often.
- * Follows CoreBlow explicit interface boundary pattern.
- */
-export {};
-//# sourceMappingURL=types-sdk.js.map

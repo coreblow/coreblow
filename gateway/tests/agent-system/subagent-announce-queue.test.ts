@@ -1,5 +1,5 @@
 /**
- * Tests for Subagent Announce Queue (OpenClaw Parity)
+ * Tests for Subagent Announce Queue (CoreBlow Parity)
  *
  * Covers: enqueue, drop policies (summarize, new, old),
  * drain debounce, collect mode, backoff on failure,

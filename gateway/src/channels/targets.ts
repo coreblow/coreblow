@@ -1,1 +1,0 @@
-/** CoreBlow — Channel Targets */ export interface ChannelTarget { channelType: string; channelId: string; threadId?: string; } export function resolveTarget(raw: string): ChannelTarget | null { const parts = raw.split(":"); if (parts.length < 2) return null; return { channelType: parts[0], channelId: parts[1], threadId: parts[2] }; }

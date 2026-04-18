@@ -55,7 +55,7 @@ export function clearPluginDiscoveryCache(): void {
 }
 
 function resolveDiscoveryCacheMs(env: NodeJS.ProcessEnv): number {
-  const raw = env.OPENCLAW_PLUGIN_DISCOVERY_CACHE_MS?.trim();
+  const raw = env.COREBLOW_PLUGIN_DISCOVERY_CACHE_MS?.trim();
   if (raw === "" || raw === "0") {
     return 0;
   }
@@ -70,7 +70,7 @@ function resolveDiscoveryCacheMs(env: NodeJS.ProcessEnv): number {
 }
 
 function shouldUseDiscoveryCache(env: NodeJS.ProcessEnv): boolean {
-  const disabled = env.OPENCLAW_DISABLE_PLUGIN_DISCOVERY_CACHE?.trim();
+  const disabled = env.COREBLOW_DISABLE_PLUGIN_DISCOVERY_CACHE?.trim();
   if (disabled) {
     return false;
   }

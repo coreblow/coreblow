@@ -1,3 +1,0 @@
-import { diagnostics } from './heartbeat.data.js';
-export function resetDiagnostics() { diagnostics.length = 0; }
-//# sourceMappingURL=reset-diagnostics.js.map

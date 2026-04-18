@@ -398,7 +398,7 @@ export async function runPreparedReply(
       ? `[Thread starter - for context]\n${threadStarterBody}`
       : undefined;
   const skillResult =
-    process.env.OPENCLAW_TEST_FAST === "1"
+    process.env.COREBLOW_TEST_FAST === "1"
       ? {
           sessionEntry,
           skillsSnapshot: sessionEntry?.skillsSnapshot,

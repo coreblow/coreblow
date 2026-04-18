@@ -654,7 +654,7 @@ describe("syncPluginsForUpdateChannel", () => {
 
   it("forwards an explicit env to bundled plugin source resolution", async () => {
     resolveBundledPluginSourcesMock.mockReturnValue(new Map());
-    const env = { OPENCLAW_HOME: "/srv/coreblow-home" } as NodeJS.ProcessEnv;
+    const env = { COREBLOW_HOME: "/srv/coreblow-home" } as NodeJS.ProcessEnv;
 
     await syncPluginsForUpdateChannel({
       channel: "beta",
@@ -684,7 +684,7 @@ describe("syncPluginsForUpdateChannel", () => {
         channel: "beta",
         env: {
           ...process.env,
-          OPENCLAW_HOME: bundledHome,
+          COREBLOW_HOME: bundledHome,
           HOME: "/tmp/ignored-home",
         },
         config: {

@@ -9,7 +9,7 @@ export function readEmbeddedGatewayTokenForTest(
     environmentValueSources?: Record<string, "inline" | "file">;
   } | null,
 ) {
-  return command?.environmentValueSources?.OPENCLAW_GATEWAY_TOKEN === "file"
+  return command?.environmentValueSources?.COREBLOW_GATEWAY_TOKEN === "file"
     ? undefined
-    : command?.environment?.OPENCLAW_GATEWAY_TOKEN?.trim() || undefined;
+    : command?.environment?.COREBLOW_GATEWAY_TOKEN?.trim() || undefined;
 }

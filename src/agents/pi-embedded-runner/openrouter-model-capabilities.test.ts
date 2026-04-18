@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 async function withOpenRouterStateDir(run: (stateDir: string) => Promise<void>) {
   const stateDir = mkdtempSync(join(tmpdir(), "coreblow-openrouter-capabilities-"));
-  process.env.OPENCLAW_STATE_DIR = stateDir;
+  process.env.COREBLOW_STATE_DIR = stateDir;
   try {
     await run(stateDir);
   } finally {
@@ -17,7 +17,7 @@ describe("openrouter-model-capabilities", () => {
   afterEach(() => {
     vi.resetModules();
     vi.unstubAllGlobals();
-    delete process.env.OPENCLAW_STATE_DIR;
+    delete process.env.COREBLOW_STATE_DIR;
   });
 
   it("uses top-level OpenRouter max token fields when top_provider is absent", async () => {

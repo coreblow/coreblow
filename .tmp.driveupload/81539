@@ -1,9 +1,0 @@
-/**
- * gateway/server-wizard-sessions.ts — In-memory wizard session tracker
- */
-export declare function createWizardSessionTracker(): {
-    wizardSessions: Map<string, any>;
-    findRunningWizard(): string | null;
-    purgeWizardSession(id: string): void;
-};
-//# sourceMappingURL=server-wizard-sessions.d.ts.map

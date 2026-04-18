@@ -1,2 +1,0 @@
-export function createSubscription(events, handler) { return { id: `sub_${Date.now().toString(36)}`, events, handler }; }
-//# sourceMappingURL=pi-embedded-subscribe.js.map

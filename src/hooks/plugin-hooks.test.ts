@@ -26,16 +26,16 @@ describe("bundle plugin hooks", () => {
     clearInternalHooks();
     workspaceDir = path.join(fixtureRoot, `case-${caseId++}`);
     await fsp.mkdir(workspaceDir, { recursive: true });
-    previousBundledHooksDir = process.env.OPENCLAW_BUNDLED_HOOKS_DIR;
-    process.env.OPENCLAW_BUNDLED_HOOKS_DIR = "/nonexistent/bundled/hooks";
+    previousBundledHooksDir = process.env.COREBLOW_BUNDLED_HOOKS_DIR;
+    process.env.COREBLOW_BUNDLED_HOOKS_DIR = "/nonexistent/bundled/hooks";
   });
 
   afterEach(() => {
     clearInternalHooks();
     if (previousBundledHooksDir === undefined) {
-      delete process.env.OPENCLAW_BUNDLED_HOOKS_DIR;
+      delete process.env.COREBLOW_BUNDLED_HOOKS_DIR;
     } else {
-      process.env.OPENCLAW_BUNDLED_HOOKS_DIR = previousBundledHooksDir;
+      process.env.COREBLOW_BUNDLED_HOOKS_DIR = previousBundledHooksDir;
     }
   });
 

@@ -1,7 +1,0 @@
-/**
- * src/daemon/runtime-parse.ts
- * Parse key-value output.
- * Ported from CoreBlow daemon/runtime-parse.ts.
- */
-export declare function parseKeyValueOutput(output: string, separator: string): Record<string, string>;
-//# sourceMappingURL=runtime-parse.d.ts.map

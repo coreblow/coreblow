@@ -1,7 +1,0 @@
-/**
- * src/sandbox/sandbox-types.ts
- * Shared types for sandbox subsystem
- * Used by: exec-restricted.ts, command-classifier.ts
- */
-export {};
-//# sourceMappingURL=sandbox-types.js.map

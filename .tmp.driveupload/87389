@@ -1,4 +1,0 @@
-/** PI auth JSON serialization. */
-export declare function serializeAuth(data: Record<string, unknown>): string;
-export declare function deserializeAuth(json: string): Record<string, unknown> | null;
-//# sourceMappingURL=pi-auth-json.d.ts.map

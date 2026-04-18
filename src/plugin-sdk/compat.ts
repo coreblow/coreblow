@@ -4,15 +4,15 @@
 const shouldWarnCompatImport =
   process.env.VITEST !== "true" &&
   process.env.NODE_ENV !== "test" &&
-  process.env.OPENCLAW_SUPPRESS_PLUGIN_SDK_COMPAT_WARNING !== "1";
+  process.env.COREBLOW_SUPPRESS_PLUGIN_SDK_COMPAT_WARNING !== "1";
 
 if (shouldWarnCompatImport) {
   process.emitWarning(
-    "coreblow/plugin-sdk/compat is deprecated for new plugins. Migrate to focused coreblow/plugin-sdk/<subpath> imports. See https://docs.coreblow.ai/plugins/sdk-migration",
+    "coreblow/plugin-sdk/compat is deprecated for new plugins. Migrate to focused coreblow/plugin-sdk/<subpath> imports. See https://docs.coreblow.com/plugins/sdk-migration",
     {
-      code: "OPENCLAW_PLUGIN_SDK_COMPAT_DEPRECATED",
+      code: "COREBLOW_PLUGIN_SDK_COMPAT_DEPRECATED",
       detail:
-        "Bundled plugins must use scoped plugin-sdk subpaths. External plugins may keep compat temporarily while migrating. Migration guide: https://docs.coreblow.ai/plugins/sdk-migration",
+        "Bundled plugins must use scoped plugin-sdk subpaths. External plugins may keep compat temporarily while migrating. Migration guide: https://docs.coreblow.com/plugins/sdk-migration",
     },
   );
 }

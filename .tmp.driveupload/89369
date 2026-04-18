@@ -1,4 +1,0 @@
-/** CoreBlow tool definitions. */
-export const COREBLOW_TOOLS = ['bash', 'read', 'write', 'edit', 'search', 'glob', 'browser', 'mcp'];
-export function isCoreBlowTool(name) { return COREBLOW_TOOLS.includes(name); }
-//# sourceMappingURL=coreblow-tools.js.map

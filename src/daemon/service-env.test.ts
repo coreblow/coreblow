@@ -285,15 +285,15 @@ describe("buildServiceEnvironment", () => {
     } else {
       expect(env.PATH).toContain("/usr/bin");
     }
-    expect(env.OPENCLAW_GATEWAY_PORT).toBe("18789");
-    expect(env.OPENCLAW_GATEWAY_TOKEN).toBeUndefined();
-    expect(env.OPENCLAW_SERVICE_MARKER).toBe("coreblow");
-    expect(env.OPENCLAW_SERVICE_KIND).toBe("gateway");
-    expect(typeof env.OPENCLAW_SERVICE_VERSION).toBe("string");
-    expect(env.OPENCLAW_SYSTEMD_UNIT).toBe("coreblow-gateway.service");
-    expect(env.OPENCLAW_WINDOWS_TASK_NAME).toBe("CoreBlow Gateway");
+    expect(env.COREBLOW_GATEWAY_PORT).toBe("18789");
+    expect(env.COREBLOW_GATEWAY_TOKEN).toBeUndefined();
+    expect(env.COREBLOW_SERVICE_MARKER).toBe("coreblow");
+    expect(env.COREBLOW_SERVICE_KIND).toBe("gateway");
+    expect(typeof env.COREBLOW_SERVICE_VERSION).toBe("string");
+    expect(env.COREBLOW_SYSTEMD_UNIT).toBe("coreblow-gateway.service");
+    expect(env.COREBLOW_WINDOWS_TASK_NAME).toBe("CoreBlow Gateway");
     if (process.platform === "darwin") {
-      expect(env.OPENCLAW_LAUNCHD_LABEL).toBe("ai.coreblow.gateway");
+      expect(env.COREBLOW_LAUNCHD_LABEL).toBe("ai.coreblow.gateway");
     }
   });
 
@@ -315,13 +315,13 @@ describe("buildServiceEnvironment", () => {
 
   it("uses profile-specific unit and label", () => {
     const env = buildServiceEnvironment({
-      env: { HOME: "/home/user", OPENCLAW_PROFILE: "work" },
+      env: { HOME: "/home/user", COREBLOW_PROFILE: "work" },
       port: 18789,
     });
-    expect(env.OPENCLAW_SYSTEMD_UNIT).toBe("coreblow-gateway-work.service");
-    expect(env.OPENCLAW_WINDOWS_TASK_NAME).toBe("CoreBlow Gateway (work)");
+    expect(env.COREBLOW_SYSTEMD_UNIT).toBe("coreblow-gateway-work.service");
+    expect(env.COREBLOW_WINDOWS_TASK_NAME).toBe("CoreBlow Gateway (work)");
     if (process.platform === "darwin") {
-      expect(env.OPENCLAW_LAUNCHD_LABEL).toBe("ai.coreblow.work");
+      expect(env.COREBLOW_LAUNCHD_LABEL).toBe("ai.coreblow.work");
     }
   });
 
@@ -356,7 +356,7 @@ describe("buildServiceEnvironment", () => {
     });
 
     expect(env).not.toHaveProperty("PATH");
-    expect(env.OPENCLAW_WINDOWS_TASK_NAME).toBe("CoreBlow Gateway");
+    expect(env.COREBLOW_WINDOWS_TASK_NAME).toBe("CoreBlow Gateway");
   });
 
   it("prepends extra runtime directories to the gateway service PATH", () => {
@@ -381,21 +381,21 @@ describe("buildNodeServiceEnvironment", () => {
     expect(env.HOME).toBe("/home/user");
   });
 
-  it("passes through OPENCLAW_GATEWAY_TOKEN for node services", () => {
+  it("passes through COREBLOW_GATEWAY_TOKEN for node services", () => {
     const env = buildNodeServiceEnvironment({
-      env: { HOME: "/home/user", OPENCLAW_GATEWAY_TOKEN: " node-token " },
+      env: { HOME: "/home/user", COREBLOW_GATEWAY_TOKEN: " node-token " },
     });
-    expect(env.OPENCLAW_GATEWAY_TOKEN).toBe("node-token");
+    expect(env.COREBLOW_GATEWAY_TOKEN).toBe("node-token");
   });
 
-  it("omits OPENCLAW_GATEWAY_TOKEN when the env var is empty", () => {
+  it("omits COREBLOW_GATEWAY_TOKEN when the env var is empty", () => {
     const env = buildNodeServiceEnvironment({
       env: {
         HOME: "/home/user",
-        OPENCLAW_GATEWAY_TOKEN: "   ",
+        COREBLOW_GATEWAY_TOKEN: "   ",
       },
     });
-    expect(env.OPENCLAW_GATEWAY_TOKEN).toBeUndefined();
+    expect(env.COREBLOW_GATEWAY_TOKEN).toBeUndefined();
   });
 
   it("forwards proxy environment variables for node services", () => {
@@ -490,27 +490,27 @@ describe("resolveGatewayStateDir", () => {
   });
 
   it("appends the profile suffix when set", () => {
-    const env = { HOME: "/Users/test", OPENCLAW_PROFILE: "rescue" };
+    const env = { HOME: "/Users/test", COREBLOW_PROFILE: "rescue" };
     expect(resolveGatewayStateDir(env)).toBe(path.join("/Users/test", ".coreblow-rescue"));
   });
 
   it("treats default profiles as the base state dir", () => {
-    const env = { HOME: "/Users/test", OPENCLAW_PROFILE: "Default" };
+    const env = { HOME: "/Users/test", COREBLOW_PROFILE: "Default" };
     expect(resolveGatewayStateDir(env)).toBe(path.join("/Users/test", ".coreblow"));
   });
 
-  it("uses OPENCLAW_STATE_DIR when provided", () => {
-    const env = { HOME: "/Users/test", OPENCLAW_STATE_DIR: "/var/lib/coreblow" };
+  it("uses COREBLOW_STATE_DIR when provided", () => {
+    const env = { HOME: "/Users/test", COREBLOW_STATE_DIR: "/var/lib/coreblow" };
     expect(resolveGatewayStateDir(env)).toBe(path.resolve("/var/lib/coreblow"));
   });
 
-  it("expands ~ in OPENCLAW_STATE_DIR", () => {
-    const env = { HOME: "/Users/test", OPENCLAW_STATE_DIR: "~/coreblow-state" };
+  it("expands ~ in COREBLOW_STATE_DIR", () => {
+    const env = { HOME: "/Users/test", COREBLOW_STATE_DIR: "~/coreblow-state" };
     expect(resolveGatewayStateDir(env)).toBe(path.resolve("/Users/test/coreblow-state"));
   });
 
   it("preserves Windows absolute paths without HOME", () => {
-    const env = { OPENCLAW_STATE_DIR: "C:\\State\\coreblow" };
+    const env = { COREBLOW_STATE_DIR: "C:\\State\\coreblow" };
     expect(resolveGatewayStateDir(env)).toBe("C:\\State\\coreblow");
   });
 });

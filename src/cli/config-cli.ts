@@ -1259,7 +1259,7 @@ export function registerConfigCli(program: Command) {
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/config", "docs.coreblow.ai/cli/config")}\n`,
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/config", "docs.coreblow.com/cli/config")}\n`,
     )
     .option(
       "--section <section>",

@@ -1,5 +1,0 @@
-/**
- * sessions/session-cleanup.ts
- */
-export declare function cleanupSessions(sessions: Map<string, unknown>, maxAgeMs?: number): number;
-//# sourceMappingURL=session-cleanup.d.ts.map

@@ -1,1 +1,0 @@
-{"version":3,"file":"slack-account.d.ts","sourceRoot":"","sources":["../../src/plugin-sdk/slack-account.ts"],"names":[],"mappings":"AAAA;;;GAGG;AAEH,MAAM,MAAM,oBAAoB,GAAG;IAAE,SAAS,EAAE,MAAM,CAAC;IAAC,KAAK,CAAC,EAAE,MAAM,GAAG,IAAI,CAAC;IAAC,MAAM,CAAC,EAAE,MAAM,GAAG,IAAI,CAAA;CAAE,CAAC;AAExG,wBAAsB,mBAAmB,CAAC,EAAE,EAAE,OAAO,GAAG,OAAO,CAAC,oBAAoB,GAAG,IAAI,CAAC,CAAiB"}

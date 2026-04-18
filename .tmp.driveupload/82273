@@ -1,1 +1,0 @@
-{"version":3,"file":"shutdown.d.ts","sourceRoot":"","sources":["../../src/gateway/shutdown.ts"],"names":[],"mappings":"AAAA;;GAEG;AACH,qBAAa,gBAAgB;IAAG,OAAO,CAAC,QAAQ,CAAkC;IAAC,OAAO,CAAC,YAAY,CAAS;IAAC,UAAU,CAAC,OAAO,EAAE,MAAM,OAAO,CAAC,IAAI,CAAC;IAAyC,QAAQ,CAAC,MAAM,CAAC,EAAE,MAAM,GAAG,OAAO,CAAC,IAAI,CAAC;IAA2K,cAAc,IAAI,OAAO;CAAgC"}

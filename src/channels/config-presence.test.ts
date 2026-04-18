@@ -46,7 +46,7 @@ describe("config presence", () => {
 
   it("ignores enabled-only matrix config when listing configured channels", () => {
     const stateDir = makeTempStateDir();
-    const env = { OPENCLAW_STATE_DIR: stateDir } as NodeJS.ProcessEnv;
+    const env = { COREBLOW_STATE_DIR: stateDir } as NodeJS.ProcessEnv;
     const cfg = { channels: { matrix: { enabled: false } } };
 
     expectPotentialConfiguredChannelCase({

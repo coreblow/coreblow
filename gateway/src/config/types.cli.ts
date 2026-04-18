@@ -1,1 +1,0 @@
-/** CoreBlow — Types: CLI */ export interface CliConfig { theme: "dark" | "light" | "auto"; editor?: string; pager?: string; historySize: number; } export const DEFAULT_CLI: CliConfig = { theme: "dark", historySize: 1000 };

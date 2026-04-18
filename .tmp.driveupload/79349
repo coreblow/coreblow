@@ -1,3 +1,0 @@
-export declare function sanitizeImage(buffer: Buffer): Buffer;
-export declare function isImageSafe(buffer: Buffer): boolean;
-//# sourceMappingURL=image-sanitization.d.ts.map

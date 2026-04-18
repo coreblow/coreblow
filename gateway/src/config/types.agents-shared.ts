@@ -1,1 +1,0 @@
-/** CoreBlow — Types: Agents Shared */ export type AgentRole = "assistant" | "tool-user" | "coder" | "reviewer" | "planner"; export interface AgentIdentity { id: string; name: string; role: AgentRole; description?: string; }

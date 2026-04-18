@@ -1,3 +1,0 @@
-/** Skill download test utilities. */
-export function createMockDownload(content) { const data = Buffer.from(content); return { data, size: data.length }; }
-//# sourceMappingURL=skills-install.download-test-utils.js.map

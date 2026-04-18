@@ -1,8 +1,0 @@
-/** Runtime plugin loading. */
-export interface RuntimePlugin {
-    id: string;
-    name: string;
-    enabled: boolean;
-}
-export declare function loadRuntimePlugins(): RuntimePlugin[];
-//# sourceMappingURL=runtime-plugins.d.ts.map

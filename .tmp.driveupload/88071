@@ -1,3 +1,0 @@
-/** Provider normalization. */
-export { normalizeProviderId } from './provider-id.js';
-//# sourceMappingURL=models-config.providers.normalize.d.ts.map

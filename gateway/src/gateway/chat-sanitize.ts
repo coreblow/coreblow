@@ -1,1 +1,0 @@
-/** CoreBlow — Chat Sanitize */ export function sanitizeChatInput(text: string): string { return text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "").trim(); } export function truncateChatMessage(text: string, maxLen = 100000): string { return text.length > maxLen ? text.slice(0, maxLen) + "\n[truncated]" : text; }

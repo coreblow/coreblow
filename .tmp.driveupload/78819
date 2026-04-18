@@ -1,8 +1,0 @@
-/**
- * commands/handlers/channel.ts — Channel management commands
- */
-import type { CommandContext } from '../types.js';
-export declare function handleChannelList(ctx: CommandContext): Promise<string>;
-export declare function handleChannelStatus(ctx: CommandContext): Promise<string>;
-export declare function handleChannelRestart(ctx: CommandContext): Promise<string>;
-//# sourceMappingURL=channel.d.ts.map

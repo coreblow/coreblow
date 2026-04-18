@@ -1,3 +1,0 @@
-export declare function jsonResponse(data: unknown, status?: number): Response;
-export declare function errorResponse(message: string, status?: number): Response;
-//# sourceMappingURL=api.d.ts.map

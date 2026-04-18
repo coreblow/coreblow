@@ -1,3 +1,0 @@
-/** agents/owner-display.ts — Owner/user display formatting. */
-export declare function formatOwner(name?: string, email?: string): string;
-//# sourceMappingURL=owner-display.d.ts.map

@@ -53,6 +53,6 @@ export function resetLifecycleServiceMocks() {
 
 export function stubEmptyGatewayEnv() {
   vi.unstubAllEnvs();
-  vi.stubEnv("OPENCLAW_GATEWAY_TOKEN", "");
-  vi.stubEnv("OPENCLAW_GATEWAY_URL", "");
+  vi.stubEnv("COREBLOW_GATEWAY_TOKEN", "");
+  vi.stubEnv("COREBLOW_GATEWAY_URL", "");
 }

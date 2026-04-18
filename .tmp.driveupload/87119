@@ -1,2 +1,0 @@
-export function createPiEmbeddedConfig(model, provider, apiKey) { return { model, provider, apiKey, maxTurns: 50 }; }
-//# sourceMappingURL=pi-embedded.js.map

@@ -13,17 +13,17 @@ vi.mock("../terminal/note.js", () => ({
 
 type EnvSnapshot = {
   HOME?: string;
-  OPENCLAW_HOME?: string;
-  OPENCLAW_STATE_DIR?: string;
-  OPENCLAW_OAUTH_DIR?: string;
+  COREBLOW_HOME?: string;
+  COREBLOW_STATE_DIR?: string;
+  COREBLOW_OAUTH_DIR?: string;
 };
 
 function captureEnv(): EnvSnapshot {
   return {
     HOME: process.env.HOME,
-    OPENCLAW_HOME: process.env.OPENCLAW_HOME,
-    OPENCLAW_STATE_DIR: process.env.OPENCLAW_STATE_DIR,
-    OPENCLAW_OAUTH_DIR: process.env.OPENCLAW_OAUTH_DIR,
+    COREBLOW_HOME: process.env.COREBLOW_HOME,
+    COREBLOW_STATE_DIR: process.env.COREBLOW_STATE_DIR,
+    COREBLOW_OAUTH_DIR: process.env.COREBLOW_OAUTH_DIR,
   };
 }
 
@@ -87,10 +87,10 @@ describe("doctor state integrity oauth dir checks", () => {
     envSnapshot = captureEnv();
     tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "coreblow-doctor-state-integrity-"));
     process.env.HOME = tempHome;
-    process.env.OPENCLAW_HOME = tempHome;
-    process.env.OPENCLAW_STATE_DIR = path.join(tempHome, ".coreblow");
-    delete process.env.OPENCLAW_OAUTH_DIR;
-    fs.mkdirSync(process.env.OPENCLAW_STATE_DIR, { recursive: true, mode: 0o700 });
+    process.env.COREBLOW_HOME = tempHome;
+    process.env.COREBLOW_STATE_DIR = path.join(tempHome, ".coreblow");
+    delete process.env.COREBLOW_OAUTH_DIR;
+    fs.mkdirSync(process.env.COREBLOW_STATE_DIR, { recursive: true, mode: 0o700 });
     vi.mocked(note).mockClear();
   });
 
@@ -131,8 +131,8 @@ describe("doctor state integrity oauth dir checks", () => {
     expect(confirmRuntimeRepair).toHaveBeenCalledWith(OAUTH_PROMPT_MATCHER);
   });
 
-  it("prompts for oauth dir when OPENCLAW_OAUTH_DIR is explicitly configured", async () => {
-    process.env.OPENCLAW_OAUTH_DIR = path.join(tempHome, ".oauth");
+  it("prompts for oauth dir when COREBLOW_OAUTH_DIR is explicitly configured", async () => {
+    process.env.COREBLOW_OAUTH_DIR = path.join(tempHome, ".oauth");
     const cfg: CoreBlowConfig = {};
     const confirmRuntimeRepair = await runStateIntegrity(cfg);
     expect(confirmRuntimeRepair).toHaveBeenCalledWith(OAUTH_PROMPT_MATCHER);

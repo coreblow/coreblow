@@ -19,9 +19,9 @@ describe("restart sentinel", () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    envSnapshot = captureEnv(["OPENCLAW_STATE_DIR"]);
+    envSnapshot = captureEnv(["COREBLOW_STATE_DIR"]);
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-sentinel-"));
-    process.env.OPENCLAW_STATE_DIR = tempDir;
+    process.env.COREBLOW_STATE_DIR = tempDir;
   });
 
   afterEach(async () => {

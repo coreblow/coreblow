@@ -1,5 +1,0 @@
-/** PI tool parameter extraction. */
-export function extractParam(input, key, fallback) { return input[key] ?? fallback; }
-export function requireParam(input, key) { const val = input[key]; if (val === undefined)
-    throw new Error(`Missing required param: ${key}`); return val; }
-//# sourceMappingURL=pi-tools.params.js.map

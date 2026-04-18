@@ -1,3 +1,0 @@
-export function resolveCliBackend(provider) { return provider ?? 'anthropic'; }
-export function getCliBackendLabel(backend) { const labels = { anthropic: 'Anthropic Claude', openai: 'OpenAI', google: 'Google Gemini', ollama: 'Ollama', custom: 'Custom' }; return labels[backend] ?? backend; }
-//# sourceMappingURL=cli-backends.js.map

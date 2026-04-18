@@ -11818,7 +11818,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
     },
     "diagnostics.cacheTrace.filePath": {
       label: "Cache Trace File Path",
-      help: "JSONL output path for cache trace logs (default: $OPENCLAW_STATE_DIR/logs/cache-trace.jsonl).",
+      help: "JSONL output path for cache trace logs (default: $COREBLOW_STATE_DIR/logs/cache-trace.jsonl).",
       tags: ["observability", "storage"],
     },
     "diagnostics.cacheTrace.includeMessages": {

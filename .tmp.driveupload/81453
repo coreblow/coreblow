@@ -1,1 +1,0 @@
-{"version":3,"file":"chat-abort.d.ts","sourceRoot":"","sources":["../../src/gateway/chat-abort.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,YAAY,EAAE,MAAM,oBAAoB,CAAC;AAEvD,wBAAgB,YAAY,CAAC,YAAY,EAAE,GAAG,CAAC,MAAM,EAAE,YAAY,CAAC,EAAE,UAAU,EAAE,MAAM,WAUvF"}

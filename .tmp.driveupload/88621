@@ -1,4 +1,0 @@
-/** Exec host — gateway mode. */
-export { execCommand } from './bash-tools.js';
-export function isGatewayMode() { return true; }
-//# sourceMappingURL=bash-tools.exec-host-gateway.js.map

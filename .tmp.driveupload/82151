@@ -1,1 +1,0 @@
-{"version":3,"file":"chat-transcript-inject.js","sourceRoot":"","sources":["../../../src/gateway/server-methods/chat-transcript-inject.ts"],"names":[],"mappings":"AAEA,MAAM,CAAC,MAAM,4BAA4B,GAA2B;IAChE,aAAa,EAAE,KAAK,EAAE,EAAE,MAAM,EAAE,OAAO,EAAE,EAAE,EAAE;QACzC,OAAO,CAAC,IAAI,EAAE,EAAE,QAAQ,EAAE,IAAI,EAAE,CAAC,CAAC;IACtC,CAAC;CACJ,CAAC"}

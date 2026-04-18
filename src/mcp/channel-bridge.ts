@@ -91,7 +91,7 @@ export class CoreBlowChannelBridge {
     const gatewayUrlOverrideSource =
       connection.urlSource === "cli --url"
         ? "cli"
-        : connection.urlSource === "env OPENCLAW_GATEWAY_URL"
+        : connection.urlSource === "env COREBLOW_GATEWAY_URL"
           ? "env"
           : undefined;
     const creds = await resolveGatewayConnectionAuth({

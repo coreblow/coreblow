@@ -1,7 +1,0 @@
-/**
- * extensions/types.ts
- * Core extension type system.
- * Ported from CoreBlow reference extension patterns.
- */
-export {};
-//# sourceMappingURL=types.js.map

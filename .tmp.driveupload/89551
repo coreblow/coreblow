@@ -1,4 +1,0 @@
-/** Model auth status markers. */
-export type AuthMarker = 'valid' | 'expired' | 'missing' | 'refreshing';
-export declare function getAuthMarkerIcon(marker: AuthMarker): string;
-//# sourceMappingURL=model-auth-markers.d.ts.map

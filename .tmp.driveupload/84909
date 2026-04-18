@@ -1,1 +1,0 @@
-{"version":3,"file":"imessage-core.d.ts","sourceRoot":"","sources":["../../src/plugin-sdk/imessage-core.ts"],"names":[],"mappings":"AAAA,oGAAoG;AACpG,wBAAgB,sBAAsB,CAAC,IAAI,EAAE,MAAM,CAAC,MAAM,EAAC,OAAO,CAAC,GAAG,MAAM,EAAE,CAAe;AAC7F,wBAAsB,aAAa,CAAC,EAAE,EAAE,OAAO,GAAG,OAAO,CAAC;IAAE,EAAE,EAAE,OAAO,CAAA;CAAE,CAAC,CAA0B"}

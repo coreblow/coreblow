@@ -1,2 +1,0 @@
-export function buildClawHubUrl(skillId) { return `https://clawhub.dev/skills/${skillId}`; }
-//# sourceMappingURL=skills-clawhub.js.map

@@ -1,1 +1,0 @@
-/** CoreBlow — Node Command Policy */ export type CommandPolicy = "allow" | "deny" | "prompt"; export function resolveCommandPolicy(command: string): CommandPolicy { const blocked = ["rm -rf /", "format", "mkfs"]; if (blocked.some((b) => command.includes(b))) return "deny"; return "allow"; }

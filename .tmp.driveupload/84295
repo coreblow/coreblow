@@ -1,4 +1,0 @@
-/** plugin-sdk/phone-control.ts [ADAPT] openclaw-main */
-export { normalizeE164 } from "./account-core.js";
-export { initiateVoiceCall } from "./voice-call.js";
-//# sourceMappingURL=phone-control.js.map

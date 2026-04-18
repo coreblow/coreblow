@@ -303,7 +303,7 @@ const testConfigRoot = resolveGlobalSingleton(GATEWAY_TEST_CONFIG_ROOT_KEY, () =
 
 export const setTestConfigRoot = (root: string) => {
   testConfigRoot.value = root;
-  process.env.OPENCLAW_CONFIG_PATH = path.join(root, "coreblow.json");
+  process.env.COREBLOW_CONFIG_PATH = path.join(root, "coreblow.json");
 };
 
 export const testTailnetIPv4 = hoisted.testTailnetIPv4;
@@ -770,7 +770,7 @@ vi.mock("/src/plugins/runtime/runtime-whatsapp-boundary.js", () => ({
     (hoisted.sendWhatsAppMock as (...args: unknown[]) => unknown)(...args),
 }));
 
-process.env.OPENCLAW_SKIP_CHANNELS = "1";
-process.env.OPENCLAW_SKIP_CRON = "1";
-process.env.OPENCLAW_SKIP_CHANNELS = "1";
-process.env.OPENCLAW_SKIP_CRON = "1";
+process.env.COREBLOW_SKIP_CHANNELS = "1";
+process.env.COREBLOW_SKIP_CRON = "1";
+process.env.COREBLOW_SKIP_CHANNELS = "1";
+process.env.COREBLOW_SKIP_CRON = "1";

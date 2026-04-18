@@ -1,2 +1,0 @@
-export declare function resetSessions(): void;
-//# sourceMappingURL=reset-sessions.d.ts.map

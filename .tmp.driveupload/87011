@@ -1,3 +1,0 @@
-/** Simple completion runtime (non-streaming). */
-export { execCommand } from './bash-tools.js';
-//# sourceMappingURL=simple-completion-runtime.d.ts.map

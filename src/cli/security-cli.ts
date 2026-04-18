@@ -48,7 +48,7 @@ export function registerSecurityCli(program: Command) {
           ],
           ["coreblow security audit --fix", "Apply safe remediations and file-permission fixes."],
           ["coreblow security audit --json", "Output machine-readable JSON."],
-        ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/security", "docs.coreblow.ai/cli/security")}\n`,
+        ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/security", "docs.coreblow.com/cli/security")}\n`,
     );
 
   security

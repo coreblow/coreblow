@@ -1,8 +1,0 @@
-/** ACP parent stream communication. */
-export interface ParentStreamMessage {
-    type: 'text' | 'tool_use' | 'tool_result' | 'done' | 'error';
-    content?: string;
-}
-export declare function encodeParentMessage(msg: ParentStreamMessage): string;
-export declare function decodeParentMessage(data: string): ParentStreamMessage | null;
-//# sourceMappingURL=acp-spawn-parent-stream.d.ts.map

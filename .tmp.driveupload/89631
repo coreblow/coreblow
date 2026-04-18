@@ -1,3 +1,0 @@
-/** E2E test harness for subscribe. */
-export declare function createMockStream(chunks: string[]): AsyncIterable<string>;
-//# sourceMappingURL=pi-embedded-subscribe.e2e-harness.d.ts.map

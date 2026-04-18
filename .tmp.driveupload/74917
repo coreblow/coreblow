@@ -1,5 +1,0 @@
-WORKER_URL=https://super-scraper-worker.febrinanda-co2.workers.dev
-WORKER_API_KEY=ss_VFLacZPlRiBprXyFR9jJ3h1gg8qEW54kBOkRIHGf
-HEADLESS=true
-SCRAPE_TIMEOUT=30000
-MAX_RETRIES=3

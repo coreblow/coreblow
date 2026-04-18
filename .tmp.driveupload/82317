@@ -1,6 +1,0 @@
-import type { GatewayLogger } from './gateway-types.js';
-export declare function formatForLog(err: unknown): string;
-export declare function logWs(log: GatewayLogger, direction: "in" | "out", clientId: string, method: string, payload?: unknown): void;
-export declare function shouldLogWs(): boolean;
-export declare function summarizeAgentEventForWsLog(event: unknown): string;
-//# sourceMappingURL=ws-log.d.ts.map

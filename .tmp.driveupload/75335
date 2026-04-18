@@ -1,1 +1,0 @@
-export class GatewayClient { private baseUrl: string; constructor(baseUrl: string) { this.baseUrl = baseUrl; } async chat(model: string, messages: any[]) { return fetch(this.baseUrl + '/v1/chat/completions', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({model, messages}) }); } }

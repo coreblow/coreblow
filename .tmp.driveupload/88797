@@ -1,4 +1,0 @@
-export function createExecRequest(command, opts) {
-    return { command, cwd: opts?.cwd, timeout: opts?.timeout ?? 30_000, requiresApproval: opts?.requiresApproval ?? false, riskLevel: opts?.riskLevel ?? 'safe' };
-}
-//# sourceMappingURL=bash-tools.exec-types.js.map

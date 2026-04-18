@@ -1,2 +1,0 @@
-export declare function resetCommands(): void;
-//# sourceMappingURL=reset-commands.d.ts.map

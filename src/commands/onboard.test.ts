@@ -72,7 +72,7 @@ describe("setupWizardCommand", () => {
           "Windows detected - CoreBlow runs great on WSL2!",
           "Native Windows might be trickier.",
           "Quick setup: wsl --install (one command, one reboot)",
-          "Guide: https://docs.coreblow.ai/windows",
+          "Guide: https://docs.coreblow.com/windows",
         ].join("\n"),
       );
     } finally {

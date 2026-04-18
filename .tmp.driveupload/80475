@@ -1,6 +1,0 @@
-/**
- * src/channels/discord/utils/logger.ts
- * Discord-specific logger
- */
-export declare const discordLog: import("pino").Logger;
-//# sourceMappingURL=logger.d.ts.map

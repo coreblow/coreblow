@@ -1,9 +1,0 @@
-export type GatewayConfig = {
-    port?: number;
-    host?: string;
-    cors?: string[];
-    apiKey?: string;
-    rateLimit?: { windowMs?: number; maxRequests?: number };
-    ssl?: { cert?: string; key?: string };
-    controlUiOrigins?: string[];
-};

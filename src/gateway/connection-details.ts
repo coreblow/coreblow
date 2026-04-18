@@ -49,7 +49,7 @@ export function buildGatewayConnectionDetailsWithResolvers(
       : undefined;
   const envUrlOverride = cliUrlOverride
     ? undefined
-    : trimToUndefined(process.env.OPENCLAW_GATEWAY_URL);
+    : trimToUndefined(process.env.COREBLOW_GATEWAY_URL);
   const urlOverride = cliUrlOverride ?? envUrlOverride;
   const remoteUrl =
     typeof remote?.url === "string" && remote.url.trim().length > 0 ? remote.url.trim() : undefined;
@@ -59,7 +59,7 @@ export function buildGatewayConnectionDetailsWithResolvers(
   const url = urlOverride || remoteUrl || localUrl;
   const urlSource = urlOverride
     ? urlSourceHint === "env"
-      ? "env OPENCLAW_GATEWAY_URL"
+      ? "env COREBLOW_GATEWAY_URL"
       : "cli --url"
     : remoteUrl
       ? "config gateway.remote.url"
@@ -71,7 +71,7 @@ export function buildGatewayConnectionDetailsWithResolvers(
     ? "Warn: gateway.mode=remote but gateway.remote.url is missing; set gateway.remote.url or switch gateway.mode=local."
     : undefined;
 
-  const allowPrivateWs = process.env.OPENCLAW_ALLOW_INSECURE_PRIVATE_WS === "1";
+  const allowPrivateWs = process.env.COREBLOW_ALLOW_INSECURE_PRIVATE_WS === "1";
   if (!isSecureWebSocketUrl(url, { allowPrivateWs })) {
     throw new Error(
       [
@@ -85,9 +85,9 @@ export function buildGatewayConnectionDetailsWithResolvers(
         "- or use Tailscale Serve/Funnel for HTTPS remote access",
         allowPrivateWs
           ? undefined
-          : "Break-glass (trusted private networks only): set OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1",
+          : "Break-glass (trusted private networks only): set COREBLOW_ALLOW_INSECURE_PRIVATE_WS=1",
         "Doctor: coreblow doctor --fix",
-        "Docs: https://docs.coreblow.ai/gateway/remote",
+        "Docs: https://docs.coreblow.com/gateway/remote",
       ].join("\n"),
     );
   }

@@ -1,1 +1,0 @@
-/** CoreBlow — JSON Mode */ let jsonMode = false; export function setJsonMode(enabled: boolean): void { jsonMode = enabled; } export function isJsonMode(): boolean { return jsonMode; } export function jsonOutput(data: unknown): void { if (jsonMode) console.log(JSON.stringify(data, null, 2)); }

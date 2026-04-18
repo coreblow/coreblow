@@ -1,2 +1,0 @@
-export declare function readFileTool(filePath: string, startLine?: number, endLine?: number): string;
-//# sourceMappingURL=pi-tools.read.d.ts.map

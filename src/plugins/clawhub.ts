@@ -332,7 +332,7 @@ export async function installPluginFromClawHub(params: {
         source: "clawhub",
         clawhubUrl:
           params.baseUrl?.trim() ||
-          process.env.OPENCLAW_CLAWHUB_URL?.trim() ||
+          process.env.COREBLOW_CLAWHUB_URL?.trim() ||
           "https://clawhub.ai",
         clawhubPackage: parsed.name,
         clawhubFamily,

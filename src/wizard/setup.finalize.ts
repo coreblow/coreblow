@@ -246,8 +246,8 @@ export async function finalizeSetupWizard(
         await prompter.note(
           [
             "Docs:",
-            "https://docs.coreblow.ai/gateway/health",
-            "https://docs.coreblow.ai/gateway/troubleshooting",
+            "https://docs.coreblow.com/gateway/health",
+            "https://docs.coreblow.com/gateway/troubleshooting",
           ].join("\n"),
           "Health check help",
         );
@@ -263,8 +263,8 @@ export async function finalizeSetupWizard(
       await prompter.note(
         [
           "Docs:",
-          "https://docs.coreblow.ai/gateway/health",
-          "https://docs.coreblow.ai/gateway/troubleshooting",
+          "https://docs.coreblow.com/gateway/health",
+          "https://docs.coreblow.com/gateway/troubleshooting",
         ].join("\n"),
         "Health check help",
       );
@@ -361,7 +361,7 @@ export async function finalizeSetupWizard(
         : undefined,
       `Gateway WS: ${links.wsUrl}`,
       gatewayStatusLine,
-      "Docs: https://docs.coreblow.ai/web/control-ui",
+      "Docs: https://docs.coreblow.com/web/control-ui",
     ]
       .filter(Boolean)
       .join("\n"),
@@ -390,7 +390,7 @@ export async function finalizeSetupWizard(
     await prompter.note(
       [
         "Gateway token: shared auth for the Gateway + Control UI.",
-        "Stored in: ~/.coreblow/coreblow.json (gateway.auth.token) or OPENCLAW_GATEWAY_TOKEN.",
+        "Stored in: ~/.coreblow/coreblow.json (gateway.auth.token) or COREBLOW_GATEWAY_TOKEN.",
         `View token: ${formatCliCommand("coreblow config get gateway.auth.token")}`,
         `Generate token: ${formatCliCommand("coreblow doctor --generate-gateway-token")}`,
         "Web UI keeps dashboard URL tokens in memory for the current tab and strips them from the URL after load.",
@@ -464,13 +464,13 @@ export async function finalizeSetupWizard(
   await prompter.note(
     [
       "Back up your agent workspace.",
-      "Docs: https://docs.coreblow.ai/concepts/agent-workspace",
+      "Docs: https://docs.coreblow.com/concepts/agent-workspace",
     ].join("\n"),
     "Workspace backup",
   );
 
   await prompter.note(
-    "Running agents on your computer is risky — harden your setup: https://docs.coreblow.ai/security",
+    "Running agents on your computer is risky — harden your setup: https://docs.coreblow.com/security",
     "Security",
   );
 
@@ -541,7 +541,7 @@ export async function finalizeSetupWizard(
           "web_search will not work until the provider is re-enabled or a different provider is selected.",
           `  ${formatCliCommand("coreblow configure --section web")}`,
           "",
-          "Docs: https://docs.coreblow.ai/tools/web",
+          "Docs: https://docs.coreblow.com/tools/web",
         ].join("\n"),
         "Web search",
       );
@@ -552,7 +552,7 @@ export async function finalizeSetupWizard(
           "",
           `Provider: ${label}`,
           ...(keySource ? [keySource] : []),
-          "Docs: https://docs.coreblow.ai/tools/web",
+          "Docs: https://docs.coreblow.com/tools/web",
         ].join("\n"),
         "Web search",
       );
@@ -563,8 +563,8 @@ export async function finalizeSetupWizard(
           "web_search will not work until a key is added.",
           `  ${formatCliCommand("coreblow configure --section web")}`,
           "",
-          `Get your key at: ${entry?.signupUrl ?? "https://docs.coreblow.ai/tools/web"}`,
-          "Docs: https://docs.coreblow.ai/tools/web",
+          `Get your key at: ${entry?.signupUrl ?? "https://docs.coreblow.com/tools/web"}`,
+          "Docs: https://docs.coreblow.com/tools/web",
         ].join("\n"),
         "Web search",
       );
@@ -574,7 +574,7 @@ export async function finalizeSetupWizard(
           `Web search (${label}) is configured but disabled.`,
           `Re-enable: ${formatCliCommand("coreblow configure --section web")}`,
           "",
-          "Docs: https://docs.coreblow.ai/tools/web",
+          "Docs: https://docs.coreblow.com/tools/web",
         ].join("\n"),
         "Web search",
       );
@@ -590,7 +590,7 @@ export async function finalizeSetupWizard(
       await prompter.note(
         [
           `Web search is available via ${legacyDetected.label} (auto-detected).`,
-          "Docs: https://docs.coreblow.ai/tools/web",
+          "Docs: https://docs.coreblow.com/tools/web",
         ].join("\n"),
         "Web search",
       );
@@ -600,7 +600,7 @@ export async function finalizeSetupWizard(
           "Web search was skipped. You can enable it later:",
           `  ${formatCliCommand("coreblow configure --section web")}`,
           "",
-          "Docs: https://docs.coreblow.ai/tools/web",
+          "Docs: https://docs.coreblow.com/tools/web",
         ].join("\n"),
         "Web search",
       );
@@ -608,7 +608,7 @@ export async function finalizeSetupWizard(
   }
 
   await prompter.note(
-    'What now: https://coreblow.ai/showcase ("What People Are Building").',
+    'What now: https://coreblow.com/showcase ("What People Are Building").',
     "What now",
   );
 

@@ -1,1 +1,0 @@
-/** CoreBlow — Attempt Prompt Helpers */ export function buildPromptForAttempt(system: string, user: string): Array<{ role: string; content: string }> { return [{ role: "system", content: system }, { role: "user", content: user }]; }

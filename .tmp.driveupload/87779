@@ -1,3 +1,0 @@
-import { diagnostics } from './heartbeat.data.js';
-export function recordDiagnostic(diag) { diagnostics.push({ ...diag, timestamp: Date.now() }); }
-//# sourceMappingURL=record-diagnostic.js.map

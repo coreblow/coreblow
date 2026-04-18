@@ -1,9 +1,0 @@
-/**
- * cron/validate-timestamp.ts — Validation for CronSchedule
- */
-import type { CronSchedule } from "./types.js";
-export declare function validateScheduleTimestamp(schedule: CronSchedule): {
-    ok: boolean;
-    message: string;
-};
-//# sourceMappingURL=validate-timestamp.d.ts.map

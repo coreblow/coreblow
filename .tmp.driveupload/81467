@@ -1,3 +1,0 @@
-export declare function normalizeDeviceMetadataForAuth(value?: string | null): string;
-export declare function normalizeDeviceMetadataForPolicy(value?: string | null): string;
-//# sourceMappingURL=device-metadata-normalization.d.ts.map

@@ -1,3 +1,0 @@
-/** OpenCode Zen model definitions. */
-export function isZenModel(id) { return id.includes('zen'); }
-//# sourceMappingURL=opencode-zen-models.js.map

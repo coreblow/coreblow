@@ -1,9 +1,0 @@
-import { commands } from './commands.data.js';
-export function registerCommand(definition) {
-    commands.set(definition.name, definition);
-    if (definition.aliases) {
-        for (const alias of definition.aliases)
-            commands.set(alias, definition);
-    }
-}
-//# sourceMappingURL=register-command.js.map

@@ -39,7 +39,7 @@ const defaultCoreBlowToolsDeps: CoreBlowToolsDeps = {
   callGateway,
 };
 
-let openClawToolsDeps: CoreBlowToolsDeps = defaultCoreBlowToolsDeps;
+let coreBlowToolsDeps: CoreBlowToolsDeps = defaultCoreBlowToolsDeps;
 
 export function createCoreBlowTools(
   options?: {
@@ -98,7 +98,7 @@ export function createCoreBlowTools(
     allowGatewaySubagentBinding?: boolean;
   } & SpawnedToolContext,
 ): AnyAgentTool[] {
-  const resolvedConfig = options?.config ?? openClawToolsDeps.config;
+  const resolvedConfig = options?.config ?? coreBlowToolsDeps.config;
   const sessionAgentId = resolveSessionAgentId({
     sessionKey: options?.agentSessionKey,
     config: resolvedConfig,
@@ -210,20 +210,20 @@ export function createCoreBlowTools(
       agentSessionKey: options?.agentSessionKey,
       sandboxed: options?.sandboxed,
       config: resolvedConfig,
-      callGateway: openClawToolsDeps.callGateway,
+      callGateway: coreBlowToolsDeps.callGateway,
     }),
     createSessionsHistoryTool({
       agentSessionKey: options?.agentSessionKey,
       sandboxed: options?.sandboxed,
       config: resolvedConfig,
-      callGateway: openClawToolsDeps.callGateway,
+      callGateway: coreBlowToolsDeps.callGateway,
     }),
     createSessionsSendTool({
       agentSessionKey: options?.agentSessionKey,
       agentChannel: options?.agentChannel,
       sandboxed: options?.sandboxed,
       config: resolvedConfig,
-      callGateway: openClawToolsDeps.callGateway,
+      callGateway: coreBlowToolsDeps.callGateway,
     }),
     createSessionsYieldTool({
       sessionId: options?.sessionId,
@@ -290,7 +290,7 @@ export function createCoreBlowTools(
 
 export const __testing = {
   setDepsForTest(overrides?: Partial<CoreBlowToolsDeps>) {
-    openClawToolsDeps = overrides
+    coreBlowToolsDeps = overrides
       ? {
           ...defaultCoreBlowToolsDeps,
           ...overrides,

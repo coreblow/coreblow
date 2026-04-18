@@ -36,18 +36,18 @@ describe("handleSystemRunInvoke mac app exec host routing", () => {
   let previousCoreBlowHome: string | undefined;
 
   beforeEach(() => {
-    previousCoreBlowHome = process.env.OPENCLAW_HOME;
+    previousCoreBlowHome = process.env.COREBLOW_HOME;
     testCoreBlowHome = fs.mkdtempSync(path.join(os.tmpdir(), "coreblow-node-host-home-"));
-    process.env.OPENCLAW_HOME = testCoreBlowHome;
+    process.env.COREBLOW_HOME = testCoreBlowHome;
     clearRuntimeConfigSnapshot();
   });
 
   afterEach(() => {
     clearRuntimeConfigSnapshot();
     if (previousCoreBlowHome === undefined) {
-      delete process.env.OPENCLAW_HOME;
+      delete process.env.COREBLOW_HOME;
     } else {
-      process.env.OPENCLAW_HOME = previousCoreBlowHome;
+      process.env.COREBLOW_HOME = previousCoreBlowHome;
     }
     if (testCoreBlowHome) {
       fs.rmSync(testCoreBlowHome, { recursive: true, force: true });
@@ -231,16 +231,16 @@ describe("handleSystemRunInvoke mac app exec host routing", () => {
     run: (ctx: { tempHome: string }) => Promise<T>;
   }): Promise<T> {
     const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "coreblow-exec-approvals-"));
-    const previousCoreBlowHome = process.env.OPENCLAW_HOME;
-    process.env.OPENCLAW_HOME = tempHome;
+    const previousCoreBlowHome = process.env.COREBLOW_HOME;
+    process.env.COREBLOW_HOME = tempHome;
     saveExecApprovals(params.approvals);
     try {
       return await params.run({ tempHome });
     } finally {
       if (previousCoreBlowHome === undefined) {
-        delete process.env.OPENCLAW_HOME;
+        delete process.env.COREBLOW_HOME;
       } else {
-        process.env.OPENCLAW_HOME = previousCoreBlowHome;
+        process.env.COREBLOW_HOME = previousCoreBlowHome;
       }
       fs.rmSync(tempHome, { recursive: true, force: true });
     }

@@ -1,6 +1,0 @@
-export { getChatChannelMeta, } from "./channel-plugin-common.js";
-export { buildChannelConfigSchema } from "./channel-config-schema.js";
-export function buildGoogleChatProvider(_p) {
-    throw new Error("buildGoogleChatProvider requires @coreblow/googlechat extension");
-}
-//# sourceMappingURL=googlechat.js.map

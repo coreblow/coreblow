@@ -78,16 +78,16 @@ describe("logAcceptedEnvOption", () => {
       {
         VITEST: "",
         NODE_ENV: "development",
-        OPENCLAW_TEST_ENV: "  line one\nline two  ",
+        COREBLOW_TEST_ENV: "  line one\nline two  ",
       },
       () => {
         logAcceptedEnvOption({
-          key: "OPENCLAW_TEST_ENV",
+          key: "COREBLOW_TEST_ENV",
           description: "test option",
           redact: true,
         });
         logAcceptedEnvOption({
-          key: "OPENCLAW_TEST_ENV",
+          key: "COREBLOW_TEST_ENV",
           description: "test option",
           redact: true,
         });
@@ -96,7 +96,7 @@ describe("logAcceptedEnvOption", () => {
 
     expect(loggerMocks.info).toHaveBeenCalledTimes(1);
     expect(loggerMocks.info).toHaveBeenCalledWith(
-      "env: OPENCLAW_TEST_ENV=<redacted> (test option)",
+      "env: COREBLOW_TEST_ENV=<redacted> (test option)",
     );
   });
 
@@ -107,11 +107,11 @@ describe("logAcceptedEnvOption", () => {
       {
         VITEST: "1",
         NODE_ENV: "development",
-        OPENCLAW_BLANK_ENV: "value",
+        COREBLOW_BLANK_ENV: "value",
       },
       () => {
         logAcceptedEnvOption({
-          key: "OPENCLAW_BLANK_ENV",
+          key: "COREBLOW_BLANK_ENV",
           description: "skipped in vitest",
         });
       },
@@ -121,11 +121,11 @@ describe("logAcceptedEnvOption", () => {
       {
         VITEST: "",
         NODE_ENV: "development",
-        OPENCLAW_BLANK_ENV: "   ",
+        COREBLOW_BLANK_ENV: "   ",
       },
       () => {
         logAcceptedEnvOption({
-          key: "OPENCLAW_BLANK_ENV",
+          key: "COREBLOW_BLANK_ENV",
           description: "blank value",
         });
       },

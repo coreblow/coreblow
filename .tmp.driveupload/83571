@@ -1,1 +1,0 @@
-{"version":3,"file":"diagnostics-otel.d.ts","sourceRoot":"","sources":["../../src/plugin-sdk/diagnostics-otel.ts"],"names":[],"mappings":"AAAA,2DAA2D;AAC3D,wBAAgB,eAAe,CAAC,OAAO,CAAC,EAAE;IAAE,WAAW,CAAC,EAAE,MAAM,CAAC;IAAC,QAAQ,CAAC,EAAE,MAAM,CAAA;CAAE,GAAG,IAAI,CAA4C;AACxI,wBAAgB,aAAa,CAAC,KAAK,CAAC,EAAE,MAAM,GAAG,OAAO,CAAiB"}

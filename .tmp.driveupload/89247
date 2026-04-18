@@ -1,1 +1,0 @@
-{"version":3,"file":"session-tool-result-state.d.ts","sourceRoot":"","sources":["../../src/agents/session-tool-result-state.ts"],"names":[],"mappings":"AAEA,wBAAgB,gBAAgB,CAAC,SAAS,EAAE,MAAM,EAAE,KAAK,EAAE,MAAM,GAAG,IAAI,CAAkJ;AAC1N,wBAAgB,kBAAkB,CAAC,SAAS,EAAE,MAAM,GAAG;IAAE,KAAK,EAAE,MAAM,CAAC;IAAC,UAAU,EAAE,MAAM,CAAA;CAAE,CAA0E;AACtK,wBAAgB,oBAAoB,IAAI,IAAI,CAA6B"}

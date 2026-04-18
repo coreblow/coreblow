@@ -50,7 +50,7 @@ export function registerSecretsCli(program: Command) {
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/gateway/security", "docs.coreblow.ai/gateway/security")}\n`,
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/gateway/security", "docs.coreblow.com/gateway/security")}\n`,
     );
 
   addGatewayClientOptions(

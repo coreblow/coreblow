@@ -1,7 +1,0 @@
-/** plugin-sdk/collection-runtime.ts [ADAPT] openclaw-main */
-export declare function createRingBuffer<T>(maxSize: number): {
-    push: (item: T) => void;
-    toArray: () => T[];
-    size: () => number;
-};
-//# sourceMappingURL=collection-runtime.d.ts.map

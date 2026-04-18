@@ -1,8 +1,0 @@
-export declare function loadJsonFile<T>(filePath: string): T | null;
-export declare function saveJsonFile(filePath: string, data: unknown): void;
-export declare function readJsonFileWithFallback<T>(filePath: string, fallback: T): Promise<{
-    value: T;
-    exists: boolean;
-}>;
-export declare function writeJsonFileAtomically(filePath: string, data: unknown): Promise<void>;
-//# sourceMappingURL=json-store.d.ts.map

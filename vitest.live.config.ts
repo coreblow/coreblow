@@ -1,7 +1,7 @@
 /**
  * vitest.live.config.ts
  *
- * Live integration test runner — port pola OpenClaw `vitest.live.config.ts`.
+ * Live integration test runner — port pola CoreBlow `vitest.live.config.ts`.
  *
  * Live tests berinteraksi dengan services nyata:
  *   - Running CoreBlow gateway instance
@@ -11,7 +11,7 @@
  * Semua live tests WAJIB pakai `describe.skipIf(!COREBLOW_TEST_URL)` atau
  * equivalent — agar tidak fail di CI environment tanpa services.
  *
- * Pola OpenClaw (vitest.live.config.ts):
+ * Pola CoreBlow (vitest.live.config.ts):
  *   - disableConsoleIntercept: true  → output provider terlihat realtime
  *   - maxWorkers: 1                  → live tests TIDAK boleh parallel
  *   - include: **\/*.live.test.ts    → hanya file dengan `.live.test.ts` suffix
@@ -27,7 +27,7 @@
  *   npm run test:live
  *   COREBLOW_TEST_URL=http://localhost:3100 npm run test:live
  *
- * @see openclaw-main/vitest.live.config.ts
+ * @see coreblow-main/vitest.live.config.ts
  */
 import { defineConfig } from 'vitest/config';
 
@@ -36,7 +36,7 @@ export default defineConfig({
         name: 'live',
         include: [
             'tests/live/**/*.live.test.ts',
-            // Allow co-located live tests in src/ following OpenClaw pattern
+            // Allow co-located live tests in src/ following CoreBlow pattern
             'src/**/*.live.test.ts',
         ],
         exclude: [
@@ -44,11 +44,11 @@ export default defineConfig({
             '**/dist/**',
         ],
 
-        // Pola OpenClaw: disable console intercept agar output LLM/gateway provider
+        // Pola CoreBlow: disable console intercept agar output LLM/gateway provider
         // terlihat realtime — penting untuk debugging live connection issues.
         disableConsoleIntercept: true,
 
-        // Pola OpenClaw: single worker — live tests TIDAK boleh parallel.
+        // Pola CoreBlow: single worker — live tests TIDAK boleh parallel.
         // Rate limits, connection pools, dan shared state akan corrupt jika parallel.
         maxWorkers: 1,
         minWorkers: 1,

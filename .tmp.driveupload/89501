@@ -1,9 +1,0 @@
-/** Session file repair — fix corrupted session files. */
-export function repairJsonl(content) { return content.split('\n').filter((line) => { try {
-    JSON.parse(line);
-    return true;
-}
-catch {
-    return false;
-} }); }
-//# sourceMappingURL=session-file-repair.js.map

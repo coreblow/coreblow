@@ -1,8 +1,0 @@
-/** Model reference profiles. */
-export interface ModelRefProfile {
-    modelId: string;
-    provider: string;
-    profileId?: string;
-}
-export declare function parseModelRef(ref: string): ModelRefProfile;
-//# sourceMappingURL=model-ref-profile.d.ts.map

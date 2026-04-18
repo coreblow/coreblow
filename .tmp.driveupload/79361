@@ -1,3 +1,0 @@
-export function sanitizeImage(buffer) { return buffer; }
-export function isImageSafe(buffer) { return buffer.length > 0 && buffer.length < 10 * 1024 * 1024; }
-//# sourceMappingURL=image-sanitization.js.map

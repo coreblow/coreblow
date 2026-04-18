@@ -1,3 +1,0 @@
-/** plugin-sdk/web-media.ts [PORT] openclaw-main */
-export { loadWebMedia, loadWebMediaRaw, optimizeImageToJpeg, getDefaultLocalRoots } from "./media-runtime.js";
-//# sourceMappingURL=web-media.d.ts.map

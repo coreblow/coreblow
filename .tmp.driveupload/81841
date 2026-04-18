@@ -1,8 +1,0 @@
-export declare class NodeSubscriptionManager {
-    private subscriptions;
-    subscribe(nodeId: string, sessionKey: string): void;
-    unsubscribe(nodeId: string, sessionKey: string): void;
-    getSubscribers(sessionKey: string): string[];
-    handleNodeDisconnect(nodeId: string): void;
-}
-//# sourceMappingURL=server-node-subscriptions.d.ts.map

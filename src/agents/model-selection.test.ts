@@ -108,7 +108,7 @@ describe("model-selection", () => {
   describe("normalizeProviderId", () => {
     it("should normalize provider names", () => {
       expect(normalizeProviderId("Anthropic")).toBe("anthropic");
-      expect(normalizeProviderId("Z.ai")).toBe("z.ai");
+      expect(normalizeProviderId("Z.ai")).toBe("zai");
       expect(normalizeProviderId("z-ai")).toBe("zai");
       expect(normalizeProviderId("OpenCode-Zen")).toBe("opencodezen");
       expect(normalizeProviderId("qwen")).toBe("qwen");
@@ -122,8 +122,8 @@ describe("model-selection", () => {
 
   describe("normalizeProviderIdForAuth", () => {
     it("maps coding-plan variants to base provider for auth lookup", () => {
-      expect(normalizeProviderIdForAuth("volcengine-plan")).toBe("volcengineplan");
-      expect(normalizeProviderIdForAuth("byteplus-plan")).toBe("byteplusplan");
+      expect(normalizeProviderIdForAuth("volcengine-plan")).toBe("volcengine");
+      expect(normalizeProviderIdForAuth("byteplus-plan")).toBe("byteplus");
       expect(normalizeProviderIdForAuth("openai")).toBe("openai");
     });
   });
@@ -640,7 +640,7 @@ describe("model-selection", () => {
           model: "\u001B[31mclaude-3-5-sonnet\nspoof",
         });
         const warning = warnSpy.mock.calls[0]?.[0] as string;
-        expect(warning).toContain('Falling back to "anthropic/claude-3-5-sonnet"');
+        expect(warning).toContain('Falling back to "anthropic/claude-3-5-sonnetspoof"');
         expect(warning).not.toContain("\u001B");
         expect(warning).not.toContain("\n");
       } finally {

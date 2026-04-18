@@ -1,1 +1,0 @@
-/** CoreBlow — Types: Plugins */ export interface PluginConfig { name: string; version: string; enabled: boolean; config?: Record<string, unknown>; } export type PluginsConfig = Record<string, PluginConfig>;

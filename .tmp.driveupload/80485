@@ -1,2 +1,0 @@
-export function checkPermissions(_message, _config) { return { allowed: true }; }
-//# sourceMappingURL=permissions.js.map

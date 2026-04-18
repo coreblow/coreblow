@@ -1,6 +1,0 @@
-/** plugin-sdk/state-paths.ts [ADAPT] openclaw-main */
-import path from "node:path";
-import os from "node:os";
-export function resolveDefaultStateDir() { return path.join(os.homedir(), ".coreblow", "state"); }
-export function resolveStatePath(key) { return path.join(resolveDefaultStateDir(), key); }
-//# sourceMappingURL=state-paths.js.map

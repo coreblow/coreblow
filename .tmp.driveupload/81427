@@ -1,6 +1,0 @@
-/**
- * gateway/server-cron.ts — Builder for passing Gateway dependencies into the CronService
- */
-import { CronService } from '../cron/engine.js';
-export declare function buildGatewayCronService(config: unknown): CronService;
-//# sourceMappingURL=server-cron.d.ts.map

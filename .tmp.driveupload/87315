@@ -1,3 +1,0 @@
-/** Shell exec display. */
-export declare function formatShellPrompt(cwd?: string): string;
-//# sourceMappingURL=tool-display-exec-shell.d.ts.map

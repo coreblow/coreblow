@@ -1,9 +1,0 @@
-/**
- * plugin-sdk/provider-reasoning.ts
- * [ADAPT] openclaw-main/src/plugin-sdk/provider-reasoning.ts
- *
- * Reasoning model heuristic helpers.
- */
-/** Check if a model ID is likely a reasoning/thinking model. */
-export declare function isReasoningModelHeuristic(modelId: string): boolean;
-//# sourceMappingURL=provider-reasoning.d.ts.map

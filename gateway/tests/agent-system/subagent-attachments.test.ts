@@ -1,5 +1,5 @@
 /**
- * Tests for Subagent Attachments (OpenClaw Parity)
+ * Tests for Subagent Attachments (CoreBlow Parity)
  *
  * Covers: base64 decode, limits resolution, materialize attachments,
  * cleanup, name validation, size limits, duplicate detection.

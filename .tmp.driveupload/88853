@@ -1,4 +1,0 @@
-/** Tool use event handlers. */
-export function handleToolUseStart(toolName, toolId) { return { name: toolName, id: toolId }; }
-export function handleToolResult(toolId, result) { return { toolId, result }; }
-//# sourceMappingURL=pi-embedded-subscribe.handlers.tools.js.map

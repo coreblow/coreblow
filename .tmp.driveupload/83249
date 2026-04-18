@@ -1,4 +1,0 @@
-export function createNonInteractiveRuntime() {
-    return { prompt: async (msg) => { throw new Error(`Interactive prompt required: ${msg}`); }, confirm: async () => false };
-}
-//# sourceMappingURL=interactive-runtime.js.map

@@ -1,4 +1,0 @@
-/** Subagent registry helper utilities. */
-export function generateRegistryKey(parentId, agentId) { return `${parentId}:${agentId}`; }
-export function parseRegistryKey(key) { const [parentId, agentId] = key.split(':'); return { parentId, agentId }; }
-//# sourceMappingURL=subagent-registry-helpers.js.map

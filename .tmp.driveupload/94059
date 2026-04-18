@@ -1,1 +1,0 @@
-export async function syncLabels(repo: string) { console.log(`Syncing labels for ${repo}`); return { synced: true }; }

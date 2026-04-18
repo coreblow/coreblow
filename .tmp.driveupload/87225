@@ -1,6 +1,0 @@
-import type { AgentEngine } from './agent-engine.js';
-/**
- * Register all built-in tools on the engine.
- */
-export declare function registerBuiltinTools(engine: AgentEngine): void;
-//# sourceMappingURL=tool-definitions.d.ts.map

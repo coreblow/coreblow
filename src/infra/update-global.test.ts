@@ -14,7 +14,7 @@ import {
   globalInstallFallbackArgs,
   isExplicitPackageInstallSpec,
   isMainPackageTarget,
-  OPENCLAW_MAIN_PACKAGE_SPEC,
+  COREBLOW_MAIN_PACKAGE_SPEC,
   resolveGlobalPackageRoot,
   resolveGlobalInstallSpec,
   resolveGlobalRoot,
@@ -30,8 +30,8 @@ describe("update global helpers", () => {
   });
 
   it("prefers explicit package spec overrides", () => {
-    envSnapshot = captureEnv(["OPENCLAW_UPDATE_PACKAGE_SPEC"]);
-    process.env.OPENCLAW_UPDATE_PACKAGE_SPEC = "file:/tmp/coreblow.tgz";
+    envSnapshot = captureEnv(["COREBLOW_UPDATE_PACKAGE_SPEC"]);
+    process.env.COREBLOW_UPDATE_PACKAGE_SPEC = "file:/tmp/coreblow.tgz";
 
     expect(resolveGlobalInstallSpec({ packageName: "coreblow", tag: "latest" })).toBe(
       "file:/tmp/coreblow.tgz",
@@ -40,7 +40,7 @@ describe("update global helpers", () => {
       resolveGlobalInstallSpec({
         packageName: "coreblow",
         tag: "beta",
-        env: { OPENCLAW_UPDATE_PACKAGE_SPEC: "coreblow@next" },
+        env: { COREBLOW_UPDATE_PACKAGE_SPEC: "coreblow@next" },
       }),
     ).toBe("coreblow@next");
   });
@@ -68,7 +68,7 @@ describe("update global helpers", () => {
 
   it("maps main and explicit install specs for global installs", () => {
     expect(resolveGlobalInstallSpec({ packageName: "coreblow", tag: "main" })).toBe(
-      OPENCLAW_MAIN_PACKAGE_SPEC,
+      COREBLOW_MAIN_PACKAGE_SPEC,
     );
     expect(
       resolveGlobalInstallSpec({

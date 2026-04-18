@@ -244,7 +244,7 @@ describe("provider usage loading", () => {
     await withTempHome(
       async (tempHome) => {
         const agentDir = path.join(
-          process.env.OPENCLAW_STATE_DIR ?? path.join(tempHome, ".coreblow"),
+          process.env.COREBLOW_STATE_DIR ?? path.join(tempHome, ".coreblow"),
           "agents",
           "main",
           "agent",
@@ -303,7 +303,7 @@ describe("provider usage loading", () => {
       },
       {
         env: {
-          OPENCLAW_STATE_DIR: (home) => path.join(home, ".coreblow"),
+          COREBLOW_STATE_DIR: (home) => path.join(home, ".coreblow"),
         },
         prefix: "coreblow-provider-usage-",
       },

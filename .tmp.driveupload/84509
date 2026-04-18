@@ -1,9 +1,0 @@
-export const HUGGINGFACE_BASE_URL = "https://api-inference.huggingface.co";
-export const HUGGINGFACE_DEFAULT_MODEL_REF = "huggingface:mistralai/Mistral-7B-Instruct-v0.3";
-export const HUGGINGFACE_MODEL_CATALOG = [];
-export const HUGGINGFACE_POLICY_SUFFIXES = [];
-export function isHuggingfacePolicyLocked(_id) { return false; }
-export function buildHuggingfaceModelDefinition(params) { return { id: params.id, label: params.label }; }
-export function buildHuggingfaceProvider(_p) { throw new Error("buildHuggingfaceProvider requires @coreblow/huggingface extension"); }
-export async function discoverHuggingfaceModels(_p) { return []; }
-//# sourceMappingURL=huggingface.js.map

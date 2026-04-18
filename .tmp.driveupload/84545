@@ -1,3 +1,0 @@
-/** plugin-sdk/kimi-coding.ts [ADAPT] openclaw-main */
-export declare function buildKimiCodingProvider(_p: unknown): unknown;
-//# sourceMappingURL=kimi-coding.d.ts.map

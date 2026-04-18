@@ -61,7 +61,7 @@ type ExternalCatalogEntry = {
   description?: string;
 } & Partial<Record<ManifestKey, CoreBlowPackageManifest>>;
 
-const ENV_CATALOG_PATHS = ["OPENCLAW_PLUGIN_CATALOG_PATHS", "OPENCLAW_MPM_CATALOG_PATHS"];
+const ENV_CATALOG_PATHS = ["COREBLOW_PLUGIN_CATALOG_PATHS", "COREBLOW_MPM_CATALOG_PATHS"];
 const OFFICIAL_CHANNEL_CATALOG_RELATIVE_PATH = path.join("dist", "channel-catalog.json");
 
 type ManifestKey = typeof MANIFEST_KEY;

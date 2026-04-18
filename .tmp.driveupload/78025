@@ -1,8 +1,0 @@
-/**
- * src/bootstrap/node-startup-env.ts
- * Mock missing bootstrap dependencies
- */
-export function resolveNodeStartupTlsEnvironment(params) {
-    return undefined;
-}
-//# sourceMappingURL=node-startup-env.js.map

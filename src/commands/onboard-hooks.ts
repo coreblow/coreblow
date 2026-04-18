@@ -15,7 +15,7 @@ export async function setupInternalHooks(
       "Hooks let you automate actions when agent commands are issued.",
       "Example: Save session context to memory when you issue /new or /reset.",
       "",
-      "Learn more: https://docs.coreblow.ai/automation/hooks",
+      "Learn more: https://docs.coreblow.com/automation/hooks",
     ].join("\n"),
     "Hooks",
   );

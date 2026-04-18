@@ -1,5 +1,0 @@
-import { statusCommand } from './status.js';
-export async function statusJsonCommand(opts, runtime) {
-    await statusCommand({ ...opts, json: true }, runtime);
-}
-//# sourceMappingURL=status-json.js.map

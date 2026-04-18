@@ -65,7 +65,7 @@ export async function setupWizardCommand(
     runtime.error(
       [
         "Non-interactive setup requires explicit risk acknowledgement.",
-        "Read: https://docs.coreblow.ai/security",
+        "Read: https://docs.coreblow.com/security",
         `Re-run with: ${formatCliCommand("coreblow onboard --non-interactive --accept-risk ...")}`,
       ].join("\n"),
     );
@@ -88,7 +88,7 @@ export async function setupWizardCommand(
         "Windows detected - CoreBlow runs great on WSL2!",
         "Native Windows might be trickier.",
         "Quick setup: wsl --install (one command, one reboot)",
-        "Guide: https://docs.coreblow.ai/windows",
+        "Guide: https://docs.coreblow.com/windows",
       ].join("\n"),
     );
   }

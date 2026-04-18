@@ -1,1 +1,0 @@
-/** CoreBlow — Plugin Status */ export type PluginStatus = "connected" | "disconnected" | "error" | "initializing"; export function formatPluginStatus(name: string, status: PluginStatus): string { const icons: Record<PluginStatus, string> = { connected: "🟢", disconnected: "🔴", error: "⚠️", initializing: "🟡" }; return (icons[status] ?? "❓") + " " + name; }

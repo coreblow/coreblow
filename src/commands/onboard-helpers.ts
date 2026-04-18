@@ -153,8 +153,8 @@ export function formatControlUiSshHint(params: {
     localUrl,
     authedUrl,
     "Docs:",
-    "https://docs.coreblow.ai/gateway/remote",
-    "https://docs.coreblow.ai/web/control-ui",
+    "https://docs.coreblow.com/gateway/remote",
+    "https://docs.coreblow.com/web/control-ui",
   ]
     .filter(Boolean)
     .join("\n");

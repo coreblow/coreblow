@@ -1,9 +1,0 @@
-/**
- * CoreBlow — Safe Eval Command
- *
- * Executes expressions through SandboxExecutor (vm.createContext)
- * instead of raw eval(). Provides timeout protection and
- * restricted global access.
- */
-export declare function evalCommand(args: string[]): Promise<string>;
-//# sourceMappingURL=eval-cmd.d.ts.map

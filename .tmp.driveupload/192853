@@ -1,2 +1,0 @@
-export declare const USER_AGENT = "@line/bot-sdk/11.0.0";
-//# sourceMappingURL=version.d.ts.map

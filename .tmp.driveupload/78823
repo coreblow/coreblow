@@ -1,9 +1,0 @@
-/**
- * commands/handlers/session.ts — Session management commands
- */
-import type { CommandContext } from '../types.js';
-export declare function handleSessionList(ctx: CommandContext): Promise<string>;
-export declare function handleSessionClear(ctx: CommandContext): Promise<string>;
-export declare function handleSessionExport(ctx: CommandContext): Promise<string>;
-export declare function handleSessionSwitch(ctx: CommandContext): Promise<string>;
-//# sourceMappingURL=session.d.ts.map

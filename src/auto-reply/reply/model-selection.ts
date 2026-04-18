@@ -42,7 +42,7 @@ type ModelSelectionState = {
 };
 
 function shouldLogModelSelectionTiming(): boolean {
-  return process.env.OPENCLAW_DEBUG_INGRESS_TIMING === "1";
+  return process.env.COREBLOW_DEBUG_INGRESS_TIMING === "1";
 }
 
 let modelCatalogRuntimePromise:

@@ -1935,8 +1935,8 @@ describe("listSessionsFromStore subagent metadata", () => {
 
       const row = withEnv(
         {
-          OPENCLAW_STATE_DIR: stateDir,
-          OPENCLAW_TEST_READ_SUBAGENT_RUNS_FROM_DISK: "1",
+          COREBLOW_STATE_DIR: stateDir,
+          COREBLOW_TEST_READ_SUBAGENT_RUNS_FROM_DISK: "1",
         },
         () => {
           const result = listSessionsFromStore({

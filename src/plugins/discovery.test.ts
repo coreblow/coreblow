@@ -35,9 +35,9 @@ function hasDiagnosticSourceSuffix(
 
 function buildDiscoveryEnv(stateDir: string): NodeJS.ProcessEnv {
   return {
-    OPENCLAW_STATE_DIR: stateDir,
-    OPENCLAW_HOME: undefined,
-    OPENCLAW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
+    COREBLOW_STATE_DIR: stateDir,
+    COREBLOW_HOME: undefined,
+    COREBLOW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
   };
 }
 
@@ -47,7 +47,7 @@ function buildCachedDiscoveryEnv(
 ): NodeJS.ProcessEnv {
   return {
     ...buildDiscoveryEnv(stateDir),
-    OPENCLAW_PLUGIN_DISCOVERY_CACHE_MS: "5000",
+    COREBLOW_PLUGIN_DISCOVERY_CACHE_MS: "5000",
     ...overrides,
   };
 }
@@ -698,8 +698,8 @@ describe("discoverCoreBlowPlugins", () => {
       const result = discoverCoreBlowPlugins({
         env: {
           ...process.env,
-          OPENCLAW_STATE_DIR: stateDir,
-          OPENCLAW_BUNDLED_PLUGINS_DIR: bundledDir,
+          COREBLOW_STATE_DIR: stateDir,
+          COREBLOW_BUNDLED_PLUGINS_DIR: bundledDir,
         },
       });
 

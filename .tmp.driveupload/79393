@@ -1,6 +1,0 @@
-/**
- * web/api-response.ts
- */
-export function jsonResponse(data, status = 200) { return { status, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }; }
-export function errorResponse(message, status = 500) { return jsonResponse({ error: message }, status); }
-//# sourceMappingURL=api-response.js.map

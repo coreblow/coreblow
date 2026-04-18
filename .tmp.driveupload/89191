@@ -1,4 +1,0 @@
-/** Moonshot provider compatibility. */
-export declare function isMoonshotModel(id: string): boolean;
-export declare function getMoonshotEndpoint(): string;
-//# sourceMappingURL=moonshot-provider-compat.d.ts.map

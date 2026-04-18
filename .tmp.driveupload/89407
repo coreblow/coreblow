@@ -1,8 +1,0 @@
-/** agents/bash-tools.exec-approval-request.ts — Exec approval request. */
-import type { ExecApproval, ExecRequest } from './bash-tools.exec-types.js';
-export declare function requestApproval(request: ExecRequest): Promise<ExecApproval>;
-export declare function approveRequest(requestId: string, approvedBy?: string): boolean;
-export declare function denyRequest(requestId: string): boolean;
-export declare function getPendingCount(): number;
-export declare function clearPendingApprovals(): void;
-//# sourceMappingURL=bash-tools.exec-approval-request.d.ts.map

@@ -1,7 +1,0 @@
-export declare function resolveSessionDir(baseDir: string, sessionId: string): string;
-export declare function ensureSessionDir(baseDir: string, sessionId: string): string;
-export declare function resolveTranscriptPath(baseDir: string, sessionId: string): string;
-export declare function resolveSessionMetaPath(baseDir: string, sessionId: string): string;
-export declare function listSessions(baseDir: string): string[];
-export declare function deleteSession(baseDir: string, sessionId: string): boolean;
-//# sourceMappingURL=session-dirs.d.ts.map

@@ -1,7 +1,0 @@
-/** System prompt report generation. */
-export declare function generatePromptReport(prompt: string): {
-    charCount: number;
-    estimatedTokens: number;
-    sections: number;
-};
-//# sourceMappingURL=system-prompt-report.d.ts.map

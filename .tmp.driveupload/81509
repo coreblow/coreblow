@@ -1,9 +1,0 @@
-import type { GatewayLogger } from "./gateway-types.js";
-export declare function getMemoryStatus(): {
-    rssMB: number;
-    heapTotalMB: number;
-    heapUsedMB: number;
-    systemFreeMB: number;
-};
-export declare function checkStartupMemorySettings(log: GatewayLogger): void;
-//# sourceMappingURL=server-startup-memory.d.ts.map

@@ -1,7 +1,0 @@
-/**
- * plugin-sdk/whatsapp-login-qr.ts
- * [ADAPT] openclaw-main — Stub for @coreblow/whatsapp.
- */
-export async function startWebLoginWithQr(_p) { return null; }
-export async function waitForWebLogin(_p) { return false; }
-//# sourceMappingURL=whatsapp-login-qr.js.map

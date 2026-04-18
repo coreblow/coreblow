@@ -1,3 +1,0 @@
-import type { AutoPilotDiagnostic } from './types.js';
-export declare function getDiagnostics(category?: string): AutoPilotDiagnostic[];
-//# sourceMappingURL=get-diagnostics.d.ts.map

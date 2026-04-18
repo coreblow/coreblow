@@ -1,3 +1,0 @@
-/** PI embedded subscribe tool integration. */
-export declare function shouldExecuteTool(toolName: string, allowedTools?: string[]): boolean;
-//# sourceMappingURL=pi-embedded-subscribe.tools.d.ts.map

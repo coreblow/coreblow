@@ -1,2 +1,0 @@
-export function formatInstallResult(result) { return result.success ? `✅ Installed ${result.skillId} v${result.version}` : `❌ Failed: ${result.error}`; }
-//# sourceMappingURL=skills-install.js.map

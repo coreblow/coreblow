@@ -269,7 +269,7 @@ export function pickTagline(options: TaglineOptions = {}): string {
     return DEFAULT_TAGLINE;
   }
   const env = options.env ?? process.env;
-  const override = env?.OPENCLAW_TAGLINE_INDEX;
+  const override = env?.COREBLOW_TAGLINE_INDEX;
   if (override !== undefined) {
     const parsed = Number.parseInt(override, 10);
     if (!Number.isNaN(parsed) && parsed >= 0) {

@@ -28,7 +28,7 @@ type SandboxExplainOptions = {
   json: boolean;
 };
 
-const SANDBOX_DOCS_URL = "https://docs.coreblow.ai/sandbox";
+const SANDBOX_DOCS_URL = "https://docs.coreblow.com/sandbox";
 
 function normalizeExplainSessionKey(params: {
   cfg: CoreBlowConfig;
@@ -331,7 +331,7 @@ export async function sandboxExplainCommand(
     lines.push(`  - ${key}`);
   }
   lines.push("");
-  lines.push(`${key("Docs:")} ${formatDocsLink("/sandbox", "docs.coreblow.ai/sandbox")}`);
+  lines.push(`${key("Docs:")} ${formatDocsLink("/sandbox", "docs.coreblow.com/sandbox")}`);
 
   runtime.log(`${lines.join("\n")}\n`);
 }

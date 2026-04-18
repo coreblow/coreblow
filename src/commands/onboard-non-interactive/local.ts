@@ -260,7 +260,7 @@ export async function runNonInteractiveLocalSetup(params: {
 
   if (!opts.json) {
     runtime.log(
-      `Tip: run \`${formatCliCommand("coreblow configure --section web")}\` to store your Brave API key for web_search. Docs: https://docs.coreblow.ai/tools/web`,
+      `Tip: run \`${formatCliCommand("coreblow configure --section web")}\` to store your Brave API key for web_search. Docs: https://docs.coreblow.com/tools/web`,
     );
   }
 }

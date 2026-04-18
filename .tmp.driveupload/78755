@@ -1,1 +1,0 @@
-{"version":3,"file":"autocomplete.d.ts","sourceRoot":"","sources":["../../src/commands/autocomplete.ts"],"names":[],"mappings":"AAAA;;GAEG;AACH,qBAAa,YAAY;IAAG,OAAO,CAAC,QAAQ,CAAgB;IAAC,WAAW,CAAC,IAAI,EAAE,MAAM,EAAE;IAA4B,QAAQ,CAAC,OAAO,EAAE,MAAM,GAAG,MAAM,EAAE;IAAqE,YAAY,CAAC,OAAO,EAAE,MAAM,EAAE,OAAO,EAAE,MAAM,GAAG,MAAM,EAAE;CAAiB"}

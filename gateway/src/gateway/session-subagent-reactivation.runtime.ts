@@ -1,1 +1,0 @@
-/** CoreBlow — Session Subagent Reactivation Runtime */ const activeSubagents = new Map<string, string>(); export function trackSubagent(sessionId: string, agentId: string): void { activeSubagents.set(sessionId, agentId); } export function getActiveSubagent(sessionId: string): string | undefined { return activeSubagents.get(sessionId); }

@@ -1,3 +1,0 @@
-/** Workspace command execution. */
-export { execCommand } from './bash-tools.js';
-//# sourceMappingURL=workspace-run.js.map

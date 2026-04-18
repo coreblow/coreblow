@@ -1,1 +1,0 @@
-/** CoreBlow — Container Target */ export interface ContainerTarget { image: string; name?: string; env?: Record<string, string>; } export function resolveContainerTarget(): ContainerTarget | null { return null; }

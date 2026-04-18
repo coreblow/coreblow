@@ -1,4 +1,0 @@
-/** agents/identity-avatar.ts — Avatar utilities. */
-export function getDefaultAvatar() { return '🤖'; }
-export function resolveAvatar(avatar) { return avatar ?? getDefaultAvatar(); }
-//# sourceMappingURL=identity-avatar.js.map

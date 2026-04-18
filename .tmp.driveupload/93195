@@ -1,1 +1,0 @@
-export class ACPServer { private running = false; async start(port = 3100) { this.running = true; return port; } async stop() { this.running = false; } isRunning() { return this.running; } }

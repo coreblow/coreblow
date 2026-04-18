@@ -1,4 +1,0 @@
-export declare function redactPayload(payload: unknown, depth?: number): unknown;
-export declare function redactHeaders(headers: Record<string, string>): Record<string, string>;
-export declare function redactUrl(url: string): string;
-//# sourceMappingURL=payload-redaction.d.ts.map

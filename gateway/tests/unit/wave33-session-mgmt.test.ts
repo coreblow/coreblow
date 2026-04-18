@@ -2,7 +2,7 @@
  * Wave 33: Session Management (persistence, locks, export, fork)
  * TARGET: ~40 tests
  *
- * OpenClaw ref: session/persistence.ts + session/write-lock.ts + conversation/branch-manager.ts
+ * CoreBlow ref: session/persistence.ts + session/write-lock.ts + conversation/branch-manager.ts
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';

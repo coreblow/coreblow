@@ -1,5 +1,0 @@
-/** Subagent registry cleanup. */
-export declare function cleanupStaleEntries<T extends {
-    lastActivityAt: number;
-}>(entries: Map<string, T>, maxAgeMs: number): number;
-//# sourceMappingURL=subagent-registry-cleanup.d.ts.map

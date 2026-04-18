@@ -1,6 +1,0 @@
-export declare function parseRestartRequestParams(params: Record<string, unknown>): {
-    sessionKey?: string;
-    note?: string;
-    restartDelayMs?: number;
-};
-//# sourceMappingURL=restart-request.d.ts.map

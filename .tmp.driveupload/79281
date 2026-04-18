@@ -1,1 +1,0 @@
-{"version":3,"file":"install.d.ts","sourceRoot":"","sources":["../../src/skills/install.ts"],"names":[],"mappings":"AAAA;;;;GAIG;AAOH,MAAM,WAAW,aAAa;IAC1B,OAAO,EAAE,OAAO,CAAC;IACjB,OAAO,CAAC,EAAE,MAAM,CAAC;IACjB,KAAK,CAAC,EAAE,MAAM,CAAC;CAClB;AAED;;GAEG;AACH,wBAAsB,mBAAmB,CAAC,GAAG,EAAE,MAAM,EAAE,SAAS,EAAE,MAAM,GAAG,OAAO,CAAC,aAAa,CAAC,CAkChG"}

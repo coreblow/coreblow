@@ -1,1 +1,0 @@
-/** CoreBlow — Compaction Hooks */ export type CompactionHook = (messages: unknown[]) => unknown[]; const hooks: CompactionHook[] = []; export function addCompactionHook(hook: CompactionHook): void { hooks.push(hook); }

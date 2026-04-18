@@ -1,5 +1,0 @@
-export declare const COREBLOW_CLI_ENV_VAR = "COREBLOW_CLI";
-export declare const COREBLOW_CLI_ENV_VALUE = "1";
-export declare function markCoreBlowExecEnv<T extends Record<string, string | undefined>>(env: T): T;
-export declare function ensureCoreBlowExecMarkerOnProcess(env?: NodeJS.ProcessEnv): NodeJS.ProcessEnv;
-//# sourceMappingURL=coreblow-exec-env.d.ts.map

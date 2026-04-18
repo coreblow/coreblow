@@ -1,6 +1,0 @@
-export declare const sessionResetService: {
-    resetSession(sessionKey: string): Promise<boolean>;
-    compactSession(sessionKey: string): Promise<boolean>;
-    archiveSession(sessionKey: string): Promise<boolean>;
-};
-//# sourceMappingURL=session-reset-service.d.ts.map

@@ -8,8 +8,8 @@ type HomeEnvSnapshot = {
   USERPROFILE: string | undefined;
   HOMEDRIVE: string | undefined;
   HOMEPATH: string | undefined;
-  OPENCLAW_STATE_DIR: string | undefined;
-  OPENCLAW_AGENT_DIR: string | undefined;
+  COREBLOW_STATE_DIR: string | undefined;
+  COREBLOW_AGENT_DIR: string | undefined;
   PI_CODING_AGENT_DIR: string | undefined;
 };
 
@@ -19,8 +19,8 @@ function snapshotHomeEnv(): HomeEnvSnapshot {
     USERPROFILE: process.env.USERPROFILE,
     HOMEDRIVE: process.env.HOMEDRIVE,
     HOMEPATH: process.env.HOMEPATH,
-    OPENCLAW_STATE_DIR: process.env.OPENCLAW_STATE_DIR,
-    OPENCLAW_AGENT_DIR: process.env.OPENCLAW_AGENT_DIR,
+    COREBLOW_STATE_DIR: process.env.COREBLOW_STATE_DIR,
+    COREBLOW_AGENT_DIR: process.env.COREBLOW_AGENT_DIR,
     PI_CODING_AGENT_DIR: process.env.PI_CODING_AGENT_DIR,
   };
 }
@@ -56,8 +56,8 @@ export function createTempHomeHarness(options: { prefix: string; beforeEachCase?
     const envSnapshot = snapshotHomeEnv();
     process.env.HOME = home;
     process.env.USERPROFILE = home;
-    process.env.OPENCLAW_STATE_DIR = path.join(home, ".coreblow");
-    process.env.OPENCLAW_AGENT_DIR = path.join(home, ".coreblow", "agent");
+    process.env.COREBLOW_STATE_DIR = path.join(home, ".coreblow");
+    process.env.COREBLOW_AGENT_DIR = path.join(home, ".coreblow", "agent");
     process.env.PI_CODING_AGENT_DIR = path.join(home, ".coreblow", "agent");
 
     if (process.platform === "win32") {

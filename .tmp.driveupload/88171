@@ -1,3 +1,0 @@
-/** Skill download management. */
-export function buildDownloadUrl(registry, skillId, version) { return `${registry}/${skillId}/${version}.tar.gz`; }
-//# sourceMappingURL=skills-install-download.js.map

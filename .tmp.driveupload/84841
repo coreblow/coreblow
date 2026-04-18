@@ -1,3 +1,0 @@
-/** plugin-sdk/google-model-id.ts [PORT] openclaw-main */
-export { normalizeAntigravityModelId, normalizeGoogleModelId } from "./google.js";
-//# sourceMappingURL=google-model-id.d.ts.map

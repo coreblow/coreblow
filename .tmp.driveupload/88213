@@ -1,3 +1,0 @@
-/** PI embedded content block chunking. */
-export declare function chunkBlocks(blocks: unknown[], maxPerChunk?: number): unknown[][];
-//# sourceMappingURL=pi-embedded-block-chunker.d.ts.map

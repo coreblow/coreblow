@@ -1,3 +1,0 @@
-export declare function resolveDocsPath(baseDir: string): string;
-export declare function resolveApiDocsPath(baseDir: string): string;
-//# sourceMappingURL=docs-path.d.ts.map

@@ -1,1 +1,0 @@
-{"version":3,"file":"chat-sanitize.d.ts","sourceRoot":"","sources":["../../../src/gateway/server-methods/chat-sanitize.ts"],"names":[],"mappings":"AACA,wBAAgB,iBAAiB,CAAC,KAAK,EAAE,MAAM,GAAG,MAAM,CAIvD;AAED;;;GAGG;AACH,wBAAgB,4BAA4B,CAAC,GAAG,EAAE,MAAM,GAAG;IAAE,EAAE,EAAE,OAAO,CAAC;IAAC,SAAS,EAAE,MAAM,CAAC;IAAC,KAAK,CAAC,EAAE,MAAM,CAAA;CAAE,CAY5G"}

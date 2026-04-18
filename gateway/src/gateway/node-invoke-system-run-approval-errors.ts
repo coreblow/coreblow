@@ -1,1 +1,0 @@
-/** CoreBlow — Node Invoke Approval Errors */ export class ApprovalDeniedError extends Error { constructor(command: string) { super("Approval denied for: " + command); this.name = "ApprovalDeniedError"; } }

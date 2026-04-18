@@ -1,4 +1,0 @@
-import type { QueueItem } from '../queue.types.js';
-import type { QueuePolicy } from '../queue.types.js';
-export declare function dequeue(sessionKey: string, policy?: QueuePolicy): QueueItem | undefined;
-//# sourceMappingURL=dequeue.d.ts.map

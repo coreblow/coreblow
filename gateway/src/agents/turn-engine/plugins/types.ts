@@ -1,7 +1,0 @@
-// Split into focused modules to keep files small and improve edit locality.
-// (CoreBlow pattern: plugins/types.ts as pure re-export root)
-
-export * from "./types.base.js";
-export * from "./types.hooks.js";
-export * from "./types.provider.js";
-export * from "./types.lifecycle.js";

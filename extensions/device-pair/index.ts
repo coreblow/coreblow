@@ -268,9 +268,9 @@ async function resolveTailnetHost(): Promise<string | null> {
 function resolveAuthLabel(cfg: CoreBlowPluginApi["config"]): ResolveAuthLabelResult {
   const mode = cfg.gateway?.auth?.mode;
   const token =
-    pickFirstDefined([process.env.OPENCLAW_GATEWAY_TOKEN, cfg.gateway?.auth?.token]) ?? undefined;
+    pickFirstDefined([process.env.COREBLOW_GATEWAY_TOKEN, cfg.gateway?.auth?.token]) ?? undefined;
   const password =
-    pickFirstDefined([process.env.OPENCLAW_GATEWAY_PASSWORD, cfg.gateway?.auth?.password]) ??
+    pickFirstDefined([process.env.COREBLOW_GATEWAY_PASSWORD, cfg.gateway?.auth?.password]) ??
     undefined;
 
   if (mode === "token" || mode === "password") {

@@ -1,4 +1,0 @@
-/** Model auth display labels. */
-export declare function formatAuthLabel(provider: string, type: string): string;
-export declare function redactApiKey(key: string): string;
-//# sourceMappingURL=model-auth-label.d.ts.map

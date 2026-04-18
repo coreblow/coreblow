@@ -6,7 +6,7 @@
  *
  * Tests CoreBlow's exclusive Turn Engine pattern — chaining state
  * transitions with workflow execution, hook events, and interactive
- * flows. This is the key differentiator from OpenClaw's procedural
+ * flows. This is the key differentiator from CoreBlow's procedural
  * dispatch pipeline.
  */
 import { describe, it, expect, beforeEach } from 'vitest';

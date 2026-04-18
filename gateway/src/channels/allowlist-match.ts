@@ -1,1 +1,0 @@
-/** CoreBlow — Allowlist Match */ export function matchesAllowlist(value: string, patterns: string[]): boolean { return patterns.some((p) => p === "*" || p === value || (p.endsWith("*") && value.startsWith(p.slice(0, -1)))); }

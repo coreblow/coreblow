@@ -97,7 +97,7 @@ import {
 } from "./doctor-gateway-services.js";
 
 const originalStdinIsTTY = process.stdin.isTTY;
-const originalUpdateInProgress = process.env.OPENCLAW_UPDATE_IN_PROGRESS;
+const originalUpdateInProgress = process.env.COREBLOW_UPDATE_IN_PROGRESS;
 
 function makeDoctorIo() {
   return { log: vi.fn(), error: vi.fn(), exit: vi.fn() };
@@ -135,9 +135,9 @@ async function runNonInteractiveRepair(params: {
     configurable: true,
   });
   if (params.updateInProgress) {
-    process.env.OPENCLAW_UPDATE_IN_PROGRESS = "1";
+    process.env.COREBLOW_UPDATE_IN_PROGRESS = "1";
   } else {
-    delete process.env.OPENCLAW_UPDATE_IN_PROGRESS;
+    delete process.env.COREBLOW_UPDATE_IN_PROGRESS;
   }
   await maybeRepairGatewayServiceConfig(
     params.cfg ?? { gateway: {} },
@@ -197,7 +197,7 @@ function setupGatewayTokenRepairScenario() {
   mocks.readCommand.mockResolvedValue({
     programArguments: gatewayProgramArguments,
     environment: {
-      OPENCLAW_GATEWAY_TOKEN: "stale-token",
+      COREBLOW_GATEWAY_TOKEN: "stale-token",
     },
   });
   mocks.auditGatewayServiceConfig.mockResolvedValue({
@@ -205,7 +205,7 @@ function setupGatewayTokenRepairScenario() {
     issues: [
       {
         code: "gateway-token-mismatch",
-        message: "Gateway service OPENCLAW_GATEWAY_TOKEN does not match gateway.auth.token",
+        message: "Gateway service COREBLOW_GATEWAY_TOKEN does not match gateway.auth.token",
         level: "recommended",
       },
     ],
@@ -225,7 +225,7 @@ describe("maybeRepairGatewayServiceConfig", () => {
     mocks.resolveGatewayAuthTokenForService.mockImplementation(async (cfg: CoreBlowConfig, env) => {
       const configToken =
         typeof cfg.gateway?.auth?.token === "string" ? cfg.gateway.auth.token.trim() : undefined;
-      const envToken = env.OPENCLAW_GATEWAY_TOKEN?.trim() || undefined;
+      const envToken = env.COREBLOW_GATEWAY_TOKEN?.trim() || undefined;
       return { token: configToken || envToken };
     });
   });
@@ -236,9 +236,9 @@ describe("maybeRepairGatewayServiceConfig", () => {
       configurable: true,
     });
     if (originalUpdateInProgress === undefined) {
-      delete process.env.OPENCLAW_UPDATE_IN_PROGRESS;
+      delete process.env.COREBLOW_UPDATE_IN_PROGRESS;
     } else {
-      process.env.OPENCLAW_UPDATE_IN_PROGRESS = originalUpdateInProgress;
+      process.env.COREBLOW_UPDATE_IN_PROGRESS = originalUpdateInProgress;
     }
   });
 
@@ -277,8 +277,8 @@ describe("maybeRepairGatewayServiceConfig", () => {
     expect(mocks.install).toHaveBeenCalledTimes(1);
   });
 
-  it("uses OPENCLAW_GATEWAY_TOKEN when config token is missing", async () => {
-    await withEnvAsync({ OPENCLAW_GATEWAY_TOKEN: "env-token" }, async () => {
+  it("uses COREBLOW_GATEWAY_TOKEN when config token is missing", async () => {
+    await withEnvAsync({ COREBLOW_GATEWAY_TOKEN: "env-token" }, async () => {
       setupGatewayTokenRepairScenario();
 
       const cfg: CoreBlowConfig = {
@@ -421,7 +421,7 @@ describe("maybeRepairGatewayServiceConfig", () => {
     mocks.readCommand.mockResolvedValue({
       programArguments: gatewayProgramArguments,
       environment: {
-        OPENCLAW_GATEWAY_TOKEN: "stale-token",
+        COREBLOW_GATEWAY_TOKEN: "stale-token",
       },
     });
     mocks.auditGatewayServiceConfig.mockResolvedValue({
@@ -442,7 +442,7 @@ describe("maybeRepairGatewayServiceConfig", () => {
           token: {
             source: "env",
             provider: "default",
-            id: "OPENCLAW_GATEWAY_TOKEN",
+            id: "COREBLOW_GATEWAY_TOKEN",
           },
         },
       },
@@ -467,7 +467,7 @@ describe("maybeRepairGatewayServiceConfig", () => {
   it("falls back to embedded service token when config and env tokens are missing", async () => {
     await withEnvAsync(
       {
-        OPENCLAW_GATEWAY_TOKEN: undefined,
+        COREBLOW_GATEWAY_TOKEN: undefined,
       },
       async () => {
         setupGatewayTokenRepairScenario();
@@ -514,11 +514,11 @@ describe("maybeRepairGatewayServiceConfig", () => {
       value: false,
       configurable: true,
     });
-    process.env.OPENCLAW_UPDATE_IN_PROGRESS = "1";
+    process.env.COREBLOW_UPDATE_IN_PROGRESS = "1";
 
     await withEnvAsync(
       {
-        OPENCLAW_GATEWAY_TOKEN: undefined,
+        COREBLOW_GATEWAY_TOKEN: undefined,
       },
       async () => {
         setupGatewayTokenRepairScenario();
@@ -550,16 +550,16 @@ describe("maybeRepairGatewayServiceConfig", () => {
   it("does not persist EnvironmentFile-backed service tokens into config", async () => {
     await withEnvAsync(
       {
-        OPENCLAW_GATEWAY_TOKEN: undefined,
+        COREBLOW_GATEWAY_TOKEN: undefined,
       },
       async () => {
         mocks.readCommand.mockResolvedValue({
           programArguments: gatewayProgramArguments,
           environment: {
-            OPENCLAW_GATEWAY_TOKEN: "env-file-token",
+            COREBLOW_GATEWAY_TOKEN: "env-file-token",
           },
           environmentValueSources: {
-            OPENCLAW_GATEWAY_TOKEN: "file",
+            COREBLOW_GATEWAY_TOKEN: "file",
           },
         });
         mocks.auditGatewayServiceConfig.mockResolvedValue({

@@ -6,7 +6,7 @@ import { listGatewayMethods } from "../../src/gateway/server-methods-list.js";
 import { diffConfigPaths, buildGatewayReloadPlan } from "../../src/gateway/config-reload.js";
 
 describe("Phase 9: Deep Gateway Infrastructure", () => {
-    it("should export methods matching Phase 9 OpenClaw parity", () => {
+    it("should export methods matching Phase 9 CoreBlow parity", () => {
         expect(coreGatewayHandlers["exec.approval.request"]).toBeDefined();
         expect(coreGatewayHandlers["exec.approvals.get"]).toBeDefined();
         expect(coreGatewayHandlers["plugin.approval.request"]).toBeDefined();

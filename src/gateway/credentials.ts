@@ -41,7 +41,7 @@ export class GatewaySecretRefUnavailableError extends Error {
     super(
       [
         `${path} is configured as a secret reference but is unavailable in this command path.`,
-        "Fix: set OPENCLAW_GATEWAY_TOKEN/OPENCLAW_GATEWAY_PASSWORD, pass explicit --token/--password,",
+        "Fix: set COREBLOW_GATEWAY_TOKEN/COREBLOW_GATEWAY_PASSWORD, pass explicit --token/--password,",
         "or run a gateway command path that resolves secret references before credential selection.",
       ].join("\n"),
     );
@@ -287,7 +287,7 @@ export function resolveGatewayCredentialsFromConfig(params: {
 
   const localTokenPrecedence =
     params.localTokenPrecedence ??
-    (env.OPENCLAW_SERVICE_KIND === "gateway" ? "config-first" : "env-first");
+    (env.COREBLOW_SERVICE_KIND === "gateway" ? "config-first" : "env-first");
   const localPasswordPrecedence = params.localPasswordPrecedence ?? "env-first";
 
   if (mode === "local") {

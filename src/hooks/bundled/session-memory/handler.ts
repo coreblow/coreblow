@@ -144,7 +144,7 @@ const saveSessionToMemory: HookHandler = async (event) => {
 
       // Avoid calling the model provider in unit tests; keep hooks fast and deterministic.
       const isTestEnv =
-        process.env.OPENCLAW_TEST_FAST === "1" ||
+        process.env.COREBLOW_TEST_FAST === "1" ||
         process.env.VITEST === "true" ||
         process.env.VITEST === "1" ||
         process.env.NODE_ENV === "test";

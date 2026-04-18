@@ -5,7 +5,7 @@ import type { RuntimeEnv } from "../runtime.js";
 import { formatDocsLink } from "../terminal/links.js";
 import { isRich, theme } from "../terminal/theme.js";
 
-const SEARCH_TOOL = "https://docs.coreblow.ai/mcp.SearchCoreBlow";
+const SEARCH_TOOL = "https://docs.coreblow.com/mcp.SearchCoreBlow";
 const SEARCH_TIMEOUT_MS = 30_000;
 const DEFAULT_SNIPPET_MAX = 220;
 
@@ -160,12 +160,12 @@ async function renderMarkdown(markdown: string, runtime: RuntimeEnv) {
 export async function docsSearchCommand(queryParts: string[], runtime: RuntimeEnv) {
   const query = queryParts.join(" ").trim();
   if (!query) {
-    const docs = formatDocsLink("/", "docs.coreblow.ai");
+    const docs = formatDocsLink("/", "docs.coreblow.com");
     if (isRich()) {
       runtime.log(`${theme.muted("Docs:")} ${docs}`);
       runtime.log(`${theme.muted("Search:")} ${formatCliCommand('coreblow docs "your query"')}`);
     } else {
-      runtime.log("Docs: https://docs.coreblow.ai/");
+      runtime.log("Docs: https://docs.coreblow.com/");
       runtime.log(`Search: ${formatCliCommand('coreblow docs "your query"')}`);
     }
     return;

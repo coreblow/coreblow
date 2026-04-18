@@ -1,1 +1,0 @@
-{"version":3,"file":"provider-auth-login.d.ts","sourceRoot":"","sources":["../../src/plugin-sdk/provider-auth-login.ts"],"names":[],"mappings":"AAAA,2FAA2F;AAE3F,KAAK,YAAY,GAAG;IAChB,qBAAqB,EAAE,CAAC,OAAO,EAAE,OAAO,KAAK,OAAO,CAAC,KAAK,CAAC,CAAC;CAC/D,CAAC;AAEF,wBAAsB,eAAe,IAAI,OAAO,CAAC,YAAY,CAAC,CAM7D;AAED,wBAAsB,qBAAqB,CAAC,OAAO,EAAE,OAAO,GAAG,OAAO,CAAC,KAAK,CAAC,CAE5E"}

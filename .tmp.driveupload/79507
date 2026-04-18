@@ -1,2 +1,0 @@
-export declare function parseAbsoluteTimeMs(input: string): number | null;
-//# sourceMappingURL=parse.d.ts.map

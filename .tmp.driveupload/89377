@@ -1,5 +1,0 @@
-/** PI tool JSON schema definitions. */
-export function buildToolSchema(name, description, properties) {
-    return { name, description, input_schema: { type: 'object', properties, required: Object.keys(properties) } };
-}
-//# sourceMappingURL=pi-tools.schema.js.map

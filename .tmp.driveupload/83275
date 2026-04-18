@@ -1,7 +1,0 @@
-/** plugin-sdk/amazon-bedrock.ts [ADAPT] openclaw-main */
-export async function discoverBedrockModels(_p) { return []; }
-export function mergeImplicitBedrockProvider(cfg) { return cfg; }
-export function resolveBedrockConfigApiKey(_cfg) { return null; }
-export function resolveImplicitBedrockProvider(_cfg) { return null; }
-export function resetBedrockDiscoveryCacheForTest() { }
-//# sourceMappingURL=amazon-bedrock.js.map

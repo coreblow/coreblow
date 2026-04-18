@@ -1,8 +1,0 @@
-export declare function logAnthropicPayload(direction: 'request' | 'response', payload: unknown, opts?: {
-    redact?: boolean;
-}): Record<string, unknown>;
-export declare function extractAnthropicUsage(response: Record<string, unknown>): {
-    inputTokens: number;
-    outputTokens: number;
-} | null;
-//# sourceMappingURL=anthropic-payload-log.d.ts.map

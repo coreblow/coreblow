@@ -1,3 +1,0 @@
-/** plugin-sdk/browser.ts [ADAPT] openclaw-main */
-export { disableGlobally as disableBrowserGlobally } from "./browser-support.js";
-//# sourceMappingURL=browser.d.ts.map

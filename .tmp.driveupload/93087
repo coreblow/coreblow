@@ -1,4 +1,0 @@
-/**
- * logging/context-logger.ts
- */
-export class ContextLogger { private context: Record<string, unknown>; constructor(context: Record<string, unknown> = {}) { this.context = context; } child(extra: Record<string, unknown>) { return new ContextLogger({...this.context, ...extra}); } info(msg: string, extra?: unknown) { const ext = typeof extra === 'object' && extra !== null ? extra : { extra }; console.log(JSON.stringify({level: 'info', msg, ...this.context, ...ext, ts: Date.now()})); } error(msg: string, extra?: unknown) { const ext = typeof extra === 'object' && extra !== null ? extra : { extra }; console.error(JSON.stringify({level: 'error', msg, ...this.context, ...ext, ts: Date.now()})); } warn(msg: string, extra?: unknown) { const ext = typeof extra === 'object' && extra !== null ? extra : { extra }; console.warn(JSON.stringify({level: 'warn', msg, ...this.context, ...ext, ts: Date.now()})); } }

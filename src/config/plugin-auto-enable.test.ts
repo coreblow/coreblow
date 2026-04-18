@@ -284,9 +284,9 @@ describe("applyPluginAutoEnable", () => {
       },
       env: {
         ...process.env,
-        OPENCLAW_HOME: undefined,
-        OPENCLAW_STATE_DIR: stateDir,
-        OPENCLAW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
+        COREBLOW_HOME: undefined,
+        COREBLOW_STATE_DIR: stateDir,
+        COREBLOW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
       },
     });
 
@@ -332,7 +332,7 @@ describe("applyPluginAutoEnable", () => {
       },
       env: {
         ...process.env,
-        OPENCLAW_STATE_DIR: stateDir,
+        COREBLOW_STATE_DIR: stateDir,
       },
       manifestRegistry: makeRegistry([]),
     });
@@ -603,9 +603,9 @@ describe("applyPluginAutoEnable", () => {
         config: makeApnChannelConfig(),
         env: {
           ...process.env,
-          OPENCLAW_HOME: undefined,
-          OPENCLAW_STATE_DIR: stateDir,
-          OPENCLAW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
+          COREBLOW_HOME: undefined,
+          COREBLOW_STATE_DIR: stateDir,
+          COREBLOW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
         },
       });
 

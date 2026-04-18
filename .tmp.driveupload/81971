@@ -1,6 +1,0 @@
-/**
- * gateway/server-methods/wizard.ts — Wizard RPC Handlers (Flows Engine wrapper)
- */
-import type { GatewayRequestHandlers } from "./types.js";
-export declare const wizardHandlers: GatewayRequestHandlers;
-//# sourceMappingURL=wizard.d.ts.map

@@ -42,8 +42,8 @@ let ensureCoreBlowCliOnPath: typeof import("./path-env.js").ensureCoreBlowCliOnP
 describe("ensureCoreBlowCliOnPath", () => {
   const envKeys = [
     "PATH",
-    "OPENCLAW_PATH_BOOTSTRAPPED",
-    "OPENCLAW_ALLOW_PROJECT_LOCAL_BIN",
+    "COREBLOW_PATH_BOOTSTRAPPED",
+    "COREBLOW_ALLOW_PROJECT_LOCAL_BIN",
     "MISE_DATA_DIR",
     "HOMEBREW_PREFIX",
     "HOMEBREW_BREW_FILE",
@@ -99,8 +99,8 @@ describe("ensureCoreBlowCliOnPath", () => {
 
   function resetBootstrapEnv(pathValue = "/usr/bin") {
     process.env.PATH = pathValue;
-    delete process.env.OPENCLAW_PATH_BOOTSTRAPPED;
-    delete process.env.OPENCLAW_ALLOW_PROJECT_LOCAL_BIN;
+    delete process.env.COREBLOW_PATH_BOOTSTRAPPED;
+    delete process.env.COREBLOW_ALLOW_PROJECT_LOCAL_BIN;
     delete process.env.HOMEBREW_PREFIX;
     delete process.env.HOMEBREW_BREW_FILE;
     delete process.env.XDG_BIN_HOME;
@@ -132,7 +132,7 @@ describe("ensureCoreBlowCliOnPath", () => {
 
   it("is idempotent", () => {
     process.env.PATH = "/bin";
-    process.env.OPENCLAW_PATH_BOOTSTRAPPED = "1";
+    process.env.COREBLOW_PATH_BOOTSTRAPPED = "1";
     ensureCoreBlowCliOnPath({
       execPath: "/tmp/does-not-matter",
       cwd: "/tmp",
@@ -194,9 +194,9 @@ describe("ensureCoreBlowCliOnPath", () => {
 
       resetBootstrapEnv();
       if (envValue === undefined) {
-        delete process.env.OPENCLAW_ALLOW_PROJECT_LOCAL_BIN;
+        delete process.env.COREBLOW_ALLOW_PROJECT_LOCAL_BIN;
       } else {
-        process.env.OPENCLAW_ALLOW_PROJECT_LOCAL_BIN = envValue;
+        process.env.COREBLOW_ALLOW_PROJECT_LOCAL_BIN = envValue;
       }
 
       const withOptIn = bootstrapPath({

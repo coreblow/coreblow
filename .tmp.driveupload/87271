@@ -1,9 +1,0 @@
-export declare class QueuedFileWriter {
-    private queue;
-    private processing;
-    write(filePath: string, content: string): Promise<void>;
-    private processQueue;
-    pending(): number;
-    isProcessing(): boolean;
-}
-//# sourceMappingURL=queued-file-writer.d.ts.map

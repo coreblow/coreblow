@@ -1,5 +1,0 @@
-/** plugin-sdk/qianfan.ts [ADAPT] openclaw-main */
-export const QIANFAN_BASE_URL = "https://aip.baidubce.com";
-export const QIANFAN_DEFAULT_MODEL_ID = "ernie-4.0-8k";
-export function buildQianfanProvider(_p) { throw new Error("buildQianfanProvider requires @coreblow/qianfan extension"); }
-//# sourceMappingURL=qianfan.js.map

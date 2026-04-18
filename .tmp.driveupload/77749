@@ -1,2 +1,0 @@
-[tool.codespell]
-skip = "node_modules,dist,pnpm-lock.yaml,.git,coverage"

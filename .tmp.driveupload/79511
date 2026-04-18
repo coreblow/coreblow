@@ -1,5 +1,0 @@
-/**
- * cron/next-run.ts
- */
-export declare function shouldRun(lastRun: number, intervalMs: number): boolean;
-//# sourceMappingURL=next-run.d.ts.map

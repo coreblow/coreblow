@@ -1,9 +1,0 @@
-/** OpenAI WebSocket connection management. */
-export interface WsConnectionConfig {
-    url: string;
-    apiKey: string;
-    model: string;
-}
-export declare function buildWsUrl(config: WsConnectionConfig): string;
-export declare function createWsHeaders(apiKey: string): Record<string, string>;
-//# sourceMappingURL=openai-ws-connection.d.ts.map

@@ -1,8 +1,0 @@
-/**
- * agents/model-tool-support.ts
- * Which models support which tool capabilities.
- */
-export type ToolSupport = 'full' | 'partial' | 'none';
-export declare function getModelToolSupport(modelId: string): ToolSupport;
-export declare function modelSupportsTools(modelId: string): boolean;
-//# sourceMappingURL=model-tool-support.d.ts.map

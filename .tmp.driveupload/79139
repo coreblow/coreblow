@@ -1,8 +1,0 @@
-/**
- * cli/output-formatter.ts
- * Terminal markdown rendering and syntax highlighting.
- */
-export declare function renderMarkdownToTerminal(md: string): string;
-export declare function highlightCode(code: string, language: string): string;
-export declare function formatCodeBlock(code: string, language: string): string;
-//# sourceMappingURL=output-formatter.d.ts.map

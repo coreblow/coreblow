@@ -1,1 +1,0 @@
-{"version":3,"file":"messageCreate.js","sourceRoot":"","sources":["../../../../src/channels/discord/events/messageCreate.ts"],"names":[],"mappings":"AAKA,OAAO,EAAE,aAAa,EAAE,MAAM,wBAAwB,CAAC;AAEvD,MAAM,CAAC,KAAK,UAAU,eAAe,CAAC,OAAuB,EAAE,GAAiB;IAC/E,MAAM,aAAa,CAAC,OAA8C,EAAE,GAAG,CAAC,MAAM,EAAE,GAAG,CAAC,MAAM,EAAE,GAAG,CAAC,MAAM,EAAE,GAAG,CAAC,KAAK,CAAC,CAAC;AACpH,CAAC"}

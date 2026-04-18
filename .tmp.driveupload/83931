@@ -1,3 +1,0 @@
-/** plugin-sdk/kimi-coding.ts [ADAPT] openclaw-main */
-export function buildKimiCodingProvider(_p) { throw new Error("buildKimiCodingProvider requires @coreblow/kimi-coding extension"); }
-//# sourceMappingURL=kimi-coding.js.map

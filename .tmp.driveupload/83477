@@ -1,1 +1,0 @@
-{"version":3,"file":"channel-config-schema.js","sourceRoot":"","sources":["../../src/plugin-sdk/channel-config-schema.ts"],"names":[],"mappings":"AAAA;;;;;;GAMG;AAEH,OAAO,EACH,mBAAmB,EACnB,4BAA4B,EAC5B,cAAc,EACd,cAAc,EACd,iBAAiB,EACjB,oBAAoB,EACpB,6BAA6B,EAC7B,wBAAwB,EACxB,sCAAsC,EACtC,yBAAyB,EACzB,oBAAoB,GACvB,MAAM,gCAAgC,CAAC;AAExC,OAAO,EAAE,gBAAgB,EAAE,MAAM,8BAA8B,CAAC"}

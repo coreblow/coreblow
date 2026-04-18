@@ -1,1 +1,0 @@
-/** CoreBlow — Reply Templating */ export function renderTemplate(template: string, vars: Record<string, string>): string { let result = template; for (const [k, v] of Object.entries(vars)) result = result.replace(new RegExp("\\{\\{" + k + "\\}\\}", "g"), v); return result; }

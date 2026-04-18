@@ -1,8 +1,0 @@
-/**
- * CoreBlow — Desktop Notification (Safe)
- *
- * Sends macOS desktop notifications via osascript.
- * Inputs are sanitized to prevent command injection.
- */
-export declare function notify(title: string, body: string): void;
-//# sourceMappingURL=desktop-notify.d.ts.map

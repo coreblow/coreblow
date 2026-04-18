@@ -45,7 +45,7 @@ export function registerSystemCli(program: Command) {
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/system", "docs.coreblow.ai/cli/system")}\n`,
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/system", "docs.coreblow.com/cli/system")}\n`,
     );
 
   addGatewayClientOptions(

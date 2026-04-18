@@ -7,7 +7,7 @@
             "ES2023"
         ],
         "outDir": "./dist",
-        "rootDir": "./src",
+        "rootDir": "../src",
         "strict": true,
         "esModuleInterop": true,
         "downlevelIteration": true,
@@ -17,7 +17,7 @@
         "declaration": true,
         "declarationMap": true,
         "sourceMap": true,
-        "baseUrl": "./src",
+        "baseUrl": "../src",
         "paths": {
             "@gateway/*": [
                 "gateway/*"
@@ -43,7 +43,7 @@
         }
     },
     "include": [
-        "src/**/*.ts"
+        "../src/**/*.ts"
     ],
     "exclude": [
         "node_modules",

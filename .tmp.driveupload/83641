@@ -1,9 +1,0 @@
-/** plugin-sdk/retry-runtime.ts [ADAPT] openclaw-main */
-export type RetryOptions = {
-    maxAttempts?: number;
-    delayMs?: number;
-    backoffFactor?: number;
-    shouldRetry?: (err: unknown, attempt: number) => boolean;
-};
-export declare function withRetry<T>(fn: () => Promise<T>, opts?: RetryOptions): Promise<T>;
-//# sourceMappingURL=retry-runtime.d.ts.map

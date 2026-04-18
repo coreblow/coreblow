@@ -1,8 +1,0 @@
-/** Provider policy configuration. */
-export interface ProviderPolicy {
-    maxRequestsPerMinute?: number;
-    maxConcurrent?: number;
-    allowStreaming?: boolean;
-}
-export declare const DEFAULT_PROVIDER_POLICY: ProviderPolicy;
-//# sourceMappingURL=models-config.providers.policy.d.ts.map

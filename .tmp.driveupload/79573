@@ -1,8 +1,0 @@
-export type ReaperResult = {
-    swept: boolean;
-    pruned: number;
-};
-export declare function resolveRetentionMs(): number | null;
-export declare function sweepCronRunSessions(): Promise<ReaperResult>;
-export declare function resetReaperThrottle(): void;
-//# sourceMappingURL=session-reaper.d.ts.map

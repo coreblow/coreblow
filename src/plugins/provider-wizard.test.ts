@@ -63,7 +63,7 @@ function createSglangConfig() {
 
 function createHomeEnv(suffix = "", overrides?: Partial<NodeJS.ProcessEnv>) {
   return {
-    OPENCLAW_HOME: `/tmp/coreblow-home${suffix}`,
+    COREBLOW_HOME: `/tmp/coreblow-home${suffix}`,
     ...overrides,
   } as NodeJS.ProcessEnv;
 }
@@ -375,7 +375,7 @@ describe("provider wizard boundaries", () => {
       env,
       mutate: () => {
         config.plugins.allow = ["vllm"];
-        env.OPENCLAW_HOME = "/tmp/coreblow-home-b";
+        env.COREBLOW_HOME = "/tmp/coreblow-home-b";
       },
     });
   });
@@ -384,13 +384,13 @@ describe("provider wizard boundaries", () => {
     {
       name: "skips provider-wizard memoization when plugin cache opt-outs are set",
       env: createHomeEnv("", {
-        OPENCLAW_DISABLE_PLUGIN_DISCOVERY_CACHE: "1",
+        COREBLOW_DISABLE_PLUGIN_DISCOVERY_CACHE: "1",
       }),
     },
     {
       name: "skips provider-wizard memoization when discovery cache ttl is zero",
       env: createHomeEnv("", {
-        OPENCLAW_PLUGIN_DISCOVERY_CACHE_MS: "0",
+        COREBLOW_PLUGIN_DISCOVERY_CACHE_MS: "0",
       }),
     },
   ] as const)("$name", ({ env }) => {
@@ -407,8 +407,8 @@ describe("provider wizard boundaries", () => {
     const provider = createSglangWizardProvider();
     const config = {};
     const env = createHomeEnv("", {
-      OPENCLAW_PLUGIN_DISCOVERY_CACHE_MS: "5",
-      OPENCLAW_PLUGIN_MANIFEST_CACHE_MS: "20",
+      COREBLOW_PLUGIN_DISCOVERY_CACHE_MS: "5",
+      COREBLOW_PLUGIN_MANIFEST_CACHE_MS: "20",
     });
     setResolvedProviders(provider);
     const runtimeParams = createWizardRuntimeParams({ config, env });
@@ -425,7 +425,7 @@ describe("provider wizard boundaries", () => {
   it("invalidates provider-wizard snapshots when cache-control env values change in place", () => {
     const config = {};
     const env = createHomeEnv("", {
-      OPENCLAW_PLUGIN_DISCOVERY_CACHE_MS: "1000",
+      COREBLOW_PLUGIN_DISCOVERY_CACHE_MS: "1000",
     });
 
     expectWizardCacheInvalidationCount({
@@ -433,7 +433,7 @@ describe("provider wizard boundaries", () => {
       config,
       env,
       mutate: () => {
-        env.OPENCLAW_PLUGIN_DISCOVERY_CACHE_MS = "5";
+        env.COREBLOW_PLUGIN_DISCOVERY_CACHE_MS = "5";
       },
     });
   });

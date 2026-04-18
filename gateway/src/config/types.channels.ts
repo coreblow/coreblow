@@ -1,1 +1,0 @@
-/** CoreBlow — Types: Channels */ export interface ChannelConfig { type: string; enabled: boolean; name?: string; token?: string; options?: Record<string, unknown>; } export type ChannelsConfig = Record<string, ChannelConfig>;

@@ -1,1 +1,0 @@
-/** CoreBlow — Models Config Runtime */ let modelsConfig: Record<string, unknown> = {}; export function setModelsConfig(c: Record<string, unknown>): void { modelsConfig = c; } export function getModelsConfig(): Record<string, unknown> { return modelsConfig; }

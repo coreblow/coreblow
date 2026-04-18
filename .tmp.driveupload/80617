@@ -1,6 +1,0 @@
-/**
- * src/channels/discord/commands/clear.ts
- */
-import type { SlashCommand } from '../types.js';
-export declare function clearCommand(_channel: unknown): SlashCommand;
-//# sourceMappingURL=clear.d.ts.map

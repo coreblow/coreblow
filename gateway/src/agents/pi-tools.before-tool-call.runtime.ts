@@ -1,1 +1,0 @@
-/** CoreBlow — PI Tools Before Tool Call */ export type BeforeToolCallHook = (toolName: string, args: unknown) => Promise<boolean>; const hooks: BeforeToolCallHook[] = []; export function addBeforeToolCallHook(hook: BeforeToolCallHook): void { hooks.push(hook); }

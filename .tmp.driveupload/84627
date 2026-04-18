@@ -1,4 +1,0 @@
-/** plugin-sdk/imessage-runtime.ts [ADAPT] openclaw-main */
-export async function sendMessageIMessage(_p) { return null; }
-export async function monitorIMessageProvider(_p) { }
-//# sourceMappingURL=imessage-runtime.js.map

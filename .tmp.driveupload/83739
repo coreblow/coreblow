@@ -1,1 +1,0 @@
-{"version":3,"file":"copilot-proxy.d.ts","sourceRoot":"","sources":["../../src/plugin-sdk/copilot-proxy.ts"],"names":[],"mappings":"AAAA,wDAAwD;AACxD,OAAO,EAAE,iBAAiB,EAAE,MAAM,mBAAmB,CAAC;AACtD,YAAY,EAAE,gBAAgB,IAAI,iBAAiB,EAAE,MAAM,qBAAqB,CAAC;AACjF,YAAY,EAAE,kBAAkB,EAAE,MAAM,2BAA2B,CAAC"}

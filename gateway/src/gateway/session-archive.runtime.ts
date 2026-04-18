@@ -1,1 +1,0 @@
-/** CoreBlow — Session Archive Runtime */ let archiveDir: string | null = null; export function setArchiveDir(dir: string): void { archiveDir = dir; } export function getArchiveDir(): string | null { return archiveDir; }

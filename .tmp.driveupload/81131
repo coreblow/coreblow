@@ -1,5 +1,0 @@
-/**
- * utils/json-utils.ts
- */
-export declare function safeJsonParse<T>(s: string, fb: T): T;
-//# sourceMappingURL=json-utils.d.ts.map

@@ -1,1 +1,0 @@
-/** CoreBlow — PI Tools Policy */ export interface PiToolPolicy { name: string; allowed: boolean; requiresApproval: boolean; } export function createDefaultPiToolPolicy(name: string): PiToolPolicy { return { name, allowed: true, requiresApproval: false }; }

@@ -1,1 +1,0 @@
-/** CoreBlow — Commands Args */ export function parseCommandArgs(input: string): { command: string; args: string[] } { const parts = input.trim().split(/\s+/); return { command: parts[0] ?? "", args: parts.slice(1) }; }

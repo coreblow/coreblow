@@ -1,2 +1,0 @@
-export function formatSkillStatus(name, status) { const icons = { installed: '✅', available: '📦', outdated: '🔄', error: '❌' }; return `${icons[status]} ${name}: ${status}`; }
-//# sourceMappingURL=skills-status.js.map

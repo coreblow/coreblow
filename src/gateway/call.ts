@@ -290,7 +290,7 @@ function resolveGatewayCallContext(opts: CallGatewayBaseOptions): ResolvedGatewa
   const cliUrlOverride = trimToUndefined(opts.url);
   const envUrlOverride = cliUrlOverride
     ? undefined
-    : trimToUndefined(process.env.OPENCLAW_GATEWAY_URL);
+    : trimToUndefined(process.env.COREBLOW_GATEWAY_URL);
   const urlOverride = cliUrlOverride ?? envUrlOverride;
   const urlOverrideSource = cliUrlOverride ? "cli" : envUrlOverride ? "env" : undefined;
   const remoteUrl = trimToUndefined(remote?.url);
@@ -477,7 +477,7 @@ function gatewaySecretInputPathCanWin(params: {
   ) {
     return false;
   }
-  const sentinel = `__OPENCLAW_GATEWAY_SECRET_REF_PROBE_${params.path.replaceAll(".", "_")}__`;
+  const sentinel = `__COREBLOW_GATEWAY_SECRET_REF_PROBE_${params.path.replaceAll(".", "_")}__`;
   const probeConfig = structuredClone(params.config);
   for (const candidatePath of ALL_GATEWAY_SECRET_INPUT_PATHS) {
     if (!hasConfiguredGatewaySecretRef(probeConfig, candidatePath)) {

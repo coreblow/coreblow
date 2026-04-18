@@ -1,2 +1,0 @@
-export function resolveClaudeCliConfig(env) { return { apiKey: env?.ANTHROPIC_API_KEY, model: env?.CLAUDE_MODEL ?? 'claude-sonnet-4-20250514' }; }
-//# sourceMappingURL=claude-cli-runner.js.map

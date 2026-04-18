@@ -1,6 +1,0 @@
-/** Subagent announcement queue. */
-const queue = [];
-export function enqueueAnnouncement(agentId, message) { queue.push({ agentId, message, timestamp: Date.now() }); }
-export function drainQueue() { const items = [...queue]; queue.length = 0; return items; }
-export function queueSize() { return queue.length; }
-//# sourceMappingURL=subagent-announce-queue.js.map

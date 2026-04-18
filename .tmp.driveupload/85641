@@ -1,5 +1,0 @@
-/**
- * src/infra/stable-node-path.ts
- */
-export declare function resolveStableNodePath(nodePath: string): Promise<string>;
-//# sourceMappingURL=stable-node-path.d.ts.map

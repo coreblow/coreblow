@@ -1,3 +1,0 @@
-/** OpenCode Zen model definitions. */
-export declare function isZenModel(id: string): boolean;
-//# sourceMappingURL=opencode-zen-models.d.ts.map

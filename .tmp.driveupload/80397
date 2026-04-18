@@ -1,4 +1,0 @@
-export async function createClient(_opts) { return {}; }
-export async function loginClient(_client, _token) { }
-export function destroyClient(_client) { }
-//# sourceMappingURL=client.js.map

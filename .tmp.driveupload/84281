@@ -1,6 +1,0 @@
-/**
- * plugin-sdk/ollama.ts
- * [ADAPT] openclaw-main — Stub facade for @coreblow/ollama.
- */
-export * from "./ollama-surface.js";
-//# sourceMappingURL=ollama.d.ts.map

@@ -1,3 +1,0 @@
-/** plugin-sdk/nvidia.ts [ADAPT] openclaw-main */
-export declare function buildNvidiaProvider(_p: unknown): unknown;
-//# sourceMappingURL=nvidia.d.ts.map

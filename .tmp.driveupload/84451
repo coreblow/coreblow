@@ -1,5 +1,0 @@
-/** plugin-sdk/copilot-proxy.ts [ADAPT] openclaw-main */
-export { definePluginEntry } from "./plugin-entry.js";
-export type { PluginApiSurface as OpenClawPluginApi } from "../plugins/types.js";
-export type { ProviderAuthResult } from "./provider-auth-result.js";
-//# sourceMappingURL=copilot-proxy.d.ts.map

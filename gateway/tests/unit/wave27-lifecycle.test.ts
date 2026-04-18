@@ -1,7 +1,7 @@
 /**
  * Wave 27: Plugin Lifecycle Coverage
  *
- * Following OpenClaw's discovery.ts (946 LOC) + config-state.ts (341 LOC) +
+ * Following CoreBlow's discovery.ts (946 LOC) + config-state.ts (341 LOC) +
  * dependency-graph.ts (780 LOC) + runtime lifecycle patterns.
  *
  * Tests PluginRuntime, PluginDiscovery, PluginConfigState, DependencyGraph,

@@ -1,7 +1,0 @@
-/**
- * src/channels/discord/events/interactionCreate.ts
- */
-import type { EventContext } from './index.js';
-import type { DiscordInteraction } from '../types-sdk.js';
-export declare function onInteractionCreate(interaction: DiscordInteraction, ctx: EventContext): Promise<void>;
-//# sourceMappingURL=interactionCreate.d.ts.map

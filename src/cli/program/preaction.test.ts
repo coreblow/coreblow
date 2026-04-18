@@ -83,7 +83,7 @@ beforeEach(() => {
   originalProcessTitleDescriptor = Object.getOwnPropertyDescriptor(process, "title");
   observedProcessTitle = originalProcessTitle;
   originalNodeNoWarnings = process.env.NODE_NO_WARNINGS;
-  originalHideBanner = process.env.OPENCLAW_HIDE_BANNER;
+  originalHideBanner = process.env.COREBLOW_HIDE_BANNER;
   originalForceStderr = loggingState.forceConsoleToStderr;
   // Worker-thread Vitest runs do not reliably mutate the real process title,
   // so capture writes at the property boundary instead.
@@ -97,7 +97,7 @@ beforeEach(() => {
   });
   loggingState.forceConsoleToStderr = false;
   delete process.env.NODE_NO_WARNINGS;
-  delete process.env.OPENCLAW_HIDE_BANNER;
+  delete process.env.COREBLOW_HIDE_BANNER;
 });
 
 afterEach(() => {
@@ -119,9 +119,9 @@ afterEach(() => {
     process.env.NODE_NO_WARNINGS = originalNodeNoWarnings;
   }
   if (originalHideBanner === undefined) {
-    delete process.env.OPENCLAW_HIDE_BANNER;
+    delete process.env.COREBLOW_HIDE_BANNER;
   } else {
-    process.env.OPENCLAW_HIDE_BANNER = originalHideBanner;
+    process.env.COREBLOW_HIDE_BANNER = originalHideBanner;
   }
 });
 
@@ -329,7 +329,7 @@ describe("registerPreActionHooks", () => {
     expect(ensureConfigReadyMock).not.toHaveBeenCalled();
 
     vi.clearAllMocks();
-    process.env.OPENCLAW_HIDE_BANNER = "1";
+    process.env.COREBLOW_HIDE_BANNER = "1";
 
     await runPreAction({
       parseArgv: ["status"],

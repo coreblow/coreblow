@@ -1,6 +1,0 @@
-/**
- * plugin-sdk/whatsapp-action-runtime.ts
- * [ADAPT] openclaw-main — Stub for @coreblow/whatsapp.
- */
-export declare function handleWhatsAppAction(_p: unknown): Promise<void>;
-//# sourceMappingURL=whatsapp-action-runtime.d.ts.map

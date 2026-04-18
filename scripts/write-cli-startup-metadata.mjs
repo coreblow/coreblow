@@ -5,8 +5,8 @@
  * Generate dist/cli-startup-metadata.json after build.
  * Used by coreblow.mjs for fast bare --help (precomputed output).
  *
- * [PORT] openclaw-main/scripts/write-cli-startup-metadata.ts
- * Adaptasi (OpenClaw → CoreBlow):
+ * [PORT] coreblow-main/scripts/write-cli-startup-metadata.ts
+ * Adaptasi (CoreBlow → CoreBlow):
  *   - Hapus channelOptions/extensionsDir (CoreBlow tidak pakai extension catalog)
  *   - rootHelpText dirender dari dist/cli-main.js via Commander.js --help capture
  *
@@ -27,7 +27,7 @@ const outputPath = path.join(distDir, 'cli-startup-metadata.json');
 
 /**
  * Render the --help output by spawning the compiled CLI and capturing stdout.
- * [PORT] openclaw renderBundledRootHelpText()
+ * [PORT] coreblow renderBundledRootHelpText()
  */
 async function renderRootHelpText() {
     const { spawn } = await import('node:child_process');

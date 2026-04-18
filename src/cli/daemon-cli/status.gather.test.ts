@@ -43,8 +43,8 @@ const serviceReadCommand = vi.fn<
 >(async (_env?: NodeJS.ProcessEnv) => ({
   programArguments: ["/bin/node", "cli", "gateway", "--port", "19001"],
   environment: {
-    OPENCLAW_STATE_DIR: "/tmp/openclaw-daemon",
-    OPENCLAW_CONFIG_PATH: "/tmp/openclaw-daemon/openclaw.json",
+    COREBLOW_STATE_DIR: "/tmp/coreblow-daemon",
+    COREBLOW_CONFIG_PATH: "/tmp/coreblow-daemon/coreblow.json",
   },
 }));
 const resolveGatewayBindHost = vi.fn(
@@ -53,10 +53,10 @@ const resolveGatewayBindHost = vi.fn(
 const pickPrimaryTailnetIPv4 = vi.fn(() => "100.64.0.9");
 const resolveGatewayPort = vi.fn((_cfg?: unknown, _env?: unknown) => 18789);
 const resolveStateDir = vi.fn(
-  (env: NodeJS.ProcessEnv) => env.OPENCLAW_STATE_DIR ?? "/tmp/openclaw-cli",
+  (env: NodeJS.ProcessEnv) => env.COREBLOW_STATE_DIR ?? "/tmp/coreblow-cli",
 );
 const resolveConfigPath = vi.fn((env: NodeJS.ProcessEnv, stateDir: string) => {
-  return env.OPENCLAW_CONFIG_PATH ?? `${stateDir}/openclaw.json`;
+  return env.COREBLOW_CONFIG_PATH ?? `${stateDir}/coreblow.json`;
 });
 let daemonLoadedConfig: Record<string, unknown> = {
   gateway: {
@@ -73,7 +73,7 @@ let cliLoadedConfig: Record<string, unknown> = {
 
 vi.mock("../../config/config.js", () => ({
   createConfigIO: ({ configPath }: { configPath: string }) => {
-    const isDaemon = configPath.includes("/openclaw-daemon/");
+    const isDaemon = configPath.includes("/coreblow-daemon/");
     return {
       readConfigFileSnapshot: async () => ({
         path: configPath,
@@ -143,17 +143,17 @@ describe("gatherDaemonStatus", () => {
 
   beforeEach(() => {
     envSnapshot = captureEnv([
-      "OPENCLAW_STATE_DIR",
-      "OPENCLAW_CONFIG_PATH",
-      "OPENCLAW_GATEWAY_TOKEN",
-      "OPENCLAW_GATEWAY_PASSWORD",
+      "COREBLOW_STATE_DIR",
+      "COREBLOW_CONFIG_PATH",
+      "COREBLOW_GATEWAY_TOKEN",
+      "COREBLOW_GATEWAY_PASSWORD",
       "DAEMON_GATEWAY_TOKEN",
       "DAEMON_GATEWAY_PASSWORD",
     ]);
-    process.env.OPENCLAW_STATE_DIR = "/tmp/openclaw-cli";
-    process.env.OPENCLAW_CONFIG_PATH = "/tmp/openclaw-cli/openclaw.json";
-    delete process.env.OPENCLAW_GATEWAY_TOKEN;
-    delete process.env.OPENCLAW_GATEWAY_PASSWORD;
+    process.env.COREBLOW_STATE_DIR = "/tmp/coreblow-cli";
+    process.env.COREBLOW_CONFIG_PATH = "/tmp/coreblow-cli/coreblow.json";
+    delete process.env.COREBLOW_GATEWAY_TOKEN;
+    delete process.env.COREBLOW_GATEWAY_PASSWORD;
     delete process.env.DAEMON_GATEWAY_TOKEN;
     delete process.env.DAEMON_GATEWAY_PASSWORD;
     callGatewayStatusProbe.mockClear();
@@ -208,7 +208,7 @@ describe("gatherDaemonStatus", () => {
     expect(callGatewayStatusProbe).toHaveBeenCalledWith(
       expect.objectContaining({
         requireRpc: true,
-        configPath: "/tmp/openclaw-daemon/openclaw.json",
+        configPath: "/tmp/coreblow-daemon/coreblow.json",
       }),
     );
   });
@@ -265,14 +265,14 @@ describe("gatherDaemonStatus", () => {
     serviceReadCommand.mockResolvedValueOnce({
       programArguments: ["/bin/node", "cli", "gateway", "--port", "19001"],
       environment: {
-        OPENCLAW_GATEWAY_PORT: "19001",
-        OPENCLAW_CONFIG_PATH: "/tmp/openclaw-daemon/openclaw.json",
-        OPENCLAW_STATE_DIR: "/tmp/openclaw-daemon",
+        COREBLOW_GATEWAY_PORT: "19001",
+        COREBLOW_CONFIG_PATH: "/tmp/coreblow-daemon/coreblow.json",
+        COREBLOW_STATE_DIR: "/tmp/coreblow-daemon",
       } as Record<string, string>,
     });
     serviceReadRuntime.mockImplementationOnce(async (env?: NodeJS.ProcessEnv) => ({
-      status: env?.OPENCLAW_GATEWAY_PORT === "19001" ? "running" : "unknown",
-      detail: env?.OPENCLAW_GATEWAY_PORT ?? "missing-port",
+      status: env?.COREBLOW_GATEWAY_PORT === "19001" ? "running" : "unknown",
+      detail: env?.COREBLOW_GATEWAY_PORT ?? "missing-port",
     }));
 
     const status = await gatherDaemonStatus({
@@ -283,7 +283,7 @@ describe("gatherDaemonStatus", () => {
 
     expect(serviceReadRuntime).toHaveBeenCalledWith(
       expect.objectContaining({
-        OPENCLAW_GATEWAY_PORT: "19001",
+        COREBLOW_GATEWAY_PORT: "19001",
       }),
     );
     expect(status.service.runtime).toMatchObject({
@@ -465,8 +465,8 @@ describe("gatherDaemonStatus", () => {
         },
       },
     };
-    process.env.OPENCLAW_GATEWAY_TOKEN = "env-token";
-    process.env.OPENCLAW_GATEWAY_PASSWORD = "env-password"; // pragma: allowlist secret
+    process.env.COREBLOW_GATEWAY_TOKEN = "env-token";
+    process.env.COREBLOW_GATEWAY_PASSWORD = "env-password"; // pragma: allowlist secret
 
     await gatherDaemonStatus({
       rpc: {},
@@ -500,7 +500,7 @@ describe("gatherDaemonStatus", () => {
       portUsage: {
         port: 19001,
         status: "busy",
-        listeners: [{ pid: 9000, ppid: 8999, commandLine: "openclaw-gateway" }],
+        listeners: [{ pid: 9000, ppid: 8999, commandLine: "coreblow-gateway" }],
         hints: [],
       },
       healthy: false,

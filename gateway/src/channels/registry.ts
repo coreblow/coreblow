@@ -1,1 +1,0 @@
-/** CoreBlow — Channel Registry */ const registry = new Map<string, unknown>(); export function registerChannel(type: string, adapter: unknown): void { registry.set(type, adapter); } export function getChannelAdapter(type: string): unknown { return registry.get(type); } export function getRegisteredChannels(): string[] { return [...registry.keys()]; }

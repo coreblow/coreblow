@@ -1,7 +1,0 @@
-export declare function recordToolResult(sessionId: string, chars: number): void;
-export declare function getToolResultState(sessionId: string): {
-    count: number;
-    totalChars: number;
-};
-export declare function clearToolResultState(): void;
-//# sourceMappingURL=session-tool-result-state.d.ts.map

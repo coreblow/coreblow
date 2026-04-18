@@ -83,7 +83,7 @@ const ensureWorkspaceAndSessions = vi.hoisted(() => vi.fn(async () => {}));
 const writeConfigFile = vi.hoisted(() => vi.fn(async () => {}));
 const resolveGatewayPort = vi.hoisted(() =>
   vi.fn((_cfg?: unknown, env?: NodeJS.ProcessEnv) => {
-    const raw = env?.OPENCLAW_GATEWAY_PORT ?? process.env.OPENCLAW_GATEWAY_PORT;
+    const raw = env?.COREBLOW_GATEWAY_PORT ?? process.env.COREBLOW_GATEWAY_PORT;
     const port = raw ? Number.parseInt(String(raw), 10) : Number.NaN;
     return Number.isFinite(port) && port > 0 ? port : 18789;
   }),
@@ -554,8 +554,8 @@ describe("runSetupWizard", () => {
   });
 
   it("resolves gateway.auth.password SecretRef for local setup probe", async () => {
-    const previous = process.env.OPENCLAW_GATEWAY_PASSWORD;
-    process.env.OPENCLAW_GATEWAY_PASSWORD = "gateway-ref-password"; // pragma: allowlist secret
+    const previous = process.env.COREBLOW_GATEWAY_PASSWORD;
+    process.env.COREBLOW_GATEWAY_PASSWORD = "gateway-ref-password"; // pragma: allowlist secret
     probeGatewayReachable.mockClear();
     readConfigFileSnapshot.mockResolvedValueOnce({
       path: "/tmp/.coreblow/coreblow.json",
@@ -571,7 +571,7 @@ describe("runSetupWizard", () => {
             password: {
               source: "env",
               provider: "default",
-              id: "OPENCLAW_GATEWAY_PASSWORD",
+              id: "COREBLOW_GATEWAY_PASSWORD",
             },
           },
         },
@@ -608,9 +608,9 @@ describe("runSetupWizard", () => {
       );
     } finally {
       if (previous === undefined) {
-        delete process.env.OPENCLAW_GATEWAY_PASSWORD;
+        delete process.env.COREBLOW_GATEWAY_PASSWORD;
       } else {
-        process.env.OPENCLAW_GATEWAY_PASSWORD = previous;
+        process.env.COREBLOW_GATEWAY_PASSWORD = previous;
       }
     }
 
@@ -653,8 +653,8 @@ describe("runSetupWizard", () => {
   });
 
   it("shows the resolved gateway port in quickstart for fresh envs", async () => {
-    const previousPort = process.env.OPENCLAW_GATEWAY_PORT;
-    process.env.OPENCLAW_GATEWAY_PORT = "18791";
+    const previousPort = process.env.COREBLOW_GATEWAY_PORT;
+    process.env.COREBLOW_GATEWAY_PORT = "18791";
     const note: WizardPrompter["note"] = vi.fn(async () => {});
     const prompter = buildWizardPrompter({ note });
     const runtime = createRuntime();
@@ -677,9 +677,9 @@ describe("runSetupWizard", () => {
       );
     } finally {
       if (previousPort === undefined) {
-        delete process.env.OPENCLAW_GATEWAY_PORT;
+        delete process.env.COREBLOW_GATEWAY_PORT;
       } else {
-        process.env.OPENCLAW_GATEWAY_PORT = previousPort;
+        process.env.COREBLOW_GATEWAY_PORT = previousPort;
       }
     }
 

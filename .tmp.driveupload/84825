@@ -1,8 +1,0 @@
-/** plugin-sdk/ssrf-runtime.ts [PORT] openclaw-main */
-export { ssrfPolicyFromAllowPrivateNetwork, buildHostnameAllowlistPolicyFromSuffixAllowlist, assertHttpUrlTargetsPrivateNetwork, isBlockedHostnameOrIp, isPrivateIpAddress, resolvePinnedHostnameWithPolicy } from "./ssrf-policy.js";
-export async function createPinnedDispatcher(_p) { return {}; }
-export function closeDispatcher(_p) { }
-export async function resolvePinnedHostname(hostname) { return hostname; }
-export async function fetchWithSsrFGuard(url, init, _policy) { return fetch(url, init); }
-export function formatErrorMessage(err) { return err instanceof Error ? err.message : String(err); }
-//# sourceMappingURL=ssrf-runtime.js.map

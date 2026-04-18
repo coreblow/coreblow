@@ -1,1 +1,0 @@
-/** CoreBlow — PI Tool Result Truncation */ export function truncateToolResult(result: string, maxChars = 10000): string { return result.length > maxChars ? result.slice(0, maxChars) + "\n[truncated]" : result; }

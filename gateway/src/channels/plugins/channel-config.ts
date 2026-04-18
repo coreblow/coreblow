@@ -1,1 +1,0 @@
-/** CoreBlow — Plugin Channel Config */ export function resolvePluginChannelConfig(pluginName: string, config: Record<string, unknown>): Record<string, unknown> { return (config[pluginName] as Record<string, unknown>) ?? {}; }

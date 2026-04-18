@@ -414,19 +414,19 @@ describe("resolveAgentConfig", () => {
     expect(result?.workspace).toBe("~/coreblow");
   });
 
-  it("uses OPENCLAW_HOME for default agent workspace", () => {
+  it("uses COREBLOW_HOME for default agent workspace", () => {
     const home = path.join(path.sep, "srv", "coreblow-home");
-    vi.stubEnv("OPENCLAW_HOME", home);
+    vi.stubEnv("COREBLOW_HOME", home);
 
     const workspace = resolveAgentWorkspaceDir({} as CoreBlowConfig, "main");
     expect(workspace).toBe(path.join(path.resolve(home), ".coreblow", "workspace"));
   });
 
-  it("uses OPENCLAW_HOME for default agentDir", () => {
+  it("uses COREBLOW_HOME for default agentDir", () => {
     const home = path.join(path.sep, "srv", "coreblow-home");
-    vi.stubEnv("OPENCLAW_HOME", home);
-    // Clear state dir so it falls back to OPENCLAW_HOME
-    vi.stubEnv("OPENCLAW_STATE_DIR", "");
+    vi.stubEnv("COREBLOW_HOME", home);
+    // Clear state dir so it falls back to COREBLOW_HOME
+    vi.stubEnv("COREBLOW_STATE_DIR", "");
 
     const agentDir = resolveAgentDir({} as CoreBlowConfig, "main");
     expect(agentDir).toBe(path.join(path.resolve(home), ".coreblow", "agents", "main", "agent"));

@@ -1,4 +1,0 @@
-/** plugin-sdk/matrix-thread-bindings.ts [ADAPT] openclaw-main — Stub for @coreblow/matrix. */
-export function setMatrixThreadBindingIdleTimeoutBySessionKey(_sessionKey, _ms) { }
-export function setMatrixThreadBindingMaxAgeBySessionKey(_sessionKey, _ms) { }
-//# sourceMappingURL=matrix-thread-bindings.js.map

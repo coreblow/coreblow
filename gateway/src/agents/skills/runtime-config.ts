@@ -1,1 +1,0 @@
-/** CoreBlow — Skills Runtime Config */ let skillsConfig: Record<string, unknown> = {}; export function setSkillsConfig(c: Record<string, unknown>): void { skillsConfig = c; } export function getSkillsConfig(): Record<string, unknown> { return skillsConfig; }

@@ -1,7 +1,0 @@
-/** Live model error tracking. */
-const errors = [];
-export function recordModelError(model, error) { errors.push({ model, error, timestamp: Date.now() }); if (errors.length > 100)
-    errors.splice(0, errors.length - 100); }
-export function getRecentErrors(n = 10) { return errors.slice(-n); }
-export function clearModelErrors() { errors.length = 0; }
-//# sourceMappingURL=live-model-errors.js.map

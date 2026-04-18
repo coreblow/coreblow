@@ -1,1 +1,0 @@
-{"version":3,"file":"schtasks-exec.d.ts","sourceRoot":"","sources":["../../src/daemon/schtasks-exec.ts"],"names":[],"mappings":"AAAA;;;;GAIG;AAMH,wBAAsB,YAAY,CAC9B,IAAI,EAAE,MAAM,EAAE,GACf,OAAO,CAAC;IAAE,MAAM,EAAE,MAAM,CAAC;IAAC,MAAM,EAAE,MAAM,CAAC;IAAC,IAAI,EAAE,MAAM,CAAA;CAAE,CAAC,CAkB3D"}

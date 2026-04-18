@@ -1,3 +1,0 @@
-export function registerHook(_event, _handler) { return () => { }; }
-export async function dispatchHook(_evt) { }
-//# sourceMappingURL=hook-runtime.js.map

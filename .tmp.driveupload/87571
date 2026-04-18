@@ -1,5 +1,0 @@
-/**
- * CoreBlow AutoPilot — splitIntoBlocks
- */
-export declare function splitIntoBlocks(text: string, maxBlockSize?: number): string[];
-//# sourceMappingURL=split-into-blocks.d.ts.map

@@ -1,3 +1,0 @@
-export declare function resolveStateDir(env?: NodeJS.ProcessEnv): string;
-export declare function resolveDataDir(env?: NodeJS.ProcessEnv): string;
-//# sourceMappingURL=paths.d.ts.map

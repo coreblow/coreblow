@@ -1,1 +1,0 @@
-/** CoreBlow — Secure Random */ import { randomBytes } from "node:crypto"; export function secureRandomHex(bytes = 32): string { return randomBytes(bytes).toString("hex"); } export function secureRandomBase64(bytes = 32): string { return randomBytes(bytes).toString("base64url"); }

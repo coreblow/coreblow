@@ -1,1 +1,0 @@
-/** CoreBlow — Plugin Install Path Warnings */ export function checkInstallPathWarnings(installPath: string): string[] { const warnings: string[] = []; if (installPath.includes(" ")) warnings.push("Path contains spaces"); if (installPath.length > 200) warnings.push("Path is very long"); return warnings; }

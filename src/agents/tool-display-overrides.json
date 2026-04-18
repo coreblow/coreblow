@@ -1,0 +1,29 @@
+{
+  "tools": {
+    "exec": {
+      "emoji": "🛠️",
+      "title": "Exec",
+      "detailKeys": ["command"]
+    },
+    "sessions_spawn": {
+      "emoji": "🔀",
+      "title": "Spawn",
+      "detailKeys": ["task", "model", "label", "runTimeoutSeconds"]
+    },
+    "sessions_history": {
+      "emoji": "📜",
+      "title": "History",
+      "detailKeys": ["sessionKey", "limit", "includeTools"]
+    },
+    "message": {
+      "emoji": "💬",
+      "title": "Message",
+      "detailKeys": ["action", "provider", "to", "channelId", "guildId", "userId", "remove"]
+    },
+    "web_search": {
+      "emoji": "🔍",
+      "title": "Search",
+      "detailKeys": ["query", "count"]
+    }
+  }
+}

@@ -1,7 +1,0 @@
-/**
- * src/daemon/diagnostics.ts
- * Daemon diagnostics.
- * Ported from CoreBlow daemon/diagnostics.ts.
- */
-export declare function readLastGatewayErrorLine(env: NodeJS.ProcessEnv): Promise<string | null>;
-//# sourceMappingURL=diagnostics.d.ts.map

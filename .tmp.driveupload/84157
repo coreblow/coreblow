@@ -1,2 +1,0 @@
-export * from "./irc-surface.js";
-//# sourceMappingURL=irc.js.map

@@ -1,7 +1,0 @@
-/**
- * utils/array-utils.ts
- */
-export declare function chunk<T>(arr: T[], size: number): T[][];
-export declare function unique<T>(arr: T[]): T[];
-export declare function shuffle<T>(arr: T[]): T[];
-//# sourceMappingURL=array-utils.d.ts.map

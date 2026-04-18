@@ -1,3 +1,0 @@
-import { queues } from './queue.data.js';
-export function queueSize(sessionKey) { return queues.get(sessionKey)?.length ?? 0; }
-//# sourceMappingURL=queue-size.js.map

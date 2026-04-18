@@ -1,1 +1,0 @@
-/** CoreBlow — PI Skills Runtime */ const enabledSkills = new Set<string>(); export function enableSkill(name: string): void { enabledSkills.add(name); } export function isSkillEnabled(name: string): boolean { return enabledSkills.has(name); }

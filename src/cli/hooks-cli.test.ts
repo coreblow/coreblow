@@ -17,7 +17,7 @@ const report: HookStatusReport = {
       handlerPath: "/tmp/hooks/session-memory/handler.js",
       hookKey: "session-memory",
       emoji: "💾",
-      homepage: "https://docs.coreblow.ai/automation/hooks#session-memory",
+      homepage: "https://docs.coreblow.com/automation/hooks#session-memory",
       events: ["command:new"],
       always: false,
       enabledByConfig: true,

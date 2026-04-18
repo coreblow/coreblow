@@ -1,2 +1,0 @@
-export function buildVertexEndpoint(config) { return `https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/publishers/anthropic/models/${config.model}:streamRawPredict`; }
-//# sourceMappingURL=anthropic-vertex-stream.js.map

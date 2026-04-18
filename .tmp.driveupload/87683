@@ -1,8 +1,0 @@
-/**
- * CoreBlow AutoPilot — abortAll
- *
- * Abort all active runs.
- */
-import type { AbortReason } from '../types.js';
-export declare function abortAll(reason?: AbortReason): number;
-//# sourceMappingURL=abort-all.d.ts.map

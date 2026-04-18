@@ -1,2 +1,0 @@
-export function createCliSession(model, provider) { return { id: `cli_${Date.now().toString(36)}`, startedAt: Date.now(), model, provider, turnCount: 0 }; }
-//# sourceMappingURL=cli-session.js.map

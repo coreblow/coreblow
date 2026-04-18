@@ -1,1 +1,0 @@
-/** CoreBlow — Channel Status Patches */ export interface StatusPatch { channelId: string; field: string; value: unknown; } export function applyStatusPatch(status: Record<string, unknown>, patch: StatusPatch): void { status[patch.field] = patch.value; }

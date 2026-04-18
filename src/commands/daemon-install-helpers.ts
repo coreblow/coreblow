@@ -125,7 +125,7 @@ export async function buildGatewayInstallPlan(params: {
     port: params.port,
     launchdLabel:
       process.platform === "darwin"
-        ? resolveGatewayLaunchAgentLabel(params.env.OPENCLAW_PROFILE)
+        ? resolveGatewayLaunchAgentLabel(params.env.COREBLOW_PROFILE)
         : undefined,
     // Keep npm/pnpm available to the service when the selected daemon node comes from
     // a version-manager bin directory that isn't covered by static PATH guesses.
@@ -136,7 +136,7 @@ export async function buildGatewayInstallPlan(params: {
   //   1. ~/.coreblow/.env file vars  (lowest — user secrets / fallback keys)
   //   2. Config env vars              (coreblow.json env.vars + inline keys)
   //   3. Auth-profile env refs        (credential store → env var lookups)
-  //   4. Service environment          (HOME, PATH, OPENCLAW_* — highest)
+  //   4. Service environment          (HOME, PATH, COREBLOW_* — highest)
   return {
     programArguments,
     workingDirectory,

@@ -1,4 +1,0 @@
-/** Model allowlist reference. */
-export declare function isModelAllowed(modelId: string, allowlist?: string[]): boolean;
-export declare function isModelBlocked(modelId: string, blocklist?: string[]): boolean;
-//# sourceMappingURL=model-allowlist-ref.d.ts.map

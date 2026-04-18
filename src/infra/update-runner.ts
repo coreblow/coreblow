@@ -910,7 +910,7 @@ export async function runGatewayUpdate(opts: UpdateRunnerOptions = {}): Promise<
     const doctorNodePath = await resolveStableNodePath(process.execPath);
     const doctorArgv = [doctorNodePath, doctorEntry, "doctor", "--non-interactive", "--fix"];
     const doctorStep = await runStep(
-      step("coreblow doctor", doctorArgv, gitRoot, { OPENCLAW_UPDATE_IN_PROGRESS: "1" }),
+      step("coreblow doctor", doctorArgv, gitRoot, { COREBLOW_UPDATE_IN_PROGRESS: "1" }),
     );
     steps.push(doctorStep);
 

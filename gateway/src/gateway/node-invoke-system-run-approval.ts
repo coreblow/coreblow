@@ -1,1 +1,0 @@
-/** CoreBlow — Node Invoke System Run Approval */ export interface RunApproval { approved: boolean; command: string; reason?: string; } export function checkRunApproval(command: string): RunApproval { return { approved: true, command }; }

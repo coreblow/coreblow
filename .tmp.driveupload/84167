@@ -1,6 +1,0 @@
-/**
- * plugin-sdk/discord-session-key.ts
- * [ADAPT] openclaw-main — Stub, implemented by @coreblow/discord.
- */
-export declare function normalizeExplicitDiscordSessionKey(key: string): string;
-//# sourceMappingURL=discord-session-key.d.ts.map

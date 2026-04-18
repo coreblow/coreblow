@@ -1,1 +1,0 @@
-/** CoreBlow — Message Secret Scope */ export type SecretScope = "session" | "channel" | "global"; export function resolveSecretScope(scope?: string): SecretScope { if (scope === "channel" || scope === "global") return scope; return "session"; }

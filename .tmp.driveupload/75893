@@ -1,3 +1,0 @@
-# Review Process
-
-## Overview

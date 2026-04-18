@@ -1,1 +1,0 @@
-/** CoreBlow — Root Option Forward */ export function forwardRootOptions(opts: Record<string, unknown>): string[] { const args: string[] = []; if (opts.verbose) args.push("--verbose"); if (opts.json) args.push("--json"); if (opts.configPath) args.push("--config=" + opts.configPath); return args; }

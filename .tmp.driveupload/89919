@@ -1,1 +1,0 @@
-{"version":3,"file":"graceful-shutdown.d.ts","sourceRoot":"","sources":["../../src/process/graceful-shutdown.ts"],"names":[],"mappings":"AAAA;;GAEG;AACH,qBAAa,gBAAgB;IAAG,OAAO,CAAC,QAAQ,CAAsD;IAAC,QAAQ,CAAC,IAAI,EAAE,MAAM,EAAE,EAAE,EAAE,MAAM,OAAO,CAAC,IAAI,CAAC;IAA4C,QAAQ,CAAC,SAAS,SAAQ;IAAsL,OAAO;CAA0I"}

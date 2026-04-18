@@ -1,5 +1,0 @@
-/** CLI watchdog configuration defaults. */
-export declare const CLI_WATCHDOG_TIMEOUT_MS = 600000;
-export declare const CLI_WATCHDOG_CHECK_INTERVAL_MS = 30000;
-export declare const CLI_WATCHDOG_MAX_IDLE_MS = 300000;
-//# sourceMappingURL=cli-watchdog-defaults.d.ts.map

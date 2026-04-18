@@ -56,7 +56,7 @@ describe('Provider Instantiation', () => {
 });
 
 describe('Provider Count', () => {
-    it('should have 10 total providers (beat OpenClaw 8)', () => {
+    it('should have 10 total providers (beat CoreBlow 8)', () => {
         const providers = [
             new OllamaProvider(),
             new OpenAIProvider({ apiKey: 'x' }),

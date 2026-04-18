@@ -1,4 +1,0 @@
-/** Subagent registry state types. */
-export type RegistryState = 'empty' | 'active' | 'draining' | 'shutdown';
-export declare function resolveRegistryState(activeCount: number, isShuttingDown: boolean): RegistryState;
-//# sourceMappingURL=subagent-registry-state.d.ts.map

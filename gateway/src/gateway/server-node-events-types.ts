@@ -1,1 +1,0 @@
-/** CoreBlow — Server Node Events Types */ export type NodeEventType = "connect" | "disconnect" | "message" | "error"; export interface NodeEvent { type: NodeEventType; nodeId: string; timestamp: number; data?: unknown; }

@@ -141,7 +141,7 @@ function normalizeProviderModelId(provider: string, model: string): string {
   if (provider === "anthropic") {
     return normalizeAnthropicModelId(model);
   }
-  if (provider === "google" || provider === "google-vertex") {
+  if (provider === "google" || provider === "google-vertex" || provider === "googlevertex") {
     return normalizeGoogleModelId(model);
   }
   if (provider === "openai") {
@@ -153,11 +153,30 @@ function normalizeProviderModelId(provider: string, model: string): string {
   if (provider === "xai") {
     return normalizeXaiModelId(model);
   }
-  if (provider === "vercel-ai-gateway" && !model.includes("/")) {
-    // Allow Vercel-specific Claude refs without an upstream prefix.
-    const normalizedAnthropicModel = normalizeAnthropicModelId(model);
-    if (normalizedAnthropicModel.startsWith("claude-")) {
-      return `anthropic/${normalizedAnthropicModel}`;
+  if (provider === "vercel-ai-gateway" || provider === "vercelaigateway") {
+    // Strip upstream "anthropic/" prefix if present — Vercel routes to the
+    // correct upstream provider internally, so keep only the model id.
+    const anthropicPrefixMatch = model.match(/^anthropic\/(.+)$/);
+    if (anthropicPrefixMatch) {
+      return anthropicPrefixMatch[1];
+    }
+    if (!model.includes("/")) {
+      // Vercel uses dot-notation Claude model ids (claude-opus-4.6, not claude-opus-4-6).
+      // Add "claude-" prefix for shorthand aliases without full Anthropic normalization.
+      const VERCEL_CLAUDE_SHORTHANDS: Record<string, string> = {
+        "opus-4.6": "claude-opus-4.6",
+        "opus-4.5": "claude-opus-4.5",
+        "sonnet-4.6": "claude-sonnet-4.6",
+        "sonnet-4.5": "claude-sonnet-4.5",
+      };
+      const vercelModel = VERCEL_CLAUDE_SHORTHANDS[model.toLowerCase()];
+      if (vercelModel) {
+        return vercelModel;
+      }
+      // If model already starts with claude-, keep as-is
+      if (model.startsWith("claude-")) {
+        return model;
+      }
     }
   }
   return (

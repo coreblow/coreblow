@@ -21,9 +21,9 @@ export async function writeStateDirDotEnv(
     stateDir?: string;
   },
 ): Promise<{ dotEnvPath: string; stateDir: string }> {
-  const stateDir = params?.stateDir ?? params?.env?.OPENCLAW_STATE_DIR?.trim();
+  const stateDir = params?.stateDir ?? params?.env?.COREBLOW_STATE_DIR?.trim();
   if (!stateDir) {
-    throw new Error("Expected OPENCLAW_STATE_DIR or explicit stateDir for .env test setup");
+    throw new Error("Expected COREBLOW_STATE_DIR or explicit stateDir for .env test setup");
   }
   const dotEnvPath = path.join(stateDir, ".env");
   await fs.mkdir(path.dirname(dotEnvPath), { recursive: true });

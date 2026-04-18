@@ -224,8 +224,8 @@ afterAll(async () => {
 });
 
 beforeEach(() => {
-  delete process.env.OPENCLAW_GATEWAY_TOKEN;
-  delete process.env.OPENCLAW_GATEWAY_PASSWORD;
+  delete process.env.COREBLOW_GATEWAY_TOKEN;
+  delete process.env.COREBLOW_GATEWAY_PASSWORD;
   pluginHttpHandlers = [];
   cfg = {};
   lastCreateCoreBlowToolsContext = undefined;

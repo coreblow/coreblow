@@ -1,5 +1,0 @@
-/** CoreBlow tool definitions. */
-export declare const COREBLOW_TOOLS: readonly ["bash", "read", "write", "edit", "search", "glob", "browser", "mcp"];
-export type CoreBlowTool = typeof COREBLOW_TOOLS[number];
-export declare function isCoreBlowTool(name: string): boolean;
-//# sourceMappingURL=coreblow-tools.d.ts.map

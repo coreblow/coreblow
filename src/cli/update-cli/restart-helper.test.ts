@@ -68,7 +68,7 @@ describe("restart-helper", () => {
     it("creates a systemd restart script on Linux", async () => {
       Object.defineProperty(process, "platform", { value: "linux" });
       const { scriptPath, content } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "default",
+        COREBLOW_PROFILE: "default",
       });
       expect(scriptPath.endsWith(".sh")).toBe(true);
       expect(content).toContain("#!/bin/sh");
@@ -78,11 +78,11 @@ describe("restart-helper", () => {
       await cleanupScript(scriptPath);
     });
 
-    it("uses OPENCLAW_SYSTEMD_UNIT override for systemd scripts", async () => {
+    it("uses COREBLOW_SYSTEMD_UNIT override for systemd scripts", async () => {
       Object.defineProperty(process, "platform", { value: "linux" });
       const { scriptPath, content } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "default",
-        OPENCLAW_SYSTEMD_UNIT: "custom-gateway",
+        COREBLOW_PROFILE: "default",
+        COREBLOW_SYSTEMD_UNIT: "custom-gateway",
       });
       expect(content).toContain("systemctl --user restart 'custom-gateway.service'");
       await cleanupScript(scriptPath);
@@ -93,7 +93,7 @@ describe("restart-helper", () => {
       process.getuid = () => 501;
 
       const { scriptPath, content } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "default",
+        COREBLOW_PROFILE: "default",
       });
       expect(scriptPath.endsWith(".sh")).toBe(true);
       expect(content).toContain("#!/bin/sh");
@@ -105,13 +105,13 @@ describe("restart-helper", () => {
       await cleanupScript(scriptPath);
     });
 
-    it("uses OPENCLAW_LAUNCHD_LABEL override on macOS", async () => {
+    it("uses COREBLOW_LAUNCHD_LABEL override on macOS", async () => {
       Object.defineProperty(process, "platform", { value: "darwin" });
       process.getuid = () => 501;
 
       const { scriptPath, content } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "default",
-        OPENCLAW_LAUNCHD_LABEL: "com.custom.coreblow",
+        COREBLOW_PROFILE: "default",
+        COREBLOW_LAUNCHD_LABEL: "com.custom.coreblow",
       });
       expect(content).toContain("launchctl kickstart -k 'gui/501/com.custom.coreblow'");
       await cleanupScript(scriptPath);
@@ -121,7 +121,7 @@ describe("restart-helper", () => {
       Object.defineProperty(process, "platform", { value: "win32" });
 
       const { scriptPath, content } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "default",
+        COREBLOW_PROFILE: "default",
       });
       expect(scriptPath.endsWith(".bat")).toBe(true);
       expect(content).toContain("@echo off");
@@ -133,12 +133,12 @@ describe("restart-helper", () => {
       await cleanupScript(scriptPath);
     });
 
-    it("uses OPENCLAW_WINDOWS_TASK_NAME override on Windows", async () => {
+    it("uses COREBLOW_WINDOWS_TASK_NAME override on Windows", async () => {
       Object.defineProperty(process, "platform", { value: "win32" });
 
       const { scriptPath, content } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "default",
-        OPENCLAW_WINDOWS_TASK_NAME: "CoreBlow Gateway (custom)",
+        COREBLOW_PROFILE: "default",
+        COREBLOW_WINDOWS_TASK_NAME: "CoreBlow Gateway (custom)",
       });
       expect(content).toContain('schtasks /End /TN "CoreBlow Gateway (custom)"');
       expect(content).toContain('schtasks /Run /TN "CoreBlow Gateway (custom)"');
@@ -152,7 +152,7 @@ describe("restart-helper", () => {
 
       const { scriptPath, content } = await prepareAndReadScript(
         {
-          OPENCLAW_PROFILE: "default",
+          COREBLOW_PROFILE: "default",
         },
         customPort,
       );
@@ -167,7 +167,7 @@ describe("restart-helper", () => {
     it("uses custom profile in service names", async () => {
       Object.defineProperty(process, "platform", { value: "linux" });
       const { scriptPath, content } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "production",
+        COREBLOW_PROFILE: "production",
       });
       expect(content).toContain("coreblow-gateway-production.service");
       await cleanupScript(scriptPath);
@@ -178,7 +178,7 @@ describe("restart-helper", () => {
       process.getuid = () => 502;
 
       const { scriptPath, content } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "staging",
+        COREBLOW_PROFILE: "staging",
       });
       expect(content).toContain("gui/502/ai.coreblow.staging");
       await cleanupScript(scriptPath);
@@ -188,7 +188,7 @@ describe("restart-helper", () => {
       Object.defineProperty(process, "platform", { value: "win32" });
 
       const { scriptPath, content } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "production",
+        COREBLOW_PROFILE: "production",
       });
       expect(content).toContain('schtasks /End /TN "CoreBlow Gateway (production)"');
       expectWindowsRestartWaitOrdering(content);
@@ -208,7 +208,7 @@ describe("restart-helper", () => {
         .mockRejectedValueOnce(new Error("simulated write failure"));
 
       const scriptPath = await prepareRestartScript({
-        OPENCLAW_PROFILE: "default",
+        COREBLOW_PROFILE: "default",
       });
 
       expect(scriptPath).toBeNull();
@@ -218,7 +218,7 @@ describe("restart-helper", () => {
     it("escapes single quotes in profile names for shell scripts", async () => {
       Object.defineProperty(process, "platform", { value: "linux" });
       const { scriptPath, content } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "it's-a-test",
+        COREBLOW_PROFILE: "it's-a-test",
       });
       // Single quotes should be escaped with '\'' pattern
       expect(content).not.toContain("it's");
@@ -232,7 +232,7 @@ describe("restart-helper", () => {
 
       const { scriptPath, content } = await prepareAndReadScript({
         HOME: "/Users/testuser",
-        OPENCLAW_PROFILE: "default",
+        COREBLOW_PROFILE: "default",
       });
       // The plist path must contain the resolved home dir, not literal $HOME
       expect(content).toMatch(/[\\/]Users[\\/]testuser[\\/]Library[\\/]LaunchAgents[\\/]/);
@@ -246,7 +246,7 @@ describe("restart-helper", () => {
 
       const { scriptPath, content } = await prepareAndReadScript({
         HOME: "/Users/envhome",
-        OPENCLAW_PROFILE: "default",
+        COREBLOW_PROFILE: "default",
       });
       expect(content).toMatch(/[\\/]Users[\\/]envhome[\\/]Library[\\/]LaunchAgents[\\/]/);
       await cleanupScript(scriptPath);
@@ -258,7 +258,7 @@ describe("restart-helper", () => {
 
       const { scriptPath, content } = await prepareAndReadScript({
         HOME: "/Users/testuser",
-        OPENCLAW_LAUNCHD_LABEL: "ai.coreblow.it's-a-test",
+        COREBLOW_LAUNCHD_LABEL: "ai.coreblow.it's-a-test",
       });
       // The plist path must also shell-escape the label to prevent injection
       expect(content).toContain("ai.coreblow.it'\\''s-a-test.plist");
@@ -268,7 +268,7 @@ describe("restart-helper", () => {
     it("rejects unsafe batch profile names on Windows", async () => {
       Object.defineProperty(process, "platform", { value: "win32" });
       const scriptPath = await prepareRestartScript({
-        OPENCLAW_PROFILE: "test&whoami",
+        COREBLOW_PROFILE: "test&whoami",
       });
 
       expect(scriptPath).toBeNull();

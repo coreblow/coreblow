@@ -33,7 +33,7 @@ import { type AnnounceQueueItem, enqueueAnnounce } from "./subagent-announce-que
 import { getSubagentDepthFromSessionStore } from "./subagent-depth.js";
 import type { SpawnSubagentMode } from "./subagent-spawn.js";
 
-const FAST_TEST_MODE = process.env.OPENCLAW_TEST_FAST === "1";
+const FAST_TEST_MODE = process.env.COREBLOW_TEST_FAST === "1";
 const DEFAULT_SUBAGENT_ANNOUNCE_TIMEOUT_MS = 90_000;
 const MAX_TIMER_SAFE_TIMEOUT_MS = 2_147_000_000;
 

@@ -86,8 +86,8 @@ export function resolveGatewayServiceDescription(params: {
   return (
     params.description ??
     formatGatewayServiceDescription({
-      profile: params.env.OPENCLAW_PROFILE,
-      version: params.environment?.OPENCLAW_SERVICE_VERSION ?? params.env.OPENCLAW_SERVICE_VERSION,
+      profile: params.env.COREBLOW_PROFILE,
+      version: params.environment?.COREBLOW_SERVICE_VERSION ?? params.env.COREBLOW_SERVICE_VERSION,
     })
   );
 }

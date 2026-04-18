@@ -1,1 +1,0 @@
-/** CoreBlow — Install from NPM Spec */ export interface NpmSpec { name: string; version?: string; registry?: string; } export function parseNpmSpec(spec: string): NpmSpec { const [name, version] = spec.split("@").filter(Boolean); return { name: name.startsWith("@") ? "@" + name : name, version }; }

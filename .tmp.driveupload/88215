@@ -1,4 +1,0 @@
-/** PTY key sequence mapping. */
-export declare const KEY_MAP: Record<string, string>;
-export declare function getKeySequence(key: string): string;
-//# sourceMappingURL=pty-keys.d.ts.map

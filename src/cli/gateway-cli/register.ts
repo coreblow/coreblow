@@ -99,7 +99,7 @@ export function registerGatewayCli(program: Command) {
             ["coreblow gateway status", "Show service status and probe reachability."],
             ["coreblow gateway discover", "Find local and wide-area gateway beacons."],
             ["coreblow gateway call health", "Call a gateway RPC method directly."],
-          ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/gateway", "docs.coreblow.ai/cli/gateway")}\n`,
+          ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/gateway", "docs.coreblow.com/cli/gateway")}\n`,
       ),
   );
 

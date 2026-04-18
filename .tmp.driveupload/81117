@@ -1,5 +1,0 @@
-/**
- * utils/url-utils.ts
- */
-export declare function parseQS(qs: string): Record<string, string>;
-//# sourceMappingURL=url-utils.d.ts.map

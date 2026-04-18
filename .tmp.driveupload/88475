@@ -1,8 +1,0 @@
-/**
- * CoreBlow — Subagent Registry Memory (CoreBlow Parity)
- *
- * Singleton in-memory Map for all subagent run records.
- */
-import type { SubagentRunRecord } from './subagent-registry-types.js';
-export declare const subagentRuns: Map<string, SubagentRunRecord>;
-//# sourceMappingURL=subagent-registry-memory.d.ts.map

@@ -1,1 +1,0 @@
-/** CoreBlow — Zod Schema: Sensitive Fields */ export const SENSITIVE_FIELDS = new Set(["apiKey", "token", "secret", "password", "credential", "accessToken", "botToken", "appToken", "signingSecret"]); export function isSensitiveField(field: string): boolean { return SENSITIVE_FIELDS.has(field) || field.toLowerCase().includes("key") || field.toLowerCase().includes("secret"); }

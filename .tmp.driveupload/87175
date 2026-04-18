@@ -1,2 +1,0 @@
-export function getAuthMarkerIcon(marker) { const icons = { valid: '✅', expired: '❌', missing: '⚠️', refreshing: '🔄' }; return icons[marker]; }
-//# sourceMappingURL=model-auth-markers.js.map

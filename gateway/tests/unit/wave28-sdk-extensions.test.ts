@@ -1,7 +1,7 @@
 /**
  * Wave 28: Plugin SDK & Extensions
  *
- * Following OpenClaw's plugin-sdk testing patterns + extension-registry.ts
+ * Following CoreBlow's plugin-sdk testing patterns + extension-registry.ts
  * + cli-scaffold.ts patterns, upgraded for CoreBlow OOP.
  *
  * Tests SDK mock factories, TestPluginHarness, ExtensionRegistry,

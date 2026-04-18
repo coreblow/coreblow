@@ -2,7 +2,7 @@
  * Wave 32: Model & Prompt (selection, fallback, composition, persona)
  * TARGET: ~35 tests
  *
- * OpenClaw ref: models/model-catalog.ts + chat/prompt-builder.ts
+ * CoreBlow ref: models/model-catalog.ts + chat/prompt-builder.ts
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';

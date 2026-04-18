@@ -64,16 +64,16 @@ async function getServerModule() {
 const GATEWAY_TEST_ENV_KEYS = [
   "HOME",
   "USERPROFILE",
-  "OPENCLAW_STATE_DIR",
-  "OPENCLAW_CONFIG_PATH",
-  "OPENCLAW_SKIP_BROWSER_CONTROL_SERVER",
-  "OPENCLAW_SKIP_GMAIL_WATCHER",
-  "OPENCLAW_SKIP_CANVAS_HOST",
-  "OPENCLAW_BUNDLED_PLUGINS_DIR",
-  "OPENCLAW_SKIP_CHANNELS",
-  "OPENCLAW_SKIP_PROVIDERS",
-  "OPENCLAW_SKIP_CRON",
-  "OPENCLAW_TEST_MINIMAL_GATEWAY",
+  "COREBLOW_STATE_DIR",
+  "COREBLOW_CONFIG_PATH",
+  "COREBLOW_SKIP_BROWSER_CONTROL_SERVER",
+  "COREBLOW_SKIP_GMAIL_WATCHER",
+  "COREBLOW_SKIP_CANVAS_HOST",
+  "COREBLOW_BUNDLED_PLUGINS_DIR",
+  "COREBLOW_SKIP_CHANNELS",
+  "COREBLOW_SKIP_PROVIDERS",
+  "COREBLOW_SKIP_CRON",
+  "COREBLOW_TEST_MINIMAL_GATEWAY",
 ] as const;
 
 let gatewayEnvSnapshot: ReturnType<typeof captureEnv> | undefined;
@@ -118,11 +118,11 @@ function hasUnsyncedGatewayTestSessionConfig(): boolean {
 
 async function persistTestSessionConfig(): Promise<void> {
   const configPaths = new Set<string>();
-  if (process.env.OPENCLAW_CONFIG_PATH) {
-    configPaths.add(process.env.OPENCLAW_CONFIG_PATH);
+  if (process.env.COREBLOW_CONFIG_PATH) {
+    configPaths.add(process.env.COREBLOW_CONFIG_PATH);
   }
-  if (process.env.OPENCLAW_STATE_DIR) {
-    configPaths.add(path.join(process.env.OPENCLAW_STATE_DIR, "coreblow.json"));
+  if (process.env.COREBLOW_STATE_DIR) {
+    configPaths.add(path.join(process.env.COREBLOW_STATE_DIR, "coreblow.json"));
   }
   const parsedConfigs = new Map<string, Record<string, unknown>>();
   let preservedTemplateStore: string | undefined;
@@ -216,19 +216,19 @@ async function setupGatewayTestHome() {
   tempHome = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-gateway-home-"));
   process.env.HOME = tempHome;
   process.env.USERPROFILE = tempHome;
-  process.env.OPENCLAW_STATE_DIR = path.join(tempHome, ".coreblow");
-  delete process.env.OPENCLAW_CONFIG_PATH;
+  process.env.COREBLOW_STATE_DIR = path.join(tempHome, ".coreblow");
+  delete process.env.COREBLOW_CONFIG_PATH;
 }
 
 function applyGatewaySkipEnv() {
-  process.env.OPENCLAW_SKIP_BROWSER_CONTROL_SERVER = "1";
-  process.env.OPENCLAW_SKIP_GMAIL_WATCHER = "1";
-  process.env.OPENCLAW_SKIP_CANVAS_HOST = "1";
-  process.env.OPENCLAW_SKIP_CHANNELS = "1";
-  process.env.OPENCLAW_SKIP_PROVIDERS = "1";
-  process.env.OPENCLAW_SKIP_CRON = "1";
-  process.env.OPENCLAW_TEST_MINIMAL_GATEWAY = "1";
-  process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = tempHome
+  process.env.COREBLOW_SKIP_BROWSER_CONTROL_SERVER = "1";
+  process.env.COREBLOW_SKIP_GMAIL_WATCHER = "1";
+  process.env.COREBLOW_SKIP_CANVAS_HOST = "1";
+  process.env.COREBLOW_SKIP_CHANNELS = "1";
+  process.env.COREBLOW_SKIP_PROVIDERS = "1";
+  process.env.COREBLOW_SKIP_CRON = "1";
+  process.env.COREBLOW_TEST_MINIMAL_GATEWAY = "1";
+  process.env.COREBLOW_BUNDLED_PLUGINS_DIR = tempHome
     ? path.join(tempHome, "coreblow-test-no-bundled-extensions")
     : "coreblow-test-no-bundled-extensions";
 }
@@ -241,7 +241,7 @@ async function resetGatewayTestState(options: { uniqueConfigRoot: boolean }) {
     throw new Error("resetGatewayTestState called before temp home was initialized");
   }
   applyGatewaySkipEnv();
-  const stateDir = process.env.OPENCLAW_STATE_DIR;
+  const stateDir = process.env.COREBLOW_STATE_DIR;
   if (stateDir) {
     await fs.rm(stateDir, {
       recursive: true,
@@ -485,7 +485,7 @@ export async function startGatewayServer(port: number, opts?: GatewayServerOptio
     opts?.controlUiEnabled === undefined ? { ...opts, controlUiEnabled: false } : opts;
   if (
     resolvedOpts?.controlUiEnabled === true &&
-    process.env.OPENCLAW_TEST_MINIMAL_GATEWAY === "1" &&
+    process.env.COREBLOW_TEST_MINIMAL_GATEWAY === "1" &&
     tempControlUiRoot &&
     typeof (testState.gatewayControlUi as { root?: unknown } | undefined)?.root !== "string"
   ) {
@@ -608,8 +608,8 @@ export async function startServerWithClient(
 ) {
   const { wsHeaders, ...gatewayOpts } = opts ?? {};
   let port = await getFreePort();
-  const envSnapshot = captureEnv(["OPENCLAW_GATEWAY_TOKEN"]);
-  const prev = process.env.OPENCLAW_GATEWAY_TOKEN;
+  const envSnapshot = captureEnv(["COREBLOW_GATEWAY_TOKEN"]);
+  const prev = process.env.COREBLOW_GATEWAY_TOKEN;
   if (typeof token === "string") {
     testState.gatewayAuth = { mode: "token", token };
   }
@@ -619,9 +619,9 @@ export async function startServerWithClient(
       ? (testState.gatewayAuth as { token?: string }).token
       : undefined);
   if (fallbackToken === undefined) {
-    delete process.env.OPENCLAW_GATEWAY_TOKEN;
+    delete process.env.COREBLOW_GATEWAY_TOKEN;
   } else {
-    process.env.OPENCLAW_GATEWAY_TOKEN = fallbackToken;
+    process.env.COREBLOW_GATEWAY_TOKEN = fallbackToken;
   }
 
   const started = await startGatewayServerWithRetries({ port, opts: gatewayOpts });
@@ -660,7 +660,7 @@ function resolveDefaultTestDeviceIdentityPath(params: {
     `${params.clientId}-${params.clientMode}-${params.platform}-${params.deviceFamily ?? "none"}-${params.role}`
       .replace(/[^a-zA-Z0-9._-]+/g, "_")
       .toLowerCase();
-  const suiteRoot = process.env.OPENCLAW_STATE_DIR ?? process.env.HOME ?? os.tmpdir();
+  const suiteRoot = process.env.COREBLOW_STATE_DIR ?? process.env.HOME ?? os.tmpdir();
   return path.join(suiteRoot, "test-device-identities", `${safe}.json`);
 }
 
@@ -740,13 +740,13 @@ export async function connectReq(
       ? undefined
       : typeof (testState.gatewayAuth as { token?: unknown } | undefined)?.token === "string"
         ? ((testState.gatewayAuth as { token?: string }).token ?? undefined)
-        : process.env.OPENCLAW_GATEWAY_TOKEN;
+        : process.env.COREBLOW_GATEWAY_TOKEN;
   const defaultPassword =
     opts?.skipDefaultAuth === true
       ? undefined
       : typeof (testState.gatewayAuth as { password?: unknown } | undefined)?.password === "string"
         ? ((testState.gatewayAuth as { password?: string }).password ?? undefined)
-        : process.env.OPENCLAW_GATEWAY_PASSWORD;
+        : process.env.COREBLOW_GATEWAY_PASSWORD;
   const token = opts?.token ?? defaultToken;
   const deviceToken = opts?.deviceToken?.trim() || undefined;
   const password = opts?.password ?? defaultPassword;

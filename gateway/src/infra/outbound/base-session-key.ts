@@ -1,1 +1,0 @@
-/** CoreBlow — Base Session Key */ export function createSessionKey(channelId: string, userId: string): string { return channelId + ":" + userId; } export function parseSessionKey(key: string): { channelId: string; userId: string } | null { const i = key.indexOf(":"); if (i < 0) return null; return { channelId: key.slice(0, i), userId: key.slice(i + 1) }; }

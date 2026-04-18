@@ -1,5 +1,0 @@
-import { discordLog } from '../utils/logger.js';
-export function onError(err, ctx) {
-    discordLog.error({ err: err?.message || String(err) }, 'Discord client error');
-}
-//# sourceMappingURL=error.js.map

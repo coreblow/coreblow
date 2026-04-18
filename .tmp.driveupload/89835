@@ -1,6 +1,0 @@
-/** Memory/conversation search. */
-export function searchMessages(messages, query) {
-    const q = query.toLowerCase();
-    return messages.map((m, i) => m.content.toLowerCase().includes(q) ? i : -1).filter((i) => i >= 0);
-}
-//# sourceMappingURL=memory-search.js.map

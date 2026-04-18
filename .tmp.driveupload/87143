@@ -1,8 +1,0 @@
-export declare function registerCustomApi(name: string, baseUrl: string, headers?: Record<string, string>): void;
-export declare function getCustomApi(name: string): {
-    baseUrl: string;
-    headers?: Record<string, string>;
-} | undefined;
-export declare function listCustomApis(): string[];
-export declare function clearCustomApis(): void;
-//# sourceMappingURL=custom-api-registry.d.ts.map

@@ -1,1 +1,0 @@
-{"version":3,"file":"slack-core.d.ts","sourceRoot":"","sources":["../../src/plugin-sdk/slack-core.ts"],"names":[],"mappings":"AAAA;;;GAGG;AAEH,YAAY,EAAE,cAAc,EAAE,MAAM,qBAAqB,CAAC;AAC1D,YAAY,EAAE,aAAa,EAAE,MAAM,4BAA4B,CAAC;AAChE,OAAO,EACH,kBAAkB,GACrB,MAAM,4BAA4B,CAAC;AACpC,OAAO,EAAE,wBAAwB,EAAE,MAAM,4BAA4B,CAAC;AACtE,OAAO,EAAE,UAAU,EAAE,eAAe,EAAE,eAAe,EAAE,MAAM,0BAA0B,CAAC"}

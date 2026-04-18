@@ -1,9 +1,0 @@
-/**
- * src/shared/global-singleton.ts
- * Safe process-local cache/registry resolution.
- * Ported from CoreBlow shared/global-singleton.ts.
- */
-export declare function resolveGlobalSingleton<T>(key: symbol, create: () => T): T;
-export declare function resolveGlobalMap<TKey, TValue>(key: symbol): Map<TKey, TValue>;
-export declare function getOrCreateGlobalSingleton<T>(key: string, factory: () => T): T;
-//# sourceMappingURL=global-singleton.d.ts.map

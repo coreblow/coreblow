@@ -1,1 +1,0 @@
-{"version":3,"file":"vllm.d.ts","sourceRoot":"","sources":["../../src/plugin-sdk/vllm.ts"],"names":[],"mappings":"AAAA,+CAA+C;AAC/C,eAAO,MAAM,qBAAqB,0BAA0B,CAAC;AAC7D,eAAO,MAAM,4BAA4B,iBAAiB,CAAC;AAC3D,eAAO,MAAM,sBAAsB,YAAY,CAAC;AAChD,eAAO,MAAM,mBAAmB,SAAS,CAAC;AAC1C,wBAAgB,iBAAiB,CAAC,EAAE,EAAE,OAAO,GAAG,OAAO,CAEtD"}

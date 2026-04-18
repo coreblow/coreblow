@@ -1,1 +1,0 @@
-/** CoreBlow — Map Size */ export function estimateMapMemoryBytes(map: Map<unknown, unknown>): number { let bytes = 0; for (const [k, v] of map) { bytes += typeof k === "string" ? k.length * 2 : 8; bytes += typeof v === "string" ? v.length * 2 : 8; } return bytes; }

@@ -1,5 +1,0 @@
-import type { InboundMessage } from '../types.js';
-import type { GetReplyOptions } from '../types.js';
-import type { QueueItem } from '../queue.types.js';
-export declare function enqueue(sessionKey: string, message: InboundMessage, options?: GetReplyOptions, priority?: number): QueueItem;
-//# sourceMappingURL=enqueue.d.ts.map

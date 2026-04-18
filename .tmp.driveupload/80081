@@ -1,8 +1,0 @@
-import type { ContextEntry } from "./types.js";
-export declare function defaultSummarizer(entries: ContextEntry[]): string;
-export declare function createSummaryEntry(summary: string, tokens: number): ContextEntry;
-export declare function partitionForSummary(entries: ContextEntry[], maxTokens: number): {
-    keep: ContextEntry[];
-    summarize: ContextEntry[];
-};
-//# sourceMappingURL=context-summarizer.d.ts.map

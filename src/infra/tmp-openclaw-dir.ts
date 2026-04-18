@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { tmpdir as getOsTmpDir } from "node:os";
 import path from "node:path";
 
-export const POSIX_OPENCLAW_TMP_DIR = "/tmp/coreblow";
+export const POSIX_COREBLOW_TMP_DIR = "/tmp/coreblow";
 const TMP_DIR_ACCESS_MODE = fs.constants.W_OK | fs.constants.X_OK;
 
 type ResolvePreferredCoreBlowTmpDirOptions = {
@@ -140,13 +140,13 @@ export function resolvePreferredCoreBlowTmpDir(
     return fallbackPath;
   };
 
-  const existingPreferredState = resolveDirState(POSIX_OPENCLAW_TMP_DIR);
+  const existingPreferredState = resolveDirState(POSIX_COREBLOW_TMP_DIR);
   if (existingPreferredState === "available") {
-    return POSIX_OPENCLAW_TMP_DIR;
+    return POSIX_COREBLOW_TMP_DIR;
   }
   if (existingPreferredState === "invalid") {
-    if (tryRepairWritableBits(POSIX_OPENCLAW_TMP_DIR)) {
-      return POSIX_OPENCLAW_TMP_DIR;
+    if (tryRepairWritableBits(POSIX_COREBLOW_TMP_DIR)) {
+      return POSIX_COREBLOW_TMP_DIR;
     }
     return ensureTrustedFallbackDir();
   }
@@ -154,15 +154,15 @@ export function resolvePreferredCoreBlowTmpDir(
   try {
     accessSync("/tmp", TMP_DIR_ACCESS_MODE);
     // Create with a safe default; subsequent callers expect it exists.
-    mkdirSync(POSIX_OPENCLAW_TMP_DIR, { recursive: true, mode: 0o700 });
-    chmodSync(POSIX_OPENCLAW_TMP_DIR, 0o700);
+    mkdirSync(POSIX_COREBLOW_TMP_DIR, { recursive: true, mode: 0o700 });
+    chmodSync(POSIX_COREBLOW_TMP_DIR, 0o700);
     if (
-      resolveDirState(POSIX_OPENCLAW_TMP_DIR) !== "available" &&
-      !tryRepairWritableBits(POSIX_OPENCLAW_TMP_DIR)
+      resolveDirState(POSIX_COREBLOW_TMP_DIR) !== "available" &&
+      !tryRepairWritableBits(POSIX_COREBLOW_TMP_DIR)
     ) {
       return ensureTrustedFallbackDir();
     }
-    return POSIX_OPENCLAW_TMP_DIR;
+    return POSIX_COREBLOW_TMP_DIR;
   } catch {
     return ensureTrustedFallbackDir();
   }

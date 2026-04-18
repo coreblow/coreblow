@@ -60,7 +60,7 @@ export async function withTempHome<T>(fn: (home: string) => Promise<T>): Promise
     },
     {
       env: {
-        OPENCLAW_AGENT_DIR: (home) => path.join(home, ".coreblow", "agent"),
+        COREBLOW_AGENT_DIR: (home) => path.join(home, ".coreblow", "agent"),
         PI_CODING_AGENT_DIR: (home) => path.join(home, ".coreblow", "agent"),
       },
       prefix: "coreblow-reply-",

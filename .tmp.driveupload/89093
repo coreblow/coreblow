@@ -1,8 +1,0 @@
-export declare function isProfileInCooldown(profileId: string): boolean;
-export declare function getRemainingCooldownMs(profileId: string): number;
-export declare class UsageTracker {
-    private usage;
-    record(profileId: string, tokens: number): void;
-    getUsage(profileId: string): number;
-}
-//# sourceMappingURL=usage.d.ts.map

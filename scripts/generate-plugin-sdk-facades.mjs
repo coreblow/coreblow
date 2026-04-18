@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * scripts/generate-plugin-sdk-facades.mjs
- * [PORT] openclaw-main
+ * [PORT] coreblow-main
  *
  * Generates plugin-sdk facade files (re-exports) from extension API surfaces.
  * In CoreBlow, extensions live at src/extensions/<name>/api.ts.

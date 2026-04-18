@@ -1,4 +1,0 @@
-/** Model auth display labels. */
-export function formatAuthLabel(provider, type) { return `${provider} (${type})`; }
-export function redactApiKey(key) { return key.length > 8 ? key.slice(0, 4) + '…' + key.slice(-4) : '***'; }
-//# sourceMappingURL=model-auth-label.js.map

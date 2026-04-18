@@ -1,1 +1,0 @@
-/** CoreBlow — Auth Mode Policy */ export type AuthMode = "none" | "token" | "jwt" | "oauth"; export function resolveAuthMode(env: NodeJS.ProcessEnv = process.env): AuthMode { return (env.COREBLOW_AUTH_MODE as AuthMode) ?? "token"; }

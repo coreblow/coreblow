@@ -1,7 +1,7 @@
 // CoreBlowKit/Identity/DeviceIdentity.swift
 // Ed25519 device identity with CryptoKit.
 //
-// Key format: PEM (SPKI/PKCS8) — industry standard, matching OpenClaw.
+// Key format: PEM (SPKI/PKCS8) — industry standard, matching CoreBlow.
 // Internal CryptoKit operations use raw bytes, serialized as PEM for storage/wire.
 
 import CryptoKit
@@ -16,7 +16,7 @@ import CoreBlowProtocol
 /// - `publicKeyPem`: SPKI PEM (`-----BEGIN PUBLIC KEY-----`)
 /// - `privateKeyPem`: PKCS8 PEM (`-----BEGIN PRIVATE KEY-----`)
 ///
-/// This matches the OpenClaw device identity format exactly.
+/// This matches the CoreBlow device identity format exactly.
 public struct DeviceIdentity: Codable, Sendable {
     /// Schema version for forward compatibility.
     public let version: Int

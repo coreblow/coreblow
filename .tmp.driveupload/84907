@@ -1,4 +1,0 @@
-/** plugin-sdk/config-runtime.ts [ADAPT] openclaw-main */
-export { resolveDefaultConfigDir, resolveDefaultConfigPath, resolveConfigPath } from "./config-paths.js";
-export type { CoreBlowConfig } from "../config/config.js";
-//# sourceMappingURL=config-runtime.d.ts.map

@@ -11,7 +11,7 @@ import { readLatestAssistantReply } from "./tools/agent-step.js";
 import { sanitizeTextContent, extractAssistantText } from "./tools/sessions-helpers.js";
 import { isAnnounceSkip } from "./tools/sessions-send-helpers.js";
 
-const FAST_TEST_MODE = process.env.OPENCLAW_TEST_FAST === "1";
+const FAST_TEST_MODE = process.env.COREBLOW_TEST_FAST === "1";
 const FAST_TEST_RETRY_INTERVAL_MS = 8;
 
 type ToolResultMessage = {

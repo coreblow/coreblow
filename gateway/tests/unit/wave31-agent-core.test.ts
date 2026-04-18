@@ -2,7 +2,7 @@
  * Wave 31: Agent Core (Runtime, Lifecycle, Context)
  * TARGET: ~40 tests
  *
- * Replaces OpenClaw's engine/agent-runtime.ts + context-engine/windowed-context.ts
+ * Replaces CoreBlow's engine/agent-runtime.ts + context-engine/windowed-context.ts
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';

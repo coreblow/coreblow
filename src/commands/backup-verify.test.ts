@@ -100,7 +100,7 @@ describe("backupVerifyCommand", () => {
   async function resetTempHome() {
     await fs.rm(tempHome.home, { recursive: true, force: true });
     await fs.mkdir(path.join(tempHome.home, ".coreblow"), { recursive: true });
-    delete process.env.OPENCLAW_CONFIG_PATH;
+    delete process.env.COREBLOW_CONFIG_PATH;
   }
 
   beforeAll(async () => {
@@ -234,7 +234,7 @@ describe("backupVerifyCommand", () => {
     const configPath = path.join(tempHome.home, "custom-config.json");
     const archiveDir = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-backup-verify-out-"));
     try {
-      process.env.OPENCLAW_CONFIG_PATH = configPath;
+      process.env.COREBLOW_CONFIG_PATH = configPath;
       await fs.writeFile(
         configPath,
         JSON.stringify({
@@ -265,7 +265,7 @@ describe("backupVerifyCommand", () => {
       expect(verified.ok).toBe(true);
       expect(verified.assetCount).toBeGreaterThanOrEqual(2);
     } finally {
-      delete process.env.OPENCLAW_CONFIG_PATH;
+      delete process.env.COREBLOW_CONFIG_PATH;
       await fs.rm(externalWorkspace, { recursive: true, force: true });
       await fs.rm(archiveDir, { recursive: true, force: true });
     }

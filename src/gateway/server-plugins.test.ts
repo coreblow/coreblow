@@ -389,7 +389,7 @@ describe("loadGatewayPlugins", () => {
         }),
       ),
     ).rejects.toThrow(
-      'plugin "voice-call" is not trusted for fallback provider/model override requests. See https://docs.coreblow.ai/tools/plugin#runtime-helpers and search for: plugins.entries.<id>.subagent.allowModelOverride',
+      'plugin "voice-call" is not trusted for fallback provider/model override requests. See https://docs.coreblow.com/tools/plugin#runtime-helpers and search for: plugins.entries.<id>.subagent.allowModelOverride',
     );
   });
 

@@ -9,7 +9,7 @@ const HOME_ENV_KEYS = [
   "USERPROFILE",
   "HOMEDRIVE",
   "HOMEPATH",
-  "OPENCLAW_STATE_DIR",
+  "COREBLOW_STATE_DIR",
 ] as const;
 
 export type TempHomeEnv = {
@@ -24,7 +24,7 @@ export async function createTempHomeEnv(prefix: string): Promise<TempHomeEnv> {
   const snapshot = captureEnv([...HOME_ENV_KEYS]);
   process.env.HOME = home;
   process.env.USERPROFILE = home;
-  process.env.OPENCLAW_STATE_DIR = path.join(home, ".coreblow");
+  process.env.COREBLOW_STATE_DIR = path.join(home, ".coreblow");
 
   if (process.platform === "win32") {
     const match = home.match(/^([A-Za-z]:)(.*)$/);

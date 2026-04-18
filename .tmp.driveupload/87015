@@ -1,4 +1,0 @@
-/** Shared model auth runtime utilities. */
-export function isApiKeyValid(key) { return typeof key === 'string' && key.trim().length > 10; }
-export function normalizeApiKey(key) { return key.trim(); }
-//# sourceMappingURL=model-auth-runtime-shared.js.map

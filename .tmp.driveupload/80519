@@ -1,6 +1,0 @@
-import { PROVIDER_COLORS } from '../constants.js';
-export function createHelpEmbed(commands) {
-    const desc = commands.map(c => `**/${c.name}** — ${c.description}`).join('\n');
-    return { title: ' CoreBlow Commands', description: desc || 'No commands registered', color: PROVIDER_COLORS.default, footer: { text: 'Type / to see all commands' } };
-}
-//# sourceMappingURL=help.js.map

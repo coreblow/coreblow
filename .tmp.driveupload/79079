@@ -1,6 +1,0 @@
-/**
- * flows/types.ts
- * Conversation flow types — multi-step interaction state machines.
- */
-export {};
-//# sourceMappingURL=types.js.map

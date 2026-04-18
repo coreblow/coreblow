@@ -27,7 +27,7 @@ describe("proxy stream wrappers", () => {
     expect(calls).toEqual([
       {
         headers: {
-          "HTTP-Referer": "https://coreblow.ai",
+          "HTTP-Referer": "https://coreblow.com",
           "X-OpenRouter-Title": "CoreBlow",
           "X-OpenRouter-Categories": "cli-agent",
           "X-Custom": "1",

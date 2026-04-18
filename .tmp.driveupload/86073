@@ -1,8 +1,0 @@
-/**
- * src/infra/ports.ts
- * Mock port inspect to fix compilation.
- */
-import type { PortUsage } from "./ports-types.js";
-export declare function inspectPortUsage(port: number): Promise<PortUsage>;
-export type { PortListener, PortListenerKind, PortUsage, PortUsageStatus } from "./ports-types.js";
-//# sourceMappingURL=ports.d.ts.map

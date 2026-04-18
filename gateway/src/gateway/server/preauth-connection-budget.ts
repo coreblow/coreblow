@@ -1,1 +1,0 @@
-/** CoreBlow — Preauth Connection Budget */ let budget = 100; export function consumeConnectionBudget(): boolean { if (budget <= 0) return false; budget--; return true; } export function resetConnectionBudget(max = 100): void { budget = max; }

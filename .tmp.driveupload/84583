@@ -1,6 +1,0 @@
-/** plugin-sdk/testing.ts [ADAPT] openclaw-main */
-export declare function createTestPluginRuntime(): Record<string, unknown>;
-export declare function createTestCoreBlowConfig(overrides?: Record<string, unknown>): Record<string, unknown>;
-export declare function createTestChannelPlugin(overrides?: Record<string, unknown>): Record<string, unknown>;
-export declare function createTestAccountSnapshot(overrides?: Record<string, unknown>): Record<string, unknown>;
-//# sourceMappingURL=testing.d.ts.map

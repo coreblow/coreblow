@@ -78,7 +78,7 @@ export function registerChannelsCli(program: Command) {
           ["coreblow channels login --channel whatsapp", "Link a WhatsApp Web account."],
         ])}\n\n${theme.muted("Docs:")} ${formatDocsLink(
           "/cli/channels",
-          "docs.coreblow.ai/cli/channels",
+          "docs.coreblow.com/cli/channels",
         )}\n`,
     );
 

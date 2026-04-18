@@ -1,9 +1,0 @@
-/** PI project-level settings. */
-export interface ProjectSettings {
-    language?: string;
-    framework?: string;
-    testRunner?: string;
-    packageManager?: string;
-}
-export declare function detectProjectSettings(configFiles: string[]): ProjectSettings;
-//# sourceMappingURL=pi-project-settings.d.ts.map

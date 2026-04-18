@@ -1,5 +1,0 @@
-/** Adapt tool definitions between formats. */
-export function anthropicToOpenAI(tool) {
-    return { type: 'function', function: { name: tool.name, description: tool.description, parameters: tool.input_schema } };
-}
-//# sourceMappingURL=pi-tool-definition-adapter.js.map

@@ -194,7 +194,7 @@ export async function setupSkills(
       runtime.log(
         `Tip: run \`${formatCliCommand("coreblow doctor")}\` to review skills + requirements.`,
       );
-      runtime.log("Docs: https://docs.coreblow.ai/skills");
+      runtime.log("Docs: https://docs.coreblow.com/skills");
     }
   }
 

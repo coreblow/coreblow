@@ -54,7 +54,7 @@ const KNOWN_SECRET_ENV_VARS = [
   ...new Set(Object.values(PROVIDER_ENV_VARS).flatMap((keys) => keys)),
 ];
 
-// OPENCLAW_API_KEY authenticates the local CoreBlow bridge itself and must
+// COREBLOW_API_KEY authenticates the local CoreBlow bridge itself and must
 // remain available to child bridge/runtime processes.
 const KNOWN_PROVIDER_AUTH_ENV_VARS = [
   ...new Set([

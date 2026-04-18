@@ -33,6 +33,9 @@ export type DispatchResult = {
     durationMs: number;
 };
 
+/** Alias for backward compatibility */
+export type CommandResult = DispatchResult;
+
 export type HistoryEntry = {
     command: string;
     args?: string;
@@ -60,6 +63,14 @@ export class CommandDispatcher {
     /** Add middleware to the dispatch pipeline. */
     use(fn: MiddlewareFn): void {
         this.middlewares.push(fn);
+    }
+
+    /** Check if input looks like a command (starts with /). */
+    isCommand(input: string): boolean {
+        const trimmed = input.trim();
+        if (!trimmed.startsWith('/')) return false;
+        const name = trimmed.slice(1).split(/\s+/)[0] ?? '';
+        return this.commands.has(name) || name === 'help' || name === 'status' || name === 'exit' || name === 'quit' || name === 'q';
     }
 
     /** List all registered commands. */

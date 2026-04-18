@@ -1,8 +1,0 @@
-/**
- * sessions/rate-limit.ts
- */
-export declare class SessionRateLimit {
-    private counts;
-    check(sessionId: string, max?: number, windowMs?: number): boolean;
-}
-//# sourceMappingURL=rate-limit.d.ts.map

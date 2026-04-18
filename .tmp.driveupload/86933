@@ -1,9 +1,0 @@
-/**
- * agents/glob-pattern.ts
- * Minimatch-style glob matching for tool/file policies.
- */
-export declare function globMatch(pattern: string, text: string): boolean;
-export declare function globToRegexp(pattern: string): RegExp;
-export declare function globMatchAny(patterns: string[], text: string): boolean;
-export declare function filterByGlob<T>(items: T[], patterns: string[], keyFn: (item: T) => string): T[];
-//# sourceMappingURL=glob-pattern.d.ts.map

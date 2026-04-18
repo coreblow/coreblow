@@ -1,6 +1,0 @@
-export { getChatChannelMeta, } from "./channel-plugin-common.js";
-export { buildChannelConfigSchema } from "./channel-config-schema.js";
-export function listMsTeamsAccountIds(_cfg) { return []; }
-export async function probeMsTeams(_p) { return { ok: false }; }
-export async function sendMessageMsTeams(_p) { return null; }
-//# sourceMappingURL=msteams.js.map

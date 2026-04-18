@@ -24,7 +24,7 @@ export function registerNodesCli(program: Command) {
           ["coreblow nodes pairing pending", "Show pending node pairing requests."],
           ['coreblow nodes run --node <id> --raw "uname -a"', "Run a shell command on a node."],
           ["coreblow nodes camera snap --node <id>", "Capture a photo from a node camera."],
-        ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/nodes", "docs.coreblow.ai/cli/nodes")}\n`,
+        ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/nodes", "docs.coreblow.com/cli/nodes")}\n`,
     );
 
   registerNodesStatusCommands(nodes);

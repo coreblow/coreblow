@@ -1,5 +1,0 @@
-/**
- * routing/load-balance.ts
- */
-export function roundRobin(items, counter) { counter.value = (counter.value + 1) % items.length; return items[counter.value]; }
-//# sourceMappingURL=load-balance.js.map

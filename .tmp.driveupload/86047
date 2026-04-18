@@ -1,1 +1,0 @@
-{"version":3,"file":"gateway-process-argv.d.ts","sourceRoot":"","sources":["../../src/infra/gateway-process-argv.ts"],"names":[],"mappings":"AAAA;;;GAGG;AAMD,wBAAgB,gBAAgB,CAAC,GAAG,EAAE,MAAM,GAAG,MAAM,EAAE,CAKtD;AAED,wBAAgB,aAAa,CAAC,IAAI,EAAE,MAAM,EAAE,EAAE,IAAI,CAAC,EAAE;IAAE,kBAAkB,CAAC,EAAE,OAAO,CAAA;CAAE,GAAG,OAAO,CA4B9F"}

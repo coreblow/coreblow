@@ -1,4 +1,0 @@
-/** Subagent registry query utilities. */
-export function filterByStatus(entries, status) { return entries.filter((e) => e.status === status); }
-export function sortByTimestamp(entries) { return [...entries].sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0)); }
-//# sourceMappingURL=subagent-registry-queries.js.map

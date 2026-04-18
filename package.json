@@ -8,7 +8,12 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "npm run build && wrangler pages deploy dist"
+    "deploy": "npm run build && wrangler pages deploy dist",
+    "clean": "rm -rf dist gateway/dist",
+    "build:gateway": "cd gateway && npx tsc",
+    "build:docker": "cd gateway && npx tsc",
+    "start:gateway": "node coreblow.mjs gateway",
+    "dev:gateway": "cd gateway && npx tsx watch src/entry.ts -- gateway"
   },
   "dependencies": {
     "@agentclientprotocol/sdk": "^0.18.2",

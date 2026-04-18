@@ -14,7 +14,7 @@ export function registerBackupCommand(program: Command) {
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/backup", "docs.coreblow.ai/cli/backup")}\n`,
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/backup", "docs.coreblow.com/cli/backup")}\n`,
     );
 
   backup

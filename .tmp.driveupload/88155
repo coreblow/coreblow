@@ -1,1 +1,0 @@
-{"version":3,"file":"model-alias-lines.d.ts","sourceRoot":"","sources":["../../src/agents/model-alias-lines.ts"],"names":[],"mappings":"AAAA,gCAAgC;AAChC,wBAAgB,eAAe,CAAC,IAAI,EAAE,MAAM,GAAG;IAAE,KAAK,EAAE,MAAM,CAAC;IAAC,MAAM,EAAE,MAAM,CAAA;CAAE,GAAG,IAAI,CAAyG;AAChM,wBAAgB,gBAAgB,CAAC,KAAK,EAAE,MAAM,EAAE,MAAM,EAAE,MAAM,GAAG,MAAM,CAAmC"}

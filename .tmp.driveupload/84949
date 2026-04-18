@@ -1,4 +1,0 @@
-/** plugin-sdk/agent-runtime.ts [ADAPT] openclaw-main */
-export { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "./account-id.js";
-export { resolveMergedAccountConfig } from "./account-helpers.js";
-//# sourceMappingURL=agent-runtime.js.map

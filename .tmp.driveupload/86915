@@ -1,3 +1,0 @@
-export function buildWsUrl(config) { return `${config.url}?model=${encodeURIComponent(config.model)}`; }
-export function createWsHeaders(apiKey) { return { 'Authorization': `Bearer ${apiKey}`, 'OpenAI-Beta': 'realtime=v1' }; }
-//# sourceMappingURL=openai-ws-connection.js.map

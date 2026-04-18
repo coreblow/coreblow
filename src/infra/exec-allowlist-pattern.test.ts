@@ -25,20 +25,20 @@ describe("matchesExecAllowlistPattern", () => {
   });
 
   it("expands home-prefix patterns", () => {
-    const prevCoreBlowHome = process.env.OPENCLAW_HOME;
+    const prevCoreBlowHome = process.env.COREBLOW_HOME;
     const prevHome = process.env.HOME;
-    process.env.OPENCLAW_HOME = "/srv/coreblow-home";
+    process.env.COREBLOW_HOME = "/srv/coreblow-home";
     process.env.HOME = "/home/other";
-    const openClawHome = path.join(path.resolve("/srv/coreblow-home"), "bin", "tool");
+    const coreBlowHome = path.join(path.resolve("/srv/coreblow-home"), "bin", "tool");
     const fallbackHome = path.join(path.resolve("/home/other"), "bin", "tool");
     try {
-      expect(matchesExecAllowlistPattern("~/bin/tool", openClawHome)).toBe(true);
+      expect(matchesExecAllowlistPattern("~/bin/tool", coreBlowHome)).toBe(true);
       expect(matchesExecAllowlistPattern("~/bin/tool", fallbackHome)).toBe(false);
     } finally {
       if (prevCoreBlowHome === undefined) {
-        delete process.env.OPENCLAW_HOME;
+        delete process.env.COREBLOW_HOME;
       } else {
-        process.env.OPENCLAW_HOME = prevCoreBlowHome;
+        process.env.COREBLOW_HOME = prevCoreBlowHome;
       }
       if (prevHome === undefined) {
         delete process.env.HOME;

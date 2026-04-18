@@ -1,8 +1,0 @@
-export function discordTimestamp(date, style = 'f') {
-    const unix = Math.floor((typeof date === 'number' ? date : date.getTime()) / 1000);
-    return `<t:${unix}:${style}>`;
-}
-export function relativeTime(date) { return discordTimestamp(date, 'R'); }
-export function shortDate(date) { return discordTimestamp(date, 'd'); }
-export function longDateTime(date) { return discordTimestamp(date, 'F'); }
-//# sourceMappingURL=timestamp.js.map

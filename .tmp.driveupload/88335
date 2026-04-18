@@ -1,7 +1,0 @@
-/** Embedded LSP bridge. */
-export interface LspConfig {
-    rootUri: string;
-    capabilities?: string[];
-}
-export declare function createLspConfig(rootUri: string): LspConfig;
-//# sourceMappingURL=embedded-pi-lsp.d.ts.map

@@ -1,3 +1,0 @@
-export { GATEWAY_CLIENT_NAMES, GATEWAY_CLIENT_MODES, normalizeGatewayClientName, normalizeGatewayClientMode, } from "../gateway/protocol/client-info.js";
-export const INTERNAL_MESSAGE_CHANNEL = "webchat";
-//# sourceMappingURL=message-channel.js.map

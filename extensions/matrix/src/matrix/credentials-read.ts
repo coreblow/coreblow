@@ -27,11 +27,11 @@ function resolveStateDir(env: NodeJS.ProcessEnv): string {
   } catch {
     // Some config-only helpers read stored credentials before the Matrix plugin
     // runtime is installed. Fall back to the standard state-dir env contract.
-    const override = env.OPENCLAW_STATE_DIR?.trim();
+    const override = env.COREBLOW_STATE_DIR?.trim();
     if (override) {
       return path.resolve(override);
     }
-    const homeDir = env.OPENCLAW_HOME?.trim() || env.HOME?.trim() || os.homedir();
+    const homeDir = env.COREBLOW_HOME?.trim() || env.HOME?.trim() || os.homedir();
     return path.join(homeDir, ".coreblow");
   }
 }

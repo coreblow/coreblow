@@ -1,1 +1,0 @@
-/** CoreBlow — Types: Approvals */ export type ApprovalMode = "auto" | "manual" | "smart"; export interface ApprovalsConfig { mode: ApprovalMode; allowedCommands?: string[]; blockedCommands?: string[]; timeout?: number; }

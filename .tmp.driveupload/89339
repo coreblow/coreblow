@@ -1,3 +1,0 @@
-/** Skill tar extraction verbose logging. */
-export declare function logExtraction(file: string): string;
-//# sourceMappingURL=skills-install-tar-verbose.d.ts.map

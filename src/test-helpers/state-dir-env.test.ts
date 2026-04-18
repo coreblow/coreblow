@@ -14,12 +14,12 @@ type EnvSnapshot = {
 
 function snapshotCurrentStateDirVars(): EnvSnapshot {
   return {
-    coreblow: process.env.OPENCLAW_STATE_DIR,
+    coreblow: process.env.COREBLOW_STATE_DIR,
   };
 }
 
 function expectStateDirVars(snapshot: EnvSnapshot) {
-  expect(process.env.OPENCLAW_STATE_DIR).toBe(snapshot.coreblow);
+  expect(process.env.COREBLOW_STATE_DIR).toBe(snapshot.coreblow);
 }
 
 async function expectPathMissing(filePath: string) {
@@ -37,12 +37,12 @@ async function expectStateDirEnvRestored(params: {
 }
 
 describe("state-dir-env helpers", () => {
-  it("set/snapshot/restore round-trips OPENCLAW_STATE_DIR", () => {
+  it("set/snapshot/restore round-trips COREBLOW_STATE_DIR", () => {
     const prev = snapshotCurrentStateDirVars();
     const snapshot = snapshotStateDirEnv();
 
     setStateDirEnv("/tmp/coreblow-state-dir-test");
-    expect(process.env.OPENCLAW_STATE_DIR).toBe("/tmp/coreblow-state-dir-test");
+    expect(process.env.COREBLOW_STATE_DIR).toBe("/tmp/coreblow-state-dir-test");
 
     restoreStateDirEnv(snapshot);
     expectStateDirVars(prev);
@@ -56,7 +56,7 @@ describe("state-dir-env helpers", () => {
     await withStateDirEnv("coreblow-state-dir-env-", async ({ tempRoot, stateDir }) => {
       capturedTempRoot = tempRoot;
       capturedStateDir = stateDir;
-      expect(process.env.OPENCLAW_STATE_DIR).toBe(stateDir);
+      expect(process.env.COREBLOW_STATE_DIR).toBe(stateDir);
       await fs.writeFile(path.join(stateDir, "probe.txt"), "ok", "utf8");
     });
 

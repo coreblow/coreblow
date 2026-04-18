@@ -1,9 +1,0 @@
-/**
- * plugin-sdk/whatsapp-shared.ts
- * [ADAPT] openclaw-main
- */
-export * from "./whatsapp-targets.js";
-export function createWhatsAppOutboundBase(_cfg) { return {}; }
-export function resolveWhatsAppMentionStripRegexes(_p) { return []; }
-export function resolveWhatsAppHeartbeatRecipients(_p) { return []; }
-//# sourceMappingURL=whatsapp-shared.js.map

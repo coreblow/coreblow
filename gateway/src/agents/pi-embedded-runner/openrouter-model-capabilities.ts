@@ -1,1 +1,0 @@
-/** CoreBlow — OpenRouter Model Capabilities */ export function getOpenRouterCapabilities(model: string): { supportsTools: boolean; supportsVision: boolean } { return { supportsTools: true, supportsVision: model.includes("vision") }; }

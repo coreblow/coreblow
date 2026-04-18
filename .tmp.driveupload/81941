@@ -1,6 +1,0 @@
-export const chatTranscriptInjectHandlers = {
-    "chat.inject": async ({ params, respond }) => {
-        respond(true, { injected: true });
-    }
-};
-//# sourceMappingURL=chat-transcript-inject.js.map

@@ -1,1 +1,0 @@
-/** CoreBlow — Gmail Ops */ export async function sendGmail(to: string, subject: string, body: string): Promise<boolean> { return false; } export async function readGmail(query: string): Promise<unknown[]> { return []; }

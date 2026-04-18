@@ -1,9 +1,0 @@
-/**
- * Discord Timestamp Formatter — Discord's built-in timestamp format.
- */
-export type TimestampStyle = 't' | 'T' | 'd' | 'D' | 'f' | 'F' | 'R';
-export declare function discordTimestamp(date: Date | number, style?: TimestampStyle): string;
-export declare function relativeTime(date: Date | number): string;
-export declare function shortDate(date: Date | number): string;
-export declare function longDateTime(date: Date | number): string;
-//# sourceMappingURL=timestamp.d.ts.map

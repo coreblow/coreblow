@@ -1,3 +1,0 @@
-import type { ChatRunState } from "./gateway-types.js";
-export declare function abortChatRun(chatRunState: Map<string, ChatRunState>, sessionKey: string): boolean;
-//# sourceMappingURL=chat-abort.d.ts.map

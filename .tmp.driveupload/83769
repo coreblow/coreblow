@@ -1,8 +1,0 @@
-/**
- * plugin-sdk/channel-contract.ts
- * [PORT] openclaw-main/src/plugin-sdk/channel-contract.ts
- *
- * Pure channel contract types used by plugin implementations and tests.
- */
-export {};
-//# sourceMappingURL=channel-contract.js.map

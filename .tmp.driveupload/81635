@@ -1,4 +1,0 @@
-export declare const GATEWAY_METHODS: string[];
-export declare const GATEWAY_EVENTS: string[];
-export declare function listGatewayMethods(): readonly string[];
-//# sourceMappingURL=server-methods-list.d.ts.map

@@ -1,3 +1,0 @@
-/** Subagent registry runtime. */
-export { SubagentRegistry } from './subagent-registry.js';
-//# sourceMappingURL=subagent-registry-runtime.js.map

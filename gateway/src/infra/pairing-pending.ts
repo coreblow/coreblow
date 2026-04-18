@@ -1,1 +1,0 @@
-/** CoreBlow — Pairing Pending */ export interface PendingPairing { token: string; deviceName: string; createdAt: number; expiresAt: number; } export function isPendingPairingExpired(p: PendingPairing): boolean { return Date.now() > p.expiresAt; }

@@ -1,8 +1,0 @@
-/**
- * CoreBlow — Image Generation Types
- *
- * Type system for the image generation provider registry.
- * Follows CoreBlow's capability-based pattern.
- */
-export {};
-//# sourceMappingURL=types.js.map

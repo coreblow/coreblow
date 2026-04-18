@@ -1,2 +1,0 @@
-export declare function splitShellArgs(raw: string): string[] | null;
-//# sourceMappingURL=shell-argv.d.ts.map

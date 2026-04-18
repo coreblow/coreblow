@@ -27,8 +27,8 @@ function snapshotEnv(): EnvSnapshot {
     userProfile: process.env.USERPROFILE,
     homeDrive: process.env.HOMEDRIVE,
     homePath: process.env.HOMEPATH,
-    coreblowHome: process.env.OPENCLAW_HOME,
-    stateDir: process.env.OPENCLAW_STATE_DIR,
+    coreblowHome: process.env.COREBLOW_HOME,
+    stateDir: process.env.COREBLOW_STATE_DIR,
   };
 }
 
@@ -44,8 +44,8 @@ function restoreEnv(snapshot: EnvSnapshot) {
   restoreKey("USERPROFILE", snapshot.userProfile);
   restoreKey("HOMEDRIVE", snapshot.homeDrive);
   restoreKey("HOMEPATH", snapshot.homePath);
-  restoreKey("OPENCLAW_HOME", snapshot.coreblowHome);
-  restoreKey("OPENCLAW_STATE_DIR", snapshot.stateDir);
+  restoreKey("COREBLOW_HOME", snapshot.coreblowHome);
+  restoreKey("COREBLOW_STATE_DIR", snapshot.stateDir);
 }
 
 function snapshotExtraEnv(keys: string[]): Record<string, string | undefined> {
@@ -69,9 +69,9 @@ function restoreExtraEnv(snapshot: Record<string, string | undefined>) {
 function setTempHome(base: string) {
   process.env.HOME = base;
   process.env.USERPROFILE = base;
-  // Ensure tests using HOME isolation aren't affected by leaked OPENCLAW_HOME.
-  delete process.env.OPENCLAW_HOME;
-  process.env.OPENCLAW_STATE_DIR = path.join(base, ".coreblow");
+  // Ensure tests using HOME isolation aren't affected by leaked COREBLOW_HOME.
+  delete process.env.COREBLOW_HOME;
+  process.env.COREBLOW_STATE_DIR = path.join(base, ".coreblow");
 
   if (process.platform !== "win32") {
     return;

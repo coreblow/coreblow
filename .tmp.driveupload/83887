@@ -1,4 +1,0 @@
-/** plugin-sdk/host-runtime.ts [ADAPT] openclaw-main */
-export { resolveRequiredHomeDir } from "./provider-auth.js";
-export { resolvePreferredCoreBlowTmpDir as resolvePreferredOpenClawTmpDir } from "./temp-path.js";
-//# sourceMappingURL=host-runtime.js.map

@@ -28,14 +28,14 @@ export type ProviderAttributionPolicy = {
 
 export type ProviderAttributionIdentity = Pick<ProviderAttributionPolicy, "product" | "version">;
 
-const OPENCLAW_ATTRIBUTION_PRODUCT = "CoreBlow";
-const OPENCLAW_ATTRIBUTION_ORIGINATOR = "coreblow";
+const COREBLOW_ATTRIBUTION_PRODUCT = "CoreBlow";
+const COREBLOW_ATTRIBUTION_ORIGINATOR = "coreblow";
 
 export function resolveProviderAttributionIdentity(
   env: RuntimeVersionEnv = process.env as RuntimeVersionEnv,
 ): ProviderAttributionIdentity {
   return {
-    product: OPENCLAW_ATTRIBUTION_PRODUCT,
+    product: COREBLOW_ATTRIBUTION_PRODUCT,
     version: resolveRuntimeServiceVersion(env),
   };
 }
@@ -53,7 +53,7 @@ function buildOpenRouterAttributionPolicy(
     reviewNote: "Documented app attribution headers. Verified in CoreBlow runtime wrapper.",
     ...identity,
     headers: {
-      "HTTP-Referer": "https://coreblow.ai",
+      "HTTP-Referer": "https://coreblow.com",
       "X-OpenRouter-Title": identity.product,
       "X-OpenRouter-Categories": "cli-agent",
     },
@@ -73,9 +73,9 @@ function buildOpenAIAttributionPolicy(
       "OpenAI native traffic supports hidden originator/User-Agent attribution. Verified against the Codex wire contract.",
     ...identity,
     headers: {
-      originator: OPENCLAW_ATTRIBUTION_ORIGINATOR,
+      originator: COREBLOW_ATTRIBUTION_ORIGINATOR,
       version: identity.version,
-      "User-Agent": `${OPENCLAW_ATTRIBUTION_ORIGINATOR}/${identity.version}`,
+      "User-Agent": `${COREBLOW_ATTRIBUTION_ORIGINATOR}/${identity.version}`,
     },
   };
 }
@@ -93,9 +93,9 @@ function buildOpenAICodexAttributionPolicy(
       "OpenAI Codex ChatGPT-backed traffic supports the same hidden originator/User-Agent attribution contract.",
     ...identity,
     headers: {
-      originator: OPENCLAW_ATTRIBUTION_ORIGINATOR,
+      originator: COREBLOW_ATTRIBUTION_ORIGINATOR,
       version: identity.version,
-      "User-Agent": `${OPENCLAW_ATTRIBUTION_ORIGINATOR}/${identity.version}`,
+      "User-Agent": `${COREBLOW_ATTRIBUTION_ORIGINATOR}/${identity.version}`,
     },
   };
 }

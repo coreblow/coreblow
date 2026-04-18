@@ -1,1 +1,0 @@
-{"version":3,"file":"capability.d.ts","sourceRoot":"","sources":["../../src/acp/capability.ts"],"names":[],"mappings":"AAAA;;GAEG;AACH,MAAM,WAAW,aAAa;IAAG,IAAI,EAAE,MAAM,CAAC;IAAC,OAAO,EAAE,MAAM,CAAC;IAAC,OAAO,EAAE,MAAM,EAAE,CAAC;CAAE;AAAC,wBAAgB,qBAAqB,CAAC,KAAK,EAAE,aAAa,EAAE,EAAE,MAAM,EAAE,aAAa,EAAE,GAAG,aAAa,EAAE,CAA8F"}

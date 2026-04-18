@@ -405,7 +405,7 @@ describe("matrix legacy encrypted-state migration", () => {
       },
       {
         env: {
-          OPENCLAW_BUNDLED_PLUGINS_DIR: (home) => path.join(home, "empty-bundled"),
+          COREBLOW_BUNDLED_PLUGINS_DIR: (home) => path.join(home, "empty-bundled"),
         },
       },
     );

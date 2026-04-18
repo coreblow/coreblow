@@ -1,7 +1,0 @@
-/**
- * src/channels/discord/events/reactionRemove.ts
- */
-import type { EventContext } from './index.js';
-import type { DiscordReaction, DiscordUser } from '../types-sdk.js';
-export declare function onReactionRemove(reaction: DiscordReaction, user: DiscordUser, ctx: EventContext): void;
-//# sourceMappingURL=reactionRemove.d.ts.map

@@ -1,5 +1,0 @@
-export function resolveInboundRouteEnvelopeBuilderWithRuntime(_p) {
-    return (text) => text;
-}
-export function formatInboundRouteEnvelope(text, ctx) { return `[${ctx.channelId}:${ctx.accountId}] ${text}`; }
-//# sourceMappingURL=inbound-envelope.js.map

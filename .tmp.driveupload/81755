@@ -1,2 +1,0 @@
-export declare const sessionKillEndpoint: import("./http-endpoint-helpers.js").HttpEndpoint;
-//# sourceMappingURL=session-kill-http.d.ts.map

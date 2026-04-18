@@ -1,1 +1,0 @@
-{"version":3,"file":"outbound-runtime.d.ts","sourceRoot":"","sources":["../../src/plugin-sdk/outbound-runtime.ts"],"names":[],"mappings":"AAAA,2DAA2D;AAC3D,OAAO,EAAE,sBAAsB,EAAE,wBAAwB,EAAE,6BAA6B,EAAE,+BAA+B,EAAE,MAAM,8BAA8B,CAAC;AAChK,YAAY,EAAE,iBAAiB,EAAE,oBAAoB,EAAE,MAAM,8BAA8B,CAAC"}

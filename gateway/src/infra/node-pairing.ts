@@ -1,1 +1,0 @@
-/** CoreBlow — Node Pairing */ export interface NodePairingInfo { nodeId: string; nodeName: string; token: string; pairedAt: number; } export function validatePairingToken(token: string): boolean { return typeof token === "string" && token.length >= 8 && /^[A-Z0-9]+$/.test(token); }

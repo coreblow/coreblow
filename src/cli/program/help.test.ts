@@ -128,7 +128,7 @@ describe("configureProgramHelp", () => {
     const help = captureHelpOutput(program);
     expect(help).toContain("BANNER-LINE");
     expect(help).toContain("Examples:");
-    expect(help).toContain("https://docs.coreblow.ai/cli");
+    expect(help).toContain("https://docs.coreblow.com/cli");
   });
 
   it("prints version and exits immediately when version flags are present", () => {

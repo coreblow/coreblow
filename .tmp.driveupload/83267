@@ -1,6 +1,0 @@
-/** plugin-sdk/opencode-go.ts [ADAPT] openclaw-main */
-export declare const OPENCODE_GO_DEFAULT_MODEL_REF = "opencode-go:opencode-go";
-export declare function applyOpencodeGoConfig(cfg: Record<string, unknown>): Record<string, unknown>;
-export declare function applyOpencodeGoModelDefault(cfg: Record<string, unknown>): Record<string, unknown>;
-export declare function applyOpencodeGoProviderConfig(cfg: Record<string, unknown>): Record<string, unknown>;
-//# sourceMappingURL=opencode-go.d.ts.map

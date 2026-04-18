@@ -1,1 +1,0 @@
-/** CoreBlow — Plugin Config Helpers */ export function validatePluginConfig(config: Record<string, unknown>): string[] { const errors: string[] = []; if (!config.type) errors.push("Missing channel type"); return errors; }

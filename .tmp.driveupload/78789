@@ -1,9 +1,0 @@
-/**
- * commands/handlers/agent.ts — Agent management commands
- */
-import type { CommandContext } from '../types.js';
-export declare function handleAgentList(ctx: CommandContext): Promise<string>;
-export declare function handleAgentSwitch(ctx: CommandContext): Promise<string>;
-export declare function handleAgentConfig(ctx: CommandContext): Promise<string>;
-export declare function handleAgentPersona(ctx: CommandContext): Promise<string>;
-//# sourceMappingURL=agent.d.ts.map

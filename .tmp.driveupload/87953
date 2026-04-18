@@ -1,6 +1,0 @@
-export declare function execOnNode(cmd: string, opts?: Record<string, unknown>): Promise<{
-    stdout: string;
-    stderr: string;
-    exitCode: number;
-}>;
-//# sourceMappingURL=bash-tools-exec-host-node.d.ts.map

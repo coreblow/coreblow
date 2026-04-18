@@ -1,3 +1,0 @@
-/** Implicit provider resolution. */
-export declare function inferProvider(modelId: string): string | null;
-//# sourceMappingURL=models-config.providers.implicit.d.ts.map

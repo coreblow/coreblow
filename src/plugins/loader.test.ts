@@ -60,7 +60,7 @@ function mkdirSafe(dir: string) {
 
 const fixtureRoot = mkdtempSafe(path.join(os.tmpdir(), "coreblow-plugin-"));
 let tempDirIndex = 0;
-const prevBundledDir = process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
+const prevBundledDir = process.env.COREBLOW_BUNDLED_PLUGINS_DIR;
 const EMPTY_PLUGIN_SCHEMA = { type: "object", additionalProperties: false, properties: {} };
 let cachedBundledTelegramDir = "";
 let cachedBundledMemoryDir = "";
@@ -141,7 +141,7 @@ function writeBundledPlugin(params: {
     filename: params.filename ?? "index.cjs",
     body: params.body ?? simplePluginBody(params.id),
   });
-  process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = bundledDir;
+  process.env.COREBLOW_BUNDLED_PLUGINS_DIR = bundledDir;
   return { bundledDir, plugin };
 }
 
@@ -165,7 +165,7 @@ function writeWorkspacePlugin(params: {
 
 function withStateDir<T>(run: (stateDir: string) => T) {
   const stateDir = makeTempDir();
-  return withEnv({ OPENCLAW_STATE_DIR: stateDir }, () => run(stateDir));
+  return withEnv({ COREBLOW_STATE_DIR: stateDir }, () => run(stateDir));
 }
 
 function loadBundledMemoryPluginRegistry(options?: {
@@ -174,7 +174,7 @@ function loadBundledMemoryPluginRegistry(options?: {
   pluginFilename?: string;
 }) {
   if (!options && cachedBundledMemoryDir) {
-    process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = cachedBundledMemoryDir;
+    process.env.COREBLOW_BUNDLED_PLUGINS_DIR = cachedBundledMemoryDir;
     return loadCoreBlowPlugins({
       cache: false,
       workspaceDir: cachedBundledMemoryDir,
@@ -223,7 +223,7 @@ function loadBundledMemoryPluginRegistry(options?: {
   if (!options) {
     cachedBundledMemoryDir = bundledDir;
   }
-  process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = bundledDir;
+  process.env.COREBLOW_BUNDLED_PLUGINS_DIR = bundledDir;
 
   return loadCoreBlowPlugins({
     cache: false,
@@ -248,7 +248,7 @@ function setupBundledTelegramPlugin() {
       filename: "telegram.cjs",
     });
   }
-  process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = cachedBundledTelegramDir;
+  process.env.COREBLOW_BUNDLED_PLUGINS_DIR = cachedBundledTelegramDir;
 }
 
 function expectTelegramLoaded(registry: ReturnType<typeof loadCoreBlowPlugins>) {
@@ -258,7 +258,7 @@ function expectTelegramLoaded(registry: ReturnType<typeof loadCoreBlowPlugins>) 
 }
 
 function useNoBundledPlugins() {
-  process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
+  process.env.COREBLOW_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
 }
 
 function loadRegistryFromSinglePlugin(params: {
@@ -523,7 +523,7 @@ function loadBundleFixture(params: {
   const stateDir = makeTempDir();
   const bundleRoot = path.join(workspaceDir, ".coreblow", "extensions", params.pluginId);
   params.build(bundleRoot);
-  return withEnv({ OPENCLAW_STATE_DIR: stateDir, ...params.env }, () =>
+  return withEnv({ COREBLOW_STATE_DIR: stateDir, ...params.env }, () =>
     loadCoreBlowPlugins({
       workspaceDir,
       onlyPluginIds: params.onlyPluginIds ?? [params.pluginId],
@@ -715,10 +715,10 @@ function createEnvResolvedPluginFixture(pluginId: string) {
   });
   const env = {
     ...process.env,
-    OPENCLAW_HOME: coreblowHome,
+    COREBLOW_HOME: coreblowHome,
     HOME: ignoredHome,
-    OPENCLAW_STATE_DIR: stateDir,
-    OPENCLAW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
+    COREBLOW_STATE_DIR: stateDir,
+    COREBLOW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
   };
   return { plugin, env };
 }
@@ -772,9 +772,9 @@ afterEach(() => {
   resetPluginRuntimeStateForTest();
   resetDiagnosticEventsForTest();
   if (prevBundledDir === undefined) {
-    delete process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
+    delete process.env.COREBLOW_BUNDLED_PLUGINS_DIR;
   } else {
-    process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = prevBundledDir;
+    process.env.COREBLOW_BUNDLED_PLUGINS_DIR = prevBundledDir;
   }
 });
 
@@ -800,7 +800,7 @@ describe("bundle plugins", () => {
       "---\ndescription: fixture\n---\n",
     );
 
-    const registry = withEnv({ OPENCLAW_STATE_DIR: stateDir }, () =>
+    const registry = withEnv({ COREBLOW_STATE_DIR: stateDir }, () =>
       loadCoreBlowPlugins({
         workspaceDir,
         onlyPluginIds: ["sample-bundle"],
@@ -907,7 +907,7 @@ describe("bundle plugins", () => {
     const registry = loadBundleFixture({
       pluginId: "claude-mcp-url",
       env: {
-        OPENCLAW_HOME: stateDir,
+        COREBLOW_HOME: stateDir,
       },
       build: (bundleRoot) => {
         mkdirSafe(path.join(bundleRoot, ".claude-plugin"));
@@ -966,7 +966,7 @@ describe("loadCoreBlowPlugins", () => {
       dir: bundledDir,
       filename: "bundled.cjs",
     });
-    process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = bundledDir;
+    process.env.COREBLOW_BUNDLED_PLUGINS_DIR = bundledDir;
 
     const registry = loadCoreBlowPlugins({
       cache: false,
@@ -1066,7 +1066,7 @@ describe("loadCoreBlowPlugins", () => {
     {
       label: "loads plugins from config paths",
       run: () => {
-        process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
+        process.env.COREBLOW_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
         const plugin = writePlugin({
           id: "allowed-config-path",
           filename: "allowed-config-path.cjs",
@@ -1266,9 +1266,9 @@ module.exports = { id: "skipped-scoped-only", register() { throw new Error("skip
 
   it("can scope bundled provider loads to deepseek without hanging", () => {
     if (prevBundledDir === undefined) {
-      delete process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
+      delete process.env.COREBLOW_BUNDLED_PLUGINS_DIR;
     } else {
-      process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = prevBundledDir;
+      process.env.COREBLOW_BUNDLED_PLUGINS_DIR = prevBundledDir;
     }
 
     const scoped = loadCoreBlowPlugins({
@@ -1433,7 +1433,7 @@ module.exports = { id: "skipped-scoped-only", register() { throw new Error("skip
   });
 
   it("re-initializes global hook runner when serving registry from cache", () => {
-    process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
+    process.env.COREBLOW_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
     const plugin = writePlugin({
       id: "cache-hook-runner",
       filename: "cache-hook-runner.cjs",
@@ -1502,7 +1502,7 @@ module.exports = { id: "skipped-scoped-only", register() { throw new Error("skip
               ...options,
               env: {
                 ...process.env,
-                OPENCLAW_BUNDLED_PLUGINS_DIR: bundledA,
+                COREBLOW_BUNDLED_PLUGINS_DIR: bundledA,
               },
             }),
           loadSecond: () =>
@@ -1510,7 +1510,7 @@ module.exports = { id: "skipped-scoped-only", register() { throw new Error("skip
               ...options,
               env: {
                 ...process.env,
-                OPENCLAW_BUNDLED_PLUGINS_DIR: bundledB,
+                COREBLOW_BUNDLED_PLUGINS_DIR: bundledB,
               },
             }),
         };
@@ -1560,9 +1560,9 @@ module.exports = { id: "skipped-scoped-only", register() { throw new Error("skip
               env: {
                 ...process.env,
                 HOME: homeA,
-                OPENCLAW_HOME: undefined,
-                OPENCLAW_STATE_DIR: stateDir,
-                OPENCLAW_BUNDLED_PLUGINS_DIR: bundledDir,
+                COREBLOW_HOME: undefined,
+                COREBLOW_STATE_DIR: stateDir,
+                COREBLOW_BUNDLED_PLUGINS_DIR: bundledDir,
               },
             }),
           loadSecond: () =>
@@ -1571,9 +1571,9 @@ module.exports = { id: "skipped-scoped-only", register() { throw new Error("skip
               env: {
                 ...process.env,
                 HOME: homeB,
-                OPENCLAW_HOME: undefined,
-                OPENCLAW_STATE_DIR: stateDir,
-                OPENCLAW_BUNDLED_PLUGINS_DIR: bundledDir,
+                COREBLOW_HOME: undefined,
+                COREBLOW_STATE_DIR: stateDir,
+                COREBLOW_BUNDLED_PLUGINS_DIR: bundledDir,
               },
             }),
         };
@@ -1630,10 +1630,10 @@ module.exports = { id: "skipped-scoped-only", register() { throw new Error("skip
               ...options,
               env: {
                 ...process.env,
-                OPENCLAW_HOME: coreblowHome,
+                COREBLOW_HOME: coreblowHome,
                 HOME: ignoredHome,
-                OPENCLAW_STATE_DIR: stateDir,
-                OPENCLAW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
+                COREBLOW_STATE_DIR: stateDir,
+                COREBLOW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
               },
             }),
           loadVariant: () =>
@@ -1641,10 +1641,10 @@ module.exports = { id: "skipped-scoped-only", register() { throw new Error("skip
               ...options,
               env: {
                 ...process.env,
-                OPENCLAW_HOME: secondHome,
+                COREBLOW_HOME: secondHome,
                 HOME: ignoredHome,
-                OPENCLAW_STATE_DIR: stateDir,
-                OPENCLAW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
+                COREBLOW_STATE_DIR: stateDir,
+                COREBLOW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
               },
             }),
         };
@@ -1705,8 +1705,8 @@ module.exports = { id: "skipped-scoped-only", register() { throw new Error("skip
       loadCoreBlowPlugins({
         env: {
           ...process.env,
-          OPENCLAW_STATE_DIR: stateDir,
-          OPENCLAW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
+          COREBLOW_STATE_DIR: stateDir,
+          COREBLOW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
         },
         config: {
           plugins: {
@@ -1750,8 +1750,8 @@ module.exports = { id: "skipped-scoped-only", register() { throw new Error("skip
       env: {
         ...process.env,
         HOME: homeDir,
-        OPENCLAW_HOME: undefined,
-        OPENCLAW_BUNDLED_PLUGINS_DIR: override,
+        COREBLOW_HOME: undefined,
+        COREBLOW_BUNDLED_PLUGINS_DIR: override,
       },
       config: {
         plugins: {
@@ -1768,7 +1768,7 @@ module.exports = { id: "skipped-scoped-only", register() { throw new Error("skip
     ).toBe(fs.realpathSync(plugin.file));
   });
 
-  it("prefers OPENCLAW_HOME over HOME for env-expanded load paths", () => {
+  it("prefers COREBLOW_HOME over HOME for env-expanded load paths", () => {
     const ignoredHome = makeTempDir();
     const coreblowHome = makeTempDir();
     const stateDir = makeTempDir();
@@ -1784,9 +1784,9 @@ module.exports = { id: "skipped-scoped-only", register() { throw new Error("skip
       env: {
         ...process.env,
         HOME: ignoredHome,
-        OPENCLAW_HOME: coreblowHome,
-        OPENCLAW_STATE_DIR: stateDir,
-        OPENCLAW_BUNDLED_PLUGINS_DIR: bundledDir,
+        COREBLOW_HOME: coreblowHome,
+        COREBLOW_STATE_DIR: stateDir,
+        COREBLOW_BUNDLED_PLUGINS_DIR: bundledDir,
       },
       config: {
         plugins: {
@@ -2372,7 +2372,7 @@ module.exports = { id: "skipped-scoped-only", register() { throw new Error("skip
   });
 
   it("respects explicit disable in config", () => {
-    process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
+    process.env.COREBLOW_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
     const plugin = writePlugin({
       id: "config-disable",
       body: `module.exports = { id: "config-disable", register() {} };`,
@@ -2718,7 +2718,7 @@ module.exports = {
       {
         label: "enforces memory slot selection",
         loadRegistry: () => {
-          process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
+          process.env.COREBLOW_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
           const memoryA = writePlugin({
             id: "memory-a",
             body: memoryPluginBody("memory-a"),
@@ -2791,7 +2791,7 @@ module.exports = {
             ),
             "utf-8",
           );
-          process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = bundledDir;
+          process.env.COREBLOW_BUNDLED_PLUGINS_DIR = bundledDir;
 
           return loadCoreBlowPlugins({
             cache: false,
@@ -2818,7 +2818,7 @@ module.exports = {
       {
         label: "disables memory plugins when slot is none",
         loadRegistry: () => {
-          process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
+          process.env.COREBLOW_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
           const memory = writePlugin({
             id: "memory-off",
             body: memoryPluginBody("memory-off"),
@@ -3356,7 +3356,7 @@ module.exports = {
       throw err;
     }
 
-    process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = bundledDir;
+    process.env.COREBLOW_BUNDLED_PLUGINS_DIR = bundledDir;
     const registry = loadCoreBlowPlugins({
       cache: false,
       workspaceDir: bundledDir,
@@ -3398,7 +3398,7 @@ module.exports = {
 } };`,
     });
 
-    const registry = withEnv({ OPENCLAW_STATE_DIR: stateDir }, () =>
+    const registry = withEnv({ COREBLOW_STATE_DIR: stateDir }, () =>
       loadRegistryFromSinglePlugin({
         plugin,
         pluginConfig: {
@@ -3426,7 +3426,7 @@ module.exports = {
       };`,
     });
 
-    const registry = withEnv({ OPENCLAW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins" }, () =>
+    const registry = withEnv({ COREBLOW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins" }, () =>
       loadCoreBlowPlugins({
         cache: false,
         workspaceDir: plugin.dir,
@@ -3471,7 +3471,7 @@ module.exports = {
 
     try {
       const registry = withEnv(
-        { OPENCLAW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins" },
+        { COREBLOW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins" },
         () =>
           loadCoreBlowPlugins({
             cache: false,

@@ -1,7 +1,0 @@
-export const TOGETHER_BASE_URL = "https://api.together.xyz";
-export const TOGETHER_DEFAULT_MODEL_REF = "together:meta-llama/Llama-3-8b-chat-hf";
-export const TOGETHER_MODEL_CATALOG = [];
-export function buildTogetherModelDefinition(params) { return { id: params.id, label: params.label }; }
-export function buildTogetherProvider(_p) { throw new Error("buildTogetherProvider requires @coreblow/together extension"); }
-export function applyTogetherConfig(cfg) { return cfg; }
-//# sourceMappingURL=together.js.map

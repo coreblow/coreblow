@@ -1,1 +1,0 @@
-/** CoreBlow — Types: Agents */ export interface AgentConfig { id: string; name: string; model: string; provider: string; systemPrompt?: string; tools?: string[]; skills?: string[]; maxTurns?: number; temperature?: number; } export type AgentsConfig = Record<string, AgentConfig>;

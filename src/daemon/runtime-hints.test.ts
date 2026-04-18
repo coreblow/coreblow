@@ -7,8 +7,8 @@ describe("buildPlatformRuntimeLogHints", () => {
       buildPlatformRuntimeLogHints({
         platform: "darwin",
         env: {
-          OPENCLAW_STATE_DIR: "/tmp/coreblow-state",
-          OPENCLAW_LOG_PREFIX: "gateway",
+          COREBLOW_STATE_DIR: "/tmp/coreblow-state",
+          COREBLOW_LOG_PREFIX: "gateway",
         },
         systemdServiceName: "coreblow-gateway",
         windowsTaskName: "CoreBlow Gateway",

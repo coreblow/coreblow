@@ -1,2 +1,0 @@
-export function createLspConfig(rootUri) { return { rootUri, capabilities: ['completion', 'diagnostics', 'hover'] }; }
-//# sourceMappingURL=embedded-pi-lsp.js.map

@@ -6,11 +6,11 @@ type TestMock = ReturnType<typeof vi.fn>;
 export const loadConfigMock: TestMock = vi.fn();
 export const resolveGatewayPortMock: TestMock = vi.fn();
 export const resolveStateDirMock: TestMock = vi.fn(
-  (env: NodeJS.ProcessEnv) => env.OPENCLAW_STATE_DIR ?? "/tmp/coreblow",
+  (env: NodeJS.ProcessEnv) => env.COREBLOW_STATE_DIR ?? "/tmp/coreblow",
 );
 export const resolveConfigPathMock: TestMock = vi.fn(
   (env: NodeJS.ProcessEnv, stateDir: string) =>
-    env.OPENCLAW_CONFIG_PATH ?? `${stateDir}/coreblow.json`,
+    env.COREBLOW_CONFIG_PATH ?? `${stateDir}/coreblow.json`,
 );
 export const pickPrimaryTailnetIPv4Mock: TestMock = vi.fn();
 export const pickPrimaryLanIPv4Mock: TestMock = vi.fn();

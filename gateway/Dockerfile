@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # ── CoreBlow Gateway Production Dockerfile ─────────────────────────
-# Multi-stage build following OpenClaw patterns:
+# Multi-stage build following CoreBlow patterns:
 #   Stage 1: deps      — install production dependencies
 #   Stage 2: build     — compile TypeScript, prune dev deps
 #   Stage 3: runtime   — minimal bookworm-slim with runtime assets only
@@ -55,7 +55,7 @@ FROM ${COREBLOW_NODE_SLIM_IMAGE} AS runtime
 
 ARG COREBLOW_DOCKER_APT_UPGRADE=1
 
-# OCI metadata labels (OpenClaw pattern)
+# OCI metadata labels (CoreBlow pattern)
 LABEL org.opencontainers.image.source="https://github.com/coreblow/coreblow" \
       org.opencontainers.image.url="https://coreblow.com" \
       org.opencontainers.image.documentation="https://docs.coreblow.com/install/docker" \
@@ -66,7 +66,7 @@ LABEL org.opencontainers.image.source="https://github.com/coreblow/coreblow" \
 WORKDIR /app
 
 # Install minimal system dependencies
-# Cache apt layers for faster rebuilds (OpenClaw pattern)
+# Cache apt layers for faster rebuilds (CoreBlow pattern)
 RUN --mount=type=cache,id=coreblow-apt-cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,id=coreblow-apt-lists,target=/var/lib/apt,sharing=locked \
     apt-get update && \
@@ -77,7 +77,7 @@ RUN --mount=type=cache,id=coreblow-apt-cache,target=/var/cache/apt,sharing=locke
       procps hostname curl openssl ca-certificates && \
     rm -rf /tmp/* /var/tmp/*
 
-# Keep pnpm available in runtime (OpenClaw pattern)
+# Keep pnpm available in runtime (CoreBlow pattern)
 ENV COREPACK_HOME=/usr/local/share/corepack
 RUN install -d -m 0755 "$COREPACK_HOME" && \
     corepack enable && \
@@ -109,18 +109,18 @@ RUN --mount=type=cache,id=coreblow-apt-cache,target=/var/cache/apt,sharing=locke
 
 ENV NODE_ENV=production
 
-# Security hardening: Run as non-root user (OpenClaw pattern)
+# Security hardening: Run as non-root user (CoreBlow pattern)
 # The node:22-bookworm-slim image includes a 'node' user (uid 1000)
 USER node
 
 EXPOSE 3000
 
 # Health check using Node.js fetch — no wget/curl dependency required
-# Follows OpenClaw pattern: /healthz (liveness) and /readyz (readiness)
+# Follows CoreBlow pattern: /healthz (liveness) and /readyz (readiness)
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
 # Start gateway server
-# Binds to loopback by default for security (OpenClaw pattern).
+# Binds to loopback by default for security (CoreBlow pattern).
 # For Docker bridge networking, override with --bind lan and set auth.
 CMD ["node", "--import", "tsx", "src/index.ts"]

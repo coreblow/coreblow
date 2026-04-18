@@ -1,7 +1,0 @@
-/**
- * hooks/fire-and-forget.ts — Utility for fire-and-forget promise handling.
- *
- * Mirrors CoreBlow's fire-and-forget.ts.
- */
-export declare function fireAndForgetHook(task: Promise<unknown>, label: string, logger?: (message: string) => void): void;
-//# sourceMappingURL=fire-and-forget.d.ts.map

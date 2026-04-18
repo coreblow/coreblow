@@ -1,1 +1,0 @@
-/** CoreBlow — PI Extra Params */ export interface ExtraParams { [key: string]: unknown; } export function mergeExtraParams(base: ExtraParams, overrides: ExtraParams): ExtraParams { return { ...base, ...overrides }; }

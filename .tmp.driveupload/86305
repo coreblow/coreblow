@@ -1,3 +1,0 @@
-export declare function readEnvFile(path: string): Record<string, string>;
-export declare function writeEnvFile(path: string, vars: Record<string, string>): void;
-//# sourceMappingURL=env-file.d.ts.map

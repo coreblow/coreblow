@@ -1,7 +1,0 @@
-/** plugin-sdk/opencode.ts [ADAPT] openclaw-main */
-export const OPENCODE_ZEN_DEFAULT_MODEL = "opencode-zen";
-export const OPENCODE_ZEN_DEFAULT_MODEL_REF = "opencode:opencode-zen";
-export function applyOpencodeZenConfig(cfg) { return cfg; }
-export function applyOpencodeZenModelDefault(cfg) { return cfg; }
-export function applyOpencodeZenProviderConfig(cfg) { return cfg; }
-//# sourceMappingURL=opencode.js.map

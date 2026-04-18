@@ -1,5 +1,0 @@
-/**
- * gateway/webhook/webhook-retry.ts
- */
-export declare function webhookWithRetry(url: string, payload: unknown, maxRetries?: number): Promise<Response>;
-//# sourceMappingURL=webhook-retry.d.ts.map

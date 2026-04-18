@@ -67,14 +67,14 @@ describe("shared/frontmatter", () => {
         requires: {
           bins: "bun, node",
           anyBins: [" ffmpeg ", ""],
-          env: ["OPENCLAW_TOKEN", " OPENCLAW_URL "],
+          env: ["COREBLOW_TOKEN", " COREBLOW_URL "],
           config: null,
         },
       }),
     ).toEqual({
       bins: ["bun", "node"],
       anyBins: ["ffmpeg"],
-      env: ["OPENCLAW_TOKEN", "OPENCLAW_URL"],
+      env: ["COREBLOW_TOKEN", "COREBLOW_URL"],
       config: [],
     });
     expect(resolveCoreBlowManifestRequires({})).toBeUndefined();

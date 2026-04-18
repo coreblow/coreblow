@@ -1,5 +1,0 @@
-/**
- * utils/deep-clone.ts
- */
-export declare function deepClone<T>(obj: T): T;
-//# sourceMappingURL=deep-clone.d.ts.map

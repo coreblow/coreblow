@@ -1,1 +1,0 @@
-/** CoreBlow — Context Tokens Runtime */ let maxContextTokens = 128000; export function setMaxContextTokens(n: number): void { maxContextTokens = n; } export function getMaxContextTokens(): number { return maxContextTokens; }

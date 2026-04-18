@@ -1,7 +1,0 @@
-/**
- * utils/date-utils.ts
- */
-export declare function daysAgo(n: number): Date;
-export declare function isToday(d: Date): boolean;
-export declare function formatRelative(d: Date): string;
-//# sourceMappingURL=date-utils.d.ts.map

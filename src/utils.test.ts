@@ -131,10 +131,10 @@ describe("resolveConfigDir", () => {
     }
   });
 
-  it("expands OPENCLAW_STATE_DIR using the provided env", () => {
+  it("expands COREBLOW_STATE_DIR using the provided env", () => {
     const env = {
       HOME: "/tmp/coreblow-home",
-      OPENCLAW_STATE_DIR: "~/state",
+      COREBLOW_STATE_DIR: "~/state",
     } as NodeJS.ProcessEnv;
 
     expect(resolveConfigDir(env)).toBe(path.resolve("/tmp/coreblow-home", "state"));
@@ -142,8 +142,8 @@ describe("resolveConfigDir", () => {
 });
 
 describe("resolveHomeDir", () => {
-  it("prefers OPENCLAW_HOME over HOME", () => {
-    vi.stubEnv("OPENCLAW_HOME", "/srv/coreblow-home");
+  it("prefers COREBLOW_HOME over HOME", () => {
+    vi.stubEnv("COREBLOW_HOME", "/srv/coreblow-home");
     vi.stubEnv("HOME", "/home/other");
 
     expect(resolveHomeDir()).toBe(path.resolve("/srv/coreblow-home"));
@@ -153,12 +153,12 @@ describe("resolveHomeDir", () => {
 });
 
 describe("shortenHomePath", () => {
-  it("uses $OPENCLAW_HOME prefix when OPENCLAW_HOME is set", () => {
-    vi.stubEnv("OPENCLAW_HOME", "/srv/coreblow-home");
+  it("uses $COREBLOW_HOME prefix when COREBLOW_HOME is set", () => {
+    vi.stubEnv("COREBLOW_HOME", "/srv/coreblow-home");
     vi.stubEnv("HOME", "/home/other");
 
     expect(shortenHomePath(`${path.resolve("/srv/coreblow-home")}/.coreblow/coreblow.json`)).toBe(
-      "$OPENCLAW_HOME/.coreblow/coreblow.json",
+      "$COREBLOW_HOME/.coreblow/coreblow.json",
     );
 
     vi.unstubAllEnvs();
@@ -166,13 +166,13 @@ describe("shortenHomePath", () => {
 });
 
 describe("shortenHomeInString", () => {
-  it("uses $OPENCLAW_HOME replacement when OPENCLAW_HOME is set", () => {
-    vi.stubEnv("OPENCLAW_HOME", "/srv/coreblow-home");
+  it("uses $COREBLOW_HOME replacement when COREBLOW_HOME is set", () => {
+    vi.stubEnv("COREBLOW_HOME", "/srv/coreblow-home");
     vi.stubEnv("HOME", "/home/other");
 
     expect(
       shortenHomeInString(`config: ${path.resolve("/srv/coreblow-home")}/.coreblow/coreblow.json`),
-    ).toBe("config: $OPENCLAW_HOME/.coreblow/coreblow.json");
+    ).toBe("config: $COREBLOW_HOME/.coreblow/coreblow.json");
 
     vi.unstubAllEnvs();
   });
@@ -219,8 +219,8 @@ describe("resolveUserPath", () => {
     expect(resolveUserPath("tmp/dir")).toBe(path.resolve("tmp/dir"));
   });
 
-  it("prefers OPENCLAW_HOME for tilde expansion", () => {
-    vi.stubEnv("OPENCLAW_HOME", "/srv/coreblow-home");
+  it("prefers COREBLOW_HOME for tilde expansion", () => {
+    vi.stubEnv("COREBLOW_HOME", "/srv/coreblow-home");
     vi.stubEnv("HOME", "/home/other");
 
     expect(resolveUserPath("~/coreblow")).toBe(path.resolve("/srv/coreblow-home", "coreblow"));
@@ -231,7 +231,7 @@ describe("resolveUserPath", () => {
   it("uses the provided env for tilde expansion", () => {
     const env = {
       HOME: "/tmp/coreblow-home",
-      OPENCLAW_HOME: "/srv/coreblow-home",
+      COREBLOW_HOME: "/srv/coreblow-home",
     } as NodeJS.ProcessEnv;
 
     expect(resolveUserPath("~/coreblow", env)).toBe(path.resolve("/srv/coreblow-home", "coreblow"));

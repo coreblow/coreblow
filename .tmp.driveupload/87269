@@ -1,3 +1,0 @@
-/** Session file repair — fix corrupted session files. */
-export declare function repairJsonl(content: string): string[];
-//# sourceMappingURL=session-file-repair.d.ts.map

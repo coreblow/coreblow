@@ -339,7 +339,7 @@ describe("runConfigureWizard", () => {
         envVars: [],
         placeholder: "(no key needed)",
         signupUrl: "https://duckduckgo.com/",
-        docsUrl: "https://docs.coreblow.ai/tools/web",
+        docsUrl: "https://docs.coreblow.com/tools/web",
         credentialPath: "",
       }),
     ]);

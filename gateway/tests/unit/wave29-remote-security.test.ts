@@ -1,7 +1,7 @@
 /**
  * Wave 29: Remote Plugins, Signatures & Migration
  *
- * Following OpenClaw's remote-loader.ts + signature-verify.ts + migration.ts
+ * Following CoreBlow's remote-loader.ts + signature-verify.ts + migration.ts
  * patterns, upgraded for CoreBlow OOP architecture.
  *
  * Tests PluginRemoteLoader, SignatureVerifier, and PluginMigrationEngine.

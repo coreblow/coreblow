@@ -1,1 +1,0 @@
-/** CoreBlow — Install Flow */ export type InstallPhase = "download" | "verify" | "extract" | "link" | "done"; export interface InstallProgress { phase: InstallPhase; percent: number; message: string; }

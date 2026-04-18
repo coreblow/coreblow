@@ -80,7 +80,7 @@ const uiHintIndexCache = new WeakMap<
 const schemaHasChildrenCache = new WeakMap<JsonSchemaObject, boolean>();
 
 function logConfigDocBaselineDebug(message: string): void {
-  if (process.env.OPENCLAW_CONFIG_DOC_BASELINE_DEBUG === "1") {
+  if (process.env.COREBLOW_CONFIG_DOC_BASELINE_DEBUG === "1") {
     console.error(`[config-doc-baseline] ${message}`);
   }
 }
@@ -333,8 +333,8 @@ async function loadBundledConfigSchemaResponse(): Promise<ConfigSchemaResponse> 
   const env = {
     ...process.env,
     HOME: os.tmpdir(),
-    OPENCLAW_STATE_DIR: path.join(os.tmpdir(), "coreblow-config-doc-baseline-state"),
-    OPENCLAW_BUNDLED_PLUGINS_DIR: path.join(repoRoot, "extensions"),
+    COREBLOW_STATE_DIR: path.join(os.tmpdir(), "coreblow-config-doc-baseline-state"),
+    COREBLOW_BUNDLED_PLUGINS_DIR: path.join(repoRoot, "extensions"),
   };
 
   const manifestRegistry = loadPluginManifestRegistry({

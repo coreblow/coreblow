@@ -1,9 +1,0 @@
-/**
- * plugin-sdk/channel-helpers.ts
- * Channel-specific utilities for plugins.
- */
-import { type ChannelCapabilities } from '../config/channel-capabilities.js';
-export declare function getChannelCapabilities(channel: string, cfg?: Record<string, unknown>): ChannelCapabilities;
-export declare function formatMessageForChannel(msg: string, channel: string, cfg?: Record<string, unknown>): string;
-export declare function splitMessageForChannel(msg: string, channel: string, cfg?: Record<string, unknown>): string[];
-//# sourceMappingURL=channel-helpers.d.ts.map

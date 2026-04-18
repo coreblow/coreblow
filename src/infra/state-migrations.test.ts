@@ -31,7 +31,7 @@ function createConfig(): CoreBlowConfig {
 function createEnv(stateDir: string): NodeJS.ProcessEnv {
   return {
     ...process.env,
-    OPENCLAW_STATE_DIR: stateDir,
+    COREBLOW_STATE_DIR: stateDir,
   };
 }
 

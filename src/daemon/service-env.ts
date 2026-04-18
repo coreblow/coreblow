@@ -265,20 +265,20 @@ export function buildServiceEnvironment(params: {
     extraPathDirs,
     params.execPath,
   );
-  const profile = env.OPENCLAW_PROFILE;
+  const profile = env.COREBLOW_PROFILE;
   const resolvedLaunchdLabel =
     launchdLabel || (platform === "darwin" ? resolveGatewayLaunchAgentLabel(profile) : undefined);
   const systemdUnit = `${resolveGatewaySystemdServiceName(profile)}.service`;
   return {
     ...buildCommonServiceEnvironment(env, sharedEnv),
-    OPENCLAW_PROFILE: profile,
-    OPENCLAW_GATEWAY_PORT: String(port),
-    OPENCLAW_LAUNCHD_LABEL: resolvedLaunchdLabel,
-    OPENCLAW_SYSTEMD_UNIT: systemdUnit,
-    OPENCLAW_WINDOWS_TASK_NAME: resolveGatewayWindowsTaskName(profile),
-    OPENCLAW_SERVICE_MARKER: GATEWAY_SERVICE_MARKER,
-    OPENCLAW_SERVICE_KIND: GATEWAY_SERVICE_KIND,
-    OPENCLAW_SERVICE_VERSION: VERSION,
+    COREBLOW_PROFILE: profile,
+    COREBLOW_GATEWAY_PORT: String(port),
+    COREBLOW_LAUNCHD_LABEL: resolvedLaunchdLabel,
+    COREBLOW_SYSTEMD_UNIT: systemdUnit,
+    COREBLOW_WINDOWS_TASK_NAME: resolveGatewayWindowsTaskName(profile),
+    COREBLOW_SERVICE_MARKER: GATEWAY_SERVICE_MARKER,
+    COREBLOW_SERVICE_KIND: GATEWAY_SERVICE_KIND,
+    COREBLOW_SERVICE_VERSION: VERSION,
   };
 }
 
@@ -296,18 +296,18 @@ export function buildNodeServiceEnvironment(params: {
     extraPathDirs,
     params.execPath,
   );
-  const gatewayToken = env.OPENCLAW_GATEWAY_TOKEN?.trim() || undefined;
+  const gatewayToken = env.COREBLOW_GATEWAY_TOKEN?.trim() || undefined;
   return {
     ...buildCommonServiceEnvironment(env, sharedEnv),
-    OPENCLAW_GATEWAY_TOKEN: gatewayToken,
-    OPENCLAW_LAUNCHD_LABEL: resolveNodeLaunchAgentLabel(),
-    OPENCLAW_SYSTEMD_UNIT: resolveNodeSystemdServiceName(),
-    OPENCLAW_WINDOWS_TASK_NAME: resolveNodeWindowsTaskName(),
-    OPENCLAW_TASK_SCRIPT_NAME: NODE_WINDOWS_TASK_SCRIPT_NAME,
-    OPENCLAW_LOG_PREFIX: "node",
-    OPENCLAW_SERVICE_MARKER: NODE_SERVICE_MARKER,
-    OPENCLAW_SERVICE_KIND: NODE_SERVICE_KIND,
-    OPENCLAW_SERVICE_VERSION: VERSION,
+    COREBLOW_GATEWAY_TOKEN: gatewayToken,
+    COREBLOW_LAUNCHD_LABEL: resolveNodeLaunchAgentLabel(),
+    COREBLOW_SYSTEMD_UNIT: resolveNodeSystemdServiceName(),
+    COREBLOW_WINDOWS_TASK_NAME: resolveNodeWindowsTaskName(),
+    COREBLOW_TASK_SCRIPT_NAME: NODE_WINDOWS_TASK_SCRIPT_NAME,
+    COREBLOW_LOG_PREFIX: "node",
+    COREBLOW_SERVICE_MARKER: NODE_SERVICE_MARKER,
+    COREBLOW_SERVICE_KIND: NODE_SERVICE_KIND,
+    COREBLOW_SERVICE_VERSION: VERSION,
   };
 }
 
@@ -321,8 +321,8 @@ function buildCommonServiceEnvironment(
     ...sharedEnv.proxyEnv,
     NODE_EXTRA_CA_CERTS: sharedEnv.nodeCaCerts,
     NODE_USE_SYSTEM_CA: sharedEnv.nodeUseSystemCa,
-    OPENCLAW_STATE_DIR: sharedEnv.stateDir,
-    OPENCLAW_CONFIG_PATH: sharedEnv.configPath,
+    COREBLOW_STATE_DIR: sharedEnv.stateDir,
+    COREBLOW_CONFIG_PATH: sharedEnv.configPath,
   };
   if (sharedEnv.minimalPath) {
     serviceEnv.PATH = sharedEnv.minimalPath;
@@ -336,8 +336,8 @@ function resolveSharedServiceEnvironmentFields(
   extraPathDirs: string[] | undefined,
   execPath?: string,
 ): SharedServiceEnvironmentFields {
-  const stateDir = env.OPENCLAW_STATE_DIR;
-  const configPath = env.OPENCLAW_CONFIG_PATH;
+  const stateDir = env.COREBLOW_STATE_DIR;
+  const configPath = env.COREBLOW_CONFIG_PATH;
   // Keep a usable temp directory for supervised services even when the host env omits TMPDIR.
   const tmpDir = env.TMPDIR?.trim() || os.tmpdir();
   const proxyEnv = readServiceProxyEnvironment(env);

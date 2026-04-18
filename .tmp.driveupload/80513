@@ -1,6 +1,0 @@
-/**
- * Discord Error Embed — Standardized error display.
- */
-export declare function createErrorEmbed(title: string, description: string, code?: string): Record<string, unknown>;
-export declare function createWarningEmbed(title: string, description: string): Record<string, unknown>;
-//# sourceMappingURL=error.d.ts.map

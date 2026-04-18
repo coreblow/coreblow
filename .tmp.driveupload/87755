@@ -1,3 +1,0 @@
-import type { QueueItem } from '../queue.types.js';
-export declare const queues: Map<string, QueueItem[]>;
-//# sourceMappingURL=queue.data.d.ts.map

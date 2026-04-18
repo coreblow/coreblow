@@ -1,1 +1,0 @@
-/** CoreBlow — Media Limits */ export const MEDIA_LIMITS = { maxFileSize: 25 * 1024 * 1024, maxImageSize: 10 * 1024 * 1024, allowedTypes: ["image/jpeg", "image/png", "image/gif", "image/webp", "audio/mp3", "video/mp4"] };

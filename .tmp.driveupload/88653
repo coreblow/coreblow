@@ -1,2 +1,0 @@
-export function createModelPlan(primary, fallbacks) { return { primary, fallbacks: fallbacks ?? [], maxRetries: 3 }; }
-//# sourceMappingURL=models-config.plan.js.map

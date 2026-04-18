@@ -80,7 +80,7 @@ describe("createCacheTrace", () => {
         },
       },
       env: {
-        OPENCLAW_CACHE_TRACE: "0",
+        COREBLOW_CACHE_TRACE: "0",
       },
       writer: {
         filePath: "memory",

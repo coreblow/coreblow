@@ -1,8 +1,0 @@
-/**
- * agents/stable-stringify.ts
- * Deterministic JSON serialization for cache keys / comparison.
- * Ported from CoreBlow reference src/agents/stable-stringify.ts.
- */
-export declare function stableStringify(value: unknown): string;
-export declare function stableHash(value: unknown): string;
-//# sourceMappingURL=stable-stringify.d.ts.map

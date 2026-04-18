@@ -164,7 +164,7 @@ describe("matrix plugin helper resolution", () => {
       },
       {
         env: {
-          OPENCLAW_BUNDLED_PLUGINS_DIR: (home) => path.join(home, "empty-bundled"),
+          COREBLOW_BUNDLED_PLUGINS_DIR: (home) => path.join(home, "empty-bundled"),
         },
       },
     );
@@ -213,7 +213,7 @@ describe("matrix plugin helper resolution", () => {
       },
       {
         env: {
-          OPENCLAW_BUNDLED_PLUGINS_DIR: (home) => path.join(home, "empty-bundled"),
+          COREBLOW_BUNDLED_PLUGINS_DIR: (home) => path.join(home, "empty-bundled"),
         },
       },
     );

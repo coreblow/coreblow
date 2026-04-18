@@ -1,1 +1,0 @@
-/** CoreBlow — Root Option Value */ export function getRootOptionValue(key: string, argv: string[]): string | undefined { const prefix = "--" + key + "="; const arg = argv.find((a) => a.startsWith(prefix)); return arg ? arg.slice(prefix.length) : undefined; }

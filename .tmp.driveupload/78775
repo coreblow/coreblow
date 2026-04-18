@@ -1,9 +1,0 @@
-/**
- * commands/handlers/system.ts — System commands
- */
-import type { CommandContext } from '../types.js';
-export declare function handleVersion(ctx: CommandContext): Promise<string>;
-export declare function handleUptime(ctx: CommandContext): Promise<string>;
-export declare function handleDebug(ctx: CommandContext): Promise<string>;
-export declare function handleStatus(ctx: CommandContext): Promise<string>;
-//# sourceMappingURL=system.d.ts.map

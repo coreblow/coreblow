@@ -1,1 +1,0 @@
-/** CoreBlow — Thinking Shared */ export function extractThinkingBlock(text: string): { thinking: string; output: string } { const match = /<thinking>([\s\S]*?)<\/thinking>/i.exec(text); return { thinking: match?.[1]?.trim() ?? "", output: text.replace(/<\/?thinking>/gi, "").trim() }; }

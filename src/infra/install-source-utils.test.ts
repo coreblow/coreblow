@@ -267,7 +267,7 @@ describe("packNpmSpecToArchive", () => {
     expectPackError(result, [
       "Package not found on npm",
       "@coreblow/whatsapp",
-      "docs.coreblow.ai/tools/plugin",
+      "docs.coreblow.com/tools/plugin",
     ]);
   });
 

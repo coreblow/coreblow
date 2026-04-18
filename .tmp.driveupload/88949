@@ -1,4 +1,0 @@
-/** MiniMax VLM integration. */
-export const MINIMAX_MODELS = ['minimax-01'];
-export function isMinimaxModel(id) { return id.startsWith('minimax'); }
-//# sourceMappingURL=minimax-vlm.js.map

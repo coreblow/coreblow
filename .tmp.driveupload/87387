@@ -1,7 +1,0 @@
-/** PI before-tool-call hooks. */
-export type BeforeToolCallHook = (toolName: string, args: Record<string, unknown>) => {
-    proceed: boolean;
-    reason?: string;
-};
-export declare function createAutoApproveHook(safeTools: string[]): BeforeToolCallHook;
-//# sourceMappingURL=pi-tools.before-tool-call.d.ts.map

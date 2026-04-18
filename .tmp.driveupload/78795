@@ -1,8 +1,0 @@
-/**
- * commands/handlers/security.ts — Security audit commands
- */
-import type { CommandContext } from '../types.js';
-export declare function handleSecurityAudit(ctx: CommandContext): Promise<string>;
-export declare function handleSecurityScan(ctx: CommandContext): Promise<string>;
-export declare function handleSecurityRotateKeys(ctx: CommandContext): Promise<string>;
-//# sourceMappingURL=security.d.ts.map

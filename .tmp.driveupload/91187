@@ -1,3 +1,0 @@
-/** Shared stream message types. */
-export type StreamMessageType = 'text_delta' | 'tool_use_start' | 'tool_use_delta' | 'tool_use_end' | 'thinking' | 'usage' | 'done' | 'error';
-export interface StreamMessage { type: StreamMessageType; content?: string; toolName?: string; toolId?: string; }

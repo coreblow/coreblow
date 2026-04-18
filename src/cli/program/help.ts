@@ -52,7 +52,7 @@ export function configureProgramHelp(program: Command, ctx: ProgramContext) {
     .version(ctx.programVersion)
     .option(
       "--container <name>",
-      "Run the CLI inside a running Podman/Docker container named <name> (default: env OPENCLAW_CONTAINER)",
+      "Run the CLI inside a running Podman/Docker container named <name> (default: env COREBLOW_CONTAINER)",
     )
     .option(
       "--dev",
@@ -60,7 +60,7 @@ export function configureProgramHelp(program: Command, ctx: ProgramContext) {
     )
     .option(
       "--profile <name>",
-      "Use a named profile (isolates OPENCLAW_STATE_DIR/OPENCLAW_CONFIG_PATH under ~/.coreblow-<name>)",
+      "Use a named profile (isolates COREBLOW_STATE_DIR/COREBLOW_CONFIG_PATH under ~/.coreblow-<name>)",
     )
     .option(
       "--log-level <level>",
@@ -139,7 +139,7 @@ export function configureProgramHelp(program: Command, ctx: ProgramContext) {
     if (command !== program) {
       return "";
     }
-    const docs = formatDocsLink("/cli", "docs.coreblow.ai/cli");
+    const docs = formatDocsLink("/cli", "docs.coreblow.com/cli");
     return `\n${theme.heading("Examples:")}\n${fmtExamples}\n\n${theme.muted("Docs:")} ${docs}\n`;
   });
 }

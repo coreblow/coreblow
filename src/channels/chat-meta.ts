@@ -3,7 +3,7 @@ import type { ChannelMeta } from "./plugins/types.js";
 
 export type ChatChannelMeta = ChannelMeta;
 
-const WEBSITE_URL = "https://coreblow.ai";
+const WEBSITE_URL = "https://coreblow.com";
 
 const CHAT_CHANNEL_META: Record<ChatChannelId, ChannelMeta> = {
   telegram: {

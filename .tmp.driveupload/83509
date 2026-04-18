@@ -1,5 +1,0 @@
-/** plugin-sdk/infra-runtime.ts [ADAPT] openclaw-main */
-export { createConsoleLogger } from "./logging-core.js";
-export { formatErrorMessage } from "./ssrf-runtime.js";
-export { captureDiagnosticSnapshot } from "./diagnostic-runtime.js";
-//# sourceMappingURL=infra-runtime.d.ts.map

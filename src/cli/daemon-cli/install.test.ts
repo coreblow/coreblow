@@ -141,10 +141,10 @@ function expectFirstInstallPlanCallOmitsToken() {
 
 function mockResolvedGatewayTokenSecretRef() {
   resolveSecretInputRefMock.mockReturnValue({
-    ref: { source: "env", provider: "default", id: "OPENCLAW_GATEWAY_TOKEN" },
+    ref: { source: "env", provider: "default", id: "COREBLOW_GATEWAY_TOKEN" },
   });
   resolveSecretRefValuesMock.mockResolvedValue(
-    new Map([["env:default:OPENCLAW_GATEWAY_TOKEN", "resolved-from-secretref"]]),
+    new Map([["env:default:COREBLOW_GATEWAY_TOKEN", "resolved-from-secretref"]]),
   );
 }
 
@@ -202,7 +202,7 @@ describe("runDaemonInstall", () => {
       NODE_EXTRA_CA_CERTS: undefined,
       NODE_USE_SYSTEM_CA: undefined,
     });
-    delete process.env.OPENCLAW_GATEWAY_TOKEN;
+    delete process.env.COREBLOW_GATEWAY_TOKEN;
   });
 
   afterEach(() => {
@@ -211,7 +211,7 @@ describe("runDaemonInstall", () => {
 
   it("fails install when token auth requires an unresolved token SecretRef", async () => {
     resolveSecretInputRefMock.mockReturnValue({
-      ref: { source: "env", provider: "default", id: "OPENCLAW_GATEWAY_TOKEN" },
+      ref: { source: "env", provider: "default", id: "COREBLOW_GATEWAY_TOKEN" },
     });
     resolveSecretRefValuesMock.mockRejectedValue(new Error("secret unavailable"));
 
@@ -241,7 +241,7 @@ describe("runDaemonInstall", () => {
 
   it("does not treat env-template gateway.auth.token as plaintext during install", async () => {
     loadConfigMock.mockReturnValue({
-      gateway: { auth: { mode: "token", token: "${OPENCLAW_GATEWAY_TOKEN}" } },
+      gateway: { auth: { mode: "token", token: "${COREBLOW_GATEWAY_TOKEN}" } },
     });
     mockResolvedGatewayTokenSecretRef();
 

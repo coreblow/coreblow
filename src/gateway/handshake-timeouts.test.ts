@@ -19,17 +19,17 @@ describe("gateway handshake timeouts", () => {
     expect(clampConnectChallengeTimeoutMs(20_000)).toBe(MAX_CONNECT_CHALLENGE_TIMEOUT_MS);
   });
 
-  test("prefers OPENCLAW_HANDSHAKE_TIMEOUT_MS and falls back on the test-only env", () => {
+  test("prefers COREBLOW_HANDSHAKE_TIMEOUT_MS and falls back on the test-only env", () => {
     expect(
       getPreauthHandshakeTimeoutMsFromEnv({
-        OPENCLAW_HANDSHAKE_TIMEOUT_MS: "75",
-        OPENCLAW_TEST_HANDSHAKE_TIMEOUT_MS: "20",
+        COREBLOW_HANDSHAKE_TIMEOUT_MS: "75",
+        COREBLOW_TEST_HANDSHAKE_TIMEOUT_MS: "20",
       }),
     ).toBe(75);
     expect(
       getPreauthHandshakeTimeoutMsFromEnv({
-        OPENCLAW_HANDSHAKE_TIMEOUT_MS: "",
-        OPENCLAW_TEST_HANDSHAKE_TIMEOUT_MS: "20",
+        COREBLOW_HANDSHAKE_TIMEOUT_MS: "",
+        COREBLOW_TEST_HANDSHAKE_TIMEOUT_MS: "20",
         VITEST: "1",
       }),
     ).toBe(20);

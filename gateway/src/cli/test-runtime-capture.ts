@@ -1,1 +1,0 @@
-/** CoreBlow — Test Runtime Capture */ export function captureOutput(fn: () => void): string[] { const lines: string[] = []; const orig = console.log; console.log = (...args: any[]) => lines.push(args.join(" ")); try { fn(); } finally { console.log = orig; } return lines; }

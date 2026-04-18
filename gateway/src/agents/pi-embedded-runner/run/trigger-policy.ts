@@ -1,1 +1,0 @@
-/** CoreBlow — PI Trigger Policy */ export type TriggerPolicy = "always" | "on-mention" | "on-command"; export function shouldTrigger(policy: TriggerPolicy, mentioned: boolean): boolean { if (policy === "always") return true; if (policy === "on-mention") return mentioned; return false; }

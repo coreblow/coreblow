@@ -1,5 +1,0 @@
-export async function monitorIrcProvider(_p) { }
-export async function probeIrc(_p) { return { ok: false }; }
-export async function sendMessageIrc(_p) { return null; }
-export function listIrcAccountIds(_cfg) { return []; }
-//# sourceMappingURL=irc-surface.js.map

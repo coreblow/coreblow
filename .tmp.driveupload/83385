@@ -1,7 +1,0 @@
-/** plugin-sdk/opencode.ts [ADAPT] openclaw-main */
-export declare const OPENCODE_ZEN_DEFAULT_MODEL = "opencode-zen";
-export declare const OPENCODE_ZEN_DEFAULT_MODEL_REF = "opencode:opencode-zen";
-export declare function applyOpencodeZenConfig(cfg: Record<string, unknown>): Record<string, unknown>;
-export declare function applyOpencodeZenModelDefault(cfg: Record<string, unknown>): Record<string, unknown>;
-export declare function applyOpencodeZenProviderConfig(cfg: Record<string, unknown>): Record<string, unknown>;
-//# sourceMappingURL=opencode.d.ts.map

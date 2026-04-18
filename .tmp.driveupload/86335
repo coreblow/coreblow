@@ -1,9 +1,0 @@
-/**
- * src/infra/gateway-process-argv.ts
- * Parse gateway argvs.
- */
-export declare function parseProcCmdline(raw: string): string[];
-export declare function isGatewayArgv(args: string[], opts?: {
-    allowGatewayBinary?: boolean;
-}): boolean;
-//# sourceMappingURL=gateway-process-argv.d.ts.map

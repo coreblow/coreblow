@@ -1,2 +1,0 @@
-export declare function deleteSession(sessionKey: string): boolean;
-//# sourceMappingURL=delete-session.d.ts.map

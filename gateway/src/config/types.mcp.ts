@@ -1,1 +1,0 @@
-/** CoreBlow — Types: MCP */ export interface McpTypeConfig { servers: Array<{ name: string; transport: "stdio" | "sse" | "http"; command?: string; url?: string; env?: Record<string, string>; enabled?: boolean }>; }

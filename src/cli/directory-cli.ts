@@ -84,7 +84,7 @@ export function registerDirectoryCli(program: Command) {
           ],
         ])}\n\n${theme.muted("Docs:")} ${formatDocsLink(
           "/cli/directory",
-          "docs.coreblow.ai/cli/directory",
+          "docs.coreblow.com/cli/directory",
         )}\n`,
     )
     .action(() => {

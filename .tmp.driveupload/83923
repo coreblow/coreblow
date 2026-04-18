@@ -1,7 +1,0 @@
-/**
- * plugin-sdk/signal.ts
- * [PORT] openclaw-main — Main Signal SDK barrel.
- */
-export * from "./signal-core.js";
-export * from "./signal-surface.js";
-//# sourceMappingURL=signal.d.ts.map

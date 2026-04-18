@@ -1,1 +1,0 @@
-{"version":3,"file":"slack-targets.d.ts","sourceRoot":"","sources":["../../src/plugin-sdk/slack-targets.ts"],"names":[],"mappings":"AAAA;;;GAGG;AAEH,OAAO,EAAE,gBAAgB,EAAE,qBAAqB,EAAE,MAAM,0BAA0B,CAAC;AAEnF,wBAAgB,sBAAsB,CAAC,GAAG,EAAE,MAAM,GAAG,OAAO,CAE3D;AAED,wBAAgB,6BAA6B,CAAC,GAAG,EAAE,MAAM,GAAG;IAAE,IAAI,EAAE,MAAM,CAAC;IAAC,EAAE,EAAE,MAAM,CAAA;CAAE,GAAG,IAAI,CAG9F"}

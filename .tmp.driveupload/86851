@@ -1,4 +1,0 @@
-export declare function setupTestStateDir(): string;
-export declare function cleanupTestStateDir(dir: string): void;
-export declare function withStateDirEnv<T>(fn: (dir: string) => Promise<T> | T): Promise<T>;
-//# sourceMappingURL=state-dir-env.d.ts.map

@@ -742,7 +742,7 @@ describe("runGatewayUpdate", () => {
     expect(installEnv?.NODE_LLAMA_CPP_SKIP_DOWNLOAD).toBe("1");
   });
 
-  it("uses OPENCLAW_UPDATE_PACKAGE_SPEC for global package updates", async () => {
+  it("uses COREBLOW_UPDATE_PACKAGE_SPEC for global package updates", async () => {
     const { nodeModules, pkgRoot } = await createGlobalPackageFixture(tempDir);
     const expectedInstallCommand =
       "npm i -g http://10.211.55.2:8138/coreblow-next.tgz --no-fund --no-audit --loglevel=error";
@@ -754,7 +754,7 @@ describe("runGatewayUpdate", () => {
     });
 
     await withEnvAsync(
-      { OPENCLAW_UPDATE_PACKAGE_SPEC: "http://10.211.55.2:8138/coreblow-next.tgz" },
+      { COREBLOW_UPDATE_PACKAGE_SPEC: "http://10.211.55.2:8138/coreblow-next.tgz" },
       async () => {
         const result = await runWithCommand(runCommand, { cwd: pkgRoot });
         expect(result.status).toBe("ok");

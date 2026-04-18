@@ -1,1 +1,0 @@
-/** CoreBlow — Telegram Custom Commands */ export interface TelegramCommand { command: string; description: string; } export const DEFAULT_TELEGRAM_COMMANDS: TelegramCommand[] = [ { command: "start", description: "Start conversation" }, { command: "reset", description: "Reset session" }, { command: "help", description: "Show help" } ];

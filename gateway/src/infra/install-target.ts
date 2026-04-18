@@ -1,1 +1,0 @@
-/** CoreBlow — Install Target */ export interface InstallTarget { name: string; version: string; source: string; installDir: string; } export function formatInstallTarget(t: InstallTarget): string { return t.name + "@" + t.version + " from " + t.source; }

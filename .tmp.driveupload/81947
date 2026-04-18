@@ -1,3 +1,0 @@
-import type { GatewayRequestHandlers } from "./types.js";
-export declare const chatTranscriptInjectHandlers: GatewayRequestHandlers;
-//# sourceMappingURL=chat-transcript-inject.d.ts.map

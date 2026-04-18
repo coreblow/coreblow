@@ -13,7 +13,7 @@ import {
 } from "./interactions.modal.js";
 
 // Prefix for CoreBlow-generated action IDs to scope our handler
-const OPENCLAW_ACTION_PREFIX = "coreblow:";
+const COREBLOW_ACTION_PREFIX = "coreblow:";
 const SLACK_INTERACTION_EVENT_PREFIX = "Slack interaction: ";
 const REDACTED_INTERACTION_VALUE = "[redacted]";
 const SLACK_INTERACTION_EVENT_MAX_CHARS = 2400;
@@ -190,7 +190,7 @@ export function registerSlackInteractionEvents(params: { ctx: SlackMonitorContex
   if (typeof ctx.app.view !== "function") {
     return;
   }
-  const modalMatcher = new RegExp(`^${OPENCLAW_ACTION_PREFIX}`);
+  const modalMatcher = new RegExp(`^${COREBLOW_ACTION_PREFIX}`);
 
   // Handle CoreBlow modal submissions with callback_ids scoped by our prefix.
   registerModalLifecycleHandler({

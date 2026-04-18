@@ -1,9 +1,0 @@
-/**
- * cron/cron-lock.ts
- */
-export declare class CronLock {
-    private locked;
-    acquire(id: string): boolean;
-    release(id: string): void;
-}
-//# sourceMappingURL=cron-lock.d.ts.map

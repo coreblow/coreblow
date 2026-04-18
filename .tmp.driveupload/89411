@@ -1,4 +1,0 @@
-/** Moonshot provider compatibility. */
-export function isMoonshotModel(id) { return id.startsWith('moonshot'); }
-export function getMoonshotEndpoint() { return 'https://api.moonshot.cn/v1'; }
-//# sourceMappingURL=moonshot-provider-compat.js.map

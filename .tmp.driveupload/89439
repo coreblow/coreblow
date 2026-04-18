@@ -1,4 +1,0 @@
-/** Process management utilities. */
-export declare function killProcess(pid: number, signal?: NodeJS.Signals): boolean;
-export declare function isProcessAlive(pid: number): boolean;
-//# sourceMappingURL=bash-tools.process.d.ts.map

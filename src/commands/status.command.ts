@@ -732,8 +732,8 @@ export async function statusCommand(
   }
 
   runtime.log("");
-  runtime.log("FAQ: https://docs.coreblow.ai/faq");
-  runtime.log("Troubleshooting: https://docs.coreblow.ai/troubleshooting");
+  runtime.log("FAQ: https://docs.coreblow.com/faq");
+  runtime.log("Troubleshooting: https://docs.coreblow.com/troubleshooting");
   runtime.log("");
   const updateHint = formatUpdateAvailableHint(update);
   if (updateHint) {

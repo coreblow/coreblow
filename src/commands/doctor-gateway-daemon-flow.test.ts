@@ -101,7 +101,7 @@ vi.mock("./health.js", () => ({
 describe("maybeRepairGatewayDaemon", () => {
   let maybeRepairGatewayDaemon: typeof import("./doctor-gateway-daemon-flow.js").maybeRepairGatewayDaemon;
   const originalPlatformDescriptor = Object.getOwnPropertyDescriptor(process, "platform");
-  const originalUpdateInProgress = process.env.OPENCLAW_UPDATE_IN_PROGRESS;
+  const originalUpdateInProgress = process.env.COREBLOW_UPDATE_IN_PROGRESS;
 
   beforeAll(async () => {
     ({ maybeRepairGatewayDaemon } = await import("./doctor-gateway-daemon-flow.js"));
@@ -125,9 +125,9 @@ describe("maybeRepairGatewayDaemon", () => {
       Object.defineProperty(process, "platform", originalPlatformDescriptor);
     }
     if (originalUpdateInProgress === undefined) {
-      delete process.env.OPENCLAW_UPDATE_IN_PROGRESS;
+      delete process.env.COREBLOW_UPDATE_IN_PROGRESS;
     } else {
-      process.env.OPENCLAW_UPDATE_IN_PROGRESS = originalUpdateInProgress;
+      process.env.COREBLOW_UPDATE_IN_PROGRESS = originalUpdateInProgress;
     }
   });
 
@@ -161,7 +161,7 @@ describe("maybeRepairGatewayDaemon", () => {
   }
 
   async function runNonInteractiveUpdateRepair() {
-    process.env.OPENCLAW_UPDATE_IN_PROGRESS = "1";
+    process.env.COREBLOW_UPDATE_IN_PROGRESS = "1";
     const runtime = { log: vi.fn(), error: vi.fn(), exit: vi.fn() };
     await maybeRepairGatewayDaemon({
       cfg: { gateway: {} },

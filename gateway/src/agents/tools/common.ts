@@ -1,1 +1,0 @@
-/** CoreBlow — Tools Common */ export interface ToolResult { success: boolean; output?: string; error?: string; } export function createToolResult(success: boolean, output?: string): ToolResult { return { success, output }; }

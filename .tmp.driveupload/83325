@@ -1,4 +1,0 @@
-export async function initiateVoiceCall(_params) {
-    throw new Error("initiateVoiceCall requires a telephony provider extension");
-}
-//# sourceMappingURL=voice-call.js.map

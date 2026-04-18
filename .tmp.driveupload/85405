@@ -1,7 +1,0 @@
-export declare class ACPServer {
-    private running;
-    start(port?: number): Promise<number>;
-    stop(): Promise<void>;
-    isRunning(): boolean;
-}
-//# sourceMappingURL=server.d.ts.map

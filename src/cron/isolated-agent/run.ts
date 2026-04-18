@@ -188,7 +188,7 @@ export async function runCronIsolatedAgentTurn(params: {
       ? reason.trim()
       : "cron: job execution timed out";
   };
-  const isFastTestEnv = process.env.OPENCLAW_TEST_FAST === "1";
+  const isFastTestEnv = process.env.COREBLOW_TEST_FAST === "1";
   const deliveryContract = params.deliveryContract ?? "cron-owned";
   const defaultAgentId = resolveDefaultAgentId(params.cfg);
   const requestedAgentId =

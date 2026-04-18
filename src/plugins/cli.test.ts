@@ -120,7 +120,7 @@ describe("registerPluginCliCommands", () => {
   });
 
   it("forwards an explicit env to plugin loading", () => {
-    const env = { OPENCLAW_HOME: "/srv/coreblow-home" } as NodeJS.ProcessEnv;
+    const env = { COREBLOW_HOME: "/srv/coreblow-home" } as NodeJS.ProcessEnv;
 
     runRegisterPluginCliCommands({
       config: {} as CoreBlowConfig,

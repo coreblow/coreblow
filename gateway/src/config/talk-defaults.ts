@@ -1,1 +1,0 @@
-/** CoreBlow — Talk Defaults */ export interface TalkDefaults { model: string; temperature: number; maxTokens: number; systemPrompt?: string; } export const DEFAULT_TALK: TalkDefaults = { model: "claude-sonnet-4-20250514", temperature: 0.7, maxTokens: 8192 };

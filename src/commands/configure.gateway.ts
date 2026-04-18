@@ -192,12 +192,12 @@ export async function promptGatewayConfig(
       const envVar = guardCancel(
         await text({
           message: "Gateway token env var",
-          initialValue: "OPENCLAW_GATEWAY_TOKEN",
-          placeholder: "OPENCLAW_GATEWAY_TOKEN",
+          initialValue: "COREBLOW_GATEWAY_TOKEN",
+          placeholder: "COREBLOW_GATEWAY_TOKEN",
           validate: (value) => {
             const candidate = String(value ?? "").trim();
             if (!isValidEnvSecretRefId(candidate)) {
-              return "Use an env var name like OPENCLAW_GATEWAY_TOKEN.";
+              return "Use an env var name like COREBLOW_GATEWAY_TOKEN.";
             }
             const resolved = process.env[candidate]?.trim();
             if (!resolved) {
@@ -249,7 +249,7 @@ export async function promptGatewayConfig(
         "Only requests from specified proxy IPs will be trusted.",
         "",
         "Common use cases: Pomerium, Caddy + OAuth, Traefik + forward auth",
-        "Docs: https://docs.coreblow.ai/gateway/trusted-proxy-auth",
+        "Docs: https://docs.coreblow.com/gateway/trusted-proxy-auth",
       ].join("\n"),
       "Trusted Proxy Auth",
     );

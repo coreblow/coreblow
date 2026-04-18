@@ -100,7 +100,7 @@ export async function readStoreAllowFromForDmPolicy(params: {
     params.readStore ??
     ((provider: ChannelId, accountId: string) =>
       readChannelAllowFromStore(provider, process.env, accountId));
-  return await readStore(params.provider, params.accountId).catch(() => []);
+  return await Promise.resolve(readStore(params.provider, params.accountId)).catch(() => []);
 }
 
 export function resolveDmGroupAccessDecision(params: {

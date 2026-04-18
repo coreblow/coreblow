@@ -1,1 +1,0 @@
-/** CoreBlow — Compaction Safety Timeout */ export const COMPACTION_TIMEOUT_MS = 30_000; export function createCompactionTimeout(): AbortController { const ac = new AbortController(); setTimeout(() => ac.abort(), COMPACTION_TIMEOUT_MS); return ac; }

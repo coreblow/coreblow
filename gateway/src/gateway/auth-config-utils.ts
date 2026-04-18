@@ -1,1 +1,0 @@
-/** CoreBlow — Auth Config Utils */ export function resolveAuthToken(env: NodeJS.ProcessEnv = process.env): string | undefined { return env.COREBLOW_AUTH_TOKEN?.trim() || env.COREBLOW_TOKEN?.trim(); }

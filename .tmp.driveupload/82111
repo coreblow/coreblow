@@ -1,1 +1,0 @@
-{"version":3,"file":"nodes.handlers.invoke-result.js","sourceRoot":"","sources":["../../../src/gateway/server-methods/nodes.handlers.invoke-result.ts"],"names":[],"mappings":"AAEA,MAAM,CAAC,MAAM,yBAAyB,GAA2B;IAC7D,oBAAoB,EAAE,KAAK,EAAE,EAAE,MAAM,EAAE,OAAO,EAAE,EAAE,EAAE;QAChD,OAAO,CAAC,IAAI,EAAE,EAAE,EAAE,EAAE,IAAI,EAAE,CAAC,CAAC;IAChC,CAAC;CACJ,CAAC"}

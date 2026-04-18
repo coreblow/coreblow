@@ -90,7 +90,7 @@ function redactSessionsSpawnAttachmentsArgs(value: unknown): unknown {
       return item;
     }
     const { content: _content, ...rest } = a;
-    return { ...rest, content: "__OPENCLAW_REDACTED__" };
+    return { ...rest, content: "__COREBLOW_REDACTED__" };
   });
   return { ...rec, attachments: next };
 }

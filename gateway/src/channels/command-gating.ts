@@ -1,1 +1,0 @@
-/** CoreBlow — Command Gating */ export function isCommandAllowed(command: string, blockedCommands?: string[]): boolean { if (!blockedCommands) return true; return !blockedCommands.includes(command); }

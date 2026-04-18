@@ -1,3 +1,0 @@
-/** agents/bash-tools.exec.ts — Exec orchestration. */
-export { execCommand } from './bash-tools.js';
-//# sourceMappingURL=bash-tools.exec.js.map

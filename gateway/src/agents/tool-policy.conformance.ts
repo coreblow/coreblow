@@ -1,1 +1,0 @@
-/** CoreBlow — Tool Policy Conformance */ export function checkToolPolicyConformance(policy: Record<string, unknown>): string[] { const errors: string[] = []; if (!policy.name) errors.push("Missing policy name"); return errors; }

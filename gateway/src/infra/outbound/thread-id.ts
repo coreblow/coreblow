@@ -1,1 +1,0 @@
-/** CoreBlow — Thread ID */ export function generateThreadId(): string { return "thread-" + crypto.randomUUID().slice(0, 12); } export function isValidThreadId(id: string): boolean { return typeof id === "string" && id.length > 0; }

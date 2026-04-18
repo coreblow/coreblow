@@ -3,7 +3,7 @@
  * scripts/write-build-info.mjs
  *
  * Write dist/build-info.json with version, commit, and build timestamp.
- * [PORT] openclaw-main/scripts/write-build-info.ts
+ * [PORT] coreblow-main/scripts/write-build-info.ts
  */
 
 import { execSync } from 'node:child_process';

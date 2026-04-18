@@ -460,10 +460,10 @@ describe("promptSingleChannelSecretInput", () => {
   });
 
   it("returns ref + resolved value when external env ref is selected", async () => {
-    process.env.OPENCLAW_TEST_TOKEN = "secret-token";
+    process.env.COREBLOW_TEST_TOKEN = "secret-token";
     const prompter = createSecretInputPrompter({
       selects: ["ref", "env"],
-      texts: ["OPENCLAW_TEST_TOKEN"],
+      texts: ["COREBLOW_TEST_TOKEN"],
     });
 
     const result = await runPromptSingleChannelSecretInput({
@@ -473,7 +473,7 @@ describe("promptSingleChannelSecretInput", () => {
       accountConfigured: false,
       canUseEnv: false,
       hasConfigToken: false,
-      preferredEnvVar: "OPENCLAW_TEST_TOKEN",
+      preferredEnvVar: "COREBLOW_TEST_TOKEN",
     });
 
     expect(result).toEqual({
@@ -481,7 +481,7 @@ describe("promptSingleChannelSecretInput", () => {
       value: {
         source: "env",
         provider: "default",
-        id: "OPENCLAW_TEST_TOKEN",
+        id: "COREBLOW_TEST_TOKEN",
       },
       resolvedValue: "secret-token",
     });

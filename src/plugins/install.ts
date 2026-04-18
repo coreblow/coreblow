@@ -30,7 +30,7 @@ type PackageManifest = PluginPackageManifest & {
 };
 
 const MISSING_EXTENSIONS_ERROR =
-  'package.json missing coreblow.extensions; update the plugin package to include coreblow.extensions (for example ["./dist/index.js"]). See https://docs.coreblow.ai/help/troubleshooting#plugin-install-fails-with-missing-coreblow-extensions';
+  'package.json missing coreblow.extensions; update the plugin package to include coreblow.extensions (for example ["./dist/index.js"]). See https://docs.coreblow.com/help/troubleshooting#plugin-install-fails-with-missing-coreblow-extensions';
 const PLUGIN_ARCHIVE_ROOT_MARKERS = [
   "package.json",
   "coreblow.plugin.json",
@@ -44,8 +44,8 @@ export const PLUGIN_INSTALL_ERROR_CODE = {
   INVALID_MIN_HOST_VERSION: "invalid_min_host_version",
   UNKNOWN_HOST_VERSION: "unknown_host_version",
   INCOMPATIBLE_HOST_VERSION: "incompatible_host_version",
-  MISSING_OPENCLAW_EXTENSIONS: "missing_coreblow_extensions",
-  EMPTY_OPENCLAW_EXTENSIONS: "empty_coreblow_extensions",
+  MISSING_COREBLOW_EXTENSIONS: "missing_coreblow_extensions",
+  EMPTY_COREBLOW_EXTENSIONS: "empty_coreblow_extensions",
   NPM_PACKAGE_NOT_FOUND: "npm_package_not_found",
   PLUGIN_ID_MISMATCH: "plugin_id_mismatch",
 } as const;
@@ -155,14 +155,14 @@ function ensureCoreBlowExtensions(params: { manifest: PackageManifest }):
     return {
       ok: false,
       error: MISSING_EXTENSIONS_ERROR,
-      code: PLUGIN_INSTALL_ERROR_CODE.MISSING_OPENCLAW_EXTENSIONS,
+      code: PLUGIN_INSTALL_ERROR_CODE.MISSING_COREBLOW_EXTENSIONS,
     };
   }
   if (resolved.status === "empty") {
     return {
       ok: false,
       error: "package.json coreblow.extensions is empty",
-      code: PLUGIN_INSTALL_ERROR_CODE.EMPTY_OPENCLAW_EXTENSIONS,
+      code: PLUGIN_INSTALL_ERROR_CODE.EMPTY_COREBLOW_EXTENSIONS,
     };
   }
   return {
@@ -534,7 +534,7 @@ async function installPluginFromPackageDir(
     if (minHostVersionCheck.kind === "unknown_host_version") {
       return {
         ok: false,
-        error: `plugin "${pluginId}" requires CoreBlow >=${minHostVersionCheck.requirement.minimumLabel}, but this host version could not be determined. Re-run from a released build or set OPENCLAW_VERSION and retry.`,
+        error: `plugin "${pluginId}" requires CoreBlow >=${minHostVersionCheck.requirement.minimumLabel}, but this host version could not be determined. Re-run from a released build or set COREBLOW_VERSION and retry.`,
         code: PLUGIN_INSTALL_ERROR_CODE.UNKNOWN_HOST_VERSION,
       };
     }

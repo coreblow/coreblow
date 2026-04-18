@@ -1,1 +1,0 @@
-export async function benchModel(model: string) { const start = Date.now(); console.log(`Benchmarking ${model}...`); return { model, durationMs: Date.now() - start }; }

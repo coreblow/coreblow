@@ -1,1 +1,0 @@
-/** CoreBlow — Open Responses Prompt */ export function buildOpenResponsesPrompt(messages: Array<{ role: string; content: string }>): string { return messages.map((m) => "[" + m.role + "] " + m.content).join("\n"); }

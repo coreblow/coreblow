@@ -1,4 +1,0 @@
-/** Exec runtime environment detection. */
-export declare function detectRuntime(): 'node' | 'bun' | 'deno' | 'unknown';
-export declare function getRuntimeVersion(): string;
-//# sourceMappingURL=bash-tools.exec-runtime.d.ts.map

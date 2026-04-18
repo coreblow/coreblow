@@ -1,3 +1,0 @@
-export declare function isPathSafe(baseDir: string, targetPath: string): boolean;
-export declare function sanitizePath(input: string): string;
-//# sourceMappingURL=security-path.d.ts.map

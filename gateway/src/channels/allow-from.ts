@@ -1,1 +1,0 @@
-/** CoreBlow — Allow From */ export function shouldAllowFrom(userId: string, allowList?: string[]): boolean { if (!allowList || allowList.length === 0) return true; return allowList.includes(userId); }

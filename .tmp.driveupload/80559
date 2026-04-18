@@ -1,7 +1,0 @@
-/**
- * src/channels/discord/embeds/help.ts
- */
-import type { DiscordEmbed } from '../types.js';
-import type { SlashCommand } from '../types.js';
-export declare function createHelpEmbed(commands: SlashCommand[]): DiscordEmbed;
-//# sourceMappingURL=help.d.ts.map

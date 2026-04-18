@@ -1,1 +1,0 @@
-{"version":3,"file":"speech-core.js","sourceRoot":"","sources":["../../src/plugin-sdk/speech-core.ts"],"names":[],"mappings":"AAGA,MAAM,CAAC,KAAK,UAAU,YAAY,CAAC,OAAqB;IACpD,MAAM,IAAI,KAAK,CAAC,mEAAmE,CAAC,CAAC;AACzF,CAAC;AACD,MAAM,CAAC,KAAK,UAAU,YAAY,CAAC,KAAa,EAAE,OAA+C;IAC7F,MAAM,IAAI,KAAK,CAAC,uEAAuE,CAAC,CAAC;AAC7F,CAAC"}

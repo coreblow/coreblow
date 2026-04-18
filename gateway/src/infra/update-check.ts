@@ -1,4 +1,0 @@
-/** CoreBlow — Update Check */
-export interface UpdateInfo { currentVersion: string; latestVersion: string; updateAvailable: boolean; channel: string; releaseUrl?: string; }
-export async function checkForUpdates(currentVersion: string, channel = "stable"): Promise<UpdateInfo> { try { const r = await fetch("https://updates.coreblow.com/" + channel + "/latest.json", { signal: AbortSignal.timeout(10000) }); if (!r.ok) return { currentVersion, latestVersion: currentVersion, updateAvailable: false, channel };
-const data = await r.json() as Record<string, string>; const latest = data.version ?? currentVersion; return { currentVersion, latestVersion: latest, updateAvailable: latest !== currentVersion, channel, releaseUrl: data.url }; } catch { return { currentVersion, latestVersion: currentVersion, updateAvailable: false, channel }; } }

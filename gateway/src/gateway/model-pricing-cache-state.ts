@@ -1,1 +1,0 @@
-/** CoreBlow — Model Pricing Cache State */ let lastRefresh = 0; export function shouldRefreshPricing(intervalMs = 3600000): boolean { return Date.now() - lastRefresh > intervalMs; } export function markPricingRefreshed(): void { lastRefresh = Date.now(); }

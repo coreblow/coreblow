@@ -1,3 +1,0 @@
-/** plugin-sdk/nvidia.ts [ADAPT] openclaw-main */
-export function buildNvidiaProvider(_p) { throw new Error("buildNvidiaProvider requires @coreblow/nvidia extension"); }
-//# sourceMappingURL=nvidia.js.map

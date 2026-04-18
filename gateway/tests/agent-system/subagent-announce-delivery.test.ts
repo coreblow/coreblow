@@ -1,5 +1,5 @@
 /**
- * Tests for Subagent Announce Delivery (OpenClaw Parity)
+ * Tests for Subagent Announce Delivery (CoreBlow Parity)
  *
  * Covers: retry with backoff, timeout resolution, origin resolution,
  * idempotency keys, delivery metrics, circuit breaker, audit trail,

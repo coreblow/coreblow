@@ -118,8 +118,8 @@ async function createAuditFixture(): Promise<AuditFixture> {
     modelsPath,
     envPath,
     env: {
-      OPENCLAW_STATE_DIR: stateDir,
-      OPENCLAW_CONFIG_PATH: configPath,
+      COREBLOW_STATE_DIR: stateDir,
+      COREBLOW_CONFIG_PATH: configPath,
       OPENAI_API_KEY: "env-openai-key", // pragma: allowlist secret
       PATH: resolveRuntimePathEnv(),
     },
@@ -539,7 +539,7 @@ describe("secrets audit", () => {
     const report = await runSecretsAudit({
       env: {
         ...fixture.env,
-        OPENCLAW_AGENT_DIR: externalAgentDir,
+        COREBLOW_AGENT_DIR: externalAgentDir,
       },
     });
     expect(

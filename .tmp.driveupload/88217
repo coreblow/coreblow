@@ -1,8 +1,0 @@
-/** Subagent announcement output formatting. */
-export { formatAnnouncement } from './subagent-announce.js';
-export declare function formatAnnouncementList(announcements: Array<{
-    agentId: string;
-    status: string;
-    task: string;
-}>): string;
-//# sourceMappingURL=subagent-announce-output.d.ts.map

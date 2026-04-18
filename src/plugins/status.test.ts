@@ -347,7 +347,7 @@ describe("buildPluginStatusReport", () => {
     const report = buildPluginStatusReport({
       config: {},
       env: {
-        OPENCLAW_VERSION: "2026.3.23-1",
+        COREBLOW_VERSION: "2026.3.23-1",
       } as NodeJS.ProcessEnv,
     });
 

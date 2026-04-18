@@ -1,1 +1,0 @@
-/** CoreBlow — Control UI HTTP Utils */ export function serveStaticFile(filePath: string, contentType: string): Response { return new Response(null, { status: 200, headers: { "Content-Type": contentType } }); }

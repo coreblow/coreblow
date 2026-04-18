@@ -1,3 +1,0 @@
-export declare function resolveDefaultStateDir(): string;
-export declare function resolveStatePath(key: string): string;
-//# sourceMappingURL=state-paths.d.ts.map

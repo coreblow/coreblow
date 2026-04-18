@@ -1,2 +1,0 @@
-/** CoreBlow — Config Merge */
-export function mergeConfigs(...configs: Record<string, unknown>[]): Record<string, unknown> { const result: Record<string, unknown> = {}; for (const config of configs) { for (const [key, value] of Object.entries(config)) { if (typeof value === "object" && value !== null && !Array.isArray(value) && typeof result[key] === "object" && result[key] !== null) { result[key] = mergeConfigs(result[key] as Record<string, unknown>, value as Record<string, unknown>); } else { result[key] = value; } } } return result; }

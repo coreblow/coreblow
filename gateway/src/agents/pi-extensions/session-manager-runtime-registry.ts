@@ -1,1 +1,0 @@
-/** CoreBlow — Session Manager Runtime Registry */ const managers = new Map<string, unknown>(); export function registerSessionManager(id: string, manager: unknown): void { managers.set(id, manager); } export function getSessionManager(id: string): unknown { return managers.get(id); }

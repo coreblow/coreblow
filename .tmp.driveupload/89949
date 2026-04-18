@@ -1,1 +1,0 @@
-{"version":3,"file":"kill-tree.d.ts","sourceRoot":"","sources":["../../src/process/kill-tree.ts"],"names":[],"mappings":"AAAA;;;;GAIG;AAOH;;;;GAIG;AACH,wBAAgB,eAAe,CAAC,GAAG,EAAE,MAAM,EAAE,IAAI,CAAC,EAAE;IAAE,OAAO,CAAC,EAAE,MAAM,CAAA;CAAE,GAAG,IAAI,CAK9E;AAyCD;;GAEG;AACH,wBAAsB,YAAY,CAAC,GAAG,EAAE,MAAM,EAAE,SAAS,SAAmB,GAAG,OAAO,CAAC,OAAO,CAAC,CAe9F"}

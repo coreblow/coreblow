@@ -1,9 +1,0 @@
-/** plugin-sdk/sglang.ts [ADAPT] openclaw-main */
-export const SGLANG_DEFAULT_BASE_URL = "http://localhost:30000";
-export const SGLANG_DEFAULT_API_KEY_ENV_VAR = "SGLANG_API_KEY";
-export const SGLANG_MODEL_PLACEHOLDER = "default";
-export const SGLANG_PROVIDER_LABEL = "SGLang";
-export function buildSglangProvider(_p) {
-    return { type: "sglang", baseUrl: SGLANG_DEFAULT_BASE_URL };
-}
-//# sourceMappingURL=sglang.js.map

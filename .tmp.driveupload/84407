@@ -1,5 +1,0 @@
-/** plugin-sdk/provider-env-vars.ts [ADAPT] openclaw-main */
-/** Get all environment variables associated with a provider ID (by convention PROVIDER_ID -> PROVIDERID_API_KEY etc.) */
-export declare function getProviderEnvVars(providerId: string): Record<string, string | undefined>;
-export declare function resolveProviderApiKeyFromEnv(providerId: string): string | null;
-//# sourceMappingURL=provider-env-vars.d.ts.map

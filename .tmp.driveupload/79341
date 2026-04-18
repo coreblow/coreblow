@@ -1,4 +1,0 @@
-export class MediaHandler {
-    async process(input, type) { return { processed: true, type, size: input.length }; }
-}
-//# sourceMappingURL=handler.js.map

@@ -1,4 +1,0 @@
-export function loadConfig() {
-    return {};
-}
-//# sourceMappingURL=config.js.map

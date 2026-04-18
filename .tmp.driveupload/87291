@@ -1,5 +1,0 @@
-/** Effective tool inventory — resolve enabled tools after policy. */
-import { ToolCatalog } from './tool-catalog.js';
-import { ToolPolicy } from './tool-policy.js';
-export declare function getEffectiveTools(catalog: ToolCatalog, policy: ToolPolicy): string[];
-//# sourceMappingURL=tools-effective-inventory.d.ts.map

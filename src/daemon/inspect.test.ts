@@ -22,9 +22,9 @@ Wants=network-online.target
 [Service]
 ExecStart=/usr/bin/node /home/coreblow/.npm-global/lib/node_modules/coreblow/dist/entry.js gateway --port 18789
 Restart=always
-Environment=OPENCLAW_SERVICE_MARKER=coreblow
-Environment=OPENCLAW_SERVICE_KIND=gateway
-Environment=OPENCLAW_SERVICE_VERSION=2026.3.8
+Environment=COREBLOW_SERVICE_MARKER=coreblow
+Environment=COREBLOW_SERVICE_KIND=gateway
+Environment=COREBLOW_SERVICE_VERSION=2026.3.8
 
 [Install]
 WantedBy=default.target

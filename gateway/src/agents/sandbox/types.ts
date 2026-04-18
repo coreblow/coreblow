@@ -1,1 +1,0 @@
-/** CoreBlow — Sandbox Types */ export type SandboxRuntime = "docker" | "nsjail" | "host" | "none"; export interface SandboxConfig { runtime: SandboxRuntime; timeout: number; maxMemoryMb: number; networkAccess: boolean; }

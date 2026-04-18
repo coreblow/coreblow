@@ -1,1 +1,0 @@
-/** CoreBlow — PI Usage Accumulator */ export class UsageAccumulator { inputTokens = 0; outputTokens = 0; add(input: number, output: number): void { this.inputTokens += input; this.outputTokens += output; } total(): number { return this.inputTokens + this.outputTokens; } }

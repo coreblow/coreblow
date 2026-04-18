@@ -302,8 +302,8 @@ export function triggerCoreBlowRestart(): RestartAttempt {
   const tried: string[] = [];
   if (process.platform === "linux") {
     const unit = normalizeSystemdUnit(
-      process.env.OPENCLAW_SYSTEMD_UNIT,
-      process.env.OPENCLAW_PROFILE,
+      process.env.COREBLOW_SYSTEMD_UNIT,
+      process.env.COREBLOW_PROFILE,
     );
     const userArgs = ["--user", "restart", unit];
     tried.push(`systemctl ${userArgs.join(" ")}`);
@@ -343,8 +343,8 @@ export function triggerCoreBlowRestart(): RestartAttempt {
   }
 
   const label =
-    process.env.OPENCLAW_LAUNCHD_LABEL ||
-    resolveGatewayLaunchAgentLabel(process.env.OPENCLAW_PROFILE);
+    process.env.COREBLOW_LAUNCHD_LABEL ||
+    resolveGatewayLaunchAgentLabel(process.env.COREBLOW_PROFILE);
   const uid = typeof process.getuid === "function" ? process.getuid() : undefined;
   const domain = uid !== undefined ? `gui/${uid}` : "gui/501";
   const target = `${domain}/${label}`;

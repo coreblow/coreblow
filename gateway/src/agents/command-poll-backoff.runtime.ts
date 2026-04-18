@@ -1,1 +1,0 @@
-/** CoreBlow — Command Poll Backoff Runtime */ let backoffMs = 1000; export function getCommandPollBackoff(): number { return backoffMs; } export function setCommandPollBackoff(ms: number): void { backoffMs = ms; }

@@ -1,1 +1,0 @@
-/** CoreBlow — Server Runtime Config */ let runtimeConfig: Record<string, unknown> = {}; export function setRuntimeConfig(config: Record<string, unknown>): void { runtimeConfig = config; } export function getRuntimeConfig(): Record<string, unknown> { return runtimeConfig; }

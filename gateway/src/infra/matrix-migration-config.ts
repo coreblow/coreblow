@@ -1,1 +1,0 @@
-/** CoreBlow — Matrix Migration Config */ export interface MatrixMigrationConfig { enabled: boolean; sourceVersion: string; } export function resolveMatrixMigrationConfig(): MatrixMigrationConfig { return { enabled: false, sourceVersion: "0" }; }

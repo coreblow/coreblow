@@ -2,11 +2,11 @@
  * Twitch access token resolution with environment variable support.
  *
  * Supports reading Twitch OAuth access tokens from config or environment variable.
- * The OPENCLAW_TWITCH_ACCESS_TOKEN env var is only used for the default account.
+ * The COREBLOW_TWITCH_ACCESS_TOKEN env var is only used for the default account.
  *
  * Token resolution priority:
  * 1. Account access token from merged config (accounts.{id} or base-level for default)
- * 2. Environment variable: OPENCLAW_TWITCH_ACCESS_TOKEN (default account only)
+ * 2. Environment variable: COREBLOW_TWITCH_ACCESS_TOKEN (default account only)
  */
 
 import { DEFAULT_ACCOUNT_ID, normalizeAccountId, type CoreBlowConfig } from "../runtime-api.js";
@@ -38,7 +38,7 @@ function normalizeTwitchToken(raw?: string | null): string | undefined {
  *
  * Priority:
  * 1. Account access token (from merged config - base-level for default, or accounts.{accountId})
- * 2. Environment variable: OPENCLAW_TWITCH_ACCESS_TOKEN (default account only)
+ * 2. Environment variable: COREBLOW_TWITCH_ACCESS_TOKEN (default account only)
  *
  * The getAccountConfig function handles merging base-level config with accounts.default,
  * so this logic works for both simplified and multi-account patterns.
@@ -80,7 +80,7 @@ export function resolveTwitchToken(
   // Environment variable (default account only)
   const allowEnv = accountId === DEFAULT_ACCOUNT_ID;
   const envToken = allowEnv
-    ? normalizeTwitchToken(opts.envToken ?? process.env.OPENCLAW_TWITCH_ACCESS_TOKEN)
+    ? normalizeTwitchToken(opts.envToken ?? process.env.COREBLOW_TWITCH_ACCESS_TOKEN)
     : undefined;
   if (envToken) {
     return { token: envToken, source: "env" };

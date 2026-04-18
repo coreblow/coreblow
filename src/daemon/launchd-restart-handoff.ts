@@ -26,11 +26,11 @@ function resolveGuiDomain(): string {
 }
 
 function resolveLaunchAgentLabel(env?: Record<string, string | undefined>): string {
-  const envLabel = env?.OPENCLAW_LAUNCHD_LABEL?.trim();
+  const envLabel = env?.COREBLOW_LAUNCHD_LABEL?.trim();
   if (envLabel) {
     return envLabel;
   }
-  return resolveGatewayLaunchAgentLabel(env?.OPENCLAW_PROFILE);
+  return resolveGatewayLaunchAgentLabel(env?.COREBLOW_PROFILE);
 }
 
 export function resolveLaunchdRestartTarget(
@@ -57,7 +57,7 @@ export function isCurrentProcessLaunchdServiceLabel(
   if (launchdLabel) {
     return launchdLabel === label;
   }
-  const configuredLabel = env.OPENCLAW_LAUNCHD_LABEL?.trim();
+  const configuredLabel = env.COREBLOW_LAUNCHD_LABEL?.trim();
   return Boolean(configuredLabel && configuredLabel === label);
 }
 

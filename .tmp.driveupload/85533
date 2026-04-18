@@ -1,2 +1,0 @@
-export declare function globSync(dir: string, pattern: string): string[];
-//# sourceMappingURL=glob.d.ts.map

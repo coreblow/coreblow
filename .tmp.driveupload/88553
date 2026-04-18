@@ -1,3 +1,0 @@
-/** Skill tar extraction verbose logging. */
-export function logExtraction(file) { return `  extracting: ${file}`; }
-//# sourceMappingURL=skills-install-tar-verbose.js.map

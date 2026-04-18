@@ -1,9 +1,0 @@
-/** plugin-sdk/diagnostic-runtime.ts [ADAPT] openclaw-main */
-export type DiagnosticSnapshot = {
-    timestamp: number;
-    uptime: number;
-    memoryUsage: NodeJS.MemoryUsage;
-    version: string;
-};
-export declare function captureDiagnosticSnapshot(): DiagnosticSnapshot;
-//# sourceMappingURL=diagnostic-runtime.d.ts.map

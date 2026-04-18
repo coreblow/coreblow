@@ -1,1 +1,0 @@
-{"version":3,"file":"voiceStateUpdate.d.ts","sourceRoot":"","sources":["../../../../src/channels/discord/events/voiceStateUpdate.ts"],"names":[],"mappings":"AAAA;;GAEG;AACH,OAAO,KAAK,EAAE,YAAY,EAAE,MAAM,YAAY,CAAC;AAC/C,OAAO,KAAK,EAAE,iBAAiB,EAAE,MAAM,iBAAiB,CAAC;AAGzD,wBAAgB,kBAAkB,CAAC,QAAQ,EAAE,iBAAiB,EAAE,QAAQ,EAAE,iBAAiB,EAAE,GAAG,EAAE,YAAY,GAAG,IAAI,CAOpH"}

@@ -1,8 +1,0 @@
-/**
- * plugin-sdk/provider-catalog.ts
- * [ADAPT] openclaw-main/src/plugin-sdk/provider-catalog.ts
- *
- * Public provider catalog helpers. Re-exports shared catalog surface.
- */
-export { findCatalogTemplate, buildSingleProviderApiKeyCatalog, buildPairedProviderApiKeyCatalog, } from './provider-catalog-shared.js';
-//# sourceMappingURL=provider-catalog.js.map

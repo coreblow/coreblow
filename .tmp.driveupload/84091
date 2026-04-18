@@ -1,1 +1,0 @@
-{"version":3,"file":"line-runtime.d.ts","sourceRoot":"","sources":["../../src/plugin-sdk/line-runtime.ts"],"names":[],"mappings":"AAAA,kFAAkF;AAClF,wBAAsB,mBAAmB,CAAC,EAAE,EAAE,OAAO,GAAG,OAAO,CAAC,IAAI,CAAC,CAAG;AACxE,wBAAsB,YAAY,CAAC,EAAE,EAAE,OAAO,GAAG,OAAO,CAAC;IAAE,EAAE,EAAE,OAAO,CAAA;CAAE,CAAC,CAA0B;AACnG,wBAAsB,eAAe,CAAC,EAAE,EAAE,OAAO,GAAG,OAAO,CAAC,OAAO,CAAC,CAAiB"}

@@ -62,14 +62,14 @@ describe("runServiceRestart token drift", () => {
     resetLifecycleServiceMocks();
     service.readCommand.mockResolvedValue({
       programArguments: [],
-      environment: { OPENCLAW_GATEWAY_TOKEN: "service-token" },
+      environment: { COREBLOW_GATEWAY_TOKEN: "service-token" },
     });
     stubEmptyGatewayEnv();
   });
 
   it("prints the container restart hint when restart is requested for a not-loaded service", async () => {
     service.isLoaded.mockResolvedValue(false);
-    vi.stubEnv("OPENCLAW_CONTAINER_HINT", "coreblow-demo-container");
+    vi.stubEnv("COREBLOW_CONTAINER_HINT", "coreblow-demo-container");
 
     await runServiceRestart({
       serviceNoun: "Gateway",
@@ -107,9 +107,9 @@ describe("runServiceRestart token drift", () => {
     });
     service.readCommand.mockResolvedValue({
       programArguments: [],
-      environment: { OPENCLAW_GATEWAY_TOKEN: "env-token" },
+      environment: { COREBLOW_GATEWAY_TOKEN: "env-token" },
     });
-    vi.stubEnv("OPENCLAW_GATEWAY_TOKEN", "env-token");
+    vi.stubEnv("COREBLOW_GATEWAY_TOKEN", "env-token");
 
     await runServiceRestart(createServiceRunArgs(true));
 

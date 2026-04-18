@@ -1,7 +1,0 @@
-/** Model alias line parsing. */
-export declare function parseModelAlias(line: string): {
-    alias: string;
-    target: string;
-} | null;
-export declare function formatModelAlias(alias: string, target: string): string;
-//# sourceMappingURL=model-alias-lines.d.ts.map

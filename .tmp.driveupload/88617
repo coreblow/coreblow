@@ -1,4 +1,0 @@
-/** E2E test harness for subscribe. */
-export function createMockStream(chunks) { return { async *[Symbol.asyncIterator]() { for (const c of chunks)
-        yield c; } }; }
-//# sourceMappingURL=pi-embedded-subscribe.e2e-harness.js.map

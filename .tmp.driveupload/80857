@@ -1,3 +1,0 @@
-export function createButton(opts) { return { type: 2, ...opts }; }
-export function createButtonRow(buttons) { return { type: 1, components: buttons }; }
-//# sourceMappingURL=buttons.js.map

@@ -1,3 +1,0 @@
-/** Volcengine model definitions. */
-export function isVolcModel(id) { return id.startsWith('volc-') || id.includes('doubao'); }
-//# sourceMappingURL=volc-models.shared.js.map

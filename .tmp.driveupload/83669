@@ -1,6 +1,0 @@
-/**
- * plugin-sdk/slack-account.ts
- * [ADAPT] openclaw-main — Stub for @coreblow/slack.
- */
-export async function resolveSlackAccount(_p) { return null; }
-//# sourceMappingURL=slack-account.js.map

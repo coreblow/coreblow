@@ -1,3 +1,0 @@
-/** Shell exec display. */
-export function formatShellPrompt(cwd) { return `${cwd ?? '~'} $`; }
-//# sourceMappingURL=tool-display-exec-shell.js.map

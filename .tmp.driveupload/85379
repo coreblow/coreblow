@@ -1,6 +1,0 @@
-/**
- * link-understanding/og-parser.ts
- */
-export function parseOpenGraph(html) { const og = {}; const regex = /<meta\s+property=["']og:([^"']+)["']\s+content=["']([^"']+)["']/gi; let m; while ((m = regex.exec(html)) !== null)
-    og[m[1]] = m[2]; return og; }
-//# sourceMappingURL=og-parser.js.map

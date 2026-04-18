@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * scripts/write-plugin-sdk-entry.mjs
- * [PORT] openclaw-main
+ * [PORT] coreblow-main
  *
  * Reads scripts/lib/plugin-sdk-entrypoints.json and injects plugin-sdk
  * exports into package.json. Safe to run multiple times (idempotent).

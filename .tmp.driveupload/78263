@@ -1,5 +1,0 @@
-/**
- * config/config-redact.ts — Redact sensitive config values for display.
- */
-export declare function redactConfig(config: Record<string, unknown>, depth?: number): Record<string, unknown>;
-//# sourceMappingURL=config-redact.d.ts.map

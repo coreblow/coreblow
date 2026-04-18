@@ -1,6 +1,6 @@
 import { createRequire } from "node:module";
 
-declare const __OPENCLAW_VERSION__: string | undefined;
+declare const __COREBLOW_VERSION__: string | undefined;
 const CORE_PACKAGE_NAME = "coreblow";
 
 const PACKAGE_JSON_CANDIDATES = [
@@ -111,12 +111,12 @@ function resolveVersionFromRuntimeSources(params: {
 }): string {
   const preferredCandidates =
     params.preference === "env-first"
-      ? [params.env["OPENCLAW_VERSION"], params.runtimeVersion]
-      : [params.runtimeVersion, params.env["OPENCLAW_VERSION"]];
+      ? [params.env["COREBLOW_VERSION"], params.runtimeVersion]
+      : [params.runtimeVersion, params.env["COREBLOW_VERSION"]];
   return (
     firstNonEmpty(
       ...preferredCandidates,
-      params.env["OPENCLAW_SERVICE_VERSION"],
+      params.env["COREBLOW_SERVICE_VERSION"],
       params.env["npm_package_version"],
     ) ?? params.fallback
   );
@@ -151,6 +151,6 @@ export function resolveCompatibilityHostVersion(
 // - Dev/npm builds: package.json.
 export const VERSION = resolveBinaryVersion({
   moduleUrl: import.meta.url,
-  injectedVersion: typeof __OPENCLAW_VERSION__ === "string" ? __OPENCLAW_VERSION__ : undefined,
-  bundledVersion: process.env.OPENCLAW_BUNDLED_VERSION,
+  injectedVersion: typeof __COREBLOW_VERSION__ === "string" ? __COREBLOW_VERSION__ : undefined,
+  bundledVersion: process.env.COREBLOW_BUNDLED_VERSION,
 });

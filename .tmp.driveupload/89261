@@ -1,3 +1,0 @@
-/** Provider configuration registry. */
-export { listModelsByProvider, resolveModelConfig } from './models-config.js';
-//# sourceMappingURL=models-config.providers.js.map

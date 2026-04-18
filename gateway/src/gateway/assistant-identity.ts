@@ -1,1 +1,0 @@
-/** CoreBlow — Assistant Identity */ export interface AssistantIdentity { name: string; description: string; avatar?: string; } export const DEFAULT_IDENTITY: AssistantIdentity = { name: "CoreBlow", description: "AI Agent Platform" };

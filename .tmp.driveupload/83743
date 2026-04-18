@@ -1,4 +1,0 @@
-/** plugin-sdk/matrix-runtime-surface.ts [ADAPT] openclaw-main — Stub for @coreblow/matrix. */
-export function resolveMatrixAccountStringValues(_p) { return {}; }
-export function setMatrixRuntime(_p) { }
-//# sourceMappingURL=matrix-runtime-surface.js.map

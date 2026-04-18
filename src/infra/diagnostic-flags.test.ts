@@ -12,7 +12,7 @@ describe("resolveDiagnosticFlags", () => {
       diagnostics: { flags: [" Telegram.Http ", "cache.*", "CACHE.*"] },
     } as CoreBlowConfig;
     const env = {
-      OPENCLAW_DIAGNOSTICS: " foo, Cache.*  telegram.http  ",
+      COREBLOW_DIAGNOSTICS: " foo, Cache.*  telegram.http  ",
     } as NodeJS.ProcessEnv;
 
     expect(resolveDiagnosticFlags(cfg, env)).toEqual(["telegram.http", "cache.*", "foo"]);
@@ -26,7 +26,7 @@ describe("resolveDiagnosticFlags", () => {
     for (const raw of ["0", "false", "off", "none", "   "]) {
       expect(
         resolveDiagnosticFlags(cfg, {
-          OPENCLAW_DIAGNOSTICS: raw,
+          COREBLOW_DIAGNOSTICS: raw,
         } as NodeJS.ProcessEnv),
       ).toEqual(["telegram.http"]);
     }
@@ -55,7 +55,7 @@ describe("isDiagnosticFlagEnabled", () => {
       diagnostics: { flags: ["gateway.*"] },
     } as CoreBlowConfig;
     const env = {
-      OPENCLAW_DIAGNOSTICS: "telegram.http",
+      COREBLOW_DIAGNOSTICS: "telegram.http",
     } as NodeJS.ProcessEnv;
 
     expect(isDiagnosticFlagEnabled("gateway.ws", cfg, env)).toBe(true);

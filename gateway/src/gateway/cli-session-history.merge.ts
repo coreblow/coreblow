@@ -1,1 +1,0 @@
-/** CoreBlow — CLI Session History Merge */ export function mergeHistories(a: Array<{ timestamp: number }>, b: Array<{ timestamp: number }>): Array<{ timestamp: number }> { return [...a, ...b].sort((x, y) => x.timestamp - y.timestamp); }

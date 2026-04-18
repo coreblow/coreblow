@@ -1,1 +1,0 @@
-/** CoreBlow — Channel Location */ export interface ChannelLocation { latitude: number; longitude: number; accuracy?: number; } export function formatLocation(loc: ChannelLocation): string { return loc.latitude.toFixed(6) + ", " + loc.longitude.toFixed(6); }

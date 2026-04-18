@@ -1,6 +1,0 @@
-export function detectOrphans(sessions) {
-    const alive = new Set(sessions.filter((s) => s.isAlive).map((s) => s.sessionId));
-    return sessions.filter((s) => s.parentId && !alive.has(s.parentId) && s.isAlive).map((s) => ({ ...s, reason: 'Parent terminated' }));
-}
-export function shouldRecover(orphan, maxAgeMs = 300_000) { return Date.now() - orphan.startedAt < maxAgeMs; }
-//# sourceMappingURL=subagent-orphan-recovery.js.map

@@ -1,3 +1,0 @@
-/** Exec tool display formatting. */
-export declare function formatExecDisplay(command: string, exitCode: number | null): string;
-//# sourceMappingURL=tool-display-exec.d.ts.map

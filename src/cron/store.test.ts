@@ -34,8 +34,8 @@ describe("resolveCronStorePath", () => {
     vi.unstubAllEnvs();
   });
 
-  it("uses OPENCLAW_HOME for tilde expansion", () => {
-    vi.stubEnv("OPENCLAW_HOME", "/srv/coreblow-home");
+  it("uses COREBLOW_HOME for tilde expansion", () => {
+    vi.stubEnv("COREBLOW_HOME", "/srv/coreblow-home");
     vi.stubEnv("HOME", "/home/other");
 
     const result = resolveCronStorePath("~/cron/jobs.json");

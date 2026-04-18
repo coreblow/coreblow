@@ -1,7 +1,0 @@
-/**
- * plugin-sdk/telegram.ts
- * [PORT] openclaw-main — Main Telegram SDK barrel.
- */
-export * from "./telegram-core.js";
-export * from "./telegram-surface.js";
-//# sourceMappingURL=telegram.d.ts.map

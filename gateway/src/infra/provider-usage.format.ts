@@ -1,1 +1,0 @@
-/** CoreBlow — Provider Usage Format */ export function formatTokenCount(tokens: number): string { if (tokens >= 1_000_000) return (tokens / 1_000_000).toFixed(1) + "M"; if (tokens >= 1_000) return (tokens / 1_000).toFixed(1) + "K"; return String(tokens); } export function formatCost(usd: number): string { return "$" + usd.toFixed(4); }

@@ -1,5 +1,0 @@
-/** agents/bash-tools.exec-approval-followup.ts — Follow up on exec approvals. */
-export declare function formatApprovalFollowup(command: string, status: string): string;
-export declare function shouldAutoApprove(command: string, safePatterns: string[]): boolean;
-export declare const DEFAULT_AUTO_APPROVE_PATTERNS: string[];
-//# sourceMappingURL=bash-tools.exec-approval-followup.d.ts.map

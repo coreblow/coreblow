@@ -24,9 +24,9 @@ const pathResolutionEnvKeys = [
   "USERPROFILE",
   "HOMEDRIVE",
   "HOMEPATH",
-  "OPENCLAW_HOME",
-  "OPENCLAW_STATE_DIR",
-  "OPENCLAW_BUNDLED_PLUGINS_DIR",
+  "COREBLOW_HOME",
+  "COREBLOW_STATE_DIR",
+  "COREBLOW_BUNDLED_PLUGINS_DIR",
 ] as const;
 const execDockerRawUnavailable: NonNullable<SecurityAuditOptions["execDockerRawFn"]> = async () => {
   return {
@@ -362,7 +362,7 @@ describe("security audit", () => {
     const credentialsDir = path.join(sharedChannelSecurityStateDir, "credentials");
     await fs.rm(credentialsDir, { recursive: true, force: true }).catch(() => undefined);
     await fs.mkdir(credentialsDir, { recursive: true, mode: 0o700 });
-    await withEnvAsync({ OPENCLAW_STATE_DIR: sharedChannelSecurityStateDir }, () =>
+    await withEnvAsync({ COREBLOW_STATE_DIR: sharedChannelSecurityStateDir }, () =>
       fn(sharedChannelSecurityStateDir),
     );
   };
@@ -432,7 +432,7 @@ description: test skill
   beforeAll(async () => {
     fixtureRoot = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-security-audit-"));
     isolatedHome = path.join(fixtureRoot, "home");
-    const isolatedEnv = createPathResolutionEnv(isolatedHome, { OPENCLAW_HOME: isolatedHome });
+    const isolatedEnv = createPathResolutionEnv(isolatedHome, { COREBLOW_HOME: isolatedHome });
     for (const key of pathResolutionEnvKeys) {
       previousPathResolutionEnv[key] = process.env[key];
       const value = isolatedEnv[key];
@@ -505,8 +505,8 @@ description: test skill
         run: async () =>
           withEnvAsync(
             {
-              OPENCLAW_GATEWAY_TOKEN: undefined,
-              OPENCLAW_GATEWAY_PASSWORD: undefined,
+              COREBLOW_GATEWAY_TOKEN: undefined,
+              COREBLOW_GATEWAY_PASSWORD: undefined,
             },
             async () =>
               audit({
@@ -531,7 +531,7 @@ description: test skill
                   password: {
                     source: "env",
                     provider: "default",
-                    id: "OPENCLAW_GATEWAY_PASSWORD",
+                    id: "COREBLOW_GATEWAY_PASSWORD",
                   },
                 },
               },
@@ -552,7 +552,7 @@ description: test skill
                 token: {
                   source: "env",
                   provider: "default",
-                  id: "OPENCLAW_GATEWAY_TOKEN",
+                  id: "COREBLOW_GATEWAY_TOKEN",
                 },
               },
             },
@@ -1725,7 +1725,7 @@ description: test skill
             password: {
               source: "env",
               provider: "default",
-              id: "OPENCLAW_GATEWAY_PASSWORD",
+              id: "COREBLOW_GATEWAY_PASSWORD",
             },
           },
         },
@@ -3101,7 +3101,7 @@ description: test skill
           hooks: { enabled: true, token: "shared-gateway-token-1234567890" },
         } satisfies CoreBlowConfig,
         env: {
-          OPENCLAW_GATEWAY_TOKEN: "shared-gateway-token-1234567890",
+          COREBLOW_GATEWAY_TOKEN: "shared-gateway-token-1234567890",
         },
         expectedFinding: "hooks.token_reuse_gateway_token",
         expectedSeverity: "critical" as const,
@@ -3837,10 +3837,10 @@ description: test skill
     const makeProbeEnv = (env?: { token?: string; password?: string }) => {
       const probeEnv: NodeJS.ProcessEnv = {};
       if (env?.token !== undefined) {
-        probeEnv.OPENCLAW_GATEWAY_TOKEN = env.token;
+        probeEnv.COREBLOW_GATEWAY_TOKEN = env.token;
       }
       if (env?.password !== undefined) {
-        probeEnv.OPENCLAW_GATEWAY_PASSWORD = env.password;
+        probeEnv.COREBLOW_GATEWAY_PASSWORD = env.password;
       }
       return probeEnv;
     };

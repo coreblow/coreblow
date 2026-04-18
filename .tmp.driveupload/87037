@@ -1,2 +1,0 @@
-export const DEFAULT_PI_SETTINGS = { theme: 'dark', verbose: false, autoApprove: false, maxTurns: 50 };
-//# sourceMappingURL=pi-settings.js.map

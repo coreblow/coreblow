@@ -1,7 +1,0 @@
-/**
- * plugin-sdk/telegram-allow-from.ts
- * [PORT] openclaw-main
- */
-export declare function isNumericTelegramUserId(value: string): boolean;
-export declare function normalizeTelegramAllowFromEntry(raw: string): string;
-//# sourceMappingURL=telegram-allow-from.d.ts.map

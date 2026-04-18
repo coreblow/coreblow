@@ -1,1 +1,0 @@
-/** CoreBlow — Account Summary */ export interface AccountSummary { channelType: string; accountId: string; displayName: string; connected: boolean; } export function formatAccountSummary(s: AccountSummary): string { return (s.connected ? "🟢" : "🔴") + " " + s.displayName + " (" + s.channelType + ")"; }

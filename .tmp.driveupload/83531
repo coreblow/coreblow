@@ -1,4 +1,0 @@
-export async function runLlmTask(_prompt, _opts) {
-    throw new Error("runLlmTask requires a configured CoreBlow agent runtime");
-}
-//# sourceMappingURL=llm-task.js.map

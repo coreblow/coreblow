@@ -105,7 +105,7 @@ async function requireRiskAcknowledgement(params: {
       "coreblow security audit --deep",
       "coreblow security audit --fix",
       "",
-      "Must read: https://docs.coreblow.ai/gateway/security",
+      "Must read: https://docs.coreblow.com/gateway/security",
     ].join("\n"),
     "Security",
   );
@@ -140,7 +140,7 @@ export async function runSetupWizard(
         [
           ...snapshot.issues.map((iss) => `- ${iss.path}: ${iss.message}`),
           "",
-          "Docs: https://docs.coreblow.ai/gateway/configuration",
+          "Docs: https://docs.coreblow.com/gateway/configuration",
         ].join("\n"),
         "Config issues",
       );
@@ -352,7 +352,7 @@ export async function runSetupWizard(
 
   const localPort = resolveGatewayPort(baseConfig);
   const localUrl = `ws://127.0.0.1:${localPort}`;
-  let localGatewayToken = process.env.OPENCLAW_GATEWAY_TOKEN;
+  let localGatewayToken = process.env.COREBLOW_GATEWAY_TOKEN;
   try {
     const resolvedGatewayToken = await resolveSetupSecretInputString({
       config: baseConfig,
@@ -372,7 +372,7 @@ export async function runSetupWizard(
       "Gateway auth",
     );
   }
-  let localGatewayPassword = process.env.OPENCLAW_GATEWAY_PASSWORD;
+  let localGatewayPassword = process.env.COREBLOW_GATEWAY_PASSWORD;
   try {
     const resolvedGatewayPassword = await resolveSetupSecretInputString({
       config: baseConfig,

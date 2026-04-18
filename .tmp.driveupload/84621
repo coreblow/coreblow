@@ -1,1 +1,0 @@
-{"version":3,"file":"discord-session-key.js","sourceRoot":"","sources":["../../src/plugin-sdk/discord-session-key.ts"],"names":[],"mappings":"AAAA;;;GAGG;AAEH,MAAM,UAAU,kCAAkC,CAAC,GAAW;IAC1D,OAAO,GAAG,CAAC,WAAW,EAAE,CAAC,OAAO,CAAC,eAAe,EAAE,GAAG,CAAC,CAAC;AAC3D,CAAC"}

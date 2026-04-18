@@ -14,12 +14,12 @@ const BLOCKED_WORKSPACE_DOTENV_KEYS = new Set([
   "HTTPS_PROXY",
   "NODE_TLS_REJECT_UNAUTHORIZED",
   "NO_PROXY",
-  "OPENCLAW_AGENT_DIR",
-  "OPENCLAW_CONFIG_PATH",
-  "OPENCLAW_HOME",
-  "OPENCLAW_OAUTH_DIR",
-  "OPENCLAW_PROFILE",
-  "OPENCLAW_STATE_DIR",
+  "COREBLOW_AGENT_DIR",
+  "COREBLOW_CONFIG_PATH",
+  "COREBLOW_HOME",
+  "COREBLOW_OAUTH_DIR",
+  "COREBLOW_PROFILE",
+  "COREBLOW_STATE_DIR",
   "PI_CODING_AGENT_DIR",
 ]);
 
@@ -99,7 +99,7 @@ export function loadDotEnv(opts?: { quiet?: boolean }) {
   const cwdEnvPath = path.join(process.cwd(), ".env");
   loadWorkspaceDotEnvFile(cwdEnvPath, { quiet });
 
-  // Then load global fallback: ~/.coreblow/.env (or OPENCLAW_STATE_DIR/.env),
+  // Then load global fallback: ~/.coreblow/.env (or COREBLOW_STATE_DIR/.env),
   // without overriding any env vars already present.
   const globalEnvPath = path.join(resolveConfigDir(process.env), ".env");
   loadRuntimeDotEnvFile(globalEnvPath, { quiet });

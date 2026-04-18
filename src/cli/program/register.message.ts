@@ -46,7 +46,7 @@ ${formatHelpExamples([
   ],
 ])}
 
-${theme.muted("Docs:")} ${formatDocsLink("/cli/message", "docs.coreblow.ai/cli/message")}`,
+${theme.muted("Docs:")} ${formatDocsLink("/cli/message", "docs.coreblow.com/cli/message")}`,
     )
     .action(() => {
       message.help({ error: true });

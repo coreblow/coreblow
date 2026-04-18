@@ -1,3 +1,0 @@
-/** Skill download management. */
-export declare function buildDownloadUrl(registry: string, skillId: string, version: string): string;
-//# sourceMappingURL=skills-install-download.d.ts.map

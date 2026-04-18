@@ -77,8 +77,8 @@ async function expectFailClosedOnUnresolvedLocalAuth(config: CoreBlowConfig, pat
 }
 
 const DEFAULT_ENV = {
-  OPENCLAW_GATEWAY_TOKEN: "env-token",
-  OPENCLAW_GATEWAY_PASSWORD: "env-password", // pragma: allowlist secret
+  COREBLOW_GATEWAY_TOKEN: "env-token",
+  COREBLOW_GATEWAY_PASSWORD: "env-password", // pragma: allowlist secret
 } as NodeJS.ProcessEnv;
 
 describe("resolveGatewayConnectionAuth", () => {
@@ -281,7 +281,7 @@ describe("resolveGatewayConnectionAuth", () => {
       },
     });
     const env = {
-      OPENCLAW_GATEWAY_TOKEN: "env-token",
+      COREBLOW_GATEWAY_TOKEN: "env-token",
       CONFIG_FIRST_TOKEN: "config-first-token",
     } as NodeJS.ProcessEnv;
 
@@ -312,7 +312,7 @@ describe("resolveGatewayConnectionAuth", () => {
       },
     });
     const env = {
-      OPENCLAW_GATEWAY_PASSWORD: "env-password", // pragma: allowlist secret
+      COREBLOW_GATEWAY_PASSWORD: "env-password", // pragma: allowlist secret
       CONFIG_FIRST_PASSWORD: "config-first-password", // pragma: allowlist secret
     } as NodeJS.ProcessEnv;
 
@@ -342,7 +342,7 @@ describe("resolveGatewayConnectionAuth", () => {
       },
     });
     const env = {
-      OPENCLAW_GATEWAY_TOKEN: "env-token",
+      COREBLOW_GATEWAY_TOKEN: "env-token",
     } as NodeJS.ProcessEnv;
 
     await expect(
@@ -377,7 +377,7 @@ describe("resolveGatewayConnectionAuth", () => {
       },
     });
     const env = {
-      OPENCLAW_GATEWAY_PASSWORD: "env-password", // pragma: allowlist secret
+      COREBLOW_GATEWAY_PASSWORD: "env-password", // pragma: allowlist secret
     } as NodeJS.ProcessEnv;
 
     await expect(

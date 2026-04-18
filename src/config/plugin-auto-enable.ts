@@ -31,7 +31,7 @@ const EMPTY_PLUGIN_MANIFEST_REGISTRY: PluginManifestRegistry = {
   diagnostics: [],
 };
 
-const ENV_CATALOG_PATHS = ["OPENCLAW_PLUGIN_CATALOG_PATHS", "OPENCLAW_MPM_CATALOG_PATHS"];
+const ENV_CATALOG_PATHS = ["COREBLOW_PLUGIN_CATALOG_PATHS", "COREBLOW_MPM_CATALOG_PATHS"];
 
 function resolveAutoEnableProviderPluginIds(
   registry: PluginManifestRegistry,

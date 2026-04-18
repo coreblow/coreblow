@@ -1,3 +1,0 @@
-export declare function truncate(text: string, max?: number): string;
-export declare function truncateField(text: string, max?: number): string;
-//# sourceMappingURL=truncator.d.ts.map

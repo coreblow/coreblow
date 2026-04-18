@@ -1,2 +1,0 @@
-export declare function matchesExecAllowlistPattern(pattern: string, target: string): boolean;
-//# sourceMappingURL=exec-allowlist-pattern.d.ts.map

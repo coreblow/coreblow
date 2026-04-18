@@ -1,7 +1,0 @@
-/** plugin-sdk/amazon-bedrock.ts [ADAPT] openclaw-main */
-export declare function discoverBedrockModels(_p: unknown): Promise<unknown[]>;
-export declare function mergeImplicitBedrockProvider(cfg: Record<string, unknown>): Record<string, unknown>;
-export declare function resolveBedrockConfigApiKey(_cfg: unknown): string | null;
-export declare function resolveImplicitBedrockProvider(_cfg: unknown): unknown;
-export declare function resetBedrockDiscoveryCacheForTest(): void;
-//# sourceMappingURL=amazon-bedrock.d.ts.map

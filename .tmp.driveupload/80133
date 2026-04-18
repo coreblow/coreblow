@@ -1,1 +1,0 @@
-{"version":3,"file":"message-router.d.ts","sourceRoot":"","sources":["../../src/routing/message-router.ts"],"names":[],"mappings":"AAAA;;GAEG;AACH,qBAAa,aAAa;IAAG,OAAO,CAAC,MAAM,CAAmD;IAAC,GAAG,CAAC,OAAO,EAAE,MAAM,EAAE,OAAO,EAAE,QAAQ;IAA4E,KAAK,CAAC,IAAI,EAAE,MAAM,EAAE,GAAG,EAAE,OAAO;CAA4G"}

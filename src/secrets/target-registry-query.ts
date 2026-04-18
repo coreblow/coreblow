@@ -15,7 +15,7 @@ import type {
 } from "./target-registry-types.js";
 
 const COMPILED_SECRET_TARGET_REGISTRY = SECRET_TARGET_REGISTRY.map(compileTargetRegistryEntry);
-const OPENCLAW_COMPILED_SECRET_TARGETS = COMPILED_SECRET_TARGET_REGISTRY.filter(
+const COREBLOW_COMPILED_SECRET_TARGETS = COMPILED_SECRET_TARGET_REGISTRY.filter(
   (entry) => entry.configFile === "coreblow.json",
 );
 const AUTH_PROFILES_COMPILED_SECRET_TARGETS = COMPILED_SECRET_TARGET_REGISTRY.filter(
@@ -46,7 +46,7 @@ const KNOWN_TARGET_IDS = new Set(COMPILED_SECRET_TARGET_REGISTRY.map((entry) => 
 
 function buildConfigTargetIdIndex(): Map<string, CompiledTargetRegistryEntry[]> {
   const byId = new Map<string, CompiledTargetRegistryEntry[]>();
-  for (const entry of OPENCLAW_COMPILED_SECRET_TARGETS) {
+  for (const entry of COREBLOW_COMPILED_SECRET_TARGETS) {
     const existing = byId.get(entry.id);
     if (existing) {
       existing.push(entry);
@@ -57,7 +57,7 @@ function buildConfigTargetIdIndex(): Map<string, CompiledTargetRegistryEntry[]> 
   return byId;
 }
 
-const OPENCLAW_TARGETS_BY_ID = buildConfigTargetIdIndex();
+const COREBLOW_TARGETS_BY_ID = buildConfigTargetIdIndex();
 
 function buildAuthProfileTargetIdIndex(): Map<string, CompiledTargetRegistryEntry[]> {
   const byId = new Map<string, CompiledTargetRegistryEntry[]>();
@@ -240,7 +240,7 @@ export function resolvePlanTargetAgainstRegistry(candidate: {
 }
 
 export function resolveConfigSecretTargetByPath(pathSegments: string[]): ResolvedPlanTarget | null {
-  for (const entry of OPENCLAW_COMPILED_SECRET_TARGETS) {
+  for (const entry of COREBLOW_COMPILED_SECRET_TARGETS) {
     if (!entry.includeInPlan) {
       continue;
     }
@@ -270,8 +270,8 @@ export function discoverConfigSecretTargetsByIds(
   const allowedTargetIds = normalizeAllowedTargetIds(targetIds);
   const discoveryEntries = resolveDiscoveryEntries({
     allowedTargetIds,
-    defaultEntries: OPENCLAW_COMPILED_SECRET_TARGETS,
-    entriesById: OPENCLAW_TARGETS_BY_ID,
+    defaultEntries: COREBLOW_COMPILED_SECRET_TARGETS,
+    entriesById: COREBLOW_TARGETS_BY_ID,
   });
   return discoverSecretTargetsFromEntries(config, discoveryEntries);
 }

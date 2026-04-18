@@ -7,9 +7,9 @@ describe("SUPERVISOR_HINT_ENV_VARS", () => {
       expect.arrayContaining([
         "LAUNCH_JOB_LABEL",
         "INVOCATION_ID",
-        "OPENCLAW_WINDOWS_TASK_NAME",
-        "OPENCLAW_SERVICE_MARKER",
-        "OPENCLAW_SERVICE_KIND",
+        "COREBLOW_WINDOWS_TASK_NAME",
+        "COREBLOW_SERVICE_MARKER",
+        "COREBLOW_SERVICE_KIND",
       ]),
     );
   });
@@ -28,13 +28,13 @@ describe("detectRespawnSupervisor", () => {
 
   it("detects scheduled-task supervision on Windows from either hint family", () => {
     expect(
-      detectRespawnSupervisor({ OPENCLAW_WINDOWS_TASK_NAME: "CoreBlow Gateway" }, "win32"),
+      detectRespawnSupervisor({ COREBLOW_WINDOWS_TASK_NAME: "CoreBlow Gateway" }, "win32"),
     ).toBe("schtasks");
     expect(
       detectRespawnSupervisor(
         {
-          OPENCLAW_SERVICE_MARKER: "coreblow",
-          OPENCLAW_SERVICE_KIND: "gateway",
+          COREBLOW_SERVICE_MARKER: "coreblow",
+          COREBLOW_SERVICE_KIND: "gateway",
         },
         "win32",
       ),
@@ -42,8 +42,8 @@ describe("detectRespawnSupervisor", () => {
     expect(
       detectRespawnSupervisor(
         {
-          OPENCLAW_SERVICE_MARKER: "coreblow",
-          OPENCLAW_SERVICE_KIND: "worker",
+          COREBLOW_SERVICE_MARKER: "coreblow",
+          COREBLOW_SERVICE_KIND: "worker",
         },
         "win32",
       ),
@@ -54,8 +54,8 @@ describe("detectRespawnSupervisor", () => {
     expect(
       detectRespawnSupervisor(
         {
-          OPENCLAW_SERVICE_MARKER: "coreblow",
-          OPENCLAW_SERVICE_KIND: "gateway",
+          COREBLOW_SERVICE_MARKER: "coreblow",
+          COREBLOW_SERVICE_KIND: "gateway",
         },
         "linux",
       ),

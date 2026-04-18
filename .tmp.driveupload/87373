@@ -1,4 +1,0 @@
-/** PI embedded helper utilities. */
-export declare function truncateContent(content: string, maxLen?: number): string;
-export declare function formatTimestamp(ts: number): string;
-//# sourceMappingURL=pi-embedded-helpers.d.ts.map

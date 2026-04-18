@@ -1,4 +1,0 @@
-/** Live auth key monitoring. */
-export function maskKey(key) { return key.length > 8 ? key.slice(0, 4) + '…' + key.slice(-4) : '***'; }
-export function isKeyExpiring(expiresAt, warnMs = 86_400_000) { return expiresAt - Date.now() < warnMs; }
-//# sourceMappingURL=live-auth-keys.js.map

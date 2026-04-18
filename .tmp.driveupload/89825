@@ -1,7 +1,0 @@
-/** Embedded MCP bridge. */
-export interface McpBridgeConfig {
-    serverName: string;
-    transport: 'stdio' | 'sse';
-}
-export declare function createMcpBridge(name: string, transport?: 'stdio' | 'sse'): McpBridgeConfig;
-//# sourceMappingURL=embedded-pi-mcp.d.ts.map

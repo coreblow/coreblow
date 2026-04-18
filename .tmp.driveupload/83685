@@ -1,9 +1,0 @@
-/** plugin-sdk/vllm.ts [ADAPT] openclaw-main */
-export const VLLM_DEFAULT_BASE_URL = "http://localhost:8000";
-export const VLLM_DEFAULT_API_KEY_ENV_VAR = "VLLM_API_KEY";
-export const VLLM_MODEL_PLACEHOLDER = "default";
-export const VLLM_PROVIDER_LABEL = "vLLM";
-export function buildVllmProvider(_p) {
-    return { type: "vllm", baseUrl: VLLM_DEFAULT_BASE_URL };
-}
-//# sourceMappingURL=vllm.js.map

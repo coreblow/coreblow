@@ -16,10 +16,10 @@ describe("resolveSetupSecretInputString", () => {
   it("resolves env-template SecretInput strings", async () => {
     const resolved = await resolveSetupSecretInputString({
       config: makeConfig(),
-      value: "${OPENCLAW_GATEWAY_PASSWORD}",
+      value: "${COREBLOW_GATEWAY_PASSWORD}",
       path: "gateway.auth.password",
       env: {
-        OPENCLAW_GATEWAY_PASSWORD: "gateway-secret", // pragma: allowlist secret
+        COREBLOW_GATEWAY_PASSWORD: "gateway-secret", // pragma: allowlist secret
       },
     });
 
@@ -40,12 +40,12 @@ describe("resolveSetupSecretInputString", () => {
     await expect(
       resolveSetupSecretInputString({
         config: makeConfig(),
-        value: "${OPENCLAW_GATEWAY_PASSWORD}",
+        value: "${COREBLOW_GATEWAY_PASSWORD}",
         path: "gateway.auth.password",
         env: {},
       }),
     ).rejects.toThrow(
-      'gateway.auth.password: failed to resolve SecretRef "env:default:OPENCLAW_GATEWAY_PASSWORD"',
+      'gateway.auth.password: failed to resolve SecretRef "env:default:COREBLOW_GATEWAY_PASSWORD"',
     );
   });
 });

@@ -1,5 +1,0 @@
-const switches = [];
-export function recordSwitch(from, to, reason) { switches.push({ from, to, reason, timestamp: Date.now() }); }
-export function getSwitchHistory() { return switches; }
-export function clearSwitchHistory() { switches.length = 0; }
-//# sourceMappingURL=live-model-switch.js.map

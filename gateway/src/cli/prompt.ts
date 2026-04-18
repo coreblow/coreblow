@@ -1,1 +1,0 @@
-/** CoreBlow — Prompt */ export function buildPrompt(systemPrompt: string, userMessage: string): Array<{ role: string; content: string }> { return [{ role: "system", content: systemPrompt }, { role: "user", content: userMessage }]; }

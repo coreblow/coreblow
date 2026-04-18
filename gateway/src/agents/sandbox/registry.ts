@@ -1,1 +1,0 @@
-/** CoreBlow — Sandbox Registry */ const sandboxes = new Map<string, { id: string; createdAt: number }>(); export function registerSandbox(id: string): void { sandboxes.set(id, { id, createdAt: Date.now() }); } export function getSandbox(id: string) { return sandboxes.get(id); } export function getAllSandboxes() { return [...sandboxes.values()]; }

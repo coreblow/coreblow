@@ -2,7 +2,7 @@
  * vitest.performance-config.ts
  *
  * Performance baseline benchmark runner — P2 audit item #16.
- * Port pola dari `openclaw-main/vitest.performance-config.ts`.
+ * Port pola dari `coreblow-main/vitest.performance-config.ts`.
  *
  * Performance tests memverifikasi bahwa critical paths memenuhi
  * SLA latency — bukan test correctness, melainkan test efficiency.
@@ -10,14 +10,14 @@
  * Naming convention:
  *   tests/performance/<domain>.perf.test.ts
  *
- * Pola OpenClaw `vitest.performance-config.ts`:
+ * Pola CoreBlow `vitest.performance-config.ts`:
  *   - loadVitestExperimentalConfig()  → optional fsModuleCache, importDurations
  *   - maxWorkers: 1                   → sequential untuk avoid CPU contention
  *   - Env flag: COREBLOW_VITEST_FS_MODULE_CACHE → opt-in fs module cache
  *
  * Run: npm run test:performance
  *
- * @see openclaw-main/vitest.performance-config.ts
+ * @see coreblow-main/vitest.performance-config.ts
  */
 import { defineConfig } from 'vitest/config';
 
@@ -35,7 +35,7 @@ const isDisabled = (value: string | undefined): boolean => {
 
 /**
  * Vitest experimental config untuk performance optimization.
- * Pola identik OpenClaw `loadVitestExperimentalConfig()`.
+ * Pola identik CoreBlow `loadVitestExperimentalConfig()`.
  *
  * Env vars:
  *   COREBLOW_VITEST_FS_MODULE_CACHE=1         — enable fs module cache (default: on non-Windows)

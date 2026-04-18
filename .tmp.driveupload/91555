@@ -1,3 +1,0 @@
-/** PI tool type definitions. */
-export interface ToolInput { [key: string]: unknown; }
-export interface ToolOutput { content: string; isError?: boolean; }

@@ -1,4 +1,0 @@
-/** plugin-sdk/diffs.ts [ADAPT] openclaw-main */
-export declare function diffLines(a: string, b: string): string[];
-export declare function formatDiff(lines: string[]): string;
-//# sourceMappingURL=diffs.d.ts.map

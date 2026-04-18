@@ -1,3 +1,0 @@
-# Telemetry
-
-## Overview

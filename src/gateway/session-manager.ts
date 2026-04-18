@@ -138,6 +138,21 @@ export class SessionManager {
         };
     }
 
+    /** List all active sessions. */
+    listSessions(): Session[] {
+        return Array.from(this.sessions.values()).filter(s => Date.now() <= s.expiresAt);
+    }
+
+    /** Count active sessions. */
+    count(): number {
+        return this.sessions.size;
+    }
+
+    /** Delete a session by ID (alias for destroy). */
+    deleteSession(sessionId: string): boolean {
+        return this.destroy(sessionId);
+    }
+
     /**
      * Stop the cleanup timer.
      */

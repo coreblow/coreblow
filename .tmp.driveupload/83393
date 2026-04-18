@@ -1,3 +1,0 @@
-/** plugin-sdk/mistral.ts [ADAPT] openclaw-main */
-export declare function buildMistralProvider(_p: unknown): unknown;
-//# sourceMappingURL=mistral.d.ts.map

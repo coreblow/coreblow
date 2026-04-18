@@ -1,7 +1,0 @@
-export declare class CLIConfigStore {
-    private path;
-    constructor(p: string);
-    save(config: unknown): void;
-    load(): any;
-}
-//# sourceMappingURL=cli-config-store.d.ts.map

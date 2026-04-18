@@ -1,2 +1,0 @@
-export function buildPayload(model, messages, maxTokens) { return { model, messages, max_tokens: maxTokens }; }
-//# sourceMappingURL=pi-embedded-payloads.js.map

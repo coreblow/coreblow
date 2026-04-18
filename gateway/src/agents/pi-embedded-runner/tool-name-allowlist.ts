@@ -1,1 +1,0 @@
-/** CoreBlow — PI Tool Name Allowlist */ const allowlist = new Set<string>(); export function allowTool(name: string): void { allowlist.add(name); } export function isToolAllowed(name: string): boolean { return allowlist.size === 0 || allowlist.has(name); }

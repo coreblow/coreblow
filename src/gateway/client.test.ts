@@ -165,17 +165,17 @@ beforeAll(async () => {
 });
 
 describe("GatewayClient security checks", () => {
-  const envSnapshot = captureEnv(["OPENCLAW_ALLOW_INSECURE_PRIVATE_WS"]);
+  const envSnapshot = captureEnv(["COREBLOW_ALLOW_INSECURE_PRIVATE_WS"]);
 
   beforeEach(() => {
     envSnapshot.restore();
-    delete process.env.OPENCLAW_ALLOW_INSECURE_PRIVATE_WS;
+    delete process.env.COREBLOW_ALLOW_INSECURE_PRIVATE_WS;
     wsInstances.length = 0;
   });
 
   afterEach(() => {
     envSnapshot.restore();
-    delete process.env.OPENCLAW_ALLOW_INSECURE_PRIVATE_WS;
+    delete process.env.COREBLOW_ALLOW_INSECURE_PRIVATE_WS;
   });
 
   it("blocks ws:// to non-loopback addresses (CWE-319)", () => {
@@ -235,8 +235,8 @@ describe("GatewayClient security checks", () => {
     client.stop();
   });
 
-  it("allows ws:// to private addresses only with OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1", () => {
-    process.env.OPENCLAW_ALLOW_INSECURE_PRIVATE_WS = "1";
+  it("allows ws:// to private addresses only with COREBLOW_ALLOW_INSECURE_PRIVATE_WS=1", () => {
+    process.env.COREBLOW_ALLOW_INSECURE_PRIVATE_WS = "1";
     const onConnectError = vi.fn();
     const client = new GatewayClient({
       url: "ws://192.168.1.100:18789",
@@ -250,8 +250,8 @@ describe("GatewayClient security checks", () => {
     client.stop();
   });
 
-  it("allows ws:// hostnames with OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1", () => {
-    process.env.OPENCLAW_ALLOW_INSECURE_PRIVATE_WS = "1";
+  it("allows ws:// hostnames with COREBLOW_ALLOW_INSECURE_PRIVATE_WS=1", () => {
+    process.env.COREBLOW_ALLOW_INSECURE_PRIVATE_WS = "1";
     const onConnectError = vi.fn();
     const client = new GatewayClient({
       url: "ws://coreblow-gateway.ai:18789",

@@ -1,1 +1,0 @@
-{"version":3,"file":"anthropic-vertex-stream.d.ts","sourceRoot":"","sources":["../../src/agents/anthropic-vertex-stream.ts"],"names":[],"mappings":"AAAA,0CAA0C;AAC1C,MAAM,WAAW,kBAAkB;IAAG,SAAS,EAAE,MAAM,CAAC;IAAC,QAAQ,EAAE,MAAM,CAAC;IAAC,KAAK,EAAE,MAAM,CAAC;CAAE;AAC3F,wBAAgB,mBAAmB,CAAC,MAAM,EAAE,kBAAkB,GAAG,MAAM,CAA6L"}

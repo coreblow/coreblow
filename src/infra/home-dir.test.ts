@@ -12,9 +12,9 @@ import {
 describe("resolveEffectiveHomeDir", () => {
   it.each([
     {
-      name: "prefers OPENCLAW_HOME over HOME and USERPROFILE",
+      name: "prefers COREBLOW_HOME over HOME and USERPROFILE",
       env: {
-        OPENCLAW_HOME: " /srv/coreblow-home ",
+        COREBLOW_HOME: " /srv/coreblow-home ",
         HOME: "/home/other",
         USERPROFILE: "C:/Users/other",
       } as NodeJS.ProcessEnv,
@@ -37,7 +37,7 @@ describe("resolveEffectiveHomeDir", () => {
     {
       name: "falls back to homedir when env values are blank",
       env: {
-        OPENCLAW_HOME: " ",
+        COREBLOW_HOME: " ",
         HOME: " ",
         USERPROFILE: "\t",
       } as NodeJS.ProcessEnv,
@@ -47,7 +47,7 @@ describe("resolveEffectiveHomeDir", () => {
     {
       name: "treats literal undefined env values as unset",
       env: {
-        OPENCLAW_HOME: "undefined",
+        COREBLOW_HOME: "undefined",
         HOME: "undefined",
         USERPROFILE: "null",
       } as NodeJS.ProcessEnv,
@@ -62,7 +62,7 @@ describe("resolveEffectiveHomeDir", () => {
     {
       name: "expands ~/ using HOME",
       env: {
-        OPENCLAW_HOME: "~/svc",
+        COREBLOW_HOME: "~/svc",
         HOME: "/home/alice",
       } as NodeJS.ProcessEnv,
       expected: "/home/alice/svc",
@@ -70,7 +70,7 @@ describe("resolveEffectiveHomeDir", () => {
     {
       name: "expands ~\\\\ using USERPROFILE",
       env: {
-        OPENCLAW_HOME: "~\\svc",
+        COREBLOW_HOME: "~\\svc",
         HOME: " ",
         USERPROFILE: "C:/Users/alice",
       } as NodeJS.ProcessEnv,
@@ -92,14 +92,14 @@ describe("resolveRequiredHomeDir", () => {
       expected: process.cwd(),
     },
     {
-      name: "returns a fully resolved path for OPENCLAW_HOME",
-      env: { OPENCLAW_HOME: "/custom/home" } as NodeJS.ProcessEnv,
+      name: "returns a fully resolved path for COREBLOW_HOME",
+      env: { COREBLOW_HOME: "/custom/home" } as NodeJS.ProcessEnv,
       homedir: () => "/fallback",
       expected: path.resolve("/custom/home"),
     },
     {
-      name: "returns cwd when OPENCLAW_HOME is tilde-only and no fallback home exists",
-      env: { OPENCLAW_HOME: "~" } as NodeJS.ProcessEnv,
+      name: "returns cwd when COREBLOW_HOME is tilde-only and no fallback home exists",
+      env: { COREBLOW_HOME: "~" } as NodeJS.ProcessEnv,
       homedir: () => {
         throw new Error("no home");
       },
@@ -111,11 +111,11 @@ describe("resolveRequiredHomeDir", () => {
 });
 
 describe("resolveOsHomeDir", () => {
-  it("ignores OPENCLAW_HOME and uses HOME", () => {
+  it("ignores COREBLOW_HOME and uses HOME", () => {
     expect(
       resolveOsHomeDir(
         {
-          OPENCLAW_HOME: "/srv/coreblow-home",
+          COREBLOW_HOME: "/srv/coreblow-home",
           HOME: "/home/alice",
           USERPROFILE: "C:/Users/alice",
         } as NodeJS.ProcessEnv,
@@ -131,7 +131,7 @@ describe("expandHomePrefix", () => {
       name: "expands ~/ using effective home",
       input: "~/x",
       opts: {
-        env: { OPENCLAW_HOME: "/srv/coreblow-home" } as NodeJS.ProcessEnv,
+        env: { COREBLOW_HOME: "/srv/coreblow-home" } as NodeJS.ProcessEnv,
       },
       expected: `${path.resolve("/srv/coreblow-home")}/x`,
     },
@@ -180,7 +180,7 @@ describe("resolveHomeRelativePath", () => {
       name: "expands tilde paths using the resolved home directory",
       input: "~/docs",
       opts: {
-        env: { OPENCLAW_HOME: "/srv/coreblow-home" } as NodeJS.ProcessEnv,
+        env: { COREBLOW_HOME: "/srv/coreblow-home" } as NodeJS.ProcessEnv,
       },
       expected: path.resolve("/srv/coreblow-home/docs"),
     },
@@ -201,11 +201,11 @@ describe("resolveHomeRelativePath", () => {
 });
 
 describe("resolveOsHomeRelativePath", () => {
-  it("expands tilde paths using the OS home instead of OPENCLAW_HOME", () => {
+  it("expands tilde paths using the OS home instead of COREBLOW_HOME", () => {
     expect(
       resolveOsHomeRelativePath("~/docs", {
         env: {
-          OPENCLAW_HOME: "/srv/coreblow-home",
+          COREBLOW_HOME: "/srv/coreblow-home",
           HOME: "/home/alice",
         } as NodeJS.ProcessEnv,
       }),

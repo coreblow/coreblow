@@ -19,7 +19,7 @@ describe("scheduleDetachedLaunchdRestartHandoff", () => {
   it("waits for the caller pid before kickstarting launchd", () => {
     const env = {
       HOME: "/Users/test",
-      OPENCLAW_PROFILE: "default",
+      COREBLOW_PROFILE: "default",
     };
     spawnMock.mockReturnValue({ pid: 4242, unref: unrefMock });
 

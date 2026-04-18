@@ -1,6 +1,0 @@
-/** plugin-sdk/googlechat.ts [ADAPT] openclaw-main */
-export type { CoreBlowConfig } from "../config/config.js";
-export { getChatChannelMeta, } from "./channel-plugin-common.js";
-export { buildChannelConfigSchema } from "./channel-config-schema.js";
-export declare function buildGoogleChatProvider(_p: unknown): unknown;
-//# sourceMappingURL=googlechat.d.ts.map

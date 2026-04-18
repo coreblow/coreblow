@@ -1,7 +1,0 @@
-import { discordLog } from '../utils/logger.js';
-export function onReactionRemove(reaction, user, ctx) {
-    if (user.bot)
-        return;
-    discordLog.debug({ emoji: reaction.emoji.name, user: user.id }, 'Reaction removed');
-}
-//# sourceMappingURL=reactionRemove.js.map

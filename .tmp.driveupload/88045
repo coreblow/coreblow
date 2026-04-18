@@ -1,3 +1,0 @@
-export const DEFAULT_EXEC_HOST_CONFIG = { timeout: 30_000, maxOutput: 200_000 };
-export function mergeExecHostConfig(base, override) { return { ...base, ...override }; }
-//# sourceMappingURL=bash-tools.exec-host-shared.js.map

@@ -216,7 +216,7 @@ function auditGatewayToken(
   }
   issues.push({
     code: SERVICE_AUDIT_CODES.gatewayTokenEmbedded,
-    message: "Gateway service embeds OPENCLAW_GATEWAY_TOKEN and should be reinstalled.",
+    message: "Gateway service embeds COREBLOW_GATEWAY_TOKEN and should be reinstalled.",
     detail: "Run `coreblow gateway install --force` to remove embedded service token.",
     level: "recommended",
   });
@@ -227,7 +227,7 @@ function auditGatewayToken(
   issues.push({
     code: SERVICE_AUDIT_CODES.gatewayTokenMismatch,
     message:
-      "Gateway service OPENCLAW_GATEWAY_TOKEN does not match gateway.auth.token in coreblow.json",
+      "Gateway service COREBLOW_GATEWAY_TOKEN does not match gateway.auth.token in coreblow.json",
     detail: "service token is stale",
     level: "recommended",
   });
@@ -237,10 +237,10 @@ export function readEmbeddedGatewayToken(command: GatewayServiceCommand): string
   if (!command) {
     return undefined;
   }
-  if (command.environmentValueSources?.OPENCLAW_GATEWAY_TOKEN === "file") {
+  if (command.environmentValueSources?.COREBLOW_GATEWAY_TOKEN === "file") {
     return undefined;
   }
-  return command.environment?.OPENCLAW_GATEWAY_TOKEN?.trim() || undefined;
+  return command.environment?.COREBLOW_GATEWAY_TOKEN?.trim() || undefined;
 }
 
 function getPathModule(platform: NodeJS.Platform) {

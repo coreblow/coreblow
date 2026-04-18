@@ -1,1 +1,0 @@
-/** CoreBlow — Fallback State */ let fallbackEnabled = true; export function setFallbackEnabled(e: boolean): void { fallbackEnabled = e; } export function isFallbackEnabled(): boolean { return fallbackEnabled; }

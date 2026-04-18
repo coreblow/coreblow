@@ -15,7 +15,7 @@ const modules: Record<string, string> = {
 'model-suppression.runtime.ts': `/** Runtime re-export. */ export { suppressModel, isModelSuppressed, clearSuppressedModels } from './model-suppression.js';`,
 'models-config.runtime.ts': `/** Runtime re-export. */ export { resolveModelConfig, mergeModelConfigs, validateModelsConfig } from './models-config.js';`,
 'models-config.e2e-harness.ts': `/** E2E test harness for models-config. */ export { resolveModelConfig, mergeModelConfigs } from './models-config.js';`,
-'openclaw-tools.runtime.ts': `/** Runtime re-export. */ export { OPENCLAW_TOOLS, isOpenClawTool } from './openclaw-tools.js';`,
+'coreblow-tools.runtime.ts': `/** Runtime re-export. */ export { COREBLOW_TOOLS, isCoreBlowTool } from './coreblow-tools.js';`,
 'provider-model-normalization.runtime.ts': `/** Runtime re-export. */ export { normalizeProviderId, parseModelRef } from './provider-id.js';`,
 'skills.e2e-test-helpers.ts': `/** E2E test helpers for skills. */ export function createMockSkill(id: string) { return { id, name: id, description: 'mock', category: 'test', enabled: true, version: '1.0.0' }; }`,
 'subagent-registry.mocks.shared.ts': `/** Shared mocks for subagent registry tests. */ export function createMockRegistry() { return new Map<string, unknown>(); }`,

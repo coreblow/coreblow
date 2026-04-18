@@ -1,3 +1,0 @@
-export function truncate(text, max = 2000) { return text.length > max ? text.slice(0, max - 3) + '...' : text; }
-export function truncateField(text, max = 1024) { return truncate(text, max); }
-//# sourceMappingURL=truncator.js.map

@@ -1,2 +1,0 @@
-export function createHandlerResult(handled, shouldContinue = true) { return { handled, shouldContinue }; }
-//# sourceMappingURL=pi-embedded-subscribe.handlers.types.js.map

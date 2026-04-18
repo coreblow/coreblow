@@ -1,1 +1,0 @@
-/** CoreBlow — Respawn Policy */ export interface RespawnPolicy { maxRestarts: number; windowMs: number; backoffMs: number; } export const DEFAULT_RESPAWN: RespawnPolicy = { maxRestarts: 5, windowMs: 60000, backoffMs: 2000 };

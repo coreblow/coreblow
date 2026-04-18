@@ -1,4 +1,0 @@
-import { DEFAULT_GATEWAY_PORT } from '../infra/port-finder.js';
-export const defaultGatewayConfig = { port: DEFAULT_GATEWAY_PORT, host: '0.0.0.0', cors: true, maxConnections: 100, timeout: 30000 };
-export function resolveGatewayConfig(partial) { return { ...defaultGatewayConfig, ...partial }; }
-//# sourceMappingURL=config.js.map

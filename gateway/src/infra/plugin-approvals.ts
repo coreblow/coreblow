@@ -1,1 +1,0 @@
-/** CoreBlow — Plugin Approvals */ export interface PluginApproval { pluginName: string; approved: boolean; approvedAt?: number; scope: string; } export function isPluginApproved(approval: PluginApproval): boolean { return approval.approved; }

@@ -1,7 +1,0 @@
-/**
- * src/providers/interface.ts
- * Core provider interface — shared types for all AI providers
- * Used by: deepseek, groq, mistral, openrouter, fallback, and agent context
- */
-export {};
-//# sourceMappingURL=interface.js.map

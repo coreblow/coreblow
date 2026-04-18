@@ -187,8 +187,8 @@ function snapshotTempHomeEnv(): TempHomeEnvSnapshot {
     userProfile: process.env.USERPROFILE,
     homeDrive: process.env.HOMEDRIVE,
     homePath: process.env.HOMEPATH,
-    coreblowHome: process.env.OPENCLAW_HOME,
-    stateDir: process.env.OPENCLAW_STATE_DIR,
+    coreblowHome: process.env.COREBLOW_HOME,
+    stateDir: process.env.COREBLOW_STATE_DIR,
   };
 }
 
@@ -205,15 +205,15 @@ function restoreTempHomeEnv(snapshot: TempHomeEnvSnapshot): void {
   restoreKey("USERPROFILE", snapshot.userProfile);
   restoreKey("HOMEDRIVE", snapshot.homeDrive);
   restoreKey("HOMEPATH", snapshot.homePath);
-  restoreKey("OPENCLAW_HOME", snapshot.coreblowHome);
-  restoreKey("OPENCLAW_STATE_DIR", snapshot.stateDir);
+  restoreKey("COREBLOW_HOME", snapshot.coreblowHome);
+  restoreKey("COREBLOW_STATE_DIR", snapshot.stateDir);
 }
 
 function setTempHomeEnv(home: string): void {
   process.env.HOME = home;
   process.env.USERPROFILE = home;
-  delete process.env.OPENCLAW_HOME;
-  process.env.OPENCLAW_STATE_DIR = join(home, ".coreblow");
+  delete process.env.COREBLOW_HOME;
+  process.env.COREBLOW_STATE_DIR = join(home, ".coreblow");
 
   if (process.platform !== "win32") {
     return;

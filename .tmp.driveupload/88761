@@ -1,7 +1,0 @@
-/** Message event handlers. */
-export declare function handleTextDelta(text: string): string;
-export declare function handleMessageComplete(content: string): {
-    role: string;
-    content: string;
-};
-//# sourceMappingURL=pi-embedded-subscribe.handlers.messages.d.ts.map

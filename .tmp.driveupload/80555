@@ -1,6 +1,0 @@
-/**
- * Discord Welcome Embed — Shown when bot joins a server or user joins.
- */
-export declare function createWelcomeEmbed(botName: string, prefix: string, features: string[]): Record<string, unknown>;
-export declare function createGoodbyeEmbed(username: string): Record<string, unknown>;
-//# sourceMappingURL=welcome.d.ts.map

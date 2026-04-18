@@ -1,8 +1,0 @@
-/**
- * src/infra/restart-stale-pids.ts
- * Synchronous termination of stale processes preventing restart bindings.
- * Ported from CoreBlow infra/restart-stale-pids.ts.
- */
-export declare function findGatewayPidsOnPortSync(port: number, spawnTimeoutMs?: number): number[];
-export declare function cleanStaleGatewayProcessesSync(portOverride?: number): number[];
-//# sourceMappingURL=restart-stale-pids.d.ts.map

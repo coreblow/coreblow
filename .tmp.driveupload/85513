@@ -1,2 +1,0 @@
-export declare function normalizeFingerprint(input: string): string;
-//# sourceMappingURL=fingerprint.d.ts.map

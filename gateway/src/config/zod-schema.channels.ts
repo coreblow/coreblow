@@ -1,1 +1,0 @@
-/** CoreBlow — Zod Schema: Channels */ import { validateString } from "./zod-schema.core.js"; export function validateChannelConfig(config: Record<string, unknown>): string[] { const errors: string[] = []; errors.push(...validateString(config.type, "type")); return errors; }

@@ -30,7 +30,7 @@ function makeTmpProbePath(prefix: string): string {
 
 async function withOutsideHardlinkInCoreBlowTmp<T>(
   params: {
-    openClawTmpDir: string;
+    coreBlowTmpDir: string;
     hardlinkPrefix: string;
     symlinkPrefix?: string;
   },
@@ -38,16 +38,16 @@ async function withOutsideHardlinkInCoreBlowTmp<T>(
 ): Promise<void> {
   const outsideDir = await fs.mkdtemp(path.join(process.cwd(), "sandbox-media-hardlink-outside-"));
   const outsideFile = path.join(outsideDir, "outside-secret.txt");
-  const hardlinkPath = path.join(params.openClawTmpDir, makeTmpProbePath(params.hardlinkPrefix));
+  const hardlinkPath = path.join(params.coreBlowTmpDir, makeTmpProbePath(params.hardlinkPrefix));
   const symlinkPath = params.symlinkPrefix
-    ? path.join(params.openClawTmpDir, makeTmpProbePath(params.symlinkPrefix))
+    ? path.join(params.coreBlowTmpDir, makeTmpProbePath(params.symlinkPrefix))
     : undefined;
   try {
-    if (isPathInside(params.openClawTmpDir, outsideFile)) {
+    if (isPathInside(params.coreBlowTmpDir, outsideFile)) {
       return;
     }
     await fs.writeFile(outsideFile, "secret", "utf8");
-    await fs.mkdir(params.openClawTmpDir, { recursive: true });
+    await fs.mkdir(params.coreBlowTmpDir, { recursive: true });
     try {
       await fs.link(outsideFile, hardlinkPath);
     } catch (err) {
@@ -70,24 +70,24 @@ async function withOutsideHardlinkInCoreBlowTmp<T>(
 }
 
 describe("resolveSandboxedMediaSource", () => {
-  const openClawTmpDir = resolvePreferredCoreBlowTmpDir();
+  const coreBlowTmpDir = resolvePreferredCoreBlowTmpDir();
 
   // Group 1: /tmp paths (the bug fix)
   it.each([
     {
       name: "absolute paths under preferred CoreBlow tmp root",
-      media: path.join(openClawTmpDir, "image.png"),
-      expected: path.join(openClawTmpDir, "image.png"),
+      media: path.join(coreBlowTmpDir, "image.png"),
+      expected: path.join(coreBlowTmpDir, "image.png"),
     },
     {
       name: "file:// URLs pointing to preferred CoreBlow tmp root",
-      media: pathToFileURL(path.join(openClawTmpDir, "photo.png")).href,
-      expected: path.join(openClawTmpDir, "photo.png"),
+      media: pathToFileURL(path.join(coreBlowTmpDir, "photo.png")).href,
+      expected: path.join(coreBlowTmpDir, "photo.png"),
     },
     {
       name: "nested paths under preferred CoreBlow tmp root",
-      media: path.join(openClawTmpDir, "subdir", "deep", "file.png"),
-      expected: path.join(openClawTmpDir, "subdir", "deep", "file.png"),
+      media: path.join(coreBlowTmpDir, "subdir", "deep", "file.png"),
+      expected: path.join(coreBlowTmpDir, "subdir", "deep", "file.png"),
     },
   ])("allows $name", async ({ media, expected }) => {
     await withSandboxRoot(async (sandboxDir) => {
@@ -144,7 +144,7 @@ describe("resolveSandboxedMediaSource", () => {
     },
     {
       name: "path traversal through tmpdir",
-      media: path.join(openClawTmpDir, "..", "etc", "passwd"),
+      media: path.join(coreBlowTmpDir, "..", "etc", "passwd"),
       expected: /sandbox/i,
     },
     {
@@ -183,14 +183,14 @@ describe("resolveSandboxedMediaSource", () => {
       return;
     }
     const outsideTmpTarget = path.resolve(process.cwd(), "package.json");
-    if (isPathInside(openClawTmpDir, outsideTmpTarget)) {
+    if (isPathInside(coreBlowTmpDir, outsideTmpTarget)) {
       return;
     }
 
     await withSandboxRoot(async (sandboxDir) => {
       await fs.access(outsideTmpTarget);
-      await fs.mkdir(openClawTmpDir, { recursive: true });
-      const symlinkPath = path.join(openClawTmpDir, `tmp-link-escape-${process.pid}`);
+      await fs.mkdir(coreBlowTmpDir, { recursive: true });
+      const symlinkPath = path.join(coreBlowTmpDir, `tmp-link-escape-${process.pid}`);
       await fs.symlink(outsideTmpTarget, symlinkPath);
       try {
         await expectSandboxRejection(symlinkPath, sandboxDir, /symlink|sandbox/i);
@@ -226,7 +226,7 @@ describe("resolveSandboxedMediaSource", () => {
     }
     await withOutsideHardlinkInCoreBlowTmp(
       {
-        openClawTmpDir,
+        coreBlowTmpDir,
         hardlinkPrefix: "sandbox-media-hardlink",
       },
       async ({ hardlinkPath }) => {
@@ -243,7 +243,7 @@ describe("resolveSandboxedMediaSource", () => {
     }
     await withOutsideHardlinkInCoreBlowTmp(
       {
-        openClawTmpDir,
+        coreBlowTmpDir,
         hardlinkPrefix: "sandbox-media-hardlink-target",
         symlinkPrefix: "sandbox-media-hardlink-symlink",
       },

@@ -1,9 +1,0 @@
-/** CLI runner — main entry point. */
-export interface CliRunnerConfig {
-    model?: string;
-    provider?: string;
-    interactive?: boolean;
-    maxTurns?: number;
-}
-export declare function createCliRunnerConfig(overrides?: Partial<CliRunnerConfig>): CliRunnerConfig;
-//# sourceMappingURL=cli-runner.d.ts.map

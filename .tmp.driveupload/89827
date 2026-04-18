@@ -1,3 +1,0 @@
-/** Provider attribution display. */
-export function formatAttribution(provider, model) { return `Powered by ${provider} — ${model}`; }
-//# sourceMappingURL=provider-attribution.js.map

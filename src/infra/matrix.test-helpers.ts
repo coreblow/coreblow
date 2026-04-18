@@ -11,9 +11,9 @@ export const MATRIX_OPS_ACCESS_TOKEN = "tok-ops";
 export const MATRIX_OPS_DEVICE_ID = "DEVICEOPS";
 
 export const matrixHelperEnv = {
-  OPENCLAW_BUNDLED_PLUGINS_DIR: (home: string) => path.join(home, "bundled"),
-  OPENCLAW_DISABLE_PLUGIN_DISCOVERY_CACHE: "1",
-  OPENCLAW_VERSION: undefined,
+  COREBLOW_BUNDLED_PLUGINS_DIR: (home: string) => path.join(home, "bundled"),
+  COREBLOW_DISABLE_PLUGIN_DISCOVERY_CACHE: "1",
+  COREBLOW_VERSION: undefined,
   VITEST: "true",
 } as const;
 

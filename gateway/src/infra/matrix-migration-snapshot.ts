@@ -1,1 +1,0 @@
-/** CoreBlow — Matrix Migration Snapshot */ export interface MatrixSnapshot { version: number; timestamp: number; rooms: number; } export function createMatrixSnapshot(): MatrixSnapshot { return { version: 1, timestamp: Date.now(), rooms: 0 }; }

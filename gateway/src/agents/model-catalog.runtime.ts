@@ -1,1 +1,0 @@
-/** CoreBlow — Model Catalog Runtime */ const catalog = new Map<string, { provider: string; maxTokens: number }>(); export function registerModel(name: string, provider: string, maxTokens: number): void { catalog.set(name, { provider, maxTokens }); } export function getModelInfo(name: string) { return catalog.get(name); }

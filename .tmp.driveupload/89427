@@ -1,4 +1,0 @@
-/** Model allowlist reference. */
-export function isModelAllowed(modelId, allowlist) { return !allowlist || allowlist.length === 0 || allowlist.includes(modelId); }
-export function isModelBlocked(modelId, blocklist) { return !!blocklist && blocklist.includes(modelId); }
-//# sourceMappingURL=model-allowlist-ref.js.map

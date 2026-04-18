@@ -1,1 +1,0 @@
-/** CoreBlow — Context Pruning Runtime */ let pruningEnabled = true; export function setPruningEnabled(e: boolean): void { pruningEnabled = e; } export function isPruningEnabled(): boolean { return pruningEnabled; }

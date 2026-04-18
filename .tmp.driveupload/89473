@@ -1,9 +1,0 @@
-/** Skills installation. */
-export interface SkillInstallResult {
-    skillId: string;
-    success: boolean;
-    version?: string;
-    error?: string;
-}
-export declare function formatInstallResult(result: SkillInstallResult): string;
-//# sourceMappingURL=skills-install.d.ts.map

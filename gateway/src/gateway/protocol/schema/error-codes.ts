@@ -1,1 +1,0 @@
-/** CoreBlow — Protocol Error Codes */ export const ERROR_CODES = { UNAUTHORIZED: 401, FORBIDDEN: 403, NOT_FOUND: 404, RATE_LIMITED: 429, INTERNAL: 500, UNAVAILABLE: 503 } as const;

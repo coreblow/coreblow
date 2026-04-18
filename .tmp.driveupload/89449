@@ -1,6 +1,0 @@
-export declare function enableFastMode(): void;
-export declare function disableFastMode(): void;
-export declare function isFastMode(): boolean;
-export declare function skipIfFastMode<T>(fn: () => T, fallback: T): T;
-export declare function skipIfFastModeAsync<T>(fn: () => Promise<T>, fallback: T): Promise<T>;
-//# sourceMappingURL=fast-mode.d.ts.map

@@ -1,9 +1,0 @@
-/**
- * plugin-sdk/provider-auth-api-key.ts
- * [PORT] openclaw-main/src/plugin-sdk/provider-auth-api-key.ts
- *
- * Focused API-key onboarding helpers for provider plugins.
- */
-export { formatApiKeyPreview, normalizeApiKeyInput, validateApiKeyInput, ensureApiKeyFromOptionEnvOrPrompt, normalizeSecretInputModeInput, promptSecretRefForSetup, resolveSecretInputModeForEnvSelection, normalizeOptionalSecretInput, normalizeSecretInput, applyAuthProfileConfig, buildApiKeyCredential, } from './provider-auth.js';
-export { createProviderApiKeyAuthMethod } from './provider-entry.js';
-//# sourceMappingURL=provider-auth-api-key.js.map

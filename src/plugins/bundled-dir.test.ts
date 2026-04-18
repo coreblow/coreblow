@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { resolveBundledPluginsDir } from "./bundled-dir.js";
 
 const tempDirs: string[] = [];
-const originalBundledDir = process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
+const originalBundledDir = process.env.COREBLOW_BUNDLED_PLUGINS_DIR;
 const originalVitest = process.env.VITEST;
 const originalArgv1 = process.argv[1];
 
@@ -62,9 +62,9 @@ function expectResolvedBundledDir(params: {
     process.env.VITEST = params.vitest;
   }
   if (params.bundledDirOverride === undefined) {
-    delete process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
+    delete process.env.COREBLOW_BUNDLED_PLUGINS_DIR;
   } else {
-    process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = params.bundledDirOverride;
+    process.env.COREBLOW_BUNDLED_PLUGINS_DIR = params.bundledDirOverride;
   }
 
   expect(fs.realpathSync(resolveBundledPluginsDir() ?? "")).toBe(
@@ -118,9 +118,9 @@ function expectInstalledBundledDirScenarioCase(
 afterEach(() => {
   vi.restoreAllMocks();
   if (originalBundledDir === undefined) {
-    delete process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
+    delete process.env.COREBLOW_BUNDLED_PLUGINS_DIR;
   } else {
-    process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = originalBundledDir;
+    process.env.COREBLOW_BUNDLED_PLUGINS_DIR = originalBundledDir;
   }
   if (originalVitest === undefined) {
     delete process.env.VITEST;

@@ -1,8 +1,0 @@
-/** Anthropic Vertex AI stream adapter. */
-export interface VertexStreamConfig {
-    projectId: string;
-    location: string;
-    model: string;
-}
-export declare function buildVertexEndpoint(config: VertexStreamConfig): string;
-//# sourceMappingURL=anthropic-vertex-stream.d.ts.map

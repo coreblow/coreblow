@@ -1,1 +1,0 @@
-/** CoreBlow — Close Reason */ export type CloseReason = "normal" | "error" | "timeout" | "shutdown" | "replaced"; export function formatCloseReason(reason: CloseReason): string { return "Connection closed: " + reason; }

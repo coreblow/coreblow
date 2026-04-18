@@ -1,1 +1,0 @@
-/** CoreBlow — Control UI CSP */ export function generateCspHeader(nonce?: string): string { const base = "default-src 'self'; script-src 'self'"; return nonce ? base + " 'nonce-" + nonce + "'" : base; }

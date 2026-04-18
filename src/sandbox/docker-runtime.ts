@@ -14,7 +14,7 @@
  *   - Memory limit: 256m, CPU limit: 0.5 core
  *   - Tidak ada daemon — hanya CLI yang diperlukan
  *
- * @see coreblow/Dockerfile L202-L232 (OPENCLAW_INSTALL_DOCKER_CLI)
+ * @see coreblow/Dockerfile L202-L232 (COREBLOW_INSTALL_DOCKER_CLI)
  */
 import { execFile } from 'node:child_process';
 

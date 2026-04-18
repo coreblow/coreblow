@@ -1,3 +1,0 @@
-import type { GatewayRequestHandlers } from "./types.js";
-export declare const nodesInvokeResultHandlers: GatewayRequestHandlers;
-//# sourceMappingURL=nodes.handlers.invoke-result.d.ts.map

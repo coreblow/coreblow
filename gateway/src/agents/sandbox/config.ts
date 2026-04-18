@@ -1,1 +1,0 @@
-/** CoreBlow — Sandbox Config */ import { DEFAULT_TIMEOUT, DEFAULT_MEMORY_MB } from "./constants.js"; export function createDefaultSandboxConfig() { return { runtime: "docker" as const, timeout: DEFAULT_TIMEOUT, maxMemoryMb: DEFAULT_MEMORY_MB, networkAccess: false }; }

@@ -1,7 +1,0 @@
-/**
- * CoreBlow AutoPilot — Directive Types
- *
- * CoreBlow equivalent: auto-reply/reply/directive-handling.params.ts
- */
-export const THINK_LEVEL_ORDER = { off: 0, low: 1, medium: 2, high: 3, xhigh: 4 };
-//# sourceMappingURL=directive.types.js.map

@@ -1,3 +1,0 @@
-/** plugin-sdk/mistral.ts [ADAPT] openclaw-main */
-export function buildMistralProvider(_p) { throw new Error("buildMistralProvider requires @coreblow/mistral extension"); }
-//# sourceMappingURL=mistral.js.map

@@ -1,8 +1,0 @@
-export function isProfileInCooldown(profileId) { return false; }
-export function getRemainingCooldownMs(profileId) { return 0; }
-export class UsageTracker {
-    usage = new Map();
-    record(profileId, tokens) { this.usage.set(profileId, (this.usage.get(profileId) || 0) + tokens); }
-    getUsage(profileId) { return this.usage.get(profileId) || 0; }
-}
-//# sourceMappingURL=usage.js.map

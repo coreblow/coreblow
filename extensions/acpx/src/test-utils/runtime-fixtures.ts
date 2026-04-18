@@ -22,7 +22,7 @@ const fs = require("node:fs");
 
 const args = process.argv.slice(2);
 const logPath = process.env.MOCK_ACPX_LOG;
-const coreblowShell = process.env.OPENCLAW_SHELL || "";
+const coreblowShell = process.env.COREBLOW_SHELL || "";
 const writeLog = (entry) => {
   if (!logPath) return;
   fs.appendFileSync(logPath, JSON.stringify(entry) + "\n");

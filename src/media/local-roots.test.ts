@@ -14,7 +14,7 @@ function normalizeHostPath(value: string): string {
 
 describe("local media roots", () => {
   function withStateDir<T>(stateDir: string, run: () => T): T {
-    vi.stubEnv("OPENCLAW_STATE_DIR", stateDir);
+    vi.stubEnv("COREBLOW_STATE_DIR", stateDir);
     return run();
   }
 

@@ -1,1 +1,0 @@
-/** CoreBlow — Session Subagent Reactivation */ export interface ReactivationRequest { sessionId: string; agentId: string; reason: string; } export function shouldReactivateSubagent(idleMs: number, threshold = 300000): boolean { return idleMs < threshold; }

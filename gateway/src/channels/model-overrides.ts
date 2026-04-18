@@ -1,1 +1,0 @@
-/** CoreBlow — Channel Model Overrides */ export function resolveChannelModel(channelConfig: Record<string, unknown>, defaultModel: string): string { return String(channelConfig.model ?? defaultModel); }

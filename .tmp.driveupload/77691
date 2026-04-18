@@ -1,6 +1,0 @@
-packages:
-  - 'gateway'
-  - 'packages/*'
-  - 'extensions/*'
-  - 'ui'
-  - 'apps/*'

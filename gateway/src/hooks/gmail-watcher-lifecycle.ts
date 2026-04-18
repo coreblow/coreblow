@@ -1,1 +1,0 @@
-/** CoreBlow — Gmail Watcher Lifecycle */ let watching = false; export function startGmailWatcher(): void { watching = true; } export function stopGmailWatcher(): void { watching = false; } export function isGmailWatcherRunning(): boolean { return watching; }

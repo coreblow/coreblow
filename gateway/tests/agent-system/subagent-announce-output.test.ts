@@ -1,5 +1,5 @@
 /**
- * Tests for Subagent Announce Output (OpenClaw Parity)
+ * Tests for Subagent Announce Output (CoreBlow Parity)
  *
  * Covers: silent detection, text extraction, tool call counting,
  * output snapshot, output selection, outcome application,

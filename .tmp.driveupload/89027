@@ -1,7 +1,0 @@
-/**
- * CoreBlow — Auth Profile Display (CoreBlow Parity)
- */
-import type { AuthProfileCredential } from './types.js';
-export declare function formatCredentialType(credential: AuthProfileCredential): string;
-export declare function maskCredentialValue(credential: AuthProfileCredential): string;
-//# sourceMappingURL=display.d.ts.map

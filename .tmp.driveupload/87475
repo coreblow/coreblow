@@ -1,4 +1,0 @@
-export function createAutoApproveHook(safeTools) {
-    return (toolName) => ({ proceed: safeTools.includes(toolName) });
-}
-//# sourceMappingURL=pi-tools.before-tool-call.js.map

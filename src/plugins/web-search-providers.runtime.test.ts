@@ -104,7 +104,7 @@ function createBraveAllowConfig() {
 
 function createWebSearchEnv(overrides?: Partial<NodeJS.ProcessEnv>) {
   return {
-    OPENCLAW_HOME: "/tmp/coreblow-home",
+    COREBLOW_HOME: "/tmp/coreblow-home",
     ...overrides,
   } as NodeJS.ProcessEnv;
 }
@@ -386,12 +386,12 @@ describe("resolvePluginWebSearchProviders", () => {
     {
       name: "invalidates the snapshot cache when env contents change in place",
       mutate: (_config: { plugins?: Record<string, unknown> }, env: NodeJS.ProcessEnv) => {
-        env.OPENCLAW_HOME = "/tmp/coreblow-home-b";
+        env.COREBLOW_HOME = "/tmp/coreblow-home-b";
       },
     },
   ] as const)("$name", ({ mutate }) => {
     const config = createBraveAllowConfig();
-    const env = createWebSearchEnv({ OPENCLAW_HOME: "/tmp/coreblow-home-a" });
+    const env = createWebSearchEnv({ COREBLOW_HOME: "/tmp/coreblow-home-a" });
 
     expectSnapshotLoaderCalls({
       config,
@@ -405,13 +405,13 @@ describe("resolvePluginWebSearchProviders", () => {
     {
       title: "skips web-search snapshot memoization when plugin cache opt-outs are set",
       env: {
-        OPENCLAW_DISABLE_PLUGIN_DISCOVERY_CACHE: "1",
+        COREBLOW_DISABLE_PLUGIN_DISCOVERY_CACHE: "1",
       },
     },
     {
       title: "skips web-search snapshot memoization when discovery cache ttl is zero",
       env: {
-        OPENCLAW_PLUGIN_DISCOVERY_CACHE_MS: "0",
+        COREBLOW_PLUGIN_DISCOVERY_CACHE_MS: "0",
       },
     },
   ])("$title", ({ env }) => {
@@ -448,8 +448,8 @@ describe("resolvePluginWebSearchProviders", () => {
     vi.useFakeTimers();
     const config = createBraveAllowConfig();
     const env = createWebSearchEnv({
-      OPENCLAW_PLUGIN_DISCOVERY_CACHE_MS: "5",
-      OPENCLAW_PLUGIN_MANIFEST_CACHE_MS: "20",
+      COREBLOW_PLUGIN_DISCOVERY_CACHE_MS: "5",
+      COREBLOW_PLUGIN_MANIFEST_CACHE_MS: "20",
     });
     const runtimeParams = createSnapshotParams({ config, env });
 
@@ -465,14 +465,14 @@ describe("resolvePluginWebSearchProviders", () => {
   it("invalidates web-search snapshots when cache-control env values change in place", () => {
     const config = createBraveAllowConfig();
     const env = createWebSearchEnv({
-      OPENCLAW_PLUGIN_DISCOVERY_CACHE_MS: "1000",
+      COREBLOW_PLUGIN_DISCOVERY_CACHE_MS: "1000",
     });
 
     expectSnapshotLoaderCalls({
       config,
       env,
       mutate: () => {
-        env.OPENCLAW_PLUGIN_DISCOVERY_CACHE_MS = "5";
+        env.COREBLOW_PLUGIN_DISCOVERY_CACHE_MS = "5";
       },
       expectedLoaderCalls: 2,
     });

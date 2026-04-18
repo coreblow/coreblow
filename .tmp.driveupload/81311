@@ -1,2 +1,0 @@
-export declare function checkOrigin(origin: string | undefined, allowedOrigins: string[]): boolean;
-//# sourceMappingURL=origin-check.d.ts.map

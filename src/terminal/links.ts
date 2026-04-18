@@ -1,7 +1,7 @@
 import { formatTerminalLink } from "./terminal-link.js";
 
 export function resolveDocsRoot(): string {
-  return "https://docs.coreblow.ai";
+  return "https://docs.coreblow.com";
 }
 
 export const DOCS_ROOT = resolveDocsRoot();

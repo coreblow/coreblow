@@ -1,2 +1,0 @@
-export function createInfraLogger(name) { return { info: (...args) => { }, error: (...args) => { }, warn: (...args) => { }, debug: (...args) => { } }; }
-//# sourceMappingURL=logger.js.map

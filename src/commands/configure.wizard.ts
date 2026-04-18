@@ -87,8 +87,8 @@ async function runGatewayHealthCheck(params: {
     value: params.cfg.gateway?.auth?.password,
     path: "gateway.auth.password",
   });
-  const token = process.env.OPENCLAW_GATEWAY_TOKEN ?? configuredToken;
-  const password = process.env.OPENCLAW_GATEWAY_PASSWORD ?? configuredPassword;
+  const token = process.env.COREBLOW_GATEWAY_TOKEN ?? configuredToken;
+  const password = process.env.COREBLOW_GATEWAY_PASSWORD ?? configuredPassword;
 
   await waitForGatewayReachable({
     url: wsUrl,
@@ -104,8 +104,8 @@ async function runGatewayHealthCheck(params: {
     note(
       [
         "Docs:",
-        "https://docs.coreblow.ai/gateway/health",
-        "https://docs.coreblow.ai/gateway/troubleshooting",
+        "https://docs.coreblow.com/gateway/health",
+        "https://docs.coreblow.com/gateway/troubleshooting",
       ].join("\n"),
       "Health check help",
     );
@@ -185,7 +185,7 @@ async function promptWebToolsConfig(
         [
           "No web search providers are currently available under this plugin policy.",
           "Enable plugins or remove deny rules, then rerun configure.",
-          "Docs: https://docs.coreblow.ai/tools/web",
+          "Docs: https://docs.coreblow.com/tools/web",
         ].join("\n"),
         "Web search",
       );
@@ -247,7 +247,7 @@ export async function runConfigureWizard(
           [
             ...snapshot.issues.map((iss) => `- ${iss.path}: ${iss.message}`),
             "",
-            "Docs: https://docs.coreblow.ai/gateway/configuration",
+            "Docs: https://docs.coreblow.com/gateway/configuration",
           ].join("\n"),
           "Config issues",
         );
@@ -274,8 +274,8 @@ export async function runConfigureWizard(
     });
     const localProbe = await probeGatewayReachable({
       url: localUrl,
-      token: process.env.OPENCLAW_GATEWAY_TOKEN ?? baseLocalProbeToken,
-      password: process.env.OPENCLAW_GATEWAY_PASSWORD ?? baseLocalProbePassword,
+      token: process.env.COREBLOW_GATEWAY_TOKEN ?? baseLocalProbeToken,
+      password: process.env.COREBLOW_GATEWAY_PASSWORD ?? baseLocalProbePassword,
     });
     const remoteUrl = baseConfig.gateway?.remote?.url?.trim() ?? "";
     const baseRemoteProbeToken = await resolveGatewaySecretInputForWizard({
@@ -561,21 +561,21 @@ export async function runConfigureWizard(
     });
     // Try both newly written and preexisting passwords while the gateway restarts.
     const newPassword =
-      process.env.OPENCLAW_GATEWAY_PASSWORD ??
+      process.env.COREBLOW_GATEWAY_PASSWORD ??
       (await resolveGatewaySecretInputForWizard({
         cfg: nextConfig,
         value: nextConfig.gateway?.auth?.password,
         path: "gateway.auth.password",
       }));
     const oldPassword =
-      process.env.OPENCLAW_GATEWAY_PASSWORD ??
+      process.env.COREBLOW_GATEWAY_PASSWORD ??
       (await resolveGatewaySecretInputForWizard({
         cfg: baseConfig,
         value: baseConfig.gateway?.auth?.password,
         path: "gateway.auth.password",
       }));
     const token =
-      process.env.OPENCLAW_GATEWAY_TOKEN ??
+      process.env.COREBLOW_GATEWAY_TOKEN ??
       (await resolveGatewaySecretInputForWizard({
         cfg: nextConfig,
         value: nextConfig.gateway?.auth?.token,
@@ -604,7 +604,7 @@ export async function runConfigureWizard(
         `Web UI: ${links.httpUrl}`,
         `Gateway WS: ${links.wsUrl}`,
         gatewayStatusLine,
-        "Docs: https://docs.coreblow.ai/web/control-ui",
+        "Docs: https://docs.coreblow.com/web/control-ui",
       ].join("\n"),
       "Control UI",
     );

@@ -1,1 +1,0 @@
-{"version":3,"file":"manager.d.ts","sourceRoot":"","sources":["../../src/process/manager.ts"],"names":[],"mappings":"AAAA;;GAEG;AACH,qBAAa,cAAc;IAAG,OAAO,CAAC,KAAK,CAAoD;IAAC,QAAQ,CAAC,IAAI,EAAE,MAAM,EAAE,GAAG,EAAE,MAAM;IAAsD,IAAI,CAAC,IAAI,EAAE,MAAM;IAAqJ,MAAM;;iBAAhS,MAAM;oBAAU,MAAM;;;CAAyT"}

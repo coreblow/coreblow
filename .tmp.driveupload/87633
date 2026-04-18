@@ -1,6 +1,0 @@
-/**
- * CoreBlow AutoPilot — session store
- */
-import type { SessionState } from './types.js';
-export declare const sessions: Map<string, SessionState>;
-//# sourceMappingURL=session.data.d.ts.map

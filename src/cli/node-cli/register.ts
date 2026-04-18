@@ -33,7 +33,7 @@ export function registerNodeCli(program: Command) {
           ["coreblow node status", "Check node host service status."],
           ["coreblow node install", "Install the node host service."],
           ["coreblow node restart", "Restart the installed node host service."],
-        ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/node", "docs.coreblow.ai/cli/node")}\n`,
+        ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/node", "docs.coreblow.com/cli/node")}\n`,
     );
 
   node

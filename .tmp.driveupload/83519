@@ -1,9 +1,0 @@
-/** plugin-sdk/windows-spawn.ts [ADAPT] openclaw-main */
-export function resolveWindowsSpawnPrefix() {
-    return process.platform === "win32" ? ["cmd", "/c"] : [];
-}
-export function buildPortableArgv(argv) {
-    const prefix = resolveWindowsSpawnPrefix();
-    return prefix.length > 0 ? [...prefix, argv.join(" ")] : argv;
-}
-//# sourceMappingURL=windows-spawn.js.map

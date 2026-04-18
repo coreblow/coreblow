@@ -5,12 +5,12 @@ describe("shared/entry-metadata", () => {
   it("prefers metadata emoji and homepage when present", () => {
     expect(
       resolveEmojiAndHomepage({
-        metadata: { emoji: "🦀", homepage: " https://coreblow.ai " },
+        metadata: { emoji: "🦀", homepage: " https://coreblow.com " },
         frontmatter: { emoji: "🙂", homepage: "https://example.com" },
       }),
     ).toEqual({
       emoji: "🦀",
-      homepage: "https://coreblow.ai",
+      homepage: "https://coreblow.com",
     });
   });
 
@@ -26,11 +26,11 @@ describe("shared/entry-metadata", () => {
   it("falls back through frontmatter homepage aliases and drops blanks", () => {
     expect(
       resolveEmojiAndHomepage({
-        frontmatter: { emoji: "🙂", website: " https://docs.coreblow.ai " },
+        frontmatter: { emoji: "🙂", website: " https://docs.coreblow.com " },
       }),
     ).toEqual({
       emoji: "🙂",
-      homepage: "https://docs.coreblow.ai",
+      homepage: "https://docs.coreblow.com",
     });
     expect(
       resolveEmojiAndHomepage({
@@ -40,10 +40,10 @@ describe("shared/entry-metadata", () => {
     ).toEqual({});
     expect(
       resolveEmojiAndHomepage({
-        frontmatter: { url: " https://coreblow.ai/install " },
+        frontmatter: { url: " https://coreblow.com/install " },
       }),
     ).toEqual({
-      homepage: "https://coreblow.ai/install",
+      homepage: "https://coreblow.com/install",
     });
   });
 
@@ -52,8 +52,8 @@ describe("shared/entry-metadata", () => {
       resolveEmojiAndHomepage({
         frontmatter: {
           homepage: " ",
-          website: "https://docs.coreblow.ai",
-          url: "https://coreblow.ai/install",
+          website: "https://docs.coreblow.com",
+          url: "https://coreblow.com/install",
         },
       }),
     ).toEqual({});

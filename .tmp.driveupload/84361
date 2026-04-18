@@ -1,9 +1,0 @@
-/** plugin-sdk/text-chunking.ts [PORT] openclaw-main */
-export type ChunkOptions = {
-    maxLength?: number;
-    overlap?: number;
-    separator?: RegExp;
-};
-export declare function chunkTextForOutbound(text: string, maxLength?: number): string[];
-export declare function chunkText(text: string, opts?: ChunkOptions): string[];
-//# sourceMappingURL=text-chunking.d.ts.map

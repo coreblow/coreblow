@@ -1,5 +1,0 @@
-export function validateTransition(from, to) {
-    const valid = { created: ['starting'], starting: ['running', 'error'], running: ['stopping', 'error'], stopping: ['stopped', 'error'], stopped: [], error: ['starting'] };
-    return valid[from]?.includes(to) ?? false;
-}
-//# sourceMappingURL=subagent-registry-lifecycle.js.map

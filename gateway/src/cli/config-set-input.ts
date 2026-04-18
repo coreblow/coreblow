@@ -1,1 +1,0 @@
-/** CoreBlow — Config Set Input */ export function parseConfigSetInput(input: string): { key: string; value: string } | null { const eq = input.indexOf("="); if (eq <= 0) return null; return { key: input.slice(0, eq).trim(), value: input.slice(eq + 1).trim() }; }

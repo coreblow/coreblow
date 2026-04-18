@@ -1,7 +1,0 @@
-export const VENICE_BASE_URL = "https://api.venice.ai";
-export const VENICE_DEFAULT_MODEL_REF = "venice:llama-3.3-70b";
-export const VENICE_MODEL_CATALOG = [];
-export function buildVeniceModelDefinition(params) { return { id: params.id, label: params.label }; }
-export function buildVeniceProvider(_p) { throw new Error("buildVeniceProvider requires @coreblow/venice extension"); }
-export async function discoverVeniceModels(_p) { return []; }
-//# sourceMappingURL=venice.js.map

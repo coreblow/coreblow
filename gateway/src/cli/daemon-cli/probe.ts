@@ -1,1 +1,0 @@
-/** CoreBlow — Daemon Probe */ export async function probeDaemon(port: number): Promise<boolean> { try { const r = await fetch("http://localhost:" + port + "/health", { signal: AbortSignal.timeout(3000) }); return r.ok; } catch { return false; } }

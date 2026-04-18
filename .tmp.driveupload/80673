@@ -1,8 +1,0 @@
-/**
- * Discord Code Block Formatter — Wraps text in Discord code blocks.
- */
-export declare function codeBlock(text: string, language?: string): string;
-export declare function inlineCode(text: string): string;
-export declare function formatDiff(added: string[], removed: string[]): string;
-export declare function formatJson(obj: unknown): string;
-//# sourceMappingURL=code-block.d.ts.map

@@ -1,4 +1,0 @@
-export declare function writePid(pid: number): void;
-export declare function readPid(): number | null;
-export declare function removePid(): void;
-//# sourceMappingURL=pid-file.d.ts.map

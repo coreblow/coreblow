@@ -1,9 +1,0 @@
-/**
- * utils/url-utils.ts
- */
-export function parseQS(qs) { const p = {}; for (const pair of qs.replace(/^\?/, '').split('&')) {
-    const [k, v] = pair.split('=');
-    if (k)
-        p[decodeURIComponent(k)] = decodeURIComponent(v || '');
-} return p; }
-//# sourceMappingURL=url-utils.js.map

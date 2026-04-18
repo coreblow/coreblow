@@ -1,4 +1,0 @@
-/** plugin-sdk/imessage-runtime.ts [ADAPT] openclaw-main */
-export declare function sendMessageIMessage(_p: unknown): Promise<unknown>;
-export declare function monitorIMessageProvider(_p: unknown): Promise<void>;
-//# sourceMappingURL=imessage-runtime.d.ts.map

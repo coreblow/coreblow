@@ -1,8 +1,0 @@
-export class MemoryTools {
-    store = new Map();
-    remember(key, value) { this.store.set(key, { value, storedAt: Date.now() }); }
-    recall(key) { return this.store.get(key)?.value; }
-    forget(key) { this.store.delete(key); }
-    search(query) { return [...this.store.entries()].filter(([k]) => k.includes(query)).map(([k, v]) => ({ key: k, ...v })); }
-}
-//# sourceMappingURL=tools.js.map

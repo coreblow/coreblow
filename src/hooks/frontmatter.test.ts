@@ -233,7 +233,7 @@ describe("resolveCoreBlowMetadata", () => {
     const content = `---
 name: session-memory
 description: "Save session context to memory when /new or /reset command is issued"
-homepage: https://docs.coreblow.ai/automation/hooks#session-memory
+homepage: https://docs.coreblow.com/automation/hooks#session-memory
 metadata:
   {
     "coreblow":

@@ -1,3 +1,0 @@
-import type { DirectiveResult } from '../directive.types.js';
-export declare function parseDirectives(text: string): DirectiveResult;
-//# sourceMappingURL=parse-directives.d.ts.map

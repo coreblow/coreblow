@@ -1,4 +1,0 @@
-/** plugin-sdk/matrix-runtime-surface.ts [ADAPT] openclaw-main — Stub for @coreblow/matrix. */
-export declare function resolveMatrixAccountStringValues(_p: unknown): Record<string, string>;
-export declare function setMatrixRuntime(_p: unknown): void;
-//# sourceMappingURL=matrix-runtime-surface.d.ts.map

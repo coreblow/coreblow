@@ -1,6 +1,0 @@
-/**
- * utils/rate-utils.ts
- */
-export declare function tokensPerSecond(tokens: number, durationMs: number): number;
-export declare function costPerToken(totalCost: number, totalTokens: number): number;
-//# sourceMappingURL=rate-utils.d.ts.map

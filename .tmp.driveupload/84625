@@ -1,3 +1,0 @@
-/** plugin-sdk/config-runtime.ts [ADAPT] openclaw-main */
-export { resolveDefaultConfigDir, resolveDefaultConfigPath, resolveConfigPath } from "./config-paths.js";
-//# sourceMappingURL=config-runtime.js.map

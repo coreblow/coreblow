@@ -349,10 +349,10 @@ export function isMinimaxModel(id: string): boolean { return id.startsWith('mini
 export function isMoonshotModel(id: string): boolean { return id.startsWith('moonshot'); }
 export function getMoonshotEndpoint(): string { return 'https://api.moonshot.cn/v1'; }`,
 
-'openclaw-tools.ts': `/** OpenClaw tool definitions (compatibility). */
-export const OPENCLAW_TOOLS = ['bash', 'read', 'write', 'edit', 'search', 'glob', 'browser', 'mcp'] as const;
-export type OpenClawTool = typeof OPENCLAW_TOOLS[number];
-export function isOpenClawTool(name: string): boolean { return OPENCLAW_TOOLS.includes(name as OpenClawTool); }`,
+'coreblow-tools.ts': `/** CoreBlow tool definitions (compatibility). */
+export const COREBLOW_TOOLS = ['bash', 'read', 'write', 'edit', 'search', 'glob', 'browser', 'mcp'] as const;
+export type CoreBlowTool = typeof COREBLOW_TOOLS[number];
+export function isCoreBlowTool(name: string): boolean { return COREBLOW_TOOLS.includes(name as CoreBlowTool); }`,
 
 'opencode-zen-models.ts': `/** OpenCode Zen model definitions. */
 export function isZenModel(id: string): boolean { return id.includes('zen'); }`,

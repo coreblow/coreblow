@@ -1,1 +1,0 @@
-/** CoreBlow — Skill Commands Runtime */ const skillCommands = new Map<string, Function>(); export function registerSkillCommand(name: string, handler: Function): void { skillCommands.set(name, handler); }

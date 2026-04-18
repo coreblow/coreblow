@@ -1,9 +1,0 @@
-export class PollManager {
-    polls = new Map();
-    create(id, question, options) { const votes = new Map(); options.forEach(o => votes.set(o, 0)); this.polls.set(id, { question, options, votes }); return id; }
-    vote(pollId, option) { const p = this.polls.get(pollId); if (!p || !p.votes.has(option))
-        return false; p.votes.set(option, (p.votes.get(option) || 0) + 1); return true; }
-    getResults(pollId) { const p = this.polls.get(pollId); if (!p)
-        return null; return { question: p.question, results: Object.fromEntries(p.votes) }; }
-}
-//# sourceMappingURL=polls.js.map

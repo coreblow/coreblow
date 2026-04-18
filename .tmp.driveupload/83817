@@ -1,1 +1,0 @@
-{"version":3,"file":"collection-runtime.d.ts","sourceRoot":"","sources":["../../src/plugin-sdk/collection-runtime.ts"],"names":[],"mappings":"AAAA,6DAA6D;AAC7D,wBAAgB,gBAAgB,CAAC,CAAC,EAAE,OAAO,EAAE,MAAM,GAAG;IAAE,IAAI,EAAE,CAAC,IAAI,EAAE,CAAC,KAAK,IAAI,CAAC;IAAC,OAAO,EAAE,MAAM,CAAC,EAAE,CAAC;IAAC,IAAI,EAAE,MAAM,MAAM,CAAA;CAAE,CAGxH"}

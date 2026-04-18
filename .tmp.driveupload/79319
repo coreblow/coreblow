@@ -1,6 +1,0 @@
-/**
- * i18n/pluralization.ts
- */
-export declare function pluralize(count: number, singular: string, plural: string): string;
-export declare function formatCount(count: number, singular: string, plural: string): string;
-//# sourceMappingURL=pluralization.d.ts.map

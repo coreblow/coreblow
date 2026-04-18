@@ -1,6 +1,0 @@
-/**
- * plugin-sdk/whatsapp-auth-presence.ts
- * [PORT] openclaw-main
- */
-export { hasAnyWhatsAppAuth } from "./whatsapp-surface.js";
-//# sourceMappingURL=whatsapp-auth-presence.js.map

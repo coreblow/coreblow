@@ -42,8 +42,8 @@ describe("tryRouteCli", () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    originalDisableRouteFirst = process.env.OPENCLAW_DISABLE_ROUTE_FIRST;
-    delete process.env.OPENCLAW_DISABLE_ROUTE_FIRST;
+    originalDisableRouteFirst = process.env.COREBLOW_DISABLE_ROUTE_FIRST;
+    delete process.env.COREBLOW_DISABLE_ROUTE_FIRST;
     vi.resetModules();
     ({ tryRouteCli } = await import("./route.js"));
     ({ loggingState } = await import("../logging/state.js"));
@@ -60,9 +60,9 @@ describe("tryRouteCli", () => {
       loggingState.forceConsoleToStderr = originalForceStderr;
     }
     if (originalDisableRouteFirst === undefined) {
-      delete process.env.OPENCLAW_DISABLE_ROUTE_FIRST;
+      delete process.env.COREBLOW_DISABLE_ROUTE_FIRST;
     } else {
-      process.env.OPENCLAW_DISABLE_ROUTE_FIRST = originalDisableRouteFirst;
+      process.env.COREBLOW_DISABLE_ROUTE_FIRST = originalDisableRouteFirst;
     }
   });
 

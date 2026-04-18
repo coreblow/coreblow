@@ -1,4 +1,0 @@
-/** agents/identity-avatar.ts — Avatar utilities. */
-export declare function getDefaultAvatar(): string;
-export declare function resolveAvatar(avatar?: string): string;
-//# sourceMappingURL=identity-avatar.d.ts.map
