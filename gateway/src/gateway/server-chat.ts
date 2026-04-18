@@ -1,0 +1,1 @@
+/** CoreBlow — Server Chat Handler */ export function createChatHandler(): (req: Request) => Promise<Response> { return async () => new Response(JSON.stringify({ error: "Chat handler not configured" }), { status: 501 }); }

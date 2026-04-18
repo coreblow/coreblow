@@ -1,0 +1,1 @@
+/** CoreBlow — Schema Tags */ export type SchemaTag = "essential" | "advanced" | "experimental" | "deprecated"; export function getFieldTags(path: string): SchemaTag[] { const tags: Record<string, SchemaTag[]> = { provider: ["essential"], model: ["essential"], temperature: ["advanced"], }; return tags[path] ?? []; }

@@ -1,7 +1,7 @@
 /**
  * markdown/fences.ts
  * Code fence detection and extraction.
- * Ported from OpenClaw src/markdown/fences.ts.
+ * Ported from CoreBlow src/markdown/fences.ts.
  */
 
 export interface CodeFence {

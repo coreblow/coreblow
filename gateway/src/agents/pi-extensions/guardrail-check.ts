@@ -1,0 +1,1 @@
+/** CoreBlow — PI Guardrail Check */ export function checkGuardrails(input: string): { safe: boolean; reason?: string } { if (input.length > 100000) return { safe: false, reason: "Input too long" }; return { safe: true }; }

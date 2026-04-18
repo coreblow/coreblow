@@ -1,0 +1,1 @@
+/** CoreBlow — Channel Health Policy */ export interface HealthPolicy { checkIntervalMs: number; maxConsecutiveFailures: number; recoverAfterMs: number; } export const DEFAULT_HEALTH_POLICY: HealthPolicy = { checkIntervalMs: 60000, maxConsecutiveFailures: 3, recoverAfterMs: 300000 };

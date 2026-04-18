@@ -1,0 +1,1 @@
+/** CoreBlow — TLS Config */ export interface TlsConfig { certPath: string; keyPath: string; ca?: string; } export function isTlsEnabled(env: NodeJS.ProcessEnv = process.env): boolean { return Boolean(env.COREBLOW_TLS_CERT && env.COREBLOW_TLS_KEY); }

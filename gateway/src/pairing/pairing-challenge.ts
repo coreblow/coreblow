@@ -1,7 +1,7 @@
 /**
  * pairing/pairing-challenge.ts
  * Shared pairing challenge issuance for DM pairing policy pathways.
- * Ported 1:1 from OpenClaw src/pairing/pairing-challenge.ts.
+ * Ported 1:1 from CoreBlow src/pairing/pairing-challenge.ts.
  */
 
 import { buildPairingReply } from './pairing-messages.js';

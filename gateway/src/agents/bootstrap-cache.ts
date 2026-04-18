@@ -1,7 +1,7 @@
 /**
  * agents/bootstrap-cache.ts
  * Cache management for bootstrap/session data.
- * Ported from OpenClaw src/agents/bootstrap-cache.ts.
+ * Ported from CoreBlow src/agents/bootstrap-cache.ts.
  */
 
 export interface CacheEntry<T = unknown> {

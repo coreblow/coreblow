@@ -1,7 +1,7 @@
 /**
  * secrets/encryption.ts
  * AES-256-GCM encryption with PBKDF2 key derivation.
- * Upgraded from CBC to GCM for authenticated encryption (OpenClaw security standard).
+ * Upgraded from CBC to GCM for authenticated encryption (CoreBlow security standard).
  */
 
 import * as crypto from 'node:crypto';

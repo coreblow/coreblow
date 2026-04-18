@@ -1,7 +1,7 @@
 /**
  * channels/typing-policy.ts
  * Typing policy resolution per context.
- * Ported from OpenClaw src/auto-reply/reply/typing-policy.ts.
+ * Ported from CoreBlow src/auto-reply/reply/typing-policy.ts.
  */
 
 export type TypingPolicy = 'auto' | 'always' | 'never' | 'heartbeat' | 'internal_webchat' | 'system_event';

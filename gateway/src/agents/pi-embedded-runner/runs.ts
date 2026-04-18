@@ -1,0 +1,1 @@
+/** CoreBlow — PI Runs Registry */ const activeRuns = new Map<string, { startedAt: number }>(); export function trackRun(id: string): void { activeRuns.set(id, { startedAt: Date.now() }); } export function getActiveRunCount(): number { return activeRuns.size; }

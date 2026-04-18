@@ -1,0 +1,1 @@
+/** CoreBlow — Sandbox Network Mode */ export type NetworkMode = "none" | "host" | "bridge"; export function resolveNetworkMode(allowNetwork: boolean): NetworkMode { return allowNetwork ? "bridge" : "none"; }

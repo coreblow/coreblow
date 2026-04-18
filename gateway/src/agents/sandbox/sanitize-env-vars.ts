@@ -1,0 +1,1 @@
+/** CoreBlow — Sandbox Env Sanitize */ const BLOCKED_ENV = new Set(["PATH", "HOME", "USER", "SHELL"]); export function sanitizeSandboxEnv(env: Record<string, string>): Record<string, string> { const clean: Record<string, string> = {}; for (const [k, v] of Object.entries(env)) { if (!BLOCKED_ENV.has(k)) clean[k] = v; } return clean; }

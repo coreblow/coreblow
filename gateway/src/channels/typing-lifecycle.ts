@@ -1,7 +1,7 @@
 /**
  * channels/typing-lifecycle.ts
  * Typing keepalive loop with safety TTL.
- * Ported 1:1 from OpenClaw src/channels/typing-lifecycle.ts.
+ * Ported 1:1 from CoreBlow src/channels/typing-lifecycle.ts.
  */
 
 type AsyncTick = () => Promise<void> | void;

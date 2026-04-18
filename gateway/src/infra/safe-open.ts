@@ -1,7 +1,7 @@
 /**
  * CoreBlow — Safe File Open (Sync)
  *
- * Ported from OpenClaw's safe-open-sync.ts.
+ * Ported from CoreBlow's safe-open-sync.ts.
  * Opens files with security validation:
  *   - O_NOFOLLOW to reject symlinks at kernel level
  *   - Pre-open lstat + post-open fstat (TOCTOU protection)
@@ -50,7 +50,7 @@ function isAllowedType(stat: fs.Stats, allowedType: SafeOpenSyncAllowedType): bo
 /**
  * Open a file with full security validation.
  *
- * OpenClaw pattern: lstat → validate → open(O_NOFOLLOW) → fstat → validate identity
+ * CoreBlow pattern: lstat → validate → open(O_NOFOLLOW) → fstat → validate identity
  *
  * This prevents:
  *   - Symlink following (O_NOFOLLOW)

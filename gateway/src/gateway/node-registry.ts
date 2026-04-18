@@ -1,0 +1,1 @@
+/** CoreBlow — Node Registry */ const nodes = new Map<string, { id: string; name: string; type: string; online: boolean }>(); export function registerNode(id: string, name: string, type: string): void { nodes.set(id, { id, name, type, online: true }); } export function getNode(id: string) { return nodes.get(id); } export function getAllNodes() { return [...nodes.values()]; }

@@ -1,0 +1,1 @@
+/** CoreBlow — Command Tree */ export interface CommandNode { name: string; children: CommandNode[]; } export function buildCommandTree(commands: string[]): CommandNode { const root: CommandNode = { name: "coreblow", children: [] }; for (const cmd of commands) root.children.push({ name: cmd, children: [] }); return root; }

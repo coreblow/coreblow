@@ -2,7 +2,7 @@
  * agents/agent-engine.live.test.ts
  * Live tests — calls real LLM APIs.
  * Only runs when COREBLOW_LIVE_TEST=1 is set.
- * Follows OpenClaw's live-test-helpers.ts pattern.
+ * Follows CoreBlow's live-test-helpers.ts pattern.
  */
 import { describe, expect, it } from 'vitest';
 import { AgentEngine } from './agent-engine.js';

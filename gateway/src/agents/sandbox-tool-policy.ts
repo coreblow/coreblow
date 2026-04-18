@@ -1,0 +1,1 @@
+/** CoreBlow — Sandbox Tool Policy */ export interface SandboxToolPolicy { allowNetwork: boolean; allowFileSystem: boolean; allowExec: boolean; timeout: number; } export const DEFAULT_SANDBOX_POLICY: SandboxToolPolicy = { allowNetwork: false, allowFileSystem: true, allowExec: false, timeout: 30000 };

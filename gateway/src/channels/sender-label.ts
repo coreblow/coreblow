@@ -1,0 +1,1 @@
+/** CoreBlow — Sender Label */ export function formatSenderLabel(identity: { displayName?: string; userName?: string; userId: string }): string { return identity.displayName ?? identity.userName ?? identity.userId; }

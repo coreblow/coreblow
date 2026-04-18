@@ -1,7 +1,7 @@
 /**
  * media-understanding/image-analysis.ts
  * Image analysis engine.
- * Ported from OpenClaw src/media-understanding/image.ts.
+ * Ported from CoreBlow src/media-understanding/image.ts.
  */
 
 import type { ImageDescriptionRequest, MediaSource } from './types.js';

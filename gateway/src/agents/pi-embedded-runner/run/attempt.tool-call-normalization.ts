@@ -1,0 +1,1 @@
+/** CoreBlow — Tool Call Normalization */ export function normalizeToolCall(call: Record<string, unknown>): { name: string; arguments: Record<string, unknown> } { return { name: String(call.name ?? ""), arguments: (call.arguments ?? {}) as Record<string, unknown> }; }

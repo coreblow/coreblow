@@ -1,0 +1,1 @@
+/** CoreBlow — Install Mode Options */ export type InstallMode = "global" | "local" | "isolated"; export function resolveInstallMode(env: NodeJS.ProcessEnv = process.env): InstallMode { return (env.COREBLOW_INSTALL_MODE as InstallMode) ?? "global"; }

@@ -1,0 +1,1 @@
+/** CoreBlow — Compact Runtime */ let compactionEnabled = true; export function setCompactionEnabled(enabled: boolean): void { compactionEnabled = enabled; } export function isCompactionEnabled(): boolean { return compactionEnabled; }

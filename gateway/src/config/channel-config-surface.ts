@@ -1,0 +1,1 @@
+/** CoreBlow — Channel Config Surface */ export type ConfigSurface = "cli" | "web" | "api" | "file"; export function resolveConfigSurface(env: NodeJS.ProcessEnv = process.env): ConfigSurface { if (env.COREBLOW_CLI === "1") return "cli"; if (env.COREBLOW_WEB === "1") return "web"; return "file"; }

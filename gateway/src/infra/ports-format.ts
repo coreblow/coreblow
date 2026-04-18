@@ -1,0 +1,1 @@
+/** CoreBlow — Ports Format */ export function formatPortInfo(port: number, pid?: number, process?: string): string { const parts = [":" + port]; if (pid) parts.push("PID " + pid); if (process) parts.push(process); return parts.join(" "); }

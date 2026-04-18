@@ -1,7 +1,7 @@
 /**
  * agents/auth-health.ts
  * Auth credential health monitoring for providers.
- * Ported from OpenClaw src/agents/auth-health.ts (287 LOC).
+ * Ported from CoreBlow src/agents/auth-health.ts (287 LOC).
  */
 
 import { normalizeProviderId } from './provider-id.js';

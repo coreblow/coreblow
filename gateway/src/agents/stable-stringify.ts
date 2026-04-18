@@ -1,7 +1,7 @@
 /**
  * agents/stable-stringify.ts
  * Deterministic JSON serialization for cache keys / comparison.
- * Ported from OpenClaw src/agents/stable-stringify.ts.
+ * Ported from CoreBlow src/agents/stable-stringify.ts.
  */
 export function stableStringify(value: unknown): string {
     if (value === null || value === undefined) return JSON.stringify(value);

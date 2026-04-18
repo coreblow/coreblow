@@ -1,0 +1,1 @@
+/** CoreBlow — PI Lanes */ export type PiLane = "realtime" | "standard" | "batch"; export function resolvePiLane(priority?: number): PiLane { if (priority && priority > 8) return "realtime"; if (priority && priority < 3) return "batch"; return "standard"; }

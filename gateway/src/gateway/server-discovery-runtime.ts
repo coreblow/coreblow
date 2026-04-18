@@ -1,0 +1,1 @@
+/** CoreBlow — Server Discovery Runtime */ let discoveryUrl: string | null = null; export function setDiscoveryUrl(url: string): void { discoveryUrl = url; } export function getDiscoveryUrl(): string | null { return discoveryUrl; }

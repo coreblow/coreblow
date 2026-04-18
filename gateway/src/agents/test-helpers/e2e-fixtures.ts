@@ -1,7 +1,7 @@
 /**
  * agents/test-helpers/e2e-fixtures.ts
  * E2E test fixtures for AgentEngine — full pipeline with mock providers.
- * Follows OpenClaw's pi-embedded-runner-e2e-fixtures.ts pattern.
+ * Follows CoreBlow's pi-embedded-runner-e2e-fixtures.ts pattern.
  */
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -51,7 +51,7 @@ export interface MockProviderScenario {
 
 /**
  * Create a mock provider that returns scripted responses.
- * Follows OpenClaw's buildAssistantMessage pattern.
+ * Follows CoreBlow's buildAssistantMessage pattern.
  */
 export function createScriptedProvider(scenario: MockProviderScenario): ModelProvider {
     let callIndex = 0;
@@ -77,7 +77,7 @@ export function createScriptedProvider(scenario: MockProviderScenario): ModelPro
 
 /**
  * Create a provider that always responds "ok".
- * Equivalent to OpenClaw's LIVE_OK_PROMPT pattern.
+ * Equivalent to CoreBlow's LIVE_OK_PROMPT pattern.
  */
 export function createOkProvider(): ModelProvider {
     return createScriptedProvider({

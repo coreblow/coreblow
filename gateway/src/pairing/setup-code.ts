@@ -1,7 +1,7 @@
 /**
  * pairing/setup-code.ts
  * Pairing setup payload resolution — URL, token, QR.
- * Ported from OpenClaw src/pairing/setup-code.ts.
+ * Ported from CoreBlow src/pairing/setup-code.ts.
  */
 
 import os from 'node:os';

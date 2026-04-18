@@ -1,7 +1,7 @@
 /**
  * channels/typing-start-guard.ts
  * Guard that trips (disables typing) after consecutive failures.
- * Ported from OpenClaw src/channels/typing-start-guard.ts.
+ * Ported from CoreBlow src/channels/typing-start-guard.ts.
  */
 
 export type TypingStartGuard = {

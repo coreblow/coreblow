@@ -1,0 +1,1 @@
+/** CoreBlow — Types: Hooks */ export type HookTrigger = "message:before" | "message:after" | "session:start" | "session:end"; export interface HookConfig { name: string; trigger: HookTrigger; command: string; timeout?: number; enabled: boolean; }

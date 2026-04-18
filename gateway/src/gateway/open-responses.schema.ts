@@ -1,0 +1,1 @@
+/** CoreBlow — Open Responses Schema */ export interface OpenResponsesMessage { role: "user" | "assistant" | "system"; content: string; } export interface OpenResponsesRequest { model: string; messages: OpenResponsesMessage[]; stream?: boolean; max_tokens?: number; }

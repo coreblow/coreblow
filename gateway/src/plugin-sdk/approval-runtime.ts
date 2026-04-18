@@ -1,7 +1,7 @@
 /**
  * plugin-sdk/approval-runtime.ts
  * Tool approval flow for plugins.
- * Ported from OpenClaw src/plugin-sdk/approval-runtime.ts.
+ * Ported from CoreBlow src/plugin-sdk/approval-runtime.ts.
  */
 
 export type ApprovalDecision = 'approved' | 'denied' | 'timeout';

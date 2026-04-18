@@ -63,7 +63,7 @@ import { formatOwner } from './owner-display.js';
 import { resolveAvatar } from './identity-avatar.js';
 import { formatAttribution } from './provider-attribution.js';
 import { resolveClaudeCliConfig } from './claude-cli-runner.js';
-import { OPENCLAW_TOOLS, isOpenClawTool } from './openclaw-tools.js';
+import { COREBLOW_TOOLS, isCoreBlowTool } from './coreblow-tools.js';
 import { OLLAMA_DEFAULT_URL } from './self-hosted-provider-defaults.js';
 import { isMediaPath } from './sandbox-media-paths.js';
 import { detectTemplate } from './workspace-templates.js';
@@ -150,7 +150,7 @@ describe('Misc modules', () => {
     it('avatar', () => { expect(resolveAvatar()).toBe('🤖'); expect(resolveAvatar('🐙')).toBe('🐙'); });
     it('attribution', () => { expect(formatAttribution('Anthropic', 'Claude')).toContain('Powered by'); });
     it('claude cli config', () => { expect(resolveClaudeCliConfig({}).model).toContain('claude'); });
-    it('openclaw tools', () => { expect(isOpenClawTool('bash')).toBe(true); expect(isOpenClawTool('fake')).toBe(false); });
+    it('coreblow tools', () => { expect(isCoreBlowTool('bash')).toBe(true); expect(isCoreBlowTool('fake')).toBe(false); });
     it('ollama url', () => { expect(OLLAMA_DEFAULT_URL).toContain('11434'); });
     it('media path', () => { expect(isMediaPath('photo.png')).toBe(true); expect(isMediaPath('code.ts')).toBe(false); });
     it('workspace template', () => { expect(detectTemplate(['next.config.js'])).toBe('nextjs'); expect(detectTemplate(['vite.config.ts'])).toBe('vite'); });

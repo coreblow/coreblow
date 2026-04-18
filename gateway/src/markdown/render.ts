@@ -1,7 +1,7 @@
 /**
  * markdown/render.ts
  * Cross-channel markdown rendering.
- * Ported from OpenClaw src/markdown/render.ts.
+ * Ported from CoreBlow src/markdown/render.ts.
  */
 
 import type { MarkdownIR, MarkdownLinkSpan, MarkdownStyle, MarkdownStyleSpan } from './ir.js';

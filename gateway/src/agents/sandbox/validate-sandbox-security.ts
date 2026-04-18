@@ -1,0 +1,1 @@
+/** CoreBlow — Validate Sandbox Security */ export function validateSandboxSecurity(config: Record<string, unknown>): string[] { const issues: string[] = []; if (config.networkAccess) issues.push("Network access enabled"); return issues; }

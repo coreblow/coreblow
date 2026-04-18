@@ -1,7 +1,7 @@
 /**
  * agents/date-time.ts
  * Date/time formatting for agent prompts and display.
- * Ported from OpenClaw src/agents/date-time.ts.
+ * Ported from CoreBlow src/agents/date-time.ts.
  */
 
 export type TimeFormat = '12h' | '24h';

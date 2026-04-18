@@ -1,7 +1,7 @@
 /**
  * media-understanding/scope.ts
  * Media scope resolution and validation.
- * Ported from OpenClaw src/media-understanding/scope.ts.
+ * Ported from CoreBlow src/media-understanding/scope.ts.
  */
 
 import type { MediaType, MediaUnderstandingScope, MediaSource } from './types.js';

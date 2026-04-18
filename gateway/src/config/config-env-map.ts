@@ -1,7 +1,7 @@
 /**
  * config/config-env-map.ts
  * Environment variable → config path mapping.
- * Ported from OpenClaw src/config/config-env-vars.ts.
+ * Ported from CoreBlow src/config/config-env-vars.ts.
  */
 
 export interface EnvConfigMapping {

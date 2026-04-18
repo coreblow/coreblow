@@ -1,0 +1,1 @@
+/** CoreBlow — Model Suppression Runtime */ const suppressed = new Set<string>(); export function suppressModel(name: string): void { suppressed.add(name); } export function isModelSuppressed(name: string): boolean { return suppressed.has(name); }

@@ -1,0 +1,1 @@
+/** CoreBlow — Legacy Audio Migrations */ export function migrateAudioConfig(config: Record<string, unknown>): Record<string, unknown> { if (config.ttsEnabled !== undefined && config.tts === undefined) { return { ...config, tts: { enabled: Boolean(config.ttsEnabled) } }; } return config; }

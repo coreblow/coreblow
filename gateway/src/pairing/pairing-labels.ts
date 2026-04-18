@@ -1,7 +1,7 @@
 /**
  * pairing/pairing-labels.ts
  * Human-readable labels and formatting for pairing state.
- * Ported from OpenClaw src/pairing/pairing-labels.ts.
+ * Ported from CoreBlow src/pairing/pairing-labels.ts.
  */
 
 import type { PairingRequest } from './pairing-store.js';

@@ -1,7 +1,7 @@
 /**
  * auto-reply/inbound-debounce.ts
  * Inbound message debouncing with key-based batching.
- * Ported from OpenClaw src/auto-reply/inbound-debounce.ts.
+ * Ported from CoreBlow src/auto-reply/inbound-debounce.ts.
  */
 
 const DEFAULT_MAX_TRACKED_KEYS = 2048;

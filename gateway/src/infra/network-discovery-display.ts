@@ -1,0 +1,1 @@
+/** CoreBlow — Network Discovery Display */ export function formatDiscoveredNodes(nodes: Array<{ name: string; host: string; port: number }>): string { if (nodes.length === 0) return "No nodes discovered."; return nodes.map((n) => "  " + n.name + " @ " + n.host + ":" + n.port).join("\n"); }

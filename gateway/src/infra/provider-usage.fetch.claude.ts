@@ -1,0 +1,1 @@
+/** CoreBlow — Provider Usage Fetch Claude */ export function resolveClaudeApiKey(env: NodeJS.ProcessEnv = process.env): string | undefined { return env.ANTHROPIC_API_KEY?.trim() || env.CLAUDE_API_KEY?.trim(); }

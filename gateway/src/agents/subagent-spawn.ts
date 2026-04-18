@@ -1,7 +1,7 @@
 /**
  * agents/subagent-spawn.ts
  * Subagent spawning and orchestration.
- * Ported from OpenClaw src/agents/subagent-spawn.ts.
+ * Ported from CoreBlow src/agents/subagent-spawn.ts.
  */
 
 import { SubagentRegistry, type SubagentEntry } from './subagent-registry.js';

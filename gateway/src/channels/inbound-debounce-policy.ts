@@ -1,0 +1,1 @@
+/** CoreBlow — Inbound Debounce Policy */ export interface DebouncePolicy { windowMs: number; maxMessages: number; } export const DEFAULT_DEBOUNCE: DebouncePolicy = { windowMs: 1000, maxMessages: 5 };

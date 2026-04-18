@@ -1,0 +1,1 @@
+/** CoreBlow — PI History Manager */ export function trimHistory(messages: Array<{ role: string; content: string }>, maxMessages: number): Array<{ role: string; content: string }> { return messages.slice(-maxMessages); }

@@ -1,0 +1,1 @@
+/** CoreBlow — Auto-Reply Status */ export type ReplyStatus = "idle" | "processing" | "error"; let status: ReplyStatus = "idle"; export function getReplyStatus(): ReplyStatus { return status; } export function setReplyStatus(s: ReplyStatus): void { status = s; }

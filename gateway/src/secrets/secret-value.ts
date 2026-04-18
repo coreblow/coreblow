@@ -1,7 +1,7 @@
 /**
  * secrets/secret-value.ts
  * Secret value validation types.
- * Ported from OpenClaw src/secrets/secret-value.ts.
+ * Ported from CoreBlow src/secrets/secret-value.ts.
  */
 
 import { isNonEmptyString, isRecord } from './shared.js';

@@ -1,0 +1,1 @@
+/** CoreBlow — Plugin Install Plan */ export interface InstallPlan { name: string; version: string; dependencies: string[]; steps: string[]; } export function createInstallPlan(name: string, version: string): InstallPlan { return { name, version, dependencies: [], steps: ["download", "verify", "install"] }; }

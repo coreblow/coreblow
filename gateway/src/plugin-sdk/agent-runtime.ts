@@ -1,7 +1,7 @@
 /**
  * plugin-sdk/agent-runtime.ts
  * Plugin access to agent lifecycle.
- * Ported from OpenClaw src/plugin-sdk/agent-runtime.ts.
+ * Ported from CoreBlow src/plugin-sdk/agent-runtime.ts.
  */
 
 export interface AgentRuntimeContext {

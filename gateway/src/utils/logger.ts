@@ -1,7 +1,7 @@
 /**
  * utils/logger.ts
  * Structured logging pipeline with module-scoped loggers, redaction, and correlation.
- * Upgraded from 26 LOC to full OpenClaw-pattern pipeline.
+ * Upgraded from 26 LOC to full CoreBlow-pattern pipeline.
  */
 
 import { pino } from 'pino';
@@ -16,7 +16,7 @@ const LOG_FORMAT = process.env.LOG_FORMAT || (isDev ? 'pretty' : 'json');
 
 // ─── Redaction Paths ──────────────────────────────────────────────
 // Fields at these paths will be replaced with [REDACTED] in log output.
-// Follows OpenClaw's redactPatterns convention.
+// Follows CoreBlow's redactPatterns convention.
 
 const REDACTION_PATHS = [
     'token', 'password', 'secret', 'apiKey', 'appPassword',

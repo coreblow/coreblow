@@ -1,7 +1,7 @@
 /**
  * agents/sanitize-for-prompt.ts
  * Sanitization utilities for safe embedding in LLM prompts.
- * Ported from OpenClaw src/agents/sanitize-for-prompt.ts + console-sanitize.ts.
+ * Ported from CoreBlow src/agents/sanitize-for-prompt.ts + console-sanitize.ts.
  */
 
 /**

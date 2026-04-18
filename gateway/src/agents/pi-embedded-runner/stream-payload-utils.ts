@@ -1,0 +1,1 @@
+/** CoreBlow — PI Stream Payload Utils */ export function parseStreamChunk(chunk: string): Record<string, unknown> | null { try { return JSON.parse(chunk.replace(/^data: /, "")); } catch { return null; } }

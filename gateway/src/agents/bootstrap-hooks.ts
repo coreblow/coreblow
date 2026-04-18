@@ -1,7 +1,7 @@
 /**
  * agents/bootstrap-hooks.ts
  * Hook points for agent bootstrap lifecycle.
- * Ported from OpenClaw src/agents/bootstrap-hooks.ts.
+ * Ported from CoreBlow src/agents/bootstrap-hooks.ts.
  */
 
 export type BootstrapPhase = 'pre_init' | 'post_init' | 'pre_turn' | 'post_turn' | 'pre_shutdown' | 'post_shutdown';

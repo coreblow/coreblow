@@ -1,7 +1,7 @@
 /**
  * channels/typing-controller.ts
  * Full typing controller with keepalive, guard, and TTL.
- * Ported from OpenClaw src/channels/typing.ts.
+ * Ported from CoreBlow src/channels/typing.ts.
  */
 
 import { createTypingKeepaliveLoop } from './typing-lifecycle.js';

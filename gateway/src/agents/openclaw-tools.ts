@@ -1,4 +1,4 @@
-/** OpenClaw tool definitions (compatibility). */
-export const OPENCLAW_TOOLS = ['bash', 'read', 'write', 'edit', 'search', 'glob', 'browser', 'mcp'] as const;
-export type OpenClawTool = typeof OPENCLAW_TOOLS[number];
-export function isOpenClawTool(name: string): boolean { return OPENCLAW_TOOLS.includes(name as OpenClawTool); }
+/** CoreBlow tool definitions (compatibility). */
+export const COREBLOW_TOOLS = ['bash', 'read', 'write', 'edit', 'search', 'glob', 'browser', 'mcp'] as const;
+export type CoreBlowTool = typeof COREBLOW_TOOLS[number];
+export function isCoreBlowTool(name: string): boolean { return COREBLOW_TOOLS.includes(name as CoreBlowTool); }

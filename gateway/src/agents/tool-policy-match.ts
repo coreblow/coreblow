@@ -1,0 +1,1 @@
+/** CoreBlow — Tool Policy Match */ export function matchesToolPolicy(toolName: string, pattern: string): boolean { if (pattern === "*") return true; return toolName === pattern || toolName.startsWith(pattern.replace("*", "")); }

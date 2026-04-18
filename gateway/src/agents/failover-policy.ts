@@ -1,7 +1,7 @@
 /**
  * agents/failover-policy.ts
  * Model failover and cooldown policy.
- * Ported from OpenClaw src/agents/failover-policy.ts + failover-error.ts.
+ * Ported from CoreBlow src/agents/failover-policy.ts + failover-error.ts.
  */
 
 export type FailoverReason = 'rate_limit' | 'timeout' | 'server_error' | 'context_overflow' | 'auth_error' | 'unknown';

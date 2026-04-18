@@ -2,7 +2,7 @@
  * config/config.schema.ts
  * Zod runtime validation for CoreBlow gateway configuration.
  *
- * Following OpenClaw pattern: full config.json schema validation at
+ * Following CoreBlow pattern: full config.json schema validation at
  * startup + runtime patching. Every field has a default and explicit validation.
  */
 

@@ -1,0 +1,1 @@
+/** CoreBlow — Zod Schema: Approvals */ import { validateEnum } from "./zod-schema.core.js"; export function validateApprovalsConfig(config: Record<string, unknown>): string[] { const errors: string[] = []; if (config.mode !== undefined) errors.push(...validateEnum(config.mode, "mode", ["auto", "manual", "smart"])); return errors; }

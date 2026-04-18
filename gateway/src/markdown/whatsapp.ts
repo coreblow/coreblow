@@ -1,7 +1,7 @@
 /**
  * markdown/whatsapp.ts
  * WhatsApp-flavored markdown conversion.
- * Ported from OpenClaw src/markdown/whatsapp.ts.
+ * Ported from CoreBlow src/markdown/whatsapp.ts.
  */
 
 import { parseMarkdownToIR, type MarkdownIR } from './ir.js';

@@ -1,7 +1,7 @@
 /**
  * agents/model-catalog.ts
  * Model catalog — registry of available models and capabilities.
- * Ported from OpenClaw src/agents/model-catalog.ts.
+ * Ported from CoreBlow src/agents/model-catalog.ts.
  */
 
 export interface ModelCatalogEntry {

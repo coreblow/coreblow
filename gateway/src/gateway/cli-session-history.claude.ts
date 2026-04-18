@@ -1,0 +1,1 @@
+/** CoreBlow — CLI Session History Claude */ export function formatClaudeHistory(entries: Array<{ query: string; response: string }>): Array<{ role: string; content: string }> { const msgs: Array<{ role: string; content: string }> = []; for (const e of entries) { msgs.push({ role: "user", content: e.query }, { role: "assistant", content: e.response }); } return msgs; }

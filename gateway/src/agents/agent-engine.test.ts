@@ -61,7 +61,7 @@ describe('AgentEngineConfig', () => {
         expect(config.maxContextTokens).toBe(200_000);
     });
 
-    it('DEFAULT_TOOL_APPROVAL follows OpenClaw pattern', () => {
+    it('DEFAULT_TOOL_APPROVAL follows CoreBlow pattern', () => {
         expect(DEFAULT_TOOL_APPROVAL.autoApproveTools).toContain('read_file');
         expect(DEFAULT_TOOL_APPROVAL.autoApproveTools).toContain('search');
         expect(DEFAULT_TOOL_APPROVAL.requireApprovalTools).toContain('bash');

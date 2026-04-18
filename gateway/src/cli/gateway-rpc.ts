@@ -1,0 +1,1 @@
+/** CoreBlow — Gateway RPC */ export async function gatewayRpc(method: string, params?: unknown): Promise<unknown> { const url = process.env.COREBLOW_GATEWAY_URL || "http://localhost:3000"; const r = await fetch(url + "/rpc", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ method, params }) }); return r.json(); }

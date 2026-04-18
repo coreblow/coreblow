@@ -1,0 +1,1 @@
+/** CoreBlow — Push APNS */ export interface ApnsConfig { keyId: string; teamId: string; bundleId: string; production: boolean; } export interface ApnsPayload { title: string; body: string; data?: Record<string, unknown>; }

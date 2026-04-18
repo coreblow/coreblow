@@ -1,7 +1,7 @@
 /**
  * auto-reply/send-policy.ts
  * Reply delivery policy engine.
- * Ported from OpenClaw src/auto-reply/send-policy.ts.
+ * Ported from CoreBlow src/auto-reply/send-policy.ts.
  */
 
 export type SendPolicyOverride = 'allow' | 'deny';

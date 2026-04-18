@@ -1,7 +1,7 @@
 /**
  * cli/channel-auth.ts
  * Interactive channel authentication wizard.
- * Ported from OpenClaw src/cli/channel-auth.ts.
+ * Ported from CoreBlow src/cli/channel-auth.ts.
  */
 
 import { CHANNEL_IDS, type ChannelId } from '../config/allowed-values.js';

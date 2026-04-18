@@ -1,7 +1,7 @@
 /**
  * secrets/shared.ts
  * Shared utilities for CoreBlow secrets engine.
- * Ported from OpenClaw src/secrets/shared.ts with additional secure I/O helpers.
+ * Ported from CoreBlow src/secrets/shared.ts with additional secure I/O helpers.
  */
 
 import fs from 'node:fs';

@@ -1,0 +1,1 @@
+/** CoreBlow — CoreBlow Tools Runtime */ const registeredTools = new Map<string, Function>(); export function registerTool(name: string, handler: Function): void { registeredTools.set(name, handler); } export function getTool(name: string): Function | undefined { return registeredTools.get(name); } export function getAllTools(): string[] { return [...registeredTools.keys()]; }

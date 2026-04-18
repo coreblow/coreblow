@@ -1,0 +1,1 @@
+/** CoreBlow — PI Stream Accumulator */ export class StreamAccumulator { private chunks: string[] = []; push(chunk: string): void { this.chunks.push(chunk); } getText(): string { return this.chunks.join(""); } getTokenEstimate(): number { return Math.ceil(this.getText().length / 4); } }

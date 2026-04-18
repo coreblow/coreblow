@@ -1,0 +1,1 @@
+/** CoreBlow — Sandbox Config Hash */ import { createHash } from "node:crypto"; export function hashSandboxConfig(config: Record<string, unknown>): string { return createHash("sha256").update(JSON.stringify(config)).digest("hex").slice(0, 12); }

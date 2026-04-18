@@ -1,7 +1,7 @@
 /**
  * secrets/env-secrets.ts
  * Environment variable secret management with allowlists and redaction.
- * Extended from CoreBlow placeholder to match OpenClaw patterns.
+ * Extended from CoreBlow placeholder to match CoreBlow patterns.
  */
 
 import { isNonEmptyString, maskSecret } from './shared.js';

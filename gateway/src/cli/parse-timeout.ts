@@ -1,0 +1,1 @@
+/** CoreBlow — Parse Timeout */ import { parseDuration } from "./parse-duration.js"; export function parseTimeout(input: string, defaultMs = 30000): number { return parseDuration(input) ?? defaultMs; }

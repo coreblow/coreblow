@@ -1,7 +1,7 @@
 /**
  * agents/bootstrap-budget.ts
  * Token/cost budget tracking and enforcement for agent turns.
- * Ported from OpenClaw src/agents/bootstrap-budget.ts.
+ * Ported from CoreBlow src/agents/bootstrap-budget.ts.
  */
 
 export interface BudgetConfig {

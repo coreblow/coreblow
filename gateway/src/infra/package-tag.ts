@@ -1,0 +1,1 @@
+/** CoreBlow — Package Tag */ export function resolvePackageTag(version: string): string { if (version.includes("alpha")) return "alpha"; if (version.includes("beta")) return "beta"; if (version.includes("rc")) return "rc"; return "latest"; }

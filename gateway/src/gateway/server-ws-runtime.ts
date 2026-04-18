@@ -1,0 +1,1 @@
+/** CoreBlow — Server WebSocket Runtime */ let wsServer: unknown = null; export function setWsServer(server: unknown): void { wsServer = server; } export function getWsServer(): unknown { return wsServer; }

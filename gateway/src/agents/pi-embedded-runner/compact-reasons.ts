@@ -1,0 +1,1 @@
+/** CoreBlow — Compact Reasons */ export type CompactReason = "token-limit" | "manual" | "timeout" | "memory"; export function formatCompactReason(reason: CompactReason): string { return "Compaction: " + reason; }

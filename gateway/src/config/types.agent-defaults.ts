@@ -1,0 +1,1 @@
+/** CoreBlow — Types: Agent Defaults */ export interface AgentDefaults { model: string; temperature: number; maxTokens: number; maxTurns: number; timeout: number; } export const DEFAULT_AGENT_SETTINGS: AgentDefaults = { model: "claude-sonnet-4-20250514", temperature: 0.7, maxTokens: 8192, maxTurns: 25, timeout: 120000 };

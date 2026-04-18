@@ -1,0 +1,1 @@
+/** CoreBlow — Config Reload Plan */ export interface ReloadPlan { affectedChannels: string[]; affectedAgents: string[]; requiresRestart: boolean; } export function createReloadPlan(): ReloadPlan { return { affectedChannels: [], affectedAgents: [], requiresRestart: false }; }

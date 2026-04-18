@@ -1,0 +1,1 @@
+/** CoreBlow — Agent List */ export interface AgentListEntry { id: string; name: string; model: string; provider: string; active: boolean; } export function formatAgentList(agents: AgentListEntry[]): string { return agents.map((a) => (a.active ? "🟢" : "⚪") + " " + a.name + " (" + a.model + ")").join("\n"); }

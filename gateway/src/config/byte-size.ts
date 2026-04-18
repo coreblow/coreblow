@@ -1,7 +1,7 @@
 /**
  * config/byte-size.ts
  * Human-readable byte size parsing.
- * Ported from OpenClaw src/config/byte-size.ts.
+ * Ported from CoreBlow src/config/byte-size.ts.
  */
 
 const BYTE_UNITS: Record<string, number> = {

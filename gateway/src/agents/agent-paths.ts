@@ -1,7 +1,7 @@
 /**
  * agents/agent-paths.ts
  * Agent directory and file path resolution.
- * Ported from OpenClaw src/agents/agent-paths.ts.
+ * Ported from CoreBlow src/agents/agent-paths.ts.
  */
 
 import path from 'node:path';

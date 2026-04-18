@@ -1,7 +1,7 @@
 /**
  * auto-reply/model-runtime.ts
  * Model selection engine with fallback chains and token budget enforcement.
- * Ported from OpenClaw src/auto-reply/model-runtime.ts.
+ * Ported from CoreBlow src/auto-reply/model-runtime.ts.
  */
 
 export interface ModelConfig {

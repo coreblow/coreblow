@@ -1,7 +1,7 @@
 /**
  * markdown/ir.ts
  * Markdown Intermediate Representation.
- * Ported from OpenClaw src/markdown/ir.ts.
+ * Ported from CoreBlow src/markdown/ir.ts.
  */
 
 export type MarkdownStyle = 'bold' | 'italic' | 'strikethrough' | 'code' | 'code_block' | 'spoiler' | 'blockquote';

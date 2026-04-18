@@ -1,7 +1,7 @@
 /**
  * process/kill-tree.ts
  * Process tree termination with graceful shutdown.
- * Ported 1:1 from OpenClaw src/process/kill-tree.ts.
+ * Ported 1:1 from CoreBlow src/process/kill-tree.ts.
  */
 
 import { spawn } from 'node:child_process';

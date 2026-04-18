@@ -1,7 +1,7 @@
 /**
  * secrets/ref-contract.ts
  * Secret reference validation and provider alias resolution.
- * Ported from OpenClaw src/secrets/ref-contract.ts.
+ * Ported from CoreBlow src/secrets/ref-contract.ts.
  */
 
 import type { SecretRef, SecretRefSource } from './types.js';
@@ -45,7 +45,7 @@ export function isValidRefId(id: string, source: SecretRefSource): boolean {
 
 /**
  * Resolve the default provider alias for a given source type.
- * OpenClaw pattern: if no provider config exists, fall back to source-specific defaults.
+ * CoreBlow pattern: if no provider config exists, fall back to source-specific defaults.
  */
 export function resolveDefaultSecretProviderAlias(
     config: Record<string, unknown>,

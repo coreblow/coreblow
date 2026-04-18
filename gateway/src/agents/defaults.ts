@@ -1,7 +1,7 @@
 /**
  * agents/defaults.ts
  * Default constants for agent configuration.
- * Ported from OpenClaw src/agents/defaults.ts.
+ * Ported from CoreBlow src/agents/defaults.ts.
  */
 export const DEFAULT_CONTEXT_TOKENS = 128_000;
 export const DEFAULT_MAX_OUTPUT_TOKENS = 16_384;

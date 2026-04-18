@@ -1,7 +1,7 @@
 /**
  * extensions/compaction.ts
  * Conversation compaction (summary-based context reduction).
- * Ported from OpenClaw src/agents/pi-extensions/compaction-*.
+ * Ported from CoreBlow src/agents/pi-extensions/compaction-*.
  */
 
 export interface CompactionConfig {

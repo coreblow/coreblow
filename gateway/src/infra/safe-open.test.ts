@@ -1,7 +1,7 @@
 /**
  * Safe Open + Boundary File Read Tests
  *
- * Validates OpenClaw security pattern port:
+ * Validates CoreBlow security pattern port:
  *   - openVerifiedFileSync: O_NOFOLLOW, hardlink rejection, TOCTOU, maxBytes
  *   - readBoundaryFileSync: boundary path check, symlink escape, integration
  *   - sameFileIdentity: inode comparison

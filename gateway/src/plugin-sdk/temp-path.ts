@@ -1,7 +1,7 @@
 /**
  * plugin-sdk/temp-path.ts
  * Secure temp file handling.
- * Ported from OpenClaw temp-path patterns.
+ * Ported from CoreBlow temp-path patterns.
  */
 
 import fs from 'node:fs';

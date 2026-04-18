@@ -1,7 +1,7 @@
 /**
  * pairing/pairing-store.ts
  * Persistent pairing request storage with file-lock safety.
- * Ported from OpenClaw src/pairing/pairing-store.ts.
+ * Ported from CoreBlow src/pairing/pairing-store.ts.
  */
 
 import crypto from 'node:crypto';

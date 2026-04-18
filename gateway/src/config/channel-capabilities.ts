@@ -1,7 +1,7 @@
 /**
  * config/channel-capabilities.ts
  * Per-channel feature capability matrix.
- * Ported from OpenClaw src/config/channel-capabilities.ts.
+ * Ported from CoreBlow src/config/channel-capabilities.ts.
  */
 
 export interface ChannelCapabilities {

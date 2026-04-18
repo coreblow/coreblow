@@ -1,7 +1,7 @@
 /**
  * process/spawn-utils.ts
  * Spawn helpers with fallback and error formatting.
- * Ported from OpenClaw src/process/spawn-utils.ts.
+ * Ported from CoreBlow src/process/spawn-utils.ts.
  */
 
 import type { ChildProcess, SpawnOptions } from 'node:child_process';

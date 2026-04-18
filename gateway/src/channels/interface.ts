@@ -1,7 +1,7 @@
 /**
  * src/channels/interface.ts
  * Core interfaces for Channel adapters.
- * Matches the enterprise OpenClaw patterns where adapters provide lifecycle hooks
+ * Matches the enterprise CoreBlow patterns where adapters provide lifecycle hooks
  * and detailed status reports.
  */
 

@@ -1,0 +1,2 @@
+/** CoreBlow — Schema Help Text */
+export function getSchemaHelp(fieldPath: string): string | undefined { const help: Record<string, string> = { "provider": "AI provider to use (anthropic, openai, gemini, etc.)", "model": "Model name for the provider", "temperature": "Sampling temperature (0-2)", "maxTokens": "Maximum output tokens", "systemPrompt": "Custom system prompt for the agent", }; return help[fieldPath]; }

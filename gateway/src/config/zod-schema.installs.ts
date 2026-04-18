@@ -1,0 +1,1 @@
+/** CoreBlow — Zod Schema: Installs */ import { validateBoolean } from "./zod-schema.core.js"; export function validateInstallsConfig(config: Record<string, unknown>): string[] { const errors: string[] = []; if (config.autoUpdate !== undefined) errors.push(...validateBoolean(config.autoUpdate, "autoUpdate")); return errors; }

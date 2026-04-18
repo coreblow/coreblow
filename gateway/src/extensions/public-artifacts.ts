@@ -1,7 +1,7 @@
 /**
  * extensions/public-artifacts.ts
  * Public artifact serving extension.
- * Ported from OpenClaw src/extensions/public-artifacts.ts.
+ * Ported from CoreBlow src/extensions/public-artifacts.ts.
  */
 
 import fs from 'node:fs';

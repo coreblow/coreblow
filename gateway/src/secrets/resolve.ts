@@ -1,7 +1,7 @@
 /**
  * secrets/resolve.ts
  * 3-source secret resolution engine (env / file / exec).
- * Ported from OpenClaw src/secrets/resolve.ts (959 LOC → ~450 LOC compressed).
+ * Ported from CoreBlow src/secrets/resolve.ts (959 LOC → ~450 LOC compressed).
  */
 
 import { spawn } from 'node:child_process';

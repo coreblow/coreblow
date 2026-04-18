@@ -1,7 +1,7 @@
 /**
  * cli/progress.ts
  * Terminal progress indicators (spinner, progress bar).
- * Ported from OpenClaw cli-utils + progress patterns.
+ * Ported from CoreBlow cli-utils + progress patterns.
  */
 
 const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];

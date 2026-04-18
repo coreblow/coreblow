@@ -1,0 +1,1 @@
+/** CoreBlow — Plugin Hooks */ export interface PluginHook { pluginName: string; hookName: string; handler: Function; } const pluginHooks: PluginHook[] = []; export function registerPluginHook(hook: PluginHook): void { pluginHooks.push(hook); } export function getPluginHooks(hookName: string): PluginHook[] { return pluginHooks.filter((h) => h.hookName === hookName); }

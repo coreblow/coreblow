@@ -1,0 +1,1 @@
+/** CoreBlow — Sandbox Backend Interface */ export interface SandboxBackend { exec(command: string, args: string[]): Promise<{ stdout: string; stderr: string; exitCode: number }>; writeFile(path: string, content: string): Promise<void>; readFile(path: string): Promise<string>; cleanup(): Promise<void>; }

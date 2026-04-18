@@ -1,0 +1,1 @@
+/** CoreBlow — Program Context (Extended) */ export { type ProgramContext } from "./context.js"; export function createProgramContext(): Record<string, unknown> { return { verbose: false, jsonMode: false }; }

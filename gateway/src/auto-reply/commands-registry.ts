@@ -1,0 +1,1 @@
+/** CoreBlow — Commands Registry */ const commands = new Map<string, Function>(); export function registerCommand(name: string, handler: Function): void { commands.set(name, handler); } export function getCommand(name: string): Function | undefined { return commands.get(name); } export function getAllCommands(): string[] { return [...commands.keys()]; }

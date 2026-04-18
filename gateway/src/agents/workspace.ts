@@ -1,7 +1,7 @@
 /**
  * agents/workspace.ts
  * Agent workspace management.
- * Ported from OpenClaw src/agents/workspace.ts.
+ * Ported from CoreBlow src/agents/workspace.ts.
  */
 
 import fs from 'node:fs';

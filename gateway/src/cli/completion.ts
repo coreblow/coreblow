@@ -1,7 +1,7 @@
 /**
  * cli/completion.ts
  * Shell completion generation (bash, zsh, fish).
- * Ported from OpenClaw src/cli/completion-cli.ts + completion-fish.ts.
+ * Ported from CoreBlow src/cli/completion-cli.ts + completion-fish.ts.
  */
 
 export type Shell = 'bash' | 'zsh' | 'fish';

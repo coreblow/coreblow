@@ -1,0 +1,1 @@
+/** CoreBlow — State Dir DotEnv */ import path from "node:path"; import { loadRuntimeDotEnvFile } from "../infra/dotenv.js"; export function loadStateDirDotEnv(stateDir: string): void { loadRuntimeDotEnvFile(path.join(stateDir, ".env")); }

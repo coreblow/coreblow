@@ -1,0 +1,1 @@
+/** CoreBlow — Prototype Keys Guard */ const BLOCKED_KEYS = new Set(["__proto__", "constructor", "prototype"]); export function isPrototypeKey(key: string): boolean { return BLOCKED_KEYS.has(key); } export function stripPrototypeKeys<T extends Record<string, unknown>>(obj: T): T { const result = { ...obj }; for (const key of BLOCKED_KEYS) delete result[key]; return result; }

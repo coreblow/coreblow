@@ -1,0 +1,1 @@
+/** CoreBlow — Agent Event: Assistant Text */ export interface AssistantTextEvent { sessionId: string; text: string; model: string; timestamp: number; tokenCount?: number; } export function createAssistantTextEvent(sessionId: string, text: string, model: string): AssistantTextEvent { return { sessionId, text, model, timestamp: Date.now() }; }

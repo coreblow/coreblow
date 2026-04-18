@@ -1,7 +1,7 @@
 /**
  * agents/agent-engine-pipeline.e2e.test.ts
  * E2E tests — full pipeline with mock providers.
- * Follows OpenClaw pi-embedded-runner.e2e.test.ts pattern.
+ * Follows CoreBlow pi-embedded-runner.e2e.test.ts pattern.
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';

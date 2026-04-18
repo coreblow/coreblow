@@ -1,7 +1,7 @@
 /**
  * markdown/tables.ts
  * Markdown table parsing and formatting.
- * Ported from OpenClaw src/markdown/tables.ts.
+ * Ported from CoreBlow src/markdown/tables.ts.
  */
 
 export interface MarkdownTable {

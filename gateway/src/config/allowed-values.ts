@@ -1,7 +1,7 @@
 /**
  * config/allowed-values.ts
  * Enum validation and allowed value summarization.
- * Ported from OpenClaw src/config/allowed-values.ts.
+ * Ported from CoreBlow src/config/allowed-values.ts.
  */
 
 const MAX_ALLOWED_VALUES_HINT = 12;

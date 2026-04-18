@@ -1,7 +1,7 @@
 /**
  * secrets/apply.ts
  * Config mutation engine — applies resolved secrets back into config.
- * Ported from OpenClaw src/secrets/apply.ts (855 LOC → ~130 LOC compressed).
+ * Ported from CoreBlow src/secrets/apply.ts (855 LOC → ~130 LOC compressed).
  */
 
 import type { SecretApplyResult, SecretRef } from './types.js';

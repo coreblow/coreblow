@@ -1,7 +1,7 @@
 /**
  * agents/provider-id.ts
  * Provider ID normalization and resolution.
- * Ported from OpenClaw src/agents/provider-id.ts.
+ * Ported from CoreBlow src/agents/provider-id.ts.
  */
 
 const PROVIDER_ALIASES: Record<string, string> = {

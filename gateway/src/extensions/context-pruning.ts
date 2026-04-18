@@ -1,7 +1,7 @@
 /**
  * extensions/context-pruning.ts
  * Context pruning extension — manages conversation context limits.
- * Ported from OpenClaw src/agents/pi-extensions/context-pruning/.
+ * Ported from CoreBlow src/agents/pi-extensions/context-pruning/.
  */
 
 export interface PruningSettings {

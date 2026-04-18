@@ -1,0 +1,1 @@
+/** CoreBlow — Channel IDs */ export function normalizeChannelId(raw: string): string { return raw.trim().toLowerCase(); } export function generateChannelId(type: string): string { return type + "-" + Date.now().toString(36); }

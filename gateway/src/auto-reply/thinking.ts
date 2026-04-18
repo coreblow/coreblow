@@ -1,7 +1,7 @@
 /**
  * auto-reply/thinking.ts
  * Thinking status and reasoning level management.
- * Ported from OpenClaw src/auto-reply/thinking.ts.
+ * Ported from CoreBlow src/auto-reply/thinking.ts.
  */
 
 export type ThinkLevel = 'none' | 'low' | 'medium' | 'high' | 'max';

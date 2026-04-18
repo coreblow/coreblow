@@ -1,0 +1,1 @@
+/** CoreBlow — Types: Browser */ export interface BrowserConfig { headless: boolean; timeout: number; viewport: { width: number; height: number }; userAgent?: string; } export const DEFAULT_BROWSER: BrowserConfig = { headless: true, timeout: 30000, viewport: { width: 1280, height: 720 } };

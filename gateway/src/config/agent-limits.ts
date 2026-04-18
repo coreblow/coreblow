@@ -1,7 +1,7 @@
 /**
  * config/agent-limits.ts
  * Per-agent resource limit enforcement.
- * Ported from OpenClaw src/config/agent-limits.ts.
+ * Ported from CoreBlow src/config/agent-limits.ts.
  */
 
 export const DEFAULT_AGENT_MAX_CONCURRENT = 4;

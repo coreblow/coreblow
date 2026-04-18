@@ -1,0 +1,1 @@
+/** CoreBlow — Schema Labels */ export function getFieldLabel(path: string): string { const labels: Record<string, string> = { provider: "AI Provider", model: "Model", temperature: "Temperature", maxTokens: "Max Tokens", systemPrompt: "System Prompt" }; return labels[path] ?? path; }

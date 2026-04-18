@@ -1,0 +1,1 @@
+/** CoreBlow — PI Model Resolution */ export function resolveModel(provider: string, model: string): { provider: string; model: string } { return { provider: normalizeProvider(provider), model }; } function normalizeProvider(p: string): string { return p.toLowerCase(); }

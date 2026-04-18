@@ -1,0 +1,1 @@
+/** CoreBlow — Daemon Status Print */ export function printDaemonStatus(status: { running: boolean; pid?: number }): void { console.log(status.running ? "🟢 Daemon running (PID " + status.pid + ")" : "🔴 Daemon not running"); }

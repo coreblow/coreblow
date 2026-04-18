@@ -1,0 +1,1 @@
+/** CoreBlow — Docker Sandbox Backend */ export function createDockerBackend(image: string): Record<string, Function> { return { exec: async () => ({ stdout: "", stderr: "", exitCode: 0 }), writeFile: async () => {}, readFile: async () => "", cleanup: async () => {} }; }

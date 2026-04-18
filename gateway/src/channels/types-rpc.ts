@@ -2,7 +2,7 @@
  * src/channels/types-rpc.ts
  * Shared strict interfaces for RPC-based channel adapters (iMessage, Signal, Gmail).
  * Replaces `unknown` payloads with explicit schemas to satisfy TS18046.
- * Follows OpenClaw explicit interface boundary pattern.
+ * Follows CoreBlow explicit interface boundary pattern.
  */
 
 export interface JsonRpcResponse<T = unknown> {

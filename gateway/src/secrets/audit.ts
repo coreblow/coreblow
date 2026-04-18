@@ -1,7 +1,7 @@
 /**
  * secrets/audit.ts
  * Security audit module — scans config for hardcoded secrets and permission issues.
- * Ported from OpenClaw src/secrets/audit.ts (745 LOC → ~200 LOC compressed).
+ * Ported from CoreBlow src/secrets/audit.ts (745 LOC → ~200 LOC compressed).
  */
 
 import fs from 'node:fs';

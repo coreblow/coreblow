@@ -1,7 +1,7 @@
 /**
  * agents/content-blocks.ts
  * Content block parsing and building for multi-modal agent messages.
- * Ported from OpenClaw src/agents/content-blocks.ts.
+ * Ported from CoreBlow src/agents/content-blocks.ts.
  */
 
 export type ContentBlockType = 'text' | 'image' | 'tool_use' | 'tool_result' | 'thinking' | 'redacted';

@@ -1,0 +1,1 @@
+/** CoreBlow — Health State */ export type HealthState = "healthy" | "degraded" | "unhealthy"; let state: HealthState = "healthy"; export function setHealthState(s: HealthState): void { state = s; } export function getHealthState(): HealthState { return state; }

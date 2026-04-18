@@ -1,7 +1,7 @@
 /**
  * utils/log-redaction.ts
  * Sensitive data redaction engine for log output.
- * Follows OpenClaw's redactPatterns convention.
+ * Follows CoreBlow's redactPatterns convention.
  */
 
 // ─── Pattern Definitions ──────────────────────────────────────────

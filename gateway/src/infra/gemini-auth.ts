@@ -1,0 +1,1 @@
+/** CoreBlow — Gemini Auth */ export function resolveGeminiApiKey(env: NodeJS.ProcessEnv = process.env): string | undefined { return env.GEMINI_API_KEY?.trim() || env.GOOGLE_API_KEY?.trim() || undefined; }

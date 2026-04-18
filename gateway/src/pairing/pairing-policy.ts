@@ -1,7 +1,7 @@
 /**
  * pairing/pairing-policy.ts
  * Pairing policy enforcement — which messages require pairing.
- * Ported from OpenClaw pairing policy patterns.
+ * Ported from CoreBlow pairing policy patterns.
  */
 
 export type PairingMode = 'off' | 'dm-only' | 'all';

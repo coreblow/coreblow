@@ -1,0 +1,1 @@
+/** CoreBlow — Zod Schema: Secret Input Validation */ export function validateSecretInput(value: unknown): string[] { if (typeof value !== "string") return ["Secret must be a string"]; if (value.length === 0) return ["Secret cannot be empty"]; if (value.length > 10000) return ["Secret exceeds max length"]; return []; }

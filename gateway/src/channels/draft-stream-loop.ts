@@ -1,7 +1,7 @@
 /**
  * channels/draft-stream-loop.ts
  * Throttled draft-stream update loop.
- * Ported 1:1 from OpenClaw src/channels/draft-stream-loop.ts.
+ * Ported 1:1 from CoreBlow src/channels/draft-stream-loop.ts.
  */
 
 export type DraftStreamLoop = {

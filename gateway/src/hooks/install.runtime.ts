@@ -1,0 +1,1 @@
+/** CoreBlow — Hook Install Runtime */ const installed = new Set<string>(); export function markHookInstalled(name: string): void { installed.add(name); } export function isHookInstalled(name: string): boolean { return installed.has(name); }

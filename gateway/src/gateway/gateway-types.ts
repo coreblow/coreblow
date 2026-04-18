@@ -1,7 +1,7 @@
 /**
  * gateway/gateway-types.ts
  * Shared type definitions for CoreBlow Gateway — eliminates `:any` usage.
- * Follows OpenClaw pattern: strict typed config (`OpenClawConfig` → `ValidatedCoreBlowConfig`).
+ * Follows CoreBlow pattern: strict typed config (`CoreBlowConfig` → `ValidatedCoreBlowConfig`).
  */
 
 import type { IncomingMessage, ServerResponse } from 'node:http';
@@ -11,7 +11,7 @@ import type { ValidatedCoreBlowConfig } from '../config/config.schema.js';
 export type CoreBlowConfig = ValidatedCoreBlowConfig;
 
 // ─── Logger Interface ─────────────────────────────────────────────
-// Mirrors OpenClaw's implicit logger shape used across gateway modules.
+// Mirrors CoreBlow's implicit logger shape used across gateway modules.
 
 export interface GatewayLogger {
     info(msg: string): void;

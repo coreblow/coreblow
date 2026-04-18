@@ -1,7 +1,7 @@
 /**
  * cli/command-format.ts
  * Output formatting utilities for CLI commands.
- * Ported from OpenClaw src/cli/command-format.ts.
+ * Ported from CoreBlow src/cli/command-format.ts.
  */
 
 export type OutputFormat = 'text' | 'json' | 'table' | 'yaml';

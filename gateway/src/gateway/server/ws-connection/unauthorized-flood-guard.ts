@@ -1,0 +1,1 @@
+/** CoreBlow — WS Flood Guard */ export class FloodGuard { private counts = new Map<string, number>(); constructor(private max = 50) {} check(ip: string): boolean { const c = (this.counts.get(ip) ?? 0) + 1; this.counts.set(ip, c); return c <= this.max; } reset(): void { this.counts.clear(); } }

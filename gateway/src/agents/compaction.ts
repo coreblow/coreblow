@@ -1,7 +1,7 @@
 /**
  * agents/compaction.ts
  * Conversation compaction — summarize and prune history to fit context windows.
- * Ported from OpenClaw src/agents/compaction.ts (529 LOC).
+ * Ported from CoreBlow src/agents/compaction.ts (529 LOC).
  */
 
 export const BASE_CHUNK_RATIO = 0.4;

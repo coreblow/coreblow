@@ -1,0 +1,1 @@
+/** CoreBlow — Types: Installs */ export interface InstallConfig { autoUpdate: boolean; checkInterval: number; allowPrerelease: boolean; } export const DEFAULT_INSTALL: InstallConfig = { autoUpdate: false, checkInterval: 3600_000, allowPrerelease: false };

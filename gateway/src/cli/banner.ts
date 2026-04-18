@@ -1,7 +1,7 @@
 /**
  * cli/banner.ts
  * Startup banner with version, tagline, and config summary.
- * Ported from OpenClaw src/cli/banner.ts.
+ * Ported from CoreBlow src/cli/banner.ts.
  */
 
 import { version } from '../../package.json' with { type: 'json' };

@@ -1,7 +1,7 @@
 /**
  * agents/subagent-registry.ts
  * Registry for managing subagent sessions.
- * Ported from OpenClaw src/agents/subagent-registry.ts.
+ * Ported from CoreBlow src/agents/subagent-registry.ts.
  */
 
 export type SubagentStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';

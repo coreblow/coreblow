@@ -1,7 +1,7 @@
 /**
  * channels/thread-bindings.ts
  * Thread binding lifecycle and ownership management.
- * Ported from OpenClaw src/plugin-sdk/thread-bindings-runtime.ts + thread-bindings-policy.ts.
+ * Ported from CoreBlow src/plugin-sdk/thread-bindings-runtime.ts + thread-bindings-policy.ts.
  */
 
 export type BindingTargetKind = 'agent' | 'session' | 'user';

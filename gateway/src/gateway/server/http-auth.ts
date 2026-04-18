@@ -1,0 +1,1 @@
+/** CoreBlow — HTTP Auth */ export function validateBearerToken(header: string | null, expected: string): boolean { if (!header) return false; const token = header.replace("Bearer ", ""); return token === expected; }

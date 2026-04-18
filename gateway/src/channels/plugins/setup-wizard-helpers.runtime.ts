@@ -1,0 +1,1 @@
+/** CoreBlow — Setup Wizard Helpers Runtime */ let wizardActive = false; export function setWizardActive(active: boolean): void { wizardActive = active; } export function isWizardActive(): boolean { return wizardActive; }

@@ -139,6 +139,27 @@ export class SessionManager {
     }
 
     /**
+     * Count active sessions.
+     */
+    count(): number {
+        return this.sessions.size;
+    }
+
+    /**
+     * List all active sessions.
+     */
+    listSessions(): Session[] {
+        return Array.from(this.sessions.values());
+    }
+
+    /**
+     * Delete a session by ID (alias for destroy).
+     */
+    deleteSession(sessionId: string): boolean {
+        return this.destroy(sessionId);
+    }
+
+    /**
      * Stop the cleanup timer.
      */
     shutdown(): void {

@@ -1,7 +1,7 @@
 /**
  * channels/draft-stream-controls.ts
  * Finalizable draft stream with stop/clear/finalize lifecycle.
- * Ported from OpenClaw src/channels/draft-stream-controls.ts.
+ * Ported from CoreBlow src/channels/draft-stream-controls.ts.
  */
 
 import { createDraftStreamLoop, type DraftStreamLoop } from './draft-stream-loop.js';

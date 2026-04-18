@@ -312,7 +312,7 @@ async function evaluateSystemRunPolicyPhase(
 ): Promise<SystemRunPolicyPhase | null> {
   const cfg = loadConfig();
   const agentExec = parsed.agentId
-    ? resolveAgentConfig(cfg, parsed.agentId)?.tools?.exec
+    ? resolveAgentConfig(cfg as any, parsed.agentId)?.tools?.exec
     : undefined;
   const configuredSecurity = opts.resolveExecSecurity(
     agentExec?.security ?? cfg.tools?.exec?.security,

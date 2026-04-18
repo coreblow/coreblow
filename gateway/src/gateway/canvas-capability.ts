@@ -1,0 +1,1 @@
+/** CoreBlow — Canvas Capability */ export interface CanvasCapability { supported: boolean; maxWidth: number; maxHeight: number; formats: string[]; } export const DEFAULT_CANVAS: CanvasCapability = { supported: false, maxWidth: 1920, maxHeight: 1080, formats: ["png", "jpg"] };

@@ -1,7 +1,7 @@
 /**
  * secrets/key-rotation.ts
  * Key rotation management with grace periods and audit trails.
- * Upgraded from placeholder to production-grade OpenClaw pattern.
+ * Upgraded from placeholder to production-grade CoreBlow pattern.
  */
 
 import { generateEncryptionKey } from './encryption.js';

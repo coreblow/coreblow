@@ -91,7 +91,7 @@ export class TranscriptStore {
     /**
      * Stream-based tail read — reads last N messages from EOF.
      *
-     * Algorithm (inspired by OpenClaw's readLastNonzeroUsageFromSessionLog):
+     * Algorithm (inspired by CoreBlow's readLastNonzeroUsageFromSessionLog):
      * 1. fs.open(path, 'r')
      * 2. stat → get file size
      * 3. seek to (fileSize - chunkSize)

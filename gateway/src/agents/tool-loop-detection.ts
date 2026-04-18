@@ -1,7 +1,7 @@
 /**
  * agents/tool-loop-detection.ts
  * Detects stuck tool-call loops and circuit-breaks runaway agents.
- * Ported 1:1 from OpenClaw src/agents/tool-loop-detection.ts.
+ * Ported 1:1 from CoreBlow src/agents/tool-loop-detection.ts.
  */
 
 import { createHash } from 'node:crypto';

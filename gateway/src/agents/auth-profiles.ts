@@ -1,7 +1,7 @@
 /**
  * agents/auth-profiles.ts
  * Auth profile management — per-provider credential rotation.
- * Ported from OpenClaw src/agents/auth-profiles.ts.
+ * Ported from CoreBlow src/agents/auth-profiles.ts.
  */
 
 export type AuthProfileStatus = 'active' | 'cooldown' | 'disabled' | 'expired';

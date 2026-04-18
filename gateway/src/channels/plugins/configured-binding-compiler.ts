@@ -1,0 +1,1 @@
+/** CoreBlow — Configured Binding Compiler */ export function compileBinding(spec: string): { type: string; target: string } { const parts = spec.split(":"); return { type: parts[0] ?? "direct", target: parts[1] ?? "" }; }

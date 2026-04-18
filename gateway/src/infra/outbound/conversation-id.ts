@@ -1,0 +1,1 @@
+/** CoreBlow — Conversation ID */ export function generateConversationId(): string { return "conv-" + crypto.randomUUID(); } export function isValidConversationId(id: string): boolean { return typeof id === "string" && id.startsWith("conv-") && id.length > 10; }

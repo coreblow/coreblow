@@ -1,0 +1,1 @@
+/** CoreBlow — Node Invoke Approval Match */ export function matchesApprovalPattern(command: string, pattern: string): boolean { if (pattern === "*") return true; return command.startsWith(pattern); }

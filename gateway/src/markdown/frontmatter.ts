@@ -1,7 +1,7 @@
 /**
  * markdown/frontmatter.ts
  * YAML frontmatter parsing and extraction.
- * Ported from OpenClaw src/markdown/frontmatter.ts.
+ * Ported from CoreBlow src/markdown/frontmatter.ts.
  */
 
 export interface FrontmatterResult {

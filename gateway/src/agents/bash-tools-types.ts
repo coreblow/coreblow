@@ -1,7 +1,7 @@
 /**
  * agents/bash-tools-types.ts
  * Bash/exec tool type definitions.
- * Ported from OpenClaw src/agents/bash-tools.exec-types.ts.
+ * Ported from CoreBlow src/agents/bash-tools.exec-types.ts.
  */
 
 export type ExecApprovalPolicy = 'auto' | 'manual' | 'allowlist' | 'sandbox';

@@ -40,7 +40,7 @@ export interface ToolApprovalConfig {
     denyTools: string[];
 }
 
-/** OpenClaw-compatible defaults: safe reads auto, writes/exec need approval */
+/** CoreBlow-compatible defaults: safe reads auto, writes/exec need approval */
 export const DEFAULT_TOOL_APPROVAL: ToolApprovalConfig = {
     defaultMode: 'require_approval',
     autoApproveTools: ['read_file', 'search', 'glob', 'list_dir', 'view_file'],

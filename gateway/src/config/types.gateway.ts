@@ -1,0 +1,1 @@
+/** CoreBlow — Types: Gateway */ export interface GatewayConfig { port: number; host: string; cors: boolean; controlUi: boolean; rateLimit: number; } export const DEFAULT_GATEWAY: GatewayConfig = { port: 3000, host: "0.0.0.0", cors: true, controlUi: true, rateLimit: 100 };

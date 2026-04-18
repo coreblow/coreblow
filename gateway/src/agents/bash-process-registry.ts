@@ -1,7 +1,7 @@
 /**
  * agents/bash-process-registry.ts
  * Background process session registry for exec/process tools.
- * Ported from OpenClaw src/agents/bash-process-registry.ts (312 LOC).
+ * Ported from CoreBlow src/agents/bash-process-registry.ts (312 LOC).
  */
 
 const DEFAULT_JOB_TTL_MS = 30 * 60 * 1000;

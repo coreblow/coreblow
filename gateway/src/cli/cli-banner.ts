@@ -27,21 +27,25 @@ export class CLIBanner {
     static generate(opts?: BannerOptions): string {
         const version = opts?.version ?? '1.0.0';
         const agentName = opts?.agentName ?? 'CoreBlow';
-        const provider = opts?.provider ?? 'openai';
-        const model = opts?.model ?? 'gpt-4o';
+        const provider = opts?.provider ?? 'anthropic';
+        const model = opts?.model ?? 'claude-sonnet-4-20250514';
         const channels = opts?.channels ?? ['webhook'];
         const plugins = opts?.plugins ?? 0;
         const skills = opts?.skills ?? 5;
         const port = opts?.port ?? 3000;
 
+        // CoreBlow brand color: #DA7756 → closest ANSI-256 = 173 (#d7875f)
+        const g = '\x1b[38;5;173m';
+        const r = '\x1b[0m';
+
         const lines = [
             '',
-            '  ██████╗ ██████╗ ██████╗ ███████╗██████╗ ██╗      ██████╗ ██╗    ██╗',
-            '  ██╔════╝██╔═══██╗██╔══██╗██╔════╝██╔══██╗██║     ██╔═══██╗██║    ██║',
-            '  ██║     ██║   ██║██████╔╝█████╗  ██████╔╝██║     ██║   ██║██║ █╗ ██║',
-            '  ██║     ██║   ██║██╔══██╗██╔══╝  ██╔══██╗██║     ██║   ██║██║███╗██║',
-            '  ╚██████╗╚██████╔╝██║  ██║███████╗██████╔╝███████╗╚██████╔╝╚███╔███╔╝',
-            '   ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═════╝ ╚══════╝ ╚═════╝  ╚══╝╚══╝',
+            `  ${g}██████╗ ██████╗ ██████╗ ███████╗██████╗ ██╗      ██████╗ ██╗    ██╗${r}`,
+            `  ${g}██╔════╝██╔═══██╗██╔══██╗██╔════╝██╔══██╗██║     ██╔═══██╗██║    ██║${r}`,
+            `  ${g}██║     ██║   ██║██████╔╝█████╗  ██████╔╝██║     ██║   ██║██║ █╗ ██║${r}`,
+            `  ${g}██║     ██║   ██║██╔══██╗██╔══╝  ██╔══██╗██║     ██║   ██║██║███╗██║${r}`,
+            `  ${g}╚██████╗╚██████╔╝██║  ██║███████╗██████╔╝███████╗╚██████╔╝╚███╔███╔╝${r}`,
+            `  ${g} ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═════╝ ╚══════╝ ╚═════╝  ╚══╝╚══╝${r}`,
             '',
             `  ${CLIBanner.dim('AI Gateway')} v${version}`,
             '',

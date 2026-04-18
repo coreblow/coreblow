@@ -1,0 +1,1 @@
+/** CoreBlow — Session Archive FS */ import fs from "node:fs"; export function archiveSession(sessionDir: string, archiveDir: string): boolean { try { fs.mkdirSync(archiveDir, { recursive: true }); fs.renameSync(sessionDir, archiveDir); return true; } catch { return false; } }

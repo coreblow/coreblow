@@ -1,7 +1,7 @@
 /**
  * agents/bootstrap-files.ts
  * Bootstrap file discovery & loading for agent initialization.
- * Ported from OpenClaw src/agents/bootstrap-files.ts.
+ * Ported from CoreBlow src/agents/bootstrap-files.ts.
  */
 
 import fs from 'node:fs';

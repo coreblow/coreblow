@@ -1,0 +1,1 @@
+/** CoreBlow — Embeddings HTTP */ export interface EmbeddingRequest { input: string | string[]; model?: string; } export interface EmbeddingResponse { data: Array<{ embedding: number[]; index: number }>; model: string; usage: { total_tokens: number }; }

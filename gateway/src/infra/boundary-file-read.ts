@@ -1,7 +1,7 @@
 /**
  * CoreBlow — Boundary File Read
  *
- * Ported from OpenClaw's boundary-file-read.ts.
+ * Ported from CoreBlow's boundary-file-read.ts.
  * Combines boundary path check + safe open into one API.
  *
  * Used for plugin manifest loading:
@@ -41,7 +41,7 @@ export type BoundaryFileReadParams = {
 
 /**
  * Check if candidatePath is inside rootPath (using string prefix).
- * OpenClaw pattern: ensureTrailingSep(root) + startsWith check.
+ * CoreBlow pattern: ensureTrailingSep(root) + startsWith check.
  */
 function isPathInside(rootPath: string, candidatePath: string): boolean {
     const rootWithSep = rootPath.endsWith(path.sep) ? rootPath : rootPath + path.sep;
@@ -53,7 +53,7 @@ function isPathInside(rootPath: string, candidatePath: string): boolean {
 /**
  * Read a file with full boundary + security validation.
  *
- * OpenClaw pattern (boundary-file-read.ts + safe-open-sync.ts combined):
+ * CoreBlow pattern (boundary-file-read.ts + safe-open-sync.ts combined):
  *   1. Resolve rootDir to canonical path
  *   2. Check filePath is lexically inside rootDir
  *   3. Resolve filePath to canonical path (follow symlinks)
@@ -135,7 +135,7 @@ export function readBoundaryFileSync(params: BoundaryFileReadParams): BoundaryFi
 }
 
 /**
- * Match failure reasons (OpenClaw pattern from matchBoundaryFileOpenFailure).
+ * Match failure reasons (CoreBlow pattern from matchBoundaryFileOpenFailure).
  */
 export function matchBoundaryReadFailure<T>(
     result: BoundaryFileReadResult,

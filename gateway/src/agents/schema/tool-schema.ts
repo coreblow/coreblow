@@ -1,0 +1,1 @@
+/** CoreBlow — Tool Schema */ export interface ToolSchema { name: string; description: string; inputSchema: Record<string, unknown>; } export function validateToolSchema(schema: Record<string, unknown>): string[] { const errors: string[] = []; if (!schema.name) errors.push("Missing name"); return errors; }

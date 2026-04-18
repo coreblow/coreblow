@@ -1,0 +1,1 @@
+/** CoreBlow — SSH Sandbox Backend */ export function createSshBackend(host: string, user: string): Record<string, Function> { return { exec: async () => ({ stdout: "", stderr: "", exitCode: 0 }), cleanup: async () => {} }; }

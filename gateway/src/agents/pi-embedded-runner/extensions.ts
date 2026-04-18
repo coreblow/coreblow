@@ -1,0 +1,1 @@
+/** CoreBlow — PI Extensions */ export interface PiExtension { name: string; init: () => void; } const extensions: PiExtension[] = []; export function registerExtension(ext: PiExtension): void { extensions.push(ext); }

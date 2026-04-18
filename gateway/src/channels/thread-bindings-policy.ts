@@ -1,0 +1,1 @@
+/** CoreBlow — Thread Bindings Policy */ export type ThreadPolicy = "inherit" | "new-session" | "ignore"; export function resolveThreadPolicy(config: Record<string, unknown>): ThreadPolicy { return (config.threadPolicy as ThreadPolicy) ?? "inherit"; }

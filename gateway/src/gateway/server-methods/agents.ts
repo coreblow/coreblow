@@ -1,0 +1,1 @@
+/** CoreBlow — Server Methods: Agents */ export function handleAgentsList(): unknown[] { return []; } export function handleAgentCreate(params: Record<string, unknown>): unknown { return { id: crypto.randomUUID(), ...params }; }

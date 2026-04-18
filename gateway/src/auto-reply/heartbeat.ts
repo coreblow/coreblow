@@ -1,7 +1,7 @@
 /**
  * auto-reply/heartbeat.ts
  * Typing indicator and heartbeat management.
- * Ported from OpenClaw src/auto-reply/heartbeat.ts.
+ * Ported from CoreBlow src/auto-reply/heartbeat.ts.
  */
 
 export const HEARTBEAT_PROMPT =

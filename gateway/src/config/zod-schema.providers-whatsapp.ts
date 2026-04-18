@@ -1,0 +1,1 @@
+/** CoreBlow — Zod Schema: Providers WhatsApp */ import { validateString } from "./zod-schema.core.js"; export function validateWhatsAppProvider(config: Record<string, unknown>): string[] { return [...validateString(config.phoneNumberId, "phoneNumberId"), ...validateString(config.accessToken, "accessToken")]; }

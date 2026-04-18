@@ -1,0 +1,1 @@
+/** CoreBlow — Program Help */ export function printHelp(commands: Array<{ name: string; description: string }>): void { console.log("\nUsage: coreblow <command> [options]\n\nCommands:"); for (const cmd of commands) console.log("  " + cmd.name.padEnd(16) + cmd.description); }

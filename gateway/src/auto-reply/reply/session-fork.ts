@@ -1,7 +1,7 @@
 /**
  * src/auto-reply/reply/session-fork.ts
  * Session isolation and forking for the auto-reply pipeline.
- * Follows OpenClaw session isolation pattern:
+ * Follows CoreBlow session isolation pattern:
  * - DM = shared main session
  * - Group = isolated per group
  *

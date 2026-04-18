@@ -1,0 +1,1 @@
+/** CoreBlow — Attachment Normalize */ export function normalizeAttachment(input: Record<string, unknown>): { type: string; url: string; name: string } { return { type: String(input.type ?? "file"), url: String(input.url ?? ""), name: String(input.name ?? "attachment") }; }

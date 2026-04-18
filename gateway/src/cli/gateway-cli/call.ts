@@ -1,0 +1,1 @@
+/** CoreBlow — Gateway Call */ export async function callGateway(url: string, method: string, body?: unknown): Promise<unknown> { const r = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : undefined }); return r.json(); }

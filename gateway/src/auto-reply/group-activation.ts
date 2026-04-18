@@ -1,7 +1,7 @@
 /**
  * auto-reply/group-activation.ts
  * Group chat mention gating and activation modes.
- * Ported from OpenClaw src/auto-reply/group-activation.ts.
+ * Ported from CoreBlow src/auto-reply/group-activation.ts.
  */
 
 export type GroupActivationMode = 'mention' | 'always';

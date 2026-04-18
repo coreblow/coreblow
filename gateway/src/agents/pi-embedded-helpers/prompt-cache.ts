@@ -1,0 +1,1 @@
+/** CoreBlow — PI Prompt Cache */ const cache = new Map<string, string>(); export function getCachedPrompt(key: string): string | undefined { return cache.get(key); } export function setCachedPrompt(key: string, prompt: string): void { cache.set(key, prompt); }

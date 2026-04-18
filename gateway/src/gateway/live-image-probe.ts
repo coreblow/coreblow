@@ -1,0 +1,1 @@
+/** CoreBlow — Live Image Probe */ export async function probeImageUrl(url: string): Promise<boolean> { try { const r = await fetch(url, { method: "HEAD", signal: AbortSignal.timeout(5000) }); return r.ok && (r.headers.get("content-type")?.startsWith("image/") ?? false); } catch { return false; } }

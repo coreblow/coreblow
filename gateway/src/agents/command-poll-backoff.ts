@@ -1,7 +1,7 @@
 /**
  * agents/command-poll-backoff.ts
  * Exponential backoff for command polling loops.
- * Ported from OpenClaw src/agents/command-poll-backoff.ts.
+ * Ported from CoreBlow src/agents/command-poll-backoff.ts.
  */
 
 export interface BackoffPolicy {

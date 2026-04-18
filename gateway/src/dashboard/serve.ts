@@ -59,7 +59,7 @@ export function mountDashboard(app: Application) {
     return;
   }
 
-  // OpenClaw pattern: auto-enable auth if network-exposed (0.0.0.0)
+  // CoreBlow pattern: auto-enable auth if network-exposed (0.0.0.0)
   const gatewayAuth = (config as any).gateway?.auth;
   const gatewayHost = (config as any).gateway?.host ?? '127.0.0.1';
   const dashRequireAuth = (config as any).dashboard?.requireAuth;

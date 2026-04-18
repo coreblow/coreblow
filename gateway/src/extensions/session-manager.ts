@@ -1,7 +1,7 @@
 /**
  * extensions/session-manager.ts
  * Session manager extension runtime.
- * Ported from OpenClaw src/agents/pi-extensions/session-manager-runtime-registry.ts.
+ * Ported from CoreBlow src/agents/pi-extensions/session-manager-runtime-registry.ts.
  */
 
 export interface SessionManagerExtension {

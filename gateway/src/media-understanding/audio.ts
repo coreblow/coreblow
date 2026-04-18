@@ -1,7 +1,7 @@
 /**
  * media-understanding/audio.ts
  * Audio transcription engine.
- * Ported from OpenClaw src/media-understanding/openai-compatible-audio.ts.
+ * Ported from CoreBlow src/media-understanding/openai-compatible-audio.ts.
  */
 
 import type { AudioTranscriptionRequest, AudioTranscriptionResult, MediaSource } from './types.js';

@@ -1,0 +1,1 @@
+/** CoreBlow — Gateway Discover */ export async function discoverGateway(): Promise<string | null> { try { const r = await fetch("http://localhost:3000/health", { signal: AbortSignal.timeout(2000) }); return r.ok ? "http://localhost:3000" : null; } catch { return null; } }

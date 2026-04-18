@@ -1,0 +1,1 @@
+/** CoreBlow — Chat Attachments */ export interface ChatAttachment { type: "image" | "file" | "audio" | "video"; url: string; name: string; mimeType: string; size?: number; } export function isImageAttachment(a: ChatAttachment): boolean { return a.type === "image" || a.mimeType.startsWith("image/"); }

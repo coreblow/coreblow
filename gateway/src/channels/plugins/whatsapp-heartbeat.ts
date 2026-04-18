@@ -1,0 +1,1 @@
+/** CoreBlow — WhatsApp Heartbeat */ let lastHeartbeat = 0; export function recordWhatsAppHeartbeat(): void { lastHeartbeat = Date.now(); } export function getLastWhatsAppHeartbeat(): number { return lastHeartbeat; }

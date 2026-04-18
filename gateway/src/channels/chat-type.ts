@@ -1,0 +1,1 @@
+/** CoreBlow — Chat Type */ export type ChatType = "dm" | "group" | "channel" | "thread"; export function resolveChatType(isGroup: boolean, isThread: boolean): ChatType { if (isThread) return "thread"; if (isGroup) return "group"; return "dm"; }

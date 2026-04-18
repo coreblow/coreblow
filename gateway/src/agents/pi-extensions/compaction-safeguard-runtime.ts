@@ -1,0 +1,1 @@
+/** CoreBlow — Compaction Safeguard Runtime */ let safeguardEnabled = true; export function setCompactionSafeguard(enabled: boolean): void { safeguardEnabled = enabled; } export function isCompactionSafeguardEnabled(): boolean { return safeguardEnabled; }

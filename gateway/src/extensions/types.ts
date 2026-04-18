@@ -1,7 +1,7 @@
 /**
  * extensions/types.ts
  * Core extension type system.
- * Ported from OpenClaw extension patterns.
+ * Ported from CoreBlow extension patterns.
  */
 
 export type ExtensionType = 'context-pruning' | 'compaction' | 'session-manager' | 'tool-provider' | 'response-hook' | 'public-artifact';

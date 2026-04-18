@@ -1,0 +1,1 @@
+/** CoreBlow — Plugin Registry */ const plugins = new Map<string, unknown>(); export function registerPlugin(name: string, plugin: unknown): void { plugins.set(name, plugin); } export function getPlugin(name: string): unknown { return plugins.get(name); } export function getAllPlugins(): string[] { return [...plugins.keys()]; }

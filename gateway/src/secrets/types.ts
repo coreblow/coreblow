@@ -1,7 +1,7 @@
 /**
  * secrets/types.ts
  * Core type definitions for CoreBlow secrets engine.
- * Ported from OpenClaw's secrets subsystem with CoreBlow OOP compression.
+ * Ported from CoreBlow's secrets subsystem with CoreBlow OOP compression.
  */
 
 // ─── Secret Reference ─────────────────────────────────────────────

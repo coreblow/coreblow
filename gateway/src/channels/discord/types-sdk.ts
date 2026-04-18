@@ -3,7 +3,7 @@
  * Strict SDK boundary types for Discord.
  * By defining these interfaces, we eliminate `unknown` types from our implementation
  * without needing to tightly couple to the actual discord.js package types which change often.
- * Follows OpenClaw explicit interface boundary pattern.
+ * Follows CoreBlow explicit interface boundary pattern.
  */
 
 export interface DiscordMessage {

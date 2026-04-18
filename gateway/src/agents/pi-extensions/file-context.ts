@@ -1,0 +1,1 @@
+/** CoreBlow — PI File Context */ import fs from "node:fs"; export function readFileContext(filePath: string, maxBytes = 50000): string | null { try { const content = fs.readFileSync(filePath, "utf8"); return content.length > maxBytes ? content.slice(0, maxBytes) + "\n[truncated]" : content; } catch { return null; } }

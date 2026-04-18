@@ -1,0 +1,1 @@
+/** CoreBlow — Together Models */ export const TOGETHER_MODELS = ["meta-llama/Llama-3-70b", "mistralai/Mixtral-8x7B"]; export function isTogetherModel(m: string): boolean { return TOGETHER_MODELS.some((t) => m.includes(t)); }

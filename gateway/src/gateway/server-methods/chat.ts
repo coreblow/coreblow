@@ -48,7 +48,7 @@ export const chatHandlers: GatewayRequestHandlers = {
         const runId = `run_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
         let streamedText = '';
 
-        // Stream handler: broadcasts OpenClaw-compatible events
+        // Stream handler: broadcasts CoreBlow-compatible events
         const onChunk = (chunk: StreamChunk) => {
             if (!broadcastFn) return;
 

@@ -1,0 +1,1 @@
+/** CoreBlow — Banner Config Lite */ export interface BannerConfig { showBanner: boolean; showVersion: boolean; compact: boolean; } export const DEFAULT_BANNER_CONFIG: BannerConfig = { showBanner: true, showVersion: true, compact: false };

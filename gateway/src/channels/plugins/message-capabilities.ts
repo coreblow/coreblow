@@ -1,0 +1,1 @@
+/** CoreBlow — Message Capabilities */ export interface MessageCapabilities { supportsThreads: boolean; supportsReactions: boolean; supportsEdits: boolean; supportsDeletes: boolean; supportsMedia: boolean; maxLength: number; }

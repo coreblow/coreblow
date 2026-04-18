@@ -1,0 +1,1 @@
+/** CoreBlow — Plugin Target Parsing */ export function parseTarget(raw: string): { type: string; id: string } | null { const parts = raw.split(":"); return parts.length >= 2 ? { type: parts[0], id: parts[1] } : null; }

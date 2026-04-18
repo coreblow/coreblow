@@ -1,7 +1,7 @@
 /**
  * media-understanding/defaults.ts
  * Default prompts and configuration for media analysis.
- * Ported from OpenClaw src/media-understanding/defaults.ts.
+ * Ported from CoreBlow src/media-understanding/defaults.ts.
  */
 
 export const DEFAULT_IMAGE_PROMPT = 'Describe this image in detail. Include all visible text, important visual elements, colors, and layout.';

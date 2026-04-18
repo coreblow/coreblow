@@ -1,0 +1,1 @@
+/** CoreBlow — Types: ACP (Agent Communication Protocol) */ export interface AcpConfig { enabled: boolean; port: number; authRequired: boolean; maxConnections: number; } export const DEFAULT_ACP: AcpConfig = { enabled: false, port: 3100, authRequired: true, maxConnections: 10 };

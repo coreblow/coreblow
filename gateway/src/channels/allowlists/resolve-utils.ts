@@ -1,0 +1,1 @@
+/** CoreBlow — Allowlists Resolve Utils */ export function resolveAllowlist(config: Record<string, unknown>): string[] { const list = config.allowlist; return Array.isArray(list) ? list.map(String) : []; }

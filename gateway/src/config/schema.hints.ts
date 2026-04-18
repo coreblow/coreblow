@@ -1,0 +1,1 @@
+/** CoreBlow — Schema Hints */ export function getSchemaHints(fieldPath: string): string[] { const hints: Record<string, string[]> = { "provider": ["anthropic", "openai", "gemini", "groq", "ollama"], "model": ["claude-sonnet-4-20250514", "gpt-4o", "gemini-2.5-flash"], }; return hints[fieldPath] ?? []; }

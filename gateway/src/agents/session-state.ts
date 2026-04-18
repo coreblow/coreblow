@@ -1,7 +1,7 @@
 /**
  * agents/session-state.ts
  * Agent session state management.
- * Ported from OpenClaw src/agents/session-state.ts.
+ * Ported from CoreBlow src/agents/session-state.ts.
  */
 
 import type { ContentBlock } from './content-blocks.js';

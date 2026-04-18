@@ -1,0 +1,1 @@
+/** CoreBlow — Sandbox Runtime Status */ export type SandboxStatus = "starting" | "running" | "stopped" | "error"; const statuses = new Map<string, SandboxStatus>(); export function setSandboxStatus(id: string, s: SandboxStatus): void { statuses.set(id, s); } export function getSandboxStatus(id: string): SandboxStatus { return statuses.get(id) ?? "stopped"; }

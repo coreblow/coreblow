@@ -1,7 +1,7 @@
 /**
  * media-understanding/video.ts
  * Video analysis engine with frame extraction.
- * Ported from OpenClaw src/media-understanding/video.ts.
+ * Ported from CoreBlow src/media-understanding/video.ts.
  */
 
 import type { VideoDescriptionRequest, MediaSource } from './types.js';

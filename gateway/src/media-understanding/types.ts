@@ -1,7 +1,7 @@
 /**
  * media-understanding/types.ts
  * Core types for multi-modal media analysis.
- * Ported from OpenClaw src/media-understanding/types.ts.
+ * Ported from CoreBlow src/media-understanding/types.ts.
  */
 
 export type MediaType = 'image' | 'audio' | 'video' | 'document';

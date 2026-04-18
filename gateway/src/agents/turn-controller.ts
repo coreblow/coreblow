@@ -1,7 +1,7 @@
 /**
  * agents/turn-controller.ts
  * Agent turn lifecycle controller.
- * Ported from OpenClaw src/agents/turn-controller.ts.
+ * Ported from CoreBlow src/agents/turn-controller.ts.
  */
 
 import type { ContentBlock } from './content-blocks.js';

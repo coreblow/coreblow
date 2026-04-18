@@ -1,0 +1,1 @@
+/** CoreBlow — Resolve Secret Input String */ export function resolveSecretInputString(input: string, env: NodeJS.ProcessEnv = process.env): string { if (input.startsWith("env:")) return env[input.slice(4)] ?? ""; return input; }

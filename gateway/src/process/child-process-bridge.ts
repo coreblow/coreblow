@@ -1,7 +1,7 @@
 /**
  * process/child-process-bridge.ts
  * stdio bridge for child processes.
- * Ported from OpenClaw src/process/child-process-bridge.ts.
+ * Ported from CoreBlow src/process/child-process-bridge.ts.
  */
 
 import type { ChildProcess } from 'node:child_process';

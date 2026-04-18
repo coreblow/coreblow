@@ -1,0 +1,1 @@
+/** CoreBlow — PI Session Manager Cache */ const cache = new Map<string, unknown>(); export function getSessionCache(id: string): unknown { return cache.get(id); } export function setSessionCache(id: string, data: unknown): void { cache.set(id, data); }

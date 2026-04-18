@@ -1,0 +1,1 @@
+/** CoreBlow — Prompt Runtime */ let systemPrompt: string | null = null; export function setSystemPrompt(prompt: string): void { systemPrompt = prompt; } export function getSystemPrompt(): string | null { return systemPrompt; }

@@ -1,7 +1,7 @@
 /**
  * config/bindings.ts
  * Agent ↔ channel binding configuration.
- * Ported from OpenClaw src/config/bindings.ts.
+ * Ported from CoreBlow src/config/bindings.ts.
  */
 
 export interface AgentRouteBinding {

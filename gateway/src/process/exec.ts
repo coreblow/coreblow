@@ -1,7 +1,7 @@
 /**
  * process/exec.ts
  * Safe command execution with timeout and output capture.
- * Ported from OpenClaw src/process/exec.ts.
+ * Ported from CoreBlow src/process/exec.ts.
  */
 
 import { execFile, spawn } from 'node:child_process';

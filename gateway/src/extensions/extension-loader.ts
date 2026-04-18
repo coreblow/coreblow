@@ -1,7 +1,7 @@
 /**
  * extensions/extension-loader.ts
  * Extension discovery and loading.
- * Ported from OpenClaw extension patterns.
+ * Ported from CoreBlow extension patterns.
  */
 
 import fs from 'node:fs';

@@ -1,0 +1,1 @@
+/** CoreBlow — Nodes Media Utils */ export function getMediaMimeType(ext: string): string { const types: Record<string, string> = { ".jpg": "image/jpeg", ".png": "image/png", ".mp3": "audio/mpeg", ".mp4": "video/mp4" }; return types[ext] ?? "application/octet-stream"; }

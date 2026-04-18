@@ -1,7 +1,7 @@
 /**
  * secrets/plan.ts
  * Resolution plan builder — collects SecretRefs from config tree.
- * Ported from OpenClaw src/secrets/plan.ts.
+ * Ported from CoreBlow src/secrets/plan.ts.
  */
 
 import type { SecretRef, SecretRefSource } from './types.js';

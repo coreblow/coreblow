@@ -1,7 +1,7 @@
 /**
  * cli/argv.ts
  * Argument parsing / normalization layer.
- * Ported from OpenClaw src/cli/argv.ts.
+ * Ported from CoreBlow src/cli/argv.ts.
  */
 
 export interface ParsedArgv {

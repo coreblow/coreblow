@@ -1,0 +1,1 @@
+/** CoreBlow — Zod Schema: Agent Runtime */ import { validateNumber } from "./zod-schema.core.js"; export function validateAgentRuntime(config: Record<string, unknown>): string[] { const errors: string[] = []; if (config.maxConcurrent !== undefined) errors.push(...validateNumber(config.maxConcurrent, "maxConcurrent", 1, 50)); return errors; }

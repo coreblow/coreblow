@@ -1,0 +1,1 @@
+/** CoreBlow — Skills Env Overrides Runtime */ const overrides = new Map<string, Record<string, string>>(); export function setSkillEnvOverride(skill: string, env: Record<string, string>): void { overrides.set(skill, env); }

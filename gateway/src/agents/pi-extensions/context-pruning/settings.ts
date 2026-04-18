@@ -1,0 +1,1 @@
+/** CoreBlow — Context Pruning Settings */ export interface PruningSettings { maxMessages: number; maxTokens: number; preserveSystem: boolean; } export const DEFAULT_PRUNING: PruningSettings = { maxMessages: 100, maxTokens: 128000, preserveSystem: true };

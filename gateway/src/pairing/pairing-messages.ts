@@ -1,7 +1,7 @@
 /**
  * pairing/pairing-messages.ts
  * Pairing-specific message formatting.
- * Ported from OpenClaw src/pairing/pairing-messages.ts.
+ * Ported from CoreBlow src/pairing/pairing-messages.ts.
  */
 
 export function buildPairingReply(params: {

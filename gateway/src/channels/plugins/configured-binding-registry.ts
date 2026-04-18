@@ -1,0 +1,1 @@
+/** CoreBlow — Configured Binding Registry */ const bindings = new Map<string, unknown>(); export function registerConfiguredBinding(key: string, binding: unknown): void { bindings.set(key, binding); }

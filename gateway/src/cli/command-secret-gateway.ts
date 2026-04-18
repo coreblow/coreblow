@@ -1,0 +1,1 @@
+/** CoreBlow — Command Secret Gateway */ export function resolveSecretGatewayUrl(env: NodeJS.ProcessEnv = process.env): string { return env.COREBLOW_SECRET_GATEWAY_URL?.trim() || "http://localhost:3000"; }
