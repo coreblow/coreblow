@@ -88,3 +88,27 @@ export function pickMatchingExternalInterfaceAddress(
 
   return addresses.find((entry) => matches(entry.address))?.address;
 }
+
+// ---------------------------------------------------------------------------
+// NetworkInterfacesService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class NetworkInterfacesService {
+  [Symbol.toStringTag] = 'NetworkInterfacesService';
+}
+
+let _networkInterfacesInstance: NetworkInterfacesService | null = null;
+
+export function getNetworkInterfacesService(): NetworkInterfacesService {
+  if (!_networkInterfacesInstance) {
+    _networkInterfacesInstance = new NetworkInterfacesService();
+  }
+  return _networkInterfacesInstance;
+}
+
+export const __testing_networkInterfaces = createTestingHooks<NetworkInterfacesService>(
+  () => { _networkInterfacesInstance = null; },
+  (svc) => { _networkInterfacesInstance = svc; },
+);

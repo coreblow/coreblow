@@ -208,3 +208,27 @@ export async function startSshPortForward(opts: {
     stop,
   };
 }
+
+// ---------------------------------------------------------------------------
+// SshTunnelService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class SshTunnelService {
+  [Symbol.toStringTag] = 'SshTunnelService';
+}
+
+let _sshTunnelInstance: SshTunnelService | null = null;
+
+export function getSshTunnelService(): SshTunnelService {
+  if (!_sshTunnelInstance) {
+    _sshTunnelInstance = new SshTunnelService();
+  }
+  return _sshTunnelInstance;
+}
+
+export const __testing_sshTunnel = createTestingHooks<SshTunnelService>(
+  () => { _sshTunnelInstance = null; },
+  (svc) => { _sshTunnelInstance = svc; },
+);

@@ -99,3 +99,27 @@ function isAllowedType(stat: fs.Stats, allowedType: SafeOpenSyncAllowedType): bo
   }
   return stat.isFile();
 }
+
+// ---------------------------------------------------------------------------
+// SafeOpenSyncService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class SafeOpenSyncService {
+  [Symbol.toStringTag] = 'SafeOpenSyncService';
+}
+
+let _safeOpenSyncInstance: SafeOpenSyncService | null = null;
+
+export function getSafeOpenSyncService(): SafeOpenSyncService {
+  if (!_safeOpenSyncInstance) {
+    _safeOpenSyncInstance = new SafeOpenSyncService();
+  }
+  return _safeOpenSyncInstance;
+}
+
+export const __testing_safeOpenSync = createTestingHooks<SafeOpenSyncService>(
+  () => { _safeOpenSyncInstance = null; },
+  (svc) => { _safeOpenSyncInstance = svc; },
+);

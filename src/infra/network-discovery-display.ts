@@ -64,3 +64,27 @@ export async function resolveBestEffortGatewayBindHostForDisplay(params: {
     };
   }
 }
+
+// ---------------------------------------------------------------------------
+// NetworkDiscoveryDisplayService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class NetworkDiscoveryDisplayService {
+  [Symbol.toStringTag] = 'NetworkDiscoveryDisplayService';
+}
+
+let _networkDiscoveryDisplayInstance: NetworkDiscoveryDisplayService | null = null;
+
+export function getNetworkDiscoveryDisplayService(): NetworkDiscoveryDisplayService {
+  if (!_networkDiscoveryDisplayInstance) {
+    _networkDiscoveryDisplayInstance = new NetworkDiscoveryDisplayService();
+  }
+  return _networkDiscoveryDisplayInstance;
+}
+
+export const __testing_networkDiscoveryDisplay = createTestingHooks<NetworkDiscoveryDisplayService>(
+  () => { _networkDiscoveryDisplayInstance = null; },
+  (svc) => { _networkDiscoveryDisplayInstance = svc; },
+);

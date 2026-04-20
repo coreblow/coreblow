@@ -94,3 +94,27 @@ export function formatUncaughtError(err: unknown): string {
   }
   return formatErrorMessage(err);
 }
+
+// ---------------------------------------------------------------------------
+// ErrorsService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ErrorsService {
+  [Symbol.toStringTag] = 'ErrorsService';
+}
+
+let _errorsInstance: ErrorsService | null = null;
+
+export function getErrorsService(): ErrorsService {
+  if (!_errorsInstance) {
+    _errorsInstance = new ErrorsService();
+  }
+  return _errorsInstance;
+}
+
+export const __testing_errors = createTestingHooks<ErrorsService>(
+  () => { _errorsInstance = null; },
+  (svc) => { _errorsInstance = svc; },
+);

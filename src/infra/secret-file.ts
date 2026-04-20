@@ -138,3 +138,27 @@ export function tryReadSecretFileSync(
   const result = loadSecretFileSync(filePath, label, options);
   return result.ok ? result.secret : undefined;
 }
+
+// ---------------------------------------------------------------------------
+// SecretFileService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class SecretFileService {
+  [Symbol.toStringTag] = 'SecretFileService';
+}
+
+let _secretFileInstance: SecretFileService | null = null;
+
+export function getSecretFileService(): SecretFileService {
+  if (!_secretFileInstance) {
+    _secretFileInstance = new SecretFileService();
+  }
+  return _secretFileInstance;
+}
+
+export const __testing_secretFile = createTestingHooks<SecretFileService>(
+  () => { _secretFileInstance = null; },
+  (svc) => { _secretFileInstance = svc; },
+);

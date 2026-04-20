@@ -34,3 +34,27 @@ export function isGatewayArgv(args: string[], opts?: { allowGatewayBinary?: bool
     (opts?.allowGatewayBinary === true && exe.endsWith("/coreblow-gateway"))
   );
 }
+
+// ---------------------------------------------------------------------------
+// GatewayProcessArgvService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class GatewayProcessArgvService {
+  [Symbol.toStringTag] = 'GatewayProcessArgvService';
+}
+
+let _gatewayProcessArgvInstance: GatewayProcessArgvService | null = null;
+
+export function getGatewayProcessArgvService(): GatewayProcessArgvService {
+  if (!_gatewayProcessArgvInstance) {
+    _gatewayProcessArgvInstance = new GatewayProcessArgvService();
+  }
+  return _gatewayProcessArgvInstance;
+}
+
+export const __testing_gatewayProcessArgv = createTestingHooks<GatewayProcessArgvService>(
+  () => { _gatewayProcessArgvInstance = null; },
+  (svc) => { _gatewayProcessArgvInstance = svc; },
+);

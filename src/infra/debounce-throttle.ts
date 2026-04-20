@@ -86,3 +86,27 @@ export function throttle<Args extends any[], R>(
         }
     };
 }
+
+// ---------------------------------------------------------------------------
+// DebounceThrottleService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class DebounceThrottleService {
+  [Symbol.toStringTag] = 'DebounceThrottleService';
+}
+
+let _debounceThrottleInstance: DebounceThrottleService | null = null;
+
+export function getDebounceThrottleService(): DebounceThrottleService {
+  if (!_debounceThrottleInstance) {
+    _debounceThrottleInstance = new DebounceThrottleService();
+  }
+  return _debounceThrottleInstance;
+}
+
+export const __testing_debounceThrottle = createTestingHooks<DebounceThrottleService>(
+  () => { _debounceThrottleInstance = null; },
+  (svc) => { _debounceThrottleInstance = svc; },
+);

@@ -84,3 +84,27 @@ export function restartGatewayProcessWithFreshPid(): GatewayRespawnResult {
     return { mode: "failed", detail };
   }
 }
+
+// ---------------------------------------------------------------------------
+// ProcessRespawnService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ProcessRespawnService {
+  [Symbol.toStringTag] = 'ProcessRespawnService';
+}
+
+let _processRespawnInstance: ProcessRespawnService | null = null;
+
+export function getProcessRespawnService(): ProcessRespawnService {
+  if (!_processRespawnInstance) {
+    _processRespawnInstance = new ProcessRespawnService();
+  }
+  return _processRespawnInstance;
+}
+
+export const __testing_processRespawn = createTestingHooks<ProcessRespawnService>(
+  () => { _processRespawnInstance = null; },
+  (svc) => { _processRespawnInstance = svc; },
+);

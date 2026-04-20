@@ -130,3 +130,27 @@ export function ensureCoreBlowCliOnPath(opts: EnsureCoreBlowPathOpts = {}) {
     process.env.PATH = merged;
   }
 }
+
+// ---------------------------------------------------------------------------
+// PathEnvService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class PathEnvService {
+  [Symbol.toStringTag] = 'PathEnvService';
+}
+
+let _pathEnvInstance: PathEnvService | null = null;
+
+export function getPathEnvService(): PathEnvService {
+  if (!_pathEnvInstance) {
+    _pathEnvInstance = new PathEnvService();
+  }
+  return _pathEnvInstance;
+}
+
+export const __testing_pathEnv = createTestingHooks<PathEnvService>(
+  () => { _pathEnvInstance = null; },
+  (svc) => { _pathEnvInstance = svc; },
+);

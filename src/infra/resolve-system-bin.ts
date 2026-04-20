@@ -185,3 +185,27 @@ export function _resetResolveSystemBin(overrideIsExecutable?: (p: string) => boo
   trustedDirsStandard = null;
   isExecutableFn = overrideIsExecutable ?? defaultIsExecutable;
 }
+
+// ---------------------------------------------------------------------------
+// ResolveSystemBinService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ResolveSystemBinService {
+  [Symbol.toStringTag] = 'ResolveSystemBinService';
+}
+
+let _resolveSystemBinInstance: ResolveSystemBinService | null = null;
+
+export function getResolveSystemBinService(): ResolveSystemBinService {
+  if (!_resolveSystemBinInstance) {
+    _resolveSystemBinInstance = new ResolveSystemBinService();
+  }
+  return _resolveSystemBinInstance;
+}
+
+export const __testing_resolveSystemBin = createTestingHooks<ResolveSystemBinService>(
+  () => { _resolveSystemBinInstance = null; },
+  (svc) => { _resolveSystemBinInstance = svc; },
+);

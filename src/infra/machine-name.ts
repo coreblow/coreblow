@@ -46,3 +46,27 @@ export async function getMachineDisplayName(): Promise<string> {
   })();
   return cachedPromise;
 }
+
+// ---------------------------------------------------------------------------
+// MachineNameService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class MachineNameService {
+  [Symbol.toStringTag] = 'MachineNameService';
+}
+
+let _machineNameInstance: MachineNameService | null = null;
+
+export function getMachineNameService(): MachineNameService {
+  if (!_machineNameInstance) {
+    _machineNameInstance = new MachineNameService();
+  }
+  return _machineNameInstance;
+}
+
+export const __testing_machineName = createTestingHooks<MachineNameService>(
+  () => { _machineNameInstance = null; },
+  (svc) => { _machineNameInstance = svc; },
+);

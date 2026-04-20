@@ -160,3 +160,27 @@ export function findVerifiedGatewayListenerPidsOnPortSync(port: number): number[
 export function formatGatewayPidList(pids: number[]): string {
   return pids.join(", ");
 }
+
+// ---------------------------------------------------------------------------
+// GatewayProcessesService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class GatewayProcessesService {
+  [Symbol.toStringTag] = 'GatewayProcessesService';
+}
+
+let _gatewayProcessesInstance: GatewayProcessesService | null = null;
+
+export function getGatewayProcessesService(): GatewayProcessesService {
+  if (!_gatewayProcessesInstance) {
+    _gatewayProcessesInstance = new GatewayProcessesService();
+  }
+  return _gatewayProcessesInstance;
+}
+
+export const __testing_gatewayProcesses = createTestingHooks<GatewayProcessesService>(
+  () => { _gatewayProcessesInstance = null; },
+  (svc) => { _gatewayProcessesInstance = svc; },
+);

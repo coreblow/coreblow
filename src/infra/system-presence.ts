@@ -287,3 +287,27 @@ export function listSystemPresence(): SystemPresence[] {
   touchSelfPresence();
   return [...entries.values()].toSorted((a, b) => b.ts - a.ts);
 }
+
+// ---------------------------------------------------------------------------
+// SystemPresenceService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class SystemPresenceService {
+  [Symbol.toStringTag] = 'SystemPresenceService';
+}
+
+let _systemPresenceInstance: SystemPresenceService | null = null;
+
+export function getSystemPresenceService(): SystemPresenceService {
+  if (!_systemPresenceInstance) {
+    _systemPresenceInstance = new SystemPresenceService();
+  }
+  return _systemPresenceInstance;
+}
+
+export const __testing_systemPresence = createTestingHooks<SystemPresenceService>(
+  () => { _systemPresenceInstance = null; },
+  (svc) => { _systemPresenceInstance = svc; },
+);

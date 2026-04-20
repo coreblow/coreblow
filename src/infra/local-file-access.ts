@@ -62,3 +62,27 @@ export function basenameFromMediaSource(source?: string): string | undefined {
   }
   return path.basename(source) || undefined;
 }
+
+// ---------------------------------------------------------------------------
+// LocalFileAccessService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class LocalFileAccessService {
+  [Symbol.toStringTag] = 'LocalFileAccessService';
+}
+
+let _localFileAccessInstance: LocalFileAccessService | null = null;
+
+export function getLocalFileAccessService(): LocalFileAccessService {
+  if (!_localFileAccessInstance) {
+    _localFileAccessInstance = new LocalFileAccessService();
+  }
+  return _localFileAccessInstance;
+}
+
+export const __testing_localFileAccess = createTestingHooks<LocalFileAccessService>(
+  () => { _localFileAccessInstance = null; },
+  (svc) => { _localFileAccessInstance = svc; },
+);

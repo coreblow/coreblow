@@ -44,3 +44,27 @@ export function pickPrimaryTailnetIPv4(): string | undefined {
 export function pickPrimaryTailnetIPv6(): string | undefined {
   return listTailnetAddresses().ipv6[0];
 }
+
+// ---------------------------------------------------------------------------
+// TailnetService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class TailnetService {
+  [Symbol.toStringTag] = 'TailnetService';
+}
+
+let _tailnetInstance: TailnetService | null = null;
+
+export function getTailnetService(): TailnetService {
+  if (!_tailnetInstance) {
+    _tailnetInstance = new TailnetService();
+  }
+  return _tailnetInstance;
+}
+
+export const __testing_tailnet = createTestingHooks<TailnetService>(
+  () => { _tailnetInstance = null; },
+  (svc) => { _tailnetInstance = svc; },
+);

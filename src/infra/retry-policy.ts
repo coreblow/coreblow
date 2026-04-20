@@ -116,3 +116,27 @@ export function createTelegramRetryRunner(params: {
         : undefined,
     });
 }
+
+// ---------------------------------------------------------------------------
+// RetryPolicyService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class RetryPolicyService {
+  [Symbol.toStringTag] = 'RetryPolicyService';
+}
+
+let _retryPolicyInstance: RetryPolicyService | null = null;
+
+export function getRetryPolicyService(): RetryPolicyService {
+  if (!_retryPolicyInstance) {
+    _retryPolicyInstance = new RetryPolicyService();
+  }
+  return _retryPolicyInstance;
+}
+
+export const __testing_retryPolicy = createTestingHooks<RetryPolicyService>(
+  () => { _retryPolicyInstance = null; },
+  (svc) => { _retryPolicyInstance = svc; },
+);

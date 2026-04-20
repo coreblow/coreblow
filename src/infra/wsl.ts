@@ -69,3 +69,27 @@ export async function isWSL(): Promise<boolean> {
   }
   return wslCached;
 }
+
+// ---------------------------------------------------------------------------
+// WslService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class WslService {
+  [Symbol.toStringTag] = 'WslService';
+}
+
+let _wslInstance: WslService | null = null;
+
+export function getWslService(): WslService {
+  if (!_wslInstance) {
+    _wslInstance = new WslService();
+  }
+  return _wslInstance;
+}
+
+export const __testing_wsl = createTestingHooks<WslService>(
+  () => { _wslInstance = null; },
+  (svc) => { _wslInstance = svc; },
+);

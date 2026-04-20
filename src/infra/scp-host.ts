@@ -84,3 +84,27 @@ export function normalizeScpRemotePath(value: string | null | undefined): string
 export function isSafeScpRemotePath(value: string | null | undefined): boolean {
   return normalizeScpRemotePath(value) !== undefined;
 }
+
+// ---------------------------------------------------------------------------
+// ScpHostService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ScpHostService {
+  [Symbol.toStringTag] = 'ScpHostService';
+}
+
+let _scpHostInstance: ScpHostService | null = null;
+
+export function getScpHostService(): ScpHostService {
+  if (!_scpHostInstance) {
+    _scpHostInstance = new ScpHostService();
+  }
+  return _scpHostInstance;
+}
+
+export const __testing_scpHost = createTestingHooks<ScpHostService>(
+  () => { _scpHostInstance = null; },
+  (svc) => { _scpHostInstance = svc; },
+);

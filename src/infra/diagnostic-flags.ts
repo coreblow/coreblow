@@ -90,3 +90,27 @@ export function isDiagnosticFlagEnabled(
   const flags = resolveDiagnosticFlags(cfg, env);
   return matchesDiagnosticFlag(flag, flags);
 }
+
+// ---------------------------------------------------------------------------
+// DiagnosticFlagsService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class DiagnosticFlagsService {
+  [Symbol.toStringTag] = 'DiagnosticFlagsService';
+}
+
+let _diagnosticFlagsInstance: DiagnosticFlagsService | null = null;
+
+export function getDiagnosticFlagsService(): DiagnosticFlagsService {
+  if (!_diagnosticFlagsInstance) {
+    _diagnosticFlagsInstance = new DiagnosticFlagsService();
+  }
+  return _diagnosticFlagsInstance;
+}
+
+export const __testing_diagnosticFlags = createTestingHooks<DiagnosticFlagsService>(
+  () => { _diagnosticFlagsInstance = null; },
+  (svc) => { _diagnosticFlagsInstance = svc; },
+);

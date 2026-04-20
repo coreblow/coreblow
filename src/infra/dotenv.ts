@@ -104,3 +104,27 @@ export function loadDotEnv(opts?: { quiet?: boolean }) {
   const globalEnvPath = path.join(resolveConfigDir(process.env), ".env");
   loadRuntimeDotEnvFile(globalEnvPath, { quiet });
 }
+
+// ---------------------------------------------------------------------------
+// DotenvService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class DotenvService {
+  [Symbol.toStringTag] = 'DotenvService';
+}
+
+let _dotenvInstance: DotenvService | null = null;
+
+export function getDotenvService(): DotenvService {
+  if (!_dotenvInstance) {
+    _dotenvInstance = new DotenvService();
+  }
+  return _dotenvInstance;
+}
+
+export const __testing_dotenv = createTestingHooks<DotenvService>(
+  () => { _dotenvInstance = null; },
+  (svc) => { _dotenvInstance = svc; },
+);

@@ -197,3 +197,27 @@ export async function writeWideAreaGatewayZone(
   fs.writeFileSync(zonePath, next, "utf-8");
   return { zonePath, changed: true };
 }
+
+// ---------------------------------------------------------------------------
+// WideareaDnsService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class WideareaDnsService {
+  [Symbol.toStringTag] = 'WideareaDnsService';
+}
+
+let _wideareaDnsInstance: WideareaDnsService | null = null;
+
+export function getWideareaDnsService(): WideareaDnsService {
+  if (!_wideareaDnsInstance) {
+    _wideareaDnsInstance = new WideareaDnsService();
+  }
+  return _wideareaDnsInstance;
+}
+
+export const __testing_wideareaDns = createTestingHooks<WideareaDnsService>(
+  () => { _wideareaDnsInstance = null; },
+  (svc) => { _wideareaDnsInstance = svc; },
+);

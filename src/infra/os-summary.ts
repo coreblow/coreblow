@@ -33,3 +33,27 @@ export function resolveOsSummary(): OsSummary {
   })();
   return { platform, arch, release, label };
 }
+
+// ---------------------------------------------------------------------------
+// OsSummaryService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class OsSummaryService {
+  [Symbol.toStringTag] = 'OsSummaryService';
+}
+
+let _osSummaryInstance: OsSummaryService | null = null;
+
+export function getOsSummaryService(): OsSummaryService {
+  if (!_osSummaryInstance) {
+    _osSummaryInstance = new OsSummaryService();
+  }
+  return _osSummaryInstance;
+}
+
+export const __testing_osSummary = createTestingHooks<OsSummaryService>(
+  () => { _osSummaryInstance = null; },
+  (svc) => { _osSummaryInstance = svc; },
+);

@@ -132,3 +132,27 @@ function buildCandidates(opts: { cwd?: string; argv1?: string; moduleUrl?: strin
 
   return candidates;
 }
+
+// ---------------------------------------------------------------------------
+// OpenclawRootService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class OpenclawRootService {
+  [Symbol.toStringTag] = 'OpenclawRootService';
+}
+
+let _openclawRootInstance: OpenclawRootService | null = null;
+
+export function getOpenclawRootService(): OpenclawRootService {
+  if (!_openclawRootInstance) {
+    _openclawRootInstance = new OpenclawRootService();
+  }
+  return _openclawRootInstance;
+}
+
+export const __testing_openclawRoot = createTestingHooks<OpenclawRootService>(
+  () => { _openclawRootInstance = null; },
+  (svc) => { _openclawRootInstance = svc; },
+);

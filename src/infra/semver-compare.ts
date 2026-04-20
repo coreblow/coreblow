@@ -109,3 +109,27 @@ export function compareComparableSemver(
   }
   return comparePrereleaseIdentifiers(a.prerelease, b.prerelease);
 }
+
+// ---------------------------------------------------------------------------
+// SemverCompareService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class SemverCompareService {
+  [Symbol.toStringTag] = 'SemverCompareService';
+}
+
+let _semverCompareInstance: SemverCompareService | null = null;
+
+export function getSemverCompareService(): SemverCompareService {
+  if (!_semverCompareInstance) {
+    _semverCompareInstance = new SemverCompareService();
+  }
+  return _semverCompareInstance;
+}
+
+export const __testing_semverCompare = createTestingHooks<SemverCompareService>(
+  () => { _semverCompareInstance = null; },
+  (svc) => { _semverCompareInstance = svc; },
+);

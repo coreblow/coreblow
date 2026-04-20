@@ -857,3 +857,27 @@ async function copyFileWithinRootLegacy(
     }
   }
 }
+
+// ---------------------------------------------------------------------------
+// FsSafeService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class FsSafeService {
+  [Symbol.toStringTag] = 'FsSafeService';
+}
+
+let _fsSafeInstance: FsSafeService | null = null;
+
+export function getFsSafeService(): FsSafeService {
+  if (!_fsSafeInstance) {
+    _fsSafeInstance = new FsSafeService();
+  }
+  return _fsSafeInstance;
+}
+
+export const __testing_fsSafe = createTestingHooks<FsSafeService>(
+  () => { _fsSafeInstance = null; },
+  (svc) => { _fsSafeInstance = svc; },
+);

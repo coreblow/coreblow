@@ -77,3 +77,27 @@ export function resolveBrewExecutable(opts?: {
 
   return undefined;
 }
+
+// ---------------------------------------------------------------------------
+// BrewService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class BrewService {
+  [Symbol.toStringTag] = 'BrewService';
+}
+
+let _brewInstance: BrewService | null = null;
+
+export function getBrewService(): BrewService {
+  if (!_brewInstance) {
+    _brewInstance = new BrewService();
+  }
+  return _brewInstance;
+}
+
+export const __testing_brew = createTestingHooks<BrewService>(
+  () => { _brewInstance = null; },
+  (svc) => { _brewInstance = svc; },
+);

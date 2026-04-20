@@ -478,3 +478,27 @@ export function hasDispatchEnvManipulation(argv: string[]): boolean {
     unwrap.kind === "unwrapped" && unwrap.wrapper === "env" && envInvocationUsesModifiers(argv)
   );
 }
+
+// ---------------------------------------------------------------------------
+// DispatchWrapperResolutionService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class DispatchWrapperResolutionService {
+  [Symbol.toStringTag] = 'DispatchWrapperResolutionService';
+}
+
+let _dispatchWrapperResolutionInstance: DispatchWrapperResolutionService | null = null;
+
+export function getDispatchWrapperResolutionService(): DispatchWrapperResolutionService {
+  if (!_dispatchWrapperResolutionInstance) {
+    _dispatchWrapperResolutionInstance = new DispatchWrapperResolutionService();
+  }
+  return _dispatchWrapperResolutionInstance;
+}
+
+export const __testing_dispatchWrapperResolution = createTestingHooks<DispatchWrapperResolutionService>(
+  () => { _dispatchWrapperResolutionInstance = null; },
+  (svc) => { _dispatchWrapperResolutionInstance = svc; },
+);

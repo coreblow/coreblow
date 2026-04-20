@@ -261,3 +261,27 @@ async function runPinnedWriteFallback(params: {
   const stat = await fs.stat(targetPath);
   return { dev: stat.dev, ino: stat.ino };
 }
+
+// ---------------------------------------------------------------------------
+// FsPinnedWriteHelperService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class FsPinnedWriteHelperService {
+  [Symbol.toStringTag] = 'FsPinnedWriteHelperService';
+}
+
+let _fsPinnedWriteHelperInstance: FsPinnedWriteHelperService | null = null;
+
+export function getFsPinnedWriteHelperService(): FsPinnedWriteHelperService {
+  if (!_fsPinnedWriteHelperInstance) {
+    _fsPinnedWriteHelperInstance = new FsPinnedWriteHelperService();
+  }
+  return _fsPinnedWriteHelperInstance;
+}
+
+export const __testing_fsPinnedWriteHelper = createTestingHooks<FsPinnedWriteHelperService>(
+  () => { _fsPinnedWriteHelperInstance = null; },
+  (svc) => { _fsPinnedWriteHelperInstance = svc; },
+);

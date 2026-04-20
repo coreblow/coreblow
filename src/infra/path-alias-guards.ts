@@ -32,3 +32,27 @@ export async function assertNoPathAliasEscape(params: {
     allowFinalHardlinkForUnlink: params.policy?.allowFinalHardlinkForUnlink,
   });
 }
+
+// ---------------------------------------------------------------------------
+// PathAliasGuardsService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class PathAliasGuardsService {
+  [Symbol.toStringTag] = 'PathAliasGuardsService';
+}
+
+let _pathAliasGuardsInstance: PathAliasGuardsService | null = null;
+
+export function getPathAliasGuardsService(): PathAliasGuardsService {
+  if (!_pathAliasGuardsInstance) {
+    _pathAliasGuardsInstance = new PathAliasGuardsService();
+  }
+  return _pathAliasGuardsInstance;
+}
+
+export const __testing_pathAliasGuards = createTestingHooks<PathAliasGuardsService>(
+  () => { _pathAliasGuardsInstance = null; },
+  (svc) => { _pathAliasGuardsInstance = svc; },
+);

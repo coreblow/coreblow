@@ -97,3 +97,27 @@ export function installProcessWarningFilter(): void {
   process.emitWarning = wrappedEmitWarning;
   state.installed = true;
 }
+
+// ---------------------------------------------------------------------------
+// WarningFilterService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class WarningFilterService {
+  [Symbol.toStringTag] = 'WarningFilterService';
+}
+
+let _warningFilterInstance: WarningFilterService | null = null;
+
+export function getWarningFilterService(): WarningFilterService {
+  if (!_warningFilterInstance) {
+    _warningFilterInstance = new WarningFilterService();
+  }
+  return _warningFilterInstance;
+}
+
+export const __testing_warningFilter = createTestingHooks<WarningFilterService>(
+  () => { _warningFilterInstance = null; },
+  (svc) => { _warningFilterInstance = svc; },
+);

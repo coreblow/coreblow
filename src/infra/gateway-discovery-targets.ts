@@ -59,3 +59,27 @@ export function serializeGatewayDiscoveryBeacon(beacon: GatewayBonjourBeacon) {
     wsUrl: target.wsUrl,
   };
 }
+
+// ---------------------------------------------------------------------------
+// GatewayDiscoveryTargetsService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class GatewayDiscoveryTargetsService {
+  [Symbol.toStringTag] = 'GatewayDiscoveryTargetsService';
+}
+
+let _gatewayDiscoveryTargetsInstance: GatewayDiscoveryTargetsService | null = null;
+
+export function getGatewayDiscoveryTargetsService(): GatewayDiscoveryTargetsService {
+  if (!_gatewayDiscoveryTargetsInstance) {
+    _gatewayDiscoveryTargetsInstance = new GatewayDiscoveryTargetsService();
+  }
+  return _gatewayDiscoveryTargetsInstance;
+}
+
+export const __testing_gatewayDiscoveryTargets = createTestingHooks<GatewayDiscoveryTargetsService>(
+  () => { _gatewayDiscoveryTargetsInstance = null; },
+  (svc) => { _gatewayDiscoveryTargetsInstance = svc; },
+);

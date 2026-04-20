@@ -225,3 +225,27 @@ function resolveSystemRunCommandWithMode(
     previewText: validation.previewText,
   };
 }
+
+// ---------------------------------------------------------------------------
+// SystemRunCommandService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class SystemRunCommandService {
+  [Symbol.toStringTag] = 'SystemRunCommandService';
+}
+
+let _systemRunCommandInstance: SystemRunCommandService | null = null;
+
+export function getSystemRunCommandService(): SystemRunCommandService {
+  if (!_systemRunCommandInstance) {
+    _systemRunCommandInstance = new SystemRunCommandService();
+  }
+  return _systemRunCommandInstance;
+}
+
+export const __testing_systemRunCommand = createTestingHooks<SystemRunCommandService>(
+  () => { _systemRunCommandInstance = null; },
+  (svc) => { _systemRunCommandInstance = svc; },
+);

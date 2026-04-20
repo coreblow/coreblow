@@ -91,3 +91,27 @@ export function resolveCanvasHostUrl(params: CanvasHostUrlParams) {
   const formatted = host.includes(":") ? `[${host}]` : host;
   return `${scheme}://${formatted}:${exposedPort}`;
 }
+
+// ---------------------------------------------------------------------------
+// CanvasHostUrlService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class CanvasHostUrlService {
+  [Symbol.toStringTag] = 'CanvasHostUrlService';
+}
+
+let _canvasHostUrlInstance: CanvasHostUrlService | null = null;
+
+export function getCanvasHostUrlService(): CanvasHostUrlService {
+  if (!_canvasHostUrlInstance) {
+    _canvasHostUrlInstance = new CanvasHostUrlService();
+  }
+  return _canvasHostUrlInstance;
+}
+
+export const __testing_canvasHostUrl = createTestingHooks<CanvasHostUrlService>(
+  () => { _canvasHostUrlInstance = null; },
+  (svc) => { _canvasHostUrlInstance = svc; },
+);

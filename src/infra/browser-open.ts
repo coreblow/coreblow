@@ -125,3 +125,27 @@ export async function openUrlInBackground(url: string): Promise<boolean> {
     return false;
   }
 }
+
+// ---------------------------------------------------------------------------
+// BrowserOpenService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class BrowserOpenService {
+  [Symbol.toStringTag] = 'BrowserOpenService';
+}
+
+let _browserOpenInstance: BrowserOpenService | null = null;
+
+export function getBrowserOpenService(): BrowserOpenService {
+  if (!_browserOpenInstance) {
+    _browserOpenInstance = new BrowserOpenService();
+  }
+  return _browserOpenInstance;
+}
+
+export const __testing_browserOpen = createTestingHooks<BrowserOpenService>(
+  () => { _browserOpenInstance = null; },
+  (svc) => { _browserOpenInstance = svc; },
+);

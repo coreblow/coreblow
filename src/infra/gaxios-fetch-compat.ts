@@ -327,3 +327,27 @@ export const __testing = {
     installState = "not-installed";
   },
 };
+
+// ---------------------------------------------------------------------------
+// GaxiosFetchCompatService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class GaxiosFetchCompatService {
+  [Symbol.toStringTag] = 'GaxiosFetchCompatService';
+}
+
+let _gaxiosFetchCompatInstance: GaxiosFetchCompatService | null = null;
+
+export function getGaxiosFetchCompatService(): GaxiosFetchCompatService {
+  if (!_gaxiosFetchCompatInstance) {
+    _gaxiosFetchCompatInstance = new GaxiosFetchCompatService();
+  }
+  return _gaxiosFetchCompatInstance;
+}
+
+export const __testing_gaxiosFetchCompat = createTestingHooks<GaxiosFetchCompatService>(
+  () => { _gaxiosFetchCompatInstance = null; },
+  (svc) => { _gaxiosFetchCompatInstance = svc; },
+);

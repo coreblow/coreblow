@@ -167,3 +167,27 @@ export function resolvePreferredCoreBlowTmpDir(
     return ensureTrustedFallbackDir();
   }
 }
+
+// ---------------------------------------------------------------------------
+// TmpCoreblowDirService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class TmpCoreblowDirService {
+  [Symbol.toStringTag] = 'TmpCoreblowDirService';
+}
+
+let _tmpCoreblowDirInstance: TmpCoreblowDirService | null = null;
+
+export function getTmpCoreblowDirService(): TmpCoreblowDirService {
+  if (!_tmpCoreblowDirInstance) {
+    _tmpCoreblowDirInstance = new TmpCoreblowDirService();
+  }
+  return _tmpCoreblowDirInstance;
+}
+
+export const __testing_tmpCoreblowDir = createTestingHooks<TmpCoreblowDirService>(
+  () => { _tmpCoreblowDirInstance = null; },
+  (svc) => { _tmpCoreblowDirInstance = svc; },
+);

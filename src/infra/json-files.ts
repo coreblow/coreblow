@@ -89,3 +89,27 @@ export function createAsyncLock() {
     }
   };
 }
+
+// ---------------------------------------------------------------------------
+// JsonFilesService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class JsonFilesService {
+  [Symbol.toStringTag] = 'JsonFilesService';
+}
+
+let _jsonFilesInstance: JsonFilesService | null = null;
+
+export function getJsonFilesService(): JsonFilesService {
+  if (!_jsonFilesInstance) {
+    _jsonFilesInstance = new JsonFilesService();
+  }
+  return _jsonFilesInstance;
+}
+
+export const __testing_jsonFiles = createTestingHooks<JsonFilesService>(
+  () => { _jsonFilesInstance = null; },
+  (svc) => { _jsonFilesInstance = svc; },
+);

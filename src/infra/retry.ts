@@ -134,3 +134,27 @@ export async function retryAsync<T>(
 
   throw lastErr ?? new Error("Retry failed");
 }
+
+// ---------------------------------------------------------------------------
+// RetryService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class RetryService {
+  [Symbol.toStringTag] = 'RetryService';
+}
+
+let _retryInstance: RetryService | null = null;
+
+export function getRetryService(): RetryService {
+  if (!_retryInstance) {
+    _retryInstance = new RetryService();
+  }
+  return _retryInstance;
+}
+
+export const __testing_retry = createTestingHooks<RetryService>(
+  () => { _retryInstance = null; },
+  (svc) => { _retryInstance = svc; },
+);

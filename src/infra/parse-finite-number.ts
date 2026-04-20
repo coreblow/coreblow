@@ -40,3 +40,27 @@ export function parseStrictNonNegativeInteger(value: unknown): number | undefine
   const parsed = parseStrictInteger(value);
   return parsed !== undefined && parsed >= 0 ? parsed : undefined;
 }
+
+// ---------------------------------------------------------------------------
+// ParseFiniteNumberService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ParseFiniteNumberService {
+  [Symbol.toStringTag] = 'ParseFiniteNumberService';
+}
+
+let _parseFiniteNumberInstance: ParseFiniteNumberService | null = null;
+
+export function getParseFiniteNumberService(): ParseFiniteNumberService {
+  if (!_parseFiniteNumberInstance) {
+    _parseFiniteNumberInstance = new ParseFiniteNumberService();
+  }
+  return _parseFiniteNumberInstance;
+}
+
+export const __testing_parseFiniteNumber = createTestingHooks<ParseFiniteNumberService>(
+  () => { _parseFiniteNumberInstance = null; },
+  (svc) => { _parseFiniteNumberInstance = svc; },
+);

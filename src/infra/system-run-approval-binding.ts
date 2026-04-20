@@ -237,3 +237,27 @@ export function toSystemRunApprovalMismatchError(params: {
     details,
   };
 }
+
+// ---------------------------------------------------------------------------
+// SystemRunApprovalBindingService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class SystemRunApprovalBindingService {
+  [Symbol.toStringTag] = 'SystemRunApprovalBindingService';
+}
+
+let _systemRunApprovalBindingInstance: SystemRunApprovalBindingService | null = null;
+
+export function getSystemRunApprovalBindingService(): SystemRunApprovalBindingService {
+  if (!_systemRunApprovalBindingInstance) {
+    _systemRunApprovalBindingInstance = new SystemRunApprovalBindingService();
+  }
+  return _systemRunApprovalBindingInstance;
+}
+
+export const __testing_systemRunApprovalBinding = createTestingHooks<SystemRunApprovalBindingService>(
+  () => { _systemRunApprovalBindingInstance = null; },
+  (svc) => { _systemRunApprovalBindingInstance = svc; },
+);

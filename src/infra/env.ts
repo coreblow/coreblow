@@ -69,3 +69,27 @@ export function isTruthyEnvValue(value?: string): boolean {
 export function normalizeEnv(): void {
   normalizeZaiEnv();
 }
+
+// ---------------------------------------------------------------------------
+// EnvService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class EnvService {
+  [Symbol.toStringTag] = 'EnvService';
+}
+
+let _envInstance: EnvService | null = null;
+
+export function getEnvService(): EnvService {
+  if (!_envInstance) {
+    _envInstance = new EnvService();
+  }
+  return _envInstance;
+}
+
+export const __testing_env = createTestingHooks<EnvService>(
+  () => { _envInstance = null; },
+  (svc) => { _envInstance = svc; },
+);

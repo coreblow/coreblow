@@ -249,3 +249,27 @@ export function sanitizeSystemRunEnvOverrides(params?: {
   }
   return Object.keys(filtered).length > 0 ? filtered : undefined;
 }
+
+// ---------------------------------------------------------------------------
+// HostEnvSecurityService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class HostEnvSecurityService {
+  [Symbol.toStringTag] = 'HostEnvSecurityService';
+}
+
+let _hostEnvSecurityInstance: HostEnvSecurityService | null = null;
+
+export function getHostEnvSecurityService(): HostEnvSecurityService {
+  if (!_hostEnvSecurityInstance) {
+    _hostEnvSecurityInstance = new HostEnvSecurityService();
+  }
+  return _hostEnvSecurityInstance;
+}
+
+export const __testing_hostEnvSecurity = createTestingHooks<HostEnvSecurityService>(
+  () => { _hostEnvSecurityInstance = null; },
+  (svc) => { _hostEnvSecurityInstance = svc; },
+);

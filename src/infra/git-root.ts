@@ -70,3 +70,27 @@ export function resolveGitHeadPath(
     return gitDir ? path.join(gitDir, "HEAD") : null;
   });
 }
+
+// ---------------------------------------------------------------------------
+// GitRootService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class GitRootService {
+  [Symbol.toStringTag] = 'GitRootService';
+}
+
+let _gitRootInstance: GitRootService | null = null;
+
+export function getGitRootService(): GitRootService {
+  if (!_gitRootInstance) {
+    _gitRootInstance = new GitRootService();
+  }
+  return _gitRootInstance;
+}
+
+export const __testing_gitRoot = createTestingHooks<GitRootService>(
+  () => { _gitRootInstance = null; },
+  (svc) => { _gitRootInstance = svc; },
+);

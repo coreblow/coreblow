@@ -221,3 +221,27 @@ function resolveBoundaryFilePathGeneric(params: {
     return toBoundaryValidationError(error);
   }
 }
+
+// ---------------------------------------------------------------------------
+// BoundaryFileReadService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class BoundaryFileReadService {
+  [Symbol.toStringTag] = 'BoundaryFileReadService';
+}
+
+let _boundaryFileReadInstance: BoundaryFileReadService | null = null;
+
+export function getBoundaryFileReadService(): BoundaryFileReadService {
+  if (!_boundaryFileReadInstance) {
+    _boundaryFileReadInstance = new BoundaryFileReadService();
+  }
+  return _boundaryFileReadInstance;
+}
+
+export const __testing_boundaryFileRead = createTestingHooks<BoundaryFileReadService>(
+  () => { _boundaryFileReadInstance = null; },
+  (svc) => { _boundaryFileReadInstance = svc; },
+);

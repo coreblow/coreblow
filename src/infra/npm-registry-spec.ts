@@ -139,3 +139,27 @@ export function formatPrereleaseResolutionError(params: {
       : `Use an explicit prerelease tag or exact prerelease version if you want prerelease installs.`;
   return `Resolved ${params.spec.raw} to prerelease version ${params.resolvedVersion}, but prereleases are only installed when explicitly requested. ${selectorHint}`;
 }
+
+// ---------------------------------------------------------------------------
+// NpmRegistrySpecService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class NpmRegistrySpecService {
+  [Symbol.toStringTag] = 'NpmRegistrySpecService';
+}
+
+let _npmRegistrySpecInstance: NpmRegistrySpecService | null = null;
+
+export function getNpmRegistrySpecService(): NpmRegistrySpecService {
+  if (!_npmRegistrySpecInstance) {
+    _npmRegistrySpecInstance = new NpmRegistrySpecService();
+  }
+  return _npmRegistrySpecInstance;
+}
+
+export const __testing_npmRegistrySpec = createTestingHooks<NpmRegistrySpecService>(
+  () => { _npmRegistrySpecInstance = null; },
+  (svc) => { _npmRegistrySpecInstance = svc; },
+);

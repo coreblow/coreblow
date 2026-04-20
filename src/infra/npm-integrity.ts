@@ -91,3 +91,27 @@ export async function resolveNpmIntegrityDriftWithDefaultMessage(
 
   return { integrityDrift: driftResult.integrityDrift };
 }
+
+// ---------------------------------------------------------------------------
+// NpmIntegrityService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class NpmIntegrityService {
+  [Symbol.toStringTag] = 'NpmIntegrityService';
+}
+
+let _npmIntegrityInstance: NpmIntegrityService | null = null;
+
+export function getNpmIntegrityService(): NpmIntegrityService {
+  if (!_npmIntegrityInstance) {
+    _npmIntegrityInstance = new NpmIntegrityService();
+  }
+  return _npmIntegrityInstance;
+}
+
+export const __testing_npmIntegrity = createTestingHooks<NpmIntegrityService>(
+  () => { _npmIntegrityInstance = null; },
+  (svc) => { _npmIntegrityInstance = svc; },
+);

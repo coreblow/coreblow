@@ -246,3 +246,27 @@ export function resetShellPathCacheForTests(): void {
 export function getShellEnvAppliedKeys(): string[] {
   return [...lastAppliedKeys];
 }
+
+// ---------------------------------------------------------------------------
+// ShellEnvService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ShellEnvService {
+  [Symbol.toStringTag] = 'ShellEnvService';
+}
+
+let _shellEnvInstance: ShellEnvService | null = null;
+
+export function getShellEnvService(): ShellEnvService {
+  if (!_shellEnvInstance) {
+    _shellEnvInstance = new ShellEnvService();
+  }
+  return _shellEnvInstance;
+}
+
+export const __testing_shellEnv = createTestingHooks<ShellEnvService>(
+  () => { _shellEnvInstance = null; },
+  (svc) => { _shellEnvInstance = svc; },
+);

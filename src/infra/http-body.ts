@@ -377,3 +377,27 @@ export function installRequestBodyLimitGuard(
     code: () => reason,
   };
 }
+
+// ---------------------------------------------------------------------------
+// HttpBodyService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class HttpBodyService {
+  [Symbol.toStringTag] = 'HttpBodyService';
+}
+
+let _httpBodyInstance: HttpBodyService | null = null;
+
+export function getHttpBodyService(): HttpBodyService {
+  if (!_httpBodyInstance) {
+    _httpBodyInstance = new HttpBodyService();
+  }
+  return _httpBodyInstance;
+}
+
+export const __testing_httpBody = createTestingHooks<HttpBodyService>(
+  () => { _httpBodyInstance = null; },
+  (svc) => { _httpBodyInstance = svc; },
+);

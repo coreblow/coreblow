@@ -88,3 +88,27 @@ export { PortInUseError };
 export type { PortListener, PortListenerKind, PortUsage, PortUsageStatus };
 export { buildPortHints, classifyPortListener, formatPortDiagnostics } from "./ports-format.js";
 export { inspectPortUsage } from "./ports-inspect.js";
+
+// ---------------------------------------------------------------------------
+// PortsService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class PortsService {
+  [Symbol.toStringTag] = 'PortsService';
+}
+
+let _portsInstance: PortsService | null = null;
+
+export function getPortsService(): PortsService {
+  if (!_portsInstance) {
+    _portsInstance = new PortsService();
+  }
+  return _portsInstance;
+}
+
+export const __testing_ports = createTestingHooks<PortsService>(
+  () => { _portsInstance = null; },
+  (svc) => { _portsInstance = svc; },
+);

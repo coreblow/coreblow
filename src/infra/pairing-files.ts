@@ -48,3 +48,27 @@ export async function upsertPendingPairingRequest<TPending extends { requestId: 
   await params.persist();
   return { status: "pending", request, created: true };
 }
+
+// ---------------------------------------------------------------------------
+// PairingFilesService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class PairingFilesService {
+  [Symbol.toStringTag] = 'PairingFilesService';
+}
+
+let _pairingFilesInstance: PairingFilesService | null = null;
+
+export function getPairingFilesService(): PairingFilesService {
+  if (!_pairingFilesInstance) {
+    _pairingFilesInstance = new PairingFilesService();
+  }
+  return _pairingFilesInstance;
+}
+
+export const __testing_pairingFiles = createTestingHooks<PairingFilesService>(
+  () => { _pairingFilesInstance = null; },
+  (svc) => { _pairingFilesInstance = svc; },
+);

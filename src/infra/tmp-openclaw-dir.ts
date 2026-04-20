@@ -167,3 +167,27 @@ export function resolvePreferredCoreBlowTmpDir(
     return ensureTrustedFallbackDir();
   }
 }
+
+// ---------------------------------------------------------------------------
+// TmpOpenclawDirService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class TmpOpenclawDirService {
+  [Symbol.toStringTag] = 'TmpOpenclawDirService';
+}
+
+let _tmpOpenclawDirInstance: TmpOpenclawDirService | null = null;
+
+export function getTmpOpenclawDirService(): TmpOpenclawDirService {
+  if (!_tmpOpenclawDirInstance) {
+    _tmpOpenclawDirInstance = new TmpOpenclawDirService();
+  }
+  return _tmpOpenclawDirInstance;
+}
+
+export const __testing_tmpOpenclawDir = createTestingHooks<TmpOpenclawDirService>(
+  () => { _tmpOpenclawDirInstance = null; },
+  (svc) => { _tmpOpenclawDirInstance = svc; },
+);

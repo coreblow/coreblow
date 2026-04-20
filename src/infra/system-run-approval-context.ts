@@ -150,3 +150,27 @@ export function resolveSystemRunApprovalRuntimeContext(params: {
     commandText: command.commandText,
   };
 }
+
+// ---------------------------------------------------------------------------
+// SystemRunApprovalContextService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class SystemRunApprovalContextService {
+  [Symbol.toStringTag] = 'SystemRunApprovalContextService';
+}
+
+let _systemRunApprovalContextInstance: SystemRunApprovalContextService | null = null;
+
+export function getSystemRunApprovalContextService(): SystemRunApprovalContextService {
+  if (!_systemRunApprovalContextInstance) {
+    _systemRunApprovalContextInstance = new SystemRunApprovalContextService();
+  }
+  return _systemRunApprovalContextInstance;
+}
+
+export const __testing_systemRunApprovalContext = createTestingHooks<SystemRunApprovalContextService>(
+  () => { _systemRunApprovalContextInstance = null; },
+  (svc) => { _systemRunApprovalContextInstance = svc; },
+);

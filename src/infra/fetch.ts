@@ -107,3 +107,27 @@ export function resolveFetch(fetchImpl?: typeof fetch): typeof fetch | undefined
   }
   return wrapFetchWithAbortSignal(resolved);
 }
+
+// ---------------------------------------------------------------------------
+// FetchService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class FetchService {
+  [Symbol.toStringTag] = 'FetchService';
+}
+
+let _fetchInstance: FetchService | null = null;
+
+export function getFetchService(): FetchService {
+  if (!_fetchInstance) {
+    _fetchInstance = new FetchService();
+  }
+  return _fetchInstance;
+}
+
+export const __testing_fetch = createTestingHooks<FetchService>(
+  () => { _fetchInstance = null; },
+  (svc) => { _fetchInstance = svc; },
+);

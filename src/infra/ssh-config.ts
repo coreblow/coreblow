@@ -103,3 +103,27 @@ export async function resolveSshConfig(
     });
   });
 }
+
+// ---------------------------------------------------------------------------
+// SshConfigService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class SshConfigService {
+  [Symbol.toStringTag] = 'SshConfigService';
+}
+
+let _sshConfigInstance: SshConfigService | null = null;
+
+export function getSshConfigService(): SshConfigService {
+  if (!_sshConfigInstance) {
+    _sshConfigInstance = new SshConfigService();
+  }
+  return _sshConfigInstance;
+}
+
+export const __testing_sshConfig = createTestingHooks<SshConfigService>(
+  () => { _sshConfigInstance = null; },
+  (svc) => { _sshConfigInstance = svc; },
+);

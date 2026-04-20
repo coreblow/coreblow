@@ -255,3 +255,27 @@ export function installUnhandledRejectionHandler(): void {
     process.exit(1);
   });
 }
+
+// ---------------------------------------------------------------------------
+// UnhandledRejectionsService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class UnhandledRejectionsService {
+  [Symbol.toStringTag] = 'UnhandledRejectionsService';
+}
+
+let _unhandledRejectionsInstance: UnhandledRejectionsService | null = null;
+
+export function getUnhandledRejectionsService(): UnhandledRejectionsService {
+  if (!_unhandledRejectionsInstance) {
+    _unhandledRejectionsInstance = new UnhandledRejectionsService();
+  }
+  return _unhandledRejectionsInstance;
+}
+
+export const __testing_unhandledRejections = createTestingHooks<UnhandledRejectionsService>(
+  () => { _unhandledRejectionsInstance = null; },
+  (svc) => { _unhandledRejectionsInstance = svc; },
+);

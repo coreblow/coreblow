@@ -45,3 +45,27 @@ export function isPathInside(root: string, target: string): boolean {
   const relative = path.relative(resolvedRoot, resolvedTarget);
   return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
 }
+
+// ---------------------------------------------------------------------------
+// PathGuardsService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class PathGuardsService {
+  [Symbol.toStringTag] = 'PathGuardsService';
+}
+
+let _pathGuardsInstance: PathGuardsService | null = null;
+
+export function getPathGuardsService(): PathGuardsService {
+  if (!_pathGuardsInstance) {
+    _pathGuardsInstance = new PathGuardsService();
+  }
+  return _pathGuardsInstance;
+}
+
+export const __testing_pathGuards = createTestingHooks<PathGuardsService>(
+  () => { _pathGuardsInstance = null; },
+  (svc) => { _pathGuardsInstance = svc; },
+);

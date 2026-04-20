@@ -145,3 +145,27 @@ export async function deliverSessionMaintenanceWarning(params: WarningParams): P
     enqueueSystemEvent(text, { sessionKey: params.sessionKey });
   }
 }
+
+// ---------------------------------------------------------------------------
+// SessionMaintenanceWarningService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class SessionMaintenanceWarningService {
+  [Symbol.toStringTag] = 'SessionMaintenanceWarningService';
+}
+
+let _sessionMaintenanceWarningInstance: SessionMaintenanceWarningService | null = null;
+
+export function getSessionMaintenanceWarningService(): SessionMaintenanceWarningService {
+  if (!_sessionMaintenanceWarningInstance) {
+    _sessionMaintenanceWarningInstance = new SessionMaintenanceWarningService();
+  }
+  return _sessionMaintenanceWarningInstance;
+}
+
+export const __testing_sessionMaintenanceWarning = createTestingHooks<SessionMaintenanceWarningService>(
+  () => { _sessionMaintenanceWarningInstance = null; },
+  (svc) => { _sessionMaintenanceWarningInstance = svc; },
+);
