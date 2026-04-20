@@ -627,13 +627,38 @@ export async function discoverGatewayBeacons(
 }
 
 // ---------------------------------------------------------------------------
-// BonjourDiscoveryService — Tier-1 Standalone Singleton
+// BonjourDiscoveryService — Tier-2 GatewayService
 // ---------------------------------------------------------------------------
 
 import { createTestingHooks } from "./service-patterns.js";
+import type { GatewayService, ServiceHealth } from "../gateway/service-registry.js";
 
-export class BonjourDiscoveryService {
+export class BonjourDiscoveryService implements GatewayService {
+  readonly name = "bonjour-discovery";
   [Symbol.toStringTag] = 'BonjourDiscoveryService';
+  private _stopFn: (() => Promise<void>) | null = null;
+  private _started = false;
+
+  /** Register the bonjourStop callback from startGatewayDiscovery. */
+  setStopFn(fn: () => Promise<void>): void { this._stopFn = fn; }
+
+  async start(): Promise<void> {
+    this._started = true;
+  }
+
+  async stop(): Promise<void> {
+    try { await this._stopFn?.(); } catch { /* idempotent */ }
+    this._stopFn = null;
+    this._started = false;
+  }
+
+  health(): ServiceHealth {
+    if (!this._started) return { status: "down", detail: "not started" };
+    return {
+      status: this._stopFn ? "healthy" : "degraded",
+      detail: this._stopFn ? "mDNS advertiser active" : "no advertiser handle",
+    };
+  }
 }
 
 let _bonjourDiscoveryInstance: BonjourDiscoveryService | null = null;

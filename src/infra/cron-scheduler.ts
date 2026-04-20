@@ -181,13 +181,35 @@ export class CronScheduler {
 }
 
 // ---------------------------------------------------------------------------
-// CronSchedulerService — Tier-1 Standalone Singleton
+// CronSchedulerService — Tier-2 GatewayService
 // ---------------------------------------------------------------------------
 
 import { createTestingHooks } from "./service-patterns.js";
+import type { GatewayService, ServiceHealth } from "../gateway/service-registry.js";
 
-export class CronSchedulerService {
+export class CronSchedulerService implements GatewayService {
+  readonly name = "cron-scheduler";
   [Symbol.toStringTag] = 'CronSchedulerService';
+  private _handle: CronScheduler | null = null;
+  private _started = false;
+
+  /** Attach the underlying CronScheduler instance created by server startup. */
+  setHandle(handle: CronScheduler): void { this._handle = handle; }
+
+  async start(): Promise<void> {
+    this._started = true;
+  }
+
+  async stop(): Promise<void> {
+    try { this._handle?.stopAll(); } catch { /* idempotent */ }
+    this._started = false;
+  }
+
+  health(): ServiceHealth {
+    if (!this._started) return { status: "down", detail: "not started" };
+    const count = this._handle?.count() ?? 0;
+    return { status: "healthy", detail: `${count} active jobs` };
+  }
 }
 
 let _cronSchedulerInstance: CronSchedulerService | null = null;

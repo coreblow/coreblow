@@ -1,4 +1,5 @@
 import path from "node:path";
+import { getGatewayRegistry, registerInfraServices } from "./gateway-services.js";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { getActiveEmbeddedRunCount } from "../agents/pi-embedded-runner/runs.js";
 import { registerSkillsChangeListener } from "../agents/skills/refresh.js";
@@ -835,6 +836,11 @@ export async function startGatewayServer(
   let transcriptUnsub: (() => void) | null = null;
   let lifecycleUnsub: (() => void) | null = null;
   try {
+    // Register all Tier-2 services with the gateway ServiceRegistry.
+    if (!minimalTestGateway) {
+      await registerInfraServices();
+    }
+
     if (!minimalTestGateway) {
       const machineDisplayName = await getMachineDisplayName();
       const discovery = await startGatewayDiscovery({
@@ -850,6 +856,11 @@ export async function startGatewayServer(
         logDiscovery,
       });
       bonjourStop = discovery.bonjourStop;
+      // Wire bonjour stop handle into Tier-2 service
+      try {
+        const { getBonjourDiscoveryService } = await import("../infra/bonjour-discovery.js");
+        if (bonjourStop) getBonjourDiscoveryService().setStopFn(bonjourStop);
+      } catch { /* registry wiring is best-effort */ }
     }
 
     if (!minimalTestGateway) {
@@ -1103,6 +1114,11 @@ export async function startGatewayServer(
 
     if (!minimalTestGateway) {
       heartbeatRunner = startHeartbeatRunner({ cfg: cfgAtStart });
+      // Wire cron handle into Tier-2 service
+      try {
+        const { getCronSchedulerService } = await import("../infra/cron-scheduler.js");
+        getCronSchedulerService().setHandle(cron as any);
+      } catch { /* registry wiring is best-effort */ }
     }
 
     const healthCheckMinutes = cfgAtStart.gateway?.channelHealthCheckMinutes;
@@ -1312,6 +1328,13 @@ export async function startGatewayServer(
             broadcast(GATEWAY_EVENT_UPDATE_AVAILABLE, payload, { dropIfSlow: true });
           },
         });
+    // Wire update check stop handle into Tier-2 service
+    if (!minimalTestGateway) {
+      try {
+        const { getUpdateRunnerService } = await import("../infra/update-runner.js");
+        getUpdateRunnerService().setStopFn(stopGatewayUpdateCheck);
+      } catch { /* registry wiring is best-effort */ }
+    }
     tailscaleCleanup = minimalTestGateway
       ? null
       : await startGatewayTailscaleExposure({
@@ -1435,6 +1458,14 @@ export async function startGatewayServer(
             watchPath: configSnapshot.path,
           });
         })();
+
+    // Start all Tier-2 services via the ServiceRegistry.
+    if (!minimalTestGateway) {
+      const registryResult = await getGatewayRegistry().startAll();
+      if (registryResult.failed.length > 0) {
+        log.warn(`gateway: some Tier-2 services failed to start: ${registryResult.failed.join(', ')}`);
+      }
+    }
   } catch (err) {
     await closeOnStartupFailure();
     throw err;
@@ -1490,6 +1521,10 @@ export async function startGatewayServer(
       stopModelPricingRefresh();
       channelHealthMonitor?.stop();
       clearSecretsRuntimeSnapshot();
+      // Stop all Tier-2 services via the ServiceRegistry (reverse dep order).
+      try {
+        await getGatewayRegistry().stopAll();
+      } catch { /* registry shutdown is best-effort — close handler continues */ }
       await close(opts);
     },
   };

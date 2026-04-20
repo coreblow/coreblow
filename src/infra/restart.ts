@@ -512,12 +512,16 @@ export const __testing = {
 };
 
 // ---------------------------------------------------------------------------
-// RestartService — Tier-1 Standalone Singleton
+// RestartService — Tier-2 GatewayService
 // ---------------------------------------------------------------------------
 
 import { createTestingHooks } from "./service-patterns.js";
+import type { GatewayService, ServiceHealth } from "../gateway/service-registry.js";
 
-export class RestartService {
+export class RestartService implements GatewayService {
+  readonly name = "restart";
+  private _started = false;
+
   emitGatewayRestart() {
     return emitGatewayRestart();
   }
@@ -528,6 +532,24 @@ export class RestartService {
 
   triggerCoreBlowRestart() {
     return triggerCoreBlowRestart();
+  }
+
+  async start(): Promise<void> {
+    this._started = true;
+  }
+
+  async stop(): Promise<void> {
+    try { clearPendingScheduledRestart(); } catch { /* idempotent */ }
+    this._started = false;
+  }
+
+  health(): ServiceHealth {
+    if (!this._started) return { status: "down", detail: "not started" };
+    const pending = hasUnconsumedRestartSignal();
+    return {
+      status: pending ? "degraded" : "healthy",
+      detail: pending ? "restart pending" : "idle",
+    };
   }
 }
 
@@ -544,3 +566,4 @@ export const __testing_restart = createTestingHooks<RestartService>(
   () => { _restartInstance = null; },
   (svc) => { _restartInstance = svc; },
 );
+

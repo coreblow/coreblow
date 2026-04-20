@@ -1095,13 +1095,35 @@ export async function runGatewayUpdate(opts: UpdateRunnerOptions = {}): Promise<
 }
 
 // ---------------------------------------------------------------------------
-// UpdateRunnerService — Tier-1 Standalone Singleton
+// UpdateRunnerService — Tier-2 GatewayService
 // ---------------------------------------------------------------------------
 
 import { createTestingHooks } from "./service-patterns.js";
+import type { GatewayService, ServiceHealth } from "../gateway/service-registry.js";
 
-export class UpdateRunnerService {
+export class UpdateRunnerService implements GatewayService {
+  readonly name = "update-runner";
   [Symbol.toStringTag] = 'UpdateRunnerService';
+  private _stopFn: (() => void) | null = null;
+  private _started = false;
+
+  /** Register the stop callback returned by scheduleGatewayUpdateCheck. */
+  setStopFn(fn: () => void): void { this._stopFn = fn; }
+
+  async start(): Promise<void> {
+    this._started = true;
+  }
+
+  async stop(): Promise<void> {
+    try { this._stopFn?.(); } catch { /* idempotent */ }
+    this._stopFn = null;
+    this._started = false;
+  }
+
+  health(): ServiceHealth {
+    if (!this._started) return { status: "down", detail: "not started" };
+    return { status: "healthy", detail: "update checks active" };
+  }
 }
 
 let _updateRunnerInstance: UpdateRunnerService | null = null;

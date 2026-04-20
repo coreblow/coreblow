@@ -210,13 +210,35 @@ export async function startSshPortForward(opts: {
 }
 
 // ---------------------------------------------------------------------------
-// SshTunnelService — Tier-1 Standalone Singleton
+// SshTunnelService — Tier-2 GatewayService
 // ---------------------------------------------------------------------------
 
 import { createTestingHooks } from "./service-patterns.js";
+import type { GatewayService, ServiceHealth } from "../gateway/service-registry.js";
 
-export class SshTunnelService {
+export class SshTunnelService implements GatewayService {
+  readonly name = "ssh-tunnel";
   [Symbol.toStringTag] = 'SshTunnelService';
+  private _cleanupFn: (() => Promise<void>) | null = null;
+  private _started = false;
+
+  /** Register a cleanup callback for active SSH tunnels. */
+  setCleanupFn(fn: () => Promise<void>): void { this._cleanupFn = fn; }
+
+  async start(): Promise<void> {
+    this._started = true;
+  }
+
+  async stop(): Promise<void> {
+    try { await this._cleanupFn?.(); } catch { /* idempotent */ }
+    this._cleanupFn = null;
+    this._started = false;
+  }
+
+  health(): ServiceHealth {
+    if (!this._started) return { status: "down", detail: "not started" };
+    return { status: "healthy", detail: "tunnel manager ready" };
+  }
 }
 
 let _sshTunnelInstance: SshTunnelService | null = null;
