@@ -186,3 +186,49 @@ export function verifyDeviceSignature(
     return false;
   }
 }
+
+// ---------------------------------------------------------------------------
+// DeviceIdentityService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class DeviceIdentityService {
+  loadOrCreateDeviceIdentity(params: Parameters<typeof loadOrCreateDeviceIdentity>[0]) {
+    return loadOrCreateDeviceIdentity(params);
+  }
+
+  signDevicePayload(privateKeyPem: string, payload: string) {
+    return signDevicePayload(privateKeyPem, payload);
+  }
+
+  normalizeDevicePublicKeyBase64Url(publicKey: string) {
+    return normalizeDevicePublicKeyBase64Url(publicKey);
+  }
+
+  deriveDeviceIdFromPublicKey(publicKey: string) {
+    return deriveDeviceIdFromPublicKey(publicKey);
+  }
+
+  publicKeyRawBase64UrlFromPem(publicKeyPem: string) {
+    return publicKeyRawBase64UrlFromPem(publicKeyPem);
+  }
+
+  verifyDeviceSignature(...args: Parameters<typeof verifyDeviceSignature>) {
+    return verifyDeviceSignature(...args);
+  }
+}
+
+let _deviceIdentityInstance: DeviceIdentityService | null = null;
+
+export function getDeviceIdentityService(): DeviceIdentityService {
+  if (!_deviceIdentityInstance) {
+    _deviceIdentityInstance = new DeviceIdentityService();
+  }
+  return _deviceIdentityInstance;
+}
+
+export const __testing_deviceIdentity = createTestingHooks<DeviceIdentityService>(
+  () => { _deviceIdentityInstance = null; },
+  (svc) => { _deviceIdentityInstance = svc; },
+);

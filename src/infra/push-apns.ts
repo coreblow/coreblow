@@ -1007,3 +1007,57 @@ export async function sendApnsBackgroundWake(
 }
 
 export { type ApnsRelayConfig, type ApnsRelayConfigResolution, resolveApnsRelayConfigFromEnv };
+
+// ---------------------------------------------------------------------------
+// PushApnsService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class PushApnsService {
+  normalizeApnsEnvironment(value: unknown) {
+    return normalizeApnsEnvironment(value);
+  }
+
+  async registerApnsRegistration(params: Parameters<typeof registerApnsRegistration>[0]) {
+    return registerApnsRegistration(params);
+  }
+
+  async registerApnsToken(params: Parameters<typeof registerApnsToken>[0]) {
+    return registerApnsToken(params);
+  }
+
+  async loadApnsRegistration(...args: Parameters<typeof loadApnsRegistration>) {
+    return loadApnsRegistration(...args);
+  }
+
+  async clearApnsRegistration(nodeId: string, baseDir?: string) {
+    return clearApnsRegistration(nodeId, baseDir);
+  }
+
+  async clearApnsRegistrationIfCurrent(params: Parameters<typeof clearApnsRegistrationIfCurrent>[0]) {
+    return clearApnsRegistrationIfCurrent(params);
+  }
+
+  shouldInvalidateApnsRegistration(result: Parameters<typeof shouldInvalidateApnsRegistration>[0]) {
+    return shouldInvalidateApnsRegistration(result);
+  }
+
+  shouldClearStoredApnsRegistration(params: Parameters<typeof shouldClearStoredApnsRegistration>[0]) {
+    return shouldClearStoredApnsRegistration(params);
+  }
+}
+
+let _pushApnsInstance: PushApnsService | null = null;
+
+export function getPushApnsService(): PushApnsService {
+  if (!_pushApnsInstance) {
+    _pushApnsInstance = new PushApnsService();
+  }
+  return _pushApnsInstance;
+}
+
+export const __testing_pushApns = createTestingHooks<PushApnsService>(
+  () => { _pushApnsInstance = null; },
+  (svc) => { _pushApnsInstance = svc; },
+);

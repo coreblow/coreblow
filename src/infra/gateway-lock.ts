@@ -258,3 +258,29 @@ export async function acquireGatewayLock(
   const owner = lastPayload?.pid ? ` (pid ${lastPayload.pid})` : "";
   throw new GatewayLockError(`gateway already running${owner}; lock timeout after ${timeoutMs}ms`);
 }
+
+// ---------------------------------------------------------------------------
+// GatewayLockService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class GatewayLockService {
+  async acquireGatewayLock(...args: Parameters<typeof acquireGatewayLock>) {
+    return acquireGatewayLock(...args);
+  }
+}
+
+let _gatewayLockInstance: GatewayLockService | null = null;
+
+export function getGatewayLockService(): GatewayLockService {
+  if (!_gatewayLockInstance) {
+    _gatewayLockInstance = new GatewayLockService();
+  }
+  return _gatewayLockInstance;
+}
+
+export const __testing_gatewayLock = createTestingHooks<GatewayLockService>(
+  () => { _gatewayLockInstance = null; },
+  (svc) => { _gatewayLockInstance = svc; },
+);

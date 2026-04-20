@@ -841,3 +841,49 @@ export async function clearDevicePairing(deviceId: string, baseDir?: string): Pr
     return true;
   });
 }
+
+// ---------------------------------------------------------------------------
+// DevicePairingService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class DevicePairingService {
+  async listDevicePairing(baseDir?: string) {
+    return listDevicePairing(baseDir);
+  }
+
+  async getPairedDevice(...args: Parameters<typeof getPairedDevice>) {
+    return getPairedDevice(...args);
+  }
+
+  async getPendingDevicePairing(...args: Parameters<typeof getPendingDevicePairing>) {
+    return getPendingDevicePairing(...args);
+  }
+
+  async requestDevicePairing(params: Parameters<typeof requestDevicePairing>[0]) {
+    return requestDevicePairing(params);
+  }
+
+  async approveDevicePairing(...args: Parameters<typeof approveDevicePairing>) {
+    return approveDevicePairing(...args);
+  }
+
+  async rejectDevicePairing(...args: Parameters<typeof rejectDevicePairing>) {
+    return rejectDevicePairing(...args);
+  }
+}
+
+let _devicePairingInstance: DevicePairingService | null = null;
+
+export function getDevicePairingService(): DevicePairingService {
+  if (!_devicePairingInstance) {
+    _devicePairingInstance = new DevicePairingService();
+  }
+  return _devicePairingInstance;
+}
+
+export const __testing_devicePairing = createTestingHooks<DevicePairingService>(
+  () => { _devicePairingInstance = null; },
+  (svc) => { _devicePairingInstance = svc; },
+);

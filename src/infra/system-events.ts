@@ -157,3 +157,57 @@ export function resolveSystemEventDeliveryContext(
 export function resetSystemEventsForTest() {
   queues.clear();
 }
+
+// ---------------------------------------------------------------------------
+// SystemEventsService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class SystemEventsService {
+  isSystemEventContextChanged(...args: Parameters<typeof isSystemEventContextChanged>) {
+    return isSystemEventContextChanged(...args);
+  }
+
+  enqueueSystemEvent(text: string, options: Parameters<typeof enqueueSystemEvent>[1]) {
+    return enqueueSystemEvent(text, options);
+  }
+
+  drainSystemEventEntries(sessionKey: string) {
+    return drainSystemEventEntries(sessionKey);
+  }
+
+  drainSystemEvents(sessionKey: string) {
+    return drainSystemEvents(sessionKey);
+  }
+
+  peekSystemEventEntries(sessionKey: string) {
+    return peekSystemEventEntries(sessionKey);
+  }
+
+  peekSystemEvents(sessionKey: string) {
+    return peekSystemEvents(sessionKey);
+  }
+
+  hasSystemEvents(sessionKey: string) {
+    return hasSystemEvents(sessionKey);
+  }
+
+  resolveSystemEventDeliveryContext(events: Parameters<typeof resolveSystemEventDeliveryContext>[0]) {
+    return resolveSystemEventDeliveryContext(events);
+  }
+}
+
+let _systemEventsInstance: SystemEventsService | null = null;
+
+export function getSystemEventsService(): SystemEventsService {
+  if (!_systemEventsInstance) {
+    _systemEventsInstance = new SystemEventsService();
+  }
+  return _systemEventsInstance;
+}
+
+export const __testing_systemEvents = createTestingHooks<SystemEventsService>(
+  () => { _systemEventsInstance = null; },
+  (svc) => { _systemEventsInstance = svc; },
+);

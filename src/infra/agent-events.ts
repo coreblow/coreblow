@@ -102,3 +102,45 @@ export function resetAgentEventsForTest() {
   state.listeners.clear();
   state.runContextById.clear();
 }
+
+// ---------------------------------------------------------------------------
+// AgentEventsService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class AgentEventsService {
+  registerAgentRunContext(runId: string, context: Parameters<typeof registerAgentRunContext>[1]) {
+    return registerAgentRunContext(runId, context);
+  }
+
+  getAgentRunContext(runId: string) {
+    return getAgentRunContext(runId);
+  }
+
+  clearAgentRunContext(runId: string) {
+    return clearAgentRunContext(runId);
+  }
+
+  emitAgentEvent(event: Parameters<typeof emitAgentEvent>[0]) {
+    return emitAgentEvent(event);
+  }
+
+  onAgentEvent(listener: Parameters<typeof onAgentEvent>[0]) {
+    return onAgentEvent(listener);
+  }
+}
+
+let _agentEventsInstance: AgentEventsService | null = null;
+
+export function getAgentEventsService(): AgentEventsService {
+  if (!_agentEventsInstance) {
+    _agentEventsInstance = new AgentEventsService();
+  }
+  return _agentEventsInstance;
+}
+
+export const __testing_agentEvents = createTestingHooks<AgentEventsService>(
+  () => { _agentEventsInstance = null; },
+  (svc) => { _agentEventsInstance = svc; },
+);

@@ -510,3 +510,37 @@ export const __testing = {
     clearPendingScheduledRestart();
   },
 };
+
+// ---------------------------------------------------------------------------
+// RestartService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class RestartService {
+  emitGatewayRestart() {
+    return emitGatewayRestart();
+  }
+
+  deferGatewayRestartUntilIdle(opts: Parameters<typeof deferGatewayRestartUntilIdle>[0]) {
+    return deferGatewayRestartUntilIdle(opts);
+  }
+
+  triggerCoreBlowRestart() {
+    return triggerCoreBlowRestart();
+  }
+}
+
+let _restartInstance: RestartService | null = null;
+
+export function getRestartService(): RestartService {
+  if (!_restartInstance) {
+    _restartInstance = new RestartService();
+  }
+  return _restartInstance;
+}
+
+export const __testing_restart = createTestingHooks<RestartService>(
+  () => { _restartInstance = null; },
+  (svc) => { _restartInstance = svc; },
+);

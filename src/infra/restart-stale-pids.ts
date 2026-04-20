@@ -289,3 +289,33 @@ export const __testing = {
   /** Invoke sleepSync directly (bypasses the override) for unit-testing the real Atomics path. */
   callSleepSyncRaw: sleepSync,
 };
+
+// ---------------------------------------------------------------------------
+// RestartStalePidsService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class RestartStalePidsService {
+  findGatewayPidsOnPortSync(...args: Parameters<typeof findGatewayPidsOnPortSync>) {
+    return findGatewayPidsOnPortSync(...args);
+  }
+
+  cleanStaleGatewayProcessesSync(portOverride?: number) {
+    return cleanStaleGatewayProcessesSync(portOverride);
+  }
+}
+
+let _restartStalePidsInstance: RestartStalePidsService | null = null;
+
+export function getRestartStalePidsService(): RestartStalePidsService {
+  if (!_restartStalePidsInstance) {
+    _restartStalePidsInstance = new RestartStalePidsService();
+  }
+  return _restartStalePidsInstance;
+}
+
+export const __testing_restartStalePids = createTestingHooks<RestartStalePidsService>(
+  () => { _restartStalePidsInstance = null; },
+  (svc) => { _restartStalePidsInstance = svc; },
+);

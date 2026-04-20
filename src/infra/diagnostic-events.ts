@@ -240,3 +240,37 @@ export function resetDiagnosticEventsForTest(): void {
   state.listeners.clear();
   state.dispatchDepth = 0;
 }
+
+// ---------------------------------------------------------------------------
+// DiagnosticEventsService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class DiagnosticEventsService {
+  isDiagnosticsEnabled(config?: Parameters<typeof isDiagnosticsEnabled>[0]) {
+    return isDiagnosticsEnabled(config);
+  }
+
+  emitDiagnosticEvent(event: Parameters<typeof emitDiagnosticEvent>[0]) {
+    return emitDiagnosticEvent(event);
+  }
+
+  onDiagnosticEvent(listener: Parameters<typeof onDiagnosticEvent>[0]) {
+    return onDiagnosticEvent(listener);
+  }
+}
+
+let _diagnosticEventsInstance: DiagnosticEventsService | null = null;
+
+export function getDiagnosticEventsService(): DiagnosticEventsService {
+  if (!_diagnosticEventsInstance) {
+    _diagnosticEventsInstance = new DiagnosticEventsService();
+  }
+  return _diagnosticEventsInstance;
+}
+
+export const __testing_diagnosticEvents = createTestingHooks<DiagnosticEventsService>(
+  () => { _diagnosticEventsInstance = null; },
+  (svc) => { _diagnosticEventsInstance = svc; },
+);

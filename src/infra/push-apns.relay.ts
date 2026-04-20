@@ -252,3 +252,33 @@ export async function sendApnsRelayPush(params: {
     payload: params.payload,
   });
 }
+
+// ---------------------------------------------------------------------------
+// PushApnsRelayService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class PushApnsRelayService {
+  resolveApnsRelayConfigFromEnv(params: Parameters<typeof resolveApnsRelayConfigFromEnv>[0]) {
+    return resolveApnsRelayConfigFromEnv(params);
+  }
+
+  async sendApnsRelayPush(params: Parameters<typeof sendApnsRelayPush>[0]) {
+    return sendApnsRelayPush(params);
+  }
+}
+
+let _pushApnsRelayInstance: PushApnsRelayService | null = null;
+
+export function getPushApnsRelayService(): PushApnsRelayService {
+  if (!_pushApnsRelayInstance) {
+    _pushApnsRelayInstance = new PushApnsRelayService();
+  }
+  return _pushApnsRelayInstance;
+}
+
+export const __testing_pushApnsRelay = createTestingHooks<PushApnsRelayService>(
+  () => { _pushApnsRelayInstance = null; },
+  (svc) => { _pushApnsRelayInstance = svc; },
+);

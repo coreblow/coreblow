@@ -145,3 +145,49 @@ export function trimLogTail(input?: string | null, maxChars = 8000) {
   }
   return `…${text.slice(text.length - maxChars)}`;
 }
+
+// ---------------------------------------------------------------------------
+// RestartSentinelService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class RestartSentinelService {
+  resolveRestartSentinelPath(env?: NodeJS.ProcessEnv) {
+    return resolveRestartSentinelPath(env);
+  }
+
+  async writeRestartSentinel(...args: Parameters<typeof writeRestartSentinel>) {
+    return writeRestartSentinel(...args);
+  }
+
+  async readRestartSentinel(...args: Parameters<typeof readRestartSentinel>) {
+    return readRestartSentinel(...args);
+  }
+
+  async consumeRestartSentinel(...args: Parameters<typeof consumeRestartSentinel>) {
+    return consumeRestartSentinel(...args);
+  }
+
+  formatRestartSentinelMessage(payload: Parameters<typeof formatRestartSentinelMessage>[0]) {
+    return formatRestartSentinelMessage(payload);
+  }
+
+  summarizeRestartSentinel(payload: Parameters<typeof summarizeRestartSentinel>[0]) {
+    return summarizeRestartSentinel(payload);
+  }
+}
+
+let _restartSentinelInstance: RestartSentinelService | null = null;
+
+export function getRestartSentinelService(): RestartSentinelService {
+  if (!_restartSentinelInstance) {
+    _restartSentinelInstance = new RestartSentinelService();
+  }
+  return _restartSentinelInstance;
+}
+
+export const __testing_restartSentinel = createTestingHooks<RestartSentinelService>(
+  () => { _restartSentinelInstance = null; },
+  (svc) => { _restartSentinelInstance = svc; },
+);

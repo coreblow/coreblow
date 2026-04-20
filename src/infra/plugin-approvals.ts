@@ -80,3 +80,41 @@ export function buildPluginApprovalResolvedMessage(resolved: PluginApprovalResol
 export function buildPluginApprovalExpiredMessage(request: PluginApprovalRequest): string {
   return `⏱️ Plugin approval expired. ID: ${request.id}`;
 }
+
+// ---------------------------------------------------------------------------
+// PluginApprovalsService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class PluginApprovalsService {
+  approvalDecisionLabel(decision: Parameters<typeof approvalDecisionLabel>[0]) {
+    return approvalDecisionLabel(decision);
+  }
+
+  buildPluginApprovalRequestMessage(...args: Parameters<typeof buildPluginApprovalRequestMessage>) {
+    return buildPluginApprovalRequestMessage(...args);
+  }
+
+  buildPluginApprovalResolvedMessage(resolved: Parameters<typeof buildPluginApprovalResolvedMessage>[0]) {
+    return buildPluginApprovalResolvedMessage(resolved);
+  }
+
+  buildPluginApprovalExpiredMessage(request: Parameters<typeof buildPluginApprovalExpiredMessage>[0]) {
+    return buildPluginApprovalExpiredMessage(request);
+  }
+}
+
+let _pluginApprovalsInstance: PluginApprovalsService | null = null;
+
+export function getPluginApprovalsService(): PluginApprovalsService {
+  if (!_pluginApprovalsInstance) {
+    _pluginApprovalsInstance = new PluginApprovalsService();
+  }
+  return _pluginApprovalsInstance;
+}
+
+export const __testing_pluginApprovals = createTestingHooks<PluginApprovalsService>(
+  () => { _pluginApprovalsInstance = null; },
+  (svc) => { _pluginApprovalsInstance = svc; },
+);

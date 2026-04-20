@@ -92,3 +92,37 @@ export function clearDeviceAuthToken(params: {
     role: params.role,
   });
 }
+
+// ---------------------------------------------------------------------------
+// DeviceAuthStoreService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class DeviceAuthStoreService {
+  loadDeviceAuthToken(params: Parameters<typeof loadDeviceAuthToken>[0]) {
+    return loadDeviceAuthToken(params);
+  }
+
+  storeDeviceAuthToken(params: Parameters<typeof storeDeviceAuthToken>[0]) {
+    return storeDeviceAuthToken(params);
+  }
+
+  clearDeviceAuthToken(params: Parameters<typeof clearDeviceAuthToken>[0]) {
+    return clearDeviceAuthToken(params);
+  }
+}
+
+let _deviceAuthStoreInstance: DeviceAuthStoreService | null = null;
+
+export function getDeviceAuthStoreService(): DeviceAuthStoreService {
+  if (!_deviceAuthStoreInstance) {
+    _deviceAuthStoreInstance = new DeviceAuthStoreService();
+  }
+  return _deviceAuthStoreInstance;
+}
+
+export const __testing_deviceAuthStore = createTestingHooks<DeviceAuthStoreService>(
+  () => { _deviceAuthStoreInstance = null; },
+  (svc) => { _deviceAuthStoreInstance = svc; },
+);

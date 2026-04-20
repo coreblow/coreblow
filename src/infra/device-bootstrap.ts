@@ -203,3 +203,41 @@ export async function verifyDeviceBootstrapToken(params: {
     return { ok: true };
   });
 }
+
+// ---------------------------------------------------------------------------
+// DeviceBootstrapService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class DeviceBootstrapService {
+  async issueDeviceBootstrapToken(params: Parameters<typeof issueDeviceBootstrapToken>[0]) {
+    return issueDeviceBootstrapToken(params);
+  }
+
+  async clearDeviceBootstrapTokens(params: Parameters<typeof clearDeviceBootstrapTokens>[0]) {
+    return clearDeviceBootstrapTokens(params);
+  }
+
+  async revokeDeviceBootstrapToken(params: Parameters<typeof revokeDeviceBootstrapToken>[0]) {
+    return revokeDeviceBootstrapToken(params);
+  }
+
+  async verifyDeviceBootstrapToken(params: Parameters<typeof verifyDeviceBootstrapToken>[0]) {
+    return verifyDeviceBootstrapToken(params);
+  }
+}
+
+let _deviceBootstrapInstance: DeviceBootstrapService | null = null;
+
+export function getDeviceBootstrapService(): DeviceBootstrapService {
+  if (!_deviceBootstrapInstance) {
+    _deviceBootstrapInstance = new DeviceBootstrapService();
+  }
+  return _deviceBootstrapInstance;
+}
+
+export const __testing_deviceBootstrap = createTestingHooks<DeviceBootstrapService>(
+  () => { _deviceBootstrapInstance = null; },
+  (svc) => { _deviceBootstrapInstance = svc; },
+);

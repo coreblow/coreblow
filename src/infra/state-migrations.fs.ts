@@ -59,3 +59,49 @@ export function readSessionStoreJson5(storePath: string): {
   }
   return { store: {}, ok: false };
 }
+
+// ---------------------------------------------------------------------------
+// StateMigrationFsService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class StateMigrationFsService {
+  safeReadDir(dir: string) {
+    return safeReadDir(dir);
+  }
+
+  existsDir(dir: string) {
+    return existsDir(dir);
+  }
+
+  ensureDir(dir: string) {
+    return ensureDir(dir);
+  }
+
+  fileExists(p: string) {
+    return fileExists(p);
+  }
+
+  isLegacyWhatsAppAuthFile(name: string) {
+    return isLegacyWhatsAppAuthFile(name);
+  }
+
+  readSessionStoreJson5(storePath: string) {
+    return readSessionStoreJson5(storePath);
+  }
+}
+
+let _stateMigrationFsInstance: StateMigrationFsService | null = null;
+
+export function getStateMigrationFsService(): StateMigrationFsService {
+  if (!_stateMigrationFsInstance) {
+    _stateMigrationFsInstance = new StateMigrationFsService();
+  }
+  return _stateMigrationFsInstance;
+}
+
+export const __testing_stateMigrationFs = createTestingHooks<StateMigrationFsService>(
+  () => { _stateMigrationFsInstance = null; },
+  (svc) => { _stateMigrationFsInstance = svc; },
+);

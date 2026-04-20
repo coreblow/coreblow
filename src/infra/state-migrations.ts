@@ -1050,3 +1050,45 @@ export async function autoMigrateLegacyState(params: {
     warnings,
   };
 }
+
+// ---------------------------------------------------------------------------
+// StateMigrationService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class StateMigrationService {
+  async autoMigrateLegacyStateDir(params: Parameters<typeof autoMigrateLegacyStateDir>[0]) {
+    return autoMigrateLegacyStateDir(params);
+  }
+
+  async detectLegacyStateMigrations(params: Parameters<typeof detectLegacyStateMigrations>[0]) {
+    return detectLegacyStateMigrations(params);
+  }
+
+  async migrateLegacyAgentDir(...args: Parameters<typeof migrateLegacyAgentDir>) {
+    return migrateLegacyAgentDir(...args);
+  }
+
+  async runLegacyStateMigrations(params: Parameters<typeof runLegacyStateMigrations>[0]) {
+    return runLegacyStateMigrations(params);
+  }
+
+  async autoMigrateLegacyAgentDir(params: Parameters<typeof autoMigrateLegacyAgentDir>[0]) {
+    return autoMigrateLegacyAgentDir(params);
+  }
+}
+
+let _stateMigrationInstance: StateMigrationService | null = null;
+
+export function getStateMigrationService(): StateMigrationService {
+  if (!_stateMigrationInstance) {
+    _stateMigrationInstance = new StateMigrationService();
+  }
+  return _stateMigrationInstance;
+}
+
+export const __testing_stateMigration = createTestingHooks<StateMigrationService>(
+  () => { _stateMigrationInstance = null; },
+  (svc) => { _stateMigrationInstance = svc; },
+);

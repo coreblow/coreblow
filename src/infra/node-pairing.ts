@@ -317,3 +317,49 @@ export async function renamePairedNode(
     return next;
   });
 }
+
+// ---------------------------------------------------------------------------
+// NodePairingService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class NodePairingService {
+  async listNodePairing(baseDir?: string) {
+    return listNodePairing(baseDir);
+  }
+
+  async getPairedNode(...args: Parameters<typeof getPairedNode>) {
+    return getPairedNode(...args);
+  }
+
+  async requestNodePairing(params: Parameters<typeof requestNodePairing>[0]) {
+    return requestNodePairing(params);
+  }
+
+  async approveNodePairing(...args: Parameters<typeof approveNodePairing>) {
+    return approveNodePairing(...args);
+  }
+
+  async rejectNodePairing(...args: Parameters<typeof rejectNodePairing>) {
+    return rejectNodePairing(...args);
+  }
+
+  async verifyNodeToken(...args: Parameters<typeof verifyNodeToken>) {
+    return verifyNodeToken(...args);
+  }
+}
+
+let _nodePairingInstance: NodePairingService | null = null;
+
+export function getNodePairingService(): NodePairingService {
+  if (!_nodePairingInstance) {
+    _nodePairingInstance = new NodePairingService();
+  }
+  return _nodePairingInstance;
+}
+
+export const __testing_nodePairing = createTestingHooks<NodePairingService>(
+  () => { _nodePairingInstance = null; },
+  (svc) => { _nodePairingInstance = svc; },
+);
