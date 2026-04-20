@@ -799,3 +799,86 @@ async function deliverOutboundPayloadsCore(
 
   return results;
 }
+
+// ---------------------------------------------------------------------------
+// OutboundDeliveryService — Tier-2 GatewayService facade
+// ---------------------------------------------------------------------------
+
+import type { GatewayService, ServiceHealth } from "../../gateway/service-registry.js";
+import { createTestingHooks } from "../service-patterns.js";
+
+/**
+ * Dependencies for OutboundDeliveryService.
+ * Kept minimal — the service delegates to the existing procedural functions
+ * which resolve their own dependencies internally.
+ */
+export type OutboundDeliveryServiceDeps = {
+  /** Override for testing. Defaults to the module-level deliverOutboundPayloads. */
+  deliver?: typeof deliverOutboundPayloads;
+};
+
+/**
+ * Tier-2 service wrapping outbound message delivery with lifecycle management.
+ *
+ * This is a thin facade over the existing `deliverOutboundPayloads` function.
+ * The class enables ServiceRegistry integration (start/stop/health) without
+ * changing any delivery logic.
+ */
+export class OutboundDeliveryService implements GatewayService {
+  readonly name = "outbound-delivery";
+  private started = false;
+  private startedAt: number | null = null;
+  private deliveryCount = 0;
+  private lastDeliveryAt: number | null = null;
+  private readonly deliverFn: typeof deliverOutboundPayloads;
+
+  constructor(deps: OutboundDeliveryServiceDeps = {}) {
+    this.deliverFn = deps.deliver ?? deliverOutboundPayloads;
+  }
+
+  async start(): Promise<void> {
+    this.started = true;
+    this.startedAt = Date.now();
+  }
+
+  async stop(): Promise<void> {
+    this.started = false;
+  }
+
+  health(): ServiceHealth {
+    if (!this.started) {
+      return { status: "down", detail: "not started" };
+    }
+    return {
+      status: "healthy",
+      detail: `deliveries=${this.deliveryCount}, lastAt=${this.lastDeliveryAt ?? "never"}`,
+    };
+  }
+
+  /**
+   * Deliver outbound payloads. Delegates to the existing procedural function.
+   */
+  async deliver(params: DeliverOutboundPayloadsParams): Promise<OutboundDeliveryResult[]> {
+    const results = await this.deliverFn(params);
+    this.deliveryCount++;
+    this.lastDeliveryAt = Date.now();
+    return results;
+  }
+}
+
+// Lazy singleton for backward-compat callers that want class access
+let _outboundDeliveryInstance: OutboundDeliveryService | null = null;
+
+/** Get the default OutboundDeliveryService singleton. */
+export function getOutboundDeliveryService(): OutboundDeliveryService {
+  if (!_outboundDeliveryInstance) {
+    _outboundDeliveryInstance = new OutboundDeliveryService();
+  }
+  return _outboundDeliveryInstance;
+}
+
+/** @internal Testing hooks — guarded by NODE_ENV. */
+export const __testing_deliver = createTestingHooks<OutboundDeliveryService>(
+  () => { _outboundDeliveryInstance = null; },
+  (svc) => { _outboundDeliveryInstance = svc; },
+);

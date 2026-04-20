@@ -242,3 +242,52 @@ export async function moveToFailed(id: string, stateDir?: string): Promise<void>
   await fs.promises.mkdir(failedDir, { recursive: true, mode: 0o700 });
   await fs.promises.rename(path.join(queueDir, `${id}.json`), path.join(failedDir, `${id}.json`));
 }
+
+// ---------------------------------------------------------------------------
+// DeliveryQueueStorageService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "../service-patterns.js";
+
+/**
+ * Tier-1 service wrapping delivery queue file-backed storage operations.
+ */
+export class DeliveryQueueStorageService {
+  async ensureQueueDir(stateDir?: string) {
+    return ensureQueueDir(stateDir);
+  }
+
+  async enqueueDelivery(params: QueuedDeliveryPayload, stateDir?: string) {
+    return enqueueDelivery(params, stateDir);
+  }
+
+  async ackDelivery(id: string, stateDir?: string) {
+    return ackDelivery(id, stateDir);
+  }
+
+  async failDelivery(id: string, error: string, stateDir?: string) {
+    return failDelivery(id, error, stateDir);
+  }
+
+  async loadPendingDeliveries(stateDir?: string) {
+    return loadPendingDeliveries(stateDir);
+  }
+
+  async moveToFailed(id: string, stateDir?: string) {
+    return moveToFailed(id, stateDir);
+  }
+}
+
+let _storageInstance: DeliveryQueueStorageService | null = null;
+
+export function getDeliveryQueueStorageService(): DeliveryQueueStorageService {
+  if (!_storageInstance) {
+    _storageInstance = new DeliveryQueueStorageService();
+  }
+  return _storageInstance;
+}
+
+export const __testing_deliveryQueueStorage = createTestingHooks<DeliveryQueueStorageService>(
+  () => { _storageInstance = null; },
+  (svc) => { _storageInstance = svc; },
+);

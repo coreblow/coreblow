@@ -220,3 +220,44 @@ export async function recoverPendingDeliveries(opts: {
 }
 
 export { MAX_RETRIES };
+
+// ---------------------------------------------------------------------------
+// DeliveryQueueRecoveryService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "../service-patterns.js";
+
+/**
+ * Tier-1 service wrapping delivery queue crash recovery logic.
+ */
+export class DeliveryQueueRecoveryService {
+  computeBackoffMs(retryCount: number) {
+    return computeBackoffMs(retryCount);
+  }
+
+  isEntryEligibleForRecoveryRetry(entry: QueuedDelivery, now: number) {
+    return isEntryEligibleForRecoveryRetry(entry, now);
+  }
+
+  isPermanentDeliveryError(error: string) {
+    return isPermanentDeliveryError(error);
+  }
+
+  async recoverPendingDeliveries(opts: Parameters<typeof recoverPendingDeliveries>[0]) {
+    return recoverPendingDeliveries(opts);
+  }
+}
+
+let _recoveryInstance: DeliveryQueueRecoveryService | null = null;
+
+export function getDeliveryQueueRecoveryService(): DeliveryQueueRecoveryService {
+  if (!_recoveryInstance) {
+    _recoveryInstance = new DeliveryQueueRecoveryService();
+  }
+  return _recoveryInstance;
+}
+
+export const __testing_deliveryQueueRecovery = createTestingHooks<DeliveryQueueRecoveryService>(
+  () => { _recoveryInstance = null; },
+  (svc) => { _recoveryInstance = svc; },
+);

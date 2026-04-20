@@ -542,3 +542,53 @@ export async function lookupDirectoryDisplay(params: {
   const entry = findMatch(groups) ?? findMatch(users);
   return entry?.name ?? entry?.handle ?? undefined;
 }
+
+// ---------------------------------------------------------------------------
+// OutboundTargetResolverService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "../service-patterns.js";
+
+/**
+ * Tier-1 service wrapping outbound target resolution (directory lookup,
+ * channel target normalization, display formatting).
+ */
+export class OutboundTargetResolverService {
+  async resolveChannelTarget(params: Parameters<typeof resolveChannelTarget>[0]) {
+    return resolveChannelTarget(params);
+  }
+
+  async maybeResolveIdLikeTarget(params: Parameters<typeof maybeResolveIdLikeTarget>[0]) {
+    return maybeResolveIdLikeTarget(params);
+  }
+
+  resetDirectoryCache(params?: Parameters<typeof resetDirectoryCache>[0]) {
+    return resetDirectoryCache(params);
+  }
+
+  formatTargetDisplay(params: Parameters<typeof formatTargetDisplay>[0]) {
+    return formatTargetDisplay(params);
+  }
+
+  async resolveMessagingTarget(params: Parameters<typeof resolveMessagingTarget>[0]) {
+    return resolveMessagingTarget(params);
+  }
+
+  async lookupDirectoryDisplay(params: Parameters<typeof lookupDirectoryDisplay>[0]) {
+    return lookupDirectoryDisplay(params);
+  }
+}
+
+let _targetResolverInstance: OutboundTargetResolverService | null = null;
+
+export function getOutboundTargetResolverService(): OutboundTargetResolverService {
+  if (!_targetResolverInstance) {
+    _targetResolverInstance = new OutboundTargetResolverService();
+  }
+  return _targetResolverInstance;
+}
+
+export const __testing_targetResolver = createTestingHooks<OutboundTargetResolverService>(
+  () => { _targetResolverInstance = null; },
+  (svc) => { _targetResolverInstance = svc; },
+);

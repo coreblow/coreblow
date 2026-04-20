@@ -529,3 +529,45 @@ export function resolveHeartbeatSenderContext(params: {
 
   return { sender, provider, allowFrom };
 }
+
+// ---------------------------------------------------------------------------
+// OutboundTargetManagerService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "../service-patterns.js";
+
+/**
+ * Tier-1 service wrapping outbound target management (session delivery,
+ * heartbeat targets, outbound target resolution).
+ */
+export class OutboundTargetManagerService {
+  resolveSessionDeliveryTarget(params: Parameters<typeof resolveSessionDeliveryTarget>[0]) {
+    return resolveSessionDeliveryTarget(params);
+  }
+
+  resolveOutboundTarget(params: Parameters<typeof resolveOutboundTarget>[0]) {
+    return resolveOutboundTarget(params);
+  }
+
+  resolveHeartbeatDeliveryTarget(params: Parameters<typeof resolveHeartbeatDeliveryTarget>[0]) {
+    return resolveHeartbeatDeliveryTarget(params);
+  }
+
+  resolveHeartbeatSenderContext(params: Parameters<typeof resolveHeartbeatSenderContext>[0]) {
+    return resolveHeartbeatSenderContext(params);
+  }
+}
+
+let _targetManagerInstance: OutboundTargetManagerService | null = null;
+
+export function getOutboundTargetManagerService(): OutboundTargetManagerService {
+  if (!_targetManagerInstance) {
+    _targetManagerInstance = new OutboundTargetManagerService();
+  }
+  return _targetManagerInstance;
+}
+
+export const __testing_targetManager = createTestingHooks<OutboundTargetManagerService>(
+  () => { _targetManagerInstance = null; },
+  (svc) => { _targetManagerInstance = svc; },
+);
