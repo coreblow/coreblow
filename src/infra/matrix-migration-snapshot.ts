@@ -149,3 +149,27 @@ export async function maybeCreateMatrixMigrationSnapshot(params: {
     markerPath,
   };
 }
+
+// ---------------------------------------------------------------------------
+// MatrixMigrationSnapshotService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class MatrixMigrationSnapshotService {
+  [Symbol.toStringTag] = 'MatrixMigrationSnapshotService';
+}
+
+let _matrixMigrationSnapshotInstance: MatrixMigrationSnapshotService | null = null;
+
+export function getMatrixMigrationSnapshotService(): MatrixMigrationSnapshotService {
+  if (!_matrixMigrationSnapshotInstance) {
+    _matrixMigrationSnapshotInstance = new MatrixMigrationSnapshotService();
+  }
+  return _matrixMigrationSnapshotInstance;
+}
+
+export const __testing_matrixMigrationSnapshot = createTestingHooks<MatrixMigrationSnapshotService>(
+  () => { _matrixMigrationSnapshotInstance = null; },
+  (svc) => { _matrixMigrationSnapshotInstance = svc; },
+);

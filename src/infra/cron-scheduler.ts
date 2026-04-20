@@ -179,3 +179,27 @@ export class CronScheduler {
         if (this.history.length > this.maxHistory) this.history = this.history.slice(-this.maxHistory);
     }
 }
+
+// ---------------------------------------------------------------------------
+// CronSchedulerService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class CronSchedulerService {
+  [Symbol.toStringTag] = 'CronSchedulerService';
+}
+
+let _cronSchedulerInstance: CronSchedulerService | null = null;
+
+export function getCronSchedulerService(): CronSchedulerService {
+  if (!_cronSchedulerInstance) {
+    _cronSchedulerInstance = new CronSchedulerService();
+  }
+  return _cronSchedulerInstance;
+}
+
+export const __testing_cronScheduler = createTestingHooks<CronSchedulerService>(
+  () => { _cronSchedulerInstance = null; },
+  (svc) => { _cronSchedulerInstance = svc; },
+);

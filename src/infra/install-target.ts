@@ -41,3 +41,27 @@ export async function ensureInstallTargetAvailable(params: {
   }
   return { ok: true };
 }
+
+// ---------------------------------------------------------------------------
+// InstallTargetService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class InstallTargetService {
+  [Symbol.toStringTag] = 'InstallTargetService';
+}
+
+let _installTargetInstance: InstallTargetService | null = null;
+
+export function getInstallTargetService(): InstallTargetService {
+  if (!_installTargetInstance) {
+    _installTargetInstance = new InstallTargetService();
+  }
+  return _installTargetInstance;
+}
+
+export const __testing_installTarget = createTestingHooks<InstallTargetService>(
+  () => { _installTargetInstance = null; },
+  (svc) => { _installTargetInstance = svc; },
+);

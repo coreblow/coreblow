@@ -154,3 +154,27 @@ export async function autoMigrateLegacyMatrixState(params: {
     warnings,
   };
 }
+
+// ---------------------------------------------------------------------------
+// MatrixLegacyStateService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class MatrixLegacyStateService {
+  [Symbol.toStringTag] = 'MatrixLegacyStateService';
+}
+
+let _matrixLegacyStateInstance: MatrixLegacyStateService | null = null;
+
+export function getMatrixLegacyStateService(): MatrixLegacyStateService {
+  if (!_matrixLegacyStateInstance) {
+    _matrixLegacyStateInstance = new MatrixLegacyStateService();
+  }
+  return _matrixLegacyStateInstance;
+}
+
+export const __testing_matrixLegacyState = createTestingHooks<MatrixLegacyStateService>(
+  () => { _matrixLegacyStateInstance = null; },
+  (svc) => { _matrixLegacyStateInstance = svc; },
+);

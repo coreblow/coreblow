@@ -35,3 +35,27 @@ export function resolveLsofCommandSync(): string {
   }
   return "lsof";
 }
+
+// ---------------------------------------------------------------------------
+// PortsLsofService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class PortsLsofService {
+  [Symbol.toStringTag] = 'PortsLsofService';
+}
+
+let _portsLsofInstance: PortsLsofService | null = null;
+
+export function getPortsLsofService(): PortsLsofService {
+  if (!_portsLsofInstance) {
+    _portsLsofInstance = new PortsLsofService();
+  }
+  return _portsLsofInstance;
+}
+
+export const __testing_portsLsof = createTestingHooks<PortsLsofService>(
+  () => { _portsLsofInstance = null; },
+  (svc) => { _portsLsofInstance = svc; },
+);

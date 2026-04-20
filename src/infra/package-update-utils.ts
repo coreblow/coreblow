@@ -44,3 +44,27 @@ export async function readInstalledPackageVersion(dir: string): Promise<string |
     fsSync.closeSync(opened.fd);
   }
 }
+
+// ---------------------------------------------------------------------------
+// PackageUpdateUtilsService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class PackageUpdateUtilsService {
+  [Symbol.toStringTag] = 'PackageUpdateUtilsService';
+}
+
+let _packageUpdateUtilsInstance: PackageUpdateUtilsService | null = null;
+
+export function getPackageUpdateUtilsService(): PackageUpdateUtilsService {
+  if (!_packageUpdateUtilsInstance) {
+    _packageUpdateUtilsInstance = new PackageUpdateUtilsService();
+  }
+  return _packageUpdateUtilsInstance;
+}
+
+export const __testing_packageUpdateUtils = createTestingHooks<PackageUpdateUtilsService>(
+  () => { _packageUpdateUtilsInstance = null; },
+  (svc) => { _packageUpdateUtilsInstance = svc; },
+);

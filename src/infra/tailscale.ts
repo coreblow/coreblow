@@ -498,3 +498,27 @@ export async function readTailscaleWhoisIdentity(
     return null;
   }
 }
+
+// ---------------------------------------------------------------------------
+// TailscaleService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class TailscaleService {
+  [Symbol.toStringTag] = 'TailscaleService';
+}
+
+let _tailscaleInstance: TailscaleService | null = null;
+
+export function getTailscaleService(): TailscaleService {
+  if (!_tailscaleInstance) {
+    _tailscaleInstance = new TailscaleService();
+  }
+  return _tailscaleInstance;
+}
+
+export const __testing_tailscale = createTestingHooks<TailscaleService>(
+  () => { _tailscaleInstance = null; },
+  (svc) => { _tailscaleInstance = svc; },
+);

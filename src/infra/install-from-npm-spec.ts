@@ -36,3 +36,27 @@ export async function installFromValidatedNpmSpecArchive<
   });
   return finalizeNpmSpecArchiveInstall(flowResult);
 }
+
+// ---------------------------------------------------------------------------
+// InstallFromNpmSpecService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class InstallFromNpmSpecService {
+  [Symbol.toStringTag] = 'InstallFromNpmSpecService';
+}
+
+let _installFromNpmSpecInstance: InstallFromNpmSpecService | null = null;
+
+export function getInstallFromNpmSpecService(): InstallFromNpmSpecService {
+  if (!_installFromNpmSpecInstance) {
+    _installFromNpmSpecInstance = new InstallFromNpmSpecService();
+  }
+  return _installFromNpmSpecInstance;
+}
+
+export const __testing_installFromNpmSpec = createTestingHooks<InstallFromNpmSpecService>(
+  () => { _installFromNpmSpecInstance = null; },
+  (svc) => { _installFromNpmSpecInstance = svc; },
+);

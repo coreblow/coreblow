@@ -266,3 +266,27 @@ export function resolveLegacyMatrixFlatStoreTarget(params: {
     selectionNote: resolveMatrixFlatStoreSelectionNote(params.cfg, accountId),
   };
 }
+
+// ---------------------------------------------------------------------------
+// MatrixMigrationConfigService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class MatrixMigrationConfigService {
+  [Symbol.toStringTag] = 'MatrixMigrationConfigService';
+}
+
+let _matrixMigrationConfigInstance: MatrixMigrationConfigService | null = null;
+
+export function getMatrixMigrationConfigService(): MatrixMigrationConfigService {
+  if (!_matrixMigrationConfigInstance) {
+    _matrixMigrationConfigInstance = new MatrixMigrationConfigService();
+  }
+  return _matrixMigrationConfigInstance;
+}
+
+export const __testing_matrixMigrationConfig = createTestingHooks<MatrixMigrationConfigService>(
+  () => { _matrixMigrationConfigInstance = null; },
+  (svc) => { _matrixMigrationConfigInstance = svc; },
+);

@@ -625,3 +625,27 @@ export async function discoverGatewayBeacons(
   }
   return [];
 }
+
+// ---------------------------------------------------------------------------
+// BonjourDiscoveryService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class BonjourDiscoveryService {
+  [Symbol.toStringTag] = 'BonjourDiscoveryService';
+}
+
+let _bonjourDiscoveryInstance: BonjourDiscoveryService | null = null;
+
+export function getBonjourDiscoveryService(): BonjourDiscoveryService {
+  if (!_bonjourDiscoveryInstance) {
+    _bonjourDiscoveryInstance = new BonjourDiscoveryService();
+  }
+  return _bonjourDiscoveryInstance;
+}
+
+export const __testing_bonjourDiscovery = createTestingHooks<BonjourDiscoveryService>(
+  () => { _bonjourDiscoveryInstance = null; },
+  (svc) => { _bonjourDiscoveryInstance = svc; },
+);

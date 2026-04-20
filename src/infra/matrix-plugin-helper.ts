@@ -196,3 +196,27 @@ export async function loadMatrixLegacyCryptoInspector(params: {
     throw err;
   }
 }
+
+// ---------------------------------------------------------------------------
+// MatrixPluginHelperService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class MatrixPluginHelperService {
+  [Symbol.toStringTag] = 'MatrixPluginHelperService';
+}
+
+let _matrixPluginHelperInstance: MatrixPluginHelperService | null = null;
+
+export function getMatrixPluginHelperService(): MatrixPluginHelperService {
+  if (!_matrixPluginHelperInstance) {
+    _matrixPluginHelperInstance = new MatrixPluginHelperService();
+  }
+  return _matrixPluginHelperInstance;
+}
+
+export const __testing_matrixPluginHelper = createTestingHooks<MatrixPluginHelperService>(
+  () => { _matrixPluginHelperInstance = null; },
+  (svc) => { _matrixPluginHelperInstance = svc; },
+);

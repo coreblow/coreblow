@@ -71,3 +71,27 @@ export function formatPluginInstallPathIssue(params: {
     `If you are running from a repo checkout, you can also use "${formatCommand(params.repoInstallCommand)}".`,
   ];
 }
+
+// ---------------------------------------------------------------------------
+// PluginInstallPathWarningsService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class PluginInstallPathWarningsService {
+  [Symbol.toStringTag] = 'PluginInstallPathWarningsService';
+}
+
+let _pluginInstallPathWarningsInstance: PluginInstallPathWarningsService | null = null;
+
+export function getPluginInstallPathWarningsService(): PluginInstallPathWarningsService {
+  if (!_pluginInstallPathWarningsInstance) {
+    _pluginInstallPathWarningsInstance = new PluginInstallPathWarningsService();
+  }
+  return _pluginInstallPathWarningsInstance;
+}
+
+export const __testing_pluginInstallPathWarnings = createTestingHooks<PluginInstallPathWarningsService>(
+  () => { _pluginInstallPathWarningsInstance = null; },
+  (svc) => { _pluginInstallPathWarningsInstance = svc; },
+);

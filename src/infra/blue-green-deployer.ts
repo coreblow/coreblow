@@ -104,3 +104,27 @@ export class BlueGreenDeployer {
      */
     getHistory(): typeof this.history { return [...this.history]; }
 }
+
+// ---------------------------------------------------------------------------
+// BlueGreenDeployerService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class BlueGreenDeployerService {
+  [Symbol.toStringTag] = 'BlueGreenDeployerService';
+}
+
+let _blueGreenDeployerInstance: BlueGreenDeployerService | null = null;
+
+export function getBlueGreenDeployerService(): BlueGreenDeployerService {
+  if (!_blueGreenDeployerInstance) {
+    _blueGreenDeployerInstance = new BlueGreenDeployerService();
+  }
+  return _blueGreenDeployerInstance;
+}
+
+export const __testing_blueGreenDeployer = createTestingHooks<BlueGreenDeployerService>(
+  () => { _blueGreenDeployerInstance = null; },
+  (svc) => { _blueGreenDeployerInstance = svc; },
+);

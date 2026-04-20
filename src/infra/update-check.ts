@@ -420,3 +420,27 @@ export async function checkUpdateStatus(params: {
     registry,
   };
 }
+
+// ---------------------------------------------------------------------------
+// UpdateCheckService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class UpdateCheckService {
+  [Symbol.toStringTag] = 'UpdateCheckService';
+}
+
+let _updateCheckInstance: UpdateCheckService | null = null;
+
+export function getUpdateCheckService(): UpdateCheckService {
+  if (!_updateCheckInstance) {
+    _updateCheckInstance = new UpdateCheckService();
+  }
+  return _updateCheckInstance;
+}
+
+export const __testing_updateCheck = createTestingHooks<UpdateCheckService>(
+  () => { _updateCheckInstance = null; },
+  (svc) => { _updateCheckInstance = svc; },
+);

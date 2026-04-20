@@ -668,3 +668,27 @@ export async function readJsonFile<T>(filePath: string): Promise<T> {
   const raw = await fs.readFile(filePath, "utf-8");
   return JSON.parse(raw) as T;
 }
+
+// ---------------------------------------------------------------------------
+// ArchiveService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ArchiveService {
+  [Symbol.toStringTag] = 'ArchiveService';
+}
+
+let _archiveInstance: ArchiveService | null = null;
+
+export function getArchiveService(): ArchiveService {
+  if (!_archiveInstance) {
+    _archiveInstance = new ArchiveService();
+  }
+  return _archiveInstance;
+}
+
+export const __testing_archive = createTestingHooks<ArchiveService>(
+  () => { _archiveInstance = null; },
+  (svc) => { _archiveInstance = svc; },
+);

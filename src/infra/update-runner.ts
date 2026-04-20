@@ -1093,3 +1093,27 @@ export async function runGatewayUpdate(opts: UpdateRunnerOptions = {}): Promise<
     durationMs: Date.now() - startedAt,
   };
 }
+
+// ---------------------------------------------------------------------------
+// UpdateRunnerService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class UpdateRunnerService {
+  [Symbol.toStringTag] = 'UpdateRunnerService';
+}
+
+let _updateRunnerInstance: UpdateRunnerService | null = null;
+
+export function getUpdateRunnerService(): UpdateRunnerService {
+  if (!_updateRunnerInstance) {
+    _updateRunnerInstance = new UpdateRunnerService();
+  }
+  return _updateRunnerInstance;
+}
+
+export const __testing_updateRunner = createTestingHooks<UpdateRunnerService>(
+  () => { _updateRunnerInstance = null; },
+  (svc) => { _updateRunnerInstance = svc; },
+);

@@ -216,3 +216,27 @@ export async function mergeExtractedTreeIntoDestination(params: {
 export function createArchiveSymlinkTraversalError(originalPath: string): ArchiveSecurityError {
   return symlinkTraversalError(originalPath);
 }
+
+// ---------------------------------------------------------------------------
+// ArchiveStagingService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ArchiveStagingService {
+  [Symbol.toStringTag] = 'ArchiveStagingService';
+}
+
+let _archiveStagingInstance: ArchiveStagingService | null = null;
+
+export function getArchiveStagingService(): ArchiveStagingService {
+  if (!_archiveStagingInstance) {
+    _archiveStagingInstance = new ArchiveStagingService();
+  }
+  return _archiveStagingInstance;
+}
+
+export const __testing_archiveStaging = createTestingHooks<ArchiveStagingService>(
+  () => { _archiveStagingInstance = null; },
+  (svc) => { _archiveStagingInstance = svc; },
+);

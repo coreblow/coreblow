@@ -261,3 +261,27 @@ export const _private = {
   getWindowsRegExeCandidates,
   locateWindowsRegExe,
 };
+
+// ---------------------------------------------------------------------------
+// WindowsInstallRootsService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class WindowsInstallRootsService {
+  [Symbol.toStringTag] = 'WindowsInstallRootsService';
+}
+
+let _windowsInstallRootsInstance: WindowsInstallRootsService | null = null;
+
+export function getWindowsInstallRootsService(): WindowsInstallRootsService {
+  if (!_windowsInstallRootsInstance) {
+    _windowsInstallRootsInstance = new WindowsInstallRootsService();
+  }
+  return _windowsInstallRootsInstance;
+}
+
+export const __testing_windowsInstallRoots = createTestingHooks<WindowsInstallRootsService>(
+  () => { _windowsInstallRootsInstance = null; },
+  (svc) => { _windowsInstallRootsInstance = svc; },
+);

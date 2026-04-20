@@ -427,3 +427,27 @@ export async function startGatewayBonjourAdvertiser(
     throw err;
   }
 }
+
+// ---------------------------------------------------------------------------
+// BonjourAdvertiserService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class BonjourAdvertiserService {
+  [Symbol.toStringTag] = 'BonjourAdvertiserService';
+}
+
+let _bonjourAdvertiserInstance: BonjourAdvertiserService | null = null;
+
+export function getBonjourAdvertiserService(): BonjourAdvertiserService {
+  if (!_bonjourAdvertiserInstance) {
+    _bonjourAdvertiserInstance = new BonjourAdvertiserService();
+  }
+  return _bonjourAdvertiserInstance;
+}
+
+export const __testing_bonjourAdvertiser = createTestingHooks<BonjourAdvertiserService>(
+  () => { _bonjourAdvertiserInstance = null; },
+  (svc) => { _bonjourAdvertiserInstance = svc; },
+);

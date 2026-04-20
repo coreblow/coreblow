@@ -319,3 +319,27 @@ export async function installPackageDirWithManifestDeps(params: {
     hasDeps: Object.keys(params.manifestDependencies ?? {}).length > 0,
   });
 }
+
+// ---------------------------------------------------------------------------
+// InstallPackageDirService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class InstallPackageDirService {
+  [Symbol.toStringTag] = 'InstallPackageDirService';
+}
+
+let _installPackageDirInstance: InstallPackageDirService | null = null;
+
+export function getInstallPackageDirService(): InstallPackageDirService {
+  if (!_installPackageDirInstance) {
+    _installPackageDirInstance = new InstallPackageDirService();
+  }
+  return _installPackageDirInstance;
+}
+
+export const __testing_installPackageDir = createTestingHooks<InstallPackageDirService>(
+  () => { _installPackageDirInstance = null; },
+  (svc) => { _installPackageDirInstance = svc; },
+);

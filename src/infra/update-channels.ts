@@ -107,3 +107,27 @@ export function resolveUpdateChannelDisplay(params: {
     }),
   };
 }
+
+// ---------------------------------------------------------------------------
+// UpdateChannelsService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class UpdateChannelsService {
+  [Symbol.toStringTag] = 'UpdateChannelsService';
+}
+
+let _updateChannelsInstance: UpdateChannelsService | null = null;
+
+export function getUpdateChannelsService(): UpdateChannelsService {
+  if (!_updateChannelsInstance) {
+    _updateChannelsInstance = new UpdateChannelsService();
+  }
+  return _updateChannelsInstance;
+}
+
+export const __testing_updateChannels = createTestingHooks<UpdateChannelsService>(
+  () => { _updateChannelsInstance = null; },
+  (svc) => { _updateChannelsInstance = svc; },
+);

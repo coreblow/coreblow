@@ -661,3 +661,27 @@ export function satisfiesGatewayMinimum(
   }
   return isAtLeast(current, minimum);
 }
+
+// ---------------------------------------------------------------------------
+// ClawhubService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ClawhubService {
+  [Symbol.toStringTag] = 'ClawhubService';
+}
+
+let _clawhubInstance: ClawhubService | null = null;
+
+export function getClawhubService(): ClawhubService {
+  if (!_clawhubInstance) {
+    _clawhubInstance = new ClawhubService();
+  }
+  return _clawhubInstance;
+}
+
+export const __testing_clawhub = createTestingHooks<ClawhubService>(
+  () => { _clawhubInstance = null; },
+  (svc) => { _clawhubInstance = svc; },
+);

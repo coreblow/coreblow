@@ -262,3 +262,27 @@ export async function packNpmSpecToArchive(params: {
     metadata: parsedJson?.metadata ?? {},
   };
 }
+
+// ---------------------------------------------------------------------------
+// InstallSourceUtilsService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class InstallSourceUtilsService {
+  [Symbol.toStringTag] = 'InstallSourceUtilsService';
+}
+
+let _installSourceUtilsInstance: InstallSourceUtilsService | null = null;
+
+export function getInstallSourceUtilsService(): InstallSourceUtilsService {
+  if (!_installSourceUtilsInstance) {
+    _installSourceUtilsInstance = new InstallSourceUtilsService();
+  }
+  return _installSourceUtilsInstance;
+}
+
+export const __testing_installSourceUtils = createTestingHooks<InstallSourceUtilsService>(
+  () => { _installSourceUtilsInstance = null; },
+  (svc) => { _installSourceUtilsInstance = svc; },
+);

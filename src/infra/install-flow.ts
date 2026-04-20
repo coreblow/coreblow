@@ -62,3 +62,27 @@ export async function withExtractedArchiveRoot<TResult extends { ok: boolean }>(
     return await params.onExtracted(rootDir);
   });
 }
+
+// ---------------------------------------------------------------------------
+// InstallFlowService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class InstallFlowService {
+  [Symbol.toStringTag] = 'InstallFlowService';
+}
+
+let _installFlowInstance: InstallFlowService | null = null;
+
+export function getInstallFlowService(): InstallFlowService {
+  if (!_installFlowInstance) {
+    _installFlowInstance = new InstallFlowService();
+  }
+  return _installFlowInstance;
+}
+
+export const __testing_installFlow = createTestingHooks<InstallFlowService>(
+  () => { _installFlowInstance = null; },
+  (svc) => { _installFlowInstance = svc; },
+);

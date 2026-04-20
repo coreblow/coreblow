@@ -524,3 +524,27 @@ export function scheduleGatewayUpdateCheck(params: {
     }
   };
 }
+
+// ---------------------------------------------------------------------------
+// UpdateStartupService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class UpdateStartupService {
+  [Symbol.toStringTag] = 'UpdateStartupService';
+}
+
+let _updateStartupInstance: UpdateStartupService | null = null;
+
+export function getUpdateStartupService(): UpdateStartupService {
+  if (!_updateStartupInstance) {
+    _updateStartupInstance = new UpdateStartupService();
+  }
+  return _updateStartupInstance;
+}
+
+export const __testing_updateStartup = createTestingHooks<UpdateStartupService>(
+  () => { _updateStartupInstance = null; },
+  (svc) => { _updateStartupInstance = svc; },
+);
