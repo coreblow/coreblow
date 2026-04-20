@@ -351,3 +351,49 @@ export function parseExecArgvToken(raw: string): ExecArgvToken {
     flags: cluster.split("").map((entry) => `-${entry}`),
   };
 }
+
+// ---------------------------------------------------------------------------
+// ExecCommandResolutionService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ExecCommandResolutionService {
+  resolveCommandResolution(params: Parameters<typeof resolveCommandResolution>[0]) {
+    return resolveCommandResolution(params);
+  }
+
+  resolveCommandResolutionFromArgv(params: Parameters<typeof resolveCommandResolutionFromArgv>[0]) {
+    return resolveCommandResolutionFromArgv(params);
+  }
+
+  resolveExecutionTargetResolution(params: Parameters<typeof resolveExecutionTargetResolution>[0]) {
+    return resolveExecutionTargetResolution(params);
+  }
+
+  resolvePolicyTargetResolution(params: Parameters<typeof resolvePolicyTargetResolution>[0]) {
+    return resolvePolicyTargetResolution(params);
+  }
+
+  resolveExecutionTargetCandidatePath(params: Parameters<typeof resolveExecutionTargetCandidatePath>[0]) {
+    return resolveExecutionTargetCandidatePath(params);
+  }
+
+  resolvePolicyTargetCandidatePath(params: Parameters<typeof resolvePolicyTargetCandidatePath>[0]) {
+    return resolvePolicyTargetCandidatePath(params);
+  }
+}
+
+let _execCommandResolutionInstance: ExecCommandResolutionService | null = null;
+
+export function getExecCommandResolutionService(): ExecCommandResolutionService {
+  if (!_execCommandResolutionInstance) {
+    _execCommandResolutionInstance = new ExecCommandResolutionService();
+  }
+  return _execCommandResolutionInstance;
+}
+
+export const __testing_execCommandResolution = createTestingHooks<ExecCommandResolutionService>(
+  () => { _execCommandResolutionInstance = null; },
+  (svc) => { _execCommandResolutionInstance = svc; },
+);

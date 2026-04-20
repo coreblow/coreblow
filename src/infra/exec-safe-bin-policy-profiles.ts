@@ -321,3 +321,37 @@ export function renderDefaultSafeBinsDocText(
 ): string {
   return defaults.map((bin) => `\`${bin}\``).join(", ");
 }
+
+// ---------------------------------------------------------------------------
+// ExecSafeBinPolicyProfilesService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ExecSafeBinPolicyProfilesService {
+  collectKnownLongFlags(...args: Parameters<typeof collectKnownLongFlags>) {
+    return collectKnownLongFlags(...args);
+  }
+
+  buildLongFlagPrefixMap(...args: Parameters<typeof buildLongFlagPrefixMap>) {
+    return buildLongFlagPrefixMap(...args);
+  }
+
+  normalizeSafeBinProfileFixtures(profiles: Parameters<typeof normalizeSafeBinProfileFixtures>[0]) {
+    return normalizeSafeBinProfileFixtures(profiles);
+  }
+}
+
+let _execSafeBinPolicyProfilesInstance: ExecSafeBinPolicyProfilesService | null = null;
+
+export function getExecSafeBinPolicyProfilesService(): ExecSafeBinPolicyProfilesService {
+  if (!_execSafeBinPolicyProfilesInstance) {
+    _execSafeBinPolicyProfilesInstance = new ExecSafeBinPolicyProfilesService();
+  }
+  return _execSafeBinPolicyProfilesInstance;
+}
+
+export const __testing_execSafeBinPolicyProfiles = createTestingHooks<ExecSafeBinPolicyProfilesService>(
+  () => { _execSafeBinPolicyProfilesInstance = null; },
+  (svc) => { _execSafeBinPolicyProfilesInstance = svc; },
+);

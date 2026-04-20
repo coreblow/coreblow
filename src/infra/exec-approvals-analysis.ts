@@ -824,3 +824,49 @@ export function analyzeArgvCommand(params: {
     ],
   };
 }
+
+// ---------------------------------------------------------------------------
+// ExecApprovalsAnalysisService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ExecApprovalsAnalysisService {
+  isWindowsPlatform(platform?: string | null) {
+    return isWindowsPlatform(platform);
+  }
+
+  splitCommandChainWithOperators(command: string) {
+    return splitCommandChainWithOperators(command);
+  }
+
+  buildSafeShellCommand(params: Parameters<typeof buildSafeShellCommand>[0]) {
+    return buildSafeShellCommand(params);
+  }
+
+  resolvePlannedSegmentArgv(segment: Parameters<typeof resolvePlannedSegmentArgv>[0]) {
+    return resolvePlannedSegmentArgv(segment);
+  }
+
+  buildSafeBinsShellCommand(params: Parameters<typeof buildSafeBinsShellCommand>[0]) {
+    return buildSafeBinsShellCommand(params);
+  }
+
+  buildEnforcedShellCommand(params: Parameters<typeof buildEnforcedShellCommand>[0]) {
+    return buildEnforcedShellCommand(params);
+  }
+}
+
+let _execApprovalsAnalysisInstance: ExecApprovalsAnalysisService | null = null;
+
+export function getExecApprovalsAnalysisService(): ExecApprovalsAnalysisService {
+  if (!_execApprovalsAnalysisInstance) {
+    _execApprovalsAnalysisInstance = new ExecApprovalsAnalysisService();
+  }
+  return _execApprovalsAnalysisInstance;
+}
+
+export const __testing_execApprovalsAnalysis = createTestingHooks<ExecApprovalsAnalysisService>(
+  () => { _execApprovalsAnalysisInstance = null; },
+  (svc) => { _execApprovalsAnalysisInstance = svc; },
+);

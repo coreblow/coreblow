@@ -67,3 +67,29 @@ export function resolveExecApprovalSessionTarget(params: {
     threadId: normalizeOptionalThreadId(target.threadId),
   };
 }
+
+// ---------------------------------------------------------------------------
+// ExecApprovalSessionTargetService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ExecApprovalSessionTargetService {
+  resolveExecApprovalSessionTarget(params: Parameters<typeof resolveExecApprovalSessionTarget>[0]) {
+    return resolveExecApprovalSessionTarget(params);
+  }
+}
+
+let _execApprovalSessionTargetInstance: ExecApprovalSessionTargetService | null = null;
+
+export function getExecApprovalSessionTargetService(): ExecApprovalSessionTargetService {
+  if (!_execApprovalSessionTargetInstance) {
+    _execApprovalSessionTargetInstance = new ExecApprovalSessionTargetService();
+  }
+  return _execApprovalSessionTargetInstance;
+}
+
+export const __testing_execApprovalSessionTarget = createTestingHooks<ExecApprovalSessionTargetService>(
+  () => { _execApprovalSessionTargetInstance = null; },
+  (svc) => { _execApprovalSessionTargetInstance = svc; },
+);

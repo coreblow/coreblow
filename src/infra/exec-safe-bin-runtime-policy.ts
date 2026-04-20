@@ -147,3 +147,41 @@ export function resolveExecSafeBinRuntimePolicy(params: {
     writableTrustedSafeBinDirs,
   };
 }
+
+// ---------------------------------------------------------------------------
+// ExecSafeBinRuntimePolicyService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ExecSafeBinRuntimePolicyService {
+  isInterpreterLikeSafeBin(raw: string) {
+    return isInterpreterLikeSafeBin(raw);
+  }
+
+  listInterpreterLikeSafeBins(entries: Iterable<string>) {
+    return listInterpreterLikeSafeBins(entries);
+  }
+
+  resolveMergedSafeBinProfileFixtures(params: Parameters<typeof resolveMergedSafeBinProfileFixtures>[0]) {
+    return resolveMergedSafeBinProfileFixtures(params);
+  }
+
+  resolveExecSafeBinRuntimePolicy(params: Parameters<typeof resolveExecSafeBinRuntimePolicy>[0]) {
+    return resolveExecSafeBinRuntimePolicy(params);
+  }
+}
+
+let _execSafeBinRuntimePolicyInstance: ExecSafeBinRuntimePolicyService | null = null;
+
+export function getExecSafeBinRuntimePolicyService(): ExecSafeBinRuntimePolicyService {
+  if (!_execSafeBinRuntimePolicyInstance) {
+    _execSafeBinRuntimePolicyInstance = new ExecSafeBinRuntimePolicyService();
+  }
+  return _execSafeBinRuntimePolicyInstance;
+}
+
+export const __testing_execSafeBinRuntimePolicy = createTestingHooks<ExecSafeBinRuntimePolicyService>(
+  () => { _execSafeBinRuntimePolicyInstance = null; },
+  (svc) => { _execSafeBinRuntimePolicyInstance = svc; },
+);

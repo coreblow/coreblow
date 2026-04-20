@@ -139,3 +139,29 @@ export function resolveExecWrapperTrustPlan(
 
   return finalizeExecWrapperTrustPlan(current, policyArgv, wrapperChain, false);
 }
+
+// ---------------------------------------------------------------------------
+// ExecWrapperTrustPlanService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ExecWrapperTrustPlanService {
+  resolveExecWrapperTrustPlan(...args: Parameters<typeof resolveExecWrapperTrustPlan>) {
+    return resolveExecWrapperTrustPlan(...args);
+  }
+}
+
+let _execWrapperTrustPlanInstance: ExecWrapperTrustPlanService | null = null;
+
+export function getExecWrapperTrustPlanService(): ExecWrapperTrustPlanService {
+  if (!_execWrapperTrustPlanInstance) {
+    _execWrapperTrustPlanInstance = new ExecWrapperTrustPlanService();
+  }
+  return _execWrapperTrustPlanInstance;
+}
+
+export const __testing_execWrapperTrustPlan = createTestingHooks<ExecWrapperTrustPlanService>(
+  () => { _execWrapperTrustPlanInstance = null; },
+  (svc) => { _execWrapperTrustPlanInstance = svc; },
+);

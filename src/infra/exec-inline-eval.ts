@@ -101,3 +101,37 @@ export function isInterpreterLikeAllowlistPattern(pattern: string | undefined | 
   const strippedWildcards = withoutExe.replace(/[*?[\]{}()]/g, "");
   return INTERPRETER_INLINE_EVAL_NAMES.has(strippedWildcards);
 }
+
+// ---------------------------------------------------------------------------
+// ExecInlineEvalService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ExecInlineEvalService {
+  detectInterpreterInlineEvalArgv(argv: Parameters<typeof detectInterpreterInlineEvalArgv>[0]) {
+    return detectInterpreterInlineEvalArgv(argv);
+  }
+
+  describeInterpreterInlineEval(hit: Parameters<typeof describeInterpreterInlineEval>[0]) {
+    return describeInterpreterInlineEval(hit);
+  }
+
+  isInterpreterLikeAllowlistPattern(pattern: string | undefined | null) {
+    return isInterpreterLikeAllowlistPattern(pattern);
+  }
+}
+
+let _execInlineEvalInstance: ExecInlineEvalService | null = null;
+
+export function getExecInlineEvalService(): ExecInlineEvalService {
+  if (!_execInlineEvalInstance) {
+    _execInlineEvalInstance = new ExecInlineEvalService();
+  }
+  return _execInlineEvalInstance;
+}
+
+export const __testing_execInlineEval = createTestingHooks<ExecInlineEvalService>(
+  () => { _execInlineEvalInstance = null; },
+  (svc) => { _execInlineEvalInstance = svc; },
+);

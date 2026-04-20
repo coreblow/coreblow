@@ -253,3 +253,29 @@ export function detectCommandObfuscation(command: string): ObfuscationDetection 
     matchedPatterns,
   };
 }
+
+// ---------------------------------------------------------------------------
+// ExecObfuscationDetectService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ExecObfuscationDetectService {
+  detectCommandObfuscation(command: string) {
+    return detectCommandObfuscation(command);
+  }
+}
+
+let _execObfuscationDetectInstance: ExecObfuscationDetectService | null = null;
+
+export function getExecObfuscationDetectService(): ExecObfuscationDetectService {
+  if (!_execObfuscationDetectInstance) {
+    _execObfuscationDetectInstance = new ExecObfuscationDetectService();
+  }
+  return _execObfuscationDetectInstance;
+}
+
+export const __testing_execObfuscationDetect = createTestingHooks<ExecObfuscationDetectService>(
+  () => { _execObfuscationDetectInstance = null; },
+  (svc) => { _execObfuscationDetectInstance = svc; },
+);

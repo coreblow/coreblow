@@ -661,3 +661,60 @@ export function shouldForwardExecApproval(params: {
 }): boolean {
   return shouldForward(params);
 }
+
+// ---------------------------------------------------------------------------
+// ExecApprovalForwarderService — Tier-2 GatewayService
+// ---------------------------------------------------------------------------
+
+import type { GatewayService, ServiceHealth } from "../gateway/service-registry.js";
+import { createTestingHooks } from "./service-patterns.js";
+
+/**
+ * Tier-2 GatewayService wrapping the exec approval forwarder.
+ * Manages lifecycle of the underlying forwarder instance.
+ */
+export class ExecApprovalForwarderService implements GatewayService {
+  readonly name = "exec-approval-forwarder";
+  private forwarder: ExecApprovalForwarder | null = null;
+  private started = false;
+
+  async start(deps?: ExecApprovalForwarderDeps): Promise<void> {
+    if (this.started) return;
+    this.forwarder = createExecApprovalForwarder(deps);
+    this.started = true;
+  }
+
+  async stop(): Promise<void> {
+    this.forwarder?.stop();
+    this.forwarder = null;
+    this.started = false;
+  }
+
+  health(): ServiceHealth {
+    return this.started
+      ? { status: "healthy", detail: "forwarder active" }
+      : { status: "down", detail: "not started" };
+  }
+
+  getForwarder(): ExecApprovalForwarder | null {
+    return this.forwarder;
+  }
+
+  shouldForwardExecApproval(params: Parameters<typeof shouldForwardExecApproval>[0]) {
+    return shouldForwardExecApproval(params);
+  }
+}
+
+let _forwarderInstance: ExecApprovalForwarderService | null = null;
+
+export function getExecApprovalForwarderService(): ExecApprovalForwarderService {
+  if (!_forwarderInstance) {
+    _forwarderInstance = new ExecApprovalForwarderService();
+  }
+  return _forwarderInstance;
+}
+
+export const __testing_execApprovalForwarder = createTestingHooks<ExecApprovalForwarderService>(
+  () => { _forwarderInstance = null; },
+  (svc) => { _forwarderInstance = svc; },
+);

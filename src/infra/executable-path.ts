@@ -98,3 +98,37 @@ export function resolveExecutablePath(
     options?.env?.PATH ?? options?.env?.Path ?? process.env.PATH ?? process.env.Path ?? "";
   return resolveExecutableFromPathEnv(expanded, envPath, options?.env);
 }
+
+// ---------------------------------------------------------------------------
+// ExecutablePathService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ExecutablePathService {
+  isExecutableFile(filePath: string) {
+    return isExecutableFile(filePath);
+  }
+
+  resolveExecutableFromPathEnv(...args: Parameters<typeof resolveExecutableFromPathEnv>) {
+    return resolveExecutableFromPathEnv(...args);
+  }
+
+  resolveExecutablePath(...args: Parameters<typeof resolveExecutablePath>) {
+    return resolveExecutablePath(...args);
+  }
+}
+
+let _executablePathInstance: ExecutablePathService | null = null;
+
+export function getExecutablePathService(): ExecutablePathService {
+  if (!_executablePathInstance) {
+    _executablePathInstance = new ExecutablePathService();
+  }
+  return _executablePathInstance;
+}
+
+export const __testing_executablePath = createTestingHooks<ExecutablePathService>(
+  () => { _executablePathInstance = null; },
+  (svc) => { _executablePathInstance = svc; },
+);

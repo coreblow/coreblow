@@ -82,3 +82,29 @@ export function matchesExecAllowlistPattern(pattern: string, target: string): bo
   normalizedTarget = normalizeMatchTarget(normalizedTarget);
   return compileGlobRegex(normalizedPattern).test(normalizedTarget);
 }
+
+// ---------------------------------------------------------------------------
+// ExecAllowlistPatternService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ExecAllowlistPatternService {
+  matchesExecAllowlistPattern(pattern: string, target: string) {
+    return matchesExecAllowlistPattern(pattern, target);
+  }
+}
+
+let _execAllowlistPatternInstance: ExecAllowlistPatternService | null = null;
+
+export function getExecAllowlistPatternService(): ExecAllowlistPatternService {
+  if (!_execAllowlistPatternInstance) {
+    _execAllowlistPatternInstance = new ExecAllowlistPatternService();
+  }
+  return _execAllowlistPatternInstance;
+}
+
+export const __testing_execAllowlistPattern = createTestingHooks<ExecAllowlistPatternService>(
+  () => { _execAllowlistPatternInstance = null; },
+  (svc) => { _execAllowlistPatternInstance = svc; },
+);

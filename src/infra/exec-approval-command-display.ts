@@ -39,3 +39,33 @@ export function resolveExecApprovalCommandDisplay(request: ExecApprovalRequestPa
     commandPreview: normalizePreview(commandText, previewSource),
   };
 }
+
+// ---------------------------------------------------------------------------
+// ExecApprovalCommandDisplayService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ExecApprovalCommandDisplayService {
+  sanitizeExecApprovalDisplayText(commandText: string) {
+    return sanitizeExecApprovalDisplayText(commandText);
+  }
+
+  resolveExecApprovalCommandDisplay(request: Parameters<typeof resolveExecApprovalCommandDisplay>[0]) {
+    return resolveExecApprovalCommandDisplay(request);
+  }
+}
+
+let _execApprovalCommandDisplayInstance: ExecApprovalCommandDisplayService | null = null;
+
+export function getExecApprovalCommandDisplayService(): ExecApprovalCommandDisplayService {
+  if (!_execApprovalCommandDisplayInstance) {
+    _execApprovalCommandDisplayInstance = new ExecApprovalCommandDisplayService();
+  }
+  return _execApprovalCommandDisplayInstance;
+}
+
+export const __testing_execApprovalCommandDisplay = createTestingHooks<ExecApprovalCommandDisplayService>(
+  () => { _execApprovalCommandDisplayInstance = null; },
+  (svc) => { _execApprovalCommandDisplayInstance = svc; },
+);

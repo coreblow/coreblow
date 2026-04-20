@@ -675,3 +675,49 @@ export function evaluateShellAllowlist(
     segmentSatisfiedBy,
   };
 }
+
+// ---------------------------------------------------------------------------
+// ExecApprovalsAllowlistService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ExecApprovalsAllowlistService {
+  normalizeSafeBins(entries?: readonly string[]) {
+    return normalizeSafeBins(entries);
+  }
+
+  resolveSafeBins(entries?: readonly string[] | null) {
+    return resolveSafeBins(entries);
+  }
+
+  isSafeBinUsage(params: Parameters<typeof isSafeBinUsage>[0]) {
+    return isSafeBinUsage(params);
+  }
+
+  evaluateExecAllowlist(params: Parameters<typeof evaluateExecAllowlist>[0]) {
+    return evaluateExecAllowlist(params);
+  }
+
+  resolveAllowAlwaysPatterns(params: Parameters<typeof resolveAllowAlwaysPatterns>[0]) {
+    return resolveAllowAlwaysPatterns(params);
+  }
+
+  evaluateShellAllowlist(params: Parameters<typeof evaluateShellAllowlist>[0]) {
+    return evaluateShellAllowlist(params);
+  }
+}
+
+let _execApprovalsAllowlistInstance: ExecApprovalsAllowlistService | null = null;
+
+export function getExecApprovalsAllowlistService(): ExecApprovalsAllowlistService {
+  if (!_execApprovalsAllowlistInstance) {
+    _execApprovalsAllowlistInstance = new ExecApprovalsAllowlistService();
+  }
+  return _execApprovalsAllowlistInstance;
+}
+
+export const __testing_execApprovalsAllowlist = createTestingHooks<ExecApprovalsAllowlistService>(
+  () => { _execApprovalsAllowlistInstance = null; },
+  (svc) => { _execApprovalsAllowlistInstance = svc; },
+);

@@ -61,3 +61,41 @@ export function listRiskyConfiguredSafeBins(entries: Iterable<string>): Array<{
     .map(([bin, warning]) => ({ bin, warning }))
     .toSorted((a, b) => a.bin.localeCompare(b.bin));
 }
+
+// ---------------------------------------------------------------------------
+// ExecSafeBinSemanticsService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ExecSafeBinSemanticsService {
+  normalizeSafeBinName(raw: string) {
+    return normalizeSafeBinName(raw);
+  }
+
+  getSafeBinSemanticRule(binName?: string) {
+    return getSafeBinSemanticRule(binName);
+  }
+
+  validateSafeBinSemantics(params: Parameters<typeof validateSafeBinSemantics>[0]) {
+    return validateSafeBinSemantics(params);
+  }
+
+  listRiskyConfiguredSafeBins(entries: Iterable<string>) {
+    return listRiskyConfiguredSafeBins(entries);
+  }
+}
+
+let _execSafeBinSemanticsInstance: ExecSafeBinSemanticsService | null = null;
+
+export function getExecSafeBinSemanticsService(): ExecSafeBinSemanticsService {
+  if (!_execSafeBinSemanticsInstance) {
+    _execSafeBinSemanticsInstance = new ExecSafeBinSemanticsService();
+  }
+  return _execSafeBinSemanticsInstance;
+}
+
+export const __testing_execSafeBinSemantics = createTestingHooks<ExecSafeBinSemanticsService>(
+  () => { _execSafeBinSemanticsInstance = null; },
+  (svc) => { _execSafeBinSemanticsInstance = svc; },
+);

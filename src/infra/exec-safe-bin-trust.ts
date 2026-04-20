@@ -124,3 +124,45 @@ export function listWritableExplicitTrustedSafeBinDirs(
   }
   return hits;
 }
+
+// ---------------------------------------------------------------------------
+// ExecSafeBinTrustService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ExecSafeBinTrustService {
+  normalizeTrustedSafeBinDirs(entries?: readonly string[] | null) {
+    return normalizeTrustedSafeBinDirs(entries);
+  }
+
+  buildTrustedSafeBinDirs(params?: Parameters<typeof buildTrustedSafeBinDirs>[0]) {
+    return buildTrustedSafeBinDirs(params);
+  }
+
+  getTrustedSafeBinDirs(...args: Parameters<typeof getTrustedSafeBinDirs>) {
+    return getTrustedSafeBinDirs(...args);
+  }
+
+  isTrustedSafeBinPath(params: Parameters<typeof isTrustedSafeBinPath>[0]) {
+    return isTrustedSafeBinPath(params);
+  }
+
+  listWritableExplicitTrustedSafeBinDirs(...args: Parameters<typeof listWritableExplicitTrustedSafeBinDirs>) {
+    return listWritableExplicitTrustedSafeBinDirs(...args);
+  }
+}
+
+let _execSafeBinTrustInstance: ExecSafeBinTrustService | null = null;
+
+export function getExecSafeBinTrustService(): ExecSafeBinTrustService {
+  if (!_execSafeBinTrustInstance) {
+    _execSafeBinTrustInstance = new ExecSafeBinTrustService();
+  }
+  return _execSafeBinTrustInstance;
+}
+
+export const __testing_execSafeBinTrust = createTestingHooks<ExecSafeBinTrustService>(
+  () => { _execSafeBinTrustInstance = null; },
+  (svc) => { _execSafeBinTrustInstance = svc; },
+);

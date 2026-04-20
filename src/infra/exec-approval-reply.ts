@@ -170,3 +170,41 @@ export function buildExecApprovalUnavailableReplyPayload(
     text: lines.join("\n\n"),
   };
 }
+
+// ---------------------------------------------------------------------------
+// ExecApprovalReplyService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ExecApprovalReplyService {
+  getExecApprovalApproverDmNoticeText() {
+    return getExecApprovalApproverDmNoticeText();
+  }
+
+  getExecApprovalReplyMetadata(...args: Parameters<typeof getExecApprovalReplyMetadata>) {
+    return getExecApprovalReplyMetadata(...args);
+  }
+
+  buildExecApprovalPendingReplyPayload(...args: Parameters<typeof buildExecApprovalPendingReplyPayload>) {
+    return buildExecApprovalPendingReplyPayload(...args);
+  }
+
+  buildExecApprovalUnavailableReplyPayload(...args: Parameters<typeof buildExecApprovalUnavailableReplyPayload>) {
+    return buildExecApprovalUnavailableReplyPayload(...args);
+  }
+}
+
+let _execApprovalReplyInstance: ExecApprovalReplyService | null = null;
+
+export function getExecApprovalReplyService(): ExecApprovalReplyService {
+  if (!_execApprovalReplyInstance) {
+    _execApprovalReplyInstance = new ExecApprovalReplyService();
+  }
+  return _execApprovalReplyInstance;
+}
+
+export const __testing_execApprovalReply = createTestingHooks<ExecApprovalReplyService>(
+  () => { _execApprovalReplyInstance = null; },
+  (svc) => { _execApprovalReplyInstance = svc; },
+);
