@@ -539,7 +539,7 @@ describe("buildGatewayConnectionDetails", () => {
 
     const details = buildGatewayConnectionDetails();
 
-    expect(details.url).toBe("ws://127.0.0.1:18789");
+    expect(details.url).toBe("ws://127.0.0.1:18800");
     expect(details.urlSource).toBe("local loopback");
   });
 

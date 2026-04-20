@@ -1,97 +1,89 @@
 /**
  * agents/provider-id.ts
  * Provider ID normalization and resolution.
- * Ported from CoreBlow reference src/agents/provider-id.ts.
+ * Ported from OpenClaw reference src/agents/provider-id.ts.
  */
-
-const PROVIDER_ALIASES: Record<string, string> = {
-    oai: 'openai', openai: 'openai',
-    anthropic: 'anthropic', claude: 'anthropic',
-    google: 'google', gemini: 'google', vertex: 'google',
-    deepseek: 'deepseek',
-    groq: 'groq',
-    mistral: 'mistral',
-    together: 'together', togetherai: 'together',
-    fireworks: 'fireworks',
-    xai: 'xai', grok: 'xai',
-    ollama: 'ollama', local: 'ollama',
-    openrouter: 'openrouter',
-    bedrock: 'amazon-bedrock', 'aws': 'amazon-bedrock', 'awsbedrock': 'amazon-bedrock', 'amazonbedrock': 'amazon-bedrock',
-    azure: 'azure',
-    cohere: 'cohere',
-    // Kimi variants
-    kimi: 'kimi', kimicode: 'kimi', kimicoding: 'kimi',
-    // Z.ai variants — all normalize to 'zai'
-    'z.ai': 'zai',
-};
 
 /**
  * Normalize a provider ID to canonical form.
+ * Preserves hyphens (e.g. "openai-codex" stays "openai-codex").
+ * Only applies specific aliases for known edge cases.
  */
-export function normalizeProviderId(raw: string): string {
-    const lower = raw.trim().toLowerCase().replace(/[_\-\s]/g, '');
-    return PROVIDER_ALIASES[lower] ?? lower;
+export function normalizeProviderId(provider: string): string {
+  const normalized = provider.trim().toLowerCase();
+  if (normalized === "z.ai" || normalized === "z-ai") {
+    return "zai";
+  }
+  if (normalized === "opencode-zen") {
+    return "opencode";
+  }
+  if (normalized === "opencode-go-auth") {
+    return "opencode-go";
+  }
+  if (normalized === "kimi" || normalized === "kimi-code" || normalized === "kimi-coding") {
+    return "kimi";
+  }
+  if (normalized === "bedrock" || normalized === "aws-bedrock") {
+    return "amazon-bedrock";
+  }
+  // Backward compatibility for older provider naming.
+  if (normalized === "bytedance" || normalized === "doubao") {
+    return "volcengine";
+  }
+  return normalized;
 }
 
-/**
- * Normalize for auth profile lookups (some providers share auth).
- */
-export function normalizeProviderIdForAuth(raw: string): string {
-    // Strip "-plan" / "_plan" suffixes before normalizing —
-    // volcengine-plan, openai-plan etc. share auth with their base provider.
-    const base = raw.replace(/[-_]plan$/i, '');
-    const normalized = normalizeProviderId(base);
-    if (normalized === 'vertex') return 'google';
-    return normalized;
+/** Normalize provider ID for auth lookup. Coding-plan variants share auth with base. */
+export function normalizeProviderIdForAuth(provider: string): string {
+  const normalized = normalizeProviderId(provider);
+  if (normalized === "volcengine-plan") {
+    return "volcengine";
+  }
+  if (normalized === "byteplus-plan") {
+    return "byteplus";
+  }
+  return normalized;
 }
 
-/**
- * Find the canonical key in a config map.
- */
-export function findNormalizedProviderKey(providers: Record<string, unknown> | undefined | null, raw: string): string | undefined {
-    if (!providers) return undefined;
-    const normalized = normalizeProviderId(raw);
-    for (const key of Object.keys(providers)) {
-        if (normalizeProviderId(key) === normalized) return key;
-    }
+export function findNormalizedProviderValue<T>(
+  entries: Record<string, T> | undefined,
+  provider: string,
+): T | undefined {
+  if (!entries) {
     return undefined;
+  }
+  const providerKey = normalizeProviderId(provider);
+  for (const [key, value] of Object.entries(entries)) {
+    if (normalizeProviderId(key) === providerKey) {
+      return value;
+    }
+  }
+  return undefined;
 }
 
-/**
- * Find the value for a provider in a config map.
- */
-export function findNormalizedProviderValue<T>(providers: Record<string, T> | undefined | null, raw: string): T | undefined {
-    if (!providers) return undefined;
-    const key = findNormalizedProviderKey(providers, raw);
-    return key ? providers[key] : undefined;
+export function findNormalizedProviderKey(
+  entries: Record<string, unknown> | undefined,
+  provider: string,
+): string | undefined {
+  if (!entries) {
+    return undefined;
+  }
+  const providerKey = normalizeProviderId(provider);
+  return Object.keys(entries).find((key) => normalizeProviderId(key) === providerKey);
 }
 
 /**
  * Parse a "provider/model" ref string.
  */
 export function parseModelRef(ref: string): { provider: string; model: string } | null {
-    const sep = ref.indexOf('/');
-    if (sep < 0) return null;
-    return { provider: normalizeProviderId(ref.slice(0, sep)), model: ref.slice(sep + 1) };
+  const sep = ref.indexOf("/");
+  if (sep < 0) return null;
+  return { provider: normalizeProviderId(ref.slice(0, sep)), model: ref.slice(sep + 1) };
 }
 
 /**
  * Build a "provider/model" ref string.
  */
 export function buildModelRef(provider: string, model: string): string {
-    return `${normalizeProviderId(provider)}/${model}`;
-}
-
-/**
- * List all known providers.
- */
-export function listKnownProviders(): string[] {
-    return [...new Set(Object.values(PROVIDER_ALIASES))].sort();
-}
-
-/**
- * Check if a provider is known.
- */
-export function isKnownProvider(raw: string): boolean {
-    return normalizeProviderId(raw) in PROVIDER_ALIASES || Object.values(PROVIDER_ALIASES).includes(normalizeProviderId(raw));
+  return `${normalizeProviderId(provider)}/${model}`;
 }

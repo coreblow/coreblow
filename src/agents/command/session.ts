@@ -10,16 +10,18 @@ import {
 import type { CoreBlowConfig } from "../../config/config.js";
 import {
   evaluateSessionFreshness,
-  loadSessionStore,
-  resolveAgentIdFromSessionKey,
   resolveChannelResetConfig,
-  resolveExplicitAgentSessionKey,
   resolveSessionResetPolicy,
   resolveSessionResetType,
-  resolveSessionKey,
-  resolveStorePath,
-  type SessionEntry,
-} from "../../config/sessions.js";
+} from "../../config/sessions/reset.js";
+import { loadSessionStore } from "../../config/sessions/store.js";
+import {
+  resolveAgentIdFromSessionKey,
+  resolveExplicitAgentSessionKey,
+} from "../../config/sessions/main-session.js";
+import { resolveSessionKey } from "../../config/sessions/session-key.js";
+import { resolveStorePath } from "../../config/sessions/paths.js";
+import type { SessionEntry } from "../../config/sessions/types.js";
 import { normalizeMainKey } from "../../routing/session-key.js";
 import { resolvePreferredSessionKeyForSessionIdMatches } from "../../sessions/session-id-resolution.js";
 import { listAgentIds } from "../agent-scope.js";

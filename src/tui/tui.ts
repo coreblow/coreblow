@@ -122,8 +122,11 @@ export function createBackspaceDeduper(params?: { dedupeWindowMs?: number; now?:
   const now = params?.now ?? (() => Date.now());
   let lastBackspaceAt = -1;
 
+  const isBackspace = (data: string): boolean =>
+    data === "\x7f" || data === "\x08" || matchesKey(data, Key.backspace);
+
   return (data: string): string => {
-    if (!matchesKey(data, Key.backspace)) {
+    if (!isBackspace(data)) {
       return data;
     }
     const ts = now();

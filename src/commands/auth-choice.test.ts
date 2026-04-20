@@ -1256,7 +1256,7 @@ describe("applyAuthChoice", () => {
         envKey: "AI_GATEWAY_API_KEY",
         envValue: "gateway-test-key",
         profileId: "vercel-ai-gateway:default",
-        provider: "vercelaigateway",
+        provider: "vercel-ai-gateway",
         expectEnvPrompt: true,
         expectedTextCalls: 0,
         expectedKey: "gateway-test-key",
@@ -1267,7 +1267,7 @@ describe("applyAuthChoice", () => {
         envKey: "AI_GATEWAY_API_KEY",
         envValue: "gateway-ref-key",
         profileId: "vercel-ai-gateway:default",
-        provider: "vercelaigateway",
+        provider: "vercel-ai-gateway",
         opts: { secretInputMode: "ref" }, // pragma: allowlist secret
         expectEnvPrompt: false,
         expectedTextCalls: 1,

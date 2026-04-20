@@ -1,6 +1,6 @@
 import { applyLegacyMigrations } from "./legacy.js";
 import type { CoreBlowConfig } from "./types.js";
-import { validateConfigObjectWithPlugins } from "./validation.js";
+import { validateConfigObject } from "./validation.js";
 
 export function migrateLegacyConfig(raw: unknown): {
   config: CoreBlowConfig | null;
@@ -10,7 +10,7 @@ export function migrateLegacyConfig(raw: unknown): {
   if (!next) {
     return { config: null, changes: [] };
   }
-  const validated = validateConfigObjectWithPlugins(next);
+  const validated = validateConfigObject(next);
   if (!validated.ok) {
     changes.push("Migration applied, but config still invalid; fix remaining issues manually.");
     return { config: null, changes };

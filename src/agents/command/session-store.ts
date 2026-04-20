@@ -1,10 +1,10 @@
 import type { CoreBlowConfig } from "../../config/config.js";
+import { updateSessionStore } from "../../config/sessions/store.js";
 import {
   mergeSessionEntry,
   setSessionRuntimeModel,
   type SessionEntry,
-  updateSessionStore,
-} from "../../config/sessions.js";
+} from "../../config/sessions/types.js";
 import { estimateUsageCost, resolveModelCostConfig } from "../../utils/usage-format.js";
 import { setCliSessionBinding, setCliSessionId } from "../cli-session.js";
 import { resolveContextTokensForModel } from "../context.js";

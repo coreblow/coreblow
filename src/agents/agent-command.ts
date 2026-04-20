@@ -19,7 +19,8 @@ import {
   readConfigFileSnapshotForWrite,
   setRuntimeConfigSnapshot,
 } from "../config/config.js";
-import { resolveAgentIdFromSessionKey, type SessionEntry } from "../config/sessions.js";
+import { resolveAgentIdFromSessionKey } from "../config/sessions/main-session.js";
+import type { SessionEntry } from "../config/sessions/types.js";
 import { resolveSessionTranscriptFile } from "../config/sessions/transcript.js";
 import {
   clearAgentRunContext,

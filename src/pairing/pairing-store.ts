@@ -665,5 +665,11 @@ export async function approveChannelPairingCode(params: {
 }
 
 // Backwards compatibility alias
-export const readChannelAllowFromStore = readChannelAllowFromSync;
+export async function readChannelAllowFromStore(
+    channel: PairingChannel,
+    env: NodeJS.ProcessEnv = process.env,
+    accountId?: string,
+): Promise<string[]> {
+    return readChannelAllowFromSync(channel, env, accountId);
+}
 export const readChannelAllowFromStoreSync = readChannelAllowFromSync;

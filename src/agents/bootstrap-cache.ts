@@ -1,80 +1,58 @@
 /**
  * agents/bootstrap-cache.ts
- * Cache management for bootstrap/session data.
- * Ported from CoreBlow reference src/agents/bootstrap-cache.ts.
+ * Workspace bootstrap file cache keyed by session.
+ * Caches loaded bootstrap files per session key to avoid redundant filesystem reads
+ * during a single agent run. Provides invalidation hooks for session rollovers.
  */
 
-export interface CacheEntry<T = unknown> {
-    key: string;
-    value: T;
-    createdAt: number;
-    expiresAt?: number;
-    hitCount: number;
+import { loadWorkspaceBootstrapFiles, type WorkspaceBootstrapFile } from "./workspace.js";
+
+const sessionBootstrapCache = new Map<string, WorkspaceBootstrapFile[]>();
+
+/**
+ * Retrieve cached bootstrap files for the given session key,
+ * or load them fresh from the workspace directory and cache the result.
+ */
+export async function getOrLoadBootstrapFiles(params: {
+  workspaceDir: string;
+  sessionKey: string;
+}): Promise<WorkspaceBootstrapFile[]> {
+  const cached = sessionBootstrapCache.get(params.sessionKey);
+  if (cached) {
+    return cached;
+  }
+
+  const loaded = await loadWorkspaceBootstrapFiles(params.workspaceDir);
+  sessionBootstrapCache.set(params.sessionKey, loaded);
+  return loaded;
 }
 
-export class BootstrapCache<T = unknown> {
-    private entries = new Map<string, CacheEntry<T>>();
-    private maxSize: number;
-    private defaultTtlMs?: number;
+/**
+ * Remove the cached bootstrap snapshot for a specific session key.
+ */
+export function clearBootstrapSnapshot(sessionKey: string): void {
+  sessionBootstrapCache.delete(sessionKey);
+}
 
-    constructor(maxSize = 100, defaultTtlMs?: number) {
-        this.maxSize = maxSize;
-        this.defaultTtlMs = defaultTtlMs;
-    }
+/**
+ * Invalidate cached bootstrap data when a session rolls over to a new ID.
+ * Only clears if both sessionKey and previousSessionId are provided,
+ * indicating an actual rollover rather than a fresh session.
+ */
+export function clearBootstrapSnapshotOnSessionRollover(params: {
+  sessionKey?: string;
+  previousSessionId?: string;
+}): void {
+  if (!params.sessionKey || !params.previousSessionId) {
+    return;
+  }
 
-    get(key: string): T | undefined {
-        const entry = this.entries.get(key);
-        if (!entry) return undefined;
-        if (entry.expiresAt && Date.now() > entry.expiresAt) { this.entries.delete(key); return undefined; }
-        entry.hitCount++;
-        return entry.value;
-    }
+  clearBootstrapSnapshot(params.sessionKey);
+}
 
-    set(key: string, value: T, ttlMs?: number): void {
-        if (this.entries.size >= this.maxSize && !this.entries.has(key)) this.evictOldest();
-        const effectiveTtl = ttlMs ?? this.defaultTtlMs;
-        this.entries.set(key, {
-            key, value, createdAt: Date.now(),
-            expiresAt: effectiveTtl ? Date.now() + effectiveTtl : undefined,
-            hitCount: 0,
-        });
-    }
-
-    has(key: string): boolean {
-        const entry = this.entries.get(key);
-        if (!entry) return false;
-        if (entry.expiresAt && Date.now() > entry.expiresAt) { this.entries.delete(key); return false; }
-        return true;
-    }
-
-    delete(key: string): boolean { return this.entries.delete(key); }
-    clear(): void { this.entries.clear(); }
-    size(): number { return this.entries.size; }
-
-    prune(): number {
-        const now = Date.now();
-        let pruned = 0;
-        for (const [key, entry] of this.entries) {
-            if (entry.expiresAt && now > entry.expiresAt) { this.entries.delete(key); pruned++; }
-        }
-        return pruned;
-    }
-
-    keys(): string[] { return [...this.entries.keys()]; }
-    values(): T[] { return [...this.entries.values()].map((e) => e.value); }
-
-    stats(): { size: number; maxSize: number; totalHits: number } {
-        let totalHits = 0;
-        for (const entry of this.entries.values()) totalHits += entry.hitCount;
-        return { size: this.entries.size, maxSize: this.maxSize, totalHits };
-    }
-
-    private evictOldest(): void {
-        let oldest: string | undefined;
-        let oldestTime = Infinity;
-        for (const [key, entry] of this.entries) {
-            if (entry.createdAt < oldestTime) { oldest = key; oldestTime = entry.createdAt; }
-        }
-        if (oldest) this.entries.delete(oldest);
-    }
+/**
+ * Clear all cached bootstrap snapshots across all sessions.
+ */
+export function clearAllBootstrapSnapshots(): void {
+  sessionBootstrapCache.clear();
 }

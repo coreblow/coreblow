@@ -20,15 +20,6 @@ export default defineConfig({
                 find: 'coreblow/plugin-sdk',
                 replacement: path.join(repoRoot, 'src', 'plugin-sdk', 'index.ts'),
             },
-            // Runtime stubs for proprietary packages
-            {
-                find: /^@mariozechner\/pi-ai(\/.*)?$/,
-                replacement: path.resolve(repoRoot, 'src/stubs/pi-ai.ts'),
-            },
-            {
-                find: /^@mariozechner\/pi-coding-agent(\/.*)?$/,
-                replacement: path.resolve(repoRoot, 'src/stubs/pi-coding-agent.ts'),
-            },
             // Stub for fake-indexeddb (used by extensions/matrix)
             {
                 find: 'fake-indexeddb/auto',
@@ -229,6 +220,10 @@ export default defineConfig({
             'src/plugins/services.test.ts',
             'src/gateway/method-scopes.test.ts',
             'src/commands/agents.test.ts',
+            // Circular dep: createScopedAccountReplyToModeResolver (OpenClaw uses separate built packages)
+            'src/image-generation/runtime.test.ts',
+            // agent.test.ts requires full provider plugin runtime (resolvePluginProviders, prepareProviderDynamicModel)
+            'src/commands/agent.test.ts',
         ],
     },
 });

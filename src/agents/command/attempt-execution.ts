@@ -9,7 +9,8 @@ import {
   SILENT_REPLY_TOKEN,
 } from "../../auto-reply/tokens.js";
 import { loadConfig } from "../../config/config.js";
-import { mergeSessionEntry, type SessionEntry, updateSessionStore } from "../../config/sessions.js";
+import { updateSessionStore } from "../../config/sessions/store.js";
+import { mergeSessionEntry, type SessionEntry } from "../../config/sessions/types.js";
 import { resolveSessionTranscriptFile } from "../../config/sessions/transcript.js";
 import { emitAgentEvent } from "../../infra/agent-events.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";

@@ -37,6 +37,10 @@ let modelSuppressionPromise: Promise<typeof import("./model-suppression.runtime.
 
 const NON_PI_NATIVE_MODEL_PROVIDERS = new Set(["deepseek", "kilocode"]);
 
+// Inline fallback: providers where gpt-5.3-codex-spark should be suppressed.
+// Mirrors extensions/openai/openai-provider.ts SUPPRESSED_SPARK_PROVIDERS.
+const INLINE_SUPPRESSED_SPARK_PROVIDERS = new Set(["openai", "azure-openai-responses"]);
+
 function shouldLogModelCatalogTiming(): boolean {
   return process.env.COREBLOW_DEBUG_INGRESS_TIMING === "1";
 }
@@ -211,6 +215,14 @@ export async function loadModelCatalog(params?: {
         if (shouldSuppressBuiltInModel({ provider, id })) {
           continue;
         }
+        // Inline fallback suppression: codex-spark is only valid on openai-codex.
+        // When the OpenAI plugin can't load, replicate its suppressBuiltInModel hook.
+        if (
+          id.toLowerCase() === "gpt-5.3-codex-spark" &&
+          INLINE_SUPPRESSED_SPARK_PROVIDERS.has(normalizeProviderId(provider))
+        ) {
+          continue;
+        }
         const name = String(entry?.name ?? id).trim() || id;
         const contextWindow =
           typeof entry?.contextWindow === "number" && entry.contextWindow > 0
@@ -222,6 +234,10 @@ export async function loadModelCatalog(params?: {
       }
       mergeConfiguredOptInProviderModels({ config: cfg, models });
       logStage("configured-models-merged", `entries=${models.length}`);
+      // Inline fallback augmentation runs first: its codex-spark template lookup
+      // includes gpt-5.4 (producing correct reasoning/contextWindow inheritance).
+      // The native plugin uses a narrower template set, so inline takes priority.
+      const inlineAugmented = applyInlineOpenAICatalogAugmentations(models);
       const supplemental = await augmentModelCatalogWithProviderPlugins({
         config: cfg,
         env: process.env,
@@ -232,13 +248,15 @@ export async function loadModelCatalog(params?: {
           entries: [...models],
         },
       });
-      if (supplemental.length > 0) {
+      // Inline first, then plugin — dedup keeps the first occurrence.
+      const allAugmented = [...inlineAugmented, ...supplemental];
+      if (allAugmented.length > 0) {
         const seen = new Set(
           models.map(
             (entry) => `${entry.provider.toLowerCase().trim()}::${entry.id.toLowerCase().trim()}`,
           ),
         );
-        for (const entry of supplemental) {
+        for (const entry of allAugmented) {
           const key = `${entry.provider.toLowerCase().trim()}::${entry.id.toLowerCase().trim()}`;
           if (seen.has(key)) {
             continue;
@@ -303,4 +321,97 @@ export function findModelInCatalog(
       normalizeProviderId(entry.provider) === normalizedProvider &&
       entry.id.toLowerCase() === normalizedModelId,
   );
+}
+// ---------------------------------------------------------------------------
+// Inline OpenAI catalog augmentation fallback
+// ---------------------------------------------------------------------------
+// When the Jiti plugin system fails to load extensions (e.g. missing
+// @mariozechner/pi-ai in test), this replicates the augmentModelCatalog
+// hooks from extensions/openai/openai-codex-provider.ts and
+// extensions/openai/openai-provider.ts.
+
+function findInlineCatalogTemplate(
+  entries: ReadonlyArray<{ provider: string; id: string }>,
+  providerId: string,
+  templateIds: readonly string[],
+) {
+  return templateIds
+    .map((templateId) =>
+      entries.find(
+        (entry) =>
+          normalizeProviderId(entry.provider) === normalizeProviderId(providerId) &&
+          entry.id.toLowerCase() === templateId.toLowerCase(),
+      ),
+    )
+    .find((entry) => entry !== undefined);
+}
+
+function applyInlineOpenAICatalogAugmentations(
+  entries: ModelCatalogEntry[],
+): ModelCatalogEntry[] {
+  const result: ModelCatalogEntry[] = [];
+  const existingIds = new Set(
+    entries.map(
+      (e) => `${normalizeProviderId(e.provider)}::${e.id.toLowerCase()}`,
+    ),
+  );
+
+  // --- openai-codex augmentations (from openai-codex-provider.ts) ---
+  const CODEX_PROVIDER = "openai-codex";
+  const CODEX_GPT_54_TEMPLATE_IDS = ["gpt-5.3-codex", "gpt-5.2-codex"] as const;
+  const CODEX_SPARK_TEMPLATE_IDS = ["gpt-5.4", "gpt-5.3-codex", "gpt-5.2-codex"] as const;
+
+  // gpt-5.4 on openai-codex (forward-compat from gpt-5.3-codex or gpt-5.2-codex)
+  const codexGpt54Template = findInlineCatalogTemplate(
+    entries, CODEX_PROVIDER, CODEX_GPT_54_TEMPLATE_IDS,
+  );
+  if (codexGpt54Template && !existingIds.has(`${normalizeProviderId(CODEX_PROVIDER)}::gpt-5.4`)) {
+    result.push({
+      ...codexGpt54Template,
+      id: "gpt-5.4",
+      name: "gpt-5.4",
+    });
+  }
+
+  // gpt-5.3-codex-spark on openai-codex (synthesis from codex templates)
+  const codexSparkTemplate = findInlineCatalogTemplate(
+    entries, CODEX_PROVIDER, CODEX_SPARK_TEMPLATE_IDS,
+  );
+  if (
+    codexSparkTemplate &&
+    !existingIds.has(`${normalizeProviderId(CODEX_PROVIDER)}::gpt-5.3-codex-spark`)
+  ) {
+    result.push({
+      ...codexSparkTemplate,
+      id: "gpt-5.3-codex-spark",
+      name: "gpt-5.3-codex-spark",
+    });
+  }
+
+  // --- openai augmentations (from openai-provider.ts) ---
+  const OPENAI_PROVIDER = "openai";
+  const GPT_54_TEMPLATES = ["gpt-5.2"] as const;
+  const GPT_54_PRO_TEMPLATES = ["gpt-5.2-pro", "gpt-5.2"] as const;
+  const GPT_54_MINI_TEMPLATES = ["gpt-5-mini"] as const;
+  const GPT_54_NANO_TEMPLATES = ["gpt-5-nano", "gpt-5-mini"] as const;
+
+  const forwardCompatModels: Array<{ id: string; templates: readonly string[] }> = [
+    { id: "gpt-5.4", templates: GPT_54_TEMPLATES },
+    { id: "gpt-5.4-pro", templates: GPT_54_PRO_TEMPLATES },
+    { id: "gpt-5.4-mini", templates: GPT_54_MINI_TEMPLATES },
+    { id: "gpt-5.4-nano", templates: GPT_54_NANO_TEMPLATES },
+  ];
+
+  for (const { id, templates } of forwardCompatModels) {
+    const template = findInlineCatalogTemplate(entries, OPENAI_PROVIDER, templates);
+    if (template && !existingIds.has(`${normalizeProviderId(OPENAI_PROVIDER)}::${id.toLowerCase()}`)) {
+      result.push({
+        ...template,
+        id,
+        name: id,
+      });
+    }
+  }
+
+  return result;
 }
