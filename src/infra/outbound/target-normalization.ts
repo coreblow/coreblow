@@ -59,3 +59,37 @@ function hashSignature(value: string): string {
   }
   return (hash >>> 0).toString(36);
 }
+
+// ---------------------------------------------------------------------------
+// TargetNormalizationService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "../service-patterns.js";
+
+export class TargetNormalizationService {
+  normalizeChannelTargetInput(raw: string) {
+    return normalizeChannelTargetInput(raw);
+  }
+
+  normalizeTargetForProvider(provider: string, raw?: string) {
+    return normalizeTargetForProvider(provider, raw);
+  }
+
+  buildTargetResolverSignature(channel: Parameters<typeof buildTargetResolverSignature>[0]) {
+    return buildTargetResolverSignature(channel);
+  }
+}
+
+let _targetNormalizationInstance: TargetNormalizationService | null = null;
+
+export function getTargetNormalizationService(): TargetNormalizationService {
+  if (!_targetNormalizationInstance) {
+    _targetNormalizationInstance = new TargetNormalizationService();
+  }
+  return _targetNormalizationInstance;
+}
+
+export const __testing_targetNormalization = createTestingHooks<TargetNormalizationService>(
+  () => { _targetNormalizationInstance = null; },
+  (svc) => { _targetNormalizationInstance = svc; },
+);

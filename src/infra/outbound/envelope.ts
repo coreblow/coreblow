@@ -42,3 +42,29 @@ export function buildOutboundResultEnvelope(
     ...(params.delivery ? { delivery: params.delivery } : {}),
   };
 }
+
+// ---------------------------------------------------------------------------
+// OutboundEnvelopeService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "../service-patterns.js";
+
+export class OutboundEnvelopeService {
+  buildOutboundResultEnvelope(params: Parameters<typeof buildOutboundResultEnvelope>[0]) {
+    return buildOutboundResultEnvelope(params);
+  }
+}
+
+let _outboundEnvelopeInstance: OutboundEnvelopeService | null = null;
+
+export function getOutboundEnvelopeService(): OutboundEnvelopeService {
+  if (!_outboundEnvelopeInstance) {
+    _outboundEnvelopeInstance = new OutboundEnvelopeService();
+  }
+  return _outboundEnvelopeInstance;
+}
+
+export const __testing_outboundEnvelope = createTestingHooks<OutboundEnvelopeService>(
+  () => { _outboundEnvelopeInstance = null; },
+  (svc) => { _outboundEnvelopeInstance = svc; },
+);

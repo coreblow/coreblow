@@ -62,3 +62,33 @@ export function sanitizeForPlainText(text: string): string {
       .replace(/\n{3,}/g, "\n\n")
   );
 }
+
+// ---------------------------------------------------------------------------
+// SanitizeTextService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "../service-patterns.js";
+
+export class SanitizeTextService {
+  isPlainTextSurface(channelId: string) {
+    return isPlainTextSurface(channelId);
+  }
+
+  sanitizeForPlainText(text: string) {
+    return sanitizeForPlainText(text);
+  }
+}
+
+let _sanitizeTextInstance: SanitizeTextService | null = null;
+
+export function getSanitizeTextService(): SanitizeTextService {
+  if (!_sanitizeTextInstance) {
+    _sanitizeTextInstance = new SanitizeTextService();
+  }
+  return _sanitizeTextInstance;
+}
+
+export const __testing_sanitizeText = createTestingHooks<SanitizeTextService>(
+  () => { _sanitizeTextInstance = null; },
+  (svc) => { _sanitizeTextInstance = svc; },
+);

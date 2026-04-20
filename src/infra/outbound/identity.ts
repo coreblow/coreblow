@@ -38,3 +38,33 @@ export function resolveAgentOutboundIdentity(
     theme: agentIdentity?.theme,
   });
 }
+
+// ---------------------------------------------------------------------------
+// OutboundIdentityService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "../service-patterns.js";
+
+export class OutboundIdentityService {
+  normalizeOutboundIdentity(params: Parameters<typeof normalizeOutboundIdentity>[0]) {
+    return normalizeOutboundIdentity(params);
+  }
+
+  resolveAgentOutboundIdentity(cfg: CoreBlowConfig, agentId: string) {
+    return resolveAgentOutboundIdentity(cfg, agentId);
+  }
+}
+
+let _outboundIdentityInstance: OutboundIdentityService | null = null;
+
+export function getOutboundIdentityService(): OutboundIdentityService {
+  if (!_outboundIdentityInstance) {
+    _outboundIdentityInstance = new OutboundIdentityService();
+  }
+  return _outboundIdentityInstance;
+}
+
+export const __testing_outboundIdentity = createTestingHooks<OutboundIdentityService>(
+  () => { _outboundIdentityInstance = null; },
+  (svc) => { _outboundIdentityInstance = svc; },
+);

@@ -129,3 +129,29 @@ export function createBoundDeliveryRouter(
     },
   };
 }
+
+// ---------------------------------------------------------------------------
+// BoundDeliveryRouterService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "../service-patterns.js";
+
+export class BoundDeliveryRouterService {
+  create(params: Parameters<typeof createBoundDeliveryRouter>[0]) {
+    return createBoundDeliveryRouter(params);
+  }
+}
+
+let _boundDeliveryRouterInstance: BoundDeliveryRouterService | null = null;
+
+export function getBoundDeliveryRouterService(): BoundDeliveryRouterService {
+  if (!_boundDeliveryRouterInstance) {
+    _boundDeliveryRouterInstance = new BoundDeliveryRouterService();
+  }
+  return _boundDeliveryRouterInstance;
+}
+
+export const __testing_boundDeliveryRouter = createTestingHooks<BoundDeliveryRouterService>(
+  () => { _boundDeliveryRouterInstance = null; },
+  (svc) => { _boundDeliveryRouterInstance = svc; },
+);

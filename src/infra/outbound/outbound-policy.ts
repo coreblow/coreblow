@@ -221,3 +221,41 @@ export function applyCrossContextDecoration(params: {
   const message = `${params.decoration.prefix}${params.message}${params.decoration.suffix}`;
   return { message, usedComponents: false };
 }
+
+// ---------------------------------------------------------------------------
+// OutboundPolicyService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "../service-patterns.js";
+
+export class OutboundPolicyService {
+  enforceCrossContextPolicy(params: Parameters<typeof enforceCrossContextPolicy>[0]) {
+    return enforceCrossContextPolicy(params);
+  }
+
+  async buildCrossContextDecoration(params: Parameters<typeof buildCrossContextDecoration>[0]) {
+    return buildCrossContextDecoration(params);
+  }
+
+  shouldApplyCrossContextMarker(action: Parameters<typeof shouldApplyCrossContextMarker>[0]) {
+    return shouldApplyCrossContextMarker(action);
+  }
+
+  applyCrossContextDecoration(params: Parameters<typeof applyCrossContextDecoration>[0]) {
+    return applyCrossContextDecoration(params);
+  }
+}
+
+let _outboundPolicyInstance: OutboundPolicyService | null = null;
+
+export function getOutboundPolicyService(): OutboundPolicyService {
+  if (!_outboundPolicyInstance) {
+    _outboundPolicyInstance = new OutboundPolicyService();
+  }
+  return _outboundPolicyInstance;
+}
+
+export const __testing_outboundPolicy = createTestingHooks<OutboundPolicyService>(
+  () => { _outboundPolicyInstance = null; },
+  (svc) => { _outboundPolicyInstance = svc; },
+);

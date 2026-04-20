@@ -153,3 +153,41 @@ export function formatOutboundPayloadLog(
   }
   return lines.join("\n");
 }
+
+// ---------------------------------------------------------------------------
+// OutboundPayloadsService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "../service-patterns.js";
+
+export class OutboundPayloadsService {
+  normalizeReplyPayloadsForDelivery(payloads: Parameters<typeof normalizeReplyPayloadsForDelivery>[0]) {
+    return normalizeReplyPayloadsForDelivery(payloads);
+  }
+
+  normalizeOutboundPayloads(params: Parameters<typeof normalizeOutboundPayloads>[0]) {
+    return normalizeOutboundPayloads(params);
+  }
+
+  normalizeOutboundPayloadsForJson(params: Parameters<typeof normalizeOutboundPayloadsForJson>[0]) {
+    return normalizeOutboundPayloadsForJson(params);
+  }
+
+  formatOutboundPayloadLog(params: Parameters<typeof formatOutboundPayloadLog>[0]) {
+    return formatOutboundPayloadLog(params);
+  }
+}
+
+let _outboundPayloadsInstance: OutboundPayloadsService | null = null;
+
+export function getOutboundPayloadsService(): OutboundPayloadsService {
+  if (!_outboundPayloadsInstance) {
+    _outboundPayloadsInstance = new OutboundPayloadsService();
+  }
+  return _outboundPayloadsInstance;
+}
+
+export const __testing_outboundPayloads = createTestingHooks<OutboundPayloadsService>(
+  () => { _outboundPayloadsInstance = null; },
+  (svc) => { _outboundPayloadsInstance = svc; },
+);

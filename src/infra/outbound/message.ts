@@ -360,3 +360,33 @@ export async function sendPoll(params: MessagePollParams): Promise<MessagePollRe
     result,
   });
 }
+
+// ---------------------------------------------------------------------------
+// OutboundMessageService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "../service-patterns.js";
+
+export class OutboundMessageService {
+  async sendMessage(params: Parameters<typeof sendMessage>[0]) {
+    return sendMessage(params);
+  }
+
+  async sendPoll(params: Parameters<typeof sendPoll>[0]) {
+    return sendPoll(params);
+  }
+}
+
+let _outboundMessageInstance: OutboundMessageService | null = null;
+
+export function getOutboundMessageService(): OutboundMessageService {
+  if (!_outboundMessageInstance) {
+    _outboundMessageInstance = new OutboundMessageService();
+  }
+  return _outboundMessageInstance;
+}
+
+export const __testing_outboundMessage = createTestingHooks<OutboundMessageService>(
+  () => { _outboundMessageInstance = null; },
+  (svc) => { _outboundMessageInstance = svc; },
+);

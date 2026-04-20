@@ -177,3 +177,33 @@ export function resolveAgentOutboundTarget(params: {
     targetMode,
   };
 }
+
+// ---------------------------------------------------------------------------
+// AgentDeliveryService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "../service-patterns.js";
+
+export class AgentDeliveryService {
+  async resolveAgentDeliveryPlan(params: Parameters<typeof resolveAgentDeliveryPlan>[0]) {
+    return resolveAgentDeliveryPlan(params);
+  }
+
+  resolveAgentOutboundTarget(params: Parameters<typeof resolveAgentOutboundTarget>[0]) {
+    return resolveAgentOutboundTarget(params);
+  }
+}
+
+let _agentDeliveryInstance: AgentDeliveryService | null = null;
+
+export function getAgentDeliveryService(): AgentDeliveryService {
+  if (!_agentDeliveryInstance) {
+    _agentDeliveryInstance = new AgentDeliveryService();
+  }
+  return _agentDeliveryInstance;
+}
+
+export const __testing_agentDelivery = createTestingHooks<AgentDeliveryService>(
+  () => { _agentDeliveryInstance = null; },
+  (svc) => { _agentDeliveryInstance = svc; },
+);

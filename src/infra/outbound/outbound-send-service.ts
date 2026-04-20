@@ -212,3 +212,33 @@ export async function executePollAction(params: {
     pollResult: result,
   };
 }
+
+// ---------------------------------------------------------------------------
+// OutboundSendService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "../service-patterns.js";
+
+export class OutboundSendService {
+  async executeSendAction(params: Parameters<typeof executeSendAction>[0]) {
+    return executeSendAction(params);
+  }
+
+  async executePollAction(params: Parameters<typeof executePollAction>[0]) {
+    return executePollAction(params);
+  }
+}
+
+let _outboundSendInstance: OutboundSendService | null = null;
+
+export function getOutboundSendService(): OutboundSendService {
+  if (!_outboundSendInstance) {
+    _outboundSendInstance = new OutboundSendService();
+  }
+  return _outboundSendInstance;
+}
+
+export const __testing_outboundSend = createTestingHooks<OutboundSendService>(
+  () => { _outboundSendInstance = null; },
+  (svc) => { _outboundSendInstance = svc; },
+);

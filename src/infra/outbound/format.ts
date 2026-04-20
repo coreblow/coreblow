@@ -119,3 +119,37 @@ export function formatGatewaySummary(params: {
   const messageId = params.messageId ?? "unknown";
   return `✅ ${action} via gateway${channelSuffix}. Message ID: ${messageId}`;
 }
+
+// ---------------------------------------------------------------------------
+// OutboundFormatService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "../service-patterns.js";
+
+export class OutboundFormatService {
+  formatOutboundDeliverySummary(params: Parameters<typeof formatOutboundDeliverySummary>[0]) {
+    return formatOutboundDeliverySummary(params);
+  }
+
+  buildOutboundDeliveryJson(params: Parameters<typeof buildOutboundDeliveryJson>[0]) {
+    return buildOutboundDeliveryJson(params);
+  }
+
+  formatGatewaySummary(params: Parameters<typeof formatGatewaySummary>[0]) {
+    return formatGatewaySummary(params);
+  }
+}
+
+let _outboundFormatInstance: OutboundFormatService | null = null;
+
+export function getOutboundFormatService(): OutboundFormatService {
+  if (!_outboundFormatInstance) {
+    _outboundFormatInstance = new OutboundFormatService();
+  }
+  return _outboundFormatInstance;
+}
+
+export const __testing_outboundFormat = createTestingHooks<OutboundFormatService>(
+  () => { _outboundFormatInstance = null; },
+  (svc) => { _outboundFormatInstance = svc; },
+);

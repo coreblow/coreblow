@@ -174,3 +174,33 @@ export async function ensureOutboundSessionEntry(params: {
     // Do not block outbound sends on session meta writes.
   }
 }
+
+// ---------------------------------------------------------------------------
+// OutboundSessionService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "../service-patterns.js";
+
+export class OutboundSessionService {
+  async resolveOutboundSessionRoute(params: Parameters<typeof resolveOutboundSessionRoute>[0]) {
+    return resolveOutboundSessionRoute(params);
+  }
+
+  async ensureOutboundSessionEntry(params: Parameters<typeof ensureOutboundSessionEntry>[0]) {
+    return ensureOutboundSessionEntry(params);
+  }
+}
+
+let _outboundSessionInstance: OutboundSessionService | null = null;
+
+export function getOutboundSessionService(): OutboundSessionService {
+  if (!_outboundSessionInstance) {
+    _outboundSessionInstance = new OutboundSessionService();
+  }
+  return _outboundSessionInstance;
+}
+
+export const __testing_outboundSession = createTestingHooks<OutboundSessionService>(
+  () => { _outboundSessionInstance = null; },
+  (svc) => { _outboundSessionInstance = svc; },
+);
