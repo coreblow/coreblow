@@ -48,3 +48,29 @@ export function resolveConversationIdFromTargets(params: {
 
   return undefined;
 }
+
+// ---------------------------------------------------------------------------
+// ConversationIdService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "../service-patterns.js";
+
+export class ConversationIdService {
+  resolveConversationIdFromTargets(params: Parameters<typeof resolveConversationIdFromTargets>[0]) {
+    return resolveConversationIdFromTargets(params);
+  }
+}
+
+let _conversationIdInstance: ConversationIdService | null = null;
+
+export function getConversationIdService(): ConversationIdService {
+  if (!_conversationIdInstance) {
+    _conversationIdInstance = new ConversationIdService();
+  }
+  return _conversationIdInstance;
+}
+
+export const __testing_conversationId = createTestingHooks<ConversationIdService>(
+  () => { _conversationIdInstance = null; },
+  (svc) => { _conversationIdInstance = svc; },
+);

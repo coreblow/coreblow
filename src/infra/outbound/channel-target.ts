@@ -41,3 +41,29 @@ export function applyTargetToParams(params: {
   }
   throw new Error(`Action ${params.action} does not accept a target.`);
 }
+
+// ---------------------------------------------------------------------------
+// ChannelTargetService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "../service-patterns.js";
+
+export class ChannelTargetService {
+  applyTargetToParams(params: Parameters<typeof applyTargetToParams>[0]) {
+    return applyTargetToParams(params);
+  }
+}
+
+let _channelTargetInstance: ChannelTargetService | null = null;
+
+export function getChannelTargetService(): ChannelTargetService {
+  if (!_channelTargetInstance) {
+    _channelTargetInstance = new ChannelTargetService();
+  }
+  return _channelTargetInstance;
+}
+
+export const __testing_channelTarget = createTestingHooks<ChannelTargetService>(
+  () => { _channelTargetInstance = null; },
+  (svc) => { _channelTargetInstance = svc; },
+);

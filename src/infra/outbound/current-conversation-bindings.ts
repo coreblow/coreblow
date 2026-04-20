@@ -278,3 +278,49 @@ export const __testing = {
   },
   resolveBindingsFilePath,
 };
+
+// ---------------------------------------------------------------------------
+// CurrentConversationBindingService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "../service-patterns.js";
+
+export class CurrentConversationBindingService {
+  getCapabilities(params: Parameters<typeof getGenericCurrentConversationBindingCapabilities>[0]) {
+    return getGenericCurrentConversationBindingCapabilities(params);
+  }
+
+  async bind(input: SessionBindingBindInput) {
+    return bindGenericCurrentConversation(input);
+  }
+
+  resolve(ref: ConversationRef) {
+    return resolveGenericCurrentConversationBinding(ref);
+  }
+
+  listBySession(targetSessionKey: string) {
+    return listGenericCurrentConversationBindingsBySession(targetSessionKey);
+  }
+
+  touch(bindingId: string, at?: number) {
+    return touchGenericCurrentConversationBinding(bindingId, at);
+  }
+
+  async unbind(input: SessionBindingUnbindInput) {
+    return unbindGenericCurrentConversationBindings(input);
+  }
+}
+
+let _bindingInstance: CurrentConversationBindingService | null = null;
+
+export function getCurrentConversationBindingService(): CurrentConversationBindingService {
+  if (!_bindingInstance) {
+    _bindingInstance = new CurrentConversationBindingService();
+  }
+  return _bindingInstance;
+}
+
+export const __testing_currentConversationBinding = createTestingHooks<CurrentConversationBindingService>(
+  () => { _bindingInstance = null; },
+  (svc) => { _bindingInstance = svc; },
+);

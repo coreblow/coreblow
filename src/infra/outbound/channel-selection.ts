@@ -210,3 +210,33 @@ export const __testing = {
     loggedChannelSelectionErrors.clear();
   },
 };
+
+// ---------------------------------------------------------------------------
+// ChannelSelectionService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "../service-patterns.js";
+
+export class ChannelSelectionService {
+  async listConfiguredMessageChannels(cfg: CoreBlowConfig) {
+    return listConfiguredMessageChannels(cfg);
+  }
+
+  async resolveMessageChannelSelection(params: Parameters<typeof resolveMessageChannelSelection>[0]) {
+    return resolveMessageChannelSelection(params);
+  }
+}
+
+let _channelSelectionInstance: ChannelSelectionService | null = null;
+
+export function getChannelSelectionService(): ChannelSelectionService {
+  if (!_channelSelectionInstance) {
+    _channelSelectionInstance = new ChannelSelectionService();
+  }
+  return _channelSelectionInstance;
+}
+
+export const __testing_channelSelection = createTestingHooks<ChannelSelectionService>(
+  () => { _channelSelectionInstance = null; },
+  (svc) => { _channelSelectionInstance = svc; },
+);
