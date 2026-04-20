@@ -386,3 +386,29 @@ export async function fetchMinimaxUsage(
     plan: pickString(usageRecord, PLAN_KEYS) ?? pickString(payload, PLAN_KEYS),
   };
 }
+
+// ---------------------------------------------------------------------------
+// ProviderUsageFetchMinimaxService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ProviderUsageFetchMinimaxService {
+  async fetchMinimaxUsage(...args: Parameters<typeof fetchMinimaxUsage>) {
+    return fetchMinimaxUsage(...args);
+  }
+}
+
+let _providerUsageFetchMinimaxInstance: ProviderUsageFetchMinimaxService | null = null;
+
+export function getProviderUsageFetchMinimaxService(): ProviderUsageFetchMinimaxService {
+  if (!_providerUsageFetchMinimaxInstance) {
+    _providerUsageFetchMinimaxInstance = new ProviderUsageFetchMinimaxService();
+  }
+  return _providerUsageFetchMinimaxInstance;
+}
+
+export const __testing_providerUsageFetchMinimax = createTestingHooks<ProviderUsageFetchMinimaxService>(
+  () => { _providerUsageFetchMinimaxInstance = null; },
+  (svc) => { _providerUsageFetchMinimaxInstance = svc; },
+);

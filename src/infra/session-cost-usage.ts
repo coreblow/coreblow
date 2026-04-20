@@ -1086,3 +1086,49 @@ export async function loadSessionLogs(params: {
 
   return sortedLogs;
 }
+
+// ---------------------------------------------------------------------------
+// SessionCostUsageService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class SessionCostUsageService {
+  resolveExistingUsageSessionFile(params: Parameters<typeof resolveExistingUsageSessionFile>[0]) {
+    return resolveExistingUsageSessionFile(params);
+  }
+
+  async loadCostUsageSummary(params?: Parameters<typeof loadCostUsageSummary>[0]) {
+    return loadCostUsageSummary(params);
+  }
+
+  async discoverAllSessions(params?: Parameters<typeof discoverAllSessions>[0]) {
+    return discoverAllSessions(params);
+  }
+
+  async loadSessionCostSummary(params: Parameters<typeof loadSessionCostSummary>[0]) {
+    return loadSessionCostSummary(params);
+  }
+
+  async loadSessionUsageTimeSeries(params: Parameters<typeof loadSessionUsageTimeSeries>[0]) {
+    return loadSessionUsageTimeSeries(params);
+  }
+
+  async loadSessionLogs(params: Parameters<typeof loadSessionLogs>[0]) {
+    return loadSessionLogs(params);
+  }
+}
+
+let _sessionCostUsageInstance: SessionCostUsageService | null = null;
+
+export function getSessionCostUsageService(): SessionCostUsageService {
+  if (!_sessionCostUsageInstance) {
+    _sessionCostUsageInstance = new SessionCostUsageService();
+  }
+  return _sessionCostUsageInstance;
+}
+
+export const __testing_sessionCostUsage = createTestingHooks<SessionCostUsageService>(
+  () => { _sessionCostUsageInstance = null; },
+  (svc) => { _sessionCostUsageInstance = svc; },
+);

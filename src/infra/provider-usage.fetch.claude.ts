@@ -175,3 +175,29 @@ export async function fetchClaudeUsage(
     windows,
   };
 }
+
+// ---------------------------------------------------------------------------
+// ProviderUsageFetchClaudeService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ProviderUsageFetchClaudeService {
+  async fetchClaudeUsage(...args: Parameters<typeof fetchClaudeUsage>) {
+    return fetchClaudeUsage(...args);
+  }
+}
+
+let _providerUsageFetchClaudeInstance: ProviderUsageFetchClaudeService | null = null;
+
+export function getProviderUsageFetchClaudeService(): ProviderUsageFetchClaudeService {
+  if (!_providerUsageFetchClaudeInstance) {
+    _providerUsageFetchClaudeInstance = new ProviderUsageFetchClaudeService();
+  }
+  return _providerUsageFetchClaudeInstance;
+}
+
+export const __testing_providerUsageFetchClaude = createTestingHooks<ProviderUsageFetchClaudeService>(
+  () => { _providerUsageFetchClaudeInstance = null; },
+  (svc) => { _providerUsageFetchClaudeInstance = svc; },
+);

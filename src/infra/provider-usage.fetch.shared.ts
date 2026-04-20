@@ -50,3 +50,41 @@ export function buildUsageHttpErrorSnapshot(
   const suffix = options.message?.trim() ? `: ${options.message.trim()}` : "";
   return buildUsageErrorSnapshot(options.provider, `HTTP ${options.status}${suffix}`);
 }
+
+// ---------------------------------------------------------------------------
+// ProviderUsageFetchSharedService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ProviderUsageFetchSharedService {
+  async fetchJson(...args: Parameters<typeof fetchJson>) {
+    return fetchJson(...args);
+  }
+
+  parseFiniteNumber(value: unknown) {
+    return parseFiniteNumber(value);
+  }
+
+  buildUsageErrorSnapshot(...args: Parameters<typeof buildUsageErrorSnapshot>) {
+    return buildUsageErrorSnapshot(...args);
+  }
+
+  buildUsageHttpErrorSnapshot(...args: Parameters<typeof buildUsageHttpErrorSnapshot>) {
+    return buildUsageHttpErrorSnapshot(...args);
+  }
+}
+
+let _providerUsageFetchSharedInstance: ProviderUsageFetchSharedService | null = null;
+
+export function getProviderUsageFetchSharedService(): ProviderUsageFetchSharedService {
+  if (!_providerUsageFetchSharedInstance) {
+    _providerUsageFetchSharedInstance = new ProviderUsageFetchSharedService();
+  }
+  return _providerUsageFetchSharedInstance;
+}
+
+export const __testing_providerUsageFetchShared = createTestingHooks<ProviderUsageFetchSharedService>(
+  () => { _providerUsageFetchSharedInstance = null; },
+  (svc) => { _providerUsageFetchSharedInstance = svc; },
+);

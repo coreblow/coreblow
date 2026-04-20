@@ -85,3 +85,29 @@ export async function fetchGeminiUsage(
 
   return { provider, displayName: PROVIDER_LABELS[provider], windows };
 }
+
+// ---------------------------------------------------------------------------
+// ProviderUsageFetchGeminiService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ProviderUsageFetchGeminiService {
+  async fetchGeminiUsage(...args: Parameters<typeof fetchGeminiUsage>) {
+    return fetchGeminiUsage(...args);
+  }
+}
+
+let _providerUsageFetchGeminiInstance: ProviderUsageFetchGeminiService | null = null;
+
+export function getProviderUsageFetchGeminiService(): ProviderUsageFetchGeminiService {
+  if (!_providerUsageFetchGeminiInstance) {
+    _providerUsageFetchGeminiInstance = new ProviderUsageFetchGeminiService();
+  }
+  return _providerUsageFetchGeminiInstance;
+}
+
+export const __testing_providerUsageFetchGemini = createTestingHooks<ProviderUsageFetchGeminiService>(
+  () => { _providerUsageFetchGeminiInstance = null; },
+  (svc) => { _providerUsageFetchGeminiInstance = svc; },
+);

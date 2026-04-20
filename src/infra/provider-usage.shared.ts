@@ -93,3 +93,29 @@ export function resolveLegacyPiAgentAccessToken(
     return undefined;
   }
 }
+
+// ---------------------------------------------------------------------------
+// ProviderUsageSharedService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ProviderUsageSharedService {
+  resolveUsageProviderId(provider?: string | null) {
+    return resolveUsageProviderId(provider);
+  }
+}
+
+let _providerUsageSharedInstance: ProviderUsageSharedService | null = null;
+
+export function getProviderUsageSharedService(): ProviderUsageSharedService {
+  if (!_providerUsageSharedInstance) {
+    _providerUsageSharedInstance = new ProviderUsageSharedService();
+  }
+  return _providerUsageSharedInstance;
+}
+
+export const __testing_providerUsageShared = createTestingHooks<ProviderUsageSharedService>(
+  () => { _providerUsageSharedInstance = null; },
+  (svc) => { _providerUsageSharedInstance = svc; },
+);

@@ -93,3 +93,29 @@ export async function fetchZaiUsage(
     plan: planName,
   };
 }
+
+// ---------------------------------------------------------------------------
+// ProviderUsageFetchZaiService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ProviderUsageFetchZaiService {
+  async fetchZaiUsage(...args: Parameters<typeof fetchZaiUsage>) {
+    return fetchZaiUsage(...args);
+  }
+}
+
+let _providerUsageFetchZaiInstance: ProviderUsageFetchZaiService | null = null;
+
+export function getProviderUsageFetchZaiService(): ProviderUsageFetchZaiService {
+  if (!_providerUsageFetchZaiInstance) {
+    _providerUsageFetchZaiInstance = new ProviderUsageFetchZaiService();
+  }
+  return _providerUsageFetchZaiInstance;
+}
+
+export const __testing_providerUsageFetchZai = createTestingHooks<ProviderUsageFetchZaiService>(
+  () => { _providerUsageFetchZaiInstance = null; },
+  (svc) => { _providerUsageFetchZaiInstance = svc; },
+);

@@ -266,3 +266,29 @@ export async function resolveProviderAuths(params: {
 
   return auths;
 }
+
+// ---------------------------------------------------------------------------
+// ProviderUsageAuthService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ProviderUsageAuthService {
+  async resolveProviderAuths(params: Parameters<typeof resolveProviderAuths>[0]) {
+    return resolveProviderAuths(params);
+  }
+}
+
+let _providerUsageAuthInstance: ProviderUsageAuthService | null = null;
+
+export function getProviderUsageAuthService(): ProviderUsageAuthService {
+  if (!_providerUsageAuthInstance) {
+    _providerUsageAuthInstance = new ProviderUsageAuthService();
+  }
+  return _providerUsageAuthInstance;
+}
+
+export const __testing_providerUsageAuth = createTestingHooks<ProviderUsageAuthService>(
+  () => { _providerUsageAuthInstance = null; },
+  (svc) => { _providerUsageAuthInstance = svc; },
+);

@@ -220,3 +220,29 @@ export async function loadProviderUsageSummary(
 
   return { updatedAt: now, providers };
 }
+
+// ---------------------------------------------------------------------------
+// ProviderUsageLoadService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ProviderUsageLoadService {
+  async loadProviderUsageSummary(params: Parameters<typeof loadProviderUsageSummary>[0]) {
+    return loadProviderUsageSummary(params);
+  }
+}
+
+let _providerUsageLoadInstance: ProviderUsageLoadService | null = null;
+
+export function getProviderUsageLoadService(): ProviderUsageLoadService {
+  if (!_providerUsageLoadInstance) {
+    _providerUsageLoadInstance = new ProviderUsageLoadService();
+  }
+  return _providerUsageLoadInstance;
+}
+
+export const __testing_providerUsageLoad = createTestingHooks<ProviderUsageLoadService>(
+  () => { _providerUsageLoadInstance = null; },
+  (svc) => { _providerUsageLoadInstance = svc; },
+);

@@ -112,3 +112,37 @@ export function formatUsageReportLines(summary: UsageSummary, opts?: { now?: num
   }
   return lines;
 }
+
+// ---------------------------------------------------------------------------
+// ProviderUsageFormatService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ProviderUsageFormatService {
+  formatUsageWindowSummary(...args: Parameters<typeof formatUsageWindowSummary>) {
+    return formatUsageWindowSummary(...args);
+  }
+
+  formatUsageSummaryLine(...args: Parameters<typeof formatUsageSummaryLine>) {
+    return formatUsageSummaryLine(...args);
+  }
+
+  formatUsageReportLines(...args: Parameters<typeof formatUsageReportLines>) {
+    return formatUsageReportLines(...args);
+  }
+}
+
+let _providerUsageFormatInstance: ProviderUsageFormatService | null = null;
+
+export function getProviderUsageFormatService(): ProviderUsageFormatService {
+  if (!_providerUsageFormatInstance) {
+    _providerUsageFormatInstance = new ProviderUsageFormatService();
+  }
+  return _providerUsageFormatInstance;
+}
+
+export const __testing_providerUsageFormat = createTestingHooks<ProviderUsageFormatService>(
+  () => { _providerUsageFormatInstance = null; },
+  (svc) => { _providerUsageFormatInstance = svc; },
+);

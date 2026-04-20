@@ -118,3 +118,29 @@ export async function fetchCodexUsage(
     plan,
   };
 }
+
+// ---------------------------------------------------------------------------
+// ProviderUsageFetchCodexService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class ProviderUsageFetchCodexService {
+  async fetchCodexUsage(...args: Parameters<typeof fetchCodexUsage>) {
+    return fetchCodexUsage(...args);
+  }
+}
+
+let _providerUsageFetchCodexInstance: ProviderUsageFetchCodexService | null = null;
+
+export function getProviderUsageFetchCodexService(): ProviderUsageFetchCodexService {
+  if (!_providerUsageFetchCodexInstance) {
+    _providerUsageFetchCodexInstance = new ProviderUsageFetchCodexService();
+  }
+  return _providerUsageFetchCodexInstance;
+}
+
+export const __testing_providerUsageFetchCodex = createTestingHooks<ProviderUsageFetchCodexService>(
+  () => { _providerUsageFetchCodexInstance = null; },
+  (svc) => { _providerUsageFetchCodexInstance = svc; },
+);
