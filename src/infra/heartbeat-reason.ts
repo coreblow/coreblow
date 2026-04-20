@@ -55,3 +55,41 @@ export function isHeartbeatActionWakeReason(reason?: string): boolean {
   const kind = resolveHeartbeatReasonKind(reason);
   return kind === "manual" || kind === "exec-event" || kind === "hook";
 }
+
+// ---------------------------------------------------------------------------
+// HeartbeatReasonService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class HeartbeatReasonService {
+  normalizeHeartbeatWakeReason(reason?: string) {
+    return normalizeHeartbeatWakeReason(reason);
+  }
+
+  resolveHeartbeatReasonKind(reason?: string) {
+    return resolveHeartbeatReasonKind(reason);
+  }
+
+  isHeartbeatEventDrivenReason(reason?: string) {
+    return isHeartbeatEventDrivenReason(reason);
+  }
+
+  isHeartbeatActionWakeReason(reason?: string) {
+    return isHeartbeatActionWakeReason(reason);
+  }
+}
+
+let _heartbeatReasonInstance: HeartbeatReasonService | null = null;
+
+export function getHeartbeatReasonService(): HeartbeatReasonService {
+  if (!_heartbeatReasonInstance) {
+    _heartbeatReasonInstance = new HeartbeatReasonService();
+  }
+  return _heartbeatReasonInstance;
+}
+
+export const __testing_heartbeatReason = createTestingHooks<HeartbeatReasonService>(
+  () => { _heartbeatReasonInstance = null; },
+  (svc) => { _heartbeatReasonInstance = svc; },
+);

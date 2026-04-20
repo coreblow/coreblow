@@ -71,3 +71,29 @@ export function resolveHeartbeatVisibility(params: {
       DEFAULT_VISIBILITY.useIndicator,
   };
 }
+
+// ---------------------------------------------------------------------------
+// HeartbeatVisibilityService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class HeartbeatVisibilityService {
+  resolveHeartbeatVisibility(params: Parameters<typeof resolveHeartbeatVisibility>[0]) {
+    return resolveHeartbeatVisibility(params);
+  }
+}
+
+let _heartbeatVisibilityInstance: HeartbeatVisibilityService | null = null;
+
+export function getHeartbeatVisibilityService(): HeartbeatVisibilityService {
+  if (!_heartbeatVisibilityInstance) {
+    _heartbeatVisibilityInstance = new HeartbeatVisibilityService();
+  }
+  return _heartbeatVisibilityInstance;
+}
+
+export const __testing_heartbeatVisibility = createTestingHooks<HeartbeatVisibilityService>(
+  () => { _heartbeatVisibilityInstance = null; },
+  (svc) => { _heartbeatVisibilityInstance = svc; },
+);

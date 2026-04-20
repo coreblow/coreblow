@@ -270,3 +270,53 @@ export function resetHeartbeatWakeStateForTests() {
   handlerGeneration += 1;
   handler = null;
 }
+
+// ---------------------------------------------------------------------------
+// HeartbeatWakeService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class HeartbeatWakeService {
+  setHeartbeatsEnabled(enabled: boolean) {
+    return setHeartbeatsEnabled(enabled);
+  }
+
+  areHeartbeatsEnabled() {
+    return areHeartbeatsEnabled();
+  }
+
+  setHeartbeatWakeHandler(next: HeartbeatWakeHandler | null) {
+    return setHeartbeatWakeHandler(next);
+  }
+
+  requestHeartbeatNow(opts?: Parameters<typeof requestHeartbeatNow>[0]) {
+    return requestHeartbeatNow(opts);
+  }
+
+  hasHeartbeatWakeHandler() {
+    return hasHeartbeatWakeHandler();
+  }
+
+  hasPendingHeartbeatWake() {
+    return hasPendingHeartbeatWake();
+  }
+
+  resetForTests() {
+    return resetHeartbeatWakeStateForTests();
+  }
+}
+
+let _heartbeatWakeInstance: HeartbeatWakeService | null = null;
+
+export function getHeartbeatWakeService(): HeartbeatWakeService {
+  if (!_heartbeatWakeInstance) {
+    _heartbeatWakeInstance = new HeartbeatWakeService();
+  }
+  return _heartbeatWakeInstance;
+}
+
+export const __testing_heartbeatWake = createTestingHooks<HeartbeatWakeService>(
+  () => { _heartbeatWakeInstance = null; },
+  (svc) => { _heartbeatWakeInstance = svc; },
+);

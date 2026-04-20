@@ -1198,3 +1198,68 @@ export function startHeartbeatRunner(opts: {
 
   return { stop: cleanup, updateConfig };
 }
+
+// ---------------------------------------------------------------------------
+// HeartbeatRunnerService — Tier-2 GatewayService
+// ---------------------------------------------------------------------------
+
+import type { GatewayService, ServiceHealth } from "../gateway/service-registry.js";
+import { createTestingHooks } from "./service-patterns.js";
+
+/**
+ * Tier-2 GatewayService wrapping the heartbeat runner with lifecycle management.
+ * Delegates to startHeartbeatRunner for actual timer/scheduling logic.
+ */
+export class HeartbeatRunnerService implements GatewayService {
+  readonly name = "heartbeat";
+  private runner: HeartbeatRunner | null = null;
+  private started = false;
+  private startedAt: number | null = null;
+
+  async start(): Promise<void> {
+    if (this.started) return;
+    this.runner = startHeartbeatRunner({});
+    this.started = true;
+    this.startedAt = Date.now();
+  }
+
+  async stop(): Promise<void> {
+    this.runner?.stop();
+    this.runner = null;
+    this.started = false;
+  }
+
+  health(): ServiceHealth {
+    if (!this.started) {
+      return { status: "down", detail: "not started" };
+    }
+    return {
+      status: areHeartbeatsEnabled() ? "healthy" : "degraded",
+      detail: areHeartbeatsEnabled() ? "running" : "heartbeats disabled",
+    };
+  }
+
+  /** Update config on the underlying runner. */
+  updateConfig(cfg: CoreBlowConfig) {
+    this.runner?.updateConfig(cfg);
+  }
+
+  /** Run a single heartbeat cycle. */
+  async runOnce(opts: Parameters<typeof runHeartbeatOnce>[0]) {
+    return runHeartbeatOnce(opts);
+  }
+}
+
+let _heartbeatRunnerInstance: HeartbeatRunnerService | null = null;
+
+export function getHeartbeatRunnerService(): HeartbeatRunnerService {
+  if (!_heartbeatRunnerInstance) {
+    _heartbeatRunnerInstance = new HeartbeatRunnerService();
+  }
+  return _heartbeatRunnerInstance;
+}
+
+export const __testing_heartbeatRunner = createTestingHooks<HeartbeatRunnerService>(
+  () => { _heartbeatRunnerInstance = null; },
+  (svc) => { _heartbeatRunnerInstance = svc; },
+);

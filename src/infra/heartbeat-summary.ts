@@ -116,3 +116,37 @@ export function resolveHeartbeatSummaryForAgent(
     ackMaxChars,
   };
 }
+
+// ---------------------------------------------------------------------------
+// HeartbeatSummaryService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class HeartbeatSummaryService {
+  isHeartbeatEnabledForAgent(...args: Parameters<typeof isHeartbeatEnabledForAgent>) {
+    return isHeartbeatEnabledForAgent(...args);
+  }
+
+  resolveHeartbeatIntervalMs(...args: Parameters<typeof resolveHeartbeatIntervalMs>) {
+    return resolveHeartbeatIntervalMs(...args);
+  }
+
+  resolveHeartbeatSummaryForAgent(...args: Parameters<typeof resolveHeartbeatSummaryForAgent>) {
+    return resolveHeartbeatSummaryForAgent(...args);
+  }
+}
+
+let _heartbeatSummaryInstance: HeartbeatSummaryService | null = null;
+
+export function getHeartbeatSummaryService(): HeartbeatSummaryService {
+  if (!_heartbeatSummaryInstance) {
+    _heartbeatSummaryInstance = new HeartbeatSummaryService();
+  }
+  return _heartbeatSummaryInstance;
+}
+
+export const __testing_heartbeatSummary = createTestingHooks<HeartbeatSummaryService>(
+  () => { _heartbeatSummaryInstance = null; },
+  (svc) => { _heartbeatSummaryInstance = svc; },
+);

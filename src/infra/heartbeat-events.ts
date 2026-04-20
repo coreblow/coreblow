@@ -66,3 +66,45 @@ export function resetHeartbeatEventsForTest(): void {
   state.lastHeartbeat = null;
   state.listeners.clear();
 }
+
+// ---------------------------------------------------------------------------
+// HeartbeatEventsService — Tier-1 Standalone Singleton
+// ---------------------------------------------------------------------------
+
+import { createTestingHooks } from "./service-patterns.js";
+
+export class HeartbeatEventsService {
+  resolveIndicatorType(...args: Parameters<typeof resolveIndicatorType>) {
+    return resolveIndicatorType(...args);
+  }
+
+  emitHeartbeatEvent(evt: Parameters<typeof emitHeartbeatEvent>[0]) {
+    return emitHeartbeatEvent(evt);
+  }
+
+  onHeartbeatEvent(listener: Parameters<typeof onHeartbeatEvent>[0]) {
+    return onHeartbeatEvent(listener);
+  }
+
+  getLastHeartbeatEvent() {
+    return getLastHeartbeatEvent();
+  }
+
+  resetForTest() {
+    return resetHeartbeatEventsForTest();
+  }
+}
+
+let _heartbeatEventsInstance: HeartbeatEventsService | null = null;
+
+export function getHeartbeatEventsService(): HeartbeatEventsService {
+  if (!_heartbeatEventsInstance) {
+    _heartbeatEventsInstance = new HeartbeatEventsService();
+  }
+  return _heartbeatEventsInstance;
+}
+
+export const __testing_heartbeatEvents = createTestingHooks<HeartbeatEventsService>(
+  () => { _heartbeatEventsInstance = null; },
+  (svc) => { _heartbeatEventsInstance = svc; },
+);
