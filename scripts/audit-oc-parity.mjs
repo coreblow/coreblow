@@ -25,8 +25,14 @@ const OC_ROOT = "/Users/febrinanda/openclaw-main";
 const args = process.argv.slice(2);
 const JSON_OUTPUT = args.includes("--json");
 const TESTS_ONLY = args.includes("--tests-only");
-const MODULE_FILTER = args.find((a) => a.startsWith("--module="))?.split("=")[1]
-  || args[args.indexOf("--module") + 1];
+const SKIP_LIVE = args.includes("--skip-live") || true; // always skip live/e2e by default
+
+// FIX: Only accept --module=X form to avoid positional arg bugs
+const MODULE_FILTER = (() => {
+  const flag = args.find((a) => a.startsWith("--module="));
+  if (flag) return flag.split("=").slice(1).join("=");
+  return undefined;
+})();
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -190,7 +196,14 @@ const cbTestKeys = new Set(cbTest.keys());
 const ocTestKeys = new Set(ocTest.keys());
 
 // OC test files that don't exist in CB → gaps
+function isLiveOrE2e(path) {
+  return path.includes(".live.") || path.includes(".e2e.") ||
+         path.includes(".contract.") || path.endsWith(".live.test.ts") ||
+         path.endsWith(".e2e.test.ts");
+}
+
 for (const k of ocTestKeys) {
+  if (SKIP_LIVE && isLiveOrE2e(k)) continue; // skip live/e2e tests
   if (cbTestKeys.has(k)) {
     results.tests.both_have_test.push(k);
   } else {
@@ -217,9 +230,9 @@ if (!TESTS_ONLY) {
   }
 }
 
-// Export gap analysis (functions in OC not in CB)
-for (const commonSrc of results.source.both.slice(0, 100)) {
-  // Limit to avoid too much I/O
+// Export gap analysis (functions in OC not in CB) — scan all shared files
+const EXPORT_GAP_LIMIT = 200; // increased from 100
+for (const commonSrc of results.source.both.slice(0, EXPORT_GAP_LIMIT)) {
   const cbExports = extractExports(join(CB_ROOT, commonSrc));
   const ocExports = extractExports(join(OC_ROOT, commonSrc));
   const missing = ocExports.filter((e) => !cbExports.includes(e));

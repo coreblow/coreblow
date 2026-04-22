@@ -17,16 +17,13 @@
     "dev:gateway": "cd gateway && npx tsx watch src/entry.ts -- gateway",
     "preview": "vite preview",
     "start:gateway": "node coreblow.mjs gateway",
-
     "typecheck": "tsc --noEmit",
     "typecheck:watch": "tsc --noEmit --watch",
-
     "audit:parity": "node scripts/audit-oc-parity.mjs",
     "audit:parity:json": "node scripts/audit-oc-parity.mjs --json",
     "audit:parity:tui": "node scripts/audit-oc-parity.mjs --module=src/tui",
     "audit:parity:agents": "node scripts/audit-oc-parity.mjs --module=src/agents",
     "audit:parity:gateway": "node scripts/audit-oc-parity.mjs --module=src/gateway",
-
     "lint": "oxlint -c .oxlintrc.json src/",
     "lint:fix": "oxlint -c .oxlintrc.json --fix src/",
     "lint:all": "pnpm lint && pnpm lint:circular && pnpm lint:unused-exports && pnpm lint:channel-boundaries && pnpm lint:no-raw-channel-fetch",
@@ -42,7 +39,6 @@
     "lint:plugin-sdk-exports": "node scripts/check-plugin-sdk-exports.mjs",
     "lint:security": "node scripts/check-security.mjs",
     "lint:unused-exports": "node scripts/check-unused-exports.mjs",
-
     "test": "vitest run --config vitest.unit.config.ts",
     "test:all": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e",
     "test:changed": "vitest run --config vitest.unit.config.ts --changed origin/main",
@@ -57,18 +53,17 @@
     "test:live": "vitest run --config vitest.live.config.ts",
     "test:security": "vitest run --config vitest.security.config.ts",
     "test:watch": "vitest --config vitest.unit.config.ts",
-
     "test:perf:budget": "node scripts/check-perf-budget-v2.mjs",
     "test:perf:startup": "node --import tsx scripts/bench-cli-startup.ts",
     "test:perf:imports": "COREBLOW_VITEST_IMPORT_DURATIONS=1 pnpm test",
-
     "deadcode:jscpd": "jscpd src/ --min-lines 10 --min-tokens 50 --reporters console",
     "deadcode:unused-exports": "node scripts/check-unused-exports.mjs",
     "deadcode:ts-loc": "node --import tsx scripts/check-ts-max-loc.ts",
-
     "release:check": "pnpm typecheck && pnpm lint:all && pnpm test:fast && pnpm lint:bundle-size",
     "ci": "pnpm typecheck && pnpm lint && pnpm test",
-    "ci:full": "pnpm typecheck && pnpm lint:all && pnpm test:all"
+    "ci:full": "pnpm typecheck && pnpm lint:all && pnpm test:all",
+    "audit:parity:acp": "node scripts/audit-oc-parity.mjs --module=src/acp",
+    "audit:parity:infra": "node scripts/audit-oc-parity.mjs --module=src/infra"
   },
   "dependencies": {
     "@agentclientprotocol/sdk": "^0.18.2",
