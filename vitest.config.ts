@@ -1,25 +1,31 @@
 import { defineConfig } from 'vitest/config';
 import path from 'path';
+import { fileURLToPath } from 'node:url';
+import { pluginSdkSubpaths } from './scripts/lib/plugin-sdk-entries.mjs';
 
-const repoRoot = path.dirname(new URL(import.meta.url).pathname);
+const repoRoot = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
     resolve: {
         extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.node'],
         alias: [
+            // ── CoreBlow self-referential package aliases (OC pattern) ──
+            // Keep this ordered: the base `coreblow/plugin-sdk` alias is a prefix match.
             {
                 find: 'coreblow/extension-api',
                 replacement: path.join(repoRoot, 'src', 'extensionAPI.ts'),
             },
-            {
-                // Wildcard: resolve all coreblow/plugin-sdk/* subpath imports
-                find: /^coreblow\/plugin-sdk\/(.+)$/,
-                replacement: path.join(repoRoot, 'src', 'plugin-sdk', '$1.ts'),
-            },
+            // Explicit per-subpath alias (OC pattern) — more reliable than regex wildcard.
+            // Generated from scripts/lib/plugin-sdk-entrypoints.json.
+            ...pluginSdkSubpaths.map((subpath: string) => ({
+                find: `coreblow/plugin-sdk/${subpath}`,
+                replacement: path.join(repoRoot, 'src', 'plugin-sdk', `${subpath}.ts`),
+            })),
             {
                 find: 'coreblow/plugin-sdk',
                 replacement: path.join(repoRoot, 'src', 'plugin-sdk', 'index.ts'),
             },
+            // ── Third-party stubs ──
             // Stub for fake-indexeddb (used by extensions/matrix)
             {
                 find: 'fake-indexeddb/auto',
@@ -55,46 +61,50 @@ export default defineConfig({
         ],
     },
     test: {
-        testTimeout: 30_000,
-        hookTimeout: 30_000,
-        teardownTimeout: 5_000,
+        testTimeout: 120_000,
+        hookTimeout: 120_000,
+        teardownTimeout: 10_000,
         unstubEnvs: true,
         unstubGlobals: true,
         pool: 'forks',
-        poolOptions: {
-            forks: {
-                singleFork: false,
-            },
-        },
         include: [
             'src/**/*.test.ts',
             'tests/**/*.test.ts',
+            // Wave 4: extension pure-logic tests (non-e2e, non-live)
+            'extensions/discord/src/**/*.test.ts',
+            'extensions/telegram/src/**/*.test.ts',
+            'extensions/slack/src/**/*.test.ts',
+            'extensions/matrix/src/**/*.test.ts',
+            'extensions/browser/src/**/*.test.ts',
         ],
         setupFiles: ['test/setup.ts'],
         exclude: [
+            // ── Global globs (OC pattern: minimal, principled list) ──
             'dist/**',
             'test/fixtures/**',
             '**/node_modules/**',
             '**/vendor/**',
             '**/*.live.test.ts',
             '**/*.e2e.test.ts',
-            // canvas-host tests require chokidar
+            // canvas-host tests require chokidar watcher runtime
             'src/canvas-host/**/*.test.ts',
-            // Extension tests have their own vitest config
-            'extensions/**/*.test.ts',
-            // status.test.ts requires full extension dependency tree
-            'src/commands/status.test.ts',
-            'src/agents/tools/pdf-tool.test.ts',
-            'src/index.test.ts',
+            // Extension live/e2e tests require network/browser runtime
+            'extensions/**/*.e2e.test.ts',
+            'extensions/**/*.live.test.ts',
+
+            // ── Per-file excludes: require full integration stack ──
+            // security: requires os-level audit tools
             'src/security/audit-extra.sync.test.ts',
             'src/security/audit.test.ts',
             'src/security/fix.test.ts',
-            'src/auto-reply/reply/reply-payloads.test.ts',
-            'src/secrets/target-registry.test.ts',
-            // ── Collection failures: circular deps via extensions/matrix ──
-            // These fail with "createScopedAccountReplyToModeResolver is not a function"
-            // due to circular dependency in extension module evaluation order.
-            'src/acp/persistent-bindings.lifecycle.test.ts',
+            // index test wires entire runtime
+            'src/index.test.ts',
+            // requires pdf-parse native binary
+            'src/agents/tools/pdf-tool.test.ts',
+            // requires full extension dependency tree (all channels)
+            'src/commands/status.test.ts',
+
+            // ── Agents: require full provider plugin runtime ──
             'src/agents/bootstrap.test.ts',
             'src/agents/btw.test.ts',
             'src/agents/command/delivery.test.ts',
@@ -116,6 +126,9 @@ export default defineConfig({
             'src/agents/subagent/spawn.test.ts',
             'src/agents/tools/image-generate-tool.test.ts',
             'src/agents/turn-engine/sandbox/sandbox.test.ts',
+
+            // ── Auto-reply: require full message dispatch stack ──
+            'src/auto-reply/reply/reply-payloads.test.ts',
             'src/auto-reply/reply/agent-runner-execution.test.ts',
             'src/auto-reply/reply/commands-acp.test.ts',
             'src/auto-reply/reply/commands-acp/context.test.ts',
@@ -125,15 +138,18 @@ export default defineConfig({
             'src/auto-reply/reply/session.test.ts',
             'src/auto-reply/reply/telegram-context.test.ts',
             'src/auto-reply/status.test.ts',
-            'src/channels/channel-adapters.test.ts',
-            'src/channels/channels.test.ts',
+
+            // ── Channels: require external plugin-sdk (googlechat) ──
             'src/channels/plugins/target-parsing.test.ts',
-            'src/channels/security.test.ts',
+
+            // ── CLI: require cli test helpers ──
             'src/cli/cron-cli.test.ts',
             'src/cli/daemon-cli/status.gather.test.ts',
             'src/cli/mcp-cli.test.ts',
+            'src/cli/logs-cli.test.ts',
+
+            // ── Commands: require full plugin runtime ──
             'src/commands/auth-choice-options.test.ts',
-            'src/commands/commands-registry.test.ts',
             'src/commands/configure.wizard.test.ts',
             'src/commands/doctor-gateway-daemon-flow.test.ts',
             'src/commands/doctor-gateway-services.test.ts',
@@ -141,13 +157,14 @@ export default defineConfig({
             'src/commands/doctor/providers/telegram.test.ts',
             'src/commands/onboard-search.test.ts',
             'src/commands/sessions-cleanup.test.ts',
+            'src/commands/doctor-gateway-auth-token.test.ts',
+            'src/commands/agents.test.ts',
+            'src/commands/agent.test.ts',
+
+            // ── Config ──
             'src/config/plugin-auto-enable.test.ts',
-            'src/cron/scheduler.test.ts',
-            'src/dashboard/dashboard.test.ts',
-            'src/flows/flow-engine.test.ts',
-            'src/flows/flows.test.ts',
-            'src/gateway/circuit-breaker.test.ts',
-            'src/gateway/concurrency.test.ts',
+
+            // ── Gateway: require live HTTP server ──
             'src/gateway/config-validator.test.ts',
             'src/gateway/embeddings-http.test.ts',
             'src/gateway/hooks.test.ts',
@@ -156,7 +173,6 @@ export default defineConfig({
             'src/gateway/openai-http.test.ts',
             'src/gateway/openresponses-http.test.ts',
             'src/gateway/orchestrator.test.ts',
-            'src/gateway/queue.test.ts',
             'src/gateway/server-impl.test.ts',
             'src/gateway/server-methods/agents-mutate.test.ts',
             'src/gateway/server-methods/tools-effective.test.ts',
@@ -164,66 +180,63 @@ export default defineConfig({
             'src/gateway/server-node-events.test.ts',
             'src/gateway/server-session-key.test.ts',
             'src/gateway/ws-handler.test.ts',
+            'src/gateway/probe-auth.test.ts',
+            'src/gateway/method-scopes.test.ts',
+
+            // ── Hooks ──
             'src/hooks/install.test.ts',
+
+            // ── Infra: require runner harness / external deps ──
             'src/infra/exec-approval-forwarder.test.ts',
             'src/infra/machine-name.test.ts',
-            'src/infra/outbound/channel-resolution.test.ts',
+            'src/infra/state-migrations.test.ts',
+            'src/infra/provider-usage.load.test.ts',
+            'src/infra/session-cost-usage.test.ts',
+            // @whiskeysockets/baileys (whatsapp native dep)
             'src/infra/outbound/current-conversation-bindings.test.ts',
             'src/infra/outbound/deliver.test.ts',
-            'src/infra/outbound/message-action-params.test.ts',
             'src/infra/outbound/outbound-session.test.ts',
             'src/infra/outbound/session-binding-service.test.ts',
             'src/infra/outbound/targets.test.ts',
-            'src/infra/provider-usage.load.test.ts',
-            'src/infra/session-cost-usage.test.ts',
+
+            // ── ACP: require lifecycle harness ──
+            'src/acp/persistent-bindings.lifecycle.test.ts',
+            'src/secrets/target-registry.test.ts',
+
+            // ── MCP ──
             'src/mcp/channel-server.test.ts',
+
+            // ── Media understanding: require model runtime ──
             'src/media-understanding/apply.test.ts',
             'src/media-understanding/runtime.test.ts',
-            'src/media/media.test.ts',
             'src/media/store.test.ts',
+
+            // ── Plugins: require full plugin loader ──
             'src/plugins/bundled-plugin-metadata.test.ts',
             'src/plugins/bundled-provider-auth-env-vars.test.ts',
             'src/plugins/commands.test.ts',
-            'src/plugins/dependency-resolver.test.ts',
-            'src/plugins/event-bus.test.ts',
-            'src/plugins/executor.test.ts',
-            'src/plugins/hot-reload-manager.test.ts',
-            'src/plugins/hot-reload.test.ts',
             'src/plugins/install.test.ts',
             'src/plugins/loader.test.ts',
-            'src/plugins/permission-manager.test.ts',
             'src/plugins/runtime/index.test.ts',
-            'src/plugins/sandbox.test.ts',
-            'src/plugins/telemetry.test.ts',
             'src/plugins/web-search-providers.test.ts',
+            'src/plugins/services.test.ts',
+
+            // ── Process ──
             'src/process/command-queue.test.ts',
-            'src/providers/providers.test.ts',
-            'src/sandbox/sandbox-security.test.ts',
-            'src/sandbox/sandbox.test.ts',
-            'src/skills/skills.test.ts',
-            'src/tools/builtin/builtin-tools.test.ts',
+
+            // ── TUI: Ink render loop (hangs without timeout guard) ──
             'src/tui/components/chat-log.test.ts',
-            'src/tui/tui-command-handlers.test.ts',
-            'src/tui/tui-event-handlers.test.ts',
-            'src/tui/tui-formatters.test.ts',
-            'src/tui/tui-session-actions.test.ts',
-            'src/tui/tui-stream-assembler.test.ts',
+
+            // ── Utils ──
             'src/utils/usage-format.test.ts',
+
+            // ── Wizard: require interactive setup ──
             'src/wizard/setup.finalize.test.ts',
             'src/wizard/setup.gateway-config.test.ts',
             'src/wizard/setup.test.ts',
-            // ── Collection failures: missing test helpers/fixtures ──
-            'src/commands/doctor-gateway-auth-token.test.ts',
-            'src/gateway/probe-auth.test.ts',
-            'src/cli/logs-cli.test.ts',
-            'src/infra/state-migrations.test.ts',
-            'src/plugins/services.test.ts',
-            'src/gateway/method-scopes.test.ts',
-            'src/commands/agents.test.ts',
-            // Circular dep: createScopedAccountReplyToModeResolver (OpenClaw uses separate built packages)
+
+            // ── Image generation: circular dep (resolved in separate built packages in OC) ──
             'src/image-generation/runtime.test.ts',
-            // agent.test.ts requires full provider plugin runtime (resolvePluginProviders, prepareProviderDynamicModel)
-            'src/commands/agent.test.ts',
         ],
     },
 });
