@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 
 const pairs: [string, () => Promise<unknown>][] = [
-  ['apply-patch', () => import('./apply-patch')],
-  ['browser',     () => import('./browser')],
-  ['message',     () => import('./message')],
+  ['apply-patch', () => import('./apply-patch.js')],
+  ['browser',     () => import('./browser.js')],
+  ['message',     () => import('./message.js')],
 ];
 
 describe('tools/builtin — import contracts', () => {

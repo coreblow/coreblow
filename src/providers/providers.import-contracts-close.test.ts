@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest';
 
 const pairs: [string, () => Promise<unknown>][] = [
-  ['deepseek',   () => import('./deepseek')],
-  ['gemini',     () => import('./gemini')],
-  ['groq',       () => import('./groq')],
-  ['interface',  () => import('./interface')],
-  ['mistral',    () => import('./mistral')],
-  ['ollama',     () => import('./ollama')],
-  ['openrouter', () => import('./openrouter')],
+  ['deepseek',   () => import('./deepseek.js')],
+  ['gemini',     () => import('./gemini.js')],
+  ['groq',       () => import('./groq.js')],
+  ['interface',  () => import('./interface.js')],
+  ['mistral',    () => import('./mistral.js')],
+  ['ollama',     () => import('./ollama.js')],
+  ['openrouter', () => import('./openrouter.js')],
 ];
 
 describe('providers — import contracts', () => {

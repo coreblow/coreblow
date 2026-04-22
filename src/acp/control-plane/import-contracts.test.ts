@@ -1,14 +1,14 @@
 import { describe, it, expect } from 'vitest';
 
 const mods = [
-  () => import('./manager.core'),
-  () => import('./manager.identity-reconcile'),
-  () => import('./manager.runtime-controls'),
-  () => import('./manager.types'),
-  () => import('./manager.utils'),
-  () => import('./runtime-options'),
-  () => import('./session-actor-queue'),
-  () => import('./spawn'),
+  () => import('./manager.core.js'),
+  () => import('./manager.identity-reconcile.js'),
+  () => import('./manager.runtime-controls.js'),
+  () => import('./manager.types.js'),
+  () => import('./manager.utils.js'),
+  () => import('./runtime-options.js'),
+  () => import('./session-actor-queue.js'),
+  () => import('./spawn.js'),
 ];
 
 describe('acp/control-plane — import contracts', () => {

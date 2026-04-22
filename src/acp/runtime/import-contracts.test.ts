@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 
 const mods = [
-  () => import('./adapter-contract.testkit'),
-  () => import('./session-identity'),
-  () => import('./types'),
+  () => import('./adapter-contract.testkit.js'),
+  () => import('./session-identity.js'),
+  () => import('./types.js'),
 ];
 
 describe('acp/runtime — import contracts', () => {

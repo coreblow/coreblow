@@ -1,14 +1,14 @@
 import { describe, it, expect } from 'vitest';
 
 const mods = [
-  () => import('./commands'),
-  () => import('./meta'),
-  () => import('./persistent-bindings.resolve'),
-  () => import('./server'),
-  () => import('./session-store'),
-  () => import('./translator'),
-  () => import('./translator.test-helpers'),
-  () => import('./types'),
+  () => import('./commands.js'),
+  () => import('./meta.js'),
+  () => import('./persistent-bindings.resolve.js'),
+  () => import('./server.js'),
+  () => import('./session-store.js'),
+  () => import('./translator.js'),
+  () => import('./translator.test-helpers.js'),
+  () => import('./types.js'),
 ];
 
 describe('acp — top-level import contracts', () => {

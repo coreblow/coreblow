@@ -1,16 +1,16 @@
 import { describe, it, expect } from 'vitest';
 
 const pairs: [string, () => Promise<unknown>][] = [
-  ['compaction',      () => import('./compaction')],
-  ['embeddings',      () => import('./embeddings')],
-  ['hybrid-search',   () => import('./hybrid-search')],
-  ['manager',         () => import('./manager')],
-  ['memory-bootstrap',() => import('./memory-bootstrap')],
-  ['memory-store',    () => import('./memory-store')],
-  ['mmr',             () => import('./mmr')],
-  ['query-expansion', () => import('./query-expansion')],
-  ['tools',           () => import('./tools')],
-  ['vector-store',    () => import('./vector-store')],
+  ['compaction',      () => import('./compaction.js')],
+  ['embeddings',      () => import('./embeddings.js')],
+  ['hybrid-search',   () => import('./hybrid-search.js')],
+  ['manager',         () => import('./manager.js')],
+  ['memory-bootstrap',() => import('./memory-bootstrap.js')],
+  ['memory-store',    () => import('./memory-store.js')],
+  ['mmr',             () => import('./mmr.js')],
+  ['query-expansion', () => import('./query-expansion.js')],
+  ['tools',           () => import('./tools.js')],
+  ['vector-store',    () => import('./vector-store.js')],
 ];
 
 describe('memory — import contracts', () => {

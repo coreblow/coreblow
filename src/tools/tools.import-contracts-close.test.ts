@@ -1,16 +1,16 @@
 import { describe, it, expect } from 'vitest';
 
 const pairs: [string, () => Promise<unknown>][] = [
-  ['api-versioning-docs',  () => import('./api-versioning-docs')],
-  ['coverage-reporter',    () => import('./coverage-reporter')],
-  ['doc-site-generator',   () => import('./doc-site-generator')],
-  ['example-generator',    () => import('./example-generator')],
-  ['fixture-manager',      () => import('./fixture-manager')],
-  ['route-docs',           () => import('./route-docs')],
-  ['sdk-builder',          () => import('./sdk-builder')],
-  ['snapshot-testing',     () => import('./snapshot-testing')],
-  ['test-runner',          () => import('./test-runner')],
-  ['type-docs',            () => import('./type-docs')],
+  ['api-versioning-docs',  () => import('./api-versioning-docs.js')],
+  ['coverage-reporter',    () => import('./coverage-reporter.js')],
+  ['doc-site-generator',   () => import('./doc-site-generator.js')],
+  ['example-generator',    () => import('./example-generator.js')],
+  ['fixture-manager',      () => import('./fixture-manager.js')],
+  ['route-docs',           () => import('./route-docs.js')],
+  ['sdk-builder',          () => import('./sdk-builder.js')],
+  ['snapshot-testing',     () => import('./snapshot-testing.js')],
+  ['test-runner',          () => import('./test-runner.js')],
+  ['type-docs',            () => import('./type-docs.js')],
 ];
 
 describe('tools — top-level import contracts', () => {
