@@ -1,3 +1,9 @@
+/**
+ * extensions/discord/src/monitor/thread-title.test.ts
+ *
+ * CoreBlow — Discord Extension: Thread-title Tests
+ * Verifies Thread title generation and truncation.
+ */
 import { describe, expect, it } from "vitest";
 import { normalizeGeneratedThreadTitle } from "./thread-title.js";
 

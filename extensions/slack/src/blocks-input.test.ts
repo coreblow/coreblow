@@ -1,3 +1,9 @@
+/**
+ * extensions/slack/src/blocks-input.test.ts
+ *
+ * CoreBlow — Slack Extension: Blocks-input Tests
+ * Verifies Block Kit input parsing and validation.
+ */
 import { describe, expect, it } from "vitest";
 import { parseSlackBlocksInput, validateSlackBlocksArray } from "./blocks-input.js";
 

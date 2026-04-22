@@ -1,3 +1,9 @@
+/**
+ * extensions/discord/src/monitor/thread-bindings.persona.test.ts
+ *
+ * CoreBlow — Discord Extension: Thread-bindings Persona Tests
+ * Verifies Thread persona binding and resolution.
+ */
 import { describe, expect, it } from "vitest";
 import {
   resolveThreadBindingPersona,

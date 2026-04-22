@@ -1,3 +1,9 @@
+/**
+ * extensions/discord/src/draft-stream.test.ts
+ *
+ * CoreBlow — Discord Extension: Draft-stream Tests
+ * Verifies Draft stream throttling and message lifecycle.
+ */
 import { Routes } from "discord-api-types/v10";
 import { describe, expect, it, vi } from "vitest";
 import { createDiscordDraftStream } from "./draft-stream.js";

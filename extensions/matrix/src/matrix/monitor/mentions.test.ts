@@ -1,3 +1,9 @@
+/**
+ * extensions/matrix/src/matrix/monitor/mentions.test.ts
+ *
+ * CoreBlow — Matrix Extension: Mentions Tests
+ * Verifies Mention detection and notification routing.
+ */
 import { describe, expect, it, vi } from "vitest";
 
 // Mock runtime before importing resolveMentions

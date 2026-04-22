@@ -1,3 +1,9 @@
+/**
+ * extensions/slack/src/sent-thread-cache.test.ts
+ *
+ * CoreBlow — Slack Extension: Sent-thread-cache Tests
+ * Verifies Sent thread cache and deduplication.
+ */
 import { afterEach, describe, expect, it } from "vitest";
 import {
   clearSlackThreadParticipationCache,

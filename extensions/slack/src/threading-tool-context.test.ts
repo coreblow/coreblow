@@ -1,3 +1,9 @@
+/**
+ * extensions/slack/src/threading-tool-context.test.ts
+ *
+ * CoreBlow — Slack Extension: Threading-tool-context Tests
+ * Verifies Threading tool context construction.
+ */
 import { describe, expect, it } from "vitest";
 import { buildSlackThreadingToolContext } from "./threading-tool-context.js";
 

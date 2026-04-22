@@ -1,3 +1,9 @@
+/**
+ * extensions/browser/src/browser/navigation-guard.test.ts
+ *
+ * CoreBlow — Browser Extension: Navigation-guard Tests
+ * Verifies Navigation guard and URL safety checks.
+ */
 import { describe, expect, it, vi } from "vitest";
 import {
   assertBrowserNavigationAllowed,

@@ -1,3 +1,9 @@
+/**
+ * extensions/discord/src/monitor/commands.test.ts
+ *
+ * CoreBlow — Discord Extension: Commands Tests
+ * Verifies Slash command parsing and dispatch.
+ */
 import { describe, expect, it } from "vitest";
 import { resolveDiscordSlashCommandConfig } from "./commands.js";
 

@@ -1,3 +1,9 @@
+/**
+ * extensions/browser/src/browser/cdp.helpers.test.ts
+ *
+ * CoreBlow — Browser Extension: Cdp Helpers Tests
+ * Verifies CDP helper utilities and connection handling.
+ */
 import { describe, expect, it } from "vitest";
 import {
   appendCdpPath,

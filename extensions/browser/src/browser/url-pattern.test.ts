@@ -1,3 +1,9 @@
+/**
+ * extensions/browser/src/browser/url-pattern.test.ts
+ *
+ * CoreBlow — Browser Extension: Url-pattern Tests
+ * Verifies URL pattern matching and normalization.
+ */
 import { describe, expect, it } from "vitest";
 import { matchBrowserUrlPattern } from "./url-pattern.js";
 

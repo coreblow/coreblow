@@ -1,3 +1,9 @@
+/**
+ * extensions/telegram/src/targets.test.ts
+ *
+ * CoreBlow — Telegram Extension: Targets Tests
+ * Verifies Chat target parsing and normalization.
+ */
 import { describe, expect, it } from "vitest";
 import {
   isNumericTelegramChatId,

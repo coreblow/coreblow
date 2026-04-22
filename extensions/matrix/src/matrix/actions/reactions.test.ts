@@ -1,3 +1,9 @@
+/**
+ * extensions/matrix/src/matrix/actions/reactions.test.ts
+ *
+ * CoreBlow — Matrix Extension: Reactions Tests
+ * Verifies Reaction handling and emoji resolution.
+ */
 import { describe, expect, it } from "vitest";
 import {
   buildMatrixReactionContent,

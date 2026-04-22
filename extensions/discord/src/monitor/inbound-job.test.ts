@@ -1,3 +1,9 @@
+/**
+ * extensions/discord/src/monitor/inbound-job.test.ts
+ *
+ * CoreBlow — Discord Extension: Inbound-job Tests
+ * Verifies Inbound job scheduling and deduplication.
+ */
 import { describe, expect, it } from "vitest";
 import { resolveDiscordInboundJobQueueKey } from "./inbound-job.js";
 

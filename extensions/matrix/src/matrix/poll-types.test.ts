@@ -1,3 +1,9 @@
+/**
+ * extensions/matrix/src/matrix/poll-types.test.ts
+ *
+ * CoreBlow — Matrix Extension: Poll-types Tests
+ * Verifies Poll event type constants and classification.
+ */
 import { describe, expect, it } from "vitest";
 import {
   M_POLL_END,

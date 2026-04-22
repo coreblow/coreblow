@@ -1,3 +1,9 @@
+/**
+ * extensions/browser/src/browser/cdp-timeouts.test.ts
+ *
+ * CoreBlow — Browser Extension: Cdp-timeouts Tests
+ * Verifies CDP timeout configuration and fallbacks.
+ */
 import { describe, expect, it } from "vitest";
 import {
   PROFILE_HTTP_REACHABILITY_TIMEOUT_MS,

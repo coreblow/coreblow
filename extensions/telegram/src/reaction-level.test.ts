@@ -1,3 +1,9 @@
+/**
+ * extensions/telegram/src/reaction-level.test.ts
+ *
+ * CoreBlow — Telegram Extension: Reaction-level Tests
+ * Verifies Reaction level parsing and normalization.
+ */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { resolveTelegramReactionLevel } from "./reaction-level.js";
 

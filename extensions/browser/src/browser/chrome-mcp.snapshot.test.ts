@@ -1,3 +1,9 @@
+/**
+ * extensions/browser/src/browser/chrome-mcp.snapshot.test.ts
+ *
+ * CoreBlow — Browser Extension: Chrome-mcp Snapshot Tests
+ * Verifies Chrome MCP page snapshot capture.
+ */
 import { describe, expect, it } from "vitest";
 import {
   buildAiSnapshotFromChromeMcpSnapshot,

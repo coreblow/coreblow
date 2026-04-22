@@ -1,3 +1,9 @@
+/**
+ * extensions/telegram/src/reasoning-lane-coordinator.test.ts
+ *
+ * CoreBlow — Telegram Extension: Reasoning-lane-coordinator Tests
+ * Verifies Reasoning lane coordination and routing.
+ */
 import { describe, expect, it } from "vitest";
 import { splitTelegramReasoningText } from "./reasoning-lane-coordinator.js";
 

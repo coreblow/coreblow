@@ -1,3 +1,9 @@
+/**
+ * extensions/browser/src/browser/proxy-files.test.ts
+ *
+ * CoreBlow — Browser Extension: Proxy-files Tests
+ * Verifies Proxy file path resolution and serving.
+ */
 import { describe, expect, it } from "vitest";
 import { applyBrowserProxyPaths } from "./proxy-files.js";
 

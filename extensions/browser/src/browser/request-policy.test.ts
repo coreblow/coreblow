@@ -1,3 +1,9 @@
+/**
+ * extensions/browser/src/browser/request-policy.test.ts
+ *
+ * CoreBlow — Browser Extension: Request-policy Tests
+ * Verifies Browser request policy and profile resolution.
+ */
 import { describe, expect, it } from "vitest";
 import {
   isPersistentBrowserProfileMutation,

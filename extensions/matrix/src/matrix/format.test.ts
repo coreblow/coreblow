@@ -1,3 +1,9 @@
+/**
+ * extensions/matrix/src/matrix/format.test.ts
+ *
+ * CoreBlow — Matrix Extension: Format Tests
+ * Verifies Message formatting and sanitization.
+ */
 import { describe, expect, it } from "vitest";
 import { markdownToMatrixHtml } from "./format.js";
 

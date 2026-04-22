@@ -1,3 +1,9 @@
+/**
+ * extensions/discord/src/monitor/model-picker-preferences.test.ts
+ *
+ * CoreBlow — Discord Extension: Model-picker-preferences Tests
+ * Verifies Model picker preference resolution.
+ */
 import { describe, expect, it } from "vitest";
 import {
   buildDiscordModelPickerPreferenceKey,

@@ -1,3 +1,9 @@
+/**
+ * extensions/discord/src/monitor/presence.test.ts
+ *
+ * CoreBlow — Discord Extension: Presence Tests
+ * Verifies Bot presence status management.
+ */
 import { describe, expect, it } from "vitest";
 import { resolveDiscordPresenceUpdate } from "./presence.js";
 

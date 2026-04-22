@@ -1,3 +1,9 @@
+/**
+ * extensions/slack/src/monitor/allow-list.test.ts
+ *
+ * CoreBlow — Slack Extension: Allow-list Tests
+ * Verifies Allow-list normalization and user permission resolution.
+ */
 import { describe, expect, it } from "vitest";
 import {
   normalizeAllowList,

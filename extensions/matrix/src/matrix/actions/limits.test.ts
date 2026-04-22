@@ -1,3 +1,9 @@
+/**
+ * extensions/matrix/src/matrix/actions/limits.test.ts
+ *
+ * CoreBlow — Matrix Extension: Limits Tests
+ * Verifies Action rate limiting and throttle enforcement.
+ */
 import { describe, expect, it } from "vitest";
 import { resolveMatrixActionLimit } from "./limits.js";
 
