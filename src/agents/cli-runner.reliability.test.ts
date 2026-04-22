@@ -1,9 +1,9 @@
 /**
  * src/agents/cli-runner.reliability.test.ts
  *
- * Tests for CLI runner reliability utilities.
- * Ported from OC cli-runner.reliability.test.ts — adapted for CB's
- * cli-runner/reliability module.
+ * CoreBlow — CLI Runner Reliability Tests
+ * Verifies supervisor scope key construction and no-output timeout
+ * resolution for the CB cli-runner reliability module.
  */
 import { describe, expect, it } from "vitest";
 import {

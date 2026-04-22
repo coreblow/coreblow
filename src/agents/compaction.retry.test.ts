@@ -1,8 +1,9 @@
 /**
  * src/agents/compaction.retry.test.ts
  *
- * Tests for compaction adaptive chunking and retry-related logic.
- * Ported from OC compaction.retry.test.ts — adapted for CB's pure functions.
+ * CoreBlow — Compaction Retry & Adaptive Chunking Tests
+ * Verifies adaptive chunk ratio, context window resolution, and
+ * retry-safe message chunking invariants.
  */
 import { describe, expect, it } from "vitest";
 import type { CompactionMessage } from "./compaction.js";

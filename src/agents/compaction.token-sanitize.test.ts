@@ -1,9 +1,9 @@
 /**
  * src/agents/compaction.token-sanitize.test.ts
  *
- * Tests for token estimation and token-aware message pruning.
- * Ported from OC compaction.token-sanitize.test.ts — adapted for CB's
- * pure-function compaction API (no external AI mock required).
+ * CoreBlow — Compaction Token & Message Pruning Tests
+ * Verifies token estimation and token-aware compaction logic.
+ * Pure-function tests — no external AI or network dependencies.
  */
 import { describe, expect, it } from "vitest";
 import type { CompactionMessage } from "./compaction.js";

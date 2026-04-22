@@ -1,9 +1,9 @@
 /**
  * src/agents/cli-runner.helpers.test.ts
  *
- * Tests for CLI runner helper utilities.
- * Ported from OC cli-runner.helpers.test.ts — adapted for CB's
- * cli-runner/helpers module structure.
+ * CoreBlow — CLI Runner Helper Utilities Tests
+ * Verifies prompt construction, model normalization, image path handling,
+ * and session resolution for the CB cli-runner module.
  */
 import { describe, expect, it } from "vitest";
 import {
