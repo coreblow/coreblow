@@ -217,8 +217,7 @@ export async function executePollAction(params: {
 // OutboundSendService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "../service-patterns.js";
-
+import { createStandaloneSingleton } from "../service-patterns.js";
 export class OutboundSendService {
   async executeSendAction(params: Parameters<typeof executeSendAction>[0]) {
     return executeSendAction(params);
@@ -229,16 +228,8 @@ export class OutboundSendService {
   }
 }
 
-let _outboundSendInstance: OutboundSendService | null = null;
 
-export function getOutboundSendService(): OutboundSendService {
-  if (!_outboundSendInstance) {
-    _outboundSendInstance = new OutboundSendService();
-  }
-  return _outboundSendInstance;
-}
+const { getInstance: getOutboundSendService, __testing: __testing_outboundSend } =
+  createStandaloneSingleton({ create: () => new OutboundSendService(), defaultDeps: {} });
 
-export const __testing_outboundSend = createTestingHooks<OutboundSendService>(
-  () => { _outboundSendInstance = null; },
-  (svc) => { _outboundSendInstance = svc; },
-);
+export { getOutboundSendService, __testing_outboundSend };

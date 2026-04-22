@@ -1,10 +1,3 @@
-/**
- * src/config/state-dir-dotenv.test.ts
- *
- * CoreBlow — State Directory Dotenv Tests
- * Verifies readStateDirDotEnvVars and collectDurableServiceEnvVars
- * exports are available and callable.
- */
 import { describe, expect, it } from "vitest";
 
 describe("state-dir-dotenv module", () => {

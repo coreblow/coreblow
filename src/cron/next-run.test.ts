@@ -1,6 +1,3 @@
-/**
- * cron/next-run.test.ts — Next run calculation tests
- */
 import { describe, it, expect } from 'vitest';
 import { shouldRun } from './next-run.js';
 

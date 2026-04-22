@@ -1,6 +1,3 @@
-/**
- * agents/bash-tools-types.test.ts
- */
 import { describe, it, expect } from 'vitest';
 import { classifyCommandRisk, shouldAutoApprove, isSafeCommand } from './bash-tools-types.js';
 

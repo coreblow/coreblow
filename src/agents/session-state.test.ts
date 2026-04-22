@@ -1,6 +1,3 @@
-/**
- * agents/session-state.test.ts
- */
 import { describe, it, expect } from 'vitest';
 import { AgentSession } from './session-state.js';
 

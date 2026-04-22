@@ -6,6 +6,7 @@
  * and comprehensive reporting for AI output fairness auditing.
  */
 
+import { clamp } from "../utils.js";
 import { createChildLogger } from '../utils/logger.js';
 
 const log = createChildLogger('security:bias');
@@ -283,7 +284,7 @@ export class BiasDetector {
     // ─── Configuration ───────────────────────────────────────────
 
     setThreshold(threshold: number): void {
-        this.threshold = Math.max(0, Math.min(1, threshold));
+        this.threshold = clamp(threshold, 0, 1);
     }
 
     getThreshold(): number { return this.threshold; }

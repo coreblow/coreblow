@@ -805,7 +805,6 @@ async function deliverOutboundPayloadsCore(
 // ---------------------------------------------------------------------------
 
 import type { GatewayService, ServiceHealth } from "../../gateway/service-registry.js";
-import { createTestingHooks } from "../service-patterns.js";
 
 /**
  * Dependencies for OutboundDeliveryService.
@@ -824,6 +823,8 @@ export type OutboundDeliveryServiceDeps = {
  * The class enables ServiceRegistry integration (start/stop/health) without
  * changing any delivery logic.
  */
+import { createStandaloneSingleton } from "../service-patterns.js";
+
 export class OutboundDeliveryService implements GatewayService {
   readonly name = "outbound-delivery";
   private started = false;
@@ -866,19 +867,13 @@ export class OutboundDeliveryService implements GatewayService {
   }
 }
 
+const { getInstance: getOutboundDeliveryService, __testing: __testing_deliver } =
+  createStandaloneSingleton({ create: () => new OutboundDeliveryService(), defaultDeps: {} });
+
+export { getOutboundDeliveryService, __testing_deliver };
+
 // Lazy singleton for backward-compat callers that want class access
-let _outboundDeliveryInstance: OutboundDeliveryService | null = null;
 
 /** Get the default OutboundDeliveryService singleton. */
-export function getOutboundDeliveryService(): OutboundDeliveryService {
-  if (!_outboundDeliveryInstance) {
-    _outboundDeliveryInstance = new OutboundDeliveryService();
-  }
-  return _outboundDeliveryInstance;
-}
 
 /** @internal Testing hooks — guarded by NODE_ENV. */
-export const __testing_deliver = createTestingHooks<OutboundDeliveryService>(
-  () => { _outboundDeliveryInstance = null; },
-  (svc) => { _outboundDeliveryInstance = svc; },
-);

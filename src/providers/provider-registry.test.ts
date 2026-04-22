@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Provider Registry Tests
- *
- * Tests for AI provider registration, model routing (direct, prefix, default),
- * health/enable toggling, and provider listing.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ProviderRegistry } from './provider-registry.js';
 import type { ModelProvider } from '../agents/runtime.js';

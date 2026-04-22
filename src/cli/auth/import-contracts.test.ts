@@ -1,8 +1,3 @@
-/**
- * src/cli/auth/import-contracts.test.ts
- *
- * CoreBlow — Auth CLI Import Contracts
- */
 import { describe, expect, it } from "vitest";
 
 describe("auth modules — import contracts", () => {

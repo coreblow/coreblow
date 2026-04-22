@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Context Manager Tests
- *
- * Tests for message management, token counting, trimming,
- * compaction, stats, and context window strategies.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ContextManager } from './context-manager.js';
 

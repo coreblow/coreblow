@@ -673,22 +673,13 @@ export async function readJsonFile<T>(filePath: string): Promise<T> {
 // ArchiveService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ArchiveService {
   [Symbol.toStringTag] = 'ArchiveService';
 }
 
-let _archiveInstance: ArchiveService | null = null;
 
-export function getArchiveService(): ArchiveService {
-  if (!_archiveInstance) {
-    _archiveInstance = new ArchiveService();
-  }
-  return _archiveInstance;
-}
+const { getInstance: getArchiveService, __testing: __testing_archive } =
+  createStandaloneSingleton({ create: () => new ArchiveService(), defaultDeps: {} });
 
-export const __testing_archive = createTestingHooks<ArchiveService>(
-  () => { _archiveInstance = null; },
-  (svc) => { _archiveInstance = svc; },
-);
+export { getArchiveService, __testing_archive };

@@ -45,22 +45,13 @@ export function parseStrictNonNegativeInteger(value: unknown): number | undefine
 // ParseFiniteNumberService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ParseFiniteNumberService {
   [Symbol.toStringTag] = 'ParseFiniteNumberService';
 }
 
-let _parseFiniteNumberInstance: ParseFiniteNumberService | null = null;
 
-export function getParseFiniteNumberService(): ParseFiniteNumberService {
-  if (!_parseFiniteNumberInstance) {
-    _parseFiniteNumberInstance = new ParseFiniteNumberService();
-  }
-  return _parseFiniteNumberInstance;
-}
+const { getInstance: getParseFiniteNumberService, __testing: __testing_parseFiniteNumber } =
+  createStandaloneSingleton({ create: () => new ParseFiniteNumberService(), defaultDeps: {} });
 
-export const __testing_parseFiniteNumber = createTestingHooks<ParseFiniteNumberService>(
-  () => { _parseFiniteNumberInstance = null; },
-  (svc) => { _parseFiniteNumberInstance = svc; },
-);
+export { getParseFiniteNumberService, __testing_parseFiniteNumber };

@@ -1,6 +1,3 @@
-/**
- * config/bindings.test.ts — Agent-channel bindings tests
- */
 import { describe, it, expect } from 'vitest';
 import {
     isRouteBinding, isAcpBinding, listConfiguredBindings,

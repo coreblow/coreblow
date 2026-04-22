@@ -230,22 +230,13 @@ function resolveSystemRunCommandWithMode(
 // SystemRunCommandService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class SystemRunCommandService {
   [Symbol.toStringTag] = 'SystemRunCommandService';
 }
 
-let _systemRunCommandInstance: SystemRunCommandService | null = null;
 
-export function getSystemRunCommandService(): SystemRunCommandService {
-  if (!_systemRunCommandInstance) {
-    _systemRunCommandInstance = new SystemRunCommandService();
-  }
-  return _systemRunCommandInstance;
-}
+const { getInstance: getSystemRunCommandService, __testing: __testing_systemRunCommand } =
+  createStandaloneSingleton({ create: () => new SystemRunCommandService(), defaultDeps: {} });
 
-export const __testing_systemRunCommand = createTestingHooks<SystemRunCommandService>(
-  () => { _systemRunCommandInstance = null; },
-  (svc) => { _systemRunCommandInstance = svc; },
-);
+export { getSystemRunCommandService, __testing_systemRunCommand };

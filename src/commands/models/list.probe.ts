@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { clamp } from "../../utils.js";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import { resolveCoreBlowAgentDir } from "../../agents/agent-paths.js";
@@ -490,7 +491,7 @@ async function runTargetsWithConcurrency(params: {
   onProgress?: (update: { completed: number; total: number; label?: string }) => void;
 }): Promise<AuthProbeResult[]> {
   const { cfg, targets, timeoutMs, maxTokens, onProgress } = params;
-  const concurrency = Math.max(1, Math.min(targets.length || 1, params.concurrency));
+  const concurrency = clamp(params.concurrency, 1, targets.length || 1);
 
   const agentId = resolveDefaultAgentId(cfg);
   const agentDir = resolveCoreBlowAgentDir();

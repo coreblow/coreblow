@@ -1,6 +1,3 @@
-/**
- * sessions/session-manager.test.ts — Session manager tests
- */
 import { describe, it, expect } from 'vitest';
 import { SessionManager } from './session-manager.js';
 

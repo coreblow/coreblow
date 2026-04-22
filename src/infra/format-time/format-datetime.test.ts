@@ -1,9 +1,3 @@
-/**
- * src/infra/format-time/format-datetime.test.ts
- *
- * CoreBlow — Format Datetime Tests
- * Verifies resolveTimezone and formatUtcTimestamp.
- */
 import { describe, expect, it } from "vitest";
 import { resolveTimezone, formatUtcTimestamp } from "./format-datetime.js";
 

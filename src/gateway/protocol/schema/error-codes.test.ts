@@ -1,9 +1,3 @@
-/**
- * src/gateway/protocol/schema/error-codes.test.ts
- *
- * CoreBlow — Protocol Error Codes Tests
- * Verifies ErrorCodes constants and errorShape() factory.
- */
 import { describe, expect, it } from "vitest";
 import { ErrorCodes, errorShape } from "./error-codes.js";
 

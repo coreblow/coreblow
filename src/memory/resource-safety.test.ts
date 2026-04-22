@@ -1,10 +1,3 @@
-/**
- * Resource Safety Tests
- *
- * Self-host critical: disk full, permission denied, memory leak, concurrency.
- * These are the scenarios that crash CoreBlow on a cheap VPS.
- */
-
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'node:fs';
 import * as fsPromises from 'node:fs/promises';

@@ -1,8 +1,3 @@
-/**
- * src/gateway/server-methods/import-contracts-b.test.ts
- *
- * CoreBlow — Gateway Server Methods Import Contracts (Batch B)
- */
 import { describe, expect, it } from "vitest";
 
 const methods = [

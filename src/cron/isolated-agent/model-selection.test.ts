@@ -1,9 +1,3 @@
-/**
- * src/cron/isolated-agent/model-selection.test.ts
- *
- * CoreBlow — Cron Isolated Agent Model Selection Tests
- * Verifies model selection module exports and basic function contracts.
- */
 import { describe, expect, it } from "vitest";
 
 describe("cron/isolated-agent/model-selection module", () => {

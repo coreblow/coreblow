@@ -1,9 +1,3 @@
-/**
- * src/commands/agents.command-shared.test.ts
- *
- * CoreBlow — Agents Command Shared Tests
- * Verifies createQuietRuntime utility function.
- */
 import { describe, expect, it } from "vitest";
 import { createQuietRuntime } from "./agents.command-shared.js";
 

@@ -1,10 +1,3 @@
-/**
- * src/gateway/config-reload-plan.test.ts
- *
- * CoreBlow — Gateway Config Reload Plan Tests
- * Verifies buildGatewayReloadPlan: fields, restartGateway flag,
- * noopPaths behavior, and return shape.
- */
 import { describe, expect, it } from "vitest";
 import { buildGatewayReloadPlan } from "./config-reload-plan.js";
 

@@ -99,8 +99,7 @@ export function isCronSystemEvent(evt: string) {
 // HeartbeatEventsFilterService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class HeartbeatEventsFilterService {
   buildCronEventPrompt(...args: Parameters<typeof buildCronEventPrompt>) {
     return buildCronEventPrompt(...args);
@@ -119,16 +118,8 @@ export class HeartbeatEventsFilterService {
   }
 }
 
-let _heartbeatEventsFilterInstance: HeartbeatEventsFilterService | null = null;
 
-export function getHeartbeatEventsFilterService(): HeartbeatEventsFilterService {
-  if (!_heartbeatEventsFilterInstance) {
-    _heartbeatEventsFilterInstance = new HeartbeatEventsFilterService();
-  }
-  return _heartbeatEventsFilterInstance;
-}
+const { getInstance: getHeartbeatEventsFilterService, __testing: __testing_heartbeatEventsFilter } =
+  createStandaloneSingleton({ create: () => new HeartbeatEventsFilterService(), defaultDeps: {} });
 
-export const __testing_heartbeatEventsFilter = createTestingHooks<HeartbeatEventsFilterService>(
-  () => { _heartbeatEventsFilterInstance = null; },
-  (svc) => { _heartbeatEventsFilterInstance = svc; },
-);
+export { getHeartbeatEventsFilterService, __testing_heartbeatEventsFilter };

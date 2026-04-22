@@ -1,11 +1,3 @@
-/**
- * plugins/hot-reload-manager.test.ts
- *
- * Comprehensive test suite for HotReloadManager and PluginHotReload.
- * Tests state management, reload policies, health checks, rollback,
- * dependency ordering, and edge cases.
- */
-
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
     HotReloadManager,

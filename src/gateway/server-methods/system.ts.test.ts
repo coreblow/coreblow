@@ -1,6 +1,3 @@
-/**
- * src/gateway/server-methods/system.ts.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("server-methods/system — import", () => {
   it("is importable", async () => {

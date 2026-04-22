@@ -1,7 +1,3 @@
-/**
- * Provider Tests — Phase A: Core Safety
- * Tests: ProviderRegistry, FallbackProvider
- */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ProviderRegistry } from './provider-registry.js';
 import { FallbackProvider } from './fallback.js';

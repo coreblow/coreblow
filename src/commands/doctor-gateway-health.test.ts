@@ -1,6 +1,3 @@
-/**
- * src/commands/doctor-gateway-health.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("commands/doctor-gateway-health — import", () => {
   it("is importable", async () => {

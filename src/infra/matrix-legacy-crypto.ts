@@ -496,22 +496,13 @@ export async function autoPrepareLegacyMatrixCrypto(params: {
 // MatrixLegacyCryptoService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class MatrixLegacyCryptoService {
   [Symbol.toStringTag] = 'MatrixLegacyCryptoService';
 }
 
-let _matrixLegacyCryptoInstance: MatrixLegacyCryptoService | null = null;
 
-export function getMatrixLegacyCryptoService(): MatrixLegacyCryptoService {
-  if (!_matrixLegacyCryptoInstance) {
-    _matrixLegacyCryptoInstance = new MatrixLegacyCryptoService();
-  }
-  return _matrixLegacyCryptoInstance;
-}
+const { getInstance: getMatrixLegacyCryptoService, __testing: __testing_matrixLegacyCrypto } =
+  createStandaloneSingleton({ create: () => new MatrixLegacyCryptoService(), defaultDeps: {} });
 
-export const __testing_matrixLegacyCrypto = createTestingHooks<MatrixLegacyCryptoService>(
-  () => { _matrixLegacyCryptoInstance = null; },
-  (svc) => { _matrixLegacyCryptoInstance = svc; },
-);
+export { getMatrixLegacyCryptoService, __testing_matrixLegacyCrypto };

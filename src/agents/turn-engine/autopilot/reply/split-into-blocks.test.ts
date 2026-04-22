@@ -1,9 +1,3 @@
-/**
- * src/agents/turn-engine/autopilot/reply/split-into-blocks.test.ts
- *
- * CoreBlow — AutoPilot splitIntoBlocks Tests
- * Verifies paragraph-aware text splitting at maxBlockSize boundary.
- */
 import { describe, expect, it } from "vitest";
 import { splitIntoBlocks } from "./split-into-blocks.js";
 

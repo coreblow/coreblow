@@ -1,9 +1,3 @@
-/**
- * src/cli/cli-name.test.ts
- *
- * CoreBlow — CLI Name Tests
- * Verifies DEFAULT_CLI_NAME, resolveCliName, and replaceCliName.
- */
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_CLI_NAME,

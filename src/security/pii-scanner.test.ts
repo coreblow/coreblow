@@ -1,20 +1,3 @@
-/**
- * CoreBlow — PII Scanner Unit Tests
- *
- * Comprehensive test suite targeting 90%+ coverage across:
- *  - Clean text (no PII — happy path)
- *  - Email detection & masking
- *  - Phone number detection & masking (multiple formats)
- *  - SSN detection & masking
- *  - Credit card detection & masking (with/without separators)
- *  - IP address detection & masking
- *  - Custom pattern support via addPattern()
- *  - Multi-PII detection in single text
- *  - Boundary cases (empty string, very long text, edge formats)
- *  - Stats tracking (scanned counter, piiFound counter)
- *  - listTypes() & count() utility methods
- *  - Instance isolation
- */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PIIScanner } from './pii-scanner.js';
 import type { PIIScanResult, PIIMatch, PIIType } from './pii-scanner.js';

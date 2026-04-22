@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 import MarkdownIt from "markdown-it";
 import { chunkText } from "../auto-reply/chunk.js";
 import type { MarkdownTableMode } from "../config/types.base.js";
@@ -773,8 +774,8 @@ function closeRemainingStyles(target: RenderTarget) {
 function clampStyleSpans(spans: MarkdownStyleSpan[], maxLength: number): MarkdownStyleSpan[] {
   const clamped: MarkdownStyleSpan[] = [];
   for (const span of spans) {
-    const start = Math.max(0, Math.min(span.start, maxLength));
-    const end = Math.max(start, Math.min(span.end, maxLength));
+    const start = clamp(maxLength, 0, span.start);
+    const end = clamp(maxLength, start, span.end);
     if (end > start) {
       clamped.push({ start, end, style: span.style });
     }
@@ -785,8 +786,8 @@ function clampStyleSpans(spans: MarkdownStyleSpan[], maxLength: number): Markdow
 function clampLinkSpans(spans: MarkdownLinkSpan[], maxLength: number): MarkdownLinkSpan[] {
   const clamped: MarkdownLinkSpan[] = [];
   for (const span of spans) {
-    const start = Math.max(0, Math.min(span.start, maxLength));
-    const end = Math.max(start, Math.min(span.end, maxLength));
+    const start = clamp(maxLength, 0, span.start);
+    const end = clamp(maxLength, start, span.end);
     if (end > start) {
       clamped.push({ start, end, href: span.href });
     }

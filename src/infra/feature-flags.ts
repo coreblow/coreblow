@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 /**
  * CoreBlow — Feature Flags
  *
@@ -104,7 +105,7 @@ export class FeatureFlags {
     setRollout(flagId: string, percent: number): boolean {
         const flag = this.flags.get(flagId);
         if (!flag) return false;
-        flag.rolloutPercent = Math.max(0, Math.min(100, percent));
+        flag.rolloutPercent = clamp(percent, 0, 100);
         flag.updatedAt = Date.now();
         return true;
     }

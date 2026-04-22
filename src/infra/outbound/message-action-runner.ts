@@ -834,8 +834,7 @@ export async function runMessageAction(
 // MessageActionRunnerService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "../service-patterns.js";
-
+import { createStandaloneSingleton } from "../service-patterns.js";
 /**
  * Tier-1 service wrapping message action execution (send, poll, broadcast).
  * Thin facade over existing `runMessageAction` and `getToolResult`.
@@ -856,18 +855,10 @@ export class MessageActionRunnerService {
   }
 }
 
-let _messageActionRunnerInstance: MessageActionRunnerService | null = null;
 
+const { getInstance: getMessageActionRunnerService, __testing: __testing_messageActionRunner } =
+  createStandaloneSingleton({ create: () => new MessageActionRunnerService(), defaultDeps: {} });
+
+export { getMessageActionRunnerService, __testing_messageActionRunner };
 /** Get the default MessageActionRunnerService singleton. */
-export function getMessageActionRunnerService(): MessageActionRunnerService {
-  if (!_messageActionRunnerInstance) {
-    _messageActionRunnerInstance = new MessageActionRunnerService();
-  }
-  return _messageActionRunnerInstance;
-}
-
 /** @internal Testing hooks — guarded by NODE_ENV. */
-export const __testing_messageActionRunner = createTestingHooks<MessageActionRunnerService>(
-  () => { _messageActionRunnerInstance = null; },
-  (svc) => { _messageActionRunnerInstance = svc; },
-);

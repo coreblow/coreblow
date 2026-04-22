@@ -95,22 +95,13 @@ export function isDiagnosticFlagEnabled(
 // DiagnosticFlagsService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class DiagnosticFlagsService {
   [Symbol.toStringTag] = 'DiagnosticFlagsService';
 }
 
-let _diagnosticFlagsInstance: DiagnosticFlagsService | null = null;
 
-export function getDiagnosticFlagsService(): DiagnosticFlagsService {
-  if (!_diagnosticFlagsInstance) {
-    _diagnosticFlagsInstance = new DiagnosticFlagsService();
-  }
-  return _diagnosticFlagsInstance;
-}
+const { getInstance: getDiagnosticFlagsService, __testing: __testing_diagnosticFlags } =
+  createStandaloneSingleton({ create: () => new DiagnosticFlagsService(), defaultDeps: {} });
 
-export const __testing_diagnosticFlags = createTestingHooks<DiagnosticFlagsService>(
-  () => { _diagnosticFlagsInstance = null; },
-  (svc) => { _diagnosticFlagsInstance = svc; },
-);
+export { getDiagnosticFlagsService, __testing_diagnosticFlags };

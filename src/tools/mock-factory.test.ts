@@ -1,9 +1,3 @@
-/**
- * src/tools/mock-factory.test.ts
- *
- * CoreBlow — Mock Factory / Doc Generator Tools Tests
- * Import contract tests for doc-gen and mock-factory tools.
- */
 import { describe, expect, it } from "vitest";
 
 describe("doc-generator tools module imports", () => {

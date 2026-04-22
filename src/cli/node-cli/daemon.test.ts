@@ -1,8 +1,3 @@
-/**
- * src/cli/node-cli/daemon.test.ts
- *
- * CoreBlow — Node CLI Daemon + Register Import Contracts
- */
 import { describe, expect, it } from "vitest";
 
 describe("node-cli/daemon — import contract", () => {

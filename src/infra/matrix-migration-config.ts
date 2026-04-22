@@ -271,22 +271,13 @@ export function resolveLegacyMatrixFlatStoreTarget(params: {
 // MatrixMigrationConfigService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class MatrixMigrationConfigService {
   [Symbol.toStringTag] = 'MatrixMigrationConfigService';
 }
 
-let _matrixMigrationConfigInstance: MatrixMigrationConfigService | null = null;
 
-export function getMatrixMigrationConfigService(): MatrixMigrationConfigService {
-  if (!_matrixMigrationConfigInstance) {
-    _matrixMigrationConfigInstance = new MatrixMigrationConfigService();
-  }
-  return _matrixMigrationConfigInstance;
-}
+const { getInstance: getMatrixMigrationConfigService, __testing: __testing_matrixMigrationConfig } =
+  createStandaloneSingleton({ create: () => new MatrixMigrationConfigService(), defaultDeps: {} });
 
-export const __testing_matrixMigrationConfig = createTestingHooks<MatrixMigrationConfigService>(
-  () => { _matrixMigrationConfigInstance = null; },
-  (svc) => { _matrixMigrationConfigInstance = svc; },
-);
+export { getMatrixMigrationConfigService, __testing_matrixMigrationConfig };

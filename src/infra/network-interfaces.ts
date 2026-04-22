@@ -93,22 +93,13 @@ export function pickMatchingExternalInterfaceAddress(
 // NetworkInterfacesService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class NetworkInterfacesService {
   [Symbol.toStringTag] = 'NetworkInterfacesService';
 }
 
-let _networkInterfacesInstance: NetworkInterfacesService | null = null;
 
-export function getNetworkInterfacesService(): NetworkInterfacesService {
-  if (!_networkInterfacesInstance) {
-    _networkInterfacesInstance = new NetworkInterfacesService();
-  }
-  return _networkInterfacesInstance;
-}
+const { getInstance: getNetworkInterfacesService, __testing: __testing_networkInterfaces } =
+  createStandaloneSingleton({ create: () => new NetworkInterfacesService(), defaultDeps: {} });
 
-export const __testing_networkInterfaces = createTestingHooks<NetworkInterfacesService>(
-  () => { _networkInterfacesInstance = null; },
-  (svc) => { _networkInterfacesInstance = svc; },
-);
+export { getNetworkInterfacesService, __testing_networkInterfaces };

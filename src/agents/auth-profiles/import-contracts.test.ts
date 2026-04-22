@@ -1,7 +1,3 @@
-/**
- * src/agents/auth-profiles/import-contracts.test.ts
- * CoreBlow — Agents Auth Profiles Import Contracts
- */
 import { describe, expect, it } from "vitest";
 const modules = [
   "constants", "doctor", "external-cli-sync", "identity",

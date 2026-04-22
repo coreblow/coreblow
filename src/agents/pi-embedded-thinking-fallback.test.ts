@@ -1,10 +1,3 @@
-/**
- * CoreBlow — PI Embedded Thinking Fallback Tests (Inline)
- *
- * Tests for pickFallbackThinkingLevel and extractSupportedValues logic.
- * Inline to avoid thinking.ts → auto-reply/thinking.js import chain.
- */
-
 import { describe, it, expect } from 'vitest';
 
 // ── Inline replicas of pure functions ──────────────────────────────

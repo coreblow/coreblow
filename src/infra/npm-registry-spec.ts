@@ -144,22 +144,13 @@ export function formatPrereleaseResolutionError(params: {
 // NpmRegistrySpecService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class NpmRegistrySpecService {
   [Symbol.toStringTag] = 'NpmRegistrySpecService';
 }
 
-let _npmRegistrySpecInstance: NpmRegistrySpecService | null = null;
 
-export function getNpmRegistrySpecService(): NpmRegistrySpecService {
-  if (!_npmRegistrySpecInstance) {
-    _npmRegistrySpecInstance = new NpmRegistrySpecService();
-  }
-  return _npmRegistrySpecInstance;
-}
+const { getInstance: getNpmRegistrySpecService, __testing: __testing_npmRegistrySpec } =
+  createStandaloneSingleton({ create: () => new NpmRegistrySpecService(), defaultDeps: {} });
 
-export const __testing_npmRegistrySpec = createTestingHooks<NpmRegistrySpecService>(
-  () => { _npmRegistrySpecInstance = null; },
-  (svc) => { _npmRegistrySpecInstance = svc; },
-);
+export { getNpmRegistrySpecService, __testing_npmRegistrySpec };

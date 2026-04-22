@@ -1,6 +1,3 @@
-/**
- * agents/bootstrap-hooks.test.ts
- */
 import { describe, it, expect, vi } from 'vitest';
 import { BootstrapHooks, type BootstrapHookContext } from './bootstrap-hooks.js';
 

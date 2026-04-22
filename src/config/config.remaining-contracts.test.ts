@@ -1,8 +1,3 @@
-/**
- * src/config/config.remaining-contracts.test.ts
- *
- * CoreBlow — Config Remaining Import Contracts
- */
 import { describe, expect, it } from "vitest";
 
 const modules = [

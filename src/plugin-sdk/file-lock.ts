@@ -1,4 +1,5 @@
 import fsSync from "node:fs";
+import { sleep } from "../utils.js";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { isPidAlive } from "../shared/pid-alive.js";
@@ -187,7 +188,7 @@ export async function acquireFileLock(
       if (attempt >= attempts - 1) {
         break;
       }
-      await new Promise((resolve) => setTimeout(resolve, computeDelayMs(options.retries, attempt)));
+      await sleep(computeDelayMs(options.retries, attempt));
     }
   }
 

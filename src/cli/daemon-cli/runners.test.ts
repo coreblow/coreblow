@@ -1,8 +1,3 @@
-/**
- * src/cli/daemon-cli/runners.test.ts
- *
- * CoreBlow — Daemon CLI Runners + Lifecycle Import Contracts
- */
 import { describe, expect, it } from "vitest";
 
 describe("daemon-cli/runners — import contract", () => {

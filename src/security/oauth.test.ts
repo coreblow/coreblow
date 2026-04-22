@@ -1,6 +1,3 @@
-/**
- * CoreBlow — OAuth Utilities Unit Tests
- */
 import { describe, it, expect } from 'vitest';
 import { generatePKCE, buildAuthUrl, encryptToken, decryptToken, needsRefresh } from './oauth.js';
 import type { OAuthTokens } from './oauth.js';

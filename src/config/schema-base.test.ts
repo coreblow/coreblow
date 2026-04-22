@@ -1,9 +1,3 @@
-/**
- * src/config/schema-base.test.ts
- *
- * CoreBlow — Base Config Schema Tests
- * Verifies computeBaseConfigSchemaResponse returns correct shape.
- */
 import { describe, expect, it } from "vitest";
 import { computeBaseConfigSchemaResponse } from "./schema-base.js";
 

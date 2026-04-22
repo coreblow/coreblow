@@ -1,3 +1,4 @@
+import { clamp } from "../../utils.js";
 import { enqueueCommandInLane } from "../../process/command-queue.js";
 import { CommandLane } from "../../process/lanes.js";
 import type { CronJob, CronJobCreate, CronJobPatch } from "../types.js";
@@ -224,9 +225,9 @@ export async function listPage(state: CronServiceState, opts?: CronListPageOptio
     });
     const sorted = sortJobs(filtered, sortBy, sortDir);
     const total = sorted.length;
-    const offset = Math.max(0, Math.min(total, Math.floor(opts?.offset ?? 0)));
+    const offset = clamp(Math.floor(opts?.offset ?? 0), 0, total);
     const defaultLimit = total === 0 ? 50 : total;
-    const limit = Math.max(1, Math.min(200, Math.floor(opts?.limit ?? defaultLimit)));
+    const limit = clamp(Math.floor(opts?.limit ?? defaultLimit), 1, 200);
     const jobs = sorted.slice(offset, offset + limit);
     const nextOffset = offset + jobs.length;
     return {

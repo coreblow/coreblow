@@ -1,10 +1,3 @@
-/**
- * src/config/zod-schema.installs.test.ts
- *
- * CoreBlow — Installs Schema Shape Tests
- * Verifies InstallRecordShape is a plain object shape with expected
- * zod field definitions (source, spec, sourcePath, installPath, version).
- */
 import { describe, expect, it } from "vitest";
 import { InstallRecordShape } from "./zod-schema.installs.js";
 

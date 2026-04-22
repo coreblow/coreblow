@@ -1,10 +1,3 @@
-/**
- * CoreBlow — FallbackSummaryError & Probe Throttle Tests
- *
- * Tests for FallbackSummaryError construction and probe throttle logic.
- * Avoids importing model-fallback.ts directly due to markdown-it chain.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 
 // === FallbackSummaryError (inline test) ===

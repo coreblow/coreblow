@@ -1,6 +1,3 @@
-/**
- * src/commands/agents.commands.add.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("agents.commands.add — import", () => {
   it("is importable", async () => {

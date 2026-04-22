@@ -152,6 +152,9 @@ export async function startSshPortForward(opts: {
   args.push("--", userHost);
 
   const stderr: string[] = [];
+  // Platform: Unix-only — Windows is not supported for SSH tunneling.
+  // Absolute path "/usr/bin/ssh" used intentionally to prevent
+  // PATH-based binary hijacking (CWE-426).
   const child = spawn("/usr/bin/ssh", args, {
     stdio: ["ignore", "ignore", "pipe"],
   });
@@ -212,9 +215,9 @@ export async function startSshPortForward(opts: {
 // ---------------------------------------------------------------------------
 // SshTunnelService — Tier-2 GatewayService
 // ---------------------------------------------------------------------------
-
-import { createTestingHooks } from "./service-patterns.js";
 import type { GatewayService, ServiceHealth } from "../gateway/service-registry.js";
+
+import { createStandaloneSingleton } from "./service-patterns.js";
 
 export class SshTunnelService implements GatewayService {
   readonly name = "ssh-tunnel";
@@ -241,16 +244,7 @@ export class SshTunnelService implements GatewayService {
   }
 }
 
-let _sshTunnelInstance: SshTunnelService | null = null;
+const { getInstance: getSshTunnelService, __testing: __testing_sshTunnel } =
+  createStandaloneSingleton({ create: () => new SshTunnelService(), defaultDeps: {} });
 
-export function getSshTunnelService(): SshTunnelService {
-  if (!_sshTunnelInstance) {
-    _sshTunnelInstance = new SshTunnelService();
-  }
-  return _sshTunnelInstance;
-}
-
-export const __testing_sshTunnel = createTestingHooks<SshTunnelService>(
-  () => { _sshTunnelInstance = null; },
-  (svc) => { _sshTunnelInstance = svc; },
-);
+export { getSshTunnelService, __testing_sshTunnel };

@@ -1,9 +1,3 @@
-/**
- * CoreBlow — Routing resolvePreferredAccountId Tests
- *
- * Tests for the pure account ID preference resolution function.
- */
-
 import { describe, it, expect } from 'vitest';
 import { resolvePreferredAccountId } from './bindings.js';
 

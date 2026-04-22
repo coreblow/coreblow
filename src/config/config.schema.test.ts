@@ -1,7 +1,3 @@
-/**
- * config/config.schema.test.ts
- * Tests for Zod config schema validation.
- */
 import { describe, it, expect } from 'vitest';
 import {
     CoreBlowConfigSchema,

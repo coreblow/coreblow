@@ -1,6 +1,3 @@
-/**
- * channels/typing-lifecycle.test.ts — Typing lifecycle tests
- */
 import { describe, it, expect, vi } from 'vitest';
 import { createTypingKeepaliveLoop } from './typing-lifecycle.js';
 

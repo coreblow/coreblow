@@ -254,22 +254,13 @@ export function sanitizeSystemRunEnvOverrides(params?: {
 // HostEnvSecurityService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class HostEnvSecurityService {
   [Symbol.toStringTag] = 'HostEnvSecurityService';
 }
 
-let _hostEnvSecurityInstance: HostEnvSecurityService | null = null;
 
-export function getHostEnvSecurityService(): HostEnvSecurityService {
-  if (!_hostEnvSecurityInstance) {
-    _hostEnvSecurityInstance = new HostEnvSecurityService();
-  }
-  return _hostEnvSecurityInstance;
-}
+const { getInstance: getHostEnvSecurityService, __testing: __testing_hostEnvSecurity } =
+  createStandaloneSingleton({ create: () => new HostEnvSecurityService(), defaultDeps: {} });
 
-export const __testing_hostEnvSecurity = createTestingHooks<HostEnvSecurityService>(
-  () => { _hostEnvSecurityInstance = null; },
-  (svc) => { _hostEnvSecurityInstance = svc; },
-);
+export { getHostEnvSecurityService, __testing_hostEnvSecurity };

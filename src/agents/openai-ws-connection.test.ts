@@ -1,10 +1,3 @@
-/**
- * Unit tests for OpenAIWebSocketManager
- *
- * Uses a mock WebSocket implementation to avoid real network calls.
- * The mock simulates the ws package's EventEmitter-based API.
- */
-
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ClientOptions } from "ws";
 import type {

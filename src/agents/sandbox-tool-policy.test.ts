@@ -1,9 +1,3 @@
-/**
- * CoreBlow — Sandbox Tool Policy Tests
- *
- * Tests for pickSandboxToolPolicy and unionAllow logic.
- */
-
 import { describe, it, expect } from 'vitest';
 import { pickSandboxToolPolicy } from './sandbox-tool-policy.js';
 

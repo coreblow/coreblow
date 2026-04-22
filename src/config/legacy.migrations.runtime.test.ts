@@ -1,8 +1,3 @@
-/**
- * src/config/legacy.migrations.runtime.test.ts
- *
- * CoreBlow — Legacy Config Migrations Runtime Tests
- */
 import { describe, expect, it } from "vitest";
 import { LEGACY_CONFIG_MIGRATIONS_RUNTIME } from "./legacy.migrations.runtime.js";
 

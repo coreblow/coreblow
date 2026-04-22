@@ -143,22 +143,13 @@ export function tryReadSecretFileSync(
 // SecretFileService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class SecretFileService {
   [Symbol.toStringTag] = 'SecretFileService';
 }
 
-let _secretFileInstance: SecretFileService | null = null;
 
-export function getSecretFileService(): SecretFileService {
-  if (!_secretFileInstance) {
-    _secretFileInstance = new SecretFileService();
-  }
-  return _secretFileInstance;
-}
+const { getInstance: getSecretFileService, __testing: __testing_secretFile } =
+  createStandaloneSingleton({ create: () => new SecretFileService(), defaultDeps: {} });
 
-export const __testing_secretFile = createTestingHooks<SecretFileService>(
-  () => { _secretFileInstance = null; },
-  (svc) => { _secretFileInstance = svc; },
-);
+export { getSecretFileService, __testing_secretFile };

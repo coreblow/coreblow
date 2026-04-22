@@ -1,9 +1,3 @@
-/**
- * src/cli/profile-utils.test.ts
- *
- * CoreBlow — Profile Utils Tests
- * Verifies isValidProfileName and normalizeProfileName.
- */
 import { describe, expect, it } from "vitest";
 import { isValidProfileName, normalizeProfileName } from "./profile-utils.js";
 

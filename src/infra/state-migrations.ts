@@ -1055,8 +1055,7 @@ export async function autoMigrateLegacyState(params: {
 // StateMigrationService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class StateMigrationService {
   async autoMigrateLegacyStateDir(params: Parameters<typeof autoMigrateLegacyStateDir>[0]) {
     return autoMigrateLegacyStateDir(params);
@@ -1079,16 +1078,8 @@ export class StateMigrationService {
   }
 }
 
-let _stateMigrationInstance: StateMigrationService | null = null;
 
-export function getStateMigrationService(): StateMigrationService {
-  if (!_stateMigrationInstance) {
-    _stateMigrationInstance = new StateMigrationService();
-  }
-  return _stateMigrationInstance;
-}
+const { getInstance: getStateMigrationService, __testing: __testing_stateMigration } =
+  createStandaloneSingleton({ create: () => new StateMigrationService(), defaultDeps: {} });
 
-export const __testing_stateMigration = createTestingHooks<StateMigrationService>(
-  () => { _stateMigrationInstance = null; },
-  (svc) => { _stateMigrationInstance = svc; },
-);
+export { getStateMigrationService, __testing_stateMigration };

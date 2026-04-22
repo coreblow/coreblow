@@ -1,10 +1,3 @@
-/**
- * src/config/sessions/reset.test.ts
- *
- * CoreBlow — Session Reset Policy Tests
- * Verifies DEFAULT_RESET_MODE, isThreadSessionKey,
- * resolveDailyResetAtMs, and resolveSessionResetType.
- */
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_RESET_AT_HOUR,

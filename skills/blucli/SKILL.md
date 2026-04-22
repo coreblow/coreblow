@@ -1,20 +1,47 @@
 ---
 name: blucli
-description: Blucli skill for CoreBlow
+description: BluOS CLI (blu) for discovery, playback, grouping, and volume.
+homepage: https://blucli.sh
+metadata:
+  {
+    "coreblow":
+      {
+        "emoji": "🫐",
+        "requires": { "bins": ["blu"] },
+        "install":
+          [
+            {
+              "id": "go",
+              "kind": "go",
+              "module": "github.com/steipete/blucli/cmd/blu@latest",
+              "bins": ["blu"],
+              "label": "Install blucli (go)",
+            },
+          ],
+      },
+  }
 ---
 
-# Blucli
+# blucli (blu)
 
-## Overview
-This skill provides blucli functionality for CoreBlow agents.
+Use `blu` to control Bluesound/NAD players.
 
-## Usage
-Add this skill to your agent configuration:
-```yaml
-skills:
-  - blucli
-```
+Quick start
 
-## Commands
-- `/blucli` — Main command
-- `/blucli help` — Show help
+- `blu devices` (pick target)
+- `blu --device <id> status`
+- `blu play|pause|stop`
+- `blu volume set 15`
+
+Target selection (in priority order)
+
+- `--device <id|name|alias>`
+- `BLU_DEVICE`
+- config default (if set)
+
+Common tasks
+
+- Grouping: `blu group status|add|remove`
+- TuneIn search/play: `blu tunein search "query"`, `blu tunein play "query"`
+
+Prefer `--json` for scripts. Confirm the target device before changing playback.

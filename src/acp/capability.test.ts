@@ -1,6 +1,3 @@
-/**
- * acp/capability.test.ts — ACP capability negotiation tests
- */
 import { describe, it, expect } from 'vitest';
 import { negotiateCapabilities } from './capability.js';
 

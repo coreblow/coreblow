@@ -1,7 +1,3 @@
-/**
- * tests/unit/sandbox.test.ts
- * Tests for sandbox execution
- */
 import { describe, it, expect } from 'vitest';
 import { SandboxManager } from '../../../security/sandbox.js';
 

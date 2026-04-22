@@ -95,10 +95,10 @@ describe("auth profile store cache", () => {
     withAgentDirEnv("coreblow-store-cache2-", (agentDir) => {
       writeAuthStore(agentDir, "sk-first");
       const store1 = ensureAuthProfileStore(agentDir);
-      const key1 = store1.profiles["openai:default"]?.key;
+      const key1 = (store1.profiles["openai:default"] as any)?.key;
 
       const store2 = ensureAuthProfileStore(agentDir);
-      const key2 = store2.profiles["openai:default"]?.key;
+      const key2 = (store2.profiles["openai:default"] as any)?.key;
 
       // Both calls should return data from the same on-disk state
       expect(key1).toBe(key2);
@@ -116,8 +116,8 @@ describe("auth profile store cache", () => {
       const store1 = ensureAuthProfileStore(agentDir1);
       const store2 = ensureAuthProfileStore(agentDir2);
 
-      expect(store1.profiles["openai:default"]?.key).toBe("sk-a");
-      expect(store2.profiles["openai:default"]?.key).toBe("sk-b");
+      expect((store1.profiles["openai:default"] as any)?.key).toBe("sk-a");
+      expect((store2.profiles["openai:default"] as any)?.key).toBe("sk-b");
       expect(store1).not.toBe(store2);
     } finally {
       fs.rmSync(agentDir1, { recursive: true, force: true });
@@ -136,7 +136,7 @@ describe("auth profile store cache", () => {
       const store2 = ensureAuthProfileStore(agentDir);
 
       expect(store1).not.toBe(store2);
-      expect(store2.profiles["openai:default"]?.key).toBe("sk-after");
+      expect((store2.profiles["openai:default"] as any)?.key).toBe("sk-after");
     });
   });
 });

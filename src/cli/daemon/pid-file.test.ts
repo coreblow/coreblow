@@ -1,9 +1,3 @@
-/**
- * src/cli/daemon/pid-file.test.ts
- *
- * CoreBlow — Daemon PID File Tests
- * Verifies writePid, readPid, removePid.
- */
 import { describe, expect, it } from "vitest";
 import { writePid, readPid, removePid } from "./pid-file.js";
 

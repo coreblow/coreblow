@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Transcript Policy Tests (Inline)
- *
- * Tests for isOpenAiApi and OPENAI_MODEL_APIS logic.
- * Inline to avoid provider-capabilities import chain.
- */
-
 import { describe, it, expect } from 'vitest';
 
 // ── Inline replicas ────────────────────────────────────────────────

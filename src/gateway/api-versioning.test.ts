@@ -1,10 +1,3 @@
-/**
- * CoreBlow — API Versioning Tests
- *
- * Tests for version registration, negotiation, route resolution,
- * deprecation, and listing.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ApiVersioning } from './api-versioning.js';
 

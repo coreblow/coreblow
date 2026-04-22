@@ -111,8 +111,8 @@ describe("ensureAuthProfileStore", () => {
       const store1 = ensureAuthProfileStore(agentDir);
       const store2 = ensureAuthProfileStore(agentDir);
 
-      expect(store1.profiles["openai:default"]?.key).toBe("sk-x");
-      expect(store2.profiles["openai:default"]?.key).toBe("sk-x");
+      expect((store1.profiles["openai:default"] as any)?.key).toBe("sk-x");
+      expect((store2.profiles["openai:default"] as any)?.key).toBe("sk-x");
     });
   });
 });

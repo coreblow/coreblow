@@ -1,9 +1,3 @@
-/**
- * CoreBlow — Configured Provider Fallback Tests
- *
- * Tests for resolveConfiguredProviderFallback.
- */
-
 import { describe, it, expect } from 'vitest';
 import { resolveConfiguredProviderFallback } from './configured-provider-fallback.js';
 

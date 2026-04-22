@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Audit FS Pure Utility Unit Tests
- *
- * Tests only the pure (non-async, non-IO) exported functions.
- * The async functions (safeStat, inspectPathPermissions) require
- * filesystem mocking and are deferred.
- */
 import { describe, it, expect } from 'vitest';
 import { modeBits, formatOctal, isWorldWritable, isGroupWritable, isWorldReadable, isGroupReadable, formatPermissionDetail, formatPermissionRemediation } from './audit-fs.js';
 import type { PermissionCheck } from './audit-fs.js';

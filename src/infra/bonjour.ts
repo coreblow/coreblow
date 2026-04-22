@@ -432,22 +432,13 @@ export async function startGatewayBonjourAdvertiser(
 // BonjourAdvertiserService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class BonjourAdvertiserService {
   [Symbol.toStringTag] = 'BonjourAdvertiserService';
 }
 
-let _bonjourAdvertiserInstance: BonjourAdvertiserService | null = null;
 
-export function getBonjourAdvertiserService(): BonjourAdvertiserService {
-  if (!_bonjourAdvertiserInstance) {
-    _bonjourAdvertiserInstance = new BonjourAdvertiserService();
-  }
-  return _bonjourAdvertiserInstance;
-}
+const { getInstance: getBonjourAdvertiserService, __testing: __testing_bonjourAdvertiser } =
+  createStandaloneSingleton({ create: () => new BonjourAdvertiserService(), defaultDeps: {} });
 
-export const __testing_bonjourAdvertiser = createTestingHooks<BonjourAdvertiserService>(
-  () => { _bonjourAdvertiserInstance = null; },
-  (svc) => { _bonjourAdvertiserInstance = svc; },
-);
+export { getBonjourAdvertiserService, __testing_bonjourAdvertiser };

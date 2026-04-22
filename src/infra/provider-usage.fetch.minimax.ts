@@ -391,24 +391,15 @@ export async function fetchMinimaxUsage(
 // ProviderUsageFetchMinimaxService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ProviderUsageFetchMinimaxService {
   async fetchMinimaxUsage(...args: Parameters<typeof fetchMinimaxUsage>) {
     return fetchMinimaxUsage(...args);
   }
 }
 
-let _providerUsageFetchMinimaxInstance: ProviderUsageFetchMinimaxService | null = null;
 
-export function getProviderUsageFetchMinimaxService(): ProviderUsageFetchMinimaxService {
-  if (!_providerUsageFetchMinimaxInstance) {
-    _providerUsageFetchMinimaxInstance = new ProviderUsageFetchMinimaxService();
-  }
-  return _providerUsageFetchMinimaxInstance;
-}
+const { getInstance: getProviderUsageFetchMinimaxService, __testing: __testing_providerUsageFetchMinimax } =
+  createStandaloneSingleton({ create: () => new ProviderUsageFetchMinimaxService(), defaultDeps: {} });
 
-export const __testing_providerUsageFetchMinimax = createTestingHooks<ProviderUsageFetchMinimaxService>(
-  () => { _providerUsageFetchMinimaxInstance = null; },
-  (svc) => { _providerUsageFetchMinimaxInstance = svc; },
-);
+export { getProviderUsageFetchMinimaxService, __testing_providerUsageFetchMinimax };

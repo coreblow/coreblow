@@ -1,9 +1,3 @@
-/**
- * src/config/legacy.migrations.test.ts
- *
- * CoreBlow — Legacy Config Migrations Tests
- * Verifies LEGACY_CONFIG_MIGRATIONS and LEGACY_CONFIG_MIGRATION_RULES arrays.
- */
 import { describe, expect, it } from "vitest";
 import {
   LEGACY_CONFIG_MIGRATIONS,

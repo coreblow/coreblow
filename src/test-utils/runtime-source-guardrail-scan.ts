@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 import { execFileSync } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -65,7 +66,7 @@ async function readRuntimeSourceFiles(
   };
 
   const workers = Array.from(
-    { length: Math.min(FILE_READ_CONCURRENCY, Math.max(1, absolutePaths.length)) },
+    { length: clamp(absolutePaths.length, 1, FILE_READ_CONCURRENCY) },
     () => worker(),
   );
   await Promise.all(workers);

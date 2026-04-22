@@ -371,22 +371,13 @@ export async function createBackupArchive(
 // BackupCreateService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class BackupCreateService {
   [Symbol.toStringTag] = 'BackupCreateService';
 }
 
-let _backupCreateInstance: BackupCreateService | null = null;
 
-export function getBackupCreateService(): BackupCreateService {
-  if (!_backupCreateInstance) {
-    _backupCreateInstance = new BackupCreateService();
-  }
-  return _backupCreateInstance;
-}
+const { getInstance: getBackupCreateService, __testing: __testing_backupCreate } =
+  createStandaloneSingleton({ create: () => new BackupCreateService(), defaultDeps: {} });
 
-export const __testing_backupCreate = createTestingHooks<BackupCreateService>(
-  () => { _backupCreateInstance = null; },
-  (svc) => { _backupCreateInstance = svc; },
-);
+export { getBackupCreateService, __testing_backupCreate };

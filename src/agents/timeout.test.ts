@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Agent Timeout Tests (Inline)
- *
- * Tests for resolveAgentTimeoutSeconds and resolveAgentTimeoutMs logic.
- * Inline to avoid utils.js clamp / config.js import chain.
- */
-
 import { describe, it, expect } from 'vitest';
 
 // ── Inline replicas ────────────────────────────────────────────────

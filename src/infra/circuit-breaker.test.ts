@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Circuit Breaker Tests
- *
- * Tests for circuit state transitions, failure thresholds,
- * half-open probing, auto-recovery, and force reset.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { CircuitBreaker } from './circuit-breaker.js';
 

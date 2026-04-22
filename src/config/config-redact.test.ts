@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Config Redaction Tests
- *
- * Tests for redactConfig: sensitive key detection, partial redaction,
- * nested object traversal, and depth limiting.
- */
-
 import { describe, it, expect } from 'vitest';
 import { redactConfig } from './config-redact.js';
 

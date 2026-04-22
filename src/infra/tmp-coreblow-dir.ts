@@ -172,22 +172,13 @@ export function resolvePreferredCoreBlowTmpDir(
 // TmpCoreblowDirService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class TmpCoreblowDirService {
   [Symbol.toStringTag] = 'TmpCoreblowDirService';
 }
 
-let _tmpCoreblowDirInstance: TmpCoreblowDirService | null = null;
 
-export function getTmpCoreblowDirService(): TmpCoreblowDirService {
-  if (!_tmpCoreblowDirInstance) {
-    _tmpCoreblowDirInstance = new TmpCoreblowDirService();
-  }
-  return _tmpCoreblowDirInstance;
-}
+const { getInstance: getTmpCoreblowDirService, __testing: __testing_tmpCoreblowDir } =
+  createStandaloneSingleton({ create: () => new TmpCoreblowDirService(), defaultDeps: {} });
 
-export const __testing_tmpCoreblowDir = createTestingHooks<TmpCoreblowDirService>(
-  () => { _tmpCoreblowDirInstance = null; },
-  (svc) => { _tmpCoreblowDirInstance = svc; },
-);
+export { getTmpCoreblowDirService, __testing_tmpCoreblowDir };

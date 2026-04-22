@@ -1,7 +1,3 @@
-/**
- * src/agents/agents.import-contracts-a.test.ts
- * CoreBlow — Agents Import Contracts (Batch A)
- */
 import { describe, expect, it } from "vitest";
 const modules = [
   "agent-command", "agent-engine", "auto-reply", "bash-tools-exec",

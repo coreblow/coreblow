@@ -38,22 +38,13 @@ export function resolveOsSummary(): OsSummary {
 // OsSummaryService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class OsSummaryService {
   [Symbol.toStringTag] = 'OsSummaryService';
 }
 
-let _osSummaryInstance: OsSummaryService | null = null;
 
-export function getOsSummaryService(): OsSummaryService {
-  if (!_osSummaryInstance) {
-    _osSummaryInstance = new OsSummaryService();
-  }
-  return _osSummaryInstance;
-}
+const { getInstance: getOsSummaryService, __testing: __testing_osSummary } =
+  createStandaloneSingleton({ create: () => new OsSummaryService(), defaultDeps: {} });
 
-export const __testing_osSummary = createTestingHooks<OsSummaryService>(
-  () => { _osSummaryInstance = null; },
-  (svc) => { _osSummaryInstance = svc; },
-);
+export { getOsSummaryService, __testing_osSummary };

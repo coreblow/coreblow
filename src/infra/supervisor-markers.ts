@@ -46,22 +46,13 @@ export function detectRespawnSupervisor(
 // SupervisorMarkersService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class SupervisorMarkersService {
   [Symbol.toStringTag] = 'SupervisorMarkersService';
 }
 
-let _supervisorMarkersInstance: SupervisorMarkersService | null = null;
 
-export function getSupervisorMarkersService(): SupervisorMarkersService {
-  if (!_supervisorMarkersInstance) {
-    _supervisorMarkersInstance = new SupervisorMarkersService();
-  }
-  return _supervisorMarkersInstance;
-}
+const { getInstance: getSupervisorMarkersService, __testing: __testing_supervisorMarkers } =
+  createStandaloneSingleton({ create: () => new SupervisorMarkersService(), defaultDeps: {} });
 
-export const __testing_supervisorMarkers = createTestingHooks<SupervisorMarkersService>(
-  () => { _supervisorMarkersInstance = null; },
-  (svc) => { _supervisorMarkersInstance = svc; },
-);
+export { getSupervisorMarkersService, __testing_supervisorMarkers };

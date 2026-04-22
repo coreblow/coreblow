@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Metrics Collector Tests
- *
- * Tests for event recording, counter management,
- * event filtering, max events cap, and reset.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MetricsCollector } from './collector.js';
 

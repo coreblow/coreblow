@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -190,7 +191,7 @@ async function sipsResizeToJpeg(params: {
         "jpeg",
         "-s",
         "formatOptions",
-        String(Math.max(1, Math.min(100, Math.round(params.quality)))),
+        String(clamp(Math.round(params.quality), 1, 100)),
         input,
         "--out",
         output,

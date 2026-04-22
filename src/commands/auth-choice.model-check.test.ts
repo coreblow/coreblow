@@ -1,9 +1,3 @@
-/**
- * src/commands/auth-choice.model-check.test.ts
- *
- * CoreBlow — Auth Choice Model Check Tests
- * Import contract + exportable function/const shape.
- */
 import { describe, expect, it } from "vitest";
 
 describe("auth-choice.model-check module", () => {

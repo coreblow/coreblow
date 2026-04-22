@@ -1,13 +1,3 @@
-/**
- * MemoryOrchestrator Tests
- *
- * Tests the unified JSONL + RAG memory system with all critical fixes:
- *  🔴 (A) Stream tail-read
- *  🔴 (B) Async non-blocking embed
- *  🔴 (C) Hash-based dedup
- *  🔴 (D) Hard maxDocuments limit
- *  🔴 (E) Error isolation with JSONL fallback
- */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';

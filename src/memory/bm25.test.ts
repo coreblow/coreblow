@@ -1,10 +1,3 @@
-/**
- * CoreBlow — BM25 Index Tests
- *
- * Tests for BM25 text search: document indexing, scoring,
- * search ranking, tokenization, IDF, statistics, and edge cases.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { BM25Index, tokenize } from './bm25.js';
 

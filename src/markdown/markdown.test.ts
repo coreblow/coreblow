@@ -1,7 +1,3 @@
-/**
- * Markdown Tests — Phase B: Business Logic
- * Tests: parseMarkdown
- */
 import { describe, it, expect } from 'vitest';
 import { parseMarkdown } from './parser.js';
 

@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Audit Trail Unit Tests
- */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { AuditTrail } from './audit-trail.js';
 

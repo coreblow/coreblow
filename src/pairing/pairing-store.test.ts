@@ -1,6 +1,3 @@
-/**
- * pairing/pairing-store.test.ts — Pairing store tests
- */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { PairingStore, generatePairingCode } from './pairing-store.js';
 import fs from 'node:fs';

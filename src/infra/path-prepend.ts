@@ -82,22 +82,13 @@ export function applyPathPrepend(
 // PathPrependService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class PathPrependService {
   [Symbol.toStringTag] = 'PathPrependService';
 }
 
-let _pathPrependInstance: PathPrependService | null = null;
 
-export function getPathPrependService(): PathPrependService {
-  if (!_pathPrependInstance) {
-    _pathPrependInstance = new PathPrependService();
-  }
-  return _pathPrependInstance;
-}
+const { getInstance: getPathPrependService, __testing: __testing_pathPrepend } =
+  createStandaloneSingleton({ create: () => new PathPrependService(), defaultDeps: {} });
 
-export const __testing_pathPrepend = createTestingHooks<PathPrependService>(
-  () => { _pathPrependInstance = null; },
-  (svc) => { _pathPrependInstance = svc; },
-);
+export { getPathPrependService, __testing_pathPrepend };

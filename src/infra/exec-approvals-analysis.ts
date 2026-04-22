@@ -829,8 +829,7 @@ export function analyzeArgvCommand(params: {
 // ExecApprovalsAnalysisService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ExecApprovalsAnalysisService {
   isWindowsPlatform(platform?: string | null) {
     return isWindowsPlatform(platform);
@@ -857,16 +856,8 @@ export class ExecApprovalsAnalysisService {
   }
 }
 
-let _execApprovalsAnalysisInstance: ExecApprovalsAnalysisService | null = null;
 
-export function getExecApprovalsAnalysisService(): ExecApprovalsAnalysisService {
-  if (!_execApprovalsAnalysisInstance) {
-    _execApprovalsAnalysisInstance = new ExecApprovalsAnalysisService();
-  }
-  return _execApprovalsAnalysisInstance;
-}
+const { getInstance: getExecApprovalsAnalysisService, __testing: __testing_execApprovalsAnalysis } =
+  createStandaloneSingleton({ create: () => new ExecApprovalsAnalysisService(), defaultDeps: {} });
 
-export const __testing_execApprovalsAnalysis = createTestingHooks<ExecApprovalsAnalysisService>(
-  () => { _execApprovalsAnalysisInstance = null; },
-  (svc) => { _execApprovalsAnalysisInstance = svc; },
-);
+export { getExecApprovalsAnalysisService, __testing_execApprovalsAnalysis };

@@ -1,9 +1,3 @@
-/**
- * src/gateway/http-utils.test.ts
- *
- * CoreBlow — Gateway HTTP Utils Tests
- * Verifies COREBLOW_MODEL_ID constants and getHeader/getBearerToken helpers.
- */
 import { describe, expect, it } from "vitest";
 import {
   COREBLOW_MODEL_ID,

@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Data Retention Unit Tests
- */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { DataRetention } from './data-retention.js';
 

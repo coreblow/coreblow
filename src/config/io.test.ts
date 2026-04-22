@@ -1,9 +1,3 @@
-/**
- * src/config/io.test.ts
- *
- * CoreBlow — Config IO Tests
- * Verifies ConfigRuntimeRefreshError, resolveConfigSnapshotHash.
- */
 import { describe, expect, it } from "vitest";
 import { ConfigRuntimeRefreshError, resolveConfigSnapshotHash } from "./io.js";
 

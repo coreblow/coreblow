@@ -1,7 +1,3 @@
-/**
- * Logging Tests — Phase B: Business Logic
- * Tests: LOG_LEVELS, shouldLog, formatLog
- */
 import { describe, it, expect } from 'vitest';
 import { LOG_LEVELS, shouldLog } from './log-levels.js';
 import { formatLog } from './log-formatter.js';

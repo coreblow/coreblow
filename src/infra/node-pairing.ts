@@ -322,8 +322,7 @@ export async function renamePairedNode(
 // NodePairingService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class NodePairingService {
   async listNodePairing(baseDir?: string) {
     return listNodePairing(baseDir);
@@ -350,16 +349,8 @@ export class NodePairingService {
   }
 }
 
-let _nodePairingInstance: NodePairingService | null = null;
 
-export function getNodePairingService(): NodePairingService {
-  if (!_nodePairingInstance) {
-    _nodePairingInstance = new NodePairingService();
-  }
-  return _nodePairingInstance;
-}
+const { getInstance: getNodePairingService, __testing: __testing_nodePairing } =
+  createStandaloneSingleton({ create: () => new NodePairingService(), defaultDeps: {} });
 
-export const __testing_nodePairing = createTestingHooks<NodePairingService>(
-  () => { _nodePairingInstance = null; },
-  (svc) => { _nodePairingInstance = svc; },
-);
+export { getNodePairingService, __testing_nodePairing };

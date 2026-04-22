@@ -1,8 +1,3 @@
-/**
- * src/config/legacy.migrations.audio.test.ts
- *
- * CoreBlow — Legacy Config Migrations Audio Tests
- */
 import { describe, expect, it } from "vitest";
 import { LEGACY_CONFIG_MIGRATIONS_AUDIO } from "./legacy.migrations.audio.js";
 

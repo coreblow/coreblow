@@ -1,6 +1,3 @@
-/**
- * media-understanding/defaults.test.ts — Media defaults tests
- */
 import { describe, it, expect } from 'vitest';
 import { resolveMediaPrompt, resolveMediaModel, resolveMediaMaxTokens, DEFAULT_IMAGE_PROMPT, DEFAULT_AUDIO_MODEL } from './defaults.js';
 

@@ -1,9 +1,3 @@
-/**
- * src/infra/exec-approvals-allowlist.test.ts
- *
- * CoreBlow — Exec Approvals Allowlist Tests
- * Verifies normalizeSafeBins and resolveSafeBins.
- */
 import { describe, expect, it } from "vitest";
 import {
   normalizeSafeBins,

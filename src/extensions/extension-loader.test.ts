@@ -1,6 +1,3 @@
-/**
- * extensions/extension-loader.test.ts — Extension loader tests
- */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ExtensionLoader } from './extension-loader.js';
 import type { ExtensionManifest } from './types.js';

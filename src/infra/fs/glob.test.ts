@@ -1,9 +1,3 @@
-/**
- * src/infra/fs/glob.test.ts
- *
- * CoreBlow — FS Glob Tests
- * Verifies globSync: returns array, handles non-existent dir, matches extension.
- */
 import { describe, expect, it } from "vitest";
 import { globSync } from "./glob.js";
 import { tmpdir } from "node:os";

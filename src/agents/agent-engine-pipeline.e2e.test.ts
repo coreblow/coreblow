@@ -1,8 +1,3 @@
-/**
- * agents/agent-engine-pipeline.e2e.test.ts
- * E2E tests — full pipeline with mock providers.
- * Follows CoreBlow pi-embedded-runner.e2e.test.ts pattern.
- */
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';

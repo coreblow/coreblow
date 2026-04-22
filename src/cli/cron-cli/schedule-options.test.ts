@@ -1,9 +1,3 @@
-/**
- * src/cli/cron-cli/schedule-options.test.ts
- *
- * CoreBlow — Cron CLI Schedule Options Tests
- * Verifies resolveCronCreateSchedule error handling.
- */
 import { describe, expect, it } from "vitest";
 import { resolveCronCreateSchedule, resolveCronEditScheduleRequest } from "./schedule-options.js";
 

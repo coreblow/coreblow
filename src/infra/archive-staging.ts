@@ -221,22 +221,13 @@ export function createArchiveSymlinkTraversalError(originalPath: string): Archiv
 // ArchiveStagingService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ArchiveStagingService {
   [Symbol.toStringTag] = 'ArchiveStagingService';
 }
 
-let _archiveStagingInstance: ArchiveStagingService | null = null;
 
-export function getArchiveStagingService(): ArchiveStagingService {
-  if (!_archiveStagingInstance) {
-    _archiveStagingInstance = new ArchiveStagingService();
-  }
-  return _archiveStagingInstance;
-}
+const { getInstance: getArchiveStagingService, __testing: __testing_archiveStaging } =
+  createStandaloneSingleton({ create: () => new ArchiveStagingService(), defaultDeps: {} });
 
-export const __testing_archiveStaging = createTestingHooks<ArchiveStagingService>(
-  () => { _archiveStagingInstance = null; },
-  (svc) => { _archiveStagingInstance = svc; },
-);
+export { getArchiveStagingService, __testing_archiveStaging };

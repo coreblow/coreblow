@@ -112,22 +112,13 @@ export function resolveUpdateChannelDisplay(params: {
 // UpdateChannelsService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class UpdateChannelsService {
   [Symbol.toStringTag] = 'UpdateChannelsService';
 }
 
-let _updateChannelsInstance: UpdateChannelsService | null = null;
 
-export function getUpdateChannelsService(): UpdateChannelsService {
-  if (!_updateChannelsInstance) {
-    _updateChannelsInstance = new UpdateChannelsService();
-  }
-  return _updateChannelsInstance;
-}
+const { getInstance: getUpdateChannelsService, __testing: __testing_updateChannels } =
+  createStandaloneSingleton({ create: () => new UpdateChannelsService(), defaultDeps: {} });
 
-export const __testing_updateChannels = createTestingHooks<UpdateChannelsService>(
-  () => { _updateChannelsInstance = null; },
-  (svc) => { _updateChannelsInstance = svc; },
-);
+export { getUpdateChannelsService, __testing_updateChannels };

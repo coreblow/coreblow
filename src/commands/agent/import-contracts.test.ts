@@ -1,8 +1,3 @@
-/**
- * src/commands/agent/import-contracts.test.ts
- *
- * CoreBlow — Commands Agent Import Contracts
- */
 import { describe, expect, it } from "vitest";
 
 describe("commands/agent — import contracts", () => {

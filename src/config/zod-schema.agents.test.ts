@@ -1,10 +1,3 @@
-/**
- * src/config/zod-schema.agents.test.ts
- *
- * CoreBlow — Agents Schema Validation Tests
- * Verifies AgentsSchema, BroadcastStrategySchema, and BroadcastSchema
- * accept valid agent configurations.
- */
 import { describe, expect, it } from "vitest";
 import {
   AgentsSchema,

@@ -1,4 +1,5 @@
 import path from "node:path";
+import { clamp } from "../utils.js";
 import { getGatewayRegistry, registerInfraServices } from "./gateway-services.js";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { getActiveEmbeddedRunCount } from "../agents/pi-embedded-runner/runs.js";
@@ -151,7 +152,7 @@ ensureCoreBlowCliOnPath();
 const MAX_MEDIA_TTL_HOURS = 24 * 7;
 
 function resolveMediaCleanupTtlMs(ttlHoursRaw: number): number {
-  const ttlHours = Math.min(Math.max(ttlHoursRaw, 1), MAX_MEDIA_TTL_HOURS);
+  const ttlHours = clamp(ttlHoursRaw, 1, MAX_MEDIA_TTL_HOURS);
   const ttlMs = ttlHours * 60 * 60_000;
   if (!Number.isFinite(ttlMs) || !Number.isSafeInteger(ttlMs)) {
     throw new Error(`Invalid media.ttlHours: ${String(ttlHoursRaw)}`);

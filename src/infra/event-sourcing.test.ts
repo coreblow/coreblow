@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Event Sourcing Tests
- *
- * Tests for event appending, versioning, projections,
- * snapshots, filtering, and replay.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { EventStore } from './event-sourcing.js';
 

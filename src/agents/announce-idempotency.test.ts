@@ -1,12 +1,3 @@
-/**
- * CoreBlow — Announce Idempotency Tests
- *
- * Tests for announce ID generation, idempotency key building,
- * and queue announce ID resolution (with legacy fallback).
- *
- * Reference: OC src/agents/announce-idempotency.test.ts
- */
-
 import { describe, it, expect } from 'vitest';
 import {
     buildAnnounceIdFromChildRun,

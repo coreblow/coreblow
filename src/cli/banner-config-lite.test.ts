@@ -1,9 +1,3 @@
-/**
- * src/cli/banner-config-lite.test.ts
- *
- * CoreBlow — CLI Banner Config Lite Tests
- * Verifies readCliBannerTaglineMode: returns undefined on no config.
- */
 import { describe, expect, it } from "vitest";
 import { readCliBannerTaglineMode } from "./banner-config-lite.js";
 

@@ -1,6 +1,3 @@
-/**
- * secrets/encryption.test.ts — AES-256-GCM encryption tests
- */
 import { describe, it, expect } from 'vitest';
 import { encrypt, decrypt, generateEncryptionKey, hashSecret } from './encryption.js';
 

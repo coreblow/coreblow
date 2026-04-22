@@ -63,22 +63,13 @@ export async function requestJsonlSocket<T>(params: {
 // JsonlSocketService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class JsonlSocketService {
   [Symbol.toStringTag] = 'JsonlSocketService';
 }
 
-let _jsonlSocketInstance: JsonlSocketService | null = null;
 
-export function getJsonlSocketService(): JsonlSocketService {
-  if (!_jsonlSocketInstance) {
-    _jsonlSocketInstance = new JsonlSocketService();
-  }
-  return _jsonlSocketInstance;
-}
+const { getInstance: getJsonlSocketService, __testing: __testing_jsonlSocket } =
+  createStandaloneSingleton({ create: () => new JsonlSocketService(), defaultDeps: {} });
 
-export const __testing_jsonlSocket = createTestingHooks<JsonlSocketService>(
-  () => { _jsonlSocketInstance = null; },
-  (svc) => { _jsonlSocketInstance = svc; },
-);
+export { getJsonlSocketService, __testing_jsonlSocket };

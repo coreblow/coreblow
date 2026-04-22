@@ -1,6 +1,3 @@
-/**
- * extensions/public-artifacts.test.ts — Public artifacts tests
- */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { PublicArtifactStore } from './public-artifacts.js';
 import fs from 'node:fs';

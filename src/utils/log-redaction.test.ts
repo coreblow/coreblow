@@ -1,6 +1,3 @@
-/**
- * utils/log-redaction.test.ts — Log redaction engine tests
- */
 import { describe, it, expect } from 'vitest';
 import { redactApiKeys, redactLogObject, containsSecrets } from './log-redaction.js';
 

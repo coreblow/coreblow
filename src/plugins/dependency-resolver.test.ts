@@ -1,13 +1,3 @@
-/**
- * plugins/dependency-resolver.test.ts
- *
- * Comprehensive test suite for DependencyResolver and DependencyGraph.
- * Covers graph operations, topological sort, cycle detection, semver,
- * conflict detection, resolution strategies, upgrade planning,
- * compatibility matrix, visual graph, install simulation, orphans,
- * and health reports.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
     DependencyGraph,

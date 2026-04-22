@@ -1,6 +1,3 @@
-/**
- * agents/content-blocks.test.ts
- */
 import { describe, it, expect } from 'vitest';
 import { normalizeContent, extractText, extractToolUses, extractThinking, countBlocksByType, text, toolUse, toolResult, hasToolUse, redactBlocks, type ContentBlock } from './content-blocks.js';
 

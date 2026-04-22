@@ -547,8 +547,7 @@ export async function lookupDirectoryDisplay(params: {
 // OutboundTargetResolverService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "../service-patterns.js";
-
+import { createStandaloneSingleton } from "../service-patterns.js";
 /**
  * Tier-1 service wrapping outbound target resolution (directory lookup,
  * channel target normalization, display formatting).
@@ -579,16 +578,8 @@ export class OutboundTargetResolverService {
   }
 }
 
-let _targetResolverInstance: OutboundTargetResolverService | null = null;
 
-export function getOutboundTargetResolverService(): OutboundTargetResolverService {
-  if (!_targetResolverInstance) {
-    _targetResolverInstance = new OutboundTargetResolverService();
-  }
-  return _targetResolverInstance;
-}
+const { getInstance: getOutboundTargetResolverService, __testing: __testing_targetResolver } =
+  createStandaloneSingleton({ create: () => new OutboundTargetResolverService(), defaultDeps: {} });
 
-export const __testing_targetResolver = createTestingHooks<OutboundTargetResolverService>(
-  () => { _targetResolverInstance = null; },
-  (svc) => { _targetResolverInstance = svc; },
-);
+export { getOutboundTargetResolverService, __testing_targetResolver };

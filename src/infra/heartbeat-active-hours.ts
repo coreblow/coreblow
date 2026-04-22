@@ -102,24 +102,15 @@ export function isWithinActiveHours(
 // HeartbeatActiveHoursService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class HeartbeatActiveHoursService {
   isWithinActiveHours(...args: Parameters<typeof isWithinActiveHours>) {
     return isWithinActiveHours(...args);
   }
 }
 
-let _heartbeatActiveHoursInstance: HeartbeatActiveHoursService | null = null;
 
-export function getHeartbeatActiveHoursService(): HeartbeatActiveHoursService {
-  if (!_heartbeatActiveHoursInstance) {
-    _heartbeatActiveHoursInstance = new HeartbeatActiveHoursService();
-  }
-  return _heartbeatActiveHoursInstance;
-}
+const { getInstance: getHeartbeatActiveHoursService, __testing: __testing_heartbeatActiveHours } =
+  createStandaloneSingleton({ create: () => new HeartbeatActiveHoursService(), defaultDeps: {} });
 
-export const __testing_heartbeatActiveHours = createTestingHooks<HeartbeatActiveHoursService>(
-  () => { _heartbeatActiveHoursInstance = null; },
-  (svc) => { _heartbeatActiveHoursInstance = svc; },
-);
+export { getHeartbeatActiveHoursService, __testing_heartbeatActiveHours };

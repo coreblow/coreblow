@@ -109,22 +109,13 @@ export async function assertCanonicalPathWithinBase(params: {
 // InstallSafePathService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class InstallSafePathService {
   [Symbol.toStringTag] = 'InstallSafePathService';
 }
 
-let _installSafePathInstance: InstallSafePathService | null = null;
 
-export function getInstallSafePathService(): InstallSafePathService {
-  if (!_installSafePathInstance) {
-    _installSafePathInstance = new InstallSafePathService();
-  }
-  return _installSafePathInstance;
-}
+const { getInstance: getInstallSafePathService, __testing: __testing_installSafePath } =
+  createStandaloneSingleton({ create: () => new InstallSafePathService(), defaultDeps: {} });
 
-export const __testing_installSafePath = createTestingHooks<InstallSafePathService>(
-  () => { _installSafePathInstance = null; },
-  (svc) => { _installSafePathInstance = svc; },
-);
+export { getInstallSafePathService, __testing_installSafePath };

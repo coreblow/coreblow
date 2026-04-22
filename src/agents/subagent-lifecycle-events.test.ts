@@ -1,9 +1,3 @@
-/**
- * CoreBlow — Subagent Lifecycle Events Tests
- *
- * Tests for constants and resolveSubagentSessionEndedOutcome.
- */
-
 import { describe, it, expect } from 'vitest';
 import {
     SUBAGENT_TARGET_KIND_SUBAGENT,

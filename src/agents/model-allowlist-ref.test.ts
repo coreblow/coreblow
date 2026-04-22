@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Model Allowlist Ref Tests (Inline)
- *
- * Tests for normalizeAnthropicModelId and modelKey logic.
- * Inline to avoid provider-id import chain.
- */
-
 import { describe, it, expect } from 'vitest';
 
 // ── Inline replicas ────────────────────────────────────────────────

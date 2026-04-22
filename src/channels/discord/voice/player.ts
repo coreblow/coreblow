@@ -1,3 +1,4 @@
+import { clamp } from "../../../utils.js";
 /**
  * Discord Voice Player — Plays audio resources in voice channels.
  */
@@ -19,7 +20,7 @@ export class VoicePlayer {
     resume(): boolean { if (this.state !== 'paused') return false; this.state = 'playing'; return true; }
     stop(): void { this.state = 'stopped'; this.currentResource = undefined; }
 
-    setVolume(vol: number): void { this.volume = Math.max(0, Math.min(2, vol)); }
+    setVolume(vol: number): void { this.volume = clamp(vol, 0, 2); }
     getVolume(): number { return this.volume; }
     getState(): PlayerState { return this.state; }
     getCurrent(): { url: string; title: string; durationMs: number } | null {

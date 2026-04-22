@@ -87,24 +87,15 @@ export function matchesExecAllowlistPattern(pattern: string, target: string): bo
 // ExecAllowlistPatternService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ExecAllowlistPatternService {
   matchesExecAllowlistPattern(pattern: string, target: string) {
     return matchesExecAllowlistPattern(pattern, target);
   }
 }
 
-let _execAllowlistPatternInstance: ExecAllowlistPatternService | null = null;
 
-export function getExecAllowlistPatternService(): ExecAllowlistPatternService {
-  if (!_execAllowlistPatternInstance) {
-    _execAllowlistPatternInstance = new ExecAllowlistPatternService();
-  }
-  return _execAllowlistPatternInstance;
-}
+const { getInstance: getExecAllowlistPatternService, __testing: __testing_execAllowlistPattern } =
+  createStandaloneSingleton({ create: () => new ExecAllowlistPatternService(), defaultDeps: {} });
 
-export const __testing_execAllowlistPattern = createTestingHooks<ExecAllowlistPatternService>(
-  () => { _execAllowlistPatternInstance = null; },
-  (svc) => { _execAllowlistPatternInstance = svc; },
-);
+export { getExecAllowlistPatternService, __testing_execAllowlistPattern };

@@ -1,6 +1,3 @@
-/**
- * channels/thread-bindings.test.ts — Thread binding tests
- */
 import { describe, it, expect } from 'vitest';
 import { ThreadBindingRegistry, resolveThreadBindingLifecycle } from './thread-bindings.js';
 

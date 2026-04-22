@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { CoreblowConfig } from "../../config/config.js";
+import type { CoreBlowConfig } from "../../config/config.js";
 
 const hoisted = vi.hoisted(() => {
   const resolveAllAgentSessionStoreTargetsMock = vi.fn();
@@ -16,7 +16,7 @@ vi.mock("../../config/sessions.js", async () => {
   );
   return {
     ...actual,
-    resolveAllAgentSessionStoreTargets: (cfg: CoreblowConfig, opts: unknown) =>
+    resolveAllAgentSessionStoreTargets: (cfg: CoreBlowConfig, opts: unknown) =>
       hoisted.resolveAllAgentSessionStoreTargetsMock(cfg, opts),
     loadSessionStore: (storePath: string) => hoisted.loadSessionStoreMock(storePath),
   };
@@ -36,7 +36,7 @@ describe("listAcpSessionEntries", () => {
       session: {
         store: "/custom/sessions/{agentId}.json",
       },
-    } as CoreblowConfig;
+    } as CoreBlowConfig;
     hoisted.resolveAllAgentSessionStoreTargetsMock.mockResolvedValue([
       {
         agentId: "ops",
@@ -72,7 +72,7 @@ describe("listAcpSessionEntries", () => {
   it("returns empty array when no store targets exist", async () => {
     hoisted.resolveAllAgentSessionStoreTargetsMock.mockResolvedValue([]);
 
-    const entries = await listAcpSessionEntries({ cfg: {} as CoreblowConfig });
+    const entries = await listAcpSessionEntries({ cfg: {} as CoreBlowConfig });
 
     expect(entries).toEqual([]);
     expect(hoisted.loadSessionStoreMock).not.toHaveBeenCalled();
@@ -98,7 +98,7 @@ describe("listAcpSessionEntries", () => {
       },
     });
 
-    const entries = await listAcpSessionEntries({ cfg: {} as CoreblowConfig });
+    const entries = await listAcpSessionEntries({ cfg: {} as CoreBlowConfig });
 
     expect(entries).toHaveLength(1);
     expect(entries[0].sessionKey).toBe("agent:main:acp:s1");

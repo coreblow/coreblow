@@ -1,6 +1,3 @@
-/**
- * tts/queue.test.ts — TTS queue tests
- */
 import { describe, it, expect } from 'vitest';
 import { TTSQueue } from './queue.js';
 

@@ -283,8 +283,7 @@ export const __testing = {
 // CurrentConversationBindingService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "../service-patterns.js";
-
+import { createStandaloneSingleton } from "../service-patterns.js";
 export class CurrentConversationBindingService {
   getCapabilities(params: Parameters<typeof getGenericCurrentConversationBindingCapabilities>[0]) {
     return getGenericCurrentConversationBindingCapabilities(params);
@@ -311,16 +310,8 @@ export class CurrentConversationBindingService {
   }
 }
 
-let _bindingInstance: CurrentConversationBindingService | null = null;
 
-export function getCurrentConversationBindingService(): CurrentConversationBindingService {
-  if (!_bindingInstance) {
-    _bindingInstance = new CurrentConversationBindingService();
-  }
-  return _bindingInstance;
-}
+const { getInstance: getCurrentConversationBindingService, __testing: __testing_currentConversationBinding } =
+  createStandaloneSingleton({ create: () => new CurrentConversationBindingService(), defaultDeps: {} });
 
-export const __testing_currentConversationBinding = createTestingHooks<CurrentConversationBindingService>(
-  () => { _bindingInstance = null; },
-  (svc) => { _bindingInstance = svc; },
-);
+export { getCurrentConversationBindingService, __testing_currentConversationBinding };

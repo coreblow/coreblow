@@ -1,6 +1,3 @@
-/**
- * commands/batch.test.ts — Batch executor tests
- */
 import { describe, it, expect } from 'vitest';
 import { BatchExecutor } from './batch.js';
 

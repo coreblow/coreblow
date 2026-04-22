@@ -1,6 +1,3 @@
-/**
- * pairing/pairing-messages.test.ts — Pairing message formatting tests
- */
 import { describe, it, expect } from 'vitest';
 import { buildPairingReply, buildPairingSuccessReply, buildPairingRejectedReply, buildPairingExpiredReply, buildPairingAlreadyExistsReply } from './pairing-messages.js';
 

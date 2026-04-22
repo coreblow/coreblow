@@ -1,10 +1,3 @@
-/**
- * src/infra/format-time/format-duration.test.ts
- *
- * CoreBlow — Format Duration Tests
- * Verifies formatDurationSeconds, formatDurationPrecise,
- * formatDurationCompact, formatDurationHuman.
- */
 import { describe, expect, it } from "vitest";
 import {
   formatDurationSeconds,

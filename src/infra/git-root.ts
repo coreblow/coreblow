@@ -75,22 +75,13 @@ export function resolveGitHeadPath(
 // GitRootService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class GitRootService {
   [Symbol.toStringTag] = 'GitRootService';
 }
 
-let _gitRootInstance: GitRootService | null = null;
 
-export function getGitRootService(): GitRootService {
-  if (!_gitRootInstance) {
-    _gitRootInstance = new GitRootService();
-  }
-  return _gitRootInstance;
-}
+const { getInstance: getGitRootService, __testing: __testing_gitRoot } =
+  createStandaloneSingleton({ create: () => new GitRootService(), defaultDeps: {} });
 
-export const __testing_gitRoot = createTestingHooks<GitRootService>(
-  () => { _gitRootInstance = null; },
-  (svc) => { _gitRootInstance = svc; },
-);
+export { getGitRootService, __testing_gitRoot };

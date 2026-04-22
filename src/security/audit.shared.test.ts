@@ -1,6 +1,3 @@
-/**
- * security/audit.shared.test.ts — Audit shared utility tests
- */
 import { describe, it, expect } from 'vitest';
 import { formatAuditEntry, sanitizeForAudit, AUDIT_CATEGORIES } from './audit.shared.js';
 

@@ -1,12 +1,3 @@
-/**
- * agents/failover-policy.test.ts
- *
- * Tests untuk failover-policy.ts:
- *  1. 3 pure policy functions (port CoreBlow CASES table)
- *  2. buildProviderProfileId helper
- *  3. shouldAllowCooldownProbe (backward compat alias)
- *  4. Re-exported FailoverError / classification functions
- */
 import { describe, it, expect } from 'vitest';
 import {
     shouldAllowCooldownProbeForReason,

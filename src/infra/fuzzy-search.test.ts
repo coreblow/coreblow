@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Fuzzy Search Tests
- *
- * Tests for Levenshtein-based fuzzy matching, exact contains,
- * scoring, best match, and max distance control.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { FuzzySearch } from './fuzzy-search.js';
 

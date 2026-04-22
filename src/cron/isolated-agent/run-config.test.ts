@@ -1,10 +1,3 @@
-/**
- * src/cron/isolated-agent/run-config.test.ts
- *
- * CoreBlow — Cron Isolated Agent Run Config Tests
- * Verifies buildCronAgentDefaultsConfig merges defaults with
- * agent overrides correctly, excluding sandbox from defaults.
- */
 import { describe, expect, it } from "vitest";
 import { buildCronAgentDefaultsConfig } from "./run-config.js";
 import type { AgentDefaultsConfig } from "../../config/types.js";

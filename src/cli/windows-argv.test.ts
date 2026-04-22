@@ -1,9 +1,3 @@
-/**
- * src/cli/windows-argv.test.ts
- *
- * CoreBlow — Windows Argv Tests
- * Verifies normalizeWindowsArgv: passthrough on non-win32, handles empty.
- */
 import { describe, expect, it } from "vitest";
 import { normalizeWindowsArgv } from "./windows-argv.js";
 

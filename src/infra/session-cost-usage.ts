@@ -1091,8 +1091,7 @@ export async function loadSessionLogs(params: {
 // SessionCostUsageService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class SessionCostUsageService {
   resolveExistingUsageSessionFile(params: Parameters<typeof resolveExistingUsageSessionFile>[0]) {
     return resolveExistingUsageSessionFile(params);
@@ -1119,16 +1118,8 @@ export class SessionCostUsageService {
   }
 }
 
-let _sessionCostUsageInstance: SessionCostUsageService | null = null;
 
-export function getSessionCostUsageService(): SessionCostUsageService {
-  if (!_sessionCostUsageInstance) {
-    _sessionCostUsageInstance = new SessionCostUsageService();
-  }
-  return _sessionCostUsageInstance;
-}
+const { getInstance: getSessionCostUsageService, __testing: __testing_sessionCostUsage } =
+  createStandaloneSingleton({ create: () => new SessionCostUsageService(), defaultDeps: {} });
 
-export const __testing_sessionCostUsage = createTestingHooks<SessionCostUsageService>(
-  () => { _sessionCostUsageInstance = null; },
-  (svc) => { _sessionCostUsageInstance = svc; },
-);
+export { getSessionCostUsageService, __testing_sessionCostUsage };

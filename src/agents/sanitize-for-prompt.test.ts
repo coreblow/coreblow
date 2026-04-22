@@ -1,6 +1,3 @@
-/**
- * agents/sanitize-for-prompt.test.ts
- */
 import { describe, it, expect } from 'vitest';
 import { sanitizeForPromptLiteral, stripAnsi, truncateForPrompt, sanitizeConsoleOutput, escapeMarkdown, stripMarkdown, detectPromptInjection } from './sanitize-for-prompt.js';
 

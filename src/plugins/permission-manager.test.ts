@@ -1,11 +1,3 @@
-/**
- * plugins/permission-manager.test.ts
- *
- * Comprehensive test suite for PermissionManager.
- * Tests grant/revoke, request workflow, policies, scoping,
- * expiry, bulk operations, persistence, and edge cases.
- */
-
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
     PermissionManager,

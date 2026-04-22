@@ -1,6 +1,3 @@
-/**
- * src/plugins/plugins.import-contracts-c.test.ts
- */
 import { describe, expect, it } from "vitest";
 import { readdirSync, statSync } from "fs";
 import { basename, join } from "path";

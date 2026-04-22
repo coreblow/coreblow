@@ -1,9 +1,3 @@
-/**
- * src/cli/install-spec.test.ts
- *
- * CoreBlow — Install Spec Tests
- * Verifies looksLikeLocalInstallSpec.
- */
 import { describe, expect, it } from "vitest";
 import { looksLikeLocalInstallSpec } from "./install-spec.js";
 

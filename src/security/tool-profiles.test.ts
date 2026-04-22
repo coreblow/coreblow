@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Tool Profiles / Access Control Unit Tests
- */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 vi.mock('../utils/logger.js', () => ({

@@ -1,9 +1,3 @@
-/**
- * agents/failover-error.test.ts
- *
- * CoreBlow — failover-error.test.ts
- * Tests untuk error classification engine.
- */
 import { describe, it, expect } from 'vitest';
 import {
     FailoverError,

@@ -39,22 +39,13 @@ export async function detectBinary(name: string): Promise<boolean> {
 // DetectBinaryService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class DetectBinaryService {
   [Symbol.toStringTag] = 'DetectBinaryService';
 }
 
-let _detectBinaryInstance: DetectBinaryService | null = null;
 
-export function getDetectBinaryService(): DetectBinaryService {
-  if (!_detectBinaryInstance) {
-    _detectBinaryInstance = new DetectBinaryService();
-  }
-  return _detectBinaryInstance;
-}
+const { getInstance: getDetectBinaryService, __testing: __testing_detectBinary } =
+  createStandaloneSingleton({ create: () => new DetectBinaryService(), defaultDeps: {} });
 
-export const __testing_detectBinary = createTestingHooks<DetectBinaryService>(
-  () => { _detectBinaryInstance = null; },
-  (svc) => { _detectBinaryInstance = svc; },
-);
+export { getDetectBinaryService, __testing_detectBinary };

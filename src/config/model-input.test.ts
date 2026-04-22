@@ -1,10 +1,3 @@
-/**
- * src/config/model-input.test.ts
- *
- * CoreBlow — Agent Model Input Resolution Tests
- * Verifies resolveAgentModelPrimaryValue, resolveAgentModelFallbackValues,
- * and toAgentModelListLike for string, object, and edge-case inputs.
- */
 import { describe, expect, it } from "vitest";
 import {
   resolveAgentModelFallbackValues,

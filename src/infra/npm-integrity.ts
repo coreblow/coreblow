@@ -96,22 +96,13 @@ export async function resolveNpmIntegrityDriftWithDefaultMessage(
 // NpmIntegrityService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class NpmIntegrityService {
   [Symbol.toStringTag] = 'NpmIntegrityService';
 }
 
-let _npmIntegrityInstance: NpmIntegrityService | null = null;
 
-export function getNpmIntegrityService(): NpmIntegrityService {
-  if (!_npmIntegrityInstance) {
-    _npmIntegrityInstance = new NpmIntegrityService();
-  }
-  return _npmIntegrityInstance;
-}
+const { getInstance: getNpmIntegrityService, __testing: __testing_npmIntegrity } =
+  createStandaloneSingleton({ create: () => new NpmIntegrityService(), defaultDeps: {} });
 
-export const __testing_npmIntegrity = createTestingHooks<NpmIntegrityService>(
-  () => { _npmIntegrityInstance = null; },
-  (svc) => { _npmIntegrityInstance = svc; },
-);
+export { getNpmIntegrityService, __testing_npmIntegrity };

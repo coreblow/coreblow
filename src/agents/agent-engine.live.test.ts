@@ -1,9 +1,3 @@
-/**
- * agents/agent-engine.live.test.ts
- * Live tests — calls real LLM APIs.
- * Only runs when COREBLOW_LIVE_TEST=1 is set.
- * Follows CoreBlow's live-test-helpers.ts pattern.
- */
 import { describe, expect, it } from 'vitest';
 import { AgentEngine } from './agent-engine.js';
 import { registerBuiltinTools } from './tool-definitions.js';
@@ -124,7 +118,7 @@ describeLive('LIVE: Anthropic Integration', () => {
         if (!provider) { console.log('Skipping: ANTHROPIC_API_KEY not set'); return; }
 
         const engine = new AgentEngine({ defaultProvider: 'anthropic' });
-        engine.registerProvider(provider, true);
+        engine.registerProvider(provider as ModelProvider, true);
         const sid = engine.createSession({
             model: 'claude-3-5-haiku-20241022',
             systemPrompt: 'Reply with exactly one word.',
@@ -138,7 +132,7 @@ describeLive('LIVE: Anthropic Integration', () => {
 
         console.log(`[LIVE] Anthropic response: "${result.responseText}" (${result.usage.totalTokens} tokens, ${result.durationMs}ms)`);
         engine.shutdown();
-    }, { timeout: 30_000 });
+    }, 30_000);
 });
 
 describeLive('LIVE: OpenAI Integration', () => {
@@ -147,7 +141,7 @@ describeLive('LIVE: OpenAI Integration', () => {
         if (!provider) { console.log('Skipping: OPENAI_API_KEY not set'); return; }
 
         const engine = new AgentEngine({ defaultProvider: 'openai' });
-        engine.registerProvider(provider, true);
+        engine.registerProvider(provider as ModelProvider, true);
         const sid = engine.createSession({
             model: 'gpt-4o-mini',
             systemPrompt: 'Reply with exactly one word.',
@@ -159,5 +153,5 @@ describeLive('LIVE: OpenAI Integration', () => {
 
         console.log(`[LIVE] OpenAI response: "${result.responseText}" (${result.usage.totalTokens} tokens, ${result.durationMs}ms)`);
         engine.shutdown();
-    }, { timeout: 30_000 });
+    }, 30_000);
 });

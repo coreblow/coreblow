@@ -53,7 +53,7 @@ async function terminateGatewayProcessTree(pid: number, graceMs: number): Promis
     await waitForProcessExit(pid, 5_000);
 }
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+import { sleep } from "../../utils.js";
 
 import { parseCmdScriptCommandLine, quoteCmdScriptArg } from "../cmd-argv.js";
 import { assertNoCmdLineBreak, parseCmdSetAssignment, renderCmdSetAssignment } from "../cmd-set.js";

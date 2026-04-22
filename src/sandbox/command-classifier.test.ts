@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Command Classifier Tests
- *
- * Tests for command risk classification: low-risk, medium-risk,
- * high-risk detection, and restricted mode blocking.
- */
-
 import { describe, it, expect } from 'vitest';
 import { classifyCommandRisk, isBlockedInRestrictedMode } from './command-classifier.js';
 

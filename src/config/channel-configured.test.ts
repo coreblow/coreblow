@@ -1,10 +1,3 @@
-/**
- * src/config/channel-configured.test.ts
- *
- * CoreBlow — Channel Configured Detection Tests
- * Verifies isChannelConfigured detects presence of valid
- * channel configurations across channel types.
- */
 import { describe, expect, it } from "vitest";
 import { isChannelConfigured } from "./channel-configured.js";
 import type { CoreBlowConfig } from "./config.js";

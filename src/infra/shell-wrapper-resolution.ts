@@ -267,22 +267,13 @@ export function extractShellWrapperCommand(
 // ShellWrapperResolutionService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ShellWrapperResolutionService {
   [Symbol.toStringTag] = 'ShellWrapperResolutionService';
 }
 
-let _shellWrapperResolutionInstance: ShellWrapperResolutionService | null = null;
 
-export function getShellWrapperResolutionService(): ShellWrapperResolutionService {
-  if (!_shellWrapperResolutionInstance) {
-    _shellWrapperResolutionInstance = new ShellWrapperResolutionService();
-  }
-  return _shellWrapperResolutionInstance;
-}
+const { getInstance: getShellWrapperResolutionService, __testing: __testing_shellWrapperResolution } =
+  createStandaloneSingleton({ create: () => new ShellWrapperResolutionService(), defaultDeps: {} });
 
-export const __testing_shellWrapperResolution = createTestingHooks<ShellWrapperResolutionService>(
-  () => { _shellWrapperResolutionInstance = null; },
-  (svc) => { _shellWrapperResolutionInstance = svc; },
-);
+export { getShellWrapperResolutionService, __testing_shellWrapperResolution };

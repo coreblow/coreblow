@@ -592,8 +592,7 @@ export async function requestExecApprovalViaSocket(params: {
 // ExecApprovalsService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ExecApprovalsService {
   normalizeExecHost(value?: string | null) {
     return normalizeExecHost(value);
@@ -616,16 +615,8 @@ export class ExecApprovalsService {
   }
 }
 
-let _execApprovalsInstance: ExecApprovalsService | null = null;
 
-export function getExecApprovalsService(): ExecApprovalsService {
-  if (!_execApprovalsInstance) {
-    _execApprovalsInstance = new ExecApprovalsService();
-  }
-  return _execApprovalsInstance;
-}
+const { getInstance: getExecApprovalsService, __testing: __testing_execApprovals } =
+  createStandaloneSingleton({ create: () => new ExecApprovalsService(), defaultDeps: {} });
 
-export const __testing_execApprovals = createTestingHooks<ExecApprovalsService>(
-  () => { _execApprovalsInstance = null; },
-  (svc) => { _execApprovalsInstance = svc; },
-);
+export { getExecApprovalsService, __testing_execApprovals };

@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Config Env Map Tests
- *
- * Tests for env→config path mapping, lookup, sensitive
- * var listing, and env discovery.
- */
-
 import { describe, it, expect } from 'vitest';
 import {
     getEnvConfigMap,

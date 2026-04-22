@@ -862,22 +862,13 @@ async function copyFileWithinRootLegacy(
 // FsSafeService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class FsSafeService {
   [Symbol.toStringTag] = 'FsSafeService';
 }
 
-let _fsSafeInstance: FsSafeService | null = null;
 
-export function getFsSafeService(): FsSafeService {
-  if (!_fsSafeInstance) {
-    _fsSafeInstance = new FsSafeService();
-  }
-  return _fsSafeInstance;
-}
+const { getInstance: getFsSafeService, __testing: __testing_fsSafe } =
+  createStandaloneSingleton({ create: () => new FsSafeService(), defaultDeps: {} });
 
-export const __testing_fsSafe = createTestingHooks<FsSafeService>(
-  () => { _fsSafeInstance = null; },
-  (svc) => { _fsSafeInstance = svc; },
-);
+export { getFsSafeService, __testing_fsSafe };

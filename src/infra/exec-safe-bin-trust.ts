@@ -129,8 +129,7 @@ export function listWritableExplicitTrustedSafeBinDirs(
 // ExecSafeBinTrustService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ExecSafeBinTrustService {
   normalizeTrustedSafeBinDirs(entries?: readonly string[] | null) {
     return normalizeTrustedSafeBinDirs(entries);
@@ -153,16 +152,8 @@ export class ExecSafeBinTrustService {
   }
 }
 
-let _execSafeBinTrustInstance: ExecSafeBinTrustService | null = null;
 
-export function getExecSafeBinTrustService(): ExecSafeBinTrustService {
-  if (!_execSafeBinTrustInstance) {
-    _execSafeBinTrustInstance = new ExecSafeBinTrustService();
-  }
-  return _execSafeBinTrustInstance;
-}
+const { getInstance: getExecSafeBinTrustService, __testing: __testing_execSafeBinTrust } =
+  createStandaloneSingleton({ create: () => new ExecSafeBinTrustService(), defaultDeps: {} });
 
-export const __testing_execSafeBinTrust = createTestingHooks<ExecSafeBinTrustService>(
-  () => { _execSafeBinTrustInstance = null; },
-  (svc) => { _execSafeBinTrustInstance = svc; },
-);
+export { getExecSafeBinTrustService, __testing_execSafeBinTrust };

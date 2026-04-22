@@ -1,6 +1,3 @@
-/**
- * src/commands/gateway-presence.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("commands/gateway-presence — import", () => {
   it("is importable", async () => {

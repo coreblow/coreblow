@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Route Matcher Tests
- *
- * Tests for route registration, path matching with params,
- * wildcards, query parsing, and method filtering.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { RouteMatcher } from './route-matcher.js';
 

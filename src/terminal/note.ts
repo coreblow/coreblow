@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 import { note as clackNote } from "@clack/prompts";
 import { visibleWidth } from "./ansi.js";
 import { stylePromptTitle } from "./prompt-style.js";
@@ -150,7 +151,7 @@ export function wrapNoteMessage(
   options: { maxWidth?: number; columns?: number } = {},
 ): string {
   const columns = options.columns ?? process.stdout.columns ?? 80;
-  const maxWidth = options.maxWidth ?? Math.max(40, Math.min(88, columns - 10));
+  const maxWidth = options.maxWidth ?? clamp(columns - 10, 40, 88);
   return message
     .split("\n")
     .flatMap((line) => wrapLine(line, maxWidth))

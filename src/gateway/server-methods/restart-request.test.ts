@@ -1,6 +1,3 @@
-/**
- * src/gateway/server-methods/restart-request.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("server-methods/restart-request — import", () => {
   it("is importable", async () => {

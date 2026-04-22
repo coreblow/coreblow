@@ -1,5 +1,6 @@
 // @ts-nocheck
 import crypto from "node:crypto";
+import { sleep } from "../utils.js";
 import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import os from "node:os";
@@ -400,7 +401,7 @@ vi.mock("../config/sessions.js", async () => {
     saveSessionStore: vi.fn(async (storePath: string, store: unknown) => {
       const delay = sessionStoreSaveDelayMs.value;
       if (delay > 0) {
-        await new Promise((resolve) => setTimeout(resolve, delay));
+        await sleep(delay);
       }
       return actual.saveSessionStore(storePath, store as never);
     }),

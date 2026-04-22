@@ -1,6 +1,3 @@
-/**
- * src/auto-reply/auto-reply.import-contracts-b.test.ts
- */
 import { describe, expect, it } from "vitest";
 const modules = [
   "reply.directive.directive-behavior.e2e-harness",

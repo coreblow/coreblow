@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 import { spawn } from "node:child_process";
 
 const DEFAULT_GRACE_MS = 3000;
@@ -31,7 +32,7 @@ function normalizeGraceMs(value?: number): number {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     return DEFAULT_GRACE_MS;
   }
-  return Math.max(0, Math.min(MAX_GRACE_MS, Math.floor(value)));
+  return clamp(Math.floor(value), 0, MAX_GRACE_MS);
 }
 
 function isProcessAlive(pid: number): boolean {

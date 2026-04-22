@@ -1,10 +1,3 @@
-/**
- * src/cron/cron-types-validation.test.ts
- *
- * CoreBlow — Cron Types Validation (Extended)
- * Validates CronDeliveryStatus, CronUsageSummary shape,
- * and CronRunOutcome field structure.
- */
 import { describe, expect, it } from "vitest";
 import type {
   CronDeliveryStatus,

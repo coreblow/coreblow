@@ -179,8 +179,7 @@ export async function ensureOutboundSessionEntry(params: {
 // OutboundSessionService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "../service-patterns.js";
-
+import { createStandaloneSingleton } from "../service-patterns.js";
 export class OutboundSessionService {
   async resolveOutboundSessionRoute(params: Parameters<typeof resolveOutboundSessionRoute>[0]) {
     return resolveOutboundSessionRoute(params);
@@ -191,16 +190,8 @@ export class OutboundSessionService {
   }
 }
 
-let _outboundSessionInstance: OutboundSessionService | null = null;
 
-export function getOutboundSessionService(): OutboundSessionService {
-  if (!_outboundSessionInstance) {
-    _outboundSessionInstance = new OutboundSessionService();
-  }
-  return _outboundSessionInstance;
-}
+const { getInstance: getOutboundSessionService, __testing: __testing_outboundSession } =
+  createStandaloneSingleton({ create: () => new OutboundSessionService(), defaultDeps: {} });
 
-export const __testing_outboundSession = createTestingHooks<OutboundSessionService>(
-  () => { _outboundSessionInstance = null; },
-  (svc) => { _outboundSessionInstance = svc; },
-);
+export { getOutboundSessionService, __testing_outboundSession };

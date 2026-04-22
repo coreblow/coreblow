@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 import { spinner } from "@clack/prompts";
 import { createOscProgressController, supportsOscProgress } from "osc-progress";
 import {
@@ -160,7 +161,7 @@ export function createCliProgress(options: ProgressOptions): ProgressReporter {
   };
 
   const setPercent = (nextPercent: number) => {
-    percent = Math.max(0, Math.min(100, Math.round(nextPercent)));
+    percent = clamp(Math.round(nextPercent), 0, 100);
     indeterminate = false;
     applyState();
   };

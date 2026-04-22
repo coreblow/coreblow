@@ -1,6 +1,3 @@
-/**
- * src/commands/status-all/format.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("status-all/format — import", () => {
   it("is importable", async () => {

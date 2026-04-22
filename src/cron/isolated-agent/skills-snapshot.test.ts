@@ -1,10 +1,3 @@
-/**
- * src/cron/isolated-agent/skills-snapshot.test.ts
- *
- * CoreBlow — Cron Isolated Agent Skills Snapshot Tests
- * Verifies resolveCronSkillsSnapshot fast-test-env behavior and
- * existing snapshot passthrough.
- */
 import { describe, expect, it } from "vitest";
 import { resolveCronSkillsSnapshot } from "./skills-snapshot.js";
 

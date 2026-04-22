@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Compaction Real Conversation Tests (Inline)
- *
- * Tests for hasMeaningfulConversationContent and TOOL_RESULT_REAL_CONVERSATION_LOOKBACK
- * constant. Inline to avoid import chain (stripHeartbeatToken, isSilentReplyText).
- */
-
 import { describe, it, expect } from 'vitest';
 
 // ── Inline replicas ────────────────────────────────────────────────

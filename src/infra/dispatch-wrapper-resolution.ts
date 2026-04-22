@@ -483,22 +483,13 @@ export function hasDispatchEnvManipulation(argv: string[]): boolean {
 // DispatchWrapperResolutionService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class DispatchWrapperResolutionService {
   [Symbol.toStringTag] = 'DispatchWrapperResolutionService';
 }
 
-let _dispatchWrapperResolutionInstance: DispatchWrapperResolutionService | null = null;
 
-export function getDispatchWrapperResolutionService(): DispatchWrapperResolutionService {
-  if (!_dispatchWrapperResolutionInstance) {
-    _dispatchWrapperResolutionInstance = new DispatchWrapperResolutionService();
-  }
-  return _dispatchWrapperResolutionInstance;
-}
+const { getInstance: getDispatchWrapperResolutionService, __testing: __testing_dispatchWrapperResolution } =
+  createStandaloneSingleton({ create: () => new DispatchWrapperResolutionService(), defaultDeps: {} });
 
-export const __testing_dispatchWrapperResolution = createTestingHooks<DispatchWrapperResolutionService>(
-  () => { _dispatchWrapperResolutionInstance = null; },
-  (svc) => { _dispatchWrapperResolutionInstance = svc; },
-);
+export { getDispatchWrapperResolutionService, __testing_dispatchWrapperResolution };

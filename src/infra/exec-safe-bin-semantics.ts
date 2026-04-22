@@ -66,8 +66,7 @@ export function listRiskyConfiguredSafeBins(entries: Iterable<string>): Array<{
 // ExecSafeBinSemanticsService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ExecSafeBinSemanticsService {
   normalizeSafeBinName(raw: string) {
     return normalizeSafeBinName(raw);
@@ -86,16 +85,8 @@ export class ExecSafeBinSemanticsService {
   }
 }
 
-let _execSafeBinSemanticsInstance: ExecSafeBinSemanticsService | null = null;
 
-export function getExecSafeBinSemanticsService(): ExecSafeBinSemanticsService {
-  if (!_execSafeBinSemanticsInstance) {
-    _execSafeBinSemanticsInstance = new ExecSafeBinSemanticsService();
-  }
-  return _execSafeBinSemanticsInstance;
-}
+const { getInstance: getExecSafeBinSemanticsService, __testing: __testing_execSafeBinSemantics } =
+  createStandaloneSingleton({ create: () => new ExecSafeBinSemanticsService(), defaultDeps: {} });
 
-export const __testing_execSafeBinSemantics = createTestingHooks<ExecSafeBinSemanticsService>(
-  () => { _execSafeBinSemanticsInstance = null; },
-  (svc) => { _execSafeBinSemanticsInstance = svc; },
-);
+export { getExecSafeBinSemanticsService, __testing_execSafeBinSemantics };

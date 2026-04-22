@@ -1,6 +1,3 @@
-/**
- * config/byte-size.test.ts — Byte size parsing tests
- */
 import { describe, it, expect } from 'vitest';
 import { parseByteSize, parseNonNegativeByteSize, formatByteSize, isValidNonNegativeByteSizeString } from './byte-size.js';
 

@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Dangerous Tools Unit Tests
- */
 import { describe, it, expect } from 'vitest';
 import {
     DEFAULT_GATEWAY_HTTP_TOOL_DENY,

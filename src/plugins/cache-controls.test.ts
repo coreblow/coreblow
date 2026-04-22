@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Plugin Cache Controls Tests
- *
- * Tests for cache toggle, TTL resolution, snapshot cache
- * decisions, and env key building.
- */
-
 import { describe, it, expect } from 'vitest';
 import {
     DEFAULT_PLUGIN_DISCOVERY_CACHE_MS,

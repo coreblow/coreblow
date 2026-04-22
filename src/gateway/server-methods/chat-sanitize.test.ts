@@ -1,9 +1,3 @@
-/**
- * src/gateway/server-methods/chat-sanitize.test.ts
- *
- * CoreBlow — Chat Sanitize Tests
- * Verifies sanitizeChatInput and sanitizeChatSendMessageInput.
- */
 import { describe, expect, it } from "vitest";
 import { sanitizeChatInput, sanitizeChatSendMessageInput } from "./chat-sanitize.js";
 

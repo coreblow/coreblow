@@ -1,8 +1,3 @@
-/**
- * src/config/config.ts.test.ts
- *
- * CoreBlow — Config Core + Config-IO Pure Logic Tests
- */
 import { describe, expect, it } from "vitest";
 
 describe("config/ core modules — import contracts (close)", () => {

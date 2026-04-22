@@ -1,10 +1,3 @@
-/**
- * src/tools/schema-validator.test.ts
- *
- * CoreBlow — Schema Validator Tests
- * Verifies SchemaValidator: registration, direct validation,
- * nested objects, arrays, enums, defaults, and sample generation.
- */
 import { describe, beforeEach, expect, it } from "vitest";
 import { SchemaValidator, type Schema } from "./schema-validator.js";
 

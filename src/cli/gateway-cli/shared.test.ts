@@ -1,9 +1,3 @@
-/**
- * src/cli/gateway-cli/shared.test.ts
- *
- * CoreBlow — Gateway CLI Shared Tests
- * Verifies toOptionString, describeUnknownError.
- */
 import { describe, expect, it } from "vitest";
 import { toOptionString, describeUnknownError } from "./shared.js";
 

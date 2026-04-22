@@ -1,9 +1,3 @@
-/**
- * src/commands/agents.commands.list.test.ts
- *
- * CoreBlow — Agents Commands List Tests
- * Import contract for agents.commands.list.
- */
 import { describe, expect, it } from "vitest";
 
 describe("agents.commands.list module", () => {

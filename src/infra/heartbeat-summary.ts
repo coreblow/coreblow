@@ -121,8 +121,7 @@ export function resolveHeartbeatSummaryForAgent(
 // HeartbeatSummaryService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class HeartbeatSummaryService {
   isHeartbeatEnabledForAgent(...args: Parameters<typeof isHeartbeatEnabledForAgent>) {
     return isHeartbeatEnabledForAgent(...args);
@@ -137,16 +136,8 @@ export class HeartbeatSummaryService {
   }
 }
 
-let _heartbeatSummaryInstance: HeartbeatSummaryService | null = null;
 
-export function getHeartbeatSummaryService(): HeartbeatSummaryService {
-  if (!_heartbeatSummaryInstance) {
-    _heartbeatSummaryInstance = new HeartbeatSummaryService();
-  }
-  return _heartbeatSummaryInstance;
-}
+const { getInstance: getHeartbeatSummaryService, __testing: __testing_heartbeatSummary } =
+  createStandaloneSingleton({ create: () => new HeartbeatSummaryService(), defaultDeps: {} });
 
-export const __testing_heartbeatSummary = createTestingHooks<HeartbeatSummaryService>(
-  () => { _heartbeatSummaryInstance = null; },
-  (svc) => { _heartbeatSummaryInstance = svc; },
-);
+export { getHeartbeatSummaryService, __testing_heartbeatSummary };

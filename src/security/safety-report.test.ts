@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Safety Report Unit Tests
- */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SafetyReport } from './safety-report.js';
 import type { SafetyCheck } from './safety-report.js';

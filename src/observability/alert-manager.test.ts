@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Alert Manager Tests
- *
- * Tests for alert rules, condition evaluation, alert firing,
- * cooldown enforcement, acknowledge/resolve, silencing, and history.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { AlertManager } from './alert-manager.js';
 

@@ -1,12 +1,3 @@
-/**
- * CoreBlow — Auth Profiles: Profile Helpers Tests
- *
- * Tests for dedupeProfileIds and listProfilesForProvider.
- * These are pure functions that can be tested without filesystem I/O.
- *
- * Reference: OC src/agents/auth-profiles.*.test.ts
- */
-
 import { describe, it, expect } from 'vitest';
 import { dedupeProfileIds, listProfilesForProvider } from './auth-profiles/profiles.js';
 import type { AuthProfileStore } from './auth-profiles/types.js';

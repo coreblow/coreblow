@@ -864,22 +864,13 @@ function resolveSymlinkHopPathSync(symlinkPath: string): string {
 // BoundaryPathService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class BoundaryPathService {
   [Symbol.toStringTag] = 'BoundaryPathService';
 }
 
-let _boundaryPathInstance: BoundaryPathService | null = null;
 
-export function getBoundaryPathService(): BoundaryPathService {
-  if (!_boundaryPathInstance) {
-    _boundaryPathInstance = new BoundaryPathService();
-  }
-  return _boundaryPathInstance;
-}
+const { getInstance: getBoundaryPathService, __testing: __testing_boundaryPath } =
+  createStandaloneSingleton({ create: () => new BoundaryPathService(), defaultDeps: {} });
 
-export const __testing_boundaryPath = createTestingHooks<BoundaryPathService>(
-  () => { _boundaryPathInstance = null; },
-  (svc) => { _boundaryPathInstance = svc; },
-);
+export { getBoundaryPathService, __testing_boundaryPath };

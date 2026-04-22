@@ -1,9 +1,3 @@
-/**
- * src/commands/agents.bindings.test.ts
- *
- * CoreBlow — Agents Bindings Tests
- * Verifies describeBinding, parseBindingSpecs.
- */
 import { describe, expect, it } from "vitest";
 import { describeBinding, parseBindingSpecs } from "./agents.bindings.js";
 

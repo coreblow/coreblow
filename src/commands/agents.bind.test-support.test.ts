@@ -1,6 +1,3 @@
-/**
- * src/commands/agents.bind.test-support.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("agents.bind.test-support — import", () => {
   it("is importable", async () => {

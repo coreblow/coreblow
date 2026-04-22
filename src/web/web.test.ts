@@ -1,7 +1,3 @@
-/**
- * Web API Tests — Phase D: Remaining Modules
- * Tests: jsonResponse, errorResponse
- */
 import { describe, it, expect } from 'vitest';
 import { jsonResponse, errorResponse } from './api-response.js';
 

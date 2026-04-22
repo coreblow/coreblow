@@ -1,8 +1,3 @@
-/**
- * src/config/legacy.migrations.channels.test.ts
- *
- * CoreBlow — Legacy Config Migrations Channels Tests
- */
 import { describe, expect, it } from "vitest";
 import { LEGACY_CONFIG_MIGRATIONS_CHANNELS } from "./legacy.migrations.channels.js";
 

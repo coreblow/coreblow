@@ -1,10 +1,3 @@
-/**
- * src/gateway/model-pricing-cache-state.test.ts
- *
- * CoreBlow — Model Pricing Cache State Tests
- * Verifies replaceGatewayModelPricingCache, getCachedGatewayModelPricing,
- * and clearGatewayModelPricingCacheState.
- */
 import { describe, beforeEach, expect, it } from "vitest";
 import {
   replaceGatewayModelPricingCache,

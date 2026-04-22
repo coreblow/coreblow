@@ -1,8 +1,3 @@
-/**
- * src/gateway/gateway.remaining-contracts.test.ts
- *
- * CoreBlow — Gateway Remaining Import Contracts
- */
 import { describe, expect, it } from "vitest";
 
 const modules = [

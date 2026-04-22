@@ -1,9 +1,3 @@
-/**
- * src/config/sessions/store.test.ts
- *
- * CoreBlow — Sessions Store Tests
- * Verifies normalizeStoreSessionKey and resolveSessionStoreEntry.
- */
 import { describe, expect, it } from "vitest";
 import { normalizeStoreSessionKey, resolveSessionStoreEntry } from "./store.js";
 

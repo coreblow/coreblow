@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 /**
  * CoreBlow — Blue-Green Deployer
  *
@@ -67,7 +68,7 @@ export class BlueGreenDeployer {
     /**
      * Set canary percentage.
      */
-    setCanary(percent: number): void { this.canaryPercent = Math.max(0, Math.min(100, percent)); }
+    setCanary(percent: number): void { this.canaryPercent = clamp(percent, 0, 100); }
 
     /**
      * Route request (simulate).
@@ -105,26 +106,3 @@ export class BlueGreenDeployer {
     getHistory(): typeof this.history { return [...this.history]; }
 }
 
-// ---------------------------------------------------------------------------
-// BlueGreenDeployerService — Tier-1 Standalone Singleton
-// ---------------------------------------------------------------------------
-
-import { createTestingHooks } from "./service-patterns.js";
-
-export class BlueGreenDeployerService {
-  [Symbol.toStringTag] = 'BlueGreenDeployerService';
-}
-
-let _blueGreenDeployerInstance: BlueGreenDeployerService | null = null;
-
-export function getBlueGreenDeployerService(): BlueGreenDeployerService {
-  if (!_blueGreenDeployerInstance) {
-    _blueGreenDeployerInstance = new BlueGreenDeployerService();
-  }
-  return _blueGreenDeployerInstance;
-}
-
-export const __testing_blueGreenDeployer = createTestingHooks<BlueGreenDeployerService>(
-  () => { _blueGreenDeployerInstance = null; },
-  (svc) => { _blueGreenDeployerInstance = svc; },
-);

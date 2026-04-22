@@ -1,8 +1,3 @@
-/**
- * VectorStorePersistence Tests
- *
- * Tests JSONL save/load, incremental append, and PersistentVectorStore.
- */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';

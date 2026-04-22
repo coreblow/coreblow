@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Resource Limiter Unit Tests
- */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ResourceLimiter } from './resource-limiter.js';
 

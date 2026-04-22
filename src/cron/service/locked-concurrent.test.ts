@@ -1,10 +1,3 @@
-/**
- * src/cron/service/locked-concurrent.test.ts
- *
- * CoreBlow — Cron Locked Concurrency Tests
- * Verifies locked() serializes concurrent calls correctly
- * and maintains state consistency across multiple operations.
- */
 import { describe, expect, it } from "vitest";
 import { locked } from "./locked.js";
 import type { CronServiceState } from "./state.js";

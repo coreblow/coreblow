@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Namespace Isolation Unit Tests
- */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { NamespaceIsolation } from './namespace-isolation.js';
 

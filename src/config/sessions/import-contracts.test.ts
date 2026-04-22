@@ -1,8 +1,3 @@
-/**
- * src/config/sessions/import-contracts.test.ts
- *
- * CoreBlow — Sessions Module Import Contracts
- */
 import { describe, expect, it } from "vitest";
 
 const modules = [

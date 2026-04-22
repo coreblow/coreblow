@@ -1,9 +1,3 @@
-/**
- * src/config/sessions/group.test.ts
- *
- * CoreBlow — Sessions Group Tests
- * Verifies buildGroupDisplayName.
- */
 import { describe, expect, it } from "vitest";
 import { buildGroupDisplayName } from "./group.js";
 

@@ -1,6 +1,3 @@
-/**
- * config/runtime-schema.test.ts — Runtime validation tests
- */
 import { describe, it, expect } from 'vitest';
 import { validateRuntimeConfig, hasBlockingErrors, formatValidationIssues } from './runtime-schema.js';
 

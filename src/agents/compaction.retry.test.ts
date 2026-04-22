@@ -1,10 +1,3 @@
-/**
- * src/agents/compaction.retry.test.ts
- *
- * CoreBlow — Compaction Retry & Adaptive Chunking Tests
- * Verifies adaptive chunk ratio, context window resolution, and
- * retry-safe message chunking invariants.
- */
 import { describe, expect, it } from "vitest";
 import type { CompactionMessage } from "./compaction.js";
 import {
@@ -15,7 +8,7 @@ import {
 } from "./compaction.js";
 
 function msg(role: "user" | "assistant", text: string): CompactionMessage {
-  return { role, content: [{ type: "text", text }] };
+  return { role, content: text };
 }
 
 // ── resolveContextWindowTokens ────────────────────────────────────────────────

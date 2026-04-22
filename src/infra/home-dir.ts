@@ -146,22 +146,13 @@ export function resolveOsHomeRelativePath(
 // HomeDirService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class HomeDirService {
   [Symbol.toStringTag] = 'HomeDirService';
 }
 
-let _homeDirInstance: HomeDirService | null = null;
 
-export function getHomeDirService(): HomeDirService {
-  if (!_homeDirInstance) {
-    _homeDirInstance = new HomeDirService();
-  }
-  return _homeDirInstance;
-}
+const { getInstance: getHomeDirService, __testing: __testing_homeDir } =
+  createStandaloneSingleton({ create: () => new HomeDirService(), defaultDeps: {} });
 
-export const __testing_homeDir = createTestingHooks<HomeDirService>(
-  () => { _homeDirInstance = null; },
-  (svc) => { _homeDirInstance = svc; },
-);
+export { getHomeDirService, __testing_homeDir };

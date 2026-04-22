@@ -1,6 +1,3 @@
-/**
- * src/gateway/startup-auth.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("gateway/startup-auth — import", () => {
   it("is importable", async () => {

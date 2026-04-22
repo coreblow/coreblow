@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Bash Tools Exec Approval Followup Tests (Inline)
- *
- * Tests buildExecApprovalFollowupPrompt logic inline to avoid
- * heavy import chain (callGatewayTool → markdown-it).
- */
-
 import { describe, it, expect } from 'vitest';
 
 // ── Inline replica of the pure function ────────────────────────────

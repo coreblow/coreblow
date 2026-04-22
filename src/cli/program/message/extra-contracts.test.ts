@@ -1,8 +1,3 @@
-/**
- * src/cli/program/message/extra-contracts.test.ts
- *
- * CoreBlow — CLI Program Message Extra Import Contracts
- */
 import { describe, expect, it } from "vitest";
 
 describe("program/message extra — import contracts", () => {
@@ -24,12 +19,12 @@ describe("program/message extra — import contracts", () => {
 
 describe("CLI remaining root — final contracts", () => {
   it("plugin-commands is importable", async () => {
-    const mod = await import("../../cli/plugin-commands.js").catch(() => null);
+    const mod = await import("../../plugin-commands.js").catch(() => null);
     expect(mod === null || typeof mod === "object").toBe(true);
   });
 
   it("prompt.runtime is importable", async () => {
-    const mod = await import("../../cli/prompt.runtime.js").catch(() => null);
+    const mod = await import("../../prompt.runtime.js").catch(() => null);
     expect(mod === null || typeof mod === "object").toBe(true);
   });
 });

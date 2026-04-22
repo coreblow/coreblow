@@ -1,6 +1,3 @@
-/**
- * gateway/circuit-breaker.test.ts — Circuit breaker tests (updated for expanded API)
- */
 import { describe, it, expect } from 'vitest';
 import { CircuitBreaker } from './circuit-breaker.js';
 

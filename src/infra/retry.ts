@@ -1,4 +1,4 @@
-import { sleep } from "../utils.js";
+import { sleep, clamp } from "../utils.js";
 
 export type RetryConfig = {
   attempts?: number;
@@ -39,7 +39,7 @@ const clampNumber = (value: unknown, fallback: number, min?: number, max?: numbe
   }
   const floor = typeof min === "number" ? min : Number.NEGATIVE_INFINITY;
   const ceiling = typeof max === "number" ? max : Number.POSITIVE_INFINITY;
-  return Math.min(Math.max(next, floor), ceiling);
+  return clamp(next, floor, ceiling);
 };
 
 export function resolveRetryConfig(
@@ -119,7 +119,7 @@ export async function retryAsync<T>(
         : minDelayMs * 2 ** (attempt - 1);
       let delay = Math.min(baseDelay, maxDelayMs);
       delay = applyJitter(delay, jitter);
-      delay = Math.min(Math.max(delay, minDelayMs), maxDelayMs);
+      delay = clamp(delay, minDelayMs, maxDelayMs);
 
       options.onRetry?.({
         attempt,
@@ -139,22 +139,13 @@ export async function retryAsync<T>(
 // RetryService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class RetryService {
   [Symbol.toStringTag] = 'RetryService';
 }
 
-let _retryInstance: RetryService | null = null;
 
-export function getRetryService(): RetryService {
-  if (!_retryInstance) {
-    _retryInstance = new RetryService();
-  }
-  return _retryInstance;
-}
+const { getInstance: getRetryService, __testing: __testing_retry } =
+  createStandaloneSingleton({ create: () => new RetryService(), defaultDeps: {} });
 
-export const __testing_retry = createTestingHooks<RetryService>(
-  () => { _retryInstance = null; },
-  (svc) => { _retryInstance = svc; },
-);
+export { getRetryService, __testing_retry };

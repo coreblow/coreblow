@@ -1,10 +1,3 @@
-/**
- * src/gateway/control-plane-audit.test.ts
- *
- * CoreBlow — Control Plane Audit Tests
- * Verifies resolveControlPlaneActor, formatControlPlaneActor,
- * and summarizeChangedPaths.
- */
 import { describe, expect, it } from "vitest";
 import {
   resolveControlPlaneActor,

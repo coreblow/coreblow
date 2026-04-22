@@ -1,10 +1,3 @@
-/**
- * src/config/types.secrets.test.ts
- *
- * CoreBlow — Secret Types & Utilities Tests
- * Verifies isValidEnvSecretRefId regex, isSecretRef type guard,
- * hasConfiguredSecretInput, and normalizeSecretInputString.
- */
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_SECRET_PROVIDER_ALIAS,

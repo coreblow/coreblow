@@ -89,22 +89,13 @@ export function isSafeScpRemotePath(value: string | null | undefined): boolean {
 // ScpHostService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ScpHostService {
   [Symbol.toStringTag] = 'ScpHostService';
 }
 
-let _scpHostInstance: ScpHostService | null = null;
 
-export function getScpHostService(): ScpHostService {
-  if (!_scpHostInstance) {
-    _scpHostInstance = new ScpHostService();
-  }
-  return _scpHostInstance;
-}
+const { getInstance: getScpHostService, __testing: __testing_scpHost } =
+  createStandaloneSingleton({ create: () => new ScpHostService(), defaultDeps: {} });
 
-export const __testing_scpHost = createTestingHooks<ScpHostService>(
-  () => { _scpHostInstance = null; },
-  (svc) => { _scpHostInstance = svc; },
-);
+export { getScpHostService, __testing_scpHost };

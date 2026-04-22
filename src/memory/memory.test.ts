@@ -1,7 +1,3 @@
-/**
- * Memory Tests — Phase B: Business Logic
- * Tests: VectorStore, MemoryManager
- */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { VectorStore } from './vector-store.js';
 

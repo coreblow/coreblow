@@ -1,9 +1,3 @@
-/**
- * src/gateway/control-ui-shared.test.ts
- *
- * CoreBlow — Gateway Control UI Shared Tests
- * Verifies normalizeControlUiBasePath and buildControlUiAvatarUrl.
- */
 import { describe, expect, it } from "vitest";
 import {
   normalizeControlUiBasePath,

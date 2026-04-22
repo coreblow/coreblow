@@ -1,6 +1,3 @@
-/**
- * routing/message-router.test.ts — Message router tests
- */
 import { describe, it, expect } from 'vitest';
 import { MessageRouter } from './message-router.js';
 

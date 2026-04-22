@@ -1,6 +1,3 @@
-/**
- * auto-reply/model-runtime.test.ts — Model runtime tests
- */
 import { describe, it, expect } from 'vitest';
 import {
     parseModelString, resolveModelConfig, resolveModelFallbackChain,

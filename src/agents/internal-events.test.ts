@@ -1,9 +1,3 @@
-/**
- * CoreBlow — Internal Events Tests
- *
- * Tests for formatAgentInternalEventsForPrompt and formatTaskCompletionEvent.
- */
-
 import { describe, it, expect } from 'vitest';
 import {
     formatAgentInternalEventsForPrompt,

@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Model Catalog Pure Function Tests
- *
- * Tests for model catalog pure functions without requiring the full
- * model-catalog module import chain (avoids markdown-it stub issue).
- */
-
 import { describe, it, expect } from 'vitest';
 
 // Test the pure functions directly via their behavior

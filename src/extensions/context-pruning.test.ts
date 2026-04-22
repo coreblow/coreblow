@@ -1,6 +1,3 @@
-/**
- * extensions/context-pruning.test.ts — Context pruning tests
- */
 import { describe, it, expect } from 'vitest';
 import { resolvePruningSettings, pruneContextSlidingWindow } from './context-pruning.js';
 

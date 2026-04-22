@@ -38,22 +38,13 @@ export function consumeRootOptionToken(args: ReadonlyArray<string>, index: numbe
 // CliRootOptionsService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class CliRootOptionsService {
   [Symbol.toStringTag] = 'CliRootOptionsService';
 }
 
-let _cliRootOptionsInstance: CliRootOptionsService | null = null;
 
-export function getCliRootOptionsService(): CliRootOptionsService {
-  if (!_cliRootOptionsInstance) {
-    _cliRootOptionsInstance = new CliRootOptionsService();
-  }
-  return _cliRootOptionsInstance;
-}
+const { getInstance: getCliRootOptionsService, __testing: __testing_cliRootOptions } =
+  createStandaloneSingleton({ create: () => new CliRootOptionsService(), defaultDeps: {} });
 
-export const __testing_cliRootOptions = createTestingHooks<CliRootOptionsService>(
-  () => { _cliRootOptionsInstance = null; },
-  (svc) => { _cliRootOptionsInstance = svc; },
-);
+export { getCliRootOptionsService, __testing_cliRootOptions };

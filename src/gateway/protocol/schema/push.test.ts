@@ -1,9 +1,3 @@
-/**
- * src/gateway/protocol/schema/push.test.ts
- *
- * CoreBlow — Protocol Push Schema Tests
- * Import contract + schema object shape verification.
- */
 import { describe, expect, it } from "vitest";
 import { PushTestParamsSchema, PushTestResultSchema } from "./push.js";
 

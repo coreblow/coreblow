@@ -1,6 +1,3 @@
-/**
- * cli/command-format.test.ts — Output formatting tests
- */
 import { describe, it, expect } from 'vitest';
 import { formatTable, formatKeyValue, formatOutput, wrapText, type ColumnDef } from './command-format.js';
 

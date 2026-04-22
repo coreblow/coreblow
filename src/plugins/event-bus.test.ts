@@ -1,11 +1,3 @@
-/**
- * Wave 26: Plugin Event Bus Tests
- *
- * Following CoreBlow's hooks/event-bus.test.ts pattern.
- * Tests pub/sub, wildcard, replay, priority, error isolation,
- * plugin cleanup, history, and stats.
- */
-
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
     PluginEventBus,

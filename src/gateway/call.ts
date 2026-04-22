@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 import { randomUUID } from "node:crypto";
 import type { CoreBlowConfig } from "../config/config.js";
 import {
@@ -276,7 +277,7 @@ function resolveGatewayCallTimeout(timeoutValue: unknown): {
 } {
   const timeoutMs =
     typeof timeoutValue === "number" && Number.isFinite(timeoutValue) ? timeoutValue : 10_000;
-  const safeTimerTimeoutMs = Math.max(1, Math.min(Math.floor(timeoutMs), 2_147_483_647));
+  const safeTimerTimeoutMs = clamp(2_147_483_647, 1, Math.floor(timeoutMs));
   return { timeoutMs, safeTimerTimeoutMs };
 }
 

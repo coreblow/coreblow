@@ -1,9 +1,3 @@
-/**
- * src/cli/wait.test.ts
- *
- * CoreBlow — CLI Wait Tests
- * Verifies waitForever: returns a Promise that never resolves.
- */
 import { describe, expect, it } from "vitest";
 import { waitForever } from "./wait.js";
 

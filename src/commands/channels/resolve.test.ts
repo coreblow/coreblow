@@ -1,6 +1,3 @@
-/**
- * src/commands/channels/resolve.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("channels/resolve — import", () => {
   it("is importable", async () => {

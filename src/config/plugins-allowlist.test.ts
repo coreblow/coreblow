@@ -1,10 +1,3 @@
-/**
- * src/config/plugins-allowlist.test.ts
- *
- * CoreBlow — Plugin Allowlist Tests
- * Verifies ensurePluginAllowlisted idempotency, append behavior,
- * and edge cases with undefined or non-array plugin.allow config.
- */
 import { describe, expect, it } from "vitest";
 import type { CoreBlowConfig } from "./config.js";
 import { ensurePluginAllowlisted } from "./plugins-allowlist.js";

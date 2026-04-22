@@ -1,6 +1,3 @@
-/**
- * routing/load-balance.test.ts — Load balancing tests
- */
 import { describe, it, expect } from 'vitest';
 import { roundRobin } from './load-balance.js';
 

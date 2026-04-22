@@ -1,10 +1,3 @@
-/**
- * src/cron/types-shared.test.ts
- *
- * CoreBlow — Cron Types Shared Tests
- * Verifies CronJobBase type constraints are correctly structured
- * through runtime object construction (shape validation).
- */
 import { describe, expect, it } from "vitest";
 import type { CronJobBase } from "./types-shared.js";
 

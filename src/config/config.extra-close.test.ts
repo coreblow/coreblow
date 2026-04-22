@@ -1,6 +1,3 @@
-/**
- * src/config/config.extra-close.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("config extra close — import contracts", () => {
   it("bundled-channel-config-metadata.generated is importable", async () => {

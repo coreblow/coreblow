@@ -1,10 +1,3 @@
-/**
- * src/config/merge-config.test.ts
- *
- * CoreBlow — Config Merge Utilities Tests
- * Verifies mergeConfigSection shallow merge behavior, unsetOnUndefined option,
- * and mergeWhatsAppConfig channel config merging.
- */
 import { describe, expect, it } from "vitest";
 import { mergeConfigSection } from "./merge-config.js";
 

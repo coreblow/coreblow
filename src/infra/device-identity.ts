@@ -191,8 +191,7 @@ export function verifyDeviceSignature(
 // DeviceIdentityService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class DeviceIdentityService {
   loadOrCreateDeviceIdentity(params: Parameters<typeof loadOrCreateDeviceIdentity>[0]) {
     return loadOrCreateDeviceIdentity(params);
@@ -219,16 +218,8 @@ export class DeviceIdentityService {
   }
 }
 
-let _deviceIdentityInstance: DeviceIdentityService | null = null;
 
-export function getDeviceIdentityService(): DeviceIdentityService {
-  if (!_deviceIdentityInstance) {
-    _deviceIdentityInstance = new DeviceIdentityService();
-  }
-  return _deviceIdentityInstance;
-}
+const { getInstance: getDeviceIdentityService, __testing: __testing_deviceIdentity } =
+  createStandaloneSingleton({ create: () => new DeviceIdentityService(), defaultDeps: {} });
 
-export const __testing_deviceIdentity = createTestingHooks<DeviceIdentityService>(
-  () => { _deviceIdentityInstance = null; },
-  (svc) => { _deviceIdentityInstance = svc; },
-);
+export { getDeviceIdentityService, __testing_deviceIdentity };

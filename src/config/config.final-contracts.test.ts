@@ -1,8 +1,3 @@
-/**
- * src/config/config.final-contracts.test.ts
- *
- * CoreBlow — Config Final Import Contracts
- */
 import { describe, expect, it } from "vitest";
 
 const modules = [

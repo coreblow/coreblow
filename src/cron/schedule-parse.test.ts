@@ -1,9 +1,3 @@
-/**
- * CoreBlow — Cron Schedule Parser Tests
- *
- * Tests for parseSchedule and listPresets.
- */
-
 import { describe, it, expect } from 'vitest';
 import { parseSchedule, listPresets } from './schedule-parse.js';
 

@@ -1,8 +1,3 @@
-/**
- * tests/unit/subagent.test.ts
- * Sub-agent System tests
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 
 describe('Sub-agent Manager', () => {

@@ -1,6 +1,3 @@
-/**
- * src/commands/channel-setup/import-contracts.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("channel-setup/channel-plugin-resolution — import", () => {
   it("is importable", async () => {

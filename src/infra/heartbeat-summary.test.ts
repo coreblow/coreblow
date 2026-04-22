@@ -1,9 +1,3 @@
-/**
- * src/infra/heartbeat-summary.test.ts
- *
- * CoreBlow — Heartbeat Summary Tests
- * Verifies isHeartbeatEnabledForAgent and resolveHeartbeatIntervalMs.
- */
 import { describe, expect, it } from "vitest";
 import {
   isHeartbeatEnabledForAgent,

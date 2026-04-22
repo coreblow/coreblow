@@ -1,9 +1,3 @@
-/**
- * src/agents/turn-engine/autopilot/queue/queue.test.ts
- *
- * CoreBlow — AutoPilot Queue Tests
- * Verifies enqueue, queueSize, and dequeue behavior.
- */
 import { beforeEach, describe, expect, it } from "vitest";
 import { enqueue } from "./enqueue.js";
 import { queueSize } from "./queue-size.js";

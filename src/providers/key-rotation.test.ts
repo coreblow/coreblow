@@ -1,11 +1,3 @@
-/**
- * CoreBlow — Key Rotation Manager Tests
- *
- * Tests for API key management: adding/removing keys, selection strategies
- * (round-robin, least-used, fastest, healthiest), success/failure reporting,
- * cooldown escalation, permanent error handling, scoring, and stats.
- */
-
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { KeyRotationManager, type ApiKeyProfile } from './key-rotation.js';
 

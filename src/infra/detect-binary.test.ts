@@ -1,9 +1,3 @@
-/**
- * src/infra/detect-binary.test.ts
- *
- * CoreBlow — Detect Binary Tests
- * Verifies DetectBinaryService construction and singleton accessor.
- */
 import { describe, expect, it } from "vitest";
 import { DetectBinaryService, getDetectBinaryService } from "./detect-binary.js";
 

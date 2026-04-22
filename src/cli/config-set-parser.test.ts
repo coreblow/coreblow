@@ -1,9 +1,3 @@
-/**
- * CoreBlow — Config Set Parser Tests
- *
- * Tests for resolveConfigSetMode covering all mode combinations.
- */
-
 import { describe, it, expect } from 'vitest';
 import { resolveConfigSetMode } from './config-set-parser.js';
 

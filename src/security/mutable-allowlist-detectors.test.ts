@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Mutable Allowlist Detectors Unit Tests
- */
 import { describe, it, expect } from 'vitest';
 import {
     isDiscordMutableAllowEntry,

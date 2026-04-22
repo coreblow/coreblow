@@ -1,10 +1,3 @@
-/**
- * src/cron/service/locked.test.ts
- *
- * CoreBlow — Cron Service Locked Mutex Tests
- * Verifies locked() serializes concurrent async operations
- * and prevents interleaving without deadlock.
- */
 import { describe, expect, it } from "vitest";
 import { locked } from "./locked.js";
 import type { CronServiceState } from "./state.js";

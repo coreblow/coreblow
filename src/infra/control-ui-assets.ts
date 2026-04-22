@@ -354,22 +354,13 @@ export async function ensureControlUiAssetsBuilt(
 // ControlUiAssetsService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ControlUiAssetsService {
   [Symbol.toStringTag] = 'ControlUiAssetsService';
 }
 
-let _controlUiAssetsInstance: ControlUiAssetsService | null = null;
 
-export function getControlUiAssetsService(): ControlUiAssetsService {
-  if (!_controlUiAssetsInstance) {
-    _controlUiAssetsInstance = new ControlUiAssetsService();
-  }
-  return _controlUiAssetsInstance;
-}
+const { getInstance: getControlUiAssetsService, __testing: __testing_controlUiAssets } =
+  createStandaloneSingleton({ create: () => new ControlUiAssetsService(), defaultDeps: {} });
 
-export const __testing_controlUiAssets = createTestingHooks<ControlUiAssetsService>(
-  () => { _controlUiAssetsInstance = null; },
-  (svc) => { _controlUiAssetsInstance = svc; },
-);
+export { getControlUiAssetsService, __testing_controlUiAssets };

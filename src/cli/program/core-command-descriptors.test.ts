@@ -1,10 +1,3 @@
-/**
- * src/cli/program/core-command-descriptors.test.ts
- *
- * CoreBlow — Core CLI Command Descriptors Tests
- * Verifies CORE_CLI_COMMAND_DESCRIPTORS, getCoreCliCommandDescriptors,
- * getCoreCliCommandsWithSubcommands.
- */
 import { describe, expect, it } from "vitest";
 import {
   CORE_CLI_COMMAND_DESCRIPTORS,

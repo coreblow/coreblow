@@ -1,6 +1,3 @@
-/**
- * src/commands/doctor-update.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("commands/doctor-update — import", () => {
   it("is importable", async () => {

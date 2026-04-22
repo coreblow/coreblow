@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Apply Patch Update Tests
- *
- * Tests for applyUpdateHunk: line replacement, insertion,
- * context-based seeking, fuzzy matching, error handling.
- */
-
 import { describe, it, expect } from 'vitest';
 import { applyUpdateHunk } from './apply-patch-update.js';
 

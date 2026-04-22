@@ -1,10 +1,3 @@
-/**
- * src/agents/cli-runner.helpers.test.ts
- *
- * CoreBlow — CLI Runner Helper Utilities Tests
- * Verifies prompt construction, model normalization, image path handling,
- * and session resolution for the CB cli-runner module.
- */
 import { describe, expect, it } from "vitest";
 import {
   appendImagePathsToPrompt,
@@ -20,8 +13,7 @@ import type { CliBackendConfig } from "../config/types.js";
 
 function makeBackend(overrides: Partial<CliBackendConfig> = {}): CliBackendConfig {
   return {
-    type: "codex",
-    model: "o4-mini",
+    command: "codex",
     ...overrides,
   } as CliBackendConfig;
 }
@@ -38,7 +30,7 @@ describe("normalizeCliModel", () => {
   it("returns a non-empty string for any model input", () => {
     const inputs = ["gpt-4o", "claude-3-5-sonnet", "o4-mini", "gemini-pro"];
     for (const model of inputs) {
-      const result = normalizeCliModel(model, makeBackend({ model }));
+      const result = normalizeCliModel(model, makeBackend());
       expect(typeof result).toBe("string");
       expect(result.length).toBeGreaterThan(0);
     }
@@ -51,7 +43,7 @@ describe("resolveSystemPromptUsage", () => {
   it("returns an object with required fields", () => {
     const result = resolveSystemPromptUsage({
       backend: makeBackend(),
-      hasUserSystemPrompt: false,
+      isNewSession: false,
     });
     expect(result).toBeDefined();
     expect(typeof result).toBe("object");
@@ -62,7 +54,7 @@ describe("resolveSystemPromptUsage", () => {
       expect(() =>
         resolveSystemPromptUsage({
           backend: makeBackend(),
-          hasUserSystemPrompt,
+          isNewSession: hasUserSystemPrompt,
         }),
       ).not.toThrow();
     }

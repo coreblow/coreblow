@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Backup Rotation Tests
- *
- * Tests for rotateConfigBackups, hardenBackupPermissions,
- * cleanOrphanBackups, and maintainConfigBackups using mock FS.
- */
-
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
     CONFIG_BACKUP_COUNT,

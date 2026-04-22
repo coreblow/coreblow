@@ -39,22 +39,13 @@ export function isGatewayArgv(args: string[], opts?: { allowGatewayBinary?: bool
 // GatewayProcessArgvService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class GatewayProcessArgvService {
   [Symbol.toStringTag] = 'GatewayProcessArgvService';
 }
 
-let _gatewayProcessArgvInstance: GatewayProcessArgvService | null = null;
 
-export function getGatewayProcessArgvService(): GatewayProcessArgvService {
-  if (!_gatewayProcessArgvInstance) {
-    _gatewayProcessArgvInstance = new GatewayProcessArgvService();
-  }
-  return _gatewayProcessArgvInstance;
-}
+const { getInstance: getGatewayProcessArgvService, __testing: __testing_gatewayProcessArgv } =
+  createStandaloneSingleton({ create: () => new GatewayProcessArgvService(), defaultDeps: {} });
 
-export const __testing_gatewayProcessArgv = createTestingHooks<GatewayProcessArgvService>(
-  () => { _gatewayProcessArgvInstance = null; },
-  (svc) => { _gatewayProcessArgvInstance = svc; },
-);
+export { getGatewayProcessArgvService, __testing_gatewayProcessArgv };

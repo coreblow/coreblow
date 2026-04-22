@@ -1,11 +1,3 @@
-/**
- * CoreBlow — Tool Executor Tests
- *
- * Tests for tool execution lifecycle: success/error paths,
- * retry behavior, timeout enforcement, concurrency limits,
- * execution history, and stats aggregation.
- */
-
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ToolExecutor, type ToolExecutionResult } from './tool-executor.js';
 import { ToolRegistry, type ToolDefinition } from './tool-registry.js';

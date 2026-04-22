@@ -1,9 +1,3 @@
-/**
- * src/infra/dispatch-wrapper-resolution.test.ts
- *
- * CoreBlow — Dispatch Wrapper Resolution Tests
- * Verifies MAX_DISPATCH_WRAPPER_DEPTH, isEnvAssignment, unwrapEnvInvocation.
- */
 import { describe, expect, it } from "vitest";
 import {
   MAX_DISPATCH_WRAPPER_DEPTH,

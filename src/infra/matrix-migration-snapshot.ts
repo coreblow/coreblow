@@ -154,22 +154,13 @@ export async function maybeCreateMatrixMigrationSnapshot(params: {
 // MatrixMigrationSnapshotService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class MatrixMigrationSnapshotService {
   [Symbol.toStringTag] = 'MatrixMigrationSnapshotService';
 }
 
-let _matrixMigrationSnapshotInstance: MatrixMigrationSnapshotService | null = null;
 
-export function getMatrixMigrationSnapshotService(): MatrixMigrationSnapshotService {
-  if (!_matrixMigrationSnapshotInstance) {
-    _matrixMigrationSnapshotInstance = new MatrixMigrationSnapshotService();
-  }
-  return _matrixMigrationSnapshotInstance;
-}
+const { getInstance: getMatrixMigrationSnapshotService, __testing: __testing_matrixMigrationSnapshot } =
+  createStandaloneSingleton({ create: () => new MatrixMigrationSnapshotService(), defaultDeps: {} });
 
-export const __testing_matrixMigrationSnapshot = createTestingHooks<MatrixMigrationSnapshotService>(
-  () => { _matrixMigrationSnapshotInstance = null; },
-  (svc) => { _matrixMigrationSnapshotInstance = svc; },
-);
+export { getMatrixMigrationSnapshotService, __testing_matrixMigrationSnapshot };

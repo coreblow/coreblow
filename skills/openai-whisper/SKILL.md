@@ -1,20 +1,38 @@
 ---
 name: openai-whisper
-description: Openai Whisper skill for CoreBlow
+description: Local speech-to-text with the Whisper CLI (no API key).
+homepage: https://openai.com/research/whisper
+metadata:
+  {
+    "coreblow":
+      {
+        "emoji": "🎤",
+        "requires": { "bins": ["whisper"] },
+        "install":
+          [
+            {
+              "id": "brew",
+              "kind": "brew",
+              "formula": "openai-whisper",
+              "bins": ["whisper"],
+              "label": "Install OpenAI Whisper (brew)",
+            },
+          ],
+      },
+  }
 ---
 
-# Openai Whisper
+# Whisper (CLI)
 
-## Overview
-This skill provides openai whisper functionality for CoreBlow agents.
+Use `whisper` to transcribe audio locally.
 
-## Usage
-Add this skill to your agent configuration:
-```yaml
-skills:
-  - openai-whisper
-```
+Quick start
 
-## Commands
-- `/openai-whisper` — Main command
-- `/openai-whisper help` — Show help
+- `whisper /path/audio.mp3 --model medium --output_format txt --output_dir .`
+- `whisper /path/audio.m4a --task translate --output_format srt`
+
+Notes
+
+- Models download to `~/.cache/whisper` on first run.
+- `--model` defaults to `turbo` on this install.
+- Use smaller models for speed, larger for accuracy.

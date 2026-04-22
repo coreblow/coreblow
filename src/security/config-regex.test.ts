@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Config Regex Unit Tests
- */
 import { describe, it, expect, vi } from 'vitest';
 
 vi.mock('./safe-regex.js', () => ({

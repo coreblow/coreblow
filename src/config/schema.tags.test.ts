@@ -1,10 +1,3 @@
-/**
- * src/config/schema.tags.test.ts
- *
- * CoreBlow — Config Schema Tags Tests
- * Verifies CONFIG_TAGS array contains expected tags and
- * ConfigTag type covers all expected categories.
- */
 import { describe, expect, it } from "vitest";
 import { CONFIG_TAGS } from "./schema.tags.js";
 

@@ -1,9 +1,3 @@
-/**
- * src/cli/update-cli/shared.test.ts
- *
- * CoreBlow — Update CLI Shared Tests
- * Verifies DEFAULT_PACKAGE_NAME and normalizeTag.
- */
 import { describe, expect, it } from "vitest";
 import { DEFAULT_PACKAGE_NAME, normalizeTag } from "./shared.js";
 

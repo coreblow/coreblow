@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Tool Call ID Sanitization Tests
- *
- * Tests for sanitizeToolCallId and isValidCloudCodeAssistToolId.
- * Pure functions with no heavy import chains.
- */
-
 import { describe, it, expect } from 'vitest';
 import { sanitizeToolCallId, isValidCloudCodeAssistToolId } from './tool-call-id.js';
 

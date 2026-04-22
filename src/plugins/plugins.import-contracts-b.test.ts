@@ -1,6 +1,3 @@
-/**
- * src/plugins/plugins.import-contracts-b.test.ts
- */
 import { describe, expect, it } from "vitest";
 const modules = [
   "bundled-plugin-metadata.generated", "bundled-provider-auth-env-vars.generated",

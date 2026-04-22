@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Guardrails Engine Unit Tests
- *
- * Integration-style tests: the engine instantiates real sub-modules
- * (ToxicityDetector, BiasDetector, PIIScanner, ContentFilter, SafetyReport),
- * so we test the orchestration and policy enforcement end-to-end.
- */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 vi.mock('../utils/logger.js', () => ({

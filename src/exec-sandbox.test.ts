@@ -1,8 +1,3 @@
-/**
- * Phase 37: Exec Sandbox Test Suite
- *
- * Tests all 5 exec functions + DockerRuntime with real child_process.
- */
 import { describe, it, expect } from 'vitest';
 import { bashToolsExec } from './agents/turn-engine/sandbox/bash-tools-exec.js';
 import { bashExecRuntime } from './agents/turn-engine/sandbox/bash-tools-exec-runtime.js';

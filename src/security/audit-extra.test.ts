@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Audit Extra (barrel) Re-export Tests
- */
 import { describe, it, expect, vi } from 'vitest';
 
 // Mock both source modules to avoid deep dependency chains

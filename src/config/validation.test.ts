@@ -1,8 +1,3 @@
-/**
- * src/config/validation.test.ts
- *
- * CoreBlow — Config Validation + ZodSchema Import Contracts
- */
 import { describe, expect, it } from "vitest";
 
 describe("config validation & zod-schema — import contracts", () => {

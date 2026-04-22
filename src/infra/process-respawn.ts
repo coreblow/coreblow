@@ -89,22 +89,13 @@ export function restartGatewayProcessWithFreshPid(): GatewayRespawnResult {
 // ProcessRespawnService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ProcessRespawnService {
   [Symbol.toStringTag] = 'ProcessRespawnService';
 }
 
-let _processRespawnInstance: ProcessRespawnService | null = null;
 
-export function getProcessRespawnService(): ProcessRespawnService {
-  if (!_processRespawnInstance) {
-    _processRespawnInstance = new ProcessRespawnService();
-  }
-  return _processRespawnInstance;
-}
+const { getInstance: getProcessRespawnService, __testing: __testing_processRespawn } =
+  createStandaloneSingleton({ create: () => new ProcessRespawnService(), defaultDeps: {} });
 
-export const __testing_processRespawn = createTestingHooks<ProcessRespawnService>(
-  () => { _processRespawnInstance = null; },
-  (svc) => { _processRespawnInstance = svc; },
-);
+export { getProcessRespawnService, __testing_processRespawn };

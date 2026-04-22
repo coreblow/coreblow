@@ -1,9 +1,3 @@
-/**
- * src/cron/cron-session-target.test.ts
- *
- * CoreBlow — Cron Session Target Shape Tests
- * Verifies all CronSessionTarget variants and session:* template form.
- */
 import { describe, expect, it } from "vitest";
 import type { CronSessionTarget } from "./types.js";
 

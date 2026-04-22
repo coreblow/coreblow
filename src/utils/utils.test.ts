@@ -1,8 +1,3 @@
-/**
- * Utils Tests — Phase B: Business Logic
- * Tests: safeJsonParse, parseQS, deepClone, capitalize, camelToKebab, kebabToCamel,
- *        tokensPerSecond, costPerToken, debounce, throttle
- */
 import { describe, it, expect, vi } from 'vitest';
 import { safeJsonParse } from './json-utils.js';
 import { parseQS } from './url-utils.js';

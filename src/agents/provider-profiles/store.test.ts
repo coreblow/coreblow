@@ -1,22 +1,3 @@
-/**
- * Unit Test: ProviderProfileStore
- *
- * Verifikasi load/save/lock/cache invalidation untuk provider-profiles store.
- * Semua disk I/O di-mock — tidak perlu FS permission atau real files.
- *
- * Coverage:
- *   1. loadProviderProfileStore — empty file → default empty store
- *   2. loadProviderProfileStore — valid JSON → coerced store
- *   3. loadProviderProfileStore — corrupt JSON → graceful fallback (empty store)
- *   4. mtime cache — same mtime → no disk re-read
- *   5. mtime cache — changed mtime → disk re-read
- *   6. saveProviderProfileStore — writes JSON + updates cache
- *   7. updateProviderProfileStoreWithLock — updater applied, save called
- *   8. updateProviderProfileStoreWithLock — updater returns false → no save
- *   9. clearProviderProfileStoreCache — clears in-memory cache
- *
- * @see gateway/src/agents/provider-profiles/store.ts
- */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import fs from 'node:fs';
 

@@ -162,8 +162,7 @@ export function resetSystemEventsForTest() {
 // SystemEventsService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class SystemEventsService {
   isSystemEventContextChanged(...args: Parameters<typeof isSystemEventContextChanged>) {
     return isSystemEventContextChanged(...args);
@@ -198,16 +197,8 @@ export class SystemEventsService {
   }
 }
 
-let _systemEventsInstance: SystemEventsService | null = null;
 
-export function getSystemEventsService(): SystemEventsService {
-  if (!_systemEventsInstance) {
-    _systemEventsInstance = new SystemEventsService();
-  }
-  return _systemEventsInstance;
-}
+const { getInstance: getSystemEventsService, __testing: __testing_systemEvents } =
+  createStandaloneSingleton({ create: () => new SystemEventsService(), defaultDeps: {} });
 
-export const __testing_systemEvents = createTestingHooks<SystemEventsService>(
-  () => { _systemEventsInstance = null; },
-  (svc) => { _systemEventsInstance = svc; },
-);
+export { getSystemEventsService, __testing_systemEvents };

@@ -1,7 +1,3 @@
-/**
- * Observability Tests — Phase D: Remaining Modules
- * Tests: AlertManager
- */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { AlertManager } from './alert-manager.js';
 

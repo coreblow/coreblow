@@ -41,22 +41,13 @@ export async function installFromValidatedNpmSpecArchive<
 // InstallFromNpmSpecService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class InstallFromNpmSpecService {
   [Symbol.toStringTag] = 'InstallFromNpmSpecService';
 }
 
-let _installFromNpmSpecInstance: InstallFromNpmSpecService | null = null;
 
-export function getInstallFromNpmSpecService(): InstallFromNpmSpecService {
-  if (!_installFromNpmSpecInstance) {
-    _installFromNpmSpecInstance = new InstallFromNpmSpecService();
-  }
-  return _installFromNpmSpecInstance;
-}
+const { getInstance: getInstallFromNpmSpecService, __testing: __testing_installFromNpmSpec } =
+  createStandaloneSingleton({ create: () => new InstallFromNpmSpecService(), defaultDeps: {} });
 
-export const __testing_installFromNpmSpec = createTestingHooks<InstallFromNpmSpecService>(
-  () => { _installFromNpmSpecInstance = null; },
-  (svc) => { _installFromNpmSpecInstance = svc; },
-);
+export { getInstallFromNpmSpecService, __testing_installFromNpmSpec };

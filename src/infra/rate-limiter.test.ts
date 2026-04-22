@@ -1,9 +1,3 @@
-/**
- * CoreBlow — Rate Limiter Tests
- *
- * Tests for token bucket: allow, inspect, refill, reset, clear.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { RateLimiter } from './rate-limiter.js';
 

@@ -1,20 +1,43 @@
 ---
 name: gemini
-description: Gemini skill for CoreBlow
+description: Gemini CLI for one-shot Q&A, summaries, and generation.
+homepage: https://ai.google.dev/
+metadata:
+  {
+    "coreblow":
+      {
+        "emoji": "✨",
+        "requires": { "bins": ["gemini"] },
+        "install":
+          [
+            {
+              "id": "brew",
+              "kind": "brew",
+              "formula": "gemini-cli",
+              "bins": ["gemini"],
+              "label": "Install Gemini CLI (brew)",
+            },
+          ],
+      },
+  }
 ---
 
-# Gemini
+# Gemini CLI
 
-## Overview
-This skill provides gemini functionality for CoreBlow agents.
+Use Gemini in one-shot mode with a positional prompt (avoid interactive mode).
 
-## Usage
-Add this skill to your agent configuration:
-```yaml
-skills:
-  - gemini
-```
+Quick start
 
-## Commands
-- `/gemini` — Main command
-- `/gemini help` — Show help
+- `gemini "Answer this question..."`
+- `gemini --model <name> "Prompt..."`
+- `gemini --output-format json "Return JSON"`
+
+Extensions
+
+- List: `gemini --list-extensions`
+- Manage: `gemini extensions <command>`
+
+Notes
+
+- If auth is required, run `gemini` once interactively and follow the login flow.
+- Avoid `--yolo` for safety.

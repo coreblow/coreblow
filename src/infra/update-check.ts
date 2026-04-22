@@ -425,22 +425,13 @@ export async function checkUpdateStatus(params: {
 // UpdateCheckService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class UpdateCheckService {
   [Symbol.toStringTag] = 'UpdateCheckService';
 }
 
-let _updateCheckInstance: UpdateCheckService | null = null;
 
-export function getUpdateCheckService(): UpdateCheckService {
-  if (!_updateCheckInstance) {
-    _updateCheckInstance = new UpdateCheckService();
-  }
-  return _updateCheckInstance;
-}
+const { getInstance: getUpdateCheckService, __testing: __testing_updateCheck } =
+  createStandaloneSingleton({ create: () => new UpdateCheckService(), defaultDeps: {} });
 
-export const __testing_updateCheck = createTestingHooks<UpdateCheckService>(
-  () => { _updateCheckInstance = null; },
-  (svc) => { _updateCheckInstance = svc; },
-);
+export { getUpdateCheckService, __testing_updateCheck };

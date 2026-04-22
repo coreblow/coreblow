@@ -1,10 +1,3 @@
-/**
- * src/config/zod-schema.agent-runtime.test.ts
- *
- * CoreBlow — Agent Runtime Schema Validation Tests
- * Verifies ElevatedAllowFromSchema (z.record) accepts valid map shapes,
- * and ToolPolicySchema structure.
- */
 import { describe, expect, it } from "vitest";
 import {
   ElevatedAllowFromSchema,

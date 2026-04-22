@@ -60,8 +60,7 @@ export function isHeartbeatActionWakeReason(reason?: string): boolean {
 // HeartbeatReasonService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class HeartbeatReasonService {
   normalizeHeartbeatWakeReason(reason?: string) {
     return normalizeHeartbeatWakeReason(reason);
@@ -80,16 +79,8 @@ export class HeartbeatReasonService {
   }
 }
 
-let _heartbeatReasonInstance: HeartbeatReasonService | null = null;
 
-export function getHeartbeatReasonService(): HeartbeatReasonService {
-  if (!_heartbeatReasonInstance) {
-    _heartbeatReasonInstance = new HeartbeatReasonService();
-  }
-  return _heartbeatReasonInstance;
-}
+const { getInstance: getHeartbeatReasonService, __testing: __testing_heartbeatReason } =
+  createStandaloneSingleton({ create: () => new HeartbeatReasonService(), defaultDeps: {} });
 
-export const __testing_heartbeatReason = createTestingHooks<HeartbeatReasonService>(
-  () => { _heartbeatReasonInstance = null; },
-  (svc) => { _heartbeatReasonInstance = svc; },
-);
+export { getHeartbeatReasonService, __testing_heartbeatReason };

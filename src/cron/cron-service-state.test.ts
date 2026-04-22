@@ -1,10 +1,3 @@
-/**
- * src/cron/cron-service-state.test.ts
- *
- * CoreBlow — Cron Service State Shape Tests
- * Verifies createCronServiceState constructs valid state
- * and state fields are correctly initialized.
- */
 import { describe, expect, it } from "vitest";
 import { createCronServiceState } from "./service/state.js";
 

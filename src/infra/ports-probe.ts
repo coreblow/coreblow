@@ -27,22 +27,13 @@ export async function tryListenOnPort(params: {
 // PortsProbeService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class PortsProbeService {
   [Symbol.toStringTag] = 'PortsProbeService';
 }
 
-let _portsProbeInstance: PortsProbeService | null = null;
 
-export function getPortsProbeService(): PortsProbeService {
-  if (!_portsProbeInstance) {
-    _portsProbeInstance = new PortsProbeService();
-  }
-  return _portsProbeInstance;
-}
+const { getInstance: getPortsProbeService, __testing: __testing_portsProbe } =
+  createStandaloneSingleton({ create: () => new PortsProbeService(), defaultDeps: {} });
 
-export const __testing_portsProbe = createTestingHooks<PortsProbeService>(
-  () => { _portsProbeInstance = null; },
-  (svc) => { _portsProbeInstance = svc; },
-);
+export { getPortsProbeService, __testing_portsProbe };

@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Date-Time Utility Tests
- *
- * Tests for normalizeTimestamp, resolveUserTimezone,
- * resolveUserTimeFormat, and formatUserTime.
- */
-
 import { describe, it, expect } from 'vitest';
 import {
     normalizeTimestamp,

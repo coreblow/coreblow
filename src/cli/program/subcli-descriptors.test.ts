@@ -1,9 +1,3 @@
-/**
- * src/cli/program/subcli-descriptors.test.ts
- *
- * CoreBlow — Sub CLI Descriptors Tests
- * Verifies SUB_CLI_DESCRIPTORS, getSubCliEntries, getSubCliCommandsWithSubcommands.
- */
 import { describe, expect, it } from "vitest";
 import {
   SUB_CLI_DESCRIPTORS,

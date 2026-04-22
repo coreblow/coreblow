@@ -1,6 +1,3 @@
-/**
- * config/allowed-values.test.ts — Allowed values tests
- */
 import { describe, it, expect } from 'vitest';
 import {
     summarizeAllowedValues, isValidAutoReplyMode, isValidSandboxMode,

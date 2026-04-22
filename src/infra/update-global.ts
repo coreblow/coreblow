@@ -341,22 +341,13 @@ export async function cleanupGlobalRenameDirs(params: {
 // UpdateGlobalService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class UpdateGlobalService {
   [Symbol.toStringTag] = 'UpdateGlobalService';
 }
 
-let _updateGlobalInstance: UpdateGlobalService | null = null;
 
-export function getUpdateGlobalService(): UpdateGlobalService {
-  if (!_updateGlobalInstance) {
-    _updateGlobalInstance = new UpdateGlobalService();
-  }
-  return _updateGlobalInstance;
-}
+const { getInstance: getUpdateGlobalService, __testing: __testing_updateGlobal } =
+  createStandaloneSingleton({ create: () => new UpdateGlobalService(), defaultDeps: {} });
 
-export const __testing_updateGlobal = createTestingHooks<UpdateGlobalService>(
-  () => { _updateGlobalInstance = null; },
-  (svc) => { _updateGlobalInstance = svc; },
-);
+export { getUpdateGlobalService, __testing_updateGlobal };

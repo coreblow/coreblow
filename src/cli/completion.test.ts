@@ -1,6 +1,3 @@
-/**
- * cli/completion.test.ts — Shell completion tests
- */
 import { describe, it, expect } from 'vitest';
 import { generateCompletion, detectShell } from './completion.js';
 

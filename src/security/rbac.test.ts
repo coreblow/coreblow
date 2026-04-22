@@ -1,14 +1,3 @@
-/**
- * CoreBlow — RBAC (Role-Based Access Control) Unit Tests
- *
- * Comprehensive test suite targeting 90%+ coverage across:
- *  - Built-in role initialization
- *  - Role CRUD (add, remove, list)
- *  - User-role assignment and revocation
- *  - Permission checks (happy path, deny, wildcard)
- *  - Hierarchical role inheritance (single, multi-level, circular guard)
- *  - Edge cases (unknown users, unknown roles, duplicate assign)
- */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { RBACSystem } from './rbac.js';
 import type { Role, Permission, RBACUser } from './rbac.js';

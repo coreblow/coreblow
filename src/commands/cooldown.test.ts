@@ -1,6 +1,3 @@
-/**
- * commands/cooldown.test.ts — Command cooldown tests
- */
 import { describe, it, expect } from 'vitest';
 import { CommandCooldown } from './cooldown.js';
 

@@ -70,22 +70,13 @@ export async function waitForTransportReady(params: WaitForTransportReadyParams)
 // TransportReadyService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class TransportReadyService {
   [Symbol.toStringTag] = 'TransportReadyService';
 }
 
-let _transportReadyInstance: TransportReadyService | null = null;
 
-export function getTransportReadyService(): TransportReadyService {
-  if (!_transportReadyInstance) {
-    _transportReadyInstance = new TransportReadyService();
-  }
-  return _transportReadyInstance;
-}
+const { getInstance: getTransportReadyService, __testing: __testing_transportReady } =
+  createStandaloneSingleton({ create: () => new TransportReadyService(), defaultDeps: {} });
 
-export const __testing_transportReady = createTestingHooks<TransportReadyService>(
-  () => { _transportReadyInstance = null; },
-  (svc) => { _transportReadyInstance = svc; },
-);
+export { getTransportReadyService, __testing_transportReady };

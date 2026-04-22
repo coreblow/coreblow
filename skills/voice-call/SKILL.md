@@ -1,20 +1,45 @@
 ---
 name: voice-call
-description: Voice Call skill for CoreBlow
+description: Start voice calls via the CoreBlow voice-call plugin.
+metadata:
+  {
+    "coreblow":
+      {
+        "emoji": "📞",
+        "skillKey": "voice-call",
+        "requires": { "config": ["plugins.entries.voice-call.enabled"] },
+      },
+  }
 ---
 
 # Voice Call
 
-## Overview
-This skill provides voice call functionality for CoreBlow agents.
+Use the voice-call plugin to start or inspect calls (Twilio, Telnyx, Plivo, or mock).
 
-## Usage
-Add this skill to your agent configuration:
-```yaml
-skills:
-  - voice-call
+## CLI
+
+```bash
+coreblow voicecall call --to "+15555550123" --message "Hello from CoreBlow"
+coreblow voicecall status --call-id <id>
 ```
 
-## Commands
-- `/voice-call` — Main command
-- `/voice-call help` — Show help
+## Tool
+
+Use `voice_call` for agent-initiated calls.
+
+Actions:
+
+- `initiate_call` (message, to?, mode?)
+- `continue_call` (callId, message)
+- `speak_to_user` (callId, message)
+- `end_call` (callId)
+- `get_status` (callId)
+
+Notes:
+
+- Requires the voice-call plugin to be enabled.
+- Plugin config lives under `plugins.entries.voice-call.config`.
+- Twilio config: `provider: "twilio"` + `twilio.accountSid/authToken` + `fromNumber`.
+- Telnyx config: `provider: "telnyx"` + `telnyx.apiKey/connectionId` + `fromNumber`.
+- Plivo config: `provider: "plivo"` + `plivo.authId/authToken` + `fromNumber`.
+- Dev fallback: `provider: "mock"` (no network).

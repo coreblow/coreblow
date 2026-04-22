@@ -1,8 +1,3 @@
-/**
- * src/config/types.import-contracts.test.ts
- *
- * CoreBlow — Config Types Import Contracts (Batch A)
- */
 import { describe, expect, it } from "vitest";
 
 const typeModules = [

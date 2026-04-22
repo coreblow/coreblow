@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Inline Command Token Detection Tests
- *
- * Tests for hasInlineCommandTokens — coarse detection of
- * /command and !command patterns in message text.
- */
-
 import { describe, it, expect } from 'vitest';
 import { hasInlineCommandTokens } from './command-detection.js';
 

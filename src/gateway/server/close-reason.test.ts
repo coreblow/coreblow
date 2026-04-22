@@ -1,9 +1,3 @@
-/**
- * src/gateway/server/close-reason.test.ts
- *
- * CoreBlow — Gateway Close Reason Tests
- * Verifies truncateCloseReason: passthrough, truncation, empty fallback.
- */
 import { describe, expect, it } from "vitest";
 import { truncateCloseReason } from "./close-reason.js";
 

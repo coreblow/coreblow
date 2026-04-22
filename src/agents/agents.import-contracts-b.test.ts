@@ -1,7 +1,3 @@
-/**
- * src/agents/agents.import-contracts-b.test.ts
- * CoreBlow — Agents Import Contracts (Batch B)
- */
 import { describe, expect, it } from "vitest";
 const modules = [
   "byteplus-models", "claude-cli-runner", "cli-runner",

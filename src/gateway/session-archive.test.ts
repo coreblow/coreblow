@@ -1,6 +1,3 @@
-/**
- * src/gateway/session-archive.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("gateway/session-archive.fs — import", () => {
   it("is importable", async () => {

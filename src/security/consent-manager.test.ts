@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Consent Manager Unit Tests
- */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ConsentManager } from './consent-manager.js';
 

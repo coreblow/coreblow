@@ -40,22 +40,13 @@ export function resolveLsofCommandSync(): string {
 // PortsLsofService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class PortsLsofService {
   [Symbol.toStringTag] = 'PortsLsofService';
 }
 
-let _portsLsofInstance: PortsLsofService | null = null;
 
-export function getPortsLsofService(): PortsLsofService {
-  if (!_portsLsofInstance) {
-    _portsLsofInstance = new PortsLsofService();
-  }
-  return _portsLsofInstance;
-}
+const { getInstance: getPortsLsofService, __testing: __testing_portsLsof } =
+  createStandaloneSingleton({ create: () => new PortsLsofService(), defaultDeps: {} });
 
-export const __testing_portsLsof = createTestingHooks<PortsLsofService>(
-  () => { _portsLsofInstance = null; },
-  (svc) => { _portsLsofInstance = svc; },
-);
+export { getPortsLsofService, __testing_portsLsof };

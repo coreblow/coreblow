@@ -1,9 +1,3 @@
-/**
- * CoreBlow — Glob Pattern Tests
- *
- * Tests for compileGlobPattern, compileGlobPatterns, matchesAnyGlobPattern.
- */
-
 import { describe, it, expect } from 'vitest';
 import {
     compileGlobPattern,

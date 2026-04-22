@@ -165,22 +165,13 @@ export function formatGatewayPidList(pids: number[]): string {
 // GatewayProcessesService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class GatewayProcessesService {
   [Symbol.toStringTag] = 'GatewayProcessesService';
 }
 
-let _gatewayProcessesInstance: GatewayProcessesService | null = null;
 
-export function getGatewayProcessesService(): GatewayProcessesService {
-  if (!_gatewayProcessesInstance) {
-    _gatewayProcessesInstance = new GatewayProcessesService();
-  }
-  return _gatewayProcessesInstance;
-}
+const { getInstance: getGatewayProcessesService, __testing: __testing_gatewayProcesses } =
+  createStandaloneSingleton({ create: () => new GatewayProcessesService(), defaultDeps: {} });
 
-export const __testing_gatewayProcesses = createTestingHooks<GatewayProcessesService>(
-  () => { _gatewayProcessesInstance = null; },
-  (svc) => { _gatewayProcessesInstance = svc; },
-);
+export { getGatewayProcessesService, __testing_gatewayProcesses };

@@ -1,9 +1,3 @@
-/**
- * CoreBlow — Group Activation Tests
- *
- * Tests for normalizeGroupActivation and parseActivationCommand.
- */
-
 import { describe, it, expect } from 'vitest';
 import { normalizeGroupActivation, parseActivationCommand } from './group-activation.js';
 

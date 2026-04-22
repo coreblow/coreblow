@@ -1,8 +1,3 @@
-/**
- * src/cli/nodes-cli/register.import-contracts.test.ts
- *
- * CoreBlow — Nodes CLI Register Import Contracts
- */
 import { describe, expect, it } from "vitest";
 
 const modules = [

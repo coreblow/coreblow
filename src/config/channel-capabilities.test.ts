@@ -1,6 +1,3 @@
-/**
- * config/channel-capabilities.test.ts — Channel capabilities tests
- */
 import { describe, it, expect } from 'vitest';
 import { resolveChannelCapabilities, listKnownChannels, channelSupports } from './channel-capabilities.js';
 

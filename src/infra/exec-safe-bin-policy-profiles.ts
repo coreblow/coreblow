@@ -326,8 +326,7 @@ export function renderDefaultSafeBinsDocText(
 // ExecSafeBinPolicyProfilesService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ExecSafeBinPolicyProfilesService {
   collectKnownLongFlags(...args: Parameters<typeof collectKnownLongFlags>) {
     return collectKnownLongFlags(...args);
@@ -342,16 +341,8 @@ export class ExecSafeBinPolicyProfilesService {
   }
 }
 
-let _execSafeBinPolicyProfilesInstance: ExecSafeBinPolicyProfilesService | null = null;
 
-export function getExecSafeBinPolicyProfilesService(): ExecSafeBinPolicyProfilesService {
-  if (!_execSafeBinPolicyProfilesInstance) {
-    _execSafeBinPolicyProfilesInstance = new ExecSafeBinPolicyProfilesService();
-  }
-  return _execSafeBinPolicyProfilesInstance;
-}
+const { getInstance: getExecSafeBinPolicyProfilesService, __testing: __testing_execSafeBinPolicyProfiles } =
+  createStandaloneSingleton({ create: () => new ExecSafeBinPolicyProfilesService(), defaultDeps: {} });
 
-export const __testing_execSafeBinPolicyProfiles = createTestingHooks<ExecSafeBinPolicyProfilesService>(
-  () => { _execSafeBinPolicyProfilesInstance = null; },
-  (svc) => { _execSafeBinPolicyProfilesInstance = svc; },
-);
+export { getExecSafeBinPolicyProfilesService, __testing_execSafeBinPolicyProfiles };

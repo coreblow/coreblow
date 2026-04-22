@@ -107,8 +107,7 @@ export function resetAgentEventsForTest() {
 // AgentEventsService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class AgentEventsService {
   registerAgentRunContext(runId: string, context: Parameters<typeof registerAgentRunContext>[1]) {
     return registerAgentRunContext(runId, context);
@@ -131,16 +130,8 @@ export class AgentEventsService {
   }
 }
 
-let _agentEventsInstance: AgentEventsService | null = null;
 
-export function getAgentEventsService(): AgentEventsService {
-  if (!_agentEventsInstance) {
-    _agentEventsInstance = new AgentEventsService();
-  }
-  return _agentEventsInstance;
-}
+const { getInstance: getAgentEventsService, __testing: __testing_agentEvents } =
+  createStandaloneSingleton({ create: () => new AgentEventsService(), defaultDeps: {} });
 
-export const __testing_agentEvents = createTestingHooks<AgentEventsService>(
-  () => { _agentEventsInstance = null; },
-  (svc) => { _agentEventsInstance = svc; },
-);
+export { getAgentEventsService, __testing_agentEvents };

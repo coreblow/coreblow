@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Secret Equal Unit Tests
- */
 import { describe, it, expect } from 'vitest';
 import { safeEqualSecret } from './secret-equal.js';
 

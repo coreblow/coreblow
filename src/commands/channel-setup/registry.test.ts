@@ -1,9 +1,3 @@
-/**
- * src/commands/channel-setup/registry.test.ts
- *
- * CoreBlow — Channel Setup Registry Tests
- * Verifies listChannelSetupWizardAdapters, getChannelSetupWizardAdapter.
- */
 import { describe, expect, it } from "vitest";
 import {
   listChannelSetupWizardAdapters,

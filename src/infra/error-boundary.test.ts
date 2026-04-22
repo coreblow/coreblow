@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Error Boundary Tests
- *
- * Tests for error classification, handler dispatch, wrap(),
- * error logging, counts, and HTTP response generation.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ErrorBoundary } from './error-boundary.js';
 

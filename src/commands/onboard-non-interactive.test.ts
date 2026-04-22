@@ -1,6 +1,3 @@
-/**
- * src/commands/onboard-non-interactive.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("commands/onboard-non-interactive — import", () => {
   it("is importable", async () => {

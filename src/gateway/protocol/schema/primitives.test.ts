@@ -1,9 +1,3 @@
-/**
- * src/gateway/protocol/schema/primitives.test.ts
- *
- * CoreBlow — Protocol Schema Primitives Tests
- * Verifies CHAT_SEND_SESSION_KEY_MAX_LENGTH and NonEmptyString schema constants.
- */
 import { describe, expect, it } from "vitest";
 import {
   CHAT_SEND_SESSION_KEY_MAX_LENGTH,

@@ -1,9 +1,3 @@
-/**
- * src/gateway/auth-config-utils.test.ts
- *
- * CoreBlow — Gateway Auth Config Utils Tests
- * Verifies withGatewayAuthPassword immutability and shape.
- */
 import { describe, expect, it } from "vitest";
 import { withGatewayAuthPassword } from "./auth-config-utils.js";
 

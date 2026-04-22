@@ -1,7 +1,3 @@
-/**
- * Tests for CoreBlow System Prompt Composition Engine
- */
-
 import { describe, it, expect } from 'vitest';
 import {
     buildAgentSystemPrompt,

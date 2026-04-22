@@ -1,10 +1,3 @@
-/**
- * src/agents/compaction.token-sanitize.test.ts
- *
- * CoreBlow — Compaction Token & Message Pruning Tests
- * Verifies token estimation and token-aware compaction logic.
- * Pure-function tests — no external AI or network dependencies.
- */
 import { describe, expect, it } from "vitest";
 import type { CompactionMessage } from "./compaction.js";
 import {
@@ -18,7 +11,7 @@ import {
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 function msg(role: "user" | "assistant", text: string): CompactionMessage {
-  return { role, content: [{ type: "text", text }] };
+  return { role, content: text };
 }
 
 function repeat(ch: string, n: number) {

@@ -1,6 +1,3 @@
-/**
- * plugin-sdk/event-emitter.test.ts — Plugin event emitter tests
- */
 import { describe, it, expect, vi } from 'vitest';
 import { createPluginEventEmitter } from './event-emitter.js';
 

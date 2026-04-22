@@ -130,22 +130,13 @@ export async function openUrlInBackground(url: string): Promise<boolean> {
 // BrowserOpenService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class BrowserOpenService {
   [Symbol.toStringTag] = 'BrowserOpenService';
 }
 
-let _browserOpenInstance: BrowserOpenService | null = null;
 
-export function getBrowserOpenService(): BrowserOpenService {
-  if (!_browserOpenInstance) {
-    _browserOpenInstance = new BrowserOpenService();
-  }
-  return _browserOpenInstance;
-}
+const { getInstance: getBrowserOpenService, __testing: __testing_browserOpen } =
+  createStandaloneSingleton({ create: () => new BrowserOpenService(), defaultDeps: {} });
 
-export const __testing_browserOpen = createTestingHooks<BrowserOpenService>(
-  () => { _browserOpenInstance = null; },
-  (svc) => { _browserOpenInstance = svc; },
-);
+export { getBrowserOpenService, __testing_browserOpen };

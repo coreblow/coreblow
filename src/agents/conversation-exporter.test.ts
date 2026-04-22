@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Conversation Exporter Tests
- *
- * Tests for JSON, Markdown, HTML, text export,
- * filtering, timestamps, and metadata inclusion.
- */
-
 import { describe, it, expect } from 'vitest';
 import { ConversationExporter, type ExportMessage } from './conversation-exporter.js';
 

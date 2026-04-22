@@ -1,6 +1,3 @@
-/**
- * agents/bash-process-registry.test.ts
- */
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
     addSession, getSession, getFinishedSession, deleteSession, appendOutput,

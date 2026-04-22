@@ -1,10 +1,3 @@
-/**
- * src/cron/legacy-delivery.test.ts
- *
- * CoreBlow — Cron Legacy Delivery Normalization Tests
- * Verifies normalizeLegacyDeliveryInput handles legacy delivery
- * field migration without mutating input.
- */
 import { describe, expect, it } from "vitest";
 import { normalizeLegacyDeliveryInput } from "./legacy-delivery.js";
 

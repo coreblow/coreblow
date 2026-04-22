@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Content Filter Unit Tests
- */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ContentFilter } from './content-filter.js';
 

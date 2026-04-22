@@ -1,11 +1,3 @@
-/**
- * plugins/telemetry.test.ts
- *
- * Comprehensive test suite for TelemetryCollector and PluginPerfMonitor.
- * Tests counters, gauges, histograms, plugin metrics, alerting,
- * dashboard, Prometheus export, benchmarking, and edge cases.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
     TelemetryCollector,

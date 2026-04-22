@@ -1,9 +1,3 @@
-/**
- * src/tools/polls.test.ts
- *
- * CoreBlow — Poll Manager Tests
- * Verifies PollManager: create, vote, getResults, duplicate vote accumulation.
- */
 import { describe, beforeEach, expect, it } from "vitest";
 import { PollManager } from "./polls.js";
 

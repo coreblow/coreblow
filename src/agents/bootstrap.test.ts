@@ -1,7 +1,3 @@
-/**
- * Tests for CoreBlow Bootstrap System
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
     calculateBootstrapBudget,

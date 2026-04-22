@@ -1,6 +1,3 @@
-/**
- * src/commands/wizard/doctor-wizard.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("wizard/doctor-wizard — import", () => {
   it("is importable", async () => {

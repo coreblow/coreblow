@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Skill Loader Tests
- *
- * Tests for SKILL.md discovery, YAML frontmatter parsing,
- * metadata resolution, and directory scanning.
- */
-
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { parseFrontmatter, discoverSkills } from './loader.js';
 import * as fs from 'node:fs';

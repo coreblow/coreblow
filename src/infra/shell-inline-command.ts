@@ -47,22 +47,13 @@ export function resolveInlineCommandMatch(
 // ShellInlineCommandService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ShellInlineCommandService {
   [Symbol.toStringTag] = 'ShellInlineCommandService';
 }
 
-let _shellInlineCommandInstance: ShellInlineCommandService | null = null;
 
-export function getShellInlineCommandService(): ShellInlineCommandService {
-  if (!_shellInlineCommandInstance) {
-    _shellInlineCommandInstance = new ShellInlineCommandService();
-  }
-  return _shellInlineCommandInstance;
-}
+const { getInstance: getShellInlineCommandService, __testing: __testing_shellInlineCommand } =
+  createStandaloneSingleton({ create: () => new ShellInlineCommandService(), defaultDeps: {} });
 
-export const __testing_shellInlineCommand = createTestingHooks<ShellInlineCommandService>(
-  () => { _shellInlineCommandInstance = null; },
-  (svc) => { _shellInlineCommandInstance = svc; },
-);
+export { getShellInlineCommandService, __testing_shellInlineCommand };

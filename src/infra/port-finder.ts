@@ -101,22 +101,13 @@ export async function checkPorts(
 // PortFinderService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class PortFinderService {
   [Symbol.toStringTag] = 'PortFinderService';
 }
 
-let _portFinderInstance: PortFinderService | null = null;
 
-export function getPortFinderService(): PortFinderService {
-  if (!_portFinderInstance) {
-    _portFinderInstance = new PortFinderService();
-  }
-  return _portFinderInstance;
-}
+const { getInstance: getPortFinderService, __testing: __testing_portFinder } =
+  createStandaloneSingleton({ create: () => new PortFinderService(), defaultDeps: {} });
 
-export const __testing_portFinder = createTestingHooks<PortFinderService>(
-  () => { _portFinderInstance = null; },
-  (svc) => { _portFinderInstance = svc; },
-);
+export { getPortFinderService, __testing_portFinder };

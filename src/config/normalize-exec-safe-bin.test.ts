@@ -1,10 +1,3 @@
-/**
- * src/config/normalize-exec-safe-bin.test.ts
- *
- * CoreBlow — Normalize Exec Safe Bin Tests
- * Verifies normalizeExecSafeBinProfilesInConfig does not throw
- * on empty, null-like, or well-formed configs.
- */
 import { describe, expect, it } from "vitest";
 import { normalizeExecSafeBinProfilesInConfig } from "./normalize-exec-safe-bin.js";
 

@@ -1,10 +1,3 @@
-/**
- * CoreBlow — PI Embedded Messaging Dedupe Tests
- *
- * Tests for normalizeTextForComparison, isMessagingToolDuplicateNormalized,
- * and isMessagingToolDuplicate.
- */
-
 import { describe, it, expect } from 'vitest';
 import {
     normalizeTextForComparison,

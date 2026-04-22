@@ -74,22 +74,13 @@ export async function isWSL(): Promise<boolean> {
 // WslService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class WslService {
   [Symbol.toStringTag] = 'WslService';
 }
 
-let _wslInstance: WslService | null = null;
 
-export function getWslService(): WslService {
-  if (!_wslInstance) {
-    _wslInstance = new WslService();
-  }
-  return _wslInstance;
-}
+const { getInstance: getWslService, __testing: __testing_wsl } =
+  createStandaloneSingleton({ create: () => new WslService(), defaultDeps: {} });
 
-export const __testing_wsl = createTestingHooks<WslService>(
-  () => { _wslInstance = null; },
-  (svc) => { _wslInstance = svc; },
-);
+export { getWslService, __testing_wsl };

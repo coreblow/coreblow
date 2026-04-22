@@ -215,8 +215,7 @@ export const __testing = {
 // ChannelSelectionService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "../service-patterns.js";
-
+import { createStandaloneSingleton } from "../service-patterns.js";
 export class ChannelSelectionService {
   async listConfiguredMessageChannels(cfg: CoreBlowConfig) {
     return listConfiguredMessageChannels(cfg);
@@ -227,16 +226,8 @@ export class ChannelSelectionService {
   }
 }
 
-let _channelSelectionInstance: ChannelSelectionService | null = null;
 
-export function getChannelSelectionService(): ChannelSelectionService {
-  if (!_channelSelectionInstance) {
-    _channelSelectionInstance = new ChannelSelectionService();
-  }
-  return _channelSelectionInstance;
-}
+const { getInstance: getChannelSelectionService, __testing: __testing_channelSelection } =
+  createStandaloneSingleton({ create: () => new ChannelSelectionService(), defaultDeps: {} });
 
-export const __testing_channelSelection = createTestingHooks<ChannelSelectionService>(
-  () => { _channelSelectionInstance = null; },
-  (svc) => { _channelSelectionInstance = svc; },
-);
+export { getChannelSelectionService, __testing_channelSelection };

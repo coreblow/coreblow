@@ -1,6 +1,3 @@
-/**
- * cron/history.test.ts — Cron history tests
- */
 import { describe, it, expect } from 'vitest';
 import { CronHistory } from './history.js';
 

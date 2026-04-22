@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 import { isAbortRequestText } from "../auto-reply/reply/abort-primitives.js";
 
 export type ChatAbortControllerEntry = {
@@ -26,7 +27,7 @@ export function resolveChatRunExpiresAtMs(params: {
   const target = now + boundedTimeoutMs + graceMs;
   const min = now + minMs;
   const max = now + maxMs;
-  return Math.min(max, Math.max(min, target));
+  return clamp(target, min, max);
 }
 
 export type ChatAbortOps = {

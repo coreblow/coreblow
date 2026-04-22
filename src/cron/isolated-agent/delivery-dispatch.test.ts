@@ -1,10 +1,3 @@
-/**
- * src/cron/isolated-agent/delivery-dispatch.test.ts
- *
- * CoreBlow — Cron Delivery Dispatch Tests
- * Verifies resolveCronDeliveryBestEffort behavior and
- * delivery counter test utilities.
- */
 import { describe, expect, it } from "vitest";
 import {
   getCompletedDirectCronDeliveriesCountForTests,

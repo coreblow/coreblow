@@ -1,7 +1,3 @@
-/**
- * src/agents/cli-runner/import-contracts.test.ts
- * CoreBlow — Agents CLI Runner Import Contracts
- */
 import { describe, expect, it } from "vitest";
 const modules = [
   "cli-abort", "cli-display", "cli-prompt", "cli-runner",

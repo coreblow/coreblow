@@ -54,8 +54,7 @@ export function hasConfiguredExecApprovalDmRoute(cfg: CoreBlowConfig): boolean {
 // ExecApprovalSurfaceService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ExecApprovalSurfaceService {
   resolveExecApprovalInitiatingSurfaceState(params: Parameters<typeof resolveExecApprovalInitiatingSurfaceState>[0]) {
     return resolveExecApprovalInitiatingSurfaceState(params);
@@ -66,16 +65,8 @@ export class ExecApprovalSurfaceService {
   }
 }
 
-let _execApprovalSurfaceInstance: ExecApprovalSurfaceService | null = null;
 
-export function getExecApprovalSurfaceService(): ExecApprovalSurfaceService {
-  if (!_execApprovalSurfaceInstance) {
-    _execApprovalSurfaceInstance = new ExecApprovalSurfaceService();
-  }
-  return _execApprovalSurfaceInstance;
-}
+const { getInstance: getExecApprovalSurfaceService, __testing: __testing_execApprovalSurface } =
+  createStandaloneSingleton({ create: () => new ExecApprovalSurfaceService(), defaultDeps: {} });
 
-export const __testing_execApprovalSurface = createTestingHooks<ExecApprovalSurfaceService>(
-  () => { _execApprovalSurfaceInstance = null; },
-  (svc) => { _execApprovalSurfaceInstance = svc; },
-);
+export { getExecApprovalSurfaceService, __testing_execApprovalSurface };

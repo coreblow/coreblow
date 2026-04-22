@@ -180,24 +180,15 @@ export async function fetchClaudeUsage(
 // ProviderUsageFetchClaudeService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ProviderUsageFetchClaudeService {
   async fetchClaudeUsage(...args: Parameters<typeof fetchClaudeUsage>) {
     return fetchClaudeUsage(...args);
   }
 }
 
-let _providerUsageFetchClaudeInstance: ProviderUsageFetchClaudeService | null = null;
 
-export function getProviderUsageFetchClaudeService(): ProviderUsageFetchClaudeService {
-  if (!_providerUsageFetchClaudeInstance) {
-    _providerUsageFetchClaudeInstance = new ProviderUsageFetchClaudeService();
-  }
-  return _providerUsageFetchClaudeInstance;
-}
+const { getInstance: getProviderUsageFetchClaudeService, __testing: __testing_providerUsageFetchClaude } =
+  createStandaloneSingleton({ create: () => new ProviderUsageFetchClaudeService(), defaultDeps: {} });
 
-export const __testing_providerUsageFetchClaude = createTestingHooks<ProviderUsageFetchClaudeService>(
-  () => { _providerUsageFetchClaudeInstance = null; },
-  (svc) => { _providerUsageFetchClaudeInstance = svc; },
-);
+export { getProviderUsageFetchClaudeService, __testing_providerUsageFetchClaude };

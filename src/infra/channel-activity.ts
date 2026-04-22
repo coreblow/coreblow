@@ -61,22 +61,13 @@ export function resetChannelActivityForTest() {
 // ChannelActivityService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ChannelActivityService {
   [Symbol.toStringTag] = 'ChannelActivityService';
 }
 
-let _channelActivityInstance: ChannelActivityService | null = null;
 
-export function getChannelActivityService(): ChannelActivityService {
-  if (!_channelActivityInstance) {
-    _channelActivityInstance = new ChannelActivityService();
-  }
-  return _channelActivityInstance;
-}
+const { getInstance: getChannelActivityService, __testing: __testing_channelActivity } =
+  createStandaloneSingleton({ create: () => new ChannelActivityService(), defaultDeps: {} });
 
-export const __testing_channelActivity = createTestingHooks<ChannelActivityService>(
-  () => { _channelActivityInstance = null; },
-  (svc) => { _channelActivityInstance = svc; },
-);
+export { getChannelActivityService, __testing_channelActivity };

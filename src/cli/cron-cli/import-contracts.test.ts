@@ -1,8 +1,3 @@
-/**
- * src/cli/cron-cli/import-contracts.test.ts
- *
- * CoreBlow — Cron CLI Import Contracts
- */
 import { describe, expect, it } from "vitest";
 
 const modules = [

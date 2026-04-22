@@ -76,22 +76,13 @@ export function formatPluginInstallPathIssue(params: {
 // PluginInstallPathWarningsService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class PluginInstallPathWarningsService {
   [Symbol.toStringTag] = 'PluginInstallPathWarningsService';
 }
 
-let _pluginInstallPathWarningsInstance: PluginInstallPathWarningsService | null = null;
 
-export function getPluginInstallPathWarningsService(): PluginInstallPathWarningsService {
-  if (!_pluginInstallPathWarningsInstance) {
-    _pluginInstallPathWarningsInstance = new PluginInstallPathWarningsService();
-  }
-  return _pluginInstallPathWarningsInstance;
-}
+const { getInstance: getPluginInstallPathWarningsService, __testing: __testing_pluginInstallPathWarnings } =
+  createStandaloneSingleton({ create: () => new PluginInstallPathWarningsService(), defaultDeps: {} });
 
-export const __testing_pluginInstallPathWarnings = createTestingHooks<PluginInstallPathWarningsService>(
-  () => { _pluginInstallPathWarningsInstance = null; },
-  (svc) => { _pluginInstallPathWarningsInstance = svc; },
-);
+export { getPluginInstallPathWarningsService, __testing_pluginInstallPathWarnings };

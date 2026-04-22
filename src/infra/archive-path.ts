@@ -66,23 +66,14 @@ export function resolveArchiveOutputPath(params: {
 // ArchivePathService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ArchivePathService {
   // Delegates to all exported functions via spread
   [Symbol.toStringTag] = 'ArchivePathService';
 }
 
-let _archivePathInstance: ArchivePathService | null = null;
 
-export function getArchivePathService(): ArchivePathService {
-  if (!_archivePathInstance) {
-    _archivePathInstance = new ArchivePathService();
-  }
-  return _archivePathInstance;
-}
+const { getInstance: getArchivePathService, __testing: __testing_archivePath } =
+  createStandaloneSingleton({ create: () => new ArchivePathService(), defaultDeps: {} });
 
-export const __testing_archivePath = createTestingHooks<ArchivePathService>(
-  () => { _archivePathInstance = null; },
-  (svc) => { _archivePathInstance = svc; },
-);
+export { getArchivePathService, __testing_archivePath };

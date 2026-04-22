@@ -72,22 +72,13 @@ export function formatPortDiagnostics(diagnostics: PortUsage): string[] {
 // PortsFormatService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class PortsFormatService {
   [Symbol.toStringTag] = 'PortsFormatService';
 }
 
-let _portsFormatInstance: PortsFormatService | null = null;
 
-export function getPortsFormatService(): PortsFormatService {
-  if (!_portsFormatInstance) {
-    _portsFormatInstance = new PortsFormatService();
-  }
-  return _portsFormatInstance;
-}
+const { getInstance: getPortsFormatService, __testing: __testing_portsFormat } =
+  createStandaloneSingleton({ create: () => new PortsFormatService(), defaultDeps: {} });
 
-export const __testing_portsFormat = createTestingHooks<PortsFormatService>(
-  () => { _portsFormatInstance = null; },
-  (svc) => { _portsFormatInstance = svc; },
-);
+export { getPortsFormatService, __testing_portsFormat };

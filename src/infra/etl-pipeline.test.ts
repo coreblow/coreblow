@@ -1,10 +1,3 @@
-/**
- * CoreBlow — ETL Pipeline Tests
- *
- * Tests for pipeline creation, multi-stage execution,
- * error handling, history, and listing.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ETLPipeline } from './etl-pipeline.js';
 

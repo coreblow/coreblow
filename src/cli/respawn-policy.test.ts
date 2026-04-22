@@ -1,9 +1,3 @@
-/**
- * src/cli/respawn-policy.test.ts
- *
- * CoreBlow — Respawn Policy Tests
- * Verifies shouldSkipRespawnForArgv.
- */
 import { describe, expect, it } from "vitest";
 import { shouldSkipRespawnForArgv } from "./respawn-policy.js";
 

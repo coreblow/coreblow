@@ -134,22 +134,13 @@ export function openVerifiedFileSync(params: {
 // SafeOpenService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class SafeOpenService {
   [Symbol.toStringTag] = 'SafeOpenService';
 }
 
-let _safeOpenInstance: SafeOpenService | null = null;
 
-export function getSafeOpenService(): SafeOpenService {
-  if (!_safeOpenInstance) {
-    _safeOpenInstance = new SafeOpenService();
-  }
-  return _safeOpenInstance;
-}
+const { getInstance: getSafeOpenService, __testing: __testing_safeOpen } =
+  createStandaloneSingleton({ create: () => new SafeOpenService(), defaultDeps: {} });
 
-export const __testing_safeOpen = createTestingHooks<SafeOpenService>(
-  () => { _safeOpenInstance = null; },
-  (svc) => { _safeOpenInstance = svc; },
-);
+export { getSafeOpenService, __testing_safeOpen };

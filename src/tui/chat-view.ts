@@ -3,6 +3,7 @@
  * Full-screen chat TUI.
  */
 
+import { clamp } from "../utils.js";
 import { createChildLogger } from '../utils/logger.js';
 
 const log = createChildLogger('tui:chat-view');
@@ -54,5 +55,5 @@ export function renderChatView(state: ChatViewState): string {
 }
 
 export function addMessage(state: ChatViewState, msg: ChatMessage): void { state.messages.push(msg); state.scrollOffset = 0; }
-export function scrollUp(state: ChatViewState, lines = 3): void { state.scrollOffset = Math.min(state.scrollOffset + lines, Math.max(0, state.messages.length * 3 - state.height)); }
+export function scrollUp(state: ChatViewState, lines = 3): void { state.scrollOffset = clamp(state.messages.length * 3 - state.height, 0, state.scrollOffset + lines); }
 export function scrollDown(state: ChatViewState, lines = 3): void { state.scrollOffset = Math.max(0, state.scrollOffset - lines); }

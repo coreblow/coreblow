@@ -1,10 +1,3 @@
-/**
- * src/config/zod-schema.secret-input-validation.test.ts
- *
- * CoreBlow — Secret Input Validation Schema Tests
- * Verifies validateTelegramSecretInputRequirements and
- * validateSlackSecretInputRequirements export correctly.
- */
 import { describe, expect, it } from "vitest";
 
 describe("zod-schema.secret-input-validation module", () => {

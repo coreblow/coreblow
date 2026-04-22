@@ -1,8 +1,3 @@
-/**
- * src/commands/wizard/import-contracts.test.ts
- *
- * CoreBlow — Commands Wizard Import Contracts
- */
 import { describe, expect, it } from "vitest";
 
 const modules = [

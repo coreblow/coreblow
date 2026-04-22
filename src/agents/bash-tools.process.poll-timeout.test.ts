@@ -70,8 +70,8 @@ describe("process tool poll timeout", () => {
 
     // CB returns "No session found for ..." style message
     const text = result.content
-      .filter((c): c is { type: "text"; text: string } => c.type === "text")
-      .map((c) => c.text)
+      .filter((c: any): c is { type: "text"; text: string } => c.type === "text")
+      .map((c: any) => c.text)
       .join("");
     expect(text.toLowerCase()).toMatch(/session|found|nonexistent/i);
   });

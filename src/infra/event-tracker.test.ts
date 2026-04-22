@@ -1,9 +1,3 @@
-/**
- * src/infra/event-tracker.test.ts
- *
- * CoreBlow — Event Tracker Tests
- * Verifies EventTracker: track, flush.
- */
 import { describe, beforeEach, expect, it, vi } from "vitest";
 import { EventTracker } from "./event-tracker.js";
 

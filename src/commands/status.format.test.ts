@@ -1,9 +1,3 @@
-/**
- * CoreBlow — Status Format Tests
- *
- * Tests for formatKTokens and formatTokensCompact pure formatters.
- */
-
 import { describe, it, expect } from 'vitest';
 import { formatKTokens, formatTokensCompact } from './status.format.js';
 

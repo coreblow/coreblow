@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Metric Aggregator Tests
- *
- * Tests for metric recording, aggregation (min/max/avg/sum/p95/p99),
- * rate calculation, tag filtering, and metric listing.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MetricAggregator } from './metric-aggregator.js';
 

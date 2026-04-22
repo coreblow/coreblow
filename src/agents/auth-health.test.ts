@@ -1,6 +1,3 @@
-/**
- * agents/auth-health.test.ts
- */
 import { describe, it, expect } from 'vitest';
 import {
     buildAuthHealthSummary, formatRemainingShort, formatAuthHealthSummary,

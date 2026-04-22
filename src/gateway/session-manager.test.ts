@@ -1,6 +1,3 @@
-/**
- * src/gateway/session-manager.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("gateway/session-manager — import", () => {
   it("is importable", async () => {

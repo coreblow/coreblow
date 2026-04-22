@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Stream Message Shared Tests (Inline)
- *
- * Tests for buildZeroUsage, buildUsageWithNoCost logic.
- * Inline to avoid @mariozechner/pi-ai import chain.
- */
-
 import { describe, it, expect } from 'vitest';
 
 // ── Inline replicas ────────────────────────────────────────────────

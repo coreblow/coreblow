@@ -1,9 +1,3 @@
-/**
- * src/config/prototype-keys.test.ts
- *
- * CoreBlow — Prototype Keys Tests
- * Verifies isBlockedObjectKey re-export from infra.
- */
 import { describe, expect, it } from "vitest";
 import { isBlockedObjectKey } from "./prototype-keys.js";
 

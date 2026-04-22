@@ -1,10 +1,3 @@
-/**
- * src/config/media-audio-field-metadata.test.ts
- *
- * CoreBlow — Media Audio Field Metadata Tests
- * Verifies MEDIA_AUDIO_FIELD_KEYS and MEDIA_AUDIO_FIELD_HELP
- * contain expected field paths and help strings.
- */
 import { describe, expect, it } from "vitest";
 import {
   MEDIA_AUDIO_FIELD_HELP,

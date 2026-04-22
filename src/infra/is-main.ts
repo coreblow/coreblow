@@ -66,22 +66,13 @@ export function isMainModule({
 // IsMainService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class IsMainService {
   [Symbol.toStringTag] = 'IsMainService';
 }
 
-let _isMainInstance: IsMainService | null = null;
 
-export function getIsMainService(): IsMainService {
-  if (!_isMainInstance) {
-    _isMainInstance = new IsMainService();
-  }
-  return _isMainInstance;
-}
+const { getInstance: getIsMainService, __testing: __testing_isMain } =
+  createStandaloneSingleton({ create: () => new IsMainService(), defaultDeps: {} });
 
-export const __testing_isMain = createTestingHooks<IsMainService>(
-  () => { _isMainInstance = null; },
-  (svc) => { _isMainInstance = svc; },
-);
+export { getIsMainService, __testing_isMain };

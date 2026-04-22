@@ -1,8 +1,3 @@
-/**
- * src/cli/nodes-cli/extra-contracts.test.ts
- *
- * CoreBlow — Nodes CLI Extra Import Contracts
- */
 import { describe, expect, it } from "vitest";
 
 describe("nodes-cli remaining — import contracts", () => {

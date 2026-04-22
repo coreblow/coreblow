@@ -1,6 +1,3 @@
-/**
- * link-understanding/og-parser.test.ts — OpenGraph parser tests
- */
 import { describe, it, expect } from 'vitest';
 import { parseOpenGraph } from './og-parser.js';
 

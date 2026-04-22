@@ -64,8 +64,7 @@ function hashSignature(value: string): string {
 // TargetNormalizationService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "../service-patterns.js";
-
+import { createStandaloneSingleton } from "../service-patterns.js";
 export class TargetNormalizationService {
   normalizeChannelTargetInput(raw: string) {
     return normalizeChannelTargetInput(raw);
@@ -80,16 +79,8 @@ export class TargetNormalizationService {
   }
 }
 
-let _targetNormalizationInstance: TargetNormalizationService | null = null;
 
-export function getTargetNormalizationService(): TargetNormalizationService {
-  if (!_targetNormalizationInstance) {
-    _targetNormalizationInstance = new TargetNormalizationService();
-  }
-  return _targetNormalizationInstance;
-}
+const { getInstance: getTargetNormalizationService, __testing: __testing_targetNormalization } =
+  createStandaloneSingleton({ create: () => new TargetNormalizationService(), defaultDeps: {} });
 
-export const __testing_targetNormalization = createTestingHooks<TargetNormalizationService>(
-  () => { _targetNormalizationInstance = null; },
-  (svc) => { _targetNormalizationInstance = svc; },
-);
+export { getTargetNormalizationService, __testing_targetNormalization };

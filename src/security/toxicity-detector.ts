@@ -6,6 +6,7 @@
  * batch scanning, and configurable enforcement policies.
  */
 
+import { clamp } from "../utils.js";
 import { createChildLogger } from '../utils/logger.js';
 import { testRegexWithBoundedInput, compileSafeRegexDetailed } from './safe-regex.js';
 
@@ -268,7 +269,7 @@ export class ToxicityDetector {
     // ─── Configuration ───────────────────────────────────────────
 
     setThreshold(threshold: number): void {
-        this.threshold = Math.max(0, Math.min(1, threshold));
+        this.threshold = clamp(threshold, 0, 1);
     }
 
     getThreshold(): number { return this.threshold; }

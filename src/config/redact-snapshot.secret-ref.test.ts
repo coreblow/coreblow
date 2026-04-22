@@ -1,10 +1,3 @@
-/**
- * src/config/redact-snapshot.secret-ref.test.ts
- *
- * CoreBlow — Redact Snapshot Secret Ref Tests
- * Verifies the secret-ref module exports are importable
- * and key functions work without throwing.
- */
 import { describe, expect, it } from "vitest";
 
 describe("redact-snapshot.secret-ref module", () => {

@@ -1,9 +1,3 @@
-/**
- * src/commands/auth-choice-options.static.test.ts
- *
- * CoreBlow — Auth Choice Options Static Tests
- * Verifies CORE_AUTH_CHOICE_OPTIONS structure and required fields.
- */
 import { describe, expect, it } from "vitest";
 import { CORE_AUTH_CHOICE_OPTIONS } from "./auth-choice-options.static.js";
 

@@ -1,6 +1,3 @@
-/**
- * Gateway server-impl tests
- */
 import { describe, it, expect } from 'vitest';
 import { createGatewayServer, GatewayServer } from './server-impl.js';
 

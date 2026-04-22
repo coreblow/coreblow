@@ -1,9 +1,3 @@
-/**
- * src/infra/lazy-loader.test.ts
- *
- * CoreBlow — Lazy Loader Tests
- * Verifies LazyLoader: register, get, caching, error propagation.
- */
 import { describe, beforeEach, expect, it } from "vitest";
 import { LazyLoader } from "./lazy-loader.js";
 

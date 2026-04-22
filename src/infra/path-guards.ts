@@ -50,22 +50,13 @@ export function isPathInside(root: string, target: string): boolean {
 // PathGuardsService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class PathGuardsService {
   [Symbol.toStringTag] = 'PathGuardsService';
 }
 
-let _pathGuardsInstance: PathGuardsService | null = null;
 
-export function getPathGuardsService(): PathGuardsService {
-  if (!_pathGuardsInstance) {
-    _pathGuardsInstance = new PathGuardsService();
-  }
-  return _pathGuardsInstance;
-}
+const { getInstance: getPathGuardsService, __testing: __testing_pathGuards } =
+  createStandaloneSingleton({ create: () => new PathGuardsService(), defaultDeps: {} });
 
-export const __testing_pathGuards = createTestingHooks<PathGuardsService>(
-  () => { _pathGuardsInstance = null; },
-  (svc) => { _pathGuardsInstance = svc; },
-);
+export { getPathGuardsService, __testing_pathGuards };

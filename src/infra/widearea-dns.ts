@@ -202,22 +202,13 @@ export async function writeWideAreaGatewayZone(
 // WideareaDnsService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class WideareaDnsService {
   [Symbol.toStringTag] = 'WideareaDnsService';
 }
 
-let _wideareaDnsInstance: WideareaDnsService | null = null;
 
-export function getWideareaDnsService(): WideareaDnsService {
-  if (!_wideareaDnsInstance) {
-    _wideareaDnsInstance = new WideareaDnsService();
-  }
-  return _wideareaDnsInstance;
-}
+const { getInstance: getWideareaDnsService, __testing: __testing_wideareaDns } =
+  createStandaloneSingleton({ create: () => new WideareaDnsService(), defaultDeps: {} });
 
-export const __testing_wideareaDns = createTestingHooks<WideareaDnsService>(
-  () => { _wideareaDnsInstance = null; },
-  (svc) => { _wideareaDnsInstance = svc; },
-);
+export { getWideareaDnsService, __testing_wideareaDns };

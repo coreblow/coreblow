@@ -1,7 +1,3 @@
-/**
- * src/agents/command/import-contracts.test.ts
- * CoreBlow — Agents Command Import Contracts
- */
 import { describe, expect, it } from "vitest";
 const modules = [
   "agent-command-dispatch", "agent-command-parse", "agent-command-registry",

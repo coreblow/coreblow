@@ -83,24 +83,15 @@ export async function requestExecHostViaSocket(params: {
 // ExecHostService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ExecHostService {
   async requestExecHostViaSocket(params: Parameters<typeof requestExecHostViaSocket>[0]) {
     return requestExecHostViaSocket(params);
   }
 }
 
-let _execHostInstance: ExecHostService | null = null;
 
-export function getExecHostService(): ExecHostService {
-  if (!_execHostInstance) {
-    _execHostInstance = new ExecHostService();
-  }
-  return _execHostInstance;
-}
+const { getInstance: getExecHostService, __testing: __testing_execHost } =
+  createStandaloneSingleton({ create: () => new ExecHostService(), defaultDeps: {} });
 
-export const __testing_execHost = createTestingHooks<ExecHostService>(
-  () => { _execHostInstance = null; },
-  (svc) => { _execHostInstance = svc; },
-);
+export { getExecHostService, __testing_execHost };

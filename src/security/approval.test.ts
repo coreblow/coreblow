@@ -1,6 +1,3 @@
-/**
- * CoreBlow — ToolApproval Unit Tests
- */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 
 vi.mock('../utils/logger.js', () => ({

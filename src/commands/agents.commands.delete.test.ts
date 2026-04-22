@@ -1,6 +1,3 @@
-/**
- * src/commands/agents.commands.delete.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("agents.commands.delete — import", () => {
   it("is importable", async () => {

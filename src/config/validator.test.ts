@@ -1,10 +1,3 @@
-/**
- * src/config/validator.test.ts
- *
- * CoreBlow — Config Validator Tests
- * Verifies AGENT_SCHEMA / CHANNEL_SCHEMA / SCHEMAS constants,
- * validateConfig behavior, and mergeConfigs layering.
- */
 import { describe, expect, it } from "vitest";
 import {
   AGENT_SCHEMA,

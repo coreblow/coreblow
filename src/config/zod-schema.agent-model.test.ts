@@ -1,10 +1,3 @@
-/**
- * src/config/zod-schema.agent-model.test.ts
- *
- * CoreBlow — Agent Model Schema Validation Tests
- * Verifies AgentModelSchema accepts string models, object models,
- * and rejects invalid shapes.
- */
 import { describe, expect, it } from "vitest";
 import { AgentModelSchema } from "./zod-schema.agent-model.js";
 

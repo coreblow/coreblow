@@ -47,24 +47,15 @@ export function buildOutboundResultEnvelope(
 // OutboundEnvelopeService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "../service-patterns.js";
-
+import { createStandaloneSingleton } from "../service-patterns.js";
 export class OutboundEnvelopeService {
   buildOutboundResultEnvelope(params: Parameters<typeof buildOutboundResultEnvelope>[0]) {
     return buildOutboundResultEnvelope(params);
   }
 }
 
-let _outboundEnvelopeInstance: OutboundEnvelopeService | null = null;
 
-export function getOutboundEnvelopeService(): OutboundEnvelopeService {
-  if (!_outboundEnvelopeInstance) {
-    _outboundEnvelopeInstance = new OutboundEnvelopeService();
-  }
-  return _outboundEnvelopeInstance;
-}
+const { getInstance: getOutboundEnvelopeService, __testing: __testing_outboundEnvelope } =
+  createStandaloneSingleton({ create: () => new OutboundEnvelopeService(), defaultDeps: {} });
 
-export const __testing_outboundEnvelope = createTestingHooks<OutboundEnvelopeService>(
-  () => { _outboundEnvelopeInstance = null; },
-  (svc) => { _outboundEnvelopeInstance = svc; },
-);
+export { getOutboundEnvelopeService, __testing_outboundEnvelope };

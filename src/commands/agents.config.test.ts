@@ -1,9 +1,3 @@
-/**
- * src/commands/agents.config.test.ts
- *
- * CoreBlow — Agents Config Tests
- * Verifies findAgentEntryIndex, parseIdentityMarkdown, buildAgentSummaries.
- */
 import { describe, expect, it } from "vitest";
 import {
   findAgentEntryIndex,

@@ -356,8 +356,7 @@ export function parseExecArgvToken(raw: string): ExecArgvToken {
 // ExecCommandResolutionService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ExecCommandResolutionService {
   resolveCommandResolution(params: Parameters<typeof resolveCommandResolution>[0]) {
     return resolveCommandResolution(params);
@@ -384,16 +383,8 @@ export class ExecCommandResolutionService {
   }
 }
 
-let _execCommandResolutionInstance: ExecCommandResolutionService | null = null;
 
-export function getExecCommandResolutionService(): ExecCommandResolutionService {
-  if (!_execCommandResolutionInstance) {
-    _execCommandResolutionInstance = new ExecCommandResolutionService();
-  }
-  return _execCommandResolutionInstance;
-}
+const { getInstance: getExecCommandResolutionService, __testing: __testing_execCommandResolution } =
+  createStandaloneSingleton({ create: () => new ExecCommandResolutionService(), defaultDeps: {} });
 
-export const __testing_execCommandResolution = createTestingHooks<ExecCommandResolutionService>(
-  () => { _execCommandResolutionInstance = null; },
-  (svc) => { _execCommandResolutionInstance = svc; },
-);
+export { getExecCommandResolutionService, __testing_execCommandResolution };

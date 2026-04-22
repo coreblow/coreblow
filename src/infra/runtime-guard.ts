@@ -125,22 +125,13 @@ export function assertSupportedRuntime(
 // RuntimeGuardService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class RuntimeGuardService {
   [Symbol.toStringTag] = 'RuntimeGuardService';
 }
 
-let _runtimeGuardInstance: RuntimeGuardService | null = null;
 
-export function getRuntimeGuardService(): RuntimeGuardService {
-  if (!_runtimeGuardInstance) {
-    _runtimeGuardInstance = new RuntimeGuardService();
-  }
-  return _runtimeGuardInstance;
-}
+const { getInstance: getRuntimeGuardService, __testing: __testing_runtimeGuard } =
+  createStandaloneSingleton({ create: () => new RuntimeGuardService(), defaultDeps: {} });
 
-export const __testing_runtimeGuard = createTestingHooks<RuntimeGuardService>(
-  () => { _runtimeGuardInstance = null; },
-  (svc) => { _runtimeGuardInstance = svc; },
-);
+export { getRuntimeGuardService, __testing_runtimeGuard };

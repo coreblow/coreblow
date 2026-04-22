@@ -1,6 +1,3 @@
-/**
- * src/gateway/server-methods/attachment-normalize.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("server-methods/attachment-normalize — import", () => {
   it("is importable", async () => {

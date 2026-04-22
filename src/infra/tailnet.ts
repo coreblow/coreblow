@@ -49,22 +49,13 @@ export function pickPrimaryTailnetIPv6(): string | undefined {
 // TailnetService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class TailnetService {
   [Symbol.toStringTag] = 'TailnetService';
 }
 
-let _tailnetInstance: TailnetService | null = null;
 
-export function getTailnetService(): TailnetService {
-  if (!_tailnetInstance) {
-    _tailnetInstance = new TailnetService();
-  }
-  return _tailnetInstance;
-}
+const { getInstance: getTailnetService, __testing: __testing_tailnet } =
+  createStandaloneSingleton({ create: () => new TailnetService(), defaultDeps: {} });
 
-export const __testing_tailnet = createTestingHooks<TailnetService>(
-  () => { _tailnetInstance = null; },
-  (svc) => { _tailnetInstance = svc; },
-);
+export { getTailnetService, __testing_tailnet };

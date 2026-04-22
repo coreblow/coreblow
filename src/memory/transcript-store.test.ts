@@ -1,9 +1,3 @@
-/**
- * TranscriptStore Tests
- *
- * Validates JSONL session memory: append, stream tail-read,
- * compaction, corruption handling, edge cases.
- */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';

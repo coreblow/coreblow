@@ -1,6 +1,3 @@
-/**
- * src/commands/auth-choice-prompt.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("auth-choice-prompt — import", () => {
   it("is importable", async () => {

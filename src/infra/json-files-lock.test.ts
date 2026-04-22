@@ -1,13 +1,3 @@
-/**
- * json-files-lock.test.ts
- *
- * Tests that writeJsonAtomic() correctly serializes concurrent writes
- * to the same file path using the per-path lock.
- *
- * Before fix: 19/20 concurrent writes silently lost.
- * After fix: 20/20 concurrent writes succeed (serialized).
- */
-
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';

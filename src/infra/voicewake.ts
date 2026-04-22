@@ -62,22 +62,13 @@ export async function setVoiceWakeTriggers(
 // VoicewakeService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class VoicewakeService {
   [Symbol.toStringTag] = 'VoicewakeService';
 }
 
-let _voicewakeInstance: VoicewakeService | null = null;
 
-export function getVoicewakeService(): VoicewakeService {
-  if (!_voicewakeInstance) {
-    _voicewakeInstance = new VoicewakeService();
-  }
-  return _voicewakeInstance;
-}
+const { getInstance: getVoicewakeService, __testing: __testing_voicewake } =
+  createStandaloneSingleton({ create: () => new VoicewakeService(), defaultDeps: {} });
 
-export const __testing_voicewake = createTestingHooks<VoicewakeService>(
-  () => { _voicewakeInstance = null; },
-  (svc) => { _voicewakeInstance = svc; },
-);
+export { getVoicewakeService, __testing_voicewake };

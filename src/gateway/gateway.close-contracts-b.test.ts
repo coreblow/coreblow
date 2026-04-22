@@ -1,8 +1,3 @@
-/**
- * src/gateway/gateway.close-contracts-b.test.ts
- *
- * CoreBlow — Gateway Close Import Contracts (Batch B)
- */
 import { describe, expect, it } from "vitest";
 
 const modules = [

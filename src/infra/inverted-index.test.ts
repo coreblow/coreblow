@@ -1,9 +1,3 @@
-/**
- * src/infra/inverted-index.test.ts
- *
- * CoreBlow — Inverted Index Tests
- * Verifies InvertedIndex: add, search, size, clear.
- */
 import { describe, beforeEach, expect, it } from "vitest";
 import { InvertedIndex } from "./inverted-index.js";
 

@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Agent Engine Config Tests
- *
- * Tests for provider config constants, tool approval defaults,
- * engine config merging, and type structures.
- */
-
 import { describe, it, expect } from 'vitest';
 import {
     ANTHROPIC_PROVIDER,

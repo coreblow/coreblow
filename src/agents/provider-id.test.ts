@@ -1,7 +1,3 @@
-/**
- * agents/provider-id.test.ts
- * Ported to match OpenClaw normalizeProviderId behavior.
- */
 import { describe, it, expect } from "vitest";
 import {
   normalizeProviderId,

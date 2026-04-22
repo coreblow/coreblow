@@ -137,22 +137,13 @@ function buildCandidates(opts: { cwd?: string; argv1?: string; moduleUrl?: strin
 // OpenclawRootService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class OpenclawRootService {
   [Symbol.toStringTag] = 'OpenclawRootService';
 }
 
-let _openclawRootInstance: OpenclawRootService | null = null;
 
-export function getOpenclawRootService(): OpenclawRootService {
-  if (!_openclawRootInstance) {
-    _openclawRootInstance = new OpenclawRootService();
-  }
-  return _openclawRootInstance;
-}
+const { getInstance: getOpenclawRootService, __testing: __testing_openclawRoot } =
+  createStandaloneSingleton({ create: () => new OpenclawRootService(), defaultDeps: {} });
 
-export const __testing_openclawRoot = createTestingHooks<OpenclawRootService>(
-  () => { _openclawRootInstance = null; },
-  (svc) => { _openclawRootInstance = svc; },
-);
+export { getOpenclawRootService, __testing_openclawRoot };

@@ -1,10 +1,3 @@
-/**
- * src/cron/cron-service-events.test.ts
- *
- * CoreBlow — Cron Service Events Shape Tests
- * Verifies onEvent callback integration and CronEvent type shapes
- * without triggering full cron execution.
- */
 import { describe, expect, it, vi } from "vitest";
 import { createCronServiceState } from "./service/state.js";
 import { emit } from "./service/timer.js";

@@ -1,10 +1,3 @@
-/**
- * src/config/zod-schema.providers-core.test.ts
- *
- * CoreBlow — Providers Core Schema Validation Tests
- * Verifies TelegramTopicSchema, TelegramGroupSchema, TelegramDirectSchema,
- * DiscordDmSchema and DiscordGuildChannelSchema accept valid structures.
- */
 import { describe, expect, it } from "vitest";
 import {
   DiscordDmSchema,

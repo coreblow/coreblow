@@ -1,9 +1,3 @@
-/**
- * src/cli/update-cli/suppress-deprecations.test.ts
- *
- * CoreBlow — Suppress Deprecations Tests
- * Verifies suppressDeprecations: runs without throwing, sets NODE_NO_WARNINGS.
- */
 import { describe, expect, it } from "vitest";
 import { suppressDeprecations } from "./suppress-deprecations.js";
 

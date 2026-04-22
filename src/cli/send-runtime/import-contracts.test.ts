@@ -1,9 +1,3 @@
-/**
- * src/cli/send-runtime/import-contracts.test.ts
- *
- * CoreBlow — Send Runtime Import Contracts
- * Verifies all send-runtime channel modules load without side-effects.
- */
 import { describe, expect, it } from "vitest";
 
 const modules = [

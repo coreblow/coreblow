@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 import { resolveSandboxConfigForAgent } from "../agents/sandbox/config.js";
 import { isDangerousNetworkMode, normalizeNetworkMode } from "../agents/sandbox/network-mode.js";
 /**
@@ -287,7 +288,7 @@ function suggestKnownNodeCommands(unknown: string, known: Set<string>): string[]
     .toSorted((a, b) => a.d - b.d || a.cmd.localeCompare(b.cmd));
 
   const best = ranked[0]?.d ?? Infinity;
-  const threshold = Math.max(2, Math.min(4, best));
+  const threshold = clamp(best, 2, 4);
   return ranked
     .filter((r) => r.d <= threshold)
     .slice(0, 3)

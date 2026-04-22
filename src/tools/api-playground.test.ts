@@ -1,9 +1,3 @@
-/**
- * src/tools/api-playground.test.ts
- *
- * CoreBlow — API Playground Tests
- * Verifies ApiPlayground: getHistory, clearHistory, count.
- */
 import { describe, beforeEach, expect, it } from "vitest";
 import { ApiPlayground } from "./api-playground.js";
 

@@ -1,20 +1,46 @@
 ---
 name: video-frames
-description: Video Frames skill for CoreBlow
+description: Extract frames or short clips from videos using ffmpeg.
+homepage: https://ffmpeg.org
+metadata:
+  {
+    "coreblow":
+      {
+        "emoji": "🎬",
+        "requires": { "bins": ["ffmpeg"] },
+        "install":
+          [
+            {
+              "id": "brew",
+              "kind": "brew",
+              "formula": "ffmpeg",
+              "bins": ["ffmpeg"],
+              "label": "Install ffmpeg (brew)",
+            },
+          ],
+      },
+  }
 ---
 
-# Video Frames
+# Video Frames (ffmpeg)
 
-## Overview
-This skill provides video frames functionality for CoreBlow agents.
+Extract a single frame from a video, or create quick thumbnails for inspection.
 
-## Usage
-Add this skill to your agent configuration:
-```yaml
-skills:
-  - video-frames
+## Quick start
+
+First frame:
+
+```bash
+{baseDir}/scripts/frame.sh /path/to/video.mp4 --out /tmp/frame.jpg
 ```
 
-## Commands
-- `/video-frames` — Main command
-- `/video-frames help` — Show help
+At a timestamp:
+
+```bash
+{baseDir}/scripts/frame.sh /path/to/video.mp4 --time 00:00:10 --out /tmp/frame-10s.jpg
+```
+
+## Notes
+
+- Prefer `--time` for “what is happening around here?”.
+- Use a `.jpg` for quick share; use `.png` for crisp UI frames.

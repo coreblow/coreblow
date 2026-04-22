@@ -1,6 +1,3 @@
-/**
- * src/agents/provider-profiles/import-contracts.test.ts
- */
 import { describe, expect, it } from "vitest";
 import { readdirSync } from "fs";
 import { basename } from "path";

@@ -1,9 +1,3 @@
-/**
- * src/infra/debounce-throttle.test.ts
- *
- * CoreBlow — Debounce & Throttle Tests
- * Verifies debounce, throttle, and DebounceThrottleService.
- */
 import { describe, beforeEach, afterEach, expect, it, vi } from "vitest";
 import { debounce, throttle } from "./debounce-throttle.js";
 

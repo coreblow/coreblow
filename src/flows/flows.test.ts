@@ -1,6 +1,3 @@
-/**
- * Conversation flow engine tests
- */
 import { describe, it, expect } from 'vitest';
 import { FlowEngine } from './flow-engine.js';
 import { onboardingFlow, feedbackFlow, registerFlow, getFlowDef, listFlows } from './flow-registry.js';

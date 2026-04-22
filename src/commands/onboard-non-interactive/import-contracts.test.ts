@@ -1,6 +1,3 @@
-/**
- * src/commands/onboard-non-interactive/import-contracts.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("onboard-non-interactive/local/auth-choice-inference — import", () => {
   it("is importable", async () => {

@@ -1,6 +1,3 @@
-/**
- * media-understanding/document-parser.test.ts — Document parser tests
- */
 import { describe, it, expect } from 'vitest';
 import { parseTextDocument } from './document-parser.js';
 

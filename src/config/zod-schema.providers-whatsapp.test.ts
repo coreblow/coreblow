@@ -1,10 +1,3 @@
-/**
- * src/config/zod-schema.providers-whatsapp.test.ts
- *
- * CoreBlow — WhatsApp Provider Schema Validation Tests
- * Verifies WhatsAppAccountSchema and WhatsAppConfigSchema
- * accept valid WhatsApp configuration shapes.
- */
 import { describe, expect, it } from "vitest";
 import {
   WhatsAppAccountSchema,

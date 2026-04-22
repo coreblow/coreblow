@@ -1,6 +1,3 @@
-/**
- * src/gateway/server-methods/nodes.helpers.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("server-methods/nodes.helpers — import", () => {
   it("is importable", async () => {

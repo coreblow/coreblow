@@ -51,22 +51,13 @@ export function createFixedWindowRateLimiter(params: {
 // FixedWindowRateLimitService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class FixedWindowRateLimitService {
   [Symbol.toStringTag] = 'FixedWindowRateLimitService';
 }
 
-let _fixedWindowRateLimitInstance: FixedWindowRateLimitService | null = null;
 
-export function getFixedWindowRateLimitService(): FixedWindowRateLimitService {
-  if (!_fixedWindowRateLimitInstance) {
-    _fixedWindowRateLimitInstance = new FixedWindowRateLimitService();
-  }
-  return _fixedWindowRateLimitInstance;
-}
+const { getInstance: getFixedWindowRateLimitService, __testing: __testing_fixedWindowRateLimit } =
+  createStandaloneSingleton({ create: () => new FixedWindowRateLimitService(), defaultDeps: {} });
 
-export const __testing_fixedWindowRateLimit = createTestingHooks<FixedWindowRateLimitService>(
-  () => { _fixedWindowRateLimitInstance = null; },
-  (svc) => { _fixedWindowRateLimitInstance = svc; },
-);
+export { getFixedWindowRateLimitService, __testing_fixedWindowRateLimit };

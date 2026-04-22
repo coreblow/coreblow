@@ -113,26 +113,3 @@ export class BackupManager {
     }
 }
 
-// ---------------------------------------------------------------------------
-// BackupManagerService — Tier-1 Standalone Singleton
-// ---------------------------------------------------------------------------
-
-import { createTestingHooks } from "./service-patterns.js";
-
-export class BackupManagerService {
-  [Symbol.toStringTag] = 'BackupManagerService';
-}
-
-let _backupManagerInstance: BackupManagerService | null = null;
-
-export function getBackupManagerService(): BackupManagerService {
-  if (!_backupManagerInstance) {
-    _backupManagerInstance = new BackupManagerService();
-  }
-  return _backupManagerInstance;
-}
-
-export const __testing_backupManager = createTestingHooks<BackupManagerService>(
-  () => { _backupManagerInstance = null; },
-  (svc) => { _backupManagerInstance = svc; },
-);

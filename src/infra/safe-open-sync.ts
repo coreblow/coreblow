@@ -104,22 +104,13 @@ function isAllowedType(stat: fs.Stats, allowedType: SafeOpenSyncAllowedType): bo
 // SafeOpenSyncService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class SafeOpenSyncService {
   [Symbol.toStringTag] = 'SafeOpenSyncService';
 }
 
-let _safeOpenSyncInstance: SafeOpenSyncService | null = null;
 
-export function getSafeOpenSyncService(): SafeOpenSyncService {
-  if (!_safeOpenSyncInstance) {
-    _safeOpenSyncInstance = new SafeOpenSyncService();
-  }
-  return _safeOpenSyncInstance;
-}
+const { getInstance: getSafeOpenSyncService, __testing: __testing_safeOpenSync } =
+  createStandaloneSingleton({ create: () => new SafeOpenSyncService(), defaultDeps: {} });
 
-export const __testing_safeOpenSync = createTestingHooks<SafeOpenSyncService>(
-  () => { _safeOpenSyncInstance = null; },
-  (svc) => { _safeOpenSyncInstance = svc; },
-);
+export { getSafeOpenSyncService, __testing_safeOpenSync };

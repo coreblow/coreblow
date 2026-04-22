@@ -67,22 +67,13 @@ export async function withExtractedArchiveRoot<TResult extends { ok: boolean }>(
 // InstallFlowService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class InstallFlowService {
   [Symbol.toStringTag] = 'InstallFlowService';
 }
 
-let _installFlowInstance: InstallFlowService | null = null;
 
-export function getInstallFlowService(): InstallFlowService {
-  if (!_installFlowInstance) {
-    _installFlowInstance = new InstallFlowService();
-  }
-  return _installFlowInstance;
-}
+const { getInstance: getInstallFlowService, __testing: __testing_installFlow } =
+  createStandaloneSingleton({ create: () => new InstallFlowService(), defaultDeps: {} });
 
-export const __testing_installFlow = createTestingHooks<InstallFlowService>(
-  () => { _installFlowInstance = null; },
-  (svc) => { _installFlowInstance = svc; },
-);
+export { getInstallFlowService, __testing_installFlow };

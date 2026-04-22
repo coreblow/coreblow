@@ -1,6 +1,3 @@
-/**
- * cron/cron-lock.test.ts — Cron lock tests
- */
 import { describe, it, expect } from 'vitest';
 import { CronLock } from './cron-lock.js';
 

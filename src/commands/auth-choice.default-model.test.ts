@@ -1,9 +1,3 @@
-/**
- * src/commands/auth-choice.default-model.test.ts
- *
- * CoreBlow — Auth Choice Default Model Tests
- * Import contract for auth-choice.default-model.
- */
 import { describe, expect, it } from "vitest";
 
 describe("auth-choice.default-model module", () => {

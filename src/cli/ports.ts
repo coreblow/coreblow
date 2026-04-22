@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { createServer } from "node:net";
 import { resolveLsofCommandSync } from "../infra/ports-lsof.js";
 import { tryListenOnPort } from "../infra/ports-probe.js";
-import { sleep } from "../utils.js";
+import { sleep, clamp } from "../utils.js";
 
 export type PortProcess = { pid: number; command?: string };
 
@@ -260,7 +260,7 @@ export async function forceFreePortAndWait(
 ): Promise<ForceFreePortResult> {
   const timeoutMs = Math.max(opts.timeoutMs ?? 1500, 0);
   const intervalMs = Math.max(opts.intervalMs ?? 100, 1);
-  const sigtermTimeoutMs = Math.min(Math.max(opts.sigtermTimeoutMs ?? 600, 0), timeoutMs);
+  const sigtermTimeoutMs = clamp(opts.sigtermTimeoutMs ?? 600, 0, timeoutMs);
 
   let killed: PortProcess[] = [];
   let useFuserFallback = false;

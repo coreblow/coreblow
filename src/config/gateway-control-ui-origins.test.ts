@@ -1,10 +1,3 @@
-/**
- * src/config/gateway-control-ui-origins.test.ts
- *
- * CoreBlow — Gateway Control UI Origins Tests
- * Verifies isGatewayNonLoopbackBindMode, hasConfiguredControlUiAllowedOrigins,
- * resolveGatewayPortWithDefault, and buildDefaultControlUiAllowedOrigins.
- */
 import { describe, expect, it } from "vitest";
 import {
   buildDefaultControlUiAllowedOrigins,

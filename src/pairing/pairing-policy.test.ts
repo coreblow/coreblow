@@ -1,6 +1,3 @@
-/**
- * pairing/pairing-policy.test.ts — Pairing policy tests
- */
 import { describe, it, expect } from 'vitest';
 import { resolvePairingMode, requiresPairing, canBypassPairing } from './pairing-policy.js';
 

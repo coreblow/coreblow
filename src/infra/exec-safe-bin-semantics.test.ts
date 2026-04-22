@@ -1,10 +1,3 @@
-/**
- * src/infra/exec-safe-bin-semantics.test.ts
- *
- * CoreBlow — Exec Safe Bin Semantics Tests
- * Verifies normalizeSafeBinName, getSafeBinSemanticRule,
- * validateSafeBinSemantics, listRiskyConfiguredSafeBins.
- */
 import { describe, expect, it } from "vitest";
 import {
   normalizeSafeBinName,

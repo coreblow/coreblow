@@ -37,22 +37,13 @@ export async function assertNoPathAliasEscape(params: {
 // PathAliasGuardsService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class PathAliasGuardsService {
   [Symbol.toStringTag] = 'PathAliasGuardsService';
 }
 
-let _pathAliasGuardsInstance: PathAliasGuardsService | null = null;
 
-export function getPathAliasGuardsService(): PathAliasGuardsService {
-  if (!_pathAliasGuardsInstance) {
-    _pathAliasGuardsInstance = new PathAliasGuardsService();
-  }
-  return _pathAliasGuardsInstance;
-}
+const { getInstance: getPathAliasGuardsService, __testing: __testing_pathAliasGuards } =
+  createStandaloneSingleton({ create: () => new PathAliasGuardsService(), defaultDeps: {} });
 
-export const __testing_pathAliasGuards = createTestingHooks<PathAliasGuardsService>(
-  () => { _pathAliasGuardsInstance = null; },
-  (svc) => { _pathAliasGuardsInstance = svc; },
-);
+export { getPathAliasGuardsService, __testing_pathAliasGuards };

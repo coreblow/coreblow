@@ -96,22 +96,13 @@ export function resolveCanvasHostUrl(params: CanvasHostUrlParams) {
 // CanvasHostUrlService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class CanvasHostUrlService {
   [Symbol.toStringTag] = 'CanvasHostUrlService';
 }
 
-let _canvasHostUrlInstance: CanvasHostUrlService | null = null;
 
-export function getCanvasHostUrlService(): CanvasHostUrlService {
-  if (!_canvasHostUrlInstance) {
-    _canvasHostUrlInstance = new CanvasHostUrlService();
-  }
-  return _canvasHostUrlInstance;
-}
+const { getInstance: getCanvasHostUrlService, __testing: __testing_canvasHostUrl } =
+  createStandaloneSingleton({ create: () => new CanvasHostUrlService(), defaultDeps: {} });
 
-export const __testing_canvasHostUrl = createTestingHooks<CanvasHostUrlService>(
-  () => { _canvasHostUrlInstance = null; },
-  (svc) => { _canvasHostUrlInstance = svc; },
-);
+export { getCanvasHostUrlService, __testing_canvasHostUrl };

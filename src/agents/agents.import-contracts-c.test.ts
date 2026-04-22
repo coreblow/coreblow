@@ -1,6 +1,3 @@
-/**
- * src/agents/agents.import-contracts-c.test.ts
- */
 import { describe, expect, it } from "vitest";
 const modules = [
   "console-sanitize", "context-cache", "context-tokens.runtime",

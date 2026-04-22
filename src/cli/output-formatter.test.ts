@@ -1,9 +1,3 @@
-/**
- * src/cli/output-formatter.test.ts
- *
- * CoreBlow — Output Formatter Tests
- * Verifies renderMarkdownToTerminal, highlightCode, formatCodeBlock.
- */
 import { describe, expect, it } from "vitest";
 import {
   renderMarkdownToTerminal,

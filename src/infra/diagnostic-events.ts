@@ -245,8 +245,7 @@ export function resetDiagnosticEventsForTest(): void {
 // DiagnosticEventsService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class DiagnosticEventsService {
   isDiagnosticsEnabled(config?: Parameters<typeof isDiagnosticsEnabled>[0]) {
     return isDiagnosticsEnabled(config);
@@ -261,16 +260,8 @@ export class DiagnosticEventsService {
   }
 }
 
-let _diagnosticEventsInstance: DiagnosticEventsService | null = null;
 
-export function getDiagnosticEventsService(): DiagnosticEventsService {
-  if (!_diagnosticEventsInstance) {
-    _diagnosticEventsInstance = new DiagnosticEventsService();
-  }
-  return _diagnosticEventsInstance;
-}
+const { getInstance: getDiagnosticEventsService, __testing: __testing_diagnosticEvents } =
+  createStandaloneSingleton({ create: () => new DiagnosticEventsService(), defaultDeps: {} });
 
-export const __testing_diagnosticEvents = createTestingHooks<DiagnosticEventsService>(
-  () => { _diagnosticEventsInstance = null; },
-  (svc) => { _diagnosticEventsInstance = svc; },
-);
+export { getDiagnosticEventsService, __testing_diagnosticEvents };

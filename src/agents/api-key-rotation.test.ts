@@ -1,10 +1,3 @@
-/**
- * CoreBlow — API Key Rotation Tests (Inline)
- *
- * Tests for dedupeApiKeys and executeWithApiKeyRotation logic.
- * Inline dedupeApiKeys to avoid live-auth-keys import chain.
- */
-
 import { describe, it, expect } from 'vitest';
 
 // ── Inline replicas ────────────────────────────────────────────────

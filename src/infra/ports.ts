@@ -93,22 +93,13 @@ export { inspectPortUsage } from "./ports-inspect.js";
 // PortsService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class PortsService {
   [Symbol.toStringTag] = 'PortsService';
 }
 
-let _portsInstance: PortsService | null = null;
 
-export function getPortsService(): PortsService {
-  if (!_portsInstance) {
-    _portsInstance = new PortsService();
-  }
-  return _portsInstance;
-}
+const { getInstance: getPortsService, __testing: __testing_ports } =
+  createStandaloneSingleton({ create: () => new PortsService(), defaultDeps: {} });
 
-export const __testing_ports = createTestingHooks<PortsService>(
-  () => { _portsInstance = null; },
-  (svc) => { _portsInstance = svc; },
-);
+export { getPortsService, __testing_ports };

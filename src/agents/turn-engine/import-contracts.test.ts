@@ -1,6 +1,3 @@
-/**
- * src/agents/turn-engine/import-contracts.test.ts
- */
 import { describe, expect, it } from "vitest";
 import { readdirSync, statSync } from "fs";
 import { basename, join } from "path";

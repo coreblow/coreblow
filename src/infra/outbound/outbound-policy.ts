@@ -226,8 +226,7 @@ export function applyCrossContextDecoration(params: {
 // OutboundPolicyService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "../service-patterns.js";
-
+import { createStandaloneSingleton } from "../service-patterns.js";
 export class OutboundPolicyService {
   enforceCrossContextPolicy(params: Parameters<typeof enforceCrossContextPolicy>[0]) {
     return enforceCrossContextPolicy(params);
@@ -246,16 +245,8 @@ export class OutboundPolicyService {
   }
 }
 
-let _outboundPolicyInstance: OutboundPolicyService | null = null;
 
-export function getOutboundPolicyService(): OutboundPolicyService {
-  if (!_outboundPolicyInstance) {
-    _outboundPolicyInstance = new OutboundPolicyService();
-  }
-  return _outboundPolicyInstance;
-}
+const { getInstance: getOutboundPolicyService, __testing: __testing_outboundPolicy } =
+  createStandaloneSingleton({ create: () => new OutboundPolicyService(), defaultDeps: {} });
 
-export const __testing_outboundPolicy = createTestingHooks<OutboundPolicyService>(
-  () => { _outboundPolicyInstance = null; },
-  (svc) => { _outboundPolicyInstance = svc; },
-);
+export { getOutboundPolicyService, __testing_outboundPolicy };

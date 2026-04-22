@@ -1,10 +1,3 @@
-/**
- * src/agents/compaction.identifier-preservation.test.ts
- *
- * CoreBlow — Compaction History Pruning & Local Summary Tests
- * Verifies pruneHistoryForContextShare and createLocalSummary behavior.
- * CB-native implementation: uses pure functions without external AI mock.
- */
 import { describe, expect, it } from "vitest";
 import type { CompactionMessage } from "./compaction.js";
 import {
@@ -16,7 +9,7 @@ import {
 // ── helpers ───────────────────────────────────────────────────────────────────
 
 function msg(role: "user" | "assistant", text: string): CompactionMessage {
-  return { role, content: [{ type: "text", text }] };
+  return { role, content: text };
 }
 
 function msgs(n: number, textSize = 100): CompactionMessage[] {

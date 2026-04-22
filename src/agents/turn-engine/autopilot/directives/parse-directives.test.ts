@@ -1,9 +1,3 @@
-/**
- * src/agents/turn-engine/autopilot/directives/parse-directives.test.ts
- *
- * CoreBlow — AutoPilot parseDirectives Tests
- * Verifies inline directive extraction: model, provider, think, combined.
- */
 import { describe, expect, it } from "vitest";
 import { parseDirectives } from "./parse-directives.js";
 

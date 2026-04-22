@@ -7,6 +7,7 @@
  * It is a best-effort policy restriction to prevent obvious accidental damage
  */
 
+import { clamp } from "../utils.js";
 import { exec as execCb } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createChildLogger } from '../utils/logger.js';
@@ -106,8 +107,8 @@ export async function execRestricted(
     }
 
     // Enforce timeout bounds
-    const safeTimeout = Math.max(100, Math.min(timeout, 300_000)); // 100ms - 5min
-    const safeMaxOutput = Math.max(1024, Math.min(maxOutput, 10_485_760)); // 1KB - 10MB
+    const safeTimeout = clamp(300_000, 100, timeout); // 100ms - 5min
+    const safeMaxOutput = clamp(10_485_760, 1024, maxOutput); // 1KB - 10MB
 
     log.warn({ command: command.slice(0, 80) },
         '⚠ Running in restricted-native mode (NOT sandboxed)');

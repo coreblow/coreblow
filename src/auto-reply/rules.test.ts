@@ -1,6 +1,3 @@
-/**
- * auto-reply/rules.test.ts — Reply rule engine tests
- */
 import { describe, it, expect } from 'vitest';
 import { matchesRule, findMatchingRule, expandTemplate, type ReplyRule } from './rules.js';
 

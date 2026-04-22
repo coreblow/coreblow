@@ -1,6 +1,3 @@
-/**
- * cli/banner.test.ts — CLI banner tests
- */
 import { describe, it, expect } from 'vitest';
 import { formatBanner, pickTagline, hasJsonFlag, hasVersionFlag, hasQuietFlag, resetBannerState } from './banner.js';
 

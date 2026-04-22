@@ -1,6 +1,3 @@
-/**
- * commands/autocomplete.test.ts — Autocomplete tests
- */
 import { describe, it, expect } from 'vitest';
 import { AutoComplete } from './autocomplete.js';
 

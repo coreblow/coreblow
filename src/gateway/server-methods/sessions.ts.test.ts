@@ -1,6 +1,3 @@
-/**
- * src/gateway/server-methods/sessions.ts.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("server-methods/sessions — import", () => {
   it("is importable", async () => {

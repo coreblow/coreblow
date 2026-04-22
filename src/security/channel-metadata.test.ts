@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Channel Metadata Unit Tests
- */
 import { describe, it, expect, vi } from 'vitest';
 
 // Mock external-content to isolate channel-metadata logic

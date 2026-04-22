@@ -1,10 +1,3 @@
-/**
- * src/config/zod-schema.providers.test.ts
- *
- * CoreBlow — Providers Schema Re-export + ChannelsSchema Tests
- * Verifies ChannelsSchema accepts valid channel configuration
- * and the providers schema module re-exports correctly.
- */
 import { describe, expect, it } from "vitest";
 import { ChannelsSchema } from "./zod-schema.providers.js";
 

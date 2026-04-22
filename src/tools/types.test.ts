@@ -1,9 +1,3 @@
-/**
- * src/tools/types.test.ts
- *
- * CoreBlow — Tool Types Contract Tests
- * Verifies ToolHandler interface shape compliance at runtime.
- */
 import { describe, expect, it } from "vitest";
 import type { ToolHandler } from "./types.js";
 

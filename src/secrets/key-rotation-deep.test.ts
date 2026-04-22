@@ -1,6 +1,3 @@
-/**
- * secrets/key-rotation-deep.test.ts — Key rotation deep tests
- */
 import { describe, it, expect } from 'vitest';
 import { KeyRotation } from './key-rotation.js';
 

@@ -6,6 +6,8 @@
  * execution history.
  */
 
+import { retryAsync } from './retry.js';
+
 /** Workflow step */
 export interface WorkflowStep {
     id: string;
@@ -72,26 +74,18 @@ export class WorkflowEngine {
             // Check condition
             if (step.condition && !step.condition(ctx)) { skipped++; continue; }
 
-            let retries = 0;
-            const maxRetries = step.maxRetries ?? 0;
-
-            while (retries <= maxRetries) {
-                try {
-                    const result = await step.handler(ctx);
-                    ctx.stepResults[step.id] = result;
-                    executed++;
-                    break;
-                } catch (err) {
-                    const errorMsg = err instanceof Error ? err.message : String(err);
-                    if (retries >= maxRetries) {
-                        ctx.errors.push({ stepId: step.id, error: errorMsg });
-                        if (step.onError === 'stop' || !step.onError) {
-                            return { workflowId, status: 'failed', stepsExecuted: executed, stepsSkipped: skipped, context: ctx, durationMs: Date.now() - start };
-                        }
-                        if (step.onError === 'skip') { skipped++; break; }
-                    }
-                    retries++;
+            try {
+                const retryCount = step.maxRetries ?? 0;
+                const result = await retryAsync(() => step.handler(ctx), retryCount + 1);
+                ctx.stepResults[step.id] = result;
+                executed++;
+            } catch (err) {
+                const errorMsg = err instanceof Error ? err.message : String(err);
+                ctx.errors.push({ stepId: step.id, error: errorMsg });
+                if (step.onError === 'stop' || !step.onError) {
+                    return { workflowId, status: 'failed', stepsExecuted: executed, stepsSkipped: skipped, context: ctx, durationMs: Date.now() - start };
                 }
+                if (step.onError === 'skip') { skipped++; }
             }
         }
 

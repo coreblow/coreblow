@@ -1,9 +1,3 @@
-/**
- * src/agents/turn-engine/autopilot/reply/has-content.test.ts
- *
- * CoreBlow — AutoPilot hasContent Tests
- * Verifies hasContent: text, mediaUrl, mediaUrls, empty payload.
- */
 import { describe, expect, it } from "vitest";
 import { hasContent } from "./has-content.js";
 

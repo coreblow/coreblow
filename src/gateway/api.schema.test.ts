@@ -1,10 +1,3 @@
-/**
- * CoreBlow — API Schema Validation Tests
- *
- * Tests for Zod schemas: ChatCompletion, Session, CronJob,
- * ExecApproval, and validation helpers.
- */
-
 import { describe, it, expect } from 'vitest';
 import {
     ChatCompletionRequestSchema,

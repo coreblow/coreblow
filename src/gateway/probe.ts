@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 import { randomUUID } from "node:crypto";
 import { formatErrorMessage } from "../infra/errors.js";
 import type { SystemPresence } from "../infra/system-presence.js";
@@ -33,7 +34,7 @@ export const MIN_PROBE_TIMEOUT_MS = 250;
 export const MAX_TIMER_DELAY_MS = 2_147_483_647;
 
 export function clampProbeTimeoutMs(timeoutMs: number): number {
-  return Math.min(MAX_TIMER_DELAY_MS, Math.max(MIN_PROBE_TIMEOUT_MS, timeoutMs));
+  return clamp(timeoutMs, MIN_PROBE_TIMEOUT_MS, MAX_TIMER_DELAY_MS);
 }
 
 function formatProbeCloseError(close: GatewayProbeClose): string {

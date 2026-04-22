@@ -225,8 +225,7 @@ export { MAX_RETRIES };
 // DeliveryQueueRecoveryService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "../service-patterns.js";
-
+import { createStandaloneSingleton } from "../service-patterns.js";
 /**
  * Tier-1 service wrapping delivery queue crash recovery logic.
  */
@@ -248,16 +247,8 @@ export class DeliveryQueueRecoveryService {
   }
 }
 
-let _recoveryInstance: DeliveryQueueRecoveryService | null = null;
 
-export function getDeliveryQueueRecoveryService(): DeliveryQueueRecoveryService {
-  if (!_recoveryInstance) {
-    _recoveryInstance = new DeliveryQueueRecoveryService();
-  }
-  return _recoveryInstance;
-}
+const { getInstance: getDeliveryQueueRecoveryService, __testing: __testing_deliveryQueueRecovery } =
+  createStandaloneSingleton({ create: () => new DeliveryQueueRecoveryService(), defaultDeps: {} });
 
-export const __testing_deliveryQueueRecovery = createTestingHooks<DeliveryQueueRecoveryService>(
-  () => { _recoveryInstance = null; },
-  (svc) => { _recoveryInstance = svc; },
-);
+export { getDeliveryQueueRecoveryService, __testing_deliveryQueueRecovery };

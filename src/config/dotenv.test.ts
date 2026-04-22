@@ -1,10 +1,3 @@
-/**
- * src/config/dotenv.test.ts
- *
- * CoreBlow — Dotenv Parser Tests
- * Verifies parseDotenv handles standard .env syntax including
- * comments, quoted values, whitespace, and malformed lines.
- */
 import { describe, expect, it } from "vitest";
 import { parseDotenv } from "./dotenv.js";
 

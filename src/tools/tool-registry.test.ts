@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Tool Registry Tests
- *
- * Tests for the central tool registry: registration, lookup,
- * enable/disable, OpenAI-compatible output, and category grouping.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ToolRegistry, type ToolDefinition } from './tool-registry.js';
 

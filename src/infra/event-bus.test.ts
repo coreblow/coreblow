@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Event Bus Tests
- *
- * Tests for on/once/off listeners, async emit, event history,
- * stats tracking, and event listing.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { EventBus } from './event-bus.js';
 

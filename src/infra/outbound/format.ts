@@ -124,8 +124,7 @@ export function formatGatewaySummary(params: {
 // OutboundFormatService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "../service-patterns.js";
-
+import { createStandaloneSingleton } from "../service-patterns.js";
 export class OutboundFormatService {
   formatOutboundDeliverySummary(params: Parameters<typeof formatOutboundDeliverySummary>[0]) {
     return formatOutboundDeliverySummary(params);
@@ -140,16 +139,8 @@ export class OutboundFormatService {
   }
 }
 
-let _outboundFormatInstance: OutboundFormatService | null = null;
 
-export function getOutboundFormatService(): OutboundFormatService {
-  if (!_outboundFormatInstance) {
-    _outboundFormatInstance = new OutboundFormatService();
-  }
-  return _outboundFormatInstance;
-}
+const { getInstance: getOutboundFormatService, __testing: __testing_outboundFormat } =
+  createStandaloneSingleton({ create: () => new OutboundFormatService(), defaultDeps: {} });
 
-export const __testing_outboundFormat = createTestingHooks<OutboundFormatService>(
-  () => { _outboundFormatInstance = null; },
-  (svc) => { _outboundFormatInstance = svc; },
-);
+export { getOutboundFormatService, __testing_outboundFormat };

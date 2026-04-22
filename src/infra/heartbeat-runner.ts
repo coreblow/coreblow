@@ -1204,12 +1204,13 @@ export function startHeartbeatRunner(opts: {
 // ---------------------------------------------------------------------------
 
 import type { GatewayService, ServiceHealth } from "../gateway/service-registry.js";
-import { createTestingHooks } from "./service-patterns.js";
 
 /**
  * Tier-2 GatewayService wrapping the heartbeat runner with lifecycle management.
  * Delegates to startHeartbeatRunner for actual timer/scheduling logic.
  */
+import { createStandaloneSingleton } from "./service-patterns.js";
+
 export class HeartbeatRunnerService implements GatewayService {
   readonly name = "heartbeat";
   private runner: HeartbeatRunner | null = null;
@@ -1250,16 +1251,7 @@ export class HeartbeatRunnerService implements GatewayService {
   }
 }
 
-let _heartbeatRunnerInstance: HeartbeatRunnerService | null = null;
+const { getInstance: getHeartbeatRunnerService, __testing: __testing_heartbeatRunner } =
+  createStandaloneSingleton({ create: () => new HeartbeatRunnerService(), defaultDeps: {} });
 
-export function getHeartbeatRunnerService(): HeartbeatRunnerService {
-  if (!_heartbeatRunnerInstance) {
-    _heartbeatRunnerInstance = new HeartbeatRunnerService();
-  }
-  return _heartbeatRunnerInstance;
-}
-
-export const __testing_heartbeatRunner = createTestingHooks<HeartbeatRunnerService>(
-  () => { _heartbeatRunnerInstance = null; },
-  (svc) => { _heartbeatRunnerInstance = svc; },
-);
+export { getHeartbeatRunnerService, __testing_heartbeatRunner };

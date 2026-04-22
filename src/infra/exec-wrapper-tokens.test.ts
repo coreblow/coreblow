@@ -1,9 +1,3 @@
-/**
- * src/infra/exec-wrapper-tokens.test.ts
- *
- * CoreBlow — Exec Wrapper Tokens Tests
- * Verifies basenameLower and normalizeExecutableToken.
- */
 import { describe, expect, it } from "vitest";
 import { basenameLower, normalizeExecutableToken } from "./exec-wrapper-tokens.js";
 

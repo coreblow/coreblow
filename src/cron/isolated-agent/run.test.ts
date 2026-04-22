@@ -1,10 +1,3 @@
-/**
- * src/cron/isolated-agent/run.test.ts
- *
- * CoreBlow — Cron Isolated Agent Run Tests
- * Verifies runIsolatedCronAgent module export shape and
- * basic contract without triggering full agent execution.
- */
 import { describe, expect, it } from "vitest";
 
 describe("cron/isolated-agent/run module", () => {

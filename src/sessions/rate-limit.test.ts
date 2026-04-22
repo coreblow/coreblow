@@ -1,6 +1,3 @@
-/**
- * sessions/rate-limit.test.ts — Session rate limit tests
- */
 import { describe, it, expect } from 'vitest';
 import { SessionRateLimit } from './rate-limit.js';
 

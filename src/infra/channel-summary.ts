@@ -264,22 +264,13 @@ export async function buildChannelSummary(
 // ChannelSummaryService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ChannelSummaryService {
   [Symbol.toStringTag] = 'ChannelSummaryService';
 }
 
-let _channelSummaryInstance: ChannelSummaryService | null = null;
 
-export function getChannelSummaryService(): ChannelSummaryService {
-  if (!_channelSummaryInstance) {
-    _channelSummaryInstance = new ChannelSummaryService();
-  }
-  return _channelSummaryInstance;
-}
+const { getInstance: getChannelSummaryService, __testing: __testing_channelSummary } =
+  createStandaloneSingleton({ create: () => new ChannelSummaryService(), defaultDeps: {} });
 
-export const __testing_channelSummary = createTestingHooks<ChannelSummaryService>(
-  () => { _channelSummaryInstance = null; },
-  (svc) => { _channelSummaryInstance = svc; },
-);
+export { getChannelSummaryService, __testing_channelSummary };

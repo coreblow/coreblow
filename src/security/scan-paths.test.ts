@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Scan Paths Unit Tests
- */
 import { describe, it, expect } from 'vitest';
 import path from 'node:path';
 import { isPathInside, extensionUsesSkippedScannerPath } from './scan-paths.js';

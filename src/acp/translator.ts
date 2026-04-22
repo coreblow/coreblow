@@ -35,7 +35,7 @@ import {
   createFixedWindowRateLimiter,
   type FixedWindowRateLimiter,
 } from "../infra/fixed-window-rate-limit.js";
-import { shortenHomePath } from "../utils.js";
+import { shortenHomePath, clamp } from "../utils.js";
 import { getAvailableCommands } from "./commands.js";
 import {
   extractAttachmentsFromPrompt,
@@ -360,7 +360,7 @@ function buildSessionUsageSnapshot(
     return undefined;
   }
   const size = Math.max(0, Math.floor(contextTokens));
-  const used = Math.max(0, Math.min(Math.floor(totalTokens), size));
+  const used = clamp(size, 0, Math.floor(totalTokens));
   return { size, used };
 }
 

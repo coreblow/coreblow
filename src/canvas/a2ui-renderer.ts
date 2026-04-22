@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 /**
  * CoreBlow — A2UI v0.9 Renderer
  *
@@ -185,7 +186,7 @@ function renderComponent(comp: A2UIComponent, map: Map<string, A2UIComponent>): 
             return `<p class="${cls}" id="${comp.id}"${styleAttr}>${escapeHtml(comp.value ?? '')}</p>`;
 
         case 'heading':
-            const level = Math.min(Math.max(comp.level ?? 1, 1), 6);
+            const level = clamp(comp.level ?? 1, 1, 6);
             return `<h${level} class="${cls}" id="${comp.id}"${styleAttr}>${escapeHtml(comp.value ?? '')}</h${level}>`;
 
         case 'button':

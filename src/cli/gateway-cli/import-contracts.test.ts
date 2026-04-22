@@ -1,8 +1,3 @@
-/**
- * src/cli/gateway-cli/import-contracts.test.ts
- *
- * CoreBlow — Gateway CLI Register Import Contracts
- */
 import { describe, expect, it } from "vitest";
 
 const modules = [

@@ -1,10 +1,3 @@
-/**
- * src/config/env-manager.test.ts
- *
- * CoreBlow — Environment Manager Tests
- * Verifies EnvManager define/load/get lifecycle, type coercion
- * (string, number, boolean), required validation, and defaults.
- */
 import { describe, expect, it } from "vitest";
 import { EnvManager } from "./env-manager.js";
 

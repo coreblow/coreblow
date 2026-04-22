@@ -4,6 +4,7 @@
  * SUPERIOR: CoreBlow has auth-profiles; CoreBlow adds smart scoring + auto-heal + usage tracking
  */
 
+import { clamp } from "../utils.js";
 import { createChildLogger } from '../utils/logger.js';
 
 const log = createChildLogger('providers:key-rotation');
@@ -319,7 +320,7 @@ export class KeyRotationManager {
         // Speed bonus (normalize: 0-1 where faster = higher)
         const speedBonus = h.avgResponseTime > 0 ? Math.max(0, 1 - h.avgResponseTime / 10000) * 0.2 : 0;
 
-        h.score = Math.max(0, Math.min(1, successRate - failurePenalty - cooldownPenalty + speedBonus));
+        h.score = clamp(successRate - failurePenalty - cooldownPenalty + speedBonus, 0, 1);
     }
 
     private isPermanentError(error: string): boolean {

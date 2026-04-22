@@ -1,7 +1,3 @@
-/**
- * src/auto-reply/auto-reply.import-contracts-c.test.ts
- * Dynamic scan all remaining auto-reply/ files + subdirs
- */
 import { describe, expect, it } from "vitest";
 import { readdirSync, statSync } from "fs";
 import { basename, join } from "path";

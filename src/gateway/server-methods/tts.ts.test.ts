@@ -1,6 +1,3 @@
-/**
- * src/gateway/server-methods/tts.ts.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("server-methods/tts — import", () => {
   it("is importable", async () => {

@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Skill Registry Tests
- *
- * Tests for skill registration, discovery, lookup,
- * listing by source, and lifecycle operations.
- */
-
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SkillRegistry } from './registry.js';
 import type { SkillEntry } from './types.js';

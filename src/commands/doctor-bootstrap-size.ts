@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { clamp } from "../utils.js";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
 import {
   buildBootstrapInjectionStats,
@@ -20,7 +21,7 @@ function formatPercent(numerator: number, denominator: number): string {
   if (!Number.isFinite(denominator) || denominator <= 0) {
     return "0%";
   }
-  const pct = Math.min(100, Math.max(0, Math.round((numerator / denominator) * 100)));
+  const pct = clamp(Math.round((numerator / denominator) * 100), 0, 100);
   return `${pct}%`;
 }
 

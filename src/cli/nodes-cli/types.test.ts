@@ -1,8 +1,3 @@
-/**
- * src/cli/nodes-cli/types.test.ts
- *
- * CoreBlow — Nodes CLI Types Import Contract
- */
 import { describe, expect, it } from "vitest";
 
 describe("nodes-cli/types module", () => {

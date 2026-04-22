@@ -137,22 +137,13 @@ function buildCandidates(opts: { cwd?: string; argv1?: string; moduleUrl?: strin
 // CoreblowRootService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class CoreblowRootService {
   [Symbol.toStringTag] = 'CoreblowRootService';
 }
 
-let _coreblowRootInstance: CoreblowRootService | null = null;
 
-export function getCoreblowRootService(): CoreblowRootService {
-  if (!_coreblowRootInstance) {
-    _coreblowRootInstance = new CoreblowRootService();
-  }
-  return _coreblowRootInstance;
-}
+const { getInstance: getCoreblowRootService, __testing: __testing_coreblowRoot } =
+  createStandaloneSingleton({ create: () => new CoreblowRootService(), defaultDeps: {} });
 
-export const __testing_coreblowRoot = createTestingHooks<CoreblowRootService>(
-  () => { _coreblowRootInstance = null; },
-  (svc) => { _coreblowRootInstance = svc; },
-);
+export { getCoreblowRootService, __testing_coreblowRoot };

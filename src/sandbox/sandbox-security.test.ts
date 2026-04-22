@@ -1,6 +1,3 @@
-/**
- * Sandbox Security Policy test suite
- */
 import { describe, it, expect } from 'vitest';
 import { SandboxSecurityPolicy } from './sandbox-security.js';
 

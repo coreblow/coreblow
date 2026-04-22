@@ -106,8 +106,7 @@ export function isInterpreterLikeAllowlistPattern(pattern: string | undefined | 
 // ExecInlineEvalService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ExecInlineEvalService {
   detectInterpreterInlineEvalArgv(argv: Parameters<typeof detectInterpreterInlineEvalArgv>[0]) {
     return detectInterpreterInlineEvalArgv(argv);
@@ -122,16 +121,8 @@ export class ExecInlineEvalService {
   }
 }
 
-let _execInlineEvalInstance: ExecInlineEvalService | null = null;
 
-export function getExecInlineEvalService(): ExecInlineEvalService {
-  if (!_execInlineEvalInstance) {
-    _execInlineEvalInstance = new ExecInlineEvalService();
-  }
-  return _execInlineEvalInstance;
-}
+const { getInstance: getExecInlineEvalService, __testing: __testing_execInlineEval } =
+  createStandaloneSingleton({ create: () => new ExecInlineEvalService(), defaultDeps: {} });
 
-export const __testing_execInlineEval = createTestingHooks<ExecInlineEvalService>(
-  () => { _execInlineEvalInstance = null; },
-  (svc) => { _execInlineEvalInstance = svc; },
-);
+export { getExecInlineEvalService, __testing_execInlineEval };

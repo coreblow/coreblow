@@ -64,8 +64,7 @@ export function readSessionStoreJson5(storePath: string): {
 // StateMigrationFsService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class StateMigrationFsService {
   safeReadDir(dir: string) {
     return safeReadDir(dir);
@@ -92,16 +91,8 @@ export class StateMigrationFsService {
   }
 }
 
-let _stateMigrationFsInstance: StateMigrationFsService | null = null;
 
-export function getStateMigrationFsService(): StateMigrationFsService {
-  if (!_stateMigrationFsInstance) {
-    _stateMigrationFsInstance = new StateMigrationFsService();
-  }
-  return _stateMigrationFsInstance;
-}
+const { getInstance: getStateMigrationFsService, __testing: __testing_stateMigrationFs } =
+  createStandaloneSingleton({ create: () => new StateMigrationFsService(), defaultDeps: {} });
 
-export const __testing_stateMigrationFs = createTestingHooks<StateMigrationFsService>(
-  () => { _stateMigrationFsInstance = null; },
-  (svc) => { _stateMigrationFsInstance = svc; },
-);
+export { getStateMigrationFsService, __testing_stateMigrationFs };

@@ -1,8 +1,3 @@
-/**
- * src/gateway/protocol/schema.import-contracts.test.ts
- *
- * CoreBlow — Gateway Protocol Schema Import Contracts
- */
 import { describe, expect, it } from "vitest";
 
 const modules = [

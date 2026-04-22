@@ -1,10 +1,3 @@
-/**
- * src/config/zod-schema.allowdeny.test.ts
- *
- * CoreBlow — Allow/Deny Channel Rules Schema Tests
- * Verifies createAllowDenyChannelRulesSchema accepts valid allow/deny
- * rule structures and rejects invalid actions or chatTypes.
- */
 import { describe, expect, it } from "vitest";
 import { createAllowDenyChannelRulesSchema } from "./zod-schema.allowdeny.js";
 

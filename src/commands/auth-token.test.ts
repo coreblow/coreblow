@@ -1,6 +1,3 @@
-/**
- * src/commands/auth-token.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("auth-token — import", () => {
   it("is importable", async () => {

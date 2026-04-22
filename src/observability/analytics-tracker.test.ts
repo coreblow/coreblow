@@ -1,9 +1,3 @@
-/**
- * src/observability/analytics-tracker.test.ts
- *
- * CoreBlow — Analytics Tracker Tests
- * Verifies AnalyticsTracker: track, summarize, countByName, getUserEvents, export, clear.
- */
 import { describe, beforeEach, expect, it } from "vitest";
 import { AnalyticsTracker } from "./analytics-tracker.js";
 

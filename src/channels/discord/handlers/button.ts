@@ -3,6 +3,7 @@
  * Button click handler including pagination
  */
 
+import { clamp } from "../../../utils.js";
 import { MessageRouter } from '../../../gateway/router.js';
 import type { ChannelStats } from '../types.js';
 import type { DiscordInteraction, PaginationState, PaginationButton } from '../types-sdk.js';
@@ -24,7 +25,7 @@ export async function handleButton(
  const state = paginationState.get(sessionId);
  if (state) {
   const direction = getPaginationDirection(customId);
-  state.page = Math.max(0, Math.min(state.page + (direction === 'next' ? 1 : direction === 'prev' ? -1 : 0), state.response.pageCount - 1));
+  state.page = clamp(state.response.pageCount - 1, 0, state.page + (direction === 'next' ? 1 : direction === 'prev' ? -1 : 0));
   const payload = state.response.toPayload() as Record<string, unknown>;
   const embeds = payload.embeds as Array<Record<string, unknown>> | undefined;
   if (embeds?.[0]) embeds[0].description = state.response.getPage(state.page);

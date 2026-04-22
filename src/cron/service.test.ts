@@ -1,10 +1,3 @@
-/**
- * src/cron/service.test.ts
- *
- * CoreBlow — CronService Class Tests
- * Verifies CronService class is instantiable with minimal deps
- * and exposes start/stop/list/create/patch/delete methods.
- */
 import { describe, expect, it } from "vitest";
 import { CronService } from "./service.js";
 

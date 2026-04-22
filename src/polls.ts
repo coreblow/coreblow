@@ -1,3 +1,4 @@
+import { clamp } from "./utils.js";
 export type PollInput = {
   question: string;
   options: string[];
@@ -96,5 +97,5 @@ export function normalizePollDurationHours(
 ): number {
   const base =
     typeof value === "number" && Number.isFinite(value) ? Math.floor(value) : options.defaultHours;
-  return Math.min(Math.max(base, 1), options.maxHours);
+  return clamp(base, 1, options.maxHours);
 }

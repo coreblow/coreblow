@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 import { loadConfig, type CoreBlowConfig } from "../config/config.js";
 import { resolveProviderUsageSnapshotWithPlugin } from "../plugins/provider-runtime.js";
 import { resolveFetch } from "./fetch.js";
@@ -56,12 +57,12 @@ async function fetchCopilotUsageFallback(
   if (premiumRemaining !== undefined && premiumRemaining !== null) {
     windows.push({
       label: "Premium",
-      usedPercent: Math.max(0, Math.min(100, 100 - premiumRemaining)),
+      usedPercent: clamp(100 - premiumRemaining, 0, 100),
     });
   }
   const chatRemaining = data.quota_snapshots?.chat?.percent_remaining;
   if (chatRemaining !== undefined && chatRemaining !== null) {
-    windows.push({ label: "Chat", usedPercent: Math.max(0, Math.min(100, 100 - chatRemaining)) });
+    windows.push({ label: "Chat", usedPercent: clamp(100 - chatRemaining, 0, 100) });
   }
   return {
     provider: "github-copilot",
@@ -225,24 +226,15 @@ export async function loadProviderUsageSummary(
 // ProviderUsageLoadService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ProviderUsageLoadService {
   async loadProviderUsageSummary(params: Parameters<typeof loadProviderUsageSummary>[0]) {
     return loadProviderUsageSummary(params);
   }
 }
 
-let _providerUsageLoadInstance: ProviderUsageLoadService | null = null;
 
-export function getProviderUsageLoadService(): ProviderUsageLoadService {
-  if (!_providerUsageLoadInstance) {
-    _providerUsageLoadInstance = new ProviderUsageLoadService();
-  }
-  return _providerUsageLoadInstance;
-}
+const { getInstance: getProviderUsageLoadService, __testing: __testing_providerUsageLoad } =
+  createStandaloneSingleton({ create: () => new ProviderUsageLoadService(), defaultDeps: {} });
 
-export const __testing_providerUsageLoad = createTestingHooks<ProviderUsageLoadService>(
-  () => { _providerUsageLoadInstance = null; },
-  (svc) => { _providerUsageLoadInstance = svc; },
-);
+export { getProviderUsageLoadService, __testing_providerUsageLoad };

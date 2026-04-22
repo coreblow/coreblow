@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Input Sanitizer Unit Tests
- */
 import { describe, it, expect } from 'vitest';
 import {
     sanitizeShellArg, isValidCommandName, sanitizeShellArgs,

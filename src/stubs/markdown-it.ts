@@ -33,5 +33,3 @@ class MarkdownIt {
 }
 
 export default MarkdownIt;
-module.exports = MarkdownIt;
-module.exports.default = MarkdownIt;

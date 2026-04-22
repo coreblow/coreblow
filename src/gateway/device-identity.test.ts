@@ -1,10 +1,3 @@
-/**
- * src/gateway/device-identity.test.ts
- *
- * CoreBlow — Device Identity Tests
- * Verifies createDeviceIdentity, generateConnectNonce,
- * and verifyDeviceSignature (no-throw on invalid input).
- */
 import { describe, expect, it } from "vitest";
 import {
   createDeviceIdentity,

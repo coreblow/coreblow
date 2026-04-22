@@ -1,10 +1,3 @@
-/**
- * src/agents/cli-runner.reliability.test.ts
- *
- * CoreBlow — CLI Runner Reliability Tests
- * Verifies supervisor scope key construction and no-output timeout
- * resolution for the CB cli-runner reliability module.
- */
 import { describe, expect, it } from "vitest";
 import {
   buildCliSupervisorScopeKey,

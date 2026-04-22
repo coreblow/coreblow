@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Auth Profiles Unit Tests
- */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 
 vi.mock('node:fs', () => ({

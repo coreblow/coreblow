@@ -1,9 +1,3 @@
-/**
- * CoreBlow — Sandbox Manager Unit Tests
- *
- * Tests command blocking logic and configuration.
- * Process execution tests are isolated using mocks.
- */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 vi.mock('../utils/logger.js', () => ({

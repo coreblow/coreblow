@@ -7,6 +7,7 @@
  */
 
 import type { ToolRegistry, ToolDefinition } from './tool-registry.js';
+import { retryAsync } from '../infra/retry.js';
 
 /** Tool execution result */
 export interface ToolExecutionResult {
@@ -113,18 +114,11 @@ export class ToolExecutor {
     // === Private ===
 
     private async executeWithRetry(tool: ToolDefinition, args: Record<string, unknown>): Promise<string> {
-        let lastError: Error | null = null;
-        for (let attempt = 0; attempt <= this.options.maxRetries; attempt++) {
-            try {
-                return await this.executeWithTimeout(tool, args);
-            } catch (err) {
-                lastError = err instanceof Error ? err : new Error(String(err));
-                if (attempt < this.options.maxRetries) {
-                    await new Promise((r) => setTimeout(r, 100 * (attempt + 1)));
-                }
-            }
-        }
-        throw lastError;
+        return retryAsync(
+            () => this.executeWithTimeout(tool, args),
+            this.options.maxRetries + 1,
+            100,
+        );
     }
 
     private async executeWithTimeout(tool: ToolDefinition, args: Record<string, unknown>): Promise<string> {

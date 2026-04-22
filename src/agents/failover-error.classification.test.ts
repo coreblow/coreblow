@@ -1,11 +1,3 @@
-/**
- * CoreBlow — Failover Error Classification Tests (Extended)
- *
- * Tests for FailoverError construction, reason classification from
- * messages/status codes/symbolic codes, coercion, timeout detection,
- * and cause walking.
- */
-
 import { describe, it, expect } from 'vitest';
 import {
     FailoverError,

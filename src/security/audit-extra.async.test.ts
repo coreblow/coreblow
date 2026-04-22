@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Audit Extra Async Pure Helper Tests
- *
- * Tests pure helper functions extracted from audit-extra.async.ts.
- * The main async collector functions require deep gateway/agent/sandbox
- * dependencies and are tested via integration tests.
- */
 import { describe, it, expect, vi } from 'vitest';
 
 // Mock ALL deep dependencies

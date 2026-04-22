@@ -1,8 +1,3 @@
-/**
- * src/cli/gateway-cli/run.test.ts
- *
- * CoreBlow — Gateway CLI Run + Dev Import Contracts
- */
 import { describe, expect, it } from "vitest";
 
 describe("gateway-cli/run — import contract", () => {

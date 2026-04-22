@@ -1,6 +1,3 @@
-/**
- * src/commands/doctor/import-contracts.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("commands/doctor/shared/allow-from-mode — import", () => {
   it("is importable", async () => {

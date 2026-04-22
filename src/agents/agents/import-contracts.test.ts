@@ -1,6 +1,3 @@
-/**
- * src/agents/agents/import-contracts.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("agents/agents/code-interpreter — import", () => {
   it("is importable", async () => {

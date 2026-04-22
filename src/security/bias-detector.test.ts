@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Bias Detector Unit Tests
- */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 vi.mock('../utils/logger.js', () => ({

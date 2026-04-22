@@ -14,6 +14,7 @@ import type { FileLockOptions } from '../infra/file-lock.js';
 import { withFileLock } from '../infra/file-lock.js';
 import { readJsonFileWithFallback, writeJsonFileAtomically } from '../plugin-sdk/json-store.js';
 import { DEFAULT_ACCOUNT_ID } from '../routing/session-key.js';
+import { sleep } from '../utils.js';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -104,10 +105,12 @@ export function generatePairingCode(length = PAIRING_CODE_LENGTH): string {
 }
 
 /** Generate a unique code that doesn't collide with existing codes. */
-function generateUniqueCode(existingCodes: Set<string>): string {
+async function generateUniqueCode(existingCodes: Set<string>): Promise<string> {
     for (let attempt = 0; attempt < 500; attempt++) {
         const code = generatePairingCode();
         if (!existingCodes.has(code)) return code;
+        // Yield to event loop every 50 iterations to prevent blocking
+        if (attempt % 50 === 49) await sleep(0);
     }
     throw new Error('Failed to generate unique pairing code');
 }
@@ -594,7 +597,7 @@ export async function upsertChannelPairingRequest(params: {
 
         if (existingIdx >= 0) {
             const existing = requests[existingIdx];
-            const code = (existing?.code?.trim()) || generateUniqueCode(existingCodes);
+            const code = (existing?.code?.trim()) || await generateUniqueCode(existingCodes);
             requests[existingIdx] = { id, code, createdAt: existing?.createdAt ?? now, lastSeenAt: now, meta: meta ?? existing?.meta };
             const { requests: capped } = pruneExcessRequests(requests, PAIRING_PENDING_MAX);
             await writeJsonFileAtomically(filePath, { version: 1, requests: capped } as PairingStoreData);
@@ -608,7 +611,7 @@ export async function upsertChannelPairingRequest(params: {
             return { code: '', created: false };
         }
 
-        const code = generateUniqueCode(existingCodes);
+        const code = await generateUniqueCode(existingCodes);
         const newRequest: PairingRequest = { id, code, createdAt: now, lastSeenAt: now, ...(meta ? { meta } : {}) };
         await writeJsonFileAtomically(filePath, { version: 1, requests: [...requests, newRequest] } as PairingStoreData);
         return { code, created: true };

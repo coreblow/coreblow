@@ -1,9 +1,3 @@
-/**
- * src/config/schema.help.test.ts
- *
- * CoreBlow — Config Schema Help Tests
- * Verifies FIELD_HELP constant structure.
- */
 import { describe, expect, it } from "vitest";
 import { FIELD_HELP } from "./schema.help.js";
 

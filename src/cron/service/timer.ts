@@ -1,4 +1,5 @@
 import { resolveFailoverReasonFromError } from "../../agents/failover-error.js";
+import { sleep, clamp } from "../../utils.js";
 import type { CronConfig, CronRetryOn } from "../../config/types.cron.js";
 import type { HeartbeatRunResult } from "../../infra/heartbeat-wake.js";
 import { DEFAULT_AGENT_ID } from "../../routing/session-key.js";
@@ -650,7 +651,7 @@ export async function onTimer(state: CronServiceState) {
       }
     };
 
-    const concurrency = Math.min(resolveRunConcurrency(state), Math.max(1, dueJobs.length));
+    const concurrency = clamp(dueJobs.length, 1, resolveRunConcurrency(state));
     const results: (TimedCronRunOutcome | undefined)[] = Array.from({ length: dueJobs.length });
     let cursor = 0;
     const workers = Array.from({ length: concurrency }, async () => {
@@ -1017,7 +1018,7 @@ export async function executeJobCore(
   });
   const waitWithAbort = async (ms: number) => {
     if (!abortSignal) {
-      await new Promise<void>((resolve) => setTimeout(resolve, ms));
+      await sleep(ms);
       return;
     }
     if (abortSignal.aborted) {

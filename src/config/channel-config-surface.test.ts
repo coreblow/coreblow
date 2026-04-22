@@ -1,10 +1,3 @@
-/**
- * src/config/channel-config-surface.test.ts
- *
- * CoreBlow — Channel Config Surface Tests
- * Verifies channel-config-surface exports are importable
- * and key resolver functions return expected types.
- */
 import { describe, expect, it } from "vitest";
 
 describe("channel-config-surface module", () => {

@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Agent Stream Bridge Tests
- *
- * Tests for subscribe/unsubscribe, stream handler,
- * subscriber counting, and cleanup.
- */
-
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AgentStreamBridge } from './agent-stream-bridge.js';
 

@@ -1,9 +1,3 @@
-/**
- * src/cli/root-option-value.test.ts
- *
- * CoreBlow — Root Option Value Tests
- * Verifies takeCliRootOptionValue: =value, next-token, null cases.
- */
 import { describe, expect, it } from "vitest";
 import { takeCliRootOptionValue } from "./root-option-value.js";
 

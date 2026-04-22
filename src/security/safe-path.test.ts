@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Safe Path Resolution Unit Tests
- */
 import { describe, it, expect } from 'vitest';
 import path from 'node:path';
 import { resolveSafePath, isWithinBase, safeJoin, hasTraversalComponents, createPathResolver } from './safe-path.js';

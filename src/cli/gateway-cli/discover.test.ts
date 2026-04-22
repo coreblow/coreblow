@@ -1,9 +1,3 @@
-/**
- * src/cli/gateway-cli/discover.test.ts
- *
- * CoreBlow — Gateway CLI Discover Tests
- * Verifies parseDiscoverTimeoutMs, pickBeaconHost, dedupeBeacons.
- */
 import { describe, expect, it } from "vitest";
 import {
   parseDiscoverTimeoutMs,

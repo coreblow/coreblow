@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { clamp } from "../../utils.js";
 import {
   type Component,
   Input,
@@ -202,7 +203,7 @@ export class SearchableSelectList implements Component {
   }
 
   setSelectedIndex(index: number) {
-    this.selectedIndex = Math.max(0, Math.min(index, this.filteredItems.length - 1));
+    this.selectedIndex = clamp(this.filteredItems.length - 1, 0, index);
   }
 
   invalidate() {

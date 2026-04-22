@@ -1,9 +1,3 @@
-/**
- * src/commands/agents.providers.test.ts
- *
- * CoreBlow — Agents Providers Tests
- * Verifies summarizeBindings and listProvidersForAgent.
- */
 import { describe, expect, it } from "vitest";
 import { summarizeBindings, listProvidersForAgent } from "./agents.providers.js";
 

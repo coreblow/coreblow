@@ -183,9 +183,9 @@ export class CronScheduler {
 // ---------------------------------------------------------------------------
 // CronSchedulerService — Tier-2 GatewayService
 // ---------------------------------------------------------------------------
-
-import { createTestingHooks } from "./service-patterns.js";
 import type { GatewayService, ServiceHealth } from "../gateway/service-registry.js";
+
+import { createStandaloneSingleton } from "./service-patterns.js";
 
 export class CronSchedulerService implements GatewayService {
   readonly name = "cron-scheduler";
@@ -212,16 +212,7 @@ export class CronSchedulerService implements GatewayService {
   }
 }
 
-let _cronSchedulerInstance: CronSchedulerService | null = null;
+const { getInstance: getCronSchedulerService, __testing: __testing_cronScheduler } =
+  createStandaloneSingleton({ create: () => new CronSchedulerService(), defaultDeps: {} });
 
-export function getCronSchedulerService(): CronSchedulerService {
-  if (!_cronSchedulerInstance) {
-    _cronSchedulerInstance = new CronSchedulerService();
-  }
-  return _cronSchedulerInstance;
-}
-
-export const __testing_cronScheduler = createTestingHooks<CronSchedulerService>(
-  () => { _cronSchedulerInstance = null; },
-  (svc) => { _cronSchedulerInstance = svc; },
-);
+export { getCronSchedulerService, __testing_cronScheduler };

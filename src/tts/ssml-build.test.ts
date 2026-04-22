@@ -1,6 +1,3 @@
-/**
- * tts/ssml-build.test.ts — SSML builder tests
- */
 import { describe, it, expect } from 'vitest';
 import { ssml } from './ssml-build.js';
 

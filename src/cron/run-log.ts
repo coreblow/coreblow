@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { parseByteSize } from "../cli/parse-bytes.js";
@@ -173,7 +174,7 @@ export async function readCronRunLogEntries(
   opts?: { limit?: number; jobId?: string },
 ): Promise<CronRunLogEntry[]> {
   await drainPendingWrite(filePath);
-  const limit = Math.max(1, Math.min(5000, Math.floor(opts?.limit ?? 200)));
+  const limit = clamp(Math.floor(opts?.limit ?? 200), 1, 5000);
   const page = await readCronRunLogEntriesPage(filePath, {
     jobId: opts?.jobId,
     limit,
@@ -356,7 +357,7 @@ export async function readCronRunLogEntriesPage(
   opts?: ReadCronRunLogPageOptions,
 ): Promise<CronRunLogPageResult> {
   await drainPendingWrite(filePath);
-  const limit = Math.max(1, Math.min(200, Math.floor(opts?.limit ?? 50)));
+  const limit = clamp(Math.floor(opts?.limit ?? 50), 1, 200);
   const raw = await fs.readFile(path.resolve(filePath), "utf-8").catch(() => "");
   const statuses = normalizeRunStatuses(opts);
   const deliveryStatuses = normalizeDeliveryStatuses(opts);
@@ -374,7 +375,7 @@ export async function readCronRunLogEntriesPage(
       ? filtered.toSorted((a, b) => a.ts - b.ts)
       : filtered.toSorted((a, b) => b.ts - a.ts);
   const total = sorted.length;
-  const offset = Math.max(0, Math.min(total, Math.floor(opts?.offset ?? 0)));
+  const offset = clamp(Math.floor(opts?.offset ?? 0), 0, total);
   const entries = sorted.slice(offset, offset + limit);
   const nextOffset = offset + entries.length;
   return {
@@ -390,7 +391,7 @@ export async function readCronRunLogEntriesPage(
 export async function readCronRunLogEntriesPageAll(
   opts: ReadCronRunLogAllPageOptions,
 ): Promise<CronRunLogPageResult> {
-  const limit = Math.max(1, Math.min(200, Math.floor(opts.limit ?? 50)));
+  const limit = clamp(Math.floor(opts.limit ?? 50), 1, 200);
   const statuses = normalizeRunStatuses(opts);
   const deliveryStatuses = normalizeDeliveryStatuses(opts);
   const query = opts.query?.trim().toLowerCase() ?? "";
@@ -432,7 +433,7 @@ export async function readCronRunLogEntriesPageAll(
       ? filtered.toSorted((a, b) => a.ts - b.ts)
       : filtered.toSorted((a, b) => b.ts - a.ts);
   const total = sorted.length;
-  const offset = Math.max(0, Math.min(total, Math.floor(opts.offset ?? 0)));
+  const offset = clamp(Math.floor(opts.offset ?? 0), 0, total);
   const entries = sorted.slice(offset, offset + limit);
   if (opts.jobNameById) {
     for (const entry of entries) {

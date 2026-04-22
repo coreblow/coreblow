@@ -1,8 +1,3 @@
-/**
- * src/config/config-hot-reload.test.ts
- *
- * CoreBlow — Config Hot Reload Import Contract
- */
 import { describe, expect, it } from "vitest";
 
 describe("config-hot-reload — import contract", () => {

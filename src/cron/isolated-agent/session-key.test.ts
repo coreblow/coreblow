@@ -1,10 +1,3 @@
-/**
- * src/cron/isolated-agent/session-key.test.ts
- *
- * CoreBlow — Cron Isolated Agent Session Key Tests
- * Verifies resolveCronAgentSessionKey produces consistent, non-empty
- * session key strings incorporating agentId and sessionKey.
- */
 import { describe, expect, it } from "vitest";
 import { resolveCronAgentSessionKey } from "./session-key.js";
 

@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Audit Tool Policy Re-export Test
- */
 import { describe, it, expect, vi } from 'vitest';
 
 vi.mock('../agents/sandbox-tool-policy.js', () => ({

@@ -1,7 +1,3 @@
-/**
- * Gateway WebSocket Tests — Phase B: Business Logic
- * Tests: WsHandler — connect, message routing, broadcast, heartbeat
- */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { WsHandler } from './ws-handler.js';
 

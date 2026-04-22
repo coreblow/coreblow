@@ -72,24 +72,15 @@ export function resolveExecApprovalSessionTarget(params: {
 // ExecApprovalSessionTargetService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ExecApprovalSessionTargetService {
   resolveExecApprovalSessionTarget(params: Parameters<typeof resolveExecApprovalSessionTarget>[0]) {
     return resolveExecApprovalSessionTarget(params);
   }
 }
 
-let _execApprovalSessionTargetInstance: ExecApprovalSessionTargetService | null = null;
 
-export function getExecApprovalSessionTargetService(): ExecApprovalSessionTargetService {
-  if (!_execApprovalSessionTargetInstance) {
-    _execApprovalSessionTargetInstance = new ExecApprovalSessionTargetService();
-  }
-  return _execApprovalSessionTargetInstance;
-}
+const { getInstance: getExecApprovalSessionTargetService, __testing: __testing_execApprovalSessionTarget } =
+  createStandaloneSingleton({ create: () => new ExecApprovalSessionTargetService(), defaultDeps: {} });
 
-export const __testing_execApprovalSessionTarget = createTestingHooks<ExecApprovalSessionTargetService>(
-  () => { _execApprovalSessionTargetInstance = null; },
-  (svc) => { _execApprovalSessionTargetInstance = svc; },
-);
+export { getExecApprovalSessionTargetService, __testing_execApprovalSessionTarget };

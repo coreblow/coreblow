@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import { sleep } from "../utils.js";
 import { type AddressInfo, createServer } from "node:net";
 import os from "node:os";
 import path from "node:path";
@@ -930,7 +931,7 @@ export async function waitForSystemEvent(timeoutMs = 2000) {
         return events;
       }
     }
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await sleep(10);
   }
   throw new Error("timeout waiting for system event");
 }

@@ -266,22 +266,13 @@ export const _private = {
 // WindowsInstallRootsService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class WindowsInstallRootsService {
   [Symbol.toStringTag] = 'WindowsInstallRootsService';
 }
 
-let _windowsInstallRootsInstance: WindowsInstallRootsService | null = null;
 
-export function getWindowsInstallRootsService(): WindowsInstallRootsService {
-  if (!_windowsInstallRootsInstance) {
-    _windowsInstallRootsInstance = new WindowsInstallRootsService();
-  }
-  return _windowsInstallRootsInstance;
-}
+const { getInstance: getWindowsInstallRootsService, __testing: __testing_windowsInstallRoots } =
+  createStandaloneSingleton({ create: () => new WindowsInstallRootsService(), defaultDeps: {} });
 
-export const __testing_windowsInstallRoots = createTestingHooks<WindowsInstallRootsService>(
-  () => { _windowsInstallRootsInstance = null; },
-  (svc) => { _windowsInstallRootsInstance = svc; },
-);
+export { getWindowsInstallRootsService, __testing_windowsInstallRoots };

@@ -100,8 +100,8 @@ describe("syncExternalCliCredentials", () => {
   });
 
   describe.each([
-    { label: "Codex", getProfileId: () => OPENAI_CODEX_DEFAULT_PROFILE_ID, provider: "openai-codex" as const, getMock: () => mocks.readCodexCliCredentialsCached },
-    { label: "MiniMax", getProfileId: () => MINIMAX_CLI_PROFILE_ID, provider: "minimax-portal" as const, getMock: () => mocks.readMiniMaxCliCredentialsCached },
+    { label: "Codex", getProfileId: (): string => OPENAI_CODEX_DEFAULT_PROFILE_ID, provider: "openai-codex" as const, getMock: () => mocks.readCodexCliCredentialsCached },
+    { label: "MiniMax", getProfileId: (): string => MINIMAX_CLI_PROFILE_ID, provider: "minimax-portal" as const, getMock: () => mocks.readMiniMaxCliCredentialsCached },
   ])("$label external CLI sync", ({ getProfileId, provider, getMock }) => {
     it("does nothing when external CLI returns null", () => {
       const store = makeStore();

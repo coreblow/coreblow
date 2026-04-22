@@ -1,9 +1,3 @@
-/**
- * src/observability/access-log.test.ts
- *
- * CoreBlow — Access Log Tests
- * Verifies AccessLog: log, getRecent, getByPath/User/Status, getStats, clear.
- */
 import { describe, beforeEach, expect, it } from "vitest";
 import { AccessLog } from "./access-log.js";
 

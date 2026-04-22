@@ -1,8 +1,3 @@
-/**
- * Phase 29: System Operations Test Suite
- *
- * Covers: MetricsCollector, HealthAggregator, ResponseCompression
- */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MetricsCollector } from './collector.js';
 import { HealthAggregator } from './health.js';

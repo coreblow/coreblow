@@ -1,9 +1,3 @@
-/**
- * src/config/sessions/metadata.test.ts
- *
- * CoreBlow — Sessions Metadata Tests
- * Verifies snapshotSessionOrigin.
- */
 import { describe, expect, it } from "vitest";
 import { snapshotSessionOrigin } from "./metadata.js";
 

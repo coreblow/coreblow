@@ -1,8 +1,3 @@
-/**
- * src/cli/config/import-contracts.test.ts
- *
- * CoreBlow — CLI Config & Remaining Module Import Contracts
- */
 import { describe, expect, it } from "vitest";
 
 describe("config/ — import contracts", () => {

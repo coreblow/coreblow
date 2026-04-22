@@ -1,9 +1,3 @@
-/**
- * CoreBlow — Turn Engine Config Defaults Tests
- *
- * Tests for default config constants and createDefaultConfig factory.
- */
-
 import { describe, it, expect } from 'vitest';
 import {
     DEFAULT_AGENT_CONFIG,

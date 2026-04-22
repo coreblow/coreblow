@@ -1,6 +1,3 @@
-/**
- * process/spawn-utils.test.ts — Spawn utility tests
- */
 import { describe, it, expect } from 'vitest';
 import { resolveCommandStdio, formatSpawnError, collectOutput, spawnWithFallback } from './spawn-utils.js';
 import { spawn } from 'node:child_process';

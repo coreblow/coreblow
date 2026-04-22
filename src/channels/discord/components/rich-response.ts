@@ -3,6 +3,7 @@
  * Fluent builder for rich Discord messages
  */
 
+import { clamp } from "../../../utils.js";
 import type { DiscordEmbed, DiscordButton, DiscordSelectMenu, DiscordModal } from '../types.js';
 import { PROVIDER_COLORS, LIMITS, BUTTON_STYLES, COMPONENT_TYPES, TEXT_INPUT_STYLES, PAGINATION } from '../constants.js';
 import { splitPages, paginationButtons } from './pagination.js';
@@ -71,7 +72,7 @@ export class RichResponse {
 
  getPage(index: number): string {
  if (this._pages.length === 0) return '';
- const clamped = Math.max(0, Math.min(index, this._pages.length - 1));
+ const clamped = clamp(this._pages.length - 1, 0, index);
  return this._pages[clamped];
  }
 

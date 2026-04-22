@@ -1,6 +1,3 @@
-/**
- * src/commands/setup/import-contracts.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("commands/setup/__tests__/test-utils — import", () => {
   it("is importable", async () => {

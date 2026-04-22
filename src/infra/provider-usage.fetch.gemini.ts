@@ -90,24 +90,15 @@ export async function fetchGeminiUsage(
 // ProviderUsageFetchGeminiService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ProviderUsageFetchGeminiService {
   async fetchGeminiUsage(...args: Parameters<typeof fetchGeminiUsage>) {
     return fetchGeminiUsage(...args);
   }
 }
 
-let _providerUsageFetchGeminiInstance: ProviderUsageFetchGeminiService | null = null;
 
-export function getProviderUsageFetchGeminiService(): ProviderUsageFetchGeminiService {
-  if (!_providerUsageFetchGeminiInstance) {
-    _providerUsageFetchGeminiInstance = new ProviderUsageFetchGeminiService();
-  }
-  return _providerUsageFetchGeminiInstance;
-}
+const { getInstance: getProviderUsageFetchGeminiService, __testing: __testing_providerUsageFetchGemini } =
+  createStandaloneSingleton({ create: () => new ProviderUsageFetchGeminiService(), defaultDeps: {} });
 
-export const __testing_providerUsageFetchGemini = createTestingHooks<ProviderUsageFetchGeminiService>(
-  () => { _providerUsageFetchGeminiInstance = null; },
-  (svc) => { _providerUsageFetchGeminiInstance = svc; },
-);
+export { getProviderUsageFetchGeminiService, __testing_providerUsageFetchGemini };

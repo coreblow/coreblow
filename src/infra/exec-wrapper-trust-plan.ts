@@ -144,24 +144,15 @@ export function resolveExecWrapperTrustPlan(
 // ExecWrapperTrustPlanService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ExecWrapperTrustPlanService {
   resolveExecWrapperTrustPlan(...args: Parameters<typeof resolveExecWrapperTrustPlan>) {
     return resolveExecWrapperTrustPlan(...args);
   }
 }
 
-let _execWrapperTrustPlanInstance: ExecWrapperTrustPlanService | null = null;
 
-export function getExecWrapperTrustPlanService(): ExecWrapperTrustPlanService {
-  if (!_execWrapperTrustPlanInstance) {
-    _execWrapperTrustPlanInstance = new ExecWrapperTrustPlanService();
-  }
-  return _execWrapperTrustPlanInstance;
-}
+const { getInstance: getExecWrapperTrustPlanService, __testing: __testing_execWrapperTrustPlan } =
+  createStandaloneSingleton({ create: () => new ExecWrapperTrustPlanService(), defaultDeps: {} });
 
-export const __testing_execWrapperTrustPlan = createTestingHooks<ExecWrapperTrustPlanService>(
-  () => { _execWrapperTrustPlanInstance = null; },
-  (svc) => { _execWrapperTrustPlanInstance = svc; },
-);
+export { getExecWrapperTrustPlanService, __testing_execWrapperTrustPlan };

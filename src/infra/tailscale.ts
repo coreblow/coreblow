@@ -503,22 +503,13 @@ export async function readTailscaleWhoisIdentity(
 // TailscaleService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class TailscaleService {
   [Symbol.toStringTag] = 'TailscaleService';
 }
 
-let _tailscaleInstance: TailscaleService | null = null;
 
-export function getTailscaleService(): TailscaleService {
-  if (!_tailscaleInstance) {
-    _tailscaleInstance = new TailscaleService();
-  }
-  return _tailscaleInstance;
-}
+const { getInstance: getTailscaleService, __testing: __testing_tailscale } =
+  createStandaloneSingleton({ create: () => new TailscaleService(), defaultDeps: {} });
 
-export const __testing_tailscale = createTestingHooks<TailscaleService>(
-  () => { _tailscaleInstance = null; },
-  (svc) => { _tailscaleInstance = svc; },
-);
+export { getTailscaleService, __testing_tailscale };

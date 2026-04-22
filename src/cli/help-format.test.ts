@@ -1,9 +1,3 @@
-/**
- * src/cli/help-format.test.ts
- *
- * CoreBlow — Help Format Tests
- * Verifies formatHelpExample, formatHelpExampleLine, formatHelpExamples.
- */
 import { describe, expect, it } from "vitest";
 import {
   formatHelpExample,

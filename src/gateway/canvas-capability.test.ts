@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Canvas Capability Tests
- *
- * Tests for capability token minting, scoped URL building,
- * and URL normalization/parsing.
- */
-
 import { describe, it, expect } from 'vitest';
 import {
     CANVAS_CAPABILITY_PATH_PREFIX,

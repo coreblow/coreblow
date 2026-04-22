@@ -1,6 +1,3 @@
-/**
- * extensions/session-manager.test.ts — Session manager tests
- */
 import { describe, it, expect, vi } from 'vitest';
 import { SessionManagerRegistry, type SessionManagerExtension } from './session-manager.js';
 

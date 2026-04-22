@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { sleep } from "../utils.js";
 import fs from "node:fs";
 import path from "node:path";
 import { expandHomePrefix } from "../infra/home-dir.js";
@@ -171,7 +172,7 @@ async function renameWithRetry(src: string, dest: string): Promise<void> {
     } catch (err) {
       const code = (err as { code?: string }).code;
       if (code === "EBUSY" && attempt < RENAME_MAX_RETRIES) {
-        await new Promise((resolve) => setTimeout(resolve, RENAME_BASE_DELAY_MS * 2 ** attempt));
+        await sleep(RENAME_BASE_DELAY_MS * 2 ** attempt);
         continue;
       }
       // Windows doesn't reliably support atomic replace via rename when dest exists.

@@ -1,9 +1,3 @@
-/**
- * CoreBlow — Logging Levels Tests
- *
- * Tests for tryParseLogLevel, normalizeLogLevel, and levelToMinLevel.
- */
-
 import { describe, it, expect } from 'vitest';
 import { ALLOWED_LOG_LEVELS, tryParseLogLevel, normalizeLogLevel, levelToMinLevel } from './levels.js';
 

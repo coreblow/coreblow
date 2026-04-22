@@ -1,8 +1,3 @@
-/**
- * src/cli/program/message/import-contracts.test.ts
- *
- * CoreBlow — CLI Program Message Register Import Contracts
- */
 import { describe, expect, it } from "vitest";
 
 const modules = [

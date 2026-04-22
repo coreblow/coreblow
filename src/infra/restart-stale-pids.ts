@@ -294,8 +294,7 @@ export const __testing = {
 // RestartStalePidsService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class RestartStalePidsService {
   findGatewayPidsOnPortSync(...args: Parameters<typeof findGatewayPidsOnPortSync>) {
     return findGatewayPidsOnPortSync(...args);
@@ -306,16 +305,8 @@ export class RestartStalePidsService {
   }
 }
 
-let _restartStalePidsInstance: RestartStalePidsService | null = null;
 
-export function getRestartStalePidsService(): RestartStalePidsService {
-  if (!_restartStalePidsInstance) {
-    _restartStalePidsInstance = new RestartStalePidsService();
-  }
-  return _restartStalePidsInstance;
-}
+const { getInstance: getRestartStalePidsService, __testing: __testing_restartStalePids } =
+  createStandaloneSingleton({ create: () => new RestartStalePidsService(), defaultDeps: {} });
 
-export const __testing_restartStalePids = createTestingHooks<RestartStalePidsService>(
-  () => { _restartStalePidsInstance = null; },
-  (svc) => { _restartStalePidsInstance = svc; },
-);
+export { getRestartStalePidsService, __testing_restartStalePids };

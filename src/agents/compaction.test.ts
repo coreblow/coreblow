@@ -1,6 +1,3 @@
-/**
- * agents/compaction.test.ts
- */
 import { describe, it, expect } from 'vitest';
 import {
     estimateTokens, estimateMessagesTokens, splitMessagesByTokenShare,

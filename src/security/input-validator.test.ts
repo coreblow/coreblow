@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Input Validator Unit Tests
- */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { InputValidator } from './input-validator.js';
 import type { ValidationSchema } from './input-validator.js';

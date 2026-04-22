@@ -1097,9 +1097,9 @@ export async function runGatewayUpdate(opts: UpdateRunnerOptions = {}): Promise<
 // ---------------------------------------------------------------------------
 // UpdateRunnerService — Tier-2 GatewayService
 // ---------------------------------------------------------------------------
-
-import { createTestingHooks } from "./service-patterns.js";
 import type { GatewayService, ServiceHealth } from "../gateway/service-registry.js";
+
+import { createStandaloneSingleton } from "./service-patterns.js";
 
 export class UpdateRunnerService implements GatewayService {
   readonly name = "update-runner";
@@ -1126,16 +1126,7 @@ export class UpdateRunnerService implements GatewayService {
   }
 }
 
-let _updateRunnerInstance: UpdateRunnerService | null = null;
+const { getInstance: getUpdateRunnerService, __testing: __testing_updateRunner } =
+  createStandaloneSingleton({ create: () => new UpdateRunnerService(), defaultDeps: {} });
 
-export function getUpdateRunnerService(): UpdateRunnerService {
-  if (!_updateRunnerInstance) {
-    _updateRunnerInstance = new UpdateRunnerService();
-  }
-  return _updateRunnerInstance;
-}
-
-export const __testing_updateRunner = createTestingHooks<UpdateRunnerService>(
-  () => { _updateRunnerInstance = null; },
-  (svc) => { _updateRunnerInstance = svc; },
-);
+export { getUpdateRunnerService, __testing_updateRunner };

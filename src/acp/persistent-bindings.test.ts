@@ -70,7 +70,8 @@ describe("buildConfiguredAcpSessionKey", () => {
       accountId: defaultDiscordAccountId,
       conversationId: defaultDiscordConversationId,
       agentId: "main",
-    });
+      mode: "stateless",
+    } as any);
     expect(typeof key).toBe("string");
     expect(key).toContain("discord");
   });
@@ -89,10 +90,10 @@ describe("resolveConfiguredAcpBindingRecord", () => {
   });
 
   it("matches a discord binding by conversationId (requires plugin registry)", () => {
-    const binding: ConfiguredBinding = {
+    const binding = {
       channel: "discord",
       conversationId: defaultDiscordConversationId,
-    };
+    } as any;
     const cfg = { ...baseCfg, bindings: [binding] } as CoreBlowConfig;
     // CB requires a plugin registry with channel providers to compile bindings.
     // Without registry, returns null — this tests that the function doesn't throw.
@@ -107,10 +108,10 @@ describe("resolveConfiguredAcpBindingRecord", () => {
   });
 
   it("does not match wrong channel", () => {
-    const binding: ConfiguredBinding = {
+    const binding = {
       channel: "telegram",
       conversationId: "-100123456",
-    };
+    } as any;
     const cfg = { ...baseCfg, bindings: [binding] } as CoreBlowConfig;
     const result = persistentBindings.resolveConfiguredAcpBindingRecord({
       cfg,
@@ -143,10 +144,11 @@ describe("parseTelegramTopicConversation", () => {
 
 describe("ensureConfiguredAcpBindingSession", () => {
   it("calls initializeSession when no existing session entry", async () => {
-    const binding: ConfiguredBinding = {
+    const binding = {
       channel: "discord",
       conversationId: defaultDiscordConversationId,
-    };
+    } as any;
+    const cfg = { ...baseCfg, bindings: [binding] } as CoreBlowConfig;
     const spec = {
       channel: "discord",
       accountId: defaultDiscordAccountId,
@@ -157,15 +159,16 @@ describe("ensureConfiguredAcpBindingSession", () => {
         accountId: defaultDiscordAccountId,
         conversationId: defaultDiscordConversationId,
         agentId: "main",
-      }),
+        mode: "stateless",
+      } as any),
       agentId: "main",
-      cfg: { ...baseCfg, bindings: [binding] } as CoreBlowConfig,
-    };
+      mode: "stateless",
+    } as any;
 
     sessionMetaMocks.readAcpSessionEntry.mockResolvedValueOnce(null);
     managerMocks.initializeSession.mockResolvedValueOnce({ sessionId: "new-session" });
 
-    await persistentBindings.ensureConfiguredAcpBindingSession({ spec });
+    await persistentBindings.ensureConfiguredAcpBindingSession({ cfg, spec } as any);
     // CB calls initializeSession when no session entry exists
     expect(
       managerMocks.initializeSession.mock.calls.length +

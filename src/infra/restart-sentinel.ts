@@ -150,8 +150,7 @@ export function trimLogTail(input?: string | null, maxChars = 8000) {
 // RestartSentinelService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class RestartSentinelService {
   resolveRestartSentinelPath(env?: NodeJS.ProcessEnv) {
     return resolveRestartSentinelPath(env);
@@ -178,16 +177,8 @@ export class RestartSentinelService {
   }
 }
 
-let _restartSentinelInstance: RestartSentinelService | null = null;
 
-export function getRestartSentinelService(): RestartSentinelService {
-  if (!_restartSentinelInstance) {
-    _restartSentinelInstance = new RestartSentinelService();
-  }
-  return _restartSentinelInstance;
-}
+const { getInstance: getRestartSentinelService, __testing: __testing_restartSentinel } =
+  createStandaloneSingleton({ create: () => new RestartSentinelService(), defaultDeps: {} });
 
-export const __testing_restartSentinel = createTestingHooks<RestartSentinelService>(
-  () => { _restartSentinelInstance = null; },
-  (svc) => { _restartSentinelInstance = svc; },
-);
+export { getRestartSentinelService, __testing_restartSentinel };

@@ -109,22 +109,13 @@ export function loadDotEnv(opts?: { quiet?: boolean }) {
 // DotenvService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class DotenvService {
   [Symbol.toStringTag] = 'DotenvService';
 }
 
-let _dotenvInstance: DotenvService | null = null;
 
-export function getDotenvService(): DotenvService {
-  if (!_dotenvInstance) {
-    _dotenvInstance = new DotenvService();
-  }
-  return _dotenvInstance;
-}
+const { getInstance: getDotenvService, __testing: __testing_dotenv } =
+  createStandaloneSingleton({ create: () => new DotenvService(), defaultDeps: {} });
 
-export const __testing_dotenv = createTestingHooks<DotenvService>(
-  () => { _dotenvInstance = null; },
-  (svc) => { _dotenvInstance = svc; },
-);
+export { getDotenvService, __testing_dotenv };

@@ -1,9 +1,3 @@
-/**
- * src/gateway/events.test.ts
- *
- * CoreBlow — Gateway Events Tests
- * Verifies event name constants.
- */
 import { describe, expect, it } from "vitest";
 import { GATEWAY_EVENT_UPDATE_AVAILABLE } from "./events.js";
 

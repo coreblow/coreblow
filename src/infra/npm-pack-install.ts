@@ -166,22 +166,13 @@ export async function installFromNpmSpecArchive<TResult extends { ok: boolean }>
 // NpmPackInstallService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class NpmPackInstallService {
   [Symbol.toStringTag] = 'NpmPackInstallService';
 }
 
-let _npmPackInstallInstance: NpmPackInstallService | null = null;
 
-export function getNpmPackInstallService(): NpmPackInstallService {
-  if (!_npmPackInstallInstance) {
-    _npmPackInstallInstance = new NpmPackInstallService();
-  }
-  return _npmPackInstallInstance;
-}
+const { getInstance: getNpmPackInstallService, __testing: __testing_npmPackInstall } =
+  createStandaloneSingleton({ create: () => new NpmPackInstallService(), defaultDeps: {} });
 
-export const __testing_npmPackInstall = createTestingHooks<NpmPackInstallService>(
-  () => { _npmPackInstallInstance = null; },
-  (svc) => { _npmPackInstallInstance = svc; },
-);
+export { getNpmPackInstallService, __testing_npmPackInstall };

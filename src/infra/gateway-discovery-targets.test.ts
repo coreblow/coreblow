@@ -1,9 +1,3 @@
-/**
- * src/infra/gateway-discovery-targets.test.ts
- *
- * CoreBlow — Gateway Discovery Targets Tests
- * Verifies buildGatewayDiscoveryLabel, serializeGatewayDiscoveryBeacon.
- */
 import { describe, expect, it } from "vitest";
 import {
   buildGatewayDiscoveryLabel,

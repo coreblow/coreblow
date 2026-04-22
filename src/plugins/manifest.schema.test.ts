@@ -1,7 +1,3 @@
-/**
- * plugins/manifest.schema.test.ts
- * Tests for plugin manifest Zod schema.
- */
 import { describe, it, expect } from 'vitest';
 import {
     validatePluginManifest,

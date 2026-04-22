@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Response Builder Tests
- *
- * Tests for fluent API, content types, static factories,
- * status texts, and serialization.
- */
-
 import { describe, it, expect } from 'vitest';
 import { ResponseBuilder } from './response-builder.js';
 

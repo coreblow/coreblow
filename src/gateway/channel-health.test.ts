@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Channel Health Monitor Tests
- *
- * Tests for channel registration, heartbeat/error recording,
- * status transitions, event emission, health summary, and cleanup.
- */
-
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ChannelHealthMonitor } from './channel-health.js';
 

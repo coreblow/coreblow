@@ -1,8 +1,3 @@
-/**
- * src/gateway/gateway.final-contracts.test.ts
- *
- * CoreBlow — Gateway Final Import Contracts (Close 60%)
- */
 import { describe, expect, it } from "vitest";
 
 const modules = [

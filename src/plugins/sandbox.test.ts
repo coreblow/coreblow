@@ -1,11 +1,3 @@
-/**
- * plugins/sandbox.test.ts
- *
- * Comprehensive tests for PluginSandbox, PathJail, and ResourceLimiter.
- * Covers permission enforcement, path traversal prevention, resource
- * budgets, violation tracking, and edge cases.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PluginSandbox, type Permission } from './sandbox.js';
 import { PathJail, type PathCheckResult } from './path-jail.js';

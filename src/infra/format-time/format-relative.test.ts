@@ -1,9 +1,3 @@
-/**
- * src/infra/format-time/format-relative.test.ts
- *
- * CoreBlow — Format Relative Time Tests
- * Verifies formatTimeAgo and formatRelativeTimestamp.
- */
 import { describe, expect, it } from "vitest";
 import { formatTimeAgo, formatRelativeTimestamp } from "./format-relative.js";
 

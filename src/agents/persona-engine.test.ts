@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Persona Engine Tests
- *
- * Tests for persona registration, activation, system messages,
- * model params, listing, and deletion.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PersonaEngine } from './persona-engine.js';
 

@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Dependency Graph Tests
- *
- * Tests for node/edge management, topological sort,
- * cycle detection, and impact analysis.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { DependencyGraph } from './dependency-graph.js';
 

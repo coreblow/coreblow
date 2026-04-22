@@ -1,6 +1,3 @@
-/**
- * tts/streaming.test.ts — TTS streaming tests
- */
 import { describe, it, expect } from 'vitest';
 import { TTSStreamer } from './streaming.js';
 

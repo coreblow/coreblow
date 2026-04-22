@@ -1,6 +1,3 @@
-/**
- * src/plugins/plugins.import-contracts-a.test.ts
- */
 import { describe, expect, it } from "vitest";
 const modules = [
   "api-builder", "audit-log", "build-smoke-entry", "bundle-config-shared",

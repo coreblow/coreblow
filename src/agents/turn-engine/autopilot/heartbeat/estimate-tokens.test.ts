@@ -1,9 +1,3 @@
-/**
- * src/agents/turn-engine/autopilot/heartbeat/estimate-tokens.test.ts
- *
- * CoreBlow — AutoPilot estimateTokens Tests
- * Verifies token estimation: empty, short, long, ceiling behavior.
- */
 import { describe, expect, it } from "vitest";
 import { estimateTokens } from "./estimate-tokens.js";
 

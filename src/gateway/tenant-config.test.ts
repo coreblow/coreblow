@@ -1,6 +1,3 @@
-/**
- * src/gateway/tenant-config.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("gateway/tenant-config — import", () => {
   it("is importable", async () => {

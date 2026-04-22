@@ -55,7 +55,7 @@ describe("acp prompt cwd prefix", () => {
     const spy = await runPromptAndCaptureRequest({ prefixCwd: false });
     const chatSendCall = spy.mock.calls.find(([method]) => method === "chat.send");
     expect(chatSendCall).toBeDefined();
-    const params = chatSendCall![1] as Record<string, unknown>;
+    const params = (chatSendCall as any)?.[1] as Record<string, unknown> | undefined;
     const messages = params?.messages as Array<{ content?: unknown }> | undefined;
     if (messages && messages.length > 0) {
       const firstContent = JSON.stringify(messages[0]);

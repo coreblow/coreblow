@@ -1,9 +1,3 @@
-/**
- * src/cli/commands/import-contracts.test.ts
- *
- * CoreBlow — CLI Commands Import Contracts (Batch A)
- * Verifies that command modules load without side-effects.
- */
 import { describe, expect, it } from "vitest";
 
 const modules = [

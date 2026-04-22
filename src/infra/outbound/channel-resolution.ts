@@ -113,8 +113,7 @@ export function resolveOutboundChannelPlugin(params: {
 // ChannelResolutionService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "../service-patterns.js";
-
+import { createStandaloneSingleton } from "../service-patterns.js";
 export class ChannelResolutionService {
   normalizeDeliverableOutboundChannel(raw?: string | null) {
     return normalizeDeliverableOutboundChannel(raw);
@@ -129,16 +128,8 @@ export class ChannelResolutionService {
   }
 }
 
-let _channelResolutionInstance: ChannelResolutionService | null = null;
 
-export function getChannelResolutionService(): ChannelResolutionService {
-  if (!_channelResolutionInstance) {
-    _channelResolutionInstance = new ChannelResolutionService();
-  }
-  return _channelResolutionInstance;
-}
+const { getInstance: getChannelResolutionService, __testing: __testing_channelResolution } =
+  createStandaloneSingleton({ create: () => new ChannelResolutionService(), defaultDeps: {} });
 
-export const __testing_channelResolution = createTestingHooks<ChannelResolutionService>(
-  () => { _channelResolutionInstance = null; },
-  (svc) => { _channelResolutionInstance = svc; },
-);
+export { getChannelResolutionService, __testing_channelResolution };

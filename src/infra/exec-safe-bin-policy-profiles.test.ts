@@ -1,9 +1,3 @@
-/**
- * src/infra/exec-safe-bin-policy-profiles.test.ts
- *
- * CoreBlow — Exec Safe Bin Policy Profiles Tests
- * Verifies DEFAULT_SAFE_BINS and collectKnownLongFlags.
- */
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_SAFE_BINS,

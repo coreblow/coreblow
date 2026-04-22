@@ -371,22 +371,13 @@ export async function inspectPortUsage(port: number): Promise<PortUsage> {
 // PortsInspectService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class PortsInspectService {
   [Symbol.toStringTag] = 'PortsInspectService';
 }
 
-let _portsInspectInstance: PortsInspectService | null = null;
 
-export function getPortsInspectService(): PortsInspectService {
-  if (!_portsInspectInstance) {
-    _portsInspectInstance = new PortsInspectService();
-  }
-  return _portsInspectInstance;
-}
+const { getInstance: getPortsInspectService, __testing: __testing_portsInspect } =
+  createStandaloneSingleton({ create: () => new PortsInspectService(), defaultDeps: {} });
 
-export const __testing_portsInspect = createTestingHooks<PortsInspectService>(
-  () => { _portsInspectInstance = null; },
-  (svc) => { _portsInspectInstance = svc; },
-);
+export { getPortsInspectService, __testing_portsInspect };

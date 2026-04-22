@@ -1,6 +1,3 @@
-/**
- * src/commands/channels/logs.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("channels/logs — import", () => {
   it("is importable", async () => {

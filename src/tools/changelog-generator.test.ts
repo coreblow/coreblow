@@ -1,10 +1,3 @@
-/**
- * src/tools/changelog-generator.test.ts
- *
- * CoreBlow — Changelog Generator Tests
- * Verifies ChangelogGenerator: add, generateMarkdown, generateJSON,
- * getLatest, count, and version ordering.
- */
 import { describe, beforeEach, expect, it } from "vitest";
 import { ChangelogGenerator } from "./changelog-generator.js";
 

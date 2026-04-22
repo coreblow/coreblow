@@ -43,8 +43,7 @@ export function resolveAgentOutboundIdentity(
 // OutboundIdentityService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "../service-patterns.js";
-
+import { createStandaloneSingleton } from "../service-patterns.js";
 export class OutboundIdentityService {
   normalizeOutboundIdentity(params: Parameters<typeof normalizeOutboundIdentity>[0]) {
     return normalizeOutboundIdentity(params);
@@ -55,16 +54,8 @@ export class OutboundIdentityService {
   }
 }
 
-let _outboundIdentityInstance: OutboundIdentityService | null = null;
 
-export function getOutboundIdentityService(): OutboundIdentityService {
-  if (!_outboundIdentityInstance) {
-    _outboundIdentityInstance = new OutboundIdentityService();
-  }
-  return _outboundIdentityInstance;
-}
+const { getInstance: getOutboundIdentityService, __testing: __testing_outboundIdentity } =
+  createStandaloneSingleton({ create: () => new OutboundIdentityService(), defaultDeps: {} });
 
-export const __testing_outboundIdentity = createTestingHooks<OutboundIdentityService>(
-  () => { _outboundIdentityInstance = null; },
-  (svc) => { _outboundIdentityInstance = svc; },
-);
+export { getOutboundIdentityService, __testing_outboundIdentity };

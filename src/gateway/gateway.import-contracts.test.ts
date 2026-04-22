@@ -1,8 +1,3 @@
-/**
- * src/gateway/gateway.import-contracts.test.ts
- *
- * CoreBlow — Gateway Module Import Contracts (Batch A)
- */
 import { describe, expect, it } from "vitest";
 
 const modules = [

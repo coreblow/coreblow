@@ -1,10 +1,3 @@
-/**
- * src/agents/subagent/subagent-capabilities.test.ts
- *
- * CoreBlow — Subagent Capabilities Tests
- * Verifies resolveSubagentRoleForDepth, resolveSubagentCapabilities,
- * canSpawnAtDepth, isSpawnAllowed, describeCapabilities, getMaxChildrenForRole.
- */
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_SUBAGENT_MAX_SPAWN_DEPTH,

@@ -1,6 +1,3 @@
-/**
- * extensions/compaction.test.ts — Compaction tests
- */
 import { describe, it, expect } from 'vitest';
 import { resolveCompactionConfig, shouldCompact, buildCompactionMessages, validateCompactionQuality } from './compaction.js';
 

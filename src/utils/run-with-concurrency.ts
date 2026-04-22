@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 export type ConcurrencyErrorMode = "continue" | "stop";
 
 export async function runTasksWithConcurrency<T>(params: {
@@ -12,7 +13,7 @@ export async function runTasksWithConcurrency<T>(params: {
     return { results: [], firstError: undefined, hasError: false };
   }
 
-  const resolvedLimit = Math.max(1, Math.min(limit, tasks.length));
+  const resolvedLimit = clamp(tasks.length, 1, limit);
   const results: T[] = Array.from({ length: tasks.length });
   let next = 0;
   let firstError: unknown = undefined;

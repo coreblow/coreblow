@@ -114,22 +114,13 @@ export function compareComparableSemver(
 // SemverCompareService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class SemverCompareService {
   [Symbol.toStringTag] = 'SemverCompareService';
 }
 
-let _semverCompareInstance: SemverCompareService | null = null;
 
-export function getSemverCompareService(): SemverCompareService {
-  if (!_semverCompareInstance) {
-    _semverCompareInstance = new SemverCompareService();
-  }
-  return _semverCompareInstance;
-}
+const { getInstance: getSemverCompareService, __testing: __testing_semverCompare } =
+  createStandaloneSingleton({ create: () => new SemverCompareService(), defaultDeps: {} });
 
-export const __testing_semverCompare = createTestingHooks<SemverCompareService>(
-  () => { _semverCompareInstance = null; },
-  (svc) => { _semverCompareInstance = svc; },
-);
+export { getSemverCompareService, __testing_semverCompare };

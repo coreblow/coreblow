@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { clamp } from "../utils.js";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 import { loadConfig } from "../config/config.js";
@@ -58,7 +59,7 @@ function resolveLimit(req: IncomingMessage): number | undefined {
   if (!Number.isFinite(value) || value < 1) {
     return 1;
   }
-  return Math.min(MAX_SESSION_HISTORY_LIMIT, Math.max(1, value));
+  return clamp(value, 1, MAX_SESSION_HISTORY_LIMIT);
 }
 
 function resolveCursor(req: IncomingMessage): string | undefined {
@@ -103,7 +104,7 @@ function paginateSessionMessages(
   const cursorSeq = resolveCursorSeq(cursor);
   const endExclusive =
     typeof cursorSeq === "number"
-      ? Math.max(0, Math.min(messages.length, cursorSeq - 1))
+      ? clamp(cursorSeq - 1, 0, messages.length)
       : messages.length;
   const start = typeof limit === "number" && limit > 0 ? Math.max(0, endExclusive - limit) : 0;
   const items = messages.slice(start, endExclusive);

@@ -324,22 +324,13 @@ export async function installPackageDirWithManifestDeps(params: {
 // InstallPackageDirService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class InstallPackageDirService {
   [Symbol.toStringTag] = 'InstallPackageDirService';
 }
 
-let _installPackageDirInstance: InstallPackageDirService | null = null;
 
-export function getInstallPackageDirService(): InstallPackageDirService {
-  if (!_installPackageDirInstance) {
-    _installPackageDirInstance = new InstallPackageDirService();
-  }
-  return _installPackageDirInstance;
-}
+const { getInstance: getInstallPackageDirService, __testing: __testing_installPackageDir } =
+  createStandaloneSingleton({ create: () => new InstallPackageDirService(), defaultDeps: {} });
 
-export const __testing_installPackageDir = createTestingHooks<InstallPackageDirService>(
-  () => { _installPackageDirInstance = null; },
-  (svc) => { _installPackageDirInstance = svc; },
-);
+export { getInstallPackageDirService, __testing_installPackageDir };

@@ -1,6 +1,3 @@
-/**
- * agents/command-poll-backoff.test.ts
- */
 import { describe, it, expect } from 'vitest';
 import { computeBackoff, createBackoffTracker, retryWithBackoff } from './command-poll-backoff.js';
 

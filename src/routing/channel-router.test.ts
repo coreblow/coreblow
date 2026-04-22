@@ -1,6 +1,3 @@
-/**
- * routing/channel-router.test.ts — Channel router tests
- */
 import { describe, it, expect } from 'vitest';
 import { ChannelRouter } from './channel-router.js';
 

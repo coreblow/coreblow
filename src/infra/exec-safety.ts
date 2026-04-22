@@ -47,24 +47,15 @@ export function isSafeExecutableValue(value: string | null | undefined): boolean
 // ExecSafetyService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ExecSafetyService {
   isSafeExecutableValue(value: string | null | undefined) {
     return isSafeExecutableValue(value);
   }
 }
 
-let _execSafetyInstance: ExecSafetyService | null = null;
 
-export function getExecSafetyService(): ExecSafetyService {
-  if (!_execSafetyInstance) {
-    _execSafetyInstance = new ExecSafetyService();
-  }
-  return _execSafetyInstance;
-}
+const { getInstance: getExecSafetyService, __testing: __testing_execSafety } =
+  createStandaloneSingleton({ create: () => new ExecSafetyService(), defaultDeps: {} });
 
-export const __testing_execSafety = createTestingHooks<ExecSafetyService>(
-  () => { _execSafetyInstance = null; },
-  (svc) => { _execSafetyInstance = svc; },
-);
+export { getExecSafetyService, __testing_execSafety };

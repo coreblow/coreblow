@@ -231,24 +231,15 @@ export function validateSafeBinArgv(
 // ExecSafeBinPolicyValidatorService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ExecSafeBinPolicyValidatorService {
   validateSafeBinArgv(...args: Parameters<typeof validateSafeBinArgv>) {
     return validateSafeBinArgv(...args);
   }
 }
 
-let _execSafeBinPolicyValidatorInstance: ExecSafeBinPolicyValidatorService | null = null;
 
-export function getExecSafeBinPolicyValidatorService(): ExecSafeBinPolicyValidatorService {
-  if (!_execSafeBinPolicyValidatorInstance) {
-    _execSafeBinPolicyValidatorInstance = new ExecSafeBinPolicyValidatorService();
-  }
-  return _execSafeBinPolicyValidatorInstance;
-}
+const { getInstance: getExecSafeBinPolicyValidatorService, __testing: __testing_execSafeBinPolicyValidator } =
+  createStandaloneSingleton({ create: () => new ExecSafeBinPolicyValidatorService(), defaultDeps: {} });
 
-export const __testing_execSafeBinPolicyValidator = createTestingHooks<ExecSafeBinPolicyValidatorService>(
-  () => { _execSafeBinPolicyValidatorInstance = null; },
-  (svc) => { _execSafeBinPolicyValidatorInstance = svc; },
-);
+export { getExecSafeBinPolicyValidatorService, __testing_execSafeBinPolicyValidator };

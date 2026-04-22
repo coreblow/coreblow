@@ -51,22 +51,13 @@ export async function getMachineDisplayName(): Promise<string> {
 // MachineNameService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class MachineNameService {
   [Symbol.toStringTag] = 'MachineNameService';
 }
 
-let _machineNameInstance: MachineNameService | null = null;
 
-export function getMachineNameService(): MachineNameService {
-  if (!_machineNameInstance) {
-    _machineNameInstance = new MachineNameService();
-  }
-  return _machineNameInstance;
-}
+const { getInstance: getMachineNameService, __testing: __testing_machineName } =
+  createStandaloneSingleton({ create: () => new MachineNameService(), defaultDeps: {} });
 
-export const __testing_machineName = createTestingHooks<MachineNameService>(
-  () => { _machineNameInstance = null; },
-  (svc) => { _machineNameInstance = svc; },
-);
+export { getMachineNameService, __testing_machineName };

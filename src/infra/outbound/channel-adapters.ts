@@ -35,24 +35,15 @@ export function getChannelMessageAdapter(channel: ChannelId): ChannelMessageAdap
 // ChannelAdapterService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "../service-patterns.js";
-
+import { createStandaloneSingleton } from "../service-patterns.js";
 export class ChannelAdapterService {
   getChannelMessageAdapter(channel: ChannelId) {
     return getChannelMessageAdapter(channel);
   }
 }
 
-let _adapterInstance: ChannelAdapterService | null = null;
 
-export function getChannelAdapterService(): ChannelAdapterService {
-  if (!_adapterInstance) {
-    _adapterInstance = new ChannelAdapterService();
-  }
-  return _adapterInstance;
-}
+const { getInstance: getChannelAdapterService, __testing: __testing_channelAdapter } =
+  createStandaloneSingleton({ create: () => new ChannelAdapterService(), defaultDeps: {} });
 
-export const __testing_channelAdapter = createTestingHooks<ChannelAdapterService>(
-  () => { _adapterInstance = null; },
-  (svc) => { _adapterInstance = svc; },
-);
+export { getChannelAdapterService, __testing_channelAdapter };

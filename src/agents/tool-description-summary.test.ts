@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Tool Description Summary Tests
- *
- * Tests for isToolDocBlockStart, summarizeToolDescriptionText,
- * and describeToolForVerbose.
- */
-
 import { describe, it, expect } from 'vitest';
 import {
     isToolDocBlockStart,

@@ -1,6 +1,3 @@
-/**
- * channels/draft-stream-loop.test.ts — Draft stream tests
- */
 import { describe, it, expect, vi } from 'vitest';
 import { createDraftStreamLoop } from './draft-stream-loop.js';
 

@@ -1,8 +1,3 @@
-/**
- * src/cli/update-cli/import-contracts.test.ts
- *
- * CoreBlow — Update CLI Import Contracts
- */
 import { describe, expect, it } from "vitest";
 
 const modules = [

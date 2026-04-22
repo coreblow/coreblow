@@ -1,8 +1,3 @@
-/**
- * src/cli/nodes-cli/rpc.test.ts
- *
- * CoreBlow — Nodes CLI RPC Import Contract
- */
 import { describe, expect, it } from "vitest";
 
 describe("nodes-cli/rpc — import contract", () => {

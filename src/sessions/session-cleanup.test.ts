@@ -1,6 +1,3 @@
-/**
- * sessions/session-cleanup.test.ts — Session cleanup tests
- */
 import { describe, it, expect } from 'vitest';
 import { cleanupSessions } from './session-cleanup.js';
 

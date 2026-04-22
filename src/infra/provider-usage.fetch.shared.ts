@@ -55,8 +55,7 @@ export function buildUsageHttpErrorSnapshot(
 // ProviderUsageFetchSharedService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ProviderUsageFetchSharedService {
   async fetchJson(...args: Parameters<typeof fetchJson>) {
     return fetchJson(...args);
@@ -75,16 +74,8 @@ export class ProviderUsageFetchSharedService {
   }
 }
 
-let _providerUsageFetchSharedInstance: ProviderUsageFetchSharedService | null = null;
 
-export function getProviderUsageFetchSharedService(): ProviderUsageFetchSharedService {
-  if (!_providerUsageFetchSharedInstance) {
-    _providerUsageFetchSharedInstance = new ProviderUsageFetchSharedService();
-  }
-  return _providerUsageFetchSharedInstance;
-}
+const { getInstance: getProviderUsageFetchSharedService, __testing: __testing_providerUsageFetchShared } =
+  createStandaloneSingleton({ create: () => new ProviderUsageFetchSharedService(), defaultDeps: {} });
 
-export const __testing_providerUsageFetchShared = createTestingHooks<ProviderUsageFetchSharedService>(
-  () => { _providerUsageFetchSharedInstance = null; },
-  (svc) => { _providerUsageFetchSharedInstance = svc; },
-);
+export { getProviderUsageFetchSharedService, __testing_providerUsageFetchShared };

@@ -1,8 +1,3 @@
-/**
- * src/commands/commands.import-contracts-h.test.ts
- *
- * CoreBlow — Commands Import Contracts (Batch H - max coverage push)
- */
 import { describe, expect, it } from "vitest";
 
 const modules = [

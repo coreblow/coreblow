@@ -1,6 +1,3 @@
-/**
- * gateway/concurrency.test.ts — Concurrency limiter tests (co-located)
- */
 import { describe, it, expect } from 'vitest';
 import { ConcurrencyLimiter } from './concurrency.js';
 

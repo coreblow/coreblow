@@ -5,6 +5,7 @@
  */
 
 import { createChildLogger } from '../utils/logger.js';
+import { sleep } from '../utils.js';
 
 const log = createChildLogger('retry');
 
@@ -218,8 +219,4 @@ export class CircuitBreaker {
     }
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────
-
-function sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+// sleep imported from utils.ts

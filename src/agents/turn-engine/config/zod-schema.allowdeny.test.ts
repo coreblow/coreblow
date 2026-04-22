@@ -1,6 +1,3 @@
-/**
- * zod-schema.allowdeny.test.ts — Allow/deny schema tests
- */
 import { describe, it, expect } from 'vitest';
 import { AllowDenySchema, checkAllowDeny } from './zod-schema.allowdeny.js';
 

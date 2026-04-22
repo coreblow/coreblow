@@ -1,10 +1,3 @@
-/**
- * src/cron/cron-service-integration.test.ts
- *
- * CoreBlow — Cron Service Integration Shape Tests
- * Verifies CronService exposes all expected lifecycle methods
- * and wakeNow/status/list patterns via ops.
- */
 import { describe, expect, it } from "vitest";
 import { CronService } from "./service.js";
 

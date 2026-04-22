@@ -1,11 +1,3 @@
-/**
- * CoreBlow — Workflow Engine Tests
- *
- * Tests for multi-step workflow orchestration: sequential execution,
- * parallel steps, conditional skipping, error handling strategies
- * (fail/skip/retry), timeout enforcement, and execution history.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { WorkflowEngine, type WorkflowStep, type WorkflowDefinition, type WorkflowContext } from './workflow-engine.js';
 

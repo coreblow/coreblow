@@ -67,8 +67,7 @@ export function sanitizeForPlainText(text: string): string {
 // SanitizeTextService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "../service-patterns.js";
-
+import { createStandaloneSingleton } from "../service-patterns.js";
 export class SanitizeTextService {
   isPlainTextSurface(channelId: string) {
     return isPlainTextSurface(channelId);
@@ -79,16 +78,8 @@ export class SanitizeTextService {
   }
 }
 
-let _sanitizeTextInstance: SanitizeTextService | null = null;
 
-export function getSanitizeTextService(): SanitizeTextService {
-  if (!_sanitizeTextInstance) {
-    _sanitizeTextInstance = new SanitizeTextService();
-  }
-  return _sanitizeTextInstance;
-}
+const { getInstance: getSanitizeTextService, __testing: __testing_sanitizeText } =
+  createStandaloneSingleton({ create: () => new SanitizeTextService(), defaultDeps: {} });
 
-export const __testing_sanitizeText = createTestingHooks<SanitizeTextService>(
-  () => { _sanitizeTextInstance = null; },
-  (svc) => { _sanitizeTextInstance = svc; },
-);
+export { getSanitizeTextService, __testing_sanitizeText };

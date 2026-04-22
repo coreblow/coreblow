@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Prompt Manager Tests
- *
- * Tests for prompt registration, versioning, variable rendering,
- * chains, tag filtering, and version history.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PromptManager } from './prompt-manager.js';
 

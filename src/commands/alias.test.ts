@@ -1,6 +1,3 @@
-/**
- * commands/alias.test.ts — Command aliases tests
- */
 import { describe, it, expect } from 'vitest';
 import { CommandAliases } from './alias.js';
 

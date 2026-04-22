@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 import { randomUUID } from "node:crypto";
 
 export const NODE_PENDING_WORK_TYPES = ["status.request", "location.request"] as const;
@@ -139,7 +140,7 @@ export function drainNodePendingWork(nodeId: string, opts: DrainOptions = {}): D
   if (state) {
     pruneExpired(state, nowMs);
   }
-  const maxItems = Math.min(MAX_ITEMS, Math.max(1, Math.trunc(opts.maxItems ?? DEFAULT_MAX_ITEMS)));
+  const maxItems = clamp(Math.trunc(opts.maxItems ?? DEFAULT_MAX_ITEMS), 1, MAX_ITEMS);
   const explicitItems = state ? sortedItems(state) : [];
   const items = explicitItems.slice(0, maxItems);
   const hasExplicitStatus = explicitItems.some((item) => item.type === "status.request");

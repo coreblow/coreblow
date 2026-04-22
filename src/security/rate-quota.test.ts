@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Rate Quota Unit Tests
- */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { RateQuota } from './rate-quota.js';
 

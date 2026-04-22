@@ -1,6 +1,3 @@
-/**
- * hooks/hook-bus.test.ts — Hook bus tests
- */
 import { describe, it, expect } from 'vitest';
 import { HookBus } from './hook-bus.js';
 

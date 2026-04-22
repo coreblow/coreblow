@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -46,7 +47,7 @@ export const ignoredErrors = new Set([
 ]);
 
 export const clampPercent = (value: number) =>
-  Math.max(0, Math.min(100, Number.isFinite(value) ? value : 0));
+  clamp(Number.isFinite(value) ? value : 0, 0, 100);
 
 export const withTimeout = async <T>(work: Promise<T>, ms: number, fallback: T): Promise<T> => {
   let timeout: NodeJS.Timeout | undefined;
@@ -98,24 +99,15 @@ export function resolveLegacyPiAgentAccessToken(
 // ProviderUsageSharedService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ProviderUsageSharedService {
   resolveUsageProviderId(provider?: string | null) {
     return resolveUsageProviderId(provider);
   }
 }
 
-let _providerUsageSharedInstance: ProviderUsageSharedService | null = null;
 
-export function getProviderUsageSharedService(): ProviderUsageSharedService {
-  if (!_providerUsageSharedInstance) {
-    _providerUsageSharedInstance = new ProviderUsageSharedService();
-  }
-  return _providerUsageSharedInstance;
-}
+const { getInstance: getProviderUsageSharedService, __testing: __testing_providerUsageShared } =
+  createStandaloneSingleton({ create: () => new ProviderUsageSharedService(), defaultDeps: {} });
 
-export const __testing_providerUsageShared = createTestingHooks<ProviderUsageSharedService>(
-  () => { _providerUsageSharedInstance = null; },
-  (svc) => { _providerUsageSharedInstance = svc; },
-);
+export { getProviderUsageSharedService, __testing_providerUsageShared };

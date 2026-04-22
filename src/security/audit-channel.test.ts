@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Audit Channel Pure Helper Tests
- *
- * Tests only the pure, extractable helper functions from audit-channel.ts.
- * The main collectChannelSecurityFindings function requires deep gateway/plugin
- * dependencies and is tested via integration tests.
- */
 import { describe, it, expect, vi } from 'vitest';
 
 // Mock ALL external dependencies to isolate pure helpers

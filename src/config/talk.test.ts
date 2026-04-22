@@ -1,10 +1,3 @@
-/**
- * src/config/talk.test.ts
- *
- * CoreBlow — Talk (TTS) Config Tests
- * Verifies normalizeTalkSection, buildTalkConfigResponse,
- * and LEGACY_TALK_PROVIDER_ID constant behavior.
- */
 import { describe, expect, it } from "vitest";
 import {
   LEGACY_TALK_PROVIDER_ID,

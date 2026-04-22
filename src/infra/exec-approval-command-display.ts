@@ -44,8 +44,7 @@ export function resolveExecApprovalCommandDisplay(request: ExecApprovalRequestPa
 // ExecApprovalCommandDisplayService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ExecApprovalCommandDisplayService {
   sanitizeExecApprovalDisplayText(commandText: string) {
     return sanitizeExecApprovalDisplayText(commandText);
@@ -56,16 +55,8 @@ export class ExecApprovalCommandDisplayService {
   }
 }
 
-let _execApprovalCommandDisplayInstance: ExecApprovalCommandDisplayService | null = null;
 
-export function getExecApprovalCommandDisplayService(): ExecApprovalCommandDisplayService {
-  if (!_execApprovalCommandDisplayInstance) {
-    _execApprovalCommandDisplayInstance = new ExecApprovalCommandDisplayService();
-  }
-  return _execApprovalCommandDisplayInstance;
-}
+const { getInstance: getExecApprovalCommandDisplayService, __testing: __testing_execApprovalCommandDisplay } =
+  createStandaloneSingleton({ create: () => new ExecApprovalCommandDisplayService(), defaultDeps: {} });
 
-export const __testing_execApprovalCommandDisplay = createTestingHooks<ExecApprovalCommandDisplayService>(
-  () => { _execApprovalCommandDisplayInstance = null; },
-  (svc) => { _execApprovalCommandDisplayInstance = svc; },
-);
+export { getExecApprovalCommandDisplayService, __testing_execApprovalCommandDisplay };

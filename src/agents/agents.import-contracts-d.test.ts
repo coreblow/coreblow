@@ -1,6 +1,3 @@
-/**
- * src/agents/agents.import-contracts-d.test.ts
- */
 import { describe, expect, it } from "vitest";
 const modules = [
   "embedded-pi-lsp", "embedded-pi-mcp", "fork", "lifecycle",

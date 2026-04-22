@@ -846,8 +846,7 @@ export async function clearDevicePairing(deviceId: string, baseDir?: string): Pr
 // DevicePairingService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class DevicePairingService {
   async listDevicePairing(baseDir?: string) {
     return listDevicePairing(baseDir);
@@ -874,16 +873,8 @@ export class DevicePairingService {
   }
 }
 
-let _devicePairingInstance: DevicePairingService | null = null;
 
-export function getDevicePairingService(): DevicePairingService {
-  if (!_devicePairingInstance) {
-    _devicePairingInstance = new DevicePairingService();
-  }
-  return _devicePairingInstance;
-}
+const { getInstance: getDevicePairingService, __testing: __testing_devicePairing } =
+  createStandaloneSingleton({ create: () => new DevicePairingService(), defaultDeps: {} });
 
-export const __testing_devicePairing = createTestingHooks<DevicePairingService>(
-  () => { _devicePairingInstance = null; },
-  (svc) => { _devicePairingInstance = svc; },
-);
+export { getDevicePairingService, __testing_devicePairing };

@@ -175,8 +175,7 @@ export function buildExecApprovalUnavailableReplyPayload(
 // ExecApprovalReplyService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ExecApprovalReplyService {
   getExecApprovalApproverDmNoticeText() {
     return getExecApprovalApproverDmNoticeText();
@@ -195,16 +194,8 @@ export class ExecApprovalReplyService {
   }
 }
 
-let _execApprovalReplyInstance: ExecApprovalReplyService | null = null;
 
-export function getExecApprovalReplyService(): ExecApprovalReplyService {
-  if (!_execApprovalReplyInstance) {
-    _execApprovalReplyInstance = new ExecApprovalReplyService();
-  }
-  return _execApprovalReplyInstance;
-}
+const { getInstance: getExecApprovalReplyService, __testing: __testing_execApprovalReply } =
+  createStandaloneSingleton({ create: () => new ExecApprovalReplyService(), defaultDeps: {} });
 
-export const __testing_execApprovalReply = createTestingHooks<ExecApprovalReplyService>(
-  () => { _execApprovalReplyInstance = null; },
-  (svc) => { _execApprovalReplyInstance = svc; },
-);
+export { getExecApprovalReplyService, __testing_execApprovalReply };

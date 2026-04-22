@@ -1,6 +1,3 @@
-/**
- * src/commands/doctor.e2e-harness.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("commands/doctor.e2e-harness — import", () => {
   it("is importable", async () => {

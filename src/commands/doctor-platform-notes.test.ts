@@ -1,6 +1,3 @@
-/**
- * src/commands/doctor-platform-notes.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("commands/doctor-platform-notes — import", () => {
   it("is importable", async () => {

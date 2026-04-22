@@ -1,6 +1,3 @@
-/**
- * src/agents/pi-embedded-helpers/import-contracts.test.ts
- */
 import { describe, expect, it } from "vitest";
 import { readdirSync } from "fs";
 import { join, basename } from "path";

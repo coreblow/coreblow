@@ -1,8 +1,3 @@
-/**
- * src/commands/commands.import-contracts-b.test.ts
- *
- * CoreBlow — Commands Import Contracts (Batch B)
- */
 import { describe, expect, it } from "vitest";
 
 const modules = [

@@ -9,11 +9,11 @@ import {
 function mockFetch(
   handler: (url: string, init?: RequestInit) => Promise<Response>,
 ): typeof globalThis.fetch {
-  return (input: RequestInfo | URL, init?: RequestInit) => {
+  return ((input: RequestInfo | URL, init?: RequestInit) => {
     const url =
       typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
     return handler(url, init);
-  };
+  }) as unknown as typeof globalThis.fetch;
 }
 
 function createStoredCredential(
@@ -52,9 +52,9 @@ describe("chutes-oauth", () => {
     });
 
     const result = await exchangeChutesCodeForTokens({
+      app: { clientId: "test-client", redirectUri: "http://localhost:9999/callback" } as any,
       code: "auth_code_123",
-      verifier: "pkce_verifier",
-      redirectUri: "http://localhost:9999/callback",
+      codeVerifier: "pkce_verifier",
       fetchFn,
     });
 

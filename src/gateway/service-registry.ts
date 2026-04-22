@@ -48,6 +48,8 @@ export interface ServiceEntry {
     startedAt?: number;
     stoppedAt?: number;
     metadata?: Record<string, unknown>;
+    /** Error message from the last failed start() or stop() call. */
+    lastError?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -89,7 +91,11 @@ export class ServiceRegistry {
      * @param dependencies Names of services that must be started before this one.
      */
     register(name: string, instance: unknown, dependencies: string[] = []): void {
-        this.services.set(name, { name, instance, status: 'registered', dependencies });
+        const entry: ServiceEntry = { name, instance, status: 'registered', dependencies };
+        if (!isGatewayService(instance)) {
+            entry.metadata = { ...(entry.metadata ?? {}), lifecycleManaged: false };
+        }
+        this.services.set(name, entry);
     }
 
     /**
@@ -130,9 +136,11 @@ export class ServiceRegistry {
             svc.status = 'started';
             svc.startedAt = Date.now();
             svc.stoppedAt = undefined;
+            svc.lastError = undefined;
             return true;
-        } catch {
+        } catch (err) {
             svc.status = 'error';
+            svc.lastError = err instanceof Error ? err.message : String(err);
             return false;
         }
     }
@@ -181,9 +189,11 @@ export class ServiceRegistry {
             }
             svc.status = 'stopped';
             svc.stoppedAt = Date.now();
+            svc.lastError = undefined;
             return true;
-        } catch {
+        } catch (err) {
             svc.status = 'error';
+            svc.lastError = err instanceof Error ? err.message : String(err);
             return false;
         }
     }

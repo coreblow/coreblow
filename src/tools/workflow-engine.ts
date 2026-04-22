@@ -6,6 +6,8 @@
  * with error handling, step results, and execution history.
  */
 
+import { retryAsync } from '../infra/retry.js';
+
 /** Workflow step */
 export interface WorkflowStep {
     id: string;
@@ -162,26 +164,21 @@ export class WorkflowEngine {
         }
 
         const maxAttempts = (step.onError === 'retry' ? (step.retries ?? 2) : 0) + 1;
-        let lastError: string | undefined;
-
-        for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            const start = Date.now();
-            try {
-                const output = await this.withTimeout(step.handler(context), step.timeoutMs ?? 60_000, step.name);
-                return { stepId: step.id, status: 'success', output, durationMs: Date.now() - start };
-            } catch (err) {
-                lastError = err instanceof Error ? err.message : String(err);
-                if (attempt < maxAttempts - 1) {
-                    await new Promise((r) => setTimeout(r, 100 * (attempt + 1)));
-                }
+        const start = Date.now();
+        try {
+            const output = await retryAsync(
+                () => this.withTimeout(step.handler(context), step.timeoutMs ?? 60_000, step.name),
+                maxAttempts,
+                100,
+            );
+            return { stepId: step.id, status: 'success', output, durationMs: Date.now() - start };
+        } catch (err) {
+            const lastError = err instanceof Error ? err.message : String(err);
+            if (step.onError === 'skip') {
+                return { stepId: step.id, status: 'skipped', error: lastError, durationMs: 0 };
             }
+            return { stepId: step.id, status: 'error', error: lastError, durationMs: 0 };
         }
-
-        if (step.onError === 'skip') {
-            return { stepId: step.id, status: 'skipped', error: lastError, durationMs: 0 };
-        }
-
-        return { stepId: step.id, status: 'error', error: lastError, durationMs: 0 };
     }
 
     private async executeParallel(steps: WorkflowStep[], context: WorkflowContext): Promise<StepResult[]> {

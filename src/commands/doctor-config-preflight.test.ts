@@ -1,6 +1,3 @@
-/**
- * src/commands/doctor-config-preflight.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("commands/doctor-config-preflight — import", () => {
   it("is importable", async () => {

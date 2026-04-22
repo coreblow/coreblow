@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { sleep } from "../utils.js";
 import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import net from "node:net";
@@ -183,8 +184,8 @@ export async function acquireGatewayLock(
   const platform = opts.platform ?? process.platform;
   const port = opts.port;
   const now = opts.now ?? Date.now;
-  const sleep =
-    opts.sleep ?? (async (ms: number) => await new Promise((resolve) => setTimeout(resolve, ms)));
+  const sleepFn =
+    opts.sleep ?? sleep;
   const { lockPath, configPath } = resolveGatewayLockPath(env, opts.lockDir);
   await fs.mkdir(path.dirname(lockPath), { recursive: true });
 
@@ -251,7 +252,7 @@ export async function acquireGatewayLock(
         }
       }
 
-      await sleep(pollIntervalMs);
+      await sleepFn(pollIntervalMs);
     }
   }
 
@@ -263,24 +264,15 @@ export async function acquireGatewayLock(
 // GatewayLockService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class GatewayLockService {
   async acquireGatewayLock(...args: Parameters<typeof acquireGatewayLock>) {
     return acquireGatewayLock(...args);
   }
 }
 
-let _gatewayLockInstance: GatewayLockService | null = null;
 
-export function getGatewayLockService(): GatewayLockService {
-  if (!_gatewayLockInstance) {
-    _gatewayLockInstance = new GatewayLockService();
-  }
-  return _gatewayLockInstance;
-}
+const { getInstance: getGatewayLockService, __testing: __testing_gatewayLock } =
+  createStandaloneSingleton({ create: () => new GatewayLockService(), defaultDeps: {} });
 
-export const __testing_gatewayLock = createTestingHooks<GatewayLockService>(
-  () => { _gatewayLockInstance = null; },
-  (svc) => { _gatewayLockInstance = svc; },
-);
+export { getGatewayLockService, __testing_gatewayLock };

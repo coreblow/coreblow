@@ -1,10 +1,3 @@
-/**
- * src/memory/search.test.ts
- *
- * CoreBlow — Memory Search Tests
- * Verifies indexMemory, removeMemory, rankResults,
- * getSearchStats, and clearSearchIndex.
- */
 import { describe, beforeEach, expect, it } from "vitest";
 import {
   clearSearchIndex,

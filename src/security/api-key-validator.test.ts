@@ -1,6 +1,3 @@
-/**
- * security/api-key-validator.test.ts — API key validation tests (co-located)
- */
 import { describe, it, expect } from 'vitest';
 
 describe('API Key Validator', () => {

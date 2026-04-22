@@ -1,9 +1,3 @@
-/**
- * src/gateway/server-constants.test.ts
- *
- * CoreBlow — Gateway Server Constants Tests
- * Verifies size constants and getMaxChatHistoryMessagesBytes accessor.
- */
 import { describe, afterEach, expect, it } from "vitest";
 import {
   MAX_PAYLOAD_BYTES,

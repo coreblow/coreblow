@@ -1,6 +1,3 @@
-/**
- * src/commands/status-all/agents.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("status-all/agents — import", () => {
   it("is importable", async () => {

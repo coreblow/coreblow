@@ -1,6 +1,3 @@
-/**
- * src/gateway/server-methods/agent-job.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("server-methods/agent-job — import", () => {
   it("is importable", async () => {

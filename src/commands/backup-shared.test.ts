@@ -1,9 +1,3 @@
-/**
- * src/commands/backup-shared.test.ts
- *
- * CoreBlow — Backup Shared Types Tests
- * Verifies BackupAssetKind, BackupSkipReason type contracts at runtime.
- */
 import { describe, expect, it } from "vitest";
 
 const VALID_ASSET_KINDS = ["state", "config", "credentials", "workspace"] as const;

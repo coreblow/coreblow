@@ -1,10 +1,3 @@
-/**
- * src/config/channel-config.test.ts
- *
- * CoreBlow — Channel Config Registry Tests
- * Verifies registerChannelSchema/getChannelSchema/listChannelSchemas
- * registry lifecycle and getRegisteredChannelIds.
- */
 import { describe, expect, it } from "vitest";
 import {
   getChannelSchema,

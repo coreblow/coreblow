@@ -1,6 +1,3 @@
-/**
- * src/gateway/server-methods/chat-attachments.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("server-methods/chat-attachments — import", () => {
   it("is importable", async () => {

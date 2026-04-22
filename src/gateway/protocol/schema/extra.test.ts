@@ -1,6 +1,3 @@
-/**
- * src/gateway/protocol/schema/extra.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("protocol/schema/cron — import", () => {
   it("is importable", async () => {

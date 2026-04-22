@@ -43,22 +43,13 @@ export function parseGeminiAuth(apiKey: string): { headers: Record<string, strin
 // GeminiAuthService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class GeminiAuthService {
   [Symbol.toStringTag] = 'GeminiAuthService';
 }
 
-let _geminiAuthInstance: GeminiAuthService | null = null;
 
-export function getGeminiAuthService(): GeminiAuthService {
-  if (!_geminiAuthInstance) {
-    _geminiAuthInstance = new GeminiAuthService();
-  }
-  return _geminiAuthInstance;
-}
+const { getInstance: getGeminiAuthService, __testing: __testing_geminiAuth } =
+  createStandaloneSingleton({ create: () => new GeminiAuthService(), defaultDeps: {} });
 
-export const __testing_geminiAuth = createTestingHooks<GeminiAuthService>(
-  () => { _geminiAuthInstance = null; },
-  (svc) => { _geminiAuthInstance = svc; },
-);
+export { getGeminiAuthService, __testing_geminiAuth };

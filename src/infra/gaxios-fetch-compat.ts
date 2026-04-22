@@ -332,22 +332,13 @@ export const __testing = {
 // GaxiosFetchCompatService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class GaxiosFetchCompatService {
   [Symbol.toStringTag] = 'GaxiosFetchCompatService';
 }
 
-let _gaxiosFetchCompatInstance: GaxiosFetchCompatService | null = null;
 
-export function getGaxiosFetchCompatService(): GaxiosFetchCompatService {
-  if (!_gaxiosFetchCompatInstance) {
-    _gaxiosFetchCompatInstance = new GaxiosFetchCompatService();
-  }
-  return _gaxiosFetchCompatInstance;
-}
+const { getInstance: getGaxiosFetchCompatService, __testing: __testing_gaxiosFetchCompat } =
+  createStandaloneSingleton({ create: () => new GaxiosFetchCompatService(), defaultDeps: {} });
 
-export const __testing_gaxiosFetchCompat = createTestingHooks<GaxiosFetchCompatService>(
-  () => { _gaxiosFetchCompatInstance = null; },
-  (svc) => { _gaxiosFetchCompatInstance = svc; },
-);
+export { getGaxiosFetchCompatService, __testing_gaxiosFetchCompat };

@@ -1,9 +1,3 @@
-/**
- * CoreBlow — Cron Parse + Webhook URL Tests
- *
- * Tests for parseAbsoluteTimeMs and normalizeHttpWebhookUrl.
- */
-
 import { describe, it, expect } from 'vitest';
 import { parseAbsoluteTimeMs } from './parse.js';
 import { normalizeHttpWebhookUrl } from './webhook-url.js';

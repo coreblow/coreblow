@@ -1,10 +1,3 @@
-/**
- * src/config/zod-schema.hooks.test.ts
- *
- * CoreBlow — Hooks Schema Validation Tests
- * Verifies HookMappingSchema accepts valid hook configurations
- * with action/wakeMode/match fields, and InternalHooksSchema structure.
- */
 import { describe, expect, it } from "vitest";
 import {
   HookMappingSchema,

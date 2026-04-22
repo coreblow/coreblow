@@ -1,10 +1,3 @@
-/**
- * src/cron/service/initial-delivery.test.ts
- *
- * CoreBlow — Cron Service Initial Delivery Tests
- * Verifies resolveInitialCronDelivery delivery resolution logic
- * and normalizeCronCreateDeliveryInput idempotency.
- */
 import { describe, expect, it } from "vitest";
 import {
   normalizeCronCreateDeliveryInput,

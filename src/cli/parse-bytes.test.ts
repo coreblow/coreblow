@@ -1,9 +1,3 @@
-/**
- * CoreBlow — CLI Parse Bytes Tests
- *
- * Tests for parseByteSize covering units, defaults, and errors.
- */
-
 import { describe, it, expect } from 'vitest';
 import { parseByteSize } from './parse-bytes.js';
 

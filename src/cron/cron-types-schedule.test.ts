@@ -1,9 +1,3 @@
-/**
- * src/cron/cron-types-schedule.test.ts
- *
- * CoreBlow — Cron Schedule Type Shape Tests
- * Validates CronSchedule variant shapes can be constructed correctly.
- */
 import { describe, expect, it } from "vitest";
 import type { CronSchedule } from "./types.js";
 

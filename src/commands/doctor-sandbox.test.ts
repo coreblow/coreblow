@@ -1,6 +1,3 @@
-/**
- * src/commands/doctor-sandbox.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("commands/doctor-sandbox — import", () => {
   it("is importable", async () => {

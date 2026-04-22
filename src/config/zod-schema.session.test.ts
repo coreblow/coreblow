@@ -1,10 +1,3 @@
-/**
- * src/config/zod-schema.session.test.ts
- *
- * CoreBlow — Session Schema Validation Tests
- * Verifies SessionSendPolicySchema, SessionSchema, and MessagesSchema
- * accept valid session configuration shapes.
- */
 import { describe, expect, it } from "vitest";
 import {
   MessagesSchema,

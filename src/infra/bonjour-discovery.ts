@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 import { runCommandWithTimeout } from "../process/exec.js";
 import { isTailnetIPv4 } from "./tailnet.js";
 import { resolveWideAreaDiscoveryDomain } from "./widearea-dns.js";
@@ -336,7 +337,7 @@ async function discoverWideAreaViaTailnetDns(
   for (const candidate of tailscaleCandidates) {
     try {
       const res = await run([candidate, "status", "--json"], {
-        timeoutMs: Math.max(1, Math.min(700, remainingMs())),
+        timeoutMs: clamp(remainingMs(), 1, 700),
       });
       ips = parseTailscaleStatusIPv4s(res.stdout);
       if (ips.length > 0) {
@@ -381,7 +382,7 @@ async function discoverWideAreaViaTailnetDns(
       try {
         const probe = await run(
           ["dig", "+short", "+time=1", "+tries=1", `@${ip}`, probeName, "PTR"],
-          { timeoutMs: Math.max(1, Math.min(250, budget)) },
+          { timeoutMs: clamp(budget, 1, 250) },
         );
         const lines = parseDigShortLines(probe.stdout);
         if (lines.length === 0) {
@@ -419,7 +420,7 @@ async function discoverWideAreaViaTailnetDns(
     const instanceName = ptrName.replace(/\.?_coreblow-gw\._tcp\..*$/, "");
 
     const srv = await run(["dig", "+short", "+time=1", "+tries=1", nameserverArg, ptrName, "SRV"], {
-      timeoutMs: Math.max(1, Math.min(350, budget)),
+      timeoutMs: clamp(budget, 1, 350),
     }).catch(() => null);
     const srvParsed = srv ? parseDigSrv(srv.stdout) : null;
     if (!srvParsed) {
@@ -439,7 +440,7 @@ async function discoverWideAreaViaTailnetDns(
     }
 
     const txt = await run(["dig", "+short", "+time=1", "+tries=1", nameserverArg, ptrName, "TXT"], {
-      timeoutMs: Math.max(1, Math.min(350, txtBudget)),
+      timeoutMs: clamp(txtBudget, 1, 350),
     }).catch(() => null);
     const txtTokens = txt ? parseDigTxt(txt.stdout) : [];
     const txtMap = txtTokens.length > 0 ? parseTxtTokens(txtTokens) : {};
@@ -629,9 +630,9 @@ export async function discoverGatewayBeacons(
 // ---------------------------------------------------------------------------
 // BonjourDiscoveryService — Tier-2 GatewayService
 // ---------------------------------------------------------------------------
-
-import { createTestingHooks } from "./service-patterns.js";
 import type { GatewayService, ServiceHealth } from "../gateway/service-registry.js";
+
+import { createStandaloneSingleton } from "./service-patterns.js";
 
 export class BonjourDiscoveryService implements GatewayService {
   readonly name = "bonjour-discovery";
@@ -661,16 +662,7 @@ export class BonjourDiscoveryService implements GatewayService {
   }
 }
 
-let _bonjourDiscoveryInstance: BonjourDiscoveryService | null = null;
+const { getInstance: getBonjourDiscoveryService, __testing: __testing_bonjourDiscovery } =
+  createStandaloneSingleton({ create: () => new BonjourDiscoveryService(), defaultDeps: {} });
 
-export function getBonjourDiscoveryService(): BonjourDiscoveryService {
-  if (!_bonjourDiscoveryInstance) {
-    _bonjourDiscoveryInstance = new BonjourDiscoveryService();
-  }
-  return _bonjourDiscoveryInstance;
-}
-
-export const __testing_bonjourDiscovery = createTestingHooks<BonjourDiscoveryService>(
-  () => { _bonjourDiscoveryInstance = null; },
-  (svc) => { _bonjourDiscoveryInstance = svc; },
-);
+export { getBonjourDiscoveryService, __testing_bonjourDiscovery };

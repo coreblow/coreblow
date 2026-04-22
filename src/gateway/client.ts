@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 import { randomUUID } from "node:crypto";
 import { WebSocket, type ClientOptions, type CertMeta } from "ws";
 import {
@@ -182,7 +183,7 @@ export class GatewayClient {
     };
     this.requestTimeoutMs =
       typeof opts.requestTimeoutMs === "number" && Number.isFinite(opts.requestTimeoutMs)
-        ? Math.max(1, Math.min(Math.floor(opts.requestTimeoutMs), 2_147_483_647))
+        ? clamp(2_147_483_647, 1, Math.floor(opts.requestTimeoutMs))
         : 30_000;
   }
 
@@ -767,7 +768,7 @@ export class GatewayClient {
     const rawMinInterval = this.opts.tickWatchMinIntervalMs;
     const minInterval =
       typeof rawMinInterval === "number" && Number.isFinite(rawMinInterval)
-        ? Math.max(1, Math.min(30_000, rawMinInterval))
+        ? clamp(rawMinInterval, 1, 30_000)
         : 1000;
     const interval = Math.max(this.tickIntervalMs, minInterval);
     this.tickTimer = setInterval(() => {
@@ -831,7 +832,7 @@ export class GatewayClient {
       opts?.timeoutMs === null
         ? null
         : typeof opts?.timeoutMs === "number" && Number.isFinite(opts.timeoutMs)
-          ? Math.max(1, Math.min(Math.floor(opts.timeoutMs), 2_147_483_647))
+          ? clamp(2_147_483_647, 1, Math.floor(opts.timeoutMs))
           : expectFinal
             ? null
             : this.requestTimeoutMs;

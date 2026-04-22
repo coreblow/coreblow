@@ -1,8 +1,3 @@
-/**
- * src/agents/subagent/subagent-registry-queries.test.ts
- *
- * CoreBlow — Subagent Registry Queries Tests
- */
 import { describe, expect, it } from "vitest";
 import { isActiveRun, isEndedRun, isArchivedRun } from "./subagent-registry-queries.js";
 import type { SubagentRunRecord } from "./subagent-registry-types.js";

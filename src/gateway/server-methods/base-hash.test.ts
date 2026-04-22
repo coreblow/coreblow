@@ -1,9 +1,3 @@
-/**
- * src/gateway/server-methods/base-hash.test.ts
- *
- * CoreBlow — Base Hash Tests
- * Verifies resolveBaseHashParam: null for missing/non-string/empty, string for valid.
- */
 import { describe, expect, it } from "vitest";
 import { resolveBaseHashParam } from "./base-hash.js";
 

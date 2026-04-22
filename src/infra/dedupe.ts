@@ -94,22 +94,13 @@ export function resolveGlobalDedupeCache(key: symbol, options: DedupeCacheOption
 // DedupeService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class DedupeService {
   [Symbol.toStringTag] = 'DedupeService';
 }
 
-let _dedupeInstance: DedupeService | null = null;
 
-export function getDedupeService(): DedupeService {
-  if (!_dedupeInstance) {
-    _dedupeInstance = new DedupeService();
-  }
-  return _dedupeInstance;
-}
+const { getInstance: getDedupeService, __testing: __testing_dedupe } =
+  createStandaloneSingleton({ create: () => new DedupeService(), defaultDeps: {} });
 
-export const __testing_dedupe = createTestingHooks<DedupeService>(
-  () => { _dedupeInstance = null; },
-  (svc) => { _dedupeInstance = svc; },
-);
+export { getDedupeService, __testing_dedupe };

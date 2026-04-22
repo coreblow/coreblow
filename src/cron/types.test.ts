@@ -1,10 +1,3 @@
-/**
- * src/cron/types.test.ts
- *
- * CoreBlow — Cron Types Shape Tests
- * Verifies CronJobBase-derived types used in production
- * can be constructed correctly with all required fields.
- */
 import { describe, expect, it } from "vitest";
 import type {
   CronDelivery,

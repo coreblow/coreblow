@@ -1,10 +1,3 @@
-/**
- * src/gateway/control-ui-contract.test.ts
- *
- * CoreBlow — Control UI Contract Tests
- * Verifies CONTROL_UI_BOOTSTRAP_CONFIG_PATH constant and
- * ControlUiBootstrapConfig type shape.
- */
 import { describe, expect, it } from "vitest";
 import { CONTROL_UI_BOOTSTRAP_CONFIG_PATH } from "./control-ui-contract.js";
 

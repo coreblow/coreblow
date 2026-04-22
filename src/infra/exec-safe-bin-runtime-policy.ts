@@ -152,8 +152,7 @@ export function resolveExecSafeBinRuntimePolicy(params: {
 // ExecSafeBinRuntimePolicyService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ExecSafeBinRuntimePolicyService {
   isInterpreterLikeSafeBin(raw: string) {
     return isInterpreterLikeSafeBin(raw);
@@ -172,16 +171,8 @@ export class ExecSafeBinRuntimePolicyService {
   }
 }
 
-let _execSafeBinRuntimePolicyInstance: ExecSafeBinRuntimePolicyService | null = null;
 
-export function getExecSafeBinRuntimePolicyService(): ExecSafeBinRuntimePolicyService {
-  if (!_execSafeBinRuntimePolicyInstance) {
-    _execSafeBinRuntimePolicyInstance = new ExecSafeBinRuntimePolicyService();
-  }
-  return _execSafeBinRuntimePolicyInstance;
-}
+const { getInstance: getExecSafeBinRuntimePolicyService, __testing: __testing_execSafeBinRuntimePolicy } =
+  createStandaloneSingleton({ create: () => new ExecSafeBinRuntimePolicyService(), defaultDeps: {} });
 
-export const __testing_execSafeBinRuntimePolicy = createTestingHooks<ExecSafeBinRuntimePolicyService>(
-  () => { _execSafeBinRuntimePolicyInstance = null; },
-  (svc) => { _execSafeBinRuntimePolicyInstance = svc; },
-);
+export { getExecSafeBinRuntimePolicyService, __testing_execSafeBinRuntimePolicy };

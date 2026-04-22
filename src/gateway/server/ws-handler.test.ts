@@ -1,6 +1,3 @@
-/**
- * src/gateway/server/ws-handler.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("server/ws-connection/message-handler — import", () => {
   it("is importable", async () => {

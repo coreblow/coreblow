@@ -362,22 +362,13 @@ export async function refreshRemoteBinsForConnectedNodes(cfg: CoreBlowConfig) {
 // SkillsRemoteService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class SkillsRemoteService {
   [Symbol.toStringTag] = 'SkillsRemoteService';
 }
 
-let _skillsRemoteInstance: SkillsRemoteService | null = null;
 
-export function getSkillsRemoteService(): SkillsRemoteService {
-  if (!_skillsRemoteInstance) {
-    _skillsRemoteInstance = new SkillsRemoteService();
-  }
-  return _skillsRemoteInstance;
-}
+const { getInstance: getSkillsRemoteService, __testing: __testing_skillsRemote } =
+  createStandaloneSingleton({ create: () => new SkillsRemoteService(), defaultDeps: {} });
 
-export const __testing_skillsRemote = createTestingHooks<SkillsRemoteService>(
-  () => { _skillsRemoteInstance = null; },
-  (svc) => { _skillsRemoteInstance = svc; },
-);
+export { getSkillsRemoteService, __testing_skillsRemote };

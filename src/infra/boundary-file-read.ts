@@ -226,22 +226,13 @@ function resolveBoundaryFilePathGeneric(params: {
 // BoundaryFileReadService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class BoundaryFileReadService {
   [Symbol.toStringTag] = 'BoundaryFileReadService';
 }
 
-let _boundaryFileReadInstance: BoundaryFileReadService | null = null;
 
-export function getBoundaryFileReadService(): BoundaryFileReadService {
-  if (!_boundaryFileReadInstance) {
-    _boundaryFileReadInstance = new BoundaryFileReadService();
-  }
-  return _boundaryFileReadInstance;
-}
+const { getInstance: getBoundaryFileReadService, __testing: __testing_boundaryFileRead } =
+  createStandaloneSingleton({ create: () => new BoundaryFileReadService(), defaultDeps: {} });
 
-export const __testing_boundaryFileRead = createTestingHooks<BoundaryFileReadService>(
-  () => { _boundaryFileReadInstance = null; },
-  (svc) => { _boundaryFileReadInstance = svc; },
-);
+export { getBoundaryFileReadService, __testing_boundaryFileRead };

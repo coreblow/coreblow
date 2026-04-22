@@ -1,6 +1,3 @@
-/**
- * src/gateway/gateway.extra-close.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("gateway extra close — import contracts", () => {
   it("session-archive.fs is importable", async () => {

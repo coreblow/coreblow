@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Live Model Filter Tests (Inline)
- *
- * Tests for isHighSignalClaudeModelId logic inline to avoid
- * import chain (resolveProviderModernModelRef → plugins).
- */
-
 import { describe, it, expect } from 'vitest';
 
 // ── Inline replica of pure inner function ──────────────────────────

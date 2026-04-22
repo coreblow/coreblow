@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { sleep } from "../../utils.js";
 import path from "node:path";
 import type { Command } from "commander";
 import { readSecretFromFile } from "../../acp/secret-file.js";
@@ -453,7 +454,7 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
         gatewayLog.warn(
           `gateway already running under ${supervisor}; waiting ${SUPERVISED_GATEWAY_LOCK_RETRY_MS}ms before retrying startup`,
         );
-        await new Promise((resolve) => setTimeout(resolve, SUPERVISED_GATEWAY_LOCK_RETRY_MS));
+        await sleep(SUPERVISED_GATEWAY_LOCK_RETRY_MS);
       }
     }
   } catch (err) {

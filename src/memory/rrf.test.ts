@@ -1,9 +1,3 @@
-/**
- * CoreBlow — RRF (Reciprocal Rank Fusion) Tests
- *
- * Tests for fusing vector and keyword search results.
- */
-
 import { describe, it, expect } from 'vitest';
 import { rrfFuse, fuseVectorAndKeyword } from './rrf.js';
 

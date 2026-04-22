@@ -1012,8 +1012,7 @@ export { type ApnsRelayConfig, type ApnsRelayConfigResolution, resolveApnsRelayC
 // PushApnsService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class PushApnsService {
   normalizeApnsEnvironment(value: unknown) {
     return normalizeApnsEnvironment(value);
@@ -1048,16 +1047,8 @@ export class PushApnsService {
   }
 }
 
-let _pushApnsInstance: PushApnsService | null = null;
 
-export function getPushApnsService(): PushApnsService {
-  if (!_pushApnsInstance) {
-    _pushApnsInstance = new PushApnsService();
-  }
-  return _pushApnsInstance;
-}
+const { getInstance: getPushApnsService, __testing: __testing_pushApns } =
+  createStandaloneSingleton({ create: () => new PushApnsService(), defaultDeps: {} });
 
-export const __testing_pushApns = createTestingHooks<PushApnsService>(
-  () => { _pushApnsInstance = null; },
-  (svc) => { _pushApnsInstance = svc; },
-);
+export { getPushApnsService, __testing_pushApns };

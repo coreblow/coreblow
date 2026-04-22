@@ -1,9 +1,3 @@
-/**
- * src/config/sessions/paths.test.ts
- *
- * CoreBlow — Sessions Paths Tests
- * Verifies resolveSessionTranscriptsDir, resolveDefaultSessionStorePath.
- */
 import { describe, expect, it } from "vitest";
 import {
   resolveSessionTranscriptsDir,

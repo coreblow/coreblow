@@ -85,8 +85,7 @@ export function buildPluginApprovalExpiredMessage(request: PluginApprovalRequest
 // PluginApprovalsService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class PluginApprovalsService {
   approvalDecisionLabel(decision: Parameters<typeof approvalDecisionLabel>[0]) {
     return approvalDecisionLabel(decision);
@@ -105,16 +104,8 @@ export class PluginApprovalsService {
   }
 }
 
-let _pluginApprovalsInstance: PluginApprovalsService | null = null;
 
-export function getPluginApprovalsService(): PluginApprovalsService {
-  if (!_pluginApprovalsInstance) {
-    _pluginApprovalsInstance = new PluginApprovalsService();
-  }
-  return _pluginApprovalsInstance;
-}
+const { getInstance: getPluginApprovalsService, __testing: __testing_pluginApprovals } =
+  createStandaloneSingleton({ create: () => new PluginApprovalsService(), defaultDeps: {} });
 
-export const __testing_pluginApprovals = createTestingHooks<PluginApprovalsService>(
-  () => { _pluginApprovalsInstance = null; },
-  (svc) => { _pluginApprovalsInstance = svc; },
-);
+export { getPluginApprovalsService, __testing_pluginApprovals };

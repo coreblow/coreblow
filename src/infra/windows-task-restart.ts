@@ -75,24 +75,15 @@ export function relaunchGatewayScheduledTask(env: NodeJS.ProcessEnv = process.en
 // WindowsTaskRestartService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class WindowsTaskRestartService {
   relaunchGatewayScheduledTask(env?: NodeJS.ProcessEnv) {
     return relaunchGatewayScheduledTask(env);
   }
 }
 
-let _windowsTaskRestartInstance: WindowsTaskRestartService | null = null;
 
-export function getWindowsTaskRestartService(): WindowsTaskRestartService {
-  if (!_windowsTaskRestartInstance) {
-    _windowsTaskRestartInstance = new WindowsTaskRestartService();
-  }
-  return _windowsTaskRestartInstance;
-}
+const { getInstance: getWindowsTaskRestartService, __testing: __testing_windowsTaskRestart } =
+  createStandaloneSingleton({ create: () => new WindowsTaskRestartService(), defaultDeps: {} });
 
-export const __testing_windowsTaskRestart = createTestingHooks<WindowsTaskRestartService>(
-  () => { _windowsTaskRestartInstance = null; },
-  (svc) => { _windowsTaskRestartInstance = svc; },
-);
+export { getWindowsTaskRestartService, __testing_windowsTaskRestart };

@@ -1,10 +1,3 @@
-/**
- * src/config/zod-schema.channels.test.ts
- *
- * CoreBlow — Channels Schema Validation Tests
- * Verifies ChannelHeartbeatVisibilitySchema and ChannelHealthMonitorSchema
- * accept valid values and reject invalid ones.
- */
 import { describe, expect, it } from "vitest";
 import {
   ChannelHealthMonitorSchema,

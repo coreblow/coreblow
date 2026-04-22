@@ -251,22 +251,13 @@ export function getShellEnvAppliedKeys(): string[] {
 // ShellEnvService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ShellEnvService {
   [Symbol.toStringTag] = 'ShellEnvService';
 }
 
-let _shellEnvInstance: ShellEnvService | null = null;
 
-export function getShellEnvService(): ShellEnvService {
-  if (!_shellEnvInstance) {
-    _shellEnvInstance = new ShellEnvService();
-  }
-  return _shellEnvInstance;
-}
+const { getInstance: getShellEnvService, __testing: __testing_shellEnv } =
+  createStandaloneSingleton({ create: () => new ShellEnvService(), defaultDeps: {} });
 
-export const __testing_shellEnv = createTestingHooks<ShellEnvService>(
-  () => { _shellEnvInstance = null; },
-  (svc) => { _shellEnvInstance = svc; },
-);
+export { getShellEnvService, __testing_shellEnv };

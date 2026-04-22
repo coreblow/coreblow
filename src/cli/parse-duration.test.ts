@@ -1,10 +1,3 @@
-/**
- * CoreBlow — CLI Parse Duration Tests
- *
- * Tests for parseDurationMs covering single tokens,
- * composite durations, default units, and errors.
- */
-
 import { describe, it, expect } from 'vitest';
 import { parseDurationMs } from './parse-duration.js';
 

@@ -53,22 +53,13 @@ export async function upsertPendingPairingRequest<TPending extends { requestId: 
 // PairingFilesService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class PairingFilesService {
   [Symbol.toStringTag] = 'PairingFilesService';
 }
 
-let _pairingFilesInstance: PairingFilesService | null = null;
 
-export function getPairingFilesService(): PairingFilesService {
-  if (!_pairingFilesInstance) {
-    _pairingFilesInstance = new PairingFilesService();
-  }
-  return _pairingFilesInstance;
-}
+const { getInstance: getPairingFilesService, __testing: __testing_pairingFiles } =
+  createStandaloneSingleton({ create: () => new PairingFilesService(), defaultDeps: {} });
 
-export const __testing_pairingFiles = createTestingHooks<PairingFilesService>(
-  () => { _pairingFilesInstance = null; },
-  (svc) => { _pairingFilesInstance = svc; },
-);
+export { getPairingFilesService, __testing_pairingFiles };

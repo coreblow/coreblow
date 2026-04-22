@@ -41,22 +41,13 @@ function shortPath(value: string) {
 // HardlinkGuardsService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class HardlinkGuardsService {
   [Symbol.toStringTag] = 'HardlinkGuardsService';
 }
 
-let _hardlinkGuardsInstance: HardlinkGuardsService | null = null;
 
-export function getHardlinkGuardsService(): HardlinkGuardsService {
-  if (!_hardlinkGuardsInstance) {
-    _hardlinkGuardsInstance = new HardlinkGuardsService();
-  }
-  return _hardlinkGuardsInstance;
-}
+const { getInstance: getHardlinkGuardsService, __testing: __testing_hardlinkGuards } =
+  createStandaloneSingleton({ create: () => new HardlinkGuardsService(), defaultDeps: {} });
 
-export const __testing_hardlinkGuards = createTestingHooks<HardlinkGuardsService>(
-  () => { _hardlinkGuardsInstance = null; },
-  (svc) => { _hardlinkGuardsInstance = svc; },
-);
+export { getHardlinkGuardsService, __testing_hardlinkGuards };

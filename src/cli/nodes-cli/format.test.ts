@@ -1,9 +1,3 @@
-/**
- * src/cli/nodes-cli/format.test.ts
- *
- * CoreBlow — Nodes CLI Format Tests
- * Verifies formatPermissions.
- */
 import { describe, expect, it } from "vitest";
 import { formatPermissions } from "./format.js";
 

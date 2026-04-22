@@ -1,11 +1,3 @@
-/**
- * src/tools/url-scraper.test.ts
- *
- * CoreBlow — URL Scraper Tests
- * Verifies URLScraper: construction, cache management, getHistory.
- * Network calls are not made in unit tests — tests focus on
- * observable state (cache, history, config defaults).
- */
 import { describe, beforeEach, expect, it } from "vitest";
 import { URLScraper } from "./url-scraper.js";
 

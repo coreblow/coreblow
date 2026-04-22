@@ -86,8 +86,8 @@ describe("process tool supervisor cancellation", () => {
     // CB returns a text content — check it's returned without throwing
     expect(result.content).toBeDefined();
     const text = result.content
-      .filter((c): c is { type: "text"; text: string } => c.type === "text")
-      .map((c) => c.text)
+      .filter((c: any): c is { type: "text"; text: string } => c.type === "text")
+      .map((c: any) => c.text)
       .join("");
     // The response should mention the session somehow
     expect(text.toLowerCase()).toMatch(/session|active|nonexistent/i);

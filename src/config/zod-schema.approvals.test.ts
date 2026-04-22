@@ -1,10 +1,3 @@
-/**
- * src/config/zod-schema.approvals.test.ts
- *
- * CoreBlow — Approvals Schema Validation Tests
- * Verifies ApprovalsSchema accepts valid exec approval forwarding
- * configurations and rejects invalid shapes.
- */
 import { describe, expect, it } from "vitest";
 import { ApprovalsSchema } from "./zod-schema.approvals.js";
 

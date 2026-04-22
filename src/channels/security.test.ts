@@ -1,6 +1,3 @@
-/**
- * Channel Security Guard test suite
- */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ChannelSecurityGuard } from './security.js';
 

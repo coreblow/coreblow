@@ -1,9 +1,3 @@
-/**
- * src/config/config-exporter.test.ts
- *
- * CoreBlow — Config Exporter Tests
- * Verifies ConfigExporter.export() for JSON, env, yaml formats.
- */
 import { describe, beforeEach, expect, it } from "vitest";
 import { ConfigExporter } from "./config-exporter.js";
 

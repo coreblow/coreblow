@@ -1,7 +1,3 @@
-/**
- * Plugin SDK Tests — Phase D: Remaining Modules
- * Tests: definePlugin, defineCommand, defineTool, defineHook, defineProvider
- */
 import { describe, it, expect } from 'vitest';
 import { definePlugin, defineCommand, defineTool, defineHook, defineProvider } from './sdk.js';
 

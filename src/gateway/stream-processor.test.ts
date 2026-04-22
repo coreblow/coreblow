@@ -1,6 +1,3 @@
-/**
- * src/gateway/stream-processor.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("gateway/stream-processor — import", () => {
   it("is importable", async () => {

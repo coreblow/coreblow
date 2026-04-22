@@ -1,10 +1,3 @@
-/**
- * src/agents/compaction.identifier-policy.test.ts
- *
- * CoreBlow — Compaction Identifier Policy Tests
- * Verifies buildCompactionSummarizationInstructions produces correct output
- * for all identifier policy modes: strict, off, custom.
- */
 import { describe, expect, it } from "vitest";
 import { buildCompactionSummarizationInstructions } from "./compaction.js";
 

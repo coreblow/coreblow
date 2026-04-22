@@ -103,8 +103,7 @@ export function resolveExecutablePath(
 // ExecutablePathService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class ExecutablePathService {
   isExecutableFile(filePath: string) {
     return isExecutableFile(filePath);
@@ -119,16 +118,8 @@ export class ExecutablePathService {
   }
 }
 
-let _executablePathInstance: ExecutablePathService | null = null;
 
-export function getExecutablePathService(): ExecutablePathService {
-  if (!_executablePathInstance) {
-    _executablePathInstance = new ExecutablePathService();
-  }
-  return _executablePathInstance;
-}
+const { getInstance: getExecutablePathService, __testing: __testing_executablePath } =
+  createStandaloneSingleton({ create: () => new ExecutablePathService(), defaultDeps: {} });
 
-export const __testing_executablePath = createTestingHooks<ExecutablePathService>(
-  () => { _executablePathInstance = null; },
-  (svc) => { _executablePathInstance = svc; },
-);
+export { getExecutablePathService, __testing_executablePath };

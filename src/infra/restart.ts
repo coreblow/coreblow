@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 import { spawnSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
@@ -414,7 +415,7 @@ export function scheduleGatewaySigusr1Restart(opts?: {
     typeof opts?.delayMs === "number" && Number.isFinite(opts.delayMs)
       ? Math.floor(opts.delayMs)
       : 2000;
-  const delayMs = Math.min(Math.max(delayMsRaw, 0), 60_000);
+  const delayMs = clamp(delayMsRaw, 0, 60_000);
   const reason =
     typeof opts?.reason === "string" && opts.reason.trim()
       ? opts.reason.trim().slice(0, 200)
@@ -514,9 +515,9 @@ export const __testing = {
 // ---------------------------------------------------------------------------
 // RestartService — Tier-2 GatewayService
 // ---------------------------------------------------------------------------
-
-import { createTestingHooks } from "./service-patterns.js";
 import type { GatewayService, ServiceHealth } from "../gateway/service-registry.js";
+
+import { createStandaloneSingleton } from "./service-patterns.js";
 
 export class RestartService implements GatewayService {
   readonly name = "restart";
@@ -553,17 +554,8 @@ export class RestartService implements GatewayService {
   }
 }
 
-let _restartInstance: RestartService | null = null;
+const { getInstance: getRestartService, __testing: __testing_restart } =
+  createStandaloneSingleton({ create: () => new RestartService(), defaultDeps: {} });
 
-export function getRestartService(): RestartService {
-  if (!_restartInstance) {
-    _restartInstance = new RestartService();
-  }
-  return _restartInstance;
-}
-
-export const __testing_restart = createTestingHooks<RestartService>(
-  () => { _restartInstance = null; },
-  (svc) => { _restartInstance = svc; },
-);
+export { getRestartService, __testing_restart };
 

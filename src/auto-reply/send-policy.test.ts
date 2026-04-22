@@ -1,6 +1,3 @@
-/**
- * auto-reply/send-policy.test.ts — Send policy tests
- */
 import { describe, it, expect } from 'vitest';
 import {
     normalizeSendPolicyOverride, parseSendPolicyCommand,

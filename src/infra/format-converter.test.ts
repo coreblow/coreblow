@@ -1,9 +1,3 @@
-/**
- * CoreBlow — Format Converter Tests
- *
- * Tests for JSON↔CSV, JSON↔key-value, flatten/unflatten.
- */
-
 import { describe, it, expect } from 'vitest';
 import { FormatConverter } from './format-converter.js';
 

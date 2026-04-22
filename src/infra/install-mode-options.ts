@@ -45,22 +45,13 @@ export function resolveTimedInstallModeOptions<TLogger>(
 // InstallModeOptionsService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class InstallModeOptionsService {
   [Symbol.toStringTag] = 'InstallModeOptionsService';
 }
 
-let _installModeOptionsInstance: InstallModeOptionsService | null = null;
 
-export function getInstallModeOptionsService(): InstallModeOptionsService {
-  if (!_installModeOptionsInstance) {
-    _installModeOptionsInstance = new InstallModeOptionsService();
-  }
-  return _installModeOptionsInstance;
-}
+const { getInstance: getInstallModeOptionsService, __testing: __testing_installModeOptions } =
+  createStandaloneSingleton({ create: () => new InstallModeOptionsService(), defaultDeps: {} });
 
-export const __testing_installModeOptions = createTestingHooks<InstallModeOptionsService>(
-  () => { _installModeOptionsInstance = null; },
-  (svc) => { _installModeOptionsInstance = svc; },
-);
+export { getInstallModeOptionsService, __testing_installModeOptions };

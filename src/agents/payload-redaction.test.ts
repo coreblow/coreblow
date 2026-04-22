@@ -1,10 +1,3 @@
-/**
- * CoreBlow — Payload Redaction Tests (Inline)
- *
- * Tests for isCredentialFieldName and NON_CREDENTIAL_FIELD_NAMES logic.
- * Inline to avoid media/base64 import chain.
- */
-
 import { describe, it, expect } from 'vitest';
 
 // ── Inline replicas of pure inner functions ────────────────────────

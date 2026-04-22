@@ -1,6 +1,3 @@
-/**
- * src/agents/agents.import-contracts-f.test.ts
- */
 import { describe, expect, it } from "vitest";
 const modules = [
   "models-config.plan", "models-config.providers.implicit",

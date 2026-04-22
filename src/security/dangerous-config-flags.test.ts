@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Dangerous Config Flags Unit Tests
- */
 import { describe, it, expect, vi } from 'vitest';
 
 // Mock the config module to avoid deep dependency chains

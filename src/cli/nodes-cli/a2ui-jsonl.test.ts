@@ -1,9 +1,3 @@
-/**
- * src/cli/nodes-cli/a2ui-jsonl.test.ts
- *
- * CoreBlow — A2UI JSONL Tests
- * Verifies buildA2UITextJsonl (returns string) and validateA2UIJsonl (throws on invalid).
- */
 import { describe, expect, it } from "vitest";
 import { buildA2UITextJsonl, validateA2UIJsonl } from "./a2ui-jsonl.js";
 

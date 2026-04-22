@@ -1,9 +1,3 @@
-/**
- * src/gateway/server-methods/agent-timestamp.test.ts
- *
- * CoreBlow — Agent Timestamp Tests
- * Verifies injectTimestamp: empty, already-stamped, fresh injection.
- */
 import { describe, expect, it } from "vitest";
 import { injectTimestamp } from "./agent-timestamp.js";
 

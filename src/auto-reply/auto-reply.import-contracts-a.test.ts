@@ -1,6 +1,3 @@
-/**
- * src/auto-reply/auto-reply.import-contracts-a.test.ts
- */
 import { describe, expect, it } from "vitest";
 const modules = [
   "command-auth", "commands-registry.data", "commands-registry.runtime",

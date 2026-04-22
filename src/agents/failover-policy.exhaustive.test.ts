@@ -1,9 +1,3 @@
-/**
- * CoreBlow — Failover Policy Extended Tests
- *
- * Tests covering all probe policy decisions exhaustively across all reasons.
- */
-
 import { describe, it, expect } from 'vitest';
 import {
     shouldAllowCooldownProbeForReason,

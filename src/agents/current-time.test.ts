@@ -1,9 +1,3 @@
-/**
- * CoreBlow — Current Time Tests
- *
- * Tests for resolveCronStyleNow and appendCronStyleCurrentTimeLine.
- */
-
 import { describe, it, expect } from 'vitest';
 import { resolveCronStyleNow, appendCronStyleCurrentTimeLine } from './current-time.js';
 

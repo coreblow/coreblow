@@ -46,22 +46,13 @@ export async function resolveStableNodePath(nodePath: string): Promise<string> {
 // StableNodePathService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class StableNodePathService {
   [Symbol.toStringTag] = 'StableNodePathService';
 }
 
-let _stableNodePathInstance: StableNodePathService | null = null;
 
-export function getStableNodePathService(): StableNodePathService {
-  if (!_stableNodePathInstance) {
-    _stableNodePathInstance = new StableNodePathService();
-  }
-  return _stableNodePathInstance;
-}
+const { getInstance: getStableNodePathService, __testing: __testing_stableNodePath } =
+  createStandaloneSingleton({ create: () => new StableNodePathService(), defaultDeps: {} });
 
-export const __testing_stableNodePath = createTestingHooks<StableNodePathService>(
-  () => { _stableNodePathInstance = null; },
-  (svc) => { _stableNodePathInstance = svc; },
-);
+export { getStableNodePathService, __testing_stableNodePath };

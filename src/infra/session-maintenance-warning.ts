@@ -150,22 +150,13 @@ export async function deliverSessionMaintenanceWarning(params: WarningParams): P
 // SessionMaintenanceWarningService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class SessionMaintenanceWarningService {
   [Symbol.toStringTag] = 'SessionMaintenanceWarningService';
 }
 
-let _sessionMaintenanceWarningInstance: SessionMaintenanceWarningService | null = null;
 
-export function getSessionMaintenanceWarningService(): SessionMaintenanceWarningService {
-  if (!_sessionMaintenanceWarningInstance) {
-    _sessionMaintenanceWarningInstance = new SessionMaintenanceWarningService();
-  }
-  return _sessionMaintenanceWarningInstance;
-}
+const { getInstance: getSessionMaintenanceWarningService, __testing: __testing_sessionMaintenanceWarning } =
+  createStandaloneSingleton({ create: () => new SessionMaintenanceWarningService(), defaultDeps: {} });
 
-export const __testing_sessionMaintenanceWarning = createTestingHooks<SessionMaintenanceWarningService>(
-  () => { _sessionMaintenanceWarningInstance = null; },
-  (svc) => { _sessionMaintenanceWarningInstance = svc; },
-);
+export { getSessionMaintenanceWarningService, __testing_sessionMaintenanceWarning };

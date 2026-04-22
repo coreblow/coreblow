@@ -1,6 +1,3 @@
-/**
- * src/agents/agents.import-contracts-e.test.ts
- */
 import { describe, expect, it } from "vitest";
 const modules = [
   "model-auth-label", "model-auth-runtime-shared", "model-catalog.runtime",

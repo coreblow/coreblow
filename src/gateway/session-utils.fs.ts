@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 import fs from "node:fs";
 import { deriveSessionTotalTokens, hasNonzeroUsage, normalizeUsage } from "../agents/usage.js";
 import { jsonUtf8Bytes } from "../infra/json-utf8-bytes.js";
@@ -780,8 +781,8 @@ export function readSessionPreviewItemsFromTranscript(
     return [];
   }
 
-  const boundedItems = Math.max(1, Math.min(maxItems, 50));
-  const boundedChars = Math.max(20, Math.min(maxChars, 2000));
+  const boundedItems = clamp(50, 1, maxItems);
+  const boundedChars = clamp(2000, 20, maxChars);
 
   for (const readSize of PREVIEW_READ_SIZES) {
     const messages = readRecentMessagesFromTranscript(filePath, boundedItems, readSize);

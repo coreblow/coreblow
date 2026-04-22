@@ -1,7 +1,3 @@
-/**
- * Embedding Circuit Breaker Tests
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { EmbeddingCircuitBreaker } from './embedding-circuit-breaker.js';
 

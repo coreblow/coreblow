@@ -1,6 +1,3 @@
-/**
- * src/commands/configure.shared.test.ts
- */
 import { describe, expect, it } from "vitest";
 describe("configure.shared — import", () => {
   it("is importable", async () => {

@@ -1,9 +1,3 @@
-/**
- * src/gateway/protocol/client-info.test.ts
- *
- * CoreBlow — Gateway Protocol Client Info Tests
- * Verifies GATEWAY_CLIENT_IDS constant.
- */
 import { describe, expect, it } from "vitest";
 import { GATEWAY_CLIENT_IDS, GATEWAY_CLIENT_NAMES } from "./client-info.js";
 

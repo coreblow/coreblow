@@ -64,22 +64,13 @@ export function serializeGatewayDiscoveryBeacon(beacon: GatewayBonjourBeacon) {
 // GatewayDiscoveryTargetsService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
-import { createTestingHooks } from "./service-patterns.js";
-
+import { createStandaloneSingleton } from "./service-patterns.js";
 export class GatewayDiscoveryTargetsService {
   [Symbol.toStringTag] = 'GatewayDiscoveryTargetsService';
 }
 
-let _gatewayDiscoveryTargetsInstance: GatewayDiscoveryTargetsService | null = null;
 
-export function getGatewayDiscoveryTargetsService(): GatewayDiscoveryTargetsService {
-  if (!_gatewayDiscoveryTargetsInstance) {
-    _gatewayDiscoveryTargetsInstance = new GatewayDiscoveryTargetsService();
-  }
-  return _gatewayDiscoveryTargetsInstance;
-}
+const { getInstance: getGatewayDiscoveryTargetsService, __testing: __testing_gatewayDiscoveryTargets } =
+  createStandaloneSingleton({ create: () => new GatewayDiscoveryTargetsService(), defaultDeps: {} });
 
-export const __testing_gatewayDiscoveryTargets = createTestingHooks<GatewayDiscoveryTargetsService>(
-  () => { _gatewayDiscoveryTargetsInstance = null; },
-  (svc) => { _gatewayDiscoveryTargetsInstance = svc; },
-);
+export { getGatewayDiscoveryTargetsService, __testing_gatewayDiscoveryTargets };

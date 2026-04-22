@@ -1,9 +1,3 @@
-/**
- * src/cli/shared/parse-port.test.ts
- *
- * CoreBlow — CLI Parse Port Tests
- * Verifies parsePort: null for invalid, number for valid.
- */
 import { describe, expect, it } from "vitest";
 import { parsePort } from "./parse-port.js";
 

@@ -1,6 +1,3 @@
-/**
- * CoreBlow — Token Bucket Unit Tests
- */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { TokenBucket } from './token-bucket.js';
 

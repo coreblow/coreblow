@@ -1,6 +1,3 @@
-/**
- * Calculator test suite — recursive descent parser
- */
 import { describe, it, expect } from 'vitest';
 import { safeEvaluateMath, sanitizeMathExpression } from './calculator.js';
 

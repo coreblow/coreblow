@@ -1,6 +1,3 @@
-/**
- * channels/typing-policy.test.ts — Typing policy tests
- */
 import { describe, it, expect } from 'vitest';
 import { resolveRunTypingPolicy, shouldShowTyping, resolveTypingIntervalMs } from './typing-policy.js';
 
