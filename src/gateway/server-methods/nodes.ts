@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { loadConfig } from "../../config/config.js";
+import { sleep } from "../../utils.js";
 import { listDevicePairing } from "../../infra/device-pairing.js";
 import {
   approveNodePairing,
@@ -138,10 +139,7 @@ function isNodeEntry(entry: { role?: string; roles?: string[] }) {
   }
   return false;
 }
-
-async function delayMs(ms: number): Promise<void> {
-  await new Promise<void>((resolve) => setTimeout(resolve, ms));
-}
+// delayMs replaced by sleep() from utils.ts
 
 function isForegroundRestrictedIosCommand(command: string): boolean {
   return (
@@ -485,7 +483,7 @@ export async function waitForNodeReconnect(params: {
     if (params.context.nodeRegistry.get(params.nodeId)) {
       return true;
     }
-    await delayMs(pollMs);
+    await sleep(pollMs);
   }
   return Boolean(params.context.nodeRegistry.get(params.nodeId));
 }
