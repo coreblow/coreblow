@@ -174,3 +174,6 @@ vi.mock("../../config/config.js", async (importOriginal) => {
     resolveGatewayPort: () => 18789,
   };
 });
+
+/** OC-compat type alias */
+export type CreateOpenClawToolsOpts = CreateCoreBlowToolsOpts;

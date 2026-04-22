@@ -298,3 +298,9 @@ export const __testing = {
       : defaultCoreBlowToolsDeps;
   },
 };
+
+// OC-compat exports
+/** OC-compat: parameter type alias for createOpenClawTools */
+export type CreateOpenClawToolsOpts = Parameters<typeof createCoreBlowTools>[0];
+/** OC-compat alias — use createCoreBlowTools instead */
+export const createOpenClawTools = createCoreBlowTools;

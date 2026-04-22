@@ -65,3 +65,33 @@ export function mergeBootstrapContents(files: BootstrapFile[], separator = '\n\n
 export function hasBootstrapFiles(workspaceDir: string): boolean {
     return discoverBootstrapFiles(workspaceDir).length > 0;
 }
+
+/** OC-compat: warn builder for bootstrap context */
+export function makeBootstrapWarn(params: {
+  sessionLabel: string;
+  warn?: (message: string) => void;
+}): ((message: string) => void) | undefined {
+  if (!params.warn) return undefined;
+  return (message: string) => params.warn?.(`${message} (sessionKey=${params.sessionLabel})`);
+}
+
+export type BootstrapContextMode = 'full' | 'lightweight';
+export type BootstrapContextRunKind = 'default' | 'heartbeat' | 'cron';
+
+/** OC-compat stub: resolves bootstrap files for a run */
+export async function resolveBootstrapFilesForRun(params: {
+  workspaceDir: string;
+  contextMode?: BootstrapContextMode;
+}): Promise<BootstrapFile[]> {
+  return discoverBootstrapFiles(params.workspaceDir);
+}
+
+/** OC-compat stub: resolves bootstrap context for a run */
+export async function resolveBootstrapContextForRun(params: {
+  workspaceDir: string;
+  contextMode?: BootstrapContextMode;
+}): Promise<{ files: BootstrapFile[]; content: string }> {
+  const files = discoverBootstrapFiles(params.workspaceDir);
+  const content = mergeBootstrapContents(files);
+  return { files, content };
+}

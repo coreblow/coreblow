@@ -4,6 +4,8 @@
  * Ported from CoreBlow reference src/agents/command-poll-backoff.ts.
  */
 
+import { sleep } from "../utils.js";
+
 export interface BackoffPolicy {
     initialMs: number;
     maxMs: number;
@@ -64,7 +66,7 @@ export function createBackoffTracker(policy?: Partial<BackoffPolicy>): {
  */
 export function sleepWithBackoff(attempt: number, policy?: Partial<BackoffPolicy>): Promise<void> {
     const delay = computeBackoff(attempt, policy);
-    return new Promise((resolve) => setTimeout(resolve, delay));
+    return sleep(delay) as Promise<void>;
 }
 
 /**
@@ -89,3 +91,13 @@ export async function retryWithBackoff<T>(
     }
     throw lastError;
 }
+
+// OC-compat shims — CB uses different API
+/** OC-compat: simple backoff calculation using CB's computeBackoff */
+export function calculateBackoffMs(consecutiveNoOutputPolls: number): number {
+  return computeBackoff(consecutiveNoOutputPolls);
+}
+export function recordCommandPoll(_state: unknown, _commandId: string): void { /* no-op in CB */ }
+export function getCommandPollSuggestion(_state: unknown, _commandId: string): number | undefined { return undefined; }
+export function resetCommandPollCount(_state: unknown, _commandId: string): void { /* no-op in CB */ }
+export function pruneStaleCommandPolls(_state: unknown, _maxAgeMs?: number): void { /* no-op in CB */ }

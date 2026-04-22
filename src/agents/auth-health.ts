@@ -8,6 +8,8 @@ import { normalizeProviderId } from './provider-id.js';
 
 export type AuthProfileSource = 'store';
 export type AuthProfileHealthStatus = 'ok' | 'expiring' | 'expired' | 'missing' | 'static';
+/** OC-compat alias for AuthProfileHealthStatus */
+export type AuthProviderHealthStatus = AuthProfileHealthStatus;
 export type AuthCredentialType = 'oauth' | 'token' | 'api_key';
 
 export interface AuthProfileHealth {
@@ -49,6 +51,11 @@ export interface AuthProfileStore {
 }
 
 export const DEFAULT_OAUTH_WARN_MS = 24 * 60 * 60 * 1000;
+
+/** Returns the source of an auth profile (always 'store' in CB). OC-compat. */
+export function resolveAuthProfileSource(_profileId: string): AuthProfileSource {
+  return 'store';
+}
 
 export function formatRemainingShort(remainingMs?: number): string {
     if (remainingMs === undefined || Number.isNaN(remainingMs)) return 'unknown';

@@ -43,3 +43,13 @@ export class BootstrapHooks {
         else this.hooks.clear();
     }
 }
+
+/** OC-compat: apply hook overrides — CB delegates to BootstrapHooks class */
+export async function applyBootstrapHookOverrides(params: {
+  files: unknown[];
+  workspaceDir: string;
+  sessionKey?: string;
+}): Promise<unknown[]> {
+  // CB uses class-based BootstrapHooks; this compat shim returns files unchanged
+  return params.files;
+}

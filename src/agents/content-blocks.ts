@@ -116,3 +116,13 @@ export function hasToolUse(blocks: ContentBlock[]): boolean {
 export function redactBlocks(blocks: ContentBlock[], predicate: (block: ContentBlock) => boolean): ContentBlock[] {
     return blocks.map((b) => predicate(b) ? { type: 'redacted' as const, reason: 'sensitive' } : b);
 }
+
+/** OC-compat: collect text strings from unknown content structure */
+export function collectTextContentBlocks(content: unknown): string[] {
+  if (!content) return [];
+  if (typeof content === 'string') return [content];
+  if (!Array.isArray(content)) return [];
+  return content
+    .filter((b): b is TextBlock => typeof b === 'object' && b !== null && b.type === 'text')
+    .map((b) => b.text);
+}

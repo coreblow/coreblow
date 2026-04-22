@@ -22,3 +22,9 @@ export function ensureCoreBlowAgentEnv(): string {
   }
   return dir;
 }
+
+// OC-compat aliases — CB uses "CoreBlow" prefix, OC uses "OpenClaw" prefix
+/** @deprecated Use resolveCoreBlowAgentDir */
+export const resolveOpenClawAgentDir = resolveCoreBlowAgentDir;
+/** @deprecated Use ensureCoreBlowAgentEnv */
+export const ensureOpenClawAgentEnv = ensureCoreBlowAgentEnv;
