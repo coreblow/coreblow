@@ -1,53 +1,7 @@
-// @ts-nocheck
-/**
- * Matrix Runtime
- */
-import { MatrixExtension } from '../extension';
-import { MatrixChannelImpl } from './channel';
+import { createPluginRuntimeStore } from "coreblow/plugin-sdk/runtime-store";
+import type { PluginRuntime } from "coreblow/plugin-sdk/matrix";
 
-export class MatrixRuntime {
-  [k: string]: any;
-  private extension: MatrixExtension;
-  private channels = new Map<string, MatrixChannelImpl>();
-  private running = false;
+const { setRuntime: setMatrixRuntime, getRuntime: getMatrixRuntime } =
+  createPluginRuntimeStore<PluginRuntime>("Matrix runtime not initialized");
 
-  constructor(extension: MatrixExtension) {
-    this.extension = extension;
-  }
-
-  async start() {
-    this.running = true;
-    return this;
-  }
-
-  async stop() {
-    this.running = false;
-    for (const ch of this.channels.values()) await ch.disconnect();
-    this.channels.clear();
-  }
-
-  isRunning() { return this.running; }
-
-  getChannel(id: string) {
-    if (!this.channels.has(id)) {
-      this.channels.set(id, new MatrixChannelImpl(id));
-    }
-    return this.channels.get(id)!;
-  }
-
-  async processMessage(channelId: string, message: any) {
-    const channel = this.getChannel(channelId);
-    return { channelId, processed: true, extension: this.extension.name };
-  }
-
-  async handleWebhook(payload: any) {
-    return { handled: true, extension: this.extension.name };
-  }
-}
-
-
-
-// Runtime aliases
-let _rt: MatrixRuntime | undefined;
-export function getMatrixRuntime(): MatrixRuntime { if (!_rt) _rt = new MatrixRuntime(); return _rt; }
-export function setMatrixRuntime(r: MatrixRuntime) { _rt = r; }
+export { getMatrixRuntime, setMatrixRuntime };
