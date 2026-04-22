@@ -1,3 +1,4 @@
+import { clamp } from "../../utils.js";
 import { getChannelPlugin, normalizeChannelId } from "../../channels/plugins/index.js";
 import type { CoreBlowConfig } from "../../config/config.js";
 import type { BlockStreamingCoalesceConfig } from "../../config/types.js";
@@ -167,7 +168,7 @@ export function resolveBlockStreamingChunking(
   const chunkMode = resolveChunkMode(cfg, providerKey, accountId);
 
   const maxRequested = Math.max(1, Math.floor(chunkCfg?.maxChars ?? DEFAULT_BLOCK_STREAM_MAX));
-  const maxChars = Math.max(1, Math.min(maxRequested, textLimit));
+  const maxChars = clamp(textLimit, 1, maxRequested);
   const minFallback = DEFAULT_BLOCK_STREAM_MIN;
   const minRequested = Math.max(1, Math.floor(chunkCfg?.minChars ?? minFallback));
   const minChars = Math.min(minRequested, maxChars);
@@ -218,7 +219,7 @@ export function resolveBlockStreamingCoalescing(
     ),
   );
   const maxRequested = Math.max(1, Math.floor(coalesceCfg?.maxChars ?? textLimit));
-  const maxChars = Math.max(1, Math.min(maxRequested, textLimit));
+  const maxChars = clamp(textLimit, 1, maxRequested);
   const minChars = Math.min(minRequested, maxChars);
   const idleMs = Math.max(
     0,

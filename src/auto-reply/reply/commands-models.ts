@@ -1,3 +1,4 @@
+import { clamp } from "../../utils.js";
 import { resolveAgentDir, resolveSessionAgentId } from "../../agents/agent-scope.js";
 import { resolveModelAuthLabel } from "../../agents/model-auth-label.js";
 import { loadModelCatalog } from "../../agents/model-catalog.js";
@@ -315,7 +316,7 @@ export async function resolveModelsCommandReply(params: {
   if (isTelegram) {
     const telegramPageSize = getModelsPageSize();
     const totalPages = calculateTotalPages(total, telegramPageSize);
-    const safePage = Math.max(1, Math.min(page, totalPages));
+    const safePage = clamp(totalPages, 1, page);
 
     const buttons = buildModelsKeyboard({
       provider,
@@ -343,7 +344,7 @@ export async function resolveModelsCommandReply(params: {
   // Text fallback for non-Telegram surfaces
   const effectivePageSize = all ? total : pageSize;
   const pageCount = effectivePageSize > 0 ? Math.ceil(total / effectivePageSize) : 1;
-  const safePage = all ? 1 : Math.max(1, Math.min(page, pageCount));
+  const safePage = all ? 1 : clamp(pageCount, 1, page);
 
   if (!all && page !== safePage) {
     const lines: string[] = [

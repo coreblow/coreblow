@@ -16,6 +16,7 @@
  *   - Orphan detection (plugins with no dependents that aren't roots)
  */
 
+import { clamp } from "../utils.js";
 import { createChildLogger } from '../utils/logger.js';
 import {
     DependencyGraph,
@@ -503,7 +504,7 @@ export class DependencyResolver {
         score -= loadOrder.cycles.length * 25;
         score -= loadOrder.missing.length * 10;
         score -= orphans.length * 2;
-        score = Math.max(0, Math.min(100, score));
+        score = clamp(score, 0, 100);
 
         return {
             totalPlugins: this.graph.size(),

@@ -18,6 +18,7 @@
  * Integrates with MetricAggregator for p95/p99 calculations.
  */
 
+import { clamp } from "../utils.js";
 import { MetricAggregator, type AggregatedMetric } from '../observability/metric-aggregator.js';
 import { createChildLogger } from '../utils/logger.js';
 
@@ -422,5 +423,5 @@ function round(n: number): number {
 function percentile(sorted: number[], p: number): number {
     if (sorted.length === 0) return 0;
     const idx = Math.ceil(sorted.length * p) - 1;
-    return sorted[Math.max(0, Math.min(idx, sorted.length - 1))];
+    return sorted[clamp(sorted.length - 1, 0, idx)];
 }
