@@ -103,14 +103,55 @@ function extractTestScenarios(filePath) {
 
 // ─── collect files ──────────────────────────────────────────────────────────
 
-const SCAN_DIRS = [
-  "src",
-  "extensions/discord/src",
-  "extensions/telegram/src",
-  "extensions/slack/src",
-  "extensions/matrix/src",
-  "extensions/browser/src",
-];
+/**
+ * Auto-discover all extension src directories from a repo root.
+ * Scans extensions/*, packages/*, and root src/.
+ * This ensures 100% coverage without hardcoding extension names.
+ */
+function discoverScanDirs(root) {
+  const dirs = ["src"]; // always include root src/
+
+  // Scan all extensions/*/src
+  const extRoot = join(root, "extensions");
+  if (existsSync(extRoot)) {
+    try {
+      const entries = readdirSync(extRoot, { withFileTypes: true });
+      for (const entry of entries) {
+        if (!entry.isDirectory()) continue;
+        if (entry.name.startsWith(".")) continue;
+        const extSrc = join("extensions", entry.name, "src");
+        if (existsSync(join(root, extSrc))) {
+          dirs.push(extSrc);
+        } else {
+          // Some extensions don't have /src — include root
+          const extDir = join("extensions", entry.name);
+          const hasTs = existsSync(join(root, extDir)) &&
+            readdirSync(join(root, extDir)).some(f => f.endsWith(".ts"));
+          if (hasTs) dirs.push(extDir);
+        }
+      }
+    } catch { /* skip unreadable dirs */ }
+  }
+
+  // Scan packages/*/src
+  const pkgRoot = join(root, "packages");
+  if (existsSync(pkgRoot)) {
+    try {
+      const entries = readdirSync(pkgRoot, { withFileTypes: true });
+      for (const entry of entries) {
+        if (!entry.isDirectory() || entry.name.startsWith(".")) continue;
+        const pkgSrc = join("packages", entry.name, "src");
+        if (existsSync(join(root, pkgSrc))) dirs.push(pkgSrc);
+      }
+    } catch { /* skip */ }
+  }
+
+  return dirs;
+}
+
+// CB and OC may have different extension sets — use their own discovered dirs
+const CB_SCAN_DIRS = discoverScanDirs(CB_ROOT);
+const OC_SCAN_DIRS = discoverScanDirs(OC_ROOT);
 
 function collectFiles(root, dirs) {
   const sourceFiles = new Map(); // relPath → fullPath
@@ -134,8 +175,8 @@ function collectFiles(root, dirs) {
 
 // ─── main audit ─────────────────────────────────────────────────────────────
 
-const cbFiles = collectFiles(CB_ROOT, SCAN_DIRS);
-const ocFiles = collectFiles(OC_ROOT, SCAN_DIRS);
+const cbFiles = collectFiles(CB_ROOT, CB_SCAN_DIRS);
+const ocFiles = collectFiles(OC_ROOT, OC_SCAN_DIRS);
 
 // Apply module filter
 function applyFilter(map) {
