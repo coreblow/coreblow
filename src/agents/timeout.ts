@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 import type { CoreBlowConfig } from "../config/config.js";
 
 const DEFAULT_AGENT_TIMEOUT_SECONDS = 48 * 60 * 60;
@@ -20,7 +21,7 @@ export function resolveAgentTimeoutMs(opts: {
 }): number {
   const minMs = Math.max(normalizeNumber(opts.minMs) ?? 1, 1);
   const clampTimeoutMs = (valueMs: number) =>
-    Math.min(Math.max(valueMs, minMs), MAX_SAFE_TIMEOUT_MS);
+    clamp(valueMs, minMs, MAX_SAFE_TIMEOUT_MS);
   const defaultMs = clampTimeoutMs(resolveAgentTimeoutSeconds(opts.cfg) * 1000);
   // Use the maximum timer-safe timeout to represent "no timeout" when explicitly set to 0.
   const NO_TIMEOUT_MS = MAX_SAFE_TIMEOUT_MS;

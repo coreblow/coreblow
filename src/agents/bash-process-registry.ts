@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 /**
  * agents/bash-process-registry.ts
  * Background process session registry for exec/process tools.
@@ -11,7 +12,7 @@ const DEFAULT_PENDING_OUTPUT_CHARS = 30_000;
 
 function clampTtl(value: number | undefined): number {
     if (!value || Number.isNaN(value)) return DEFAULT_JOB_TTL_MS;
-    return Math.min(Math.max(value, MIN_JOB_TTL_MS), MAX_JOB_TTL_MS);
+    return clamp(value, MIN_JOB_TTL_MS, MAX_JOB_TTL_MS);
 }
 
 let jobTtlMs = clampTtl(undefined);

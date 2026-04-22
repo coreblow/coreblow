@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 const MAX_SAFE_TIMEOUT_MS = 2_147_483_647;
 
 export function clampRuntimeAuthRefreshDelayMs(params: {
@@ -5,5 +6,5 @@ export function clampRuntimeAuthRefreshDelayMs(params: {
   now: number;
   minDelayMs: number;
 }): number {
-  return Math.min(MAX_SAFE_TIMEOUT_MS, Math.max(params.minDelayMs, params.refreshAt - params.now));
+  return clamp(params.refreshAt - params.now, params.minDelayMs, MAX_SAFE_TIMEOUT_MS);
 }

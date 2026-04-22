@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { CoreBlowConfig } from "../../config/config.js";
-import { truncateUtf16Safe } from "../../utils.js";
+import { truncateUtf16Safe, clamp } from "../../utils.js";
 import type { WorkspaceBootstrapFile } from "../workspace.js";
 import type { EmbeddedContextFile } from "./types.js";
 
@@ -236,7 +236,7 @@ export function buildBootstrapContextFiles(
       );
       break;
     }
-    const fileMaxChars = Math.max(1, Math.min(maxChars, remainingTotalChars));
+    const fileMaxChars = clamp(remainingTotalChars, 1, maxChars);
     const trimmed = trimBootstrapContent(file.content ?? "", file.name, fileMaxChars);
     const contentWithinBudget = clampToBudget(trimmed.content, remainingTotalChars);
     if (!contentWithinBudget) {

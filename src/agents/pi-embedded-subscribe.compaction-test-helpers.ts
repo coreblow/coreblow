@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import { sleep } from "../utils.js";
 import path from "node:path";
 
 export async function seedSessionStore(params: {
@@ -42,7 +43,7 @@ export async function waitForCompactionCount(params: {
     if ((await readCompactionCount(params.storePath, params.sessionKey)) === params.expected) {
       return;
     }
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await sleep(10);
   }
   throw new Error(`timed out waiting for compactionCount=${params.expected}`);
 }

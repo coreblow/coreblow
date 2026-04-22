@@ -1,3 +1,4 @@
+import { clamp } from "../../../utils.js";
 import { type BackoffPolicy } from "../../../infra/backoff.js";
 import { generateSecureToken } from "../../../infra/secure-random.js";
 import { derivePromptTokens, normalizeUsage } from "../../usage.js";
@@ -62,7 +63,7 @@ export function resolveMaxRunRetryIterations(profileCandidateCount: number): num
   const scaled =
     BASE_RUN_RETRY_ITERATIONS +
     Math.max(1, profileCandidateCount) * RUN_RETRY_ITERATIONS_PER_PROFILE;
-  return Math.min(MAX_RUN_RETRY_ITERATIONS, Math.max(MIN_RUN_RETRY_ITERATIONS, scaled));
+  return clamp(scaled, MIN_RUN_RETRY_ITERATIONS, MAX_RUN_RETRY_ITERATIONS);
 }
 
 export function resolveActiveErrorContext(params: {

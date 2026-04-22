@@ -14,6 +14,8 @@
 
 // ─── Types ──────────────────────────────────────────────────────
 
+import { sleep } from "../../../utils.js";
+
 export interface ModelConfig {
     /** Model identifier (e.g., "gpt-4o", "claude-3.5-sonnet") */
     id: string;
@@ -402,8 +404,4 @@ export function createFallbackChain(
     return new ModelFallbackChain({ models, ...config });
 }
 
-// ─── Helper ─────────────────────────────────────────────────────
-
-function sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+// sleep imported from utils.ts

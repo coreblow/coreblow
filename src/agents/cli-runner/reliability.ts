@@ -1,3 +1,4 @@
+import { clamp } from "../../utils.js";
 import path from "node:path";
 import type { CliBackendConfig } from "../../config/types.js";
 import {
@@ -25,7 +26,7 @@ function pickWatchdogProfile(
     if (typeof value !== "number" || !Number.isFinite(value)) {
       return defaults.noOutputTimeoutRatio;
     }
-    return Math.max(0.05, Math.min(0.95, value));
+    return clamp(value, 0.05, 0.95);
   })();
   const minMs = (() => {
     const value = configured?.minMs;
@@ -66,7 +67,7 @@ export function resolveCliNoOutputTimeoutMs(params: {
     return Math.min(profile.noOutputTimeoutMs, cap);
   }
   const computed = Math.floor(params.timeoutMs * profile.noOutputTimeoutRatio);
-  const bounded = Math.min(profile.maxMs, Math.max(profile.minMs, computed));
+  const bounded = clamp(computed, profile.minMs, profile.maxMs);
   return Math.min(bounded, cap);
 }
 

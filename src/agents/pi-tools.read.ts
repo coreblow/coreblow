@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { AgentToolResult } from "@mariozechner/pi-agent-core";
@@ -60,10 +61,6 @@ type ReadTruncationDetails = {
 
 const READ_CONTINUATION_NOTICE_RE =
   /\n\n\[(?:Showing lines [^\]]*?Use offset=\d+ to continue\.|\d+ more lines in file\. Use offset=\d+ to continue\.)\]\s*$/;
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value));
-}
 
 function resolveAdaptiveReadMaxBytes(options?: CoreBlowReadToolOptions): number {
   const contextWindowTokens = options?.modelContextWindowTokens;

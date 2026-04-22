@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -119,7 +120,7 @@ export function resolveSessionLockMaxHoldFromTimeout(params: {
     return MAX_LOCK_HOLD_MS;
   }
   const graceMs = resolvePositiveMs(params.graceMs, DEFAULT_TIMEOUT_GRACE_MS);
-  return Math.min(MAX_LOCK_HOLD_MS, Math.max(minMs, timeoutMs + graceMs));
+  return clamp(timeoutMs + graceMs, minMs, MAX_LOCK_HOLD_MS);
 }
 
 async function releaseHeldLock(

@@ -2,7 +2,7 @@ import { existsSync, statSync } from "node:fs";
 import fs from "node:fs/promises";
 import { homedir } from "node:os";
 import path from "node:path";
-import { sliceUtf16Safe } from "../utils.js";
+import { sliceUtf16Safe, clamp } from "../utils.js";
 import { assertSandboxPath } from "./sandbox-paths.js";
 import type { SandboxBackendExecSpec } from "./sandbox/backend.js";
 
@@ -204,7 +204,7 @@ export function clampWithDefault(
   if (value === undefined || Number.isNaN(value)) {
     return defaultValue;
   }
-  return Math.min(Math.max(value, min), max);
+  return clamp(value, min, max);
 }
 
 export function readEnvInt(key: string) {

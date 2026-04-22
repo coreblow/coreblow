@@ -9,7 +9,7 @@ import {
   type MemoryMultimodalSettings,
 } from "../plugin-sdk/memory-core-host-multimodal.js";
 import { getMemoryEmbeddingProvider } from "../plugins/memory-embedding-providers.js";
-import { clampInt, clampNumber, resolveUserPath } from "../utils.js";
+import { clamp, clampInt, clampNumber, resolveUserPath } from "../utils.js";
 import { resolveAgentConfig } from "./agent-scope.js";
 
 export type ResolvedMemorySearchConfig = {
@@ -340,7 +340,7 @@ function mergeConfig(
         mmr: {
           enabled: Boolean(hybrid.mmr.enabled),
           lambda: Number.isFinite(hybrid.mmr.lambda)
-            ? Math.max(0, Math.min(1, hybrid.mmr.lambda))
+            ? clamp(hybrid.mmr.lambda, 0, 1)
             : DEFAULT_MMR_LAMBDA,
         },
         temporalDecay: {

@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { clamp } from "../../utils.js";
 import type { AgentToolResult } from "@mariozechner/pi-agent-core";
 import { Type } from "@sinclair/typebox";
 import {
@@ -382,7 +383,7 @@ export function createNodesTool(options?: {
               typeof params.limit === "number" && Number.isFinite(params.limit)
                 ? Math.floor(params.limit)
                 : DEFAULT_PHOTOS_LIMIT;
-            const limit = Math.max(1, Math.min(limitRaw, MAX_PHOTOS_LIMIT));
+            const limit = clamp(MAX_PHOTOS_LIMIT, 1, limitRaw);
             const maxWidth =
               typeof params.maxWidth === "number" && Number.isFinite(params.maxWidth)
                 ? params.maxWidth

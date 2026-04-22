@@ -1,4 +1,5 @@
 import { isSilentReplyText, SILENT_REPLY_TOKEN } from "../auto-reply/tokens.js";
+import { clamp } from "../utils.js";
 import { DEFAULT_SUBAGENT_MAX_SPAWN_DEPTH } from "../config/agent-limits.js";
 import { loadConfig } from "../config/config.js";
 import { callGateway } from "../gateway/call.js";
@@ -322,7 +323,7 @@ export async function runSubagentAnnounceFlow(params: {
         ? entry.sessionId.trim()
         : undefined;
     })();
-    const settleTimeoutMs = Math.min(Math.max(params.timeoutMs, 1), 120_000);
+    const settleTimeoutMs = clamp(params.timeoutMs, 1, 120_000);
     let reply = params.roundOneReply;
     let outcome: SubagentRunOutcome | undefined = params.outcome;
     if (childSessionId && isEmbeddedPiRunActive(childSessionId)) {

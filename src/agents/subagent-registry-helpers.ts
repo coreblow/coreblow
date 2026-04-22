@@ -1,3 +1,4 @@
+import { clamp } from "../utils.js";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { loadConfig } from "../config/config.js";
@@ -46,7 +47,7 @@ export function capFrozenResultText(resultText: string): string {
 }
 
 export function resolveAnnounceRetryDelayMs(retryCount: number) {
-  const boundedRetryCount = Math.max(0, Math.min(retryCount, 10));
+  const boundedRetryCount = clamp(10, 0, retryCount);
   // retryCount is "attempts already made", so retry #1 waits 1s, then 2s, 4s...
   const backoffExponent = Math.max(0, boundedRetryCount - 1);
   const baseDelay = MIN_ANNOUNCE_RETRY_DELAY_MS * 2 ** backoffExponent;

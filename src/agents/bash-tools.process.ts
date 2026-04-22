@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { clamp } from "../utils.js";
 import type { AgentTool, AgentToolResult } from "@mariozechner/pi-agent-core";
 import { Type } from "@sinclair/typebox";
 import { formatDurationCompact } from "../infra/format-time/format-duration.ts";
@@ -76,12 +77,12 @@ const MAX_POLL_WAIT_MS = 120_000;
 
 function resolvePollWaitMs(value: unknown) {
   if (typeof value === "number" && Number.isFinite(value)) {
-    return Math.max(0, Math.min(MAX_POLL_WAIT_MS, Math.floor(value)));
+    return clamp(Math.floor(value), 0, MAX_POLL_WAIT_MS);
   }
   if (typeof value === "string") {
     const parsed = Number.parseInt(value.trim(), 10);
     if (Number.isFinite(parsed)) {
-      return Math.max(0, Math.min(MAX_POLL_WAIT_MS, parsed));
+      return clamp(parsed, 0, MAX_POLL_WAIT_MS);
     }
   }
   return 0;
@@ -332,7 +333,7 @@ export function createProcessTool(
             const deadline = Date.now() + pollWaitMs;
             while (!scopedSession.exited && Date.now() < deadline) {
               await new Promise((resolve) =>
-                setTimeout(resolve, Math.max(0, Math.min(250, deadline - Date.now()))),
+                setTimeout(resolve, clamp(deadline - Date.now(), 0, 250)),
               );
             }
           }

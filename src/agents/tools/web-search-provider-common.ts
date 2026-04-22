@@ -1,3 +1,4 @@
+import { clamp } from "../../utils.js";
 import type { CoreBlowConfig } from "../../config/config.js";
 import { normalizeResolvedSecretInputString } from "../../config/types.secrets.js";
 import { normalizeSecretInput } from "../../utils/normalize-secret-input.js";
@@ -56,7 +57,7 @@ export function resolveSearchCacheTtlMs(searchConfig?: SearchConfigRecord): numb
 
 export function resolveSearchCount(value: unknown, fallback: number): number {
   const parsed = typeof value === "number" && Number.isFinite(value) ? value : fallback;
-  const clamped = Math.max(1, Math.min(MAX_SEARCH_COUNT, Math.floor(parsed)));
+  const clamped = clamp(Math.floor(parsed), 1, MAX_SEARCH_COUNT);
   return clamped;
 }
 

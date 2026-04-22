@@ -1,4 +1,5 @@
 import { resolveQueueSettings } from "../auto-reply/reply/queue.js";
+import { sleep, clamp } from "../utils.js";
 import { loadConfig } from "../config/config.js";
 import {
   loadSessionStore,
@@ -48,7 +49,7 @@ export function resolveSubagentAnnounceTimeoutMs(cfg: ReturnType<typeof loadConf
   if (typeof configured !== "number" || !Number.isFinite(configured)) {
     return DEFAULT_SUBAGENT_ANNOUNCE_TIMEOUT_MS;
   }
-  return Math.min(Math.max(1, Math.floor(configured)), MAX_TIMER_SAFE_TIMEOUT_MS);
+  return clamp(1, Math.floor(configured), MAX_TIMER_SAFE_TIMEOUT_MS);
 }
 
 export function isInternalAnnounceRequesterSession(sessionKey: string | undefined): boolean {
@@ -111,7 +112,7 @@ async function waitForAnnounceRetryDelay(ms: number, signal?: AbortSignal): Prom
     return;
   }
   if (!signal) {
-    await new Promise<void>((resolve) => setTimeout(resolve, ms));
+    await sleep(ms);
     return;
   }
   if (signal.aborted) {

@@ -1,6 +1,7 @@
 import { Type } from "@sinclair/typebox";
 import type { CoreBlowConfig } from "../../config/config.js";
 import { normalizeResolvedSecretInputString } from "../../config/types.secrets.js";
+import { clamp } from "../../utils.js";
 import { SsrFBlockedError } from "../../infra/net/ssrf.js";
 import { logDebug } from "../../logger.js";
 import type { RuntimeWebFetchFirecrawlMetadata } from "../../secrets/runtime-web-tools.js";
@@ -123,7 +124,7 @@ function resolveFetchMaxResponseBytes(fetch?: WebFetchConfig): number {
     return DEFAULT_FETCH_MAX_RESPONSE_BYTES;
   }
   const value = Math.floor(raw);
-  return Math.min(FETCH_MAX_RESPONSE_BYTES_MAX, Math.max(FETCH_MAX_RESPONSE_BYTES_MIN, value));
+  return clamp(value, FETCH_MAX_RESPONSE_BYTES_MIN, FETCH_MAX_RESPONSE_BYTES_MAX);
 }
 
 function resolveFirecrawlConfig(fetch?: WebFetchConfig): FirecrawlFetchConfig {

@@ -1,3 +1,4 @@
+import { clamp } from "../../../utils.js";
 /**
  * CoreBlow — Context Compaction Engine (CoreBlow Parity)
  *
@@ -314,7 +315,7 @@ export class CompactionEngine {
         // Very long messages are slightly more important (contain detail)
         if (msg.content.length > 1000) score += 0.1;
 
-        return Math.max(0, Math.min(1, score));
+        return clamp(score, 0, 1);
     }
 
     // ─── Stats ──────────────────────────────────────────────────

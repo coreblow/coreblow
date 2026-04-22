@@ -5,6 +5,7 @@
  * env var filtering, and PATH manipulation.
  */
 
+import { clamp } from "../../../utils.js";
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -276,7 +277,7 @@ export function clampWithDefault(
     max: number,
 ): number {
     const v = value ?? defaultValue;
-    return Math.max(min, Math.min(max, v));
+    return clamp(v, min, max);
 }
 
 export function truncateMiddle(text: string, maxLen: number): string {

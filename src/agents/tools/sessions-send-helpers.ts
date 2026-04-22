@@ -1,3 +1,4 @@
+import { clamp } from "../../utils.js";
 import {
   getChannelPlugin,
   normalizeChannelId as normalizeAnyChannelId,
@@ -155,5 +156,5 @@ export function resolvePingPongTurns(cfg?: CoreBlowConfig) {
     return fallback;
   }
   const rounded = Math.floor(raw);
-  return Math.max(0, Math.min(MAX_PING_PONG_TURNS, rounded));
+  return clamp(rounded, 0, MAX_PING_PONG_TURNS);
 }

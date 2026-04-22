@@ -5,6 +5,7 @@
  * requester/origin resolution, and announce timeout handling.
  */
 
+import { clamp } from "../../utils.js";
 import { createChildLogger } from '../../utils/logger.js';
 import type { DeliveryContext } from './subagent-registry-types.js';
 import {
@@ -114,7 +115,7 @@ export function resolveAnnounceTimeoutMs(configValue?: number): number {
     if (typeof configValue !== 'number' || !Number.isFinite(configValue)) {
         return DEFAULT_ANNOUNCE_TIMEOUT_MS;
     }
-    return Math.min(Math.max(1, Math.floor(configValue)), MAX_TIMER_SAFE_TIMEOUT_MS);
+    return clamp(1, Math.floor(configValue), MAX_TIMER_SAFE_TIMEOUT_MS);
 }
 
 // ─── Origin Resolution ─────────────────────────────────────────

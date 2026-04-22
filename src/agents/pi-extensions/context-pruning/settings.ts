@@ -1,3 +1,4 @@
+import { clamp } from "../../../utils.js";
 import { parseDurationMs } from "../../../cli/parse-duration.js";
 
 export type ContextPruningToolMatch = {
@@ -88,10 +89,10 @@ export function computeEffectiveSettings(raw: unknown): EffectiveContextPruningS
     s.keepLastAssistants = Math.max(0, Math.floor(cfg.keepLastAssistants));
   }
   if (typeof cfg.softTrimRatio === "number" && Number.isFinite(cfg.softTrimRatio)) {
-    s.softTrimRatio = Math.min(1, Math.max(0, cfg.softTrimRatio));
+    s.softTrimRatio = clamp(cfg.softTrimRatio, 0, 1);
   }
   if (typeof cfg.hardClearRatio === "number" && Number.isFinite(cfg.hardClearRatio)) {
-    s.hardClearRatio = Math.min(1, Math.max(0, cfg.hardClearRatio));
+    s.hardClearRatio = clamp(cfg.hardClearRatio, 0, 1);
   }
   if (typeof cfg.minPrunableToolChars === "number" && Number.isFinite(cfg.minPrunableToolChars)) {
     s.minPrunableToolChars = Math.max(0, Math.floor(cfg.minPrunableToolChars));

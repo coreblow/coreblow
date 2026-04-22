@@ -1,4 +1,5 @@
 import { isSilentReplyText, SILENT_REPLY_TOKEN } from "../auto-reply/tokens.js";
+import { sleep, clamp } from "../utils.js";
 import { loadConfig } from "../config/config.js";
 import {
   loadSessionStore,
@@ -249,14 +250,14 @@ export async function readLatestSubagentOutputWithRetry(params: {
   outcome?: SubagentRunOutcome;
 }): Promise<string | undefined> {
   const retryIntervalMs = FAST_TEST_MODE ? FAST_TEST_RETRY_INTERVAL_MS : 100;
-  const deadline = Date.now() + Math.max(0, Math.min(params.maxWaitMs, 15_000));
+  const deadline = Date.now() + clamp(15_000, 0, params.maxWaitMs);
   let result: string | undefined;
   while (Date.now() < deadline) {
     result = await readSubagentOutput(params.sessionKey, params.outcome);
     if (result?.trim()) {
       return result;
     }
-    await new Promise((resolve) => setTimeout(resolve, retryIntervalMs));
+    await sleep(retryIntervalMs);
   }
   return result;
 }
@@ -492,7 +493,7 @@ export async function buildCompactAnnounceStatsLine(params: {
       break;
     }
     if (!FAST_TEST_MODE) {
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      await sleep(150);
     }
     entry = loadSessionStore(storePath)[params.sessionKey];
   }

@@ -1,3 +1,4 @@
+import { clamp } from "../../utils.js";
 import { Type } from "@sinclair/typebox";
 import { loadConfig } from "../../config/config.js";
 import { optionalStringEnum } from "../schema/typebox.js";
@@ -46,7 +47,7 @@ export function createSubagentsTool(opts?: { agentSessionKey?: string }): AnyAge
       const runs = listControlledSubagentRuns(controller.controllerSessionKey);
       const recentMinutesRaw = readNumberParam(params, "recentMinutes");
       const recentMinutes = recentMinutesRaw
-        ? Math.max(1, Math.min(MAX_RECENT_MINUTES, Math.floor(recentMinutesRaw)))
+        ? clamp(Math.floor(recentMinutesRaw), 1, MAX_RECENT_MINUTES)
         : DEFAULT_RECENT_MINUTES;
       const pendingDescendantCount = createPendingDescendantCounter();
       const isActive = (entry: (typeof runs)[number]) =>

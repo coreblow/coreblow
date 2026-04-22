@@ -4,7 +4,7 @@ import type { CoreBlowConfig } from "../config/config.js";
 import { resolveBrewExecutable } from "../infra/brew.js";
 import { runCommandWithTimeout, type CommandOptions } from "../process/exec.js";
 import { scanDirectoryWithSummary } from "../security/skill-scanner.js";
-import { resolveUserPath } from "../utils.js";
+import { resolveUserPath, clamp } from "../utils.js";
 import { installDownloadSpec } from "./skills-install-download.js";
 import { formatInstallFailureMessage } from "./skills-install-output.js";
 import {
@@ -424,7 +424,7 @@ async function executeInstallCommand(params: {
 }
 
 export async function installSkill(params: SkillInstallRequest): Promise<SkillInstallResult> {
-  const timeoutMs = Math.min(Math.max(params.timeoutMs ?? 300_000, 1_000), 900_000);
+  const timeoutMs = clamp(params.timeoutMs ?? 300_000, 1_000, 900_000);
   const workspaceDir = resolveUserPath(params.workspaceDir);
   const entries = loadWorkspaceSkillEntries(workspaceDir);
   const entry = entries.find((item) => item.skill.name === params.skillName);

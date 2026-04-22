@@ -74,7 +74,7 @@ export function buildCompactionSummarizationInstructions(
  */
 export function splitMessagesByTokenShare(messages: CompactionMessage[], parts = DEFAULT_PARTS): CompactionMessage[][] {
     if (messages.length === 0) return [];
-    const normalizedParts = Math.min(Math.max(1, Math.floor(parts)), messages.length);
+    const normalizedParts = clamp(1, Math.floor(parts), messages.length);
     if (normalizedParts <= 1) return [messages];
     const totalTokens = estimateMessagesTokens(messages);
     const targetTokens = totalTokens / normalizedParts;
@@ -156,7 +156,7 @@ export function pruneHistoryForContextShare(params: {
     let keptMessages = [...params.messages];
     let droppedCount = 0;
     let droppedTokens = 0;
-    const parts = Math.min(Math.max(1, Math.floor(params.parts ?? DEFAULT_PARTS)), keptMessages.length);
+    const parts = clamp(1, Math.floor(params.parts ?? DEFAULT_PARTS), keptMessages.length);
     while (keptMessages.length > 0 && estimateMessagesTokens(keptMessages) > budgetTokens) {
         const chunks = splitMessagesByTokenShare(keptMessages, parts);
         if (chunks.length <= 1) break;
@@ -187,6 +187,7 @@ export function resolveContextWindowTokens(contextWindow?: number): number {
 // ─── LLM Summarization (CB-compatible) ────────────────────────────────
 // CoreBlow — agents/compaction.ts
 
+import { clamp } from "../utils.js";
 import { retryAsync } from '../infra/retry.js';
 import {
     stripToolResultDetails,
@@ -389,7 +390,7 @@ export function pruneHistoryWithRepair(params: {
     let droppedChunks = 0;
     let droppedMessages = 0;
     let droppedTokens = 0;
-    const parts = Math.min(Math.max(1, Math.floor(params.parts ?? 2)), keptMessages.length);
+    const parts = clamp(1, Math.floor(params.parts ?? 2), keptMessages.length);
 
     while (keptMessages.length > 0 && estimateMessagesTokens(keptMessages) > budgetTokens) {
         const chunks = splitMessagesByTokenShare(keptMessages, parts);
