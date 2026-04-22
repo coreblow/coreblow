@@ -1,10 +1,3 @@
-/**
- * src/providers/openai.test.ts
- *
- * CoreBlow — OpenAI Provider Tests
- * Verifies OPENAI_MODELS constants shape and OpenAIProvider
- * construction + identity fields.
- */
 import { describe, expect, it } from "vitest";
 import { OPENAI_MODELS, OpenAIProvider } from "./openai.js";
 
@@ -72,6 +65,6 @@ describe("OpenAIProvider — construction", () => {
 
   it("chat is a function", () => {
     const p = new OpenAIProvider(cfg);
-    expect(typeof (p as Record<string, unknown>).chat).toBe("function");
+    expect(typeof (p as unknown as Record<string, unknown>).chat).toBe("function");
   });
 });

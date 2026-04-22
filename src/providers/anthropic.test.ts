@@ -1,10 +1,3 @@
-/**
- * src/providers/anthropic.test.ts
- *
- * CoreBlow — Anthropic Provider Tests
- * Verifies ANTHROPIC_MODELS constants shape and
- * AnthropicProvider construction + identity fields.
- */
 import { describe, expect, it } from "vitest";
 import { ANTHROPIC_MODELS, AnthropicProvider } from "./anthropic.js";
 
@@ -59,6 +52,6 @@ describe("AnthropicProvider — construction", () => {
 
   it("chat is a function", () => {
     const p = new AnthropicProvider(cfg);
-    expect(typeof (p as Record<string, unknown>).chat).toBe("function");
+    expect(typeof (p as unknown as Record<string, unknown>).chat).toBe("function");
   });
 });

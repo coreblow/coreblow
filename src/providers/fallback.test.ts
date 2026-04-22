@@ -1,13 +1,6 @@
-/**
- * src/providers/fallback.test.ts
- *
- * CoreBlow — Fallback Provider Tests
- * Verifies FallbackProvider: construction, health status,
- * resetAll, and chain introspection.
- */
 import { describe, beforeEach, expect, it, vi } from "vitest";
 import { FallbackProvider } from "./fallback.js";
-import type { AIProvider } from "./fallback.js";
+import type { AIProvider } from "./interface.js";
 
 /** Minimal AIProvider stub */
 function makeProvider(name: string, available = true): AIProvider {
