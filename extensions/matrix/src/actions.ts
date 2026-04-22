@@ -102,7 +102,7 @@ function buildMatrixProfileToolSchema(): NonNullable<ChannelMessageToolDiscovery
             "snake_case alias of avatarPath for Matrix self-profile update actions. Matrix uploads this file and sets the resulting MXC URI.",
         }),
       ),
-    },
+    } as any,
   };
 }
 

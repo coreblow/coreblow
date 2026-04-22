@@ -127,7 +127,7 @@ function describeDiscordMessageTool({
       properties: {
         components: Type.Optional(createDiscordMessageToolComponentsSchema()),
       },
-    },
+    } as any,
   };
 }
 

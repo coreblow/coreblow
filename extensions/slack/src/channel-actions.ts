@@ -43,7 +43,7 @@ export function createSlackActions(
             properties: {
               blocks: Type.Optional(createSlackMessageToolBlocksSchema()),
             },
-          }
+          } as any
         : null,
     };
   }

@@ -1,4 +1,4 @@
-import { Type } from "@sinclair/typebox";
+import { type TSchema, Type } from "@sinclair/typebox";
 import { stringEnum } from "coreblow/plugin-sdk/channel-actions";
 
 const discordComponentEmojiSchema = Type.Object({
@@ -17,7 +17,7 @@ const discordComponentOptionSchema = Type.Object({
 
 const discordComponentButtonSchema = Type.Object({
   label: Type.String(),
-  style: Type.Optional(stringEnum(["primary", "secondary", "success", "danger", "link"])),
+  style: Type.Optional(stringEnum(["primary", "secondary", "success", "danger", "link"]) as unknown as TSchema),
   url: Type.Optional(Type.String()),
   emoji: Type.Optional(discordComponentEmojiSchema),
   disabled: Type.Optional(Type.Boolean()),
@@ -31,7 +31,7 @@ const discordComponentButtonSchema = Type.Object({
 });
 
 const discordComponentSelectSchema = Type.Object({
-  type: Type.Optional(stringEnum(["string", "user", "role", "mentionable", "channel"])),
+  type: Type.Optional(stringEnum(["string", "user", "role", "mentionable", "channel"]) as unknown as TSchema),
   placeholder: Type.Optional(Type.String()),
   minValues: Type.Optional(Type.Number()),
   maxValues: Type.Optional(Type.Number()),
@@ -49,7 +49,7 @@ const discordComponentBlockSchema = Type.Object({
       button: Type.Optional(discordComponentButtonSchema),
     }),
   ),
-  spacing: Type.Optional(stringEnum(["small", "large"])),
+  spacing: Type.Optional(stringEnum(["small", "large"]) as unknown as TSchema),
   divider: Type.Optional(Type.Boolean()),
   buttons: Type.Optional(Type.Array(discordComponentButtonSchema)),
   select: Type.Optional(discordComponentSelectSchema),
@@ -78,13 +78,13 @@ const discordComponentModalFieldSchema = Type.Object({
   maxValues: Type.Optional(Type.Number()),
   minLength: Type.Optional(Type.Number()),
   maxLength: Type.Optional(Type.Number()),
-  style: Type.Optional(stringEnum(["short", "paragraph"])),
+  style: Type.Optional(stringEnum(["short", "paragraph"]) as unknown as TSchema),
 });
 
 const discordComponentModalSchema = Type.Object({
   title: Type.String(),
   triggerLabel: Type.Optional(Type.String()),
-  triggerStyle: Type.Optional(stringEnum(["primary", "secondary", "success", "danger", "link"])),
+  triggerStyle: Type.Optional(stringEnum(["primary", "secondary", "success", "danger", "link"]) as unknown as TSchema),
   fields: Type.Array(discordComponentModalFieldSchema),
 });
 

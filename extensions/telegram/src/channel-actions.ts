@@ -117,7 +117,7 @@ function describeTelegramMessageTool({
   }
   if (discovery.pollEnabled) {
     schema.push({
-      properties: createTelegramPollExtraToolSchemas(),
+      properties: createTelegramPollExtraToolSchemas() as any,
       visibility: "all-configured",
     });
   }

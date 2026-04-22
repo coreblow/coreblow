@@ -22,13 +22,13 @@ export function discordWebMediaMockFactory(): DiscordWebMediaMockFactoryResult {
       fileName: "photo.jpg",
       contentType: "image/jpeg",
       kind: "image",
-    }),
+    }) as unknown as MockFn,
     loadWebMediaRaw: vi.fn().mockResolvedValue({
       buffer: Buffer.from("img"),
       fileName: "asset.png",
       contentType: "image/png",
       kind: "image",
-    }),
+    }) as unknown as MockFn,
   };
 }
 
