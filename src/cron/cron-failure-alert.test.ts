@@ -1,10 +1,3 @@
-/**
- * src/cron/cron-failure-alert.test.ts
- *
- * CoreBlow — Cron Failure Alert Shape Tests
- * Verifies CronFailureAlert and CronFailureDestination
- * can be constructed and have expected fields.
- */
 import { describe, expect, it } from "vitest";
 import type { CronFailureAlert, CronFailureDestination } from "./types.js";
 
@@ -13,16 +6,16 @@ describe("CronFailureDestination shape", () => {
     const dest: CronFailureDestination = {
       channel: "telegram",
       to: "user-123",
-    } as never;
-    expect((dest as never as { channel: string }).channel).toBe("telegram");
+    };
+    expect(dest.channel).toBe("telegram");
   });
 
   it("to field is accessible", () => {
     const dest: CronFailureDestination = {
       channel: "discord",
       to: "@admin",
-    } as never;
-    expect((dest as never as { to: string }).to).toBe("@admin");
+    };
+    expect(dest.to).toBe("@admin");
   });
 
   it("channel is a string", () => {
@@ -37,20 +30,19 @@ describe("CronFailureAlert shape", () => {
     expect(typeof alert).toBe("object");
   });
 
-  it("does not throw when constructing with destinations", () => {
+  it("accepts channel and to fields", () => {
     const alert: Partial<CronFailureAlert> = {
-      destinations: [
-        { channel: "telegram", to: "admin" } as never,
-      ],
+      channel: "telegram" as any,
+      to: "admin",
     };
     expect(alert).toBeDefined();
   });
 
-  it("destinations field is an array when set", () => {
+  it("to field is a string when set", () => {
     const alert: Partial<CronFailureAlert> = {
-      destinations: [] as never,
+      to: "ops-channel",
     };
-    expect(Array.isArray(alert.destinations)).toBe(true);
+    expect(typeof alert.to).toBe("string");
   });
 
   it("an empty failure alert is valid", () => {

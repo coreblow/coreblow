@@ -1,10 +1,3 @@
-/**
- * src/cron/cron-job-defaults.test.ts
- *
- * CoreBlow — Cron Job Fixtures Defaults Tests
- * Verifies default field values from makeIsolatedAgentJobFixture
- * and tests override patterns exhaustively.
- */
 import { describe, expect, it } from "vitest";
 import {
   makeIsolatedAgentJobFixture,

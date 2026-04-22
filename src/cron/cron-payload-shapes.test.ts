@@ -1,10 +1,3 @@
-/**
- * src/cron/cron-payload-shapes.test.ts
- *
- * CoreBlow — Cron Payload Shape Tests
- * Verifies CronPayload variant shapes (systemEvent and agentTurn)
- * can be correctly constructed and discriminated.
- */
 import { describe, expect, it } from "vitest";
 import type { CronPayload } from "./types.js";
 
@@ -29,18 +22,18 @@ describe("CronPayload — systemEvent", () => {
 
 describe("CronPayload — agentTurn", () => {
   it("can be constructed with kind=agentTurn", () => {
-    const p: CronPayload = { kind: "agentTurn" } as never;
+    const p: CronPayload = { kind: "agentTurn", message: "test" };
     expect(p.kind).toBe("agentTurn");
   });
 
   it("kind discriminates agentTurn", () => {
-    const p: CronPayload = { kind: "agentTurn" } as never;
+    const p: CronPayload = { kind: "agentTurn", message: "test" };
     expect(p.kind).toBe("agentTurn");
   });
 
   it("payload kinds are distinct", () => {
     const a: CronPayload = { kind: "systemEvent", text: "x" };
-    const b: CronPayload = { kind: "agentTurn" } as never;
+    const b: CronPayload = { kind: "agentTurn", message: "test" };
     expect(a.kind).not.toBe(b.kind);
   });
 });

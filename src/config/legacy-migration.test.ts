@@ -1,10 +1,3 @@
-/**
- * src/config/legacy-migration.test.ts
- *
- * CoreBlow — Legacy Migration Tests
- * Verifies migrateConfig, needsMigration, clearMigrationRules,
- * and getMigrationRules lifecycle.
- */
 import { describe, expect, it, beforeEach } from "vitest";
 import {
   clearMigrationRules,
@@ -29,6 +22,7 @@ describe("clearMigrationRules / getMigrationRules", () => {
     registerMigrationRule({
       id: "test-rule",
       description: "Test rule",
+      priority: 0,
       detect: () => false,
       migrate: (cfg) => cfg,
     });
@@ -39,6 +33,7 @@ describe("clearMigrationRules / getMigrationRules", () => {
     registerMigrationRule({
       id: "rule-1",
       description: "R1",
+      priority: 0,
       detect: () => false,
       migrate: (cfg) => cfg,
     });
@@ -56,6 +51,7 @@ describe("needsMigration", () => {
     registerMigrationRule({
       id: "no-match",
       description: "Never matches",
+      priority: 0,
       detect: () => false,
       migrate: (cfg) => cfg,
     });
@@ -66,6 +62,7 @@ describe("needsMigration", () => {
     registerMigrationRule({
       id: "always-match",
       description: "Always matches",
+      priority: 0,
       detect: () => true,
       migrate: (cfg) => cfg,
     });
@@ -82,6 +79,7 @@ describe("detectLegacyConfig", () => {
     registerMigrationRule({
       id: "match-rule",
       description: "Matches",
+      priority: 0,
       detect: () => true,
       migrate: (cfg) => cfg,
     });
@@ -101,7 +99,7 @@ describe("migrateConfig", () => {
   it("result has config and migrations fields", () => {
     const result = migrateConfig({});
     expect("config" in result).toBe(true);
-    expect("migrations" in result || "applied" in result || Array.isArray(result.migrations)).toBeDefined();
+    expect("changes" in result || "migrationsApplied" in result).toBe(true);
   });
 });
 

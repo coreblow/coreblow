@@ -8,7 +8,7 @@ export function makeIsolatedAgentJobFixture(overrides?: LooseRecord) {
     sessionTarget: "isolated",
     payload: { kind: "agentTurn", message: "test" },
     ...overrides,
-  } as never;
+  } as any;
 }
 
 export function makeIsolatedAgentParamsFixture(overrides?: LooseRecord) {

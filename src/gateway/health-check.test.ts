@@ -1,9 +1,3 @@
-/**
- * src/gateway/health-check.test.ts
- *
- * CoreBlow — Gateway Health Check Tests
- * Verifies setVersion, registerProbe, removeProbe, checkHealth.
- */
 import { describe, expect, it } from "vitest";
 import { setVersion, registerProbe, removeProbe, checkHealth } from "./health-check.js";
 
@@ -20,12 +14,12 @@ describe("setVersion()", () => {
 describe("registerProbe() + removeProbe()", () => {
   it("registerProbe does not throw", () => {
     expect(() =>
-      registerProbe("test-probe", async () => ({ status: "healthy" as const, details: {} }))
+      registerProbe("test-probe", async () => ({ status: "healthy" as const, details: {}, lastChecked: Date.now() }))
     ).not.toThrow();
   });
 
   it("removeProbe returns boolean", () => {
-    registerProbe("removable-probe", async () => ({ status: "healthy" as const, details: {} }));
+    registerProbe("removable-probe", async () => ({ status: "healthy" as const, details: {}, lastChecked: Date.now() }));
     const result = removeProbe("removable-probe");
     expect(typeof result).toBe("boolean");
   });

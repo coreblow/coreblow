@@ -1,10 +1,3 @@
-/**
- * src/cron/service/jobs.test.ts
- *
- * CoreBlow — Cron Service Job Utilities Tests
- * Verifies computeJobNextRunAtMs, computeJobPreviousRunAtMs,
- * findJobOrThrow, and nextWakeAtMs pure logic.
- */
 import { describe, expect, it } from "vitest";
 import {
   computeJobNextRunAtMs,
@@ -12,7 +5,7 @@ import {
   findJobOrThrow,
   nextWakeAtMs,
 } from "./jobs.js";
-import type { CronServiceState } from "../types.js";
+import type { CronServiceState } from "./state.js";
 import type { CronJob } from "../types.js";
 
 // ── helpers ───────────────────────────────────────────────────────────────────

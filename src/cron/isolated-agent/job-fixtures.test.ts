@@ -1,10 +1,3 @@
-/**
- * src/cron/isolated-agent/job-fixtures.test.ts
- *
- * CoreBlow — Cron Job Fixtures Tests
- * Verifies makeIsolatedAgentJobFixture and makeIsolatedAgentParamsFixture
- * produce valid fixture objects with expected defaults and override support.
- */
 import { describe, expect, it } from "vitest";
 import {
   makeIsolatedAgentJobFixture,

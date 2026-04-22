@@ -1,9 +1,3 @@
-/**
- * src/gateway/control-plane-rate-limit.test.ts
- *
- * CoreBlow — Control Plane Rate Limit Tests
- * Verifies resolveControlPlaneRateLimitKey and consumeControlPlaneWriteBudget.
- */
 import { describe, beforeEach, expect, it } from "vitest";
 import {
   resolveControlPlaneRateLimitKey,
@@ -12,7 +6,7 @@ import {
 } from "./control-plane-rate-limit.js";
 
 beforeEach(() => {
-  __testing?.resetBuckets?.();
+  __testing?.resetControlPlaneRateLimitState?.();
 });
 
 describe("resolveControlPlaneRateLimitKey()", () => {

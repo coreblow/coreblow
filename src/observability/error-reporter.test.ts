@@ -1,10 +1,3 @@
-/**
- * src/observability/error-reporter.test.ts
- *
- * CoreBlow — Error Reporter Tests
- * Verifies ErrorReporter: report, dedup, severity, resolve,
- * getSummary, getAlerts, clearResolved.
- */
 import { describe, beforeEach, expect, it } from "vitest";
 import { ErrorReporter } from "./error-reporter.js";
 
@@ -83,7 +76,7 @@ describe("ErrorReporter — getStats()", () => {
 
 describe("ErrorReporter — getAlerts()", () => {
   it("returns an array", () => {
-    reporter.report("alert-worthy", "api", "error");
+    reporter.report("alert-worthy", "api", "high");
     expect(Array.isArray(reporter.getAlerts())).toBe(true);
   });
 });
