@@ -1,0 +1,139 @@
+name: Parity Check
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Level 1-2: File & Export Parity ───────────────────────────────────────
+  parity-audit:
+    name: "L1-2: File & Export Parity"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run parity audit
+        run: |
+          node scripts/audit-oc-parity.mjs --json > /tmp/parity.json
+          node -e "
+            const d = JSON.parse(require('fs').readFileSync('/tmp/parity.json','utf8'));
+            const exportGaps = d.exports.gaps.length;
+            const srcMissing = d.summary.source_missing_from_cb;
+            console.log('Export gaps:', exportGaps);
+            console.log('Source missing:', srcMissing);
+            if (exportGaps > 0) {
+              console.error('FAIL: Export API gaps detected');
+              d.exports.gaps.forEach(g => {
+                console.error(' FILE:', g.file);
+                g.missing_in_cb.forEach(fn => console.error('  -', fn));
+              });
+              process.exit(1);
+            }
+            console.log('✅ Level 1-2: All export APIs accounted for');
+          "
+
+  # ── Level 3: Behavior Tests ───────────────────────────────────────────────
+  behavior-tests:
+    name: "L3: Behavior Tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests
+        run: pnpm vitest run --reporter=verbose
+        env:
+          CI: true
+
+  # ── Level 5: Contract Tests ────────────────────────────────────────────────
+  contract-tests:
+    name: "L5: Contract Tests"
+    runs-on: ubuntu-latest
+    needs: behavior-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run contract tests
+        run: pnpm vitest run --config vitest.contracts.config.ts --reporter=verbose
+        env:
+          CI: true
+
+  # ── Level 4: Benchmarks (non-blocking, informational only) ────────────────
+  benchmarks:
+    name: "L4: Benchmarks (informational)"
+    runs-on: ubuntu-latest
+    needs: behavior-tests
+    continue-on-error: true  # never fail CI on perf regression yet
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run benchmarks
+        run: pnpm vitest bench tests/bench/ --reporter=verbose 2>&1 || true
+        env:
+          CI: true
+
+  # ── Summary ────────────────────────────────────────────────────────────────
+  parity-summary:
+    name: "Parity Summary"
+    runs-on: ubuntu-latest
+    needs: [parity-audit, behavior-tests, contract-tests]
+    if: always()
+    steps:
+      - name: Summary
+        run: |
+          echo "## CoreBlow Parity Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Level | Name | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| L1-2 | File & Export Parity | ${{ needs.parity-audit.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| L3   | Behavior Tests | ${{ needs.behavior-tests.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| L5   | Contract Tests | ${{ needs.contract-tests.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| L4   | Benchmarks | ⚠️ informational |" >> $GITHUB_STEP_SUMMARY

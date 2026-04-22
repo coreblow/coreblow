@@ -63,7 +63,10 @@
     "ci": "pnpm typecheck && pnpm lint && pnpm test",
     "ci:full": "pnpm typecheck && pnpm lint:all && pnpm test:all",
     "audit:parity:acp": "node scripts/audit-oc-parity.mjs --module=src/acp",
-    "audit:parity:infra": "node scripts/audit-oc-parity.mjs --module=src/infra"
+    "audit:parity:infra": "node scripts/audit-oc-parity.mjs --module=src/infra",
+    "bench": "vitest bench tests/bench/",
+    "bench:auth": "vitest bench tests/bench/auth-profile-resolution.bench.ts",
+    "bench:infra": "vitest bench tests/bench/circuit-breaker.bench.ts"
   },
   "dependencies": {
     "@agentclientprotocol/sdk": "^0.18.2",
