@@ -111,7 +111,8 @@ function extractTestScenarios(filePath) {
 function discoverScanDirs(root) {
   const dirs = ["src"]; // always include root src/
 
-  // Scan all extensions/*/src
+  // Scan all extensions — include BOTH root-level .ts files and src/ subdir
+  // when both exist (CB extensions often have root files + src/ OOP layer).
   const extRoot = join(root, "extensions");
   if (existsSync(extRoot)) {
     try {
@@ -122,13 +123,12 @@ function discoverScanDirs(root) {
         const extSrc = join("extensions", entry.name, "src");
         if (existsSync(join(root, extSrc))) {
           dirs.push(extSrc);
-        } else {
-          // Some extensions don't have /src — include root
-          const extDir = join("extensions", entry.name);
-          const hasTs = existsSync(join(root, extDir)) &&
-            readdirSync(join(root, extDir)).some(f => f.endsWith(".ts"));
-          if (hasTs) dirs.push(extDir);
         }
+        // Always also scan root-level .ts files in the extension dir
+        const extDir = join("extensions", entry.name);
+        const hasRootTs = existsSync(join(root, extDir)) &&
+          readdirSync(join(root, extDir)).some(f => f.endsWith(".ts"));
+        if (hasRootTs) dirs.push(extDir);
       }
     } catch { /* skip unreadable dirs */ }
   }
