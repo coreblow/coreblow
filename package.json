@@ -64,6 +64,8 @@
     "ci:full": "pnpm typecheck && pnpm lint:all && pnpm test:all",
     "audit:parity:acp": "node scripts/audit-oc-parity.mjs --module=src/acp",
     "audit:parity:infra": "node scripts/audit-oc-parity.mjs --module=src/infra",
+    "ts-topology": "node --import tsx scripts/ts-topology.ts",
+    "plugin-sdk:usage": "node --import tsx scripts/analyze-plugin-sdk-usage.ts",
     "bench": "vitest bench tests/bench/",
     "bench:auth": "vitest bench tests/bench/auth-profile-resolution.bench.ts",
     "bench:infra": "vitest bench tests/bench/circuit-breaker.bench.ts"
