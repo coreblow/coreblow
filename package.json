@@ -66,6 +66,8 @@
     "audit:parity:infra": "node scripts/audit-oc-parity.mjs --module=src/infra",
     "ts-topology": "node --import tsx scripts/ts-topology.ts",
     "plugin-sdk:usage": "node --import tsx scripts/analyze-plugin-sdk-usage.ts",
+    "audit:seams": "node scripts/audit-seams.mjs",
+    "check:architecture-smells": "node scripts/check-architecture-smells.mjs",
     "bench": "vitest bench tests/bench/",
     "bench:auth": "vitest bench tests/bench/auth-profile-resolution.bench.ts",
     "bench:infra": "vitest bench tests/bench/circuit-breaker.bench.ts"
