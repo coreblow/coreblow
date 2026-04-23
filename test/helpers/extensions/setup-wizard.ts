@@ -1,4 +1,4 @@
-import { vi } from "vitest";
+import { type Mock, vi } from "vitest";
 import { buildChannelSetupWizardAdapterFromSetupWizard } from "../../../src/channels/plugins/setup-wizard.js";
 import type { WizardPrompter } from "../../../src/wizard/prompts.js";
 import { createRuntimeEnv } from "./runtime-env.js";
@@ -33,7 +33,7 @@ export function createQueuedWizardPrompter(params?: {
   selectValues?: string[];
   textValues?: string[];
   confirmValues?: boolean[];
-}) {
+}): Record<string, Mock | WizardPrompter> {
   const selectValues = [...(params?.selectValues ?? [])];
   const textValues = [...(params?.textValues ?? [])];
   const confirmValues = [...(params?.confirmValues ?? [])];

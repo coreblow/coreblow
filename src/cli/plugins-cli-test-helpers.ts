@@ -1,34 +1,34 @@
 // @ts-nocheck
 import { Command } from "commander";
-import { vi } from "vitest";
+import { type Mock, vi } from "vitest";
 import type { CoreBlowConfig } from "../config/config.js";
 import { createCliRuntimeCapture } from "./test-runtime-capture.js";
 
 export const loadConfig = vi.fn<() => CoreBlowConfig>(() => ({}) as CoreBlowConfig);
-export const readConfigFileSnapshot = vi.fn();
+export const readConfigFileSnapshot: Mock = vi.fn();
 export const writeConfigFile = vi.fn<(config: CoreBlowConfig) => Promise<void>>(
   async () => undefined,
 );
-export const resolveStateDir = vi.fn(() => "/tmp/coreblow-state");
-export const installPluginFromMarketplace = vi.fn();
-export const listMarketplacePlugins = vi.fn();
-export const resolveMarketplaceInstallShortcut = vi.fn();
-export const enablePluginInConfig = vi.fn();
-export const recordPluginInstall = vi.fn();
-export const clearPluginManifestRegistryCache = vi.fn();
-export const buildPluginStatusReport = vi.fn();
-export const applyExclusiveSlotSelection = vi.fn();
-export const uninstallPlugin = vi.fn();
-export const updateNpmInstalledPlugins = vi.fn();
-export const updateNpmInstalledHookPacks = vi.fn();
-export const promptYesNo = vi.fn();
-export const installPluginFromNpmSpec = vi.fn();
-export const installPluginFromPath = vi.fn();
-export const installPluginFromClawHub = vi.fn();
-export const parseClawHubPluginSpec = vi.fn();
-export const installHooksFromNpmSpec = vi.fn();
-export const installHooksFromPath = vi.fn();
-export const recordHookInstall = vi.fn();
+export const resolveStateDir: Mock = vi.fn(() => "/tmp/coreblow-state");
+export const installPluginFromMarketplace: Mock = vi.fn();
+export const listMarketplacePlugins: Mock = vi.fn();
+export const resolveMarketplaceInstallShortcut: Mock = vi.fn();
+export const enablePluginInConfig: Mock = vi.fn();
+export const recordPluginInstall: Mock = vi.fn();
+export const clearPluginManifestRegistryCache: Mock = vi.fn();
+export const buildPluginStatusReport: Mock = vi.fn();
+export const applyExclusiveSlotSelection: Mock = vi.fn();
+export const uninstallPlugin: Mock = vi.fn();
+export const updateNpmInstalledPlugins: Mock = vi.fn();
+export const updateNpmInstalledHookPacks: Mock = vi.fn();
+export const promptYesNo: Mock = vi.fn();
+export const installPluginFromNpmSpec: Mock = vi.fn();
+export const installPluginFromPath: Mock = vi.fn();
+export const installPluginFromClawHub: Mock = vi.fn();
+export const parseClawHubPluginSpec: Mock = vi.fn();
+export const installHooksFromNpmSpec: Mock = vi.fn();
+export const installHooksFromPath: Mock = vi.fn();
+export const recordHookInstall: Mock = vi.fn();
 
 const { defaultRuntime, runtimeLogs, runtimeErrors, resetRuntimeCapture } =
   createCliRuntimeCapture();

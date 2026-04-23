@@ -56,7 +56,7 @@ const hoisted = vi.hoisted(() => {
   };
 });
 
-export function getHoisted() {
+export function getHoisted(): Record<string, unknown> {
   return hoisted;
 }
 

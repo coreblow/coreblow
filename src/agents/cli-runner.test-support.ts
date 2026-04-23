@@ -1,6 +1,6 @@
 // @ts-nocheck
 import fs from "node:fs/promises";
-import { beforeEach, vi } from "vitest";
+import { beforeEach, type Mock, vi } from "vitest";
 import { buildAnthropicCliBackend } from "../../extensions/anthropic/test-api.js";
 import { buildGoogleGeminiCliBackend } from "../../extensions/google/test-api.js";
 import { buildOpenAICodexCliBackend } from "../../extensions/openai/test-api.js";
@@ -11,9 +11,9 @@ import { mergeMockedModule } from "../test-utils/vitest-module-mocks.js";
 import type { EmbeddedContextFile } from "./pi-embedded-helpers.js";
 import type { WorkspaceBootstrapFile } from "./workspace.js";
 
-export const supervisorSpawnMock = vi.fn();
-export const enqueueSystemEventMock = vi.fn();
-export const requestHeartbeatNowMock = vi.fn();
+export const supervisorSpawnMock: Mock = vi.fn();
+export const enqueueSystemEventMock: Mock = vi.fn();
+export const requestHeartbeatNowMock: Mock = vi.fn();
 export const SMALL_PNG_BASE64 =
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/woAAn8B9FD5fHAAAAAASUVORK5CYII=";
 
@@ -82,7 +82,14 @@ type TestCliBackendConfig = {
   clearEnv?: string[];
 };
 
-export function createManagedRun(exit: MockRunExit, pid = 1234) {
+export function createManagedRun(exit: MockRunExit, pid = 1234): {
+  runId: string;
+  pid: number;
+  startedAtMs: number;
+  stdin: undefined;
+  wait: Mock;
+  cancel: Mock;
+} {
   return {
     runId: "run-supervisor",
     pid,

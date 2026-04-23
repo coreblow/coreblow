@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { beforeEach, expect, vi } from "vitest";
+import { beforeEach, expect, type Mock, vi } from "vitest";
 
 let actualOpenBoundaryFile:
   | ((
@@ -57,8 +57,8 @@ export function createSandboxFsBridge(
   return createSandboxFsBridgeImpl(...args);
 }
 
-export const mockedExecDockerRaw = hoisted.execDockerRaw;
-export const mockedOpenBoundaryFile = hoisted.openBoundaryFile;
+export const mockedExecDockerRaw: Mock = hoisted.execDockerRaw;
+export const mockedOpenBoundaryFile: Mock = hoisted.openBoundaryFile;
 const DOCKER_SCRIPT_INDEX = 5;
 const DOCKER_FIRST_SCRIPT_ARG_INDEX = 7;
 

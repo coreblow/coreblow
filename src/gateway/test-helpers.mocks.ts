@@ -310,13 +310,13 @@ export const setTestConfigRoot = (root: string) => {
 export const testTailnetIPv4 = hoisted.testTailnetIPv4;
 export const testTailscaleWhois = hoisted.testTailscaleWhois;
 export const piSdkMock = hoisted.piSdkMock;
-export const cronIsolatedRun = hoisted.cronIsolatedRun;
-export const agentCommand = hoisted.agentCommand;
+export const cronIsolatedRun: Mock = hoisted.cronIsolatedRun;
+export const agentCommand: Mock = hoisted.agentCommand;
 export const getReplyFromConfig: Mock<GetReplyFromConfigFn> = hoisted.getReplyFromConfig;
 export const mockGetReplyFromConfigOnce = (impl: GetReplyFromConfigFn) => {
   getReplyFromConfig.mockImplementationOnce(impl);
 };
-export const sendWhatsAppMock = hoisted.sendWhatsAppMock;
+export const sendWhatsAppMock: Mock = hoisted.sendWhatsAppMock;
 
 export const testState = hoisted.testState;
 

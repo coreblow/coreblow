@@ -1,9 +1,9 @@
-import { vi } from "vitest";
+import { type Mock, vi } from "vitest";
 import { mergeMockedModule } from "../test-utils/vitest-module-mocks.js";
 import { createTestRuntime } from "./test-runtime-config-helpers.js";
 
-export const readConfigFileSnapshotMock = vi.fn();
-export const writeConfigFileMock = vi.fn().mockResolvedValue(undefined);
+export const readConfigFileSnapshotMock: Mock = vi.fn();
+export const writeConfigFileMock: Mock = vi.fn().mockResolvedValue(undefined);
 
 vi.mock("../config/config.js", async (importOriginal) => {
   return await mergeMockedModule(
