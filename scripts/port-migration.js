@@ -4,7 +4,7 @@ import fs from 'fs/promises';
 import path from 'path';
 
 const SRC_DIR = '/Users/febrinanda/openclaw-main/src';
-const DEST_DIR = '/Users/febrinanda/coreblow.com/gateway/src';
+const DEST_DIR = '/Users/febrinanda/coreblow/src';
 
 const FILES_TO_PORT = [
     // Wave 28A

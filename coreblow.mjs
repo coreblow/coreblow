@@ -3,15 +3,15 @@
 /**
  * CoreBlow — CLI Launcher
  *
- * Entry-point wrapper that imports the compiled gateway CLI from gateway/dist/.
+ * Entry-point wrapper that imports the compiled CLI from dist/.
  * Inspired by OpenClaw's openclaw.mjs pattern but written for CoreBlow's
- * gateway workspace architecture:
+ * consolidated source tree architecture:
  *
  * 1. Check Node.js version (22.12+ required)
  * 2. Enable compile cache (Node.js 22.1+)
  * 3. Install process warning filter
- * 4. Try to import gateway/dist/entry.js (compiled output)
- * 5. If gateway/dist/ is missing, provide helpful build instructions
+ * 4. Try to import dist/entry.js (compiled output)
+ * 5. If dist/ is missing, provide helpful build instructions
  *
  * This file is the published CLI binary (`bin.coreblow` in package.json).
  * It must remain a plain .mjs file — no TypeScript, no build step.
@@ -95,7 +95,7 @@ const isDirectModuleNotFoundError = (err, specifier) => {
 
 const installProcessWarningFilter = async () => {
     // Suppress noisy Node.js deprecation/experimental warnings at startup.
-    for (const specifier of ["./gateway/dist/infra/warning-filter.js", "./gateway/dist/infra/warning-filter.mjs"]) {
+    for (const specifier of ["./dist/infra/warning-filter.js", "./dist/infra/warning-filter.mjs"]) {
         try {
             const mod = await import(specifier);
             if (typeof mod.installProcessWarningFilter === "function") {
@@ -136,14 +136,14 @@ const exists = async (specifier) => {
 };
 
 const buildMissingEntryErrorMessage = async () => {
-    const lines = ["coreblow: missing gateway/dist/entry.js (build output)."];
-    if (!(await exists("./gateway/src/entry.ts"))) {
+    const lines = ["coreblow: missing dist/entry.js (build output)."];
+    if (!(await exists("./src/entry.ts"))) {
         return lines.join("\n");
     }
 
     lines.push("This install looks like an unbuilt source tree or GitHub source archive.");
     lines.push(
-        "Build locally with `pnpm install && pnpm build:gateway`, or install a built package instead.",
+        "Build locally with `pnpm install && pnpm build`, or install a built package instead.",
     );
     lines.push("For releases, use `npm install -g coreblow@latest`.");
     return lines.join("\n");
@@ -156,7 +156,7 @@ const isBareRootHelpInvocation = (argv) =>
 
 const loadPrecomputedRootHelpText = () => {
     try {
-        const raw = readFileSync(new URL("./gateway/dist/cli-startup-metadata.json", import.meta.url), "utf8");
+        const raw = readFileSync(new URL("./dist/cli-startup-metadata.json", import.meta.url), "utf8");
         const parsed = JSON.parse(raw);
         return typeof parsed?.rootHelpText === "string" && parsed.rootHelpText.length > 0
             ? parsed.rootHelpText
@@ -184,9 +184,9 @@ if (await tryOutputBareRootHelp()) {
     // OK — fast-path help text already printed
 } else {
     await installProcessWarningFilter();
-    if (await tryImport("./gateway/dist/entry.js")) {
+    if (await tryImport("./dist/entry.js")) {
         // OK — primary entry point loaded
-    } else if (await tryImport("./gateway/dist/entry.mjs")) {
+    } else if (await tryImport("./dist/entry.mjs")) {
         // OK — alternative ESM entry loaded
     } else {
         throw new Error(await buildMissingEntryErrorMessage());

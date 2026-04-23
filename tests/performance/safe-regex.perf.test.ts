@@ -12,7 +12,7 @@
  *
  * Run: npm run test:performance
  *
- * @see gateway/src/security/safe-regex.ts
+ * @see src/security/safe-regex.ts
  */
 import { describe, it, expect } from 'vitest';
 import {

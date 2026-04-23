@@ -10,7 +10,7 @@
     "build:all": "pnpm typecheck && pnpm build",
     "build:gateway": "cd gateway && npx tsc",
     "build:docker": "cd gateway && npx tsc",
-    "clean": "rm -rf dist gateway/dist",
+    "clean": "rm -rf dist",
     "coreblow": "node coreblow.mjs",
     "coreblow:rpc": "node coreblow.mjs agent --mode rpc --json",
     "deploy": "npm run build && wrangler pages deploy dist",

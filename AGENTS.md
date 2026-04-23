@@ -11,7 +11,7 @@ CoreBlow uses a multi-agent architecture where specialized agents handle differe
 - **Domain Agents**: Healthcare, fintech, legal, education, etc.
 
 ## Writing Custom Agents
-See `gateway/src/agents/` for examples.
+See `src/agents/` for examples.
 
 ## MCP (Model Context Protocol)
-CoreBlow supports MCP for agent communication. See `gateway/src/agents/mcp/`.
+CoreBlow supports MCP for agent communication. See `src/agents/mcp/`.

@@ -4,7 +4,7 @@
  * Tests untuk DockerRuntime — mock execFile agar tidak butuh
  * Docker daemon yang sesungguhnya.
  *
- * @see gateway/src/sandbox/docker-runtime.ts
+ * @see src/sandbox/docker-runtime.ts
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { DockerRuntime } from '../../src/sandbox/docker-runtime.js';
