@@ -1,3 +1,4 @@
+/** @internal — Zero consumers. SDK pruning audit 2026-04-24 */
 // @ts-nocheck
 import fs from "node:fs/promises";
 import path from "node:path";

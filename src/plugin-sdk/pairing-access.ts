@@ -1,3 +1,4 @@
+/** @internal — Zero consumers. SDK pruning audit 2026-04-24 */
 import type { ChannelId } from "../channels/plugins/types.js";
 import type { PluginRuntime } from "../plugins/runtime/types.js";
 import { normalizeAccountId } from "../routing/session-key.js";

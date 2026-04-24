@@ -1,3 +1,4 @@
+/** @internal — Zero consumers. SDK pruning audit 2026-04-24 */
 // Canonical shared prelude for channel-oriented plugin SDK surfaces.
 // Keep `core` and channel-specific SDK entrypoints derived from this module
 // so bundled channel entrypoints do not drift across overlapping exports.

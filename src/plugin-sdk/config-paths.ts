@@ -1,3 +1,4 @@
+/** @internal — Zero consumers. SDK pruning audit 2026-04-24 */
 import type { CoreBlowConfig } from "../config/config.js";
 
 /** Resolve the config path prefix for a channel account, falling back to the root channel section. */

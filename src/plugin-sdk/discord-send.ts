@@ -1,3 +1,4 @@
+/** @internal — Zero consumers. SDK pruning audit 2026-04-24 */
 import { attachChannelToResult } from "./channel-send-result.js";
 import type { DiscordSendResult } from "./discord.js";
 

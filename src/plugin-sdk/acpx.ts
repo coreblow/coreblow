@@ -1,3 +1,4 @@
+/** @internal — Zero consumers. SDK pruning audit 2026-04-24 */
 // Private ACPX runtime backend helpers for bundled extensions.
 // Keep this surface narrow and limited to the ACP runtime/backend contract.
 

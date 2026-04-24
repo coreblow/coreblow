@@ -1,3 +1,4 @@
+/** @internal — Zero consumers. SDK pruning audit 2026-04-24 */
 import { loadWebMedia } from "./web-media.js";
 
 export type OutboundMediaLoadOptions = {

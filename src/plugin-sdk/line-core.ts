@@ -1,3 +1,4 @@
+/** @internal — Zero consumers. SDK pruning audit 2026-04-24 */
 export type { CoreBlowConfig } from "../config/config.js";
 export type { LineChannelData, LineConfig } from "./line-surface.js";
 export {

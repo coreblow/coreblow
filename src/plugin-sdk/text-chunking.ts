@@ -1,3 +1,4 @@
+/** @internal — Zero consumers. SDK pruning audit 2026-04-24 */
 import { chunkTextByBreakResolver } from "../shared/text-chunking.js";
 
 /** Chunk outbound text while preferring newline boundaries over spaces. */

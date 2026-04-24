@@ -1,3 +1,4 @@
+/** @internal — Zero consumers. SDK pruning audit 2026-04-24 */
 export type ScopeTokenProvider = {
   getAccessToken: (scope: string) => Promise<string>;
 };

@@ -1,3 +1,4 @@
+/** @internal — Zero consumers. SDK pruning audit 2026-04-24 */
 // Private helper surface for the bundled signal plugin.
 // Keep this list additive and scoped to symbols used under extensions/signal.
 
