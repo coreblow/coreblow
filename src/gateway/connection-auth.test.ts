@@ -238,7 +238,7 @@ describe("resolveGatewayConnectionAuth", () => {
     expect(syncResolved).toEqual(expected);
   });
 
-  it("resolves local SecretRef token when OPENCLAW env is absent", async () => {
+  it("resolves local SecretRef token when COREBLOW env is absent", async () => {
     const config = cfg({
       gateway: {
         mode: "local",
@@ -266,7 +266,7 @@ describe("resolveGatewayConnectionAuth", () => {
     });
   });
 
-  it("resolves config-first token SecretRef even when OPENCLAW env token exists", async () => {
+  it("resolves config-first token SecretRef even when COREBLOW env token exists", async () => {
     const config = cfg({
       gateway: {
         mode: "local",
@@ -296,7 +296,7 @@ describe("resolveGatewayConnectionAuth", () => {
     });
   });
 
-  it("resolves config-first password SecretRef even when OPENCLAW env password exists", async () => {
+  it("resolves config-first password SecretRef even when COREBLOW env password exists", async () => {
     const config = cfg({
       gateway: {
         mode: "local",

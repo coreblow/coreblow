@@ -183,7 +183,7 @@ describe("shouldRequireGatewayTokenForInstall", () => {
 
   it("requires token in inferred mode when password env exists only in shell", async () => {
     await withEnvAsync(
-      { [envVar("OPENCLAW", "GATEWAY", "PASSWORD")]: "password-from-env" },
+      { [envVar("COREBLOW", "GATEWAY", "PASSWORD")]: "password-from-env" },
       async () => {
         // pragma: allowlist secret
         const required = shouldRequireGatewayTokenForInstall(
