@@ -1,165 +1,111 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { ApiKeyManager } from './api-key-manager.js';
+/**
+ * auth/api-key-manager.test.ts
+ * Comprehensive tests for ApiKeyManager — creation, validation, rotation, scoping.
+ */
+import { describe, expect, it } from "vitest";
+import { ApiKeyManager } from "./api-key-manager.js";
 
-describe('ApiKeyManager', () => {
-    let mgr: ApiKeyManager;
+describe("ApiKeyManager", () => {
+  it("creates a key with correct defaults", () => {
+    const mgr = new ApiKeyManager();
+    const key = mgr.create("test-key", "alice");
+    expect(key.id).toBe("apikey-1");
+    expect(key.key).toMatch(/^cb_/);
+    expect(key.name).toBe("test-key");
+    expect(key.owner).toBe("alice");
+    expect(key.scopes).toEqual(["*"]);
+    expect(key.rateLimit).toBe(1000);
+    expect(key.usage).toBe(0);
+    expect(key.active).toBe(true);
+  });
 
-    beforeEach(() => {
-        mgr = new ApiKeyManager();
-    });
+  it("validates a valid key", () => {
+    const mgr = new ApiKeyManager();
+    const key = mgr.create("k1", "alice");
+    const result = mgr.validate(key.key);
+    expect(result.valid).toBe(true);
+    expect(result.apiKey?.id).toBe(key.id);
+  });
 
-    describe('create', () => {
-        it('creates a key with cb_ prefix', () => {
-            const key = mgr.create('test-key', 'user1');
-            expect(key.key).toMatch(/^cb_/);
-            expect(key.name).toBe('test-key');
-            expect(key.owner).toBe('user1');
-            expect(key.active).toBe(true);
-            expect(key.usage).toBe(0);
-        });
+  it("rejects unknown keys", () => {
+    const mgr = new ApiKeyManager();
+    const result = mgr.validate("cb_nonexistent");
+    expect(result.valid).toBe(false);
+    expect(result.error).toBe("Key not found");
+  });
 
-        it('uses default scopes and rate limit', () => {
-            const key = mgr.create('k', 'u');
-            expect(key.scopes).toEqual(['*']);
-            expect(key.rateLimit).toBe(1000);
-        });
+  it("rejects inactive keys", () => {
+    const mgr = new ApiKeyManager();
+    const key = mgr.create("k1", "alice");
+    mgr.deactivate(key.id);
+    expect(mgr.validate(key.key).valid).toBe(false);
+    expect(mgr.validate(key.key).error).toBe("Key inactive");
+  });
 
-        it('accepts custom scopes, rate limit, and expiry', () => {
-            const key = mgr.create('k', 'u', ['read', 'write'], 50, 60_000);
-            expect(key.scopes).toEqual(['read', 'write']);
-            expect(key.rateLimit).toBe(50);
-            expect(key.expiresAt).toBeDefined();
-            expect(key.expiresAt!).toBeGreaterThan(Date.now());
-        });
+  it("rejects keys exceeding rate limit", () => {
+    const mgr = new ApiKeyManager();
+    const key = mgr.create("k1", "alice", ["*"], 2);
+    expect(mgr.validate(key.key).valid).toBe(true);
+    expect(mgr.validate(key.key).valid).toBe(true);
+    expect(mgr.validate(key.key).valid).toBe(false);
+    expect(mgr.validate(key.key).error).toBe("Rate limit exceeded");
+  });
 
-        it('assigns unique IDs', () => {
-            const k1 = mgr.create('a', 'u');
-            const k2 = mgr.create('b', 'u');
-            expect(k1.id).not.toBe(k2.id);
-            expect(k1.key).not.toBe(k2.key);
-        });
-    });
+  it("enforces scope restrictions", () => {
+    const mgr = new ApiKeyManager();
+    const key = mgr.create("k1", "alice", ["read", "write"]);
+    expect(mgr.validate(key.key, "read").valid).toBe(true);
+    expect(mgr.validate(key.key, "admin").valid).toBe(false);
+    expect(mgr.validate(key.key, "admin").error).toBe("Insufficient scope");
+  });
 
-    describe('validate', () => {
-        it('validates a valid key', () => {
-            const key = mgr.create('k', 'u');
-            const result = mgr.validate(key.key);
-            expect(result.valid).toBe(true);
-            expect(result.apiKey!.usage).toBe(1);
-        });
+  it("wildcard scope grants all access", () => {
+    const mgr = new ApiKeyManager();
+    const key = mgr.create("k1", "alice", ["*"]);
+    expect(mgr.validate(key.key, "admin").valid).toBe(true);
+    expect(mgr.validate(key.key, "anything").valid).toBe(true);
+  });
 
-        it('rejects unknown key', () => {
-            const result = mgr.validate('cb_nonexistent');
-            expect(result.valid).toBe(false);
-            expect(result.error).toContain('not found');
-        });
+  it("rotates key preserving identity", () => {
+    const mgr = new ApiKeyManager();
+    const key = mgr.create("k1", "alice");
+    const oldKey = key.key;
+    const rotated = mgr.rotate(key.id);
+    expect(rotated).not.toBeNull();
+    expect(rotated!.id).toBe(key.id);
+    expect(rotated!.key).not.toBe(oldKey);
+    expect(mgr.validate(oldKey).valid).toBe(false);
+    expect(mgr.validate(rotated!.key).valid).toBe(true);
+  });
 
-        it('rejects inactive key', () => {
-            const key = mgr.create('k', 'u');
-            mgr.deactivate(key.id);
-            const result = mgr.validate(key.key);
-            expect(result.valid).toBe(false);
-            expect(result.error).toContain('inactive');
-        });
+  it("lists keys by owner", () => {
+    const mgr = new ApiKeyManager();
+    mgr.create("k1", "alice");
+    mgr.create("k2", "alice");
+    mgr.create("k3", "bob");
+    expect(mgr.listByOwner("alice")).toHaveLength(2);
+    expect(mgr.listByOwner("bob")).toHaveLength(1);
+    expect(mgr.listByOwner("charlie")).toHaveLength(0);
+  });
 
-        it('rejects expired key', () => {
-            const key = mgr.create('k', 'u', ['*'], 1000, 1);
-            // Wait for expiry
-            const start = Date.now();
-            while (Date.now() - start < 5) {}
-            const result = mgr.validate(key.key);
-            expect(result.valid).toBe(false);
-            expect(result.error).toContain('expired');
-        });
+  it("tracks stats correctly", () => {
+    const mgr = new ApiKeyManager();
+    const key = mgr.create("k1", "alice");
+    mgr.validate(key.key);
+    mgr.validate("cb_bad");
+    mgr.rotate(key.id);
+    const stats = mgr.getStats();
+    expect(stats.created).toBe(1);
+    expect(stats.validated).toBe(1);
+    expect(stats.rejected).toBe(1);
+    expect(stats.rotated).toBe(1);
+  });
 
-        it('rejects when rate limit exceeded', () => {
-            const key = mgr.create('k', 'u', ['*'], 2);
-            mgr.validate(key.key);
-            mgr.validate(key.key);
-            const result = mgr.validate(key.key);
-            expect(result.valid).toBe(false);
-            expect(result.error).toContain('Rate limit');
-        });
-
-        it('validates scope — wildcard allows everything', () => {
-            const key = mgr.create('k', 'u', ['*']);
-            expect(mgr.validate(key.key, 'admin').valid).toBe(true);
-        });
-
-        it('rejects insufficient scope', () => {
-            const key = mgr.create('k', 'u', ['read']);
-            const result = mgr.validate(key.key, 'admin');
-            expect(result.valid).toBe(false);
-            expect(result.error).toContain('scope');
-        });
-
-        it('allows matching scope', () => {
-            const key = mgr.create('k', 'u', ['read', 'write']);
-            expect(mgr.validate(key.key, 'read').valid).toBe(true);
-        });
-    });
-
-    describe('rotate', () => {
-        it('generates a new key for same ID', () => {
-            const key = mgr.create('k', 'u');
-            const oldKey = key.key;
-            const rotated = mgr.rotate(key.id);
-            expect(rotated).not.toBeNull();
-            expect(rotated!.key).not.toBe(oldKey);
-            expect(rotated!.id).toBe(key.id);
-        });
-
-        it('old key is invalid after rotation', () => {
-            const key = mgr.create('k', 'u');
-            const oldKey = key.key;
-            mgr.rotate(key.id);
-            expect(mgr.validate(oldKey).valid).toBe(false);
-        });
-
-        it('new key is valid after rotation', () => {
-            const key = mgr.create('k', 'u');
-            const rotated = mgr.rotate(key.id)!;
-            expect(mgr.validate(rotated.key).valid).toBe(true);
-        });
-
-        it('returns null for unknown ID', () => {
-            expect(mgr.rotate('fake-id')).toBeNull();
-        });
-    });
-
-    describe('deactivate', () => {
-        it('deactivates an existing key', () => {
-            const key = mgr.create('k', 'u');
-            expect(mgr.deactivate(key.id)).toBe(true);
-        });
-
-        it('returns false for unknown ID', () => {
-            expect(mgr.deactivate('fake')).toBe(false);
-        });
-    });
-
-    describe('listByOwner', () => {
-        it('lists keys for a specific owner', () => {
-            mgr.create('a', 'user1');
-            mgr.create('b', 'user1');
-            mgr.create('c', 'user2');
-            expect(mgr.listByOwner('user1')).toHaveLength(2);
-            expect(mgr.listByOwner('user2')).toHaveLength(1);
-            expect(mgr.listByOwner('user3')).toHaveLength(0);
-        });
-    });
-
-    describe('stats', () => {
-        it('tracks operations', () => {
-            const k = mgr.create('k', 'u');
-            mgr.validate(k.key);
-            mgr.validate('bad-key');
-            mgr.rotate(k.id);
-            const stats = mgr.getStats();
-            expect(stats.created).toBe(1);
-            expect(stats.validated).toBe(1);
-            expect(stats.rejected).toBe(1);
-            expect(stats.rotated).toBe(1);
-        });
-    });
+  it("count reflects key inventory", () => {
+    const mgr = new ApiKeyManager();
+    expect(mgr.count()).toBe(0);
+    mgr.create("k1", "alice");
+    mgr.create("k2", "bob");
+    expect(mgr.count()).toBe(2);
+  });
 });

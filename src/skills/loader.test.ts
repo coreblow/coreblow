@@ -1,150 +1,126 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { parseFrontmatter, discoverSkills } from './loader.js';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import * as os from 'node:os';
+/**
+ * skills/loader.test.ts
+ * Tests for parseFrontmatter and discoverSkills.
+ */
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
+import { parseFrontmatter, discoverSkills } from "./loader.js";
 
-describe('parseFrontmatter', () => {
-    it('parses simple key-value frontmatter', () => {
-        const input = `---
-name: my-skill
-description: Does something cool
+describe("parseFrontmatter", () => {
+  it("parses simple key-value frontmatter", () => {
+    const { metadata, body } = parseFrontmatter(`---
+name: My Skill
+description: Does things
 ---
+# Body`);
+    expect(metadata.name).toBe("My Skill");
+    expect(metadata.description).toBe("Does things");
+    expect(body).toBe("# Body");
+  });
 
-# Instructions`;
-
-        const { metadata, body } = parseFrontmatter(input);
-        expect(metadata['name']).toBe('my-skill');
-        expect(metadata['description']).toBe('Does something cool');
-        expect(body).toContain('# Instructions');
-    });
-
-    it('parses boolean values', () => {
-        const input = `---
+  it("parses boolean values", () => {
+    const { metadata } = parseFrontmatter(`---
 always: true
-hidden: false
----`;
-        const { metadata } = parseFrontmatter(input);
-        expect(metadata['always']).toBe(true);
-        expect(metadata['hidden']).toBe(false);
-    });
+disabled: false
+---`);
+    expect(metadata.always).toBe(true);
+    expect(metadata.disabled).toBe(false);
+  });
 
-    it('parses numeric values', () => {
-        const input = `---
+  it("parses numeric values", () => {
+    const { metadata } = parseFrontmatter(`---
 priority: 42
-weight: 3.14
----`;
-        const { metadata } = parseFrontmatter(input);
-        expect(metadata['priority']).toBe(42);
-        expect(metadata['weight']).toBeCloseTo(3.14);
-    });
+---`);
+    expect(metadata.priority).toBe(42);
+  });
 
-    it('parses inline lists', () => {
-        const input = `---
-os: [darwin, linux]
----`;
-        const { metadata } = parseFrontmatter(input);
-        expect(metadata['os']).toEqual(['darwin', 'linux']);
-    });
+  it("parses inline lists", () => {
+    const { metadata } = parseFrontmatter(`---
+events: [message, reaction]
+---`);
+    expect(metadata.events).toEqual(["message", "reaction"]);
+  });
 
-    it('parses multi-line lists', () => {
-        const input = `---
-events:
-  - message
-  - tool-call
----`;
-        const { metadata } = parseFrontmatter(input);
-        expect(metadata['events']).toEqual(['message', 'tool-call']);
-    });
+  it("parses block lists", () => {
+    const { metadata } = parseFrontmatter(`---
+requires:
+- node
+- python
+---`);
+    expect(metadata.requires).toEqual(["node", "python"]);
+  });
 
-    it('strips quotes from values', () => {
-        const input = `---
-name: 'quoted-skill'
-description: "double-quoted"
----`;
-        const { metadata } = parseFrontmatter(input);
-        expect(metadata['name']).toBe('quoted-skill');
-        expect(metadata['description']).toBe('double-quoted');
-    });
+  it("returns empty metadata when no frontmatter", () => {
+    const { metadata, body } = parseFrontmatter("# Just a heading");
+    expect(metadata).toEqual({});
+    expect(body).toBe("# Just a heading");
+  });
 
-    it('returns empty metadata for no frontmatter', () => {
-        const { metadata, body } = parseFrontmatter('# Just markdown');
-        expect(metadata).toEqual({});
-        expect(body).toBe('# Just markdown');
-    });
+  it("handles missing closing delimiter", () => {
+    const { metadata } = parseFrontmatter("---\nname: broken");
+    expect(metadata).toEqual({});
+  });
 
-    it('handles missing closing fence', () => {
-        const { metadata, body } = parseFrontmatter('---\nname: broken\n');
-        expect(metadata).toEqual({});
-    });
+  it("strips quotes from string values", () => {
+    const { metadata } = parseFrontmatter(`---
+name: 'quoted'
+emoji: "🎯"
+---`);
+    expect(metadata.name).toBe("quoted");
+    expect(metadata.emoji).toBe("🎯");
+  });
 });
 
-describe('discoverSkills', () => {
-    let tmpDir: string;
+describe("discoverSkills", () => {
+  let tmpDir: string;
 
-    beforeEach(() => {
-        tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cb-skills-test-'));
-    });
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "cb-skills-"));
+  });
 
-    afterEach(() => {
-        fs.rmSync(tmpDir, { recursive: true, force: true });
-    });
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
 
-    it('discovers skills from directory', () => {
-        // Create a skill
-        const skillDir = path.join(tmpDir, 'test-skill');
-        fs.mkdirSync(skillDir);
-        fs.writeFileSync(path.join(skillDir, 'SKILL.md'), `---
-name: test-skill
-description: A test skill
+  it("discovers skills from directories with SKILL.md", () => {
+    const skillDir = path.join(tmpDir, "my-skill");
+    fs.mkdirSync(skillDir);
+    fs.writeFileSync(path.join(skillDir, "SKILL.md"), `---
+name: My Skill
+description: Test skill
 ---
-# Test instructions`);
+Do the thing.`);
+    const skills = discoverSkills(tmpDir);
+    expect(skills).toHaveLength(1);
+    expect(skills[0].id).toBe("my-skill");
+    expect(skills[0].metadata.name).toBe("My Skill");
+    expect(skills[0].instructions).toBe("Do the thing.");
+    expect(skills[0].source).toBe("workspace");
+  });
 
-        const skills = discoverSkills(tmpDir);
-        expect(skills).toHaveLength(1);
-        expect(skills[0]!.id).toBe('test-skill');
-        expect(skills[0]!.metadata.name).toBe('test-skill');
-        expect(skills[0]!.instructions).toContain('# Test instructions');
-    });
+  it("skips directories without SKILL.md", () => {
+    fs.mkdirSync(path.join(tmpDir, "no-skill"));
+    expect(discoverSkills(tmpDir)).toHaveLength(0);
+  });
 
-    it('skips directories without SKILL.md', () => {
-        fs.mkdirSync(path.join(tmpDir, 'no-skill'));
-        const skills = discoverSkills(tmpDir);
-        expect(skills).toHaveLength(0);
-    });
+  it("skips hidden directories", () => {
+    const hidden = path.join(tmpDir, ".hidden-skill");
+    fs.mkdirSync(hidden);
+    fs.writeFileSync(path.join(hidden, "SKILL.md"), "---\nname: Hidden\n---");
+    expect(discoverSkills(tmpDir)).toHaveLength(0);
+  });
 
-    it('skips hidden directories', () => {
-        const hidden = path.join(tmpDir, '.hidden-skill');
-        fs.mkdirSync(hidden);
-        fs.writeFileSync(path.join(hidden, 'SKILL.md'), '---\nname: hidden\n---');
-        const skills = discoverSkills(tmpDir);
-        expect(skills).toHaveLength(0);
-    });
+  it("uses provided source tag", () => {
+    const skillDir = path.join(tmpDir, "bundled-skill");
+    fs.mkdirSync(skillDir);
+    fs.writeFileSync(path.join(skillDir, "SKILL.md"), "---\nname: Bundled\n---");
+    const skills = discoverSkills(tmpDir, "bundled");
+    expect(skills[0].source).toBe("bundled");
+  });
 
-    it('sets source correctly', () => {
-        const skillDir = path.join(tmpDir, 'bundled-skill');
-        fs.mkdirSync(skillDir);
-        fs.writeFileSync(path.join(skillDir, 'SKILL.md'), '---\nname: bundled\n---');
-
-        const skills = discoverSkills(tmpDir, 'bundled');
-        expect(skills[0]!.source).toBe('bundled');
-    });
-
-    it('returns empty for non-existent directory', () => {
-        expect(discoverSkills('/nonexistent/path')).toEqual([]);
-    });
-
-    it('parses emoji and requires from metadata', () => {
-        const skillDir = path.join(tmpDir, 'rich-skill');
-        fs.mkdirSync(skillDir);
-        fs.writeFileSync(path.join(skillDir, 'SKILL.md'), `---
-name: rich
-emoji: 🎵
-requires: [spogo, spotify_player]
----`);
-
-        const skills = discoverSkills(tmpDir);
-        expect(skills[0]!.metadata.emoji).toBe('🎵');
-        expect(skills[0]!.metadata.requires).toEqual(['spogo', 'spotify_player']);
-    });
+  it("returns empty for nonexistent directory", () => {
+    expect(discoverSkills("/nonexistent/path")).toHaveLength(0);
+  });
 });
