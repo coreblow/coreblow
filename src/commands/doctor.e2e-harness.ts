@@ -200,9 +200,13 @@ vi.mock("../agents/skills-status.js", () => ({
   buildWorkspaceSkillStatus: () => ({ skills: [] }),
 }));
 
-vi.mock("../plugins/loader.js", () => ({
-  loadCoreBlowPlugins: () => createEmptyPluginRegistry(),
-}));
+vi.mock("../plugins/loader.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../plugins/loader.js")>();
+  return {
+    ...actual,
+    loadCoreBlowPlugins: () => createEmptyPluginRegistry(),
+  };
+});
 
 vi.mock("../config/config.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../config/config.js")>();
