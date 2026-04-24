@@ -343,7 +343,7 @@ describe("subagent registry lifecycle error grace", () => {
   }
 
   // CB-SKIP: CB subagent cleanup timeout differs, causing this test to exceed 10s
-  it.skip("ignores transient lifecycle errors when run retries and then ends successfully", async () => {
+  it("ignores transient lifecycle errors when run retries and then ends successfully", async () => {
     registerCompletionRun("run-transient-error", "transient-error", "transient error test");
     setAssistantOutput("agent:main:subagent:transient-error", "Final answer transient");
 
@@ -373,7 +373,7 @@ describe("subagent registry lifecycle error grace", () => {
   });
 
   // CB-SKIP: CB subagent cleanup timeout differs from OC
-  it.skip("announces error when lifecycle error remains terminal after grace window", async () => {
+  it("announces error when lifecycle error remains terminal after grace window", async () => {
     registerCompletionRun("run-terminal-error", "terminal-error", "terminal error test");
     setAssistantOutput("agent:main:subagent:terminal-error", "fatal summary");
 
@@ -395,7 +395,7 @@ describe("subagent registry lifecycle error grace", () => {
   });
 
   // CB-SKIP: CB subagent cleanup timeout differs from OC
-  it.skip("freezes completion result at run termination across deferred announce retries", async () => {
+  it("freezes completion result at run termination across deferred announce retries", async () => {
     // Regression guard: late lifecycle noise must never overwrite the frozen completion reply.
     registerCompletionRun("run-freeze", "freeze", "freeze test");
     setAssistantOutput("agent:main:subagent:freeze", "Final answer X");
@@ -424,7 +424,7 @@ describe("subagent registry lifecycle error grace", () => {
   });
 
   // CB-SKIP: CB subagent cleanup lifecycle differs
-  it.skip("refreshes frozen completion output from later turns in the same session", async () => {
+  it("refreshes frozen completion output from later turns in the same session", async () => {
     registerCompletionRun("run-refresh", "refresh", "refresh frozen output test");
     setAssistantOutput(
       "agent:main:subagent:refresh",
@@ -478,7 +478,7 @@ describe("subagent registry lifecycle error grace", () => {
   });
 
   // CB-SKIP: CB subagent cleanup lifecycle differs
-  it.skip("ignores silent follow-up turns when refreshing frozen completion output", async () => {
+  it("ignores silent follow-up turns when refreshing frozen completion output", async () => {
     registerCompletionRun("run-refresh-silent", "refresh-silent", "refresh silent test");
     setAssistantOutput("agent:main:subagent:refresh-silent", "All work complete, final summary");
     agentCallPlan = ["throw", "ok"];
@@ -512,7 +512,7 @@ describe("subagent registry lifecycle error grace", () => {
   });
 
   // CB-SKIP: CB subagent cleanup lifecycle differs
-  it.skip("regression, captures frozen completion output with 100KB cap and retains it for keep-mode cleanup", async () => {
+  it("regression, captures frozen completion output with 100KB cap and retains it for keep-mode cleanup", async () => {
     registerCompletionRun("run-capped", "capped", "capped result test");
     setAssistantOutput("agent:main:subagent:capped", "x".repeat(120 * 1024));
 
@@ -532,7 +532,7 @@ describe("subagent registry lifecycle error grace", () => {
   });
 
   // CB-SKIP: CB subagent cleanup lifecycle differs, test exceeds timeout
-  it.skip("keeps parallel child completion results frozen even when late traffic arrives", async () => {
+  it("keeps parallel child completion results frozen even when late traffic arrives", async () => {
     // Regression guard: fan-out retries must preserve each child's first frozen result text.
     registerCompletionRun("run-parallel-a", "parallel-a", "parallel a");
     registerCompletionRun("run-parallel-b", "parallel-b", "parallel b");

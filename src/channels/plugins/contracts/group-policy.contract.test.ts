@@ -81,7 +81,7 @@ describe("channel runtime group policy contract", () => {
   });
 
   // CB: skip — iMessage extension transitive imports fail in vitest
-  describe.skip("imessage", () => {
+  describe("imessage", () => {
     installChannelRuntimeGroupPolicyFallbackSuite({
       resolve: resolveIMessageRuntimeGroupPolicy,
       configuredLabel: "keeps open fallback when channels.imessage is configured",
@@ -92,7 +92,7 @@ describe("channel runtime group policy contract", () => {
   });
 
   // CB: skip — Discord extension transitive imports fail in vitest
-  describe.skip("discord", () => {
+  describe("discord", () => {
     installChannelRuntimeGroupPolicyFallbackSuite({
       resolve: resolveDiscordRuntimeGroupPolicy,
       configuredLabel: "keeps open default when channels.discord is configured",

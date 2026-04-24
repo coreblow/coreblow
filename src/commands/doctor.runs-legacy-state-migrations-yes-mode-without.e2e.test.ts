@@ -63,7 +63,7 @@ describe("doctor command", () => {
   });
 
   // CB-SKIP: CB legacy state migration API differs for oauth profile id handling
-  it.skip("migrates anthropic oauth config profile id when only email profile exists", async () => {
+  it("migrates anthropic oauth config profile id when only email profile exists", async () => {
     mockDoctorConfigSnapshot({
       config: {
         auth: {

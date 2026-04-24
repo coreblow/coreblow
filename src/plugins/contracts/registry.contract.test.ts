@@ -70,7 +70,7 @@ describe("plugin contract registry", () => {
     expectUniqueIds(ids());
   });
 
-  // CB: skip — requires node-edge-tts (Microsoft speech extension not installed)
+  // Skip: requires native node-edge-tts runtime for Microsoft speech manifest
   it.skip(
     "does not duplicate bundled speech provider ids",
     { timeout: REGISTRY_CONTRACT_TIMEOUT_MS },
@@ -86,7 +86,7 @@ describe("plugin contract registry", () => {
     });
   });
 
-  // CB: skip — requires node-edge-tts (Microsoft speech extension not installed)
+  // Skip: requires native node-edge-tts runtime for Microsoft speech manifest
   it.skip("covers every bundled speech plugin discovered from manifests", () => {
     expectRegistryPluginIds({
       actualPluginIds: speechProviderContractRegistry.map((entry) => entry.pluginId),

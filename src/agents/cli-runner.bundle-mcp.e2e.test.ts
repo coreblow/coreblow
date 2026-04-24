@@ -14,7 +14,7 @@ import { runCliAgent } from "./cli-runner.js";
 const E2E_TIMEOUT_MS = 20_000;
 
 describe("runCliAgent bundle MCP e2e", () => {
-  it.skip(
+  it(
     // CB-SKIP: CB routes --mcp-config via a different code path than OC's claude-cli backend
     "routes enabled bundle MCP config into the claude-cli backend and executes the tool",
     { timeout: E2E_TIMEOUT_MS },

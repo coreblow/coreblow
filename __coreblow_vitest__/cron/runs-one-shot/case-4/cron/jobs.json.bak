@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "jobs": [
+    {
+      "id": "fb68ebf5-b73f-416d-a404-58175214dadc",
+      "sessionKey": "agent:main:discord:channel:ops",
+      "name": "wakeMode now fallback",
+      "enabled": true,
+      "deleteAfterRun": true,
+      "createdAtMs": 40,
+      "updatedAtMs": 40,
+      "schedule": {
+        "kind": "at",
+        "at": "1970-01-01T00:00:00.001Z"
+      },
+      "sessionTarget": "main",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "systemEvent",
+        "text": "hello"
+      },
+      "state": {
+        "nextRunAtMs": 1,
+        "runningAtMs": 80
+      }
+    }
+  ]
+}

@@ -182,7 +182,7 @@ const readSessionMessages = async (sessionFile: string) => {
 };
 
 describe("runEmbeddedPiAgent bundle MCP e2e", () => {
-  it.skip(
+  it(
     "loads bundle MCP into Pi, executes the MCP tool, and includes the result in the follow-up turn",
     { timeout: E2E_TIMEOUT_MS },
     async () => {

@@ -763,7 +763,7 @@ describe("runReplyAgent typing (heartbeat)", () => {
   });
 
   // CB-SKIP: CB reply agent compaction dispatch differs from OC
-  it.skip("announces auto-compaction in verbose mode and tracks count", async () => {
+  it("announces auto-compaction in verbose mode and tracks count", async () => {
     await withTempStateDir(async (stateDir) => {
       const storePath = path.join(stateDir, "sessions", "sessions.json");
       const sessionEntry: SessionEntry = { sessionId: "session", updatedAt: Date.now() };
@@ -1667,7 +1667,7 @@ describe("runReplyAgent typing (heartbeat)", () => {
 
 // CB-SKIP: CB reply agent memory flush path differs — flush dispatch, CLI provider detection,
 // and bootstrap warning signature propagation use different internal APIs
-describe.skip("runReplyAgent memory flush", () => {
+describe("runReplyAgent memory flush", () => {
   let fixtureRoot = "";
   let caseId = 0;
 

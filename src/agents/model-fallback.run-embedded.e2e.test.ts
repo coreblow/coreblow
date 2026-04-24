@@ -299,7 +299,7 @@ function mockAllProvidersOverloaded() {
 
 describe("runWithModelFallback + runEmbeddedPiAgent overload policy", () => {
   // CB-SKIP: CB throws LiveSessionModelSwitchError in pi-embedded-runner before fallback processes overload
-  it.skip("falls back across providers after overloaded primary failure and persists transient cooldown", async () => {
+  it("falls back across providers after overloaded primary failure and persists transient cooldown", async () => {
     await withAgentWorkspace(async ({ agentDir, workspaceDir }) => {
       await writeAuthStore(agentDir);
       mockPrimaryOverloadedThenFallbackSuccess();
@@ -328,7 +328,7 @@ describe("runWithModelFallback + runEmbeddedPiAgent overload policy", () => {
   });
 
   // CB-SKIP: CB throws LiveSessionModelSwitchError before fallback aggregation
-  it.skip("surfaces a bounded overloaded summary when every fallback candidate is overloaded", async () => {
+  it("surfaces a bounded overloaded summary when every fallback candidate is overloaded", async () => {
     await withAgentWorkspace(async ({ agentDir, workspaceDir }) => {
       await writeAuthStore(agentDir);
       mockAllProvidersOverloaded();
@@ -366,7 +366,7 @@ describe("runWithModelFallback + runEmbeddedPiAgent overload policy", () => {
   });
 
   // CB-SKIP: CB LiveSessionModelSwitchError pre-empts cooldown probe
-  it.skip("probes a provider already in overloaded cooldown before falling back", async () => {
+  it("probes a provider already in overloaded cooldown before falling back", async () => {
     await withAgentWorkspace(async ({ agentDir, workspaceDir }) => {
       const now = Date.now();
       await writeAuthStore(agentDir, {
@@ -392,7 +392,7 @@ describe("runWithModelFallback + runEmbeddedPiAgent overload policy", () => {
   });
 
   // CB-SKIP: CB LiveSessionModelSwitchError pre-empts multi-turn cooldown
-  it.skip("persists overloaded cooldown across turns while still allowing one probe and fallback", async () => {
+  it("persists overloaded cooldown across turns while still allowing one probe and fallback", async () => {
     await withAgentWorkspace(async ({ agentDir, workspaceDir }) => {
       await writeAuthStore(agentDir);
       mockPrimaryOverloadedThenFallbackSuccess();
@@ -431,7 +431,7 @@ describe("runWithModelFallback + runEmbeddedPiAgent overload policy", () => {
   });
 
   // CB-SKIP: CB LiveSessionModelSwitchError changes the error lane classification
-  it.skip("keeps bare service-unavailable failures in the timeout lane without persisting cooldown", async () => {
+  it("keeps bare service-unavailable failures in the timeout lane without persisting cooldown", async () => {
     await withAgentWorkspace(async ({ agentDir, workspaceDir }) => {
       await writeAuthStore(agentDir);
       mockPrimaryErrorThenFallbackSuccess("LLM error: service unavailable");

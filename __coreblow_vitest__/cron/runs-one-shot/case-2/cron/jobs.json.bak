@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "jobs": [
+    {
+      "id": "1d650249-8058-4ad8-87d2-96df356f6471",
+      "name": "wakeMode now waits",
+      "enabled": true,
+      "deleteAfterRun": true,
+      "createdAtMs": 40,
+      "updatedAtMs": 40,
+      "schedule": {
+        "kind": "at",
+        "at": "1970-01-01T00:00:00.001Z"
+      },
+      "sessionTarget": "main",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "systemEvent",
+        "text": "hello"
+      },
+      "state": {
+        "nextRunAtMs": 1,
+        "runningAtMs": 80
+      }
+    }
+  ]
+}

@@ -569,7 +569,7 @@ async function runTurnWithCooldownSeed(params: {
 
 // CB-SKIP: CB throws LiveSessionModelSwitchError at run.ts:457 before auth profile rotation
 // logic executes — this is a fundamental CB architectural change in overload handling
-describe.skip("runEmbeddedPiAgent auth profile rotation", () => {
+describe("runEmbeddedPiAgent auth profile rotation", () => {
   it("refreshes copilot token after auth error and retries once", async () => {
     const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-agent-"));
     const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-workspace-"));

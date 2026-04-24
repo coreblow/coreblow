@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { BtwInlineMessage } from "./btw-inline-message.js";
 
-describe.skip("btw inline message", () => {
+describe("btw inline message", () => {
   it("renders the BTW question, answer, and dismiss hint inline", () => {
     const message = new BtwInlineMessage({
       question: "what is 17 * 19?",

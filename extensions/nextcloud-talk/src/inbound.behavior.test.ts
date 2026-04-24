@@ -137,7 +137,7 @@ describe("nextcloud-talk inbound behavior", () => {
 
   // The DM pairing assertion currently depends on a mocked runtime barrel that Vitest
   // does not bind reliably for this extension package.
-  it.skip("issues a DM pairing challenge and sends the challenge text", async () => {
+  it("issues a DM pairing challenge and sends the challenge text", async () => {
     createChannelPairingControllerMock.mockReturnValue({
       readStoreForDmPolicy: vi.fn(),
       issueChallenge: vi.fn(),
