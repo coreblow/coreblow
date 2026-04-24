@@ -53,14 +53,14 @@ let mod: Pick<
   "downloadViaPlaywright" | "waitForDownloadViaPlaywright"
 > &
   Pick<typeof import("./pw-tools-core.responses.js"), "responseBodyViaPlaywright">;
-let tmpDirModule: typeof import("../infra/tmp-openclaw-dir.js");
+let tmpDirModule: typeof import("../infra/tmp-coreblow-dir.js");
 
 describe("pw-tools-core", () => {
   beforeAll(async () => {
     vi.resetModules();
     vi.doMock("./pw-session.js", () => sessionMocks);
     vi.doMock("./chrome.js", () => chromeMocks);
-    tmpDirModule = await import("../infra/tmp-openclaw-dir.js");
+    tmpDirModule = await import("../infra/tmp-coreblow-dir.js");
     vi.spyOn(tmpDirModule, "resolvePreferredCoreBlowTmpDir").mockImplementation(
       tmpDirMocks.resolvePreferredCoreBlowTmpDir,
     );

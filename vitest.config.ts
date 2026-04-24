@@ -56,6 +56,11 @@ export default defineConfig({
                 find: '@whiskeysockets/baileys',
                 replacement: path.resolve(repoRoot, 'src/stubs/whiskeysockets-baileys.ts'),
             },
+            // Stub for node-edge-tts (optional native dep, used by extensions/microsoft)
+            {
+                find: /^node-edge-tts(\/.*)?$/,
+                replacement: path.resolve(repoRoot, 'src/stubs/node-edge-tts.ts'),
+            },
         ],
     },
     test: {
