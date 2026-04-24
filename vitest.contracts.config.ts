@@ -41,7 +41,7 @@ export default defineConfig({
     },
     test: {
         name: 'contracts',
-        include: ['tests/contracts/**/*.contract.test.ts'],
+        include: ['tests/contracts/**/*.contract.test.ts', 'src/**/*.contract.test.ts'],
         globals: true,
         environment: 'node',
         reporters: ['verbose'],

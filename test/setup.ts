@@ -47,6 +47,7 @@ vi.mock("@mariozechner/pi-coding-agent", () => {
     ModelRegistry,
     PiCodingAgent,
     SessionManager: class {
+      private entries: unknown[] = [];
       constructor() {}
       static open() {
         return {
@@ -58,6 +59,13 @@ vi.mock("@mariozechner/pi-coding-agent", () => {
           save: () => {},
         };
       }
+      static inMemory(cwd?: string) {
+        const sm = new this();
+        return sm;
+      }
+      appendMessage(msg: unknown) { this.entries.push({ type: "message", message: msg }); }
+      getEntries() { return [...this.entries]; }
+      getSessionFile() { return "/tmp/coreblow-test-session.jsonl"; }
       open() {} list() {} get() {} create() {} delete() {} save() {} close() {}
     },
     SettingsManager: class { constructor() {} get() { return null; } set() {} getAll() { return {}; } },

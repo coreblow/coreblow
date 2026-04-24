@@ -127,7 +127,7 @@ export function buildBootstrapInjectionStats(params: {
 }): BootstrapInjectionStat[] {
   const injectedByPath = new Map<string, string>();
   const injectedByBaseName = new Map<string, string>();
-  for (const file of params.injectedFiles) {
+  for (const file of params.injectedFiles ?? []) {
     const pathValue = typeof file.path === "string" ? file.path.trim() : "";
     if (!pathValue) {
       continue;
@@ -141,7 +141,7 @@ export function buildBootstrapInjectionStats(params: {
       injectedByBaseName.set(baseName, file.content);
     }
   }
-  return params.bootstrapFiles.map((file) => {
+  return (params.bootstrapFiles ?? []).map((file) => {
     const pathValue = typeof file.path === "string" ? file.path.trim() : "";
     const rawChars = file.missing ? 0 : (file.content ?? "").trimEnd().length;
     const injected =

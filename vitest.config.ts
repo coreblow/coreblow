@@ -58,6 +58,11 @@ export default defineConfig({
                 find: 'markdown-it',
                 replacement: path.resolve(repoRoot, 'src/stubs/markdown-it.ts'),
             },
+            // Stub for @whiskeysockets/baileys (used by extensions/whatsapp)
+            {
+                find: '@whiskeysockets/baileys',
+                replacement: path.resolve(repoRoot, 'src/stubs/whiskeysockets-baileys.ts'),
+            },
         ],
     },
     test: {
@@ -159,6 +164,8 @@ export default defineConfig({
             // Extension live/e2e tests require network/browser runtime
             'extensions/**/*.e2e.test.ts',
             'extensions/**/*.live.test.ts',
+            // cron-protocol-conformance requires optional ui/ workspace
+            'src/cron/cron-protocol-conformance.test.ts',
 
             // ── Per-file excludes: require full integration stack ──
             // security: requires os-level audit tools
