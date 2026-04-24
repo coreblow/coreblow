@@ -1,6 +1,6 @@
 import { Type } from "@sinclair/typebox";
-import type { ChannelMessageActionContext } from "openclaw/plugin-sdk/channel-contract";
-import type { CoreBlowConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { ChannelMessageActionContext } from "coreblow/plugin-sdk/channel-contract";
+import type { CoreBlowConfig } from "coreblow/plugin-sdk/config-runtime";
 import { describe, expect, it, vi } from "vitest";
 
 const handleDiscordMessageActionMock = vi.hoisted(() =>

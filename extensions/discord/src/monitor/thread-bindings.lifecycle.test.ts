@@ -68,7 +68,7 @@ const { resolveThreadBindingInactivityExpiresAt, resolveThreadBindingMaxAgeExpir
 const { resolveThreadBindingIntroText } = await import("./thread-bindings.messages.js");
 const discordClientModule = await import("../client.js");
 const discordThreadBindingApi = await import("./thread-bindings.discord-api.js");
-const acpRuntime = await import("openclaw/plugin-sdk/acp-runtime");
+const acpRuntime = await import("coreblow/plugin-sdk/acp-runtime");
 
 describe("thread binding lifecycle", () => {
   beforeEach(() => {

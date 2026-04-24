@@ -1,5 +1,5 @@
 import { rm } from "node:fs/promises";
-import type { PluginInteractiveTelegramHandlerContext } from "openclaw/plugin-sdk/core";
+import type { PluginInteractiveTelegramHandlerContext } from "coreblow/plugin-sdk/core";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { expectChannelInboundContextContract as expectInboundContextContract } from "../../../src/channels/plugins/contracts/suites.js";
 import {

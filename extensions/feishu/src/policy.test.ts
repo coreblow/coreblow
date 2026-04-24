@@ -1,4 +1,4 @@
-import type { CoreBlowConfig } from "openclaw/plugin-sdk/core";
+import type { CoreBlowConfig } from "coreblow/plugin-sdk/core";
 import { describe, expect, it } from "vitest";
 import { FeishuConfigSchema } from "./config-schema.js";
 import {

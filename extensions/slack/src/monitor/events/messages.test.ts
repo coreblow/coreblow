@@ -8,7 +8,7 @@ const messageQueueMock = vi.fn();
 const messageAllowMock = vi.fn();
 
 async function createChannelRuntimeMock(
-  importOriginal: () => Promise<typeof import("openclaw/plugin-sdk/channel-runtime")>,
+  importOriginal: () => Promise<typeof import("coreblow/plugin-sdk/channel-runtime")>,
 ) {
   const actual = await importOriginal();
   return {
@@ -21,7 +21,7 @@ vi.mock("coreblow/plugin-sdk/channel-runtime", createChannelRuntimeMock);
 vi.mock("coreblow/plugin-sdk/channel-runtime.js", createChannelRuntimeMock);
 
 vi.mock("coreblow/plugin-sdk/conversation-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/conversation-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/conversation-runtime")>();
   return {
     ...actual,
     readChannelAllowFromStore: (...args: unknown[]) => messageAllowMock(...args),

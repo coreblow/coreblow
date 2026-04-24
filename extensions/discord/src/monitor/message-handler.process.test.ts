@@ -118,7 +118,7 @@ vi.spyOn(replyDeliveryModule, "deliverDiscordReply").mockImplementation(
     deliveryMocks.deliverDiscordReply(params) as never) as never,
 );
 
-const replyRuntimeModule = await import("openclaw/plugin-sdk/reply-runtime");
+const replyRuntimeModule = await import("coreblow/plugin-sdk/reply-runtime");
 vi.spyOn(replyRuntimeModule, "dispatchInboundMessage").mockImplementation(
   ((params: Parameters<typeof replyRuntimeModule.dispatchInboundMessage>[0]) =>
     dispatchInboundMessage(params as DispatchInboundParams) as never) as never,
@@ -145,13 +145,13 @@ vi.spyOn(replyRuntimeModule, "createReplyDispatcherWithTyping").mockImplementati
   markRunComplete: vi.fn(),
 })) as never);
 
-const conversationRuntimeModule = await import("openclaw/plugin-sdk/conversation-runtime");
+const conversationRuntimeModule = await import("coreblow/plugin-sdk/conversation-runtime");
 vi.spyOn(conversationRuntimeModule, "recordInboundSession").mockImplementation(
   ((params: Parameters<typeof conversationRuntimeModule.recordInboundSession>[0]) =>
     recordInboundSession(params) as never) as never,
 );
 
-const configRuntimeModule = await import("openclaw/plugin-sdk/config-runtime");
+const configRuntimeModule = await import("coreblow/plugin-sdk/config-runtime");
 vi.spyOn(configRuntimeModule, "readSessionUpdatedAt").mockImplementation(
   ((params: Parameters<typeof configRuntimeModule.readSessionUpdatedAt>[0]) =>
     configSessionsMocks.readSessionUpdatedAt(params) as never) as never,

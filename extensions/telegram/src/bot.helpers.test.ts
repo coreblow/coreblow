@@ -1,4 +1,4 @@
-import type { CoreBlowConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { CoreBlowConfig } from "coreblow/plugin-sdk/config-runtime";
 import { describe, expect, it } from "vitest";
 import { resolveTelegramStreamMode } from "./bot/helpers.js";
 import { resolveTelegramDraftStreamingChunking } from "./draft-chunking.js";

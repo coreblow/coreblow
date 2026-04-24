@@ -1,6 +1,6 @@
 import { ServerResponse, type IncomingMessage } from "node:http";
 import { PassThrough } from "node:stream";
-import type { CoreBlowConfig, RuntimeEnv } from "openclaw/plugin-sdk/mattermost";
+import type { CoreBlowConfig, RuntimeEnv } from "coreblow/plugin-sdk/mattermost";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ResolvedMattermostAccount } from "./accounts.js";
 

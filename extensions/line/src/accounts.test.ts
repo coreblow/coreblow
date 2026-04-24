@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import type { CoreBlowConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { CoreBlowConfig } from "coreblow/plugin-sdk/config-runtime";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   resolveLineAccount,

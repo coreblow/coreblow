@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { resolvePreferredCoreBlowTmpDir } from "openclaw/plugin-sdk/temp-path";
+import { resolvePreferredCoreBlowTmpDir } from "coreblow/plugin-sdk/temp-path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const getMessageContentMock = vi.hoisted(() => vi.fn());

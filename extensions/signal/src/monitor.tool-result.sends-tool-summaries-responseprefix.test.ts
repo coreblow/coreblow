@@ -1,5 +1,5 @@
-import { resolveAgentRoute } from "openclaw/plugin-sdk/routing";
-import { normalizeE164 } from "openclaw/plugin-sdk/text-runtime";
+import { resolveAgentRoute } from "coreblow/plugin-sdk/routing";
+import { normalizeE164 } from "coreblow/plugin-sdk/text-runtime";
 import { describe, expect, it, vi } from "vitest";
 import type { CoreBlowConfig } from "../../../src/config/config.js";
 import { expectPairingReplyText } from "../../../test/helpers/pairing-reply.js";

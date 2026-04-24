@@ -48,7 +48,7 @@ vi.mock("../runtime-api.js", async (importOriginal) => {
 });
 
 vi.mock("coreblow/plugin-sdk/ssrf-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/ssrf-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/ssrf-runtime")>();
   return {
     ...actual,
     fetchWithSsrFGuard,

@@ -19,7 +19,7 @@ let removeReactionDiscord: typeof import("./send.js").removeReactionDiscord;
 let searchMessagesDiscord: typeof import("./send.js").searchMessagesDiscord;
 let sendMessageDiscord: typeof import("./send.js").sendMessageDiscord;
 let unpinMessageDiscord: typeof import("./send.js").unpinMessageDiscord;
-let loadWebMedia: typeof import("openclaw/plugin-sdk/web-media").loadWebMedia;
+let loadWebMedia: typeof import("coreblow/plugin-sdk/web-media").loadWebMedia;
 let __resetDiscordDirectoryCacheForTest: typeof import("./directory-cache.js").__resetDiscordDirectoryCacheForTest;
 let rememberDiscordDirectoryUser: typeof import("./directory-cache.js").rememberDiscordDirectoryUser;
 
@@ -39,7 +39,7 @@ beforeAll(async () => {
     sendMessageDiscord,
     unpinMessageDiscord,
   } = await import("./send.js"));
-  ({ loadWebMedia } = await import("openclaw/plugin-sdk/web-media"));
+  ({ loadWebMedia } = await import("coreblow/plugin-sdk/web-media"));
   ({ __resetDiscordDirectoryCacheForTest, rememberDiscordDirectoryUser } =
     await import("./directory-cache.js"));
 });

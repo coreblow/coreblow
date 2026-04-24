@@ -50,7 +50,7 @@ vi.mock("./login.js", () => ({
 }));
 
 vi.mock("coreblow/plugin-sdk/setup", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/setup")>(
+  const actual = await vi.importActual<typeof import("coreblow/plugin-sdk/setup")>(
     "coreblow/plugin-sdk/setup",
   );
   return {

@@ -1,4 +1,4 @@
-import * as imageGenerationCore from "openclaw/plugin-sdk/image-generation-core";
+import * as imageGenerationCore from "coreblow/plugin-sdk/image-generation-core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildGoogleImageGenerationProvider } from "./image-generation-provider.js";
 import { __testing as geminiWebSearchTesting } from "./src/gemini-web-search-provider.js";

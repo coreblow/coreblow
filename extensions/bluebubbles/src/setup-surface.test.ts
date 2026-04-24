@@ -1,4 +1,4 @@
-import { adaptScopedAccountAccessor } from "openclaw/plugin-sdk/channel-config-helpers";
+import { adaptScopedAccountAccessor } from "coreblow/plugin-sdk/channel-config-helpers";
 import { describe, expect, it, vi } from "vitest";
 import { DEFAULT_ACCOUNT_ID } from "../../../src/routing/session-key.js";
 import {

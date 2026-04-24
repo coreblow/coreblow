@@ -30,7 +30,7 @@ vi.mock("node:child_process", async () => {
 });
 
 vi.mock("coreblow/plugin-sdk/provider-auth", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/provider-auth")>(
+  const actual = await vi.importActual<typeof import("coreblow/plugin-sdk/provider-auth")>(
     "coreblow/plugin-sdk/provider-auth",
   );
   return {

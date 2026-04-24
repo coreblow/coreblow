@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import type { CoreBlowConfig } from "openclaw/plugin-sdk/memory-core";
+import type { CoreBlowConfig } from "coreblow/plugin-sdk/memory-core";
 import { describe, expect, it, vi } from "vitest";
 import plugin, {
   buildMemoryFlushPlan,

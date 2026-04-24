@@ -6,7 +6,7 @@ const saveMediaBuffer = vi.fn();
 const fetchRemoteMedia = vi.fn();
 
 vi.mock("coreblow/plugin-sdk/media-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/media-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/media-runtime")>();
   return {
     ...actual,
     saveMediaBuffer: (...args: unknown[]) => saveMediaBuffer(...args),
@@ -15,7 +15,7 @@ vi.mock("coreblow/plugin-sdk/media-runtime", async (importOriginal) => {
 });
 
 vi.mock("coreblow/plugin-sdk/runtime-env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/runtime-env")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/runtime-env")>();
   return {
     ...actual,
     logVerbose: () => {},

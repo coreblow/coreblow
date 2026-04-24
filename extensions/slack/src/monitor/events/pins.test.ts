@@ -6,7 +6,7 @@ let buildPinHarness: typeof import("./system-event-test-harness.js").createSlack
 type PinOverrides = import("./system-event-test-harness.js").SlackSystemEventTestOverrides;
 
 async function createChannelRuntimeMock(
-  importOriginal: () => Promise<typeof import("openclaw/plugin-sdk/channel-runtime")>,
+  importOriginal: () => Promise<typeof import("coreblow/plugin-sdk/channel-runtime")>,
 ) {
   const actual = await importOriginal();
   return { ...actual, enqueueSystemEvent: pinEnqueueMock };

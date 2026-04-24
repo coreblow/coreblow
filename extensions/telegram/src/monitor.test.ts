@@ -242,7 +242,7 @@ async function monitorWithAutoAbort(opts: Omit<MonitorTelegramOpts, "abortSignal
 }
 
 vi.mock("coreblow/plugin-sdk/config-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/config-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/config-runtime")>();
   return {
     ...actual,
     loadConfig,
@@ -287,7 +287,7 @@ vi.mock("@grammyjs/runner", () => ({
 }));
 
 vi.mock("coreblow/plugin-sdk/runtime-env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/runtime-env")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/runtime-env")>();
   return {
     ...actual,
     computeBackoff,
@@ -310,7 +310,7 @@ vi.mock("./update-offset-store.js", () => ({
 }));
 
 vi.mock("coreblow/plugin-sdk/reply-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/reply-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/reply-runtime")>();
   return {
     ...actual,
     getReplyFromConfig: async (ctx: { Body?: string }) => ({

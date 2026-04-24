@@ -46,7 +46,7 @@ vi.mock("./draft-stream.js", () => ({
 }));
 
 vi.mock("coreblow/plugin-sdk/reply-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/reply-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/reply-runtime")>();
   return {
     ...actual,
     generateTopicLabel,
@@ -75,7 +75,7 @@ vi.mock("./send.js", () => ({
 }));
 
 vi.mock("coreblow/plugin-sdk/config-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/config-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/config-runtime")>();
   return {
     ...actual,
     loadConfig,

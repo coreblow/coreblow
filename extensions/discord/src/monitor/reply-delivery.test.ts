@@ -51,7 +51,7 @@ vi.mock("../send.shared.js", () => ({
 }));
 
 vi.mock("coreblow/plugin-sdk/retry-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/retry-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/retry-runtime")>();
   return {
     ...actual,
     retryAsync: retryAsyncMock,

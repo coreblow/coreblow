@@ -1,9 +1,9 @@
 import type { ButtonInteraction, ComponentData, StringSelectMenuInteraction } from "@buape/carbon";
-import type { CoreBlowConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { DiscordAccountConfig } from "openclaw/plugin-sdk/config-runtime";
-import * as conversationRuntime from "openclaw/plugin-sdk/conversation-runtime";
-import { buildAgentSessionKey } from "openclaw/plugin-sdk/routing";
-import * as securityRuntime from "openclaw/plugin-sdk/security-runtime";
+import type { CoreBlowConfig } from "coreblow/plugin-sdk/config-runtime";
+import type { DiscordAccountConfig } from "coreblow/plugin-sdk/config-runtime";
+import * as conversationRuntime from "coreblow/plugin-sdk/conversation-runtime";
+import { buildAgentSessionKey } from "coreblow/plugin-sdk/routing";
+import * as securityRuntime from "coreblow/plugin-sdk/security-runtime";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { peekSystemEvents, resetSystemEventsForTest } from "../../../../src/infra/system-events.ts";
 import {

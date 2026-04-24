@@ -22,7 +22,7 @@ const { resolveTelegramFetch } = vi.hoisted(() => ({
 }));
 
 vi.mock("coreblow/plugin-sdk/config-runtime", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/config-runtime")>(
+  const actual = await vi.importActual<typeof import("coreblow/plugin-sdk/config-runtime")>(
     "coreblow/plugin-sdk/config-runtime",
   );
   return {

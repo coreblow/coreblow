@@ -1,6 +1,6 @@
 import { RateLimitError } from "@buape/carbon";
 import { ChannelType, Routes } from "discord-api-types/v10";
-import { loadWebMediaRaw } from "openclaw/plugin-sdk/web-media";
+import { loadWebMediaRaw } from "coreblow/plugin-sdk/web-media";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { makeDiscordRest } from "./send.test-harness.js";
 

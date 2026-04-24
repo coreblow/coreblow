@@ -64,7 +64,7 @@ vi.mock("coreblow/plugin-sdk/channel-runtime", () => ({
 }));
 
 vi.mock("coreblow/plugin-sdk/runtime-env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/runtime-env")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/runtime-env")>();
   return {
     ...actual,
     logVerbose: logVerboseMock,

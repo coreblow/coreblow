@@ -17,7 +17,7 @@ const upsertPairingRequestMock = vi.fn().mockResolvedValue({ code: "PAIRCODE", c
 const saveMediaBufferSpy = vi.fn();
 
 vi.mock("coreblow/plugin-sdk/config-runtime", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/config-runtime")>(
+  const actual = await vi.importActual<typeof import("coreblow/plugin-sdk/config-runtime")>(
     "coreblow/plugin-sdk/config-runtime",
   );
   return {
@@ -48,7 +48,7 @@ vi.mock("../../../src/pairing/pairing-store.js", () => {
 });
 
 vi.mock("coreblow/plugin-sdk/media-runtime", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/media-runtime")>(
+  const actual = await vi.importActual<typeof import("coreblow/plugin-sdk/media-runtime")>(
     "coreblow/plugin-sdk/media-runtime",
   );
   return {

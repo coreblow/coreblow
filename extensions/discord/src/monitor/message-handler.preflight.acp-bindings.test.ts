@@ -1,4 +1,4 @@
-import * as conversationRuntime from "openclaw/plugin-sdk/conversation-runtime";
+import * as conversationRuntime from "coreblow/plugin-sdk/conversation-runtime";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createConfiguredBindingConversationRuntimeModuleMock } from "../../../../test/helpers/extensions/configured-binding-runtime.js";
 

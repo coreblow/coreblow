@@ -12,7 +12,7 @@ let monitorWebInbox: typeof import("./inbound.js").monitorWebInbox;
 const inboundLoggerInfoMock = vi.hoisted(() => vi.fn());
 
 vi.mock("coreblow/plugin-sdk/text-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/text-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/text-runtime")>();
   return {
     ...actual,
     getChildLogger: () => ({

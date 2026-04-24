@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { CoreBlowConfig } from "openclaw/plugin-sdk/memory-core-host-engine-foundation";
+import type { CoreBlowConfig } from "coreblow/plugin-sdk/memory-core-host-engine-foundation";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_OLLAMA_EMBEDDING_MODEL } from "./embeddings.js";
 import type {

@@ -1,4 +1,4 @@
-import type { CoreBlowConfig } from "openclaw/plugin-sdk/memory-core-host-engine-foundation";
+import type { CoreBlowConfig } from "coreblow/plugin-sdk/memory-core-host-engine-foundation";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 function createManagerStatus(params: {

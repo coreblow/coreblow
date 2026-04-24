@@ -1,5 +1,5 @@
-import * as agentRuntimeModule from "openclaw/plugin-sdk/agent-runtime";
-import type { CoreBlowConfig } from "openclaw/plugin-sdk/config-runtime";
+import * as agentRuntimeModule from "coreblow/plugin-sdk/agent-runtime";
+import type { CoreBlowConfig } from "coreblow/plugin-sdk/config-runtime";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const completeWithPreparedSimpleCompletionModelMock =

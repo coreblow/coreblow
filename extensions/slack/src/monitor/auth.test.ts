@@ -6,7 +6,7 @@ let clearSlackAllowFromCacheForTest: typeof import("./auth.js").clearSlackAllowF
 let resolveSlackEffectiveAllowFrom: typeof import("./auth.js").resolveSlackEffectiveAllowFrom;
 
 vi.mock("coreblow/plugin-sdk/security-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/security-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/security-runtime")>();
   return {
     ...actual,
     readStoreAllowFromForDmPolicy: (...args: unknown[]) =>

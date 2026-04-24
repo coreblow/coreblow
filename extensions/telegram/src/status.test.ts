@@ -1,4 +1,4 @@
-import type { ChannelAccountSnapshot } from "openclaw/plugin-sdk/channel-contract";
+import type { ChannelAccountSnapshot } from "coreblow/plugin-sdk/channel-contract";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_EMOJIS } from "../../../src/channels/status-reactions.js";
 import type { TelegramChatDetails, TelegramGetChat } from "./bot/types.js";

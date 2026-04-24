@@ -5,7 +5,7 @@ vi.mock("coreblow/plugin-sdk/runtime-env", () => ({
   logVerbose: vi.fn(),
 }));
 
-let logVerbose: typeof import("openclaw/plugin-sdk/runtime-env").logVerbose;
+let logVerbose: typeof import("coreblow/plugin-sdk/runtime-env").logVerbose;
 let attachDiscordGatewayLogging: typeof import("./gateway-logging.js").attachDiscordGatewayLogging;
 
 const makeRuntime = () => ({
@@ -17,7 +17,7 @@ const makeRuntime = () => ({
 describe("attachDiscordGatewayLogging", () => {
   beforeEach(async () => {
     vi.resetModules();
-    ({ logVerbose } = await import("openclaw/plugin-sdk/runtime-env"));
+    ({ logVerbose } = await import("coreblow/plugin-sdk/runtime-env"));
     ({ attachDiscordGatewayLogging } = await import("./gateway-logging.js"));
   });
 

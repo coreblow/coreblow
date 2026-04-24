@@ -70,7 +70,7 @@ vi.mock("../send.shared.js", async (importOriginal) => {
 });
 
 vi.mock("coreblow/plugin-sdk/gateway-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/gateway-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/gateway-runtime")>();
   type CreateOperatorApprovalsGatewayClientParams = Parameters<
     typeof actual.createOperatorApprovalsGatewayClient
   >[0];
@@ -216,7 +216,7 @@ vi.mock("../client.js", () => ({
 }));
 
 vi.mock("coreblow/plugin-sdk/text-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/text-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/text-runtime")>();
   return {
     ...actual,
     logDebug: vi.fn(),

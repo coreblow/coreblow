@@ -15,7 +15,7 @@ function getCapturedCtx() {
 }
 
 vi.mock("coreblow/plugin-sdk/reply-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/reply-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/reply-runtime")>();
   return buildDispatchInboundCaptureMock(actual, (ctx) => {
     capturedCtx = ctx as SignalMsgContext;
   });

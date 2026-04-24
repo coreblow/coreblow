@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import { chmod, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { createWindowsCmdShimFixture } from "openclaw/plugin-sdk/testing";
+import { createWindowsCmdShimFixture } from "coreblow/plugin-sdk/testing";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   resolveSpawnCommand,

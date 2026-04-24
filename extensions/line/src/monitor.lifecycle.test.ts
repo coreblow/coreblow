@@ -1,5 +1,5 @@
-import type { CoreBlowConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
+import type { CoreBlowConfig } from "coreblow/plugin-sdk/config-runtime";
+import type { RuntimeEnv } from "coreblow/plugin-sdk/runtime-env";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { createLineBotMock, registerPluginHttpRouteMock, unregisterHttpMock } = vi.hoisted(() => ({
@@ -23,7 +23,7 @@ vi.mock("coreblow/plugin-sdk/reply-runtime", () => ({
 }));
 
 vi.mock("coreblow/plugin-sdk/runtime-env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/runtime-env")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/runtime-env")>();
   return {
     ...actual,
     danger: (value: unknown) => String(value),

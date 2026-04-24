@@ -7,9 +7,9 @@ import type {
 import type { Client } from "@buape/carbon";
 import { ChannelType } from "discord-api-types/v10";
 import type { GatewayPresenceUpdate } from "discord-api-types/v10";
-import type { CoreBlowConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { DiscordAccountConfig } from "openclaw/plugin-sdk/config-runtime";
-import { buildPluginBindingApprovalCustomId } from "openclaw/plugin-sdk/conversation-runtime";
+import type { CoreBlowConfig } from "coreblow/plugin-sdk/config-runtime";
+import type { DiscordAccountConfig } from "coreblow/plugin-sdk/config-runtime";
+import { buildPluginBindingApprovalCustomId } from "coreblow/plugin-sdk/conversation-runtime";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   buildPluginBindingResolvedTextMock,
@@ -65,7 +65,7 @@ const dispatchPluginInteractiveHandlerMock = vi.hoisted(() => vi.fn());
 let lastDispatchCtx: Record<string, unknown> | undefined;
 
 async function createChannelRuntimeMock(
-  importOriginal: () => Promise<typeof import("openclaw/plugin-sdk/channel-runtime")>,
+  importOriginal: () => Promise<typeof import("coreblow/plugin-sdk/channel-runtime")>,
 ) {
   const actual = await importOriginal();
   return {
@@ -78,7 +78,7 @@ vi.mock("coreblow/plugin-sdk/channel-runtime", createChannelRuntimeMock);
 vi.mock("coreblow/plugin-sdk/channel-runtime.js", createChannelRuntimeMock);
 
 vi.mock("coreblow/plugin-sdk/reply-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/reply-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/reply-runtime")>();
   return {
     ...actual,
     dispatchReplyWithBufferedBlockDispatcher: (...args: unknown[]) => dispatchReplyMock(...args),
@@ -99,7 +99,7 @@ vi.mock("../../../../src/auto-reply/reply/provider-dispatcher.js", async (import
 });
 
 vi.mock("coreblow/plugin-sdk/config-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/config-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/config-runtime")>();
   return {
     ...actual,
     readSessionUpdatedAt: (...args: unknown[]) => readSessionUpdatedAtMock(...args),
@@ -108,7 +108,7 @@ vi.mock("coreblow/plugin-sdk/config-runtime", async (importOriginal) => {
 });
 
 vi.mock("coreblow/plugin-sdk/plugin-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/plugin-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/plugin-runtime")>();
   return {
     ...actual,
     dispatchPluginInteractiveHandler: (...args: unknown[]) =>

@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
-import type { CoreBlowConfig } from "openclaw/plugin-sdk/memory-core-host-engine-foundation";
+import type { CoreBlowConfig } from "coreblow/plugin-sdk/memory-core-host-engine-foundation";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import "./test-runtime-mocks.js";
 import type { MemoryIndexManager } from "./index.js";

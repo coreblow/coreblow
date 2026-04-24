@@ -1,4 +1,4 @@
-import type { CoreBlowConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { CoreBlowConfig } from "coreblow/plugin-sdk/config-runtime";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const sendReactionsModule = await import("./send-reactions.js");

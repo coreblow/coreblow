@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 const readClaudeCliCredentialsCached = vi.hoisted(() => vi.fn());
 
 vi.mock("coreblow/plugin-sdk/provider-auth", async (importActual) => {
-  const actual = await importActual<typeof import("openclaw/plugin-sdk/provider-auth")>();
+  const actual = await importActual<typeof import("coreblow/plugin-sdk/provider-auth")>();
   return {
     ...actual,
     readClaudeCliCredentialsCached,

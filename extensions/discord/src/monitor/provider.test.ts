@@ -74,7 +74,7 @@ function createConfigWithDiscordAccount(overrides: Record<string, unknown> = {})
 }
 
 vi.mock("coreblow/plugin-sdk/plugin-runtime", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/plugin-runtime")>(
+  const actual = await vi.importActual<typeof import("coreblow/plugin-sdk/plugin-runtime")>(
     "coreblow/plugin-sdk/plugin-runtime",
   );
   return {

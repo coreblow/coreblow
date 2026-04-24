@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk/routing";
+import { DEFAULT_ACCOUNT_ID } from "coreblow/plugin-sdk/routing";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createSendCfgThreadingRuntime,

@@ -1,4 +1,4 @@
-import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk/account-id";
+import { DEFAULT_ACCOUNT_ID } from "coreblow/plugin-sdk/account-id";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CoreBlowConfig } from "../runtime-api.js";
 import {

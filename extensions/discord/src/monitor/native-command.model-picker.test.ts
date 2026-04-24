@@ -244,7 +244,7 @@ function createDispatchSpy() {
     .spyOn(dispatcherModule, "dispatchReplyWithDispatcher")
     .mockResolvedValue({} as never);
   nativeCommandTesting.setDispatchReplyWithDispatcher(
-    dispatcherModule.dispatchReplyWithDispatcher as typeof import("openclaw/plugin-sdk/reply-runtime").dispatchReplyWithDispatcher,
+    dispatcherModule.dispatchReplyWithDispatcher as typeof import("coreblow/plugin-sdk/reply-runtime").dispatchReplyWithDispatcher,
   );
   return dispatchSpy;
 }
@@ -253,7 +253,7 @@ describe("Discord model picker interactions", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     nativeCommandTesting.setDispatchReplyWithDispatcher(
-      dispatcherModule.dispatchReplyWithDispatcher as typeof import("openclaw/plugin-sdk/reply-runtime").dispatchReplyWithDispatcher,
+      dispatcherModule.dispatchReplyWithDispatcher as typeof import("coreblow/plugin-sdk/reply-runtime").dispatchReplyWithDispatcher,
     );
   });
 

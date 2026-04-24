@@ -8,7 +8,7 @@ vi.mock("coreblow/plugin-sdk/fetch-runtime", () => ({
 }));
 
 vi.mock("coreblow/plugin-sdk/core", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/core")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/core")>();
   return {
     ...actual,
     generateSecureUuid: () => "test-id",

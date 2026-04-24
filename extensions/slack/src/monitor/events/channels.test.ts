@@ -5,7 +5,7 @@ let registerSlackChannelEvents: typeof import("./channels.js").registerSlackChan
 let createSlackSystemEventTestHarness: typeof import("./system-event-test-harness.js").createSlackSystemEventTestHarness;
 
 async function createChannelRuntimeMock(
-  importOriginal: () => Promise<typeof import("openclaw/plugin-sdk/channel-runtime")>,
+  importOriginal: () => Promise<typeof import("coreblow/plugin-sdk/channel-runtime")>,
 ) {
   const actual = await importOriginal();
   return {

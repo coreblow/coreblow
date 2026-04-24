@@ -8,7 +8,7 @@ const resolveThreadTsMock = vi.fn(async ({ message }: { message: Record<string, 
 let createSlackMessageHandler: typeof import("./message-handler.js").createSlackMessageHandler;
 
 vi.mock("coreblow/plugin-sdk/channel-inbound", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/channel-inbound")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/channel-inbound")>();
   return {
     ...actual,
     createChannelInboundDebouncer: () => ({

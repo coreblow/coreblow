@@ -5,7 +5,7 @@ const recordInboundSessionMock = vi.hoisted(() => vi.fn().mockResolvedValue(unde
 const resolveTelegramConversationRouteMock = vi.hoisted(() => vi.fn());
 
 vi.mock("coreblow/plugin-sdk/conversation-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/conversation-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/conversation-runtime")>();
   return {
     ...actual,
     ensureConfiguredBindingRouteReady: (...args: unknown[]) =>

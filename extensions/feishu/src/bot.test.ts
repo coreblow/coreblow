@@ -1,4 +1,4 @@
-import type * as ConversationRuntime from "openclaw/plugin-sdk/conversation-runtime";
+import type * as ConversationRuntime from "coreblow/plugin-sdk/conversation-runtime";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ResolvedAgentRoute } from "../../../src/routing/resolve-route.js";
 import { createPluginRuntimeMock } from "../../../test/helpers/extensions/plugin-runtime-mock.js";
@@ -245,7 +245,7 @@ vi.mock("./client.js", () => ({
 }));
 
 vi.mock("coreblow/plugin-sdk/conversation-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/conversation-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/conversation-runtime")>();
   return {
     ...actual,
     resolveConfiguredBindingRoute: (params: unknown) =>

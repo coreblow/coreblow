@@ -1,4 +1,4 @@
-import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk/setup";
+import { DEFAULT_ACCOUNT_ID } from "coreblow/plugin-sdk/setup";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   createPluginSetupWizardConfigure,

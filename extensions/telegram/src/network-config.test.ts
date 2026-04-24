@@ -2,21 +2,21 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { TelegramNetworkConfig } from "../../../src/config/types.telegram.js";
 
 vi.mock("coreblow/plugin-sdk/runtime-env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/runtime-env")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/runtime-env")>();
   return {
     ...actual,
     isWSL2Sync: vi.fn(() => false),
   };
 });
 
-let isWSL2Sync: typeof import("openclaw/plugin-sdk/runtime-env").isWSL2Sync;
+let isWSL2Sync: typeof import("coreblow/plugin-sdk/runtime-env").isWSL2Sync;
 let resetTelegramNetworkConfigStateForTests: typeof import("./network-config.js").resetTelegramNetworkConfigStateForTests;
 let resolveTelegramAutoSelectFamilyDecision: typeof import("./network-config.js").resolveTelegramAutoSelectFamilyDecision;
 let resolveTelegramDnsResultOrderDecision: typeof import("./network-config.js").resolveTelegramDnsResultOrderDecision;
 
 async function loadModule() {
   vi.resetModules();
-  ({ isWSL2Sync } = await import("openclaw/plugin-sdk/runtime-env"));
+  ({ isWSL2Sync } = await import("coreblow/plugin-sdk/runtime-env"));
   ({
     resetTelegramNetworkConfigStateForTests,
     resolveTelegramAutoSelectFamilyDecision,

@@ -14,9 +14,9 @@ import { type RegisterTelegramHandlerParams } from "./bot-native-commands.js";
 // All mocks scoped to this file only — does not affect bot-native-commands.test.ts
 
 type ResolveConfiguredBindingRouteFn =
-  typeof import("openclaw/plugin-sdk/conversation-runtime").resolveConfiguredBindingRoute;
+  typeof import("coreblow/plugin-sdk/conversation-runtime").resolveConfiguredBindingRoute;
 type EnsureConfiguredBindingRouteReadyFn =
-  typeof import("openclaw/plugin-sdk/conversation-runtime").ensureConfiguredBindingRouteReady;
+  typeof import("coreblow/plugin-sdk/conversation-runtime").ensureConfiguredBindingRouteReady;
 type DispatchReplyWithBufferedBlockDispatcherFn =
   typeof import("../../../src/auto-reply/reply/provider-dispatcher.js").dispatchReplyWithBufferedBlockDispatcher;
 type DispatchReplyWithBufferedBlockDispatcherParams =
@@ -65,7 +65,7 @@ const conversationStoreMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("coreblow/plugin-sdk/conversation-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/conversation-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/conversation-runtime")>();
   return {
     ...actual,
     resolveConfiguredBindingRoute: persistentBindingMocks.resolveConfiguredBindingRoute,
@@ -105,14 +105,14 @@ vi.mock("coreblow/plugin-sdk/conversation-runtime", async (importOriginal) => {
   };
 });
 vi.mock("coreblow/plugin-sdk/command-auth", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/command-auth")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/command-auth")>();
   return {
     ...actual,
     listSkillCommandsForAgents: vi.fn(() => []),
   };
 });
 vi.mock("coreblow/plugin-sdk/reply-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/reply-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/reply-runtime")>();
   return {
     ...actual,
     finalizeInboundContext: vi.fn((ctx: unknown) => ctx),

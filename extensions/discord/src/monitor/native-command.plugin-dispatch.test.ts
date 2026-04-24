@@ -19,7 +19,7 @@ const runtimeModuleMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("coreblow/plugin-sdk/plugin-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/plugin-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/plugin-runtime")>();
   return {
     ...actual,
     matchPluginCommand: (...args: unknown[]) => runtimeModuleMocks.matchPluginCommand(...args),
@@ -28,7 +28,7 @@ vi.mock("coreblow/plugin-sdk/plugin-runtime", async (importOriginal) => {
 });
 
 vi.mock("coreblow/plugin-sdk/reply-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/reply-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/reply-runtime")>();
   return {
     ...actual,
     dispatchReplyWithDispatcher: (...args: unknown[]) =>
@@ -340,7 +340,7 @@ describe("Discord native plugin command dispatch", () => {
     clearPluginCommands();
     setDefaultChannelPluginRegistryForTests();
     const actualPluginRuntime = await vi.importActual<
-      typeof import("openclaw/plugin-sdk/plugin-runtime")
+      typeof import("coreblow/plugin-sdk/plugin-runtime")
     >("coreblow/plugin-sdk/plugin-runtime");
     runtimeModuleMocks.matchPluginCommand.mockReset();
     runtimeModuleMocks.matchPluginCommand.mockImplementation(
@@ -359,13 +359,13 @@ describe("Discord native plugin command dispatch", () => {
       },
     } as never);
     discordNativeCommandTesting.setMatchPluginCommand(
-      runtimeModuleMocks.matchPluginCommand as typeof import("openclaw/plugin-sdk/plugin-runtime").matchPluginCommand,
+      runtimeModuleMocks.matchPluginCommand as typeof import("coreblow/plugin-sdk/plugin-runtime").matchPluginCommand,
     );
     discordNativeCommandTesting.setExecutePluginCommand(
-      runtimeModuleMocks.executePluginCommand as typeof import("openclaw/plugin-sdk/plugin-runtime").executePluginCommand,
+      runtimeModuleMocks.executePluginCommand as typeof import("coreblow/plugin-sdk/plugin-runtime").executePluginCommand,
     );
     discordNativeCommandTesting.setDispatchReplyWithDispatcher(
-      runtimeModuleMocks.dispatchReplyWithDispatcher as typeof import("openclaw/plugin-sdk/reply-runtime").dispatchReplyWithDispatcher,
+      runtimeModuleMocks.dispatchReplyWithDispatcher as typeof import("coreblow/plugin-sdk/reply-runtime").dispatchReplyWithDispatcher,
     );
     discordNativeCommandTesting.setResolveDiscordNativeInteractionRouteState(async (params) =>
       createUnboundRouteState({

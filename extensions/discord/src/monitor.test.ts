@@ -905,10 +905,10 @@ const { enqueueSystemEventSpy, resolveAgentRouteMock } = vi.hoisted(() => ({
   })),
 }));
 
-const channelRuntimeModule = await import("openclaw/plugin-sdk/channel-runtime");
+const channelRuntimeModule = await import("coreblow/plugin-sdk/channel-runtime");
 vi.spyOn(channelRuntimeModule, "enqueueSystemEvent").mockImplementation(enqueueSystemEventSpy);
 
-const routingModule = await import("openclaw/plugin-sdk/routing");
+const routingModule = await import("coreblow/plugin-sdk/routing");
 vi.spyOn(routingModule, "resolveAgentRoute").mockImplementation(resolveAgentRouteMock);
 
 const { DiscordMessageListener, DiscordReactionListener } = await import("./monitor/listeners.js");

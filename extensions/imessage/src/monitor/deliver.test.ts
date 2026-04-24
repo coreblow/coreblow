@@ -15,7 +15,7 @@ vi.mock("../send.js", () => ({
 }));
 
 vi.mock("coreblow/plugin-sdk/config-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/config-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/config-runtime")>();
   return {
     ...actual,
     loadConfig: () => ({}),
@@ -24,7 +24,7 @@ vi.mock("coreblow/plugin-sdk/config-runtime", async (importOriginal) => {
 });
 
 vi.mock("coreblow/plugin-sdk/reply-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/reply-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/reply-runtime")>();
   return {
     ...actual,
     chunkTextWithMode: (text: string) => chunkTextWithModeMock(text),
@@ -33,7 +33,7 @@ vi.mock("coreblow/plugin-sdk/reply-runtime", async (importOriginal) => {
 });
 
 vi.mock("coreblow/plugin-sdk/text-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/text-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/text-runtime")>();
   return {
     ...actual,
     convertMarkdownTables: (text: string) => convertMarkdownTablesMock(text),

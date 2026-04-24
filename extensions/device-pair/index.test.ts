@@ -4,7 +4,7 @@ import path from "node:path";
 import type {
   CoreBlowPluginCommandDefinition,
   PluginCommandContext,
-} from "openclaw/plugin-sdk/core";
+} from "coreblow/plugin-sdk/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createTestPluginApi } from "../../test/helpers/extensions/plugin-api.js";
 import type { CoreBlowPluginApi } from "./api.js";

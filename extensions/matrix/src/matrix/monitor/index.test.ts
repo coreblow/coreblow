@@ -1,5 +1,5 @@
 import path from "node:path";
-import { z } from "openclaw/plugin-sdk/zod";
+import { z } from "coreblow/plugin-sdk/zod";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { loadRuntimeApiExportTypesViaJiti } from "../../../../../test/helpers/extensions/jiti-runtime-api.ts";
 

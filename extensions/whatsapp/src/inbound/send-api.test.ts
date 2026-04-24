@@ -4,7 +4,7 @@ const recordChannelActivity = vi.hoisted(() => vi.fn());
 let createWebSendApi: typeof import("./send-api.js").createWebSendApi;
 
 vi.mock("coreblow/plugin-sdk/channel-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/channel-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/channel-runtime")>();
   return {
     ...actual,
     recordChannelActivity: (...args: unknown[]) => recordChannelActivity(...args),

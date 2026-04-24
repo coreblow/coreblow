@@ -1,5 +1,5 @@
-import type { CoreBlowConfig } from "openclaw/plugin-sdk/config-runtime";
-import { resolveThreadSessionKeys } from "openclaw/plugin-sdk/routing";
+import type { CoreBlowConfig } from "coreblow/plugin-sdk/config-runtime";
+import { resolveThreadSessionKeys } from "coreblow/plugin-sdk/routing";
 import { describe, expect, it } from "vitest";
 import { resolveTelegramConversationBaseSessionKey } from "./conversation-route.js";
 

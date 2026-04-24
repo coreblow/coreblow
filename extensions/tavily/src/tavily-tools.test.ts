@@ -1,5 +1,5 @@
-import type { CoreBlowConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { CoreBlowPluginApi } from "openclaw/plugin-sdk/plugin-runtime";
+import type { CoreBlowConfig } from "coreblow/plugin-sdk/config-runtime";
+import type { CoreBlowPluginApi } from "coreblow/plugin-sdk/plugin-runtime";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import plugin from "../index.js";
 import {

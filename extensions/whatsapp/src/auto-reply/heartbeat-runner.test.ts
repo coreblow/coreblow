@@ -30,7 +30,7 @@ vi.mock("coreblow/plugin-sdk/agent-runtime", () => ({
 // Perf: this module otherwise pulls a large dependency graph that we don't need
 // for these unit tests.
 vi.mock("coreblow/plugin-sdk/reply-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/reply-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/reply-runtime")>();
   return {
     ...actual,
     getReplyFromConfig: vi.fn(async () => undefined),
@@ -42,7 +42,7 @@ vi.mock("../../../../src/channels/plugins/whatsapp-heartbeat.js", () => ({
 }));
 
 vi.mock("coreblow/plugin-sdk/config-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/config-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/config-runtime")>();
   return {
     ...actual,
     loadConfig: () => ({ agents: { defaults: {} }, session: {} }),
@@ -50,7 +50,7 @@ vi.mock("coreblow/plugin-sdk/config-runtime", async (importOriginal) => {
 });
 
 vi.mock("coreblow/plugin-sdk/routing", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/routing")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/routing")>();
   return {
     ...actual,
     normalizeMainKey: () => null,
@@ -58,7 +58,7 @@ vi.mock("coreblow/plugin-sdk/routing", async (importOriginal) => {
 });
 
 vi.mock("coreblow/plugin-sdk/channel-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/channel-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/channel-runtime")>();
   return {
     ...actual,
     resolveHeartbeatVisibility: () => state.visibility,
@@ -68,7 +68,7 @@ vi.mock("coreblow/plugin-sdk/channel-runtime", async (importOriginal) => {
 });
 
 vi.mock("coreblow/plugin-sdk/runtime-env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/runtime-env")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/runtime-env")>();
   const logger = {
     child: () => logger,
     info: (...args: unknown[]) => state.loggerInfoCalls.push(args),
@@ -84,7 +84,7 @@ vi.mock("coreblow/plugin-sdk/runtime-env", async (importOriginal) => {
 });
 
 vi.mock("coreblow/plugin-sdk/text-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/text-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/text-runtime")>();
   return {
     ...actual,
     redactIdentifier,

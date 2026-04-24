@@ -7,7 +7,7 @@ type SlackSystemEventTestOverrides =
   import("./system-event-test-harness.js").SlackSystemEventTestOverrides;
 
 async function createChannelRuntimeMock(
-  importOriginal: () => Promise<typeof import("openclaw/plugin-sdk/channel-runtime")>,
+  importOriginal: () => Promise<typeof import("coreblow/plugin-sdk/channel-runtime")>,
 ) {
   const actual = await importOriginal();
   return {

@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { CoreBlowConfig } from "openclaw/plugin-sdk/memory-core-host-engine-foundation";
+import type { CoreBlowConfig } from "coreblow/plugin-sdk/memory-core-host-engine-foundation";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { useFastShortTimeouts } from "../../../../test/helpers/fast-short-timeouts.js";
 import { createOpenAIEmbeddingProviderMock } from "./test-embeddings-mock.js";

@@ -7,7 +7,7 @@ const resolveTelegramFetchMock = vi.hoisted(() => vi.fn(() => fetchWithTimeoutMo
 const resolveTelegramApiBaseMock = vi.hoisted(() => vi.fn(() => "https://api.telegram.org"));
 
 vi.mock("coreblow/plugin-sdk/text-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/text-runtime")>();
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/text-runtime")>();
   return {
     ...actual,
     fetchWithTimeout: fetchWithTimeoutMock,

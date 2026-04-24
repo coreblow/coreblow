@@ -4,7 +4,7 @@ import path from "node:path";
 import type {
   MemorySearchConfig,
   CoreBlowConfig,
-} from "openclaw/plugin-sdk/memory-core-host-engine-foundation";
+} from "coreblow/plugin-sdk/memory-core-host-engine-foundation";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { MemoryIndexManager } from "./index.js";
 import { registerBuiltInMemoryEmbeddingProviders } from "./provider-adapters.js";
