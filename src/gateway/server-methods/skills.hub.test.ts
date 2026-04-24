@@ -17,7 +17,7 @@ vi.mock("../../agents/agent-scope.js", () => ({
   resolveAgentWorkspaceDir: () => resolveAgentWorkspaceDirMock(),
 }));
 
-vi.mock("../../agents/skills-clawhub.js", () => ({
+vi.mock("../../agents/skills-hub.js", () => ({
   installSkillFromClawHub: (...args: unknown[]) => installSkillFromClawHubMock(...args),
   updateSkillsFromClawHub: (...args: unknown[]) => updateSkillsFromClawHubMock(...args),
 }));

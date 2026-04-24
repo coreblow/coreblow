@@ -12,7 +12,7 @@ const withExtractedArchiveRootMock = vi.fn();
 const installPackageDirMock = vi.fn();
 const fileExistsMock = vi.fn();
 
-vi.mock("../infra/clawhub.js", () => ({
+vi.mock("../infra/coreblow-hub.js", () => ({
   fetchClawHubSkillDetail: fetchClawHubSkillDetailMock,
   downloadClawHubSkillArchive: downloadClawHubSkillArchiveMock,
   listClawHubSkills: listClawHubSkillsMock,
@@ -33,7 +33,7 @@ vi.mock("../infra/archive.js", () => ({
 }));
 
 const { installSkillFromClawHub, searchSkillsFromClawHub, updateSkillsFromClawHub } =
-  await import("./skills-clawhub.js");
+  await import("./skills-hub.js");
 
 describe("skills-clawhub", () => {
   beforeEach(() => {

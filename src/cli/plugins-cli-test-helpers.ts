@@ -115,7 +115,7 @@ vi.mock("../hooks/installs.js", () => ({
   recordHookInstall: (...args: unknown[]) => recordHookInstall(...args),
 }));
 
-vi.mock("../plugins/clawhub.js", () => ({
+vi.mock("../plugins/coreblow-hub.js", () => ({
   CLAWHUB_INSTALL_ERROR_CODE: {
     PACKAGE_NOT_FOUND: "package_not_found",
     VERSION_NOT_FOUND: "version_not_found",
@@ -125,7 +125,7 @@ vi.mock("../plugins/clawhub.js", () => ({
     `clawhub:${name}${version ? `@${version}` : ""}`,
 }));
 
-vi.mock("../infra/clawhub.js", () => ({
+vi.mock("../infra/coreblow-hub.js", () => ({
   parseClawHubPluginSpec: (...args: unknown[]) => parseClawHubPluginSpec(...args),
 }));
 

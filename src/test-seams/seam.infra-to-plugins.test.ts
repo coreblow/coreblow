@@ -5,7 +5,7 @@ import * as mod_archive from "../infra/archive.js";
 import * as mod_boundary_file_read from "../infra/boundary-file-read.js";
 import * as mod_brew from "../infra/brew.js";
 import * as mod_browser_open from "../infra/browser-open.js";
-import * as mod_clawhub from "../infra/clawhub.js";
+import * as mod_clawhub from "../infra/coreblow-hub.js";
 import * as mod_coreblow_root from "../infra/coreblow-root.js";
 
 describe("seam: infra → plugins (43 imports)", () => {
@@ -40,4 +40,3 @@ describe("seam: infra → plugins (43 imports)", () => {
     expect(typeof mod_coreblow_root).toBe("object");
   });
 });
-

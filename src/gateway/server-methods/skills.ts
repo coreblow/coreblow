@@ -3,7 +3,7 @@ import {
   resolveAgentWorkspaceDir,
   resolveDefaultAgentId,
 } from "../../agents/agent-scope.js";
-import { installSkillFromClawHub, updateSkillsFromClawHub } from "../../agents/skills-clawhub.js";
+import { installSkillFromClawHub, updateSkillsFromClawHub } from "../../agents/skills-hub.js";
 import { installSkill } from "../../agents/skills-install.js";
 import { buildWorkspaceSkillStatus } from "../../agents/skills-status.js";
 import { loadWorkspaceSkillEntries, type SkillEntry } from "../../agents/skills.js";

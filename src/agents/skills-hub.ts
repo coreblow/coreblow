@@ -9,7 +9,7 @@ import {
   searchClawHubSkills,
   type ClawHubSkillDetail,
   type ClawHubSkillSearchResult,
-} from "../infra/clawhub.js";
+} from "../infra/coreblow-hub.js";
 import { withExtractedArchiveRoot } from "../infra/install-flow.js";
 import { installPackageDir } from "../infra/install-package-dir.js";
 import { resolveSafeInstallDir } from "../infra/install-safe-path.js";

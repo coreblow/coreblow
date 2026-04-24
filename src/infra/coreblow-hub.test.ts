@@ -9,7 +9,7 @@ import {
   resolveLatestVersionFromPackage,
   satisfiesGatewayMinimum,
   satisfiesPluginApiRange,
-} from "./clawhub.js";
+} from "./coreblow-hub.js";
 
 describe("clawhub helpers", () => {
   const originalHome = process.env.HOME;

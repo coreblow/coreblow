@@ -15,8 +15,8 @@ import {
 import type { CoreBlowConfig } from "../../config/config.js";
 import type { PluginInstallRecord } from "../../config/types.plugins.js";
 import { resolveArchiveKind } from "../../infra/archive.js";
-import { parseClawHubPluginSpec } from "../../infra/clawhub.js";
-import { installPluginFromClawHub } from "../../plugins/clawhub.js";
+import { parseClawHubPluginSpec } from "../../infra/coreblow-hub.js";
+import { installPluginFromClawHub } from "../../plugins/coreblow-hub.js";
 import { installPluginFromNpmSpec, installPluginFromPath } from "../../plugins/install.js";
 import { clearPluginManifestRegistryCache } from "../../plugins/manifest-registry.js";
 import type { PluginRecord } from "../../plugins/registry.js";

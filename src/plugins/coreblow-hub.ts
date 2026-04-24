@@ -13,7 +13,7 @@ import {
   type ClawHubPackageCompatibility,
   type ClawHubPackageDetail,
   type ClawHubPackageFamily,
-} from "../infra/clawhub.js";
+} from "../infra/coreblow-hub.js";
 import { resolveCompatibilityHostVersion } from "../version.js";
 import { installPluginFromArchive, type InstallPluginResult } from "./install.js";
 

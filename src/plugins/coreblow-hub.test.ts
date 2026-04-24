@@ -8,8 +8,8 @@ const resolveLatestVersionFromPackageMock = vi.fn();
 const resolveCompatibilityHostVersionMock = vi.fn();
 const installPluginFromArchiveMock = vi.fn();
 
-vi.mock("../infra/clawhub.js", async () => {
-  const actual = await vi.importActual<typeof import("../infra/clawhub.js")>("../infra/clawhub.js");
+vi.mock("../infra/coreblow-hub.js", async () => {
+  const actual = await vi.importActual<typeof import("../infra/coreblow-hub.js")>("../infra/coreblow-hub.js");
   return {
     ...actual,
     parseClawHubPluginSpec: (...args: unknown[]) => parseClawHubPluginSpecMock(...args),
@@ -31,9 +31,9 @@ vi.mock("./install.js", () => ({
   installPluginFromArchive: (...args: unknown[]) => installPluginFromArchiveMock(...args),
 }));
 
-const { ClawHubRequestError } = await import("../infra/clawhub.js");
+const { ClawHubRequestError } = await import("../infra/coreblow-hub.js");
 const { CLAWHUB_INSTALL_ERROR_CODE, formatClawHubSpecifier, installPluginFromClawHub } =
-  await import("./clawhub.js");
+  await import("./coreblow-hub.js");
 
 async function expectClawHubInstallError(params: {
   setup?: () => void;

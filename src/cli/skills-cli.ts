@@ -5,7 +5,7 @@ import {
   readTrackedClawHubSkillSlugs,
   searchSkillsFromClawHub,
   updateSkillsFromClawHub,
-} from "../agents/skills-clawhub.js";
+} from "../agents/skills-hub.js";
 import { loadConfig } from "../config/config.js";
 import { defaultRuntime } from "../runtime.js";
 import { formatDocsLink } from "../terminal/links.js";

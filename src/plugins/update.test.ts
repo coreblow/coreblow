@@ -18,7 +18,7 @@ vi.mock("./marketplace.js", () => ({
   installPluginFromMarketplace: (...args: unknown[]) => installPluginFromMarketplaceMock(...args),
 }));
 
-vi.mock("./clawhub.js", () => ({
+vi.mock("./coreblow-hub.js", () => ({
   installPluginFromClawHub: (...args: unknown[]) => installPluginFromClawHubMock(...args),
 }));
 
