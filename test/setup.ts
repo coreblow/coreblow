@@ -1,147 +1,341 @@
-import { vi } from "vitest";
+import { afterAll, afterEach, beforeAll, vi } from "vitest";
 
-// Minimal test setup - mock proprietary packages
-vi.mock("@mariozechner/pi-ai", () => ({
-  getOAuthApiKey: () => undefined,
-  getOAuthProviders: () => [],
-  loginOpenAICodex: vi.fn(),
-  complete: vi.fn(),
-  completeSimple: vi.fn(),
-  streamSimple: vi.fn(),
-  getModel: vi.fn(),
-  getApiProvider: vi.fn(),
-  getEnvApiKey: vi.fn(),
-  registerApiProvider: vi.fn(),
-  unregisterApiProviders: vi.fn(),
-  createAssistantMessageEventStream: vi.fn(),
-  streamAnthropic: vi.fn(),
-  streamOpenAIResponses: vi.fn(),
-  streamSimpleOpenAICompletions: vi.fn(),
-}));
-
-vi.mock("@mariozechner/pi-coding-agent", () => {
-  // AuthStorage — needed by src/agents/pi-model-discovery.ts
-  class AuthStorage {
-    constructor() {}
-    static inMemory(data?: unknown) { return new AuthStorage(); }
-    getApiKey() { return ""; }
-    setApiKey() {}
-    listProviders() { return []; }
-  }
-
-  // ModelRegistry — needed by src/agents/pi-model-discovery.ts
-  class ModelRegistry {
-    constructor() {}
-    find() { return null; }
-    list() { return []; }
-  }
-
-  // PiCodingAgent needs AuthStorage & ModelRegistry as static props
-  class PiCodingAgent {
-    static AuthStorage = AuthStorage;
-    static ModelRegistry = ModelRegistry;
-  }
-
+vi.mock("@mariozechner/pi-ai", async (importOriginal) => {
+  const original = await importOriginal<typeof import("@mariozechner/pi-ai")>();
   return {
-    AuthStorage,
-    ModelRegistry,
-    PiCodingAgent,
-    SessionManager: class {
-      private entries: unknown[] = [];
-      constructor() {}
-      static open() {
-        return {
-          getLeafEntry: () => null,
-          branch: () => "branch-id",
-          resetLeaf: () => {},
-          buildSessionContext: () => ({}),
-          sessions: [],
-          save: () => {},
-        };
-      }
-      static inMemory(cwd?: string) {
-        const sm = new this();
-        return sm;
-      }
-      appendMessage(msg: unknown) { this.entries.push({ type: "message", message: msg }); }
-      getEntries() { return [...this.entries]; }
-      getSessionFile() { return "/tmp/coreblow-test-session.jsonl"; }
-      open() {} list() {} get() {} create() {} delete() {} save() {} close() {}
-    },
-    SettingsManager: class { constructor() {} get() { return null; } set() {} getAll() { return {}; } },
-    DefaultResourceLoader: class {},
-    AgentSession: class {},
-    CompactionEntry: class {},
-    ContextEvent: class {},
-    ExtensionAPI: class {},
-    ExtensionContext: class {},
-    ExtensionFactory: class {},
-    FileOperations: class {},
-    Skill: class {},
-    ToolDefinition: class {},
-    createAgentSession: vi.fn(),
-    createEditTool: vi.fn(() => ({})),
-    createReadTool: vi.fn(() => ({})),
-    createWriteTool: vi.fn(),
-    createSyntheticSourceInfo: vi.fn(),
-    codingTools: [],
-    readTool: vi.fn(),
-    loadSkillsFromDir: vi.fn(() => []),
-    formatSkillsForPrompt: vi.fn(() => ""),
-    CURRENT_SESSION_VERSION: 1,
+    ...original,
+    getOAuthApiKey: () => undefined,
+    getOAuthProviders: () => [],
+    loginOpenAICodex: vi.fn(),
   };
 });
 
-vi.mock("@mariozechner/pi-agent-core", () => ({
-  estimateTokens: vi.fn(() => 0),
-  ndJsonStream: vi.fn(),
+vi.mock("@mariozechner/clipboard", () => ({
+  availableFormats: () => [],
+  getText: async () => "",
+  setText: async () => {},
+  hasText: () => false,
+  getImageBinary: async () => [],
+  getImageBase64: async () => "",
+  setImageBinary: async () => {},
+  setImageBase64: async () => {},
+  hasImage: () => false,
+  getHtml: async () => "",
+  setHtml: async () => {},
+  hasHtml: () => false,
+  getRtf: async () => "",
+  setRtf: async () => {},
+  hasRtf: () => false,
+  clear: async () => {},
+  watch: () => {},
+  callThreadsafeFunction: () => {},
 }));
 
-vi.mock("@mariozechner/pi-tui", () => ({
-  Container: class {
-    constructor() {}
-    children: unknown[] = [];
-    addChild(c: unknown) { this.children.push(c); }
-    removeChild() {}
-    clear() { this.children = []; }
-    render(width: number) {
-      return this.children.map((c: any) => c?.text ?? c?.getText?.() ?? "").filter(Boolean);
+// Ensure Vitest environment is properly set
+process.env.VITEST = "true";
+// Config validation walks plugin manifests; keep an aggressive cache in tests to avoid
+// repeated filesystem discovery across suites/workers.
+process.env.COREBLOW_PLUGIN_MANIFEST_CACHE_MS ??= "60000";
+// Vitest vm forks can load transitive lockfile helpers many times per worker.
+// Raise listener budget to avoid noisy MaxListeners warnings and warning-stack overhead.
+const TEST_PROCESS_MAX_LISTENERS = 128;
+if (process.getMaxListeners() > 0 && process.getMaxListeners() < TEST_PROCESS_MAX_LISTENERS) {
+  process.setMaxListeners(TEST_PROCESS_MAX_LISTENERS);
+}
+
+import { resetContextWindowCacheForTest } from "../src/agents/context.js";
+import { resetModelsJsonReadyCacheForTest } from "../src/agents/models-config.js";
+import {
+  drainSessionWriteLockStateForTest,
+  resetSessionWriteLockStateForTest,
+} from "../src/agents/session-write-lock.js";
+import { createTopLevelChannelReplyToModeResolver } from "../src/channels/plugins/threading-helpers.js";
+import type {
+  ChannelId,
+  ChannelOutboundAdapter,
+  ChannelPlugin,
+} from "../src/channels/plugins/types.js";
+import type { CoreBlowConfig } from "../src/config/config.js";
+import type { OutboundSendDeps } from "../src/infra/outbound/deliver.js";
+import { installProcessWarningFilter } from "../src/infra/warning-filter.js";
+import type { PluginRegistry } from "../src/plugins/registry.js";
+import { createTestRegistry } from "../src/test-utils/channel-plugins.js";
+import { cleanupSessionStateForTest } from "../src/test-utils/session-state-cleanup.js";
+import { withIsolatedTestHome } from "./test-env.js";
+
+// Set HOME/state isolation before importing any runtime CoreBlow modules.
+const testEnv = withIsolatedTestHome();
+
+installProcessWarningFilter();
+
+const REGISTRY_STATE = Symbol.for("coreblow.pluginRegistryState");
+
+type RegistryState = {
+  registry: PluginRegistry | null;
+  httpRouteRegistry: PluginRegistry | null;
+  httpRouteRegistryPinned: boolean;
+  key: string | null;
+  version: number;
+};
+
+const globalRegistryState = (() => {
+  const globalState = globalThis as typeof globalThis & {
+    [REGISTRY_STATE]?: RegistryState;
+  };
+  if (!globalState[REGISTRY_STATE]) {
+    globalState[REGISTRY_STATE] = {
+      registry: null,
+      httpRouteRegistry: null,
+      httpRouteRegistryPinned: false,
+      key: null,
+      version: 0,
+    };
+  }
+  return globalState[REGISTRY_STATE];
+})();
+
+const pickSendFn = (id: ChannelId, deps?: OutboundSendDeps) => {
+  return deps?.[id] as ((...args: unknown[]) => Promise<unknown>) | undefined;
+};
+
+function resolveSlackStubReplyToMode(params: {
+  cfg: CoreBlowConfig;
+  chatType?: string | null;
+}): "off" | "first" | "all" {
+  const entry = (
+    params.cfg.channels as
+      | Record<
+          string,
+          {
+            replyToMode?: "off" | "first" | "all";
+            replyToModeByChatType?: Partial<
+              Record<"direct" | "group" | "channel", "off" | "first" | "all">
+            >;
+            dm?: { replyToMode?: "off" | "first" | "all" };
+          }
+        >
+      | undefined
+  )?.slack;
+  const normalizedChatType = params.chatType?.trim().toLowerCase();
+  if (
+    normalizedChatType === "direct" ||
+    normalizedChatType === "group" ||
+    normalizedChatType === "channel"
+  ) {
+    const byChatType = entry?.replyToModeByChatType?.[normalizedChatType];
+    if (byChatType) {
+      return byChatType;
     }
-  },
-  Box: class { constructor() {} },
-  Text: class {
-    text = "";
-    constructor(text?: string) { this.text = text ?? ""; }
-    setText(t: string) { this.text = t; }
-    getText() { return this.text; }
-  },
-  Markdown: class {
-    text = "";
-    constructor(text?: string) { this.text = text ?? ""; }
-    getText() { return this.text; }
-  },
-  Spacer: class { constructor() {} },
-  Editor: class { constructor() {} getText() { return ""; } setText() {} },
-  SelectList: class { constructor() {} },
-  SettingsList: class { constructor() {} },
-  Component: class {
-    constructor() {}
-    children: unknown[] = [];
-    addChild(c: unknown) { this.children.push(c); }
-    removeChild() {}
-    clear() { this.children = []; }
-    render(width: number) {
-      return this.children.map((c: any) => c?.text ?? c?.getText?.() ?? "").filter(Boolean);
+    if (normalizedChatType === "direct" && entry?.dm?.replyToMode) {
+      return entry.dm.replyToMode;
     }
+  }
+  return entry?.replyToMode ?? "off";
+}
+
+const createStubOutbound = (
+  id: ChannelId,
+  deliveryMode: ChannelOutboundAdapter["deliveryMode"] = "direct",
+): ChannelOutboundAdapter => ({
+  deliveryMode,
+  sendText: async ({ deps, to, text }) => {
+    const send = pickSendFn(id, deps);
+    if (send) {
+      // oxlint-disable-next-line typescript/no-explicit-any
+      const result = (await send(to, text, { verbose: false } as any)) as {
+        messageId: string;
+      };
+      return { channel: id, ...result };
+    }
+    return { channel: id, messageId: "test" };
   },
-  TUI: class { constructor() {} requestRender() {} },
-  Key: class { constructor() {} },
-  Input: class { constructor() {} },
-  ProcessTerminal: class { constructor() {} },
-  Loader: class { constructor() {} },
-  CombinedAutocompleteProvider: class { constructor() {} },
-  matchesKey: vi.fn(),
-  isKeyRelease: vi.fn(),
-  truncateToWidth: vi.fn((s: string) => s),
-  PiTui: class {},
-}));
+  sendMedia: async ({ deps, to, text, mediaUrl }) => {
+    const send = pickSendFn(id, deps);
+    if (send) {
+      // oxlint-disable-next-line typescript/no-explicit-any
+      const result = (await send(to, text, { verbose: false, mediaUrl } as any)) as {
+        messageId: string;
+      };
+      return { channel: id, ...result };
+    }
+    return { channel: id, messageId: "test" };
+  },
+});
+
+const createStubPlugin = (params: {
+  id: ChannelId;
+  label?: string;
+  aliases?: string[];
+  deliveryMode?: ChannelOutboundAdapter["deliveryMode"];
+  preferSessionLookupForAnnounceTarget?: boolean;
+  resolveReplyToMode?: (params: {
+    cfg: CoreBlowConfig;
+    accountId?: string | null;
+    chatType?: string | null;
+  }) => "off" | "first" | "all";
+}): ChannelPlugin => ({
+  id: params.id,
+  meta: {
+    id: params.id,
+    label: params.label ?? String(params.id),
+    selectionLabel: params.label ?? String(params.id),
+    docsPath: `/channels/${params.id}`,
+    blurb: "test stub.",
+    aliases: params.aliases,
+    preferSessionLookupForAnnounceTarget: params.preferSessionLookupForAnnounceTarget,
+  },
+  capabilities: { chatTypes: ["direct", "group"] },
+  threading: params.resolveReplyToMode
+    ? {
+        resolveReplyToMode: params.resolveReplyToMode,
+      }
+    : undefined,
+  config: {
+    listAccountIds: (cfg: CoreBlowConfig) => {
+      const channels = cfg.channels as Record<string, unknown> | undefined;
+      const entry = channels?.[params.id];
+      if (!entry || typeof entry !== "object") {
+        return [];
+      }
+      const accounts = (entry as { accounts?: Record<string, unknown> }).accounts;
+      const ids = accounts ? Object.keys(accounts).filter(Boolean) : [];
+      return ids.length > 0 ? ids : ["default"];
+    },
+    resolveAccount: (cfg: CoreBlowConfig, accountId?: string | null) => {
+      const channels = cfg.channels as Record<string, unknown> | undefined;
+      const entry = channels?.[params.id];
+      if (!entry || typeof entry !== "object") {
+        return {};
+      }
+      const accounts = (entry as { accounts?: Record<string, unknown> }).accounts;
+      const match = accountId ? accounts?.[accountId] : undefined;
+      return (match && typeof match === "object") || typeof match === "string" ? match : entry;
+    },
+    isConfigured: async (_account, cfg: CoreBlowConfig) => {
+      const channels = cfg.channels as Record<string, unknown> | undefined;
+      return Boolean(channels?.[params.id]);
+    },
+  },
+  outbound: createStubOutbound(params.id, params.deliveryMode),
+});
+
+const createDefaultRegistry = () =>
+  createTestRegistry([
+    {
+      pluginId: "discord",
+      plugin: createStubPlugin({
+        id: "discord",
+        label: "Discord",
+        resolveReplyToMode: createTopLevelChannelReplyToModeResolver("discord"),
+      }),
+      source: "test",
+    },
+    {
+      pluginId: "slack",
+      plugin: createStubPlugin({
+        id: "slack",
+        label: "Slack",
+        resolveReplyToMode: ({ cfg, chatType }) => resolveSlackStubReplyToMode({ cfg, chatType }),
+      }),
+      source: "test",
+    },
+    {
+      pluginId: "telegram",
+      plugin: {
+        ...createStubPlugin({
+          id: "telegram",
+          label: "Telegram",
+          resolveReplyToMode: createTopLevelChannelReplyToModeResolver("telegram"),
+        }),
+        status: {
+          buildChannelSummary: async () => ({
+            configured: false,
+            tokenSource: process.env.TELEGRAM_BOT_TOKEN ? "env" : "none",
+          }),
+        },
+      },
+      source: "test",
+    },
+    {
+      pluginId: "whatsapp",
+      plugin: createStubPlugin({
+        id: "whatsapp",
+        label: "WhatsApp",
+        deliveryMode: "gateway",
+        preferSessionLookupForAnnounceTarget: true,
+      }),
+      source: "test",
+    },
+    {
+      pluginId: "signal",
+      plugin: createStubPlugin({ id: "signal", label: "Signal" }),
+      source: "test",
+    },
+    {
+      pluginId: "imessage",
+      plugin: createStubPlugin({ id: "imessage", label: "iMessage", aliases: ["imsg"] }),
+      source: "test",
+    },
+  ]);
+
+let materializedDefaultPluginRegistry: PluginRegistry | null = null;
+
+function getDefaultPluginRegistry(): PluginRegistry {
+  materializedDefaultPluginRegistry ??= createDefaultRegistry();
+  return materializedDefaultPluginRegistry;
+}
+
+// Most unit suites never touch the plugin registry. Keep the default test registry
+// behind a lazy proxy so those files avoid allocating channel fixtures up front.
+const DEFAULT_PLUGIN_REGISTRY = new Proxy({} as PluginRegistry, {
+  defineProperty(_target, property, attributes) {
+    return Reflect.defineProperty(getDefaultPluginRegistry() as object, property, attributes);
+  },
+  deleteProperty(_target, property) {
+    return Reflect.deleteProperty(getDefaultPluginRegistry() as object, property);
+  },
+  get(_target, property, receiver) {
+    return Reflect.get(getDefaultPluginRegistry() as object, property, receiver);
+  },
+  getOwnPropertyDescriptor(_target, property) {
+    return Reflect.getOwnPropertyDescriptor(getDefaultPluginRegistry() as object, property);
+  },
+  has(_target, property) {
+    return Reflect.has(getDefaultPluginRegistry() as object, property);
+  },
+  ownKeys() {
+    return Reflect.ownKeys(getDefaultPluginRegistry() as object);
+  },
+  set(_target, property, value, receiver) {
+    return Reflect.set(getDefaultPluginRegistry() as object, property, value, receiver);
+  },
+});
+
+function installDefaultPluginRegistry(): void {
+  globalRegistryState.registry = DEFAULT_PLUGIN_REGISTRY;
+  if (!globalRegistryState.httpRouteRegistryPinned) {
+    globalRegistryState.httpRouteRegistry = DEFAULT_PLUGIN_REGISTRY;
+  }
+}
+
+beforeAll(() => {
+  installDefaultPluginRegistry();
+});
+
+afterEach(async () => {
+  await cleanupSessionStateForTest();
+  resetContextWindowCacheForTest();
+  resetModelsJsonReadyCacheForTest();
+  resetSessionWriteLockStateForTest();
+  if (globalRegistryState.registry !== DEFAULT_PLUGIN_REGISTRY) {
+    installDefaultPluginRegistry();
+    globalRegistryState.key = null;
+    globalRegistryState.version += 1;
+  }
+});
+
+afterAll(async () => {
+  await cleanupSessionStateForTest();
+  await drainSessionWriteLockStateForTest();
+  testEnv.cleanup();
+});

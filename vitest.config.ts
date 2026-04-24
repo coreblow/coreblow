@@ -45,18 +45,11 @@ export default defineConfig({
                 find: '@grammyjs/transformer-throttler',
                 replacement: path.resolve(repoRoot, 'src/stubs/grammyjs-throttler.ts'),
             },
-            // Stubs for matrix-js-sdk and related packages
-            {
-                find: /^matrix-js-sdk(\/.*)?$/,
-                replacement: path.resolve(repoRoot, 'src/stubs/fake-indexeddb-auto.ts'),
-            },
+            // Stubs only for packages that are NOT installed (native/optional deps)
+            // NOTE: matrix-js-sdk and markdown-it are installed — use real packages!
             {
                 find: '@matrix-org/matrix-sdk-crypto-nodejs',
                 replacement: path.resolve(repoRoot, 'src/stubs/fake-indexeddb-auto.ts'),
-            },
-            {
-                find: 'markdown-it',
-                replacement: path.resolve(repoRoot, 'src/stubs/markdown-it.ts'),
             },
             // Stub for @whiskeysockets/baileys (used by extensions/whatsapp)
             {
