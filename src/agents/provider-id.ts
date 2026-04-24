@@ -1,7 +1,7 @@
 /**
  * agents/provider-id.ts
  * Provider ID normalization and resolution.
- * Ported from OpenClaw reference src/agents/provider-id.ts.
+ * Ported from CoreBlow reference src/agents/provider-id.ts.
  */
 
 /**

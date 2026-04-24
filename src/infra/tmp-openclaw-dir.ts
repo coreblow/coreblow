@@ -169,16 +169,16 @@ export function resolvePreferredCoreBlowTmpDir(
 }
 
 // ---------------------------------------------------------------------------
-// TmpOpenclawDirService — Tier-1 Standalone Singleton
+// TmpCoreblowDirService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
 import { createStandaloneSingleton } from "./service-patterns.js";
-export class TmpOpenclawDirService {
-  [Symbol.toStringTag] = 'TmpOpenclawDirService';
+export class TmpCoreblowDirService {
+  [Symbol.toStringTag] = 'TmpCoreblowDirService';
 }
 
 
-const { getInstance: getTmpOpenclawDirService, __testing: __testing_tmpOpenclawDir } =
-  createStandaloneSingleton({ create: () => new TmpOpenclawDirService(), defaultDeps: {} });
+const { getInstance: getTmpCoreblowDirService, __testing: __testing_tmpCoreblowDir } =
+  createStandaloneSingleton({ create: () => new TmpCoreblowDirService(), defaultDeps: {} });
 
-export { getTmpOpenclawDirService, __testing_tmpOpenclawDir };
+export { getTmpCoreblowDirService, __testing_tmpCoreblowDir };

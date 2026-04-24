@@ -138,5 +138,3 @@ export async function planCoreBlowModelsJson(params: {
   };
 }
 
-/** OC-compat alias — CB uses "CoreBlow" naming */
-export const planOpenClawModelsJson = planCoreBlowModelsJson;

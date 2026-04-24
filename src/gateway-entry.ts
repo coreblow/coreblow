@@ -11,7 +11,7 @@
  * - CLI Banner (colorful startup display)
  * - Graceful shutdown (SIGINT/SIGTERM)
  *
- * Follows OpenClaw's server-http.ts pattern where health routes
+ * Follows CoreBlow's server-http.ts pattern where health routes
  * are wired inline into the HTTP server request handler.
  *
  * @packageDocumentation
@@ -38,7 +38,7 @@ import { SessionManager } from './gateway/session-manager.js';
 
 // ─── Constants ────────────────────────────────────────────────────
 
-/** Health probe status paths — matching OpenClaw convention */
+/** Health probe status paths — matching CoreBlow convention */
 const PROBE_PATHS = new Map<string, 'live' | 'ready'>([
     ['/health', 'live'],
     ['/healthz', 'live'],

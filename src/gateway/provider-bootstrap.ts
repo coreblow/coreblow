@@ -2,7 +2,7 @@
  * CoreBlow — Provider Bootstrap
  *
  * Reads coreblow.json and auto-registers the appropriate AI provider
- * into the AgentRuntime. Follows OpenClaw's config-driven provider
+ * into the AgentRuntime. Follows CoreBlow's config-driven provider
  * loading pattern where `agents.defaults.model` determines the provider.
  *
  * @packageDocumentation
@@ -14,7 +14,7 @@ import { OpenAIProvider } from '../providers/openai.js';
 
 // ─── Provider ID Detection ──────────────────────────────────────
 
-/** Map of model prefix → provider ID (OpenClaw pattern) */
+/** Map of model prefix → provider ID (CoreBlow pattern) */
 const MODEL_PROVIDER_MAP: Array<[RegExp, string]> = [
     [/^(gpt-|o1|o3|o4|chatgpt)/i, 'openai'],
     [/^(claude|anthropic)/i, 'anthropic'],
@@ -52,7 +52,7 @@ export function detectProvider(modelRef: string): { provider: string; model: str
 
 /**
  * Resolve the model reference from CoreBlow config.
- * Following OpenClaw's format: agents.defaults.model can be a string or object.
+ * Following CoreBlow's format: agents.defaults.model can be a string or object.
  */
 export function resolveModelFromConfig(config: CoreBlowConfig): { provider: string; model: string } {
     const agentModel = config.agents?.defaults?.model;
@@ -77,7 +77,7 @@ export function resolveModelFromConfig(config: CoreBlowConfig): { provider: stri
 
 /**
  * Resolve the API key for a provider.
- * Follows OpenClaw's env var naming convention.
+ * Follows CoreBlow's env var naming convention.
  */
 export function resolveApiKey(providerId: string): string | null {
     const envVarMap: Record<string, string[]> = {
@@ -107,7 +107,7 @@ export function resolveApiKey(providerId: string): string | null {
  */
 export function createProvider(providerId: string, apiKey: string, defaultModel: string): ModelProvider {
     // For now, all providers use the OpenAI-compatible API format.
-    // OpenClaw does this too — most providers implement OpenAI's chat/completions API.
+    // CoreBlow does this too — most providers implement OpenAI's chat/completions API.
     switch (providerId) {
         case 'openai':
             return new OpenAIProvider({ apiKey, defaultModel });

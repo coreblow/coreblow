@@ -201,5 +201,3 @@ export function resetModelsJsonReadyCacheForTest(): void {
   MODELS_JSON_READY_CACHE.clear();
 }
 
-/** OC-compat alias — CB uses "CoreBlow" naming */
-export const ensureOpenClawModelsJson = ensureCoreBlowModelsJson;

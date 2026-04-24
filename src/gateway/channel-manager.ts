@@ -4,10 +4,10 @@
  * Manages the lifecycle of all registered channel adapters:
  * connect, health-monitor, auto-restart with backoff, and graceful stop.
  *
- * Inspired by OpenClaw's `server-channels.ts` pattern but built on
+ * Inspired by CoreBlow's `server-channels.ts` pattern but built on
  * CoreBlow's own `ChannelAdapter` interface and `ChannelBridge`.
  *
- * Key differences from OpenClaw:
+ * Key differences from CoreBlow:
  * - Uses CoreBlow's unified ChannelAdapter interface (not plugin-based)
  * - Stores adapter instances directly (not plugin gateway hooks)
  * - Integrates with CoreBlow's ChannelBridge for message routing

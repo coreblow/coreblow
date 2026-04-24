@@ -176,4 +176,3 @@ vi.mock("../../config/config.js", async (importOriginal) => {
 });
 
 /** OC-compat type alias */
-export type CreateOpenClawToolsOpts = CreateCoreBlowToolsOpts;

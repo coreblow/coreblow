@@ -134,16 +134,16 @@ function buildCandidates(opts: { cwd?: string; argv1?: string; moduleUrl?: strin
 }
 
 // ---------------------------------------------------------------------------
-// OpenclawRootService — Tier-1 Standalone Singleton
+// CoreblowRootService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
 import { createStandaloneSingleton } from "./service-patterns.js";
-export class OpenclawRootService {
-  [Symbol.toStringTag] = 'OpenclawRootService';
+export class CoreblowRootService {
+  [Symbol.toStringTag] = 'CoreblowRootService';
 }
 
 
-const { getInstance: getOpenclawRootService, __testing: __testing_openclawRoot } =
-  createStandaloneSingleton({ create: () => new OpenclawRootService(), defaultDeps: {} });
+const { getInstance: getCoreblowRootService, __testing: __testing_coreblowRoot } =
+  createStandaloneSingleton({ create: () => new CoreblowRootService(), defaultDeps: {} });
 
-export { getOpenclawRootService, __testing_openclawRoot };
+export { getCoreblowRootService, __testing_coreblowRoot };

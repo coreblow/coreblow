@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { CoreBlowConfig } from "../../src/config/types.openclaw.js";
+import type { CoreBlowConfig } from "../../src/config/types.coreblow.js";
 import { createTestPluginApi } from "../../test/helpers/extensions/plugin-api.js";
 import { getAccessTokenResultAsync } from "./cli.js";
 import plugin from "./index.js";

@@ -9,7 +9,7 @@
  * - Colorful startup banner via CLIBanner
  * - Graceful shutdown on SIGINT/SIGTERM
  *
- * Follows OpenClaw's `gateway` subcommand pattern but with
+ * Follows CoreBlow's `gateway` subcommand pattern but with
  * CoreBlow's Enterprise OOP GatewayServer architecture.
  *
  * @packageDocumentation

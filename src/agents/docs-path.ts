@@ -29,5 +29,3 @@ export async function resolveCoreBlowDocsPath(params: {
   return fs.existsSync(packageDocs) ? packageDocs : null;
 }
 
-/** OC-compat alias */
-export const resolveOpenClawDocsPath = resolveCoreBlowDocsPath;

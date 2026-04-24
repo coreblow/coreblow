@@ -17,7 +17,7 @@ vi.mock("./graph-upload.js", async () => {
   };
 });
 
-import { resolvePreferredCoreBlowTmpDir } from "../../../src/infra/tmp-openclaw-dir.js";
+import { resolvePreferredCoreBlowTmpDir } from "../../../src/infra/tmp-coreblow-dir.js";
 import {
   type MSTeamsAdapter,
   type MSTeamsRenderedMessage,

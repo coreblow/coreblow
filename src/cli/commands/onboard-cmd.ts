@@ -151,7 +151,7 @@ export function registerOnboardCommand(program: Command): void {
             const configDir = process.env.COREBLOW_CONFIG_DIR ?? path.join(os.homedir(), '.coreblow');
             const configPath = path.join(configDir, 'coreblow.json');
 
-            // OpenClaw-compatible config format
+            // CoreBlow-compatible config format
             const modelRef = provider === 'ollama' ? `ollama/${model}` : `${provider}/${model}`;
             const config: Record<string, unknown> = {
                 agents: {
