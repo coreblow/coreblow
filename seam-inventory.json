@@ -1,0 +1,4007 @@
+{
+  "duplicatedSeamFamilies": {
+    "telegram-runtime": {
+      "count": 12,
+      "importCount": 13,
+      "files": [
+        "src/agents/pi-embedded-runner/run/attempt.ts",
+        "src/auto-reply/reply/commands-approve.ts",
+        "src/auto-reply/reply/commands-models.ts",
+        "src/auto-reply/reply/directive-handling.model.ts",
+        "src/auto-reply/reply/telegram-context.ts",
+        "src/auto-reply/templating.ts",
+        "src/channels/plugins/contracts/registry.ts",
+        "src/channels/read-only-account-inspect.telegram.runtime.ts",
+        "src/cli/send-runtime/telegram.ts",
+        "src/infra/state-migrations.ts",
+        "src/plugins/commands.ts",
+        "src/security/audit-channel.telegram.runtime.ts"
+      ],
+      "imports": [
+        {
+          "family": "telegram-runtime",
+          "file": "src/agents/pi-embedded-runner/run/attempt.ts",
+          "kind": "import",
+          "line": 28,
+          "resolvedPath": "src/plugin-sdk/telegram-runtime.js",
+          "specifier": "../../../plugin-sdk/telegram-runtime.js"
+        },
+        {
+          "family": "telegram-runtime",
+          "file": "src/auto-reply/reply/commands-approve.ts",
+          "kind": "import",
+          "line": 11,
+          "resolvedPath": "src/plugin-sdk/telegram-runtime.js",
+          "specifier": "../../plugin-sdk/telegram-runtime.js"
+        },
+        {
+          "family": "telegram-runtime",
+          "file": "src/auto-reply/reply/commands-models.ts",
+          "kind": "import",
+          "line": 20,
+          "resolvedPath": "src/plugin-sdk/telegram-runtime.js",
+          "specifier": "../../plugin-sdk/telegram-runtime.js"
+        },
+        {
+          "family": "telegram-runtime",
+          "file": "src/auto-reply/reply/directive-handling.model.ts",
+          "kind": "import",
+          "line": 12,
+          "resolvedPath": "src/plugin-sdk/telegram-runtime.js",
+          "specifier": "../../plugin-sdk/telegram-runtime.js"
+        },
+        {
+          "family": "telegram-runtime",
+          "file": "src/auto-reply/reply/telegram-context.ts",
+          "kind": "import",
+          "line": 1,
+          "resolvedPath": "src/plugin-sdk/telegram-runtime.js",
+          "specifier": "../../plugin-sdk/telegram-runtime.js"
+        },
+        {
+          "family": "telegram-runtime",
+          "file": "src/auto-reply/templating.ts",
+          "kind": "import",
+          "line": 6,
+          "resolvedPath": "src/plugin-sdk/telegram-runtime.js",
+          "specifier": "../plugin-sdk/telegram-runtime.js"
+        },
+        {
+          "family": "telegram-runtime",
+          "file": "src/channels/plugins/contracts/registry.ts",
+          "kind": "import",
+          "line": 28,
+          "resolvedPath": "src/plugin-sdk/telegram-runtime.js",
+          "specifier": "../../../plugin-sdk/telegram-runtime.js"
+        },
+        {
+          "family": "telegram-runtime",
+          "file": "src/channels/read-only-account-inspect.telegram.runtime.ts",
+          "kind": "import",
+          "line": 1,
+          "resolvedPath": "src/plugin-sdk/telegram-runtime.js",
+          "specifier": "../plugin-sdk/telegram-runtime.js"
+        },
+        {
+          "family": "telegram-runtime",
+          "file": "src/channels/read-only-account-inspect.telegram.runtime.ts",
+          "kind": "export",
+          "line": 3,
+          "resolvedPath": "src/plugin-sdk/telegram-runtime.js",
+          "specifier": "../plugin-sdk/telegram-runtime.js"
+        },
+        {
+          "family": "telegram-runtime",
+          "file": "src/cli/send-runtime/telegram.ts",
+          "kind": "import",
+          "line": 1,
+          "resolvedPath": "src/plugin-sdk/telegram-runtime.js",
+          "specifier": "../../plugin-sdk/telegram-runtime.js"
+        },
+        {
+          "family": "telegram-runtime",
+          "file": "src/infra/state-migrations.ts",
+          "kind": "import",
+          "line": 18,
+          "resolvedPath": "src/plugin-sdk/telegram-runtime.js",
+          "specifier": "../plugin-sdk/telegram-runtime.js"
+        },
+        {
+          "family": "telegram-runtime",
+          "file": "src/plugins/commands.ts",
+          "kind": "import",
+          "line": 11,
+          "resolvedPath": "src/plugin-sdk/telegram-runtime.js",
+          "specifier": "../plugin-sdk/telegram-runtime.js"
+        },
+        {
+          "family": "telegram-runtime",
+          "file": "src/security/audit-channel.telegram.runtime.ts",
+          "kind": "import",
+          "line": 4,
+          "resolvedPath": "src/plugin-sdk/telegram-runtime.js",
+          "specifier": "../plugin-sdk/telegram-runtime.js"
+        }
+      ]
+    },
+    "browser-runtime": {
+      "count": 12,
+      "importCount": 12,
+      "files": [
+        "src/agents/sandbox/browser-bridges.ts",
+        "src/agents/sandbox/browser.ts",
+        "src/agents/sandbox/context.ts",
+        "src/agents/sandbox/manage.ts",
+        "src/agents/sandbox/prune.ts",
+        "src/commands/doctor-browser.ts",
+        "src/gateway/server-methods/agents.ts",
+        "src/gateway/session-reset-service.ts",
+        "src/node-host/invoke.ts",
+        "src/node-host/runner.ts",
+        "src/security/audit-extra.sync.ts",
+        "src/security/audit.ts"
+      ],
+      "imports": [
+        {
+          "family": "browser-runtime",
+          "file": "src/agents/sandbox/browser-bridges.ts",
+          "kind": "import",
+          "line": 1,
+          "resolvedPath": "src/plugin-sdk/browser-runtime.js",
+          "specifier": "../../plugin-sdk/browser-runtime.js"
+        },
+        {
+          "family": "browser-runtime",
+          "file": "src/agents/sandbox/browser.ts",
+          "kind": "import",
+          "line": 11,
+          "resolvedPath": "src/plugin-sdk/browser-runtime.js",
+          "specifier": "../../plugin-sdk/browser-runtime.js"
+        },
+        {
+          "family": "browser-runtime",
+          "file": "src/agents/sandbox/context.ts",
+          "kind": "import",
+          "line": 8,
+          "resolvedPath": "src/plugin-sdk/browser-runtime.js",
+          "specifier": "../../plugin-sdk/browser-runtime.js"
+        },
+        {
+          "family": "browser-runtime",
+          "file": "src/agents/sandbox/manage.ts",
+          "kind": "import",
+          "line": 2,
+          "resolvedPath": "src/plugin-sdk/browser-runtime.js",
+          "specifier": "../../plugin-sdk/browser-runtime.js"
+        },
+        {
+          "family": "browser-runtime",
+          "file": "src/agents/sandbox/prune.ts",
+          "kind": "import",
+          "line": 2,
+          "resolvedPath": "src/plugin-sdk/browser-runtime.js",
+          "specifier": "../../plugin-sdk/browser-runtime.js"
+        },
+        {
+          "family": "browser-runtime",
+          "file": "src/commands/doctor-browser.ts",
+          "kind": "import",
+          "line": 6,
+          "resolvedPath": "src/plugin-sdk/browser-runtime.js",
+          "specifier": "../plugin-sdk/browser-runtime.js"
+        },
+        {
+          "family": "browser-runtime",
+          "file": "src/gateway/server-methods/agents.ts",
+          "kind": "import",
+          "line": 38,
+          "resolvedPath": "src/plugin-sdk/browser-runtime.js",
+          "specifier": "../../plugin-sdk/browser-runtime.js"
+        },
+        {
+          "family": "browser-runtime",
+          "file": "src/gateway/session-reset-service.ts",
+          "kind": "import",
+          "line": 21,
+          "resolvedPath": "src/plugin-sdk/browser-runtime.js",
+          "specifier": "../plugin-sdk/browser-runtime.js"
+        },
+        {
+          "family": "browser-runtime",
+          "file": "src/node-host/invoke.ts",
+          "kind": "import",
+          "line": 22,
+          "resolvedPath": "src/plugin-sdk/browser-runtime.js",
+          "specifier": "../plugin-sdk/browser-runtime.js"
+        },
+        {
+          "family": "browser-runtime",
+          "file": "src/node-host/runner.ts",
+          "kind": "import",
+          "line": 14,
+          "resolvedPath": "src/plugin-sdk/browser-runtime.js",
+          "specifier": "../plugin-sdk/browser-runtime.js"
+        },
+        {
+          "family": "browser-runtime",
+          "file": "src/security/audit-extra.sync.ts",
+          "kind": "import",
+          "line": 27,
+          "resolvedPath": "src/plugin-sdk/browser-runtime.js",
+          "specifier": "../plugin-sdk/browser-runtime.js"
+        },
+        {
+          "family": "browser-runtime",
+          "file": "src/security/audit.ts",
+          "kind": "import",
+          "line": 25,
+          "resolvedPath": "src/plugin-sdk/browser-runtime.js",
+          "specifier": "../plugin-sdk/browser-runtime.js"
+        }
+      ]
+    },
+    "discord": {
+      "count": 9,
+      "importCount": 11,
+      "files": [
+        "src/auto-reply/reply/groups.runtime.ts",
+        "src/channels/plugins/actions/discord/handle-action.guild-admin.ts",
+        "src/channels/plugins/actions/discord/handle-action.ts",
+        "src/channels/plugins/contracts/registry.ts",
+        "src/channels/read-only-account-inspect.discord.runtime.ts",
+        "src/cli/send-runtime/discord.ts",
+        "src/config/sessions/explicit-session-key-normalization.ts",
+        "src/plugins/runtime/runtime-discord-ops.runtime.ts",
+        "src/plugins/runtime/runtime-discord.ts"
+      ],
+      "imports": [
+        {
+          "family": "discord",
+          "file": "src/auto-reply/reply/groups.runtime.ts",
+          "kind": "export",
+          "line": 2,
+          "resolvedPath": "src/plugin-sdk/discord.js",
+          "specifier": "../../plugin-sdk/discord.js"
+        },
+        {
+          "family": "discord",
+          "file": "src/channels/plugins/actions/discord/handle-action.guild-admin.ts",
+          "kind": "export",
+          "line": 1,
+          "resolvedPath": "src/plugin-sdk/discord.js",
+          "specifier": "../../../../plugin-sdk/discord.js"
+        },
+        {
+          "family": "discord",
+          "file": "src/channels/plugins/actions/discord/handle-action.ts",
+          "kind": "export",
+          "line": 1,
+          "resolvedPath": "src/plugin-sdk/discord.js",
+          "specifier": "../../../../plugin-sdk/discord.js"
+        },
+        {
+          "family": "discord",
+          "file": "src/channels/plugins/contracts/registry.ts",
+          "kind": "import",
+          "line": 16,
+          "resolvedPath": "src/plugin-sdk/discord.js",
+          "specifier": "../../../plugin-sdk/discord.js"
+        },
+        {
+          "family": "discord",
+          "file": "src/channels/read-only-account-inspect.discord.runtime.ts",
+          "kind": "import",
+          "line": 1,
+          "resolvedPath": "src/plugin-sdk/discord.js",
+          "specifier": "../plugin-sdk/discord.js"
+        },
+        {
+          "family": "discord",
+          "file": "src/channels/read-only-account-inspect.discord.runtime.ts",
+          "kind": "export",
+          "line": 3,
+          "resolvedPath": "src/plugin-sdk/discord.js",
+          "specifier": "../plugin-sdk/discord.js"
+        },
+        {
+          "family": "discord",
+          "file": "src/cli/send-runtime/discord.ts",
+          "kind": "import",
+          "line": 1,
+          "resolvedPath": "src/plugin-sdk/discord.js",
+          "specifier": "../../plugin-sdk/discord.js"
+        },
+        {
+          "family": "discord",
+          "file": "src/config/sessions/explicit-session-key-normalization.ts",
+          "kind": "import",
+          "line": 2,
+          "resolvedPath": "src/plugin-sdk/discord.js",
+          "specifier": "../../plugin-sdk/discord.js"
+        },
+        {
+          "family": "discord",
+          "file": "src/plugins/runtime/runtime-discord-ops.runtime.ts",
+          "kind": "import",
+          "line": 9,
+          "resolvedPath": "src/plugin-sdk/discord.js",
+          "specifier": "../../plugin-sdk/discord.js"
+        },
+        {
+          "family": "discord",
+          "file": "src/plugins/runtime/runtime-discord-ops.runtime.ts",
+          "kind": "import",
+          "line": 21,
+          "resolvedPath": "src/plugin-sdk/discord.js",
+          "specifier": "../../plugin-sdk/discord.js"
+        },
+        {
+          "family": "discord",
+          "file": "src/plugins/runtime/runtime-discord.ts",
+          "kind": "import",
+          "line": 11,
+          "resolvedPath": "src/plugin-sdk/discord.js",
+          "specifier": "../../plugin-sdk/discord.js"
+        }
+      ]
+    },
+    "matrix": {
+      "count": 6,
+      "importCount": 9,
+      "files": [
+        "src/channels/plugins/contracts/registry.ts",
+        "src/infra/matrix-legacy-crypto.ts",
+        "src/infra/matrix-legacy-state.ts",
+        "src/infra/matrix-migration-config.ts",
+        "src/plugins/runtime/runtime-matrix-contract.ts",
+        "src/secrets/runtime-config-collectors-channels.ts"
+      ],
+      "imports": [
+        {
+          "family": "matrix",
+          "file": "src/channels/plugins/contracts/registry.ts",
+          "kind": "import",
+          "line": 27,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../../../plugin-sdk/matrix.js"
+        },
+        {
+          "family": "matrix",
+          "file": "src/infra/matrix-legacy-crypto.ts",
+          "kind": "import",
+          "line": 10,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../plugin-sdk/matrix.js"
+        },
+        {
+          "family": "matrix",
+          "file": "src/infra/matrix-legacy-state.ts",
+          "kind": "import",
+          "line": 6,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../plugin-sdk/matrix.js"
+        },
+        {
+          "family": "matrix",
+          "file": "src/infra/matrix-migration-config.ts",
+          "kind": "import",
+          "line": 15,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../plugin-sdk/matrix.js"
+        },
+        {
+          "family": "matrix",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 88,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../../plugin-sdk/matrix.js"
+        },
+        {
+          "family": "matrix",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 163,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../../plugin-sdk/matrix.js"
+        },
+        {
+          "family": "matrix",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 164,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../../plugin-sdk/matrix.js"
+        },
+        {
+          "family": "matrix",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 168,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../../plugin-sdk/matrix.js"
+        },
+        {
+          "family": "matrix",
+          "file": "src/secrets/runtime-config-collectors-channels.ts",
+          "kind": "import",
+          "line": 3,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../plugin-sdk/matrix.js"
+        }
+      ]
+    },
+    "slack": {
+      "count": 5,
+      "importCount": 6,
+      "files": [
+        "src/auto-reply/reply/groups.runtime.ts",
+        "src/channels/read-only-account-inspect.slack.runtime.ts",
+        "src/cli/send-runtime/slack.ts",
+        "src/gateway/server-http.ts",
+        "src/plugins/runtime/runtime-slack-ops.runtime.ts"
+      ],
+      "imports": [
+        {
+          "family": "slack",
+          "file": "src/auto-reply/reply/groups.runtime.ts",
+          "kind": "export",
+          "line": 3,
+          "resolvedPath": "src/plugin-sdk/slack.js",
+          "specifier": "../../plugin-sdk/slack.js"
+        },
+        {
+          "family": "slack",
+          "file": "src/channels/read-only-account-inspect.slack.runtime.ts",
+          "kind": "import",
+          "line": 1,
+          "resolvedPath": "src/plugin-sdk/slack.js",
+          "specifier": "../plugin-sdk/slack.js"
+        },
+        {
+          "family": "slack",
+          "file": "src/channels/read-only-account-inspect.slack.runtime.ts",
+          "kind": "export",
+          "line": 3,
+          "resolvedPath": "src/plugin-sdk/slack.js",
+          "specifier": "../plugin-sdk/slack.js"
+        },
+        {
+          "family": "slack",
+          "file": "src/cli/send-runtime/slack.ts",
+          "kind": "import",
+          "line": 1,
+          "resolvedPath": "src/plugin-sdk/slack.js",
+          "specifier": "../../plugin-sdk/slack.js"
+        },
+        {
+          "family": "slack",
+          "file": "src/gateway/server-http.ts",
+          "kind": "import",
+          "line": 16,
+          "resolvedPath": "src/plugin-sdk/slack.js",
+          "specifier": "../plugin-sdk/slack.js"
+        },
+        {
+          "family": "slack",
+          "file": "src/plugins/runtime/runtime-slack-ops.runtime.ts",
+          "kind": "import",
+          "line": 10,
+          "resolvedPath": "src/plugin-sdk/slack.js",
+          "specifier": "../../plugin-sdk/slack.js"
+        }
+      ]
+    },
+    "json-store": {
+      "count": 5,
+      "importCount": 5,
+      "files": [
+        "src/infra/matrix-legacy-crypto.ts",
+        "src/infra/matrix-migration-snapshot.ts",
+        "src/infra/outbound/current-conversation-bindings.ts",
+        "src/pairing/pairing-store.ts",
+        "src/plugins/runtime/runtime-matrix-contract.ts"
+      ],
+      "imports": [
+        {
+          "family": "json-store",
+          "file": "src/infra/matrix-legacy-crypto.ts",
+          "kind": "import",
+          "line": 6,
+          "resolvedPath": "src/plugin-sdk/json-store.js",
+          "specifier": "../plugin-sdk/json-store.js"
+        },
+        {
+          "family": "json-store",
+          "file": "src/infra/matrix-migration-snapshot.ts",
+          "kind": "import",
+          "line": 6,
+          "resolvedPath": "src/plugin-sdk/json-store.js",
+          "specifier": "../plugin-sdk/json-store.js"
+        },
+        {
+          "family": "json-store",
+          "file": "src/infra/outbound/current-conversation-bindings.ts",
+          "kind": "import",
+          "line": 8,
+          "resolvedPath": "src/plugin-sdk/json-store.js",
+          "specifier": "../../plugin-sdk/json-store.js"
+        },
+        {
+          "family": "json-store",
+          "file": "src/pairing/pairing-store.ts",
+          "kind": "import",
+          "line": 15,
+          "resolvedPath": "src/plugin-sdk/json-store.js",
+          "specifier": "../plugin-sdk/json-store.js"
+        },
+        {
+          "family": "json-store",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 149,
+          "resolvedPath": "src/plugin-sdk/json-store.js",
+          "specifier": "../../plugin-sdk/json-store.js"
+        }
+      ]
+    },
+    "telegram": {
+      "count": 4,
+      "importCount": 5,
+      "files": [
+        "src/agents/pi-embedded-runner/compact.ts",
+        "src/commands/doctor/providers/telegram.ts",
+        "src/plugins/runtime/runtime-telegram-ops.runtime.ts",
+        "src/plugins/runtime/runtime-telegram.ts"
+      ],
+      "imports": [
+        {
+          "family": "telegram",
+          "file": "src/agents/pi-embedded-runner/compact.ts",
+          "kind": "import",
+          "line": 25,
+          "resolvedPath": "src/plugin-sdk/telegram.js",
+          "specifier": "../../plugin-sdk/telegram.js"
+        },
+        {
+          "family": "telegram",
+          "file": "src/commands/doctor/providers/telegram.ts",
+          "kind": "import",
+          "line": 12,
+          "resolvedPath": "src/plugin-sdk/telegram.js",
+          "specifier": "../../../plugin-sdk/telegram.js"
+        },
+        {
+          "family": "telegram",
+          "file": "src/plugins/runtime/runtime-telegram-ops.runtime.ts",
+          "kind": "import",
+          "line": 5,
+          "resolvedPath": "src/plugin-sdk/telegram.js",
+          "specifier": "../../plugin-sdk/telegram.js"
+        },
+        {
+          "family": "telegram",
+          "file": "src/plugins/runtime/runtime-telegram-ops.runtime.ts",
+          "kind": "import",
+          "line": 16,
+          "resolvedPath": "src/plugin-sdk/telegram.js",
+          "specifier": "../../plugin-sdk/telegram.js"
+        },
+        {
+          "family": "telegram",
+          "file": "src/plugins/runtime/runtime-telegram.ts",
+          "kind": "import",
+          "line": 7,
+          "resolvedPath": "src/plugin-sdk/telegram.js",
+          "specifier": "../../plugin-sdk/telegram.js"
+        }
+      ]
+    },
+    "anthropic-vertex": {
+      "count": 4,
+      "importCount": 4,
+      "files": [
+        "src/agents/anthropic-vertex-stream.ts",
+        "src/agents/model-auth-env.ts",
+        "src/agents/models-config.providers.implicit.ts",
+        "src/agents/models-config.providers.policy.ts"
+      ],
+      "imports": [
+        {
+          "family": "anthropic-vertex",
+          "file": "src/agents/anthropic-vertex-stream.ts",
+          "kind": "import",
+          "line": 7,
+          "resolvedPath": "src/plugin-sdk/anthropic-vertex.js",
+          "specifier": "../plugin-sdk/anthropic-vertex.js"
+        },
+        {
+          "family": "anthropic-vertex",
+          "file": "src/agents/model-auth-env.ts",
+          "kind": "import",
+          "line": 3,
+          "resolvedPath": "src/plugin-sdk/anthropic-vertex.js",
+          "specifier": "../plugin-sdk/anthropic-vertex.js"
+        },
+        {
+          "family": "anthropic-vertex",
+          "file": "src/agents/models-config.providers.implicit.ts",
+          "kind": "import",
+          "line": 7,
+          "resolvedPath": "src/plugin-sdk/anthropic-vertex.js",
+          "specifier": "../plugin-sdk/anthropic-vertex.js"
+        },
+        {
+          "family": "anthropic-vertex",
+          "file": "src/agents/models-config.providers.policy.ts",
+          "kind": "import",
+          "line": 2,
+          "resolvedPath": "src/plugin-sdk/anthropic-vertex.js",
+          "specifier": "../plugin-sdk/anthropic-vertex.js"
+        }
+      ]
+    },
+    "signal": {
+      "count": 4,
+      "importCount": 4,
+      "files": [
+        "src/agents/pi-embedded-runner/compact.ts",
+        "src/agents/pi-embedded-runner/run/attempt.ts",
+        "src/cli/send-runtime/signal.ts",
+        "src/plugins/runtime/runtime-signal.ts"
+      ],
+      "imports": [
+        {
+          "family": "signal",
+          "file": "src/agents/pi-embedded-runner/compact.ts",
+          "kind": "import",
+          "line": 21,
+          "resolvedPath": "src/plugin-sdk/signal.js",
+          "specifier": "../../plugin-sdk/signal.js"
+        },
+        {
+          "family": "signal",
+          "file": "src/agents/pi-embedded-runner/run/attempt.ts",
+          "kind": "import",
+          "line": 24,
+          "resolvedPath": "src/plugin-sdk/signal.js",
+          "specifier": "../../../plugin-sdk/signal.js"
+        },
+        {
+          "family": "signal",
+          "file": "src/cli/send-runtime/signal.ts",
+          "kind": "import",
+          "line": 1,
+          "resolvedPath": "src/plugin-sdk/signal.js",
+          "specifier": "../../plugin-sdk/signal.js"
+        },
+        {
+          "family": "signal",
+          "file": "src/plugins/runtime/runtime-signal.ts",
+          "kind": "import",
+          "line": 6,
+          "resolvedPath": "src/plugin-sdk/signal.js",
+          "specifier": "../../plugin-sdk/signal.js"
+        }
+      ]
+    },
+    "line": {
+      "count": 3,
+      "importCount": 4,
+      "files": [
+        "src/auto-reply/reply/line-directives.ts",
+        "src/channels/plugins/contracts/registry.ts",
+        "src/plugins/runtime/runtime-channel.ts"
+      ],
+      "imports": [
+        {
+          "family": "line",
+          "file": "src/auto-reply/reply/line-directives.ts",
+          "kind": "import",
+          "line": 7,
+          "resolvedPath": "src/plugin-sdk/line.js",
+          "specifier": "../../plugin-sdk/line.js"
+        },
+        {
+          "family": "line",
+          "file": "src/auto-reply/reply/line-directives.ts",
+          "kind": "import",
+          "line": 8,
+          "resolvedPath": "src/plugin-sdk/line.js",
+          "specifier": "../../plugin-sdk/line.js"
+        },
+        {
+          "family": "line",
+          "file": "src/channels/plugins/contracts/registry.ts",
+          "kind": "import",
+          "line": 22,
+          "resolvedPath": "src/plugin-sdk/line.js",
+          "specifier": "../../../plugin-sdk/line.js"
+        },
+        {
+          "family": "line",
+          "file": "src/plugins/runtime/runtime-channel.ts",
+          "kind": "import",
+          "line": 78,
+          "resolvedPath": "src/plugin-sdk/line.js",
+          "specifier": "../../plugin-sdk/line.js"
+        }
+      ]
+    },
+    "memory-core-host-engine-storage": {
+      "count": 3,
+      "importCount": 3,
+      "files": [
+        "src/commands/status.scan.deps.runtime.ts",
+        "src/commands/status.scan.shared.ts",
+        "src/plugins/memory-state.ts"
+      ],
+      "imports": [
+        {
+          "family": "memory-core-host-engine-storage",
+          "file": "src/commands/status.scan.deps.runtime.ts",
+          "kind": "import",
+          "line": 3,
+          "resolvedPath": "src/plugin-sdk/memory-core-host-engine-storage.js",
+          "specifier": "../plugin-sdk/memory-core-host-engine-storage.js"
+        },
+        {
+          "family": "memory-core-host-engine-storage",
+          "file": "src/commands/status.scan.shared.ts",
+          "kind": "import",
+          "line": 6,
+          "resolvedPath": "src/plugin-sdk/memory-core-host-engine-storage.js",
+          "specifier": "../plugin-sdk/memory-core-host-engine-storage.js"
+        },
+        {
+          "family": "memory-core-host-engine-storage",
+          "file": "src/plugins/memory-state.ts",
+          "kind": "import",
+          "line": 7,
+          "resolvedPath": "src/plugin-sdk/memory-core-host-engine-storage.js",
+          "specifier": "../plugin-sdk/memory-core-host-engine-storage.js"
+        }
+      ]
+    },
+    "speech-runtime": {
+      "count": 2,
+      "importCount": 3,
+      "files": [
+        "src/plugins/runtime/runtime-tts.runtime.ts",
+        "src/tts/tts.ts"
+      ],
+      "imports": [
+        {
+          "family": "speech-runtime",
+          "file": "src/plugins/runtime/runtime-tts.runtime.ts",
+          "kind": "export",
+          "line": 5,
+          "resolvedPath": "src/plugin-sdk/speech-runtime.js",
+          "specifier": "../../plugin-sdk/speech-runtime.js"
+        },
+        {
+          "family": "speech-runtime",
+          "file": "src/tts/tts.ts",
+          "kind": "import",
+          "line": 1,
+          "resolvedPath": "src/plugin-sdk/speech-runtime.js",
+          "specifier": "../plugin-sdk/speech-runtime.js"
+        },
+        {
+          "family": "speech-runtime",
+          "file": "src/tts/tts.ts",
+          "kind": "export",
+          "line": 36,
+          "resolvedPath": "src/plugin-sdk/speech-runtime.js",
+          "specifier": "../plugin-sdk/speech-runtime.js"
+        }
+      ]
+    },
+    "anthropic-cli": {
+      "count": 2,
+      "importCount": 2,
+      "files": [
+        "src/agents/cli-output.ts",
+        "src/agents/cli-session.ts"
+      ],
+      "imports": [
+        {
+          "family": "anthropic-cli",
+          "file": "src/agents/cli-output.ts",
+          "kind": "import",
+          "line": 2,
+          "resolvedPath": "src/plugin-sdk/anthropic-cli.js",
+          "specifier": "../plugin-sdk/anthropic-cli.js"
+        },
+        {
+          "family": "anthropic-cli",
+          "file": "src/agents/cli-session.ts",
+          "kind": "import",
+          "line": 3,
+          "resolvedPath": "src/plugin-sdk/anthropic-cli.js",
+          "specifier": "../plugin-sdk/anthropic-cli.js"
+        }
+      ]
+    },
+    "channel-reply-pipeline": {
+      "count": 2,
+      "importCount": 2,
+      "files": [
+        "src/gateway/server-methods/chat.ts",
+        "src/plugins/runtime/runtime-matrix-contract.ts"
+      ],
+      "imports": [
+        {
+          "family": "channel-reply-pipeline",
+          "file": "src/gateway/server-methods/chat.ts",
+          "kind": "import",
+          "line": 17,
+          "resolvedPath": "src/plugin-sdk/channel-reply-pipeline.js",
+          "specifier": "../../plugin-sdk/channel-reply-pipeline.js"
+        },
+        {
+          "family": "channel-reply-pipeline",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 90,
+          "resolvedPath": "src/plugin-sdk/channel-reply-pipeline.js",
+          "specifier": "../../plugin-sdk/channel-reply-pipeline.js"
+        }
+      ]
+    },
+    "google": {
+      "count": 2,
+      "importCount": 2,
+      "files": [
+        "src/agents/model-selection.ts",
+        "src/agents/models-config.providers.policy.ts"
+      ],
+      "imports": [
+        {
+          "family": "google",
+          "file": "src/agents/model-selection.ts",
+          "kind": "import",
+          "line": 9,
+          "resolvedPath": "src/plugin-sdk/google.js",
+          "specifier": "../plugin-sdk/google.js"
+        },
+        {
+          "family": "google",
+          "file": "src/agents/models-config.providers.policy.ts",
+          "kind": "import",
+          "line": 3,
+          "resolvedPath": "src/plugin-sdk/google.js",
+          "specifier": "../plugin-sdk/google.js"
+        }
+      ]
+    },
+    "image-generation-runtime": {
+      "count": 2,
+      "importCount": 2,
+      "files": [
+        "src/image-generation/runtime.ts",
+        "src/plugins/runtime/index.ts"
+      ],
+      "imports": [
+        {
+          "family": "image-generation-runtime",
+          "file": "src/image-generation/runtime.ts",
+          "kind": "export",
+          "line": 6,
+          "resolvedPath": "src/plugin-sdk/image-generation-runtime.js",
+          "specifier": "../plugin-sdk/image-generation-runtime.js"
+        },
+        {
+          "family": "image-generation-runtime",
+          "file": "src/plugins/runtime/index.ts",
+          "kind": "import",
+          "line": 5,
+          "resolvedPath": "src/plugin-sdk/image-generation-runtime.js",
+          "specifier": "../../plugin-sdk/image-generation-runtime.js"
+        }
+      ]
+    },
+    "imessage": {
+      "count": 2,
+      "importCount": 2,
+      "files": [
+        "src/cli/send-runtime/imessage.ts",
+        "src/plugins/runtime/runtime-imessage.ts"
+      ],
+      "imports": [
+        {
+          "family": "imessage",
+          "file": "src/cli/send-runtime/imessage.ts",
+          "kind": "import",
+          "line": 1,
+          "resolvedPath": "src/plugin-sdk/imessage.js",
+          "specifier": "../../plugin-sdk/imessage.js"
+        },
+        {
+          "family": "imessage",
+          "file": "src/plugins/runtime/runtime-imessage.ts",
+          "kind": "import",
+          "line": 5,
+          "resolvedPath": "src/plugin-sdk/imessage.js",
+          "specifier": "../../plugin-sdk/imessage.js"
+        }
+      ]
+    },
+    "line-runtime": {
+      "count": 2,
+      "importCount": 2,
+      "files": [
+        "src/plugins/runtime/runtime-channel.ts",
+        "src/plugins/runtime/runtime-line.runtime.ts"
+      ],
+      "imports": [
+        {
+          "family": "line-runtime",
+          "file": "src/plugins/runtime/runtime-channel.ts",
+          "kind": "import",
+          "line": 72,
+          "resolvedPath": "src/plugin-sdk/line-runtime.js",
+          "specifier": "../../plugin-sdk/line-runtime.js"
+        },
+        {
+          "family": "line-runtime",
+          "file": "src/plugins/runtime/runtime-line.runtime.ts",
+          "kind": "export",
+          "line": 11,
+          "resolvedPath": "src/plugin-sdk/line-runtime.js",
+          "specifier": "../../plugin-sdk/line-runtime.js"
+        }
+      ]
+    },
+    "media-understanding-runtime": {
+      "count": 2,
+      "importCount": 2,
+      "files": [
+        "src/media-understanding/runtime.ts",
+        "src/plugins/runtime/runtime-media-understanding.runtime.ts"
+      ],
+      "imports": [
+        {
+          "family": "media-understanding-runtime",
+          "file": "src/media-understanding/runtime.ts",
+          "kind": "export",
+          "line": 9,
+          "resolvedPath": "src/plugin-sdk/media-understanding-runtime.js",
+          "specifier": "../plugin-sdk/media-understanding-runtime.js"
+        },
+        {
+          "family": "media-understanding-runtime",
+          "file": "src/plugins/runtime/runtime-media-understanding.runtime.ts",
+          "kind": "export",
+          "line": 7,
+          "resolvedPath": "src/plugin-sdk/media-understanding-runtime.js",
+          "specifier": "../../plugin-sdk/media-understanding-runtime.js"
+        }
+      ]
+    },
+    "memory-core-host-status": {
+      "count": 2,
+      "importCount": 2,
+      "files": [
+        "src/commands/status.command.text-runtime.ts",
+        "src/commands/status.command.ts"
+      ],
+      "imports": [
+        {
+          "family": "memory-core-host-status",
+          "file": "src/commands/status.command.text-runtime.ts",
+          "kind": "export",
+          "line": 10,
+          "resolvedPath": "src/plugin-sdk/memory-core-host-status.js",
+          "specifier": "../plugin-sdk/memory-core-host-status.js"
+        },
+        {
+          "family": "memory-core-host-status",
+          "file": "src/commands/status.command.ts",
+          "kind": "import",
+          "line": 4,
+          "resolvedPath": "src/plugin-sdk/memory-core-host-status.js",
+          "specifier": "../plugin-sdk/memory-core-host-status.js"
+        }
+      ]
+    },
+    "whatsapp": {
+      "count": 2,
+      "importCount": 2,
+      "files": [
+        "src/config/channel-configured.ts",
+        "src/cron/isolated-agent/delivery-target.ts"
+      ],
+      "imports": [
+        {
+          "family": "whatsapp",
+          "file": "src/config/channel-configured.ts",
+          "kind": "import",
+          "line": 2,
+          "resolvedPath": "src/plugin-sdk/whatsapp.js",
+          "specifier": "../plugin-sdk/whatsapp.js"
+        },
+        {
+          "family": "whatsapp",
+          "file": "src/cron/isolated-agent/delivery-target.ts",
+          "kind": "import",
+          "line": 17,
+          "resolvedPath": "src/plugin-sdk/whatsapp.js",
+          "specifier": "../../plugin-sdk/whatsapp.js"
+        }
+      ]
+    },
+    "whatsapp-targets": {
+      "count": 2,
+      "importCount": 2,
+      "files": [
+        "src/channels/plugins/normalize/whatsapp.ts",
+        "src/cron/isolated-agent/delivery-target.ts"
+      ],
+      "imports": [
+        {
+          "family": "whatsapp-targets",
+          "file": "src/channels/plugins/normalize/whatsapp.ts",
+          "kind": "import",
+          "line": 1,
+          "resolvedPath": "src/plugin-sdk/whatsapp-targets.js",
+          "specifier": "../../../plugin-sdk/whatsapp-targets.js"
+        },
+        {
+          "family": "whatsapp-targets",
+          "file": "src/cron/isolated-agent/delivery-target.ts",
+          "kind": "import",
+          "line": 16,
+          "resolvedPath": "src/plugin-sdk/whatsapp-targets.js",
+          "specifier": "../../plugin-sdk/whatsapp-targets.js"
+        }
+      ]
+    },
+    "windows-spawn": {
+      "count": 2,
+      "importCount": 2,
+      "files": [
+        "src/acp/client.ts",
+        "src/agents/sandbox/docker.ts"
+      ],
+      "imports": [
+        {
+          "family": "windows-spawn",
+          "file": "src/acp/client.ts",
+          "kind": "import",
+          "line": 21,
+          "resolvedPath": "src/plugin-sdk/windows-spawn.js",
+          "specifier": "../plugin-sdk/windows-spawn.js"
+        },
+        {
+          "family": "windows-spawn",
+          "file": "src/agents/sandbox/docker.ts",
+          "kind": "import",
+          "line": 6,
+          "resolvedPath": "src/plugin-sdk/windows-spawn.js",
+          "specifier": "../../plugin-sdk/windows-spawn.js"
+        }
+      ]
+    }
+  },
+  "overlapFiles": [
+    {
+      "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+      "families": [
+        "channel-pairing",
+        "channel-reply-pipeline",
+        "channel-setup",
+        "group-access",
+        "inbound-reply-dispatch",
+        "json-store",
+        "matrix",
+        "resolution-notes",
+        "run-command",
+        "runtime",
+        "secret-input",
+        "status-helpers"
+      ],
+      "imports": [
+        {
+          "family": "channel-pairing",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 148,
+          "resolvedPath": "src/plugin-sdk/channel-pairing.js",
+          "specifier": "../../plugin-sdk/channel-pairing.js"
+        },
+        {
+          "family": "channel-reply-pipeline",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 90,
+          "resolvedPath": "src/plugin-sdk/channel-reply-pipeline.js",
+          "specifier": "../../plugin-sdk/channel-reply-pipeline.js"
+        },
+        {
+          "family": "channel-setup",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "import",
+          "line": 4,
+          "resolvedPath": "src/plugin-sdk/channel-setup.js",
+          "specifier": "../../plugin-sdk/channel-setup.js"
+        },
+        {
+          "family": "group-access",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 147,
+          "resolvedPath": "src/plugin-sdk/group-access.js",
+          "specifier": "../../plugin-sdk/group-access.js"
+        },
+        {
+          "family": "inbound-reply-dispatch",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 153,
+          "resolvedPath": "src/plugin-sdk/inbound-reply-dispatch.js",
+          "specifier": "../../plugin-sdk/inbound-reply-dispatch.js"
+        },
+        {
+          "family": "json-store",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 149,
+          "resolvedPath": "src/plugin-sdk/json-store.js",
+          "specifier": "../../plugin-sdk/json-store.js"
+        },
+        {
+          "family": "matrix",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 88,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../../plugin-sdk/matrix.js"
+        },
+        {
+          "family": "matrix",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 163,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../../plugin-sdk/matrix.js"
+        },
+        {
+          "family": "matrix",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 164,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../../plugin-sdk/matrix.js"
+        },
+        {
+          "family": "matrix",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 168,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../../plugin-sdk/matrix.js"
+        },
+        {
+          "family": "resolution-notes",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 150,
+          "resolvedPath": "src/plugin-sdk/resolution-notes.js",
+          "specifier": "../../plugin-sdk/resolution-notes.js"
+        },
+        {
+          "family": "run-command",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 151,
+          "resolvedPath": "src/plugin-sdk/run-command.js",
+          "specifier": "../../plugin-sdk/run-command.js"
+        },
+        {
+          "family": "runtime",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 152,
+          "resolvedPath": "src/plugin-sdk/runtime.js",
+          "specifier": "../../plugin-sdk/runtime.js"
+        },
+        {
+          "family": "secret-input",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 104,
+          "resolvedPath": "src/plugin-sdk/secret-input.js",
+          "specifier": "../../plugin-sdk/secret-input.js"
+        },
+        {
+          "family": "secret-input",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 110,
+          "resolvedPath": "src/plugin-sdk/secret-input.js",
+          "specifier": "../../plugin-sdk/secret-input.js"
+        },
+        {
+          "family": "status-helpers",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 157,
+          "resolvedPath": "src/plugin-sdk/status-helpers.js",
+          "specifier": "../../plugin-sdk/status-helpers.js"
+        }
+      ]
+    },
+    {
+      "file": "src/agents/models-config.providers.policy.ts",
+      "families": [
+        "amazon-bedrock",
+        "anthropic-vertex",
+        "google",
+        "modelstudio",
+        "moonshot"
+      ],
+      "imports": [
+        {
+          "family": "amazon-bedrock",
+          "file": "src/agents/models-config.providers.policy.ts",
+          "kind": "import",
+          "line": 1,
+          "resolvedPath": "src/plugin-sdk/amazon-bedrock.js",
+          "specifier": "../plugin-sdk/amazon-bedrock.js"
+        },
+        {
+          "family": "anthropic-vertex",
+          "file": "src/agents/models-config.providers.policy.ts",
+          "kind": "import",
+          "line": 2,
+          "resolvedPath": "src/plugin-sdk/anthropic-vertex.js",
+          "specifier": "../plugin-sdk/anthropic-vertex.js"
+        },
+        {
+          "family": "google",
+          "file": "src/agents/models-config.providers.policy.ts",
+          "kind": "import",
+          "line": 3,
+          "resolvedPath": "src/plugin-sdk/google.js",
+          "specifier": "../plugin-sdk/google.js"
+        },
+        {
+          "family": "modelstudio",
+          "file": "src/agents/models-config.providers.policy.ts",
+          "kind": "import",
+          "line": 4,
+          "resolvedPath": "src/plugin-sdk/modelstudio.js",
+          "specifier": "../plugin-sdk/modelstudio.js"
+        },
+        {
+          "family": "moonshot",
+          "file": "src/agents/models-config.providers.policy.ts",
+          "kind": "import",
+          "line": 5,
+          "resolvedPath": "src/plugin-sdk/moonshot.js",
+          "specifier": "../plugin-sdk/moonshot.js"
+        }
+      ]
+    },
+    {
+      "file": "src/channels/plugins/contracts/registry.ts",
+      "families": [
+        "discord",
+        "feishu",
+        "line",
+        "matrix",
+        "telegram-runtime"
+      ],
+      "imports": [
+        {
+          "family": "discord",
+          "file": "src/channels/plugins/contracts/registry.ts",
+          "kind": "import",
+          "line": 16,
+          "resolvedPath": "src/plugin-sdk/discord.js",
+          "specifier": "../../../plugin-sdk/discord.js"
+        },
+        {
+          "family": "feishu",
+          "file": "src/channels/plugins/contracts/registry.ts",
+          "kind": "import",
+          "line": 17,
+          "resolvedPath": "src/plugin-sdk/feishu.js",
+          "specifier": "../../../plugin-sdk/feishu.js"
+        },
+        {
+          "family": "line",
+          "file": "src/channels/plugins/contracts/registry.ts",
+          "kind": "import",
+          "line": 22,
+          "resolvedPath": "src/plugin-sdk/line.js",
+          "specifier": "../../../plugin-sdk/line.js"
+        },
+        {
+          "family": "matrix",
+          "file": "src/channels/plugins/contracts/registry.ts",
+          "kind": "import",
+          "line": 27,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../../../plugin-sdk/matrix.js"
+        },
+        {
+          "family": "telegram-runtime",
+          "file": "src/channels/plugins/contracts/registry.ts",
+          "kind": "import",
+          "line": 28,
+          "resolvedPath": "src/plugin-sdk/telegram-runtime.js",
+          "specifier": "../../../plugin-sdk/telegram-runtime.js"
+        }
+      ]
+    },
+    {
+      "file": "src/agents/pi-embedded-runner/run/attempt.ts",
+      "families": [
+        "ollama",
+        "signal",
+        "telegram-runtime"
+      ],
+      "imports": [
+        {
+          "family": "ollama",
+          "file": "src/agents/pi-embedded-runner/run/attempt.ts",
+          "kind": "import",
+          "line": 23,
+          "resolvedPath": "src/plugin-sdk/ollama.js",
+          "specifier": "../../../plugin-sdk/ollama.js"
+        },
+        {
+          "family": "ollama",
+          "file": "src/agents/pi-embedded-runner/run/attempt.ts",
+          "kind": "export",
+          "line": 205,
+          "resolvedPath": "src/plugin-sdk/ollama.js",
+          "specifier": "../../../plugin-sdk/ollama.js"
+        },
+        {
+          "family": "signal",
+          "file": "src/agents/pi-embedded-runner/run/attempt.ts",
+          "kind": "import",
+          "line": 24,
+          "resolvedPath": "src/plugin-sdk/signal.js",
+          "specifier": "../../../plugin-sdk/signal.js"
+        },
+        {
+          "family": "telegram-runtime",
+          "file": "src/agents/pi-embedded-runner/run/attempt.ts",
+          "kind": "import",
+          "line": 28,
+          "resolvedPath": "src/plugin-sdk/telegram-runtime.js",
+          "specifier": "../../../plugin-sdk/telegram-runtime.js"
+        }
+      ]
+    },
+    {
+      "file": "src/commands/doctor-memory-search.ts",
+      "families": [
+        "memory-core-engine-runtime",
+        "memory-core-host-engine-embeddings",
+        "memory-core-host-secret"
+      ],
+      "imports": [
+        {
+          "family": "memory-core-engine-runtime",
+          "file": "src/commands/doctor-memory-search.ts",
+          "kind": "import",
+          "line": 10,
+          "resolvedPath": "src/plugin-sdk/memory-core-engine-runtime.js",
+          "specifier": "../plugin-sdk/memory-core-engine-runtime.js"
+        },
+        {
+          "family": "memory-core-host-engine-embeddings",
+          "file": "src/commands/doctor-memory-search.ts",
+          "kind": "import",
+          "line": 11,
+          "resolvedPath": "src/plugin-sdk/memory-core-host-engine-embeddings.js",
+          "specifier": "../plugin-sdk/memory-core-host-engine-embeddings.js"
+        },
+        {
+          "family": "memory-core-host-secret",
+          "file": "src/commands/doctor-memory-search.ts",
+          "kind": "import",
+          "line": 12,
+          "resolvedPath": "src/plugin-sdk/memory-core-host-secret.js",
+          "specifier": "../plugin-sdk/memory-core-host-secret.js"
+        }
+      ]
+    },
+    {
+      "file": "src/agents/model-selection.ts",
+      "families": [
+        "google",
+        "xai"
+      ],
+      "imports": [
+        {
+          "family": "google",
+          "file": "src/agents/model-selection.ts",
+          "kind": "import",
+          "line": 9,
+          "resolvedPath": "src/plugin-sdk/google.js",
+          "specifier": "../plugin-sdk/google.js"
+        },
+        {
+          "family": "xai",
+          "file": "src/agents/model-selection.ts",
+          "kind": "import",
+          "line": 10,
+          "resolvedPath": "src/plugin-sdk/xai.js",
+          "specifier": "../plugin-sdk/xai.js"
+        }
+      ]
+    },
+    {
+      "file": "src/agents/pi-embedded-runner/compact.ts",
+      "families": [
+        "signal",
+        "telegram"
+      ],
+      "imports": [
+        {
+          "family": "signal",
+          "file": "src/agents/pi-embedded-runner/compact.ts",
+          "kind": "import",
+          "line": 21,
+          "resolvedPath": "src/plugin-sdk/signal.js",
+          "specifier": "../../plugin-sdk/signal.js"
+        },
+        {
+          "family": "telegram",
+          "file": "src/agents/pi-embedded-runner/compact.ts",
+          "kind": "import",
+          "line": 25,
+          "resolvedPath": "src/plugin-sdk/telegram.js",
+          "specifier": "../../plugin-sdk/telegram.js"
+        }
+      ]
+    },
+    {
+      "file": "src/auto-reply/reply/commands-approve.ts",
+      "families": [
+        "discord-surface",
+        "telegram-runtime"
+      ],
+      "imports": [
+        {
+          "family": "discord-surface",
+          "file": "src/auto-reply/reply/commands-approve.ts",
+          "kind": "import",
+          "line": 7,
+          "resolvedPath": "src/plugin-sdk/discord-surface.js",
+          "specifier": "../../plugin-sdk/discord-surface.js"
+        },
+        {
+          "family": "telegram-runtime",
+          "file": "src/auto-reply/reply/commands-approve.ts",
+          "kind": "import",
+          "line": 11,
+          "resolvedPath": "src/plugin-sdk/telegram-runtime.js",
+          "specifier": "../../plugin-sdk/telegram-runtime.js"
+        }
+      ]
+    },
+    {
+      "file": "src/auto-reply/reply/groups.runtime.ts",
+      "families": [
+        "discord",
+        "slack"
+      ],
+      "imports": [
+        {
+          "family": "discord",
+          "file": "src/auto-reply/reply/groups.runtime.ts",
+          "kind": "export",
+          "line": 2,
+          "resolvedPath": "src/plugin-sdk/discord.js",
+          "specifier": "../../plugin-sdk/discord.js"
+        },
+        {
+          "family": "slack",
+          "file": "src/auto-reply/reply/groups.runtime.ts",
+          "kind": "export",
+          "line": 3,
+          "resolvedPath": "src/plugin-sdk/slack.js",
+          "specifier": "../../plugin-sdk/slack.js"
+        }
+      ]
+    },
+    {
+      "file": "src/commands/doctor/providers/telegram.ts",
+      "families": [
+        "account-resolution",
+        "telegram"
+      ],
+      "imports": [
+        {
+          "family": "account-resolution",
+          "file": "src/commands/doctor/providers/telegram.ts",
+          "kind": "import",
+          "line": 5,
+          "resolvedPath": "src/plugin-sdk/account-resolution.js",
+          "specifier": "../../../plugin-sdk/account-resolution.js"
+        },
+        {
+          "family": "telegram",
+          "file": "src/commands/doctor/providers/telegram.ts",
+          "kind": "import",
+          "line": 12,
+          "resolvedPath": "src/plugin-sdk/telegram.js",
+          "specifier": "../../../plugin-sdk/telegram.js"
+        }
+      ]
+    },
+    {
+      "file": "src/cron/isolated-agent/delivery-target.ts",
+      "families": [
+        "whatsapp",
+        "whatsapp-targets"
+      ],
+      "imports": [
+        {
+          "family": "whatsapp",
+          "file": "src/cron/isolated-agent/delivery-target.ts",
+          "kind": "import",
+          "line": 17,
+          "resolvedPath": "src/plugin-sdk/whatsapp.js",
+          "specifier": "../../plugin-sdk/whatsapp.js"
+        },
+        {
+          "family": "whatsapp-targets",
+          "file": "src/cron/isolated-agent/delivery-target.ts",
+          "kind": "import",
+          "line": 16,
+          "resolvedPath": "src/plugin-sdk/whatsapp-targets.js",
+          "specifier": "../../plugin-sdk/whatsapp-targets.js"
+        }
+      ]
+    },
+    {
+      "file": "src/infra/matrix-legacy-crypto.ts",
+      "families": [
+        "json-store",
+        "matrix"
+      ],
+      "imports": [
+        {
+          "family": "json-store",
+          "file": "src/infra/matrix-legacy-crypto.ts",
+          "kind": "import",
+          "line": 6,
+          "resolvedPath": "src/plugin-sdk/json-store.js",
+          "specifier": "../plugin-sdk/json-store.js"
+        },
+        {
+          "family": "matrix",
+          "file": "src/infra/matrix-legacy-crypto.ts",
+          "kind": "import",
+          "line": 10,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../plugin-sdk/matrix.js"
+        }
+      ]
+    },
+    {
+      "file": "src/plugins/runtime/runtime-channel.ts",
+      "families": [
+        "line",
+        "line-runtime"
+      ],
+      "imports": [
+        {
+          "family": "line",
+          "file": "src/plugins/runtime/runtime-channel.ts",
+          "kind": "import",
+          "line": 78,
+          "resolvedPath": "src/plugin-sdk/line.js",
+          "specifier": "../../plugin-sdk/line.js"
+        },
+        {
+          "family": "line-runtime",
+          "file": "src/plugins/runtime/runtime-channel.ts",
+          "kind": "import",
+          "line": 72,
+          "resolvedPath": "src/plugin-sdk/line-runtime.js",
+          "specifier": "../../plugin-sdk/line-runtime.js"
+        }
+      ]
+    }
+  ],
+  "optionalClusterStaticLeaks": {
+    "matrix": {
+      "count": 9,
+      "files": [
+        "src/channels/plugins/contracts/registry.ts",
+        "src/infra/matrix-legacy-crypto.ts",
+        "src/infra/matrix-legacy-state.ts",
+        "src/infra/matrix-migration-config.ts",
+        "src/plugins/runtime/runtime-matrix-contract.ts",
+        "src/secrets/runtime-config-collectors-channels.ts"
+      ],
+      "imports": [
+        {
+          "cluster": "matrix",
+          "file": "src/channels/plugins/contracts/registry.ts",
+          "kind": "import",
+          "line": 27,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../../../plugin-sdk/matrix.js"
+        },
+        {
+          "cluster": "matrix",
+          "file": "src/infra/matrix-legacy-crypto.ts",
+          "kind": "import",
+          "line": 10,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../plugin-sdk/matrix.js"
+        },
+        {
+          "cluster": "matrix",
+          "file": "src/infra/matrix-legacy-state.ts",
+          "kind": "import",
+          "line": 6,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../plugin-sdk/matrix.js"
+        },
+        {
+          "cluster": "matrix",
+          "file": "src/infra/matrix-migration-config.ts",
+          "kind": "import",
+          "line": 15,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../plugin-sdk/matrix.js"
+        },
+        {
+          "cluster": "matrix",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 88,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../../plugin-sdk/matrix.js"
+        },
+        {
+          "cluster": "matrix",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 163,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../../plugin-sdk/matrix.js"
+        },
+        {
+          "cluster": "matrix",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 164,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../../plugin-sdk/matrix.js"
+        },
+        {
+          "cluster": "matrix",
+          "file": "src/plugins/runtime/runtime-matrix-contract.ts",
+          "kind": "export",
+          "line": 168,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../../plugin-sdk/matrix.js"
+        },
+        {
+          "cluster": "matrix",
+          "file": "src/secrets/runtime-config-collectors-channels.ts",
+          "kind": "import",
+          "line": 3,
+          "resolvedPath": "src/plugin-sdk/matrix.js",
+          "specifier": "../plugin-sdk/matrix.js"
+        }
+      ]
+    },
+    "whatsapp": {
+      "count": 2,
+      "files": [
+        "src/config/channel-configured.ts",
+        "src/cron/isolated-agent/delivery-target.ts"
+      ],
+      "imports": [
+        {
+          "cluster": "whatsapp",
+          "file": "src/config/channel-configured.ts",
+          "kind": "import",
+          "line": 2,
+          "resolvedPath": "src/plugin-sdk/whatsapp.js",
+          "specifier": "../plugin-sdk/whatsapp.js"
+        },
+        {
+          "cluster": "whatsapp",
+          "file": "src/cron/isolated-agent/delivery-target.ts",
+          "kind": "import",
+          "line": 17,
+          "resolvedPath": "src/plugin-sdk/whatsapp.js",
+          "specifier": "../../plugin-sdk/whatsapp.js"
+        }
+      ]
+    }
+  },
+  "missingPackages": [
+    {
+      "cluster": "ui",
+      "decision": "optional",
+      "decisionReason": "Private UI workspace. Repo-wide CLI/plugin CI should not require UI-only packages.",
+      "packageName": "coreblow-control-ui",
+      "packagePath": "ui/package.json",
+      "npmSpec": null,
+      "private": true,
+      "missing": [
+        "@create-markdown/preview",
+        "@noble/ed25519",
+        "dompurify",
+        "lit",
+        "marked"
+      ]
+    }
+  ],
+  "seamTestInventory": [
+    {
+      "file": "extensions/bluebubbles/src/media-send.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/discord/src/channel.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/discord/src/monitor/native-command.ts",
+      "seamKinds": [
+        "reply-delivery-media",
+        "streaming-media-handoff"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/discord/src/monitor/reply-delivery.ts",
+      "seamKinds": [
+        "channel-media-adapter",
+        "reply-delivery-media",
+        "streaming-media-handoff"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/discord/src/outbound-adapter.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/discord/src/send.outbound.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/feishu/src/outbound.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/feishu/src/reply-dispatcher.ts",
+      "seamKinds": [
+        "reply-delivery-media",
+        "streaming-media-handoff"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/imessage/src/channel.runtime.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/imessage/src/monitor/deliver.ts",
+      "seamKinds": [
+        "reply-delivery-media",
+        "streaming-media-handoff"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/imessage/src/outbound-adapter.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/imessage/src/send.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/line/src/auto-reply-delivery.ts",
+      "seamKinds": [
+        "channel-media-adapter",
+        "reply-delivery-media",
+        "streaming-media-handoff"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/line/src/send.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/matrix/src/channel.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/matrix/src/matrix/monitor/replies.ts",
+      "seamKinds": [
+        "reply-delivery-media"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/matrix/src/matrix/send.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/matrix/src/outbound.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/mattermost/src/mattermost/reply-delivery.ts",
+      "seamKinds": [
+        "channel-media-adapter",
+        "reply-delivery-media",
+        "streaming-media-handoff"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/mattermost/src/mattermost/send.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/msteams/src/messenger.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/msteams/src/outbound.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/msteams/src/send.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/signal/src/outbound-adapter.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/signal/src/send.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/slack/src/channel.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/slack/src/monitor/replies.ts",
+      "seamKinds": [
+        "reply-delivery-media",
+        "streaming-media-handoff"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/slack/src/outbound-adapter.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/slack/src/send.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/telegram/src/channel.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/telegram/src/outbound-adapter.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/telegram/src/send.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/tlon/src/channel.runtime.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/tlon/src/urbit/send.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/twitch/src/outbound.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/whatsapp/src/auto-reply/deliver-reply.ts",
+      "seamKinds": [
+        "reply-delivery-media"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/whatsapp/src/outbound-adapter.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/whatsapp/src/send.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/zalo/src/send.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/zalouser/src/send.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [],
+      "relatedTestMatches": [],
+      "status": "gap",
+      "reason": "No nearby test file references this seam candidate."
+    },
+    {
+      "file": "extensions/bluebubbles/src/channel.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [
+        "extensions/bluebubbles/src/__tests__/channel.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "extensions/bluebubbles/src/__tests__/channel.test.ts",
+          "matchQuality": "direct-import"
+        }
+      ],
+      "status": "heuristic-nearby",
+      "reason": "Nearby tests exist (best match: direct-import), but this remains a filename/path heuristic rather than proof of seam assertions."
+    },
+    {
+      "file": "extensions/feishu/src/channel.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [
+        "extensions/feishu/src/__tests__/channel.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "extensions/feishu/src/__tests__/channel.test.ts",
+          "matchQuality": "direct-import"
+        }
+      ],
+      "status": "heuristic-nearby",
+      "reason": "Nearby tests exist (best match: direct-import), but this remains a filename/path heuristic rather than proof of seam assertions."
+    },
+    {
+      "file": "extensions/googlechat/src/channel.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [
+        "extensions/googlechat/src/__tests__/channel.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "extensions/googlechat/src/__tests__/channel.test.ts",
+          "matchQuality": "direct-import"
+        }
+      ],
+      "status": "heuristic-nearby",
+      "reason": "Nearby tests exist (best match: direct-import), but this remains a filename/path heuristic rather than proof of seam assertions."
+    },
+    {
+      "file": "extensions/imessage/src/channel.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [
+        "extensions/imessage/src/__tests__/channel.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "extensions/imessage/src/__tests__/channel.test.ts",
+          "matchQuality": "direct-import"
+        }
+      ],
+      "status": "heuristic-nearby",
+      "reason": "Nearby tests exist (best match: direct-import), but this remains a filename/path heuristic rather than proof of seam assertions."
+    },
+    {
+      "file": "extensions/irc/src/channel.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [
+        "extensions/irc/src/__tests__/channel.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "extensions/irc/src/__tests__/channel.test.ts",
+          "matchQuality": "direct-import"
+        }
+      ],
+      "status": "heuristic-nearby",
+      "reason": "Nearby tests exist (best match: direct-import), but this remains a filename/path heuristic rather than proof of seam assertions."
+    },
+    {
+      "file": "extensions/line/src/channel.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [
+        "extensions/line/src/__tests__/channel.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "extensions/line/src/__tests__/channel.test.ts",
+          "matchQuality": "direct-import"
+        }
+      ],
+      "status": "heuristic-nearby",
+      "reason": "Nearby tests exist (best match: direct-import), but this remains a filename/path heuristic rather than proof of seam assertions."
+    },
+    {
+      "file": "extensions/mattermost/src/channel.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [
+        "extensions/mattermost/src/__tests__/channel.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "extensions/mattermost/src/__tests__/channel.test.ts",
+          "matchQuality": "direct-import"
+        }
+      ],
+      "status": "heuristic-nearby",
+      "reason": "Nearby tests exist (best match: direct-import), but this remains a filename/path heuristic rather than proof of seam assertions."
+    },
+    {
+      "file": "extensions/msteams/src/channel.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [
+        "extensions/msteams/src/__tests__/channel.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "extensions/msteams/src/__tests__/channel.test.ts",
+          "matchQuality": "direct-import"
+        }
+      ],
+      "status": "heuristic-nearby",
+      "reason": "Nearby tests exist (best match: direct-import), but this remains a filename/path heuristic rather than proof of seam assertions."
+    },
+    {
+      "file": "extensions/nextcloud-talk/src/channel.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [
+        "extensions/nextcloud-talk/src/__tests__/channel.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "extensions/nextcloud-talk/src/__tests__/channel.test.ts",
+          "matchQuality": "direct-import"
+        }
+      ],
+      "status": "heuristic-nearby",
+      "reason": "Nearby tests exist (best match: direct-import), but this remains a filename/path heuristic rather than proof of seam assertions."
+    },
+    {
+      "file": "extensions/signal/src/channel.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [
+        "extensions/signal/src/__tests__/channel.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "extensions/signal/src/__tests__/channel.test.ts",
+          "matchQuality": "direct-import"
+        }
+      ],
+      "status": "heuristic-nearby",
+      "reason": "Nearby tests exist (best match: direct-import), but this remains a filename/path heuristic rather than proof of seam assertions."
+    },
+    {
+      "file": "extensions/synology-chat/src/channel.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [
+        "extensions/synology-chat/src/__tests__/channel.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "extensions/synology-chat/src/__tests__/channel.test.ts",
+          "matchQuality": "direct-import"
+        }
+      ],
+      "status": "heuristic-nearby",
+      "reason": "Nearby tests exist (best match: direct-import), but this remains a filename/path heuristic rather than proof of seam assertions."
+    },
+    {
+      "file": "extensions/tlon/src/channel.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [
+        "extensions/tlon/src/__tests__/channel.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "extensions/tlon/src/__tests__/channel.test.ts",
+          "matchQuality": "direct-import"
+        }
+      ],
+      "status": "heuristic-nearby",
+      "reason": "Nearby tests exist (best match: direct-import), but this remains a filename/path heuristic rather than proof of seam assertions."
+    },
+    {
+      "file": "extensions/zalo/src/channel.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [
+        "extensions/zalo/src/__tests__/channel.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "extensions/zalo/src/__tests__/channel.test.ts",
+          "matchQuality": "direct-import"
+        }
+      ],
+      "status": "heuristic-nearby",
+      "reason": "Nearby tests exist (best match: direct-import), but this remains a filename/path heuristic rather than proof of seam assertions."
+    },
+    {
+      "file": "extensions/zalouser/src/channel.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [
+        "extensions/zalouser/src/__tests__/channel.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "extensions/zalouser/src/__tests__/channel.test.ts",
+          "matchQuality": "direct-import"
+        }
+      ],
+      "status": "heuristic-nearby",
+      "reason": "Nearby tests exist (best match: direct-import), but this remains a filename/path heuristic rather than proof of seam assertions."
+    },
+    {
+      "file": "src/channels/plugins/outbound/direct-text-media.ts",
+      "seamKinds": [
+        "channel-media-adapter"
+      ],
+      "relatedTests": [
+        "src/channels/plugins/outbound/direct-text-media.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/channels/plugins/outbound/direct-text-media.test.ts",
+          "matchQuality": "exact-stem"
+        }
+      ],
+      "status": "heuristic-nearby",
+      "reason": "Nearby tests exist (best match: exact-stem), but this remains a filename/path heuristic rather than proof of seam assertions."
+    },
+    {
+      "file": "src/agents/acp-spawn-parent-stream.ts",
+      "seamKinds": [
+        "subagent-parent-stream"
+      ],
+      "relatedTests": [
+        "src/agents/acp-spawn-parent-stream.test.ts",
+        "src/agents/acp-spawn.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/agents/acp-spawn-parent-stream.test.ts",
+          "matchQuality": "exact-stem"
+        },
+        {
+          "file": "src/agents/acp-spawn.test.ts",
+          "matchQuality": "direct-import"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/agents/acp-spawn.ts",
+      "seamKinds": [
+        "subagent-parent-stream",
+        "subagent-session-cleanup",
+        "subagent-session-spawn"
+      ],
+      "relatedTests": [
+        "src/agents/acp-spawn.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/agents/acp-spawn.test.ts",
+          "matchQuality": "exact-stem"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/agents/subagent-announce-delivery.ts",
+      "seamKinds": [
+        "subagent-announce-delivery"
+      ],
+      "relatedTests": [
+        "src/agents/announce-idempotency.test.ts",
+        "src/agents/subagent-announce-dispatch.test.ts",
+        "src/agents/subagent-announce-queue.test.ts",
+        "src/agents/subagent-announce.test.ts",
+        "src/agents/subagent-control.test.ts",
+        "src/agents/subagent-depth.test.ts",
+        "src/agents/subagent-lifecycle-events.test.ts",
+        "src/agents/subagent-orphan-recovery.test.ts",
+        "src/agents/subagent-registry-cleanup.test.ts",
+        "src/agents/subagent-registry-completion.test.ts",
+        "src/agents/subagent-registry-queries.test.ts",
+        "src/agents/subagent-registry-runtime.test.ts",
+        "src/agents/subagent-registry.test.ts",
+        "src/agents/subagent-spawn.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/agents/announce-idempotency.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce-dispatch.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce-queue.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-control.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-depth.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-lifecycle-events.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-orphan-recovery.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-cleanup.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-completion.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-queries.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-runtime.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-spawn.test.ts",
+          "matchQuality": "dir-token"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: dir-token), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/agents/subagent-announce-dispatch.ts",
+      "seamKinds": [
+        "subagent-announce-delivery"
+      ],
+      "relatedTests": [
+        "src/agents/subagent-announce-dispatch.test.ts",
+        "src/agents/announce-idempotency.test.ts",
+        "src/agents/subagent-announce-queue.test.ts",
+        "src/agents/subagent-announce.test.ts",
+        "src/agents/subagent-control.test.ts",
+        "src/agents/subagent-depth.test.ts",
+        "src/agents/subagent-lifecycle-events.test.ts",
+        "src/agents/subagent-orphan-recovery.test.ts",
+        "src/agents/subagent-registry-cleanup.test.ts",
+        "src/agents/subagent-registry-completion.test.ts",
+        "src/agents/subagent-registry-queries.test.ts",
+        "src/agents/subagent-registry-runtime.test.ts",
+        "src/agents/subagent-registry.test.ts",
+        "src/agents/subagent-spawn.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/agents/subagent-announce-dispatch.test.ts",
+          "matchQuality": "exact-stem"
+        },
+        {
+          "file": "src/agents/announce-idempotency.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce-queue.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-control.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-depth.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-lifecycle-events.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-orphan-recovery.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-cleanup.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-completion.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-queries.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-runtime.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-spawn.test.ts",
+          "matchQuality": "dir-token"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/agents/subagent-announce-queue.ts",
+      "seamKinds": [
+        "subagent-announce-delivery"
+      ],
+      "relatedTests": [
+        "src/agents/subagent-announce-queue.test.ts",
+        "src/agents/announce-idempotency.test.ts",
+        "src/agents/subagent-announce-dispatch.test.ts",
+        "src/agents/subagent-announce.test.ts",
+        "src/agents/subagent-control.test.ts",
+        "src/agents/subagent-depth.test.ts",
+        "src/agents/subagent-lifecycle-events.test.ts",
+        "src/agents/subagent-orphan-recovery.test.ts",
+        "src/agents/subagent-registry-cleanup.test.ts",
+        "src/agents/subagent-registry-completion.test.ts",
+        "src/agents/subagent-registry-queries.test.ts",
+        "src/agents/subagent-registry-runtime.test.ts",
+        "src/agents/subagent-registry.test.ts",
+        "src/agents/subagent-spawn.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/agents/subagent-announce-queue.test.ts",
+          "matchQuality": "exact-stem"
+        },
+        {
+          "file": "src/agents/announce-idempotency.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce-dispatch.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-control.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-depth.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-lifecycle-events.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-orphan-recovery.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-cleanup.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-completion.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-queries.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-runtime.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-spawn.test.ts",
+          "matchQuality": "dir-token"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/agents/subagent-announce.ts",
+      "seamKinds": [
+        "subagent-announce-delivery",
+        "subagent-session-cleanup"
+      ],
+      "relatedTests": [
+        "src/agents/subagent-announce.test.ts",
+        "src/agents/announce-idempotency.test.ts",
+        "src/agents/subagent-announce-dispatch.test.ts",
+        "src/agents/subagent-announce-queue.test.ts",
+        "src/agents/subagent-control.test.ts",
+        "src/agents/subagent-depth.test.ts",
+        "src/agents/subagent-lifecycle-events.test.ts",
+        "src/agents/subagent-orphan-recovery.test.ts",
+        "src/agents/subagent-registry-cleanup.test.ts",
+        "src/agents/subagent-registry-completion.test.ts",
+        "src/agents/subagent-registry-queries.test.ts",
+        "src/agents/subagent-registry-runtime.test.ts",
+        "src/agents/subagent-registry.test.ts",
+        "src/agents/subagent-spawn.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/agents/subagent-announce.test.ts",
+          "matchQuality": "exact-stem"
+        },
+        {
+          "file": "src/agents/announce-idempotency.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce-dispatch.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce-queue.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-control.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-depth.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-lifecycle-events.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-orphan-recovery.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-cleanup.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-completion.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-queries.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-runtime.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-spawn.test.ts",
+          "matchQuality": "dir-token"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/agents/subagent-registry-cleanup.ts",
+      "seamKinds": [
+        "subagent-lifecycle-registry"
+      ],
+      "relatedTests": [
+        "src/agents/subagent-registry-cleanup.test.ts",
+        "src/agents/bash-process-registry.test-helpers.test.ts",
+        "src/agents/bash-process-registry.test.ts",
+        "src/agents/custom-api-registry.test.ts",
+        "src/agents/subagent-announce-dispatch.test.ts",
+        "src/agents/subagent-announce-queue.test.ts",
+        "src/agents/subagent-announce.test.ts",
+        "src/agents/subagent-control.test.ts",
+        "src/agents/subagent-depth.test.ts",
+        "src/agents/subagent-lifecycle-events.test.ts",
+        "src/agents/subagent-orphan-recovery.test.ts",
+        "src/agents/subagent-registry-completion.test.ts",
+        "src/agents/subagent-registry-queries.test.ts",
+        "src/agents/subagent-registry-runtime.test.ts",
+        "src/agents/subagent-registry.test.ts",
+        "src/agents/subagent-spawn.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/agents/subagent-registry-cleanup.test.ts",
+          "matchQuality": "exact-stem"
+        },
+        {
+          "file": "src/agents/bash-process-registry.test-helpers.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/bash-process-registry.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/custom-api-registry.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce-dispatch.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce-queue.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-control.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-depth.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-lifecycle-events.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-orphan-recovery.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-completion.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-queries.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-runtime.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-spawn.test.ts",
+          "matchQuality": "dir-token"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/agents/subagent-registry-completion.ts",
+      "seamKinds": [
+        "subagent-lifecycle-registry"
+      ],
+      "relatedTests": [
+        "src/agents/subagent-registry-completion.test.ts",
+        "src/agents/bash-process-registry.test-helpers.test.ts",
+        "src/agents/bash-process-registry.test.ts",
+        "src/agents/custom-api-registry.test.ts",
+        "src/agents/simple-completion-runtime.test.ts",
+        "src/agents/simple-completion-transport.test.ts",
+        "src/agents/subagent-announce-dispatch.test.ts",
+        "src/agents/subagent-announce-queue.test.ts",
+        "src/agents/subagent-announce.test.ts",
+        "src/agents/subagent-control.test.ts",
+        "src/agents/subagent-depth.test.ts",
+        "src/agents/subagent-lifecycle-events.test.ts",
+        "src/agents/subagent-orphan-recovery.test.ts",
+        "src/agents/subagent-registry-cleanup.test.ts",
+        "src/agents/subagent-registry-queries.test.ts",
+        "src/agents/subagent-registry-runtime.test.ts",
+        "src/agents/subagent-registry.test.ts",
+        "src/agents/subagent-spawn.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/agents/subagent-registry-completion.test.ts",
+          "matchQuality": "exact-stem"
+        },
+        {
+          "file": "src/agents/bash-process-registry.test-helpers.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/bash-process-registry.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/custom-api-registry.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/simple-completion-runtime.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/simple-completion-transport.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce-dispatch.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce-queue.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-control.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-depth.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-lifecycle-events.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-orphan-recovery.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-cleanup.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-queries.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-runtime.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-spawn.test.ts",
+          "matchQuality": "dir-token"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/agents/subagent-registry-lifecycle.ts",
+      "seamKinds": [
+        "subagent-announce-delivery",
+        "subagent-lifecycle-registry",
+        "subagent-session-cleanup"
+      ],
+      "relatedTests": [
+        "src/agents/subagent-registry.test.ts",
+        "src/agents/bash-process-registry.test-helpers.test.ts",
+        "src/agents/bash-process-registry.test.ts",
+        "src/agents/custom-api-registry.test.ts",
+        "src/agents/pi-embedded-subscribe.handlers.lifecycle.test.ts",
+        "src/agents/subagent-announce-dispatch.test.ts",
+        "src/agents/subagent-announce-queue.test.ts",
+        "src/agents/subagent-announce.test.ts",
+        "src/agents/subagent-control.test.ts",
+        "src/agents/subagent-depth.test.ts",
+        "src/agents/subagent-lifecycle-events.test.ts",
+        "src/agents/subagent-orphan-recovery.test.ts",
+        "src/agents/subagent-registry-cleanup.test.ts",
+        "src/agents/subagent-registry-completion.test.ts",
+        "src/agents/subagent-registry-queries.test.ts",
+        "src/agents/subagent-registry-runtime.test.ts",
+        "src/agents/subagent-spawn.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/agents/subagent-registry.test.ts",
+          "matchQuality": "direct-import"
+        },
+        {
+          "file": "src/agents/bash-process-registry.test-helpers.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/bash-process-registry.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/custom-api-registry.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/pi-embedded-subscribe.handlers.lifecycle.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce-dispatch.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce-queue.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-control.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-depth.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-lifecycle-events.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-orphan-recovery.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-cleanup.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-completion.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-queries.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-runtime.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-spawn.test.ts",
+          "matchQuality": "dir-token"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: direct-import), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/agents/subagent-registry-run-manager.ts",
+      "seamKinds": [
+        "subagent-lifecycle-registry"
+      ],
+      "relatedTests": [
+        "src/agents/subagent-registry.test.ts",
+        "src/agents/bash-process-registry.test-helpers.test.ts",
+        "src/agents/bash-process-registry.test.ts",
+        "src/agents/context-manager.test.ts",
+        "src/agents/custom-api-registry.test.ts",
+        "src/agents/prompt-manager.test.ts",
+        "src/agents/subagent-announce-dispatch.test.ts",
+        "src/agents/subagent-announce-queue.test.ts",
+        "src/agents/subagent-announce.test.ts",
+        "src/agents/subagent-control.test.ts",
+        "src/agents/subagent-depth.test.ts",
+        "src/agents/subagent-lifecycle-events.test.ts",
+        "src/agents/subagent-orphan-recovery.test.ts",
+        "src/agents/subagent-registry-cleanup.test.ts",
+        "src/agents/subagent-registry-completion.test.ts",
+        "src/agents/subagent-registry-queries.test.ts",
+        "src/agents/subagent-registry-runtime.test.ts",
+        "src/agents/subagent-spawn.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/agents/subagent-registry.test.ts",
+          "matchQuality": "direct-import"
+        },
+        {
+          "file": "src/agents/bash-process-registry.test-helpers.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/bash-process-registry.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/context-manager.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/custom-api-registry.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/prompt-manager.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce-dispatch.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce-queue.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-control.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-depth.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-lifecycle-events.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-orphan-recovery.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-cleanup.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-completion.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-queries.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-runtime.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-spawn.test.ts",
+          "matchQuality": "dir-token"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: direct-import), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/agents/subagent-registry.ts",
+      "seamKinds": [
+        "subagent-lifecycle-registry",
+        "subagent-parent-stream",
+        "subagent-session-cleanup"
+      ],
+      "relatedTests": [
+        "src/agents/subagent-registry.test.ts",
+        "src/agents/subagent-control.test.ts",
+        "src/agents/subagent-registry-cleanup.test.ts",
+        "src/agents/subagent-registry-completion.test.ts",
+        "src/agents/subagent-registry-queries.test.ts",
+        "src/agents/subagent-registry-runtime.test.ts",
+        "src/auto-reply/reply/commands-status.test.ts",
+        "src/auto-reply/reply/commands.test.ts",
+        "src/auto-reply/reply/subagents-utils.test.ts",
+        "src/gateway/session-utils.test.ts",
+        "src/agents/bash-process-registry.test-helpers.test.ts",
+        "src/agents/bash-process-registry.test.ts",
+        "src/agents/custom-api-registry.test.ts",
+        "src/agents/subagent-announce-dispatch.test.ts",
+        "src/agents/subagent-announce-queue.test.ts",
+        "src/agents/subagent-announce.test.ts",
+        "src/agents/subagent-depth.test.ts",
+        "src/agents/subagent-lifecycle-events.test.ts",
+        "src/agents/subagent-orphan-recovery.test.ts",
+        "src/agents/subagent-spawn.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/agents/subagent-registry.test.ts",
+          "matchQuality": "exact-stem"
+        },
+        {
+          "file": "src/agents/subagent-control.test.ts",
+          "matchQuality": "direct-import"
+        },
+        {
+          "file": "src/agents/subagent-registry-cleanup.test.ts",
+          "matchQuality": "direct-import"
+        },
+        {
+          "file": "src/agents/subagent-registry-completion.test.ts",
+          "matchQuality": "direct-import"
+        },
+        {
+          "file": "src/agents/subagent-registry-queries.test.ts",
+          "matchQuality": "direct-import"
+        },
+        {
+          "file": "src/agents/subagent-registry-runtime.test.ts",
+          "matchQuality": "direct-import"
+        },
+        {
+          "file": "src/auto-reply/reply/commands-status.test.ts",
+          "matchQuality": "direct-import"
+        },
+        {
+          "file": "src/auto-reply/reply/commands.test.ts",
+          "matchQuality": "direct-import"
+        },
+        {
+          "file": "src/auto-reply/reply/subagents-utils.test.ts",
+          "matchQuality": "direct-import"
+        },
+        {
+          "file": "src/gateway/session-utils.test.ts",
+          "matchQuality": "direct-import"
+        },
+        {
+          "file": "src/agents/bash-process-registry.test-helpers.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/bash-process-registry.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/custom-api-registry.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce-dispatch.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce-queue.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-depth.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-lifecycle-events.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-orphan-recovery.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-spawn.test.ts",
+          "matchQuality": "dir-token"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/agents/subagent-spawn.ts",
+      "seamKinds": [
+        "subagent-lifecycle-registry",
+        "subagent-session-cleanup",
+        "subagent-session-spawn"
+      ],
+      "relatedTests": [
+        "src/agents/subagent-spawn.test.ts",
+        "src/agents/subagent-announce-dispatch.test.ts",
+        "src/agents/subagent-announce-queue.test.ts",
+        "src/agents/subagent-announce.test.ts",
+        "src/agents/subagent-control.test.ts",
+        "src/agents/subagent-depth.test.ts",
+        "src/agents/subagent-lifecycle-events.test.ts",
+        "src/agents/subagent-orphan-recovery.test.ts",
+        "src/agents/subagent-registry-cleanup.test.ts",
+        "src/agents/subagent-registry-completion.test.ts",
+        "src/agents/subagent-registry-queries.test.ts",
+        "src/agents/subagent-registry-runtime.test.ts",
+        "src/agents/subagent-registry.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/agents/subagent-spawn.test.ts",
+          "matchQuality": "exact-stem"
+        },
+        {
+          "file": "src/agents/subagent-announce-dispatch.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce-queue.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-announce.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-control.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-depth.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-lifecycle-events.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-orphan-recovery.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-cleanup.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-completion.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-queries.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry-runtime.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent-registry.test.ts",
+          "matchQuality": "dir-token"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/agents/subagent/subagent-announce-delivery.ts",
+      "seamKinds": [
+        "subagent-announce-delivery"
+      ],
+      "relatedTests": [
+        "src/agents/subagent/announce-delivery.test.ts",
+        "src/agents/subagent/subagent-capabilities.test.ts",
+        "src/agents/subagent/subagent-registry-queries.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/agents/subagent/announce-delivery.test.ts",
+          "matchQuality": "direct-import"
+        },
+        {
+          "file": "src/agents/subagent/subagent-capabilities.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent/subagent-registry-queries.test.ts",
+          "matchQuality": "dir-token"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: direct-import), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/agents/subagent/subagent-orphan-recovery.ts",
+      "seamKinds": [
+        "subagent-lifecycle-registry"
+      ],
+      "relatedTests": [
+        "src/agents/subagent/orphan-recovery.test.ts",
+        "src/agents/subagent/subagent-capabilities.test.ts",
+        "src/agents/subagent/subagent-registry-queries.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/agents/subagent/orphan-recovery.test.ts",
+          "matchQuality": "direct-import"
+        },
+        {
+          "file": "src/agents/subagent/subagent-capabilities.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent/subagent-registry-queries.test.ts",
+          "matchQuality": "dir-token"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: direct-import), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/agents/subagent/subagent-registry-cleanup.ts",
+      "seamKinds": [
+        "subagent-lifecycle-registry"
+      ],
+      "relatedTests": [
+        "src/agents/subagent/subagent-capabilities.test.ts",
+        "src/agents/subagent/subagent-registry-queries.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/agents/subagent/subagent-capabilities.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent/subagent-registry-queries.test.ts",
+          "matchQuality": "dir-token"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: dir-token), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/agents/subagent/subagent-registry-lifecycle.ts",
+      "seamKinds": [
+        "subagent-lifecycle-registry"
+      ],
+      "relatedTests": [
+        "src/agents/subagent/subagent-capabilities.test.ts",
+        "src/agents/subagent/subagent-registry-queries.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/agents/subagent/subagent-capabilities.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent/subagent-registry-queries.test.ts",
+          "matchQuality": "dir-token"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: dir-token), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/agents/subagent/subagent-spawn.ts",
+      "seamKinds": [
+        "subagent-lifecycle-registry",
+        "subagent-session-spawn"
+      ],
+      "relatedTests": [
+        "src/agents/subagent/spawn.test.ts",
+        "src/agents/subagent/subagent-capabilities.test.ts",
+        "src/agents/subagent/subagent-registry-queries.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/agents/subagent/spawn.test.ts",
+          "matchQuality": "direct-import"
+        },
+        {
+          "file": "src/agents/subagent/subagent-capabilities.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/subagent/subagent-registry-queries.test.ts",
+          "matchQuality": "dir-token"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: direct-import), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/agents/tools/common.ts",
+      "seamKinds": [
+        "tool-result-media"
+      ],
+      "relatedTests": [
+        "src/agents/tools/common.test.ts",
+        "src/agents/tool-policy.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/agents/tools/common.test.ts",
+          "matchQuality": "exact-stem"
+        },
+        {
+          "file": "src/agents/tool-policy.test.ts",
+          "matchQuality": "direct-import"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/agents/tools/image-generate-tool.ts",
+      "seamKinds": [
+        "tool-result-media"
+      ],
+      "relatedTests": [
+        "src/agents/tools/image-generate-tool.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/agents/tools/image-generate-tool.test.ts",
+          "matchQuality": "exact-stem"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/agents/tools/nodes-tool.ts",
+      "seamKinds": [
+        "tool-result-media"
+      ],
+      "relatedTests": [
+        "src/agents/tools/nodes-tool.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/agents/tools/nodes-tool.test.ts",
+          "matchQuality": "exact-stem"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/agents/tools/sessions-spawn-tool.ts",
+      "seamKinds": [
+        "subagent-session-spawn"
+      ],
+      "relatedTests": [
+        "src/agents/tools/sessions-spawn-tool.test.ts",
+        "src/agents/tools/sessions-access.test.ts",
+        "src/agents/tools/sessions-list-tool.test.ts",
+        "src/agents/tools/sessions-resolution.test.ts",
+        "src/agents/tools/sessions-send-helpers.test.ts",
+        "src/agents/tools/sessions-yield-tool.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/agents/tools/sessions-spawn-tool.test.ts",
+          "matchQuality": "exact-stem"
+        },
+        {
+          "file": "src/agents/tools/sessions-access.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/tools/sessions-list-tool.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/tools/sessions-resolution.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/tools/sessions-send-helpers.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/agents/tools/sessions-yield-tool.test.ts",
+          "matchQuality": "dir-token"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/agents/tools/tts-tool.ts",
+      "seamKinds": [
+        "tool-result-media"
+      ],
+      "relatedTests": [
+        "src/agents/tools/tts-tool.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/agents/tools/tts-tool.test.ts",
+          "matchQuality": "exact-stem"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/auto-reply/reply/reply-delivery.ts",
+      "seamKinds": [
+        "reply-delivery-media",
+        "streaming-media-handoff"
+      ],
+      "relatedTests": [
+        "src/auto-reply/reply/reply-delivery.test.ts",
+        "src/auto-reply/reply/dispatch-acp-delivery.test.ts",
+        "src/auto-reply/reply/session-delivery.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/auto-reply/reply/reply-delivery.test.ts",
+          "matchQuality": "exact-stem"
+        },
+        {
+          "file": "src/auto-reply/reply/dispatch-acp-delivery.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/auto-reply/reply/session-delivery.test.ts",
+          "matchQuality": "dir-token"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/cron/delivery.ts",
+      "seamKinds": [
+        "cron-outbound-delivery"
+      ],
+      "relatedTests": [
+        "src/cron/delivery.test.ts",
+        "src/cron/legacy-delivery.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/cron/delivery.test.ts",
+          "matchQuality": "exact-stem"
+        },
+        {
+          "file": "src/cron/legacy-delivery.test.ts",
+          "matchQuality": "dir-token"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/cron/heartbeat-policy.ts",
+      "seamKinds": [
+        "cron-heartbeat-handoff"
+      ],
+      "relatedTests": [
+        "src/cron/heartbeat-policy.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/cron/heartbeat-policy.test.ts",
+          "matchQuality": "exact-stem"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/cron/isolated-agent/delivery-dispatch.ts",
+      "seamKinds": [
+        "cron-followup-handoff",
+        "cron-media-delivery",
+        "cron-outbound-delivery"
+      ],
+      "relatedTests": [
+        "src/cron/isolated-agent/delivery-dispatch.test.ts",
+        "src/cron/isolated-agent/delivery-target.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/cron/isolated-agent/delivery-dispatch.test.ts",
+          "matchQuality": "exact-stem"
+        },
+        {
+          "file": "src/cron/isolated-agent/delivery-target.test.ts",
+          "matchQuality": "dir-token"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/cron/isolated-agent/helpers.ts",
+      "seamKinds": [
+        "cron-heartbeat-handoff"
+      ],
+      "relatedTests": [
+        "src/cron/isolated-agent/helpers.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/cron/isolated-agent/helpers.test.ts",
+          "matchQuality": "exact-stem"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/cron/isolated-agent/run.ts",
+      "seamKinds": [
+        "cron-agent-handoff",
+        "cron-followup-handoff",
+        "cron-media-delivery"
+      ],
+      "relatedTests": [
+        "src/cron/isolated-agent/run.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/cron/isolated-agent/run.test.ts",
+          "matchQuality": "exact-stem"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/cron/isolated-agent/subagent-followup.ts",
+      "seamKinds": [
+        "cron-followup-handoff"
+      ],
+      "relatedTests": [
+        "src/cron/isolated-agent/subagent-followup.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/cron/isolated-agent/subagent-followup.test.ts",
+          "matchQuality": "exact-stem"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/cron/service/jobs.ts",
+      "seamKinds": [
+        "cron-scheduler-state"
+      ],
+      "relatedTests": [
+        "src/cron/service/jobs.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/cron/service/jobs.test.ts",
+          "matchQuality": "exact-stem"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/cron/service/ops.ts",
+      "seamKinds": [
+        "cron-scheduler-state"
+      ],
+      "relatedTests": [
+        "src/cron/service/ops.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/cron/service/ops.test.ts",
+          "matchQuality": "exact-stem"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/cron/service/state.ts",
+      "seamKinds": [
+        "cron-heartbeat-handoff"
+      ],
+      "relatedTests": [
+        "src/cron/service/state.test.ts",
+        "src/cron/cron-service-events.test.ts",
+        "src/cron/cron-service-state.test.ts",
+        "src/cron/service/jobs.test.ts",
+        "src/cron/service/locked-concurrent.test.ts",
+        "src/cron/service/locked.test.ts",
+        "src/cron/service/ops.test.ts",
+        "src/cron/service/store.test.ts",
+        "src/cron/session-reaper.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/cron/service/state.test.ts",
+          "matchQuality": "exact-stem"
+        },
+        {
+          "file": "src/cron/cron-service-events.test.ts",
+          "matchQuality": "direct-import"
+        },
+        {
+          "file": "src/cron/cron-service-state.test.ts",
+          "matchQuality": "direct-import"
+        },
+        {
+          "file": "src/cron/service/jobs.test.ts",
+          "matchQuality": "direct-import"
+        },
+        {
+          "file": "src/cron/service/locked-concurrent.test.ts",
+          "matchQuality": "direct-import"
+        },
+        {
+          "file": "src/cron/service/locked.test.ts",
+          "matchQuality": "direct-import"
+        },
+        {
+          "file": "src/cron/service/ops.test.ts",
+          "matchQuality": "direct-import"
+        },
+        {
+          "file": "src/cron/service/store.test.ts",
+          "matchQuality": "direct-import"
+        },
+        {
+          "file": "src/cron/session-reaper.test.ts",
+          "matchQuality": "direct-import"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/cron/service/store.ts",
+      "seamKinds": [
+        "cron-scheduler-state"
+      ],
+      "relatedTests": [
+        "src/cron/service/store.test.ts",
+        "src/cron/service/store-migration.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/cron/service/store.test.ts",
+          "matchQuality": "exact-stem"
+        },
+        {
+          "file": "src/cron/service/store-migration.test.ts",
+          "matchQuality": "direct-import"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/cron/service/timer.ts",
+      "seamKinds": [
+        "cron-heartbeat-handoff",
+        "cron-scheduler-state"
+      ],
+      "relatedTests": [
+        "src/cron/service/timer.test.ts",
+        "src/cron/cron-service-events.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/cron/service/timer.test.ts",
+          "matchQuality": "exact-stem"
+        },
+        {
+          "file": "src/cron/cron-service-events.test.ts",
+          "matchQuality": "direct-import"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/infra/outbound/deliver.ts",
+      "seamKinds": [
+        "reply-delivery-media",
+        "streaming-media-handoff"
+      ],
+      "relatedTests": [
+        "src/infra/outbound/deliver.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/infra/outbound/deliver.test.ts",
+          "matchQuality": "exact-stem"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/infra/outbound/message-action-params.ts",
+      "seamKinds": [
+        "reply-delivery-media"
+      ],
+      "relatedTests": [
+        "src/infra/outbound/message-action-params.test.ts",
+        "src/infra/outbound/message-action-normalization.test.ts",
+        "src/infra/outbound/message-action-spec.test.ts",
+        "src/infra/outbound/message.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/infra/outbound/message-action-params.test.ts",
+          "matchQuality": "exact-stem"
+        },
+        {
+          "file": "src/infra/outbound/message-action-normalization.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/infra/outbound/message-action-spec.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/infra/outbound/message.test.ts",
+          "matchQuality": "dir-token"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/infra/outbound/message-action-runner.ts",
+      "seamKinds": [
+        "reply-delivery-media"
+      ],
+      "relatedTests": [
+        "src/infra/outbound/message-action-normalization.test.ts",
+        "src/infra/outbound/message-action-params.test.ts",
+        "src/infra/outbound/message-action-spec.test.ts",
+        "src/infra/outbound/message.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/infra/outbound/message-action-normalization.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/infra/outbound/message-action-params.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/infra/outbound/message-action-spec.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/infra/outbound/message.test.ts",
+          "matchQuality": "dir-token"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: dir-token), but this inventory does not prove cross-layer seam coverage end to end."
+    },
+    {
+      "file": "src/infra/outbound/message.ts",
+      "seamKinds": [
+        "reply-delivery-media",
+        "streaming-media-handoff"
+      ],
+      "relatedTests": [
+        "src/infra/outbound/message.test.ts",
+        "src/infra/outbound/message-action-normalization.test.ts",
+        "src/infra/outbound/message-action-params.test.ts",
+        "src/infra/outbound/message-action-spec.test.ts"
+      ],
+      "relatedTestMatches": [
+        {
+          "file": "src/infra/outbound/message.test.ts",
+          "matchQuality": "exact-stem"
+        },
+        {
+          "file": "src/infra/outbound/message-action-normalization.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/infra/outbound/message-action-params.test.ts",
+          "matchQuality": "dir-token"
+        },
+        {
+          "file": "src/infra/outbound/message-action-spec.test.ts",
+          "matchQuality": "dir-token"
+        }
+      ],
+      "status": "partial",
+      "reason": "Nearby tests exist (best match: exact-stem), but this inventory does not prove cross-layer seam coverage end to end."
+    }
+  ]
+}
