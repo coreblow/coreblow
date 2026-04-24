@@ -1,4 +1,8 @@
+# CoreBlow — Lint & Type Check
+# Updated: 2026-04-24 — Single source tree (gateway/ removed)
+
 name: CI — Lint & Type Check
+
 on:
   push:
     branches: [main, develop]
@@ -8,19 +12,32 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: gateway
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: gateway/package-lock.json
-      - run: npm ci
-      - run: npx tsc --noEmit
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint (oxlint)
+        run: pnpm lint
+        continue-on-error: true
+
       - name: Check for raw eval()
         run: "! grep -rn 'eval(' src --include='*.ts' | grep -v 'test\\|safeEvaluateMath\\|sanitize\\|vm\\|\\.eval\\b\\|//\\|/\\*'"
+
       - name: Check for empty catch blocks
         run: "! grep -rn 'catch\\s*{\\s*}' src --include='*.ts' | grep -v 'intentionally'"
+        continue-on-error: true

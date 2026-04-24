@@ -1,4 +1,8 @@
+# CoreBlow — Security Audit
+# Updated: 2026-04-24 — Single source tree (gateway/ removed)
+
 name: CI — Security Audit
+
 on:
   push:
     branches: [main]
@@ -10,20 +14,22 @@ on:
 jobs:
   security:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: gateway
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: gateway/package-lock.json
-      - run: npm ci
+          cache: pnpm
 
-      - name: npm audit
-        run: npm audit --production --audit-level=high || true
+      - run: pnpm install --frozen-lockfile
+
+      - name: pnpm audit
+        run: pnpm audit --prod || true
 
       - name: Security pattern scan
         run: |
@@ -49,10 +55,12 @@ jobs:
           fi
 
           echo "Checking for unsanitized exec()..."
-          EXEC_UNSAFE=$(grep -rn "execSync\|exec(" src --include='*.ts' | grep -v test | grep "\\${\|+ " | wc -l | tr -d ' ')
+          EXEC_UNSAFE=$(grep -rn "execSync\|exec(" src --include='*.ts' | grep -v test | grep "\${" | wc -l | tr -d ' ')
           echo "⚠️  $EXEC_UNSAFE exec() calls with template literals (review needed)"
 
           exit $FAIL
 
       - name: Security test suite
-        run: npx vitest run tests/security/
+        run: pnpm test:security
+        env:
+          CI: true
