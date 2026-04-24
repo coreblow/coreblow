@@ -159,7 +159,7 @@ export class FlowEngine {
     }
 
     private getStep(instance: FlowInstance): FlowStep | undefined {
-        return instance.definition.steps.find((s: any) => s.id === instance.currentStep);
+        return instance.definition.steps.find((s: FlowStep) => s.id === instance.currentStep);
     }
 
     get activeCount(): number { return this.flows.size; }

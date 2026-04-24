@@ -99,7 +99,7 @@ export async function maybeRepairAllowlistPolicyAllowFrom(cfg: CoreBlowConfig): 
       process.env,
       normalizedAccountId,
     ).catch(() => []);
-    const recovered = Array.from(new Set(fromStore.map((entry: any) => String(entry).trim()))).filter(
+    const recovered = Array.from(new Set(fromStore.map((entry: string | number) => String(entry).trim()))).filter(
       Boolean,
     );
     if (recovered.length === 0) {

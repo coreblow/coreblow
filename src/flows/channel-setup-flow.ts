@@ -16,7 +16,7 @@ export function createChannelSetupFlow(
         description: 'Interactive wizard for setting up new communication channels',
         initialStep: 'select',
         timeoutMs: 600000, // 10 minutes
-        onComplete: async (data: any) => {
+        onComplete: async (data: Record<string, unknown>) => {
             if (onCompleteAction) await onCompleteAction(data);
         },
         onCancel: async () => {
@@ -63,11 +63,11 @@ export function createChannelSetupFlow(
             {
                 id: 'enable',
                 prompt: '🟢 Enable channel? (yes/no)',
-                validator: (input: any) => {
+                validator: (input: string) => {
                     const val = input.toLowerCase().trim();
                     return ['yes', 'no', 'y', 'n'].includes(val) ? { valid: true } : { valid: false, error: 'Please answer yes or no.' };
                 },
-                transform: (input: any) => ['yes', 'y'].includes(input.toLowerCase().trim()),
+                transform: (input: string) => ['yes', 'y'].includes(input.toLowerCase().trim()),
                 next: null // End of flow
             }
         ]

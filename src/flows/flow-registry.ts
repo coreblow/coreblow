@@ -29,8 +29,8 @@ export const onboardingFlow: FlowDefinition = {
         { id: 'welcome', prompt: '👋 Welcome to CoreBlow! What should I call you?', next: 'model' },
         {
             id: 'model', prompt: '🤖 Which AI model do you prefer?\n1. GPT-4o\n2. Claude Sonnet\n3. Gemini Pro',
-            validator: (input: any) => ({ valid: ['1', '2', '3'].includes(input.trim()), error: 'Please choose 1, 2, or 3.' }),
-            transform: (input: any) => ({ '1': 'gpt-4o', '2': 'claude-sonnet-4-20250514', '3': 'gemini-2.5-pro' }[input.trim()]),
+            validator: (input: string) => ({ valid: ['1', '2', '3'].includes(input.trim()), error: 'Please choose 1, 2, or 3.' }),
+            transform: (input: string) => ({ '1': 'gpt-4o', '2': 'claude-sonnet-4-20250514', '3': 'gemini-2.5-pro' }[input.trim()]),
             next: 'done',
         },
         { id: 'done', prompt: '✅ All set! You can start chatting now. Type /help for commands.' },
@@ -45,11 +45,11 @@ export const feedbackFlow: FlowDefinition = {
     steps: [
         {
             id: 'rating', prompt: '⭐ How would you rate your experience? (1-5)',
-            validator: (input: any) => {
+            validator: (input: string) => {
                 const n = parseInt(input);
                 return { valid: n >= 1 && n <= 5, error: 'Please enter a number between 1 and 5.' };
             },
-            transform: (input: any) => parseInt(input),
+            transform: (input: string) => parseInt(input),
             next: 'comment',
         },
         { id: 'comment', prompt: '💬 Any additional comments? (type "skip" to skip)', next: 'thanks' },
