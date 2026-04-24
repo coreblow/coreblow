@@ -390,7 +390,7 @@ export function formatHooksCheck(report: HookStatusReport, opts: HooksCheckOptio
     lines.push("");
     lines.push(theme.heading("Hooks not ready:"));
     for (const hook of notEligible) {
-      const reasons = [];
+      const reasons: string[] = [];
       if (hook.blockedReason && hook.blockedReason !== "missing requirements") {
         reasons.push(hook.blockedReason);
       }

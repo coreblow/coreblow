@@ -5,18 +5,28 @@
         "moduleResolution": "NodeNext",
         "target": "ES2023",
         "outDir": "./dist",
-        "rootDir": "./src",
+        "rootDir": ".",
         "noEmit": false,
+        "emitDeclarationOnly": true,
+        "noImplicitAny": false,
         "declaration": true,
         "declarationMap": true,
-        "sourceMap": true,
-        "paths": {}
+        "sourceMap": false,
+        "paths": {
+            "coreblow/extension-api": ["./src/extensionAPI.ts"],
+            "coreblow/plugin-sdk": ["./src/plugin-sdk/index.ts"],
+            "coreblow/plugin-sdk/*": ["./src/plugin-sdk/*.ts"],
+            "coreblow/plugin-sdk/account-id": ["./src/plugin-sdk/account-id.ts"]
+        }
     },
-    "include": ["src/**/*.ts"],
+    "include": ["src/**/*.ts", "extensions/**/*.ts", "packages/**/*.ts"],
     "exclude": [
         "node_modules",
         "dist",
         "tests",
-        "src/**/*.test.ts"
+        "src/**/*.test.ts",
+        "src/**/*.test-helpers.ts",
+        "extensions/**/*.test.ts",
+        "packages/**/*.test.ts"
     ]
 }

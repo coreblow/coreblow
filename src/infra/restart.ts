@@ -80,7 +80,7 @@ function formatRestartAudit(audit: RestartAuditInfo | undefined): string {
   const clientIp =
     typeof audit?.clientIp === "string" && audit.clientIp.trim() ? audit.clientIp.trim() : null;
   const changed = summarizeChangedPaths(audit?.changedPaths);
-  const fields = [];
+  const fields: string[] = [];
   if (actor) {
     fields.push(`actor=${actor}`);
   }

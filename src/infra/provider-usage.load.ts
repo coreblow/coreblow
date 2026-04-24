@@ -52,7 +52,7 @@ async function fetchCopilotUsageFallback(
     };
     copilot_plan?: string;
   };
-  const windows = [];
+  const windows: { label: string; usedPercent: number }[] = [];
   const premiumRemaining = data.quota_snapshots?.premium_interactions?.percent_remaining;
   if (premiumRemaining !== undefined && premiumRemaining !== null) {
     windows.push({

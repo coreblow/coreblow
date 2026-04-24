@@ -175,7 +175,7 @@ export function createGatewayReloadHandlers(params: {
       };
     };
     const formatActiveDetails = (counts: ReturnType<typeof getActiveCounts>) => {
-      const details = [];
+      const details: string[] = [];
       if (counts.queueSize > 0) {
         details.push(`${counts.queueSize} operation(s)`);
       }

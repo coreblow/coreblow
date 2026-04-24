@@ -165,7 +165,7 @@ async function sendFormattedSignalText(ctx: {
   if (chunks.length === 0 && ctx.text) {
     chunks = [{ text: ctx.text, styles: [] }];
   }
-  const results = [];
+  const results: Awaited<ReturnType<SignalSendFn>>[] = [];
   for (const chunk of chunks) {
     ctx.abortSignal?.throwIfAborted();
     const result = await send(ctx.to, chunk.text, {

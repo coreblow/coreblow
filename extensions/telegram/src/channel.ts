@@ -531,7 +531,7 @@ export const telegramPlugin = createChatChannelPlugin({
           apiRoot: account.config.apiRoot,
         }),
       formatCapabilitiesProbe: ({ probe }) => {
-        const lines = [];
+        const lines: { text: string }[] = [];
         if (probe?.bot?.username) {
           const botId = probe.bot.id ? ` (${probe.bot.id})` : "";
           lines.push({ text: `Bot: @${probe.bot.username}${botId}` });

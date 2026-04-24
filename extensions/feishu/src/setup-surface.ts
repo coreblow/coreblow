@@ -19,7 +19,7 @@ import {
 import { inspectFeishuCredentials, listFeishuAccountIds } from "./accounts.js";
 import { probeFeishu } from "./probe.js";
 import { feishuSetupAdapter } from "./setup-core.js";
-import type { FeishuConfig } from "./types.js";
+import type { FeishuConfig, FeishuProbeResult } from "./types.js";
 
 const channel = "feishu" as const;
 const setFeishuAllowFrom = createTopLevelChannelAllowFromSetter({
@@ -166,7 +166,7 @@ export const feishuSetupWizard: ChannelSetupWizard = {
     resolveStatusLines: async ({ cfg, configured }) => {
       const feishuCfg = cfg.channels?.feishu as FeishuConfig | undefined;
       const resolvedCredentials = inspectFeishuCredentials(feishuCfg);
-      let probeResult = null;
+      let probeResult: FeishuProbeResult | null = null;
       if (configured && resolvedCredentials) {
         try {
           probeResult = await probeFeishu(resolvedCredentials);

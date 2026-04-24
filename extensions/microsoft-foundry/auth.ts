@@ -24,6 +24,7 @@ import {
   testFoundryConnection,
 } from "./onboard.js";
 import {
+  type AzAccount,
   buildFoundryAuthResult,
   type FoundryProviderApi,
   listConfiguredFoundryProfileIds,
@@ -75,7 +76,7 @@ export const entraIdAuthMethod: ProviderAuthMethod = {
     }
 
     const subs = listSubscriptions();
-    let selectedSub = null;
+    let selectedSub: AzAccount | null = null;
     if (subs.length === 0) {
       tenantId ??= await promptTenantId(ctx, {
         required: true,

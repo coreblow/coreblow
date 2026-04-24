@@ -51,7 +51,7 @@ export const signalOutbound: ChannelOutboundAdapter = {
     if (chunks.length === 0 && text) {
       chunks = [{ text, styles: [] }];
     }
-    const results = [];
+    const results: Awaited<ReturnType<typeof sendMessageSignal>>[] = [];
     for (const chunk of chunks) {
       abortSignal?.throwIfAborted();
       const result = await send(to, chunk.text, {

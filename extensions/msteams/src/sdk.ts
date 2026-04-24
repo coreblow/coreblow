@@ -230,7 +230,7 @@ function createProcessContext(params: {
     activity: params.activity,
     ...sendContext,
     async sendActivities(activities: Array<{ type: string } & Record<string, unknown>>) {
-      const results = [];
+      const results: unknown[] = [];
       for (const activity of activities) {
         results.push(await sendContext.sendActivity(activity));
       }
