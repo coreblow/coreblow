@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import { resolveBootstrapWarningSignaturesSeen } from "../../agents/bootstrap-budget.js";
-import { estimateMessagesTokens } from "../../agents/compaction.js";
+import { estimateMessagesTokens, type CompactionMessage } from "../../agents/compaction.js";
 import { runWithModelFallback } from "../../agents/model-fallback.js";
 import { isCliProvider } from "../../agents/model-selection.js";
 import { compactEmbeddedPiSession, runEmbeddedPiAgent } from "../../agents/pi-embedded.js";
@@ -48,7 +48,7 @@ export function estimatePromptTokensForMemoryFlush(prompt?: string): number | un
   if (!trimmed) {
     return undefined;
   }
-  const message: AgentMessage = { role: "user", content: trimmed, timestamp: Date.now() };
+  const message: CompactionMessage = { role: "user", content: trimmed, timestamp: Date.now() };
   const tokens = estimateMessagesTokens([message]);
   if (!Number.isFinite(tokens) || tokens <= 0) {
     return undefined;
@@ -272,7 +272,7 @@ function estimatePromptTokensFromSessionTranscript(params: {
     if (messages.length === 0) {
       return undefined;
     }
-    const estimatedTokens = estimateMessagesTokens(messages);
+    const estimatedTokens = estimateMessagesTokens(messages as CompactionMessage[]);
     if (!Number.isFinite(estimatedTokens) || estimatedTokens <= 0) {
       return undefined;
     }

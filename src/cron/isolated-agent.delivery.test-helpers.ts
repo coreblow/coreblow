@@ -38,7 +38,8 @@ export function expectDirectTelegramDelivery(
 ) {
   // CB uses outbound delivery system instead of CliDeps.sendMessageTelegram.
   // If the mock was called, verify the arguments; otherwise CB used its own path.
-  const calls = vi.mocked(deps.sendMessageTelegram).mock.calls;
+  const sendFn = deps.sendMessageTelegram as (...args: unknown[]) => unknown;
+  const calls = vi.mocked(sendFn).mock.calls;
   if (calls.length > 0) {
     expect(deps.sendMessageTelegram).toHaveBeenCalledTimes(1);
     expect(deps.sendMessageTelegram).toHaveBeenCalledWith(

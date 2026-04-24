@@ -53,8 +53,8 @@ describe('Spawn Utils', () => {
     });
 
     describe('spawnWithFallback', () => {
-        it('spawns normally', () => {
-            const result = spawnWithFallback({ argv: ['echo', 'hi'], options: { stdio: 'pipe' } });
+        it('spawns normally', async () => {
+            const result = await spawnWithFallback({ argv: ['echo', 'hi'], options: { stdio: 'pipe' } });
             expect(result.usedFallback).toBe(false);
             expect(result.child.pid).toBeGreaterThan(0);
             result.child.kill();

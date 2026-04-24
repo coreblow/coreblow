@@ -1,141 +1,23 @@
-// Type stubs for @mariozechner/* proprietary packages
-// These are NOT available as npm packages — they're private dependencies from OC
+// @mariozechner/* packages ship their own .d.ts — real types from node_modules.
+// Only augmentation below (matching OpenClaw's src/types/pi-agent-core.d.ts pattern).
 
-declare module '@mariozechner/pi-agent-core' {
-  export type AgentEvent = any;
-  export type AgentMessage = any;
-  export type AgentTool<T = any, U = unknown> = any;
-  export type AgentToolResult<T = any> = any;
-  export type AgentToolUpdateCallback<T = any> = (...args: any[]) => any;
-  export type StreamFn = (...args: any[]) => any;
-  export type ThinkingLevel = 'none' | 'basic' | 'full';
-  export type ContentBlock = any;
-  export type ImageContent = any;
-  export type StopReason = any;
-  export type StreamOptions = any;
-  export type Tool = any;
-  export type ToolCall = any;
-  export type ToolCallContent = any;
-  export type ToolCallLocation = any;
-  export type ToolKind = any;
-  export function estimateTokens(...args: any[]): any;
-  export function ndJsonStream(...args: any[]): any;
-}
+import "@mariozechner/pi-agent-core";
 
-declare module '@mariozechner/pi-ai' {
-  export type AnthropicOptions = any;
-  export type Api = any;
-  export type AssistantMessage = any;
-  export type AssistantMessageEvent = any;
-  export type AssistantMessageEventStream = any;
-  export type Context = any;
-  export type ImageContent = any;
-  export type Message = any;
-  export type Model<T = any> = any;
-  export type OAuthCredentials = any;
-  export type OpenAICompletionsCompat = any;
-  export type OpenAICompletionsOptions = any;
-  export type SimpleStreamOptions = any;
-  export type StopReason = any;
-  export type TextContent = any;
-  export type ToolResultMessage = any;
-  export type Usage = any;
-  export type UserMessage = any;
-  export function complete(...args: any[]): any;
-  export function completeSimple(...args: any[]): any;
-  export function createAssistantMessageEventStream(...args: any[]): any;
-  export function getApiProvider(...args: any[]): any;
-  export function getEnvApiKey(...args: any[]): any;
-  export function getModel(...args: any[]): any;
-  export function loginOpenAICodex(...args: any[]): any;
-  export function registerApiProvider(...args: any[]): any;
-  export function streamAnthropic(...args: any[]): any;
-  export function streamOpenAIResponses(...args: any[]): any;
-  export function streamSimple(...args: any[]): any;
-  export function streamSimpleOpenAICompletions(...args: any[]): any;
-  export function unregisterApiProviders(...args: any[]): any;
-}
-
-declare module '@mariozechner/pi-coding-agent' {
-  export type AuthStorage = any;
-  export type CompactionEntry = any;
-  export type ContextEvent = any;
-  export type ExtensionAPI = any;
-  export type ExtensionContext = any;
-  export type ExtensionFactory = any;
-  export type FileOperations = any;
-  export type ModelRegistry = any;
-  export type SessionEntry = any;
-  export type SessionHeader = any;
-  export class SessionManager {
-    constructor(...args: any[]);
-    open(...args: any[]): any;
-    list(...args: any[]): any;
-    get(...args: any[]): any;
-    create(...args: any[]): any;
-    delete(...args: any[]): any;
-    save(...args: any[]): any;
-    close(...args: any[]): any;
-    [k: string]: any;
+declare module "@mariozechner/pi-agent-core" {
+  // CoreBlow persists compaction markers alongside normal agent history.
+  interface CustomAgentMessages {
+    compactionSummary: {
+      role: "compactionSummary";
+      summary: string;
+      tokensBefore: number;
+      timestamp: number | string;
+      tokensAfter?: number;
+      firstKeptEntryId?: string;
+      details?: unknown;
+    };
   }
-  export type Skill = any;
-  export class SettingsManager {
-    constructor(...args: any[]);
-    get(...args: any[]): any;
-    set(...args: any[]): any;
-    getAll(...args: any[]): any;
-    [k: string]: any;
-  }
-  export type ToolDefinition = any;
-  export type AgentSession = any;
-  export type SlashCommand = any;
-  export class DefaultResourceLoader { constructor(...args: any[]); [k: string]: any; }
-  export type SessionConfigOption = any;
-  export type SessionModeState = any;
-  export const CURRENT_SESSION_VERSION: number;
-  export function createEditTool(...args: any[]): any;
-  export function createReadTool(...args: any[]): any;
-  export function createWriteTool(...args: any[]): any;
-  export function createSyntheticSourceInfo(...args: any[]): any;
-  export function codingTools(...args: any[]): any;
-  export function readTool(...args: any[]): any;
-  export function loadSkillsFromDir(...args: any[]): any;
-  export function formatSkillsForPrompt(...args: any[]): any;
-  export function createAgentSession(...args: any[]): any;
-  export const PiCodingAgent: any;
-  export type PiCodingAgentOptions = any;
 }
 
-declare module '@mariozechner/pi-tui' {
-  export class Component { constructor(...args: any[]); children: Component[]; addChild(c: Component): void; removeChild(c: Component): void; [k: string]: any; }
-  export class TUI { constructor(...args: any[]); requestRender(): void; [k: string]: any; }
-  export class Key { constructor(...args: any[]); [k: string]: any; }
-  export class Input { constructor(...args: any[]); [k: string]: any; }
-  export class ProcessTerminal { constructor(...args: any[]); child: any; cursorKeyMode: any; [k: string]: any; }
-  export class Loader { constructor(...args: any[]); [k: string]: any; }
-  export class CombinedAutocompleteProvider { constructor(...args: any[]); [k: string]: any; }
-  export class Container extends Component { constructor(...args: any[]); }
-  export class Box extends Component { constructor(...args: any[]); }
-  export class Text extends Component { constructor(...args: any[]); setText(t: string): void; getText(): string; }
-  export class Markdown extends Component { constructor(...args: any[]); }
-  export class Spacer extends Component { constructor(...args: any[]); }
-  export class Editor extends Component { constructor(...args: any[]); getText(): string; setText(t: string): void; }
-  export class SelectList extends Component { constructor(...args: any[]); }
-  export class SettingsList extends Component { constructor(...args: any[]); }
-  export type SelectItem = any;
-  export type SettingItem = any;
-  export type DefaultTextStyle = any;
-  export type MarkdownTheme = any;
-  export type EditorTheme = any;
-  export type SlashCommand = any;
-  export type PiTuiConfig = any;
-  export type SelectListTheme = any;
-  export type SettingsListTheme = any;
-  export function matchesKey(...args: any[]): any;
-  export function isKeyRelease(...args: any[]): any;
-  export function truncateToWidth(...args: any[]): any;
-  export const PiTui: any;
-}
 
 // AgentClientProtocol SDK
 declare module '@agentclientprotocol/sdk' {

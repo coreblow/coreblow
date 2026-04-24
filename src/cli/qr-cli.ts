@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+// @ts-expect-error qrcode-terminal has no type declarations
 import qrcode from "qrcode-terminal";
 import { loadConfig } from "../config/config.js";
 import { hasConfiguredSecretInput } from "../config/types.secrets.js";

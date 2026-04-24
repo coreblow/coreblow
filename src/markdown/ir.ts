@@ -1,4 +1,5 @@
 import { clamp } from "../utils.js";
+// @ts-expect-error markdown-it has no bundled type declarations (install @types/markdown-it to fix)
 import MarkdownIt from "markdown-it";
 import { chunkText } from "../auto-reply/chunk.js";
 import type { MarkdownTableMode } from "../config/types.base.js";
