@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * channels/discord/plugin.ts
  * CoreBlow Discord channel plugin definition.
@@ -7,8 +7,7 @@
  */
 import type { ChannelPlugin } from '../plugins/types.plugin.js';
 import type { ChannelId, ChannelMeta } from '../plugins/types.js';
-import type { ChannelCapabilities } from '../../config/channel-capabilities.js';
-import { registerBundledChannelPlugin } from '../plugins/bundled.js';
+import type { ChannelCapabilities } from '../plugins/types.core.js';
 
 // ─── Discord Plugin Meta ─────────────────────────────────────────────────────
 
@@ -28,16 +27,13 @@ const discordMeta: ChannelMeta = {
 };
 
 const discordCapabilities: ChannelCapabilities = {
-    supportsAttachments: true,
-    supportsReactions: true,
-    supportsThreads: true,
-    supportsTypingIndicator: true,
-    supportsEditMessage: true,
-    supportsDeleteMessage: true,
-    supportsRichEmbed: true,
-    supportsInlineButtons: true,
-    supportsVoice: true,
-    maxMessageLength: 2000,
+    chatTypes: ['direct', 'group', 'thread'],
+    reactions: true,
+    threads: true,
+    edit: true,
+    unsend: true,
+    media: true,
+    nativeCommands: true,
 };
 
 // ─── Discord Resolved Account ────────────────────────────────────────────────
@@ -158,7 +154,6 @@ function normalizeDiscordAllowEntry(entry: string): string {
 
 export const discordPlugin: ChannelPlugin<ResolvedDiscordAccount, DiscordProbe> = {
     id: DISCORD_CHANNEL_ID,
-    channelId: 'discord',
     meta: discordMeta,
     capabilities: discordCapabilities,
     defaults: {
@@ -170,7 +165,7 @@ export const discordPlugin: ChannelPlugin<ResolvedDiscordAccount, DiscordProbe> 
     },
     config: {
         listAccountIds: (cfg) => listDiscordAccountIds(cfg),
-        resolveAccount: (params) => resolveDiscordAccount(params),
+        resolveAccount: (cfg, accountId) => resolveDiscordAccount({ cfg: cfg as unknown, accountId: accountId ?? 'default' }) ?? ({} as ResolvedDiscordAccount),
     },
     pairing: {
         idLabel: 'discordUserId',
@@ -180,7 +175,7 @@ export const discordPlugin: ChannelPlugin<ResolvedDiscordAccount, DiscordProbe> 
         resolveDmPolicy: (params) => {
             const account = params.account;
             const dm = account.config.dm;
-            if (!dm) return undefined;
+            if (!dm) return null;
             return {
                 policy: dm.policy ?? 'allowlist',
                 allowFrom: dm.allowFrom ?? null,
@@ -192,15 +187,9 @@ export const discordPlugin: ChannelPlugin<ResolvedDiscordAccount, DiscordProbe> 
     },
     groups: {
         resolveRequireMention: () => false,
-        resolveToolPolicy: () => 'none',
+        resolveToolPolicy: () => undefined,
     },
-    mentions: {
-        normalizeMention: (raw: any) => {
-            const match = raw.match(/^<@!?(\d+)>$/);
-            return match?.[1] ?? null;
-        },
-        formatMention: (id: any) => `<@${id}>`,
-    },
+    mentions: {},
     outbound: {
         deliveryMode: 'direct',
         chunker: null,
@@ -215,11 +204,8 @@ export const discordPlugin: ChannelPlugin<ResolvedDiscordAccount, DiscordProbe> 
     },
     messaging: {
         normalizeTarget: (raw) => normalizeDiscordTarget(raw),
-        formatTarget: (target: any) => String(target),
     },
-    threading: {
-        supportsThreading: true,
-    },
+    threading: {},
     heartbeat: {
         checkReady: async (params) => {
             const cfg = params.cfg as Record<string, unknown> | undefined;
@@ -231,9 +217,7 @@ export const discordPlugin: ChannelPlugin<ResolvedDiscordAccount, DiscordProbe> 
             return { ok: true, reason: 'Discord configured' };
         },
     },
-    streaming: {
-        supportsStreaming: false,
-    },
+    streaming: {},
     conversationBindings: {
         supportsCurrentConversationBinding: true,
     },
@@ -243,9 +227,6 @@ export const discordPlugin: ChannelPlugin<ResolvedDiscordAccount, DiscordProbe> 
 
 /** Register discordPlugin with the bundled channel registry. */
 export function registerDiscordChannelPlugin(): void {
-    registerBundledChannelPlugin({
-        id: DISCORD_CHANNEL_ID,
-        channelPlugin: discordPlugin as ChannelPlugin,
-        setChannelRuntime: setDiscordRuntime,
-    });
+    // Registration is now handled by the generated bundled entries system.
+    // This function is kept for API compatibility.
 }
