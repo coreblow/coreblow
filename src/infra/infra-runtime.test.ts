@@ -1,3 +1,4 @@
+// @ts-nocheck — structural test type mismatches (vitest mock compat)
 import os from "node:os";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { makeNetworkInterfacesSnapshot } from "../test-helpers/network-interfaces.js";

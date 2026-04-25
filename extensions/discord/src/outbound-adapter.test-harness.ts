@@ -1,6 +1,6 @@
 import { expect, vi } from "vitest";
 
-export function createDiscordOutboundHoisted() {
+export function createDiscordOutboundHoisted(): any {
   const sendMessageDiscordMock = vi.fn();
   const sendDiscordComponentMessageMock = vi.fn();
   const sendPollDiscordMock = vi.fn();

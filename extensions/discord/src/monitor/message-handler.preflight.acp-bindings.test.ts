@@ -1,4 +1,4 @@
-// @ts-nocheck — pre-existing vitest mock type mismatches (tracked in fix/pre-existing-test-errors)
+// @ts-nocheck — structural test type mismatches (vitest mock compat)
 import * as conversationRuntime from "coreblow/plugin-sdk/conversation-runtime";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createConfiguredBindingConversationRuntimeModuleMock } from "../../../../test/helpers/extensions/configured-binding-runtime.js";

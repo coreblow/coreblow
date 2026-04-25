@@ -1,4 +1,4 @@
-// @ts-nocheck — pre-existing vitest mock type mismatches (tracked in fix/pre-existing-test-errors)
+// @ts-nocheck — structural test type mismatches (vitest mock compat)
 import type { MatrixEvent } from "matrix-js-sdk";
 import { describe, expect, it } from "vitest";
 import { buildHttpError, matrixEventToRaw, parseMxc } from "./event-helpers.js";

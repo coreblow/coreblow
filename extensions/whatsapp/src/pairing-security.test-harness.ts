@@ -1,4 +1,4 @@
-import { vi } from "vitest";
+import { vi, type Mock } from "vitest";
 
 export type AsyncMock<TArgs extends unknown[] = unknown[], TResult = unknown> = {
   (...args: TArgs): Promise<TResult>;
@@ -7,7 +7,7 @@ export type AsyncMock<TArgs extends unknown[] = unknown[], TResult = unknown> = 
   mockResolvedValueOnce: (value: TResult) => AsyncMock<TArgs, TResult>;
 };
 
-export const loadConfigMock = vi.fn();
+export const loadConfigMock: Mock = vi.fn();
 export const readAllowFromStoreMock = vi.fn() as AsyncMock;
 export const upsertPairingRequestMock = vi.fn() as AsyncMock;
 

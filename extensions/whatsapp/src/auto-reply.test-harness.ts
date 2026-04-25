@@ -228,7 +228,7 @@ export function createWebInboundDeliverySpies(): AnyExport {
   };
 }
 
-export function createWebAutoReplyRuntime() {
+export function createWebAutoReplyRuntime(): any {
   return {
     log: vi.fn(),
     error: vi.fn(),
@@ -245,7 +245,7 @@ export function startWebAutoReplyMonitor(params: {
   messageTimeoutMs?: number;
   watchdogCheckMs?: number;
   reconnect?: { initialMs: number; maxMs: number; maxAttempts: number; factor: number };
-}) {
+}): any {
   const runtime = createWebAutoReplyRuntime();
   const controller = new AbortController();
   const run = params.monitorWebChannelFn(

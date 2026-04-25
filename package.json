@@ -1135,5 +1135,14 @@
       "types": "./src/plugin-sdk/zod.d.ts",
       "default": "./src/plugin-sdk/zod.js"
     }
+  },
+  "pnpm": {
+    "overrides": {
+      "@vitest/spy": "^4.1.4",
+      "@vitest/expect": "^4.1.4",
+      "@vitest/mocker": "^4.1.4",
+      "@vitest/runner": "^4.1.4",
+      "@vitest/utils": "^4.1.4"
+    }
   }
 }

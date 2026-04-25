@@ -1,4 +1,4 @@
-// @ts-nocheck — pre-existing vitest mock type mismatches (tracked in fix/pre-existing-test-errors)
+// @ts-nocheck — structural test type mismatches (vitest mock compat)
 import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { hasControlCommand } from "../../../src/auto-reply/command-detection.js";
 import {

@@ -158,7 +158,7 @@ describe("Feishu broadcast reply-once lifecycle", () => {
         (ctx as { SessionKey: string }).SessionKey.includes("agent:main:"),
     });
 
-    withReplyDispatcherMock.mockImplementation(async ({ run }) => await run());
+    withReplyDispatcherMock.mockImplementation(async ({ run }: any) => await run());
 
     installFeishuLifecycleReplyRuntime({
       resolveAgentRouteMock,
@@ -210,7 +210,7 @@ describe("Feishu broadcast reply-once lifecycle", () => {
     );
 
     const sessionKeys = finalizeInboundContextMock.mock.calls.map(
-      (call) => (call[0] as { SessionKey?: string }).SessionKey,
+      (call: any) => (call[0] as { SessionKey?: string }).SessionKey,
     );
     expect(sessionKeys).toContain("agent:main:feishu:group:oc_broadcast_group");
     expect(sessionKeys).toContain("agent:susan:feishu:group:oc_broadcast_group");
@@ -230,7 +230,7 @@ describe("Feishu broadcast reply-once lifecycle", () => {
       text: "hello broadcast",
     });
 
-    dispatchReplyFromConfigMock.mockImplementationOnce(async ({ ctx, dispatcher }) => {
+    dispatchReplyFromConfigMock.mockImplementationOnce(async ({ ctx, dispatcher }: any) => {
       if (typeof ctx?.SessionKey === "string" && ctx.SessionKey.includes("agent:susan:")) {
         return { queuedFinal: false, counts: { final: 0 } };
       }

@@ -1,10 +1,10 @@
-import { vi } from "vitest";
+import { vi , type Mock } from "vitest";
 
 const hoisted = vi.hoisted(() => ({
   recordInboundSessionMock: vi.fn().mockResolvedValue(undefined),
 }));
 
-export const recordInboundSessionMock = hoisted.recordInboundSessionMock;
+export const recordInboundSessionMock: Mock = hoisted.recordInboundSessionMock;
 
 vi.mock("coreblow/plugin-sdk/conversation-runtime", async (importOriginal) => {
   const actual = await importOriginal<typeof import("coreblow/plugin-sdk/conversation-runtime")>();

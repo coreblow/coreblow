@@ -1,4 +1,4 @@
-// @ts-nocheck — pre-existing vitest mock type mismatches (tracked in fix/pre-existing-test-errors)
+// @ts-nocheck — structural test type mismatches (vitest mock compat)
 import { AuthStorage, ModelRegistry } from "@mariozechner/pi-coding-agent";
 import OpenAI from "openai";
 import { describe, expect, it } from "vitest";

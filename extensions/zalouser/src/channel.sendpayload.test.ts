@@ -1,4 +1,3 @@
-// @ts-nocheck — pre-existing vitest mock type mismatches (tracked in fix/pre-existing-test-errors)
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { primeChannelOutboundSendMock } from "../../../src/channels/plugins/contracts/suites.js";
 import "./accounts.test-mocks.js";

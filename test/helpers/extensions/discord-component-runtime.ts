@@ -1,4 +1,3 @@
-// @ts-nocheck — pre-existing vitest mock type mismatches (tracked in fix/pre-existing-test-errors)
 import { vi , type Mock } from "vitest";
 
 const runtimeMocks = vi.hoisted(() => ({
