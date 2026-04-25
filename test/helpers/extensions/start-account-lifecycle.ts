@@ -1,5 +1,5 @@
 import type { ChannelAccountSnapshot, ChannelGatewayContext } from "coreblow/plugin-sdk/testing";
-import { expect, vi } from "vitest";
+import { expect, vi , Mock } from "vitest";
 import { createStartAccountContext } from "./start-account-context.js";
 
 export function startAccountAndTrackLifecycle<TAccount extends { accountId: string }>(params: {
@@ -35,7 +35,7 @@ export async function abortStartedAccount(params: {
   await params.task;
 }
 
-export function waitForStartedMocks(...mocks: Array<ReturnType<typeof vi.fn>>) {
+export function waitForStartedMocks(...mocks: Array<Mock>) {
   return async () => {
     await vi.waitFor(() => {
       for (const mock of mocks) {
@@ -72,7 +72,7 @@ export async function expectStopPendingUntilAbort(params: {
   isSettled: () => boolean;
   abort: AbortController;
   task: Promise<unknown>;
-  stop: ReturnType<typeof vi.fn>;
+  stop: Mock;
 }) {
   await expectPendingUntilAbort({
     waitForStarted: params.waitForStarted,

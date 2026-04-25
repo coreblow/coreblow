@@ -1,4 +1,4 @@
-import { expect, vi } from "vitest";
+import { expect, vi , Mock } from "vitest";
 import type {
   ClawdbotConfig,
   PluginRuntime,
@@ -303,7 +303,7 @@ export async function runFeishuLifecycleSequence(
 export async function expectFeishuSingleEffectAcrossReplay(params: {
   handler: (data: unknown) => Promise<void>;
   event: unknown;
-  effectMock: ReturnType<typeof vi.fn>;
+  effectMock: Mock;
   effectCount?: number;
 }) {
   const effectCount = params.effectCount ?? 1;
@@ -319,8 +319,8 @@ export async function expectFeishuSingleEffectAcrossReplay(params: {
 export async function expectFeishuReplyPipelineDedupedAcrossReplay(params: {
   handler: (data: unknown) => Promise<void>;
   event: unknown;
-  dispatchReplyFromConfigMock: ReturnType<typeof vi.fn>;
-  createFeishuReplyDispatcherMock: ReturnType<typeof vi.fn>;
+  dispatchReplyFromConfigMock: Mock;
+  createFeishuReplyDispatcherMock: Mock;
   waitTimeoutMs?: number;
 }) {
   const waitTimeoutMs = params.waitTimeoutMs;
@@ -348,8 +348,8 @@ export async function expectFeishuReplyPipelineDedupedAcrossReplay(params: {
 export async function expectFeishuReplyPipelineDedupedAfterPostSendFailure(params: {
   handler: (data: unknown) => Promise<void>;
   event: unknown;
-  dispatchReplyFromConfigMock: ReturnType<typeof vi.fn>;
-  runtimeErrorMock: ReturnType<typeof vi.fn>;
+  dispatchReplyFromConfigMock: Mock;
+  runtimeErrorMock: Mock;
 }) {
   await replayFeishuLifecycleEvent({
     handler: params.handler,
@@ -366,10 +366,10 @@ export async function expectFeishuReplyPipelineDedupedAfterPostSendFailure(param
 }
 
 export function expectFeishuReplyDispatcherSentFinalReplyOnce(params: {
-  createFeishuReplyDispatcherMock: ReturnType<typeof vi.fn>;
+  createFeishuReplyDispatcherMock: Mock;
 }) {
   const dispatcher = params.createFeishuReplyDispatcherMock.mock.results[0]?.value.dispatcher as {
-    sendFinalReply: ReturnType<typeof vi.fn>;
+    sendFinalReply: Mock;
   };
   expect(dispatcher.sendFinalReply).toHaveBeenCalledTimes(1);
 }

@@ -23,10 +23,10 @@ type ProviderMonitorTestMocks = {
   createDiscordAutoPresenceControllerMock: Mock<() => unknown>;
   createDiscordNativeCommandMock: Mock<(params?: { command?: { name?: string } }) => unknown>;
   createDiscordMessageHandlerMock: Mock<() => unknown>;
-  createNoopThreadBindingManagerMock: Mock<() => { stop: ReturnType<typeof vi.fn> }>;
-  createThreadBindingManagerMock: Mock<() => { stop: ReturnType<typeof vi.fn> }>;
+  createNoopThreadBindingManagerMock: Mock<() => { stop: Mock }>;
+  createThreadBindingManagerMock: Mock<() => { stop: Mock }>;
   reconcileAcpThreadBindingsOnStartupMock: Mock<() => unknown>;
-  createdBindingManagers: Array<{ stop: ReturnType<typeof vi.fn> }>;
+  createdBindingManagers: Array<{ stop: Mock }>;
   getAcpSessionStatusMock: Mock<
     (params: {
       cfg: CoreBlowConfig;
@@ -66,7 +66,7 @@ export function baseDiscordAccountConfig() {
 }
 
 const providerMonitorTestMocks: ProviderMonitorTestMocks = vi.hoisted(() => {
-  const createdBindingManagers: Array<{ stop: ReturnType<typeof vi.fn> }> = [];
+  const createdBindingManagers: Array<{ stop: Mock }> = [];
   const isVerboseMock = vi.fn(() => false);
   const shouldLogVerboseMock = vi.fn(() => false);
 
@@ -290,7 +290,7 @@ vi.mock("@buape/carbon", async (importOriginal) => {
   }
   class Client {
     listeners: unknown[];
-    rest: { put: ReturnType<typeof vi.fn> };
+    rest: { put: Mock };
     options: unknown;
     constructor(options: unknown, handlers: { listeners?: unknown[] }) {
       this.options = options;

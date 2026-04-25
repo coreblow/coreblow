@@ -18,10 +18,10 @@ type MessageContentType = ReturnType<GetContentTypeFn>;
 
 export type MockBaileysSocket = {
   ev: EventEmitter;
-  ws: { close: ReturnType<typeof vi.fn> };
-  sendPresenceUpdate: ReturnType<typeof vi.fn>;
-  sendMessage: ReturnType<typeof vi.fn>;
-  readMessages: ReturnType<typeof vi.fn>;
+  ws: { close: Mock };
+  sendPresenceUpdate: Mock;
+  sendMessage: Mock;
+  readMessages: Mock;
   user?: { id?: string };
 };
 
