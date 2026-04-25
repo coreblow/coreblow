@@ -1,7 +1,8 @@
-// @ts-nocheck
 import type { AgentToolResult } from "@mariozechner/pi-agent-core";
-import type { AnyMessageContent, makeWASocket } from "@whiskeysockets/baileys";
 import type { NormalizedLocation } from "../../channels/location.js";
+
+/** WhatsApp message content (local stub — @whiskeysockets/baileys may not be installed) */
+type AnyMessageContent = Record<string, unknown>;
 import type { ChannelAgentTool } from "../../channels/plugins/types.core.js";
 import type { CoreBlowConfig } from "../../config/config.js";
 import type { PollInput } from "../../polls.js";
@@ -140,7 +141,7 @@ export type MonitorWebInboxFactory = (options: {
 
 export type ReplyResolver = (...args: unknown[]) => Promise<unknown>;
 
-export type WhatsAppWaSocket = ReturnType<typeof makeWASocket>;
+export type WhatsAppWaSocket = Record<string, unknown>;
 
 export type WhatsAppLightRuntimeModule = {
   getActiveWebListener: (accountId?: string | null) => ActiveWebListener | null;
