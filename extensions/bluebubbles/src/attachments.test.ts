@@ -52,7 +52,7 @@ const runtimeStub = {
   channel: {
     media: {
       fetchRemoteMedia:
-        fetchRemoteMediaMock as unknown as PluginRuntime["channel"]["media"]["fetchRemoteMedia"],
+        fetchRemoteMediaMock as any["channel"]["media"]["fetchRemoteMedia"],
     },
   },
 } as unknown as PluginRuntime;
@@ -477,7 +477,7 @@ describe("sendBlueBubblesAttachment", () => {
     setBlueBubblesRuntime({
       ...runtimeStub,
       log: runtimeLog,
-    } as unknown as PluginRuntime);
+    } as any);
     mockFetch.mockResolvedValueOnce({
       ok: true,
       text: () => Promise.resolve(JSON.stringify({ messageId: "msg-5" })),

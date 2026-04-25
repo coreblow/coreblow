@@ -25,7 +25,7 @@ function installInboundAuthzRuntime(params: {
         matchesMentionPatterns: () => false,
       },
     },
-  } as unknown as PluginRuntime);
+  } as any);
 }
 
 function createTestRuntimeEnv(): RuntimeEnv {

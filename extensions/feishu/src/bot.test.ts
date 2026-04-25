@@ -317,7 +317,7 @@ describe("handleFeishuMessage ACP routing", () => {
           },
           reply: {
             resolveEnvelopeFormatOptions:
-              resolveEnvelopeFormatOptionsMock as unknown as PluginRuntime["channel"]["reply"]["resolveEnvelopeFormatOptions"],
+              resolveEnvelopeFormatOptionsMock as any["channel"]["reply"]["resolveEnvelopeFormatOptions"],
             formatAgentEnvelope: vi.fn((params: { body: string }) => params.body),
             finalizeInboundContext: finalizeInboundContextMock as never,
             dispatchReplyFromConfig: vi.fn().mockResolvedValue({
@@ -521,7 +521,7 @@ describe("handleFeishuMessage command authorization", () => {
           },
           reply: {
             resolveEnvelopeFormatOptions:
-              resolveEnvelopeFormatOptionsMock as unknown as PluginRuntime["channel"]["reply"]["resolveEnvelopeFormatOptions"],
+              resolveEnvelopeFormatOptionsMock as any["channel"]["reply"]["resolveEnvelopeFormatOptions"],
             formatAgentEnvelope: vi.fn((params: { body: string }) => params.body),
             finalizeInboundContext: mockFinalizeInboundContext as never,
             dispatchReplyFromConfig: mockDispatchReplyFromConfig,

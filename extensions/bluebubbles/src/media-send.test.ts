@@ -49,7 +49,7 @@ function createMockRuntime(): { runtime: PluginRuntime; mocks: RuntimeMocks } {
           fetchRemoteMedia,
         },
       },
-    } as unknown as PluginRuntime,
+    } as any,
     mocks: { detectMime, fetchRemoteMedia },
   };
 }

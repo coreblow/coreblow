@@ -113,7 +113,7 @@ export function installFeishuLifecycleRuntime(params: {
       media: {
         detectMime: params.detectMime ?? vi.fn(async () => "text/plain"),
       },
-    }) as unknown as PluginRuntime,
+    }) as any,
   );
 }
 

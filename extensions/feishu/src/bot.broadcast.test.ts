@@ -149,10 +149,10 @@ describe("broadcast dispatch", () => {
             resolveEnvelopeFormatOptions: resolveEnvelopeFormatOptionsMock,
             formatAgentEnvelope: vi.fn((params: { body: string }) => params.body),
             finalizeInboundContext:
-              mockFinalizeInboundContext as unknown as PluginRuntime["channel"]["reply"]["finalizeInboundContext"],
+              mockFinalizeInboundContext as any["channel"]["reply"]["finalizeInboundContext"],
             dispatchReplyFromConfig: mockDispatchReplyFromConfig,
             withReplyDispatcher:
-              mockWithReplyDispatcher as unknown as PluginRuntime["channel"]["reply"]["withReplyDispatcher"],
+              mockWithReplyDispatcher as any["channel"]["reply"]["withReplyDispatcher"],
           },
           commands: {
             shouldComputeCommandAuthorized: mockShouldComputeCommandAuthorized,

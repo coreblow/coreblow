@@ -643,7 +643,7 @@ describe("send", () => {
 
     it("warns and downgrades private-api features when status is unknown", async () => {
       const runtimeLog = vi.fn();
-      setBlueBubblesRuntime({ log: runtimeLog } as unknown as PluginRuntime);
+      setBlueBubblesRuntime({ log: runtimeLog } as any);
       const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
       mockResolvedHandleTarget();
       mockSendResponse({ data: { guid: "msg-uuid-unknown" } });
