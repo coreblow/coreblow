@@ -5,7 +5,7 @@ export {
   type CliRuntimeCapture,
 } from "../../src/cli/test-runtime-capture.js";
 export type { CoreBlowConfig } from "coreblow/plugin-sdk/browser-support";
-export { expectGeneratedTokenPersistedToGatewayAuth } from "../../test/helpers/extensions/auth-token-assertions.ts.js";
-export { withEnv, withEnvAsync } from "../../test/helpers/extensions/env.ts.js";
-export { withFetchPreconnect, type FetchMock } from "../../test/helpers/extensions/fetch-mock.ts.js";
-export { createTempHomeEnv, type TempHomeEnv } from "../../test/helpers/extensions/temp-home.ts.js";
+export { expectGeneratedTokenPersistedToGatewayAuth } from "../../test/helpers/extensions/auth-token-assertions.ts";
+export { withEnv, withEnvAsync } from "../../test/helpers/extensions/env.ts";
+export { withFetchPreconnect, type FetchMock } from "../../test/helpers/extensions/fetch-mock.ts";
+export { createTempHomeEnv, type TempHomeEnv } from "../../test/helpers/extensions/temp-home.ts";

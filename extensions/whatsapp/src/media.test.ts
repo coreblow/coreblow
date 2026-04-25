@@ -9,10 +9,11 @@ import { optimizeImageToPng } from "../../../src/media/image-ops.js";
 import { mockPinnedHostnameResolution } from "../../../src/test-helpers/ssrf.js";
 import { captureEnv } from "../../../test/helpers/extensions/env.js";
 
-let LocalMediaAccessError: typeof import("./media.js").LocalMediaAccessError;
-let loadWebMedia: typeof import("./media.js").loadWebMedia;
-let loadWebMediaRaw: typeof import("./media.js").loadWebMediaRaw;
-let optimizeImageToJpeg: typeof import("./media.js").optimizeImageToJpeg;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamically imported in beforeAll
+let LocalMediaAccessError: any;
+let loadWebMedia: any;
+let loadWebMediaRaw: any;
+let optimizeImageToJpeg: any;
 let sendVoiceMessageDiscord: typeof import("../../discord/src/send.js").sendVoiceMessageDiscord;
 
 let fixtureRoot = "";
@@ -55,7 +56,7 @@ function cloneStatWithDev<T extends { dev: number | bigint }>(stat: T, dev: numb
 
 beforeAll(async () => {
   ({ LocalMediaAccessError, loadWebMedia, loadWebMediaRaw, optimizeImageToJpeg } =
-    await import("./media.js"));
+    (await import("./media.js")) as any);
   ({ sendVoiceMessageDiscord } = await import("../../discord/src/send.js"));
   fixtureRoot = await fs.mkdtemp(
     path.join(resolvePreferredCoreBlowTmpDir(), "coreblow-media-test-"),

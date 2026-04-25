@@ -8,7 +8,7 @@ import {
 import {
   createDirectoryTestRuntime,
   expectDirectorySurface,
-} from "../../../test/helpers/extensions/directory.ts.js";
+} from "../../../test/helpers/extensions/directory.ts";
 import {
   createPluginSetupWizardConfigure,
   createQueuedWizardPrompter,

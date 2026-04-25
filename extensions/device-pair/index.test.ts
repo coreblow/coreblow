@@ -8,7 +8,7 @@ import type {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createTestPluginApi } from "../../test/helpers/extensions/plugin-api.js";
 import type { CoreBlowPluginApi } from "./api.js";
-import type { PendingPairingRequest } from "./notify.ts.js";
+import type { PendingPairingRequest } from "./notify.ts";
 
 const pluginApiMocks = vi.hoisted(() => ({
   clearDeviceBootstrapTokens: vi.fn(async () => ({ removed: 2 })),
