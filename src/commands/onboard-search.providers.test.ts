@@ -3,11 +3,9 @@ import type { CoreBlowConfig } from "../config/config.js";
 import type { PluginWebSearchProviderEntry } from "../plugins/types.js";
 
 const mocks = vi.hoisted(() => ({
-  resolvePluginWebSearchProviders: vi.fn<
-    (params?: { config?: CoreBlowConfig }) => PluginWebSearchProviderEntry[]
-  >(() => []),
-  listBundledWebSearchProviders: vi.fn<() => PluginWebSearchProviderEntry[]>(() => []),
-  resolveBundledWebSearchPluginId: vi.fn<(providerId?: string) => string | undefined>(
+  resolvePluginWebSearchProviders: vi.fn(() => []),
+  listBundledWebSearchProviders: vi.fn(() => []),
+  resolveBundledWebSearchPluginId: vi.fn(
     () => undefined,
   ),
 }));

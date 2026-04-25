@@ -100,7 +100,7 @@ describe("runCommandWithTimeout", () => {
 describe("attachChildProcessBridge", () => {
   function createFakeChild() {
     const emitter = new EventEmitter() as EventEmitter & ChildProcess;
-    const kill = vi.fn<(signal?: NodeJS.Signals) => boolean>(() => true);
+    const kill = vi.fn(() => true);
     emitter.kill = kill as ChildProcess["kill"];
     return { child: emitter, kill };
   }

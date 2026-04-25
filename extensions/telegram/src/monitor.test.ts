@@ -70,7 +70,7 @@ const { createTelegramBotCalls } = vi.hoisted(() => ({
 }));
 
 const { createdBotStops } = vi.hoisted(() => ({
-  createdBotStops: [] as Array<ReturnType<typeof vi.fn<() => void>>>,
+  createdBotStops: [] as Array<ReturnType<typeof vi.fn>>,
 }));
 
 const { computeBackoff, sleepWithAbort } = vi.hoisted(() => ({
@@ -92,13 +92,13 @@ const { resolveTelegramTransportSpy } = vi.hoisted(() => ({
 
 type RunnerStub = {
   task: () => Promise<void>;
-  stop: ReturnType<typeof vi.fn<() => void | Promise<void>>>;
+  stop: ReturnType<typeof vi.fn>;
   isRunning: () => boolean;
 };
 
 const makeRunnerStub = (overrides: Partial<RunnerStub> = {}): RunnerStub => ({
   task: overrides.task ?? (() => Promise.resolve()),
-  stop: overrides.stop ?? vi.fn<() => void | Promise<void>>(),
+  stop: overrides.stop ?? vi.fn(),
   isRunning: overrides.isRunning ?? (() => false),
 });
 
@@ -178,7 +178,7 @@ async function runMonitorAndCaptureStartupOrder(params?: { persistedOffset?: num
 }
 
 function mockRunOnceWithStalledPollingRunner(): {
-  stop: ReturnType<typeof vi.fn<() => void | Promise<void>>>;
+  stop: ReturnType<typeof vi.fn>;
   waitForTaskStart: () => Promise<void>;
 } {
   let running = true;
@@ -256,7 +256,7 @@ vi.mock("./bot.js", () => ({
     if (nextError) {
       throw nextError;
     }
-    const stop = vi.fn<() => void>();
+    const stop = vi.fn();
     createdBotStops.push(stop);
     handlers.message = async (ctx: MockCtx) => {
       const chatId = ctx.message.chat.id;

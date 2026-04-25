@@ -13,7 +13,7 @@ import type { MediaUnderstandingProvider } from "./types.js";
 type ResolveApiKeyForProvider = typeof import("../agents/model-auth.js").resolveApiKeyForProvider;
 
 const resolveApiKeyForProviderMock = vi.hoisted(() =>
-  vi.fn<ResolveApiKeyForProvider>(async () => ({
+  vi.fn(async () => ({
     apiKey: "test-key", // pragma: allowlist secret
     source: "test",
     mode: "api-key",

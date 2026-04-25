@@ -31,7 +31,7 @@ export function createMattermostReactionFetchMock(params: {
   const removeStatus = params.status ?? 204;
   const removePath = `/api/v4/users/${userId}/posts/${params.postId}/reactions/${encodeURIComponent(params.emojiName)}`;
 
-  return vi.fn<typeof fetch>(async (url, init) => {
+  return vi.fn(async (url, init) => {
     if (String(url).endsWith("/api/v4/users/me")) {
       return new Response(JSON.stringify({ id: userId }), {
         status: 200,

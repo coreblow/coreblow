@@ -24,7 +24,7 @@ const hoisted = vi.hoisted(() => {
   };
 
   return {
-    resolveBootstrapContextForRunMock: vi.fn<() => Promise<BootstrapContext>>(async () => ({
+    resolveBootstrapContextForRunMock: vi.fn(async () => ({
       bootstrapFiles: [],
       contextFiles: [],
     })),

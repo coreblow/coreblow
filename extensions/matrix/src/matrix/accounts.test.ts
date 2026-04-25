@@ -4,7 +4,7 @@ import type { CoreConfig } from "../types.js";
 import type { MatrixStoredCredentials } from "./credentials-read.js";
 
 const loadMatrixCredentialsMock = vi.hoisted(() =>
-  vi.fn<(env?: NodeJS.ProcessEnv, accountId?: string | null) => MatrixStoredCredentials | null>(
+  vi.fn(
     () => null,
   ),
 );

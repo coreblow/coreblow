@@ -27,18 +27,18 @@ const hoisted = vi.hoisted(() => {
   const resolveSandboxContextMock = vi.fn();
   const subscribeEmbeddedPiSessionMock = vi.fn();
   const acquireSessionWriteLockMock = vi.fn();
-  const resolveBootstrapContextForRunMock = vi.fn<() => Promise<BootstrapContext>>(async () => ({
+  const resolveBootstrapContextForRunMock = vi.fn(async () => ({
     bootstrapFiles: [],
     contextFiles: [],
   }));
-  const getGlobalHookRunnerMock = vi.fn<() => unknown>(() => undefined);
+  const getGlobalHookRunnerMock = vi.fn(() => undefined);
   const initializeGlobalHookRunnerMock = vi.fn();
   const runContextEngineMaintenanceMock = vi.fn(async (_params?: unknown) => undefined);
   const sessionManager = {
     getLeafEntry: vi.fn(() => null),
     branch: vi.fn(),
     resetLeaf: vi.fn(),
-    buildSessionContext: vi.fn<() => { messages: AgentMessage[] }>(() => ({ messages: [] })),
+    buildSessionContext: vi.fn(() => ({ messages: [] })),
     appendCustomEntry: vi.fn(),
   };
   return {

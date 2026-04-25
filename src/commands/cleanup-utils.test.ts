@@ -60,11 +60,11 @@ describe("applyAgentDefaultPrimaryModel", () => {
 describe("cleanup path removals", () => {
   function createRuntimeMock() {
     return {
-      log: vi.fn<(message: string) => void>(),
-      error: vi.fn<(message: string) => void>(),
+      log: vi.fn(),
+      error: vi.fn(),
     } as unknown as RuntimeEnv & {
-      log: ReturnType<typeof vi.fn<(message: string) => void>>;
-      error: ReturnType<typeof vi.fn<(message: string) => void>>;
+      log: ReturnType<typeof vi.fn>;
+      error: ReturnType<typeof vi.fn>;
     };
   }
 

@@ -23,9 +23,7 @@ type CreateCommandBotResult = {
 };
 
 const skillCommandMocks = vi.hoisted(() => ({
-  listSkillCommandsForAgents: vi.fn<
-    (params: { cfg: CoreBlowConfig; agentIds?: string[] }) => SkillCommandSpec[]
-  >(() => []),
+  listSkillCommandsForAgents: vi.fn(() => []),
 }));
 
 const deliveryMocks = vi.hoisted(() => ({

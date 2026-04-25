@@ -10,10 +10,8 @@ type MockNodeCommandPolicyParams = {
 
 const mocks = vi.hoisted(() => ({
   loadConfig: vi.fn(() => ({})),
-  resolveNodeCommandAllowlist: vi.fn<() => Set<string>>(() => new Set()),
-  isNodeCommandAllowed: vi.fn<
-    (params: MockNodeCommandPolicyParams) => { ok: true } | { ok: false; reason: string }
-  >(() => ({ ok: true })),
+  resolveNodeCommandAllowlist: vi.fn(() => new Set()),
+  isNodeCommandAllowed: vi.fn(() => ({ ok: true })),
   sanitizeNodeInvokeParamsForForwarding: vi.fn(({ rawParams }: { rawParams: unknown }) => ({
     ok: true,
     params: rawParams,

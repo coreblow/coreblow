@@ -9,9 +9,7 @@ import {
 } from "./config.js";
 
 const { resolveSpawnFailureMock, spawnAndCollectMock } = vi.hoisted(() => ({
-  resolveSpawnFailureMock: vi.fn<
-    (error: unknown, cwd: string) => "missing-command" | "missing-cwd" | null
-  >(() => null),
+  resolveSpawnFailureMock: vi.fn(() => null),
   spawnAndCollectMock: vi.fn(),
 }));
 

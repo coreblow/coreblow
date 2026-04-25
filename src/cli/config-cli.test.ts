@@ -13,10 +13,8 @@ import { createCliRuntimeCapture, mockRuntimeModule } from "./test-runtime-captu
  * but before runtime defaults), so runtime defaults don't leak into the written config.
  */
 
-const mockReadConfigFileSnapshot = vi.fn<() => Promise<ConfigFileSnapshot>>();
-const mockWriteConfigFile = vi.fn<
-  (cfg: CoreBlowConfig, options?: { unsetPaths?: string[][] }) => Promise<void>
->(async () => {});
+const mockReadConfigFileSnapshot = vi.fn();
+const mockWriteConfigFile = vi.fn(async () => {});
 const { mockResolveSecretRefValue, mockReadBestEffortRuntimeConfigSchema } = vi.hoisted(() => ({
   mockResolveSecretRefValue: vi.fn(),
   mockReadBestEffortRuntimeConfigSchema: vi.fn(),

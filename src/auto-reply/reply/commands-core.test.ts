@@ -4,8 +4,8 @@ import type { HookRunner } from "../../plugins/hooks.js";
 import type { HandleCommandsParams } from "./commands-types.js";
 
 const hookRunnerMocks = vi.hoisted(() => ({
-  hasHooks: vi.fn<HookRunner["hasHooks"]>(),
-  runBeforeReset: vi.fn<HookRunner["runBeforeReset"]>(),
+  hasHooks: vi.fn(),
+  runBeforeReset: vi.fn(),
 }));
 
 vi.mock("../../plugins/hook-runner-global.js", () => ({

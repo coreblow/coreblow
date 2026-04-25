@@ -28,13 +28,13 @@ import {
 type DetectZaiEndpoint = typeof import("./zai-endpoint-detect.js").detectZaiEndpoint;
 
 const loginOpenAICodexOAuth = vi.hoisted(() =>
-  vi.fn<() => Promise<OAuthCredentials | null>>(async () => null),
+  vi.fn(async () => null),
 );
 vi.mock("./openai-codex-oauth.js", () => ({
   loginOpenAICodexOAuth,
 }));
 
-const resolvePluginProviders = vi.hoisted(() => vi.fn<() => ProviderPlugin[]>(() => []));
+const resolvePluginProviders = vi.hoisted(() => vi.fn(() => []));
 vi.mock("../plugins/provider-auth-choice.runtime.js", async (importOriginal) => {
   const actual =
     await importOriginal<typeof import("../plugins/provider-auth-choice.runtime.js")>();
@@ -44,7 +44,7 @@ vi.mock("../plugins/provider-auth-choice.runtime.js", async (importOriginal) => 
   };
 });
 
-const detectZaiEndpoint = vi.hoisted(() => vi.fn<DetectZaiEndpoint>(async () => null));
+const detectZaiEndpoint = vi.hoisted(() => vi.fn(async () => null));
 vi.mock("./zai-endpoint-detect.js", () => ({
   detectZaiEndpoint,
 }));

@@ -18,7 +18,7 @@ function createMockSession(): {
   session: MockSession;
   setSystemPrompt: ReturnType<typeof vi.fn>;
 } {
-  const setSystemPrompt = vi.fn<(prompt: string) => void>();
+  const setSystemPrompt = vi.fn();
   const session = {
     agent: { setSystemPrompt },
   } as MockSession;

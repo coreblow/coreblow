@@ -7,10 +7,10 @@ import type { RuntimeEnv } from "../runtime.js";
 
 const runTui = vi.hoisted(() => vi.fn(async () => {}));
 const probeGatewayReachable = vi.hoisted(() =>
-  vi.fn<() => Promise<{ ok: boolean; detail?: string }>>(async () => ({ ok: true })),
+  vi.fn(async () => ({ ok: true })),
 );
 const waitForGatewayReachable = vi.hoisted(() =>
-  vi.fn<() => Promise<{ ok: boolean; detail?: string }>>(async () => ({ ok: true })),
+  vi.fn(async () => ({ ok: true })),
 );
 const setupWizardShellCompletion = vi.hoisted(() => vi.fn(async () => {}));
 const buildGatewayInstallPlan = vi.hoisted(() =>
@@ -22,7 +22,7 @@ const buildGatewayInstallPlan = vi.hoisted(() =>
 );
 const gatewayServiceInstall = vi.hoisted(() => vi.fn(async () => {}));
 const gatewayServiceRestart = vi.hoisted(() =>
-  vi.fn<() => Promise<{ outcome: "completed" } | { outcome: "scheduled" }>>(async () => ({
+  vi.fn(async () => ({
     outcome: "completed",
   })),
 );
@@ -40,19 +40,19 @@ const readSystemdUserLingerStatus = vi.hoisted(() =>
   vi.fn(async () => ({ user: "test-user", linger: "yes" as const })),
 );
 const resolveSetupSecretInputString = vi.hoisted(() =>
-  vi.fn<() => Promise<string | undefined>>(async () => undefined),
+  vi.fn(async () => undefined),
 );
 const resolveExistingKey = vi.hoisted(() =>
-  vi.fn<(config: CoreBlowConfig, provider: string) => string | undefined>(() => undefined),
+  vi.fn(() => undefined),
 );
 const hasExistingKey = vi.hoisted(() =>
-  vi.fn<(config: CoreBlowConfig, provider: string) => boolean>(() => false),
+  vi.fn(() => false),
 );
 const hasKeyInEnv = vi.hoisted(() =>
-  vi.fn<(entry: Pick<PluginWebSearchProviderEntry, "envVars">) => boolean>(() => false),
+  vi.fn(() => false),
 );
 const listConfiguredWebSearchProviders = vi.hoisted(() =>
-  vi.fn<(params?: { config?: CoreBlowConfig }) => PluginWebSearchProviderEntry[]>(() => []),
+  vi.fn(() => []),
 );
 
 vi.mock("../commands/onboard-helpers.js", () => ({

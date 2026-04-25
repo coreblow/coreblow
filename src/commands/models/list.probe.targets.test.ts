@@ -6,7 +6,7 @@ import type { CoreBlowConfig } from "../../config/config.js";
 
 let mockStore: AuthProfileStore;
 let mockAllowedProfiles: string[];
-const loadModelCatalogMock = vi.fn<() => Promise<ModelCatalogEntry[]>>(async () => []);
+const loadModelCatalogMock = vi.fn(async () => []);
 
 const resolveAuthProfileOrderMock = vi.fn(() => mockAllowedProfiles);
 const resolveAuthProfileEligibilityMock = vi.fn(() => ({

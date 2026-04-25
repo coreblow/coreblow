@@ -4,7 +4,7 @@ import type { PluginAutoEnableResult } from "../../config/plugin-auto-enable.js"
 
 const loadPluginManifestRegistry = vi.hoisted(() => vi.fn());
 const applyPluginAutoEnable = vi.hoisted(() =>
-  vi.fn<(args: { config: unknown; env?: NodeJS.ProcessEnv }) => PluginAutoEnableResult>(
+  vi.fn(
     ({ config }) => ({ config: config as never, changes: [] as string[] }),
   ),
 );

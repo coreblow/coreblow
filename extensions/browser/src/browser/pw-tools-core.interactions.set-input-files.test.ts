@@ -20,7 +20,7 @@ const refLocator = vi.fn(() => {
 const forceDisconnectPlaywrightForTarget = vi.fn(async () => {});
 
 const resolveStrictExistingPathsWithinRoot =
-  vi.fn<typeof import("./paths.js").resolveStrictExistingPathsWithinRoot>();
+  vi.fn();
 
 vi.mock("./pw-session.js", () => {
   return {

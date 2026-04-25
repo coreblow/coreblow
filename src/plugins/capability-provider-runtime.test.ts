@@ -13,10 +13,8 @@ function createEmptyMockManifestRegistry(): MockManifestRegistry {
 }
 
 const mocks = vi.hoisted(() => ({
-  resolveRuntimePluginRegistry: vi.fn<
-    (params?: unknown) => ReturnType<typeof createEmptyPluginRegistry> | undefined
-  >(() => undefined),
-  loadPluginManifestRegistry: vi.fn<() => MockManifestRegistry>(() =>
+  resolveRuntimePluginRegistry: vi.fn(() => undefined),
+  loadPluginManifestRegistry: vi.fn(() =>
     createEmptyMockManifestRegistry(),
   ),
   withBundledPluginAllowlistCompat: vi.fn(({ config }) => config),

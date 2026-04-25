@@ -84,7 +84,7 @@ export function setBrowserControlServerProfiles(
 }
 
 const cdpMocks = vi.hoisted(() => ({
-  createTargetViaCdp: vi.fn<() => Promise<{ targetId: string }>>(async () => {
+  createTargetViaCdp: vi.fn(async () => {
     throw new Error("cdp disabled");
   }),
   snapshotAria: vi.fn(async () => ({

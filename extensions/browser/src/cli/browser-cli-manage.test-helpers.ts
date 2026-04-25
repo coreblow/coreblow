@@ -10,13 +10,7 @@ type BrowserRuntimeOptions = { timeoutMs?: number };
 export type BrowserManageCall = [unknown, BrowserRequest, BrowserRuntimeOptions | undefined];
 
 const browserManageMocks = vi.hoisted(() => ({
-  callBrowserRequest: vi.fn<
-    (
-      opts: unknown,
-      req: BrowserRequest,
-      runtimeOpts?: BrowserRuntimeOptions,
-    ) => Promise<Record<string, unknown>>
-  >(async (_opts: unknown, req: BrowserRequest) =>
+  callBrowserRequest: vi.fn(async (_opts: unknown, req: BrowserRequest) =>
     req.path === "/"
       ? {
           enabled: true,

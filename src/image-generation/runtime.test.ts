@@ -4,9 +4,7 @@ import type { CoreBlowConfig } from "../config/config.js";
 import { createEmptyPluginRegistry } from "../plugins/registry.js";
 
 const { resolveRuntimePluginRegistryMock } = vi.hoisted(() => ({
-  resolveRuntimePluginRegistryMock: vi.fn<
-    (params?: unknown) => ReturnType<typeof createEmptyPluginRegistry> | undefined
-  >(() => undefined),
+  resolveRuntimePluginRegistryMock: vi.fn(() => undefined),
 }));
 
 vi.mock("../plugins/loader.js", () => ({

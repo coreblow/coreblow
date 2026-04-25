@@ -19,9 +19,7 @@ import { parseTimeoutMs } from "../nodes-run.js";
  * least approvalTimeoutMs + 10_000.
  */
 
-const callGatewaySpy = vi.fn<
-  (opts: Record<string, unknown>) => Promise<{ decision: "allow-once" }>
->(async () => ({ decision: "allow-once" }));
+const callGatewaySpy = vi.fn(async (..._args: any[]) => ({ decision: "allow-once" }));
 
 vi.mock("../../gateway/call.js", () => ({
   callGateway: callGatewaySpy,

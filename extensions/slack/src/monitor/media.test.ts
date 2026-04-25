@@ -17,7 +17,7 @@ import {
 
 // Store original fetch
 const originalFetch = globalThis.fetch;
-let mockFetch: ReturnType<typeof vi.fn<FetchMock>>;
+let mockFetch: ReturnType<typeof vi.fn>;
 const createSavedMedia = (filePath: string, contentType: string): SavedMedia => ({
   id: "saved-media-id",
   path: filePath,
@@ -28,7 +28,7 @@ const createSavedMedia = (filePath: string, contentType: string): SavedMedia => 
 describe("fetchWithSlackAuth", () => {
   beforeEach(() => {
     // Create a new mock for each test
-    mockFetch = vi.fn<FetchMock>(
+    mockFetch = vi.fn(
       async (_input: RequestInfo | URL, _init?: RequestInit) => new Response(),
     );
     globalThis.fetch = withFetchPreconnect(mockFetch);

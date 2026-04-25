@@ -12,7 +12,7 @@ import {
 import type { DoctorPrompter } from "./doctor-prompter.js";
 import type { DoctorRepairMode } from "./doctor-repair-mode.js";
 
-const resolvePluginProvidersMock = vi.fn<() => ProviderPlugin[]>(() => []);
+const resolvePluginProvidersMock = vi.fn(() => []);
 
 vi.mock("../plugins/providers.runtime.js", () => ({
   resolvePluginProviders: () => resolvePluginProvidersMock(),

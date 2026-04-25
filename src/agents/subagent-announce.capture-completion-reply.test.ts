@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-const chatHistoryMock = vi.fn<(sessionKey: string) => Promise<{ messages?: Array<unknown> }>>(
+const chatHistoryMock = vi.fn(
   async (_sessionKey: string) => ({ messages: [] }),
 );
 

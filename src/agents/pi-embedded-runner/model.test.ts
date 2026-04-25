@@ -10,10 +10,8 @@ vi.mock("../pi-model-discovery.js", () => ({
 
 import type { OpenRouterModelCapabilities } from "./openrouter-model-capabilities.js";
 
-const mockGetOpenRouterModelCapabilities = vi.fn<
-  (modelId: string) => OpenRouterModelCapabilities | undefined
->(() => undefined);
-const mockLoadOpenRouterModelCapabilities = vi.fn<(modelId: string) => Promise<void>>(
+const mockGetOpenRouterModelCapabilities = vi.fn(() => undefined);
+const mockLoadOpenRouterModelCapabilities = vi.fn(
   async () => {},
 );
 vi.mock("./openrouter-model-capabilities.js", () => ({

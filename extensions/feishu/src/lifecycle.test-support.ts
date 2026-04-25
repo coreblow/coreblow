@@ -12,7 +12,7 @@ const feishuLifecycleTestMocks = vi.hoisted(() => ({
   monitorWebhookMock: vi.fn(async () => {}),
   createFeishuThreadBindingManagerMock: vi.fn(() => ({ stop: vi.fn() })),
   createFeishuReplyDispatcherMock: vi.fn(),
-  resolveBoundConversationMock: vi.fn<() => BoundConversation | null>(() => null),
+  resolveBoundConversationMock: vi.fn(() => null),
   touchBindingMock: vi.fn(),
   resolveAgentRouteMock: vi.fn(),
   resolveConfiguredBindingRouteMock: vi.fn(),

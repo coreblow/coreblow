@@ -58,14 +58,14 @@ export function setQueuedEntryState(
 }
 
 export function createRecoveryLog(): RecoveryLogger & {
-  info: ReturnType<typeof vi.fn<(msg: string) => void>>;
-  warn: ReturnType<typeof vi.fn<(msg: string) => void>>;
-  error: ReturnType<typeof vi.fn<(msg: string) => void>>;
+  info: ReturnType<typeof vi.fn>;
+  warn: ReturnType<typeof vi.fn>;
+  error: ReturnType<typeof vi.fn>;
 } {
   return {
-    info: vi.fn<(msg: string) => void>(),
-    warn: vi.fn<(msg: string) => void>(),
-    error: vi.fn<(msg: string) => void>(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
   };
 }
 

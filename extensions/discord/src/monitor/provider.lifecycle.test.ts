@@ -33,7 +33,7 @@ const {
   waitForDiscordGatewayStopMock,
 } = vi.hoisted(() => {
   const stopGatewayLoggingMock = vi.fn();
-  const getDiscordGatewayEmitterMock = vi.fn<() => EventEmitter | undefined>(() => undefined);
+  const getDiscordGatewayEmitterMock = vi.fn(() => undefined);
   return {
     attachDiscordGatewayLoggingMock: vi.fn(() => stopGatewayLoggingMock),
     getDiscordGatewayEmitterMock,

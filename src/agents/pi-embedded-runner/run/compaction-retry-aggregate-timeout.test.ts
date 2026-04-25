@@ -4,7 +4,7 @@ import { waitForCompactionRetryWithAggregateTimeout } from "./compaction-retry-a
 
 type AggregateTimeoutParams = Parameters<typeof waitForCompactionRetryWithAggregateTimeout>[0];
 type TimeoutCallback = NonNullable<AggregateTimeoutParams["onTimeout"]>;
-type TimeoutCallbackMock = ReturnType<typeof vi.fn<TimeoutCallback>>;
+type TimeoutCallbackMock = ReturnType<typeof vi.fn>;
 
 async function withFakeTimers(run: () => Promise<void>) {
   vi.useFakeTimers();
@@ -30,7 +30,7 @@ function buildAggregateTimeoutParams(
     Pick<AggregateTimeoutParams, "waitForCompactionRetry">,
 ): AggregateTimeoutParams & { onTimeout: TimeoutCallbackMock } {
   const onTimeout =
-    (overrides.onTimeout as TimeoutCallbackMock | undefined) ?? vi.fn<TimeoutCallback>();
+    (overrides.onTimeout as TimeoutCallbackMock | undefined) ?? vi.fn();
   return {
     waitForCompactionRetry: overrides.waitForCompactionRetry,
     abortable: overrides.abortable ?? (async (promise) => await promise),

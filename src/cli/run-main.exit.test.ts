@@ -11,9 +11,7 @@ const hasMemoryRuntimeMock = vi.hoisted(() => vi.fn(() => false));
 const outputRootHelpMock = vi.hoisted(() => vi.fn());
 const buildProgramMock = vi.hoisted(() => vi.fn());
 const maybeRunCliInContainerMock = vi.hoisted(() =>
-  vi.fn<
-    (argv: string[]) => { handled: true; exitCode: number } | { handled: false; argv: string[] }
-  >((argv: string[]) => ({ handled: false, argv })),
+  vi.fn((argv: string[]) => ({ handled: false, argv })),
 );
 
 vi.mock("./route.js", () => ({

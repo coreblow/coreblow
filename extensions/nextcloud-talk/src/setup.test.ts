@@ -479,7 +479,7 @@ describe("resolveNextcloudTalkAccount", () => {
 });
 
 describe("nextcloud-talk send cfg threading", () => {
-  const fetchMock = vi.fn<typeof fetch>();
+  const fetchMock = vi.fn();
 
   beforeEach(async () => {
     vi.resetModules();

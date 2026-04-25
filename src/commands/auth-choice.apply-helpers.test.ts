@@ -363,7 +363,7 @@ describe("ensureApiKeyFromEnvOrPrompt", () => {
     setMinimaxEnv({ apiKey: "sk-minimax-redacted-value" });
 
     const select = vi.fn(async () => "env") as WizardPrompter["select"];
-    const text = vi.fn<WizardPrompter["text"]>().mockResolvedValue("MINIMAX_API_KEY");
+    const text = vi.fn().mockResolvedValue("MINIMAX_API_KEY");
     const note = vi.fn(async () => undefined);
     const setCredential = vi.fn(async () => undefined);
 

@@ -10,9 +10,7 @@ const getChromeWebSocketUrlSpy = vi.spyOn(chromeModule, "getChromeWebSocketUrl")
 
 function installBrowserMocks() {
   const pageOn = vi.fn();
-  const pageGoto = vi.fn<
-    (...args: unknown[]) => Promise<null | { request: () => Record<string, unknown> }>
-  >(async () => null);
+  const pageGoto = vi.fn(async () => null);
   const pageTitle = vi.fn(async () => "");
   const pageUrl = vi.fn(() => "about:blank");
   const contextOn = vi.fn();

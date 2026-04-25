@@ -14,7 +14,7 @@ import type { MediaUnderstandingProvider } from "./types.js";
 type ResolveApiKeyForProvider = typeof import("../agents/model-auth.js").resolveApiKeyForProvider;
 
 const resolveApiKeyForProviderMock = vi.hoisted(() =>
-  vi.fn<ResolveApiKeyForProvider>(async () => ({
+  vi.fn(async (..._args: any[]) => ({
     apiKey: "test-key", // pragma: allowlist secret
     source: "test",
     mode: "api-key",
@@ -27,7 +27,7 @@ const hasAvailableAuthForProviderMock = vi.hoisted(() =>
   }),
 );
 const getApiKeyForModelMock = vi.hoisted(() =>
-  vi.fn(async () => ({ apiKey: "test-key", source: "test", mode: "api-key" })),
+  vi.fn(async (..._args: any[]) => ({ apiKey: "test-key", source: "test", mode: "api-key" })),
 );
 const fetchRemoteMediaMock = vi.hoisted(() => vi.fn());
 const runExecMock = vi.hoisted(() => vi.fn());
@@ -156,13 +156,13 @@ describe("applyMediaUnderstanding – echo transcript", () => {
           `No API key resolved for provider "${provider}" (auth mode: ${auth?.mode}).`,
         );
       },
-      resolveAwsSdkEnvVarName: vi.fn(() => undefined),
-      resolveEnvApiKey: vi.fn(() => null),
-      resolveModelAuthMode: vi.fn(() => "api-key"),
+      resolveAwsSdkEnvVarName: vi.fn((..._args: any[]) => undefined),
+      resolveEnvApiKey: vi.fn((..._args: any[]) => null),
+      resolveModelAuthMode: vi.fn((..._args: any[]) => "api-key"),
       getApiKeyForModel: getApiKeyForModelMock,
-      getCustomProviderApiKey: vi.fn(() => undefined),
-      ensureAuthProfileStore: vi.fn(async () => ({})),
-      resolveAuthProfileOrder: vi.fn(() => []),
+      getCustomProviderApiKey: vi.fn((..._args: any[]) => undefined),
+      ensureAuthProfileStore: vi.fn(async (..._args: any[]) => ({})),
+      resolveAuthProfileOrder: vi.fn((..._args: any[]) => []),
     }));
     vi.doMock("../media/fetch.js", () => ({
       fetchRemoteMedia: fetchRemoteMediaMock,

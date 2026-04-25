@@ -55,7 +55,7 @@ export const mockedGlobalHookRunner = {
 
 export const mockedContextEngine = {
   info: { ownsCompaction: false as boolean },
-  compact: vi.fn<(params: unknown) => Promise<MockCompactionResult>>(async () => ({
+  compact: vi.fn(async () => ({
     ok: false as const,
     compacted: false as const,
     reason: "nothing to compact",
@@ -65,15 +65,13 @@ export const mockedContextEngine = {
 export const mockedContextEngineCompact = mockedContextEngine.compact;
 export const mockedCompactDirect = mockedContextEngine.compact;
 export const mockedRunPostCompactionSideEffects = vi.fn(async () => {});
-export const mockedEnsureRuntimePluginsLoaded = vi.fn<(params?: unknown) => void>();
+export const mockedEnsureRuntimePluginsLoaded = vi.fn();
 export const mockedPrepareProviderRuntimeAuth = vi.fn(async () => undefined);
 export const mockedRunEmbeddedAttempt =
-  vi.fn<(params: unknown) => Promise<EmbeddedRunAttemptResult>>();
+  vi.fn();
 export const mockedRunContextEngineMaintenance = vi.fn(async () => undefined);
 export const mockedSessionLikelyHasOversizedToolResults = vi.fn(() => false);
-export const mockedTruncateOversizedToolResultsInSession = vi.fn<
-  () => Promise<MockTruncateOversizedToolResultsResult>
->(async () => ({
+export const mockedTruncateOversizedToolResultsInSession = vi.fn(async () => ({
   truncated: false,
   truncatedCount: 0,
   reason: "no oversized tool results",
@@ -105,8 +103,8 @@ export class MockedFailoverError extends Error {
   }
 }
 
-export const mockedCoerceToFailoverError = vi.fn<MockCoerceToFailoverError>();
-export const mockedDescribeFailoverError = vi.fn<MockDescribeFailoverError>(
+export const mockedCoerceToFailoverError = vi.fn();
+export const mockedDescribeFailoverError = vi.fn(
   (err: unknown): MockFailoverErrorDescription => ({
     message: err instanceof Error ? err.message : String(err),
     reason: undefined,
@@ -114,7 +112,7 @@ export const mockedDescribeFailoverError = vi.fn<MockDescribeFailoverError>(
     code: undefined,
   }),
 );
-export const mockedResolveFailoverStatus = vi.fn<MockResolveFailoverStatus>();
+export const mockedResolveFailoverStatus = vi.fn();
 
 export const mockedLog: {
   debug: Mock<(...args: unknown[]) => void>;
@@ -131,7 +129,7 @@ export const mockedLog: {
 };
 
 export const mockedFormatBillingErrorMessage = vi.fn(() => "");
-export const mockedClassifyFailoverReason = vi.fn<(raw: string) => FailoverReason | null>(
+export const mockedClassifyFailoverReason = vi.fn(
   () => null,
 );
 export const mockedExtractObservedOverflowTokenCount = vi.fn((msg?: string) => {
@@ -156,7 +154,7 @@ export const mockedParseImageSizeError = vi.fn(() => null);
 export const mockedParseImageDimensionError = vi.fn(() => null);
 export const mockedIsRateLimitAssistantError = vi.fn(() => false);
 export const mockedIsTimeoutErrorMessage = vi.fn(() => false);
-export const mockedPickFallbackThinkingLevel = vi.fn<(params?: unknown) => ThinkLevel | null>(
+export const mockedPickFallbackThinkingLevel = vi.fn(
   () => null,
 );
 export const mockedEvaluateContextWindowGuard = vi.fn(() => ({

@@ -4,9 +4,7 @@ import { createMockGatewayService } from "../../daemon/service.test-helpers.js";
 import { captureEnv } from "../../test-utils/env.js";
 import type { GatewayRestartSnapshot } from "./restart-health.js";
 
-const callGatewayStatusProbe = vi.fn<
-  (opts?: unknown) => Promise<{ ok: boolean; url?: string; error?: string | null }>
->(async (_opts?: unknown) => ({
+const callGatewayStatusProbe = vi.fn(async (_opts?: unknown) => ({
   ok: true,
   url: "ws://127.0.0.1:19001",
   error: null,
@@ -27,7 +25,7 @@ const readLastGatewayErrorLine = vi.fn(async (_env?: NodeJS.ProcessEnv) => null)
 const auditGatewayServiceConfig = vi.fn(async (_opts?: unknown) => undefined);
 const serviceIsLoaded = vi.fn(async (_opts?: unknown) => true);
 const serviceReadRuntime = vi.fn(async (_env?: NodeJS.ProcessEnv) => ({ status: "running" }));
-const inspectGatewayRestart = vi.fn<(opts?: unknown) => Promise<GatewayRestartSnapshot>>(
+const inspectGatewayRestart = vi.fn(
   async (_opts?: unknown) => ({
     runtime: { status: "running", pid: 1234 },
     portUsage: { port: 19001, status: "busy", listeners: [], hints: [] },
@@ -35,12 +33,7 @@ const inspectGatewayRestart = vi.fn<(opts?: unknown) => Promise<GatewayRestartSn
     staleGatewayPids: [],
   }),
 );
-const serviceReadCommand = vi.fn<
-  (env?: NodeJS.ProcessEnv) => Promise<{
-    programArguments: string[];
-    environment?: Record<string, string>;
-  }>
->(async (_env?: NodeJS.ProcessEnv) => ({
+const serviceReadCommand = vi.fn(async (_env?: NodeJS.ProcessEnv) => ({
   programArguments: ["/bin/node", "cli", "gateway", "--port", "19001"],
   environment: {
     COREBLOW_STATE_DIR: "/tmp/coreblow-daemon",

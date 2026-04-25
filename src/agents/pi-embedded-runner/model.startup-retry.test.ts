@@ -1,21 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const discoverAuthStorageMock = vi.fn<(agentDir?: string) => { mocked: true }>(() => ({
+const discoverAuthStorageMock = vi.fn((..._args: any[]) => ({
   mocked: true,
 }));
-const discoverModelsMock = vi.fn<
-  (authStorage: unknown, agentDir: string) => { find: ReturnType<typeof vi.fn> }
->(() => ({ find: vi.fn(() => null) }));
+const discoverModelsMock = vi.fn((..._args: any[]) => ({ find: vi.fn((..._args: any[]) => null) }));
 
 let hookCacheCleared = false;
-const clearProviderRuntimeHookCacheMock = vi.fn<() => void>(() => {
+const clearProviderRuntimeHookCacheMock = vi.fn((..._args: any[]) => {
   hookCacheCleared = true;
 });
-const resolveProviderRuntimePluginMock = vi.fn<(params: unknown) => unknown>(() =>
+const resolveProviderRuntimePluginMock = vi.fn((..._args: any[]) =>
   hookCacheCleared ? { id: "openai", label: "OpenAI", auth: [] } : undefined,
 );
-const prepareProviderDynamicModelMock = vi.fn<(params: unknown) => Promise<void>>(async () => {});
-const runProviderDynamicModelMock = vi.fn<(params: unknown) => unknown>(() =>
+const prepareProviderDynamicModelMock = vi.fn(async (..._args: any[]) => {});
+const runProviderDynamicModelMock = vi.fn((..._args: any[]) =>
   hookCacheCleared
     ? {
         id: "gpt-5.4",

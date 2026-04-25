@@ -388,7 +388,7 @@ describe("compactEmbeddedPiSessionDirect hooks", () => {
   it("awaits post-compaction memory sync in await mode when postCompactionForce is true", async () => {
     const syncStarted = createDeferred<PostCompactionSyncParams>();
     const syncRelease = createDeferred<void>();
-    const sync = vi.fn<PostCompactionSync>(async (params) => {
+    const sync = vi.fn(async (params) => {
       syncStarted.resolve(params as PostCompactionSyncParams);
       await syncRelease.promise;
     });
@@ -430,7 +430,7 @@ describe("compactEmbeddedPiSessionDirect hooks", () => {
   });
 
   it("fires post-compaction memory sync without awaiting it in async mode", async () => {
-    const sync = vi.fn<PostCompactionSync>(async () => {});
+    const sync = vi.fn(async () => {});
     const managerRequested = createDeferred<void>();
     const managerGate = createDeferred<{ manager: { sync: PostCompactionSync } }>();
     const syncStarted = createDeferred<PostCompactionSyncParams>();

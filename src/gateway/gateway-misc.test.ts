@@ -265,7 +265,7 @@ describe("late-arriving invoke results", () => {
     ] as const;
 
     for (const params of cases) {
-      const respond = vi.fn<RespondFn>();
+      const respond = vi.fn();
       const context = {
         nodeRegistry: { handleInvokeResult: () => false },
         logGateway: { debug: vi.fn() },

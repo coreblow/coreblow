@@ -9,7 +9,7 @@ import { sanitizeBinaryOutput } from "./shell-utils.js";
 const isWin = process.platform === "win32";
 type GetShellPathFromLoginShell = typeof import("../infra/shell-env.js").getShellPathFromLoginShell;
 const shellEnvMocks = vi.hoisted(() => ({
-  getShellPathFromLoginShell: vi.fn<GetShellPathFromLoginShell>(() => "/custom/bin:/opt/bin"),
+  getShellPathFromLoginShell: vi.fn(() => "/custom/bin:/opt/bin"),
   resolveShellEnvFallbackTimeoutMs: vi.fn(() => 1234),
 }));
 

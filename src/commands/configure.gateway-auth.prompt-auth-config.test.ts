@@ -9,8 +9,8 @@ const mocks = vi.hoisted(() => ({
   promptDefaultModel: vi.fn(),
   promptCustomApiConfig: vi.fn(),
   resolvePluginProviders: vi.fn(() => []),
-  resolveProviderPluginChoice: vi.fn<() => unknown>(() => null),
-  resolvePreferredProviderForAuthChoice: vi.fn<() => Promise<string | undefined>>(
+  resolveProviderPluginChoice: vi.fn(() => null),
+  resolvePreferredProviderForAuthChoice: vi.fn(
     async () => undefined,
   ),
 }));

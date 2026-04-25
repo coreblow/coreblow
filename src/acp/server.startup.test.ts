@@ -17,7 +17,7 @@ const mockState = {
   gatewayAuth: [] as GatewayClientAuth[],
   agentSideConnectionCtor: vi.fn(),
   agentStart: vi.fn(),
-  resolveGatewayConnectionAuth: vi.fn<ResolveGatewayConnectionAuth>(async (_params) => ({
+  resolveGatewayConnectionAuth: vi.fn(async (_params) => ({
     token: undefined,
     password: undefined,
   })),

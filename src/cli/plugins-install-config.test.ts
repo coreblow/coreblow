@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CoreBlowConfig } from "../config/config.js";
 import type { ConfigFileSnapshot } from "../config/types.coreblow.js";
 
-const loadConfigMock = vi.fn<() => CoreBlowConfig>();
-const readConfigFileSnapshotMock = vi.fn<() => Promise<ConfigFileSnapshot>>();
+const loadConfigMock = vi.fn();
+const readConfigFileSnapshotMock = vi.fn();
 const cleanStaleMatrixPluginConfigMock = vi.fn();
 
 vi.mock("../config/config.js", () => ({

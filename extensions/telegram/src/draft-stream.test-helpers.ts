@@ -4,17 +4,17 @@ import { vi } from "vitest";
 type DraftPreviewMode = "message" | "draft";
 
 export type TestDraftStream = {
-  update: ReturnType<typeof vi.fn<(text: string) => void>>;
-  flush: ReturnType<typeof vi.fn<() => Promise<void>>>;
-  messageId: ReturnType<typeof vi.fn<() => number | undefined>>;
-  previewMode: ReturnType<typeof vi.fn<() => DraftPreviewMode>>;
-  previewRevision: ReturnType<typeof vi.fn<() => number>>;
-  lastDeliveredText: ReturnType<typeof vi.fn<() => string>>;
-  clear: ReturnType<typeof vi.fn<() => Promise<void>>>;
-  stop: ReturnType<typeof vi.fn<() => Promise<void>>>;
-  materialize: ReturnType<typeof vi.fn<() => Promise<number | undefined>>>;
-  forceNewMessage: ReturnType<typeof vi.fn<() => void>>;
-  sendMayHaveLanded: ReturnType<typeof vi.fn<() => boolean>>;
+  update: ReturnType<typeof vi.fn>;
+  flush: ReturnType<typeof vi.fn>;
+  messageId: ReturnType<typeof vi.fn>;
+  previewMode: ReturnType<typeof vi.fn>;
+  previewRevision: ReturnType<typeof vi.fn>;
+  lastDeliveredText: ReturnType<typeof vi.fn>;
+  clear: ReturnType<typeof vi.fn>;
+  stop: ReturnType<typeof vi.fn>;
+  materialize: ReturnType<typeof vi.fn>;
+  forceNewMessage: ReturnType<typeof vi.fn>;
+  sendMayHaveLanded: ReturnType<typeof vi.fn>;
   setMessageId: (value: number | undefined) => void;
 };
 

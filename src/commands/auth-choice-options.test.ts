@@ -11,10 +11,10 @@ import {
 import { formatStaticAuthChoiceChoicesForCli } from "./auth-choice-options.static.js";
 
 const resolveManifestProviderAuthChoices = vi.hoisted(() =>
-  vi.fn<() => ProviderAuthChoiceMetadata[]>(() => []),
+  vi.fn(() => []),
 );
 const resolveProviderWizardOptions = vi.hoisted(() =>
-  vi.fn<() => ProviderWizardOption[]>(() => []),
+  vi.fn(() => []),
 );
 vi.mock("../plugins/provider-auth-choices.js", () => ({
   resolveManifestProviderAuthChoices,

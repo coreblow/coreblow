@@ -9,7 +9,7 @@ import {
 } from "./provider-wizard.js";
 import type { ProviderPlugin } from "./types.js";
 
-const resolvePluginProviders = vi.hoisted(() => vi.fn<() => ProviderPlugin[]>(() => []));
+const resolvePluginProviders = vi.hoisted(() => vi.fn(() => []));
 vi.mock("./providers.runtime.js", () => ({
   resolvePluginProviders,
 }));

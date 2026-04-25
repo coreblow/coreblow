@@ -208,7 +208,7 @@ const hoisted = vi.hoisted(() => {
         waitResults: Map<string, boolean>;
       };
       testTailscaleWhois: { value: TailscaleWhoisIdentity | null };
-      getReplyFromConfig: ReturnType<typeof vi.fn<GetReplyFromConfigFn>>;
+      getReplyFromConfig: ReturnType<typeof vi.fn>;
       sendWhatsAppMock: ReturnType<typeof vi.fn>;
       testState: {
         agentConfig: Record<string, unknown> | undefined;
@@ -256,7 +256,7 @@ const hoisted = vi.hoisted(() => {
       waitResults: new Map<string, boolean>(),
     },
     testTailscaleWhois: { value: null as TailscaleWhoisIdentity | null },
-    getReplyFromConfig: vi.fn<GetReplyFromConfigFn>().mockResolvedValue(undefined),
+    getReplyFromConfig: vi.fn().mockResolvedValue(undefined),
     sendWhatsAppMock: vi.fn().mockResolvedValue({ messageId: "msg-1", toJid: "jid-1" }),
     testState: {
       agentConfig: undefined as Record<string, unknown> | undefined,

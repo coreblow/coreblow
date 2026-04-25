@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { probeMattermost } from "./probe.js";
 
-const mockFetch = vi.fn<typeof fetch>();
+const mockFetch = vi.fn();
 
 describe("probeMattermost", () => {
   beforeEach(() => {

@@ -17,7 +17,7 @@ type SessionsToolTestConfig = {
   };
 };
 
-const loadConfigMock = vi.fn<() => SessionsToolTestConfig>(() => ({
+const loadConfigMock = vi.fn(() => ({
   session: { scope: "per-sender", mainKey: "main" },
   tools: { agentToAgent: { enabled: false } },
 }));

@@ -3,10 +3,10 @@ import type { CoreBlowConfig } from "coreblow/plugin-sdk/config-runtime";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const completeWithPreparedSimpleCompletionModelMock =
-  vi.fn<typeof agentRuntimeModule.completeWithPreparedSimpleCompletionModel>();
+  vi.fn();
 const prepareSimpleCompletionModelForAgentMock =
-  vi.fn<typeof agentRuntimeModule.prepareSimpleCompletionModelForAgent>();
-const extractAssistantTextMock = vi.fn<typeof agentRuntimeModule.extractAssistantText>();
+  vi.fn();
+const extractAssistantTextMock = vi.fn();
 
 let generateThreadTitle: typeof import("./thread-title.js").generateThreadTitle;
 

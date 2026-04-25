@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { deleteWebhook, getWebhookInfo, sendChatAction, type ZaloFetch } from "./api.js";
 
 function createOkFetcher() {
-  return vi.fn<ZaloFetch>(async () => new Response(JSON.stringify({ ok: true, result: {} })));
+  return vi.fn(async (..._args: any[]) => new Response(JSON.stringify({ ok: true, result: {} })));
 }
 
 async function expectPostJsonRequest(run: (token: string, fetcher: ZaloFetch) => Promise<unknown>) {
@@ -26,7 +26,7 @@ describe("Zalo API request methods", () => {
   it("aborts sendChatAction when the typing timeout elapses", async () => {
     vi.useFakeTimers();
     try {
-      const fetcher = vi.fn<ZaloFetch>(
+      const fetcher = vi.fn(
         (_, init) =>
           new Promise<Response>((_, reject) => {
             init?.signal?.addEventListener("abort", () => reject(new Error("aborted")), {

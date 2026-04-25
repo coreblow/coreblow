@@ -3,7 +3,7 @@ import type { Model } from "@mariozechner/pi-ai";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const hoisted = vi.hoisted(() => {
-  const streamAnthropicMock = vi.fn<(model: unknown, context: unknown, options: unknown) => symbol>(
+  const streamAnthropicMock = vi.fn(
     () => Symbol("anthropic-vertex-stream"),
   );
   const anthropicVertexCtorMock = vi.fn();

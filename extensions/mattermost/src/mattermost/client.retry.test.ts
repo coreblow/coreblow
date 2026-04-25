@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { createMattermostClient, createMattermostDirectChannelWithRetry } from "./client.js";
 
 describe("createMattermostDirectChannelWithRetry", () => {
-  const mockFetch = vi.fn<typeof fetch>();
+  const mockFetch = vi.fn();
 
   beforeEach(() => {
     vi.resetAllMocks();

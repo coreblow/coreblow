@@ -14,11 +14,11 @@ type ResolveCatalogHookProviderPluginIds =
 type ResolveOwningPluginIdsForProvider =
   typeof import("./providers.js").resolveOwningPluginIdsForProvider;
 
-const resolvePluginProvidersMock = vi.fn<ResolvePluginProviders>((_) => [] as ProviderPlugin[]);
-const resolveCatalogHookProviderPluginIdsMock = vi.fn<ResolveCatalogHookProviderPluginIds>(
+const resolvePluginProvidersMock = vi.fn((_) => [] as ProviderPlugin[]);
+const resolveCatalogHookProviderPluginIdsMock = vi.fn(
   (_) => [] as string[],
 );
-const resolveOwningPluginIdsForProviderMock = vi.fn<ResolveOwningPluginIdsForProvider>(
+const resolveOwningPluginIdsForProviderMock = vi.fn(
   (_) => undefined as string[] | undefined,
 );
 

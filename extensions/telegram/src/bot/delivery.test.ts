@@ -7,7 +7,7 @@ const { loadWebMedia } = vi.hoisted(() => ({
 }));
 const triggerInternalHook = vi.hoisted(() => vi.fn(async () => {}));
 const messageHookRunner = vi.hoisted(() => ({
-  hasHooks: vi.fn<(name: string) => boolean>(() => false),
+  hasHooks: vi.fn(() => false),
   runMessageSending: vi.fn(),
   runMessageSent: vi.fn(),
 }));

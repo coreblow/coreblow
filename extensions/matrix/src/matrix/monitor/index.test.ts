@@ -9,22 +9,20 @@ const hoisted = vi.hoisted(() => {
     startClientError: null as Error | null,
   };
   const inboundDeduper = {
-    claimEvent: vi.fn(() => true),
-    commitEvent: vi.fn(async () => undefined),
+    claimEvent: vi.fn((..._args: any[]) => true),
+    commitEvent: vi.fn(async (..._args: any[]) => undefined),
     releaseEvent: vi.fn(),
-    flush: vi.fn(async () => undefined),
-    stop: vi.fn(async () => undefined),
+    flush: vi.fn(async (..._args: any[]) => undefined),
+    stop: vi.fn(async (..._args: any[]) => undefined),
   };
   const client = {
     id: "matrix-client",
-    hasPersistedSyncState: vi.fn(() => false),
+    hasPersistedSyncState: vi.fn((..._args: any[]) => false),
     stopSyncWithoutPersist: vi.fn(),
-    drainPendingDecryptions: vi.fn(async () => undefined),
+    drainPendingDecryptions: vi.fn(async (..._args: any[]) => undefined),
   };
-  const createMatrixRoomMessageHandler = vi.fn(() => vi.fn());
-  const resolveTextChunkLimit = vi.fn<
-    (cfg: unknown, channel: unknown, accountId?: unknown) => number
-  >(() => 4000);
+  const createMatrixRoomMessageHandler = vi.fn((..._args: any[]) => vi.fn());
+  const resolveTextChunkLimit = vi.fn((..._args: any[]) => 4000);
   const logger = {
     info: vi.fn(),
     warn: vi.fn(),
@@ -32,7 +30,7 @@ const hoisted = vi.hoisted(() => {
     debug: vi.fn(),
   };
   const stopThreadBindingManager = vi.fn();
-  const releaseSharedClientInstance = vi.fn(async () => true);
+  const releaseSharedClientInstance = vi.fn(async (..._args: any[]) => true);
   const setActiveMatrixClient = vi.fn();
   const setMatrixRuntime = vi.fn();
   return {
@@ -109,7 +107,7 @@ vi.mock("../../runtime-api.js", () => {
 });
 
 vi.mock("../../resolve-targets.js", () => ({
-  resolveMatrixTargets: vi.fn(async () => []),
+  resolveMatrixTargets: vi.fn(async (..._args: any[]) => []),
 }));
 
 vi.mock("../../../../../src/generated/bundled-channel-entries.generated.ts", () => ({
@@ -153,7 +151,7 @@ vi.mock("../accounts.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../accounts.js")>();
   return {
     ...actual,
-    resolveConfiguredMatrixBotUserIds: vi.fn(() => new Set<string>()),
+    resolveConfiguredMatrixBotUserIds: vi.fn((..._args: any[]) => new Set<string>()),
     resolveMatrixAccount: () => ({
       accountId: "default",
       config: {
@@ -169,7 +167,7 @@ vi.mock("../active-client.js", () => ({
 
 vi.mock("../client.js", () => ({
   isBunRuntime: () => false,
-  resolveMatrixAuth: vi.fn(async () => ({
+  resolveMatrixAuth: vi.fn(async (..._args: any[]) => ({
     accountId: "default",
     homeserver: "https://matrix.example.org",
     userId: "@bot:example.org",
@@ -177,7 +175,7 @@ vi.mock("../client.js", () => ({
     initialSyncLimit: 20,
     encryption: false,
   })),
-  resolveMatrixAuthContext: vi.fn(() => ({
+  resolveMatrixAuthContext: vi.fn((..._args: any[]) => ({
     accountId: "default",
   })),
   resolveSharedMatrixClient: vi.fn(async (params: { startClient?: boolean }) => {
@@ -205,13 +203,13 @@ vi.mock("../config-update.js", () => ({
 }));
 
 vi.mock("../device-health.js", () => ({
-  summarizeMatrixDeviceHealth: vi.fn(() => ({
+  summarizeMatrixDeviceHealth: vi.fn((..._args: any[]) => ({
     staleCoreBlowDevices: [],
   })),
 }));
 
 vi.mock("../profile.js", () => ({
-  syncMatrixOwnProfile: vi.fn(async () => ({
+  syncMatrixOwnProfile: vi.fn(async (..._args: any[]) => ({
     displayNameUpdated: false,
     avatarUpdated: false,
     convertedAvatarFromHttp: false,
@@ -220,7 +218,7 @@ vi.mock("../profile.js", () => ({
 }));
 
 vi.mock("../thread-bindings.js", () => ({
-  createMatrixThreadBindingManager: vi.fn(async () => {
+  createMatrixThreadBindingManager: vi.fn(async (..._args: any[]) => {
     hoisted.callOrder.push("create-manager");
     return {
       accountId: "default",
@@ -238,8 +236,8 @@ vi.mock("./auto-join.js", () => ({
 }));
 
 vi.mock("./direct.js", () => ({
-  createDirectRoomTracker: vi.fn(() => ({
-    isDirectMessage: vi.fn(async () => false),
+  createDirectRoomTracker: vi.fn((..._args: any[]) => ({
+    isDirectMessage: vi.fn(async (..._args: any[]) => false),
   })),
 }));
 
@@ -257,7 +255,7 @@ vi.mock("./handler.js", () => ({
 }));
 
 vi.mock("./inbound-dedupe.js", () => ({
-  createMatrixInboundEventDeduper: vi.fn(async () => hoisted.inboundDeduper),
+  createMatrixInboundEventDeduper: vi.fn(async (..._args: any[]) => hoisted.inboundDeduper),
 }));
 
 vi.mock("./legacy-crypto-restore.js", () => ({
@@ -265,11 +263,11 @@ vi.mock("./legacy-crypto-restore.js", () => ({
 }));
 
 vi.mock("./room-info.js", () => ({
-  createMatrixRoomInfoResolver: vi.fn(() => ({
-    getRoomInfo: vi.fn(async () => ({
+  createMatrixRoomInfoResolver: vi.fn((..._args: any[]) => ({
+    getRoomInfo: vi.fn(async (..._args: any[]) => ({
       altAliases: [],
     })),
-    getMemberDisplayName: vi.fn(async () => "Bot"),
+    getMemberDisplayName: vi.fn(async (..._args: any[]) => "Bot"),
   })),
 }));
 
@@ -363,7 +361,7 @@ describe("monitorMatrixProvider", () => {
     let resolveHandler: (() => void) | null = null;
 
     hoisted.createMatrixRoomMessageHandler.mockReturnValue(
-      vi.fn(() => {
+      vi.fn((..._args: any[]) => {
         hoisted.callOrder.push("handler-start");
         return new Promise<void>((resolve) => {
           resolveHandler = () => {

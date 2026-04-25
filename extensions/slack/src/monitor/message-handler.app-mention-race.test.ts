@@ -1,12 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const prepareSlackMessageMock =
-  vi.fn<
-    (params: {
-      opts: { source: "message" | "app_mention"; wasMentioned?: boolean };
-    }) => Promise<unknown>
-  >();
-const dispatchPreparedSlackMessageMock = vi.fn<(prepared: unknown) => Promise<void>>();
+  vi.fn();
+const dispatchPreparedSlackMessageMock = vi.fn();
 
 vi.mock("../../../../src/channels/inbound-debounce-policy.js", () => ({
   shouldDebounceTextInbound: () => false,

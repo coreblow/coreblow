@@ -35,9 +35,9 @@ type NativeCommandHarness = {
 };
 
 const pluginCommandMocks = vi.hoisted(() => ({
-  getPluginCommandSpecs: vi.fn<GetPluginCommandSpecsFn>(() => []),
-  matchPluginCommand: vi.fn<MatchPluginCommandFn>(() => null),
-  executePluginCommand: vi.fn<ExecutePluginCommandFn>(async () => ({ text: "ok" })),
+  getPluginCommandSpecs: vi.fn(() => []),
+  matchPluginCommand: vi.fn(() => null),
+  executePluginCommand: vi.fn(async () => ({ text: "ok" })),
 }));
 export const getPluginCommandSpecs = pluginCommandMocks.getPluginCommandSpecs;
 export const matchPluginCommand = pluginCommandMocks.matchPluginCommand;
@@ -56,11 +56,11 @@ const replyPipelineMocks = vi.hoisted(() => {
   };
   return {
     finalizeInboundContext: vi.fn((ctx: unknown) => ctx),
-    dispatchReplyWithBufferedBlockDispatcher: vi.fn<DispatchReplyWithBufferedBlockDispatcherFn>(
+    dispatchReplyWithBufferedBlockDispatcher: vi.fn(
       async () => dispatchReplyResult,
     ),
     createChannelReplyPipeline: vi.fn(() => ({ onModelSelected: () => {} })),
-    recordInboundSessionMetaSafe: vi.fn<RecordInboundSessionMetaSafeFn>(async () => undefined),
+    recordInboundSessionMetaSafe: vi.fn(async () => undefined),
   };
 });
 export const dispatchReplyWithBufferedBlockDispatcher =

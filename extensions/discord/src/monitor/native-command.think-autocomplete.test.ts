@@ -13,27 +13,10 @@ import { createConfiguredBindingConversationRuntimeModuleMock } from "../../../.
 import { createNoopThreadBindingManager } from "./thread-bindings.js";
 
 const ensureConfiguredBindingRouteReadyMock = vi.hoisted(() =>
-  vi.fn<() => Promise<{ ok: boolean; error?: string }>>(async () => ({ ok: true })),
+  vi.fn(async () => ({ ok: true })),
 );
 const resolveConfiguredBindingRouteMock = vi.hoisted(() =>
-  vi.fn<
-    () => {
-      bindingResolution: {
-        record: {
-          conversation: {
-            channel: string;
-            accountId: string;
-            conversationId: string;
-          };
-        };
-      };
-      boundSessionKey: string;
-      route: {
-        agentId: string;
-        sessionKey: string;
-      };
-    } | null
-  >(() => null),
+  vi.fn(() => null),
 );
 
 vi.mock("coreblow/plugin-sdk/conversation-runtime", async (importOriginal) => {

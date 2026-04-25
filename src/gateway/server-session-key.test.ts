@@ -4,7 +4,7 @@ import type { CoreBlowConfig } from "../config/config.js";
 import { resetAgentRunContextForTest } from "../infra/agent-events.js";
 
 const hoisted = vi.hoisted(() => ({
-  loadConfigMock: vi.fn<() => CoreBlowConfig>(),
+  loadConfigMock: vi.fn(),
   loadCombinedSessionStoreForGatewayMock: vi.fn(),
 }));
 

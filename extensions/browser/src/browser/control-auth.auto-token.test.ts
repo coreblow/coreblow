@@ -3,7 +3,7 @@ import { expectGeneratedTokenPersistedToGatewayAuth } from "../../test-support.j
 import type { CoreBlowConfig } from "../config/config.js";
 
 const mocks = vi.hoisted(() => ({
-  loadConfig: vi.fn<() => CoreBlowConfig>(),
+  loadConfig: vi.fn(),
   resolveGatewayAuth: vi.fn(
     ({
       authConfig,

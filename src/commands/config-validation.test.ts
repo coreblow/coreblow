@@ -4,7 +4,7 @@ import type { PluginCompatibilityNotice } from "../plugins/status.js";
 import { createCompatibilityNotice } from "../plugins/status.test-helpers.js";
 
 const readConfigFileSnapshot = vi.fn();
-const buildPluginCompatibilityNotices = vi.fn<(_params?: unknown) => PluginCompatibilityNotice[]>(
+const buildPluginCompatibilityNotices = vi.fn(
   () => [],
 );
 
