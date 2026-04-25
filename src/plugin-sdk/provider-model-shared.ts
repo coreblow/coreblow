@@ -14,7 +14,7 @@ export type {
 export type { ProviderPlugin } from "../plugins/types.js";
 export type { KilocodeModelCatalogEntry } from "../plugins/provider-model-kilocode.js";
 
-export { DEFAULT_CONTEXT_TOKENS } from "../agents/defaults.js";
+export { DEFAULT_CONTEXT_TOKENS } from "../types/agent-defaults.js";
 export {
   applyModelCompatPatch,
   hasToolSchemaProfile,

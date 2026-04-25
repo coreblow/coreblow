@@ -4,7 +4,7 @@ import {
   resolveSessionAgentId,
 } from "../../agents/agent-scope.js";
 import { lookupCachedContextTokens } from "../../agents/context-cache.js";
-import { DEFAULT_CONTEXT_TOKENS } from "../../agents/defaults.js";
+import { DEFAULT_CONTEXT_TOKENS } from "../../types/agent-defaults.js";
 import type { ModelAliasIndex } from "../../agents/model-selection.js";
 import type { CoreBlowConfig } from "../../config/config.js";
 import { updateSessionStore } from "../../config/sessions/store.js";

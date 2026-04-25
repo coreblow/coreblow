@@ -1,4 +1,4 @@
-import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../../agents/defaults.js";
+import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../../types/agent-defaults.js";
 import { loadModelCatalog } from "../../agents/model-catalog.js";
 import {
   getModelRefStatus,

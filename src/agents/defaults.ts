@@ -1,6 +1,6 @@
 // Defaults for agent metadata when upstream does not supply them.
 // Model id uses pi-ai's built-in Anthropic catalog.
-export const DEFAULT_PROVIDER = "anthropic";
-export const DEFAULT_MODEL = "claude-opus-4-6";
-// Conservative fallback used when model metadata is unavailable.
-export const DEFAULT_CONTEXT_TOKENS = 200_000;
+//
+// Canonical source: src/types/agent-defaults.ts
+// This file re-exports for backward compatibility.
+export { DEFAULT_PROVIDER, DEFAULT_MODEL, DEFAULT_CONTEXT_TOKENS } from "../types/agent-defaults.js";

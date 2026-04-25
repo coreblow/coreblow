@@ -1,4 +1,4 @@
-import { DEFAULT_PROVIDER } from "../../agents/defaults.js";
+import { DEFAULT_PROVIDER } from "../../types/agent-defaults.js";
 import { buildAllowedModelSet } from "../../agents/model-selection.js";
 import { loadConfig } from "../../config/config.js";
 import {

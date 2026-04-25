@@ -11,7 +11,7 @@ import {
   resolveAgentDir,
   resolveAgentEffectiveModelPrimary,
 } from "../agents/agent-scope.js";
-import { DEFAULT_PROVIDER, DEFAULT_MODEL } from "../agents/defaults.js";
+import { DEFAULT_PROVIDER, DEFAULT_MODEL } from "../types/agent-defaults.js";
 import { parseModelRef } from "../agents/model-selection.js";
 import { runEmbeddedPiAgent } from "../agents/pi-embedded.js";
 import type { CoreBlowConfig } from "../config/config.js";

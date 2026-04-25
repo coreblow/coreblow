@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { CONTEXT_WINDOW_HARD_MIN_TOKENS } from "../agents/context-window-guard.js";
-import { DEFAULT_PROVIDER } from "../agents/defaults.js";
+import { DEFAULT_PROVIDER } from "../types/agent-defaults.js";
 import { buildModelAliasIndex, modelKey } from "../agents/model-selection.js";
 import type { CoreBlowConfig } from "../config/config.js";
 import type { ModelProviderConfig } from "../config/types.models.js";
