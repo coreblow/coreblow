@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import {
   hasHeartbeatWakeHandler,
   hasPendingHeartbeatWake,
@@ -18,7 +18,7 @@ describe("heartbeat-wake", () => {
   }
 
   async function expectRetryAfterDefaultDelay(params: {
-    handler: ReturnType<typeof vi.fn>;
+    handler: Mock;
     initialReason: string;
     expectedRetryReason: string;
   }) {

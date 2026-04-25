@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import {
   buildCappedTelegramMenuCommands,
   buildPluginTelegramMenuCommands,
@@ -7,13 +7,13 @@ import {
 } from "./bot-native-command-menu.js";
 
 type SyncMenuOptions = {
-  deleteMyCommands: ReturnType<typeof vi.fn>;
-  setMyCommands: ReturnType<typeof vi.fn>;
+  deleteMyCommands: Mock;
+  setMyCommands: Mock;
   commandsToRegister: Parameters<typeof syncTelegramMenuCommands>[0]["commandsToRegister"];
   accountId: string;
   botIdentity: string;
-  runtimeLog?: ReturnType<typeof vi.fn>;
-  runtimeError?: ReturnType<typeof vi.fn>;
+  runtimeLog?: Mock;
+  runtimeError?: Mock;
 };
 
 function syncMenuCommandsWithMocks(options: SyncMenuOptions): void {

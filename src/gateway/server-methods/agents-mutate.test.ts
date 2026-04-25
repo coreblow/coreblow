@@ -1,5 +1,5 @@
 import path from "node:path";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach , Mock } from "vitest";
 import { SafeOpenError } from "../../infra/fs-safe.js";
 
 /* ------------------------------------------------------------------ */
@@ -209,7 +209,7 @@ async function listAgentFileNames(agentId = "main") {
   return files.map((file) => file.name);
 }
 
-function expectNotFoundResponseAndNoWrite(respond: ReturnType<typeof vi.fn>) {
+function expectNotFoundResponseAndNoWrite(respond: Mock) {
   expect(respond).toHaveBeenCalledWith(
     false,
     undefined,

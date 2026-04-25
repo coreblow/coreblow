@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import { createMockIncomingRequest } from "../../../test/helpers/mock-incoming-request.js";
 import { createLineNodeWebhookHandler } from "./webhook-node.js";
 import { readLineWebhookRequestBody } from "./webhook-node.js";
@@ -71,7 +71,7 @@ const runSignedPost = async (params: {
 async function invokeWebhook(params: {
   body: unknown;
   headers?: Record<string, string>;
-  onEvents?: ReturnType<typeof vi.fn>;
+  onEvents?: Mock;
   autoSign?: boolean;
 }) {
   const onEventsMock = params.onEvents ?? vi.fn(async () => {});

@@ -1,7 +1,7 @@
 // @ts-nocheck
-import { vi } from "vitest";
+import { vi , Mock } from "vitest";
 
-type TestMock = ReturnType<typeof vi.fn>;
+type TestMock = Mock;
 
 export const loadConfigMock: TestMock = vi.fn();
 export const resolveGatewayPortMock: TestMock = vi.fn();

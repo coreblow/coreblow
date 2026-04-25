@@ -1,5 +1,5 @@
 import type { Page } from "playwright-core";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import {
   ensurePageState,
   refLocator,
@@ -11,10 +11,10 @@ function fakePage(): {
   page: Page;
   handlers: Map<string, Array<(...args: unknown[]) => void>>;
   mocks: {
-    on: ReturnType<typeof vi.fn>;
-    getByRole: ReturnType<typeof vi.fn>;
-    frameLocator: ReturnType<typeof vi.fn>;
-    locator: ReturnType<typeof vi.fn>;
+    on: Mock;
+    getByRole: Mock;
+    frameLocator: Mock;
+    locator: Mock;
   };
 } {
   const handlers = new Map<string, Array<(...args: unknown[]) => void>>();

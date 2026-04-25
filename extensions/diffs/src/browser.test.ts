@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import type { IncomingMessage } from "node:http";
 import path from "node:path";
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { createMockServerResponse } from "../../../test/helpers/extensions/mock-http-response.js";
 import { createTestPluginApi } from "../../../test/helpers/extensions/plugin-api.js";
 import type { CoreBlowConfig } from "../api.js";
@@ -135,9 +135,9 @@ describe("PlaywrightDiffScreenshotter", () => {
 
   it("fails fast when PDF render exceeds size limits", async () => {
     const pages: Array<{
-      close: ReturnType<typeof vi.fn>;
-      screenshot: ReturnType<typeof vi.fn>;
-      pdf: ReturnType<typeof vi.fn>;
+      close: Mock;
+      screenshot: Mock;
+      pdf: Mock;
     }> = [];
     const browser = createMockBrowser(pages, {
       boundingBox: { x: 40, y: 40, width: 960, height: 60_000 },
@@ -338,9 +338,9 @@ async function createScreenshotterHarness(options?: {
   boundingBox?: { x: number; y: number; width: number; height: number };
 }) {
   const pages: Array<{
-    close: ReturnType<typeof vi.fn>;
-    screenshot: ReturnType<typeof vi.fn>;
-    pdf: ReturnType<typeof vi.fn>;
+    close: Mock;
+    screenshot: Mock;
+    pdf: Mock;
   }> = [];
   const browser = createMockBrowser(pages, options);
   launchMock.mockResolvedValue(browser);
@@ -353,9 +353,9 @@ async function createScreenshotterHarness(options?: {
 
 function createMockBrowser(
   pages: Array<{
-    close: ReturnType<typeof vi.fn>;
-    screenshot: ReturnType<typeof vi.fn>;
-    pdf: ReturnType<typeof vi.fn>;
+    close: Mock;
+    screenshot: Mock;
+    pdf: Mock;
   }>,
   options?: { boundingBox?: { x: number; y: number; width: number; height: number } },
 ) {

@@ -1,10 +1,10 @@
 // @ts-nocheck
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import { waitForCompactionRetryWithAggregateTimeout } from "./compaction-retry-aggregate-timeout.js";
 
 type AggregateTimeoutParams = Parameters<typeof waitForCompactionRetryWithAggregateTimeout>[0];
 type TimeoutCallback = NonNullable<AggregateTimeoutParams["onTimeout"]>;
-type TimeoutCallbackMock = ReturnType<typeof vi.fn>;
+type TimeoutCallbackMock = Mock;
 
 async function withFakeTimers(run: () => Promise<void>) {
   vi.useFakeTimers();

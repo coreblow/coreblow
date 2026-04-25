@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 
 const resolveRuntimePluginRegistryMock = vi.fn();
 const applyPluginAutoEnableMock = vi.fn();
@@ -86,7 +86,7 @@ async function expectAutoEnabledMemoryRuntimeCase(params: {
 
 async function expectCloseMemoryRuntimeCase(params: {
   config: unknown;
-  setup: () => { closeAllMemorySearchManagers: ReturnType<typeof vi.fn> } | undefined;
+  setup: () => { closeAllMemorySearchManagers: Mock } | undefined;
 }) {
   const runtime = params.setup();
   await closeActiveMemorySearchManagers(params.config as never);

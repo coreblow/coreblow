@@ -1,10 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 
 type ReadlineMock = {
   default: {
     createInterface: () => {
-      question: ReturnType<typeof vi.fn>;
-      close: ReturnType<typeof vi.fn>;
+      question: Mock;
+      close: Mock;
     };
   };
 };

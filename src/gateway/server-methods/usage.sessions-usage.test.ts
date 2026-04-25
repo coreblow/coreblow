@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { withEnvAsync } from "../../test-utils/env.js";
 
 vi.mock("../../config/config.js", () => {
@@ -116,7 +116,7 @@ const BASE_USAGE_RANGE = {
 } as const;
 
 function expectSuccessfulSessionsUsage(
-  respond: ReturnType<typeof vi.fn>,
+  respond: Mock,
 ): Array<{ key: string; agentId: string }> {
   expect(respond).toHaveBeenCalledTimes(1);
   expect(respond.mock.calls[0]?.[0]).toBe(true);

@@ -1,6 +1,6 @@
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 
 type FakeFsEntry = { kind: "file"; content: string } | { kind: "dir" };
 
@@ -138,7 +138,7 @@ describe("control UI assets helpers (fs-mocked)", () => {
   it("uses resolveCoreBlowPackageRoot when available", async () => {
     const pkgRoot = abs("fixtures/coreblow");
     (
-      coreblowRoot.resolveCoreBlowPackageRoot as unknown as ReturnType<typeof vi.fn>
+      coreblowRoot.resolveCoreBlowPackageRoot as unknown as Mock
     ).mockResolvedValueOnce(pkgRoot);
 
     await expect(resolveControlUiDistIndexPath(abs("fixtures/bin/coreblow"))).resolves.toBe(
@@ -196,7 +196,7 @@ describe("control UI assets helpers (fs-mocked)", () => {
   it("resolves control-ui root for dist bundle argv1 and moduleUrl candidates", async () => {
     const pkgRoot = abs("fixtures/coreblow-bundle");
     (
-      coreblowRoot.resolveCoreBlowPackageRootSync as unknown as ReturnType<typeof vi.fn>
+      coreblowRoot.resolveCoreBlowPackageRootSync as unknown as Mock
     ).mockReturnValueOnce(pkgRoot);
 
     const uiDir = path.join(pkgRoot, "dist", "control-ui");
@@ -240,7 +240,7 @@ describe("control UI assets helpers (fs-mocked)", () => {
     setDir(uiDir);
     setFile(path.join(uiDir, "index.html"), "<html></html>\n");
     (
-      coreblowRoot.resolveCoreBlowPackageRootSync as unknown as ReturnType<typeof vi.fn>
+      coreblowRoot.resolveCoreBlowPackageRootSync as unknown as Mock
     ).mockReturnValueOnce(pkgRoot);
 
     expect(
@@ -256,7 +256,7 @@ describe("control UI assets helpers (fs-mocked)", () => {
     setDir(fallbackRoot);
     setFile(path.join(fallbackRoot, "index.html"), "<html></html>\n");
     (
-      coreblowRoot.resolveCoreBlowPackageRootSync as unknown as ReturnType<typeof vi.fn>
+      coreblowRoot.resolveCoreBlowPackageRootSync as unknown as Mock
     ).mockReturnValueOnce(pkgRoot);
 
     expect(

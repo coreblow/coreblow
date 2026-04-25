@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 
 let currentPage: Record<string, unknown> | null = null;
 let currentRefLocator: Record<string, unknown> | null = null;
@@ -154,7 +154,7 @@ describe("pw-tools-core", () => {
   }
 
   async function expectAtomicDownloadSave(params: {
-    saveAs: ReturnType<typeof vi.fn>;
+    saveAs: Mock;
     targetPath: string;
     tempDir: string;
     content: string;

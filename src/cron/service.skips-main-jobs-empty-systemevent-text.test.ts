@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { CronService } from "./service.js";
 import {
   createCronStoreHarness,
@@ -30,8 +30,8 @@ async function withCronService(
   cronEnabled: boolean,
   run: (params: {
     cron: CronService;
-    enqueueSystemEvent: ReturnType<typeof vi.fn>;
-    requestHeartbeatNow: ReturnType<typeof vi.fn>;
+    enqueueSystemEvent: Mock;
+    requestHeartbeatNow: Mock;
   }) => Promise<void>,
 ) {
   await withCronServiceForTest(

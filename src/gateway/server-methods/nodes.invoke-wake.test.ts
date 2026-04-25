@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { ErrorCodes } from "../protocol/index.js";
 import { maybeWakeNodeWithApns, nodeHandlers } from "./nodes.js";
 
@@ -58,7 +58,7 @@ type RespondCall = [
   }?,
 ];
 
-function expectNodeNotConnected(respond: ReturnType<typeof vi.fn>) {
+function expectNodeNotConnected(respond: Mock) {
   const call = respond.mock.calls[0] as RespondCall | undefined;
   expect(call?.[0]).toBe(false);
   expect(call?.[2]?.message).toBe("node not connected");

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import type { AuthRateLimiter } from "../../auth-rate-limit.js";
 import { resolveConnectAuthDecision, type ConnectAuthState } from "./auth-context.js";
 
@@ -10,7 +10,7 @@ type VerifyBootstrapTokenFn = Parameters<
 
 function createRateLimiter(params?: { allowed?: boolean; retryAfterMs?: number }): {
   limiter: AuthRateLimiter;
-  reset: ReturnType<typeof vi.fn>;
+  reset: Mock;
 } {
   const allowed = params?.allowed ?? true;
   const retryAfterMs = params?.retryAfterMs ?? 5_000;

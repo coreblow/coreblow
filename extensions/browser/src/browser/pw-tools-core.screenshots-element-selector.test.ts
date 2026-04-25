@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { DEFAULT_UPLOAD_DIR } from "./paths.js";
 import {
   getPwToolsCoreSessionMocks,
@@ -54,7 +54,7 @@ describe("pw-tools-core", () => {
 
     expect(res.buffer.toString()).toBe("E");
     expect(sessionMocks.getPageForTargetId).toHaveBeenCalled();
-    expect(page.locator as ReturnType<typeof vi.fn>).toHaveBeenCalledWith("#main");
+    expect(page.locator as Mock).toHaveBeenCalledWith("#main");
     expect(elementScreenshot).toHaveBeenCalledWith({ type: "png" });
   });
   it("screenshots a ref locator", async () => {

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach , Mock } from "vitest";
 import {
   buildChutesModelDefinition,
   CHUTES_MODEL_CATALOG,
@@ -7,7 +7,7 @@ import {
 } from "./chutes-models.js";
 
 async function withLiveChutesDiscovery<T>(
-  fetchMock: ReturnType<typeof vi.fn>,
+  fetchMock: Mock,
   run: () => Promise<T>,
   options?: { now?: string },
 ): Promise<T> {

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { expectPairingReplyText } from "../../../test/helpers/pairing-reply.js";
 import {
   defaultSlackTestConfig,
@@ -264,7 +264,7 @@ describe("monitorSlackProvider tool results", () => {
     if (!client) {
       throw new Error("Slack client not registered");
     }
-    (client.auth as { test: ReturnType<typeof vi.fn> }).test.mockResolvedValue({
+    (client.auth as { test: Mock }).test.mockResolvedValue({
       user_id: "bot-user",
       team_id: "T1",
       api_app_id: "A1",
@@ -383,7 +383,7 @@ describe("monitorSlackProvider tool results", () => {
     });
 
     const client = getSlackClient() as {
-      assistant?: { threads?: { setStatus?: ReturnType<typeof vi.fn> } };
+      assistant?: { threads?: { setStatus?: Mock } };
     };
     const setStatus = client.assistant?.threads?.setStatus;
     expect(setStatus).toHaveBeenCalledTimes(2);
@@ -532,7 +532,7 @@ describe("monitorSlackProvider tool results", () => {
       throw new Error("Slack client not registered");
     }
     const conversations = client.conversations as {
-      info: ReturnType<typeof vi.fn>;
+      info: Mock;
     };
     conversations.info.mockResolvedValueOnce({
       channel: { name: "general", is_channel: true },

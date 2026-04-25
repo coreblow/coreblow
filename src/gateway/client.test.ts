@@ -1,5 +1,5 @@
 import { Buffer } from "node:buffer";
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import type { DeviceIdentity } from "../infra/device-identity.js";
 import { captureEnv } from "../test-utils/env.js";
 
@@ -145,7 +145,7 @@ function createClientWithIdentity(
 }
 
 function expectSecurityConnectError(
-  onConnectError: ReturnType<typeof vi.fn>,
+  onConnectError: Mock,
   params?: { expectTailscaleHint?: boolean },
 ) {
   expect(onConnectError).toHaveBeenCalledWith(

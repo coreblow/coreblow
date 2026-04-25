@@ -2,7 +2,7 @@ import { EventEmitter } from "node:events";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 
 class FakeMatrixEvent extends EventEmitter {
   private readonly roomId: string;
@@ -82,33 +82,33 @@ class FakeMatrixEvent extends EventEmitter {
 }
 
 type MatrixJsClientStub = EventEmitter & {
-  startClient: ReturnType<typeof vi.fn>;
-  stopClient: ReturnType<typeof vi.fn>;
-  initRustCrypto: ReturnType<typeof vi.fn>;
-  getUserId: ReturnType<typeof vi.fn>;
-  getDeviceId: ReturnType<typeof vi.fn>;
-  getJoinedRooms: ReturnType<typeof vi.fn>;
-  getJoinedRoomMembers: ReturnType<typeof vi.fn>;
-  getStateEvent: ReturnType<typeof vi.fn>;
-  getAccountData: ReturnType<typeof vi.fn>;
-  setAccountData: ReturnType<typeof vi.fn>;
-  getRoomIdForAlias: ReturnType<typeof vi.fn>;
-  sendMessage: ReturnType<typeof vi.fn>;
-  sendEvent: ReturnType<typeof vi.fn>;
-  sendStateEvent: ReturnType<typeof vi.fn>;
-  redactEvent: ReturnType<typeof vi.fn>;
-  getProfileInfo: ReturnType<typeof vi.fn>;
-  joinRoom: ReturnType<typeof vi.fn>;
-  mxcUrlToHttp: ReturnType<typeof vi.fn>;
-  uploadContent: ReturnType<typeof vi.fn>;
-  fetchRoomEvent: ReturnType<typeof vi.fn>;
-  getEventMapper: ReturnType<typeof vi.fn>;
-  sendTyping: ReturnType<typeof vi.fn>;
-  getRoom: ReturnType<typeof vi.fn>;
-  getRooms: ReturnType<typeof vi.fn>;
-  getCrypto: ReturnType<typeof vi.fn>;
-  decryptEventIfNeeded: ReturnType<typeof vi.fn>;
-  relations: ReturnType<typeof vi.fn>;
+  startClient: Mock;
+  stopClient: Mock;
+  initRustCrypto: Mock;
+  getUserId: Mock;
+  getDeviceId: Mock;
+  getJoinedRooms: Mock;
+  getJoinedRoomMembers: Mock;
+  getStateEvent: Mock;
+  getAccountData: Mock;
+  setAccountData: Mock;
+  getRoomIdForAlias: Mock;
+  sendMessage: Mock;
+  sendEvent: Mock;
+  sendStateEvent: Mock;
+  redactEvent: Mock;
+  getProfileInfo: Mock;
+  joinRoom: Mock;
+  mxcUrlToHttp: Mock;
+  uploadContent: Mock;
+  fetchRoomEvent: Mock;
+  getEventMapper: Mock;
+  sendTyping: Mock;
+  getRoom: Mock;
+  getRooms: Mock;
+  getCrypto: Mock;
+  decryptEventIfNeeded: Mock;
+  relations: Mock;
 };
 
 function createMatrixJsClientStub(): MatrixJsClientStub {

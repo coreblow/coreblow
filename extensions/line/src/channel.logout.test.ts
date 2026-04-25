@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { createRuntimeEnv } from "../../../test/helpers/extensions/runtime-env.js";
 import type { CoreBlowConfig, PluginRuntime, ResolvedLineAccount } from "../api.js";
 import { linePlugin } from "./channel.js";
@@ -7,8 +7,8 @@ import { setLineRuntime } from "./runtime.js";
 const DEFAULT_ACCOUNT_ID = "default";
 
 type LineRuntimeMocks = {
-  writeConfigFile: ReturnType<typeof vi.fn>;
-  resolveLineAccount: ReturnType<typeof vi.fn>;
+  writeConfigFile: Mock;
+  resolveLineAccount: Mock;
 };
 
 function createRuntime(): { runtime: PluginRuntime; mocks: LineRuntimeMocks } {

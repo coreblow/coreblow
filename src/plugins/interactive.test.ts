@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance , Mock } from "vitest";
 import * as conversationBinding from "./conversation-binding.js";
 import type {
   DiscordInteractiveDispatchContext,
@@ -171,7 +171,7 @@ function createSlackDispatchParams(params: {
 
 async function expectDedupedInteractiveDispatch(params: {
   baseParams: InteractiveDispatchParams;
-  handler: ReturnType<typeof vi.fn>;
+  handler: Mock;
   expectedCall: unknown;
 }) {
   const first = await dispatchInteractive(params.baseParams);
@@ -196,7 +196,7 @@ async function dispatchInteractive(params: InteractiveDispatchParams) {
 function registerInteractiveHandler(params: {
   channel: "telegram" | "discord" | "slack";
   namespace: string;
-  handler: ReturnType<typeof vi.fn>;
+  handler: Mock;
 }) {
   return registerPluginInteractiveHandler("codex-plugin", {
     channel: params.channel,

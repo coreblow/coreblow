@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import type { RuntimeEnv } from "../../../../src/runtime.js";
 import { createNonExitingTypedRuntimeEnv } from "../../../../test/helpers/extensions/runtime-env.js";
 import * as resolveChannelsModule from "../resolve-channels.js";
@@ -79,7 +79,7 @@ describe("resolveDiscordAllowlistConfig", () => {
       runtime,
     });
 
-    const logs = (runtime.log as ReturnType<typeof vi.fn>).mock.calls
+    const logs = (runtime.log as Mock).mock.calls
       .map(([line]) => String(line))
       .join("\n");
     expect(logs).toContain(

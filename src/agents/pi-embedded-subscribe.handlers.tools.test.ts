@@ -1,5 +1,5 @@
 import type { AgentEvent } from "@mariozechner/pi-agent-core";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import type { MessagingToolSend } from "./pi-embedded-messaging.js";
 import {
   handleToolExecutionEnd,
@@ -15,8 +15,8 @@ type ToolExecutionEndEvent = Extract<AgentEvent, { type: "tool_execution_end" }>
 
 function createTestContext(): {
   ctx: ToolHandlerContext;
-  warn: ReturnType<typeof vi.fn>;
-  onBlockReplyFlush: ReturnType<typeof vi.fn>;
+  warn: Mock;
+  onBlockReplyFlush: Mock;
 } {
   const onBlockReplyFlush = vi.fn();
   const warn = vi.fn();

@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import type { CoreBlowConfig } from "../config/config.js";
 import { setLoggerOverride } from "../logging/logger.js";
 import { loggingState } from "../logging/state.js";
@@ -412,7 +412,7 @@ describe("loader", () => {
       await expectNoCommandHookRegistration(cfg);
 
       const messages = stripAnsi(
-        (error as ReturnType<typeof vi.fn>).mock.calls
+        (error as Mock).mock.calls
           .map((call) => String(call[0] ?? ""))
           .join("\n"),
       );

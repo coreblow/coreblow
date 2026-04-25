@@ -6,11 +6,11 @@ import type { MsgContext } from "coreblow/plugin-sdk/reply-runtime";
 import type { GetReplyOptions, ReplyPayload } from "coreblow/plugin-sdk/reply-runtime";
 import { createReplyDispatcher } from "coreblow/plugin-sdk/reply-runtime";
 import type { MockFn } from "coreblow/plugin-sdk/testing";
-import { beforeEach, vi } from "vitest";
+import { beforeEach, vi , Mock } from "vitest";
 import type { TelegramBotDeps } from "./bot-deps.js";
 
-type AnyMock = ReturnType<typeof vi.fn>;
-type AnyAsyncMock = ReturnType<typeof vi.fn>;
+type AnyMock = Mock;
+type AnyAsyncMock = Mock;
 type LoadConfigFn = typeof import("coreblow/plugin-sdk/config-runtime").loadConfig;
 type ResolveStorePathFn = typeof import("coreblow/plugin-sdk/config-runtime").resolveStorePath;
 type TelegramBotRuntimeForTest = NonNullable<

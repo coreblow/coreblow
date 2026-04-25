@@ -1,5 +1,5 @@
 import fs from "node:fs/promises";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import * as replyModule from "../auto-reply/reply.js";
 import type { CoreBlowConfig } from "../config/config.js";
 import { resolveMainSessionKey } from "../config/sessions.js";
@@ -80,7 +80,7 @@ describe("Ghost reminder bug (issue #13317)", () => {
     enqueue: (sessionKey: string) => void,
   ): Promise<{
     result: Awaited<ReturnType<typeof runHeartbeatOnce>>;
-    sendTelegram: ReturnType<typeof vi.fn>;
+    sendTelegram: Mock;
     calledCtx: { Provider?: string; Body?: string } | null;
   }> => {
     return runHeartbeatCase({
@@ -99,7 +99,7 @@ describe("Ghost reminder bug (issue #13317)", () => {
     target?: "telegram" | "none";
   }): Promise<{
     result: Awaited<ReturnType<typeof runHeartbeatOnce>>;
-    sendTelegram: ReturnType<typeof vi.fn>;
+    sendTelegram: Mock;
     calledCtx: { Provider?: string; Body?: string } | null;
     replyCallCount: number;
   }> => {

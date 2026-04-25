@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import {
   applyAuthorizationHeaderForUrl,
   isPrivateOrReservedIP,
@@ -32,7 +32,7 @@ function mockFetchWithRedirect(redirectMap: Record<string, string>, finalBody = 
 }
 
 async function expectSafeFetchStatus(params: {
-  fetchMock: ReturnType<typeof vi.fn>;
+  fetchMock: Mock;
   url: string;
   allowHosts: string[];
   expectedStatus: number;

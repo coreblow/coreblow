@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { resolveMainSessionKeyFromConfig } from "../config/sessions.js";
 import { drainSystemEvents } from "../infra/system-events.js";
 import {
@@ -14,8 +14,8 @@ import {
 
 const hoisted = vi.hoisted(() => {
   const cronInstances: Array<{
-    start: ReturnType<typeof vi.fn>;
-    stop: ReturnType<typeof vi.fn>;
+    start: Mock;
+    stop: Mock;
   }> = [];
 
   class CronServiceMock {

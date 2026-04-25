@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { getSlackSlashMocks, resetSlackSlashMocks } from "./slash.test-harness.js";
 
 vi.mock("./slash-commands.runtime.js", () => {
@@ -323,7 +323,7 @@ async function runCommandHandler(handler: (args: unknown) => Promise<void>) {
   return { respond, ack };
 }
 
-function expectArgMenuLayout(respond: ReturnType<typeof vi.fn>): {
+function expectArgMenuLayout(respond: Mock): {
   type: string;
   elements?: Array<{ type?: string; action_id?: string; confirm?: unknown }>;
 } {
@@ -348,7 +348,7 @@ type ActionsBlockPayload = {
 async function runCommandAndResolveActionsBlock(
   handler: (args: unknown) => Promise<void>,
 ): Promise<{
-  respond: ReturnType<typeof vi.fn>;
+  respond: Mock;
   payload: ActionsBlockPayload;
   blockId?: string;
 }> {
@@ -374,7 +374,7 @@ async function runArgMenuAction(
     userName?: string;
     channelId?: string;
     channelName?: string;
-    respond?: ReturnType<typeof vi.fn>;
+    respond?: Mock;
     includeRespond?: boolean;
   },
 ) {
@@ -763,7 +763,7 @@ async function runSlashHandler(params: {
     trigger_id: string;
   }> &
     Pick<{ channel_id: string; channel_name: string }, "channel_id" | "channel_name">;
-}): Promise<{ respond: ReturnType<typeof vi.fn>; ack: ReturnType<typeof vi.fn> }> {
+}): Promise<{ respond: Mock; ack: Mock }> {
   const handler = [...params.commands.values()][0];
   if (!handler) {
     throw new Error("Missing slash handler");
@@ -812,7 +812,7 @@ async function registerAndRunPolicySlash(params: {
   });
 }
 
-function expectChannelBlockedResponse(respond: ReturnType<typeof vi.fn>) {
+function expectChannelBlockedResponse(respond: Mock) {
   expect(dispatchMock).not.toHaveBeenCalled();
   expect(respond).toHaveBeenCalledWith({
     text: "This channel is not allowed.",
@@ -820,7 +820,7 @@ function expectChannelBlockedResponse(respond: ReturnType<typeof vi.fn>) {
   });
 }
 
-function expectUnauthorizedResponse(respond: ReturnType<typeof vi.fn>) {
+function expectUnauthorizedResponse(respond: Mock) {
   expect(dispatchMock).not.toHaveBeenCalled();
   expect(respond).toHaveBeenCalledWith({
     text: "You are not authorized to use this command.",

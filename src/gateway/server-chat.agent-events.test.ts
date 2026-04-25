@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { loadConfig } from "../config/config.js";
 import { registerAgentRunContext, resetAgentRunContextForTest } from "../infra/agent-events.js";
 import { resolveHeartbeatVisibility } from "../infra/heartbeat-visibility.js";
@@ -116,11 +116,11 @@ describe("agent event handler", () => {
     return harness;
   }
 
-  function chatBroadcastCalls(broadcast: ReturnType<typeof vi.fn>) {
+  function chatBroadcastCalls(broadcast: Mock) {
     return broadcast.mock.calls.filter(([event]) => event === "chat");
   }
 
-  function sessionChatCalls(nodeSendToSession: ReturnType<typeof vi.fn>) {
+  function sessionChatCalls(nodeSendToSession: Mock) {
     return nodeSendToSession.mock.calls.filter(([, event]) => event === "chat");
   }
 
@@ -162,7 +162,7 @@ describe("agent event handler", () => {
     });
   }
 
-  function expectSingleAgentBroadcastPayload(broadcast: ReturnType<typeof vi.fn>) {
+  function expectSingleAgentBroadcastPayload(broadcast: Mock) {
     const broadcastAgentCalls = broadcast.mock.calls.filter(([event]) => event === "agent");
     expect(broadcastAgentCalls).toHaveLength(1);
     return broadcastAgentCalls[0]?.[1] as {
@@ -173,7 +173,7 @@ describe("agent event handler", () => {
     };
   }
 
-  function expectSingleFinalChatPayload(broadcast: ReturnType<typeof vi.fn>) {
+  function expectSingleFinalChatPayload(broadcast: Mock) {
     const chatCalls = chatBroadcastCalls(broadcast);
     expect(chatCalls).toHaveLength(1);
     const payload = chatCalls[0]?.[1] as {

@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { Api, Model } from "@mariozechner/pi-ai";
-import { expect, vi } from "vitest";
+import { expect, vi , Mock } from "vitest";
 import type {
   AssembleResult,
   BootstrapResult,
@@ -559,7 +559,7 @@ export function createContextEngineBootstrapAndAssemble() {
   };
 }
 
-export function expectCalledWithSessionKey(mock: ReturnType<typeof vi.fn>, sessionKey: string) {
+export function expectCalledWithSessionKey(mock: Mock, sessionKey: string) {
   expect(mock).toHaveBeenCalledWith(
     expect.objectContaining({
       sessionKey,

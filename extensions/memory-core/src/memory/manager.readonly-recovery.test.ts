@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import type { CoreBlowConfig } from "coreblow/plugin-sdk/memory-core-host-engine-foundation";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { resetEmbeddingMocks } from "./embedding.test-mocks.js";
 import { MemoryIndexManager } from "./manager.js";
 import { getRequiredMemoryIndexManager } from "./test-manager-helpers.js";
@@ -25,12 +25,12 @@ type ReadonlyRecoveryHarness = {
   readonlyRecoverySuccesses: number;
   readonlyRecoveryFailures: number;
   readonlyRecoveryLastError?: string;
-  ensureProviderInitialized: ReturnType<typeof vi.fn>;
-  enqueueTargetedSessionSync: ReturnType<typeof vi.fn>;
-  runSync: ReturnType<typeof vi.fn>;
-  openDatabase: ReturnType<typeof vi.fn>;
-  ensureSchema: ReturnType<typeof vi.fn>;
-  readMeta: ReturnType<typeof vi.fn>;
+  ensureProviderInitialized: Mock;
+  enqueueTargetedSessionSync: Mock;
+  runSync: Mock;
+  openDatabase: Mock;
+  ensureSchema: Mock;
+  readMeta: Mock;
 };
 
 describe("memory manager readonly recovery", () => {

@@ -1,10 +1,10 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi , Mock } from "vitest";
 
 const registerLogTransportMock = vi.hoisted(() => vi.fn());
 
 const telemetryState = vi.hoisted(() => {
-  const counters = new Map<string, { add: ReturnType<typeof vi.fn> }>();
-  const histograms = new Map<string, { record: ReturnType<typeof vi.fn> }>();
+  const counters = new Map<string, { add: Mock }>();
+  const histograms = new Map<string, { record: Mock }>();
   const tracer = {
     startSpan: vi.fn((_name: string, _opts?: unknown) => ({
       end: vi.fn(),

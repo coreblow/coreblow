@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import type { getReplyFromConfig } from "../../../../src/auto-reply/reply.js";
 import { HEARTBEAT_TOKEN } from "../../../../src/auto-reply/tokens.js";
 import { redactIdentifier } from "../../../../src/logging/redact-identifier.js";
@@ -146,9 +146,9 @@ vi.mock("../session.js", () => ({
 }));
 
 describe("runWebHeartbeatOnce", () => {
-  let senderMock: ReturnType<typeof vi.fn>;
+  let senderMock: Mock;
   let sender: typeof sendMessageWhatsApp;
-  let replyResolverMock: ReturnType<typeof vi.fn>;
+  let replyResolverMock: Mock;
   let replyResolver: typeof getReplyFromConfig;
   let runWebHeartbeatOnce: typeof import("./heartbeat-runner.js").runWebHeartbeatOnce;
 

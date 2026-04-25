@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import {
   resolveSetupWizardAllowFromEntries,
   resolveSetupWizardGroupAllowlist,
@@ -89,7 +89,7 @@ type AllowFromResolver = (params: {
   entries: string[];
 }) => Promise<Array<{ input: string; resolved: boolean; id?: string | null }>>;
 
-function asAllowFromResolver(resolveEntries: ReturnType<typeof vi.fn>): AllowFromResolver {
+function asAllowFromResolver(resolveEntries: Mock): AllowFromResolver {
   return resolveEntries as AllowFromResolver;
 }
 

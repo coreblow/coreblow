@@ -1,6 +1,6 @@
 // @ts-nocheck
 import type { AgentSession } from "@mariozechner/pi-coding-agent";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import { applySystemPromptOverrideToSession, createSystemPromptOverride } from "./system-prompt.js";
 
 type MutableSession = {
@@ -10,13 +10,13 @@ type MutableSession = {
 
 type MockSession = MutableSession & {
   agent: {
-    setSystemPrompt: ReturnType<typeof vi.fn>;
+    setSystemPrompt: Mock;
   };
 };
 
 function createMockSession(): {
   session: MockSession;
-  setSystemPrompt: ReturnType<typeof vi.fn>;
+  setSystemPrompt: Mock;
 } {
   const setSystemPrompt = vi.fn();
   const session = {

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import type { MatrixClient } from "../sdk.js";
 import { createMatrixRoomInfoResolver } from "./room-info.js";
 
@@ -26,7 +26,7 @@ function createClientStub() {
       },
     ),
   } as unknown as MatrixClient & {
-    getRoomStateEvent: ReturnType<typeof vi.fn>;
+    getRoomStateEvent: Mock;
   };
 }
 
@@ -56,7 +56,7 @@ describe("createMatrixRoomInfoResolver", () => {
         },
       ),
     } as unknown as MatrixClient & {
-      getRoomStateEvent: ReturnType<typeof vi.fn>;
+      getRoomStateEvent: Mock;
     };
     const resolver = createMatrixRoomInfoResolver(client);
 
@@ -76,7 +76,7 @@ describe("createMatrixRoomInfoResolver", () => {
         throw new Error("member lookup failed");
       }),
     } as unknown as MatrixClient & {
-      getRoomStateEvent: ReturnType<typeof vi.fn>;
+      getRoomStateEvent: Mock;
     };
     const resolver = createMatrixRoomInfoResolver(client);
 

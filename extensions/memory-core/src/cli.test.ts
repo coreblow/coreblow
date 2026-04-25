@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { Command } from "commander";
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import {
   firstWrittenJsonArg,
   spyRuntimeErrors,
@@ -77,7 +77,7 @@ afterEach(() => {
 describe("memory cli", () => {
   const inactiveMemorySecretDiagnostic = "agents.defaults.memorySearch.remote.apiKey inactive"; // pragma: allowlist secret
 
-  function expectCliSync(sync: ReturnType<typeof vi.fn>) {
+  function expectCliSync(sync: Mock) {
     expect(sync).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "cli", force: false, progress: expect.any(Function) }),
     );
@@ -102,7 +102,7 @@ describe("memory cli", () => {
     getMemorySearchManager.mockResolvedValueOnce({ manager });
   }
 
-  function setupMemoryStatusWithInactiveSecretDiagnostics(close: ReturnType<typeof vi.fn>) {
+  function setupMemoryStatusWithInactiveSecretDiagnostics(close: Mock) {
     resolveCommandSecretRefsViaGateway.mockResolvedValueOnce({
       resolvedConfig: {},
       diagnostics: [inactiveMemorySecretDiagnostic] as string[],

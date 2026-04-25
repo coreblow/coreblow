@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { resetInboundDedupe } from "../../../src/auto-reply/reply/inbound-dedupe.js";
 import {
   flush,
@@ -15,8 +15,8 @@ let monitorSlackProvider: typeof import("./monitor.js").monitorSlackProvider;
 const slackTestState = getSlackTestState();
 
 type SlackConversationsClient = {
-  history: ReturnType<typeof vi.fn>;
-  info: ReturnType<typeof vi.fn>;
+  history: Mock;
+  info: Mock;
 };
 
 function makeThreadReplyEvent() {

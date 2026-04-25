@@ -1,5 +1,5 @@
 import "./lifecycle.test-support.js";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import {
   createFeishuTextMessageEvent,
   createFeishuLifecycleReplyDispatcher,
@@ -216,7 +216,7 @@ describe("Feishu broadcast reply-once lifecycle", () => {
     expect(sessionKeys).toContain("agent:susan:feishu:group:oc_broadcast_group");
 
     const activeDispatcher = createFeishuReplyDispatcherMock.mock.results[0]?.value.dispatcher as {
-      sendFinalReply: ReturnType<typeof vi.fn>;
+      sendFinalReply: Mock;
     };
     expect(activeDispatcher.sendFinalReply).toHaveBeenCalledTimes(1);
   });
@@ -255,7 +255,7 @@ describe("Feishu broadcast reply-once lifecycle", () => {
     expect(dispatchReplyFromConfigMock).toHaveBeenCalledTimes(2);
 
     const activeDispatcher = createFeishuReplyDispatcherMock.mock.results[0]?.value.dispatcher as {
-      sendFinalReply: ReturnType<typeof vi.fn>;
+      sendFinalReply: Mock;
     };
     expect(activeDispatcher.sendFinalReply).toHaveBeenCalledTimes(1);
   });

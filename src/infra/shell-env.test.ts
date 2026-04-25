@@ -1,7 +1,7 @@
 // @ts-nocheck
 import fs from "node:fs";
 import os from "node:os";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import {
   getShellEnvAppliedKeys,
   getShellPathFromLoginShell,
@@ -47,7 +47,7 @@ describe("shell env fallback", () => {
     enabled: boolean;
     env: NodeJS.ProcessEnv;
     expectedKeys: string[];
-    exec: ReturnType<typeof vi.fn>;
+    exec: Mock;
   }) {
     return loadShellEnvFallback({
       enabled: params.enabled,
@@ -94,7 +94,7 @@ describe("shell env fallback", () => {
   }
 
   function getShellPathTwiceWithExec(params: {
-    exec: ReturnType<typeof vi.fn>;
+    exec: Mock;
     platform: NodeJS.Platform;
   }) {
     return getShellPathTwice({
@@ -104,14 +104,14 @@ describe("shell env fallback", () => {
   }
 
   function probeShellPathWithFreshCache(params: {
-    exec: ReturnType<typeof vi.fn>;
+    exec: Mock;
     platform: NodeJS.Platform;
   }) {
     resetShellPathCacheForTests();
     return getShellPathTwiceWithExec(params);
   }
 
-  function expectBinShFallbackExec(exec: ReturnType<typeof vi.fn>) {
+  function expectBinShFallbackExec(exec: Mock) {
     expect(exec).toHaveBeenCalledTimes(1);
     expect(exec).toHaveBeenCalledWith("/bin/sh", ["-l", "-c", "env -0"], expect.any(Object));
   }

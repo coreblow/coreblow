@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import { discoverKilocodeModels, KILOCODE_MODELS_URL } from "./kilocode-models.js";
 
 // discoverKilocodeModels checks for VITEST env and returns static catalog,
@@ -55,7 +55,7 @@ function makeAutoModel(overrides: Record<string, unknown> = {}) {
 }
 
 async function withFetchPathTest(
-  mockFetch: ReturnType<typeof vi.fn>,
+  mockFetch: Mock,
   runAssertions: () => Promise<void>,
 ) {
   const origNodeEnv = process.env.NODE_ENV;

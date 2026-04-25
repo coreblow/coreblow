@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import {
   abortChatRunById,
   isChatStopCommandText,
@@ -22,9 +22,9 @@ function createOps(params: {
   entry: ChatAbortControllerEntry;
   buffer?: string;
 }): ChatAbortOps & {
-  broadcast: ReturnType<typeof vi.fn>;
-  nodeSendToSession: ReturnType<typeof vi.fn>;
-  removeChatRun: ReturnType<typeof vi.fn>;
+  broadcast: Mock;
+  nodeSendToSession: Mock;
+  removeChatRun: Mock;
 } {
   const { runId, entry, buffer } = params;
   const broadcast = vi.fn();

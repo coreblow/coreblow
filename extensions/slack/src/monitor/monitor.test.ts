@@ -1,5 +1,5 @@
 import type { App } from "@slack/bolt";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi , Mock } from "vitest";
 import type { CoreBlowConfig } from "../../../../src/config/config.js";
 import type { RuntimeEnv } from "../../../../src/runtime.js";
 import type { SlackMessageEvent } from "../types.js";
@@ -154,7 +154,7 @@ function createThreadStarterRepliesClient(
   response: { messages?: Array<{ text?: string; user?: string; ts?: string }> } = {
     messages: [{ text: "root message", user: "U1", ts: "1000.1" }],
   },
-): { replies: ReturnType<typeof vi.fn>; client: ThreadStarterClient } {
+): { replies: Mock; client: ThreadStarterClient } {
   const replies = vi.fn(async () => response);
   const client = {
     conversations: { replies },

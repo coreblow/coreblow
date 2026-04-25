@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import {
   onDiagnosticEvent,
   resetDiagnosticEventsForTest,
@@ -25,8 +25,8 @@ const mockGetGlobalHookRunner = vi.mocked(getGlobalHookRunner);
 
 describe("before_tool_call loop detection behavior", () => {
   let hookRunner: {
-    hasHooks: ReturnType<typeof vi.fn>;
-    runBeforeToolCall: ReturnType<typeof vi.fn>;
+    hasHooks: Mock;
+    runBeforeToolCall: Mock;
   };
   const enabledLoopDetectionContext = {
     agentId: "main",
@@ -54,7 +54,7 @@ describe("before_tool_call loop detection behavior", () => {
 
   function createWrappedTool(
     name: string,
-    execute: ReturnType<typeof vi.fn>,
+    execute: Mock,
     loopDetectionContext = enabledLoopDetectionContext,
   ) {
     return wrapToolWithBeforeToolCallHook(
@@ -332,8 +332,8 @@ describe("before_tool_call loop detection behavior", () => {
 describe("before_tool_call requireApproval handling", () => {
   let runBeforeToolCallHook: (typeof import("./pi-tools.before-tool-call.js"))["runBeforeToolCallHook"];
   let hookRunner: {
-    hasHooks: ReturnType<typeof vi.fn>;
-    runBeforeToolCall: ReturnType<typeof vi.fn>;
+    hasHooks: Mock;
+    runBeforeToolCall: Mock;
   };
 
   beforeEach(async () => {

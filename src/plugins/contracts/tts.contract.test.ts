@@ -1,5 +1,5 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import type { CoreBlowConfig } from "../../config/config.js";
 import { __testing as pluginLoaderTesting } from "../../plugins/loader.js";
 import { createEmptyPluginRegistry } from "../../plugins/registry-empty.js";
@@ -138,7 +138,7 @@ function createAudioBuffer(length = 2): Buffer {
 }
 
 async function withMockedSpeechFetch(
-  run: (fetchMock: ReturnType<typeof vi.fn>) => Promise<void>,
+  run: (fetchMock: Mock) => Promise<void>,
   audioLength: number,
 ) {
   const originalFetch = globalThis.fetch;
@@ -776,7 +776,7 @@ describe("tts", () => {
     };
 
     const withMockedAutoTtsFetch = async (
-      run: (fetchMock: ReturnType<typeof vi.fn>) => Promise<void>,
+      run: (fetchMock: Mock) => Promise<void>,
     ) => {
       const prevPrefs = process.env.COREBLOW_TTS_PREFS;
       process.env.COREBLOW_TTS_PREFS = `/tmp/tts-test-${Date.now()}.json`;

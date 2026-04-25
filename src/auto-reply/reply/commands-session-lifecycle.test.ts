@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import type { CoreBlowConfig } from "../../config/config.js";
 import type { SessionBindingRecord } from "../../infra/outbound/session-binding-service.js";
 import {
@@ -208,7 +208,7 @@ function createMatrixBinding(overrides?: Partial<SessionBindingRecord>): Session
 }
 
 function expectIdleTimeoutSetReply(
-  mock: ReturnType<typeof vi.fn>,
+  mock: Mock,
   text: string,
   idleTimeoutMs: number,
   idleTimeoutLabel: string,

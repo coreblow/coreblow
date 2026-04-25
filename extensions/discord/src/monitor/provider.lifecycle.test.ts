@@ -143,11 +143,11 @@ describe("runDiscordGatewayLifecycle", () => {
   };
 
   function expectLifecycleCleanup(params: {
-    start: ReturnType<typeof vi.fn>;
-    stop: ReturnType<typeof vi.fn>;
-    threadStop: ReturnType<typeof vi.fn>;
+    start: Mock;
+    stop: Mock;
+    threadStop: Mock;
     waitCalls: number;
-    gatewaySupervisor: { detachLifecycle: ReturnType<typeof vi.fn> };
+    gatewaySupervisor: { detachLifecycle: Mock };
   }) {
     expect(params.start).toHaveBeenCalledTimes(1);
     expect(params.stop).toHaveBeenCalledTimes(1);

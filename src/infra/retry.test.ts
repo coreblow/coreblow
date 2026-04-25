@@ -1,9 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { resolveRetryConfig, retryAsync } from "./retry.js";
 
 type NumberRetryCase = {
   name: string;
-  fn: ReturnType<typeof vi.fn>;
+  fn: Mock;
   attempts: number;
   initialDelayMs: number;
   expectedValue?: string;
@@ -39,7 +39,7 @@ async function runRetryAfterCase(params: {
 }
 
 async function runRetryNumberCase(
-  fn: ReturnType<typeof vi.fn>,
+  fn: Mock,
   attempts: number,
   initialDelayMs: number,
 ): Promise<unknown> {

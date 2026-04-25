@@ -1,5 +1,5 @@
 import { request } from "node:http";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { VoiceCallConfigSchema, type VoiceCallConfig } from "./config.js";
 import type { CallManager } from "./manager.js";
 import type { VoiceCallProvider } from "./providers/base.js";
@@ -651,7 +651,7 @@ describe("VoiceCallWebhookServer stream disconnect grace", () => {
 });
 
 describe("VoiceCallWebhookServer barge-in suppression during initial message", () => {
-  const createTwilioProvider = (clearTtsQueue: ReturnType<typeof vi.fn>) => ({
+  const createTwilioProvider = (clearTtsQueue: Mock) => ({
     name: "twilio" as const,
     verifyWebhook: () => ({ ok: true, verifiedRequestKey: "twilio:req:test" }),
     parseWebhookEvent: () => ({ events: [] }),

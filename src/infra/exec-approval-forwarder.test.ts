@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import type { ChannelPlugin } from "../channels/plugins/types.js";
 import type { CoreBlowConfig } from "../config/config.js";
 import {
@@ -77,7 +77,7 @@ const defaultRegistry = createTestRegistry([
   },
 ]);
 
-function getFirstDeliveryText(deliver: ReturnType<typeof vi.fn>): string {
+function getFirstDeliveryText(deliver: Mock): string {
   const firstCall = deliver.mock.calls[0]?.[0] as
     | { payloads?: Array<{ text?: string }> }
     | undefined;
@@ -100,7 +100,7 @@ const TARGETS_CFG = makeTargetsCfg([{ channel: "slack", to: "U123" }]);
 
 function createForwarder(params: {
   cfg: CoreBlowConfig;
-  deliver?: ReturnType<typeof vi.fn>;
+  deliver?: Mock;
   resolveSessionTarget?: () => { channel: string; to: string } | null;
 }) {
   const deliver = params.deliver ?? vi.fn().mockResolvedValue([]);

@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { CURRENT_SESSION_VERSION } from "@mariozechner/pi-coding-agent";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi , Mock } from "vitest";
 import type { MsgContext } from "../../auto-reply/templating.js";
 import {
   GATEWAY_CLIENT_CAPS,
@@ -268,7 +268,7 @@ type ChatContext = ReturnType<typeof createChatContext>;
 
 async function runNonStreamingChatSend(params: {
   context: ChatContext;
-  respond: ReturnType<typeof vi.fn>;
+  respond: Mock;
   idempotencyKey: string;
   message?: string;
   sessionKey?: string;
@@ -318,11 +318,11 @@ async function runNonStreamingChatSend(params: {
 
   await waitForAssertion(() => {
     expect(
-      (params.context.broadcast as unknown as ReturnType<typeof vi.fn>).mock.calls.length,
+      (params.context.broadcast as unknown as Mock).mock.calls.length,
     ).toBe(1);
   });
 
-  const chatCall = (params.context.broadcast as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+  const chatCall = (params.context.broadcast as unknown as Mock).mock.calls[0];
   expect(chatCall?.[0]).toBe("chat");
   return chatCall?.[1];
 }
@@ -378,7 +378,7 @@ describe("chat directive tag stripping for non-streaming final payloads", () => 
       expectBroadcast: false,
     });
 
-    const register = context.registerToolEventRecipient as unknown as ReturnType<typeof vi.fn>;
+    const register = context.registerToolEventRecipient as unknown as Mock;
     expect(register).toHaveBeenCalledWith("run-current", "conn-1");
     expect(register).toHaveBeenCalledWith("run-same-session", "conn-1");
     expect(register).not.toHaveBeenCalledWith("run-other-session", "conn-1");
@@ -403,7 +403,7 @@ describe("chat directive tag stripping for non-streaming final payloads", () => 
       expectBroadcast: false,
     });
 
-    const register = context.registerToolEventRecipient as unknown as ReturnType<typeof vi.fn>;
+    const register = context.registerToolEventRecipient as unknown as Mock;
     expect(register).not.toHaveBeenCalled();
   });
 
@@ -425,7 +425,7 @@ describe("chat directive tag stripping for non-streaming final payloads", () => 
     const [ok, payload] = respond.mock.calls.at(-1) ?? [];
     expect(ok).toBe(true);
     expect(payload).toMatchObject({ ok: true });
-    const chatCall = (context.broadcast as unknown as ReturnType<typeof vi.fn>).mock.calls.at(-1);
+    const chatCall = (context.broadcast as unknown as Mock).mock.calls.at(-1);
     expect(chatCall?.[0]).toBe("chat");
     expect(chatCall?.[1]).toEqual(
       expect.objectContaining({
@@ -504,7 +504,7 @@ describe("chat directive tag stripping for non-streaming final payloads", () => 
     });
 
     expect(respond).toHaveBeenCalled();
-    const chatCall = (context.broadcast as unknown as ReturnType<typeof vi.fn>).mock.calls.at(-1);
+    const chatCall = (context.broadcast as unknown as Mock).mock.calls.at(-1);
     expect(chatCall?.[0]).toBe("chat");
     expect(extractFirstTextBlock(chatCall?.[1])).toBe("hello");
   });
@@ -1706,11 +1706,11 @@ describe("chat directive tag stripping for non-streaming final payloads", () => 
       waitForCompletion: false,
     });
 
-    expect((context.broadcast as unknown as ReturnType<typeof vi.fn>).mock.calls.length).toBe(0);
+    expect((context.broadcast as unknown as Mock).mock.calls.length).toBe(0);
     releaseSave();
 
     await waitForAssertion(() => {
-      expect((context.broadcast as unknown as ReturnType<typeof vi.fn>).mock.calls.length).toBe(1);
+      expect((context.broadcast as unknown as Mock).mock.calls.length).toBe(1);
       expect(
         mockState.emittedTranscriptUpdates.find((update) => update.message !== undefined),
       ).toBeDefined();

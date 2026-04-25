@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import type { CoreBlowConfig } from "../../config/config.js";
 import type { ProviderPlugin } from "../../plugins/types.js";
 import type { RuntimeEnv } from "../../runtime.js";
@@ -127,7 +127,7 @@ describe("modelsAuthLoginCommand", () => {
   let restoreStdin: (() => void) | null = null;
   let currentConfig: CoreBlowConfig;
   let lastUpdatedConfig: CoreBlowConfig | null;
-  let runProviderAuth: ReturnType<typeof vi.fn>;
+  let runProviderAuth: Mock;
 
   beforeEach(() => {
     vi.clearAllMocks();

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import { CronService } from "./service.js";
 import {
   createStartedCronServiceWithFinishedBarrier,
@@ -32,7 +32,7 @@ describe("CronService interval/cron jobs fire on time", () => {
   };
 
   const expectMainSystemEvent = (
-    enqueueSystemEvent: ReturnType<typeof vi.fn>,
+    enqueueSystemEvent: Mock,
     expectedText: string,
   ) => {
     expect(enqueueSystemEvent).toHaveBeenCalledWith(

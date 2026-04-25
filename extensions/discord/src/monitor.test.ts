@@ -1,5 +1,5 @@
 import { ChannelType, type Guild } from "@buape/carbon";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { typedCases } from "../../../test/helpers/extensions/typed-cases.js";
 import {
   allowListMatches,
@@ -921,7 +921,7 @@ function makeReactionEvent(overrides?: {
   emojiName?: string;
   botAsAuthor?: boolean;
   messageAuthorId?: string;
-  messageFetch?: ReturnType<typeof vi.fn>;
+  messageFetch?: Mock;
   guild?: { name?: string; id?: string };
   memberRoleIds?: string[];
 }) {

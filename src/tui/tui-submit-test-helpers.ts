@@ -1,7 +1,7 @@
-import { vi } from "vitest";
+import { vi , Mock } from "vitest";
 import { createEditorSubmitHandler } from "./tui-submit.js";
 
-type MockFn = ReturnType<typeof vi.fn>;
+type MockFn = Mock;
 
 export type SubmitHarness = {
   editor: {

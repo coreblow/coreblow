@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi , Mock } from "vitest";
 import { SILENT_REPLY_TOKEN } from "../tokens.js";
 import { parseAudioTag } from "./audio-tags.js";
 import { createBlockReplyCoalescer } from "./block-reply-coalescer.js";
@@ -662,9 +662,9 @@ describe("createTypingSignaler", () => {
     expect(typing.startTypingLoop).toHaveBeenCalled();
     expect(typing.refreshTypingTtl).toHaveBeenCalled();
     expect(typing.startTypingOnText).not.toHaveBeenCalled();
-    (typing.isActive as ReturnType<typeof vi.fn>).mockReturnValue(true);
-    (typing.startTypingLoop as ReturnType<typeof vi.fn>).mockClear();
-    (typing.refreshTypingTtl as ReturnType<typeof vi.fn>).mockClear();
+    (typing.isActive as Mock).mockReturnValue(true);
+    (typing.startTypingLoop as Mock).mockClear();
+    (typing.refreshTypingTtl as Mock).mockClear();
     await signaler.signalToolStart();
 
     expect(typing.refreshTypingTtl).toHaveBeenCalled();

@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi , Mock } from "vitest";
 import { DEFAULT_UPLOAD_DIR } from "./paths.js";
 import {
   installPwToolsCoreTestHooks,
@@ -142,7 +142,7 @@ describe("pw-tools-core", () => {
     });
 
     expect(waitForTimeout).toHaveBeenCalledWith(50);
-    expect(page.locator as ReturnType<typeof vi.fn>).toHaveBeenCalledWith("#main");
+    expect(page.locator as Mock).toHaveBeenCalledWith("#main");
     expect(waitForSelector).toHaveBeenCalledWith({
       state: "visible",
       timeout: 1234,

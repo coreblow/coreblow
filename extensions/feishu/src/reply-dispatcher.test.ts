@@ -1,11 +1,11 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 
 type StreamingSessionStub = {
   active: boolean;
-  start: ReturnType<typeof vi.fn>;
-  update: ReturnType<typeof vi.fn>;
-  close: ReturnType<typeof vi.fn>;
-  isActive: ReturnType<typeof vi.fn>;
+  start: Mock;
+  update: Mock;
+  close: Mock;
+  isActive: Mock;
 };
 
 const resolveFeishuAccountMock = vi.hoisted(() => vi.fn());

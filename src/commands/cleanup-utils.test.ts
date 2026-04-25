@@ -1,6 +1,6 @@
 // @ts-nocheck
 import path from "node:path";
-import { describe, expect, it, test, vi } from "vitest";
+import { describe, expect, it, test, vi , Mock } from "vitest";
 import type { CoreBlowConfig } from "../config/config.js";
 import type { RuntimeEnv } from "../runtime.js";
 import {
@@ -63,8 +63,8 @@ describe("cleanup path removals", () => {
       log: vi.fn(),
       error: vi.fn(),
     } as unknown as RuntimeEnv & {
-      log: ReturnType<typeof vi.fn>;
-      error: ReturnType<typeof vi.fn>;
+      log: Mock;
+      error: Mock;
     };
   }
 

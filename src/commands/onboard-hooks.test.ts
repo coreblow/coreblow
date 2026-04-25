@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach , Mock } from "vitest";
 import type { CoreBlowConfig } from "../config/config.js";
 import type { HookStatusEntry, HookStatusReport } from "../hooks/hooks-status.js";
 import type { RuntimeEnv } from "../runtime.js";
@@ -225,7 +225,7 @@ describe("onboard-hooks", () => {
         selected: ["session-memory"],
       });
 
-      const noteCalls = (prompter.note as ReturnType<typeof vi.fn>).mock.calls;
+      const noteCalls = (prompter.note as Mock).mock.calls;
       expect(noteCalls).toHaveLength(2);
 
       // First note should explain what hooks are

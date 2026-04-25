@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi , Mock } from "vitest";
 import type { RuntimeEnv } from "../runtime.js";
 import { WizardCancelledError } from "../wizard/prompts.js";
 import { runInteractiveSetup } from "./onboard-interactive.js";
@@ -65,7 +65,7 @@ describe("runInteractiveSetup", () => {
     const restoreOrder =
       mocks.restoreTerminalState.mock.invocationCallOrder[0] ?? Number.MAX_SAFE_INTEGER;
     const exitOrder =
-      (runtime.exit as unknown as ReturnType<typeof vi.fn>).mock.invocationCallOrder[0] ??
+      (runtime.exit as unknown as Mock).mock.invocationCallOrder[0] ??
       Number.MAX_SAFE_INTEGER;
     expect(restoreOrder).toBeLessThan(exitOrder);
   });

@@ -1,18 +1,18 @@
 import type { WebClient } from "@slack/web-api";
-import { vi } from "vitest";
+import { vi , Mock } from "vitest";
 
 export type SlackEditTestClient = WebClient & {
   chat: {
-    update: ReturnType<typeof vi.fn>;
+    update: Mock;
   };
 };
 
 export type SlackSendTestClient = WebClient & {
   conversations: {
-    open: ReturnType<typeof vi.fn>;
+    open: Mock;
   };
   chat: {
-    postMessage: ReturnType<typeof vi.fn>;
+    postMessage: Mock;
   };
 };
 

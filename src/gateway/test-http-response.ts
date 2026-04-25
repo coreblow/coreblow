@@ -1,10 +1,10 @@
 import type { ServerResponse } from "node:http";
-import { vi } from "vitest";
+import { vi , Mock } from "vitest";
 
 export function makeMockHttpResponse(): {
   res: ServerResponse;
-  setHeader: ReturnType<typeof vi.fn>;
-  end: ReturnType<typeof vi.fn>;
+  setHeader: Mock;
+  end: Mock;
 } {
   const setHeader = vi.fn();
   const end = vi.fn();

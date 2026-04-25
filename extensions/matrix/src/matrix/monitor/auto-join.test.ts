@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import type { PluginRuntime, RuntimeEnv } from "../../../runtime-api.js";
 import { setMatrixRuntime } from "../../runtime.js";
 import type { MatrixConfig } from "../../types.js";
@@ -22,8 +22,8 @@ function createClientStub() {
   return {
     client,
     getInviteHandler: () => inviteHandler,
-    joinRoom: (client as unknown as { joinRoom: ReturnType<typeof vi.fn> }).joinRoom,
-    resolveRoom: (client as unknown as { resolveRoom: ReturnType<typeof vi.fn> }).resolveRoom,
+    joinRoom: (client as unknown as { joinRoom: Mock }).joinRoom,
+    resolveRoom: (client as unknown as { resolveRoom: Mock }).resolveRoom,
   };
 }
 
@@ -31,7 +31,7 @@ function registerAutoJoinHarness(params: {
   accountConfig?: MatrixConfig;
   resolveRoomValue?: string | null;
   resolveRoomValues?: Array<string | null>;
-  error?: ReturnType<typeof vi.fn>;
+  error?: Mock;
 }) {
   const harness = createClientStub();
   if (params.resolveRoomValues) {

@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { setTimeout as scheduleNativeTimeout } from "node:timers";
 import { setTimeout as sleep } from "node:timers/promises";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import type { CoreBlowConfig } from "../../config/config.js";
 import type { AcpSessionRuntimeOptions, SessionAcpMeta } from "../../config/sessions/types.js";
 import type { AcpRuntime, AcpRuntimeCapabilities } from "../runtime/types.js";
@@ -48,14 +48,14 @@ const baseCfg = {
 
 function createRuntime(): {
   runtime: AcpRuntime;
-  ensureSession: ReturnType<typeof vi.fn>;
-  runTurn: ReturnType<typeof vi.fn>;
-  cancel: ReturnType<typeof vi.fn>;
-  close: ReturnType<typeof vi.fn>;
-  getCapabilities: ReturnType<typeof vi.fn>;
-  getStatus: ReturnType<typeof vi.fn>;
-  setMode: ReturnType<typeof vi.fn>;
-  setConfigOption: ReturnType<typeof vi.fn>;
+  ensureSession: Mock;
+  runTurn: Mock;
+  cancel: Mock;
+  close: Mock;
+  getCapabilities: Mock;
+  getStatus: Mock;
+  setMode: Mock;
+  setConfigOption: Mock;
 } {
   const ensureSession = vi.fn(
     async (input: { sessionKey: string; agent: string; mode: "persistent" | "oneshot" }) => ({

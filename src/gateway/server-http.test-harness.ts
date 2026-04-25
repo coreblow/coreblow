@@ -1,6 +1,6 @@
 // @ts-nocheck
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { expect, vi } from "vitest";
+import { expect, vi , Mock } from "vitest";
 import type { createSubsystemLogger } from "../logging/subsystem.js";
 import type { ResolvedGatewayAuth } from "./auth.js";
 import { createGatewayRequest, createHooksConfig } from "./hooks-test-helpers.js";
@@ -62,8 +62,8 @@ export function createHookRequest(params?: {
 
 export function createResponse(): {
   res: ServerResponse;
-  setHeader: ReturnType<typeof vi.fn>;
-  end: ReturnType<typeof vi.fn>;
+  setHeader: Mock;
+  end: Mock;
   getBody: () => string;
 } {
   const setHeader = vi.fn();

@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import {
   enqueueDelivery,
   loadPendingDeliveries,
@@ -34,7 +34,7 @@ describe("delivery-queue recovery", () => {
     log = createRecoveryLog(),
     maxRecoveryMs,
   }: {
-    deliver: ReturnType<typeof vi.fn>;
+    deliver: Mock;
     log?: ReturnType<typeof createRecoveryLog>;
     maxRecoveryMs?: number;
   }) => {

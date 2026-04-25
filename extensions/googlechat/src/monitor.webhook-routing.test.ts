@@ -1,6 +1,6 @@
 import { EventEmitter } from "node:events";
 import type { IncomingMessage } from "node:http";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi , Mock } from "vitest";
 import { createEmptyPluginRegistry } from "../../../src/plugins/registry.js";
 import { setActivePluginRegistry } from "../../../src/plugins/runtime.js";
 import { createMockServerResponse } from "../../../test/helpers/extensions/mock-http-response.js";
@@ -127,8 +127,8 @@ async function dispatchWebhookRequest(req: IncomingMessage) {
 async function expectVerifiedRoute(params: {
   request: IncomingMessage;
   expectedStatus: number;
-  sinkA: ReturnType<typeof vi.fn>;
-  sinkB: ReturnType<typeof vi.fn>;
+  sinkA: Mock;
+  sinkB: Mock;
   expectedSink: "none" | "A" | "B";
 }) {
   const res = await dispatchWebhookRequest(params.request);

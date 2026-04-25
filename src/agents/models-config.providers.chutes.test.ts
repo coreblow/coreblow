@@ -2,7 +2,7 @@ import { mkdtempSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { CHUTES_BASE_URL } from "./chutes-models.js";
 import { resolveOAuthApiKeyMarker } from "./model-auth-markers.js";
 import { resolveImplicitProvidersForTest } from "./models-config.e2e-harness.js";
@@ -91,7 +91,7 @@ function expectChutesOAuthMarkerProvider(
 }
 
 async function withRealChutesDiscovery<T>(
-  run: (fetchMock: ReturnType<typeof vi.fn>) => Promise<T>,
+  run: (fetchMock: Mock) => Promise<T>,
 ) {
   const originalVitest = process.env.VITEST;
   const originalNodeEnv = process.env.NODE_ENV;

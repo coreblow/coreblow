@@ -1,4 +1,4 @@
-import { vi } from "vitest";
+import { vi , Mock } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   dispatchMock: vi.fn(),
@@ -47,14 +47,14 @@ vi.mock("coreblow/plugin-sdk/config-runtime", async (importOriginal) => {
 });
 
 type SlashHarnessMocks = {
-  dispatchMock: ReturnType<typeof vi.fn>;
-  readAllowFromStoreMock: ReturnType<typeof vi.fn>;
-  upsertPairingRequestMock: ReturnType<typeof vi.fn>;
-  resolveAgentRouteMock: ReturnType<typeof vi.fn>;
-  finalizeInboundContextMock: ReturnType<typeof vi.fn>;
-  resolveConversationLabelMock: ReturnType<typeof vi.fn>;
-  recordSessionMetaFromInboundMock: ReturnType<typeof vi.fn>;
-  resolveStorePathMock: ReturnType<typeof vi.fn>;
+  dispatchMock: Mock;
+  readAllowFromStoreMock: Mock;
+  upsertPairingRequestMock: Mock;
+  resolveAgentRouteMock: Mock;
+  finalizeInboundContextMock: Mock;
+  resolveConversationLabelMock: Mock;
+  recordSessionMetaFromInboundMock: Mock;
+  resolveStorePathMock: Mock;
 };
 
 export function getSlackSlashMocks(): SlashHarnessMocks {

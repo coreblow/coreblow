@@ -1,5 +1,5 @@
 import type { RequestListener } from "node:http";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi , Mock } from "vitest";
 import { createEmptyPluginRegistry } from "../../../src/plugins/registry.js";
 import { setActivePluginRegistry } from "../../../src/plugins/runtime.js";
 import {
@@ -59,8 +59,8 @@ function registerTarget(params: {
 
 function createPairingAuthCore(params?: { storeAllowFrom?: string[]; pairingCreated?: boolean }): {
   core: PluginRuntime;
-  readAllowFromStore: ReturnType<typeof vi.fn>;
-  upsertPairingRequest: ReturnType<typeof vi.fn>;
+  readAllowFromStore: Mock;
+  upsertPairingRequest: Mock;
 } {
   const readAllowFromStore = vi.fn().mockResolvedValue(params?.storeAllowFrom ?? []);
   const upsertPairingRequest = vi

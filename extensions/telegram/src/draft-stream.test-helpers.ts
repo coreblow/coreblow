@@ -1,20 +1,20 @@
 // @ts-nocheck
-import { vi } from "vitest";
+import { vi , Mock } from "vitest";
 
 type DraftPreviewMode = "message" | "draft";
 
 export type TestDraftStream = {
-  update: ReturnType<typeof vi.fn>;
-  flush: ReturnType<typeof vi.fn>;
-  messageId: ReturnType<typeof vi.fn>;
-  previewMode: ReturnType<typeof vi.fn>;
-  previewRevision: ReturnType<typeof vi.fn>;
-  lastDeliveredText: ReturnType<typeof vi.fn>;
-  clear: ReturnType<typeof vi.fn>;
-  stop: ReturnType<typeof vi.fn>;
-  materialize: ReturnType<typeof vi.fn>;
-  forceNewMessage: ReturnType<typeof vi.fn>;
-  sendMayHaveLanded: ReturnType<typeof vi.fn>;
+  update: Mock;
+  flush: Mock;
+  messageId: Mock;
+  previewMode: Mock;
+  previewRevision: Mock;
+  lastDeliveredText: Mock;
+  clear: Mock;
+  stop: Mock;
+  materialize: Mock;
+  forceNewMessage: Mock;
+  sendMayHaveLanded: Mock;
   setMessageId: (value: number | undefined) => void;
 };
 

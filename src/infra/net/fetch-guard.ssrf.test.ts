@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi , Mock } from "vitest";
 import { fetchWithSsrFGuard, GUARDED_FETCH_MODE } from "./fetch-guard.js";
 
 function redirectResponse(location: string): Response {
@@ -20,7 +20,7 @@ function getDispatcherClassName(value: unknown): string | null {
   return typeof ctor === "function" && ctor.name ? ctor.name : null;
 }
 
-function getSecondRequestHeaders(fetchImpl: ReturnType<typeof vi.fn>): Headers {
+function getSecondRequestHeaders(fetchImpl: Mock): Headers {
   const [, secondInit] = fetchImpl.mock.calls[1] as [string, RequestInit];
   return new Headers(secondInit.headers);
 }

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import type { GatewayBonjourBeacon } from "../../infra/bonjour-discovery.js";
 import { pickBeaconHost, pickGatewayPort } from "./discover.js";
 
@@ -156,7 +156,7 @@ function createSignaledStart(close: GatewayCloseFn) {
 }
 
 async function runLoopWithStart(params: {
-  start: ReturnType<typeof vi.fn>;
+  start: Mock;
   runtime: LoopRuntime;
   lockPort?: number;
 }) {

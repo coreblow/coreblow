@@ -2,7 +2,7 @@
 import type { Client } from "@buape/carbon";
 import { ChannelType, MessageType } from "@buape/carbon";
 import type { loadConfig } from "coreblow/plugin-sdk/config-runtime";
-import { vi } from "vitest";
+import { vi , Mock } from "vitest";
 import {
   dispatchMock,
   loadConfigMock,
@@ -234,8 +234,8 @@ export function createThreadChannel(params: { includeStarter?: boolean; type?: C
 
 export function createThreadClient(
   params: {
-    fetchChannel?: ReturnType<typeof vi.fn>;
-    restGet?: ReturnType<typeof vi.fn>;
+    fetchChannel?: Mock;
+    restGet?: Mock;
   } = {},
 ) {
   return {

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import * as ssrf from "../../../../src/infra/net/ssrf.js";
 import * as mediaFetch from "../../../../src/media/fetch.js";
 import type { SavedMedia } from "../../../../src/media/store.js";
@@ -17,7 +17,7 @@ import {
 
 // Store original fetch
 const originalFetch = globalThis.fetch;
-let mockFetch: ReturnType<typeof vi.fn>;
+let mockFetch: Mock;
 const createSavedMedia = (filePath: string, contentType: string): SavedMedia => ({
   id: "saved-media-id",
   path: filePath,

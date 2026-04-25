@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 /**
  * Test: after_tool_call hook wiring (pi-embedded-subscribe.handlers.tools.ts)
  */
@@ -53,7 +53,7 @@ function createToolHandlerCtx(params: {
 }
 
 function getAfterToolCallCall(index = 0) {
-  const call = (hookMocks.runner.runAfterToolCall as ReturnType<typeof vi.fn>).mock.calls[index];
+  const call = (hookMocks.runner.runAfterToolCall as Mock).mock.calls[index];
   return {
     event: call?.[0] as
       | {

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import type { ChannelPlugin } from "../channels/plugins/types.js";
 import type { CoreBlowConfig } from "../config/config.js";
 import { setActivePluginRegistry } from "../plugins/runtime.js";
@@ -31,7 +31,7 @@ const PLUGIN_DISABLED_CFG = {
   },
 } as CoreBlowConfig;
 
-function createForwarder(params: { cfg: CoreBlowConfig; deliver?: ReturnType<typeof vi.fn> }) {
+function createForwarder(params: { cfg: CoreBlowConfig; deliver?: Mock }) {
   const deliver = params.deliver ?? vi.fn().mockResolvedValue([]);
   const forwarder = createExecApprovalForwarder({
     getConfig: () => params.cfg,

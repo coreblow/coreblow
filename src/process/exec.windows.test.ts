@@ -1,5 +1,5 @@
 import { EventEmitter } from "node:events";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 
 const spawnMock = vi.hoisted(() => vi.fn());
 const execFileMock = vi.hoisted(() => vi.fn());
@@ -21,8 +21,8 @@ type MockChild = EventEmitter & {
   signalCode?: NodeJS.Signals | null;
   stdout: EventEmitter;
   stderr: EventEmitter;
-  stdin: { write: ReturnType<typeof vi.fn>; end: ReturnType<typeof vi.fn> };
-  kill: ReturnType<typeof vi.fn>;
+  stdin: { write: Mock; end: Mock };
+  kill: Mock;
   pid?: number;
   killed?: boolean;
 };

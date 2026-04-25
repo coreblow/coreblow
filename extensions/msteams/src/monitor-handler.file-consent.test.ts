@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import type { CoreBlowConfig, PluginRuntime, RuntimeEnv } from "../runtime-api.js";
 import {
   type MSTeamsActivityHandler,
@@ -52,7 +52,7 @@ function createInvokeContext(params: {
   conversationId: string;
   uploadId: string;
   action: "accept" | "decline";
-}): { context: MSTeamsTurnContext; sendActivity: ReturnType<typeof vi.fn> } {
+}): { context: MSTeamsTurnContext; sendActivity: Mock } {
   const sendActivity = vi.fn(async () => ({ id: "activity-id" }));
   const uploadInfo =
     params.action === "accept"

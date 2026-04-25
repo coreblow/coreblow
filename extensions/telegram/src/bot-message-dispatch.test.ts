@@ -1,5 +1,5 @@
 import type { Bot } from "grammy";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import type { TelegramBotDeps } from "./bot-deps.js";
 import {
   createSequencedTestDraftStream,
@@ -956,7 +956,7 @@ describe("dispatchTelegramMessage draft streaming", () => {
       "Message B final",
       expect.any(Object),
     );
-    expect((bot.api.deleteMessage as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
+    expect((bot.api.deleteMessage as Mock).mock.calls).toHaveLength(0);
   });
 
   it("does not trigger late pre-rotation mid-message after an explicit assistant message start", async () => {

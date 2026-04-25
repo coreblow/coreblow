@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import type { CoreBlowConfig } from "../../../src/config/config.js";
 import type { ResolvedAgentRoute } from "../../../src/routing/resolve-route.js";
 import type { TelegramBotDeps } from "./bot-deps.js";
@@ -158,7 +158,7 @@ function registerAndResolveStatusHandler(params: {
   resolveTelegramGroupConfig?: RegisterTelegramHandlerParams["resolveTelegramGroupConfig"];
 }): {
   handler: TelegramCommandHandler;
-  sendMessage: ReturnType<typeof vi.fn>;
+  sendMessage: Mock;
 } {
   const { cfg, allowFrom, groupAllowFrom, telegramCfg, resolveTelegramGroupConfig } = params;
   return registerAndResolveCommandHandlerBase({
@@ -182,7 +182,7 @@ function registerAndResolveCommandHandlerBase(params: {
   resolveTelegramGroupConfig?: RegisterTelegramHandlerParams["resolveTelegramGroupConfig"];
 }): {
   handler: TelegramCommandHandler;
-  sendMessage: ReturnType<typeof vi.fn>;
+  sendMessage: Mock;
 } {
   const {
     commandName,
@@ -248,7 +248,7 @@ function registerAndResolveCommandHandler(params: {
   resolveTelegramGroupConfig?: RegisterTelegramHandlerParams["resolveTelegramGroupConfig"];
 }): {
   handler: TelegramCommandHandler;
-  sendMessage: ReturnType<typeof vi.fn>;
+  sendMessage: Mock;
 } {
   const {
     commandName,
@@ -376,7 +376,7 @@ function createConfiguredBindingRoute(
   };
 }
 
-function expectUnauthorizedNewCommandBlocked(sendMessage: ReturnType<typeof vi.fn>) {
+function expectUnauthorizedNewCommandBlocked(sendMessage: Mock) {
   expect(replyMocks.dispatchReplyWithBufferedBlockDispatcher).not.toHaveBeenCalled();
   expect(persistentBindingMocks.resolveConfiguredBindingRoute).not.toHaveBeenCalled();
   expect(persistentBindingMocks.ensureConfiguredBindingRouteReady).not.toHaveBeenCalled();

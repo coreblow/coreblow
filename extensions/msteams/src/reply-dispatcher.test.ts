@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 
 const createChannelReplyPipelineMock = vi.hoisted(() => vi.fn());
 const createReplyDispatcherWithTypingMock = vi.hoisted(() => vi.fn());
@@ -9,9 +9,9 @@ const streamInstances = vi.hoisted(
   () =>
     [] as Array<{
       hasContent: boolean;
-      sendInformativeUpdate: ReturnType<typeof vi.fn>;
-      update: ReturnType<typeof vi.fn>;
-      finalize: ReturnType<typeof vi.fn>;
+      sendInformativeUpdate: Mock;
+      update: Mock;
+      finalize: Mock;
     }>,
 );
 
@@ -58,9 +58,9 @@ import { createMSTeamsReplyDispatcher, pickInformativeStatusText } from "./reply
 
 describe("createMSTeamsReplyDispatcher", () => {
   let typingCallbacks: {
-    onReplyStart: ReturnType<typeof vi.fn>;
-    onIdle: ReturnType<typeof vi.fn>;
-    onCleanup: ReturnType<typeof vi.fn>;
+    onReplyStart: Mock;
+    onIdle: Mock;
+    onCleanup: Mock;
   };
 
   beforeEach(() => {

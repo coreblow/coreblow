@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { MatrixCryptoBootstrapper, type MatrixCryptoBootstrapperDeps } from "./crypto-bootstrap.js";
 import type { MatrixCryptoBootstrapApi, MatrixRawEvent } from "./types.js";
 
@@ -81,7 +81,7 @@ async function runExplicitSecretStorageRepairScenario(firstError: string) {
 function expectSecretStorageRepairRetry(
   deps: ReturnType<typeof createBootstrapperDeps>,
   crypto: MatrixCryptoBootstrapApi,
-  bootstrapCrossSigning: ReturnType<typeof vi.fn>,
+  bootstrapCrossSigning: Mock,
 ) {
   expect(deps.recoveryKeyStore.bootstrapSecretStorageWithRecoveryKey).toHaveBeenCalledWith(crypto, {
     allowSecretStorageRecreateWithoutRecoveryKey: true,

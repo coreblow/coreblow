@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import type { ChannelOutboundAdapter, ChannelPlugin } from "../../channels/plugins/types.js";
 import { setActivePluginRegistry } from "../../plugins/runtime.js";
 import {
@@ -135,7 +135,7 @@ describe("sendMessage channel normalization", () => {
           })),
         },
       },
-      assertDeps: (deps: { sendDemoAliasChannel?: ReturnType<typeof vi.fn> }) => {
+      assertDeps: (deps: { sendDemoAliasChannel?: Mock }) => {
         expect(deps.sendDemoAliasChannel).toHaveBeenCalledWith("conversation:demo-target", "hi");
       },
       expectedChannel: "demo-alias-channel",
@@ -156,7 +156,7 @@ describe("sendMessage channel normalization", () => {
           sendIMessage: vi.fn(async () => ({ messageId: "i1" })),
         },
       },
-      assertDeps: (deps: { sendIMessage?: ReturnType<typeof vi.fn> }) => {
+      assertDeps: (deps: { sendIMessage?: Mock }) => {
         expect(deps.sendIMessage).toHaveBeenCalledWith(
           "someone@example.com",
           "hi",

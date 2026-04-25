@@ -6,7 +6,7 @@ import { createPinnedLookup } from "coreblow/plugin-sdk/fetch-runtime";
 import { resetInboundDedupe } from "coreblow/plugin-sdk/reply-runtime";
 import { resetLogger, setLoggerOverride } from "coreblow/plugin-sdk/runtime-env";
 import * as ssrf from "coreblow/plugin-sdk/ssrf-runtime";
-import { afterAll, afterEach, beforeAll, beforeEach, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, vi , Mock } from "vitest";
 import type { WebInboundMessage, WebListenerCloseReason } from "./inbound.js";
 import {
   resetBaileysMocks as _resetBaileysMocks,
@@ -239,7 +239,7 @@ export function createWebAutoReplyRuntime() {
 export function startWebAutoReplyMonitor(params: {
   monitorWebChannelFn: (...args: unknown[]) => Promise<unknown>;
   listenerFactory: unknown;
-  sleep: ReturnType<typeof vi.fn>;
+  sleep: Mock;
   signal?: AbortSignal;
   heartbeatSeconds?: number;
   messageTimeoutMs?: number;

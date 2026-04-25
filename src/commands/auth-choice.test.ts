@@ -1,7 +1,7 @@
 // @ts-nocheck
 import fs from "node:fs/promises";
 import type { OAuthCredentials } from "@mariozechner/pi-ai";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi , Mock } from "vitest";
 import { resolveAgentDir } from "../agents/agent-scope.js";
 import type { CoreBlowConfig } from "../config/config.js";
 import { resolveAgentModelPrimaryValue } from "../config/model-input.js";
@@ -1840,7 +1840,7 @@ describe("applyAuthChoice", () => {
     const runtime = createExitThrowingRuntime();
     const text: WizardPrompter["text"] = vi.fn(async (params) => {
       if (params.message.startsWith("Paste the redirect URL")) {
-        const runtimeLog = runtime.log as ReturnType<typeof vi.fn>;
+        const runtimeLog = runtime.log as Mock;
         const lastLog = runtimeLog.mock.calls.at(-1)?.[0];
         const urlLine = typeof lastLog === "string" ? lastLog : String(lastLog ?? "");
         const urlMatch = urlLine.match(/https?:\/\/\S+/)?.[0] ?? "";

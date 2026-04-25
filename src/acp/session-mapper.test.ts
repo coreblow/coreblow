@@ -1,11 +1,11 @@
 // @ts-nocheck
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import type { GatewayClient } from "../gateway/client.js";
 import { parseSessionMeta, resolveSessionKey } from "./session-mapper.js";
 
 function createGateway(resolveLabelKey = "agent:main:label"): {
   gateway: GatewayClient;
-  request: ReturnType<typeof vi.fn>;
+  request: Mock;
 } {
   const request = vi.fn(async (method: string, params: Record<string, unknown>) => {
     if (method === "sessions.resolve" && "label" in params) {

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi , Mock } from "vitest";
 import { withFetchPreconnect } from "../../test-support.js";
 
 vi.hoisted(() => {
@@ -34,7 +34,7 @@ function seedRunningProfileState(
   });
 }
 
-async function expectOldManagedTabClose(fetchMock: ReturnType<typeof vi.fn>): Promise<void> {
+async function expectOldManagedTabClose(fetchMock: Mock): Promise<void> {
   await vi.waitFor(() => {
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining("/json/close/OLD1"),
@@ -46,7 +46,7 @@ async function expectOldManagedTabClose(fetchMock: ReturnType<typeof vi.fn>): Pr
 function createOldTabCleanupFetchMock(
   existingTabs: ReturnType<typeof makeManagedTabsWithNew>,
   params?: { rejectNewTabClose?: boolean },
-): ReturnType<typeof vi.fn> {
+): Mock {
   return vi.fn(async (url: unknown) => {
     const value = String(url);
     if (value.includes("/json/list")) {
@@ -65,7 +65,7 @@ function createOldTabCleanupFetchMock(
 function createManagedTabListFetchMock(params: {
   existingTabs: ReturnType<typeof makeManagedTabsWithNew>;
   onClose: (url: string) => Response | Promise<Response>;
-}): ReturnType<typeof vi.fn> {
+}): Mock {
   return vi.fn(async (url: unknown) => {
     const value = String(url);
     if (value.includes("/json/list")) {
@@ -79,7 +79,7 @@ function createManagedTabListFetchMock(params: {
 }
 
 async function openManagedTabWithRunningProfile(params: {
-  fetchMock: ReturnType<typeof vi.fn>;
+  fetchMock: Mock;
   url?: string;
 }) {
   global.fetch = withFetchPreconnect(params.fetchMock);

@@ -2,7 +2,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { afterAll, afterEach, beforeAll, beforeEach, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, vi , Mock } from "vitest";
 import type { MockFn } from "../test-utils/vitest-mock-fn.js";
 import type { CronEvent, CronServiceDeps } from "./service.js";
 import { CronService } from "./service.js";
@@ -155,8 +155,8 @@ export async function withCronServiceForTest(
   },
   run: (context: {
     cron: CronService;
-    enqueueSystemEvent: ReturnType<typeof vi.fn>;
-    requestHeartbeatNow: ReturnType<typeof vi.fn>;
+    enqueueSystemEvent: Mock;
+    requestHeartbeatNow: Mock;
   }) => Promise<void>,
 ): Promise<void> {
   const store = await params.makeStorePath();

@@ -1,5 +1,5 @@
 import "./monitor-inbox.test-harness.js";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import {
   DEFAULT_ACCOUNT_ID,
   getAuthDir,
@@ -51,7 +51,7 @@ describe("web monitor inbox", () => {
   }
 
   function expectSingleGroupMessage(
-    onMessage: ReturnType<typeof vi.fn>,
+    onMessage: Mock,
     expected: Record<string, unknown>,
   ) {
     expect(onMessage).toHaveBeenCalledTimes(1);
