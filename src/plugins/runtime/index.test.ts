@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../../agents/defaults.js";
+import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../../types/agent-defaults.js";
 import { onAgentEvent } from "../../infra/agent-events.js";
 import { requestHeartbeatNow } from "../../infra/heartbeat-wake.js";
 import * as execModule from "../../process/exec.js";

@@ -1,5 +1,5 @@
 import { lookupContextTokens } from "../agents/context.js";
-import { DEFAULT_CONTEXT_TOKENS } from "../agents/defaults.js";
+import { DEFAULT_CONTEXT_TOKENS } from "../types/agent-defaults.js";
 import { loadConfig } from "../config/config.js";
 import { loadSessionStore, resolveFreshSessionTotalTokens } from "../config/sessions.js";
 import { classifySessionKey } from "../gateway/session-utils.js";

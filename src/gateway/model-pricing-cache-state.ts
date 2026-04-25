@@ -1,5 +1,5 @@
 import { normalizeModelRef } from "../agents/model-selection.js";
-import { normalizeProviderId } from "../agents/provider-id.js";
+import { normalizeProviderId } from "../types/provider-id.js";
 
 export type CachedModelPricing = {
   input: number;

@@ -1,4 +1,4 @@
-import { findNormalizedProviderKey } from "../agents/provider-id.js";
+import { findNormalizedProviderKey } from "../types/provider-id.js";
 import type { CoreBlowConfig } from "../config/config.js";
 import type { AgentModelEntryConfig } from "../config/types.agent-defaults.js";
 import type {

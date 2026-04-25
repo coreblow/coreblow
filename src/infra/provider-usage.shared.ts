@@ -2,7 +2,7 @@ import { clamp } from "../utils.js";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { normalizeProviderId } from "../agents/provider-id.js";
+import { normalizeProviderId } from "../types/provider-id.js";
 import { resolveRequiredHomeDir } from "./home-dir.js";
 import type { UsageProviderId } from "./provider-usage.types.js";
 

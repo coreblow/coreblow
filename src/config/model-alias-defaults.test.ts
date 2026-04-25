@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_CONTEXT_TOKENS } from "../agents/defaults.js";
+import { DEFAULT_CONTEXT_TOKENS } from "../types/agent-defaults.js";
 import { applyModelDefaults } from "./defaults.js";
 import type { CoreBlowConfig } from "./types.js";
 

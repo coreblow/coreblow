@@ -1,4 +1,4 @@
-import { DEFAULT_PROVIDER } from "../agents/defaults.js";
+import { DEFAULT_PROVIDER } from "../types/agent-defaults.js";
 import { resolveAllowlistModelKey } from "../agents/model-allowlist-ref.js";
 import type { CoreBlowConfig } from "../config/config.js";
 

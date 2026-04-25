@@ -1,5 +1,5 @@
 import { resolveAgentDir, resolveAgentWorkspaceDir } from "../../agents/agent-scope.js";
-import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../../agents/defaults.js";
+import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../../types/agent-defaults.js";
 import { resolveAgentIdentity } from "../../agents/identity.js";
 import { resolveThinkingDefault } from "../../agents/model-selection.js";
 import { resolveAgentTimeoutMs } from "../../agents/timeout.js";

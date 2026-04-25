@@ -1,7 +1,7 @@
 import { resolveAgentConfig } from "../../agents/agent-scope.js";
 import { clearSessionAuthProfileOverride } from "../../agents/auth-profiles/session-override.js";
 import { resolveContextTokensForModel } from "../../agents/context.js";
-import { DEFAULT_CONTEXT_TOKENS } from "../../agents/defaults.js";
+import { DEFAULT_CONTEXT_TOKENS } from "../../types/agent-defaults.js";
 import type { ModelCatalogEntry } from "../../agents/model-catalog.js";
 import {
   buildConfiguredModelCatalog,

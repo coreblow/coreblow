@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { lookupContextTokens } from "../../agents/context.js";
-import { DEFAULT_CONTEXT_TOKENS } from "../../agents/defaults.js";
+import { DEFAULT_CONTEXT_TOKENS } from "../../types/agent-defaults.js";
 import { resolveFreshSessionTotalTokens, type SessionEntry } from "../../config/sessions.js";
 
 export function resolveMemoryFlushContextWindowTokens(params: {
