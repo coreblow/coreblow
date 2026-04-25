@@ -34,6 +34,11 @@ export interface WAButton {
     title: string;
 }
 
+/** WhatsApp API send response */
+interface WhatsAppSendResponse {
+    messages?: Array<{ id: string }>;
+}
+
 /** Message handler */
 export type WhatsAppMessageHandler = (msg: WhatsAppMessage) => Promise<string | void>;
 
@@ -66,7 +71,7 @@ export class WhatsAppAdapter {
             type: 'text',
             text: { preview_url: false, body: text },
         });
-        return (data.messages as any[])?.[0]?.id ?? '';
+        return (data as WhatsAppSendResponse).messages?.[0]?.id ?? '';
     }
 
     /**
@@ -79,7 +84,7 @@ export class WhatsAppAdapter {
             type: 'image',
             image: { link: imageUrl, caption },
         });
-        return (data.messages as any[])?.[0]?.id ?? '';
+        return (data as WhatsAppSendResponse).messages?.[0]?.id ?? '';
     }
 
     /**
@@ -92,7 +97,7 @@ export class WhatsAppAdapter {
             type: 'document',
             document: { link: docUrl, filename, caption },
         });
-        return (data.messages as any[])?.[0]?.id ?? '';
+        return (data as WhatsAppSendResponse).messages?.[0]?.id ?? '';
     }
 
     /**
@@ -114,7 +119,7 @@ export class WhatsAppAdapter {
                 },
             },
         });
-        return (data.messages as any[])?.[0]?.id ?? '';
+        return (data as WhatsAppSendResponse).messages?.[0]?.id ?? '';
     }
 
     /**
@@ -127,7 +132,7 @@ export class WhatsAppAdapter {
             type: 'template',
             template: { name: templateName, language: { code: languageCode } },
         });
-        return (data.messages as any[])?.[0]?.id ?? '';
+        return (data as WhatsAppSendResponse).messages?.[0]?.id ?? '';
     }
 
     /**

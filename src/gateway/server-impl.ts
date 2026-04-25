@@ -23,6 +23,7 @@ import {
 } from './http-common.js';
 import { bootstrapCoreSubsystems } from './server-startup.js';
 import type { GatewayRequestContext } from './server-methods/types.js';
+import type { RequestFrame } from './protocol/index.js';
 import { ensureGatewayStartupAuth } from './startup-auth.js';
 import type { ResolvedGatewayAuth, GatewayAuthConfig } from './gateway-auth.js';
 import {
@@ -269,7 +270,7 @@ export class GatewayServer {
         }
 
         await handler({
-            req: { id: reqId, method: parsed.method, params: parsed.params, type: 'rpc' } as any,
+            req: { id: reqId, method: parsed.method, params: parsed.params, type: 'rpc' } as unknown as RequestFrame,
             params: parsed.params || {},
             client: null,
             isWebchatConnect: () => false,

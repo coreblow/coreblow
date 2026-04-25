@@ -36,7 +36,7 @@ export function bootstrapEngine(opts: BootstrapOptions = {}): AgentEngine {
 
     // Wire broadcast to WsHandler if available
     if (opts.wsHandler) {
-        setBroadcast((event: any, data: any) => {
+        setBroadcast((event: string, data: unknown) => {
             opts.wsHandler!.broadcast(event, data);
         });
     }

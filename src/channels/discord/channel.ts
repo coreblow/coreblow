@@ -88,7 +88,7 @@ import { discordLog } from './utils/logger.js';
  await this.sendMessage(msg);
  });
 
- await loginClient(this.client as any, this.config.token);
+ await loginClient(this.client as unknown as Parameters<typeof loginClient>[0], this.config.token);
  } catch (err: unknown) {
  discordLog.error({ err: err instanceof Error ? err.message : String(err) }, 'Failed to start Discord channel');
  throw err;
@@ -102,10 +102,10 @@ import { discordLog } from './utils/logger.js';
  if (!this.client) return;
  if (!channelId) return;
   let channel = this.client.channels.cache.get(channelId);
- if (!channel) channel = await this.client.channels.fetch(channelId).catch(() => null) as any;
+ if (!channel) channel = await this.client.channels.fetch(channelId).catch(() => null) as unknown as typeof channel;
  if (!channel) {
  const user = msg.senderId ? await this.client.users.fetch(msg.senderId).catch(() => null) : null;
- if (user) channel = await user.createDM() as any;
+ if (user) channel = await user.createDM() as unknown as typeof channel;
  }
  if (!channel || !('send' in channel)) return;
 
