@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Runtime helpers for native channel plugins.
  *
