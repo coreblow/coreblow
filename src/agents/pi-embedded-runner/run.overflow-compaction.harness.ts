@@ -55,7 +55,7 @@ export const mockedGlobalHookRunner = {
 
 export const mockedContextEngine = {
   info: { ownsCompaction: false as boolean },
-  compact: vi.fn(async () => ({
+  compact: vi.fn(async (): Promise<MockCompactionResult> => ({
     ok: false as const,
     compacted: false as const,
     reason: "nothing to compact",
@@ -71,7 +71,7 @@ export const mockedRunEmbeddedAttempt =
   vi.fn();
 export const mockedRunContextEngineMaintenance = vi.fn(async () => undefined);
 export const mockedSessionLikelyHasOversizedToolResults = vi.fn(() => false);
-export const mockedTruncateOversizedToolResultsInSession = vi.fn(async () => ({
+export const mockedTruncateOversizedToolResultsInSession = vi.fn(async (): Promise<MockTruncateOversizedToolResultsResult> => ({
   truncated: false,
   truncatedCount: 0,
   reason: "no oversized tool results",
@@ -115,11 +115,11 @@ export const mockedDescribeFailoverError = vi.fn(
 export const mockedResolveFailoverStatus = vi.fn();
 
 export const mockedLog: {
-  debug: Mock<(...args: unknown[]) => void>;
-  info: Mock<(...args: unknown[]) => void>;
-  warn: Mock<(...args: unknown[]) => void>;
-  error: Mock<(...args: unknown[]) => void>;
-  isEnabled: Mock<(level?: string) => boolean>;
+  debug: Mock<unknown[], void>;
+  info: Mock<unknown[], void>;
+  warn: Mock<unknown[], void>;
+  error: Mock<unknown[], void>;
+  isEnabled: Mock<[level?: string], boolean>;
 } = {
   debug: vi.fn(),
   info: vi.fn(),
