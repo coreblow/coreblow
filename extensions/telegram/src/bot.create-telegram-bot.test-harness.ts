@@ -6,11 +6,11 @@ import type { MsgContext } from "coreblow/plugin-sdk/reply-runtime";
 import type { GetReplyOptions, ReplyPayload } from "coreblow/plugin-sdk/reply-runtime";
 import { createReplyDispatcher } from "coreblow/plugin-sdk/reply-runtime";
 import type { MockFn } from "coreblow/plugin-sdk/testing";
-import { beforeEach, vi } from "vitest";
+import { beforeEach, vi , Mock } from "vitest";
 import type { TelegramBotDeps } from "./bot-deps.js";
 
-type AnyMock = ReturnType<typeof vi.fn>;
-type AnyAsyncMock = ReturnType<typeof vi.fn>;
+type AnyMock = Mock;
+type AnyAsyncMock = Mock;
 type LoadConfigFn = typeof import("coreblow/plugin-sdk/config-runtime").loadConfig;
 type ResolveStorePathFn = typeof import("coreblow/plugin-sdk/config-runtime").resolveStorePath;
 type TelegramBotRuntimeForTest = NonNullable<
@@ -53,8 +53,8 @@ const { loadConfig, resolveStorePathMock } = vi.hoisted(
     loadConfig: MockFn<LoadConfigFn>;
     resolveStorePathMock: MockFn<ResolveStorePathFn>;
   } => ({
-    loadConfig: vi.fn<LoadConfigFn>(() => ({})),
-    resolveStorePathMock: vi.fn<ResolveStorePathFn>(
+    loadConfig: vi.fn(() => ({})),
+    resolveStorePathMock: vi.fn(
       (storePath?: string) => storePath ?? sessionStorePath,
     ),
   }),
@@ -174,7 +174,7 @@ async function dispatchHarnessReplies(
 }
 
 const dispatchReplyHoisted = vi.hoisted(() => ({
-  dispatchReplyWithBufferedBlockDispatcher: vi.fn<DispatchReplyWithBufferedBlockDispatcherFn>(
+  dispatchReplyWithBufferedBlockDispatcher: vi.fn(
     async (params: DispatchReplyHarnessParams) =>
       await dispatchHarnessReplies(params, async (dispatchParams) => {
         return await replySpyHoisted.replySpy(dispatchParams.ctx, dispatchParams.replyOptions);
@@ -270,7 +270,7 @@ vi.doMock("coreblow/plugin-sdk/reply-runtime.js", async (importOriginal) => {
 });
 
 const systemEventsHoisted = vi.hoisted(() => ({
-  enqueueSystemEventSpy: vi.fn<TelegramBotDeps["enqueueSystemEvent"]>(() => false),
+  enqueueSystemEventSpy: vi.fn(() => false),
 }));
 export const enqueueSystemEventSpy: MockFn<TelegramBotDeps["enqueueSystemEvent"]> =
   systemEventsHoisted.enqueueSystemEventSpy;

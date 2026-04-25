@@ -381,21 +381,15 @@ describe("handleSystemRunInvoke mac app exec host routing", () => {
     sendNodeEvent: MockedSendNodeEvent;
     sendExecFinishedEvent: MockedSendExecFinishedEvent;
   }> {
-    const runCommand: MockedRunCommand = vi.fn<HandleSystemRunInvokeOptions["runCommand"]>(
+    const runCommand: MockedRunCommand = vi.fn(
       async () => createLocalRunResult(),
     );
-    const runViaMacAppExecHost: MockedRunViaMacAppExecHost = vi.fn<
-      HandleSystemRunInvokeOptions["runViaMacAppExecHost"]
-    >(async () => params.runViaResponse ?? null);
-    const sendInvokeResult: MockedSendInvokeResult = vi.fn<
-      HandleSystemRunInvokeOptions["sendInvokeResult"]
-    >(async () => {});
-    const sendNodeEvent: MockedSendNodeEvent = vi.fn<HandleSystemRunInvokeOptions["sendNodeEvent"]>(
+    const runViaMacAppExecHost: MockedRunViaMacAppExecHost = vi.fn(async () => params.runViaResponse ?? null);
+    const sendInvokeResult: MockedSendInvokeResult = vi.fn(async () => {});
+    const sendNodeEvent: MockedSendNodeEvent = vi.fn(
       async () => {},
     );
-    const sendExecFinishedEvent: MockedSendExecFinishedEvent = vi.fn<
-      HandleSystemRunInvokeOptions["sendExecFinishedEvent"]
-    >(async () => {});
+    const sendExecFinishedEvent: MockedSendExecFinishedEvent = vi.fn(async () => {});
 
     if (params.runCommand !== undefined) {
       runCommand.mockImplementation(params.runCommand);

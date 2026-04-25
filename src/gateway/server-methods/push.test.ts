@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { ErrorCodes } from "../protocol/index.js";
 import { pushHandlers } from "./push.js";
 
@@ -108,7 +108,7 @@ function createInvokeParams(params: Record<string, unknown>) {
 }
 
 function expectInvalidRequestResponse(
-  respond: ReturnType<typeof vi.fn>,
+  respond: Mock,
   expectedMessagePart: string,
 ) {
   const call = respond.mock.calls[0] as RespondCall | undefined;

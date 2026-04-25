@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 
 const {
   GatewayIntents,
@@ -158,7 +158,7 @@ describe("createDiscordGatewayPlugin", () => {
         registerClient: (client: {
           options: { token: string };
           registerListener: typeof baseRegisterClientSpy;
-          unregisterListener: ReturnType<typeof vi.fn>;
+          unregisterListener: Mock;
         }) => Promise<void>;
       }
     ).registerClient({

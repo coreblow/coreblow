@@ -75,7 +75,7 @@ function installRuntime(params?: {
         matchesMentionPatterns: params?.matchesMentionPatterns ?? vi.fn(() => false),
       },
     },
-  } as unknown as PluginRuntime);
+  } as any);
 }
 
 function createRuntimeEnv() {

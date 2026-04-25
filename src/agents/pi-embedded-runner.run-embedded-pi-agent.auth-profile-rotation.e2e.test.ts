@@ -8,7 +8,7 @@ import { redactIdentifier } from "../logging/redact-identifier.js";
 import type { AuthProfileFailureReason } from "./auth-profiles.js";
 import type { EmbeddedRunAttemptResult } from "./pi-embedded-runner/run/types.js";
 
-const runEmbeddedAttemptMock = vi.fn<(params: unknown) => Promise<EmbeddedRunAttemptResult>>();
+const runEmbeddedAttemptMock = vi.fn();
 const resolveCopilotApiTokenMock = vi.fn();
 const { computeBackoffMock, sleepWithAbortMock } = vi.hoisted(() => ({
   computeBackoffMock: vi.fn(

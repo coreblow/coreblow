@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import type { ChannelId } from "../channels/plugins/types.js";
 import { CronService, type CronServiceDeps } from "./service.js";
 import {
@@ -24,8 +24,8 @@ async function withCronService(
   },
   run: (context: {
     cron: CronService;
-    enqueueSystemEvent: ReturnType<typeof vi.fn>;
-    requestHeartbeatNow: ReturnType<typeof vi.fn>;
+    enqueueSystemEvent: Mock;
+    requestHeartbeatNow: Mock;
   }) => Promise<void>,
 ) {
   await withCronServiceForTest(

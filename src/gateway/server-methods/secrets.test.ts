@@ -1,9 +1,9 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import { createSecretsHandlers } from "./secrets.js";
 
 async function invokeSecretsReload(params: {
   handlers: ReturnType<typeof createSecretsHandlers>;
-  respond: ReturnType<typeof vi.fn>;
+  respond: Mock;
 }) {
   await params.handlers["secrets.reload"]({
     req: { type: "req", id: "1", method: "secrets.reload" },
@@ -19,7 +19,7 @@ async function invokeSecretsReload(params: {
 
 async function invokeSecretsResolve(params: {
   handlers: ReturnType<typeof createSecretsHandlers>;
-  respond: ReturnType<typeof vi.fn>;
+  respond: Mock;
   commandName: unknown;
   targetIds: unknown;
 }) {

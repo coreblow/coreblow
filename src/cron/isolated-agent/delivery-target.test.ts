@@ -6,7 +6,7 @@ import { resetPluginRuntimeStateForTest, setActivePluginRegistry } from "../../p
 import { createOutboundTestPlugin, createTestRegistry } from "../../test-utils/channel-plugins.js";
 
 const whatsappAccountMocks = vi.hoisted(() => ({
-  resolveWhatsAppAccount: vi.fn<() => { allowFrom: string[] }>(() => ({ allowFrom: [] })),
+  resolveWhatsAppAccount: vi.fn(() => ({ allowFrom: [] })),
 }));
 
 vi.mock("../../config/sessions.js", () => ({

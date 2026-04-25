@@ -1,13 +1,13 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 
 const streamInstances = vi.hoisted(
   () =>
     [] as Array<{
       hasContent: boolean;
       isFinalized: boolean;
-      sendInformativeUpdate: ReturnType<typeof vi.fn>;
-      update: ReturnType<typeof vi.fn>;
-      finalize: ReturnType<typeof vi.fn>;
+      sendInformativeUpdate: Mock;
+      update: Mock;
+      finalize: Mock;
     }>,
 );
 

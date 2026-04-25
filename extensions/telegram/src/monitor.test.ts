@@ -1,4 +1,4 @@
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 
 type MonitorTelegramOpts = import("./monitor.js").MonitorTelegramOpts;
 let monitorTelegramProvider: typeof import("./monitor.js").monitorTelegramProvider;
@@ -70,7 +70,7 @@ const { createTelegramBotCalls } = vi.hoisted(() => ({
 }));
 
 const { createdBotStops } = vi.hoisted(() => ({
-  createdBotStops: [] as Array<ReturnType<typeof vi.fn<() => void>>>,
+  createdBotStops: [] as Array<Mock>,
 }));
 
 const { computeBackoff, sleepWithAbort } = vi.hoisted(() => ({
@@ -92,13 +92,13 @@ const { resolveTelegramTransportSpy } = vi.hoisted(() => ({
 
 type RunnerStub = {
   task: () => Promise<void>;
-  stop: ReturnType<typeof vi.fn<() => void | Promise<void>>>;
+  stop: Mock;
   isRunning: () => boolean;
 };
 
 const makeRunnerStub = (overrides: Partial<RunnerStub> = {}): RunnerStub => ({
   task: overrides.task ?? (() => Promise.resolve()),
-  stop: overrides.stop ?? vi.fn<() => void | Promise<void>>(),
+  stop: overrides.stop ?? vi.fn(),
   isRunning: overrides.isRunning ?? (() => false),
 });
 
@@ -178,7 +178,7 @@ async function runMonitorAndCaptureStartupOrder(params?: { persistedOffset?: num
 }
 
 function mockRunOnceWithStalledPollingRunner(): {
-  stop: ReturnType<typeof vi.fn<() => void | Promise<void>>>;
+  stop: Mock;
   waitForTaskStart: () => Promise<void>;
 } {
   let running = true;
@@ -256,7 +256,7 @@ vi.mock("./bot.js", () => ({
     if (nextError) {
       throw nextError;
     }
-    const stop = vi.fn<() => void>();
+    const stop = vi.fn();
     createdBotStops.push(stop);
     handlers.message = async (ctx: MockCtx) => {
       const chatId = ctx.message.chat.id;
@@ -368,7 +368,7 @@ describe("monitorTelegramProvider (grammY)", () => {
   it("processes a DM and sends reply", async () => {
     for (const v of Object.values(api)) {
       if (typeof v === "function" && "mockReset" in v) {
-        (v as ReturnType<typeof vi.fn>).mockReset();
+        (v as Mock).mockReset();
       }
     }
     await monitorWithAutoAbort();
@@ -412,7 +412,7 @@ describe("monitorTelegramProvider (grammY)", () => {
   it("requires mention in groups by default", async () => {
     for (const v of Object.values(api)) {
       if (typeof v === "function" && "mockReset" in v) {
-        (v as ReturnType<typeof vi.fn>).mockReset();
+        (v as Mock).mockReset();
       }
     }
     await monitorWithAutoAbort();

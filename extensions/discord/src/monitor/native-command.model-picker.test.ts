@@ -1,5 +1,5 @@
 import { ChannelType } from "discord-api-types/v10";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import * as commandRegistryModule from "../../../../src/auto-reply/commands-registry.js";
 import type {
   ChatCommandDefinition,
@@ -35,10 +35,10 @@ type MockInteraction = {
   guild: { id: string } | null;
   rawData: { id: string; member: { roles: string[] } };
   values?: string[];
-  reply: ReturnType<typeof vi.fn>;
-  followUp: ReturnType<typeof vi.fn>;
-  update: ReturnType<typeof vi.fn>;
-  acknowledge: ReturnType<typeof vi.fn>;
+  reply: Mock;
+  followUp: Mock;
+  update: Mock;
+  acknowledge: Mock;
   client: object;
 };
 

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi , Mock } from "vitest";
 import type { CoreBlowConfig } from "../../../src/config/config.js";
 import type { PluginApprovalRequest } from "../../../src/infra/plugin-approvals.js";
 import type { PluginRuntime } from "../../../src/plugins/runtime/types.js";
@@ -154,8 +154,8 @@ function createOpsProxyAccount() {
 }
 
 function installSendMessageRuntime(
-  sendMessageTelegram: ReturnType<typeof vi.fn>,
-): ReturnType<typeof vi.fn> {
+  sendMessageTelegram: Mock,
+): Mock {
   installTelegramRuntime({
     sendMessageTelegram,
   });

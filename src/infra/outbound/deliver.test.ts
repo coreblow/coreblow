@@ -23,11 +23,11 @@ const mocks = vi.hoisted(() => ({
 }));
 const hookMocks = vi.hoisted(() => ({
   runner: {
-    hasHooks: vi.fn<(_hookName?: string) => boolean>(() => false),
-    runMessageSending: vi.fn<(event: unknown, ctx: unknown) => Promise<unknown>>(
+    hasHooks: vi.fn(() => false),
+    runMessageSending: vi.fn(
       async () => undefined,
     ),
-    runMessageSent: vi.fn<(event: unknown, ctx: unknown) => Promise<void>>(async () => {}),
+    runMessageSent: vi.fn(async () => {}),
   },
 }));
 const internalHookMocks = vi.hoisted(() => ({

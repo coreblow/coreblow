@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { vi } from "vitest";
+import { vi , Mock } from "vitest";
 import { monitorWebChannel } from "./auto-reply.js";
 import {
   createWebInboundDeliverySpies,
@@ -26,7 +26,7 @@ export async function monitorWebChannelWithCapture(resolver: unknown): Promise<{
 
 export async function sendWebDirectInboundAndCollectSessionKeys(): Promise<{
   seen: string[];
-  resolver: ReturnType<typeof vi.fn>;
+  resolver: Mock;
 }> {
   const seen: string[] = [];
   const resolver = vi.fn(async (ctx: { SessionKey?: unknown }) => {

@@ -12,7 +12,7 @@ const note = vi.hoisted(() => vi.fn());
 const serviceIsLoaded = vi.hoisted(() => vi.fn(async () => false));
 const serviceInstall = vi.hoisted(() => vi.fn(async () => {}));
 const serviceRestart = vi.hoisted(() =>
-  vi.fn<() => Promise<{ outcome: "completed" } | { outcome: "scheduled" }>>(async () => ({
+  vi.fn(async () => ({
     outcome: "completed",
   })),
 );

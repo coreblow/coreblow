@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 
 type RegistryModule = typeof import("./registry.js");
 type RuntimeModule = typeof import("./runtime.js");
@@ -21,16 +21,16 @@ const BUNDLED_WEB_SEARCH_PROVIDERS = [
 ] as const;
 
 let createEmptyPluginRegistry: RegistryModule["createEmptyPluginRegistry"];
-let loadPluginManifestRegistryMock: ReturnType<typeof vi.fn>;
+let loadPluginManifestRegistryMock: Mock;
 let setActivePluginRegistry: RuntimeModule["setActivePluginRegistry"];
 let resolvePluginWebSearchProviders: WebSearchProvidersRuntimeModule["resolvePluginWebSearchProviders"];
 let resolveRuntimeWebSearchProviders: WebSearchProvidersRuntimeModule["resolveRuntimeWebSearchProviders"];
 let resetWebSearchProviderSnapshotCacheForTests: WebSearchProvidersRuntimeModule["__testing"]["resetWebSearchProviderSnapshotCacheForTests"];
-let loadCoreBlowPluginsMock: ReturnType<typeof vi.fn>;
+let loadCoreBlowPluginsMock: Mock;
 let loaderModule: typeof import("./loader.js");
 let manifestRegistryModule: ManifestRegistryModule;
 let pluginAutoEnableModule: PluginAutoEnableModule;
-let applyPluginAutoEnableSpy: ReturnType<typeof vi.fn>;
+let applyPluginAutoEnableSpy: Mock;
 let webSearchProvidersSharedModule: WebSearchProvidersSharedModule;
 
 const DEFAULT_WEB_SEARCH_WORKSPACE = "/tmp/workspace";

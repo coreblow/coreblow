@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import type { GatewayBonjourBeacon } from "../../infra/bonjour-discovery.js";
 import { pickBeaconHost, pickGatewayPort } from "./discover.js";
 
@@ -22,9 +22,7 @@ const getActiveTaskCount = vi.fn(() => 0);
 const markGatewayDraining = vi.fn();
 const waitForActiveTasks = vi.fn(async (_timeoutMs: number) => ({ drained: true }));
 const resetAllLanes = vi.fn();
-const restartGatewayProcessWithFreshPid = vi.fn<
-  () => { mode: "spawned" | "supervised" | "disabled" | "failed"; pid?: number; detail?: string }
->(() => ({ mode: "disabled" }));
+const restartGatewayProcessWithFreshPid = vi.fn(() => ({ mode: "disabled" }));
 const abortEmbeddedPiRun = vi.fn(
   (_sessionId?: string, _opts?: { mode?: "all" | "compacting" }) => false,
 );
@@ -158,7 +156,7 @@ function createSignaledStart(close: GatewayCloseFn) {
 }
 
 async function runLoopWithStart(params: {
-  start: ReturnType<typeof vi.fn>;
+  start: Mock;
   runtime: LoopRuntime;
   lockPort?: number;
 }) {
@@ -223,7 +221,7 @@ describe("runGatewayLoop", () => {
       const closeThird = vi.fn(async () => {});
       const { runtime, exited } = createRuntimeWithExitSignal();
 
-      const start = vi.fn<StartServer>();
+      const start = vi.fn();
       let resolveFirst: (() => void) | null = null;
       const startedFirst = new Promise<void>((resolve) => {
         resolveFirst = resolve;

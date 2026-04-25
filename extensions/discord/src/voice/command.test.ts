@@ -1,5 +1,5 @@
 import type { CommandInteraction, CommandWithSubcommands } from "@buape/carbon";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import { createDiscordVoiceCommand } from "./command.js";
 import type { DiscordVoiceManager } from "./manager.js";
 
@@ -35,7 +35,7 @@ function createVoiceCommandHarness(manager: DiscordVoiceManager | null = null) {
 
 function createInteraction(overrides?: Partial<CommandInteraction>): {
   interaction: CommandInteraction;
-  reply: ReturnType<typeof vi.fn>;
+  reply: Mock;
 } {
   const reply = vi.fn(async () => undefined);
   const interaction = {

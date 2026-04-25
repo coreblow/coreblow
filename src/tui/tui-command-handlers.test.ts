@@ -1,19 +1,19 @@
 // @ts-nocheck
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import { createCommandHandlers } from "./tui-command-handlers.js";
 
-type LoadHistoryMock = ReturnType<typeof vi.fn> & (() => Promise<void>);
-type SetActivityStatusMock = ReturnType<typeof vi.fn> & ((text: string) => void);
-type SetSessionMock = ReturnType<typeof vi.fn> & ((key: string) => Promise<void>);
+type LoadHistoryMock = Mock & (() => Promise<void>);
+type SetActivityStatusMock = Mock & ((text: string) => void);
+type SetSessionMock = Mock & ((key: string) => Promise<void>);
 
 function createHarness(params?: {
-  sendChat?: ReturnType<typeof vi.fn>;
-  patchSession?: ReturnType<typeof vi.fn>;
-  resetSession?: ReturnType<typeof vi.fn>;
+  sendChat?: Mock;
+  patchSession?: Mock;
+  resetSession?: Mock;
   setSession?: SetSessionMock;
   loadHistory?: LoadHistoryMock;
-  refreshSessionInfo?: ReturnType<typeof vi.fn>;
-  applySessionInfoFromPatch?: ReturnType<typeof vi.fn>;
+  refreshSessionInfo?: Mock;
+  applySessionInfoFromPatch?: Mock;
   setActivityStatus?: SetActivityStatusMock;
   isConnected?: boolean;
   activeChatRunId?: string | null;

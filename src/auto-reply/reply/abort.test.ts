@@ -36,12 +36,10 @@ const commandQueueMocks = vi.hoisted(() => ({
 vi.mock("../../process/command-queue.js", () => commandQueueMocks);
 
 const subagentRegistryMocks = vi.hoisted(() => ({
-  listSubagentRunsForRequester: vi.fn<(requesterSessionKey: string) => SubagentRunRecord[]>(
+  listSubagentRunsForRequester: vi.fn(
     () => [],
   ),
-  getLatestSubagentRunByChildSessionKey: vi.fn<
-    (childSessionKey: string) => SubagentRunRecord | null
-  >(() => null),
+  getLatestSubagentRunByChildSessionKey: vi.fn(() => null),
   markSubagentRunTerminated: vi.fn(() => 1),
 }));
 
@@ -54,15 +52,7 @@ vi.mock("../../agents/subagent-registry.js", () => ({
 }));
 
 const acpManagerMocks = vi.hoisted(() => ({
-  resolveSession: vi.fn<
-    () =>
-      | { kind: "none" }
-      | {
-          kind: "ready";
-          sessionKey: string;
-          meta: unknown;
-        }
-  >(() => ({ kind: "none" })),
+  resolveSession: vi.fn(() => ({ kind: "none" })),
   cancelSession: vi.fn(async () => {}),
 }));
 

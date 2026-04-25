@@ -9,9 +9,9 @@ import {
   runProviderPluginAuthMethod,
 } from "./auth-choice.apply.plugin-provider.js";
 
-const resolvePluginProviders = vi.hoisted(() => vi.fn<() => ProviderPlugin[]>(() => []));
+const resolvePluginProviders = vi.hoisted(() => vi.fn(() => []));
 const resolveProviderPluginChoice = vi.hoisted(() =>
-  vi.fn<() => { provider: ProviderPlugin; method: ProviderAuthMethod } | null>(),
+  vi.fn(),
 );
 const runProviderModelSelectedHook = vi.hoisted(() => vi.fn(async () => {}));
 vi.mock("../plugins/provider-auth-choice.runtime.js", () => ({

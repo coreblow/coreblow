@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { GetReplyOptions, MsgContext } from "coreblow/plugin-sdk/reply-runtime";
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { escapeRegExp, formatEnvelopeTimestamp } from "../../../test/helpers/envelope-timestamp.js";
 import { withEnvAsync } from "../../../test/helpers/extensions/env.js";
 import { useFrozenTime, useRealTime } from "../../../test/helpers/extensions/frozen-time.js";
@@ -347,7 +347,7 @@ describe("createTelegramBot", () => {
   });
   it("reloads callback model routing bindings without recreating the bot", async () => {
     const buildModelsProviderDataMock =
-      telegramBotDepsForTest.buildModelsProviderData as unknown as ReturnType<typeof vi.fn>;
+      telegramBotDepsForTest.buildModelsProviderData as unknown as Mock;
     let boundAgentId = "agent-a";
     loadConfig.mockImplementation(() => ({
       agents: {

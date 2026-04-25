@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import type { SessionEntry } from "./types.js";
 
 // Keep integration tests deterministic: never read a real coreblow.json.
@@ -16,7 +16,7 @@ let clearSessionStoreCacheForTest: typeof import("./store.js").clearSessionStore
 let loadSessionStore: typeof import("./store.js").loadSessionStore;
 let saveSessionStore: typeof import("./store.js").saveSessionStore;
 
-let mockLoadConfig: ReturnType<typeof vi.fn>;
+let mockLoadConfig: Mock;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const ENFORCED_MAINTENANCE_OVERRIDE = {
@@ -38,7 +38,7 @@ function makeEntry(updatedAt: number): SessionEntry {
   return { sessionId: crypto.randomUUID(), updatedAt };
 }
 
-function applyEnforcedMaintenanceConfig(mockLoadConfig: ReturnType<typeof vi.fn>) {
+function applyEnforcedMaintenanceConfig(mockLoadConfig: Mock) {
   mockLoadConfig.mockReturnValue({
     session: {
       maintenance: {
@@ -51,7 +51,7 @@ function applyEnforcedMaintenanceConfig(mockLoadConfig: ReturnType<typeof vi.fn>
   });
 }
 
-function applyCappedMaintenanceConfig(mockLoadConfig: ReturnType<typeof vi.fn>) {
+function applyCappedMaintenanceConfig(mockLoadConfig: Mock) {
   mockLoadConfig.mockReturnValue({
     session: {
       maintenance: {
@@ -95,7 +95,7 @@ describe("Integration: saveSessionStore with pruning", () => {
     ({ loadConfig } = await import("../config.js"));
     ({ clearSessionStoreCacheForTest, loadSessionStore, saveSessionStore } =
       await import("./store.js"));
-    mockLoadConfig = vi.mocked(loadConfig) as ReturnType<typeof vi.fn>;
+    mockLoadConfig = vi.mocked(loadConfig) as Mock;
     testDir = await createCaseDir("pruning-integ");
     storePath = path.join(testDir, "sessions.json");
     savedCacheTtl = process.env.COREBLOW_SESSION_CACHE_TTL_MS;

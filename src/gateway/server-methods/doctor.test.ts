@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import type { CoreBlowConfig } from "../../config/config.js";
 
 const loadConfig = vi.hoisted(() => vi.fn(() => ({}) as CoreBlowConfig));
@@ -19,7 +19,7 @@ vi.mock("../../plugins/memory-runtime.js", () => ({
 
 import { doctorHandlers } from "./doctor.js";
 
-const invokeDoctorMemoryStatus = async (respond: ReturnType<typeof vi.fn>) => {
+const invokeDoctorMemoryStatus = async (respond: Mock) => {
   await doctorHandlers["doctor.memory.status"]({
     req: {} as never,
     params: {} as never,
@@ -30,7 +30,7 @@ const invokeDoctorMemoryStatus = async (respond: ReturnType<typeof vi.fn>) => {
   });
 };
 
-const expectEmbeddingErrorResponse = (respond: ReturnType<typeof vi.fn>, error: string) => {
+const expectEmbeddingErrorResponse = (respond: Mock, error: string) => {
   expect(respond).toHaveBeenCalledWith(
     true,
     {

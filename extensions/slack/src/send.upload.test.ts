@@ -1,5 +1,5 @@
 import type { WebClient } from "@slack/web-api";
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { installSlackBlockTestMocks } from "./blocks.test-helpers.js";
 
 // --- Module mocks (must precede dynamic import) ---
@@ -35,11 +35,11 @@ let sendMessageSlack: typeof import("./send.js").sendMessageSlack;
 let clearSlackDmChannelCache: typeof import("./send.js").clearSlackDmChannelCache;
 
 type UploadTestClient = WebClient & {
-  conversations: { open: ReturnType<typeof vi.fn> };
-  chat: { postMessage: ReturnType<typeof vi.fn> };
+  conversations: { open: Mock };
+  chat: { postMessage: Mock };
   files: {
-    getUploadURLExternal: ReturnType<typeof vi.fn>;
-    completeUploadExternal: ReturnType<typeof vi.fn>;
+    getUploadURLExternal: Mock;
+    completeUploadExternal: Mock;
   };
 };
 

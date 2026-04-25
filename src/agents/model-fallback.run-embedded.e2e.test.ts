@@ -12,7 +12,7 @@ import {
   makeEmbeddedRunnerAttempt,
 } from "./test-helpers/pi-embedded-runner-e2e-fixtures.js";
 
-const runEmbeddedAttemptMock = vi.fn<(params: unknown) => Promise<EmbeddedRunAttemptResult>>();
+const runEmbeddedAttemptMock = vi.fn();
 const { computeBackoffMock, sleepWithAbortMock } = vi.hoisted(() => ({
   computeBackoffMock: vi.fn(
     (

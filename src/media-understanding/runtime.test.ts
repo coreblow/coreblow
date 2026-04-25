@@ -17,7 +17,7 @@ import { setActivePluginRegistry } from "../plugins/runtime.js";
 let describeImageFile: typeof import("./runtime.js").describeImageFile;
 let runMediaUnderstandingFile: typeof import("./runtime.js").runMediaUnderstandingFile;
 let resolveRuntimePluginRegistryMock: ReturnType<
-  typeof vi.fn<(params?: unknown) => ReturnType<typeof createEmptyPluginRegistry> | undefined>
+  typeof vi.fn
 >;
 
 function setCompatibleActiveMediaUnderstandingRegistry(
@@ -62,9 +62,7 @@ describe("media-understanding runtime helpers", () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    resolveRuntimePluginRegistryMock = vi.fn<
-      (params?: unknown) => ReturnType<typeof createEmptyPluginRegistry> | undefined
-    >(() => undefined);
+    resolveRuntimePluginRegistryMock = vi.fn(() => undefined);
     vi.doMock("../plugins/loader.js", () => ({
       resolveRuntimePluginRegistry: resolveRuntimePluginRegistryMock,
     }));

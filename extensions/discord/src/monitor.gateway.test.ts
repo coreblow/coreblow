@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import { waitForDiscordGatewayStop } from "./monitor.gateway.js";
 import type { DiscordGatewayEvent } from "./monitor/gateway-supervisor.js";
 
@@ -61,9 +61,9 @@ function startGatewayWait(params?: {
 
 async function expectAbortToResolve(params: {
   abort: AbortController;
-  attachLifecycle: ReturnType<typeof vi.fn>;
-  detachLifecycle: ReturnType<typeof vi.fn>;
-  disconnect: ReturnType<typeof vi.fn>;
+  attachLifecycle: Mock;
+  detachLifecycle: Mock;
+  disconnect: Mock;
   promise: Promise<void>;
   expectedDisconnectBeforeAbort?: number;
 }) {

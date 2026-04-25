@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import { createTestPluginApi } from "../../test/helpers/extensions/plugin-api.js";
 import registerPhoneControl from "./index.js";
 import type {
@@ -68,7 +68,7 @@ function createPhoneControlConfig(): Record<string, unknown> {
 async function withRegisteredPhoneControl(
   run: (params: {
     command: CoreBlowPluginCommandDefinition;
-    writeConfigFile: ReturnType<typeof vi.fn>;
+    writeConfigFile: Mock;
     getConfig: () => Record<string, unknown>;
   }) => Promise<void>,
 ) {

@@ -27,11 +27,11 @@ const state = vi.hoisted(() => ({
   fileModes: new Map<string, number>(),
 }));
 const launchdRestartHandoffState = vi.hoisted(() => ({
-  isCurrentProcessLaunchdServiceLabel: vi.fn<(label: string) => boolean>(() => false),
+  isCurrentProcessLaunchdServiceLabel: vi.fn(() => false),
   scheduleDetachedLaunchdRestartHandoff: vi.fn((_params: unknown) => ({ ok: true, pid: 7331 })),
 }));
 const cleanStaleGatewayProcessesSync = vi.hoisted(() =>
-  vi.fn<(port?: number) => number[]>(() => []),
+  vi.fn(() => []),
 );
 const defaultProgramArguments = ["node", "-e", "process.exit(0)"];
 

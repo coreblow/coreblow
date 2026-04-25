@@ -1,5 +1,5 @@
 import { chromium } from "playwright-core";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi , Mock } from "vitest";
 import * as chromeModule from "./chrome.js";
 import { closePlaywrightBrowserConnection, listPagesViaPlaywright } from "./pw-session.js";
 
@@ -8,7 +8,7 @@ const getChromeWebSocketUrlSpy = vi.spyOn(chromeModule, "getChromeWebSocketUrl")
 
 type BrowserMockBundle = {
   browser: import("playwright-core").Browser;
-  browserClose: ReturnType<typeof vi.fn>;
+  browserClose: Mock;
 };
 
 function makeBrowser(targetId: string, url: string): BrowserMockBundle {

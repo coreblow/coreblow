@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CoreBlowConfig } from "../../config/config.js";
 
 const loadSessionStoreMock = vi.hoisted(() => vi.fn());
-const readChannelAllowFromStoreSyncMock = vi.hoisted(() => vi.fn<() => string[]>(() => []));
+const readChannelAllowFromStoreSyncMock = vi.hoisted(() => vi.fn(() => []));
 
 type WhatsAppHeartbeatModule = typeof import("./whatsapp-heartbeat.js");
 

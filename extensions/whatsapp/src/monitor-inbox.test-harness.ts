@@ -3,7 +3,7 @@ import fsSync from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { resetLogger, setLoggerOverride } from "coreblow/plugin-sdk/runtime-env";
-import { afterEach, beforeEach, expect, vi } from "vitest";
+import { afterEach, beforeEach, expect, vi , Mock } from "vitest";
 import {
   loadConfigMock,
   readAllowFromStoreMock as pairingReadAllowFromStoreMock,
@@ -145,7 +145,7 @@ export async function settleInboundWork() {
   await new Promise((resolve) => setTimeout(resolve, 25));
 }
 
-export async function waitForMessageCalls(onMessage: ReturnType<typeof vi.fn>, count: number) {
+export async function waitForMessageCalls(onMessage: Mock, count: number) {
   await vi.waitFor(
     () => {
       expect(onMessage).toHaveBeenCalledTimes(count);

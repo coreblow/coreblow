@@ -19,7 +19,7 @@ export const TELEGRAM_TEST_TIMINGS = {
 } as const;
 
 let createTelegramBotRef: typeof import("./bot.js").createTelegramBot;
-let replySpyRef: ReturnType<typeof vi.fn>;
+let replySpyRef: Mock;
 let onSpyRef: Mock;
 let sendChatActionSpyRef: Mock;
 let fetchRemoteMediaSpyRef: Mock;
@@ -38,20 +38,20 @@ function createFetchMockHandle(): FetchMockHandle {
 
 export async function createBotHandler(): Promise<{
   handler: (ctx: Record<string, unknown>) => Promise<void>;
-  replySpy: ReturnType<typeof vi.fn>;
-  runtimeError: ReturnType<typeof vi.fn>;
+  replySpy: Mock;
+  runtimeError: Mock;
 }> {
   return createBotHandlerWithOptions({});
 }
 
 export async function createBotHandlerWithOptions(options: {
   proxyFetch?: typeof fetch;
-  runtimeLog?: ReturnType<typeof vi.fn>;
-  runtimeError?: ReturnType<typeof vi.fn>;
+  runtimeLog?: Mock;
+  runtimeError?: Mock;
 }): Promise<{
   handler: (ctx: Record<string, unknown>) => Promise<void>;
-  replySpy: ReturnType<typeof vi.fn>;
-  runtimeError: ReturnType<typeof vi.fn>;
+  replySpy: Mock;
+  runtimeError: Mock;
 }> {
   onSpyRef.mockClear();
   replySpyRef.mockClear();
@@ -134,7 +134,7 @@ async function loadTelegramBotHarness() {
       telegramDeps: harness.telegramBotDepsForTest,
     });
   const replyModule = await import("coreblow/plugin-sdk/reply-runtime");
-  replySpyRef = (replyModule as unknown as { __replySpy: ReturnType<typeof vi.fn> }).__replySpy;
+  replySpyRef = (replyModule as unknown as { __replySpy: Mock }).__replySpy;
 }
 
 beforeEach(async () => {

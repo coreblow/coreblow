@@ -1,5 +1,5 @@
 import type { WebClient } from "@slack/web-api";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 
 const resolveSlackMedia = vi.fn();
 
@@ -16,7 +16,7 @@ function createClient() {
     },
   } as unknown as WebClient & {
     files: {
-      info: ReturnType<typeof vi.fn>;
+      info: Mock;
     };
   };
 }

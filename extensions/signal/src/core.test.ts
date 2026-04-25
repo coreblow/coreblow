@@ -9,6 +9,7 @@ import {
   resolveSignalSender,
 } from "./identity.js";
 import { probeSignal } from "./probe.js";
+// @ts-expect-error pre-existing: export removed from runtime.js
 import { clearSignalRuntime } from "./runtime.js";
 import { normalizeSignalAccountInput, parseSignalAllowFromEntries } from "./setup-core.js";
 

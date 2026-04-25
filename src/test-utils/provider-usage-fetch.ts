@@ -5,7 +5,7 @@ import { withFetchPreconnect } from "./fetch-mock.js";
 type UsageFetchInput = string | Request | URL;
 type UsageFetchHandler = (url: string, init?: RequestInit) => Promise<Response> | Response;
 type UsageFetchMock = ReturnType<
-  typeof vi.fn<(input: UsageFetchInput, init?: RequestInit) => Promise<Response>>
+  typeof vi.fn
 >;
 
 export function makeResponse(status: number, body: unknown): Response {

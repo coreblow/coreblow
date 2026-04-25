@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi , Mock } from "vitest";
 import type { MatrixClient } from "../sdk.js";
 import { createDirectRoomTracker } from "./direct.js";
 
@@ -34,11 +34,11 @@ function createMockClient(params: {
     },
   } as unknown as MatrixClient & {
     dms: {
-      update: ReturnType<typeof vi.fn>;
-      isDm: ReturnType<typeof vi.fn>;
+      update: Mock;
+      isDm: Mock;
     };
-    getJoinedRoomMembers: ReturnType<typeof vi.fn>;
-    getRoomStateEvent: ReturnType<typeof vi.fn>;
+    getJoinedRoomMembers: Mock;
+    getRoomStateEvent: Mock;
     __setMembers: (members: string[]) => void;
   };
 }

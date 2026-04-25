@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi , Mock } from "vitest";
 import { botNames, botOpenIds, stopFeishuMonitorState, wsClients } from "./monitor.state.js";
 import type { ResolvedFeishuAccount } from "./types.js";
 
@@ -11,8 +11,8 @@ vi.mock("./client.js", () => ({
 import { monitorWebSocket } from "./monitor.transport.js";
 
 type MockWsClient = {
-  start: ReturnType<typeof vi.fn>;
-  close: ReturnType<typeof vi.fn>;
+  start: Mock;
+  close: Mock;
 };
 
 function createAccount(accountId: string): ResolvedFeishuAccount {

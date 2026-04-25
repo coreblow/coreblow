@@ -4,10 +4,10 @@ import { createEmptyPluginRegistry } from "./registry.js";
 import type { CoreBlowPluginService, CoreBlowPluginServiceContext } from "./types.js";
 
 const mockedLogger = vi.hoisted(() => ({
-  info: vi.fn<(msg: string) => void>(),
-  warn: vi.fn<(msg: string) => void>(),
-  error: vi.fn<(msg: string) => void>(),
-  debug: vi.fn<(msg: string) => void>(),
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  debug: vi.fn(),
   child: vi.fn(() => mockedLogger),
 }));
 

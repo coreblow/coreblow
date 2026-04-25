@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import {
   mockExtractMessageContent,
   mockGetContentType,
@@ -116,7 +116,7 @@ let monitorWebInbox: typeof import("./inbound.js").monitorWebInbox;
 let resetWebInboundDedupe: typeof import("./inbound.js").resetWebInboundDedupe;
 let createWaSocket: typeof import("./session.js").createWaSocket;
 
-async function waitForMessage(onMessage: ReturnType<typeof vi.fn>) {
+async function waitForMessage(onMessage: Mock) {
   await vi.waitFor(() => expect(onMessage).toHaveBeenCalledTimes(1), {
     interval: 1,
     timeout: 250,

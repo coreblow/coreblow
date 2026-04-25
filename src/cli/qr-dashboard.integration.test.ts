@@ -12,7 +12,7 @@ const runtimeErrors: string[] = [];
 const runtime = vi.hoisted(() => ({
   log: (message: string) => runtimeLogs.push(message),
   error: (message: string) => runtimeErrors.push(message),
-  exit: vi.fn<(code: number) => void>(),
+  exit: vi.fn(),
 }));
 
 vi.mock("../config/config.js", async (importOriginal) => {

@@ -6,7 +6,7 @@ import type { UpdateRunResult } from "../../infra/update-runner.js";
 // Capture the sentinel payload written during update.run
 let capturedPayload: RestartSentinelPayload | undefined;
 
-const runGatewayUpdateMock = vi.fn<() => Promise<UpdateRunResult>>();
+const runGatewayUpdateMock = vi.fn();
 
 const scheduleGatewaySigusr1RestartMock = vi.fn(() => ({ scheduled: true }));
 

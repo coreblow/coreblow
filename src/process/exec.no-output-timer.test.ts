@@ -21,7 +21,7 @@ function createFakeSpawnedChild() {
   const stdout = new EventEmitter();
   const stderr = new EventEmitter();
   let killed = false;
-  const kill = vi.fn<(signal?: NodeJS.Signals) => boolean>(() => {
+  const kill = vi.fn(() => {
     killed = true;
     return true;
   });

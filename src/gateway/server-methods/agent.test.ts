@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import { BARE_SESSION_RESET_PROMPT } from "../../auto-reply/reply/session-reset-prompt.js";
 import { agentHandlers } from "./agent.js";
 import { expectSubagentFollowupReactivation } from "./subagent-followup.test-helpers.js";
@@ -258,7 +258,7 @@ function mockSessionResetSuccess(params: {
 async function invokeAgent(
   params: AgentParams,
   options?: {
-    respond?: ReturnType<typeof vi.fn>;
+    respond?: Mock;
     reqId?: string;
     context?: GatewayRequestContext;
     client?: AgentHandlerArgs["client"];
@@ -280,7 +280,7 @@ async function invokeAgent(
 async function invokeAgentIdentityGet(
   params: AgentIdentityGetParams,
   options?: {
-    respond?: ReturnType<typeof vi.fn>;
+    respond?: Mock;
     reqId?: string;
     context?: GatewayRequestContext;
   },

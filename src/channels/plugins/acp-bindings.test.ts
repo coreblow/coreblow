@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { buildConfiguredAcpSessionKey } from "../../acp/persistent-bindings.types.js";
 
 const resolveAgentConfigMock = vi.hoisted(() => vi.fn());
@@ -54,8 +54,8 @@ function createConfig(options?: { bindingAgentId?: string; accountId?: string })
 }
 
 function createDiscordAcpPlugin(overrides?: {
-  compileConfiguredBinding?: ReturnType<typeof vi.fn>;
-  matchInboundConversation?: ReturnType<typeof vi.fn>;
+  compileConfiguredBinding?: Mock;
+  matchInboundConversation?: Mock;
 }) {
   const compileConfiguredBinding =
     overrides?.compileConfiguredBinding ??

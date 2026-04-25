@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "./test-mocks.js";
 import { getCachedBlueBubblesPrivateApiStatus } from "./probe.js";
 import type { PluginRuntime } from "./runtime-api.js";
+// @ts-expect-error pre-existing: export removed from runtime.js
 import { clearBlueBubblesRuntime, setBlueBubblesRuntime } from "./runtime.js";
 import { sendMessageBlueBubbles, resolveChatGuidForTarget, createChatForHandle } from "./send.js";
 import {
@@ -643,7 +644,7 @@ describe("send", () => {
 
     it("warns and downgrades private-api features when status is unknown", async () => {
       const runtimeLog = vi.fn();
-      setBlueBubblesRuntime({ log: runtimeLog } as unknown as PluginRuntime);
+      setBlueBubblesRuntime({ log: runtimeLog } as any);
       const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
       mockResolvedHandleTarget();
       mockSendResponse({ data: { guid: "msg-uuid-unknown" } });

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 
 const { stopCoreBlowChromeMock } = vi.hoisted(() => ({
   stopCoreBlowChromeMock: vi.fn(async () => {}),
@@ -44,7 +44,7 @@ describe("ensureExtensionRelayForProfiles", () => {
 describe("stopKnownBrowserProfiles", () => {
   it("stops all known profiles and ignores per-profile failures", async () => {
     listKnownProfileNamesMock.mockReturnValue(["coreblow", "user"]);
-    const stopMap: Record<string, ReturnType<typeof vi.fn>> = {
+    const stopMap: Record<string, Mock> = {
       coreblow: vi.fn(async () => {}),
       user: vi.fn(async () => {
         throw new Error("profile stop failed");

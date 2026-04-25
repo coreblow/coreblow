@@ -18,7 +18,7 @@ describe("slash-commands", () => {
       apiBaseUrl: "https://chat.example.com/api/v4",
       token: "bot-token",
       request: async <T>(path: string, init?: RequestInit) => (await requestImpl(path, init)) as T,
-      fetchImpl: vi.fn<typeof fetch>(),
+      fetchImpl: vi.fn(),
     };
     return registerSlashCommands({
       client,

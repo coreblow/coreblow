@@ -1,7 +1,7 @@
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi , Mock } from "vitest";
 import type { ModelDefinitionConfig } from "../config/types.models.js";
 import { resolveOllamaApiBase } from "../plugin-sdk/ollama-surface.js";
 import { resolveImplicitProvidersForTest } from "./models-config.e2e-harness.js";
@@ -39,11 +39,11 @@ describe("Ollama provider", () => {
     vi.stubEnv("NODE_ENV", "development");
   };
 
-  const fetchCallUrls = (fetchMock: ReturnType<typeof vi.fn>): string[] =>
+  const fetchCallUrls = (fetchMock: Mock): string[] =>
     fetchMock.mock.calls.map(([input]) => String(input));
 
   const expectDiscoveryCallCounts = (
-    fetchMock: ReturnType<typeof vi.fn>,
+    fetchMock: Mock,
     params: { tags: number; show: number },
   ) => {
     const urls = fetchCallUrls(fetchMock);

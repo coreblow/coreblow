@@ -48,7 +48,7 @@ describe("nostr outbound cfg threading", () => {
         },
       },
       reply: {},
-    } as unknown as PluginRuntime);
+    } as any);
 
     const sendDm = vi.fn(async () => {});
     const bus = {

@@ -21,8 +21,8 @@ function createReplyDeliveryCore(): DeliverMattermostReplyPayloadParams["core"] 
         convertMarkdownTables: vi.fn((text: string) => text),
         chunkText: vi.fn((text: string) => [text]),
         chunkTextWithMode: vi.fn((text: string) => [text]),
-        resolveMarkdownTableMode: vi.fn<() => ReplyDeliveryMarkdownTableMode>(() => "off"),
-        resolveChunkMode: vi.fn<() => ChunkMode>(() => "length"),
+        resolveMarkdownTableMode: vi.fn(() => "off"),
+        resolveChunkMode: vi.fn(() => "length"),
         resolveTextChunkLimit: vi.fn(
           (
             _cfg: CoreBlowConfig | undefined,

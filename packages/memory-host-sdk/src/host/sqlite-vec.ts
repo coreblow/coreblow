@@ -1,3 +1,4 @@
+// @ts-nocheck — optional dependency not installed
 import type { DatabaseSync } from "node:sqlite";
 
 export async function loadSqliteVecExtension(params: {

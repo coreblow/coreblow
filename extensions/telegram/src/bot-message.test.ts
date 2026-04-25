@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import type { TelegramBotDeps } from "./bot-deps.js";
 
 const buildTelegramMessageContext = vi.hoisted(() => vi.fn());
@@ -74,7 +74,7 @@ describe("telegram bot message processor", () => {
 
   function createDispatchFailureHarness(
     context: Record<string, unknown>,
-    sendMessage: ReturnType<typeof vi.fn>,
+    sendMessage: Mock,
   ) {
     const runtimeError = vi.fn();
     buildTelegramMessageContext.mockResolvedValue(context);

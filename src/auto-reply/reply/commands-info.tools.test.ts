@@ -1,8 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import type { CoreBlowConfig } from "../../config/config.js";
 
 async function loadToolsHarness(options?: {
-  resolveToolsMock?: ReturnType<typeof vi.fn>;
+  resolveToolsMock?: Mock;
   resolveTools?: () => {
     agentId: string;
     profile: string;

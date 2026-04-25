@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { resetDiagnosticSessionStateForTest } from "../logging/diagnostic-session-state.js";
 import {
   initializeGlobalHookRunner,
@@ -39,7 +39,7 @@ beforeEach(async () => {
   }
 });
 
-type BeforeToolCallHandlerMock = ReturnType<typeof vi.fn>;
+type BeforeToolCallHandlerMock = Mock;
 
 type BeforeToolCallHookInstall = {
   pluginId: string;

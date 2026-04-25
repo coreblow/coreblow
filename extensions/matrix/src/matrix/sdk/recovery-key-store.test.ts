@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { encodeRecoveryKey } from "matrix-js-sdk/lib/crypto-api/recovery-key.js";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { MatrixRecoveryKeyStore } from "./recovery-key-store.js";
 import type { MatrixCryptoBootstrapApi, MatrixSecretStorageStatus } from "./types.js";
 
@@ -41,8 +41,8 @@ function createBootstrapSecretStorageMock(errorMessage?: string) {
 }
 
 function createRecoveryKeyCrypto(params: {
-  bootstrapSecretStorage: ReturnType<typeof vi.fn>;
-  createRecoveryKeyFromPassphrase: ReturnType<typeof vi.fn>;
+  bootstrapSecretStorage: Mock;
+  createRecoveryKeyFromPassphrase: Mock;
   status: MatrixSecretStorageStatus;
 }): MatrixCryptoBootstrapApi {
   return {

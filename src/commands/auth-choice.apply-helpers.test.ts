@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi , Mock } from "vitest";
 import type { WizardPrompter } from "../wizard/prompts.js";
 import {
   ensureApiKeyFromOptionEnvOrPrompt,
@@ -156,7 +156,7 @@ async function runMaybeApplyDemoToken(tokenProvider: string) {
   return { result, setCredential };
 }
 
-function expectMinimaxEnvRefCredentialStored(setCredential: ReturnType<typeof vi.fn>) {
+function expectMinimaxEnvRefCredentialStored(setCredential: Mock) {
   expect(setCredential).toHaveBeenCalledWith(
     { source: "env", provider: "default", id: "MINIMAX_API_KEY" },
     "ref",
@@ -363,7 +363,7 @@ describe("ensureApiKeyFromEnvOrPrompt", () => {
     setMinimaxEnv({ apiKey: "sk-minimax-redacted-value" });
 
     const select = vi.fn(async () => "env") as WizardPrompter["select"];
-    const text = vi.fn<WizardPrompter["text"]>().mockResolvedValue("MINIMAX_API_KEY");
+    const text = vi.fn().mockResolvedValue("MINIMAX_API_KEY");
     const note = vi.fn(async () => undefined);
     const setCredential = vi.fn(async () => undefined);
 

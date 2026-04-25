@@ -7,9 +7,9 @@ import type { SessionEntry } from "../../config/sessions.js";
 import type { HookRunner } from "../../plugins/hooks.js";
 
 const hookRunnerMocks = vi.hoisted(() => ({
-  hasHooks: vi.fn<HookRunner["hasHooks"]>(),
-  runSessionStart: vi.fn<HookRunner["runSessionStart"]>(),
-  runSessionEnd: vi.fn<HookRunner["runSessionEnd"]>(),
+  hasHooks: vi.fn(),
+  runSessionStart: vi.fn(),
+  runSessionEnd: vi.fn(),
 }));
 
 let initSessionState: typeof import("./session.js").initSessionState;

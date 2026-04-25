@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import { VoiceCallConfigSchema } from "./config.js";
 import type { CoreAgentDeps, CoreConfig } from "./core-bridge.js";
 import { generateVoiceResponse } from "./response-generator.js";
@@ -32,7 +32,7 @@ function createAgentRuntime(payloads: Array<Record<string, unknown>>) {
   return { runtime, runEmbeddedPiAgent };
 }
 
-function requireEmbeddedAgentArgs(runEmbeddedPiAgent: ReturnType<typeof vi.fn>) {
+function requireEmbeddedAgentArgs(runEmbeddedPiAgent: Mock) {
   const calls = runEmbeddedPiAgent.mock.calls as unknown[][];
   const firstCall = calls[0];
   if (!firstCall) {

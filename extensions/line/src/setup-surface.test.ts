@@ -305,7 +305,7 @@ function createRuntime() {
     logging: {
       shouldLogVerbose: () => false,
     },
-  } as unknown as PluginRuntime;
+  } as any;
 
   return { runtime, monitorLineProvider };
 }

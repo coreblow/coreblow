@@ -14,12 +14,10 @@ import { deliverMatrixReplies } from "./replies.js";
 
 describe("deliverMatrixReplies", () => {
   const cfg = { channels: { matrix: {} } };
-  const loadConfigMock = vi.fn(() => ({}));
-  const resolveMarkdownTableModeMock = vi.fn<(params: unknown) => string>(() => "code");
+  const loadConfigMock = vi.fn((..._args: any[]) => ({}));
+  const resolveMarkdownTableModeMock = vi.fn((..._args: any[]) => "code");
   const convertMarkdownTablesMock = vi.fn((text: string) => text);
-  const resolveChunkModeMock = vi.fn<
-    (cfg: unknown, channel: unknown, accountId?: unknown) => string
-  >(() => "length");
+  const resolveChunkModeMock = vi.fn((..._args: any[]) => "length");
   const chunkMarkdownTextWithModeMock = vi.fn((text: string) => [text]);
 
   const runtimeStub = {

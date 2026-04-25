@@ -4,9 +4,9 @@ import { type Mock, vi } from "vitest";
 import type { CoreBlowConfig } from "../config/config.js";
 import { createCliRuntimeCapture } from "./test-runtime-capture.js";
 
-export const loadConfig = vi.fn<() => CoreBlowConfig>(() => ({}) as CoreBlowConfig);
+export const loadConfig = vi.fn(() => ({}) as CoreBlowConfig);
 export const readConfigFileSnapshot: Mock = vi.fn();
-export const writeConfigFile = vi.fn<(config: CoreBlowConfig) => Promise<void>>(
+export const writeConfigFile = vi.fn(
   async () => undefined,
 );
 export const resolveStateDir: Mock = vi.fn(() => "/tmp/coreblow-state");

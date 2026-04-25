@@ -8,16 +8,7 @@ installGatewayTestHooks({ scope: "suite" });
 
 let startGatewayServer: typeof import("./server.js").startGatewayServer;
 let createEmbeddingProviderMock: ReturnType<
-  typeof vi.fn<
-    (options: { provider: string; model: string; agentDir?: string }) => Promise<{
-      provider: {
-        id: string;
-        model: string;
-        embedQuery: (text: string) => Promise<number[]>;
-        embedBatch: (texts: string[]) => Promise<number[][]>;
-      };
-    }>
-  >
+  typeof vi.fn
 >;
 let clearMemoryEmbeddingProviders: typeof import("../plugins/memory-embedding-providers.js").clearMemoryEmbeddingProviders;
 let registerMemoryEmbeddingProvider: typeof import("../plugins/memory-embedding-providers.js").registerMemoryEmbeddingProvider;

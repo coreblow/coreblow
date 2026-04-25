@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 
 let page: Record<string, unknown> | null = null;
 let locator: Record<string, unknown> | null = null;
@@ -20,7 +20,7 @@ const refLocator = vi.fn(() => {
 const forceDisconnectPlaywrightForTarget = vi.fn(async () => {});
 
 const resolveStrictExistingPathsWithinRoot =
-  vi.fn<typeof import("./paths.js").resolveStrictExistingPathsWithinRoot>();
+  vi.fn();
 
 vi.mock("./pw-session.js", () => {
   return {
@@ -41,7 +41,7 @@ vi.mock("./paths.js", () => {
 
 let setInputFilesViaPlaywright: typeof import("./pw-tools-core.interactions.js").setInputFilesViaPlaywright;
 
-function seedSingleLocatorPage(): { setInputFiles: ReturnType<typeof vi.fn> } {
+function seedSingleLocatorPage(): { setInputFiles: Mock } {
   const setInputFiles = vi.fn(async () => {});
   locator = {
     setInputFiles,

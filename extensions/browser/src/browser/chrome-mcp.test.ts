@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import {
   buildChromeMcpArgs,
   evaluateChromeMcpScript,
@@ -265,7 +265,7 @@ describe("chrome MCP page parsing", () => {
 
   it("creates a fresh session when userDataDir changes for the same profile", async () => {
     const createdSessions: ChromeMcpSession[] = [];
-    const closeMocks: Array<ReturnType<typeof vi.fn>> = [];
+    const closeMocks: Array<Mock> = [];
     const factoryCalls: Array<{ profileName: string; userDataDir?: string }> = [];
     const factory: ChromeMcpSessionFactory = async (profileName, userDataDir) => {
       factoryCalls.push({ profileName, userDataDir });

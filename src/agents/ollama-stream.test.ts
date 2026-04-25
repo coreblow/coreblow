@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import {
   buildOllamaChatRequest,
   createConfiguredOllamaStreamFn,
@@ -333,7 +333,7 @@ describe("parseNdjsonStream", () => {
 
 async function withMockNdjsonFetch(
   lines: string[],
-  run: (fetchMock: ReturnType<typeof vi.fn>) => Promise<void>,
+  run: (fetchMock: Mock) => Promise<void>,
 ): Promise<void> {
   const originalFetch = globalThis.fetch;
   const fetchMock = vi.fn(async () => {
@@ -352,7 +352,7 @@ async function withMockNdjsonFetch(
 }
 
 function createControlledNdjsonFetch(): {
-  fetchMock: ReturnType<typeof vi.fn>;
+  fetchMock: Mock;
   pushLine: (line: string) => void;
   close: () => void;
 } {

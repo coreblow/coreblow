@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi , Mock } from "vitest";
 import { CONTEXT_WINDOW_HARD_MIN_TOKENS } from "../agents/context-window-guard.js";
 import type { CoreBlowConfig } from "../config/config.js";
 import { defaultRuntime } from "../runtime.js";
@@ -17,11 +17,11 @@ vi.mock("./model-picker.js", () => ({
 }));
 
 function createTestPrompter(params: { text: string[]; select?: string[] }): {
-  text: ReturnType<typeof vi.fn>;
-  select: ReturnType<typeof vi.fn>;
-  confirm: ReturnType<typeof vi.fn>;
-  note: ReturnType<typeof vi.fn>;
-  progress: ReturnType<typeof vi.fn>;
+  text: Mock;
+  select: Mock;
+  confirm: Mock;
+  note: Mock;
+  progress: Mock;
 } {
   const text = vi.fn();
   for (const answer of params.text) {
@@ -45,7 +45,7 @@ function createTestPrompter(params: { text: string[]; select?: string[] }): {
 
 function stubFetchSequence(
   responses: Array<{ ok: boolean; status?: number }>,
-): ReturnType<typeof vi.fn> {
+): Mock {
   const fetchMock = vi.fn();
   for (const response of responses) {
     fetchMock.mockResolvedValueOnce({
@@ -80,7 +80,7 @@ function expectOpenAiCompatResult(params: {
   expect(params.result.config.models?.providers?.custom?.api).toBe("openai-completions");
 }
 
-function getFirstFetchVerificationCall(fetchMock: ReturnType<typeof vi.fn>) {
+function getFirstFetchVerificationCall(fetchMock: Mock) {
   const firstCall = fetchMock.mock.calls[0];
   const firstUrl = firstCall?.[0];
   const firstInit = firstCall?.[1] as

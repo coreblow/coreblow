@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import type { SecretInput } from "../config/types.secrets.js";
 
 vi.mock("../infra/device-bootstrap.js", () => ({
@@ -104,7 +104,7 @@ describe("pairing setup code", () => {
       url: string;
       urlSource: string;
     };
-    runCommandWithTimeout?: ReturnType<typeof vi.fn>;
+    runCommandWithTimeout?: Mock;
     expectedRunCommandCalls?: number;
   }) {
     const resolved = await resolvePairingSetupFromConfig(params.config, params.options);

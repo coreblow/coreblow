@@ -54,7 +54,7 @@ type TwilioApiRequest = (
 ) => Promise<unknown>;
 
 function createApiRequestMock() {
-  return vi.fn<TwilioApiRequest>(async () => ({}));
+  return vi.fn(async (..._args: any[]) => ({}));
 }
 
 function configureTelephonyTwiMlFallback(params: { providerCallId: string; streamSid?: string }) {
@@ -335,8 +335,8 @@ describe("TwilioProvider", () => {
     const provider = createProvider();
     provider.registerCallStream("CA-dropped", "MZ-dropped");
 
-    const sendAudio = vi.fn(() => ({ sent: false }));
-    const sendMark = vi.fn(() => ({ sent: false }));
+    const sendAudio = vi.fn((..._args: any[]) => ({ sent: false }));
+    const sendMark = vi.fn((..._args: any[]) => ({ sent: false }));
     const mediaStreamHandler = {
       queueTts: async (
         _streamSid: string,

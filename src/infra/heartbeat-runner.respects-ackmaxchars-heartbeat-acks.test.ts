@@ -1,5 +1,5 @@
 import fs from "node:fs/promises";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import type { CoreBlowConfig } from "../config/config.js";
 import { runHeartbeatOnce, type HeartbeatDeps } from "./heartbeat-runner.js";
 import { installHeartbeatRunnerTestRuntime } from "./heartbeat-runner.test-harness.js";
@@ -37,7 +37,7 @@ describe("runHeartbeatOnce ack handling", () => {
 
   function makeWhatsAppDeps(
     params: {
-      sendWhatsApp?: ReturnType<typeof vi.fn>;
+      sendWhatsApp?: Mock;
       getQueueSize?: () => number;
       nowMs?: () => number;
       webAuthExists?: () => Promise<boolean>;
@@ -55,7 +55,7 @@ describe("runHeartbeatOnce ack handling", () => {
 
   function makeTelegramDeps(
     params: {
-      sendTelegram?: ReturnType<typeof vi.fn>;
+      sendTelegram?: Mock;
       getQueueSize?: () => number;
       nowMs?: () => number;
     } = {},

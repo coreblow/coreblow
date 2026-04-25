@@ -1,6 +1,6 @@
 import { createServer as createHttpsServer } from "node:https";
 import { createServer } from "node:net";
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi , Mock } from "vitest";
 import { WebSocket, WebSocketServer } from "ws";
 import { rawDataToString } from "../infra/ws.js";
 import { GatewayClient, resolveGatewayClientConnectChallengeTimeoutMs } from "./client.js";
@@ -23,7 +23,7 @@ async function getFreePort(): Promise<number> {
 
 function createOpenGatewayClient(requestTimeoutMs: number): {
   client: GatewayClient;
-  send: ReturnType<typeof vi.fn>;
+  send: Mock;
 } {
   const client = new GatewayClient({
     requestTimeoutMs,

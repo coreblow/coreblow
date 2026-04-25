@@ -41,7 +41,7 @@ describe("cron main job passes heartbeat target=last", () => {
       enqueueSystemEvent,
       requestHeartbeatNow,
       runHeartbeatOnce: params.runHeartbeatOnce,
-      runIsolatedAgentJob: vi.fn(async () => ({ status: "ok" as const })),
+      runIsolatedAgentJob: vi.fn(async (..._args: any[]) => ({ status: "ok" as const })),
     });
     return { cron, requestHeartbeatNow };
   }
@@ -65,7 +65,7 @@ describe("cron main job passes heartbeat target=last", () => {
 
     await writeCronStoreSnapshot({ storePath, jobs: [job] });
 
-    const runHeartbeatOnce = vi.fn<RunHeartbeatOnce>(async () => ({
+    const runHeartbeatOnce = vi.fn(async (..._args: any[]) => ({
       status: "ran" as const,
       durationMs: 50,
     }));
@@ -100,7 +100,7 @@ describe("cron main job passes heartbeat target=last", () => {
 
     await writeCronStoreSnapshot({ storePath, jobs: [job] });
 
-    const runHeartbeatOnce = vi.fn<RunHeartbeatOnce>(async () => ({
+    const runHeartbeatOnce = vi.fn(async (..._args: any[]) => ({
       status: "ran" as const,
       durationMs: 50,
     }));

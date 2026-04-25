@@ -197,8 +197,8 @@ const hoisted = vi.hoisted(() => {
           reasoning?: boolean;
         }>;
       };
-      cronIsolatedRun: ReturnType<typeof vi.fn>;
-      agentCommand: ReturnType<typeof vi.fn>;
+      cronIsolatedRun: Mock;
+      agentCommand: Mock;
       testIsNixMode: { value: boolean };
       sessionStoreSaveDelayMs: { value: number };
       embeddedRunMock: {
@@ -208,8 +208,8 @@ const hoisted = vi.hoisted(() => {
         waitResults: Map<string, boolean>;
       };
       testTailscaleWhois: { value: TailscaleWhoisIdentity | null };
-      getReplyFromConfig: ReturnType<typeof vi.fn<GetReplyFromConfigFn>>;
-      sendWhatsAppMock: ReturnType<typeof vi.fn>;
+      getReplyFromConfig: Mock;
+      sendWhatsAppMock: Mock;
       testState: {
         agentConfig: Record<string, unknown> | undefined;
         agentsConfig: Record<string, unknown> | undefined;
@@ -256,7 +256,7 @@ const hoisted = vi.hoisted(() => {
       waitResults: new Map<string, boolean>(),
     },
     testTailscaleWhois: { value: null as TailscaleWhoisIdentity | null },
-    getReplyFromConfig: vi.fn<GetReplyFromConfigFn>().mockResolvedValue(undefined),
+    getReplyFromConfig: vi.fn().mockResolvedValue(undefined),
     sendWhatsAppMock: vi.fn().mockResolvedValue({ messageId: "msg-1", toJid: "jid-1" }),
     testState: {
       agentConfig: undefined as Record<string, unknown> | undefined,

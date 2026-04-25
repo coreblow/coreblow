@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import { CronService } from "./service.js";
 import { setupCronServiceSuite } from "./service.test-harness.js";
 import { createCronServiceState } from "./service/state.js";
@@ -19,8 +19,8 @@ describe("CronService restart catch-up", () => {
 
   function createRestartCronService(params: {
     storePath: string;
-    enqueueSystemEvent: ReturnType<typeof vi.fn>;
-    requestHeartbeatNow: ReturnType<typeof vi.fn>;
+    enqueueSystemEvent: Mock;
+    requestHeartbeatNow: Mock;
   }) {
     return new CronService({
       storePath: params.storePath,
@@ -51,8 +51,8 @@ describe("CronService restart catch-up", () => {
     jobs: unknown[],
     run: (params: {
       cron: CronService;
-      enqueueSystemEvent: ReturnType<typeof vi.fn>;
-      requestHeartbeatNow: ReturnType<typeof vi.fn>;
+      enqueueSystemEvent: Mock;
+      requestHeartbeatNow: Mock;
     }) => Promise<void>,
   ) {
     const store = await makeStorePath();

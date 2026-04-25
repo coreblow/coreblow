@@ -1,4 +1,4 @@
-import { expect, vi } from "vitest";
+import { expect, vi , Mock } from "vitest";
 import type { ResolvedZaloAccount } from "../../../extensions/zalo/src/accounts.js";
 import {
   clearZaloWebhookSecurityStateForTest,
@@ -36,7 +36,7 @@ export const getUpdatesMock = lifecycleMocks.getUpdatesMock;
 export const sendChatActionMock = lifecycleMocks.sendChatActionMock;
 export const sendMessageMock = lifecycleMocks.sendMessageMock;
 export const sendPhotoMock = lifecycleMocks.sendPhotoMock;
-export const getZaloRuntimeMock = lifecycleMocks.getZaloRuntimeMock;
+export const getZaloRuntimeMock: Mock = lifecycleMocks.getZaloRuntimeMock;
 
 vi.mock("../../../extensions/zalo/src/api.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../../extensions/zalo/src/api.js")>();
@@ -233,10 +233,10 @@ export function createImageLifecycleCore() {
 }
 
 export function expectImageLifecycleDelivery(params: {
-  fetchRemoteMediaMock: ReturnType<typeof vi.fn>;
-  saveMediaBufferMock: ReturnType<typeof vi.fn>;
-  finalizeInboundContextMock: ReturnType<typeof vi.fn>;
-  recordInboundSessionMock: ReturnType<typeof vi.fn>;
+  fetchRemoteMediaMock: Mock;
+  saveMediaBufferMock: Mock;
+  finalizeInboundContextMock: Mock;
+  recordInboundSessionMock: Mock;
   photoUrl?: string;
   senderName?: string;
   mediaPath?: string;

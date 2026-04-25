@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import type { ReplyPayload } from "../auto-reply/types.js";
 import type { CliDeps } from "../cli/deps.js";
 import type { CoreBlowConfig } from "../config/config.js";
@@ -289,7 +289,7 @@ describe("deliverAgentCommandResult", () => {
     });
 
     expect(runtime.log).toHaveBeenCalledTimes(1);
-    const line = String((runtime.log as ReturnType<typeof vi.fn>).mock.calls[0]?.[0]);
+    const line = String((runtime.log as Mock).mock.calls[0]?.[0]);
     expect(line).toContain("[agent:nested]");
     expect(line).toContain("session=agent:main:main");
     expect(line).toContain("run=run-announce");
@@ -311,7 +311,7 @@ describe("deliverAgentCommandResult", () => {
 
     expect(runtime.log).toHaveBeenCalledTimes(1);
     expect(
-      JSON.parse(String((runtime.log as ReturnType<typeof vi.fn>).mock.calls[0]?.[0])),
+      JSON.parse(String((runtime.log as Mock).mock.calls[0]?.[0])),
     ).toEqual({
       payloads: [
         {

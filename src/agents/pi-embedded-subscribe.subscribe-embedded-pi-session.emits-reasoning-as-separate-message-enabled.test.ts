@@ -1,5 +1,5 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import {
   THINKING_TAG_CASES,
   createReasoningFinalAnswerMessage,
@@ -23,7 +23,7 @@ describe("subscribeEmbeddedPiSession", () => {
     return { emit, onBlockReply };
   }
 
-  function expectReasoningAndAnswerCalls(onBlockReply: ReturnType<typeof vi.fn>) {
+  function expectReasoningAndAnswerCalls(onBlockReply: Mock) {
     expect(onBlockReply).toHaveBeenCalledTimes(2);
     expect(onBlockReply.mock.calls[0][0].text).toBe("Reasoning:\n_Because it helps_");
     expect(onBlockReply.mock.calls[1][0].text).toBe("Final answer");

@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 
 const { botApi, botCtorSpy } = vi.hoisted(() => ({
   botApi: {
@@ -78,7 +78,7 @@ describe("telegram proxy client", () => {
     return { proxyFetch, fetchImpl };
   };
 
-  const expectProxyClient = (fetchImpl: ReturnType<typeof vi.fn>) => {
+  const expectProxyClient = (fetchImpl: Mock) => {
     expect(makeProxyFetch).toHaveBeenCalledWith(proxyUrl);
     expect(resolveTelegramFetch).toHaveBeenCalledWith(expect.any(Function), { network: undefined });
     expect(botCtorSpy).toHaveBeenCalledWith(

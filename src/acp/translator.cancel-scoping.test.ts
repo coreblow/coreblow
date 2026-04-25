@@ -1,5 +1,5 @@
 import type { PromptRequest } from "@agentclientprotocol/sdk";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import type { GatewayClient } from "../gateway/client.js";
 import type { EventFrame } from "../gateway/protocol/index.js";
 import { createInMemorySessionStore } from "./session.js";
@@ -8,8 +8,8 @@ import { createAcpConnection, createAcpGateway } from "./translator.test-helpers
 
 type Harness = {
   agent: AcpGatewayAgent;
-  requestSpy: ReturnType<typeof vi.fn>;
-  sessionUpdateSpy: ReturnType<typeof vi.fn>;
+  requestSpy: Mock;
+  sessionUpdateSpy: Mock;
   sessionStore: ReturnType<typeof createInMemorySessionStore>;
   sentRunIds: string[];
 };

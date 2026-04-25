@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { Api, Model } from "@mariozechner/pi-ai";
-import { expect, vi } from "vitest";
+import { expect, vi , Mock } from "vitest";
 import type {
   AssembleResult,
   BootstrapResult,
@@ -27,18 +27,18 @@ const hoisted = vi.hoisted(() => {
   const resolveSandboxContextMock = vi.fn();
   const subscribeEmbeddedPiSessionMock = vi.fn();
   const acquireSessionWriteLockMock = vi.fn();
-  const resolveBootstrapContextForRunMock = vi.fn<() => Promise<BootstrapContext>>(async () => ({
+  const resolveBootstrapContextForRunMock = vi.fn(async () => ({
     bootstrapFiles: [],
     contextFiles: [],
   }));
-  const getGlobalHookRunnerMock = vi.fn<() => unknown>(() => undefined);
+  const getGlobalHookRunnerMock = vi.fn(() => undefined);
   const initializeGlobalHookRunnerMock = vi.fn();
   const runContextEngineMaintenanceMock = vi.fn(async (_params?: unknown) => undefined);
   const sessionManager = {
     getLeafEntry: vi.fn(() => null),
     branch: vi.fn(),
     resetLeaf: vi.fn(),
-    buildSessionContext: vi.fn<() => { messages: AgentMessage[] }>(() => ({ messages: [] })),
+    buildSessionContext: vi.fn(() => ({ messages: [] })),
     appendCustomEntry: vi.fn(),
   };
   return {
@@ -559,7 +559,7 @@ export function createContextEngineBootstrapAndAssemble() {
   };
 }
 
-export function expectCalledWithSessionKey(mock: ReturnType<typeof vi.fn>, sessionKey: string) {
+export function expectCalledWithSessionKey(mock: Mock, sessionKey: string) {
   expect(mock).toHaveBeenCalledWith(
     expect.objectContaining({
       sessionKey,

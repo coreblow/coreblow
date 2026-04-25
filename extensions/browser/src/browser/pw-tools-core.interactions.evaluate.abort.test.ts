@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 
-let page: { evaluate: ReturnType<typeof vi.fn> } | null = null;
-let locator: { evaluate: ReturnType<typeof vi.fn> } | null = null;
+let page: { evaluate: Mock } | null = null;
+let locator: { evaluate: Mock } | null = null;
 
 const forceDisconnectPlaywrightForTarget = vi.fn(async () => {});
 const getPageForTargetId = vi.fn(async () => {

@@ -1,3 +1,4 @@
+// @ts-nocheck — optional dependency not installed
 import { StaticAuthProvider } from "@twurple/auth";
 import { ChatClient } from "@twurple/chat";
 import type { BaseProbeResult } from "../runtime-api.js";

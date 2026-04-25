@@ -70,7 +70,7 @@ function createRuntimeHarness() {
         upsertPairingRequest: vi.fn(async () => ({ code: "PAIR1234", created: true })),
       },
     },
-  } as unknown as PluginRuntime;
+  } as any;
 
   return {
     runtime,

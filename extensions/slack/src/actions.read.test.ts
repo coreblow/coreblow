@@ -1,5 +1,5 @@
 import type { WebClient } from "@slack/web-api";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import { readSlackMessages } from "./actions.js";
 
 function createClient() {
@@ -10,8 +10,8 @@ function createClient() {
     },
   } as unknown as WebClient & {
     conversations: {
-      replies: ReturnType<typeof vi.fn>;
-      history: ReturnType<typeof vi.fn>;
+      replies: Mock;
+      history: Mock;
     };
   };
 }

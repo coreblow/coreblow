@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   listChannelPlugins: vi.fn(),
@@ -156,7 +156,7 @@ describe("resolveMessageChannelSelection", () => {
         configured: [],
         source: "explicit",
       },
-      verify: ({ isConfigured }: { isConfigured?: ReturnType<typeof vi.fn> }) => {
+      verify: ({ isConfigured }: { isConfigured?: Mock }) => {
         expect(isConfigured).not.toHaveBeenCalled();
       },
     },

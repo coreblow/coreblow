@@ -3,7 +3,7 @@ import fsPromises from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { emitAgentEvent } from "../../infra/agent-events.js";
 import { formatZonedTimestamp } from "../../infra/format-time/format-datetime.js";
 import {
@@ -365,7 +365,7 @@ describe("exec approval handlers", () => {
 
   async function requestExecApproval(params: {
     handlers: ExecApprovalHandlers;
-    respond: ReturnType<typeof vi.fn>;
+    respond: Mock;
     context: { broadcast: (event: string, payload: unknown) => void };
     params?: Record<string, unknown>;
   }) {
@@ -420,7 +420,7 @@ describe("exec approval handlers", () => {
   async function resolveExecApproval(params: {
     handlers: ExecApprovalHandlers;
     id: string;
-    respond: ReturnType<typeof vi.fn>;
+    respond: Mock;
     context: { broadcast: (event: string, payload: unknown) => void };
   }) {
     return params.handlers["exec.approval.resolve"]({

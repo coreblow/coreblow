@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import sharp from "sharp";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import {
   createMockWebListener,
   installWebAutoReplyTestHomeHooks,
@@ -26,8 +26,8 @@ describe("web auto-reply", () => {
 
   async function setupSingleInboundMessage(params: {
     resolverValue: { text: string; mediaUrl: string };
-    sendMedia: ReturnType<typeof vi.fn>;
-    reply?: ReturnType<typeof vi.fn>;
+    sendMedia: Mock;
+    reply?: Mock;
   }) {
     const reply = params.reply ?? vi.fn().mockResolvedValue(undefined);
     const sendComposing = vi.fn(async () => undefined);
@@ -68,7 +68,7 @@ describe("web auto-reply", () => {
     };
   }
 
-  function getSingleImagePayload(sendMedia: ReturnType<typeof vi.fn>) {
+  function getSingleImagePayload(sendMedia: Mock) {
     expect(sendMedia).toHaveBeenCalledTimes(1);
     return sendMedia.mock.calls[0][0] as {
       image: Buffer;

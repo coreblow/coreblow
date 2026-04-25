@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 
 const createFeishuClientMock = vi.hoisted(() => vi.fn());
 
@@ -69,7 +69,7 @@ async function withFakeTimers(run: () => Promise<void>) {
 }
 
 async function expectErrorResultCached(params: {
-  requestFn: ReturnType<typeof vi.fn>;
+  requestFn: Mock;
   expectedError: string;
   ttlMs: number;
 }) {
@@ -88,7 +88,7 @@ async function expectErrorResultCached(params: {
 }
 
 async function expectFreshDefaultProbeAfter(
-  requestFn: ReturnType<typeof vi.fn>,
+  requestFn: Mock,
   invalidate: () => void,
 ) {
   await probeFeishu(DEFAULT_CREDS);

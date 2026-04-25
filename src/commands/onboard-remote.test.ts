@@ -6,9 +6,9 @@ import { captureEnv } from "../test-utils/env.js";
 import type { WizardPrompter } from "../wizard/prompts.js";
 import { createWizardPrompter } from "./test-wizard-helpers.js";
 
-const discoverGatewayBeacons = vi.hoisted(() => vi.fn<() => Promise<GatewayBonjourBeacon[]>>());
+const discoverGatewayBeacons = vi.hoisted(() => vi.fn());
 const resolveWideAreaDiscoveryDomain = vi.hoisted(() => vi.fn(() => undefined));
-const detectBinary = vi.hoisted(() => vi.fn<(name: string) => Promise<boolean>>());
+const detectBinary = vi.hoisted(() => vi.fn());
 
 vi.mock("../infra/bonjour-discovery.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../infra/bonjour-discovery.js")>();

@@ -69,16 +69,16 @@ const waitForEmbeddedPiRunEndSpy = vi.spyOn(piEmbedded, "waitForEmbeddedPiRunEnd
 const readLatestAssistantReplyMock = vi.fn(
   async (_sessionKey?: string): Promise<string | undefined> => "raw subagent reply",
 );
-const embeddedPiRunActiveMock = vi.fn<typeof piEmbedded.isEmbeddedPiRunActive>(
+const embeddedPiRunActiveMock = vi.fn(
   (_sessionId: string) => false,
 );
-const embeddedPiRunStreamingMock = vi.fn<typeof piEmbedded.isEmbeddedPiRunStreaming>(
+const embeddedPiRunStreamingMock = vi.fn(
   (_sessionId: string) => false,
 );
-const queueEmbeddedPiMessageMock = vi.fn<typeof piEmbedded.queueEmbeddedPiMessage>(
+const queueEmbeddedPiMessageMock = vi.fn(
   (_sessionId: string, _text: string) => false,
 );
-const waitForEmbeddedPiRunEndMock = vi.fn<typeof piEmbedded.waitForEmbeddedPiRunEnd>(
+const waitForEmbeddedPiRunEndMock = vi.fn(
   async (_sessionId: string, _timeoutMs?: number) => true,
 );
 const embeddedRunMock = {
@@ -115,10 +115,10 @@ const subagentDeliveryTargetHookMock = vi.fn(
     undefined,
 );
 let hasSubagentDeliveryTargetHook = false;
-const hookHasHooksMock = vi.fn<HookRunner["hasHooks"]>(
+const hookHasHooksMock = vi.fn(
   (hookName) => hookName === "subagent_delivery_target" && hasSubagentDeliveryTargetHook,
 );
-const hookRunSubagentDeliveryTargetMock = vi.fn<HookRunner["runSubagentDeliveryTarget"]>(
+const hookRunSubagentDeliveryTargetMock = vi.fn(
   async (event, ctx) => await subagentDeliveryTargetHookMock(event, ctx),
 );
 const hookRunnerMock = {

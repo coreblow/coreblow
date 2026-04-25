@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 
 const {
   editMessageMSTeamsMock,
@@ -150,7 +150,7 @@ function expectActionSuccess(
 }
 
 function expectActionRuntimeCall(
-  mockFn: ReturnType<typeof vi.fn>,
+  mockFn: Mock,
   params: Record<string, unknown>,
 ) {
   expect(mockFn).toHaveBeenCalledWith({
@@ -160,7 +160,7 @@ function expectActionRuntimeCall(
 }
 
 async function expectSuccessfulAction(params: {
-  mockFn: ReturnType<typeof vi.fn>;
+  mockFn: Mock;
   mockResult: unknown;
   action: Parameters<typeof runAction>[0]["action"];
   actionParams?: Parameters<typeof runAction>[0]["params"];

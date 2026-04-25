@@ -1,7 +1,7 @@
 import { EventEmitter } from "node:events";
 import fsSync from "node:fs";
 import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { resetLogger, setLoggerOverride } from "../../../src/logging.js";
 import { baileys, getLastSocket, resetBaileysMocks, resetLoadConfigMock } from "./test-helpers.js";
 
@@ -75,7 +75,7 @@ describe("web session", () => {
 
   it("creates WA socket with QR handler", async () => {
     await createWaSocket(true, false);
-    const makeWASocket = baileys.makeWASocket as ReturnType<typeof vi.fn>;
+    const makeWASocket = baileys.makeWASocket as Mock;
     expect(makeWASocket).toHaveBeenCalledWith(
       expect.objectContaining({ printQRInTerminal: false }),
     );

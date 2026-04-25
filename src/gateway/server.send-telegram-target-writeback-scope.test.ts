@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import {
   clearConfigCache,
   loadConfig,
@@ -60,9 +60,9 @@ function createCronStore(): CronStoreFile {
 async function withTelegramGatewayWritebackFixture(
   run: (params: {
     cronStorePath: string;
-    getChatMock: ReturnType<typeof vi.fn>;
-    sendMessageMock: ReturnType<typeof vi.fn>;
-    sendPollMock: ReturnType<typeof vi.fn>;
+    getChatMock: Mock;
+    sendMessageMock: Mock;
+    sendPollMock: Mock;
     installTelegramTestPlugin: () => void;
   }) => Promise<void>,
 ): Promise<void> {

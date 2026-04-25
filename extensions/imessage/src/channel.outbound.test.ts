@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import type { ResolvedIMessageAccount } from "./accounts.js";
 import { imessagePlugin } from "./channel.js";
 import type { IMessageRpcClient } from "./client.js";
@@ -65,7 +65,7 @@ function getSentParams() {
 
 async function expectDirectOutboundResult(params: {
   invoke: () => Promise<{ channel: string; messageId: string }>;
-  sendIMessage: ReturnType<typeof vi.fn>;
+  sendIMessage: Mock;
   to: string;
   text: string;
   expectedOptions: Record<string, unknown>;
@@ -82,7 +82,7 @@ async function expectDirectOutboundResult(params: {
 
 async function expectReplyToTextForwarding(params: {
   invoke: () => Promise<{ channel: string; messageId: string }>;
-  sendIMessage: ReturnType<typeof vi.fn>;
+  sendIMessage: Mock;
 }) {
   await expectDirectOutboundResult({
     invoke: params.invoke,
@@ -100,7 +100,7 @@ async function expectReplyToTextForwarding(params: {
 
 async function expectMediaLocalRootsForwarding(params: {
   invoke: () => Promise<{ channel: string; messageId: string }>;
-  sendIMessage: ReturnType<typeof vi.fn>;
+  sendIMessage: Mock;
 }) {
   await expectDirectOutboundResult({
     invoke: params.invoke,

@@ -1,5 +1,5 @@
 import fs from "node:fs/promises";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi , Mock } from "vitest";
 import type { HeartbeatRunResult } from "../infra/heartbeat-wake.js";
 import { clearCommandLane, setCommandLaneConcurrency } from "../process/command-queue.js";
 import { CommandLane } from "../process/lanes.js";
@@ -627,7 +627,7 @@ describe("Cron issue regressions", () => {
       firstError?: string;
     }): Promise<{
       state: ReturnType<typeof createCronServiceState>;
-      runIsolatedAgentJob: ReturnType<typeof vi.fn>;
+      runIsolatedAgentJob: Mock;
       firstRetryAtMs: number;
     }> => {
       const store = makeStorePath();

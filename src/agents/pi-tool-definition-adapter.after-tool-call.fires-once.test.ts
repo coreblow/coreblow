@@ -8,7 +8,7 @@
  */
 import type { AgentTool } from "@mariozechner/pi-agent-core";
 import { Type } from "typebox";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { createBaseToolHandlerState } from "./pi-tool-handler-state.test-helpers.js";
 
 const hookMocks = vi.hoisted(() => ({
@@ -209,7 +209,7 @@ describe("after_tool_call fires exactly once in embedded runs", () => {
 
     expect(hookMocks.runner.runAfterToolCall).toHaveBeenCalledTimes(1);
 
-    const call = (hookMocks.runner.runAfterToolCall as ReturnType<typeof vi.fn>).mock.calls[0];
+    const call = (hookMocks.runner.runAfterToolCall as Mock).mock.calls[0];
     const event = call?.[0] as { error?: unknown } | undefined;
     expect(event?.error).toBeDefined();
   });
@@ -241,7 +241,7 @@ describe("after_tool_call fires exactly once in embedded runs", () => {
       toolCallId,
       "integration-test",
     );
-    const event = (hookMocks.runner.runAfterToolCall as ReturnType<typeof vi.fn>).mock
+    const event = (hookMocks.runner.runAfterToolCall as Mock).mock
       .calls[0]?.[0] as { params?: unknown } | undefined;
     expect(event?.params).toEqual(adjusted);
   });

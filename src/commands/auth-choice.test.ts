@@ -1,7 +1,7 @@
 // @ts-nocheck
 import fs from "node:fs/promises";
 import type { OAuthCredentials } from "@mariozechner/pi-ai";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi , Mock } from "vitest";
 import { resolveAgentDir } from "../agents/agent-scope.js";
 import type { CoreBlowConfig } from "../config/config.js";
 import { resolveAgentModelPrimaryValue } from "../config/model-input.js";
@@ -28,13 +28,13 @@ import {
 type DetectZaiEndpoint = typeof import("./zai-endpoint-detect.js").detectZaiEndpoint;
 
 const loginOpenAICodexOAuth = vi.hoisted(() =>
-  vi.fn<() => Promise<OAuthCredentials | null>>(async () => null),
+  vi.fn(async () => null),
 );
 vi.mock("./openai-codex-oauth.js", () => ({
   loginOpenAICodexOAuth,
 }));
 
-const resolvePluginProviders = vi.hoisted(() => vi.fn<() => ProviderPlugin[]>(() => []));
+const resolvePluginProviders = vi.hoisted(() => vi.fn(() => []));
 vi.mock("../plugins/provider-auth-choice.runtime.js", async (importOriginal) => {
   const actual =
     await importOriginal<typeof import("../plugins/provider-auth-choice.runtime.js")>();
@@ -44,7 +44,7 @@ vi.mock("../plugins/provider-auth-choice.runtime.js", async (importOriginal) => 
   };
 });
 
-const detectZaiEndpoint = vi.hoisted(() => vi.fn<DetectZaiEndpoint>(async () => null));
+const detectZaiEndpoint = vi.hoisted(() => vi.fn(async () => null));
 vi.mock("./zai-endpoint-detect.js", () => ({
   detectZaiEndpoint,
 }));
@@ -1840,7 +1840,7 @@ describe("applyAuthChoice", () => {
     const runtime = createExitThrowingRuntime();
     const text: WizardPrompter["text"] = vi.fn(async (params) => {
       if (params.message.startsWith("Paste the redirect URL")) {
-        const runtimeLog = runtime.log as ReturnType<typeof vi.fn>;
+        const runtimeLog = runtime.log as Mock;
         const lastLog = runtimeLog.mock.calls.at(-1)?.[0];
         const urlLine = typeof lastLog === "string" ? lastLog : String(lastLog ?? "");
         const urlMatch = urlLine.match(/https?:\/\/\S+/)?.[0] ?? "";

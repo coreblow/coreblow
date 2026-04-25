@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import type { CoreConfig } from "../../types.js";
 import type { MatrixAuth } from "../client.js";
 import type { MatrixClient } from "../sdk.js";
@@ -11,7 +11,7 @@ type RoomEventListener = (roomId: string, event: MatrixRawEvent) => void;
 type FailedDecryptListener = (roomId: string, event: MatrixRawEvent, error: Error) => Promise<void>;
 type VerificationSummaryListener = (summary: MatrixVerificationSummary) => void;
 
-function getSentNoticeBody(sendMessage: ReturnType<typeof vi.fn>, index = 0): string {
+function getSentNoticeBody(sendMessage: Mock, index = 0): string {
   const calls = sendMessage.mock.calls as unknown[][];
   const payload = (calls[index]?.[1] ?? {}) as { body?: string };
   return payload.body ?? "";

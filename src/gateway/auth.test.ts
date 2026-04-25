@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi , Mock } from "vitest";
 import type { AuthRateLimiter } from "./auth-rate-limit.js";
 import {
   assertGatewayAuthConfigured,
@@ -10,15 +10,15 @@ import {
 } from "./auth.js";
 
 function createLimiterSpy(): AuthRateLimiter & {
-  check: ReturnType<typeof vi.fn>;
-  recordFailure: ReturnType<typeof vi.fn>;
-  reset: ReturnType<typeof vi.fn>;
+  check: Mock;
+  recordFailure: Mock;
+  reset: Mock;
 } {
-  const check = vi.fn<AuthRateLimiter["check"]>(
+  const check = vi.fn(
     (_ip, _scope) => ({ allowed: true, remaining: 10, retryAfterMs: 0 }) as const,
   );
-  const recordFailure = vi.fn<AuthRateLimiter["recordFailure"]>((_ip, _scope) => {});
-  const reset = vi.fn<AuthRateLimiter["reset"]>((_ip, _scope) => {});
+  const recordFailure = vi.fn((_ip, _scope) => {});
+  const reset = vi.fn((_ip, _scope) => {});
   return {
     check,
     recordFailure,

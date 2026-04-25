@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { formatCliCommand } from "../command-format.js";
 
 const runtime = vi.hoisted(() => ({
-  log: vi.fn<(line: string) => void>(),
-  error: vi.fn<(line: string) => void>(),
+  log: vi.fn(),
+  error: vi.fn(),
 }));
 
 vi.mock("../../runtime.js", () => ({

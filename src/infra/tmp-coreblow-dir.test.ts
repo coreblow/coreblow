@@ -332,7 +332,7 @@ describe("resolvePreferredCoreBlowTmpDir", () => {
   it("repairs fallback directory permissions after create when umask makes it group-writable", () => {
     const fallbackPath = fallbackTmp();
     let fallbackMode = 0o40775;
-    const lstatSync = vi.fn<NonNullable<TmpDirOptions["lstatSync"]>>(() => {
+    const lstatSync = vi.fn(() => {
       throw nodeErrorWithCode("ENOENT");
     });
     const fallbackLstatSync = vi

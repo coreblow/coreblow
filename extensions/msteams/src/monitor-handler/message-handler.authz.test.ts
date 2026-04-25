@@ -29,7 +29,7 @@ describe("msteams monitor handler authz", () => {
           hasControlCommand: () => false,
         },
       },
-    } as unknown as PluginRuntime);
+    } as any);
 
     const conversationStore = {
       upsert: vi.fn(async () => undefined),

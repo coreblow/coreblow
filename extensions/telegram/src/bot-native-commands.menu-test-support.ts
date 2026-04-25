@@ -1,6 +1,6 @@
 // @ts-nocheck
 import type { RuntimeEnv } from "coreblow/plugin-sdk/runtime-env";
-import { expect, vi } from "vitest";
+import { expect, vi , Mock } from "vitest";
 import type { SkillCommandSpec } from "../../../src/agents/skills.js";
 import type { CoreBlowConfig } from "../runtime-api.js";
 import type { TelegramBotDeps } from "./bot-deps.js";
@@ -18,14 +18,12 @@ type RegisteredCommand = {
 type CreateCommandBotResult = {
   bot: RegisterTelegramNativeCommandsParams["bot"];
   commandHandlers: Map<string, (ctx: unknown) => Promise<void>>;
-  sendMessage: ReturnType<typeof vi.fn>;
-  setMyCommands: ReturnType<typeof vi.fn>;
+  sendMessage: Mock;
+  setMyCommands: Mock;
 };
 
 const skillCommandMocks = vi.hoisted(() => ({
-  listSkillCommandsForAgents: vi.fn<
-    (params: { cfg: CoreBlowConfig; agentIds?: string[] }) => SkillCommandSpec[]
-  >(() => []),
+  listSkillCommandsForAgents: vi.fn(() => []),
 }));
 
 const deliveryMocks = vi.hoisted(() => ({
@@ -52,7 +50,7 @@ vi.mock("./bot/delivery.replies.js", () => ({
 }));
 
 export async function waitForRegisteredCommands(
-  setMyCommands: ReturnType<typeof vi.fn>,
+  setMyCommands: Mock,
 ): Promise<RegisteredCommand[]> {
   await vi.waitFor(() => {
     expect(setMyCommands).toHaveBeenCalled();

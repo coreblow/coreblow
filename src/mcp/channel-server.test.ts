@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi , Mock } from "vitest";
 import { z } from "zod";
 import { testState } from "../gateway/test-helpers.mocks.js";
 import {
@@ -377,7 +377,7 @@ describe("coreblow channel mcp server", () => {
     (
       bridge as unknown as {
         pendingClaudePermissions: Map<string, Record<string, unknown>>;
-        server: { server: { notification: ReturnType<typeof vi.fn> } };
+        server: { server: { notification: Mock } };
       }
     ).pendingClaudePermissions.set("abcde", {
       toolName: "Bash",
@@ -386,7 +386,7 @@ describe("coreblow channel mcp server", () => {
     });
     (
       bridge as unknown as {
-        server: { server: { notification: ReturnType<typeof vi.fn> } };
+        server: { server: { notification: Mock } };
       }
     ).server = {
       server: {

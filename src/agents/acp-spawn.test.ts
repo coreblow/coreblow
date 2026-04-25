@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import * as acpSessionManager from "../acp/control-plane/manager.js";
 import type { AcpInitializeSessionInput } from "../acp/control-plane/manager.types.js";
 import {
@@ -140,8 +140,8 @@ function createSessionBinding(overrides?: Partial<SessionBindingRecord>): Sessio
 }
 
 function createRelayHandle(overrides?: {
-  dispose?: ReturnType<typeof vi.fn>;
-  notifyStarted?: ReturnType<typeof vi.fn>;
+  dispose?: Mock;
+  notifyStarted?: Mock;
 }) {
   return {
     dispose: overrides?.dispose ?? vi.fn(),

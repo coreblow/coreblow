@@ -1,6 +1,6 @@
 // @ts-nocheck
 import path from "node:path";
-import { describe, expect, it, test, vi } from "vitest";
+import { describe, expect, it, test, vi , Mock } from "vitest";
 import type { CoreBlowConfig } from "../config/config.js";
 import type { RuntimeEnv } from "../runtime.js";
 import {
@@ -60,11 +60,11 @@ describe("applyAgentDefaultPrimaryModel", () => {
 describe("cleanup path removals", () => {
   function createRuntimeMock() {
     return {
-      log: vi.fn<(message: string) => void>(),
-      error: vi.fn<(message: string) => void>(),
+      log: vi.fn(),
+      error: vi.fn(),
     } as unknown as RuntimeEnv & {
-      log: ReturnType<typeof vi.fn<(message: string) => void>>;
-      error: ReturnType<typeof vi.fn<(message: string) => void>>;
+      log: Mock;
+      error: Mock;
     };
   }
 

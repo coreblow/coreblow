@@ -143,7 +143,7 @@ async function createLifecycleStopScenario(params: {
     await runInFlight.promise;
   });
 
-  const setStatus = vi.fn<SetStatusFn>();
+  const setStatus = vi.fn();
   const { handler, stop } = params.createHandler(setStatus);
 
   await expect(handler(createMessageData("m-1") as never, {} as never)).resolves.toBeUndefined();

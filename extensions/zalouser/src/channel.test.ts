@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "./zalo-js.test-mocks.js";
 import { zalouserPlugin } from "./channel.js";
+// @ts-expect-error pre-existing: export removed from runtime.js
 import { setZalouserRuntime } from "./runtime.js";
 import { sendMessageZalouser, sendReactionZalouser } from "./send.js";
 

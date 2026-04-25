@@ -40,7 +40,7 @@ describe("gaxios fetch compat", () => {
     let MockGaxiosCtor!: new () => {
       request(config: MockRequestConfig): Promise<{ data: string } & object>;
     };
-    const fetchMock = vi.fn<FetchLike>(async () => {
+    const fetchMock = vi.fn(async () => {
       return new Response("ok", {
         headers: { "content-type": "text/plain" },
         status: 200,
@@ -81,7 +81,7 @@ describe("gaxios fetch compat", () => {
 
   it("falls back to a legacy window fetch shim when gaxios is unavailable", async () => {
     const originalWindowDescriptor = Object.getOwnPropertyDescriptor(globalThis, "window");
-    vi.stubGlobal("fetch", vi.fn<FetchLike>());
+    vi.stubGlobal("fetch", vi.fn());
     Reflect.deleteProperty(globalThis as object, "window");
     (globalThis as Record<string, unknown>)[TEST_GAXIOS_CONSTRUCTOR_OVERRIDE] = null;
     try {
@@ -97,7 +97,7 @@ describe("gaxios fetch compat", () => {
   });
 
   it("translates proxy-agent-like inputs into undici dispatchers for native fetch", async () => {
-    const fetchMock = vi.fn<FetchLike>(async () => {
+    const fetchMock = vi.fn(async () => {
       return new Response("ok", {
         headers: { "content-type": "text/plain" },
         status: 200,

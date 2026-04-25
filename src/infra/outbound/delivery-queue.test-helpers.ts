@@ -2,7 +2,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterAll, beforeAll, beforeEach, vi } from "vitest";
+import { afterAll, beforeAll, beforeEach, vi , Mock } from "vitest";
 import type { DeliverFn, RecoveryLogger } from "./delivery-queue.js";
 
 export function installDeliveryQueueTmpDirHooks(): { readonly tmpDir: () => string } {
@@ -58,17 +58,17 @@ export function setQueuedEntryState(
 }
 
 export function createRecoveryLog(): RecoveryLogger & {
-  info: ReturnType<typeof vi.fn<(msg: string) => void>>;
-  warn: ReturnType<typeof vi.fn<(msg: string) => void>>;
-  error: ReturnType<typeof vi.fn<(msg: string) => void>>;
+  info: Mock;
+  warn: Mock;
+  error: Mock;
 } {
   return {
-    info: vi.fn<(msg: string) => void>(),
-    warn: vi.fn<(msg: string) => void>(),
-    error: vi.fn<(msg: string) => void>(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
   };
 }
 
-export function asDeliverFn(deliver: ReturnType<typeof vi.fn>): DeliverFn {
+export function asDeliverFn(deliver: Mock): DeliverFn {
   return deliver as DeliverFn;
 }

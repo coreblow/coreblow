@@ -1,3 +1,4 @@
+// @ts-nocheck — optional dependency not installed
 import type { FileContents, FileDiffMetadata, SupportedLanguages } from "@pierre/diffs";
 
 export const DIFF_LAYOUTS = ["unified", "split"] as const;

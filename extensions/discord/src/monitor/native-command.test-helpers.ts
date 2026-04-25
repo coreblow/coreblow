@@ -1,5 +1,5 @@
 import { ChannelType } from "discord-api-types/v10";
-import { vi } from "vitest";
+import { vi , Mock } from "vitest";
 
 export type MockCommandInteraction = {
   user: { id: string; username: string; globalName: string };
@@ -7,12 +7,12 @@ export type MockCommandInteraction = {
   guild: { id: string; name?: string } | null;
   rawData: { id: string; member: { roles: string[] } };
   options: {
-    getString: ReturnType<typeof vi.fn>;
-    getNumber: ReturnType<typeof vi.fn>;
-    getBoolean: ReturnType<typeof vi.fn>;
+    getString: Mock;
+    getNumber: Mock;
+    getBoolean: Mock;
   };
-  reply: ReturnType<typeof vi.fn>;
-  followUp: ReturnType<typeof vi.fn>;
+  reply: Mock;
+  followUp: Mock;
   client: object;
 };
 

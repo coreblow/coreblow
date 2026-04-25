@@ -1,5 +1,5 @@
 import type { Bot } from "grammy";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi , Mock } from "vitest";
 import { importFreshModule } from "../../../test/helpers/import-fresh.js";
 import {
   getTelegramSendTestMocks,
@@ -2158,7 +2158,7 @@ describe("sendPollTelegram", () => {
 
     expect(res).toEqual({ messageId: "123", chatId: "555", pollId: "p1" });
     expect(api.sendPoll).toHaveBeenCalledTimes(1);
-    const sendPollMock = api.sendPoll as ReturnType<typeof vi.fn>;
+    const sendPollMock = api.sendPoll as Mock;
     expect(sendPollMock.mock.calls[0]?.[0]).toBe("123");
     expect(sendPollMock.mock.calls[0]?.[1]).toBe("Q");
     expect(sendPollMock.mock.calls[0]?.[2]).toEqual(["A", "B"]);

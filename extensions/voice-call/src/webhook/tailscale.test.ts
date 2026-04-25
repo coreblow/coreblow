@@ -1,5 +1,5 @@
 import { EventEmitter } from "node:events";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 
 const { spawnMock } = vi.hoisted(() => ({
   spawnMock: vi.fn(),
@@ -21,7 +21,7 @@ import {
 function createProc(params?: { code?: number; stdout?: string }) {
   const proc = new EventEmitter() as EventEmitter & {
     stdout: EventEmitter;
-    kill: ReturnType<typeof vi.fn>;
+    kill: Mock;
   };
   proc.stdout = new EventEmitter();
   proc.kill = vi.fn();

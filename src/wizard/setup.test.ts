@@ -20,10 +20,10 @@ const promptAuthChoiceGrouped = vi.hoisted(() => vi.fn(async () => "skip"));
 const applyAuthChoice = vi.hoisted(() => vi.fn(async (args) => ({ config: args.config })));
 const resolvePreferredProviderForAuthChoice = vi.hoisted(() => vi.fn(async () => "demo-provider"));
 const resolveProviderPluginChoice = vi.hoisted(() =>
-  vi.fn<ResolveProviderPluginChoice>(() => null),
+  vi.fn(() => null),
 );
 const resolvePluginProvidersRuntime = vi.hoisted(() =>
-  vi.fn<ResolvePluginProvidersRuntime>(() => []),
+  vi.fn(() => []),
 );
 const warnIfModelConfigLooksOff = vi.hoisted(() => vi.fn(async () => {}));
 const applyPrimaryModel = vi.hoisted(() => vi.fn((cfg) => cfg));

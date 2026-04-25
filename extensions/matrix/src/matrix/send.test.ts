@@ -7,16 +7,14 @@ const loadWebMediaMock = vi.fn().mockResolvedValue({
   contentType: "image/png",
   kind: "image",
 });
-const loadConfigMock = vi.fn(() => ({}));
+const loadConfigMock = vi.fn((..._args: any[]) => ({}));
 const getImageMetadataMock = vi.fn().mockResolvedValue(null);
 const resizeToJpegMock = vi.fn();
 const mediaKindFromMimeMock = vi.fn((_: string | null | undefined) => "image");
 const isVoiceCompatibleAudioMock = vi.fn(
   (_: { contentType?: string | null; fileName?: string | null }) => false,
 );
-const resolveTextChunkLimitMock = vi.fn<
-  (cfg: unknown, channel: unknown, accountId?: unknown) => number
->(() => 4000);
+const resolveTextChunkLimitMock = vi.fn((..._args: any[]) => 4000);
 
 const runtimeStub = {
   config: {
@@ -85,10 +83,10 @@ const makeClient = () => {
     getEvent,
     uploadContent,
     getUserId: vi.fn().mockResolvedValue("@bot:example.org"),
-    prepareForOneOff: vi.fn(async () => undefined),
-    start: vi.fn(async () => undefined),
-    stop: vi.fn(() => undefined),
-    stopAndPersist: vi.fn(async () => undefined),
+    prepareForOneOff: vi.fn(async (..._args: any[]) => undefined),
+    start: vi.fn(async (..._args: any[]) => undefined),
+    stop: vi.fn((..._args: any[]) => undefined),
+    stopAndPersist: vi.fn(async (..._args: any[]) => undefined),
   } as unknown as import("./sdk.js").MatrixClient;
   return { client, sendMessage, sendEvent, getEvent, uploadContent };
 };
@@ -528,10 +526,10 @@ describe("sendTypingMatrix", () => {
     const setTyping = vi.fn().mockResolvedValue(undefined);
     const client = {
       setTyping,
-      prepareForOneOff: vi.fn(async () => undefined),
-      start: vi.fn(async () => undefined),
-      stop: vi.fn(() => undefined),
-      stopAndPersist: vi.fn(async () => undefined),
+      prepareForOneOff: vi.fn(async (..._args: any[]) => undefined),
+      start: vi.fn(async (..._args: any[]) => undefined),
+      stop: vi.fn((..._args: any[]) => undefined),
+      stopAndPersist: vi.fn(async (..._args: any[]) => undefined),
     } as unknown as import("./sdk.js").MatrixClient;
 
     await sendTypingMatrix("room:!room:example", true, undefined, client);

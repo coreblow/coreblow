@@ -3,9 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { GatewayService } from "../../daemon/service.js";
 import type { PortListenerKind, PortUsage } from "../../infra/ports.js";
 
-const inspectPortUsage = vi.hoisted(() => vi.fn<(port: number) => Promise<PortUsage>>());
+const inspectPortUsage = vi.hoisted(() => vi.fn());
 const classifyPortListener = vi.hoisted(() =>
-  vi.fn<(_listener: unknown, _port: number) => PortListenerKind>(() => "gateway"),
+  vi.fn(() => "gateway"),
 );
 const probeGateway = vi.hoisted(() => vi.fn());
 

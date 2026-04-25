@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { AcpRuntimeError } from "../../../src/acp/runtime/errors.js";
 import {
   __testing,
@@ -24,8 +24,8 @@ type RuntimeStub = AcpRuntime & {
 
 function createRuntimeStub(healthy: boolean): {
   runtime: RuntimeStub;
-  probeAvailabilitySpy: ReturnType<typeof vi.fn>;
-  isHealthySpy: ReturnType<typeof vi.fn>;
+  probeAvailabilitySpy: Mock;
+  isHealthySpy: Mock;
 } {
   const probeAvailabilitySpy = vi.fn(async () => {});
   const isHealthySpy = vi.fn(() => healthy);
