@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   copyBundledPluginMetadata,
   rewritePackageExtensions,
+// @ts-expect-error — untyped .mjs script
 } from "../../scripts/copy-bundled-plugin-metadata.mjs";
 import { cleanupTempDirs, makeTempRepoRoot, writeJsonFile } from "../../test/helpers/temp-repo.js";
 

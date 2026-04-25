@@ -28,9 +28,7 @@ describe("gateway control-plane write rate limit", () => {
     } as unknown as Parameters<typeof handleGatewayRequest>[0]["context"];
   }
 
-  function buildConnect(): NonNullable<
-    Parameters<typeof handleGatewayRequest>[0]["client"]
-  >["connect"] {
+  function buildConnect() {
     return {
       role: "operator",
       scopes: ["operator.admin"],
@@ -42,7 +40,9 @@ describe("gateway control-plane write rate limit", () => {
       },
       minProtocol: 1,
       maxProtocol: 1,
-    };
+    } as NonNullable<
+      Parameters<typeof handleGatewayRequest>[0]["client"]
+    >["connect"];
   }
 
   function buildClient() {

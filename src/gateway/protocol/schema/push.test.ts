@@ -8,7 +8,7 @@ describe("PushTestParamsSchema", () => {
   });
 
   it("has type object", () => {
-    expect((PushTestParamsSchema as Record<string, unknown>).type).toBe("object");
+    expect((PushTestParamsSchema as unknown as Record<string, unknown>).type).toBe("object");
   });
 });
 
@@ -19,6 +19,6 @@ describe("PushTestResultSchema", () => {
   });
 
   it("has type object", () => {
-    expect((PushTestResultSchema as Record<string, unknown>).type).toBe("object");
+    expect((PushTestResultSchema as unknown as Record<string, unknown>).type).toBe("object");
   });
 });
