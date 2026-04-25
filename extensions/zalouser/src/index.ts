@@ -3,6 +3,6 @@
  * Zalo user authentication adapter
  */
 
-export { ZalouserExtension } from './extension';
-export { ZalouserConfig } from './config';
-export type * from './types';
+export { ZalouserExtension } from './extension.js';
+export { ZalouserConfig } from './config.js';
+export type * from './types.js';

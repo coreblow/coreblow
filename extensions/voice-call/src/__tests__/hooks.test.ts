@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { VoiceCallSubagentHooks } from '../subagent-hooks';
+import { VoiceCallSubagentHooks } from '../subagent-hooks.js';
 
 describe('VoiceCallSubagentHooks', () => {
   it('should register and trigger hooks', async () => {

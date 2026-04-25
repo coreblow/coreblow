@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { MemoryLancedbSubagentHooks } from '../subagent-hooks';
+import { MemoryLancedbSubagentHooks } from '../subagent-hooks.js';
 
 describe('MemoryLancedbSubagentHooks', () => {
   it('should register and trigger hooks', async () => {

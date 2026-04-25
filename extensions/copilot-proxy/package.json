@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-copilot-proxy",
+  "type": "module",
   "version": "0.1.0",
   "description": "GitHub Copilot proxy for LLM routing",
   "main": "dist/index.js",

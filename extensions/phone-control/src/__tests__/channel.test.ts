@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PhoneControlChannelImpl } from '../channel';
+import { PhoneControlChannelImpl } from '../channel.js';
 
 describe('PhoneControlChannel', () => {
   it('should connect and disconnect', async () => {

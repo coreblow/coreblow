@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { describe, it, expect } from 'vitest';
-import { AcpxExtension } from '../../extension';
-import { AcpxRuntime } from '../runtime';
+import { AcpxExtension } from '../../extension.js';
+import { AcpxRuntime } from '../runtime.js';
 
 describe('AcpxRuntime', () => {
   it('should start and stop', async () => {

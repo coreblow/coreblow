@@ -2,8 +2,8 @@
 /**
  * Bluebubbles Runtime
  */
-import { BluebubblesExtension } from '../extension';
-import { BluebubblesChannelImpl } from './channel';
+import { BluebubblesExtension } from '../extension.js';
+import { BluebubblesChannelImpl } from './channel.js';
 
 export class BluebubblesRuntime {
   [k: string]: any;

@@ -2,6 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
+import type { CompactionMessage } from "../compaction.js";
 import type { Api, Model } from "@mariozechner/pi-ai";
 import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -389,7 +390,7 @@ describe("computeAdaptiveChunkRatio", () => {
 
   it("returns BASE_CHUNK_RATIO for normal messages", () => {
     // Small messages: 1000 tokens each, well under 10% of context
-    const messages: AgentMessage[] = [
+    const messages: CompactionMessage[] = [
       { role: "user", content: "x".repeat(1000), timestamp: Date.now() },
       castAgentMessage({
         role: "assistant",
@@ -404,7 +405,7 @@ describe("computeAdaptiveChunkRatio", () => {
 
   it("reduces ratio when average message > 10% of context", () => {
     // Large messages: ~50K tokens each (25% of context)
-    const messages: AgentMessage[] = [
+    const messages: CompactionMessage[] = [
       { role: "user", content: "x".repeat(50_000 * 4), timestamp: Date.now() },
       castAgentMessage({
         role: "assistant",
@@ -420,7 +421,7 @@ describe("computeAdaptiveChunkRatio", () => {
 
   it("respects MIN_CHUNK_RATIO floor", () => {
     // Very large messages that would push ratio below minimum
-    const messages: AgentMessage[] = [
+    const messages: CompactionMessage[] = [
       { role: "user", content: "x".repeat(150_000 * 4), timestamp: Date.now() },
     ];
 
@@ -435,7 +436,7 @@ describe("computeAdaptiveChunkRatio", () => {
 
   it("handles single huge message", () => {
     // Single massive message
-    const messages: AgentMessage[] = [
+    const messages: CompactionMessage[] = [
       { role: "user", content: "x".repeat(180_000 * 4), timestamp: Date.now() },
     ];
 
@@ -449,7 +450,7 @@ describe("isOversizedForSummary", () => {
   const CONTEXT_WINDOW = 200_000;
 
   it("returns false for small messages", () => {
-    const msg: AgentMessage = {
+    const msg: CompactionMessage = {
       role: "user",
       content: "Hello, world!",
       timestamp: Date.now(),
@@ -461,7 +462,7 @@ describe("isOversizedForSummary", () => {
   it("returns true for messages > 50% of context", () => {
     // Message with ~120K tokens (60% of 200K context)
     // After safety margin (1.2x), effective is 144K which is > 100K (50%)
-    const msg: AgentMessage = {
+    const msg: CompactionMessage = {
       role: "user",
       content: "x".repeat(120_000 * 4),
       timestamp: Date.now(),
@@ -474,7 +475,7 @@ describe("isOversizedForSummary", () => {
     // Message at exactly 50% of context before margin
     // After SAFETY_MARGIN (1.2), it becomes 60% which is > 50%
     const halfContextChars = (CONTEXT_WINDOW * 0.5) / SAFETY_MARGIN;
-    const msg: AgentMessage = {
+    const msg: CompactionMessage = {
       role: "user",
       content: "x".repeat(Math.floor(halfContextChars * 4)),
       timestamp: Date.now(),

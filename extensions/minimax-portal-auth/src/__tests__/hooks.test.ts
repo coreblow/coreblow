@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { MinimaxPortalAuthSubagentHooks } from '../subagent-hooks';
+import { MinimaxPortalAuthSubagentHooks } from '../subagent-hooks.js';
 
 describe('MinimaxPortalAuthSubagentHooks', () => {
   it('should register and trigger hooks', async () => {

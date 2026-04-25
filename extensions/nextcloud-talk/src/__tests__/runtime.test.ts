@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { NextcloudTalkExtension } from '../../extension';
-import { NextcloudTalkRuntime } from '../runtime';
+import { NextcloudTalkExtension } from '../../extension.js';
+import { NextcloudTalkRuntime } from '../runtime.js';
 
 describe('NextcloudTalkRuntime', () => {
   it('should start and stop', async () => {

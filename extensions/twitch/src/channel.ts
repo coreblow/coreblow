@@ -2,7 +2,7 @@
 /**
  * Twitch Channel Implementation
  */
-import type { TwitchMessage, TwitchChannel } from '../types';
+import type { TwitchMessage, TwitchChannel } from '../types.js';
 
 export class TwitchChannelImpl {
   private channelId: string;

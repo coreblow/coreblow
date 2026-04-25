@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-twitch",
+  "type": "module",
   "version": "0.1.0",
   "description": "Twitch chat bot with channel point redemptions",
   "main": "dist/index.js",

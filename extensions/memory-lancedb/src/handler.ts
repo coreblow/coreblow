@@ -1,7 +1,7 @@
 /**
  * MemoryLancedb Message Handler
  */
-import type { MemoryLancedbMessage } from './types';
+import type { MemoryLancedbMessage } from './types.js';
 
 export class MemoryLancedbHandler {
   async onMessage(message: MemoryLancedbMessage) {

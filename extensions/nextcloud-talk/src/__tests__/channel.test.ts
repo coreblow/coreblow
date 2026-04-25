@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { describe, it, expect } from 'vitest';
-import { NextcloudTalkChannelImpl } from '../channel';
+import { NextcloudTalkChannelImpl } from '../channel.js';
 
 describe('NextcloudTalkChannel', () => {
   it('should connect and disconnect', async () => {

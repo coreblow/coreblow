@@ -1,8 +1,8 @@
 /**
  * QwenPortalAuth Runtime
  */
-import { QwenPortalAuthExtension } from '../extension';
-import { QwenPortalAuthChannelImpl } from './channel';
+import { QwenPortalAuthExtension } from '../extension.js';
+import { QwenPortalAuthChannelImpl } from './channel.js';
 
 export class QwenPortalAuthRuntime {
   [k: string]: any;

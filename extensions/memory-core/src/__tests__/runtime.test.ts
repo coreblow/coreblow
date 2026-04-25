@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { MemoryCoreExtension } from '../../extension';
-import { MemoryCoreRuntime } from '../runtime';
+import { MemoryCoreExtension } from '../../extension.js';
+import { MemoryCoreRuntime } from '../runtime.js';
 
 describe('MemoryCoreRuntime', () => {
   it('should start and stop', async () => {

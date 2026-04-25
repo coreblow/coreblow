@@ -1,7 +1,7 @@
 /**
  * DevicePair Message Handler
  */
-import type { DevicePairMessage } from './types';
+import type { DevicePairMessage } from './types.js';
 
 export class DevicePairHandler {
   async onMessage(message: DevicePairMessage) {

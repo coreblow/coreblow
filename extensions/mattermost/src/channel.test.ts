@@ -1,4 +1,4 @@
-import { Type } from "@sinclair/typebox";
+import { Type } from "typebox";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CoreBlowConfig } from "../runtime-api.js";
 import { createChannelReplyPipeline } from "../runtime-api.js";

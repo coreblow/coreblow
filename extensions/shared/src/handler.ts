@@ -1,7 +1,7 @@
 /**
  * Shared Message Handler
  */
-import type { SharedMessage } from './types';
+import type { SharedMessage } from './types.js';
 
 export class SharedHandler {
   async onMessage(message: SharedMessage) {

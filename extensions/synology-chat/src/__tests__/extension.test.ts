@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SynologyChatExtension } from '../extension';
+import { SynologyChatExtension } from '../extension.js';
 
 describe('SynologyChatExtension', () => {
   it('should initialize', async () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { GooglechatExtension } from '../extension';
+import { GooglechatExtension } from '../extension.js';
 
 describe('GooglechatExtension', () => {
   it('should initialize', async () => {

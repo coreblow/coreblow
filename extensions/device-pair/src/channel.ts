@@ -2,7 +2,7 @@
 /**
  * DevicePair Channel Implementation
  */
-import type { DevicePairMessage, DevicePairChannel } from '../types';
+import type { DevicePairMessage, DevicePairChannel } from '../types.js';
 
 export class DevicePairChannelImpl {
   private channelId: string;

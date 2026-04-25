@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { MemoryCoreChannelImpl } from '../channel';
+import { MemoryCoreChannelImpl } from '../channel.js';
 
 describe('MemoryCoreChannel', () => {
   it('should connect and disconnect', async () => {

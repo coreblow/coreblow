@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { clamp } from "../../utils.js";
 import type { AgentToolResult } from "@mariozechner/pi-agent-core";
-import { Type } from "@sinclair/typebox";
+import { Type } from "typebox";
 import {
   type CameraFacing,
   cameraTempPath,

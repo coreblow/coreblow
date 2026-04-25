@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+// @ts-expect-error — untyped .mjs script
 import { writeBuildStamp } from "../../scripts/build-stamp.mjs";
 
 async function withTempDir<T>(run: (dir: string) => Promise<T>): Promise<T> {

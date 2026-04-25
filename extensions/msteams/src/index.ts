@@ -3,6 +3,6 @@
  * Microsoft Teams bot with adaptive cards
  */
 
-export { MsteamsExtension } from './extension';
-export { MsteamsConfig } from './config';
-export type * from './types';
+export { MsteamsExtension } from './extension.js';
+export { MsteamsConfig } from './config.js';
+export type * from './types.js';

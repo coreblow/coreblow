@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { TwitchExtension } from '../extension';
+import { TwitchExtension } from '../extension.js';
 
 describe('TwitchExtension', () => {
   it('should initialize', async () => {

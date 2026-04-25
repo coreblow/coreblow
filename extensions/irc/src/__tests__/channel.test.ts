@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { describe, it, expect } from 'vitest';
-import { IrcChannelImpl } from '../channel';
+import { IrcChannelImpl } from '../channel.js';
 
 describe('IrcChannel', () => {
   it('should connect and disconnect', async () => {

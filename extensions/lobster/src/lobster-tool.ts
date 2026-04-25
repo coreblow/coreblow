@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import path from "node:path";
-import { Type } from "@sinclair/typebox";
+import { Type } from "typebox";
 import type { CoreBlowPluginApi } from "../runtime-api.js";
 import { resolveWindowsLobsterSpawn } from "./windows-spawn.js";
 

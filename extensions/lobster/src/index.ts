@@ -3,6 +3,6 @@
  * Lobsters news integration
  */
 
-export { LobsterExtension } from './extension';
-export { LobsterConfig } from './config';
-export type * from './types';
+export { LobsterExtension } from './extension.js';
+export { LobsterConfig } from './config.js';
+export type * from './types.js';

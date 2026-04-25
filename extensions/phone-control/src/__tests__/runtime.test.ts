@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { PhoneControlExtension } from '../../extension';
-import { PhoneControlRuntime } from '../runtime';
+import { PhoneControlExtension } from '../../extension.js';
+import { PhoneControlRuntime } from '../runtime.js';
 
 describe('PhoneControlRuntime', () => {
   it('should start and stop', async () => {

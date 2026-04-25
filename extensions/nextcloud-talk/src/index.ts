@@ -3,6 +3,6 @@
  * Nextcloud Talk integration
  */
 
-export { NextcloudTalkExtension } from './extension';
-export { NextcloudTalkConfig } from './config';
-export type * from './types';
+export { NextcloudTalkExtension } from './extension.js';
+export { NextcloudTalkConfig } from './config.js';
+export type * from './types.js';

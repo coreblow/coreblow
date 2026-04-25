@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-msteams",
+  "type": "module",
   "version": "0.1.0",
   "description": "Microsoft Teams bot with adaptive cards",
   "main": "dist/index.js",

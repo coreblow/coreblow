@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { describe, it, expect } from 'vitest';
-import { BluebubblesChannelImpl } from '../channel';
+import { BluebubblesChannelImpl } from '../channel.js';
 
 describe('BluebubblesChannel', () => {
   it('should connect and disconnect', async () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { NextcloudTalkSubagentHooks } from '../subagent-hooks';
+import { NextcloudTalkSubagentHooks } from '../subagent-hooks.js';
 
 describe('NextcloudTalkSubagentHooks', () => {
   it('should register and trigger hooks', async () => {

@@ -1,7 +1,7 @@
 /**
  * LlmTask Message Handler
  */
-import type { LlmTaskMessage } from './types';
+import type { LlmTaskMessage } from './types.js';
 
 export class LlmTaskHandler {
   async onMessage(message: LlmTaskMessage) {

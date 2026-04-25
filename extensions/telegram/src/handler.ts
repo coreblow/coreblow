@@ -1,7 +1,7 @@
 /**
  * Telegram Message Handler
  */
-import type { TelegramMessage } from './types';
+import type { TelegramMessage } from './types.js';
 
 export class TelegramHandler {
   async onMessage(message: TelegramMessage) {

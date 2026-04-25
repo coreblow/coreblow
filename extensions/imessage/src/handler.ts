@@ -1,7 +1,7 @@
 /**
  * Imessage Message Handler
  */
-import type { ImessageMessage } from './types';
+import type { ImessageMessage } from './types.js';
 
 export class ImessageHandler {
   async onMessage(message: ImessageMessage) {

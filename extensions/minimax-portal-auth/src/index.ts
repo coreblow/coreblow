@@ -3,6 +3,6 @@
  * Minimax portal authentication
  */
 
-export { MinimaxPortalAuthExtension } from './extension';
-export { MinimaxPortalAuthConfig } from './config';
-export type * from './types';
+export { MinimaxPortalAuthExtension } from './extension.js';
+export { MinimaxPortalAuthConfig } from './config.js';
+export type * from './types.js';

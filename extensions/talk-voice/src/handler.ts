@@ -1,7 +1,7 @@
 /**
  * TalkVoice Message Handler
  */
-import type { TalkVoiceMessage } from './types';
+import type { TalkVoiceMessage } from './types.js';
 
 export class TalkVoiceHandler {
   async onMessage(message: TalkVoiceMessage) {

@@ -2,7 +2,7 @@
 /**
  * Line Message Handler
  */
-import type { LineMessage } from './types';
+import type { LineMessage } from './types.js';
 
 export class LineHandler {
   async onMessage(message: LineMessage) {

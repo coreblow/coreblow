@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-talk-voice",
+  "type": "module",
   "version": "0.1.0",
   "description": "Voice call handling extension",
   "main": "dist/index.js",

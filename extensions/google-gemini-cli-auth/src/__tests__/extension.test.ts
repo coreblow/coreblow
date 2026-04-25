@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { GoogleGeminiCliAuthExtension } from '../extension';
+import { GoogleGeminiCliAuthExtension } from '../extension.js';
 
 describe('GoogleGeminiCliAuthExtension', () => {
   it('should initialize', async () => {

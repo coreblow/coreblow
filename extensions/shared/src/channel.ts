@@ -2,7 +2,7 @@
 /**
  * Shared Channel Implementation
  */
-import type { SharedMessage, SharedChannel } from '../types';
+import type { SharedMessage, SharedChannel } from '../types.js';
 
 export class SharedChannelImpl {
   private channelId: string;

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { LlmTaskExtension } from '../../extension';
-import { LlmTaskRuntime } from '../runtime';
+import { LlmTaskExtension } from '../../extension.js';
+import { LlmTaskRuntime } from '../runtime.js';
 
 describe('LlmTaskRuntime', () => {
   it('should start and stop', async () => {

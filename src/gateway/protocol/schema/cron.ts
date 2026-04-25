@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { Type, type TSchema } from "@sinclair/typebox";
+import { Type, type TSchema } from "typebox";
 import { NonEmptyString } from "./primitives.js";
 
 function cronAgentTurnPayloadSchema(params: { message: TSchema }) {

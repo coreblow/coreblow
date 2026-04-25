@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-device-pair",
+  "type": "module",
   "version": "0.1.0",
   "description": "Device pairing for mobile-desktop sync",
   "main": "dist/index.js",

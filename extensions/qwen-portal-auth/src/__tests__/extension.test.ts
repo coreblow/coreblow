@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { QwenPortalAuthExtension } from '../extension';
+import { QwenPortalAuthExtension } from '../extension.js';
 
 describe('QwenPortalAuthExtension', () => {
   it('should initialize', async () => {

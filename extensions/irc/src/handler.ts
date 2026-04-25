@@ -2,7 +2,7 @@
 /**
  * Irc Message Handler
  */
-import type { IrcMessage } from './types';
+import type { IrcMessage } from './types.js';
 
 export class IrcHandler {
   async onMessage(message: IrcMessage) {

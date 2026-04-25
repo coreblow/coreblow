@@ -3,6 +3,6 @@
  * GitHub Copilot proxy for LLM routing
  */
 
-export { CopilotProxyExtension } from './extension';
-export { CopilotProxyConfig } from './config';
-export type * from './types';
+export { CopilotProxyExtension } from './extension.js';
+export { CopilotProxyConfig } from './config.js';
+export type * from './types.js';

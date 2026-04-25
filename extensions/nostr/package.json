@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-nostr",
+  "type": "module",
   "version": "0.1.0",
   "description": "Nostr protocol integration for decentralized social",
   "main": "dist/index.js",

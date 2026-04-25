@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ZalouserSubagentHooks } from '../subagent-hooks';
+import { ZalouserSubagentHooks } from '../subagent-hooks.js';
 
 describe('ZalouserSubagentHooks', () => {
   it('should register and trigger hooks', async () => {

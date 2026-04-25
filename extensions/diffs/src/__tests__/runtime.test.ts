@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { DiffsExtension } from '../../extension';
-import { DiffsRuntime } from '../runtime';
+import { DiffsExtension } from '../../extension.js';
+import { DiffsRuntime } from '../runtime.js';
 
 describe('DiffsRuntime', () => {
   it('should start and stop', async () => {

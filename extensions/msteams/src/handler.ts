@@ -1,7 +1,7 @@
 /**
  * Msteams Message Handler
  */
-import type { MsteamsMessage } from './types';
+import type { MsteamsMessage } from './types.js';
 
 export class MsteamsHandler {
   async onMessage(message: MsteamsMessage) {

@@ -1,7 +1,7 @@
 /**
  * MinimaxPortalAuth Message Handler
  */
-import type { MinimaxPortalAuthMessage } from './types';
+import type { MinimaxPortalAuthMessage } from './types.js';
 
 export class MinimaxPortalAuthHandler {
   async onMessage(message: MinimaxPortalAuthMessage) {

@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-llm-task",
+  "type": "module",
   "version": "0.1.0",
   "description": "LLM task execution framework",
   "main": "dist/index.js",

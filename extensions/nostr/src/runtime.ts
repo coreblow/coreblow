@@ -2,8 +2,8 @@
 /**
  * Nostr Runtime
  */
-import { NostrExtension } from '../extension';
-import { NostrChannelImpl } from './channel';
+import { NostrExtension } from '../extension.js';
+import { NostrChannelImpl } from './channel.js';
 
 export class NostrRuntime {
   [k: string]: any;

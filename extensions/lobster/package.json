@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-lobster",
+  "type": "module",
   "version": "0.1.0",
   "description": "Lobsters news integration",
   "main": "dist/index.js",

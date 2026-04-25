@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-feishu",
+  "type": "module",
   "version": "0.1.0",
   "description": "Feishu/Lark messenger integration",
   "main": "dist/index.js",

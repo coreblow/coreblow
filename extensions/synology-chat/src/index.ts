@@ -3,6 +3,6 @@
  * Synology Chat integration
  */
 
-export { SynologyChatExtension } from './extension';
-export { SynologyChatConfig } from './config';
-export type * from './types';
+export { SynologyChatExtension } from './extension.js';
+export { SynologyChatConfig } from './config.js';
+export type * from './types.js';

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { MinimaxPortalAuthExtension } from '../extension';
+import { MinimaxPortalAuthExtension } from '../extension.js';
 
 describe('MinimaxPortalAuthExtension', () => {
   it('should initialize', async () => {

@@ -2,7 +2,7 @@
 /**
  * Acpx Channel Implementation
  */
-import type { AcpxMessage, AcpxChannel } from '../types';
+import type { AcpxMessage, AcpxChannel } from '../types.js';
 
 export class AcpxChannelImpl {
   private channelId: string;

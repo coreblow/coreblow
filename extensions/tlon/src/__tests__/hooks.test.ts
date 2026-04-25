@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { TlonSubagentHooks } from '../subagent-hooks';
+import { TlonSubagentHooks } from '../subagent-hooks.js';
 
 describe('TlonSubagentHooks', () => {
   it('should register and trigger hooks', async () => {

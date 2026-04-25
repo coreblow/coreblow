@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { FeishuExtension } from '../../extension';
-import { FeishuRuntime } from '../runtime';
+import { FeishuExtension } from '../../extension.js';
+import { FeishuRuntime } from '../runtime.js';
 
 describe('FeishuRuntime', () => {
   it('should start and stop', async () => {

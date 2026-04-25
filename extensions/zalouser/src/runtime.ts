@@ -2,8 +2,8 @@
 /**
  * Zalouser Runtime
  */
-import { ZalouserExtension } from '../extension';
-import { ZalouserChannelImpl } from './channel';
+import { ZalouserExtension } from '../extension.js';
+import { ZalouserChannelImpl } from './channel.js';
 
 export class ZalouserRuntime {
   [k: string]: any;

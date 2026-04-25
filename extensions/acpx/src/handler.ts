@@ -1,7 +1,7 @@
 /**
  * Acpx Message Handler
  */
-import type { AcpxMessage } from './types';
+import type { AcpxMessage } from './types.js';
 
 export class AcpxHandler {
   async onMessage(message: AcpxMessage) {

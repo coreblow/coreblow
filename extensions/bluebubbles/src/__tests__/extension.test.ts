@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { BluebubblesExtension } from '../extension';
+import { BluebubblesExtension } from '../extension.js';
 
 describe('BluebubblesExtension', () => {
   it('should initialize', async () => {

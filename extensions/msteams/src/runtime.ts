@@ -2,8 +2,8 @@
 /**
  * Msteams Runtime
  */
-import { MsteamsExtension } from '../extension';
-import { MsteamsChannelImpl } from './channel';
+import { MsteamsExtension } from '../extension.js';
+import { MsteamsChannelImpl } from './channel.js';
 
 export class MsteamsRuntime {
   [k: string]: any;

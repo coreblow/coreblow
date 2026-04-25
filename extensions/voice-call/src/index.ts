@@ -3,6 +3,6 @@
  * WebRTC voice call integration
  */
 
-export { VoiceCallExtension } from './extension';
-export { VoiceCallConfig } from './config';
-export type * from './types';
+export { VoiceCallExtension } from './extension.js';
+export { VoiceCallConfig } from './config.js';
+export type * from './types.js';

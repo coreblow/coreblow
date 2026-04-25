@@ -1,4 +1,5 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
+import type { CompactionMessage } from "./compaction.js";
 import type { AssistantMessage, ToolResultMessage } from "@mariozechner/pi-ai";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { makeAgentAssistantMessage } from "./test-helpers/agent-message-fixtures.js";
@@ -58,7 +59,7 @@ describe("compaction toolResult details stripping", () => {
   });
 
   it("does not pass toolResult.details into generateSummary", async () => {
-    const messages: AgentMessage[] = [makeAssistantToolCall(1), makeToolResultWithDetails(2)];
+    const messages = [makeAssistantToolCall(1), makeToolResultWithDetails(2)] as CompactionMessage[];
 
     const summary = await summarizeWithFallback({
       messages,

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { TalkVoiceExtension } from '../../extension';
-import { TalkVoiceRuntime } from '../runtime';
+import { TalkVoiceExtension } from '../../extension.js';
+import { TalkVoiceRuntime } from '../runtime.js';
 
 describe('TalkVoiceRuntime', () => {
   it('should start and stop', async () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { LineExtension } from '../../extension';
-import { LineRuntime } from '../runtime';
+import { LineExtension } from '../../extension.js';
+import { LineRuntime } from '../runtime.js';
 
 describe('LineRuntime', () => {
   it('should start and stop', async () => {

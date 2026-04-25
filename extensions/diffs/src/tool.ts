@@ -1,5 +1,5 @@
 import fs from "node:fs/promises";
-import { Static, Type } from "@sinclair/typebox";
+import { Static, Type } from "typebox";
 import type { AnyAgentTool, CoreBlowPluginApi, CoreBlowPluginToolContext } from "../api.js";
 import { PlaywrightDiffScreenshotter, type DiffScreenshotter } from "./browser.js";
 import { resolveDiffImageRenderOptions } from "./config.js";

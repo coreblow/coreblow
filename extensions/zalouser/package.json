@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-zalouser",
+  "type": "module",
   "version": "0.1.0",
   "description": "Zalo user authentication adapter",
   "main": "dist/index.js",

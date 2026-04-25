@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { TwitchExtension } from '../../extension';
-import { TwitchRuntime } from '../runtime';
+import { TwitchExtension } from '../../extension.js';
+import { TwitchRuntime } from '../runtime.js';
 
 describe('TwitchRuntime', () => {
   it('should start and stop', async () => {

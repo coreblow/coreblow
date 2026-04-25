@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-mattermost",
+  "type": "module",
   "version": "0.1.0",
   "description": "Mattermost team messaging integration",
   "main": "dist/index.js",

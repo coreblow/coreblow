@@ -311,10 +311,16 @@ export function createOpenAIResponsesContextManagementWrapper(
 ): StreamFn {
   const underlying = baseStreamFn ?? streamSimple;
   return (model, context, options) => {
-    const forceStore = shouldForceResponsesStore(model);
-    const useServerCompaction = shouldEnableOpenAIResponsesServerCompaction(model, extraParams);
-    const stripStore = shouldStripResponsesStore(model, forceStore);
-    const stripPromptCache = shouldStripResponsesPromptCache(model);
+    const modelInfo = {
+      api: model.api,
+      provider: model.provider,
+      baseUrl: model.baseUrl,
+      compat: model.compat ? { supportsStore: (model.compat as { supportsStore?: boolean }).supportsStore } : undefined,
+    };
+    const forceStore = shouldForceResponsesStore(modelInfo);
+    const useServerCompaction = shouldEnableOpenAIResponsesServerCompaction(modelInfo, extraParams);
+    const stripStore = shouldStripResponsesStore(modelInfo, forceStore);
+    const stripPromptCache = shouldStripResponsesPromptCache(modelInfo);
     if (!forceStore && !useServerCompaction && !stripStore && !stripPromptCache) {
       return underlying(model, context, options);
     }

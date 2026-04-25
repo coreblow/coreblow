@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { MsteamsExtension } from '../../extension';
-import { MsteamsRuntime } from '../runtime';
+import { MsteamsExtension } from '../../extension.js';
+import { MsteamsRuntime } from '../runtime.js';
 
 describe('MsteamsRuntime', () => {
   it('should start and stop', async () => {

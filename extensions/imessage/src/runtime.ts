@@ -2,8 +2,8 @@
 /**
  * Imessage Runtime
  */
-import { ImessageExtension } from '../extension';
-import { ImessageChannelImpl } from './channel';
+import { ImessageExtension } from '../extension.js';
+import { ImessageChannelImpl } from './channel.js';
 
 export class ImessageRuntime {
   [k: string]: any;

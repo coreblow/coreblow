@@ -3,6 +3,6 @@
  * Core memory storage engine
  */
 
-export { MemoryCoreExtension } from './extension';
-export { MemoryCoreConfig } from './config';
-export type * from './types';
+export { MemoryCoreExtension } from './extension.js';
+export { MemoryCoreConfig } from './config.js';
+export type * from './types.js';

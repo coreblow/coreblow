@@ -2,8 +2,8 @@
 /**
  * Feishu Runtime
  */
-import { FeishuExtension } from '../extension';
-import { FeishuChannelImpl } from './channel';
+import { FeishuExtension } from '../extension.js';
+import { FeishuChannelImpl } from './channel.js';
 
 export class FeishuRuntime {
   [k: string]: any;

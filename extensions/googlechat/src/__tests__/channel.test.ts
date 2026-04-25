@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { describe, it, expect } from 'vitest';
-import { GooglechatChannelImpl } from '../channel';
+import { GooglechatChannelImpl } from '../channel.js';
 
 describe('GooglechatChannel', () => {
   it('should connect and disconnect', async () => {

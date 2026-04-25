@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { NextcloudTalkExtension } from '../extension';
+import { NextcloudTalkExtension } from '../extension.js';
 
 describe('NextcloudTalkExtension', () => {
   it('should initialize', async () => {

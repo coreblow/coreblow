@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-memory-lancedb",
+  "type": "module",
   "version": "0.1.0",
   "description": "LanceDB vector memory backend",
   "main": "dist/index.js",

@@ -1,4 +1,4 @@
-import { Type } from "@sinclair/typebox";
+import { Type } from "typebox";
 import { describeAccountSnapshot } from "coreblow/plugin-sdk/account-helpers";
 import { formatNormalizedAllowFromEntries } from "coreblow/plugin-sdk/allow-from";
 import { createMessageToolButtonsSchema } from "coreblow/plugin-sdk/channel-actions";

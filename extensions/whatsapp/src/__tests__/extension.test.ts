@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { WhatsappExtension } from '../extension';
+import { WhatsappExtension } from '../extension.js';
 
 describe('WhatsappExtension', () => {
   it('should initialize', async () => {

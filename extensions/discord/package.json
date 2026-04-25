@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-discord",
+  "type": "module",
   "version": "0.1.0",
   "description": "Discord bot integration with slash commands, embeds, and reactions",
   "main": "dist/index.js",

@@ -1,7 +1,7 @@
 /**
  * PhoneControl Message Handler
  */
-import type { PhoneControlMessage } from './types';
+import type { PhoneControlMessage } from './types.js';
 
 export class PhoneControlHandler {
   async onMessage(message: PhoneControlMessage) {

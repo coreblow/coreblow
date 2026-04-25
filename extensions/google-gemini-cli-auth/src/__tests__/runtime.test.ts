@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { GoogleGeminiCliAuthExtension } from '../../extension';
-import { GoogleGeminiCliAuthRuntime } from '../runtime';
+import { GoogleGeminiCliAuthExtension } from '../../extension.js';
+import { GoogleGeminiCliAuthRuntime } from '../runtime.js';
 
 describe('GoogleGeminiCliAuthRuntime', () => {
   it('should start and stop', async () => {

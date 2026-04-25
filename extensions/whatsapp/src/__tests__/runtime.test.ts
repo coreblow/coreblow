@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { WhatsappExtension } from '../../extension';
-import { WhatsappRuntime } from '../runtime';
+import { WhatsappExtension } from '../../extension.js';
+import { WhatsappRuntime } from '../runtime.js';
 
 describe('WhatsappRuntime', () => {
   it('should start and stop', async () => {

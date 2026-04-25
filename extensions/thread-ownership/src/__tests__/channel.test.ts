@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ThreadOwnershipChannelImpl } from '../channel';
+import { ThreadOwnershipChannelImpl } from '../channel.js';
 
 describe('ThreadOwnershipChannel', () => {
   it('should connect and disconnect', async () => {

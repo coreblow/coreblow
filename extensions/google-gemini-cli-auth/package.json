@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-google-gemini-cli-auth",
+  "type": "module",
   "version": "0.1.0",
   "description": "Google Gemini CLI authentication",
   "main": "dist/index.js",

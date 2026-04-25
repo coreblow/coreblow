@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { OpenProseSubagentHooks } from '../subagent-hooks';
+import { OpenProseSubagentHooks } from '../subagent-hooks.js';
 
 describe('OpenProseSubagentHooks', () => {
   it('should register and trigger hooks', async () => {

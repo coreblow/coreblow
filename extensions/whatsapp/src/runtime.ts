@@ -2,8 +2,8 @@
 /**
  * Whatsapp Runtime
  */
-import { WhatsappExtension } from '../extension';
-import { WhatsappChannelImpl } from './channel';
+import { WhatsappExtension } from '../extension.js';
+import { WhatsappChannelImpl } from './channel.js';
 
 export class WhatsappRuntime {
   [k: string]: any;

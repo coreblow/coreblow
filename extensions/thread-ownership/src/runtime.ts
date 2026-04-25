@@ -1,8 +1,8 @@
 /**
  * ThreadOwnership Runtime
  */
-import { ThreadOwnershipExtension } from '../extension';
-import { ThreadOwnershipChannelImpl } from './channel';
+import { ThreadOwnershipExtension } from '../extension.js';
+import { ThreadOwnershipChannelImpl } from './channel.js';
 
 export class ThreadOwnershipRuntime {
   [k: string]: any;

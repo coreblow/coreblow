@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { TwitchChannelImpl } from '../channel';
+import { TwitchChannelImpl } from '../channel.js';
 
 describe('TwitchChannel', () => {
   it('should connect and disconnect', async () => {

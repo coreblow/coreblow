@@ -1,8 +1,8 @@
 /**
  * TestUtils Runtime
  */
-import { TestUtilsExtension } from '../extension';
-import { TestUtilsChannelImpl } from './channel';
+import { TestUtilsExtension } from '../extension.js';
+import { TestUtilsChannelImpl } from './channel.js';
 
 export class TestUtilsRuntime {
   [k: string]: any;

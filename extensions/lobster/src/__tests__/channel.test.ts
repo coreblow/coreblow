@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { LobsterChannelImpl } from '../channel';
+import { LobsterChannelImpl } from '../channel.js';
 
 describe('LobsterChannel', () => {
   it('should connect and disconnect', async () => {

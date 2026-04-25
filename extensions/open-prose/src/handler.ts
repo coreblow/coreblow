@@ -1,7 +1,7 @@
 /**
  * OpenProse Message Handler
  */
-import type { OpenProseMessage } from './types';
+import type { OpenProseMessage } from './types.js';
 
 export class OpenProseHandler {
   async onMessage(message: OpenProseMessage) {

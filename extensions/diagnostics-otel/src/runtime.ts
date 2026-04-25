@@ -1,8 +1,8 @@
 /**
  * DiagnosticsOtel Runtime
  */
-import { DiagnosticsOtelExtension } from '../extension';
-import { DiagnosticsOtelChannelImpl } from './channel';
+import { DiagnosticsOtelExtension } from '../extension.js';
+import { DiagnosticsOtelChannelImpl } from './channel.js';
 
 export class DiagnosticsOtelRuntime {
   [k: string]: any;

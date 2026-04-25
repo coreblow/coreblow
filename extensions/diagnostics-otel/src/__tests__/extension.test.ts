@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DiagnosticsOtelExtension } from '../extension';
+import { DiagnosticsOtelExtension } from '../extension.js';
 
 describe('DiagnosticsOtelExtension', () => {
   it('should initialize', async () => {

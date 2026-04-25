@@ -3,6 +3,6 @@
  * Telegram bot with inline keyboards and media support
  */
 
-export { TelegramExtension } from './extension';
-export { TelegramConfig } from './config';
-export type * from './types';
+export { TelegramExtension } from './extension.js';
+export { TelegramConfig } from './config.js';
+export type * from './types.js';

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ThreadOwnershipSubagentHooks } from '../subagent-hooks';
+import { ThreadOwnershipSubagentHooks } from '../subagent-hooks.js';
 
 describe('ThreadOwnershipSubagentHooks', () => {
   it('should register and trigger hooks', async () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { QwenPortalAuthSubagentHooks } from '../subagent-hooks';
+import { QwenPortalAuthSubagentHooks } from '../subagent-hooks.js';
 
 describe('QwenPortalAuthSubagentHooks', () => {
   it('should register and trigger hooks', async () => {

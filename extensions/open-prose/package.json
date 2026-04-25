@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-open-prose",
+  "type": "module",
   "version": "0.1.0",
   "description": "Prose editing and formatting engine",
   "main": "dist/index.js",

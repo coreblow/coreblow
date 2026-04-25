@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-shared",
+  "type": "module",
   "version": "0.1.0",
   "description": "Shared extension utilities and types",
   "main": "dist/index.js",

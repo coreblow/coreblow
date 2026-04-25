@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-signal",
+  "type": "module",
   "version": "0.1.0",
   "description": "Signal messenger integration via signal-cli",
   "main": "dist/index.js",

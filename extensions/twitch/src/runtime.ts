@@ -2,8 +2,8 @@
 /**
  * Twitch Runtime
  */
-import { TwitchExtension } from '../extension';
-import { TwitchChannelImpl } from './channel';
+import { TwitchExtension } from '../extension.js';
+import { TwitchChannelImpl } from './channel.js';
 
 export class TwitchRuntime {
   [k: string]: any;

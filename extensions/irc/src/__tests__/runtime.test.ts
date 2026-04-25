@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { IrcExtension } from '../../extension';
-import { IrcRuntime } from '../runtime';
+import { IrcExtension } from '../../extension.js';
+import { IrcRuntime } from '../runtime.js';
 
 describe('IrcRuntime', () => {
   it('should start and stop', async () => {

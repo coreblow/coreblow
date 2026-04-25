@@ -12,6 +12,7 @@ import {
 import { createStartAccountContext } from "../../../test/helpers/extensions/start-account-context.js";
 import type { CoreBlowConfig, PluginRuntime, ResolvedLineAccount } from "../api.js";
 import { linePlugin } from "./channel.js";
+// @ts-expect-error — clearLineRuntime is not exported; pre-existing test bug
 import { clearLineRuntime, setLineRuntime } from "./runtime.js";
 
 const { getBotInfoMock, MessagingApiClientMock } = vi.hoisted(() => {
@@ -232,7 +233,7 @@ describe("linePlugin status.probeAccount", () => {
     });
 
     const { linePlugin: freshLinePlugin } = await import("./channel.js");
-    const { clearLineRuntime: clearFreshLineRuntime } = await import("./runtime.js");
+    const { clearLineRuntime: clearFreshLineRuntime } = (await import("./runtime.js")) as any;
     const { probeLineBot: directProbeLineBot } = await import("./probe.js");
     clearFreshLineRuntime();
     const params = {

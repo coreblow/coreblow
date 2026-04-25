@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { CopilotProxyExtension } from '../../extension';
-import { CopilotProxyRuntime } from '../runtime';
+import { CopilotProxyExtension } from '../../extension.js';
+import { CopilotProxyRuntime } from '../runtime.js';
 
 describe('CopilotProxyRuntime', () => {
   it('should start and stop', async () => {

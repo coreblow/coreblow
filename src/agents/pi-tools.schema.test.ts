@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { Type } from "@sinclair/typebox";
+import { Type } from "typebox";
 import { describe, expect, it, vi } from "vitest";
 import { normalizeToolParameters } from "./pi-tools.schema.js";
 import type { AnyAgentTool } from "./pi-tools.types.js";

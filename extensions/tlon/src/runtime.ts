@@ -2,8 +2,8 @@
 /**
  * Tlon Runtime
  */
-import { TlonExtension } from '../extension';
-import { TlonChannelImpl } from './channel';
+import { TlonExtension } from '../extension.js';
+import { TlonChannelImpl } from './channel.js';
 
 export class TlonRuntime {
   [k: string]: any;

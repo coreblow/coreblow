@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { describe, it, expect } from 'vitest';
-import { FeishuChannelImpl } from '../channel';
+import { FeishuChannelImpl } from '../channel.js';
 
 describe('FeishuChannel', () => {
   it('should connect and disconnect', async () => {

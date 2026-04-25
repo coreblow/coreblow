@@ -2,8 +2,8 @@
 /**
  * Signal Runtime
  */
-import { SignalExtension } from '../extension';
-import { SignalChannelImpl } from './channel';
+import { SignalExtension } from '../extension.js';
+import { SignalChannelImpl } from './channel.js';
 
 export class SignalRuntime {
   [k: string]: any;

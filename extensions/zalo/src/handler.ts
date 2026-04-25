@@ -2,7 +2,7 @@
 /**
  * Zalo Message Handler
  */
-import type { ZaloMessage } from './types';
+import type { ZaloMessage } from './types.js';
 
 export class ZaloHandler {
   async onMessage(message: ZaloMessage) {

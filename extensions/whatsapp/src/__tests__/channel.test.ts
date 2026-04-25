@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { describe, it, expect } from 'vitest';
-import { WhatsappChannelImpl } from '../channel';
+import { WhatsappChannelImpl } from '../channel.js';
 
 describe('WhatsappChannel', () => {
   it('should connect and disconnect', async () => {

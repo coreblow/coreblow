@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
+// @ts-expect-error — untyped .mjs script
 import { stageBundledPluginRuntime } from "../../scripts/stage-bundled-plugin-runtime.mjs";
 import { discoverCoreBlowPlugins } from "./discovery.js";
 import { loadPluginManifestRegistry } from "./manifest-registry.js";

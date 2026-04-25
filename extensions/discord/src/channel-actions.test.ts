@@ -1,4 +1,4 @@
-import { Type } from "@sinclair/typebox";
+import { Type } from "typebox";
 import type { ChannelMessageActionContext } from "coreblow/plugin-sdk/channel-contract";
 import type { CoreBlowConfig } from "coreblow/plugin-sdk/config-runtime";
 import { describe, expect, it, vi } from "vitest";

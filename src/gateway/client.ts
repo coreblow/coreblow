@@ -459,7 +459,7 @@ export class GatewayClient {
         nonce,
       };
     })();
-    const params: ConnectParams = {
+    const params = {
       minProtocol: this.opts.minProtocol ?? PROTOCOL_VERSION,
       maxProtocol: this.opts.maxProtocol ?? PROTOCOL_VERSION,
       client: {
@@ -482,7 +482,7 @@ export class GatewayClient {
       role,
       scopes,
       device,
-    };
+    } as ConnectParams;
 
     void this.request<HelloOk>("connect", params)
       .then((helloOk) => {

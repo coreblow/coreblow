@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+// @ts-expect-error — untyped .mjs script
 import { runNodeMain } from "../../scripts/run-node.mjs";
 
 const ROOT_SRC = "src/index.ts";

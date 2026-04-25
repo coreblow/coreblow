@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { describe, it, expect } from 'vitest';
-import { SynologyChatChannelImpl } from '../channel';
+import { SynologyChatChannelImpl } from '../channel.js';
 
 describe('SynologyChatChannel', () => {
   it('should connect and disconnect', async () => {

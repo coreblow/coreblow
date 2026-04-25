@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { MinimaxPortalAuthExtension } from '../../extension';
-import { MinimaxPortalAuthRuntime } from '../runtime';
+import { MinimaxPortalAuthExtension } from '../../extension.js';
+import { MinimaxPortalAuthRuntime } from '../runtime.js';
 
 describe('MinimaxPortalAuthRuntime', () => {
   it('should start and stop', async () => {

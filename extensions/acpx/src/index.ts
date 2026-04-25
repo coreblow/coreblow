@@ -4,6 +4,6 @@
  * Agent Communication Protocol extensions
  */
 
-export { AcpxExtension } from './extension';
-export { AcpxConfig } from './config';
-export type * from './types';
+export { AcpxExtension } from './extension.js';
+export { AcpxConfig } from './config.js';
+export type * from './types.js';

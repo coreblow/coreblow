@@ -1146,7 +1146,7 @@ export type WebSearchProviderId = string;
 
 export type WebSearchProviderToolDefinition = {
   description: string;
-  parameters: Record<string, unknown>;
+  parameters: Record<string, unknown> | object;
   execute: (args: Record<string, unknown>) => Promise<Record<string, unknown>>;
 };
 

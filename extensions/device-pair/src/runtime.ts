@@ -1,8 +1,8 @@
 /**
  * DevicePair Runtime
  */
-import { DevicePairExtension } from '../extension';
-import { DevicePairChannelImpl } from './channel';
+import { DevicePairExtension } from '../extension.js';
+import { DevicePairChannelImpl } from './channel.js';
 
 export class DevicePairRuntime {
   [k: string]: any;

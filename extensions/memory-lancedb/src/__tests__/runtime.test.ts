@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { MemoryLancedbExtension } from '../../extension';
-import { MemoryLancedbRuntime } from '../runtime';
+import { MemoryLancedbExtension } from '../../extension.js';
+import { MemoryLancedbRuntime } from '../runtime.js';
 
 describe('MemoryLancedbRuntime', () => {
   it('should start and stop', async () => {

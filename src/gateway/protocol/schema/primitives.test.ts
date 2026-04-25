@@ -22,10 +22,10 @@ describe("NonEmptyString schema", () => {
   });
 
   it("has minLength constraint", () => {
-    expect((NonEmptyString as Record<string, unknown>).minLength).toBe(1);
+    expect((NonEmptyString as unknown as Record<string, unknown>).minLength).toBe(1);
   });
 
   it("is of type 'string'", () => {
-    expect((NonEmptyString as Record<string, unknown>).type).toBe("string");
+    expect((NonEmptyString as unknown as Record<string, unknown>).type).toBe("string");
   });
 });

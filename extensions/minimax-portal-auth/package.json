@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-minimax-portal-auth",
+  "type": "module",
   "version": "0.1.0",
   "description": "Minimax portal authentication",
   "main": "dist/index.js",

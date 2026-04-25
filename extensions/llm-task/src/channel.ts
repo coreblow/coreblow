@@ -2,7 +2,7 @@
 /**
  * LlmTask Channel Implementation
  */
-import type { LlmTaskMessage, LlmTaskChannel } from '../types';
+import type { LlmTaskMessage, LlmTaskChannel } from '../types.js';
 
 export class LlmTaskChannelImpl {
   private channelId: string;

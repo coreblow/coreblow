@@ -2,7 +2,7 @@
 /**
  * Bluebubbles Message Handler
  */
-import type { BluebubblesMessage } from './types';
+import type { BluebubblesMessage } from './types.js';
 
 export class BluebubblesHandler {
   async onMessage(message: BluebubblesMessage) {

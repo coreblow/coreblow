@@ -1,7 +1,7 @@
 /**
  * QwenPortalAuth Message Handler
  */
-import type { QwenPortalAuthMessage } from './types';
+import type { QwenPortalAuthMessage } from './types.js';
 
 export class QwenPortalAuthHandler {
   async onMessage(message: QwenPortalAuthMessage) {

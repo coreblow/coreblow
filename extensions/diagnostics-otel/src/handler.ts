@@ -1,7 +1,7 @@
 /**
  * DiagnosticsOtel Message Handler
  */
-import type { DiagnosticsOtelMessage } from './types';
+import type { DiagnosticsOtelMessage } from './types.js';
 
 export class DiagnosticsOtelHandler {
   async onMessage(message: DiagnosticsOtelMessage) {

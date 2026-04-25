@@ -2,7 +2,7 @@
 /**
  * PhoneControl Channel Implementation
  */
-import type { PhoneControlMessage, PhoneControlChannel } from '../types';
+import type { PhoneControlMessage, PhoneControlChannel } from '../types.js';
 
 export class PhoneControlChannelImpl {
   private channelId: string;

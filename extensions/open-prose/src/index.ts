@@ -3,6 +3,6 @@
  * Prose editing and formatting engine
  */
 
-export { OpenProseExtension } from './extension';
-export { OpenProseConfig } from './config';
-export type * from './types';
+export { OpenProseExtension } from './extension.js';
+export { OpenProseConfig } from './config.js';
+export type * from './types.js';

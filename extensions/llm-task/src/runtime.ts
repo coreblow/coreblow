@@ -1,8 +1,8 @@
 /**
  * LlmTask Runtime
  */
-import { LlmTaskExtension } from '../extension';
-import { LlmTaskChannelImpl } from './channel';
+import { LlmTaskExtension } from '../extension.js';
+import { LlmTaskChannelImpl } from './channel.js';
 
 export class LlmTaskRuntime {
   [k: string]: any;

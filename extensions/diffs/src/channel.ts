@@ -2,7 +2,7 @@
 /**
  * Diffs Channel Implementation
  */
-import type { DiffsMessage, DiffsChannel } from '../types';
+import type { DiffsMessage, DiffsChannel } from '../types.js';
 
 export class DiffsChannelImpl {
   private channelId: string;

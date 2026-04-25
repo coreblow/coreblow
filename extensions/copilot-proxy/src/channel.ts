@@ -2,7 +2,7 @@
 /**
  * CopilotProxy Channel Implementation
  */
-import type { CopilotProxyMessage, CopilotProxyChannel } from '../types';
+import type { CopilotProxyMessage, CopilotProxyChannel } from '../types.js';
 
 export class CopilotProxyChannelImpl {
   private channelId: string;

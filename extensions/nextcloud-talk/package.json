@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-nextcloud-talk",
+  "type": "module",
   "version": "0.1.0",
   "description": "Nextcloud Talk integration",
   "main": "dist/index.js",

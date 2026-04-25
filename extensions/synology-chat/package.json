@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-synology-chat",
+  "type": "module",
   "version": "0.1.0",
   "description": "Synology Chat integration",
   "main": "dist/index.js",

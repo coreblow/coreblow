@@ -2,7 +2,7 @@
 /**
  * TalkVoice Channel Implementation
  */
-import type { TalkVoiceMessage, TalkVoiceChannel } from '../types';
+import type { TalkVoiceMessage, TalkVoiceChannel } from '../types.js';
 
 export class TalkVoiceChannelImpl {
   private channelId: string;

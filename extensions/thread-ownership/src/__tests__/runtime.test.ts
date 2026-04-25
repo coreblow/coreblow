@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { ThreadOwnershipExtension } from '../../extension';
-import { ThreadOwnershipRuntime } from '../runtime';
+import { ThreadOwnershipExtension } from '../../extension.js';
+import { ThreadOwnershipRuntime } from '../runtime.js';
 
 describe('ThreadOwnershipRuntime', () => {
   it('should start and stop', async () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { QwenPortalAuthChannelImpl } from '../channel';
+import { QwenPortalAuthChannelImpl } from '../channel.js';
 
 describe('QwenPortalAuthChannel', () => {
   it('should connect and disconnect', async () => {

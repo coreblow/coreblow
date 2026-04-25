@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-tlon",
+  "type": "module",
   "version": "0.1.0",
   "description": "Tlon Urbit integration",
   "main": "dist/index.js",

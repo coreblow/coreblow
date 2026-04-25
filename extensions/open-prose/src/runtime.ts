@@ -1,8 +1,8 @@
 /**
  * OpenProse Runtime
  */
-import { OpenProseExtension } from '../extension';
-import { OpenProseChannelImpl } from './channel';
+import { OpenProseExtension } from '../extension.js';
+import { OpenProseChannelImpl } from './channel.js';
 
 export class OpenProseRuntime {
   [k: string]: any;

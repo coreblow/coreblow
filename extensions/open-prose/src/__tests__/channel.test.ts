@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { OpenProseChannelImpl } from '../channel';
+import { OpenProseChannelImpl } from '../channel.js';
 
 describe('OpenProseChannel', () => {
   it('should connect and disconnect', async () => {

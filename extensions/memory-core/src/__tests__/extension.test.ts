@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { MemoryCoreExtension } from '../extension';
+import { MemoryCoreExtension } from '../extension.js';
 
 describe('MemoryCoreExtension', () => {
   it('should initialize', async () => {

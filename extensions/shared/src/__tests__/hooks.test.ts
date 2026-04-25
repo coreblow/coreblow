@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SharedSubagentHooks } from '../subagent-hooks';
+import { SharedSubagentHooks } from '../subagent-hooks.js';
 
 describe('SharedSubagentHooks', () => {
   it('should register and trigger hooks', async () => {

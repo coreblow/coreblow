@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DiagnosticsOtelSubagentHooks } from '../subagent-hooks';
+import { DiagnosticsOtelSubagentHooks } from '../subagent-hooks.js';
 
 describe('DiagnosticsOtelSubagentHooks', () => {
   it('should register and trigger hooks', async () => {

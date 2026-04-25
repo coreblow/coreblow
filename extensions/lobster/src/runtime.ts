@@ -1,8 +1,8 @@
 /**
  * Lobster Runtime
  */
-import { LobsterExtension } from '../extension';
-import { LobsterChannelImpl } from './channel';
+import { LobsterExtension } from '../extension.js';
+import { LobsterChannelImpl } from './channel.js';
 
 export class LobsterRuntime {
   [k: string]: any;

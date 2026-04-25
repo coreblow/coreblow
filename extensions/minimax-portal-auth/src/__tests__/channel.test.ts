@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { MinimaxPortalAuthChannelImpl } from '../channel';
+import { MinimaxPortalAuthChannelImpl } from '../channel.js';
 
 describe('MinimaxPortalAuthChannel', () => {
   it('should connect and disconnect', async () => {

@@ -1,7 +1,7 @@
 /**
  * Discord Message Handler
  */
-import type { DiscordMessage } from './types';
+import type { DiscordMessage } from './types.js';
 
 export class DiscordHandler {
   async onMessage(message: DiscordMessage) {

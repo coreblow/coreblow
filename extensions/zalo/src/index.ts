@@ -3,6 +3,6 @@
  * Zalo messenger integration
  */
 
-export { ZaloExtension } from './extension';
-export { ZaloConfig } from './config';
-export type * from './types';
+export { ZaloExtension } from './extension.js';
+export { ZaloConfig } from './config.js';
+export type * from './types.js';
