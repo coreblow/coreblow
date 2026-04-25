@@ -759,14 +759,16 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     for (const hook of hooks) {
       try {
         // oxlint-disable-next-line typescript/no-explicit-any
-        const out = (hook.handler as any)({ ...event, message: current }, ctx) as
-          | PluginHookToolResultPersistResult
-          | void
-          | Promise<unknown>;
+        const out = (hook.handler as (
+          event: PluginHookToolResultPersistEvent,
+          ctx: PluginHookToolResultPersistContext,
+        ) => PluginHookToolResultPersistResult | void | Promise<unknown>)(
+          { ...event, message: current },
+          ctx,
+        ) as PluginHookToolResultPersistResult | void | Promise<unknown>;
 
         // Guard against accidental async handlers (this hook is sync-only).
-        // oxlint-disable-next-line typescript/no-explicit-any
-        if (out && typeof (out as any).then === "function") {
+        if (out && typeof (out as Record<string, unknown>).then === "function") {
           const msg =
             `[hooks] tool_result_persist handler from ${hook.pluginId} returned a Promise; ` +
             `this hook is synchronous and the result was ignored.`;
@@ -824,14 +826,16 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     for (const hook of hooks) {
       try {
         // oxlint-disable-next-line typescript/no-explicit-any
-        const out = (hook.handler as any)({ ...event, message: current }, ctx) as
-          | PluginHookBeforeMessageWriteResult
-          | void
-          | Promise<unknown>;
+        const out = (hook.handler as (
+          event: PluginHookBeforeMessageWriteEvent,
+          ctx: { agentId?: string; sessionKey?: string },
+        ) => PluginHookBeforeMessageWriteResult | void | Promise<unknown>)(
+          { ...event, message: current },
+          ctx,
+        ) as PluginHookBeforeMessageWriteResult | void | Promise<unknown>;
 
         // Guard against accidental async handlers (this hook is sync-only).
-        // oxlint-disable-next-line typescript/no-explicit-any
-        if (out && typeof (out as any).then === "function") {
+        if (out && typeof (out as Record<string, unknown>).then === "function") {
           const msg =
             `[hooks] before_message_write handler from ${hook.pluginId} returned a Promise; ` +
             `this hook is synchronous and the result was ignored.`;
