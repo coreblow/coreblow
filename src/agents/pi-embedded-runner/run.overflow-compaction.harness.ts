@@ -65,9 +65,9 @@ export const mockedContextEngine = {
 export const mockedContextEngineCompact = mockedContextEngine.compact;
 export const mockedCompactDirect = mockedContextEngine.compact;
 export const mockedRunPostCompactionSideEffects = vi.fn(async () => {});
-export const mockedEnsureRuntimePluginsLoaded = vi.fn();
+export const mockedEnsureRuntimePluginsLoaded: Mock = vi.fn();
 export const mockedPrepareProviderRuntimeAuth = vi.fn(async () => undefined);
-export const mockedRunEmbeddedAttempt =
+export const mockedRunEmbeddedAttempt: Mock =
   vi.fn();
 export const mockedRunContextEngineMaintenance = vi.fn(async () => undefined);
 export const mockedSessionLikelyHasOversizedToolResults = vi.fn(() => false);
@@ -103,7 +103,7 @@ export class MockedFailoverError extends Error {
   }
 }
 
-export const mockedCoerceToFailoverError = vi.fn();
+export const mockedCoerceToFailoverError: Mock = vi.fn();
 export const mockedDescribeFailoverError = vi.fn(
   (err: unknown): MockFailoverErrorDescription => ({
     message: err instanceof Error ? err.message : String(err),
@@ -112,7 +112,7 @@ export const mockedDescribeFailoverError = vi.fn(
     code: undefined,
   }),
 );
-export const mockedResolveFailoverStatus = vi.fn();
+export const mockedResolveFailoverStatus: Mock = vi.fn();
 
 export const mockedLog: {
   debug: Mock<unknown[], void>;

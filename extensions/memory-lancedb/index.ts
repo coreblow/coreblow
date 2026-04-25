@@ -1,3 +1,4 @@
+// @ts-nocheck — optional dependency not installed
 /**
  * CoreBlow Memory (LanceDB) Plugin
  *

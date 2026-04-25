@@ -143,5 +143,5 @@ export function resetBlueBubblesMonitorTestState(params: {
   params.hasControlCommandMock.mockReturnValue(false);
   params.resolveCommandAuthorizedFromAuthorizersMock.mockReturnValue(false);
   params.buildMentionRegexesMock.mockReturnValue([/\bbert\b/i]);
-  setBlueBubblesRuntime(params.createRuntime());
+  setBlueBubblesRuntime(params.createRuntime() as any);
 }

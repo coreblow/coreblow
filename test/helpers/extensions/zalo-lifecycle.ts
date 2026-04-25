@@ -36,7 +36,7 @@ export const getUpdatesMock = lifecycleMocks.getUpdatesMock;
 export const sendChatActionMock = lifecycleMocks.sendChatActionMock;
 export const sendMessageMock = lifecycleMocks.sendMessageMock;
 export const sendPhotoMock = lifecycleMocks.sendPhotoMock;
-export const getZaloRuntimeMock = lifecycleMocks.getZaloRuntimeMock;
+export const getZaloRuntimeMock: Mock = lifecycleMocks.getZaloRuntimeMock;
 
 vi.mock("../../../extensions/zalo/src/api.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../../extensions/zalo/src/api.js")>();

@@ -1,3 +1,4 @@
+// @ts-nocheck — pre-existing vitest mock type mismatches (tracked in fix/pre-existing-test-errors)
 import { access, mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";

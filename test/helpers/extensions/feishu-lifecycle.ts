@@ -32,7 +32,7 @@ export const FEISHU_PREFETCHED_BOT_OPEN_ID_SOURCE = {
   botName: "Bot",
 } as const;
 
-export function createFeishuLifecycleReplyDispatcher() {
+export function createFeishuLifecycleReplyDispatcher(): any {
   return {
     dispatcher: {
       sendToolResult: vi.fn(() => false),

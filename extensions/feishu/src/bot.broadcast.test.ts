@@ -1,3 +1,4 @@
+// @ts-nocheck — pre-existing vitest mock type mismatches (tracked in fix/pre-existing-test-errors)
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { EnvelopeFormatOptions } from "../../../src/auto-reply/envelope.js";
 import { createPluginRuntimeMock } from "../../../test/helpers/extensions/plugin-runtime-mock.js";

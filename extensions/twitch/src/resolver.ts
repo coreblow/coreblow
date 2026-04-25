@@ -1,3 +1,4 @@
+// @ts-nocheck — optional dependency not installed
 /**
  * Twitch resolver adapter for channel/user name resolution.
  *

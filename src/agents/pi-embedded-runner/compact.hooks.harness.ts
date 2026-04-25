@@ -22,7 +22,7 @@ export const contextEngineCompactMock = vi.fn(async () => ({
     | undefined,
 }));
 
-export const hookRunner = {
+export const hookRunner: any = {
   hasHooks: vi.fn(),
   runBeforeCompaction: vi.fn(async () => undefined),
   runAfterCompaction: vi.fn(async () => undefined),
