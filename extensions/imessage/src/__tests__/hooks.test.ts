@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ImessageSubagentHooks } from '../subagent-hooks';
+import { ImessageSubagentHooks } from '../subagent-hooks.js';
 
 describe('ImessageSubagentHooks', () => {
   it('should register and trigger hooks', async () => {

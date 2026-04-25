@@ -3,6 +3,6 @@
  * WhatsApp Business API integration
  */
 
-export { WhatsappExtension } from './extension';
-export { WhatsappConfig } from './config';
-export type * from './types';
+export { WhatsappExtension } from './extension.js';
+export { WhatsappConfig } from './config.js';
+export type * from './types.js';

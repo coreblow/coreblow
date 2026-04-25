@@ -3,6 +3,6 @@
  * Google Gemini CLI authentication
  */
 
-export { GoogleGeminiCliAuthExtension } from './extension';
-export { GoogleGeminiCliAuthConfig } from './config';
-export type * from './types';
+export { GoogleGeminiCliAuthExtension } from './extension.js';
+export { GoogleGeminiCliAuthConfig } from './config.js';
+export type * from './types.js';

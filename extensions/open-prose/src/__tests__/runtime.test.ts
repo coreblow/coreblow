@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { OpenProseExtension } from '../../extension';
-import { OpenProseRuntime } from '../runtime';
+import { OpenProseExtension } from '../../extension.js';
+import { OpenProseRuntime } from '../runtime.js';
 
 describe('OpenProseRuntime', () => {
   it('should start and stop', async () => {

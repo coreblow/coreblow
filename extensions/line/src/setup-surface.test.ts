@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import ts from "typescript";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { loadRuntimeApiExportTypesViaJiti } from "../../../test/helpers/extensions/jiti-runtime-api.ts";
+import { loadRuntimeApiExportTypesViaJiti } from "../../../test/helpers/extensions/jiti-runtime-api.ts.js";
 import {
   createPluginSetupWizardConfigure,
   createTestWizardPrompter,

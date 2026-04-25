@@ -2,7 +2,7 @@
 /**
  * VoiceCall Message Handler
  */
-import type { VoiceCallMessage } from './types';
+import type { VoiceCallMessage } from './types.js';
 
 export class VoiceCallHandler {
   async onMessage(message: VoiceCallMessage) {

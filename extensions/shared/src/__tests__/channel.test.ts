@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SharedChannelImpl } from '../channel';
+import { SharedChannelImpl } from '../channel.js';
 
 describe('SharedChannel', () => {
   it('should connect and disconnect', async () => {

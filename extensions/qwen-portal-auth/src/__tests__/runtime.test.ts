@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { QwenPortalAuthExtension } from '../../extension';
-import { QwenPortalAuthRuntime } from '../runtime';
+import { QwenPortalAuthExtension } from '../../extension.js';
+import { QwenPortalAuthRuntime } from '../runtime.js';
 
 describe('QwenPortalAuthRuntime', () => {
   it('should start and stop', async () => {

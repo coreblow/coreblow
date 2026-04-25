@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { LlmTaskExtension } from '../extension';
+import { LlmTaskExtension } from '../extension.js';
 
 describe('LlmTaskExtension', () => {
   it('should initialize', async () => {

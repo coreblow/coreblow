@@ -1,7 +1,7 @@
 /**
  * Whatsapp Message Handler
  */
-import type { WhatsappMessage } from './types';
+import type { WhatsappMessage } from './types.js';
 
 export class WhatsappHandler {
   async onMessage(message: WhatsappMessage) {

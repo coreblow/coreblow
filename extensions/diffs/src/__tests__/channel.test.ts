@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DiffsChannelImpl } from '../channel';
+import { DiffsChannelImpl } from '../channel.js';
 
 describe('DiffsChannel', () => {
   it('should connect and disconnect', async () => {

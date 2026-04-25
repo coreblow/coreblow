@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-matrix",
+  "type": "module",
   "version": "0.1.0",
   "description": "Matrix protocol integration for decentralized messaging",
   "main": "dist/index.js",

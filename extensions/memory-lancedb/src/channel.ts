@@ -2,7 +2,7 @@
 /**
  * MemoryLancedb Channel Implementation
  */
-import type { MemoryLancedbMessage, MemoryLancedbChannel } from '../types';
+import type { MemoryLancedbMessage, MemoryLancedbChannel } from '../types.js';
 
 export class MemoryLancedbChannelImpl {
   private channelId: string;

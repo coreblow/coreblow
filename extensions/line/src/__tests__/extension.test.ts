@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { LineExtension } from '../extension';
+import { LineExtension } from '../extension.js';
 
 describe('LineExtension', () => {
   it('should initialize', async () => {

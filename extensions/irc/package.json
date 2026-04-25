@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-irc",
+  "type": "module",
   "version": "0.1.0",
   "description": "IRC client integration for classic chat networks",
   "main": "dist/index.js",

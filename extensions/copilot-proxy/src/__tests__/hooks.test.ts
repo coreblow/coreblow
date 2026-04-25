@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { CopilotProxySubagentHooks } from '../subagent-hooks';
+import { CopilotProxySubagentHooks } from '../subagent-hooks.js';
 
 describe('CopilotProxySubagentHooks', () => {
   it('should register and trigger hooks', async () => {

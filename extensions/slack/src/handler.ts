@@ -2,7 +2,7 @@
 /**
  * Slack Message Handler
  */
-import type { SlackMessage } from './types';
+import type { SlackMessage } from './types.js';
 
 export class SlackHandler {
   async onMessage(message: SlackMessage) {

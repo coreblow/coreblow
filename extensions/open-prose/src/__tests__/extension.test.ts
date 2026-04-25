@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { OpenProseExtension } from '../extension';
+import { OpenProseExtension } from '../extension.js';
 
 describe('OpenProseExtension', () => {
   it('should initialize', async () => {

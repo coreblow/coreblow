@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { describe, it, expect } from 'vitest';
-import { TlonChannelImpl } from '../channel';
+import { TlonChannelImpl } from '../channel.js';
 
 describe('TlonChannel', () => {
   it('should connect and disconnect', async () => {

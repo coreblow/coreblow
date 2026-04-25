@@ -3,6 +3,6 @@
  * Qwen portal authentication
  */
 
-export { QwenPortalAuthExtension } from './extension';
-export { QwenPortalAuthConfig } from './config';
-export type * from './types';
+export { QwenPortalAuthExtension } from './extension.js';
+export { QwenPortalAuthConfig } from './config.js';
+export type * from './types.js';

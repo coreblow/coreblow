@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveTarget, normalizeChannelId, isValidTarget } from '../resolve-target';
+import { resolveTarget, normalizeChannelId, isValidTarget } from '../resolve-target.js';
 
 describe('resolveTarget', () => {
   it('should resolve channel targets', async () => {

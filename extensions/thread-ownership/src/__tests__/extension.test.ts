@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ThreadOwnershipExtension } from '../extension';
+import { ThreadOwnershipExtension } from '../extension.js';
 
 describe('ThreadOwnershipExtension', () => {
   it('should initialize', async () => {

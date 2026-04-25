@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { BluebubblesSubagentHooks } from '../subagent-hooks';
+import { BluebubblesSubagentHooks } from '../subagent-hooks.js';
 
 describe('BluebubblesSubagentHooks', () => {
   it('should register and trigger hooks', async () => {

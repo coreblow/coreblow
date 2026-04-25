@@ -1,8 +1,8 @@
 /**
  * Shared Runtime
  */
-import { SharedExtension } from '../extension';
-import { SharedChannelImpl } from './channel';
+import { SharedExtension } from '../extension.js';
+import { SharedChannelImpl } from './channel.js';
 
 export class SharedRuntime {
   [k: string]: any;

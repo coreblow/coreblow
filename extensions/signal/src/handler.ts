@@ -1,7 +1,7 @@
 /**
  * Signal Message Handler
  */
-import type { SignalMessage } from './types';
+import type { SignalMessage } from './types.js';
 
 export class SignalHandler {
   async onMessage(message: SignalMessage) {

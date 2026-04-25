@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { LlmTaskChannelImpl } from '../channel';
+import { LlmTaskChannelImpl } from '../channel.js';
 
 describe('LlmTaskChannel', () => {
   it('should connect and disconnect', async () => {

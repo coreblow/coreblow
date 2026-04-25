@@ -2,7 +2,7 @@
 /**
  * Googlechat Message Handler
  */
-import type { GooglechatMessage } from './types';
+import type { GooglechatMessage } from './types.js';
 
 export class GooglechatHandler {
   async onMessage(message: GooglechatMessage) {

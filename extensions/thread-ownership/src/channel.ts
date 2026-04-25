@@ -2,7 +2,7 @@
 /**
  * ThreadOwnership Channel Implementation
  */
-import type { ThreadOwnershipMessage, ThreadOwnershipChannel } from '../types';
+import type { ThreadOwnershipMessage, ThreadOwnershipChannel } from '../types.js';
 
 export class ThreadOwnershipChannelImpl {
   private channelId: string;

@@ -2,7 +2,7 @@
 /**
  * Matrix Message Handler
  */
-import type { MatrixMessage } from './types';
+import type { MatrixMessage } from './types.js';
 
 export class MatrixHandler {
   async onMessage(message: MatrixMessage) {

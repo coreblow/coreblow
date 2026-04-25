@@ -2,8 +2,8 @@
 /**
  * Googlechat Runtime
  */
-import { GooglechatExtension } from '../extension';
-import { GooglechatChannelImpl } from './channel';
+import { GooglechatExtension } from '../extension.js';
+import { GooglechatChannelImpl } from './channel.js';
 
 export class GooglechatRuntime {
   [k: string]: any;

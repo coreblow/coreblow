@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   createDirectoryTestRuntime,
   expectDirectorySurface,
-} from "../../../test/helpers/extensions/directory.ts";
+} from "../../../test/helpers/extensions/directory.ts.js";
 import type { CoreBlowConfig, PluginRuntime } from "../runtime-api.js";
 
 const uploadGoogleChatAttachmentMock = vi.hoisted(() => vi.fn());

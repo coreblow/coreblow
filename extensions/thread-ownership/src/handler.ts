@@ -1,7 +1,7 @@
 /**
  * ThreadOwnership Message Handler
  */
-import type { ThreadOwnershipMessage } from './types';
+import type { ThreadOwnershipMessage } from './types.js';
 
 export class ThreadOwnershipHandler {
   async onMessage(message: ThreadOwnershipMessage) {

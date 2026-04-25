@@ -1,8 +1,8 @@
 /**
  * Diffs Runtime
  */
-import { DiffsExtension } from '../extension';
-import { DiffsChannelImpl } from './channel';
+import { DiffsExtension } from '../extension.js';
+import { DiffsChannelImpl } from './channel.js';
 
 export class DiffsRuntime {
   [k: string]: any;

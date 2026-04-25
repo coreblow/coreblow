@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DevicePairChannelImpl } from '../channel';
+import { DevicePairChannelImpl } from '../channel.js';
 
 describe('DevicePairChannel', () => {
   it('should connect and disconnect', async () => {

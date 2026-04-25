@@ -1,7 +1,7 @@
 /**
  * TestUtils Message Handler
  */
-import type { TestUtilsMessage } from './types';
+import type { TestUtilsMessage } from './types.js';
 
 export class TestUtilsHandler {
   async onMessage(message: TestUtilsMessage) {

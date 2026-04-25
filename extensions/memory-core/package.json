@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-memory-core",
+  "type": "module",
   "version": "0.1.0",
   "description": "Core memory storage engine",
   "main": "dist/index.js",

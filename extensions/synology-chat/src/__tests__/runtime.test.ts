@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { SynologyChatExtension } from '../../extension';
-import { SynologyChatRuntime } from '../runtime';
+import { SynologyChatExtension } from '../../extension.js';
+import { SynologyChatRuntime } from '../runtime.js';
 
 describe('SynologyChatRuntime', () => {
   it('should start and stop', async () => {

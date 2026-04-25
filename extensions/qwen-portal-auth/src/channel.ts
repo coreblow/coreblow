@@ -2,7 +2,7 @@
 /**
  * QwenPortalAuth Channel Implementation
  */
-import type { QwenPortalAuthMessage, QwenPortalAuthChannel } from '../types';
+import type { QwenPortalAuthMessage, QwenPortalAuthChannel } from '../types.js';
 
 export class QwenPortalAuthChannelImpl {
   private channelId: string;

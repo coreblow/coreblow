@@ -2,8 +2,8 @@
 /**
  * Line Runtime
  */
-import { LineExtension } from '../extension';
-import { LineChannelImpl } from './channel';
+import { LineExtension } from '../extension.js';
+import { LineChannelImpl } from './channel.js';
 
 export class LineRuntime {
   [k: string]: any;

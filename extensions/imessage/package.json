@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-imessage",
+  "type": "module",
   "version": "0.1.0",
   "description": "iMessage integration via AppleScript bridge",
   "main": "dist/index.js",

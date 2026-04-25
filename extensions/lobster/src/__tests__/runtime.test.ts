@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { LobsterExtension } from '../../extension';
-import { LobsterRuntime } from '../runtime';
+import { LobsterExtension } from '../../extension.js';
+import { LobsterRuntime } from '../runtime.js';
 
 describe('LobsterRuntime', () => {
   it('should start and stop', async () => {

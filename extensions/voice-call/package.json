@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-voice-call",
+  "type": "module",
   "version": "0.1.0",
   "description": "WebRTC voice call integration",
   "main": "dist/index.js",

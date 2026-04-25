@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { describe, it, expect } from 'vitest';
-import { VoiceCallExtension } from '../../extension';
-import { VoiceCallRuntime } from '../runtime';
+import { VoiceCallExtension } from '../../extension.js';
+import { VoiceCallRuntime } from '../runtime.js';
 
 describe('VoiceCallRuntime', () => {
   it('should start and stop', async () => {

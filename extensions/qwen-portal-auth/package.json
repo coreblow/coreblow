@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-qwen-portal-auth",
+  "type": "module",
   "version": "0.1.0",
   "description": "Qwen portal authentication",
   "main": "dist/index.js",

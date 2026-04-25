@@ -2,8 +2,8 @@
 /**
  * Irc Runtime
  */
-import { IrcExtension } from '../extension';
-import { IrcChannelImpl } from './channel';
+import { IrcExtension } from '../extension.js';
+import { IrcChannelImpl } from './channel.js';
 
 export class IrcRuntime {
   [k: string]: any;

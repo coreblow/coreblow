@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PhoneControlExtension } from '../extension';
+import { PhoneControlExtension } from '../extension.js';
 
 describe('PhoneControlExtension', () => {
   it('should initialize', async () => {

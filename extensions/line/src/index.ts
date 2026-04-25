@@ -3,6 +3,6 @@
  * LINE messenger integration
  */
 
-export { LineExtension } from './extension';
-export { LineConfig } from './config';
-export type * from './types';
+export { LineExtension } from './extension.js';
+export { LineConfig } from './config.js';
+export type * from './types.js';

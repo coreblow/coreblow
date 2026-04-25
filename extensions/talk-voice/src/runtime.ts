@@ -1,8 +1,8 @@
 /**
  * TalkVoice Runtime
  */
-import { TalkVoiceExtension } from '../extension';
-import { TalkVoiceChannelImpl } from './channel';
+import { TalkVoiceExtension } from '../extension.js';
+import { TalkVoiceChannelImpl } from './channel.js';
 
 export class TalkVoiceRuntime {
   [k: string]: any;

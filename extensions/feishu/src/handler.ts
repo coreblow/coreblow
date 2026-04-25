@@ -2,7 +2,7 @@
 /**
  * Feishu Message Handler
  */
-import type { FeishuMessage } from './types';
+import type { FeishuMessage } from './types.js';
 
 export class FeishuHandler {
   async onMessage(message: FeishuMessage) {

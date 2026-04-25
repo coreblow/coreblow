@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ZaloExtension } from '../extension';
+import { ZaloExtension } from '../extension.js';
 
 describe('ZaloExtension', () => {
   it('should initialize', async () => {

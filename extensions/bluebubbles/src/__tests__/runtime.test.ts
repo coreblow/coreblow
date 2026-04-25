@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { BluebubblesExtension } from '../../extension';
-import { BluebubblesRuntime } from '../runtime';
+import { BluebubblesExtension } from '../../extension.js';
+import { BluebubblesRuntime } from '../runtime.js';
 
 describe('BluebubblesRuntime', () => {
   it('should start and stop', async () => {

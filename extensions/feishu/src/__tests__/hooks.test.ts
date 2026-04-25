@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { describe, it, expect } from 'vitest';
-import { FeishuSubagentHooks } from '../subagent-hooks';
+import { FeishuSubagentHooks } from '../subagent-hooks.js';
 
 describe('FeishuSubagentHooks', () => {
   it('should register and trigger hooks', async () => {

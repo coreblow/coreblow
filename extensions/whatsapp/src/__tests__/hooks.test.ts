@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { WhatsappSubagentHooks } from '../subagent-hooks';
+import { WhatsappSubagentHooks } from '../subagent-hooks.js';
 
 describe('WhatsappSubagentHooks', () => {
   it('should register and trigger hooks', async () => {

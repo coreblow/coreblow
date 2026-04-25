@@ -2,7 +2,7 @@
 /**
  * GoogleGeminiCliAuth Channel Implementation
  */
-import type { GoogleGeminiCliAuthMessage, GoogleGeminiCliAuthChannel } from '../types';
+import type { GoogleGeminiCliAuthMessage, GoogleGeminiCliAuthChannel } from '../types.js';
 
 export class GoogleGeminiCliAuthChannelImpl {
   private channelId: string;

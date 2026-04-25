@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { AcpxExtension } from '../extension';
+import { AcpxExtension } from '../extension.js';
 
 describe('AcpxExtension', () => {
   it('should initialize', async () => {

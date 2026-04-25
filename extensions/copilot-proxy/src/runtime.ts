@@ -1,8 +1,8 @@
 /**
  * CopilotProxy Runtime
  */
-import { CopilotProxyExtension } from '../extension';
-import { CopilotProxyChannelImpl } from './channel';
+import { CopilotProxyExtension } from '../extension.js';
+import { CopilotProxyChannelImpl } from './channel.js';
 
 export class CopilotProxyRuntime {
   [k: string]: any;

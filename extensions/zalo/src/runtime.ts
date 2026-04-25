@@ -2,8 +2,8 @@
 /**
  * Zalo Runtime
  */
-import { ZaloExtension } from '../extension';
-import { ZaloChannelImpl } from './channel';
+import { ZaloExtension } from '../extension.js';
+import { ZaloChannelImpl } from './channel.js';
 
 export class ZaloRuntime {
   [k: string]: any;

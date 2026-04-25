@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { ImessageExtension } from '../../extension';
-import { ImessageRuntime } from '../runtime';
+import { ImessageExtension } from '../../extension.js';
+import { ImessageRuntime } from '../runtime.js';
 
 describe('ImessageRuntime', () => {
   it('should start and stop', async () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { ZalouserExtension } from '../../extension';
-import { ZalouserRuntime } from '../runtime';
+import { ZalouserExtension } from '../../extension.js';
+import { ZalouserRuntime } from '../runtime.js';
 
 describe('ZalouserRuntime', () => {
   it('should start and stop', async () => {

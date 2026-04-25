@@ -2,7 +2,7 @@
 /**
  * Lobster Channel Implementation
  */
-import type { LobsterMessage, LobsterChannel } from '../types';
+import type { LobsterMessage, LobsterChannel } from '../types.js';
 
 export class LobsterChannelImpl {
   private channelId: string;

@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-googlechat",
+  "type": "module",
   "version": "0.1.0",
   "description": "Google Chat spaces integration",
   "main": "dist/index.js",

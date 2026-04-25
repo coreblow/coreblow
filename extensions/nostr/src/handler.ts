@@ -2,7 +2,7 @@
 /**
  * Nostr Message Handler
  */
-import type { NostrMessage } from './types';
+import type { NostrMessage } from './types.js';
 
 export class NostrHandler {
   async onMessage(message: NostrMessage) {

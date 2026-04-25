@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { GoogleGeminiCliAuthChannelImpl } from '../channel';
+import { GoogleGeminiCliAuthChannelImpl } from '../channel.js';
 
 describe('GoogleGeminiCliAuthChannel', () => {
   it('should connect and disconnect', async () => {

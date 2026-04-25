@@ -2,7 +2,7 @@
 /**
  * NextcloudTalk Message Handler
  */
-import type { NextcloudTalkMessage } from './types';
+import type { NextcloudTalkMessage } from './types.js';
 
 export class NextcloudTalkHandler {
   async onMessage(message: NextcloudTalkMessage) {

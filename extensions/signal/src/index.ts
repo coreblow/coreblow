@@ -3,6 +3,6 @@
  * Signal messenger integration via signal-cli
  */
 
-export { SignalExtension } from './extension';
-export { SignalConfig } from './config';
-export type * from './types';
+export { SignalExtension } from './extension.js';
+export { SignalConfig } from './config.js';
+export type * from './types.js';

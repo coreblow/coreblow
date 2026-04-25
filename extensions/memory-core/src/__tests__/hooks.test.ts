@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { MemoryCoreSubagentHooks } from '../subagent-hooks';
+import { MemoryCoreSubagentHooks } from '../subagent-hooks.js';
 
 describe('MemoryCoreSubagentHooks', () => {
   it('should register and trigger hooks', async () => {

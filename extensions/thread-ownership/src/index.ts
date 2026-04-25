@@ -3,6 +3,6 @@
  * Thread ownership and permission management
  */
 
-export { ThreadOwnershipExtension } from './extension';
-export { ThreadOwnershipConfig } from './config';
-export type * from './types';
+export { ThreadOwnershipExtension } from './extension.js';
+export { ThreadOwnershipConfig } from './config.js';
+export type * from './types.js';

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { TlonExtension } from '../../extension';
-import { TlonRuntime } from '../runtime';
+import { TlonExtension } from '../../extension.js';
+import { TlonRuntime } from '../runtime.js';
 
 describe('TlonRuntime', () => {
   it('should start and stop', async () => {

@@ -1,8 +1,8 @@
 /**
  * PhoneControl Runtime
  */
-import { PhoneControlExtension } from '../extension';
-import { PhoneControlChannelImpl } from './channel';
+import { PhoneControlExtension } from '../extension.js';
+import { PhoneControlChannelImpl } from './channel.js';
 
 export class PhoneControlRuntime {
   [k: string]: any;

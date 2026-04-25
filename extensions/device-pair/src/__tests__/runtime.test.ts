@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { DevicePairExtension } from '../../extension';
-import { DevicePairRuntime } from '../runtime';
+import { DevicePairExtension } from '../../extension.js';
+import { DevicePairRuntime } from '../runtime.js';
 
 describe('DevicePairRuntime', () => {
   it('should start and stop', async () => {

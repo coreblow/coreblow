@@ -1,8 +1,8 @@
 /**
  * MemoryLancedb Runtime
  */
-import { MemoryLancedbExtension } from '../extension';
-import { MemoryLancedbChannelImpl } from './channel';
+import { MemoryLancedbExtension } from '../extension.js';
+import { MemoryLancedbChannelImpl } from './channel.js';
 
 export class MemoryLancedbRuntime {
   [k: string]: any;

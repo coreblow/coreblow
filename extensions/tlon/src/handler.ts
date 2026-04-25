@@ -2,7 +2,7 @@
 /**
  * Tlon Message Handler
  */
-import type { TlonMessage } from './types';
+import type { TlonMessage } from './types.js';
 
 export class TlonHandler {
   async onMessage(message: TlonMessage) {

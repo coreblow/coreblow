@@ -1,7 +1,7 @@
 /**
  * MemoryCore Message Handler
  */
-import type { MemoryCoreMessage } from './types';
+import type { MemoryCoreMessage } from './types.js';
 
 export class MemoryCoreHandler {
   async onMessage(message: MemoryCoreMessage) {

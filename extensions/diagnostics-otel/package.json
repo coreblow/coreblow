@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-diagnostics-otel",
+  "type": "module",
   "version": "0.1.0",
   "description": "OpenTelemetry diagnostics and tracing",
   "main": "dist/index.js",

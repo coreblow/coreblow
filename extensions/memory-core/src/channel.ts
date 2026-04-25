@@ -2,7 +2,7 @@
 /**
  * MemoryCore Channel Implementation
  */
-import type { MemoryCoreMessage, MemoryCoreChannel } from '../types';
+import type { MemoryCoreMessage, MemoryCoreChannel } from '../types.js';
 
 export class MemoryCoreChannelImpl {
   private channelId: string;

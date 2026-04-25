@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-line",
+  "type": "module",
   "version": "0.1.0",
   "description": "LINE messenger integration",
   "main": "dist/index.js",

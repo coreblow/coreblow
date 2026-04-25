@@ -2,7 +2,7 @@
 /**
  * DiagnosticsOtel Channel Implementation
  */
-import type { DiagnosticsOtelMessage, DiagnosticsOtelChannel } from '../types';
+import type { DiagnosticsOtelMessage, DiagnosticsOtelChannel } from '../types.js';
 
 export class DiagnosticsOtelChannelImpl {
   private channelId: string;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ImessageExtension } from '../extension';
+import { ImessageExtension } from '../extension.js';
 
 describe('ImessageExtension', () => {
   it('should initialize', async () => {

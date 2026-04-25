@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-slack",
+  "type": "module",
   "version": "0.1.0",
   "description": "Slack bot with interactive messages, modals, and workflows",
   "main": "dist/index.js",

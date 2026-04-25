@@ -1,8 +1,8 @@
 /**
  * MinimaxPortalAuth Runtime
  */
-import { MinimaxPortalAuthExtension } from '../extension';
-import { MinimaxPortalAuthChannelImpl } from './channel';
+import { MinimaxPortalAuthExtension } from '../extension.js';
+import { MinimaxPortalAuthChannelImpl } from './channel.js';
 
 export class MinimaxPortalAuthRuntime {
   [k: string]: any;

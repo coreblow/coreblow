@@ -1,7 +1,7 @@
 /**
  * CopilotProxy Message Handler
  */
-import type { CopilotProxyMessage } from './types';
+import type { CopilotProxyMessage } from './types.js';
 
 export class CopilotProxyHandler {
   async onMessage(message: CopilotProxyMessage) {

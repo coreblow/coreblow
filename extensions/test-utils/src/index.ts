@@ -3,6 +3,6 @@
  * Extension testing utilities
  */
 
-export { TestUtilsExtension } from './extension';
-export { TestUtilsConfig } from './config';
-export type * from './types';
+export { TestUtilsExtension } from './extension.js';
+export { TestUtilsConfig } from './config.js';
+export type * from './types.js';

@@ -5,7 +5,7 @@ import * as conversationRuntime from "coreblow/plugin-sdk/conversation-runtime";
 import { buildAgentSessionKey } from "coreblow/plugin-sdk/routing";
 import * as securityRuntime from "coreblow/plugin-sdk/security-runtime";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { peekSystemEvents, resetSystemEventsForTest } from "../../../../src/infra/system-events.ts";
+import { peekSystemEvents, resetSystemEventsForTest } from "../../../../src/infra/system-events.ts.js";
 import {
   readAllowFromStoreMock,
   resetDiscordComponentRuntimeMocks,

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DiagnosticsOtelChannelImpl } from '../channel';
+import { DiagnosticsOtelChannelImpl } from '../channel.js';
 
 describe('DiagnosticsOtelChannel', () => {
   it('should connect and disconnect', async () => {

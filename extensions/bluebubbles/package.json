@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-bluebubbles",
+  "type": "module",
   "version": "0.1.0",
   "description": "BlueBubbles iMessage gateway integration",
   "main": "dist/index.js",

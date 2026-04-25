@@ -2,7 +2,7 @@
 /**
  * SynologyChat Message Handler
  */
-import type { SynologyChatMessage } from './types';
+import type { SynologyChatMessage } from './types.js';
 
 export class SynologyChatHandler {
   async onMessage(message: SynologyChatMessage) {

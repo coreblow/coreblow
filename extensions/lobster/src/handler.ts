@@ -1,7 +1,7 @@
 /**
  * Lobster Message Handler
  */
-import type { LobsterMessage } from './types';
+import type { LobsterMessage } from './types.js';
 
 export class LobsterHandler {
   async onMessage(message: LobsterMessage) {

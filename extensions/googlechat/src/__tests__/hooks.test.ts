@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { GooglechatSubagentHooks } from '../subagent-hooks';
+import { GooglechatSubagentHooks } from '../subagent-hooks.js';
 
 describe('GooglechatSubagentHooks', () => {
   it('should register and trigger hooks', async () => {

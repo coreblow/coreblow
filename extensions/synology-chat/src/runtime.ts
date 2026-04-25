@@ -2,8 +2,8 @@
 /**
  * SynologyChat Runtime
  */
-import { SynologyChatExtension } from '../extension';
-import { SynologyChatChannelImpl } from './channel';
+import { SynologyChatExtension } from '../extension.js';
+import { SynologyChatChannelImpl } from './channel.js';
 
 export class SynologyChatRuntime {
   [k: string]: any;

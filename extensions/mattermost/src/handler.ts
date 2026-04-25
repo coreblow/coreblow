@@ -2,7 +2,7 @@
 /**
  * Mattermost Message Handler
  */
-import type { MattermostMessage } from './types';
+import type { MattermostMessage } from './types.js';
 
 export class MattermostHandler {
   async onMessage(message: MattermostMessage) {

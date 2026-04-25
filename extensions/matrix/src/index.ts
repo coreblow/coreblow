@@ -3,6 +3,6 @@
  * Matrix protocol integration for decentralized messaging
  */
 
-export { MatrixExtension } from './extension';
-export { MatrixConfig } from './config';
-export type * from './types';
+export { MatrixExtension } from './extension.js';
+export { MatrixConfig } from './config.js';
+export type * from './types.js';

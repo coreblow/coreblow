@@ -2,7 +2,7 @@
 /**
  * MinimaxPortalAuth Channel Implementation
  */
-import type { MinimaxPortalAuthMessage, MinimaxPortalAuthChannel } from '../types';
+import type { MinimaxPortalAuthMessage, MinimaxPortalAuthChannel } from '../types.js';
 
 export class MinimaxPortalAuthChannelImpl {
   private channelId: string;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { MemoryLancedbChannelImpl } from '../channel';
+import { MemoryLancedbChannelImpl } from '../channel.js';
 
 describe('MemoryLancedbChannel', () => {
   it('should connect and disconnect', async () => {

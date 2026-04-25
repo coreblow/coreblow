@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SharedExtension } from '../extension';
+import { SharedExtension } from '../extension.js';
 
 describe('SharedExtension', () => {
   it('should initialize', async () => {

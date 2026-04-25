@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { SharedExtension } from '../../extension';
-import { SharedRuntime } from '../runtime';
+import { SharedExtension } from '../../extension.js';
+import { SharedRuntime } from '../runtime.js';
 
 describe('SharedRuntime', () => {
   it('should start and stop', async () => {

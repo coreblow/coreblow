@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { IrcExtension } from '../extension';
+import { IrcExtension } from '../extension.js';
 
 describe('IrcExtension', () => {
   it('should initialize', async () => {

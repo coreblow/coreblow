@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { TlonExtension } from '../extension';
+import { TlonExtension } from '../extension.js';
 
 describe('TlonExtension', () => {
   it('should initialize', async () => {

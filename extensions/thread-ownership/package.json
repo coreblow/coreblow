@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-thread-ownership",
+  "type": "module",
   "version": "0.1.0",
   "description": "Thread ownership and permission management",
   "main": "dist/index.js",

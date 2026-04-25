@@ -3,6 +3,6 @@
  * iMessage integration via AppleScript bridge
  */
 
-export { ImessageExtension } from './extension';
-export { ImessageConfig } from './config';
-export type * from './types';
+export { ImessageExtension } from './extension.js';
+export { ImessageConfig } from './config.js';
+export type * from './types.js';

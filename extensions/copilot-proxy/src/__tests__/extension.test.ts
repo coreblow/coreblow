@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { CopilotProxyExtension } from '../extension';
+import { CopilotProxyExtension } from '../extension.js';
 
 describe('CopilotProxyExtension', () => {
   it('should initialize', async () => {

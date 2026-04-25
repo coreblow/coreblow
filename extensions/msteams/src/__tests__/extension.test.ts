@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { MsteamsExtension } from '../extension';
+import { MsteamsExtension } from '../extension.js';
 
 describe('MsteamsExtension', () => {
   it('should initialize', async () => {

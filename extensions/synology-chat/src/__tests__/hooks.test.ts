@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SynologyChatSubagentHooks } from '../subagent-hooks';
+import { SynologyChatSubagentHooks } from '../subagent-hooks.js';
 
 describe('SynologyChatSubagentHooks', () => {
   it('should register and trigger hooks', async () => {

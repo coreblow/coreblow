@@ -2,7 +2,7 @@
 /**
  * Twitch Message Handler
  */
-import type { TwitchMessage } from './types';
+import type { TwitchMessage } from './types.js';
 
 export class TwitchHandler {
   async onMessage(message: TwitchMessage) {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DevicePairExtension } from '../extension';
+import { DevicePairExtension } from '../extension.js';
 
 describe('DevicePairExtension', () => {
   it('should initialize', async () => {

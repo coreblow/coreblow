@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-test-utils",
+  "type": "module",
   "version": "0.1.0",
   "description": "Extension testing utilities",
   "main": "dist/index.js",

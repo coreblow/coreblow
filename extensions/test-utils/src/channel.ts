@@ -2,7 +2,7 @@
 /**
  * TestUtils Channel Implementation
  */
-import type { TestUtilsMessage, TestUtilsChannel } from '../types';
+import type { TestUtilsMessage, TestUtilsChannel } from '../types.js';
 
 export class TestUtilsChannelImpl {
   private channelId: string;

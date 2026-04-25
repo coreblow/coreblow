@@ -3,6 +3,6 @@
  * Mattermost team messaging integration
  */
 
-export { MattermostExtension } from './extension';
-export { MattermostConfig } from './config';
-export type * from './types';
+export { MattermostExtension } from './extension.js';
+export { MattermostConfig } from './config.js';
+export type * from './types.js';

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { CopilotProxyChannelImpl } from '../channel';
+import { CopilotProxyChannelImpl } from '../channel.js';
 
 describe('CopilotProxyChannel', () => {
   it('should connect and disconnect', async () => {

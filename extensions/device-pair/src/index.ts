@@ -3,6 +3,6 @@
  * Device pairing for mobile-desktop sync
  */
 
-export { DevicePairExtension } from './extension';
-export { DevicePairConfig } from './config';
-export type * from './types';
+export { DevicePairExtension } from './extension.js';
+export { DevicePairConfig } from './config.js';
+export type * from './types.js';

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { MattermostExtension } from '../../extension';
-import { MattermostRuntime } from '../runtime';
+import { MattermostExtension } from '../../extension.js';
+import { MattermostRuntime } from '../runtime.js';
 
 describe('MattermostRuntime', () => {
   it('should start and stop', async () => {

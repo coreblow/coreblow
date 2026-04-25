@@ -2,7 +2,7 @@
 /**
  * VoiceCall Channel Implementation
  */
-import type { VoiceCallMessage, VoiceCallChannel } from '../types';
+import type { VoiceCallMessage, VoiceCallChannel } from '../types.js';
 
 export class VoiceCallChannelImpl {
   private channelId: string;

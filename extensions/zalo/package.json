@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-zalo",
+  "type": "module",
   "version": "0.1.0",
   "description": "Zalo messenger integration",
   "main": "dist/index.js",

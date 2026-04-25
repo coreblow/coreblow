@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { FeishuExtension } from '../extension';
+import { FeishuExtension } from '../extension.js';
 
 describe('FeishuExtension', () => {
   it('should initialize', async () => {

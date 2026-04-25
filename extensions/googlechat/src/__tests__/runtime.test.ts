@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { GooglechatExtension } from '../../extension';
-import { GooglechatRuntime } from '../runtime';
+import { GooglechatExtension } from '../../extension.js';
+import { GooglechatRuntime } from '../runtime.js';
 
 describe('GooglechatRuntime', () => {
   it('should start and stop', async () => {

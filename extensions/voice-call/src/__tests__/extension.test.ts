@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { VoiceCallExtension } from '../extension';
+import { VoiceCallExtension } from '../extension.js';
 
 describe('VoiceCallExtension', () => {
   it('should initialize', async () => {

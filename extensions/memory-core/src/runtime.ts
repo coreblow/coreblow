@@ -1,8 +1,8 @@
 /**
  * MemoryCore Runtime
  */
-import { MemoryCoreExtension } from '../extension';
-import { MemoryCoreChannelImpl } from './channel';
+import { MemoryCoreExtension } from '../extension.js';
+import { MemoryCoreChannelImpl } from './channel.js';
 
 export class MemoryCoreRuntime {
   [k: string]: any;

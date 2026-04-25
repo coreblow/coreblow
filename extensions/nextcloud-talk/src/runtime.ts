@@ -2,8 +2,8 @@
 /**
  * NextcloudTalk Runtime
  */
-import { NextcloudTalkExtension } from '../extension';
-import { NextcloudTalkChannelImpl } from './channel';
+import { NextcloudTalkExtension } from '../extension.js';
+import { NextcloudTalkChannelImpl } from './channel.js';
 
 export class NextcloudTalkRuntime {
   [k: string]: any;

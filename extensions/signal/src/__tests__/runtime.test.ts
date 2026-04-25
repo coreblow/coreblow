@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { SignalExtension } from '../../extension';
-import { SignalRuntime } from '../runtime';
+import { SignalExtension } from '../../extension.js';
+import { SignalRuntime } from '../runtime.js';
 
 describe('SignalRuntime', () => {
   it('should start and stop', async () => {

@@ -2,7 +2,7 @@
 /**
  * OpenProse Channel Implementation
  */
-import type { OpenProseMessage, OpenProseChannel } from '../types';
+import type { OpenProseMessage, OpenProseChannel } from '../types.js';
 
 export class OpenProseChannelImpl {
   private channelId: string;

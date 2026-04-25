@@ -2,8 +2,8 @@
 /**
  * Mattermost Runtime
  */
-import { MattermostExtension } from '../extension';
-import { MattermostChannelImpl } from './channel';
+import { MattermostExtension } from '../extension.js';
+import { MattermostChannelImpl } from './channel.js';
 
 export class MattermostRuntime {
   [k: string]: any;

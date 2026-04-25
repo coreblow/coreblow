@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { AcpxChannelImpl } from '../channel';
+import { AcpxChannelImpl } from '../channel.js';
 
 describe('AcpxChannel', () => {
   it('should connect and disconnect', async () => {

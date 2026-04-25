@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-telegram",
+  "type": "module",
   "version": "0.1.0",
   "description": "Telegram bot with inline keyboards and media support",
   "main": "dist/index.js",

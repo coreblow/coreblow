@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { NostrExtension } from '../../extension';
-import { NostrRuntime } from '../runtime';
+import { NostrExtension } from '../../extension.js';
+import { NostrRuntime } from '../runtime.js';
 
 describe('NostrRuntime', () => {
   it('should start and stop', async () => {

@@ -1,7 +1,7 @@
 /**
  * GoogleGeminiCliAuth Message Handler
  */
-import type { GoogleGeminiCliAuthMessage } from './types';
+import type { GoogleGeminiCliAuthMessage } from './types.js';
 
 export class GoogleGeminiCliAuthHandler {
   async onMessage(message: GoogleGeminiCliAuthMessage) {

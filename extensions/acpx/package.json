@@ -1,5 +1,6 @@
 {
   "name": "@coreblow/ext-acpx",
+  "type": "module",
   "version": "0.1.0",
   "description": "Agent Communication Protocol extensions",
   "main": "dist/index.js",

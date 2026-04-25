@@ -3,6 +3,6 @@
  * Nostr protocol integration for decentralized social
  */
 
-export { NostrExtension } from './extension';
-export { NostrConfig } from './config';
-export type * from './types';
+export { NostrExtension } from './extension.js';
+export { NostrConfig } from './config.js';
+export type * from './types.js';

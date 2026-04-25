@@ -1,8 +1,8 @@
 /**
  * GoogleGeminiCliAuth Runtime
  */
-import { GoogleGeminiCliAuthExtension } from '../extension';
-import { GoogleGeminiCliAuthChannelImpl } from './channel';
+import { GoogleGeminiCliAuthExtension } from '../extension.js';
+import { GoogleGeminiCliAuthChannelImpl } from './channel.js';
 
 export class GoogleGeminiCliAuthRuntime {
   [k: string]: any;

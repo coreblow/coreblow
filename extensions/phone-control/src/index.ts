@@ -3,6 +3,6 @@
  * Phone control via ADB/Appium
  */
 
-export { PhoneControlExtension } from './extension';
-export { PhoneControlConfig } from './config';
-export type * from './types';
+export { PhoneControlExtension } from './extension.js';
+export { PhoneControlConfig } from './config.js';
+export type * from './types.js';

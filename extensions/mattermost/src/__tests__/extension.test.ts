@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { MattermostExtension } from '../extension';
+import { MattermostExtension } from '../extension.js';
 
 describe('MattermostExtension', () => {
   it('should initialize', async () => {

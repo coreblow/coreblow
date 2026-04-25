@@ -2,7 +2,7 @@
 /**
  * Diffs Message Handler
  */
-import type { DiffsMessage } from './types';
+import type { DiffsMessage } from './types.js';
 
 export class DiffsHandler {
   async onMessage(message: DiffsMessage) {

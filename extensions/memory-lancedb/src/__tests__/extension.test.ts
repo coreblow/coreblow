@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { MemoryLancedbExtension } from '../extension';
+import { MemoryLancedbExtension } from '../extension.js';
 
 describe('MemoryLancedbExtension', () => {
   it('should initialize', async () => {

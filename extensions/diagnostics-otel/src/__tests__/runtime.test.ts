@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { DiagnosticsOtelExtension } from '../../extension';
-import { DiagnosticsOtelRuntime } from '../runtime';
+import { DiagnosticsOtelExtension } from '../../extension.js';
+import { DiagnosticsOtelRuntime } from '../runtime.js';
 
 describe('DiagnosticsOtelRuntime', () => {
   it('should start and stop', async () => {
