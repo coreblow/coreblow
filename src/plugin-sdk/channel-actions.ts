@@ -4,8 +4,8 @@ export {
 } from "../channels/plugins/actions/shared.js";
 export { resolveReactionMessageId } from "../channels/plugins/actions/reaction-message-id.js";
 export { optionalStringEnum, stringEnum } from "../agents/schema/typebox.js";
-import { Type } from "@sinclair/typebox";
-import type { TSchema } from "@sinclair/typebox";
+import { Type } from "typebox";
+import type { TSchema } from "typebox";
 import { stringEnum as createStringEnum } from "../agents/schema/typebox.js";
 
 /** Schema helper for channels that expose button rows on the shared `message` tool. */

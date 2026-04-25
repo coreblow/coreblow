@@ -1,5 +1,5 @@
 import { clamp } from "../../utils.js";
-import { Type } from "@sinclair/typebox";
+import { Type } from "typebox";
 import { loadConfig } from "../../config/config.js";
 import { optionalStringEnum } from "../schema/typebox.js";
 import {

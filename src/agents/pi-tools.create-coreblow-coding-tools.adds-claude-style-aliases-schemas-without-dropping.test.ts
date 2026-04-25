@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type { AgentTool, AgentToolResult } from "@mariozechner/pi-agent-core";
-import { Type } from "@sinclair/typebox";
+import { Type } from "typebox";
 import { describe, expect, it, vi } from "vitest";
 import { createBrowserTool } from "../plugin-sdk/browser.js";
 import { XAI_UNSUPPORTED_SCHEMA_KEYWORDS } from "../plugin-sdk/provider-tools.js";

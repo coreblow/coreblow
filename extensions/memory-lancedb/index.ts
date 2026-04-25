@@ -8,7 +8,7 @@
 
 import { randomUUID } from "node:crypto";
 import type * as LanceDB from "@lancedb/lancedb";
-import { Type } from "@sinclair/typebox";
+import { Type } from "typebox";
 import OpenAI from "openai";
 import { ensureGlobalUndiciEnvProxyDispatcher } from "coreblow/plugin-sdk/runtime-env";
 import { definePluginEntry, type CoreBlowPluginApi } from "./api.js";

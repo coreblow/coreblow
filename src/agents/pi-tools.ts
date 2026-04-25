@@ -1,4 +1,4 @@
-import { codingTools, createReadTool, readTool } from "@mariozechner/pi-coding-agent";
+import { createCodingTools, createReadTool } from "@mariozechner/pi-coding-agent";
 import type { CoreBlowConfig } from "../config/config.js";
 import type { ModelCompatConfig } from "../config/types.models.js";
 import type { ToolLoopDetectionConfig } from "../config/types.tools.js";
@@ -373,8 +373,10 @@ export function createCoreBlowCodingTools(options?: {
   }
   const imageSanitization = resolveImageSanitizationLimits(options?.config);
 
-  const base = (codingTools as unknown as AnyAgentTool[]).flatMap((tool) => {
-    if (tool.name === readTool.name) {
+  const readToolInstance = createReadTool(workspaceRoot);
+  const codingToolInstances = createCodingTools(workspaceRoot);
+  const base = (codingToolInstances as unknown as AnyAgentTool[]).flatMap((tool) => {
+    if (tool.name === readToolInstance.name) {
       if (sandboxRoot) {
         const sandboxed = createSandboxedReadTool({
           root: sandboxRoot,
@@ -390,8 +392,7 @@ export function createCoreBlowCodingTools(options?: {
             : sandboxed,
         ];
       }
-      const freshReadTool = createReadTool(workspaceRoot);
-      const wrapped = createCoreBlowReadTool(freshReadTool, {
+      const wrapped = createCoreBlowReadTool(readToolInstance, {
         modelContextWindowTokens: options?.modelContextWindowTokens,
         imageSanitization,
       });

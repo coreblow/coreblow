@@ -1,4 +1,4 @@
-import { Type } from "@sinclair/typebox";
+import { Type } from "typebox";
 import type { ChannelAgentTool } from "coreblow/plugin-sdk/channel-contract";
 import { startWebLoginWithQr, waitForWebLogin } from "../login-qr-api.js";
 

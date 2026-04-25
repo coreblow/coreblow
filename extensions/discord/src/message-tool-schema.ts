@@ -1,4 +1,4 @@
-import { type TSchema, Type } from "@sinclair/typebox";
+import { type TSchema, Type } from "typebox";
 import { stringEnum } from "coreblow/plugin-sdk/channel-actions";
 
 const discordComponentEmojiSchema = Type.Object({

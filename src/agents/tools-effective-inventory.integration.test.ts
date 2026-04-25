@@ -1,5 +1,5 @@
 import type { AgentTool, AgentToolResult } from "@mariozechner/pi-agent-core";
-import { Type, type TSchema } from "@sinclair/typebox";
+import { Type, type TSchema } from "typebox";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 function createWrappedTestTool(params: {
