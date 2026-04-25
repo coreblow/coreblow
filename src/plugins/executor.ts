@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * plugins/executor.ts
  *
@@ -95,8 +95,8 @@ export class PluginExecutor {
 
         try {
             const result = await this.hookRunner.runBeforeToolCall(
-                { toolName, params, timestamp: Date.now() },
-                { sessionKey },
+                { toolName, params },
+                { toolName, sessionKey },
             );
 
             if (result?.block) {
@@ -131,8 +131,8 @@ export class PluginExecutor {
     ): Promise<void> {
         try {
             await this.hookRunner.runAfterToolCall(
-                { toolName, result, timestamp: Date.now() },
-                { sessionKey },
+                { toolName, params: {}, result },
+                { toolName, sessionKey },
             );
         } catch (err) {
             this.stats.errors++;
@@ -156,7 +156,7 @@ export class PluginExecutor {
 
         try {
             const result = await this.hookRunner.runBeforeAgentStart(
-                { model, turnNumber, timestamp: Date.now() },
+                { prompt: '', messages: [] },
                 { sessionKey },
             );
             return result as Record<string, unknown> | undefined;
@@ -180,7 +180,7 @@ export class PluginExecutor {
 
         try {
             await this.hookRunner.runAgentEnd(
-                { model, turnNumber, timestamp: Date.now() },
+                { messages: [], success: true },
                 { sessionKey },
             );
         } catch (err) {
@@ -200,7 +200,7 @@ export class PluginExecutor {
 
         try {
             await this.hookRunner.runBeforeCompaction(
-                { timestamp: Date.now() },
+                { messageCount: 0 },
                 { sessionKey },
             );
         } catch (err) {
@@ -216,7 +216,7 @@ export class PluginExecutor {
     async afterCompaction(sessionKey: string, stats?: Record<string, unknown>): Promise<void> {
         try {
             await this.hookRunner.runAfterCompaction(
-                { stats, timestamp: Date.now() },
+                { messageCount: 0, compactedCount: 0 },
                 { sessionKey },
             );
         } catch (err) {
@@ -238,8 +238,8 @@ export class PluginExecutor {
     ): Promise<{ claimed: boolean; response?: string }> {
         try {
             const result = await this.hookRunner.runInboundClaim(
-                { content, sessionKey, channel },
-                { sessionKey, channel },
+                { content, channel, isGroup: false },
+                { channelId: channel },
             );
 
             if (result?.handled) {
