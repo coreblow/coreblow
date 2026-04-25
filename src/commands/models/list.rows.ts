@@ -4,7 +4,7 @@ import type { AuthProfileStore } from "../../agents/auth-profiles.js";
 import { loadModelCatalog } from "../../agents/model-catalog.js";
 import { shouldSuppressBuiltInModel } from "../../agents/model-suppression.js";
 import { resolveModelWithRegistry } from "../../agents/pi-embedded-runner/model.js";
-import { normalizeProviderId } from "../../agents/provider-id.js";
+import { normalizeProviderId } from "../../types/provider-id.js";
 import type { CoreBlowConfig } from "../../config/config.js";
 import { loadModelRegistry, toModelRow } from "./list.registry.js";
 import type { ConfiguredEntry, ModelRow } from "./list.types.js";

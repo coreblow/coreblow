@@ -1,4 +1,4 @@
-import { normalizeProviderId } from "../agents/provider-id.js";
+import { normalizeProviderId } from "../types/provider-id.js";
 import { getActivePluginRegistry } from "./runtime.js";
 import type {
   ProviderDefaultThinkingPolicyContext,

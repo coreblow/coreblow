@@ -4,7 +4,7 @@ import type { OAuthCredentials } from "@mariozechner/pi-ai";
 import { resolveCoreBlowAgentDir } from "../agents/agent-paths.js";
 import { buildAuthProfileId } from "../agents/auth-profiles/identity.js";
 import { upsertAuthProfile } from "../agents/auth-profiles/profiles.js";
-import { normalizeProviderIdForAuth } from "../agents/provider-id.js";
+import { normalizeProviderIdForAuth } from "../types/provider-id.js";
 import type { CoreBlowConfig } from "../config/config.js";
 import { resolveStateDir } from "../config/paths.js";
 import {

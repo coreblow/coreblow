@@ -1,4 +1,4 @@
-import { normalizeProviderId } from "../agents/provider-id.js";
+import { normalizeProviderId } from "../types/provider-id.js";
 import type { ModelProviderConfig } from "../config/types.js";
 import type { ProviderCatalogContext, ProviderCatalogResult } from "./types.js";
 

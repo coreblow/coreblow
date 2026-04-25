@@ -1,5 +1,5 @@
 import type { AuthProfileCredential, OAuthCredential } from "../agents/auth-profiles/types.js";
-import { normalizeProviderId } from "../agents/provider-id.js";
+import { normalizeProviderId } from "../types/provider-id.js";
 import type { CoreBlowConfig } from "../config/config.js";
 import type { ModelProviderConfig } from "../config/types.js";
 import {

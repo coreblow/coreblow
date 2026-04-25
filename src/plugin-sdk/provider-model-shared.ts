@@ -23,7 +23,7 @@ export {
   resolveUnsupportedToolSchemaKeywords,
   resolveToolCallArgumentsEncoding,
 } from "../plugins/provider-model-compat.js";
-export { normalizeProviderId } from "../agents/provider-id.js";
+export { normalizeProviderId } from "../types/provider-id.js";
 export {
   createMoonshotThinkingWrapper,
   resolveMoonshotThinkingType,
