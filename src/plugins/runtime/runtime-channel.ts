@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { resolveEffectiveMessagesConfig, resolveHumanDelayConfig } from "../../agents/identity.js";
 import {
   chunkByNewline,
@@ -122,14 +121,13 @@ export function createRuntimeChannel(): PluginRuntime["channel"] {
       buildPairingReply,
       readAllowFromStore: ({ channel, accountId, env }) =>
         readChannelAllowFromStore(channel, env, accountId),
-      upsertPairingRequest: ({ channel, id, accountId, meta, env, pairingAdapter }) =>
+      upsertPairingRequest: ({ channel, id, accountId, meta, env }) =>
         upsertChannelPairingRequest({
           channel,
           id,
           accountId,
           meta,
           env,
-          pairingAdapter,
         }),
     },
     media: {

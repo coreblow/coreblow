@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * plugins/config-editor.ts
  *
@@ -18,8 +17,7 @@
  */
 
 import { createChildLogger } from '../utils/logger.js';
-import { PluginConfigValidator, type PluginConfigValidationResult } from './config-validator.js';
-import type { ManifestConfigField } from './manifest.js';
+import { PluginConfigValidator, type PluginConfigValidationResult, type ManifestConfigField } from './config-validator.js';
 
 const log = createChildLogger('plugin:config-editor');
 

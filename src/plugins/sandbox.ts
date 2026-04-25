@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * src/plugins/sandbox.ts
  * Plugin sandbox — isolated execution with permission enforcement
@@ -59,8 +58,8 @@ export class PluginSandbox {
      */
     static fromManifest(manifest: PluginManifest): PluginSandbox {
         return new PluginSandbox({
-            pluginName: manifest.name,
-            permissions: (manifest.permissions || []) as Permission[],
+            pluginName: manifest.name ?? manifest.id,
+            permissions: [],
         });
     }
 

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * plugins/config-validator.ts
  *
@@ -17,8 +16,23 @@
  */
 
 import { createChildLogger } from '../utils/logger.js';
-import type { ManifestConfigField } from './manifest.js';
-import type { PluginConfigSchema, PluginConfigValidation } from './types.js';
+import type { PluginConfigValidation, CoreBlowPluginConfigSchema as PluginConfigSchema } from './types.js';
+
+/** Manifest config field definition (loader-specific, not in manifest.ts) */
+export type ManifestConfigField = {
+    key: string;
+    type: 'string' | 'number' | 'boolean' | 'select' | 'password' | 'array';
+    label?: string;
+    description?: string;
+    required?: boolean;
+    default?: unknown;
+    options?: string[];
+    validation?: {
+        min?: number;
+        max?: number;
+        pattern?: string;
+    };
+};
 
 const log = createChildLogger('plugin:config-validator');
 

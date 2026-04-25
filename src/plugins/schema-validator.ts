@@ -1,8 +1,13 @@
-// @ts-nocheck
 import { createRequire } from "node:module";
 import type { ErrorObject, ValidateFunction } from "ajv";
-import { appendAllowedValuesHint, summarizeAllowedValues } from "../config/allowed-values.js";
+import { summarizeAllowedValues, type AllowedValuesSummary } from "../config/allowed-values.js";
 import { sanitizeTerminalText } from "../terminal/safe-text.js";
+
+/** Append allowed-values hint to validation error message (local helper) */
+function appendAllowedValuesHint(message: string, summary: AllowedValuesSummary): string {
+    const hint = summary.formatted;
+    return hint ? `${message} (allowed: ${hint})` : message;
+}
 
 const require = createRequire(import.meta.url);
 type AjvLike = {

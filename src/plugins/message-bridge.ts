@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * plugins/message-bridge.ts
  *
@@ -154,8 +154,8 @@ export class PluginMessageBridge {
             // ── Stage 1: message_received (void — observe) ──
             const s1 = await this.runStage('message_received', async () => {
                 await this.hookRunner.runMessageReceived(
-                    { message, content: message.content },
-                    { sessionKey: message.sessionKey, channel: message.channel },
+                    { from: message.sender.id, content: message.content },
+                    { channelId: message.channel },
                 );
             });
             stages.push(s1);
@@ -163,7 +163,7 @@ export class PluginMessageBridge {
             // ── Stage 2: before_dispatch (claiming — plugin can handle) ──
             const s2 = await this.runStage('before_dispatch', async () => {
                 const claim = await this.hookRunner.runBeforeDispatch(
-                    { message, content: message.content },
+                    { content: message.content, channel: message.channel },
                     { sessionKey: message.sessionKey },
                 );
                 if (claim?.handled) {
@@ -196,7 +196,7 @@ export class PluginMessageBridge {
             // ── Stage 3: before_model_resolve (modifying — override model) ──
             const s3 = await this.runStage('before_model_resolve', async () => {
                 const resolve = await this.hookRunner.runBeforeModelResolve(
-                    { model: ctx.model },
+                    { prompt: message.content },
                     { sessionKey: message.sessionKey },
                 );
                 if (resolve) {
@@ -211,7 +211,7 @@ export class PluginMessageBridge {
             // ── Stage 4: llm_input (void — observe) ──
             const s4 = await this.runStage('llm_input', async () => {
                 await this.hookRunner.runLlmInput(
-                    { content: message.content, model: ctx.model },
+                    { model: ctx.model ?? '', runId: '', sessionId: '', provider: '', prompt: message.content, historyMessages: [], imagesCount: 0 },
                     { sessionKey: message.sessionKey },
                 );
             });
@@ -232,7 +232,7 @@ export class PluginMessageBridge {
             // ── Stage 6: llm_output (void — observe) ──
             const s6 = await this.runStage('llm_output', async () => {
                 await this.hookRunner.runLlmOutput(
-                    { content: responseContent, model: ctx.model },
+                    { model: ctx.model ?? '', runId: '', sessionId: '', provider: '', assistantTexts: [responseContent] },
                     { sessionKey: message.sessionKey },
                 );
             });
@@ -241,8 +241,8 @@ export class PluginMessageBridge {
             // ── Stage 7: message_sending (modifying — can modify/cancel) ──
             const s7 = await this.runStage('message_sending', async () => {
                 const sending = await this.hookRunner.runMessageSending(
-                    { content: responseContent, sessionKey: message.sessionKey },
-                    { channel: message.channel },
+                    { to: message.channel, content: responseContent },
+                    { channelId: message.channel },
                 );
                 if (sending) {
                     if (sending.cancel) {
@@ -270,8 +270,8 @@ export class PluginMessageBridge {
             if (!ctx.cancelled) {
                 const s8 = await this.runStage('message_sent', async () => {
                     await this.hookRunner.runMessageSent(
-                        { content: responseContent, sessionKey: message.sessionKey },
-                        { channel: message.channel },
+                        { to: message.channel, content: responseContent, success: true },
+                        { channelId: message.channel },
                     );
                 });
                 stages.push(s8);

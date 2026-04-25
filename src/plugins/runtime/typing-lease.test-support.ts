@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { expect, it, vi } from "vitest";
 import type { MockFn } from "../../test-utils/vitest-mock-fn.js";
 
