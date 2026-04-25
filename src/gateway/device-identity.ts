@@ -133,7 +133,7 @@ function verifyEd25519(payload: string, signatureBase64: string, publicKeyStr: s
         const payloadBuffer = Buffer.from(payload, 'utf8');
 
         // Ed25519 uses verify with null algorithm
-        const verify = createVerify('Ed25519' as any);
+        const verify = createVerify('Ed25519' as string);
         verify.update(payloadBuffer);
         verify.end();
 

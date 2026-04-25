@@ -1118,7 +1118,7 @@ export async function startGatewayServer(
       // Wire cron handle into Tier-2 service
       try {
         const { getCronSchedulerService } = await import("../infra/cron-scheduler.js");
-        getCronSchedulerService().setHandle(cron as any);
+        getCronSchedulerService().setHandle(cron as unknown as Parameters<ReturnType<typeof getCronSchedulerService>['setHandle']>[0]);
       } catch { /* registry wiring is best-effort */ }
     }
 

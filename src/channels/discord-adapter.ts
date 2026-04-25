@@ -58,6 +58,11 @@ export interface DiscordSlashCommand {
     }>;
 }
 
+/** Discord API message response */
+interface DiscordMessageResponse {
+    id: string;
+}
+
 /** Message handler callback */
 export type DiscordMessageHandler = (msg: DiscordMessage) => Promise<string | DiscordEmbed | void>;
 
@@ -91,14 +96,14 @@ export class DiscordAdapter {
 
     async sendMessage(channelId: string, content: string): Promise<string> {
         const data = await this.apiRequest('POST', `/channels/${channelId}/messages`, { content });
-        return (data as any).id;
+        return (data as unknown as DiscordMessageResponse).id;
     }
 
     async sendEmbed(channelId: string, embed: DiscordEmbed): Promise<string> {
         const data = await this.apiRequest('POST', `/channels/${channelId}/messages`, {
             embeds: [embed],
         });
-        return (data as any).id;
+        return (data as unknown as DiscordMessageResponse).id;
     }
 
     /**
@@ -121,7 +126,7 @@ export class DiscordAdapter {
             name,
             auto_archive_duration: 1440,
         });
-        return (data as any).id;
+        return (data as unknown as DiscordMessageResponse).id;
     }
 
     /**

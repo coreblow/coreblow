@@ -133,7 +133,7 @@ export class LINEAdapter {
             headers: { 'Authorization': `Bearer ${this.config.channelAccessToken}` },
         });
         if (!res.ok) throw new Error(`LINE profile error ${res.status}`);
-        return await res.json() as any;
+        return await res.json() as { displayName: string; userId: string; pictureUrl?: string; statusMessage?: string };
     }
 
     /** Get message content (image/video/audio binary) */

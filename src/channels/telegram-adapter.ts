@@ -36,6 +36,11 @@ export interface InlineButton {
     url?: string;
 }
 
+/** Telegram API response shape */
+interface TelegramApiResult {
+    result: { message_id: number };
+}
+
 /** Message handler */
 export type TelegramMessageHandler = (msg: TelegramMessage) => Promise<string | void>;
 
@@ -84,7 +89,7 @@ export class TelegramAdapter {
         }
 
         const data = await this.api('sendMessage', body);
-        return (data.result as any).message_id;
+        return (data as unknown as TelegramApiResult).result.message_id;
     }
 
     /**
@@ -97,7 +102,7 @@ export class TelegramAdapter {
             caption,
             parse_mode: this.config.parseMode,
         });
-        return (data.result as any).message_id;
+        return (data as unknown as TelegramApiResult).result.message_id;
     }
 
     /**
@@ -109,7 +114,7 @@ export class TelegramAdapter {
             document: documentUrl,
             caption,
         });
-        return (data.result as any).message_id;
+        return (data as unknown as TelegramApiResult).result.message_id;
     }
 
     /**
