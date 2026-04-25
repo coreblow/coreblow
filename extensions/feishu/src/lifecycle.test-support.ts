@@ -26,7 +26,7 @@ const feishuLifecycleTestMocks = vi.hoisted(() => ({
   sendCardFeishuMock: vi.fn(async () => ({ messageId: "om_card", chatId: "chat_default" })),
 }));
 
-export function getFeishuLifecycleTestMocks() {
+export function getFeishuLifecycleTestMocks(): any {
   return feishuLifecycleTestMocks;
 }
 

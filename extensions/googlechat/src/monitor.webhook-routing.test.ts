@@ -1,4 +1,4 @@
-// @ts-nocheck — pre-existing vitest mock type mismatches (tracked in fix/pre-existing-test-errors)
+// @ts-nocheck — structural test type mismatches (vitest mock compat)
 import { EventEmitter } from "node:events";
 import type { IncomingMessage } from "node:http";
 import { afterEach, describe, expect, it, vi , Mock } from "vitest";

@@ -1,4 +1,3 @@
-// @ts-nocheck — pre-existing vitest mock type mismatches (tracked in fix/pre-existing-test-errors)
 import "./lifecycle.test-support.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -147,7 +146,7 @@ describe("Feishu ACP-init failure lifecycle", () => {
       queuedFinal: false,
       counts: { final: 0 },
     });
-    withReplyDispatcherMock.mockImplementation(async ({ run }) => await run());
+    withReplyDispatcherMock.mockImplementation(async ({ run }: any) => await run());
 
     installFeishuLifecycleReplyRuntime({
       resolveAgentRouteMock,

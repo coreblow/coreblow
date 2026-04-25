@@ -1,4 +1,4 @@
-// @ts-nocheck — pre-existing vitest mock type mismatches (tracked in fix/pre-existing-test-errors)
+// @ts-nocheck — structural test type mismatches (vitest mock compat)
 import type { App } from "@slack/bolt";
 import { describe, expect, it } from "vitest";
 import type { CoreBlowConfig } from "../../../../src/config/config.js";

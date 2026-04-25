@@ -183,7 +183,7 @@ export function createLoopbackWebhookRequestParamsForTest(
 export function createHangingWebhookRequestForTest(
   url = "/bluebubbles-webhook?password=test-password",
   remoteAddress = "127.0.0.1",
-) {
+): any {
   const req = new EventEmitter() as IncomingMessage;
   const destroyMock = vi.fn();
   req.method = "POST";

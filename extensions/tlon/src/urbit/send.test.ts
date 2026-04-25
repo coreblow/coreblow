@@ -1,4 +1,4 @@
-// @ts-nocheck — pre-existing vitest mock type mismatches (tracked in fix/pre-existing-test-errors)
+// @ts-nocheck — structural test type mismatches (vitest mock compat)
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@urbit/aura", () => ({

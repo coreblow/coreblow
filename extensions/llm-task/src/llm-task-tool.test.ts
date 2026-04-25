@@ -1,4 +1,3 @@
-// @ts-nocheck — pre-existing vitest mock type mismatches (tracked in fix/pre-existing-test-errors)
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("typebox", () => ({

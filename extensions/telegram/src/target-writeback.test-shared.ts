@@ -1,11 +1,12 @@
 import type { CoreBlowConfig } from "coreblow/plugin-sdk/testing";
+import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-export const readConfigFileSnapshotForWrite = vi.fn();
-export const writeConfigFile = vi.fn();
-export const loadCronStore = vi.fn();
-export const resolveCronStorePath = vi.fn();
-export const saveCronStore = vi.fn();
+export const readConfigFileSnapshotForWrite: Mock = vi.fn();
+export const writeConfigFile: Mock = vi.fn();
+export const loadCronStore: Mock = vi.fn();
+export const resolveCronStorePath: Mock = vi.fn();
+export const saveCronStore: Mock = vi.fn();
 
 vi.mock("coreblow/plugin-sdk/config-runtime", async (importOriginal) => {
   const actual = await importOriginal<typeof import("coreblow/plugin-sdk/config-runtime")>();

@@ -1,4 +1,4 @@
-// @ts-nocheck — pre-existing vitest mock type mismatches (tracked in fix/pre-existing-test-errors)
+// @ts-nocheck — structural test type mismatches (vitest mock compat)
 import type { MessageEvent, PostbackEvent } from "@line/bot-sdk";
 import type { HistoryEntry } from "coreblow/plugin-sdk/reply-history";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";

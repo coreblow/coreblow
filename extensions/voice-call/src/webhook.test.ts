@@ -1,4 +1,3 @@
-// @ts-nocheck — pre-existing vitest mock type mismatches (tracked in fix/pre-existing-test-errors)
 import { request } from "node:http";
 import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
 import { VoiceCallConfigSchema, type VoiceCallConfig } from "./config.js";
