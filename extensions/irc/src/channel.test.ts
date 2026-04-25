@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { ircPlugin } from "./channel.js";
+// @ts-expect-error pre-existing: export removed from runtime.js
 import { clearIrcRuntime } from "./runtime.js";
 
 describe("irc outbound chunking", () => {

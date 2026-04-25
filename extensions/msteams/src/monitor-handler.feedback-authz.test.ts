@@ -56,7 +56,7 @@ function createRuntimeStub(readAllowFromStore: Mock): PluginRuntime {
         resolveStorePath: (storePath?: string) => storePath ?? tmpdir(),
       },
     },
-  } as unknown as PluginRuntime;
+  } as any;
 }
 
 function createDeps(params: {

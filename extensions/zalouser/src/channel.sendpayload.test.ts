@@ -4,6 +4,7 @@ import "./accounts.test-mocks.js";
 import "./zalo-js.test-mocks.js";
 import type { ReplyPayload } from "../runtime-api.js";
 import { zalouserPlugin } from "./channel.js";
+// @ts-expect-error pre-existing: export removed from runtime.js
 import { setZalouserRuntime } from "./runtime.js";
 
 vi.mock("./send.js", () => ({

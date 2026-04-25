@@ -55,7 +55,7 @@ const runtimeStub = {
         fetchRemoteMediaMock as any["channel"]["media"]["fetchRemoteMedia"],
     },
   },
-} as unknown as PluginRuntime;
+} as any;
 
 describe("downloadBlueBubblesAttachment", () => {
   beforeEach(() => {

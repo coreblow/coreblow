@@ -66,7 +66,7 @@ function createRuntime(): { runtime: PluginRuntime; mocks: LineRuntimeMocks } {
         resolveTextChunkLimit,
       },
     },
-  } as unknown as PluginRuntime;
+  } as any;
 
   return {
     runtime,

@@ -37,7 +37,7 @@ const runtimeStub: PluginRuntime = {
       }),
     },
   },
-} as unknown as PluginRuntime;
+} as any;
 
 function createDeps(): MSTeamsMessageHandlerDeps {
   return createMSTeamsMessageHandlerDeps({
