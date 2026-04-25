@@ -1,4 +1,5 @@
 import type { CoreBlowConfig } from "../config/config.js";
+import type { ModelCompatConfig } from "../config/types.models.js";
 import { getPluginToolMeta } from "../plugins/tools.js";
 import { resolveAgentDir, resolveAgentWorkspaceDir, resolveSessionAgentId } from "./agent-scope.js";
 import { getChannelAgentToolMeta } from "./channel-tools.js";
@@ -152,7 +153,7 @@ export function resolveEffectiveToolInventory(
     agentDir,
     modelProvider: params.modelProvider,
     modelId: params.modelId,
-  });
+  }) as ModelCompatConfig | undefined;
 
   const effectiveTools = createCoreBlowCodingTools({
     agentId,

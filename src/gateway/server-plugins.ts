@@ -10,7 +10,7 @@ import type { PluginRuntime } from "../plugins/runtime/types.js";
 import { resolveGlobalSingleton } from "../shared/global-singleton.js";
 import { ADMIN_SCOPE, WRITE_SCOPE } from "./method-scopes.js";
 import { GATEWAY_CLIENT_IDS, GATEWAY_CLIENT_MODES } from "./protocol/client-info.js";
-import type { ErrorShape } from "./protocol/index.js";
+import type { ConnectParams, ErrorShape } from "./protocol/index.js";
 import { PROTOCOL_VERSION } from "./protocol/index.js";
 import { handleGatewayRequest } from "./server-methods.js";
 import type {
@@ -228,7 +228,7 @@ function createSyntheticOperatorClient(params?: {
       },
       role: "operator",
       scopes: params?.scopes ?? [WRITE_SCOPE],
-    },
+    } as ConnectParams,
     internal: {
       allowModelOverride: params?.allowModelOverride === true,
     },
