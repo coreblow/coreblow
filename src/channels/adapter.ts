@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * CoreBlow Channel Framework — Unified Adapter Interface
  *
@@ -219,21 +219,13 @@ export function isQrLoginCapable(adapter: ChannelAdapter): adapter is QrLoginAda
 
 import type { ChannelPlugin } from './plugins/types.plugin.js';
 import type { ChannelMeta } from './plugins/types.js';
-import type { ChannelCapabilities } from '../config/channel-capabilities.js';
-import { registerBundledChannelPlugin, getBundledChannelPlugin } from './plugins/bundled.js';
+import type { ChannelCapabilities } from './plugins/types.core.js';
+import type { ChatType } from './chat-type.js';
+import { getBundledChannelPlugin } from './plugins/bundled.js';
 
 /** Default capabilities for bridged adapters. */
 const DEFAULT_BRIDGED_CAPS: ChannelCapabilities = {
-    supportsAttachments: false,
-    supportsReactions: false,
-    supportsThreads: false,
-    supportsTypingIndicator: false,
-    supportsEditMessage: false,
-    supportsDeleteMessage: false,
-    supportsRichEmbed: false,
-    supportsInlineButtons: false,
-    supportsVoice: false,
-    maxMessageLength: 4096,
+    chatTypes: ['direct' as ChatType, 'group' as ChatType],
 };
 
 /**
@@ -258,21 +250,19 @@ export function bridgeAdapterToPlugin(
     };
     const capabilities: ChannelCapabilities = {
         ...DEFAULT_BRIDGED_CAPS,
-        maxMessageLength: adapter.maxMessageLength?.() ?? 4096,
         ...overrides?.capabilities,
     };
 
     return {
         id,
-        channelId: id,
         meta,
         capabilities,
         config: {
             listAccountIds: () => ['default'],
+            resolveAccount: () => ({} as unknown),
         },
         outbound: {
             deliveryMode: 'direct',
-            textChunkLimit: capabilities.maxMessageLength,
         },
         heartbeat: {
             checkReady: async () => {
@@ -303,17 +293,8 @@ export function registerAdapter(adapter: ChannelAdapter): void {
     adapterRegistry.set(adapter.id, adapter);
 
     // Auto-bridge to plugin registry if not already registered
-    if (!getBundledChannelPlugin(adapter.id)) {
-        try {
-            const plugin = bridgeAdapterToPlugin(adapter);
-            registerBundledChannelPlugin({
-                id: adapter.id,
-                channelPlugin: plugin,
-            });
-        } catch {
-            // Plugin already registered — ignore duplicate
-        }
-    }
+    // Note: Registration is handled by the generated bundled entries system.
+    // This registry is for runtime adapter lookups only.
 }
 
 /**
