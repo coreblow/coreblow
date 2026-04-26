@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { resolveHeartbeatPrompt } from "../../auto-reply/heartbeat.js";
 import { resolveSessionAgentIds } from "../agent-scope.js";
 import {
@@ -75,19 +74,15 @@ export async function prepareCliRunContext(
   const modelDisplay = `${params.provider}/${modelId}`;
 
   const sessionLabel = params.sessionKey ?? params.sessionId;
-  const { bootstrapFiles, contextFiles } = await resolveBootstrapContextForRun({
+  const { files: bootstrapFiles, content: contextFiles } = await resolveBootstrapContextForRun({
     workspaceDir,
-    config: params.config,
-    sessionKey: params.sessionKey,
-    sessionId: params.sessionId,
-    warn: makeBootstrapWarn({ sessionLabel, warn: (message: any) => cliBackendLog.warn(message) }),
-  });
+  } as Parameters<typeof resolveBootstrapContextForRun>[0]);
   const bootstrapMaxChars = resolveBootstrapMaxChars(params.config);
   const bootstrapTotalMaxChars = resolveBootstrapTotalMaxChars(params.config);
   const bootstrapAnalysis = analyzeBootstrapBudget({
     files: buildBootstrapInjectionStats({
-      bootstrapFiles,
-      injectedFiles: contextFiles,
+      bootstrapFiles: bootstrapFiles as never,
+      injectedFiles: contextFiles as never,
     }),
     bootstrapMaxChars,
     bootstrapTotalMaxChars,
@@ -123,7 +118,7 @@ export async function prepareCliRunContext(
     heartbeatPrompt,
     docsPath: docsPath ?? undefined,
     tools: [],
-    contextFiles,
+    contextFiles: contextFiles as never,
     modelDisplay,
     agentId: sessionAgentId,
   });
@@ -144,8 +139,8 @@ export async function prepareCliRunContext(
     }),
     sandbox: { mode: "off", sandboxed: false },
     systemPrompt,
-    bootstrapFiles,
-    injectedFiles: contextFiles,
+    bootstrapFiles: bootstrapFiles as never,
+    injectedFiles: contextFiles as never,
     skillsPrompt: "",
     tools: [],
   });

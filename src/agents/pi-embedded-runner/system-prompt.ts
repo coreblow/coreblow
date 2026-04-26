@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { AgentTool } from "@mariozechner/pi-agent-core";
 import type { AgentSession } from "@mariozechner/pi-coding-agent";
 import type { MemoryCitationsMode } from "../../config/types.memory.js";
@@ -78,10 +77,8 @@ export function buildEmbeddedSystemPrompt(params: {
     toolSummaries: buildToolSummaryMap(params.tools),
     modelAliasLines: params.modelAliasLines,
     userTimezone: params.userTimezone,
-    userTime: params.userTime,
-    userTimeFormat: params.userTimeFormat,
     contextFiles: params.contextFiles,
-    memoryCitationsMode: params.memoryCitationsMode,
+    memoryCitationsMode: params.memoryCitationsMode as never,
   });
 }
 
@@ -97,7 +94,7 @@ export function applySystemPromptOverrideToSession(
   override: string | ((defaultPrompt?: string) => string),
 ) {
   const prompt = typeof override === "function" ? override() : override.trim();
-  session.agent.setSystemPrompt(prompt);
+  (session.agent as unknown as Record<string, (p: string) => void>).setSystemPrompt(prompt);
   const mutableSession = session as unknown as {
     _baseSystemPrompt?: string;
     _rebuildSystemPrompt?: (toolNames: string[]) => string;

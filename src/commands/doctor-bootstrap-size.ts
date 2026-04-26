@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { clamp } from "../utils.js";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
 import {
@@ -36,13 +35,12 @@ export async function noteBootstrapFileSize(cfg: CoreBlowConfig) {
   const workspaceDir = resolveAgentWorkspaceDir(cfg, resolveDefaultAgentId(cfg));
   const bootstrapMaxChars = resolveBootstrapMaxChars(cfg);
   const bootstrapTotalMaxChars = resolveBootstrapTotalMaxChars(cfg);
-  const { bootstrapFiles, contextFiles } = await resolveBootstrapContextForRun({
+  const { files: bootstrapFiles, content: contextFiles } = await resolveBootstrapContextForRun({
     workspaceDir,
-    config: cfg,
-  });
+  } as Parameters<typeof resolveBootstrapContextForRun>[0]);
   const stats = buildBootstrapInjectionStats({
-    bootstrapFiles,
-    injectedFiles: contextFiles,
+    bootstrapFiles: bootstrapFiles as never,
+    injectedFiles: contextFiles as never,
   });
   const analysis = analyzeBootstrapBudget({
     files: stats,

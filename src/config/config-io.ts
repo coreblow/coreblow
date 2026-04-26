@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * config/config-io.ts
  *
@@ -60,7 +59,7 @@ export function resolveWritableConfigPath(opts: ConfigIoOptions = {}): string {
 
     // 3. Already-existing config file (read from existing location)
     const found = findConfigFile();
-    if (found.configPath) return found.configPath;
+    if (found?.configPath) return found.configPath;
 
     // 4. Default: XDG-aware home config
     const paths = getConfigPaths();

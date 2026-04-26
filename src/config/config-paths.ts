@@ -83,8 +83,8 @@ export function getConfigValueAtPath(root: PathNode, path: string[]): unknown {
 
 
 // Stub functions — used by config-io.ts, dashboard/serve.ts
-export function getConfigPaths(): { candidates: string[]; xdg: boolean; home: string } {
-  return { candidates: [], xdg: false, home: process.env.HOME ?? '' };
+export function getConfigPaths(): { candidates: string[]; xdg: string; home: string } {
+  return { candidates: [], xdg: '', home: process.env.HOME ?? '' };
 }
 export function findConfigFile(): { configPath: string; format: string } | undefined {
   return undefined;

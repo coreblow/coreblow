@@ -99,3 +99,7 @@ export function detectMediaTypeFromExt(ext: string): MediaType | null {
     if (SUPPORTED_DOCUMENT_FORMATS.includes(normalized)) return 'document';
     return null;
 }
+
+// Stubs — used by link-understanding/runner.ts
+export function normalizeMediaUnderstandingChatType(chatType: string): string { return chatType; }
+export function resolveMediaUnderstandingScope(_cfg: unknown, _chatType: string): 'allow' | 'deny' { return 'allow'; }

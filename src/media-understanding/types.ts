@@ -79,6 +79,9 @@ export type VideoDescriptionRequest = {
   prompt?: string;
   timeoutMs: number;
   fetchFn?: typeof fetch;
+  maxTokens?: number;
+  sampleFrames?: number;
+  includeAudio?: boolean;
 };
 
 export type VideoDescriptionResult = {

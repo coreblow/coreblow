@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { sanitizeHtml, stripInvisibleUnicode } from "./web-fetch-visibility.js";
 
 export type ExtractMode = "markdown" | "text";

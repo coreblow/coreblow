@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { MsgContext } from "../auto-reply/templating.js";
 import { applyTemplate } from "../auto-reply/templating.js";
 import type { CoreBlowConfig } from "../config/config.js";
@@ -23,12 +22,10 @@ function resolveScopeDecision(params: {
   config?: LinkToolsConfig;
   ctx: MsgContext;
 }): "allow" | "deny" {
-  return resolveMediaUnderstandingScope({
-    scope: params.config?.scope,
-    sessionKey: params.ctx.SessionKey,
-    channel: params.ctx.Surface ?? params.ctx.Provider,
-    chatType: normalizeMediaUnderstandingChatType(params.ctx.ChatType),
-  });
+  return resolveMediaUnderstandingScope(
+    params.config,
+    normalizeMediaUnderstandingChatType(params.ctx.ChatType ?? ''),
+  );
 }
 
 function resolveTimeoutMsFromConfig(params: {

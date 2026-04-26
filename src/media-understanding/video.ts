@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * media-understanding/video.ts
  * Video analysis engine with frame extraction.
