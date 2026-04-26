@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * canvas-host/server.ts — CoreBlow Canvas Host Server
  *
@@ -313,17 +312,19 @@ export async function createCanvasHostHandler(
             }
 
             const mime = detectMime(opened.realPath);
+            const fileData = await opened.handle.readFile();
+            await opened.handle.close();
             res.setHeader('Cache-Control', 'no-store');
 
             if (mime === 'text/html') {
-                const html = opened.data.toString('utf8');
+                const html = fileData.toString('utf8');
                 res.setHeader('Content-Type', 'text/html; charset=utf-8');
                 res.end(liveReload ? injectCanvasLiveReload(html) : html);
                 return true;
             }
 
             res.setHeader('Content-Type', mime);
-            res.end(opened.data);
+            res.end(fileData);
             return true;
         } catch (err) {
             log.error({ err }, 'Canvas host request failed');

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { getChannelPlugin } from "../../channels/plugins/index.js";
 import type { ChannelId } from "../../channels/plugins/types.js";
 import { normalizeChannelId } from "../../channels/registry.js";
@@ -9,9 +8,9 @@ import {
   writeConfigFile,
 } from "../../config/config.js";
 import {
-  addChannelAllowFromStoreEntry,
+  addChannelAllowFromEntry,
   readChannelAllowFromStore,
-  removeChannelAllowFromStoreEntry,
+  removeChannelAllowFromEntry,
 } from "../../pairing/pairing-store.js";
 import {
   DEFAULT_ACCOUNT_ID,
@@ -188,13 +187,13 @@ async function updatePairingStoreAllowlist(params: {
     accountId: params.accountId,
   };
   if (params.action === "add") {
-    await addChannelAllowFromStoreEntry(storeEntry);
+    await addChannelAllowFromEntry(storeEntry);
     return;
   }
 
-  await removeChannelAllowFromStoreEntry(storeEntry);
+  await removeChannelAllowFromEntry(storeEntry);
   if (params.accountId === DEFAULT_ACCOUNT_ID) {
-    await removeChannelAllowFromStoreEntry({
+    await removeChannelAllowFromEntry({
       channel: params.channelId,
       entry: params.entry,
     });
