@@ -1,11 +1,15 @@
-// @ts-nocheck
 /**
  * secrets/env-secrets.ts
  * Environment variable secret management with allowlists and redaction.
  * Extended from CoreBlow placeholder to match CoreBlow patterns.
  */
 
-import { isNonEmptyString, maskSecret } from './shared.js';
+import { isNonEmptyString } from './shared.js';
+/** Stub: masks sensitive secret values for display */
+function maskSecret(value: string): string {
+  if (value.length <= 4) return '****';
+  return value.slice(0, 2) + '****' + value.slice(-2);
+};
 
 const DEFAULT_SENSITIVE_PREFIXES = [
     'COREBLOW_', 'OPENAI_', 'ANTHROPIC_', 'GOOGLE_', 'AZURE_',

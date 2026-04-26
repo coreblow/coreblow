@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * plugin-sdk/config-builder.ts
  *
@@ -7,7 +6,8 @@
  * types, defaults, validation, and UI hints.
  */
 
-import type { PluginConfigSchema, PluginConfigUiHint } from '../plugins/types.js';
+import type { CoreBlowPluginConfigSchema, PluginConfigUiHint } from '../plugins/types.js';
+type PluginConfigSchema = CoreBlowPluginConfigSchema;
 
 // ─── Types ───────────────────────────────────────────────────────
 

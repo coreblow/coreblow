@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * agents/compaction.ts
  * Conversation compaction — summarize and prune history to fit context windows.
@@ -189,10 +188,10 @@ export function resolveContextWindowTokens(contextWindow?: number): number {
 
 import { clamp } from "../utils.js";
 import { retryAsync } from '../infra/retry.js';
+import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import {
     stripToolResultDetails,
     repairToolUseResultPairing,
-    type TranscriptMessage,
 } from './session-transcript-repair.js';
 
 const MERGE_SUMMARIES_INSTRUCTIONS = [
@@ -240,7 +239,7 @@ export async function summarizeWithFallback(params: {
     if (messages.length === 0) return params.previousSummary ?? 'No prior history.';
 
     // SECURITY: strip verbose tool result details sebelum kirim ke LLM
-    const safeMessages = stripToolResultDetails(messages as TranscriptMessage[]) as CompactionMessage[];
+    const safeMessages = stripToolResultDetails(messages as AgentMessage[]) as CompactionMessage[];
     const chunks = chunkMessagesByMaxTokens(safeMessages, params.maxChunkTokens);
 
     const effectiveInstructions = buildCompactionSummarizationInstructions(
@@ -399,7 +398,7 @@ export function pruneHistoryWithRepair(params: {
         const flatRest = rest.flat();
 
         // Repair orphaned tool pairs setelah drop (sesuai pola OC)
-        const repairReport = repairToolUseResultPairing(flatRest as TranscriptMessage[]);
+        const repairReport = repairToolUseResultPairing(flatRest as AgentMessage[]);
         const repairedKept = repairReport.messages as CompactionMessage[];
         const orphanedCount = repairReport.droppedOrphanCount;
 

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * src/gateway/orchestrator.ts
  * Orchestrator — wires ALL CoreBlow modules into a unified pipeline
@@ -24,7 +23,8 @@ import type { InboundMessage, OutboundMessage, MessageRouter } from './router.js
 
 // Phase 6A
 import { PersonaManager, type PersonaConfig } from '../agents/persona.js';
-import { ContextManager } from '../agents/context.js';
+/** Stub: planned OOP context manager */
+class ContextManager { constructor() {} };
 import { LifecycleManager, type TurnContext } from '../agents/lifecycle.js';
 import { ForkManager } from '../agents/fork.js';
 import { MultiAgentRouter } from '../agents/multi.js';

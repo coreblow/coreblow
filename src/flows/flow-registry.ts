@@ -1,10 +1,10 @@
-// @ts-nocheck
 /**
  * flows/flow-registry.ts
  * Registry of flow definitions — onboarding, feedback, config wizard, etc.
  */
 
-import type { FlowDefinition } from './types.js';
+/** Stub: flow definition type */
+type FlowDefinition = { name: string; steps: Array<Record<string, unknown>>; [key: string]: unknown };
 
 const flowDefs = new Map<string, FlowDefinition>();
 

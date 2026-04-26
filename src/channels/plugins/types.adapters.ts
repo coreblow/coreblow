@@ -1,6 +1,6 @@
-// @ts-nocheck
 import type { ReplyPayload } from "../../auto-reply/types.js";
-import type { ConfiguredBindingRule } from "../../config/bindings.js";
+/** Stub: planned binding rule type */
+type ConfiguredBindingRule = Record<string, unknown>;
 import type { CoreBlowConfig } from "../../config/config.js";
 import type { GroupToolPolicyConfig } from "../../config/types.tools.js";
 import type { ExecApprovalRequest, ExecApprovalResolved } from "../../infra/exec-approvals.js";

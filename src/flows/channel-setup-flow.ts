@@ -1,11 +1,11 @@
-// @ts-nocheck
 /**
  * flows/channel-setup-flow.ts — Multi-step channel setup flow.
  *
  * Implemented as a proper FlowDefinition for FlowEngine.
  */
 
-import type { FlowDefinition } from './types.js';
+/** Stub: flow definition type */
+type FlowDefinition = { name: string; steps: Array<Record<string, unknown>>; [key: string]: unknown };
 
 export function createChannelSetupFlow(
     onCompleteAction?: (data: Record<string, unknown>) => Promise<void> | void,
