@@ -1,4 +1,3 @@
-// @ts-nocheck
 import SHARED_TOOL_DISPLAY_JSON from "../../apps/shared/CoreBlowKit/Sources/CoreBlowKit/Resources/tool-display.json" with { type: "json" };
 import { redactToolDetail } from "../logging/redact.js";
 import { shortenHomeInString } from "../utils.js";

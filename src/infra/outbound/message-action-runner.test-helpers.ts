@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { slackPlugin, setSlackRuntime } from "../../../extensions/slack/test-api.js";
 import { telegramPlugin, setTelegramRuntime } from "../../../extensions/telegram/test-api.js";
 import type { CoreBlowConfig } from "../../config/config.js";

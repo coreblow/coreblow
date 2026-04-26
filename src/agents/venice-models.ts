@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { ModelDefinitionConfig } from "../config/types.js";
 import { retryAsync } from "../infra/retry.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";

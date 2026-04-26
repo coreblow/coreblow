@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { SessionId } from "@agentclientprotocol/sdk";
 import { VERSION } from "../version.js";
 

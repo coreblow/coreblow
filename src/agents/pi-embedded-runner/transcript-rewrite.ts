@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import { SessionManager } from "@mariozechner/pi-coding-agent";
 import type {

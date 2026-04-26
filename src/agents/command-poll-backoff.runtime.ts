@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { pruneStaleCommandPolls as pruneStaleCommandPollsImpl } from "./command-poll-backoff.js";
 
 type PruneStaleCommandPolls = typeof import("./command-poll-backoff.js").pruneStaleCommandPolls;

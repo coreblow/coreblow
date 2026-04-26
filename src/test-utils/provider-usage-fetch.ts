@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { vi } from "vitest";
 import { withFetchPreconnect } from "./fetch-mock.js";
 

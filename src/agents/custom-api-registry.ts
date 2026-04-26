@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { StreamFn } from "@mariozechner/pi-agent-core";
 import {
   getApiProvider,

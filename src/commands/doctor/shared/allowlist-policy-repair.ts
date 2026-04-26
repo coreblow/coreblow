@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { normalizeChatChannelId } from "../../../channels/registry.js";
 import type { CoreBlowConfig } from "../../../config/config.js";
 import { readChannelAllowFromStore } from "../../../pairing/pairing-store.js";

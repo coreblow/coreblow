@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Centralized Vitest mock type for harness modules under `src/`.
 // Using an explicit named type avoids exporting inferred `vi.fn()` types that can trip TS2742.
 //

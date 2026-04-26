@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { SessionManager } from "@mariozechner/pi-coding-agent";
 import { emitSessionTranscriptUpdate } from "../../sessions/transcript-events.js";
 

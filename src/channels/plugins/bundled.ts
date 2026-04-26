@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { GENERATED_BUNDLED_CHANNEL_ENTRIES } from "../../generated/bundled-channel-entries.generated.js";
 import type { PluginRuntime } from "../../plugins/runtime/types.js";
 import type { ChannelId, ChannelPlugin } from "./types.js";

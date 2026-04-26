@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { vi , Mock } from "vitest";
 
 type TestMock = Mock;
