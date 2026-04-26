@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "node:fs/promises";
 import path from "node:path";
 import {
@@ -326,7 +325,7 @@ function resolveEntryRunOptions(params: {
     entry.timeoutSeconds ??
       params.config?.timeoutSeconds ??
       cfg.tools?.media?.[capability]?.timeoutSeconds,
-    DEFAULT_TIMEOUT_SECONDS[capability],
+    (DEFAULT_TIMEOUT_SECONDS as unknown as Record<string, number>)[capability] ?? DEFAULT_TIMEOUT_SECONDS,
   );
   const prompt = resolvePrompt(
     capability,

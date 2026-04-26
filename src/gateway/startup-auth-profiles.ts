@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * gateway/startup-auth-profiles.ts
  * Load auth profiles from CoreBlow config into the model auth system.
@@ -121,14 +120,14 @@ export function loadAuthProfiles(configPath: string): { loaded: number; provider
             const profile: AuthProfile = {
                 id: 'env',
                 provider,
-                apiKey: envKey,
+                apiKey: envKey as unknown as string,
                 baseUrl: PROVIDER_BASE_URLS[provider],
                 priority: 10, // env is lowest priority
             };
             registerAuthProfile(profile);
             loaded.push(provider);
             log.info({ provider, envVar, source: 'env' },
-                `Registered env profile: ${provider} (${maskKey(envKey)})`);
+                `Registered env profile: ${provider} (${maskKey(envKey as unknown as string)})`);
         }
     }
 
