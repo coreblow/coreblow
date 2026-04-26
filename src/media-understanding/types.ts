@@ -138,3 +138,15 @@ export type MediaUnderstandingProvider = {
   describeImage?: (req: ImageDescriptionRequest) => Promise<ImageDescriptionResult>;
   describeImages?: (req: ImagesDescriptionRequest) => Promise<ImagesDescriptionResult>;
 };
+
+
+// Stub types — used by audio.ts, image-analysis.ts, video.ts, resolve.ts etc.
+// Not part of OpenClaw upstream; added for CoreBlow compatibility.
+export type MediaSource = {
+  kind: 'url' | 'buffer' | 'path' | 'data';
+  url?: string;
+  path?: string;
+  buffer?: Buffer;
+  data?: string;
+  mimeType?: string;
+};

@@ -1502,3 +1502,7 @@ export async function runSecurityAudit(opts: SecurityAuditOptions): Promise<Secu
   const summary = countBySeverity(findings);
   return { ts: Date.now(), summary, findings, deep };
 }
+
+
+// Stub — used by dashboard/serve.ts
+export async function readAuditLog(_path?: string): Promise<SecurityAuditFinding[]> { return []; }
