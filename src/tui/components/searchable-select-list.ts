@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { clamp } from "../../utils.js";
 import {
   type Component,

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Container, Spacer } from "@mariozechner/pi-tui";
 import { markdownTheme, theme } from "../theme/theme.js";
 import { HyperlinkMarkdown } from "./hyperlink-markdown.js";

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import {
   streamSimple,
   type Api,

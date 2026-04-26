@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { vi, type Mock } from "vitest";
 
 type AnyMock = Mock<(...args: unknown[]) => unknown>;

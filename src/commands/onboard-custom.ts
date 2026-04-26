@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { CONTEXT_WINDOW_HARD_MIN_TOKENS } from "../agents/context-window-guard.js";
 import { DEFAULT_PROVIDER } from "../types/agent-defaults.js";
 import { buildModelAliasIndex, modelKey } from "../agents/model-selection.js";

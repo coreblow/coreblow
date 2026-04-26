@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CoreBlowConfig } from "../config/config.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import {

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { SessionEntry } from "../config/sessions.js";
 import { formatProviderModelRef } from "./model-runtime.js";
 import type { RuntimeFallbackAttempt } from "./reply/agent-runner-execution.js";

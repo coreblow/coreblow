@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Public shared text/formatting helpers for plugins that parse or rewrite message text.
 
 export * from "../logger.js";

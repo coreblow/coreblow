@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "node:crypto";
 import { clearBootstrapSnapshotOnSessionRollover } from "../../agents/bootstrap-cache.js";
 import type { CoreBlowConfig } from "../../config/config.js";

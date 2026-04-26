@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Mock, vi } from "vitest";
 
 export const runCommandWithTimeoutMock: Mock<(...args: unknown[]) => unknown> = vi.fn();

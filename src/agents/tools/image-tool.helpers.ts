@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { AssistantMessage } from "@mariozechner/pi-ai";
 import type { CoreBlowConfig } from "../../config/config.js";
 import { findNormalizedProviderValue } from "../model-selection.js";

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Type, type TSchema } from "typebox";
 import { NonEmptyString } from "./primitives.js";
 

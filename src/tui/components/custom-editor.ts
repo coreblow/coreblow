@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Editor, Key, matchesKey } from "@mariozechner/pi-tui";
 
 export class CustomEditor extends Editor {

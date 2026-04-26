@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { evaluateMatchedGroupAccessForPolicy } from "coreblow/plugin-sdk/group-access";
 import { mergeDmAllowFromSources, resolveGroupAllowFromSources } from "../channels/allow-from.js";
 import { resolveControlCommandGate } from "../channels/command-gating.js";

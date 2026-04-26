@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { ModelDefinitionConfig } from "../config/types.models.js";
 
 export const DEEPSEEK_BASE_URL = "https://api.deepseek.com";

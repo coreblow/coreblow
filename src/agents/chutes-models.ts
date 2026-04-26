@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { ModelDefinitionConfig } from "../config/types.models.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 

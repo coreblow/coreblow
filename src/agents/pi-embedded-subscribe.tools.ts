@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { getChannelPlugin, normalizeChannelId } from "../channels/plugins/index.js";
 import { normalizeTargetForProvider } from "../infra/outbound/target-normalization.js";
 import { splitMediaFromOutput } from "../media/parse.js";

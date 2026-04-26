@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { randomUUID } from "node:crypto";
 import { constants as fsConstants } from "node:fs";
 import type { Stats } from "node:fs";

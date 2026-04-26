@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { resolveAuthStorePathForDisplay } from "../../agents/auth-profiles.js";
 import {
   type ModelAliasIndex,
