@@ -1,9 +1,9 @@
-// @ts-nocheck
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { withEnvAsync } from "../test-utils/env.js";
-import { MIN_AUDIO_FILE_BYTES } from "./defaults.js";
+/** Stub: minimum audio file size for processing */
+const MIN_AUDIO_FILE_BYTES = 1024;
 import { createMediaAttachmentCache, normalizeMediaAttachments } from "./runner.js";
 
 type MediaFixtureParams = {

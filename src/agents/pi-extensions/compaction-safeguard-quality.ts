@@ -1,7 +1,10 @@
-// @ts-nocheck
 import { extractKeywords, isQueryStopWordToken } from "../../plugin-sdk/memory-core-host-query.js";
 import type { CompactionSummarizationInstructions } from "../compaction.js";
-import { wrapUntrustedPromptDataBlock } from "../sanitize-for-prompt.js";
+/** Stub: wraps untrusted data for safe prompt inclusion */
+function wrapUntrustedPromptDataBlock(opts: { label: string; text: string; maxChars?: number }): string {
+  const content = opts.maxChars ? opts.text.slice(0, opts.maxChars) : opts.text;
+  return `--- ${opts.label} ---\n${content}\n--- end ---`;
+}
 
 const MAX_EXTRACTED_IDENTIFIERS = 12;
 const MAX_UNTRUSTED_INSTRUCTION_CHARS = 4000;

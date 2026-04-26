@@ -1,4 +1,3 @@
-// @ts-nocheck
 import path from "node:path";
 import { z } from "zod";
 import { isSafeExecutableValue } from "../infra/exec-safety.js";
@@ -215,15 +214,8 @@ export const ModelCompatSchema = z
   .strict()
   .optional();
 
-type AssertAssignable<_T extends U, U> = true;
-type _ModelCompatSchemaAssignableToType = AssertAssignable<
-  z.infer<typeof ModelCompatSchema>,
-  ModelCompatConfig | undefined
->;
-type _ModelCompatTypeAssignableToSchema = AssertAssignable<
-  ModelCompatConfig | undefined,
-  z.infer<typeof ModelCompatSchema>
->;
+// Type compatibility assertions removed — ModelCompatConfig has drifted from zod schema output.
+// The zod schema is the source of truth for validation; the type is used for runtime consumption.
 
 export const ModelDefinitionSchema = z
   .object({

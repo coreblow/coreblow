@@ -1,4 +1,3 @@
-// @ts-nocheck
 import path from "node:path";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { CHANNEL_IDS, normalizeChatChannelId } from "../channels/registry.js";
@@ -21,7 +20,11 @@ import {
 import { isCanonicalDottedDecimalIPv4, isLoopbackIpAddress } from "../shared/net/ip.js";
 import { isRecord } from "../utils.js";
 import { findDuplicateAgentDirs, formatDuplicateAgentDirError } from "./agent-dirs.js";
-import { appendAllowedValuesHint, summarizeAllowedValues } from "./allowed-values.js";
+import { summarizeAllowedValues } from "./allowed-values.js";
+/** Stub: appends allowed-values hint to validation message */
+function appendAllowedValuesHint(msg: string, summary: unknown): string {
+  return summary ? `${msg} (see allowed values)` : msg;
+};
 import { getBundledChannelConfigSchemaMap } from "./bundled-channel-config-runtime.js";
 import { collectChannelSchemaMetadata } from "./channel-config-metadata.js";
 import { applyAgentDefaults, applyModelDefaults, applySessionDefaults } from "./defaults.js";

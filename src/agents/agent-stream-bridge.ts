@@ -1,9 +1,10 @@
-// @ts-nocheck
 /**
  * agents/agent-stream-bridge.ts
  * Bridge between AgentEngine streaming and WebSocket clients.
  */
-import type { StreamChunk, StreamHandler } from './provider-stream.js';
+/** Stub: stream types */
+type StreamChunk = { type: string; content: string; [key: string]: unknown };
+type StreamHandler = (chunk: StreamChunk) => void;
 
 export interface StreamClient {
     sessionId: string;

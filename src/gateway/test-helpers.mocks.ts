@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "node:crypto";
 import { sleep } from "../utils.js";
 import fsSync from "node:fs";
@@ -357,6 +356,7 @@ vi.mock("../agents/pi-model-discovery.js", async () => {
     "../agents/pi-model-discovery.js",
   );
 
+  // @ts-expect-error — ModelRegistry has private constructor in upstream lib
   class MockModelRegistry extends actual.ModelRegistry {
     override getAll(): ReturnType<typeof actual.ModelRegistry.prototype.getAll> {
       if (!piSdkMock.enabled) {

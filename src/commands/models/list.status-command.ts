@@ -1,4 +1,3 @@
-// @ts-nocheck
 import path from "node:path";
 import { resolveCoreBlowAgentDir } from "../../agents/agent-paths.js";
 import {
@@ -273,7 +272,6 @@ export async function modelsStatusCommand(
 
   const authHealth = buildAuthHealthSummary({
     store,
-    cfg,
     warnAfterMs: DEFAULT_OAUTH_WARN_MS,
     providers,
   });

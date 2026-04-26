@@ -1,4 +1,3 @@
-// @ts-nocheck
 import {
   listAgentEntries,
   resolveAgentDir,
@@ -91,7 +90,7 @@ export function buildAgentSummaries(cfg: CoreBlowConfig): AgentSummary[] {
       : [defaultAgentId];
   const bindingCounts = new Map<string, number>();
   for (const binding of listRouteBindings(cfg)) {
-    const agentId = normalizeAgentId(binding.agentId);
+    const agentId = normalizeAgentId(binding.agent);
     bindingCounts.set(agentId, (bindingCounts.get(agentId) ?? 0) + 1);
   }
 

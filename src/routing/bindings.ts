@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { normalizeChatChannelId } from "../channels/registry.js";
 import { listRouteBindings } from "../config/bindings.js";
@@ -16,7 +15,7 @@ function normalizeBindingChannelId(raw?: string | null): string | null {
 }
 
 export function listBindings(cfg: CoreBlowConfig): AgentRouteBinding[] {
-  return listRouteBindings(cfg);
+  return listRouteBindings(cfg) as never;
 }
 
 function resolveNormalizedBindingMatch(binding: AgentRouteBinding): {

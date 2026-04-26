@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "node:fs/promises";
 import path from "node:path";
 import { formatCliCommand } from "../cli/command-format.js";
@@ -56,7 +55,7 @@ const SENTINEL_FILENAME = "restart-sentinel.json";
 export function formatDoctorNonInteractiveHint(
   env: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
 ): string {
-  return `Run: ${formatCliCommand("coreblow doctor --non-interactive", env)}`;
+  return `Run: ${formatCliCommand("coreblow doctor --non-interactive")}`;
 }
 
 export function resolveRestartSentinelPath(env: NodeJS.ProcessEnv = process.env): string {

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { beforeEach } from "vitest";
 import { slackPlugin, setSlackRuntime } from "../../extensions/slack/test-api.js";
 import { telegramPlugin, setTelegramRuntime } from "../../extensions/telegram/test-api.js";
@@ -16,7 +15,7 @@ export function installHeartbeatRunnerTestRuntime(params?: { includeSlack?: bool
   beforeEach(() => {
     const runtime = createPluginRuntime();
     setTelegramRuntime(runtime);
-    setWhatsAppRuntime(runtime);
+    setWhatsAppRuntime(runtime as never);
     if (params?.includeSlack) {
       setSlackRuntime(runtime);
       setActivePluginRegistry(

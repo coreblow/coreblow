@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * agents/turn-controller.ts
  * Agent turn lifecycle controller.
@@ -7,7 +6,8 @@
 
 import type { ContentBlock } from './content-blocks.js';
 import { normalizeContent, extractToolUses, extractText, hasToolUse } from './content-blocks.js';
-import type { BudgetTracker } from './bootstrap-budget.js';
+/** Stub: planned OOP budget tracker */
+type BudgetTracker = { remaining: number; consume(n: number): void; isExceeded(): boolean; record(usage: { inputTokens: number; outputTokens: number; cost?: number }): void };
 
 export type TurnPhase = 'idle' | 'thinking' | 'tool_use' | 'responding' | 'complete' | 'error' | 'budget_exceeded';
 

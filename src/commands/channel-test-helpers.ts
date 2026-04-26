@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { googlechatPlugin } from "../../extensions/googlechat/test-api.js";
 import { matrixPlugin, setMatrixRuntime } from "../../extensions/matrix/test-api.js";
 import { msteamsPlugin } from "../../extensions/msteams/test-api.js";
@@ -34,7 +33,7 @@ type PatchedSetupAdapterFields = {
 export function setDefaultChannelPluginRegistryForTests(): void {
   setMatrixRuntime({
     state: {
-      resolveStateDir: (_env: NodeJS.ProcessEnv, homeDir: string | (() => string)) => (homeDir ?? (() => "/tmp"))(),
+      resolveStateDir: (_env: NodeJS.ProcessEnv, homeDir: string | (() => string)) => typeof homeDir === "function" ? homeDir() : (homeDir ?? "/tmp"),
     },
   } as Parameters<typeof setMatrixRuntime>[0]);
   const channels = [

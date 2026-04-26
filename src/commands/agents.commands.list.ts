@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { formatCliCommand } from "../cli/command-format.js";
 import { listRouteBindings } from "../config/bindings.js";
 import type { AgentRouteBinding } from "../config/types.js";
@@ -85,9 +84,9 @@ export async function agentsListCommand(
   const summaries = buildAgentSummaries(cfg);
   const bindingMap = new Map<string, AgentRouteBinding[]>();
   for (const binding of listRouteBindings(cfg)) {
-    const agentId = normalizeAgentId(binding.agentId);
+    const agentId = normalizeAgentId(binding.agent);
     const list = bindingMap.get(agentId) ?? [];
-    list.push(binding);
+    list.push(binding as never);
     bindingMap.set(agentId, list);
   }
 

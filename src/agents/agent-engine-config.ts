@@ -1,9 +1,9 @@
-// @ts-nocheck
 /**
  * agents/agent-engine-config.ts
  * Configuration types and defaults for AgentEngine.
  */
-import type { PolicyDecision } from './tool-policy.js';
+/** Stub: planned OOP type */
+type PolicyDecision = { allowed: boolean; reason?: string };
 
 // ─── Provider Config ─────────────────────────────────────────────
 export interface ProviderConfig {

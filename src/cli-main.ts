@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * src/cli-main.ts
  *
@@ -9,6 +8,6 @@
  * Ini memastikan `import from 'coreblow'` (library usage) tidak otomatis
  * menjalankan program CLI, sehingga tests tidak terdampak.
  */
-import { runProgram } from './cli/program/build-program.js';
+import { buildProgram } from './cli/program/build-program.js';
 
-await runProgram();
+await buildProgram().parseAsync();
