@@ -70,3 +70,12 @@ export function resolveMediaMaxTokens(modelMaxTokens?: number, requestedMaxToken
 
 // Stub — used by link-understanding/runner.ts
 export const CLI_OUTPUT_MAX_BUFFER = 1024 * 1024;
+
+// Stub exports — used by runner.ts, runner.entries.ts
+export const AUTO_AUDIO_KEY_PROVIDERS = ['openai', 'google'];
+export const AUTO_IMAGE_KEY_PROVIDERS = ['openai', 'google', 'anthropic'];
+export const AUTO_VIDEO_KEY_PROVIDERS = ['google'];
+export const DEFAULT_IMAGE_MODELS: Record<string, string> = { openai: 'gpt-4o', google: 'gemini-1.5-flash' };
+export const DEFAULT_AUDIO_MODELS: Record<string, string> = { openai: 'whisper-1' };
+export const DEFAULT_TIMEOUT_SECONDS = 120;
+export const MIN_AUDIO_FILE_BYTES = 1024;

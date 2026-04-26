@@ -153,3 +153,7 @@ export type MediaSource = {
   data?: string;
   mimeType?: string;
 };
+
+// Additional stubs — used by scope.ts
+export type MediaType = 'image' | 'audio' | 'video' | 'document';
+export type MediaUnderstandingScope = { enabled: boolean; allow: MediaType[] };

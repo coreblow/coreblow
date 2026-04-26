@@ -22,6 +22,7 @@ export type ImageGenerationRequest = {
   provider: string;
   model: string;
   prompt: string;
+  negativePrompt?: string;
   cfg: CoreBlowConfig;
   agentDir?: string;
   authStore?: AuthProfileStore;
@@ -72,3 +73,6 @@ export type ImageGenerationProvider = {
   capabilities: ImageGenerationProviderCapabilities;
   generateImage: (req: ImageGenerationRequest) => Promise<ImageGenerationResult>;
 };
+
+// Stub exports — used by providers
+export type ImageGenerationCapabilities = { models: string[]; maxImages: number };

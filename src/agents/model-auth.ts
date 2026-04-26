@@ -531,3 +531,7 @@ export function applyLocalNoAuthHeaderOverride<T extends Model<Api>>(
     headers,
   };
 }
+
+// Stub exports — used by gateway/startup-auth-profiles.ts
+export type AuthProfile = { id: string; provider: string; apiKey?: string; [key: string]: unknown };
+export function registerAuthProfile(_profile: AuthProfile): void {}

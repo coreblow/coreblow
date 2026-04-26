@@ -59,3 +59,7 @@ export function buildCompositeVideoPrompt(params: {
 
     return parts.join('\n');
 }
+
+// Stub exports — used by runner.entries.ts
+export function estimateBase64Size(byteLen: number): number { return Math.ceil(byteLen * 4 / 3); }
+export function resolveVideoMaxBase64Bytes(_cfg?: unknown): number { return 20 * 1024 * 1024; }

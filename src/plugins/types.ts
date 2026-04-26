@@ -2418,3 +2418,9 @@ export type PluginHook = {
   priority?: number;
 };
 export type PluginContext = Record<string, unknown>;
+
+// Stub exports — used by plugin-sdk/sdk.ts
+export type PluginExports = { hooks?: PluginHook[]; commands?: PluginCommand[]; providers?: PluginProvider[]; tools?: PluginTool[]; activate?: () => void; deactivate?: () => void };
+export type PluginCommand = { name: string; description: string; execute?: (...args: unknown[]) => unknown; handler?: (...args: unknown[]) => unknown };
+export type PluginProvider = { id: string; name?: string; models?: string[]; chat?: (...args: unknown[]) => unknown };
+export type PluginTool = { name: string; description: string; handler?: (...args: unknown[]) => unknown; execute?: (...args: unknown[]) => unknown; parameters?: Record<string, unknown> };

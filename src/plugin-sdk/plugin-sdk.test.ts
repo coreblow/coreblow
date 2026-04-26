@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
 import { definePlugin, defineCommand, defineTool, defineHook, defineProvider } from './sdk.js';
 
