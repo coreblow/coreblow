@@ -229,3 +229,19 @@ export interface ContextEngine {
    */
   dispose?(): Promise<void>;
 }
+
+
+// Stub types — used by context-search.ts, context-window.ts
+export type ContextEntry = { role: string; content: string; timestamp?: number; tokens?: number; [key: string]: unknown };
+export type ContextSearchResult = { entry: ContextEntry; score: number; index: number };
+export type ContextWindow = {
+  entries: ContextEntry[];
+  totalTokens: number;
+  maxTokens: number;
+  systemPrompt?: string;
+  currentTokens?: number;
+};
+export type ContextStrategy = {
+  name: string;
+  compact: (window: ContextWindow) => ContextEntry[];
+};

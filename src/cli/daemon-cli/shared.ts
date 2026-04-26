@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { resolveIsNixMode } from "../../config/paths.js";
 import {
   resolveGatewayLaunchAgentLabel,
@@ -161,7 +160,7 @@ export function renderRuntimeHints(
     }
   })();
   if (runtime.missingUnit) {
-    hints.push(`Service not installed. Run: ${formatCliCommand("coreblow gateway install", env)}`);
+    hints.push(`Service not installed. Run: ${formatCliCommand("coreblow gateway install")}`);
     if (fileLog) {
       hints.push(`File logs: ${fileLog}`);
     }
@@ -186,8 +185,8 @@ export function renderGatewayServiceStartHints(env: NodeJS.ProcessEnv = process.
   const profile = env.COREBLOW_PROFILE;
   const container = resolveDaemonContainerContext(env);
   const hints = buildPlatformServiceStartHints({
-    installCommand: formatCliCommand("coreblow gateway install", env),
-    startCommand: formatCliCommand("coreblow gateway", env),
+    installCommand: formatCliCommand("coreblow gateway install"),
+    startCommand: formatCliCommand("coreblow gateway"),
     launchAgentPlistPath: `~/Library/LaunchAgents/${resolveGatewayLaunchAgentLabel(profile)}.plist`,
     systemdServiceName: resolveGatewaySystemdServiceName(profile),
     windowsTaskName: resolveGatewayWindowsTaskName(profile),

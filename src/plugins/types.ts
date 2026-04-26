@@ -2408,3 +2408,13 @@ export type PluginHookRegistration<K extends PluginHookName = PluginHookName> = 
   priority?: number;
   source: string;
 };
+
+
+// Stub types — used by plugin-sdk/hooks-api.ts
+export type PluginHook = {
+  name: string;
+  event: string;
+  handler: (...args: unknown[]) => unknown;
+  priority?: number;
+};
+export type PluginContext = Record<string, unknown>;

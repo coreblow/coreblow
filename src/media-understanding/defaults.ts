@@ -66,3 +66,7 @@ export function resolveMediaMaxTokens(modelMaxTokens?: number, requestedMaxToken
     if (typeof modelMaxTokens !== 'number' || !Number.isFinite(modelMaxTokens) || modelMaxTokens <= 0) return requestedMaxTokens;
     return Math.min(requestedMaxTokens, modelMaxTokens);
 }
+
+
+// Stub — used by link-understanding/runner.ts
+export const CLI_OUTPUT_MAX_BUFFER = 1024 * 1024;

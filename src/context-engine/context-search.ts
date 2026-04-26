@@ -1,10 +1,11 @@
-// @ts-nocheck
 /**
  * context-engine/context-search.ts
  * Search conversation context — find relevant past messages.
  */
 
-import type { ContextEntry, ContextSearchResult } from './types.js';
+/** Stub: context engine types */
+type ContextEntry = { role: string; content: string; timestamp?: number; tokens?: number; [key: string]: unknown };
+type ContextSearchResult = { entry: ContextEntry; score: number; index: number };
 
 /** Simple keyword search through context entries. */
 export function searchContext(entries: ContextEntry[], query: string, topK = 5): ContextSearchResult[] {
@@ -62,7 +63,7 @@ export function contextStats(entries: ContextEntry[]): {
 
     for (const entry of entries) {
         byRole[entry.role] = (byRole[entry.role] ?? 0) + 1;
-        totalTokens += entry.tokens;
+        totalTokens += entry.tokens ?? 0;
     }
 
     return {

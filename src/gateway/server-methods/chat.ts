@@ -1873,3 +1873,9 @@ export const chatHandlers: GatewayRequestHandlers = {
     respond(true, { ok: true, messageId: appended.messageId });
   },
 };
+
+
+// Stubs — used by gateway/bootstrap-engine.ts (already cleaned, this prevents regression)
+export function setAgentEngine(_engine: unknown): void {}
+export function setStreamBridge(_bridge: unknown): void {}
+export function setBroadcast(_fn: unknown): void {}

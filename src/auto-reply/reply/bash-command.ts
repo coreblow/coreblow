@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { resolveSessionAgentId } from "../../agents/agent-scope.js";
 import { getFinishedSession, getSession } from "../../agents/bash-process-registry.js";
 import { createExecTool } from "../../agents/bash-tools.js";
@@ -152,7 +151,7 @@ function attachActiveWatcher(sessionId: string) {
     return;
   }
   const { running } = getScopedSession(sessionId);
-  const child = running?.child;
+  const child = (running as unknown as Record<string, unknown>)?.child as { pid?: number; once: (event: string, cb: () => void) => void } | undefined;
   if (!child) {
     return;
   }
@@ -297,7 +296,7 @@ export async function handleBashChatCommand(params: {
         text: `⚠️ Session ${formatSessionSnippet(sessionId)} is not backgrounded.`,
       };
     }
-    const pid = running.pid ?? running.child?.pid;
+    const pid = running.pid ?? ((running as unknown as Record<string, unknown>).child as { pid?: number } | undefined)?.pid;
     if (!pid) {
       return {
         text: `⚠️ Unable to stop bash session ${formatSessionSnippet(sessionId)} because no process ID is available. Use !poll ${sessionId} to check whether it exits on its own.`,

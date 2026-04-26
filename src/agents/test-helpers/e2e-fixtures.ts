@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * agents/test-helpers/e2e-fixtures.ts
  * E2E test fixtures for AgentEngine — full pipeline with mock providers.
@@ -11,7 +10,9 @@ import { AgentEngine, type EngineSession } from '../agent-engine.js';
 import { registerBuiltinTools } from '../tool-definitions.js';
 import { AgentStreamBridge } from '../agent-stream-bridge.js';
 import type { ModelProvider, ToolCall, TokenUsage } from '../runtime.js';
-import type { StreamChunk, StreamHandler } from '../provider-stream.js';
+/** Stub: stream types */
+type StreamChunk = { type: string; content: string; toolUse?: { name: string; [key: string]: unknown }; [key: string]: unknown };
+type StreamHandler = (chunk: StreamChunk) => void;
 
 // ─── Test Workspace ──────────────────────────────────────────────
 

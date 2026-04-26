@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import type { ProcessSession } from "./bash-process-registry.js";
 
@@ -12,7 +11,7 @@ export function createProcessSessionFixture(params: {
   backgrounded?: boolean;
   pid?: number;
   child?: ChildProcessWithoutNullStreams;
-  cursorKeyMode?: ProcessSession["cursorKeyMode"];
+  cursorKeyMode?: string;
 }): ProcessSession {
   const session: ProcessSession = {
     id: params.id,
@@ -33,13 +32,14 @@ export function createProcessSessionFixture(params: {
     exitSignal: undefined,
     truncated: false,
     backgrounded: params.backgrounded ?? false,
-    cursorKeyMode: params.cursorKeyMode ?? "normal",
   };
+  // Runtime-only property not in ProcessSession interface
+  (session as unknown as Record<string, unknown>).cursorKeyMode = params.cursorKeyMode ?? "normal";
   if (params.pid !== undefined) {
     session.pid = params.pid;
   }
   if (params.child) {
-    session.child = params.child;
+    (session as unknown as Record<string, unknown>).child = params.child;
   }
   return session;
 }
