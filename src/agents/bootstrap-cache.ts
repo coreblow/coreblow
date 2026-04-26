@@ -56,3 +56,13 @@ export function clearBootstrapSnapshotOnSessionRollover(params: {
 export function clearAllBootstrapSnapshots(): void {
   sessionBootstrapCache.clear();
 }
+
+// Stub class — used by agent-engine.ts OOP facade
+export class BootstrapCache<T> {
+  private cache = new Map<string, T>();
+  private maxSize: number;
+  constructor(maxSize: number = 100) { this.maxSize = maxSize; }
+  get(key: string): T | undefined { return this.cache.get(key); }
+  set(key: string, value: T): void { if (this.cache.size >= this.maxSize) { const first = this.cache.keys().next().value; if (first) this.cache.delete(first); } this.cache.set(key, value); }
+  delete(key: string): boolean { return this.cache.delete(key); }
+}

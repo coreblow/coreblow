@@ -208,3 +208,15 @@ export function mergeAlsoAllowPolicy<TPolicy extends { allow?: string[] }>(
   }
   return { ...policy, allow: Array.from(new Set([...policy.allow, ...alsoAllow])) };
 }
+
+// Stub class — used by agent-engine.ts OOP facade
+export class ToolPolicy {
+  private rules: Array<{ toolPattern: string; decision: string; priority: number }>;
+  constructor(rules: Array<{ toolPattern: string; decision: string; priority: number }>) { this.rules = rules; }
+  evaluate(toolName: string): { decision: 'allow' | 'deny' | 'require_approval' } {
+    for (const r of this.rules.sort((a, b) => b.priority - a.priority)) {
+      if (toolName.match(new RegExp(r.toolPattern))) return { decision: r.decision as 'allow' | 'deny' | 'require_approval' };
+    }
+    return { decision: 'allow' };
+  }
+}

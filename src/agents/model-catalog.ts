@@ -415,3 +415,8 @@ function applyInlineOpenAICatalogAugmentations(
 
   return result;
 }
+
+// Stub class — used by agent-engine.ts OOP facade
+export class ModelCatalog {
+  async load(): Promise<ModelCatalogEntry[]> { return await loadModelCatalog() ?? []; }
+}

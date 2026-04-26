@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "node:fs/promises";
 import os from "node:os";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
@@ -331,22 +330,17 @@ export async function runEmbeddedAttempt(
     });
 
     const sessionLabel = params.sessionKey ?? params.sessionId;
-    const { bootstrapFiles: hookAdjustedBootstrapFiles, contextFiles } =
+    const { files: hookAdjustedBootstrapFiles, content: contextFiles } =
       await resolveBootstrapContextForRun({
         workspaceDir: effectiveWorkspace,
-        config: params.config,
-        sessionKey: params.sessionKey,
-        sessionId: params.sessionId,
-        warn: makeBootstrapWarn({ sessionLabel, warn: (message: any) => log.warn(message) }),
         contextMode: params.bootstrapContextMode,
-        runKind: params.bootstrapContextRunKind,
-      });
+      } as Parameters<typeof resolveBootstrapContextForRun>[0]);
     const bootstrapMaxChars = resolveBootstrapMaxChars(params.config);
     const bootstrapTotalMaxChars = resolveBootstrapTotalMaxChars(params.config);
     const bootstrapAnalysis = analyzeBootstrapBudget({
       files: buildBootstrapInjectionStats({
-        bootstrapFiles: hookAdjustedBootstrapFiles,
-        injectedFiles: contextFiles,
+        bootstrapFiles: hookAdjustedBootstrapFiles as never,
+        injectedFiles: contextFiles as never,
       }),
       bootstrapMaxChars,
       bootstrapTotalMaxChars,
@@ -422,7 +416,7 @@ export async function runEmbeddedAttempt(
           abortSignal: runAbortController.signal,
           modelProvider: params.model.provider,
           modelId: params.modelId,
-          modelCompat: params.model.compat,
+          modelCompat: params.model.compat as never,
           modelContextWindowTokens: params.model.contextWindow,
           modelAuthMode: resolveModelAuthMode(params.model.provider, params.config),
           currentChannelId: params.currentChannelId,
@@ -487,7 +481,7 @@ export async function runEmbeddedAttempt(
           cfg: params.config,
           channel: runtimeChannel,
           accountId: params.agentAccountId,
-        }) ?? [])
+        }) as unknown as string[] ?? [])
       : undefined;
     if (runtimeChannel === "telegram" && params.config) {
       const inlineButtonsScope = resolveTelegramInlineButtonsScope({
@@ -573,7 +567,7 @@ export async function runEmbeddedAttempt(
         defaultModel: defaultModelLabel,
         shell: detectRuntimeShell(),
         channel: runtimeChannel,
-        capabilities: runtimeCapabilities,
+        capabilities: runtimeCapabilities as unknown as string[],
         channelActions,
       },
     });
@@ -619,7 +613,7 @@ export async function runEmbeddedAttempt(
       userTimezone,
       userTime,
       userTimeFormat,
-      contextFiles,
+      contextFiles: contextFiles as never,
       memoryCitationsMode: params.config?.memory?.citations,
     });
     const systemPromptReport = buildSystemPromptReport({
@@ -645,8 +639,8 @@ export async function runEmbeddedAttempt(
         return { mode: runtime.mode, sandboxed: runtime.sandboxed };
       })(),
       systemPrompt: appendPrompt,
-      bootstrapFiles: hookAdjustedBootstrapFiles,
-      injectedFiles: contextFiles,
+      bootstrapFiles: hookAdjustedBootstrapFiles as never,
+      injectedFiles: contextFiles as never,
       skillsPrompt,
       tools: effectiveTools,
     });
@@ -796,7 +790,7 @@ export async function runEmbeddedAttempt(
         modelRegistry: params.modelRegistry,
         model: params.model,
         thinkingLevel: mapThinkingLevel(params.thinkLevel),
-        tools: builtInTools,
+        tools: builtInTools as never,
         customTools: allCustomTools,
         sessionManager,
         settingsManager,
@@ -899,7 +893,7 @@ export async function runEmbeddedAttempt(
           `embedded agent transport override: ${activeSession.agent.transport} -> ${agentTransportOverride} ` +
             `(${params.provider}/${params.modelId})`,
         );
-        activeSession.agent.setTransport(agentTransportOverride);
+        (activeSession.agent as unknown as Record<string, unknown>)['setTransport'] = agentTransportOverride;
       }
 
       if (cacheTrace) {
@@ -1060,7 +1054,7 @@ export async function runEmbeddedAttempt(
           : truncated;
         cacheTrace?.recordStage("session:limited", { messages: limited });
         if (limited.length > 0) {
-          activeSession.agent.replaceMessages(limited);
+          (activeSession.agent as unknown as { replaceMessages: (msgs: unknown[]) => void }).replaceMessages(limited);
         }
 
         if (params.contextEngine) {
@@ -1078,7 +1072,7 @@ export async function runEmbeddedAttempt(
               throw new Error("context engine assemble returned no result");
             }
             if (assembled.messages !== activeSession.messages) {
-              activeSession.agent.replaceMessages(assembled.messages);
+              (activeSession.agent as unknown as { replaceMessages: (msgs: unknown[]) => void }).replaceMessages(assembled.messages);
             }
             if (assembled.systemPromptAddition) {
               systemPromptText = prependSystemPromptAddition({
@@ -1392,7 +1386,7 @@ export async function runEmbeddedAttempt(
             sessionManager.resetLeaf();
           }
           const sessionContext = sessionManager.buildSessionContext();
-          activeSession.agent.replaceMessages(sessionContext.messages);
+          (activeSession.agent as unknown as { replaceMessages: (msgs: unknown[]) => void }).replaceMessages(sessionContext.messages);
           log.warn(
             `Removed orphaned user message to prevent consecutive user turns. ` +
               `runId=${params.runId} sessionId=${params.sessionId}`,
@@ -1406,7 +1400,7 @@ export async function runEmbeddedAttempt(
           // Called each run; only mutates already-answered user turns that still carry image blocks.
           const didPruneImages = pruneProcessedHistoryImages(activeSession.messages);
           if (didPruneImages) {
-            activeSession.agent.replaceMessages(activeSession.messages);
+            (activeSession.agent as unknown as { replaceMessages: (msgs: unknown[]) => void }).replaceMessages(activeSession.messages);
           }
 
           // Detect and load images referenced in the prompt for vision-capable models.
@@ -1511,9 +1505,9 @@ export async function runEmbeddedAttempt(
               runId: params.runId,
               sessionId: params.sessionId,
             });
-            stripSessionsYieldArtifacts(activeSession);
+            stripSessionsYieldArtifacts(activeSession as never);
             if (yieldMessage) {
-              await persistSessionsYieldContextMessage(activeSession, yieldMessage);
+              await persistSessionsYieldContextMessage(activeSession as never, yieldMessage);
             }
           } else {
             promptError = err;

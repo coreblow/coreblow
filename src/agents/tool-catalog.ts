@@ -340,3 +340,12 @@ export function resolveCoreToolProfiles(toolId: string): ToolProfileId[] {
 export function isKnownCoreToolId(toolId: string): boolean {
   return CORE_TOOL_BY_ID.has(toolId);
 }
+
+// Stub class — used by agent-engine.ts OOP facade
+export type ToolDefinition = { name: string; description: string; category: string; inputSchema: unknown; enabled: boolean };
+export class ToolCatalog {
+  private tools = new Map<string, ToolDefinition>();
+  register(def: ToolDefinition): void { this.tools.set(def.name, def); }
+  list(): ToolDefinition[] { return [...this.tools.values()]; }
+  get(name: string): ToolDefinition | undefined { return this.tools.get(name); }
+}

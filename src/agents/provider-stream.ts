@@ -31,3 +31,12 @@ export function registerProviderStreamForModel<TApi extends Api>(params: {
   ensureCustomApiRegistered(params.model.api, streamFn);
   return streamFn;
 }
+
+// Stub types + class — used by agent-engine.ts OOP facade
+export type StreamChunk = { type: string; content?: string; toolUse?: { id: string; name: string; input: unknown }; usage?: unknown; [key: string]: unknown };
+export type StreamHandler = (chunk: StreamChunk) => void;
+export class StreamAccumulator {
+  private chunks: StreamChunk[] = [];
+  add(chunk: StreamChunk): void { this.chunks.push(chunk); }
+  getText(): string { return this.chunks.filter(c => c.type === 'text').map(c => c.content ?? '').join(''); }
+}

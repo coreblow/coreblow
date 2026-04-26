@@ -188,3 +188,12 @@ export function deriveSessionTotalTokens(params: {
   // percentages for terminal output.
   return promptTokens;
 }
+
+// Stub class — used by agent-engine.ts OOP facade
+export class UsageTracker {
+  private records: NormalizedUsage[] = [];
+  record(usage: { inputTokens: number; outputTokens: number; cost: number; model: string }): void {
+    this.records.push({ input: usage.inputTokens, output: usage.outputTokens, total: usage.inputTokens + usage.outputTokens });
+  }
+  getTotal(): NormalizedUsage { return this.records.reduce((a, b) => ({ input: (a.input ?? 0) + (b.input ?? 0), output: (a.output ?? 0) + (b.output ?? 0), total: (a.total ?? 0) + (b.total ?? 0) }), { input: 0, output: 0, total: 0 }); }
+}

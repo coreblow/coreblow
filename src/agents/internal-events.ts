@@ -60,3 +60,10 @@ export function formatAgentInternalEventsForPrompt(events?: AgentInternalEvent[]
     blocks.join("\n\n---\n\n"),
   ].join("\n");
 }
+
+// Stub class — used by agent-engine.ts OOP facade
+export class InternalEventBus {
+  private handlers = new Map<string, Array<(data: unknown) => void>>();
+  on(event: string, handler: (data: unknown) => void): void { const h = this.handlers.get(event) ?? []; h.push(handler); this.handlers.set(event, h); }
+  emitSync(event: string, data: unknown): void { for (const h of this.handlers.get(event) ?? []) h(data); }
+}

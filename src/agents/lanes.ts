@@ -12,3 +12,12 @@ export function resolveNestedAgentLane(lane?: string): string {
   }
   return trimmed;
 }
+
+// Stub class — used by agent-engine.ts OOP facade
+export class LaneManager {
+  private activeLanes = new Map<string, { id: string }>();
+  private maxLanes: number;
+  constructor(maxLanes: number) { this.maxLanes = maxLanes; }
+  acquire(sessionId: string): { id: string } | null { if (this.activeLanes.size >= this.maxLanes) return null; const lane = { id: sessionId }; this.activeLanes.set(sessionId, lane); return lane; }
+  release(laneId: string): void { this.activeLanes.delete(laneId); }
+}

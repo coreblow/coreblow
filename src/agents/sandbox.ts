@@ -84,3 +84,10 @@ export type {
   SandboxWorkspaceAccess,
   SandboxWorkspaceInfo,
 } from "./sandbox/types.js";
+
+// Stub class + factory — used by agent-engine.ts OOP facade
+export class Sandbox {
+  readonly baseDir: string;
+  constructor(baseDir?: string) { this.baseDir = baseDir ?? '/tmp/sandbox'; }
+}
+export function createDefaultSandbox(baseDir?: string): Sandbox { return new Sandbox(baseDir); }

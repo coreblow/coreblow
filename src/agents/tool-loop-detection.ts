@@ -621,3 +621,20 @@ export function getToolCallStats(state: SessionState): {
     mostFrequent,
   };
 }
+
+// Stub exports — used by agent-engine.ts OOP facade
+export type ToolCallRecord = { toolName: string; argsHash: string; timestamp: number };
+export function detectToolLoop(history: ToolCallRecord[], windowSize: number, threshold: number): { loopDetected: boolean; type?: string } {
+  if (history.length === 0) return { loopDetected: false };
+  const last = history[history.length - 1];
+  const result = detectToolCallLoop({ toolCallHistory: history.map(r => r.toolName) } as never, last.toolName, last.argsHash);
+  return { loopDetected: result.stuck, type: result.stuck ? (result as { detector?: string }).detector : undefined };
+}
+export class ToolCircuitBreaker {
+  private failures = 0;
+  private maxFailures: number;
+  constructor(maxFailures: number, _windowMs: number, _cooldownMultiplier: number) { this.maxFailures = maxFailures; }
+  recordSuccess(): void { this.failures = Math.max(0, this.failures - 1); }
+  recordFailure(): void { this.failures++; }
+  isOpen(): boolean { return this.failures >= this.maxFailures; }
+}
