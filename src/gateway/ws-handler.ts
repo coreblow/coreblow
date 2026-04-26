@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * CoreBlow Gateway — WebSocket Connection Handler
  *
@@ -273,19 +272,21 @@ export class WsHandler {
         client.scopes = Array.isArray(connectParams.scopes) ? connectParams.scopes : [];
 
         // Build hello-ok response (CoreBlow protocol)
-        const helloOk: HelloOk = {
+        const helloOk = {
             protocol: PROTOCOL_VERSION,
-            sessionKey: client.connId,
             auth: {
                 role: client.role,
                 scopes: client.scopes,
+                deviceToken: '',
             },
             policy: {
+                maxPayload: 1024 * 1024,
+                maxBufferedBytes: 4 * 1024 * 1024,
                 tickIntervalMs: 30_000,
             },
-        };
+        } satisfies Partial<HelloOk>;
 
-        this.sendOkResponse(client, requestId, { type: 'hello-ok', ...helloOk });
+        this.sendOkResponse(client, requestId, { ...helloOk, type: 'hello-ok' });
 
         log.info(
             {

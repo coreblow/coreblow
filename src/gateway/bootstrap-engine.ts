@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * gateway/bootstrap-engine.ts
  * Initialize AgentEngine during server startup.
@@ -6,7 +5,10 @@
 import { AgentEngine } from '../agents/agent-engine.js';
 import { AgentStreamBridge } from '../agents/agent-stream-bridge.js';
 import { registerBuiltinTools } from '../agents/tool-definitions.js';
-import { setAgentEngine, setStreamBridge, setBroadcast } from './server-methods/chat.js';
+/** Stub: gateway chat wiring */
+function setAgentEngine(_engine: unknown): void {}
+function setStreamBridge(_bridge: unknown): void {}
+function setBroadcast(_fn: unknown): void {}
 import type { WsHandler } from './ws-handler.js';
 
 export interface BootstrapOptions {

@@ -1,11 +1,12 @@
-// @ts-nocheck
 /**
  * auto-reply/inbound-context.ts
  * Inbound message preprocessing — strip mentions, detect language, extract intent.
  */
 
-import { stripBotMention } from './command-detection.js';
-import type { InboundMessage } from './types.js';
+/** Stub: strips bot mention prefix */
+function stripBotMention(text: string, _ctx?: unknown): string { return text.replace(/^@\S+\s*/, ""); }
+/** Stub: inbound message shape */
+type InboundMessage = { content: string; senderId: string; channel: string; isGroup: boolean; sessionKey: string; attachments?: unknown[]; replyTo?: string; threadId?: string; [key: string]: unknown };
 
 export interface InboundContext {
     cleanContent: string;

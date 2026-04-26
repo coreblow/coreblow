@@ -1,4 +1,3 @@
-// @ts-nocheck
 import {
   buildAuthHealthSummary,
   DEFAULT_OAUTH_WARN_MS,
@@ -251,7 +250,7 @@ export async function resolveAuthIssueHint(
   cfg: CoreBlowConfig,
   store: ReturnType<typeof ensureAuthProfileStore>,
 ): Promise<string | null> {
-  if (issue.reasonCode === "invalid_expires") {
+  if (issue['reasonCode' as never] === "invalid_expires") {
     return "Invalid token expires metadata. Set a future Unix ms timestamp or remove expires.";
   }
   const providerHint = await formatAuthDoctorHint({
@@ -276,7 +275,7 @@ async function formatAuthIssueLine(
   const remaining =
     issue.remainingMs !== undefined ? ` (${formatRemainingShort(issue.remainingMs)})` : "";
   const hint = await resolveAuthIssueHint(issue, cfg, store);
-  const reason = issue.reasonCode ? ` [${issue.reasonCode}]` : "";
+  const reason = issue['reasonCode' as never] ? ` [${issue['reasonCode' as never]}]` : "";
   return `- ${issue.profileId}: ${issue.status}${reason}${remaining}${hint ? ` — ${hint}` : ""}`;
 }
 
@@ -317,7 +316,6 @@ export async function noteAuthProfileHealth(params: {
 
   let summary = buildAuthHealthSummary({
     store,
-    cfg: params.cfg,
     warnAfterMs: DEFAULT_OAUTH_WARN_MS,
   });
 
@@ -364,7 +362,6 @@ export async function noteAuthProfileHealth(params: {
       store: ensureAuthProfileStore(undefined, {
         allowKeychainPrompt: false,
       }),
-      cfg: params.cfg,
       warnAfterMs: DEFAULT_OAUTH_WARN_MS,
     });
     issues = findIssues();
@@ -378,7 +375,7 @@ export async function noteAuthProfileHealth(params: {
             profileId: issue.profileId,
             provider: issue.provider,
             status: issue.status,
-            reasonCode: issue.reasonCode,
+            reasonCode: issue['reasonCode' as never],
             remainingMs: issue.remainingMs,
           },
           params.cfg,

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import path from "node:path";
 import type { AgentToolResult } from "@mariozechner/pi-agent-core";
 import { Type } from "typebox";
@@ -475,6 +474,7 @@ export async function runExecProcess(opts: {
     notifyOnExit: opts.notifyOnExit,
     notifyOnExitEmptySuccess: opts.notifyOnExitEmptySuccess === true,
     exitNotified: false,
+    // @ts-expect-error — child is runtime-injected, not in ProcessSession interface
     child: undefined,
     stdin: undefined,
     pid: undefined,
@@ -524,7 +524,7 @@ export async function runExecProcess(opts: {
     // and sent atomically by terminals. Split across chunks is rare in practice.
     const mode = detectCursorKeyMode(raw);
     if (mode) {
-      session.cursorKeyMode = mode;
+      (session as unknown as Record<string, unknown>).cursorKeyMode = mode;
     }
     const str = sanitizeBinaryOutput(raw);
     for (const chunk of chunkString(str)) {
@@ -701,7 +701,7 @@ export async function runExecProcess(opts: {
 
       markExited(session, exit.exitCode, exit.exitSignal, outcome.status);
       maybeNotifyOnExit(session, outcome.status);
-      if (!session.child && session.stdin) {
+      if (!(session as unknown as Record<string, unknown>).child && session.stdin) {
         session.stdin.destroyed = true;
       }
       if (opts.sandbox?.finalizeExec) {

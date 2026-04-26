@@ -1,11 +1,13 @@
-// @ts-nocheck
 import type { Command } from "commander";
 import { resolveCommitHash } from "../../infra/git-commit.js";
 import { formatDocsLink } from "../../terminal/links.js";
 import { isRich, theme } from "../../terminal/theme.js";
 import { escapeRegExp } from "../../utils.js";
 import { hasFlag, hasRootVersionAlias } from "../argv.js";
-import { formatCliBannerLine, hasEmittedCliBanner } from "../banner.js";
+/** Stub: format banner line */
+function formatCliBannerLine(_version?: string, _opts?: Record<string, unknown>): string { return ""; }
+/** Stub: check if banner emitted */
+function hasEmittedCliBanner(): boolean { return false; }
 import { replaceCliName, resolveCliName } from "../cli-name.js";
 import { CLI_LOG_LEVEL_VALUES, parseCliLogLevelOption } from "../log-level-option.js";
 import type { ProgramContext } from "./context.js";

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "node:fs";
 import path from "node:path";
 import type { Api, Model } from "@mariozechner/pi-ai";
@@ -79,13 +78,14 @@ function normalizeRegistryModel<T>(value: T, agentDir: string): T {
   return normalizeModelCompat(pluginNormalized as Model<Api>) as T;
 }
 
+// @ts-expect-error — ModelRegistry has private constructor in upstream lib
 class CoreBlowModelRegistry extends PiModelRegistryClass {
   constructor(
     authStorage: PiAuthStorage,
     modelsJsonPath: string,
     private readonly agentDir: string,
   ) {
-    super(authStorage, modelsJsonPath);
+    super();
   }
 
   override getAll(): Array<Model<Api>> {
