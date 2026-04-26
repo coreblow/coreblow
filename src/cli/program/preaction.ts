@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { Command } from "commander";
 import { setVerbose } from "../../globals.js";
 import { isTruthyEnvValue } from "../../infra/env.js";
@@ -7,7 +6,7 @@ import type { LogLevel } from "../../logging/levels.js";
 import { loggingState } from "../../logging/state.js";
 import { defaultRuntime } from "../../runtime.js";
 import { getCommandPathWithRootOptions, getVerboseFlag, hasHelpOrVersion } from "../argv.js";
-import { emitCliBanner } from "../banner.js";
+import { emitBanner } from "../banner.js";
 import { resolveCliName } from "../cli-name.js";
 import {
   resolvePluginInstallInvalidConfigPolicy,
@@ -134,7 +133,7 @@ export function registerPreActionHooks(program: Command, programVersion: string)
       commandPath[0] === "completion" ||
       (commandPath[0] === "plugins" && commandPath[1] === "update");
     if (!hideBanner) {
-      emitCliBanner(programVersion);
+      emitBanner();
     }
     const verbose = getVerboseFlag(argv, { includeDebug: true });
     setVerbose(verbose);

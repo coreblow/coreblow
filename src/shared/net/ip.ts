@@ -1,4 +1,3 @@
-// @ts-nocheck
 import ipaddr from "ipaddr.js";
 
 export type ParsedIpAddress = ipaddr.IPv4 | ipaddr.IPv6;
@@ -22,7 +21,7 @@ const PRIVATE_OR_LOOPBACK_IPV4_RANGES = new Set<Ipv4Range>([
   "private",
   "linkLocal",
   "carrierGradeNat",
-]);
+] as Ipv4Range[]);
 
 const BLOCKED_IPV6_SPECIAL_USE_RANGES = new Set<BlockedIpv6Range>([
   "unspecified",
@@ -34,7 +33,7 @@ const BLOCKED_IPV6_SPECIAL_USE_RANGES = new Set<BlockedIpv6Range>([
   "benchmarking",
   "discard",
   "orchid2",
-]);
+] as BlockedIpv6Range[]);
 const RFC2544_BENCHMARK_PREFIX: [ipaddr.IPv4, number] = [ipaddr.IPv4.parse("198.18.0.0"), 15];
 export type Ipv4SpecialUseBlockOptions = {
   allowRfc2544BenchmarkRange?: boolean;

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Command } from "commander";
 import { type Mock, vi } from "vitest";
 import type { CoreBlowConfig } from "../config/config.js";
@@ -7,7 +6,7 @@ import { createCliRuntimeCapture } from "./test-runtime-capture.js";
 export const loadConfig = vi.fn(() => ({}) as CoreBlowConfig);
 export const readConfigFileSnapshot: Mock = vi.fn();
 export const writeConfigFile = vi.fn(
-  async () => undefined,
+  async (_config?: CoreBlowConfig) => undefined,
 );
 export const resolveStateDir: Mock = vi.fn(() => "/tmp/coreblow-state");
 export const installPluginFromMarketplace: Mock = vi.fn();
@@ -41,7 +40,7 @@ vi.mock("../runtime.js", () => ({
 
 vi.mock("../config/config.js", () => ({
   loadConfig: () => loadConfig(),
-  readConfigFileSnapshot: (...args: unknown[]) => readConfigFileSnapshot(...args),
+  readConfigFileSnapshot: () => readConfigFileSnapshot(),
   writeConfigFile: (config: CoreBlowConfig) => writeConfigFile(config),
 }));
 

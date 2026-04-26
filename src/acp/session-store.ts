@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * src/acp/session-store.ts
  * In-memory ACP session store with idle TTL, max sessions, and eviction
@@ -69,7 +68,6 @@ export class AcpSessionStore {
             lastTouchedAt: nowMs,
             abortController: null,
             activeRunId: null,
-            metadata: params.metadata,
         };
 
         this.sessions.set(sessionId, session);

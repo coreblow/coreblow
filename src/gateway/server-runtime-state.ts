@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { Server as HttpServer } from "node:http";
 import { WebSocketServer } from "ws";
 import { CANVAS_HOST_PATH } from "../canvas-host/a2ui.js";
@@ -118,10 +117,8 @@ export async function createGatewayRuntimeState(params: {
     if (params.canvasHostEnabled) {
       try {
         const handler = await createCanvasHostHandler({
-          runtime: params.canvasRuntime,
           rootDir: params.cfg.canvasHost?.root,
           basePath: CANVAS_HOST_PATH,
-          allowInTests: params.allowCanvasHostInTests,
           liveReload: params.cfg.canvasHost?.liveReload,
         });
         if (handler.rootDir) {

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { isTruthyEnvValue } from "../infra/env.js";
 import { loggingState } from "../logging/state.js";
 import { defaultRuntime } from "../runtime.js";
@@ -13,11 +12,11 @@ async function prepareRoutedCommand(params: {
   const suppressDoctorStdout = hasFlag(params.argv, "--json");
   const skipConfigGuard = params.commandPath[0] === "status" && suppressDoctorStdout;
   if (!suppressDoctorStdout && process.stdout.isTTY) {
-    const [{ emitCliBanner }, { VERSION }] = await Promise.all([
+    const [{ emitBanner }, { VERSION }] = await Promise.all([
       import("./banner.js"),
       import("../version.js"),
     ]);
-    emitCliBanner(VERSION, { argv: params.argv });
+    emitBanner();
   }
   if (!skipConfigGuard) {
     const { ensureConfigReady } = await import("./program/config-guard.js");

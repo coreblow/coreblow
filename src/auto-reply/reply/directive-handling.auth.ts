@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { formatRemainingShort } from "../../agents/auth-health.js";
 import {
   isProfileInCooldown,
@@ -67,7 +66,7 @@ export const resolveAuthLabel = async (
   const nextProfileId = order[0];
   const now = Date.now();
   const formatUntil = (timestampMs: number) =>
-    formatRemainingShort(timestampMs - now, { underMinuteLabel: "soon" });
+    formatRemainingShort(timestampMs - now);
 
   if (order.length > 0) {
     if (mode === "compact") {

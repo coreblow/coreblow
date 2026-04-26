@@ -1,5 +1,4 @@
 /** @internal — Zero consumers. SDK pruning audit 2026-04-24 */
-// @ts-nocheck
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,6 +9,7 @@ import {
   type PluginSdkDocCategory,
   type PluginSdkDocEntrypoint,
 } from "../../scripts/lib/plugin-sdk-doc-metadata.ts";
+// @ts-expect-error — no type declarations for .mjs build scripts
 import { pluginSdkEntrypoints } from "../../scripts/lib/plugin-sdk-entries.mjs";
 
 export type PluginSdkApiExportKind =

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import os from "node:os";
@@ -78,11 +77,9 @@ export function buildSystemPrompt(params: {
     toolNames: params.tools.map((tool) => tool.name),
     modelAliasLines: buildModelAliasLines(params.config),
     userTimezone,
-    userTime,
-    userTimeFormat,
     contextFiles: params.contextFiles,
     ttsHint,
-    memoryCitationsMode: params.config?.memory?.citations,
+    memoryCitationsMode: params.config?.memory?.citations as never,
   });
 }
 
