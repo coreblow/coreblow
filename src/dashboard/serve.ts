@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * src/dashboard/serve.ts
  * Dashboard — 8-page control UI with tab navigation
@@ -27,7 +26,7 @@ function getConfig(): {
 } {
   try {
     const resolution = findConfigFile();
-    if (resolution.configPath) {
+    if (resolution?.configPath) {
       const raw = fs.readFileSync(resolution.configPath, 'utf-8');
       const parsed = JSON.parse(raw);
       return {
@@ -88,9 +87,9 @@ export function mountDashboard(app: Application) {
     });
   });
 
-  app.get('/api/dashboard/audit', (req: Request, res: Response) => {
+  app.get('/api/dashboard/audit', async (req: Request, res: Response) => {
     const date = req.query.date as string | undefined;
-    const entries = readAuditLog(date);
+    const entries = await readAuditLog(date);
     res.json({ entries, count: entries.length });
   });
 
@@ -131,10 +130,10 @@ export function mountDashboard(app: Application) {
     } catch (e) { logCaughtError('dashboard:canvases', e); res.json({ canvases: [] }); }
   });
 
-  app.get('/api/dashboard/logs', (req: Request, res: Response) => {
+  app.get('/api/dashboard/logs', async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 100;
     try {
-      const entries = readAuditLog();
+      const entries = await readAuditLog();
       res.json({ entries: entries.slice(-limit).reverse(), count: entries.length });
     } catch (e) { logCaughtError('dashboard:logs', e); res.json({ entries: [], count: 0 }); }
   });

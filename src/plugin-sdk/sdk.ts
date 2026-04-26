@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * plugin-sdk/sdk.ts
  * Public SDK for plugin authors: definePlugin(), defineCommand(), defineTool()
@@ -19,8 +18,8 @@ export interface PluginDefinition {
 /** Define a plugin — main SDK entry point for plugin authors. */
 export function definePlugin(definition: PluginDefinition): PluginExports {
     return {
-        activate: definition.activate,
-        deactivate: definition.deactivate,
+        activate: definition.activate as PluginExports['activate'],
+        deactivate: definition.deactivate as PluginExports['deactivate'],
         commands: definition.commands ?? [],
         hooks: definition.hooks ?? [],
         providers: definition.providers ?? [],
@@ -34,7 +33,7 @@ export function defineCommand(
     description: string,
     handler: (args: string[]) => Promise<string>,
 ): PluginCommand {
-    return { name, description, handler };
+    return { name, description, handler } as PluginCommand;
 }
 
 /** Define a tool for use in a plugin. */
@@ -44,7 +43,7 @@ export function defineTool(
     parameters: Record<string, unknown>,
     execute: (params: Record<string, unknown>) => Promise<unknown>,
 ): PluginTool {
-    return { name, description, parameters, execute };
+    return { name, description, parameters, execute } as PluginTool;
 }
 
 /** Define a hook for use in a plugin. */
@@ -62,5 +61,5 @@ export function defineProvider(
     models: string[],
     chat: (messages: unknown[], options: unknown) => Promise<unknown>,
 ): PluginProvider {
-    return { name, models, chat };
+    return { name, models, chat } as unknown as PluginProvider;
 }

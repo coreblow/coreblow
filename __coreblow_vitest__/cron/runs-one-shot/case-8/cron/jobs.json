@@ -30,6 +30,36 @@
         "lastDeliveryStatus": "unknown",
         "consecutiveErrors": 1
       }
+    },
+    {
+      "id": "4be44a80-033c-4d17-a9e2-2163acf5a125",
+      "name": "isolated error test",
+      "enabled": false,
+      "deleteAfterRun": true,
+      "createdAtMs": 1765584000000,
+      "updatedAtMs": 1765584002000,
+      "schedule": {
+        "kind": "at",
+        "at": "2025-12-13T00:00:01.000Z"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "do it"
+      },
+      "delivery": {
+        "mode": "announce"
+      },
+      "state": {
+        "lastRunAtMs": 1765584002000,
+        "lastRunStatus": "error",
+        "lastStatus": "error",
+        "lastDurationMs": 0,
+        "lastError": "boom",
+        "lastDeliveryStatus": "unknown",
+        "consecutiveErrors": 1
+      }
     }
   ]
 }

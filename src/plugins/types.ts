@@ -2187,17 +2187,21 @@ export type PluginHookSessionContext = {
 
 // session_start hook
 export type PluginHookSessionStartEvent = {
-  sessionId: string;
+  sessionId?: string;
   sessionKey?: string;
   resumedFrom?: string;
+  channel?: string;
+  timestamp?: number;
 };
 
 // session_end hook
 export type PluginHookSessionEndEvent = {
-  sessionId: string;
+  sessionId?: string;
   sessionKey?: string;
-  messageCount: number;
+  messageCount?: number;
   durationMs?: number;
+  reason?: string;
+  timestamp?: number;
 };
 
 // Subagent context
@@ -2286,11 +2290,13 @@ export type PluginHookGatewayContext = {
 // gateway_start hook
 export type PluginHookGatewayStartEvent = {
   port: number;
+  timestamp?: number;
 };
 
 // gateway_stop hook
 export type PluginHookGatewayStopEvent = {
   reason?: string;
+  timestamp?: number;
 };
 
 // Hook handler types mapped by hook name
@@ -2412,7 +2418,7 @@ export type PluginHookRegistration<K extends PluginHookName = PluginHookName> = 
 
 // Stub types — used by plugin-sdk/hooks-api.ts
 export type PluginHook = {
-  name: string;
+  name?: string;
   event: string;
   handler: (...args: unknown[]) => unknown;
   priority?: number;
@@ -2420,7 +2426,7 @@ export type PluginHook = {
 export type PluginContext = Record<string, unknown>;
 
 // Stub exports — used by plugin-sdk/sdk.ts
-export type PluginExports = { hooks?: PluginHook[]; commands?: PluginCommand[]; providers?: PluginProvider[]; tools?: PluginTool[]; activate?: () => void; deactivate?: () => void };
-export type PluginCommand = { name: string; description: string; execute?: (...args: unknown[]) => unknown; handler?: (...args: unknown[]) => unknown };
+export type PluginExports = { hooks?: PluginHook[]; commands?: PluginCommand[]; providers?: PluginProvider[]; tools?: PluginTool[]; activate?: (...args: unknown[]) => unknown; deactivate?: (...args: unknown[]) => unknown };
+export type PluginCommand = { name: string; description?: string; execute?: (...args: unknown[]) => unknown; handler?: (...args: unknown[]) => unknown };
 export type PluginProvider = { id: string; name?: string; models?: string[]; chat?: (...args: unknown[]) => unknown };
-export type PluginTool = { name: string; description: string; handler?: (...args: unknown[]) => unknown; execute?: (...args: unknown[]) => unknown; parameters?: Record<string, unknown> };
+export type PluginTool = { name: string; description?: string; handler?: (...args: unknown[]) => unknown; execute?: (...args: unknown[]) => unknown; parameters?: Record<string, unknown> };

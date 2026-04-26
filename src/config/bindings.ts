@@ -16,8 +16,11 @@ export interface AgentRouteBinding {
 export interface AgentAcpBinding {
     type: 'acp';
     agent: string;
+    agentId?: string;
     provider: string;
     model?: string;
+    match?: { peer?: { id?: string } };
+    acp?: { mode?: 'persistent' | 'oneshot'; label?: string; cwd?: string; backend?: string };
 }
 
 export type AgentBinding = AgentRouteBinding | AgentAcpBinding;

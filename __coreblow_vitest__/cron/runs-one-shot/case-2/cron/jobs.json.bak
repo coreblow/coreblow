@@ -2,7 +2,7 @@
   "version": 1,
   "jobs": [
     {
-      "id": "1d650249-8058-4ad8-87d2-96df356f6471",
+      "id": "05962806-3667-461a-8e2c-9b9dbed421fd",
       "name": "wakeMode now waits",
       "enabled": true,
       "deleteAfterRun": true,

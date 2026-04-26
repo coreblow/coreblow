@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * plugin-sdk/hooks-api.ts
  *
@@ -161,7 +160,7 @@ export class HooksAPI {
      * Get hooks sorted by priority (highest first).
      */
     getSortedHooks(): PluginHook[] {
-        return [...this.hooks].sort((a, b) => b.priority - a.priority);
+        return [...this.hooks].sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
     }
 
     /**

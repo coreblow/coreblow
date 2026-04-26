@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { listConfiguredBindings } from "../../config/bindings.js";
 import type { CoreBlowConfig } from "../../config/config.js";
 import { getActivePluginChannelRegistryVersion } from "../../plugins/runtime.js";
@@ -133,19 +132,19 @@ function compileConfiguredBindingRegistry(params: {
   const rulesByChannel = new Map<ConfiguredBindingChannel, CompiledConfiguredBinding[]>();
 
   for (const binding of listConfiguredBindings(params.cfg)) {
-    const bindingConversationId = resolveBindingConversationId(binding);
+    const bindingConversationId = resolveBindingConversationId(binding as never);
     if (!bindingConversationId) {
       continue;
     }
 
-    const resolvedChannel = resolveConfiguredBindingAdapter(binding.match.channel);
+    const resolvedChannel = resolveConfiguredBindingAdapter((binding as unknown as { match: { channel: string } }).match.channel);
     if (!resolvedChannel) {
       continue;
     }
 
     const target = compileConfiguredBindingTarget({
       provider: resolvedChannel.provider,
-      binding,
+      binding: binding as never,
       conversationId: bindingConversationId,
     });
     if (!target) {
@@ -155,7 +154,7 @@ function compileConfiguredBindingRegistry(params: {
     const rule = compileConfiguredBindingRule({
       cfg: params.cfg,
       channel: resolvedChannel.channel,
-      binding,
+      binding: binding as never,
       target,
       bindingConversationId,
       provider: resolvedChannel.provider,
