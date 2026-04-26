@@ -1,4 +1,3 @@
-// @ts-nocheck
 import crypto from "node:crypto";
 import type { MsgContext } from "../../auto-reply/templating.js";
 import {
