@@ -1,6 +1,5 @@
-// @ts-nocheck
 import { describe, it, expect, beforeEach } from 'vitest';
-import { ProviderDispatcher } from './reply/provider-dispatcher.js';
+import { ProviderDispatcher } from './reply/provider-dispatcher-class.js';
 
 describe('Provider Dispatcher — Phase 11', () => {
     let dispatcher: ProviderDispatcher;
