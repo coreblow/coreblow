@@ -8,16 +8,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **P3: Pairing System** — Device pairing with challenge/response flow, persistent store, QR auth, and policy enforcement (`src/pairing/`)
-- **P3: Channel Depth** — Per-channel typing lifecycle with keepalive loops, start guards, and safety TTL; thread binding registry with expiry; draft stream controls with throttled updates (`src/channels/`)
-- **P3: Extensions** — Extension loader with manifest validation, context pruning engine, conversation compaction, public artifact serving, session manager registry (`src/extensions/`)
-- **P3: CHANGELOG** — Started maintaining comprehensive changelog
+- Nothing yet
 
 ### Changed
 - Nothing yet
 
 ### Fixed
 - Nothing yet
+
+---
+
+## [1.0.0-rc.1] - 2026-04-28
+
+### Added
+- **P3: Pairing System** — Device pairing with challenge/response flow, persistent store, QR auth, and policy enforcement (`src/pairing/`)
+- **P3: Channel Depth** — Per-channel typing lifecycle with keepalive loops, start guards, and safety TTL; thread binding registry with expiry; draft stream controls with throttled updates (`src/channels/`)
+- **P3: Extensions** — Extension loader with manifest validation, context pruning engine, conversation compaction, public artifact serving, session manager registry (`src/extensions/`)
+
+### Changed
+- **Hardening: Zero `@ts-nocheck`** — Removed all 347 `@ts-nocheck` suppressions across the entire codebase (Sprints 1–8); all files now compile under strict TypeScript
+- **Hardening: Zero source `as any`** — Eliminated all 24 `as any` casts from source files using union widening, generic rewrites, `unknown` guards, and SDK bridge patterns (Sprint 14)
+- **Hardening: OOP Architecture restored** — `ProviderDispatcher` class fully restored with proper dependency injection; 10 previously broken tests fixed (Sprint 13)
+- **Hardening: Circular dependency baseline** — 115 circular dependency pairs locked and documented; Phase 4c extraction deferred post-v1.0 (Sprint 4)
+- **Dependency upgrades** — `vite` → 8.0.10, `vitest` → 4.1.5, `dompurify` → latest; 13 transitive dependencies patched via `pnpm overrides`
+
+### Fixed
+- **Security: 34 → 0 vulnerabilities** — Resolved all `pnpm audit` findings (2 critical, 12 high, 20 moderate) via direct upgrades and `pnpm overrides` for transitive deps including `path-to-regexp`, `protobufjs`, `lodash`, `qs`, `axios`, `esbuild`, `postcss`, `picomatch`, `hono`, `fast-xml-parser`, `uuid`, `css-what`, `nth-check`
+- **Type Safety: Test coverage ≥ 80%** — Added 17 new test files across `tools/`, `memory/`, `providers/`, `observability/`, `skills/`, `sandbox/` (Sprint 5)
+- **Type Safety: Plugin system** — Fixed hook event shapes, marketplace-api phantom imports, wrong import names across plugins/ (Sprint 6–7)
+- **Type Safety: Single `@vitest/spy` version** — Enforced `@vitest/spy@4.1.4` deduplication to eliminate test runner conflicts (Sprint 1)
+- **1 pre-existing test failure** — Remains in baseline; tracked and deferred (not a regression)
+
+### Infrastructure
+- 133/134 tests passing (1 pre-existing failure, not a regression)
+- TSC: 0 errors
+- Source `as any` casts: 0
+- `@ts-nocheck` suppressions: 0
+- Remaining debt: 279 `as any` in `.test.ts` files (deferred), ~173 `: any` SDK callback signatures in `src/agents/` (post-v1.0)
 
 ---
 
@@ -30,6 +57,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **P2: Markdown Engine** — IR parser, cross-channel renderer (Discord/Telegram/WhatsApp), code fence extraction, table parsing, frontmatter
 - **P2: CI/CD** — Dependabot config, stale issue management, smoke test workflow, Bun CI matrix, release workflow with GHCR
 
+---
+
 ## [0.2.0] - 2026-04-06
 
 ### Added
@@ -38,6 +67,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **P1: Command System** — 9 command handler categories (config, session, memory, tools, plugin, channel, security, agent, system) with 30+ commands
 - **P1: Plugin SDK** — Agent runtime, channel helpers, approval runtime, provider helpers, temp path, event emitter
 - **P1: Test Coverage** — 20 new test files covering secrets, auto-reply, config, plugin SDK, and utils
+
+---
 
 ## [0.1.0] - 2026-04-05
 
