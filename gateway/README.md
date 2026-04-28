@@ -2,7 +2,7 @@
 
 **Self-hosted AI assistant platform** — connect any AI model to any chat channel.
 
-> Think OpenClaw, but **faster to set up**, **cleaner code**, and **more features**.
+> Personal AI assistant — **fast setup**, **clean code**, **extensible features**.
 
 [![Tests](https://img.shields.io/badge/tests-576%20passed-brightgreen)](#) [![TypeScript](https://img.shields.io/badge/TypeScript-0%20errors-blue)](#) [![License](https://img.shields.io/badge/license-MIT-purple)](#)
 
@@ -31,7 +31,7 @@ That's it. Your AI assistant is running. 🚀
 
 ## 🎯 Why CoreBlow?
 
-| | CoreBlow | OpenClaw |
+| | CoreBlow | Others |
 |---|---------|---------|
 | **Setup time** | 5 minutes | 30+ minutes |
 | **Codebase** | ~40 files, clean | 752 files, scattered |

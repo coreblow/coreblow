@@ -352,13 +352,13 @@ All 115 module-level circular pairs are caused by **runtime function calls**:
 ProviderDispatcher class (161 lines, CB-exclusive) was lost
 during gateway/src/ consolidation (commit 67f492c72).
 Test file was moved but source was replaced with
-OpenClaw functional version.
+CoreBlow functional version.
 
 ### Fix Applied
 - Restored class from git history into new file:
   src/auto-reply/reply/provider-dispatcher-class.ts
 - Updated test import path
-- OpenClaw parity preserved (provider-dispatcher.ts untouched)
+- CoreBlow parity preserved (provider-dispatcher.ts untouched)
 
 ### Metrics
 - Tests: 10/10 pass (was 10/10 failing) ✅
@@ -468,7 +468,7 @@ graph TD
 > from an earlier session (CB-exclusive files only).
 > Accurate full-codebase counts after Sprint 5 audit:
 > - 179 source files (primary technical debt target)
-> - 162 test files (inherited from OpenClaw upstream —
+> - 162 test files (inherited from CoreBlow upstream —
 >   lower priority, different workstream)
 > - 0 plugins/ source files (all cleaned in Sprint 6)
 

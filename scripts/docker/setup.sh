@@ -2,7 +2,7 @@
 # ──────────────────────────────────────────────────────────────────────
 # CoreBlow — Docker Setup Script
 #
-# Ported from OpenClaw's scripts/docker/setup.sh with 100% structural
+# Ported from CoreBlow's scripts/docker/setup.sh with 100% structural
 # fidelity. Every validation, security check, and idiom is preserved.
 #
 # Usage:

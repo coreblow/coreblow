@@ -11,7 +11,7 @@
  *   node scripts/audit-oc-parity.mjs --module src/tui
  *   node scripts/audit-oc-parity.mjs --tests-only
  *
- * OC reference: /Users/febrinanda/openclaw-main
+ * Architecture reference baseline
  */
 
 import { readdirSync, statSync, existsSync, readFileSync } from "node:fs";
@@ -20,7 +20,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const CB_ROOT = join(__dirname, "..");
-const OC_ROOT = "/Users/febrinanda/openclaw-main";
+const OC_ROOT = "/Users/febrinanda/openclaw-main"; // local reference only
 
 const args = process.argv.slice(2);
 const JSON_OUTPUT = args.includes("--json");
@@ -324,7 +324,7 @@ if (JSON_OUTPUT) {
 
 // Human-readable output
 console.log("╔══════════════════════════════════════════════════════════════╗");
-console.log("║          CoreBlow vs OpenClaw — Parity Audit                 ║");
+console.log("║          CoreBlow — Architecture Parity Audit                 ║");
 console.log("╚══════════════════════════════════════════════════════════════╝");
 if (MODULE_FILTER) console.log(`  Filter: ${MODULE_FILTER}`);
 console.log();

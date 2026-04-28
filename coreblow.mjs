@@ -4,7 +4,7 @@
  * CoreBlow — CLI Launcher
  *
  * Entry-point wrapper that imports the compiled CLI from dist/.
- * Inspired by OpenClaw's openclaw.mjs pattern but written for CoreBlow's
+ * CoreBlow CLI launcher — spawns tsx with the entry module
  * consolidated source tree architecture:
  *
  * 1. Check Node.js version (22.12+ required)

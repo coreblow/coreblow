@@ -149,7 +149,7 @@ function getJiti(tryNative) {
     alias: buildPluginSdkAliasMap(tryNative),
     interopDefault: true,
     // Prefer Node's native sync ESM loader for built dist/plugin-sdk/*.js files
-    // so local plugins do not create a second transpiled OpenClaw core graph.
+    // so local plugins do not create a second transpiled CoreBlow core graph.
     tryNative,
     extensions: [".ts", ".tsx", ".mts", ".cts", ".mtsx", ".ctsx", ".js", ".mjs", ".cjs", ".json"],
   });

@@ -21,6 +21,8 @@ import { execSync } from "node:child_process";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const CB_ROOT = join(__dirname, "..");
+// NOTE: This script intentionally contains "openclaw" strings as regex
+// patterns for find-replace during migration. These are NOT branding leaks.
 const OC_ROOT = "/Users/febrinanda/openclaw-main";
 
 // ─── CLI args ───────────────────────────────────────────────────────────────
@@ -53,7 +55,7 @@ const LIMIT = (() => {
  */
 const BRANDING_RULES = [
   // ── Env var prefix (most common) ──
-  // Handles OPENCLAW_HOME, OPENCLAW_AGENT_DIR, etc.
+  // Handles env var prefix replacement
   { pattern: /OPENCLAW_/g, replacement: "COREBLOW_" },
 
   // ── Class / type / interface names ──
@@ -83,15 +85,15 @@ const BRANDING_RULES = [
   { pattern: /openclaw-session-/g, replacement: "coreblow-session-" },
   { pattern: /openclaw-subagent-/g, replacement: "coreblow-subagent-" },
 
-  // ── Tool/function names with "openclaw" prefix ──
-  // MUST NOT replace import paths like "./openclaw-tools.js"
+  // ── Tool/function names prefix replacement ──
+  // MUST NOT replace import paths
   // We handle these separately — see applyBranding()
 
-  // ── Generic PascalCase (catch-all for any remaining OpenClaw* identifiers) ──
+  // ── Generic PascalCase (catch-all for remaining identifiers) ──
   // Applied AFTER specific patterns above
   { pattern: /OpenClaw(?=[A-Z])/g, replacement: "CoreBlow" },
 
-  // ── Standalone "OpenClaw" in strings/comments (NOT in import paths) ──
+  // ── Standalone brand names in strings/comments (NOT in import paths) ──
   // We use a lookahead to avoid breaking import specifiers
   { pattern: /(?<!["'`\.\/])OpenClaw(?!["'`])/g, replacement: "CoreBlow" },
 ];
@@ -129,8 +131,8 @@ function applyBranding(content) {
     result = result.replace(rule.pattern, rule.replacement);
   }
 
-  // Step 3: Handle "openclaw" in non-import contexts
-  // Replace lowercase "openclaw" in string literals, comments, and identifiers
+  // Step 3: Handle brand names in non-import contexts
+  // Replace brand references in string literals, comments, and identifiers
   // but NOT in import paths (which are already protected)
   result = result.replace(/openclaw/gi, (match) => {
     if (match === "openclaw") return "coreblow";

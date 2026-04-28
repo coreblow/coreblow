@@ -1,5 +1,5 @@
 // One-time migration script — not part of runtime.
-// Used to port files from OpenClaw to CoreBlow namespace.
+// Internal migration utility — not shipped.
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -70,8 +70,8 @@ async function main() {
             content = content.replace(/OPENCLAW_/g, 'COREBLOW_');
             content = content.replace(/OPENCLAW/g, 'COREBLOW');
             content = content.replace(/OpenClaw/g, 'CoreBlow');
-            // But retain openclaw for paths/refs where useful if there's any?
-            // Actually, keep it simple. It's safe to replace openclaw -> coreblow.
+            // Replace all brand references
+            // Complete brand replacement
             content = content.replace(/openclaw/g, 'coreblow');
 
             await fs.mkdir(path.dirname(destPath), { recursive: true });

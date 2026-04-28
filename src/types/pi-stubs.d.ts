@@ -1,5 +1,5 @@
 // @mariozechner/* packages ship their own .d.ts — real types from node_modules.
-// Only augmentation below (matching OpenClaw's src/types/pi-agent-core.d.ts pattern).
+// Only augmentation below — matches pi-agent-core.d.ts stub pattern.
 
 import "@mariozechner/pi-agent-core";
 

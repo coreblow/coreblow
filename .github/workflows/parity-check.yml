@@ -1,5 +1,5 @@
 # CoreBlow — Parity Check
-# Verifies architectural parity with OpenClaw reference
+# Verifies architectural parity baseline
 # Updated: 2026-04-24 — Single source tree (gateway/ removed)
 
 name: Parity Check
@@ -48,7 +48,7 @@ jobs:
               console.log('✅ Level 1-2: Parity audit completed');
             "
           else
-            echo "⚠️ Parity audit script not available (OpenClaw reference not present in CI)"
+            echo "⚠️ Parity audit script not available (reference baseline not present in CI)"
           fi
 
   # ── Level 3: Behavior Tests ───────────────────────────────────────────────

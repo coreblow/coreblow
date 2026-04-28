@@ -144,7 +144,7 @@ export type MediaUnderstandingProvider = {
 
 
 // Stub types — used by audio.ts, image-analysis.ts, video.ts, resolve.ts etc.
-// Not part of OpenClaw upstream; added for CoreBlow compatibility.
+// CoreBlow extension — not part of pi-agent-core upstream.
 export type MediaSource = {
   kind: 'url' | 'buffer' | 'path' | 'data';
   url?: string;
