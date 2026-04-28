@@ -2,7 +2,7 @@
 
 **Created:** 2026-04-25 | **Updated:** 2026-04-26
 **Prerequisites completed:** SDK v0.70.2 upgrade ✅ | 621 test errors → 0 ✅ | Branding 100% ✅
-**Track 1:** ✅ DONE | **Track 2:** ✅ DONE | **Track 3:** ✅ DONE | **Track 4:** ✅ DONE (Revised) | **Track 5:** ✅ DONE | **Sprint 6:** ✅ DONE | **Sprint 7:** ✅ DONE | **Sprint 8:** ✅ DONE
+**Track 1:** ✅ DONE | **Track 2:** ✅ DONE | **Track 3:** ✅ DONE | **Track 4:** ✅ DONE (Revised) | **Track 5:** ✅ DONE | **Sprint 6:** ✅ DONE | **Sprint 7:** ✅ DONE | **Sprint 8:** ✅ DONE | **Sprint 13:** ✅ DONE
 
 ---
 
@@ -342,6 +342,44 @@ All 115 module-level circular pairs are caused by **runtime function calls**:
 
 ### Effort: Completed in 1 day
 
+---
+
+## Sprint 13: 🔧 Restore ProviderDispatcher Class — ✅ DONE
+
+> **Goal:** Fix 10 pre-existing test failures before publish
+
+### Root Cause
+ProviderDispatcher class (161 lines, CB-exclusive) was lost
+during gateway/src/ consolidation (commit 67f492c72).
+Test file was moved but source was replaced with
+OpenClaw functional version.
+
+### Fix Applied
+- Restored class from git history into new file:
+  src/auto-reply/reply/provider-dispatcher-class.ts
+- Updated test import path
+- OpenClaw parity preserved (provider-dispatcher.ts untouched)
+
+### Metrics
+- Tests: 10/10 pass (was 10/10 failing) ✅
+- TSC: 0 errors ✅
+- @ts-nocheck: 0 introduced ✅
+- as any: 0 introduced ✅
+
+### Features Restored (CB-exclusive)
+- Priority-based multi-provider routing
+- Health tracking (error counting, latency averaging)
+- Automatic fallback on provider failure
+- 60-second cooldown auto-recovery
+
+### Known Issue (pre-existing, not caused by this sprint)
+pnpm-audit-prod flagged vulnerabilities:
+- protobufjs (pre-existing)
+- path-to-regexp (pre-existing)
+Action: Address in Sprint 15 (publish preparation)
+
+### Effort: Completed in 1 hour
+
 ## 📋 Execution Order & Dependencies
 
 ```mermaid
@@ -374,8 +412,9 @@ graph TD
 | **Sprint 6** | plugins/ cleanup | 1 day | ✅ **DONE** |
 | **Sprint 7** | hooks.ts any cleanup | 1 day | ✅ **DONE** |
 | **Sprint 8** | @ts-nocheck source Phase 1 | 1 day | ✅ **DONE** |
+| **Sprint 13** | Restore ProviderDispatcher class | 1 hour | ✅ **DONE** |
 
-**Elapsed: 7 days** | **All tracks + sprints complete** 🎉
+**Pre-publish: Sprint 13 ✅ | Sprint 14-15 remaining**
 
 ---
 
@@ -434,5 +473,6 @@ graph TD
 | `8893398d9` | `fix/sprint8-tier1` | Sprint 8 Phase B batch 1: 16 single-error TS2305 files |
 | `ab6445b2b` | `fix/sprint8-tier1` | Sprint 8 Phase B batch 2: 18 single-error non-TS2305 files |
 | `b13f68143` | `fix/sprint8-tier1` | Sprint 8 Phase B batch 3: 5 two-error files |
+| `75f9e75cf` | `fix/sprint13-provider-dispatcher` | Sprint 13: restore ProviderDispatcher class |
 
 All branches merged to `main` via `--no-ff`.
