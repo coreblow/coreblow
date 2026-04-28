@@ -239,8 +239,7 @@ async function writeTrustedProxyControlUiConfig(params?: { allowInsecureAuth?: b
         ...(params?.allowInsecureAuth ? { allowInsecureAuth: true } : {}),
       },
     },
-    // oxlint-disable-next-line typescript/no-explicit-any
-  } as any);
+  } as Record<string, unknown>);
 }
 
 function isConnectResMessage(id: string) {
@@ -312,8 +311,7 @@ async function startRateLimitedTokenServerWithPairedDeviceToken() {
     mode: "token",
     token: "secret",
     rateLimit: { maxAttempts: 1, windowMs: 60_000, lockoutMs: 60_000, exemptLoopback: false },
-    // oxlint-disable-next-line typescript/no-explicit-any
-  } as any;
+  } as Record<string, unknown>;
 
   const { server, ws, port, prevToken } = await startServerWithClient();
   const deviceIdentityPath = nextAuthIdentityPath("coreblow-auth-rate-limit");

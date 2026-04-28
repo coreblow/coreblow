@@ -934,8 +934,8 @@ export async function startGateway(opts?: GatewayStartOptions): Promise<void> {
 
         // Shutdown CoreBlowServer subsystems
         try {
-            if (gwServer && typeof (gwServer as any).close === 'function') {
-                await (gwServer as any).close();
+            if (gwServer && typeof (gwServer as Record<string, unknown>).close === 'function') {
+                await ((gwServer as Record<string, unknown>).close as () => Promise<void>)();
             }
         } catch {
             // Best-effort

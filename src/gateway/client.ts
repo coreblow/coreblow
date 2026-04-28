@@ -248,7 +248,7 @@ export class GatewayClient {
         }
         return undefined;
         // oxlint-disable-next-line typescript/no-explicit-any
-      }) as any;
+      }) as unknown as ClientOptions['checkServerIdentity'];
     }
     const ws = new WebSocket(url, wsOptions);
     this.ws = ws;

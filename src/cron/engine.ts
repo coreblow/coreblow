@@ -278,7 +278,7 @@ export class CronEngine {
         return entry;
       } catch (err: unknown) {
         if (timeoutTimer) clearTimeout(timeoutTimer);
-        lastError = (err as any)?.message ?? String(err);
+        lastError = err instanceof Error ? err.message : String(err);
 
         if (ac.signal.aborted) {
           const entry: CronJobHistoryEntry = {
