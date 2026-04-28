@@ -2,7 +2,7 @@
   "version": 1,
   "jobs": [
     {
-      "id": "0a6f63cf-ef32-48b7-945b-df0b6eeb34b8",
+      "id": "083b0a40-f63f-4e93-8b73-ac86b48e53f8",
       "name": "weekly",
       "enabled": true,
       "deleteAfterRun": true,

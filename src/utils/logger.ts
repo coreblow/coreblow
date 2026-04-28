@@ -94,7 +94,7 @@ export const logger: PinoLogger = pino({
         ...(process.env.COREBLOW_INSTANCE_ID ? { instance: process.env.COREBLOW_INSTANCE_ID } : {}),
     },
     timestamp: () => `,"time":"${new Date().toISOString()}"`,
-    transport: transportConfig as any, // eslint-disable-line @typescript-eslint/no-explicit-any -- pino transport overload
+    transport: transportConfig as Record<string, unknown> | undefined, // pino transport overload accepts this shape
 });
 
 // ─── Module Logger Factory ────────────────────────────────────────

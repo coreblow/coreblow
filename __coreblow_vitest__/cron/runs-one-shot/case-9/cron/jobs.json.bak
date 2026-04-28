@@ -4,6 +4,66 @@
     {
       "id": "79899d66-ca0d-4b45-8ac9-cbba8ee7aa3f",
       "name": "isolated delivery target error test",
+      "enabled": false,
+      "deleteAfterRun": true,
+      "createdAtMs": 1765584000000,
+      "updatedAtMs": 1765584002000,
+      "schedule": {
+        "kind": "at",
+        "at": "2025-12-13T00:00:01.000Z"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "do it"
+      },
+      "delivery": {
+        "mode": "announce"
+      },
+      "state": {
+        "lastRunAtMs": 1765584002000,
+        "lastRunStatus": "error",
+        "lastStatus": "error",
+        "lastDurationMs": 0,
+        "lastError": "Channel is required when multiple channels are configured: telegram, discord",
+        "lastDeliveryStatus": "unknown",
+        "consecutiveErrors": 1
+      }
+    },
+    {
+      "id": "04fc09aa-1aac-4215-9199-a38ab4a37a43",
+      "name": "isolated delivery target error test",
+      "enabled": false,
+      "deleteAfterRun": true,
+      "createdAtMs": 1765584000000,
+      "updatedAtMs": 1765584002000,
+      "schedule": {
+        "kind": "at",
+        "at": "2025-12-13T00:00:01.000Z"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "do it"
+      },
+      "delivery": {
+        "mode": "announce"
+      },
+      "state": {
+        "lastRunAtMs": 1765584002000,
+        "lastRunStatus": "error",
+        "lastStatus": "error",
+        "lastDurationMs": 0,
+        "lastError": "Channel is required when multiple channels are configured: telegram, discord",
+        "lastDeliveryStatus": "unknown",
+        "consecutiveErrors": 1
+      }
+    },
+    {
+      "id": "36f2bd4d-d20f-4762-a3a4-4104b073aef0",
+      "name": "isolated delivery target error test",
       "enabled": true,
       "deleteAfterRun": true,
       "createdAtMs": 1765584000000,
@@ -27,7 +87,7 @@
       }
     },
     {
-      "id": "04fc09aa-1aac-4215-9199-a38ab4a37a43",
+      "id": "e10dd286-74eb-44cd-bb71-8ef6db54f461",
       "name": "isolated delivery target error test",
       "enabled": true,
       "deleteAfterRun": true,

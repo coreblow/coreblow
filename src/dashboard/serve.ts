@@ -23,6 +23,9 @@ function getConfig(): {
   agent: { model: string; provider: string };
   channels: Record<string, unknown>;
   sandbox: { enabled: boolean; mode: string };
+  gateway?: { auth?: { token?: string }; host?: string };
+  dashboard?: { requireAuth?: boolean };
+  [key: string]: unknown;
 } {
   try {
     const resolution = findConfigFile();
@@ -60,9 +63,9 @@ export function mountDashboard(app: Application) {
   }
 
   // CoreBlow pattern: auto-enable auth if network-exposed (0.0.0.0)
-  const gatewayAuth = (config as any).gateway?.auth;
-  const gatewayHost = (config as any).gateway?.host ?? '127.0.0.1';
-  const dashRequireAuth = (config as any).dashboard?.requireAuth;
+  const gatewayAuth = config.gateway?.auth;
+  const gatewayHost = config.gateway?.host ?? '127.0.0.1';
+  const dashRequireAuth = config.dashboard?.requireAuth;
   const isNetworkExposed = gatewayHost === '0.0.0.0';
 
   if ((dashRequireAuth || isNetworkExposed) && gatewayAuth?.token) {
@@ -83,7 +86,7 @@ export function mountDashboard(app: Application) {
       agent: { model: c.agent.model, provider: c.agent.provider },
       channels: c.channels,
       features: c.features,
-      sandbox: (c as any).sandbox || { enabled: false, mode: 'disabled' },
+      sandbox: c.sandbox || { enabled: false, mode: 'disabled' },
     });
   });
 

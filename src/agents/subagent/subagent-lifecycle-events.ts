@@ -1,10 +1,10 @@
-export type SubagentLifecycleEndedReason = "complete" | "error" | "killed" | "timeout";
+export type SubagentLifecycleEndedReason = "complete" | "error" | "killed" | "timeout" | "session_reset" | "session_delete";
 export const SUBAGENT_ENDED_REASON_COMPLETE: SubagentLifecycleEndedReason = "complete";
 export const SUBAGENT_ENDED_REASON_ERROR: SubagentLifecycleEndedReason = "error";
 export const SUBAGENT_ENDED_REASON_KILLED: SubagentLifecycleEndedReason = "killed";
 export const SUBAGENT_ENDED_REASON_TIMEOUT: SubagentLifecycleEndedReason = "timeout";
-export const SUBAGENT_ENDED_REASON_SESSION_RESET = 'session_reset' as any;
-export const SUBAGENT_ENDED_REASON_SESSION_DELETE = 'session_delete' as any;
+export const SUBAGENT_ENDED_REASON_SESSION_RESET: SubagentLifecycleEndedReason = 'session_reset';
+export const SUBAGENT_ENDED_REASON_SESSION_DELETE: SubagentLifecycleEndedReason = 'session_delete';
 
 
 export const SUBAGENT_ENDED_OUTCOME_OK = 'ok';

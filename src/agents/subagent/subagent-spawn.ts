@@ -519,10 +519,10 @@ export function validateSpawnParams(params: SpawnSubagentParams): SpawnValidatio
     if (params.agentId && !/^[a-z0-9][a-z0-9_-]{0,63}$/.test(params.agentId)) {
         errors.push('Invalid agentId format');
     }
-    if (params.mode && !SUBAGENT_SPAWN_MODES.includes(params.mode as any)) {
+    if (params.mode && !SUBAGENT_SPAWN_MODES.includes(params.mode as (typeof SUBAGENT_SPAWN_MODES)[number])) {
         errors.push(`Invalid mode: ${params.mode}`);
     }
-    if (params.sandbox && !SUBAGENT_SPAWN_SANDBOX_MODES.includes(params.sandbox as any)) {
+    if (params.sandbox && !SUBAGENT_SPAWN_SANDBOX_MODES.includes(params.sandbox as (typeof SUBAGENT_SPAWN_SANDBOX_MODES)[number])) {
         errors.push(`Invalid sandbox mode: ${params.sandbox}`);
     }
     if (params.mode === 'session' && !params.thread) {
