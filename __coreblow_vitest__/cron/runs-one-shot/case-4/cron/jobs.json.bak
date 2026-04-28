@@ -2,7 +2,7 @@
   "version": 1,
   "jobs": [
     {
-      "id": "85c71782-0d0b-43a8-928c-3a861179ed22",
+      "id": "c818e785-a83f-40ec-a475-951941ac57bd",
       "sessionKey": "agent:main:discord:channel:ops",
       "name": "wakeMode now fallback",
       "enabled": true,

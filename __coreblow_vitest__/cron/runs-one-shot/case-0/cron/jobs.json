@@ -104,6 +104,58 @@
         "lastDeliveryStatus": "not-requested",
         "consecutiveErrors": 0
       }
+    },
+    {
+      "id": "4c1ff462-574f-4478-9040-e372eeba996e",
+      "name": "one-shot hello",
+      "enabled": false,
+      "deleteAfterRun": false,
+      "createdAtMs": 1765584000000,
+      "updatedAtMs": 1765584004000,
+      "schedule": {
+        "kind": "at",
+        "at": "2025-12-13T00:00:02.000Z"
+      },
+      "sessionTarget": "main",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "systemEvent",
+        "text": "hello"
+      },
+      "state": {
+        "lastRunAtMs": 1765584004000,
+        "lastRunStatus": "ok",
+        "lastStatus": "ok",
+        "lastDurationMs": 0,
+        "lastDeliveryStatus": "not-requested",
+        "consecutiveErrors": 0
+      }
+    },
+    {
+      "id": "073b6515-1998-44f3-9725-10214eaff9a5",
+      "name": "one-shot hello",
+      "enabled": false,
+      "deleteAfterRun": false,
+      "createdAtMs": 1765584000000,
+      "updatedAtMs": 1765584004000,
+      "schedule": {
+        "kind": "at",
+        "at": "2025-12-13T00:00:02.000Z"
+      },
+      "sessionTarget": "main",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "systemEvent",
+        "text": "hello"
+      },
+      "state": {
+        "lastRunAtMs": 1765584004000,
+        "lastRunStatus": "ok",
+        "lastStatus": "ok",
+        "lastDurationMs": 0,
+        "lastDeliveryStatus": "not-requested",
+        "consecutiveErrors": 0
+      }
     }
   ]
 }

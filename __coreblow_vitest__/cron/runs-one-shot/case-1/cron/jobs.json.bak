@@ -2,7 +2,7 @@
   "version": 1,
   "jobs": [
     {
-      "id": "b3393b4b-434e-48ef-8fad-ebbe6754cd2c",
+      "id": "a450bccd-88a5-468f-a869-73d3d53b9a51",
       "name": "one-shot delete",
       "enabled": true,
       "deleteAfterRun": true,

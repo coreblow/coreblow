@@ -64,10 +64,10 @@
     {
       "id": "36f2bd4d-d20f-4762-a3a4-4104b073aef0",
       "name": "isolated delivery target error test",
-      "enabled": true,
+      "enabled": false,
       "deleteAfterRun": true,
       "createdAtMs": 1765584000000,
-      "updatedAtMs": 1765584000000,
+      "updatedAtMs": 1765584002000,
       "schedule": {
         "kind": "at",
         "at": "2025-12-13T00:00:01.000Z"
@@ -82,12 +82,77 @@
         "mode": "announce"
       },
       "state": {
-        "nextRunAtMs": 1765584001000,
-        "runningAtMs": 1765584002000
+        "lastRunAtMs": 1765584002000,
+        "lastRunStatus": "error",
+        "lastStatus": "error",
+        "lastDurationMs": 0,
+        "lastError": "Channel is required when multiple channels are configured: telegram, discord",
+        "lastDeliveryStatus": "unknown",
+        "consecutiveErrors": 1
       }
     },
     {
       "id": "e10dd286-74eb-44cd-bb71-8ef6db54f461",
+      "name": "isolated delivery target error test",
+      "enabled": false,
+      "deleteAfterRun": true,
+      "createdAtMs": 1765584000000,
+      "updatedAtMs": 1765584002000,
+      "schedule": {
+        "kind": "at",
+        "at": "2025-12-13T00:00:01.000Z"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "do it"
+      },
+      "delivery": {
+        "mode": "announce"
+      },
+      "state": {
+        "lastRunAtMs": 1765584002000,
+        "lastRunStatus": "error",
+        "lastStatus": "error",
+        "lastDurationMs": 0,
+        "lastError": "Channel is required when multiple channels are configured: telegram, discord",
+        "lastDeliveryStatus": "unknown",
+        "consecutiveErrors": 1
+      }
+    },
+    {
+      "id": "de21fcb5-ae24-48b8-bc04-c8be23f575fe",
+      "name": "isolated delivery target error test",
+      "enabled": false,
+      "deleteAfterRun": true,
+      "createdAtMs": 1765584000000,
+      "updatedAtMs": 1765584002000,
+      "schedule": {
+        "kind": "at",
+        "at": "2025-12-13T00:00:01.000Z"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "do it"
+      },
+      "delivery": {
+        "mode": "announce"
+      },
+      "state": {
+        "lastRunAtMs": 1765584002000,
+        "lastRunStatus": "error",
+        "lastStatus": "error",
+        "lastDurationMs": 0,
+        "lastError": "Channel is required when multiple channels are configured: telegram, discord",
+        "lastDeliveryStatus": "unknown",
+        "consecutiveErrors": 1
+      }
+    },
+    {
+      "id": "8f94674d-4c7b-468a-9d52-94f9d70e08f7",
       "name": "isolated delivery target error test",
       "enabled": true,
       "deleteAfterRun": true,
