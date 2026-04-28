@@ -3,24 +3,26 @@
 /**
  * CoreBlow — CLI Launcher
  *
- * Entry-point wrapper that imports the compiled CLI from dist/.
- * CoreBlow CLI launcher — spawns tsx with the entry module
- * consolidated source tree architecture:
+ * Spawns tsx to run the TypeScript entry point directly from src/.
+ * CoreBlow ships source .ts files and runs them via tsx at runtime.
+ * No build step / dist/ directory is required.
  *
  * 1. Check Node.js version (22.12+ required)
  * 2. Enable compile cache (Node.js 22.1+)
- * 3. Install process warning filter
- * 4. Try to import dist/entry.js (compiled output)
- * 5. If dist/ is missing, provide helpful build instructions
+ * 3. Spawn tsx with src/entry.ts, forwarding all arguments
  *
  * This file is the published CLI binary (`bin.coreblow` in package.json).
  * It must remain a plain .mjs file — no TypeScript, no build step.
  */
 
-import { readFileSync } from "node:fs";
-import { access } from "node:fs/promises";
+import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 import module from "node:module";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const MIN_NODE_MAJOR = 22;
 const MIN_NODE_MINOR = 12;
@@ -68,127 +70,83 @@ if (module.enableCompileCache && !process.env.NODE_DISABLE_COMPILE_CACHE) {
     }
 }
 
-// ─── Module Resolution Helpers ───────────────────────────────────
+// ─── Resolve Entry & tsx ─────────────────────────────────────────
 
-const isModuleNotFoundError = (err) =>
-    err && typeof err === "object" && "code" in err && err.code === "ERR_MODULE_NOT_FOUND";
+const entryFile = resolve(__dirname, "src", "entry.ts");
 
-const isDirectModuleNotFoundError = (err, specifier) => {
-    if (!isModuleNotFoundError(err)) {
-        return false;
-    }
-
-    const expectedUrl = new URL(specifier, import.meta.url);
-    if ("url" in err && err.url === expectedUrl.href) {
-        return true;
-    }
-
-    const message = "message" in err && typeof err.message === "string" ? err.message : "";
-    const expectedPath = fileURLToPath(expectedUrl);
-    return (
-        message.includes(`Cannot find module '${expectedPath}'`) ||
-        message.includes(`Cannot find module "${expectedPath}"`)
+if (!existsSync(entryFile)) {
+    process.stderr.write(
+        "coreblow: src/entry.ts not found.\n" +
+        "This install appears to be incomplete.\n" +
+        "Reinstall with: pnpm install\n",
     );
-};
+    process.exit(1);
+}
 
-// ─── Warning Filter ─────────────────────────────────────────────
+const userArgs = process.argv.slice(2);
 
-const installProcessWarningFilter = async () => {
-    // Suppress noisy Node.js deprecation/experimental warnings at startup.
-    for (const specifier of ["./dist/infra/warning-filter.js", "./dist/infra/warning-filter.mjs"]) {
-        try {
-            const mod = await import(specifier);
-            if (typeof mod.installProcessWarningFilter === "function") {
-                mod.installProcessWarningFilter();
-                return;
-            }
-        } catch (err) {
-            if (isDirectModuleNotFoundError(err, specifier)) {
-                continue;
-            }
-            // Swallow non-critical errors — warning filter is optional
+// Strategy 1: local node_modules/.bin/tsx
+const tsxBin = join(__dirname, "node_modules", ".bin", "tsx");
+
+if (existsSync(tsxBin)) {
+    const child = spawn(tsxBin, [entryFile, ...userArgs], {
+        stdio: "inherit",
+        env: process.env,
+        cwd: process.cwd(),
+    });
+
+    child.on("error", (err) => {
+        process.stderr.write(`coreblow: failed to spawn tsx: ${err.message}\n`);
+        process.exit(1);
+    });
+
+    child.on("exit", (code, signal) => {
+        if (signal) {
+            process.kill(process.pid, signal);
+        } else {
+            process.exit(code ?? 1);
         }
-    }
-};
-
-// ─── Import Entry ────────────────────────────────────────────────
-
-const tryImport = async (specifier) => {
-    try {
-        await import(specifier);
-        return true;
-    } catch (err) {
-        // Only swallow direct entry misses; rethrow transitive resolution failures.
-        if (isDirectModuleNotFoundError(err, specifier)) {
-            return false;
-        }
-        throw err;
-    }
-};
-
-const exists = async (specifier) => {
-    try {
-        await access(new URL(specifier, import.meta.url));
-        return true;
-    } catch {
-        return false;
-    }
-};
-
-const buildMissingEntryErrorMessage = async () => {
-    const lines = ["coreblow: missing dist/entry.js (build output)."];
-    if (!(await exists("./src/entry.ts"))) {
-        return lines.join("\n");
-    }
-
-    lines.push("This install looks like an unbuilt source tree or GitHub source archive.");
-    lines.push(
-        "Build locally with `pnpm install && pnpm build`, or install a built package instead.",
-    );
-    lines.push("For releases, use `npm install -g coreblow@latest`.");
-    return lines.join("\n");
-};
-
-// ─── Fast-path Helpers ───────────────────────────────────────────
-
-const isBareRootHelpInvocation = (argv) =>
-    argv.length === 3 && (argv[2] === "--help" || argv[2] === "-h");
-
-const loadPrecomputedRootHelpText = () => {
-    try {
-        const raw = readFileSync(new URL("./dist/cli-startup-metadata.json", import.meta.url), "utf8");
-        const parsed = JSON.parse(raw);
-        return typeof parsed?.rootHelpText === "string" && parsed.rootHelpText.length > 0
-            ? parsed.rootHelpText
-            : null;
-    } catch {
-        return null;
-    }
-};
-
-const tryOutputBareRootHelp = async () => {
-    if (!isBareRootHelpInvocation(process.argv)) {
-        return false;
-    }
-    const precomputed = loadPrecomputedRootHelpText();
-    if (precomputed) {
-        process.stdout.write(precomputed);
-        return true;
-    }
-    return false;
-};
-
-// ─── Launch ──────────────────────────────────────────────────────
-
-if (await tryOutputBareRootHelp()) {
-    // OK — fast-path help text already printed
+    });
 } else {
-    await installProcessWarningFilter();
-    if (await tryImport("./dist/entry.js")) {
-        // OK — primary entry point loaded
-    } else if (await tryImport("./dist/entry.mjs")) {
-        // OK — alternative ESM entry loaded
+    // Strategy 2: try node --import tsx/esm (works when tsx is resolvable)
+    let tsxResolvable = false;
+    try {
+        import.meta.resolve("tsx/esm");
+        tsxResolvable = true;
+    } catch {
+        // tsx/esm not resolvable
+    }
+
+    if (tsxResolvable) {
+        const child = spawn(process.execPath, ["--import", "tsx/esm", entryFile, ...userArgs], {
+            stdio: "inherit",
+            env: process.env,
+            cwd: process.cwd(),
+        });
+
+        child.on("error", (err) => {
+            process.stderr.write(`coreblow: failed to spawn node with tsx: ${err.message}\n`);
+            process.exit(1);
+        });
+
+        child.on("exit", (code, signal) => {
+            if (signal) {
+                process.kill(process.pid, signal);
+            } else {
+                process.exit(code ?? 1);
+            }
+        });
     } else {
-        throw new Error(await buildMissingEntryErrorMessage());
+        process.stderr.write(
+            "coreblow: tsx not found.\n" +
+            "tsx is required to run CoreBlow from source.\n" +
+            "\n" +
+            "Install it with:\n" +
+            "  pnpm install\n" +
+            "\n" +
+            "Or install tsx globally:\n" +
+            "  npm install -g tsx\n",
+        );
+        process.exit(1);
     }
 }
