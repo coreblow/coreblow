@@ -2,7 +2,7 @@
 
 **Created:** 2026-04-25 | **Updated:** 2026-04-26
 **Prerequisites completed:** SDK v0.70.2 upgrade ✅ | 621 test errors → 0 ✅ | Branding 100% ✅
-**Track 1:** ✅ DONE | **Track 2:** ✅ DONE | **Track 3:** ✅ DONE | **Track 4:** ✅ DONE (Revised) | **Track 5:** ✅ DONE | **Sprint 6:** ✅ DONE | **Sprint 7:** ✅ DONE | **Sprint 8:** ✅ DONE | **Sprint 13:** ✅ DONE
+**Track 1:** ✅ DONE | **Track 2:** ✅ DONE | **Track 3:** ✅ DONE | **Track 4:** ✅ DONE (Revised) | **Track 5:** ✅ DONE | **Sprint 6:** ✅ DONE | **Sprint 7:** ✅ DONE | **Sprint 8:** ✅ DONE | **Sprint 13:** ✅ DONE | **Sprint 14:** ✅ DONE
 
 ---
 
@@ -380,6 +380,33 @@ Action: Address in Sprint 15 (publish preparation)
 
 ### Effort: Completed in 1 hour
 
+## Sprint 14: 🔒 Eliminate Source `as any` Casts — ✅ DONE
+
+> **Goal:** Remove all 24 `as any` casts from source files (excluding tests/`.d.ts`)
+
+### Root Cause
+24 explicit `as any` escape hatches grandfathered in during Sprint 1–12.
+Each bypassed the type checker at a critical boundary — tool execution,
+config access, SDK bridges, error handling, and test fixtures.
+
+### Fix Applied (14 files)
+- **Type union widening:** `SubagentLifecycleEndedReason` extended with `session_reset` | `session_delete`
+- **Return type widening:** `getConfig()` now includes `gateway?`, `dashboard?` fields
+- **Error guards:** `instanceof Error` replaces `(err as any)?.message`
+- **Bounded casts:** `Record<string, unknown>` for 5 files (gateway, auto-reply, dashboard)
+- **SDK bridges:** `as unknown as ClientOptions[...]` for ws TLS; `Record<string, unknown>` for pino
+- **Generic rewrite:** `debounce`/`throttle` with `Parameters<T>`
+- **Test fixtures:** `as unknown` for loose shapes
+
+### Result
+| Metric | Before | After |
+|--------|--------|-------|
+| Source `as any` | 24 | **0** |
+| TSC errors | 0 | 0 |
+| New test regressions | 0 | 0 |
+
+### Effort: Completed in 1 hour
+
 ## 📋 Execution Order & Dependencies
 
 ```mermaid
@@ -413,8 +440,9 @@ graph TD
 | **Sprint 7** | hooks.ts any cleanup | 1 day | ✅ **DONE** |
 | **Sprint 8** | @ts-nocheck source Phase 1 | 1 day | ✅ **DONE** |
 | **Sprint 13** | Restore ProviderDispatcher class | 1 hour | ✅ **DONE** |
+| **Sprint 14** | Eliminate source `as any` casts | 1 hour | ✅ **DONE** |
 
-**Pre-publish: Sprint 13 ✅ | Sprint 14-15 remaining**
+**Pre-publish: Sprint 13 ✅ | Sprint 14 ✅ | Sprint 15 remaining**
 
 ---
 
@@ -428,6 +456,7 @@ graph TD
 | `@ts-nocheck` (test files) | 162 | **162** | TBD | ⬜ Upstream debt, separate workstream |
 | `@ts-nocheck` (plugins/ source) | 11 | **0** | 0 | ✅ DONE (Sprint 6) |
 | Source `any` (3 modules) | 60 | **20** | <10 | ✅ −40 |
+| Source `as any` casts | 24 | **0** | 0 | ✅ DONE (Sprint 14) |
 | `channels/` `any` | 36 | **0** | 0 | ✅ OC parity |
 | `gateway/` `any` | 9 | **5** | 5 | ✅ OC parity |
 | Dead code removed | 0 | **688 lines** | — | ✅ |
@@ -474,5 +503,6 @@ graph TD
 | `ab6445b2b` | `fix/sprint8-tier1` | Sprint 8 Phase B batch 2: 18 single-error non-TS2305 files |
 | `b13f68143` | `fix/sprint8-tier1` | Sprint 8 Phase B batch 3: 5 two-error files |
 | `75f9e75cf` | `fix/sprint13-provider-dispatcher` | Sprint 13: restore ProviderDispatcher class |
+| `79d061ce8` | `fix/sprint14-any-cleanup` | Sprint 14: eliminate 24 source `as any` casts |
 
 All branches merged to `main` via `--no-ff`.
