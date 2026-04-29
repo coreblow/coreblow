@@ -40,4 +40,3 @@ describe("seam: channels → commands (28 imports)", () => {
     expect(typeof mod_plugins_setup_helpers).toBe("object");
   });
 });
-

@@ -40,4 +40,3 @@ describe("seam: infra → agents (88 imports)", () => {
     expect(typeof mod_brew).toBe("object");
   });
 });
-

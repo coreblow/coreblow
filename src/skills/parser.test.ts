@@ -110,7 +110,7 @@ name: trim-test
 description: test
 ---
 
-  lots of whitespace body  
+  lots of whitespace body
 
 `;
         const result = parseSkillContent(content)!;

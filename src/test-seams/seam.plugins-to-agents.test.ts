@@ -40,4 +40,3 @@ describe("seam: plugins → agents (43 imports)", () => {
     expect(typeof mod_hook_runner_global).toBe("object");
   });
 });
-

@@ -40,4 +40,3 @@ describe("seam: config → infra (58 imports)", () => {
     expect(typeof mod_sessions_paths).toBe("object");
   });
 });
-

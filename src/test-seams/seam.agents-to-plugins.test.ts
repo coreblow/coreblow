@@ -40,4 +40,3 @@ describe("seam: agents → plugins (44 imports)", () => {
     expect(typeof mod_auth_profiles_types).toBe("object");
   });
 });
-

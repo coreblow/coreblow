@@ -40,4 +40,3 @@ describe("seam: plugins → gateway (37 imports)", () => {
     expect(typeof mod_manifest_registry).toBe("object");
   });
 });
-

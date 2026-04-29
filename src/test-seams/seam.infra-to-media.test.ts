@@ -40,4 +40,3 @@ describe("seam: infra → media (17 imports)", () => {
     expect(typeof mod_ports).toBe("object");
   });
 });
-

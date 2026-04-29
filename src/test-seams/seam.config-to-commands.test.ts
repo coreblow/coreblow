@@ -40,4 +40,3 @@ describe("seam: config → commands (154 imports)", () => {
     expect(typeof mod_legacy_web_search).toBe("object");
   });
 });
-

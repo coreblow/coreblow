@@ -40,4 +40,3 @@ describe("seam: infra → config (20 imports)", () => {
     expect(typeof mod_exec_safety).toBe("object");
   });
 });
-

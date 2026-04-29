@@ -40,4 +40,3 @@ describe("seam: infra → gateway (92 imports)", () => {
     expect(typeof mod_control_ui_assets).toBe("object");
   });
 });
-

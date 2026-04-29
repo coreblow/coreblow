@@ -40,4 +40,3 @@ describe("seam: agents → gateway (76 imports)", () => {
     expect(typeof mod_context).toBe("object");
   });
 });
-

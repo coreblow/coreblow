@@ -40,4 +40,3 @@ describe("seam: config → gateway (111 imports)", () => {
     expect(typeof mod_io).toBe("object");
   });
 });
-

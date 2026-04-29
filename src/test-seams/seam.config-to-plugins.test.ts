@@ -40,4 +40,3 @@ describe("seam: config → plugins (83 imports)", () => {
     expect(typeof mod_paths).toBe("object");
   });
 });
-

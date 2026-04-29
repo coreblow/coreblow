@@ -40,4 +40,3 @@ describe("seam: config → agents (138 imports)", () => {
     expect(typeof mod_merge_patch).toBe("object");
   });
 });
-

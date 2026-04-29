@@ -40,4 +40,3 @@ describe("seam: agents → secrets (20 imports)", () => {
     expect(typeof mod_model_auth_markers).toBe("object");
   });
 });
-

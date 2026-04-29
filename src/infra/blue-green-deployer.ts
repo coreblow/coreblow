@@ -105,4 +105,3 @@ export class BlueGreenDeployer {
      */
     getHistory(): typeof this.history { return [...this.history]; }
 }
-

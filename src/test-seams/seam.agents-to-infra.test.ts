@@ -40,4 +40,3 @@ describe("seam: agents → infra (19 imports)", () => {
     expect(typeof mod_model_auth).toBe("object");
   });
 });
-

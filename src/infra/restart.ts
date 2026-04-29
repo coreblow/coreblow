@@ -558,4 +558,3 @@ const { getInstance: getRestartService, __testing: __testing_restart } =
   createStandaloneSingleton({ create: () => new RestartService(), defaultDeps: {} });
 
 export { getRestartService, __testing_restart };
-

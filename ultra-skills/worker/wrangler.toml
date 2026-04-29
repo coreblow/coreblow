@@ -5,7 +5,7 @@ compatibility_date = "2024-01-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "ultra-skills-db"
-database_id = "5acf1e08-1366-4299-bd80-bdb6c336dcc9"
+database_id = "4a51f7db-daca-45a7-a39c-de1fcbe2076d"
 
 # R2 Storage (enable in Cloudflare Dashboard first, then uncomment)
 # [[r2_buckets]]

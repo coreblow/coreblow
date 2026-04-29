@@ -40,4 +40,3 @@ describe("seam: infra → commands (69 imports)", () => {
     expect(typeof mod_clipboard).toBe("object");
   });
 });
-

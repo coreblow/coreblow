@@ -40,4 +40,3 @@ describe("seam: auto-reply → agents (30 imports)", () => {
     expect(typeof mod_reply_streaming_directives).toBe("object");
   });
 });
-

@@ -40,4 +40,3 @@ describe("seam: plugins → commands (40 imports)", () => {
     expect(typeof mod_provider_auth_choice_helpers).toBe("object");
   });
 });
-

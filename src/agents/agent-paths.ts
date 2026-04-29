@@ -22,4 +22,3 @@ export function ensureCoreBlowAgentEnv(): string {
   }
   return dir;
 }
-

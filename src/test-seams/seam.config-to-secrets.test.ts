@@ -40,4 +40,3 @@ describe("seam: config → secrets (38 imports)", () => {
     expect(typeof mod_zod_schema_core).toBe("object");
   });
 });
-

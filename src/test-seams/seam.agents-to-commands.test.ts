@@ -40,4 +40,3 @@ describe("seam: agents → commands (72 imports)", () => {
     expect(typeof mod_auth_profiles_paths).toBe("object");
   });
 });
-
