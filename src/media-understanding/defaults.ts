@@ -4,6 +4,23 @@
  * Ported from CoreBlow reference src/media-understanding/defaults.ts.
  */
 
+/** Maximum file size for media analysis (20 MB). */
+export const DEFAULT_MAX_BYTES = 20 * 1024 * 1024;
+
+/** Maximum character limits for text extraction by capability. */
+export const DEFAULT_MAX_CHARS_BY_CAPABILITY: Record<string, number> = {
+  image: 50_000,
+  audio: 100_000,
+  video: 100_000,
+  document: 200_000,
+};
+
+/** Number of concurrent media analysis operations. */
+export const DEFAULT_MEDIA_CONCURRENCY = 3;
+
+/** Default prompt for generic media analysis. */
+export const DEFAULT_PROMPT = "Describe the contents of this media.";
+
 export const DEFAULT_IMAGE_PROMPT = 'Describe this image in detail. Include all visible text, important visual elements, colors, and layout.';
 export const DEFAULT_AUDIO_PROMPT = 'Transcribe this audio. Include timestamps if available.';
 export const DEFAULT_VIDEO_PROMPT = 'Describe the contents of this video, including visual elements, audio, and key events.';
