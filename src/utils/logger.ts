@@ -5,7 +5,7 @@
  */
 
 import { pino } from 'pino';
-import type { Logger as PinoLogger } from 'pino';
+import type { Logger as PinoLogger, TransportSingleOptions } from 'pino';
 
 // ─── Configuration ────────────────────────────────────────────────
 
@@ -94,7 +94,7 @@ export const logger: PinoLogger = pino({
         ...(process.env.COREBLOW_INSTANCE_ID ? { instance: process.env.COREBLOW_INSTANCE_ID } : {}),
     },
     timestamp: () => `,"time":"${new Date().toISOString()}"`,
-    transport: transportConfig as Record<string, unknown> | undefined, // pino transport overload accepts this shape
+    transport: transportConfig as unknown as TransportSingleOptions | undefined,
 });
 
 // ─── Module Logger Factory ────────────────────────────────────────

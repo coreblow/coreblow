@@ -17,7 +17,7 @@ import {
   mergeAlsoAllowPolicy,
   resolveToolProfilePolicy,
 } from "../agents/tool-policy.js";
-import { ToolInputError } from "../agents/tools/common.js";
+import { ToolInputError, type AnyAgentTool } from "../agents/tools/common.js";
 import { loadConfig } from "../config/config.js";
 import { resolveMainSessionKey } from "../config/sessions.js";
 import { logWarn } from "../logger.js";
@@ -272,9 +272,8 @@ export async function handleToolsInvokeHttpRequest(
   });
 
   const subagentFiltered = applyToolPolicyPipeline({
-    // oxlint-disable-next-line typescript/no-explicit-any
-    tools: allTools as unknown[],
-    toolMeta: (tool) => getPluginToolMeta(tool as Record<string, unknown>),
+    tools: allTools as unknown as AnyAgentTool[],
+    toolMeta: (tool) => getPluginToolMeta(tool),
     warn: logWarn,
     steps: [
       ...buildDefaultToolPolicyPipelineSteps({
@@ -318,7 +317,7 @@ export async function handleToolsInvokeHttpRequest(
   try {
     const toolCallId = `http-${Date.now()}`;
     const toolArgs = mergeActionIntoArgsIfSupported({
-      toolSchema: (tool as Record<string, unknown>).parameters,
+      toolSchema: (tool as unknown as Record<string, unknown>).parameters,
       action,
       args,
     });
@@ -339,7 +338,7 @@ export async function handleToolsInvokeHttpRequest(
       });
       return true;
     }
-    const result = await (tool as unknown as { execute?: (id: string, params: Record<string, unknown>) => Promise<unknown> }).execute?.(toolCallId, hookResult.params);
+    const result = await (tool as unknown as { execute?: (id: string, params: Record<string, unknown>) => Promise<unknown> }).execute?.(toolCallId, hookResult.params as Record<string, unknown>);
     sendJson(res, 200, { ok: true, result });
   } catch (err) {
     const inputStatus = resolveToolInputErrorStatus(err);
