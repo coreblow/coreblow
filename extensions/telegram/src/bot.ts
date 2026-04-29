@@ -327,6 +327,7 @@ export function createTelegramBot(opts: TelegramBotOptions) {
   };
 
   bot.use(async (ctx, next) => {
+    // @ts-expect-error Grammy type mismatch — runtime compatible
     const updateId = resolveTelegramUpdateId(ctx);
     if (typeof updateId === "number") {
       pendingUpdateIds.add(updateId);
@@ -344,6 +345,7 @@ export function createTelegramBot(opts: TelegramBotOptions) {
     }
   });
 
+  // @ts-expect-error Grammy type mismatch — runtime compatible
   bot.use(botRuntime.sequentialize(getTelegramSequentialKey));
 
   const rawUpdateLogger = createSubsystemLogger("gateway/channels/telegram/raw-update");

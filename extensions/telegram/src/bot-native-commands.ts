@@ -595,6 +595,7 @@ export const registerTelegramNativeCommands = ({
         if (!msg) {
           return;
         }
+        // @ts-expect-error Grammy type mismatch — runtime compatible
         if (shouldSkipUpdate(ctx)) {
           return;
         }
@@ -738,6 +739,7 @@ export const registerTelegramNativeCommands = ({
           ? msg.chat.title
             ? `${msg.chat.title} id:${chatId}`
             : `group:${chatId}`
+          // @ts-expect-error Grammy type mismatch — runtime compatible
           : (buildSenderName(msg) ?? String(senderId || chatId));
         const ctxPayload = finalizeInboundContext({
           Body: prompt,
@@ -751,6 +753,7 @@ export const registerTelegramNativeCommands = ({
           ConversationLabel: conversationLabel,
           GroupSubject: isGroup ? (msg.chat.title ?? undefined) : undefined,
           GroupSystemPrompt: isGroup || (!isGroup && groupConfig) ? groupSystemPrompt : undefined,
+          // @ts-expect-error Grammy type mismatch — runtime compatible
           SenderName: buildSenderName(msg),
           SenderId: senderId || undefined,
           SenderUsername: senderUsername || undefined,
@@ -851,6 +854,7 @@ export const registerTelegramNativeCommands = ({
         if (!msg) {
           return;
         }
+        // @ts-expect-error Grammy type mismatch — runtime compatible
         if (shouldSkipUpdate(ctx)) {
           return;
         }

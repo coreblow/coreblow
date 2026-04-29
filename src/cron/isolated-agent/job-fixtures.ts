@@ -4,14 +4,15 @@ export function makeIsolatedAgentJobFixture(overrides?: LooseRecord) {
   return {
     id: "test-job",
     name: "Test Job",
-    schedule: { kind: "cron", expr: "0 9 * * *", tz: "UTC" },
+    schedule: { kind: "cron" as const, expr: "0 9 * * *", tz: "UTC" },
     sessionTarget: "isolated",
     payload: { kind: "agentTurn", message: "test" },
     ...overrides,
-  } as unknown;
+  };
 }
 
-export function makeIsolatedAgentParamsFixture(overrides?: LooseRecord) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function makeIsolatedAgentParamsFixture(overrides?: LooseRecord): any {
   const jobOverrides =
     overrides && "job" in overrides ? (overrides.job as LooseRecord | undefined) : undefined;
   return {

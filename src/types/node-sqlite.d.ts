@@ -9,6 +9,7 @@ declare module "node:sqlite" {
     readOnly?: boolean;
     enableForeignKeys?: boolean;
     enableDoubleQuotedStringLiterals?: boolean;
+    allowExtension?: boolean;
   }
 
   export interface StatementResultingChanges {
