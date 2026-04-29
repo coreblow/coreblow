@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveDiscordRuntimeGroupPolicy } from "../../../plugin-sdk/discord-surface.js";
-import { resolveIMessageRuntimeGroupPolicy } from "../../../plugin-sdk/imessage-policy.js";
+import { resolveOpenProviderRuntimeGroupPolicy } from "../../../config/runtime-group-policy.js";
 import { resolveSlackRuntimeGroupPolicy } from "../../../plugin-sdk/slack-surface.js";
 import { resolveTelegramRuntimeGroupPolicy } from "../../../plugin-sdk/telegram-runtime-surface.js";
 import { whatsappAccessControlTesting } from "../../../plugin-sdk/whatsapp-surface.js";
@@ -9,6 +8,11 @@ import {
   resolveZaloRuntimeGroupPolicy,
 } from "../../../plugin-sdk/zalo.js";
 import { installChannelRuntimeGroupPolicyFallbackSuite } from "./suites.js";
+
+// Discord and iMessage both alias resolveOpenProviderRuntimeGroupPolicy.
+// Import directly to avoid circular dep through extension API chains.
+const resolveDiscordRuntimeGroupPolicy = resolveOpenProviderRuntimeGroupPolicy;
+const resolveIMessageRuntimeGroupPolicy = resolveOpenProviderRuntimeGroupPolicy;
 
 describe("channel runtime group policy contract", () => {
   type ResolvedGroupPolicy = ReturnType<typeof resolveDiscordRuntimeGroupPolicy>;
