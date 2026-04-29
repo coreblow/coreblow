@@ -330,3 +330,23 @@ export const whatsappPlugin: ChannelPlugin<ResolvedWhatsAppAccount> =
       },
     },
   });
+
+/**
+ * Channel implementation used by whatsapp runtime for per-channel state.
+ */
+export class WhatsappChannelImpl {
+  readonly id: string;
+  private connected = false;
+
+  constructor(id: string) {
+    this.id = id;
+  }
+
+  async disconnect(): Promise<void> {
+    this.connected = false;
+  }
+
+  isConnected(): boolean {
+    return this.connected;
+  }
+}

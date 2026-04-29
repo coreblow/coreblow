@@ -355,3 +355,23 @@ export const ircPlugin: ChannelPlugin<ResolvedIrcAccount, IrcProbe> = createChat
     },
   },
 });
+
+/**
+ * Channel implementation used by irc runtime for per-channel state.
+ */
+export class IrcChannelImpl {
+  readonly id: string;
+  private connected = false;
+
+  constructor(id: string) {
+    this.id = id;
+  }
+
+  async disconnect(): Promise<void> {
+    this.connected = false;
+  }
+
+  isConnected(): boolean {
+    return this.connected;
+  }
+}

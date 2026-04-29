@@ -363,3 +363,23 @@ export const signalPlugin: ChannelPlugin<ResolvedSignalAccount, SignalProbe> =
       },
     },
   });
+
+/**
+ * Channel implementation used by signal runtime for per-channel state.
+ */
+export class SignalChannelImpl {
+  readonly id: string;
+  private connected = false;
+
+  constructor(id: string) {
+    this.id = id;
+  }
+
+  async disconnect(): Promise<void> {
+    this.connected = false;
+  }
+
+  isConnected(): boolean {
+    return this.connected;
+  }
+}

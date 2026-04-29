@@ -951,3 +951,23 @@ export const msteamsPlugin: ChannelPlugin<ResolvedMSTeamsAccount, ProbeMSTeamsRe
       }),
     },
   });
+
+/**
+ * Channel implementation used by msteams runtime for per-channel state.
+ */
+export class MsteamsChannelImpl {
+  readonly id: string;
+  private connected = false;
+
+  constructor(id: string) {
+    this.id = id;
+  }
+
+  async disconnect(): Promise<void> {
+    this.connected = false;
+  }
+
+  isConnected(): boolean {
+    return this.connected;
+  }
+}

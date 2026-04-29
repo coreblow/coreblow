@@ -44,3 +44,8 @@ export class ZalouserRuntime {
     return { handled: true, extension: this.extension.name };
   }
 }
+
+// Runtime setter for index.ts
+export function setZalouserRuntime(runtime: any): void {
+  // Placeholder — called by extension index to wire runtime
+}

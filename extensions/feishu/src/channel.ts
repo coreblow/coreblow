@@ -1184,3 +1184,23 @@ export const feishuPlugin: ChannelPlugin<ResolvedFeishuAccount, FeishuProbeResul
       }),
     },
   });
+
+/**
+ * Channel implementation used by feishu runtime for per-channel state.
+ */
+export class FeishuChannelImpl {
+  readonly id: string;
+  private connected = false;
+
+  constructor(id: string) {
+    this.id = id;
+  }
+
+  async disconnect(): Promise<void> {
+    this.connected = false;
+  }
+
+  isConnected(): boolean {
+    return this.connected;
+  }
+}

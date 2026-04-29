@@ -482,3 +482,23 @@ export const mattermostPlugin: ChannelPlugin<ResolvedMattermostAccount> = create
     },
   },
 });
+
+/**
+ * Channel implementation used by mattermost runtime for per-channel state.
+ */
+export class MattermostChannelImpl {
+  readonly id: string;
+  private connected = false;
+
+  constructor(id: string) {
+    this.id = id;
+  }
+
+  async disconnect(): Promise<void> {
+    this.connected = false;
+  }
+
+  isConnected(): boolean {
+    return this.connected;
+  }
+}

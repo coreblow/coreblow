@@ -522,3 +522,23 @@ export const linePlugin: ChannelPlugin<ResolvedLineAccount> = createChatChannelP
     }),
   },
 });
+
+/**
+ * Channel implementation used by line runtime for per-channel state.
+ */
+export class LineChannelImpl {
+  readonly id: string;
+  private connected = false;
+
+  constructor(id: string) {
+    this.id = id;
+  }
+
+  async disconnect(): Promise<void> {
+    this.connected = false;
+  }
+
+  isConnected(): boolean {
+    return this.connected;
+  }
+}

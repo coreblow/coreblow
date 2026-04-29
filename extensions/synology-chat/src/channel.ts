@@ -349,3 +349,23 @@ export function createSynologyChatPlugin(): SynologyChatPlugin {
 }
 
 export const synologyChatPlugin = createSynologyChatPlugin();
+
+/**
+ * Channel implementation used by synology-chat runtime for per-channel state.
+ */
+export class SynologyChatChannelImpl {
+  readonly id: string;
+  private connected = false;
+
+  constructor(id: string) {
+    this.id = id;
+  }
+
+  async disconnect(): Promise<void> {
+    this.connected = false;
+  }
+
+  isConnected(): boolean {
+    return this.connected;
+  }
+}

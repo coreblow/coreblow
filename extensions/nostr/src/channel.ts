@@ -501,3 +501,23 @@ export async function getNostrProfileState(accountId: string = DEFAULT_ACCOUNT_I
   }
   return bus.getProfileState();
 }
+
+/**
+ * Channel implementation used by nostr runtime for per-channel state.
+ */
+export class NostrChannelImpl {
+  readonly id: string;
+  private connected = false;
+
+  constructor(id: string) {
+    this.id = id;
+  }
+
+  async disconnect(): Promise<void> {
+    this.connected = false;
+  }
+
+  isConnected(): boolean {
+    return this.connected;
+  }
+}

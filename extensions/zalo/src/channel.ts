@@ -261,3 +261,23 @@ export const zaloPlugin: ChannelPlugin<ResolvedZaloAccount, ZaloProbeResult> =
       ...zaloRawSendResultAdapter,
     },
   });
+
+/**
+ * Channel implementation used by zalo runtime for per-channel state.
+ */
+export class ZaloChannelImpl {
+  readonly id: string;
+  private connected = false;
+
+  constructor(id: string) {
+    this.id = id;
+  }
+
+  async disconnect(): Promise<void> {
+    this.connected = false;
+  }
+
+  isConnected(): boolean {
+    return this.connected;
+  }
+}

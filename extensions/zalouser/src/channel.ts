@@ -525,3 +525,23 @@ export const zalouserPlugin: ChannelPlugin<ResolvedZalouserAccount, ZalouserProb
   });
 
 export type { ResolvedZalouserAccount };
+
+/**
+ * Channel implementation used by zalouser runtime for per-channel state.
+ */
+export class ZalouserChannelImpl {
+  readonly id: string;
+  private connected = false;
+
+  constructor(id: string) {
+    this.id = id;
+  }
+
+  async disconnect(): Promise<void> {
+    this.connected = false;
+  }
+
+  isConnected(): boolean {
+    return this.connected;
+  }
+}
