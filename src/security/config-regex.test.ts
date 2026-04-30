@@ -3,8 +3,8 @@ import { describe, it, expect, vi } from 'vitest';
 vi.mock('./safe-regex.js', () => ({
     compileSafeRegexDetailed: (source: string, flags: string) => {
         if (source === '') return { regex: null, source, flags, reason: 'empty' as const };
-        if (source === '[invalid') return { regex: null, source, flags, reason: 'syntax' as const };
-        if (source === '(a+)+$') return { regex: null, source, flags, reason: 'unsafe' as const };
+        if (source === '[invalid') return { regex: null, source, flags, reason: 'invalid-regex' as const };
+        if (source === '(a+)+$') return { regex: null, source, flags, reason: 'unsafe-nested-repetition' as const };
         return { regex: new RegExp(source, flags), source, flags, reason: null };
     },
 }));
@@ -29,14 +29,14 @@ describe('compileConfigRegex', () => {
         const result = compileConfigRegex('[invalid');
         expect(result).not.toBeNull();
         expect(result!.regex).toBeNull();
-        expect(result!.reason).toBe('syntax');
+        expect(result!.reason).toBe('invalid-regex');
     });
 
     it('should return rejected result for unsafe regex', () => {
         const result = compileConfigRegex('(a+)+$');
         expect(result).not.toBeNull();
         expect(result!.regex).toBeNull();
-        expect(result!.reason).toBe('unsafe');
+        expect(result!.reason).toBe('unsafe-nested-repetition');
     });
 
     it('should default to empty flags', () => {
@@ -62,8 +62,8 @@ describe('compileConfigRegexes', () => {
         const { regexes, rejected } = compileConfigRegexes(['foo', '[invalid', '(a+)+$']);
         expect(regexes).toHaveLength(1);
         expect(rejected).toHaveLength(2);
-        expect(rejected[0].reason).toBe('syntax');
-        expect(rejected[1].reason).toBe('unsafe');
+        expect(rejected[0].reason).toBe('invalid-regex');
+        expect(rejected[1].reason).toBe('unsafe-nested-repetition');
     });
 
     it('should pass flags to all patterns', () => {

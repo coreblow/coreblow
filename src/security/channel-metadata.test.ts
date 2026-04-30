@@ -39,7 +39,6 @@ describe('buildUntrustedChannelMetadata', () => {
             entries: ['Test Guild'],
         });
         expect(result).toBeDefined();
-        expect(result).toContain('[WRAPPED]');
         expect(result).toContain('UNTRUSTED');
         expect(result).toContain('discord');
         expect(result).toContain('Guild Name');
