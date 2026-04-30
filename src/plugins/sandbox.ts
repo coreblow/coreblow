@@ -59,7 +59,7 @@ export class PluginSandbox {
     static fromManifest(manifest: PluginManifest): PluginSandbox {
         return new PluginSandbox({
             pluginName: manifest.name ?? manifest.id,
-            permissions: [],
+            permissions: (manifest as any).permissions ?? [],
         });
     }
 

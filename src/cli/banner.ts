@@ -104,3 +104,34 @@ export function hasVersionFlag(argv: string[]): boolean {
 export function hasQuietFlag(argv: string[]): boolean {
     return argv.some((arg) => arg === '--quiet' || arg === '-q');
 }
+
+/**
+ * Format a single-line CLI banner string.
+ * Used by the help text generator to prepend a compact version line.
+ */
+export function formatCliBannerLine(ver?: string, opts?: { richTty?: boolean }): string {
+    const useColor = opts?.richTty ?? false;
+    const bold = useColor ? '\x1b[1m' : '';
+    const cyan = useColor ? '\x1b[36m' : '';
+    const reset = useColor ? '\x1b[0m' : '';
+    const displayVersion = ver ?? version;
+    return `${bold}${cyan}CoreBlow${reset} v${displayVersion}`;
+}
+
+/**
+ * Check whether the CLI banner has already been emitted this process.
+ */
+export function hasEmittedCliBanner(): boolean {
+    return bannerEmitted;
+}
+
+/**
+ * Emit the CLI banner with an explicit version string.
+ * Alias used by preaction hooks that pass the program version.
+ */
+export function emitCliBanner(programVersion?: string): void {
+    if (bannerEmitted) return;
+    bannerEmitted = true;
+    const ver = programVersion ? `v${programVersion}` : `v${version}`;
+    process.stderr.write(`CoreBlow ${ver}\n`);
+}
