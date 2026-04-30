@@ -478,10 +478,9 @@ describe("runCronIsolatedAgentTurn", () => {
   });
 
   it("returns error when text direct delivery fails and best-effort is disabled", async () => {
-    // CB: delivery failures don't propagate as turn errors — turn still completes
     await expectTelegramTextDeliveryFailure({
       bestEffort: false,
-      expectedStatus: "ok",
+      expectedStatus: "error",
     });
   });
 
