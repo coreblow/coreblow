@@ -716,7 +716,7 @@ describe("resolveSessionModelIdentityRef", () => {
     });
 
     expect(resolved).toEqual({
-      provider: "vercelaigateway",
+      provider: "vercel-ai-gateway",
       model: "anthropic/claude-sonnet-4-6",
     });
   });

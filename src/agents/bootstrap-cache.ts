@@ -57,12 +57,67 @@ export function clearAllBootstrapSnapshots(): void {
   sessionBootstrapCache.clear();
 }
 
-// Stub class — used by agent-engine.ts OOP facade
+// Class-based cache — used by agent-engine.ts OOP facade
 export class BootstrapCache<T> {
-  private cache = new Map<string, T>();
+  private cache = new Map<string, { value: T; expiresAt: number; ttl: number }>();
   private maxSize: number;
-  constructor(maxSize: number = 100) { this.maxSize = maxSize; }
-  get(key: string): T | undefined { return this.cache.get(key); }
-  set(key: string, value: T): void { if (this.cache.size >= this.maxSize) { const first = this.cache.keys().next().value; if (first) this.cache.delete(first); } this.cache.set(key, value); }
+  private defaultTtl: number;
+  private totalHits = 0;
+
+  constructor(maxSize: number = 100, defaultTtlMs: number = 0) {
+    this.maxSize = maxSize;
+    this.defaultTtl = defaultTtlMs;
+  }
+
+  get(key: string): T | undefined {
+    const entry = this.cache.get(key);
+    if (!entry) return undefined;
+    if (entry.expiresAt > 0 && Date.now() >= entry.expiresAt) {
+      this.cache.delete(key);
+      return undefined;
+    }
+    this.totalHits++;
+    return entry.value;
+  }
+
+  set(key: string, value: T, ttlMs?: number): void {
+    if (this.cache.size >= this.maxSize && !this.cache.has(key)) {
+      const first = this.cache.keys().next().value;
+      if (first) this.cache.delete(first);
+    }
+    const ttl = ttlMs ?? this.defaultTtl;
+    const expiresAt = ttl > 0 ? Date.now() + ttl : 0;
+    this.cache.set(key, { value, expiresAt, ttl });
+  }
+
   delete(key: string): boolean { return this.cache.delete(key); }
+  has(key: string): boolean {
+    const entry = this.cache.get(key);
+    if (!entry) return false;
+    if (entry.expiresAt > 0 && Date.now() >= entry.expiresAt) {
+      this.cache.delete(key);
+      return false;
+    }
+    return true;
+  }
+  clear(): void { this.cache.clear(); }
+  size(): number { return this.cache.size; }
+  keys(): string[] { return [...this.cache.keys()]; }
+  values(): T[] { return [...this.cache.values()].map(e => e.value); }
+
+  prune(): number {
+    const now = Date.now();
+    let count = 0;
+    for (const [key, entry] of this.cache) {
+      if (entry.expiresAt > 0 && now >= entry.expiresAt) {
+        this.cache.delete(key);
+        count++;
+      }
+    }
+    return count;
+  }
+
+  stats(): { totalHits: number; size: number } {
+    return { totalHits: this.totalHits, size: this.cache.size };
+  }
 }

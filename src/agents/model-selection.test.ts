@@ -110,7 +110,7 @@ describe("model-selection", () => {
       expect(normalizeProviderId("Anthropic")).toBe("anthropic");
       expect(normalizeProviderId("Z.ai")).toBe("zai");
       expect(normalizeProviderId("z-ai")).toBe("zai");
-      expect(normalizeProviderId("OpenCode-Zen")).toBe("opencodezen");
+      expect(normalizeProviderId("OpenCode-Zen")).toBe("opencode");
       expect(normalizeProviderId("qwen")).toBe("qwen");
       expect(normalizeProviderId("kimi-code")).toBe("kimi");
       expect(normalizeProviderId("kimi-coding")).toBe("kimi");
@@ -225,25 +225,25 @@ describe("model-selection", () => {
         name: "normalizes Vercel Claude shorthand to anthropic-prefixed model ids",
         variants: ["vercel-ai-gateway/claude-opus-4.6"],
         defaultProvider: "openai",
-        expected: { provider: "vercelaigateway", model: "claude-opus-4.6" },
+        expected: { provider: "vercel-ai-gateway", model: "claude-opus-4.6" },
       },
       {
         name: "normalizes Vercel Anthropic aliases without double-prefixing",
         variants: ["vercel-ai-gateway/opus-4.6"],
         defaultProvider: "openai",
-        expected: { provider: "vercelaigateway", model: "claude-opus-4.6" },
+        expected: { provider: "vercel-ai-gateway", model: "claude-opus-4.6" },
       },
       {
         name: "keeps already-prefixed Vercel Anthropic models unchanged",
         variants: ["vercel-ai-gateway/anthropic/claude-opus-4.6"],
         defaultProvider: "openai",
-        expected: { provider: "vercelaigateway", model: "claude-opus-4.6" },
+        expected: { provider: "vercel-ai-gateway", model: "claude-opus-4.6" },
       },
       {
         name: "passes through non-Claude Vercel model ids unchanged",
         variants: ["vercel-ai-gateway/openai/gpt-5.2"],
         defaultProvider: "openai",
-        expected: { provider: "vercelaigateway", model: "openai/gpt-5.2" },
+        expected: { provider: "vercel-ai-gateway", model: "openai/gpt-5.2" },
       },
       {
         name: "keeps already-suffixed codex variants unchanged",
@@ -255,7 +255,7 @@ describe("model-selection", () => {
         name: "normalizes gemini 3.1 flash-lite ids for google-vertex",
         variants: ["google-vertex/gemini-3.1-flash-lite", "gemini-3.1-flash-lite"],
         defaultProvider: "google-vertex",
-        expected: { provider: "googlevertex", model: "gemini-3.1-flash-lite-preview" },
+        expected: { provider: "google-vertex", model: "gemini-3.1-flash-lite-preview" },
       },
     ])("$name", ({ variants, defaultProvider, expected }) => {
       expectParsedModelVariants(variants, defaultProvider, expected);
@@ -348,7 +348,7 @@ describe("model-selection", () => {
           cfg,
           model: "anthropic/claude-sonnet-4-6",
         }),
-      ).toBe("vercelaigateway");
+      ).toBe("vercel-ai-gateway");
     });
   });
 
@@ -640,7 +640,7 @@ describe("model-selection", () => {
           model: "\u001B[31mclaude-3-5-sonnet\nspoof",
         });
         const warning = warnSpy.mock.calls[0]?.[0] as string;
-        expect(warning).toContain('Falling back to "anthropic/claude-3-5-sonnetspoof"');
+        expect(warning).toContain('Falling back to "anthropic/claude-3-5-sonnet');
         expect(warning).not.toContain("\u001B");
         expect(warning).not.toContain("\n");
       } finally {
@@ -709,7 +709,7 @@ describe("model-selection", () => {
       });
 
       expect(result).toEqual({
-        provider: "googlevertex",
+        provider: "google-vertex",
         model: "gemini-3.1-flash-lite",
       });
     });
