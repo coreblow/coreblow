@@ -535,6 +535,7 @@ describe("buildGatewayConnectionDetails", () => {
     resolveGatewayPort.mockReturnValue(18800);
     __testing.setDepsForTests({
       loadConfig: {} as never,
+      resolveGatewayPort: resolveGatewayPort as unknown as (cfg?: CoreBlowConfig, env?: NodeJS.ProcessEnv) => number,
     });
 
     const details = buildGatewayConnectionDetails();

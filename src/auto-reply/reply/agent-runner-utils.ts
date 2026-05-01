@@ -95,13 +95,17 @@ export const formatBunFetchSocketError = (message: string) => {
 export const resolveEnforceFinalTag = (run: FollowupRun["run"], provider: string) =>
   Boolean(run.enforceFinalTag || isReasoningTagProvider(provider));
 
-export function resolveModelFallbackOptions(run: FollowupRun["run"]) {
+export function resolveModelFallbackOptions(
+  run: FollowupRun["run"],
+  fallbackResolver?: typeof resolveRunModelFallbacksOverride,
+) {
+  const resolve = fallbackResolver ?? resolveRunModelFallbacksOverride;
   return {
     cfg: run.config,
     provider: run.provider,
     model: run.model,
     agentDir: run.agentDir,
-    fallbacksOverride: resolveRunModelFallbacksOverride({
+    fallbacksOverride: resolve({
       cfg: run.config,
       agentId: run.agentId,
       sessionKey: run.sessionKey,

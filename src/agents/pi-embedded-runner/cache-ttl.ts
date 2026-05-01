@@ -10,9 +10,16 @@ export type CacheTtlEntryData = {
   modelId?: string;
 };
 
+/** Providers that natively support Anthropic-style cache-TTL headers. */
+const NATIVE_CACHE_TTL_PROVIDERS = new Set(["anthropic", "moonshot", "zai"]);
+
+/** OpenRouter upstream prefixes known to support cache-TTL pass-through. */
+const OPENROUTER_CACHE_TTL_PREFIXES = ["anthropic/", "moonshot/", "moonshotai/", "zai/"];
+
 export function isCacheTtlEligibleProvider(provider: string, modelId: string): boolean {
   const normalizedProvider = provider.toLowerCase();
   const normalizedModelId = modelId.toLowerCase();
+  // Check plugin overrides first (extensions can register additional providers).
   const pluginEligibility = resolveProviderCacheTtlEligibility({
     provider: normalizedProvider,
     context: {
@@ -22,6 +29,16 @@ export function isCacheTtlEligibleProvider(provider: string, modelId: string): b
   });
   if (pluginEligibility !== undefined) {
     return pluginEligibility;
+  }
+  // Built-in eligibility for well-known cache-TTL providers.
+  if (NATIVE_CACHE_TTL_PROVIDERS.has(normalizedProvider)) {
+    return true;
+  }
+  if (
+    normalizedProvider === "openrouter" &&
+    OPENROUTER_CACHE_TTL_PREFIXES.some((prefix) => normalizedModelId.startsWith(prefix))
+  ) {
+    return true;
   }
   return false;
 }

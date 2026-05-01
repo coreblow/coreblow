@@ -52,7 +52,7 @@ describe("agent-runner-utils", () => {
     hoisted.resolveRunModelFallbacksOverrideMock.mockReturnValue(["fallback-model"]);
     const run = makeRun();
 
-    const resolved = resolveModelFallbackOptions(run);
+    const resolved = resolveModelFallbackOptions(run, hoisted.resolveRunModelFallbacksOverrideMock);
 
     expect(hoisted.resolveRunModelFallbacksOverrideMock).toHaveBeenCalledWith({
       cfg: run.config,
@@ -72,7 +72,7 @@ describe("agent-runner-utils", () => {
     hoisted.resolveRunModelFallbacksOverrideMock.mockReturnValue(["fallback-model"]);
     const run = makeRun({ agentId: undefined });
 
-    const resolved = resolveModelFallbackOptions(run);
+    const resolved = resolveModelFallbackOptions(run, hoisted.resolveRunModelFallbacksOverrideMock);
 
     expect(hoisted.resolveRunModelFallbacksOverrideMock).toHaveBeenCalledWith({
       cfg: run.config,
