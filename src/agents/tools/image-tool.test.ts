@@ -109,6 +109,11 @@ vi.mock("../pi-tools.abort.js", () => ({
   wrapToolWithAbortSignal: vi.fn((tool) => tool),
 }));
 
+vi.mock("@mariozechner/pi-agent-core/oauth", () => ({
+  getOAuthProviders: () => [],
+  getOAuthApiKey: vi.fn(),
+}));
+
 vi.mock("../coreblow-tools.js", async () => {
   const { createImageTool } = await import("./image-tool.js");
   return {

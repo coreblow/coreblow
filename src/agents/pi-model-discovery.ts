@@ -85,7 +85,9 @@ class CoreBlowModelRegistry extends PiModelRegistryClass {
     modelsJsonPath: string,
     private readonly agentDir: string,
   ) {
-    super();
+    // @ts-expect-error — upstream .d.ts declares private constructor() with 0 args,
+    // but runtime constructor accepts (authStorage, modelsJsonPath) since v0.70.2
+    super(authStorage, modelsJsonPath);
   }
 
   override getAll(): Array<Model<Api>> {
