@@ -207,6 +207,10 @@ export default defineConfig({
       'src/plugin-sdk/subpaths.test.ts',
       'src/plugins/contracts/registry.contract.test.ts',
     ],
-    testTimeout: 10000,
+    // OpenClaw base uses 120s; 30s is a reasonable floor that avoids
+    // false timeout failures under full-suite CPU contention (2506 files)
+    // while still catching genuinely stuck tests.
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
   },
 });

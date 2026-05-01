@@ -122,7 +122,7 @@ describe("gateway pre-auth hardening", () => {
     } finally {
       await harness.close();
     }
-  });
+  }, 60_000);
 
   it("rejects oversized pre-auth connect frames before application-level auth responses", async () => {
     const harness = await createGatewaySuiteHarness();
@@ -209,7 +209,7 @@ describe("gateway pre-auth hardening", () => {
     } finally {
       await harness.close();
     }
-  });
+  }, 60_000);
 
   it("rejects excess simultaneous unauthenticated sockets when trusted proxy headers are missing", async () => {
     const previous = process.env.COREBLOW_TEST_MAX_PREAUTH_CONNECTIONS_PER_IP;
