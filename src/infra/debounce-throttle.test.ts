@@ -21,8 +21,9 @@ describe("debounce()", () => {
     const fn = vi.fn().mockResolvedValue("result");
     const debounced = debounce(fn, 100);
 
-    debounced(); // first — will be cancelled
-    debounced(); // second — will be cancelled
+    // Suppress expected cancellation rejections on overridden calls.
+    debounced().catch(() => {});
+    debounced().catch(() => {});
     const last = debounced(); // third — should execute
 
     await vi.advanceTimersByTimeAsync(100);

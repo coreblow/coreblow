@@ -423,7 +423,7 @@ export function loadPluginManifestRegistry(
           : loadPluginManifest(candidate.rootDir, rejectHardlinks);
     if (!manifestRes.ok) {
       diagnostics.push({
-        level: "error",
+        level: "warn",
         message: manifestRes.error,
         source: manifestRes.manifestPath,
       });
@@ -440,7 +440,7 @@ export function loadPluginManifestRegistry(
         "package.json",
       );
       diagnostics.push({
-        level: minHostVersionCheck.kind === "unknown_host_version" ? "warn" : "error",
+        level: minHostVersionCheck.kind === "invalid" ? "error" : "warn",
         pluginId: manifest.id,
         source: packageManifestSource,
         message:

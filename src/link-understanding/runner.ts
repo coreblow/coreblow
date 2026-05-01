@@ -5,10 +5,7 @@ import type { LinkModelConfig, LinkToolsConfig } from "../config/types.tools.js"
 import { logVerbose, shouldLogVerbose } from "../globals.js";
 import { CLI_OUTPUT_MAX_BUFFER } from "../media-understanding/defaults.js";
 import { resolveTimeoutMs } from "../media-understanding/resolve.js";
-import {
-  normalizeMediaUnderstandingChatType,
-  resolveMediaUnderstandingScope,
-} from "../media-understanding/scope.js";
+import { resolveMediaUnderstandingScope } from "../media-understanding/scope.js";
 import { runExec } from "../process/exec.js";
 import { DEFAULT_LINK_TIMEOUT_SECONDS } from "./defaults.js";
 import { extractLinksFromMessage } from "./detect.js";
@@ -22,10 +19,10 @@ function resolveScopeDecision(params: {
   config?: LinkToolsConfig;
   ctx: MsgContext;
 }): "allow" | "deny" {
-  return resolveMediaUnderstandingScope(
-    params.config,
-    normalizeMediaUnderstandingChatType(params.ctx.ChatType ?? ''),
-  );
+  return resolveMediaUnderstandingScope({
+    scope: params.config?.scope,
+    chatType: params.ctx.ChatType ?? '',
+  });
 }
 
 function resolveTimeoutMsFromConfig(params: {

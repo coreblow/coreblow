@@ -7,6 +7,8 @@
 
 import type { MediaType, MediaUnderstandingScope, MediaSource } from './types.js';
 import { MediaSizeExceededError, MediaFormatError } from './errors.js';
+import { normalizeChatType } from "../channels/chat-type.js";
+import type { MediaUnderstandingScopeConfig } from "../config/types.tools.js";
 
 const DEFAULT_SCOPE: MediaUnderstandingScope = {
     allowedTypes: ['image', 'audio', 'video', 'document'],
@@ -100,6 +102,121 @@ export function detectMediaTypeFromExt(ext: string): MediaType | null {
     return null;
 }
 
-// Stubs — used by link-understanding/runner.ts
-export function normalizeMediaUnderstandingChatType(chatType: string): string { return chatType; }
-export function resolveMediaUnderstandingScope(_cfg: unknown, _chatType: string): 'allow' | 'deny' { return 'allow'; }
+// ── Scope Decision Engine ──
+
+export type MediaUnderstandingScopeDecision = "allow" | "deny";
+
+/**
+ * Resolves scope rule decisions for media understanding.
+ *
+ * Evaluates an ordered set of scope rules against incoming request context
+ * (channel, chatType, sessionKey) and returns the first matching action.
+ * Falls back to the scope default or "allow" when no rule matches.
+ */
+class ScopeDecisionEngine {
+    private static readonly VALID_DECISIONS: ReadonlySet<string> = new Set(["allow", "deny"]);
+
+    /**
+     * Normalize a raw decision string into a typed decision, or undefined if invalid.
+     */
+    private normalizeDecision(value?: string | null): MediaUnderstandingScopeDecision | undefined {
+        const normalized = value?.trim().toLowerCase();
+        if (!normalized || !ScopeDecisionEngine.VALID_DECISIONS.has(normalized)) {
+            return undefined;
+        }
+        return normalized as MediaUnderstandingScopeDecision;
+    }
+
+    /**
+     * Normalize a raw match string for case-insensitive comparison.
+     * Returns undefined for empty/null values.
+     */
+    private normalizeMatchValue(value?: string | null): string | undefined {
+        const normalized = value?.trim().toLowerCase();
+        return normalized || undefined;
+    }
+
+    /**
+     * Evaluate a single rule against the request context.
+     * Returns the rule's action if all match criteria pass, otherwise null.
+     */
+    private evaluateRule(
+        rule: { action?: string; match?: Record<string, unknown> },
+        context: { channel?: string; chatType?: string; sessionKey: string },
+    ): MediaUnderstandingScopeDecision | null {
+        const match = rule.match ?? {};
+        const matchChannel = this.normalizeMatchValue(match.channel as string | undefined);
+        const matchChatType = normalizeMediaUnderstandingChatType(match.chatType as string | undefined);
+        const matchPrefix = this.normalizeMatchValue(match.keyPrefix as string | undefined);
+
+        if (matchChannel && matchChannel !== context.channel) {
+            return null;
+        }
+        if (matchChatType && matchChatType !== context.chatType) {
+            return null;
+        }
+        if (matchPrefix && !context.sessionKey.startsWith(matchPrefix)) {
+            return null;
+        }
+
+        return this.normalizeDecision(rule.action) ?? "allow";
+    }
+
+    /**
+     * Resolve the scope decision by evaluating rules in order.
+     * Returns "allow" if no scope is configured or no rules match.
+     */
+    resolve(params: {
+        scope?: MediaUnderstandingScopeConfig;
+        sessionKey?: string;
+        channel?: string;
+        chatType?: string;
+    }): MediaUnderstandingScopeDecision {
+        const { scope } = params;
+        if (!scope) {
+            return "allow";
+        }
+
+        const context = {
+            channel: this.normalizeMatchValue(params.channel),
+            chatType: normalizeMediaUnderstandingChatType(params.chatType),
+            sessionKey: this.normalizeMatchValue(params.sessionKey) ?? "",
+        };
+
+        for (const rule of scope.rules ?? []) {
+            if (!rule) {
+                continue;
+            }
+            const decision = this.evaluateRule(rule, context);
+            if (decision !== null) {
+                return decision;
+            }
+        }
+
+        return this.normalizeDecision(scope.default) ?? "allow";
+    }
+}
+
+/** Singleton engine instance used by the exported helper functions. */
+const scopeEngine = new ScopeDecisionEngine();
+
+/**
+ * Normalize a raw chat type string into a canonical chat type.
+ * Maps platform-specific labels (e.g. "dm") to standard values ("direct").
+ */
+export function normalizeMediaUnderstandingChatType(raw?: string | null): string | undefined {
+    return normalizeChatType(raw ?? undefined);
+}
+
+/**
+ * Resolve the media understanding scope decision for a given context.
+ * Delegates to {@link ScopeDecisionEngine.resolve}.
+ */
+export function resolveMediaUnderstandingScope(params: {
+    scope?: MediaUnderstandingScopeConfig;
+    sessionKey?: string;
+    channel?: string;
+    chatType?: string;
+}): MediaUnderstandingScopeDecision {
+    return scopeEngine.resolve(params);
+}
