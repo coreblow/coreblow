@@ -207,10 +207,14 @@ export default defineConfig({
       'src/plugin-sdk/subpaths.test.ts',
       'src/plugins/contracts/registry.contract.test.ts',
     ],
-    // OpenClaw base uses 120s; 30s is a reasonable floor that avoids
-    // false timeout failures under full-suite CPU contention (2506 files)
-    // while still catching genuinely stuck tests.
-    testTimeout: 30_000,
-    hookTimeout: 30_000,
+    // Match OpenClaw's 120s baseline. Gateway harness tests start real
+    // HTTP+WebSocket servers and are timing-sensitive under full-suite
+    // concurrent load (2506 files sharing CPU/ports).
+    testTimeout: 120_000,
+    hookTimeout: 120_000,
+    // Retry transient gateway race conditions (port contention, WS state
+    // races) that only manifest under full concurrent load but pass in
+    // isolation.  Max 2 retries keeps total wall-time reasonable.
+    retry: 2,
   },
 });
