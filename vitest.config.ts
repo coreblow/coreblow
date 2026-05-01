@@ -70,6 +70,12 @@ export default defineConfig({
         unstubEnvs: true,
         unstubGlobals: true,
         pool: 'forks',
+        env: {
+            // Prevent Chalk / subsystem logger from injecting ANSI escape codes in
+            // test output. Without this, tests that assert on log message contents
+            // (e.g. model-fallback sanitization) can fail in color-capable terminals.
+            NO_COLOR: '1',
+        },
         include: [
             'src/**/*.test.ts',
             'tests/**/*.test.ts',
