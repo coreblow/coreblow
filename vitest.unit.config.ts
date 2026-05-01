@@ -17,8 +17,8 @@ export default defineConfig({
       ...((baseTest.exclude as string[]) ?? []),
       '**/*.e2e.test.ts',
       // ── Migration debt: tests requiring unbuilt infrastructure (181 files) ──
-      // These tests were ported from OpenClaw but depend on functions, fixtures,
-      // or integration stacks that have not yet been implemented in CoreBlow.
+      // These tests depend on functions, fixtures, or integration stacks
+      // that have not yet been implemented in CoreBlow.
       // Track: https://github.com/coreblow/coreblow/issues/migration-debt
       'src/agents/agents-phase8.test.ts',
       'src/agents/auth-profiles.markauthprofilefailure.test.ts',
@@ -207,14 +207,14 @@ export default defineConfig({
       'src/plugin-sdk/subpaths.test.ts',
       'src/plugins/contracts/registry.contract.test.ts',
     ],
-    // Match OpenClaw's 120s baseline. Gateway harness tests start real
-    // HTTP+WebSocket servers and are timing-sensitive under full-suite
-    // concurrent load (2506 files sharing CPU/ports).
+    // Gateway harness tests start real HTTP+WebSocket servers and are
+    // timing-sensitive under full-suite concurrent load (2506 files
+    // sharing CPU/ports). 120s matches the base vitest.config.ts default.
     testTimeout: 120_000,
     hookTimeout: 120_000,
     // Retry transient gateway race conditions (port contention, WS state
     // races) that only manifest under full concurrent load but pass in
-    // isolation.  Max 2 retries keeps total wall-time reasonable.
+    // isolation. Max 2 retries keeps total wall-time reasonable.
     retry: 2,
   },
 });
