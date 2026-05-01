@@ -207,14 +207,5 @@ export default defineConfig({
       'src/plugin-sdk/subpaths.test.ts',
       'src/plugins/contracts/registry.contract.test.ts',
     ],
-    // Gateway harness tests start real HTTP+WebSocket servers and are
-    // timing-sensitive under full-suite concurrent load (2506 files
-    // sharing CPU/ports). 120s matches the base vitest.config.ts default.
-    testTimeout: 120_000,
-    hookTimeout: 120_000,
-    // Retry transient gateway race conditions (port contention, WS state
-    // races) that only manifest under full concurrent load but pass in
-    // isolation. Max 2 retries keeps total wall-time reasonable.
-    retry: 2,
   },
 });

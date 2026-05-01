@@ -2,8 +2,15 @@ import { defineConfig } from 'vitest/config';
 import path from 'path';
 import { fileURLToPath } from 'node:url';
 import { pluginSdkSubpaths } from './scripts/lib/plugin-sdk-entries.mjs';
+import { resolveLocalVitestMaxWorkers } from './scripts/test-planner/runtime-profile.mjs';
+
+export { resolveLocalVitestMaxWorkers };
 
 const repoRoot = path.dirname(fileURLToPath(import.meta.url));
+const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+const isWindows = process.platform === 'win32';
+const localWorkers = resolveLocalVitestMaxWorkers();
+const ciWorkers = isWindows ? 2 : 3;
 
 export default defineConfig({
     resolve: {
@@ -70,6 +77,7 @@ export default defineConfig({
         unstubEnvs: true,
         unstubGlobals: true,
         pool: 'forks',
+        maxWorkers: isCI ? ciWorkers : localWorkers,
         env: {
             // Prevent Chalk / subsystem logger from injecting ANSI escape codes in
             // test output. Without this, tests that assert on log message contents

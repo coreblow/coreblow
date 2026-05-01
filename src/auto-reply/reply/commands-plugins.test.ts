@@ -82,7 +82,7 @@ describe("handleCommands /plugins", () => {
       expect(inspectAllResult.reply?.text).toContain('"compatibilityWarnings"');
       expect(inspectAllResult.reply?.text).toContain('"superpowers"');
     });
-  }, 300_000);
+  });
 
   it("rejects internal writes without operator.admin", async () => {
     await withTempHome("coreblow-command-plugins-home-", async () => {
@@ -104,5 +104,5 @@ describe("handleCommands /plugins", () => {
       const result = await handleCommands(params);
       expect(result.reply?.text).toContain("requires operator.admin");
     });
-  }, 300_000);
+  });
 });
