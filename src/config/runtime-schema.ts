@@ -4,18 +4,31 @@
  * Bridges static Zod schema with runtime-specific checks.
  */
 
+import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from '../agents/agent-scope.js';
+import { loadPluginManifestRegistry } from '../plugins/manifest-registry.js';
 import { isValidAutoReplyMode, isValidSandboxMode, isValidLogLevel, isValidChannelId } from './allowed-values.js';
 import { resolveChannelCapabilities } from './channel-capabilities.js';
-import type { ConfigSchemaResponse } from './schema.js';
+import {
+  collectChannelSchemaMetadata,
+  collectPluginSchemaMetadata,
+} from './channel-config-metadata.js';
+import { readConfigFileSnapshot } from './config.js';
+import type { CoreBlowConfig } from './config.js';
+import { buildConfigSchema, type ConfigSchemaResponse } from './schema.js';
 
-/**
- * Stub: reads runtime config schema with best-effort fallback.
- * Full implementation requires loadManifestRegistry (migration debt).
- * Tests mock this module to inject schema data.
- */
+function loadManifestRegistry(config: CoreBlowConfig, env?: NodeJS.ProcessEnv) {
+  const workspaceDir = resolveAgentWorkspaceDir(config, resolveDefaultAgentId(config));
+  return loadPluginManifestRegistry({ config, cache: false, env, workspaceDir });
+}
+
 export async function readBestEffortRuntimeConfigSchema(): Promise<ConfigSchemaResponse> {
-  const { buildConfigSchema } = await import('./schema.js');
-  return buildConfigSchema();
+  const snapshot = await readConfigFileSnapshot();
+  const config = snapshot.valid ? snapshot.config : { plugins: { enabled: true } };
+  const registry = loadManifestRegistry(config);
+  return buildConfigSchema({
+    plugins: snapshot.valid ? collectPluginSchemaMetadata(registry) : [],
+    channels: collectChannelSchemaMetadata(registry),
+  });
 }
 
 export type ValidationSeverity = 'error' | 'warning';
