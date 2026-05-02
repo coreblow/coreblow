@@ -45,10 +45,10 @@ export default defineConfig({
       'src/agents/minimax-docs.test.ts',
       'src/agents/model-auth.profiles.test.ts',
       'src/agents/model-fallback.probe.test.ts',
-      'src/agents/models-config.applies-config-env-vars.test.ts',
+
       'src/agents/models-config.auto-injects-github-copilot-provider-token-is.test.ts',
       'src/agents/models-config.falls-back-default-baseurl-token-exchange-fails.test.ts',
-      'src/agents/models-config.file-mode.test.ts',
+
       'src/agents/models-config.fills-missing-provider-apikey-from-env-var.test.ts',
       'src/agents/models-config.normalizes-gemini-3-ids-preview-google-providers.test.ts',
       'src/agents/models-config.preserves-explicit-reasoning-override.test.ts',
@@ -137,12 +137,12 @@ export default defineConfig({
 
 
 
-      'src/auto-reply/reply-pipeline.test.ts',
+
       'src/auto-reply/reply.directive.directive-behavior.applies-inline-reasoning-mixed-messages-acks-immediately.test.ts',
       'src/auto-reply/reply.directive.directive-behavior.defaults-think-low-reasoning-capable-models-no.test.ts',
       'src/auto-reply/reply.directive.directive-behavior.shows-current-verbose-level-verbose-has-no.test.ts',
       'src/auto-reply/reply.media-note.test.ts',
-      'src/auto-reply/reply.raw-body.test.ts',
+
       'src/auto-reply/reply/abort.test.ts',
       'src/auto-reply/reply/agent-runner.misc.runreplyagent.test.ts',
       'src/auto-reply/reply/auto-topic-label.test.ts',
@@ -166,8 +166,8 @@ export default defineConfig({
       'src/commands/models/list.list-command.forward-compat.test.ts',
       'src/commands/onboard-non-interactive.gateway.test.ts',
       'src/commands/onboard-non-interactive.provider-auth.test.ts',
-      'src/config/config.discord.test.ts',
-      'src/config/config.identity-defaults.test.ts',
+
+
       'src/config/config.nix-integration-u3-u5-u9.test.ts',
 
       'src/config/config.web-search-provider.test.ts',

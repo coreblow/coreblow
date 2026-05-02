@@ -231,3 +231,31 @@ export function createTypingController(params: {
     cleanup,
   };
 }
+
+// ─── Phase 8: Simple global typing state ────────────────────
+
+const typingState = new Map<string, { sender: () => Promise<void> }>();
+
+function typingKey(channel: string, platform: string): string {
+  return `${platform}:${channel}`;
+}
+
+/** Start typing indicator for a channel/platform. */
+export function startTyping(channel: string, platform: string, sender: () => Promise<void>): void {
+  typingState.set(typingKey(channel, platform), { sender });
+}
+
+/** Stop typing indicator for a channel/platform. */
+export function stopTyping(channel: string, platform: string): void {
+  typingState.delete(typingKey(channel, platform));
+}
+
+/** Check if typing is active for a channel/platform. */
+export function isTyping(channel: string, platform: string): boolean {
+  return typingState.has(typingKey(channel, platform));
+}
+
+/** Stop all typing indicators. */
+export function stopAllTyping(): void {
+  typingState.clear();
+}

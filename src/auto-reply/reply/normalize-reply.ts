@@ -123,3 +123,56 @@ export function normalizeReplyPayload(
 
   return enrichedPayload;
 }
+
+// ─── Phase 8: Lightweight reply transforms ────────────────────
+
+const MARKDOWN_PLATFORMS = new Set(["discord", "slack", "telegram"]);
+
+/**
+ * Strip `<thinking>...</thinking>` tags (chain-of-thought leakage).
+ */
+export function stripThinkingTags(text: string): string {
+  return text.replace(/<thinking>[\s\S]*?<\/thinking>/gi, "").trim();
+}
+
+/**
+ * Strip common assistant prefixes like "Assistant: " or "Bot: ".
+ */
+export function stripAssistantPrefix(text: string): string {
+  return text.replace(/^(?:Assistant|Bot|AI|ChatBot)\s*:\s*/i, "").trim();
+}
+
+/**
+ * Strip basic markdown formatting (bold, italic, code).
+ */
+export function stripMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, "$1")   // **bold**
+    .replace(/\*(.+?)\*/g, "$1")       // *italic*
+    .replace(/__(.+?)__/g, "$1")       // __underline__
+    .replace(/_(.+?)_/g, "$1")         // _italic_
+    .replace(/~~(.+?)~~/g, "$1")       // ~~strikethrough~~
+    .replace(/`(.+?)`/g, "$1")         // `code`
+    .trim();
+}
+
+/**
+ * Normalize a reply for a given platform. Markdown-supporting platforms
+ * keep formatting; others get it stripped.
+ */
+export function normalizeReply(text: string, platform?: string): string {
+  let result = stripThinkingTags(text);
+  result = stripAssistantPrefix(result);
+  if (platform && !MARKDOWN_PLATFORMS.has(platform.toLowerCase())) {
+    result = stripMarkdown(result);
+  }
+  return result.trim();
+}
+
+/**
+ * Truncate a reply to a maximum length, appending "..." if truncated.
+ */
+export function truncateReply(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength - 3) + "...";
+}

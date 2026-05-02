@@ -114,10 +114,16 @@ export function createReplyRuntimeMocks(): ReplyRuntimeMocks {
   };
 }
 
+// Module-scoped mutable ref for vi.mock factories (which are hoisted to
+// top-of-file and cannot see function parameters).
+let _activeMocks: ReplyRuntimeMocks | undefined;
+
 export function installReplyRuntimeMocks(mocks: ReplyRuntimeMocks) {
+  _activeMocks = mocks;
+
   vi.mock("../agents/pi-embedded.js", () => ({
     abortEmbeddedPiRun: vi.fn().mockReturnValue(false),
-    runEmbeddedPiAgent: (...args: unknown[]) => mocks.runEmbeddedPiAgent(...args),
+    runEmbeddedPiAgent: (...args: unknown[]) => _activeMocks!.runEmbeddedPiAgent(...args),
     queueEmbeddedPiMessage: vi.fn().mockReturnValue(false),
     resolveEmbeddedSessionLane: (key: string) => `session:${key.trim() || "main"}`,
     isEmbeddedPiRunActive: vi.fn().mockReturnValue(false),
@@ -125,7 +131,7 @@ export function installReplyRuntimeMocks(mocks: ReplyRuntimeMocks) {
   }));
 
   vi.mock("../agents/model-catalog.runtime.js", () => ({
-    loadModelCatalog: mocks.loadModelCatalog,
+    loadModelCatalog: (...args: unknown[]) => _activeMocks!.loadModelCatalog(...args),
   }));
 
   vi.mock("../agents/auth-profiles/session-override.js", () => ({
@@ -142,9 +148,9 @@ export function installReplyRuntimeMocks(mocks: ReplyRuntimeMocks) {
   }));
 
   vi.mock("../plugins/runtime/runtime-whatsapp-boundary.js", () => ({
-    webAuthExists: mocks.webAuthExists,
-    getWebAuthAgeMs: mocks.getWebAuthAgeMs,
-    readWebSelfId: mocks.readWebSelfId,
+    webAuthExists: (...args: unknown[]) => _activeMocks!.webAuthExists(...args),
+    getWebAuthAgeMs: (...args: unknown[]) => _activeMocks!.getWebAuthAgeMs(...args),
+    readWebSelfId: (...args: unknown[]) => _activeMocks!.readWebSelfId(...args),
   }));
 }
 

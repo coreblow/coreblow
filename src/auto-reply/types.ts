@@ -98,3 +98,23 @@ export type ReplyPayload = {
   /** Channel-specific payload data (per-channel envelope). */
   channelData?: Record<string, unknown>;
 };
+
+// ─── Phase 8: Reply envelope for queue ────────────────────
+
+export interface ReplyEnvelopeInbound {
+  id: string;
+  channel: string;
+  platform: string;
+  senderId: string;
+  content: string;
+  timestamp: number;
+}
+
+export interface ReplyEnvelope {
+  inbound: ReplyEnvelopeInbound;
+  sessionId: string;
+  model: string;
+  trigger: { type: string; enabled: boolean };
+  dispatchedAt: number;
+  priority: number;
+}
