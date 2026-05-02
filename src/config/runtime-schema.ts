@@ -6,6 +6,17 @@
 
 import { isValidAutoReplyMode, isValidSandboxMode, isValidLogLevel, isValidChannelId } from './allowed-values.js';
 import { resolveChannelCapabilities } from './channel-capabilities.js';
+import type { ConfigSchemaResponse } from './schema.js';
+
+/**
+ * Stub: reads runtime config schema with best-effort fallback.
+ * Full implementation requires loadManifestRegistry (migration debt).
+ * Tests mock this module to inject schema data.
+ */
+export async function readBestEffortRuntimeConfigSchema(): Promise<ConfigSchemaResponse> {
+  const { buildConfigSchema } = await import('./schema.js');
+  return buildConfigSchema();
+}
 
 export type ValidationSeverity = 'error' | 'warning';
 

@@ -15,10 +15,8 @@ import { createCliRuntimeCapture, mockRuntimeModule } from "./test-runtime-captu
 
 const mockReadConfigFileSnapshot = vi.fn();
 const mockWriteConfigFile = vi.fn(async () => {});
-const { mockResolveSecretRefValue, mockReadBestEffortRuntimeConfigSchema } = vi.hoisted(() => ({
-  mockResolveSecretRefValue: vi.fn(),
-  mockReadBestEffortRuntimeConfigSchema: vi.fn(),
-}));
+const mockResolveSecretRefValue = vi.fn();
+const mockReadBestEffortRuntimeConfigSchema = vi.fn();
 
 vi.mock("../config/config.js", () => ({
   readConfigFileSnapshot: () => mockReadConfigFileSnapshot(),
@@ -125,14 +123,17 @@ async function runConfigCommand(args: string[]) {
 describe("config cli", () => {
   beforeAll(async () => {
     ({ registerConfigCli } = await import("./config-cli.js"));
-    sharedProgram = new Command();
-    sharedProgram.exitOverride();
-    registerConfigCli(sharedProgram);
   });
 
   beforeEach(() => {
     vi.clearAllMocks();
     resetRuntimeCapture();
+    // Recreate Commander program before each test to prevent option state
+    // leaking across parseAsync calls (Commander v12 retains parsed options
+    // on the same Command instance; OpenClaw uses v14 which resets cleanly).
+    sharedProgram = new Command();
+    sharedProgram.exitOverride();
+    registerConfigCli(sharedProgram);
     mockReadBestEffortRuntimeConfigSchema.mockResolvedValue({
       schema: {
         $schema: "http://json-schema.org/draft-07/schema#",

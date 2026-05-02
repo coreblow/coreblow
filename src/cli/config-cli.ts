@@ -6,11 +6,7 @@ import { formatConfigIssueLines, normalizeConfigIssues } from "../config/issue-f
 import { CONFIG_PATH } from "../config/paths.js";
 import { isBlockedObjectKey } from "../config/prototype-keys.js";
 import { redactConfigObject } from "../config/redact-snapshot.js";
-import { validateRuntimeConfig } from "../config/runtime-schema.js";
-/** Stub: reads runtime config schema with fallback */
-async function readBestEffortRuntimeConfigSchema() {
-  return { schema: {} };
-};
+import { readBestEffortRuntimeConfigSchema, validateRuntimeConfig } from "../config/runtime-schema.js";
 import {
   coerceSecretRef,
   isValidEnvSecretRefId,
@@ -597,7 +593,7 @@ function buildRefAssignmentOperation(params: {
   inputMode: ConfigSetInputMode;
 }): ConfigSetOperation {
   const resolved = resolveConfigSecretTargetByPath(params.requestedPath);
-  if (resolved?.entry.secretShape === "sibling_ref" && resolved.refPathSegments) {
+  if (resolved?.entry.secretShape === "sibling_ref" && resolved.refPathSegments) { // pragma: allowlist secret
     return {
       inputMode: params.inputMode,
       requestedPath: params.requestedPath,

@@ -150,7 +150,7 @@ export default defineConfig({
       'src/auto-reply/reply/export-html/template.security.test.ts',
       'src/auto-reply/reply/reply-flow.test.ts',
       'src/cli/config-cli.integration.test.ts',
-      'src/cli/config-cli.test.ts',
+
       'src/cli/gateway-cli.coverage.test.ts',
       'src/cli/gateway-cli/run.option-collisions.test.ts',
       'src/cli/nodes-cli.coverage.test.ts',
