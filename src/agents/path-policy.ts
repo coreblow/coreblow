@@ -51,12 +51,18 @@ function toRelativePathUnderRoot(params: {
   candidate: string;
   options?: RelativePathOptions;
 }): string {
-  const resolvedInput = resolveSandboxInputPath(
-    params.candidate,
-    params.options?.cwd ?? params.root,
-  );
+  // Detect Windows-style paths by drive letter pattern in root or candidate,
+  // not just process.platform. This allows cross-platform testing with mocked
+  // platform values (e.g. macOS CI running Windows path tests).
+  const isWin32 = process.platform === "win32" || /^[a-zA-Z]:[/\\]/.test(params.root);
 
-  if (process.platform === "win32") {
+  if (isWin32) {
+    // On non-Windows hosts, resolveSandboxInputPath uses POSIX path.resolve
+    // which corrupts Windows paths. Use path.win32 directly.
+    const cwd = params.options?.cwd ?? params.root;
+    const resolvedInput = path.win32.isAbsolute(params.candidate)
+      ? path.win32.resolve(params.candidate)
+      : path.win32.resolve(cwd, params.candidate);
     const rootResolved = path.win32.resolve(params.root);
     const resolvedCandidate = path.win32.resolve(resolvedInput);
     const rootForCompare = normalizeWindowsPathForComparison(rootResolved);
@@ -71,6 +77,10 @@ function toRelativePathUnderRoot(params: {
     });
   }
 
+  const resolvedInput = resolveSandboxInputPath(
+    params.candidate,
+    params.options?.cwd ?? params.root,
+  );
   const rootResolved = path.resolve(params.root);
   const resolvedCandidate = path.resolve(resolvedInput);
   const relative = path.relative(rootResolved, resolvedCandidate);

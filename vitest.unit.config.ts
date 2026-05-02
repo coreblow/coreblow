@@ -75,7 +75,7 @@ export default defineConfig({
       'src/agents/models-config.uses-first-github-copilot-profile-env-tokens.test.ts',
       'src/agents/models-config.write-serialization.test.ts',
       'src/agents/ollama-stream.test.ts',
-      'src/agents/path-policy.test.ts',
+
       'src/agents/pi-embedded-runner-extraparams.test.ts',
       'src/agents/pi-embedded-runner.openai-tool-id-preservation.test.ts',
       'src/agents/pi-embedded-runner.sanitize-session-history.test.ts',
@@ -117,7 +117,7 @@ export default defineConfig({
       'src/agents/pi-tools.whatsapp-login-gating.test.ts',
       'src/agents/pi-tools.workspace-only-false.test.ts',
       'src/agents/pi-tools.workspace-paths.test.ts',
-      'src/agents/prompt-composition.test.ts',
+
       'src/agents/sandbox/browser.create.test.ts',
       'src/agents/sessions-spawn-threadid.test.ts',
       'src/agents/skills.sherpa-onnx-tts-bin.test.ts',
@@ -169,7 +169,7 @@ export default defineConfig({
       'src/config/config.discord.test.ts',
       'src/config/config.identity-defaults.test.ts',
       'src/config/config.nix-integration-u3-u5-u9.test.ts',
-      'src/config/config.plugin-validation.test.ts',
+
       'src/config/config.web-search-provider.test.ts',
       'src/config/doc-baseline.integration.test.ts',
       'src/config/io.observe-config.test.ts',
