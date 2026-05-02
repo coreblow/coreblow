@@ -135,8 +135,8 @@ export default defineConfig({
       'src/agents/transcript-policy.policy.test.ts',
       'src/agents/workspace-phase11.test.ts',
 
-      'src/auto-reply/command-control.test.ts',
-      'src/auto-reply/inbound.test.ts',
+
+
       'src/auto-reply/reply-pipeline.test.ts',
       'src/auto-reply/reply.directive.directive-behavior.applies-inline-reasoning-mixed-messages-acks-immediately.test.ts',
       'src/auto-reply/reply.directive.directive-behavior.defaults-think-low-reasoning-capable-models-no.test.ts',

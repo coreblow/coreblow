@@ -4,6 +4,8 @@
  * Ported from CoreBlow reference src/auto-reply/send-policy.ts.
  */
 
+import { normalizeCommandBody } from "./commands-registry.js";
+
 export type SendPolicyOverride = 'allow' | 'deny';
 
 export function normalizeSendPolicyOverride(raw?: string | null): SendPolicyOverride | undefined {
@@ -22,7 +24,8 @@ export function parseSendPolicyCommand(raw?: string): {
     const trimmed = raw.trim();
     if (!trimmed) return { hasCommand: false };
 
-    const match = trimmed.match(/^\/send(?:\s+([a-zA-Z]+))?\s*$/i);
+    const normalized = normalizeCommandBody(trimmed);
+    const match = normalized.match(/^\/send(?:\s+([a-zA-Z]+))?\s*$/i);
     if (!match) return { hasCommand: false };
     const token = match[1]?.trim().toLowerCase();
     if (!token) return { hasCommand: true };
