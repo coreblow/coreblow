@@ -474,3 +474,74 @@ function scanParenAwareBreakpoints(
 
   return { lastNewline, lastWhitespace };
 }
+
+// ─── Phase 8: Platform-aware message chunking ─────────────────────
+
+const PLATFORM_LIMITS: Record<string, number> = {
+  discord: 2000,
+  telegram: 4096,
+  slack: 4000,
+  whatsapp: 4096,
+};
+const DEFAULT_MESSAGE_CHUNK_LIMIT = 4096;
+
+function resolvePlatformLimit(platform?: string): number {
+  if (!platform) return DEFAULT_MESSAGE_CHUNK_LIMIT;
+  return PLATFORM_LIMITS[platform.toLowerCase()] ?? DEFAULT_MESSAGE_CHUNK_LIMIT;
+}
+
+/**
+ * Split a message into platform-sized chunks.
+ * Splits at paragraph boundaries (\n\n) when possible, falls back to word
+ * boundaries (whitespace) to avoid breaking mid-word.
+ */
+export function chunkMessage(text: string, platform?: string): string[] {
+  const limit = resolvePlatformLimit(platform);
+  if (!text || text.length <= limit) {
+    return [text];
+  }
+
+  // Try paragraph-level split first
+  const paragraphs = chunkByParagraph(text, limit);
+  if (paragraphs.every((p) => p.length <= limit)) {
+    return paragraphs;
+  }
+
+  // Fall back to word-boundary split for oversized paragraphs
+  const result: string[] = [];
+  for (const para of paragraphs) {
+    if (para.length <= limit) {
+      result.push(para);
+    } else {
+      result.push(...chunkText(para, limit));
+    }
+  }
+  return result;
+}
+
+/**
+ * Returns true if the text contains an unclosed fenced code block (```).
+ * Counts fence markers on their own line; odd count means unclosed.
+ */
+export function containsOpenCodeBlock(text: string): boolean {
+  // Match ``` at start of line (possibly with language tag), not inline
+  const fenceRe = /^`{3,}/gm;
+  let count = 0;
+  for (const _ of text.matchAll(fenceRe)) {
+    count++;
+  }
+  return count % 2 !== 0;
+}
+
+/**
+ * Code-block-aware message chunking.
+ * Delegates to chunkMarkdownText which properly closes open fenced code
+ * blocks at chunk boundaries and reopens them in the next chunk.
+ */
+export function chunkMessageSmart(text: string, platform?: string): string[] {
+  const limit = resolvePlatformLimit(platform);
+  if (!text || text.length <= limit) {
+    return [text];
+  }
+  return chunkMarkdownText(text, limit);
+}

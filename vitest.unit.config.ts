@@ -134,7 +134,7 @@ export default defineConfig({
       'src/agents/tools/web-tools.enabled-defaults.test.ts',
       'src/agents/transcript-policy.policy.test.ts',
       'src/agents/workspace-phase11.test.ts',
-      'src/auto-reply/auto-reply.test.ts',
+
       'src/auto-reply/command-control.test.ts',
       'src/auto-reply/inbound.test.ts',
       'src/auto-reply/reply-pipeline.test.ts',
