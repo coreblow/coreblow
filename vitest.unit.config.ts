@@ -21,59 +21,59 @@ export default defineConfig({
       // that have not yet been implemented in CoreBlow.
       // Track: https://github.com/coreblow/coreblow/issues/migration-debt
       'src/agents/agents-phase8.test.ts',
-      'src/agents/auth-profiles.markauthprofilefailure.test.ts',
-      'src/agents/auth-profiles.doctor.test.ts',
-      'src/agents/bash-tools.exec.approval-id.test.ts',
+
+
+
       'src/agents/bash-tools.exec.pty-cleanup.test.ts',
       'src/agents/bash-tools.exec.pty-fallback-failure.test.ts',
       'src/agents/cli-runner.spawn.test.ts',
       'src/agents/compaction.tool-result-details.test.ts',
       'src/agents/context.lookup.test.ts',
       'src/agents/coreblow-gateway-tool.test.ts',
-      'src/agents/coreblow-tools.agents.test.ts',
-      'src/agents/coreblow-tools.camera.test.ts',
-      'src/agents/coreblow-tools.image-generation.test.ts',
-      'src/agents/coreblow-tools.owner-authorization.test.ts',
-      'src/agents/coreblow-tools.pdf-registration.test.ts',
-      'src/agents/coreblow-tools.plugin-context.test.ts',
-      'src/agents/coreblow-tools.sessions-visibility.test.ts',
-      'src/agents/coreblow-tools.sessions.test.ts',
+
+
+
+
+
+
+
+
       'src/agents/coreblow-tools.subagents.sessions-spawn-depth-limits.test.ts',
       'src/agents/coreblow-tools.subagents.sessions-spawn.lifecycle.test.ts',
       'src/agents/coreblow-tools.subagents.steer-failure-clears-suppression.test.ts',
-      'src/agents/coreblow-tools.web-runtime.test.ts',
+
       'src/agents/minimax-docs.test.ts',
       'src/agents/model-auth.profiles.test.ts',
       'src/agents/model-fallback.probe.test.ts',
 
-      'src/agents/models-config.auto-injects-github-copilot-provider-token-is.test.ts',
-      'src/agents/models-config.falls-back-default-baseurl-token-exchange-fails.test.ts',
+
+
 
       'src/agents/models-config.fills-missing-provider-apikey-from-env-var.test.ts',
       'src/agents/models-config.normalizes-gemini-3-ids-preview-google-providers.test.ts',
       'src/agents/models-config.preserves-explicit-reasoning-override.test.ts',
-      'src/agents/models-config.providers.anthropic-vertex.test.ts',
-      'src/agents/models-config.providers.auth-provenance.test.ts',
-      'src/agents/models-config.providers.chutes.test.ts',
-      'src/agents/models-config.providers.cloudflare-ai-gateway.test.ts',
-      'src/agents/models-config.providers.discovery-auth.test.ts',
-      'src/agents/models-config.providers.kilocode.test.ts',
-      'src/agents/models-config.providers.kimi-coding.test.ts',
-      'src/agents/models-config.providers.matrix.test.ts',
-      'src/agents/models-config.providers.minimax.test.ts',
-      'src/agents/models-config.providers.moonshot.test.ts',
-      'src/agents/models-config.providers.nvidia.test.ts',
-      'src/agents/models-config.providers.ollama-autodiscovery.test.ts',
-      'src/agents/models-config.providers.ollama.test.ts',
-      'src/agents/models-config.providers.openai-codex.test.ts',
-      'src/agents/models-config.providers.plugin-allowlist-compat.test.ts',
-      'src/agents/models-config.providers.qianfan.test.ts',
-      'src/agents/models-config.providers.vercel-ai-gateway.test.ts',
-      'src/agents/models-config.providers.volcengine-byteplus.test.ts',
-      'src/agents/models-config.runtime-source-snapshot.test.ts',
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       'src/agents/models-config.skips-writing-models-json-no-env-token.test.ts',
-      'src/agents/models-config.uses-first-github-copilot-profile-env-tokens.test.ts',
-      'src/agents/models-config.write-serialization.test.ts',
+
+
       'src/agents/ollama-stream.test.ts',
 
       'src/agents/pi-embedded-runner-extraparams.test.ts',
@@ -121,7 +121,7 @@ export default defineConfig({
       'src/agents/sandbox/browser.create.test.ts',
       'src/agents/sessions-spawn-threadid.test.ts',
       'src/agents/skills.sherpa-onnx-tts-bin.test.ts',
-      'src/agents/subagent-registry.persistence.test.ts',
+
       'src/agents/subagent-spawn.attachments.test.ts',
       'src/agents/subagent-spawn.model-session.test.ts',
       'src/agents/subagent-spawn.workspace.test.ts',
@@ -162,7 +162,7 @@ export default defineConfig({
       'src/commands/channels.adds-non-default-telegram-account.test.ts',
       'src/commands/dispatcher.test.ts',
       'src/commands/doctor-bootstrap-size.test.ts',
-      'src/commands/models.list.auth-sync.test.ts',
+
       'src/commands/models/list.list-command.forward-compat.test.ts',
       'src/commands/onboard-non-interactive.gateway.test.ts',
       'src/commands/onboard-non-interactive.provider-auth.test.ts',
