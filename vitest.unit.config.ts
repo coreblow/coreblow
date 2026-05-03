@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitest/config';
 import baseConfig from './vitest.config.ts';
 import { loadPatternListFromEnv } from './vitest.pattern-file.ts';
+import { resolveVitestIsolation } from './vitest.scoped-config.ts';
 import {
   unitTestAdditionalExcludePatterns,
   unitTestIncludePatterns,
@@ -42,8 +43,8 @@ export function createUnitVitestConfig(env: Record<string, string | undefined> =
     ...base,
     test: {
       ...baseTest,
-      // Cap workers to prevent OOM on 16GB systems (base config may auto-detect higher)
-      maxWorkers: Math.min((baseTest as { maxWorkers?: number }).maxWorkers ?? 4, 4),
+      isolate: resolveVitestIsolation(env),
+      runner: './test/non-isolated-runner.ts',
       include: loadIncludePatternsFromEnv(env) ?? unitTestIncludePatterns,
       exclude: [
         ...new Set([
