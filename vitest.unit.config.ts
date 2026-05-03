@@ -20,6 +20,9 @@ import {
  *
  * Inherits resolve.alias from vitest.config.ts so that
  * `coreblow/plugin-sdk/*` subpath imports resolve correctly.
+ *
+ * NOTE: Do not run this config directly with `npx vitest run`.
+ * Use `pnpm test` which invokes test-parallel.mjs for batched execution.
  */
 
 const base = baseConfig as unknown as Record<string, unknown>;
@@ -43,9 +46,8 @@ export function createUnitVitestConfig(env: Record<string, string | undefined> =
     ...base,
     test: {
       ...baseTest,
-      // Use 2 workers max to prevent OOM on 16GB systems.
-      // The base config runs with forks pool (isolate: true by default).
-      maxWorkers: 2,
+      isolate: resolveVitestIsolation(env),
+      runner: './test/non-isolated-runner.ts',
       include: loadIncludePatternsFromEnv(env) ?? unitTestIncludePatterns,
       exclude: [
         ...new Set([
