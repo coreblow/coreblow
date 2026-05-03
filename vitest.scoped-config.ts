@@ -30,11 +30,17 @@ function relativizeScopedPatterns(values: string[], dir?: string): string[] {
 export function resolveVitestIsolation(
   env: Record<string, string | undefined> = process.env,
 ): boolean {
-  const forceIsolation = env.COREBLOW_TEST_ISOLATE === "1" || env.COREBLOW_TEST_ISOLATE === "true";
-  if (forceIsolation) {
+  // Explicit ON: always isolate
+  if (env.COREBLOW_TEST_ISOLATE === "1" || env.COREBLOW_TEST_ISOLATE === "true") {
     return true;
   }
-  return env.COREBLOW_TEST_NO_ISOLATE === "0" || env.COREBLOW_TEST_NO_ISOLATE === "false";
+  // Explicit OFF: planner sets this via env when it manages memory itself
+  if (env.COREBLOW_TEST_NO_ISOLATE === "1" || env.COREBLOW_TEST_NO_ISOLATE === "true") {
+    return false;
+  }
+  // Default: true (safe for direct 'npx vitest run' without planner).
+  // The planner overrides via --isolate=false CLI arg.
+  return true;
 }
 
 export function createScopedVitestConfig(
