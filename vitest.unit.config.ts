@@ -42,6 +42,8 @@ export function createUnitVitestConfig(env: Record<string, string | undefined> =
     ...base,
     test: {
       ...baseTest,
+      // Cap workers to prevent OOM on 16GB systems (base config may auto-detect higher)
+      maxWorkers: Math.min((baseTest as { maxWorkers?: number }).maxWorkers ?? 4, 4),
       include: loadIncludePatternsFromEnv(env) ?? unitTestIncludePatterns,
       exclude: [
         ...new Set([
