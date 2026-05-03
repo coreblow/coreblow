@@ -70,8 +70,8 @@ export function createScopedVitestConfig(
     ...base,
     test: {
       ...baseTest,
-      isolate,
-      runner: "./test/non-isolated-runner.ts",
+      // Cap workers to prevent OOM on 16GB systems.
+      maxWorkers: 2,
       ...(scopedDir ? { dir: scopedDir } : {}),
       include: relativizeScopedPatterns(include, scopedDir),
       exclude,
