@@ -1,14 +1,19 @@
-import { defineConfig } from 'vitest/config';
-import baseConfig from './vitest.config.ts';
+import { channelTestInclude } from './vitest.channel-paths.mjs';
+import { loadPatternListFromEnv } from './vitest.pattern-file.ts';
+import { createScopedVitestConfig } from './vitest.scoped-config.ts';
 
-const base = baseConfig as unknown as Record<string, unknown>;
-const baseTest = (baseConfig as { test?: Record<string, unknown> }).test ?? {};
+export function loadIncludePatternsFromEnv(
+  env: Record<string, string | undefined> = process.env,
+): string[] | null {
+  return loadPatternListFromEnv('COREBLOW_VITEST_INCLUDE_FILE', env);
+}
 
-export default defineConfig({
-  ...base,
-  test: {
-    ...baseTest,
-    include: ['src/channels/**/*.test.ts', 'extensions/*/src/**/*.test.ts'],
-    testTimeout: 15000,
-  },
-});
+export function createChannelsVitestConfig(env?: Record<string, string | undefined>) {
+  return createScopedVitestConfig(loadIncludePatternsFromEnv(env) ?? channelTestInclude, {
+    env,
+    exclude: ['src/gateway/**'],
+    passWithNoTests: true,
+  });
+}
+
+export default createChannelsVitestConfig();

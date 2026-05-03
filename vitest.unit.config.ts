@@ -1,214 +1,104 @@
 import { defineConfig } from 'vitest/config';
 import baseConfig from './vitest.config.ts';
+import { loadPatternListFromEnv } from './vitest.pattern-file.ts';
+import { resolveVitestIsolation } from './vitest.scoped-config.ts';
+import {
+  unitTestAdditionalExcludePatterns,
+  unitTestIncludePatterns,
+} from './vitest.unit-paths.mjs';
 
 /**
- * Unit test config — inherits resolve.alias from vitest.config.ts
- * so that `coreblow/plugin-sdk/*` subpath imports resolve correctly.
+ * Unit test config — matches OpenClaw split-config architecture.
+ *
+ * This config runs ONLY core infrastructure tests (config, infra, cli,
+ * plugin-sdk, plugins). Domain tests (agents, auto-reply, commands,
+ * gateway) are excluded here and run via their own configs:
+ *   - vitest.gateway.config.ts
+ *   - vitest.channels.config.ts
+ *   - vitest.contracts.config.ts
+ *   - vitest.extensions.config.ts
+ *
+ * Inherits resolve.alias from vitest.config.ts so that
+ * `coreblow/plugin-sdk/*` subpath imports resolve correctly.
  */
+
 const base = baseConfig as unknown as Record<string, unknown>;
-const baseTest = (baseConfig as { test?: Record<string, unknown> }).test ?? {};
+const baseTest = (baseConfig as { test?: { include?: string[]; exclude?: string[] } }).test ?? {};
+const exclude = baseTest.exclude ?? [];
 
-export default defineConfig({
-  ...base,
-  test: {
-    ...baseTest,
-    include: ['src/**/*.test.ts'],
-    exclude: [
-      ...((baseTest.exclude as string[]) ?? []),
-      '**/*.e2e.test.ts',
-      // ── Migration debt: tests requiring unbuilt infrastructure (181 files) ──
-      // These tests depend on functions, fixtures, or integration stacks
-      // that have not yet been implemented in CoreBlow.
-      // Track: https://github.com/coreblow/coreblow/issues/migration-debt
-      'src/agents/agents-phase8.test.ts',
+export function loadIncludePatternsFromEnv(
+  env: Record<string, string | undefined> = process.env,
+): string[] | null {
+  return loadPatternListFromEnv('COREBLOW_VITEST_INCLUDE_FILE', env);
+}
 
+export function loadExtraExcludePatternsFromEnv(
+  env: Record<string, string | undefined> = process.env,
+): string[] {
+  return loadPatternListFromEnv('COREBLOW_VITEST_EXTRA_EXCLUDE_FILE', env) ?? [];
+}
 
+export function createUnitVitestConfig(env: Record<string, string | undefined> = process.env) {
+  return defineConfig({
+    ...base,
+    test: {
+      ...baseTest,
+      isolate: resolveVitestIsolation(env),
+      include: loadIncludePatternsFromEnv(env) ?? unitTestIncludePatterns,
+      exclude: [
+        ...new Set([
+          ...exclude,
+          '**/*.e2e.test.ts',
+          ...unitTestAdditionalExcludePatterns,
+          ...loadExtraExcludePatternsFromEnv(env),
 
-      'src/agents/bash-tools.exec.pty-cleanup.test.ts',
-      'src/agents/bash-tools.exec.pty-fallback-failure.test.ts',
-      'src/agents/cli-runner.spawn.test.ts',
-      'src/agents/compaction.tool-result-details.test.ts',
-      'src/agents/context.lookup.test.ts',
-      'src/agents/coreblow-gateway-tool.test.ts',
+          // ── Migration debt: tests requiring unbuilt infrastructure ──
+          // These tests depend on functions, fixtures, or integration stacks
+          // that have not yet been implemented in CoreBlow.
+          // Track: https://github.com/coreblow/coreblow/issues/migration-debt
+          //
+          // Note: agents/**, auto-reply/**, commands/**, gateway/** are already
+          // excluded by unitTestAdditionalExcludePatterns above. The entries
+          // below are retained for files in other directories (config, infra,
+          // cli, plugin-sdk, plugins) that still fail.
 
+          // ── config ──
+          'src/config/config.nix-integration-u3-u5-u9.test.ts',
+          'src/config/config.web-search-provider.test.ts',
+          'src/config/doc-baseline.integration.test.ts',
+          'src/config/io.observe-config.test.ts',
+          'src/config/io.validation-fails-closed.test.ts',
+          'src/config/io.write-config.test.ts',
+          'src/config/load-channel-config-surface.test.ts',
+          'src/config/validation.allowed-values.test.ts',
+          'src/config/validation.channel-metadata.test.ts',
 
+          // ── infra ──
+          'src/infra/host-env-security.policy-parity.test.ts',
+          'src/infra/matrix-legacy-crypto.test.ts',
+          'src/infra/matrix-plugin-helper.test.ts',
+          'src/infra/run-node.test.ts',
+          'src/infra/state-retry.test.ts',
+          'src/infra/watch-node.test.ts',
 
+          // ── cli ──
+          'src/cli/config-cli.integration.test.ts',
+          'src/cli/gateway-cli.coverage.test.ts',
+          'src/cli/gateway-cli/run.option-collisions.test.ts',
+          'src/cli/nodes-cli.coverage.test.ts',
+          'src/cli/skills-cli.commands.test.ts',
 
+          // ── plugin-sdk ──
+          'src/plugin-sdk/channel-import-guardrails.test.ts',
+          'src/plugin-sdk/package-contract-guardrails.test.ts',
+          'src/plugin-sdk/subpaths.test.ts',
 
+          // ── plugins ──
+          'src/plugins/contracts/registry.contract.test.ts',
+        ]),
+      ],
+    },
+  });
+}
 
-
-
-      // Sprint 24: pass isolated, fail in full suite (cross-test interaction)
-      'src/agents/coreblow-tools.sessions.test.ts',
-      'src/agents/models-config.write-serialization.test.ts',
-      'src/agents/coreblow-tools.subagents.sessions-spawn-depth-limits.test.ts',
-      'src/agents/coreblow-tools.subagents.sessions-spawn.lifecycle.test.ts',
-      'src/agents/coreblow-tools.subagents.steer-failure-clears-suppression.test.ts',
-
-      'src/agents/minimax-docs.test.ts',
-      'src/agents/model-auth.profiles.test.ts',
-      'src/agents/model-fallback.probe.test.ts',
-
-
-
-
-      'src/agents/models-config.fills-missing-provider-apikey-from-env-var.test.ts',
-      'src/agents/models-config.normalizes-gemini-3-ids-preview-google-providers.test.ts',
-      'src/agents/models-config.preserves-explicit-reasoning-override.test.ts',
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      'src/agents/models-config.skips-writing-models-json-no-env-token.test.ts',
-
-
-      'src/agents/ollama-stream.test.ts',
-
-      'src/agents/pi-embedded-runner-extraparams.test.ts',
-      'src/agents/pi-embedded-runner.openai-tool-id-preservation.test.ts',
-      'src/agents/pi-embedded-runner.sanitize-session-history.test.ts',
-      'src/agents/pi-embedded-runner.sanitize-session-history.policy.test.ts',
-      'src/agents/pi-embedded-runner/compact.hooks.test.ts',
-      'src/agents/pi-embedded-runner/extra-params.cache-retention-default.test.ts',
-      'src/agents/pi-embedded-runner/model.forward-compat.errors-and-overrides.test.ts',
-      'src/agents/pi-embedded-runner/model.forward-compat.test.ts',
-      'src/agents/pi-embedded-runner/model.startup-retry.test.ts',
-      'src/agents/pi-embedded-runner/run.codex-server-error-fallback.test.ts',
-      'src/agents/pi-embedded-runner/run.overflow-compaction.loop.test.ts',
-      'src/agents/pi-embedded-runner/run.overflow-compaction.test.ts',
-      'src/agents/pi-embedded-runner/run.timeout-triggered-compaction.test.ts',
-      'src/agents/pi-embedded-runner/extra-params.zai-tool-stream.test.ts',
-      'src/agents/pi-embedded-runner/extra-params.google.test.ts',
-      'src/agents/pi-embedded-runner/extra-params.openai.test.ts',
-      'src/agents/pi-embedded-runner/extra-params.openrouter-cache-control.test.ts',
-      'src/agents/pi-embedded-runner/extra-params.xai-tool-payload.test.ts',
-      'src/agents/pi-embedded-runner/sanitize-session-history.tool-result-details.test.ts',
-      'src/agents/pi-embedded-runner/sessions-yield.orchestration.test.ts',
-      'src/agents/pi-embedded-runner/usage-reporting.test.ts',
-      'src/agents/pi-embedded-subscribe.reply-tags.test.ts',
-      'src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.calls-onblockreplyflush-before-tool-execution-start-preserve.test.ts',
-      'src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.does-not-append-text-end-content-is.test.ts',
-      'src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.does-not-duplicate-text-end-repeats-full.test.ts',
-      'src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.emits-block-replies-text-end-does-not.test.ts',
-      'src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.emits-reasoning-as-separate-message-enabled.test.ts',
-      'src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.keeps-indented-fenced-blocks-intact.test.ts',
-      'src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.reopens-fenced-blocks-splitting-inside-them.test.ts',
-      'src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.streams-soft-chunks-paragraph-preference.test.ts',
-      'src/agents/pi-model-discovery.auth.test.ts',
-      'src/agents/pi-tools-agent-config.test.ts',
-      'src/agents/pi-tools.create-coreblow-coding-tools.adds-claude-style-aliases-schemas-without-dropping-d.test.ts',
-      'src/agents/pi-tools.create-coreblow-coding-tools.adds-claude-style-aliases-schemas-without-dropping-f.test.ts',
-      'src/agents/pi-tools.message-provider-policy.test.ts',
-      'src/agents/pi-tools.read.host-edit-access.test.ts',
-      'src/agents/pi-tools.sandbox-mounted-paths.workspace-only.test.ts',
-      'src/agents/pi-tools.sandbox-policy.test.ts',
-      'src/agents/pi-tools.whatsapp-login-gating.test.ts',
-      'src/agents/pi-tools.workspace-only-false.test.ts',
-      'src/agents/pi-tools.workspace-paths.test.ts',
-
-      'src/agents/sandbox/browser.create.test.ts',
-      'src/agents/sessions-spawn-threadid.test.ts',
-      'src/agents/skills.sherpa-onnx-tts-bin.test.ts',
-
-      'src/agents/subagent-spawn.attachments.test.ts',
-      'src/agents/subagent-spawn.model-session.test.ts',
-      'src/agents/subagent-spawn.workspace.test.ts',
-      'src/agents/tool-images.log.test.ts',
-      'src/agents/tools-effective-inventory.integration.test.ts',
-      'src/agents/tools/image-tool.test.ts',
-      'src/agents/tools/web-fetch.cf-markdown.test.ts',
-      'src/agents/tools/web-guarded-fetch.test.ts',
-      'src/agents/tools/web-tools.readability.test.ts',
-      'src/agents/tools/web-tools.enabled-defaults.test.ts',
-      'src/agents/transcript-policy.policy.test.ts',
-      'src/agents/workspace-phase11.test.ts',
-
-
-
-
-      'src/auto-reply/reply.directive.directive-behavior.applies-inline-reasoning-mixed-messages-acks-immediately.test.ts',
-      'src/auto-reply/reply.directive.directive-behavior.defaults-think-low-reasoning-capable-models-no.test.ts',
-      'src/auto-reply/reply.directive.directive-behavior.shows-current-verbose-level-verbose-has-no.test.ts',
-      'src/auto-reply/reply.media-note.test.ts',
-
-      'src/auto-reply/reply/abort.test.ts',
-      'src/auto-reply/reply/agent-runner.misc.runreplyagent.test.ts',
-      'src/auto-reply/reply/auto-topic-label.test.ts',
-      'src/auto-reply/reply/commands-plugins.install.test.ts',
-      'src/auto-reply/reply/export-html/template.security.test.ts',
-      'src/auto-reply/reply/reply-flow.test.ts',
-      'src/cli/config-cli.integration.test.ts',
-
-      'src/cli/gateway-cli.coverage.test.ts',
-      'src/cli/gateway-cli/run.option-collisions.test.ts',
-      'src/cli/nodes-cli.coverage.test.ts',
-      'src/cli/skills-cli.commands.test.ts',
-      'src/commands/agent.cli-provider.test.ts',
-      'src/commands/agent/session.test.ts',
-      'src/commands/auth-choice.moonshot.test.ts',
-      'src/commands/backup.atomic.test.ts',
-      'src/commands/channels.adds-non-default-telegram-account.test.ts',
-      'src/commands/dispatcher.test.ts',
-      'src/commands/doctor-bootstrap-size.test.ts',
-
-      'src/commands/models/list.list-command.forward-compat.test.ts',
-      'src/commands/onboard-non-interactive.gateway.test.ts',
-      'src/commands/onboard-non-interactive.provider-auth.test.ts',
-
-
-      'src/config/config.nix-integration-u3-u5-u9.test.ts',
-
-      'src/config/config.web-search-provider.test.ts',
-      'src/config/doc-baseline.integration.test.ts',
-      'src/config/io.observe-config.test.ts',
-      'src/config/io.validation-fails-closed.test.ts',
-      'src/config/io.write-config.test.ts',
-      'src/config/load-channel-config-surface.test.ts',
-      'src/config/validation.allowed-values.test.ts',
-      'src/config/validation.channel-metadata.test.ts',
-      'src/gateway/client-callsites.guard.test.ts',
-      'src/gateway/gateway.test.ts',
-      'src/gateway/net-security.test.ts',
-      'src/gateway/protocol/protocol.test.ts',
-      'src/gateway/reconnect-gating.test.ts',
-      'src/gateway/server-methods/nodes.invoke-wake.test.ts',
-      'src/gateway/server.auth.compat-baseline.test.ts',
-      'src/gateway/server.auth.control-ui.test.ts',
-      'src/gateway/server.chat.gateway-server-chat.test.ts',
-      'src/gateway/server.config-patch.test.ts',
-      'src/gateway/server.node-pairing-authz.test.ts',
-      'src/gateway/server.plugin-http-auth.test.ts',
-      'src/gateway/server.reload.test.ts',
-      'src/gateway/server.roles-allowlist-update.test.ts',
-      'src/gateway/server.send-telegram-target-writeback-scope.test.ts',
-      'src/gateway/server.sessions-send.test.ts',
-      'src/gateway/server.talk-config.test.ts',
-      'src/gateway/session-utils.test.ts',
-      'src/infra/host-env-security.policy-parity.test.ts',
-      'src/infra/matrix-legacy-crypto.test.ts',
-      'src/infra/matrix-plugin-helper.test.ts',
-      'src/infra/run-node.test.ts',
-      'src/infra/state-retry.test.ts',
-      'src/infra/watch-node.test.ts',
-      'src/plugin-sdk/channel-import-guardrails.test.ts',
-      'src/plugin-sdk/package-contract-guardrails.test.ts',
-      'src/plugin-sdk/subpaths.test.ts',
-      'src/plugins/contracts/registry.contract.test.ts',
-    ],
-  },
-});
+export default createUnitVitestConfig();
