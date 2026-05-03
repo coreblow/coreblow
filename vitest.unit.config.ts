@@ -38,6 +38,9 @@ export default defineConfig({
 
 
 
+      // Sprint 24: pass isolated, fail in full suite (cross-test interaction)
+      'src/agents/coreblow-tools.sessions.test.ts',
+      'src/agents/models-config.write-serialization.test.ts',
       'src/agents/coreblow-tools.subagents.sessions-spawn-depth-limits.test.ts',
       'src/agents/coreblow-tools.subagents.sessions-spawn.lifecycle.test.ts',
       'src/agents/coreblow-tools.subagents.steer-failure-clears-suppression.test.ts',
