@@ -104,7 +104,7 @@ const LOCAL_MEMORY_BUDGETS = {
     memoryHeavyFileLimit: 8,
     unitFastBatchTargetMs: 10_000,
     channelsBatchTargetMs: 0,
-    extensionsBatchTargetMs: 60_000,
+    extensionsBatchTargetMs: 15_000,
   },
   moderate: {
     vitestCap: 3,
