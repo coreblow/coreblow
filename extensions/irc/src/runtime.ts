@@ -51,3 +51,4 @@ export class IrcRuntime {
 let _rt: IrcRuntime | undefined;
 export function getIrcRuntime(): IrcRuntime { if (!_rt) _rt = new IrcRuntime(); return _rt; }
 export function setIrcRuntime(r: IrcRuntime) { _rt = r; }
+export function clearIrcRuntime() { _rt = undefined; }
