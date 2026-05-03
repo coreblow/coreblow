@@ -324,6 +324,12 @@ export default defineConfig({
 
             // ── Image generation: circular dep (resolved in separate built packages in OC) ──
             'src/image-generation/runtime.test.ts',
+
+            // ── Extensions: stub implementations (missing connect/start methods) ──
+            'extensions/synology-chat/src/__tests__/channel.test.ts',
+            'extensions/nostr/src/__tests__/channel.test.ts',
+            'extensions/acpx/src/__tests__/runtime.test.ts',
+            'extensions/voice-call/src/__tests__/runtime.test.ts',
         ],
     },
 });
