@@ -1,7 +1,6 @@
 import { defineConfig } from 'vitest/config';
 import baseConfig from './vitest.config.ts';
 import { loadPatternListFromEnv } from './vitest.pattern-file.ts';
-import { resolveVitestIsolation } from './vitest.scoped-config.ts';
 import {
   unitTestAdditionalExcludePatterns,
   unitTestIncludePatterns,
@@ -43,7 +42,6 @@ export function createUnitVitestConfig(env: Record<string, string | undefined> =
     ...base,
     test: {
       ...baseTest,
-      isolate: resolveVitestIsolation(env),
       include: loadIncludePatternsFromEnv(env) ?? unitTestIncludePatterns,
       exclude: [
         ...new Set([
