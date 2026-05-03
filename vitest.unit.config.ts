@@ -43,8 +43,9 @@ export function createUnitVitestConfig(env: Record<string, string | undefined> =
     ...base,
     test: {
       ...baseTest,
-      isolate: resolveVitestIsolation(env),
-      runner: './test/non-isolated-runner.ts',
+      // Use 2 workers max to prevent OOM on 16GB systems.
+      // The base config runs with forks pool (isolate: true by default).
+      maxWorkers: 2,
       include: loadIncludePatternsFromEnv(env) ?? unitTestIncludePatterns,
       exclude: [
         ...new Set([
