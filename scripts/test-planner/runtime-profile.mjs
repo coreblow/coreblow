@@ -96,7 +96,7 @@ const LOCAL_MEMORY_BUDGETS = {
     unitHeavy: 1,
     extensions: 1,
     gateway: 1,
-    topLevelNoIsolate: 4,
+    topLevelNoIsolate: 2,
     topLevelIsolated: 2,
     deferred: 1,
     heavyFileLimit: 36,
