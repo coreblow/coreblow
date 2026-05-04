@@ -12,7 +12,7 @@ vi.mock("./chrome-mcp.js", () => ({
   openChromeMcpTab: vi.fn(async () => ({
     targetId: "8",
     title: "",
-    url: "https://coreblow.ai",
+    url: "https://coreblow.com",
     type: "page",
   })),
   closeChromeMcpTab: vi.fn(async () => {}),
@@ -84,22 +84,22 @@ describe("browser server-context existing-session profile", () => {
       ])
       .mockResolvedValueOnce([
         { targetId: "7", title: "", url: "https://example.com", type: "page" },
-        { targetId: "8", title: "", url: "https://coreblow.ai", type: "page" },
+        { targetId: "8", title: "", url: "https://coreblow.com", type: "page" },
       ])
       .mockResolvedValueOnce([
         { targetId: "7", title: "", url: "https://example.com", type: "page" },
-        { targetId: "8", title: "", url: "https://coreblow.ai", type: "page" },
+        { targetId: "8", title: "", url: "https://coreblow.com", type: "page" },
       ])
       .mockResolvedValueOnce([
         { targetId: "7", title: "", url: "https://example.com", type: "page" },
-        { targetId: "8", title: "", url: "https://coreblow.ai", type: "page" },
+        { targetId: "8", title: "", url: "https://coreblow.com", type: "page" },
       ]);
 
     await live.ensureBrowserAvailable();
     const tabs = await live.listTabs();
     expect(tabs.map((tab) => tab.targetId)).toEqual(["7"]);
 
-    const opened = await live.openTab("https://coreblow.ai");
+    const opened = await live.openTab("https://coreblow.com");
     expect(opened.targetId).toBe("8");
 
     const selected = await live.ensureTabAvailable();
@@ -115,7 +115,7 @@ describe("browser server-context existing-session profile", () => {
     expect(chromeMcp.listChromeMcpTabs).toHaveBeenCalledWith("chrome-live", "/tmp/brave-profile");
     expect(chromeMcp.openChromeMcpTab).toHaveBeenCalledWith(
       "chrome-live",
-      "https://coreblow.ai",
+      "https://coreblow.com",
       "/tmp/brave-profile",
     );
     expect(chromeMcp.focusChromeMcpTab).toHaveBeenCalledWith(

@@ -17,7 +17,7 @@ export function buildPairingReply(params: {
         "CoreBlow: access not configured.",
         "",
         idLine,
-        "Pairing code:",
+        "pairing code:",
         "```",
         code,
         "```",
