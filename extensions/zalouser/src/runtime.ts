@@ -45,7 +45,7 @@ export class ZalouserRuntime {
   }
 }
 
-// Runtime setter for index.ts
-export function setZalouserRuntime(runtime: any): void {
-  // Placeholder — called by extension index to wire runtime
-}
+let _rt: ZalouserRuntime | undefined;
+export function getZalouserRuntime(): ZalouserRuntime { if (!_rt) throw new Error("Zalouser runtime not initialized"); return _rt; }
+export function setZalouserRuntime(runtime: any): void { _rt = runtime; }
+export function clearZalouserRuntime(): void { _rt = undefined; }

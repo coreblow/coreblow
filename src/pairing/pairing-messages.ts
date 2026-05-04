@@ -1,30 +1,33 @@
 /**
  * pairing/pairing-messages.ts
  * Pairing-specific message formatting.
- * Ported from CoreBlow reference src/pairing/pairing-messages.ts.
  */
 
+import { formatCliCommand } from "../cli/command-format.js";
+import type { PairingChannel } from "./pairing-store.js";
+
 export function buildPairingReply(params: {
-    channel: string;
+    channel: PairingChannel;
     idLine: string;
     code: string;
 }): string {
-    const lines = [
-        '🔑 **Device Pairing Required**',
-        '',
-        `Your ${params.channel} account (${params.idLine}) is not yet paired with this CoreBlow instance.`,
-        '',
-        'To pair, run the following command on the machine hosting CoreBlow:',
-        '',
-        `\`\`\``,
-        `coreblow pair accept ${params.code}`,
-        `\`\`\``,
-        '',
-        `Or open the dashboard and enter pairing code: **${params.code}**`,
-        '',
-        '_This code expires in 1 hour._',
-    ];
-    return lines.join('\n');
+    const { channel, idLine, code } = params;
+    const approveCommand = formatCliCommand(`coreblow pairing approve ${channel} ${code}`);
+    return [
+        "CoreBlow: access not configured.",
+        "",
+        idLine,
+        "Pairing code:",
+        "```",
+        code,
+        "```",
+        "",
+        "Ask the bot owner to approve with:",
+        formatCliCommand(`coreblow pairing approve ${channel} ${code}`),
+        "```",
+        approveCommand,
+        "```",
+    ].join("\n");
 }
 
 export function buildPairingSuccessReply(params: {

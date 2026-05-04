@@ -51,3 +51,4 @@ export class LineRuntime {
 let _rt: LineRuntime | undefined;
 export function getLineRuntime(): LineRuntime { if (!_rt) _rt = new LineRuntime(); return _rt; }
 export function setLineRuntime(r: LineRuntime) { _rt = r; }
+export function clearLineRuntime() { _rt = undefined; }

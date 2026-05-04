@@ -108,7 +108,7 @@ describe("irc inbound behavior", () => {
     expect(sendReply).toHaveBeenCalledTimes(1);
     expect(sendReply).toHaveBeenCalledWith(
       "alice",
-      expect.stringContaining("CoreBlow: access not configured."),
+      expect.stringContaining("coreblow pairing approve"),
       undefined,
     );
     expect(sendReply).toHaveBeenCalledWith(

@@ -5,9 +5,9 @@ describe('Pairing Messages', () => {
     it('builds pairing reply with code', () => {
         const msg = buildPairingReply({ channel: 'discord', idLine: 'user#1234', code: 'ABCD1234' });
         expect(msg).toContain('ABCD1234');
-        expect(msg).toContain('discord');
         expect(msg).toContain('user#1234');
-        expect(msg).toContain('coreblow pair accept');
+        expect(msg).toContain('Pairing code:');
+        expect(msg).toContain('coreblow pairing approve discord');
     });
 
     it('builds success reply', () => {

@@ -126,7 +126,7 @@ describe("nostr inbound gateway path", () => {
       }),
     ).resolves.toBe("pairing");
     expect(sendPairingReply).toHaveBeenCalledTimes(1);
-    expect(sendPairingReply.mock.calls[0]?.[0]).toContain("Pairing code:");
+    expect(sendPairingReply.mock.calls[0]?.[0]).toContain("pairing code:");
 
     cleanup.stop();
   });
