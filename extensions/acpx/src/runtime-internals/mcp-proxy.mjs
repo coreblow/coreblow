@@ -1,136 +1,141 @@
 #!/usr/bin/env node
 
-/**
- * MCP Proxy for CoreBlow ACPX Runtime
- *
- * Spawns a target ACP process and intercepts JSONRPC requests on stdin.
- * For session bootstrap methods (session/new, session/load, session/fork),
- * injects configured MCP server definitions into the request params.
- * All other requests and all stdout from the child are passed through unchanged.
- */
+// ─────────────────────────────────────────────────────────────────────────────
+// CoreBlow ACPX — MCP Server Injection Proxy
+//
+// Sits between an MCP client and a target agent subprocess, transparently
+// augmenting session-init JSONRPC calls with pre-configured MCP server entries.
+// ─────────────────────────────────────────────────────────────────────────────
 
 import { spawn } from "node:child_process";
 import { createInterface } from "node:readline";
 
-/**
- * Split a shell-like command string into argv tokens, respecting quotes.
- */
-function splitCommandLine(value) {
-  const parts = [];
-  let current = "";
-  let quote = null;
-  let escaping = false;
+// ── Section: CLI argument extraction ─────────────────────────────────────────
 
-  for (const ch of value) {
-    if (escaping) {
-      current += ch;
-      escaping = false;
+/** JSONRPC methods that carry session bootstrap params eligible for injection. */
+const SESSION_INIT_METHODS = new Set(["session/new", "session/load", "session/fork"]);
+
+/**
+ * Tokenize a command string into an argv-style array.
+ * Handles single/double quoting and backslash escapes.
+ */
+function tokenizeShellArgs(input) {
+  const tokens = [];
+  let buf = "";
+  let activeQuote = null;
+  let escaped = false;
+
+  for (const c of input) {
+    if (escaped) {
+      buf += c;
+      escaped = false;
       continue;
     }
-    if (ch === "\\") {
-      escaping = true;
+    if (c === "\\") {
+      escaped = true;
       continue;
     }
-    if (ch === quote) {
-      quote = null;
+    if (c === activeQuote) {
+      activeQuote = null;
       continue;
     }
-    if (!quote && (ch === '"' || ch === "'")) {
-      quote = ch;
+    if (activeQuote === null && (c === '"' || c === "'")) {
+      activeQuote = c;
       continue;
     }
-    if (!quote && ch === " ") {
-      if (current.length > 0) {
-        parts.push(current);
-        current = "";
+    if (activeQuote === null && c === " ") {
+      if (buf) {
+        tokens.push(buf);
+        buf = "";
       }
       continue;
     }
-    current += ch;
+    buf += c;
   }
-  if (current.length > 0) {
-    parts.push(current);
-  }
-  return parts;
+  if (buf) tokens.push(buf);
+  return tokens;
 }
 
 /**
- * Decode the base64url-encoded --payload CLI argument.
- * Returns { targetCommand, mcpServers }.
+ * Extract and decode the `--payload <base64url>` argument from argv.
+ * Returns the parsed command string and optional MCP server list.
  */
-function decodePayload(argv) {
-  const payloadIndex = argv.indexOf("--payload");
-  if (payloadIndex < 0 || payloadIndex + 1 >= argv.length) {
-    throw new Error("Missing --payload");
+function extractEncodedConfig(cliArgs) {
+  const flagPos = cliArgs.indexOf("--payload");
+  if (flagPos === -1 || flagPos + 1 >= cliArgs.length) {
+    throw new Error("CoreBlow MCP proxy: --payload argument is required");
   }
-  const raw = Buffer.from(argv[payloadIndex + 1], "base64url").toString("utf8");
-  const parsed = JSON.parse(raw);
-  const targetCommand = String(parsed.targetCommand ?? "");
-  const mcpServers = Array.isArray(parsed.mcpServers) ? parsed.mcpServers : [];
+  const decoded = Buffer.from(cliArgs[flagPos + 1], "base64url").toString("utf8");
+  const config = JSON.parse(decoded);
   return {
-    targetCommand,
-    mcpServers,
+    command: String(config.targetCommand ?? ""),
+    servers: Array.isArray(config.mcpServers) ? config.mcpServers : [],
   };
 }
 
-/**
- * Methods whose params.mcpServers should be rewritten.
- */
-function shouldInject(method) {
-  return method === "session/new" || method === "session/load" || method === "session/fork";
-}
+// ── Section: JSONRPC message augmentation ────────────────────────────────────
 
 /**
- * Parse a JSONRPC line, inject mcpServers if applicable, and return the
- * (possibly rewritten) line string.
+ * Inspect a single JSONRPC line and, if it represents a session-init call,
+ * graft the configured MCP servers into `params.mcpServers`.
+ * Non-matching or unparsable lines are returned verbatim.
  */
-function rewriteLine(line, mcpServers) {
-  if (mcpServers.length === 0) {
-    return line;
-  }
+function augmentIfSessionInit(rawLine, serverList) {
+  if (serverList.length === 0) return rawLine;
+
   try {
-    const msg = JSON.parse(line);
+    const envelope = JSON.parse(rawLine);
     if (
-      msg &&
-      typeof msg === "object" &&
-      typeof msg.method === "string" &&
-      shouldInject(msg.method)
+      envelope &&
+      typeof envelope === "object" &&
+      typeof envelope.method === "string" &&
+      SESSION_INIT_METHODS.has(envelope.method)
     ) {
-      const params = msg.params && typeof msg.params === "object" ? msg.params : {};
+      const existingParams =
+        envelope.params && typeof envelope.params === "object" ? envelope.params : {};
       return JSON.stringify({
-        ...msg,
-        params: {
-          ...params,
-          mcpServers,
-        },
+        ...envelope,
+        params: { ...existingParams, mcpServers: serverList },
       });
     }
   } catch {
-    // Not valid JSON — pass through as-is
+    // Malformed JSON — forward unchanged
   }
-  return line;
+  return rawLine;
 }
 
-// ── Main ──
+// ── Section: Process orchestration ───────────────────────────────────────────
 
-const { targetCommand, mcpServers } = decodePayload(process.argv.slice(2));
-const [cmd, ...args] = splitCommandLine(targetCommand);
+const { command, servers } = extractEncodedConfig(process.argv.slice(2));
+const [bin, ...argv] = tokenizeShellArgs(command);
 
-const child = spawn(cmd, args, {
+const subprocess = spawn(bin, argv, {
   stdio: ["pipe", "pipe", "inherit"],
   cwd: process.cwd(),
 });
 
-child.stdout.pipe(process.stdout);
+// Forward child stdout directly to our stdout
+subprocess.stdout.pipe(process.stdout);
 
-const rl = createInterface({ input: process.stdin });
-rl.on("line", (line) => {
-  child.stdin.write(`${rewriteLine(line, mcpServers)}\n`);
+// Intercept stdin lines, augment session-init calls, relay to child
+const stdinReader = createInterface({ input: process.stdin });
+stdinReader.on("line", (line) => {
+  subprocess.stdin.write(`${augmentIfSessionInit(line, servers)}\n`);
 });
-rl.on("close", () => {
-  child.stdin.end();
+stdinReader.on("close", () => {
+  subprocess.stdin.end();
 });
 
-child.once("close", (code) => {
-  process.exitCode = code ?? 1;
+// Propagate child exit status
+subprocess.on("error", (err) => {
+  process.stderr.write(`CoreBlow MCP proxy: subprocess error — ${err.message}\n`);
+  process.exit(1);
+});
+
+subprocess.once("close", (code, signal) => {
+  if (signal) {
+    process.kill(process.pid, signal);
+  } else {
+    process.exitCode = code ?? 1;
+  }
 });
