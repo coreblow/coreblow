@@ -309,7 +309,9 @@ describe("google-shared convertMessages", () => {
     } as unknown as Context;
 
     const contents = convertMessages(model, context);
-    expectConvertedRoles(contents, ["user", "model", "model"]);
+    // pi-ai 0.70.2: transformMessages inserts a synthetic toolResult for the
+    // orphaned toolCall, producing 4 elements instead of 3.
+    expectConvertedRoles(contents, ["user", "model", "model", "user"]);
     const toolCallPart = contents[2].parts?.find(
       (part) => typeof part === "object" && part !== null && "functionCall" in part,
     );

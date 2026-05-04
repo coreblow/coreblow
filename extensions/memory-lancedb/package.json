@@ -10,7 +10,11 @@
     "test": "vitest run",
     "lint": "eslint src/"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@lancedb/lancedb": "^0.27.1",
+    "@sinclair/typebox": "0.34.48",
+    "openai": "^6.33.0"
+  },
   "devDependencies": {
     "typescript": "^5.4.0",
     "vitest": "^4.1.4"

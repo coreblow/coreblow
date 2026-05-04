@@ -51,3 +51,14 @@ export class BluebubblesRuntime {
 let _rt: BluebubblesRuntime | undefined;
 export function getBlueBubblesRuntime(): BluebubblesRuntime { if (!_rt) _rt = new BluebubblesRuntime(); return _rt; }
 export function setBlueBubblesRuntime(r: BluebubblesRuntime) { _rt = r; }
+export function clearBlueBubblesRuntime() { _rt = undefined; }
+
+export function warnBlueBubbles(message: string): void {
+  const formatted = `[bluebubbles] ${message}`;
+  const log = (_rt as unknown as { log?: (...args: unknown[]) => void } | null)?.log;
+  if (typeof log === "function") {
+    log(formatted);
+  } else {
+    console.warn(formatted);
+  }
+}

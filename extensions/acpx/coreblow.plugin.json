@@ -1,17 +1,67 @@
 {
-  "name": "acpx",
-  "version": "0.1.0",
-  "description": "Acpx extension",
-  "main": "index.ts",
-  "permissions": [
-    "messages.read",
-    "messages.write"
-  ],
-  "channels": [
-    "acpx"
-  ],
-  "hooks": [
-    "onMessage",
-    "onCommand"
-  ]
+  "id": "acpx",
+  "name": "ACPX Runtime",
+  "description": "ACP runtime backend powered by acpx with configurable command path and version policy.",
+  "skills": ["./skills"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "command": {
+        "type": "string",
+        "minLength": 1
+      },
+      "expectedVersion": {
+        "type": "string",
+        "minLength": 1
+      },
+      "cwd": {
+        "type": "string",
+        "minLength": 1
+      },
+      "permissionMode": {
+        "type": "string",
+        "enum": ["approve-all", "approve-reads", "deny-all"]
+      },
+      "nonInteractivePermissions": {
+        "type": "string",
+        "enum": ["deny", "fail"]
+      },
+      "strictWindowsCmdWrapper": {
+        "type": "boolean"
+      },
+      "timeoutSeconds": {
+        "type": "number",
+        "minimum": 0.001
+      },
+      "queueOwnerTtlSeconds": {
+        "type": "number",
+        "minimum": 0
+      },
+      "mcpServers": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "object",
+          "properties": {
+            "command": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Command to run the MCP server"
+            },
+            "args": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Arguments to pass to the command"
+            },
+            "env": {
+              "type": "object",
+              "additionalProperties": { "type": "string" },
+              "description": "Environment variables for the MCP server"
+            }
+          },
+          "required": ["command"]
+        }
+      }
+    }
+  }
 }
