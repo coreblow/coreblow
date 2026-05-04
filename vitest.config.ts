@@ -330,7 +330,7 @@ export default defineConfig({
             'extensions/nostr/src/__tests__/channel.test.ts',
             'extensions/acpx/src/__tests__/runtime.test.ts',
             'extensions/voice-call/src/__tests__/runtime.test.ts',
-            // ── Extensions: require built assets (bun build) ──
+            // ── Extensions: require built assets (run 'npm run build:viewer' in extensions/diffs/) ──
             'extensions/diffs/src/config.test.ts',
             'extensions/diffs/src/store.test.ts',
         ],
