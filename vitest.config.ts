@@ -332,6 +332,7 @@ export default defineConfig({
             'extensions/voice-call/src/__tests__/runtime.test.ts',
             // ── Extensions: require built assets (bun build) ──
             'extensions/diffs/src/config.test.ts',
+            'extensions/diffs/src/store.test.ts',
         ],
     },
 });
