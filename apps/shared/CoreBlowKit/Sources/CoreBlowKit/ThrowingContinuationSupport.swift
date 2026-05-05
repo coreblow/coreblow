@@ -1,6 +1,13 @@
 import Foundation
+
 public enum ThrowingContinuationSupport {
-    public static func withTimeout<T: Sendable>(_ seconds: TimeInterval, body: @escaping @Sendable (CheckedContinuation<T, Error>) -> Void) async throws -> T {
-        try await AsyncTimeout.withTimeout(seconds) { try await withCheckedThrowingContinuation(body) }
+    public static func withTimeout<T: Sendable>(
+        _ seconds: TimeInterval,
+        body: @escaping @Sendable (CheckedContinuation<T, Error>) -> Void
+    ) async throws -> T {
+        try await AsyncTimeout.withTimeout(
+            seconds: seconds,
+            onTimeout: { NSError(domain: "ThrowingContinuationSupport", code: 1, userInfo: [NSLocalizedDescriptionKey: "Timed out after \(seconds)s"]) },
+            operation: { try await withCheckedThrowingContinuation(body) })
     }
 }

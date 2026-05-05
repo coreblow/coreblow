@@ -156,3 +156,25 @@ extension GatewayFrame {
         eventName == "tick"
     }
 }
+
+// MARK: - Hello OK Payload
+
+/// Payload returned by the gateway on successful connect handshake.
+public struct HelloOkPayload: Codable, Sendable {
+    public let tickIntervalMs: Double
+    public let deviceToken: String?
+    public let auth: [String: FlexValue]?
+    public let canvasHostUrl: String?
+
+    public init(
+        tickIntervalMs: Double = 30_000,
+        deviceToken: String? = nil,
+        auth: [String: FlexValue]? = nil,
+        canvasHostUrl: String? = nil
+    ) {
+        self.tickIntervalMs = tickIntervalMs
+        self.deviceToken = deviceToken
+        self.auth = auth
+        self.canvasHostUrl = canvasHostUrl
+    }
+}

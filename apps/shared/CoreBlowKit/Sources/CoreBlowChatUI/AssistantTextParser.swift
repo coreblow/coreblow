@@ -1,6 +1,6 @@
 import Foundation
 public enum AssistantTextParser {
-    public struct ParsedSegment: Sendable { public enum Kind { case text, code(language: String?), toolCall }; public let kind: Kind; public let content: String }
+    public struct ParsedSegment: Sendable { public enum Kind: Sendable { case text, code(language: String?), toolCall }; public let kind: Kind; public let content: String }
     public static func parse(_ text: String) -> [ParsedSegment] {
         var segments: [ParsedSegment] = []; var remaining = text
         while let codeStart = remaining.range(of: "```") {

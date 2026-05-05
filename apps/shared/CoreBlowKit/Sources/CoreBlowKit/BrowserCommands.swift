@@ -1,4 +1,9 @@
 import Foundation
+#if canImport(AppKit)
+import AppKit
+#elseif canImport(UIKit)
+import UIKit
+#endif
 
 public enum BrowserCommands {
     public static func openURL(_ urlString: String) async -> Bool {
