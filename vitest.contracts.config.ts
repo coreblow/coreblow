@@ -45,8 +45,8 @@ export default defineConfig({
         globals: true,
         environment: 'node',
         reporters: ['verbose'],
-        // timeout 15s — allow heavy first-import chains (google/matrix/telegram extensions)
-        testTimeout: 15_000,
+        // timeout 30s — allow heavy first-import chains (google/matrix/telegram extensions)
+        testTimeout: 30_000,
         hookTimeout: 10_000,
     },
 });
