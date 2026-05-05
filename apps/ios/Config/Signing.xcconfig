@@ -1,0 +1,7 @@
+// CoreBlow Signing Configuration
+// This file is checked in with placeholder values.
+// Copy LocalSigning.xcconfig.example to LocalSigning.xcconfig and fill in your team/bundle details.
+
+DEVELOPMENT_TEAM =
+CODE_SIGN_STYLE = Automatic
+CODE_SIGN_IDENTITY = Apple Development

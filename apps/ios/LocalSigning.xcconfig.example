@@ -1,0 +1,7 @@
+// Local Signing Configuration for CoreBlow iOS
+// Copy this file to LocalSigning.xcconfig and fill in your values.
+// DO NOT commit LocalSigning.xcconfig to the repository.
+//
+// DEVELOPMENT_TEAM = YOUR_TEAM_ID
+// CODE_SIGN_STYLE = Automatic
+// PROVISIONING_PROFILE_SPECIFIER =

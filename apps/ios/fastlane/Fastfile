@@ -1,0 +1,48 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Run unit tests"
+  lane :test do
+    run_tests(
+      project: "CoreBlow.xcodeproj",
+      scheme: "CoreBlow",
+      device: "iPhone 16",
+      clean: true,
+      code_coverage: true
+    )
+  end
+
+  desc "Build debug IPA"
+  lane :build_debug do
+    build_app(
+      project: "CoreBlow.xcodeproj",
+      scheme: "CoreBlow",
+      configuration: "Debug",
+      export_method: "development",
+      output_directory: "./build",
+      output_name: "CoreBlow-debug.ipa"
+    )
+  end
+
+  desc "Build release and upload to TestFlight"
+  lane :beta do
+    increment_build_number
+    build_app(
+      project: "CoreBlow.xcodeproj",
+      scheme: "CoreBlow",
+      configuration: "Release",
+      export_method: "app-store"
+    )
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc "Take screenshots for App Store"
+  lane :screenshots do
+    capture_screenshots(
+      output_directory: "./screenshots",
+      clear_previous_screenshots: true
+    )
+  end
+end

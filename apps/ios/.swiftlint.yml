@@ -1,0 +1,32 @@
+parent_config: ../../.swiftlint.yml
+
+included:
+  - Sources
+  - Tests
+
+type_body_length:
+  warning: 800
+  error: 1200
+
+file_length:
+  warning: 600
+  error: 1000
+
+function_body_length:
+  warning: 80
+  error: 120
+
+line_length:
+  warning: 140
+  error: 200
+
+disabled_rules:
+  - trailing_comma
+  - opening_brace
+
+opt_in_rules:
+  - empty_count
+  - closure_spacing
+  - contains_over_first_not_nil
+  - discouraged_optional_boolean
+  - modifier_order

@@ -1,0 +1,15 @@
+$(SRCROOT)/Sources/App.swift
+$(SRCROOT)/Sources/ContentView.swift
+$(SRCROOT)/Sources/Components/*.swift
+$(SRCROOT)/Sources/ViewModels/*.swift
+$(SRCROOT)/Sources/Models/*.swift
+$(SRCROOT)/Sources/Services/*.swift
+$(SRCROOT)/Sources/Views/*.swift
+$(SRCROOT)/Sources/Coordinators/*.swift
+$(SRCROOT)/Sources/Extensions/*.swift
+$(SRCROOT)/Sources/Formatters/*.swift
+$(SRCROOT)/Sources/Animations/*.swift
+$(SRCROOT)/Sources/AppClips/*.swift
+$(SRCROOT)/Sources/Intents/*.swift
+$(SRCROOT)/Sources/Widgets/*.swift
+$(SRCROOT)/Sources/Previews/*.swift
