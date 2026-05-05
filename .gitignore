@@ -29,6 +29,8 @@ __coreblow_vitest__/
 test-fixtures/
 test/
 tests/
+changelog/
+.vscode/
 
 # Audit artifacts
 audit-parity-full.json
