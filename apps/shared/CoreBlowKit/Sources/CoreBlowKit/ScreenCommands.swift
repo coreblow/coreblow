@@ -1,0 +1,2 @@
+import Foundation
+public enum ScreenCommands { public enum CaptureFormat: String, Sendable { case png, jpeg }; public struct ScreenCaptureOptions: Sendable { public let screenIndex: Int; public let format: CaptureFormat; public let quality: Double; public init(screenIndex: Int = 0, format: CaptureFormat = .png, quality: Double = 0.85) { self.screenIndex = screenIndex; self.format = format; self.quality = quality } } }

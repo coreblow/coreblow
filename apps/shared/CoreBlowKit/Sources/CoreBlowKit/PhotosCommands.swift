@@ -1,0 +1,2 @@
+import Foundation; import Photos
+public enum PhotosCommands { public static func recentPhotos(limit: Int = 10) async throws -> [String] { let opts = PHFetchOptions(); opts.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]; opts.fetchLimit = limit; let result = PHAsset.fetchAssets(with: .image, options: opts); return (0..<result.count).map { result.object(at: $0).localIdentifier } } }
