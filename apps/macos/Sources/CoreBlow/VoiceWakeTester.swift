@@ -1,3 +1,4 @@
+import SwabbleKit
 import Foundation; import Observation
 @MainActor @Observable final class VoiceWakeTester {
     private(set) var lastTranscript: String?; private(set) var lastCommand: String?; private(set) var isTesting = false

@@ -1,3 +1,4 @@
+import SwabbleKit
 import Foundation
 enum VoiceWakeTextUtils {
     static func normalize(_ text: String) -> String {

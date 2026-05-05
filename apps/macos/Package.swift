@@ -19,6 +19,8 @@ let package = Package(
         .package(url: "https://github.com/swiftlang/swift-subprocess.git", from: "0.4.0"),
         .package(url: "https://github.com/apple/swift-log.git", from: "1.10.1"),
         .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.9.0"),
+        .package(path: "../shared/CoreBlowKit"),
+        .package(path: "../swabble"),
     ],
     targets: [
         .target(
@@ -29,7 +31,9 @@ let package = Package(
             ]),
         .target(
             name: "CoreBlowDiscovery",
-            dependencies: [],
+            dependencies: [
+                .product(name: "CoreBlowKit", package: "CoreBlowKit"),
+            ],
             path: "Sources/CoreBlowDiscovery",
             swiftSettings: [
                 .enableUpcomingFeature("StrictConcurrency"),
@@ -39,6 +43,10 @@ let package = Package(
             dependencies: [
                 "CoreBlowIPC",
                 "CoreBlowDiscovery",
+                .product(name: "CoreBlowKit", package: "CoreBlowKit"),
+                .product(name: "CoreBlowChatUI", package: "CoreBlowKit"),
+                .product(name: "CoreBlowProtocol", package: "CoreBlowKit"),
+                .product(name: "SwabbleKit", package: "swabble"),
                 .product(name: "MenuBarExtraAccess", package: "MenuBarExtraAccess"),
                 .product(name: "Subprocess", package: "swift-subprocess"),
                 .product(name: "Logging", package: "swift-log"),

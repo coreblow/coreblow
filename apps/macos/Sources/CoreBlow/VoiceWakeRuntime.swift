@@ -1,3 +1,4 @@
+import SwabbleKit
 import Foundation; import OSLog; import Speech
 @MainActor final class VoiceWakeRuntime {
     private let logger = CoreBlowLogging.voice; private var recognizer: SFSpeechRecognizer?; private var audioEngine: AVAudioEngine?
