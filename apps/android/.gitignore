@@ -1,0 +1,23 @@
+# Gradle
+.gradle/
+build/
+local.properties
+
+# IDE
+*.iml
+.idea/
+.DS_Store
+
+# Android
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Release artifacts
+*.apk
+*.aab
+*.jks
+*.keystore
+
+# Misc
+*.hprof

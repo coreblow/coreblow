@@ -1,14 +1,6 @@
 plugins {
-    id("com.android.application") version "8.2.0"
-    id("org.jetbrains.kotlin.android") version "1.9.22"
-}
-
-android {
-    namespace = "com.coreblow.app"
-    compileSdk = 34
-    defaultConfig {
-        applicationId = "com.coreblow.app"
-        minSdk = 26
-        targetSdk = 34
-    }
+    id("com.android.application") version "8.7.3" apply false
+    id("org.jetbrains.kotlin.android") version "2.1.20" apply false
+    id("org.jetbrains.kotlin.plugin.compose") version "2.1.20" apply false
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.1.20" apply false
 }
