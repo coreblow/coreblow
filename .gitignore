@@ -18,6 +18,7 @@ coverage/
 *.tsbuildinfo
 
 # Legacy / removed directories
+ultra-skills/
 gateway/
 discord-plugin/
 full-plugin/
