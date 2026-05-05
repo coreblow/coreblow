@@ -77,6 +77,8 @@ let package = Package(
                 "CoreBlowIPC",
                 "CoreBlow",
                 "CoreBlowDiscovery",
+                .product(name: "CoreBlowProtocol", package: "CoreBlowKit"),
+                .product(name: "SwabbleKit", package: "swabble"),
             ],
             swiftSettings: [
                 .enableUpcomingFeature("StrictConcurrency"),

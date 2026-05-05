@@ -1,7 +1,7 @@
 import Foundation
 
 /// Type-erased Codable container for heterogeneous JSON payloads.
-public struct AnyCodable: Codable, Sendable, Hashable, CustomStringConvertible {
+public struct AnyCodable: Codable, @unchecked Sendable, Hashable, CustomStringConvertible {
     public let value: Any
     public init(_ value: Any) { self.value = value }
     public init(from decoder: Decoder) throws {
