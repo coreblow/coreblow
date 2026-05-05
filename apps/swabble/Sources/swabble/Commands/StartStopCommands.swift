@@ -1,0 +1,4 @@
+import Commander; import Foundation
+@MainActor struct StartCommand: ParsableCommand { static var commandDescription: CommandDescription { CommandDescription(commandName: "start", abstract: "Start swabble (foreground placeholder)") }; init() {}; init(parsed: ParsedValues) {}; mutating func run() async throws { print("start: run 'swabble serve' instead") } }
+@MainActor struct StopCommand: ParsableCommand { static var commandDescription: CommandDescription { CommandDescription(commandName: "stop", abstract: "Stop swabble (placeholder)") }; init() {}; init(parsed: ParsedValues) {}; mutating func run() async throws { print("stop: not implemented yet") } }
+@MainActor struct RestartCommand: ParsableCommand { static var commandDescription: CommandDescription { CommandDescription(commandName: "restart", abstract: "Restart swabble (placeholder)") }; init() {}; init(parsed: ParsedValues) {}; mutating func run() async throws { print("restart: not implemented yet") } }
