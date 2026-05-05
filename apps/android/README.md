@@ -6,13 +6,13 @@ Android native app for CoreBlow — Autonomous AI agents that run anywhere.
 
 ## Features
 
-- 💬 Chat UI with Jetpack Compose + Material 3
-- ⌚ Wear OS companion app (5 screens)
-- 📱 Glance widgets (5 types: Chat, Model, QuickChat, Status, Usage)
-- 🔐 Biometric lock + encrypted storage
-- 🔔 Push notifications
-- 🌍 7 languages (en, de, es, fr, ja, ko, zh)
-- 🔄 10 background workers (sync, backup, health check, etc.)
+- Chat UI with Jetpack Compose + Material 3
+- Wear OS companion app (5 screens)
+- Glance widgets (5 types: Chat, Model, QuickChat, Status, Usage)
+- Biometric lock + encrypted storage
+- Push notifications
+- 7 languages (en, de, es, fr, ja, ko, zh)
+- 10 background workers (sync, backup, health check, etc.)
 
 ## Build / Run
 
