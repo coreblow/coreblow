@@ -15,3 +15,4 @@ dependencyResolution {
 
 rootProject.name = "CoreBlow"
 include(":app")
+include(":benchmark")
