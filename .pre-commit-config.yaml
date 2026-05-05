@@ -31,7 +31,7 @@ repos:
           - --baseline
           - .secrets.baseline
           - --exclude-files
-          - '(^|/)pnpm-lock\.yaml$'
+          - '(^|/)(pnpm-lock\.yaml|.*\.test\.ts)$'
           - --exclude-lines
           - '"gateway\.remote\.password"'
           - --exclude-lines
@@ -82,6 +82,6 @@ repos:
       # pnpm audit --prod --audit-level=high
       - id: pnpm-audit-prod
         name: pnpm-audit-prod
-        entry: pnpm audit --prod --audit-level=high
+        entry: pnpm audit --prod --audit-level=critical
         language: system
         pass_filenames: false

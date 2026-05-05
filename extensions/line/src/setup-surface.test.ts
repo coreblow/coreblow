@@ -12,7 +12,6 @@ import {
 import { createStartAccountContext } from "../../../test/helpers/extensions/start-account-context.js";
 import type { CoreBlowConfig, PluginRuntime, ResolvedLineAccount } from "../api.js";
 import { linePlugin } from "./channel.js";
-// @ts-expect-error — clearLineRuntime is not exported; pre-existing test bug
 import { clearLineRuntime, setLineRuntime } from "./runtime.js";
 
 const { getBotInfoMock, MessagingApiClientMock } = vi.hoisted(() => {
