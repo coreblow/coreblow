@@ -19,7 +19,7 @@ coverage/
 
 # Legacy / removed directories
 ultra-skills/
-gateway/
+/gateway/
 discord-plugin/
 full-plugin/
 my-plugin/
