@@ -1,6 +1,6 @@
 name: CoreBlow
 options:
-  bundleIdPrefix: com.coreblow
+  bundleIdPrefix: ai.coreblow
   deploymentTarget:
     iOS: "17.0"
     watchOS: "10.0"
@@ -37,7 +37,7 @@ targets:
       path: Info.plist
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.coreblow.app
+        PRODUCT_BUNDLE_IDENTIFIER: ai.coreblow.app
         INFOPLIST_FILE: Info.plist
     dependencies:
       - target: CoreBlowActivityWidget
@@ -62,7 +62,7 @@ targets:
       path: ActivityWidget/Info.plist
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.coreblow.app.activity-widget
+        PRODUCT_BUNDLE_IDENTIFIER: ai.coreblow.app.activity-widget
 
   CoreBlowShareExtension:
     type: app-extension
@@ -73,7 +73,7 @@ targets:
       path: ShareExtension/Info.plist
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.coreblow.app.share
+        PRODUCT_BUNDLE_IDENTIFIER: ai.coreblow.app.share
 
   CoreBlowWatchApp:
     type: application
@@ -84,7 +84,7 @@ targets:
       path: WatchApp/Info.plist
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.coreblow.app.watchkitapp
+        PRODUCT_BUNDLE_IDENTIFIER: ai.coreblow.app.watchkitapp
     dependencies:
       - target: CoreBlowWatchExtension
         embed: true
@@ -98,4 +98,4 @@ targets:
       path: WatchExtension/Info.plist
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.coreblow.app.watchkitextension
+        PRODUCT_BUNDLE_IDENTIFIER: ai.coreblow.app.watchkitextension

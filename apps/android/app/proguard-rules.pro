@@ -1,7 +1,7 @@
 # CoreBlow Android ProGuard Rules
 
 # Keep application class
--keep class com.coreblow.app.** { *; }
+-keep class ai.coreblow.app.** { *; }
 
 # Retrofit
 -keepattributes Signature, InnerClasses, EnclosingMethod
@@ -19,9 +19,9 @@
 -dontnote kotlinx.serialization.AnnotationsKt
 -keepclassmembers class kotlinx.serialization.json.** { *** Companion; }
 -keepclasseswithmembers class kotlinx.serialization.json.** { kotlinx.serialization.KSerializer serializer(...); }
--keep,includedescriptorclasses class com.coreblow.app.**$$serializer { *; }
--keepclassmembers class com.coreblow.app.** { *** Companion; }
--keepclasseswithmembers class com.coreblow.app.** { kotlinx.serialization.KSerializer serializer(...); }
+-keep,includedescriptorclasses class ai.coreblow.app.**$$serializer { *; }
+-keepclassmembers class ai.coreblow.app.** { *** Companion; }
+-keepclasseswithmembers class ai.coreblow.app.** { kotlinx.serialization.KSerializer serializer(...); }
 
 # OkHttp
 -dontwarn org.conscrypt.**

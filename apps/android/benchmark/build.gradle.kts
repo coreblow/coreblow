@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.coreblow.benchmark"
+    namespace = "ai.coreblow.benchmark"
     compileSdk = 36
 
     defaultConfig {

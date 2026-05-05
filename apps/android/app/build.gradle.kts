@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.coreblow.app"
+    namespace = "ai.coreblow.app"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.coreblow.app"
+        applicationId = "ai.coreblow.app"
         minSdk = 26
         targetSdk = 36
         versionCode = 12

@@ -51,7 +51,7 @@ final class ShareViewController: UIViewController {
     }
 
     private func sendToCoreBlow(content: String, type: String) {
-        let sharedDefaults = UserDefaults(suiteName: "group.com.coreblow.app")
+        let sharedDefaults = UserDefaults(suiteName: "group.ai.coreblow.app")
         sharedDefaults?.set(content, forKey: "sharedContent")
         sharedDefaults?.set(type, forKey: "sharedContentType")
         sharedDefaults?.set(Date().timeIntervalSince1970, forKey: "sharedAt")
