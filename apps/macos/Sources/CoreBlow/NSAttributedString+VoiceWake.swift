@@ -1,0 +1,2 @@
+import AppKit
+extension NSAttributedString { static func voiceWakeFormatted(trigger: String, command: String) -> NSAttributedString { let s = NSMutableAttributedString(string: trigger, attributes: [.foregroundColor: NSColor.secondaryLabelColor]); s.append(NSAttributedString(string: " \(command)", attributes: [.foregroundColor: NSColor.labelColor, .font: NSFont.boldSystemFont(ofSize: NSFont.systemFontSize)])); return s } }

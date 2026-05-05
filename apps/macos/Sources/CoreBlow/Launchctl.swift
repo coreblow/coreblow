@@ -1,0 +1,2 @@
+import Foundation
+enum Launchctl { static func load(_ plistPath: String) throws { let p = Process(); p.executableURL = URL(fileURLWithPath: "/bin/launchctl"); p.arguments = ["load", plistPath]; try p.run(); p.waitUntilExit() }; static func unload(_ plistPath: String) throws { let p = Process(); p.executableURL = URL(fileURLWithPath: "/bin/launchctl"); p.arguments = ["unload", plistPath]; try p.run(); p.waitUntilExit() } }

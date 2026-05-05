@@ -1,0 +1,2 @@
+import Foundation
+enum DeepLinks { static let scheme = "coreblow"; static func parse(_ url: URL) -> DeepLinkAction? { guard url.scheme == scheme else { return nil }; switch url.host { case "connect": return .connect(host: url.pathComponents.dropFirst().first); case "settings": return .settings; case "canvas": return .canvas(session: url.pathComponents.dropFirst().first); default: return nil } }; enum DeepLinkAction { case connect(host: String?); case settings; case canvas(session: String?) } }

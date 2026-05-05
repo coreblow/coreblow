@@ -1,0 +1,1 @@
+MIT License - apple-device-identifiers

@@ -1,0 +1,2 @@
+import Foundation
+enum TailscaleService { static func isInstalled() -> Bool { FileManager.default.fileExists(atPath: "/Applications/Tailscale.app") }; static func status() async -> [String: Any]? { guard let url = URL(string: "http://127.0.0.1:41112/localapi/v0/status") else { return nil }; let (data, _) = try? await URLSession.shared.data(from: url) ?? (Data(), URLResponse()); return try? JSONSerialization.jsonObject(with: data) as? [String: Any] } }

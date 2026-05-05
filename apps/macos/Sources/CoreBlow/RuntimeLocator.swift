@@ -1,0 +1,2 @@
+import Foundation
+enum RuntimeLocator { static func locateNodeBinary() -> URL? { ["/usr/local/bin/node", "/opt/homebrew/bin/node"].map(URL.init(fileURLWithPath:)).first { FileManager.default.isExecutableFile(atPath: $0.path) } }; static func locateGatewayBinary() -> URL? { let appSupport = CoreBlowPaths.gatewayBinary; return FileManager.default.isExecutableFile(atPath: appSupport.path) ? appSupport : nil } }

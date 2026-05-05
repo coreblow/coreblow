@@ -1,0 +1,2 @@
+import Foundation
+enum LogLocator { static var logDirectory: URL { CoreBlowPaths.logsDirectory }; static func latestLog() -> URL? { let dir = logDirectory; let files = (try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: [.contentModificationDateKey])) ?? []; return files.sorted { (try? $0.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast > (try? $1.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast }.first } }

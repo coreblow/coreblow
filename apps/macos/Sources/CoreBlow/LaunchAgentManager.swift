@@ -1,0 +1,2 @@
+import Foundation
+enum LaunchAgentManager { static let plistName = "ai.coreblow.gateway"; static func isInstalled() -> Bool { FileManager.default.fileExists(atPath: plistPath) }; static var plistPath: String { "\(NSHomeDirectory())/Library/LaunchAgents/\(plistName).plist" }; static func install(binaryPath: String, port: UInt16) throws { /* write plist */ }; static func uninstall() throws { try? FileManager.default.removeItem(atPath: plistPath) } }

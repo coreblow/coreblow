@@ -1,0 +1,2 @@
+import Foundation; import Observation
+@MainActor @Observable final class WebChatManager { struct ChatMessage: Identifiable { let id = UUID(); let role: String; let content: String; let timestamp: Date }; var messages: [ChatMessage] = []; func send(_ text: String) { messages.append(ChatMessage(role: "user", content: text, timestamp: Date())) }; func receive(_ text: String) { messages.append(ChatMessage(role: "assistant", content: text, timestamp: Date())) } }
