@@ -218,7 +218,7 @@
     "@ai-sdk/openai": "^3.0.53",
     "@ai-sdk/provider": "^3.0.8",
     "@anthropic-ai/bedrock-sdk": "^0.28.1",
-    "@anthropic-ai/sdk": "^0.90.0",
+    "@anthropic-ai/sdk": "^0.94.0",
     "@types/express": "^5.0.6",
     "@types/ws": "^8.18.1",
     "@typescript/native-preview": "7.0.0-dev.20260326.1",
@@ -1214,7 +1214,9 @@
       "postcss": ">=8.5.10",
       "esbuild": ">=0.25.0",
       "fast-xml-parser": ">=5.7.0",
-      "uuid": ">=14.0.0"
+      "uuid": ">=14.0.0",
+      "ip-address": ">=10.1.1",
+      "@anthropic-ai/sdk": ">=0.91.1"
     }
   }
 }
