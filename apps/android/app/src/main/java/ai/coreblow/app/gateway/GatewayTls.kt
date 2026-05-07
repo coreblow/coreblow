@@ -1,76 +1,152 @@
 package ai.coreblow.app.gateway
 
 import android.util.Log
-import java.security.MessageDigest
+import java.security.KeyStore
+import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
+import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 import okhttp3.OkHttpClient
 
 /**
- * TLS configuration for gateway connections.
- *
- * Supports certificate fingerprint pinning for self-signed gateway certificates.
+ * Gateway TLS configuration.
+ * Supports standard CA-verified TLS, self-signed certificate
+ * pinning via SHA-256 fingerprint, and trust-on-first-use (TOFU).
  */
-data class GatewayTlsParams(
-    val required: Boolean,
-    val fingerprint: String?,
-)
-
 object GatewayTls {
 
     private const val TAG = "GatewayTls"
 
     /**
-     * Build an OkHttpClient.Builder with custom TLS trust for the given params.
-     *
-     * If [params] is null or has no fingerprint, returns a default builder.
-     * If a fingerprint is provided, pins against that SHA-256 fingerprint.
+     * Configure an OkHttpClient.Builder with appropriate TLS settings.
      */
-    fun configureClient(
-        builder: OkHttpClient.Builder,
-        params: GatewayTlsParams?,
-    ): OkHttpClient.Builder {
-        if (params == null || params.fingerprint.isNullOrBlank()) {
-            return builder
+    fun configureClient(builder: OkHttpClient.Builder, params: GatewayTlsParams?) {
+        if (params == null || !params.required) return
+
+        val fingerprint = params.fingerprint?.trim()
+
+        if (fingerprint.isNullOrEmpty()) {
+            // Standard TLS with system trust store — no extra config needed
+            Log.d(TAG, "Using system CA trust store")
+            return
         }
 
-        val expectedFingerprint = params.fingerprint.lowercase().replace(":", "")
+        // Pin to specific certificate fingerprint
+        configurePinnedTrust(builder, fingerprint)
+    }
+
+    /**
+     * Create a trust manager that accepts a specific certificate fingerprint.
+     */
+    private fun configurePinnedTrust(builder: OkHttpClient.Builder, fingerprint: String) {
+        val normalizedFingerprint = fingerprint
+            .replace(":", "")
+            .replace(" ", "")
+            .lowercase()
 
         val trustManager = object : X509TrustManager {
             override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
 
             override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {
-                val cert = chain?.firstOrNull()
-                    ?: throw SecurityException("No server certificate presented")
+                if (chain.isNullOrEmpty()) throw javax.net.ssl.SSLException("No server certificate")
 
-                val actualFingerprint = sha256Fingerprint(cert)
-                if (actualFingerprint != expectedFingerprint) {
-                    Log.e(TAG, "Certificate fingerprint mismatch: expected=$expectedFingerprint actual=$actualFingerprint")
-                    throw SecurityException("Certificate fingerprint mismatch")
+                val serverCert = chain[0]
+                val serverFingerprint = calculateFingerprint(serverCert)
+
+                if (serverFingerprint != normalizedFingerprint) {
+                    Log.e(TAG, "Certificate fingerprint mismatch!")
+                    Log.e(TAG, "Expected: $normalizedFingerprint")
+                    Log.e(TAG, "Got:      $serverFingerprint")
+                    throw javax.net.ssl.SSLException(
+                        "Certificate fingerprint mismatch: expected=$normalizedFingerprint got=$serverFingerprint"
+                    )
                 }
-
-                Log.d(TAG, "Certificate fingerprint verified: $actualFingerprint")
+                Log.d(TAG, "Certificate fingerprint verified")
             }
 
-            override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
+            override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
         }
 
-        val sslContext = SSLContext.getInstance("TLS")
-        sslContext.init(null, arrayOf<TrustManager>(trustManager), null)
+        try {
+            val sslContext = SSLContext.getInstance("TLS")
+            sslContext.init(null, arrayOf<TrustManager>(trustManager), SecureRandom())
 
-        return builder
-            .sslSocketFactory(sslContext.socketFactory, trustManager)
-            .hostnameVerifier { _, _ -> true }
+            builder.sslSocketFactory(sslContext.socketFactory, trustManager)
+            builder.hostnameVerifier { _, _ -> true } // Fingerprint-based trust replaces hostname check
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to configure pinned TLS: ${e.message}")
+        }
     }
 
     /**
-     * Compute SHA-256 fingerprint of an X.509 certificate.
+     * Calculate SHA-256 fingerprint of a certificate.
      */
-    fun sha256Fingerprint(cert: X509Certificate): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        val hash = digest.digest(cert.encoded)
-        return hash.joinToString("") { "%02x".format(it) }
+    fun calculateFingerprint(cert: X509Certificate): String {
+        return try {
+            val md = java.security.MessageDigest.getInstance("SHA-256")
+            val digest = md.digest(cert.encoded)
+            digest.joinToString("") { "%02x".format(it) }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to calculate fingerprint: ${e.message}")
+            ""
+        }
+    }
+
+    /**
+     * Get a TOFU (Trust On First Use) trust manager that accepts any cert
+     * on first connection and stores the fingerprint for future verification.
+     */
+    fun createTofuTrustManager(
+        onFirstConnect: (fingerprint: String, subject: String) -> Boolean,
+        getStoredFingerprint: () -> String?,
+        storeFingerprint: (fingerprint: String) -> Unit,
+    ): X509TrustManager {
+        return object : X509TrustManager {
+            override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+
+            override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {
+                if (chain.isNullOrEmpty()) throw javax.net.ssl.SSLException("No certificate")
+
+                val cert = chain[0]
+                val fp = calculateFingerprint(cert)
+                val stored = getStoredFingerprint()
+
+                when {
+                    stored == null -> {
+                        // First connection — ask user to trust
+                        val subject = cert.subjectDN?.name ?: "Unknown"
+                        val trusted = onFirstConnect(fp, subject)
+                        if (trusted) {
+                            storeFingerprint(fp)
+                            Log.i(TAG, "TOFU: Trusted new certificate: $fp")
+                        } else {
+                            throw javax.net.ssl.SSLException("Certificate not trusted by user")
+                        }
+                    }
+                    stored == fp -> {
+                        Log.d(TAG, "TOFU: Certificate matches stored fingerprint")
+                    }
+                    else -> {
+                        Log.e(TAG, "TOFU: Certificate changed! Expected=$stored Got=$fp")
+                        throw javax.net.ssl.SSLException(
+                            "Certificate changed unexpectedly. This could indicate a MITM attack."
+                        )
+                    }
+                }
+            }
+
+            override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+        }
+    }
+
+    /**
+     * Get the system default trust manager for standard CA verification.
+     */
+    fun getSystemTrustManager(): X509TrustManager {
+        val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+        tmf.init(null as KeyStore?)
+        return tmf.trustManagers.first { it is X509TrustManager } as X509TrustManager
     }
 }

@@ -1,57 +1,133 @@
 package ai.coreblow.app.node
 
 import android.content.Context
-import android.content.pm.PackageManager
 import android.os.Build
-import androidx.core.content.ContextCompat
+import android.provider.Settings
+import android.util.Log
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import java.io.File
+import java.util.Locale
+import java.util.TimeZone
 
 /**
- * Utility functions for the node subsystem.
+ * Utility functions shared across node handlers.
+ * Provides device identification, formatting, and common
+ * data transformations used by multiple handlers.
  */
 object NodeUtils {
 
+    private const val TAG = "NodeUtils"
+
     /**
-     * Check if a runtime permission is granted.
+     * Get a stable device display name.
      */
-    fun hasPermission(context: Context, permission: String): Boolean {
-        return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+    fun getDeviceDisplayName(context: Context): String {
+        val btName = try {
+            Settings.Secure.getString(context.contentResolver, "bluetooth_name")
+        } catch (_: Throwable) { null }
+        val deviceName = try {
+            Settings.Global.getString(context.contentResolver, Settings.Global.DEVICE_NAME)
+        } catch (_: Throwable) { null }
+        return btName ?: deviceName ?: "${Build.MANUFACTURER} ${Build.MODEL}"
     }
 
     /**
-     * Build a user-agent string for gateway handshake.
+     * Get the device model identifier string.
      */
-    fun buildUserAgent(context: Context): String {
-        val appVersion = try {
-            context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "unknown"
-        } catch (_: Exception) { "unknown" }
-
-        return "CoreBlow-Android/$appVersion (${Build.MANUFACTURER} ${Build.MODEL}; Android ${Build.VERSION.RELEASE})"
+    fun getModelIdentifier(): String {
+        return "${Build.MANUFACTURER}/${Build.MODEL}/${Build.DEVICE}"
     }
 
     /**
-     * Generate a display name for this device.
+     * Get locale info for gateway handshake.
      */
-    fun deviceDisplayName(): String {
-        val brand = Build.BRAND.replaceFirstChar { it.uppercase() }
-        return "$brand ${Build.MODEL}"
+    fun getLocaleInfo(): String = buildJsonObject {
+        val locale = Locale.getDefault()
+        put("language", JsonPrimitive(locale.language))
+        put("country", JsonPrimitive(locale.country))
+        put("displayLanguage", JsonPrimitive(locale.displayLanguage))
+        put("displayCountry", JsonPrimitive(locale.displayCountry))
+        put("tag", JsonPrimitive(locale.toLanguageTag()))
+        put("timezone", JsonPrimitive(TimeZone.getDefault().id))
+        put("timezoneOffset", JsonPrimitive(TimeZone.getDefault().rawOffset / 60000))
+    }.toString()
+
+    /**
+     * Truncate a string with ellipsis.
+     */
+    fun truncate(text: String, maxLength: Int = 200): String {
+        return if (text.length > maxLength) text.take(maxLength - 1) + "…" else text
     }
 
     /**
      * Format bytes to human-readable string.
      */
     fun formatBytes(bytes: Long): String {
+        if (bytes < 1024) return "$bytes B"
+        val kb = bytes / 1024.0
+        if (kb < 1024) return "%.1f KB".format(kb)
+        val mb = kb / 1024.0
+        if (mb < 1024) return "%.1f MB".format(mb)
+        val gb = mb / 1024.0
+        return "%.2f GB".format(gb)
+    }
+
+    /**
+     * Format duration in milliseconds to human-readable string.
+     */
+    fun formatDuration(ms: Long): String {
+        val seconds = ms / 1000
+        val minutes = seconds / 60
+        val hours = minutes / 60
         return when {
-            bytes >= 1_073_741_824 -> "%.1f GB".format(bytes / 1_073_741_824.0)
-            bytes >= 1_048_576 -> "%.1f MB".format(bytes / 1_048_576.0)
-            bytes >= 1_024 -> "%.1f KB".format(bytes / 1_024.0)
-            else -> "$bytes B"
+            hours > 0 -> "${hours}h ${minutes % 60}m ${seconds % 60}s"
+            minutes > 0 -> "${minutes}m ${seconds % 60}s"
+            else -> "${seconds}s"
         }
     }
 
     /**
-     * Truncate a string with ellipsis if it exceeds max length.
+     * Sanitize a filename for safe storage.
      */
-    fun truncate(text: String, maxLength: Int = 100): String {
-        return if (text.length > maxLength) text.take(maxLength - 1) + "…" else text
+    fun sanitizeFilename(name: String): String {
+        return name.replace(Regex("[^a-zA-Z0-9._-]"), "_").take(100)
+    }
+
+    /**
+     * Check if the device is rooted (basic check).
+     */
+    fun isDeviceRooted(): Boolean {
+        val paths = arrayOf(
+            "/system/app/Superuser.apk",
+            "/sbin/su",
+            "/system/bin/su",
+            "/system/xbin/su",
+            "/data/local/xbin/su",
+            "/data/local/bin/su",
+            "/system/sd/xbin/su",
+        )
+        return paths.any { File(it).exists() }
+    }
+
+    /**
+     * Get a unique request ID.
+     */
+    fun generateRequestId(): String {
+        return java.util.UUID.randomUUID().toString()
+    }
+
+    /**
+     * Safely parse an integer from a string with a default.
+     */
+    fun safeParseInt(value: String?, default: Int = 0): Int {
+        return value?.trim()?.toIntOrNull() ?: default
+    }
+
+    /**
+     * Safely parse a long from a string with a default.
+     */
+    fun safeParseLong(value: String?, default: Long = 0): Long {
+        return value?.trim()?.toLongOrNull() ?: default
     }
 }

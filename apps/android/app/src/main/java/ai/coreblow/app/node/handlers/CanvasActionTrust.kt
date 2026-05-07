@@ -1,63 +1,119 @@
 package ai.coreblow.app.node.handlers
 
-/**
- * Trust levels for canvas A2UI (Agent-to-UI) actions.
- *
- * Determines which canvas operations an agent can perform
- * without explicit user confirmation.
- */
-enum class CanvasActionTrust {
-    /** Action is always allowed without confirmation. */
-    ALLOW,
-    /** Action requires user confirmation before execution. */
-    PROMPT,
-    /** Action is blocked and cannot be executed. */
-    DENY,
-}
+import android.content.Context
+import android.util.Log
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 
 /**
- * Evaluates trust level for canvas actions based on the action type
- * and current security context.
+ * Manages trust evaluation for canvas actions.
+ * Determines whether a canvas action requires user confirmation
+ * based on action type, sender trust level, and security policy.
  */
-object CanvasActionTrustEvaluator {
+class CanvasActionTrust(
+    private val appContext: Context,
+    private val getUserTrustDecision: suspend (action: String, detail: String) -> Boolean,
+) {
+    companion object {
+        private const val TAG = "CanvasActionTrust"
 
-    /** Actions that are always safe to execute. */
-    private val ALLOWED_ACTIONS = setOf(
-        "render-html",
-        "set-title",
-        "show-toast",
-        "update-badge",
-    )
+        // Actions that always require user approval
+        private val REQUIRES_APPROVAL = setOf(
+            "navigate.external",
+            "clipboard.write",
+            "share",
+            "notification.send",
+            "sms.send",
+            "file.download",
+            "payment",
+        )
 
-    /** Actions that require user confirmation. */
-    private val PROMPT_ACTIONS = setOf(
-        "navigate-url",
-        "open-external",
-        "download-file",
-        "screenshot",
-    )
+        // Actions that are always safe
+        private val ALWAYS_SAFE = setOf(
+            "canvas.render",
+            "canvas.clear",
+            "canvas.hide",
+            "canvas.show",
+            "toast",
+            "haptic",
+            "badge",
+        )
 
-    /** Actions that are never allowed from agents. */
-    private val DENIED_ACTIONS = setOf(
-        "execute-js",
-        "access-storage",
-        "modify-settings",
-    )
-
-    /**
-     * Evaluate the trust level for a canvas action.
-     */
-    fun evaluate(action: String): CanvasActionTrust {
-        return when {
-            DENIED_ACTIONS.contains(action) -> CanvasActionTrust.DENY
-            PROMPT_ACTIONS.contains(action) -> CanvasActionTrust.PROMPT
-            ALLOWED_ACTIONS.contains(action) -> CanvasActionTrust.ALLOW
-            else -> CanvasActionTrust.PROMPT
-        }
+        // Actions that are safe for trusted senders
+        private val TRUSTED_SAFE = setOf(
+            "dialog",
+            "navigate.internal",
+            "clipboard.read",
+            "notification.local",
+            "vibrate",
+            "openUrl.internal",
+        )
     }
 
+    private val trustedSenders = mutableSetOf<String>()
+    private val approvedActions = mutableSetOf<String>()
+
     /**
-     * Check if an action is safe to execute without user prompt.
+     * Evaluate whether an action should be allowed.
      */
-    fun isSafe(action: String): Boolean = evaluate(action) == CanvasActionTrust.ALLOW
+    suspend fun evaluate(
+        action: String,
+        senderId: String?,
+        detail: String = "",
+    ): TrustDecision {
+        // Always safe actions
+        if (action in ALWAYS_SAFE) {
+            return TrustDecision(allowed = true, reason = "safe_action")
+        }
+
+        // Check if previously approved
+        val actionKey = "$senderId:$action"
+        if (actionKey in approvedActions) {
+            return TrustDecision(allowed = true, reason = "previously_approved")
+        }
+
+        // Trusted sender + trusted-safe action
+        if (senderId != null && senderId in trustedSenders && action in TRUSTED_SAFE) {
+            return TrustDecision(allowed = true, reason = "trusted_sender")
+        }
+
+        // Requires approval
+        if (action in REQUIRES_APPROVAL) {
+            val approved = getUserTrustDecision(action, detail)
+            if (approved) {
+                approvedActions.add(actionKey)
+                return TrustDecision(allowed = true, reason = "user_approved")
+            }
+            Log.w(TAG, "User denied action: $action from $senderId")
+            return TrustDecision(allowed = false, reason = "user_denied")
+        }
+
+        // Unknown action — default deny
+        Log.w(TAG, "Unknown action denied by policy: $action")
+        return TrustDecision(allowed = false, reason = "unknown_action")
+    }
+
+    fun addTrustedSender(senderId: String) {
+        trustedSenders.add(senderId)
+    }
+
+    fun removeTrustedSender(senderId: String) {
+        trustedSenders.remove(senderId)
+        approvedActions.removeAll { it.startsWith("$senderId:") }
+    }
+
+    fun clearApprovals() {
+        approvedActions.clear()
+    }
+
+    fun getTrustInfo(): String = buildJsonObject {
+        put("trustedSenders", JsonPrimitive(trustedSenders.size))
+        put("approvedActions", JsonPrimitive(approvedActions.size))
+    }.toString()
 }
+
+data class TrustDecision(
+    val allowed: Boolean,
+    val reason: String,
+)

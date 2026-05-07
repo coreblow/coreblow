@@ -1,57 +1,106 @@
 package ai.coreblow.app.ui.compose
 
-import ai.coreblow.app.gateway.DiscoverySource
+import android.content.Context
+import android.util.Log
+import ai.coreblow.app.SecurePrefs
+import ai.coreblow.app.gateway.CoreBlowProtocol
 import ai.coreblow.app.gateway.GatewayEndpoint
+import ai.coreblow.app.gateway.DiscoverySource
 
 /**
- * Resolves gateway endpoint configuration from various input sources:
- * manual entry, QR code, deep link, or saved configuration.
+ * Resolves gateway configuration from multiple sources:
+ * 1. Saved preferences (last connected gateway)
+ * 2. mDNS discovery results
+ * 3. Manual user input
+ * 4. Deep link / intent parameters
+ *
+ * Provides a resolved endpoint ready for connection.
  */
-object GatewayConfigResolver {
-
-    private val URL_PATTERN = Regex("""^(wss?|coreblow)://([^:/]+):?(\d+)?(/.*)?$""")
-    private val HOST_PORT_PATTERN = Regex("""^([^:]+):(\d+)$""")
-
-    /**
-     * Resolve a user input string into a GatewayEndpoint.
-     * Supports formats: "host:port", "ws://host:port/path", "coreblow://host:port"
-     */
-    fun resolve(input: String): GatewayEndpoint? {
-        val trimmed = input.trim()
-        if (trimmed.isBlank()) return null
-
-        // Try URL format
-        URL_PATTERN.matchEntire(trimmed)?.let { match ->
-            val scheme = match.groupValues[1]
-            val host = match.groupValues[2]
-            val port = match.groupValues[3].toIntOrNull() ?: defaultPort(scheme)
-            val path = match.groupValues[4].ifBlank { "/ws" }
-            val useTls = scheme == "wss" || scheme == "coreblow"
-            val source = if (scheme == "coreblow") DiscoverySource.QR_CODE else DiscoverySource.MANUAL
-
-            return GatewayEndpoint(host = host, port = port, useTls = useTls, path = path, source = source)
-        }
-
-        // Try host:port format
-        HOST_PORT_PATTERN.matchEntire(trimmed)?.let { match ->
-            val host = match.groupValues[1]
-            val port = match.groupValues[2].toInt()
-            return GatewayEndpoint(host = host, port = port, useTls = port == 443 || port == 8443, source = DiscoverySource.MANUAL)
-        }
-
-        // Bare hostname — assume default port
-        return GatewayEndpoint(host = trimmed, port = 8080, useTls = false, source = DiscoverySource.MANUAL)
+class GatewayConfigResolver(
+    private val appContext: Context,
+    private val securePrefs: SecurePrefs,
+) {
+    companion object {
+        private const val TAG = "GatewayConfigResolver"
     }
 
     /**
-     * Parse a QR code payload into a GatewayEndpoint.
+     * Resolve the best gateway endpoint to connect to.
+     * Priority: deep link > saved prefs > first discovered.
      */
-    fun fromQrCode(data: String): GatewayEndpoint? {
-        return resolve(data)?.copy(source = DiscoverySource.QR_CODE)
+    fun resolve(
+        discoveredEndpoints: List<GatewayEndpoint>,
+        deepLinkHost: String? = null,
+        deepLinkPort: Int? = null,
+    ): GatewayEndpoint? {
+        // 1. Deep link override
+        if (!deepLinkHost.isNullOrBlank()) {
+            val port = deepLinkPort ?: CoreBlowProtocol.DEFAULT_PORT
+            Log.d(TAG, "Resolved from deep link: $deepLinkHost:$port")
+            return GatewayEndpoint(
+                host = deepLinkHost,
+                port = port,
+                useTls = port == CoreBlowProtocol.DEFAULT_TLS_PORT || port == 443,
+                source = DiscoverySource.MANUAL,
+                displayName = "$deepLinkHost:$port",
+            )
+        }
+
+        // 2. Saved preferences
+        val savedHost = securePrefs.getGatewayHost()
+        val savedPort = securePrefs.getGatewayPort()
+        if (!savedHost.isNullOrBlank() && savedPort != null) {
+            Log.d(TAG, "Resolved from prefs: $savedHost:$savedPort")
+            return GatewayEndpoint(
+                host = savedHost,
+                port = savedPort,
+                useTls = securePrefs.getUseTls(),
+                source = DiscoverySource.SAVED,
+                displayName = "$savedHost:$savedPort",
+            )
+        }
+
+        // 3. First discovered endpoint (prefer TLS)
+        val tlsEndpoint = discoveredEndpoints.firstOrNull { it.useTls }
+        if (tlsEndpoint != null) {
+            Log.d(TAG, "Resolved from discovery (TLS): ${tlsEndpoint.host}:${tlsEndpoint.port}")
+            return tlsEndpoint
+        }
+
+        val firstEndpoint = discoveredEndpoints.firstOrNull()
+        if (firstEndpoint != null) {
+            Log.d(TAG, "Resolved from discovery: ${firstEndpoint.host}:${firstEndpoint.port}")
+            return firstEndpoint
+        }
+
+        Log.d(TAG, "No gateway resolved")
+        return null
     }
 
-    private fun defaultPort(scheme: String): Int = when (scheme) {
-        "wss", "coreblow" -> 443
-        else -> 8080
+    /**
+     * Save a successfully connected endpoint for future auto-connect.
+     */
+    fun saveConnectedEndpoint(endpoint: GatewayEndpoint) {
+        securePrefs.setGatewayHost(endpoint.host)
+        securePrefs.setGatewayPort(endpoint.port)
+        securePrefs.setUseTls(endpoint.useTls)
+        Log.d(TAG, "Saved connected endpoint: ${endpoint.host}:${endpoint.port}")
+    }
+
+    /**
+     * Clear saved gateway configuration.
+     */
+    fun clearSaved() {
+        securePrefs.setGatewayHost("")
+        securePrefs.setGatewayPort(CoreBlowProtocol.DEFAULT_PORT)
+        securePrefs.setUseTls(false)
+    }
+
+    /**
+     * Check if we have a saved gateway to auto-connect to.
+     */
+    fun hasSavedGateway(): Boolean {
+        val host = securePrefs.getGatewayHost()
+        return !host.isNullOrBlank()
     }
 }

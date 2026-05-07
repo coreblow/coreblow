@@ -1,62 +1,116 @@
 package ai.coreblow.app.gateway
 
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
+/**
+ * CoreBlow gateway protocol constants.
+ * Defines all message types, auth modes, capabilities,
+ * and protocol versioning for the WebSocket protocol.
+ */
+object CoreBlowProtocol {
+    const val PROTOCOL_VERSION = "1.0"
+
+    // Message types
+    const val MSG_HELLO = "hello"
+    const val MSG_AUTH_RESULT = "authResult"
+    const val MSG_INVOKE = "invoke"
+    const val MSG_RESULT = "result"
+    const val MSG_ERROR = "error"
+    const val MSG_EVENT = "event"
+    const val MSG_PING = "ping"
+    const val MSG_PONG = "pong"
+    const val MSG_BYE = "bye"
+    const val MSG_SUBSCRIBE = "subscribe"
+    const val MSG_UNSUBSCRIBE = "unsubscribe"
+
+    // Auth types
+    const val AUTH_DEVICE_TOKEN = "deviceToken"
+    const val AUTH_BOOTSTRAP = "bootstrap"
+    const val AUTH_PASSWORD = "password" // pragma: allowlist secret
+    const val AUTH_NONE = "none"
+
+    // Roles
+    const val ROLE_NODE = "node"
+    const val ROLE_CLIENT = "client"
+    const val ROLE_ADMIN = "admin"
+
+    // Capabilities
+    const val CAP_CAMERA = "camera"
+    const val CAP_LOCATION = "location"
+    const val CAP_MICROPHONE = "microphone"
+    const val CAP_SMS = "sms"
+    const val CAP_CONTACTS = "contacts"
+    const val CAP_CALENDAR = "calendar"
+    const val CAP_PHOTOS = "photos"
+    const val CAP_MOTION = "motion"
+    const val CAP_NOTIFICATIONS = "notifications"
+    const val CAP_TTS = "tts"
+    const val CAP_CANVAS = "canvas"
+    const val CAP_A2UI = "a2ui"
+
+    // Scopes
+    const val SCOPE_CHAT = "chat"
+    const val SCOPE_INVOKE = "invoke"
+    const val SCOPE_CANVAS = "canvas"
+    const val SCOPE_VOICE = "voice"
+    const val SCOPE_EVENTS = "events"
+    const val SCOPE_ADMIN = "admin"
+
+    // Error codes
+    const val ERR_UNKNOWN = "UNKNOWN"
+    const val ERR_AUTH_FAILED = "AUTH_FAILED"
+    const val ERR_INVOKE_FAILED = "INVOKE_FAILED"
+    const val ERR_UNKNOWN_COMMAND = "UNKNOWN_COMMAND"
+    const val ERR_TIMEOUT = "TIMEOUT"
+    const val ERR_PERMISSION_DENIED = "PERMISSION_DENIED"
+    const val ERR_RATE_LIMITED = "RATE_LIMITED"
+    const val ERR_NOT_CONNECTED = "NOT_CONNECTED"
+    const val ERR_INVALID_PARAMS = "INVALID_PARAMS"
+
+    // Event types
+    const val EVT_CHAT = "chat"
+    const val EVT_NOTIFICATION = "notification"
+    const val EVT_VOICE_TRANSCRIPT = "voice.transcript"
+    const val EVT_VOICE_DIRECTIVE = "voice.directive"
+    const val EVT_VOICE_CANCEL = "voice.cancel"
+    const val EVT_TTS_AUDIO = "tts.audio"
+    const val EVT_CANVAS_MESSAGE = "canvas.message"
+    const val EVT_STATUS = "status"
+    const val EVT_SEQ_GAP = "seqGap"
+
+    // Default ports
+    const val DEFAULT_PORT = 18789
+    const val DEFAULT_TLS_PORT = 18790
+
+    val ALL_CAPABILITIES = listOf(
+        CAP_CAMERA, CAP_LOCATION, CAP_MICROPHONE, CAP_SMS,
+        CAP_CONTACTS, CAP_CALENDAR, CAP_PHOTOS, CAP_MOTION,
+        CAP_NOTIFICATIONS, CAP_TTS, CAP_CANVAS, CAP_A2UI,
+    )
+
+    val ALL_SCOPES = listOf(
+        SCOPE_CHAT, SCOPE_INVOKE, SCOPE_CANVAS, SCOPE_VOICE, SCOPE_EVENTS,
+    )
+}
 
 /**
- * Protocol message builder and parser for the gateway wire format.
- *
- * Provides typed constructors for all message types and utility
- * methods for extracting fields from incoming messages.
+ * Invoke error data class.
  */
-object GatewayProtocol {
+data class InvokeError(
+    val code: String,
+    val message: String,
+    val detail: String? = null,
+)
 
-    /** Build a hello message for the handshake. */
-    fun buildHello(options: GatewayConnectOptions, token: String?): JsonObject = buildJsonObject {
-        put("type", CoreBlowProtocol.MSG_HELLO)
-        put("version", CoreBlowProtocol.PROTOCOL_VERSION)
-        put("role", options.role)
-    }
-
-    /** Build an auth message with device token. */
-    fun buildAuth(authType: String, token: String): JsonObject = buildJsonObject {
-        put("type", CoreBlowProtocol.MSG_AUTH)
-        put("authType", authType)
-        put("token", token)
-    }
-
-    /** Build a ping message. */
-    fun buildPing(): JsonObject = buildJsonObject {
-        put("type", CoreBlowProtocol.MSG_PING)
-        put("ts", System.currentTimeMillis())
-    }
-
-    /** Build a bye message for graceful disconnect. */
-    fun buildBye(reason: String = "client-disconnect"): JsonObject = buildJsonObject {
-        put("type", CoreBlowProtocol.MSG_BYE)
-        put("reason", reason)
-    }
-
-    /** Extract the message type from a raw JSON message. */
-    fun extractType(message: JsonObject): String? {
-        return (message["type"] as? JsonPrimitive)?.content
-    }
-
-    /** Extract the request ID from an invoke/result/error message. */
-    fun extractRequestId(message: JsonObject): String? {
-        return (message["id"] as? JsonPrimitive)?.content
-    }
-
-    /** Extract the command from an invoke message. */
-    fun extractCommand(message: JsonObject): String? {
-        return (message["command"] as? JsonPrimitive)?.content
-    }
-
-    /** Extract params from an invoke message. */
-    fun extractParams(message: JsonObject): JsonObject {
-        return message["params"] as? JsonObject ?: JsonObject(emptyMap())
+/**
+ * Parses invoke errors from gateway JSON payloads.
+ */
+object InvokeErrorParser {
+    fun parse(element: kotlinx.serialization.json.JsonElement?): InvokeError {
+        if (element == null) return InvokeError(CoreBlowProtocol.ERR_UNKNOWN, "Unknown error")
+        val obj = element as? kotlinx.serialization.json.JsonObject
+            ?: return InvokeError(CoreBlowProtocol.ERR_UNKNOWN, element.toString())
+        val code = (obj["code"] as? kotlinx.serialization.json.JsonPrimitive)?.content ?: CoreBlowProtocol.ERR_UNKNOWN
+        val message = (obj["message"] as? kotlinx.serialization.json.JsonPrimitive)?.content ?: "Unknown error"
+        val detail = (obj["detail"] as? kotlinx.serialization.json.JsonPrimitive)?.content
+        return InvokeError(code, message, detail)
     }
 }

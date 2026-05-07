@@ -1,50 +1,74 @@
 package ai.coreblow.app.node.handlers
 
-import android.content.ClipboardManager
 import android.content.Context
-import android.media.AudioManager
+import android.os.Build
+import android.os.SystemClock
 import android.provider.Settings
-import ai.coreblow.app.gateway.CoreBlowProtocol
-import ai.coreblow.app.node.InvokeHandler
-import kotlinx.serialization.json.JsonElement
+import android.util.Log
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.put
 
-class SystemHandler(private val context: Context) : InvokeHandler {
-    override val namespace = CoreBlowProtocol.NS_SYSTEM
+/**
+ * Handles system-level operations for gateway invoke commands.
+ * Provides device metadata, system clock info, screen state,
+ * and runtime diagnostics.
+ */
+class SystemHandler(private val appContext: Context) {
 
-    override suspend fun execute(command: String, params: JsonObject): JsonElement {
-        return when (command) {
-            "get-clipboard" -> getClipboard()
-            "set-brightness" -> setBrightness(params)
-            "set-volume" -> setVolume(params)
-            else -> throw IllegalArgumentException("Unknown command: $command")
-        }
+    companion object {
+        private const val TAG = "SystemHandler"
     }
 
-    private fun getClipboard(): JsonElement {
-        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val text = clipboard.primaryClip?.getItemAt(0)?.text?.toString() ?: ""
-        return buildJsonObject { put("text", text) }
+    fun getSystemInfo(): String = buildJsonObject {
+        put("uptimeMs", JsonPrimitive(SystemClock.elapsedRealtime()))
+        put("currentTimeMs", JsonPrimitive(System.currentTimeMillis()))
+        put("bootTimeMs", JsonPrimitive(System.currentTimeMillis() - SystemClock.elapsedRealtime()))
+        put("availableProcessors", JsonPrimitive(Runtime.getRuntime().availableProcessors()))
+        put("maxMemoryMb", JsonPrimitive(Runtime.getRuntime().maxMemory() / (1024 * 1024)))
+        put("totalMemoryMb", JsonPrimitive(Runtime.getRuntime().totalMemory() / (1024 * 1024)))
+        put("freeMemoryMb", JsonPrimitive(Runtime.getRuntime().freeMemory() / (1024 * 1024)))
+        put("javaVersion", JsonPrimitive(System.getProperty("java.vm.version") ?: ""))
+        put("osVersion", JsonPrimitive("Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})"))
+        put("deviceName", JsonPrimitive(getDeviceName()))
+        put("isEmulator", JsonPrimitive(isEmulator()))
+    }.toString()
+
+    fun getRuntimeStats(): String = buildJsonObject {
+        val rt = Runtime.getRuntime()
+        val usedMem = rt.totalMemory() - rt.freeMemory()
+        put("heapUsedMb", JsonPrimitive(usedMem / (1024 * 1024)))
+        put("heapTotalMb", JsonPrimitive(rt.totalMemory() / (1024 * 1024)))
+        put("heapMaxMb", JsonPrimitive(rt.maxMemory() / (1024 * 1024)))
+        put("heapUsedPercent", JsonPrimitive((usedMem * 100) / rt.maxMemory()))
+        put("threadCount", JsonPrimitive(Thread.activeCount()))
+        put("uptimeSeconds", JsonPrimitive(SystemClock.elapsedRealtime() / 1000))
+    }.toString()
+
+    fun getScreenState(): String {
+        val powerManager = appContext.getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
+        return buildJsonObject {
+            put("isInteractive", JsonPrimitive(powerManager.isInteractive))
+            put("isPowerSaveMode", JsonPrimitive(powerManager.isPowerSaveMode))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                put("thermalStatus", JsonPrimitive(powerManager.currentThermalStatus))
+            }
+        }.toString()
     }
 
-    private fun setBrightness(params: JsonObject): JsonElement {
-        val value = params["value"]?.jsonPrimitive?.content?.toIntOrNull()
-            ?: throw IllegalArgumentException("Missing 'value' parameter")
-        val clamped = value.coerceIn(0, 255)
-        Settings.System.putInt(context.contentResolver, Settings.System.SCREEN_BRIGHTNESS, clamped)
-        return buildJsonObject { put("brightness", clamped) }
+    private fun getDeviceName(): String {
+        return try {
+            Settings.Global.getString(appContext.contentResolver, Settings.Global.DEVICE_NAME) ?: Build.MODEL
+        } catch (_: Throwable) { Build.MODEL }
     }
 
-    private fun setVolume(params: JsonObject): JsonElement {
-        val value = params["value"]?.jsonPrimitive?.content?.toIntOrNull()
-            ?: throw IllegalArgumentException("Missing 'value' parameter")
-        val audio = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        val maxVolume = audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-        val clamped = value.coerceIn(0, maxVolume)
-        audio.setStreamVolume(AudioManager.STREAM_MUSIC, clamped, 0)
-        return buildJsonObject { put("volume", clamped); put("max", maxVolume) }
+    private fun isEmulator(): Boolean {
+        return Build.FINGERPRINT.contains("generic") ||
+            Build.MODEL.contains("Emulator") ||
+            Build.MODEL.contains("Android SDK") ||
+            Build.MANUFACTURER.contains("Genymotion") ||
+            Build.PRODUCT.contains("sdk") ||
+            Build.HARDWARE.contains("goldfish") ||
+            Build.HARDWARE.contains("ranchu")
     }
 }
