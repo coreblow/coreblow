@@ -1,70 +1,62 @@
 package ai.coreblow.app.gateway
 
+import android.util.Log
+
 /**
- * mDNS TXT record key escaping/unescaping utilities.
- * Handles the Bonjour/mDNS convention of encoding binary data
- * and special characters in DNS-SD TXT records.
+ * Escaping and unescaping utilities for Bonjour/mDNS TXT record values.
+ * Handles DNS-SD specification encoding for special characters in
+ * service names, TXT key-value pairs, and service instance names.
  */
 object BonjourEscapes {
 
+    private const val TAG = "BonjourEscapes"
+
+    // Characters that must be escaped in mDNS names
+    private val ESCAPE_CHARS = setOf('.', '\\', ' ', '(', ')', '[', ']', '{', '}', '<', '>', ';', ',', '"', '\'')
+
     /**
-     * Unescape a TXT record value from mDNS discovery.
-     * Handles common encoding patterns:
-     * - \\xHH hex escape sequences
-     * - \\NNN octal escape sequences
-     * - \\\\ literal backslash
-     * - Standard ASCII pass-through
+     * Escape a value for mDNS TXT record.
      */
-    fun unescapeValue(raw: String): String {
-        if (raw.isEmpty()) return raw
-        val sb = StringBuilder(raw.length)
+    fun escapeValue(value: String): String {
+        if (value.isEmpty()) return value
+        val sb = StringBuilder(value.length + 10)
+        for (c in value) {
+            if (c in ESCAPE_CHARS) {
+                sb.append('\\').append(c)
+            } else if (c.code < 0x20 || c.code > 0x7E) {
+                // Non-printable: escape as octal
+                sb.append("\\%03d".format(c.code))
+            } else {
+                sb.append(c)
+            }
+        }
+        return sb.toString()
+    }
+
+    /**
+     * Unescape a value from mDNS TXT record.
+     */
+    fun unescapeValue(value: String): String {
+        if (!value.contains('\\')) return value
+        val sb = StringBuilder(value.length)
         var i = 0
-        while (i < raw.length) {
-            if (raw[i] == '\\' && i + 1 < raw.length) {
-                when (raw[i + 1]) {
-                    'x', 'X' -> {
-                        // Hex escape: \xHH
-                        if (i + 3 < raw.length) {
-                            val hex = raw.substring(i + 2, i + 4)
-                            try {
-                                sb.append(hex.toInt(16).toChar())
-                                i += 4
-                                continue
-                            } catch (_: NumberFormatException) {}
-                        }
-                        sb.append(raw[i])
-                        i++
-                    }
-                    in '0'..'3' -> {
-                        // Octal escape: \NNN
-                        if (i + 3 < raw.length) {
-                            val octal = raw.substring(i + 1, i + 4)
-                            try {
-                                val code = octal.toInt(8)
-                                if (code in 0..255) {
-                                    sb.append(code.toChar())
-                                    i += 4
-                                    continue
-                                }
-                            } catch (_: NumberFormatException) {}
-                        }
-                        sb.append(raw[i])
-                        i++
-                    }
-                    '\\' -> {
-                        sb.append('\\')
-                        i += 2
-                    }
-                    'n' -> { sb.append('\n'); i += 2 }
-                    't' -> { sb.append('\t'); i += 2 }
-                    'r' -> { sb.append('\r'); i += 2 }
-                    else -> {
-                        sb.append(raw[i])
-                        i++
+        while (i < value.length) {
+            if (value[i] == '\\' && i + 1 < value.length) {
+                val next = value[i + 1]
+                if (next.isDigit() && i + 3 < value.length) {
+                    // Octal escape
+                    val octal = value.substring(i + 1, i + 4)
+                    val code = octal.toIntOrNull()
+                    if (code != null) {
+                        sb.append(code.toChar())
+                        i += 4
+                        continue
                     }
                 }
+                sb.append(next)
+                i += 2
             } else {
-                sb.append(raw[i])
+                sb.append(value[i])
                 i++
             }
         }
@@ -72,56 +64,113 @@ object BonjourEscapes {
     }
 
     /**
-     * Escape a value for TXT record storage.
+     * Escape a service instance name.
      */
-    fun escapeValue(value: String): String {
-        val sb = StringBuilder(value.length)
-        for (ch in value) {
-            when {
-                ch == '\\' -> sb.append("\\\\")
-                ch == '=' -> sb.append("\\x3d")
-                ch.code < 0x20 || ch.code > 0x7E -> {
-                    sb.append("\\x%02x".format(ch.code))
-                }
-                else -> sb.append(ch)
-            }
-        }
-        return sb.toString()
+    fun escapeServiceName(name: String): String {
+        return name.replace(".", "\\.")
+            .replace("\\", "\\\\")
+            .take(63) // DNS label max length
     }
 
     /**
-     * Parse a TXT record string into key-value pairs.
-     * Format: "key1=value1" per record entry.
+     * Unescape a service instance name.
      */
-    fun parseTxtRecords(records: List<String>): Map<String, String> {
+    fun unescapeServiceName(name: String): String {
+        return unescapeValue(name)
+    }
+
+    /**
+     * Encode a TXT record key-value pair.
+     */
+    fun encodeTxtPair(key: String, value: String): ByteArray {
+        val escaped = escapeValue(value)
+        val pair = "$key=$escaped"
+        if (pair.length > 255) {
+            Log.w(TAG, "TXT pair exceeds 255 bytes: ${pair.take(50)}…")
+            return "$key=${escaped.take(255 - key.length - 1)}".toByteArray(Charsets.UTF_8)
+        }
+        return pair.toByteArray(Charsets.UTF_8)
+    }
+
+    /**
+     * Decode a TXT record byte array into key-value pairs.
+     */
+    fun decodeTxtRecords(data: ByteArray): Map<String, String> {
         val result = mutableMapOf<String, String>()
-        for (record in records) {
+        var offset = 0
+        while (offset < data.size) {
+            val length = data[offset].toInt() and 0xFF
+            if (length == 0 || offset + 1 + length > data.size) break
+
+            val record = String(data, offset + 1, length, Charsets.UTF_8)
             val eqIdx = record.indexOf('=')
             if (eqIdx > 0) {
-                val key = record.substring(0, eqIdx).trim()
+                val key = record.substring(0, eqIdx)
                 val value = unescapeValue(record.substring(eqIdx + 1))
                 result[key] = value
-            } else if (record.isNotBlank()) {
-                // Boolean flag (key without value)
-                result[record.trim()] = "true"
+            } else {
+                result[record] = "true"
             }
+            offset += 1 + length
         }
         return result
     }
 
     /**
-     * Extract a typed value from TXT records.
+     * Validate a service name.
+     */
+    fun isValidServiceName(name: String): Boolean {
+        return name.isNotBlank() &&
+            name.length <= 63 &&
+            name.all { it.isLetterOrDigit() || it in setOf('-', '_', '.', ' ') }
+    }
+
+    /**
+     * Sanitize a service name for DNS compatibility.
+     */
+    fun sanitizeServiceName(name: String): String {
+        return name.filter { it.isLetterOrDigit() || it in setOf('-', '_', ' ') }
+            .trim()
+            .take(63)
+            .ifBlank { "CoreBlow" }
+    }
+
+    /**
+     * Parse a fully qualified domain name.
+     */
+    fun parseFqdn(fqdn: String): FqdnParts? {
+        val parts = fqdn.split(".")
+        return if (parts.size >= 4) {
+            FqdnParts(
+                instanceName = unescapeValue(parts[0]),
+                serviceType = "_${parts[1]}",
+                protocol = "_${parts[2]}",
+                domain = parts.drop(3).joinToString("."),
+            )
+        } else null
+    }
+
+    /**
+     * Get a boolean value from TXT records.
+     */
+    fun getBool(records: Map<String, String>, key: String, default: Boolean = false): Boolean {
+        val value = records[key] ?: return default
+        return value.lowercase() in setOf("true", "1", "yes", "on")
+    }
+
+    /**
+     * Get an integer value from TXT records.
      */
     fun getInt(records: Map<String, String>, key: String, default: Int = 0): Int {
-        return records[key]?.trim()?.toIntOrNull() ?: default
+        return records[key]?.toIntOrNull() ?: default
     }
 
-    fun getBool(records: Map<String, String>, key: String, default: Boolean = false): Boolean {
-        val v = records[key]?.trim()?.lowercase() ?: return default
-        return v == "true" || v == "1" || v == "yes"
-    }
-
-    fun getString(records: Map<String, String>, key: String, default: String = ""): String {
-        return records[key]?.trim() ?: default
+    data class FqdnParts(
+        val instanceName: String,
+        val serviceType: String,
+        val protocol: String,
+        val domain: String,
+    ) {
+        val fullServiceType: String get() = "$serviceType.$protocol"
     }
 }
