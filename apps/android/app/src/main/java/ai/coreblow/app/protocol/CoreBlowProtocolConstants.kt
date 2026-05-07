@@ -1,0 +1,116 @@
+package ai.coreblow.app.protocol
+
+/**
+ * Protocol constants defining all capabilities and invoke command
+ * namespaces for the CoreBlow ↔ gateway communication protocol.
+ */
+
+enum class CoreBlowCapability(val rawValue: String) {
+    Canvas("canvas"),
+    Camera("camera"),
+    Sms("sms"),
+    VoiceWake("voiceWake"),
+    Location("location"),
+    Device("device"),
+    Notifications("notifications"),
+    System("system"),
+    Photos("photos"),
+    Contacts("contacts"),
+    Calendar("calendar"),
+    Motion("motion"),
+    CallLog("callLog"),
+}
+
+enum class CoreBlowCanvasCommand(val rawValue: String) {
+    Present("canvas.present"),
+    Hide("canvas.hide"),
+    Navigate("canvas.navigate"),
+    Eval("canvas.eval"),
+    Snapshot("canvas.snapshot"),
+    ;
+    companion object { const val NamespacePrefix = "canvas." }
+}
+
+enum class CoreBlowCanvasA2UICommand(val rawValue: String) {
+    Push("canvas.a2ui.push"),
+    PushJSONL("canvas.a2ui.pushJSONL"),
+    Reset("canvas.a2ui.reset"),
+    ;
+    companion object { const val NamespacePrefix = "canvas.a2ui." }
+}
+
+enum class CoreBlowCameraCommand(val rawValue: String) {
+    List("camera.list"),
+    Snap("camera.snap"),
+    Clip("camera.clip"),
+    ;
+    companion object { const val NamespacePrefix = "camera." }
+}
+
+enum class CoreBlowSmsCommand(val rawValue: String) {
+    Send("sms.send"),
+    Search("sms.search"),
+    ;
+    companion object { const val NamespacePrefix = "sms." }
+}
+
+enum class CoreBlowLocationCommand(val rawValue: String) {
+    Get("location.get"),
+    ;
+    companion object { const val NamespacePrefix = "location." }
+}
+
+enum class CoreBlowDeviceCommand(val rawValue: String) {
+    Status("device.status"),
+    Info("device.info"),
+    Permissions("device.permissions"),
+    Health("device.health"),
+    ;
+    companion object { const val NamespacePrefix = "device." }
+}
+
+enum class CoreBlowNotificationsCommand(val rawValue: String) {
+    List("notifications.list"),
+    Actions("notifications.actions"),
+    ;
+    companion object { const val NamespacePrefix = "notifications." }
+}
+
+enum class CoreBlowSystemCommand(val rawValue: String) {
+    Notify("system.notify"),
+    ;
+    companion object { const val NamespacePrefix = "system." }
+}
+
+enum class CoreBlowPhotosCommand(val rawValue: String) {
+    Latest("photos.latest"),
+    ;
+    companion object { const val NamespacePrefix = "photos." }
+}
+
+enum class CoreBlowContactsCommand(val rawValue: String) {
+    Search("contacts.search"),
+    Add("contacts.add"),
+    ;
+    companion object { const val NamespacePrefix = "contacts." }
+}
+
+enum class CoreBlowCalendarCommand(val rawValue: String) {
+    Events("calendar.events"),
+    Add("calendar.add"),
+    ;
+    companion object { const val NamespacePrefix = "calendar." }
+}
+
+enum class CoreBlowMotionCommand(val rawValue: String) {
+    Activity("motion.activity"),
+    Pedometer("motion.pedometer"),
+    ;
+    companion object { const val NamespacePrefix = "motion." }
+}
+
+enum class CoreBlowCallLogCommand(val rawValue: String) {
+    Search("callLog.search"),
+    ;
+    companion object { const val NamespacePrefix = "callLog." }
+}
