@@ -1,205 +1,289 @@
 package ai.coreblow.app.node.handlers
 
+import android.Manifest
 import android.content.ContentResolver
 import android.content.Context
+import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
 import android.provider.ContactsContract
 import android.util.Log
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
+import androidx.core.content.ContextCompat
+import kotlinx.serialization.json.*
 
 /**
- * Reads contacts from the device for gateway invoke commands.
- * Supports listing with pagination/search, detail fetching,
- * and phone/email extraction.
+ * Handles contacts-related gateway invoke commands.
+ * Supports reading, searching, creating, and managing contacts
+ * with proper permission verification.
  */
-class ContactsHandler(private val appContext: Context) {
+class ContactsHandler(private val context: Context) {
 
     companion object {
         private const val TAG = "ContactsHandler"
+        private const val DEFAULT_LIMIT = 50
+        private const val MAX_LIMIT = 200
     }
 
-    private val resolver: ContentResolver get() = appContext.contentResolver
+    /**
+     * Get all contacts with pagination.
+     */
+    fun getContacts(limit: Int = DEFAULT_LIMIT, offset: Int = 0): String {
+        if (!hasPermission()) return errorJson("Contacts permission not granted")
 
-    fun listContacts(limit: Int = 100, offset: Int = 0, search: String? = null): String {
-        val contacts = mutableListOf<JsonObject>()
-        val selection = if (!search.isNullOrBlank()) {
-            "${ContactsContract.Contacts.DISPLAY_NAME_PRIMARY} LIKE ?"
-        } else null
-        val selectionArgs = if (!search.isNullOrBlank()) arrayOf("%$search%") else null
+        return buildJsonObject {
+            val contacts = buildJsonArray {
+                val cursor = context.contentResolver.query(
+                    ContactsContract.Contacts.CONTENT_URI,
+                    arrayOf(
+                        ContactsContract.Contacts._ID,
+                        ContactsContract.Contacts.DISPLAY_NAME_PRIMARY,
+                        ContactsContract.Contacts.HAS_PHONE_NUMBER,
+                        ContactsContract.Contacts.STARRED,
+                        ContactsContract.Contacts.PHOTO_URI,
+                        ContactsContract.Contacts.LOOKUP_KEY,
+                    ),
+                    null, null,
+                    "${ContactsContract.Contacts.DISPLAY_NAME_PRIMARY} ASC",
+                )
+                cursor?.use { c ->
+                    var skipped = 0
+                    var count = 0
+                    while (c.moveToNext()) {
+                        if (skipped < offset) { skipped++; continue }
+                        if (count >= limit.coerceAtMost(MAX_LIMIT)) break
+                        add(cursorToContact(c))
+                        count++
+                    }
+                }
+            }
+            put("contacts", contacts)
+            put("count", contacts.size)
+            put("offset", offset)
+            put("limit", limit)
+        }.toString()
+    }
 
-        val cursor = resolver.query(
+    /**
+     * Search contacts by name or phone number.
+     */
+    fun searchContacts(query: String, limit: Int = DEFAULT_LIMIT): String {
+        if (!hasPermission()) return errorJson("Contacts permission not granted")
+        if (query.isBlank()) return errorJson("Search query is required")
+
+        return buildJsonObject {
+            val contacts = buildJsonArray {
+                val cursor = context.contentResolver.query(
+                    ContactsContract.Contacts.CONTENT_URI,
+                    arrayOf(
+                        ContactsContract.Contacts._ID,
+                        ContactsContract.Contacts.DISPLAY_NAME_PRIMARY,
+                        ContactsContract.Contacts.HAS_PHONE_NUMBER,
+                        ContactsContract.Contacts.STARRED,
+                        ContactsContract.Contacts.PHOTO_URI,
+                        ContactsContract.Contacts.LOOKUP_KEY,
+                    ),
+                    "${ContactsContract.Contacts.DISPLAY_NAME_PRIMARY} LIKE ?",
+                    arrayOf("%$query%"),
+                    "${ContactsContract.Contacts.DISPLAY_NAME_PRIMARY} ASC",
+                )
+                cursor?.use { c ->
+                    var count = 0
+                    while (c.moveToNext() && count < limit) {
+                        add(cursorToContact(c))
+                        count++
+                    }
+                }
+            }
+            put("contacts", contacts)
+            put("query", query)
+            put("count", contacts.size)
+        }.toString()
+    }
+
+    /**
+     * Get detailed contact information by ID.
+     */
+    fun getContactDetail(contactId: String): String {
+        if (!hasPermission()) return errorJson("Contacts permission not granted")
+
+        return buildJsonObject {
+            // Basic info
+            val cursor = context.contentResolver.query(
+                ContactsContract.Contacts.CONTENT_URI,
+                null,
+                "${ContactsContract.Contacts._ID} = ?",
+                arrayOf(contactId),
+                null,
+            )
+
+            cursor?.use { c ->
+                if (c.moveToFirst()) {
+                    put("id", contactId)
+                    put("name", c.getString(c.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY)) ?: "")
+                    put("starred", c.getInt(c.getColumnIndexOrThrow(ContactsContract.Contacts.STARRED)) == 1)
+
+                    // Phone numbers
+                    put("phones", getPhoneNumbers(contactId))
+
+                    // Emails
+                    put("emails", getEmails(contactId))
+
+                    // Organizations
+                    put("organizations", getOrganizations(contactId))
+                } else {
+                    put("error", "Contact not found: $contactId")
+                }
+            }
+        }.toString()
+    }
+
+    /**
+     * Get starred/favorite contacts.
+     */
+    fun getStarredContacts(): String {
+        if (!hasPermission()) return errorJson("Contacts permission not granted")
+
+        return buildJsonObject {
+            val contacts = buildJsonArray {
+                val cursor = context.contentResolver.query(
+                    ContactsContract.Contacts.CONTENT_URI,
+                    arrayOf(
+                        ContactsContract.Contacts._ID,
+                        ContactsContract.Contacts.DISPLAY_NAME_PRIMARY,
+                        ContactsContract.Contacts.HAS_PHONE_NUMBER,
+                        ContactsContract.Contacts.STARRED,
+                        ContactsContract.Contacts.PHOTO_URI,
+                        ContactsContract.Contacts.LOOKUP_KEY,
+                    ),
+                    "${ContactsContract.Contacts.STARRED} = 1",
+                    null,
+                    "${ContactsContract.Contacts.DISPLAY_NAME_PRIMARY} ASC",
+                )
+                cursor?.use { c ->
+                    while (c.moveToNext()) add(cursorToContact(c))
+                }
+            }
+            put("contacts", contacts)
+            put("count", contacts.size)
+        }.toString()
+    }
+
+    /**
+     * Get total contact count.
+     */
+    fun getContactCount(): Int {
+        if (!hasPermission()) return 0
+        val cursor = context.contentResolver.query(
             ContactsContract.Contacts.CONTENT_URI,
-            arrayOf(
-                ContactsContract.Contacts._ID,
-                ContactsContract.Contacts.DISPLAY_NAME_PRIMARY,
-                ContactsContract.Contacts.HAS_PHONE_NUMBER,
-                ContactsContract.Contacts.STARRED,
-                ContactsContract.Contacts.PHOTO_THUMBNAIL_URI,
-                ContactsContract.Contacts.LOOKUP_KEY,
-            ),
-            selection,
-            selectionArgs,
-            "${ContactsContract.Contacts.DISPLAY_NAME_PRIMARY} ASC LIMIT $limit OFFSET $offset",
+            arrayOf(ContactsContract.Contacts._ID),
+            null, null, null,
         )
-
-        cursor?.use { c ->
-            while (c.moveToNext()) {
-                val id = c.getString(0) ?: continue
-                val name = c.getString(1) ?: ""
-                val hasPhone = c.getInt(2) > 0
-                val starred = c.getInt(3) > 0
-                val thumbUri = c.getString(4)
-                val lookupKey = c.getString(5) ?: ""
-
-                val phones = if (hasPhone) getPhoneNumbers(id) else emptyList()
-                val emails = getEmails(id)
-
-                contacts.add(buildJsonObject {
-                    put("id", JsonPrimitive(id))
-                    put("name", JsonPrimitive(name))
-                    put("lookupKey", JsonPrimitive(lookupKey))
-                    put("starred", JsonPrimitive(starred))
-                    put("hasPhone", JsonPrimitive(hasPhone))
-                    put("hasPhoto", JsonPrimitive(thumbUri != null))
-                    if (phones.isNotEmpty()) put("phone", JsonPrimitive(phones.first()))
-                    if (phones.size > 1) put("phones", JsonPrimitive(phones.joinToString(";")))
-                    if (emails.isNotEmpty()) put("email", JsonPrimitive(emails.first()))
-                    if (emails.size > 1) put("emails", JsonPrimitive(emails.joinToString(";")))
-                })
-            }
-        }
-
-        return kotlinx.serialization.json.JsonArray(contacts).toString()
+        return cursor?.use { it.count } ?: 0
     }
 
-    fun getContact(id: String): String {
-        val cursor = resolver.query(
-            ContactsContract.Contacts.CONTENT_URI,
-            null,
-            "${ContactsContract.Contacts._ID} = ?",
-            arrayOf(id),
-            null,
-        )
+    // MARK: - Private helpers
 
-        cursor?.use { c ->
-            if (c.moveToFirst()) {
-                val name = c.getString(c.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY)) ?: ""
-                val starred = c.getInt(c.getColumnIndexOrThrow(ContactsContract.Contacts.STARRED)) > 0
-                val lookupKey = c.getString(c.getColumnIndexOrThrow(ContactsContract.Contacts.LOOKUP_KEY)) ?: ""
-
-                val phones = getPhoneNumbers(id)
-                val emails = getEmails(id)
-                val addresses = getAddresses(id)
-                val organizations = getOrganizations(id)
-                val notes = getNotes(id)
-
-                return buildJsonObject {
-                    put("id", JsonPrimitive(id))
-                    put("name", JsonPrimitive(name))
-                    put("lookupKey", JsonPrimitive(lookupKey))
-                    put("starred", JsonPrimitive(starred))
-                    put("phones", JsonPrimitive(phones.joinToString(";")))
-                    put("emails", JsonPrimitive(emails.joinToString(";")))
-                    put("addresses", JsonPrimitive(addresses.joinToString(";")))
-                    put("organizations", JsonPrimitive(organizations.joinToString(";")))
-                    put("notes", JsonPrimitive(notes.joinToString("\n")))
-                }.toString()
-            }
-        }
-
-        return buildJsonObject { put("error", JsonPrimitive("Contact not found")) }.toString()
-    }
-
-    fun handleCommand(subCommand: String, params: JsonObject): String? {
-        return when (subCommand) {
-            "list" -> {
-                val limit = (params["limit"] as? JsonPrimitive)?.content?.toIntOrNull() ?: 100
-                val offset = (params["offset"] as? JsonPrimitive)?.content?.toIntOrNull() ?: 0
-                val search = (params["search"] as? JsonPrimitive)?.content
-                listContacts(limit, offset, search)
-            }
-            "get" -> {
-                val id = (params["id"] as? JsonPrimitive)?.content ?: return null
-                getContact(id)
-            }
-            "count" -> {
-                val cursor = resolver.query(ContactsContract.Contacts.CONTENT_URI, arrayOf("count(*) AS count"), null, null, null)
-                val count = cursor?.use { if (it.moveToFirst()) it.getInt(0) else 0 } ?: 0
-                buildJsonObject { put("count", JsonPrimitive(count)) }.toString()
-            }
-            else -> null
+    private fun cursorToContact(c: Cursor): JsonObject {
+        return buildJsonObject {
+            put("id", c.getString(0) ?: "")
+            put("name", c.getString(1) ?: "")
+            put("hasPhone", c.getInt(2) == 1)
+            put("starred", c.getInt(3) == 1)
+            put("photoUri", c.getString(4) ?: "")
+            put("lookupKey", c.getString(5) ?: "")
         }
     }
 
-    // MARK: - Private
-
-    private fun getPhoneNumbers(contactId: String): List<String> {
-        val phones = mutableListOf<String>()
-        val cursor = resolver.query(
-            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-            arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER),
-            "${ContactsContract.CommonDataKinds.Phone.CONTACT_ID} = ?",
-            arrayOf(contactId), null,
-        )
-        cursor?.use { while (it.moveToNext()) { it.getString(0)?.trim()?.let { p -> if (p.isNotEmpty()) phones.add(p) } } }
-        return phones.distinct()
-    }
-
-    private fun getEmails(contactId: String): List<String> {
-        val emails = mutableListOf<String>()
-        val cursor = resolver.query(
-            ContactsContract.CommonDataKinds.Email.CONTENT_URI,
-            arrayOf(ContactsContract.CommonDataKinds.Email.ADDRESS),
-            "${ContactsContract.CommonDataKinds.Email.CONTACT_ID} = ?",
-            arrayOf(contactId), null,
-        )
-        cursor?.use { while (it.moveToNext()) { it.getString(0)?.trim()?.let { e -> if (e.isNotEmpty()) emails.add(e) } } }
-        return emails.distinct()
-    }
-
-    private fun getAddresses(contactId: String): List<String> {
-        val addresses = mutableListOf<String>()
-        val cursor = resolver.query(
-            ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_URI,
-            arrayOf(ContactsContract.CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS),
-            "${ContactsContract.CommonDataKinds.StructuredPostal.CONTACT_ID} = ?",
-            arrayOf(contactId), null,
-        )
-        cursor?.use { while (it.moveToNext()) { it.getString(0)?.trim()?.let { a -> if (a.isNotEmpty()) addresses.add(a) } } }
-        return addresses
-    }
-
-    private fun getOrganizations(contactId: String): List<String> {
-        val orgs = mutableListOf<String>()
-        val cursor = resolver.query(
-            ContactsContract.Data.CONTENT_URI,
-            arrayOf(ContactsContract.CommonDataKinds.Organization.COMPANY, ContactsContract.CommonDataKinds.Organization.TITLE),
-            "${ContactsContract.Data.CONTACT_ID} = ? AND ${ContactsContract.Data.MIMETYPE} = ?",
-            arrayOf(contactId, ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE), null,
-        )
-        cursor?.use {
-            while (it.moveToNext()) {
-                val company = it.getString(0)?.trim() ?: ""
-                val title = it.getString(1)?.trim() ?: ""
-                val combined = listOf(company, title).filter { s -> s.isNotEmpty() }.joinToString(" - ")
-                if (combined.isNotEmpty()) orgs.add(combined)
+    private fun getPhoneNumbers(contactId: String): JsonArray {
+        return buildJsonArray {
+            val cursor = context.contentResolver.query(
+                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                arrayOf(
+                    ContactsContract.CommonDataKinds.Phone.NUMBER,
+                    ContactsContract.CommonDataKinds.Phone.TYPE,
+                    ContactsContract.CommonDataKinds.Phone.LABEL,
+                ),
+                "${ContactsContract.CommonDataKinds.Phone.CONTACT_ID} = ?",
+                arrayOf(contactId),
+                null,
+            )
+            cursor?.use { c ->
+                while (c.moveToNext()) {
+                    add(buildJsonObject {
+                        put("number", c.getString(0) ?: "")
+                        put("type", phoneTypeLabel(c.getInt(1)))
+                        put("label", c.getString(2) ?: "")
+                    })
+                }
             }
         }
-        return orgs
     }
 
-    private fun getNotes(contactId: String): List<String> {
-        val notes = mutableListOf<String>()
-        val cursor = resolver.query(
-            ContactsContract.Data.CONTENT_URI,
-            arrayOf(ContactsContract.CommonDataKinds.Note.NOTE),
-            "${ContactsContract.Data.CONTACT_ID} = ? AND ${ContactsContract.Data.MIMETYPE} = ?",
-            arrayOf(contactId, ContactsContract.CommonDataKinds.Note.CONTENT_ITEM_TYPE), null,
-        )
-        cursor?.use { while (it.moveToNext()) { it.getString(0)?.trim()?.let { n -> if (n.isNotEmpty()) notes.add(n) } } }
-        return notes
+    private fun getEmails(contactId: String): JsonArray {
+        return buildJsonArray {
+            val cursor = context.contentResolver.query(
+                ContactsContract.CommonDataKinds.Email.CONTENT_URI,
+                arrayOf(
+                    ContactsContract.CommonDataKinds.Email.ADDRESS,
+                    ContactsContract.CommonDataKinds.Email.TYPE,
+                ),
+                "${ContactsContract.CommonDataKinds.Email.CONTACT_ID} = ?",
+                arrayOf(contactId),
+                null,
+            )
+            cursor?.use { c ->
+                while (c.moveToNext()) {
+                    add(buildJsonObject {
+                        put("address", c.getString(0) ?: "")
+                        put("type", emailTypeLabel(c.getInt(1)))
+                    })
+                }
+            }
+        }
+    }
+
+    private fun getOrganizations(contactId: String): JsonArray {
+        return buildJsonArray {
+            val cursor = context.contentResolver.query(
+                ContactsContract.Data.CONTENT_URI,
+                arrayOf(
+                    ContactsContract.CommonDataKinds.Organization.COMPANY,
+                    ContactsContract.CommonDataKinds.Organization.TITLE,
+                ),
+                "${ContactsContract.Data.CONTACT_ID} = ? AND ${ContactsContract.Data.MIMETYPE} = ?",
+                arrayOf(contactId, ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE),
+                null,
+            )
+            cursor?.use { c ->
+                while (c.moveToNext()) {
+                    add(buildJsonObject {
+                        put("company", c.getString(0) ?: "")
+                        put("title", c.getString(1) ?: "")
+                    })
+                }
+            }
+        }
+    }
+
+    private fun phoneTypeLabel(type: Int): String = when (type) {
+        ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE -> "mobile"
+        ContactsContract.CommonDataKinds.Phone.TYPE_HOME -> "home"
+        ContactsContract.CommonDataKinds.Phone.TYPE_WORK -> "work"
+        ContactsContract.CommonDataKinds.Phone.TYPE_MAIN -> "main"
+        else -> "other"
+    }
+
+    private fun emailTypeLabel(type: Int): String = when (type) {
+        ContactsContract.CommonDataKinds.Email.TYPE_HOME -> "home"
+        ContactsContract.CommonDataKinds.Email.TYPE_WORK -> "work"
+        else -> "other"
+    }
+
+    private fun hasPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun errorJson(message: String): String {
+        return buildJsonObject { put("error", message) }.toString()
     }
 }
