@@ -1,119 +1,205 @@
 package ai.coreblow.app.node.handlers
 
-import android.content.Context
 import android.util.Log
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.*
 
 /**
- * Manages trust evaluation for canvas actions.
- * Determines whether a canvas action requires user confirmation
- * based on action type, sender trust level, and security policy.
+ * Validates trust levels for canvas/UI actions invoked by agents.
+ * Prevents unauthorized agents from performing destructive UI operations
+ * (e.g., deleting data, navigating away, file system access).
+ *
+ * Trust levels:
+ * - UNTRUSTED: read-only, no side effects
+ * - BASIC: view rendering, styling changes
+ * - ELEVATED: data modifications, navigation
+ * - FULL: all operations including destructive actions
  */
-class CanvasActionTrust(
-    private val appContext: Context,
-    private val getUserTrustDecision: suspend (action: String, detail: String) -> Boolean,
-) {
+class CanvasActionTrust {
+
     companion object {
         private const val TAG = "CanvasActionTrust"
-
-        // Actions that always require user approval
-        private val REQUIRES_APPROVAL = setOf(
-            "navigate.external",
-            "clipboard.write",
-            "share",
-            "notification.send",
-            "sms.send",
-            "file.download",
-            "payment",
-        )
-
-        // Actions that are always safe
-        private val ALWAYS_SAFE = setOf(
-            "canvas.render",
-            "canvas.clear",
-            "canvas.hide",
-            "canvas.show",
-            "toast",
-            "haptic",
-            "badge",
-        )
-
-        // Actions that are safe for trusted senders
-        private val TRUSTED_SAFE = setOf(
-            "dialog",
-            "navigate.internal",
-            "clipboard.read",
-            "notification.local",
-            "vibrate",
-            "openUrl.internal",
-        )
     }
 
-    private val trustedSenders = mutableSetOf<String>()
-    private val approvedActions = mutableSetOf<String>()
+    private val agentTrustLevels = mutableMapOf<String, TrustLevel>()
+    private val actionLog = ArrayDeque<ActionLogEntry>(100)
+    private val blockedActions = mutableListOf<String>()
 
     /**
-     * Evaluate whether an action should be allowed.
+     * Check if an agent is allowed to perform an action.
      */
-    suspend fun evaluate(
-        action: String,
-        senderId: String?,
-        detail: String = "",
-    ): TrustDecision {
-        // Always safe actions
-        if (action in ALWAYS_SAFE) {
-            return TrustDecision(allowed = true, reason = "safe_action")
+    fun isAllowed(agentId: String, action: String, namespace: String = "canvas"): TrustDecision {
+        val trustLevel = agentTrustLevels[agentId] ?: TrustLevel.UNTRUSTED
+        val requiredLevel = getRequiredTrustLevel(action, namespace)
+
+        val allowed = trustLevel.ordinal >= requiredLevel.ordinal
+        val decision = TrustDecision(
+            allowed = allowed,
+            agentId = agentId,
+            action = action,
+            namespace = namespace,
+            agentTrust = trustLevel,
+            requiredTrust = requiredLevel,
+            reason = if (allowed) "Permitted" else "Agent trust level $trustLevel insufficient (requires $requiredLevel)",
+        )
+
+        logAction(decision)
+
+        if (!allowed) {
+            Log.w(TAG, "BLOCKED: $agentId tried $namespace.$action (has=$trustLevel, needs=$requiredLevel)")
         }
 
-        // Check if previously approved
-        val actionKey = "$senderId:$action"
-        if (actionKey in approvedActions) {
-            return TrustDecision(allowed = true, reason = "previously_approved")
-        }
-
-        // Trusted sender + trusted-safe action
-        if (senderId != null && senderId in trustedSenders && action in TRUSTED_SAFE) {
-            return TrustDecision(allowed = true, reason = "trusted_sender")
-        }
-
-        // Requires approval
-        if (action in REQUIRES_APPROVAL) {
-            val approved = getUserTrustDecision(action, detail)
-            if (approved) {
-                approvedActions.add(actionKey)
-                return TrustDecision(allowed = true, reason = "user_approved")
-            }
-            Log.w(TAG, "User denied action: $action from $senderId")
-            return TrustDecision(allowed = false, reason = "user_denied")
-        }
-
-        // Unknown action — default deny
-        Log.w(TAG, "Unknown action denied by policy: $action")
-        return TrustDecision(allowed = false, reason = "unknown_action")
+        return decision
     }
 
-    fun addTrustedSender(senderId: String) {
-        trustedSenders.add(senderId)
+    /**
+     * Set trust level for an agent.
+     */
+    fun setTrustLevel(agentId: String, level: TrustLevel) {
+        agentTrustLevels[agentId] = level
+        Log.i(TAG, "Trust level set: $agentId → $level")
     }
 
-    fun removeTrustedSender(senderId: String) {
-        trustedSenders.remove(senderId)
-        approvedActions.removeAll { it.startsWith("$senderId:") }
+    /**
+     * Get trust level for an agent.
+     */
+    fun getTrustLevel(agentId: String): TrustLevel {
+        return agentTrustLevels[agentId] ?: TrustLevel.UNTRUSTED
     }
 
-    fun clearApprovals() {
-        approvedActions.clear()
+    /**
+     * Revoke trust for an agent.
+     */
+    fun revokeTrust(agentId: String) {
+        agentTrustLevels.remove(agentId)
+        Log.i(TAG, "Trust revoked: $agentId")
     }
 
-    fun getTrustInfo(): String = buildJsonObject {
-        put("trustedSenders", JsonPrimitive(trustedSenders.size))
-        put("approvedActions", JsonPrimitive(approvedActions.size))
-    }.toString()
+    /**
+     * Get required trust level for a specific action.
+     */
+    fun getRequiredTrustLevel(action: String, namespace: String = "canvas"): TrustLevel {
+        // Destructive actions require FULL trust
+        val destructiveActions = setOf(
+            "delete", "remove", "clear", "destroy", "reset",
+            "format", "wipe", "uninstall", "revoke",
+        )
+        if (destructiveActions.any { action.lowercase().contains(it) }) return TrustLevel.FULL
+
+        // Data modification actions require ELEVATED trust
+        val modifyActions = setOf(
+            "update", "edit", "modify", "write", "create", "insert",
+            "send", "post", "submit", "save", "move", "rename",
+        )
+        if (modifyActions.any { action.lowercase().contains(it) }) return TrustLevel.ELEVATED
+
+        // UI rendering actions require BASIC trust
+        val renderActions = setOf(
+            "render", "display", "show", "hide", "style",
+            "animate", "scroll", "resize", "layout", "theme",
+        )
+        if (renderActions.any { action.lowercase().contains(it) }) return TrustLevel.BASIC
+
+        // Read-only actions are UNTRUSTED level
+        val readActions = setOf(
+            "get", "read", "list", "query", "search",
+            "count", "check", "info", "status", "describe",
+        )
+        if (readActions.any { action.lowercase().contains(it) }) return TrustLevel.UNTRUSTED
+
+        // Default to ELEVATED for unknown actions
+        return TrustLevel.ELEVATED
+    }
+
+    /**
+     * Get all trust levels as JSON.
+     */
+    fun getTrustReport(): String {
+        return buildJsonObject {
+            put("agents", buildJsonArray {
+                agentTrustLevels.forEach { (id, level) ->
+                    add(buildJsonObject {
+                        put("agentId", id)
+                        put("trustLevel", level.name)
+                        put("ordinal", level.ordinal)
+                    })
+                }
+            })
+            put("blockedCount", blockedActions.size)
+            put("logSize", actionLog.size)
+        }.toString()
+    }
+
+    /**
+     * Get recent action log.
+     */
+    fun getActionLog(count: Int = 20): String {
+        return buildJsonObject {
+            put("entries", buildJsonArray {
+                actionLog.takeLast(count).forEach { entry ->
+                    add(buildJsonObject {
+                        put("agentId", entry.agentId)
+                        put("action", entry.action)
+                        put("allowed", entry.allowed)
+                        put("reason", entry.reason)
+                        put("timestampMs", entry.timestampMs)
+                    })
+                }
+            })
+        }.toString()
+    }
+
+    /**
+     * Block a specific action globally.
+     */
+    fun blockAction(action: String) {
+        if (action !in blockedActions) blockedActions.add(action)
+    }
+
+    /**
+     * Unblock a specific action.
+     */
+    fun unblockAction(action: String) {
+        blockedActions.remove(action)
+    }
+
+    /**
+     * Clear all trust levels.
+     */
+    fun clearAllTrust() {
+        agentTrustLevels.clear()
+        Log.i(TAG, "All trust levels cleared")
+    }
+
+    private fun logAction(decision: TrustDecision) {
+        if (actionLog.size >= 100) actionLog.removeFirst()
+        actionLog.addLast(ActionLogEntry(
+            agentId = decision.agentId,
+            action = decision.action,
+            allowed = decision.allowed,
+            reason = decision.reason,
+            timestampMs = System.currentTimeMillis(),
+        ))
+    }
+}
+
+enum class TrustLevel {
+    UNTRUSTED, BASIC, ELEVATED, FULL,
 }
 
 data class TrustDecision(
     val allowed: Boolean,
+    val agentId: String,
+    val action: String,
+    val namespace: String,
+    val agentTrust: TrustLevel,
+    val requiredTrust: TrustLevel,
     val reason: String,
+)
+
+private data class ActionLogEntry(
+    val agentId: String,
+    val action: String,
+    val allowed: Boolean,
+    val reason: String,
+    val timestampMs: Long,
 )
