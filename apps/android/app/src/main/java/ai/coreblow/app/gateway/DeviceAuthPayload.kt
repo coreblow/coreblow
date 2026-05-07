@@ -1,58 +1,60 @@
 package ai.coreblow.app.gateway
 
+import android.content.Context
 import android.os.Build
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
+import android.provider.Settings
+import android.util.Log
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
+import java.security.MessageDigest
+import java.util.UUID
 
 /**
- * Device authentication payload sent during gateway handshake.
- * Contains device identity, capabilities, and auth credentials
- * needed for the hello/auth exchange.
+ * Device authentication payload for gateway handshake.
+ * Contains device identity, capabilities, and auth credentials.
  */
+@Serializable
 data class DeviceAuthPayload(
     val deviceId: String,
-    val instanceId: String?,
-    val displayName: String,
+    val deviceName: String,
     val platform: String = "android",
-    val version: String = "1.0.0",
-    val sdkInt: Int = Build.VERSION.SDK_INT,
-    val model: String = Build.MODEL,
+    val osVersion: String = Build.VERSION.RELEASE,
+    val sdkVersion: Int = Build.VERSION.SDK_INT,
     val manufacturer: String = Build.MANUFACTURER,
-    val authType: String = CoreBlowProtocol.AUTH_DEVICE_TOKEN,
+    val model: String = Build.MODEL,
+    val appVersion: String = "1.0.0",
+    val protocolVersion: String = CoreBlowProtocol.PROTOCOL_VERSION,
+    val authMode: String = CoreBlowProtocol.AUTH_DEVICE_TOKEN,
     val token: String? = null,
-    val capabilities: List<String> = CoreBlowProtocol.ALL_CAPABILITIES,
-    val scopes: List<String> = CoreBlowProtocol.ALL_SCOPES,
-    val role: String = CoreBlowProtocol.ROLE_NODE,
+    val capabilities: List<String> = emptyList(),
+    val locale: String = java.util.Locale.getDefault().toLanguageTag(),
+    val timezone: String = java.util.TimeZone.getDefault().id,
+    val timestampMs: Long = System.currentTimeMillis(),
 ) {
     fun toJson(): String = buildJsonObject {
-        put("deviceId", JsonPrimitive(deviceId))
-        instanceId?.let { put("instanceId", JsonPrimitive(it)) }
-        put("displayName", JsonPrimitive(displayName))
-        put("platform", JsonPrimitive(platform))
-        put("version", JsonPrimitive(version))
-        put("sdkInt", JsonPrimitive(sdkInt))
-        put("model", JsonPrimitive(model))
-        put("manufacturer", JsonPrimitive(manufacturer))
-        put("authType", JsonPrimitive(authType))
-        token?.let { put("token", JsonPrimitive(it)) }
-        put("capabilities", JsonPrimitive(capabilities.joinToString(",")))
-        put("scopes", JsonPrimitive(scopes.joinToString(",")))
-        put("role", JsonPrimitive(role))
-        put("protocolVersion", JsonPrimitive(CoreBlowProtocol.PROTOCOL_VERSION))
+        put("deviceId", deviceId)
+        put("deviceName", deviceName)
+        put("platform", platform)
+        put("osVersion", osVersion)
+        put("sdkVersion", sdkVersion)
+        put("manufacturer", manufacturer)
+        put("model", model)
+        put("appVersion", appVersion)
+        put("protocolVersion", protocolVersion)
+        put("authMode", authMode)
+        token?.let { put("token", it) }
+        put("capabilities", JsonArray(capabilities.map { JsonPrimitive(it) }))
+        put("locale", locale)
+        put("timezone", timezone)
+        put("timestampMs", timestampMs)
     }.toString()
 
     companion object {
-        fun fromDeviceIdentity(
-            deviceId: String,
-            instanceId: String?,
-            displayName: String,
-            token: String?,
-            capabilities: List<String> = CoreBlowProtocol.ALL_CAPABILITIES,
-        ): DeviceAuthPayload {
+        fun create(context: Context, token: String? = null, capabilities: List<String> = emptyList()): DeviceAuthPayload {
+            val deviceId = DeviceIdentityStore.getOrCreateDeviceId(context)
             return DeviceAuthPayload(
                 deviceId = deviceId,
-                instanceId = instanceId,
-                displayName = displayName,
+                deviceName = "${Build.MANUFACTURER} ${Build.MODEL}",
                 token = token,
                 capabilities = capabilities,
             )
@@ -61,37 +63,97 @@ data class DeviceAuthPayload(
 }
 
 /**
- * Gateway connection options.
+ * WebSocket connect options.
  */
-data class GatewayConnectOptions(
-    val role: String = CoreBlowProtocol.ROLE_NODE,
-    val scopes: List<String> = CoreBlowProtocol.ALL_SCOPES,
-    val capabilities: List<String> = CoreBlowProtocol.ALL_CAPABILITIES,
-    val commands: List<String> = emptyList(),
-    val permissions: Map<String, Boolean> = emptyMap(),
-    val client: GatewayClientInfo? = null,
-)
+data class ConnectOptions(
+    val host: String,
+    val port: Int = 18789,
+    val useTls: Boolean = false,
+    val authPayload: DeviceAuthPayload? = null,
+    val autoReconnect: Boolean = true,
+    val maxReconnectAttempts: Int = 10,
+    val reconnectBaseDelayMs: Long = 2000,
+    val keepaliveIntervalMs: Long = 25000,
+    val connectionTimeoutMs: Long = 15000,
+    val requestTimeoutMs: Long = 30000,
+    val maxMessageSizeBytes: Int = 5 * 1024 * 1024,
+    val headers: Map<String, String> = emptyMap(),
+) {
+    val wsUrl: String get() {
+        val scheme = if (useTls) "wss" else "ws"
+        return "$scheme://$host:$port/ws"
+    }
+
+    val httpBaseUrl: String get() {
+        val scheme = if (useTls) "https" else "http"
+        return "$scheme://$host:$port"
+    }
+
+    val healthUrl: String get() = "$httpBaseUrl/health"
+
+    fun withAuth(token: String): ConnectOptions = copy(
+        authPayload = authPayload?.copy(token = token) ?: DeviceAuthPayload(
+            deviceId = "", deviceName = "", token = token,
+        ),
+    )
+}
 
 /**
- * Client info sent during gateway handshake.
+ * TLS configuration parameters.
  */
-data class GatewayClientInfo(
-    val id: String,
-    val displayName: String,
-    val version: String,
-    val platform: String = "android",
-    val mode: String = "node",
-    val instanceId: String? = null,
-    val deviceFamily: String? = null,
-    val modelIdentifier: String? = null,
-)
+data class TlsParams(
+    val enabled: Boolean = false,
+    val trustAllCerts: Boolean = false,
+    val pinnedCertHash: String? = null,
+    val clientCertPath: String? = null,
+    val clientKeyPath: String? = null,
+    val minTlsVersion: String = "TLSv1.2",
+) {
+    fun validate(): List<String> {
+        val errors = mutableListOf<String>()
+        if (trustAllCerts && pinnedCertHash != null) {
+            errors.add("Cannot trust all certs and pin a cert simultaneously")
+        }
+        if (clientCertPath != null && clientKeyPath == null) {
+            errors.add("Client key path required when client cert is provided")
+        }
+        if (minTlsVersion !in listOf("TLSv1.2", "TLSv1.3")) {
+            errors.add("Unsupported TLS version: $minTlsVersion")
+        }
+        return errors
+    }
+}
 
 /**
- * TLS parameters for gateway connections.
+ * Auth response from gateway.
  */
-data class GatewayTlsParams(
-    val required: Boolean = false,
-    val fingerprint: String? = null,
-    val trustOnFirstUse: Boolean = false,
-    val allowSelfSigned: Boolean = false,
-)
+data class AuthResponse(
+    val isSuccess: Boolean,
+    val sessionId: String? = null,
+    val expiresAt: Long? = null,
+    val scopes: List<String> = emptyList(),
+    val errorCode: Int? = null,
+    val errorMessage: String? = null,
+    val serverName: String? = null,
+    val serverVersion: String? = null,
+) {
+    companion object {
+        fun fromJson(json: JsonObject): AuthResponse {
+            val isSuccess = json["type"]?.jsonPrimitive?.contentOrNull == CoreBlowProtocol.MSG_AUTH_OK
+
+            return AuthResponse(
+                isSuccess = isSuccess,
+                sessionId = json["sessionId"]?.jsonPrimitive?.contentOrNull,
+                expiresAt = json["expiresAt"]?.jsonPrimitive?.longOrNull,
+                scopes = json["scopes"]?.jsonArray?.map { it.jsonPrimitive.content } ?: emptyList(),
+                errorCode = json["error"]?.jsonObject?.get("code")?.jsonPrimitive?.intOrNull,
+                errorMessage = json["error"]?.jsonObject?.get("message")?.jsonPrimitive?.contentOrNull,
+                serverName = json["name"]?.jsonPrimitive?.contentOrNull,
+                serverVersion = json["version"]?.jsonPrimitive?.contentOrNull,
+            )
+        }
+    }
+
+    val isExpired: Boolean get() = expiresAt != null && System.currentTimeMillis() > expiresAt
+    val hasScope: (String) -> Boolean = { scope -> scope in scopes || "admin" in scopes }
+}
