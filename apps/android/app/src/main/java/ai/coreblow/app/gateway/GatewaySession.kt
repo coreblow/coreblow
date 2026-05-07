@@ -1,11 +1,11 @@
 package ai.coreblow.app.gateway
 
-import android.os.Build
 import android.util.Log
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -13,7 +13,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -68,7 +67,7 @@ enum class GatewayConnectionState {
 }
 
 /**
- * Listener for gateway session events.
+ * Listener interface for gateway session events.
  */
 interface GatewaySessionListener {
     fun onStateChanged(state: GatewayConnectionState)
@@ -78,67 +77,174 @@ interface GatewaySessionListener {
 }
 
 /**
+ * Invoke request received from the gateway.
+ */
+data class InvokeRequest(val command: String, val paramsJson: String)
+
+/**
+ * TLS parameters for gateway connections.
+ */
+data class GatewayTlsParams(val required: Boolean, val fingerprint: String?)
+
+/**
  * Manages a WebSocket connection to a CoreBlow gateway.
  *
  * Handles the full lifecycle: connect → hello → auth → invoke/result → reconnect.
+ * Supports both listener-based and callback-based construction for flexibility.
  */
-class GatewaySession(
+class GatewaySession private constructor(
     private val scope: CoroutineScope,
-    private val listener: GatewaySessionListener,
+    private val identityStore: DeviceIdentityStore?,
+    private val deviceAuthStore: DeviceAuthStore?,
+    private val listenerRef: GatewaySessionListener?,
+    // Callback-based hooks (used by NodeRuntime)
+    private val onConnectedCb: ((serverName: String?, remoteAddress: String?, mainSessionKey: String?) -> Unit)?,
+    private val onDisconnectedCb: ((message: String) -> Unit)?,
+    private val onEventCb: ((event: String, payloadJson: String?) -> Unit)?,
+    private val onInvokeCb: ((InvokeRequest) -> String?)?,
 ) {
+    /**
+     * Listener-based constructor (used by ViewModels).
+     */
+    constructor(
+        scope: CoroutineScope,
+        listener: GatewaySessionListener,
+    ) : this(scope, null, null, listener, null, null, null, null)
+
+    /**
+     * Callback-based constructor (used by NodeRuntime).
+     */
+    constructor(
+        scope: CoroutineScope,
+        identityStore: DeviceIdentityStore,
+        deviceAuthStore: DeviceAuthStore,
+        onConnected: (serverName: String?, remoteAddress: String?, mainSessionKey: String?) -> Unit,
+        onDisconnected: (message: String) -> Unit,
+        onEvent: (event: String, payloadJson: String?) -> Unit,
+        onInvoke: ((InvokeRequest) -> String?)? = null,
+    ) : this(scope, identityStore, deviceAuthStore, null, onConnected, onDisconnected, onEvent, onInvoke)
+
     companion object {
         private const val TAG = "GatewaySession"
         private const val PING_INTERVAL_MS = 25_000L
         private const val RECONNECT_BASE_MS = 1_000L
         private const val RECONNECT_MAX_MS = 30_000L
-        private const val INVOKE_TIMEOUT_MS = 30_000L
+        private const val REQUEST_TIMEOUT_MS = 30_000L
         private const val CONNECT_TIMEOUT_SEC = 15L
     }
 
     private val json = Json { ignoreUnknownKeys = true }
     private val connected = AtomicBoolean(false)
     private val shouldReconnect = AtomicBoolean(false)
-    private val pendingResults = ConcurrentHashMap<String, CompletableDeferred<JsonElement>>()
+    private val pendingRequests = ConcurrentHashMap<String, CompletableDeferred<String>>()
+    private val messageSeq = AtomicLong(0)
 
     private var webSocket: WebSocket? = null
     private var pingJob: Job? = null
     private var reconnectAttempt = 0
+    private var lastEventSeq: Long = -1
 
     private var currentEndpoint: GatewayEndpoint? = null
     private var currentOptions: GatewayConnectOptions? = null
+    private var currentTlsParams: GatewayTlsParams? = null
     private var authToken: String? = null
+    private var bootstrapToken: String? = null
+    private var password: String? = null
 
     val isConnected: Boolean get() = connected.get()
 
-    /**
-     * Connect to the given gateway endpoint.
-     */
+    // MARK: - Connect / Disconnect
+
     fun connect(
         endpoint: GatewayEndpoint,
-        options: GatewayConnectOptions,
         token: String?,
+        bootstrapToken: String?,
+        password: String?,
+        options: GatewayConnectOptions,
+        tlsParams: GatewayTlsParams?,
     ) {
         currentEndpoint = endpoint
         currentOptions = options
+        currentTlsParams = tlsParams
         authToken = token
+        this.bootstrapToken = bootstrapToken
+        this.password = password
         shouldReconnect.set(true)
         reconnectAttempt = 0
-
-        doConnect(endpoint, options)
+        doConnect(endpoint, options, tlsParams)
     }
 
-    /**
-     * Disconnect and stop reconnecting.
-     */
+    fun connect(endpoint: GatewayEndpoint, options: GatewayConnectOptions, token: String?) {
+        connect(endpoint, token, null, null, options, null)
+    }
+
     fun disconnect() {
         shouldReconnect.set(false)
         connected.set(false)
         pingJob?.cancel()
         webSocket?.close(1000, "Client disconnect")
         webSocket = null
-        pendingResults.values.forEach { it.cancel() }
-        pendingResults.clear()
-        listener.onStateChanged(GatewayConnectionState.DISCONNECTED)
+        cancelPendingRequests("disconnected")
+        listenerRef?.onStateChanged(GatewayConnectionState.DISCONNECTED)
+        onDisconnectedCb?.invoke("Disconnected")
+    }
+
+    fun reconnect() {
+        if (connected.get()) return
+        val endpoint = currentEndpoint ?: return
+        val options = currentOptions ?: return
+        shouldReconnect.set(true)
+        reconnectAttempt = 0
+        doConnect(endpoint, options, currentTlsParams)
+    }
+
+    // MARK: - Request/Response
+
+    /**
+     * Send a request and await a response. Throws on timeout or error.
+     */
+    suspend fun request(method: String, paramsJson: String?): String {
+        val id = UUID.randomUUID().toString()
+        val deferred = CompletableDeferred<String>()
+        pendingRequests[id] = deferred
+
+        val msg = buildJsonObject {
+            put("type", CoreBlowProtocol.MSG_INVOKE)
+            put("id", id)
+            put("command", method)
+            if (paramsJson != null) {
+                try {
+                    put("params", json.parseToJsonElement(paramsJson))
+                } catch (_: Throwable) {
+                    put("params", JsonPrimitive(paramsJson))
+                }
+            }
+        }
+        send(msg)
+
+        return try {
+            withTimeout(REQUEST_TIMEOUT_MS) { deferred.await() }
+        } catch (e: Throwable) {
+            pendingRequests.remove(id)
+            throw e
+        }
+    }
+
+    /**
+     * Fire-and-forget node event.
+     */
+    fun sendNodeEvent(event: String, payloadJson: String): Boolean {
+        if (!connected.get()) return false
+        val msg = buildJsonObject {
+            put("type", CoreBlowProtocol.MSG_EVENT)
+            put("event", event)
+            try {
+                put("payload", json.parseToJsonElement(payloadJson))
+            } catch (_: Throwable) {
+                put("payload", JsonPrimitive(payloadJson))
+            }
+        }
+        return send(msg)
     }
 
     /**
@@ -169,54 +275,57 @@ class GatewaySession(
         send(msg)
     }
 
-    // -- Private --
+    // MARK: - Private: Connect
 
-    private fun doConnect(endpoint: GatewayEndpoint, options: GatewayConnectOptions) {
-        listener.onStateChanged(GatewayConnectionState.CONNECTING)
+    private fun doConnect(endpoint: GatewayEndpoint, options: GatewayConnectOptions, tlsParams: GatewayTlsParams?) {
+        listenerRef?.onStateChanged(GatewayConnectionState.CONNECTING)
 
         val clientBuilder = OkHttpClient.Builder()
             .connectTimeout(CONNECT_TIMEOUT_SEC, TimeUnit.SECONDS)
             .readTimeout(0, TimeUnit.MILLISECONDS)
             .pingInterval(PING_INTERVAL_MS, TimeUnit.MILLISECONDS)
 
-        val tlsParams = if (endpoint.useTls) GatewayTlsParams(required = true, fingerprint = null) else null
-        GatewayTls.configureClient(clientBuilder, tlsParams)
+        val effectiveTls = tlsParams ?: if (endpoint.useTls) GatewayTlsParams(true, null) else null
+        GatewayTls.configureClient(clientBuilder, effectiveTls)
 
         val client = clientBuilder.build()
         val request = Request.Builder().url(endpoint.wsUrl).build()
 
         webSocket = client.newWebSocket(request, object : WebSocketListener() {
-            override fun onOpen(webSocket: WebSocket, response: Response) {
+            override fun onOpen(ws: WebSocket, response: Response) {
                 Log.i(TAG, "WebSocket opened to ${endpoint.label}")
                 connected.set(true)
                 reconnectAttempt = 0
+                lastEventSeq = -1
                 sendHello(options)
                 startPingLoop()
             }
 
-            override fun onMessage(webSocket: WebSocket, text: String) {
+            override fun onMessage(ws: WebSocket, text: String) {
                 handleMessage(text)
             }
 
-            override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+            override fun onClosing(ws: WebSocket, code: Int, reason: String) {
                 Log.i(TAG, "WebSocket closing: $code $reason")
-                webSocket.close(code, reason)
+                ws.close(code, reason)
             }
 
-            override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+            override fun onClosed(ws: WebSocket, code: Int, reason: String) {
                 Log.i(TAG, "WebSocket closed: $code $reason")
-                onDisconnected()
+                onDisconnected(reason)
             }
 
-            override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+            override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) {
                 Log.e(TAG, "WebSocket failure: ${t.message}")
-                onDisconnected()
+                onDisconnected(t.message ?: "Connection failed")
             }
         })
     }
 
+    // MARK: - Private: Hello
+
     private fun sendHello(options: GatewayConnectOptions) {
-        listener.onStateChanged(GatewayConnectionState.AUTHENTICATING)
+        listenerRef?.onStateChanged(GatewayConnectionState.AUTHENTICATING)
 
         val msg = buildJsonObject {
             put("type", CoreBlowProtocol.MSG_HELLO)
@@ -225,6 +334,9 @@ class GatewaySession(
             putJsonArray("scopes") { options.scopes.forEach { add(JsonPrimitive(it)) } }
             putJsonArray("caps") { options.capabilities.forEach { add(JsonPrimitive(it)) } }
             putJsonArray("commands") { options.commands.forEach { add(JsonPrimitive(it)) } }
+            putJsonObject("permissions") {
+                options.permissions.forEach { (k, v) -> put(k, v) }
+            }
             putJsonObject("client") {
                 put("id", options.client.id)
                 options.client.displayName?.let { put("displayName", it) }
@@ -235,15 +347,30 @@ class GatewaySession(
                 options.client.deviceFamily?.let { put("deviceFamily", it) }
                 options.client.modelIdentifier?.let { put("modelIdentifier", it) }
             }
-            authToken?.let {
-                putJsonObject("auth") {
+
+            // Auth block
+            val token = authToken
+            val bootstrap = bootstrapToken
+            val pass = password
+            when {
+                !token.isNullOrBlank() -> putJsonObject("auth") {
                     put("type", CoreBlowProtocol.AUTH_DEVICE_TOKEN)
-                    put("token", it)
+                    put("token", token)
+                }
+                !bootstrap.isNullOrBlank() -> putJsonObject("auth") {
+                    put("type", "bootstrap")
+                    put("token", bootstrap)
+                }
+                !pass.isNullOrBlank() -> putJsonObject("auth") {
+                    put("type", "password")
+                    put("password", pass)
                 }
             }
         }
         send(msg)
     }
+
+    // MARK: - Private: Message Handling
 
     private fun handleMessage(text: String) {
         val obj = try {
@@ -253,9 +380,7 @@ class GatewaySession(
             return
         }
 
-        val type = obj["type"]?.let {
-            (it as? JsonPrimitive)?.content
-        } ?: return
+        val type = (obj["type"] as? JsonPrimitive)?.content ?: return
 
         when (type) {
             CoreBlowProtocol.MSG_AUTH_RESULT -> handleAuthResult(obj)
@@ -273,11 +398,25 @@ class GatewaySession(
         val success = (obj["success"] as? JsonPrimitive)?.content?.toBoolean() ?: false
         if (success) {
             Log.i(TAG, "Authentication successful")
-            listener.onStateChanged(GatewayConnectionState.CONNECTED)
+            listenerRef?.onStateChanged(GatewayConnectionState.CONNECTED)
+
+            // Extract server info for callback-based usage
+            val serverName = (obj["serverName"] as? JsonPrimitive)?.content
+            val remoteAddress = (obj["remoteAddress"] as? JsonPrimitive)?.content
+            val mainSessionKey = (obj["mainSessionKey"] as? JsonPrimitive)?.content
+
+            // Save provisioned token if present
+            val provisionedToken = (obj["token"] as? JsonPrimitive)?.content?.trim()
+            if (!provisionedToken.isNullOrEmpty()) {
+                deviceAuthStore?.saveToken(provisionedToken)
+                authToken = provisionedToken
+            }
+
+            onConnectedCb?.invoke(serverName, remoteAddress, mainSessionKey)
         } else {
             val error = InvokeErrorParser.parse(obj["error"])
             Log.e(TAG, "Authentication failed: ${error.message}")
-            listener.onError(error)
+            listenerRef?.onError(error)
             disconnect()
         }
     }
@@ -287,39 +426,67 @@ class GatewaySession(
         val command = (obj["command"] as? JsonPrimitive)?.content ?: return
         val params = obj["params"] as? JsonObject ?: JsonObject(emptyMap())
 
-        listener.onInvokeRequest(requestId, command, params)
+        // Callback path
+        if (onInvokeCb != null) {
+            scope.launch {
+                try {
+                    val result = onInvokeCb.invoke(InvokeRequest(command, params.toString()))
+                    if (result != null) {
+                        sendResult(requestId, json.parseToJsonElement(result))
+                    } else {
+                        sendResult(requestId, JsonObject(emptyMap()))
+                    }
+                } catch (e: Throwable) {
+                    sendError(requestId, InvokeError("INVOKE_FAILED", e.message ?: "unknown"))
+                }
+            }
+            return
+        }
+
+        // Listener path
+        listenerRef?.onInvokeRequest(requestId, command, params)
     }
 
     private fun handleResult(obj: JsonObject) {
         val requestId = (obj["id"] as? JsonPrimitive)?.content ?: return
-        val result = obj["result"] ?: JsonNull
-        pendingResults.remove(requestId)?.complete(result)
+        val resultJson = (obj["result"] ?: JsonNull).toString()
+        pendingRequests.remove(requestId)?.complete(resultJson)
     }
 
     private fun handleError(obj: JsonObject) {
         val requestId = (obj["id"] as? JsonPrimitive)?.content
+        val error = InvokeErrorParser.parse(obj["error"])
         if (requestId != null) {
-            val error = InvokeErrorParser.parse(obj["error"])
-            pendingResults.remove(requestId)?.completeExceptionally(
-                InvokeException(error)
-            )
+            pendingRequests.remove(requestId)?.completeExceptionally(InvokeException(error))
         } else {
-            listener.onError(InvokeErrorParser.parse(obj["error"]))
+            listenerRef?.onError(error)
         }
     }
 
     private fun handleEvent(obj: JsonObject) {
         val eventType = (obj["event"] as? JsonPrimitive)?.content ?: return
+
+        // Sequence gap detection
+        val seq = (obj["seq"] as? JsonPrimitive)?.content?.toLongOrNull()
+        if (seq != null && lastEventSeq >= 0 && seq > lastEventSeq + 1) {
+            Log.w(TAG, "Event sequence gap: expected ${lastEventSeq + 1}, got $seq")
+            onEventCb?.invoke("seqGap", null)
+            listenerRef?.onEvent("seqGap", JsonObject(emptyMap()))
+        }
+        if (seq != null) lastEventSeq = seq
+
         val payload = obj["payload"] as? JsonObject ?: JsonObject(emptyMap())
-        listener.onEvent(eventType, payload)
+        listenerRef?.onEvent(eventType, payload)
+        onEventCb?.invoke(eventType, payload.toString())
     }
 
-    private fun send(message: JsonObject) {
+    // MARK: - Private: Helpers
+
+    private fun send(message: JsonObject): Boolean {
         val text = message.toString()
         val sent = webSocket?.send(text) ?: false
-        if (!sent) {
-            Log.w(TAG, "Failed to send message")
-        }
+        if (!sent) Log.w(TAG, "Failed to send message")
+        return sent
     }
 
     private fun startPingLoop() {
@@ -334,22 +501,29 @@ class GatewaySession(
         }
     }
 
-    private fun onDisconnected() {
+    private fun onDisconnected(reason: String = "Disconnected") {
         val wasConnected = connected.getAndSet(false)
         pingJob?.cancel()
         webSocket = null
-        pendingResults.values.forEach { it.cancel() }
-        pendingResults.clear()
+        cancelPendingRequests(reason)
 
         if (shouldReconnect.get()) {
             scheduleReconnect()
         } else {
-            listener.onStateChanged(GatewayConnectionState.DISCONNECTED)
+            listenerRef?.onStateChanged(GatewayConnectionState.DISCONNECTED)
+            onDisconnectedCb?.invoke(reason)
         }
     }
 
+    private fun cancelPendingRequests(reason: String) {
+        pendingRequests.values.forEach {
+            it.completeExceptionally(Exception(reason))
+        }
+        pendingRequests.clear()
+    }
+
     private fun scheduleReconnect() {
-        listener.onStateChanged(GatewayConnectionState.RECONNECTING)
+        listenerRef?.onStateChanged(GatewayConnectionState.RECONNECTING)
         reconnectAttempt++
 
         val delayMs = (RECONNECT_BASE_MS * (1L shl reconnectAttempt.coerceAtMost(5)))
@@ -361,7 +535,7 @@ class GatewaySession(
             delay(delayMs)
             val endpoint = currentEndpoint ?: return@launch
             val options = currentOptions ?: return@launch
-            doConnect(endpoint, options)
+            doConnect(endpoint, options, currentTlsParams)
         }
     }
 }

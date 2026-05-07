@@ -1,56 +1,96 @@
 package ai.coreblow.app.ui.compose
 
-import androidx.compose.foundation.layout.padding
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import ai.coreblow.app.viewmodel.GatewayViewModel
-import ai.coreblow.app.viewmodel.SettingsViewModel
-import ai.coreblow.app.viewmodel.VoiceViewModel
+import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
- * Post-onboarding tab navigation shell.
- * Provides bottom navigation between Connect, Voice, and Settings tabs.
+ * Main tab container shown after onboarding completes.
+ * Houses Connect, Chat, Voice, and Canvas tabs with
+ * animated transitions between content screens.
  */
+enum class CoreBlowTab(val label: String, val icon: ImageVector) {
+    Connect("Connect", Icons.Default.Link),
+    Chat("Chat", Icons.Default.Chat),
+    Voice("Voice", Icons.Default.Mic),
+    Canvas("Canvas", Icons.Default.Dashboard),
+}
+
 @Composable
 fun PostOnboardingTabs(
-    gatewayViewModel: GatewayViewModel,
-    voiceViewModel: VoiceViewModel,
-    settingsViewModel: SettingsViewModel,
+    connectContent: @Composable () -> Unit,
+    chatContent: @Composable () -> Unit,
+    voiceContent: @Composable () -> Unit,
+    canvasContent: @Composable () -> Unit,
+    initialTab: CoreBlowTab = CoreBlowTab.Connect,
+    onTabChanged: (CoreBlowTab) -> Unit = {},
+    settingsAction: @Composable (() -> Unit)? = null,
+    statusBadge: @Composable ((CoreBlowTab) -> Unit)? = null,
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) }
+    var selectedTab by remember { mutableStateOf(initialTab) }
 
     Scaffold(
-        bottomBar = {
-            NavigationBar {
-                NavigationBarItem(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Connect") },
-                    label = { Text("Connect") },
-                )
-                NavigationBarItem(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Voice") },
-                    label = { Text("Voice") },
-                )
-                NavigationBarItem(
-                    selected = selectedTab == 2,
-                    onClick = { selectedTab = 2 },
-                    icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
-                    label = { Text("Settings") },
+        topBar = {
+            if (settingsAction != null) {
+                @OptIn(ExperimentalMaterial3Api::class)
+                TopAppBar(
+                    title = { Text("CoreBlow") },
+                    actions = { settingsAction() },
                 )
             }
+        },
+        bottomBar = {
+            NavigationBar {
+                CoreBlowTab.entries.forEach { tab ->
+                    NavigationBarItem(
+                        selected = selectedTab == tab,
+                        onClick = {
+                            if (selectedTab != tab) {
+                                selectedTab = tab
+                                onTabChanged(tab)
+                            }
+                        },
+                        icon = {
+                            if (statusBadge != null) {
+                                BadgedBox(badge = { statusBadge(tab) }) {
+                                    Icon(tab.icon, contentDescription = tab.label)
+                                }
+                            } else {
+                                Icon(tab.icon, contentDescription = tab.label)
+                            }
+                        },
+                        label = { Text(tab.label) },
+                    )
+                }
+            }
+        },
+    ) { padding ->
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+            AnimatedContent(targetState = selectedTab, label = "tab_transition") { tab ->
+                when (tab) {
+                    CoreBlowTab.Connect -> connectContent()
+                    CoreBlowTab.Chat -> chatContent()
+                    CoreBlowTab.Voice -> voiceContent()
+                    CoreBlowTab.Canvas -> canvasContent()
+                }
+            }
         }
-    ) { paddingValues ->
-        when (selectedTab) {
-            0 -> ConnectScreen(viewModel = gatewayViewModel)
-            1 -> VoiceTabScreen(viewModel = voiceViewModel)
-            2 -> SettingsSheet(viewModel = settingsViewModel, gatewayViewModel = gatewayViewModel)
-        }
+    }
+}
+
+/**
+ * Resolve tab from deep-link route name.
+ */
+fun tabFromRoute(route: String?): CoreBlowTab {
+    return when (route?.trim()?.lowercase()) {
+        "chat" -> CoreBlowTab.Chat
+        "voice" -> CoreBlowTab.Voice
+        "canvas" -> CoreBlowTab.Canvas
+        else -> CoreBlowTab.Connect
     }
 }
