@@ -1,5 +1,11 @@
 package ai.coreblow.app.ui.compose
 
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Typography
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -7,91 +13,158 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * Design tokens for the CoreBlow mobile UI.
- * Centralized spacing, typography, colors, and dimension constants
- * used across all Compose screens.
+ * Mobile UI design tokens for CoreBlow Android.
+ * Centralized color, typography, spacing, and animation constants
+ * that ensure visual consistency across all Compose screens.
  */
 object MobileUiTokens {
 
-    // Spacing
-    val spacingXs = 4.dp
-    val spacingSm = 8.dp
-    val spacingMd = 12.dp
-    val spacingLg = 16.dp
-    val spacingXl = 24.dp
-    val spacingXxl = 32.dp
-    val spacingHuge = 48.dp
+    // ── Brand Colors ────────────────────────────────────────
+    val BrandPrimary = Color(0xFF6366F1)       // Indigo-500
+    val BrandPrimaryDark = Color(0xFF818CF8)   // Indigo-400 (for dark mode)
+    val BrandSecondary = Color(0xFF8B5CF6)     // Violet-500
+    val BrandAccent = Color(0xFF06B6D4)        // Cyan-500
+    val BrandSuccess = Color(0xFF10B981)        // Emerald-500
+    val BrandWarning = Color(0xFFF59E0B)        // Amber-500
+    val BrandError = Color(0xFFEF4444)          // Red-500
+    val BrandInfo = Color(0xFF3B82F6)           // Blue-500
 
-    // Border radius
-    val radiusSm = 6.dp
-    val radiusMd = 10.dp
-    val radiusLg = 16.dp
-    val radiusXl = 24.dp
-    val radiusFull = 999.dp
+    // ── Surface Colors ──────────────────────────────────────
+    val SurfaceLight = Color(0xFFFAFAFC)
+    val SurfaceDark = Color(0xFF0F0F23)
+    val SurfaceElevatedLight = Color(0xFFFFFFFF)
+    val SurfaceElevatedDark = Color(0xFF1A1A2E)
+    val SurfaceContainerLight = Color(0xFFF3F4F6)
+    val SurfaceContainerDark = Color(0xFF16213E)
 
-    // Component sizes
-    val iconSizeSm = 16.dp
-    val iconSizeMd = 20.dp
-    val iconSizeLg = 24.dp
-    val iconSizeXl = 32.dp
-    val avatarSizeSm = 28.dp
-    val avatarSizeMd = 40.dp
-    val avatarSizeLg = 56.dp
-    val buttonHeight = 48.dp
-    val chipHeight = 32.dp
-    val topBarHeight = 56.dp
-    val navBarHeight = 64.dp
-    val composerMinHeight = 52.dp
-    val composerMaxHeight = 160.dp
+    // ── Text Colors ─────────────────────────────────────────
+    val TextPrimaryLight = Color(0xFF1F2937)
+    val TextPrimaryDark = Color(0xFFF9FAFB)
+    val TextSecondaryLight = Color(0xFF6B7280)
+    val TextSecondaryDark = Color(0xFF9CA3AF)
+    val TextMutedLight = Color(0xFF9CA3AF)
+    val TextMutedDark = Color(0xFF6B7280)
 
-    // Elevation
-    val elevationNone = 0.dp
-    val elevationSm = 1.dp
-    val elevationMd = 4.dp
-    val elevationLg = 8.dp
+    // ── Chat Bubble Colors ──────────────────────────────────
+    val UserBubbleLight = Color(0xFF6366F1)
+    val UserBubbleDark = Color(0xFF4338CA)
+    val UserBubbleText = Color(0xFFFFFFFF)
+    val AssistantBubbleLight = Color(0xFFF3F4F6)
+    val AssistantBubbleDark = Color(0xFF1E1E30)
+    val AssistantBubbleTextLight = Color(0xFF1F2937)
+    val AssistantBubbleTextDark = Color(0xFFE5E7EB)
 
-    // Opacity
-    const val opacityDisabled = 0.38f
-    const val opacitySubtle = 0.5f
-    const val opacityLight = 0.7f
-    const val opacityFull = 1.0f
+    // ── Status Colors ───────────────────────────────────────
+    val Online = Color(0xFF10B981)
+    val Offline = Color(0xFFEF4444)
+    val Connecting = Color(0xFFF59E0B)
+    val Idle = Color(0xFF6B7280)
 
-    // Typography scale
-    val textXs = 10.sp
-    val textSm = 12.sp
-    val textMd = 14.sp
-    val textLg = 16.sp
-    val textXl = 20.sp
-    val textXxl = 24.sp
-    val textHuge = 32.sp
+    // ── Spacing ─────────────────────────────────────────────
+    val SpacingXxs = 2.dp
+    val SpacingXs = 4.dp
+    val SpacingSm = 8.dp
+    val SpacingMd = 12.dp
+    val SpacingLg = 16.dp
+    val SpacingXl = 24.dp
+    val SpacingXxl = 32.dp
+    val SpacingHuge = 48.dp
 
-    // Brand colors
-    val brandPrimary = Color(0xFF6750A4)
-    val brandSecondary = Color(0xFF625B71)
-    val brandTertiary = Color(0xFF7D5260)
-    val brandSurface = Color(0xFFFEF7FF)
-    val brandSurfaceDark = Color(0xFF1C1B1F)
+    // ── Corner Radii ────────────────────────────────────────
+    val RadiusSm = 6.dp
+    val RadiusMd = 10.dp
+    val RadiusLg = 16.dp
+    val RadiusXl = 24.dp
+    val RadiusFull = 999.dp
+    val BubbleRadiusUser = 18.dp
+    val BubbleRadiusAssistant = 18.dp
+    val BubbleRadiusTail = 4.dp
 
-    // Status colors
-    val statusSuccess = Color(0xFF4CAF50)
-    val statusWarning = Color(0xFFFFA726)
-    val statusError = Color(0xFFEF5350)
-    val statusInfo = Color(0xFF42A5F5)
+    // ── Sizing ──────────────────────────────────────────────
+    val IconSizeSm = 16.dp
+    val IconSizeMd = 24.dp
+    val IconSizeLg = 32.dp
+    val IconSizeXl = 48.dp
+    val AvatarSizeSm = 28.dp
+    val AvatarSizeMd = 36.dp
+    val AvatarSizeLg = 48.dp
+    val BottomBarHeight = 64.dp
+    val ComposerMinHeight = 56.dp
+    val ComposerMaxHeight = 200.dp
+    val FabSize = 56.dp
 
-    // Chat bubble colors
-    val chatUserBubble = Color(0xFFE8DEF8)
-    val chatAssistantBubble = Color(0xFFE6E0E9)
-    val chatToolBubble = Color(0xFFD0BCFF)
-    val chatSystemBubble = Color(0xFFF3EDF7)
+    // ── Animation ───────────────────────────────────────────
+    const val AnimDurationFast = 150
+    const val AnimDurationNormal = 250
+    const val AnimDurationSlow = 400
+    const val AnimDurationVSlow = 600
+    const val SpringStiffness = 400f
+    const val SpringDamping = 0.7f
 
-    // Animation durations
-    const val animFast = 150
-    const val animNormal = 300
-    const val animSlow = 500
-    const val animVerySlow = 800
+    // ── Typography Scale ────────────────────────────────────
+    val HeadlineLarge = 28.sp
+    val HeadlineMedium = 22.sp
+    val HeadlineSmall = 18.sp
+    val TitleLarge = 20.sp
+    val TitleMedium = 16.sp
+    val TitleSmall = 14.sp
+    val BodyLarge = 16.sp
+    val BodyMedium = 14.sp
+    val BodySmall = 12.sp
+    val LabelLarge = 14.sp
+    val LabelMedium = 12.sp
+    val LabelSmall = 10.sp
+    val Caption = 11.sp
 
-    // Max dimensions
-    val maxContentWidth = 600.dp
-    val maxBubbleWidth = 300.dp
-    val maxAttachmentPreview = 80.dp
+    // ── Elevation ───────────────────────────────────────────
+    val ElevationNone = 0.dp
+    val ElevationSm = 1.dp
+    val ElevationMd = 4.dp
+    val ElevationLg = 8.dp
+    val ElevationXl = 16.dp
+}
+
+/**
+ * Color schemes using the design tokens.
+ */
+val CoreBlowLightColorScheme = lightColorScheme(
+    primary = MobileUiTokens.BrandPrimary,
+    secondary = MobileUiTokens.BrandSecondary,
+    tertiary = MobileUiTokens.BrandAccent,
+    background = MobileUiTokens.SurfaceLight,
+    surface = MobileUiTokens.SurfaceElevatedLight,
+    surfaceVariant = MobileUiTokens.SurfaceContainerLight,
+    error = MobileUiTokens.BrandError,
+    onPrimary = Color.White,
+    onBackground = MobileUiTokens.TextPrimaryLight,
+    onSurface = MobileUiTokens.TextPrimaryLight,
+    onSurfaceVariant = MobileUiTokens.TextSecondaryLight,
+)
+
+val CoreBlowDarkColorScheme = darkColorScheme(
+    primary = MobileUiTokens.BrandPrimaryDark,
+    secondary = MobileUiTokens.BrandSecondary,
+    tertiary = MobileUiTokens.BrandAccent,
+    background = MobileUiTokens.SurfaceDark,
+    surface = MobileUiTokens.SurfaceElevatedDark,
+    surfaceVariant = MobileUiTokens.SurfaceContainerDark,
+    error = MobileUiTokens.BrandError,
+    onPrimary = Color.White,
+    onBackground = MobileUiTokens.TextPrimaryDark,
+    onSurface = MobileUiTokens.TextPrimaryDark,
+    onSurfaceVariant = MobileUiTokens.TextSecondaryDark,
+)
+
+/**
+ * CoreBlow Material 3 theme.
+ */
+@Composable
+fun CoreBlowTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    content: @Composable () -> Unit,
+) {
+    MaterialTheme(
+        colorScheme = if (darkTheme) CoreBlowDarkColorScheme else CoreBlowLightColorScheme,
+        content = content,
+    )
 }
