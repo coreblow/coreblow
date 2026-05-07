@@ -1,31 +1,50 @@
 package ai.coreblow.app.viewmodel
 
+import android.Manifest
 import android.app.Application
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
-import ai.coreblow.app.gateway.DiscoverySource
-import ai.coreblow.app.gateway.GatewayEndpoint
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * Onboarding ViewModel with gateway setup wizard integration.
+ * Onboarding wizard steps.
+ */
+enum class OnboardingStep {
+    WELCOME,
+    PERMISSIONS,
+    GATEWAY_SETUP,
+    COMPLETE,
+}
+
+/**
+ * ViewModel for the onboarding wizard.
+ * Tracks step progression, permission status, and gateway setup state.
  */
 class OnboardingViewModel(application: Application) : AndroidViewModel(application) {
 
-    val isLoading = MutableStateFlow(false)
-
-    /** Current onboarding step. */
     private val _currentStep = MutableStateFlow(OnboardingStep.WELCOME)
     val currentStep: StateFlow<OnboardingStep> = _currentStep.asStateFlow()
 
-    /** Whether gateway setup was completed during onboarding. */
+    private val _isCompleted = MutableStateFlow(false)
+    val isCompleted: StateFlow<Boolean> = _isCompleted.asStateFlow()
+
+    private val _permissionsGranted = MutableStateFlow(false)
+    val permissionsGranted: StateFlow<Boolean> = _permissionsGranted.asStateFlow()
+
     private val _gatewayConfigured = MutableStateFlow(false)
     val gatewayConfigured: StateFlow<Boolean> = _gatewayConfigured.asStateFlow()
 
-    /** Setup code entered by user for QR pairing. */
-    private val _setupCode = MutableStateFlow("")
-    val setupCode: StateFlow<String> = _setupCode.asStateFlow()
+    private val prefs = application.getSharedPreferences("coreblow_onboarding", Context.MODE_PRIVATE)
+
+    init {
+        _isCompleted.value = prefs.getBoolean("onboarding_completed", false)
+        checkPermissions()
+    }
 
     fun nextStep() {
         _currentStep.value = when (_currentStep.value) {
@@ -38,43 +57,69 @@ class OnboardingViewModel(application: Application) : AndroidViewModel(applicati
 
     fun previousStep() {
         _currentStep.value = when (_currentStep.value) {
-            OnboardingStep.COMPLETE -> OnboardingStep.GATEWAY_SETUP
-            OnboardingStep.GATEWAY_SETUP -> OnboardingStep.PERMISSIONS
-            OnboardingStep.PERMISSIONS -> OnboardingStep.WELCOME
             OnboardingStep.WELCOME -> OnboardingStep.WELCOME
+            OnboardingStep.PERMISSIONS -> OnboardingStep.WELCOME
+            OnboardingStep.GATEWAY_SETUP -> OnboardingStep.PERMISSIONS
+            OnboardingStep.COMPLETE -> OnboardingStep.GATEWAY_SETUP
         }
     }
 
-    fun setSetupCode(code: String) { _setupCode.value = code }
+    fun goToStep(step: OnboardingStep) {
+        _currentStep.value = step
+    }
 
     fun skipGatewaySetup() {
-        _gatewayConfigured.value = false
-        nextStep()
+        _currentStep.value = OnboardingStep.COMPLETE
     }
 
     fun completeGatewaySetup() {
         _gatewayConfigured.value = true
-        nextStep()
+        _currentStep.value = OnboardingStep.COMPLETE
     }
 
-    /**
-     * Parse a QR code into a gateway endpoint.
-     * Expected format: coreblow://host:port
-     */
-    fun parseQrCode(qrData: String): GatewayEndpoint? {
-        val regex = Regex("""coreblow://([^:]+):(\d+)""")
-        val match = regex.matchEntire(qrData) ?: return null
-        return GatewayEndpoint(
-            host = match.groupValues[1],
-            port = match.groupValues[2].toInt(),
-            source = DiscoverySource.QR_CODE,
+    fun completeOnboarding() {
+        _isCompleted.value = true
+        prefs.edit().putBoolean("onboarding_completed", true).apply()
+    }
+
+    fun resetOnboarding() {
+        _isCompleted.value = false
+        _currentStep.value = OnboardingStep.WELCOME
+        _gatewayConfigured.value = false
+        prefs.edit().putBoolean("onboarding_completed", false).apply()
+    }
+
+    fun checkPermissions() {
+        val context = getApplication<Application>()
+        val required = mutableListOf(
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.CAMERA,
+            Manifest.permission.ACCESS_FINE_LOCATION,
         )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            required.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        _permissionsGranted.value = required.all {
+            ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+        }
     }
-}
 
-enum class OnboardingStep {
-    WELCOME,
-    PERMISSIONS,
-    GATEWAY_SETUP,
-    COMPLETE,
+    fun onPermissionsResult() {
+        checkPermissions()
+    }
+
+    fun getMissingPermissions(): List<String> {
+        val context = getApplication<Application>()
+        val required = mutableListOf(
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.CAMERA,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            required.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        return required.filter {
+            ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
+        }
+    }
 }

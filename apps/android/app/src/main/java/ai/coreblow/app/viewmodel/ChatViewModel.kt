@@ -3,63 +3,116 @@ package ai.coreblow.app.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import ai.coreblow.app.gateway.GatewayConnectionState
-import ai.coreblow.app.gateway.GatewayEndpoint
-import ai.coreblow.app.node.ConnectionManager
+import ai.coreblow.app.chat.ChatController
+import ai.coreblow.app.chat.ChatMessage
+import ai.coreblow.app.chat.ChatRole
+import ai.coreblow.app.ui.compose.chat.ComposerAttachment
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 /**
- * Chat ViewModel with gateway connection integration.
- *
- * Routes chat messages through the gateway session when connected,
- * falls back to REST API when disconnected.
+ * ViewModel for the Chat tab. Bridges ChatController state
+ * to Compose UI and handles user actions (send, abort, clear, attachments).
  */
 class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
-    val isLoading = MutableStateFlow(false)
+    private var chatController: ChatController? = null
 
-    /** Whether chat is currently routed through gateway. */
-    private val _isGatewayMode = MutableStateFlow(false)
-    val isGatewayMode: StateFlow<Boolean> = _isGatewayMode.asStateFlow()
-
-    /** Current message input. */
-    private val _messageInput = MutableStateFlow("")
-    val messageInput: StateFlow<String> = _messageInput.asStateFlow()
-
-    /** Chat messages for display. */
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
     val messages: StateFlow<List<ChatMessage>> = _messages.asStateFlow()
 
-    /**
-     * Update gateway mode based on connection state.
-     */
-    fun setGatewayMode(connected: Boolean) {
-        _isGatewayMode.value = connected
+    private val _isStreaming = MutableStateFlow(false)
+    val isStreaming: StateFlow<Boolean> = _isStreaming.asStateFlow()
+
+    private val _healthOk = MutableStateFlow(false)
+    val healthOk: StateFlow<Boolean> = _healthOk.asStateFlow()
+
+    private val _pendingRunCount = MutableStateFlow(0)
+    val pendingRunCount: StateFlow<Int> = _pendingRunCount.asStateFlow()
+
+    private val _sessionTitle = MutableStateFlow("")
+    val sessionTitle: StateFlow<String> = _sessionTitle.asStateFlow()
+
+    private val _thinkingLevel = MutableStateFlow("normal")
+    val thinkingLevel: StateFlow<String> = _thinkingLevel.asStateFlow()
+
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+
+    fun bindController(controller: ChatController) {
+        chatController = controller
+        viewModelScope.launch {
+            controller.messages.collect { _messages.value = it }
+        }
+        viewModelScope.launch {
+            controller.isStreaming.collect { _isStreaming.value = it }
+        }
+        viewModelScope.launch {
+            controller.pendingRunCount.collect { _pendingRunCount.value = it }
+        }
     }
 
-    /**
-     * Send a message through the appropriate transport.
-     */
-    fun sendMessage(text: String) {
-        if (text.isBlank()) return
-
-        val userMsg = ChatMessage(role = "user", content = text)
-        _messages.value = _messages.value + userMsg
-        _messageInput.value = ""
-        isLoading.value = true
-
-        // In production, route through gateway session or REST API
-        // based on _isGatewayMode state
-        isLoading.value = false
+    fun setHealthOk(ok: Boolean) {
+        _healthOk.value = ok
     }
 
-    fun setMessageInput(input: String) { _messageInput.value = input }
+    fun setSessionTitle(title: String) {
+        _sessionTitle.value = title
+    }
+
+    fun setThinkingLevel(level: String) {
+        _thinkingLevel.value = level
+    }
+
+    fun sendMessage(text: String, attachments: List<ComposerAttachment> = emptyList()) {
+        if (text.isBlank() && attachments.isEmpty()) return
+        val controller = chatController ?: return
+
+        viewModelScope.launch {
+            try {
+                _errorMessage.value = null
+                controller.sendMessage(text, attachments.map { att ->
+                    mapOf(
+                        "type" to att.type,
+                        "mimeType" to att.mimeType,
+                        "fileName" to att.fileName,
+                        "base64" to att.base64,
+                    )
+                })
+            } catch (e: Throwable) {
+                _errorMessage.value = e.message ?: "Send failed"
+            }
+        }
+    }
+
+    fun abortRun() {
+        viewModelScope.launch {
+            chatController?.abortCurrentRun()
+        }
+    }
+
+    fun clearHistory() {
+        chatController?.clearHistory()
+        _messages.value = emptyList()
+    }
+
+    fun pickAttachment() {
+        // Trigger system file picker - handled by Activity
+    }
+
+    fun retryLastMessage() {
+        val msgs = _messages.value
+        val lastUserMsg = msgs.lastOrNull { it.role == ChatRole.USER }
+        if (lastUserMsg != null) {
+            sendMessage(lastUserMsg.text)
+        }
+    }
+
+    fun clearError() {
+        _errorMessage.value = null
+    }
 }
-
-data class ChatMessage(
-    val role: String,
-    val content: String,
-    val timestamp: Long = System.currentTimeMillis(),
-)
