@@ -1,87 +1,166 @@
 package ai.coreblow.app.di
 
 import android.content.Context
-import ai.coreblow.app.SecurePrefs
-import ai.coreblow.app.database.AppDatabase
-import ai.coreblow.app.gateway.GatewayDiscovery
-import ai.coreblow.app.gateway.GatewaySession
-import ai.coreblow.app.node.InvokeDispatcher
-import ai.coreblow.app.repository.*
+import android.util.Log
+import ai.coreblow.app.gateway.*
+import ai.coreblow.app.node.*
+import ai.coreblow.app.node.handlers.*
+import ai.coreblow.app.voice.*
+import ai.coreblow.app.worker.HealthCheckWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import okhttp3.OkHttpClient
-import java.util.concurrent.TimeUnit
 
-// ============================================================
-// AppModule — core dependencies
-// ============================================================
-
+/**
+ * Manual dependency injection module for CoreBlow Android.
+ * Provides singleton instances of core services, handlers,
+ * and gateway components. In production, this would be
+ * replaced with Hilt/Dagger @Module annotations.
+ */
 object AppModule {
+
+    private const val TAG = "AppModule"
+    private var initialized = false
+
+    // Scopes
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    // Singletons (lazy)
     private var _context: Context? = null
-    private var _scope: CoroutineScope? = null
-    private var _securePrefs: SecurePrefs? = null
-
-    fun init(context: Context) {
-        _context = context.applicationContext
-        _scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-        _securePrefs = SecurePrefs(context.applicationContext)
-    }
-
     val context: Context get() = _context ?: throw IllegalStateException("AppModule not initialized")
-    val scope: CoroutineScope get() = _scope ?: throw IllegalStateException("AppModule not initialized")
-    val securePrefs: SecurePrefs get() = _securePrefs ?: throw IllegalStateException("AppModule not initialized")
-}
 
-// ============================================================
-// DatabaseModule
-// ============================================================
+    // Gateway
+    private var _deviceAuthStore: DeviceAuthStore? = null
+    val deviceAuthStore: DeviceAuthStore get() = _deviceAuthStore ?: throw IllegalStateException("AppModule not initialized")
 
-object DatabaseModule {
-    private var _db: AppDatabase? = null
+    private var _deviceIdentityStore: DeviceIdentityStore = DeviceIdentityStore
 
-    val database: AppDatabase get() {
-        return _db ?: AppDatabase.getInstance(AppModule.context).also { _db = it }
+    private var _gatewayProtocol: GatewayProtocol? = null
+    val gatewayProtocol: GatewayProtocol get() = _gatewayProtocol ?: throw IllegalStateException("AppModule not initialized")
+
+    private var _invokeErrorParser: InvokeErrorParser? = null
+    val invokeErrorParser: InvokeErrorParser get() = _invokeErrorParser ?: InvokeErrorParser().also { _invokeErrorParser = it }
+
+    // Node handlers
+    private var _systemHandler: SystemHandler? = null
+    val systemHandler: SystemHandler get() = _systemHandler ?: throw IllegalStateException("AppModule not initialized")
+
+    private var _debugHandler: DebugHandler? = null
+    val debugHandler: DebugHandler get() = _debugHandler ?: throw IllegalStateException("AppModule not initialized")
+
+    private var _notificationsHandler: NotificationsHandler? = null
+    val notificationsHandler: NotificationsHandler get() = _notificationsHandler ?: throw IllegalStateException("AppModule not initialized")
+
+    private var _contactsHandler: ContactsHandler? = null
+    val contactsHandler: ContactsHandler get() = _contactsHandler ?: throw IllegalStateException("AppModule not initialized")
+
+    private var _calendarHandler: CalendarHandler? = null
+    val calendarHandler: CalendarHandler get() = _calendarHandler ?: throw IllegalStateException("AppModule not initialized")
+
+    private var _cameraCaptureManager: CameraCaptureManager? = null
+    val cameraCaptureManager: CameraCaptureManager get() = _cameraCaptureManager ?: throw IllegalStateException("AppModule not initialized")
+
+    private var _canvasActionTrust: CanvasActionTrust? = null
+    val canvasActionTrust: CanvasActionTrust get() = _canvasActionTrust ?: CanvasActionTrust().also { _canvasActionTrust = it }
+
+    // Voice
+    private var _voiceWakePreferences: VoiceWakePreferences? = null
+    val voiceWakePreferences: VoiceWakePreferences get() = _voiceWakePreferences ?: throw IllegalStateException("AppModule not initialized")
+
+    private var _voiceWakeCommandExtractor: VoiceWakeCommandExtractor? = null
+    val voiceWakeCommandExtractor: VoiceWakeCommandExtractor get() = _voiceWakeCommandExtractor ?: VoiceWakeCommandExtractor().also { _voiceWakeCommandExtractor = it }
+
+    private var _talkDirectiveParser: TalkDirectiveParser? = null
+    val talkDirectiveParser: TalkDirectiveParser get() = _talkDirectiveParser ?: TalkDirectiveParser().also { _talkDirectiveParser = it }
+
+    /**
+     * Initialize the DI graph with the application context.
+     * Must be called from Application.onCreate().
+     */
+    fun initialize(appContext: Context) {
+        if (initialized) {
+            Log.w(TAG, "AppModule already initialized")
+            return
+        }
+
+        _context = appContext.applicationContext
+        val ctx = _context!!
+
+        // Gateway layer
+        _deviceAuthStore = DeviceAuthStore(ctx)
+        _gatewayProtocol = GatewayProtocol(ctx, appScope)
+
+        // Node handlers
+        _systemHandler = SystemHandler(ctx)
+        _debugHandler = DebugHandler(ctx)
+        _notificationsHandler = NotificationsHandler(ctx)
+        _contactsHandler = ContactsHandler(ctx)
+        _calendarHandler = CalendarHandler(ctx)
+        _cameraCaptureManager = CameraCaptureManager(ctx)
+
+        // Voice
+        _voiceWakePreferences = VoiceWakePreferences(ctx)
+
+        initialized = true
+        Log.i(TAG, "AppModule initialized (${componentCount()} components)")
     }
 
-    val conversationDao get() = database.conversationDao()
-    val messageDao get() = database.messageDao()
-    val providerDao get() = database.providerDao()
-}
+    /**
+     * Get all registered component names for diagnostics.
+     */
+    fun getComponentNames(): List<String> = listOf(
+        "DeviceAuthStore", "DeviceIdentityStore", "GatewayProtocol",
+        "InvokeErrorParser", "SystemHandler", "DebugHandler",
+        "NotificationsHandler", "ContactsHandler", "CalendarHandler",
+        "CameraCaptureManager", "CanvasActionTrust",
+        "VoiceWakePreferences", "VoiceWakeCommandExtractor", "TalkDirectiveParser",
+    )
 
-// ============================================================
-// NetworkModule
-// ============================================================
+    fun componentCount(): Int = getComponentNames().size
 
-object NetworkModule {
-    val httpClient: OkHttpClient by lazy {
-        OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
-            .retryOnConnectionFailure(true)
-            .build()
+    /**
+     * Check if all components are healthy.
+     */
+    fun healthCheck(): Map<String, Boolean> {
+        return mapOf(
+            "initialized" to initialized,
+            "context" to (_context != null),
+            "authStore" to (_deviceAuthStore != null),
+            "gatewayProtocol" to (_gatewayProtocol != null),
+            "systemHandler" to (_systemHandler != null),
+            "voicePrefs" to (_voiceWakePreferences != null),
+        )
     }
 
-    val gatewayClient: OkHttpClient by lazy {
-        OkHttpClient.Builder()
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(0, TimeUnit.SECONDS) // No timeout for WebSocket
-            .writeTimeout(15, TimeUnit.SECONDS)
-            .retryOnConnectionFailure(true)
-            .pingInterval(30, TimeUnit.SECONDS)
-            .build()
+    /**
+     * Release all resources.
+     */
+    fun release() {
+        _cameraCaptureManager = null
+        _gatewayProtocol = null
+        initialized = false
+        Log.i(TAG, "AppModule released")
     }
-}
 
-// ============================================================
-// ViewModelModule — ViewModel dependency providers
-// ============================================================
+    /**
+     * Provide ConnectOptions from saved state.
+     */
+    fun createConnectOptions(): ConnectOptions {
+        val store = deviceAuthStore
+        return ConnectOptions(
+            host = store.lastHost ?: "localhost",
+            port = store.lastPort,
+            useTls = store.lastTls,
+            authPayload = DeviceAuthPayload.create(context),
+        )
+    }
 
-object ViewModelModule {
-    val conversationRepository: ConversationRepository by lazy { ConversationRepository(AppModule.context) }
-    val messageRepository: MessageRepository by lazy { MessageRepository(AppModule.context) }
-    val providerRepository: ProviderRepository by lazy { ProviderRepository(AppModule.context) }
-    val settingsRepository: SettingsRepository by lazy { SettingsRepository(AppModule.context) }
-    val userRepository: UserRepository by lazy { UserRepository(AppModule.context) }
+    /**
+     * Schedule background workers.
+     */
+    fun scheduleWorkers() {
+        val host = deviceAuthStore.lastHost ?: return
+        HealthCheckWorker.schedule(context, host, deviceAuthStore.lastPort, deviceAuthStore.lastTls)
+        Log.i(TAG, "Background workers scheduled")
+    }
 }

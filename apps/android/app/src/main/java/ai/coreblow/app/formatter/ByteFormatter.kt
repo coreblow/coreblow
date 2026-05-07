@@ -1,128 +1,177 @@
 package ai.coreblow.app.formatter
 
 import java.text.DecimalFormat
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
-import java.util.concurrent.TimeUnit
+import kotlin.math.log2
+import kotlin.math.pow
 
-// ============================================================
-// ByteFormatter
-// ============================================================
-
+/**
+ * Comprehensive formatting utilities for bytes, durations, numbers,
+ * dates, and file sizes used across the UI and diagnostics.
+ */
 object ByteFormatter {
-    fun format(bytes: Long): String = when {
-        bytes < 1024 -> "$bytes B"
-        bytes < 1024 * 1024 -> "%.1f KB".format(bytes / 1024.0)
-        bytes < 1024 * 1024 * 1024 -> "%.1f MB".format(bytes / (1024.0 * 1024))
-        else -> "%.2f GB".format(bytes / (1024.0 * 1024 * 1024))
+
+    private val DECIMAL_FORMAT = DecimalFormat("#,##0.##")
+
+    // ── Byte Formatting ─────────────────────────────────────
+
+    /**
+     * Format bytes to human-readable string (KB, MB, GB, TB).
+     */
+    fun formatBytes(bytes: Long, decimals: Int = 2): String {
+        if (bytes <= 0) return "0 B"
+        val units = arrayOf("B", "KB", "MB", "GB", "TB", "PB")
+        val k = 1024.0
+        val i = (log2(bytes.toDouble()) / log2(k)).toInt().coerceAtMost(units.size - 1)
+        val value = bytes / k.pow(i)
+        return "%.${decimals}f %s".format(value, units[i])
     }
 
-    fun formatCompact(bytes: Long): String = when {
+    /**
+     * Format bytes using SI units (kB, MB, GB).
+     */
+    fun formatBytesSI(bytes: Long, decimals: Int = 2): String {
+        if (bytes <= 0) return "0 B"
+        val units = arrayOf("B", "kB", "MB", "GB", "TB")
+        val k = 1000.0
+        val i = (log2(bytes.toDouble()) / log2(k)).toInt().coerceAtMost(units.size - 1)
+        val value = bytes / k.pow(i)
+        return "%.${decimals}f %s".format(value, units[i])
+    }
+
+    /**
+     * Format bytes as compact string (1.2K, 3.4M, etc).
+     */
+    fun formatBytesCompact(bytes: Long): String = when {
         bytes < 1024 -> "${bytes}B"
-        bytes < 1024 * 1024 -> "${bytes / 1024}K"
-        bytes < 1024 * 1024 * 1024 -> "${bytes / (1024 * 1024)}M"
+        bytes < 1024 * 1024 -> "%.1fK".format(bytes / 1024.0)
+        bytes < 1024L * 1024 * 1024 -> "%.1fM".format(bytes / (1024.0 * 1024))
         else -> "%.1fG".format(bytes / (1024.0 * 1024 * 1024))
     }
-}
 
-// ============================================================
-// CostFormatter
-// ============================================================
-
-object CostFormatter {
-    private val currencyFormat = DecimalFormat("$#,##0.0000")
-    private val compactFormat = DecimalFormat("$#,##0.00")
-
-    fun format(costUsd: Double): String = currencyFormat.format(costUsd)
-    fun formatCompact(costUsd: Double): String = compactFormat.format(costUsd)
-
-    fun estimateCost(inputTokens: Int, outputTokens: Int, inputPricePer1k: Double = 0.01, outputPricePer1k: Double = 0.03): Double {
-        return (inputTokens / 1000.0 * inputPricePer1k) + (outputTokens / 1000.0 * outputPricePer1k)
-    }
-}
-
-// ============================================================
-// DateFormatterCB
-// ============================================================
-
-object DateFormatterCB {
-    fun formatTime(ms: Long): String = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(ms))
-    fun formatDate(ms: Long): String = SimpleDateFormat("MMM d", Locale.getDefault()).format(Date(ms))
-    fun formatFull(ms: Long): String = SimpleDateFormat("MMM d, yyyy HH:mm", Locale.getDefault()).format(Date(ms))
-    fun formatIso(ms: Long): String = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).format(Date(ms))
-
-    fun formatRelative(ms: Long): String {
-        val diff = System.currentTimeMillis() - ms
-        val minutes = TimeUnit.MILLISECONDS.toMinutes(diff)
-        val hours = TimeUnit.MILLISECONDS.toHours(diff)
-        val days = TimeUnit.MILLISECONDS.toDays(diff)
-        return when {
-            minutes < 1 -> "now"
-            minutes < 60 -> "${minutes}m"
-            hours < 24 -> "${hours}h"
-            days < 7 -> "${days}d"
-            else -> formatDate(ms)
+    /**
+     * Parse a human-readable byte string back to bytes.
+     */
+    fun parseBytes(value: String): Long? {
+        val trimmed = value.trim().uppercase()
+        val match = Regex("^([\\d.]+)\\s*(B|KB|MB|GB|TB|PB)?$").find(trimmed) ?: return null
+        val number = match.groupValues[1].toDoubleOrNull() ?: return null
+        val unit = match.groupValues[2].ifBlank { "B" }
+        val multiplier = when (unit) {
+            "B" -> 1L
+            "KB" -> 1024L
+            "MB" -> 1024L * 1024
+            "GB" -> 1024L * 1024 * 1024
+            "TB" -> 1024L * 1024 * 1024 * 1024
+            "PB" -> 1024L * 1024 * 1024 * 1024 * 1024
+            else -> 1L
         }
+        return (number * multiplier).toLong()
     }
-}
 
-// ============================================================
-// DurationFormatter
-// ============================================================
+    // ── Duration Formatting ─────────────────────────────────
 
-object DurationFormatter {
-    fun format(ms: Long): String {
-        val seconds = ms / 1000
-        val minutes = seconds / 60
-        val hours = minutes / 60
-        return when {
-            hours > 0 -> "%dh %02dm %02ds".format(hours, minutes % 60, seconds % 60)
-            minutes > 0 -> "%dm %02ds".format(minutes, seconds % 60)
-            else -> "${seconds}s"
+    /**
+     * Format milliseconds to human-readable duration.
+     */
+    fun formatDuration(ms: Long): String = when {
+        ms < 0 -> "—"
+        ms < 1000 -> "${ms}ms"
+        ms < 60_000 -> "%.1fs".format(ms / 1000.0)
+        ms < 3_600_000 -> {
+            val min = ms / 60_000
+            val sec = (ms % 60_000) / 1000
+            "${min}m ${sec}s"
+        }
+        ms < 86_400_000 -> {
+            val hours = ms / 3_600_000
+            val min = (ms % 3_600_000) / 60_000
+            "${hours}h ${min}m"
+        }
+        else -> {
+            val days = ms / 86_400_000
+            val hours = (ms % 86_400_000) / 3_600_000
+            "${days}d ${hours}h"
         }
     }
 
-    fun formatCompact(ms: Long): String {
-        val seconds = ms / 1000
-        val minutes = seconds / 60
-        val hours = minutes / 60
+    /**
+     * Format duration as compact HH:MM:SS.
+     */
+    fun formatDurationCompact(ms: Long): String {
+        if (ms < 0) return "00:00"
+        val totalSec = ms / 1000
+        val hours = totalSec / 3600
+        val minutes = (totalSec % 3600) / 60
+        val seconds = totalSec % 60
+        return if (hours > 0) "%02d:%02d:%02d".format(hours, minutes, seconds)
+        else "%02d:%02d".format(minutes, seconds)
+    }
+
+    /**
+     * Format seconds to relative time (e.g., "2 min ago").
+     */
+    fun formatRelativeTime(timestampMs: Long): String {
+        val diffMs = System.currentTimeMillis() - timestampMs
         return when {
-            hours > 0 -> "${hours}h${minutes % 60}m"
-            minutes > 0 -> "${minutes}m${seconds % 60}s"
-            seconds > 0 -> "${seconds}s"
-            else -> "${ms}ms"
+            diffMs < 0 -> "in the future"
+            diffMs < 60_000 -> "just now"
+            diffMs < 3_600_000 -> "${diffMs / 60_000}m ago"
+            diffMs < 86_400_000 -> "${diffMs / 3_600_000}h ago"
+            diffMs < 604_800_000 -> "${diffMs / 86_400_000}d ago"
+            else -> "${diffMs / 604_800_000}w ago"
         }
     }
 
-    fun formatAudio(ms: Long): String {
-        val totalSeconds = ms / 1000
-        val minutes = totalSeconds / 60
-        val seconds = totalSeconds % 60
-        return "%d:%02d".format(minutes, seconds)
-    }
-}
+    // ── Number Formatting ───────────────────────────────────
 
-// ============================================================
-// TokenFormatter
-// ============================================================
-
-object TokenFormatter {
-    fun format(count: Int): String = when {
-        count < 1000 -> "$count"
-        count < 1_000_000 -> "%.1fK".format(count / 1000.0)
-        else -> "%.1fM".format(count / 1_000_000.0)
+    /**
+     * Format large numbers with suffixes (1.2K, 3.4M, etc).
+     */
+    fun formatNumber(value: Long): String = when {
+        value < 1000 -> "$value"
+        value < 1_000_000 -> "%.1fK".format(value / 1000.0)
+        value < 1_000_000_000 -> "%.1fM".format(value / 1_000_000.0)
+        else -> "%.1fB".format(value / 1_000_000_000.0)
     }
 
-    fun formatWithMax(used: Int, max: Int): String = "${format(used)} / ${format(max)}"
+    /**
+     * Format with comma separators.
+     */
+    fun formatWithCommas(value: Long): String = DECIMAL_FORMAT.format(value)
 
-    fun formatUsagePercent(used: Int, max: Int): String {
-        if (max <= 0) return "—"
-        return "${(used * 100 / max)}%"
+    /**
+     * Format a percentage.
+     */
+    fun formatPercent(value: Double, decimals: Int = 1): String = "%.${decimals}f%%".format(value)
+
+    /**
+     * Format token count with price estimate.
+     */
+    fun formatTokens(tokens: Int, pricePer1k: Double = 0.0): String {
+        val formatted = formatNumber(tokens.toLong())
+        return if (pricePer1k > 0) {
+            val cost = tokens * pricePer1k / 1000
+            "$formatted tok ($%.4f)".format(cost)
+        } else {
+            "$formatted tok"
+        }
     }
 
-    fun estimateTokens(text: String): Int {
-        // Rough estimate: ~4 chars per token for English
-        return (text.length / 4).coerceAtLeast(1)
+    /**
+     * Format transfer speed (bytes/sec).
+     */
+    fun formatSpeed(bytesPerSec: Long): String {
+        return "${formatBytes(bytesPerSec)}/s"
+    }
+
+    /**
+     * Format latency with color hint.
+     */
+    fun formatLatency(ms: Int): String = when {
+        ms <= 0 -> "—"
+        ms < 50 -> "${ms}ms ●"
+        ms < 200 -> "${ms}ms ●"
+        else -> "${ms}ms ●"
     }
 }
