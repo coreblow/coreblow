@@ -1,7 +1,0 @@
-package ai.coreblow.app.model
-
-data class Session(
-    val id: String,
-    val name: String,
-    val createdAt: Long = System.currentTimeMillis()
-)
