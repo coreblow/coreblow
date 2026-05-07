@@ -2,56 +2,61 @@ package ai.coreblow.app.voice
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 
 /**
- * User preferences for the voice wake system.
- *
- * Stores wake phrase, enabled state, and sensitivity settings
- * in SharedPreferences.
+ * Encrypted preferences for voice wake word settings.
  */
 class VoiceWakePreferences(context: Context) {
 
-    companion object {
-        private const val PREFS_NAME = "coreblow_voice_wake"
-        private const val KEY_ENABLED = "enabled"
-        private const val KEY_WAKE_PHRASE = "wake_phrase"
-        private const val KEY_SENSITIVITY = "sensitivity"
-        private const val KEY_HAPTIC_FEEDBACK = "haptic_feedback"
-        private const val KEY_SOUND_FEEDBACK = "sound_feedback"
-        private const val KEY_CONTINUOUS_LISTENING = "continuous_listening"
+    private val prefs: SharedPreferences = try {
+        val masterKey = MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+        EncryptedSharedPreferences.create(
+            context,
+            "coreblow_voice_wake",
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+        )
+    } catch (_: Throwable) {
+        context.getSharedPreferences("coreblow_voice_wake_fallback", Context.MODE_PRIVATE)
     }
 
-    private val prefs: SharedPreferences =
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    fun isWakeEnabled(): Boolean = prefs.getBoolean(KEY_WAKE_ENABLED, false)
+    fun setWakeEnabled(enabled: Boolean) = prefs.edit().putBoolean(KEY_WAKE_ENABLED, enabled).apply()
 
-    /** Whether wake word detection is enabled. */
-    var isEnabled: Boolean
-        get() = prefs.getBoolean(KEY_ENABLED, false)
-        set(value) = prefs.edit().putBoolean(KEY_ENABLED, value).apply()
+    fun getSensitivity(): Float = prefs.getFloat(KEY_SENSITIVITY, 1.0f)
+    fun setSensitivity(value: Float) = prefs.edit().putFloat(KEY_SENSITIVITY, value.coerceIn(0.1f, 3.0f)).apply()
 
-    /** The wake phrase to listen for. */
-    var wakePhrase: String
-        get() = prefs.getString(KEY_WAKE_PHRASE, TalkDefaults.DEFAULT_WAKE_PHRASE)
-            ?: TalkDefaults.DEFAULT_WAKE_PHRASE
-        set(value) = prefs.edit().putString(KEY_WAKE_PHRASE, value.lowercase().trim()).apply()
+    fun getWakePhrase(): String = prefs.getString(KEY_WAKE_PHRASE, "hey coreblow") ?: "hey coreblow"
+    fun setWakePhrase(phrase: String) = prefs.edit().putString(KEY_WAKE_PHRASE, phrase.trim().lowercase()).apply()
 
-    /** Detection sensitivity (0.0 = least sensitive, 1.0 = most sensitive). */
-    var sensitivity: Float
-        get() = prefs.getFloat(KEY_SENSITIVITY, TalkDefaults.MIN_WAKE_CONFIDENCE)
-        set(value) = prefs.edit().putFloat(KEY_SENSITIVITY, value.coerceIn(0.1f, 1.0f)).apply()
+    fun isAutoListenAfterWake(): Boolean = prefs.getBoolean(KEY_AUTO_LISTEN, true)
+    fun setAutoListenAfterWake(enabled: Boolean) = prefs.edit().putBoolean(KEY_AUTO_LISTEN, enabled).apply()
 
-    /** Whether to provide haptic feedback on wake word detection. */
-    var hapticFeedback: Boolean
-        get() = prefs.getBoolean(KEY_HAPTIC_FEEDBACK, true)
-        set(value) = prefs.edit().putBoolean(KEY_HAPTIC_FEEDBACK, value).apply()
+    fun getWakeSound(): String = prefs.getString(KEY_WAKE_SOUND, "chime") ?: "chime"
+    fun setWakeSound(sound: String) = prefs.edit().putString(KEY_WAKE_SOUND, sound).apply()
 
-    /** Whether to play a sound on wake word detection. */
-    var soundFeedback: Boolean
-        get() = prefs.getBoolean(KEY_SOUND_FEEDBACK, true)
-        set(value) = prefs.edit().putBoolean(KEY_SOUND_FEEDBACK, value).apply()
+    fun isContinuousListening(): Boolean = prefs.getBoolean(KEY_CONTINUOUS, false)
+    fun setContinuousListening(enabled: Boolean) = prefs.edit().putBoolean(KEY_CONTINUOUS, enabled).apply()
 
-    /** Whether to keep listening after processing a command. */
-    var continuousListening: Boolean
-        get() = prefs.getBoolean(KEY_CONTINUOUS_LISTENING, false)
-        set(value) = prefs.edit().putBoolean(KEY_CONTINUOUS_LISTENING, value).apply()
+    fun getDetectionCount(): Int = prefs.getInt(KEY_DETECTION_COUNT, 0)
+    fun incrementDetectionCount() = prefs.edit().putInt(KEY_DETECTION_COUNT, getDetectionCount() + 1).apply()
+
+    fun getLastDetectionMs(): Long = prefs.getLong(KEY_LAST_DETECTION, 0)
+    fun setLastDetectionMs(ms: Long) = prefs.edit().putLong(KEY_LAST_DETECTION, ms).apply()
+
+    companion object {
+        private const val KEY_WAKE_ENABLED = "wake_enabled"
+        private const val KEY_SENSITIVITY = "sensitivity"
+        private const val KEY_WAKE_PHRASE = "wake_phrase"
+        private const val KEY_AUTO_LISTEN = "auto_listen_after_wake"
+        private const val KEY_WAKE_SOUND = "wake_sound"
+        private const val KEY_CONTINUOUS = "continuous_listening"
+        private const val KEY_DETECTION_COUNT = "detection_count"
+        private const val KEY_LAST_DETECTION = "last_detection_ms"
+    }
 }

@@ -1,43 +1,70 @@
 package ai.coreblow.app.voice
 
 /**
- * Default configuration values for the talk mode system.
+ * Default constants for talk mode / voice pipeline.
  */
 object TalkDefaults {
+    /** RMS threshold below which audio is considered silence. */
+    const val SILENCE_THRESHOLD_RMS = 350.0
 
-    /** Minimum audio buffer size in bytes for mic capture. */
-    const val MIN_BUFFER_SIZE = 4096
+    /** Consecutive silence frames before auto-stopping capture. */
+    const val SILENCE_FRAMES_TO_STOP = 25
 
-    /** Sample rate for audio capture in Hz. */
-    const val SAMPLE_RATE = 16_000
+    /** Minimum voice frames before a capture is considered valid speech. */
+    const val MIN_VOICE_FRAMES = 5
 
-    /** Audio encoding format. */
-    const val ENCODING_PCM_16BIT = 2
+    /** Cooldown between voice captures in milliseconds. */
+    const val CAPTURE_COOLDOWN_MS = 2000L
 
-    /** Channel configuration for mono input. */
-    const val CHANNEL_MONO = 16
+    /** Max recording duration before auto-stop (seconds). */
+    const val MAX_RECORDING_DURATION_SEC = 60
 
-    /** Maximum recording duration in milliseconds. */
-    const val MAX_RECORDING_DURATION_MS = 30_000L
+    /** TTS chunk max length for splitting long responses. */
+    const val TTS_CHUNK_MAX_LENGTH = 500
 
-    /** Silence threshold for VAD (voice activity detection). */
-    const val SILENCE_THRESHOLD_RMS = 500.0
+    /** Audio sample rate for capture. */
+    const val SAMPLE_RATE = 16000
 
-    /** Duration of silence before ending capture (ms). */
-    const val SILENCE_TIMEOUT_MS = 1_500L
+    /** Audio buffer size multiplier. */
+    const val BUFFER_SIZE_MULTIPLIER = 2
 
-    /** Default wake phrase. */
-    const val DEFAULT_WAKE_PHRASE = "hey coreblow"
+    /** Input level smoothing factor (0–1, higher = more responsive). */
+    const val INPUT_LEVEL_SMOOTHING = 0.3f
 
-    /** Minimum confidence score for wake word detection (0.0 - 1.0). */
-    const val MIN_WAKE_CONFIDENCE = 0.7f
+    /** Max input level RMS for normalization. */
+    const val INPUT_LEVEL_MAX_RMS = 8000.0f
 
-    /** Cooldown period after wake word detection (ms). */
-    const val WAKE_COOLDOWN_MS = 3_000L
+    /** Wake word cooldown after detection. */
+    const val WAKE_COOLDOWN_MS = 3000L
 
-    /** Talk mode auto-timeout if no speech detected (ms). */
-    const val TALK_MODE_TIMEOUT_MS = 10_000L
+    /** TTS playback speed. */
+    const val TTS_SPEECH_RATE = 1.0f
 
-    /** Audio focus request duration hint (ms). */
-    const val AUDIO_FOCUS_DURATION_MS = 5_000
+    /** TTS pitch. */
+    const val TTS_PITCH = 1.0f
+
+    /** Max TTS queue size. */
+    const val TTS_MAX_QUEUE_SIZE = 10
+
+    /** Gateway audio upload timeout. */
+    const val AUDIO_UPLOAD_TIMEOUT_MS = 30_000L
 }
+
+/**
+ * Gateway configuration for talk mode sessions.
+ */
+data class TalkModeGatewayConfig(
+    val enableStreaming: Boolean = true,
+    val audioFormat: String = "pcm16",
+    val sampleRate: Int = TalkDefaults.SAMPLE_RATE,
+    val language: String = "auto",
+    val model: String? = null,
+    val systemPrompt: String? = null,
+    val maxResponseTokens: Int? = null,
+    val enableTts: Boolean = true,
+    val ttsVoice: String? = null,
+    val ttsSpeed: Float = TalkDefaults.TTS_SPEECH_RATE,
+    val vadSensitivity: Float = 1.0f,
+    val silenceThreshold: Double = TalkDefaults.SILENCE_THRESHOLD_RMS,
+    val silenceFramesToStop: Int = TalkDefaults.SILENCE_FRAMES_TO_STOP,
+)

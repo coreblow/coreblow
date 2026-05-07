@@ -1,59 +1,97 @@
 package ai.coreblow.app.gateway
 
-import kotlinx.serialization.json.JsonObject
+import android.os.Build
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 
 /**
- * Represents the device authentication payload sent during the gateway handshake.
- *
- * Contains the device identity, auth token, and platform metadata
- * required by the gateway to authorize this node.
+ * Device authentication payload sent during gateway handshake.
+ * Contains device identity, capabilities, and auth credentials
+ * needed for the hello/auth exchange.
  */
 data class DeviceAuthPayload(
     val deviceId: String,
-    val authType: String,
-    val token: String?,
+    val instanceId: String?,
     val displayName: String,
-    val platform: String,
-    val modelIdentifier: String,
-    val appVersion: String,
+    val platform: String = "android",
+    val version: String = "1.0.0",
+    val sdkInt: Int = Build.VERSION.SDK_INT,
+    val model: String = Build.MODEL,
+    val manufacturer: String = Build.MANUFACTURER,
+    val authType: String = CoreBlowProtocol.AUTH_DEVICE_TOKEN,
+    val token: String? = null,
+    val capabilities: List<String> = CoreBlowProtocol.ALL_CAPABILITIES,
+    val scopes: List<String> = CoreBlowProtocol.ALL_SCOPES,
+    val role: String = CoreBlowProtocol.ROLE_NODE,
 ) {
-    /**
-     * Serialize to JSON for the wire protocol.
-     */
-    fun toJson(): JsonObject = buildJsonObject {
-        put("deviceId", deviceId)
-        put("authType", authType)
-        token?.let { put("token", it) }
-        put("displayName", displayName)
-        put("platform", platform)
-        put("model", modelIdentifier)
-        put("version", appVersion)
-    }
+    fun toJson(): String = buildJsonObject {
+        put("deviceId", JsonPrimitive(deviceId))
+        instanceId?.let { put("instanceId", JsonPrimitive(it)) }
+        put("displayName", JsonPrimitive(displayName))
+        put("platform", JsonPrimitive(platform))
+        put("version", JsonPrimitive(version))
+        put("sdkInt", JsonPrimitive(sdkInt))
+        put("model", JsonPrimitive(model))
+        put("manufacturer", JsonPrimitive(manufacturer))
+        put("authType", JsonPrimitive(authType))
+        token?.let { put("token", JsonPrimitive(it)) }
+        put("capabilities", JsonPrimitive(capabilities.joinToString(",")))
+        put("scopes", JsonPrimitive(scopes.joinToString(",")))
+        put("role", JsonPrimitive(role))
+        put("protocolVersion", JsonPrimitive(CoreBlowProtocol.PROTOCOL_VERSION))
+    }.toString()
 
     companion object {
-        /**
-         * Build a payload from identity and auth stores.
-         */
-        fun from(
-            identity: DeviceIdentityStore,
-            authStore: DeviceAuthStore,
-            endpoint: GatewayEndpoint,
-            appVersion: String,
+        fun fromDeviceIdentity(
+            deviceId: String,
+            instanceId: String?,
+            displayName: String,
+            token: String?,
+            capabilities: List<String> = CoreBlowProtocol.ALL_CAPABILITIES,
         ): DeviceAuthPayload {
-            val token = authStore.getToken(endpoint.stableId)
-            val authType = if (token != null) CoreBlowProtocol.AUTH_DEVICE_TOKEN else CoreBlowProtocol.AUTH_BOOTSTRAP
-
             return DeviceAuthPayload(
-                deviceId = identity.deviceId,
-                authType = authType,
+                deviceId = deviceId,
+                instanceId = instanceId,
+                displayName = displayName,
                 token = token,
-                displayName = identity.displayName,
-                platform = identity.platformIdentifier,
-                modelIdentifier = identity.modelIdentifier,
-                appVersion = appVersion,
+                capabilities = capabilities,
             )
         }
     }
 }
+
+/**
+ * Gateway connection options.
+ */
+data class GatewayConnectOptions(
+    val role: String = CoreBlowProtocol.ROLE_NODE,
+    val scopes: List<String> = CoreBlowProtocol.ALL_SCOPES,
+    val capabilities: List<String> = CoreBlowProtocol.ALL_CAPABILITIES,
+    val commands: List<String> = emptyList(),
+    val permissions: Map<String, Boolean> = emptyMap(),
+    val client: GatewayClientInfo? = null,
+)
+
+/**
+ * Client info sent during gateway handshake.
+ */
+data class GatewayClientInfo(
+    val id: String,
+    val displayName: String,
+    val version: String,
+    val platform: String = "android",
+    val mode: String = "node",
+    val instanceId: String? = null,
+    val deviceFamily: String? = null,
+    val modelIdentifier: String? = null,
+)
+
+/**
+ * TLS parameters for gateway connections.
+ */
+data class GatewayTlsParams(
+    val required: Boolean = false,
+    val fingerprint: String? = null,
+    val trustOnFirstUse: Boolean = false,
+    val allowSelfSigned: Boolean = false,
+)
