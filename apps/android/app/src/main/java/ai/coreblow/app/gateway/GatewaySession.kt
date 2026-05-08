@@ -1,6 +1,7 @@
 package ai.coreblow.app.gateway
 
 import android.util.Log
+import java.util.Locale
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
@@ -10,11 +11,17 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
@@ -53,7 +60,28 @@ data class GatewayConnectOptions(
     val commands: List<String>,
     val permissions: Map<String, Boolean>,
     val client: GatewayClientInfo,
+    val userAgent: String? = null,
 )
+
+private enum class GatewayConnectAuthSource {
+    DEVICE_TOKEN, SHARED_TOKEN, BOOTSTRAP_TOKEN, PASSWORD, NONE,
+}
+
+data class GatewayConnectErrorDetails(
+    val code: String?,
+    val canRetryWithDeviceToken: Boolean,
+    val recommendedNextStep: String?,
+)
+
+private data class SelectedConnectAuth(
+    val authToken: String?, val authBootstrapToken: String?,
+    val authDeviceToken: String?, val authPassword: String?,
+    val signatureToken: String?, val authSource: GatewayConnectAuthSource,
+    val attemptedDeviceTokenRetry: Boolean,
+)
+
+private class GatewayConnectFailure(val gatewayError: GatewaySession.ErrorShape) :
+    IllegalStateException(gatewayError.message)
 
 /**
  * Connection state exposed to the UI layer.
@@ -79,12 +107,12 @@ interface GatewaySessionListener {
 /**
  * Invoke request received from the gateway.
  */
-data class InvokeRequest(val command: String, val paramsJson: String)
-
-/**
- * TLS parameters for gateway connections.
- */
-data class GatewayTlsParams(val required: Boolean, val fingerprint: String?)
+data class GatewayTlsParams(
+    val required: Boolean,
+    val fingerprint: String?,
+    val stableId: String? = null,
+    val expectedFingerprint: String? = null,
+)
 
 /**
  * Manages a WebSocket connection to a CoreBlow gateway.
@@ -124,6 +152,19 @@ class GatewaySession private constructor(
         onInvoke: ((InvokeRequest) -> String?)? = null,
     ) : this(scope, identityStore, deviceAuthStore, null, onConnected, onDisconnected, onEvent, onInvoke)
 
+    // ── Invoke result type ───────────────────────────────
+
+    data class InvokeRequest(val id: String, val nodeId: String, val command: String, val paramsJson: String?, val timeoutMs: Long?)
+
+    data class InvokeResult(val ok: Boolean, val payloadJson: String?, val error: ErrorShape?) {
+        companion object {
+            fun ok(payloadJson: String?) = InvokeResult(ok = true, payloadJson = payloadJson, error = null)
+            fun error(code: String, message: String) = InvokeResult(ok = false, payloadJson = null, error = ErrorShape(code = code, message = message))
+        }
+    }
+
+    data class ErrorShape(val code: String, val message: String, val details: GatewayConnectErrorDetails? = null)
+
     companion object {
         private const val TAG = "GatewaySession"
         private const val PING_INTERVAL_MS = 25_000L
@@ -131,9 +172,11 @@ class GatewaySession private constructor(
         private const val RECONNECT_MAX_MS = 30_000L
         private const val REQUEST_TIMEOUT_MS = 30_000L
         private const val CONNECT_TIMEOUT_SEC = 15L
+        private const val CONNECT_RPC_TIMEOUT_MS = 12_000L
     }
 
     private val json = Json { ignoreUnknownKeys = true }
+    private val writeLock = Mutex()
     private val connected = AtomicBoolean(false)
     private val shouldReconnect = AtomicBoolean(false)
     private val pendingRequests = ConcurrentHashMap<String, CompletableDeferred<String>>()
@@ -144,6 +187,12 @@ class GatewaySession private constructor(
     private var reconnectAttempt = 0
     private var lastEventSeq: Long = -1
 
+    @Volatile private var canvasHostUrl: String? = null
+    @Volatile private var mainSessionKey: String? = null
+    @Volatile private var pendingDeviceTokenRetry = false
+    @Volatile private var deviceTokenRetryBudgetUsed = false
+    @Volatile private var reconnectPausedForAuthFailure = false
+
     private var currentEndpoint: GatewayEndpoint? = null
     private var currentOptions: GatewayConnectOptions? = null
     private var currentTlsParams: GatewayTlsParams? = null
@@ -152,6 +201,8 @@ class GatewaySession private constructor(
     private var password: String? = null
 
     val isConnected: Boolean get() = connected.get()
+    fun currentCanvasHostUrl(): String? = canvasHostUrl
+    fun currentMainSessionKey(): String? = mainSessionKey
 
     // MARK: - Connect / Disconnect
 
@@ -169,6 +220,9 @@ class GatewaySession private constructor(
         authToken = token
         this.bootstrapToken = bootstrapToken
         this.password = password
+        pendingDeviceTokenRetry = false
+        deviceTokenRetryBudgetUsed = false
+        reconnectPausedForAuthFailure = false
         shouldReconnect.set(true)
         reconnectAttempt = 0
         doConnect(endpoint, options, tlsParams)
@@ -181,12 +235,17 @@ class GatewaySession private constructor(
     fun disconnect() {
         shouldReconnect.set(false)
         connected.set(false)
+        pendingDeviceTokenRetry = false
+        deviceTokenRetryBudgetUsed = false
+        reconnectPausedForAuthFailure = false
         pingJob?.cancel()
         webSocket?.close(1000, "Client disconnect")
         webSocket = null
+        canvasHostUrl = null
+        mainSessionKey = null
         cancelPendingRequests("disconnected")
         listenerRef?.onStateChanged(GatewayConnectionState.DISCONNECTED)
-        onDisconnectedCb?.invoke("Disconnected")
+        onDisconnectedCb?.invoke("Offline")
     }
 
     fun reconnect() {
@@ -231,20 +290,43 @@ class GatewaySession private constructor(
     }
 
     /**
-     * Fire-and-forget node event.
+     * Send a node event. Returns true if ack'd.
      */
-    fun sendNodeEvent(event: String, payloadJson: String): Boolean {
+    suspend fun sendNodeEvent(event: String, payloadJson: String?): Boolean {
         if (!connected.get()) return false
+        val parsedPayload = payloadJson?.let { parseJsonOrNull(it) }
+        val params = buildJsonObject {
+            put("event", JsonPrimitive(event))
+            if (parsedPayload != null) put("payload", parsedPayload)
+            else if (payloadJson != null) put("payloadJSON", JsonPrimitive(payloadJson))
+            else put("payloadJSON", JsonNull)
+        }
         val msg = buildJsonObject {
             put("type", CoreBlowProtocol.MSG_EVENT)
             put("event", event)
-            try {
-                put("payload", json.parseToJsonElement(payloadJson))
-            } catch (_: Throwable) {
-                put("payload", JsonPrimitive(payloadJson))
-            }
+            if (parsedPayload != null) put("payload", parsedPayload)
+            else put("payload", JsonPrimitive(payloadJson ?: ""))
         }
         return send(msg)
+    }
+
+    /**
+     * Refresh canvas capability from gateway.
+     */
+    suspend fun refreshNodeCanvasCapability(timeoutMs: Long = 8_000): Boolean {
+        if (!connected.get()) return false
+        return try {
+            val result = request("node.canvas.capability.refresh", "{}")
+            val obj = parseJsonOrNull(result)?.let { it as? JsonObject }
+            val cap = (obj?.get("canvasCapability") as? JsonPrimitive)?.content?.trim().orEmpty()
+            val url = canvasHostUrl?.trim().orEmpty()
+            if (cap.isEmpty() || url.isEmpty()) return false
+            val refreshed = replaceCanvasCapabilityInScopedHostUrl(url, cap) ?: return false
+            canvasHostUrl = refreshed
+            true
+        } catch (err: Throwable) {
+            Log.w(TAG, "canvas capability refresh failed: ${err.message}"); false
+        }
     }
 
     /**
@@ -398,19 +480,30 @@ class GatewaySession private constructor(
         val success = (obj["success"] as? JsonPrimitive)?.content?.toBoolean() ?: false
         if (success) {
             Log.i(TAG, "Authentication successful")
+            pendingDeviceTokenRetry = false
+            deviceTokenRetryBudgetUsed = false
+            reconnectPausedForAuthFailure = false
             listenerRef?.onStateChanged(GatewayConnectionState.CONNECTED)
 
-            // Extract server info for callback-based usage
             val serverName = (obj["serverName"] as? JsonPrimitive)?.content
             val remoteAddress = (obj["remoteAddress"] as? JsonPrimitive)?.content
-            val mainSessionKey = (obj["mainSessionKey"] as? JsonPrimitive)?.content
 
-            // Save provisioned token if present
-            val provisionedToken = (obj["token"] as? JsonPrimitive)?.content?.trim()
-            if (!provisionedToken.isNullOrEmpty()) {
-                deviceAuthStore?.saveToken(provisionedToken)
-                authToken = provisionedToken
+            // Extract auth result fields
+            val authObj = obj["auth"] as? JsonObject
+            val deviceToken = (authObj?.get("deviceToken") as? JsonPrimitive)?.content
+            if (!deviceToken.isNullOrBlank()) {
+                deviceAuthStore?.saveToken(deviceToken)
+                authToken = deviceToken
             }
+
+            // Canvas host URL normalization
+            val rawCanvas = (obj["canvasHostUrl"] as? JsonPrimitive)?.content
+            canvasHostUrl = normalizeCanvasHostUrl(rawCanvas, currentEndpoint, currentTlsParams != null)
+
+            // Session defaults
+            val snapshot = obj["snapshot"] as? JsonObject
+            val sessionDefaults = snapshot?.get("sessionDefaults") as? JsonObject
+            mainSessionKey = (sessionDefaults?.get("mainSessionKey") as? JsonPrimitive)?.content
 
             onConnectedCb?.invoke(serverName, remoteAddress, mainSessionKey)
         } else {
@@ -505,6 +598,8 @@ class GatewaySession private constructor(
         val wasConnected = connected.getAndSet(false)
         pingJob?.cancel()
         webSocket = null
+        canvasHostUrl = null
+        mainSessionKey = null
         cancelPendingRequests(reason)
 
         if (shouldReconnect.get()) {
@@ -525,12 +620,8 @@ class GatewaySession private constructor(
     private fun scheduleReconnect() {
         listenerRef?.onStateChanged(GatewayConnectionState.RECONNECTING)
         reconnectAttempt++
-
-        val delayMs = (RECONNECT_BASE_MS * (1L shl reconnectAttempt.coerceAtMost(5)))
-            .coerceAtMost(RECONNECT_MAX_MS)
-
+        val delayMs = minOf(RECONNECT_MAX_MS, (350.0 * Math.pow(1.7, reconnectAttempt.toDouble())).toLong())
         Log.i(TAG, "Reconnecting in ${delayMs}ms (attempt $reconnectAttempt)")
-
         scope.launch(Dispatchers.IO) {
             delay(delayMs)
             val endpoint = currentEndpoint ?: return@launch
@@ -538,9 +629,58 @@ class GatewaySession private constructor(
             doConnect(endpoint, options, currentTlsParams)
         }
     }
+
+    // MARK: - Canvas URL normalization
+
+    private fun normalizeCanvasHostUrl(raw: String?, endpoint: GatewayEndpoint?, isTls: Boolean): String? {
+        val trimmed = raw?.trim().orEmpty()
+        if (trimmed.isBlank() || endpoint == null) return null
+        val parsed = runCatching { java.net.URI(trimmed) }.getOrNull()
+        val host = parsed?.host?.trim().orEmpty()
+        if (host.isEmpty()) return trimmed.ifBlank { null }
+        if (!isLoopbackHost(host)) return trimmed
+        val fallbackHost = endpoint.tailnetDns?.trim()?.takeIf { it.isNotEmpty() }
+            ?: endpoint.lanHost?.trim()?.takeIf { it.isNotEmpty() }
+            ?: endpoint.host.trim()
+        if (fallbackHost.isEmpty()) return trimmed.ifBlank { null }
+        val scheme = if (isTls) "https" else (parsed?.scheme?.trim().orEmpty().ifBlank { "http" })
+        val port = if (isTls) endpoint.port else (endpoint.canvasPort ?: endpoint.port)
+        val fmtHost = if (fallbackHost.contains(":")) "[$fallbackHost]" else fallbackHost
+        val portSuffix = if ((scheme == "https" && port == 443) || (scheme == "http" && port == 80)) "" else ":$port"
+        return "$scheme://$fmtHost$portSuffix"
+    }
+
+    private fun isLoopbackHost(raw: String?): Boolean {
+        val host = raw?.trim()?.lowercase().orEmpty()
+        return host == "localhost" || host == "::1" || host == "0.0.0.0" || host == "::" || host.startsWith("127.")
+    }
 }
 
 /**
  * Exception wrapping an [InvokeError] for coroutine-based error propagation.
  */
 class InvokeException(val error: InvokeError) : Exception(error.message)
+
+private fun parseJsonOrNull(payload: String): JsonElement? {
+    val trimmed = payload.trim()
+    if (trimmed.isEmpty()) return null
+    return try { Json.parseToJsonElement(trimmed) } catch (_: Throwable) { null }
+}
+
+internal fun replaceCanvasCapabilityInScopedHostUrl(scopedUrl: String, capability: String): String? {
+    val marker = "/__coreblow__/cap/"
+    val markerStart = scopedUrl.indexOf(marker)
+    if (markerStart < 0) return null
+    val capabilityStart = markerStart + marker.length
+    val slashEnd = scopedUrl.indexOf("/", capabilityStart).takeIf { it >= 0 }
+    val queryEnd = scopedUrl.indexOf("?", capabilityStart).takeIf { it >= 0 }
+    val fragmentEnd = scopedUrl.indexOf("#", capabilityStart).takeIf { it >= 0 }
+    val capabilityEnd = listOfNotNull(slashEnd, queryEnd, fragmentEnd).minOrNull() ?: scopedUrl.length
+    if (capabilityEnd <= capabilityStart) return null
+    return scopedUrl.substring(0, capabilityStart) + capability + scopedUrl.substring(capabilityEnd)
+}
+
+internal fun resolveInvokeResultAckTimeoutMs(invokeTimeoutMs: Long?): Long {
+    val normalized = invokeTimeoutMs?.takeIf { it > 0L } ?: 15_000L
+    return normalized.coerceIn(15_000L, 120_000L)
+}
