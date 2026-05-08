@@ -813,3 +813,125 @@ private fun hasMotionCapabilities(context: Context): Boolean {
     val sm = context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager ?: return false
     return sm.getDefaultSensor(Sensor.TYPE_STEP_COUNTER) != null || sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null
 }
+
+// MARK: - OC-parity: Themed color factories
+
+@Composable
+private fun onboardingPrimaryButtonColors() = ButtonDefaults.buttonColors(
+    containerColor = MobileUiTokens.BrandAccent,
+    contentColor = Color.White,
+    disabledContainerColor = MobileUiTokens.BrandAccent.copy(alpha = 0.45f),
+    disabledContentColor = Color.White.copy(alpha = 0.9f),
+)
+
+@Composable
+private fun onboardingTextFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+    focusedBorderColor = MobileUiTokens.BrandAccent,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+    cursorColor = MobileUiTokens.BrandAccent,
+)
+
+@Composable
+private fun onboardingSwitchColors() = SwitchDefaults.colors(
+    checkedTrackColor = MobileUiTokens.BrandAccent,
+    uncheckedTrackColor = MaterialTheme.colorScheme.outline,
+    checkedThumbColor = Color.White,
+    uncheckedThumbColor = Color.White,
+)
+
+// MARK: - OC-parity: Permission toggle helpers
+
+private enum class PermissionToggle { Discovery, Location, Notifications, Microphone, Camera, Photos, Contacts, Calendar, Motion, Sms, CallLog }
+private enum class SpecialAccessToggle { NotificationListener }
+
+private fun isPermissionToggleGranted(context: Context, toggle: PermissionToggle): Boolean = when (toggle) {
+    PermissionToggle.Discovery -> isPermissionGranted(context, Manifest.permission.ACCESS_FINE_LOCATION)
+    PermissionToggle.Location -> isPermissionGranted(context, Manifest.permission.ACCESS_FINE_LOCATION) || isPermissionGranted(context, Manifest.permission.ACCESS_COARSE_LOCATION)
+    PermissionToggle.Notifications -> Build.VERSION.SDK_INT < 33 || isPermissionGranted(context, Manifest.permission.POST_NOTIFICATIONS)
+    PermissionToggle.Microphone -> isPermissionGranted(context, Manifest.permission.RECORD_AUDIO)
+    PermissionToggle.Camera -> isPermissionGranted(context, Manifest.permission.CAMERA)
+    PermissionToggle.Photos -> isPermissionGranted(context, if (Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_IMAGES else Manifest.permission.READ_EXTERNAL_STORAGE)
+    PermissionToggle.Contacts -> isPermissionGranted(context, Manifest.permission.READ_CONTACTS) && isPermissionGranted(context, Manifest.permission.WRITE_CONTACTS)
+    PermissionToggle.Calendar -> isPermissionGranted(context, Manifest.permission.READ_CALENDAR) && isPermissionGranted(context, Manifest.permission.WRITE_CALENDAR)
+    PermissionToggle.Motion -> isPermissionGranted(context, Manifest.permission.ACTIVITY_RECOGNITION)
+    PermissionToggle.Sms -> isPermissionGranted(context, Manifest.permission.SEND_SMS) && isPermissionGranted(context, Manifest.permission.READ_SMS)
+    PermissionToggle.CallLog -> isPermissionGranted(context, Manifest.permission.READ_CALL_LOG)
+}
+
+private fun qrScannerErrorMessage(): String {
+    return "Google Code Scanner could not start. Update Google Play services or use the setup code manually."
+}
+
+// MARK: - OC-parity: GatewayStep composable
+
+@Composable
+private fun GatewayStep(
+    setupCode: String,
+    manualHost: String,
+    manualPort: String,
+    manualTls: Boolean,
+    gatewayToken: String,
+    gatewayError: String?,
+    onScanQrClick: () -> Unit,
+    onSetupCodeChange: (String) -> Unit,
+    onManualHostChange: (String) -> Unit,
+    onManualPortChange: (String) -> Unit,
+    onManualTlsChange: (Boolean) -> Unit,
+    onTokenChange: (String) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            "Run `coreblow qr` on your gateway host, then scan the code with this device.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        Button(
+            onClick = onScanQrClick,
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = onboardingPrimaryButtonColors(),
+        ) {
+            Text("Scan QR code", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
+        }
+
+        OutlinedTextField(
+            value = setupCode, onValueChange = onSetupCodeChange,
+            label = { Text("Setup Code") }, singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            colors = onboardingTextFieldColors(),
+        )
+
+        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+
+        Text("Manual Connection", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+
+        OutlinedTextField(
+            value = manualHost, onValueChange = onManualHostChange,
+            label = { Text("Host") }, singleLine = true,
+            modifier = Modifier.fillMaxWidth(), colors = onboardingTextFieldColors(),
+        )
+        OutlinedTextField(
+            value = manualPort, onValueChange = onManualPortChange,
+            label = { Text("Port") }, singleLine = true,
+            modifier = Modifier.fillMaxWidth(), colors = onboardingTextFieldColors(),
+        )
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text("Use TLS", style = MaterialTheme.typography.bodyMedium)
+            Switch(checked = manualTls, onCheckedChange = onManualTlsChange, colors = onboardingSwitchColors())
+        }
+        OutlinedTextField(
+            value = gatewayToken, onValueChange = onTokenChange,
+            label = { Text("Token (optional)") }, singleLine = true,
+            modifier = Modifier.fillMaxWidth(), colors = onboardingTextFieldColors(),
+        )
+
+        if (!gatewayError.isNullOrBlank()) {
+            Text(gatewayError, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
