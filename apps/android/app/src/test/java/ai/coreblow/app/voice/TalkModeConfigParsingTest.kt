@@ -1,14 +1,60 @@
 package ai.coreblow.app.voice
 
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TalkModeConfigParsingTest {
-    @Test fun `default config values`() { val c = TalkModeGatewayConfig(); assertEquals("en-US", c.language); assertEquals(30_000L, c.maxDurationMs) }
-    @Test fun `fromJson parses language`() { val j = buildJsonObject { put("language", "id-ID") }; assertEquals("id-ID", TalkModeGatewayConfig.fromJson(j).language) }
-    @Test fun `fromJson parses streamAudio`() { val j = buildJsonObject { put("streamAudio", "true") }; assertTrue(TalkModeGatewayConfig.fromJson(j).streamAudio) }
-    @Test fun `fromJson missing fields use defaults`() { val c = TalkModeGatewayConfig.fromJson(buildJsonObject {}); assertEquals("default", c.sttModel); assertEquals("default", c.ttsVoice) }
-    @Test fun `fromJson parses maxDurationMs`() { val j = buildJsonObject { put("maxDurationMs", "15000") }; assertEquals(15_000L, TalkModeGatewayConfig.fromJson(j).maxDurationMs) }
+    @Test
+    fun parseTalkConfig_extractsModelAndVoice() {
+        val json = """{"sttModel":"whisper-1","ttsVoice":"nova","vadSensitivity":0.8}"""
+        val cfg = TalkModeConfigParser.parse(json)
+        assertNotNull(cfg)
+        assertEquals("whisper-1", cfg?.sttModel)
+        assertEquals("nova", cfg?.ttsVoice)
+    }
+
+    @Test
+    fun parseTalkConfig_handlesDefaults() {
+        val cfg = TalkModeConfigParser.parse("{}")
+        assertNotNull(cfg)
+        assertNotNull(cfg?.sttModel)
+        assertNotNull(cfg?.ttsVoice)
+    }
+
+    @Test
+    fun parseTalkConfig_returnsNullForInvalid() {
+        assertNull(TalkModeConfigParser.parse("not json"))
+        assertNull(TalkModeConfigParser.parse(""))
+    }
+
+    @Test
+    fun vadSensitivity_clampsToRange() {
+        val low = TalkModeConfigParser.parse("""{"vadSensitivity":-1.0}""")
+        assertTrue((low?.vadSensitivity ?: 0.0) >= 0.0)
+
+        val high = TalkModeConfigParser.parse("""{"vadSensitivity":5.0}""")
+        assertTrue((high?.vadSensitivity ?: 1.0) <= 1.0)
+    }
+
+    @Test
+    fun streamingEnabled_defaultsToTrue() {
+        val cfg = TalkModeConfigParser.parse("{}")
+        assertTrue(cfg?.streamingEnabled ?: false)
+    }
+
+    @Test
+    fun streamingEnabled_respectsExplicitFalse() {
+        val cfg = TalkModeConfigParser.parse("""{"streamingEnabled":false}""")
+        assertFalse(cfg?.streamingEnabled ?: true)
+    }
+
+    @Test
+    fun sttModel_trims() {
+        val cfg = TalkModeConfigParser.parse("""{"sttModel":"  whisper-1  "}""")
+        assertEquals("whisper-1", cfg?.sttModel)
+    }
 }

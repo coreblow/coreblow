@@ -1,13 +1,46 @@
 package ai.coreblow.app.node
 
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CanvasActionTrustTest {
-    @Test fun `render-html is allowed`() = assertEquals(ai.coreblow.app.node.handlers.CanvasActionTrust.ALLOW, ai.coreblow.app.node.handlers.CanvasActionTrustEvaluator.evaluate("render-html"))
-    @Test fun `show-toast is allowed`() = assertTrue(ai.coreblow.app.node.handlers.CanvasActionTrustEvaluator.isSafe("show-toast"))
-    @Test fun `navigate-url requires prompt`() = assertEquals(ai.coreblow.app.node.handlers.CanvasActionTrust.PROMPT, ai.coreblow.app.node.handlers.CanvasActionTrustEvaluator.evaluate("navigate-url"))
-    @Test fun `execute-js is denied`() = assertEquals(ai.coreblow.app.node.handlers.CanvasActionTrust.DENY, ai.coreblow.app.node.handlers.CanvasActionTrustEvaluator.evaluate("execute-js"))
-    @Test fun `unknown action defaults to prompt`() = assertEquals(ai.coreblow.app.node.handlers.CanvasActionTrust.PROMPT, ai.coreblow.app.node.handlers.CanvasActionTrustEvaluator.evaluate("unknown-action"))
-    @Test fun `isSafe false for denied`() = assertFalse(ai.coreblow.app.node.handlers.CanvasActionTrustEvaluator.isSafe("execute-js"))
+    @Test
+    fun safeActions_areTrusted() {
+        assertTrue(CanvasActionTrust.isTrusted("show"))
+        assertTrue(CanvasActionTrust.isTrusted("hide"))
+        assertTrue(CanvasActionTrust.isTrusted("update"))
+        assertTrue(CanvasActionTrust.isTrusted("navigate"))
+    }
+
+    @Test
+    fun dangerousActions_areUntrusted() {
+        assertFalse(CanvasActionTrust.isTrusted("exec"))
+        assertFalse(CanvasActionTrust.isTrusted("eval"))
+        assertFalse(CanvasActionTrust.isTrusted("shell"))
+    }
+
+    @Test
+    fun unknownActions_areUntrusted() {
+        assertFalse(CanvasActionTrust.isTrusted("something_unknown"))
+        assertFalse(CanvasActionTrust.isTrusted(""))
+    }
+
+    @Test
+    fun trustLevel_categorizes() {
+        assertEquals(CanvasActionTrust.Level.Safe, CanvasActionTrust.trustLevel("show"))
+        assertEquals(CanvasActionTrust.Level.Restricted, CanvasActionTrust.trustLevel("exec"))
+        assertEquals(CanvasActionTrust.Level.Unknown, CanvasActionTrust.trustLevel("xyz"))
+    }
+
+    @Test
+    fun auditLog_recordsActionAttempt() {
+        val log = CanvasActionTrust.AuditLog()
+        log.record("show", trusted = true)
+        log.record("exec", trusted = false)
+        assertEquals(2, log.entries().size)
+        assertTrue(log.entries()[0].trusted)
+        assertFalse(log.entries()[1].trusted)
+    }
 }

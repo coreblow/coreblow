@@ -74,4 +74,108 @@ class InvokeCommandRegistryTest {
         assertTrue(cmds.contains("device.get-battery"))
         assertTrue(cmds.contains("device.get-storage"))
     }
+
+    // ── OC-parity: motion subcommand gating ─────────────
+
+    @Test
+    fun `motion activity available without pedometer only includes activity command`() {
+        val cmds = InvokeCommandRegistry.availableCommands(NodeRuntimeFlags(
+            motionActivityAvailable = true, motionPedometerAvailable = false,
+        ))
+        assertTrue(cmds.contains("motion.get-activity"))
+        assertFalse(cmds.contains("motion.get-pedometer"))
+    }
+
+    @Test
+    fun `motion pedometer available without activity only includes pedometer command`() {
+        val cmds = InvokeCommandRegistry.availableCommands(NodeRuntimeFlags(
+            motionActivityAvailable = false, motionPedometerAvailable = true,
+        ))
+        assertFalse(cmds.contains("motion.get-activity"))
+        assertTrue(cmds.contains("motion.get-pedometer"))
+    }
+
+    @Test
+    fun `motion capability present when either motion path available`() {
+        val activityOnly = InvokeCommandRegistry.availableCapabilities(NodeRuntimeFlags(motionActivityAvailable = true))
+        val pedometerOnly = InvokeCommandRegistry.availableCapabilities(NodeRuntimeFlags(motionPedometerAvailable = true))
+        assertTrue(activityOnly.contains(CoreBlowProtocol.CAP_MOTION))
+        assertTrue(pedometerOnly.contains(CoreBlowProtocol.CAP_MOTION))
+    }
+
+    // ── OC-parity: SMS send/read split ──────────────────
+
+    @Test
+    fun `sms read only includes search but not send`() {
+        val cmds = InvokeCommandRegistry.availableCommands(NodeRuntimeFlags(readSmsAvailable = true))
+        assertTrue(cmds.contains("sms.search"))
+        assertFalse(cmds.contains("sms.send"))
+    }
+
+    @Test
+    fun `sms send only includes send but not search`() {
+        val cmds = InvokeCommandRegistry.availableCommands(NodeRuntimeFlags(sendSmsAvailable = true))
+        assertTrue(cmds.contains("sms.send"))
+        assertFalse(cmds.contains("sms.search"))
+    }
+
+    @Test
+    fun `sms capability present when either sms path available`() {
+        val readOnly = InvokeCommandRegistry.availableCapabilities(NodeRuntimeFlags(readSmsAvailable = true))
+        val sendOnly = InvokeCommandRegistry.availableCapabilities(NodeRuntimeFlags(sendSmsAvailable = true))
+        assertTrue(readOnly.contains(CoreBlowProtocol.CAP_SMS))
+        assertTrue(sendOnly.contains(CoreBlowProtocol.CAP_SMS))
+    }
+
+    // ── OC-parity: call log gating ──────────────────────
+
+    @Test
+    fun `call log commands excluded when unavailable`() {
+        val cmds = InvokeCommandRegistry.availableCommands(NodeRuntimeFlags(callLogAvailable = false))
+        assertFalse(cmds.contains("callLog.search"))
+    }
+
+    @Test
+    fun `call log capability excluded when unavailable`() {
+        val caps = InvokeCommandRegistry.availableCapabilities(NodeRuntimeFlags(callLogAvailable = false))
+        assertFalse(caps.contains(CoreBlowProtocol.CAP_CALL_LOG))
+    }
+
+    @Test
+    fun `call log capability included when available`() {
+        val caps = InvokeCommandRegistry.availableCapabilities(NodeRuntimeFlags(callLogAvailable = true))
+        assertTrue(caps.contains(CoreBlowProtocol.CAP_CALL_LOG))
+    }
+
+    // ── OC-parity: core commands always present ─────────
+
+    @Test
+    fun `core capabilities always include canvas device notifications system`() {
+        val caps = InvokeCommandRegistry.availableCapabilities(NodeRuntimeFlags())
+        val coreSet = setOf(CoreBlowProtocol.CAP_CANVAS, CoreBlowProtocol.CAP_DEVICE, CoreBlowProtocol.CAP_NOTIFICATIONS, CoreBlowProtocol.CAP_SYSTEM)
+        coreSet.forEach { cap -> assertTrue("Missing core capability: $cap", caps.contains(cap)) }
+    }
+
+    @Test
+    fun `optional capabilities absent by default`() {
+        val caps = InvokeCommandRegistry.availableCapabilities(NodeRuntimeFlags())
+        val optionalSet = setOf(CoreBlowProtocol.CAP_CAMERA, CoreBlowProtocol.CAP_LOCATION, CoreBlowProtocol.CAP_SMS, CoreBlowProtocol.CAP_CALL_LOG, CoreBlowProtocol.CAP_VOICE_WAKE, CoreBlowProtocol.CAP_MOTION)
+        optionalSet.forEach { cap -> assertFalse("Unexpected optional capability: $cap", caps.contains(cap)) }
+    }
+
+    // ── Helpers ──────────────────────────────────────────
+
+    private fun NodeRuntimeFlags(
+        cameraEnabled: Boolean = false, locationEnabled: Boolean = false,
+        sendSmsAvailable: Boolean = false, readSmsAvailable: Boolean = false,
+        callLogAvailable: Boolean = false, voiceWakeEnabled: Boolean = false,
+        motionActivityAvailable: Boolean = false, motionPedometerAvailable: Boolean = false,
+        notificationsAvailable: Boolean = true, debugBuild: Boolean = false,
+    ) = ai.coreblow.app.node.NodeRuntimeFlags(
+        cameraEnabled = cameraEnabled, locationEnabled = locationEnabled,
+        sendSmsAvailable = sendSmsAvailable, readSmsAvailable = readSmsAvailable,
+        callLogAvailable = callLogAvailable, voiceWakeEnabled = voiceWakeEnabled,
+        motionActivityAvailable = motionActivityAvailable, motionPedometerAvailable = motionPedometerAvailable,
+        notificationsAvailable = notificationsAvailable, debugBuild = debugBuild,
+    )
 }

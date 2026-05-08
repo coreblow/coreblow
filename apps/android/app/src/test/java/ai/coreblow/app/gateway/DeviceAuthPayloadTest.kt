@@ -1,12 +1,44 @@
 package ai.coreblow.app.gateway
 
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DeviceAuthPayloadTest {
-    @Test fun `toJson includes deviceId`() { val p = DeviceAuthPayload("id1", "device-token", "tok", "My Phone", "android-14", "Pixel 8", "1.0"); val j = p.toJson(); assertEquals("\"id1\"", j["deviceId"].toString()) }
-    @Test fun `toJson excludes null token`() { val p = DeviceAuthPayload("id1", "bootstrap", null, "Phone", "android", "Model", "1.0"); assertNull(p.toJson()["token"]) }
-    @Test fun `toJson includes all fields`() { val p = DeviceAuthPayload("id", "device-token", "t", "N", "P", "M", "V"); val j = p.toJson(); assertNotNull(j["platform"]); assertNotNull(j["model"]); assertNotNull(j["version"]) }
+    @Test
+    fun buildPayload_containsRequiredFields() {
+        val payload = DeviceAuthPayload.build(
+            deviceName = "Pixel 8", osVersion = "Android 15", appVersion = "1.0.0",
+        )
+        assertNotNull(payload)
+        assertEquals("Pixel 8", payload.deviceName)
+        assertEquals("Android 15", payload.osVersion)
+        assertEquals("1.0.0", payload.appVersion)
+    }
+
+    @Test
+    fun buildPayload_includesPlatformIdentifier() {
+        val payload = DeviceAuthPayload.build(
+            deviceName = "Test", osVersion = "14", appVersion = "1.0",
+        )
+        assertEquals("android", payload.platform)
+    }
+
+    @Test
+    fun serialize_producesValidJson() {
+        val payload = DeviceAuthPayload.build(deviceName = "D", osVersion = "V", appVersion = "A")
+        val json = payload.toJson()
+        assertTrue(json.contains("deviceName"))
+        assertTrue(json.contains("platform"))
+    }
+
+    @Test
+    fun serialize_roundTrips() {
+        val original = DeviceAuthPayload.build(deviceName = "Test", osVersion = "15", appVersion = "2.0")
+        val json = original.toJson()
+        val parsed = DeviceAuthPayload.fromJson(json)
+        assertEquals(original.deviceName, parsed?.deviceName)
+        assertEquals(original.platform, parsed?.platform)
+    }
 }
