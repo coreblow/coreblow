@@ -1,141 +1,219 @@
 package ai.coreblow.app.node.handlers
 
+import android.Manifest
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.BatteryManager
 import android.os.Build
 import android.os.Environment
+import android.os.PowerManager
 import android.os.StatFs
+import android.os.SystemClock
 import android.provider.Settings
 import android.util.DisplayMetrics
 import android.view.WindowManager
+import androidx.core.content.ContextCompat
+import ai.coreblow.app.BuildConfig
+import ai.coreblow.app.gateway.GatewaySession
+import ai.coreblow.app.node.DeviceNotificationListenerService
+import java.util.Locale
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 /**
- * Handles device info, battery, network, storage, display, and
- * system settings queries for gateway invoke commands.
+ * Handles device info, status, permissions, and health queries
+ * for gateway invoke commands.
+ *
+ * Exposes battery, storage, network, memory, thermal, and permission
+ * snapshots using Android system services.
  */
-class DeviceHandler(private val appContext: Context) {
+class DeviceHandler(
+    private val appContext: Context,
+    private val smsEnabled: Boolean = BuildConfig.COREBLOW_ENABLE_SMS,
+    private val callLogEnabled: Boolean = BuildConfig.COREBLOW_ENABLE_CALL_LOG,
+) {
+    // ── Gateway handlers ────────────────────────────────
 
-    fun getDeviceInfo(): String = buildJsonObject {
-        put("manufacturer", JsonPrimitive(Build.MANUFACTURER))
-        put("model", JsonPrimitive(Build.MODEL))
-        put("brand", JsonPrimitive(Build.BRAND))
-        put("device", JsonPrimitive(Build.DEVICE))
-        put("product", JsonPrimitive(Build.PRODUCT))
-        put("hardware", JsonPrimitive(Build.HARDWARE))
-        put("board", JsonPrimitive(Build.BOARD))
-        put("fingerprint", JsonPrimitive(Build.FINGERPRINT))
-        put("sdkInt", JsonPrimitive(Build.VERSION.SDK_INT))
-        put("release", JsonPrimitive(Build.VERSION.RELEASE))
-        put("platform", JsonPrimitive("android"))
-        put("abis", JsonPrimitive(Build.SUPPORTED_ABIS.joinToString(",")))
-        put("bootloader", JsonPrimitive(Build.BOOTLOADER))
-        put("isEmulator", JsonPrimitive(
-            Build.FINGERPRINT.contains("generic") || Build.MODEL.contains("Emulator") || Build.MANUFACTURER.contains("Genymotion")
-        ))
-        put("securityPatch", JsonPrimitive(Build.VERSION.SECURITY_PATCH))
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            put("mediaPerformanceClass", JsonPrimitive(Build.VERSION.MEDIA_PERFORMANCE_CLASS))
-        }
-    }.toString()
+    fun handleDeviceStatus(_paramsJson: String?): GatewaySession.InvokeResult =
+        GatewaySession.InvokeResult.ok(statusPayloadJson())
 
-    fun getBatteryInfo(): String {
-        val intent = appContext.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-        val level = intent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
-        val scale = intent?.getIntExtra(BatteryManager.EXTRA_SCALE, 100) ?: 100
-        val status = intent?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
-        val plugged = intent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0
-        val health = intent?.getIntExtra(BatteryManager.EXTRA_HEALTH, -1) ?: -1
-        val temperature = intent?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0) ?: 0
-        val voltage = intent?.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0) ?: 0
-        val technology = intent?.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY) ?: ""
+    fun handleDeviceInfo(_paramsJson: String?): GatewaySession.InvokeResult =
+        GatewaySession.InvokeResult.ok(infoPayloadJson())
 
-        val percent = if (scale > 0) (level * 100) / scale else -1
+    fun handleDevicePermissions(_paramsJson: String?): GatewaySession.InvokeResult =
+        GatewaySession.InvokeResult.ok(permissionsPayloadJson())
+
+    fun handleDeviceHealth(_paramsJson: String?): GatewaySession.InvokeResult =
+        GatewaySession.InvokeResult.ok(healthPayloadJson())
+
+    // ── Status payload ──────────────────────────────────
+
+    private fun statusPayloadJson(): String {
+        val battery = readBatterySnapshot()
+        val powerManager = appContext.getSystemService(PowerManager::class.java)
+        val storage = StatFs(Environment.getDataDirectory().absolutePath)
+        val totalBytes = storage.totalBytes
+        val freeBytes = storage.availableBytes
+        val usedBytes = (totalBytes - freeBytes).coerceAtLeast(0L)
+        val connectivity = appContext.getSystemService(ConnectivityManager::class.java)
+        val activeNetwork = connectivity?.activeNetwork
+        val caps = activeNetwork?.let { connectivity.getNetworkCapabilities(it) }
+        val uptimeSeconds = SystemClock.elapsedRealtime() / 1_000.0
 
         return buildJsonObject {
-            put("level", JsonPrimitive(percent))
-            put("isCharging", JsonPrimitive(status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL))
-            put("isFull", JsonPrimitive(status == BatteryManager.BATTERY_STATUS_FULL))
-            put("chargingSource", JsonPrimitive(when (plugged) {
-                BatteryManager.BATTERY_PLUGGED_AC -> "ac"
-                BatteryManager.BATTERY_PLUGGED_USB -> "usb"
-                BatteryManager.BATTERY_PLUGGED_WIRELESS -> "wireless"
-                else -> "none"
-            }))
-            put("health", JsonPrimitive(when (health) {
-                BatteryManager.BATTERY_HEALTH_GOOD -> "good"
-                BatteryManager.BATTERY_HEALTH_OVERHEAT -> "overheat"
-                BatteryManager.BATTERY_HEALTH_DEAD -> "dead"
-                BatteryManager.BATTERY_HEALTH_OVER_VOLTAGE -> "overVoltage"
-                else -> "unknown"
-            }))
-            put("temperatureC", JsonPrimitive(temperature / 10.0))
-            put("voltageV", JsonPrimitive(voltage / 1000.0))
-            put("technology", JsonPrimitive(technology))
+            put("battery", buildJsonObject {
+                battery.levelFraction?.let { put("level", JsonPrimitive(it)) }
+                put("state", JsonPrimitive(mapBatteryState(battery.status)))
+                put("lowPowerModeEnabled", JsonPrimitive(powerManager?.isPowerSaveMode == true))
+            })
+            put("thermal", buildJsonObject {
+                put("state", JsonPrimitive(mapThermalState(powerManager)))
+            })
+            put("storage", buildJsonObject {
+                put("totalBytes", JsonPrimitive(totalBytes))
+                put("freeBytes", JsonPrimitive(freeBytes))
+                put("usedBytes", JsonPrimitive(usedBytes))
+            })
+            put("network", buildJsonObject {
+                put("status", JsonPrimitive(mapNetworkStatus(caps)))
+                put("isExpensive", JsonPrimitive(caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)?.not() ?: false))
+                put("isConstrained", JsonPrimitive(caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED)?.not() ?: false))
+                put("interfaces", networkInterfacesJson(caps))
+            })
+            put("uptimeSeconds", JsonPrimitive(uptimeSeconds))
         }.toString()
     }
 
-    fun getNetworkInfo(): String {
-        val cm = appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val network = cm.activeNetwork
-        val caps = if (network != null) cm.getNetworkCapabilities(network) else null
+    // ── Info payload ────────────────────────────────────
+
+    private fun infoPayloadJson(): String {
+        val model = Build.MODEL?.trim().orEmpty()
+        val manufacturer = Build.MANUFACTURER?.trim().orEmpty()
+        val modelIdentifier = Build.DEVICE?.trim().orEmpty()
+        val systemVersion = Build.VERSION.RELEASE?.trim().orEmpty()
+        val locale = Locale.getDefault().toLanguageTag().trim()
+        val appVersion = BuildConfig.VERSION_NAME.trim()
+        val appBuild = BuildConfig.VERSION_CODE.toString()
 
         return buildJsonObject {
-            put("isConnected", JsonPrimitive(caps != null))
-            put("hasWifi", JsonPrimitive(caps?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true))
-            put("hasCellular", JsonPrimitive(caps?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true))
-            put("hasEthernet", JsonPrimitive(caps?.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) == true))
-            put("hasVpn", JsonPrimitive(caps?.hasTransport(NetworkCapabilities.TRANSPORT_VPN) == true))
-            put("isMetered", JsonPrimitive(cm.isActiveNetworkMetered))
-            if (caps != null) {
-                put("downstreamBandwidthKbps", JsonPrimitive(caps.linkDownstreamBandwidthKbps))
-                put("upstreamBandwidthKbps", JsonPrimitive(caps.linkUpstreamBandwidthKbps))
-                put("isNotRestricted", JsonPrimitive(caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED)))
-            }
+            put("deviceName", JsonPrimitive(model.ifEmpty { "Android" }))
+            put("modelIdentifier", JsonPrimitive(modelIdentifier.ifEmpty { listOf(manufacturer, model).filter { it.isNotEmpty() }.joinToString(" ") }))
+            put("systemName", JsonPrimitive("Android"))
+            put("systemVersion", JsonPrimitive(systemVersion.ifEmpty { Build.VERSION.SDK_INT.toString() }))
+            put("appVersion", JsonPrimitive(appVersion.ifEmpty { "dev" }))
+            put("appBuild", JsonPrimitive(appBuild.ifEmpty { "0" }))
+            put("locale", JsonPrimitive(locale.ifEmpty { Locale.getDefault().toString() }))
         }.toString()
     }
 
-    fun getStorageInfo(): String {
-        val stat = StatFs(Environment.getDataDirectory().absolutePath)
-        val totalBytes = stat.totalBytes
-        val freeBytes = stat.availableBytes
+    // ── Permissions payload ─────────────────────────────
 
-        val am = appContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        val memInfo = ActivityManager.MemoryInfo()
-        am.getMemoryInfo(memInfo)
+    private fun permissionsPayloadJson(): String {
+        val canSendSms = appContext.packageManager.hasSystemFeature(PackageManager.FEATURE_TELEPHONY)
+        val notificationAccess = DeviceNotificationListenerService.isAccessEnabled(appContext)
+        val photosGranted = if (Build.VERSION.SDK_INT >= 33) hasPermission(Manifest.permission.READ_MEDIA_IMAGES)
+        else hasPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+        val motionGranted = hasPermission(Manifest.permission.ACTIVITY_RECOGNITION)
+        val notificationsGranted = if (Build.VERSION.SDK_INT >= 33) hasPermission(Manifest.permission.POST_NOTIFICATIONS) else true
 
         return buildJsonObject {
-            put("storageTotalMb", JsonPrimitive(totalBytes / (1024 * 1024)))
-            put("storageFreeMb", JsonPrimitive(freeBytes / (1024 * 1024)))
-            put("storageUsedPercent", JsonPrimitive(((totalBytes - freeBytes) * 100) / totalBytes))
-            put("ramTotalMb", JsonPrimitive(memInfo.totalMem / (1024 * 1024)))
-            put("ramAvailableMb", JsonPrimitive(memInfo.availMem / (1024 * 1024)))
-            put("isLowMemory", JsonPrimitive(memInfo.lowMemory))
-            put("ramThresholdMb", JsonPrimitive(memInfo.threshold / (1024 * 1024)))
+            put("permissions", buildJsonObject {
+                put("camera", permissionStateJson(hasPermission(Manifest.permission.CAMERA), true))
+                put("microphone", permissionStateJson(hasPermission(Manifest.permission.RECORD_AUDIO), true))
+                put("location", permissionStateJson(
+                    hasPermission(Manifest.permission.ACCESS_FINE_LOCATION) || hasPermission(Manifest.permission.ACCESS_COARSE_LOCATION), true,
+                ))
+                put("sms", permissionStateJson(smsEnabled && hasPermission(Manifest.permission.SEND_SMS) && canSendSms, smsEnabled && canSendSms))
+                put("notificationListener", permissionStateJson(notificationAccess, true))
+                put("notifications", permissionStateJson(notificationsGranted, true))
+                put("photos", permissionStateJson(photosGranted, true))
+                put("contacts", permissionStateJson(hasPermission(Manifest.permission.READ_CONTACTS), true))
+                put("calendar", permissionStateJson(hasPermission(Manifest.permission.READ_CALENDAR), true))
+                put("callLog", permissionStateJson(callLogEnabled && hasPermission(Manifest.permission.READ_CALL_LOG), callLogEnabled))
+                put("motion", permissionStateJson(motionGranted, true))
+            })
         }.toString()
     }
+
+    // ── Health payload ──────────────────────────────────
+
+    private fun healthPayloadJson(): String {
+        val battery = readBatterySnapshot()
+        val batteryManager = appContext.getSystemService(BatteryManager::class.java)
+        val currentNowUa = batteryManager?.getLongProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
+        val currentNowMa = if (currentNowUa == null || currentNowUa == Long.MIN_VALUE) null else currentNowUa.toDouble() / 1_000.0
+
+        val powerManager = appContext.getSystemService(PowerManager::class.java)
+        val activityManager = appContext.getSystemService(ActivityManager::class.java)
+        val memoryInfo = ActivityManager.MemoryInfo()
+        activityManager?.getMemoryInfo(memoryInfo)
+        val totalRamBytes = memoryInfo.totalMem.coerceAtLeast(0L)
+        val availableRamBytes = memoryInfo.availMem.coerceAtLeast(0L)
+        val usedRamBytes = (totalRamBytes - availableRamBytes).coerceAtLeast(0L)
+        val memoryPressure = mapMemoryPressure(totalRamBytes, availableRamBytes, memoryInfo.lowMemory)
+
+        return buildJsonObject {
+            put("memory", buildJsonObject {
+                put("pressure", JsonPrimitive(memoryPressure))
+                put("totalRamBytes", JsonPrimitive(totalRamBytes))
+                put("availableRamBytes", JsonPrimitive(availableRamBytes))
+                put("usedRamBytes", JsonPrimitive(usedRamBytes))
+                put("thresholdBytes", JsonPrimitive(memoryInfo.threshold.coerceAtLeast(0L)))
+                put("lowMemory", JsonPrimitive(memoryInfo.lowMemory))
+            })
+            put("battery", buildJsonObject {
+                put("state", JsonPrimitive(mapBatteryState(battery.status)))
+                put("chargingType", JsonPrimitive(mapChargingType(battery.plugged)))
+                battery.temperatureC?.let { put("temperatureC", JsonPrimitive(it)) }
+                currentNowMa?.let { put("currentMa", JsonPrimitive(it)) }
+            })
+            put("power", buildJsonObject {
+                put("dozeModeEnabled", JsonPrimitive(powerManager?.isDeviceIdleMode == true))
+                put("lowPowerModeEnabled", JsonPrimitive(powerManager?.isPowerSaveMode == true))
+            })
+            put("system", buildJsonObject {
+                Build.VERSION.SECURITY_PATCH?.trim()?.takeIf { it.isNotEmpty() }
+                    ?.let { put("securityPatchLevel", JsonPrimitive(it)) }
+            })
+        }.toString()
+    }
+
+    // ── CB-exclusive sub-command router ──────────────────
+
+    fun handleCommand(subCommand: String, params: JsonObject): String? = when (subCommand) {
+        "info" -> infoPayloadJson()
+        "status" -> statusPayloadJson()
+        "permissions" -> permissionsPayloadJson()
+        "health" -> healthPayloadJson()
+        "display" -> getDisplayInfo()
+        "settings" -> getSystemSettings()
+        "uptime" -> buildJsonObject {
+            put("uptimeMs", JsonPrimitive(SystemClock.elapsedRealtime()))
+            put("uptimeMinutes", JsonPrimitive(SystemClock.elapsedRealtime() / 60_000))
+        }.toString()
+        else -> null
+    }
+
+    // ── Display & Settings (CB-exclusive) ───────────────
 
     fun getDisplayInfo(): String {
         val wm = appContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val dm = DisplayMetrics()
         @Suppress("DEPRECATION")
         wm.defaultDisplay.getRealMetrics(dm)
-
         return buildJsonObject {
             put("widthPx", JsonPrimitive(dm.widthPixels))
             put("heightPx", JsonPrimitive(dm.heightPixels))
             put("density", JsonPrimitive(dm.density.toDouble()))
             put("densityDpi", JsonPrimitive(dm.densityDpi))
-            put("scaledDensity", JsonPrimitive(dm.scaledDensity.toDouble()))
-            put("xdpi", JsonPrimitive(dm.xdpi.toDouble()))
-            put("ydpi", JsonPrimitive(dm.ydpi.toDouble()))
         }.toString()
     }
 
@@ -145,29 +223,93 @@ class DeviceHandler(private val appContext: Context) {
             put("airplaneMode", JsonPrimitive(Settings.Global.getInt(cr, Settings.Global.AIRPLANE_MODE_ON, 0) == 1))
             put("autoRotate", JsonPrimitive(Settings.System.getInt(cr, Settings.System.ACCELEROMETER_ROTATION, 0) == 1))
             put("screenBrightness", JsonPrimitive(Settings.System.getInt(cr, Settings.System.SCREEN_BRIGHTNESS, 128)))
-            put("screenTimeout", JsonPrimitive(Settings.System.getInt(cr, Settings.System.SCREEN_OFF_TIMEOUT, 30000)))
-            put("developerMode", JsonPrimitive(Settings.Global.getInt(cr, Settings.Global.DEVELOPMENT_SETTINGS_ENABLED, 0) == 1))
-            put("bluetoothName", JsonPrimitive(Settings.Secure.getString(cr, "bluetooth_name") ?: ""))
             put("deviceName", JsonPrimitive(Settings.Global.getString(cr, Settings.Global.DEVICE_NAME) ?: Build.MODEL))
         }.toString()
     }
 
-    /**
-     * Handle namespaced sub-commands (e.g. device.uptime).
-     */
-    fun handleCommand(subCommand: String, params: JsonObject): String? {
-        return when (subCommand) {
-            "info" -> getDeviceInfo()
-            "battery" -> getBatteryInfo()
-            "network" -> getNetworkInfo()
-            "storage" -> getStorageInfo()
-            "display" -> getDisplayInfo()
-            "settings" -> getSystemSettings()
-            "uptime" -> buildJsonObject {
-                put("uptimeMs", JsonPrimitive(android.os.SystemClock.elapsedRealtime()))
-                put("uptimeMinutes", JsonPrimitive(android.os.SystemClock.elapsedRealtime() / 60_000))
-            }.toString()
-            else -> null
+    // ── Battery helpers ─────────────────────────────────
+
+    private data class BatterySnapshot(val status: Int, val plugged: Int, val levelFraction: Double?, val temperatureC: Double?)
+
+    private fun readBatterySnapshot(): BatterySnapshot {
+        val intent = appContext.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        val status = intent?.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN) ?: BatteryManager.BATTERY_STATUS_UNKNOWN
+        val plugged = intent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0
+        val temperatureC = intent?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, Int.MIN_VALUE)
+            ?.takeIf { it != Int.MIN_VALUE }?.toDouble()?.div(10.0)
+        return BatterySnapshot(status = status, plugged = plugged, levelFraction = batteryLevelFraction(intent), temperatureC = temperatureC)
+    }
+
+    private fun batteryLevelFraction(intent: Intent?): Double? {
+        val rawLevel = intent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+        val rawScale = intent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
+        if (rawLevel < 0 || rawScale <= 0) return null
+        return rawLevel.toDouble() / rawScale.toDouble()
+    }
+
+    private fun mapBatteryState(status: Int): String = when (status) {
+        BatteryManager.BATTERY_STATUS_CHARGING -> "charging"
+        BatteryManager.BATTERY_STATUS_FULL -> "full"
+        BatteryManager.BATTERY_STATUS_DISCHARGING, BatteryManager.BATTERY_STATUS_NOT_CHARGING -> "unplugged"
+        else -> "unknown"
+    }
+
+    private fun mapChargingType(plugged: Int): String = when (plugged) {
+        BatteryManager.BATTERY_PLUGGED_AC -> "ac"
+        BatteryManager.BATTERY_PLUGGED_USB -> "usb"
+        BatteryManager.BATTERY_PLUGGED_WIRELESS -> "wireless"
+        BatteryManager.BATTERY_PLUGGED_DOCK -> "dock"
+        else -> "none"
+    }
+
+    // ── System helpers ──────────────────────────────────
+
+    private fun mapThermalState(powerManager: PowerManager?): String {
+        val thermal = powerManager?.currentThermalStatus ?: return "nominal"
+        return when (thermal) {
+            PowerManager.THERMAL_STATUS_NONE, PowerManager.THERMAL_STATUS_LIGHT -> "nominal"
+            PowerManager.THERMAL_STATUS_MODERATE -> "fair"
+            PowerManager.THERMAL_STATUS_SEVERE -> "serious"
+            PowerManager.THERMAL_STATUS_CRITICAL, PowerManager.THERMAL_STATUS_EMERGENCY, PowerManager.THERMAL_STATUS_SHUTDOWN -> "critical"
+            else -> "nominal"
         }
+    }
+
+    private fun mapNetworkStatus(caps: NetworkCapabilities?): String {
+        if (caps == null) return "unsatisfied"
+        return when {
+            caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) -> "satisfied"
+            caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) -> "requiresConnection"
+            else -> "unsatisfied"
+        }
+    }
+
+    private fun mapMemoryPressure(totalBytes: Long, availableBytes: Long, lowMemory: Boolean): String {
+        if (totalBytes <= 0L) return if (lowMemory) "critical" else "unknown"
+        if (lowMemory) return "critical"
+        val freeRatio = availableBytes.toDouble() / totalBytes.toDouble()
+        return when {
+            freeRatio <= 0.05 -> "critical"
+            freeRatio <= 0.15 -> "high"
+            freeRatio <= 0.30 -> "moderate"
+            else -> "normal"
+        }
+    }
+
+    private fun permissionStateJson(granted: Boolean, promptableWhenDenied: Boolean) = buildJsonObject {
+        put("status", JsonPrimitive(if (granted) "granted" else "denied"))
+        put("promptable", JsonPrimitive(!granted && promptableWhenDenied))
+    }
+
+    private fun hasPermission(permission: String): Boolean =
+        ContextCompat.checkSelfPermission(appContext, permission) == PackageManager.PERMISSION_GRANTED
+
+    private fun networkInterfacesJson(caps: NetworkCapabilities?) = buildJsonArray {
+        if (caps == null) return@buildJsonArray
+        var hasKnownTransport = false
+        if (caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) { hasKnownTransport = true; add(JsonPrimitive("wifi")) }
+        if (caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) { hasKnownTransport = true; add(JsonPrimitive("cellular")) }
+        if (caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) { hasKnownTransport = true; add(JsonPrimitive("wired")) }
+        if (!hasKnownTransport) add(JsonPrimitive("other"))
     }
 }
