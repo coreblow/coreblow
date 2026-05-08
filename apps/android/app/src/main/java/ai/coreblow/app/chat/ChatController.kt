@@ -413,7 +413,12 @@ class ChatController(
             val ts = (obj["timestamp"] as? JsonPrimitive)?.content?.toLongOrNull()
             ChatMessage(id = UUID.randomUUID().toString(), role = role, content = content, timestampMs = ts)
         }
-        return ChatHistory(sessionKey = sessionKey, sessionId = sid, thinkingLevel = thinkingLevel, messages = messages)
+        return ChatHistory(
+            sessionKey = sessionKey,
+            sessionId = sid,
+            thinkingLevel = thinkingLevel,
+            messages = reconcileMessageIds(previous = previousMessages, incoming = messages),
+        )
     }
 
     private fun parseMessageContent(el: JsonElement): ChatMessageContent? {
@@ -443,7 +448,7 @@ class ChatController(
     }
 }
 
-// MARK: - Supporting Types
+// ── Supporting Types ────────────────────────────────────
 
 data class ChatHistory(val sessionKey: String, val sessionId: String?, val thinkingLevel: String?, val messages: List<ChatMessage>)
 
@@ -454,7 +459,59 @@ internal fun applyMainSessionKeyState(currentSessionKey: String, appliedMainSess
     else MainSessionState(currentSessionKey, nextMainSessionKey)
 }
 
-// MARK: - JSON Helpers
+// ── Message Identity Reconciliation ─────────────────────
+
+/**
+ * Reconcile incoming message IDs with previous IDs to prevent UI jank.
+ *
+ * When the gateway returns history after a send, the same messages appear
+ * with fresh UUIDs. This function reuses existing IDs for messages that
+ * match by role + timestamp + content fingerprint, keeping LazyColumn
+ * keys stable and avoiding unnecessary recompositions.
+ */
+internal fun reconcileMessageIds(previous: List<ChatMessage>, incoming: List<ChatMessage>): List<ChatMessage> {
+    if (previous.isEmpty() || incoming.isEmpty()) return incoming
+
+    val idsByKey = LinkedHashMap<String, ArrayDeque<String>>()
+    for (message in previous) {
+        val key = messageIdentityKey(message) ?: continue
+        idsByKey.getOrPut(key) { ArrayDeque() }.addLast(message.id)
+    }
+
+    return incoming.map { message ->
+        val key = messageIdentityKey(message) ?: return@map message
+        val ids = idsByKey[key] ?: return@map message
+        val reusedId = ids.removeFirstOrNull() ?: return@map message
+        if (ids.isEmpty()) idsByKey.remove(key)
+        if (reusedId == message.id) return@map message
+        message.copy(id = reusedId)
+    }
+}
+
+/**
+ * Build a stable identity key for a message based on role, timestamp,
+ * and content fingerprint (text hash, mime type, file name, base64 hash).
+ */
+internal fun messageIdentityKey(message: ChatMessage): String? {
+    val role = message.role.trim().lowercase()
+    if (role.isEmpty()) return null
+
+    val timestamp = message.timestampMs?.toString().orEmpty()
+    val contentFingerprint = message.content.joinToString(separator = "\u001E") { part ->
+        listOf(
+            part.type.trim().lowercase(),
+            part.text?.trim().orEmpty(),
+            part.mimeType?.trim()?.lowercase().orEmpty(),
+            part.fileName?.trim().orEmpty(),
+            part.base64?.hashCode()?.toString().orEmpty(),
+        ).joinToString(separator = "\u001F")
+    }
+
+    if (timestamp.isEmpty() && contentFingerprint.isEmpty()) return null
+    return listOf(role, timestamp, contentFingerprint).joinToString(separator = "|")
+}
+
+// ── JSON Helpers ────────────────────────────────────────
 
 internal fun String.parseJsonObject(json: Json): JsonObject? {
     return try { json.parseToJsonElement(this) as? JsonObject } catch (_: Throwable) { null }
