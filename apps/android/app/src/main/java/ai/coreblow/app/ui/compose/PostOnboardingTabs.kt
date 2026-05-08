@@ -1,177 +1,286 @@
 package ai.coreblow.app.ui.compose
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.automirrored.filled.ScreenShare
+import androidx.compose.material.icons.filled.ChatBubble
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.RecordVoiceOver
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.launch
+import androidx.compose.ui.zIndex
+import ai.coreblow.app.MainViewModel
 
 /**
- * Post-onboarding tab layout with a pager-based welcome tour
- * and main content tabs for Chat, Voice, and Settings.
+ * Post-onboarding home screen with five tabs: Connect, Chat, Voice,
+ * Screen, Settings.
+ *
+ * Uses lazy tab initialisation — Chat and Screen tabs stay alive after
+ * first visit to avoid rebuilding their heavy UI trees.
  */
 
-// ============================================================
-// Main tabs composable
-// ============================================================
+private enum class HomeTab(val label: String, val icon: ImageVector) {
+    Connect(label = "Connect", icon = Icons.Default.CheckCircle),
+    Chat(label = "Chat", icon = Icons.Default.ChatBubble),
+    Voice(label = "Voice", icon = Icons.Default.RecordVoiceOver),
+    Screen(label = "Screen", icon = Icons.AutoMirrored.Filled.ScreenShare),
+    Settings(label = "Settings", icon = Icons.Default.Settings),
+}
 
-@OptIn(ExperimentalMaterial3Api::class)
+private enum class StatusVisual { Connected, Connecting, Warning, Error, Offline }
+
 @Composable
-fun PostOnboardingTabs(
-    onChatSelected: () -> Unit = {},
-    onVoiceSelected: () -> Unit = {},
-    onSettingsSelected: () -> Unit = {},
-    showWelcomeTour: Boolean = false,
-    onWelcomeTourDismissed: () -> Unit = {},
-) {
-    var showTour by remember { mutableStateOf(showWelcomeTour) }
+fun PostOnboardingTabs(viewModel: MainViewModel, modifier: Modifier = Modifier) {
+    var activeTab by rememberSaveable { mutableStateOf(HomeTab.Connect) }
+    var chatTabStarted by rememberSaveable { mutableStateOf(false) }
+    var screenTabStarted by rememberSaveable { mutableStateOf(false) }
 
-    if (showTour) {
-        WelcomeTourDialog(onDismiss = { showTour = false; onWelcomeTourDismissed() })
+    // Lifecycle: stop TTS when leaving Voice tab; lazily keep Chat/Screen alive
+    LaunchedEffect(activeTab) {
+        viewModel.setVoiceScreenActive(activeTab == HomeTab.Voice)
+        if (activeTab == HomeTab.Chat) chatTabStarted = true
+        if (activeTab == HomeTab.Screen) screenTabStarted = true
     }
 
-    var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf(
-        TabItem("Chat", Icons.Default.Chat),
-        TabItem("Voice", Icons.Default.Mic),
-        TabItem("Settings", Icons.Default.Settings),
-    )
+    val statusText by viewModel.statusText.collectAsState()
+    val isConnected by viewModel.isConnected.collectAsState()
+    val colors = LocalMobileColors.current
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        TabRow(selectedTabIndex = selectedTab) {
-            tabs.forEachIndexed { index, tab ->
-                Tab(
-                    selected = selectedTab == index,
-                    onClick = {
-                        selectedTab = index
-                        when (index) {
-                            0 -> onChatSelected()
-                            1 -> onVoiceSelected()
-                            2 -> onSettingsSelected()
-                        }
-                    },
-                    text = { Text(tab.title, fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal) },
-                    icon = { Icon(tab.icon, tab.title) },
+    val statusVisual = remember(statusText, isConnected) {
+        val lower = statusText.lowercase()
+        when {
+            isConnected -> StatusVisual.Connected
+            lower.contains("connecting") || lower.contains("reconnecting") -> StatusVisual.Connecting
+            lower.contains("pairing") || lower.contains("approval") || lower.contains("auth") -> StatusVisual.Warning
+            lower.contains("error") || lower.contains("failed") -> StatusVisual.Error
+            else -> StatusVisual.Offline
+        }
+    }
+
+    val density = LocalDensity.current
+    val imeVisible = WindowInsets.ime.getBottom(density) > 0
+    val hideBottomTabBar = activeTab == HomeTab.Chat && imeVisible
+
+    Scaffold(
+        modifier = modifier,
+        containerColor = Color.Transparent,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        topBar = { TopStatusBar(statusText = statusText, statusVisual = statusVisual) },
+        bottomBar = {
+            if (!hideBottomTabBar) {
+                BottomTabBar(activeTab = activeTab, onSelect = { activeTab = it })
+            }
+        },
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
+                .background(MaterialTheme.colorScheme.background),
+        ) {
+            // Lazy Chat tab — kept alive after first visit
+            if (chatTabStarted) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .alpha(if (activeTab == HomeTab.Chat) 1f else 0f)
+                        .zIndex(if (activeTab == HomeTab.Chat) 1f else 0f),
+                ) { ChatSheet(viewModel = viewModel) }
+            }
+
+            // Lazy Screen tab — kept alive after first visit
+            if (screenTabStarted) {
+                ScreenTabScreen(
+                    viewModel = viewModel,
+                    visible = activeTab == HomeTab.Screen,
+                    modifier = Modifier
+                        .matchParentSize()
+                        .alpha(if (activeTab == HomeTab.Screen) 1f else 0f)
+                        .zIndex(if (activeTab == HomeTab.Screen) 1f else 0f),
                 )
             }
-        }
 
-        // Tab content area (placeholder)
-        Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
-            when (selectedTab) {
-                0 -> TabContentCard("Chat", "Start a conversation with your AI assistant", Icons.Default.Chat)
-                1 -> TabContentCard("Voice", "Use voice to interact with CoreBlow", Icons.Default.Mic)
-                2 -> TabContentCard("Settings", "Configure your gateway and preferences", Icons.Default.Settings)
+            // Active tab content
+            when (activeTab) {
+                HomeTab.Connect -> ConnectTabScreen(viewModel = viewModel)
+                HomeTab.Chat -> if (!chatTabStarted) ChatSheet(viewModel = viewModel)
+                HomeTab.Voice -> VoiceTabScreen(viewModel = viewModel)
+                HomeTab.Screen -> Unit
+                HomeTab.Settings -> SettingsSheet(viewModel = viewModel)
             }
         }
     }
 }
 
+// ── Screen tab wrapper ──────────────────────────────────
+
 @Composable
-private fun TabContentCard(title: String, description: String, icon: ImageVector) {
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+private fun ScreenTabScreen(viewModel: MainViewModel, visible: Boolean, modifier: Modifier = Modifier) {
+    val isConnected by viewModel.isConnected.collectAsState()
+    var refreshedForCurrentConnection by rememberSaveable(isConnected) { mutableStateOf(false) }
+
+    LaunchedEffect(isConnected, visible, refreshedForCurrentConnection) {
+        if (visible && isConnected && !refreshedForCurrentConnection) {
+            viewModel.refreshHomeCanvasOverviewIfConnected()
+            refreshedForCurrentConnection = true
+        }
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        CanvasScreen(viewModel = viewModel, visible = visible, modifier = Modifier.fillMaxSize())
+    }
+}
+
+// ── Top status bar ──────────────────────────────────────
+
+@Composable
+private fun TopStatusBar(statusText: String, statusVisual: StatusVisual) {
+    val safeInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
+    val colors = LocalMobileColors.current
+
+    val (chipBg, chipDot, chipText, chipBorder) = when (statusVisual) {
+        StatusVisual.Connected -> listOf(
+            colors.success.copy(alpha = 0.12f), colors.success, colors.success, colors.success.copy(alpha = 0.3f),
+        )
+        StatusVisual.Connecting -> listOf(
+            colors.accent.copy(alpha = 0.12f), colors.accent, colors.accent, colors.accent.copy(alpha = 0.3f),
+        )
+        StatusVisual.Warning -> listOf(
+            colors.warning.copy(alpha = 0.12f), colors.warning, colors.warning, colors.warning.copy(alpha = 0.3f),
+        )
+        StatusVisual.Error -> listOf(
+            colors.danger.copy(alpha = 0.12f), colors.danger, colors.danger, colors.danger.copy(alpha = 0.3f),
+        )
+        StatusVisual.Offline -> listOf(
+            MaterialTheme.colorScheme.surface, colors.textSecondary, colors.textSecondary, colors.border,
+        )
+    }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth().windowInsetsPadding(safeInsets),
+        color = Color.Transparent,
+        shadowElevation = 0.dp,
     ) {
-        Column(
-            modifier = Modifier.padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Icon(icon, title, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
-            Spacer(Modifier.height(16.dp))
-            Text(title, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(8.dp))
-            Text(description, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+            Text("CoreBlow", style = MaterialTheme.typography.titleMedium, color = colors.text)
+            Surface(
+                shape = RoundedCornerShape(999.dp),
+                color = chipBg,
+                border = BorderStroke(1.dp, chipBorder),
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Surface(
+                        modifier = Modifier.padding(top = 1.dp),
+                        color = chipDot,
+                        shape = RoundedCornerShape(999.dp),
+                    ) { Box(modifier = Modifier.padding(4.dp)) }
+                    Text(
+                        statusText.trim().ifEmpty { "Offline" },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = chipText,
+                        maxLines = 1,
+                    )
+                }
+            }
         }
     }
 }
 
-// ============================================================
-// Welcome Tour Dialog (pager)
-// ============================================================
+// ── Bottom tab bar ──────────────────────────────────────
 
 @Composable
-private fun WelcomeTourDialog(onDismiss: () -> Unit) {
-    val pages = listOf(
-        TourPage("Welcome to CoreBlow", "Your AI-powered mobile assistant that connects to local and cloud AI models.", Icons.Default.Rocket),
-        TourPage("Chat with AI", "Send messages, attach files, and get intelligent responses from multiple AI providers.", Icons.Default.Chat),
-        TourPage("Voice Interaction", "Use wake words and voice commands for hands-free AI interaction.", Icons.Default.Mic),
-        TourPage("Device Control", "Let AI agents interact with your device — camera, contacts, calendar, and more.", Icons.Default.PhoneAndroid),
-        TourPage("You're All Set!", "Start chatting now or configure your gateway in settings.", Icons.Default.CheckCircle),
-    )
+private fun BottomTabBar(activeTab: HomeTab, onSelect: (HomeTab) -> Unit) {
+    val safeInsets = WindowInsets.navigationBars.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
+    val colors = LocalMobileColors.current
 
-    val pagerState = rememberPagerState(pageCount = { pages.size })
-    val scope = rememberCoroutineScope()
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            if (pagerState.currentPage == pages.size - 1) {
-                Button(onClick = onDismiss) { Text("Get Started") }
-            } else {
-                Button(onClick = { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) } }) { Text("Next") }
-            }
-        },
-        dismissButton = {
-            if (pagerState.currentPage > 0) {
-                TextButton(onClick = { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) } }) { Text("Back") }
-            } else {
-                TextButton(onClick = onDismiss) { Text("Skip") }
-            }
-        },
-        text = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                HorizontalPager(state = pagerState, modifier = Modifier.height(200.dp)) { page ->
-                    TourPageContent(pages[page])
-                }
-                Spacer(Modifier.height(12.dp))
-                // Page indicators
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    pages.forEachIndexed { index, _ ->
-                        Box(
-                            modifier = Modifier
-                                .size(if (index == pagerState.currentPage) 10.dp else 6.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    if (index == pagerState.currentPage) MaterialTheme.colorScheme.primary
-                                    else MaterialTheme.colorScheme.outlineVariant,
-                                ),
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = colors.cardSurface.copy(alpha = 0.97f),
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        border = BorderStroke(1.dp, colors.border),
+        shadowElevation = 6.dp,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .windowInsetsPadding(safeInsets)
+                .padding(horizontal = 10.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            HomeTab.entries.forEach { tab ->
+                val active = tab == activeTab
+                Surface(
+                    onClick = { onSelect(tab) },
+                    modifier = Modifier.weight(1f).heightIn(min = 58.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    color = if (active) colors.accent.copy(alpha = 0.12f) else Color.Transparent,
+                    border = if (active) BorderStroke(1.dp, colors.accent.copy(alpha = 0.3f)) else null,
+                    shadowElevation = 0.dp,
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 7.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        Icon(tab.icon, tab.label, tint = if (active) colors.accent else colors.textSecondary)
+                        Text(
+                            tab.label,
+                            color = if (active) colors.accent else colors.textSecondary,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
+                            ),
                         )
                     }
                 }
             }
-        },
-    )
-}
-
-@Composable
-private fun TourPageContent(page: TourPage) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Icon(page.icon, null, modifier = Modifier.size(56.dp), tint = MaterialTheme.colorScheme.primary)
-        Spacer(Modifier.height(16.dp))
-        Text(page.title, fontSize = 18.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
-        Spacer(Modifier.height(8.dp))
-        Text(page.description, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+        }
     }
 }
-
-private data class TabItem(val title: String, val icon: ImageVector)
-private data class TourPage(val title: String, val description: String, val icon: ImageVector)
