@@ -1,247 +1,408 @@
 package ai.coreblow.app.ui.compose
 
-import androidx.compose.animation.*
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import android.Manifest
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.hardware.Sensor
+import android.hardware.SensorManager
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ai.coreblow.app.viewmodel.SettingsViewModel
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import ai.coreblow.app.BuildConfig
+import ai.coreblow.app.LocationMode
+import ai.coreblow.app.MainViewModel
+import ai.coreblow.app.node.DeviceNotificationListenerService
+import ai.coreblow.app.ui.LocalMobileColors
 
 /**
- * Settings bottom sheet with gateway config, capability toggles,
- * voice/TTS settings, debug options, and clear data action.
+ * Full-page settings sheet with sectioned permission management,
+ * lifecycle-aware permission refresh, device info, location mode,
+ * and preference toggles.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsSheet(
-    viewModel: SettingsViewModel,
-    onDismiss: () -> Unit,
-) {
-    val gatewayHost by viewModel.gatewayHost.collectAsState()
-    val gatewayPort by viewModel.gatewayPort.collectAsState()
-    val useTls by viewModel.useTls.collectAsState()
-    val debugMode by viewModel.debugMode.collectAsState()
+fun SettingsSheet(viewModel: MainViewModel) {
+    val colors = LocalMobileColors.current
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val instanceId by viewModel.instanceId.collectAsState()
+    val displayName by viewModel.displayName.collectAsState()
     val cameraEnabled by viewModel.cameraEnabled.collectAsState()
-    val locationEnabled by viewModel.locationEnabled.collectAsState()
-    val smsEnabled by viewModel.smsEnabled.collectAsState()
-    val contactsEnabled by viewModel.contactsEnabled.collectAsState()
-    val calendarEnabled by viewModel.calendarEnabled.collectAsState()
-    val micEnabled by viewModel.micEnabled.collectAsState()
-    val motionEnabled by viewModel.motionEnabled.collectAsState()
-    val deviceModel by viewModel.deviceModel.collectAsState()
-    val appVersion by viewModel.appVersion.collectAsState()
-    val deviceId by viewModel.deviceId.collectAsState()
+    val locationMode by viewModel.locationMode.collectAsState()
+    val locationPreciseEnabled by viewModel.locationPreciseEnabled.collectAsState()
+    val preventSleep by viewModel.preventSleep.collectAsState()
+    val canvasDebugStatusEnabled by viewModel.canvasDebugStatusEnabled.collectAsState()
 
-    var showClearConfirm by remember { mutableStateOf(false) }
-    var expandedSection by remember { mutableStateOf<String?>(null) }
+    val listState = rememberLazyListState()
+    val deviceModel = remember {
+        listOfNotNull(Build.MANUFACTURER, Build.MODEL).joinToString(" ").trim().ifEmpty { "Android" }
+    }
+    val appVersion = remember {
+        val versionName = BuildConfig.VERSION_NAME.trim().ifEmpty { "dev" }
+        if (BuildConfig.DEBUG && !versionName.contains("dev", ignoreCase = true)) "$versionName-dev" else versionName
+    }
+    val listItemColors = ListItemDefaults.colors(
+        containerColor = Color.Transparent,
+        headlineColor = colors.text,
+        supportingColor = colors.textSecondary,
+        trailingIconColor = colors.textSecondary,
+        leadingIconColor = colors.textSecondary,
+    )
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .padding(horizontal = 20.dp, vertical = 8.dp)
-                .padding(bottom = 32.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+    // ── Permission launchers ────────────────────────────
+
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { perms ->
+        viewModel.setCameraEnabled(perms[Manifest.permission.CAMERA] == true)
+    }
+
+    var pendingLocationRequest by remember { mutableStateOf(false) }
+    var pendingPreciseToggle by remember { mutableStateOf(false) }
+    val locationPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { perms ->
+        val fineOk = perms[Manifest.permission.ACCESS_FINE_LOCATION] == true
+        val coarseOk = perms[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        if (pendingPreciseToggle) { pendingPreciseToggle = false; viewModel.setLocationPreciseEnabled(fineOk); return@rememberLauncherForActivityResult }
+        if (pendingLocationRequest) { pendingLocationRequest = false; viewModel.setLocationMode(if (fineOk || coarseOk) LocationMode.WhileUsing else LocationMode.Off) }
+    }
+
+    var micPermissionGranted by remember { mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) }
+    val audioPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { micPermissionGranted = it }
+
+    val smsPermissionAvailable = remember { BuildConfig.COREBLOW_ENABLE_SMS && context.packageManager?.hasSystemFeature(PackageManager.FEATURE_TELEPHONY) == true }
+    val callLogPermissionAvailable = remember { BuildConfig.COREBLOW_ENABLE_CALL_LOG }
+    val photosPermission = if (Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_IMAGES else Manifest.permission.READ_EXTERNAL_STORAGE
+    val motionAvailable = remember(context) { hasMotionCapabilities(context) }
+
+    var notificationsPermissionGranted by remember { mutableStateOf(hasNotificationsPermission(context)) }
+    val notificationsPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { notificationsPermissionGranted = it }
+
+    var notificationListenerEnabled by remember { mutableStateOf(isNotificationListenerEnabled(context)) }
+
+    var photosPermissionGranted by remember { mutableStateOf(ContextCompat.checkSelfPermission(context, photosPermission) == PackageManager.PERMISSION_GRANTED) }
+    val photosPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { photosPermissionGranted = it }
+
+    var contactsPermissionGranted by remember {
+        mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_CONTACTS) == PackageManager.PERMISSION_GRANTED)
+    }
+    val contactsPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { perms ->
+        contactsPermissionGranted = perms[Manifest.permission.READ_CONTACTS] == true && perms[Manifest.permission.WRITE_CONTACTS] == true
+    }
+
+    var calendarPermissionGranted by remember {
+        mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED)
+    }
+    val calendarPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { perms ->
+        calendarPermissionGranted = perms[Manifest.permission.READ_CALENDAR] == true && perms[Manifest.permission.WRITE_CALENDAR] == true
+    }
+
+    var callLogPermissionGranted by remember { mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED) }
+    val callLogPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { callLogPermissionGranted = it }
+
+    var motionPermissionGranted by remember { mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED) }
+    val motionPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { motionPermissionGranted = it }
+
+    var smsPermissionGranted by remember {
+        mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED)
+    }
+    val smsPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { perms ->
+        smsPermissionGranted = perms[Manifest.permission.SEND_SMS] == true && perms[Manifest.permission.READ_SMS] == true
+        viewModel.refreshGatewayConnection()
+    }
+
+    // ── Lifecycle-aware permission refresh ───────────────
+
+    DisposableEffect(lifecycleOwner, context) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                micPermissionGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+                notificationsPermissionGranted = hasNotificationsPermission(context)
+                notificationListenerEnabled = isNotificationListenerEnabled(context)
+                photosPermissionGranted = ContextCompat.checkSelfPermission(context, photosPermission) == PackageManager.PERMISSION_GRANTED
+                contactsPermissionGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_CONTACTS) == PackageManager.PERMISSION_GRANTED
+                calendarPermissionGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED
+                callLogPermissionGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED
+                motionPermissionGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED
+                smsPermissionGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    // ── Helper functions ────────────────────────────────
+
+    fun setCameraEnabledChecked(checked: Boolean) {
+        if (!checked) { viewModel.setCameraEnabled(false); return }
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            viewModel.setCameraEnabled(true)
+        } else {
+            permissionLauncher.launch(arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO))
+        }
+    }
+
+    fun requestLocationPermissions() {
+        val fineOk = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        val coarseOk = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        if (fineOk || coarseOk) { viewModel.setLocationMode(LocationMode.WhileUsing) }
+        else { pendingLocationRequest = true; locationPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)) }
+    }
+
+    fun setPreciseLocationChecked(checked: Boolean) {
+        if (!checked) { viewModel.setLocationPreciseEnabled(false); return }
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            viewModel.setLocationPreciseEnabled(true)
+        } else { pendingPreciseToggle = true; locationPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)) }
+    }
+
+    // ── UI ───────────────────────────────────────────────
+
+    Box(modifier = Modifier.fillMaxSize().background(colors.backgroundGradient)) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxWidth().fillMaxHeight().imePadding().windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            // Header
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Settings, null, Modifier.size(22.dp), tint = MaterialTheme.colorScheme.primary)
-                Spacer(Modifier.width(8.dp))
-                Text("Settings", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.weight(1f))
-                Text("v$appVersion", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-
-            // Gateway section
-            SettingsSectionCard(
-                title = "Gateway Connection",
-                icon = Icons.Default.Dns,
-                expanded = expandedSection == "gateway",
-                onToggle = { expandedSection = if (expandedSection == "gateway") null else "gateway" },
-            ) {
-                OutlinedTextField(
-                    value = gatewayHost,
-                    onValueChange = { viewModel.setGatewayHost(it) },
-                    label = { Text("Host") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    leadingIcon = { Icon(Icons.Default.Computer, null, Modifier.size(18.dp)) },
-                )
-                Spacer(Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            // ── DEVICE ──
+            item { SectionHeader("DEVICE", colors) }
+            item {
+                Column(modifier = Modifier.settingsRowModifier(colors)) {
                     OutlinedTextField(
-                        value = gatewayPort,
-                        onValueChange = { viewModel.setGatewayPort(it) },
-                        label = { Text("Port") },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f),
+                        value = displayName, onValueChange = viewModel::setDisplayName,
+                        label = { Text("Name", style = colors.caption1, color = colors.textSecondary) },
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
+                        textStyle = colors.body.copy(color = colors.text),
+                        colors = settingsTextFieldColors(colors),
                     )
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("TLS", fontSize = 11.sp)
-                        Switch(checked = useTls, onCheckedChange = { viewModel.setUseTls(it) })
-                    }
-                }
-                Spacer(Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilledTonalButton(onClick = { /* test connection */ }, modifier = Modifier.weight(1f)) {
-                        Icon(Icons.Default.NetworkCheck, null, Modifier.size(14.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("Test", fontSize = 12.sp)
-                    }
-                    OutlinedButton(onClick = { /* discover */ }, modifier = Modifier.weight(1f)) {
-                        Icon(Icons.Default.Search, null, Modifier.size(14.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("Discover", fontSize = 12.sp)
+                    HorizontalDivider(color = colors.border)
+                    Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text("$deviceModel · $appVersion", style = colors.callout, color = colors.textSecondary)
+                        Text(instanceId.take(8) + "…", style = colors.caption1.copy(fontFamily = FontFamily.Monospace), color = colors.textTertiary)
                     }
                 }
             }
 
-            // Capabilities section
-            SettingsSectionCard(
-                title = "Device Capabilities",
-                icon = Icons.Default.PhoneAndroid,
-                expanded = expandedSection == "capabilities",
-                onToggle = { expandedSection = if (expandedSection == "capabilities") null else "capabilities" },
-            ) {
-                CapToggle("Camera", Icons.Default.CameraAlt, cameraEnabled) { viewModel.setCapability("camera", it) }
-                CapToggle("Location", Icons.Default.LocationOn, locationEnabled) { viewModel.setCapability("location", it) }
-                CapToggle("SMS", Icons.Default.Sms, smsEnabled) { viewModel.setCapability("sms", it) }
-                CapToggle("Contacts", Icons.Default.Contacts, contactsEnabled) { viewModel.setCapability("contacts", it) }
-                CapToggle("Calendar", Icons.Default.CalendarMonth, calendarEnabled) { viewModel.setCapability("calendar", it) }
-                CapToggle("Microphone", Icons.Default.Mic, micEnabled) { viewModel.setCapability("microphone", it) }
-                CapToggle("Motion", Icons.Default.DirectionsRun, motionEnabled) { viewModel.setCapability("motion", it) }
+            // ── MEDIA ──
+            item { SectionHeader("MEDIA", colors) }
+            item {
+                Column(modifier = Modifier.settingsRowModifier(colors)) {
+                    PermissionRow("Microphone", if (micPermissionGranted) "Granted" else "Required for voice transcription.", micPermissionGranted, listItemColors, colors,
+                        onClick = { if (micPermissionGranted) openAppSettings(context) else audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO) })
+                    HorizontalDivider(color = colors.border)
+                    ListItem(modifier = Modifier.fillMaxWidth(), colors = listItemColors,
+                        headlineContent = { Text("Camera", style = colors.headline) },
+                        supportingContent = { Text("Photos and video clips (foreground only).", style = colors.callout) },
+                        trailingContent = { Switch(checked = cameraEnabled, onCheckedChange = ::setCameraEnabledChecked) })
+                }
             }
 
-            // Voice & TTS section
-            SettingsSectionCard(
-                title = "Voice & TTS",
-                icon = Icons.Default.RecordVoiceOver,
-                expanded = expandedSection == "voice",
-                onToggle = { expandedSection = if (expandedSection == "voice") null else "voice" },
-            ) {
-                SettingsInfoRow("Wake Word", "\"Hey CoreBlow\"")
-                SettingsInfoRow("TTS Voice", "Alloy")
-                SettingsInfoRow("TTS Speed", "1.0x")
-                SettingsInfoRow("Language", "Auto")
+            // ── NOTIFICATIONS ──
+            item { SectionHeader("NOTIFICATIONS", colors) }
+            item {
+                Column(modifier = Modifier.settingsRowModifier(colors)) {
+                    PermissionRow("System Notifications", "Alerts and foreground service.", notificationsPermissionGranted, listItemColors, colors,
+                        onClick = { if (notificationsPermissionGranted || Build.VERSION.SDK_INT < 33) openAppSettings(context) else notificationsPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) })
+                    HorizontalDivider(color = colors.border)
+                    PermissionRow("Notification Listener", "Read and interact with notifications.", notificationListenerEnabled, listItemColors, colors,
+                        buttonLabel = if (notificationListenerEnabled) "Manage" else "Enable",
+                        onClick = { openNotificationListenerSettings(context) })
+                    if (smsPermissionAvailable) {
+                        HorizontalDivider(color = colors.border)
+                        PermissionRow("SMS", "Send and search SMS from this device.", smsPermissionGranted, listItemColors, colors,
+                            onClick = { if (smsPermissionGranted) openAppSettings(context) else smsPermissionLauncher.launch(arrayOf(Manifest.permission.SEND_SMS, Manifest.permission.READ_SMS)) })
+                    }
+                }
             }
 
-            // Debug section
-            SettingsSectionCard(
-                title = "Developer",
-                icon = Icons.Default.Code,
-                expanded = expandedSection == "debug",
-                onToggle = { expandedSection = if (expandedSection == "debug") null else "debug" },
-            ) {
-                CapToggle("Debug Mode", Icons.Default.BugReport, debugMode) { viewModel.setDebugMode(it) }
-                SettingsInfoRow("Device", deviceModel)
-                SettingsInfoRow("Version", appVersion)
-                SettingsInfoRow("Device ID", deviceId.take(12) + "…")
-                SettingsInfoRow("Protocol", "1.0.0")
+            // ── DATA ACCESS ──
+            item { SectionHeader("DATA ACCESS", colors) }
+            item {
+                Column(modifier = Modifier.settingsRowModifier(colors)) {
+                    PermissionRow("Photos", "Access recent photos.", photosPermissionGranted, listItemColors, colors,
+                        onClick = { if (photosPermissionGranted) openAppSettings(context) else photosPermissionLauncher.launch(photosPermission) })
+                    HorizontalDivider(color = colors.border)
+                    PermissionRow("Contacts", "Search and add contacts.", contactsPermissionGranted, listItemColors, colors,
+                        onClick = { if (contactsPermissionGranted) openAppSettings(context) else contactsPermissionLauncher.launch(arrayOf(Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS)) })
+                    HorizontalDivider(color = colors.border)
+                    PermissionRow("Calendar", "Read and create events.", calendarPermissionGranted, listItemColors, colors,
+                        onClick = { if (calendarPermissionGranted) openAppSettings(context) else calendarPermissionLauncher.launch(arrayOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR)) })
+                    if (callLogPermissionAvailable) {
+                        HorizontalDivider(color = colors.border)
+                        PermissionRow("Call Log", "Search recent call history.", callLogPermissionGranted, listItemColors, colors,
+                            onClick = { if (callLogPermissionGranted) openAppSettings(context) else callLogPermissionLauncher.launch(Manifest.permission.READ_CALL_LOG) })
+                    }
+                    if (motionAvailable) {
+                        HorizontalDivider(color = colors.border)
+                        PermissionRow("Motion", "Track steps and activity.", motionPermissionGranted, listItemColors, colors,
+                            onClick = { if (motionPermissionGranted) openAppSettings(context) else motionPermissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION) })
+                    }
+                }
             }
 
-            // Danger zone
-            if (showClearConfirm) {
-                AlertDialog(
-                    onDismissRequest = { showClearConfirm = false },
-                    title = { Text("Clear All Data?") },
-                    text = { Text("This will remove all conversations, settings, and cached data. This cannot be undone.") },
-                    confirmButton = {
-                        Button(
-                            onClick = { viewModel.clearAllData(); showClearConfirm = false; onDismiss() },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                        ) { Text("Clear Everything") }
-                    },
-                    dismissButton = { TextButton(onClick = { showClearConfirm = false }) { Text("Cancel") } },
-                )
+            // ── LOCATION ──
+            item { SectionHeader("LOCATION", colors) }
+            item {
+                Column(modifier = Modifier.settingsRowModifier(colors)) {
+                    ListItem(modifier = Modifier.fillMaxWidth(), colors = listItemColors,
+                        headlineContent = { Text("Off", style = colors.headline) },
+                        supportingContent = { Text("Disable location sharing.", style = colors.callout) },
+                        trailingContent = { RadioButton(selected = locationMode == LocationMode.Off, onClick = { viewModel.setLocationMode(LocationMode.Off) }) })
+                    HorizontalDivider(color = colors.border)
+                    ListItem(modifier = Modifier.fillMaxWidth(), colors = listItemColors,
+                        headlineContent = { Text("While Using", style = colors.headline) },
+                        supportingContent = { Text("Only while CoreBlow is open.", style = colors.callout) },
+                        trailingContent = { RadioButton(selected = locationMode == LocationMode.WhileUsing, onClick = { requestLocationPermissions() }) })
+                    HorizontalDivider(color = colors.border)
+                    ListItem(modifier = Modifier.fillMaxWidth(), colors = listItemColors,
+                        headlineContent = { Text("Precise Location", style = colors.headline) },
+                        supportingContent = { Text("Use precise GPS when available.", style = colors.callout) },
+                        trailingContent = { Switch(checked = locationPreciseEnabled, onCheckedChange = ::setPreciseLocationChecked, enabled = locationMode != LocationMode.Off) })
+                }
             }
 
-            OutlinedButton(
-                onClick = { showClearConfirm = true },
-                shape = RoundedCornerShape(10.dp),
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-            ) {
-                Icon(Icons.Default.DeleteForever, null, Modifier.size(16.dp))
-                Spacer(Modifier.width(8.dp))
-                Text("Clear All Data")
+            // ── PREFERENCES ──
+            item { SectionHeader("PREFERENCES", colors) }
+            item {
+                Column(modifier = Modifier.settingsRowModifier(colors)) {
+                    ListItem(modifier = Modifier.fillMaxWidth(), colors = listItemColors,
+                        headlineContent = { Text("Prevent Sleep", style = colors.headline) },
+                        supportingContent = { Text("Keep screen awake while open.", style = colors.callout) },
+                        trailingContent = { Switch(checked = preventSleep, onCheckedChange = viewModel::setPreventSleep) })
+                    HorizontalDivider(color = colors.border)
+                    ListItem(modifier = Modifier.fillMaxWidth(), colors = listItemColors,
+                        headlineContent = { Text("Debug Canvas", style = colors.headline) },
+                        supportingContent = { Text("Show status overlay on canvas.", style = colors.callout) },
+                        trailingContent = { Switch(checked = canvasDebugStatusEnabled, onCheckedChange = viewModel::setCanvasDebugStatusEnabled) })
+                }
             }
+
+            item { Spacer(modifier = Modifier.height(24.dp)) }
         }
     }
 }
 
-// ============================================================
-// Reusable components
-// ============================================================
+// ── Supporting composables ──────────────────────────────
 
 @Composable
-private fun SettingsSectionCard(
-    title: String,
-    icon: ImageVector,
-    expanded: Boolean = true,
-    onToggle: () -> Unit = {},
-    content: @Composable ColumnScope.() -> Unit,
+private fun SectionHeader(title: String, colors: ai.coreblow.app.ui.MobileColors) {
+    Text(title, style = colors.caption1.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp), color = colors.accent)
+}
+
+@Composable
+private fun PermissionRow(
+    title: String, subtitle: String, granted: Boolean,
+    listItemColors: androidx.compose.material3.ListItemColors,
+    colors: ai.coreblow.app.ui.MobileColors,
+    buttonLabel: String = if (granted) "Manage" else "Grant",
+    onClick: () -> Unit,
 ) {
-    Card(shape = RoundedCornerShape(12.dp)) {
-        Column(Modifier.padding(14.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(icon, null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
-                    Spacer(Modifier.width(6.dp))
-                    Text(title, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
-                }
-                IconButton(onClick = onToggle, modifier = Modifier.size(24.dp)) {
-                    Icon(
-                        if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                        "Toggle",
-                        Modifier.size(18.dp),
-                    )
-                }
+    ListItem(
+        modifier = Modifier.fillMaxWidth(), colors = listItemColors,
+        headlineContent = { Text(title, style = colors.headline) },
+        supportingContent = { Text(subtitle, style = colors.callout) },
+        trailingContent = {
+            Button(onClick = onClick, colors = settingsPrimaryButtonColors(colors), shape = RoundedCornerShape(14.dp)) {
+                Text(buttonLabel, style = colors.callout.copy(fontWeight = FontWeight.Bold))
             }
-            AnimatedVisibility(visible = expanded) {
-                Column(Modifier.padding(top = 8.dp)) { content() }
-            }
-        }
-    }
+        },
+    )
 }
 
 @Composable
-private fun CapToggle(label: String, icon: ImageVector, checked: Boolean, onChanged: (Boolean) -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().padding(vertical = 2.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.width(6.dp))
-            Text(label, fontSize = 13.sp)
-        }
-        Switch(checked = checked, onCheckedChange = onChanged, modifier = Modifier.height(28.dp))
-    }
-}
+private fun settingsTextFieldColors(colors: ai.coreblow.app.ui.MobileColors) =
+    OutlinedTextFieldDefaults.colors(
+        focusedContainerColor = colors.surface, unfocusedContainerColor = colors.surface,
+        focusedBorderColor = colors.accent, unfocusedBorderColor = colors.border,
+        focusedTextColor = colors.text, unfocusedTextColor = colors.text, cursorColor = colors.accent,
+    )
 
 @Composable
-private fun SettingsInfoRow(label: String, value: String) {
-    Row(
-        Modifier.fillMaxWidth().padding(vertical = 2.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, fontSize = 12.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-    }
+private fun Modifier.settingsRowModifier(colors: ai.coreblow.app.ui.MobileColors) = this
+    .fillMaxWidth()
+    .border(width = 1.dp, color = colors.border, shape = RoundedCornerShape(14.dp))
+    .background(colors.cardSurface, RoundedCornerShape(14.dp))
+
+@Composable
+private fun settingsPrimaryButtonColors(colors: ai.coreblow.app.ui.MobileColors) = ButtonDefaults.buttonColors(
+    containerColor = colors.accent, contentColor = Color.White,
+    disabledContainerColor = colors.accent.copy(alpha = 0.45f), disabledContentColor = Color.White.copy(alpha = 0.9f),
+)
+
+// ── Utility functions ───────────────────────────────────
+
+private fun openAppSettings(context: Context) {
+    context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null)))
+}
+
+private fun openNotificationListenerSettings(context: Context) {
+    runCatching { context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }.getOrElse { openAppSettings(context) }
+}
+
+private fun hasNotificationsPermission(context: Context): Boolean {
+    if (Build.VERSION.SDK_INT < 33) return true
+    return ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+}
+
+private fun isNotificationListenerEnabled(context: Context): Boolean = DeviceNotificationListenerService.isAccessEnabled(context)
+
+private fun hasMotionCapabilities(context: Context): Boolean {
+    val sensorManager = context.getSystemService(SensorManager::class.java) ?: return false
+    return sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null || sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER) != null
 }

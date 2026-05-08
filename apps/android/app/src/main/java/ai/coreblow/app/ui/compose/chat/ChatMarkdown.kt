@@ -1,237 +1,369 @@
 package ai.coreblow.app.ui.compose.chat
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ai.coreblow.app.ui.LocalMobileColors
+import org.commonmark.Extension
+import org.commonmark.ext.autolink.AutolinkExtension
+import org.commonmark.ext.gfm.strikethrough.Strikethrough
+import org.commonmark.ext.gfm.strikethrough.StrikethroughExtension
+import org.commonmark.ext.gfm.tables.TableBlock
+import org.commonmark.ext.gfm.tables.TableBody
+import org.commonmark.ext.gfm.tables.TableCell
+import org.commonmark.ext.gfm.tables.TableHead
+import org.commonmark.ext.gfm.tables.TableRow
+import org.commonmark.ext.gfm.tables.TablesExtension
+import org.commonmark.ext.task.list.items.TaskListItemMarker
+import org.commonmark.ext.task.list.items.TaskListItemsExtension
+import org.commonmark.node.BlockQuote
+import org.commonmark.node.BulletList
+import org.commonmark.node.Code
+import org.commonmark.node.Document
+import org.commonmark.node.Emphasis
+import org.commonmark.node.FencedCodeBlock
+import org.commonmark.node.Heading
+import org.commonmark.node.HardLineBreak
+import org.commonmark.node.HtmlBlock
+import org.commonmark.node.HtmlInline
+import org.commonmark.node.Image as MarkdownImage
+import org.commonmark.node.IndentedCodeBlock
+import org.commonmark.node.Link
+import org.commonmark.node.ListItem
+import org.commonmark.node.Node
+import org.commonmark.node.OrderedList
+import org.commonmark.node.Paragraph
+import org.commonmark.node.SoftLineBreak
+import org.commonmark.node.StrongEmphasis
+import org.commonmark.node.Text as MarkdownTextNode
+import org.commonmark.node.ThematicBreak
+import org.commonmark.parser.Parser
 
-/**
- * Renders markdown-flavored chat text with inline code, bold, italic,
- * code blocks, headers, lists, and links.
- */
+private const val LIST_INDENT_DP = 14
+private val dataImageRegex = Regex("^data:image/([a-zA-Z0-9+.-]+);base64,([A-Za-z0-9+/=\\n\\r]+)$")
+
+// ── Parser singleton ────────────────────────────────────
+
+private val markdownParser: Parser by lazy {
+    val extensions: List<Extension> = listOf(
+        AutolinkExtension.create(),
+        StrikethroughExtension.create(),
+        TablesExtension.create(),
+        TaskListItemsExtension.create(),
+    )
+    Parser.builder().extensions(extensions).build()
+}
+
+// ── Public composable ───────────────────────────────────
+
 @Composable
-fun ChatMarkdown(
-    text: String,
-    modifier: Modifier = Modifier,
-    isAssistant: Boolean = false,
+fun ChatMarkdown(text: String, textColor: Color) {
+    val colors = LocalMobileColors.current
+    val document = remember(text) { markdownParser.parse(text) as Document }
+    val inlineStyles = InlineStyles(
+        inlineCodeBg = colors.codeBg,
+        inlineCodeColor = colors.codeText,
+        linkColor = colors.accent,
+        baseCallout = colors.callout,
+    )
+
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        RenderMarkdownBlocks(
+            start = document.firstChild,
+            textColor = textColor,
+            inlineStyles = inlineStyles,
+            listDepth = 0,
+        )
+    }
+}
+
+// ── Block renderer ──────────────────────────────────────
+
+@Composable
+private fun RenderMarkdownBlocks(
+    start: Node?,
+    textColor: Color,
+    inlineStyles: InlineStyles,
+    listDepth: Int,
 ) {
-    val parsed = remember(text) { parseMarkdown(text) }
+    val colors = LocalMobileColors.current
+    var node = start
+    while (node != null) {
+        val current = node
+        when (current) {
+            is Paragraph -> RenderParagraph(current, textColor, inlineStyles)
+            is Heading -> {
+                val headingText = remember(current) { buildInlineMarkdown(current.firstChild, inlineStyles) }
+                Text(text = headingText, style = headingStyle(current.level, inlineStyles.baseCallout), color = textColor)
+            }
+            is FencedCodeBlock -> {
+                SelectionContainer(modifier = Modifier.fillMaxWidth()) {
+                    ChatCodeBlock(code = current.literal.orEmpty(), language = current.info?.trim()?.ifEmpty { null })
+                }
+            }
+            is IndentedCodeBlock -> {
+                SelectionContainer(modifier = Modifier.fillMaxWidth()) {
+                    ChatCodeBlock(code = current.literal.orEmpty(), language = null)
+                }
+            }
+            is BlockQuote -> {
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min).padding(vertical = 2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    Box(modifier = Modifier.width(2.dp).fillMaxHeight().background(colors.textSecondary.copy(alpha = 0.35f)))
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        RenderMarkdownBlocks(start = current.firstChild, textColor = textColor, inlineStyles = inlineStyles, listDepth = listDepth)
+                    }
+                }
+            }
+            is BulletList -> RenderBulletList(current, textColor, inlineStyles, listDepth)
+            is OrderedList -> RenderOrderedList(current, textColor, inlineStyles, listDepth)
+            is TableBlock -> RenderTableBlock(current, textColor, inlineStyles)
+            is ThematicBreak -> {
+                Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(colors.textSecondary.copy(alpha = 0.25f)))
+            }
+            is HtmlBlock -> {
+                val literal = current.literal.orEmpty().trim()
+                if (literal.isNotEmpty()) {
+                    Text(text = literal, style = inlineStyles.baseCallout.copy(fontFamily = FontFamily.Monospace), color = textColor)
+                }
+            }
+        }
+        node = current.next
+    }
+}
 
-    SelectionContainer {
-        Column(modifier = modifier) {
-            for (block in parsed) {
-                when (block) {
-                    is MarkdownBlock.Paragraph -> {
-                        Text(
-                            text = block.annotated,
-                            fontSize = 14.sp,
-                            lineHeight = 20.sp,
-                            color = if (isAssistant) MaterialTheme.colorScheme.onSurface
-                                    else MaterialTheme.colorScheme.onPrimaryContainer,
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                    }
-                    is MarkdownBlock.CodeBlock -> {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
-                                .padding(12.dp),
-                        ) {
-                            Text(
-                                text = block.code,
-                                fontFamily = FontFamily.Monospace,
-                                fontSize = 12.sp,
-                                lineHeight = 16.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                    is MarkdownBlock.Header -> {
-                        Text(
-                            text = block.text,
-                            fontSize = when (block.level) {
-                                1 -> 20.sp; 2 -> 18.sp; 3 -> 16.sp; else -> 14.sp
-                            },
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                    is MarkdownBlock.ListItem -> {
-                        Row(modifier = Modifier.padding(start = 8.dp, bottom = 4.dp)) {
-                            Text(
-                                text = if (block.ordered) "${block.index}. " else "• ",
-                                fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                            Text(
-                                text = block.annotated,
-                                fontSize = 14.sp,
-                                lineHeight = 20.sp,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                        }
-                    }
-                    is MarkdownBlock.Divider -> {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(1.dp)
-                                .background(MaterialTheme.colorScheme.outlineVariant),
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                    }
+// ── Paragraph ───────────────────────────────────────────
+
+@Composable
+private fun RenderParagraph(paragraph: Paragraph, textColor: Color, inlineStyles: InlineStyles) {
+    val standaloneImage = remember(paragraph) { standaloneDataImage(paragraph) }
+    if (standaloneImage != null) {
+        InlineBase64Image(base64 = standaloneImage.base64, mimeType = standaloneImage.mimeType)
+        return
+    }
+    val annotated = remember(paragraph) { buildInlineMarkdown(paragraph.firstChild, inlineStyles) }
+    if (annotated.text.trimEnd().isEmpty()) return
+    Text(text = annotated, style = inlineStyles.baseCallout, color = textColor)
+}
+
+// ── Lists ───────────────────────────────────────────────
+
+@Composable
+private fun RenderBulletList(list: BulletList, textColor: Color, inlineStyles: InlineStyles, listDepth: Int) {
+    Column(modifier = Modifier.padding(start = (LIST_INDENT_DP * listDepth).dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        var item = list.firstChild
+        while (item != null) {
+            if (item is ListItem) RenderListItem(item, "•", textColor, inlineStyles, listDepth)
+            item = item.next
+        }
+    }
+}
+
+@Composable
+private fun RenderOrderedList(list: OrderedList, textColor: Color, inlineStyles: InlineStyles, listDepth: Int) {
+    Column(modifier = Modifier.padding(start = (LIST_INDENT_DP * listDepth).dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        var index = list.markerStartNumber ?: 1
+        var item = list.firstChild
+        while (item != null) {
+            if (item is ListItem) { RenderListItem(item, "$index.", textColor, inlineStyles, listDepth); index++ }
+            item = item.next
+        }
+    }
+}
+
+@Composable
+private fun RenderListItem(item: ListItem, markerText: String, textColor: Color, inlineStyles: InlineStyles, listDepth: Int) {
+    var contentStart = item.firstChild
+    var marker = markerText
+    val task = contentStart as? TaskListItemMarker
+    if (task != null) { marker = if (task.isChecked) "☑" else "☐"; contentStart = task.next }
+
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
+        Text(text = marker, style = inlineStyles.baseCallout.copy(fontWeight = FontWeight.SemiBold), color = textColor, modifier = Modifier.width(24.dp))
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            RenderMarkdownBlocks(start = contentStart, textColor = textColor, inlineStyles = inlineStyles, listDepth = listDepth + 1)
+        }
+    }
+}
+
+// ── Tables ──────────────────────────────────────────────
+
+@Composable
+private fun RenderTableBlock(table: TableBlock, textColor: Color, inlineStyles: InlineStyles) {
+    val colors = LocalMobileColors.current
+    val rows = remember(table) { buildTableRows(table, inlineStyles) }
+    if (rows.isEmpty()) return
+
+    val maxCols = rows.maxOf { it.cells.size }.coerceAtLeast(1)
+    val scrollState = rememberScrollState()
+
+    Column(modifier = Modifier.fillMaxWidth().horizontalScroll(scrollState).border(1.dp, colors.textSecondary.copy(alpha = 0.25f))) {
+        for (row in rows) {
+            Row(modifier = Modifier.fillMaxWidth()) {
+                for (index in 0 until maxCols) {
+                    val cell = row.cells.getOrNull(index) ?: AnnotatedString("")
+                    Text(
+                        text = cell,
+                        style = if (row.isHeader) colors.caption1.copy(fontWeight = FontWeight.SemiBold) else inlineStyles.baseCallout,
+                        color = textColor,
+                        modifier = Modifier.border(1.dp, colors.textSecondary.copy(alpha = 0.22f)).padding(horizontal = 8.dp, vertical = 6.dp).width(160.dp),
+                    )
                 }
             }
         }
     }
 }
 
-// MARK: - Parser
-
-internal sealed class MarkdownBlock {
-    data class Paragraph(val annotated: AnnotatedString) : MarkdownBlock()
-    data class CodeBlock(val code: String, val language: String?) : MarkdownBlock()
-    data class Header(val text: String, val level: Int) : MarkdownBlock()
-    data class ListItem(val annotated: AnnotatedString, val ordered: Boolean, val index: Int) : MarkdownBlock()
-    object Divider : MarkdownBlock()
-}
-
-internal fun parseMarkdown(raw: String): List<MarkdownBlock> {
-    val blocks = mutableListOf<MarkdownBlock>()
-    val lines = raw.lines()
-    var i = 0
-
-    while (i < lines.size) {
-        val line = lines[i]
-
-        // Fenced code block
-        if (line.trimStart().startsWith("```")) {
-            val lang = line.trimStart().removePrefix("```").trim().takeIf { it.isNotEmpty() }
-            val codeLines = mutableListOf<String>()
-            i++
-            while (i < lines.size && !lines[i].trimStart().startsWith("```")) {
-                codeLines.add(lines[i])
-                i++
-            }
-            if (i < lines.size) i++ // skip closing ```
-            blocks.add(MarkdownBlock.CodeBlock(codeLines.joinToString("\n"), lang))
-            continue
+private fun buildTableRows(table: TableBlock, inlineStyles: InlineStyles): List<TableRenderRow> {
+    val rows = mutableListOf<TableRenderRow>()
+    var child = table.firstChild
+    while (child != null) {
+        when (child) {
+            is TableHead -> rows.addAll(readTableSection(child, isHeader = true, inlineStyles))
+            is TableBody -> rows.addAll(readTableSection(child, isHeader = false, inlineStyles))
+            is TableRow -> rows.add(readTableRow(child, isHeader = false, inlineStyles))
         }
-
-        // Header
-        val headerMatch = Regex("^(#{1,4})\\s+(.+)").find(line)
-        if (headerMatch != null) {
-            val level = headerMatch.groupValues[1].length
-            val text = headerMatch.groupValues[2].trim()
-            blocks.add(MarkdownBlock.Header(text, level))
-            i++
-            continue
-        }
-
-        // Divider
-        if (line.trim().matches(Regex("^[-*_]{3,}$"))) {
-            blocks.add(MarkdownBlock.Divider)
-            i++
-            continue
-        }
-
-        // Unordered list
-        val ulMatch = Regex("^\\s*[-*+]\\s+(.+)").find(line)
-        if (ulMatch != null) {
-            blocks.add(MarkdownBlock.ListItem(parseInline(ulMatch.groupValues[1]), ordered = false, index = 0))
-            i++
-            continue
-        }
-
-        // Ordered list
-        val olMatch = Regex("^\\s*(\\d+)[.)\\s]+(.+)").find(line)
-        if (olMatch != null) {
-            blocks.add(MarkdownBlock.ListItem(parseInline(olMatch.groupValues[2]), ordered = true, index = olMatch.groupValues[1].toIntOrNull() ?: 1))
-            i++
-            continue
-        }
-
-        // Blank line
-        if (line.isBlank()) {
-            i++
-            continue
-        }
-
-        // Paragraph
-        val paraLines = mutableListOf(line)
-        i++
-        while (i < lines.size && lines[i].isNotBlank() && !lines[i].trimStart().startsWith("```") && !lines[i].trimStart().startsWith("#")) {
-            paraLines.add(lines[i])
-            i++
-        }
-        blocks.add(MarkdownBlock.Paragraph(parseInline(paraLines.joinToString(" "))))
+        child = child.next
     }
-
-    return blocks
+    return rows
 }
 
-internal fun parseInline(text: String): AnnotatedString {
+private fun readTableSection(section: Node, isHeader: Boolean, inlineStyles: InlineStyles): List<TableRenderRow> {
+    val rows = mutableListOf<TableRenderRow>()
+    var row = section.firstChild
+    while (row != null) { if (row is TableRow) rows.add(readTableRow(row, isHeader, inlineStyles)); row = row.next }
+    return rows
+}
+
+private fun readTableRow(row: TableRow, isHeader: Boolean, inlineStyles: InlineStyles): TableRenderRow {
+    val cells = mutableListOf<AnnotatedString>()
+    var cellNode = row.firstChild
+    while (cellNode != null) { if (cellNode is TableCell) cells.add(buildInlineMarkdown(cellNode.firstChild, inlineStyles)); cellNode = cellNode.next }
+    return TableRenderRow(isHeader = isHeader, cells = cells)
+}
+
+// ── Inline markdown ─────────────────────────────────────
+
+private fun buildInlineMarkdown(start: Node?, inlineStyles: InlineStyles): AnnotatedString {
     return buildAnnotatedString {
-        var remaining = text
-        while (remaining.isNotEmpty()) {
-            // Bold **text**
-            val boldMatch = Regex("^\\*\\*(.+?)\\*\\*").find(remaining)
-            if (boldMatch != null) {
-                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(boldMatch.groupValues[1]) }
-                remaining = remaining.removePrefix(boldMatch.value)
-                continue
-            }
+        appendInlineNode(node = start, inlineCodeBg = inlineStyles.inlineCodeBg, inlineCodeColor = inlineStyles.inlineCodeColor, linkColor = inlineStyles.linkColor)
+    }
+}
 
-            // Italic *text*
-            val italicMatch = Regex("^\\*(.+?)\\*").find(remaining)
-            if (italicMatch != null) {
-                withStyle(SpanStyle(fontStyle = FontStyle.Italic)) { append(italicMatch.groupValues[1]) }
-                remaining = remaining.removePrefix(italicMatch.value)
-                continue
+private fun AnnotatedString.Builder.appendInlineNode(node: Node?, inlineCodeBg: Color, inlineCodeColor: Color, linkColor: Color) {
+    var current = node
+    while (current != null) {
+        when (current) {
+            is MarkdownTextNode -> append(current.literal)
+            is SoftLineBreak -> append('\n')
+            is HardLineBreak -> append('\n')
+            is Code -> withStyle(SpanStyle(fontFamily = FontFamily.Monospace, background = inlineCodeBg, color = inlineCodeColor)) { append(current.literal) }
+            is Emphasis -> withStyle(SpanStyle(fontStyle = FontStyle.Italic)) { appendInlineNode(current.firstChild, inlineCodeBg, inlineCodeColor, linkColor) }
+            is StrongEmphasis -> withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) { appendInlineNode(current.firstChild, inlineCodeBg, inlineCodeColor, linkColor) }
+            is Strikethrough -> withStyle(SpanStyle(textDecoration = TextDecoration.LineThrough)) { appendInlineNode(current.firstChild, inlineCodeBg, inlineCodeColor, linkColor) }
+            is Link -> withStyle(SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline)) { appendInlineNode(current.firstChild, inlineCodeBg, inlineCodeColor, linkColor) }
+            is MarkdownImage -> {
+                val alt = buildPlainText(current.firstChild)
+                append(alt.ifBlank { "image" })
             }
-
-            // Inline code `code`
-            val codeMatch = Regex("^`([^`]+)`").find(remaining)
-            if (codeMatch != null) {
-                withStyle(SpanStyle(fontFamily = FontFamily.Monospace, background = Color(0x20808080))) {
-                    append(codeMatch.groupValues[1])
-                }
-                remaining = remaining.removePrefix(codeMatch.value)
-                continue
-            }
-
-            // Link [text](url)
-            val linkMatch = Regex("^\\[(.+?)]\\((.+?)\\)").find(remaining)
-            if (linkMatch != null) {
-                withStyle(SpanStyle(color = Color(0xFF4A90D9))) { append(linkMatch.groupValues[1]) }
-                remaining = remaining.removePrefix(linkMatch.value)
-                continue
-            }
-
-            // Plain char
-            append(remaining[0])
-            remaining = remaining.drop(1)
+            is HtmlInline -> if (!current.literal.isNullOrBlank()) append(current.literal)
+            else -> appendInlineNode(current.firstChild, inlineCodeBg, inlineCodeColor, linkColor)
         }
+        current = current.next
+    }
+}
+
+private fun buildPlainText(start: Node?): String {
+    val sb = StringBuilder()
+    var node = start
+    while (node != null) {
+        when (node) {
+            is MarkdownTextNode -> sb.append(node.literal)
+            is SoftLineBreak, is HardLineBreak -> sb.append('\n')
+            else -> sb.append(buildPlainText(node.firstChild))
+        }
+        node = node.next
+    }
+    return sb.toString()
+}
+
+// ── Data image support ──────────────────────────────────
+
+private fun standaloneDataImage(paragraph: Paragraph): ParsedDataImage? {
+    val only = paragraph.firstChild as? MarkdownImage ?: return null
+    if (only.next != null) return null
+    return parseDataImageDestination(only.destination)
+}
+
+private fun parseDataImageDestination(destination: String?): ParsedDataImage? {
+    val raw = destination?.trim().orEmpty()
+    if (raw.isEmpty()) return null
+    val match = dataImageRegex.matchEntire(raw) ?: return null
+    val subtype = match.groupValues.getOrNull(1)?.trim()?.ifEmpty { "png" } ?: "png"
+    val base64 = match.groupValues.getOrNull(2)?.replace("\n", "")?.replace("\r", "")?.trim().orEmpty()
+    if (base64.isEmpty()) return null
+    return ParsedDataImage(mimeType = "image/$subtype", base64 = base64)
+}
+
+// ── Heading styles ──────────────────────────────────────
+
+private fun headingStyle(level: Int, baseCallout: TextStyle): TextStyle = when (level.coerceIn(1, 6)) {
+    1 -> baseCallout.copy(fontSize = 22.sp, lineHeight = 28.sp, fontWeight = FontWeight.Bold)
+    2 -> baseCallout.copy(fontSize = 20.sp, lineHeight = 26.sp, fontWeight = FontWeight.Bold)
+    3 -> baseCallout.copy(fontSize = 18.sp, lineHeight = 24.sp, fontWeight = FontWeight.SemiBold)
+    4 -> baseCallout.copy(fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.SemiBold)
+    else -> baseCallout.copy(fontWeight = FontWeight.SemiBold)
+}
+
+// ── Supporting types ────────────────────────────────────
+
+private data class InlineStyles(val inlineCodeBg: Color, val inlineCodeColor: Color, val linkColor: Color, val baseCallout: TextStyle)
+private data class TableRenderRow(val isHeader: Boolean, val cells: List<AnnotatedString>)
+private data class ParsedDataImage(val mimeType: String, val base64: String)
+
+@Composable
+private fun InlineBase64Image(base64: String, mimeType: String?) {
+    val colors = LocalMobileColors.current
+    val imageState = rememberBase64ImageState(base64)
+    val image = imageState.image
+
+    if (image != null) {
+        Image(bitmap = image!!, contentDescription = mimeType ?: "image", contentScale = ContentScale.Fit, modifier = Modifier.fillMaxWidth())
+    } else if (imageState.failed) {
+        Text(text = "Image unavailable", modifier = Modifier.padding(vertical = 2.dp), style = colors.caption1, color = colors.textSecondary)
     }
 }
