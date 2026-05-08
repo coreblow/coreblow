@@ -19,7 +19,7 @@ data class NodeRuntimeFlags(
 )
 
 /**
- * Availability condition for a command or capability.
+ * Availability condition for a command.
  */
 enum class CommandAvailability {
     ALWAYS,
@@ -28,30 +28,41 @@ enum class CommandAvailability {
     SMS_SEND_AVAILABLE,
     SMS_READ_AVAILABLE,
     CALL_LOG_AVAILABLE,
-    MOTION_AVAILABLE,
+    MOTION_ACTIVITY_AVAILABLE,
+    MOTION_PEDOMETER_AVAILABLE,
     NOTIFICATIONS_AVAILABLE,
     VOICE_WAKE_ENABLED,
     DEBUG_BUILD,
 }
 
 /**
+ * Availability condition for a node capability advertisement.
+ */
+enum class CapabilityAvailability {
+    ALWAYS,
+    CAMERA_ENABLED,
+    LOCATION_ENABLED,
+    SMS_AVAILABLE,
+    CALL_LOG_AVAILABLE,
+    VOICE_WAKE_ENABLED,
+    MOTION_AVAILABLE,
+}
+
+/**
  * Registration entry for a node command.
  */
 data class CommandEntry(
-    val namespace: String,
-    val command: String,
+    val name: String,
+    val requiresForeground: Boolean = false,
     val availability: CommandAvailability = CommandAvailability.ALWAYS,
-) {
-    /** Full qualified command name: "namespace.command" */
-    val fullName: String get() = "$namespace.$command"
-}
+)
 
 /**
  * Registration entry for a node capability.
  */
 data class CapabilityEntry(
     val capability: String,
-    val availability: CommandAvailability = CommandAvailability.ALWAYS,
+    val availability: CapabilityAvailability = CapabilityAvailability.ALWAYS,
 )
 
 /**
@@ -62,82 +73,105 @@ data class CapabilityEntry(
  */
 object InvokeCommandRegistry {
 
-    private val capabilities = listOf(
+    val capabilityManifest: List<CapabilityEntry> = listOf(
+        CapabilityEntry(CoreBlowProtocol.CAP_CANVAS),
         CapabilityEntry(CoreBlowProtocol.CAP_DEVICE),
+        CapabilityEntry(CoreBlowProtocol.CAP_NOTIFICATIONS, CapabilityAvailability.ALWAYS),
         CapabilityEntry(CoreBlowProtocol.CAP_SYSTEM),
-        CapabilityEntry(CoreBlowProtocol.CAP_CAMERA, CommandAvailability.CAMERA_ENABLED),
+        CapabilityEntry(CoreBlowProtocol.CAP_CAMERA, CapabilityAvailability.CAMERA_ENABLED),
+        CapabilityEntry(CoreBlowProtocol.CAP_SMS, CapabilityAvailability.SMS_AVAILABLE),
+        CapabilityEntry(CoreBlowProtocol.CAP_VOICE_WAKE, CapabilityAvailability.VOICE_WAKE_ENABLED),
+        CapabilityEntry(CoreBlowProtocol.CAP_LOCATION, CapabilityAvailability.LOCATION_ENABLED),
+        CapabilityEntry(CoreBlowProtocol.CAP_PHOTOS),
         CapabilityEntry(CoreBlowProtocol.CAP_CONTACTS),
         CapabilityEntry(CoreBlowProtocol.CAP_CALENDAR),
-        CapabilityEntry(CoreBlowProtocol.CAP_LOCATION, CommandAvailability.LOCATION_ENABLED),
-        CapabilityEntry(CoreBlowProtocol.CAP_SMS, CommandAvailability.SMS_READ_AVAILABLE),
-        CapabilityEntry(CoreBlowProtocol.CAP_CALL_LOG, CommandAvailability.CALL_LOG_AVAILABLE),
-        CapabilityEntry(CoreBlowProtocol.CAP_PHOTOS),
-        CapabilityEntry(CoreBlowProtocol.CAP_MOTION, CommandAvailability.MOTION_AVAILABLE),
-        CapabilityEntry(CoreBlowProtocol.CAP_NOTIFICATIONS, CommandAvailability.NOTIFICATIONS_AVAILABLE),
-        CapabilityEntry(CoreBlowProtocol.CAP_CANVAS),
-        CapabilityEntry(CoreBlowProtocol.CAP_VOICE_WAKE, CommandAvailability.VOICE_WAKE_ENABLED),
+        CapabilityEntry(CoreBlowProtocol.CAP_MOTION, CapabilityAvailability.MOTION_AVAILABLE),
+        CapabilityEntry(CoreBlowProtocol.CAP_CALL_LOG, CapabilityAvailability.CALL_LOG_AVAILABLE),
     )
 
-    private val commands = listOf(
-        // Device
-        CommandEntry(CoreBlowProtocol.NS_DEVICE, "get-info"),
-        CommandEntry(CoreBlowProtocol.NS_DEVICE, "get-battery"),
-        CommandEntry(CoreBlowProtocol.NS_DEVICE, "get-storage"),
-        // System
-        CommandEntry(CoreBlowProtocol.NS_SYSTEM, "get-clipboard"),
-        CommandEntry(CoreBlowProtocol.NS_SYSTEM, "set-brightness"),
-        CommandEntry(CoreBlowProtocol.NS_SYSTEM, "set-volume"),
-        // Camera
-        CommandEntry(CoreBlowProtocol.NS_CAMERA, "capture-photo", CommandAvailability.CAMERA_ENABLED),
-        CommandEntry(CoreBlowProtocol.NS_CAMERA, "capture-video", CommandAvailability.CAMERA_ENABLED),
-        // Contacts
-        CommandEntry(CoreBlowProtocol.NS_CONTACTS, "list-contacts"),
-        CommandEntry(CoreBlowProtocol.NS_CONTACTS, "search-contacts"),
-        // Calendar
-        CommandEntry(CoreBlowProtocol.NS_CALENDAR, "list-events"),
-        CommandEntry(CoreBlowProtocol.NS_CALENDAR, "create-event"),
-        // Location
-        CommandEntry(CoreBlowProtocol.NS_LOCATION, "get-location", CommandAvailability.LOCATION_ENABLED),
-        CommandEntry(CoreBlowProtocol.NS_LOCATION, "start-tracking", CommandAvailability.LOCATION_ENABLED),
-        // SMS
-        CommandEntry(CoreBlowProtocol.NS_SMS, "read-sms", CommandAvailability.SMS_READ_AVAILABLE),
-        CommandEntry(CoreBlowProtocol.NS_SMS, "send-sms", CommandAvailability.SMS_SEND_AVAILABLE),
-        // Photos
-        CommandEntry(CoreBlowProtocol.NS_PHOTOS, "list-photos"),
-        CommandEntry(CoreBlowProtocol.NS_PHOTOS, "get-photo"),
-        // Motion
-        CommandEntry(CoreBlowProtocol.NS_MOTION, "get-steps", CommandAvailability.MOTION_AVAILABLE),
-        CommandEntry(CoreBlowProtocol.NS_MOTION, "get-activity", CommandAvailability.MOTION_AVAILABLE),
-        // Notifications
-        CommandEntry(CoreBlowProtocol.NS_NOTIFICATIONS, "list-notifications", CommandAvailability.NOTIFICATIONS_AVAILABLE),
+    val all: List<CommandEntry> = listOf(
         // Canvas
-        CommandEntry(CoreBlowProtocol.NS_CANVAS, "render-html"),
-        CommandEntry(CoreBlowProtocol.NS_CANVAS, "screenshot"),
+        CommandEntry(name = "canvas.present", requiresForeground = true),
+        CommandEntry(name = "canvas.hide", requiresForeground = true),
+        CommandEntry(name = "canvas.navigate", requiresForeground = true),
+        CommandEntry(name = "canvas.eval", requiresForeground = true),
+        CommandEntry(name = "canvas.snapshot", requiresForeground = true),
+        // Canvas A2UI
+        CommandEntry(name = "canvas.a2ui.push", requiresForeground = true),
+        CommandEntry(name = "canvas.a2ui.pushJSONL", requiresForeground = true),
+        CommandEntry(name = "canvas.a2ui.reset", requiresForeground = true),
+        // System
+        CommandEntry(name = "system.notify"),
+        // Camera
+        CommandEntry(name = "camera.list", requiresForeground = true, availability = CommandAvailability.CAMERA_ENABLED),
+        CommandEntry(name = "camera.snap", requiresForeground = true, availability = CommandAvailability.CAMERA_ENABLED),
+        CommandEntry(name = "camera.clip", requiresForeground = true, availability = CommandAvailability.CAMERA_ENABLED),
+        // Location
+        CommandEntry(name = "location.get", availability = CommandAvailability.LOCATION_ENABLED),
+        // Device
+        CommandEntry(name = "device.status"),
+        CommandEntry(name = "device.info"),
+        CommandEntry(name = "device.permissions"),
+        CommandEntry(name = "device.health"),
+        // Notifications
+        CommandEntry(name = "notifications.list"),
+        CommandEntry(name = "notifications.actions"),
+        // Photos
+        CommandEntry(name = "photos.latest"),
+        // Contacts
+        CommandEntry(name = "contacts.search"),
+        CommandEntry(name = "contacts.add"),
+        // Calendar
+        CommandEntry(name = "calendar.events"),
+        CommandEntry(name = "calendar.add"),
+        // Motion
+        CommandEntry(name = "motion.activity", availability = CommandAvailability.MOTION_ACTIVITY_AVAILABLE),
+        CommandEntry(name = "motion.pedometer", availability = CommandAvailability.MOTION_PEDOMETER_AVAILABLE),
+        // SMS
+        CommandEntry(name = "sms.send", availability = CommandAvailability.SMS_SEND_AVAILABLE),
+        CommandEntry(name = "sms.search", availability = CommandAvailability.SMS_READ_AVAILABLE),
+        // Call Log
+        CommandEntry(name = "callLog.search", availability = CommandAvailability.CALL_LOG_AVAILABLE),
         // Debug
-        CommandEntry(CoreBlowProtocol.NS_DEBUG, "ping", CommandAvailability.DEBUG_BUILD),
-        CommandEntry(CoreBlowProtocol.NS_DEBUG, "echo", CommandAvailability.DEBUG_BUILD),
-        CommandEntry(CoreBlowProtocol.NS_DEBUG, "diagnostics", CommandAvailability.DEBUG_BUILD),
+        CommandEntry(name = "debug.logs", availability = CommandAvailability.DEBUG_BUILD),
+        CommandEntry(name = "debug.ed25519", availability = CommandAvailability.DEBUG_BUILD),
     )
+
+    private val byName: Map<String, CommandEntry> = all.associateBy { it.name }
+
+    fun find(command: String): CommandEntry? = byName[command]
 
     /**
      * Get the list of capabilities available given the current runtime flags.
      */
-    fun availableCapabilities(flags: NodeRuntimeFlags): List<String> {
-        return capabilities
-            .filter { isAvailable(it.availability, flags) }
+    fun advertisedCapabilities(flags: NodeRuntimeFlags): List<String> {
+        return capabilityManifest
+            .filter { isCapAvailable(it.availability, flags) }
             .map { it.capability }
     }
 
     /**
      * Get the list of commands available given the current runtime flags.
      */
-    fun availableCommands(flags: NodeRuntimeFlags): List<String> {
-        return commands
-            .filter { isAvailable(it.availability, flags) }
-            .map { it.fullName }
+    fun advertisedCommands(flags: NodeRuntimeFlags): List<String> {
+        return all
+            .filter { isCmdAvailable(it.availability, flags) }
+            .map { it.name }
     }
 
-    private fun isAvailable(availability: CommandAvailability, flags: NodeRuntimeFlags): Boolean {
+    private fun isCapAvailable(availability: CapabilityAvailability, flags: NodeRuntimeFlags): Boolean {
+        return when (availability) {
+            CapabilityAvailability.ALWAYS -> true
+            CapabilityAvailability.CAMERA_ENABLED -> flags.cameraEnabled
+            CapabilityAvailability.LOCATION_ENABLED -> flags.locationEnabled
+            CapabilityAvailability.SMS_AVAILABLE -> flags.sendSmsAvailable || flags.readSmsAvailable
+            CapabilityAvailability.CALL_LOG_AVAILABLE -> flags.callLogAvailable
+            CapabilityAvailability.VOICE_WAKE_ENABLED -> flags.voiceWakeEnabled
+            CapabilityAvailability.MOTION_AVAILABLE -> flags.motionActivityAvailable || flags.motionPedometerAvailable
+        }
+    }
+
+    private fun isCmdAvailable(availability: CommandAvailability, flags: NodeRuntimeFlags): Boolean {
         return when (availability) {
             CommandAvailability.ALWAYS -> true
             CommandAvailability.CAMERA_ENABLED -> flags.cameraEnabled
@@ -145,7 +179,8 @@ object InvokeCommandRegistry {
             CommandAvailability.SMS_SEND_AVAILABLE -> flags.sendSmsAvailable
             CommandAvailability.SMS_READ_AVAILABLE -> flags.readSmsAvailable
             CommandAvailability.CALL_LOG_AVAILABLE -> flags.callLogAvailable
-            CommandAvailability.MOTION_AVAILABLE -> flags.motionActivityAvailable || flags.motionPedometerAvailable
+            CommandAvailability.MOTION_ACTIVITY_AVAILABLE -> flags.motionActivityAvailable
+            CommandAvailability.MOTION_PEDOMETER_AVAILABLE -> flags.motionPedometerAvailable
             CommandAvailability.NOTIFICATIONS_AVAILABLE -> flags.notificationsAvailable
             CommandAvailability.VOICE_WAKE_ENABLED -> flags.voiceWakeEnabled
             CommandAvailability.DEBUG_BUILD -> flags.debugBuild
