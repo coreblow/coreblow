@@ -50,6 +50,7 @@ class NodeRuntime(
     val canvas = CanvasController()
     val camera = CameraCaptureManager(appContext)
     val location = LocationCaptureManager(appContext)
+    val sms = SmsManager(appContext)
     private val json = Json { ignoreUnknownKeys = true }
 
     private val externalAudioCaptureActive = MutableStateFlow(false)
@@ -79,17 +80,36 @@ class NodeRuntime(
         locationPreciseEnabled = { locationPreciseEnabled.value },
     )
 
-    private val deviceHandler = DeviceHandler(appContext = appContext)
+    private val deviceHandler = DeviceHandler(
+        appContext = appContext,
+        smsEnabled = BuildConfig.COREBLOW_ENABLE_SMS,
+        callLogEnabled = BuildConfig.COREBLOW_ENABLE_CALL_LOG,
+    )
+    private val notificationsHandler = NotificationsHandler(appContext = appContext)
+    private val systemHandler = SystemHandler(appContext = appContext)
     private val photosHandler = PhotosHandler(appContext = appContext)
     private val contactsHandler = ContactsHandler(appContext = appContext)
     private val calendarHandler = CalendarHandler(appContext = appContext)
-    private val a2uiHandler = A2UIHandler(canvas = canvas, json = json)
+    private val callLogHandler = CallLogHandler(appContext = appContext)
+    private val motionHandler = MotionHandler(appContext = appContext)
+    private val smsHandlerImpl = SmsHandler(sms = sms)
+    private val debugHandler = DebugHandler(appContext = appContext, identityStore = identityStore)
+    private val a2uiHandler = A2UIHandler(
+        canvas = canvas, json = json,
+        getNodeCanvasHostUrl = { nodeSession.currentCanvasHostUrl() },
+        getOperatorCanvasHostUrl = { operatorSession.currentCanvasHostUrl() },
+    )
 
     private val connectionManager = ConnectionManager(
         prefs = prefs,
         cameraEnabled = { cameraEnabled.value },
         locationMode = { locationMode.value },
         voiceWakeMode = { VoiceWakeMode.Off },
+        motionActivityAvailable = { motionHandler.isActivityAvailable() },
+        motionPedometerAvailable = { motionHandler.isPedometerAvailable() },
+        sendSmsAvailable = { BuildConfig.COREBLOW_ENABLE_SMS && sms.canSendSms() },
+        readSmsAvailable = { BuildConfig.COREBLOW_ENABLE_SMS && sms.canReadSms() },
+        callLogAvailable = { BuildConfig.COREBLOW_ENABLE_CALL_LOG },
         hasRecordAudioPermission = { hasRecordAudioPermission() },
         manualTls = { manualTls.value },
     )
@@ -99,13 +119,28 @@ class NodeRuntime(
         cameraHandler = cameraHandler,
         locationHandler = locationHandler,
         deviceHandler = deviceHandler,
+        notificationsHandler = notificationsHandler,
+        systemHandler = systemHandler,
         photosHandler = photosHandler,
         contactsHandler = contactsHandler,
         calendarHandler = calendarHandler,
+        motionHandler = motionHandler,
+        smsHandler = smsHandlerImpl,
         a2uiHandler = a2uiHandler,
+        debugHandler = debugHandler,
+        callLogHandler = callLogHandler,
         isForeground = { _isForeground.value },
         cameraEnabled = { cameraEnabled.value },
         locationEnabled = { locationMode.value != LocationMode.Off },
+        sendSmsAvailable = { BuildConfig.COREBLOW_ENABLE_SMS && sms.canSendSms() },
+        readSmsAvailable = { BuildConfig.COREBLOW_ENABLE_SMS && sms.canReadSms() },
+        callLogAvailable = { BuildConfig.COREBLOW_ENABLE_CALL_LOG },
+        debugBuild = { BuildConfig.DEBUG },
+        refreshNodeCanvasCapability = { nodeSession.refreshNodeCanvasCapability() },
+        onCanvasA2uiPush = { _canvasA2uiHydrated.value = true; _canvasRehydratePending.value = false; _canvasRehydrateErrorText.value = null },
+        onCanvasA2uiReset = { _canvasA2uiHydrated.value = false },
+        motionActivityAvailable = { motionHandler.isActivityAvailable() },
+        motionPedometerAvailable = { motionHandler.isPedometerAvailable() },
     )
 
     // MARK: - Gateway Trust
@@ -217,6 +252,12 @@ class NodeRuntime(
         onInvoke = { req -> invokeDispatcher.handleInvoke(req.command, req.paramsJson) },
     )
 
+    init {
+        DeviceNotificationListenerService.setNodeEventSink { event, payloadJson ->
+            scope.launch { nodeSession.sendNodeEvent(event = event, payloadJson = payloadJson) }
+        }
+    }
+
     // MARK: - Chat & Voice
 
     private val chat = ChatController(
@@ -228,13 +269,18 @@ class NodeRuntime(
 
     private val talkMode: TalkModeManager by lazy {
         TalkModeManager(
-            context = appContext,
-            scope = scope,
-            session = operatorSession,
-            supportsChatSubscribe = true,
-            isConnected = { operatorConnected },
+            context = appContext, scope = scope, session = operatorSession,
+            supportsChatSubscribe = true, isConnected = { operatorConnected },
         )
     }
+
+    private val voiceReplySpeakerLazy: Lazy<TalkModeManager> = lazy {
+        TalkModeManager(
+            context = appContext, scope = scope, session = operatorSession,
+            supportsChatSubscribe = false, isConnected = { operatorConnected },
+        ).also { it.setPlaybackEnabled(prefs.speakerEnabled.value) }
+    }
+    private val voiceReplySpeaker: TalkModeManager get() = voiceReplySpeakerLazy.value
 
     private val micCapture: MicCaptureManager by lazy {
         MicCaptureManager(
@@ -266,6 +312,8 @@ class NodeRuntime(
     val micIsListening: StateFlow<Boolean> get() = micCapture.isListening
     val micEnabled: StateFlow<Boolean> get() = micCapture.micEnabled
     val micCooldown: StateFlow<Boolean> get() = micCapture.micCooldown
+    val micQueuedMessages: StateFlow<List<String>> get() = micCapture.queuedMessages
+    val micConversation: StateFlow<List<VoiceConversationEntry>> get() = micCapture.conversation
     val micInputLevel: StateFlow<Float> get() = micCapture.inputLevel
     val micIsSending: StateFlow<Boolean> get() = micCapture.isSending
 
@@ -319,25 +367,24 @@ class NodeRuntime(
     // MARK: - Init
 
     init {
+        if (prefs.voiceWakeMode.value != VoiceWakeMode.Off) prefs.setVoiceWakeMode(VoiceWakeMode.Off)
         scope.launch { prefs.loadGatewayToken() }
-
         scope.launch {
             prefs.talkEnabled.collect { enabled ->
                 micCapture.setMicEnabled(enabled)
-                if (enabled) {
-                    talkMode.ttsOnAllResponses = true
-                    scope.launch { talkMode.ensureChatSubscribed() }
-                }
+                if (enabled) { talkMode.ttsOnAllResponses = true; scope.launch { talkMode.ensureChatSubscribed() } }
                 externalAudioCaptureActive.value = enabled
             }
         }
-
-        scope.launch(Dispatchers.Default) {
-            gateways.collect { list ->
-                seedLastDiscoveredGateway(list)
-                autoConnectIfNeeded()
-            }
+        scope.launch(Dispatchers.Default) { gateways.collect { list -> seedLastDiscoveredGateway(list); autoConnectIfNeeded() } }
+        scope.launch {
+            combine(canvasDebugStatusEnabled, statusText, serverName, remoteAddress) { debug, status, server, remote -> Quad(debug, status, server, remote) }
+                .distinctUntilChanged().collect { (debugEnabled, status, server, remote) ->
+                    canvas.setDebugStatusEnabled(debugEnabled)
+                    if (debugEnabled) canvas.setDebugStatus(status, server ?: remote)
+                }
         }
+        updateHomeCanvasState()
     }
 
     // MARK: - Foreground
@@ -424,6 +471,7 @@ class NodeRuntime(
 
     fun setSpeakerEnabled(value: Boolean) {
         prefs.setSpeakerEnabled(value)
+        if (voiceReplySpeakerLazy.isInitialized()) voiceReplySpeaker.setPlaybackEnabled(value)
         talkMode.setPlaybackEnabled(value)
     }
 
@@ -575,20 +623,134 @@ class NodeRuntime(
 
     private fun invokeErrorFromThrowable(t: Throwable): String = t.message ?: "unknown error"
 
-    private fun triggerCameraFlash() {
-        _cameraFlashToken.value = SystemClock.elapsedRealtimeNanos()
-    }
+    private fun triggerCameraFlash() { _cameraFlashToken.value = SystemClock.elapsedRealtimeNanos() }
 
     private fun showCameraHud(message: String, kind: CameraHudKind, autoHideMs: Long? = null) {
         val token = cameraHudSeq.incrementAndGet()
         _cameraHud.value = CameraHudState(token = token, kind = kind, message = message)
         if (autoHideMs != null && autoHideMs > 0) {
-            scope.launch {
-                delay(autoHideMs)
-                if (_cameraHud.value?.token == token) _cameraHud.value = null
-            }
+            scope.launch { delay(autoHideMs); if (_cameraHud.value?.token == token) _cameraHud.value = null }
         }
+    }
+
+    // MARK: - Canvas Rehydrate
+
+    fun requestCanvasRehydrate(source: String = "manual", force: Boolean = true) {
+        scope.launch {
+            if (!_nodeConnected.value) { _canvasRehydratePending.value = false; _canvasRehydrateErrorText.value = "Node offline. Reconnect and retry."; return@launch }
+            if (!force && didAutoRequestCanvasRehydrate) return@launch
+            didAutoRequestCanvasRehydrate = true
+            val requestId = canvasRehydrateSeq.incrementAndGet()
+            _canvasRehydratePending.value = true; _canvasRehydrateErrorText.value = null
+            val sessionKey = resolveMainSessionKey()
+            val sent = nodeSession.sendNodeEvent("agent.request", buildJsonObject {
+                put("message", JsonPrimitive("Restore canvas now for session=$sessionKey source=$source."))
+                put("sessionKey", JsonPrimitive(sessionKey)); put("thinking", JsonPrimitive("low")); put("deliver", JsonPrimitive(false))
+            }.toString())
+            if (!sent) { if (!force) didAutoRequestCanvasRehydrate = false; if (canvasRehydrateSeq.get() == requestId) { _canvasRehydratePending.value = false; _canvasRehydrateErrorText.value = "Failed to request restore. Tap to retry." }; return@launch }
+            scope.launch { delay(20_000); if (canvasRehydrateSeq.get() == requestId && _canvasRehydratePending.value && !_canvasA2uiHydrated.value) { _canvasRehydratePending.value = false; _canvasRehydrateErrorText.value = "No canvas update yet. Tap to retry." } }
+        }
+    }
+
+    fun refreshHomeCanvasOverviewIfConnected() {
+        if (!operatorConnected) { updateHomeCanvasState(); return }
+        scope.launch { refreshBrandingFromGateway(); refreshAgentsFromGateway() }
+    }
+
+    fun handleCanvasA2UIActionFromWebView(payloadJson: String) {
+        scope.launch {
+            val trimmed = payloadJson.trim(); if (trimmed.isEmpty()) return@launch
+            val root = try { json.parseToJsonElement(trimmed) as? JsonObject ?: return@launch } catch (_: Throwable) { return@launch }
+            val userActionObj = (root["userAction"] as? JsonObject) ?: root
+            val actionId = (userActionObj["id"] as? JsonPrimitive)?.content?.trim().orEmpty().ifEmpty { UUID.randomUUID().toString() }
+            val name = (userActionObj["name"] as? JsonPrimitive)?.content?.trim() ?: return@launch
+            val sessionKey = resolveMainSessionKey()
+            val connected = _nodeConnected.value
+            var error: String? = null
+            if (connected) {
+                val sent = nodeSession.sendNodeEvent("agent.request", buildJsonObject {
+                    put("message", JsonPrimitive("Canvas action: $name session=$sessionKey"))
+                    put("sessionKey", JsonPrimitive(sessionKey)); put("thinking", JsonPrimitive("low")); put("deliver", JsonPrimitive(false)); put("key", JsonPrimitive(actionId))
+                }.toString())
+                if (!sent) error = "send failed"
+            } else error = "gateway not connected"
+        }
+    }
+
+    fun isTrustedCanvasActionUrl(rawUrl: String?): Boolean = a2uiHandler.isTrustedCanvasActionUrl(rawUrl)
+
+    // MARK: - Home Canvas State
+
+    private fun updateHomeCanvasState() {
+        val payload = try { json.encodeToString(makeHomeCanvasPayload()) } catch (_: Throwable) { null }
+        canvas.updateHomeCanvasState(payload)
+    }
+
+    private fun makeHomeCanvasPayload(): HomeCanvasPayload {
+        val state = resolveHomeCanvasGatewayState()
+        val gatewayName = _serverName.value?.trim()?.takeIf { it.isNotEmpty() }
+        val gatewayAddress = _remoteAddress.value?.trim()?.takeIf { it.isNotEmpty() }
+        val gatewayLabel = gatewayName ?: gatewayAddress ?: "Gateway"
+        val activeAgentId = resolveActiveAgentId()
+        val agents = homeCanvasAgents(activeAgentId)
+        return when (state) {
+            HomeCanvasGatewayState.Connected -> HomeCanvasPayload(gatewayState = "connected", eyebrow = "Connected to $gatewayLabel", title = "Your agents are ready",
+                subtitle = "This phone stays dormant until the gateway needs it.", gatewayLabel = gatewayLabel,
+                activeAgentName = resolveActiveAgentName(activeAgentId), activeAgentBadge = agents.firstOrNull { it.isActive }?.badge ?: "CB",
+                activeAgentCaption = "Selected on this phone", agentCount = agents.size, agents = agents.take(6), footer = "Overview refreshes on reconnect.")
+            else -> HomeCanvasPayload(gatewayState = if (state == HomeCanvasGatewayState.Error) "error" else "offline", eyebrow = "Welcome to CoreBlow",
+                title = "Your phone stays quiet until needed", subtitle = "Pair this device to your gateway.",
+                gatewayLabel = gatewayLabel, activeAgentName = "Main", activeAgentBadge = "CB", activeAgentCaption = "Connect to load agents",
+                agentCount = agents.size, agents = agents.take(4), footer = "The gateway wakes the phone with silent push.")
+        }
+    }
+
+    private fun resolveHomeCanvasGatewayState(): HomeCanvasGatewayState {
+        val lower = _statusText.value.trim().lowercase()
+        return when {
+            _isConnected.value -> HomeCanvasGatewayState.Connected
+            lower.contains("connecting") || lower.contains("reconnecting") -> HomeCanvasGatewayState.Connecting
+            lower.contains("error") || lower.contains("failed") -> HomeCanvasGatewayState.Error
+            else -> HomeCanvasGatewayState.Offline
+        }
+    }
+
+    private fun resolveActiveAgentId(): String {
+        val mainKey = _mainSessionKey.value.trim()
+        if (mainKey.startsWith("agent:")) { val agentId = mainKey.removePrefix("agent:").substringBefore(':').trim(); if (agentId.isNotEmpty()) return agentId }
+        return gatewayDefaultAgentId?.trim().orEmpty()
+    }
+
+    private fun resolveActiveAgentName(activeAgentId: String): String {
+        if (activeAgentId.isNotEmpty()) gatewayAgents.firstOrNull { it.id == activeAgentId }?.let { return it.name ?: it.id }
+        return gatewayAgents.firstOrNull()?.let { it.name ?: it.id } ?: "Main"
+    }
+
+    private fun homeCanvasAgents(activeAgentId: String): List<HomeCanvasAgentCard> {
+        val defaultId = gatewayDefaultAgentId?.trim().orEmpty()
+        return gatewayAgents.map { agent ->
+            val isActive = activeAgentId.isNotEmpty() && agent.id == activeAgentId
+            val isDefault = defaultId.isNotEmpty() && agent.id == defaultId
+            HomeCanvasAgentCard(id = agent.id, name = agent.name ?: agent.id,
+                badge = agent.emoji ?: agent.id.take(2).uppercase(), caption = when { isActive -> "Active"; isDefault -> "Default"; else -> "Ready" }, isActive = isActive)
+        }.sortedWith(compareByDescending<HomeCanvasAgentCard> { it.isActive }.thenBy { it.name.lowercase() })
     }
 }
 
-private data class GatewayAgentSummary(val id: String, val name: String?)
+private data class Quad<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
+
+private enum class HomeCanvasGatewayState { Connected, Connecting, Error, Offline }
+
+private data class GatewayAgentSummary(val id: String, val name: String?, val emoji: String? = null)
+
+@Serializable
+private data class HomeCanvasPayload(
+    val gatewayState: String, val eyebrow: String, val title: String, val subtitle: String,
+    val gatewayLabel: String, val activeAgentName: String, val activeAgentBadge: String,
+    val activeAgentCaption: String, val agentCount: Int, val agents: List<HomeCanvasAgentCard>, val footer: String,
+)
+
+@Serializable
+private data class HomeCanvasAgentCard(
+    val id: String, val name: String, val badge: String, val caption: String, val isActive: Boolean,
+)
