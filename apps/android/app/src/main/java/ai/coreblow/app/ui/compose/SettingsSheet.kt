@@ -65,7 +65,7 @@ import ai.coreblow.app.BuildConfig
 import ai.coreblow.app.LocationMode
 import ai.coreblow.app.MainViewModel
 import ai.coreblow.app.node.DeviceNotificationListenerService
-import ai.coreblow.app.ui.LocalMobileColors
+import ai.coreblow.app.ui.compose.LocalMobileColors
 
 /**
  * Full-page settings sheet with sectioned permission management,
@@ -423,7 +423,7 @@ fun SettingsSheet(viewModel: MainViewModel) {
 // ── Supporting composables ──────────────────────────────
 
 @Composable
-private fun SectionHeader(title: String, colors: ai.coreblow.app.ui.MobileColors) {
+private fun SectionHeader(title: String, colors: MobileColors) {
     Text(title, style = colors.caption1.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp), color = colors.accent)
 }
 
@@ -431,7 +431,7 @@ private fun SectionHeader(title: String, colors: ai.coreblow.app.ui.MobileColors
 private fun PermissionRow(
     title: String, subtitle: String, granted: Boolean,
     listItemColors: androidx.compose.material3.ListItemColors,
-    colors: ai.coreblow.app.ui.MobileColors,
+    colors: MobileColors,
     buttonLabel: String = if (granted) "Manage" else "Grant",
     onClick: () -> Unit,
 ) {
@@ -448,7 +448,7 @@ private fun PermissionRow(
 }
 
 @Composable
-private fun settingsTextFieldColors(colors: ai.coreblow.app.ui.MobileColors) =
+private fun settingsTextFieldColors(colors: MobileColors) =
     OutlinedTextFieldDefaults.colors(
         focusedContainerColor = colors.surface, unfocusedContainerColor = colors.surface,
         focusedBorderColor = colors.accent, unfocusedBorderColor = colors.border,
@@ -456,19 +456,19 @@ private fun settingsTextFieldColors(colors: ai.coreblow.app.ui.MobileColors) =
     )
 
 @Composable
-private fun Modifier.settingsRowModifier(colors: ai.coreblow.app.ui.MobileColors) = this
+private fun Modifier.settingsRowModifier(colors: MobileColors) = this
     .fillMaxWidth()
     .border(width = 1.dp, color = colors.border, shape = RoundedCornerShape(14.dp))
     .background(colors.cardSurface, RoundedCornerShape(14.dp))
 
 @Composable
-private fun settingsPrimaryButtonColors(colors: ai.coreblow.app.ui.MobileColors) = ButtonDefaults.buttonColors(
+private fun settingsPrimaryButtonColors(colors: MobileColors) = ButtonDefaults.buttonColors(
     containerColor = colors.accent, contentColor = Color.White,
     disabledContainerColor = colors.accent.copy(alpha = 0.45f), disabledContentColor = Color.White.copy(alpha = 0.9f),
 )
 
 @Composable
-private fun settingsDangerButtonColors(colors: ai.coreblow.app.ui.MobileColors) = ButtonDefaults.buttonColors(
+private fun settingsDangerButtonColors(colors: MobileColors) = ButtonDefaults.buttonColors(
     containerColor = colors.danger, contentColor = Color.White,
     disabledContainerColor = colors.danger.copy(alpha = 0.45f), disabledContentColor = Color.White.copy(alpha = 0.9f),
 )
