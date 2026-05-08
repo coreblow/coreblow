@@ -84,6 +84,14 @@ fun SettingsSheet(viewModel: MainViewModel) {
     val locationPreciseEnabled by viewModel.locationPreciseEnabled.collectAsState()
     val preventSleep by viewModel.preventSleep.collectAsState()
     val canvasDebugStatusEnabled by viewModel.canvasDebugStatusEnabled.collectAsState()
+    val manualEnabled by viewModel.manualEnabled.collectAsState()
+    val manualHost by viewModel.manualHost.collectAsState()
+    val manualPort by viewModel.manualPort.collectAsState()
+    val manualTls by viewModel.manualTls.collectAsState()
+    val gatewayToken by viewModel.gatewayToken.collectAsState()
+    val isConnected by viewModel.isConnected.collectAsState()
+    val statusText by viewModel.statusText.collectAsState()
+    val serverName by viewModel.serverName.collectAsState()
 
     val listState = rememberLazyListState()
     val deviceModel = remember {
@@ -333,6 +341,80 @@ fun SettingsSheet(viewModel: MainViewModel) {
                 }
             }
 
+            // ── GATEWAY ──
+            item { SectionHeader("GATEWAY", colors) }
+            item {
+                Column(modifier = Modifier.settingsRowModifier(colors)) {
+                    ListItem(modifier = Modifier.fillMaxWidth(), colors = listItemColors,
+                        headlineContent = { Text("Status", style = colors.headline) },
+                        supportingContent = {
+                            Text(
+                                if (isConnected) "Connected" + (serverName?.let { " — $it" } ?: "") else statusText,
+                                style = colors.callout,
+                                color = if (isConnected) colors.success else colors.textSecondary,
+                            )
+                        })
+                    HorizontalDivider(color = colors.border)
+                    ListItem(modifier = Modifier.fillMaxWidth(), colors = listItemColors,
+                        headlineContent = { Text("Manual Connection", style = colors.headline) },
+                        supportingContent = { Text("Override discovery with manual settings.", style = colors.callout) },
+                        trailingContent = { Switch(checked = manualEnabled, onCheckedChange = viewModel::setManualEnabled) })
+                    if (manualEnabled) {
+                        HorizontalDivider(color = colors.border)
+                        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = manualHost, onValueChange = viewModel::setManualHost,
+                                label = { Text("Host", style = colors.caption1, color = colors.textSecondary) },
+                                modifier = Modifier.fillMaxWidth(), singleLine = true,
+                                textStyle = colors.body.copy(color = colors.text), colors = settingsTextFieldColors(colors),
+                            )
+                            OutlinedTextField(
+                                value = manualPort.toString(), onValueChange = { viewModel.setManualPort(it.toIntOrNull() ?: 18789) },
+                                label = { Text("Port", style = colors.caption1, color = colors.textSecondary) },
+                                modifier = Modifier.fillMaxWidth(), singleLine = true,
+                                textStyle = colors.body.copy(color = colors.text), colors = settingsTextFieldColors(colors),
+                            )
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("Use TLS", style = colors.headline, color = colors.text)
+                                Switch(checked = manualTls, onCheckedChange = viewModel::setManualTls)
+                            }
+                            OutlinedTextField(
+                                value = gatewayToken, onValueChange = viewModel::setGatewayToken,
+                                label = { Text("Token", style = colors.caption1, color = colors.textSecondary) },
+                                modifier = Modifier.fillMaxWidth(), singleLine = true,
+                                textStyle = colors.body.copy(color = colors.text, fontFamily = FontFamily.Monospace), colors = settingsTextFieldColors(colors),
+                            )
+                        }
+                    }
+                }
+            }
+
+            // ── DANGER ZONE ──
+            item { SectionHeader("DANGER ZONE", colors) }
+            item {
+                Column(modifier = Modifier.settingsRowModifier(colors)) {
+                    ListItem(modifier = Modifier.fillMaxWidth(), colors = listItemColors,
+                        headlineContent = { Text("Disconnect", style = colors.headline) },
+                        supportingContent = { Text("Close the current gateway connection.", style = colors.callout) },
+                        trailingContent = {
+                            Button(
+                                onClick = { viewModel.disconnect() }, enabled = isConnected,
+                                colors = settingsDangerButtonColors(colors), shape = RoundedCornerShape(14.dp),
+                            ) { Text("Disconnect", style = colors.callout.copy(fontWeight = FontWeight.Bold)) }
+                        })
+                    HorizontalDivider(color = colors.border)
+                    ListItem(modifier = Modifier.fillMaxWidth(), colors = listItemColors,
+                        headlineContent = { Text("Reconnect", style = colors.headline) },
+                        supportingContent = { Text("Force a fresh connection to the gateway.", style = colors.callout) },
+                        trailingContent = {
+                            Button(
+                                onClick = { viewModel.refreshGatewayConnection() },
+                                colors = settingsPrimaryButtonColors(colors), shape = RoundedCornerShape(14.dp),
+                            ) { Text("Reconnect", style = colors.callout.copy(fontWeight = FontWeight.Bold)) }
+                        })
+                }
+            }
+
             item { Spacer(modifier = Modifier.height(24.dp)) }
         }
     }
@@ -383,6 +465,12 @@ private fun Modifier.settingsRowModifier(colors: ai.coreblow.app.ui.MobileColors
 private fun settingsPrimaryButtonColors(colors: ai.coreblow.app.ui.MobileColors) = ButtonDefaults.buttonColors(
     containerColor = colors.accent, contentColor = Color.White,
     disabledContainerColor = colors.accent.copy(alpha = 0.45f), disabledContentColor = Color.White.copy(alpha = 0.9f),
+)
+
+@Composable
+private fun settingsDangerButtonColors(colors: ai.coreblow.app.ui.MobileColors) = ButtonDefaults.buttonColors(
+    containerColor = colors.danger, contentColor = Color.White,
+    disabledContainerColor = colors.danger.copy(alpha = 0.45f), disabledContentColor = Color.White.copy(alpha = 0.9f),
 )
 
 // ── Utility functions ───────────────────────────────────
