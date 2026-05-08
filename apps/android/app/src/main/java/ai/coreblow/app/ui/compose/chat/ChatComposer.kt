@@ -261,3 +261,85 @@ data class ComposerAttachment(
     val sizeBytes: Long = 0,
     val uri: String? = null,
 )
+
+// MARK: - OC-parity composables
+
+@Composable
+fun AttachmentsStrip(
+    attachments: List<ComposerAttachment>,
+    onRemove: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (attachments.isEmpty()) return
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        attachments.forEachIndexed { index, att ->
+            AttachmentChip(
+                name = att.fileName,
+                mimeType = att.mimeType,
+                onRemove = { onRemove(index) },
+            )
+        }
+    }
+}
+
+@Composable
+fun SecondaryActionButton(
+    icon: @Composable () -> Unit,
+    contentDescription: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = modifier.size(36.dp),
+        enabled = enabled,
+    ) {
+        icon()
+    }
+}
+
+@Composable
+fun ThinkingMenuItem(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+) {
+    DropdownMenuItem(
+        text = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(label, fontSize = 13.sp, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal)
+                if (isSelected) {
+                    Spacer(Modifier.width(6.dp))
+                    Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
+                }
+            }
+        },
+        onClick = onClick,
+    )
+}
+
+@Composable
+private fun chatTextFieldColors() = TextFieldDefaults.colors(
+    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+    focusedIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+    unfocusedIndicatorColor = MaterialTheme.colorScheme.outlineVariant,
+    cursorColor = MaterialTheme.colorScheme.primary,
+    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+)
+
+private fun thinkingLabel(level: String): String = when (level) {
+    "thinking" -> "Thinking…"
+    "generating" -> "Generating response…"
+    "tool_call" -> "Using tools…"
+    "searching" -> "Searching…"
+    "code_interpreter" -> "Running code…"
+    else -> "Processing…"
+}

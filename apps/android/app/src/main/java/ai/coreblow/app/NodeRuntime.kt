@@ -385,6 +385,21 @@ class NodeRuntime(
                 }
         }
         updateHomeCanvasState()
+        showLocalCanvasOnConnect()
+    }
+
+    private fun showLocalCanvasOnConnect() {
+        _canvasA2uiHydrated.value = false
+        _canvasRehydratePending.value = false
+        _canvasRehydrateErrorText.value = null
+        canvas.navigate("")
+    }
+
+    private fun showLocalCanvasOnDisconnect() {
+        _canvasA2uiHydrated.value = false
+        _canvasRehydratePending.value = false
+        _canvasRehydrateErrorText.value = null
+        canvas.navigate("")
     }
 
     // MARK: - Foreground
@@ -731,9 +746,31 @@ class NodeRuntime(
         return gatewayAgents.map { agent ->
             val isActive = activeAgentId.isNotEmpty() && agent.id == activeAgentId
             val isDefault = defaultId.isNotEmpty() && agent.id == defaultId
-            HomeCanvasAgentCard(id = agent.id, name = agent.name ?: agent.id,
-                badge = agent.emoji ?: agent.id.take(2).uppercase(), caption = when { isActive -> "Active"; isDefault -> "Default"; else -> "Ready" }, isActive = isActive)
+            HomeCanvasAgentCard(
+                id = agent.id,
+                name = normalized(agent.name) ?: agent.id,
+                badge = homeCanvasBadge(agent),
+                caption = when { isActive -> "Active on this phone"; isDefault -> "Default agent"; else -> "Ready" },
+                isActive = isActive,
+            )
         }.sortedWith(compareByDescending<HomeCanvasAgentCard> { it.isActive }.thenBy { it.name.lowercase() })
+    }
+
+    private fun homeCanvasBadge(agent: GatewayAgentSummary): String {
+        val emoji = normalized(agent.emoji)
+        if (emoji != null) return emoji
+        val initials = (normalized(agent.name) ?: agent.id)
+            .split(' ', '-', '_')
+            .filter { it.isNotBlank() }
+            .take(2)
+            .mapNotNull { token -> token.firstOrNull()?.uppercaseChar()?.toString() }
+            .joinToString("")
+        return if (initials.isNotEmpty()) initials else "CB"
+    }
+
+    private fun normalized(value: String?): String? {
+        val trimmed = value?.trim().orEmpty()
+        return trimmed.ifEmpty { null }
     }
 }
 
