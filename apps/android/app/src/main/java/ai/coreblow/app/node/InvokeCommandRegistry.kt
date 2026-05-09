@@ -186,4 +186,29 @@ object InvokeCommandRegistry {
             CommandAvailability.DEBUG_BUILD -> flags.debugBuild
         }
     }
+
+    // ── Diagnostics & summary ───────────────────────────
+
+    fun capabilityCount(flags: NodeRuntimeFlags): Int = availableCapabilities(flags).size
+
+    fun commandCount(flags: NodeRuntimeFlags): Int = availableCommands(flags).size
+
+    fun summary(flags: NodeRuntimeFlags): String {
+        val caps = availableCapabilities(flags)
+        val cmds = availableCommands(flags)
+        return "capabilities=${caps.size} commands=${cmds.size}"
+    }
+
+    fun enabledFlagNames(flags: NodeRuntimeFlags): List<String> = buildList {
+        if (flags.cameraEnabled) add("camera")
+        if (flags.locationEnabled) add("location")
+        if (flags.sendSmsAvailable) add("smsSend")
+        if (flags.readSmsAvailable) add("smsRead")
+        if (flags.callLogAvailable) add("callLog")
+        if (flags.voiceWakeEnabled) add("voiceWake")
+        if (flags.motionActivityAvailable) add("motionActivity")
+        if (flags.motionPedometerAvailable) add("motionPedometer")
+        if (flags.notificationsAvailable) add("notifications")
+        if (flags.debugBuild) add("debug")
+    }
 }

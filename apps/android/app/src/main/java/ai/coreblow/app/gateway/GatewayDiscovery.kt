@@ -395,4 +395,23 @@ class GatewayDiscovery(
                     override fun onError(error: DnsResolver.DnsException) { cont.resumeWithException(error) }
                 })
         }
+
+    // ── Diagnostics (OC parity) ─────────────────────────
+
+    data class DiscoverySnapshot(
+        val isScanning: Boolean,
+        val discoveredCount: Int,
+        val lastScanTimeMs: Long?,
+        val scanDurationMs: Long?,
+    )
+
+    fun diagnosticSnapshot(): DiscoverySnapshot = DiscoverySnapshot(
+        isScanning = _isScanning.value,
+        discoveredCount = _discoveredGateways.value.size,
+        lastScanTimeMs = lastScanTimeMs,
+        scanDurationMs = lastScanDurationMs,
+    )
+
+    private var lastScanTimeMs: Long? = null
+    private var lastScanDurationMs: Long? = null
 }

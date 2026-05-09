@@ -291,5 +291,26 @@ class DeviceNotificationListenerService : NotificationListenerService() {
         private fun emitNotificationsChanged(payloadJson: String) {
             runCatching { nodeEventSink?.invoke(NOTIFICATIONS_CHANGED_EVENT, payloadJson) }
         }
+
+        fun batchDismiss(context: Context, keys: List<String>): List<NotificationActionResult> {
+            return keys.map { key ->
+                executeAction(context, NotificationActionRequest(key = key, kind = NotificationActionKind.Dismiss))
+            }
+        }
+
+        fun filterByPackage(context: Context, packageName: String): List<DeviceNotificationEntry> {
+            val snap = snapshot(context)
+            return snap.notifications.filter { it.packageName == packageName }
+        }
+
+        fun filterByCategory(context: Context, category: String): List<DeviceNotificationEntry> {
+            val snap = snapshot(context)
+            return snap.notifications.filter { it.category == category }
+        }
+
+        fun isDndActive(context: Context): Boolean {
+            val manager = context.getSystemService(NotificationManager::class.java) ?: return false
+            return manager.currentInterruptionFilter != NotificationManager.INTERRUPTION_FILTER_ALL
+        }
     }
 }

@@ -226,4 +226,52 @@ class PhotosHandler(private val appContext: Context) {
     fun handleCommand(subCommand: String, params: JsonObject): String? {
         return null // handled via suspend functions through InvokeDispatcher
     }
+
+    // ── EXIF metadata (OC parity) ───────────────────────
+
+    suspend fun getPhotoExif(photoId: Long): String? = withContext(Dispatchers.IO) {
+        try {
+            val uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, photoId)
+            resolver.openInputStream(uri)?.use { stream ->
+                val exif = android.media.ExifInterface(stream)
+                buildJsonObject {
+                    val latLong = FloatArray(2)
+                    if (exif.getLatLong(latLong)) {
+                        put("latitude", JsonPrimitive(latLong[0].toDouble()))
+                        put("longitude", JsonPrimitive(latLong[1].toDouble()))
+                    }
+                    exif.getAttribute(android.media.ExifInterface.TAG_DATETIME)?.let { put("datetime", JsonPrimitive(it)) }
+                    exif.getAttribute(android.media.ExifInterface.TAG_MAKE)?.let { put("make", JsonPrimitive(it)) }
+                    exif.getAttribute(android.media.ExifInterface.TAG_MODEL)?.let { put("model", JsonPrimitive(it)) }
+                    exif.getAttribute(android.media.ExifInterface.TAG_ORIENTATION)?.let { put("orientation", JsonPrimitive(it)) }
+                    exif.getAttribute(android.media.ExifInterface.TAG_IMAGE_WIDTH)?.let { put("width", JsonPrimitive(it)) }
+                    exif.getAttribute(android.media.ExifInterface.TAG_IMAGE_LENGTH)?.let { put("height", JsonPrimitive(it)) }
+                }.toString()
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to read EXIF for $photoId: ${e.message}")
+            null
+        }
+    }
+
+    // ── MIME type mapping ────────────────────────────────
+
+    fun mimeTypeForExtension(extension: String): String = when (extension.lowercase().trimStart('.')) {
+        "jpg", "jpeg" -> "image/jpeg"
+        "png" -> "image/png"
+        "gif" -> "image/gif"
+        "webp" -> "image/webp"
+        "heic", "heif" -> "image/heif"
+        "bmp" -> "image/bmp"
+        "svg" -> "image/svg+xml"
+        else -> "application/octet-stream"
+    }
+
+    // ── Photo existence check ───────────────────────────
+
+    fun photoExists(photoId: Long): Boolean {
+        val uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, photoId)
+        val cursor = resolver.query(uri, arrayOf(MediaStore.Images.Media._ID), null, null, null)
+        return cursor?.use { it.moveToFirst() } ?: false
+    }
 }

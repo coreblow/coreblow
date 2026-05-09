@@ -312,4 +312,26 @@ class DeviceHandler(
         if (caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) { hasKnownTransport = true; add(JsonPrimitive("wired")) }
         if (!hasKnownTransport) add(JsonPrimitive("other"))
     }
+
+    // ── CPU architecture info ───────────────────────────
+
+    fun cpuArchitecture(): String = Build.SUPPORTED_ABIS?.firstOrNull()?.trim().orEmpty().ifEmpty { "unknown" }
+
+    fun supportedAbis(): List<String> = Build.SUPPORTED_ABIS?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList()
+
+    // ── Battery health (OC parity) ──────────────────────
+
+    fun batteryHealthString(): String {
+        val intent = appContext.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        val health = intent?.getIntExtra(BatteryManager.EXTRA_HEALTH, BatteryManager.BATTERY_HEALTH_UNKNOWN) ?: BatteryManager.BATTERY_HEALTH_UNKNOWN
+        return when (health) {
+            BatteryManager.BATTERY_HEALTH_GOOD -> "good"
+            BatteryManager.BATTERY_HEALTH_OVERHEAT -> "overheat"
+            BatteryManager.BATTERY_HEALTH_DEAD -> "dead"
+            BatteryManager.BATTERY_HEALTH_OVER_VOLTAGE -> "overVoltage"
+            BatteryManager.BATTERY_HEALTH_COLD -> "cold"
+            BatteryManager.BATTERY_HEALTH_UNSPECIFIED_FAILURE -> "failure"
+            else -> "unknown"
+        }
+    }
 }

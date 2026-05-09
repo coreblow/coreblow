@@ -466,4 +466,88 @@ class MicCaptureManager(
 
         override fun onEvent(eventType: Int, params: Bundle?) {}
     }
+
+    // ── Lifecycle & cleanup ─────────────────────────────
+
+    fun clearConversation() {
+        _conversation.value = emptyList()
+        pendingAssistantEntryId = null
+    }
+
+    fun destroy() {
+        stop()
+        drainJob?.cancel(); drainJob = null
+        pendingRunTimeoutJob?.cancel(); pendingRunTimeoutJob = null
+        messageQueue.clear()
+        publishQueue()
+        clearConversation()
+        _micEnabled.value = false
+        _isSending.value = false
+        _statusText.value = "Mic off"
+    }
+
+    fun resetQueue() {
+        messageQueue.clear()
+        publishQueue()
+        pendingRunTimeoutJob?.cancel(); pendingRunTimeoutJob = null
+        pendingRunId = null
+        pendingAssistantEntryId = null
+        _isSending.value = false
+        _statusText.value = if (_micEnabled.value) "Listening" else "Mic off"
+    }
+
+    val hasQueuedMessages: Boolean get() = messageQueue.isNotEmpty()
+    val pendingCount: Int get() = messageQueue.size
+
+    // ── Audio focus management ──────────────────────────
+
+    private fun requestAudioFocus(): Boolean {
+        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? android.media.AudioManager ?: return false
+        val focusRequest = android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
+            .setAudioAttributes(
+                android.media.AudioAttributes.Builder()
+                    .setUsage(android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                    .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .build()
+            )
+            .setOnAudioFocusChangeListener { focusChange ->
+                when (focusChange) {
+                    android.media.AudioManager.AUDIOFOCUS_LOSS,
+                    android.media.AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+                        if (_micEnabled.value) {
+                            Log.d(TAG, "Audio focus lost, pausing mic")
+                            setMicEnabled(false)
+                        }
+                    }
+                }
+            }
+            .build()
+        return audioManager.requestAudioFocus(focusRequest) == android.media.AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+    }
+
+    private fun abandonAudioFocus() {
+        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? android.media.AudioManager ?: return
+        val focusRequest = android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+            .setAudioAttributes(
+                android.media.AudioAttributes.Builder()
+                    .setUsage(android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                    .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .build()
+            )
+            .build()
+        audioManager.abandonAudioFocusRequest(focusRequest)
+    }
+
+    // ── Diagnostics ─────────────────────────────────────
+
+    fun diagnosticSnapshot(): Map<String, Any> = mapOf(
+        "micEnabled" to _micEnabled.value,
+        "isListening" to _isListening.value,
+        "isSending" to _isSending.value,
+        "queueSize" to messageQueue.size,
+        "conversationSize" to _conversation.value.size,
+        "gatewayConnected" to gatewayConnected,
+        "hasPendingRun" to (pendingRunId != null),
+        "statusText" to _statusText.value,
+    )
 }
