@@ -1422,3 +1422,92 @@ internal fun onboardingSwitchColors() = androidx.compose.material3.SwitchDefault
     uncheckedThumbColor = MaterialTheme.colorScheme.outline,
     uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
 )
+
+// ── Onboarding error types (OC parity) ──────────────────
+
+/**
+ * Typed error for onboarding failures.
+ */
+sealed class OnboardingError(val message: String, val isRetryable: Boolean) {
+    class NetworkError(message: String) : OnboardingError(message, isRetryable = true)
+    class AuthError(message: String) : OnboardingError(message, isRetryable = true)
+    class TrustError(message: String) : OnboardingError(message, isRetryable = false)
+    class PermissionError(message: String) : OnboardingError(message, isRetryable = false)
+    class TimeoutError(message: String = "Connection timed out") : OnboardingError(message, isRetryable = true)
+    class UnknownError(message: String = "An unexpected error occurred") : OnboardingError(message, isRetryable = true)
+
+    companion object {
+        fun from(throwable: Throwable): OnboardingError = when (throwable) {
+            is java.net.SocketTimeoutException -> TimeoutError()
+            is java.net.ConnectException -> NetworkError("Unable to reach gateway: ${throwable.message}")
+            is javax.net.ssl.SSLException -> TrustError("TLS verification failed: ${throwable.message}")
+            is SecurityException -> PermissionError("Permission denied: ${throwable.message}")
+            else -> UnknownError(throwable.message ?: "Unknown error")
+        }
+    }
+
+    val userFriendlyMessage: String get() = when (this) {
+        is NetworkError -> "Can't reach the gateway. Check your network connection and try again."
+        is AuthError -> "Authentication failed. Verify your token or password."
+        is TrustError -> "This gateway's certificate is not trusted."
+        is PermissionError -> "A required permission was denied."
+        is TimeoutError -> "The connection timed out. Try again."
+        is UnknownError -> message
+    }
+}
+
+// ── Gateway deep link parsing (OC parity) ───────────────
+
+/**
+ * Parses a CoreBlow deep link for gateway connection.
+ * Supports both coreblow:// and https:// schemes.
+ */
+data class GatewayDeepLink(
+    val host: String,
+    val port: Int,
+    val tls: Boolean,
+    val token: String?,
+    val stableId: String?,
+) {
+    companion object {
+        private val DEEP_LINK_REGEX = Regex("""^(?:coreblow|https?)://(?:connect|gateway)/([^/?#]+)(?:\?(.*))?$""")
+
+        fun parse(uri: String): GatewayDeepLink? {
+            val trimmed = uri.trim()
+            if (trimmed.isEmpty()) return null
+
+            val match = DEEP_LINK_REGEX.matchEntire(trimmed) ?: return null
+            val hostPort = match.groupValues[1]
+            val queryString = match.groupValues.getOrNull(2).orEmpty()
+            val params = queryString.split("&").mapNotNull { param ->
+                val parts = param.split("=", limit = 2)
+                if (parts.size == 2) parts[0] to parts[1] else null
+            }.toMap()
+
+            val parts = hostPort.split(":")
+            val host = parts.getOrNull(0)?.trim().orEmpty()
+            if (host.isEmpty()) return null
+            val port = parts.getOrNull(1)?.toIntOrNull() ?: 18789
+            val tls = params["tls"]?.toBooleanStrictOrNull() ?: (port == 443)
+
+            return GatewayDeepLink(
+                host = host, port = port, tls = tls,
+                token = params["token"]?.trim(),
+                stableId = params["id"]?.trim() ?: params["stableId"]?.trim(),
+            )
+        }
+    }
+}
+
+// ── Step transition validation (OC parity) ──────────────
+
+/**
+ * Validates whether a step transition is allowed.
+ */
+fun canTransition(from: OnboardingStep, to: OnboardingStep, state: OnboardingState): Boolean = when {
+    from == to -> false
+    to == OnboardingStep.COMPLETE && state.isLoading -> false
+    to == OnboardingStep.GATEWAY_CONNECT && state.selectedGatewayStableId == null && state.manualHost.isBlank() && state.qrCodeValue == null -> false
+    to.ordinal > from.ordinal + 1 && to != OnboardingStep.COMPLETE -> false
+    else -> true
+}

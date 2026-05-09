@@ -951,3 +951,32 @@ data class SessionSnapshot(
     val gatewayAgentCount: Int,
     val canvasHostUrl: String?,
 )
+
+// ── Session key helpers (OC parity) ─────────────────────
+
+internal fun buildNodeMainSessionKey(deviceId: String, agentId: String?): String {
+    val normalizedAgent = agentId?.trim()?.takeIf { it.isNotEmpty() }
+    return if (normalizedAgent != null) "agent:$normalizedAgent:device:$deviceId"
+    else "device:$deviceId"
+}
+
+internal fun resolveAgentIdFromMainSessionKey(key: String?): String? {
+    val trimmed = key?.trim().orEmpty()
+    if (!trimmed.startsWith("agent:")) return null
+    return trimmed.removePrefix("agent:").substringBefore(':').takeIf { it.isNotEmpty() }
+}
+
+internal fun parseHexColorArgb(hex: String?): Long? {
+    val trimmed = hex?.trim().orEmpty().removePrefix("#")
+    if (trimmed.isEmpty()) return null
+    return try {
+        val argb = when (trimmed.length) {
+            6 -> "FF$trimmed"
+            8 -> trimmed
+            else -> return null
+        }
+        argb.toLong(16)
+    } catch (_: NumberFormatException) { null }
+}
+
+internal const val DEFAULT_SEAM_COLOR_ARGB = 0xFF1A1A2EL

@@ -665,3 +665,37 @@ fun settingsActionLabel(action: SettingsAction): String = when (action) {
     SettingsAction.COPY_DIAGNOSTICS -> "Copy Diagnostics"
     SettingsAction.SHARE_DIAGNOSTICS -> "Share Diagnostics"
 }
+
+/**
+ * Determines whether a settings action is available based on current state.
+ */
+fun isSettingsActionAvailable(action: SettingsAction, isConnected: Boolean): Boolean = when (action) {
+    SettingsAction.DISCONNECT -> isConnected
+    SettingsAction.RECONNECT -> true
+    SettingsAction.RESET_ALL -> true
+    SettingsAction.OPEN_APP_SETTINGS -> true
+    SettingsAction.OPEN_NOTIFICATION_LISTENER -> true
+    SettingsAction.COPY_INSTANCE_ID -> true
+    SettingsAction.COPY_DIAGNOSTICS -> true
+    SettingsAction.SHARE_DIAGNOSTICS -> true
+}
+
+/**
+ * Section identifiers for the settings page.
+ */
+enum class SettingsSection(val title: String) {
+    DEVICE("DEVICE"),
+    MEDIA("MEDIA"),
+    NOTIFICATIONS("NOTIFICATIONS"),
+    DATA_ACCESS("DATA ACCESS"),
+    LOCATION("LOCATION"),
+    PREFERENCES("PREFERENCES"),
+    GATEWAY("GATEWAY"),
+    DANGER_ZONE("DANGER ZONE"),
+    ABOUT("ABOUT"),
+    ;
+
+    companion object {
+        val visibleSections: List<SettingsSection> = entries.toList()
+    }
+}

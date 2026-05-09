@@ -478,4 +478,26 @@ data class SmsDiagnosticSnapshot(
     val hasTelephonyFeature: Boolean,
     val canSend: Boolean,
     val canRead: Boolean,
-)
+) {
+    val summary: String get() = buildString {
+        append("SMS: send=${if (canSend) "ok" else "no"}")
+        append(", read=${if (canRead) "ok" else "no"}")
+        append(", telephony=${if (hasTelephonyFeature) "ok" else "no"}")
+    }
+}
+
+// ── Phone number validation (OC parity) ─────────────────
+
+internal fun isValidPhoneNumber(phone: String): Boolean {
+    val normalized = phone.replace(Regex("""[\s\-()+.]"""), "")
+    return normalized.length in 7..15 && normalized.all { it.isDigit() }
+}
+
+internal fun formatPhoneForDisplay(phone: String): String {
+    val normalized = phone.replace(Regex("""[\s\-()+.]"""), "")
+    return when {
+        normalized.length == 10 -> "(${normalized.substring(0, 3)}) ${normalized.substring(3, 6)}-${normalized.substring(6)}"
+        normalized.length == 11 && normalized.startsWith("1") -> "+1 (${normalized.substring(1, 4)}) ${normalized.substring(4, 7)}-${normalized.substring(7)}"
+        else -> phone
+    }
+}
