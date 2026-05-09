@@ -367,3 +367,93 @@ private fun InlineBase64Image(base64: String, mimeType: String?) {
         Text(text = "Image unavailable", modifier = Modifier.padding(vertical = 2.dp), style = colors.caption1, color = colors.textSecondary)
     }
 }
+
+// ── Markdown utility helpers (OC parity) ────────────────
+
+private val LATEX_INLINE_REGEX = Regex("""\$(.+?)\$""")
+private val LATEX_BLOCK_REGEX = Regex("""\$\$(.+?)\$\$""", RegexOption.DOT_MATCHES_ALL)
+private val FOOTNOTE_REF_REGEX = Regex("""\[\^(\w+)]""")
+private val FOOTNOTE_DEF_REGEX = Regex("""^\[\^(\w+)]:\s*(.+)$""", RegexOption.MULTILINE)
+private val CHECKBOX_UNCHECKED_REGEX = Regex("""^- \[ ] (.+)$""", RegexOption.MULTILINE)
+private val CHECKBOX_CHECKED_REGEX = Regex("""^- \[x] (.+)$""", RegexOption.MULTILINE)
+
+/**
+ * Detect the programming language from a fenced code block opening.
+ */
+internal fun detectCodeLanguage(line: String): String? {
+    val trimmed = line.trim()
+    if (!trimmed.startsWith("```")) return null
+    val lang = trimmed.removePrefix("```").trim().lowercase()
+    return lang.takeIf { it.isNotEmpty() && it.all { c -> c.isLetterOrDigit() || c == '+' || c == '#' } }
+}
+
+/**
+ * Map a code language to a display label for the code block header.
+ */
+internal fun codeLanguageDisplayLabel(lang: String?): String = when (lang?.lowercase()) {
+    "kotlin", "kt" -> "Kotlin"
+    "java" -> "Java"
+    "javascript", "js" -> "JavaScript"
+    "typescript", "ts" -> "TypeScript"
+    "python", "py" -> "Python"
+    "swift" -> "Swift"
+    "rust", "rs" -> "Rust"
+    "go" -> "Go"
+    "c" -> "C"
+    "cpp", "c++" -> "C++"
+    "csharp", "cs", "c#" -> "C#"
+    "ruby", "rb" -> "Ruby"
+    "html" -> "HTML"
+    "css" -> "CSS"
+    "json" -> "JSON"
+    "xml" -> "XML"
+    "yaml", "yml" -> "YAML"
+    "bash", "sh", "zsh" -> "Shell"
+    "sql" -> "SQL"
+    "markdown", "md" -> "Markdown"
+    null -> "Code"
+    else -> lang.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+}
+
+/**
+ * Check if a line is a horizontal rule.
+ */
+internal fun isHorizontalRule(line: String): Boolean {
+    val trimmed = line.trim()
+    if (trimmed.length < 3) return false
+    return trimmed.all { it == '-' } || trimmed.all { it == '*' } || trimmed.all { it == '_' }
+}
+
+/**
+ * Parse task list items from markdown text.
+ */
+internal data class TaskItem(val text: String, val checked: Boolean)
+
+internal fun parseTaskList(markdownText: String): List<TaskItem> {
+    val items = mutableListOf<TaskItem>()
+    CHECKBOX_CHECKED_REGEX.findAll(markdownText).forEach { items.add(TaskItem(it.groupValues[1], true)) }
+    CHECKBOX_UNCHECKED_REGEX.findAll(markdownText).forEach { items.add(TaskItem(it.groupValues[1], false)) }
+    return items
+}
+
+/**
+ * Extract footnote definitions from markdown text.
+ */
+internal data class FootnoteDefinition(val id: String, val text: String)
+
+internal fun extractFootnotes(markdownText: String): List<FootnoteDefinition> =
+    FOOTNOTE_DEF_REGEX.findAll(markdownText).map { FootnoteDefinition(it.groupValues[1], it.groupValues[2]) }.toList()
+
+/**
+ * Check if text contains LaTeX math expressions.
+ */
+internal fun containsLatex(text: String): Boolean =
+    LATEX_INLINE_REGEX.containsMatchIn(text) || LATEX_BLOCK_REGEX.containsMatchIn(text)
+
+/**
+ * Estimate reading time in minutes for markdown text.
+ */
+internal fun estimateReadingTimeMinutes(markdownText: String, wordsPerMinute: Int = 200): Int {
+    val wordCount = markdownText.split(Regex("""\s+""")).count { it.isNotBlank() }
+    return ((wordCount.toFloat() / wordsPerMinute) + 0.5f).toInt().coerceAtLeast(1)
+}

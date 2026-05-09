@@ -745,3 +745,106 @@ data class VoiceConversationEntry(
     val text: String,
     val timestampMs: Long,
 )
+
+// ── Voice configuration (OC parity) ─────────────────────
+
+/**
+ * Configuration for talk mode behavior.
+ */
+data class TalkModeConfig(
+    val silenceWindowMs: Long = 2000L,
+    val interruptOnSpeech: Boolean = false,
+    val ttsOnAllResponses: Boolean = false,
+    val playbackEnabled: Boolean = true,
+    val autoRestartListening: Boolean = true,
+    val maxTtsLength: Int = 4000,
+    val speechRate: Float = 1.0f,
+    val pitch: Float = 1.0f,
+    val locale: Locale = Locale.getDefault(),
+) {
+    companion object {
+        val DEFAULT = TalkModeConfig()
+
+        fun fromJson(json: String): TalkModeConfig = try {
+            val obj = Json.parseToJsonElement(json) as? JsonObject ?: return DEFAULT
+            TalkModeConfig(
+                silenceWindowMs = (obj["silenceWindowMs"] as? JsonPrimitive)?.content?.toLongOrNull() ?: 2000L,
+                interruptOnSpeech = (obj["interruptOnSpeech"] as? JsonPrimitive)?.content?.toBooleanStrictOrNull() ?: false,
+                ttsOnAllResponses = (obj["ttsOnAllResponses"] as? JsonPrimitive)?.content?.toBooleanStrictOrNull() ?: false,
+                playbackEnabled = (obj["playbackEnabled"] as? JsonPrimitive)?.content?.toBooleanStrictOrNull() ?: true,
+                autoRestartListening = (obj["autoRestartListening"] as? JsonPrimitive)?.content?.toBooleanStrictOrNull() ?: true,
+                maxTtsLength = (obj["maxTtsLength"] as? JsonPrimitive)?.content?.toIntOrNull() ?: 4000,
+                speechRate = (obj["speechRate"] as? JsonPrimitive)?.content?.toFloatOrNull() ?: 1.0f,
+                pitch = (obj["pitch"] as? JsonPrimitive)?.content?.toFloatOrNull() ?: 1.0f,
+            )
+        } catch (_: Throwable) { DEFAULT }
+    }
+}
+
+// ── Talk mode diagnostics (OC parity) ───────────────────
+
+/**
+ * Diagnostic snapshot for talk mode state.
+ */
+data class TalkModeDiagnosticSnapshot(
+    val isEnabled: Boolean,
+    val isListening: Boolean,
+    val isSpeaking: Boolean,
+    val statusText: String,
+    val chatSubscribed: Boolean,
+    val ttsReady: Boolean,
+    val conversationCount: Int,
+    val pendingRunId: String?,
+    val ttsQueueSize: Int,
+)
+
+// ── Speech analytics (OC parity) ────────────────────────
+
+/**
+ * Tracks speech recognition metrics for diagnostics.
+ */
+class SpeechAnalytics {
+    private var totalRecognitions = 0
+    private var successfulRecognitions = 0
+    private var failedRecognitions = 0
+    private var totalCharactersRecognized = 0L
+    private var lastRecognitionTimeMs: Long? = null
+
+    fun recordSuccess(text: String) {
+        totalRecognitions++
+        successfulRecognitions++
+        totalCharactersRecognized += text.length
+        lastRecognitionTimeMs = System.currentTimeMillis()
+    }
+
+    fun recordFailure() {
+        totalRecognitions++
+        failedRecognitions++
+    }
+
+    fun reset() {
+        totalRecognitions = 0
+        successfulRecognitions = 0
+        failedRecognitions = 0
+        totalCharactersRecognized = 0L
+        lastRecognitionTimeMs = null
+    }
+
+    fun successRate(): Double =
+        if (totalRecognitions == 0) 0.0
+        else successfulRecognitions.toDouble() / totalRecognitions.toDouble()
+
+    fun averageCharactersPerRecognition(): Double =
+        if (successfulRecognitions == 0) 0.0
+        else totalCharactersRecognized.toDouble() / successfulRecognitions.toDouble()
+
+    fun snapshot(): Map<String, Any?> = mapOf(
+        "totalRecognitions" to totalRecognitions,
+        "successfulRecognitions" to successfulRecognitions,
+        "failedRecognitions" to failedRecognitions,
+        "totalCharactersRecognized" to totalCharactersRecognized,
+        "successRate" to successRate(),
+        "avgCharsPerRecognition" to averageCharactersPerRecognition(),
+        "lastRecognitionTimeMs" to lastRecognitionTimeMs,
+    )
+}
