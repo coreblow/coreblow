@@ -654,6 +654,130 @@ class GatewaySession private constructor(
         val host = raw?.trim()?.lowercase().orEmpty()
         return host == "localhost" || host == "::1" || host == "0.0.0.0" || host == "::" || host.startsWith("127.")
     }
+
+    // ── Connection diagnostics (OC parity) ──────────────
+
+    fun pendingInvokeCount(): Int = pendingRequests.size
+
+    fun connectionDiagnosticSnapshot(): Map<String, Any?> = mapOf(
+        "connected" to connected.get(),
+        "reconnectAttempt" to reconnectAttempt,
+        "pendingRequests" to pendingRequests.size,
+        "canvasHostUrl" to canvasHostUrl,
+        "mainSessionKey" to mainSessionKey,
+        "lastEventSeq" to lastEventSeq,
+        "pendingDeviceTokenRetry" to pendingDeviceTokenRetry,
+        "reconnectPausedForAuthFailure" to reconnectPausedForAuthFailure,
+    )
+
+    fun currentEndpointLabel(): String? = currentEndpoint?.label
+
+    fun currentEndpointHost(): String? = currentEndpoint?.host
+
+    fun currentEndpointPort(): Int? = currentEndpoint?.port
+
+    // ── Static helpers (test support & OC parity) ───────
+
+    companion object {
+        const val DEFAULT_INVOKE_TIMEOUT_MS = 30_000L
+        const val PING_INTERVAL_MS_EXPOSED = PING_INTERVAL_MS
+        const val PONG_TIMEOUT_MS = PING_INTERVAL_MS + 5_000L
+        const val MAX_RECONNECT_BACKOFF_MS = RECONNECT_MAX_MS
+        const val MAX_CONCURRENT_INVOKES = 64
+        const val MAX_MESSAGE_SIZE_BYTES = 16 * 1024 * 1024 // 16MB
+
+        fun nextSequenceId(): Long = System.nanoTime()
+
+        fun reconnectBackoffMs(attempt: Int): Long {
+            if (attempt <= 0) return RECONNECT_BASE_MS
+            val raw = (350.0 * Math.pow(1.7, attempt.toDouble())).toLong()
+            return minOf(raw, RECONNECT_MAX_MS)
+        }
+
+        fun buildConnectUrl(host: String, port: Int, tls: Boolean): String {
+            val scheme = if (tls) "wss" else "ws"
+            return "$scheme://$host:$port/v1/gateway"
+        }
+
+        fun isRetryableError(t: Throwable): Boolean = when (t) {
+            is java.net.SocketTimeoutException, is java.net.ConnectException,
+            is java.io.IOException -> true
+            is SecurityException -> false
+            else -> false
+        }
+
+        fun isBinaryFrame(data: ByteArray): Boolean = data.isNotEmpty()
+
+        fun createForTest(): GatewaySession = GatewaySession(
+            scope = CoroutineScope(Dispatchers.Default),
+            identityStore = null, deviceAuthStore = null, listenerRef = null,
+            onConnectedCb = null, onDisconnectedCb = null, onEventCb = null, onInvokeCb = null,
+        )
+
+        fun buildAuthPayload(
+            token: String?, bootstrapToken: String?, deviceToken: String?, password: String?,
+        ): JsonObject = buildJsonObject {
+            when {
+                !deviceToken.isNullOrBlank() && !token.isNullOrBlank() -> {
+                    put("token", token); put("deviceToken", deviceToken)
+                }
+                !deviceToken.isNullOrBlank() -> put("token", deviceToken)
+                !token.isNullOrBlank() -> put("token", token)
+                !bootstrapToken.isNullOrBlank() -> put("bootstrapToken", bootstrapToken)
+            }
+            if (!password.isNullOrBlank()) put("password", password)
+        }
+
+        fun rewriteCanvasCapabilityUrl(original: String?, newCap: String): String? {
+            if (original == null) return null
+            return replaceCanvasCapabilityInScopedHostUrl(original, newCap)
+        }
+
+        fun parseConnectResponse(json: String): ConnectResponsePayload? = try {
+            val obj = Json.parseToJsonElement(json) as? JsonObject ?: return null
+            val payload = obj["payload"] as? JsonObject ?: return null
+            val canvasHostUrl = (payload["canvasHostUrl"] as? JsonPrimitive)?.content
+            val snapshot = payload["snapshot"] as? JsonObject
+            val sessionDefaults = snapshot?.get("sessionDefaults") as? JsonObject
+            val mainSessionKey = (sessionDefaults?.get("mainSessionKey") as? JsonPrimitive)?.content
+            ConnectResponsePayload(canvasHostUrl = canvasHostUrl, mainSessionKey = mainSessionKey)
+        } catch (_: Throwable) { null }
+
+        fun isTokenMismatchError(code: String?): Boolean = code == "AUTH_TOKEN_MISMATCH"
+
+        fun isPairingRequiredError(code: String?): Boolean =
+            code == "DEVICE_NOT_PAIRED" || code == "PAIRING_REQUIRED"
+
+        data class DisconnectReason(val code: Int, val message: String) {
+            val isNormal: Boolean get() = code == 1000 || code == 1001
+        }
+
+        data class ConnectResponsePayload(val canvasHostUrl: String?, val mainSessionKey: String?)
+
+        object State {
+            const val Disconnected = "Disconnected"
+            const val Connecting = "Connecting"
+            const val Connected = "Connected"
+            const val Reconnecting = "Reconnecting"
+
+            val entries: List<String> get() = listOf(Disconnected, Connecting, Connected, Reconnecting)
+            fun valueOf(name: String): String = entries.firstOrNull { it == name } ?: throw IllegalArgumentException("No state: $name")
+        }
+
+        object InvokeResult {
+            fun ok(payloadJson: String?) = GatewaySession.InvokeResult(ok = true, payloadJson = payloadJson, error = null)
+            fun error(code: String, message: String) = GatewaySession.InvokeResult(ok = false, payloadJson = null, error = ErrorShape(code, message))
+            fun fromException(ex: Throwable): GatewaySession.InvokeResult {
+                val msg = ex.message ?: "unknown error"
+                val colonIdx = msg.indexOf(": ")
+                return if (colonIdx > 0 && msg.substring(0, colonIdx).all { it.isUpperCase() || it == '_' }) {
+                    error(msg.substring(0, colonIdx), msg.substring(colonIdx + 2))
+                } else {
+                    error("INTERNAL_ERROR", msg)
+                }
+            }
+        }
+    }
 }
 
 /**

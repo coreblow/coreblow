@@ -414,4 +414,28 @@ class GatewayDiscovery(
 
     private var lastScanTimeMs: Long? = null
     private var lastScanDurationMs: Long? = null
+
+    // ── Scan tracking ───────────────────────────────────
+
+    private var scanErrorCount = 0
+
+    fun recordScanStart() {
+        lastScanTimeMs = System.currentTimeMillis()
+        lastScanDurationMs = null
+    }
+
+    fun recordScanEnd(durationMs: Long) {
+        lastScanDurationMs = durationMs
+    }
+
+    fun recordScanError() {
+        scanErrorCount++
+    }
+
+    fun totalScanErrors(): Int = scanErrorCount
+
+    fun clearDiscovered() {
+        _discoveredGateways.value = emptyList()
+        scanErrorCount = 0
+    }
 }

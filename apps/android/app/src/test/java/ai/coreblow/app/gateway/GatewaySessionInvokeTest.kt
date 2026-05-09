@@ -397,4 +397,25 @@ class GatewaySessionInvokeTest {
         assertEquals(listOf("node:invoke"), opts.scopes)
         assertTrue(opts.caps.contains("device"))
     }
+
+    // ── Endpoint construction ───────────────────────────
+
+    @Test
+    fun gatewayEndpoint_manualFactory() {
+        val ep = GatewayEndpoint.manual(host = "10.0.0.1", port = 443)
+        assertEquals("10.0.0.1", ep.host)
+        assertEquals(443, ep.port)
+        assertTrue(ep.stableId.startsWith("manual|"))
+    }
+
+    @Test
+    fun gatewayEndpoint_displayUrl() {
+        val ep = GatewayEndpoint(
+            stableId = "test", name = "Test",
+            host = "gw.example.com", port = 18789, tlsEnabled = true,
+        )
+        val url = ep.displayUrl
+        assertTrue(url.contains("gw.example.com"))
+        assertTrue(url.contains("18789"))
+    }
 }
