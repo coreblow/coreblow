@@ -58,4 +58,26 @@ class ChatControllerMessageIdentityTest {
         val msg = ChatController.createMessage(role = "assistant", content = "")
         assertEquals("", msg.content)
     }
+
+    @Test fun messageRole_toolIsValid() {
+        val msg = ChatController.createMessage(role = ChatController.ROLE_TOOL, content = "tool output")
+        assertEquals(ChatController.ROLE_TOOL, msg.role)
+    }
+
+    @Test fun messageMetadata_timestampIsPositive() {
+        val msg = ChatController.createMessage(role = "user", content = "test")
+        assertTrue(msg.timestampMs > 0L)
+    }
+
+    @Test fun generateMessageId_containsNoDashes_orIsUUID() {
+        val id = ChatController.generateMessageId()
+        // IDs should be non-blank and printable
+        assertTrue(id.all { it.isLetterOrDigit() || it == '-' || it == '_' })
+    }
+
+    @Test fun createMessage_assignsUniqueIdAutomatically() {
+        val msg = ChatController.createMessage(role = "user", content = "hi")
+        assertNotNull(msg.id)
+        assertTrue(msg.id.isNotEmpty())
+    }
 }

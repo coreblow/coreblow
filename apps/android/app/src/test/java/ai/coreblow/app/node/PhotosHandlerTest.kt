@@ -47,4 +47,22 @@ class PhotosHandlerTest {
         val perms = PhotosHandler.requiredPermissions()
         assertTrue(perms.isNotEmpty())
     }
+
+    @Test fun mimeTypeFromExtension_mapsHeif() {
+        assertEquals("image/heif", PhotosHandler.mimeTypeFromExtension("heic"))
+        assertEquals("image/heif", PhotosHandler.mimeTypeFromExtension("heif"))
+    }
+
+    @Test fun mimeTypeFromExtension_mapsBmpAndGif() {
+        assertEquals("image/bmp", PhotosHandler.mimeTypeFromExtension("bmp"))
+        assertEquals("image/gif", PhotosHandler.mimeTypeFromExtension("gif"))
+    }
+
+    @Test fun thumbnailQuality_isInRange() {
+        assertTrue(PhotosHandler.THUMBNAIL_QUALITY in 30..100)
+    }
+
+    @Test fun maxResultsCount_isPositive() {
+        assertTrue(PhotosHandler.MAX_RESULTS > 0)
+    }
 }

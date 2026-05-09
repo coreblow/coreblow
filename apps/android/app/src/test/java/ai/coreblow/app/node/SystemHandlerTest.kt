@@ -50,4 +50,34 @@ class SystemHandlerTest {
         assertTrue(keys.contains("memory"))
         assertTrue(keys.contains("storage"))
     }
+
+    @Test fun formatUptime_handlesZero() {
+        assertEquals("0s", SystemHandler.formatUptime(0L))
+    }
+
+    @Test fun formatUptime_handlesSmallMs() {
+        assertEquals("0s", SystemHandler.formatUptime(500L))
+    }
+
+    @Test fun parseStorageInfo_extractsTotalAndFree() {
+        val json = """{"totalBytes":128000000000,"freeBytes":64000000000,"usedBytes":64000000000}"""
+        val storage = SystemHandler.parseStorageInfo(json)
+        assertNotNull(storage)
+        assertEquals(128_000_000_000L, storage!!.totalBytes)
+        assertEquals(64_000_000_000L, storage.freeBytes)
+    }
+
+    @Test fun thermalState_mapsValues() {
+        assertEquals("nominal", SystemHandler.mapThermalState(0))
+        assertEquals("fair", SystemHandler.mapThermalState(2))
+        assertEquals("serious", SystemHandler.mapThermalState(3))
+        assertEquals("critical", SystemHandler.mapThermalState(4))
+    }
+
+    @Test fun memoryPressure_mapsFromRatio() {
+        assertEquals("normal", SystemHandler.memoryPressureLevel(total = 100, available = 60))
+        assertEquals("moderate", SystemHandler.memoryPressureLevel(total = 100, available = 25))
+        assertEquals("high", SystemHandler.memoryPressureLevel(total = 100, available = 10))
+        assertEquals("critical", SystemHandler.memoryPressureLevel(total = 100, available = 3))
+    }
 }

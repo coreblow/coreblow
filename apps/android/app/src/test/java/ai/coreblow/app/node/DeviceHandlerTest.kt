@@ -76,4 +76,54 @@ class DeviceHandlerTest {
         assertEquals("moderate", DeviceHandler.thermalStatusLabel(2))
         assertEquals("critical", DeviceHandler.thermalStatusLabel(4))
     }
+
+    @Test fun thermalStatus_unknownDefaultsToNone() {
+        assertEquals("none", DeviceHandler.thermalStatusLabel(-1))
+    }
+
+    @Test fun batteryHealth_mapsValues() {
+        assertEquals("good", DeviceHandler.batteryHealthLabel(2))
+        assertEquals("overheat", DeviceHandler.batteryHealthLabel(3))
+        assertEquals("dead", DeviceHandler.batteryHealthLabel(4))
+    }
+
+    @Test fun batteryHealth_unknownDefaultsToUnknown() {
+        assertEquals("unknown", DeviceHandler.batteryHealthLabel(0))
+        assertEquals("unknown", DeviceHandler.batteryHealthLabel(-1))
+    }
+
+    @Test fun chargingType_mapsPluggedValues() {
+        assertEquals("ac", DeviceHandler.chargingTypeLabel(1))
+        assertEquals("usb", DeviceHandler.chargingTypeLabel(2))
+        assertEquals("wireless", DeviceHandler.chargingTypeLabel(4))
+        assertEquals("none", DeviceHandler.chargingTypeLabel(0))
+    }
+
+    @Test fun memoryPressure_computesFromRatio() {
+        assertEquals("normal", DeviceHandler.memoryPressureLabel(100, 60))
+        assertEquals("moderate", DeviceHandler.memoryPressureLabel(100, 25))
+        assertEquals("high", DeviceHandler.memoryPressureLabel(100, 10))
+        assertEquals("critical", DeviceHandler.memoryPressureLabel(100, 3))
+    }
+
+    @Test fun cpuArchitecture_isNonEmpty() {
+        val arch = DeviceHandler.cpuArchitectureString()
+        assertNotNull(arch)
+        assertTrue(arch.isNotEmpty())
+    }
+
+    @Test fun supportedAbis_isNonEmpty() {
+        val abis = DeviceHandler.supportedAbisList()
+        assertNotNull(abis)
+        assertTrue(abis.isNotEmpty())
+    }
+
+    @Test fun formatBytes_handlesTB() {
+        val tb = 1024L * 1024L * 1024L * 1024L
+        assertEquals("1.0 TB", DeviceHandler.formatBytes(tb))
+    }
+
+    @Test fun networkType_ethernet() {
+        assertEquals("Ethernet", DeviceHandler.networkTypeLabel(3))
+    }
 }

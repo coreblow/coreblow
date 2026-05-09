@@ -67,4 +67,34 @@ class ContactsHandlerTest {
         val perms = ContactsHandler.requiredPermissions()
         assertTrue(perms.size >= 2)
     }
+
+    @Test fun emailTypeLabel_mapsStandardTypes() {
+        assertEquals("Home", ContactsHandler.emailTypeLabel(1))
+        assertEquals("Work", ContactsHandler.emailTypeLabel(2))
+        assertEquals("Other", ContactsHandler.emailTypeLabel(3))
+    }
+
+    @Test fun emailTypeLabel_unknownDefaultsToOther() {
+        assertEquals("Other", ContactsHandler.emailTypeLabel(999))
+    }
+
+    @Test fun normalizePhone_stripsFormatting() {
+        assertEquals("+12345678901", ContactsHandler.normalizePhone("+1 (234) 567-8901"))
+        assertEquals("+12345678901", ContactsHandler.normalizePhone("+1-234-567-8901"))
+    }
+
+    @Test fun searchContacts_emptyQueryMatchesAll() {
+        assertTrue(ContactsHandler.matchesSearch("Any Name", ""))
+    }
+
+    @Test fun maxContactsPerQuery_isReasonable() {
+        assertTrue(ContactsHandler.MAX_CONTACTS_PER_QUERY > 0)
+        assertTrue(ContactsHandler.MAX_CONTACTS_PER_QUERY <= 500)
+    }
+
+    @Test fun parseContactEntry_handlesOptionalOrganization() {
+        val json = """{"id":"5","displayName":"Dave","phoneNumbers":[],"organization":"Acme Corp"}"""
+        val contact = ContactsHandler.parseContactEntry(json)
+        assertEquals("Acme Corp", contact?.organization)
+    }
 }

@@ -53,4 +53,34 @@ class LocationHandlerTest {
         val perms = LocationHandler.requiredPermissions()
         assertTrue(perms.isNotEmpty())
     }
+
+    @Test fun parseLocationResponse_extractsAccuracy() {
+        val json = """{"latitude":0.0,"longitude":0.0,"accuracy":15.5}"""
+        val loc = LocationHandler.parseLocationResponse(json)
+        assertEquals(15.5, loc!!.accuracy, 0.1)
+    }
+
+    @Test fun parseLocationResponse_extractsSpeed() {
+        val json = """{"latitude":0.0,"longitude":0.0,"accuracy":5.0,"speed":2.5}"""
+        val loc = LocationHandler.parseLocationResponse(json)
+        assertEquals(2.5, loc?.speed ?: 0.0, 0.1)
+    }
+
+    @Test fun parseLocationResponse_extractsHeading() {
+        val json = """{"latitude":0.0,"longitude":0.0,"accuracy":5.0,"heading":270.0}"""
+        val loc = LocationHandler.parseLocationResponse(json)
+        assertEquals(270.0, loc?.heading ?: 0.0, 0.1)
+    }
+
+    @Test fun distanceBetween_samePoint_isZero() {
+        val d = LocationHandler.distanceBetween(37.7749, -122.4194, 37.7749, -122.4194)
+        assertEquals(0.0, d, 0.1)
+    }
+
+    @Test fun distanceBetween_knownPoints_isReasonable() {
+        // SF to LA is roughly 559 km
+        val d = LocationHandler.distanceBetween(37.7749, -122.4194, 34.0522, -118.2437)
+        assertTrue(d > 500_000.0) // > 500km in meters
+        assertTrue(d < 700_000.0) // < 700km
+    }
 }

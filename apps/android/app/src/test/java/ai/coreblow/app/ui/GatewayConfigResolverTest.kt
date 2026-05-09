@@ -107,6 +107,61 @@ class GatewayConfigResolverTest {
         assertEquals("bootstrap-1", resolved?.bootstrapToken)
     }
 
+    @Test fun resolveGateway_manualIgnoresSetupCode() {
+        val resolved = resolveGatewayConnectConfig(
+            useSetupCode = false, setupCode = "ignored", manualHost = "my-host", manualPort = "9090", manualTls = false,
+            fallbackToken = "token-1", fallbackPassword = null, // pragma: allowlist secret
+        )
+        assertEquals("my-host", resolved?.host)
+        assertEquals(9090, resolved?.port)
+        assertEquals(false, resolved?.tls)
+    }
+
+    @Test fun resolveGateway_manualDefaultPort() {
+        val resolved = resolveGatewayConnectConfig(
+            useSetupCode = false, setupCode = "", manualHost = "local", manualPort = "", manualTls = false,
+            fallbackToken = null, fallbackPassword = null,
+        )
+        assertEquals(GatewayConfigResolver.DEFAULT_PORT, resolved?.port)
+    }
+
+    @Test fun resolveGateway_emptyManualHostReturnsNull() {
+        val resolved = resolveGatewayConnectConfig(
+            useSetupCode = false, setupCode = "", manualHost = "", manualPort = "18789", manualTls = false,
+            fallbackToken = null, fallbackPassword = null,
+        )
+        assertNull(resolved)
+    }
+
+    @Test fun resolveGateway_invalidPortReturnsNull() {
+        val resolved = resolveGatewayConnectConfig(
+            useSetupCode = false, setupCode = "", manualHost = "host", manualPort = "0", manualTls = false,
+            fallbackToken = null, fallbackPassword = null,
+        )
+        assertNull(resolved)
+    }
+
+    @Test fun resolveGateway_portOverflow_isRejected() {
+        val resolved = resolveGatewayConnectConfig(
+            useSetupCode = false, setupCode = "", manualHost = "host", manualPort = "70000", manualTls = false,
+            fallbackToken = null, fallbackPassword = null,
+        )
+        assertNull(resolved)
+    }
+
+    @Test fun resolveGateway_tokenAndPassword_bothPresent() {
+        val resolved = resolveGatewayConnectConfig(
+            useSetupCode = false, setupCode = "", manualHost = "host", manualPort = "18789", manualTls = false,
+            fallbackToken = "t1", fallbackPassword = "p1", // pragma: allowlist secret
+        )
+        assertEquals("t1", resolved?.token)
+        assertEquals("p1", resolved?.password)
+    }
+
+    @Test fun defaultPort_is18789() {
+        assertEquals(18789, GatewayConfigResolver.DEFAULT_PORT)
+    }
+
     private fun encodeSetupCode(payloadJson: String): String {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(payloadJson.toByteArray(Charsets.UTF_8))
     }

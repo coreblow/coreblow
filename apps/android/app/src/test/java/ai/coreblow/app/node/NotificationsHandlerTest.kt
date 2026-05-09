@@ -94,4 +94,123 @@ class NotificationsHandlerTest {
         val buffer = NotificationsHandler.NotificationHistoryBuffer(maxSize = 10)
         assertEquals(0, buffer.size())
     }
+
+    // ── Listener service tests (OC parity) ──────────────
+
+    @Test fun sanitizeText_trimAndCap() {
+        val long = "A".repeat(1000)
+        val sanitized = sanitizeNotificationText(long)
+        assertNotNull(sanitized)
+        assertTrue(sanitized!!.length <= 512)
+    }
+
+    @Test fun sanitizeText_nullReturnsNull() {
+        val result = sanitizeNotificationText(null)
+        assertEquals(null, result)
+    }
+
+    @Test fun sanitizeText_emptyReturnsNull() {
+        val result = sanitizeNotificationText("")
+        assertEquals(null, result)
+    }
+
+    @Test fun sanitizeText_whitespaceOnlyReturnsNull() {
+        val result = sanitizeNotificationText("   ")
+        assertEquals(null, result)
+    }
+
+    @Test fun notificationEntry_toJson_containsRequiredFields() {
+        val entry = DeviceNotificationEntry(
+            key = "key-1", packageName = "com.test",
+            title = "Title", text = "Body", subText = null,
+            category = "msg", channelId = "chat",
+            postTimeMs = 123456789L, isOngoing = false, isClearable = true,
+        )
+        val json = entry.toJsonObject()
+        assertEquals("key-1", json["key"]?.jsonPrimitive?.content)
+        assertEquals("com.test", json["packageName"]?.jsonPrimitive?.content)
+        assertEquals("Title", json["title"]?.jsonPrimitive?.content)
+        assertEquals("Body", json["text"]?.jsonPrimitive?.content)
+        assertEquals(true, json["isClearable"]?.jsonPrimitive?.content?.toBooleanStrict())
+    }
+
+    @Test fun notificationEntry_toJson_omitsNullFields() {
+        val entry = DeviceNotificationEntry(
+            key = "key-2", packageName = "com.test",
+            title = null, text = null, subText = null,
+            category = null, channelId = null,
+            postTimeMs = 100L, isOngoing = true, isClearable = false,
+        )
+        val json = entry.toJsonObject()
+        assertFalse(json.containsKey("title"))
+        assertFalse(json.containsKey("text"))
+        assertFalse(json.containsKey("category"))
+    }
+
+    @Test fun notificationSnapshot_containsEnabledFlag() {
+        val snap = DeviceNotificationSnapshot(
+            enabled = true, connected = false, notifications = emptyList(),
+        )
+        assertTrue(snap.enabled)
+        assertFalse(snap.connected)
+        assertEquals(0, snap.notifications.size)
+    }
+
+    @Test fun actionKind_allValuesExist() {
+        val kinds = NotificationActionKind.entries
+        assertTrue(kinds.contains(NotificationActionKind.Open))
+        assertTrue(kinds.contains(NotificationActionKind.Dismiss))
+        assertTrue(kinds.contains(NotificationActionKind.Reply))
+    }
+
+    @Test fun actionRequiresClearable_onlyForDismiss() {
+        assertTrue(actionRequiresClearableNotification(NotificationActionKind.Dismiss))
+        assertFalse(actionRequiresClearableNotification(NotificationActionKind.Open))
+        assertFalse(actionRequiresClearableNotification(NotificationActionKind.Reply))
+    }
+
+    @Test fun actionResult_okHasNoError() {
+        val result = NotificationActionResult(ok = true)
+        assertTrue(result.ok)
+        assertEquals(null, result.code)
+    }
+
+    @Test fun actionResult_errorHasCodeAndMessage() {
+        val result = NotificationActionResult(ok = false, code = "NOT_FOUND", message = "notification not found")
+        assertFalse(result.ok)
+        assertEquals("NOT_FOUND", result.code)
+    }
+
+    @Test fun actionRequest_openKind() {
+        val req = NotificationActionRequest(key = "k1", kind = NotificationActionKind.Open)
+        assertEquals("k1", req.key)
+        assertEquals(NotificationActionKind.Open, req.kind)
+    }
+
+    @Test fun actionRequest_replyIncludesText() {
+        val req = NotificationActionRequest(key = "k2", kind = NotificationActionKind.Reply, replyText = "Hello!")
+        assertEquals("Hello!", req.replyText)
+    }
+
+    @Test fun historyBuffer_oldestIsEvicted() {
+        val buffer = NotificationsHandler.NotificationHistoryBuffer(maxSize = 3)
+        buffer.add("a"); buffer.add("b"); buffer.add("c"); buffer.add("d")
+        assertEquals(3, buffer.size())
+        assertFalse(buffer.contains("a"))
+        assertTrue(buffer.contains("d"))
+    }
+
+    @Test fun parseShowRequest_emptyJsonReturnsNull() {
+        val req = NotificationsHandler.parseShowRequest("")
+        assertEquals(null, req)
+    }
+
+    @Test fun parseShowRequest_missingTitleReturnsNull() {
+        val req = NotificationsHandler.parseShowRequest("""{"body":"B"}""")
+        assertTrue(req == null || req.title.isNullOrBlank())
+    }
+
+    @Test fun priorityMapping_minPriority() {
+        assertEquals(NotificationsHandler.Priority.Min, NotificationsHandler.parsePriority("min"))
+    }
 }

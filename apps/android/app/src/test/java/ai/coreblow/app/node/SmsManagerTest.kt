@@ -88,4 +88,75 @@ class SmsManagerTest {
         val perms = SmsManager.requiredPermissions()
         assertTrue(perms.size >= 2)
     }
+
+    @Test fun maxMessageLength_gsm7bit() {
+        assertEquals(160, SmsManager.MAX_GSM_SINGLE_PART_LENGTH)
+    }
+
+    @Test fun maxMessageLength_ucs2() {
+        assertEquals(70, SmsManager.MAX_UCS2_SINGLE_PART_LENGTH)
+    }
+
+    @Test fun multipartSegmentLength_gsm7bit() {
+        assertEquals(153, SmsManager.GSM_MULTIPART_SEGMENT_LENGTH)
+    }
+
+    @Test fun multipartSegmentLength_ucs2() {
+        assertEquals(67, SmsManager.UCS2_MULTIPART_SEGMENT_LENGTH)
+    }
+
+    @Test fun messageType_inbox() {
+        assertEquals(1, SmsManager.MESSAGE_TYPE_INBOX)
+    }
+
+    @Test fun messageType_sent() {
+        assertEquals(2, SmsManager.MESSAGE_TYPE_SENT)
+    }
+
+    @Test fun conversationThreading_sortsByTimestamp() {
+        val messages = listOf(
+            SmsManager.SmsEntry(address = "+111", body = "old", timestamp = 100L, type = 1),
+            SmsManager.SmsEntry(address = "+111", body = "new", timestamp = 200L, type = 1),
+        )
+        val threads = SmsManager.groupByConversation(messages)
+        val thread = threads["+111"]!!
+        assertTrue(thread[0].timestamp <= thread[1].timestamp)
+    }
+
+    @Test fun filterInbox_returnsOnlyIncoming() {
+        val messages = listOf(
+            SmsManager.SmsEntry(address = "+111", body = "in", timestamp = 1L, type = 1),
+            SmsManager.SmsEntry(address = "+111", body = "out", timestamp = 2L, type = 2),
+        )
+        val inbox = SmsManager.filterByType(messages, SmsManager.MESSAGE_TYPE_INBOX)
+        assertEquals(1, inbox.size)
+        assertEquals("in", inbox[0].body)
+    }
+
+    @Test fun filterSent_returnsOnlyOutgoing() {
+        val messages = listOf(
+            SmsManager.SmsEntry(address = "+222", body = "in", timestamp = 1L, type = 1),
+            SmsManager.SmsEntry(address = "+222", body = "out", timestamp = 2L, type = 2),
+        )
+        val sent = SmsManager.filterByType(messages, SmsManager.MESSAGE_TYPE_SENT)
+        assertEquals(1, sent.size)
+        assertEquals("out", sent[0].body)
+    }
+
+    @Test fun analyzeMessage_emptyStringIsGsm() {
+        val result = SmsManager.analyzeMessage("")
+        assertEquals(SmsManager.Encoding.GSM_7BIT, result.encoding)
+        assertEquals(0, result.charCount)
+    }
+
+    @Test fun parseSendRequest_rejectsMissingTo() {
+        val json = """{"body":"Hello"}"""
+        val req = SmsManager.parseSendRequest(json)
+        assertTrue(req == null || req.to.isNullOrBlank())
+    }
+
+    @Test fun maxSearchResults_isReasonable() {
+        assertTrue(SmsManager.MAX_SEARCH_RESULTS > 0)
+        assertTrue(SmsManager.MAX_SEARCH_RESULTS <= 500)
+    }
 }

@@ -73,4 +73,46 @@ class MotionHandlerTest {
         val perms = MotionHandler.requiredPermissions()
         assertTrue(perms.isNotEmpty())
     }
+
+    @Test fun shakeThreshold_isReasonable() {
+        assertTrue(MotionHandler.SHAKE_THRESHOLD_G > 1.0f)
+        assertTrue(MotionHandler.SHAKE_THRESHOLD_G < 50.0f)
+    }
+
+    @Test fun accelerometerMagnitude_computesCorrectly() {
+        val magnitude = MotionHandler.accelerometerMagnitude(3f, 4f, 0f)
+        assertEquals(5.0f, magnitude, 0.01f)
+    }
+
+    @Test fun accelerometerMagnitude_handlesGravity() {
+        val magnitude = MotionHandler.accelerometerMagnitude(0f, 0f, 9.81f)
+        assertEquals(9.81f, magnitude, 0.01f)
+    }
+
+    @Test fun gravityFilter_removesStaticComponent() {
+        val filtered = MotionHandler.removeGravity(0f, 0f, 9.81f + 2.0f, 0f, 0f, 9.81f)
+        assertEquals(2.0f, filtered[2], 0.1f)
+    }
+
+    @Test fun stepAccumulator_resetClearsState() {
+        val counter = MotionHandler.StepAccumulator()
+        counter.onSensorEvent(100f)
+        counter.onSensorEvent(110f)
+        counter.reset()
+        assertEquals(0, counter.stepsSinceStart())
+    }
+
+    @Test fun eventThrottle_resetAllowsImmediate() {
+        val throttle = MotionHandler.EventThrottle(100L)
+        throttle.shouldEmit(0L)
+        throttle.reset()
+        assertTrue(throttle.shouldEmit(50L))
+    }
+
+    @Test fun pedometerAvailability_dependsOnHardware() {
+        // This is a static boolean — just verify it's accessible
+        val available = MotionHandler.isPedometerHardwareAvailable
+        // Can't assert value without context, but it shouldn't throw
+        assertNotNull(available)
+    }
 }
