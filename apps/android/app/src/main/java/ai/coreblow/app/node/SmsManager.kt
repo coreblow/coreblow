@@ -313,4 +313,169 @@ class SmsManager(private val context: Context) {
         }
         return messages
     }
+
+    // ── Encoding analysis (OC parity) ───────────────────
+
+    enum class Encoding { GSM_7BIT, UCS2 }
+
+    data class MessageAnalysis(val encoding: Encoding, val charCount: Int, val partCount: Int)
+
+    companion object {
+        const val COMMAND_NAME = "sms"
+        const val MAX_GSM_SINGLE_PART_LENGTH = 160
+        const val MAX_UCS2_SINGLE_PART_LENGTH = 70
+        const val GSM_MULTIPART_SEGMENT_LENGTH = 153
+        const val UCS2_MULTIPART_SEGMENT_LENGTH = 67
+        const val MESSAGE_TYPE_INBOX = 1
+        const val MESSAGE_TYPE_SENT = 2
+        const val MAX_SEARCH_RESULTS = 200
+
+        /**
+         * GSM 7-bit basic character set.
+         */
+        private val GSM_CHARS = setOf(
+            '@', '£', '$', '¥', 'è', 'é', 'ù', 'ì', 'ò', 'Ç', '\n', 'Ø', 'ø', '\r', 'Å', 'å',
+            'Δ', '_', 'Φ', 'Γ', 'Λ', 'Ω', 'Π', 'Ψ', 'Σ', 'Θ', 'Ξ', 'Æ', 'æ', 'ß', 'É',
+            ' ', '!', '"', '#', '¤', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/',
+            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '<', '=', '>', '?',
+            '¡', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
+            'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'Ä', 'Ö', 'Ñ', 'Ü', '§',
+            '¿', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
+            'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'ä', 'ö', 'ñ', 'ü', 'à',
+        )
+
+        fun isGsmCharacter(c: Char): Boolean = c in GSM_CHARS
+
+        fun analyzeMessage(text: String): MessageAnalysis {
+            val isGsm = text.all { isGsmCharacter(it) }
+            val encoding = if (isGsm) Encoding.GSM_7BIT else Encoding.UCS2
+            val charCount = text.length
+            val singlePartLimit = if (isGsm) MAX_GSM_SINGLE_PART_LENGTH else MAX_UCS2_SINGLE_PART_LENGTH
+            val segmentLength = if (isGsm) GSM_MULTIPART_SEGMENT_LENGTH else UCS2_MULTIPART_SEGMENT_LENGTH
+            val partCount = when {
+                charCount == 0 -> 1
+                charCount <= singlePartLimit -> 1
+                else -> (charCount + segmentLength - 1) / segmentLength
+            }
+            return MessageAnalysis(encoding = encoding, charCount = charCount, partCount = partCount)
+        }
+
+        fun splitMessage(text: String): List<String> {
+            val analysis = analyzeMessage(text)
+            if (analysis.partCount <= 1) return listOf(text)
+            val segmentLength = if (analysis.encoding == Encoding.GSM_7BIT) GSM_MULTIPART_SEGMENT_LENGTH else UCS2_MULTIPART_SEGMENT_LENGTH
+            return text.chunked(segmentLength)
+        }
+
+        fun normalizePhoneNumber(phone: String): String = phone.replace(Regex("""[\s\-().]"""), "")
+
+        fun parseSendRequest(jsonString: String): ParsedSendRequest? {
+            val trimmed = jsonString.trim()
+            if (trimmed.isEmpty()) return null
+            return try {
+                val obj = Json.parseToJsonElement(trimmed) as? JsonObject ?: return null
+                val to = (obj["to"] as? JsonPrimitive)?.content?.trim()
+                val body = (obj["body"] as? JsonPrimitive)?.content ?: ""
+                ParsedSendRequest(to = to, body = body)
+            } catch (_: Throwable) { null }
+        }
+
+        fun requiredPermissions(): List<String> = listOf(
+            Manifest.permission.SEND_SMS,
+            Manifest.permission.READ_SMS,
+        )
+
+        // ── Threading & filtering (OC parity) ──────────
+
+        data class SmsEntry(val address: String, val body: String, val timestamp: Long, val type: Int)
+
+        fun groupByConversation(messages: List<SmsEntry>): Map<String, List<SmsEntry>> =
+            messages.groupBy { normalizePhoneNumber(it.address) }
+                .mapValues { (_, msgs) -> msgs.sortedBy { it.timestamp } }
+
+        fun filterByType(messages: List<SmsEntry>, type: Int): List<SmsEntry> =
+            messages.filter { it.type == type }
+
+        fun resolveContactName(contacts: Map<String, String>, phoneNumber: String): String? =
+            contacts[normalizePhoneNumber(phoneNumber)]
+
+        // ── Delivery status (OC parity) ────────────────
+
+        fun deliveryStatusLabel(status: Int): String = when (status) {
+            -1 -> "none"
+            0 -> "complete"
+            32 -> "pending"
+            64 -> "failed"
+            else -> "unknown"
+        }
+
+        fun messageTypeLabel(type: Int): String = when (type) {
+            MESSAGE_TYPE_INBOX -> "inbox"
+            MESSAGE_TYPE_SENT -> "sent"
+            3 -> "draft"
+            4 -> "outbox"
+            5 -> "failed"
+            6 -> "queued"
+            else -> "unknown"
+        }
+    }
+
+    data class ParsedSendRequest(val to: String?, val body: String)
+
+    // ── Diagnostics (OC parity) ─────────────────────────
+
+    fun diagnosticSnapshot(): SmsDiagnosticSnapshot = SmsDiagnosticSnapshot(
+        hasSmsPermission = hasSmsPermission(),
+        hasReadSmsPermission = hasReadSmsPermission(),
+        hasReadContactsPermission = hasReadContactsPermission(),
+        hasTelephonyFeature = hasTelephonyFeature(),
+        canSend = canSendSms(),
+        canRead = canReadSms(),
+    )
+
+    // ── Thread count (OC parity) ────────────────────────
+
+    fun threadCount(): Int {
+        if (!hasReadSmsPermission()) return 0
+        return try {
+            context.contentResolver.query(
+                Telephony.Sms.CONTENT_URI,
+                arrayOf("DISTINCT ${Telephony.Sms.THREAD_ID}"),
+                null, null, null,
+            )?.use { it.count } ?: 0
+        } catch (_: Throwable) { 0 }
+    }
+
+    fun totalMessageCount(): Int {
+        if (!hasReadSmsPermission()) return 0
+        return try {
+            context.contentResolver.query(
+                Telephony.Sms.CONTENT_URI,
+                arrayOf("count(*)"),
+                null, null, null,
+            )?.use { cursor -> if (cursor.moveToFirst()) cursor.getInt(0) else 0 } ?: 0
+        } catch (_: Throwable) { 0 }
+    }
+
+    fun unreadCount(): Int {
+        if (!hasReadSmsPermission()) return 0
+        return try {
+            context.contentResolver.query(
+                Telephony.Sms.CONTENT_URI,
+                arrayOf("count(*)"),
+                "${Telephony.Sms.READ} = 0", null, null,
+            )?.use { cursor -> if (cursor.moveToFirst()) cursor.getInt(0) else 0 } ?: 0
+        } catch (_: Throwable) { 0 }
+    }
 }
+
+// ── Diagnostic data class (OC parity) ───────────────────
+
+data class SmsDiagnosticSnapshot(
+    val hasSmsPermission: Boolean,
+    val hasReadSmsPermission: Boolean,
+    val hasReadContactsPermission: Boolean,
+    val hasTelephonyFeature: Boolean,
+    val canSend: Boolean,
+    val canRead: Boolean,
+)

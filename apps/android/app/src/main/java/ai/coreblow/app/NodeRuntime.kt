@@ -772,6 +772,126 @@ class NodeRuntime(
         val trimmed = value?.trim().orEmpty()
         return trimmed.ifEmpty { null }
     }
+
+    // ── Runtime diagnostics (OC parity) ─────────────────
+
+    fun diagnosticSnapshot(): RuntimeDiagnosticSnapshot = RuntimeDiagnosticSnapshot(
+        isConnected = _isConnected.value,
+        nodeConnected = _nodeConnected.value,
+        statusText = _statusText.value,
+        serverName = _serverName.value,
+        remoteAddress = _remoteAddress.value,
+        mainSessionKey = _mainSessionKey.value,
+        connectedEndpointHost = connectedEndpoint?.host,
+        connectedEndpointPort = connectedEndpoint?.port,
+        operatorSessionDiag = operatorSession.connectionDiagnosticSnapshot(),
+        nodeSessionDiag = nodeSession.connectionDiagnosticSnapshot(),
+        discoveredGateways = gateways.value.size,
+        canvasA2uiHydrated = _canvasA2uiHydrated.value,
+        canvasRehydratePending = _canvasRehydratePending.value,
+        isForeground = _isForeground.value,
+        cameraEnabled = cameraEnabled.value,
+        micEnabled = micEnabled.value,
+        speakerEnabled = speakerEnabled.value,
+        locationMode = locationMode.value.name,
+        preventSleep = preventSleep.value,
+        manualEnabled = manualEnabled.value,
+        onboardingCompleted = onboardingCompleted.value,
+    )
+
+    fun registeredHandlerNames(): List<String> = listOf(
+        "camera", "location", "device", "notifications", "system", "photos",
+        "contacts", "calendar", "callLog", "motion", "sms", "debug", "a2ui",
+    )
+
+    fun registeredHandlerCount(): Int = registeredHandlerNames().size
+
+    fun activeCapabilities(): Map<String, Boolean> = mapOf(
+        "camera" to cameraEnabled.value,
+        "location" to (locationMode.value != LocationMode.Off),
+        "sms.send" to (BuildConfig.COREBLOW_ENABLE_SMS && sms.canSendSms()),
+        "sms.read" to (BuildConfig.COREBLOW_ENABLE_SMS && sms.canReadSms()),
+        "callLog" to BuildConfig.COREBLOW_ENABLE_CALL_LOG,
+        "microphone" to hasRecordAudioPermission(),
+        "notifications" to notificationsHandler.isServiceEnabled(),
+        "motion.activity" to motionHandler.isActivityAvailable(),
+        "motion.pedometer" to motionHandler.isPedometerAvailable(),
+    )
+
+    fun sessionSnapshot(): SessionSnapshot = SessionSnapshot(
+        operatorConnected = operatorConnected,
+        nodeConnected = _nodeConnected.value,
+        mainSessionKey = _mainSessionKey.value,
+        chatSessionKey = chatSessionKey.value,
+        chatSessionId = chatSessionId.value,
+        chatMessageCount = chatMessages.value.size,
+        chatHealthOk = chatHealthOk.value,
+        pendingRunCount = pendingRunCount.value,
+        gatewayDefaultAgentId = gatewayDefaultAgentId,
+        gatewayAgentCount = gatewayAgents.size,
+        canvasHostUrl = operatorSession.currentCanvasHostUrl(),
+    )
+
+    fun connectionUptime(): Long? {
+        if (!_isConnected.value) return null
+        return SystemClock.elapsedRealtime()
+    }
+
+    fun operatorSessionKey(): String? = operatorSession.currentMainSessionKey()
+
+    fun nodeSessionKey(): String? = nodeSession.currentMainSessionKey()
+
+    // ── Version & build info (OC parity) ────────────────
+
+    fun versionString(): String = BuildConfig.VERSION_NAME
+    fun versionCode(): Int = BuildConfig.VERSION_CODE
+    fun buildType(): String = BuildConfig.BUILD_TYPE
+
+    fun deviceIdentity(): Map<String, String> {
+        val identity = identityStore.loadOrCreate()
+        return mapOf(
+            "deviceId" to identity.deviceId,
+            "displayName" to displayName.value,
+            "instanceId" to instanceId.value,
+        )
+    }
+
+    // ── Discovery controls (OC parity) ──────────────────
+
+    fun startDiscovery() = discovery.start()
+    fun stopDiscovery() = discovery.stop()
+    fun isDiscoveryActive(): Boolean = discovery.isActive()
+    fun discoveredGatewayCount(): Int = gateways.value.size
+
+    // ── Gateway agent helpers (OC parity) ───────────────
+
+    fun switchAgent(agentId: String) {
+        syncMainSessionKey(agentId.trim().takeIf { it.isNotEmpty() })
+    }
+
+    fun currentAgentId(): String = resolveActiveAgentId()
+    fun currentAgentName(): String = resolveActiveAgentName(resolveActiveAgentId())
+
+    fun listAgents(): List<Map<String, String?>> = gatewayAgents.map { agent ->
+        mapOf("id" to agent.id, "name" to agent.name, "emoji" to agent.emoji)
+    }
+
+    // ── Canvas state (OC parity) ────────────────────────
+
+    fun canvasUrl(): String? = operatorSession.currentCanvasHostUrl()
+    fun nodeCanvasUrl(): String? = nodeSession.currentCanvasHostUrl()
+    fun isCanvasHydrated(): Boolean = _canvasA2uiHydrated.value
+    fun isCanvasRehydratePending(): Boolean = _canvasRehydratePending.value
+    fun canvasRehydrateError(): String? = _canvasRehydrateErrorText.value
+
+    // ── Voice state (OC parity) ─────────────────────────
+
+    fun isMicEnabled(): Boolean = micEnabled.value
+    fun isSpeakerEnabled(): Boolean = speakerEnabled.value
+    fun micStatus(): String = micStatusText.value
+    fun isMicListening(): Boolean = micIsListening.value
+    fun isMicSending(): Boolean = micIsSending.value
+    fun voiceConversationCount(): Int = micConversation.value.size
 }
 
 private data class Quad<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
@@ -790,4 +910,44 @@ private data class HomeCanvasPayload(
 @Serializable
 private data class HomeCanvasAgentCard(
     val id: String, val name: String, val badge: String, val caption: String, val isActive: Boolean,
+)
+
+// ── Diagnostic data classes (OC parity) ─────────────────
+
+data class RuntimeDiagnosticSnapshot(
+    val isConnected: Boolean,
+    val nodeConnected: Boolean,
+    val statusText: String,
+    val serverName: String?,
+    val remoteAddress: String?,
+    val mainSessionKey: String,
+    val connectedEndpointHost: String?,
+    val connectedEndpointPort: Int?,
+    val operatorSessionDiag: Map<String, Any?>,
+    val nodeSessionDiag: Map<String, Any?>,
+    val discoveredGateways: Int,
+    val canvasA2uiHydrated: Boolean,
+    val canvasRehydratePending: Boolean,
+    val isForeground: Boolean,
+    val cameraEnabled: Boolean,
+    val micEnabled: Boolean,
+    val speakerEnabled: Boolean,
+    val locationMode: String,
+    val preventSleep: Boolean,
+    val manualEnabled: Boolean,
+    val onboardingCompleted: Boolean,
+)
+
+data class SessionSnapshot(
+    val operatorConnected: Boolean,
+    val nodeConnected: Boolean,
+    val mainSessionKey: String,
+    val chatSessionKey: String,
+    val chatSessionId: String?,
+    val chatMessageCount: Int,
+    val chatHealthOk: Boolean,
+    val pendingRunCount: Int,
+    val gatewayDefaultAgentId: String?,
+    val gatewayAgentCount: Int,
+    val canvasHostUrl: String?,
 )
