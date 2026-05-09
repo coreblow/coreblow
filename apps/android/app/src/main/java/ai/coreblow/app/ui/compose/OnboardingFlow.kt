@@ -935,3 +935,490 @@ private fun GatewayStep(
         }
     }
 }
+
+// ── Onboarding state machine (OC parity) ────────────────
+
+/**
+ * Step definitions for the onboarding wizard.
+ */
+enum class OnboardingStep(val index: Int, val title: String) {
+    WELCOME(0, "Welcome"),
+    PERMISSIONS(1, "Permissions"),
+    GATEWAY_DISCOVERY(2, "Find Gateway"),
+    GATEWAY_QR(3, "Scan QR Code"),
+    GATEWAY_MANUAL(4, "Manual Setup"),
+    GATEWAY_CONNECT(5, "Connecting"),
+    GATEWAY_AUTH(6, "Authentication"),
+    GATEWAY_TRUST(7, "Trust Gateway"),
+    COMPLETE(8, "Ready"),
+    ;
+
+    companion object {
+        val initialStep: OnboardingStep = WELCOME
+        val permissionStep: OnboardingStep = PERMISSIONS
+        val discoveryStep: OnboardingStep = GATEWAY_DISCOVERY
+        val completeStep: OnboardingStep = COMPLETE
+
+        fun fromIndex(index: Int): OnboardingStep =
+            entries.firstOrNull { it.index == index } ?: WELCOME
+
+        val totalSteps: Int = entries.size
+        val progressSteps: Int = entries.size - 1 // exclude COMPLETE
+    }
+
+    fun next(): OnboardingStep = entries.getOrNull(ordinal + 1) ?: COMPLETE
+    fun previous(): OnboardingStep = entries.getOrNull(ordinal - 1) ?: WELCOME
+    fun isFirst(): Boolean = this == WELCOME
+    fun isLast(): Boolean = this == COMPLETE
+    fun progressFraction(): Float = if (progressSteps == 0) 1f else index.toFloat() / progressSteps.toFloat()
+}
+
+/**
+ * Full state for the onboarding flow.
+ */
+data class OnboardingState(
+    val currentStep: OnboardingStep = OnboardingStep.WELCOME,
+    val canProceed: Boolean = true,
+    val canGoBack: Boolean = false,
+    val isLoading: Boolean = false,
+    val errorText: String? = null,
+    val permissionsPending: List<String> = emptyList(),
+    val permissionsGranted: List<String> = emptyList(),
+    val permissionsDenied: List<String> = emptyList(),
+    val discoveredGateways: Int = 0,
+    val selectedGatewayStableId: String? = null,
+    val gatewayName: String? = null,
+    val qrCodeValue: String? = null,
+    val manualHost: String = "",
+    val manualPort: Int = 18789,
+    val manualTls: Boolean = false,
+    val gatewayToken: String = "",
+    val bootstrapToken: String = "",
+    val password: String = "",
+    val connectionAttempts: Int = 0,
+    val maxConnectionAttempts: Int = 3,
+    val trustFingerprint: String? = null,
+    val trustStableId: String? = null,
+    val completedAtMs: Long? = null,
+) {
+    val progressFraction: Float get() = currentStep.progressFraction()
+    val isComplete: Boolean get() = currentStep == OnboardingStep.COMPLETE
+    val hasError: Boolean get() = !errorText.isNullOrBlank()
+    val canRetryConnection: Boolean get() = connectionAttempts < maxConnectionAttempts
+    val permissionProgress: Float get() {
+        val total = permissionsPending.size + permissionsGranted.size + permissionsDenied.size
+        return if (total == 0) 1f else permissionsGranted.size.toFloat() / total.toFloat()
+    }
+}
+
+// ── Onboarding actions (OC parity) ──────────────────────
+
+sealed class OnboardingAction {
+    data object Next : OnboardingAction()
+    data object Back : OnboardingAction()
+    data object Skip : OnboardingAction()
+    data object Complete : OnboardingAction()
+    data object RetryConnection : OnboardingAction()
+    data object ScanQR : OnboardingAction()
+    data object ManualSetup : OnboardingAction()
+    data class SelectGateway(val stableId: String) : OnboardingAction()
+    data class UpdateManualHost(val host: String) : OnboardingAction()
+    data class UpdateManualPort(val port: Int) : OnboardingAction()
+    data class UpdateManualTls(val tls: Boolean) : OnboardingAction()
+    data class UpdateToken(val token: String) : OnboardingAction()
+    data class UpdateBootstrapToken(val token: String) : OnboardingAction()
+    data class UpdatePassword(val password: String) : OnboardingAction()
+    data class PermissionResult(val permission: String, val granted: Boolean) : OnboardingAction()
+    data class TrustGateway(val stableId: String, val fingerprint: String) : OnboardingAction()
+    data object DeclineTrust : OnboardingAction()
+    data class QRScanned(val value: String) : OnboardingAction()
+    data object DismissError : OnboardingAction()
+}
+
+// ── Onboarding reducer (OC parity) ──────────────────────
+
+fun reduceOnboarding(state: OnboardingState, action: OnboardingAction): OnboardingState = when (action) {
+    is OnboardingAction.Next -> state.copy(
+        currentStep = state.currentStep.next(),
+        canGoBack = true,
+        errorText = null,
+    )
+    is OnboardingAction.Back -> state.copy(
+        currentStep = state.currentStep.previous(),
+        canGoBack = !state.currentStep.previous().isFirst(),
+        errorText = null,
+    )
+    is OnboardingAction.Skip -> state.copy(
+        currentStep = OnboardingStep.COMPLETE,
+        completedAtMs = System.currentTimeMillis(),
+    )
+    is OnboardingAction.Complete -> state.copy(
+        currentStep = OnboardingStep.COMPLETE,
+        completedAtMs = System.currentTimeMillis(),
+        isLoading = false,
+    )
+    is OnboardingAction.RetryConnection -> state.copy(
+        connectionAttempts = state.connectionAttempts + 1,
+        isLoading = true,
+        errorText = null,
+    )
+    is OnboardingAction.ScanQR -> state.copy(
+        currentStep = OnboardingStep.GATEWAY_QR,
+        canGoBack = true,
+    )
+    is OnboardingAction.ManualSetup -> state.copy(
+        currentStep = OnboardingStep.GATEWAY_MANUAL,
+        canGoBack = true,
+    )
+    is OnboardingAction.SelectGateway -> state.copy(
+        selectedGatewayStableId = action.stableId,
+        currentStep = OnboardingStep.GATEWAY_CONNECT,
+        isLoading = true,
+    )
+    is OnboardingAction.UpdateManualHost -> state.copy(manualHost = action.host)
+    is OnboardingAction.UpdateManualPort -> state.copy(manualPort = action.port)
+    is OnboardingAction.UpdateManualTls -> state.copy(manualTls = action.tls)
+    is OnboardingAction.UpdateToken -> state.copy(gatewayToken = action.token)
+    is OnboardingAction.UpdateBootstrapToken -> state.copy(bootstrapToken = action.token)
+    is OnboardingAction.UpdatePassword -> state.copy(password = action.password)
+    is OnboardingAction.PermissionResult -> {
+        val granted = state.permissionsGranted.toMutableList()
+        val denied = state.permissionsDenied.toMutableList()
+        val pending = state.permissionsPending.toMutableList()
+        pending.remove(action.permission)
+        if (action.granted) { granted.add(action.permission); denied.remove(action.permission) }
+        else { denied.add(action.permission); granted.remove(action.permission) }
+        state.copy(permissionsGranted = granted, permissionsDenied = denied, permissionsPending = pending)
+    }
+    is OnboardingAction.TrustGateway -> state.copy(
+        trustFingerprint = action.fingerprint,
+        trustStableId = action.stableId,
+        currentStep = OnboardingStep.GATEWAY_AUTH,
+        isLoading = true,
+    )
+    is OnboardingAction.DeclineTrust -> state.copy(
+        trustFingerprint = null,
+        trustStableId = null,
+        currentStep = OnboardingStep.GATEWAY_DISCOVERY,
+        errorText = "Trust declined. Select a different gateway.",
+    )
+    is OnboardingAction.QRScanned -> state.copy(
+        qrCodeValue = action.value,
+        currentStep = OnboardingStep.GATEWAY_CONNECT,
+        isLoading = true,
+    )
+    is OnboardingAction.DismissError -> state.copy(errorText = null)
+}
+
+// ── QR code parsing (OC parity) ─────────────────────────
+
+/**
+ * Parsed result from a CoreBlow gateway QR code.
+ */
+data class GatewayQRPayload(
+    val host: String,
+    val port: Int,
+    val tls: Boolean,
+    val token: String?,
+    val bootstrapToken: String?,
+    val stableId: String?,
+    val serverName: String?,
+) {
+    companion object {
+        private val QR_PATTERN = Regex("""^coreblow://gateway/([^?]+)\?(.+)$""")
+
+        fun parse(raw: String): GatewayQRPayload? {
+            val trimmed = raw.trim()
+            if (trimmed.isEmpty()) return null
+
+            // URL-based format: coreblow://gateway/host:port?params
+            val match = QR_PATTERN.matchEntire(trimmed)
+            if (match != null) {
+                val hostPort = match.groupValues[1]
+                val params = parseQueryParams(match.groupValues[2])
+                val parts = hostPort.split(":")
+                val host = parts.getOrNull(0)?.trim().orEmpty()
+                val port = parts.getOrNull(1)?.trim()?.toIntOrNull() ?: 18789
+                if (host.isEmpty()) return null
+                return GatewayQRPayload(
+                    host = host, port = port,
+                    tls = params["tls"]?.toBooleanStrictOrNull() ?: false,
+                    token = params["token"],
+                    bootstrapToken = params["bootstrapToken"] ?: params["bootstrap"],
+                    stableId = params["stableId"] ?: params["id"],
+                    serverName = params["name"],
+                )
+            }
+
+            // JSON-based fallback
+            return try {
+                val json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
+                val obj = json.parseToJsonElement(trimmed) as? kotlinx.serialization.json.JsonObject ?: return null
+                val host = (obj["host"] as? kotlinx.serialization.json.JsonPrimitive)?.content?.trim().orEmpty()
+                if (host.isEmpty()) return null
+                GatewayQRPayload(
+                    host = host,
+                    port = (obj["port"] as? kotlinx.serialization.json.JsonPrimitive)?.content?.toIntOrNull() ?: 18789,
+                    tls = (obj["tls"] as? kotlinx.serialization.json.JsonPrimitive)?.content?.toBooleanStrictOrNull() ?: false,
+                    token = (obj["token"] as? kotlinx.serialization.json.JsonPrimitive)?.content?.trim(),
+                    bootstrapToken = (obj["bootstrapToken"] as? kotlinx.serialization.json.JsonPrimitive)?.content?.trim(),
+                    stableId = (obj["stableId"] as? kotlinx.serialization.json.JsonPrimitive)?.content?.trim(),
+                    serverName = (obj["serverName"] as? kotlinx.serialization.json.JsonPrimitive)?.content?.trim(),
+                )
+            } catch (_: Throwable) { null }
+        }
+
+        private fun parseQueryParams(query: String): Map<String, String> {
+            return query.split("&").mapNotNull { param ->
+                val parts = param.split("=", limit = 2)
+                if (parts.size == 2) parts[0].trim() to java.net.URLDecoder.decode(parts[1].trim(), "UTF-8")
+                else null
+            }.toMap()
+        }
+    }
+
+    fun toEndpointHost(): String = host
+    fun toEndpointPort(): Int = port
+    fun displayLabel(): String = serverName ?: "$host:$port"
+}
+
+// ── Onboarding analytics (OC parity) ────────────────────
+
+/**
+ * Tracks onboarding funnel events for diagnostics.
+ */
+class OnboardingAnalytics {
+    private val events = mutableListOf<OnboardingEvent>()
+
+    fun recordStepEntered(step: OnboardingStep) {
+        events.add(OnboardingEvent(type = "step_entered", step = step.name, timestampMs = System.currentTimeMillis()))
+    }
+
+    fun recordStepCompleted(step: OnboardingStep) {
+        events.add(OnboardingEvent(type = "step_completed", step = step.name, timestampMs = System.currentTimeMillis()))
+    }
+
+    fun recordError(step: OnboardingStep, error: String) {
+        events.add(OnboardingEvent(type = "error", step = step.name, detail = error, timestampMs = System.currentTimeMillis()))
+    }
+
+    fun recordSkip() {
+        events.add(OnboardingEvent(type = "skip", step = "", timestampMs = System.currentTimeMillis()))
+    }
+
+    fun recordComplete(totalDurationMs: Long) {
+        events.add(OnboardingEvent(type = "complete", step = "", detail = "duration=${totalDurationMs}ms", timestampMs = System.currentTimeMillis()))
+    }
+
+    fun snapshot(): List<OnboardingEvent> = events.toList()
+
+    fun clear() = events.clear()
+
+    data class OnboardingEvent(
+        val type: String,
+        val step: String,
+        val detail: String? = null,
+        val timestampMs: Long,
+    )
+}
+
+// ── Onboarding permission list (OC parity) ──────────────
+
+/**
+ * Permission request definitions for the onboarding flow.
+ */
+data class OnboardingPermission(
+    val key: String,
+    val title: String,
+    val subtitle: String,
+    val required: Boolean,
+    val androidPermissions: List<String>,
+    val category: PermissionCategory,
+) {
+    enum class PermissionCategory { MEDIA, DATA, LOCATION, SYSTEM }
+}
+
+fun buildOnboardingPermissions(): List<OnboardingPermission> = listOf(
+    OnboardingPermission(
+        key = "camera", title = "Camera", subtitle = "Capture photos and video for the gateway.",
+        required = false,
+        androidPermissions = listOf(android.Manifest.permission.CAMERA, android.Manifest.permission.RECORD_AUDIO),
+        category = OnboardingPermission.PermissionCategory.MEDIA,
+    ),
+    OnboardingPermission(
+        key = "microphone", title = "Microphone", subtitle = "Voice transcription and talk mode.",
+        required = false,
+        androidPermissions = listOf(android.Manifest.permission.RECORD_AUDIO),
+        category = OnboardingPermission.PermissionCategory.MEDIA,
+    ),
+    OnboardingPermission(
+        key = "location", title = "Location", subtitle = "Share your location with the gateway.",
+        required = false,
+        androidPermissions = listOf(android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION),
+        category = OnboardingPermission.PermissionCategory.LOCATION,
+    ),
+    OnboardingPermission(
+        key = "contacts", title = "Contacts", subtitle = "Search and manage contacts.",
+        required = false,
+        androidPermissions = listOf(android.Manifest.permission.READ_CONTACTS, android.Manifest.permission.WRITE_CONTACTS),
+        category = OnboardingPermission.PermissionCategory.DATA,
+    ),
+    OnboardingPermission(
+        key = "calendar", title = "Calendar", subtitle = "Read and create calendar events.",
+        required = false,
+        androidPermissions = listOf(android.Manifest.permission.READ_CALENDAR, android.Manifest.permission.WRITE_CALENDAR),
+        category = OnboardingPermission.PermissionCategory.DATA,
+    ),
+    OnboardingPermission(
+        key = "photos", title = "Photos", subtitle = "Access device photo library.",
+        required = false,
+        androidPermissions = listOf(
+            if (android.os.Build.VERSION.SDK_INT >= 33) android.Manifest.permission.READ_MEDIA_IMAGES
+            else android.Manifest.permission.READ_EXTERNAL_STORAGE
+        ),
+        category = OnboardingPermission.PermissionCategory.DATA,
+    ),
+    OnboardingPermission(
+        key = "notifications", title = "Notifications", subtitle = "Receive alerts and service notifications.",
+        required = true,
+        androidPermissions = if (android.os.Build.VERSION.SDK_INT >= 33) listOf(android.Manifest.permission.POST_NOTIFICATIONS) else emptyList(),
+        category = OnboardingPermission.PermissionCategory.SYSTEM,
+    ),
+    OnboardingPermission(
+        key = "sms", title = "SMS", subtitle = "Send and search text messages.",
+        required = false,
+        androidPermissions = listOf(android.Manifest.permission.SEND_SMS, android.Manifest.permission.READ_SMS),
+        category = OnboardingPermission.PermissionCategory.DATA,
+    ),
+    OnboardingPermission(
+        key = "callLog", title = "Call Log", subtitle = "Search recent call history.",
+        required = false,
+        androidPermissions = listOf(android.Manifest.permission.READ_CALL_LOG),
+        category = OnboardingPermission.PermissionCategory.DATA,
+    ),
+    OnboardingPermission(
+        key = "motion", title = "Motion & Fitness", subtitle = "Track steps and activity.",
+        required = false,
+        androidPermissions = listOf(android.Manifest.permission.ACTIVITY_RECOGNITION),
+        category = OnboardingPermission.PermissionCategory.DATA,
+    ),
+)
+
+// ── Connection validation (OC parity) ───────────────────
+
+/**
+ * Result of gateway connection validation during onboarding.
+ */
+data class ConnectionValidationResult(
+    val ok: Boolean,
+    val latencyMs: Long? = null,
+    val serverName: String? = null,
+    val protocolVersion: String? = null,
+    val error: String? = null,
+    val requiresTrust: Boolean = false,
+    val fingerprint: String? = null,
+) {
+    companion object {
+        fun success(latencyMs: Long, serverName: String?, protocolVersion: String?) =
+            ConnectionValidationResult(ok = true, latencyMs = latencyMs, serverName = serverName, protocolVersion = protocolVersion)
+
+        fun failure(error: String) =
+            ConnectionValidationResult(ok = false, error = error)
+
+        fun trustRequired(fingerprint: String) =
+            ConnectionValidationResult(ok = false, requiresTrust = true, fingerprint = fingerprint, error = "Trust required for TLS certificate.")
+    }
+}
+
+// ── Onboarding page metadata (OC parity) ────────────────
+
+/**
+ * Metadata for each onboarding page/step.
+ */
+data class OnboardingPageInfo(
+    val step: OnboardingStep,
+    val title: String,
+    val subtitle: String,
+    val illustration: String,
+    val primaryAction: String,
+    val secondaryAction: String? = null,
+    val showProgress: Boolean = true,
+    val showBackButton: Boolean = false,
+)
+
+fun onboardingPageInfoForStep(step: OnboardingStep): OnboardingPageInfo = when (step) {
+    OnboardingStep.WELCOME -> OnboardingPageInfo(
+        step = step, title = "Welcome to CoreBlow",
+        subtitle = "Your phone becomes a powerful node in your personal AI network.",
+        illustration = "welcome", primaryAction = "Get Started",
+        showProgress = false,
+    )
+    OnboardingStep.PERMISSIONS -> OnboardingPageInfo(
+        step = step, title = "Set Up Permissions",
+        subtitle = "Grant access so the gateway can use your device's capabilities.",
+        illustration = "permissions", primaryAction = "Continue",
+        secondaryAction = "Skip for now", showBackButton = true,
+    )
+    OnboardingStep.GATEWAY_DISCOVERY -> OnboardingPageInfo(
+        step = step, title = "Find Your Gateway",
+        subtitle = "Looking for CoreBlow gateways on your local network.",
+        illustration = "discovery", primaryAction = "Connect",
+        secondaryAction = "Enter manually", showBackButton = true,
+    )
+    OnboardingStep.GATEWAY_QR -> OnboardingPageInfo(
+        step = step, title = "Scan Gateway QR",
+        subtitle = "Point your camera at the QR code shown in the gateway dashboard.",
+        illustration = "qr", primaryAction = "Scan",
+        secondaryAction = "Enter manually", showBackButton = true,
+    )
+    OnboardingStep.GATEWAY_MANUAL -> OnboardingPageInfo(
+        step = step, title = "Manual Connection",
+        subtitle = "Enter your gateway's host, port, and credentials.",
+        illustration = "manual", primaryAction = "Connect",
+        showBackButton = true,
+    )
+    OnboardingStep.GATEWAY_CONNECT -> OnboardingPageInfo(
+        step = step, title = "Connecting…",
+        subtitle = "Establishing a secure connection to your gateway.",
+        illustration = "connecting", primaryAction = "Cancel",
+    )
+    OnboardingStep.GATEWAY_AUTH -> OnboardingPageInfo(
+        step = step, title = "Authenticating…",
+        subtitle = "Verifying your credentials with the gateway.",
+        illustration = "auth", primaryAction = "Cancel",
+    )
+    OnboardingStep.GATEWAY_TRUST -> OnboardingPageInfo(
+        step = step, title = "Trust This Gateway?",
+        subtitle = "Verify the gateway's TLS certificate fingerprint before connecting.",
+        illustration = "trust", primaryAction = "Trust & Connect",
+        secondaryAction = "Decline", showBackButton = true,
+    )
+    OnboardingStep.COMPLETE -> OnboardingPageInfo(
+        step = step, title = "You're All Set!",
+        subtitle = "CoreBlow is connected and ready. Your phone is now a node.",
+        illustration = "complete", primaryAction = "Done",
+        showProgress = false,
+    )
+}
+
+// ── Onboarding text field & switch colors (OC parity) ───
+
+@Composable
+internal fun onboardingTextFieldColors() =
+    OutlinedTextFieldDefaults.colors(
+        focusedContainerColor = MaterialTheme.colorScheme.surface,
+        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+        focusedBorderColor = MaterialTheme.colorScheme.primary,
+        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+        cursorColor = MaterialTheme.colorScheme.primary,
+    )
+
+@Composable
+internal fun onboardingSwitchColors() = androidx.compose.material3.SwitchDefaults.colors(
+    checkedThumbColor = MaterialTheme.colorScheme.primary,
+    checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
+    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+)

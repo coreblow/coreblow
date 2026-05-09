@@ -494,3 +494,174 @@ private fun hasMotionCapabilities(context: Context): Boolean {
     val sensorManager = context.getSystemService(SensorManager::class.java) ?: return false
     return sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null || sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER) != null
 }
+
+// ── Permission aggregation (OC parity) ──────────────────
+
+/**
+ * Aggregates all device permission states for diagnostics and
+ * gateway capability reporting.
+ */
+data class PermissionSnapshot(
+    val camera: Boolean,
+    val microphone: Boolean,
+    val fineLocation: Boolean,
+    val coarseLocation: Boolean,
+    val readContacts: Boolean,
+    val writeContacts: Boolean,
+    val readCalendar: Boolean,
+    val writeCalendar: Boolean,
+    val readSms: Boolean,
+    val sendSms: Boolean,
+    val readCallLog: Boolean,
+    val readPhotos: Boolean,
+    val activityRecognition: Boolean,
+    val postNotifications: Boolean,
+    val notificationListener: Boolean,
+) {
+    val allGranted: Boolean get() = camera && microphone && fineLocation && coarseLocation &&
+        readContacts && writeContacts && readCalendar && writeCalendar &&
+        readSms && sendSms && readCallLog && readPhotos && activityRecognition &&
+        postNotifications && notificationListener
+
+    val grantedCount: Int get() = listOf(
+        camera, microphone, fineLocation, coarseLocation,
+        readContacts, writeContacts, readCalendar, writeCalendar,
+        readSms, sendSms, readCallLog, readPhotos, activityRecognition,
+        postNotifications, notificationListener,
+    ).count { it }
+
+    val totalCount: Int get() = 15
+
+    val summary: String get() = "$grantedCount/$totalCount permissions granted"
+}
+
+internal fun buildPermissionSnapshot(context: Context): PermissionSnapshot {
+    val photosPermission = if (Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_IMAGES else Manifest.permission.READ_EXTERNAL_STORAGE
+    return PermissionSnapshot(
+        camera = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED,
+        microphone = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED,
+        fineLocation = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED,
+        coarseLocation = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED,
+        readContacts = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED,
+        writeContacts = ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_CONTACTS) == PackageManager.PERMISSION_GRANTED,
+        readCalendar = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED,
+        writeCalendar = ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED,
+        readSms = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED,
+        sendSms = ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED,
+        readCallLog = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED,
+        readPhotos = ContextCompat.checkSelfPermission(context, photosPermission) == PackageManager.PERMISSION_GRANTED,
+        activityRecognition = ContextCompat.checkSelfPermission(context, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED,
+        postNotifications = hasNotificationsPermission(context),
+        notificationListener = isNotificationListenerEnabled(context),
+    )
+}
+
+// ── Settings state (OC parity) ──────────────────────────
+
+/**
+ * Full settings state for diagnostics and serialization.
+ */
+data class SettingsState(
+    val displayName: String,
+    val instanceId: String,
+    val deviceModel: String,
+    val appVersion: String,
+    val buildType: String,
+    val cameraEnabled: Boolean,
+    val locationMode: LocationMode,
+    val locationPreciseEnabled: Boolean,
+    val preventSleep: Boolean,
+    val canvasDebugStatusEnabled: Boolean,
+    val manualEnabled: Boolean,
+    val manualHost: String,
+    val manualPort: Int,
+    val manualTls: Boolean,
+    val gatewayToken: String,
+    val isConnected: Boolean,
+    val statusText: String,
+    val serverName: String?,
+    val permissions: PermissionSnapshot,
+)
+
+internal fun buildSettingsState(
+    viewModel: MainViewModel,
+    context: Context,
+): SettingsState {
+    val deviceModel = listOfNotNull(Build.MANUFACTURER, Build.MODEL).joinToString(" ").trim().ifEmpty { "Android" }
+    val versionName = BuildConfig.VERSION_NAME.trim().ifEmpty { "dev" }
+    val appVersion = if (BuildConfig.DEBUG && !versionName.contains("dev", ignoreCase = true)) "$versionName-dev" else versionName
+
+    return SettingsState(
+        displayName = viewModel.displayName.value,
+        instanceId = viewModel.instanceId.value,
+        deviceModel = deviceModel,
+        appVersion = appVersion,
+        buildType = BuildConfig.BUILD_TYPE,
+        cameraEnabled = viewModel.cameraEnabled.value,
+        locationMode = viewModel.locationMode.value,
+        locationPreciseEnabled = viewModel.locationPreciseEnabled.value,
+        preventSleep = viewModel.preventSleep.value,
+        canvasDebugStatusEnabled = viewModel.canvasDebugStatusEnabled.value,
+        manualEnabled = viewModel.manualEnabled.value,
+        manualHost = viewModel.manualHost.value,
+        manualPort = viewModel.manualPort.value,
+        manualTls = viewModel.manualTls.value,
+        gatewayToken = viewModel.gatewayToken.value,
+        isConnected = viewModel.isConnected.value,
+        statusText = viewModel.statusText.value,
+        serverName = viewModel.serverName.value,
+        permissions = buildPermissionSnapshot(context),
+    )
+}
+
+// ── About section helpers (OC parity) ───────────────────
+
+internal fun buildAboutItems(): List<Pair<String, String>> = listOf(
+    "App" to "CoreBlow for Android",
+    "Version" to (BuildConfig.VERSION_NAME.ifEmpty { "dev" }),
+    "Build" to BuildConfig.BUILD_TYPE,
+    "API" to Build.VERSION.SDK_INT.toString(),
+    "Device" to "${Build.MANUFACTURER} ${Build.MODEL}".trim(),
+    "Android" to Build.VERSION.RELEASE,
+)
+
+// ── Reset confirmation (OC parity) ──────────────────────
+
+/**
+ * State for reset confirmation dialog.
+ */
+data class ResetConfirmationState(
+    val isVisible: Boolean = false,
+    val title: String = "Reset Settings",
+    val message: String = "This will reset all CoreBlow settings to their defaults and disconnect from the gateway. This action cannot be undone.",
+    val confirmLabel: String = "Reset",
+    val cancelLabel: String = "Cancel",
+)
+
+/**
+ * Actions available on the settings page.
+ */
+enum class SettingsAction {
+    DISCONNECT,
+    RECONNECT,
+    RESET_ALL,
+    OPEN_APP_SETTINGS,
+    OPEN_NOTIFICATION_LISTENER,
+    COPY_INSTANCE_ID,
+    COPY_DIAGNOSTICS,
+    SHARE_DIAGNOSTICS,
+}
+
+/**
+ * Resolves human-readable label for a settings action.
+ */
+fun settingsActionLabel(action: SettingsAction): String = when (action) {
+    SettingsAction.DISCONNECT -> "Disconnect"
+    SettingsAction.RECONNECT -> "Reconnect"
+    SettingsAction.RESET_ALL -> "Reset All Settings"
+    SettingsAction.OPEN_APP_SETTINGS -> "Open App Settings"
+    SettingsAction.OPEN_NOTIFICATION_LISTENER -> "Notification Listener"
+    SettingsAction.COPY_INSTANCE_ID -> "Copy Instance ID"
+    SettingsAction.COPY_DIAGNOSTICS -> "Copy Diagnostics"
+    SettingsAction.SHARE_DIAGNOSTICS -> "Share Diagnostics"
+}
