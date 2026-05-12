@@ -1,2 +1,14 @@
 import Foundation
-extension Process { static func run(executable: URL, arguments: [String], timeout: TimeInterval = 30) throws -> (stdout: String, stderr: String, exitCode: Int32) { let p = Process(); p.executableURL = executable; p.arguments = arguments; let out = Pipe(); let err = Pipe(); p.standardOutput = out; p.standardError = err; try p.run(); p.waitUntilExit(); return (String(data: out.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? "", String(data: err.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? "", p.terminationStatus) } }
+import OSLog
+import CoreBlowKit
+import OSLog
+
+extension Process {
+    /// Runs the process and drains the given pipe before waiting to avoid blocking on full buffers.
+    func runAndReadToEnd(from pipe: Pipe) throws -> Data {
+        try self.run()
+        let data = pipe.fileHandleForReading.readToEndSafely()
+        self.waitUntilExit()
+        return data
+    }
+}

@@ -1,2 +1,34 @@
 import Foundation
-enum SimpleTaskSupport { static func withTimeout<T: Sendable>(_ seconds: TimeInterval, operation: @escaping @Sendable () async throws -> T) async throws -> T { try await withThrowingTaskGroup(of: T.self) { group in group.addTask { try await operation() }; group.addTask { try await Task.sleep(for: .seconds(seconds)); throw CancellationError() }; let result = try await group.next()!; group.cancelAll(); return result } } }
+import OSLog
+import CoreBlowKit
+import OSLog
+
+@MainActor
+enum SimpleTaskSupport {
+    static func start(task: inout Task<Void, Never>?, operation: @escaping @Sendable () async -> Void) {
+        guard task == nil else { return }
+        task = Task {
+            await operation()
+        }
+    }
+
+    static func stop(task: inout Task<Void, Never>?) {
+        task?.cancel()
+        task = nil
+    }
+
+    static func startDetachedLoop(
+        task: inout Task<Void, Never>?,
+        interval: TimeInterval,
+        operation: @escaping @Sendable () async -> Void)
+    {
+        guard task == nil else { return }
+        task = Task.detached {
+            await operation()
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
+                await operation()
+            }
+        }
+    }
+}

@@ -1,5 +1,24 @@
 import Foundation
-final class SimpleFileWatcher { private var source: DispatchSourceFileSystemObject?
-    func watch(path: String, onChange: @escaping () -> Void) { let fd = open(path, O_EVTONLY); guard fd >= 0 else { return }; let s = DispatchSource.makeFileSystemObjectSource(fileDescriptor: fd, eventMask: [.write], queue: .global()); s.setEventHandler(handler: onChange); s.setCancelHandler { close(fd) }; s.resume(); source = s }
-    func stop() { source?.cancel(); source = nil }
+import OSLog
+import CoreBlowKit
+import OSLog
+
+final class SimpleFileWatcher: @unchecked Sendable {
+    private let watcher: CoalescingFSEventsWatcher
+
+    init(_ watcher: CoalescingFSEventsWatcher) {
+        self.watcher = watcher
+    }
+
+    deinit {
+        self.stop()
+    }
+
+    func start() {
+        self.watcher.start()
+    }
+
+    func stop() {
+        self.watcher.stop()
+    }
 }

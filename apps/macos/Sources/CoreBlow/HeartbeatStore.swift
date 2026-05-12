@@ -1,9 +1,43 @@
-import Foundation; import OSLog
-actor HeartbeatStore {
-    private var task: Task<Void, Never>?; private let logger = CoreBlowLogging.gateway
-    private(set) var lastHeartbeat: Date?; private(set) var missedCount = 0
-    func start(interval: TimeInterval = Constants.heartbeatInterval, send: @escaping @Sendable () async -> Bool) {
-        task = Task { while !Task.isCancelled { let ok = await send(); if ok { lastHeartbeat = Date(); missedCount = 0 } else { missedCount += 1 }; try? await Task.sleep(for: .seconds(interval)) } }
+import Foundation
+import OSLog
+import CoreBlowKit
+import OSLog
+import Observation
+import CoreBlowKit
+import SwiftUI
+
+@MainActor
+@Observable
+final class HeartbeatStore {
+    static let shared = HeartbeatStore()
+
+    private(set) var lastEvent: ControlHeartbeatEvent?
+
+    private var observer: NSObjectProtocol?
+
+    private init() {
+        self.observer = NotificationCenter.default.addObserver(
+            forName: .controlHeartbeat,
+            object: nil,
+            queue: .main)
+        { [weak self] note in
+            guard let data = note.object as? Data else { return }
+            if let decoded = try? JSONDecoder().decode(ControlHeartbeatEvent.self, from: data) {
+                Task { @MainActor in self?.lastEvent = decoded }
+            }
+        }
+
+        Task {
+            if self.lastEvent == nil {
+                if let evt = try? await ControlChannel.shared.lastHeartbeat() {
+                    self.lastEvent = evt
+                }
+            }
+        }
     }
-    func stop() { task?.cancel(); task = nil }
+
+    @MainActor
+    deinit {
+        if let observer { NotificationCenter.default.removeObserver(observer) }
+    }
 }

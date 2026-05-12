@@ -1,36 +1,68 @@
-import Foundation
 import Testing
 @testable import CoreBlow
 
 @Suite(.serialized)
+@MainActor
 struct ConfigStoreTests {
-    @Test func `reads default config values`() {
-        let store = ConfigStore()
-        #expect(store.gatewayMode != nil)
+    @Test func `load uses remote in remote mode`() async {
+        var localHit = false
+        var remoteHit = false
+        await ConfigStore._testSetOverrides(.init(
+            isRemoteMode: { true },
+            loadLocal: { localHit = true; return ["local": true] },
+            loadRemote: { remoteHit = true; return ["remote": true] }))
+
+        let result = await ConfigStore.load()
+
+        await ConfigStore._testClearOverrides()
+        #expect(remoteHit)
+        #expect(!localHit)
+        #expect(result["remote"] as? Bool == true)
     }
 
-    @Test func `overrides config from dictionary`() {
-        var store = ConfigStore()
-        store.apply(configRoot: ["gateway": ["mode": "remote"]])
-        #expect(store.gatewayMode == .remote)
+    @Test func `load uses local in local mode`() async {
+        var localHit = false
+        var remoteHit = false
+        await ConfigStore._testSetOverrides(.init(
+            isRemoteMode: { false },
+            loadLocal: { localHit = true; return ["local": true] },
+            loadRemote: { remoteHit = true; return ["remote": true] }))
+
+        let result = await ConfigStore.load()
+
+        await ConfigStore._testClearOverrides()
+        #expect(localHit)
+        #expect(!remoteHit)
+        #expect(result["local"] as? Bool == true)
     }
 
-    @Test func `preserves unset values on partial update`() {
-        var store = ConfigStore()
-        let original = store.gatewayMode
-        store.apply(configRoot: ["unrelated": ["key": "value"]])
-        #expect(store.gatewayMode == original)
+    @Test func `save routes to remote in remote mode`() async throws {
+        var localHit = false
+        var remoteHit = false
+        await ConfigStore._testSetOverrides(.init(
+            isRemoteMode: { true },
+            saveLocal: { _ in localHit = true },
+            saveRemote: { _ in remoteHit = true }))
+
+        try await ConfigStore.save(["remote": true])
+
+        await ConfigStore._testClearOverrides()
+        #expect(remoteHit)
+        #expect(!localHit)
     }
 
-    @Test func `local mode is default`() {
-        let store = ConfigStore()
-        #expect(store.gatewayMode == .local)
-    }
+    @Test func `save routes to local in local mode`() async throws {
+        var localHit = false
+        var remoteHit = false
+        await ConfigStore._testSetOverrides(.init(
+            isRemoteMode: { false },
+            saveLocal: { _ in localHit = true },
+            saveRemote: { _ in remoteHit = true }))
 
-    @Test func `resets to defaults`() {
-        var store = ConfigStore()
-        store.apply(configRoot: ["gateway": ["mode": "remote"]])
-        store.reset()
-        #expect(store.gatewayMode == .local)
+        try await ConfigStore.save(["local": true])
+
+        await ConfigStore._testClearOverrides()
+        #expect(localHit)
+        #expect(!remoteHit)
     }
 }

@@ -1,4 +1,15 @@
 import SwiftUI
-struct SettingsSidebarCard: View { let icon: String; let title: String; let isSelected: Bool
-    var body: some View { HStack { Image(systemName: icon); Text(title) }.padding(6).background(isSelected ? Color.accentColor.opacity(0.15) : .clear, in: RoundedRectangle(cornerRadius: 6)) }
+import OSLog
+import CoreBlowKit
+import OSLog
+
+extension View {
+    func settingsSidebarCardLayout() -> some View {
+        self
+            .frame(minWidth: 220, idealWidth: 240, maxWidth: 280, maxHeight: .infinity, alignment: .topLeading)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color(nsColor: .windowBackgroundColor)))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
 }

@@ -1,9 +1,14 @@
 import Testing
 @testable import CoreBlow
 
-@Suite struct NodePairingReconcilePolicyTests {
-    @Test func placeholder() async throws {
-        // NodePairingReconcilePolicyTests — test implementation pending
-        #expect(true)
+struct NodePairingReconcilePolicyTests {
+    @Test func `policy polls only when active`() {
+        #expect(NodePairingReconcilePolicy.shouldPoll(pendingCount: 0, isPresenting: false) == false)
+        #expect(NodePairingReconcilePolicy.shouldPoll(pendingCount: 1, isPresenting: false))
+        #expect(NodePairingReconcilePolicy.shouldPoll(pendingCount: 0, isPresenting: true))
+    }
+
+    @Test func `policy uses slow safety interval`() {
+        #expect(NodePairingReconcilePolicy.activeIntervalMs >= 10000)
     }
 }

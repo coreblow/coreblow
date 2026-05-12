@@ -1,43 +1,59 @@
 import Foundation
+import CoreBlowKit
 import Testing
 @testable import CoreBlow
+@testable import CoreBlowIPC
 
-@Suite(.serialized)
-struct GatewayConnectionControlTests {
-    @Test func `connection state transitions`() {
-        var state = GatewayConnectionControl.State.disconnected
-        #expect(state == .disconnected)
+private final class FakeWebSocketTask: WebSocketTasking, @unchecked Sendable {
+    var state: URLSessionTask.State = .running
 
-        state = .connecting
-        #expect(state == .connecting)
+    func resume() {}
 
-        state = .connected
-        #expect(state == .connected)
-
-        state = .reconnecting
-        #expect(state == .reconnecting)
+    func cancel(with _: URLSessionWebSocketTask.CloseCode, reason _: Data?) {
+        self.state = .canceling
     }
 
-    @Test func `backoff increases on consecutive failures`() {
-        let control = GatewayConnectionControl()
-        let first = control.nextBackoff(attempt: 1)
-        let second = control.nextBackoff(attempt: 2)
-        let third = control.nextBackoff(attempt: 3)
-        #expect(second >= first)
-        #expect(third >= second)
+    func send(_: URLSessionWebSocketTask.Message) async throws {}
+
+    func receive() async throws -> URLSessionWebSocketTask.Message {
+        throw URLError(.cannotConnectToHost)
     }
 
-    @Test func `backoff is capped`() {
-        let control = GatewayConnectionControl()
-        let maxAttempt = control.nextBackoff(attempt: 100)
-        #expect(maxAttempt <= 60.0)
+    func receive(completionHandler: @escaping @Sendable (Result<URLSessionWebSocketTask.Message, Error>) -> Void) {
+        completionHandler(.failure(URLError(.cannotConnectToHost)))
+    }
+}
+
+private final class FakeWebSocketSession: WebSocketSessioning, @unchecked Sendable {
+    func makeWebSocketTask(url _: URL) -> WebSocketTaskBox {
+        WebSocketTaskBox(task: FakeWebSocketTask())
+    }
+}
+
+private func makeTestGatewayConnection() -> GatewayConnection {
+    GatewayConnection(
+        configProvider: {
+            (url: URL(string: "ws://127.0.0.1:1")!, token: nil, password: nil)
+        },
+        sessionBox: WebSocketSessionBox(session: FakeWebSocketSession()))
+}
+
+@Suite(.serialized) struct GatewayConnectionControlTests {
+    @Test func `status fails when process missing`() async {
+        let connection = makeTestGatewayConnection()
+        let result = await connection.status()
+        #expect(result.ok == false)
+        #expect(result.error != nil)
     }
 
-    @Test func `reset clears attempt counter`() {
-        var control = GatewayConnectionControl()
-        _ = control.nextBackoff(attempt: 5)
-        control.reset()
-        let fresh = control.nextBackoff(attempt: 1)
-        #expect(fresh <= 1.0)
+    @Test func `reject empty message`() async {
+        let connection = makeTestGatewayConnection()
+        let result = await connection.sendAgent(
+            message: "",
+            thinking: nil,
+            sessionKey: "main",
+            deliver: false,
+            to: nil)
+        #expect(result.ok == false)
     }
 }

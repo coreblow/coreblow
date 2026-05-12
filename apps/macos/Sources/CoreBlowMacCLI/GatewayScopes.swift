@@ -1,3 +1,7 @@
-enum GatewayScopes {
-    static let all = ["exec", "canvas", "notify", "camera", "screen", "nodes", "agent"]
-}
+let defaultOperatorConnectScopes: [String] = [
+    "operator.admin",
+    "operator.read",
+    "operator.write",
+    "operator.approvals",
+    "operator.pairing",
+]

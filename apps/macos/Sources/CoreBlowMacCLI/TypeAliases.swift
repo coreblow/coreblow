@@ -1,1 +1,5 @@
-// Shared type aliases for CoreBlow macOS CLI.
+import CoreBlowKit
+import CoreBlowProtocol
+
+typealias ProtoAnyCodable = CoreBlowProtocol.AnyCodable
+typealias KitAnyCodable = CoreBlowKit.AnyCodable

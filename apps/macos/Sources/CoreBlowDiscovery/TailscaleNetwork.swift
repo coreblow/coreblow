@@ -1,14 +1,21 @@
 import Foundation
+import CoreBlowKit
 
-/// Tailscale network detection helpers.
 public enum TailscaleNetwork {
-    public static func isTailscaleIP(_ address: String) -> Bool {
-        address.hasPrefix("100.") || address.hasPrefix("fd7a:115c:a1e0:")
+    public static func isTailnetIPv4(_ address: String) -> Bool {
+        let parts = address.split(separator: ".")
+        guard parts.count == 4 else { return false }
+        let octets = parts.compactMap { Int($0) }
+        guard octets.count == 4 else { return false }
+        let a = octets[0]
+        let b = octets[1]
+        return a == 100 && b >= 64 && b <= 127
     }
 
-    public static func tailscaleHostname(from fullHostname: String) -> String? {
-        let parts = fullHostname.split(separator: ".")
-        guard parts.count >= 2, parts.last == "ts" || parts.last == "net" else { return nil }
-        return String(parts.first ?? "")
+    public static func detectTailnetIPv4() -> String? {
+        for entry in NetworkInterfaceIPv4.addresses() where self.isTailnetIPv4(entry.ip) {
+            return entry.ip
+        }
+        return nil
     }
 }

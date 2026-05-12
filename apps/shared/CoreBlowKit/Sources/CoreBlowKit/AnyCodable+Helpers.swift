@@ -1,8 +1,98 @@
-import Foundation; import CoreBlowProtocol
-extension AnyCodable {
-    public var stringValue: String? { value as? String }; public var intValue: Int? { value as? Int }
-    public var doubleValue: Double? { value as? Double }; public var boolValue: Bool? { value as? Bool }
-    public var arrayValue: [AnyCodable]? { value as? [AnyCodable] }
-    public var dictValue: [String: AnyCodable]? { value as? [String: AnyCodable] }
-    public subscript(key: String) -> AnyCodable? { dictValue?[key] }
+import Foundation
+import CoreBlowProtocol
+
+public extension AnyCodable {
+    var stringValue: String? {
+        self.value as? String
+    }
+
+    var boolValue: Bool? {
+        if let value = self.value as? Bool {
+            return value
+        }
+        if let number = self.value as? NSNumber, CFGetTypeID(number) == CFBooleanGetTypeID() {
+            return number.boolValue
+        }
+        return nil
+    }
+
+    var intValue: Int? {
+        if let value = self.value as? Int {
+            return value
+        }
+        if let number = self.value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() {
+            let value = number.doubleValue
+            if value > 0, value.rounded(.towardZero) == value, value <= Double(Int.max) {
+                return Int(value)
+            }
+        }
+        return nil
+    }
+
+    var doubleValue: Double? {
+        if let value = self.value as? Double {
+            return value
+        }
+        if let value = self.value as? Int {
+            return Double(value)
+        }
+        if let number = self.value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() {
+            return number.doubleValue
+        }
+        return nil
+    }
+
+    var dictionaryValue: [String: AnyCodable]? {
+        if let value = self.value as? [String: AnyCodable] {
+            return value
+        }
+        if let value = self.value as? [String: Any] {
+            return value.mapValues(AnyCodable.init)
+        }
+        if let value = self.value as? NSDictionary {
+            var converted: [String: AnyCodable] = [:]
+            for case let (key as String, raw) in value {
+                converted[key] = AnyCodable(raw)
+            }
+            return converted
+        }
+        return nil
+    }
+
+    /// Backward-compatible alias for `dictionaryValue`.
+    var dictValue: [String: AnyCodable]? { dictionaryValue }
+
+    var arrayValue: [AnyCodable]? {
+        if let value = self.value as? [AnyCodable] {
+            return value
+        }
+        if let value = self.value as? [Any] {
+            return value.map(AnyCodable.init)
+        }
+        if let value = self.value as? NSArray {
+            return value.map(AnyCodable.init)
+        }
+        return nil
+    }
+
+    /// Recursively unwrap to Foundation types (for JSONSerialization).
+    var foundationValue: Any {
+        switch self.value {
+        case let dict as [String: AnyCodable]:
+            dict.mapValues(\.foundationValue)
+        case let array as [AnyCodable]:
+            array.map(\.foundationValue)
+        case let dict as [String: Any]:
+            dict.mapValues { AnyCodable($0).foundationValue }
+        case let array as [Any]:
+            array.map { AnyCodable($0).foundationValue }
+        default:
+            self.value
+        }
+    }
+
+    /// Dictionary subscript for dot-path access.
+    subscript(key: String) -> AnyCodable? {
+        dictionaryValue?[key]
+    }
 }

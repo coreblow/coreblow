@@ -1,5 +1,7 @@
 import AVFoundation
+import CoreBlowKit
 import Foundation
+import CoreBlowKit
 import OSLog
 import Speech
 import SwabbleKit
@@ -211,13 +213,12 @@ actor VoiceWakeRuntime {
 
             let preferred = config.micID?.isEmpty == false ? config.micID! : "system-default"
             logger.info(
-                "voicewake runtime input preferred=\(preferred, privacy: .public) "
-                    + "\(AudioInputDeviceObserver.defaultInputDeviceSummary(), privacy: .public)")
+                "voicewake runtime input preferred=\(preferred, privacy: .public) \(AudioInputDeviceObserver.defaultInputDeviceSummary(), privacy: .public)")
             logger.info("voicewake runtime started")
-            DiagnosticsFileLog.shared.log(category: "voicewake.runtime", event: "started", fields: [
+            Task { await DiagnosticsFileLog.shared.log(category: "voicewake.runtime", event: "started", fields: [
                 "locale": config.localeID ?? "",
                 "micID": config.micID ?? "",
-            ])
+            ]) }
         } catch {
             logger.error("voicewake runtime failed to start: \(error.localizedDescription, privacy: .public)")
             stop()
@@ -247,7 +248,7 @@ actor VoiceWakeRuntime {
         listeningState = .idle
         activeTriggerEndTime = nil
         logger.debug("voicewake runtime stopped")
-        DiagnosticsFileLog.shared.log(category: "voicewake.runtime", event: "stopped")
+        Task { await DiagnosticsFileLog.shared.log(category: "voicewake.runtime", event: "stopped") }
 
         let token = overlayToken
         overlayToken = nil
@@ -380,10 +381,7 @@ actor VoiceWakeRuntime {
         }.joined(separator: ", ")
 
         logger.debug(
-            "voicewake runtime transcript='\(transcript, privacy: .private)' textOnly=\(summary.textOnly) "
-                + "isFinal=\(isFinal) timing=\(summary.timingCount)/\(segments.count) "
-                + "capturing=\(capturing) fallback=\(usedFallback) "
-                + "\(matchSummary) segments=[\(segmentSummary, privacy: .private)]")
+            "voicewake runtime transcript='\(transcript, privacy: .private)' textOnly=\(summary.textOnly) isFinal=\(isFinal) timing=\(summary.timingCount)/\(segments.count) capturing=\(capturing) fallback=\(usedFallback) \(matchSummary) segments=[\(segmentSummary, privacy: .private)]")
     }
 
     private func noteAudioTap(rms: Double) {
@@ -391,9 +389,9 @@ actor VoiceWakeRuntime {
         if let last = lastTapLogAt, now.timeIntervalSince(last) < 1.0 { return }
         lastTapLogAt = now
         let db = 20 * log10(max(rms, 1e-7))
+        let capturing = self.isCapturing
         logger.debug(
-            "voicewake runtime audio tap rms=\(String(format: "%.6f", rms)) "
-                + "db=\(String(format: "%.1f", db)) capturing=\(isCapturing)")
+            "voicewake runtime audio tap rms=\(String(format: "%.6f", rms)) db=\(String(format: "%.1f", db)) capturing=\(capturing)")
     }
 
     private func noteRecognitionCallback(transcript: String?, isFinal: Bool, error: Error?) {
@@ -482,7 +480,7 @@ actor VoiceWakeRuntime {
     private func beginCapture(command: String, triggerEndTime: TimeInterval?, config: RuntimeConfig) async {
         listeningState = .voiceWake
         isCapturing = true
-        DiagnosticsFileLog.shared.log(category: "voicewake.runtime", event: "beginCapture")
+        Task { await DiagnosticsFileLog.shared.log(category: "voicewake.runtime", event: "beginCapture") }
         capturedTranscript = command
         committedTranscript = ""
         volatileTranscript = command
@@ -546,9 +544,9 @@ actor VoiceWakeRuntime {
         captureTask = nil
 
         let finalTranscript = capturedTranscript.trimmingCharacters(in: .whitespacesAndNewlines)
-        DiagnosticsFileLog.shared.log(category: "voicewake.runtime", event: "finalizeCapture", fields: [
+        Task { await DiagnosticsFileLog.shared.log(category: "voicewake.runtime", event: "finalizeCapture", fields: [
             "finalLen": "\(finalTranscript.count)",
-        ])
+        ]) }
         haltRecognitionPipeline()
         capturedTranscript = ""
         captureStartedAt = nil

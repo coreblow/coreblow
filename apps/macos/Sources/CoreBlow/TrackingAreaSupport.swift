@@ -1,2 +1,25 @@
 import AppKit
-extension NSView { func addFullTrackingArea(owner: AnyObject) { let area = NSTrackingArea(rect: bounds, options: [.mouseEnteredAndExited, .activeInKeyWindow, .inVisibleRect], owner: owner, userInfo: nil); addTrackingArea(area) } }
+import OSLog
+import CoreBlowKit
+import OSLog
+
+enum TrackingAreaSupport {
+    @MainActor
+    static func resetMouseTracking(
+        on view: NSView,
+        tracking: inout NSTrackingArea?,
+        owner: AnyObject)
+    {
+        if let tracking {
+            view.removeTrackingArea(tracking)
+        }
+        let options: NSTrackingArea.Options = [
+            .mouseEnteredAndExited,
+            .activeAlways,
+            .inVisibleRect,
+        ]
+        let area = NSTrackingArea(rect: view.bounds, options: options, owner: owner, userInfo: nil)
+        view.addTrackingArea(area)
+        tracking = area
+    }
+}

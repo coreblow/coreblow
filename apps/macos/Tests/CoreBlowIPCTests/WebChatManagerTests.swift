@@ -1,9 +1,11 @@
 import Testing
 @testable import CoreBlow
 
-@Suite struct WebChatManagerTests {
-    @Test func placeholder() async throws {
-        // WebChatManagerTests — test implementation pending
-        #expect(true)
+@Suite(.serialized)
+@MainActor
+struct WebChatManagerTests {
+    @Test func `preferred session key is non empty`() async {
+        let key = await WebChatManager.shared.preferredSessionKey()
+        #expect(!key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
     }
 }

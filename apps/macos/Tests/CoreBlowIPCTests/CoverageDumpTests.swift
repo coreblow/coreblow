@@ -1,9 +1,24 @@
+import Darwin
+import Foundation
 import Testing
-@testable import CoreBlow
 
-@Suite struct CoverageDumpTests {
-    @Test func placeholder() async throws {
-        // CoverageDumpTests — test implementation pending
-        #expect(true)
+@Suite(.serialized)
+struct CoverageDumpTests {
+    @Test func `periodically flush coverage`() async {
+        guard ProcessInfo.processInfo.environment["LLVM_PROFILE_FILE"] != nil else { return }
+        guard let writeProfile = resolveProfileWriteFile() else { return }
+        let deadline = Date().addingTimeInterval(4)
+        while Date() < deadline {
+            _ = writeProfile()
+            try? await Task.sleep(nanoseconds: 250_000_000)
+        }
     }
+}
+
+private typealias ProfileWriteFn = @convention(c) () -> Int32
+
+private func resolveProfileWriteFile() -> ProfileWriteFn? {
+    let symbol = dlsym(UnsafeMutableRawPointer(bitPattern: -2), "__llvm_profile_write_file")
+    guard let symbol else { return nil }
+    return unsafeBitCast(symbol, to: ProfileWriteFn.self)
 }

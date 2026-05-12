@@ -1,19 +1,35 @@
-import Foundation
-actor GatewayPushSubscription {
-    private var subscriptionId: String?
-    func subscribe(gatewayURL: URL, deviceToken: String) async throws {
-        var request = URLRequest(url: gatewayURL.appendingPathComponent("/api/push/subscribe"))
-        request.httpMethod = "POST"; request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        let body: [String: String] = ["token": deviceToken, "platform": "macos"]
-        request.httpBody = try JSONEncoder().encode(body)
-        let (data, _) = try await URLSession.shared.data(for: request)
-        if let resp = try? JSONDecoder().decode([String: String].self, from: data) { subscriptionId = resp["id"] }
+import CoreBlowKit
+import OSLog
+
+enum GatewayPushSubscription {
+    @MainActor
+    static func consume(
+        bufferingNewest: Int? = nil,
+        onPush: @escaping @MainActor (GatewayPush) -> Void) async
+    {
+        let stream: AsyncStream<GatewayPush> = if let bufferingNewest {
+            await GatewayConnection.shared.subscribe(bufferingNewest: bufferingNewest)
+        } else {
+            await GatewayConnection.shared.subscribe()
+        }
+
+        for await push in stream {
+            if Task.isCancelled { return }
+            await MainActor.run {
+                onPush(push)
+            }
+        }
     }
-    func unsubscribe(gatewayURL: URL) async throws {
-        guard let id = subscriptionId else { return }
-        var request = URLRequest(url: gatewayURL.appendingPathComponent("/api/push/unsubscribe"))
-        request.httpMethod = "POST"; request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(["id": id])
-        _ = try await URLSession.shared.data(for: request); subscriptionId = nil
+
+    @MainActor
+    static func restartTask(
+        task: inout Task<Void, Never>?,
+        bufferingNewest: Int? = nil,
+        onPush: @escaping @MainActor (GatewayPush) -> Void)
+    {
+        task?.cancel()
+        task = Task {
+            await self.consume(bufferingNewest: bufferingNewest, onPush: onPush)
+        }
     }
 }

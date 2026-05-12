@@ -1,2 +1,21 @@
-import AppKit
-enum ScreenshotSize { static func mainScreenSize() -> CGSize { NSScreen.main?.frame.size ?? CGSize(width: 1920, height: 1080) } }
+import Foundation
+import OSLog
+import CoreBlowKit
+import OSLog
+import ImageIO
+import CoreBlowKit
+
+enum ScreenshotSize {
+    struct Size {
+        let width: Int
+        let height: Int
+    }
+
+    static func readPNGSize(data: Data) -> Size? {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }
+        guard let props = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any] else { return nil }
+        guard let width = props[kCGImagePropertyPixelWidth] as? Int else { return nil }
+        guard let height = props[kCGImagePropertyPixelHeight] as? Int else { return nil }
+        return Size(width: width, height: height)
+    }
+}

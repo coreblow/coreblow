@@ -1,9 +1,34 @@
 import Foundation
+import OSLog
+import CoreBlowKit
+import OSLog
+
 enum ExecApprovalCommandDisplaySanitizer {
-    static func sanitize(_ command: [String]) -> String {
-        command.map { $0.contains(" ") ? "\"\($0)\"" : $0 }.joined(separator: " ")
+    private static let invisibleCodePoints: Set<UInt32> = [
+        0x115F,
+        0x1160,
+        0x3164,
+        0xFFA0,
+    ]
+
+    static func sanitize(_ text: String) -> String {
+        var sanitized = ""
+        sanitized.reserveCapacity(text.count)
+        for scalar in text.unicodeScalars {
+            if self.shouldEscape(scalar) {
+                sanitized.append(self.escape(scalar))
+            } else {
+                sanitized.append(String(scalar))
+            }
+        }
+        return sanitized
     }
-    static func truncate(_ text: String, maxLength: Int = 200) -> String {
-        text.count <= maxLength ? text : String(text.prefix(maxLength)) + "…"
+
+    private static func shouldEscape(_ scalar: UnicodeScalar) -> Bool {
+        scalar.properties.generalCategory == .format || self.invisibleCodePoints.contains(scalar.value)
+    }
+
+    private static func escape(_ scalar: UnicodeScalar) -> String {
+        "\\u{\(String(scalar.value, radix: 16, uppercase: true))}"
     }
 }

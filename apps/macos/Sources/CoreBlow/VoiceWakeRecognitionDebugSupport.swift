@@ -1,5 +1,7 @@
 import Foundation
-import Logging
+import CoreBlowKit
+import OSLog
+import CoreBlowKit
 import SwabbleKit
 
 /// Diagnostic helpers for the voice-wake recognition pipeline. Provides
@@ -21,13 +23,12 @@ enum VoiceWakeRecognitionDebugSupport {
     static func shouldLogTranscript(
         transcript: String,
         isFinal: Bool,
-        loggerLevel: Logger.Level,
+        loggerLevel: OSLogType,
         lastLoggedText: inout String?,
         lastLoggedAt: inout Date?,
         minRepeatInterval: TimeInterval = 0.25) -> Bool
     {
         guard !transcript.isEmpty else { return false }
-        guard loggerLevel == .debug || loggerLevel == .trace else { return false }
         if transcript == lastLoggedText,
            !isFinal,
            let last = lastLoggedAt,

@@ -1,44 +1,128 @@
-import Foundation
 import Testing
 @testable import CoreBlow
 
 @Suite(.serialized)
+@MainActor
 struct AppStateRemoteConfigTests {
-    @Test func `applies remote config values`() async {
-        await MainActor.run {
-            let state = AppStateStore.shared
-            let previous = state.gatewayAutostart
-            state.applyRemoteConfig(["gateway.autostart": true])
-            #expect(state.gatewayAutostart == true)
-            state.applyRemoteConfig(["gateway.autostart": previous])
-        }
+    @Test
+    func updatedRemoteGatewayConfigSetsTrimmedToken() {
+        let remote = AppState._testUpdatedRemoteGatewayConfig(
+            current: [:],
+            transport: .ssh,
+            remoteUrl: "",
+            remoteHost: "gateway.example",
+            remoteTarget: "alice@gateway.example",
+            remoteIdentity: "/tmp/id_ed25519",
+            remoteToken: "  secret-token  ",
+            remoteTokenDirty: true)
+
+        #expect(remote["token"] as? String == "secret-token")
     }
 
-    @Test func `ignores unknown remote config keys`() async {
-        await MainActor.run {
-            let state = AppStateStore.shared
-            let previousAutostart = state.gatewayAutostart
-            state.applyRemoteConfig(["unknown.key.xyz": "value"])
-            #expect(state.gatewayAutostart == previousAutostart)
-        }
+    @Test
+    func updatedRemoteGatewayConfigClearsTokenWhenBlank() {
+        let remote = AppState._testUpdatedRemoteGatewayConfig(
+            current: ["token": "old-token"],
+            transport: .direct,
+            remoteUrl: "wss://gateway.example",
+            remoteHost: nil,
+            remoteTarget: "",
+            remoteIdentity: "",
+            remoteToken: "   ",
+            remoteTokenDirty: true)
+
+        #expect((remote["token"] as? String) == nil)
     }
 
-    @Test func `applies voice wake triggers from remote`() async {
-        await MainActor.run {
-            let state = AppStateStore.shared
-            let previous = state.swabbleTriggerWords
-            state.applyRemoteConfig(["voicewake.triggers": ["hey", "computer"]])
-            #expect(state.swabbleTriggerWords == ["hey", "computer"])
-            state.applyRemoteConfig(["voicewake.triggers": previous])
-        }
+    @Test
+    func syncedGatewayRootPreservesObjectTokenAcrossModeAndTransportChangesWhenUntouched() {
+        let initialRoot: [String: Any] = [
+            "gateway": [
+                "mode": "remote",
+                "remote": [
+                    "transport": "direct",
+                    "url": "wss://old-gateway.example",
+                    "token": [
+                        "$secretRef": "gateway-token", // pragma: allowlist secret
+                    ],
+                ],
+            ],
+        ]
+
+        let sshRoot = AppState._testSyncedGatewayRoot(
+            currentRoot: initialRoot,
+            connectionMode: .remote,
+            remoteTransport: .ssh,
+            remoteTarget: "alice@gateway.example",
+            remoteIdentity: "",
+            remoteUrl: "",
+            remoteToken: "",
+            remoteTokenDirty: false)
+        let sshRemote = (sshRoot["gateway"] as? [String: Any])?["remote"] as? [String: Any]
+        #expect((sshRemote?["token"] as? [String: String])?["$secretRef"] == "gateway-token") // pragma: allowlist secret
+
+        let localRoot = AppState._testSyncedGatewayRoot(
+            currentRoot: sshRoot,
+            connectionMode: .local,
+            remoteTransport: .ssh,
+            remoteTarget: "",
+            remoteIdentity: "",
+            remoteUrl: "",
+            remoteToken: "",
+            remoteTokenDirty: false)
+        let localGateway = localRoot["gateway"] as? [String: Any]
+        let localRemote = localGateway?["remote"] as? [String: Any]
+        #expect(localGateway?["mode"] as? String == "local")
+        #expect((localRemote?["token"] as? [String: String])?["$secretRef"] == "gateway-token") // pragma: allowlist secret
     }
 
-    @Test func `type mismatch in remote config is ignored`() async {
-        await MainActor.run {
-            let state = AppStateStore.shared
-            let previous = state.gatewayAutostart
-            state.applyRemoteConfig(["gateway.autostart": "not-a-bool"])
-            #expect(state.gatewayAutostart == previous)
-        }
+    @Test
+    func updatedRemoteGatewayConfigReplacesObjectTokenWhenUserEntersPlaintext() {
+        let remote = AppState._testUpdatedRemoteGatewayConfig(
+            current: [
+                "token": [
+                    "$secretRef": "gateway-token", // pragma: allowlist secret
+                ],
+            ],
+            transport: .direct,
+            remoteUrl: "wss://gateway.example",
+            remoteHost: nil,
+            remoteTarget: "",
+            remoteIdentity: "",
+            remoteToken: "  fresh-token  ",
+            remoteTokenDirty: true)
+
+        #expect(remote["token"] as? String == "fresh-token")
+    }
+
+    @Test
+    func updatedRemoteGatewayConfigClearsObjectTokenOnlyAfterExplicitEdit() {
+        let current: [String: Any] = [
+            "token": [
+                "$secretRef": "gateway-token", // pragma: allowlist secret
+            ],
+        ]
+
+        let preserved = AppState._testUpdatedRemoteGatewayConfig(
+            current: current,
+            transport: .direct,
+            remoteUrl: "wss://gateway.example",
+            remoteHost: nil,
+            remoteTarget: "",
+            remoteIdentity: "",
+            remoteToken: "",
+            remoteTokenDirty: false)
+        #expect((preserved["token"] as? [String: String])?["$secretRef"] == "gateway-token") // pragma: allowlist secret
+
+        let cleared = AppState._testUpdatedRemoteGatewayConfig(
+            current: current,
+            transport: .direct,
+            remoteUrl: "wss://gateway.example",
+            remoteHost: nil,
+            remoteTarget: "",
+            remoteIdentity: "",
+            remoteToken: "   ",
+            remoteTokenDirty: true)
+        #expect((cleared["token"] as? String) == nil)
     }
 }

@@ -3,42 +3,76 @@ import Testing
 @testable import CoreBlow
 
 struct ExecApprovalHelpersTests {
-    @Test func `display summary for single command`() {
-        let summary = ExecApprovalHelpers.displaySummary(
-            command: ["/usr/bin/echo", "hello"],
-            rawCommand: "/usr/bin/echo hello",
-            cwd: "/tmp")
-        #expect(summary.displayCommand == "/usr/bin/echo hello")
-        #expect(summary.displayCwd == "/tmp")
+    @Test func `parse decision trims and rejects invalid`() {
+        #expect(ExecApprovalHelpers.parseDecision("allow-once") == .allowOnce)
+        #expect(ExecApprovalHelpers.parseDecision(" allow-always ") == .allowAlways)
+        #expect(ExecApprovalHelpers.parseDecision("deny") == .deny)
+        #expect(ExecApprovalHelpers.parseDecision("") == nil)
+        #expect(ExecApprovalHelpers.parseDecision("nope") == nil)
     }
 
-    @Test func `display summary truncates long commands`() {
-        let long = String(repeating: "x", count: 2000)
-        let summary = ExecApprovalHelpers.displaySummary(
-            command: ["/usr/bin/echo", long],
-            rawCommand: "/usr/bin/echo \(long)",
+    @Test func `allowlist pattern prefers resolution`() {
+        let resolved = ExecCommandResolution(
+            rawExecutable: "rg",
+            resolvedPath: "/opt/homebrew/bin/rg",
+            executableName: "rg",
             cwd: nil)
-        #expect(summary.displayCommand.count < 2000)
-    }
+        #expect(ExecApprovalHelpers.allowlistPattern(command: ["rg"], resolution: resolved) == resolved.resolvedPath)
 
-    @Test func `display command resolves shell wrapper`() {
-        let summary = ExecApprovalHelpers.displaySummary(
-            command: ["/bin/sh", "-lc", "echo hello"],
-            rawCommand: "echo hello",
+        let rawOnly = ExecCommandResolution(
+            rawExecutable: "rg",
+            resolvedPath: nil,
+            executableName: "rg",
             cwd: nil)
-        #expect(summary.displayCommand == "echo hello")
+        #expect(ExecApprovalHelpers.allowlistPattern(command: ["rg"], resolution: rawOnly) == "rg")
+        #expect(ExecApprovalHelpers.allowlistPattern(command: ["rg"], resolution: nil) == "rg")
+        #expect(ExecApprovalHelpers.allowlistPattern(command: [], resolution: nil) == nil)
     }
 
-    @Test func `risk indicator uses severity levels`() {
-        #expect(ExecApprovalHelpers.riskIndicator(for: .low) != nil)
-        #expect(ExecApprovalHelpers.riskIndicator(for: .medium) != nil)
-        #expect(ExecApprovalHelpers.riskIndicator(for: .high) != nil)
+    @Test func `validate allowlist pattern returns reasons`() {
+        #expect(ExecApprovalHelpers.isPathPattern("/usr/bin/rg"))
+        #expect(ExecApprovalHelpers.isPathPattern(" ~/bin/rg "))
+        #expect(!ExecApprovalHelpers.isPathPattern("rg"))
+
+        if case let .invalid(reason) = ExecApprovalHelpers.validateAllowlistPattern("  ") {
+            #expect(reason == .empty)
+        } else {
+            Issue.record("Expected empty pattern rejection")
+        }
+
+        if case let .invalid(reason) = ExecApprovalHelpers.validateAllowlistPattern("echo") {
+            #expect(reason == .missingPathComponent)
+        } else {
+            Issue.record("Expected basename pattern rejection")
+        }
     }
 
-    @Test func `truncated cwd preserves last components`() {
-        let long = "/very/deeply/nested/directory/structure/with/many/components"
-        let truncated = ExecApprovalHelpers.truncatedCwd(long, maxLength: 40)
-        #expect(truncated.hasSuffix("components"))
-        #expect(truncated.count <= 40)
+    @Test func `requires ask matches policy`() {
+        let entry = ExecAllowlistEntry(pattern: "/bin/ls", lastUsedAt: nil, lastUsedCommand: nil, lastResolvedPath: nil)
+        #expect(ExecApprovalHelpers.requiresAsk(
+            ask: .always,
+            security: .deny,
+            allowlistMatch: nil,
+            skillAllow: false))
+        #expect(ExecApprovalHelpers.requiresAsk(
+            ask: .onMiss,
+            security: .allowlist,
+            allowlistMatch: nil,
+            skillAllow: false))
+        #expect(!ExecApprovalHelpers.requiresAsk(
+            ask: .onMiss,
+            security: .allowlist,
+            allowlistMatch: entry,
+            skillAllow: false))
+        #expect(!ExecApprovalHelpers.requiresAsk(
+            ask: .onMiss,
+            security: .allowlist,
+            allowlistMatch: nil,
+            skillAllow: true))
+        #expect(!ExecApprovalHelpers.requiresAsk(
+            ask: .off,
+            security: .allowlist,
+            allowlistMatch: nil,
+            skillAllow: false))
     }
 }

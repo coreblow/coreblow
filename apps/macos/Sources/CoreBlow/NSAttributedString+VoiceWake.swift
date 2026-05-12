@@ -1,2 +1,9 @@
-import AppKit
-extension NSAttributedString { static func voiceWakeFormatted(trigger: String, command: String) -> NSAttributedString { let s = NSMutableAttributedString(string: trigger, attributes: [.foregroundColor: NSColor.secondaryLabelColor]); s.append(NSAttributedString(string: " \(command)", attributes: [.foregroundColor: NSColor.labelColor, .font: NSFont.boldSystemFont(ofSize: NSFont.systemFontSize)])); return s } }
+import OSLog
+import CoreBlowKit
+
+extension Logger {
+    /// Compatibility property to match swift-log's Logger.logLevel.
+    /// OSLog doesn't expose the current log level, so we default to .debug
+    /// which enables all diagnostic logging in voice-wake pipelines.
+    var logLevel: OSLogType { .debug }
+}

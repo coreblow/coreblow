@@ -2,34 +2,74 @@ import Foundation
 import Testing
 @testable import CoreBlow
 
+@Suite(.serialized)
 struct ExecApprovalsSocketPathGuardTests {
-    @Test func `accepts socket path within state directory`() {
-        let stateDir = "/tmp/coreblow-state-test"
-        let socketPath = "\(stateDir)/approvals.sock"
-        #expect(ExecApprovalsSocketPathGuard.isAllowed(socketPath: socketPath, stateDir: stateDir))
+    @Test
+    func `harden parent directory creates directory with0700 permissions`() throws {
+        let root = FileManager().temporaryDirectory
+            .appendingPathComponent("coreblow-socket-guard-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager().removeItem(at: root) }
+        let socketPath = root
+            .appendingPathComponent("nested", isDirectory: true)
+            .appendingPathComponent("exec-approvals.sock", isDirectory: false)
+            .path
+
+        try ExecApprovalsSocketPathGuard.hardenParentDirectory(for: socketPath)
+
+        let parent = URL(fileURLWithPath: socketPath).deletingLastPathComponent()
+        #expect(FileManager().fileExists(atPath: parent.path))
+        let attrs = try FileManager().attributesOfItem(atPath: parent.path)
+        let permissions = (attrs[.posixPermissions] as? NSNumber)?.intValue ?? -1
+        #expect(permissions & 0o777 == 0o700)
     }
 
-    @Test func `rejects socket path outside state directory`() {
-        let stateDir = "/tmp/coreblow-state-test"
-        let socketPath = "/tmp/evil/approvals.sock"
-        #expect(!ExecApprovalsSocketPathGuard.isAllowed(socketPath: socketPath, stateDir: stateDir))
+    @Test
+    func `remove existing socket rejects symlink path`() throws {
+        let root = FileManager().temporaryDirectory
+            .appendingPathComponent("coreblow-socket-guard-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager().removeItem(at: root) }
+        try FileManager().createDirectory(at: root, withIntermediateDirectories: true)
+
+        let target = root.appendingPathComponent("target.txt")
+        _ = FileManager().createFile(atPath: target.path, contents: Data("x".utf8))
+        let symlink = root.appendingPathComponent("exec-approvals.sock")
+        try FileManager().createSymbolicLink(at: symlink, withDestinationURL: target)
+
+        do {
+            try ExecApprovalsSocketPathGuard.removeExistingSocket(at: symlink.path)
+            Issue.record("Expected symlink socket path rejection")
+        } catch let error as ExecApprovalsSocketPathGuardError {
+            switch error {
+            case let .socketPathInvalid(path, kind):
+                #expect(path == symlink.path)
+                #expect(kind == .symlink)
+            default:
+                Issue.record("Unexpected error: \(error)")
+            }
+        }
     }
 
-    @Test func `rejects traversal attack in socket path`() {
-        let stateDir = "/tmp/coreblow-state-test"
-        let socketPath = "\(stateDir)/../evil/approvals.sock"
-        #expect(!ExecApprovalsSocketPathGuard.isAllowed(socketPath: socketPath, stateDir: stateDir))
-    }
+    @Test
+    func `remove existing socket rejects regular file path`() throws {
+        let root = FileManager().temporaryDirectory
+            .appendingPathComponent("coreblow-socket-guard-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager().removeItem(at: root) }
+        try FileManager().createDirectory(at: root, withIntermediateDirectories: true)
 
-    @Test func `rejects symlink-like traversal`() {
-        let stateDir = "/tmp/coreblow-state-test"
-        let socketPath = "\(stateDir)/./../../evil.sock"
-        #expect(!ExecApprovalsSocketPathGuard.isAllowed(socketPath: socketPath, stateDir: stateDir))
-    }
+        let regularFile = root.appendingPathComponent("exec-approvals.sock")
+        _ = FileManager().createFile(atPath: regularFile.path, contents: Data("x".utf8))
 
-    @Test func `accepts socket with subdirectory in state dir`() {
-        let stateDir = "/tmp/coreblow-state-test"
-        let socketPath = "\(stateDir)/sockets/approvals.sock"
-        #expect(ExecApprovalsSocketPathGuard.isAllowed(socketPath: socketPath, stateDir: stateDir))
+        do {
+            try ExecApprovalsSocketPathGuard.removeExistingSocket(at: regularFile.path)
+            Issue.record("Expected non-socket path rejection")
+        } catch let error as ExecApprovalsSocketPathGuardError {
+            switch error {
+            case let .socketPathInvalid(path, kind):
+                #expect(path == regularFile.path)
+                #expect(kind == .other)
+            default:
+                Issue.record("Unexpected error: \(error)")
+            }
+        }
     }
 }

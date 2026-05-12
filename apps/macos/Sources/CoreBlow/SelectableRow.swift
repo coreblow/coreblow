@@ -1,5 +1,43 @@
 import SwiftUI
-struct SelectableRow<Content: View>: View { let isSelected: Bool; let content: () -> Content
-    var body: some View { content().padding(6).background(isSelected ? Color.accentColor.opacity(0.12) : .clear, in: RoundedRectangle(cornerRadius: 6)) }
-    init(isSelected: Bool, @ViewBuilder content: @escaping () -> Content) { self.isSelected = isSelected; self.content = content }
+import OSLog
+import CoreBlowKit
+import OSLog
+
+struct SelectionStateIndicator: View {
+    let selected: Bool
+
+    var body: some View {
+        Group {
+            if self.selected {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(Color.accentColor)
+            } else {
+                Image(systemName: "arrow.right.circle")
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+}
+
+extension View {
+    func coreBlowSelectableRowChrome(selected: Bool, hovered: Bool = false) -> some View {
+        self
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(self.coreBlowRowBackground(selected: selected, hovered: hovered)))
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .strokeBorder(
+                        selected ? Color.accentColor.opacity(0.45) : Color.clear,
+                        lineWidth: 1))
+    }
+
+    private func coreBlowRowBackground(selected: Bool, hovered: Bool) -> Color {
+        if selected { return Color.accentColor.opacity(0.12) }
+        if hovered { return Color.secondary.opacity(0.08) }
+        return Color.clear
+    }
 }

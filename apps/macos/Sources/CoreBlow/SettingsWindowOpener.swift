@@ -1,8 +1,40 @@
-import AppKit; import SwiftUI
-enum SettingsWindowOpener {
-    private static var window: NSWindow?
-    static func open() { if let w = window { w.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true); return }
-        let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 550, height: 400), styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
-        w.contentView = NSHostingView(rootView: SettingsRootView()); w.title = "CoreBlow Settings"; w.center(); w.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true); window = w
+import AppKit
+import OSLog
+import CoreBlowKit
+import OSLog
+import SwiftUI
+import CoreBlowKit
+
+@objc
+private protocol SettingsWindowMenuActions {
+    @objc(showSettingsWindow:)
+    optional func showSettingsWindow(_ sender: Any?)
+
+    @objc(showPreferencesWindow:)
+    optional func showPreferencesWindow(_ sender: Any?)
+}
+
+@MainActor
+final class SettingsWindowOpener {
+    static let shared = SettingsWindowOpener()
+
+    private var openSettingsAction: OpenSettingsAction?
+
+    func register(openSettings: OpenSettingsAction) {
+        self.openSettingsAction = openSettings
+    }
+
+    func open() {
+        NSApp.activate(ignoringOtherApps: true)
+        if let openSettingsAction {
+            openSettingsAction()
+            return
+        }
+
+        // Fallback path: mimic the built-in Settings menu item action.
+        let didOpen = NSApp.sendAction(#selector(SettingsWindowMenuActions.showSettingsWindow(_:)), to: nil, from: nil)
+        if !didOpen {
+            _ = NSApp.sendAction(#selector(SettingsWindowMenuActions.showPreferencesWindow(_:)), to: nil, from: nil)
+        }
     }
 }

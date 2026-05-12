@@ -1,4 +1,53 @@
 import SwiftUI
-struct SessionMenuLabelView: View { let session: SessionData
-    var body: some View { HStack { Image(systemName: "bubble.left.fill").foregroundStyle(.tint); VStack(alignment: .leading) { Text(session.displayName).lineLimit(1); Text("\(session.messageCount) messages").font(.caption2).foregroundStyle(.secondary) }; Spacer() }.padding(.horizontal).padding(.vertical, 4) }
+import OSLog
+import CoreBlowKit
+import OSLog
+
+extension EnvironmentValues {
+    @Entry var menuItemHighlighted: Bool = false
+}
+
+struct SessionMenuLabelView: View {
+    let row: SessionRow
+    let width: CGFloat
+    @Environment(\.menuItemHighlighted) private var isHighlighted
+    private let paddingLeading: CGFloat = 22
+    private let paddingTrailing: CGFloat = 14
+    private let barHeight: CGFloat = 6
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ContextUsageBar(
+                usedTokens: self.row.tokens.total,
+                contextTokens: self.row.tokens.contextTokens,
+                width: max(1, self.width - (self.paddingLeading + self.paddingTrailing)),
+                height: self.barHeight)
+
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
+                Text(self.row.label)
+                    .font(.caption.weight(self.row.key == "main" ? .semibold : .regular))
+                    .foregroundStyle(MenuItemHighlightColors.primary(self.isHighlighted))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .layoutPriority(1)
+
+                Spacer(minLength: 4)
+
+                Text("\(self.row.tokens.contextSummaryShort) · \(self.row.ageText)")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(MenuItemHighlightColors.secondary(self.isHighlighted))
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .layoutPriority(2)
+
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(MenuItemHighlightColors.secondary(self.isHighlighted))
+                    .padding(.leading, 2)
+            }
+        }
+        .padding(.vertical, 10)
+        .padding(.leading, self.paddingLeading)
+        .padding(.trailing, self.paddingTrailing)
+    }
 }

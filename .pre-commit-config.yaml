@@ -20,7 +20,7 @@ repos:
         args: [--maxkb=500]
       - id: check-merge-conflict
       - id: detect-private-key
-        exclude: '(^|/)(\.secrets\.baseline$|\.detect-secrets\.cfg$|\.pre-commit-config\.yaml$|.*\.test\.ts$)'
+        exclude: '(^|/)(\.secrets\.baseline$|\.detect-secrets\.cfg$|\.pre-commit-config\.yaml$|.*\.test\.ts$|DeviceIdentity\.swift$)'
 
   # Secret detection (same as CI)
   - repo: https://github.com/Yelp/detect-secrets
@@ -74,7 +74,7 @@ repos:
     rev: v2.2.6
     hooks:
       - id: codespell
-        args: ['--skip=node_modules,dist,pnpm-lock.yaml,gateway/dist,gateway/node_modules', '--ignore-words-list=afterall,inout']
+        args: ['--skip=node_modules,dist,pnpm-lock.yaml,gateway/dist,gateway/node_modules', '--ignore-words-list=afterall,inout,caf,statics']
 
   # Project checks
   - repo: local

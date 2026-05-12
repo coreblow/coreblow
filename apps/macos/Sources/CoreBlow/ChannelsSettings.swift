@@ -1,4 +1,19 @@
+import AppKit
 import SwiftUI
-struct ChannelsSettings: View { @State private var store = ChannelsStore()
-    var body: some View { List(store.channels) { ch in HStack { Toggle(ch.name, isOn: Binding(get: { ch.enabled }, set: { _ in store.toggle(id: ch.id) })); Spacer(); Text(ch.type).font(.caption).foregroundStyle(.secondary) } }.navigationTitle("Channels").task { await store.load() } }
+
+struct ChannelsSettings: View {
+    struct ChannelItem: Identifiable, Hashable {
+        let id: String
+        let title: String
+        let detailTitle: String
+        let systemImage: String
+        let sortOrder: Int
+    }
+
+    @Bindable var store: ChannelsStore
+    @State var selectedChannel: ChannelItem?
+
+    init(store: ChannelsStore = .shared) {
+        self.store = store
+    }
 }

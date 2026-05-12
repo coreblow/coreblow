@@ -1,2 +1,16 @@
+import AppKit
+import OSLog
+import CoreBlowKit
+import OSLog
 import Foundation
-enum SystemSettingsURLSupport { static func url(for capability: Capability) -> URL? { let base = "x-apple.systempreferences:"; switch capability { case .accessibility: return URL(string: "\(base)com.apple.preference.security?Privacy_Accessibility"); case .screenRecording: return URL(string: "\(base)com.apple.preference.security?Privacy_ScreenCapture"); case .microphone: return URL(string: "\(base)com.apple.preference.security?Privacy_Microphone"); case .camera: return URL(string: "\(base)com.apple.preference.security?Privacy_Camera"); case .location: return URL(string: "\(base)com.apple.preference.security?Privacy_LocationServices"); default: return nil } } }
+import CoreBlowKit
+
+enum SystemSettingsURLSupport {
+    static func openFirst(_ candidates: [String]) {
+        for candidate in candidates {
+            if let url = URL(string: candidate), NSWorkspace.shared.open(url) {
+                return
+            }
+        }
+    }
+}

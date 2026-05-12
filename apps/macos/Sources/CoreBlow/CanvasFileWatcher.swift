@@ -1,11 +1,31 @@
 import Foundation
+import OSLog
+import CoreBlowKit
+import OSLog
+
 actor CanvasFileWatcher {
-    private var sources: [String: DispatchSourceFileSystemObject] = []
+    private var sources: [String: DispatchSourceFileSystemObject] = .init()
+
     func watch(session: String, directory: URL, onChange: @escaping @Sendable () -> Void) {
-        let fd = open(directory.path, O_EVTONLY); guard fd >= 0 else { return }
-        let source = DispatchSource.makeFileSystemObjectSource(fileDescriptor: fd, eventMask: [.write, .rename], queue: .global())
-        source.setEventHandler { onChange() }; source.setCancelHandler { close(fd) }; source.resume(); sources[session] = source
+        let fd = open(directory.path, O_EVTONLY)
+        guard fd >= 0 else { return }
+        let source = DispatchSource.makeFileSystemObjectSource(
+            fileDescriptor: fd,
+            eventMask: [.write, .rename],
+            queue: .global())
+        source.setEventHandler { onChange() }
+        source.setCancelHandler { close(fd) }
+        source.resume()
+        sources[session] = source
     }
-    func unwatch(session: String) { sources[session]?.cancel(); sources.removeValue(forKey: session) }
-    func unwatchAll() { sources.values.forEach { $0.cancel() }; sources.removeAll() }
+
+    func unwatch(session: String) {
+        sources[session]?.cancel()
+        sources.removeValue(forKey: session)
+    }
+
+    func unwatchAll() {
+        sources.values.forEach { $0.cancel() }
+        sources.removeAll()
+    }
 }

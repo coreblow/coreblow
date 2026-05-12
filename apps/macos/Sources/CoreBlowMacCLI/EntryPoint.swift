@@ -1,37 +1,56 @@
 import Foundation
 
+private struct RootCommand {
+    var name: String
+    var args: [String]
+}
+
 @main
 struct CoreBlowMacCLI {
     static func main() async {
         let args = Array(CommandLine.arguments.dropFirst())
-        guard let subcommand = args.first else {
-            printUsage(); return
-        }
-        do {
-            switch subcommand {
-            case "connect": try await ConnectCommand.run(Array(args.dropFirst()))
-            case "discover": try await DiscoverCommand.run(Array(args.dropFirst()))
-            case "wizard": try await WizardCommand.run(Array(args.dropFirst()))
-            case "--help", "-h": printUsage()
-            default:
-                FileHandle.standardError.write(Data("Unknown command: \(subcommand)\n".utf8))
-                printUsage(); exit(1)
-            }
-        } catch {
-            FileHandle.standardError.write(Data("coreblow-mac: \(error)\n".utf8))
+        let command = parseRootCommand(args)
+        switch command?.name {
+        case nil:
+            printUsage()
+        case "-h", "--help", "help":
+            printUsage()
+        case "connect":
+            await runConnect(command?.args ?? [])
+        case "discover":
+            await runDiscover(command?.args ?? [])
+        case "wizard":
+            await runWizardCommand(command?.args ?? [])
+        default:
+            fputs("coreblow-mac: unknown command\n", stderr)
+            printUsage()
             exit(1)
         }
     }
+}
 
-    private static func printUsage() {
-        let usage = """
-        usage: coreblow-mac <command> [options]
+private func parseRootCommand(_ args: [String]) -> RootCommand? {
+    guard let first = args.first else { return nil }
+    return RootCommand(name: first, args: Array(args.dropFirst()))
+}
 
-        Commands:
-          connect   Connect to a gateway
-          discover  Discover gateways on the network
-          wizard    Interactive setup wizard
-        """
-        print(usage)
-    }
+private func printUsage() {
+    print("""
+    coreblow-mac
+
+    Usage:
+      coreblow-mac connect [--url <ws://host:port>] [--token <token>] [--password <password>]
+                           [--mode <local|remote>] [--timeout <ms>] [--probe] [--json]
+                           [--client-id <id>] [--client-mode <mode>] [--display-name <name>]
+                           [--role <role>] [--scopes <a,b,c>]
+      coreblow-mac discover [--timeout <ms>] [--json] [--include-local]
+      coreblow-mac wizard [--url <ws://host:port>] [--token <token>] [--password <password>]
+                          [--mode <local|remote>] [--workspace <path>] [--json]
+
+    Examples:
+      coreblow-mac connect
+      coreblow-mac connect --url ws://127.0.0.1:18789 --json
+      coreblow-mac discover --timeout 3000 --json
+      coreblow-mac wizard --mode local
+    """)
 }

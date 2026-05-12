@@ -1,6 +1,23 @@
 import Foundation
+import OSLog
+import CoreBlowKit
+import OSLog
+
+@MainActor
 enum PermissionMonitoringSupport {
-    static func monitorChanges(for capabilities: [Capability], interval: TimeInterval = 5, onChange: @escaping @Sendable (Capability, Bool) -> Void) -> Task<Void, Never> {
-        Task { var lastStates: [Capability: Bool] = [:]; while !Task.isCancelled { for cap in capabilities { let granted = await PermissionManager().check(cap); if lastStates[cap] != granted { onChange(cap, granted); lastStates[cap] = granted } }; try? await Task.sleep(for: .seconds(interval)) } }
+    static func setMonitoring(_ shouldMonitor: Bool, monitoring: inout Bool) {
+        if shouldMonitor, !monitoring {
+            monitoring = true
+            PermissionMonitor.shared.register()
+        } else if !shouldMonitor, monitoring {
+            monitoring = false
+            PermissionMonitor.shared.unregister()
+        }
+    }
+
+    static func stopMonitoring(_ monitoring: inout Bool) {
+        guard monitoring else { return }
+        monitoring = false
+        PermissionMonitor.shared.unregister()
     }
 }

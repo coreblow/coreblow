@@ -1,2 +1,32 @@
-import Foundation
-enum ViewMetrics { static let menuWidth: CGFloat = 320; static let settingsWidth: CGFloat = 550; static let settingsHeight: CGFloat = 400; static let overlayCornerRadius: CGFloat = 12; static let pillPadding: CGFloat = 6 }
+import SwiftUI
+import OSLog
+import CoreBlowKit
+import OSLog
+
+private struct ViewWidthPreferenceKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
+extension View {
+    func onWidthChange(_ onChange: @escaping (CGFloat) -> Void) -> some View {
+        self.background(
+            GeometryReader { proxy in
+                Color.clear.preference(key: ViewWidthPreferenceKey.self, value: proxy.size.width)
+            })
+            .onPreferenceChange(ViewWidthPreferenceKey.self, perform: onChange)
+    }
+}
+
+#if DEBUG
+enum ViewMetricsTesting {
+    static func reduceWidth(current: CGFloat, next: CGFloat) -> CGFloat {
+        var value = current
+        ViewWidthPreferenceKey.reduce(value: &value, nextValue: { next })
+        return value
+    }
+}
+#endif

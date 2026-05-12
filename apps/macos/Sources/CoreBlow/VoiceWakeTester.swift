@@ -1,5 +1,8 @@
 import AVFoundation
+import CoreBlowKit
 import Foundation
+import CoreBlowKit
+import OSLog
 import Speech
 import SwabbleKit
 
@@ -269,9 +272,7 @@ final class VoiceWakeTester {
         let matchSummary = VoiceWakeRecognitionDebugSupport.matchSummary(match)
 
         logger.debug(
-            "voicewake test transcript='\(transcript, privacy: .private)' textOnly=\(summary.textOnly) "
-                + "isFinal=\(isFinal) timing=\(summary.timingCount)/\(segments.count) "
-                + "\(matchSummary) gaps=[\(gaps, privacy: .private)] segments=[\(segmentSummary, privacy: .private)]")
+            "voicewake test transcript='\(transcript, privacy: .private)' textOnly=\(summary.textOnly) isFinal=\(isFinal) timing=\(summary.timingCount)/\(segments.count) \(matchSummary) gaps=[\(gaps, privacy: .private)] segments=[\(segmentSummary, privacy: .private)]")
     }
 
     private static func debugSegments(_ segments: [WakeWordSegment]) -> String {
@@ -390,8 +391,7 @@ final class VoiceWakeTester {
     private func logInputSelection(preferredMicID: String?) {
         let preferred = (preferredMicID?.isEmpty == false) ? preferredMicID! : "system-default"
         logger.info(
-            "voicewake test input preferred=\(preferred, privacy: .public) "
-                + "\(AudioInputDeviceObserver.defaultInputDeviceSummary(), privacy: .public)")
+            "voicewake test input preferred=\(preferred, privacy: .public) \(AudioInputDeviceObserver.defaultInputDeviceSummary(), privacy: .public)")
     }
 
     // MARK: - Permissions

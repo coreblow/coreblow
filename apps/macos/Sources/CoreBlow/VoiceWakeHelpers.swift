@@ -1,9 +1,27 @@
 import Foundation
-enum VoiceWakeHelpers {
-    static func extractCommand(from transcript: String, triggerWords: [String]) -> String? {
-        let lower = transcript.lowercased()
-        for trigger in triggerWords { if let range = lower.range(of: trigger.lowercased()) { let after = String(transcript[range.upperBound...]).trimmingCharacters(in: .whitespacesAndNewlines); return after.isEmpty ? nil : after } }
-        return nil
+import OSLog
+import CoreBlowKit
+import OSLog
+
+func sanitizeVoiceWakeTriggers(_ words: [String]) -> [String] {
+    let cleaned = words
+        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        .filter { !$0.isEmpty }
+        .prefix(voiceWakeMaxWords)
+        .map { String($0.prefix(voiceWakeMaxWordLength)) }
+    return cleaned.isEmpty ? defaultVoiceWakeTriggers : cleaned
+}
+
+func normalizeLocaleIdentifier(_ raw: String) -> String {
+    var trimmed = raw
+    if let at = trimmed.firstIndex(of: "@") {
+        trimmed = String(trimmed[..<at])
     }
-    static func sanitizeTriggerWords(_ words: [String]) -> [String] { words.map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }.filter { !$0.isEmpty } }
+    if let u = trimmed.range(of: "-u-") {
+        trimmed = String(trimmed[..<u.lowerBound])
+    }
+    if let t = trimmed.range(of: "-t-") {
+        trimmed = String(trimmed[..<t.lowerBound])
+    }
+    return trimmed
 }

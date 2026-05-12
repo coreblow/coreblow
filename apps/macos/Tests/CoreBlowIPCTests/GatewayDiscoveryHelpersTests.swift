@@ -1,44 +1,97 @@
 import Foundation
+import CoreBlowDiscovery
 import Testing
 @testable import CoreBlow
 
-@Suite(.serialized)
 struct GatewayDiscoveryHelpersTests {
-    @Test func `discovery from environment uses COREBLOW_API_BASE`() async throws {
-        try await TestIsolation.withEnvValues(["COREBLOW_API_BASE": "http://localhost:3000"]) {
-            let url = GatewayDiscoveryHelpers.apiBaseFromEnvironment()
-            #expect(url == URL(string: "http://localhost:3000"))
+    private func makeGateway(
+        serviceHost: String?,
+        servicePort: Int?,
+        lanHost: String? = "txt-host.local",
+        tailnetDns: String? = "txt-host.ts.net",
+        sshPort: Int = 22,
+        gatewayPort: Int? = 18789) -> GatewayDiscoveryModel.DiscoveredGateway
+    {
+        GatewayDiscoveryModel.DiscoveredGateway(
+            displayName: "Gateway",
+            serviceHost: serviceHost,
+            servicePort: servicePort,
+            lanHost: lanHost,
+            tailnetDns: tailnetDns,
+            sshPort: sshPort,
+            gatewayPort: gatewayPort,
+            cliPath: "/tmp/coreblow",
+            stableID: UUID().uuidString,
+            debugID: UUID().uuidString,
+            isLocal: false)
+    }
+
+    private func assertSSHTarget(
+        for gateway: GatewayDiscoveryModel.DiscoveredGateway,
+        host: String,
+        port: Int)
+    {
+        guard let target = GatewayDiscoveryHelpers.sshTarget(for: gateway) else {
+            Issue.record("expected ssh target")
+            return
         }
+        let parsed = CommandResolver.parseSSHTarget(target)
+        #expect(parsed?.host == host)
+        #expect(parsed?.port == port)
     }
 
-    @Test func `discovery returns nil without environment`() async throws {
-        try await TestIsolation.withEnvValues(["COREBLOW_API_BASE": ""]) {
-            let url = GatewayDiscoveryHelpers.apiBaseFromEnvironment()
-            #expect(url == nil)
-        }
+    @Test func `ssh target uses resolved service host only`() {
+        let gateway = self.makeGateway(
+            serviceHost: "resolved.example.ts.net",
+            servicePort: 18789,
+            sshPort: 2201)
+        self.assertSSHTarget(for: gateway, host: "resolved.example.ts.net", port: 2201)
     }
 
-    @Test func `healthcheck path construction`() {
-        let base = URL(string: "http://localhost:3000")!
-        let healthURL = GatewayDiscoveryHelpers.healthCheckURL(base: base)
-        #expect(healthURL.path.contains("health"))
+    @Test func `ssh target allows missing resolved service port`() {
+        let gateway = self.makeGateway(
+            serviceHost: "resolved.example.ts.net",
+            servicePort: nil,
+            sshPort: 2201)
+        self.assertSSHTarget(for: gateway, host: "resolved.example.ts.net", port: 2201)
     }
 
-    @Test func `socket URL derivation from API base`() {
-        let base = URL(string: "http://localhost:3000")!
-        let wsURL = GatewayDiscoveryHelpers.webSocketURL(from: base)
-        #expect(wsURL.scheme == "ws" || wsURL.scheme == "wss")
+    @Test func `ssh target rejects txt only gateways`() {
+        let gateway = self.makeGateway(
+            serviceHost: nil,
+            servicePort: nil,
+            lanHost: "txt-only.local",
+            tailnetDns: "txt-only.ts.net",
+            sshPort: 2222)
+
+        #expect(GatewayDiscoveryHelpers.sshTarget(for: gateway) == nil)
     }
 
-    @Test func `HTTPS upgrades to WSS`() {
-        let base = URL(string: "https://api.example.com")!
-        let wsURL = GatewayDiscoveryHelpers.webSocketURL(from: base)
-        #expect(wsURL.scheme == "wss")
+    @Test func `direct url uses resolved service endpoint only`() {
+        let tlsGateway = self.makeGateway(
+            serviceHost: "resolved.example.ts.net",
+            servicePort: 443)
+        #expect(GatewayDiscoveryHelpers.directUrl(for: tlsGateway) == "wss://resolved.example.ts.net")
+
+        let wsGateway = self.makeGateway(
+            serviceHost: "resolved.example.ts.net",
+            servicePort: 18789)
+        #expect(GatewayDiscoveryHelpers.directUrl(for: wsGateway) == "wss://resolved.example.ts.net:18789")
+
+        let localGateway = self.makeGateway(
+            serviceHost: "127.0.0.1",
+            servicePort: 18789)
+        #expect(GatewayDiscoveryHelpers.directUrl(for: localGateway) == "ws://127.0.0.1:18789")
     }
 
-    @Test func `HTTP stays as WS`() {
-        let base = URL(string: "http://localhost:3000")!
-        let wsURL = GatewayDiscoveryHelpers.webSocketURL(from: base)
-        #expect(wsURL.scheme == "ws")
+    @Test func `direct url rejects txt only fallback`() {
+        let gateway = self.makeGateway(
+            serviceHost: nil,
+            servicePort: nil,
+            lanHost: "txt-only.local",
+            tailnetDns: "txt-only.ts.net",
+            gatewayPort: 22222)
+
+        #expect(GatewayDiscoveryHelpers.directUrl(for: gateway) == nil)
     }
 }

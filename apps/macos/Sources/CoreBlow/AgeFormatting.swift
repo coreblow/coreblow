@@ -1,2 +1,20 @@
 import Foundation
-enum AgeFormatting { static func format(_ date: Date) -> String { let s = Date().timeIntervalSince(date); if s < 60 { return "just now" }; if s < 3600 { return "\(Int(s/60))m" }; if s < 86400 { return "\(Int(s/3600))h" }; return "\(Int(s/86400))d" } }
+import OSLog
+import CoreBlowKit
+import OSLog
+
+/// Human-friendly age string (e.g., "2m ago").
+func age(from date: Date, now: Date = .init()) -> String {
+    let seconds = max(0, Int(now.timeIntervalSince(date)))
+    let minutes = seconds / 60
+    let hours = minutes / 60
+    let days = hours / 24
+
+    if seconds < 60 { return "just now" }
+    if minutes == 1 { return "1 minute ago" }
+    if minutes < 60 { return "\(minutes)m ago" }
+    if hours == 1 { return "1 hour ago" }
+    if hours < 24 { return "\(hours)h ago" }
+    if days == 1 { return "yesterday" }
+    return "\(days)d ago"
+}
