@@ -1,0 +1,92 @@
+name: Workflow Sanity
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  no-tabs:
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fail on tabs in workflow files
+        run: |
+          python3 - <<'PY'
+          from __future__ import annotations
+          import pathlib
+          import sys
+
+          root = pathlib.Path(".github/workflows")
+          bad: list[str] = []
+          for path in sorted(root.rglob("*.yml")):
+            if b"\t" in path.read_bytes():
+              bad.append(str(path))
+          for path in sorted(root.rglob("*.yaml")):
+            if b"\t" in path.read_bytes():
+              bad.append(str(path))
+
+          if bad:
+            print(f"Found tabs in {len(bad)} workflow file(s):")
+            for p in bad:
+              print(f"  {p}")
+            sys.exit(1)
+          print(f"No tabs found in {root} (checked {len(list(root.rglob('*.yml'))) + len(list(root.rglob('*.yaml')))} files)")
+          PY
+
+  yaml-valid:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate YAML syntax
+        run: |
+          python3 - <<'PY'
+          from __future__ import annotations
+          import pathlib
+          import sys
+          import yaml
+
+          root = pathlib.Path(".github/workflows")
+          errors: list[str] = []
+          count = 0
+          for path in sorted(root.rglob("*.yml")):
+            count += 1
+            try:
+              yaml.safe_load(path.read_text())
+            except yaml.YAMLError as e:
+              errors.append(f"{path}: {e}")
+
+          if errors:
+            print(f"YAML errors in {len(errors)} file(s):")
+            for e in errors:
+              print(f"  {e}")
+            sys.exit(1)
+          print(f"All {count} workflow files are valid YAML")
+          PY
+
+  no-openclaw-refs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for OpenClaw naming remnants in workflows
+        run: |
+          set -euo pipefail
+          HITS=$(grep -rn "openclaw\|OpenClaw" .github/workflows/ --include='*.yml' | grep -v "coreblow" || true)
+          if [ -n "$HITS" ]; then
+            echo "::error::Found OpenClaw naming remnants in workflows:"
+            echo "$HITS"
+            exit 1
+          fi
+          echo "No OpenClaw naming remnants found in workflows"

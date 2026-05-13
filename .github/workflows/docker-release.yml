@@ -1,0 +1,114 @@
+name: Docker Release
+
+on:
+  push:
+    tags:
+      - "v*"
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to backfill (for example v2026.5.14)
+        required: true
+        type: string
+
+concurrency:
+  group: docker-release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  validate:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Validate tag input format
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [[ ! "${RELEASE_TAG}" =~ ^v[0-9] ]]; then
+            echo "Invalid release tag format: ${RELEASE_TAG}"
+            exit 1
+          fi
+
+  build-and-push:
+    needs: [validate]
+    if: always() && (needs.validate.result == 'success' || needs.validate.result == 'skipped')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
+      - name: Build and push main image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      - name: Build and push sandbox-common
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.sandbox-common
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-sandbox-common:latest
+          cache-from: type=gha,scope=sandbox-common
+          cache-to: type=gha,scope=sandbox-common,mode=max
+
+      - name: Build and push sandbox
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.sandbox
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-sandbox:latest
+          cache-from: type=gha,scope=sandbox
+          cache-to: type=gha,scope=sandbox,mode=max
+
+      - name: Build and push sandbox-browser
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.sandbox-browser
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-sandbox-browser:latest
+          cache-from: type=gha,scope=sandbox-browser
+          cache-to: type=gha,scope=sandbox-browser,mode=max

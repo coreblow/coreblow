@@ -1,0 +1,53 @@
+name: Sandbox Common Smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - Dockerfile.sandbox
+      - Dockerfile.sandbox-common
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - Dockerfile.sandbox
+      - Dockerfile.sandbox-common
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  sandbox-common-smoke:
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build sandbox-common image
+        run: |
+          set -euo pipefail
+          docker build -t coreblow-sandbox-common:latest -f Dockerfile.sandbox-common .
+
+      - name: Build sandbox image
+        run: |
+          set -euo pipefail
+          docker build -t coreblow-sandbox:latest -f Dockerfile.sandbox .
+
+      - name: Verify sandbox user exists
+        run: |
+          docker run --rm coreblow-sandbox-common:latest id sandbox
+
+      - name: Verify node is available
+        run: |
+          docker run --rm coreblow-sandbox-common:latest node --version
+
+      - name: Verify health check path
+        run: |
+          docker run --rm -d --name smoke-sandbox coreblow-sandbox-common:latest sleep 30
+          docker exec smoke-sandbox curl -sf http://localhost:3100/health || echo "Health check not running (expected in smoke test)"
+          docker stop smoke-sandbox

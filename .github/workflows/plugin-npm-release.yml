@@ -1,0 +1,122 @@
+name: Plugin NPM Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/plugin-npm-release.yml"
+      - "extensions/**"
+      - "package.json"
+  workflow_dispatch:
+    inputs:
+      publish_scope:
+        description: Publish the selected plugins or all publishable plugins
+        required: true
+        default: selected
+        type: choice
+        options:
+          - selected
+          - all-publishable
+      ref:
+        description: Commit SHA on main to publish from
+        required: true
+        type: string
+      plugins:
+        description: Comma-separated plugin package names to publish
+        required: false
+        type: string
+
+concurrency:
+  group: plugin-npm-release-${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.sha }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "22.x"
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      has_publishable: ${{ steps.plan.outputs.has_publishable }}
+      plan_summary: ${{ steps.plan.outputs.summary }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.sha }}
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Plan release
+        id: plan
+        run: |
+          echo "has_publishable=true" >> "$GITHUB_OUTPUT"
+          echo "Checking extensions/ for publishable plugins..."
+          for dir in extensions/*/; do
+            if [ -f "$dir/package.json" ]; then
+              PKG_NAME=$(node -p "require('./$dir/package.json').name")
+              PKG_VERSION=$(node -p "require('./$dir/package.json').version")
+              echo "  Found: $PKG_NAME@$PKG_VERSION"
+            fi
+          done
+
+  publish:
+    needs: preview
+    if: github.event_name == 'workflow_dispatch' && needs.preview.outputs.has_publishable == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    environment: npm-publish
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install and build
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+
+      - name: Publish selected plugins
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          PUBLISH_SCOPE: ${{ inputs.publish_scope }}
+          PLUGIN_LIST: ${{ inputs.plugins }}
+        run: |
+          set -euo pipefail
+          for dir in extensions/*/; do
+            if [ -f "$dir/package.json" ]; then
+              PKG_NAME=$(node -p "require('./$dir/package.json').name")
+              if [ "$PUBLISH_SCOPE" = "all-publishable" ] || echo "$PLUGIN_LIST" | grep -q "$PKG_NAME"; then
+                echo "Publishing $PKG_NAME..."
+                cd "$dir"
+                npm publish --provenance --access public || echo "Skipped $PKG_NAME (already published)"
+                cd -
+              fi
+            fi
+          done

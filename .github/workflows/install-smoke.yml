@@ -1,0 +1,71 @@
+name: Install Smoke
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  preflight:
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    outputs:
+      run_install_smoke: ${{ steps.check.outputs.run }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Detect install-relevant changes
+        id: check
+        run: |
+          if git diff --name-only HEAD~1 2>/dev/null | grep -qE '(package\.json|pnpm-lock|Dockerfile|install)'; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  npm-install-smoke:
+    needs: preflight
+    if: needs.preflight.outputs.run_install_smoke == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        node: ['20', '22']
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: npm install (production)
+        run: |
+          npm pack
+          TARBALL=$(ls coreblow-*.tgz)
+          mkdir /tmp/smoke-install
+          cd /tmp/smoke-install
+          npm init -y
+          npm install "$GITHUB_WORKSPACE/$TARBALL"
+
+      - name: Smoke test CLI help
+        run: |
+          cd /tmp/smoke-install
+          npx coreblow --help
+
+      - name: Smoke test CLI version
+        run: |
+          cd /tmp/smoke-install
+          npx coreblow --version
