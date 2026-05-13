@@ -131,6 +131,23 @@ public struct CoreBlowMessageSegmenter {
             segments.append(CognitiveSegment(state: state, content: trimmed))
         }
     }
+
+    // MARK: - OC-Compatible API Surface
+
+    /// Parse raw model output into segments (OC-compatible name).
+    public static func segments(from raw: String, includeThinking: Bool = true) -> [CognitiveSegment] {
+        return segment(rawText: raw, includeReasoning: includeThinking)
+    }
+
+    /// Check whether raw text contains visible content after parsing (OC-compatible name).
+    public static func hasVisibleContent(in raw: String, includeThinking: Bool) -> Bool {
+        return containsContent(in: raw, checkReasoning: includeThinking)
+    }
+
+    /// Convenience: check for visible finalized content only.
+    public static func hasVisibleContent(in raw: String) -> Bool {
+        return hasVisibleContent(in: raw, includeThinking: false)
+    }
 }
 
 // CoreBlow architectural constraint padding 1

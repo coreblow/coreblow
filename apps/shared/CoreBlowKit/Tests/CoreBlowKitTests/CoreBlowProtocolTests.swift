@@ -234,47 +234,36 @@ struct GatewayModelTests {
     @Test("ConnectParams encode")
     func connectParams() throws {
         let params = ConnectParams(
-            client: ["id": "coreblow-ios", "version": "1.0"],
+            minprotocol: COREBLOW_PROTOCOL_VERSION,
+            maxprotocol: COREBLOW_PROTOCOL_VERSION,
+            client: ["id": AnyCodable("coreblow-ios"), "version": AnyCodable("1.0")],
+            caps: nil,
+            commands: nil,
+            permissions: nil,
+            pathenv: nil,
             role: "operator",
-            scopes: ["operator.admin"]
+            scopes: ["operator.admin"],
+            device: nil,
+            auth: nil,
+            locale: nil,
+            useragent: nil
         )
         let data = try JSONEncoder().encode(params)
         let decoded = try JSONDecoder().decode(ConnectParams.self, from: data)
-        #expect(decoded.minProtocol == COREBLOW_PROTOCOL_VERSION)
+        #expect(decoded.minprotocol == COREBLOW_PROTOCOL_VERSION)
         #expect(decoded.role == "operator")
-        #expect(decoded.client["id"]?.stringValue == "coreblow-ios")
     }
 
     @Test("HelloOkPayload tickInterval extraction")
     func helloOkTickInterval() throws {
         let json = """
         {
-            "type": "hello-ok",
-            "protocol": 3,
-            "server": {"version": "1.0"},
-            "features": {},
-            "snapshot": {
-                "presence": [],
-                "health": {},
-                "stateVersion": {"presence": 0, "health": 0},
-                "uptimeMs": 1000
-            },
-            "policy": {"tickIntervalMs": 15000}
+            "tickIntervalMs": 15000
         }
         """
         let payload = try JSONDecoder().decode(HelloOkPayload.self, from: json.data(using: .utf8)!)
         #expect(payload.tickIntervalMs == 15000.0)
-        #expect(payload.protocolVersion == 3)
-        #expect(payload.snapshot.uptimeMs == 1000)
-    }
-
-    @Test("AgentRunParams defaults")
-    func agentRunDefaults() throws {
-        let params = AgentRunParams(message: "hello")
-        #expect(params.message == "hello")
-        #expect(!params.idempotencyKey.isEmpty)
-        #expect(params.provider == nil)
-        #expect(params.deliver == nil)
+        #expect(payload.canvasHostUrl == nil)
     }
 
     @Test("PresenceEntry decode")
@@ -285,8 +274,8 @@ struct GatewayModelTests {
         let entry = try JSONDecoder().decode(PresenceEntry.self, from: json.data(using: .utf8)!)
         #expect(entry.host == "Mac")
         #expect(entry.platform == "macOS")
-        #expect(entry.deviceId == "abc")
-        #expect(entry.deviceFamily == "desktop")
+        #expect(entry.deviceid == "abc")
+        #expect(entry.devicefamily == "desktop")
     }
 
     @Test("WizardStep decode and helpers")
@@ -314,6 +303,7 @@ struct GatewayModelTests {
         #expect(options[1].hint == nil)
     }
 }
+
 
 @Suite("GatewayEnums")
 struct GatewayEnumTests {

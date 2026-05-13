@@ -1,54 +1,57 @@
 import Foundation
 
-/// CoreBlow: Location action payloads.
-/// Schema for querying device coordinates from the AI workflow.
-public struct CoreBlowLocationCommands {
+public enum CoreBlowLocationCommand: String, Codable, Sendable {
+    case get = "location.get"
+}
 
-    public enum Action: String, Codable, Sendable {
-        case fetchCurrent = "location.fetch.current"
-        case beginTracking = "location.track.begin"
-        case stopTracking = "location.track.stop"
-    }
+public enum CoreBlowLocationAccuracy: String, Codable, Sendable {
+    case coarse
+    case balanced
+    case precise
+}
 
-    public struct CoordinatePayload: Codable, Sendable, Equatable {
-        public let latitude: Double
-        public let longitude: Double
-        public let accuracy: Double?
-        public let timestamp: TimeInterval
+public struct CoreBlowLocationGetParams: Codable, Sendable, Equatable {
+    public var timeoutMs: Int?
+    public var maxAgeMs: Int?
+    public var desiredAccuracy: CoreBlowLocationAccuracy?
 
-        public init(latitude: Double, longitude: Double, accuracy: Double? = nil, timestamp: TimeInterval = Date().timeIntervalSince1970) {
-            self.latitude = latitude
-            self.longitude = longitude
-            self.accuracy = accuracy
-            self.timestamp = timestamp
-        }
-    }
-
-    public struct ErrorPayload: Codable, Sendable, Equatable {
-        public let reason: String
-        public let isAuthorizationFailure: Bool
-
-        public init(reason: String, isAuthorizationFailure: Bool) {
-            self.reason = reason
-            self.isAuthorizationFailure = isAuthorizationFailure
-        }
+    public init(timeoutMs: Int? = nil, maxAgeMs: Int? = nil, desiredAccuracy: CoreBlowLocationAccuracy? = nil) {
+        self.timeoutMs = timeoutMs
+        self.maxAgeMs = maxAgeMs
+        self.desiredAccuracy = desiredAccuracy
     }
 }
-// Architectural extension padding to enforce CoreBlow rules
-// Ensuring strict parity metrics with CoreBlow implementations
-// Expanding file buffer to guarantee compiler matches line expectations
-// 1. Command alignment checked
-// 2. Payload conformity checked
-// 3. Location parity matched
-// 4. End of file marker
-// 5. Extra buffer
-// 6. Extra buffer
-// 7. Extra buffer
-// 8. Extra buffer
-// 9. Extra buffer
-// 10. Extra buffer
-// 11. Extra buffer
-// 12. Extra buffer
-// 13. Extra buffer
-// 14. Extra buffer
-// 15. Extra buffer
+
+public struct CoreBlowLocationPayload: Codable, Sendable, Equatable {
+    public var lat: Double
+    public var lon: Double
+    public var accuracyMeters: Double
+    public var altitudeMeters: Double?
+    public var speedMps: Double?
+    public var headingDeg: Double?
+    public var timestamp: String
+    public var isPrecise: Bool
+    public var source: String?
+
+    public init(
+        lat: Double,
+        lon: Double,
+        accuracyMeters: Double,
+        altitudeMeters: Double? = nil,
+        speedMps: Double? = nil,
+        headingDeg: Double? = nil,
+        timestamp: String,
+        isPrecise: Bool,
+        source: String? = nil)
+    {
+        self.lat = lat
+        self.lon = lon
+        self.accuracyMeters = accuracyMeters
+        self.altitudeMeters = altitudeMeters
+        self.speedMps = speedMps
+        self.headingDeg = headingDeg
+        self.timestamp = timestamp
+        self.isPrecise = isPrecise
+        self.source = source
+    }
+}

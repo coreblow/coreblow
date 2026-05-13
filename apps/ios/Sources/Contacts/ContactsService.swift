@@ -1,9 +1,8 @@
 import Contacts
 import Foundation
+import CoreBlowKit
 
-/// Provides contact search and creation for gateway invoke commands.
-final class ContactsService {
-
+final class ContactsService: ContactsServicing {
     private static var payloadKeys: [CNKeyDescriptor] {
         [
             CNContactIdentifierKey as CNKeyDescriptor,
@@ -15,62 +14,71 @@ final class ContactsService {
         ]
     }
 
-    func search(query: String?, limit: Int?) async throws -> CoreBlowContactsPayload {
+    func search(params: CoreBlowContactsSearchParams) async throws -> CoreBlowContactsSearchPayload {
         let store = try await Self.authorizedStore()
-        let cap = max(1, min(limit ?? 25, 200))
+
+        let limit = max(1, min(params.limit ?? 25, 200))
 
         var contacts: [CNContact] = []
-        if let q = query?.trimmingCharacters(in: .whitespacesAndNewlines), !q.isEmpty {
-            let predicate = CNContact.predicateForContacts(matchingName: q)
+        if let query = params.query?.trimmingCharacters(in: .whitespacesAndNewlines), !query.isEmpty {
+            let predicate = CNContact.predicateForContacts(matchingName: query)
             contacts = try store.unifiedContacts(matching: predicate, keysToFetch: Self.payloadKeys)
         } else {
             let request = CNContactFetchRequest(keysToFetch: Self.payloadKeys)
             try store.enumerateContacts(with: request) { contact, stop in
                 contacts.append(contact)
-                if contacts.count >= cap { stop.pointee = true }
+                if contacts.count >= limit {
+                    stop.pointee = true
+                }
             }
         }
 
-        let sliced = Array(contacts.prefix(cap))
-        return CoreBlowContactsPayload(contacts: sliced.map { Self.payload(from: $0) })
+        let sliced = Array(contacts.prefix(limit))
+        let payload = sliced.map { Self.payload(from: $0) }
+
+        return CoreBlowContactsSearchPayload(contacts: payload)
     }
 
-    func add(givenName: String?, familyName: String?, displayName: String?,
-             organizationName: String?, phoneNumbers: [String]?,
-             emails: [String]?) async throws -> CoreBlowContactPayload {
+    func add(params: CoreBlowContactsAddParams) async throws -> CoreBlowContactsAddPayload {
         let store = try await Self.authorizedStore()
 
-        let phones = Self.normalizeStrings(phoneNumbers)
-        let mails = Self.normalizeStrings(emails, lowercased: true)
-        let given = givenName?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let family = familyName?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let display = displayName?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let org = organizationName?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let givenName = params.givenName?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let familyName = params.familyName?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let organizationName = params.organizationName?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let displayName = params.displayName?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let phoneNumbers = Self.normalizeStrings(params.phoneNumbers)
+        let emails = Self.normalizeStrings(params.emails, lowercased: true)
 
-        let hasName = !(given ?? "").isEmpty || !(family ?? "").isEmpty || !(display ?? "").isEmpty
-        let hasOrg = !(org ?? "").isEmpty
-        guard hasName || hasOrg || !phones.isEmpty || !mails.isEmpty else {
+        let hasName = !(givenName ?? "").isEmpty || !(familyName ?? "").isEmpty || !(displayName ?? "").isEmpty
+        let hasOrg = !(organizationName ?? "").isEmpty
+        let hasDetails = !phoneNumbers.isEmpty || !emails.isEmpty
+        guard hasName || hasOrg || hasDetails else {
             throw NSError(domain: "Contacts", code: 2, userInfo: [
                 NSLocalizedDescriptionKey: "CONTACTS_INVALID: include a name, organization, phone, or email",
             ])
         }
 
-        // Check for existing
-        if let existing = try Self.findExisting(store: store, phoneNumbers: phones, emails: mails) {
-            return Self.payload(from: existing)
+        if !phoneNumbers.isEmpty || !emails.isEmpty {
+            if let existing = try Self.findExistingContact(
+                store: store,
+                phoneNumbers: phoneNumbers,
+                emails: emails)
+            {
+                return CoreBlowContactsAddPayload(contact: Self.payload(from: existing))
+            }
         }
 
         let contact = CNMutableContact()
-        contact.givenName = given ?? ""
-        contact.familyName = family ?? ""
-        contact.organizationName = org ?? ""
-        if contact.givenName.isEmpty && contact.familyName.isEmpty, let display {
-            contact.givenName = display
+        contact.givenName = givenName ?? ""
+        contact.familyName = familyName ?? ""
+        contact.organizationName = organizationName ?? ""
+        if contact.givenName.isEmpty && contact.familyName.isEmpty, let displayName {
+            contact.givenName = displayName
         }
-        contact.phoneNumbers = phones.map {
+        contact.phoneNumbers = phoneNumbers.map {
             CNLabeledValue(label: CNLabelPhoneNumberMobile, value: CNPhoneNumber(stringValue: $0))
         }
-        contact.emailAddresses = mails.map {
+        contact.emailAddresses = emails.map {
             CNLabeledValue(label: CNLabelHome, value: $0 as NSString)
         }
 
@@ -80,19 +88,36 @@ final class ContactsService {
 
         let persisted: CNContact
         if !contact.identifier.isEmpty {
-            persisted = try store.unifiedContact(withIdentifier: contact.identifier, keysToFetch: Self.payloadKeys)
+            persisted = try store.unifiedContact(
+                withIdentifier: contact.identifier,
+                keysToFetch: Self.payloadKeys)
         } else {
             persisted = contact
         }
-        return Self.payload(from: persisted)
+
+        return CoreBlowContactsAddPayload(contact: Self.payload(from: persisted))
     }
 
-    // MARK: - Private
+    private static func ensureAuthorization(store: CNContactStore, status: CNAuthorizationStatus) async -> Bool {
+        switch status {
+        case .authorized, .limited:
+            return true
+        case .notDetermined:
+            // Don’t prompt during node.invoke; the caller should instruct the user to grant permission.
+            // Prompts block the invoke and lead to timeouts in headless flows.
+            return false
+        case .restricted, .denied:
+            return false
+        @unknown default:
+            return false
+        }
+    }
 
     private static func authorizedStore() async throws -> CNContactStore {
         let store = CNContactStore()
         let status = CNContactStore.authorizationStatus(for: .contacts)
-        guard status == .authorized || status == .limited else {
+        let authorized = await Self.ensureAuthorization(store: store, status: status)
+        guard authorized else {
             throw NSError(domain: "Contacts", code: 1, userInfo: [
                 NSLocalizedDescriptionKey: "CONTACTS_PERMISSION_REQUIRED: grant Contacts permission",
             ])
@@ -107,31 +132,54 @@ final class ContactsService {
             .map { lowercased ? $0.lowercased() : $0 }
     }
 
-    private static func findExisting(store: CNContactStore, phoneNumbers: [String], emails: [String]) throws -> CNContact? {
-        guard !phoneNumbers.isEmpty || !emails.isEmpty else { return nil }
+    private static func findExistingContact(
+        store: CNContactStore,
+        phoneNumbers: [String],
+        emails: [String]) throws -> CNContact?
+    {
+        if phoneNumbers.isEmpty && emails.isEmpty {
+            return nil
+        }
+
         var matches: [CNContact] = []
+
         for phone in phoneNumbers {
             let predicate = CNContact.predicateForContacts(matching: CNPhoneNumber(stringValue: phone))
-            matches.append(contentsOf: try store.unifiedContacts(matching: predicate, keysToFetch: payloadKeys))
+            let contacts = try store.unifiedContacts(matching: predicate, keysToFetch: Self.payloadKeys)
+            matches.append(contentsOf: contacts)
         }
+
         for email in emails {
             let predicate = CNContact.predicateForContacts(matchingEmailAddress: email)
-            matches.append(contentsOf: try store.unifiedContacts(matching: predicate, keysToFetch: payloadKeys))
+            let contacts = try store.unifiedContacts(matching: predicate, keysToFetch: Self.payloadKeys)
+            matches.append(contentsOf: contacts)
         }
-        return matchBestContact(contacts: matches, phoneNumbers: phoneNumbers, emails: emails)
+
+        return Self.matchContacts(contacts: matches, phoneNumbers: phoneNumbers, emails: emails)
     }
 
-    private static func matchBestContact(contacts: [CNContact], phoneNumbers: [String], emails: [String]) -> CNContact? {
+    private static func matchContacts(
+        contacts: [CNContact],
+        phoneNumbers: [String],
+        emails: [String]) -> CNContact?
+    {
         let normalizedPhones = Set(phoneNumbers.map { normalizePhone($0) }.filter { !$0.isEmpty })
         let normalizedEmails = Set(emails.map { $0.lowercased() }.filter { !$0.isEmpty })
         var seen = Set<String>()
+
         for contact in contacts {
             guard seen.insert(contact.identifier).inserted else { continue }
-            let cPhones = Set(contact.phoneNumbers.map { normalizePhone($0.value.stringValue) })
-            let cEmails = Set(contact.emailAddresses.map { String($0.value).lowercased() })
-            if !normalizedPhones.isEmpty, !cPhones.isDisjoint(with: normalizedPhones) { return contact }
-            if !normalizedEmails.isEmpty, !cEmails.isDisjoint(with: normalizedEmails) { return contact }
+            let contactPhones = Set(contact.phoneNumbers.map { normalizePhone($0.value.stringValue) })
+            let contactEmails = Set(contact.emailAddresses.map { String($0.value).lowercased() })
+
+            if !normalizedPhones.isEmpty, !contactPhones.isDisjoint(with: normalizedPhones) {
+                return contact
+            }
+            if !normalizedEmails.isEmpty, !contactEmails.isDisjoint(with: normalizedEmails) {
+                return contact
+            }
         }
+
         return nil
     }
 
@@ -153,13 +201,10 @@ final class ContactsService {
             phoneNumbers: contact.phoneNumbers.map { $0.value.stringValue },
             emails: contact.emailAddresses.map { String($0.value) })
     }
-}
 
-// MARK: - Payload Types
-
-struct CoreBlowContactsPayload { let contacts: [CoreBlowContactPayload] }
-struct CoreBlowContactPayload {
-    let identifier: String; let displayName: String; let givenName: String
-    let familyName: String; let organizationName: String
-    let phoneNumbers: [String]; let emails: [String]
+#if DEBUG
+    static func _test_matches(contact: CNContact, phoneNumbers: [String], emails: [String]) -> Bool {
+        matchContacts(contacts: [contact], phoneNumbers: phoneNumbers, emails: emails) != nil
+    }
+#endif
 }

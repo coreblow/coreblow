@@ -1,12 +1,20 @@
 import Foundation
+import CoreBlowProtocol
 
-/// CoreBlow: Original implementation of AnyCodable wrapper.
-/// 1. Pattern borrowed: Wrapping arbitrary JSON payloads (dictionaries, arrays, primitives) into a `Codable` struct to circumvent Swift's strict static typing where necessary.
-/// 2. Implemented differently: The `CoreBlowAnyCodable` explicitly avoids recursive dictionary nesting panics and implements `Equatable` correctly across numeric bridging (e.g. Double to Int matching).
-/// This prevents testing frameworks from failing when JSON frameworks decode numbers arbitrarily.
+/// Re-export AnyCodable from CoreBlowProtocol so downstream modules
+/// (CoreBlowChatUI, macOS targets) see it without importing CoreBlowProtocol directly.
+public typealias AnyCodable = CoreBlowProtocol.AnyCodable
 
+/// CoreBlow: Extended Codable wrapper with dynamic member lookup and flexible numeric bridging.
+///
+/// 1. Pattern borrowed: Wrapping arbitrary JSON payloads (dictionaries, arrays, primitives)
+///    into a `Codable` struct to circumvent Swift's strict static typing where necessary.
+/// 2. Implemented differently: `CoreBlowAnyCodable` explicitly avoids recursive dictionary
+///    nesting panics and implements `Equatable` correctly across numeric bridging
+///    (e.g. Double to Int matching). This prevents testing frameworks from failing when
+///    JSON frameworks decode numbers arbitrarily.
 @dynamicMemberLookup
-public struct CoreBlowAnyCodable: Codable, Sendable, CustomStringConvertible {
+public struct CoreBlowAnyCodable: Codable, @unchecked Sendable, CustomStringConvertible {
 
     public let value: Any
 

@@ -83,8 +83,8 @@ extension CanvasWindowController {
         // - If agent provides width/height, override size.
         // - If agent provides only size, keep the remembered origin.
         if let placement = self.preferredPlacement {
-            if let x = placement.x { frame.origin.x = x }
-            if let y = placement.y { frame.origin.y = y }
+            if let x = placement.x { frame.origin.x = CGFloat(x) }
+            if let y = placement.y { frame.origin.y = CGFloat(y) }
             if let w = placement.width { frame.size.width = max(CanvasLayout.minPanelSize.width, CGFloat(w)) }
             if let h = placement.height { frame.size.height = max(CanvasLayout.minPanelSize.height, CGFloat(h)) }
         }

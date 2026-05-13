@@ -85,7 +85,7 @@ final class InstancesStore {
         switch push {
         case let .event(evt) where evt.event == "presence":
             if let payload = evt.payload {
-                self.handlePresenceEventPayload(payload)
+                self.handlePresenceEventPayload(payload.asAnyCodable)
             }
         case .seqGap:
             Task { await self.refresh() }

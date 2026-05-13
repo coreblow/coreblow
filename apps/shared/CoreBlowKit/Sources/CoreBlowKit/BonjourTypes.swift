@@ -28,6 +28,45 @@ public struct CoreBlowBonjourTypes {
         }
     }
 }
+
+public enum CoreBlowBonjour {
+    public static let gatewayServiceType = "_coreblow-gw._tcp"
+    public static let gatewayServiceDomain = "local."
+
+    public static var wideAreaGatewayServiceDomain: String? {
+        let environment = ProcessInfo.processInfo.environment
+        return resolveWideAreaDomain(environment["COREBLOW_WIDE_AREA_DOMAIN"])
+    }
+
+    public static var gatewayServiceDomains: [String] {
+        var domains = [gatewayServiceDomain]
+        if let wideArea = wideAreaGatewayServiceDomain {
+            domains.append(wideArea)
+        }
+        return domains
+    }
+
+    public static func normalizeServiceDomain(_ raw: String?) -> String {
+        let trimmed = (raw ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            return self.gatewayServiceDomain
+        }
+
+        let lower = trimmed.lowercased()
+        if lower == "local" || lower == "local." {
+            return self.gatewayServiceDomain
+        }
+
+        return lower.hasSuffix(".") ? lower : (lower + ".")
+    }
+
+    private static func resolveWideAreaDomain(_ raw: String?) -> String? {
+        let trimmed = (raw ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { return nil }
+        let normalized = normalizeServiceDomain(trimmed)
+        return normalized == gatewayServiceDomain ? nil : normalized
+    }
+}
 // Architectural extension padding to enforce CoreBlow rules
 // Ensuring strict parity metrics with CoreBlow implementations
 // Expanding file buffer to guarantee compiler matches line expectations

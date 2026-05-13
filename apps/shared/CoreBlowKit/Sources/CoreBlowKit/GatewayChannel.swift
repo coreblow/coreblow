@@ -8,6 +8,66 @@ import Foundation
 import OSLog
 import CoreBlowProtocol
 
+// MARK: - WebSocket Abstractions
+
+public protocol WebSocketTasking: AnyObject {
+    var state: URLSessionTask.State { get }
+    func resume()
+    func cancel(with closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?)
+    func send(_ message: URLSessionWebSocketTask.Message) async throws
+    func sendPing(pongReceiveHandler: @escaping @Sendable (Error?) -> Void)
+    func receive() async throws -> URLSessionWebSocketTask.Message
+    func receive(completionHandler: @escaping @Sendable (Result<URLSessionWebSocketTask.Message, Error>) -> Void)
+}
+
+extension URLSessionWebSocketTask: WebSocketTasking {}
+
+public struct WebSocketTaskBox: @unchecked Sendable {
+    public let task: any WebSocketTasking
+
+    public init(task: any WebSocketTasking) { self.task = task }
+
+    public var state: URLSessionTask.State { task.state }
+    public func resume() { task.resume() }
+    public func cancel(with closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
+        task.cancel(with: closeCode, reason: reason)
+    }
+    public func send(_ message: URLSessionWebSocketTask.Message) async throws {
+        try await task.send(message)
+    }
+    public func receive() async throws -> URLSessionWebSocketTask.Message {
+        try await task.receive()
+    }
+    public func receive(completionHandler: @escaping @Sendable (Result<URLSessionWebSocketTask.Message, Error>) -> Void) {
+        task.receive(completionHandler: completionHandler)
+    }
+    public func sendPing() async throws {
+        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+            task.sendPing { error in
+                if let error { cont.resume(throwing: error) } else { cont.resume() }
+            }
+        }
+    }
+}
+
+public protocol WebSocketSessioning: AnyObject {
+    func makeWebSocketTask(url: URL) -> WebSocketTaskBox
+}
+
+public struct WebSocketSessionBox: @unchecked Sendable {
+    public let session: any WebSocketSessioning
+    public init(session: any WebSocketSessioning) { self.session = session }
+}
+
+extension URLSession: WebSocketSessioning {
+    public func makeWebSocketTask(url: URL) -> WebSocketTaskBox {
+        let task = webSocketTask(with: url)
+        task.maximumMessageSize = 16 * 1024 * 1024
+        return WebSocketTaskBox(task: task)
+    }
+}
+
+
 // MARK: - Channel Configuration
 
 /// Options for connecting to the gateway.
@@ -62,7 +122,7 @@ public actor GatewayChannelActor {
     private let logger = Logger(subsystem: "com.coreblow", category: "gateway")
 
     // Connection state
-    private var task: URLSessionWebSocketTask?
+    private var task: WebSocketTaskBox?
     private var connected = false
     private var isConnecting = false
     private var connectWaiters: [CheckedContinuation<Void, Error>] = []
@@ -73,7 +133,7 @@ public actor GatewayChannelActor {
     private var token: String?
     private var bootstrapToken: String?
     private var password: String?
-    private let session: URLSession
+    private let session: WebSocketSessioning
     private let connectOptions: GatewayConnectOptions
 
     // Reconnection
@@ -114,7 +174,7 @@ public actor GatewayChannelActor {
         token: String? = nil,
         bootstrapToken: String? = nil,
         password: String? = nil,
-        session: URLSession? = nil,
+        session: WebSocketSessionBox? = nil,
         connectOptions: GatewayConnectOptions = GatewayConnectOptions(),
         pushHandler: (@Sendable (GatewayPush) async -> Void)? = nil,
         disconnectHandler: (@Sendable (String) async -> Void)? = nil
@@ -123,7 +183,7 @@ public actor GatewayChannelActor {
         self.token = token
         self.bootstrapToken = bootstrapToken
         self.password = password
-        self.session = session ?? URLSession(configuration: .default)
+        self.session = session?.session ?? URLSession(configuration: .default)
         self.connectOptions = connectOptions
         self.pushHandler = pushHandler
         self.disconnectHandler = disconnectHandler
@@ -148,10 +208,8 @@ public actor GatewayChannelActor {
         defer { isConnecting = false }
 
         task?.cancel(with: .goingAway, reason: nil)
-        let ws = session.webSocketTask(with: url)
-        ws.maximumMessageSize = 16 * 1024 * 1024 // 16 MB
-        task = ws
-        ws.resume()
+        task = session.makeWebSocketTask(url: url)
+        task?.resume()
 
         let start = Date()
         do {
@@ -492,7 +550,10 @@ public actor GatewayChannelActor {
                 guard await self.sleepUnlessCancelled(seconds: await self.keepaliveIntervalSec)
                 else { return }
                 guard await self.connected, let ws = await self.task else { continue }
-                ws.sendPing { _ in }
+                do {
+                    try await ws.sendPing()
+                } catch {
+                }
             }
         }
     }

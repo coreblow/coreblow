@@ -1,42 +1,27 @@
+import CoreBlowKit
 import SwiftUI
 
-/// Tab view displaying the canvas WebView and navigation controls.
 struct ScreenTab: View {
-    @Bindable var model: NodeAppModel
+    @Environment(NodeAppModel.self) private var appModel
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                ScreenWebView(controller: model.screen)
-                    .ignoresSafeArea(edges: .bottom)
-
-                if model.screen.isLoading {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 4)
-                }
-            }
-            .navigationTitle(model.screen.pageTitle ?? "Screen")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItemGroup(placement: .bottomBar) {
-                    Button { model.screen.goBack() } label: {
-                        Image(systemName: "chevron.left")
-                    }
-                    .disabled(!model.screen.canGoBack)
-
-                    Button { model.screen.goForward() } label: {
-                        Image(systemName: "chevron.right")
-                    }
-                    .disabled(!model.screen.canGoForward)
-
-                    Spacer()
-
-                    Button { model.screen.reload() } label: {
-                        Image(systemName: "arrow.clockwise")
+        ZStack(alignment: .top) {
+            ScreenWebView(controller: self.appModel.screen)
+                .ignoresSafeArea(.container, edges: [.top, .leading, .trailing])
+                .overlay(alignment: .top) {
+                    if let errorText = self.appModel.screen.errorText,
+                       self.appModel.gatewayServerName == nil
+                    {
+                        Text(errorText)
+                            .font(.footnote)
+                            .padding(10)
+                            .background(.thinMaterial)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .padding()
                     }
                 }
-            }
         }
     }
+
+    // Navigation is agent-driven; no local URL bar here.
 }

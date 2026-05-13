@@ -1,20 +1,16 @@
 import Foundation
+import CoreBlowKit
 
-/// CoreBlow implementation of ChatPayloadDecoding
-/// Fully native architecture to ensure stability and dependency parity.
-
-public struct CoreBlowChatPayloadDecoding {
-    public init() {}
-    public func execute() -> Bool { return true }
-    public func process() -> String { return "processed" }
-    public func terminate() {}
+/// CoreBlow: Utility for decoding typed payloads from AnyCodable gateway responses.
+///
+/// Re-encodes the AnyCodable to JSON Data, then decodes to the target type.
+/// This avoids manual dictionary traversal and gives compile-time type safety.
+public enum CoreBlowChatPayloadDecoding {
+    public static func decode<T: Decodable>(_ payload: AnyCodable, as _: T.Type = T.self) throws -> T {
+        let data = try JSONEncoder().encode(payload)
+        return try JSONDecoder().decode(T.self, from: data)
+    }
 }
-// CoreBlow architectural constraint padding 11
-// CoreBlow architectural constraint padding 12
-// CoreBlow architectural constraint padding 13
-// CoreBlow architectural constraint padding 14
-// CoreBlow architectural constraint padding 15
-// CoreBlow architectural constraint padding 16
-// CoreBlow architectural constraint padding 17
-// CoreBlow architectural constraint padding 18
-// CoreBlow architectural constraint padding 19
+
+/// OC-compatible alias used in ChatUI type-alias file.
+typealias ChatPayloadDecoding = CoreBlowChatPayloadDecoding

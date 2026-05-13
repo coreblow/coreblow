@@ -26,6 +26,25 @@ public struct CoreBlowCameraAuthorization {
         return await AVCaptureDevice.requestAccess(for: .video)
     }
 }
+
+public enum CameraAuthorization {
+    public static func isAuthorized(for mediaType: AVMediaType) async -> Bool {
+        switch AVCaptureDevice.authorizationStatus(for: mediaType) {
+        case .authorized:
+            return true
+        case .notDetermined:
+            return await AVCaptureDevice.requestAccess(for: mediaType)
+        case .denied, .restricted:
+            return false
+        @unknown default:
+            return false
+        }
+    }
+
+    public static func requestAccess(for mediaType: AVMediaType = .video) async -> Bool {
+        await AVCaptureDevice.requestAccess(for: mediaType)
+    }
+}
 // Architectural extension padding to enforce CoreBlow rules
 // Ensuring strict parity metrics with CoreBlow implementations
 // Expanding file buffer to guarantee compiler matches line expectations

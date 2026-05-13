@@ -1,23 +1,25 @@
 import EventKit
 import Foundation
+import CoreBlowKit
 
-/// Provides calendar event listing and creation for gateway invoke commands.
-final class CalendarService {
-
-    func events(startISO: String?, endISO: String?, limit: Int?) async throws -> CoreBlowCalendarEventsPayload {
+final class CalendarService: CalendarServicing {
+    func events(params: CoreBlowCalendarEventsParams) async throws -> CoreBlowCalendarEventsPayload {
         let store = EKEventStore()
         let status = EKEventStore.authorizationStatus(for: .event)
-        guard Self.allowsRead(status) else {
+        let authorized = EventKitAuthorization.allowsRead(status: status)
+        guard authorized else {
             throw NSError(domain: "Calendar", code: 1, userInfo: [
                 NSLocalizedDescriptionKey: "CALENDAR_PERMISSION_REQUIRED: grant Calendar permission",
             ])
         }
 
-        let (start, end) = Self.resolveRange(startISO: startISO, endISO: endISO)
+        let (start, end) = Self.resolveRange(
+            startISO: params.startISO,
+            endISO: params.endISO)
         let predicate = store.predicateForEvents(withStart: start, end: end, calendars: nil)
         let events = store.events(matching: predicate)
-        let cap = max(1, min(limit ?? 50, 500))
-        let selected = Array(events.prefix(cap))
+        let limit = max(1, min(params.limit ?? 50, 500))
+        let selected = Array(events.prefix(limit))
 
         let formatter = ISO8601DateFormatter()
         let payload = selected.map { event in
@@ -34,66 +36,94 @@ final class CalendarService {
         return CoreBlowCalendarEventsPayload(events: payload)
     }
 
-    func add(title: String, startISO: String, endISO: String, isAllDay: Bool?,
-             location: String?, notes: String?, calendarId: String?,
-             calendarTitle: String?) async throws -> CoreBlowCalendarEventPayload {
+    func add(params: CoreBlowCalendarAddParams) async throws -> CoreBlowCalendarAddPayload {
         let store = EKEventStore()
         let status = EKEventStore.authorizationStatus(for: .event)
-        guard Self.allowsWrite(status) else {
+        let authorized = EventKitAuthorization.allowsWrite(status: status)
+        guard authorized else {
             throw NSError(domain: "Calendar", code: 2, userInfo: [
                 NSLocalizedDescriptionKey: "CALENDAR_PERMISSION_REQUIRED: grant Calendar permission",
             ])
         }
 
-        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedTitle.isEmpty else {
+        let title = params.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !title.isEmpty else {
             throw NSError(domain: "Calendar", code: 3, userInfo: [
                 NSLocalizedDescriptionKey: "CALENDAR_INVALID: title required",
             ])
         }
 
         let formatter = ISO8601DateFormatter()
-        guard let start = formatter.date(from: startISO) else {
+        guard let start = formatter.date(from: params.startISO) else {
             throw NSError(domain: "Calendar", code: 4, userInfo: [
                 NSLocalizedDescriptionKey: "CALENDAR_INVALID: startISO required",
             ])
         }
-        guard let end = formatter.date(from: endISO) else {
+        guard let end = formatter.date(from: params.endISO) else {
             throw NSError(domain: "Calendar", code: 5, userInfo: [
                 NSLocalizedDescriptionKey: "CALENDAR_INVALID: endISO required",
             ])
         }
 
         let event = EKEvent(eventStore: store)
-        event.title = trimmedTitle
+        event.title = title
         event.startDate = start
         event.endDate = end
-        event.isAllDay = isAllDay ?? false
-        if let loc = location?.trimmingCharacters(in: .whitespacesAndNewlines), !loc.isEmpty {
-            event.location = loc
+        event.isAllDay = params.isAllDay ?? false
+        if let location = params.location?.trimmingCharacters(in: .whitespacesAndNewlines), !location.isEmpty {
+            event.location = location
         }
-        if let n = notes?.trimmingCharacters(in: .whitespacesAndNewlines), !n.isEmpty {
-            event.notes = n
+        if let notes = params.notes?.trimmingCharacters(in: .whitespacesAndNewlines), !notes.isEmpty {
+            event.notes = notes
         }
-        event.calendar = try Self.resolveCalendar(store: store, calendarId: calendarId, calendarTitle: calendarTitle)
+        event.calendar = try Self.resolveCalendar(
+            store: store,
+            calendarId: params.calendarId,
+            calendarTitle: params.calendarTitle)
+
         try store.save(event, span: .thisEvent)
 
-        return CoreBlowCalendarEventPayload(
+        let payload = CoreBlowCalendarEventPayload(
             identifier: event.eventIdentifier ?? UUID().uuidString,
-            title: event.title ?? trimmedTitle,
+            title: event.title ?? title,
             startISO: formatter.string(from: event.startDate),
             endISO: formatter.string(from: event.endDate),
             isAllDay: event.isAllDay,
             location: event.location,
             calendarTitle: event.calendar.title)
+
+        return CoreBlowCalendarAddPayload(event: payload)
     }
 
-    private static func allowsRead(_ status: EKAuthorizationStatus) -> Bool {
-        status == .authorized || status == .fullAccess || status == .writeOnly
-    }
+    private static func resolveCalendar(
+        store: EKEventStore,
+        calendarId: String?,
+        calendarTitle: String?) throws -> EKCalendar
+    {
+        if let id = calendarId?.trimmingCharacters(in: .whitespacesAndNewlines), !id.isEmpty,
+           let calendar = store.calendar(withIdentifier: id)
+        {
+            return calendar
+        }
 
-    private static func allowsWrite(_ status: EKAuthorizationStatus) -> Bool {
-        status == .authorized || status == .fullAccess
+        if let title = calendarTitle?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty {
+            if let calendar = store.calendars(for: .event).first(where: {
+                $0.title.compare(title, options: [.caseInsensitive, .diacriticInsensitive]) == .orderedSame
+            }) {
+                return calendar
+            }
+            throw NSError(domain: "Calendar", code: 6, userInfo: [
+                NSLocalizedDescriptionKey: "CALENDAR_NOT_FOUND: no calendar named \(title)",
+            ])
+        }
+
+        if let fallback = store.defaultCalendarForNewEvents {
+            return fallback
+        }
+
+        throw NSError(domain: "Calendar", code: 7, userInfo: [
+            NSLocalizedDescriptionKey: "CALENDAR_NOT_FOUND: no default calendar",
+        ])
     }
 
     private static func resolveRange(startISO: String?, endISO: String?) -> (Date, Date) {
@@ -102,31 +132,4 @@ final class CalendarService {
         let end = endISO.flatMap { formatter.date(from: $0) } ?? start.addingTimeInterval(7 * 24 * 3600)
         return (start, end)
     }
-
-    private static func resolveCalendar(store: EKEventStore, calendarId: String?, calendarTitle: String?) throws -> EKCalendar {
-        if let id = calendarId?.trimmingCharacters(in: .whitespacesAndNewlines), !id.isEmpty,
-           let cal = store.calendar(withIdentifier: id) {
-            return cal
-        }
-        if let title = calendarTitle?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty {
-            if let cal = store.calendars(for: .event).first(where: {
-                $0.title.compare(title, options: [.caseInsensitive, .diacriticInsensitive]) == .orderedSame
-            }) { return cal }
-            throw NSError(domain: "Calendar", code: 6, userInfo: [
-                NSLocalizedDescriptionKey: "CALENDAR_NOT_FOUND: no calendar named \(title)",
-            ])
-        }
-        if let fallback = store.defaultCalendarForNewEvents { return fallback }
-        throw NSError(domain: "Calendar", code: 7, userInfo: [
-            NSLocalizedDescriptionKey: "CALENDAR_NOT_FOUND: no default calendar",
-        ])
-    }
-}
-
-// MARK: - Payload Types
-
-struct CoreBlowCalendarEventsPayload { let events: [CoreBlowCalendarEventPayload] }
-struct CoreBlowCalendarEventPayload {
-    let identifier: String; let title: String; let startISO: String; let endISO: String
-    let isAllDay: Bool; let location: String?; let calendarTitle: String
 }

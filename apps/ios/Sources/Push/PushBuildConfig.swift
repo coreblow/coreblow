@@ -1,45 +1,75 @@
 import Foundation
 
-/// Push notification transport modes.
 enum PushTransportMode: String {
-    case apns = "apns"
-    case relay = "relay"
-    case disabled = "disabled"
+    case direct
+    case relay
 }
 
-/// Distribution mode for build variants.
 enum PushDistributionMode: String {
-    case debug = "debug"
-    case testflight = "testflight"
-    case appstore = "appstore"
+    case local
+    case official
 }
 
-/// APNs environment determined by provisioning.
 enum PushAPNsEnvironment: String {
-    case development = "development"
-    case production = "production"
+    case sandbox
+    case production
 }
 
-/// Build-time push notification configuration.
 struct PushBuildConfig {
-    let transportMode: PushTransportMode
-    let distributionMode: PushDistributionMode
+    let transport: PushTransportMode
+    let distribution: PushDistributionMode
+    let relayBaseURL: URL?
     let apnsEnvironment: PushAPNsEnvironment
-    let relayBaseURL: String?
 
-    static let `default` = PushBuildConfig(
-        transportMode: .relay,
-        distributionMode: .debug,
-        apnsEnvironment: .development,
-        relayBaseURL: nil)
+    static let current = PushBuildConfig()
 
-    /// Whether push notifications are active.
-    var isEnabled: Bool {
-        transportMode != .disabled
+    init(bundle: Bundle = .main) {
+        self.transport = Self.readEnum(
+            bundle: bundle,
+            key: "CoreBlowPushTransport",
+            fallback: .direct)
+        self.distribution = Self.readEnum(
+            bundle: bundle,
+            key: "CoreBlowPushDistribution",
+            fallback: .local)
+        self.apnsEnvironment = Self.readEnum(
+            bundle: bundle,
+            key: "CoreBlowPushAPNsEnvironment",
+            fallback: Self.defaultAPNsEnvironment)
+        self.relayBaseURL = Self.readURL(bundle: bundle, key: "CoreBlowPushRelayBaseURL")
     }
 
-    /// Whether the relay server is used instead of direct APNs.
     var usesRelay: Bool {
-        transportMode == .relay
+        self.transport == .relay
     }
+
+    private static func readURL(bundle: Bundle, key: String) -> URL? {
+        guard let raw = bundle.object(forInfoDictionaryKey: key) as? String else { return nil }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        guard let components = URLComponents(string: trimmed),
+              components.scheme?.lowercased() == "https",
+              let host = components.host,
+              !host.isEmpty,
+              components.user == nil,
+              components.password == nil,
+              components.query == nil,
+              components.fragment == nil
+        else {
+            return nil
+        }
+        return components.url
+    }
+
+    private static func readEnum<T: RawRepresentable>(
+        bundle: Bundle,
+        key: String,
+        fallback: T)
+    -> T where T.RawValue == String {
+        guard let raw = bundle.object(forInfoDictionaryKey: key) as? String else { return fallback }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return T(rawValue: trimmed) ?? fallback
+    }
+
+    private static let defaultAPNsEnvironment: PushAPNsEnvironment = .sandbox
 }

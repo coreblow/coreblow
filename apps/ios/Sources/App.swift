@@ -1,7 +1,1 @@
-import SwiftUI
-@main
-struct CoreBlowApp: App {
-    var body: some Scene {
-        WindowGroup { ContentView() }
-    }
-}
+// The iOS application entry point lives in CoreBlowApp.swift.

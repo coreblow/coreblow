@@ -2,16 +2,22 @@ name: CoreBlow
 options:
   bundleIdPrefix: ai.coreblow
   deploymentTarget:
-    iOS: "17.0"
-    watchOS: "10.0"
+    iOS: "18.0"
+    watchOS: "11.0"
   xcodeVersion: "16.0"
 
 settings:
   base:
-    SWIFT_VERSION: "5.9"
+    SWIFT_VERSION: "6.0"
     ENABLE_APP_INTENTS_METADATA_GENERATION: NO
     MARKETING_VERSION: "1.0.0"
     CURRENT_PROJECT_VERSION: 12
+
+packages:
+  CoreBlowKit:
+    path: ../shared/CoreBlowKit
+  Swabble:
+    path: ../swabble
 
 schemes:
   CoreBlow:
@@ -22,80 +28,321 @@ schemes:
     test:
       targets:
         - CoreBlowTests
+        - CoreBlowLogicTests
+  CoreBlowLogicTests:
+    shared: true
+    build:
+      targets:
+        CoreBlowLogicTests: all
+    test:
+      targets:
+        - CoreBlowLogicTests
 
 targets:
   CoreBlow:
     type: application
     platform: iOS
+    configFiles:
+      Debug: Signing.xcconfig
+      Release: Signing.xcconfig
     sources:
       - path: Sources
+        excludes:
+          - Animations
+          - AppClips
+          - Components
+          - ContentView.swift
+          - Coordinators
+          - Extensions
+          - Formatters
+          - Intents
+          - Models
+          - Previews
+          - ViewModels
+          - Views
+          - Widgets
+          - Services/APIService.swift
+          - Services/AnalyticsService.swift
+          - Services/AuthService.swift
+          - Services/BiometricAuth.swift
+          - Services/BiometricService.swift
+          - Services/CacheManager.swift
+          - Services/ChatService.swift
+          - Services/CoreDataStack.swift
+          - Services/DeepLinkHandler.swift
+          - Services/FileStore.swift
+          - Services/HapticService.swift
+          - Services/KeychainService.swift
+          - Services/PluginStoreView.swift
+          - Services/PushHandler.swift
+          - Services/PushService.swift
+          - Services/ShareHandler.swift
+          - Services/SiriHandler.swift
+          - Services/StorageService.swift
+          - Services/UserDefaultsStore.swift
+          - Services/WidgetHandler.swift
     resources:
       - path: Resources
-    entitlements:
-      path: CoreBlow.entitlements
-    info:
-      path: Info.plist
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: ai.coreblow.app
-        INFOPLIST_FILE: Info.plist
     dependencies:
-      - target: CoreBlowActivityWidget
-        embed: true
       - target: CoreBlowShareExtension
         embed: true
-
-  CoreBlowTests:
-    type: bundle.unit-test
-    platform: iOS
-    sources:
-      - path: Tests
-    dependencies:
-      - target: CoreBlow
-
-  CoreBlowActivityWidget:
-    type: app-extension
-    platform: iOS
-    sources:
-      - path: ActivityWidget
-    info:
-      path: ActivityWidget/Info.plist
+      - target: CoreBlowActivityWidget
+        embed: true
+      - target: CoreBlowWatchApp
+      - package: CoreBlowKit
+        product: CoreBlowKit
+      - package: CoreBlowKit
+        product: CoreBlowChatUI
+      - package: CoreBlowKit
+        product: CoreBlowProtocol
+      - package: Swabble
+        product: SwabbleKit
+      - sdk: AppIntents.framework
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: ai.coreblow.app.activity-widget
+        CODE_SIGN_IDENTITY: "Apple Development"
+        CODE_SIGN_ENTITLEMENTS: CoreBlow.entitlements
+        CODE_SIGN_STYLE: Automatic
+        PRODUCT_BUNDLE_IDENTIFIER: ai.coreblow.app
+        TARGETED_DEVICE_FAMILY: "1"
+        SWIFT_VERSION: "6.0"
+        SWIFT_STRICT_CONCURRENCY: complete
+        SUPPORTS_LIVE_ACTIVITIES: YES
+        ENABLE_APPINTENTS_METADATA: NO
+        ENABLE_APP_INTENTS_METADATA_GENERATION: NO
+      configs:
+        Debug:
+          COREBLOW_PUSH_TRANSPORT: direct
+          COREBLOW_PUSH_DISTRIBUTION: local
+          COREBLOW_PUSH_RELAY_BASE_URL: ""
+          COREBLOW_PUSH_APNS_ENVIRONMENT: sandbox
+        Release:
+          COREBLOW_PUSH_TRANSPORT: direct
+          COREBLOW_PUSH_DISTRIBUTION: local
+          COREBLOW_PUSH_RELAY_BASE_URL: ""
+          COREBLOW_PUSH_APNS_ENVIRONMENT: production
+    info:
+      path: Sources/Info.plist
+      properties:
+        CFBundleDisplayName: CoreBlow
+        CFBundleIconName: AppIcon
+        CFBundleURLTypes:
+          - CFBundleURLName: ai.coreblow.ios
+            CFBundleURLSchemes:
+              - coreblow
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UIBackgroundModes:
+          - audio
+          - remote-notification
+        BGTaskSchedulerPermittedIdentifiers:
+          - ai.coreblow.ios.bgrefresh
+        NSLocalNetworkUsageDescription: CoreBlow discovers and connects to your CoreBlow gateway on the local network.
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoadsInWebContent: true
+        NSBonjourServices:
+          - _coreblow-gw._tcp
+        NSCameraUsageDescription: CoreBlow can capture photos or short video clips when requested via the gateway.
+        NSLocationWhenInUseUsageDescription: CoreBlow uses your location when you allow location sharing.
+        NSLocationAlwaysAndWhenInUseUsageDescription: CoreBlow can share your location in the background when you enable Always.
+        NSMicrophoneUsageDescription: CoreBlow needs microphone access for voice wake.
+        NSMotionUsageDescription: CoreBlow may use motion data to support device-aware interactions and automations.
+        NSPhotoLibraryUsageDescription: CoreBlow needs photo library access when you choose existing photos to share with your assistant.
+        NSSpeechRecognitionUsageDescription: CoreBlow uses on-device speech recognition for voice wake.
+        NSSupportsLiveActivities: true
+        ITSAppUsesNonExemptEncryption: false
+        CoreBlowPushTransport: "$(COREBLOW_PUSH_TRANSPORT)"
+        CoreBlowPushDistribution: "$(COREBLOW_PUSH_DISTRIBUTION)"
+        CoreBlowPushRelayBaseURL: "$(COREBLOW_PUSH_RELAY_BASE_URL)"
+        CoreBlowPushAPNsEnvironment: "$(COREBLOW_PUSH_APNS_ENVIRONMENT)"
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
 
   CoreBlowShareExtension:
     type: app-extension
     platform: iOS
+    configFiles:
+      Debug: Signing.xcconfig
+      Release: Signing.xcconfig
     sources:
       - path: ShareExtension
+    dependencies:
+      - package: CoreBlowKit
+        product: CoreBlowKit
+      - sdk: AppIntents.framework
+    settings:
+      base:
+        CODE_SIGN_IDENTITY: "Apple Development"
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_APPINTENTS_METADATA: NO
+        ENABLE_APP_INTENTS_METADATA_GENERATION: NO
+        PRODUCT_BUNDLE_IDENTIFIER: ai.coreblow.app.share
+        SWIFT_VERSION: "6.0"
+        SWIFT_STRICT_CONCURRENCY: complete
     info:
       path: ShareExtension/Info.plist
+      properties:
+        CFBundleDisplayName: CoreBlow Share
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.share-services
+          NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).ShareViewController"
+          NSExtensionAttributes:
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsText: true
+              NSExtensionActivationSupportsWebURLWithMaxCount: 1
+              NSExtensionActivationSupportsImageWithMaxCount: 10
+              NSExtensionActivationSupportsMovieWithMaxCount: 1
+
+  CoreBlowActivityWidget:
+    type: app-extension
+    platform: iOS
+    configFiles:
+      Debug: Signing.xcconfig
+      Release: Signing.xcconfig
+    sources:
+      - path: ActivityWidget
+      - path: Sources/LiveActivity/CoreBlowActivityAttributes.swift
+    dependencies:
+      - sdk: WidgetKit.framework
+      - sdk: ActivityKit.framework
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: ai.coreblow.app.share
+        CODE_SIGN_IDENTITY: "Apple Development"
+        CODE_SIGN_STYLE: Automatic
+        PRODUCT_BUNDLE_IDENTIFIER: ai.coreblow.app.activity-widget
+        SWIFT_VERSION: "6.0"
+        SWIFT_STRICT_CONCURRENCY: complete
+        SUPPORTS_LIVE_ACTIVITIES: YES
+    info:
+      path: ActivityWidget/Info.plist
+      properties:
+        CFBundleDisplayName: CoreBlow Activity
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        NSSupportsLiveActivities: true
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
 
   CoreBlowWatchApp:
-    type: application
+    type: application.watchapp2
     platform: watchOS
+    deploymentTarget: "11.0"
     sources:
       - path: WatchApp
-    info:
-      path: WatchApp/Info.plist
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: ai.coreblow.app.watchkitapp
     dependencies:
       - target: CoreBlowWatchExtension
-        embed: true
+    configFiles:
+      Debug: Config/Signing.xcconfig
+      Release: Config/Signing.xcconfig
+    settings:
+      base:
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_APPINTENTS_METADATA: NO
+        ENABLE_APP_INTENTS_METADATA_GENERATION: NO
+        PRODUCT_BUNDLE_IDENTIFIER: ai.coreblow.app.watchkitapp
+    info:
+      path: WatchApp/Info.plist
+      properties:
+        CFBundleDisplayName: CoreBlow
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        WKCompanionAppBundleIdentifier: ai.coreblow.app
+        WKWatchKitApp: true
 
   CoreBlowWatchExtension:
     type: watchkit2-extension
     platform: watchOS
+    deploymentTarget: "11.0"
     sources:
       - path: WatchExtension/Sources
-    info:
-      path: WatchExtension/Info.plist
+    dependencies:
+      - sdk: AppIntents.framework
+      - sdk: WatchConnectivity.framework
+      - sdk: UserNotifications.framework
+    configFiles:
+      Debug: Config/Signing.xcconfig
+      Release: Config/Signing.xcconfig
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: ai.coreblow.app.watchkitextension
+        PRODUCT_BUNDLE_IDENTIFIER: ai.coreblow.app.watchkitapp.extension
+    info:
+      path: WatchExtension/Info.plist
+      properties:
+        CFBundleDisplayName: CoreBlow
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        NSExtension:
+          NSExtensionAttributes:
+            WKAppBundleIdentifier: ai.coreblow.app.watchkitapp
+          NSExtensionPointIdentifier: com.apple.watchkit
+
+  CoreBlowTests:
+    type: bundle.unit-test
+    platform: iOS
+    configFiles:
+      Debug: Signing.xcconfig
+      Release: Signing.xcconfig
+    sources:
+      - path: Tests
+        excludes:
+          - Logic
+    dependencies:
+      - target: CoreBlow
+      - package: Swabble
+        product: SwabbleKit
+      - sdk: AppIntents.framework
+    settings:
+      base:
+        CODE_SIGN_IDENTITY: "Apple Development"
+        CODE_SIGN_STYLE: Automatic
+        PRODUCT_BUNDLE_IDENTIFIER: ai.coreblow.ios.tests
+        ENABLE_APP_INTENTS_METADATA_GENERATION: NO
+        SWIFT_VERSION: "6.0"
+        SWIFT_STRICT_CONCURRENCY: complete
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/CoreBlow.app/CoreBlow"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+    info:
+      path: Tests/Info.plist
+      properties:
+        CFBundleDisplayName: CoreBlowTests
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+
+  CoreBlowLogicTests:
+    type: bundle.unit-test
+    platform: iOS
+    configFiles:
+      Debug: Signing.xcconfig
+      Release: Signing.xcconfig
+    sources:
+      - path: Tests/Logic
+    dependencies:
+      - package: CoreBlowKit
+        product: CoreBlowKit
+    settings:
+      base:
+        CODE_SIGN_IDENTITY: "Apple Development"
+        CODE_SIGN_STYLE: Automatic
+        PRODUCT_BUNDLE_IDENTIFIER: ai.coreblow.ios.logic-tests
+        ENABLE_APP_INTENTS_METADATA_GENERATION: NO
+        SWIFT_VERSION: "6.0"
+        SWIFT_STRICT_CONCURRENCY: complete
+    info:
+      path: Tests/Info.plist
+      properties:
+        CFBundleDisplayName: CoreBlowLogicTests
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"

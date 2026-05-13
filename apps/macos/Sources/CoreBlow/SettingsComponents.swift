@@ -8,6 +8,16 @@ struct SettingsToggleRow: View {
     let subtitle: String?
     @Binding var binding: Bool
 
+    init(title: String, subtitle: String?, binding: Binding<Bool>) {
+        self.title = title
+        self.subtitle = subtitle
+        self._binding = binding
+    }
+
+    init(title: String, subtitle: String?, isOn: Binding<Bool>) {
+        self.init(title: title, subtitle: subtitle, binding: isOn)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Toggle(isOn: self.$binding) {

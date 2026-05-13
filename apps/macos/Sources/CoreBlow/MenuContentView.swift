@@ -16,6 +16,8 @@ struct MenuContentView: View {
     @State private var availableMics: [AudioInputDevice] = []
     @State private var loadingMics = false
     @State private var micObserver = AudioInputDeviceObserver()
+    @State private var pairingPrompter = NodePairingApprovalPrompter.shared
+    @State private var devicePairingPrompter = DevicePairingApprovalPrompter.shared
     @State private var micRefreshTask: Task<Void, Never>?
     @State private var browserControlEnabled = true
     @AppStorage("coreblow.camera.enabled") private var cameraEnabled: Bool = false
@@ -38,14 +40,14 @@ struct MenuContentView: View {
                     statusLine(
                         label: healthStatusLabel,
                         color: healthStatusColor)
-                    if appState.pendingApprovals > 0 {
+                    if pairingPrompter.pendingCount > 0 {
                         statusLine(
-                            label: "Pairing approval pending (\(appState.pendingApprovals))",
+                            label: "Pairing approval pending (\(pairingPrompter.pendingCount))",
                             color: .orange)
                     }
-                    if appState.pendingDeviceApprovals > 0 {
+                    if devicePairingPrompter.pendingCount > 0 {
                         statusLine(
-                            label: "Device pairing pending (\(appState.pendingDeviceApprovals))",
+                            label: "Device pairing pending (\(devicePairingPrompter.pendingCount))",
                             color: .orange)
                     }
                 }
@@ -513,7 +515,7 @@ struct MenuContentView: View {
                 }
 
                 Button {
-                    NSWorkspace.shared.open(CoreBlowPaths.logsDirectory)
+                    DebugActions.openLog()
                 } label: {
                     Label("Open Log", systemImage: "doc.text.magnifyingglass")
                 }
@@ -548,7 +550,7 @@ struct MenuContentView: View {
                 }
 
                 Button {
-                    OnboardingState.reset()
+                    DebugActions.restartOnboarding()
                 } label: {
                     Label("Restart Onboarding", systemImage: "arrow.counterclockwise")
                 }

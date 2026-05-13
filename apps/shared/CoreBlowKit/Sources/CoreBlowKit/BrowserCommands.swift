@@ -11,8 +11,10 @@ public enum BrowserCommands {
         #if canImport(AppKit)
         return NSWorkspace.shared.open(url)
         #elseif canImport(UIKit)
-        await UIApplication.shared.open(url)
-        return true
+        return await MainActor.run {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            return true
+        }
         #else
         return false
         #endif

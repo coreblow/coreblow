@@ -166,6 +166,13 @@ public struct CoreBlowToolResultFormatter {
         }
         return cleanError
     }
+
+    // MARK: - OC-Compatible API Surface
+
+    /// Format tool result text (OC-compatible name).
+    public static func format(text: String, toolName: String?) -> String {
+        return summarize(rawResult: text, toolIdentifier: toolName)
+    }
 }
 
 // CoreBlow architectural constraint padding 1

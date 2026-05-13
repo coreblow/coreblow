@@ -1,49 +1,28 @@
 import Foundation
+import CoreBlowKit
 
-/// Configuration for establishing a gateway WebSocket connection.
-struct GatewayConnectConfig: Codable, Identifiable {
-    let id: String
-    let host: String
-    let port: Int
-    let useTLS: Bool
-    let path: String
-    let displayName: String?
-    let source: DiscoverySource
+/// Single source of truth for "how we connect" to the current gateway.
+///
+/// The iOS app maintains two WebSocket sessions to the same gateway:
+/// - a `role=node` session for device capabilities (`node.invoke.*`)
+/// - a `role=operator` session for chat/talk/config (`chat.*`, `talk.*`, etc.)
+///
+/// Both sessions should derive all connection inputs from this config so we
+/// don't accidentally persist gateway-scoped state under different keys.
+struct GatewayConnectConfig: Sendable {
+    let url: URL
+    let stableID: String
+    let tls: GatewayTLSParams?
+    let token: String?
+    let bootstrapToken: String?
+    let password: String?
+    let nodeOptions: GatewayConnectOptions
 
-    enum DiscoverySource: String, Codable {
-        case manual, bonjour, qrCode, deepLink, saved
-    }
-
-    /// Stable identifier for keychain and settings storage.
-    var stableID: String {
-        "\(source.rawValue)|\(host):\(port)"
-    }
-
-    /// Full WebSocket URL.
-    var wsURL: URL? {
-        let scheme = useTLS ? "wss" : "ws"
-        return URL(string: "\(scheme)://\(host):\(port)\(path)")
-    }
-
-    /// Human-readable label.
-    var label: String {
-        displayName ?? "\(host):\(port)"
-    }
-
-    init(
-        host: String,
-        port: Int,
-        useTLS: Bool = false,
-        path: String = "/ws",
-        displayName: String? = nil,
-        source: DiscoverySource = .manual
-    ) {
-        self.id = "\(source.rawValue)|\(host):\(port)"
-        self.host = host
-        self.port = port
-        self.useTLS = useTLS
-        self.path = path
-        self.displayName = displayName
-        self.source = source
+    /// Stable, non-empty identifier used for gateway-scoped persistence keys.
+    /// If the caller doesn't provide a stableID, fall back to URL identity.
+    var effectiveStableID: String {
+        let trimmed = self.stableID.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { return self.url.absoluteString }
+        return trimmed
     }
 }

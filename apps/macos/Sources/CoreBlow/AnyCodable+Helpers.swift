@@ -1,7 +1,13 @@
 import Foundation
-import OSLog
 import CoreBlowKit
-import OSLog
 import CoreBlowProtocol
-import CoreBlowKit
-extension AnyCodable { var stringValue: String? { value as? String }; var intValue: Int? { value as? Int }; var boolValue: Bool? { value as? Bool }; var dictValue: [String: AnyCodable]? { value as? [String: AnyCodable] } }
+
+/// Convenience accessors for `AnyCodable` values in gateway payloads.
+extension AnyCodable {
+    var stringValue: String? { value as? String }
+    var intValue: Int? { value as? Int }
+    var boolValue: Bool? { value as? Bool }
+    var doubleValue: Double? { value as? Double }
+    var dictValue: [String: AnyCodable]? { value as? [String: AnyCodable] }
+    var arrayValue: [AnyCodable]? { value as? [AnyCodable] }
+}

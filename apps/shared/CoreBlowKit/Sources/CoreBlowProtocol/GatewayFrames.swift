@@ -16,6 +16,28 @@ public enum FrameKind: String, Codable, Sendable {
     case request = "req"
     case response = "res"
     case event = "evt"
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let raw = try container.decode(String.self)
+        switch raw {
+        case Self.request.rawValue:
+            self = .request
+        case Self.response.rawValue:
+            self = .response
+        case Self.event.rawValue, "event":
+            self = .event
+        default:
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "Unknown gateway frame type \(raw)")
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(self.rawValue)
+    }
 }
 
 // MARK: - Request Frame
@@ -166,6 +188,14 @@ public struct HelloOkPayload: Codable, Sendable {
     public let auth: [String: FlexValue]?
     public let canvasHostUrl: String?
 
+    private enum CodingKeys: String, CodingKey {
+        case tickIntervalMs
+        case deviceToken
+        case auth
+        case canvasHostUrl
+        case policy
+    }
+
     public init(
         tickIntervalMs: Double = 30_000,
         deviceToken: String? = nil,
@@ -176,5 +206,26 @@ public struct HelloOkPayload: Codable, Sendable {
         self.deviceToken = deviceToken
         self.auth = auth
         self.canvasHostUrl = canvasHostUrl
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let policy = try? container.decode([String: FlexValue].self, forKey: .policy)
+        let policyTick = policy?["tickIntervalMs"]?.doubleValue
+            ?? policy?["tickIntervalMs"]?.intValue.map(Double.init)
+        self.tickIntervalMs = try container.decodeIfPresent(Double.self, forKey: .tickIntervalMs)
+            ?? policyTick
+            ?? 30_000
+        self.deviceToken = try container.decodeIfPresent(String.self, forKey: .deviceToken)
+        self.auth = try container.decodeIfPresent([String: FlexValue].self, forKey: .auth)
+        self.canvasHostUrl = try container.decodeIfPresent(String.self, forKey: .canvasHostUrl)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(self.tickIntervalMs, forKey: .tickIntervalMs)
+        try container.encodeIfPresent(self.deviceToken, forKey: .deviceToken)
+        try container.encodeIfPresent(self.auth, forKey: .auth)
+        try container.encodeIfPresent(self.canvasHostUrl, forKey: .canvasHostUrl)
     }
 }

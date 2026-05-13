@@ -108,7 +108,7 @@ actor GatewayConnection {
     private var configuredPassword: String?
 
     private var subscribers: [UUID: AsyncStream<GatewayPush>.Continuation] = [:]
-    private var lastSnapshot: HelloOk?
+    private var lastSnapshot: HelloOkPayload?
 
     private struct LossyDecodable<Value: Decodable>: Decodable {
         let value: Value?
@@ -311,7 +311,7 @@ actor GatewayConnection {
 
     func canvasHostUrl() async -> String? {
         guard let snapshot = self.lastSnapshot else { return nil }
-        let trimmed = snapshot.canvashosturl?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) ?? ""
+        let trimmed = snapshot.canvasHostUrl?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) ?? ""
         return trimmed.isEmpty ? nil : trimmed
     }
 
@@ -321,25 +321,15 @@ actor GatewayConnection {
     }
 
     func cachedMainSessionKey() -> String? {
-        guard let snapshot = self.lastSnapshot else { return nil }
-        let trimmed = self.sessionDefaultString(snapshot.snapshot.sessiondefaults, key: "mainSessionKey")
-        return trimmed.isEmpty ? nil : trimmed
+        nil
     }
 
     func cachedGatewayVersion() -> String? {
-        guard let snapshot = self.lastSnapshot else { return nil }
-        let raw = snapshot.server["version"]?.value as? String
-        let trimmed = raw?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) ?? ""
-        return trimmed.isEmpty ? nil : trimmed
+        nil
     }
 
     func snapshotPaths() -> (configPath: String?, stateDir: String?) {
-        guard let snapshot = self.lastSnapshot else { return (nil, nil) }
-        let configPath = snapshot.snapshot.configpath?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let stateDir = snapshot.snapshot.statedir?.trimmingCharacters(in: .whitespacesAndNewlines)
-        return (
-            configPath?.isEmpty == false ? configPath : nil,
-            stateDir?.isEmpty == false ? stateDir : nil)
+        (nil, nil)
     }
 
     func subscribe(bufferingNewest: Int = 100) -> AsyncStream<GatewayPush> {
@@ -378,19 +368,7 @@ actor GatewayConnection {
     private func canonicalizeSessionKey(_ raw: String) -> String {
         let trimmed = raw.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return trimmed }
-        guard let defaults = self.lastSnapshot?.snapshot.sessiondefaults else { return trimmed }
-        let mainSessionKey = self.sessionDefaultString(defaults, key: "mainSessionKey")
-        guard !mainSessionKey.isEmpty else { return trimmed }
-        let mainKey = self.sessionDefaultString(defaults, key: "mainKey")
-        let defaultAgentId = self.sessionDefaultString(defaults, key: "defaultAgentId")
-        let isMainAlias =
-            trimmed == "main" ||
-            (!mainKey.isEmpty && trimmed == mainKey) ||
-            trimmed == mainSessionKey ||
-            (!defaultAgentId.isEmpty &&
-                (trimmed == "agent:\(defaultAgentId):main" ||
-                    (mainKey.isEmpty == false && trimmed == "agent:\(defaultAgentId):\(mainKey)")))
-        return isMainAlias ? mainSessionKey : trimmed
+        return trimmed
     }
 
     private func configure(url: URL, token: String?, password: String?) async {
@@ -407,7 +385,7 @@ actor GatewayConnection {
             url: url,
             token: token,
             password: password,
-            session: self.sessionBox,
+            session: nil,
             pushHandler: { [weak self] push in
                 await self?.handle(push: push)
             })
@@ -546,7 +524,7 @@ extension GatewayConnection {
 
     func healthOK(timeoutMs: Int = 8000) async throws -> Bool {
         let data = try await self.requestRaw(method: .health, timeoutMs: Double(timeoutMs))
-        return (try? self.decoder.decode(CoreBlowGatewayHealthOK.self, from: data))?.ok ?? true
+        return (try? self.decoder.decode(CoreBlowChatUI.CoreBlowGatewayHealthOK.self, from: data))?.ok ?? true
     }
 
     // MARK: - Skills

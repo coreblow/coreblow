@@ -154,11 +154,15 @@ private let ED25519_PKCS8_HEADER: [UInt8] = [
 /// Files are written with 0o600 permissions for security.
 public enum DeviceIdentityStore {
     private static let fileName = "device.json"
+    private static let lock = NSLock()
 
     /// Load existing identity or generate a new one.
     ///
     /// Handles migration from legacy raw base64 format to PEM.
     public static func loadOrCreate() -> DeviceIdentity {
+        lock.lock()
+        defer { lock.unlock() }
+
         let url = fileURL()
         if let data = try? Data(contentsOf: url),
            let identity = try? JSONDecoder().decode(DeviceIdentity.self, from: data),

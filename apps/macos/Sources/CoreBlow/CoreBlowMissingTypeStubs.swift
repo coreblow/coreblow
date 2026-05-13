@@ -1,56 +1,8 @@
 import Foundation
 import OSLog
 import CoreBlowKit
-import OSLog
 import SwiftUI
-import CoreBlowKit
 import CoreBlowProtocol
-
-// MARK: - CoreBlow Config File Extensions
-
-extension CoreBlowConfigFile {
-    static func loadDict() -> [String: Any] {
-        guard let data = try? Data(contentsOf: configFile),
-              let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
-        else { return [:] }
-        return dict
-    }
-
-    static func saveDict(_ dict: [String: Any]) {
-        guard let data = try? JSONSerialization.data(withJSONObject: dict, options: .prettyPrinted) else { return }
-        try? data.write(to: configFile, options: .atomic)
-    }
-
-    static var gatewayPort: Int {
-        let dict = loadDict()
-        if let gw = dict["gateway"] as? [String: Any],
-           let port = gw["port"] as? Int { return port }
-        return 3000
-    }
-
-    static var defaultWorkspaceURL: URL? {
-        let dict = loadDict()
-        guard let ws = dict["workspace"] as? String else { return nil }
-        return URL(fileURLWithPath: ws)
-    }
-
-    static func setRemoteGatewayUrl(_ url: String?) {
-        var dict = loadDict()
-        var gw = dict["gateway"] as? [String: Any] ?? [:]
-        gw["remoteUrl"] = url
-        dict["gateway"] = gw
-        saveDict(dict)
-    }
-
-    static func clearRemoteGatewayUrl() {
-        setRemoteGatewayUrl(nil)
-    }
-
-    private static var configFile: URL {
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        return appSupport.appendingPathComponent("CoreBlow").appendingPathComponent("config.json")
-    }
-}
 
 // MARK: - Gateway Environment Extensions
 
@@ -100,100 +52,6 @@ struct ChannelItem: Identifiable, Equatable, Codable {
     var error: String?
 }
 
-// MARK: - WebSocket Session Box
-
-struct WebSocketSessionBox: Identifiable {
-    var id: String
-    var sessionKey: String
-    var displayName: String?
-}
-
-// MARK: - Core Blow Chat Types
-
-struct CoreBlowChatMessage: Identifiable, Equatable, Codable {
-    var id: String
-    var role: String
-    var content: String
-    var timestamp: Date
-    var toolName: String?
-    var isError: Bool = false
-}
-
-struct CoreBlowChatSendResponse: Codable {
-    var ok: Bool
-    var error: String?
-}
-
-struct CoreBlowChatHistoryPayload: Codable {
-    var messages: [CoreBlowChatMessage]?
-}
-
-struct CoreBlowSessionsPreviewPayload: Codable {
-    var sessions: [CoreBlowSessionPreviewEntry]
-}
-
-struct CoreBlowSessionPreviewEntry: Codable, Identifiable {
-    var id: String
-    var title: String?
-    var lastMessage: String?
-    var updatedAt: Int?
-    var status: String?
-    var key: String?
-    var messageCount: Int?
-    var lastMessagePreview: String?
-}
-
-struct CoreBlowChatSessionsListResponse: Codable {
-    var sessions: [SessionData]
-    var ts: Int?
-    var path: String?
-    var defaults: CoreBlowChatSessionsDefaults?
-}
-
-// MARK: - CoreBlow Chat View
-
-struct CoreBlowChatView: View {
-    var sessionKey: String
-    var body: some View {
-        Text("Chat: \(sessionKey)")
-    }
-}
-
-protocol CoreBlowChatTransport {
-    var sessionKey: String { get }
-    func send(message: String, thinking: String, attachments: [CoreBlowChatAttachmentPayload]) async throws -> CoreBlowChatSendResponse
-}
-
-enum CoreBlowChatTransportEvent: Equatable {
-    case health(ok: Bool)
-    case tick
-    case chat(CoreBlowChatEventPayload)
-    case agent(CoreBlowAgentEventPayload)
-    case seqGap
-
-    static func == (lhs: CoreBlowChatTransportEvent, rhs: CoreBlowChatTransportEvent) -> Bool {
-        switch (lhs, rhs) {
-        case (.tick, .tick), (.seqGap, .seqGap): return true
-        case let (.health(a), .health(b)): return a == b
-        default: return false
-        }
-    }
-}
-
-typealias CoreBlowChatModelChoice = ModelChoice
-
-// PresenceEntry is defined in GatewayModels.swift
-
-// MARK: - Talk Mode Phase
-
-enum TalkModePhase: String, Equatable {
-    case idle
-    case listening
-    case thinking
-    case speaking
-    case error
-}
-
 // MARK: - Skill Types
 
 struct SkillInstallResult: Codable {
@@ -209,20 +67,132 @@ struct SkillUpdateResult: Codable {
 
 // MARK: - Agent Deep Link
 
-struct AgentDeepLink: Equatable {
-    var agentId: String?
-    var sessionKey: String?
-    var message: String?
-    var key: String? { sessionKey }
+enum DeepLinkRoute: Sendable, Equatable {
+    case agent(AgentDeepLink)
+    case gateway(GatewayConnectDeepLink)
+}
+
+struct GatewayConnectDeepLink: Codable, Sendable, Equatable {
+    let host: String
+    let port: Int
+    let tls: Bool
+    let bootstrapToken: String?
+    let token: String?
+    let password: String?
+
+    var websocketURL: URL? {
+        let scheme = self.tls ? "wss" : "ws"
+        return URL(string: "\(scheme)://\(self.host):\(self.port)")
+    }
+
+    static func fromSetupCode(_ code: String) -> GatewayConnectDeepLink? {
+        guard let data = Self.decodeBase64Url(code) else { return nil }
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
+        guard let urlString = json["url"] as? String,
+              let parsed = URLComponents(string: urlString),
+              let hostname = parsed.host,
+              !hostname.isEmpty
+        else {
+            return nil
+        }
+
+        let scheme = (parsed.scheme ?? "ws").lowercased()
+        guard scheme == "ws" || scheme == "wss" else { return nil }
+        let tls = scheme == "wss"
+        if !tls, !LoopbackHost.isLoopback(hostname) {
+            return nil
+        }
+        let port = parsed.port ?? (tls ? 443 : 18789)
+        return GatewayConnectDeepLink(
+            host: hostname,
+            port: port,
+            tls: tls,
+            bootstrapToken: json["bootstrapToken"] as? String,
+            token: json["token"] as? String,
+            password: json["password"] as? String)
+    }
+
+    private static func decodeBase64Url(_ input: String) -> Data? {
+        var base64 = input
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+        let remainder = base64.count % 4
+        if remainder > 0 {
+            base64.append(contentsOf: String(repeating: "=", count: 4 - remainder))
+        }
+        return Data(base64Encoded: base64)
+    }
+}
+
+struct AgentDeepLink: Codable, Sendable, Equatable {
+    let message: String
+    let sessionKey: String?
+    let thinking: String?
+    let deliver: Bool
+    let to: String?
+    let channel: String?
+    let timeoutSeconds: Int?
+    let key: String?
 }
 
 enum DeepLinkParser {
-    static func parse(_ url: URL) -> AgentDeepLink? {
-        guard url.scheme == "coreblow" else { return nil }
-        return AgentDeepLink(
-            agentId: url.queryItems?["agentId"],
-            sessionKey: url.queryItems?["sessionKey"],
-            message: url.queryItems?["message"])
+    static func parse(_ url: URL) -> DeepLinkRoute? {
+        guard url.scheme?.lowercased() == "coreblow",
+              let host = url.host?.lowercased(),
+              !host.isEmpty,
+              let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        else {
+            return nil
+        }
+
+        let query = (components.queryItems ?? []).reduce(into: [String: String]()) { values, item in
+            guard let value = item.value else { return }
+            values[item.name] = value
+        }
+
+        switch host {
+        case "agent":
+            guard let message = query["message"],
+                  !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            else {
+                return nil
+            }
+            let deliver = (query["deliver"] as NSString?)?.boolValue ?? false
+            let timeoutSeconds = query["timeoutSeconds"].flatMap { Int($0) }.flatMap { $0 >= 0 ? $0 : nil }
+            return .agent(
+                AgentDeepLink(
+                    message: message,
+                    sessionKey: query["sessionKey"],
+                    thinking: query["thinking"],
+                    deliver: deliver,
+                    to: query["to"],
+                    channel: query["channel"],
+                    timeoutSeconds: timeoutSeconds,
+                    key: query["key"]))
+
+        case "gateway":
+            guard let hostParam = query["host"],
+                  !hostParam.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            else {
+                return nil
+            }
+            let port = query["port"].flatMap { Int($0) } ?? 18789
+            let tls = (query["tls"] as NSString?)?.boolValue ?? false
+            if !tls, !LoopbackHost.isLoopback(hostParam) {
+                return nil
+            }
+            return .gateway(
+                GatewayConnectDeepLink(
+                    host: hostParam,
+                    port: port,
+                    tls: tls,
+                    bootstrapToken: query["bootstrapToken"],
+                    token: query["token"],
+                    password: query["password"]))
+
+        default:
+            return nil
+        }
     }
 }
 
@@ -247,17 +217,7 @@ enum CoreBlowLocationMode: String, Codable, CaseIterable {
     case whileUsing
 }
 
-enum CoreBlowLocationAccuracy: String, Codable {
-    case best
-    case nearestTenMeters
-    case hundredMeters
-    case kilometer
-    case threeKilometers
-}
-
-struct LocationServiceCommon {
-    static var isAuthorized: Bool { false }
-}
+// LocationServiceCommon is defined as a protocol in CoreBlowKit/LocationServiceSupport.swift
 
 // MARK: - Camera Types
 
@@ -289,7 +249,7 @@ struct CoreBlowCameraClipParams: Codable {
 
 struct MacNodeScreenRecordParams: Codable {
     var durationMs: Int?
-    var fps: Int?
+    var fps: Double?
     var screenIndex: Int?
     var includeAudio: Bool?
     var format: String?
@@ -298,12 +258,16 @@ struct MacNodeScreenRecordParams: Codable {
 // MARK: - System Run Types
 
 struct CoreBlowSystemRunParams: Codable {
-    var command: String
-    var args: [String]?
+    var command: [String]
+    var rawCommand: String?
     var cwd: String?
-    var timeoutMs: Int?
-    var sessionKey: String?
     var env: [String: String]?
+    var timeoutMs: Int?
+    var needsScreenRecording: Bool?
+    var agentId: String?
+    var sessionKey: String?
+    var approved: Bool?
+    var approvalDecision: String?
 }
 
 struct CoreBlowSystemWhichParams: Codable {
@@ -313,11 +277,90 @@ struct CoreBlowSystemWhichParams: Codable {
 
 // MARK: - Canvas Types
 
-enum CoreBlowCanvasA2UIAction: String, Codable {
-    case show
-    case hide
-    case eval
-    case snapshot
+enum CoreBlowCanvasA2UIAction: Sendable {
+    struct AgentMessageContext: Sendable {
+        struct Session: Sendable {
+            var key: String
+            var surfaceId: String
+        }
+
+        struct Component: Sendable {
+            var id: String
+            var host: String
+            var instanceId: String
+        }
+
+        var actionName: String
+        var session: Session
+        var component: Component
+        var contextJSON: String?
+    }
+
+    static func extractActionName(_ userAction: [String: Any]) -> String? {
+        for key in ["name", "action"] {
+            if let raw = userAction[key] as? String {
+                let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trimmed.isEmpty { return trimmed }
+            }
+        }
+        return nil
+    }
+
+    static func sanitizeTagValue(_ value: String) -> String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        let nonEmpty = trimmed.isEmpty ? "-" : trimmed
+        let normalized = nonEmpty.replacingOccurrences(of: " ", with: "_")
+        let allowed = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.:")
+        let scalars = normalized.unicodeScalars.map { allowed.contains($0) ? Character($0) : "_" }
+        return String(scalars)
+    }
+
+    static func compactJSON(_ obj: Any?) -> String? {
+        guard let obj else { return nil }
+        guard JSONSerialization.isValidJSONObject(obj) else { return nil }
+        guard let data = try? JSONSerialization.data(withJSONObject: obj, options: []),
+              let str = String(data: data, encoding: .utf8)
+        else {
+            return nil
+        }
+        return str
+    }
+
+    static func formatAgentMessage(_ context: AgentMessageContext) -> String {
+        let ctxSuffix = context.contextJSON.flatMap { $0.isEmpty ? nil : " ctx=\($0)" } ?? ""
+        return [
+            "CANVAS_A2UI",
+            "action=\(self.sanitizeTagValue(context.actionName))",
+            "session=\(self.sanitizeTagValue(context.session.key))",
+            "surface=\(self.sanitizeTagValue(context.session.surfaceId))",
+            "component=\(self.sanitizeTagValue(context.component.id))",
+            "host=\(self.sanitizeTagValue(context.component.host))",
+            "instance=\(self.sanitizeTagValue(context.component.instanceId))\(ctxSuffix)",
+            "default=update_canvas",
+        ].joined(separator: " ")
+    }
+
+    static func jsDispatchA2UIActionStatus(actionId: String, ok: Bool, error: String?) -> String {
+        let payload: [String: Any] = [
+            "id": actionId,
+            "ok": ok,
+            "error": error ?? "",
+        ]
+        let json: String = {
+            if let data = try? JSONSerialization.data(withJSONObject: payload, options: []),
+               let str = String(data: data, encoding: .utf8)
+            {
+                return str
+            }
+            return "{\"id\":\"\(actionId)\",\"ok\":\(ok ? "true" : "false"),\"error\":\"\"}"
+        }()
+        return """
+        (() => {
+          const detail = \(json);
+          window.dispatchEvent(new CustomEvent('coreblow:a2ui-action-status', { detail }));
+        })();
+        """
+    }
 }
 
 enum CoreBlowCanvasSnapshotFormat: String, Codable {
@@ -329,11 +372,25 @@ enum CoreBlowCanvasSnapshotFormat: String, Codable {
 // MARK: - Capture Rate Limits
 
 enum CaptureRateLimits {
-    static func clampFps(_ fps: Int) -> Int {
-        max(1, min(30, fps))
+    static func clampDurationMs(
+        _ ms: Int?,
+        defaultMs: Int = 10_000,
+        minMs: Int = 250,
+        maxMs: Int = 60_000) -> Int
+    {
+        let value = ms ?? defaultMs
+        return min(maxMs, max(minMs, value))
     }
-    static func clampDurationMs(_ ms: Int) -> Int {
-        max(500, min(60_000, ms))
+
+    static func clampFps(
+        _ fps: Double?,
+        defaultFps: Double = 10,
+        minFps: Double = 1,
+        maxFps: Double) -> Double
+    {
+        let value = fps ?? defaultFps
+        guard value.isFinite else { return defaultFps }
+        return min(maxFps, max(minFps, value))
     }
 }
 
@@ -360,8 +417,6 @@ enum NetworkInterfaces {
     }
 }
 
-// ExecApprovalsSnapshot is defined in GatewayModels.swift
-
 // MARK: - Gateway Health
 
 let CoreBlowGatewayHealthOK = "ok"
@@ -373,8 +428,6 @@ let gatewayLaunchdLabel = "ai.coreblow.gateway"
 // MARK: - Onboarding
 
 let onboardingVersionKey = "CoreBlowOnboardingVersion"
-
-// ConnectionMode is defined in AppState.swift
 
 // MARK: - Deep Link Keys
 
@@ -430,9 +483,6 @@ func anyCodableEqual(_ a: FlexValue?, _ b: FlexValue?) -> Bool {
     anyCodableEqual(a?.asAnyCodable, b?.asAnyCodable)
 }
 
-
-// InstanceIdentity is provided by CoreBlowKit (Identity/InstanceIdentity.swift)
-
 // MARK: - Wizard Step Helpers
 
 func wizardStepType(_ step: WizardStep) -> String {
@@ -458,5 +508,3 @@ extension WizardStep {
     var sensitive: Bool? { nil }
     var executor: FlexValue? { nil }
 }
-
-// NodeError and CoreBlowNodeError are provided by CoreBlowKit (NodeError.swift)

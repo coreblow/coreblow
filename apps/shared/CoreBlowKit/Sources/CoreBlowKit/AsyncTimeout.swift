@@ -37,4 +37,12 @@ public enum AsyncTimeout {
             onTimeout: onTimeout,
             operation: operation)
     }
+
+    public static func withTimeoutMs<T: Sendable>(
+        timeoutMs: Int,
+        onTimeout: @escaping @Sendable () -> Error,
+        operation: @escaping @Sendable () async throws -> T
+    ) async throws -> T {
+        try await withTimeoutMs(ms: timeoutMs, onTimeout: onTimeout, operation: operation)
+    }
 }

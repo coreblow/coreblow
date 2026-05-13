@@ -50,4 +50,18 @@ enum CoreBlowPaths {
     static var workspaceURL: URL {
         self.stateDirURL.appendingPathComponent("workspace", isDirectory: true)
     }
+
+    static var applicationSupport: URL {
+        self.stateDirURL
+    }
+
+    static var logsDirectory: URL {
+        self.stateDirURL.appendingPathComponent("logs", isDirectory: true)
+    }
+
+    /// Alias: many callers use `configFile` rather than `configURL`.
+    static var configFile: URL { configURL }
+
+    /// The directory containing the config file.
+    static var configDirURL: URL { configURL.deletingLastPathComponent() }
 }

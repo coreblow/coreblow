@@ -213,7 +213,10 @@ struct ExecCommandResolution {
         }
 
         guard let resolution = self.resolve(command: command, cwd: cwd, env: env),
-              let pattern = ExecApprovalHelpers.allowlistPattern(command: command, resolution: resolution),
+              let pattern = ExecApprovalHelpers.allowlistPattern(
+                command: command,
+                resolvedPath: resolution.resolvedPath,
+                rawExecutable: resolution.rawExecutable),
               seen.insert(pattern).inserted
         else {
             return

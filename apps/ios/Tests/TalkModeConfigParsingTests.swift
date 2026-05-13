@@ -2,16 +2,23 @@ import Foundation
 import Testing
 @testable import CoreBlow
 
-@Suite("TalkModeConfigParsing")
-struct TalkModeConfigParsingTests {
-    @Test func defaultConfigHasReasonableValues() {
-        let config = TalkModeGatewayConfig()
-        #expect(config.sttLocale == "en-US")
-        #expect(config.silenceTimeoutMs > 0)
+@MainActor
+@Suite struct TalkModeManagerTests {
+    @Test func detectsPCMFormatRejectionFromElevenLabsError() {
+        let error = NSError(
+            domain: "ElevenLabsTTS",
+            code: 403,
+            userInfo: [
+                NSLocalizedDescriptionKey: "ElevenLabs failed: 403 subscription_required output_format=pcm_44100",
+            ])
+        #expect(TalkModeManager._test_isPCMFormatRejectedByAPI(error))
     }
 
-    @Test func sampleRateDefaultIsValid() {
-        #expect(TalkDefaults.sampleRate > 0)
-        #expect(TalkDefaults.sampleRate == 16000)
+    @Test func ignoresGenericPlaybackFailuresForPCMFormatRejection() {
+        let error = NSError(
+            domain: "StreamingAudio",
+            code: -1,
+            userInfo: [NSLocalizedDescriptionKey: "queue enqueue failed"])
+        #expect(TalkModeManager._test_isPCMFormatRejectedByAPI(error) == false)
     }
 }

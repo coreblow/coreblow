@@ -1,47 +1,19 @@
 import Foundation
+import CoreBlowKit
 
-/// Normalizes Watch notification parameters before delivery.
 extension NodeAppModel {
-
-    struct WatchNotifyParams {
-        var title: String
-        var body: String
-        var promptId: String?
-        var sessionKey: String?
-        var kind: String?
-        var details: String?
-        var priority: NotificationPriority?
-        var risk: WatchRisk?
-        var actions: [WatchAction]?
-    }
-
-    enum NotificationPriority { case passive, active, timeSensitive }
-    enum WatchRisk { case low, medium, high }
-
-    struct WatchAction {
-        let id: String
-        let label: String
-        let style: String?
-
-        init(id: String, label: String, style: String? = nil) {
-            self.id = id
-            self.label = label
-            self.style = style
-        }
-    }
-
-    static func normalizeWatchNotifyParams(_ params: WatchNotifyParams) -> WatchNotifyParams {
+    static func normalizeWatchNotifyParams(_ params: CoreBlowWatchNotifyParams) -> CoreBlowWatchNotifyParams {
         var normalized = params
         normalized.title = params.title.trimmingCharacters(in: .whitespacesAndNewlines)
         normalized.body = params.body.trimmingCharacters(in: .whitespacesAndNewlines)
-        normalized.promptId = trimmedOrNil(params.promptId)
-        normalized.sessionKey = trimmedOrNil(params.sessionKey)
-        normalized.kind = trimmedOrNil(params.kind)
-        normalized.details = trimmedOrNil(params.details)
-        normalized.priority = normalizedWatchPriority(params.priority, risk: params.risk)
-        normalized.risk = normalizedWatchRisk(params.risk, priority: normalized.priority)
+        normalized.promptId = self.trimmedOrNil(params.promptId)
+        normalized.sessionKey = self.trimmedOrNil(params.sessionKey)
+        normalized.kind = self.trimmedOrNil(params.kind)
+        normalized.details = self.trimmedOrNil(params.details)
+        normalized.priority = self.normalizedWatchPriority(params.priority, risk: params.risk)
+        normalized.risk = self.normalizedWatchRisk(params.risk, priority: normalized.priority)
 
-        let normalizedActions = normalizeWatchActions(
+        let normalizedActions = self.normalizeWatchActions(
             params.actions,
             kind: normalized.kind,
             promptId: normalized.promptId)
@@ -50,63 +22,77 @@ extension NodeAppModel {
     }
 
     static func normalizeWatchActions(
-        _ actions: [WatchAction]?,
+        _ actions: [CoreBlowWatchAction]?,
         kind: String?,
-        promptId: String?
-    ) -> [WatchAction] {
-        let provided = (actions ?? []).compactMap { action -> WatchAction? in
+        promptId: String?) -> [CoreBlowWatchAction]
+    {
+        let provided = (actions ?? []).compactMap { action -> CoreBlowWatchAction? in
             let id = action.id.trimmingCharacters(in: .whitespacesAndNewlines)
             let label = action.label.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !id.isEmpty, !label.isEmpty else { return nil }
-            return WatchAction(id: id, label: label, style: trimmedOrNil(action.style))
+            return CoreBlowWatchAction(
+                id: id,
+                label: label,
+                style: self.trimmedOrNil(action.style))
         }
         if !provided.isEmpty {
             return Array(provided.prefix(4))
         }
 
-        guard promptId?.isEmpty == false else { return [] }
+        // Only auto-insert quick actions when this is a prompt/decision flow.
+        guard promptId?.isEmpty == false else {
+            return []
+        }
 
         let normalizedKind = kind?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? ""
         if normalizedKind.contains("approval") || normalizedKind.contains("approve") {
             return [
-                WatchAction(id: "approve", label: "Approve"),
-                WatchAction(id: "decline", label: "Decline", style: "destructive"),
-                WatchAction(id: "open_phone", label: "Open iPhone"),
-                WatchAction(id: "escalate", label: "Escalate"),
+                CoreBlowWatchAction(id: "approve", label: "Approve"),
+                CoreBlowWatchAction(id: "decline", label: "Decline", style: "destructive"),
+                CoreBlowWatchAction(id: "open_phone", label: "Open iPhone"),
+                CoreBlowWatchAction(id: "escalate", label: "Escalate"),
             ]
         }
 
         return [
-            WatchAction(id: "done", label: "Done"),
-            WatchAction(id: "snooze_10m", label: "Snooze 10m"),
-            WatchAction(id: "open_phone", label: "Open iPhone"),
-            WatchAction(id: "escalate", label: "Escalate"),
+            CoreBlowWatchAction(id: "done", label: "Done"),
+            CoreBlowWatchAction(id: "snooze_10m", label: "Snooze 10m"),
+            CoreBlowWatchAction(id: "open_phone", label: "Open iPhone"),
+            CoreBlowWatchAction(id: "escalate", label: "Escalate"),
         ]
     }
 
     static func normalizedWatchRisk(
-        _ risk: WatchRisk?,
-        priority: NotificationPriority?
-    ) -> WatchRisk? {
+        _ risk: CoreBlowWatchRisk?,
+        priority: CoreBlowNotificationPriority?) -> CoreBlowWatchRisk?
+    {
         if let risk { return risk }
         switch priority {
-        case .passive: return .low
-        case .active: return .medium
-        case .timeSensitive: return .high
-        case nil: return nil
+        case .passive:
+            return .low
+        case .active:
+            return .medium
+        case .timeSensitive:
+            return .high
+        case nil:
+            return nil
         }
     }
 
     static func normalizedWatchPriority(
-        _ priority: NotificationPriority?,
-        risk: WatchRisk?
-    ) -> NotificationPriority? {
+        _ priority: CoreBlowNotificationPriority?,
+        risk: CoreBlowWatchRisk?) -> CoreBlowNotificationPriority?
+    {
         if let priority { return priority }
         switch risk {
-        case .low: return .passive
-        case .medium: return .active
-        case .high: return .timeSensitive
-        case nil: return nil
+        case .low:
+            return .passive
+        case .medium:
+            return .active
+        case .high:
+            return .timeSensitive
+        case nil:
+            return nil
         }
     }
 

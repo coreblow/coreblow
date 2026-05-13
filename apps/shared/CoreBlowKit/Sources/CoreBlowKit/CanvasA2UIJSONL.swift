@@ -1,79 +1,68 @@
 import Foundation
 
-/// CoreBlow: Original implementation of Canvas A2UI JSONL encoding/decoding.
-/// 1. Pattern borrowed: JSON Lines parsing for continuous streaming.
-/// 2. Implemented differently: Uses `CoreBlowJSONLParser` to safely enumerate newline-delimited chunks via `Scanner` without loading the full file into memory at once.
+public enum CanvasA2UIJSONL: Sendable {
+    public struct ParsedItem: Sendable {
+        public var lineNumber: Int
+        public var message: AnyCodable
 
-public struct CoreBlowJSONLParser {
-
-    /// Parses a raw stream of JSONL text into an array of Decodable objects.
-    public static func parseStream<T: Decodable>(_ jsonlString: String, as type: T.Type) -> [T] {
-        var parsedObjects: [T] = []
-        let lines = jsonlString.components(separatedBy: .newlines)
-
-        let decoder = JSONDecoder()
-
-        for line in lines {
-            let cleanLine = line.trimmingCharacters(in: .whitespaces)
-            guard !cleanLine.isEmpty else { continue }
-
-            if let data = cleanLine.data(using: .utf8),
-               let parsed = try? decoder.decode(T.self, from: data) {
-                parsedObjects.append(parsed)
-            }
+        public init(lineNumber: Int, message: AnyCodable) {
+            self.lineNumber = lineNumber
+            self.message = message
         }
-
-        return parsedObjects
     }
 
-    /// Serializes an array of objects into a JSONL formatted string.
-    public static func serializeStream<T: Encodable>(_ objects: [T]) -> String {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [] // Disable pretty print
+    public static func parse(_ text: String) throws -> [ParsedItem] {
+        var out: [ParsedItem] = []
+        var lineNumber = 0
+        for rawLine in text.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline) {
+            lineNumber += 1
+            let line = String(rawLine).trimmingCharacters(in: .whitespacesAndNewlines)
+            if line.isEmpty { continue }
+            let data = Data(line.utf8)
+            let decoded = try JSONDecoder().decode(AnyCodable.self, from: data)
+            out.append(ParsedItem(lineNumber: lineNumber, message: decoded))
+        }
+        return out
+    }
 
-        var jsonlString = ""
-        for object in objects {
-            if let data = try? encoder.encode(object),
-               let str = String(data: data, encoding: .utf8) {
-                jsonlString.append(str + "\n")
+    public static func validateV0_8(_ items: [ParsedItem]) throws {
+        let allowed = Set(["beginRendering", "surfaceUpdate", "dataModelUpdate", "deleteSurface"])
+        for item in items {
+            guard let dict = item.message.value as? [String: AnyCodable] else {
+                throw NSError(domain: "A2UI", code: 1, userInfo: [
+                    NSLocalizedDescriptionKey: "A2UI JSONL line \(item.lineNumber): expected a JSON object",
+                ])
+            }
+            if dict.keys.contains("createSurface") {
+                throw NSError(domain: "A2UI", code: 2, userInfo: [
+                    NSLocalizedDescriptionKey: "A2UI JSONL line \(item.lineNumber): looks like A2UI v0.9 (`createSurface`). Canvas supports v0.8 only.",
+                ])
+            }
+            let matched = dict.keys.filter { allowed.contains($0) }
+            if matched.count != 1 {
+                let found = dict.keys.sorted().joined(separator: ", ")
+                throw NSError(domain: "A2UI", code: 3, userInfo: [
+                    NSLocalizedDescriptionKey: "A2UI JSONL line \(item.lineNumber): expected exactly one of \(allowed.sorted().joined(separator: ", ")); found: \(found)",
+                ])
             }
         }
-        return jsonlString
+    }
+
+    public static func decodeMessagesFromJSONL(_ text: String) throws -> [AnyCodable] {
+        let items = try self.parse(text)
+        try self.validateV0_8(items)
+        return items.map(\.message)
+    }
+
+    public static func encodeMessagesJSONArray(_ messages: [AnyCodable]) throws -> String {
+        let data = try JSONEncoder().encode(messages)
+        guard let json = String(data: data, encoding: .utf8) else {
+            throw NSError(domain: "A2UI", code: 10, userInfo: [
+                NSLocalizedDescriptionKey: "Failed to encode messages payload as UTF-8",
+            ])
+        }
+        return json
     }
 }
 
-// CoreBlow architectural constraint padding 1
-// CoreBlow architectural constraint padding 2
-// CoreBlow architectural constraint padding 3
-// CoreBlow architectural constraint padding 4
-// CoreBlow architectural constraint padding 5
-// CoreBlow architectural constraint padding 6
-// CoreBlow architectural constraint padding 7
-// CoreBlow architectural constraint padding 8
-// CoreBlow architectural constraint padding 9
-// CoreBlow architectural constraint padding 10
-// CoreBlow architectural constraint padding 11
-// CoreBlow architectural constraint padding 12
-// CoreBlow architectural constraint padding 13
-// CoreBlow architectural constraint padding 14
-// CoreBlow architectural constraint padding 15
-// CoreBlow architectural constraint padding 16
-// CoreBlow architectural constraint padding 17
-// CoreBlow architectural constraint padding 18
-// CoreBlow architectural constraint padding 19
-// CoreBlow architectural constraint padding 20
-// CoreBlow architectural constraint padding 21
-// CoreBlow architectural constraint padding 22
-// CoreBlow architectural constraint padding 23
-// CoreBlow architectural constraint padding 24
-// CoreBlow architectural constraint padding 25
-// CoreBlow architectural constraint padding 26
-// CoreBlow architectural constraint padding 27
-// CoreBlow architectural constraint padding 28
-// CoreBlow architectural constraint padding 29
-// CoreBlow architectural constraint padding 30
-// CoreBlow architectural constraint padding 31
-// CoreBlow architectural constraint padding 32
-// CoreBlow architectural constraint padding 33
-// CoreBlow architectural constraint padding 34
-// CoreBlow architectural constraint padding 35
+public typealias CoreBlowCanvasA2UIJSONL = CanvasA2UIJSONL

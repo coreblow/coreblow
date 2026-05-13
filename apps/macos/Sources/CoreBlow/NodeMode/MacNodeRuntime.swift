@@ -270,7 +270,7 @@ actor MacNodeRuntime {
         let hasPermission = switch mode {
         case .always:
             status == .authorizedAlways
-        case .whileUsing:
+        case .whileUsing, .coarse, .precise:
             status == .authorizedAlways
         case .off:
             false
@@ -380,14 +380,14 @@ actor MacNodeRuntime {
         let messages: [CoreBlowKit.AnyCodable]
         if command == CoreBlowCanvasA2UICommand.pushJSONL.rawValue {
             let params = try Self.decodeParams(CoreBlowCanvasA2UIPushJSONLParams.self, from: req.paramsJSON)
-            messages = try CoreBlowCanvasA2UIJSONL.decodeMessagesFromJSONL(params.jsonl)
+            messages = try CoreBlowCanvasA2UIJSONL.decodeMessagesFromJSONL(params.jsonl ?? "")
         } else {
             do {
                 let params = try Self.decodeParams(CoreBlowCanvasA2UIPushParams.self, from: req.paramsJSON)
                 messages = params.messages
             } catch {
                 let params = try Self.decodeParams(CoreBlowCanvasA2UIPushJSONLParams.self, from: req.paramsJSON)
-                messages = try CoreBlowCanvasA2UIJSONL.decodeMessagesFromJSONL(params.jsonl)
+                messages = try CoreBlowCanvasA2UIJSONL.decodeMessagesFromJSONL(params.jsonl ?? "")
             }
         }
 
@@ -460,6 +460,8 @@ actor MacNodeRuntime {
     private func handleSystemRun(_ req: BridgeInvokeRequest) async throws -> BridgeInvokeResponse {
         let params = try Self.decodeParams(CoreBlowSystemRunParams.self, from: req.paramsJSON)
         let command = params.command
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
         guard !command.isEmpty else {
             return Self.errorResponse(req, code: .invalidRequest, message: "INVALID_REQUEST: command required")
         }
@@ -491,7 +493,7 @@ actor MacNodeRuntime {
             envOverrides: params.env,
             agentId: params.agentId)
 
-        if evaluation.security == .deny {
+        if evaluation.security == ExecSecurity.deny {
             await self.emitExecEvent(
                 "exec.denied",
                 payload: ExecEventPayload(
@@ -528,7 +530,7 @@ actor MacNodeRuntime {
             agentId: evaluation.agentId,
             allowAlwaysPatterns: evaluation.allowAlwaysPatterns)
 
-        if evaluation.security == .allowlist, !evaluation.allowlistSatisfied, !evaluation.skillAllow, !approvedByAsk {
+        if evaluation.security == ExecSecurity.allowlist, !evaluation.allowlistSatisfied, !evaluation.skillAllow, !approvedByAsk {
             await self.emitExecEvent(
                 "exec.denied",
                 payload: ExecEventPayload(
@@ -699,7 +701,7 @@ actor MacNodeRuntime {
             path: snapshot.path,
             exists: snapshot.exists,
             hash: snapshot.hash,
-            file: ExecApprovalsStore.redactForSnapshot(snapshot.file))
+            file: try ExecApprovalsStore.redactForSnapshot(snapshot.file).asDictionary())
         let payload = try Self.encodePayload(redacted)
         return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: payload)
     }
@@ -753,7 +755,7 @@ actor MacNodeRuntime {
             path: nextSnapshot.path,
             exists: nextSnapshot.exists,
             hash: nextSnapshot.hash,
-            file: ExecApprovalsStore.redactForSnapshot(nextSnapshot.file))
+            file: try ExecApprovalsStore.redactForSnapshot(nextSnapshot.file).asDictionary())
         let payload = try Self.encodePayload(redacted)
         return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: payload)
     }
@@ -981,7 +983,7 @@ extension MacNodeRuntime {
 
     private static func encodeCanvasSnapshot(
         image: NSImage,
-        format: CoreBlowCanvasSnapshotFormat,
+        format: CanvasSnapshotFormat,
         maxWidth: Int?,
         quality: Double) throws -> Data
     {
@@ -1032,5 +1034,12 @@ extension MacNodeRuntime {
             fraction: 1.0)
         out.unlockFocus()
         return out
+    }
+}
+
+private extension ExecApprovalsFile {
+    func asDictionary() throws -> [String: AnyCodable] {
+        let data = try JSONEncoder().encode(self)
+        return try JSONDecoder().decode(Dictionary<String, AnyCodable>.self, from: data)
     }
 }

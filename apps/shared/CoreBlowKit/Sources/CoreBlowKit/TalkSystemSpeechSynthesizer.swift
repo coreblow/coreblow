@@ -167,7 +167,7 @@ extension CoreBlowSystemTTSManager: AVSpeechSynthesizerDelegate {
     public nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
         let identifier = ObjectIdentifier(utterance)
         Task { @MainActor in
-            guard self.isCurrentSession(utterance) else { return }
+            guard let active = self.activeUtterance, ObjectIdentifier(active) == identifier else { return }
             let startCallback = self.onSpeechStart
             self.onSpeechStart = nil
             startCallback?()
@@ -175,15 +175,54 @@ extension CoreBlowSystemTTSManager: AVSpeechSynthesizerDelegate {
     }
 
     public nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        let identifier = ObjectIdentifier(utterance)
         Task { @MainActor in
-            self.handlePlaybackFinished(for: utterance)
+            guard let active = self.activeUtterance, ObjectIdentifier(active) == identifier else { return }
+            self.handlePlaybackFinished(for: active)
         }
     }
 
     public nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+        let identifier = ObjectIdentifier(utterance)
         Task { @MainActor in
-            self.handlePlaybackFinished(for: utterance, error: TTSError.playbackInterrupted)
+            guard let active = self.activeUtterance, ObjectIdentifier(active) == identifier else { return }
+            self.handlePlaybackFinished(for: active, error: TTSError.playbackInterrupted)
         }
+    }
+}
+
+public extension CoreBlowSystemTTSManager {
+    var isSpeaking: Bool {
+        isActivelySpeaking
+    }
+
+    func stop() {
+        haltPlayback()
+    }
+}
+
+@MainActor
+public final class TalkSystemSpeechSynthesizer {
+    public static let shared = TalkSystemSpeechSynthesizer()
+
+    private let manager = CoreBlowSystemTTSManager.shared
+
+    private init() {}
+
+    public var isSpeaking: Bool {
+        manager.isActivelySpeaking
+    }
+
+    public func stop() {
+        manager.haltPlayback()
+    }
+
+    public func speak(
+        text: String,
+        language: String? = nil,
+        onStart: (() -> Void)? = nil
+    ) async throws {
+        try await manager.speak(text: text, targetLanguage: language, onStart: onStart)
     }
 }
 

@@ -19,6 +19,18 @@ public struct CoreBlowAudioStreamingProtocols {
         }
     }
 }
+
+@MainActor
+public protocol StreamingAudioPlaying {
+    func play(stream: AsyncThrowingStream<Data, Error>) async -> StreamingPlaybackResult
+    func stop() -> Double?
+}
+
+@MainActor
+public protocol PCMStreamingAudioPlaying {
+    func play(stream: AsyncThrowingStream<Data, Error>, sampleRate: Double) async -> StreamingPlaybackResult
+    func stop() -> Double?
+}
 // Architectural extension padding to enforce CoreBlow rules
 // Ensuring strict parity metrics with CoreBlow implementations
 // Expanding file buffer to guarantee compiler matches line expectations

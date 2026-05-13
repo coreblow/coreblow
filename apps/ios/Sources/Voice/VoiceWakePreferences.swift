@@ -1,50 +1,44 @@
 import Foundation
 
-/// Persistent preferences for voice wake behavior.
-final class VoiceWakePreferences: ObservableObject {
+enum VoiceWakePreferences {
+    static let enabledKey = "voiceWake.enabled"
+    static let triggerWordsKey = "voiceWake.triggerWords"
 
-    private let defaults: UserDefaults
+    // Keep defaults aligned with the mac app.
+    static let defaultTriggerWords: [String] = ["coreblow", "claude"]
+    static let maxWords = 32
+    static let maxWordLength = 64
 
-    private enum Keys {
-        static let isEnabled = "voiceWake.isEnabled"
-        static let wakePhrase = "voiceWake.wakePhrase"
-        static let sensitivity = "voiceWake.sensitivity"
-        static let hapticFeedback = "voiceWake.hapticFeedback"
+    static func decodeGatewayTriggers(from payloadJSON: String) -> [String]? {
+        guard let data = payloadJSON.data(using: .utf8) else { return nil }
+        return self.decodeGatewayTriggers(from: data)
     }
 
-    init(defaults: UserDefaults = .standard) {
-        self.defaults = defaults
+    static func decodeGatewayTriggers(from data: Data) -> [String]? {
+        struct Payload: Decodable { var triggers: [String] }
+        guard let decoded = try? JSONDecoder().decode(Payload.self, from: data) else { return nil }
+        return self.sanitizeTriggerWords(decoded.triggers)
     }
 
-    var isEnabled: Bool {
-        get { defaults.bool(forKey: Keys.isEnabled) }
-        set { defaults.set(newValue, forKey: Keys.isEnabled); objectWillChange.send() }
+    static func loadTriggerWords(defaults: UserDefaults = .standard) -> [String] {
+        defaults.stringArray(forKey: self.triggerWordsKey) ?? self.defaultTriggerWords
     }
 
-    var wakePhrase: String {
-        get { defaults.string(forKey: Keys.wakePhrase) ?? TalkDefaults.defaultWakePhrase }
-        set {
-            let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-            if !trimmed.isEmpty {
-                defaults.set(trimmed, forKey: Keys.wakePhrase)
-                objectWillChange.send()
-            }
-        }
+    static func saveTriggerWords(_ words: [String], defaults: UserDefaults = .standard) {
+        defaults.set(words, forKey: self.triggerWordsKey)
     }
 
-    var sensitivity: Float {
-        get {
-            let val = defaults.float(forKey: Keys.sensitivity)
-            return val > 0 ? val : TalkDefaults.minWakeConfidence
-        }
-        set {
-            defaults.set(max(0.1, min(1.0, newValue)), forKey: Keys.sensitivity)
-            objectWillChange.send()
-        }
+    static func sanitizeTriggerWords(_ words: [String]) -> [String] {
+        let cleaned = words
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .prefix(Self.maxWords)
+            .map { String($0.prefix(Self.maxWordLength)) }
+        return cleaned.isEmpty ? Self.defaultTriggerWords : cleaned
     }
 
-    var hapticFeedback: Bool {
-        get { defaults.object(forKey: Keys.hapticFeedback) as? Bool ?? true }
-        set { defaults.set(newValue, forKey: Keys.hapticFeedback); objectWillChange.send() }
+    static func displayString(for words: [String]) -> String {
+        let sanitized = self.sanitizeTriggerWords(words)
+        return sanitized.joined(separator: ", ")
     }
 }

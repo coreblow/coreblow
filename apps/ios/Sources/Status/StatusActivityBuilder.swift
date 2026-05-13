@@ -1,36 +1,70 @@
 import SwiftUI
 
-/// Builds Live Activity content for gateway status display.
 enum StatusActivityBuilder {
+    @MainActor
+    static func build(
+        appModel: NodeAppModel,
+        voiceWakeEnabled: Bool,
+        cameraHUDText: String?,
+        cameraHUDKind: NodeAppModel.CameraHUDKind?
+    ) -> StatusPill.Activity? {
+        // Keep the top pill consistent across tabs (camera + voice wake + pairing states).
+        if appModel.isBackgrounded {
+            return StatusPill.Activity(
+                title: "Foreground required",
+                systemImage: "exclamationmark.triangle.fill",
+                tint: .orange)
+        }
 
-    struct ActivityContent {
-        let title: String
-        let status: String
-        let icon: String
-        let tintHex: String
-    }
+        let gatewayStatus = appModel.gatewayStatusText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let gatewayLower = gatewayStatus.lowercased()
+        if gatewayLower.contains("repair") {
+            return StatusPill.Activity(title: "Repairing…", systemImage: "wrench.and.screwdriver", tint: .orange)
+        }
+        if gatewayLower.contains("approval") || gatewayLower.contains("pairing") {
+            return StatusPill.Activity(title: "Approval pending", systemImage: "person.crop.circle.badge.clock")
+        }
+        // Avoid duplicating the primary gateway status ("Connecting…") in the activity slot.
 
-    static func connectedActivity(serverName: String?) -> ActivityContent {
-        ActivityContent(
-            title: "CoreBlow",
-            status: serverName.map { "Connected to \($0)" } ?? "Connected",
-            icon: "bolt.fill",
-            tintHex: "#34C759")
-    }
+        if appModel.screenRecordActive {
+            return StatusPill.Activity(title: "Recording screen…", systemImage: "record.circle.fill", tint: .red)
+        }
 
-    static func disconnectedActivity() -> ActivityContent {
-        ActivityContent(
-            title: "CoreBlow",
-            status: "Offline",
-            icon: "bolt.slash",
-            tintHex: "#8E8E93")
-    }
+        if let cameraHUDText, !cameraHUDText.isEmpty, let cameraHUDKind {
+            let systemImage: String
+            let tint: Color?
+            switch cameraHUDKind {
+            case .photo:
+                systemImage = "camera.fill"
+                tint = nil
+            case .recording:
+                systemImage = "video.fill"
+                tint = .red
+            case .success:
+                systemImage = "checkmark.circle.fill"
+                tint = .green
+            case .error:
+                systemImage = "exclamationmark.triangle.fill"
+                tint = .red
+            }
+            return StatusPill.Activity(title: cameraHUDText, systemImage: systemImage, tint: tint)
+        }
 
-    static func reconnectingActivity() -> ActivityContent {
-        ActivityContent(
-            title: "CoreBlow",
-            status: "Reconnecting…",
-            icon: "arrow.triangle.2.circlepath",
-            tintHex: "#FF9F0A")
+        if voiceWakeEnabled {
+            let voiceStatus = appModel.voiceWake.statusText
+            if voiceStatus.localizedCaseInsensitiveContains("microphone permission") {
+                return StatusPill.Activity(title: "Mic permission", systemImage: "mic.slash", tint: .orange)
+            }
+            if voiceStatus == "Paused" {
+                // Talk mode intentionally pauses voice wake to release the mic. Don't spam the HUD for that case.
+                if appModel.talkMode.isEnabled {
+                    return nil
+                }
+                let suffix = appModel.isBackgrounded ? " (background)" : ""
+                return StatusPill.Activity(title: "Voice Wake paused\(suffix)", systemImage: "pause.circle.fill")
+            }
+        }
+
+        return nil
     }
 }

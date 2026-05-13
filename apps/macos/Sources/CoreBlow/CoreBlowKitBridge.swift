@@ -55,8 +55,8 @@ public enum CoreBlowCapability: String, Codable, Sendable {
 let launchdLabel = "ai.coreblow.gateway"
 
 // MARK: - Node Error Compatibility
-// The Kit defines CoreBlowNodeError(code:message:) but expanded code uses CoreBlowNodeError(message:)
-// Add a convenience init
+// NodeError is now a typealias for CoreBlowNodeError — both are the same type.
+// These convenience inits allow callers to use CoreBlowNodeError(message:) shorthand.
 extension CoreBlowNodeError {
     init(_ message: String) {
         self.init(code: .unavailable, message: message)
@@ -64,26 +64,11 @@ extension CoreBlowNodeError {
     init(message: String) {
         self.init(code: .unavailable, message: message)
     }
-
-    /// Convert to Kit's NodeError for BridgeInvokeResponse
-    func toNodeError() -> NodeError {
-        NodeError(code: self.code.rawValue, message: self.message)
-    }
 }
 
-// MARK: - ProcessInfo Extensions
-extension ProcessInfo {
-    var isNixMode: Bool { false }
-}
+// ProcessInfo.isNixMode is defined in ProcessInfo+CoreBlow.swift
 
-// MARK: - CoreBlow Chat Attachment
-struct CoreBlowChatAttachmentPayload: Codable {
-    var type: String
-    var url: String?
-    var name: String?
-    var mimeType: String?
-    var data: String?
-}
+// CoreBlowChatAttachmentPayload is defined in CoreBlowChatUI/ChatModels.swift
 
 // MARK: - Location Keys
 let locationModeKey = "CoreBlow_locationMode"
@@ -91,22 +76,6 @@ let locationPreciseKey = "CoreBlow_locationPrecise"
 
 // CoreBlowPaths is defined in CoreBlowPaths.swift
 
-// MARK: - BridgeInvokeResponse Convenience
-// The expanded code passes CoreBlowNodeError but BridgeInvokeResponse expects NodeError
-extension BridgeInvokeResponse {
-    init(id: String, ok: Bool, payloadJSON: String? = nil, error: CoreBlowNodeError?) {
-        self.init(id: id, ok: ok, payloadJSON: payloadJSON,
-                  error: error.map { NodeError(code: $0.code.rawValue, message: $0.message) })
-    }
-}
-
-// MARK: - BridgeRPCResponse Convenience
-extension BridgeRPCResponse {
-    init(id: String, ok: Bool, payloadJSON: String? = nil, error: CoreBlowNodeError?) {
-        self.init(id: id, ok: ok, payloadJSON: payloadJSON,
-                  error: error.map { NodeError(code: $0.code.rawValue, message: $0.message) })
-    }
-}
 
 // MARK: - CanvasCommands.Action extensions for backward compat
 extension CanvasCommands.Action {
@@ -115,13 +84,11 @@ extension CanvasCommands.Action {
 }
 
 // MARK: - Missing Keys
+let appLogLevelKey = "CoreBlow_appLogLevel"
 let cameraEnabledKey = "CoreBlow_cameraEnabled"
 let currentOnboardingVersion = 1
 
-// MARK: - Missing Config Extensions
-extension CoreBlowConfigFile {
-    static func browserControlEnabled() -> Bool { true }
-}
+// browserControlEnabled() is defined in CoreBlowConfigFile.swift
 
 // MARK: - GatewayResponseError
 struct GatewayResponseError: Codable, Sendable {
@@ -132,12 +99,12 @@ struct GatewayResponseError: Codable, Sendable {
 
 // MARK: - CoreBlowSessionsPreviewPayload extension
 extension CoreBlowSessionsPreviewPayload {
-    var previews: [CoreBlowSessionPreviewEntry] { sessions }
+    var sessions: [CoreBlowSessionPreviewEntry] { previews }
 }
 
 // MARK: - Type Aliases for Kit types
 typealias CoreBlowCanvasA2UIJSONL = CanvasA2UIJSONL
-typealias CoreBlowChatViewModel = ChatViewModel
+typealias ChatViewModel = CoreBlowChatViewModel
 
 // VoiceSessionCoordinator is defined in VoiceSessionCoordinator.swift
 // ExecApprovalsFile is defined in ExecApprovals.swift
@@ -152,14 +119,33 @@ extension VoiceSessionCoordinator {
         }
     }
     func sendNow(token: UUID, reason: String) {
-        // Stub: token-based send
+        guard activeSession?.token == token else { return }
+        let text = activeSession?.text.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !text.isEmpty else {
+            endSession(token: token)
+            return
+        }
+        Task.detached {
+            await VoiceWakeForwarder.forward(transcript: text)
+        }
+        endSession(token: token)
     }
-    struct VoiceSnapshot {
-        var phase: TalkModePhase = .idle
-        var transcript: String = ""
+
+    func finalize(
+        token: UUID,
+        text: String,
+        sendChime: VoiceWakeChime,
+        autoSendAfter: TimeInterval?)
+    {
+        self.finalize(token: token, text: text, sendChime: sendChime, autoSendAfter: autoSendAfter ?? 0)
     }
-    var snapshot: VoiceSnapshot { VoiceSnapshot() }
+
+    func snapshot() -> (token: UUID?, text: String, visible: Bool) {
+        (activeSession?.token, activeSession?.text ?? "", activeSession != nil)
+    }
     func overlayDidDismiss() {}
+
+    func overlayDidDismiss(token _: UUID?) {}
 }
 
 // MARK: - GatewayConnectivityCoordinator missing members
@@ -221,19 +207,7 @@ extension SettingsTabRouter {
 
 // CoreBlowChatMessage is defined in CoreBlowMissingTypeStubs.swift
 
-// MARK: - CanvasA2UIJSONL compat
-extension CanvasA2UIJSONL {
-    static func decodeMessagesFromJSONL(_ text: String) -> [CanvasA2UIAction] {
-        decode(text)
-    }
-}
-
-// MARK: - CoreBlowChatTransportEvent extensions
-extension CoreBlowChatTransportEvent {
-    static var health: CoreBlowChatTransportEvent {
-        CoreBlowChatTransportEvent(type: "health", payload: nil)
-    }
-}
+// CoreBlowChatTransportEvent is now defined in CoreBlowChatUI/ChatTransport.swift
 
 // MARK: - GatewayChannelActor → Data Bridge
 // The Kit actor returns GatewayResponse, but GatewayConnection expects Data.
@@ -260,29 +234,9 @@ extension GatewayChannelActor {
     }
 }
 
-// MARK: - CoreBlowSessionsPreviewPayload extended init
-extension CoreBlowSessionsPreviewPayload {
-    init(ts: Int, previews: [CoreBlowSessionPreviewEntry]) {
-        self.init(sessions: previews)
-    }
-}
+// CoreBlowConfigFile.configURL: see CoreBlowConfigFile.swift url() method
 
-// MARK: - CoreBlowConfigFile missing members
-extension CoreBlowConfigFile {
-    static var hostKey: String? { nil }
-    static var configURL: URL? { nil }
-}
-
-// MARK: - CoreBlowPaths missing members
-extension CoreBlowPaths {
-    static var configURL: URL { configDirURL.appendingPathComponent("config.json") }
-}
-
-// MARK: - ChatAttachment compatibility
-extension CoreBlowChatAttachmentPayload {
-    var fileName: String? { name }
-    var content: String? { data }
-}
+// CoreBlowPaths.configURL is defined in CoreBlowPaths.swift
 
 // MARK: - Missing Constants
 let cliInstallPromptedVersionKey = "CoreBlow_cliInstallPromptedVersion"
@@ -337,7 +291,7 @@ struct CoreBlowChatSessionsDefaults: Codable {
 }
 
 // MARK: - PeekabooBridgeHostCoordinator
-class PeekabooBridgeHostCoordinator {
+class PeekabooBridgeHostCoordinator: @unchecked Sendable {
     static let shared = PeekabooBridgeHostCoordinator()
     func start() {}
     func stop() {}
@@ -430,7 +384,9 @@ extension CanvasA2UIJSONL {
 
 // MARK: - Notification Types
 enum NotificationPriority: String, Codable {
-    case low, `default`, high, critical
+    case passive
+    case active
+    case timeSensitive
 }
 
 enum NotificationDelivery: String, Codable {
@@ -441,23 +397,17 @@ enum NotificationDelivery: String, Codable {
 struct CoreBlowSystemNotifyParams: Codable {
     var title: String
     var body: String
-    var sound: Bool?
+    var sound: String?
     var priority: NotificationPriority?
     var delivery: NotificationDelivery?
 }
 
-// MARK: - SystemRun Params extensions
-extension CoreBlowSystemRunParams {
-    var rawCommand: String? { nil }
-    var agentId: String? { nil }
-    var approved: Bool? { nil }
-    var approvalDecision: String? { nil }
-    var needsScreenRecording: Bool? { nil }
-}
-
 // MARK: - Location Get Params extensions
 extension CoreBlowLocationGetParams {
-    var desiredAccuracy: LocationAccuracy? { nil }
+    var desiredAccuracy: CoreBlowLocationAccuracy? {
+        guard let accuracy else { return nil }
+        return CoreBlowLocationAccuracy(rawValue: accuracy.trimmingCharacters(in: .whitespacesAndNewlines))
+    }
     var maxAgeMs: Int? { nil }
 }
 
@@ -514,7 +464,7 @@ extension HelloOkPayload {
     var features: [String: AnyCodable] { [:] }
     var snapshot: Snapshot { Snapshot(
         presence: [], health: AnyCodable(true),
-        stateversion: StateVersion(config: 0, approvals: 0, tools: 0),
+        stateversion: StateVersion(presence: 0, health: 0),
         uptimems: 0, configpath: nil, statedir: nil,
         sessiondefaults: nil, authmode: nil, updateavailable: nil) }
     var canvashosturl: String? { canvasHostUrl }
@@ -528,11 +478,6 @@ typealias EventFrame = CoreBlowProtocol.GatewayEvent
 // MARK: - PeekabooBridgeHostCoordinator extensions
 extension PeekabooBridgeHostCoordinator {
     func setEnabled(_ enabled: Bool) {}
-}
-
-// MARK: - NotificationPriority extensions
-extension NotificationPriority {
-    static var active: NotificationPriority { .default }
 }
 
 // MARK: - NSAttributedString extensions
@@ -552,11 +497,6 @@ extension Snapshot {
     var canvashosturl: String? { nil }
 }
 
-// MARK: - AgentDeepLink missing members
-extension AgentDeepLink {
-    var to: String? { nil }
-}
-
 // MARK: - AppState missing members
 extension AppState {
     var connectedNodes: [String] { [] }
@@ -570,40 +510,14 @@ extension CanvasFileWatcher {
 
 // MARK: - CoreBlowSessionPreviewEntry missing
 extension CoreBlowSessionPreviewEntry {
-    var text: String? { lastMessage }
+    var text: String? { items.last?.text }
 }
 
 // MARK: - Missing scoped types
-enum AppLogLevel: String, Codable, CaseIterable {
-    case off, error, warning, info, debug, verbose
-    var title: String { rawValue.capitalized }
-}
+// AppLogLevel is defined in Logging/CoreBlowLogging.swift
 
-struct CoreBlowChatEventPayload: Codable {
-    var type: String?
-    var sessionKey: String?
-    var message: String?
-}
-
-struct CoreBlowAgentEventPayload: Codable {
-    var type: String?
-    var sessionKey: String?
-    var agentId: String?
-}
-
-struct GatewayTLSParams {
-    var host: String
-    var port: Int
-}
-
-class GatewayTLSStore {
-    static let shared = GatewayTLSStore()
-    func pinningSession(for params: GatewayTLSParams) -> GatewayTLSPinningSession? { nil }
-}
-
-class GatewayTLSPinningSession {
-    var urlSession: URLSession { .shared }
-}
+// CoreBlowChatEventPayload is defined in CoreBlowChatUI/ChatModels.swift
+// CoreBlowAgentEventPayload is defined in CoreBlowChatUI/ChatModels.swift
 
 struct CostUsageMenuView: View {
     var body: some View { EmptyView() }
@@ -622,11 +536,6 @@ extension ChannelItem {
 // MARK: - CoreBlowChatSessionsListResponse extensions
 extension CoreBlowChatSessionsListResponse {
     var count: Int { sessions.count }
-}
-
-// MARK: - CoreBlowSessionPreviewEntry extensions
-extension CoreBlowSessionPreviewEntry {
-    var items: [CoreBlowSessionPreviewEntry] { [] }
 }
 
 import SwiftUI

@@ -111,6 +111,7 @@ public actor GatewayNodeSession {
         bootstrapToken: String?,
         password: String?,
         connectOptions: GatewayConnectOptions,
+        sessionBox: WebSocketSessionBox? = nil,
         onConnected: @escaping @Sendable () async -> Void,
         onDisconnected: @escaping @Sendable (String) async -> Void,
         onInvoke: @escaping @Sendable (BridgeInvokeRequest) async -> BridgeInvokeResponse
@@ -131,7 +132,9 @@ public actor GatewayNodeSession {
 
             let ch = GatewayChannelActor(
                 url: url, token: token, bootstrapToken: bootstrapToken,
-                password: password, connectOptions: connectOptions,
+                password: password,
+                session: sessionBox,
+                connectOptions: connectOptions,
                 pushHandler: { [weak self] push in await self?.handlePush(push) },
                 disconnectHandler: { [weak self] reason in
                     await self?.handleDisconnected(reason)
@@ -184,6 +187,10 @@ public actor GatewayNodeSession {
         }
     }
 
+    public func refreshNodeCanvasCapability(timeoutMs: Int = 8_000) async -> Bool {
+        await refreshCanvasCapability(timeoutMs: timeoutMs)
+    }
+
     // MARK: - Remote Address
 
     /// Get the remote address of the active connection.
@@ -205,10 +212,31 @@ public actor GatewayNodeSession {
         _ = try? await ch.request(method: "node.event", params: params)
     }
 
+    public func request(method: String, paramsJSON: String?, timeoutSeconds: Int = 15) async throws -> Data {
+        guard let ch = channel else {
+            throw GatewayDecodingError(method: method, message: "gateway is not connected")
+        }
+
+        let params: FlexValue?
+        if let paramsJSON, !paramsJSON.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            let data = Data(paramsJSON.utf8)
+            let object = try JSONSerialization.jsonObject(with: data, options: [])
+            params = FlexValue.from(object)
+        } else {
+            params = nil
+        }
+
+        let response = try await ch.request(method: method, params: params, timeoutMs: Double(max(1, timeoutSeconds)) * 1000)
+        guard let payload = response.payload else {
+            return Data("{}".utf8)
+        }
+        return try JSONSerialization.data(withJSONObject: payload.rawValue, options: [])
+    }
+
     /// Subscribe to server events via AsyncStream.
-    public func subscribeServerEvents(bufferSize: Int = 200) -> AsyncStream<GatewayEvent> {
+    public func subscribeServerEvents(bufferingNewest: Int = 200) -> AsyncStream<GatewayEvent> {
         let id = UUID()
-        return AsyncStream(bufferingPolicy: .bufferingNewest(bufferSize)) { continuation in
+        return AsyncStream(bufferingPolicy: .bufferingNewest(bufferingNewest)) { continuation in
             serverEventSubscribers[id] = continuation
             continuation.onTermination = { @Sendable [weak self] _ in
                 Task { await self?.removeSubscriber(id) }
@@ -235,7 +263,7 @@ public actor GatewayNodeSession {
         } catch {
             return BridgeInvokeResponse(
                 id: request.id, ok: false,
-                error: NodeError(code: "UNAVAILABLE", message: "node invoke timed out"))
+                error: NodeError(code: .unavailable, message: "node invoke timed out"))
         }
     }
 
@@ -287,7 +315,7 @@ public actor GatewayNodeSession {
         ]
         if let json = response.payloadJSON { params["payloadJSON"] = .string(json) }
         if let err = response.error {
-            params["error"] = .object(["code": .string(err.code), "message": .string(err.message)])
+            params["error"] = .object(["code": .string(err.code.rawValue), "message": .string(err.message)])
         }
         _ = try? await ch.request(method: "node.invoke.result", params: .object(params))
     }

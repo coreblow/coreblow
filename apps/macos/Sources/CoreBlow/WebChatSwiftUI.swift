@@ -29,7 +29,7 @@ struct MacGatewayChatTransport: CoreBlowChatTransport {
                 params: [:],
                 timeoutMs: 15000)
             let result = try JSONDecoder().decode(ModelsListResult.self, from: data)
-            return result.models.map(Self.mapModelChoice)
+            return result.models.map { model in Self.mapModelChoice(model) }
         } catch {
             webChatSwiftLogger.warning(
                 "models.list failed; hiding model picker: \(error.localizedDescription, privacy: .public)")
@@ -62,15 +62,15 @@ struct MacGatewayChatTransport: CoreBlowChatTransport {
         let decoded = try JSONDecoder().decode(CoreBlowChatSessionsListResponse.self, from: data)
         let mainSessionKey = await GatewayConnection.shared.cachedMainSessionKey()
         let defaults = decoded.defaults.map {
-            CoreBlowChatSessionsDefaults(
+            CoreBlowChatUI.CoreBlowChatSessionsDefaults(
                 model: $0.model,
                 contextTokens: $0.contextTokens,
                 mainSessionKey: mainSessionKey)
-        } ?? CoreBlowChatSessionsDefaults(
+        } ?? CoreBlowChatUI.CoreBlowChatSessionsDefaults(
             model: nil,
             contextTokens: nil,
             mainSessionKey: mainSessionKey)
-        return CoreBlowChatSessionsListResponse(
+        return CoreBlowChatUI.CoreBlowChatSessionsListResponse(
             ts: decoded.ts,
             path: decoded.path,
             count: decoded.count,
@@ -159,10 +159,8 @@ struct MacGatewayChatTransport: CoreBlowChatTransport {
 
     static func mapPushToTransportEvent(_ push: GatewayPush) -> CoreBlowChatTransportEvent? {
         switch push {
-        case let .snapshot(hello):
-            let ok = (try? JSONDecoder().decode(
-                CoreBlowGatewayHealthOK.self,
-                from: JSONEncoder().encode(hello.snapshot.health)))?.ok ?? true
+        case .snapshot:
+            let ok = true
             return .health(ok: ok)
 
         case let .event(evt):
@@ -170,7 +168,7 @@ struct MacGatewayChatTransport: CoreBlowChatTransport {
             case "health":
                 guard let payload = evt.payload else { return nil }
                 let ok = (try? JSONDecoder().decode(
-                    CoreBlowGatewayHealthOK.self,
+                    CoreBlowChatUI.CoreBlowGatewayHealthOK.self,
                     from: JSONEncoder().encode(payload)))?.ok ?? true
                 return .health(ok: ok)
             case "tick":
@@ -202,7 +200,7 @@ struct MacGatewayChatTransport: CoreBlowChatTransport {
         }
     }
 
-    private static func mapModelChoice(_ model: ModelChoice) -> CoreBlowChatModelChoice {
+    private static func mapModelChoice(_ model: CoreBlowProtocol.ModelChoice) -> CoreBlowChatModelChoice {
         CoreBlowChatModelChoice(
             modelID: model.id,
             name: model.name,

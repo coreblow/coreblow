@@ -1,74 +1,156 @@
+import CoreBlowChatUI
+import CoreBlowKit
+import CoreBlowProtocol
 import Foundation
-import os
+import OSLog
 
-/// Gateway-backed chat transport that sends/receives messages via the operator session.
-struct IOSGatewayChatTransport: Sendable {
+struct IOSGatewayChatTransport: CoreBlowChatTransport, Sendable {
+    private static let logger = Logger(subsystem: "ai.coreblow", category: "ios.chat.transport")
+    private let gateway: GatewayNodeSession
 
-    private let logger = Logger(subsystem: "ai.coreblow.app", category: "ChatTransport")
-    private let connection: GatewayConnectionController
-
-    init(connection: GatewayConnectionController) {
-        self.connection = connection
+    init(gateway: GatewayNodeSession) {
+        self.gateway = gateway
     }
 
-    /// Send a chat message to the gateway agent.
+    func abortRun(sessionKey: String, runId: String) async throws {
+        struct Params: Codable {
+            var sessionKey: String
+            var runId: String
+        }
+        let data = try JSONEncoder().encode(Params(sessionKey: sessionKey, runId: runId))
+        let json = String(data: data, encoding: .utf8)
+        _ = try await self.gateway.request(method: "chat.abort", paramsJSON: json, timeoutSeconds: 10)
+    }
+
+    func listSessions(limit: Int?) async throws -> CoreBlowChatSessionsListResponse {
+        struct Params: Codable {
+            var includeGlobal: Bool
+            var includeUnknown: Bool
+            var limit: Int?
+        }
+        let data = try JSONEncoder().encode(Params(includeGlobal: true, includeUnknown: false, limit: limit))
+        let json = String(data: data, encoding: .utf8)
+        let res = try await self.gateway.request(method: "sessions.list", paramsJSON: json, timeoutSeconds: 15)
+        return try JSONDecoder().decode(CoreBlowChatSessionsListResponse.self, from: res)
+    }
+
+    func setActiveSessionKey(_ sessionKey: String) async throws {
+        // Operator clients receive chat events without node-style subscriptions.
+        // (chat.subscribe is a node event, not an operator RPC method.)
+    }
+
+    func resetSession(sessionKey: String) async throws {
+        struct Params: Codable { var key: String }
+        let data = try JSONEncoder().encode(Params(key: sessionKey))
+        let json = String(data: data, encoding: .utf8)
+        _ = try await self.gateway.request(method: "sessions.reset", paramsJSON: json, timeoutSeconds: 10)
+    }
+
+    func compactSession(sessionKey: String) async throws {
+        struct Params: Codable { var key: String }
+        let data = try JSONEncoder().encode(Params(key: sessionKey))
+        let json = String(data: data, encoding: .utf8)
+        _ = try await self.gateway.request(method: "sessions.compact", paramsJSON: json, timeoutSeconds: 10)
+    }
+
+    func requestHistory(sessionKey: String) async throws -> CoreBlowChatHistoryPayload {
+        struct Params: Codable { var sessionKey: String }
+        let data = try JSONEncoder().encode(Params(sessionKey: sessionKey))
+        let json = String(data: data, encoding: .utf8)
+        let res = try await self.gateway.request(method: "chat.history", paramsJSON: json, timeoutSeconds: 15)
+        return try JSONDecoder().decode(CoreBlowChatHistoryPayload.self, from: res)
+    }
+
     func sendMessage(
-        text: String,
         sessionKey: String,
-        agentId: String?,
-        thinking: String? = nil
-    ) async throws -> ChatTransportResponse {
-        var params: [String: Any] = [
-            "message": text,
-            "sessionKey": sessionKey,
-        ]
-        if let agentId, !agentId.isEmpty {
-            params["agentId"] = agentId
-        }
-        if let thinking, !thinking.isEmpty {
-            params["thinking"] = thinking
+        message: String,
+        thinking: String,
+        idempotencyKey: String,
+        attachments: [CoreBlowChatAttachmentPayload]) async throws -> CoreBlowChatSendResponse
+    {
+        let startLogMessage =
+            "chat.send start sessionKey=\(sessionKey) "
+            + "len=\(message.count) attachments=\(attachments.count)"
+        Self.logger.info(
+            "\(startLogMessage, privacy: .public)"
+        )
+        struct Params: Codable {
+            var sessionKey: String
+            var message: String
+            var thinking: String
+            var attachments: [CoreBlowChatAttachmentPayload]?
+            var timeoutMs: Int
+            var idempotencyKey: String
         }
 
-        let response = try await connection.sendInvoke(
-            command: "chat.send",
-            params: params)
-
-        return ChatTransportResponse(ok: true, responseText: response)
+        let params = Params(
+            sessionKey: sessionKey,
+            message: message,
+            thinking: thinking,
+            attachments: attachments.isEmpty ? nil : attachments,
+            timeoutMs: 30000,
+            idempotencyKey: idempotencyKey)
+        let data = try JSONEncoder().encode(params)
+        let json = String(data: data, encoding: .utf8)
+        do {
+            let res = try await self.gateway.request(method: "chat.send", paramsJSON: json, timeoutSeconds: 35)
+            let decoded = try JSONDecoder().decode(CoreBlowChatSendResponse.self, from: res)
+            Self.logger.info("chat.send ok runId=\(decoded.runId, privacy: .public)")
+            return decoded
+        } catch {
+            Self.logger.error("chat.send failed \(error.localizedDescription, privacy: .public)")
+            throw error
+        }
     }
 
-    /// Stream chat responses from the gateway.
-    func streamMessages(sessionKey: String) -> AsyncStream<ChatTransportEvent> {
+    func requestHealth(timeoutMs: Int) async throws -> Bool {
+        let seconds = max(1, Int(ceil(Double(timeoutMs) / 1000.0)))
+        let res = try await self.gateway.request(method: "health", paramsJSON: nil, timeoutSeconds: seconds)
+        return (try? JSONDecoder().decode(CoreBlowGatewayHealthOK.self, from: res))?.ok ?? true
+    }
+
+    func events() -> AsyncStream<CoreBlowChatTransportEvent> {
         AsyncStream { continuation in
-            Task {
-                // Subscribe to server events for chat updates
-                let params: [String: Any] = ["sessionKey": sessionKey]
-                do {
-                    let response = try await connection.sendInvoke(
-                        command: "chat.subscribe",
-                        params: params)
-                    let event = ChatTransportEvent(
-                        type: .message,
-                        content: response)
-                    continuation.yield(event)
-                } catch {
-                    logger.error("Chat stream error: \(error.localizedDescription)")
+            let task = Task {
+                let stream = await self.gateway.subscribeServerEvents()
+                for await evt in stream {
+                    if Task.isCancelled { return }
+                    switch evt.event {
+                    case "tick":
+                        continuation.yield(.tick)
+                    case "seqGap":
+                        continuation.yield(.seqGap)
+                    case "health":
+                        guard let payload = evt.payload else { break }
+                        let ok = (try? GatewayPayloadDecoding.decode(
+                            payload,
+                            as: CoreBlowGatewayHealthOK.self))?.ok ?? true
+                        continuation.yield(.health(ok: ok))
+                    case "chat":
+                        guard let payload = evt.payload else { break }
+                        if let chatPayload = try? GatewayPayloadDecoding.decode(
+                            payload,
+                            as: CoreBlowChatEventPayload.self)
+                        {
+                            continuation.yield(.chat(chatPayload))
+                        }
+                    case "agent":
+                        guard let payload = evt.payload else { break }
+                        if let agentPayload = try? GatewayPayloadDecoding.decode(
+                            payload,
+                            as: CoreBlowAgentEventPayload.self)
+                        {
+                            continuation.yield(.agent(agentPayload))
+                        }
+                    default:
+                        break
+                    }
                 }
-                continuation.finish()
+            }
+
+            continuation.onTermination = { @Sendable _ in
+                task.cancel()
             }
         }
     }
-}
-
-// MARK: - Transport Types
-
-struct ChatTransportResponse: Sendable {
-    let ok: Bool
-    let responseText: String?
-}
-
-struct ChatTransportEvent: Sendable {
-    let type: EventType
-    let content: String?
-
-    enum EventType { case message, typing, error }
 }

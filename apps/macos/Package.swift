@@ -66,6 +66,8 @@ let package = Package(
             name: "CoreBlowMacCLI",
             dependencies: [
                 "CoreBlowDiscovery",
+                .product(name: "CoreBlowKit", package: "CoreBlowKit"),
+                .product(name: "CoreBlowProtocol", package: "CoreBlowKit"),
             ],
             path: "Sources/CoreBlowMacCLI",
             swiftSettings: [

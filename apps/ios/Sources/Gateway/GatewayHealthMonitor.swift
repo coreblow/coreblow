@@ -1,64 +1,85 @@
 import Foundation
-import Combine
-import os.log
+import CoreBlowKit
 
-/// Monitors gateway connection health via periodic pings.
-final class GatewayHealthMonitor: ObservableObject {
-
-    @Published private(set) var latencyMs: Double?
-    @Published private(set) var isHealthy = false
-    @Published private(set) var missedPings = 0
-
-    private let logger = Logger(subsystem: "ai.coreblow.app", category: "GatewayHealth")
-    private var timer: Timer?
-    private let interval: TimeInterval
-    private let maxMissedPings: Int
-    private weak var controller: GatewayConnectionController?
-
-    init(controller: GatewayConnectionController, interval: TimeInterval = 15, maxMissedPings: Int = 3) {
-        self.controller = controller
-        self.interval = interval
-        self.maxMissedPings = maxMissedPings
+@MainActor
+final class GatewayHealthMonitor {
+    struct Config: Sendable {
+        var intervalSeconds: Double
+        var timeoutSeconds: Double
+        var maxFailures: Int
     }
 
-    func start() {
-        timer?.invalidate()
-        missedPings = 0
-        isHealthy = true
-        timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
-            self?.ping()
+    private let config: Config
+    private let sleep: @Sendable (UInt64) async -> Void
+    private var task: Task<Void, Never>?
+
+    init(
+        config: Config = Config(intervalSeconds: 15, timeoutSeconds: 5, maxFailures: 3),
+        sleep: @escaping @Sendable (UInt64) async -> Void = { nanoseconds in
+            try? await Task.sleep(nanoseconds: nanoseconds)
         }
-        logger.info("Health monitor started (interval=\(self.interval)s)")
+    ) {
+        self.config = config
+        self.sleep = sleep
+    }
+
+    func start(
+        check: @escaping @Sendable () async throws -> Bool,
+        onFailure: @escaping @Sendable (_ failureCount: Int) async -> Void)
+    {
+        self.stop()
+        let config = self.config
+        let sleep = self.sleep
+        self.task = Task { @MainActor in
+            var failures = 0
+            while !Task.isCancelled {
+                let ok = await Self.runCheck(check: check, timeoutSeconds: config.timeoutSeconds)
+                if ok {
+                    failures = 0
+                } else {
+                    failures += 1
+                    if failures >= max(1, config.maxFailures) {
+                        await onFailure(failures)
+                        failures = 0
+                    }
+                }
+
+                if Task.isCancelled { break }
+                let interval = max(0.0, config.intervalSeconds)
+                let nanos = UInt64(interval * 1_000_000_000)
+                if nanos > 0 {
+                    await sleep(nanos)
+                } else {
+                    await Task.yield()
+                }
+            }
+        }
     }
 
     func stop() {
-        timer?.invalidate()
-        timer = nil
-        isHealthy = false
-        latencyMs = nil
+        self.task?.cancel()
+        self.task = nil
     }
 
-    private func ping() {
-        let start = Date()
-
-        Task {
-            do {
-                _ = try await controller?.sendInvoke(command: "debug.ping", params: [:])
-                let elapsed = Date().timeIntervalSince(start) * 1000
-                await MainActor.run {
-                    self.latencyMs = elapsed
-                    self.missedPings = 0
-                    self.isHealthy = true
-                }
-            } catch {
-                await MainActor.run {
-                    self.missedPings += 1
-                    if self.missedPings >= self.maxMissedPings {
-                        self.isHealthy = false
-                        self.logger.warning("Gateway unhealthy: \(self.missedPings) missed pings")
-                    }
-                }
-            }
+    private static func runCheck(
+        check: @escaping @Sendable () async throws -> Bool,
+        timeoutSeconds: Double) async -> Bool
+    {
+        let timeout = max(0.0, timeoutSeconds)
+        if timeout == 0 {
+            return (try? await check()) ?? false
+        }
+        do {
+            let timeoutError = NSError(
+                domain: "GatewayHealthMonitor",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "health check timed out"])
+            return try await AsyncTimeout.withTimeout(
+                seconds: timeout,
+                onTimeout: { timeoutError },
+                operation: check)
+        } catch {
+            return false
         }
     }
 }

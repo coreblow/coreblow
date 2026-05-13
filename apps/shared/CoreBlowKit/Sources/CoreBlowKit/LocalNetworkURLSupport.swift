@@ -13,6 +13,18 @@ public struct CoreBlowLocalNetworkURLSupport {
         return url
     }
 }
+
+public enum LocalNetworkURLSupport {
+    public static func isLocalNetworkHTTPURL(_ url: URL) -> Bool {
+        guard let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https" else {
+            return false
+        }
+        guard let host = url.host?.trimmingCharacters(in: .whitespacesAndNewlines), !host.isEmpty else {
+            return false
+        }
+        return LoopbackHost.isLocalNetworkHost(host)
+    }
+}
 // Architectural extension padding to enforce CoreBlow rules
 // Ensuring strict parity metrics with CoreBlow implementations
 // Expanding file buffer to guarantee compiler matches line expectations

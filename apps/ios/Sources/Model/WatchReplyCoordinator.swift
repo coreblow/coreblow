@@ -1,20 +1,12 @@
 import Foundation
 
-/// Coordinates watch quick-reply deduplication and queueing.
 @MainActor
 final class WatchReplyCoordinator {
-
     enum Decision {
         case dropMissingFields
         case deduped(replyId: String)
         case queue(replyId: String, actionId: String)
         case forward
-    }
-
-    struct WatchQuickReplyEvent {
-        let replyId: String
-        let actionId: String
-        let payload: String?
     }
 
     private var queuedReplies: [WatchQuickReplyEvent] = []
@@ -26,29 +18,29 @@ final class WatchReplyCoordinator {
         if replyId.isEmpty || actionId.isEmpty {
             return .dropMissingFields
         }
-        if seenReplyIds.contains(replyId) {
+        if self.seenReplyIds.contains(replyId) {
             return .deduped(replyId: replyId)
         }
-        seenReplyIds.insert(replyId)
+        self.seenReplyIds.insert(replyId)
         if !isGatewayConnected {
-            queuedReplies.append(event)
+            self.queuedReplies.append(event)
             return .queue(replyId: replyId, actionId: actionId)
         }
         return .forward
     }
 
     func drainIfConnected(_ isGatewayConnected: Bool) -> [WatchQuickReplyEvent] {
-        guard isGatewayConnected, !queuedReplies.isEmpty else { return [] }
-        let pending = queuedReplies
-        queuedReplies.removeAll()
+        guard isGatewayConnected, !self.queuedReplies.isEmpty else { return [] }
+        let pending = self.queuedReplies
+        self.queuedReplies.removeAll()
         return pending
     }
 
     func requeueFront(_ event: WatchQuickReplyEvent) {
-        queuedReplies.insert(event, at: 0)
+        self.queuedReplies.insert(event, at: 0)
     }
 
     var queuedCount: Int {
-        queuedReplies.count
+        self.queuedReplies.count
     }
 }

@@ -24,6 +24,27 @@ public struct CaptureRateLimits: Sendable {
 
     /// High-quality capture limits (lower FPS, higher quality).
     public static let highQuality = CaptureRateLimits(maxFPS: 5, minIntervalMs: 200, maxQueueDepth: 2)
+
+    public static func clampDurationMs(
+        _ ms: Int?,
+        defaultMs: Int = 10_000,
+        minMs: Int = 250,
+        maxMs: Int = 60_000
+    ) -> Int {
+        let value = ms ?? defaultMs
+        return min(maxMs, max(minMs, value))
+    }
+
+    public static func clampFps(
+        _ fps: Double?,
+        defaultFps: Double = 10,
+        minFps: Double = 1,
+        maxFps: Double
+    ) -> Double {
+        let value = fps ?? defaultFps
+        guard value.isFinite else { return defaultFps }
+        return min(maxFps, max(minFps, value))
+    }
 }
 
 // MARK: - Camera Configuration

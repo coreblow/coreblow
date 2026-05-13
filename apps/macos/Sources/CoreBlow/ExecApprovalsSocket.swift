@@ -347,8 +347,15 @@ private enum ExecHostExecutor {
         }
 
         let displayCommand = request.rawCommand ?? request.command.joined(separator: " ")
+        let context = await ExecApprovalEvaluator.evaluate(
+            command: validatedRequest.command,
+            rawCommand: validatedRequest.evaluationRawCommand,
+            cwd: request.cwd,
+            envOverrides: request.env,
+            agentId: request.agentId)
 
         switch ExecHostRequestEvaluator.evaluate(
+            context: context,
             approvalDecision: request.approvalDecision)
         {
         case let .deny(error):

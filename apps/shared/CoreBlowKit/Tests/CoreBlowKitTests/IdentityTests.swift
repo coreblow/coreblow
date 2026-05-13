@@ -126,37 +126,41 @@ struct DeviceAuthPayloadTests {
 struct DeviceAuthStoreTests {
 
     @Test("store and load token")
-    func storeLoad() {
-        let identity = DeviceIdentityStore.loadOrCreate()
-        let deviceId = identity.deviceId
-        let role = "test-role-\(UUID().uuidString.prefix(8))"
-        let entry = DeviceAuthStore.storeToken(
-            deviceId: deviceId, role: role,
-            token: "tok_abc", scopes: ["admin"]
-        )
-        #expect(entry.token == "tok_abc")
-        #expect(entry.role == role)
+    func storeLoad() async throws {
+        try await withTemporaryCoreBlowStateDirectory(prefix: "cb-auth-test") { _ in
+            let identity = DeviceIdentityStore.loadOrCreate()
+            let deviceId = identity.deviceId
+            let role = "test-role-\(UUID().uuidString.prefix(8))"
+            let entry = DeviceAuthStore.storeToken(
+                deviceId: deviceId, role: role,
+                token: "tok_abc", scopes: ["admin"]
+            )
+            #expect(entry.token == "tok_abc")
+            #expect(entry.role == role)
 
-        let loaded = DeviceAuthStore.loadToken(deviceId: deviceId, role: role)
-        #expect(loaded?.token == "tok_abc")
+            let loaded = DeviceAuthStore.loadToken(deviceId: deviceId, role: role)
+            #expect(loaded?.token == "tok_abc")
 
-        // Wrong device should return nil
-        let wrong = DeviceAuthStore.loadToken(deviceId: "wrong", role: role)
-        #expect(wrong == nil)
+            // Wrong device should return nil
+            let wrong = DeviceAuthStore.loadToken(deviceId: "wrong", role: role)
+            #expect(wrong == nil)
 
-        // Cleanup
-        DeviceAuthStore.clearToken(deviceId: deviceId, role: role)
+            // Cleanup
+            DeviceAuthStore.clearToken(deviceId: deviceId, role: role)
+        }
     }
 
     @Test("clear token")
-    func clearToken() {
-        let identity = DeviceIdentityStore.loadOrCreate()
-        let deviceId = identity.deviceId
-        let role = "test-clear-\(UUID().uuidString.prefix(8))"
-        DeviceAuthStore.storeToken(deviceId: deviceId, role: role, token: "t1")
-        DeviceAuthStore.clearToken(deviceId: deviceId, role: role)
-        let loaded = DeviceAuthStore.loadToken(deviceId: deviceId, role: role)
-        #expect(loaded == nil)
+    func clearToken() async throws {
+        try await withTemporaryCoreBlowStateDirectory(prefix: "cb-auth-clear") { _ in
+            let identity = DeviceIdentityStore.loadOrCreate()
+            let deviceId = identity.deviceId
+            let role = "test-clear-\(UUID().uuidString.prefix(8))"
+            DeviceAuthStore.storeToken(deviceId: deviceId, role: role, token: "t1")
+            DeviceAuthStore.clearToken(deviceId: deviceId, role: role)
+            let loaded = DeviceAuthStore.loadToken(deviceId: deviceId, role: role)
+            #expect(loaded == nil)
+        }
     }
 }
 
@@ -166,7 +170,9 @@ struct CoreBlowPathsTests {
     @Test("stateDirectory returns valid URL")
     func stateDir() {
         let url = CoreBlowPaths.stateDirectory()
-        #expect(url.path.contains("CoreBlow") || url.path.contains("coreblow"))
+        // When COREBLOW_STATE_DIR env is set (e.g., by other tests), path may not contain "CoreBlow"
+        let hasEnvOverride = ProcessInfo.processInfo.environment["COREBLOW_STATE_DIR"] != nil
+        #expect(hasEnvOverride || url.path.contains("CoreBlow") || url.path.contains("coreblow"))
     }
 
     @Test("identityDirectory is under stateDirectory")

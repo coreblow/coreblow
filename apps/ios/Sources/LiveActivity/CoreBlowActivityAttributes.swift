@@ -1,18 +1,45 @@
-#if canImport(ActivityKit)
 import ActivityKit
-#endif
 import Foundation
 
-/// Activity attributes for CoreBlow gateway status Live Activity.
+/// Shared schema used by iOS app + Live Activity widget extension.
 struct CoreBlowActivityAttributes: ActivityAttributes {
+    var agentName: String
+    var sessionKey: String
 
-    /// Static context visible throughout the activity's lifetime.
-    let gatewayLabel: String
-
-    /// Dynamic content state that changes over time.
     struct ContentState: Codable, Hashable {
-        let isConnected: Bool
-        let serverName: String?
-        let lastUpdateMs: Int64
+        var statusText: String
+        var isIdle: Bool
+        var isDisconnected: Bool
+        var isConnecting: Bool
+        var startedAt: Date
     }
 }
+
+#if DEBUG
+extension CoreBlowActivityAttributes {
+    static let preview = CoreBlowActivityAttributes(agentName: "main", sessionKey: "main")
+}
+
+extension CoreBlowActivityAttributes.ContentState {
+    static let connecting = CoreBlowActivityAttributes.ContentState(
+        statusText: "Connecting...",
+        isIdle: false,
+        isDisconnected: false,
+        isConnecting: true,
+        startedAt: .now)
+
+    static let idle = CoreBlowActivityAttributes.ContentState(
+        statusText: "Idle",
+        isIdle: true,
+        isDisconnected: false,
+        isConnecting: false,
+        startedAt: .now)
+
+    static let disconnected = CoreBlowActivityAttributes.ContentState(
+        statusText: "Disconnected",
+        isIdle: false,
+        isDisconnected: true,
+        isConnecting: false,
+        startedAt: .now)
+}
+#endif

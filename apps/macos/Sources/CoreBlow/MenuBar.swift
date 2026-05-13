@@ -41,7 +41,7 @@ struct CoreBlowApp: App {
     }
 
     var body: some Scene {
-        MenuBarExtra { MenuContent(state: self.state, updater: self.delegate.updaterController) } label: {
+        MenuBarExtra { MenuContentView() } label: {
             CritterStatusLabel(
                 isPaused: self.state.isPaused,
                 isSleeping: self.isGatewaySleeping,
@@ -194,7 +194,7 @@ struct CoreBlowApp: App {
     }
 
     private var effectiveIconState: IconState {
-        let selection = self.state.iconOverride
+        let selection = IconOverrideSelection(rawValue: self.state.iconOverride ?? "") ?? .system
         if selection == .system {
             return self.activityStore.iconState
         }

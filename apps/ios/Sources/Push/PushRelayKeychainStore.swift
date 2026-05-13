@@ -1,37 +1,112 @@
 import Foundation
 
-/// Persistent storage for push relay registration credentials.
+private struct StoredPushRelayRegistrationState: Codable {
+    var relayHandle: String
+    var sendGrant: String
+    var relayOrigin: String?
+    var gatewayDeviceId: String
+    var relayHandleExpiresAtMs: Int64?
+    var tokenDebugSuffix: String?
+    var lastAPNsTokenHashHex: String
+    var installationId: String
+    var lastTransport: String
+}
+
 enum PushRelayRegistrationStore {
+    private static let service = "ai.coreblow.pushrelay"
+    private static let registrationStateAccount = "registration-state"
+    private static let appAttestKeyIDAccount = "app-attest-key-id"
+    private static let appAttestedKeyIDAccount = "app-attested-key-id"
 
-    private static let deviceIDKey = "pushRelay.deviceId"
-    private static let registeredGatewayKey = "pushRelay.registeredGatewayId"
-    private static let registeredTokenKey = "pushRelay.registeredTokenHex"
+    struct RegistrationState: Codable {
+        var relayHandle: String
+        var sendGrant: String
+        var relayOrigin: String?
+        var gatewayDeviceId: String
+        var relayHandleExpiresAtMs: Int64?
+        var tokenDebugSuffix: String?
+        var lastAPNsTokenHashHex: String
+        var installationId: String
+        var lastTransport: String
+    }
 
-    static var deviceID: String {
-        if let existing = UserDefaults.standard.string(forKey: deviceIDKey), !existing.isEmpty {
-            return existing
+    static func loadRegistrationState() -> RegistrationState? {
+        guard let raw = KeychainStore.loadString(
+            service: self.service,
+            account: self.registrationStateAccount),
+            let data = raw.data(using: .utf8),
+            let decoded = try? JSONDecoder().decode(StoredPushRelayRegistrationState.self, from: data)
+        else {
+            return nil
         }
-        let generated = UUID().uuidString.lowercased()
-        UserDefaults.standard.set(generated, forKey: deviceIDKey)
-        return generated
+        return RegistrationState(
+            relayHandle: decoded.relayHandle,
+            sendGrant: decoded.sendGrant,
+            relayOrigin: decoded.relayOrigin,
+            gatewayDeviceId: decoded.gatewayDeviceId,
+            relayHandleExpiresAtMs: decoded.relayHandleExpiresAtMs,
+            tokenDebugSuffix: decoded.tokenDebugSuffix,
+            lastAPNsTokenHashHex: decoded.lastAPNsTokenHashHex,
+            installationId: decoded.installationId,
+            lastTransport: decoded.lastTransport)
     }
 
-    static var registeredGatewayID: String? {
-        get { UserDefaults.standard.string(forKey: registeredGatewayKey) }
-        set { UserDefaults.standard.set(newValue, forKey: registeredGatewayKey) }
+    @discardableResult
+    static func saveRegistrationState(_ state: RegistrationState) -> Bool {
+        let stored = StoredPushRelayRegistrationState(
+            relayHandle: state.relayHandle,
+            sendGrant: state.sendGrant,
+            relayOrigin: state.relayOrigin,
+            gatewayDeviceId: state.gatewayDeviceId,
+            relayHandleExpiresAtMs: state.relayHandleExpiresAtMs,
+            tokenDebugSuffix: state.tokenDebugSuffix,
+            lastAPNsTokenHashHex: state.lastAPNsTokenHashHex,
+            installationId: state.installationId,
+            lastTransport: state.lastTransport)
+        guard let data = try? JSONEncoder().encode(stored),
+              let raw = String(data: data, encoding: .utf8)
+        else {
+            return false
+        }
+        return KeychainStore.saveString(raw, service: self.service, account: self.registrationStateAccount)
     }
 
-    static var registeredTokenHex: String? {
-        get { UserDefaults.standard.string(forKey: registeredTokenKey) }
-        set { UserDefaults.standard.set(newValue, forKey: registeredTokenKey) }
+    @discardableResult
+    static func clearRegistrationState() -> Bool {
+        KeychainStore.delete(service: self.service, account: self.registrationStateAccount)
     }
 
-    static func clearRegistration() {
-        registeredGatewayID = nil
-        registeredTokenHex = nil
+    static func loadAppAttestKeyID() -> String? {
+        let value = KeychainStore.loadString(service: self.service, account: self.appAttestKeyIDAccount)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if value?.isEmpty == false { return value }
+        return nil
     }
 
-    static func isRegistered(forGateway gatewayID: String, token: String) -> Bool {
-        registeredGatewayID == gatewayID && registeredTokenHex == token
+    @discardableResult
+    static func saveAppAttestKeyID(_ keyID: String) -> Bool {
+        KeychainStore.saveString(keyID, service: self.service, account: self.appAttestKeyIDAccount)
+    }
+
+    @discardableResult
+    static func clearAppAttestKeyID() -> Bool {
+        KeychainStore.delete(service: self.service, account: self.appAttestKeyIDAccount)
+    }
+
+    static func loadAttestedKeyID() -> String? {
+        let value = KeychainStore.loadString(service: self.service, account: self.appAttestedKeyIDAccount)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if value?.isEmpty == false { return value }
+        return nil
+    }
+
+    @discardableResult
+    static func saveAttestedKeyID(_ keyID: String) -> Bool {
+        KeychainStore.saveString(keyID, service: self.service, account: self.appAttestedKeyIDAccount)
+    }
+
+    @discardableResult
+    static func clearAttestedKeyID() -> Bool {
+        KeychainStore.delete(service: self.service, account: self.appAttestedKeyIDAccount)
     }
 }

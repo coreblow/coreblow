@@ -17,6 +17,8 @@ struct GeneralSettings: View {
 
     private let remoteLabelWidth: CGFloat = 88
 
+    init(state _: AppState? = nil) {}
+
     var body: some View {
         ScrollView(.vertical) {
             VStack(alignment: .leading, spacing: 18) {
@@ -483,7 +485,7 @@ private enum RemoteTestStatus: Equatable {
 
 // MARK: - Gateway Environment Status
 
-private enum GatewayEnvironmentStatus: Equatable {
+private enum GatewayEnvStatusView: Equatable {
     case unknown
     case healthy(version: String?)
     case degraded(reason: String)

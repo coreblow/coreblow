@@ -415,7 +415,7 @@ final class MenuSessionsInjector: NSObject, NSMenuDelegate {
             cachedSessions = sessions.map { session in
                 SessionPreviewEntry(
                     id: session.id,
-                    label: session.displayName,
+                    label: session.displayName ?? session.name ?? session.sessionKey ?? session.id,
                     lastMessage: session.lastMessagePreview,
                     timestamp: session.updatedAt,
                     isActive: session.updatedAt.map { now.timeIntervalSince($0) <= activeWindowSeconds } ?? false,
@@ -452,13 +452,13 @@ final class MenuSessionsInjector: NSObject, NSMenuDelegate {
     }
 
     @objc private func openSettings() {
-        SettingsWindowOpener.open()
+        SettingsWindowOpener.shared.open()
     }
 
     // MARK: - Public API
 
     static func buildSessionItems(_ sessions: [SessionData]) -> [(id: String, label: String)] {
-        sessions.map { ($0.id, $0.displayName) }
+        sessions.map { ($0.id, $0.displayName ?? $0.name ?? $0.sessionKey ?? $0.id) }
     }
 
     // MARK: - Usage Cache
@@ -594,7 +594,7 @@ final class MenuSessionsInjector: NSObject, NSMenuDelegate {
         guard !summary.daily.isEmpty else { return nil }
 
         let menu = NSMenu()
-        let chartView = CostUsageMenuView(summary: summary, width: width)
+        let chartView = CostUsageHistoryMenuView(summary: summary, width: width)
         let hosting = NSHostingView(rootView: AnyView(chartView))
         let size = hosting.fittingSize
         hosting.frame = NSRect(origin: .zero, size: NSSize(width: width, height: size.height))
@@ -661,7 +661,7 @@ final class MenuSessionsInjector: NSObject, NSMenuDelegate {
     }
 
     private func sortedNodeEntries() -> [NodeInfo] {
-        let entries = AppState.shared.connectedNodes
+        let entries = NodesStore.shared.nodes
         return entries.sorted { lhs, rhs in
             if lhs.isConnected != rhs.isConnected { return lhs.isConnected }
             if lhs.isPaired != rhs.isPaired { return lhs.isPaired }
@@ -943,7 +943,7 @@ final class MenuSessionsInjector: NSObject, NSMenuDelegate {
         Task { @MainActor in
             guard SessionActions.confirmDestructiveAction(
                 title: "Reset session?",
-                message: "Starts a new session id for "\(key)".",
+                message: "Starts a new session id for \"\(key)\".",
                 action: "Reset")
             else { return }
 
@@ -979,7 +979,7 @@ final class MenuSessionsInjector: NSObject, NSMenuDelegate {
         Task { @MainActor in
             guard SessionActions.confirmDestructiveAction(
                 title: "Delete session?",
-                message: "Deletes the "\(key)" entry and archives its transcript.",
+                message: "Deletes the \"\(key)\" entry and archives its transcript.",
                 action: "Delete")
             else { return }
 
@@ -1120,65 +1120,9 @@ private struct SessionMenuRowView: View {
     }
 }
 
-// MARK: - Node Menu Row View
+// NodeMenuRowView is defined in NodesMenu.swift
+// NodeMenuMultilineView is defined in NodesMenu.swift
 
-private struct NodeMenuRowView: View {
-    let entry: NodeInfo
-    let width: CGFloat
-
-    var body: some View {
-        HStack(alignment: .center, spacing: 8) {
-            Circle()
-                .fill(entry.isConnected ? Color.green : Color.red.opacity(0.6))
-                .frame(width: 8, height: 8)
-
-            VStack(alignment: .leading, spacing: 1) {
-                Text(entry.displayName ?? entry.nodeId)
-                    .font(.callout)
-                    .lineLimit(1)
-                if let platform = entry.platform {
-                    Text(platform)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            Spacer(minLength: 0)
-
-            if let ip = entry.remoteIp {
-                Text(ip)
-                    .font(.caption2.monospacedDigit())
-                    .foregroundStyle(.tertiary)
-            }
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 4)
-        .frame(width: max(1, width), alignment: .leading)
-    }
-}
-
-// MARK: - Node Menu Multiline View
-
-private struct NodeMenuMultilineView: View {
-    let label: String
-    let value: String
-    let width: CGFloat
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(label)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Text(value)
-                .font(.caption)
-                .lineLimit(4)
-                .truncationMode(.tail)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 4)
-        .frame(width: max(1, width), alignment: .leading)
-    }
-}
 
 // MARK: - DEBUG Testing Hooks
 

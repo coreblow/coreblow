@@ -1,41 +1,68 @@
 import SwiftUI
-import os.log
+import UIKit
 
-/// Debug log view showing gateway discovery events in real-time.
 struct GatewayDiscoveryDebugLogView: View {
-    @ObservedObject var model: GatewayDiscoveryModel
+    @Environment(GatewayConnectionController.self) private var gatewayController
+    @AppStorage("gateway.discovery.debugLogs") private var debugLogsEnabled: Bool = false
 
     var body: some View {
-        NavigationStack {
-            List {
-                if model.logEntries.isEmpty {
-                    Text("No discovery events yet. Tap Scan to start.")
-                        .foregroundStyle(.secondary)
-                } else {
-                    ForEach(model.logEntries) { entry in
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack {
-                                Circle()
-                                    .fill(entry.level.color)
-                                    .frame(width: 8, height: 8)
-                                Text(entry.timestamp, style: .time)
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Text(entry.message)
-                                .font(.caption)
-                                .fontDesign(.monospaced)
-                        }
-                        .padding(.vertical, 2)
-                    }
-                }
+        List {
+            if !self.debugLogsEnabled {
+                Text("Enable “Discovery Debug Logs” to start collecting events.")
+                    .foregroundStyle(.secondary)
             }
-            .navigationTitle("Discovery Log")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button("Clear") { model.clearLog() }
+
+            if self.gatewayController.discoveryDebugLog.isEmpty {
+                Text("No log entries yet.")
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(self.gatewayController.discoveryDebugLog) { entry in
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(Self.formatTime(entry.ts))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(entry.message)
+                            .font(.callout)
+                            .textSelection(.enabled)
+                    }
+                    .padding(.vertical, 4)
                 }
             }
         }
+        .navigationTitle("Discovery Logs")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Copy") {
+                    UIPasteboard.general.string = self.formattedLog()
+                }
+                .disabled(self.gatewayController.discoveryDebugLog.isEmpty)
+            }
+        }
+    }
+
+    private func formattedLog() -> String {
+        self.gatewayController.discoveryDebugLog
+            .map { "\(Self.formatISO($0.ts)) \($0.message)" }
+            .joined(separator: "\n")
+    }
+
+    private static let timeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm:ss"
+        return formatter
+    }()
+
+    private static let isoFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+
+    private static func formatTime(_ date: Date) -> String {
+        self.timeFormatter.string(from: date)
+    }
+
+    private static func formatISO(_ date: Date) -> String {
+        self.isoFormatter.string(from: date)
     }
 }

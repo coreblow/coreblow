@@ -18,6 +18,26 @@ public struct MoviePipelineGraph {
     public let movieOutput: AVCaptureMovieFileOutput
 }
 
+public struct CameraPhotoConfiguration {
+    public let session: AVCaptureSession
+    public let output: AVCapturePhotoOutput
+
+    public init(session: AVCaptureSession, output: AVCapturePhotoOutput) {
+        self.session = session
+        self.output = output
+    }
+}
+
+public struct CameraMovieConfiguration {
+    public let session: AVCaptureSession
+    public let output: AVCaptureMovieFileOutput
+
+    public init(session: AVCaptureSession, output: AVCaptureMovieFileOutput) {
+        self.session = session
+        self.output = output
+    }
+}
+
 public struct CoreBlowCapturePipelineBuilder {
 
     // MARK: - Photo Pipeline
@@ -194,5 +214,109 @@ public struct CoreBlowCapturePipelineBuilder {
         case .back: return "back"
         default: return "unspecified"
         }
+    }
+}
+
+public enum CameraCapturePipelineSupport {
+    public static func preparePhotoSession<E: Error>(
+        preferFrontCamera: Bool,
+        deviceId: String?,
+        pickCamera: (_ preferFrontCamera: Bool, _ deviceId: String?) -> AVCaptureDevice?,
+        cameraUnavailableError: E,
+        mapSetupError: (CameraSessionConfigurationError) -> E
+    ) throws -> CameraPhotoConfiguration {
+        do {
+            let graph = try CoreBlowCapturePipelineBuilder.buildPhotoPipeline(
+                preferFrontFacing: preferFrontCamera,
+                specificDeviceIdentifier: deviceId,
+                deviceSelector: pickCamera,
+                onDeviceUnavailable: { cameraUnavailableError },
+                onSetupFailure: mapSetupError)
+            return CameraPhotoConfiguration(session: graph.session, output: graph.photoOutput)
+        } catch let error as E {
+            throw error
+        } catch {
+            throw mapSetupError(.addPhotoOutputFailed)
+        }
+    }
+
+    public static func prepareWarmMovieSession<E: Error>(
+        preferFrontCamera: Bool,
+        deviceId: String?,
+        includeAudio: Bool,
+        durationMs: Int,
+        pickCamera: (_ preferFrontCamera: Bool, _ deviceId: String?) -> AVCaptureDevice?,
+        cameraUnavailableError: E,
+        mapSetupError: (CameraSessionConfigurationError) -> E
+    ) async throws -> CameraMovieConfiguration {
+        do {
+            let graph = try await CoreBlowCapturePipelineBuilder.establishWarmMovieSession(
+                preferFrontFacing: preferFrontCamera,
+                specificDeviceIdentifier: deviceId,
+                captureAudio: includeAudio,
+                maxDurationMs: durationMs,
+                deviceSelector: pickCamera,
+                onDeviceUnavailable: { cameraUnavailableError },
+                onSetupFailure: mapSetupError)
+            return CameraMovieConfiguration(session: graph.session, output: graph.movieOutput)
+        } catch let error as E {
+            throw error
+        } catch {
+            throw mapSetupError(.addMovieOutputFailed)
+        }
+    }
+
+    public static func withWarmMovieSession<T, E: Error>(
+        preferFrontCamera: Bool,
+        deviceId: String?,
+        includeAudio: Bool,
+        durationMs: Int,
+        pickCamera: (_ preferFrontCamera: Bool, _ deviceId: String?) -> AVCaptureDevice?,
+        cameraUnavailableError: E,
+        mapSetupError: (CameraSessionConfigurationError) -> E,
+        operation: (AVCaptureMovieFileOutput) async throws -> T
+    ) async throws -> T {
+        let prepared = try await prepareWarmMovieSession(
+            preferFrontCamera: preferFrontCamera,
+            deviceId: deviceId,
+            includeAudio: includeAudio,
+            durationMs: durationMs,
+            pickCamera: pickCamera,
+            cameraUnavailableError: cameraUnavailableError,
+            mapSetupError: mapSetupError)
+        defer { prepared.session.stopRunning() }
+        return try await operation(prepared.output)
+    }
+
+    public static func capturePhotoData(
+        output: AVCapturePhotoOutput,
+        delegateFactory: (CheckedContinuation<Data, Error>) -> any AVCapturePhotoCaptureDelegate
+    ) async throws -> Data {
+        try await CoreBlowCapturePipelineBuilder.awaitPhotoCapture(
+            output: output,
+            delegateFactory: delegateFactory)
+    }
+
+    public static func makePhotoSettings(output: AVCapturePhotoOutput) -> AVCapturePhotoSettings {
+        CoreBlowCapturePipelineBuilder.generatePhotoSettings(for: output)
+    }
+
+    public static func warmUpCaptureSession() async {
+        await CoreBlowCapturePipelineBuilder.executeWarmUpDelay()
+    }
+
+    public static func positionLabel(_ position: AVCaptureDevice.Position) -> String {
+        CoreBlowCapturePipelineBuilder.stringForPosition(position)
+    }
+
+    public static func mapMovieSetupError<E: Error>(
+        _ error: CameraSessionConfigurationError,
+        microphoneUnavailableError: E,
+        captureFailed: (String) -> E
+    ) -> E {
+        CoreBlowCapturePipelineBuilder.resolveMovieConfigurationError(
+            error: error,
+            onMicUnavailable: { microphoneUnavailableError },
+            onGeneralFailure: captureFailed)
     }
 }

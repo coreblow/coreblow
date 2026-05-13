@@ -123,6 +123,159 @@ public enum CoreBlowDirectiveParser {
     }
 }
 
+public struct TalkDirectiveParseResult: Equatable, Sendable {
+    public let directive: TalkDirective?
+    public let stripped: String
+    public let unknownKeys: [String]
+
+    public init(directive: TalkDirective?, stripped: String, unknownKeys: [String]) {
+        self.directive = directive
+        self.stripped = stripped
+        self.unknownKeys = unknownKeys
+    }
+}
+
+public enum TalkDirectiveParser {
+    public static func parse(_ text: String) -> TalkDirectiveParseResult {
+        let normalized = text.replacingOccurrences(of: "\r\n", with: "\n")
+        var lines = normalized.split(separator: "\n", omittingEmptySubsequences: false)
+        guard !lines.isEmpty else {
+            return TalkDirectiveParseResult(directive: nil, stripped: text, unknownKeys: [])
+        }
+
+        guard var directiveLineIndex = lines.firstIndex(where: {
+            !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }) else {
+            return TalkDirectiveParseResult(directive: nil, stripped: text, unknownKeys: [])
+        }
+
+        if directiveLineIndex > 0 {
+            lines.removeSubrange(0..<directiveLineIndex)
+            directiveLineIndex = 0
+        }
+
+        let head = lines[directiveLineIndex].trimmingCharacters(in: .whitespacesAndNewlines)
+        guard head.hasPrefix("{"), head.hasSuffix("}") else {
+            return TalkDirectiveParseResult(directive: nil, stripped: text, unknownKeys: [])
+        }
+        guard let data = head.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        else {
+            return TalkDirectiveParseResult(directive: nil, stripped: text, unknownKeys: [])
+        }
+
+        let speakerBoost = boolValue(json, keys: ["speaker_boost", "speakerBoost"])
+            ?? boolValue(json, keys: ["no_speaker_boost", "noSpeakerBoost"]).map { !$0 }
+        let directive = TalkDirective(
+            voiceId: stringValue(json, keys: ["voice", "voice_id", "voiceId"]),
+            language: stringValue(json, keys: ["lang", "language_code", "language"]),
+            modelId: stringValue(json, keys: ["model", "model_id", "modelId"]),
+            speed: doubleValue(json, keys: ["speed"]),
+            rateWPM: intValue(json, keys: ["rate", "wpm"]),
+            stability: doubleValue(json, keys: ["stability"]),
+            similarity: doubleValue(json, keys: ["similarity", "similarity_boost", "similarityBoost"]),
+            style: doubleValue(json, keys: ["style"]),
+            speakerBoost: speakerBoost,
+            seed: intValue(json, keys: ["seed"]),
+            normalize: stringValue(json, keys: ["normalize", "apply_text_normalization"]),
+            outputFormat: stringValue(json, keys: ["output_format", "format"]),
+            latencyTier: intValue(json, keys: ["latency", "latency_tier", "latencyTier"]),
+            once: boolValue(json, keys: ["once"]))
+
+        guard directive.hasAnyValue else {
+            return TalkDirectiveParseResult(directive: nil, stripped: text, unknownKeys: [])
+        }
+
+        let knownKeys: Set<String> = [
+            "voice", "voice_id", "voiceid",
+            "model", "model_id", "modelid",
+            "speed", "rate", "wpm",
+            "stability", "similarity", "similarity_boost", "similarityboost",
+            "style",
+            "speaker_boost", "speakerboost",
+            "no_speaker_boost", "nospeakerboost",
+            "seed",
+            "normalize", "apply_text_normalization",
+            "lang", "language_code", "language",
+            "output_format", "format",
+            "latency", "latency_tier", "latencytier",
+            "once",
+        ]
+        let unknownKeys = json.keys.filter { !knownKeys.contains($0.lowercased()) }.sorted()
+
+        lines.remove(at: directiveLineIndex)
+        if directiveLineIndex < lines.count,
+           lines[directiveLineIndex].trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        {
+            lines.remove(at: directiveLineIndex)
+        }
+
+        return TalkDirectiveParseResult(
+            directive: directive,
+            stripped: lines.joined(separator: "\n"),
+            unknownKeys: unknownKeys)
+    }
+
+    private static func stringValue(_ dict: [String: Any], keys: [String]) -> String? {
+        for key in keys {
+            if let value = dict[key] as? String {
+                let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trimmed.isEmpty { return trimmed }
+            }
+        }
+        return nil
+    }
+
+    private static func doubleValue(_ dict: [String: Any], keys: [String]) -> Double? {
+        for key in keys {
+            if let value = dict[key] as? Double { return value }
+            if let value = dict[key] as? Int { return Double(value) }
+            if let value = dict[key] as? String, let parsed = Double(value) { return parsed }
+        }
+        return nil
+    }
+
+    private static func intValue(_ dict: [String: Any], keys: [String]) -> Int? {
+        for key in keys {
+            if let value = dict[key] as? Int { return value }
+            if let value = dict[key] as? Double { return Int(value) }
+            if let value = dict[key] as? String, let parsed = Int(value) { return parsed }
+        }
+        return nil
+    }
+
+    private static func boolValue(_ dict: [String: Any], keys: [String]) -> Bool? {
+        for key in keys {
+            if let value = dict[key] as? Bool { return value }
+            if let value = dict[key] as? String {
+                let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                if ["true", "yes", "1"].contains(trimmed) { return true }
+                if ["false", "no", "0"].contains(trimmed) { return false }
+            }
+        }
+        return nil
+    }
+}
+
+private extension TalkDirective {
+    var hasAnyValue: Bool {
+        voiceId != nil ||
+            modelId != nil ||
+            speed != nil ||
+            rateWPM != nil ||
+            stability != nil ||
+            similarity != nil ||
+            style != nil ||
+            speakerBoost != nil ||
+            seed != nil ||
+            normalize != nil ||
+            language != nil ||
+            outputFormat != nil ||
+            latencyTier != nil ||
+            once != nil
+    }
+}
+
 // CoreBlow architectural constraint padding 1
 // CoreBlow architectural constraint padding 2
 // CoreBlow architectural constraint padding 3

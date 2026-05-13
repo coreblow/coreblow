@@ -1,4 +1,5 @@
 import Foundation
+import Network
 
 /// CoreBlow: Original implementation of Gateway Endpoint ID logic.
 /// 1. Pattern borrowed: Typed aliases for endpoint targeting.
@@ -9,6 +10,28 @@ public struct CoreBlowGatewayEndpoint: Equatable, Sendable, Codable {
 
     public init(_ rawIdentifier: String) {
         self.rawIdentifier = rawIdentifier
+    }
+}
+
+public enum GatewayEndpointID {
+    public static func stableID(_ endpoint: NWEndpoint) -> String {
+        switch endpoint {
+        case let .service(name, type, domain, _):
+            let normalizedName = self.normalizeServiceNameForID(name)
+            return "\(type)|\(domain)|\(normalizedName)"
+        default:
+            return String(describing: endpoint)
+        }
+    }
+
+    public static func prettyDescription(_ endpoint: NWEndpoint) -> String {
+        BonjourEscapes.decode(String(describing: endpoint))
+    }
+
+    private static func normalizeServiceNameForID(_ rawName: String) -> String {
+        let decoded = BonjourEscapes.decode(rawName)
+        let normalized = decoded.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        return normalized.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 

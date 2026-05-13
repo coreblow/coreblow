@@ -72,19 +72,19 @@ struct ConnectOutput: Encodable {
     var clientId: String
     var clientMode: String
     var scopes: [String]
-    var snapshot: HelloOk?
+    var snapshot: HelloOkPayload?
     var health: ProtoAnyCodable?
     var error: String?
 }
 
 actor SnapshotStore {
-    private var value: HelloOk?
+    private var value: HelloOkPayload?
 
-    func set(_ snapshot: HelloOk) {
+    func set(_ snapshot: HelloOkPayload) {
         self.value = snapshot
     }
 
-    func get() -> HelloOk? {
+    func get() -> HelloOkPayload? {
         self.value
     }
 }
@@ -138,19 +138,25 @@ func runConnect(_ args: [String]) async {
             url: endpoint.url,
             token: endpoint.token,
             password: endpoint.password,
+            connectOptions: connectOptions,
             pushHandler: { push in
                 if case let .snapshot(ok) = push {
                     await snapshotStore.set(ok)
                 }
-            },
-            connectOptions: connectOptions)
+            })
 
-        let params: [String: KitAnyCodable]? = opts.probe ? ["probe": KitAnyCodable(true)] : nil
-        let data = try await channel.request(
+        let params: FlexValue? = opts.probe ? .object(["probe": .bool(true)]) : nil
+        let response = try await channel.request(
             method: "health",
             params: params,
             timeoutMs: Double(opts.timeoutMs))
-        let health = try? JSONDecoder().decode(ProtoAnyCodable.self, from: data)
+        let health: ProtoAnyCodable?
+        if let payload = response.payload,
+           let data = try? JSONEncoder().encode(payload) {
+            health = try? JSONDecoder().decode(ProtoAnyCodable.self, from: data)
+        } else {
+            health = nil
+        }
         let snapshot = await snapshotStore.get()
         await channel.shutdown()
 
@@ -207,9 +213,9 @@ private func printConnectOutput(_ output: ConnectOutput, json: Bool) {
     print("Role: \(output.role)")
     print("Scopes: \(output.scopes.joined(separator: ", "))")
     if let snapshot = output.snapshot {
-        print("Protocol: \(snapshot._protocol)")
-        if let version = snapshot.server["version"]?.value as? String {
-            print("Server: \(version)")
+        print("Tick Interval: \(Int(snapshot.tickIntervalMs))ms")
+        if let canvasUrl = snapshot.canvasHostUrl {
+            print("Canvas: \(canvasUrl)")
         }
     }
     if let health = output.health,

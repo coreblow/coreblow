@@ -82,6 +82,33 @@ enum CoreBlowLogging {
         let category = String(label[range.upperBound...])
         return (subsystem, category)
     }
+
+    // MARK: - Named Logger Factories
+
+    /// Gateway subsystem logger.
+    static var gateway: Logger {
+        Logger(subsystem: "ai.coreblow", category: "gateway")
+    }
+
+    /// App subsystem logger.
+    static var app: Logger {
+        Logger(subsystem: "ai.coreblow", category: "app")
+    }
+
+    /// Node runtime logger.
+    static var node: Logger {
+        Logger(subsystem: "ai.coreblow", category: "node")
+    }
+
+    /// Canvas subsystem logger.
+    static var canvas: Logger {
+        Logger(subsystem: "ai.coreblow", category: "canvas")
+    }
+
+    /// Voice/talk subsystem logger.
+    static var voice: Logger {
+        Logger(subsystem: "ai.coreblow", category: "voice")
+    }
 }
 
 extension Logging.Logger {

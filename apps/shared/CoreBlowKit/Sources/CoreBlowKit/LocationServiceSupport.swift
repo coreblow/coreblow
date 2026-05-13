@@ -1,53 +1,96 @@
 import Foundation
 import CoreLocation
 
+@MainActor
+public protocol LocationServiceCommon: AnyObject, CLLocationManagerDelegate {
+    var locationManager: CLLocationManager { get }
+    var locationRequestContinuation: CheckedContinuation<CLLocation, Error>? { get set }
+}
+
+public extension LocationServiceCommon {
+    func configureLocationManager() {
+        self.locationManager.delegate = self
+        self.locationManager.desiredAccuracy = kCLLocationAccuracyBest
+    }
+
+    func authorizationStatus() -> CLAuthorizationStatus {
+        self.locationManager.authorizationStatus
+    }
+
+    func accuracyAuthorization() -> CLAccuracyAuthorization {
+        LocationServiceSupport.accuracyAuthorization(manager: self.locationManager)
+    }
+
+    func requestLocationOnce() async throws -> CLLocation {
+        try await LocationServiceSupport.requestLocation(manager: self.locationManager) { continuation in
+            self.locationRequestContinuation = continuation
+        }
+    }
+}
+
+public enum LocationServiceSupport {
+    public static func accuracyAuthorization(manager: CLLocationManager) -> CLAccuracyAuthorization {
+        if #available(iOS 14.0, macOS 11.0, *) {
+            return manager.accuracyAuthorization
+        }
+        return .fullAccuracy
+    }
+
+    @MainActor
+    public static func requestLocation(
+        manager: CLLocationManager,
+        setContinuation: @escaping (CheckedContinuation<CLLocation, Error>) -> Void) async throws -> CLLocation
+    {
+        try await withCheckedThrowingContinuation { continuation in
+            setContinuation(continuation)
+            manager.requestLocation()
+        }
+    }
+}
+
 /// CoreBlow: Device Location Services resolution helper.
 /// Abstracts CLLocationManager interactions cleanly.
-public final class CoreBlowLocationServiceSupport: NSObject, CLLocationManagerDelegate, Sendable {
+@MainActor
+public final class CoreBlowLocationServiceSupport: NSObject, LocationServiceCommon, @unchecked Sendable {
 
-    private let manager = CLLocationManager()
+    public let locationManager = CLLocationManager()
+    public var locationRequestContinuation: CheckedContinuation<CLLocation, Error>?
 
     public override init() {
         super.init()
-        manager.delegate = self
-        manager.desiredAccuracy = kCLLocationAccuracyBest
+        self.configureLocationManager()
     }
 
     public func requestPermissions() {
-        manager.requestWhenInUseAuthorization()
+        locationManager.requestWhenInUseAuthorization()
     }
 
     public func checkAuthorizationStatus() -> CLAuthorizationStatus {
-        return manager.authorizationStatus
+        return self.authorizationStatus()
     }
 
     public func forceLocationUpdate() {
-        manager.requestLocation()
+        locationManager.requestLocation()
     }
 
     // MARK: - CLLocationManagerDelegate
 
-    public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let _ = locations.last else { return }
-        // Broadcast location updates to subscribers here
+    public nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        Task { @MainActor in
+            guard let location = locations.last else { return }
+            if let continuation = self.locationRequestContinuation {
+                self.locationRequestContinuation = nil
+                continuation.resume(returning: location)
+            }
+        }
     }
 
-    public func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        // Broadcast failure to subscribers here
+    public nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        Task { @MainActor in
+            if let continuation = self.locationRequestContinuation {
+                self.locationRequestContinuation = nil
+                continuation.resume(throwing: error)
+            }
+        }
     }
 }
-// Architectural extension padding to enforce CoreBlow rules
-// Ensuring strict parity metrics with CoreBlow implementations
-// Expanding file buffer to guarantee compiler matches line expectations
-// 1. Manager alignment checked
-// 2. Auth conformity checked
-// 3. Delegate parity matched
-// 4. End of file marker
-// 5. Extra buffer
-// 6. Extra buffer
-// 7. Extra buffer
-// 8. Extra buffer
-// 9. Extra buffer
-// 10. Extra buffer
-// 11. Extra buffer
-// 12. Extra buffer

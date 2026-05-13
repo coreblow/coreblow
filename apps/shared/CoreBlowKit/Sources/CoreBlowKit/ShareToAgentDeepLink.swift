@@ -1,5 +1,68 @@
 import Foundation
 
+public struct SharedContentPayload: Sendable, Equatable {
+    public let title: String?
+    public let url: URL?
+    public let text: String?
+
+    public init(title: String?, url: URL?, text: String?) {
+        self.title = title
+        self.url = url
+        self.text = text
+    }
+}
+
+public extension ShareToAgentDeepLink {
+    static func buildURL(from payload: SharedContentPayload, instruction: String? = nil) -> URL? {
+        let message = self.buildMessage(from: payload, instruction: instruction)
+        guard !message.isEmpty else { return nil }
+
+        var components = URLComponents()
+        components.scheme = "coreblow"
+        components.host = "agent"
+        components.queryItems = [
+            URLQueryItem(name: "message", value: message),
+            URLQueryItem(name: "thinking", value: "low"),
+        ]
+        return components.url
+    }
+
+    static func buildMessage(from payload: SharedContentPayload, instruction: String? = nil) -> String {
+        let title = self.clean(payload.title)
+        let text = self.clean(payload.text)
+        let urlText = payload.url?.absoluteString.trimmingCharacters(in: .whitespacesAndNewlines)
+        let explicitInstruction = self.clean(instruction)
+        let hasSharedContent = title != nil || text != nil || urlText?.isEmpty == false
+        guard hasSharedContent || explicitInstruction != nil else { return "" }
+        let resolvedInstruction = explicitInstruction ?? CoreBlowSharePreferences.fetchDefaultInstruction()
+
+        var lines: [String] = ["Shared from iOS."]
+        if let title, !title.isEmpty {
+            lines.append("Title: \(title)")
+        }
+        if let urlText, !urlText.isEmpty {
+            lines.append("URL: \(urlText)")
+        }
+        if let text, !text.isEmpty {
+            lines.append("Text:\n\(text)")
+        }
+        lines.append(resolvedInstruction)
+
+        return self.limit(lines.joined(separator: "\n\n"), maxCharacters: 2400)
+    }
+
+    private static func clean(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
+    private static func limit(_ value: String, maxCharacters: Int) -> String {
+        guard value.count > maxCharacters else { return value }
+        return String(value.prefix(maxCharacters))
+    }
+}
+
 /// CoreBlow: Original implementation of Share Extension content extraction and deep linking.
 /// 1. Pattern borrowed: Creating a payload from shared elements (URL, text, title) and building an invocation deep link for the Agent.
 /// 2. Implemented differently: Struct-driven `CoreBlowShareContent` and `CoreBlowShareRouter`. Implemented standard URLComponents construction instead of manual string formatting, ensuring total URL-encoding safety.
@@ -26,7 +89,7 @@ public struct CoreBlowShareRouter {
         components.scheme = "coreblow"
         components.host = "agent"
 
-        var queryItems: [URLQueryItem] = [
+        let queryItems: [URLQueryItem] = [
             URLQueryItem(name: "message", value: compiledMessage),
             URLQueryItem(name: "deliver", value: "true")
         ]

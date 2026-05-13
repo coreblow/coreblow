@@ -13,6 +13,7 @@ public enum CoreBlowTranscodeFailure: LocalizedError, Sendable {
     case invalidSourceData
     case metadataExtractionFailed
     case destinationCreationFailed
+    case encodeFailed
     case compressionExceededLimit(limit: Int, generated: Int)
 
     public var errorDescription: String? {
@@ -20,6 +21,7 @@ public enum CoreBlowTranscodeFailure: LocalizedError, Sendable {
         case .invalidSourceData: return "The provided data could not be parsed as an image."
         case .metadataExtractionFailed: return "Failed to extract necessary properties from the image source."
         case .destinationCreationFailed: return "Unable to create the image destination buffer."
+        case .encodeFailed: return "Failed to encode the image."
         case .compressionExceededLimit(let limit, let generated):
             return "The final image size (\(generated) bytes) exceeds the strict limit of \(limit) bytes."
         }

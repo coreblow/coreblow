@@ -1,10 +1,9 @@
 import CoreMotion
 import Foundation
+import CoreBlowKit
 
-/// Provides motion activity and pedometer data for gateway invoke commands.
-final class MotionService {
-
-    func activities(startISO: String?, endISO: String?, limit: Int?) async throws -> CoreBlowMotionActivityPayload {
+final class MotionService: MotionServicing {
+    func activities(params: CoreBlowMotionActivityParams) async throws -> CoreBlowMotionActivityPayload {
         guard CMMotionActivityManager.isActivityAvailable() else {
             throw NSError(domain: "Motion", code: 1, userInfo: [
                 NSLocalizedDescriptionKey: "MOTION_UNAVAILABLE: activity not supported on this device",
@@ -17,21 +16,22 @@ final class MotionService {
             ])
         }
 
-        let (start, end) = Self.resolveRange(startISO: startISO, endISO: endISO)
-        let cap = max(1, min(limit ?? 200, 1000))
+        let (start, end) = Self.resolveRange(startISO: params.startISO, endISO: params.endISO)
+        let limit = max(1, min(params.limit ?? 200, 1000))
 
         let manager = CMMotionActivityManager()
-        let entries: [CoreBlowMotionActivityEntry] = try await withCheckedThrowingContinuation { cont in
-            manager.queryActivityStarting(from: start, to: end, to: OperationQueue()) { activities, error in
+        let mapped: [CoreBlowMotionActivityEntry] = try await withCheckedThrowingContinuation { cont in
+            manager.queryActivityStarting(from: start, to: end, to: OperationQueue()) { activity, error in
                 if let error {
                     cont.resume(throwing: error)
                 } else {
                     let formatter = ISO8601DateFormatter()
-                    let sliced = Array((activities ?? []).suffix(cap))
-                    let mapped = sliced.map { entry in
+                    let sliced = Array((activity ?? []).suffix(limit))
+                    let entries = sliced.map { entry in
                         CoreBlowMotionActivityEntry(
                             startISO: formatter.string(from: entry.startDate),
-                            confidence: Self.confidenceLabel(entry.confidence),
+                            endISO: formatter.string(from: end),
+                            confidence: Self.confidenceString(entry.confidence),
                             isWalking: entry.walking,
                             isRunning: entry.running,
                             isCycling: entry.cycling,
@@ -39,14 +39,15 @@ final class MotionService {
                             isStationary: entry.stationary,
                             isUnknown: entry.unknown)
                     }
-                    cont.resume(returning: mapped)
+                    cont.resume(returning: entries)
                 }
             }
         }
-        return CoreBlowMotionActivityPayload(activities: entries)
+
+        return CoreBlowMotionActivityPayload(activities: mapped)
     }
 
-    func pedometer(startISO: String?, endISO: String?) async throws -> CoreBlowPedometerPayload {
+    func pedometer(params: CoreBlowPedometerParams) async throws -> CoreBlowPedometerPayload {
         guard CMPedometer.isStepCountingAvailable() else {
             throw NSError(domain: "Motion", code: 2, userInfo: [
                 NSLocalizedDescriptionKey: "PEDOMETER_UNAVAILABLE: step counting not supported",
@@ -59,21 +60,22 @@ final class MotionService {
             ])
         }
 
-        let (start, end) = Self.resolveRange(startISO: startISO, endISO: endISO)
-        let ped = CMPedometer()
+        let (start, end) = Self.resolveRange(startISO: params.startISO, endISO: params.endISO)
+        let pedometer = CMPedometer()
         let payload: CoreBlowPedometerPayload = try await withCheckedThrowingContinuation { cont in
-            ped.queryPedometerData(from: start, to: end) { data, error in
+            pedometer.queryPedometerData(from: start, to: end) { data, error in
                 if let error {
                     cont.resume(throwing: error)
                 } else {
                     let formatter = ISO8601DateFormatter()
-                    cont.resume(returning: CoreBlowPedometerPayload(
+                    let payload = CoreBlowPedometerPayload(
                         startISO: formatter.string(from: start),
                         endISO: formatter.string(from: end),
                         steps: data?.numberOfSteps.intValue,
                         distanceMeters: data?.distance?.doubleValue,
                         floorsAscended: data?.floorsAscended?.intValue,
-                        floorsDescended: data?.floorsDescended?.intValue))
+                        floorsDescended: data?.floorsDescended?.intValue)
+                    cont.resume(returning: payload)
                 }
             }
         }
@@ -87,7 +89,7 @@ final class MotionService {
         return (start, end)
     }
 
-    private static func confidenceLabel(_ confidence: CMMotionActivityConfidence) -> String {
+    private static func confidenceString(_ confidence: CMMotionActivityConfidence) -> String {
         switch confidence {
         case .low: "low"
         case .medium: "medium"
@@ -95,18 +97,4 @@ final class MotionService {
         @unknown default: "unknown"
         }
     }
-}
-
-// MARK: - Payload Types
-
-struct CoreBlowMotionActivityPayload { let activities: [CoreBlowMotionActivityEntry] }
-struct CoreBlowMotionActivityEntry {
-    let startISO: String; let confidence: String
-    let isWalking: Bool; let isRunning: Bool; let isCycling: Bool
-    let isAutomotive: Bool; let isStationary: Bool; let isUnknown: Bool
-}
-struct CoreBlowPedometerPayload {
-    let startISO: String; let endISO: String
-    let steps: Int?; let distanceMeters: Double?
-    let floorsAscended: Int?; let floorsDescended: Int?
 }

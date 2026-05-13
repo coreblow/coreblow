@@ -123,6 +123,11 @@ public enum FlexValue: Sendable, Hashable, Codable {
         }
     }
 
+    /// Bridge from AnyCodable to FlexValue.
+    public static func from(anyCodable: AnyCodable) -> FlexValue {
+        return from(anyCodable.value)
+    }
+
     // MARK: - Codable
 
     public init(from decoder: Decoder) throws {

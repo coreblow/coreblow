@@ -1,45 +1,40 @@
 import SwiftUI
 
-/// Alert shown when a deep link triggers an agent action requiring user confirmation.
-struct DeepLinkAgentPromptAlert: View {
-    let agentName: String
-    let action: String
-    let deepLinkURL: String
-    let onAllow: () -> Void
-    let onDeny: () -> Void
+struct DeepLinkAgentPromptAlert: ViewModifier {
+    @Environment(NodeAppModel.self) private var appModel: NodeAppModel
 
-    var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "link.badge.plus")
-                .font(.system(size: 44))
-                .foregroundStyle(.blue)
+    private var promptBinding: Binding<NodeAppModel.AgentDeepLinkPrompt?> {
+        Binding(
+            get: { self.appModel.pendingAgentDeepLinkPrompt },
+            set: { _ in
+                // Keep prompt state until explicit user action.
+            })
+    }
 
-            Text("Agent Action Request")
-                .font(.headline)
+    func body(content: Content) -> some View {
+        content.alert(item: self.promptBinding) { prompt in
+            Alert(
+                title: Text("Run CoreBlow agent?"),
+                message: Text(
+                    """
+                    Message:
+                    \(prompt.messagePreview)
 
-            Text("**\(agentName)** wants to execute:")
-                .font(.body)
-
-            Text(action)
-                .font(.callout)
-                .fontDesign(.monospaced)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
-
-            Text("Source: \(deepLinkURL)")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .truncationMode(.middle)
-
-            HStack(spacing: 16) {
-                Button("Deny", role: .destructive) { onDeny() }
-                    .buttonStyle(.bordered)
-                Button("Allow") { onAllow() }
-                    .buttonStyle(.borderedProminent)
-            }
+                    URL:
+                    \(prompt.urlPreview)
+                    """),
+                primaryButton: .cancel(Text("Cancel")) {
+                    self.appModel.declinePendingAgentDeepLinkPrompt()
+                },
+                secondaryButton: .default(Text("Run")) {
+                    Task { await self.appModel.approvePendingAgentDeepLinkPrompt() }
+                })
         }
-        .padding()
+    }
+}
+
+extension View {
+    func deepLinkAgentPromptAlert() -> some View {
+        self.modifier(DeepLinkAgentPromptAlert())
     }
 }

@@ -1,25 +1,23 @@
 import SwiftUI
 
-/// Transient toast notification shown when a voice wake word is detected.
 struct VoiceWakeToast: View {
-    let text: String
-    let isVisible: Bool
+    var command: String
+    var brighten: Bool = false
 
     var body: some View {
-        if isVisible {
-            HStack(spacing: 8) {
-                Image(systemName: "ear.fill")
-                    .font(.body)
-                    .foregroundStyle(.white)
-                Text(text)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.white)
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .background(.blue.gradient, in: Capsule())
-            .shadow(color: .blue.opacity(0.3), radius: 8, y: 4)
-            .transition(.move(edge: .top).combined(with: .opacity))
+        HStack(spacing: 10) {
+            Image(systemName: "mic.fill")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.primary)
+
+            Text(self.command)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+                .truncationMode(.tail)
         }
+        .statusGlassCard(brighten: self.brighten, verticalPadding: 10)
+        .accessibilityLabel("Voice Wake triggered")
+        .accessibilityValue("Command: \(self.command)")
     }
 }

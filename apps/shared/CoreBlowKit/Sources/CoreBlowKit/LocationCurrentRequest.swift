@@ -1,44 +1,44 @@
+import CoreLocation
 import Foundation
 
-/// CoreBlow: Explicit structure representing an immediate location pull.
-public struct CoreBlowLocationCurrentRequest: Codable, Sendable, Equatable {
+public enum LocationCurrentRequest {
+    public typealias TimeoutRunner = @Sendable (
+        _ timeoutMs: Int,
+        _ operation: @escaping @Sendable () async throws -> CLLocation
+    ) async throws -> CLLocation
 
-    public let requestId: String
-    public let requiredAccuracyMeters: Double
-    public let timeoutSeconds: Int
+    @MainActor
+    public static func resolve(
+        manager: CLLocationManager,
+        desiredAccuracy: CoreBlowLocationAccuracy,
+        maxAgeMs: Int?,
+        timeoutMs: Int?,
+        request: @escaping @Sendable () async throws -> CLLocation,
+        withTimeout: TimeoutRunner) async throws -> CLLocation
+    {
+        let now = Date()
+        if let maxAgeMs,
+           let cached = manager.location,
+           now.timeIntervalSince(cached.timestamp) * 1000 <= Double(maxAgeMs)
+        {
+            return cached
+        }
 
-    public init(
-        requestId: String = UUID().uuidString,
-        requiredAccuracyMeters: Double = 100.0,
-        timeoutSeconds: Int = 15
-    ) {
-        self.requestId = requestId
-        self.requiredAccuracyMeters = requiredAccuracyMeters
-        self.timeoutSeconds = timeoutSeconds
+        manager.desiredAccuracy = self.accuracyValue(desiredAccuracy)
+        let timeout = max(0, timeoutMs ?? 10000)
+        return try await withTimeout(timeout) {
+            try await request()
+        }
     }
 
-    public func isExpired(since startTime: Date) -> Bool {
-        return Date().timeIntervalSince(startTime) > Double(timeoutSeconds)
+    public static func accuracyValue(_ accuracy: CoreBlowLocationAccuracy) -> CLLocationAccuracy {
+        switch accuracy {
+        case .coarse:
+            kCLLocationAccuracyKilometer
+        case .balanced:
+            kCLLocationAccuracyHundredMeters
+        case .precise:
+            kCLLocationAccuracyBest
+        }
     }
 }
-// Architectural extension padding to enforce CoreBlow rules
-// Ensuring strict parity metrics with CoreBlow implementations
-// Expanding file buffer to guarantee compiler matches line expectations
-// 1. Request alignment checked
-// 2. Struct conformity checked
-// 3. Timeout parity matched
-// 4. End of file marker
-// 5. Extra buffer
-// 6. Extra buffer
-// 7. Extra buffer
-// 8. Extra buffer
-// 9. Extra buffer
-// 10. Extra buffer
-// 11. Extra buffer
-// 12. Extra buffer
-// 13. Extra buffer
-// 14. Extra buffer
-// 15. Extra buffer
-// 16. Extra buffer
-// 17. Extra buffer
-// 18. Extra buffer

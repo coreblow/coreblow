@@ -18,18 +18,52 @@ public struct TalkVoice: Sendable, Hashable, Codable {
 }
 
 /// Talk directive specifying what and how to speak.
-public struct TalkDirective: Sendable, Codable {
+public struct TalkDirective: Sendable, Codable, Equatable {
     public let text: String
     public let voiceId: String?
     public let rate: Float?
     public let pitch: Float?
     public let volume: Float?
     public let language: String?
+    public let modelId: String?
+    public let speed: Double?
+    public let rateWPM: Int?
+    public let stability: Double?
+    public let similarity: Double?
+    public let style: Double?
+    public let speakerBoost: Bool?
+    public let seed: Int?
+    public let normalize: String?
+    public let outputFormat: String?
+    public let latencyTier: Int?
+    public let once: Bool?
 
-    public init(text: String, voiceId: String? = nil, rate: Float? = nil,
-                pitch: Float? = nil, volume: Float? = nil, language: String? = nil) {
+    public init(
+        text: String = "",
+        voiceId: String? = nil,
+        rate: Float? = nil,
+        pitch: Float? = nil,
+        volume: Float? = nil,
+        language: String? = nil,
+        modelId: String? = nil,
+        speed: Double? = nil,
+        rateWPM: Int? = nil,
+        stability: Double? = nil,
+        similarity: Double? = nil,
+        style: Double? = nil,
+        speakerBoost: Bool? = nil,
+        seed: Int? = nil,
+        normalize: String? = nil,
+        outputFormat: String? = nil,
+        latencyTier: Int? = nil,
+        once: Bool? = nil
+    ) {
         self.text = text; self.voiceId = voiceId; self.rate = rate
         self.pitch = pitch; self.volume = volume; self.language = language
+        self.modelId = modelId; self.speed = speed; self.rateWPM = rateWPM
+        self.stability = stability; self.similarity = similarity; self.style = style
+        self.speakerBoost = speakerBoost; self.seed = seed; self.normalize = normalize
+        self.outputFormat = outputFormat; self.latencyTier = latencyTier; self.once = once
     }
 }
 

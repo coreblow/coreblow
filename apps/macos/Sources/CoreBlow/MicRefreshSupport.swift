@@ -23,14 +23,18 @@ enum MicRefreshSupport {
     }
 
     @MainActor
-    static func startObserver(_ observer: AudioInputDeviceObserver, onChange: @escaping () -> Void) {
-        observer.start(onChange: onChange)
+    static func startObserver(_ observer: AudioInputDeviceObserver, onChange: @escaping @MainActor () -> Void) {
+        observer.start {
+            Task { @MainActor in
+                onChange()
+            }
+        }
     }
 
     @MainActor
-    static func schedule(refreshTask: inout Task<Void, Never>?, action: @escaping () async -> Void) {
+    static func schedule(refreshTask: inout Task<Void, Never>?, action: @escaping @MainActor () async -> Void) {
         refreshTask?.cancel()
-        refreshTask = Task {
+        refreshTask = Task { @MainActor in
             try? await Task.sleep(nanoseconds: 500_000_000)
             guard !Task.isCancelled else { return }
             await action()

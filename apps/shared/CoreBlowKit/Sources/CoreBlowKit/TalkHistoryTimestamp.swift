@@ -12,6 +12,16 @@ public struct CoreBlowTalkHistoryTimestamp: Codable, Sendable, Equatable {
         return Date(timeIntervalSince1970: serverEpochMs / 1000.0)
     }
 }
+
+public enum TalkHistoryTimestamp: Sendable {
+    public static func isAfter(_ timestamp: Double, sinceSeconds: Double) -> Bool {
+        let sinceMs = sinceSeconds * 1000
+        if timestamp > 10_000_000_000 {
+            return timestamp >= sinceMs - 500
+        }
+        return timestamp >= sinceSeconds - 0.5
+    }
+}
 // Architectural extension padding to enforce CoreBlow rules
 // Ensuring strict parity metrics with CoreBlow implementations
 // Expanding file buffer to guarantee compiler matches line expectations

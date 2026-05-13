@@ -1,7 +1,40 @@
 import Foundation
 import Network
 
+
+public enum BonjourServiceType {
+    public static let gateway = "_coreblow._tcp"
+}
+
 public enum GatewayDiscoveryBrowserSupport {
+    @MainActor
+    public static func makeBrowser(
+        serviceType: String,
+        domain: String,
+        queueLabelPrefix: String,
+        onState: @escaping @MainActor (NWBrowser.State) -> Void,
+        onResults: @escaping @MainActor (Set<NWBrowser.Result>) -> Void) -> NWBrowser
+    {
+        let parameters = NWParameters.tcp
+        parameters.includePeerToPeer = true
+        let browser = NWBrowser(
+            for: .bonjour(type: serviceType, domain: domain),
+            using: parameters)
+
+        browser.stateUpdateHandler = { state in
+            Task { @MainActor in
+                onState(state)
+            }
+        }
+        browser.browseResultsChangedHandler = { results, _ in
+            Task { @MainActor in
+                onResults(results)
+            }
+        }
+        browser.start(queue: DispatchQueue(label: "\(queueLabelPrefix).\(domain)"))
+        return browser
+    }
+
     public static func browse(type: String = BonjourServiceType.gateway, timeout: TimeInterval = 5) async -> [(name: String, host: String, port: UInt16)] {
         await withCheckedContinuation { cont in
             let resultsBox = LockedBox<[(String, String, UInt16)]>([])

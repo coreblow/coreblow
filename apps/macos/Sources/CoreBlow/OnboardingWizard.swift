@@ -27,6 +27,38 @@ private func bridgeToLocal(_ value: ProtocolAnyCodable?) -> AnyCodable? {
     value.map(bridgeToLocal)
 }
 
+private func bridgeToLocal(_ value: FlexValue?) -> AnyCodable? {
+    value.map { AnyCodable($0.rawValue) }
+}
+
+private func flexValue(from value: AnyCodable) -> FlexValue {
+    switch value.value {
+    case let object as [String: AnyCodable]:
+        return .object(object.mapValues { flexValue(from: $0) })
+    case let array as [AnyCodable]:
+        return .array(array.map { flexValue(from: $0) })
+    default:
+        return FlexValue.from(value.value)
+    }
+}
+
+private func flexObject(from raw: [String: AnyCodable]?) -> [String: FlexValue]? {
+    raw?.mapValues { flexValue(from: $0) }
+}
+
+private func wizardStatusString(_ status: AnyCodable?) -> String? {
+    guard let status else { return nil }
+    if let string = status.value as? String {
+        return string.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    }
+    if let object = status.value as? [String: AnyCodable],
+       let string = object["status"]?.value as? String
+    {
+        return string.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    }
+    return nil
+}
+
 @MainActor
 @Observable
 final class OnboardingWizardModel {
@@ -145,7 +177,7 @@ final class OnboardingWizardModel {
         self.sessionId = res.sessionid
         self.status = wizardStatusString(res.status) ?? (res.done ? "done" : "running")
         self.errorMessage = res.error
-        self.currentStep = decodeWizardStep(res.step)
+        self.currentStep = decodeWizardStep(from: flexObject(from: res.step))
         if self.currentStep == nil, res.step != nil {
             onboardingWizardLogger.error("wizard step decode failed")
         }
@@ -157,7 +189,7 @@ final class OnboardingWizardModel {
         let status = wizardStatusString(res.status)
         self.status = status ?? self.status
         self.errorMessage = res.error
-        self.currentStep = decodeWizardStep(res.step)
+        self.currentStep = decodeWizardStep(from: flexObject(from: res.step))
         if self.currentStep == nil, res.step != nil {
             onboardingWizardLogger.error("wizard step decode failed")
         }
@@ -235,17 +267,17 @@ struct OnboardingWizardStepView: View {
         self.step = step
         self.isSubmitting = isSubmitting
         self.onStepSubmit = onSubmit
-        let options = parseWizardOptions(step.options).enumerated().map { index, option in
+        let options = parseWizardOptions(from: step.options).enumerated().map { index, option in
             WizardOptionItem(index: index, option: option)
         }
         self.optionItems = options
-        let initialText = anyCodableString(step.initialvalue)
-        let initialConfirm = anyCodableBool(step.initialvalue)
+        let initialText = anyCodableString(step.initialvalue) ?? ""
+        let initialConfirm = anyCodableBool(step.initialvalue) ?? false
         let initialIndex = options.firstIndex(where: { anyCodableEqual($0.option.value, step.initialvalue) }) ?? 0
         let initialMulti = Set(
             options.filter { option in
-                anyCodableArray(step.initialvalue).contains { anyCodableEqual($0, option.option.value) }
-            }.map(\.index))
+                (step.initialvalue?.coercedArray ?? []).contains { anyCodableEqual($0, option.option.value) }
+            }.map { $0.index })
 
         _textValue = State(initialValue: initialText)
         _confirmValue = State(initialValue: initialConfirm)

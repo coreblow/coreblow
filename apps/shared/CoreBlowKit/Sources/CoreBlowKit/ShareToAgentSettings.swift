@@ -36,3 +36,13 @@ public struct CoreBlowSharePreferences {
         sharedDefaults.set(instruction, forKey: defaultInstructionKey)
     }
 }
+
+public extension ShareToAgentSettings {
+    static func loadDefaultInstruction() -> String {
+        CoreBlowSharePreferences.fetchDefaultInstruction()
+    }
+
+    static func saveDefaultInstruction(_ instruction: String?) {
+        CoreBlowSharePreferences.updateDefaultInstruction(instruction)
+    }
+}

@@ -2,21 +2,21 @@ import Foundation
 import Testing
 @testable import CoreBlow
 
-@Suite("KeychainStore")
-struct KeychainStoreTests {
-    @Test func saveAndRetrieveToken() {
-        let store = KeychainStore()
-        let token = "test-token-\(UUID().uuidString)"
-        store.saveToken(token, forGateway: "test-gw")
-        let loaded = store.loadToken(forGateway: "test-gw")
-        #expect(loaded == token)
-        store.deleteToken(forGateway: "test-gw")
-    }
+@Suite struct KeychainStoreTests {
+    @Test func saveLoadUpdateDeleteRoundTrip() {
+        let service = "ai.coreblow.tests.\(UUID().uuidString)"
+        let account = "value"
 
-    @Test func deleteRemovesToken() {
-        let store = KeychainStore()
-        store.saveToken("temp", forGateway: "del-gw")
-        store.deleteToken(forGateway: "del-gw")
-        #expect(store.loadToken(forGateway: "del-gw") == nil)
+        #expect(KeychainStore.delete(service: service, account: account))
+        #expect(KeychainStore.loadString(service: service, account: account) == nil)
+
+        #expect(KeychainStore.saveString("first", service: service, account: account))
+        #expect(KeychainStore.loadString(service: service, account: account) == "first")
+
+        #expect(KeychainStore.saveString("second", service: service, account: account))
+        #expect(KeychainStore.loadString(service: service, account: account) == "second")
+
+        #expect(KeychainStore.delete(service: service, account: account))
+        #expect(KeychainStore.loadString(service: service, account: account) == nil)
     }
 }

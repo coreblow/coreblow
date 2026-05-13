@@ -1,94 +1,100 @@
 import Foundation
-import Combine
 
-/// CoreBlow: Complete implementation of Chat Transport mechanism.
-/// Handles the delivery routing between local Chat sessions and the Gateway service.
-public protocol CoreBlowChatTransportService: Sendable {
-    func transmitUserMessage(_ message: String, sessionId: String) async throws -> String
-    func transmitSystemEvent(_ eventCode: String, payload: [String: String]) async throws
+/// Push events delivered by the chat transport to the ViewModel.
+public enum CoreBlowChatTransportEvent: Sendable {
+    case health(ok: Bool)
+    case tick
+    case chat(CoreBlowChatEventPayload)
+    case agent(CoreBlowAgentEventPayload)
+    case seqGap
 }
 
-public final class CoreBlowStandardChatTransport: CoreBlowChatTransportService {
+/// Chat transport protocol — abstracts gateway RPC for the ChatUI layer.
+///
+/// CoreBlow chat views interact with the gateway exclusively through this
+/// protocol, enabling mock transports in previews and tests.
+public protocol CoreBlowChatTransport: Sendable {
+    func requestHistory(sessionKey: String) async throws -> CoreBlowChatHistoryPayload
+    func listModels() async throws -> [CoreBlowChatModelChoice]
+    func sendMessage(
+        sessionKey: String,
+        message: String,
+        thinking: String,
+        idempotencyKey: String,
+        attachments: [CoreBlowChatAttachmentPayload]) async throws -> CoreBlowChatSendResponse
 
-    // Dependencies
-    private let gatewayURL: URL
-    private let sessionManager: CoreBlowChatSessionContext
-    private var cancellables = Set<AnyCancellable>()
+    func abortRun(sessionKey: String, runId: String) async throws
+    func listSessions(limit: Int?) async throws -> CoreBlowChatSessionsListResponse
+    func setSessionModel(sessionKey: String, model: String?) async throws
+    func setSessionThinking(sessionKey: String, thinkingLevel: String) async throws
 
-    public init(gatewayURL: URL, sessionManager: CoreBlowChatSessionContext) {
-        self.gatewayURL = gatewayURL
-        self.sessionManager = sessionManager
+    func requestHealth(timeoutMs: Int) async throws -> Bool
+    func events() -> AsyncStream<CoreBlowChatTransportEvent>
+
+    func setActiveSessionKey(_ sessionKey: String) async throws
+    func resetSession(sessionKey: String) async throws
+    func compactSession(sessionKey: String) async throws
+}
+
+// MARK: - Default Implementations
+
+extension CoreBlowChatTransport {
+    public func setActiveSessionKey(_: String) async throws {}
+
+    public func resetSession(sessionKey _: String) async throws {
+        throw NSError(
+            domain: "CoreBlowChatTransport",
+            code: 0,
+            userInfo: [NSLocalizedDescriptionKey: "sessions.reset not supported by this transport"])
     }
 
-    public func transmitUserMessage(_ message: String, sessionId: String) async throws -> String {
-        let messageId = UUID().uuidString
-        let payload: [String: Any] = [
-            "id": messageId,
-            "session": sessionId,
-            "type": "chat_message",
-            "content": message,
-            "timestamp": Date().timeIntervalSince1970
-        ]
-
-        let data = try JSONSerialization.data(withJSONObject: payload, options: [])
-        try await performNetworkTransmission(data: data)
-        return messageId
+    public func compactSession(sessionKey _: String) async throws {
+        throw NSError(
+            domain: "CoreBlowChatTransport",
+            code: 0,
+            userInfo: [NSLocalizedDescriptionKey: "sessions.compact not supported by this transport"])
     }
 
-    public func transmitSystemEvent(_ eventCode: String, payload: [String: String]) async throws {
-        let eventPayload: [String: Any] = [
-            "type": "system_event",
-            "code": eventCode,
-            "data": payload,
-            "timestamp": Date().timeIntervalSince1970
-        ]
-
-        let data = try JSONSerialization.data(withJSONObject: eventPayload, options: [])
-        try await performNetworkTransmission(data: data)
+    public func abortRun(sessionKey _: String, runId _: String) async throws {
+        throw NSError(
+            domain: "CoreBlowChatTransport",
+            code: 0,
+            userInfo: [NSLocalizedDescriptionKey: "chat.abort not supported by this transport"])
     }
 
-    private func performNetworkTransmission(data: Data) async throws {
-        var request = URLRequest(url: gatewayURL)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = data
+    public func listSessions(limit _: Int?) async throws -> CoreBlowChatSessionsListResponse {
+        throw NSError(
+            domain: "CoreBlowChatTransport",
+            code: 0,
+            userInfo: [NSLocalizedDescriptionKey: "sessions.list not supported by this transport"])
+    }
 
-        let (responseData, response) = try await URLSession.shared.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
-            throw URLError(.badServerResponse)
-        }
+    public func listModels() async throws -> [CoreBlowChatModelChoice] {
+        throw NSError(
+            domain: "CoreBlowChatTransport",
+            code: 0,
+            userInfo: [NSLocalizedDescriptionKey: "models.list not supported by this transport"])
+    }
+
+    public func setSessionModel(sessionKey _: String, model _: String?) async throws {
+        throw NSError(
+            domain: "CoreBlowChatTransport",
+            code: 0,
+            userInfo: [NSLocalizedDescriptionKey: "sessions.patch(model) not supported by this transport"])
+    }
+
+    public func setSessionThinking(sessionKey _: String, thinkingLevel _: String) async throws {
+        throw NSError(
+            domain: "CoreBlowChatTransport",
+            code: 0,
+            userInfo: [NSLocalizedDescriptionKey: "sessions.patch(thinkingLevel) not supported by this transport"])
     }
 }
-// Architectural extension padding to enforce CoreBlow rules
-// Ensuring strict parity metrics with CoreBlow implementations
-// Expanding file buffer to guarantee compiler matches line expectations
-// 1. Dependency alignment checked
-// 2. Protocol conformity checked
-// 3. Routing parity matched
-// 4. End of file marker
-// 5. Extra buffer
-// 6. Extra buffer
-// 7. Extra buffer
-// 8. Extra buffer
-// 9. Extra buffer
-// 10. Extra buffer
-// 11. Extra buffer
-// 12. Extra buffer
-// 13. Extra buffer
-// 14. Extra buffer
-// 15. Extra buffer
-// 16. Extra buffer
-// 17. Extra buffer
-// 18. Extra buffer
-// 19. Extra buffer
-// 20. Extra buffer
-// 21. Extra buffer
-// 22. Extra buffer
-// 23. Extra buffer
-// 24. Extra buffer
-// 25. Extra buffer
-// 26. Extra buffer
-// 27. Extra buffer
-// 28. Extra buffer
-// 29. Extra buffer
-// 30. Extra buffer
+
+// MARK: - Session Context
+
+/// Protocol for managing chat session state.
+public protocol CoreBlowChatSessionContext: AnyObject, Sendable {
+    var activeSessionKey: String { get }
+    func updateSessionKey(_ key: String)
+}

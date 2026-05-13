@@ -189,25 +189,24 @@ actor GatewayWizardClient {
         self.task = nil
     }
 
-    func request(method: String, params: [String: ProtoAnyCodable]?) async throws -> ResponseFrame {
+    func request(method: String, params: [String: ProtoAnyCodable]?) async throws -> GatewayResponse {
         guard let task = self.task else {
             throw WizardCliError.gatewayError("gateway not connected")
         }
         let id = UUID().uuidString
-        let frame = RequestFrame(
-            type: "req",
-            id: id,
+        let frame = GatewayRequest(
             method: method,
-            params: params.map { ProtoAnyCodable($0) })
+            params: params.map { FlexValue.from(anyCodable: ProtoAnyCodable($0)) })
         let data = try self.encoder.encode(frame)
         try await task.send(.data(data))
 
         while true {
             let message = try await task.receive()
             let frame = try decodeFrame(message)
-            if case let .res(res) = frame, res.id == id {
-                if res.ok == false {
-                    let msg = (res.error?["message"]?.value as? String) ?? "gateway error"
+            if case let .response(res) = frame {
+                guard res.id == id else { continue }
+                if !res.ok {
+                    let msg = res.errorMessage ?? "gateway error"
                     throw WizardCliError.gatewayError(msg)
                 }
                 return res
@@ -215,7 +214,7 @@ actor GatewayWizardClient {
         }
     }
 
-    func decodePayload<T: Decodable>(_ response: ResponseFrame, as _: T.Type) throws -> T {
+    func decodePayload<T: Decodable>(_ response: GatewayResponse, as _: T.Type) throws -> T {
         guard let payload = response.payload else {
             throw WizardCliError.decodeError("missing payload")
         }
@@ -224,10 +223,11 @@ actor GatewayWizardClient {
     }
 
     private func decodeFrame(_ message: URLSessionWebSocketTask.Message) throws -> GatewayFrame {
-        let data: Data? = switch message {
-        case let .data(data): data
-        case let .string(text): text.data(using: .utf8)
-        @unknown default: nil
+        let data: Data?
+        switch message {
+        case let .data(d): data = d
+        case let .string(text): data = text.data(using: .utf8)
+        @unknown default: data = nil
         }
         guard let data else {
             throw WizardCliError.decodeError("empty gateway response")
@@ -274,7 +274,7 @@ actor GatewayWizardClient {
         let connectNonce = try await self.waitForConnectChallenge()
         let identity = DeviceIdentityStore.loadOrCreate()
         let signedAtMs = Int(Date().timeIntervalSince1970 * 1000)
-        let payload = GatewayDeviceAuthPayload.buildV3(
+        let payload = DeviceAuthPayload.buildV3(
             deviceId: identity.deviceId,
             clientId: clientId,
             clientMode: clientMode,
@@ -285,7 +285,7 @@ actor GatewayWizardClient {
             nonce: connectNonce,
             platform: platform,
             deviceFamily: "Mac")
-        if let device = GatewayDeviceAuthPayload.signedDeviceDictionary(
+        if let device = DeviceAuthPayload.signedDeviceDictionary(
             payload: payload,
             identity: identity,
             signedAtMs: signedAtMs,
@@ -295,20 +295,20 @@ actor GatewayWizardClient {
         }
 
         let reqId = UUID().uuidString
-        let frame = RequestFrame(
-            type: "req",
-            id: reqId,
+        let frame = GatewayRequest(
             method: "connect",
-            params: ProtoAnyCodable(params))
+            params: FlexValue.from(anyCodable: ProtoAnyCodable(params)),
+            id: reqId)
         let data = try self.encoder.encode(frame)
         try await task.send(.data(data))
 
         while true {
             let message = try await task.receive()
             let frameResponse = try decodeFrame(message)
-            if case let .res(res) = frameResponse, res.id == reqId {
-                if res.ok == false {
-                    let msg = (res.error?["message"]?.value as? String) ?? "gateway connect failed"
+            if case let .response(res) = frameResponse {
+                guard res.id == reqId else { continue }
+                if !res.ok {
+                    let msg = res.errorMessage ?? "gateway connect failed"
                     throw WizardCliError.gatewayError(msg)
                 }
                 _ = try self.decodePayload(res, as: HelloOk.self)
@@ -327,8 +327,7 @@ actor GatewayWizardClient {
                     let message = try await task.receive()
                     let frame = try await self.decodeFrame(message)
                     if case let .event(evt) = frame, evt.event == "connect.challenge",
-                       let payload = evt.payload?.value as? [String: ProtoAnyCodable],
-                       let nonce = GatewayConnectChallengeSupport.nonce(from: payload)
+                       let nonce = evt.payload?["nonce"]?.stringValue
                     {
                         return nonce
                     }
@@ -411,7 +410,7 @@ private func runWizard(client: GatewayWizardClient, opts: WizardCliOptions) asyn
     }
 }
 
-private func dumpResult(_ response: ResponseFrame) {
+private func dumpResult(_ response: GatewayResponse) {
     guard let payload = response.payload else {
         print("{\"error\":\"missing payload\"}")
         return
@@ -423,7 +422,7 @@ private func dumpResult(_ response: ResponseFrame) {
     }
 }
 
-private func promptAnswer(for step: WizardStep) throws -> Any {
+private func promptAnswer(for step: CLIWizardStep) throws -> Any {
     let type = wizardStepType(step)
     if let title = step.title, !title.isEmpty {
         print("\n\(title)")
@@ -464,7 +463,7 @@ private func promptAnswer(for step: WizardStep) throws -> Any {
     }
 }
 
-private func promptSelect(_ step: WizardStep) throws -> Any {
+private func promptSelect(_ step: CLIWizardStep) throws -> Any {
     let options = parseWizardOptions(step.options)
     guard !options.isEmpty else { return NSNull() }
     for (idx, option) in options.enumerated() {
@@ -488,7 +487,7 @@ private func promptSelect(_ step: WizardStep) throws -> Any {
     }
 }
 
-private func promptMultiSelect(_ step: WizardStep) throws -> [Any] {
+private func promptMultiSelect(_ step: CLIWizardStep) throws -> [Any] {
     let options = parseWizardOptions(step.options)
     guard !options.isEmpty else { return [] }
     for (idx, option) in options.enumerated() {

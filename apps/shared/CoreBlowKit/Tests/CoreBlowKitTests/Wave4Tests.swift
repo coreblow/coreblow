@@ -52,7 +52,7 @@ struct BridgeFrameTests {
 
     @Test("NodeError codable")
     func nodeError() throws {
-        let err = NodeError(code: "CMD_FAILED", message: "command not available")
+        let err = NodeError(code: .invalidRequest, message: "command not available")
         let data = try JSONEncoder().encode(err)
         let decoded = try JSONDecoder().decode(NodeError.self, from: data)
         #expect(decoded == err)

@@ -115,6 +115,8 @@ public struct GatewayRPCError: LocalizedError, Sendable {
     }
 }
 
+public typealias GatewayResponseError = GatewayRPCError
+
 // MARK: - Decoding Error
 
 /// Error when a gateway response payload can't be decoded.

@@ -51,6 +51,40 @@ public enum GatewayDiscoveryStatus: Sendable {
 
 /// Gateway discovery payload decoding helpers.
 public enum GatewayPayloadDecoding {
+    /// Decode a JSON payload from a typed gateway payload wrapper.
+    public static func decode<T: Decodable>(
+        _ payload: AnyCodable,
+        as _: T.Type = T.self) throws -> T
+    {
+        let data = try JSONEncoder().encode(payload)
+        return try JSONDecoder().decode(T.self, from: data)
+    }
+
+    /// Decode a JSON payload from CoreBlow's typed flexible payload wrapper.
+    public static func decode<T: Decodable>(
+        _ payload: FlexValue,
+        as _: T.Type = T.self) throws -> T
+    {
+        let data = try JSONEncoder().encode(payload)
+        return try JSONDecoder().decode(T.self, from: data)
+    }
+
+    public static func decodeIfPresent<T: Decodable>(
+        _ payload: AnyCodable?,
+        as _: T.Type = T.self) throws -> T?
+    {
+        guard let payload else { return nil }
+        return try self.decode(payload, as: T.self)
+    }
+
+    public static func decodeIfPresent<T: Decodable>(
+        _ payload: FlexValue?,
+        as _: T.Type = T.self) throws -> T?
+    {
+        guard let payload else { return nil }
+        return try self.decode(payload, as: T.self)
+    }
+
     /// Decode a JSON payload from a gateway response.
     public static func decode<T: Decodable>(_ type: T.Type, from response: GatewayResponse) throws -> T {
         guard let payload = response.payload else {

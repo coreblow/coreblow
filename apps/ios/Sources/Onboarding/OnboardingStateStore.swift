@@ -1,53 +1,66 @@
 import Foundation
 
-/// Connection mode options during onboarding.
 enum OnboardingConnectionMode: String, CaseIterable {
-    case scan = "scan"
-    case qrCode = "qr"
-    case manual = "manual"
+    case homeNetwork = "home_network"
+    case remoteDomain = "remote_domain"
+    case developerLocal = "developer_local"
 
-    var label: String {
+    var title: String {
         switch self {
-        case .scan: return "Scan Network"
-        case .qrCode: return "Scan QR Code"
-        case .manual: return "Enter Manually"
-        }
-    }
-
-    var icon: String {
-        switch self {
-        case .scan: return "antenna.radiowaves.left.and.right"
-        case .qrCode: return "qrcode.viewfinder"
-        case .manual: return "keyboard"
+        case .homeNetwork:
+            "Home Network"
+        case .remoteDomain:
+            "Remote Domain"
+        case .developerLocal:
+            "Same Machine (Dev)"
         }
     }
 }
 
-/// Persistent onboarding state management.
 enum OnboardingStateStore {
-    private static let completedKey = "onboarding.completed"
-    private static let lastModeKey = "onboarding.lastMode"
+    private static let completedDefaultsKey = "onboarding.completed"
+    private static let firstRunIntroSeenDefaultsKey = "onboarding.first_run_intro_seen"
+    private static let lastModeDefaultsKey = "onboarding.last_mode"
+    private static let lastSuccessTimeDefaultsKey = "onboarding.last_success_time"
 
-    static var isCompleted: Bool {
-        get { UserDefaults.standard.bool(forKey: completedKey) }
-        set { UserDefaults.standard.set(newValue, forKey: completedKey) }
+    @MainActor
+    static func shouldPresentOnLaunch(appModel: NodeAppModel, defaults: UserDefaults = .standard) -> Bool {
+        if defaults.bool(forKey: Self.completedDefaultsKey) { return false }
+        // If we have a last-known connection config, don't force onboarding on launch. Auto-connect
+        // should handle reconnecting, and users can always open onboarding manually if needed.
+        if GatewaySettingsStore.loadLastGatewayConnection() != nil { return false }
+        return appModel.gatewayServerName == nil
     }
 
-    static var lastMode: OnboardingConnectionMode? {
-        get {
-            guard let raw = UserDefaults.standard.string(forKey: lastModeKey) else { return nil }
-            return OnboardingConnectionMode(rawValue: raw)
+    static func markCompleted(mode: OnboardingConnectionMode? = nil, defaults: UserDefaults = .standard) {
+        defaults.set(true, forKey: Self.completedDefaultsKey)
+        if let mode {
+            defaults.set(mode.rawValue, forKey: Self.lastModeDefaultsKey)
         }
-        set { UserDefaults.standard.set(newValue?.rawValue, forKey: lastModeKey) }
+        defaults.set(Int(Date().timeIntervalSince1970), forKey: Self.lastSuccessTimeDefaultsKey)
     }
 
-    static func markCompleted(mode: OnboardingConnectionMode) {
-        isCompleted = true
-        lastMode = mode
+    static func shouldPresentFirstRunIntro(defaults: UserDefaults = .standard) -> Bool {
+        !defaults.bool(forKey: Self.firstRunIntroSeenDefaultsKey)
     }
 
-    static func reset() {
-        isCompleted = false
-        lastMode = nil
+    static func markFirstRunIntroSeen(defaults: UserDefaults = .standard) {
+        defaults.set(true, forKey: Self.firstRunIntroSeenDefaultsKey)
+    }
+
+    static func markIncomplete(defaults: UserDefaults = .standard) {
+        defaults.set(false, forKey: Self.completedDefaultsKey)
+    }
+
+    static func reset(defaults: UserDefaults = .standard) {
+        defaults.set(false, forKey: Self.completedDefaultsKey)
+        defaults.set(false, forKey: Self.firstRunIntroSeenDefaultsKey)
+    }
+
+    static func lastMode(defaults: UserDefaults = .standard) -> OnboardingConnectionMode? {
+        let raw = defaults.string(forKey: Self.lastModeDefaultsKey)?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !raw.isEmpty else { return nil }
+        return OnboardingConnectionMode(rawValue: raw)
     }
 }

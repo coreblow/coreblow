@@ -1,17 +1,22 @@
 import Testing
 @testable import CoreBlow
 
-@Suite("GatewayDiscoveryModel")
-struct GatewayDiscoveryModelTests {
-    @Test @MainActor func initialStateIsNotScanning() {
+@Suite(.serialized) struct GatewayDiscoveryModelTests {
+    @Test @MainActor func debugLoggingCapturesLifecycleAndResets() {
         let model = GatewayDiscoveryModel()
-        #expect(!model.isScanning)
-        #expect(model.discoveredEndpoints.isEmpty)
-    }
 
-    @Test @MainActor func startScanTogglesState() {
-        let model = GatewayDiscoveryModel()
-        model.startScan()
-        #expect(model.isScanning)
+        #expect(model.debugLog.isEmpty)
+        #expect(model.statusText == "Idle")
+
+        model.setDebugLoggingEnabled(true)
+        #expect(model.debugLog.count >= 2)
+
+        model.stop()
+        #expect(model.statusText == "Stopped")
+        #expect(model.gateways.isEmpty)
+        #expect(model.debugLog.count >= 3)
+
+        model.setDebugLoggingEnabled(false)
+        #expect(model.debugLog.isEmpty)
     }
 }

@@ -218,7 +218,11 @@ public enum ToolDisplayRegistry {
     }
 
     private static func shortenHomeInString(_ value: String) -> String {
+        #if os(iOS)
+        let home = NSHomeDirectory()
+        #else
         let home = FileManager.default.homeDirectoryForCurrentUser.path
+        #endif
         return value.replacingOccurrences(of: home, with: "~")
     }
 }

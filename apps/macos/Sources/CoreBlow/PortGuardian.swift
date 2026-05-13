@@ -62,7 +62,7 @@ actor PortGuardian {
                     port \(port) held by \(listener.command)
                     (pid \(listener.pid)) in remote mode — not killing
                     """
-                    self.logger.warning(message)
+                    self.logger.warning("\(message, privacy: .public)")
                     continue
                 }
                 let killed = await self.kill(listener.pid)

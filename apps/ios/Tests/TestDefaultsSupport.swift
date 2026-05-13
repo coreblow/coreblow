@@ -1,19 +1,26 @@
 import Foundation
 
-/// Shared test utilities for UserDefaults isolation.
-enum TestDefaultsSupport {
-    static func makeIsolatedDefaults() -> UserDefaults {
-        let suiteName = "ai.coreblow.tests.\(UUID().uuidString)"
-        return UserDefaults(suiteName: suiteName)!
+func withUserDefaults<T>(_ updates: [String: Any?], _ body: () throws -> T) rethrows -> T {
+    let defaults = UserDefaults.standard
+    var snapshot: [String: Any?] = [:]
+    for key in updates.keys {
+        snapshot[key] = defaults.object(forKey: key)
     }
-
-    static func cleanup(_ defaults: UserDefaults) {
-        defaults.removePersistentDomain(forName: defaults.suiteName ?? "")
+    for (key, value) in updates {
+        if let value {
+            defaults.set(value, forKey: key)
+        } else {
+            defaults.removeObject(forKey: key)
+        }
     }
-}
-
-private extension UserDefaults {
-    var suiteName: String? {
-        (self as AnyObject).value(forKey: "suiteName") as? String
+    defer {
+        for (key, value) in snapshot {
+            if let value {
+                defaults.set(value, forKey: key)
+            } else {
+                defaults.removeObject(forKey: key)
+            }
+        }
     }
+    return try body()
 }

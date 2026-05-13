@@ -1,19 +1,33 @@
-import Foundation
+import CoreBlowKit
+import Network
 import Testing
 @testable import CoreBlow
 
-@Suite("GatewayEndpointID")
-struct GatewayEndpointIDTests {
-    @Test func stableIDFromHostAndPort() {
-        let config = GatewayConnectConfig(host: "192.168.1.10", port: 8080)
-        let id = config.stableID
-        #expect(!id.isEmpty)
-        #expect(id == GatewayConnectConfig(host: "192.168.1.10", port: 8080).stableID)
+@Suite struct GatewayEndpointIDTests {
+    @Test func stableIDForServiceDecodesAndNormalizesName() {
+        let endpoint = NWEndpoint.service(
+            name: "CoreBlow\\032Gateway   \\032  Node\n",
+            type: "_coreblow-gw._tcp",
+            domain: "local.",
+            interface: nil)
+
+        #expect(GatewayEndpointID.stableID(endpoint) == "_coreblow-gw._tcp|local.|CoreBlow Gateway Node")
     }
 
-    @Test func differentPortYieldsDifferentID() {
-        let a = GatewayConnectConfig(host: "10.0.0.1", port: 8080)
-        let b = GatewayConnectConfig(host: "10.0.0.1", port: 9090)
-        #expect(a.stableID != b.stableID)
+    @Test func stableIDForNonServiceUsesEndpointDescription() {
+        let endpoint = NWEndpoint.hostPort(host: NWEndpoint.Host("127.0.0.1"), port: 4242)
+        #expect(GatewayEndpointID.stableID(endpoint) == String(describing: endpoint))
+    }
+
+    @Test func prettyDescriptionDecodesBonjourEscapes() {
+        let endpoint = NWEndpoint.service(
+            name: "CoreBlow\\032Gateway",
+            type: "_coreblow-gw._tcp",
+            domain: "local.",
+            interface: nil)
+
+        let pretty = GatewayEndpointID.prettyDescription(endpoint)
+        #expect(pretty == BonjourEscapes.decode(String(describing: endpoint)))
+        #expect(!pretty.localizedCaseInsensitiveContains("\\032"))
     }
 }

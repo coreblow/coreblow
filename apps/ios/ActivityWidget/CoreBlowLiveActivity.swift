@@ -2,70 +2,84 @@ import ActivityKit
 import SwiftUI
 import WidgetKit
 
-struct CoreBlowActivityAttributes: ActivityAttributes {
-    public struct ContentState: Codable, Hashable {
-        var agentName: String
-        var statusText: String
-        var tokenCount: Int
-        var isProcessing: Bool
-    }
-
-    var conversationId: String
-    var providerName: String
-}
-
 struct CoreBlowLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: CoreBlowActivityAttributes.self) { context in
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(context.state.agentName)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-
-                    Text(context.state.statusText)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                if context.state.isProcessing {
-                    ProgressView()
-                        .tint(.accentColor)
-                } else {
-                    Text("\(context.state.tokenCount) tokens")
-                        .font(.caption2)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(.ultraThinMaterial)
-                        .clipShape(Capsule())
-                }
-            }
-            .padding()
+            lockScreenView(context: context)
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    Label(context.state.agentName, systemImage: "brain.head.profile")
-                        .font(.caption)
+                    statusDot(state: context.state)
+                }
+                DynamicIslandExpandedRegion(.center) {
+                    Text(context.state.statusText)
+                        .font(.subheadline)
+                        .lineLimit(1)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    Text("\(context.state.tokenCount)")
-                        .font(.caption.monospacedDigit())
-                }
-                DynamicIslandExpandedRegion(.bottom) {
-                    Text(context.state.statusText)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                    trailingView(state: context.state)
                 }
             } compactLeading: {
-                Image(systemName: "brain.head.profile")
+                statusDot(state: context.state)
             } compactTrailing: {
-                Text("\(context.state.tokenCount)")
-                    .font(.caption2.monospacedDigit())
+                Text(context.state.statusText)
+                    .font(.caption2)
+                    .lineLimit(1)
+                    .frame(maxWidth: 64)
             } minimal: {
-                Image(systemName: "brain.head.profile")
+                statusDot(state: context.state)
             }
         }
+    }
+
+    @ViewBuilder
+    private func lockScreenView(context: ActivityViewContext<CoreBlowActivityAttributes>) -> some View {
+        HStack(spacing: 8) {
+            statusDot(state: context.state)
+                .frame(width: 10, height: 10)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("CoreBlow")
+                    .font(.subheadline.bold())
+                Text(context.state.statusText)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            trailingView(state: context.state)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 4)
+    }
+
+    @ViewBuilder
+    private func trailingView(state: CoreBlowActivityAttributes.ContentState) -> some View {
+        if state.isConnecting {
+            ProgressView().controlSize(.small)
+        } else if state.isDisconnected {
+            Image(systemName: "wifi.slash")
+                .foregroundStyle(.red)
+        } else if state.isIdle {
+            Image(systemName: "antenna.radiowaves.left.and.right")
+                .foregroundStyle(.green)
+        } else {
+            Text(state.startedAt, style: .timer)
+                .font(.caption)
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder
+    private func statusDot(state: CoreBlowActivityAttributes.ContentState) -> some View {
+        Circle()
+            .fill(dotColor(state: state))
+            .frame(width: 6, height: 6)
+    }
+
+    private func dotColor(state: CoreBlowActivityAttributes.ContentState) -> Color {
+        if state.isDisconnected { return .red }
+        if state.isConnecting { return .gray }
+        if state.isIdle { return .green }
+        return .blue
     }
 }

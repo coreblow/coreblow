@@ -1,10 +1,9 @@
 import Foundation
 import Network
+import CoreBlowKit
 
-/// Monitors network path and returns current connectivity status.
 final class NetworkStatusService: @unchecked Sendable {
-
-    func currentStatus(timeoutMs: Int = 1500) async -> CoreBlowNetworkPayload {
+    func currentStatus(timeoutMs: Int = 1500) async -> CoreBlowNetworkStatusPayload {
         await withCheckedContinuation { cont in
             let monitor = NWPathMonitor()
             let queue = DispatchQueue(label: "ai.coreblow.ios.network-status")
@@ -26,7 +25,7 @@ final class NetworkStatusService: @unchecked Sendable {
         }
     }
 
-    private static func payload(from path: NWPath) -> CoreBlowNetworkPayload {
+    private static func payload(from path: NWPath) -> CoreBlowNetworkStatusPayload {
         let status: CoreBlowNetworkPathStatus = switch path.status {
         case .satisfied: .satisfied
         case .requiresConnection: .requiresConnection
@@ -40,15 +39,15 @@ final class NetworkStatusService: @unchecked Sendable {
         if path.usesInterfaceType(.wiredEthernet) { interfaces.append(.wired) }
         if interfaces.isEmpty { interfaces.append(.other) }
 
-        return CoreBlowNetworkPayload(
+        return CoreBlowNetworkStatusPayload(
             status: status,
             isExpensive: path.isExpensive,
             isConstrained: path.isConstrained,
             interfaces: interfaces)
     }
 
-    private static func fallbackPayload() -> CoreBlowNetworkPayload {
-        CoreBlowNetworkPayload(
+    private static func fallbackPayload() -> CoreBlowNetworkStatusPayload {
+        CoreBlowNetworkStatusPayload(
             status: .unsatisfied,
             isExpensive: false,
             isConstrained: false,
@@ -61,10 +60,10 @@ private final class NetworkStatusState: @unchecked Sendable {
     private var completed = false
 
     func markCompleted() -> Bool {
-        lock.lock()
-        defer { lock.unlock() }
-        if completed { return false }
-        completed = true
+        self.lock.lock()
+        defer { self.lock.unlock() }
+        if self.completed { return false }
+        self.completed = true
         return true
     }
 }

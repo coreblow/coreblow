@@ -24,7 +24,9 @@ public struct AnyCodable: Codable, @unchecked Sendable, Hashable, CustomStringCo
         case let d as Double: try c.encode(d)
         case let s as String: try c.encode(s)
         case let a as [AnyCodable]: try c.encode(a)
+        case let a as [Any]: try c.encode(a.map { AnyCodable($0) })
         case let o as [String: AnyCodable]: try c.encode(o)
+        case let o as [String: Any]: try c.encode(o.mapValues { AnyCodable($0) })
         default: try c.encodeNil()
         }
     }

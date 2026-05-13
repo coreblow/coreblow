@@ -1,49 +1,42 @@
 import Foundation
 import Network
-import os.log
+import os
 
-/// Probes a TCP endpoint to check if a gateway is reachable before WebSocket connection.
-final class TCPProbe {
+enum TCPProbe {
+    static func probe(host: String, port: Int, timeoutSeconds: Double, queueLabel: String) async -> Bool {
+        guard port >= 1, port <= 65535 else { return false }
+        guard let nwPort = NWEndpoint.Port(rawValue: UInt16(port)) else { return false }
 
-    private let logger = Logger(subsystem: "ai.coreblow.app", category: "TCPProbe")
+        let endpointHost = NWEndpoint.Host(host)
+        let connection = NWConnection(host: endpointHost, port: nwPort, using: .tcp)
 
-    /// Probe a host:port to check reachability.
-    /// Returns `true` if a TCP connection can be established within the timeout.
-    func probe(host: String, port: Int, timeout: TimeInterval = 5) async -> Bool {
-        logger.info("Probing \(host):\(port)")
-
-        return await withCheckedContinuation { continuation in
-            let endpoint = NWEndpoint.hostPort(
-                host: NWEndpoint.Host(host),
-                port: NWEndpoint.Port(rawValue: UInt16(port))!
-            )
-
-            let connection = NWConnection(to: endpoint, using: .tcp)
-            var resolved = false
+        return await withCheckedContinuation { cont in
+            let queue = DispatchQueue(label: queueLabel)
+            let finished = OSAllocatedUnfairLock(initialState: false)
+            let finish: @Sendable (Bool) -> Void = { ok in
+                let shouldResume = finished.withLock { flag -> Bool in
+                    if flag { return false }
+                    flag = true
+                    return true
+                }
+                guard shouldResume else { return }
+                connection.cancel()
+                cont.resume(returning: ok)
+            }
 
             connection.stateUpdateHandler = { state in
-                guard !resolved else { return }
                 switch state {
                 case .ready:
-                    resolved = true
-                    connection.cancel()
-                    continuation.resume(returning: true)
+                    finish(true)
                 case .failed, .cancelled:
-                    resolved = true
-                    continuation.resume(returning: false)
+                    finish(false)
                 default:
                     break
                 }
             }
 
-            connection.start(queue: .global())
-
-            DispatchQueue.global().asyncAfter(deadline: .now() + timeout) {
-                guard !resolved else { return }
-                resolved = true
-                connection.cancel()
-                continuation.resume(returning: false)
-            }
+            connection.start(queue: queue)
+            queue.asyncAfter(deadline: .now() + timeoutSeconds) { finish(false) }
         }
     }
 }

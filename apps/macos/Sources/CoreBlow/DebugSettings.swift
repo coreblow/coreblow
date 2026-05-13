@@ -61,6 +61,8 @@ struct DebugSettings: View {
         let expected: Bool
     }
 
+    init(state _: AppState? = nil) {}
+
     var body: some View {
         ScrollView(.vertical) {
             VStack(alignment: .leading, spacing: 14) {

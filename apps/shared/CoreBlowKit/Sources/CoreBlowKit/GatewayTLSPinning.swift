@@ -1,127 +1,135 @@
-import Foundation
 import CryptoKit
+import Foundation
+import Security
 
-/// CoreBlow: Original implementation of Gateway TLS Pinning and TOFU logic.
-/// 1. Pattern borrowed: Wrapping `URLSessionDelegate` to intercept server trust challenges for WebSocket security.
-/// 2. Implemented differently: Designed `CoreBlowTLSConfiguration` and `CoreBlowSecureWebSocketSession` using modern `CryptoKit` SHA256 evaluation. Features structured concurrency warnings instead of silent bypasses.
+public struct GatewayTLSParams: Sendable {
+    public let required: Bool
+    public let expectedFingerprint: String?
+    public let allowTOFU: Bool
+    public let storeKey: String?
 
-public struct CoreBlowTLSConfiguration: Sendable, Equatable {
-    public let requiresEncryption: Bool
-    public let pinnedFingerprint: String?
-    public let supportsTrustOnFirstUse: Bool
-    public let persistenceIdentifier: String?
-
-    public init(
-        requiresEncryption: Bool,
-        pinnedFingerprint: String? = nil,
-        supportsTrustOnFirstUse: Bool = false,
-        persistenceIdentifier: String? = nil
-    ) {
-        self.requiresEncryption = requiresEncryption
-        self.pinnedFingerprint = pinnedFingerprint
-        self.supportsTrustOnFirstUse = supportsTrustOnFirstUse
-        self.persistenceIdentifier = persistenceIdentifier
+    public init(required: Bool, expectedFingerprint: String?, allowTOFU: Bool, storeKey: String?) {
+        self.required = required
+        self.expectedFingerprint = expectedFingerprint
+        self.allowTOFU = allowTOFU
+        self.storeKey = storeKey
     }
 }
 
-public struct CoreBlowTLSPinStore {
+public enum GatewayTLSStore {
+    private static let keychainService = "ai.coreblow.tls-pinning"
 
-    private static let serviceNamespace = "com.coreblow.tls.pins"
+    // Legacy UserDefaults location used before Keychain migration.
+    private static let legacySuiteName = "ai.coreblow.shared"
+    private static let legacyKeyPrefix = "gateway.tls."
 
-    /// Retrieves a trusted fingerprint for a known host.
-    public static func fetchTrustedFingerprint(for identifier: String) -> String? {
-        let store = KeychainStorageProvider(serviceIdentifier: serviceNamespace)
-        return try? store.fetchString(forAccount: identifier)
+    public static func loadFingerprint(stableID: String) -> String? {
+        self.migrateFromUserDefaultsIfNeeded(stableID: stableID)
+        let raw = GenericPasswordKeychainStore.loadString(service: self.keychainService, account: stableID)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if raw?.isEmpty == false { return raw }
+        return nil
     }
 
-    /// Commits a new trusted fingerprint (TOFU) to the keychain.
-    public static func commitTrustedFingerprint(_ fingerprint: String, for identifier: String) {
-        let store = KeychainStorageProvider(serviceIdentifier: serviceNamespace)
-        try? store.storeString(fingerprint, forAccount: identifier)
+    public static func saveFingerprint(_ value: String, stableID: String) {
+        _ = GenericPasswordKeychainStore.saveString(value, service: self.keychainService, account: stableID)
+    }
+
+    // MARK: - Migration
+
+    private static func migrateFromUserDefaultsIfNeeded(stableID: String) {
+        guard let defaults = UserDefaults(suiteName: self.legacySuiteName) else { return }
+        let legacyKey = self.legacyKeyPrefix + stableID
+        guard let existing = defaults.string(forKey: legacyKey)?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+            !existing.isEmpty
+        else { return }
+        if GenericPasswordKeychainStore.loadString(service: self.keychainService, account: stableID) == nil {
+            guard GenericPasswordKeychainStore.saveString(existing, service: self.keychainService, account: stableID) else {
+                return
+            }
+        }
+        defaults.removeObject(forKey: legacyKey)
     }
 }
 
-public final class CoreBlowSecureWebSocketSession: NSObject, WebSocketSessioning, URLSessionDelegate, @unchecked Sendable {
+public final class GatewayTLSPinningSession: NSObject, WebSocketSessioning, URLSessionDelegate, @unchecked Sendable {
+    private let params: GatewayTLSParams
+    private lazy var session: URLSession = {
+        let config = URLSessionConfiguration.default
+        config.waitsForConnectivity = true
+        return URLSession(configuration: config, delegate: self, delegateQueue: nil)
+    }()
 
-    private let configuration: CoreBlowTLSConfiguration
-    private var activeSession: URLSession!
-
-    public init(configuration: CoreBlowTLSConfiguration) {
-        self.configuration = configuration
+    public init(params: GatewayTLSParams) {
+        self.params = params
         super.init()
-
-        let sessionConfig = URLSessionConfiguration.ephemeral
-        sessionConfig.timeoutIntervalForRequest = 10.0
-        sessionConfig.timeoutIntervalForResource = 300.0
-
-        self.activeSession = URLSession(
-            configuration: sessionConfig,
-            delegate: self,
-            delegateQueue: nil
-        )
     }
 
     public func makeWebSocketTask(url: URL) -> WebSocketTaskBox {
-        let task = activeSession.webSocketTask(with: url)
+        let task = self.session.webSocketTask(with: url)
+        task.maximumMessageSize = 16 * 1024 * 1024
         return WebSocketTaskBox(task: task)
     }
-
-    // MARK: - URLSessionDelegate
 
     public func urlSession(
         _ session: URLSession,
         didReceive challenge: URLAuthenticationChallenge,
         completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
     ) {
-        // Enforce TLS policy
         guard challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust,
-              let serverTrust = challenge.protectionSpace.serverTrust else {
+              let trust = challenge.protectionSpace.serverTrust
+        else {
             completionHandler(.performDefaultHandling, nil)
             return
         }
 
-        // Extract certificate
-        guard let certificate = SecTrustGetCertificateAtIndex(serverTrust, 0) else {
-            completionHandler(.cancelAuthenticationChallenge, nil)
-            return
-        }
-
-        // Compute SHA256 Fingerprint
-        let certificateData = SecCertificateCopyData(certificate) as Data
-        let digest = SHA256.hash(data: certificateData)
-        let computedFingerprint = digest.map { String(format: "%02x", $0) }.joined()
-
-        // 1. Strict Pinning
-        if let explicitPin = configuration.pinnedFingerprint {
-            if computedFingerprint.lowercased() == explicitPin.lowercased() {
-                completionHandler(.useCredential, URLCredential(trust: serverTrust))
-            } else {
-                completionHandler(.cancelAuthenticationChallenge, nil)
-            }
-            return
-        }
-
-        // 2. Trust On First Use (TOFU)
-        if configuration.supportsTrustOnFirstUse, let storeId = configuration.persistenceIdentifier {
-            if let savedPin = CoreBlowTLSPinStore.fetchTrustedFingerprint(for: storeId) {
-                if computedFingerprint.lowercased() == savedPin.lowercased() {
-                    completionHandler(.useCredential, URLCredential(trust: serverTrust))
+        let expected = params.expectedFingerprint.map(normalizeFingerprint)
+        if let fingerprint = certificateFingerprint(trust) {
+            if let expected {
+                if fingerprint == expected {
+                    completionHandler(.useCredential, URLCredential(trust: trust))
                 } else {
                     completionHandler(.cancelAuthenticationChallenge, nil)
                 }
-            } else {
-                // First use: Trust and save
-                CoreBlowTLSPinStore.commitTrustedFingerprint(computedFingerprint, for: storeId)
-                completionHandler(.useCredential, URLCredential(trust: serverTrust))
+                return
             }
-            return
+            if params.allowTOFU {
+                if let storeKey = params.storeKey {
+                    GatewayTLSStore.saveFingerprint(fingerprint, stableID: storeKey)
+                }
+                completionHandler(.useCredential, URLCredential(trust: trust))
+                return
+            }
         }
 
-        // 3. Fallback to OS Trust evaluation if encryption is required but no pinning is configured
-        if configuration.requiresEncryption {
-            completionHandler(.performDefaultHandling, nil)
+        let ok = SecTrustEvaluateWithError(trust, nil)
+        if ok || !params.required {
+            completionHandler(.useCredential, URLCredential(trust: trust))
         } else {
-            completionHandler(.useCredential, URLCredential(trust: serverTrust))
+            completionHandler(.cancelAuthenticationChallenge, nil)
         }
     }
+}
+
+private func certificateFingerprint(_ trust: SecTrust) -> String? {
+    guard let chain = SecTrustCopyCertificateChain(trust) as? [SecCertificate],
+          let cert = chain.first
+    else {
+        return nil
+    }
+    return sha256Hex(SecCertificateCopyData(cert) as Data)
+}
+
+private func sha256Hex(_ data: Data) -> String {
+    let digest = SHA256.hash(data: data)
+    return digest.map { String(format: "%02x", $0) }.joined()
+}
+
+private func normalizeFingerprint(_ raw: String) -> String {
+    let stripped = raw.replacingOccurrences(
+        of: #"(?i)^sha-?256\s*:?\s*"#,
+        with: "",
+        options: .regularExpression)
+    return stripped.lowercased().filter(\.isHexDigit)
 }

@@ -1,55 +1,52 @@
 import Foundation
-import Network
-import os.log
+import CoreBlowKit
 
-/// Resolves Bonjour service names to IP:port endpoints.
-final class GatewayServiceResolver {
+// NetService-based resolver for Bonjour services.
+// Used to resolve the service endpoint (SRV + A/AAAA) without trusting TXT for routing.
+final class GatewayServiceResolver: NSObject, NetServiceDelegate {
+    private let service: NetService
+    private let completion: ((host: String, port: Int)?) -> Void
+    private var didFinish = false
 
-    private let logger = Logger(subsystem: "ai.coreblow.app", category: "GatewayResolver")
+    init(
+        name: String,
+        type: String,
+        domain: String,
+        completion: @escaping ((host: String, port: Int)?) -> Void)
+    {
+        self.service = NetService(domain: domain, type: type, name: name)
+        self.completion = completion
+        super.init()
+        self.service.delegate = self
+    }
 
-    /// Resolve a Bonjour service name to a concrete IP and port.
-    func resolve(serviceName: String, serviceType: String = "_coreblow._tcp", domain: String = "local.") async -> GatewayConnectConfig? {
-        logger.info("Resolving \(serviceName).\(serviceType).\(domain)")
+    func start(timeout: TimeInterval = 2.0) {
+        BonjourServiceResolverSupport.start(self.service, timeout: timeout)
+    }
 
-        return await withCheckedContinuation { continuation in
-            let connection = NWConnection(
-                to: .service(name: serviceName, type: serviceType, domain: domain, interface: nil),
-                using: .tcp
-            )
-
-            connection.stateUpdateHandler = { [weak self] state in
-                switch state {
-                case .ready:
-                    if let endpoint = connection.currentPath?.remoteEndpoint,
-                       case .hostPort(let host, let port) = endpoint {
-                        let config = GatewayConnectConfig(
-                            host: "\(host)",
-                            port: Int(port.rawValue),
-                            displayName: serviceName,
-                            source: .bonjour
-                        )
-                        self?.logger.info("Resolved: \(host):\(port)")
-                        connection.cancel()
-                        continuation.resume(returning: config)
-                    }
-                case .failed:
-                    self?.logger.error("Resolution failed for \(serviceName)")
-                    connection.cancel()
-                    continuation.resume(returning: nil)
-                default:
-                    break
-                }
-            }
-
-            connection.start(queue: .global())
-
-            // Timeout
-            DispatchQueue.global().asyncAfter(deadline: .now() + 10) {
-                if connection.state != .cancelled {
-                    connection.cancel()
-                    continuation.resume(returning: nil)
-                }
-            }
+    func netServiceDidResolveAddress(_ sender: NetService) {
+        let host = Self.normalizeHost(sender.hostName)
+        let port = sender.port
+        guard let host, !host.isEmpty, port > 0 else {
+            self.finish(result: nil)
+            return
         }
+        self.finish(result: (host: host, port: port))
+    }
+
+    func netService(_ sender: NetService, didNotResolve errorDict: [String: NSNumber]) {
+        self.finish(result: nil)
+    }
+
+    private func finish(result: ((host: String, port: Int))?) {
+        guard !self.didFinish else { return }
+        self.didFinish = true
+        self.service.stop()
+        self.service.remove(from: .main, forMode: .common)
+        self.completion(result)
+    }
+
+    private static func normalizeHost(_ raw: String?) -> String? {
+        BonjourServiceResolverSupport.normalizeHost(raw)
     }
 }

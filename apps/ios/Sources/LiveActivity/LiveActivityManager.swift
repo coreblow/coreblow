@@ -1,67 +1,126 @@
+@preconcurrency import ActivityKit
 import Foundation
 import os
-#if canImport(ActivityKit)
-import ActivityKit
-#endif
 
-/// Manages Live Activity lifecycle for persistent gateway status display.
+/// Minimal Live Activity lifecycle focused on connection health + stale cleanup.
 @MainActor
 final class LiveActivityManager {
+    static let shared = LiveActivityManager()
 
-    private let logger = Logger(subsystem: "ai.coreblow.app", category: "LiveActivity")
-    #if canImport(ActivityKit)
+    private let logger = Logger(subsystem: "ai.coreblow.ios", category: "LiveActivity")
     private var currentActivity: Activity<CoreBlowActivityAttributes>?
-    #endif
+    private var activityStartDate: Date = .now
 
-    /// Start or update a Live Activity with current gateway status.
-    func update(connected: Bool, serverName: String?) {
-        #if canImport(ActivityKit)
-        guard ActivityAuthorizationInfo().areActivitiesEnabled else {
-            logger.debug("Live Activities not enabled")
+    private init() {
+        self.hydrateCurrentAndPruneDuplicates()
+    }
+
+    var isActive: Bool {
+        guard let activity = self.currentActivity else { return false }
+        guard activity.activityState == .active else {
+            self.currentActivity = nil
+            return false
+        }
+        return true
+    }
+
+    func startActivity(agentName: String, sessionKey: String) {
+        self.hydrateCurrentAndPruneDuplicates()
+
+        if self.currentActivity != nil {
+            self.handleConnecting()
             return
         }
 
-        let contentState = CoreBlowActivityAttributes.ContentState(
-            isConnected: connected,
-            serverName: serverName,
-            lastUpdateMs: Int64(Date().timeIntervalSince1970 * 1000))
-
-        if let existing = currentActivity {
-            Task {
-                await existing.update(
-                    ActivityContent(state: contentState, staleDate: nil))
-            }
-        } else {
-            let attributes = CoreBlowActivityAttributes(gatewayLabel: serverName ?? "CoreBlow Gateway")
-            do {
-                let activity = try Activity.request(
-                    attributes: attributes,
-                    content: ActivityContent(state: contentState, staleDate: nil),
-                    pushType: nil)
-                currentActivity = activity
-                logger.info("Live Activity started: \(activity.id)")
-            } catch {
-                logger.error("Failed to start Live Activity: \(error.localizedDescription)")
-            }
+        let authInfo = ActivityAuthorizationInfo()
+        guard authInfo.areActivitiesEnabled else {
+            self.logger.info("Live Activities disabled; skipping start")
+            return
         }
-        #endif
+
+        self.activityStartDate = .now
+        let attributes = CoreBlowActivityAttributes(agentName: agentName, sessionKey: sessionKey)
+
+        do {
+            let activity = try Activity.request(
+                attributes: attributes,
+                content: ActivityContent(state: self.connectingState(), staleDate: nil),
+                pushType: nil)
+            self.currentActivity = activity
+            self.logger.info("started live activity id=\(activity.id, privacy: .public)")
+        } catch {
+            self.logger.error("failed to start live activity: \(error.localizedDescription, privacy: .public)")
+        }
     }
 
-    /// End the current Live Activity.
-    func end() {
-        #if canImport(ActivityKit)
-        guard let activity = currentActivity else { return }
-        Task {
-            let finalState = CoreBlowActivityAttributes.ContentState(
-                isConnected: false,
-                serverName: nil,
-                lastUpdateMs: Int64(Date().timeIntervalSince1970 * 1000))
-            await activity.end(
-                ActivityContent(state: finalState, staleDate: nil),
-                dismissalPolicy: .immediate)
-            currentActivity = nil
-            logger.info("Live Activity ended")
+    func handleConnecting() {
+        self.updateCurrent(state: self.connectingState())
+    }
+
+    func handleReconnect() {
+        self.updateCurrent(state: self.idleState())
+    }
+
+    func handleDisconnect() {
+        self.updateCurrent(state: self.disconnectedState())
+    }
+
+    private func hydrateCurrentAndPruneDuplicates() {
+        let active = Activity<CoreBlowActivityAttributes>.activities
+        guard !active.isEmpty else {
+            self.currentActivity = nil
+            return
         }
-        #endif
+
+        let keeper = active.max { lhs, rhs in
+            lhs.content.state.startedAt < rhs.content.state.startedAt
+        } ?? active[0]
+
+        self.currentActivity = keeper
+        self.activityStartDate = keeper.content.state.startedAt
+
+        let stale = active.filter { $0.id != keeper.id }
+        let endState = self.disconnectedState()
+        for activity in stale {
+            Task { @MainActor [activity, endState] in
+                await activity.end(
+                    ActivityContent(state: endState, staleDate: nil),
+                    dismissalPolicy: .immediate)
+            }
+        }
+    }
+
+    private func updateCurrent(state: CoreBlowActivityAttributes.ContentState) {
+        guard let activity = self.currentActivity else { return }
+        Task { @MainActor [activity, state] in
+            await activity.update(ActivityContent(state: state, staleDate: nil))
+        }
+    }
+
+    private func connectingState() -> CoreBlowActivityAttributes.ContentState {
+        CoreBlowActivityAttributes.ContentState(
+            statusText: "Connecting...",
+            isIdle: false,
+            isDisconnected: false,
+            isConnecting: true,
+            startedAt: self.activityStartDate)
+    }
+
+    private func idleState() -> CoreBlowActivityAttributes.ContentState {
+        CoreBlowActivityAttributes.ContentState(
+            statusText: "Idle",
+            isIdle: true,
+            isDisconnected: false,
+            isConnecting: false,
+            startedAt: self.activityStartDate)
+    }
+
+    private func disconnectedState() -> CoreBlowActivityAttributes.ContentState {
+        CoreBlowActivityAttributes.ContentState(
+            statusText: "Disconnected",
+            isIdle: false,
+            isDisconnected: true,
+            isConnecting: false,
+            startedAt: self.activityStartDate)
     }
 }

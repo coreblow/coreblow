@@ -1105,6 +1105,9 @@ extension TestChatTransportState {
             modelResponses: [models])
 
         try await loadAndWaitBootstrap(vm: vm)
+        try await waitUntil("model picker choices loaded") {
+            await MainActor.run { vm.showsModelPicker }
+        }
 
         #expect(await MainActor.run { vm.showsModelPicker })
         #expect(await MainActor.run { vm.modelSelectionID } == "anthropic/claude-opus-4-6")

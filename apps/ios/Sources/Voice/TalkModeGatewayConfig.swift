@@ -1,46 +1,69 @@
 import Foundation
+import CoreBlowKit
 
-/// Gateway-pushed configuration for talk mode behavior.
-struct TalkModeGatewayConfig: Codable {
-    let language: String
-    let sttModel: String
-    let ttsVoice: String
-    let maxDurationMs: Int
+struct TalkModeGatewayConfigState {
+    let activeProvider: String
+    let normalizedPayload: Bool
+    let missingResolvedPayload: Bool
+    let defaultVoiceId: String?
+    let voiceAliases: [String: String]
+    let defaultModelId: String
+    let defaultOutputFormat: String?
+    let rawConfigApiKey: String?
+    let interruptOnSpeech: Bool?
     let silenceTimeoutMs: Int
-    let streamAudio: Bool
-    let autoRespond: Bool
+}
 
-    init(
-        language: String = "en-US",
-        sttModel: String = "default",
-        ttsVoice: String = "default",
-        maxDurationMs: Int = 30_000,
-        silenceTimeoutMs: Int = 1_500,
-        streamAudio: Bool = false,
-        autoRespond: Bool = true
-    ) {
-        self.language = language
-        self.sttModel = sttModel
-        self.ttsVoice = ttsVoice
-        self.maxDurationMs = maxDurationMs
-        self.silenceTimeoutMs = silenceTimeoutMs
-        self.streamAudio = streamAudio
-        self.autoRespond = autoRespond
+enum TalkModeGatewayConfigParser {
+    static func parse(
+        config: [String: Any],
+        defaultProvider: String,
+        defaultModelIdFallback: String,
+        defaultSilenceTimeoutMs: Int
+    ) -> TalkModeGatewayConfigState {
+        let talk = TalkConfigParsing.bridgeFoundationDictionary(config["talk"] as? [String: Any])
+        let selection = TalkConfigParsing.selectProviderConfig(
+            talk,
+            defaultProvider: defaultProvider,
+            allowLegacyFallback: false)
+        let activeProvider = selection?.provider ?? defaultProvider
+        let activeConfig = selection?.config
+        let defaultVoiceId = activeConfig?["voiceId"]?.stringValue?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let voiceAliases: [String: String]
+        if let aliases = activeConfig?["voiceAliases"]?.dictionaryValue {
+            var resolved: [String: String] = [:]
+            for (key, value) in aliases {
+                guard let id = value.stringValue else { continue }
+                let normalizedKey = key.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                let trimmedId = id.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !normalizedKey.isEmpty, !trimmedId.isEmpty else { continue }
+                resolved[normalizedKey] = trimmedId
+            }
+            voiceAliases = resolved
+        } else {
+            voiceAliases = [:]
+        }
+        let model = activeConfig?["modelId"]?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let defaultModelId = (model?.isEmpty == false) ? model! : defaultModelIdFallback
+        let defaultOutputFormat = activeConfig?["outputFormat"]?.stringValue?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let rawConfigApiKey = activeConfig?["apiKey"]?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let interruptOnSpeech = talk?["interruptOnSpeech"]?.boolValue
+        let silenceTimeoutMs = TalkConfigParsing.resolvedSilenceTimeoutMs(
+            talk,
+            fallback: defaultSilenceTimeoutMs)
+
+        return TalkModeGatewayConfigState(
+            activeProvider: activeProvider,
+            normalizedPayload: selection?.normalizedPayload == true,
+            missingResolvedPayload: talk != nil && selection == nil,
+            defaultVoiceId: defaultVoiceId,
+            voiceAliases: voiceAliases,
+            defaultModelId: defaultModelId,
+            defaultOutputFormat: defaultOutputFormat,
+            rawConfigApiKey: rawConfigApiKey,
+            interruptOnSpeech: interruptOnSpeech,
+            silenceTimeoutMs: silenceTimeoutMs)
     }
-
-    /// Parse from gateway JSON payload.
-    static func from(json: [String: Any]) -> TalkModeGatewayConfig {
-        TalkModeGatewayConfig(
-            language: json["language"] as? String ?? "en-US",
-            sttModel: json["sttModel"] as? String ?? "default",
-            ttsVoice: json["ttsVoice"] as? String ?? "default",
-            maxDurationMs: json["maxDurationMs"] as? Int ?? 30_000,
-            silenceTimeoutMs: json["silenceTimeoutMs"] as? Int ?? 1_500,
-            streamAudio: json["streamAudio"] as? Bool ?? false,
-            autoRespond: json["autoRespond"] as? Bool ?? true
-        )
-    }
-
-    var maxDuration: TimeInterval { Double(maxDurationMs) / 1000 }
-    var silenceTimeout: TimeInterval { Double(silenceTimeoutMs) / 1000 }
 }

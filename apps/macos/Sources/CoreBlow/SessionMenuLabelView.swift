@@ -15,6 +15,33 @@ struct SessionMenuLabelView: View {
     private let paddingTrailing: CGFloat = 14
     private let barHeight: CGFloat = 6
 
+    init(row: SessionRow, width: CGFloat) {
+        self.row = row
+        self.width = width
+    }
+
+    init(session: SessionData) {
+        let key = session.sessionKey ?? session.id
+        self.row = SessionRow(
+            id: session.id,
+            key: key,
+            kind: SessionKind.from(key: key),
+            displayName: session.displayName ?? session.name,
+            provider: nil,
+            subject: nil,
+            room: nil,
+            space: nil,
+            updatedAt: session.updatedAt,
+            sessionId: session.id,
+            thinkingLevel: nil,
+            verboseLevel: nil,
+            systemSent: false,
+            abortedLastRun: false,
+            tokens: SessionTokenStats(input: 0, output: 0, total: 0, contextTokens: 1),
+            model: session.model)
+        self.width = 300
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             ContextUsageBar(

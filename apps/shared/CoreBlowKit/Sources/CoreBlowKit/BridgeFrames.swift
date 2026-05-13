@@ -206,9 +206,7 @@ public struct BridgeRPCResponse: Codable, Sendable {
 
 // MARK: - Node Error
 
-/// Typed error from node command execution.
-public struct NodeError: Codable, Sendable, Equatable {
-    public let code: String
-    public let message: String
-    public init(code: String, message: String) { self.code = code; self.message = message }
-}
+// NodeError and NodeErrorCode are typealiased from CoreBlowNodeError/CoreBlowNodeErrorCode
+// defined in NodeError.swift — single source of truth, matching OC's pattern.
+public typealias NodeErrorCode = CoreBlowNodeErrorCode
+public typealias NodeError = CoreBlowNodeError

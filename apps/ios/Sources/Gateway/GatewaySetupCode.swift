@@ -1,56 +1,42 @@
 import Foundation
-import os.log
 
-/// Validates and parses gateway setup codes for QR-based pairing.
-///
-/// Format: `coreblow://host:port?name=DisplayName&tls=true`
-struct GatewaySetupCode {
+struct GatewaySetupPayload: Codable {
+    var url: String?
+    var host: String?
+    var port: Int?
+    var tls: Bool?
+    var bootstrapToken: String?
+    var token: String?
+    var password: String?
+}
 
-    let config: GatewayConnectConfig
-
-    /// Parse a raw QR/deep-link string into a setup code.
-    static func parse(_ raw: String) -> GatewaySetupCode? {
-        guard let url = URL(string: raw),
-              url.scheme == "coreblow",
-              let host = url.host else { return nil }
-
-        let port = url.port ?? 8080
-        let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-        let queryItems = components?.queryItems ?? []
-
-        let displayName = queryItems.first(where: { $0.name == "name" })?.value
-        let useTLS = queryItems.first(where: { $0.name == "tls" })?.value == "true"
-        let path = url.path.isEmpty ? "/ws" : url.path
-
-        let config = GatewayConnectConfig(
-            host: host,
-            port: port,
-            useTLS: useTLS,
-            path: path,
-            displayName: displayName,
-            source: .qrCode
-        )
-
-        return GatewaySetupCode(config: config)
+enum GatewaySetupCode {
+    static func decode(raw: String) -> GatewaySetupPayload? {
+        if let payload = decodeFromJSON(raw) {
+            return payload
+        }
+        if let decoded = decodeBase64Payload(raw),
+           let payload = decodeFromJSON(decoded)
+        {
+            return payload
+        }
+        return nil
     }
 
-    /// Generate a setup code string for sharing.
-    static func generate(from config: GatewayConnectConfig) -> String {
-        var components = URLComponents()
-        components.scheme = "coreblow"
-        components.host = config.host
-        components.port = config.port
-        components.path = config.path
+    private static func decodeFromJSON(_ json: String) -> GatewaySetupPayload? {
+        guard let data = json.data(using: .utf8) else { return nil }
+        return try? JSONDecoder().decode(GatewaySetupPayload.self, from: data)
+    }
 
-        var queryItems: [URLQueryItem] = []
-        if let name = config.displayName {
-            queryItems.append(URLQueryItem(name: "name", value: name))
-        }
-        if config.useTLS {
-            queryItems.append(URLQueryItem(name: "tls", value: "true"))
-        }
-        if !queryItems.isEmpty { components.queryItems = queryItems }
-
-        return components.string ?? "coreblow://\(config.host):\(config.port)"
+    private static func decodeBase64Payload(_ raw: String) -> String? {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        let normalized = trimmed
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+        let padding = normalized.count % 4
+        let padded = padding == 0 ? normalized : normalized + String(repeating: "=", count: 4 - padding)
+        guard let data = Data(base64Encoded: padded) else { return nil }
+        return String(data: data, encoding: .utf8)
     }
 }
