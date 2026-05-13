@@ -29,8 +29,11 @@ fi
 # ── 2. TypeScript ────────────────────────────────────────────────
 echo ""
 echo "── 2. TypeScript Check ───────────────────────────────────────"
-TSC_OUT=$(pnpm typecheck 2>&1 || true)
-if echo "$TSC_OUT" | grep -qE "Found 0 errors|no errors|0 error"; then
+TSC_OUT=$(pnpm typecheck 2>&1)
+TSC_EXIT=$?
+if [ "$TSC_EXIT" -eq 0 ]; then
+  pass "tsgo --noEmit: 0 errors"
+elif echo "$TSC_OUT" | grep -qE "Found 0 errors|no errors|0 error"; then
   pass "tsgo --noEmit: 0 errors"
 else
   TSC_TAIL=$(echo "$TSC_OUT" | tail -3)
@@ -49,23 +52,23 @@ fi
 
 # ── 4. Swift Build ───────────────────────────────────────────────
 echo ""
-echo "── 4. Swift (SharedKit) ──────────────────────────────────────"
-SWIFT_BUILD=$(swift build --package-path apps/shared 2>&1 || true)
+echo "── 4. Swift (CoreBlowKit) ──────────────────────────────────────"
+SWIFT_BUILD=$(swift build --package-path apps/shared/CoreBlowKit 2>&1 || true)
 if echo "$SWIFT_BUILD" | grep -q "Build complete"; then
-  pass "swift build SharedKit: Build complete"
+  pass "swift build CoreBlowKit: Build complete"
 else
-  warn "swift build SharedKit: check output"
+  warn "swift build CoreBlowKit: check output"
 fi
 
 # ── 5. Swift Test ────────────────────────────────────────────────
 echo ""
 echo "── 5. Swift Tests ────────────────────────────────────────────"
-SWIFT_TEST=$(swift test --package-path apps/shared 2>&1 || true)
+SWIFT_TEST=$(swift test --package-path apps/shared/CoreBlowKit 2>&1 || true)
 if echo "$SWIFT_TEST" | grep -q "passed"; then
   TESTS=$(echo "$SWIFT_TEST" | grep -oE "[0-9]+ test[s]? passed" | head -1 || echo "tests passed")
-  pass "swift test SharedKit: $TESTS"
+  pass "swift test CoreBlowKit: $TESTS"
 else
-  warn "swift test SharedKit: check output"
+  warn "swift test CoreBlowKit: check output"
 fi
 
 # ── 6. Documentation ────────────────────────────────────────────

@@ -1,7 +1,16 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { WsHandler } from './ws-handler.js';
 
-function createMockWs() {
+interface MockWsResult {
+    ws: { send: (data: string) => number; close: (...args: unknown[]) => void };
+    sent: string[];
+    messageHandlers: ((data: string) => void)[];
+    closeHandlers: (() => void)[];
+    onMessage: (h: (data: string) => void) => void;
+    onClose: (h: () => void) => void;
+}
+
+function createMockWs(): MockWsResult {
     const sent: string[] = [];
     return {
         ws: {
@@ -15,7 +24,8 @@ function createMockWs() {
         onClose: (h: () => void) => { createMockWs.lastHandlers!.closeHandlers.push(h); },
     };
 }
-createMockWs.lastHandlers = null as any;
+createMockWs.lastHandlers = null as MockWsResult | null;
+
 
 function connectClient(handler: WsHandler) {
     const sent: string[] = [];

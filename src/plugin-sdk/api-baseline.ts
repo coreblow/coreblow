@@ -9,7 +9,6 @@ import {
   type PluginSdkDocCategory,
   type PluginSdkDocEntrypoint,
 } from "../../scripts/lib/plugin-sdk-doc-metadata.ts";
-// @ts-expect-error — no type declarations for .mjs build scripts
 import { pluginSdkEntrypoints } from "../../scripts/lib/plugin-sdk-entries.mjs";
 
 export type PluginSdkApiExportKind =
