@@ -55,12 +55,14 @@ repos:
           - --exclude-files
           - '^gateway/dist/'
 
-  # Shell script linting
-  - repo: https://github.com/koalaman/shellcheck-precommit
-    rev: v0.11.0
+  # Shell script linting (native binary — brew install shellcheck)
+  - repo: local
     hooks:
       - id: shellcheck
-        args: [--severity=error]
+        name: ShellCheck v0.11.0
+        entry: shellcheck --severity=error
+        language: system
+        types: [shell]
         exclude: "^(vendor/|scripts/e2e/)"
 
   # GitHub Actions linting
