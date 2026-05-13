@@ -1,0 +1,26 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>CoreBlow</title>
+        <item>
+            <title>2026.5.14</title>
+            <pubDate>Wed, 14 May 2026 17:00:00 +0000</pubDate>
+            <link>https://raw.githubusercontent.com/coreblow/coreblow/main/appcast.xml</link>
+            <sparkle:version>2026051400</sparkle:version>
+            <sparkle:shortVersionString>2026.5.14</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<h2>CoreBlow 2026.5.14</h2>
+<h3>Changes</h3>
+<ul>
+<li>General Availability release: all platforms reach structural parity.</li>
+<li>Security: resolve all 12 npm vulnerabilities (0 remaining).</li>
+<li>SharedKit: 190/190 tests pass.</li>
+<li>iOS: 256 files, xcodebuild BUILD SUCCEEDED.</li>
+<li>macOS: build green, structural parity complete.</li>
+<li>Bump @opentelemetry/* 0.215 → 0.217.</li>
+<li>Override hono ≥4.12.18, fast-uri ≥3.1.2, fast-xml-builder ≥1.1.7, basic-ftp ≥5.3.1.</li>
+</ul>
+]]></description>
+        </item>
+    </channel>
+</rss>

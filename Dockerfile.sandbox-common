@@ -1,23 +1,22 @@
-# syntax=docker/dockerfile:1.7
+FROM node:22-bookworm-slim AS base
 
-ARG BASE_IMAGE=coreblow-sandbox:bookworm-slim
-FROM ${BASE_IMAGE}
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    curl \
+    python3 \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-USER root
+RUN useradd -m -s /bin/bash sandbox
 
-ENV DEBIAN_FRONTEND=noninteractive
+WORKDIR /app
+COPY package.json pnpm-lock.yaml ./
+RUN corepack enable && pnpm install --frozen-lockfile --prod
 
-ARG PACKAGES="curl wget jq coreutils grep nodejs npm python3 git ca-certificates build-essential"
-ARG INSTALL_PNPM=1
-ARG FINAL_USER=sandbox
+COPY dist/ ./dist/
 
-RUN --mount=type=cache,id=coreblow-sandbox-common-apt-cache,target=/var/cache/apt,sharing=locked \
-  --mount=type=cache,id=coreblow-sandbox-common-apt-lists,target=/var/lib/apt,sharing=locked \
-  apt-get update \
-  && apt-get upgrade -y --no-install-recommends \
-  && apt-get install -y --no-install-recommends ${PACKAGES}
+RUN chown -R sandbox:sandbox /app
+USER sandbox
 
-RUN if [ "${INSTALL_PNPM}" = "1" ]; then npm install -g pnpm; fi
-
-# Default is sandbox, but allow BASE_IMAGE overrides to select another final user.
-USER ${FINAL_USER}
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+    CMD curl -f http://localhost:3100/health || exit 1

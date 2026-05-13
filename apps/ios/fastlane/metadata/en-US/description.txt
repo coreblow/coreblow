@@ -1,0 +1,21 @@
+CoreBlow is a personal AI assistant you run on your own devices.
+
+Pair this iPhone app with your CoreBlow Gateway to connect your phone as a secure node for voice, camera, and device automation.
+
+What you can do:
+
+- Chat with your AI assistant from anywhere
+- Use voice commands hands-free
+- Share photos, files, and links directly to your agent
+- Trigger automations on your gateway
+- Receive notifications and updates
+- Connect multiple devices to a single gateway
+
+Privacy first:
+- Your data stays on your devices
+- No cloud processing required
+- Full control over what your assistant can access
+
+Requirements:
+- A running CoreBlow Gateway (local or remote)
+- iOS 17.0 or later

@@ -1,36 +1,21 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directory: "/gateway"
+    directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "Asia/Jakarta"
     open-pull-requests-limit: 10
-    reviewers:
-      - "febrinanda"
-    labels:
-      - "dependencies"
-      - "automated"
-    commit-message:
-      prefix: "chore(deps)"
     groups:
-      dev-dependencies:
-        dependency-type: "development"
-        update-types:
-          - "minor"
-          - "patch"
-      production-dependencies:
-        dependency-type: "production"
-    ignore:
-      - dependency-name: "typescript"
-        update-types: ["version-update:semver-major"]
+      opentelemetry:
+        patterns:
+          - "@opentelemetry/*"
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-    labels:
-      - "ci"
-      - "automated"
+    open-pull-requests-limit: 5

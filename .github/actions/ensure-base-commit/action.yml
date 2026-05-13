@@ -1,0 +1,17 @@
+name: "Ensure Base Commit"
+description: "Verify the PR base commit exists in the target branch history"
+inputs:
+  base-ref:
+    description: "Base ref to check against"
+    required: true
+    default: "main"
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        git fetch origin ${{ inputs.base-ref }} --depth=100
+        if ! git merge-base --is-ancestor ${{ github.event.pull_request.base.sha }} origin/${{ inputs.base-ref }}; then
+          echo "::error::Base commit not found in ${{ inputs.base-ref }} history. Please rebase."
+          exit 1
+        fi
