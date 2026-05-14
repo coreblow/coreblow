@@ -35,7 +35,7 @@ final class TalkModeManager: NSObject {
     private static let defaultModelIdFallback = "eleven_v3"
     private static let defaultTalkProvider = "elevenlabs"
     private static let defaultSilenceTimeoutMs = TalkDefaults.silenceTimeoutMs
-    private static let redactedConfigSentinel = "__OPENCLAW_REDACTED__"
+    private static let redactedConfigSentinel = "__COREBLOW_REDACTED__"
     var isEnabled: Bool = false
     var isListening: Bool = false
     var isSpeaking: Bool = false

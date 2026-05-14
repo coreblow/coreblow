@@ -439,7 +439,7 @@ struct SettingsTab: View {
                 .truncationMode(.middle)
             LabeledContent("Device", value: DeviceInfoHelper.deviceFamily())
             LabeledContent("Platform", value: DeviceInfoHelper.platformStringForDisplay())
-            LabeledContent("CoreBlow", value: DeviceInfoHelper.openClawVersionString())
+            LabeledContent("CoreBlow", value: DeviceInfoHelper.coreBlowVersionString())
         }
     }
 
