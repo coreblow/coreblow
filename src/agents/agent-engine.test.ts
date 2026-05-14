@@ -24,7 +24,7 @@ function createMockProvider(responses: Array<{
         usage: resp.usage ?? { input: 10, output: 20, total: 30 },
       };
     },
-  } as ModelProvider;
+  } as unknown as ModelProvider;
 }
 
 describe("agent-engine", () => {
