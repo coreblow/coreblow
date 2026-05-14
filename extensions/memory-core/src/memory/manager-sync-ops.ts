@@ -723,7 +723,7 @@ export abstract class MemoryManagerSyncOps {
     const fileEntries = (
       await runWithConcurrency(
         files.map(
-          (file) => async () =>
+          (file: string) => async () =>
             await buildFileEntry(file, this.workspaceDir, this.settings.multimodal),
         ),
         this.getIndexConcurrency(),
@@ -740,7 +740,7 @@ export abstract class MemoryManagerSyncOps {
       hash: string;
     }>;
     const existingHashes = new Map(existingRows.map((row) => [row.path, row.hash]));
-    const activePaths = new Set(fileEntries.map((entry) => entry.path));
+    const activePaths = new Set(fileEntries.map((entry: MemoryFileEntry) => entry.path));
     if (params.progress) {
       params.progress.total += fileEntries.length;
       params.progress.report({

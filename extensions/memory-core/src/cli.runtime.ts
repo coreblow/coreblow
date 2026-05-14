@@ -125,7 +125,7 @@ function resolveAgentIds(cfg: CoreBlowConfig, agent?: string): string[] {
 }
 
 function formatExtraPaths(workspaceDir: string, extraPaths: string[]): string[] {
-  return normalizeExtraMemoryPaths(workspaceDir, extraPaths).map((entry) => shortenHomePath(entry));
+  return normalizeExtraMemoryPaths(workspaceDir, extraPaths).map((entry: string) => shortenHomePath(entry));
 }
 
 async function withMemoryManagerForAgent(params: {

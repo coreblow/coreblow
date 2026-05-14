@@ -615,7 +615,7 @@ export abstract class MemoryManagerEmbeddingOps extends MemoryManagerSyncOps {
       chunks = enforceEmbeddingMaxInputTokens(
         this.provider,
         chunkMarkdown(content, this.settings.chunking).filter(
-          (chunk) => chunk.text.trim().length > 0,
+          (chunk: MemoryChunk) => chunk.text.trim().length > 0,
         ),
         EMBEDDING_BATCH_MAX_TOKENS,
       );

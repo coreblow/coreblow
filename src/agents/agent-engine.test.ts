@@ -170,7 +170,7 @@ describe("AgentEngine.runTurn", () => {
 
   it("rejects concurrent runs on the same session", async () => {
     // Provider that takes a while to respond
-    const provider: ModelProvider = {
+    const provider = {
       id: "slow",
       chat: () => new Promise((resolve) => {
         setTimeout(() => resolve({
@@ -179,7 +179,7 @@ describe("AgentEngine.runTurn", () => {
           usage: { input: 5, output: 5, total: 10 },
         }), 50);
       }),
-    } as ModelProvider;
+    } as unknown as ModelProvider;
     engine.registerProvider(provider, true);
 
     const sessionId = engine.createSession({ model: "test-model", provider: "slow" });
