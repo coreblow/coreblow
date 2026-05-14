@@ -204,6 +204,11 @@ export class AgentEngine {
 
         const toolCallResults: TurnResult['toolCalls'] = [];
 
+        // Track whether lock/lane ownership was transferred to a recursive
+        // runTurn call. When true the finally block must NOT release them
+        // because the recursive call now owns and will release them.
+        let releasedForRecursion = false;
+
         try {
             // 1. Add user message
             if (userMessage.trim()) {
@@ -320,9 +325,13 @@ export class AgentEngine {
                     session.messages.push({ role: 'tool', content: output, name: call.name, toolCallId: call.id, timestamp: Date.now() });
                 }
 
-                // Continue conversation with tool results (recursive turn)
+                // Release lock/lane before recursion — the recursive runTurn
+                // will re-acquire its own lock and lane. Set the flag so the
+                // finally block below does not double-release.
                 this.writeLock.release(sessionId);
                 this.lanes.release(lane.id);
+                releasedForRecursion = true;
+
                 const continuedResult = await this.runTurn(sessionId, '', onChunk);
                 return { ...continuedResult, toolCalls: [...toolCallResults, ...continuedResult.toolCalls], compacted };
             }
@@ -354,8 +363,10 @@ export class AgentEngine {
             this.eventBus.emitSync('session:error', { sessionId, error: err instanceof Error ? err.message : String(err) });
             throw err;
         } finally {
-            this.writeLock.release(sessionId);
-            this.lanes.release(lane.id);
+            if (!releasedForRecursion) {
+                this.writeLock.release(sessionId);
+                this.lanes.release(lane.id);
+            }
         }
     }
 
