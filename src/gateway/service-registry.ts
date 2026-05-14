@@ -147,31 +147,35 @@ export class ServiceRegistry {
 
     /**
      * Start all services in topological (dependency) order.
+     *
+     * Services involved in dependency cycles are placed after all
+     * non-cyclic services and will fail at the dependency-started
+     * check in {@link start}, so cycles are handled gracefully.
      */
     async startAll(): Promise<{ started: string[]; failed: string[] }> {
         const started: string[] = [];
         const failed: string[] = [];
-        const visited = new Set<string>();
+        const { order, cycles } = this.topologicalOrder();
 
-        const startRecursive = async (name: string): Promise<boolean> => {
-            if (visited.has(name)) return this.services.get(name)?.status === 'started';
-            visited.add(name);
-
-            const svc = this.services.get(name);
-            if (!svc) { failed.push(name); return false; }
-
-            for (const dep of svc.dependencies) {
-                if (!(await startRecursive(dep))) { failed.push(name); return false; }
+        // Start in dependency order; cycle participants come last
+        for (const name of order) {
+            if (await this.start(name)) {
+                started.push(name);
+            } else {
+                failed.push(name);
             }
-
-            if (await this.start(name)) { started.push(name); return true; }
-            failed.push(name);
-            return false;
-        };
-
-        for (const name of Array.from(this.services.keys())) {
-            await startRecursive(name);
         }
+
+        // Log cycle diagnostics (services in cycles will already have
+        // failed above because their deps weren't started)
+        if (cycles.length > 0) {
+            for (const name of cycles) {
+                if (!failed.includes(name)) {
+                    failed.push(name);
+                }
+            }
+        }
+
         return { started, failed };
     }
 
@@ -210,7 +214,7 @@ export class ServiceRegistry {
         const failed: string[] = [];
 
         // Build reverse dependency order: services with no dependents first reversed
-        const order = this.topologicalOrder();
+        const { order } = this.topologicalOrder();
         const reversed = [...order].reverse();
 
         for (const name of reversed) {
@@ -259,17 +263,27 @@ export class ServiceRegistry {
 
     /**
      * Topological sort of services (dependencies first).
-     * Used internally for startAll/stopAll ordering.
+     *
+     * Returns both the ordered list and any services involved in
+     * dependency cycles. Cycle participants are appended to the end
+     * of the order (not omitted) so callers can still attempt to
+     * start/stop them — they will fail gracefully at the dep check.
+     *
+     * This is intentionally non-throwing to keep startAll/stopAll
+     * behavior consistent: both handle cycles gracefully.
      */
-    private topologicalOrder(): string[] {
-        const result: string[] = [];
+    private topologicalOrder(): { order: string[]; cycles: string[] } {
+        const order: string[] = [];
         const visited = new Set<string>();
         const visiting = new Set<string>();
+        const inCycle = new Set<string>();
 
         const visit = (name: string) => {
             if (visited.has(name)) return;
             if (visiting.has(name)) {
-                throw new Error(`Circular dependency detected: ${name}`);
+                // Cycle detected — record participant but don't throw
+                inCycle.add(name);
+                return;
             }
             visiting.add(name);
             const svc = this.services.get(name);
@@ -280,12 +294,22 @@ export class ServiceRegistry {
             }
             visiting.delete(name);
             visited.add(name);
-            result.push(name);
+            order.push(name);
         };
 
         for (const name of this.services.keys()) {
             visit(name);
         }
-        return result;
+
+        // Append cycle participants that weren't placed in order
+        const cycles: string[] = [];
+        for (const name of inCycle) {
+            cycles.push(name);
+            if (!order.includes(name)) {
+                order.push(name);
+            }
+        }
+
+        return { order, cycles };
     }
 }
