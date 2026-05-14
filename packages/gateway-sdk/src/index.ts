@@ -1,2 +1,2 @@
-export { GatewayClient } from './client';
-export type * from './types';
+export { GatewayClient, GatewayClientError } from "./client.js";
+export type * from "./types.js";
