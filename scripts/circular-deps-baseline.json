@@ -1,0 +1,56 @@
+{
+  "sccs": [
+    [
+      "ui/src/ui/app-chat.ts",
+      "ui/src/ui/app-gateway.ts",
+      "ui/src/ui/app-render.ts",
+      "ui/src/ui/app.ts",
+      "ui/src/ui/controllers/agents.ts",
+      "ui/src/ui/controllers/config.ts",
+      "ui/src/ui/controllers/health.ts",
+      "ui/src/ui/controllers/sessions.ts",
+      "ui/src/ui/views/agents.ts",
+      "ui/src/ui/views/chat.ts",
+      "ui/src/ui/views/command-palette.ts",
+      "ui/src/ui/views/config.ts",
+      "ui/src/ui/views/cron.ts",
+      "ui/src/ui/views/debug.ts",
+      "ui/src/ui/views/logs.ts",
+      "ui/src/ui/views/overview.ts",
+      "ui/src/ui/views/sessions.ts",
+      "ui/src/ui/views/skills.ts",
+      "ui/src/ui/views/usage.ts"
+    ]
+  ],
+  "pairs": [
+    [
+      "ui/src/ui/app-chat.ts",
+      "ui/src/ui/app.ts"
+    ],
+    [
+      "ui/src/ui/app-gateway.ts",
+      "ui/src/ui/app.ts"
+    ],
+    [
+      "ui/src/ui/app-render.ts",
+      "ui/src/ui/app.ts"
+    ],
+    [
+      "ui/src/ui/app.ts",
+      "ui/src/ui/controllers/agents.ts"
+    ],
+    [
+      "ui/src/ui/app.ts",
+      "ui/src/ui/controllers/config.ts"
+    ],
+    [
+      "ui/src/ui/app.ts",
+      "ui/src/ui/controllers/health.ts"
+    ],
+    [
+      "ui/src/ui/app.ts",
+      "ui/src/ui/controllers/sessions.ts"
+    ]
+  ],
+  "updatedAt": "2026-05-14T02:58:24.333Z"
+}
