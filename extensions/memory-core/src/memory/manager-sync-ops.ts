@@ -728,7 +728,7 @@ export abstract class MemoryManagerSyncOps {
         ),
         this.getIndexConcurrency(),
       )
-    ).filter((entry): entry is MemoryFileEntry => entry !== null);
+    ).filter((entry: MemoryFileEntry | null): entry is MemoryFileEntry => entry !== null);
     log.debug("memory sync: indexing memory files", {
       files: fileEntries.length,
       needsFullReindex: params.needsFullReindex,
@@ -750,7 +750,7 @@ export abstract class MemoryManagerSyncOps {
       });
     }
 
-    const tasks = fileEntries.map((entry) => async () => {
+    const tasks = fileEntries.map((entry: MemoryFileEntry) => async () => {
       if (!params.needsFullReindex && existingHashes.get(entry.path) === entry.hash) {
         if (params.progress) {
           params.progress.completed += 1;
@@ -1369,7 +1369,7 @@ export abstract class MemoryManagerSyncOps {
 
   private resolveConfiguredScopeHash(): string {
     const extraPaths = normalizeExtraMemoryPaths(this.workspaceDir, this.settings.extraPaths)
-      .map((value) => value.replace(/\\/g, "/"))
+      .map((value: string) => value.replace(/\\/g, "/"))
       .toSorted();
     return hashText(
       JSON.stringify({
