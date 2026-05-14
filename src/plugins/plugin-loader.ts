@@ -139,13 +139,26 @@ function makePluginRecord(params: {
     };
 }
 
-/** Minimal service manager stub — wraps service lifecycle */
+/**
+ * Minimal service manager — wraps service lifecycle.
+ * Tracks registered services but does not yet manage full start/stop;
+ * a runtime warning is logged when services are started.
+ */
 class ServiceManagerStub {
-    private _services: string[] = [];
+    private _services: Array<{ pluginId: string; name: string }> = [];
+    register(pluginId: string, name: string): void {
+        this._services.push({ pluginId, name });
+    }
     async startAll(): Promise<{ started: number; failed: number }> {
+        if (this._services.length > 0) {
+            log.warn(
+                `ServiceManagerStub: ${this._services.length} service(s) registered but full service lifecycle is not yet implemented. ` +
+                `Registered: ${this._services.map((s) => `${s.pluginId}/${s.name}`).join(', ')}`,
+            );
+        }
         return { started: this._services.length, failed: 0 };
     }
-    async stopAll(): Promise<void> { /* no-op */ }
+    async stopAll(): Promise<void> { /* service stop not yet implemented */ }
     getStats(): { total: number } { return { total: this._services.length }; }
 }
 
@@ -627,11 +640,31 @@ export class PluginLoader {
             if (state.activated) continue;
 
             try {
-                // Create plugin context
+                // Create plugin context (provides config, logger, events, api)
                 const ctx = this.createPluginContext(pluginId, state);
 
-                // Create API surface
-                const api = this.createApiSurface(pluginId, state.record);
+                // Dynamically import the plugin's entryPoint module
+                const entryPath = path.resolve(state.plugin.source, state.plugin.entryPoint);
+                let pluginModule: Record<string, unknown> | null = null;
+                try {
+                    pluginModule = (await import(entryPath)) as Record<string, unknown>;
+                    state.module = pluginModule;
+                } catch (importErr) {
+                    const importMsg = importErr instanceof Error ? importErr.message : String(importErr);
+                    this.addDiagnostic('warn', `Could not import entryPoint (${state.plugin.entryPoint}): ${importMsg}`, pluginId);
+                    // Still mark as activated — the plugin's registration-time hooks may suffice
+                }
+
+                // Call the plugin's activate function if exported
+                if (pluginModule) {
+                    const defaultExport = pluginModule.default as Record<string, unknown> | undefined;
+                    const activate = (pluginModule.activate ?? defaultExport?.activate) as
+                        | ((ctx: PluginContext) => void | Promise<void>)
+                        | undefined;
+                    if (typeof activate === 'function') {
+                        await activate(ctx);
+                    }
+                }
 
                 state.activated = true;
                 this.auditLog.recordLifecycle(pluginId, 'activated');
@@ -703,10 +736,25 @@ export class PluginLoader {
         // Re-load
         await this.loadPlugin(state.plugin);
 
-        // Re-activate
+        // Re-activate: import module and call activate
         const newState = this.loaded.get(pluginId)!;
         const ctx = this.createPluginContext(pluginId, newState);
-        const api = this.createApiSurface(pluginId, newState.record);
+
+        const entryPath = path.resolve(newState.plugin.source, newState.plugin.entryPoint);
+        try {
+            const pluginModule = (await import(entryPath)) as Record<string, unknown>;
+            newState.module = pluginModule;
+            const defaultExport = pluginModule.default as Record<string, unknown> | undefined;
+            const activate = (pluginModule.activate ?? defaultExport?.activate) as
+                | ((ctx: PluginContext) => void | Promise<void>)
+                | undefined;
+            if (typeof activate === 'function') {
+                await activate(ctx);
+            }
+        } catch (importErr) {
+            const importMsg = importErr instanceof Error ? importErr.message : String(importErr);
+            this.addDiagnostic('warn', `Reload: could not import entryPoint: ${importMsg}`, pluginId);
+        }
         newState.activated = true;
 
         this.addDiagnostic('info', `Reloaded successfully`, pluginId);
@@ -935,4 +983,6 @@ interface LoadedPluginState {
     limiter: ResourceLimiter;
     jail: PathJail;
     activated: boolean;
+    /** Cached module from dynamic import of the plugin's entryPoint */
+    module?: Record<string, unknown> | null;
 }
