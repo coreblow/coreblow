@@ -87,6 +87,8 @@ export default defineConfig({
         include: [
             'src/**/*.test.ts',
             'tests/**/*.test.ts',
+            // Packages: memory-host-sdk and other workspace packages
+            'packages/**/*.test.ts',
             // Wave 3/4: extension pure-logic tests (non-e2e, non-live)
             'extensions/discord/src/**/*.test.ts',
             'extensions/telegram/src/**/*.test.ts',
