@@ -315,7 +315,7 @@ describe("gateway talk.config", () => {
             apiKey: "elevenlabs-talk-key", // pragma: allowlist secret
             voiceId: "voice-default",
             voiceAliases: {
-              Clawd: "EXAVITQu4vr4xnSDxMaL",
+              Cored: "EXAVITQu4vr4xnSDxMaL",
             },
           },
         },
@@ -335,7 +335,7 @@ describe("gateway talk.config", () => {
         await connectOperator(ws, ["operator.read", "operator.write"]);
         const res = await fetchTalkSpeak(ws, {
           text: "Hello from talk mode.",
-          voiceId: "clawd",
+          voiceId: "coreblow",
           outputFormat: "pcm_44100",
         });
         expect(res.ok).toBe(true);

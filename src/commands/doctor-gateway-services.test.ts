@@ -603,16 +603,16 @@ describe("maybeScanExtraGatewayServices", () => {
     mocks.findExtraGatewayServices.mockResolvedValue([
       {
         platform: "linux",
-        label: "moltbot-gateway.service",
-        detail: "unit: /home/test/.config/systemd/user/moltbot-gateway.service",
+        label: "coreblow-gateway.service",
+        detail: "unit: /home/test/.config/systemd/user/coreblow-gateway.service",
         scope: "user",
         legacy: true,
       },
     ]);
     mocks.uninstallLegacySystemdUnits.mockResolvedValue([
       {
-        name: "moltbot-gateway",
-        unitPath: "/home/test/.config/systemd/user/moltbot-gateway.service",
+        name: "coreblow-gateway",
+        unitPath: "/home/test/.config/systemd/user/coreblow-gateway.service",
         enabled: true,
         exists: true,
       },
@@ -644,7 +644,7 @@ describe("maybeScanExtraGatewayServices", () => {
       stdout: process.stdout,
     });
     expect(mocks.note).toHaveBeenCalledWith(
-      expect.stringContaining("moltbot-gateway.service"),
+      expect.stringContaining("coreblow-gateway.service"),
       "Legacy gateway removed",
     );
     expect(runtime.log).toHaveBeenCalledWith(

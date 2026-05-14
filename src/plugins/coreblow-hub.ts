@@ -1,23 +1,23 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import {
-  ClawHubRequestError,
-  downloadClawHubPackageArchive,
-  fetchClawHubPackageDetail,
-  fetchClawHubPackageVersion,
-  parseClawHubPluginSpec,
+  CoreHubRequestError,
+  downloadCoreHubPackageArchive,
+  fetchCoreHubPackageDetail,
+  fetchCoreHubPackageVersion,
+  parseCoreHubPluginSpec,
   resolveLatestVersionFromPackage,
   satisfiesGatewayMinimum,
   satisfiesPluginApiRange,
-  type ClawHubPackageChannel,
-  type ClawHubPackageCompatibility,
-  type ClawHubPackageDetail,
-  type ClawHubPackageFamily,
+  type CoreHubPackageChannel,
+  type CoreHubPackageCompatibility,
+  type CoreHubPackageDetail,
+  type CoreHubPackageFamily,
 } from "../infra/coreblow-hub.js";
 import { resolveCompatibilityHostVersion } from "../version.js";
 import { installPluginFromArchive, type InstallPluginResult } from "./install.js";
 
-export const CLAWHUB_INSTALL_ERROR_CODE = {
+export const COREHUB_INSTALL_ERROR_CODE = {
   INVALID_SPEC: "invalid_spec",
   PACKAGE_NOT_FOUND: "package_not_found",
   VERSION_NOT_FOUND: "version_not_found",
@@ -29,64 +29,64 @@ export const CLAWHUB_INSTALL_ERROR_CODE = {
   INCOMPATIBLE_GATEWAY: "incompatible_gateway",
 } as const;
 
-export type ClawHubInstallErrorCode =
-  (typeof CLAWHUB_INSTALL_ERROR_CODE)[keyof typeof CLAWHUB_INSTALL_ERROR_CODE];
+export type CoreHubInstallErrorCode =
+  (typeof COREHUB_INSTALL_ERROR_CODE)[keyof typeof COREHUB_INSTALL_ERROR_CODE];
 
 type PluginInstallLogger = {
   info?: (message: string) => void;
   warn?: (message: string) => void;
 };
 
-export type ClawHubPluginInstallRecordFields = {
-  source: "clawhub";
-  clawhubUrl: string;
-  clawhubPackage: string;
-  clawhubFamily: Exclude<ClawHubPackageFamily, "skill">;
-  clawhubChannel?: ClawHubPackageChannel;
+export type CoreHubPluginInstallRecordFields = {
+  source: "corehub";
+  corehubUrl: string;
+  corehubPackage: string;
+  corehubFamily: Exclude<CoreHubPackageFamily, "skill">;
+  corehubChannel?: CoreHubPackageChannel;
   version?: string;
   integrity?: string;
   resolvedAt?: string;
   installedAt?: string;
 };
 
-type ClawHubInstallFailure = {
+type CoreHubInstallFailure = {
   ok: false;
   error: string;
-  code?: ClawHubInstallErrorCode;
+  code?: CoreHubInstallErrorCode;
 };
 
-export function formatClawHubSpecifier(params: { name: string; version?: string }): string {
-  return `clawhub:${params.name}${params.version ? `@${params.version}` : ""}`;
+export function formatCoreHubSpecifier(params: { name: string; version?: string }): string {
+  return `corehub:${params.name}${params.version ? `@${params.version}` : ""}`;
 }
 
-function buildClawHubInstallFailure(
+function buildCoreHubInstallFailure(
   error: string,
-  code?: ClawHubInstallErrorCode,
-): ClawHubInstallFailure {
+  code?: CoreHubInstallErrorCode,
+): CoreHubInstallFailure {
   return { ok: false, error, code };
 }
 
-function mapClawHubRequestError(
+function mapCoreHubRequestError(
   error: unknown,
   context: { stage: "package" | "version"; name: string; version?: string },
-): ClawHubInstallFailure {
-  if (error instanceof ClawHubRequestError && error.status === 404) {
+): CoreHubInstallFailure {
+  if (error instanceof CoreHubRequestError && error.status === 404) {
     if (context.stage === "package") {
-      return buildClawHubInstallFailure(
-        "Package not found on ClawHub.",
-        CLAWHUB_INSTALL_ERROR_CODE.PACKAGE_NOT_FOUND,
+      return buildCoreHubInstallFailure(
+        "Package not found on CoreHub.",
+        COREHUB_INSTALL_ERROR_CODE.PACKAGE_NOT_FOUND,
       );
     }
-    return buildClawHubInstallFailure(
-      `Version not found on ClawHub: ${context.name}@${context.version ?? "unknown"}.`,
-      CLAWHUB_INSTALL_ERROR_CODE.VERSION_NOT_FOUND,
+    return buildCoreHubInstallFailure(
+      `Version not found on CoreHub: ${context.name}@${context.version ?? "unknown"}.`,
+      COREHUB_INSTALL_ERROR_CODE.VERSION_NOT_FOUND,
     );
   }
-  return buildClawHubInstallFailure(error instanceof Error ? error.message : String(error));
+  return buildCoreHubInstallFailure(error instanceof Error ? error.message : String(error));
 }
 
 function resolveRequestedVersion(params: {
-  detail: ClawHubPackageDetail;
+  detail: CoreHubPackageDetail;
   requestedVersion?: string;
 }): string | null {
   if (params.requestedVersion) {
@@ -96,7 +96,7 @@ function resolveRequestedVersion(params: {
 }
 
 async function resolveCompatiblePackageVersion(params: {
-  detail: ClawHubPackageDetail;
+  detail: CoreHubPackageDetail;
   requestedVersion?: string;
   baseUrl?: string;
   token?: string;
@@ -104,27 +104,27 @@ async function resolveCompatiblePackageVersion(params: {
   | {
       ok: true;
       version: string;
-      compatibility?: ClawHubPackageCompatibility | null;
+      compatibility?: CoreHubPackageCompatibility | null;
     }
-  | ClawHubInstallFailure
+  | CoreHubInstallFailure
 > {
   const version = resolveRequestedVersion(params);
   if (!version) {
-    return buildClawHubInstallFailure(
-      `ClawHub package "${params.detail.package?.name ?? "unknown"}" has no installable version.`,
-      CLAWHUB_INSTALL_ERROR_CODE.NO_INSTALLABLE_VERSION,
+    return buildCoreHubInstallFailure(
+      `CoreHub package "${params.detail.package?.name ?? "unknown"}" has no installable version.`,
+      COREHUB_INSTALL_ERROR_CODE.NO_INSTALLABLE_VERSION,
     );
   }
   let versionDetail;
   try {
-    versionDetail = await fetchClawHubPackageVersion({
+    versionDetail = await fetchCoreHubPackageVersion({
       name: params.detail.package?.name ?? "",
       version,
       baseUrl: params.baseUrl,
       token: params.token,
     });
   } catch (error) {
-    return mapClawHubRequestError(error, {
+    return mapCoreHubRequestError(error, {
       stage: "version",
       name: params.detail.package?.name ?? "unknown",
       version,
@@ -138,34 +138,34 @@ async function resolveCompatiblePackageVersion(params: {
   };
 }
 
-function validateClawHubPluginPackage(params: {
-  detail: ClawHubPackageDetail;
-  compatibility?: ClawHubPackageCompatibility | null;
+function validateCoreHubPluginPackage(params: {
+  detail: CoreHubPackageDetail;
+  compatibility?: CoreHubPackageCompatibility | null;
   runtimeVersion: string;
-}): ClawHubInstallFailure | null {
+}): CoreHubInstallFailure | null {
   const pkg = params.detail.package;
   if (!pkg) {
-    return buildClawHubInstallFailure(
-      "Package not found on ClawHub.",
-      CLAWHUB_INSTALL_ERROR_CODE.PACKAGE_NOT_FOUND,
+    return buildCoreHubInstallFailure(
+      "Package not found on CoreHub.",
+      COREHUB_INSTALL_ERROR_CODE.PACKAGE_NOT_FOUND,
     );
   }
   if (pkg.family === "skill") {
-    return buildClawHubInstallFailure(
+    return buildCoreHubInstallFailure(
       `"${pkg.name}" is a skill. Use "coreblow skills install ${pkg.name}" instead.`,
-      CLAWHUB_INSTALL_ERROR_CODE.SKILL_PACKAGE,
+      COREHUB_INSTALL_ERROR_CODE.SKILL_PACKAGE,
     );
   }
   if (pkg.family !== "code-plugin" && pkg.family !== "bundle-plugin") {
-    return buildClawHubInstallFailure(
-      `Unsupported ClawHub package family: ${String(pkg.family)}`,
-      CLAWHUB_INSTALL_ERROR_CODE.UNSUPPORTED_FAMILY,
+    return buildCoreHubInstallFailure(
+      `Unsupported CoreHub package family: ${String(pkg.family)}`,
+      COREHUB_INSTALL_ERROR_CODE.UNSUPPORTED_FAMILY,
     );
   }
   if (pkg.channel === "private") {
-    return buildClawHubInstallFailure(
-      `"${pkg.name}" is private on ClawHub and cannot be installed anonymously.`,
-      CLAWHUB_INSTALL_ERROR_CODE.PRIVATE_PACKAGE,
+    return buildCoreHubInstallFailure(
+      `"${pkg.name}" is private on CoreHub and cannot be installed anonymously.`,
+      COREHUB_INSTALL_ERROR_CODE.PRIVATE_PACKAGE,
     );
   }
 
@@ -175,9 +175,9 @@ function validateClawHubPluginPackage(params: {
     compatibility?.pluginApiRange &&
     !satisfiesPluginApiRange(runtimeVersion, compatibility.pluginApiRange)
   ) {
-    return buildClawHubInstallFailure(
+    return buildCoreHubInstallFailure(
       `Plugin "${pkg.name}" requires plugin API ${compatibility.pluginApiRange}, but this CoreBlow runtime exposes ${runtimeVersion}.`,
-      CLAWHUB_INSTALL_ERROR_CODE.INCOMPATIBLE_PLUGIN_API,
+      COREHUB_INSTALL_ERROR_CODE.INCOMPATIBLE_PLUGIN_API,
     );
   }
 
@@ -185,18 +185,18 @@ function validateClawHubPluginPackage(params: {
     compatibility?.minGatewayVersion &&
     !satisfiesGatewayMinimum(runtimeVersion, compatibility.minGatewayVersion)
   ) {
-    return buildClawHubInstallFailure(
+    return buildCoreHubInstallFailure(
       `Plugin "${pkg.name}" requires CoreBlow >=${compatibility.minGatewayVersion}, but this host is ${runtimeVersion}.`,
-      CLAWHUB_INSTALL_ERROR_CODE.INCOMPATIBLE_GATEWAY,
+      COREHUB_INSTALL_ERROR_CODE.INCOMPATIBLE_GATEWAY,
     );
   }
   return null;
 }
 
-function logClawHubPackageSummary(params: {
-  detail: ClawHubPackageDetail;
+function logCoreHubPackageSummary(params: {
+  detail: CoreHubPackageDetail;
   version: string;
-  compatibility?: ClawHubPackageCompatibility | null;
+  compatibility?: CoreHubPackageCompatibility | null;
   logger?: PluginInstallLogger;
 }) {
   const pkg = params.detail.package;
@@ -205,7 +205,7 @@ function logClawHubPackageSummary(params: {
   }
   const verification = pkg.verification?.tier ? ` verification=${pkg.verification.tier}` : "";
   params.logger?.info?.(
-    `ClawHub ${pkg.family} ${pkg.name}@${params.version} channel=${pkg.channel}${verification}`,
+    `CoreHub ${pkg.family} ${pkg.name}@${params.version} channel=${pkg.channel}${verification}`,
   );
   const compatibilityParts = [
     params.compatibility?.pluginApiRange
@@ -220,12 +220,12 @@ function logClawHubPackageSummary(params: {
   }
   if (pkg.channel !== "official") {
     params.logger?.warn?.(
-      `ClawHub package "${pkg.name}" is ${pkg.channel}; review source and verification before enabling.`,
+      `CoreHub package "${pkg.name}" is ${pkg.channel}; review source and verification before enabling.`,
     );
   }
 }
 
-export async function installPluginFromClawHub(params: {
+export async function installPluginFromCoreHub(params: {
   spec: string;
   baseUrl?: string;
   token?: string;
@@ -237,30 +237,30 @@ export async function installPluginFromClawHub(params: {
   | ({
       ok: true;
     } & Extract<InstallPluginResult, { ok: true }> & {
-        clawhub: ClawHubPluginInstallRecordFields;
+        corehub: CoreHubPluginInstallRecordFields;
         packageName: string;
       })
-  | ClawHubInstallFailure
+  | CoreHubInstallFailure
   | Extract<InstallPluginResult, { ok: false }>
 > {
-  const parsed = parseClawHubPluginSpec(params.spec);
+  const parsed = parseCoreHubPluginSpec(params.spec);
   if (!parsed?.name) {
-    return buildClawHubInstallFailure(
-      `invalid ClawHub plugin spec: ${params.spec}`,
-      CLAWHUB_INSTALL_ERROR_CODE.INVALID_SPEC,
+    return buildCoreHubInstallFailure(
+      `invalid CoreHub plugin spec: ${params.spec}`,
+      COREHUB_INSTALL_ERROR_CODE.INVALID_SPEC,
     );
   }
 
-  params.logger?.info?.(`Resolving ${formatClawHubSpecifier(parsed)}…`);
-  let detail: ClawHubPackageDetail;
+  params.logger?.info?.(`Resolving ${formatCoreHubSpecifier(parsed)}…`);
+  let detail: CoreHubPackageDetail;
   try {
-    detail = await fetchClawHubPackageDetail({
+    detail = await fetchCoreHubPackageDetail({
       name: parsed.name,
       baseUrl: params.baseUrl,
       token: params.token,
     });
   } catch (error) {
-    return mapClawHubRequestError(error, {
+    return mapCoreHubRequestError(error, {
       stage: "package",
       name: parsed.name,
     });
@@ -275,7 +275,7 @@ export async function installPluginFromClawHub(params: {
     return versionState;
   }
   const runtimeVersion = resolveCompatibilityHostVersion();
-  const validationFailure = validateClawHubPluginPackage({
+  const validationFailure = validateCoreHubPluginPackage({
     detail,
     compatibility: versionState.compatibility,
     runtimeVersion,
@@ -283,7 +283,7 @@ export async function installPluginFromClawHub(params: {
   if (validationFailure) {
     return validationFailure;
   }
-  logClawHubPackageSummary({
+  logCoreHubPackageSummary({
     detail,
     version: versionState.version,
     compatibility: versionState.compatibility,
@@ -292,18 +292,18 @@ export async function installPluginFromClawHub(params: {
 
   let archive;
   try {
-    archive = await downloadClawHubPackageArchive({
+    archive = await downloadCoreHubPackageArchive({
       name: parsed.name,
       version: versionState.version,
       baseUrl: params.baseUrl,
       token: params.token,
     });
   } catch (error) {
-    return buildClawHubInstallFailure(error instanceof Error ? error.message : String(error));
+    return buildCoreHubInstallFailure(error instanceof Error ? error.message : String(error));
   }
   try {
     params.logger?.info?.(
-      `Downloading ${detail.package?.family === "bundle-plugin" ? "bundle" : "plugin"} ${parsed.name}@${versionState.version} from ClawHub…`,
+      `Downloading ${detail.package?.family === "bundle-plugin" ? "bundle" : "plugin"} ${parsed.name}@${versionState.version} from CoreHub…`,
     );
     const installResult = await installPluginFromArchive({
       archivePath: archive.archivePath,
@@ -317,26 +317,26 @@ export async function installPluginFromClawHub(params: {
     }
 
     const pkg = detail.package!;
-    const clawhubFamily =
+    const corehubFamily =
       pkg.family === "code-plugin" || pkg.family === "bundle-plugin" ? pkg.family : null;
-    if (!clawhubFamily) {
-      return buildClawHubInstallFailure(
-        `Unsupported ClawHub package family: ${pkg.family}`,
-        CLAWHUB_INSTALL_ERROR_CODE.UNSUPPORTED_FAMILY,
+    if (!corehubFamily) {
+      return buildCoreHubInstallFailure(
+        `Unsupported CoreHub package family: ${pkg.family}`,
+        COREHUB_INSTALL_ERROR_CODE.UNSUPPORTED_FAMILY,
       );
     }
     return {
       ...installResult,
       packageName: parsed.name,
-      clawhub: {
-        source: "clawhub",
-        clawhubUrl:
+      corehub: {
+        source: "corehub",
+        corehubUrl:
           params.baseUrl?.trim() ||
-          process.env.COREBLOW_CLAWHUB_URL?.trim() ||
-          "https://clawhub.ai",
-        clawhubPackage: parsed.name,
-        clawhubFamily,
-        clawhubChannel: pkg.channel,
+          process.env.COREBLOW_COREHUB_URL?.trim() ||
+          "https://corehub.ai",
+        corehubPackage: parsed.name,
+        corehubFamily,
+        corehubChannel: pkg.channel,
         version: installResult.version ?? versionState.version,
         integrity: archive.integrity,
         resolvedAt: new Date().toISOString(),

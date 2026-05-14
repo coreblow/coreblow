@@ -106,14 +106,14 @@ function logBrowserTabs(tabs: BrowserTab[], json?: boolean) {
 
 function usesChromeMcpTransport(params: {
   transport?: BrowserTransport;
-  driver?: "coreblow" | "existing-session";
+  driver?: "coreblow" | "cored" | "clawd" | "existing-session";
 }): boolean {
   return params.transport === "chrome-mcp" || params.driver === "existing-session";
 }
 
 function formatBrowserConnectionSummary(params: {
   transport?: BrowserTransport;
-  driver?: "coreblow" | "existing-session";
+  driver?: "coreblow" | "cored" | "clawd" | "existing-session";
   isRemote?: boolean;
   cdpPort?: number | null;
   cdpUrl?: string | null;
@@ -463,7 +463,10 @@ export function registerBrowserManageCommands(
     .option("--color <hex>", "Profile color (hex format, e.g. #0066CC)")
     .option("--cdp-url <url>", "CDP URL for remote Chrome (http/https)")
     .option("--user-data-dir <path>", "User data dir for existing-session Chromium attach")
-    .option("--driver <driver>", "Profile driver (coreblow|existing-session). Default: coreblow")
+    .option(
+      "--driver <driver>",
+      "Profile driver (coreblow|cored|clawd|existing-session). Default: coreblow",
+    )
     .action(
       async (
         opts: {
@@ -487,7 +490,12 @@ export function registerBrowserManageCommands(
                 color: opts.color,
                 cdpUrl: opts.cdpUrl,
                 userDataDir: opts.userDataDir,
-                driver: opts.driver === "existing-session" ? "existing-session" : undefined,
+                driver:
+                  opts.driver === "existing-session" ||
+                  opts.driver === "cored" ||
+                  opts.driver === "clawd"
+                    ? opts.driver
+                    : undefined,
               },
             },
             { timeoutMs: 10_000 },
@@ -500,7 +508,7 @@ export function registerBrowserManageCommands(
             info(
               `🦞 Created profile "${result.profile}"\n${loc}\n  color: ${result.color}${
                 result.userDataDir ? `\n  userDataDir: ${shortenHomePath(result.userDataDir)}` : ""
-              }${opts.driver === "existing-session" ? "\n  driver: existing-session" : ""}`,
+              }${opts.driver && opts.driver !== "coreblow" ? `\n  driver: ${opts.driver}` : ""}`,
             ),
           );
         });

@@ -38,7 +38,7 @@ export function parsePluginsCommand(raw: string): PluginsCommand | null {
     if (!name) {
       return {
         action: "error",
-        message: "Usage: /plugins install <path|archive|npm-spec|clawhub:pkg>",
+        message: "Usage: /plugins install <path|archive|npm-spec|corehub:pkg>",
       };
     }
     return { action: "install", spec: name };

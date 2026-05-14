@@ -25,10 +25,7 @@ function hasDurableGatewayPasswordEnvForInstall(
   env: NodeJS.ProcessEnv,
 ): boolean {
   const durableServiceEnv = collectDurableServiceEnvVars({ env, config: cfg });
-  return Boolean(
-    durableServiceEnv.COREBLOW_GATEWAY_PASSWORD?.trim() ||
-    durableServiceEnv.CLAWDBOT_GATEWAY_PASSWORD?.trim(),
-  );
+  return Boolean(durableServiceEnv.COREBLOW_GATEWAY_PASSWORD?.trim());
 }
 
 export function shouldRequireGatewayTokenForInstall(

@@ -17,7 +17,14 @@ final class PeekabooBridgeHostCoordinator {
     private var host: PeekabooBridgeHost?
     private var services: CoreBlowPeekabooBridgeServices?
 
-    private static let legacySocketDirectoryNames = ["clawdbot", "clawdis", "moltbot"]
+    private static let legacySocketDirectoryNames = [
+        "corebot",
+        "coredis",
+        "blowbot",
+        "clawdbot",
+        "clawdis",
+        "moltbot",
+    ]
 
     private static var coreblowSocketPath: String {
         let fileManager = FileManager.default

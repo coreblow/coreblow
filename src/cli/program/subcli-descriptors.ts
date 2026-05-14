@@ -84,8 +84,8 @@ export const SUB_CLI_DESCRIPTORS = [
     hasSubcommands: false,
   },
   {
-    name: "clawbot",
-    description: "Legacy clawbot command aliases",
+    name: "corebot",
+    description: "Legacy corebot command aliases",
     hasSubcommands: true,
   },
   {

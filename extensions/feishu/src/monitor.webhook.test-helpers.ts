@@ -1,7 +1,7 @@
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { vi } from "vitest";
-import type { ClawdbotConfig } from "../runtime-api.js";
+import type { CoreBlowConfig } from "../runtime-api.js";
 import type { monitorFeishuProvider } from "./monitor.js";
 
 export async function getFreePort(): Promise<number> {
@@ -36,7 +36,7 @@ export function buildWebhookConfig(params: {
   port: number;
   verificationToken?: string;
   encryptKey?: string;
-}): ClawdbotConfig {
+}): CoreBlowConfig {
   return {
     channels: {
       feishu: {
@@ -56,7 +56,7 @@ export function buildWebhookConfig(params: {
         },
       },
     },
-  } as ClawdbotConfig;
+  } as CoreBlowConfig;
 }
 
 export async function withRunningWebhookMonitor(

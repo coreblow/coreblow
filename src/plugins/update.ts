@@ -6,7 +6,7 @@ import {
 import type { UpdateChannel } from "../infra/update-channels.js";
 import { resolveUserPath } from "../utils.js";
 import { resolveBundledPluginSources } from "./bundled-sources.js";
-import { installPluginFromClawHub } from "./coreblow-hub.js";
+import { installPluginFromCoreHub } from "./coreblow-hub.js";
 import {
   installPluginFromNpmSpec,
   PLUGIN_INSTALL_ERROR_CODE,
@@ -85,13 +85,13 @@ function formatMarketplaceInstallFailure(params: {
   );
 }
 
-function formatClawHubInstallFailure(params: {
+function formatCoreHubInstallFailure(params: {
   pluginId: string;
   spec: string;
   phase: "check" | "update";
   error: string;
 }): string {
-  return `Failed to ${params.phase} ${params.pluginId}: ${params.error} (ClawHub ${params.spec}).`;
+  return `Failed to ${params.phase} ${params.pluginId}: ${params.error} (CoreHub ${params.spec}).`;
 }
 
 type InstallIntegrityDrift = {
@@ -288,7 +288,7 @@ export async function updateNpmInstalledPlugins(params: {
       continue;
     }
 
-    if (record.source !== "npm" && record.source !== "marketplace" && record.source !== "clawhub") {
+    if (record.source !== "npm" && record.source !== "marketplace" && record.source !== "corehub") {
       outcomes.push({
         pluginId,
         status: "skipped",
@@ -313,11 +313,11 @@ export async function updateNpmInstalledPlugins(params: {
       continue;
     }
 
-    if (record.source === "clawhub" && !record.clawhubPackage) {
+    if (record.source === "corehub" && !record.corehubPackage) {
       outcomes.push({
         pluginId,
         status: "skipped",
-        message: `Skipping "${pluginId}" (missing ClawHub package metadata).`,
+        message: `Skipping "${pluginId}" (missing CoreHub package metadata).`,
       });
       continue;
     }
@@ -350,7 +350,7 @@ export async function updateNpmInstalledPlugins(params: {
     if (params.dryRun) {
       let probe:
         | Awaited<ReturnType<typeof installPluginFromNpmSpec>>
-        | Awaited<ReturnType<typeof installPluginFromClawHub>>
+        | Awaited<ReturnType<typeof installPluginFromCoreHub>>
         | Awaited<ReturnType<typeof installPluginFromMarketplace>>;
       try {
         probe =
@@ -369,10 +369,10 @@ export async function updateNpmInstalledPlugins(params: {
                 }),
                 logger,
               })
-            : record.source === "clawhub"
-              ? await installPluginFromClawHub({
-                  spec: effectiveSpec ?? `clawhub:${record.clawhubPackage!}`,
-                  baseUrl: record.clawhubUrl,
+            : record.source === "corehub"
+              ? await installPluginFromCoreHub({
+                  spec: effectiveSpec ?? `corehub:${record.corehubPackage!}`,
+                  baseUrl: record.corehubUrl,
                   mode: "update",
                   dryRun: true,
                   expectedPluginId: pluginId,
@@ -406,10 +406,10 @@ export async function updateNpmInstalledPlugins(params: {
                   phase: "check",
                   result: probe,
                 })
-              : record.source === "clawhub"
-                ? formatClawHubInstallFailure({
+              : record.source === "corehub"
+                ? formatCoreHubInstallFailure({
                     pluginId,
-                    spec: effectiveSpec ?? `clawhub:${record.clawhubPackage!}`,
+                    spec: effectiveSpec ?? `corehub:${record.corehubPackage!}`,
                     phase: "check",
                     error: probe.error,
                   })
@@ -448,7 +448,7 @@ export async function updateNpmInstalledPlugins(params: {
 
     let result:
       | Awaited<ReturnType<typeof installPluginFromNpmSpec>>
-      | Awaited<ReturnType<typeof installPluginFromClawHub>>
+      | Awaited<ReturnType<typeof installPluginFromCoreHub>>
       | Awaited<ReturnType<typeof installPluginFromMarketplace>>;
     try {
       result =
@@ -466,10 +466,10 @@ export async function updateNpmInstalledPlugins(params: {
               }),
               logger,
             })
-          : record.source === "clawhub"
-            ? await installPluginFromClawHub({
-                spec: effectiveSpec ?? `clawhub:${record.clawhubPackage!}`,
-                baseUrl: record.clawhubUrl,
+          : record.source === "corehub"
+            ? await installPluginFromCoreHub({
+                spec: effectiveSpec ?? `corehub:${record.corehubPackage!}`,
+                baseUrl: record.corehubUrl,
                 mode: "update",
                 expectedPluginId: pluginId,
                 logger,
@@ -501,10 +501,10 @@ export async function updateNpmInstalledPlugins(params: {
                 phase: "update",
                 result: result,
               })
-            : record.source === "clawhub"
-              ? formatClawHubInstallFailure({
+            : record.source === "corehub"
+              ? formatCoreHubInstallFailure({
                   pluginId,
-                  spec: effectiveSpec ?? `clawhub:${record.clawhubPackage!}`,
+                  spec: effectiveSpec ?? `corehub:${record.corehubPackage!}`,
                   phase: "update",
                   error: result.error,
                 })
@@ -534,23 +534,23 @@ export async function updateNpmInstalledPlugins(params: {
         version: nextVersion,
         ...buildNpmResolutionInstallFields(result.npmResolution),
       });
-    } else if (record.source === "clawhub") {
-      const clawhubResult = result as Extract<
-        Awaited<ReturnType<typeof installPluginFromClawHub>>,
+    } else if (record.source === "corehub") {
+      const corehubResult = result as Extract<
+        Awaited<ReturnType<typeof installPluginFromCoreHub>>,
         { ok: true }
       >;
       next = recordPluginInstall(next, {
         pluginId: resolvedPluginId,
-        source: "clawhub",
-        spec: effectiveSpec ?? record.spec ?? `clawhub:${record.clawhubPackage!}`,
+        source: "corehub",
+        spec: effectiveSpec ?? record.spec ?? `corehub:${record.corehubPackage!}`,
         installPath: result.targetDir,
         version: nextVersion,
-        integrity: clawhubResult.clawhub.integrity,
-        resolvedAt: clawhubResult.clawhub.resolvedAt,
-        clawhubUrl: clawhubResult.clawhub.clawhubUrl,
-        clawhubPackage: clawhubResult.clawhub.clawhubPackage,
-        clawhubFamily: clawhubResult.clawhub.clawhubFamily,
-        clawhubChannel: clawhubResult.clawhub.clawhubChannel,
+        integrity: corehubResult.corehub.integrity,
+        resolvedAt: corehubResult.corehub.resolvedAt,
+        corehubUrl: corehubResult.corehub.corehubUrl,
+        corehubPackage: corehubResult.corehub.corehubPackage,
+        corehubFamily: corehubResult.corehub.corehubFamily,
+        corehubChannel: corehubResult.corehub.corehubChannel,
       });
     } else {
       const marketplaceResult = result as Extract<

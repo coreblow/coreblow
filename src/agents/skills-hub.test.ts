@@ -3,21 +3,21 @@ import os from "node:os";
 import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const fetchClawHubSkillDetailMock = vi.fn();
-const downloadClawHubSkillArchiveMock = vi.fn();
-const listClawHubSkillsMock = vi.fn();
-const resolveClawHubBaseUrlMock = vi.fn(() => "https://clawhub.ai");
-const searchClawHubSkillsMock = vi.fn();
+const fetchCoreHubSkillDetailMock = vi.fn();
+const downloadCoreHubSkillArchiveMock = vi.fn();
+const listCoreHubSkillsMock = vi.fn();
+const resolveCoreHubBaseUrlMock = vi.fn(() => "https://corehub.ai");
+const searchCoreHubSkillsMock = vi.fn();
 const withExtractedArchiveRootMock = vi.fn();
 const installPackageDirMock = vi.fn();
 const fileExistsMock = vi.fn();
 
 vi.mock("../infra/coreblow-hub.js", () => ({
-  fetchClawHubSkillDetail: fetchClawHubSkillDetailMock,
-  downloadClawHubSkillArchive: downloadClawHubSkillArchiveMock,
-  listClawHubSkills: listClawHubSkillsMock,
-  resolveClawHubBaseUrl: resolveClawHubBaseUrlMock,
-  searchClawHubSkills: searchClawHubSkillsMock,
+  fetchCoreHubSkillDetail: fetchCoreHubSkillDetailMock,
+  downloadCoreHubSkillArchive: downloadCoreHubSkillArchiveMock,
+  listCoreHubSkills: listCoreHubSkillsMock,
+  resolveCoreHubBaseUrl: resolveCoreHubBaseUrlMock,
+  searchCoreHubSkills: searchCoreHubSkillsMock,
 }));
 
 vi.mock("../infra/install-flow.js", () => ({
@@ -32,23 +32,23 @@ vi.mock("../infra/archive.js", () => ({
   fileExists: fileExistsMock,
 }));
 
-const { installSkillFromClawHub, searchSkillsFromClawHub, updateSkillsFromClawHub } =
+const { installSkillFromCoreHub, searchSkillsFromCoreHub, updateSkillsFromCoreHub } =
   await import("./skills-hub.js");
 
-describe("skills-clawhub", () => {
+describe("skills-corehub", () => {
   beforeEach(() => {
-    fetchClawHubSkillDetailMock.mockReset();
-    downloadClawHubSkillArchiveMock.mockReset();
-    listClawHubSkillsMock.mockReset();
-    resolveClawHubBaseUrlMock.mockReset();
-    searchClawHubSkillsMock.mockReset();
+    fetchCoreHubSkillDetailMock.mockReset();
+    downloadCoreHubSkillArchiveMock.mockReset();
+    listCoreHubSkillsMock.mockReset();
+    resolveCoreHubBaseUrlMock.mockReset();
+    searchCoreHubSkillsMock.mockReset();
     withExtractedArchiveRootMock.mockReset();
     installPackageDirMock.mockReset();
     fileExistsMock.mockReset();
 
-    resolveClawHubBaseUrlMock.mockReturnValue("https://clawhub.ai");
+    resolveCoreHubBaseUrlMock.mockReturnValue("https://corehub.ai");
     fileExistsMock.mockImplementation(async (input: string) => input.endsWith("SKILL.md"));
-    fetchClawHubSkillDetailMock.mockResolvedValue({
+    fetchCoreHubSkillDetailMock.mockResolvedValue({
       skill: {
         slug: "agentreceipt",
         displayName: "AgentReceipt",
@@ -60,11 +60,11 @@ describe("skills-clawhub", () => {
         createdAt: 3,
       },
     });
-    downloadClawHubSkillArchiveMock.mockResolvedValue({
+    downloadCoreHubSkillArchiveMock.mockResolvedValue({
       archivePath: "/tmp/agentreceipt.zip",
       integrity: "sha256-test",
     });
-    searchClawHubSkillsMock.mockResolvedValue([]);
+    searchCoreHubSkillsMock.mockResolvedValue([]);
     withExtractedArchiveRootMock.mockImplementation(async (params) => {
       expect(params.rootMarkers).toEqual(["SKILL.md"]);
       return await params.onExtracted("/tmp/extracted-skill");
@@ -75,13 +75,13 @@ describe("skills-clawhub", () => {
     });
   });
 
-  it("installs ClawHub skills from flat-root archives", async () => {
-    const result = await installSkillFromClawHub({
+  it("installs CoreHub skills from flat-root archives", async () => {
+    const result = await installSkillFromCoreHub({
       workspaceDir: "/tmp/workspace",
       slug: "agentreceipt",
     });
 
-    expect(downloadClawHubSkillArchiveMock).toHaveBeenCalledWith({
+    expect(downloadCoreHubSkillArchiveMock).toHaveBeenCalledWith({
       slug: "agentreceipt",
       version: "1.0.0",
       baseUrl: undefined,
@@ -101,16 +101,16 @@ describe("skills-clawhub", () => {
 
   describe("legacy tracked slugs remain updatable", () => {
     async function createLegacyTrackedSkillFixture(slug: string) {
-      const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-skills-clawhub-"));
+      const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-skills-corehub-"));
       const skillDir = path.join(workspaceDir, "skills", slug);
-      await fs.mkdir(path.join(skillDir, ".clawhub"), { recursive: true });
-      await fs.mkdir(path.join(workspaceDir, ".clawhub"), { recursive: true });
+      await fs.mkdir(path.join(skillDir, ".corehub"), { recursive: true });
+      await fs.mkdir(path.join(workspaceDir, ".corehub"), { recursive: true });
       await fs.writeFile(
-        path.join(skillDir, ".clawhub", "origin.json"),
+        path.join(skillDir, ".corehub", "origin.json"),
         `${JSON.stringify(
           {
             version: 1,
-            registry: "https://legacy.clawhub.ai",
+            registry: "https://legacy.corehub.ai",
             slug,
             installedVersion: "0.9.0",
             installedAt: 123,
@@ -121,7 +121,7 @@ describe("skills-clawhub", () => {
         "utf8",
       );
       await fs.writeFile(
-        path.join(workspaceDir, ".clawhub", "lock.json"),
+        path.join(workspaceDir, ".corehub", "lock.json"),
         `${JSON.stringify(
           {
             version: 1,
@@ -149,18 +149,18 @@ describe("skills-clawhub", () => {
       });
 
       try {
-        const results = await updateSkillsFromClawHub({
+        const results = await updateSkillsFromCoreHub({
           workspaceDir,
         });
 
-        expect(fetchClawHubSkillDetailMock).toHaveBeenCalledWith({
+        expect(fetchCoreHubSkillDetailMock).toHaveBeenCalledWith({
           slug,
-          baseUrl: "https://legacy.clawhub.ai",
+          baseUrl: "https://legacy.corehub.ai",
         });
-        expect(downloadClawHubSkillArchiveMock).toHaveBeenCalledWith({
+        expect(downloadCoreHubSkillArchiveMock).toHaveBeenCalledWith({
           slug,
           version: "1.0.0",
-          baseUrl: "https://legacy.clawhub.ai",
+          baseUrl: "https://legacy.corehub.ai",
         });
         expect(results).toMatchObject([
           {
@@ -185,7 +185,7 @@ describe("skills-clawhub", () => {
       });
 
       try {
-        const results = await updateSkillsFromClawHub({
+        const results = await updateSkillsFromCoreHub({
           workspaceDir,
           slug,
         });
@@ -204,12 +204,75 @@ describe("skills-clawhub", () => {
       }
     });
 
+    it("updates a pre-rebrand .clawdhub tracked slug", async () => {
+      const slug = "legacy-skill";
+      const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-skills-corehub-"));
+      const skillDir = path.join(workspaceDir, "skills", slug);
+      await fs.mkdir(path.join(skillDir, ".clawdhub"), { recursive: true });
+      await fs.mkdir(path.join(workspaceDir, ".clawdhub"), { recursive: true });
+      await fs.writeFile(
+        path.join(skillDir, ".clawdhub", "origin.json"),
+        `${JSON.stringify(
+          {
+            version: 1,
+            registry: "https://legacy.corehub.ai",
+            slug,
+            installedVersion: "0.9.0",
+            installedAt: 123,
+          },
+          null,
+          2,
+        )}\n`,
+        "utf8",
+      );
+      await fs.writeFile(
+        path.join(workspaceDir, ".clawdhub", "lock.json"),
+        `${JSON.stringify(
+          {
+            version: 1,
+            skills: {
+              [slug]: {
+                version: "0.9.0",
+                installedAt: 123,
+              },
+            },
+          },
+          null,
+          2,
+        )}\n`,
+        "utf8",
+      );
+      installPackageDirMock.mockResolvedValueOnce({
+        ok: true,
+        targetDir: skillDir,
+      });
+
+      try {
+        const results = await updateSkillsFromCoreHub({
+          workspaceDir,
+          slug,
+        });
+
+        expect(results).toMatchObject([
+          {
+            ok: true,
+            slug,
+            previousVersion: "0.9.0",
+            version: "1.0.0",
+            targetDir: skillDir,
+          },
+        ]);
+      } finally {
+        await fs.rm(workspaceDir, { recursive: true, force: true });
+      }
+    });
+
     it("still rejects an untracked Unicode slug passed to update", async () => {
-      const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-skills-clawhub-"));
+      const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-skills-corehub-"));
 
       try {
         await expect(
-          updateSkillsFromClawHub({
+          updateSkillsFromCoreHub({
             workspaceDir,
             slug: "re\u0430ct",
           }),
@@ -222,7 +285,7 @@ describe("skills-clawhub", () => {
 
   describe("normalizeSlug rejects non-ASCII homograph slugs", () => {
     it("rejects Cyrillic homograph 'а' (U+0430) in slug", async () => {
-      const result = await installSkillFromClawHub({
+      const result = await installSkillFromCoreHub({
         workspaceDir: "/tmp/workspace",
         slug: "re\u0430ct",
       });
@@ -233,7 +296,7 @@ describe("skills-clawhub", () => {
     });
 
     it("rejects Cyrillic homograph 'е' (U+0435) in slug", async () => {
-      const result = await installSkillFromClawHub({
+      const result = await installSkillFromCoreHub({
         workspaceDir: "/tmp/workspace",
         slug: "r\u0435act",
       });
@@ -244,7 +307,7 @@ describe("skills-clawhub", () => {
     });
 
     it("rejects Cyrillic homograph 'о' (U+043E) in slug", async () => {
-      const result = await installSkillFromClawHub({
+      const result = await installSkillFromCoreHub({
         workspaceDir: "/tmp/workspace",
         slug: "t\u043Edo",
       });
@@ -255,7 +318,7 @@ describe("skills-clawhub", () => {
     });
 
     it("rejects slug with mixed Unicode and ASCII", async () => {
-      const result = await installSkillFromClawHub({
+      const result = await installSkillFromCoreHub({
         workspaceDir: "/tmp/workspace",
         slug: "cаlеndаr",
       });
@@ -266,7 +329,7 @@ describe("skills-clawhub", () => {
     });
 
     it("rejects slug with non-Latin scripts", async () => {
-      const result = await installSkillFromClawHub({
+      const result = await installSkillFromCoreHub({
         workspaceDir: "/tmp/workspace",
         slug: "技能",
       });
@@ -278,7 +341,7 @@ describe("skills-clawhub", () => {
 
     it("rejects Unicode that case-folds to ASCII (Kelvin sign U+212A)", async () => {
       // "\u212A" (Kelvin sign) lowercases to "k" — must be caught before lowercasing
-      const result = await installSkillFromClawHub({
+      const result = await installSkillFromCoreHub({
         workspaceDir: "/tmp/workspace",
         slug: "\u212Aalendar",
       });
@@ -289,7 +352,7 @@ describe("skills-clawhub", () => {
     });
 
     it("rejects slug starting with a hyphen", async () => {
-      const result = await installSkillFromClawHub({
+      const result = await installSkillFromCoreHub({
         workspaceDir: "/tmp/workspace",
         slug: "-calendar",
       });
@@ -300,7 +363,7 @@ describe("skills-clawhub", () => {
     });
 
     it("rejects slug ending with a hyphen", async () => {
-      const result = await installSkillFromClawHub({
+      const result = await installSkillFromCoreHub({
         workspaceDir: "/tmp/workspace",
         slug: "calendar-",
       });
@@ -311,7 +374,7 @@ describe("skills-clawhub", () => {
     });
 
     it("accepts uppercase ASCII slugs (preserves original casing behavior)", async () => {
-      const result = await installSkillFromClawHub({
+      const result = await installSkillFromCoreHub({
         workspaceDir: "/tmp/workspace",
         slug: "React",
       });
@@ -319,7 +382,7 @@ describe("skills-clawhub", () => {
     });
 
     it("accepts valid lowercase ASCII slugs", async () => {
-      const result = await installSkillFromClawHub({
+      const result = await installSkillFromCoreHub({
         workspaceDir: "/tmp/workspace",
         slug: "calendar-2",
       });
@@ -328,7 +391,7 @@ describe("skills-clawhub", () => {
   });
 
   it("uses search for browse-all skill discovery", async () => {
-    searchClawHubSkillsMock.mockResolvedValueOnce([
+    searchCoreHubSkillsMock.mockResolvedValueOnce([
       {
         score: 1,
         slug: "calendar",
@@ -339,7 +402,7 @@ describe("skills-clawhub", () => {
       },
     ]);
 
-    await expect(searchSkillsFromClawHub({ limit: 20 })).resolves.toEqual([
+    await expect(searchSkillsFromCoreHub({ limit: 20 })).resolves.toEqual([
       {
         score: 1,
         slug: "calendar",
@@ -349,11 +412,11 @@ describe("skills-clawhub", () => {
         updatedAt: 123,
       },
     ]);
-    expect(searchClawHubSkillsMock).toHaveBeenCalledWith({
+    expect(searchCoreHubSkillsMock).toHaveBeenCalledWith({
       query: "*",
       limit: 20,
       baseUrl: undefined,
     });
-    expect(listClawHubSkillsMock).not.toHaveBeenCalled();
+    expect(listCoreHubSkillsMock).not.toHaveBeenCalled();
   });
 });

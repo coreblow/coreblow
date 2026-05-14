@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { createRuntimeEnv } from "../../../test/helpers/extensions/runtime-env.js";
-import type { ClawdbotConfig, RuntimeEnv } from "../runtime-api.js";
+import type { CoreBlowConfig, RuntimeEnv } from "../runtime-api.js";
 import {
   createQuickActionLauncherCard,
   isFeishuQuickActionMenuEventKey,
@@ -14,7 +14,7 @@ vi.mock("./send.js", () => ({
 }));
 
 describe("feishu quick-action launcher", () => {
-  const cfg: ClawdbotConfig = {};
+  const cfg: CoreBlowConfig = {};
 
   beforeEach(() => {
     vi.clearAllMocks();

@@ -164,9 +164,9 @@ describe("duckduckgo web search provider", () => {
   it("decodes direct and redirect urls plus common html entities", () => {
     expect(
       ddgClientTesting.decodeDuckDuckGoUrl(
-        "https://duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2Fsearch%3Fq%3Dclaw",
+        "https://duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2Fsearch%3Fq%3Dcore",
       ),
-    ).toBe("https://example.com/search?q=claw");
+    ).toBe("https://example.com/search?q=core");
     expect(ddgClientTesting.decodeDuckDuckGoUrl("https://example.com")).toBe("https://example.com");
     expect(ddgClientTesting.decodeHtmlEntities("Fish &amp; Chips&nbsp;&hellip; &#39;ok&#39;")).toBe(
       "Fish & Chips ... 'ok'",

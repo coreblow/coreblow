@@ -10,16 +10,8 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <script>
       (function () {
-        var THEMES = { claw: 1, knot: 1, dash: 1 };
+        var THEMES = { core: 1, knot: 1, dash: 1 };
         var MODES = { system: 1, light: 1, dark: 1 };
-        var LEGACY = {
-          dark: "claw:dark",
-          light: "claw:light",
-          openknot: "knot:dark",
-          fieldmanual: "dash:dark",
-          clawdash: "dash:light",
-          system: "claw:system",
-        };
         try {
           var keys = Object.keys(localStorage);
           var raw;
@@ -35,9 +27,8 @@
           var m = s && s.themeMode;
           if (typeof t !== "string") t = "";
           if (typeof m !== "string") m = "";
-          var legacy = LEGACY[t];
-          var theme = THEMES[t] ? t : legacy ? legacy.split(":")[0] : "claw";
-          var mode = MODES[m] ? m : legacy ? legacy.split(":")[1] : "system";
+          var theme = THEMES[t] ? t : "core";
+          var mode = MODES[m] ? m : "system";
           if (mode === "system") {
             mode = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
           }

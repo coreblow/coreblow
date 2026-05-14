@@ -132,7 +132,7 @@ describe("parseFeishuMessageEvent – mentionedBot", () => {
     const BOT_OPEN_ID = "ou_bot_123";
     const event = makePostEvent({
       content: [
-        [{ tag: "at", user_id: BOT_OPEN_ID, user_name: "claw" }],
+        [{ tag: "at", user_id: BOT_OPEN_ID, user_name: "cored" }],
         [{ tag: "text", text: "What does this document say" }],
       ],
     });

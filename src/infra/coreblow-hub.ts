@@ -5,23 +5,23 @@ import path from "node:path";
 import { isAtLeast, parseSemver } from "./runtime-guard.js";
 import { compareComparableSemver, parseComparableSemver } from "./semver-compare.js";
 
-const DEFAULT_CLAWHUB_URL = "https://clawhub.ai";
+const DEFAULT_COREHUB_URL = "https://corehub.ai";
 const DEFAULT_FETCH_TIMEOUT_MS = 30_000;
 
-export type ClawHubPackageFamily = "skill" | "code-plugin" | "bundle-plugin";
-export type ClawHubPackageChannel = "official" | "community" | "private";
-export type ClawHubPackageCompatibility = {
+export type CoreHubPackageFamily = "skill" | "code-plugin" | "bundle-plugin";
+export type CoreHubPackageChannel = "official" | "community" | "private";
+export type CoreHubPackageCompatibility = {
   pluginApiRange?: string;
   builtWithCoreBlowVersion?: string;
   minGatewayVersion?: string;
 };
 
-export type ClawHubPackageListItem = {
+export type CoreHubPackageListItem = {
   name: string;
   displayName: string;
-  family: ClawHubPackageFamily;
+  family: CoreHubPackageFamily;
   runtimeId?: string | null;
-  channel: ClawHubPackageChannel;
+  channel: CoreHubPackageChannel;
   isOfficial: boolean;
   summary?: string | null;
   ownerHandle?: string | null;
@@ -33,11 +33,11 @@ export type ClawHubPackageListItem = {
   verificationTier?: string | null;
 };
 
-export type ClawHubPackageDetail = {
+export type CoreHubPackageDetail = {
   package:
-    | (ClawHubPackageListItem & {
+    | (CoreHubPackageListItem & {
         tags?: Record<string, string>;
-        compatibility?: ClawHubPackageCompatibility | null;
+        compatibility?: CoreHubPackageCompatibility | null;
         capabilities?: {
           executesCode?: boolean;
           runtimeId?: string;
@@ -68,11 +68,11 @@ export type ClawHubPackageDetail = {
   } | null;
 };
 
-export type ClawHubPackageVersion = {
+export type CoreHubPackageVersion = {
   package: {
     name: string;
     displayName: string;
-    family: ClawHubPackageFamily;
+    family: CoreHubPackageFamily;
   } | null;
   version: {
     version: string;
@@ -80,13 +80,13 @@ export type ClawHubPackageVersion = {
     changelog: string;
     distTags?: string[];
     files?: unknown;
-    compatibility?: ClawHubPackageCompatibility | null;
-    capabilities?: ClawHubPackageDetail["package"] extends infer T
+    compatibility?: CoreHubPackageCompatibility | null;
+    capabilities?: CoreHubPackageDetail["package"] extends infer T
       ? T extends { capabilities?: infer C }
         ? C
         : never
       : never;
-    verification?: ClawHubPackageDetail["package"] extends infer T
+    verification?: CoreHubPackageDetail["package"] extends infer T
       ? T extends { verification?: infer C }
         ? C
         : never
@@ -94,12 +94,12 @@ export type ClawHubPackageVersion = {
   } | null;
 };
 
-export type ClawHubPackageSearchResult = {
+export type CoreHubPackageSearchResult = {
   score: number;
-  package: ClawHubPackageListItem;
+  package: CoreHubPackageListItem;
 };
 
-export type ClawHubSkillSearchResult = {
+export type CoreHubSkillSearchResult = {
   score: number;
   slug: string;
   displayName: string;
@@ -108,7 +108,7 @@ export type ClawHubSkillSearchResult = {
   updatedAt?: number;
 };
 
-export type ClawHubSkillDetail = {
+export type CoreHubSkillDetail = {
   skill: {
     slug: string;
     displayName: string;
@@ -133,7 +133,7 @@ export type ClawHubSkillDetail = {
   } | null;
 };
 
-export type ClawHubSkillListResponse = {
+export type CoreHubSkillListResponse = {
   items: Array<{
     slug: string;
     displayName: string;
@@ -154,14 +154,14 @@ export type ClawHubSkillListResponse = {
   nextCursor?: string | null;
 };
 
-export type ClawHubDownloadResult = {
+export type CoreHubDownloadResult = {
   archivePath: string;
   integrity: string;
 };
 
 type FetchLike = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 
-type ClawHubRequestParams = {
+type CoreHubRequestParams = {
   baseUrl?: string;
   path: string;
   token?: string;
@@ -170,25 +170,25 @@ type ClawHubRequestParams = {
   fetchImpl?: FetchLike;
 };
 
-type ClawHubConfigLike = {
+type CoreHubConfigLike = {
   token?: unknown;
   accessToken?: unknown;
   authToken?: unknown;
   apiToken?: unknown;
-  auth?: ClawHubConfigLike | null;
-  session?: ClawHubConfigLike | null;
-  credentials?: ClawHubConfigLike | null;
-  user?: ClawHubConfigLike | null;
+  auth?: CoreHubConfigLike | null;
+  session?: CoreHubConfigLike | null;
+  credentials?: CoreHubConfigLike | null;
+  user?: CoreHubConfigLike | null;
 };
 
-export class ClawHubRequestError extends Error {
+export class CoreHubRequestError extends Error {
   readonly status: number;
   readonly requestPath: string;
   readonly responseBody: string;
 
   constructor(params: { path: string; status: number; body: string }) {
-    super(`ClawHub ${params.path} failed (${params.status}): ${params.body}`);
-    this.name = "ClawHubRequestError";
+    super(`CoreHub ${params.path} failed (${params.status}): ${params.body}`);
+    this.name = "CoreHubRequestError";
     this.status = params.status;
     this.requestPath = params.path;
     this.responseBody = params.body;
@@ -197,39 +197,38 @@ export class ClawHubRequestError extends Error {
 
 function normalizeBaseUrl(baseUrl?: string): string {
   const envValue =
-    process.env.COREBLOW_CLAWHUB_URL?.trim() ||
-    process.env.CLAWHUB_URL?.trim() ||
-    DEFAULT_CLAWHUB_URL;
+    process.env.COREBLOW_COREHUB_URL?.trim() ||
+    process.env.COREHUB_URL?.trim() ||
+    DEFAULT_COREHUB_URL;
   const value = (baseUrl?.trim() || envValue).replace(/\/+$/, "");
-  return value || DEFAULT_CLAWHUB_URL;
+  return value || DEFAULT_COREHUB_URL;
 }
 
 function readNonEmptyString(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
-function extractTokenFromClawHubConfig(value: unknown): string | undefined {
+function extractTokenFromCoreHubConfig(value: unknown): string | undefined {
   if (!value || typeof value !== "object") {
     return undefined;
   }
-  const record = value as ClawHubConfigLike;
+  const record = value as CoreHubConfigLike;
   return (
     readNonEmptyString(record.accessToken) ??
     readNonEmptyString(record.authToken) ??
     readNonEmptyString(record.apiToken) ??
     readNonEmptyString(record.token) ??
-    extractTokenFromClawHubConfig(record.auth) ??
-    extractTokenFromClawHubConfig(record.session) ??
-    extractTokenFromClawHubConfig(record.credentials) ??
-    extractTokenFromClawHubConfig(record.user)
+    extractTokenFromCoreHubConfig(record.auth) ??
+    extractTokenFromCoreHubConfig(record.session) ??
+    extractTokenFromCoreHubConfig(record.credentials) ??
+    extractTokenFromCoreHubConfig(record.user)
   );
 }
 
-function resolveClawHubConfigPaths(): string[] {
+function resolveCoreHubConfigPaths(): string[] {
   const explicit =
-    process.env.COREBLOW_CLAWHUB_CONFIG_PATH?.trim() ||
-    process.env.CLAWHUB_CONFIG_PATH?.trim() ||
-    process.env.CLAWDHUB_CONFIG_PATH?.trim(); // legacy misspelling from older clawhub CLI builds; keep for back-compat
+    process.env.COREBLOW_COREHUB_CONFIG_PATH?.trim() ||
+    process.env.COREHUB_CONFIG_PATH?.trim();
   if (explicit) {
     return [explicit];
   }
@@ -237,11 +236,11 @@ function resolveClawHubConfigPaths(): string[] {
   const xdgConfigHome = process.env.XDG_CONFIG_HOME?.trim();
   const configHome =
     xdgConfigHome && xdgConfigHome.length > 0 ? xdgConfigHome : path.join(os.homedir(), ".config");
-  const xdgPath = path.join(configHome, "clawhub", "config.json");
+  const xdgPath = path.join(configHome, "corehub", "config.json");
 
   if (process.platform === "darwin") {
     return [
-      path.join(os.homedir(), "Library", "Application Support", "clawhub", "config.json"),
+      path.join(os.homedir(), "Library", "Application Support", "corehub", "config.json"),
       xdgPath,
     ];
   }
@@ -249,19 +248,19 @@ function resolveClawHubConfigPaths(): string[] {
   return [xdgPath];
 }
 
-export async function resolveClawHubAuthToken(): Promise<string | undefined> {
+export async function resolveCoreHubAuthToken(): Promise<string | undefined> {
   const envToken =
-    process.env.COREBLOW_CLAWHUB_TOKEN?.trim() ||
-    process.env.CLAWHUB_TOKEN?.trim() ||
-    process.env.CLAWHUB_AUTH_TOKEN?.trim();
+    process.env.COREBLOW_COREHUB_TOKEN?.trim() ||
+    process.env.COREHUB_TOKEN?.trim() ||
+    process.env.COREHUB_AUTH_TOKEN?.trim();
   if (envToken) {
     return envToken;
   }
 
-  for (const configPath of resolveClawHubConfigPaths()) {
+  for (const configPath of resolveCoreHubConfigPaths()) {
     try {
       const raw = await fs.readFile(configPath, "utf8");
-      const token = extractTokenFromClawHubConfig(JSON.parse(raw));
+      const token = extractTokenFromCoreHubConfig(JSON.parse(raw));
       if (token) {
         return token;
       }
@@ -343,7 +342,7 @@ function satisfiesSemverRange(version: string, range: string): boolean {
   return tokens.every((token) => satisfiesComparator(version, token));
 }
 
-function buildUrl(params: Pick<ClawHubRequestParams, "baseUrl" | "path" | "search">): URL {
+function buildUrl(params: Pick<CoreHubRequestParams, "baseUrl" | "path" | "search">): URL {
   const url = new URL(params.path, `${normalizeBaseUrl(params.baseUrl)}/`);
   for (const [key, value] of Object.entries(params.search ?? {})) {
     if (!value) {
@@ -354,17 +353,17 @@ function buildUrl(params: Pick<ClawHubRequestParams, "baseUrl" | "path" | "searc
   return url;
 }
 
-async function clawhubRequest(
-  params: ClawHubRequestParams,
+async function corehubRequest(
+  params: CoreHubRequestParams,
 ): Promise<{ response: Response; url: URL }> {
   const url = buildUrl(params);
-  const token = params.token?.trim() || (await resolveClawHubAuthToken());
+  const token = params.token?.trim() || (await resolveCoreHubAuthToken());
   const controller = new AbortController();
   const timeout = setTimeout(
     () =>
       controller.abort(
         new Error(
-          `ClawHub request timed out after ${params.timeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS}ms`,
+          `CoreHub request timed out after ${params.timeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS}ms`,
         ),
       ),
     params.timeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS,
@@ -389,10 +388,10 @@ async function readErrorBody(response: Response): Promise<string> {
   }
 }
 
-async function fetchJson<T>(params: ClawHubRequestParams): Promise<T> {
-  const { response, url } = await clawhubRequest(params);
+async function fetchJson<T>(params: CoreHubRequestParams): Promise<T> {
+  const { response, url } = await corehubRequest(params);
   if (!response.ok) {
-    throw new ClawHubRequestError({
+    throw new CoreHubRequestError({
       path: url.pathname,
       status: response.status,
       body: await readErrorBody(response),
@@ -401,7 +400,7 @@ async function fetchJson<T>(params: ClawHubRequestParams): Promise<T> {
   return (await response.json()) as T;
 }
 
-export function resolveClawHubBaseUrl(baseUrl?: string): string {
+export function resolveCoreHubBaseUrl(baseUrl?: string): string {
   return normalizeBaseUrl(baseUrl);
 }
 
@@ -410,16 +409,16 @@ export function formatSha256Integrity(bytes: Uint8Array): string {
   return `sha256-${digest}`;
 }
 
-export function parseClawHubPluginSpec(raw: string): {
+export function parseCoreHubPluginSpec(raw: string): {
   name: string;
   version?: string;
   baseUrl?: string;
 } | null {
   const trimmed = raw.trim();
-  if (!trimmed.toLowerCase().startsWith("clawhub:")) {
+  if (!trimmed.toLowerCase().startsWith("corehub:")) {
     return null;
   }
-  const spec = trimmed.slice("clawhub:".length).trim();
+  const spec = trimmed.slice("corehub:".length).trim();
   if (!spec) {
     return null;
   }
@@ -433,14 +432,14 @@ export function parseClawHubPluginSpec(raw: string): {
   };
 }
 
-export async function fetchClawHubPackageDetail(params: {
+export async function fetchCoreHubPackageDetail(params: {
   name: string;
   baseUrl?: string;
   token?: string;
   timeoutMs?: number;
   fetchImpl?: FetchLike;
-}): Promise<ClawHubPackageDetail> {
-  return await fetchJson<ClawHubPackageDetail>({
+}): Promise<CoreHubPackageDetail> {
+  return await fetchJson<CoreHubPackageDetail>({
     baseUrl: params.baseUrl,
     path: `/api/v1/packages/${encodeURIComponent(params.name)}`,
     token: params.token,
@@ -449,15 +448,15 @@ export async function fetchClawHubPackageDetail(params: {
   });
 }
 
-export async function fetchClawHubPackageVersion(params: {
+export async function fetchCoreHubPackageVersion(params: {
   name: string;
   version: string;
   baseUrl?: string;
   token?: string;
   timeoutMs?: number;
   fetchImpl?: FetchLike;
-}): Promise<ClawHubPackageVersion> {
-  return await fetchJson<ClawHubPackageVersion>({
+}): Promise<CoreHubPackageVersion> {
+  return await fetchJson<CoreHubPackageVersion>({
     baseUrl: params.baseUrl,
     path: `/api/v1/packages/${encodeURIComponent(params.name)}/versions/${encodeURIComponent(
       params.version,
@@ -468,16 +467,16 @@ export async function fetchClawHubPackageVersion(params: {
   });
 }
 
-export async function searchClawHubPackages(params: {
+export async function searchCoreHubPackages(params: {
   query: string;
-  family?: ClawHubPackageFamily;
+  family?: CoreHubPackageFamily;
   baseUrl?: string;
   token?: string;
   timeoutMs?: number;
   fetchImpl?: FetchLike;
   limit?: number;
-}): Promise<ClawHubPackageSearchResult[]> {
-  const result = await fetchJson<{ results: ClawHubPackageSearchResult[] }>({
+}): Promise<CoreHubPackageSearchResult[]> {
+  const result = await fetchJson<{ results: CoreHubPackageSearchResult[] }>({
     baseUrl: params.baseUrl,
     path: "/api/v1/packages/search",
     token: params.token,
@@ -492,15 +491,15 @@ export async function searchClawHubPackages(params: {
   return result.results ?? [];
 }
 
-export async function searchClawHubSkills(params: {
+export async function searchCoreHubSkills(params: {
   query: string;
   baseUrl?: string;
   token?: string;
   timeoutMs?: number;
   fetchImpl?: FetchLike;
   limit?: number;
-}): Promise<ClawHubSkillSearchResult[]> {
-  const result = await fetchJson<{ results: ClawHubSkillSearchResult[] }>({
+}): Promise<CoreHubSkillSearchResult[]> {
+  const result = await fetchJson<{ results: CoreHubSkillSearchResult[] }>({
     baseUrl: params.baseUrl,
     path: "/api/v1/search",
     token: params.token,
@@ -514,14 +513,14 @@ export async function searchClawHubSkills(params: {
   return result.results ?? [];
 }
 
-export async function fetchClawHubSkillDetail(params: {
+export async function fetchCoreHubSkillDetail(params: {
   slug: string;
   baseUrl?: string;
   token?: string;
   timeoutMs?: number;
   fetchImpl?: FetchLike;
-}): Promise<ClawHubSkillDetail> {
-  return await fetchJson<ClawHubSkillDetail>({
+}): Promise<CoreHubSkillDetail> {
+  return await fetchJson<CoreHubSkillDetail>({
     baseUrl: params.baseUrl,
     path: `/api/v1/skills/${encodeURIComponent(params.slug)}`,
     token: params.token,
@@ -530,14 +529,14 @@ export async function fetchClawHubSkillDetail(params: {
   });
 }
 
-export async function listClawHubSkills(params: {
+export async function listCoreHubSkills(params: {
   baseUrl?: string;
   token?: string;
   timeoutMs?: number;
   fetchImpl?: FetchLike;
   limit?: number;
-}): Promise<ClawHubSkillListResponse> {
-  return await fetchJson<ClawHubSkillListResponse>({
+}): Promise<CoreHubSkillListResponse> {
+  return await fetchJson<CoreHubSkillListResponse>({
     baseUrl: params.baseUrl,
     path: "/api/v1/skills",
     token: params.token,
@@ -549,7 +548,7 @@ export async function listClawHubSkills(params: {
   });
 }
 
-export async function downloadClawHubPackageArchive(params: {
+export async function downloadCoreHubPackageArchive(params: {
   name: string;
   version?: string;
   tag?: string;
@@ -557,13 +556,13 @@ export async function downloadClawHubPackageArchive(params: {
   token?: string;
   timeoutMs?: number;
   fetchImpl?: FetchLike;
-}): Promise<ClawHubDownloadResult> {
+}): Promise<CoreHubDownloadResult> {
   const search = params.version
     ? { version: params.version }
     : params.tag
       ? { tag: params.tag }
       : undefined;
-  const { response, url } = await clawhubRequest({
+  const { response, url } = await corehubRequest({
     baseUrl: params.baseUrl,
     path: `/api/v1/packages/${encodeURIComponent(params.name)}/download`,
     search,
@@ -572,14 +571,14 @@ export async function downloadClawHubPackageArchive(params: {
     fetchImpl: params.fetchImpl,
   });
   if (!response.ok) {
-    throw new ClawHubRequestError({
+    throw new CoreHubRequestError({
       path: url.pathname,
       status: response.status,
       body: await readErrorBody(response),
     });
   }
   const bytes = new Uint8Array(await response.arrayBuffer());
-  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-clawhub-package-"));
+  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-corehub-package-"));
   const archivePath = path.join(tmpDir, `${params.name}.zip`);
   await fs.writeFile(archivePath, bytes);
   return {
@@ -588,7 +587,7 @@ export async function downloadClawHubPackageArchive(params: {
   };
 }
 
-export async function downloadClawHubSkillArchive(params: {
+export async function downloadCoreHubSkillArchive(params: {
   slug: string;
   version?: string;
   tag?: string;
@@ -596,8 +595,8 @@ export async function downloadClawHubSkillArchive(params: {
   token?: string;
   timeoutMs?: number;
   fetchImpl?: FetchLike;
-}): Promise<ClawHubDownloadResult> {
-  const { response, url } = await clawhubRequest({
+}): Promise<CoreHubDownloadResult> {
+  const { response, url } = await corehubRequest({
     baseUrl: params.baseUrl,
     path: "/api/v1/download",
     token: params.token,
@@ -610,14 +609,14 @@ export async function downloadClawHubSkillArchive(params: {
     },
   });
   if (!response.ok) {
-    throw new ClawHubRequestError({
+    throw new CoreHubRequestError({
       path: url.pathname,
       status: response.status,
       body: await readErrorBody(response),
     });
   }
   const bytes = new Uint8Array(await response.arrayBuffer());
-  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-clawhub-skill-"));
+  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-corehub-skill-"));
   const archivePath = path.join(tmpDir, `${params.slug}.zip`);
   await fs.writeFile(archivePath, bytes);
   return {
@@ -626,11 +625,11 @@ export async function downloadClawHubSkillArchive(params: {
   };
 }
 
-export function resolveLatestVersionFromPackage(detail: ClawHubPackageDetail): string | null {
+export function resolveLatestVersionFromPackage(detail: CoreHubPackageDetail): string | null {
   return detail.package?.latestVersion ?? detail.package?.tags?.latest ?? null;
 }
 
-export function isClawHubFamilySkill(detail: ClawHubPackageDetail | ClawHubSkillDetail): boolean {
+export function isCoreHubFamilySkill(detail: CoreHubPackageDetail | CoreHubSkillDetail): boolean {
   if ("package" in detail) {
     return detail.package?.family === "skill";
   }
@@ -663,16 +662,16 @@ export function satisfiesGatewayMinimum(
 }
 
 // ---------------------------------------------------------------------------
-// ClawhubService — Tier-1 Standalone Singleton
+// CorehubService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 
 import { createStandaloneSingleton } from "./service-patterns.js";
-export class ClawhubService {
-  [Symbol.toStringTag] = 'ClawhubService';
+export class CorehubService {
+  [Symbol.toStringTag] = 'CorehubService';
 }
 
 
-const { getInstance: getClawhubService, __testing: __testing_clawhub } =
-  createStandaloneSingleton({ create: () => new ClawhubService(), defaultDeps: {} });
+const { getInstance: getCorehubService, __testing: __testing_corehub } =
+  createStandaloneSingleton({ create: () => new CorehubService(), defaultDeps: {} });
 
-export { getClawhubService, __testing_clawhub };
+export { getCorehubService, __testing_corehub };

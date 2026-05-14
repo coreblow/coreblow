@@ -3,7 +3,7 @@ import type { CoreBlowConfig } from "../config/config.js";
 import {
   buildPluginStatusReport,
   loadConfig,
-  parseClawHubPluginSpec,
+  parseCoreHubPluginSpec,
   promptYesNo,
   resetPluginsCliTestState,
   runPluginsCommand,
@@ -120,7 +120,7 @@ describe("plugins cli uninstall", () => {
     expect(uninstallPlugin).not.toHaveBeenCalled();
   });
 
-  it("accepts the recorded ClawHub spec as an uninstall target", async () => {
+  it("accepts the recorded CoreHub spec as an uninstall target", async () => {
     loadConfig.mockReturnValue({
       plugins: {
         entries: {
@@ -129,8 +129,8 @@ describe("plugins cli uninstall", () => {
         installs: {
           "linkmind-context": {
             source: "npm",
-            spec: "clawhub:linkmind-context",
-            clawhubPackage: "linkmind-context",
+            spec: "corehub:linkmind-context",
+            corehubPackage: "linkmind-context",
           },
         },
       },
@@ -139,11 +139,11 @@ describe("plugins cli uninstall", () => {
       plugins: [{ id: "linkmind-context", name: "linkmind-context" }],
       diagnostics: [],
     });
-    parseClawHubPluginSpec.mockImplementation((raw: string) =>
-      raw === "clawhub:linkmind-context" ? { name: "linkmind-context" } : null,
+    parseCoreHubPluginSpec.mockImplementation((raw: string) =>
+      raw === "corehub:linkmind-context" ? { name: "linkmind-context" } : null,
     );
 
-    await runPluginsCommand(["plugins", "uninstall", "clawhub:linkmind-context", "--force"]);
+    await runPluginsCommand(["plugins", "uninstall", "corehub:linkmind-context", "--force"]);
 
     expect(uninstallPlugin).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -152,7 +152,7 @@ describe("plugins cli uninstall", () => {
     );
   });
 
-  it("accepts a versionless ClawHub spec when the install was pinned", async () => {
+  it("accepts a versionless CoreHub spec when the install was pinned", async () => {
     loadConfig.mockReturnValue({
       plugins: {
         entries: {
@@ -161,7 +161,7 @@ describe("plugins cli uninstall", () => {
         installs: {
           "linkmind-context": {
             source: "npm",
-            spec: "clawhub:linkmind-context@1.2.3",
+            spec: "corehub:linkmind-context@1.2.3",
           },
         },
       },
@@ -170,17 +170,17 @@ describe("plugins cli uninstall", () => {
       plugins: [{ id: "linkmind-context", name: "linkmind-context" }],
       diagnostics: [],
     });
-    parseClawHubPluginSpec.mockImplementation((raw: string) => {
-      if (raw === "clawhub:linkmind-context") {
+    parseCoreHubPluginSpec.mockImplementation((raw: string) => {
+      if (raw === "corehub:linkmind-context") {
         return { name: "linkmind-context" };
       }
-      if (raw === "clawhub:linkmind-context@1.2.3") {
+      if (raw === "corehub:linkmind-context@1.2.3") {
         return { name: "linkmind-context", version: "1.2.3" };
       }
       return null;
     });
 
-    await runPluginsCommand(["plugins", "uninstall", "clawhub:linkmind-context", "--force"]);
+    await runPluginsCommand(["plugins", "uninstall", "corehub:linkmind-context", "--force"]);
 
     expect(uninstallPlugin).toHaveBeenCalledWith(
       expect.objectContaining({

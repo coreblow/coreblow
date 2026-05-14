@@ -131,8 +131,12 @@ describe("resolveGatewayServiceDescription", () => {
 });
 
 describe("LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES", () => {
-  it("includes known pre-rebrand gateway unit names", () => {
-    expect(LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES).toContain("clawdbot-gateway");
-    expect(LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES).toContain("moltbot-gateway");
+  it("includes rebranded gateway service aliases after full rebrand", () => {
+    expect(LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES).toEqual([
+      "corebot-gateway",
+      "blowbot-gateway",
+      "clawdbot-gateway",
+      "moltbot-gateway",
+    ]);
   });
 });

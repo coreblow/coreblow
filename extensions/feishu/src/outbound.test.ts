@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ClawdbotConfig } from "../runtime-api.js";
+import type { CoreBlowConfig } from "../runtime-api.js";
 
 const sendMediaFeishuMock = vi.hoisted(() => vi.fn());
 const sendMessageFeishuMock = vi.hoisted(() => vi.fn());
@@ -31,8 +31,8 @@ vi.mock("./runtime.js", () => ({
 
 import { feishuOutbound } from "./outbound.js";
 const sendText = feishuOutbound.sendText!;
-const emptyConfig: ClawdbotConfig = {};
-const cardRenderConfig: ClawdbotConfig = {
+const emptyConfig: CoreBlowConfig = {};
+const cardRenderConfig: CoreBlowConfig = {
   channels: {
     feishu: {
       renderMode: "card",

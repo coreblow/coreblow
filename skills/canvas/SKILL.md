@@ -64,7 +64,7 @@ In `~/.coreblow/coreblow.json`:
   "canvasHost": {
     "enabled": true,
     "port": 18793,
-    "root": "/Users/you/clawd/canvas",
+    "root": "/Users/you/coreblow/canvas",
     "liveReload": true
   },
   "gateway": {
@@ -87,10 +87,10 @@ Great for development!
 
 ### 1. Create HTML content
 
-Place files in the canvas root directory (default `~/clawd/canvas/`):
+Place files in the canvas root directory (default `~/coreblow/canvas/`):
 
 ```bash
-cat > ~/clawd/canvas/my-game.html << 'HTML'
+cat > ~/coreblow/canvas/my-game.html << 'HTML'
 <!DOCTYPE html>
 <html>
 <head><title>My Game</title></head>
@@ -183,8 +183,8 @@ If live reload isn't working:
 The canvas host serves from `/__coreblow__/canvas/` prefix:
 
 ```
-http://<host>:18793/__coreblow__/canvas/index.html  → ~/clawd/canvas/index.html
-http://<host>:18793/__coreblow__/canvas/games/snake.html → ~/clawd/canvas/games/snake.html
+http://<host>:18793/__coreblow__/canvas/index.html  → ~/coreblow/canvas/index.html
+http://<host>:18793/__coreblow__/canvas/games/snake.html → ~/coreblow/canvas/games/snake.html
 ```
 
 The `/__coreblow__/canvas/` prefix is defined by `CANVAS_HOST_PATH` constant.

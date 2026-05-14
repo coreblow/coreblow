@@ -23,7 +23,7 @@ describe("probeMattermost", () => {
 
   it("normalizes base URL and returns bot info", async () => {
     mockFetch.mockResolvedValueOnce(
-      new Response(JSON.stringify({ id: "bot-1", username: "clawbot" }), {
+      new Response(JSON.stringify({ id: "bot-1", username: "corebot" }), {
         status: 200,
         headers: { "content-type": "application/json" },
       }),
@@ -41,7 +41,7 @@ describe("probeMattermost", () => {
       expect.objectContaining({
         ok: true,
         status: 200,
-        bot: { id: "bot-1", username: "clawbot" },
+        bot: { id: "bot-1", username: "corebot" },
       }),
     );
     expect(result.elapsedMs).toBeGreaterThanOrEqual(0);

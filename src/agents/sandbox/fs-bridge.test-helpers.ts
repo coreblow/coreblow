@@ -59,8 +59,8 @@ export function createSandboxFsBridge(
 
 export const mockedExecDockerRaw: Mock = hoisted.execDockerRaw;
 export const mockedOpenBoundaryFile: Mock = hoisted.openBoundaryFile;
-const DOCKER_SCRIPT_INDEX = 5;
-const DOCKER_FIRST_SCRIPT_ARG_INDEX = 7;
+const DOCKER_SCRIPT_INDEX = 9;
+const DOCKER_FIRST_SCRIPT_ARG_INDEX = 11;
 
 export function getDockerScript(args: string[]): string {
   return String(args[DOCKER_SCRIPT_INDEX] ?? "");
@@ -103,12 +103,12 @@ export function dockerExecResult(stdout: string) {
 export function createSandbox(overrides?: Partial<SandboxContext>): SandboxContext {
   return createSandboxTestContext({
     overrides: {
-      containerName: "moltbot-sbx-test",
+      containerName: "blowbot-sbx-test",
       ...overrides,
     },
     dockerOverrides: {
-      image: "moltbot-sandbox:bookworm-slim",
-      containerPrefix: "moltbot-sbx-",
+      image: "blowbot-sandbox:bookworm-slim",
+      containerPrefix: "blowbot-sbx-",
     },
   });
 }

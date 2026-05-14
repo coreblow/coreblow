@@ -3,14 +3,14 @@ import {
   getRequiredHookHandler,
   registerHookHandlersForTest,
 } from "../../../test/helpers/extensions/subagent-hooks.js";
-import type { ClawdbotConfig, CoreBlowPluginApi } from "../runtime-api.js";
+import type { CoreBlowConfig, CoreBlowPluginApi } from "../runtime-api.js";
 import { registerFeishuSubagentHooks } from "./subagent-hooks.js";
 import {
   __testing as threadBindingTesting,
   createFeishuThreadBindingManager,
 } from "./thread-bindings.js";
 
-const baseConfig: ClawdbotConfig = {
+const baseConfig: CoreBlowConfig = {
   session: { mainKey: "main", scope: "per-sender" },
   channels: { feishu: {} },
 };

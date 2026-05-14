@@ -25,16 +25,12 @@ afterEach(async () => {
 });
 
 describe("legacy state dir auto-migration", () => {
-  it("follows legacy symlink when it points at another legacy dir (clawdbot -> moldbot)", async () => {
+  it("migrates canonical legacy state dir to the current state dir", async () => {
     const root = await makeTempRoot();
-    const legacySymlink = path.join(root, ".clawdbot");
-    const legacyDir = path.join(root, ".moldbot");
+    const legacyDir = path.join(root, ".corebot");
 
     fs.mkdirSync(legacyDir, { recursive: true });
     fs.writeFileSync(path.join(legacyDir, "marker.txt"), "ok", "utf-8");
-
-    const dirLinkType = process.platform === "win32" ? "junction" : "dir";
-    fs.symlinkSync(legacyDir, legacySymlink, dirLinkType);
 
     const result = await autoMigrateLegacyStateDir({
       env: {} as NodeJS.ProcessEnv,
@@ -46,13 +42,14 @@ describe("legacy state dir auto-migration", () => {
 
     const targetMarker = path.join(root, ".coreblow", "marker.txt");
     expect(fs.readFileSync(targetMarker, "utf-8")).toBe("ok");
-    expect(fs.readFileSync(path.join(root, ".moldbot", "marker.txt"), "utf-8")).toBe("ok");
-    expect(fs.readFileSync(path.join(root, ".clawdbot", "marker.txt"), "utf-8")).toBe("ok");
+    expect(fs.readFileSync(path.join(root, ".corebot", "marker.txt"), "utf-8")).toBe(
+      "ok",
+    );
   });
 
   it("skips state-dir migration when COREBLOW_STATE_DIR is explicitly set", async () => {
     const root = await makeTempRoot();
-    const legacyDir = path.join(root, ".clawdbot");
+    const legacyDir = path.join(root, ".corebot");
     fs.mkdirSync(legacyDir, { recursive: true });
 
     const result = await autoMigrateLegacyStateDir({
@@ -71,7 +68,7 @@ describe("legacy state dir auto-migration", () => {
 
   it("only runs once per process until reset", async () => {
     const root = await makeTempRoot();
-    const legacyDir = path.join(root, ".clawdbot");
+    const legacyDir = path.join(root, ".corebot");
     fs.mkdirSync(legacyDir, { recursive: true });
     fs.writeFileSync(path.join(legacyDir, "marker.txt"), "ok", "utf-8");
 

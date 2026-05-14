@@ -57,10 +57,10 @@ describe("createCoreBlowCodingTools", () => {
     }
   });
   it("filters tools by sandbox policy", () => {
-    const sandboxDir = path.join(os.tmpdir(), "moltbot-sandbox");
+    const sandboxDir = path.join(os.tmpdir(), "coreblow-sandbox");
     const sandbox = createPiToolsSandboxContext({
       workspaceDir: sandboxDir,
-      agentWorkspaceDir: path.join(os.tmpdir(), "moltbot-workspace"),
+      agentWorkspaceDir: path.join(os.tmpdir(), "coreblow-workspace"),
       workspaceAccess: "none" as const,
       fsBridge: createHostSandboxFsBridge(sandboxDir),
       tools: {
@@ -74,10 +74,10 @@ describe("createCoreBlowCodingTools", () => {
     expect(tools.some((tool) => tool.name === "browser")).toBe(false);
   });
   it("hard-disables write/edit when sandbox workspaceAccess is ro", () => {
-    const sandboxDir = path.join(os.tmpdir(), "moltbot-sandbox");
+    const sandboxDir = path.join(os.tmpdir(), "coreblow-sandbox");
     const sandbox = createPiToolsSandboxContext({
       workspaceDir: sandboxDir,
-      agentWorkspaceDir: path.join(os.tmpdir(), "moltbot-workspace"),
+      agentWorkspaceDir: path.join(os.tmpdir(), "coreblow-workspace"),
       workspaceAccess: "ro" as const,
       fsBridge: createHostSandboxFsBridge(sandboxDir),
       tools: {

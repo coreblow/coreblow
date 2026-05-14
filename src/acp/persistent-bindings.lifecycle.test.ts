@@ -69,7 +69,7 @@ describe("resetConfiguredBindingTargetInPlace", () => {
         agent: "claude",
         mode: "persistent",
         backend: "acpx",
-        runtimeOptions: { cwd: "/home/bob/clawd" },
+        runtimeOptions: { cwd: "/home/bob/coreblow" },
       },
     });
     resolveMocks.resolveConfiguredAcpBindingSpecBySessionKey.mockImplementation(() => {

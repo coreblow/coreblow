@@ -251,9 +251,9 @@ export function clearToolResultState(): void { toolResultState.clear(); }`,
 export function repairJsonl(content: string): string[] { return content.split('\\n').filter((line) => { try { JSON.parse(line); return true; } catch { return false; } }); }`,
 
 // ─── Skills ───
-'skills-clawhub.ts': `/** Skills from ClawHub marketplace. */
-export interface ClawHubSkill { id: string; name: string; version: string; url: string; }
-export function buildClawHubUrl(skillId: string): string { return \`https://clawhub.dev/skills/\${skillId}\`; }`,
+'skills-corehub.ts': `/** Skills from CoreHub marketplace. */
+export interface CoreHubSkill { id: string; name: string; version: string; url: string; }
+export function buildCoreHubUrl(skillId: string): string { return \`https://corehub.dev/skills/\${skillId}\`; }`,
 
 'skills-install.ts': `/** Skills installation. */
 export interface SkillInstallResult { skillId: string; success: boolean; version?: string; error?: string; }

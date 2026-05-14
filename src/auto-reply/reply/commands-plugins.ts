@@ -1,9 +1,9 @@
 import fs from "node:fs";
 import { buildNpmInstallRecordFields } from "../../cli/npm-resolution.js";
 import {
-  buildPreferredClawHubSpec,
+  buildPreferredCoreHubSpec,
   createPluginInstallLogger,
-  decidePreferredClawHubFallback,
+  decidePreferredCoreHubFallback,
   resolveFileNpmSpecToLocalPath,
 } from "../../cli/plugins-command-helpers.js";
 import { persistPluginInstall } from "../../cli/plugins-install-persist.js";
@@ -15,8 +15,8 @@ import {
 import type { CoreBlowConfig } from "../../config/config.js";
 import type { PluginInstallRecord } from "../../config/types.plugins.js";
 import { resolveArchiveKind } from "../../infra/archive.js";
-import { parseClawHubPluginSpec } from "../../infra/coreblow-hub.js";
-import { installPluginFromClawHub } from "../../plugins/coreblow-hub.js";
+import { parseCoreHubPluginSpec } from "../../infra/coreblow-hub.js";
+import { installPluginFromCoreHub } from "../../plugins/coreblow-hub.js";
 import { installPluginFromNpmSpec, installPluginFromPath } from "../../plugins/install.js";
 import { clearPluginManifestRegistryCache } from "../../plugins/manifest-registry.js";
 import type { PluginRecord } from "../../plugins/registry.js";
@@ -190,9 +190,9 @@ async function installPluginFromPluginsCommand(params: {
     return { ok: false, error: `Path not found: ${resolved}` };
   }
 
-  const clawhubSpec = parseClawHubPluginSpec(params.raw);
-  if (clawhubSpec) {
-    const result = await installPluginFromClawHub({
+  const corehubSpec = parseCoreHubPluginSpec(params.raw);
+  if (corehubSpec) {
+    const result = await installPluginFromCoreHub({
       spec: params.raw,
       logger: createPluginInstallLogger(),
     });
@@ -204,49 +204,49 @@ async function installPluginFromPluginsCommand(params: {
       config: params.config,
       pluginId: result.pluginId,
       install: {
-        source: "clawhub",
+        source: "corehub",
         spec: params.raw,
         installPath: result.targetDir,
         version: result.version,
-        integrity: result.clawhub.integrity,
-        resolvedAt: result.clawhub.resolvedAt,
-        clawhubUrl: result.clawhub.clawhubUrl,
-        clawhubPackage: result.clawhub.clawhubPackage,
-        clawhubFamily: result.clawhub.clawhubFamily,
-        clawhubChannel: result.clawhub.clawhubChannel,
+        integrity: result.corehub.integrity,
+        resolvedAt: result.corehub.resolvedAt,
+        corehubUrl: result.corehub.corehubUrl,
+        corehubPackage: result.corehub.corehubPackage,
+        corehubFamily: result.corehub.corehubFamily,
+        corehubChannel: result.corehub.corehubChannel,
       },
     });
     return { ok: true, pluginId: result.pluginId };
   }
 
-  const preferredClawHubSpec = buildPreferredClawHubSpec(params.raw);
-  if (preferredClawHubSpec) {
-    const clawhubResult = await installPluginFromClawHub({
-      spec: preferredClawHubSpec,
+  const preferredCoreHubSpec = buildPreferredCoreHubSpec(params.raw);
+  if (preferredCoreHubSpec) {
+    const corehubResult = await installPluginFromCoreHub({
+      spec: preferredCoreHubSpec,
       logger: createPluginInstallLogger(),
     });
-    if (clawhubResult.ok) {
+    if (corehubResult.ok) {
       clearPluginManifestRegistryCache();
       await persistPluginInstall({
         config: params.config,
-        pluginId: clawhubResult.pluginId,
+        pluginId: corehubResult.pluginId,
         install: {
-          source: "clawhub",
-          spec: preferredClawHubSpec,
-          installPath: clawhubResult.targetDir,
-          version: clawhubResult.version,
-          integrity: clawhubResult.clawhub.integrity,
-          resolvedAt: clawhubResult.clawhub.resolvedAt,
-          clawhubUrl: clawhubResult.clawhub.clawhubUrl,
-          clawhubPackage: clawhubResult.clawhub.clawhubPackage,
-          clawhubFamily: clawhubResult.clawhub.clawhubFamily,
-          clawhubChannel: clawhubResult.clawhub.clawhubChannel,
+          source: "corehub",
+          spec: preferredCoreHubSpec,
+          installPath: corehubResult.targetDir,
+          version: corehubResult.version,
+          integrity: corehubResult.corehub.integrity,
+          resolvedAt: corehubResult.corehub.resolvedAt,
+          corehubUrl: corehubResult.corehub.corehubUrl,
+          corehubPackage: corehubResult.corehub.corehubPackage,
+          corehubFamily: corehubResult.corehub.corehubFamily,
+          corehubChannel: corehubResult.corehub.corehubChannel,
         },
       });
-      return { ok: true, pluginId: clawhubResult.pluginId };
+      return { ok: true, pluginId: corehubResult.pluginId };
     }
-    if (decidePreferredClawHubFallback(clawhubResult) !== "fallback_to_npm") {
-      return { ok: false, error: clawhubResult.error };
+    if (decidePreferredCoreHubFallback(corehubResult) !== "fallback_to_npm") {
+      return { ok: false, error: corehubResult.error };
     }
   }
 

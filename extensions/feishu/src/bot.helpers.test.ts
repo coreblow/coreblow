@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { ClawdbotConfig } from "../runtime-api.js";
+import type { CoreBlowConfig } from "../runtime-api.js";
 import {
   buildBroadcastSessionKey,
   buildFeishuAgentBody,
@@ -49,22 +49,22 @@ describe("toMessageResourceType", () => {
 
 describe("resolveBroadcastAgents", () => {
   it("returns agent list when broadcast config has the peerId", () => {
-    const cfg: ClawdbotConfig = { broadcast: { oc_group123: ["susan", "main"] } };
+    const cfg: CoreBlowConfig = { broadcast: { oc_group123: ["susan", "main"] } };
     expect(resolveBroadcastAgents(cfg, "oc_group123")).toEqual(["susan", "main"]);
   });
 
   it("returns null when no broadcast config", () => {
-    const cfg = {} as ClawdbotConfig;
+    const cfg = {} as CoreBlowConfig;
     expect(resolveBroadcastAgents(cfg, "oc_group123")).toBeNull();
   });
 
   it("returns null when peerId not in broadcast", () => {
-    const cfg: ClawdbotConfig = { broadcast: { oc_other: ["susan"] } };
+    const cfg: CoreBlowConfig = { broadcast: { oc_other: ["susan"] } };
     expect(resolveBroadcastAgents(cfg, "oc_group123")).toBeNull();
   });
 
   it("returns null when agent list is empty", () => {
-    const cfg: ClawdbotConfig = { broadcast: { oc_group123: [] } };
+    const cfg: CoreBlowConfig = { broadcast: { oc_group123: [] } };
     expect(resolveBroadcastAgents(cfg, "oc_group123")).toBeNull();
   });
 });

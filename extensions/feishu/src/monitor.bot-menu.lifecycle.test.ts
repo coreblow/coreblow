@@ -15,7 +15,7 @@ import {
   setupFeishuLifecycleHandler,
 } from "../../../test/helpers/extensions/feishu-lifecycle.js";
 import { createRuntimeEnv } from "../../../test/helpers/extensions/runtime-env.js";
-import type { ClawdbotConfig, RuntimeEnv } from "../runtime-api.js";
+import type { CoreBlowConfig, RuntimeEnv } from "../runtime-api.js";
 import { getFeishuLifecycleTestMocks } from "./lifecycle.test-support.js";
 import type { ResolvedFeishuAccount } from "./types.js";
 
@@ -44,7 +44,7 @@ const lifecycleConfig = createFeishuLifecycleConfig({
   accountConfig: {
     dmPolicy: "open",
   },
-}) as ClawdbotConfig;
+}) as CoreBlowConfig;
 
 const lifecycleAccount = createResolvedFeishuLifecycleAccount({
   accountId: "acct-menu",

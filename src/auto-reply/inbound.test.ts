@@ -739,7 +739,7 @@ describe("mention helpers", () => {
   });
 
   it("normalizes zero-width characters", () => {
-    expect(normalizeMentionText("open\u200bclaw")).toBe("openclaw");
+    expect(normalizeMentionText("core\u200bblow")).toBe("coreblow");
   });
 
   it("matches patterns case-insensitively", () => {

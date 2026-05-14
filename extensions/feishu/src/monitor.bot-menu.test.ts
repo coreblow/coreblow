@@ -6,7 +6,7 @@ import {
   resolveInboundDebounceMs,
 } from "../../../src/auto-reply/inbound-debounce.js";
 import { createPluginRuntimeMock } from "../../../test/helpers/extensions/plugin-runtime-mock.js";
-import type { ClawdbotConfig, RuntimeEnv } from "../runtime-api.js";
+import type { CoreBlowConfig, RuntimeEnv } from "../runtime-api.js";
 import { monitorSingleAccount } from "./monitor.account.js";
 import { setFeishuRuntime } from "./runtime.js";
 import type { ResolvedFeishuAccount } from "./types.js";
@@ -99,7 +99,7 @@ async function registerHandlers() {
   createEventDispatcherMock.mockReturnValue({ register });
 
   await monitorSingleAccount({
-    cfg: {} as ClawdbotConfig,
+    cfg: {} as CoreBlowConfig,
     account: buildAccount(),
     runtime: {
       log: vi.fn(),

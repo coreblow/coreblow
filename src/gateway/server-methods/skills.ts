@@ -3,7 +3,7 @@ import {
   resolveAgentWorkspaceDir,
   resolveDefaultAgentId,
 } from "../../agents/agent-scope.js";
-import { installSkillFromClawHub, updateSkillsFromClawHub } from "../../agents/skills-hub.js";
+import { installSkillFromCoreHub, updateSkillsFromCoreHub } from "../../agents/skills-hub.js";
 import { installSkill } from "../../agents/skills-install.js";
 import { buildWorkspaceSkillStatus } from "../../agents/skills-status.js";
 import { loadWorkspaceSkillEntries, type SkillEntry } from "../../agents/skills.js";
@@ -126,14 +126,14 @@ export const skillsHandlers: GatewayRequestHandlers = {
     }
     const cfg = loadConfig();
     const workspaceDirRaw = resolveAgentWorkspaceDir(cfg, resolveDefaultAgentId(cfg));
-    if (params && typeof params === "object" && "source" in params && params.source === "clawhub") {
+    if (params && typeof params === "object" && "source" in params && params.source === "corehub") {
       const p = params as {
-        source: "clawhub";
+        source: "corehub";
         slug: string;
         version?: string;
         force?: boolean;
       };
-      const result = await installSkillFromClawHub({
+      const result = await installSkillFromCoreHub({
         workspaceDir: workspaceDirRaw,
         slug: p.slug,
         version: p.version,
@@ -187,9 +187,9 @@ export const skillsHandlers: GatewayRequestHandlers = {
       );
       return;
     }
-    if (params && typeof params === "object" && "source" in params && params.source === "clawhub") {
+    if (params && typeof params === "object" && "source" in params && params.source === "corehub") {
       const p = params as {
-        source: "clawhub";
+        source: "corehub";
         slug?: string;
         all?: boolean;
       };
@@ -197,7 +197,7 @@ export const skillsHandlers: GatewayRequestHandlers = {
         respond(
           false,
           undefined,
-          errorShape(ErrorCodes.INVALID_REQUEST, 'clawhub skills.update requires "slug" or "all"'),
+          errorShape(ErrorCodes.INVALID_REQUEST, 'corehub skills.update requires "slug" or "all"'),
         );
         return;
       }
@@ -207,14 +207,14 @@ export const skillsHandlers: GatewayRequestHandlers = {
           undefined,
           errorShape(
             ErrorCodes.INVALID_REQUEST,
-            'clawhub skills.update accepts either "slug" or "all", not both',
+            'corehub skills.update accepts either "slug" or "all", not both',
           ),
         );
         return;
       }
       const cfg = loadConfig();
       const workspaceDir = resolveAgentWorkspaceDir(cfg, resolveDefaultAgentId(cfg));
-      const results = await updateSkillsFromClawHub({
+      const results = await updateSkillsFromCoreHub({
         workspaceDir,
         slug: p.slug,
       });
@@ -225,7 +225,7 @@ export const skillsHandlers: GatewayRequestHandlers = {
           ok: errors.length === 0,
           skillKey: p.slug ?? "*",
           config: {
-            source: "clawhub",
+            source: "corehub",
             results,
           },
         },

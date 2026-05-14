@@ -130,7 +130,7 @@ describe("config cli", () => {
     resetRuntimeCapture();
     // Recreate Commander program before each test to prevent option state
     // leaking across parseAsync calls (Commander v12 retains parsed options
-    // on the same Command instance; OpenClaw uses v14 which resets cleanly).
+    // on the same Command instance; newer Commander versions reset cleanly).
     sharedProgram = new Command();
     sharedProgram.exitOverride();
     registerConfigCli(sharedProgram);

@@ -209,12 +209,12 @@ const entries: SubCliEntry[] = [
     },
   },
   {
-    name: "clawbot",
-    description: "Legacy clawbot command aliases",
+    name: "corebot",
+    description: "Legacy corebot command aliases",
     hasSubcommands: true,
     register: async (program) => {
-      const mod = await import("../clawbot-cli.js");
-      mod.registerClawbotCli(program);
+      const mod = await import("../corebot-cli.js");
+      mod.registerCorebotCli(program);
     },
   },
   {

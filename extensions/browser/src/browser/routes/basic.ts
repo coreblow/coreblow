@@ -182,11 +182,17 @@ export function registerBrowserBasicRoutes(app: BrowserRouteRegistrar, ctx: Brow
     if (!name) {
       return jsonError(res, 400, "name is required");
     }
-    if (driver && driver !== "coreblow" && driver !== "clawd" && driver !== "existing-session") {
+    if (
+      driver &&
+      driver !== "coreblow" &&
+      driver !== "cored" &&
+      driver !== "clawd" &&
+      driver !== "existing-session"
+    ) {
       return jsonError(
         res,
         400,
-        `unsupported profile driver "${driver}"; use "coreblow", "clawd", or "existing-session"`,
+        `unsupported profile driver "${driver}"; use "coreblow", "cored", "clawd", or "existing-session"`,
       );
     }
 
@@ -202,7 +208,7 @@ export function registerBrowserBasicRoutes(app: BrowserRouteRegistrar, ctx: Brow
           driver:
             driver === "existing-session"
               ? "existing-session"
-              : driver === "coreblow" || driver === "clawd"
+              : driver === "coreblow" || driver === "cored" || driver === "clawd"
                 ? "coreblow"
                 : undefined,
         }),

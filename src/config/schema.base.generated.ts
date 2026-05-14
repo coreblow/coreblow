@@ -477,6 +477,10 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
                     },
                     {
                       type: "string",
+                      const: "cored",
+                    },
+                    {
+                      type: "string",
                       const: "clawd",
                     },
                     {
@@ -9488,7 +9492,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
                         },
                         {
                           type: "string",
-                          const: "clawhub",
+                          const: "corehub",
                         },
                       ],
                     },
@@ -9525,13 +9529,13 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
                     installedAt: {
                       type: "string",
                     },
-                    clawhubUrl: {
+                    corehubUrl: {
                       type: "string",
                     },
-                    clawhubPackage: {
+                    corehubPackage: {
                       type: "string",
                     },
-                    clawhubFamily: {
+                    corehubFamily: {
                       anyOf: [
                         {
                           type: "string",
@@ -9543,7 +9547,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
                         },
                       ],
                     },
-                    clawhubChannel: {
+                    corehubChannel: {
                       anyOf: [
                         {
                           type: "string",
@@ -11322,7 +11326,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
                         },
                         {
                           type: "string",
-                          const: "clawhub",
+                          const: "corehub",
                         },
                       ],
                     },
@@ -11365,13 +11369,13 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
                 installedAt: {
                   type: "string",
                 },
-                clawhubUrl: {
+                corehubUrl: {
                   type: "string",
                 },
-                clawhubPackage: {
+                corehubPackage: {
                   type: "string",
                 },
-                clawhubFamily: {
+                corehubFamily: {
                   anyOf: [
                     {
                       type: "string",
@@ -11383,7 +11387,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
                     },
                   ],
                 },
-                clawhubChannel: {
+                corehubChannel: {
                   anyOf: [
                     {
                       type: "string",
@@ -12195,7 +12199,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
     },
     "browser.profiles.*.driver": {
       label: "Browser Profile Driver",
-      help: 'Per-profile browser driver mode. Use "coreblow" (or legacy "clawd") for CDP-based profiles, or use "existing-session" for host-local Chrome DevTools MCP attachment.',
+      help: 'Per-profile browser driver mode. Use "coreblow" or "cored" for CDP-based profiles, "clawd" for legacy configs, or use "existing-session" for host-local Chrome DevTools MCP attachment.',
       tags: ["storage"],
     },
     "browser.profiles.*.attachOnly": {
@@ -14872,7 +14876,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
     },
     "talk.voiceAliases": {
       label: "Talk Voice Aliases",
-      help: 'Use this legacy ElevenLabs voice alias map (for example {"Clawd":"EXAVITQu4vr4xnSDxMaL"}) only during migration. Prefer talk.providers.elevenlabs.voiceAliases.',
+      help: 'Use this legacy ElevenLabs voice alias map (for example {"Cored":"EXAVITQu4vr4xnSDxMaL"}) only during migration. Prefer talk.providers.elevenlabs.voiceAliases.',
       tags: ["media"],
     },
     "talk.modelId": {

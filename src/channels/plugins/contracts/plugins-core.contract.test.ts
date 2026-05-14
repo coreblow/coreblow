@@ -299,7 +299,7 @@ describe("channel plugin catalog", () => {
           env: {
             ...process.env,
             COREBLOW_STATE_DIR: stateDir,
-            CLAWDBOT_STATE_DIR: undefined,
+            COREBLOW_LEGACY_STATE_DIR: undefined,
             COREBLOW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
           },
           expected: {

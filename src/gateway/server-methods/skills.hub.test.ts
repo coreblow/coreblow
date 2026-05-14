@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const loadConfigMock = vi.fn(() => ({}));
 const resolveDefaultAgentIdMock = vi.fn(() => "main");
 const resolveAgentWorkspaceDirMock = vi.fn(() => "/tmp/workspace");
-const installSkillFromClawHubMock = vi.fn();
-const updateSkillsFromClawHubMock = vi.fn();
+const installSkillFromCoreHubMock = vi.fn();
+const updateSkillsFromCoreHubMock = vi.fn();
 
 vi.mock("../../config/config.js", () => ({
   loadConfig: () => loadConfigMock(),
@@ -18,27 +18,27 @@ vi.mock("../../agents/agent-scope.js", () => ({
 }));
 
 vi.mock("../../agents/skills-hub.js", () => ({
-  installSkillFromClawHub: (...args: unknown[]) => installSkillFromClawHubMock(...args),
-  updateSkillsFromClawHub: (...args: unknown[]) => updateSkillsFromClawHubMock(...args),
+  installSkillFromCoreHub: (...args: unknown[]) => installSkillFromCoreHubMock(...args),
+  updateSkillsFromCoreHub: (...args: unknown[]) => updateSkillsFromCoreHubMock(...args),
 }));
 
 const { skillsHandlers } = await import("./skills.js");
 
-describe("skills gateway handlers (clawhub)", () => {
+describe("skills gateway handlers (corehub)", () => {
   beforeEach(() => {
     loadConfigMock.mockReset();
     resolveDefaultAgentIdMock.mockReset();
     resolveAgentWorkspaceDirMock.mockReset();
-    installSkillFromClawHubMock.mockReset();
-    updateSkillsFromClawHubMock.mockReset();
+    installSkillFromCoreHubMock.mockReset();
+    updateSkillsFromCoreHubMock.mockReset();
 
     loadConfigMock.mockReturnValue({});
     resolveDefaultAgentIdMock.mockReturnValue("main");
     resolveAgentWorkspaceDirMock.mockReturnValue("/tmp/workspace");
   });
 
-  it("installs a ClawHub skill through skills.install", async () => {
-    installSkillFromClawHubMock.mockResolvedValue({
+  it("installs a CoreHub skill through skills.install", async () => {
+    installSkillFromCoreHubMock.mockResolvedValue({
       ok: true,
       slug: "calendar",
       version: "1.2.3",
@@ -50,7 +50,7 @@ describe("skills gateway handlers (clawhub)", () => {
     let error: unknown;
     await skillsHandlers["skills.install"]({
       params: {
-        source: "clawhub",
+        source: "corehub",
         slug: "calendar",
         version: "1.2.3",
       },
@@ -65,7 +65,7 @@ describe("skills gateway handlers (clawhub)", () => {
       },
     });
 
-    expect(installSkillFromClawHubMock).toHaveBeenCalledWith({
+    expect(installSkillFromCoreHubMock).toHaveBeenCalledWith({
       workspaceDir: "/tmp/workspace",
       slug: "calendar",
       version: "1.2.3",
@@ -81,8 +81,8 @@ describe("skills gateway handlers (clawhub)", () => {
     });
   });
 
-  it("updates ClawHub skills through skills.update", async () => {
-    updateSkillsFromClawHubMock.mockResolvedValue([
+  it("updates CoreHub skills through skills.update", async () => {
+    updateSkillsFromCoreHubMock.mockResolvedValue([
       {
         ok: true,
         slug: "calendar",
@@ -98,7 +98,7 @@ describe("skills gateway handlers (clawhub)", () => {
     let error: unknown;
     await skillsHandlers["skills.update"]({
       params: {
-        source: "clawhub",
+        source: "corehub",
         slug: "calendar",
       },
       req: {} as never,
@@ -112,7 +112,7 @@ describe("skills gateway handlers (clawhub)", () => {
       },
     });
 
-    expect(updateSkillsFromClawHubMock).toHaveBeenCalledWith({
+    expect(updateSkillsFromCoreHubMock).toHaveBeenCalledWith({
       workspaceDir: "/tmp/workspace",
       slug: "calendar",
     });
@@ -122,7 +122,7 @@ describe("skills gateway handlers (clawhub)", () => {
       ok: true,
       skillKey: "calendar",
       config: {
-        source: "clawhub",
+        source: "corehub",
         results: [
           {
             ok: true,
@@ -134,12 +134,12 @@ describe("skills gateway handlers (clawhub)", () => {
     });
   });
 
-  it("rejects ClawHub skills.update requests without slug or all", async () => {
+  it("rejects CoreHub skills.update requests without slug or all", async () => {
     let ok: boolean | null = null;
     let error: { code?: string; message?: string } | undefined;
     await skillsHandlers["skills.update"]({
       params: {
-        source: "clawhub",
+        source: "corehub",
       },
       req: {} as never,
       client: null as never,
@@ -153,6 +153,6 @@ describe("skills gateway handlers (clawhub)", () => {
 
     expect(ok).toBe(false);
     expect(error?.message).toContain('requires "slug" or "all"');
-    expect(updateSkillsFromClawHubMock).not.toHaveBeenCalled();
+    expect(updateSkillsFromCoreHubMock).not.toHaveBeenCalled();
   });
 });

@@ -23,8 +23,8 @@ export const updateNpmInstalledHookPacks: Mock = vi.fn();
 export const promptYesNo: Mock = vi.fn();
 export const installPluginFromNpmSpec: Mock = vi.fn();
 export const installPluginFromPath: Mock = vi.fn();
-export const installPluginFromClawHub: Mock = vi.fn();
-export const parseClawHubPluginSpec: Mock = vi.fn();
+export const installPluginFromCoreHub: Mock = vi.fn();
+export const parseCoreHubPluginSpec: Mock = vi.fn();
 export const installHooksFromNpmSpec: Mock = vi.fn();
 export const installHooksFromPath: Mock = vi.fn();
 export const recordHookInstall: Mock = vi.fn();
@@ -115,17 +115,17 @@ vi.mock("../hooks/installs.js", () => ({
 }));
 
 vi.mock("../plugins/coreblow-hub.js", () => ({
-  CLAWHUB_INSTALL_ERROR_CODE: {
+  COREHUB_INSTALL_ERROR_CODE: {
     PACKAGE_NOT_FOUND: "package_not_found",
     VERSION_NOT_FOUND: "version_not_found",
   },
-  installPluginFromClawHub: (...args: unknown[]) => installPluginFromClawHub(...args),
-  formatClawHubSpecifier: ({ name, version }: { name: string; version?: string }) =>
-    `clawhub:${name}${version ? `@${version}` : ""}`,
+  installPluginFromCoreHub: (...args: unknown[]) => installPluginFromCoreHub(...args),
+  formatCoreHubSpecifier: ({ name, version }: { name: string; version?: string }) =>
+    `corehub:${name}${version ? `@${version}` : ""}`,
 }));
 
 vi.mock("../infra/coreblow-hub.js", () => ({
-  parseClawHubPluginSpec: (...args: unknown[]) => parseClawHubPluginSpec(...args),
+  parseCoreHubPluginSpec: (...args: unknown[]) => parseCoreHubPluginSpec(...args),
 }));
 
 const { registerPluginsCli } = await import("./plugins-cli.js");
@@ -157,8 +157,8 @@ export function resetPluginsCliTestState() {
   promptYesNo.mockReset();
   installPluginFromNpmSpec.mockReset();
   installPluginFromPath.mockReset();
-  installPluginFromClawHub.mockReset();
-  parseClawHubPluginSpec.mockReset();
+  installPluginFromCoreHub.mockReset();
+  parseCoreHubPluginSpec.mockReset();
   installHooksFromNpmSpec.mockReset();
   installHooksFromPath.mockReset();
   recordHookInstall.mockReset();
@@ -223,11 +223,11 @@ export function resetPluginsCliTestState() {
     ok: false,
     error: "npm install disabled in test",
   });
-  installPluginFromClawHub.mockResolvedValue({
+  installPluginFromCoreHub.mockResolvedValue({
     ok: false,
-    error: "clawhub install disabled in test",
+    error: "corehub install disabled in test",
   });
-  parseClawHubPluginSpec.mockReturnValue(null);
+  parseCoreHubPluginSpec.mockReturnValue(null);
   installHooksFromPath.mockResolvedValue({
     ok: false,
     error: "hook path install disabled in test",

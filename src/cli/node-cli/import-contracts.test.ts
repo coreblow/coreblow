@@ -40,8 +40,8 @@ describe("node-cli root modules — import contracts", () => {
     expect(mod === null || typeof mod === "object").toBe(true);
   });
 
-  it("clawbot-cli is importable", async () => {
-    const mod = await import("../clawbot-cli.js").catch(() => null);
+  it("corebot-cli is importable", async () => {
+    const mod = await import("../corebot-cli.js").catch(() => null);
     expect(mod === null || typeof mod === "object").toBe(true);
   });
 });

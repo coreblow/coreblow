@@ -45,12 +45,12 @@ Restart=on-failure
 WantedBy=default.target
 `;
 
-const CLAWDBOT_GATEWAY_CONTENTS = `\
+const EXTRA_GATEWAY_CONTENTS = `\
 [Unit]
-Description=Clawdbot Gateway
+Description=CoreBlow Gateway
 [Service]
-ExecStart=/usr/bin/node /opt/clawdbot/dist/entry.js gateway --port 18789
-Environment=HOME=/home/clawdbot
+ExecStart=/usr/bin/node /opt/coreblow/dist/entry.js gateway --port 18789
+Environment=HOME=/home/coreblow
 `;
 
 describe("detectMarkerLineWithGateway", () => {
@@ -62,8 +62,8 @@ describe("detectMarkerLineWithGateway", () => {
     expect(detectMarkerLineWithGateway(GATEWAY_SERVICE_CONTENTS)).toBe("coreblow");
   });
 
-  it("returns clawdbot for a clawdbot gateway unit", () => {
-    expect(detectMarkerLineWithGateway(CLAWDBOT_GATEWAY_CONTENTS)).toBe("clawdbot");
+  it("returns coreblow for a rebranded gateway unit", () => {
+    expect(detectMarkerLineWithGateway(EXTRA_GATEWAY_CONTENTS)).toBe("coreblow");
   });
 
   it("handles line continuations — marker and gateway split across physical lines", () => {
@@ -111,23 +111,23 @@ describe("findExtraGatewayServices (linux / scanSystemdDir) — real filesystem"
   );
 
   it.skipIf(!isLinux)(
-    "reports a legacy clawdbot-gateway service as an extra gateway service",
+    "reports a non-canonical coreblow gateway service as an extra gateway service",
     async () => {
       const tmpHome = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-test-"));
       const systemdDir = path.join(tmpHome, ".config", "systemd", "user");
-      const unitPath = path.join(systemdDir, "clawdbot-gateway.service");
+      const unitPath = path.join(systemdDir, "coreblow-gateway-extra.service");
       try {
         await fs.mkdir(systemdDir, { recursive: true });
-        await fs.writeFile(unitPath, CLAWDBOT_GATEWAY_CONTENTS);
+        await fs.writeFile(unitPath, EXTRA_GATEWAY_CONTENTS);
         const result = await findExtraGatewayServices({ HOME: tmpHome });
         expect(result).toEqual([
           {
             platform: "linux",
-            label: "clawdbot-gateway.service",
+            label: "coreblow-gateway-extra.service",
             detail: `unit: ${unitPath}`,
             scope: "user",
-            marker: "clawdbot",
-            legacy: true,
+            marker: "coreblow",
+            legacy: false,
           },
         ]);
       } finally {
@@ -172,21 +172,21 @@ describe("findExtraGatewayServices (win32)", () => {
     expect(result).toEqual([]);
   });
 
-  it("collects only non-coreblow marker tasks from schtasks output", async () => {
+  it("collects non-canonical coreblow marker tasks from schtasks output", async () => {
     execSchtasksMock.mockResolvedValueOnce({
       code: 0,
       stdout: [
         "TaskName: CoreBlow Gateway",
         "Task To Run: C:\\Program Files\\CoreBlow\\coreblow.exe gateway run",
         "",
-        "TaskName: Clawdbot Legacy",
-        "Task To Run: C:\\clawdbot\\clawdbot.exe run",
+        "TaskName: CoreBlow Helper",
+        "Task To Run: C:\\CoreBlowHelper\\coreblow.exe run",
         "",
         "TaskName: Other Task",
         "Task To Run: C:\\tools\\helper.exe",
         "",
-        "TaskName: MoltBot Legacy",
-        "Task To Run: C:\\moltbot\\moltbot.exe run",
+        "TaskName: CoreBlow Worker",
+        "Task To Run: C:\\CoreBlowWorker\\coreblow.exe run",
         "",
       ].join("\n"),
       stderr: "",
@@ -196,19 +196,19 @@ describe("findExtraGatewayServices (win32)", () => {
     expect(result).toEqual([
       {
         platform: "win32",
-        label: "Clawdbot Legacy",
-        detail: "task: Clawdbot Legacy, run: C:\\clawdbot\\clawdbot.exe run",
+        label: "CoreBlow Helper",
+        detail: "task: CoreBlow Helper, run: C:\\CoreBlowHelper\\coreblow.exe run",
         scope: "system",
-        marker: "clawdbot",
-        legacy: true,
+        marker: "coreblow",
+        legacy: false,
       },
       {
         platform: "win32",
-        label: "MoltBot Legacy",
-        detail: "task: MoltBot Legacy, run: C:\\moltbot\\moltbot.exe run",
+        label: "CoreBlow Worker",
+        detail: "task: CoreBlow Worker, run: C:\\CoreBlowWorker\\coreblow.exe run",
         scope: "system",
-        marker: "moltbot",
-        legacy: true,
+        marker: "coreblow",
+        legacy: false,
       },
     ]);
   });

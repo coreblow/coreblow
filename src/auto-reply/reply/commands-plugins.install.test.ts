@@ -7,7 +7,7 @@ import { createCommandWorkspaceHarness } from "./commands-filesystem.test-suppor
 import { buildCommandTestParams } from "./commands.test-harness.js";
 
 const installPluginFromPathMock = vi.fn();
-const installPluginFromClawHubMock = vi.fn();
+const installPluginFromCoreHubMock = vi.fn();
 const persistPluginInstallMock = vi.fn();
 
 vi.mock("../../plugins/install.js", async () => {
@@ -26,7 +26,7 @@ vi.mock("../../plugins/coreblow-hub.js", async () => {
   );
   return {
     ...actual,
-    installPluginFromClawHub: installPluginFromClawHubMock,
+    installPluginFromCoreHub: installPluginFromCoreHubMock,
   };
 });
 
@@ -39,7 +39,7 @@ const workspaceHarness = createCommandWorkspaceHarness("coreblow-command-plugins
 describe("handleCommands /plugins install", () => {
   afterEach(async () => {
     installPluginFromPathMock.mockReset();
-    installPluginFromClawHubMock.mockReset();
+    installPluginFromCoreHubMock.mockReset();
     persistPluginInstallMock.mockReset();
     await workspaceHarness.cleanupWorkspaces();
   });
@@ -93,20 +93,20 @@ describe("handleCommands /plugins install", () => {
     });
   });
 
-  it("installs from an explicit clawhub: spec", async () => {
-    installPluginFromClawHubMock.mockResolvedValue({
+  it("installs from an explicit corehub: spec", async () => {
+    installPluginFromCoreHubMock.mockResolvedValue({
       ok: true,
-      pluginId: "clawhub-demo",
-      targetDir: "/tmp/clawhub-demo",
+      pluginId: "corehub-demo",
+      targetDir: "/tmp/corehub-demo",
       version: "1.2.3",
       extensions: ["index.js"],
-      packageName: "@coreblow/clawhub-demo",
-      clawhub: {
-        source: "clawhub",
-        clawhubUrl: "https://clawhub.ai",
-        clawhubPackage: "@coreblow/clawhub-demo",
-        clawhubFamily: "code-plugin",
-        clawhubChannel: "official",
+      packageName: "@coreblow/corehub-demo",
+      corehub: {
+        source: "corehub",
+        corehubUrl: "https://corehub.ai",
+        corehubPackage: "@coreblow/corehub-demo",
+        corehubFamily: "code-plugin",
+        corehubChannel: "official",
         version: "1.2.3",
         integrity: "sha512-demo",
         resolvedAt: "2026-03-22T12:00:00.000Z",
@@ -117,7 +117,7 @@ describe("handleCommands /plugins install", () => {
     await withTempHome("coreblow-command-plugins-home-", async () => {
       const workspaceDir = await workspaceHarness.createWorkspace();
       const params = buildCommandTestParams(
-        "/plugins install clawhub:@coreblow/clawhub-demo@1.2.3",
+        "/plugins install corehub:@coreblow/corehub-demo@1.2.3",
         {
           commands: {
             text: true,
@@ -130,23 +130,23 @@ describe("handleCommands /plugins install", () => {
       params.command.senderIsOwner = true;
 
       const result = await handleCommands(params);
-      expect(result.reply?.text).toContain('Installed plugin "clawhub-demo"');
-      expect(installPluginFromClawHubMock).toHaveBeenCalledWith(
+      expect(result.reply?.text).toContain('Installed plugin "corehub-demo"');
+      expect(installPluginFromCoreHubMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          spec: "clawhub:@coreblow/clawhub-demo@1.2.3",
+          spec: "corehub:@coreblow/corehub-demo@1.2.3",
         }),
       );
       expect(persistPluginInstallMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          pluginId: "clawhub-demo",
+          pluginId: "corehub-demo",
           install: expect.objectContaining({
-            source: "clawhub",
-            spec: "clawhub:@coreblow/clawhub-demo@1.2.3",
-            installPath: "/tmp/clawhub-demo",
+            source: "corehub",
+            spec: "corehub:@coreblow/corehub-demo@1.2.3",
+            installPath: "/tmp/corehub-demo",
             version: "1.2.3",
             integrity: "sha512-demo",
-            clawhubPackage: "@coreblow/clawhub-demo",
-            clawhubChannel: "official",
+            corehubPackage: "@coreblow/corehub-demo",
+            corehubChannel: "official",
           }),
         }),
       );
@@ -154,19 +154,19 @@ describe("handleCommands /plugins install", () => {
   });
 
   it("treats /plugin add as an install alias", async () => {
-    installPluginFromClawHubMock.mockResolvedValue({
+    installPluginFromCoreHubMock.mockResolvedValue({
       ok: true,
       pluginId: "alias-demo",
       targetDir: "/tmp/alias-demo",
       version: "1.0.0",
       extensions: ["index.js"],
       packageName: "@coreblow/alias-demo",
-      clawhub: {
-        source: "clawhub",
-        clawhubUrl: "https://clawhub.ai",
-        clawhubPackage: "@coreblow/alias-demo",
-        clawhubFamily: "code-plugin",
-        clawhubChannel: "official",
+      corehub: {
+        source: "corehub",
+        corehubUrl: "https://corehub.ai",
+        corehubPackage: "@coreblow/alias-demo",
+        corehubFamily: "code-plugin",
+        corehubChannel: "official",
         version: "1.0.0",
         integrity: "sha512-alias",
         resolvedAt: "2026-03-23T12:00:00.000Z",
@@ -177,7 +177,7 @@ describe("handleCommands /plugins install", () => {
     await withTempHome("coreblow-command-plugins-home-", async () => {
       const workspaceDir = await workspaceHarness.createWorkspace();
       const params = buildCommandTestParams(
-        "/plugin add clawhub:@coreblow/alias-demo@1.0.0",
+        "/plugin add corehub:@coreblow/alias-demo@1.0.0",
         {
           commands: {
             text: true,
@@ -191,9 +191,9 @@ describe("handleCommands /plugins install", () => {
 
       const result = await handleCommands(params);
       expect(result.reply?.text).toContain('Installed plugin "alias-demo"');
-      expect(installPluginFromClawHubMock).toHaveBeenCalledWith(
+      expect(installPluginFromCoreHubMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          spec: "clawhub:@coreblow/alias-demo@1.0.0",
+          spec: "corehub:@coreblow/alias-demo@1.0.0",
         }),
       );
     });

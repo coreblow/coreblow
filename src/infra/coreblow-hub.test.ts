@@ -3,24 +3,23 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-  parseClawHubPluginSpec,
-  resolveClawHubAuthToken,
-  searchClawHubSkills,
+  parseCoreHubPluginSpec,
+  resolveCoreHubAuthToken,
+  searchCoreHubSkills,
   resolveLatestVersionFromPackage,
   satisfiesGatewayMinimum,
   satisfiesPluginApiRange,
 } from "./coreblow-hub.js";
 
-describe("clawhub helpers", () => {
+describe("corehub helpers", () => {
   const originalHome = process.env.HOME;
 
   afterEach(() => {
-    delete process.env.COREBLOW_CLAWHUB_TOKEN;
-    delete process.env.CLAWHUB_TOKEN;
-    delete process.env.CLAWHUB_AUTH_TOKEN;
-    delete process.env.COREBLOW_CLAWHUB_CONFIG_PATH;
-    delete process.env.CLAWHUB_CONFIG_PATH;
-    delete process.env.CLAWDHUB_CONFIG_PATH;
+    delete process.env.COREBLOW_COREHUB_TOKEN;
+    delete process.env.COREHUB_TOKEN;
+    delete process.env.COREHUB_AUTH_TOKEN;
+    delete process.env.COREBLOW_COREHUB_CONFIG_PATH;
+    delete process.env.COREHUB_CONFIG_PATH;
     delete process.env.XDG_CONFIG_HOME;
     if (originalHome == null) {
       delete process.env.HOME;
@@ -29,15 +28,15 @@ describe("clawhub helpers", () => {
     }
   });
 
-  it("parses explicit ClawHub package specs", () => {
-    expect(parseClawHubPluginSpec("clawhub:demo")).toEqual({
+  it("parses explicit CoreHub package specs", () => {
+    expect(parseCoreHubPluginSpec("corehub:demo")).toEqual({
       name: "demo",
     });
-    expect(parseClawHubPluginSpec("clawhub:demo@1.2.3")).toEqual({
+    expect(parseCoreHubPluginSpec("corehub:demo@1.2.3")).toEqual({
       name: "demo",
       version: "1.2.3",
     });
-    expect(parseClawHubPluginSpec("@scope/pkg")).toBeNull();
+    expect(parseCoreHubPluginSpec("@scope/pkg")).toBeNull();
   });
 
   it("resolves latest versions from latestVersion before tags", () => {
@@ -89,34 +88,25 @@ describe("clawhub helpers", () => {
     expect(satisfiesGatewayMinimum("unknown", "2026.3.0")).toBe(false);
   });
 
-  it("resolves ClawHub auth token from config.json", async () => {
-    const configRoot = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-clawhub-config-"));
-    const configPath = path.join(configRoot, "clawhub", "config.json");
-    process.env.COREBLOW_CLAWHUB_CONFIG_PATH = configPath;
+  it("resolves CoreHub auth token from config.json", async () => {
+    const configRoot = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-corehub-config-"));
+    const configPath = path.join(configRoot, "corehub", "config.json");
+    process.env.COREBLOW_COREHUB_CONFIG_PATH = configPath;
     await fs.mkdir(path.dirname(configPath), { recursive: true });
     await fs.writeFile(configPath, JSON.stringify({ auth: { token: "cfg-token-123" } }), "utf8");
 
-    await expect(resolveClawHubAuthToken()).resolves.toBe("cfg-token-123");
-  });
-
-  it("resolves ClawHub auth token from the legacy config path override", async () => {
-    const configRoot = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-clawdhub-config-"));
-    const configPath = path.join(configRoot, "config.json");
-    process.env.CLAWDHUB_CONFIG_PATH = configPath;
-    await fs.writeFile(configPath, JSON.stringify({ token: "legacy-token-123" }), "utf8");
-
-    await expect(resolveClawHubAuthToken()).resolves.toBe("legacy-token-123");
+    await expect(resolveCoreHubAuthToken()).resolves.toBe("cfg-token-123");
   });
 
   it.runIf(process.platform === "darwin")(
-    "resolves ClawHub auth token from the macOS Application Support path",
+    "resolves CoreHub auth token from the macOS Application Support path",
     async () => {
-      const fakeHome = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-clawhub-home-"));
+      const fakeHome = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-corehub-home-"));
       const configPath = path.join(
         fakeHome,
         "Library",
         "Application Support",
-        "clawhub",
+        "corehub",
         "config.json",
       );
       const homedirSpy = vi.spyOn(os, "homedir").mockReturnValue(fakeHome);
@@ -124,7 +114,7 @@ describe("clawhub helpers", () => {
         await fs.mkdir(path.dirname(configPath), { recursive: true });
         await fs.writeFile(configPath, JSON.stringify({ token: "macos-token-123" }), "utf8");
 
-        await expect(resolveClawHubAuthToken()).resolves.toBe("macos-token-123");
+        await expect(resolveCoreHubAuthToken()).resolves.toBe("macos-token-123");
       } finally {
         homedirSpy.mockRestore();
       }
@@ -134,24 +124,24 @@ describe("clawhub helpers", () => {
   it.runIf(process.platform === "darwin")(
     "falls back to XDG_CONFIG_HOME on macOS when Application Support has no config",
     async () => {
-      const fakeHome = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-clawhub-home-"));
-      const xdgRoot = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-clawhub-xdg-"));
-      const configPath = path.join(xdgRoot, "clawhub", "config.json");
+      const fakeHome = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-corehub-home-"));
+      const xdgRoot = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-corehub-xdg-"));
+      const configPath = path.join(xdgRoot, "corehub", "config.json");
       const homedirSpy = vi.spyOn(os, "homedir").mockReturnValue(fakeHome);
       process.env.XDG_CONFIG_HOME = xdgRoot;
       try {
         await fs.mkdir(path.dirname(configPath), { recursive: true });
         await fs.writeFile(configPath, JSON.stringify({ token: "xdg-token-123" }), "utf8");
 
-        await expect(resolveClawHubAuthToken()).resolves.toBe("xdg-token-123");
+        await expect(resolveCoreHubAuthToken()).resolves.toBe("xdg-token-123");
       } finally {
         homedirSpy.mockRestore();
       }
     },
   );
 
-  it("injects resolved auth token into ClawHub requests", async () => {
-    process.env.COREBLOW_CLAWHUB_TOKEN = "env-token-123";
+  it("injects resolved auth token into CoreHub requests", async () => {
+    process.env.COREBLOW_COREHUB_TOKEN = "env-token-123";
     const fetchImpl = async (input: string | URL | Request, init?: RequestInit) => {
       const url = input instanceof Request ? input.url : String(input);
       expect(url).toContain("/api/v1/search");
@@ -162,6 +152,6 @@ describe("clawhub helpers", () => {
       });
     };
 
-    await expect(searchClawHubSkills({ query: "calendar", fetchImpl })).resolves.toEqual([]);
+    await expect(searchCoreHubSkills({ query: "calendar", fetchImpl })).resolves.toEqual([]);
   });
 });

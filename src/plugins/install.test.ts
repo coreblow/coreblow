@@ -640,7 +640,7 @@ describe("installPluginFromArchive", () => {
     expectSuccessfulArchiveInstall({ result, stateDir, pluginId: "@coreblow/zipper" });
   });
 
-  it("installs flat-root plugin archives from ClawHub-style downloads", async () => {
+  it("installs flat-root plugin archives from CoreHub-style downloads", async () => {
     const result = await installArchivePackageAndReturnResult({
       packageJson: {
         name: "@coreblow/rootless",

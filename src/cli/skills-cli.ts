@@ -1,10 +1,10 @@
 import type { Command } from "commander";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
 import {
-  installSkillFromClawHub,
-  readTrackedClawHubSkillSlugs,
-  searchSkillsFromClawHub,
-  updateSkillsFromClawHub,
+  installSkillFromCoreHub,
+  readTrackedCoreHubSkillSlugs,
+  searchSkillsFromCoreHub,
+  updateSkillsFromCoreHub,
 } from "../agents/skills-hub.js";
 import { loadConfig } from "../config/config.js";
 import { defaultRuntime } from "../runtime.js";
@@ -60,13 +60,13 @@ export function registerSkillsCli(program: Command) {
 
   skills
     .command("search")
-    .description("Search ClawHub skills")
+    .description("Search CoreHub skills")
     .argument("[query...]", "Optional search query")
     .option("--limit <n>", "Max results", (value) => Number.parseInt(value, 10))
     .option("--json", "Output as JSON", false)
     .action(async (queryParts: string[], opts: { limit?: number; json?: boolean }) => {
       try {
-        const results = await searchSkillsFromClawHub({
+        const results = await searchSkillsFromCoreHub({
           query: queryParts.join(" ").trim() || undefined,
           limit: opts.limit,
         });
@@ -75,7 +75,7 @@ export function registerSkillsCli(program: Command) {
           return;
         }
         if (results.length === 0) {
-          defaultRuntime.log("No ClawHub skills found.");
+          defaultRuntime.log("No CoreHub skills found.");
           return;
         }
         for (const entry of results) {
@@ -91,14 +91,14 @@ export function registerSkillsCli(program: Command) {
 
   skills
     .command("install")
-    .description("Install a skill from ClawHub into the active workspace")
-    .argument("<slug>", "ClawHub skill slug")
+    .description("Install a skill from CoreHub into the active workspace")
+    .argument("<slug>", "CoreHub skill slug")
     .option("--version <version>", "Install a specific version")
     .option("--force", "Overwrite an existing workspace skill", false)
     .action(async (slug: string, opts: { version?: string; force?: boolean }) => {
       try {
         const workspaceDir = resolveActiveWorkspaceDir();
-        const result = await installSkillFromClawHub({
+        const result = await installSkillFromCoreHub({
           workspaceDir,
           slug,
           version: opts.version,
@@ -121,9 +121,9 @@ export function registerSkillsCli(program: Command) {
 
   skills
     .command("update")
-    .description("Update ClawHub-installed skills in the active workspace")
+    .description("Update CoreHub-installed skills in the active workspace")
     .argument("[slug]", "Single skill slug")
-    .option("--all", "Update all tracked ClawHub skills", false)
+    .option("--all", "Update all tracked CoreHub skills", false)
     .action(async (slug: string | undefined, opts: { all?: boolean }) => {
       try {
         if (!slug && !opts.all) {
@@ -137,12 +137,12 @@ export function registerSkillsCli(program: Command) {
           return;
         }
         const workspaceDir = resolveActiveWorkspaceDir();
-        const tracked = await readTrackedClawHubSkillSlugs(workspaceDir);
+        const tracked = await readTrackedCoreHubSkillSlugs(workspaceDir);
         if (opts.all && tracked.length === 0) {
-          defaultRuntime.log("No tracked ClawHub skills to update.");
+          defaultRuntime.log("No tracked CoreHub skills to update.");
           return;
         }
-        const results = await updateSkillsFromClawHub({
+        const results = await updateSkillsFromCoreHub({
           workspaceDir,
           slug,
           logger: {

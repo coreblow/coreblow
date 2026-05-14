@@ -485,7 +485,7 @@ describe("local media root guard", () => {
     const readFile = vi.fn(async () => Buffer.from("generated-media"));
 
     await expect(
-      loadWebMedia(path.join(stateDir, "workspace-clawdy", "tmp", "render.bin"), {
+      loadWebMedia(path.join(stateDir, "workspace-coreblow", "tmp", "render.bin"), {
         maxBytes: 1024 * 1024,
         readFile,
       }),
@@ -495,7 +495,7 @@ describe("local media root guard", () => {
   it("allows per-agent workspace-* paths with explicit local roots", async () => {
     const stateDir = resolveStateDir();
     const readFile = vi.fn(async () => Buffer.from("generated-media"));
-    const agentWorkspaceDir = path.join(stateDir, "workspace-clawdy");
+    const agentWorkspaceDir = path.join(stateDir, "workspace-coreblow");
 
     await expect(
       loadWebMedia(path.join(agentWorkspaceDir, "tmp", "render.bin"), {

@@ -2036,7 +2036,9 @@ private extension NodeAppModel {
                         GatewaySettingsStore.saveGatewayClientIdOverride(
                             stableID: stableID,
                             clientId: fallbackClientId)
-                        await MainActor.run { self.gatewayStatusText = "Gateway rejected client id. Retrying…" }
+                        await MainActor.run {
+                            self.gatewayStatusText = "Gateway rejected client id. Retrying..."
+                        }
                         continue
                     }
 
@@ -2135,7 +2137,8 @@ private extension NodeAppModel {
     }
 
     func legacyClientIdFallback(currentClientId: String, error: Error) -> String? {
-        let normalizedClientId = currentClientId.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let normalizedClientId = currentClientId.trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
         guard normalizedClientId == "coreblow-ios" else { return nil }
         let message = error.localizedDescription.lowercased()
         guard message.contains("invalid connect params"), message.contains("/client/id") else {

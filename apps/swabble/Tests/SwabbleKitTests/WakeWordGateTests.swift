@@ -3,14 +3,15 @@ import Testing
 
 @Suite struct WakeWordGateTests {
     @Test func textOnlyMatch() {
-        #expect(WakeWordGate.matchesTextOnly(text: "hey clawd turn on lights", triggers: ["clawd"]))
-        #expect(!WakeWordGate.matchesTextOnly(text: "hello world", triggers: ["clawd"]))
+        #expect(WakeWordGate.matchesTextOnly(text: "hey cored turn on lights", triggers: ["cored"]))
+        #expect(WakeWordGate.matchesTextOnly(text: "hey clawd turn on lights", triggers: ["cored", "clawd"]))
+        #expect(!WakeWordGate.matchesTextOnly(text: "hello world", triggers: ["cored"]))
     }
     @Test func stripWake() {
-        let result = WakeWordGate.stripWake(text: "hey clawd turn on lights", triggers: ["clawd"])
+        let result = WakeWordGate.stripWake(text: "hey cored turn on lights", triggers: ["cored"])
         #expect(result == "hey turn on lights")
     }
     @Test func emptyTextNoMatch() {
-        #expect(!WakeWordGate.matchesTextOnly(text: "", triggers: ["clawd"]))
+        #expect(!WakeWordGate.matchesTextOnly(text: "", triggers: ["cored"]))
     }
 }

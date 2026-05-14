@@ -4,7 +4,8 @@ import Testing
 @Suite struct ConfigTests {
     @Test func defaultConfig() {
         let cfg = SwabbleConfig()
-        #expect(cfg.wake.word == "clawd")
+        #expect(cfg.wake.word == "cored")
+        #expect(cfg.wake.aliases.contains("clawd"))
         #expect(cfg.wake.enabled == true)
         #expect(cfg.audio.sampleRate == 16000)
         #expect(cfg.hook.minCharacters == 24)

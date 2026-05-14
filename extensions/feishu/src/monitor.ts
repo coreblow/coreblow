@@ -1,4 +1,4 @@
-import type { ClawdbotConfig, RuntimeEnv } from "../runtime-api.js";
+import type { CoreBlowConfig, RuntimeEnv } from "../runtime-api.js";
 import { listEnabledFeishuAccounts, resolveFeishuRuntimeAccount } from "./accounts.js";
 import {
   monitorSingleAccount,
@@ -14,7 +14,7 @@ import {
 } from "./monitor.state.js";
 
 export type MonitorFeishuOpts = {
-  config?: ClawdbotConfig;
+  config?: CoreBlowConfig;
   runtime?: RuntimeEnv;
   abortSignal?: AbortSignal;
   accountId?: string;

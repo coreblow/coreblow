@@ -23,7 +23,7 @@ import {
 import { createLazyRuntimeNamedExport } from "coreblow/plugin-sdk/lazy-runtime";
 import { createRuntimeOutboundDelegates } from "coreblow/plugin-sdk/outbound-runtime";
 import { createComputedAccountStatusAdapter } from "coreblow/plugin-sdk/status-helpers";
-import type { ChannelMeta, ChannelPlugin, ClawdbotConfig } from "../runtime-api.js";
+import type { ChannelMeta, ChannelPlugin, CoreBlowConfig } from "../runtime-api.js";
 import {
   buildChannelConfigSchema,
   buildProbeChannelStatusSummary,
@@ -113,7 +113,7 @@ const loadFeishuChannelRuntime = createLazyRuntimeNamedExport(
 );
 
 const collectFeishuSecurityWarnings = createAllowlistProviderGroupPolicyWarningCollector<{
-  cfg: ClawdbotConfig;
+  cfg: CoreBlowConfig;
   accountId?: string | null;
 }>({
   providerConfigPresent: (cfg) => cfg.channels?.feishu !== undefined,
@@ -181,10 +181,10 @@ function describeFeishuMessageTool({
 }
 
 function setFeishuNamedAccountEnabled(
-  cfg: ClawdbotConfig,
+  cfg: CoreBlowConfig,
   accountId: string,
   enabled: boolean,
-): ClawdbotConfig {
+): CoreBlowConfig {
   const feishuCfg = cfg.channels?.feishu as FeishuConfig | undefined;
   return {
     ...cfg,
@@ -207,7 +207,7 @@ function setFeishuNamedAccountEnabled(
 const feishuConfigAdapter = createHybridChannelConfigAdapter<
   ResolvedFeishuAccount,
   ResolvedFeishuAccount,
-  ClawdbotConfig
+  CoreBlowConfig
 >({
   sectionKey: "feishu",
   listAccountIds: listFeishuAccountIds,
@@ -219,7 +219,7 @@ const feishuConfigAdapter = createHybridChannelConfigAdapter<
 });
 
 function isFeishuReactionsActionEnabled(params: {
-  cfg: ClawdbotConfig;
+  cfg: CoreBlowConfig;
   account: ResolvedFeishuAccount;
 }): boolean {
   if (!params.account.enabled || !params.account.configured) {
@@ -235,7 +235,7 @@ function isFeishuReactionsActionEnabled(params: {
   return gate("reactions");
 }
 
-function areAnyFeishuReactionActionsEnabled(cfg: ClawdbotConfig): boolean {
+function areAnyFeishuReactionActionsEnabled(cfg: CoreBlowConfig): boolean {
   for (const account of listEnabledFeishuAccounts(cfg)) {
     if (isFeishuReactionsActionEnabled({ cfg, account })) {
       return true;
@@ -574,7 +574,7 @@ export const feishuPlugin: ChannelPlugin<ResolvedFeishuAccount, FeishuProbeResul
 
           if (isDefault) {
             // Delete entire feishu config
-            const next = { ...cfg } as ClawdbotConfig;
+            const next = { ...cfg } as CoreBlowConfig;
             const nextChannels = { ...cfg.channels };
             delete (nextChannels as Record<string, unknown>).feishu;
             if (Object.keys(nextChannels).length > 0) {
@@ -1152,7 +1152,7 @@ export const feishuPlugin: ChannelPlugin<ResolvedFeishuAccount, FeishuProbeResul
     },
     security: {
       collectWarnings: projectConfigAccountIdWarningCollector<{
-        cfg: ClawdbotConfig;
+        cfg: CoreBlowConfig;
         accountId?: string | null;
       }>(collectFeishuSecurityWarnings),
     },

@@ -1,4 +1,4 @@
-// Default service labels (canonical + legacy compatibility)
+// Default service labels (canonical + rebranded compatibility aliases)
 export const GATEWAY_LAUNCH_AGENT_LABEL = "ai.coreblow.gateway";
 export const GATEWAY_SYSTEMD_SERVICE_NAME = "coreblow-gateway";
 export const GATEWAY_WINDOWS_TASK_NAME = "CoreBlow Gateway";
@@ -12,6 +12,8 @@ export const NODE_SERVICE_KIND = "node";
 export const NODE_WINDOWS_TASK_SCRIPT_NAME = "node.cmd";
 export const LEGACY_GATEWAY_LAUNCH_AGENT_LABELS: string[] = [];
 export const LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES: string[] = [
+  "corebot-gateway",
+  "blowbot-gateway",
   "clawdbot-gateway",
   "moltbot-gateway",
 ];

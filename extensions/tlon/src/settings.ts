@@ -2,7 +2,7 @@
  * Settings Store integration for hot-reloading Tlon plugin config.
  *
  * Settings are stored in Urbit's %settings agent under:
- *   desk: "moltbot"
+ *   desk: "blowbot" (primary) or "moltbot" (legacy compatibility)
  *   bucket: "tlon"
  *
  * This allows config changes via poke from any Landscape client
@@ -60,8 +60,16 @@ export type TlonSettingsState = {
   loaded: boolean;
 };
 
-const SETTINGS_DESK = "moltbot";
+const SETTINGS_DESK = "blowbot";
+const LEGACY_SETTINGS_DESK = "moltbot";
+const SETTINGS_DESKS = [SETTINGS_DESK, LEGACY_SETTINGS_DESK] as const;
 const SETTINGS_BUCKET = "tlon";
+
+function isSettingsDesk(value: unknown): value is (typeof SETTINGS_DESKS)[number] {
+  return (
+    typeof value === "string" && SETTINGS_DESKS.includes(value as (typeof SETTINGS_DESKS)[number])
+  );
+}
 
 /**
  * Parse channelRules - handles both JSON string and object formats.
@@ -204,7 +212,7 @@ function parseSettingsEvent(event: unknown): { key: string; value: unknown } | n
   // Handle put-entry events
   if (evt["put-entry"]) {
     const put = evt["put-entry"] as Record<string, unknown>;
-    if (put.desk !== SETTINGS_DESK || put["bucket-key"] !== SETTINGS_BUCKET) {
+    if (!isSettingsDesk(put.desk) || put["bucket-key"] !== SETTINGS_BUCKET) {
       return null;
     }
     return {
@@ -216,7 +224,7 @@ function parseSettingsEvent(event: unknown): { key: string; value: unknown } | n
   // Handle del-entry events
   if (evt["del-entry"]) {
     const del = evt["del-entry"] as Record<string, unknown>;
-    if (del.desk !== SETTINGS_DESK || del["bucket-key"] !== SETTINGS_BUCKET) {
+    if (!isSettingsDesk(del.desk) || del["bucket-key"] !== SETTINGS_BUCKET) {
       return null;
     }
     return {
@@ -339,7 +347,7 @@ export function createSettingsManager(api: UrbitSSEClient, logger?: SettingsLogg
         const raw = await api.scry("/settings/all.json");
         // Response shape: { all: { [desk]: { [bucket]: { [key]: value } } } }
         const allData = raw as { all?: Record<string, Record<string, unknown>> };
-        const deskData = allData?.all?.[SETTINGS_DESK];
+        const deskData = SETTINGS_DESKS.map((desk) => allData?.all?.[desk]).find(Boolean);
         state.current = parseSettingsResponse(deskData ?? {});
         state.loaded = true;
         logger?.log?.(`[settings] Loaded: ${JSON.stringify(state.current)}`);
@@ -357,26 +365,30 @@ export function createSettingsManager(api: UrbitSSEClient, logger?: SettingsLogg
      * Subscribe to settings changes.
      */
     async startSubscription(): Promise<void> {
-      await api.subscribe({
-        app: "settings",
-        path: "/desk/" + SETTINGS_DESK,
-        event: (event) => {
-          const update = parseSettingsEvent(event);
-          if (!update) {
-            return;
-          }
+      await Promise.all(
+        SETTINGS_DESKS.map((desk) =>
+          api.subscribe({
+            app: "settings",
+            path: "/desk/" + desk,
+            event: (event) => {
+              const update = parseSettingsEvent(event);
+              if (!update) {
+                return;
+              }
 
-          logger?.log?.(`[settings] Update: ${update.key} = ${JSON.stringify(update.value)}`);
-          state.current = applySettingsUpdate(state.current, update.key, update.value);
-          notify();
-        },
-        err: (error) => {
-          logger?.error?.(`[settings] Subscription error: ${String(error)}`);
-        },
-        quit: () => {
-          logger?.log?.("[settings] Subscription ended");
-        },
-      });
+              logger?.log?.(`[settings] Update: ${update.key} = ${JSON.stringify(update.value)}`);
+              state.current = applySettingsUpdate(state.current, update.key, update.value);
+              notify();
+            },
+            err: (error) => {
+              logger?.error?.(`[settings] Subscription error (${desk}): ${String(error)}`);
+            },
+            quit: () => {
+              logger?.log?.(`[settings] Subscription ended (${desk})`);
+            },
+          }),
+        ),
+      );
       logger?.log?.("[settings] Subscribed to settings updates");
     },
 

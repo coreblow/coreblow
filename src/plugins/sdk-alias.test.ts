@@ -466,7 +466,7 @@ describe("plugin sdk alias helpers", () => {
 
   it("derives plugin-sdk subpaths from nearest package exports even when package name is renamed", () => {
     const fixture = createPluginSdkAliasFixture({
-      packageName: "moltbot",
+      packageName: "coreblow",
       packageExports: {
         "./plugin-sdk/core": { default: "./dist/plugin-sdk/core.js" },
         "./plugin-sdk/channel-runtime": { default: "./dist/plugin-sdk/channel-runtime.js" },
@@ -484,7 +484,7 @@ describe("plugin sdk alias helpers", () => {
       name: "derives plugin-sdk subpaths via cwd fallback when module path is a transpiler cache and package is renamed",
       fixture: () =>
         createPluginSdkAliasFixture({
-          packageName: "moltbot",
+          packageName: "coreblow",
           packageExports: {
             "./plugin-sdk/core": { default: "./dist/plugin-sdk/core.js" },
             "./plugin-sdk/channel-runtime": { default: "./dist/plugin-sdk/channel-runtime.js" },
@@ -496,7 +496,7 @@ describe("plugin sdk alias helpers", () => {
       name: "does not derive plugin-sdk subpaths from cwd fallback when package root is not an CoreBlow root",
       fixture: () =>
         createPluginSdkAliasFixture({
-          packageName: "moltbot",
+          packageName: "coreblow",
           trustedRootIndicators: false,
           packageExports: {
             "./plugin-sdk/core": { default: "./dist/plugin-sdk/core.js" },
@@ -509,7 +509,7 @@ describe("plugin sdk alias helpers", () => {
       name: "derives plugin-sdk subpaths via cwd fallback when trusted root indicator is cli-entry export",
       fixture: () =>
         createPluginSdkAliasFixture({
-          packageName: "moltbot",
+          packageName: "coreblow",
           trustedRootIndicatorMode: "cli-entry-only",
           packageExports: {
             "./plugin-sdk/core": { default: "./dist/plugin-sdk/core.js" },
@@ -622,7 +622,7 @@ describe("plugin sdk alias helpers", () => {
         createPluginSdkAliasFixture({
           srcFile: "channel-runtime.ts",
           distFile: "channel-runtime.js",
-          packageName: "moltbot",
+          packageName: "coreblow",
           packageExports: {
             "./plugin-sdk/channel-runtime": { default: "./dist/plugin-sdk/channel-runtime.js" },
           },
@@ -635,7 +635,7 @@ describe("plugin sdk alias helpers", () => {
         createPluginSdkAliasFixture({
           srcFile: "channel-runtime.ts",
           distFile: "channel-runtime.js",
-          packageName: "moltbot",
+          packageName: "coreblow",
           trustedRootIndicators: false,
           packageExports: {
             "./plugin-sdk/channel-runtime": { default: "./dist/plugin-sdk/channel-runtime.js" },

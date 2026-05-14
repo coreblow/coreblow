@@ -5,7 +5,7 @@ import type { CoreBlowConfig } from "../config/config.js";
 import { loadConfig, writeConfigFile } from "../config/config.js";
 import { resolveStateDir } from "../config/paths.js";
 import type { PluginInstallRecord } from "../config/types.plugins.js";
-import { parseClawHubPluginSpec } from "../infra/coreblow-hub.js";
+import { parseCoreHubPluginSpec } from "../infra/coreblow-hub.js";
 import { enablePluginInConfig } from "../plugins/enable.js";
 import { listMarketplacePlugins } from "../plugins/marketplace.js";
 import type { PluginRecord } from "../plugins/registry.js";
@@ -86,14 +86,14 @@ function resolvePluginUninstallId(params: {
     }
   }
 
-  const requestedClawHub = parseClawHubPluginSpec(rawId);
-  if (requestedClawHub) {
+  const requestedCoreHub = parseCoreHubPluginSpec(rawId);
+  if (requestedCoreHub) {
     for (const [pluginId, install] of Object.entries(params.config.plugins?.installs ?? {})) {
-      const installedClawHubName =
-        install.clawhubPackage ??
-        parseClawHubPluginSpec(install.spec ?? "")?.name ??
-        parseClawHubPluginSpec(install.resolvedSpec ?? "")?.name;
-      if (installedClawHubName === requestedClawHub.name) {
+      const installedCoreHubName =
+        install.corehubPackage ??
+        parseCoreHubPluginSpec(install.spec ?? "")?.name ??
+        parseCoreHubPluginSpec(install.resolvedSpec ?? "")?.name;
+      if (installedCoreHubName === requestedCoreHub.name) {
         return { pluginId };
       }
     }
@@ -720,7 +720,7 @@ export function registerPluginsCli(program: Command) {
   plugins
     .command("install")
     .description(
-      "Install a plugin or hook pack (path, archive, npm spec, clawhub:package, or marketplace entry)",
+      "Install a plugin or hook pack (path, archive, npm spec, corehub:package, or marketplace entry)",
     )
     .argument(
       "<path-or-spec-or-plugin>",

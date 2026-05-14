@@ -122,22 +122,39 @@ describe("profile CRUD endpoints", () => {
     const createBadRemoteBody = (await createBadRemote.json()) as { error: string };
     expect(createBadRemoteBody.error).toContain("cdpUrl");
 
-    const createClawd = await realFetch(`${base}/profiles/create`, {
+    const createCored = await realFetch(`${base}/profiles/create`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: "legacyclawd", driver: "clawd" }),
+      body: JSON.stringify({ name: "cored-cdp", driver: "cored" }),
     });
-    expect(createClawd.status).toBe(200);
-    const createClawdBody = (await createClawd.json()) as {
+    expect(createCored.status).toBe(200);
+    const createCoredBody = (await createCored.json()) as {
       profile?: string;
       transport?: string;
       cdpPort?: number | null;
       userDataDir?: string | null;
     };
-    expect(createClawdBody.profile).toBe("legacyclawd");
-    expect(createClawdBody.transport).toBe("cdp");
-    expect(createClawdBody.cdpPort).toBeTypeOf("number");
-    expect(createClawdBody.userDataDir).toBeNull();
+    expect(createCoredBody.profile).toBe("cored-cdp");
+    expect(createCoredBody.transport).toBe("cdp");
+    expect(createCoredBody.cdpPort).toBeTypeOf("number");
+    expect(createCoredBody.userDataDir).toBeNull();
+
+    const createLegacyClawd = await realFetch(`${base}/profiles/create`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "legacy-clawd-cdp", driver: "clawd" }),
+    });
+    expect(createLegacyClawd.status).toBe(200);
+    const createLegacyClawdBody = (await createLegacyClawd.json()) as {
+      profile?: string;
+      transport?: string;
+      cdpPort?: number | null;
+      userDataDir?: string | null;
+    };
+    expect(createLegacyClawdBody.profile).toBe("legacy-clawd-cdp");
+    expect(createLegacyClawdBody.transport).toBe("cdp");
+    expect(createLegacyClawdBody.cdpPort).toBeTypeOf("number");
+    expect(createLegacyClawdBody.userDataDir).toBeNull();
 
     const explicitUserDataDir = "/tmp/coreblow-brave-profile";
     await fs.promises.mkdir(explicitUserDataDir, { recursive: true });

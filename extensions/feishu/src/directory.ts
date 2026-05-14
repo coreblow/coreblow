@@ -1,4 +1,4 @@
-import type { ClawdbotConfig } from "../runtime-api.js";
+import type { CoreBlowConfig } from "../runtime-api.js";
 import { resolveFeishuAccount } from "./accounts.js";
 import { createFeishuClient } from "./client.js";
 import {
@@ -11,7 +11,7 @@ import {
 export { listFeishuDirectoryGroups, listFeishuDirectoryPeers } from "./directory.static.js";
 
 export async function listFeishuDirectoryPeersLive(params: {
-  cfg: ClawdbotConfig;
+  cfg: CoreBlowConfig;
   query?: string;
   limit?: number;
   accountId?: string;
@@ -64,7 +64,7 @@ export async function listFeishuDirectoryPeersLive(params: {
 }
 
 export async function listFeishuDirectoryGroupsLive(params: {
-  cfg: ClawdbotConfig;
+  cfg: CoreBlowConfig;
   query?: string;
   limit?: number;
   accountId?: string;

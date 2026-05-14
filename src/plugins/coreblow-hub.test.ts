@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const parseClawHubPluginSpecMock = vi.fn();
-const fetchClawHubPackageDetailMock = vi.fn();
-const fetchClawHubPackageVersionMock = vi.fn();
-const downloadClawHubPackageArchiveMock = vi.fn();
+const parseCoreHubPluginSpecMock = vi.fn();
+const fetchCoreHubPackageDetailMock = vi.fn();
+const fetchCoreHubPackageVersionMock = vi.fn();
+const downloadCoreHubPackageArchiveMock = vi.fn();
 const resolveLatestVersionFromPackageMock = vi.fn();
 const resolveCompatibilityHostVersionMock = vi.fn();
 const installPluginFromArchiveMock = vi.fn();
@@ -12,11 +12,11 @@ vi.mock("../infra/coreblow-hub.js", async () => {
   const actual = await vi.importActual<typeof import("../infra/coreblow-hub.js")>("../infra/coreblow-hub.js");
   return {
     ...actual,
-    parseClawHubPluginSpec: (...args: unknown[]) => parseClawHubPluginSpecMock(...args),
-    fetchClawHubPackageDetail: (...args: unknown[]) => fetchClawHubPackageDetailMock(...args),
-    fetchClawHubPackageVersion: (...args: unknown[]) => fetchClawHubPackageVersionMock(...args),
-    downloadClawHubPackageArchive: (...args: unknown[]) =>
-      downloadClawHubPackageArchiveMock(...args),
+    parseCoreHubPluginSpec: (...args: unknown[]) => parseCoreHubPluginSpecMock(...args),
+    fetchCoreHubPackageDetail: (...args: unknown[]) => fetchCoreHubPackageDetailMock(...args),
+    fetchCoreHubPackageVersion: (...args: unknown[]) => fetchCoreHubPackageVersionMock(...args),
+    downloadCoreHubPackageArchive: (...args: unknown[]) =>
+      downloadCoreHubPackageArchiveMock(...args),
     resolveLatestVersionFromPackage: (...args: unknown[]) =>
       resolveLatestVersionFromPackageMock(...args),
   };
@@ -31,21 +31,21 @@ vi.mock("./install.js", () => ({
   installPluginFromArchive: (...args: unknown[]) => installPluginFromArchiveMock(...args),
 }));
 
-const { ClawHubRequestError } = await import("../infra/coreblow-hub.js");
-const { CLAWHUB_INSTALL_ERROR_CODE, formatClawHubSpecifier, installPluginFromClawHub } =
+const { CoreHubRequestError } = await import("../infra/coreblow-hub.js");
+const { COREHUB_INSTALL_ERROR_CODE, formatCoreHubSpecifier, installPluginFromCoreHub } =
   await import("./coreblow-hub.js");
 
-async function expectClawHubInstallError(params: {
+async function expectCoreHubInstallError(params: {
   setup?: () => void;
   spec: string;
   expected: {
     ok: false;
-    code: (typeof CLAWHUB_INSTALL_ERROR_CODE)[keyof typeof CLAWHUB_INSTALL_ERROR_CODE];
+    code: (typeof COREHUB_INSTALL_ERROR_CODE)[keyof typeof COREHUB_INSTALL_ERROR_CODE];
     error: string;
   };
 }) {
   params.setup?.();
-  await expect(installPluginFromClawHub({ spec: params.spec })).resolves.toMatchObject(
+  await expect(installPluginFromCoreHub({ spec: params.spec })).resolves.toMatchObject(
     params.expected,
   );
 }
@@ -57,18 +57,18 @@ function createLoggerSpies() {
   };
 }
 
-function expectClawHubInstallFlow(params: {
+function expectCoreHubInstallFlow(params: {
   baseUrl: string;
   version: string;
   archivePath: string;
 }) {
-  expect(fetchClawHubPackageDetailMock).toHaveBeenCalledWith(
+  expect(fetchCoreHubPackageDetailMock).toHaveBeenCalledWith(
     expect.objectContaining({
       name: "demo",
       baseUrl: params.baseUrl,
     }),
   );
-  expect(fetchClawHubPackageVersionMock).toHaveBeenCalledWith(
+  expect(fetchCoreHubPackageVersionMock).toHaveBeenCalledWith(
     expect.objectContaining({
       name: "demo",
       version: params.version,
@@ -81,33 +81,33 @@ function expectClawHubInstallFlow(params: {
   );
 }
 
-function expectSuccessfulClawHubInstall(result: unknown) {
+function expectSuccessfulCoreHubInstall(result: unknown) {
   expect(result).toMatchObject({
     ok: true,
     pluginId: "demo",
     version: "2026.3.22",
-    clawhub: {
-      source: "clawhub",
-      clawhubPackage: "demo",
-      clawhubFamily: "code-plugin",
-      clawhubChannel: "official",
+    corehub: {
+      source: "corehub",
+      corehubPackage: "demo",
+      corehubFamily: "code-plugin",
+      corehubChannel: "official",
       integrity: "sha256-demo",
     },
   });
 }
 
-describe("installPluginFromClawHub", () => {
+describe("installPluginFromCoreHub", () => {
   beforeEach(() => {
-    parseClawHubPluginSpecMock.mockReset();
-    fetchClawHubPackageDetailMock.mockReset();
-    fetchClawHubPackageVersionMock.mockReset();
-    downloadClawHubPackageArchiveMock.mockReset();
+    parseCoreHubPluginSpecMock.mockReset();
+    fetchCoreHubPackageDetailMock.mockReset();
+    fetchCoreHubPackageVersionMock.mockReset();
+    downloadCoreHubPackageArchiveMock.mockReset();
     resolveLatestVersionFromPackageMock.mockReset();
     resolveCompatibilityHostVersionMock.mockReset();
     installPluginFromArchiveMock.mockReset();
 
-    parseClawHubPluginSpecMock.mockReturnValue({ name: "demo" });
-    fetchClawHubPackageDetailMock.mockResolvedValue({
+    parseCoreHubPluginSpecMock.mockReturnValue({ name: "demo" });
+    fetchCoreHubPackageDetailMock.mockResolvedValue({
       package: {
         name: "demo",
         displayName: "Demo",
@@ -123,7 +123,7 @@ describe("installPluginFromClawHub", () => {
       },
     });
     resolveLatestVersionFromPackageMock.mockReturnValue("2026.3.22");
-    fetchClawHubPackageVersionMock.mockResolvedValue({
+    fetchCoreHubPackageVersionMock.mockResolvedValue({
       version: {
         version: "2026.3.22",
         createdAt: 0,
@@ -134,8 +134,8 @@ describe("installPluginFromClawHub", () => {
         },
       },
     });
-    downloadClawHubPackageArchiveMock.mockResolvedValue({
-      archivePath: "/tmp/clawhub-demo/archive.zip",
+    downloadCoreHubPackageArchiveMock.mockResolvedValue({
+      archivePath: "/tmp/corehub-demo/archive.zip",
       integrity: "sha256-demo",
     });
     resolveCompatibilityHostVersionMock.mockReturnValue("2026.3.22");
@@ -147,26 +147,26 @@ describe("installPluginFromClawHub", () => {
     });
   });
 
-  it("formats clawhub specifiers", () => {
-    expect(formatClawHubSpecifier({ name: "demo" })).toBe("clawhub:demo");
-    expect(formatClawHubSpecifier({ name: "demo", version: "1.2.3" })).toBe("clawhub:demo@1.2.3");
+  it("formats corehub specifiers", () => {
+    expect(formatCoreHubSpecifier({ name: "demo" })).toBe("corehub:demo");
+    expect(formatCoreHubSpecifier({ name: "demo", version: "1.2.3" })).toBe("corehub:demo@1.2.3");
   });
 
-  it("installs a ClawHub code plugin through the archive installer", async () => {
+  it("installs a CoreHub code plugin through the archive installer", async () => {
     const logger = createLoggerSpies();
-    const result = await installPluginFromClawHub({
-      spec: "clawhub:demo",
-      baseUrl: "https://clawhub.ai",
+    const result = await installPluginFromCoreHub({
+      spec: "corehub:demo",
+      baseUrl: "https://corehub.ai",
       logger,
     });
 
-    expectClawHubInstallFlow({
-      baseUrl: "https://clawhub.ai",
+    expectCoreHubInstallFlow({
+      baseUrl: "https://corehub.ai",
       version: "2026.3.22",
-      archivePath: "/tmp/clawhub-demo/archive.zip",
+      archivePath: "/tmp/corehub-demo/archive.zip",
     });
-    expectSuccessfulClawHubInstall(result);
-    expect(logger.info).toHaveBeenCalledWith("ClawHub code-plugin demo@2026.3.22 channel=official");
+    expectSuccessfulCoreHubInstall(result);
+    expect(logger.info).toHaveBeenCalledWith("CoreHub code-plugin demo@2026.3.22 channel=official");
     expect(logger.info).toHaveBeenCalledWith(
       "Compatibility: pluginApi=>=2026.3.22 minGateway=2026.3.0",
     );
@@ -179,10 +179,10 @@ describe("installPluginFromClawHub", () => {
       setup: () => {
         resolveCompatibilityHostVersionMock.mockReturnValueOnce("2026.3.21");
       },
-      spec: "clawhub:demo",
+      spec: "corehub:demo",
       expected: {
         ok: false,
-        code: CLAWHUB_INSTALL_ERROR_CODE.INCOMPATIBLE_PLUGIN_API,
+        code: COREHUB_INSTALL_ERROR_CODE.INCOMPATIBLE_PLUGIN_API,
         error:
           'Plugin "demo" requires plugin API >=2026.3.22, but this CoreBlow runtime exposes 2026.3.21.',
       },
@@ -190,7 +190,7 @@ describe("installPluginFromClawHub", () => {
     {
       name: "rejects skill families and redirects to skills install",
       setup: () => {
-        fetchClawHubPackageDetailMock.mockResolvedValueOnce({
+        fetchCoreHubPackageDetailMock.mockResolvedValueOnce({
           package: {
             name: "calendar",
             displayName: "Calendar",
@@ -202,51 +202,51 @@ describe("installPluginFromClawHub", () => {
           },
         });
       },
-      spec: "clawhub:calendar",
+      spec: "corehub:calendar",
       expected: {
         ok: false,
-        code: CLAWHUB_INSTALL_ERROR_CODE.SKILL_PACKAGE,
+        code: COREHUB_INSTALL_ERROR_CODE.SKILL_PACKAGE,
         error: '"calendar" is a skill. Use "coreblow skills install calendar" instead.',
       },
     },
     {
       name: "returns typed package-not-found failures",
       setup: () => {
-        fetchClawHubPackageDetailMock.mockRejectedValueOnce(
-          new ClawHubRequestError({
+        fetchCoreHubPackageDetailMock.mockRejectedValueOnce(
+          new CoreHubRequestError({
             path: "/api/v1/packages/demo",
             status: 404,
             body: "Package not found",
           }),
         );
       },
-      spec: "clawhub:demo",
+      spec: "corehub:demo",
       expected: {
         ok: false,
-        code: CLAWHUB_INSTALL_ERROR_CODE.PACKAGE_NOT_FOUND,
-        error: "Package not found on ClawHub.",
+        code: COREHUB_INSTALL_ERROR_CODE.PACKAGE_NOT_FOUND,
+        error: "Package not found on CoreHub.",
       },
     },
     {
       name: "returns typed version-not-found failures",
       setup: () => {
-        parseClawHubPluginSpecMock.mockReturnValueOnce({ name: "demo", version: "9.9.9" });
-        fetchClawHubPackageVersionMock.mockRejectedValueOnce(
-          new ClawHubRequestError({
+        parseCoreHubPluginSpecMock.mockReturnValueOnce({ name: "demo", version: "9.9.9" });
+        fetchCoreHubPackageVersionMock.mockRejectedValueOnce(
+          new CoreHubRequestError({
             path: "/api/v1/packages/demo/versions/9.9.9",
             status: 404,
             body: "Version not found",
           }),
         );
       },
-      spec: "clawhub:demo@9.9.9",
+      spec: "corehub:demo@9.9.9",
       expected: {
         ok: false,
-        code: CLAWHUB_INSTALL_ERROR_CODE.VERSION_NOT_FOUND,
-        error: "Version not found on ClawHub: demo@9.9.9.",
+        code: COREHUB_INSTALL_ERROR_CODE.VERSION_NOT_FOUND,
+        error: "Version not found on CoreHub: demo@9.9.9.",
       },
     },
   ] as const)("$name", async ({ setup, spec, expected }) => {
-    await expectClawHubInstallError({ setup, spec, expected });
+    await expectCoreHubInstallError({ setup, spec, expected });
   });
 });

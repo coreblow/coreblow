@@ -1941,7 +1941,7 @@ describe("buildAfterTurnRuntimeContext", () => {
         messageProvider: "slack",
         agentAccountId: "acct-1",
         authProfileId: "openai:p1",
-        config: { plugins: { slots: { contextEngine: "lossless-claw" } } } as CoreBlowConfig,
+        config: { plugins: { slots: { contextEngine: "lossless-core" } } } as CoreBlowConfig,
         skillsSnapshot: undefined,
         senderIsOwner: true,
         provider: "openai-codex",

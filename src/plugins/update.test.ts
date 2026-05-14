@@ -3,7 +3,7 @@ import type { CoreBlowConfig } from "../config/config.js";
 
 const installPluginFromNpmSpecMock = vi.fn();
 const installPluginFromMarketplaceMock = vi.fn();
-const installPluginFromClawHubMock = vi.fn();
+const installPluginFromCoreHubMock = vi.fn();
 const resolveBundledPluginSourcesMock = vi.fn();
 
 vi.mock("./install.js", () => ({
@@ -19,7 +19,7 @@ vi.mock("./marketplace.js", () => ({
 }));
 
 vi.mock("./coreblow-hub.js", () => ({
-  installPluginFromClawHub: (...args: unknown[]) => installPluginFromClawHubMock(...args),
+  installPluginFromCoreHub: (...args: unknown[]) => installPluginFromCoreHubMock(...args),
 }));
 
 vi.mock("./bundled-sources.js", () => ({
@@ -94,25 +94,25 @@ function createMarketplaceInstallConfig(params: {
   };
 }
 
-function createClawHubInstallConfig(params: {
+function createCoreHubInstallConfig(params: {
   pluginId: string;
   installPath: string;
-  clawhubUrl: string;
-  clawhubPackage: string;
-  clawhubFamily: "bundle-plugin" | "code-plugin";
-  clawhubChannel: "community" | "official" | "private";
+  corehubUrl: string;
+  corehubPackage: string;
+  corehubFamily: "bundle-plugin" | "code-plugin";
+  corehubChannel: "community" | "official" | "private";
 }): CoreBlowConfig {
   return {
     plugins: {
       installs: {
         [params.pluginId]: {
-          source: "clawhub" as const,
-          spec: `clawhub:${params.clawhubPackage}`,
+          source: "corehub" as const,
+          spec: `corehub:${params.corehubPackage}`,
           installPath: params.installPath,
-          clawhubUrl: params.clawhubUrl,
-          clawhubPackage: params.clawhubPackage,
-          clawhubFamily: params.clawhubFamily,
-          clawhubChannel: params.clawhubChannel,
+          corehubUrl: params.corehubUrl,
+          corehubPackage: params.corehubPackage,
+          corehubFamily: params.corehubFamily,
+          corehubChannel: params.corehubChannel,
         },
       },
     },
@@ -222,7 +222,7 @@ describe("updateNpmInstalledPlugins", () => {
   beforeEach(() => {
     installPluginFromNpmSpecMock.mockReset();
     installPluginFromMarketplaceMock.mockReset();
-    installPluginFromClawHubMock.mockReset();
+    installPluginFromCoreHubMock.mockReset();
     resolveBundledPluginSourcesMock.mockReset();
   });
 
@@ -419,51 +419,51 @@ describe("updateNpmInstalledPlugins", () => {
     },
   );
 
-  it("updates ClawHub-installed plugins via recorded package metadata", async () => {
-    installPluginFromClawHubMock.mockResolvedValue({
+  it("updates CoreHub-installed plugins via recorded package metadata", async () => {
+    installPluginFromCoreHubMock.mockResolvedValue({
       ok: true,
       pluginId: "demo",
       targetDir: "/tmp/demo",
       version: "1.2.4",
-      clawhub: {
-        source: "clawhub",
-        clawhubUrl: "https://clawhub.ai",
-        clawhubPackage: "demo",
-        clawhubFamily: "code-plugin",
-        clawhubChannel: "official",
+      corehub: {
+        source: "corehub",
+        corehubUrl: "https://corehub.ai",
+        corehubPackage: "demo",
+        corehubFamily: "code-plugin",
+        corehubChannel: "official",
         integrity: "sha256-next",
         resolvedAt: "2026-03-22T00:00:00.000Z",
       },
     });
 
     const result = await updateNpmInstalledPlugins({
-      config: createClawHubInstallConfig({
+      config: createCoreHubInstallConfig({
         pluginId: "demo",
         installPath: "/tmp/demo",
-        clawhubUrl: "https://clawhub.ai",
-        clawhubPackage: "demo",
-        clawhubFamily: "code-plugin",
-        clawhubChannel: "official",
+        corehubUrl: "https://corehub.ai",
+        corehubPackage: "demo",
+        corehubFamily: "code-plugin",
+        corehubChannel: "official",
       }),
       pluginIds: ["demo"],
     });
 
-    expect(installPluginFromClawHubMock).toHaveBeenCalledWith(
+    expect(installPluginFromCoreHubMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        spec: "clawhub:demo",
-        baseUrl: "https://clawhub.ai",
+        spec: "corehub:demo",
+        baseUrl: "https://corehub.ai",
         expectedPluginId: "demo",
         mode: "update",
       }),
     );
     expect(result.config.plugins?.installs?.demo).toMatchObject({
-      source: "clawhub",
-      spec: "clawhub:demo",
+      source: "corehub",
+      spec: "corehub:demo",
       installPath: "/tmp/demo",
       version: "1.2.4",
-      clawhubPackage: "demo",
-      clawhubFamily: "code-plugin",
-      clawhubChannel: "official",
+      corehubPackage: "demo",
+      corehubFamily: "code-plugin",
+      corehubChannel: "official",
       integrity: "sha256-next",
     });
   });

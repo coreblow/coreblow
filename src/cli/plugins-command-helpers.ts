@@ -2,7 +2,7 @@ import type { CoreBlowConfig } from "../config/config.js";
 import type { HookInstallRecord } from "../config/types.hooks.js";
 import type { PluginInstallRecord } from "../config/types.plugins.js";
 import { parseRegistryNpmSpec } from "../infra/npm-registry-spec.js";
-import { CLAWHUB_INSTALL_ERROR_CODE } from "../plugins/coreblow-hub.js";
+import { COREHUB_INSTALL_ERROR_CODE } from "../plugins/coreblow-hub.js";
 import { applyExclusiveSlotSelection } from "../plugins/slots.js";
 import { buildPluginStatusReport } from "../plugins/status.js";
 import { defaultRuntime } from "../runtime.js";
@@ -145,30 +145,30 @@ export function logSlotWarnings(warnings: string[]) {
   }
 }
 
-export function buildPreferredClawHubSpec(raw: string): string | null {
+export function buildPreferredCoreHubSpec(raw: string): string | null {
   const parsed = parseRegistryNpmSpec(raw);
   if (!parsed) {
     return null;
   }
-  return `clawhub:${parsed.name}${parsed.selector ? `@${parsed.selector}` : ""}`;
+  return `corehub:${parsed.name}${parsed.selector ? `@${parsed.selector}` : ""}`;
 }
 
-export const PREFERRED_CLAWHUB_FALLBACK_DECISION = {
+export const PREFERRED_COREHUB_FALLBACK_DECISION = {
   FALLBACK_TO_NPM: "fallback_to_npm",
   STOP: "stop",
 } as const;
 
-export type PreferredClawHubFallbackDecision =
-  (typeof PREFERRED_CLAWHUB_FALLBACK_DECISION)[keyof typeof PREFERRED_CLAWHUB_FALLBACK_DECISION];
+export type PreferredCoreHubFallbackDecision =
+  (typeof PREFERRED_COREHUB_FALLBACK_DECISION)[keyof typeof PREFERRED_COREHUB_FALLBACK_DECISION];
 
-export function decidePreferredClawHubFallback(params: {
+export function decidePreferredCoreHubFallback(params: {
   code?: string;
-}): PreferredClawHubFallbackDecision {
+}): PreferredCoreHubFallbackDecision {
   if (
-    params.code === CLAWHUB_INSTALL_ERROR_CODE.PACKAGE_NOT_FOUND ||
-    params.code === CLAWHUB_INSTALL_ERROR_CODE.VERSION_NOT_FOUND
+    params.code === COREHUB_INSTALL_ERROR_CODE.PACKAGE_NOT_FOUND ||
+    params.code === COREHUB_INSTALL_ERROR_CODE.VERSION_NOT_FOUND
   ) {
-    return PREFERRED_CLAWHUB_FALLBACK_DECISION.FALLBACK_TO_NPM;
+    return PREFERRED_COREHUB_FALLBACK_DECISION.FALLBACK_TO_NPM;
   }
-  return PREFERRED_CLAWHUB_FALLBACK_DECISION.STOP;
+  return PREFERRED_COREHUB_FALLBACK_DECISION.STOP;
 }

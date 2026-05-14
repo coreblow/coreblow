@@ -5,7 +5,6 @@ export type {
   ChannelMessageActionName,
   ChannelMeta,
   ChannelOutboundAdapter,
-  CoreBlowConfig as ClawdbotConfig,
   CoreBlowConfig,
   CoreBlowPluginApi,
   PluginRuntime,

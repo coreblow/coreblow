@@ -6,12 +6,12 @@ import {
   clearPluginManifestRegistryCache,
   enablePluginInConfig,
   installHooksFromNpmSpec,
-  installPluginFromClawHub,
+  installPluginFromCoreHub,
   installPluginFromMarketplace,
   installPluginFromNpmSpec,
   loadConfig,
   readConfigFileSnapshot,
-  parseClawHubPluginSpec,
+  parseCoreHubPluginSpec,
   recordHookInstall,
   recordPluginInstall,
   resetPluginsCliTestState,
@@ -33,7 +33,7 @@ function createEnabledPluginConfig(pluginId: string): CoreBlowConfig {
   } as CoreBlowConfig;
 }
 
-function createClawHubInstalledConfig(params: {
+function createCoreHubInstalledConfig(params: {
   pluginId: string;
   install: Record<string, unknown>;
 }): CoreBlowConfig {
@@ -49,24 +49,24 @@ function createClawHubInstalledConfig(params: {
   } as CoreBlowConfig;
 }
 
-function createClawHubInstallResult(params: {
+function createCoreHubInstallResult(params: {
   pluginId: string;
   packageName: string;
   version: string;
   channel: string;
-}): Awaited<ReturnType<typeof installPluginFromClawHub>> {
+}): Awaited<ReturnType<typeof installPluginFromCoreHub>> {
   return {
     ok: true,
     pluginId: params.pluginId,
     targetDir: `/tmp/coreblow-state/extensions/${params.pluginId}`,
     version: params.version,
     packageName: params.packageName,
-    clawhub: {
-      source: "clawhub",
-      clawhubUrl: "https://clawhub.ai",
-      clawhubPackage: params.packageName,
-      clawhubFamily: "code-plugin",
-      clawhubChannel: params.channel,
+    corehub: {
+      source: "corehub",
+      corehubUrl: "https://corehub.ai",
+      corehubPackage: params.packageName,
+      corehubFamily: "code-plugin",
+      corehubChannel: params.channel,
       version: params.version,
       integrity: "sha256-abc",
       resolvedAt: "2026-03-22T00:00:00.000Z",
@@ -189,29 +189,29 @@ describe("plugins cli install", () => {
     expect(runtimeLogs.some((line) => line.includes("Installed plugin: alpha"))).toBe(true);
   });
 
-  it("installs ClawHub plugins and persists source metadata", async () => {
+  it("installs CoreHub plugins and persists source metadata", async () => {
     const cfg = {
       plugins: {
         entries: {},
       },
     } as CoreBlowConfig;
     const enabledCfg = createEnabledPluginConfig("demo");
-    const installedCfg = createClawHubInstalledConfig({
+    const installedCfg = createCoreHubInstalledConfig({
       pluginId: "demo",
       install: {
-        source: "clawhub",
-        spec: "clawhub:demo@1.2.3",
+        source: "corehub",
+        spec: "corehub:demo@1.2.3",
         installPath: "/tmp/coreblow-state/extensions/demo",
-        clawhubPackage: "demo",
-        clawhubFamily: "code-plugin",
-        clawhubChannel: "official",
+        corehubPackage: "demo",
+        corehubFamily: "code-plugin",
+        corehubChannel: "official",
       },
     });
 
     loadConfig.mockReturnValue(cfg);
-    parseClawHubPluginSpec.mockReturnValue({ name: "demo" });
-    installPluginFromClawHub.mockResolvedValue(
-      createClawHubInstallResult({
+    parseCoreHubPluginSpec.mockReturnValue({ name: "demo" });
+    installPluginFromCoreHub.mockResolvedValue(
+      createCoreHubInstallResult({
         pluginId: "demo",
         packageName: "demo",
         version: "1.2.3",
@@ -225,22 +225,22 @@ describe("plugins cli install", () => {
       warnings: [],
     });
 
-    await runPluginsCommand(["plugins", "install", "clawhub:demo"]);
+    await runPluginsCommand(["plugins", "install", "corehub:demo"]);
 
-    expect(installPluginFromClawHub).toHaveBeenCalledWith(
+    expect(installPluginFromCoreHub).toHaveBeenCalledWith(
       expect.objectContaining({
-        spec: "clawhub:demo",
+        spec: "corehub:demo",
       }),
     );
     expect(recordPluginInstall).toHaveBeenCalledWith(
       enabledCfg,
       expect.objectContaining({
         pluginId: "demo",
-        source: "clawhub",
-        spec: "clawhub:demo@1.2.3",
-        clawhubPackage: "demo",
-        clawhubFamily: "code-plugin",
-        clawhubChannel: "official",
+        source: "corehub",
+        spec: "corehub:demo@1.2.3",
+        corehubPackage: "demo",
+        corehubFamily: "code-plugin",
+        corehubChannel: "official",
       }),
     );
     expect(writeConfigFile).toHaveBeenCalledWith(installedCfg);
@@ -248,26 +248,26 @@ describe("plugins cli install", () => {
     expect(installPluginFromNpmSpec).not.toHaveBeenCalled();
   });
 
-  it("prefers ClawHub before npm for bare plugin specs", async () => {
+  it("prefers CoreHub before npm for bare plugin specs", async () => {
     const cfg = {
       plugins: {
         entries: {},
       },
     } as CoreBlowConfig;
     const enabledCfg = createEnabledPluginConfig("demo");
-    const installedCfg = createClawHubInstalledConfig({
+    const installedCfg = createCoreHubInstalledConfig({
       pluginId: "demo",
       install: {
-        source: "clawhub",
-        spec: "clawhub:demo@1.2.3",
+        source: "corehub",
+        spec: "corehub:demo@1.2.3",
         installPath: "/tmp/coreblow-state/extensions/demo",
-        clawhubPackage: "demo",
+        corehubPackage: "demo",
       },
     });
 
     loadConfig.mockReturnValue(cfg);
-    installPluginFromClawHub.mockResolvedValue(
-      createClawHubInstallResult({
+    installPluginFromCoreHub.mockResolvedValue(
+      createCoreHubInstallResult({
         pluginId: "demo",
         packageName: "demo",
         version: "1.2.3",
@@ -283,16 +283,16 @@ describe("plugins cli install", () => {
 
     await runPluginsCommand(["plugins", "install", "demo"]);
 
-    expect(installPluginFromClawHub).toHaveBeenCalledWith(
+    expect(installPluginFromCoreHub).toHaveBeenCalledWith(
       expect.objectContaining({
-        spec: "clawhub:demo",
+        spec: "corehub:demo",
       }),
     );
     expect(installPluginFromNpmSpec).not.toHaveBeenCalled();
     expect(writeConfigFile).toHaveBeenCalledWith(installedCfg);
   });
 
-  it("falls back to npm when ClawHub does not have the package", async () => {
+  it("falls back to npm when CoreHub does not have the package", async () => {
     const cfg = {
       plugins: {
         entries: {},
@@ -309,9 +309,9 @@ describe("plugins cli install", () => {
     } as CoreBlowConfig;
 
     loadConfig.mockReturnValue(cfg);
-    installPluginFromClawHub.mockResolvedValue({
+    installPluginFromCoreHub.mockResolvedValue({
       ok: false,
-      error: "ClawHub /api/v1/packages/demo failed (404): Package not found",
+      error: "CoreHub /api/v1/packages/demo failed (404): Package not found",
       code: "package_not_found",
     });
     installPluginFromNpmSpec.mockResolvedValue({
@@ -334,9 +334,9 @@ describe("plugins cli install", () => {
 
     await runPluginsCommand(["plugins", "install", "demo"]);
 
-    expect(installPluginFromClawHub).toHaveBeenCalledWith(
+    expect(installPluginFromCoreHub).toHaveBeenCalledWith(
       expect.objectContaining({
-        spec: "clawhub:demo",
+        spec: "corehub:demo",
       }),
     );
     expect(installPluginFromNpmSpec).toHaveBeenCalledWith(
@@ -346,8 +346,8 @@ describe("plugins cli install", () => {
     );
   });
 
-  it("does not fall back to npm when ClawHub rejects a real package", async () => {
-    installPluginFromClawHub.mockResolvedValue({
+  it("does not fall back to npm when CoreHub rejects a real package", async () => {
+    installPluginFromCoreHub.mockResolvedValue({
       ok: false,
       error: 'Use "coreblow skills install demo" instead.',
       code: "skill_package",
@@ -375,9 +375,9 @@ describe("plugins cli install", () => {
     } as CoreBlowConfig;
 
     loadConfig.mockReturnValue(cfg);
-    installPluginFromClawHub.mockResolvedValue({
+    installPluginFromCoreHub.mockResolvedValue({
       ok: false,
-      error: "ClawHub /api/v1/packages/@acme/demo-hooks failed (404): Package not found",
+      error: "CoreHub /api/v1/packages/@acme/demo-hooks failed (404): Package not found",
       code: "package_not_found",
     });
     installPluginFromNpmSpec.mockResolvedValue({

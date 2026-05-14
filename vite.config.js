@@ -1,20 +1,62 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'path'
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { defineConfig } from "vite";
 
-export default defineConfig({
-    plugins: [react()],
-    server: {
-        port: 5174
-    },
-    resolve: {
-        alias: {
-            'react': path.resolve('./node_modules/react'),
-            'react-dom': path.resolve('./node_modules/react-dom'),
-        },
-        dedupe: ['react', 'react-dom']
-    },
+const here = path.dirname(fileURLToPath(import.meta.url));
+const uiRoot = path.resolve(here, "ui");
+
+function normalizeBase(input) {
+  const trimmed = input.trim();
+  if (!trimmed) {
+    return "/";
+  }
+  if (trimmed === "./") {
+    return "./";
+  }
+  if (trimmed.endsWith("/")) {
+    return trimmed;
+  }
+  return `${trimmed}/`;
+}
+
+export default defineConfig(() => {
+  const envBase = process.env.COREBLOW_CONTROL_UI_BASE_PATH?.trim();
+  const base = envBase ? normalizeBase(envBase) : "./";
+  return {
+    root: uiRoot,
+    base,
+    publicDir: path.resolve(uiRoot, "public"),
     optimizeDeps: {
-        include: ['@splinetool/react-spline', '@splinetool/runtime']
-    }
-})
+      include: ["lit/directives/repeat.js"],
+    },
+    build: {
+      outDir: path.resolve(here, "dist/control-ui"),
+      emptyOutDir: true,
+      sourcemap: true,
+      chunkSizeWarningLimit: 1024,
+    },
+    server: {
+      host: true,
+      port: 5173,
+      strictPort: true,
+    },
+    plugins: [
+      {
+        name: "control-ui-dev-stubs",
+        configureServer(server) {
+          server.middlewares.use("/__coreblow/control-ui-config.json", (_req, res) => {
+            res.setHeader("Content-Type", "application/json");
+            res.end(
+              JSON.stringify({
+                basePath: "/",
+                assistantName: "CoreBlow",
+                assistantAvatar: "",
+                assistantAgentId: "",
+              }),
+            );
+          });
+        },
+      },
+    ],
+  };
+});

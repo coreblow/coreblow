@@ -19,7 +19,7 @@ type HarnessState = {
       cdpPort?: number;
       cdpUrl?: string;
       color: string;
-      driver?: "coreblow" | "existing-session";
+      driver?: "coreblow" | "cored" | "clawd" | "existing-session";
       attachOnly?: boolean;
     }
   >;

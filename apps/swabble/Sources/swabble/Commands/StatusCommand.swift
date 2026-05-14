@@ -5,7 +5,7 @@ import Commander; import Foundation; import Swabble
     init() {}; init(parsed: ParsedValues) { self.init(); if let c = parsed.options["config"]?.last { configPath = c } }
     mutating func run() async throws {
         let cfg = try? ConfigLoader.load(at: configURL)
-        let wake = cfg?.wake.word ?? "clawd"; let enabled = cfg?.wake.enabled ?? false
+        let wake = cfg?.wake.word ?? "cored"; let enabled = cfg?.wake.enabled ?? false
         let latest = await TranscriptsStore.shared.latest().suffix(3)
         print("wake: \(enabled ? wake : "disabled")")
         if latest.isEmpty { print("transcripts: (none yet)") } else { print("last transcripts:"); latest.forEach { print("- \($0)") } }
