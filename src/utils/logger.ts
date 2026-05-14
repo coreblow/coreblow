@@ -10,7 +10,9 @@ import type { Logger as PinoLogger, TransportSingleOptions } from 'pino';
 // ─── Configuration ────────────────────────────────────────────────
 
 const isDev = process.env.NODE_ENV !== 'production';
-const LOG_LEVEL = process.env.LOG_LEVEL || (isDev ? 'debug' : 'info');
+const isVitest = process.env.VITEST === 'true';
+const explicitLogLevel = process.env.LOG_LEVEL?.trim();
+const LOG_LEVEL = explicitLogLevel || (isVitest ? 'silent' : isDev ? 'debug' : 'info');
 const LOG_FILE = process.env.LOG_FILE;
 const LOG_FORMAT = process.env.LOG_FORMAT || (isDev ? 'pretty' : 'json');
 
@@ -35,6 +37,10 @@ const REDACTION_PATHS = [
 // ─── Transport Configuration ──────────────────────────────────────
 
 function buildTransports(): Record<string, unknown> | undefined {
+    if (LOG_LEVEL === 'silent' && !LOG_FILE) {
+        return undefined;
+    }
+
     const targets: Array<Record<string, unknown>> = [];
 
     if (LOG_FORMAT === 'pretty' || isDev) {

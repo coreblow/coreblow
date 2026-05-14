@@ -1,12 +1,18 @@
 import type { DatabaseSync } from "node:sqlite";
 
+type SqliteVecModule = {
+  getLoadablePath(): string;
+  load(db: DatabaseSync): void;
+};
+
+const SQLITE_VEC_MODULE = "sqlite-vec";
+
 export async function loadSqliteVecExtension(params: {
   db: DatabaseSync;
   extensionPath?: string;
 }): Promise<{ ok: boolean; extensionPath?: string; error?: string }> {
   try {
-    // @ts-expect-error — sqlite-vec is an optional native dep with no TS types
-    const sqliteVec = await import("sqlite-vec");
+    const sqliteVec = (await import(SQLITE_VEC_MODULE)) as SqliteVecModule;
     const resolvedPath = params.extensionPath?.trim() ? params.extensionPath.trim() : undefined;
     const extensionPath = resolvedPath ?? sqliteVec.getLoadablePath();
 
