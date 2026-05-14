@@ -324,7 +324,7 @@
   --grid-line: rgba(0, 0, 0, 0.04);
 }
 
-:root[data-theme="dash"] {
+:root[data-theme="coredash"] {
   /*
    * Accent — chocolate brown on deep cocoa
    *
@@ -392,7 +392,7 @@
   --grid-line: rgba(255, 240, 225, 0.03);
 }
 
-:root[data-theme="dash-light"] {
+:root[data-theme="coredash-light"] {
   /*
    * Accent — deep chocolate on warm parchment
    *

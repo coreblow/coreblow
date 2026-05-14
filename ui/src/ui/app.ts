@@ -88,7 +88,7 @@ export class CoreBlowApp extends LitElement {
 
     // Apply data-theme attribute for CSS variable switching
     try {
-       const resolved = next === "knot" ? "openknot" : next === "dash" ? "dash" : "dark";
+       const resolved = next === "knot" ? "openknot" : next === "coredash" ? "coredash" : "dark";
        document.documentElement.setAttribute("data-theme", resolved);
     } catch {}
   }

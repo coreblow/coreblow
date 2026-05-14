@@ -33,7 +33,7 @@ export function renderApp(app: CoreBlowApp) {
             <!-- Theme toggle -->
             <div class="topbar-status">
                <div class="theme-orb__trigger pill" style="cursor: pointer" @click=${() => {
-                 app.setTheme(app.theme === "core" ? "knot" : app.theme === "knot" ? "dash" : "core");
+                 app.setTheme(app.theme === "core" ? "knot" : app.theme === "knot" ? "coredash" : "core");
                }}>
                   🎨
                </div>

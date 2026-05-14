@@ -10,7 +10,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <script>
       (function () {
-        var THEMES = { core: 1, knot: 1, dash: 1 };
+        var THEMES = { core: 1, knot: 1, coredash: 1 };
         var MODES = { system: 1, light: 1, dark: 1 };
         try {
           var keys = Object.keys(localStorage);
@@ -37,10 +37,10 @@
               ? mode === "light"
                 ? "openknot-light"
                 : "openknot"
-              : theme === "dash"
+              : theme === "coredash"
                 ? mode === "light"
-                  ? "dash-light"
-                  : "dash"
+                  ? "coredash-light"
+                  : "coredash"
                 : mode === "light"
                   ? "light"
                   : "dark";
