@@ -1,14 +1,14 @@
 import {
   collectProviderApiKeysForExecution,
   executeWithApiKeyRotation,
-} from "../../../../src/agents/api-key-rotation.js";
-import { requireApiKey, resolveApiKeyForProvider } from "../../../../src/agents/model-auth.js";
-import { parseGeminiAuth } from "../../../../src/infra/gemini-auth.js";
+} from "./_core-imports.js";
+import { requireApiKey, resolveApiKeyForProvider } from "./_core-imports.js";
+import { parseGeminiAuth } from "./_core-imports.js";
 import {
   DEFAULT_GOOGLE_API_BASE_URL,
   normalizeGoogleApiBaseUrl,
-} from "../../../../src/infra/google-api-base-url.js";
-import type { SsrFPolicy } from "../../../../src/infra/net/ssrf.js";
+} from "./_core-imports.js";
+import type { SsrFPolicy } from "./_core-imports.js";
 import type { EmbeddingInput } from "./embedding-inputs.js";
 import { sanitizeAndNormalizeEmbedding } from "./embedding-vectors.js";
 import { debugEmbeddingsLog } from "./embeddings-debug.js";

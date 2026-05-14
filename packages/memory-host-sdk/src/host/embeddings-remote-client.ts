@@ -1,5 +1,5 @@
-import { requireApiKey, resolveApiKeyForProvider } from "../../../../src/agents/model-auth.js";
-import type { SsrFPolicy } from "../../../../src/infra/net/ssrf.js";
+import { requireApiKey, resolveApiKeyForProvider } from "./_core-imports.js";
+import type { SsrFPolicy } from "./_core-imports.js";
 import type { EmbeddingProviderOptions } from "./embeddings.js";
 import { buildRemoteBaseUrlPolicy } from "./remote-http.js";
 import { resolveMemorySecretInputString } from "./secret-input.js";

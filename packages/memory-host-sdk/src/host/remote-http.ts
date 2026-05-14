@@ -1,6 +1,6 @@
-import { fetchWithSsrFGuard } from "../../../../src/infra/net/fetch-guard.js";
-import type { SsrFPolicy } from "../../../../src/infra/net/ssrf.js";
 
+import { fetchWithSsrFGuard } from "./_core-imports.js";
+import type { SsrFPolicy } from "./_core-imports.js";
 export function buildRemoteBaseUrlPolicy(baseUrl: string): SsrFPolicy | undefined {
   const trimmed = baseUrl.trim();
   if (!trimmed) {

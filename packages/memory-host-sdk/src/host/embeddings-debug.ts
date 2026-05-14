@@ -1,6 +1,6 @@
-import { isTruthyEnvValue } from "../../../../src/infra/env.js";
-import { createSubsystemLogger } from "../../../../src/logging/subsystem.js";
 
+import { isTruthyEnvValue } from "./_core-imports.js";
+import { createSubsystemLogger } from "./_core-imports.js";
 const debugEmbeddings = isTruthyEnvValue(process.env.COREBLOW_DEBUG_MEMORY_EMBEDDINGS);
 const log = createSubsystemLogger("memory/embeddings");
 

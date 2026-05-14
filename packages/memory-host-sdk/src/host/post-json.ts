@@ -6,7 +6,7 @@
  * downstream retry logic.
  */
 
-import type { SsrFPolicy } from "../../../../src/infra/net/ssrf.js";
+import type { SsrFPolicy } from "./_core-imports.js";
 import { withRemoteHttpResponse } from "./remote-http.js";
 
 /**

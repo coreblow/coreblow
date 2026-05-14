@@ -1,4 +1,4 @@
-import type { SsrFPolicy } from "../../../../src/infra/net/ssrf.js";
+import type { SsrFPolicy } from "./_core-imports.js";
 import { postJson } from "./post-json.js";
 
 export async function fetchRemoteEmbeddingVectors(params: {

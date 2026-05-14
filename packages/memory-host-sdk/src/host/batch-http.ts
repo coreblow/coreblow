@@ -7,8 +7,8 @@
  * - HTTP 5xx (server errors)
  */
 
-import type { SsrFPolicy } from "../../../../src/infra/net/ssrf.js";
-import { retryAsync } from "../../../../src/infra/retry.js";
+import type { SsrFPolicy } from "./_core-imports.js";
+import { retryAsync } from "./_core-imports.js";
 import { postJson } from "./post-json.js";
 
 /**

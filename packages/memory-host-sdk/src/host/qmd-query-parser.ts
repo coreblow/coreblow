@@ -1,5 +1,5 @@
-import { createSubsystemLogger } from "../../../../src/logging/subsystem.js";
 
+import { createSubsystemLogger } from "./_core-imports.js";
 const log = createSubsystemLogger("memory");
 
 export type QmdQueryResult = {

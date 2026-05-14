@@ -1,8 +1,8 @@
+import { resolveSessionTranscriptsDirForAgent } from "./_core-imports.js";
+import { redactSensitiveText } from "./_core-imports.js";
+import { createSubsystemLogger } from "./_core-imports.js";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { resolveSessionTranscriptsDirForAgent } from "../../../../src/config/sessions/paths.js";
-import { redactSensitiveText } from "../../../../src/logging/redact.js";
-import { createSubsystemLogger } from "../../../../src/logging/subsystem.js";
 import { hashText } from "./internal.js";
 
 const log = createSubsystemLogger("memory");

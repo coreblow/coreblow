@@ -1,8 +1,8 @@
-import { spawn } from "node:child_process";
 import {
   materializeWindowsSpawnProgram,
   resolveWindowsSpawnProgram,
-} from "../../../../src/plugin-sdk/windows-spawn.js";
+} from "./_core-imports.js";
+import { spawn } from "node:child_process";
 
 export type CliSpawnInvocation = {
   command: string;

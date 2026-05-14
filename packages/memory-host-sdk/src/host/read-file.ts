@@ -1,8 +1,8 @@
+import { resolveAgentWorkspaceDir } from "./_core-imports.js";
+import { resolveMemorySearchConfig } from "./_core-imports.js";
+import type { CoreBlowConfig } from "./_core-imports.js";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { resolveAgentWorkspaceDir } from "../../../../src/agents/agent-scope.js";
-import { resolveMemorySearchConfig } from "../../../../src/agents/memory-search.js";
-import type { CoreBlowConfig } from "../../../../src/config/config.js";
 import { isFileMissingError, statRegularFile } from "./fs-utils.js";
 import { isMemoryPath, normalizeExtraMemoryPaths } from "./internal.js";
 

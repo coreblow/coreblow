@@ -1,8 +1,7 @@
-import path from "node:path";
-import { resolveAgentWorkspaceDir } from "../../../../src/agents/agent-scope.js";
-import { parseDurationMs } from "../../../../src/cli/parse-duration.js";
-import type { CoreBlowConfig } from "../../../../src/config/config.js";
-import type { SessionSendPolicyConfig } from "../../../../src/config/types.base.js";
+import { resolveAgentWorkspaceDir } from "./_core-imports.js";
+import { parseDurationMs } from "./_core-imports.js";
+import type { CoreBlowConfig } from "./_core-imports.js";
+import type { SessionSendPolicyConfig } from "./_core-imports.js";
 import type {
   MemoryBackend,
   MemoryCitationsMode,
@@ -10,9 +9,10 @@ import type {
   MemoryQmdIndexPath,
   MemoryQmdMcporterConfig,
   MemoryQmdSearchMode,
-} from "../../../../src/config/types.memory.js";
-import { resolveUserPath } from "../../../../src/utils.js";
-import { splitShellArgs } from "../../../../src/utils/shell-argv.js";
+} from "./_core-imports.js";
+import { resolveUserPath } from "./_core-imports.js";
+import { splitShellArgs } from "./_core-imports.js";
+import path from "node:path";
 
 export type ResolvedMemoryBackendConfig = {
   backend: MemoryBackend;
