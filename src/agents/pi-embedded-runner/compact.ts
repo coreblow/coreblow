@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "node:fs/promises";
 import os from "node:os";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
@@ -434,6 +433,7 @@ export async function compactEmbeddedPiSessionDirect(
     const { contextFiles } = await resolveBootstrapContextForRun({
       workspaceDir: effectiveWorkspace,
       config: params.config,
+      // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
       sessionKey: params.sessionKey,
       sessionId: params.sessionId,
       warn: makeBootstrapWarn({
@@ -480,6 +480,7 @@ export async function compactEmbeddedPiSessionDirect(
       abortSignal: runAbortController.signal,
       modelProvider: model.provider,
       modelId,
+      // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
       modelCompat: effectiveModel.compat,
       modelContextWindowTokens: ctxInfo.tokens,
       modelAuthMode: resolveModelAuthMode(model.provider, params.config),
@@ -529,11 +530,14 @@ export async function compactEmbeddedPiSessionDirect(
       });
       if (inlineButtonsScope !== "off") {
         if (!runtimeCapabilities) {
+          // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
           runtimeCapabilities = [];
         }
         if (
+          // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
           !runtimeCapabilities.some((cap: any) => String(cap).trim().toLowerCase() === "inlinebuttons")
         ) {
+          // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
           runtimeCapabilities.push("inlineButtons");
         }
       }
@@ -635,6 +639,7 @@ export async function compactEmbeddedPiSessionDirect(
       ttsHint,
       promptMode,
       acpEnabled: params.config?.acp?.enabled !== false,
+      // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
       runtimeInfo,
       reactionGuidance,
       messageToolHints,
@@ -714,6 +719,7 @@ export async function compactEmbeddedPiSessionDirect(
         modelRegistry,
         model: effectiveModel,
         thinkingLevel: mapThinkingLevel(params.thinkLevel),
+        // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
         tools: builtInTools,
         customTools,
         sessionManager,
@@ -751,6 +757,7 @@ export async function compactEmbeddedPiSessionDirect(
           : validatedGemini;
         // Apply validated transcript to the live session even when no history limit is configured,
         // so compaction and hook metrics are based on the same message set.
+        // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
         session.agent.replaceMessages(validated);
         // "Original" compaction metrics should describe the validated transcript that enters
         // limiting/compaction, not the raw on-disk session snapshot.
@@ -766,6 +773,7 @@ export async function compactEmbeddedPiSessionDirect(
           ? sanitizeToolUseResultPairing(truncated)
           : truncated;
         if (limited.length > 0) {
+          // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
           session.agent.replaceMessages(limited);
         }
         const hookRunner = asCompactionHookRunner(getGlobalHookRunner());

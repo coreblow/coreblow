@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * gateway/plugin-integration.ts
  *
@@ -114,6 +113,7 @@ export class GatewayPluginIntegration {
             // Fire gateway_start hook
             if (this.config.lifecycleHooks !== false) {
                 await hookRunner.runGatewayStart(
+                    // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
                     { timestamp: Date.now() },
                     { pluginCount: loadResult.loaded },
                 );
@@ -214,6 +214,7 @@ export class GatewayPluginIntegration {
         if (!this.state.hookRunner) return;
         await this.state.hookRunner.runSessionStart(
             { sessionKey, channel, timestamp: Date.now() },
+            // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
             { sessionKey, channel },
         );
     }
@@ -225,6 +226,7 @@ export class GatewayPluginIntegration {
         if (!this.state.hookRunner) return;
         await this.state.hookRunner.runSessionEnd(
             { sessionKey, reason, timestamp: Date.now() },
+            // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
             { sessionKey },
         );
     }

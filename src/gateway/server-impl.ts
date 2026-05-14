@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * gateway/server-impl.ts
  * HTTP Server factory — raw node:http, same as CoreBlow
@@ -15,12 +14,17 @@ import { createServer as createHttpsServer } from 'node:https';
 import type { TlsOptions } from 'node:tls';
 import { createChildLogger } from '../utils/logger.js';
 import {
+    // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
     handleCors,
+    // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
     getPathname,
+    // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
     sendError,
     sendJson,
+    // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
     requestId,
 } from './http-common.js';
+// @ts-expect-error — API drift (tracked: remove after upstream types fixed)
 import { bootstrapCoreSubsystems } from './server-startup.js';
 import type { GatewayRequestContext } from './server-methods/types.js';
 import type { RequestFrame } from './protocol/index.js';
@@ -80,6 +84,7 @@ export class GatewayServer {
         // Di-replace oleh createReadinessChecker() setelah listen() callback.
         this._getReadiness = createReadinessChecker({
             startedAt: Date.now(),
+            // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
             isReady: () => this._bootReady,
         });
     }
@@ -105,19 +110,25 @@ export class GatewayServer {
     async start(): Promise<void> {
         // Resolve auth — auto-generate token if needed
         const startupAuth = ensureGatewayStartupAuth({
+            // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
             authConfig: this.config.authConfig,
             env: process.env,
         });
+        // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
         this._resolvedAuth = startupAuth.auth;
 
+        // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
         if (startupAuth.generatedToken) {
             log.info(
+                // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
                 { mode: startupAuth.auth.mode },
                 'Gateway auth: runtime token generated (not persisted)',
             );
         } else {
             log.info(
+                // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
                 { mode: startupAuth.auth.mode },
+                // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
                 `Gateway auth mode: ${startupAuth.auth.mode}`,
             );
         }
@@ -144,6 +155,7 @@ export class GatewayServer {
                 this._bootReady = true;
                 this._getReadiness = createReadinessChecker({
                     startedAt: this.startedAt,
+                    // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
                     isReady: () => this._bootReady,
                 });
                 log.info(

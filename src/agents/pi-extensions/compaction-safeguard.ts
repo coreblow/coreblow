@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "node:fs";
 import path from "node:path";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
@@ -635,7 +634,7 @@ export default function compactionSafeguardExtension(api: ExtensionAPI): void {
     let requestAuth: ResolvedRequestAuth;
     try {
       const modelRegistry = ctx.modelRegistry as ModelRegistryWithRequestAuthLookup;
-      if (typeof modelRegistry.getApiKeyAndHeaders !== "function") {
+      if (typeof modelRegistry.getApiKeyAndHeaders !== "function") { // pragma: allowlist secret
         throw new Error("model registry auth lookup unavailable");
       }
       requestAuth = await modelRegistry.getApiKeyAndHeaders(model);
@@ -709,20 +708,25 @@ export default function compactionSafeguardExtension(api: ExtensionAPI): void {
             maxHistoryShare,
             parts: 2,
           });
+          // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
           if (pruned.droppedChunks > 0) {
             const newContentRatio = (newContentTokens / contextWindowTokens) * 100;
             log.warn(
               `Compaction safeguard: new content uses ${newContentRatio.toFixed(
                 1,
+              // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
               )}% of context; dropped ${pruned.droppedChunks} older chunk(s) ` +
+                // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
                 `(${pruned.droppedMessages} messages) to fit history budget.`,
             );
             messagesToSummarize = pruned.messages;
 
             // Summarize dropped messages so context isn't lost
+            // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
             if (pruned.droppedMessagesList.length > 0) {
               try {
                 const droppedChunkRatio = computeAdaptiveChunkRatio(
+                  // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
                   pruned.droppedMessagesList,
                   contextWindowTokens,
                 );
@@ -732,7 +736,9 @@ export default function compactionSafeguardExtension(api: ExtensionAPI): void {
                     SUMMARIZATION_OVERHEAD_TOKENS,
                 );
                 droppedSummary = await compactionSafeguardDeps.summarizeInStages({
+                  // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
                   messages: pruned.droppedMessagesList,
+                  // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
                   model,
                   apiKey: apiKey ?? "",
                   headers,
@@ -805,6 +811,7 @@ export default function compactionSafeguardExtension(api: ExtensionAPI): void {
             messagesToSummarize.length > 0
               ? await compactionSafeguardDeps.summarizeInStages({
                   messages: messagesToSummarize,
+                  // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
                   model,
                   apiKey: apiKey ?? "",
                   headers,
@@ -822,6 +829,7 @@ export default function compactionSafeguardExtension(api: ExtensionAPI): void {
           if (preparation.isSplitTurn && turnPrefixMessages.length > 0) {
             const prefixSummary = await compactionSafeguardDeps.summarizeInStages({
               messages: turnPrefixMessages,
+              // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
               model,
               apiKey: apiKey ?? "",
               headers,

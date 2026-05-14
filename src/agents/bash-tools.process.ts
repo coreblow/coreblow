@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { clamp } from "../utils.js";
 import type { AgentTool, AgentToolResult } from "@mariozechner/pi-agent-core";
 import { Type } from "typebox";
@@ -103,6 +102,7 @@ function failText(text: string): AgentToolResult<unknown> {
 function recordPollRetrySuggestion(sessionId: string, hasNewOutput: boolean): number | undefined {
   try {
     const sessionState = getDiagnosticSessionState({ sessionId });
+    // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
     return recordCommandPoll(sessionState, sessionId, hasNewOutput);
   } catch {
     return undefined;
@@ -140,6 +140,7 @@ export function createProcessTool(
   };
 
   const terminateSessionFallback = (session: ProcessSession) => {
+    // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
     const pid = session.pid ?? session.child?.pid;
     if (typeof pid !== "number" || !Number.isFinite(pid) || pid <= 0) {
       return false;
@@ -258,6 +259,7 @@ export function createProcessTool(
             result: failedResult(`Session ${params.sessionId} is not backgrounded.`),
           };
         }
+        // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
         const stdin = scopedSession.stdin ?? scopedSession.child?.stdin;
         if (!stdin || stdin.destroyed) {
           return {
@@ -484,14 +486,17 @@ export function createProcessTool(
             hex: params.hex,
             literal: params.literal,
           };
+          // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
           if (resolved.session.cursorKeyMode === "unknown" && hasCursorModeSensitiveKeys(request)) {
             return failText(
               `Session ${params.sessionId} cursor key mode is not known yet. Poll or log until startup output appears, then retry send-keys.`,
             );
           }
           const cursorKeyMode =
+            // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
             resolved.session.cursorKeyMode === "unknown"
               ? undefined
+              // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
               : resolved.session.cursorKeyMode;
           const { data, warnings } = encodeKeySequence(request, cursorKeyMode);
           if (!data) {

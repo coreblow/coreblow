@@ -1,4 +1,3 @@
-// @ts-nocheck — optional dependency not installed
 import type { DatabaseSync } from "node:sqlite";
 
 export async function loadSqliteVecExtension(params: {
@@ -6,6 +5,7 @@ export async function loadSqliteVecExtension(params: {
   extensionPath?: string;
 }): Promise<{ ok: boolean; extensionPath?: string; error?: string }> {
   try {
+    // @ts-expect-error — sqlite-vec is an optional native dep with no TS types
     const sqliteVec = await import("sqlite-vec");
     const resolvedPath = params.extensionPath?.trim() ? params.extensionPath.trim() : undefined;
     const extensionPath = resolvedPath ?? sqliteVec.getLoadablePath();

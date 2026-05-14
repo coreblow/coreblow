@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { SsrFPolicy } from "../../../../src/infra/net/ssrf.js";
 import { postJson } from "./post-json.js";
 

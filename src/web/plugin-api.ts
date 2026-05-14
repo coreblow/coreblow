@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * web/plugin-api.ts
  *
@@ -27,9 +26,12 @@
  */
 
 import { createChildLogger } from '../utils/logger.js';
+// @ts-expect-error — API drift (tracked: remove after upstream types fixed)
 import { PluginMarketplace, type MarketplaceSearchResult } from '../plugins/marketplace.js';
+// @ts-expect-error — API drift (tracked: remove after upstream types fixed)
 import { PluginInstaller, type InstallResult, type UninstallResult } from '../plugins/install.js';
 import type { PluginLoader } from '../plugins/plugin-loader.js';
+// @ts-expect-error — API drift (tracked: remove after upstream types fixed)
 import type { MarketplacePlugin, MarketplaceSearchOptions } from '../plugins/types.js';
 
 const log = createChildLogger('web:plugin-api');
@@ -164,6 +166,7 @@ export class PluginApiRouter {
         }
 
         const registry = loader.getRegistry();
+        // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
         const plugins = registry.getPlugins();
         const status = req.query.status;
         const search = req.query.search?.toLowerCase();
@@ -208,6 +211,7 @@ export class PluginApiRouter {
         }
 
         const registry = loader.getRegistry();
+        // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
         const plugin = registry.getPlugin(pluginId);
         if (!plugin) {
             return { status: 404, body: { error: `Plugin not found: ${pluginId}` } };
@@ -261,6 +265,7 @@ export class PluginApiRouter {
             return { status: 503, body: { error: 'Plugin system not initialized' } };
         }
 
+        // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
         const plugin = loader.getRegistry().getPlugin(pluginId);
         if (!plugin) {
             return { status: 404, body: { error: `Plugin not found: ${pluginId}` } };
@@ -277,6 +282,7 @@ export class PluginApiRouter {
             return { status: 503, body: { error: 'Plugin system not initialized' } };
         }
 
+        // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
         const plugin = loader.getRegistry().getPlugin(pluginId);
         if (!plugin) {
             return { status: 404, body: { error: `Plugin not found: ${pluginId}` } };
@@ -398,6 +404,7 @@ export class PluginApiRouter {
 
         const health = loader.getHealth();
         const registry = loader.getRegistry();
+        // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
         const summary = registry.getSummary();
 
         return {

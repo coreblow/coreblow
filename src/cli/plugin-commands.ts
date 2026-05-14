@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * cli/plugin-commands.ts
  *
@@ -17,14 +16,22 @@
 
 import { createChildLogger } from '../utils/logger.js';
 import { PluginScaffold } from '../plugin-sdk/cli-scaffold.js';
+// @ts-expect-error — API drift (tracked: remove after upstream types fixed)
 import { PluginInstaller } from '../plugins/install.js';
+// @ts-expect-error — API drift (tracked: remove after upstream types fixed)
 import { PluginMarketplace } from '../plugins/marketplace.js';
+// @ts-expect-error — API drift (tracked: remove after upstream types fixed)
 import { PluginStatusReporter } from '../plugins/status.js';
+// @ts-expect-error — API drift (tracked: remove after upstream types fixed)
 import { PluginConfigState } from '../plugins/config-state.js';
 import {
+    // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
     createPluginRecord,
+    // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
     createEmptyPluginRegistryData,
+    // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
     type PluginRecord,
+    // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
     type PluginRegistryData,
 } from '../plugins/types.js';
 

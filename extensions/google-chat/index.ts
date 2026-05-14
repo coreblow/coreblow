@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * extensions/google-chat/index.ts
  * Google Chat channel extension
@@ -30,7 +29,7 @@ export default defineExtension({
                 res.end('{}');
             });
             server.listen(port);
-            ctx.logger.info({ port }, 'Google Chat webhook started');
+            ctx.logger.info(`Google Chat webhook started on port ${port}`);
         },
         async stop() { },
         isConnected() { return true; },
