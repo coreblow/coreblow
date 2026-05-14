@@ -16,7 +16,7 @@ describe("runDockerSandboxShellCommand", () => {
     }));
   });
 
-  it("uses the rebranded sandbox command name while exposing the legacy name", async () => {
+  it("uses the rebranded sandbox command name in docker exec", async () => {
     const { runDockerSandboxShellCommand } = await import("./docker-backend.js");
     execDockerRawMock.mockReturnValueOnce({ stdout: Buffer.alloc(0), stderr: Buffer.alloc(0), code: 0 });
 
@@ -32,8 +32,6 @@ describe("runDockerSandboxShellCommand", () => {
         "-i",
         "-e",
         "COREBLOW_SANDBOX_FS_COMMAND=blowbot-sandbox-fs",
-        "-e",
-        "COREBLOW_LEGACY_SANDBOX_FS_COMMAND=moltbot-sandbox-fs",
         "coreblow-sbx-test",
         "sh",
         "-c",

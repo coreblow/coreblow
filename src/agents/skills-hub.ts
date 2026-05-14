@@ -15,7 +15,6 @@ import { installPackageDir } from "../infra/install-package-dir.js";
 import { resolveSafeInstallDir } from "../infra/install-safe-path.js";
 
 const DOT_DIR = ".corehub";
-const LEGACY_DOT_DIRS = [".clawdhub", ".corehub-legacy"] as const;
 const SKILL_ORIGIN_RELATIVE_PATH = path.join(DOT_DIR, "origin.json");
 
 export type CoreHubSkillOrigin = {
@@ -145,7 +144,6 @@ export async function readCoreHubSkillsLockfile(
 ): Promise<CoreHubSkillsLockfile> {
   const candidates = [
     path.join(workspaceDir, DOT_DIR, "lock.json"),
-    ...LEGACY_DOT_DIRS.map((dotDir) => path.join(workspaceDir, dotDir, "lock.json")),
   ];
   for (const candidate of candidates) {
     try {
@@ -177,7 +175,6 @@ export async function writeCoreHubSkillsLockfile(
 export async function readCoreHubSkillOrigin(skillDir: string): Promise<CoreHubSkillOrigin | null> {
   const candidates = [
     path.join(skillDir, DOT_DIR, "origin.json"),
-    ...LEGACY_DOT_DIRS.map((dotDir) => path.join(skillDir, dotDir, "origin.json")),
   ];
   for (const candidate of candidates) {
     try {

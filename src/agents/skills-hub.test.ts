@@ -204,68 +204,7 @@ describe("skills-corehub", () => {
       }
     });
 
-    it("updates a pre-rebrand .clawdhub tracked slug", async () => {
-      const slug = "legacy-skill";
-      const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-skills-corehub-"));
-      const skillDir = path.join(workspaceDir, "skills", slug);
-      await fs.mkdir(path.join(skillDir, ".clawdhub"), { recursive: true });
-      await fs.mkdir(path.join(workspaceDir, ".clawdhub"), { recursive: true });
-      await fs.writeFile(
-        path.join(skillDir, ".clawdhub", "origin.json"),
-        `${JSON.stringify(
-          {
-            version: 1,
-            registry: "https://legacy.corehub.ai",
-            slug,
-            installedVersion: "0.9.0",
-            installedAt: 123,
-          },
-          null,
-          2,
-        )}\n`,
-        "utf8",
-      );
-      await fs.writeFile(
-        path.join(workspaceDir, ".clawdhub", "lock.json"),
-        `${JSON.stringify(
-          {
-            version: 1,
-            skills: {
-              [slug]: {
-                version: "0.9.0",
-                installedAt: 123,
-              },
-            },
-          },
-          null,
-          2,
-        )}\n`,
-        "utf8",
-      );
-      installPackageDirMock.mockResolvedValueOnce({
-        ok: true,
-        targetDir: skillDir,
-      });
 
-      try {
-        const results = await updateSkillsFromCoreHub({
-          workspaceDir,
-          slug,
-        });
-
-        expect(results).toMatchObject([
-          {
-            ok: true,
-            slug,
-            previousVersion: "0.9.0",
-            version: "1.0.0",
-            targetDir: skillDir,
-          },
-        ]);
-      } finally {
-        await fs.rm(workspaceDir, { recursive: true, force: true });
-      }
-    });
 
     it("still rejects an untracked Unicode slug passed to update", async () => {
       const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-skills-corehub-"));

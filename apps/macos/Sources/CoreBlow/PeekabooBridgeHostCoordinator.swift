@@ -21,9 +21,6 @@ final class PeekabooBridgeHostCoordinator {
         "corebot",
         "coredis",
         "blowbot",
-        "clawdbot",
-        "clawdis",
-        "moltbot",
     ]
 
     private static var coreblowSocketPath: String {

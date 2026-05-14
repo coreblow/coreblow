@@ -41,8 +41,7 @@ export type { ChannelPlugin } from "../channels/plugins/types.plugin.js";
 export { createReplyPrefixContext } from "../channels/reply-prefix.js";
 export { createChannelReplyPipeline } from "./channel-reply-pipeline.js";
 export type { CoreBlowConfig } from "../config/config.js";
-/** @deprecated Use CoreBlowConfig instead. */
-export type { CoreBlowConfig as ClawdbotConfig } from "../config/config.js";
+
 export {
   resolveAllowlistProviderRuntimeGroupPolicy,
   resolveDefaultGroupPolicy,

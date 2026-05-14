@@ -481,10 +481,6 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
                     },
                     {
                       type: "string",
-                      const: "clawd",
-                    },
-                    {
-                      type: "string",
                       const: "existing-session",
                     },
                   ],
@@ -12199,7 +12195,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
     },
     "browser.profiles.*.driver": {
       label: "Browser Profile Driver",
-      help: 'Per-profile browser driver mode. Use "coreblow" or "cored" for CDP-based profiles, "clawd" for legacy configs, or use "existing-session" for host-local Chrome DevTools MCP attachment.',
+      help: 'Per-profile browser driver mode. Use "coreblow" or "cored" for CDP-based profiles, or "existing-session" for host-local Chrome DevTools MCP attachment.',
       tags: ["storage"],
     },
     "browser.profiles.*.attachOnly": {

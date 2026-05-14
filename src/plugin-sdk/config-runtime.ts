@@ -65,7 +65,6 @@ export type {
   GroupPolicy,
   MarkdownTableMode,
   CoreBlowConfig,
-  ClawdbotConfig,
   ReplyToMode,
   SignalReactionNotificationMode,
   SlackAccountConfig,

@@ -144,17 +144,9 @@ describe("profile CRUD endpoints", () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: "legacy-clawd-cdp", driver: "clawd" }),
     });
-    expect(createLegacyClawd.status).toBe(200);
-    const createLegacyClawdBody = (await createLegacyClawd.json()) as {
-      profile?: string;
-      transport?: string;
-      cdpPort?: number | null;
-      userDataDir?: string | null;
-    };
-    expect(createLegacyClawdBody.profile).toBe("legacy-clawd-cdp");
-    expect(createLegacyClawdBody.transport).toBe("cdp");
-    expect(createLegacyClawdBody.cdpPort).toBeTypeOf("number");
-    expect(createLegacyClawdBody.userDataDir).toBeNull();
+    expect(createLegacyClawd.status).toBe(400);
+    const createLegacyClawdBody = (await createLegacyClawd.json()) as { error: string };
+    expect(createLegacyClawdBody.error).toContain('unsupported profile driver "clawd"');
 
     const explicitUserDataDir = "/tmp/coreblow-brave-profile";
     await fs.promises.mkdir(explicitUserDataDir, { recursive: true });

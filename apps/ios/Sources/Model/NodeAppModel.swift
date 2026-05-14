@@ -2137,14 +2137,8 @@ private extension NodeAppModel {
     }
 
     func legacyClientIdFallback(currentClientId: String, error: Error) -> String? {
-        let normalizedClientId = currentClientId.trimmingCharacters(in: .whitespacesAndNewlines)
-            .lowercased()
-        guard normalizedClientId == "coreblow-ios" else { return nil }
-        let message = error.localizedDescription.lowercased()
-        guard message.contains("invalid connect params"), message.contains("/client/id") else {
-            return nil
-        }
-        return "moltbot-ios"
+        // No legacy gateway clients exist — fallback disabled.
+        return nil
     }
 
     func isOperatorConnected() async -> Bool {

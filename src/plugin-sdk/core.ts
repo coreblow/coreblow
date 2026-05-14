@@ -68,8 +68,7 @@ export type {
 } from "./plugin-entry.js";
 export type { CoreBlowPluginToolContext, CoreBlowPluginToolFactory } from "../plugins/types.js";
 export type { CoreBlowConfig } from "../config/config.js";
-/** @deprecated Use CoreBlowConfig instead. */
-export type { CoreBlowConfig as ClawdbotConfig } from "../config/config.js";
+
 export { isSecretRef } from "../config/types.secrets.js";
 export type { GatewayRequestHandlerOptions } from "../gateway/server-methods/types.js";
 export type {

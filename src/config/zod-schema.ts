@@ -385,7 +385,7 @@ export const CoreBlowSchema = z
                 cdpPort: z.number().int().min(1).max(65535).optional(),
                 cdpUrl: z.string().optional(),
                 userDataDir: z.string().optional(),
-                driver: z.enum(["coreblow", "cored", "clawd", "existing-session"]).optional(),
+                driver: z.enum(["coreblow", "cored", "existing-session"]).optional(),
                 attachOnly: z.boolean().optional(),
                 color: HexColorSchema,
               })

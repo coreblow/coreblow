@@ -28,7 +28,7 @@ export type CreateProfileParams = {
   color?: string;
   cdpUrl?: string;
   userDataDir?: string;
-  driver?: "coreblow" | "cored" | "clawd" | "existing-session";
+  driver?: "coreblow" | "cored" | "existing-session";
 };
 
 export type CreateProfileResult = {

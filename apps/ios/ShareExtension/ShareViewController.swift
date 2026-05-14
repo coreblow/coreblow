@@ -185,45 +185,23 @@ final class ShareViewController: UIViewController {
                 includeDeviceIdentity: false)
         }
 
-        do {
-            try await gateway.connect(
-                url: url,
-                token: config.token,
-                bootstrapToken: nil,
-                password: config.password,
-                connectOptions: makeOptions("coreblow-ios"),
-                sessionBox: nil,
-                onConnected: {},
-                onDisconnected: { _ in },
-                onInvoke: { req in
-                    BridgeInvokeResponse(
-                        id: req.id,
-                        ok: false,
-                        error: CoreBlowNodeError(
-                            code: .invalidRequest,
-                            message: "share extension does not support node invoke"))
-                })
-        } catch {
-            let expectsLegacyClientId = self.shouldRetryWithLegacyClientId(error)
-            guard expectsLegacyClientId else { throw error }
-            try await gateway.connect(
-                url: url,
-                token: config.token,
-                bootstrapToken: nil,
-                password: config.password,
-                connectOptions: makeOptions("moltbot-ios"),
-                sessionBox: nil,
-                onConnected: {},
-                onDisconnected: { _ in },
-                onInvoke: { req in
-                    BridgeInvokeResponse(
-                        id: req.id,
-                        ok: false,
-                        error: CoreBlowNodeError(
-                            code: .invalidRequest,
-                            message: "share extension does not support node invoke"))
-                })
-        }
+        try await gateway.connect(
+            url: url,
+            token: config.token,
+            bootstrapToken: nil,
+            password: config.password,
+            connectOptions: makeOptions("coreblow-ios"),
+            sessionBox: nil,
+            onConnected: {},
+            onDisconnected: { _ in },
+            onInvoke: { req in
+                BridgeInvokeResponse(
+                    id: req.id,
+                    ok: false,
+                    error: CoreBlowNodeError(
+                        code: .invalidRequest,
+                        message: "share extension does not support node invoke"))
+            })
 
         struct AgentRequestPayload: Codable {
             var message: String
@@ -263,27 +241,6 @@ final class ShareViewController: UIViewController {
                 userInfo: [NSLocalizedDescriptionKey: "Failed to encode chat payload."])
         }
         await gateway.sendEvent(event: "agent.request", payloadJSON: json)
-    }
-
-    private func shouldRetryWithLegacyClientId(_ error: Error) -> Bool {
-        if let gatewayError = error as? GatewayRPCError {
-            let code = gatewayError.code.lowercased()
-            let message = gatewayError.message.lowercased()
-            let pathValue = (gatewayError.details["path"]?.value as? String)?.lowercased() ?? ""
-            let mentionsClientIdPath =
-                message.contains("/client/id") || message.contains("client id")
-                || pathValue.contains("/client/id")
-            let isInvalidConnectParams =
-                (code.contains("invalid") && code.contains("connect"))
-                || message.contains("invalid connect params")
-            if isInvalidConnectParams && mentionsClientIdPath {
-                return true
-            }
-        }
-
-        let text = error.localizedDescription.lowercased()
-        return text.contains("invalid connect params")
-            && (text.contains("/client/id") || text.contains("client id"))
     }
 
     private func showStatus(_ text: String) {

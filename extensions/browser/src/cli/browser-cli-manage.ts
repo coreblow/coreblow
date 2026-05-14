@@ -106,14 +106,14 @@ function logBrowserTabs(tabs: BrowserTab[], json?: boolean) {
 
 function usesChromeMcpTransport(params: {
   transport?: BrowserTransport;
-  driver?: "coreblow" | "cored" | "clawd" | "existing-session";
+  driver?: "coreblow" | "cored" | "existing-session";
 }): boolean {
   return params.transport === "chrome-mcp" || params.driver === "existing-session";
 }
 
 function formatBrowserConnectionSummary(params: {
   transport?: BrowserTransport;
-  driver?: "coreblow" | "cored" | "clawd" | "existing-session";
+  driver?: "coreblow" | "cored" | "existing-session";
   isRemote?: boolean;
   cdpPort?: number | null;
   cdpUrl?: string | null;
@@ -465,7 +465,7 @@ export function registerBrowserManageCommands(
     .option("--user-data-dir <path>", "User data dir for existing-session Chromium attach")
     .option(
       "--driver <driver>",
-      "Profile driver (coreblow|cored|clawd|existing-session). Default: coreblow",
+      "Profile driver (coreblow|cored|existing-session). Default: coreblow",
     )
     .action(
       async (
@@ -492,8 +492,7 @@ export function registerBrowserManageCommands(
                 userDataDir: opts.userDataDir,
                 driver:
                   opts.driver === "existing-session" ||
-                  opts.driver === "cored" ||
-                  opts.driver === "clawd"
+                  opts.driver === "cored"
                     ? opts.driver
                     : undefined,
               },

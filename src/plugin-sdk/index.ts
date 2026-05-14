@@ -60,8 +60,7 @@ export type {
   SubagentRunResult,
 } from "../plugins/runtime/types.js";
 export type { CoreBlowConfig } from "../config/config.js";
-/** @deprecated Use CoreBlowConfig instead. */
-export type { CoreBlowConfig as ClawdbotConfig } from "../config/config.js";
+
 export type { CliBackendConfig } from "../config/types.js";
 export * from "./image-generation.js";
 export type { SecretInput, SecretRef } from "../config/types.secrets.js";

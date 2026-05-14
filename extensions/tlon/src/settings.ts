@@ -2,7 +2,7 @@
  * Settings Store integration for hot-reloading Tlon plugin config.
  *
  * Settings are stored in Urbit's %settings agent under:
- *   desk: "blowbot" (primary) or "moltbot" (legacy compatibility)
+ *   desk: "blowbot"
  *   bucket: "tlon"
  *
  * This allows config changes via poke from any Landscape client
@@ -61,14 +61,10 @@ export type TlonSettingsState = {
 };
 
 const SETTINGS_DESK = "blowbot";
-const LEGACY_SETTINGS_DESK = "moltbot";
-const SETTINGS_DESKS = [SETTINGS_DESK, LEGACY_SETTINGS_DESK] as const;
 const SETTINGS_BUCKET = "tlon";
 
-function isSettingsDesk(value: unknown): value is (typeof SETTINGS_DESKS)[number] {
-  return (
-    typeof value === "string" && SETTINGS_DESKS.includes(value as (typeof SETTINGS_DESKS)[number])
-  );
+function isSettingsDesk(value: unknown): value is string {
+  return typeof value === "string" && value === SETTINGS_DESK;
 }
 
 /**
@@ -347,7 +343,7 @@ export function createSettingsManager(api: UrbitSSEClient, logger?: SettingsLogg
         const raw = await api.scry("/settings/all.json");
         // Response shape: { all: { [desk]: { [bucket]: { [key]: value } } } }
         const allData = raw as { all?: Record<string, Record<string, unknown>> };
-        const deskData = SETTINGS_DESKS.map((desk) => allData?.all?.[desk]).find(Boolean);
+        const deskData = allData?.all?.[SETTINGS_DESK];
         state.current = parseSettingsResponse(deskData ?? {});
         state.loaded = true;
         logger?.log?.(`[settings] Loaded: ${JSON.stringify(state.current)}`);
@@ -365,30 +361,26 @@ export function createSettingsManager(api: UrbitSSEClient, logger?: SettingsLogg
      * Subscribe to settings changes.
      */
     async startSubscription(): Promise<void> {
-      await Promise.all(
-        SETTINGS_DESKS.map((desk) =>
-          api.subscribe({
-            app: "settings",
-            path: "/desk/" + desk,
-            event: (event) => {
-              const update = parseSettingsEvent(event);
-              if (!update) {
-                return;
-              }
+      await api.subscribe({
+        app: "settings",
+        path: "/desk/" + SETTINGS_DESK,
+        event: (event) => {
+          const update = parseSettingsEvent(event);
+          if (!update) {
+            return;
+          }
 
-              logger?.log?.(`[settings] Update: ${update.key} = ${JSON.stringify(update.value)}`);
-              state.current = applySettingsUpdate(state.current, update.key, update.value);
-              notify();
-            },
-            err: (error) => {
-              logger?.error?.(`[settings] Subscription error (${desk}): ${String(error)}`);
-            },
-            quit: () => {
-              logger?.log?.(`[settings] Subscription ended (${desk})`);
-            },
-          }),
-        ),
-      );
+          logger?.log?.(`[settings] Update: ${update.key} = ${JSON.stringify(update.value)}`);
+          state.current = applySettingsUpdate(state.current, update.key, update.value);
+          notify();
+        },
+        err: (error) => {
+          logger?.error?.(`[settings] Subscription error: ${String(error)}`);
+        },
+        quit: () => {
+          logger?.log?.("[settings] Subscription ended");
+        },
+      });
       logger?.log?.("[settings] Subscribed to settings updates");
     },
 

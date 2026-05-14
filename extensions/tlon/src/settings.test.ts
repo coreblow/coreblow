@@ -18,12 +18,11 @@ function makeApi(params: {
 }
 
 describe("tlon settings store", () => {
-  it("prefers the rebranded blowbot settings desk", async () => {
+  it("loads settings from blowbot desk", async () => {
     const api = makeApi({
       scryResult: {
         all: {
           blowbot: { tlon: { dmAllowlist: ["~zod"] } },
-          moltbot: { tlon: { dmAllowlist: ["~nec"] } },
         },
       },
     });
@@ -33,21 +32,17 @@ describe("tlon settings store", () => {
     expect(settings.dmAllowlist).toEqual(["~zod"]);
   });
 
-  it("loads the legacy moltbot settings desk for compatibility", async () => {
+  it("returns empty settings when blowbot desk has no data", async () => {
     const api = makeApi({
-      scryResult: {
-        all: {
-          moltbot: { tlon: { dmAllowlist: ["~nec"] } },
-        },
-      },
+      scryResult: { all: {} },
     });
 
     const settings = await createSettingsManager(api).load();
 
-    expect(settings.dmAllowlist).toEqual(["~nec"]);
+    expect(settings.dmAllowlist).toBeUndefined();
   });
 
-  it("subscribes to both rebranded and legacy settings desks", async () => {
+  it("subscribes to blowbot settings desk", async () => {
     const handlers = new Map<string, NonNullable<SubscribeParams["event"]>>();
     const api = makeApi({
       onSubscribe: (subscription) => {
@@ -63,11 +58,10 @@ describe("tlon settings store", () => {
     await manager.startSubscription();
 
     expect(handlers.has("/desk/blowbot")).toBe(true);
-    expect(handlers.has("/desk/moltbot")).toBe(true);
 
-    handlers.get("/desk/moltbot")?.({
+    handlers.get("/desk/blowbot")?.({
       "put-entry": {
-        desk: "moltbot",
+        desk: "blowbot",
         "bucket-key": "tlon",
         "entry-key": "dmAllowlist",
         value: ["~nec"],

@@ -26,8 +26,6 @@ async function maybeMigrateLegacyConfig(): Promise<string[]> {
   const legacyCandidates = [
     path.join(home, ".corebot", "corebot.json"),
     path.join(home, ".blowbot", "blowbot.json"),
-    path.join(home, ".clawdbot", "clawdbot.json"),
-    path.join(home, ".moldbot", "moldbot.json"),
   ];
 
   let legacyPath: string | null = null;

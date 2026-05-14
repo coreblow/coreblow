@@ -5,7 +5,7 @@ export type BrowserTransport = "cdp" | "chrome-mcp";
 export type BrowserStatus = {
   enabled: boolean;
   profile?: string;
-  driver?: "coreblow" | "cored" | "clawd" | "existing-session";
+  driver?: "coreblow" | "cored" | "existing-session";
   transport?: BrowserTransport;
   running: boolean;
   cdpReady?: boolean;
@@ -174,7 +174,7 @@ export async function browserCreateProfile(
     color?: string;
     cdpUrl?: string;
     userDataDir?: string;
-    driver?: "coreblow" | "cored" | "clawd" | "existing-session";
+    driver?: "coreblow" | "cored" | "existing-session";
   },
 ): Promise<BrowserCreateProfileResult> {
   return await fetchBrowserJson<BrowserCreateProfileResult>(

@@ -14,8 +14,6 @@ export const LEGACY_GATEWAY_LAUNCH_AGENT_LABELS: string[] = [];
 export const LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES: string[] = [
   "corebot-gateway",
   "blowbot-gateway",
-  "clawdbot-gateway",
-  "moltbot-gateway",
 ];
 export const LEGACY_GATEWAY_WINDOWS_TASK_NAMES: string[] = [];
 

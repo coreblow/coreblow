@@ -1,8 +1,7 @@
 // Shared setup wizard/types/helpers for plugin and channel setup surfaces.
 
 export type { CoreBlowConfig } from "../config/config.js";
-/** @deprecated Use CoreBlowConfig instead. */
-export type { CoreBlowConfig as ClawdbotConfig } from "../config/config.js";
+
 export type { DmPolicy, GroupPolicy } from "../config/types.js";
 export type { SecretInput } from "../config/types.secrets.js";
 export type { WizardPrompter } from "../wizard/prompts.js";

@@ -15,7 +15,7 @@ export type ExtraGatewayService = {
   label: string;
   detail: string;
   scope: "user" | "system";
-  marker?: "coreblow" | "corebot" | "blowbot" | "clawdbot" | "moltbot";
+  marker?: "coreblow" | "corebot" | "blowbot";
   legacy?: boolean;
 };
 
@@ -23,7 +23,7 @@ export type FindExtraGatewayServicesOptions = {
   deep?: boolean;
 };
 
-const EXTRA_MARKERS = ["coreblow", "corebot", "blowbot", "clawdbot", "moltbot"] as const;
+const EXTRA_MARKERS = ["coreblow", "corebot", "blowbot"] as const;
 
 export function renderGatewayServiceCleanupHints(
   env: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
@@ -144,9 +144,7 @@ function isLegacyLabel(label: string): boolean {
   const lower = label.toLowerCase();
   return (
     lower.includes("corebot") ||
-    lower.includes("blowbot") ||
-    lower.includes("clawdbot") ||
-    lower.includes("moltbot")
+    lower.includes("blowbot")
   );
 }
 
@@ -154,12 +152,6 @@ function legacyMarkerForLabel(label: string): Exclude<Marker, "coreblow"> {
   const lower = label.toLowerCase();
   if (lower.includes("corebot")) {
     return "corebot";
-  }
-  if (lower.includes("clawdbot")) {
-    return "clawdbot";
-  }
-  if (lower.includes("moltbot")) {
-    return "moltbot";
   }
   return "blowbot";
 }

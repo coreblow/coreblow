@@ -111,7 +111,6 @@ async function submitVoyageBatch(params: {
       },
       metadata: {
         source: "corebot-memory",
-        legacy_source: "clawdbot-memory",
         agent: params.agentId,
       },
     },

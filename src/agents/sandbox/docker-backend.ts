@@ -14,7 +14,6 @@ import {
 } from "./docker.js";
 
 const SANDBOX_FS_COMMAND_NAME = "blowbot-sandbox-fs";
-const LEGACY_SANDBOX_FS_COMMAND_NAME = "moltbot-sandbox-fs";
 
 export async function createDockerSandboxBackend(
   params: CreateSandboxBackendParams,
@@ -85,8 +84,6 @@ export function runDockerSandboxShellCommand(
     "-i",
     "-e",
     `COREBLOW_SANDBOX_FS_COMMAND=${SANDBOX_FS_COMMAND_NAME}`,
-    "-e",
-    `COREBLOW_LEGACY_SANDBOX_FS_COMMAND=${LEGACY_SANDBOX_FS_COMMAND_NAME}`,
     params.containerName,
     "sh",
     "-c",

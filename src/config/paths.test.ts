@@ -145,28 +145,12 @@ describe("state + config path candidates", () => {
       path.join(resolvedHome, ".coreblow", "coreblow.json"),
       path.join(resolvedHome, ".coreblow", "corebot.json"),
       path.join(resolvedHome, ".coreblow", "blowbot.json"),
-      path.join(resolvedHome, ".coreblow", "clawdbot.json"),
-      path.join(resolvedHome, ".coreblow", "moldbot.json"),
       path.join(resolvedHome, ".corebot", "coreblow.json"),
       path.join(resolvedHome, ".corebot", "corebot.json"),
       path.join(resolvedHome, ".corebot", "blowbot.json"),
-      path.join(resolvedHome, ".corebot", "clawdbot.json"),
-      path.join(resolvedHome, ".corebot", "moldbot.json"),
       path.join(resolvedHome, ".blowbot", "coreblow.json"),
       path.join(resolvedHome, ".blowbot", "corebot.json"),
       path.join(resolvedHome, ".blowbot", "blowbot.json"),
-      path.join(resolvedHome, ".blowbot", "clawdbot.json"),
-      path.join(resolvedHome, ".blowbot", "moldbot.json"),
-      path.join(resolvedHome, ".clawdbot", "coreblow.json"),
-      path.join(resolvedHome, ".clawdbot", "corebot.json"),
-      path.join(resolvedHome, ".clawdbot", "blowbot.json"),
-      path.join(resolvedHome, ".clawdbot", "clawdbot.json"),
-      path.join(resolvedHome, ".clawdbot", "moldbot.json"),
-      path.join(resolvedHome, ".moldbot", "coreblow.json"),
-      path.join(resolvedHome, ".moldbot", "corebot.json"),
-      path.join(resolvedHome, ".moldbot", "blowbot.json"),
-      path.join(resolvedHome, ".moldbot", "clawdbot.json"),
-      path.join(resolvedHome, ".moldbot", "moldbot.json"),
     ];
     expect(candidates).toEqual(expected);
   });
@@ -183,15 +167,6 @@ describe("state + config path candidates", () => {
   it("falls back to existing legacy CoreBlow state dir when ~/.coreblow is missing", async () => {
     await withTempDir({ prefix: "coreblow-state-legacy-" }, async (root) => {
       const legacyDir = path.join(root, ".corebot");
-      await fs.mkdir(legacyDir, { recursive: true });
-      const resolved = resolveStateDir({} as NodeJS.ProcessEnv, () => root);
-      expect(resolved).toBe(legacyDir);
-    });
-  });
-
-  it("still detects pre-rebrand legacy state dirs when ~/.coreblow is missing", async () => {
-    await withTempDir({ prefix: "coreblow-state-pre-rebrand-" }, async (root) => {
-      const legacyDir = path.join(root, ".clawdbot");
       await fs.mkdir(legacyDir, { recursive: true });
       const resolved = resolveStateDir({} as NodeJS.ProcessEnv, () => root);
       expect(resolved).toBe(legacyDir);
