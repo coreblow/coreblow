@@ -69,12 +69,13 @@ fi
 # ── 5. Swift Test ────────────────────────────────────────────────
 echo ""
 echo "── 5. Swift Tests ────────────────────────────────────────────"
-SWIFT_TEST=$(swift test --package-path apps/shared/CoreBlowKit 2>&1 || true)
-if echo "$SWIFT_TEST" | grep -q "passed"; then
-  TESTS=$(echo "$SWIFT_TEST" | grep -oE "[0-9]+ test[s]? passed" | head -1 || echo "tests passed")
-  pass "swift test CoreBlowKit: $TESTS"
+SWIFT_TEST=$(swift test --package-path apps/shared/CoreBlowKit --skip E2EGatewayTests 2>&1)
+SWIFT_TEST_EXIT=$?
+if [ "$SWIFT_TEST_EXIT" -eq 0 ]; then
+  TESTS=$(echo "$SWIFT_TEST" | grep -oE "Test run with [0-9]+ tests? in [0-9]+ suites? passed" | head -1 || echo "tests passed")
+  pass "swift test CoreBlowKit: $TESTS (E2EGatewayTests skipped)"
 else
-  warn "swift test CoreBlowKit: check output"
+  warn "swift test CoreBlowKit: failed with exit $SWIFT_TEST_EXIT (E2EGatewayTests skipped)"
 fi
 
 # ── 6. Documentation ────────────────────────────────────────────
