@@ -89,8 +89,7 @@ describe('LogShipper — flush', () => {
     it('does not ship to disabled destinations', async () => {
         const handler = vi.fn();
         shipper.addDestination('disabled', handler);
-        // disable it
-        shipper.list()[0]; // can't disable directly, so test the default enabled state
+        expect(shipper.list()[0]?.enabled).toBe(true);
         shipper.info('msg');
         await shipper.flush();
         expect(handler).toHaveBeenCalled();

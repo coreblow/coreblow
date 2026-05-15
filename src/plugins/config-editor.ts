@@ -226,7 +226,7 @@ export class ConfigEditor {
      * Remove a single config field (revert to default).
      */
     removeField(pluginId: string, fieldKey: string): PluginConfigValidationResult {
-        const current = { ...this.configs.get(pluginId) ?? {} };
+        const current = { ...this.configs.get(pluginId) };
         delete current[fieldKey];
         return this.setConfig(pluginId, current);
     }
@@ -290,7 +290,7 @@ export class ConfigEditor {
         const field = schema.find((f) => f.key === fieldKey);
         if (!field) return undefined;
 
-        const config = { ...this.configs.get(pluginId) ?? {} };
+        const config = { ...this.configs.get(pluginId) };
         if (field.default !== undefined) {
             config[fieldKey] = field.default;
         } else {

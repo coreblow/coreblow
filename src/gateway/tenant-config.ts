@@ -36,7 +36,7 @@ export class TenantConfig {
         const existing = this.configs.get(tenantId);
         this.configs.set(tenantId, {
             tenantId,
-            overrides: { ...(existing?.overrides ?? {}), ...overrides },
+            overrides: { ...existing?.overrides, ...overrides },
             features: existing?.features ?? {},
             branding: existing?.branding,
             updatedAt: Date.now(),
@@ -48,7 +48,7 @@ export class TenantConfig {
      */
     resolve(tenantId: string): Record<string, unknown> {
         const entry = this.configs.get(tenantId);
-        return { ...this.defaults, ...(entry?.overrides ?? {}) };
+        return { ...this.defaults, ...entry?.overrides };
     }
 
     /**
@@ -73,7 +73,7 @@ export class TenantConfig {
      */
     setBranding(tenantId: string, branding: TenantConfigEntry['branding']): void {
         const entry = this.getOrCreate(tenantId);
-        entry.branding = { ...(entry.branding ?? {}), ...branding };
+        entry.branding = { ...entry.branding, ...branding };
         entry.updatedAt = Date.now();
     }
 

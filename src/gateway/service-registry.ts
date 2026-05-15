@@ -93,7 +93,7 @@ export class ServiceRegistry {
     register(name: string, instance: unknown, dependencies: string[] = []): void {
         const entry: ServiceEntry = { name, instance, status: 'registered', dependencies };
         if (!isGatewayService(instance)) {
-            entry.metadata = { ...(entry.metadata ?? {}), lifecycleManaged: false };
+            entry.metadata = { ...entry.metadata, lifecycleManaged: false };
         }
         this.services.set(name, entry);
     }

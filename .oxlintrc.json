@@ -4,7 +4,7 @@
     "no-debugger": "error",
     "no-duplicate-case": "error",
     "no-self-compare": "warn",
-    "no-template-curly-in-string": "warn",
+    "no-template-curly-in-string": "off",
     "no-unused-vars": "off",
     "no-console": "off",
     "eqeqeq": "off",
@@ -36,6 +36,7 @@
     "node_modules/",
     "*.d.ts",
     "generated/",
+    "src/canvas-host/a2ui/a2ui.bundle.js",
     "stubs/"
   ]
 }

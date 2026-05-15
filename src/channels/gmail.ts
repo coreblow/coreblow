@@ -134,7 +134,7 @@ export function cleanEmailBody(body: string): string {
  for (const line of lines) {
  // Stop at common reply markers
  if (/^On .+ wrote:$/i.test(line.trim())) break;
- if (/^>/.test(line.trim())) continue; // Skip quoted text
+ if (line.trim().startsWith('>')) continue; // Skip quoted text
  if (/^--\s*$/.test(line)) break; // Signature separator
  if (/^_{3,}$/.test(line.trim())) break; // Outlook separator
  if (/^Sent from my (iPhone|iPad|Galaxy|Pixel)/i.test(line.trim())) break;

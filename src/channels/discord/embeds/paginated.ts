@@ -4,7 +4,7 @@
 export interface PaginatedEmbedOptions { pages: Record<string, unknown>[]; currentPage: number; totalPages: number; }
 
 export function createPaginatedEmbed(options: PaginatedEmbedOptions): { embed: Record<string, unknown>; components: Record<string, unknown>[] } {
-    const embed = { ...options.pages[options.currentPage] ?? {}, footer: { text: `Page ${options.currentPage + 1} / ${options.totalPages}` } };
+    const embed = { ...options.pages[options.currentPage], footer: { text: `Page ${options.currentPage + 1} / ${options.totalPages}` } };
     const components = [{ type: 1, components: [
         { type: 2, custom_id: 'page_first', label: '⏮', style: 2, disabled: options.currentPage === 0 },
         { type: 2, custom_id: 'page_prev', label: '◀', style: 1, disabled: options.currentPage === 0 },

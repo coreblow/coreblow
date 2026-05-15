@@ -19,7 +19,7 @@ export function kMeansClustering(vectors: (Float32Array | number[])[], k: number
 
     // Initialize centroids (pick spread apart)
     let centroids = vectors.slice(0, k).map(v => [...v]);
-    let assignments = new Array(vectors.length).fill(0);
+    let assignments = Array.from({ length: vectors.length }, () => 0);
 
     for (let iter = 0; iter < maxIter; iter++) {
         // Assign
@@ -35,8 +35,9 @@ export function kMeansClustering(vectors: (Float32Array | number[])[], k: number
         if (!changed) break;
 
         // Update centroids
-        centroids = Array.from({ length: k }, () => new Array(vectors[0]!.length).fill(0));
-        const counts = new Array(k).fill(0);
+        centroids = Array.from({ length: k }, () =>
+            Array.from({ length: vectors[0]!.length }, () => 0));
+        const counts = Array.from({ length: k }, () => 0);
         for (let i = 0; i < vectors.length; i++) {
             const c = assignments[i]!;
             counts[c]++;

@@ -62,7 +62,7 @@ describe('defineCommand', () => {
 
 describe('defineTool', () => {
     it('creates a tool', () => {
-        const tool = defineTool('calc', 'Calculator', { expr: 'string' }, async (p) => eval(p.expr as string));
+        const tool = defineTool('calc', 'Calculator', { expr: 'string' }, async (p) => p.expr);
         expect(tool.name).toBe('calc');
         expect(tool.parameters).toEqual({ expr: 'string' });
     });

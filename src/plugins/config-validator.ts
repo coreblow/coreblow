@@ -116,7 +116,7 @@ export class PluginConfigValidator {
         const appliedDefaults: Record<string, unknown> = {};
 
         // Start with empty or user-provided config
-        const config: Record<string, unknown> = { ...(userConfig ?? {}) };
+        const config: Record<string, unknown> = { ...userConfig };
 
         // Phase 1: Apply defaults for missing fields
         for (const field of schemaFields) {
@@ -178,8 +178,6 @@ export class PluginConfigValidator {
      * (validate + jsonSchema + uiHints).
      */
     buildSchemaFromManifest(fields: ManifestConfigField[]): PluginConfigSchema {
-        const validator = this;
-
         // Build JSON Schema
         const properties: Record<string, Record<string, unknown>> = {};
         const required: string[] = [];
@@ -223,7 +221,7 @@ export class PluginConfigValidator {
                 if (!value || typeof value !== 'object') {
                     return { ok: false, errors: ['Config must be an object'] };
                 }
-                const result = validator.validatePluginConfig('inline', fields, value as Record<string, unknown>);
+                const result = this.validatePluginConfig('inline', fields, value as Record<string, unknown>);
                 if (result.valid) {
                     return { ok: true, value: result.resolvedConfig };
                 }

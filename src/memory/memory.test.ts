@@ -151,7 +151,7 @@ describe('VectorStore', () => {
 
     // --- Edge Cases ---
     it('handles zero-vector embedding', () => {
-        store.add('zero', 'empty', new Array(8).fill(0));
+        store.add('zero', 'empty', Array.from({ length: 8 }, () => 0));
         const results = store.search(makeEmb(1));
         expect(results.some(r => r.document.id === 'zero' && r.score === 0)).toBe(true);
     });
