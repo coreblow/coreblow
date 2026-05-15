@@ -1,17 +1,11 @@
 {
-  "name": "bluebubbles",
-  "version": "0.1.0",
-  "description": "Bluebubbles extension",
-  "main": "index.ts",
-  "permissions": [
-    "messages.read",
-    "messages.write"
-  ],
+  "id": "bluebubbles",
   "channels": [
     "bluebubbles"
   ],
-  "hooks": [
-    "onMessage",
-    "onCommand"
-  ]
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
 }

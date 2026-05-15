@@ -1,17 +1,11 @@
 {
-  "name": "zalo",
-  "version": "0.1.0",
-  "description": "Zalo extension",
-  "main": "index.ts",
-  "permissions": [
-    "messages.read",
-    "messages.write"
-  ],
+  "id": "zalo",
   "channels": [
     "zalo"
   ],
-  "hooks": [
-    "onMessage",
-    "onCommand"
-  ]
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
 }

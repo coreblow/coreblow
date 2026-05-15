@@ -1,17 +1,11 @@
 {
-  "name": "whatsapp",
-  "version": "0.1.0",
-  "description": "Whatsapp extension",
-  "main": "index.ts",
-  "permissions": [
-    "messages.read",
-    "messages.write"
-  ],
+  "id": "whatsapp",
   "channels": [
     "whatsapp"
   ],
-  "hooks": [
-    "onMessage",
-    "onCommand"
-  ]
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
 }

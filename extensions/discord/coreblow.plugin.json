@@ -1,17 +1,11 @@
 {
-  "name": "discord",
-  "version": "0.1.0",
-  "description": "Discord extension",
-  "main": "index.ts",
-  "permissions": [
-    "messages.read",
-    "messages.write"
-  ],
+  "id": "discord",
   "channels": [
     "discord"
   ],
-  "hooks": [
-    "onMessage",
-    "onCommand"
-  ]
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
 }
