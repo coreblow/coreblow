@@ -111,7 +111,7 @@ public enum CoreBlowGatewayAuthMethod: String, Sendable, Codable {
     case secureDeviceToken = "secure-device-token"
     case sharedToken = "shared-token"
     case ephemeralBootstrapToken = "ephemeral-bootstrap-token"
-    case explicitPassword = "explicit-password"
+    case explicitPassword = "explicit-password" // pragma: allowlist secret
     case unauthenticated = "unauthenticated"
 }
 
@@ -140,7 +140,7 @@ public enum CoreBlowChannelError: Error, LocalizedError, Sendable {
         case .connectionActivelyRefused: return "The remote server actively refused the connection."
         case .authenticationRejected: return "Gateway token or credentials were rejected by the server."
         case .connectionSevered: return "The websocket connection was dropped unexpectedly by the network."
-        case .unparsableMessageFrame: return "Received an unparseable or corrupted frame from the server."
+        case .unparsableMessageFrame: return "Received an unparsable or corrupted frame from the server."
         case .operationTimedOut: return "The requested network operation timed out."
         }
     }
