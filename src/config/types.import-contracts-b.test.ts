@@ -29,7 +29,7 @@ const typeModules = [
 describe("config/ types — import contracts (batch B)", () => {
   for (const name of typeModules) {
     it(`${name} is importable`, async () => {
-      const mod = await import(`./${name.replace(".ts", ".js")}`).catch(() => null);
+      const mod = await import(/* @vite-ignore */ `./${name.replace(".ts", ".js")}`).catch(() => null);
       expect(mod === null || typeof mod === "object").toBe(true);
     });
   }

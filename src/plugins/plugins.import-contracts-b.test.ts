@@ -8,7 +8,7 @@ const modules = [
 describe("plugins/ — import contracts (B)", () => {
   for (const n of modules) {
     it(`${n} is importable`, async () => {
-      const m = await import(`./${n}.js`).catch(() => null);
+      const m = await import(/* @vite-ignore */ `./${n}.js`).catch(() => null);
       expect(m === null || typeof m === "object").toBe(true);
     });
   }

@@ -9,7 +9,7 @@ const sources = readdirSync(dir)
 describe("plugins/ — import contracts (C - remaining)", () => {
   for (const n of sources) {
     it(`${n} is importable`, async () => {
-      const m = await import(`./${n}.js`).catch(() => null);
+      const m = await import(/* @vite-ignore */ `./${n}.js`).catch(() => null);
       expect(m === null || typeof m === "object").toBe(true);
     });
   }
@@ -26,7 +26,7 @@ for (const sub of subdirs) {
     describe(`plugins/${sub}/ — import contracts`, () => {
       for (const n of subSources) {
         it(`${n} is importable`, async () => {
-          const m = await import(`./${sub}/${n}.js`).catch(() => null);
+          const m = await import(/* @vite-ignore */ `./${sub}/${n}.js`).catch(() => null);
           expect(m === null || typeof m === "object").toBe(true);
         });
       }
