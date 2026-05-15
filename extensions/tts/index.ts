@@ -1,5 +1,4 @@
-// @ts-nocheck
-import { defineExtension } from '../../src/plugins/sdk.js';
+import { defineExtension } from "coreblow/plugin-sdk/extension";
 export default defineExtension({
     meta: { name: 'tts', version: '1.0.0', description: 'Text-to-Speech (OpenAI, ElevenLabs, local)', tags: ['media', 'voice'] },
     configSchema: [
@@ -18,7 +17,11 @@ export default defineExtension({
             },
             required: ['text'],
         },
-        async execute(args) { return `TTS: "${(args.text || '').substring(0, 100)}" voice=${args.voice || 'alloy'}`; },
+        async execute(args) {
+            const text = typeof args.text === "string" ? args.text : "";
+            const voice = typeof args.voice === "string" && args.voice ? args.voice : "alloy";
+            return `TTS: "${text.substring(0, 100)}" voice=${voice}`;
+        },
     }],
     async init(ctx) { ctx.logger.info('TTS extension initialized'); },
 });

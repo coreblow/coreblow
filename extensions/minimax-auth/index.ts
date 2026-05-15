@@ -1,4 +1,4 @@
-import { defineExtension } from '../../src/plugins/sdk.js';
+import { defineExtension } from "coreblow/plugin-sdk/extension";
 export default defineExtension({
     meta: { name: 'minimax-auth', version: '1.0.0', description: 'MiniMax portal auth — browser cookie extraction', tags: ['auth', 'provider'] },
     configSchema: [

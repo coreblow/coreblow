@@ -1,4 +1,4 @@
-import { defineExtension } from '../../src/plugins/sdk.js';
+import { defineExtension } from "coreblow/plugin-sdk/extension";
 export default defineExtension({
     meta: { name: 'qwen-auth', version: '1.0.0', description: 'Qwen portal auth — browser cookie extraction', tags: ['auth', 'provider'] },
     configSchema: [

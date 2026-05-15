@@ -564,6 +564,10 @@
       "types": "./dist/plugin-sdk/event-emitter.d.ts",
       "default": "./dist/plugin-sdk/event-emitter.js"
     },
+    "./plugin-sdk/extension": {
+      "types": "./dist/plugin-sdk/extension.d.ts",
+      "default": "./dist/plugin-sdk/extension.js"
+    },
     "./plugin-sdk/extension-shared": {
       "types": "./dist/plugin-sdk/extension-shared.d.ts",
       "default": "./dist/plugin-sdk/extension-shared.js"

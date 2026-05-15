@@ -74,6 +74,7 @@
   "entrypoints",
   "error-runtime",
   "event-emitter",
+  "extension",
   "extension-shared",
   "feishu",
   "feishu-conversation",

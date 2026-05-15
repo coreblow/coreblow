@@ -1,4 +1,4 @@
-import { defineExtension } from '../../src/plugins/sdk.js';
+import { defineExtension } from "coreblow/plugin-sdk/extension";
 export default defineExtension({
     meta: { name: 'auto-reply', version: '1.0.0', description: 'Auto-reply rules: patterns, keywords, time-based', tags: ['intelligence', 'automation'] },
     configSchema: [

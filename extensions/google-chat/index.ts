@@ -2,7 +2,7 @@
  * extensions/google-chat/index.ts
  * Google Chat channel extension
  */
-import { defineExtension } from '../../src/plugins/sdk.js';
+import { defineExtension } from "coreblow/plugin-sdk/extension";
 
 export default defineExtension({
     meta: {

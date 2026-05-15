@@ -1,4 +1,4 @@
-import { defineExtension } from '../../src/plugins/sdk.js';
+import { defineExtension } from "coreblow/plugin-sdk/extension";
 export default defineExtension({
     meta: { name: 'diagnostics', version: '1.0.0', description: 'OpenTelemetry diagnostics and tracing', tags: ['ops', 'monitoring'] },
     tools: [{

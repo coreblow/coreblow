@@ -1,5 +1,4 @@
-// @ts-nocheck
-import { defineExtension } from '../../src/plugins/sdk.js';
+import { defineExtension } from "coreblow/plugin-sdk/extension";
 export default defineExtension({
     meta: { name: 'link-understanding', version: '1.0.0', description: 'URL preview, page summarization, metadata extraction', tags: ['intelligence', 'web'] },
     hooks: {
@@ -19,20 +18,24 @@ export default defineExtension({
             required: ['url'],
         },
         async execute(args) {
+            const url = typeof args.url === "string" ? args.url : "";
+            if (!url) {
+                return "Error: URL is required";
+            }
             try {
-                const res = await fetch(args.url, { signal: AbortSignal.timeout(10000), headers: { 'User-Agent': 'CoreBlow/1.0' } });
+                const res = await fetch(url, { signal: AbortSignal.timeout(10000), headers: { 'User-Agent': 'CoreBlow/1.0' } });
                 const html = await res.text();
                 const titleMatch = html.match(/<title>(.*?)<\/title>/i);
                 const descMatch = html.match(/<meta[^>]*name="description"[^>]*content="([^"]*)"[^>]*>/i);
                 return JSON.stringify({
-                    url: args.url,
+                    url,
                     title: titleMatch?.[1] || 'No title',
                     description: descMatch?.[1] || 'No description',
                     statusCode: res.status,
                     contentType: res.headers.get('content-type'),
                 }, null, 2);
-            } catch (err: any) {
-                return `Error: ${err.message}`;
+            } catch (err) {
+                return `Error: ${err instanceof Error ? err.message : String(err)}`;
             }
         },
     }],

@@ -1,4 +1,4 @@
-import { defineExtension } from '../../src/plugins/sdk.js';
+import { defineExtension } from "coreblow/plugin-sdk/extension";
 export default defineExtension({
     meta: { name: 'gemini-auth', version: '1.0.0', description: 'Google Gemini CLI auth proxy — cookie-based free access', tags: ['auth', 'provider'] },
     configSchema: [
