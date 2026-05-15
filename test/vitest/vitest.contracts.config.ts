@@ -6,7 +6,7 @@
  * secara breaking — shape, behavioral contract, dan type invariants.
  *
  * Run: pnpm test:contracts
- *      npx vitest run --config vitest.contracts.config.ts
+ *      npx vitest run --config test/vitest/vitest.contracts.config.ts
  *
  * NOTE: resolve.alias harus sinkron dengan vitest.config.ts untuk mencegah
  * ERR_MODULE_NOT_FOUND saat import chain menarik extension stubs.

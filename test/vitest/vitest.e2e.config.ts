@@ -5,7 +5,7 @@
  * E2E tests exercise full integration paths: embedded agent runtime,
  * gateway, plugin loader, subagent lifecycle, etc.
  *
- * Run: npx vitest run --config vitest.e2e.config.ts
+ * Run: npx vitest run --config test/vitest/vitest.e2e.config.ts
  *
  * NOTE: resolve.alias MUST stay in sync with vitest.config.ts to prevent
  * ERR_MODULE_NOT_FOUND when import chains pull extension stubs.

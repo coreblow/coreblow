@@ -1,7 +1,7 @@
 /**
  * vitest.live.config.ts
  *
- * Live integration test runner — port pola CoreBlow `vitest.live.config.ts`.
+ * Live integration test runner — port pola CoreBlow `test/vitest/vitest.live.config.ts`.
  *
  * Live tests berinteraksi dengan services nyata:
  *   - Running CoreBlow gateway instance
@@ -11,7 +11,7 @@
  * Semua live tests WAJIB pakai `describe.skipIf(!COREBLOW_TEST_URL)` atau
  * equivalent — agar tidak fail di CI environment tanpa services.
  *
- * Pola CoreBlow (vitest.live.config.ts):
+ * Pola CoreBlow (test/vitest/vitest.live.config.ts):
  *   - disableConsoleIntercept: true  → output provider terlihat realtime
  *   - maxWorkers: 1                  → live tests TIDAK boleh parallel
  *   - include: **\/*.live.test.ts    → hanya file dengan `.live.test.ts` suffix
@@ -27,7 +27,7 @@
  *   npm run test:live
  *   COREBLOW_TEST_URL=http://localhost:3100 npm run test:live
  *
- * @see coreblow-main/vitest.live.config.ts
+ * @see test/vitest/vitest.live.config.ts
  */
 import { defineConfig } from 'vitest/config';
 
