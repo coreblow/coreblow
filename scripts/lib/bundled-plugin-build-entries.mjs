@@ -105,12 +105,18 @@ export function collectBundledPluginBuildEntries(params = {}) {
 }
 
 export function listBundledPluginBuildEntries(params = {}) {
+  const cwd = params.cwd ?? process.cwd();
+
   return Object.fromEntries(
     collectBundledPluginBuildEntries(params).flatMap(({ id, sourceEntries }) =>
-      sourceEntries.map((entry) => {
+      sourceEntries.flatMap((entry) => {
         const normalizedEntry = entry.replace(/^\.\//, "");
+        const sourcePath = path.join("extensions", id, normalizedEntry);
+        if (!fs.existsSync(path.join(cwd, sourcePath))) {
+          return [];
+        }
         const entryKey = `extensions/${id}/${normalizedEntry.replace(/\.[^.]+$/u, "")}`;
-        return [entryKey, path.join("extensions", id, normalizedEntry)];
+        return [[entryKey, sourcePath]];
       }),
     ),
   );
