@@ -111,7 +111,7 @@
     "test:startup:memory": "node scripts/check-cli-startup-memory.mjs",
     "test:profile:extensions": "node scripts/profile-extension-memory.mjs",
     "test:profile:vitest": "node scripts/run-vitest-profile.mjs",
-    "deadcode:jscpd": "jscpd src/ --min-lines 10 --min-tokens 50 --reporters console",
+    "deadcode:jscpd": "jscpd src/ --config config/jscpd.json --min-lines 10 --min-tokens 50 --reporters console",
     "deadcode:unused-exports": "node scripts/check-unused-exports.mjs",
     "deadcode:ts-loc": "node --import tsx scripts/check-ts-max-loc.ts",
     "release:check": "pnpm typecheck && pnpm lint:all && pnpm test && pnpm lint:bundle-size",
