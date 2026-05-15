@@ -10,7 +10,10 @@
     "test": "vitest run",
     "lint": "eslint src/"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@sinclair/typebox": "0.34.48",
+    "zca-js": "2.1.2"
+  },
   "devDependencies": {
     "typescript": "^5.4.0",
     "vitest": "^4.1.4"
