@@ -1,2 +1,2 @@
 #!/bin/bash
-npx vitest run --config vitest.e2e.config.ts
+npx vitest run --config test/vitest/vitest.e2e.config.ts

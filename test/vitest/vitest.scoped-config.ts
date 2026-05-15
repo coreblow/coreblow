@@ -1,4 +1,6 @@
 import { defineConfig } from "vitest/config";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import baseConfig from "./vitest.config.ts";
 
 function normalizePathPattern(value: string): string {
@@ -53,6 +55,7 @@ export function createScopedVitestConfig(
     passWithNoTests?: boolean;
   },
 ) {
+  const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
   const base = baseConfig as unknown as Record<string, unknown>;
   const baseTest =
     (
@@ -77,7 +80,7 @@ export function createScopedVitestConfig(
     test: {
       ...baseTest,
       isolate,
-      runner: "./test/non-isolated-runner.ts",
+      runner: path.join(repoRoot, "test", "non-isolated-runner.ts"),
       ...(scopedDir ? { dir: scopedDir } : {}),
       include: relativizeScopedPatterns(include, scopedDir),
       exclude,

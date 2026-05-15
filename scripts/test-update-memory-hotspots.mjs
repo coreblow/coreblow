@@ -35,7 +35,7 @@ function parseArgs(argv) {
   return parseFlagArgs(
     argv,
     {
-      config: "vitest.unit.config.ts",
+      config: "test/vitest/vitest.unit.config.ts",
       out: unitMemoryHotspotManifestPath,
       lane: "unit-fast",
       lanePrefixes: [],

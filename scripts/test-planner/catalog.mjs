@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import { channelTestPrefixes } from "../../vitest.channel-paths.mjs";
-import { isUnitConfigTestFile } from "../../vitest.unit-paths.mjs";
+import { channelTestPrefixes } from "../../test/vitest/vitest.channel-paths.mjs";
+import { isUnitConfigTestFile } from "../../test/vitest/vitest.unit-paths.mjs";
 import { dedupeFilesPreserveOrder, loadTestRunnerBehavior } from "../test-runner-manifest.mjs";
 
 const baseConfigPrefixes = ["src/agents/", "src/auto-reply/", "src/commands/", "test/", "ui/"];

@@ -27,7 +27,7 @@ const env = {
 const command = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 const child = spawn(
   command,
-  ["exec", "vitest", "run", "--config", "vitest.live.config.ts", ...forwardedArgs],
+  ["exec", "vitest", "run", "--config", "test/vitest/vitest.live.config.ts", ...forwardedArgs],
   {
     stdio: "inherit",
     env,

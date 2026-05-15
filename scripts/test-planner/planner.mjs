@@ -1,5 +1,5 @@
 import path from "node:path";
-import { isUnitConfigTestFile } from "../../vitest.unit-paths.mjs";
+import { isUnitConfigTestFile } from "../../test/vitest/vitest.unit-paths.mjs";
 import {
   loadChannelTimingManifest,
   loadExtensionTimingManifest,
@@ -242,17 +242,17 @@ const estimateEntryFilesDurationMs = (entry, files, context) => {
 const resolveEntryTimingEstimator = (entry, context) => {
   const configIndex = entry.args.findIndex((arg) => arg === "--config");
   const config = configIndex >= 0 ? (entry.args[configIndex + 1] ?? "") : "";
-  if (config === "vitest.unit.config.ts") {
+  if (config === "test/vitest/vitest.unit.config.ts") {
     return (file) =>
       context.unitTimingManifest.files[file]?.durationMs ??
       context.unitTimingManifest.defaultDurationMs;
   }
-  if (config === "vitest.channels.config.ts") {
+  if (config === "test/vitest/vitest.channels.config.ts") {
     return (file) =>
       context.channelTimingManifest.files[file]?.durationMs ??
       context.channelTimingManifest.defaultDurationMs;
   }
-  if (config === "vitest.extensions.config.ts") {
+  if (config === "test/vitest/vitest.extensions.config.ts") {
     return (file) =>
       context.extensionTimingManifest.files[file]?.durationMs ??
       context.extensionTimingManifest.defaultDurationMs;
@@ -527,7 +527,7 @@ const buildDefaultUnits = (context, request) => {
             serialPhase: unitOnlyRun ? undefined : "unit-fast",
             includeFiles: batch,
             estimatedDurationMs: estimateEntryFilesDurationMs(
-              { args: ["vitest", "run", "--config", "vitest.unit.config.ts"] },
+              { args: ["vitest", "run", "--config", "test/vitest/vitest.unit.config.ts"] },
               batch,
               context,
             ),
@@ -540,7 +540,7 @@ const buildDefaultUnits = (context, request) => {
               "vitest",
               "run",
               "--config",
-              "vitest.unit.config.ts",
+              "test/vitest/vitest.unit.config.ts",
               "--pool=forks",
               ...noIsolateArgs,
             ],
@@ -561,7 +561,7 @@ const buildDefaultUnits = (context, request) => {
             "vitest",
             "run",
             "--config",
-            "vitest.unit.config.ts",
+            "test/vitest/vitest.unit.config.ts",
             "--pool=forks",
             ...noIsolateArgs,
             file,
@@ -587,7 +587,7 @@ const buildDefaultUnits = (context, request) => {
             "vitest",
             "run",
             "--config",
-            "vitest.unit.config.ts",
+            "test/vitest/vitest.unit.config.ts",
             "--pool=forks",
             ...noIsolateArgs,
             ...files,
@@ -608,7 +608,7 @@ const buildDefaultUnits = (context, request) => {
             "vitest",
             "run",
             "--config",
-            "vitest.unit.config.ts",
+            "test/vitest/vitest.unit.config.ts",
             "--pool=forks",
             ...noIsolateArgs,
             file,
@@ -628,7 +628,7 @@ const buildDefaultUnits = (context, request) => {
             "vitest",
             "run",
             "--config",
-            "vitest.unit.config.ts",
+            "test/vitest/vitest.unit.config.ts",
             "--pool=forks",
             ...noIsolateArgs,
             ...catalog.unitThreadPinnedFiles,
@@ -651,7 +651,7 @@ const buildDefaultUnits = (context, request) => {
             "vitest",
             "run",
             "--config",
-            "vitest.channels.config.ts",
+            "test/vitest/vitest.channels.config.ts",
             "--pool=forks",
             ...noIsolateArgs,
             file,
@@ -669,7 +669,7 @@ const buildDefaultUnits = (context, request) => {
         surface: "contracts",
         isolate: false,
         serialPhase: contractsOnlyRun ? undefined : "contracts",
-        args: ["vitest", "run", "--config", "vitest.contracts.config.ts", ...noIsolateArgs],
+        args: ["vitest", "run", "--config", "test/vitest/vitest.contracts.config.ts", ...noIsolateArgs],
         reasons: ["contracts-shared"],
       }),
     );
@@ -683,7 +683,7 @@ const buildDefaultUnits = (context, request) => {
           surface: "extensions",
           isolate: true,
           estimatedDurationMs: estimateExtensionDurationMs(file),
-          args: ["vitest", "run", "--config", "vitest.extensions.config.ts", "--pool=forks", file],
+          args: ["vitest", "run", "--config", "test/vitest/vitest.extensions.config.ts", "--pool=forks", file],
           reasons: ["extensions-isolated-manifest"],
         }),
       );
@@ -707,7 +707,7 @@ const buildDefaultUnits = (context, request) => {
           serialPhase: extensionsOnlyRun ? undefined : "extensions",
           includeFiles: batch,
           estimatedDurationMs: estimateEntryFilesDurationMs(
-            { args: ["vitest", "run", "--config", "vitest.extensions.config.ts"] },
+            { args: ["vitest", "run", "--config", "test/vitest/vitest.extensions.config.ts"] },
             batch,
             context,
           ),
@@ -716,7 +716,7 @@ const buildDefaultUnits = (context, request) => {
             `vitest-extensions-include-${String(batchIndex + 1)}`,
             batch,
           ),
-          args: ["vitest", "run", "--config", "vitest.extensions.config.ts", ...noIsolateArgs],
+          args: ["vitest", "run", "--config", "test/vitest/vitest.extensions.config.ts", ...noIsolateArgs],
           reasons: ["extensions-shared"],
         }),
       );
@@ -743,7 +743,7 @@ const buildDefaultUnits = (context, request) => {
           serialPhase: channelsOnlyRun ? undefined : "channels",
           includeFiles: batch,
           estimatedDurationMs: estimateEntryFilesDurationMs(
-            { args: ["vitest", "run", "--config", "vitest.channels.config.ts"] },
+            { args: ["vitest", "run", "--config", "test/vitest/vitest.channels.config.ts"] },
             batch,
             context,
           ),
@@ -752,7 +752,7 @@ const buildDefaultUnits = (context, request) => {
             `vitest-channels-include-${String(batchIndex + 1)}`,
             batch,
           ),
-          args: ["vitest", "run", "--config", "vitest.channels.config.ts", ...noIsolateArgs],
+          args: ["vitest", "run", "--config", "test/vitest/vitest.channels.config.ts", ...noIsolateArgs],
           reasons: ["channels-shared"],
         }),
       );
@@ -769,7 +769,7 @@ const buildDefaultUnits = (context, request) => {
           "vitest",
           "run",
           "--config",
-          "vitest.gateway.config.ts",
+          "test/vitest/vitest.gateway.config.ts",
           "--pool=forks",
           ...noIsolateArgs,
         ],
@@ -795,7 +795,7 @@ const createTargetedUnit = (context, classification, filters) => {
         "vitest",
         "run",
         "--config",
-        "vitest.unit.config.ts",
+        "test/vitest/vitest.unit.config.ts",
         "--pool=forks",
         ...context.noIsolateArgs,
         ...filters,
@@ -806,7 +806,7 @@ const createTargetedUnit = (context, classification, filters) => {
         "vitest",
         "run",
         "--config",
-        "vitest.config.ts",
+        "test/vitest/vitest.config.ts",
         "--pool=forks",
         ...context.noIsolateArgs,
         ...filters,
@@ -817,7 +817,7 @@ const createTargetedUnit = (context, classification, filters) => {
         "vitest",
         "run",
         "--config",
-        "vitest.extensions.config.ts",
+        "test/vitest/vitest.extensions.config.ts",
         ...(classification.isolated ? ["--pool=forks"] : []),
         ...context.noIsolateArgs,
         ...filters,
@@ -828,7 +828,7 @@ const createTargetedUnit = (context, classification, filters) => {
         "vitest",
         "run",
         "--config",
-        "vitest.gateway.config.ts",
+        "test/vitest/vitest.gateway.config.ts",
         "--pool=forks",
         ...context.noIsolateArgs,
         ...filters,
@@ -839,7 +839,7 @@ const createTargetedUnit = (context, classification, filters) => {
         "vitest",
         "run",
         "--config",
-        "vitest.channels.config.ts",
+        "test/vitest/vitest.channels.config.ts",
         ...(classification.isolated ? ["--pool=forks"] : []),
         ...context.noIsolateArgs,
         ...filters,
@@ -850,7 +850,7 @@ const createTargetedUnit = (context, classification, filters) => {
         "vitest",
         "run",
         "--config",
-        "vitest.contracts.config.ts",
+        "test/vitest/vitest.contracts.config.ts",
         ...context.noIsolateArgs,
         ...filters,
       ];
@@ -860,7 +860,7 @@ const createTargetedUnit = (context, classification, filters) => {
         "vitest",
         "run",
         "--config",
-        "vitest.live.config.ts",
+        "test/vitest/vitest.live.config.ts",
         ...context.noIsolateArgs,
         ...filters,
       ];
@@ -870,7 +870,7 @@ const createTargetedUnit = (context, classification, filters) => {
         "vitest",
         "run",
         "--config",
-        "vitest.e2e.config.ts",
+        "test/vitest/vitest.e2e.config.ts",
         ...context.noIsolateArgs,
         ...filters,
       ];
@@ -879,7 +879,7 @@ const createTargetedUnit = (context, classification, filters) => {
       "vitest",
       "run",
       "--config",
-      "vitest.config.ts",
+      "test/vitest/vitest.config.ts",
       ...context.noIsolateArgs,
       ...(classification.isolated ? ["--pool=forks"] : []),
       ...filters,
@@ -1290,7 +1290,7 @@ export function buildCIExecutionManifest(scopeInput = {}, options = {}) {
     checkNamePrefix: "bun-checks",
     runtime: "bun",
     task: "test",
-    command: "bunx vitest run --config vitest.unit.config.ts",
+    command: "bunx vitest run --config test/vitest/vitest.unit.config.ts",
     shardCount: bunShardCount,
   });
   const extensionFastInclude = extensionFastEligible

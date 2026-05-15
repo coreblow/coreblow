@@ -7,22 +7,22 @@ export const extensionTimingManifestPath = "test/fixtures/test-timings.extension
 export const unitMemoryHotspotManifestPath = "test/fixtures/test-memory-hotspots.unit.json";
 
 const defaultTimingManifest = {
-  config: "vitest.unit.config.ts",
+  config: "test/vitest/vitest.unit.config.ts",
   defaultDurationMs: 250,
   files: {},
 };
 const defaultChannelTimingManifest = {
-  config: "vitest.channels.config.ts",
+  config: "test/vitest/vitest.channels.config.ts",
   defaultDurationMs: 3000,
   files: {},
 };
 const defaultExtensionTimingManifest = {
-  config: "vitest.extensions.config.ts",
+  config: "test/vitest/vitest.extensions.config.ts",
   defaultDurationMs: 1000,
   files: {},
 };
 const defaultMemoryHotspotManifest = {
-  config: "vitest.unit.config.ts",
+  config: "test/vitest/vitest.unit.config.ts",
   defaultMinDeltaKb: 256 * 1024,
   files: {},
 };

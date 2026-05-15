@@ -8,7 +8,7 @@ import {
 import { extensionTimingManifestPath, unitTimingManifestPath } from "./test-runner-manifest.mjs";
 
 const resolveDefaultManifestSettings = (config) => {
-  if (config === "vitest.extensions.config.ts") {
+  if (config === "test/vitest/vitest.extensions.config.ts") {
     return {
       out: extensionTimingManifestPath,
       defaultDurationMs: 1000,
@@ -39,8 +39,8 @@ if (process.argv.slice(2).includes("--help")) {
       "",
       "Examples:",
       "  node scripts/test-update-timings.mjs",
-      "  node scripts/test-update-timings.mjs --config vitest.unit.config.ts --limit 128",
-      "  node scripts/test-update-timings.mjs --config vitest.extensions.config.ts",
+      "  node scripts/test-update-timings.mjs --config test/vitest/vitest.unit.config.ts --limit 128",
+      "  node scripts/test-update-timings.mjs --config test/vitest/vitest.extensions.config.ts",
       "  node scripts/test-update-timings.mjs --report /tmp/vitest-report.json --out /tmp/timings.json",
     ].join("\n"),
   );
@@ -51,7 +51,7 @@ function parseArgs(argv) {
   const parsed = parseFlagArgs(
     argv,
     {
-      config: "vitest.unit.config.ts",
+      config: "test/vitest/vitest.unit.config.ts",
       limit: 256,
       reportPath: "",
       out: "",

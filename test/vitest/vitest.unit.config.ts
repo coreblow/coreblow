@@ -1,4 +1,6 @@
 import { defineConfig } from 'vitest/config';
+import path from 'path';
+import { fileURLToPath } from 'node:url';
 import baseConfig from './vitest.config.ts';
 import { loadPatternListFromEnv } from './vitest.pattern-file.ts';
 import { resolveVitestIsolation } from './vitest.scoped-config.ts';
@@ -28,6 +30,7 @@ import {
 const base = baseConfig as unknown as Record<string, unknown>;
 const baseTest = (baseConfig as { test?: { include?: string[]; exclude?: string[] } }).test ?? {};
 const exclude = baseTest.exclude ?? [];
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
 export function loadIncludePatternsFromEnv(
   env: Record<string, string | undefined> = process.env,
@@ -47,7 +50,7 @@ export function createUnitVitestConfig(env: Record<string, string | undefined> =
     test: {
       ...baseTest,
       isolate: resolveVitestIsolation(env),
-      runner: './test/non-isolated-runner.ts',
+      runner: path.join(repoRoot, 'test', 'non-isolated-runner.ts'),
       include: loadIncludePatternsFromEnv(env) ?? unitTestIncludePatterns,
       exclude: [
         ...new Set([

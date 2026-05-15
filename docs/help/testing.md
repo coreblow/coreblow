@@ -44,7 +44,7 @@ Think of the suites as “increasing realism” (and increasing flakiness/cost):
 ### Unit / integration (default)
 
 - Command: `pnpm test`
-- Config: `scripts/test-parallel.mjs` (runs `vitest.unit.config.ts`, `vitest.extensions.config.ts`, `vitest.gateway.config.ts`)
+- Config: `scripts/test-parallel.mjs` (runs `test/vitest/vitest.unit.config.ts`, `test/vitest/vitest.extensions.config.ts`, `test/vitest/vitest.gateway.config.ts`)
 - Files: `src/**/*.test.ts`, `extensions/**/*.test.ts`
 - Scope:
   - Pure unit tests
@@ -104,7 +104,7 @@ Think of the suites as “increasing realism” (and increasing flakiness/cost):
 ### E2E (gateway smoke)
 
 - Command: `pnpm test:e2e`
-- Config: `vitest.e2e.config.ts`
+- Config: `test/vitest/vitest.e2e.config.ts`
 - Files: `src/**/*.e2e.test.ts`, `test/**/*.e2e.test.ts`
 - Runtime defaults:
   - Uses Vitest `forks` for deterministic cross-file isolation.
@@ -141,7 +141,7 @@ Think of the suites as “increasing realism” (and increasing flakiness/cost):
 ### Live (real providers + real models)
 
 - Command: `pnpm test:live`
-- Config: `vitest.live.config.ts`
+- Config: `test/vitest/vitest.live.config.ts`
 - Files: `src/**/*.live.test.ts`
 - Default: **enabled** by `pnpm test:live` (sets `OPENCLAW_LIVE_TEST=1`)
 - Scope:
@@ -153,10 +153,10 @@ Think of the suites as “increasing realism” (and increasing flakiness/cost):
   - Prefer running narrowed subsets instead of “everything”
 - Live runs will source `~/.profile` to pick up missing API keys
 - `pnpm test:live` now defaults to a quieter mode: it keeps `[live] ...` progress output, but suppresses the extra `~/.profile` notice and mutes gateway bootstrap logs/Bonjour chatter. Set `OPENCLAW_LIVE_TEST_QUIET=0` if you want the full startup logs back.
-- API key rotation (provider-specific): set `*_API_KEYS` with comma/semicolon format or `*_API_KEY_1`, `*_API_KEY_2` (for example `OPENAI_API_KEYS`, `ANTHROPIC_API_KEYS`, `GEMINI_API_KEYS`) or per-live override via `OPENCLAW_LIVE_*_KEY`; tests retry on rate limit responses.
+- API key rotation (provider-specific): set `*_API_KEYS` with comma/semicolon format or `*_API_KEY_1`, `*_API_KEY_2` (for example `OPENAI_API_KEYS`, `ANTHROPIC_API_KEYS`, `GEMINI_API_KEYS`) or per-live override via `OPENCLAW_LIVE_*_KEY`; tests retry on rate limit responses. <!-- pragma: allowlist secret -->
 - Progress/heartbeat output:
   - Live suites now emit progress lines to stderr so long provider calls are visibly active even when Vitest console capture is quiet.
-  - `vitest.live.config.ts` disables Vitest console interception so provider/gateway progress lines stream immediately during live runs.
+  - `test/vitest/vitest.live.config.ts` disables Vitest console interception so provider/gateway progress lines stream immediately during live runs.
   - Tune direct-model heartbeats with `OPENCLAW_LIVE_HEARTBEAT_MS`.
   - Tune gateway/probe heartbeats with `OPENCLAW_LIVE_GATEWAY_HEARTBEAT_MS`.
 
