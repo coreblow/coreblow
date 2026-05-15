@@ -2,8 +2,14 @@
 /**
  * Imessage Runtime
  */
+import type { PluginRuntime } from "coreblow/plugin-sdk/core";
+import { createPluginRuntimeStore } from "coreblow/plugin-sdk/runtime-store";
 import { ImessageExtension } from '../extension.js';
 import { ImessageChannelImpl } from './channel.js';
+
+const { setRuntime: setIMessageRuntime, getRuntime: getIMessageRuntime } =
+  createPluginRuntimeStore<PluginRuntime>("iMessage runtime not initialized");
+export { getIMessageRuntime, setIMessageRuntime };
 
 export class ImessageRuntime {
   [k: string]: any;
@@ -43,9 +49,4 @@ export class ImessageRuntime {
   async handleWebhook(payload: any) {
     return { handled: true, extension: this.extension.name };
   }
-}
-
-// Runtime setter for index.ts
-export function setIMessageRuntime(runtime: any): void {
-  // Placeholder — called by extension index to wire runtime
 }
