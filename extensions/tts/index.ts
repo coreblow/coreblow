@@ -1,27 +1,35 @@
-import { defineExtension } from "coreblow/plugin-sdk/extension";
-export default defineExtension({
-    meta: { name: 'tts', version: '1.0.0', description: 'Text-to-Speech (OpenAI, ElevenLabs, local)', tags: ['media', 'voice'] },
-    configSchema: [
-        { key: 'provider', label: 'TTS Provider', type: 'select', options: ['openai', 'elevenlabs', 'sherpa-onnx'], default: 'openai' },
-        { key: 'apiKey', label: 'API Key', type: 'password' },
-        { key: 'voice', label: 'Voice ID', type: 'string', default: 'alloy' },
-    ],
-    tools: [{
-        name: 'tts',
-        description: 'Convert text to speech audio',
-        parameters: {
-            type: 'object',
-            properties: {
-                text: { type: 'string', description: 'Text to convert' },
-                voice: { type: 'string', description: 'Voice preset' },
-            },
-            required: ['text'],
-        },
-        async execute(args) {
-            const text = typeof args.text === "string" ? args.text : "";
-            const voice = typeof args.voice === "string" && args.voice ? args.voice : "alloy";
-            return `TTS: "${text.substring(0, 100)}" voice=${voice}`;
-        },
-    }],
-    async init(ctx) { ctx.logger.info('TTS extension initialized'); },
+import { definePluginEntry, type AnyAgentTool } from "coreblow/plugin-sdk/plugin-entry";
+
+const ttsTool: AnyAgentTool = {
+  name: "tts",
+  label: "TTS",
+  description: "Convert text to speech audio",
+  parameters: {
+    type: "object",
+    properties: {
+      text: { type: "string", description: "Text to convert" },
+      voice: { type: "string", description: "Voice preset" },
+    },
+    required: ["text"],
+  },
+  async execute(_toolCallId: string, params: unknown) {
+    const args = params && typeof params === "object" ? params : {};
+    const text = "text" in args && typeof args.text === "string" ? args.text : "";
+    const voice =
+      "voice" in args && typeof args.voice === "string" && args.voice ? args.voice : "alloy";
+    return {
+      content: [{ type: "text" as const, text: `TTS: "${text.substring(0, 100)}" voice=${voice}` }],
+      details: { text, voice },
+    };
+  },
+};
+
+export default definePluginEntry({
+  id: "tts",
+  name: "TTS Compatibility",
+  description: "Compatibility plugin for the legacy tts tool surface",
+  register(api) {
+    api.registerTool(ttsTool);
+    api.logger.info("TTS compatibility plugin initialized");
+  },
 });

@@ -1,41 +1,22 @@
 /**
  * extensions/google-chat/index.ts
- * Google Chat channel extension
+ * Compatibility entry for the legacy google-chat plugin id.
  */
-import { defineExtension } from "coreblow/plugin-sdk/extension";
+import { definePluginEntry } from "coreblow/plugin-sdk/plugin-entry";
 
-export default defineExtension({
-    meta: {
-        name: 'google-chat',
-        version: '1.0.0',
-        description: 'Google Chat channel via webhook',
-        tags: ['channel', 'google'],
-    },
-    channel: {
-        name: 'google-chat',
-        async start(ctx) {
-            const http = await import('node:http');
-            const port = ctx.config.webhookPort || 3170;
-            const server = http.createServer(async (req, res) => {
-                if (req.method !== 'POST') { res.writeHead(404); res.end(); return; }
-                const chunks: Buffer[] = [];
-                for await (const chunk of req) chunks.push(chunk as Buffer);
-                const body = JSON.parse(Buffer.concat(chunks).toString());
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                if (body.type === 'MESSAGE' && body.message?.text) {
-                    const text = body.message.text.replace(/<users\/\d+>/g, '').trim();
-                    ctx.gateway.sendMessage('google-chat', body.message.sender?.name || 'user', text);
-                }
-                res.end('{}');
-            });
-            server.listen(port);
-            ctx.logger.info(`Google Chat webhook started on port ${port}`);
-        },
-        async stop() { },
-        isConnected() { return true; },
-        async send(target, text) {
-            // Reply via webhook response (inline) or REST API
-        },
-    },
-    async init(ctx) { ctx.logger.info('Google Chat extension initialized'); },
+export default definePluginEntry({
+  id: "google-chat",
+  name: "Google Chat Compatibility",
+  description: "Compatibility shim for the legacy google-chat plugin id; use googlechat.",
+  register(api) {
+    api.logger.warn("google-chat is a legacy plugin id; use the googlechat channel plugin.");
+    api.registerCommand({
+      name: "google-chat",
+      description: "Show the replacement Google Chat plugin id.",
+      requireAuth: false,
+      handler: async () => ({
+        text: "Google Chat moved to the googlechat plugin id. Use channel googlechat.",
+      }),
+    });
+  },
 });
