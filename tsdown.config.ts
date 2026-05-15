@@ -32,7 +32,7 @@ const SUPPRESSED_EVAL_WARNING_PATHS = [
 ] as const;
 
 function buildInputOptions(options: InputOptionsArg): InputOptionsReturn {
-  if (process.env.OPENCLAW_BUILD_VERBOSE === "1") {
+  if (process.env.COREBLOW_BUILD_VERBOSE === "1" || process.env.OPENCLAW_BUILD_VERBOSE === "1") {
     return undefined;
   }
 

@@ -21,8 +21,8 @@ export function buildPluginSdkPackageExports() {
     pluginSdkEntrypoints.map((entry) => [
       entry === "index" ? "./plugin-sdk" : `./plugin-sdk/${entry}`,
       {
-        types: `./src/plugin-sdk/${entry}.d.ts`,
-        default: `./src/plugin-sdk/${entry}.js`,
+        types: `./dist/plugin-sdk/${entry}.d.ts`,
+        default: `./dist/plugin-sdk/${entry}.js`,
       },
     ]),
   );
