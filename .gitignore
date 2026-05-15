@@ -27,7 +27,6 @@ my-tool-plugin/
 named-plugin/
 __coreblow_vitest__/
 test-fixtures/
-/test/
 /tests/
 changelog/
 .vscode/
