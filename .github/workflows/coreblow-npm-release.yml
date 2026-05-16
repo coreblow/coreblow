@@ -67,6 +67,11 @@ jobs:
           RELEASE_TAG: ${{ inputs.tag }}
         run: |
           set -euo pipefail
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          if ! git merge-base --is-ancestor HEAD origin/main; then
+            echo "::error::Release tag ${RELEASE_TAG} is not contained in origin/main"
+            exit 1
+          fi
           PKG_VERSION=$(node -p "require('./package.json').version")
           TAG_VERSION="${RELEASE_TAG#v}"
           if [[ "$PKG_VERSION" != "$TAG_VERSION" ]]; then
@@ -76,11 +81,43 @@ jobs:
           PKG_NAME=$(node -p "require('./package.json').name")
           echo "Package: $PKG_NAME@$PKG_VERSION"
 
+      - name: Ensure version is not already published
+        env:
+          PREFLIGHT_ONLY: ${{ inputs.preflight_only }}
+        run: |
+          set -euo pipefail
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if npm view "coreblow@${PKG_VERSION}" version >/dev/null 2>&1; then
+            if [[ "${PREFLIGHT_ONLY}" == "true" ]]; then
+              echo "coreblow@${PKG_VERSION} is already published on npm; continuing because preflight_only=true."
+              exit 0
+            fi
+            echo "::error::coreblow@${PKG_VERSION} is already published on npm."
+            exit 1
+          fi
+          echo "coreblow@${PKG_VERSION} is not published yet."
+
       - name: Dry run publish
         run: npm publish --dry-run
 
+  validate_publish_dispatch_ref:
+    if: inputs.preflight_only == false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Require main workflow ref for publish
+        env:
+          WORKFLOW_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          if [[ "${WORKFLOW_REF}" != "refs/heads/main" ]]; then
+            echo "Real publish runs must be dispatched from main. Use preflight_only=true for branch validation."
+            exit 1
+          fi
+
   publish:
-    needs: preflight
+    needs: [preflight, validate_publish_dispatch_ref]
     if: inputs.preflight_only == false
     runs-on: ubuntu-latest
     permissions:
