@@ -2,14 +2,35 @@
   "name": "coreblow",
   "version": "1.0.0",
   "description": "CoreBlow — personal AI assistant with multi-channel support",
+  "keywords": [],
+  "homepage": "https://github.com/coreblow/coreblow#readme",
+  "bugs": {
+    "url": "https://github.com/coreblow/coreblow/issues"
+  },
   "license": "MIT",
+  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/coreblow/coreblow.git"
+  },
   "packageManager": "pnpm@10.23.0+sha512.21c4e5698002ade97e4efe8b8b4a89a8de3c85a37919f957e7a0f30f38fbc5bbdd05980ffe29179b2fb6e6e691242e098d945d1601772cad0fef5fb6411e2a4b",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
     "coreblow": "./coreblow.mjs"
   },
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
   "files": [
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md",
+    "assets/",
+    "docs/",
+    "!docs/.generated/**",
+    "skills/",
     "src",
     "!src/**/*.test.*",
     "!src/**/*.spec.*",
@@ -24,8 +45,6 @@
     "!extensions/**/test-fixtures",
     "dist",
     "coreblow.mjs",
-    "README.md",
-    "CHANGELOG.md",
     "SECURITY.md",
     "CONTRIBUTING.md",
     "AGENTS.md",
@@ -33,6 +52,9 @@
     "tsconfig.build.json",
     "tsconfig.plugin-sdk.dts.json"
   ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build && pnpm build:runtime",
