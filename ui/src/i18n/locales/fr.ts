@@ -1,0 +1,19 @@
+import type { TranslationMap } from "../lib/types.ts";
+
+export const fr: TranslationMap = {
+  common: { health: "Santé", ok: "OK", online: "En ligne", offline: "Hors ligne", connect: "Connecter", refresh: "Rafraîchir", enabled: "Activé", disabled: "Désactivé", na: "n/d", version: "Version", docs: "Documentation", theme: "Thème", resources: "Ressources", search: "Rechercher", send: "Envoyer", delete: "Supprimer", status: "Statut", none: "Aucun", actions: "Actions", models: "Modèles", events: "Événements", general: "Général", url: "URL" },
+  nav: { chat: "Discussion", control: "Contrôle", agent: "Agent", settings: "Paramètres", expand: "Développer la barre latérale", collapse: "Réduire la barre latérale", navigate: "Naviguer" },
+  tabs: { overview: "Aperçu", channels: "Canaux", sessions: "Sessions", usage: "Utilisation & Métriques", cron: "Tâches Planifiées", skills: "Compétences", chat: "Discussion", config: "Configuration", aiAgents: "Agents IA", debug: "Débogage", logs: "Journaux", peers: "Appareils" },
+  subtitles: { overview: "Statut, points d'entrée, santé.", channels: "Canaux et paramètres.", sessions: "Sessions actives et valeurs par défaut.", usage: "Utilisation API et coûts.", cron: "Réveils et exécutions récurrentes.", skills: "Compétences et clés API.", chat: "Chat passerelle pour interventions rapides.", config: "Modifier coreblow.json.", aiAgents: "Agents, modèles, compétences, outils, mémoire, session.", debug: "Instantanés, événements, RPC.", logs: "Journaux passerelle en direct." },
+  overview: { access: { title: "Accès Passerelle", subtitle: "Où le tableau de bord se connecte et comment il s'authentifie.", wsUrl: "URL WebSocket", token: "Jeton Passerelle", password: "Mot de passe", connectHint: "Cliquez sur Connecter pour appliquer les modifications." }, health: { title: "Santé du Système", checkHealth: "Vérifier la santé du système", started: "Système démarré", pollFailed: "Vérification de santé échouée" }, status: { connected: "Connecté", connectedServer: "Connecté au Serveur Passerelle", disconnected: "Déconnecté", notConnected: "Non Connecté", reconnect: "Reconnecter la Passerelle", reconnectWs: "Reconnecter au WebSocket", coreblowOnline: "CoreBlow En Ligne" } },
+  chat: { activeChat: "Discussion Active", newSession: "Nouvelle Session de Discussion", createSession: "Créer une nouvelle session de discussion", resetMessages: "Réinitialiser les messages", openInChat: "Ouvrir dans la discussion", selectModel: "Modèle de discussion", defaultModel: "Modèle par défaut", connectToChat: "Configurez l'URL de la passerelle ci-dessous pour vous connecter", connectFailed: "Échec de la connexion" },
+  sessions: { title: "Sessions", active: "Sessions Actives", list: "Lister les sessions actives", maxConcurrent: "Max. Sessions Simultanées", fetchFailed: "Échec de la récupération des sessions" },
+  agents: { title: "Agents IA", defaultProvider: "Fournisseur par Défaut", defaultModel: "Modèle par Défaut", contextWindow: "Fenêtre de Contexte", maxOutput: "Max. Jetons de Sortie", maxTurns: "Max. Tours par Exécution", sandboxDir: "Répertoire Sandbox", fetchFailed: "Échec de la récupération des agents", registeredTools: "Outils Enregistrés" },
+  skills: { title: "Compétences", noMatch: "Aucune compétence ne correspond au filtre", noRegistered: "Aucune compétence enregistrée" },
+  config: { title: "Configuration", fetchFailed: "Échec de la récupération de la configuration", invalidJson: "Paramètres JSON invalides" },
+  debug: { title: "Console de Débogage", rpc: "Appels RPC" },
+  usage: { title: "Utilisation & Métriques", listModels: "Lister les modèles disponibles" },
+  cron: { title: "Tâches Planifiées", runNow: "Exécuter maintenant" },
+  languages: { en: "English", ar: "العربية", de: "Deutsch", es: "Español", fr: "Français", id: "Bahasa Indonesia", ja: "日本語", ko: "한국어", pt: "Português", zh: "中文" },
+  errors: { unknown: "Une erreur inconnue s'est produite" },
+};

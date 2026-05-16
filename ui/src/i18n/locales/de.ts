@@ -1,0 +1,19 @@
+import type { TranslationMap } from "../lib/types.ts";
+
+export const de: TranslationMap = {
+  common: { health: "Zustand", ok: "OK", online: "Online", offline: "Offline", connect: "Verbinden", refresh: "Aktualisieren", enabled: "Aktiviert", disabled: "Deaktiviert", na: "k.A.", version: "Version", docs: "Dokumentation", theme: "Design", resources: "Ressourcen", search: "Suchen", send: "Senden", delete: "Löschen", status: "Status", none: "Keine", actions: "Aktionen", models: "Modelle", events: "Ereignisse", general: "Allgemein", url: "URL" },
+  nav: { chat: "Chat", control: "Steuerung", agent: "Agent", settings: "Einstellungen", expand: "Seitenleiste erweitern", collapse: "Seitenleiste einklappen", navigate: "Navigieren" },
+  tabs: { overview: "Übersicht", channels: "Kanäle", sessions: "Sitzungen", usage: "Nutzung & Metriken", cron: "Geplante Aufgaben", skills: "Fähigkeiten", chat: "Chat", config: "Konfiguration", aiAgents: "KI-Agenten", debug: "Debug", logs: "Protokolle", peers: "Geräte" },
+  subtitles: { overview: "Status, Einstiegspunkte, Zustand.", channels: "Kanäle und Einstellungen.", sessions: "Aktive Sitzungen und Standards.", usage: "API-Nutzung und Kosten.", cron: "Aufweckungen und wiederkehrende Ausführungen.", skills: "Fähigkeiten und API-Schlüssel.", chat: "Gateway-Chat für schnelle Eingriffe.", config: "coreblow.json bearbeiten.", aiAgents: "Agenten, Modelle, Fähigkeiten, Tools, Speicher, Sitzung.", debug: "Snapshots, Ereignisse, RPC.", logs: "Live-Gateway-Protokolle." },
+  overview: { access: { title: "Gateway-Zugang", subtitle: "Wo sich das Dashboard verbindet und wie es sich authentifiziert.", wsUrl: "WebSocket-URL", token: "Gateway-Token", password: "Passwort", connectHint: "Klicken Sie auf Verbinden, um Verbindungsänderungen anzuwenden." }, health: { title: "Systemzustand", checkHealth: "Systemzustand prüfen", started: "System gestartet", pollFailed: "Zustandsprüfung fehlgeschlagen" }, status: { connected: "Verbunden", connectedServer: "Mit Gateway-Server verbunden", disconnected: "Getrennt", notConnected: "Nicht verbunden", reconnect: "Gateway neu verbinden", reconnectWs: "WebSocket neu verbinden", coreblowOnline: "CoreBlow Online" } },
+  chat: { activeChat: "Aktiver Chat", newSession: "Neue Chat-Sitzung", createSession: "Neue Chat-Sitzung erstellen", resetMessages: "Nachrichten zurücksetzen", openInChat: "Im Chat öffnen", selectModel: "Chat-Modell", defaultModel: "Standardmodell", connectToChat: "Gateway-URL unten konfigurieren, um zu verbinden", connectFailed: "Verbindung fehlgeschlagen" },
+  sessions: { title: "Sitzungen", active: "Aktive Sitzungen", list: "Aktive Sitzungen auflisten", maxConcurrent: "Max. gleichzeitige Sitzungen", fetchFailed: "Sitzungen konnten nicht abgerufen werden" },
+  agents: { title: "KI-Agenten", defaultProvider: "Standard-Anbieter", defaultModel: "Standardmodell", contextWindow: "Kontextfenster", maxOutput: "Max. Ausgabe-Token", maxTurns: "Max. Durchläufe pro Ausführung", sandboxDir: "Sandbox-Verzeichnis", fetchFailed: "Agenten konnten nicht abgerufen werden", registeredTools: "Registrierte Tools" },
+  skills: { title: "Fähigkeiten", noMatch: "Keine Fähigkeiten entsprechen dem Filter", noRegistered: "Keine Fähigkeiten registriert" },
+  config: { title: "Konfiguration", fetchFailed: "Konfiguration konnte nicht abgerufen werden", invalidJson: "Ungültige JSON-Parameter" },
+  debug: { title: "Debug-Konsole", rpc: "RPC-Aufrufe" },
+  usage: { title: "Nutzung & Metriken", listModels: "Verfügbare Modelle auflisten" },
+  cron: { title: "Geplante Aufgaben", runNow: "Jetzt ausführen" },
+  languages: { en: "English", ar: "العربية", de: "Deutsch", es: "Español", fr: "Français", id: "Bahasa Indonesia", ja: "日本語", ko: "한국어", pt: "Português", zh: "中文" },
+  errors: { unknown: "Ein unbekannter Fehler ist aufgetreten" },
+};
