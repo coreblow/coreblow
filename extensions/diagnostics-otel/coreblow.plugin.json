@@ -1,17 +1,8 @@
 {
-  "name": "diagnostics-otel",
-  "version": "0.1.0",
-  "description": "Diagnostics Otel extension",
-  "main": "index.ts",
-  "permissions": [
-    "messages.read",
-    "messages.write"
-  ],
-  "channels": [
-    "diagnostics"
-  ],
-  "hooks": [
-    "onMessage",
-    "onCommand"
-  ]
+  "id": "diagnostics-otel",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
 }

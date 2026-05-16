@@ -1,17 +1,27 @@
 {
-  "name": "copilot-proxy",
-  "version": "0.1.0",
-  "description": "Copilot Proxy extension",
-  "main": "index.ts",
-  "permissions": [
-    "messages.read",
-    "messages.write"
+  "id": "copilot-proxy",
+  "enabledByDefault": true,
+  "providers": [
+    "copilot-proxy"
   ],
-  "channels": [
-    "copilot"
+  "autoEnableWhenConfiguredProviders": [
+    "copilot-proxy"
   ],
-  "hooks": [
-    "onMessage",
-    "onCommand"
-  ]
+  "providerAuthChoices": [
+    {
+      "provider": "copilot-proxy",
+      "method": "local",
+      "choiceId": "copilot-proxy",
+      "choiceLabel": "Copilot Proxy",
+      "choiceHint": "Configure base URL + model ids",
+      "groupId": "copilot",
+      "groupLabel": "Copilot",
+      "groupHint": "GitHub + local proxy"
+    }
+  ],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
 }

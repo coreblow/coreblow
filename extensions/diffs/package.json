@@ -1,5 +1,5 @@
 {
-  "name": "@coreblow/ext-diffs",
+  "name": "@coreblow/diffs",
   "type": "module",
   "version": "0.1.0",
   "private": true,
@@ -21,11 +21,11 @@
     "vitest": "^4.1.4"
   },
   "coreblow": {
-    "bundle": {
-      "stageRuntimeDependencies": true
-    },
     "extensions": [
       "./index.ts"
-    ]
+    ],
+    "bundle": {
+      "stageRuntimeDependencies": true
+    }
   }
 }

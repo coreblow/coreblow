@@ -1,17 +1,10 @@
 {
-  "name": "lobster",
-  "version": "0.1.0",
-  "description": "Lobster extension",
-  "main": "index.ts",
-  "permissions": [
-    "messages.read",
-    "messages.write"
-  ],
-  "channels": [
-    "lobster"
-  ],
-  "hooks": [
-    "onMessage",
-    "onCommand"
-  ]
+  "id": "lobster",
+  "name": "Lobster",
+  "description": "Typed workflow tool with resumable approvals.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
 }

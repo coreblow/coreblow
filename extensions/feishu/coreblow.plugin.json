@@ -1,17 +1,11 @@
 {
-  "name": "feishu",
-  "version": "0.1.0",
-  "description": "Feishu extension",
-  "main": "index.ts",
-  "permissions": [
-    "messages.read",
-    "messages.write"
-  ],
+  "id": "feishu",
   "channels": [
     "feishu"
   ],
-  "hooks": [
-    "onMessage",
-    "onCommand"
-  ]
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
 }

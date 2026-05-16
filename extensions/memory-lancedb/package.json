@@ -1,8 +1,8 @@
 {
-  "name": "@coreblow/ext-memory-lancedb",
+  "name": "@coreblow/memory-lancedb",
   "type": "module",
   "version": "0.1.0",
-  "description": "LanceDB vector memory backend",
+  "description": "CoreBlow LanceDB-backed long-term memory plugin with auto-recall/capture",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -18,5 +18,16 @@
   "devDependencies": {
     "typescript": "^5.4.0",
     "vitest": "^4.1.4"
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "install": {
+      "npmSpec": "@coreblow/memory-lancedb",
+      "localPath": "extensions/memory-lancedb",
+      "defaultChoice": "npm",
+      "minHostVersion": ">=1.0.0"
+    }
   }
 }

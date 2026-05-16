@@ -1,8 +1,8 @@
 {
-  "name": "@coreblow/ext-feishu",
+  "name": "@coreblow/feishu",
   "type": "module",
   "version": "0.1.0",
-  "description": "Feishu/Lark messenger integration",
+  "description": "CoreBlow Feishu/Lark channel plugin",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -14,5 +14,33 @@
   "devDependencies": {
     "typescript": "^5.4.0",
     "vitest": "^4.1.4"
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "setupEntry": "./setup-entry.ts",
+    "channel": {
+      "id": "feishu",
+      "label": "Feishu",
+      "selectionLabel": "Feishu/Lark (飞书)",
+      "docsPath": "/channels/feishu",
+      "docsLabel": "feishu",
+      "blurb": "飞书/Lark enterprise messaging with doc/wiki/drive tools.",
+      "aliases": [
+        "lark"
+      ],
+      "order": 35,
+      "quickstartAllowFrom": true
+    },
+    "install": {
+      "npmSpec": "@coreblow/feishu",
+      "localPath": "extensions/feishu",
+      "defaultChoice": "npm",
+      "minHostVersion": ">=1.0.0"
+    },
+    "bundle": {
+      "stageRuntimeDependencies": true
+    }
   }
 }
