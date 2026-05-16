@@ -1,5 +1,6 @@
 import { Command } from "commander";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { i18n } from "../infra/i18n/index.js";
 import { createCliRuntimeCapture } from "./test-runtime-capture.js";
 
 const loadConfigMock = vi.fn(() => ({}));
@@ -67,6 +68,10 @@ describe("skills cli commands", () => {
     readTrackedCoreHubSkillSlugsMock.mockResolvedValue([]);
   });
 
+  afterEach(async () => {
+    await i18n.setLocale("en");
+  });
+
   it("searches CoreHub skills from the native CLI", async () => {
     searchSkillsFromCoreHubMock.mockResolvedValue([
       {
@@ -105,7 +110,25 @@ describe("skills cli commands", () => {
     });
     expect(
       runtimeLogs.some((line) =>
-        line.includes("Installed calendar@1.2.3 -> /tmp/workspace/skills/calendar"),
+        line.includes('Skill "calendar@1.2.3" installed -> /tmp/workspace/skills/calendar'),
+      ),
+    ).toBe(true);
+  });
+
+  it("localizes installed skill output", async () => {
+    await i18n.setLocale("id");
+    installSkillFromCoreHubMock.mockResolvedValue({
+      ok: true,
+      slug: "calendar",
+      version: "1.2.3",
+      targetDir: "/tmp/workspace/skills/calendar",
+    });
+
+    await runCommand(["skills", "install", "calendar", "--version", "1.2.3"]);
+
+    expect(
+      runtimeLogs.some((line) =>
+        line.includes('Keahlian "calendar@1.2.3" terpasang -> /tmp/workspace/skills/calendar'),
       ),
     ).toBe(true);
   });

@@ -6,6 +6,8 @@
     "gateway": {
         "starting": "Démarrage de la passerelle sur le port {{port}}...",
         "started": "Passerelle démarrée sur le port {{port}}",
+        "listening": "Écoute sur {{endpoints}} (PID {{pid}})",
+        "log_file": "Fichier journal : {{path}}",
         "stopped": "Passerelle arrêtée",
         "error": "Erreur de passerelle : {{error}}",
         "health": "La passerelle fonctionne correctement",
@@ -47,7 +49,12 @@
     "extensions": {
         "loaded": "Extension \"{{name}}\" chargée (v{{version}})",
         "init_failed": "Échec de l'initialisation de l'extension \"{{name}}\" : {{error}}",
-        "stopped": "Extension \"{{name}}\" arrêtée"
+        "stopped": "Extension \"{{name}}\" arrêtée",
+        "enabled": "Plugin \"{{name}}\" activé. Redémarrez la passerelle pour appliquer.",
+        "disabled": "Plugin \"{{name}}\" désactivé. Redémarrez la passerelle pour appliquer.",
+        "uninstalled": "Plugin \"{{name}}\" désinstallé. Supprimé : {{removed}}.",
+        "not_found": "Plugin introuvable : {{name}}",
+        "restart_gateway": "Redémarrez la passerelle pour appliquer les changements."
     },
     "cli": {
         "welcome": "Bienvenue sur CoreBlow AI Gateway !",
@@ -59,6 +66,7 @@
     "pairing": {
         "code_generated": "Code d'appairage : {{code}} (expire dans {{ttl}} minutes)",
         "paired": "Appareil appairé avec succès !",
+        "approved": "Expéditeur {{channel}} {{id}} approuvé.",
         "invalid_code": "Code d'appairage invalide ou expiré",
         "already_paired": "Cet appareil est déjà appairé"
     },

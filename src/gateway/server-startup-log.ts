@@ -2,6 +2,7 @@ import chalk from "chalk";
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../types/agent-defaults.js";
 import { resolveConfiguredModelRef } from "../agents/model-selection.js";
 import type { loadConfig } from "../config/config.js";
+import { t } from "../infra/i18n/index.js";
 import { getResolvedLoggerSettings } from "../logging.js";
 import { collectEnabledInsecureOrDangerousFlags } from "../security/dangerous-config-flags.js";
 
@@ -28,8 +29,13 @@ export function logGatewayStartup(params: {
   const hosts =
     params.bindHosts && params.bindHosts.length > 0 ? params.bindHosts : [params.bindHost];
   const listenEndpoints = hosts.map((host) => `${scheme}://${formatHost(host)}:${params.port}`);
-  params.log.info(`listening on ${listenEndpoints.join(", ")} (PID ${process.pid})`);
-  params.log.info(`log file: ${getResolvedLoggerSettings().file}`);
+  params.log.info(
+    t("gateway.listening", {
+      endpoints: listenEndpoints.join(", "),
+      pid: String(process.pid),
+    }),
+  );
+  params.log.info(t("gateway.log_file", { path: getResolvedLoggerSettings().file }));
   if (params.isNixMode) {
     params.log.info("gateway: running in Nix mode (config managed externally)");
   }

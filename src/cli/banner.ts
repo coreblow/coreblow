@@ -5,6 +5,7 @@
  */
 
 import pkg from '../../package.json' with { type: 'json' };
+import { i18n, t } from '../infra/i18n/index.js';
 const { version } = pkg;
 
 export type TaglineMode = 'random' | 'default' | 'off';
@@ -45,6 +46,12 @@ export function pickTagline(mode: TaglineMode = 'random'): string {
     return TAGLINES[Math.floor(Math.random() * TAGLINES.length)];
 }
 
+function pickBannerTagline(mode: TaglineMode = 'random'): string {
+    if (mode === 'off') return '';
+    if (i18n.getLocale() !== 'en') return t('cli.welcome');
+    return pickTagline(mode);
+}
+
 export interface BannerOptions {
     taglineMode?: TaglineMode;
     columns?: number;
@@ -61,7 +68,7 @@ export function formatBanner(opts?: BannerOptions): string {
     const useColor = rich && !opts?.noColor;
 
     const ver = `v${version}`;
-    const tag = pickTagline(opts?.taglineMode ?? 'random');
+    const tag = pickBannerTagline(opts?.taglineMode ?? 'random');
     const commitSuffix = opts?.commit ? ` (${opts.commit.slice(0, 7)})` : '';
 
     const bold = useColor ? '\x1b[1m' : '';
@@ -73,7 +80,7 @@ export function formatBanner(opts?: BannerOptions): string {
     const logo = `${bold}${cyan}╔═══════════════════════════╗${reset}`;
     const title = `${bold}${cyan}║     COREBLOW GATEWAY      ║${reset}`;
     const border = `${bold}${cyan}╚═══════════════════════════╝${reset}`;
-    const versionLine = `  ${dim}${ver}${commitSuffix}${reset}`;
+    const versionLine = `  ${dim}${t('cli.version', { version: ver })}${commitSuffix}${reset}`;
     const taglineLine = tag ? `  ${yellow}${tag}${reset}` : '';
 
     const lines = [logo, title, border, versionLine];
@@ -115,7 +122,7 @@ export function formatCliBannerLine(ver?: string, opts?: { richTty?: boolean }):
     const cyan = useColor ? '\x1b[36m' : '';
     const reset = useColor ? '\x1b[0m' : '';
     const displayVersion = ver ?? version;
-    return `${bold}${cyan}CoreBlow${reset} v${displayVersion}`;
+    return `${bold}${cyan}CoreBlow${reset} ${t('cli.version', { version: `v${displayVersion}` })}`;
 }
 
 /**
@@ -133,5 +140,5 @@ export function emitCliBanner(programVersion?: string): void {
     if (bannerEmitted) return;
     bannerEmitted = true;
     const ver = programVersion ? `v${programVersion}` : `v${version}`;
-    process.stderr.write(`CoreBlow ${ver}\n`);
+    process.stderr.write(`CoreBlow ${t('cli.version', { version: ver })}\n`);
 }

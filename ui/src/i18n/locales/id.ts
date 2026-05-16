@@ -69,6 +69,7 @@ export const id: TranslationMap = {
       wsUrl: "URL WebSocket",
       token: "Token Gateway",
       password: "Kata Sandi",
+      language: "Bahasa",
       connectHint: "Klik Hubungkan untuk menerapkan perubahan koneksi.",
     },
     health: {

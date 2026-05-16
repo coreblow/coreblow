@@ -1,9 +1,10 @@
 import { LitElement } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import { i18n, I18nController, isSupportedLocale } from "../i18n/index.ts";
 import { renderApp } from "./app-render.ts";
-import { loadSettings, UiSettings } from "./storage.ts";
-import { ThemeName, ThemeMode, VALID_THEME_NAMES } from "./theme.ts";
-import { Tab, iconForTab, titleForTab, TAB_GROUPS } from "./navigation.ts";
+import { loadSettings, saveSettings, type UiSettings } from "./storage.ts";
+import { ThemeName, ThemeMode } from "./theme.ts";
+import { Tab, iconForTab } from "./navigation.ts";
 import { GatewayController } from "./app-gateway.ts";
 import { HealthController } from "./controllers/health.ts";
 import { ChatController } from "./app-chat.ts";
@@ -15,9 +16,17 @@ export type EventLogEntry = { ts: number; raw: string; level?: string };
 
 @customElement("coreblow-app")
 export class CoreBlowApp extends LitElement {
+  private i18nController = new I18nController(this);
   @state() settings: UiSettings = loadSettings();
   @state() tab: Tab = "overview";
   @state() connected = false;
+
+  constructor() {
+    super();
+    if (isSupportedLocale(this.settings.locale)) {
+      void i18n.setLocale(this.settings.locale);
+    }
+  }
 
   @state() theme: ThemeName = this.settings.theme;
   @state() themeMode: ThemeMode = this.settings.themeMode;
@@ -94,10 +103,12 @@ export class CoreBlowApp extends LitElement {
   }
 
   applySettings(next: UiSettings) {
+    const previousLocale = this.settings.locale;
     this.settings = next;
-    try {
-      localStorage.setItem("coreblow.control.settings.v1", JSON.stringify(next));
-    } catch {}
+    saveSettings(next);
+    if (next.locale !== previousLocale && isSupportedLocale(next.locale)) {
+      void i18n.setLocale(next.locale);
+    }
   }
 
   addEventLog(msg: string) {

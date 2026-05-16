@@ -6,6 +6,8 @@
     "gateway": {
         "starting": "ポート{{port}}でゲートウェイを起動中...",
         "started": "ポート{{port}}でゲートウェイが起動しました",
+        "listening": "{{endpoints}} で待ち受け中 (PID {{pid}})",
+        "log_file": "ログファイル: {{path}}",
         "stopped": "ゲートウェイが停止しました",
         "error": "ゲートウェイエラー: {{error}}",
         "health": "ゲートウェイは正常です",
@@ -47,7 +49,12 @@
     "extensions": {
         "loaded": "拡張機能\"{{name}}\"を読み込みました（v{{version}}）",
         "init_failed": "拡張機能\"{{name}}\"の初期化に失敗: {{error}}",
-        "stopped": "拡張機能\"{{name}}\"を停止しました"
+        "stopped": "拡張機能\"{{name}}\"を停止しました",
+        "enabled": "プラグイン\"{{name}}\"を有効にしました。適用するにはゲートウェイを再起動してください。",
+        "disabled": "プラグイン\"{{name}}\"を無効にしました。適用するにはゲートウェイを再起動してください。",
+        "uninstalled": "プラグイン\"{{name}}\"をアンインストールしました。削除済み: {{removed}}。",
+        "not_found": "プラグインが見つかりません: {{name}}",
+        "restart_gateway": "変更を適用するにはゲートウェイを再起動してください。"
     },
     "cli": {
         "welcome": "CoreBlow AI Gatewayへようこそ！",
@@ -59,6 +66,7 @@
     "pairing": {
         "code_generated": "ペアリングコード: {{code}}（{{ttl}}分で期限切れ）",
         "paired": "デバイスのペアリングに成功しました！",
+        "approved": "{{channel}} の送信者 {{id}} を承認しました。",
         "invalid_code": "無効または期限切れのペアリングコード",
         "already_paired": "このデバイスは既にペアリングされています"
     },

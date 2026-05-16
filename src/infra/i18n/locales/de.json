@@ -6,6 +6,8 @@
     "gateway": {
         "starting": "Gateway wird auf Port {{port}} gestartet...",
         "started": "Gateway auf Port {{port}} gestartet",
+        "listening": "Lauscht auf {{endpoints}} (PID {{pid}})",
+        "log_file": "Protokolldatei: {{path}}",
         "stopped": "Gateway gestoppt",
         "error": "Gateway-Fehler: {{error}}",
         "health": "Gateway funktioniert einwandfrei",
@@ -47,7 +49,12 @@
     "extensions": {
         "loaded": "Erweiterung \"{{name}}\" geladen (v{{version}})",
         "init_failed": "Erweiterung \"{{name}}\" Initialisierung fehlgeschlagen: {{error}}",
-        "stopped": "Erweiterung \"{{name}}\" gestoppt"
+        "stopped": "Erweiterung \"{{name}}\" gestoppt",
+        "enabled": "Plugin \"{{name}}\" aktiviert. Starten Sie das Gateway neu, um die Änderung anzuwenden.",
+        "disabled": "Plugin \"{{name}}\" deaktiviert. Starten Sie das Gateway neu, um die Änderung anzuwenden.",
+        "uninstalled": "Plugin \"{{name}}\" deinstalliert. Entfernt: {{removed}}.",
+        "not_found": "Plugin nicht gefunden: {{name}}",
+        "restart_gateway": "Starten Sie das Gateway neu, um die Änderungen anzuwenden."
     },
     "cli": {
         "welcome": "Willkommen bei CoreBlow AI Gateway!",
@@ -59,6 +66,7 @@
     "pairing": {
         "code_generated": "Kopplungscode: {{code}} (läuft in {{ttl}} Minuten ab)",
         "paired": "Gerät erfolgreich gekoppelt!",
+        "approved": "{{channel}}-Absender {{id}} genehmigt.",
         "invalid_code": "Ungültiger oder abgelaufener Kopplungscode",
         "already_paired": "Dieses Gerät ist bereits gekoppelt"
     },

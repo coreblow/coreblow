@@ -6,6 +6,8 @@
     "gateway": {
         "starting": "Starting gateway on port {{port}}...",
         "started": "Gateway started on port {{port}}",
+        "listening": "Listening on {{endpoints}} (PID {{pid}})",
+        "log_file": "Log file: {{path}}",
         "stopped": "Gateway stopped",
         "error": "Gateway error: {{error}}",
         "health": "Gateway is healthy",
@@ -47,7 +49,12 @@
     "extensions": {
         "loaded": "Extension \"{{name}}\" loaded (v{{version}})",
         "init_failed": "Extension \"{{name}}\" failed to initialize: {{error}}",
-        "stopped": "Extension \"{{name}}\" stopped"
+        "stopped": "Extension \"{{name}}\" stopped",
+        "enabled": "Plugin \"{{name}}\" enabled. Restart the gateway to apply.",
+        "disabled": "Plugin \"{{name}}\" disabled. Restart the gateway to apply.",
+        "uninstalled": "Plugin \"{{name}}\" uninstalled. Removed: {{removed}}.",
+        "not_found": "Plugin not found: {{name}}",
+        "restart_gateway": "Restart the gateway to apply changes."
     },
     "cli": {
         "welcome": "Welcome to CoreBlow AI Gateway!",
@@ -59,6 +66,7 @@
     "pairing": {
         "code_generated": "Pairing code: {{code}} (expires in {{ttl}} minutes)",
         "paired": "Device paired successfully!",
+        "approved": "Approved {{channel}} sender {{id}}.",
         "invalid_code": "Invalid or expired pairing code",
         "already_paired": "This device is already paired"
     },

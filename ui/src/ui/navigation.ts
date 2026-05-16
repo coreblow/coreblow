@@ -1,4 +1,5 @@
-import { Tab } from "./types.ts";
+import { t } from "../i18n/index.ts";
+import type { Tab } from "./types.ts";
 
 export const TAB_GROUPS = [
   { label: "chat", tabs: ["chat"] },
@@ -47,17 +48,9 @@ export function iconForTab(tab: Tab): string {
 }
 
 export function titleForTab(tab: Tab) {
-  const titles: Record<string, string> = {
-    chat: "Chat",
-    overview: "Overview",
-    sessions: "Sessions",
-    usage: "Usage",
-    cron: "Cron Jobs",
-    skills: "Skills",
-    config: "Config",
-    aiAgents: "AI Agents",
-    debug: "Debug",
-    logs: "Logs",
-  };
-  return titles[tab] || tab;
+  return t(`tabs.${tab}`);
+}
+
+export function subtitleForTab(tab: Tab) {
+  return t(`subtitles.${tab}`);
 }

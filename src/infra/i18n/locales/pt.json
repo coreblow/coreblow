@@ -6,6 +6,8 @@
     "gateway": {
         "starting": "Iniciando gateway na porta {{port}}...",
         "started": "Gateway iniciado na porta {{port}}",
+        "listening": "Escutando em {{endpoints}} (PID {{pid}})",
+        "log_file": "Arquivo de log: {{path}}",
         "stopped": "Gateway parado",
         "error": "Erro do gateway: {{error}}",
         "health": "Gateway está funcionando corretamente",
@@ -47,7 +49,12 @@
     "extensions": {
         "loaded": "Extensão \"{{name}}\" carregada (v{{version}})",
         "init_failed": "Extensão \"{{name}}\" falhou ao inicializar: {{error}}",
-        "stopped": "Extensão \"{{name}}\" parada"
+        "stopped": "Extensão \"{{name}}\" parada",
+        "enabled": "Plugin \"{{name}}\" ativado. Reinicie o gateway para aplicar.",
+        "disabled": "Plugin \"{{name}}\" desativado. Reinicie o gateway para aplicar.",
+        "uninstalled": "Plugin \"{{name}}\" desinstalado. Removido: {{removed}}.",
+        "not_found": "Plugin não encontrado: {{name}}",
+        "restart_gateway": "Reinicie o gateway para aplicar as alterações."
     },
     "cli": {
         "welcome": "Bem-vindo ao CoreBlow AI Gateway!",
@@ -59,6 +66,7 @@
     "pairing": {
         "code_generated": "Código de emparelhamento: {{code}} (expira em {{ttl}} minutos)",
         "paired": "Dispositivo emparelhado com sucesso!",
+        "approved": "Remetente {{id}} de {{channel}} aprovado.",
         "invalid_code": "Código de emparelhamento inválido ou expirado",
         "already_paired": "Este dispositivo já está emparelhado"
     },

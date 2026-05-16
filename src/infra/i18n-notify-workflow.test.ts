@@ -1,19 +1,17 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { I18n } from './i18n.js';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { i18n } from './i18n/index.js';
 import { NotificationSystem } from './notification-system.js';
 import { WorkflowEngine } from './workflow-engine.js';
 
 // ─── I18n ──────────────────────────────────────────────────────
 
 describe('I18n System — Phase 19', () => {
-    let i18n: I18n;
-
-    beforeEach(() => {
-        i18n = new I18n(); // default en
+    afterEach(async () => {
+        await i18n.setLocale('en');
     });
 
-    it('translates simple key', () => {
-        expect(i18n.t('app.name')).toBe('CoreBlow');
+    it('translates simple key from the canonical runtime engine', () => {
+        expect(i18n.t('app.name')).toBe('CoreBlow AI Gateway');
     });
 
     it('returns key if not found', () => {
@@ -21,53 +19,12 @@ describe('I18n System — Phase 19', () => {
     });
 
     it('interpolates params', () => {
-        expect(i18n.t('error.not_found', { resource: 'user' })).toBe('Not found: user');
+        expect(i18n.t('gateway.starting', { port: '3120' })).toBe('Starting gateway on port 3120...');
     });
 
-    it('keeps missing interpolation params', () => {
-        expect(i18n.t('error.not_found')).toBe('Not found: {{resource}}');
-    });
-
-    it('pluralizes one', () => {
-        expect(i18n.tp('plural.message', 1)).toBe('1 message');
-    });
-
-    it('pluralizes other', () => {
-        expect(i18n.tp('plural.message', 5)).toBe('5 messages');
-        expect(i18n.tp('plural.message', 0)).toBe('0 messages');
-    });
-
-    it('changes locale and translates', () => {
-        i18n.setLocale('id');
-        expect(i18n.t('app.description')).toBe('Gerbang AI');
-        expect(i18n.tp('plural.message', 5)).toBe('5 pesan');
-    });
-
-    it('falls back to default locale', () => {
-        i18n.setLocale('id');
-        // 'agent.greeting' is in 'id', but if we add a new key to 'en', it should fallback
-        i18n.addLocale('en', { new_key: 'hello' });
-        expect(i18n.t('new_key')).toBe('hello');
-    });
-
-    it('setLocale returns false for unknown', () => {
-        expect(i18n.setLocale('fr')).toBe(false);
-        expect(i18n.getLocale()).toBe('en');
-    });
-
-    it('has checks key existence', () => {
-        expect(i18n.has('app.name')).toBe(true);
-        expect(i18n.has('missing')).toBe(false);
-    });
-
-    it('listLocales returns available', () => {
-        const locales = i18n.listLocales();
-        expect(locales).toContain('en');
-        expect(locales).toContain('id');
-    });
-
-    it('tp returns key for non-existent plural key', () => {
-        expect(i18n.tp('missing.plural', 3)).toBe('missing.plural');
+    it('changes locale and translates', async () => {
+        await i18n.setLocale('id');
+        expect(i18n.t('gateway.started', { port: '3120' })).toBe('Gateway berjalan di port 3120');
     });
 });
 

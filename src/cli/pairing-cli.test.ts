@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const listChannelPairingRequests = vi.fn();
 const approveChannelPairingCode = vi.fn();
@@ -46,10 +46,12 @@ vi.mock("../config/config.js", () => ({
 
 describe("pairing cli", () => {
   let registerPairingCli: typeof import("./pairing-cli.js").registerPairingCli;
+  let i18n: typeof import("../infra/i18n/index.js").i18n;
 
   beforeAll(async () => {
     vi.resetModules();
     ({ registerPairingCli } = await import("./pairing-cli.js"));
+    ({ i18n } = await import("../infra/i18n/index.js"));
   });
 
   beforeEach(() => {
@@ -70,6 +72,10 @@ describe("pairing cli", () => {
     getPairingAdapter.mockClear();
     listPairingChannels.mockClear();
     notifyPairingApproved.mockResolvedValue(undefined);
+  });
+
+  afterEach(async () => {
+    await i18n.setLocale("en");
   });
 
   function createProgram() {
@@ -196,6 +202,20 @@ describe("pairing cli", () => {
         code: "ABCDEFGH",
       });
       expect(log).toHaveBeenCalledWith(expect.stringContaining("Approved"));
+    } finally {
+      log.mockRestore();
+    }
+  });
+
+  it("localizes approve success", async () => {
+    await i18n.setLocale("id");
+    mockApprovedPairing();
+
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    try {
+      await runPairing(["pairing", "approve", "telegram", "ABCDEFGH"]);
+      const output = log.mock.calls.map((call) => call.join(" ")).join("\n");
+      expect(output).toContain("Menyetujui pengirim telegram 123.");
     } finally {
       log.mockRestore();
     }

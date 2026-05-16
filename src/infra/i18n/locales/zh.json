@@ -6,6 +6,8 @@
     "gateway": {
         "starting": "正在端口 {{port}} 启动网关...",
         "started": "网关已在端口 {{port}} 启动",
+        "listening": "正在监听 {{endpoints}} (PID {{pid}})",
+        "log_file": "日志文件: {{path}}",
         "stopped": "网关已停止",
         "error": "网关错误: {{error}}",
         "health": "网关运行正常",
@@ -47,7 +49,12 @@
     "extensions": {
         "loaded": "扩展 \"{{name}}\" 已加载 (v{{version}})",
         "init_failed": "扩展 \"{{name}}\" 初始化失败: {{error}}",
-        "stopped": "扩展 \"{{name}}\" 已停止"
+        "stopped": "扩展 \"{{name}}\" 已停止",
+        "enabled": "插件 \"{{name}}\" 已启用。请重启网关以应用。",
+        "disabled": "插件 \"{{name}}\" 已禁用。请重启网关以应用。",
+        "uninstalled": "插件 \"{{name}}\" 已卸载。已移除: {{removed}}。",
+        "not_found": "未找到插件: {{name}}",
+        "restart_gateway": "请重启网关以应用更改。"
     },
     "cli": {
         "welcome": "欢迎使用 CoreBlow AI Gateway！",
@@ -59,6 +66,7 @@
     "pairing": {
         "code_generated": "配对码: {{code}}（{{ttl}} 分钟后过期）",
         "paired": "设备配对成功！",
+        "approved": "已批准 {{channel}} 发送者 {{id}}。",
         "invalid_code": "配对码无效或已过期",
         "already_paired": "此设备已配对"
     },

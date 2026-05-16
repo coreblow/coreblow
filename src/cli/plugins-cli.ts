@@ -6,6 +6,7 @@ import { loadConfig, writeConfigFile } from "../config/config.js";
 import { resolveStateDir } from "../config/paths.js";
 import type { PluginInstallRecord } from "../config/types.plugins.js";
 import { parseCoreHubPluginSpec } from "../infra/coreblow-hub.js";
+import { t } from "../infra/i18n/index.js";
 import { enablePluginInConfig } from "../plugins/enable.js";
 import { listMarketplacePlugins } from "../plugins/marketplace.js";
 import type { PluginRecord } from "../plugins/registry.js";
@@ -550,7 +551,7 @@ export function registerPluginsCli(program: Command) {
       await writeConfigFile(next);
       logSlotWarnings(slotResult.warnings);
       if (enableResult.enabled) {
-        defaultRuntime.log(`Enabled plugin "${id}". Restart the gateway to apply.`);
+        defaultRuntime.log(t("extensions.enabled", { name: id }));
         return;
       }
       defaultRuntime.log(
@@ -568,7 +569,7 @@ export function registerPluginsCli(program: Command) {
       const cfg = loadConfig();
       const next = setPluginEnabledInConfig(cfg, id, false);
       await writeConfigFile(next);
-      defaultRuntime.log(`Disabled plugin "${id}". Restart the gateway to apply.`);
+      defaultRuntime.log(t("extensions.disabled", { name: id }));
     });
 
   plugins
@@ -603,7 +604,7 @@ export function registerPluginsCli(program: Command) {
             `Plugin "${pluginId}" is not managed by plugins config/install records and cannot be uninstalled.`,
           );
         } else {
-          defaultRuntime.error(`Plugin not found: ${id}`);
+          defaultRuntime.error(t("extensions.not_found", { name: id }));
         }
         return defaultRuntime.exit(1);
       }
@@ -712,9 +713,12 @@ export function registerPluginsCli(program: Command) {
       }
 
       defaultRuntime.log(
-        `Uninstalled plugin "${pluginId}". Removed: ${removed.length > 0 ? removed.join(", ") : "nothing"}.`,
+        t("extensions.uninstalled", {
+          name: pluginId,
+          removed: removed.length > 0 ? removed.join(", ") : "nothing",
+        }),
       );
-      defaultRuntime.log("Restart the gateway to apply changes.");
+      defaultRuntime.log(t("extensions.restart_gateway"));
     });
 
   plugins

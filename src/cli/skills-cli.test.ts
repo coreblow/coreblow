@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { SkillStatusEntry, SkillStatusReport } from "../agents/skills-status.js";
+import { i18n } from "../infra/i18n/index.js";
 import { createEmptyInstallChecks } from "./requirements-test-fixtures.js";
 import { formatSkillInfo, formatSkillsCheck, formatSkillsList } from "./skills-cli.format.js";
 
@@ -39,6 +40,10 @@ function createMockReport(skills: SkillStatusEntry[]): SkillStatusReport {
 }
 
 describe("skills-cli", () => {
+  afterEach(async () => {
+    await i18n.setLocale("en");
+  });
+
   describe("formatSkillsList", () => {
     it("formats empty skills list", () => {
       const report = createMockReport([]);
@@ -117,6 +122,13 @@ describe("skills-cli", () => {
       const output = formatSkillInfo(report, "unknown-skill", {});
       expect(output).toContain("not found");
       expect(output).toContain("coreblow skills install");
+    });
+
+    it("localizes not found message", async () => {
+      await i18n.setLocale("id");
+      const report = createMockReport([]);
+      const output = formatSkillInfo(report, "unknown-skill", {});
+      expect(output).toContain('Keahlian "unknown-skill" tidak ditemukan');
     });
 
     it("shows detailed info for a skill", () => {

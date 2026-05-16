@@ -7,6 +7,7 @@ import {
   updateSkillsFromCoreHub,
 } from "../agents/skills-hub.js";
 import { loadConfig } from "../config/config.js";
+import { t } from "../infra/i18n/index.js";
 import { defaultRuntime } from "../runtime.js";
 import { formatDocsLink } from "../terminal/links.js";
 import { theme } from "../terminal/theme.js";
@@ -112,7 +113,9 @@ export function registerSkillsCli(program: Command) {
           defaultRuntime.exit(1);
           return;
         }
-        defaultRuntime.log(`Installed ${result.slug}@${result.version} -> ${result.targetDir}`);
+        defaultRuntime.log(
+          `${t("skills.installed", { name: `${result.slug}@${result.version}` })} -> ${result.targetDir}`,
+        );
       } catch (err) {
         defaultRuntime.error(String(err));
         defaultRuntime.exit(1);

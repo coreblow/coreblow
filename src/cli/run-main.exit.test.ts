@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const tryRouteCliMock = vi.hoisted(() => vi.fn());
 const loadDotEnvMock = vi.hoisted(() => vi.fn());
 const normalizeEnvMock = vi.hoisted(() => vi.fn());
+const i18nInitializeMock = vi.hoisted(() => vi.fn(async () => {}));
 const ensurePathMock = vi.hoisted(() => vi.fn());
 const assertRuntimeMock = vi.hoisted(() => vi.fn());
 const closeActiveMemorySearchManagersMock = vi.hoisted(() => vi.fn(async () => {}));
@@ -30,6 +31,12 @@ vi.mock("./dotenv.js", () => ({
 
 vi.mock("../infra/env.js", () => ({
   normalizeEnv: normalizeEnvMock,
+}));
+
+vi.mock("../infra/i18n/index.js", () => ({
+  i18n: {
+    initialize: i18nInitializeMock,
+  },
 }));
 
 vi.mock("../infra/path-env.js", () => ({
@@ -73,6 +80,7 @@ describe("runCli exit behavior", () => {
     await runCli(["node", "coreblow", "status"]);
 
     expect(maybeRunCliInContainerMock).toHaveBeenCalledWith(["node", "coreblow", "status"]);
+    expect(i18nInitializeMock).toHaveBeenCalledOnce();
     expect(tryRouteCliMock).toHaveBeenCalledWith(["node", "coreblow", "status"]);
     expect(closeActiveMemorySearchManagersMock).not.toHaveBeenCalled();
     expect(exitSpy).not.toHaveBeenCalled();
@@ -87,6 +95,7 @@ describe("runCli exit behavior", () => {
     await runCli(["node", "coreblow", "--help"]);
 
     expect(maybeRunCliInContainerMock).toHaveBeenCalledWith(["node", "coreblow", "--help"]);
+    expect(i18nInitializeMock).toHaveBeenCalledOnce();
     expect(tryRouteCliMock).not.toHaveBeenCalled();
     expect(outputRootHelpMock).toHaveBeenCalledTimes(1);
     expect(buildProgramMock).not.toHaveBeenCalled();
@@ -116,6 +125,7 @@ describe("runCli exit behavior", () => {
       "demo",
       "status",
     ]);
+    expect(i18nInitializeMock).not.toHaveBeenCalled();
     expect(loadDotEnvMock).not.toHaveBeenCalled();
     expect(tryRouteCliMock).not.toHaveBeenCalled();
     expect(closeActiveMemorySearchManagersMock).not.toHaveBeenCalled();

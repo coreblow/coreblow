@@ -6,6 +6,8 @@
     "gateway": {
         "starting": "Memulai gateway di port {{port}}...",
         "started": "Gateway berjalan di port {{port}}",
+        "listening": "Mendengarkan di {{endpoints}} (PID {{pid}})",
+        "log_file": "File log: {{path}}",
         "stopped": "Gateway dihentikan",
         "error": "Error gateway: {{error}}",
         "health": "Gateway dalam kondisi sehat",
@@ -39,15 +41,20 @@
         "stats": "Statistik memori: {{count}} memori, {{size}} penyimpanan"
     },
     "skills": {
-        "installed": "Skill \"{{name}}\" terinstal",
-        "removed": "Skill \"{{name}}\" dihapus",
-        "not_found": "Skill \"{{name}}\" tidak ditemukan",
-        "requires_env": "Skill ini membutuhkan: {{env}}"
+        "installed": "Keahlian \"{{name}}\" terpasang",
+        "removed": "Keahlian \"{{name}}\" dihapus",
+        "not_found": "Keahlian \"{{name}}\" tidak ditemukan",
+        "requires_env": "Keahlian ini membutuhkan: {{env}}"
     },
     "extensions": {
         "loaded": "Extension \"{{name}}\" dimuat (v{{version}})",
         "init_failed": "Extension \"{{name}}\" gagal diinisialisasi: {{error}}",
-        "stopped": "Extension \"{{name}}\" dihentikan"
+        "stopped": "Extension \"{{name}}\" dihentikan",
+        "enabled": "Plugin \"{{name}}\" diaktifkan. Mulai ulang gateway untuk menerapkan.",
+        "disabled": "Plugin \"{{name}}\" dinonaktifkan. Mulai ulang gateway untuk menerapkan.",
+        "uninstalled": "Plugin \"{{name}}\" dihapus. Dihapus: {{removed}}.",
+        "not_found": "Plugin tidak ditemukan: {{name}}",
+        "restart_gateway": "Mulai ulang gateway untuk menerapkan perubahan."
     },
     "cli": {
         "welcome": "Selamat datang di CoreBlow AI Gateway!",
@@ -59,6 +66,7 @@
     "pairing": {
         "code_generated": "Kode pairing: {{code}} (kedaluwarsa dalam {{ttl}} menit)",
         "paired": "Perangkat berhasil dipasangkan!",
+        "approved": "Menyetujui pengirim {{channel}} {{id}}.",
         "invalid_code": "Kode pairing tidak valid atau kedaluwarsa",
         "already_paired": "Perangkat ini sudah dipasangkan"
     },

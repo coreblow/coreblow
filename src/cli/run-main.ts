@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { resolveStateDir } from "../config/paths.js";
 import { normalizeEnv } from "../infra/env.js";
 import { formatUncaughtError } from "../infra/errors.js";
+import { i18n } from "../infra/i18n/index.js";
 import { isMainModule } from "../infra/is-main.js";
 import { ensureCoreBlowCliOnPath } from "../infra/path-env.js";
 import { assertSupportedRuntime } from "../infra/runtime-guard.js";
@@ -126,6 +127,7 @@ export async function runCli(argv: string[] = process.argv) {
     loadCliDotEnv({ quiet: true });
   }
   normalizeEnv();
+  await i18n.initialize();
   if (shouldEnsureCliPath(normalizedArgv)) {
     ensureCoreBlowCliOnPath();
   }

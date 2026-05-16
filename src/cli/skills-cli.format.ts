@@ -1,4 +1,5 @@
 import type { SkillStatusEntry, SkillStatusReport } from "../agents/skills-status.js";
+import { t } from "../infra/i18n/index.js";
 import { sanitizeForLog, stripAnsi } from "../terminal/ansi.js";
 import { getTerminalTableWidth, renderTable } from "../terminal/table.js";
 import { theme } from "../terminal/theme.js";
@@ -175,7 +176,7 @@ export function formatSkillInfo(
       return JSON.stringify({ error: "not found", skill: skillName }, null, 2);
     }
     return appendCoreHubHint(
-      `Skill "${skillName}" not found. Run \`${formatCliCommand("coreblow skills list")}\` to see available skills.`,
+      `${t("skills.not_found", { name: skillName })}. Run \`${formatCliCommand("coreblow skills list")}\` to see available skills.`,
       opts.json,
     );
   }

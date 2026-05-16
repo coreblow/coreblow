@@ -69,6 +69,7 @@ export const en: TranslationMap = {
       wsUrl: "WebSocket URL",
       token: "Gateway Token",
       password: "Password",
+      language: "Language",
       connectHint: "Click Connect to apply connection changes.",
     },
     health: {

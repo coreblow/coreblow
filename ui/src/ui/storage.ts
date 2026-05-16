@@ -1,4 +1,5 @@
 import type { ThemeMode, ThemeName } from "./theme.ts";
+import { isSupportedLocale } from "../i18n/index.ts";
 
 const STORAGE_KEY = "coreblow.control.settings.v1";
 
@@ -10,6 +11,7 @@ export interface UiSettings {
   theme: ThemeName;
   themeMode: ThemeMode;
   splitRatio: number;
+  locale?: string;
 }
 
 const DEFAULT_SETTINGS: UiSettings = {
@@ -26,7 +28,11 @@ export function loadSettings(): UiSettings {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_SETTINGS;
     const parsed = JSON.parse(raw);
-    return { ...DEFAULT_SETTINGS, ...parsed };
+    return {
+      ...DEFAULT_SETTINGS,
+      ...parsed,
+      locale: isSupportedLocale(parsed?.locale) ? parsed.locale : undefined,
+    };
   } catch {
     return DEFAULT_SETTINGS;
   }
