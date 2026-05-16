@@ -76,7 +76,8 @@ repos:
     rev: v2.2.6
     hooks:
       - id: codespell
-        args: ['--skip=node_modules,dist,pnpm-lock.yaml,gateway/dist,gateway/node_modules', '--ignore-words-list=afterall,inout,caf,statics,fo']
+        exclude: '^src/infra/i18n/locales/'
+        args: ['--skip=node_modules,dist,pnpm-lock.yaml,gateway/dist,gateway/node_modules,src/infra/i18n/locales', '--ignore-words-list=afterall,inout,caf,statics,fo']
 
   # Project checks
   - repo: local

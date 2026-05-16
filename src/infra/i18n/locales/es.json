@@ -1,72 +1,72 @@
 {
     "app": {
         "name": "CoreBlow AI Gateway",
-        "description": "Universal AI gateway for all your messaging platforms"
+        "description": "Pasarela de IA universal para todas tus plataformas de mensajería"
     },
     "gateway": {
-        "starting": "Starting gateway on port {{port}}...",
-        "started": "Gateway started on port {{port}}",
-        "stopped": "Gateway stopped",
-        "error": "Gateway error: {{error}}",
-        "health": "Gateway is healthy",
-        "unhealthy": "Gateway is unhealthy"
+        "starting": "Iniciando gateway en el puerto {{port}}...",
+        "started": "Gateway iniciado en el puerto {{port}}",
+        "stopped": "Gateway detenido",
+        "error": "Error del gateway: {{error}}",
+        "health": "El gateway está funcionando correctamente",
+        "unhealthy": "El gateway tiene problemas"
     },
     "channels": {
-        "connecting": "Connecting to {{channel}}...",
-        "connected": "Connected to {{channel}}",
-        "disconnected": "Disconnected from {{channel}}",
-        "error": "Channel {{channel}} error: {{error}}",
-        "message_received": "Message received from {{sender}} on {{channel}}",
-        "message_sent": "Message sent to {{target}} on {{channel}}"
+        "connecting": "Conectando a {{channel}}...",
+        "connected": "Conectado a {{channel}}",
+        "disconnected": "Desconectado de {{channel}}",
+        "error": "Error del canal {{channel}}: {{error}}",
+        "message_received": "Mensaje recibido de {{sender}} en {{channel}}",
+        "message_sent": "Mensaje enviado a {{target}} en {{channel}}"
     },
     "providers": {
-        "connecting": "Connecting to {{provider}}...",
-        "connected": "Connected to {{provider}}",
-        "error": "Provider {{provider}} error: {{error}}",
-        "response": "Response from {{provider}} ({{tokens}} tokens, {{time}}ms)"
+        "connecting": "Conectando a {{provider}}...",
+        "connected": "Conectado a {{provider}}",
+        "error": "Error del proveedor {{provider}}: {{error}}",
+        "response": "Respuesta de {{provider}} ({{tokens}} tokens, {{time}}ms)"
     },
     "tools": {
-        "executing": "Executing tool: {{tool}}",
-        "completed": "Tool {{tool}} completed",
-        "error": "Tool {{tool}} failed: {{error}}",
-        "not_found": "Tool {{tool}} not found"
+        "executing": "Ejecutando herramienta: {{tool}}",
+        "completed": "Herramienta {{tool}} completada",
+        "error": "Herramienta {{tool}} falló: {{error}}",
+        "not_found": "Herramienta {{tool}} no encontrada"
     },
     "memory": {
-        "stored": "Memory stored: \"{{text}}\"",
-        "recalled": "Found {{count}} memories",
-        "forgotten": "Memory {{id}} forgotten",
-        "no_results": "No memories found for \"{{query}}\"",
-        "stats": "Memory stats: {{count}} memories, {{size}} storage"
+        "stored": "Memoria almacenada: \"{{text}}\"",
+        "recalled": "Se encontraron {{count}} memorias",
+        "forgotten": "Memoria {{id}} eliminada",
+        "no_results": "No se encontraron memorias para \"{{query}}\"",
+        "stats": "Estadísticas de memoria: {{count}} memorias, {{size}} almacenamiento"
     },
     "skills": {
-        "installed": "Skill \"{{name}}\" installed",
-        "removed": "Skill \"{{name}}\" removed",
-        "not_found": "Skill \"{{name}}\" not found",
-        "requires_env": "This skill requires: {{env}}"
+        "installed": "Habilidad \"{{name}}\" instalada",
+        "removed": "Habilidad \"{{name}}\" eliminada",
+        "not_found": "Habilidad \"{{name}}\" no encontrada",
+        "requires_env": "Esta habilidad requiere: {{env}}"
     },
     "extensions": {
-        "loaded": "Extension \"{{name}}\" loaded (v{{version}})",
-        "init_failed": "Extension \"{{name}}\" failed to initialize: {{error}}",
-        "stopped": "Extension \"{{name}}\" stopped"
+        "loaded": "Extensión \"{{name}}\" cargada (v{{version}})",
+        "init_failed": "Extensión \"{{name}}\" falló al inicializar: {{error}}",
+        "stopped": "Extensión \"{{name}}\" detenida"
     },
     "cli": {
-        "welcome": "Welcome to CoreBlow AI Gateway!",
-        "version": "Version {{version}}",
-        "help": "Run 'coreblow --help' for available commands",
-        "doctor_ok": "All systems operational",
-        "doctor_fail": "Issues detected — run 'coreblow doctor' for details"
+        "welcome": "¡Bienvenido a CoreBlow AI Gateway!",
+        "version": "Versión {{version}}",
+        "help": "Ejecuta 'coreblow --help' para ver los comandos disponibles",
+        "doctor_ok": "Todos los sistemas operando normalmente",
+        "doctor_fail": "Problemas detectados — ejecuta 'coreblow doctor' para más detalles"
     },
     "pairing": {
-        "code_generated": "Pairing code: {{code}} (expires in {{ttl}} minutes)",
-        "paired": "Device paired successfully!",
-        "invalid_code": "Invalid or expired pairing code",
-        "already_paired": "This device is already paired"
+        "code_generated": "Código de emparejamiento: {{code}} (expira en {{ttl}} minutos)",
+        "paired": "¡Dispositivo emparejado exitosamente!",
+        "invalid_code": "Código de emparejamiento inválido o expirado",
+        "already_paired": "Este dispositivo ya está emparejado"
     },
     "errors": {
-        "connection_failed": "Connection failed",
-        "auth_failed": "Authentication failed",
-        "rate_limited": "Rate limited — please wait",
-        "timeout": "Request timed out",
-        "unknown": "An unknown error occurred"
+        "connection_failed": "Conexión fallida",
+        "auth_failed": "Autenticación fallida",
+        "rate_limited": "Límite de velocidad — por favor espere",
+        "timeout": "Tiempo de espera agotado",
+        "unknown": "Ocurrió un error desconocido"
     }
 }

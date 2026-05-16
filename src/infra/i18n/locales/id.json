@@ -1,72 +1,72 @@
 {
     "app": {
         "name": "CoreBlow AI Gateway",
-        "description": "Universal AI gateway for all your messaging platforms"
+        "description": "Gateway AI universal untuk semua platform pesan Anda"
     },
     "gateway": {
-        "starting": "Starting gateway on port {{port}}...",
-        "started": "Gateway started on port {{port}}",
-        "stopped": "Gateway stopped",
-        "error": "Gateway error: {{error}}",
-        "health": "Gateway is healthy",
-        "unhealthy": "Gateway is unhealthy"
+        "starting": "Memulai gateway di port {{port}}...",
+        "started": "Gateway berjalan di port {{port}}",
+        "stopped": "Gateway dihentikan",
+        "error": "Error gateway: {{error}}",
+        "health": "Gateway dalam kondisi sehat",
+        "unhealthy": "Gateway tidak sehat"
     },
     "channels": {
-        "connecting": "Connecting to {{channel}}...",
-        "connected": "Connected to {{channel}}",
-        "disconnected": "Disconnected from {{channel}}",
-        "error": "Channel {{channel}} error: {{error}}",
-        "message_received": "Message received from {{sender}} on {{channel}}",
-        "message_sent": "Message sent to {{target}} on {{channel}}"
+        "connecting": "Menghubungkan ke {{channel}}...",
+        "connected": "Terhubung ke {{channel}}",
+        "disconnected": "Terputus dari {{channel}}",
+        "error": "Error channel {{channel}}: {{error}}",
+        "message_received": "Pesan diterima dari {{sender}} di {{channel}}",
+        "message_sent": "Pesan terkirim ke {{target}} di {{channel}}"
     },
     "providers": {
-        "connecting": "Connecting to {{provider}}...",
-        "connected": "Connected to {{provider}}",
-        "error": "Provider {{provider}} error: {{error}}",
-        "response": "Response from {{provider}} ({{tokens}} tokens, {{time}}ms)"
+        "connecting": "Menghubungkan ke {{provider}}...",
+        "connected": "Terhubung ke {{provider}}",
+        "error": "Error provider {{provider}}: {{error}}",
+        "response": "Respons dari {{provider}} ({{tokens}} token, {{time}}ms)"
     },
     "tools": {
-        "executing": "Executing tool: {{tool}}",
-        "completed": "Tool {{tool}} completed",
-        "error": "Tool {{tool}} failed: {{error}}",
-        "not_found": "Tool {{tool}} not found"
+        "executing": "Menjalankan tool: {{tool}}",
+        "completed": "Tool {{tool}} selesai",
+        "error": "Tool {{tool}} gagal: {{error}}",
+        "not_found": "Tool {{tool}} tidak ditemukan"
     },
     "memory": {
-        "stored": "Memory stored: \"{{text}}\"",
-        "recalled": "Found {{count}} memories",
-        "forgotten": "Memory {{id}} forgotten",
-        "no_results": "No memories found for \"{{query}}\"",
-        "stats": "Memory stats: {{count}} memories, {{size}} storage"
+        "stored": "Memori disimpan: \"{{text}}\"",
+        "recalled": "Ditemukan {{count}} memori",
+        "forgotten": "Memori {{id}} dihapus",
+        "no_results": "Tidak ada memori untuk \"{{query}}\"",
+        "stats": "Statistik memori: {{count}} memori, {{size}} penyimpanan"
     },
     "skills": {
-        "installed": "Skill \"{{name}}\" installed",
-        "removed": "Skill \"{{name}}\" removed",
-        "not_found": "Skill \"{{name}}\" not found",
-        "requires_env": "This skill requires: {{env}}"
+        "installed": "Skill \"{{name}}\" terinstal",
+        "removed": "Skill \"{{name}}\" dihapus",
+        "not_found": "Skill \"{{name}}\" tidak ditemukan",
+        "requires_env": "Skill ini membutuhkan: {{env}}"
     },
     "extensions": {
-        "loaded": "Extension \"{{name}}\" loaded (v{{version}})",
-        "init_failed": "Extension \"{{name}}\" failed to initialize: {{error}}",
-        "stopped": "Extension \"{{name}}\" stopped"
+        "loaded": "Extension \"{{name}}\" dimuat (v{{version}})",
+        "init_failed": "Extension \"{{name}}\" gagal diinisialisasi: {{error}}",
+        "stopped": "Extension \"{{name}}\" dihentikan"
     },
     "cli": {
-        "welcome": "Welcome to CoreBlow AI Gateway!",
-        "version": "Version {{version}}",
-        "help": "Run 'coreblow --help' for available commands",
-        "doctor_ok": "All systems operational",
-        "doctor_fail": "Issues detected — run 'coreblow doctor' for details"
+        "welcome": "Selamat datang di CoreBlow AI Gateway!",
+        "version": "Versi {{version}}",
+        "help": "Jalankan 'coreblow --help' untuk perintah yang tersedia",
+        "doctor_ok": "Semua sistem beroperasi normal",
+        "doctor_fail": "Masalah terdeteksi — jalankan 'coreblow doctor' untuk detail"
     },
     "pairing": {
-        "code_generated": "Pairing code: {{code}} (expires in {{ttl}} minutes)",
-        "paired": "Device paired successfully!",
-        "invalid_code": "Invalid or expired pairing code",
-        "already_paired": "This device is already paired"
+        "code_generated": "Kode pairing: {{code}} (kedaluwarsa dalam {{ttl}} menit)",
+        "paired": "Perangkat berhasil dipasangkan!",
+        "invalid_code": "Kode pairing tidak valid atau kedaluwarsa",
+        "already_paired": "Perangkat ini sudah dipasangkan"
     },
     "errors": {
-        "connection_failed": "Connection failed",
-        "auth_failed": "Authentication failed",
-        "rate_limited": "Rate limited — please wait",
-        "timeout": "Request timed out",
-        "unknown": "An unknown error occurred"
+        "connection_failed": "Koneksi gagal",
+        "auth_failed": "Autentikasi gagal",
+        "rate_limited": "Dibatasi — harap tunggu",
+        "timeout": "Waktu permintaan habis",
+        "unknown": "Terjadi kesalahan yang tidak diketahui"
     }
 }

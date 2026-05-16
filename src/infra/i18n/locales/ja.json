@@ -1,72 +1,72 @@
 {
     "app": {
         "name": "CoreBlow AI Gateway",
-        "description": "Universal AI gateway for all your messaging platforms"
+        "description": "すべてのメッセージプラットフォーム用ユニバーサルAIゲートウェイ"
     },
     "gateway": {
-        "starting": "Starting gateway on port {{port}}...",
-        "started": "Gateway started on port {{port}}",
-        "stopped": "Gateway stopped",
-        "error": "Gateway error: {{error}}",
-        "health": "Gateway is healthy",
-        "unhealthy": "Gateway is unhealthy"
+        "starting": "ポート{{port}}でゲートウェイを起動中...",
+        "started": "ポート{{port}}でゲートウェイが起動しました",
+        "stopped": "ゲートウェイが停止しました",
+        "error": "ゲートウェイエラー: {{error}}",
+        "health": "ゲートウェイは正常です",
+        "unhealthy": "ゲートウェイに問題があります"
     },
     "channels": {
-        "connecting": "Connecting to {{channel}}...",
-        "connected": "Connected to {{channel}}",
-        "disconnected": "Disconnected from {{channel}}",
-        "error": "Channel {{channel}} error: {{error}}",
-        "message_received": "Message received from {{sender}} on {{channel}}",
-        "message_sent": "Message sent to {{target}} on {{channel}}"
+        "connecting": "{{channel}}に接続中...",
+        "connected": "{{channel}}に接続しました",
+        "disconnected": "{{channel}}から切断されました",
+        "error": "チャンネル{{channel}}エラー: {{error}}",
+        "message_received": "{{channel}}の{{sender}}からメッセージを受信",
+        "message_sent": "{{channel}}の{{target}}にメッセージを送信"
     },
     "providers": {
-        "connecting": "Connecting to {{provider}}...",
-        "connected": "Connected to {{provider}}",
-        "error": "Provider {{provider}} error: {{error}}",
-        "response": "Response from {{provider}} ({{tokens}} tokens, {{time}}ms)"
+        "connecting": "{{provider}}に接続中...",
+        "connected": "{{provider}}に接続しました",
+        "error": "プロバイダー{{provider}}エラー: {{error}}",
+        "response": "{{provider}}からの応答（{{tokens}}トークン、{{time}}ms）"
     },
     "tools": {
-        "executing": "Executing tool: {{tool}}",
-        "completed": "Tool {{tool}} completed",
-        "error": "Tool {{tool}} failed: {{error}}",
-        "not_found": "Tool {{tool}} not found"
+        "executing": "ツール実行中: {{tool}}",
+        "completed": "ツール{{tool}}が完了しました",
+        "error": "ツール{{tool}}が失敗: {{error}}",
+        "not_found": "ツール{{tool}}が見つかりません"
     },
     "memory": {
-        "stored": "Memory stored: \"{{text}}\"",
-        "recalled": "Found {{count}} memories",
-        "forgotten": "Memory {{id}} forgotten",
-        "no_results": "No memories found for \"{{query}}\"",
-        "stats": "Memory stats: {{count}} memories, {{size}} storage"
+        "stored": "メモリ保存: \"{{text}}\"",
+        "recalled": "{{count}}件のメモリが見つかりました",
+        "forgotten": "メモリ{{id}}を削除しました",
+        "no_results": "\"{{query}}\"に関するメモリは見つかりません",
+        "stats": "メモリ統計: {{count}}件、{{size}}ストレージ"
     },
     "skills": {
-        "installed": "Skill \"{{name}}\" installed",
-        "removed": "Skill \"{{name}}\" removed",
-        "not_found": "Skill \"{{name}}\" not found",
-        "requires_env": "This skill requires: {{env}}"
+        "installed": "スキル\"{{name}}\"をインストールしました",
+        "removed": "スキル\"{{name}}\"を削除しました",
+        "not_found": "スキル\"{{name}}\"が見つかりません",
+        "requires_env": "このスキルには{{env}}が必要です"
     },
     "extensions": {
-        "loaded": "Extension \"{{name}}\" loaded (v{{version}})",
-        "init_failed": "Extension \"{{name}}\" failed to initialize: {{error}}",
-        "stopped": "Extension \"{{name}}\" stopped"
+        "loaded": "拡張機能\"{{name}}\"を読み込みました（v{{version}}）",
+        "init_failed": "拡張機能\"{{name}}\"の初期化に失敗: {{error}}",
+        "stopped": "拡張機能\"{{name}}\"を停止しました"
     },
     "cli": {
-        "welcome": "Welcome to CoreBlow AI Gateway!",
-        "version": "Version {{version}}",
-        "help": "Run 'coreblow --help' for available commands",
-        "doctor_ok": "All systems operational",
-        "doctor_fail": "Issues detected — run 'coreblow doctor' for details"
+        "welcome": "CoreBlow AI Gatewayへようこそ！",
+        "version": "バージョン {{version}}",
+        "help": "'coreblow --help'で利用可能なコマンドを確認",
+        "doctor_ok": "すべてのシステムが正常に動作しています",
+        "doctor_fail": "問題が検出されました — 'coreblow doctor'で詳細を確認"
     },
     "pairing": {
-        "code_generated": "Pairing code: {{code}} (expires in {{ttl}} minutes)",
-        "paired": "Device paired successfully!",
-        "invalid_code": "Invalid or expired pairing code",
-        "already_paired": "This device is already paired"
+        "code_generated": "ペアリングコード: {{code}}（{{ttl}}分で期限切れ）",
+        "paired": "デバイスのペアリングに成功しました！",
+        "invalid_code": "無効または期限切れのペアリングコード",
+        "already_paired": "このデバイスは既にペアリングされています"
     },
     "errors": {
-        "connection_failed": "Connection failed",
-        "auth_failed": "Authentication failed",
-        "rate_limited": "Rate limited — please wait",
-        "timeout": "Request timed out",
-        "unknown": "An unknown error occurred"
+        "connection_failed": "接続に失敗しました",
+        "auth_failed": "認証に失敗しました",
+        "rate_limited": "レート制限中 — お待ちください",
+        "timeout": "リクエストがタイムアウトしました",
+        "unknown": "不明なエラーが発生しました"
     }
 }

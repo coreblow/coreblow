@@ -1,72 +1,72 @@
 {
     "app": {
         "name": "CoreBlow AI Gateway",
-        "description": "Universal AI gateway for all your messaging platforms"
+        "description": "适用于所有消息平台的通用AI网关"
     },
     "gateway": {
-        "starting": "Starting gateway on port {{port}}...",
-        "started": "Gateway started on port {{port}}",
-        "stopped": "Gateway stopped",
-        "error": "Gateway error: {{error}}",
-        "health": "Gateway is healthy",
-        "unhealthy": "Gateway is unhealthy"
+        "starting": "正在端口 {{port}} 启动网关...",
+        "started": "网关已在端口 {{port}} 启动",
+        "stopped": "网关已停止",
+        "error": "网关错误: {{error}}",
+        "health": "网关运行正常",
+        "unhealthy": "网关运行异常"
     },
     "channels": {
-        "connecting": "Connecting to {{channel}}...",
-        "connected": "Connected to {{channel}}",
-        "disconnected": "Disconnected from {{channel}}",
-        "error": "Channel {{channel}} error: {{error}}",
-        "message_received": "Message received from {{sender}} on {{channel}}",
-        "message_sent": "Message sent to {{target}} on {{channel}}"
+        "connecting": "正在连接 {{channel}}...",
+        "connected": "已连接到 {{channel}}",
+        "disconnected": "已断开 {{channel}}",
+        "error": "频道 {{channel}} 错误: {{error}}",
+        "message_received": "收到来自 {{channel}} 的 {{sender}} 的消息",
+        "message_sent": "已向 {{channel}} 的 {{target}} 发送消息"
     },
     "providers": {
-        "connecting": "Connecting to {{provider}}...",
-        "connected": "Connected to {{provider}}",
-        "error": "Provider {{provider}} error: {{error}}",
-        "response": "Response from {{provider}} ({{tokens}} tokens, {{time}}ms)"
+        "connecting": "正在连接 {{provider}}...",
+        "connected": "已连接到 {{provider}}",
+        "error": "提供者 {{provider}} 错误: {{error}}",
+        "response": "{{provider}} 响应（{{tokens}} tokens，{{time}}ms）"
     },
     "tools": {
-        "executing": "Executing tool: {{tool}}",
-        "completed": "Tool {{tool}} completed",
-        "error": "Tool {{tool}} failed: {{error}}",
-        "not_found": "Tool {{tool}} not found"
+        "executing": "正在执行工具: {{tool}}",
+        "completed": "工具 {{tool}} 已完成",
+        "error": "工具 {{tool}} 失败: {{error}}",
+        "not_found": "未找到工具 {{tool}}"
     },
     "memory": {
-        "stored": "Memory stored: \"{{text}}\"",
-        "recalled": "Found {{count}} memories",
-        "forgotten": "Memory {{id}} forgotten",
-        "no_results": "No memories found for \"{{query}}\"",
-        "stats": "Memory stats: {{count}} memories, {{size}} storage"
+        "stored": "记忆已存储: \"{{text}}\"",
+        "recalled": "找到 {{count}} 条记忆",
+        "forgotten": "记忆 {{id}} 已删除",
+        "no_results": "未找到与 \"{{query}}\" 相关的记忆",
+        "stats": "记忆统计: {{count}} 条记忆，{{size}} 存储"
     },
     "skills": {
-        "installed": "Skill \"{{name}}\" installed",
-        "removed": "Skill \"{{name}}\" removed",
-        "not_found": "Skill \"{{name}}\" not found",
-        "requires_env": "This skill requires: {{env}}"
+        "installed": "技能 \"{{name}}\" 已安装",
+        "removed": "技能 \"{{name}}\" 已移除",
+        "not_found": "未找到技能 \"{{name}}\"",
+        "requires_env": "此技能需要: {{env}}"
     },
     "extensions": {
-        "loaded": "Extension \"{{name}}\" loaded (v{{version}})",
-        "init_failed": "Extension \"{{name}}\" failed to initialize: {{error}}",
-        "stopped": "Extension \"{{name}}\" stopped"
+        "loaded": "扩展 \"{{name}}\" 已加载 (v{{version}})",
+        "init_failed": "扩展 \"{{name}}\" 初始化失败: {{error}}",
+        "stopped": "扩展 \"{{name}}\" 已停止"
     },
     "cli": {
-        "welcome": "Welcome to CoreBlow AI Gateway!",
-        "version": "Version {{version}}",
-        "help": "Run 'coreblow --help' for available commands",
-        "doctor_ok": "All systems operational",
-        "doctor_fail": "Issues detected — run 'coreblow doctor' for details"
+        "welcome": "欢迎使用 CoreBlow AI Gateway！",
+        "version": "版本 {{version}}",
+        "help": "运行 'coreblow --help' 查看可用命令",
+        "doctor_ok": "所有系统运行正常",
+        "doctor_fail": "检测到问题 — 运行 'coreblow doctor' 查看详情"
     },
     "pairing": {
-        "code_generated": "Pairing code: {{code}} (expires in {{ttl}} minutes)",
-        "paired": "Device paired successfully!",
-        "invalid_code": "Invalid or expired pairing code",
-        "already_paired": "This device is already paired"
+        "code_generated": "配对码: {{code}}（{{ttl}} 分钟后过期）",
+        "paired": "设备配对成功！",
+        "invalid_code": "配对码无效或已过期",
+        "already_paired": "此设备已配对"
     },
     "errors": {
-        "connection_failed": "Connection failed",
-        "auth_failed": "Authentication failed",
-        "rate_limited": "Rate limited — please wait",
-        "timeout": "Request timed out",
-        "unknown": "An unknown error occurred"
+        "connection_failed": "连接失败",
+        "auth_failed": "认证失败",
+        "rate_limited": "速率限制 — 请稍候",
+        "timeout": "请求超时",
+        "unknown": "发生未知错误"
     }
 }
