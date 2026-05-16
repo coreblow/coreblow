@@ -48,6 +48,18 @@ jobs:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.sha }}
           fetch-depth: 0
 
+      - name: Validate publish ref
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          PUBLISH_REF: ${{ inputs.ref }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          if ! git merge-base --is-ancestor HEAD origin/main; then
+            echo "::error::Publish ref ${PUBLISH_REF} is not contained in origin/main"
+            exit 1
+          fi
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
@@ -109,13 +121,35 @@ jobs:
           PLUGIN_LIST: ${{ inputs.plugins }}
         run: |
           set -euo pipefail
+          should_publish() {
+            if [ "$PUBLISH_SCOPE" = "all-publishable" ]; then
+              return 0
+            fi
+
+            IFS=',' read -ra requested_plugins <<< "${PLUGIN_LIST:-}"
+            for requested in "${requested_plugins[@]}"; do
+              requested="${requested#"${requested%%[![:space:]]*}"}"
+              requested="${requested%"${requested##*[![:space:]]}"}"
+              if [ "$requested" = "$PKG_NAME" ]; then
+                return 0
+              fi
+            done
+
+            return 1
+          }
+
           for dir in extensions/*/; do
             if [ -f "$dir/package.json" ]; then
               PKG_NAME=$(node -p "require('./$dir/package.json').name")
-              if [ "$PUBLISH_SCOPE" = "all-publishable" ] || echo "$PLUGIN_LIST" | grep -q "$PKG_NAME"; then
-                echo "Publishing $PKG_NAME..."
+              PKG_VERSION=$(node -p "require('./$dir/package.json').version")
+              if should_publish; then
+                if npm view "${PKG_NAME}@${PKG_VERSION}" version >/dev/null 2>&1; then
+                  echo "Skipping ${PKG_NAME}@${PKG_VERSION}; already published."
+                  continue
+                fi
+                echo "Publishing ${PKG_NAME}@${PKG_VERSION}..."
                 cd "$dir"
-                npm publish --provenance --access public || echo "Skipped $PKG_NAME (already published)"
+                npm publish --provenance --access public
                 cd -
               fi
             fi
