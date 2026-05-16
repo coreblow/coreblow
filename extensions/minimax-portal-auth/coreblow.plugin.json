@@ -1,17 +1,8 @@
 {
-  "name": "minimax-portal-auth",
-  "version": "0.1.0",
-  "description": "Minimax Portal Auth extension",
-  "main": "index.ts",
-  "permissions": [
-    "messages.read",
-    "messages.write"
-  ],
-  "channels": [
-    "minimax"
-  ],
-  "hooks": [
-    "onMessage",
-    "onCommand"
-  ]
+  "id": "minimax-portal-auth",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
 }

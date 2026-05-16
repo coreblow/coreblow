@@ -1,17 +1,11 @@
 {
-  "name": "phone-control",
-  "version": "0.1.0",
-  "description": "Phone Control extension",
-  "main": "index.ts",
-  "permissions": [
-    "messages.read",
-    "messages.write"
-  ],
-  "channels": [
-    "phone"
-  ],
-  "hooks": [
-    "onMessage",
-    "onCommand"
-  ]
+  "id": "phone-control",
+  "enabledByDefault": true,
+  "name": "Phone Control",
+  "description": "Arm/disarm high-risk phone node commands (camera/screen/writes) with an optional auto-expiry.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
 }
