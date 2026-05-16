@@ -13,7 +13,7 @@
     },
     "providers": {
         "openai": {
-            "apiKey": "sk-YOUR_OPENAI_API_KEY"
+            "apiKey": "YOUR_OPENAI_API_KEY"
         },
         "ollama": {
             "baseUrl": "http://127.0.0.1:11434"

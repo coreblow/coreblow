@@ -31,7 +31,7 @@ repos:
           - --baseline
           - .secrets.baseline
           - --exclude-files
-          - '(^|/)(pnpm-lock\.yaml|.*\.test\.ts)$'
+          - '(^|/)(pnpm-lock\.yaml|.*\.test\.ts|docs/examples/config/.*\.json)$'
           - --exclude-lines
           - '"gateway\.remote\.password"'
           - --exclude-lines
@@ -77,6 +77,7 @@ repos:
     hooks:
       - id: codespell
         args: ['--skip=node_modules,dist,pnpm-lock.yaml,gateway/dist,gateway/node_modules', '--ignore-words-list=afterall,inout,caf,statics,fo']
+        exclude: '^src/infra/i18n/locales/'
 
   # Project checks
   - repo: local
