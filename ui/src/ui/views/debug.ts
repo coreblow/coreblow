@@ -1,5 +1,6 @@
 import { LitElement, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { t } from "../../i18n/index.ts";
 import type { CoreBlowApp } from "../app.ts";
 
 type RpcLogEntry = {
@@ -35,10 +36,10 @@ export class DebugView extends LitElement {
      const method = this.rpcInput.trim();
      if (!method) return;
      const client = this.app.gateway.getClient();
-     if (!client?.connected) { this.rpcError = "Not connected"; return; }
+     if (!client?.connected) { this.rpcError = t("overview.status.notConnected"); return; }
 
      let params: unknown;
-     try { params = JSON.parse(this.rpcParams || "{}"); } catch { this.rpcError = "Invalid JSON params"; return; }
+     try { params = JSON.parse(this.rpcParams || "{}"); } catch { this.rpcError = t("config.invalidJson"); return; }
 
      const entry: RpcLogEntry = { id: this._nextId++, ts: Date.now(), method, params };
      this.rpcSending = true;
@@ -72,18 +73,18 @@ export class DebugView extends LitElement {
   private renderRpcConsole() {
      return html`
         <div class="card">
-           <div class="card-title">🔧 RPC Console</div>
-           <div class="card-sub">Send raw RPC calls to the gateway</div>
+           <div class="card-title">🔧 ${t("debug.rpcConsole")}</div>
+           <div class="card-sub">${t("debug.rpcConsoleSubtitle")}</div>
            <div style="margin-top: 12px; display: grid; gap: 8px;">
               <div style="display: flex; gap: 8px;">
                  <input style="flex: 1; background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-family: var(--mono); font-size: 12px;"
-                        placeholder="Method (e.g. health.snapshot)"
+                        placeholder=${t("debug.methodPlaceholder")}
                         .value=${this.rpcInput}
                         @input=${(e: Event) => this.rpcInput = (e.target as HTMLInputElement).value}
                         @keydown=${(e: KeyboardEvent) => { if (e.key === "Enter") this.sendRpc(); }} />
                  <button style="background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; font-size: 12px;"
                          ?disabled=${this.rpcSending}
-                         @click=${this.sendRpc}>${this.rpcSending ? "..." : "Send"}</button>
+                         @click=${this.sendRpc}>${this.rpcSending ? "..." : t("common.send")}</button>
               </div>
               <textarea style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-family: var(--mono); font-size: 11px; resize: vertical; min-height: 40px;"
                         placeholder='{"key": "value"}'
@@ -92,7 +93,7 @@ export class DebugView extends LitElement {
 
               ${this.rpcResult ? html`
                  <details open>
-                    <summary style="cursor: pointer; font-size: 12px; color: var(--success, #22c55e); font-weight: 600;">✓ Response</summary>
+                    <summary style="cursor: pointer; font-size: 12px; color: var(--success, #22c55e); font-weight: 600;">✓ ${t("debug.response")}</summary>
                     <pre style="margin-top: 4px; background: var(--bg-elevated); padding: 10px 12px; border-radius: var(--radius-sm); font-size: 11px; font-family: var(--mono); max-height: 300px; overflow: auto; border: 1px solid rgba(34,197,94,0.2); color: var(--foreground);">${this.rpcResult}</pre>
                  </details>
               ` : ""}
@@ -111,7 +112,7 @@ export class DebugView extends LitElement {
      ];
      return html`
         <div class="card">
-           <div class="card-title" style="font-size: 14px;">⚡ Quick RPC</div>
+           <div class="card-title" style="font-size: 14px;">⚡ ${t("debug.quickRpc")}</div>
            <div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px;">
               ${methods.map(m => html`
                  <button style="font-family: var(--mono); font-size: 11px; padding: 4px 10px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; color: var(--accent, #6366f1); transition: border-color 0.15s;"
@@ -127,10 +128,10 @@ export class DebugView extends LitElement {
      return html`
         <div class="card">
            <div style="display: flex; align-items: center; gap: 8px;">
-              <div class="card-title" style="flex: 1; font-size: 14px;">📋 RPC History</div>
-              <span style="font-size: 11px; color: var(--muted);">${this.rpcLog.length} calls</span>
+              <div class="card-title" style="flex: 1; font-size: 14px;">📋 ${t("debug.rpcHistory")}</div>
+              <span style="font-size: 11px; color: var(--muted);">${t("debug.callsSummary", { count: String(this.rpcLog.length) })}</span>
               <button style="font-size: 11px; background: none; border: 1px solid var(--border); padding: 2px 8px; border-radius: var(--radius-sm); cursor: pointer; color: var(--muted);"
-               @click=${this.clearLog}>Clear</button>
+               @click=${this.clearLog}>${t("logs.clear")}</button>
            </div>
            <div style="margin-top: 8px; max-height: 300px; overflow-y: auto;">
               ${this.rpcLog.map(entry => html`
@@ -151,15 +152,15 @@ export class DebugView extends LitElement {
      return html`
         <div class="card">
            <div style="display: flex; align-items: center; gap: 8px;">
-              <div class="card-title" style="flex: 1; font-size: 14px;">📡 Event Stream</div>
+              <div class="card-title" style="flex: 1; font-size: 14px;">📡 ${t("debug.eventStream")}</div>
               <input style="width: 180px; background: var(--bg-elevated); border: 1px solid var(--border); padding: 4px 8px; border-radius: var(--radius-sm); color: var(--foreground); font-size: 11px;"
-                     placeholder="Filter events..."
+                     placeholder=${t("debug.filterEventsPlaceholder")}
                      .value=${this.filterQuery}
                      @input=${(e: Event) => this.filterQuery = (e.target as HTMLInputElement).value} />
               <span style="font-size: 11px; color: var(--muted);">${events.length} / ${this.app.eventLog.length}</span>
            </div>
            <div style="margin-top: 8px; background: var(--bg-elevated); border-radius: var(--radius-sm); max-height: 400px; overflow-y: auto; font-family: var(--mono); font-size: 11px;">
-              ${events.length === 0 ? html`<div style="padding: 24px; text-align: center; color: var(--muted);">No events</div>` : ""}
+              ${events.length === 0 ? html`<div style="padding: 24px; text-align: center; color: var(--muted);">${t("debug.noEvents")}</div>` : ""}
               ${events.slice(0, 100).map(e => html`
                  <div style="padding: 4px 10px; border-bottom: 1px solid rgba(255,255,255,0.02); display: flex; gap: 8px;">
                     <span style="color: var(--muted); min-width: 70px; flex-shrink: 0;">${new Date(e.ts).toLocaleTimeString()}</span>
@@ -175,11 +176,11 @@ export class DebugView extends LitElement {
      const connected = this.app.connected;
      return html`
         <div class="card">
-           <div class="card-title" style="font-size: 14px;">🌐 Connection</div>
+           <div class="card-title" style="font-size: 14px;">🌐 ${t("debug.connection")}</div>
            <div style="margin-top: 8px;">
               <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0;">
                  <span style="width: 10px; height: 10px; border-radius: 50%; background: ${connected ? 'var(--success, #22c55e)' : 'var(--destructive, #ef4444)'}; ${connected ? 'box-shadow: 0 0 8px rgba(34,197,94,0.4);' : ''}"></span>
-                 <span style="font-weight: 600;">${connected ? "Connected" : "Disconnected"}</span>
+                 <span style="font-weight: 600;">${connected ? t("overview.status.connected") : t("overview.status.disconnected")}</span>
               </div>
               <div style="font-size: 12px; color: var(--muted); font-family: var(--mono); padding: 4px 0;">${this.app.settings.gatewayUrl}</div>
            </div>

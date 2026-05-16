@@ -48,9 +48,13 @@ export function iconForTab(tab: Tab): string {
 }
 
 export function titleForTab(tab: Tab) {
-  return t(`tabs.${tab}`);
+  const key = `tabs.${tab}`;
+  const translated = t(key);
+  return translated === key ? tab : translated;
 }
 
 export function subtitleForTab(tab: Tab) {
-  return t(`subtitles.${tab}`);
+  const key = `subtitles.${tab}`;
+  const translated = t(key);
+  return translated === key ? tab : translated;
 }

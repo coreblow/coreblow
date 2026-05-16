@@ -1,5 +1,6 @@
 import { LitElement, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { t } from "../../i18n/index.ts";
 import type { CoreBlowApp } from "../app.ts";
 
 type UsageEntry = {
@@ -33,7 +34,7 @@ export class UsageView extends LitElement {
          const res = await client.request<{ sessions: { key: string; model: string; totalTokens: number; turnCount: number }[] }>("sessions.list", {});
          this.entries = (res?.sessions ?? []).map(s => ({
             sessionKey: s.key,
-            model: s.model || "default",
+            model: s.model || t("chat.defaultModel"),
             inputTokens: Math.round(s.totalTokens * 0.6),
             outputTokens: Math.round(s.totalTokens * 0.4),
             totalTokens: s.totalTokens,
@@ -99,40 +100,40 @@ export class UsageView extends LitElement {
          <div class="card">
             <div style="display: flex; align-items: center; gap: 12px;">
                <div style="flex: 1;">
-                  <div class="card-title">📊 Usage & Metrics</div>
-                  <div class="card-sub">Token consumption and cost estimates</div>
+                  <div class="card-title">📊 ${t("usage.title")}</div>
+                  <div class="card-sub">${t("usage.subtitle")}</div>
                </div>
                <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground);"
-                @click=${() => this.loadUsage()}>↻ Refresh</button>
+                @click=${() => this.loadUsage()}>↻ ${t("common.refresh")}</button>
             </div>
          </div>
 
          <!-- Summary Cards -->
          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
             <div class="card" style="padding: 16px;">
-               <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Total Tokens</div>
+               <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">${t("usage.totalTokens")}</div>
                <div style="font-size: 28px; font-weight: 800; margin-top: 4px; font-family: var(--mono);">${this.formatTokens(this.totalTokens)}</div>
             </div>
             <div class="card" style="padding: 16px;">
-               <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Estimated Cost</div>
+               <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">${t("usage.estimatedCost")}</div>
                <div style="font-size: 28px; font-weight: 800; margin-top: 4px; color: var(--warning, #f59e0b);">${this.formatCost(this.totalCost)}</div>
             </div>
             <div class="card" style="padding: 16px;">
-               <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Total Turns</div>
+               <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">${t("usage.totalTurns")}</div>
                <div style="font-size: 28px; font-weight: 800; margin-top: 4px;">${this.totalTurns}</div>
             </div>
             <div class="card" style="padding: 16px;">
-               <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Sessions</div>
+               <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">${t("tabs.sessions")}</div>
                <div style="font-size: 28px; font-weight: 800; margin-top: 4px;">${this.entries.length}</div>
             </div>
          </div>
 
-         ${this.loading ? html`<div style="text-align: center; padding: 40px; color: var(--muted);">Loading usage data...</div>` : ""}
+         ${this.loading ? html`<div style="text-align: center; padding: 40px; color: var(--muted);">${t("usage.loading")}</div>` : ""}
 
          <!-- Model Breakdown -->
          ${breakdown.length > 0 ? html`
             <div class="card">
-               <div class="card-title" style="font-size: 14px;">📈 Usage by Model</div>
+               <div class="card-title" style="font-size: 14px;">📈 ${t("usage.byModel")}</div>
                <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 12px;">
                   ${breakdown.map(b => {
                      const pct = Math.round((b.tokens / maxTokens) * 100);
@@ -140,9 +141,9 @@ export class UsageView extends LitElement {
                         <div>
                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                               <span style="font-family: var(--mono); font-size: 12px; font-weight: 600; min-width: 200px;">${b.model}</span>
-                              <span style="font-size: 11px; color: var(--muted);">${this.formatTokens(b.tokens)} tokens</span>
+                              <span style="font-size: 11px; color: var(--muted);">${t("usage.tokensCount", { count: this.formatTokens(b.tokens) })}</span>
                               <span style="font-size: 11px; color: var(--warning, #f59e0b); margin-left: auto;">${this.formatCost(b.cost)}</span>
-                              <span style="font-size: 11px; color: var(--muted);">${b.sessions} session${b.sessions !== 1 ? "s" : ""}</span>
+                              <span style="font-size: 11px; color: var(--muted);">${t("usage.sessionsCount", { count: String(b.sessions) })}</span>
                            </div>
                            <div style="height: 6px; background: var(--bg-elevated); border-radius: 3px; overflow: hidden;">
                               <div style="height: 100%; width: ${pct}%; background: linear-gradient(90deg, var(--accent, #6366f1), var(--accent-hover, #818cf8)); border-radius: 3px; transition: width 0.3s ease;"></div>
@@ -158,17 +159,17 @@ export class UsageView extends LitElement {
          ${this.entries.length > 0 ? html`
             <div class="card" style="padding: 0; overflow: hidden;">
                <div style="padding: 12px 16px; border-bottom: 1px solid var(--border);">
-                  <div class="card-title" style="font-size: 14px;">📋 Per-Session Breakdown</div>
+                  <div class="card-title" style="font-size: 14px;">📋 ${t("usage.perSession")}</div>
                </div>
                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
                   <thead>
                      <tr style="background: var(--bg-elevated); border-bottom: 1px solid var(--border);">
-                        <th style="padding: 8px 12px; text-align: left; color: var(--muted);">Session</th>
-                        <th style="padding: 8px 12px; text-align: left; color: var(--muted);">Model</th>
-                        <th style="padding: 8px 12px; text-align: right; color: var(--muted);">Input</th>
-                        <th style="padding: 8px 12px; text-align: right; color: var(--muted);">Output</th>
-                        <th style="padding: 8px 12px; text-align: right; color: var(--muted);">Total</th>
-                        <th style="padding: 8px 12px; text-align: right; color: var(--muted);">Cost</th>
+                        <th style="padding: 8px 12px; text-align: left; color: var(--muted);">${t("sessions.columnSession")}</th>
+                        <th style="padding: 8px 12px; text-align: left; color: var(--muted);">${t("sessions.columnModel")}</th>
+                        <th style="padding: 8px 12px; text-align: right; color: var(--muted);">${t("usage.input")}</th>
+                        <th style="padding: 8px 12px; text-align: right; color: var(--muted);">${t("usage.output")}</th>
+                        <th style="padding: 8px 12px; text-align: right; color: var(--muted);">${t("usage.total")}</th>
+                        <th style="padding: 8px 12px; text-align: right; color: var(--muted);">${t("usage.cost")}</th>
                      </tr>
                   </thead>
                   <tbody>

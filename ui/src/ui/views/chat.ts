@@ -1,6 +1,7 @@
 import { LitElement, html } from "lit";
 import { customElement, property, state, query } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
+import { t } from "../../i18n/index.ts";
 import type { CoreBlowApp } from "../app.ts";
 import { renderMarkdown } from "../markdown.ts";
 import type { ChatMessage, ToolStreamEntry } from "../app-chat.ts";
@@ -82,7 +83,7 @@ export class ChatView extends LitElement {
           </div>
           ${tool.args ? html`
              <details class="tool-card-args">
-                <summary>Arguments</summary>
+                <summary>${t("chat.arguments")}</summary>
                 <pre>${typeof tool.args === "string" ? tool.args : JSON.stringify(tool.args, null, 2)}</pre>
              </details>
           ` : ""}
@@ -156,9 +157,9 @@ export class ChatView extends LitElement {
         <select class="chat-model-select"
                 style="font-size: 11px; padding: 3px 8px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--foreground); cursor: pointer;"
                 ?disabled=${disabled}
-                aria-label="Chat model"
+                aria-label=${t("chat.selectModel")}
                 @change=${this.handleModelChange}>
-           <option value="" ?selected=${currentOverride === ""}>${loading ? "Loading models..." : defaultLabel}</option>
+           <option value="" ?selected=${currentOverride === ""}>${loading ? t("chat.loadingModels") : defaultLabel}</option>
            ${options.map(opt => html`
               <option value=${opt.value} ?selected=${opt.value === currentOverride}>${opt.label}</option>
            `)}
@@ -192,11 +193,11 @@ export class ChatView extends LitElement {
 
          <!-- Header -->
          <div class="chat-header" style="padding: 12px var(--shell-pad); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px;">
-            <span style="font-weight: 600; flex: 1;">💬 Chat</span>
+            <span style="font-weight: 600; flex: 1;">💬 ${t("tabs.chat")}</span>
             ${this.renderModelSelect()}
             ${chat.sessionKey ? html`<span style="font-size: 11px; color: var(--muted);">${chat.sessionKey.slice(0, 12)}…</span>` : ""}
             <button class="btn btn-sm" style="font-size: 11px; padding: 4px 12px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground);"
-             @click=${this.handleNewSession}>+ New</button>
+             @click=${this.handleNewSession}>+ ${t("chat.newShort")}</button>
          </div>
 
          <!-- Messages -->
@@ -204,7 +205,7 @@ export class ChatView extends LitElement {
             ${chat.messages.length === 0 && !busy ? html`
                <div style="margin: auto; text-align: center; color: var(--muted); opacity: 0.6;">
                  <div style="font-size: 48px; margin-bottom: 16px;">🐙</div>
-                 <div>Send a message to CoreBlow</div>
+                 <div>${t("chat.empty")}</div>
                </div>
             ` : ""}
 
@@ -217,7 +218,7 @@ export class ChatView extends LitElement {
              <div class="chat-input-box" style="display: flex; gap: 8px; background: var(--bg-elevated); padding: 8px; border-radius: var(--radius-md); border: 1px solid var(--border);">
                 <input class="chat-input"
                        style="flex: 1; background: transparent; border: none; color: var(--text); padding: 8px; outline: none; font-family: var(--font-sans);"
-                       placeholder="${busy ? 'Waiting for response...' : 'Message CoreBlow...'}"
+                       placeholder=${busy ? t("chat.waiting") : t("chat.messagePlaceholder")}
                        .value=${this.inputText}
                        ?disabled=${busy}
                        @input=${(e: Event) => this.inputText = (e.target as HTMLInputElement).value}
@@ -225,9 +226,9 @@ export class ChatView extends LitElement {
                 />
                 ${busy
                    ? html`<button class="btn btn-abort" style="background: var(--destructive, #ef4444); color: white; border:none; padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer;"
-                            @click=${this.handleAbort}>Stop</button>`
+                            @click=${this.handleAbort}>${t("chat.stop")}</button>`
                    : html`<button class="btn" style="background: var(--accent); color: var(--primary-foreground); border:none; padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer;"
-                            @click=${this.handleSend}>Send</button>`
+                            @click=${this.handleSend}>${t("common.send")}</button>`
                 }
              </div>
          </div>

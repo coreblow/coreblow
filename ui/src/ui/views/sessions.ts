@@ -1,5 +1,6 @@
 import { LitElement, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { t } from "../../i18n/index.ts";
 import type { CoreBlowApp } from "../app.ts";
 
 type SessionRow = {
@@ -109,9 +110,9 @@ export class SessionsView extends LitElement {
       const d = new Date(ts);
       const now = Date.now();
       const diff = now - ts;
-      if (diff < 60_000) return "just now";
-      if (diff < 3_600_000) return `${Math.round(diff / 60_000)}m ago`;
-      if (diff < 86_400_000) return `${Math.round(diff / 3_600_000)}h ago`;
+      if (diff < 60_000) return t("sessions.justNow");
+      if (diff < 3_600_000) return t("sessions.minutesAgo", { count: String(Math.round(diff / 60_000)) });
+      if (diff < 86_400_000) return t("sessions.hoursAgo", { count: String(Math.round(diff / 3_600_000)) });
       return d.toLocaleDateString();
   }
 
@@ -138,35 +139,35 @@ export class SessionsView extends LitElement {
         <div class="card">
            <div style="display: flex; align-items: center; gap: 12px;">
               <div style="flex: 1;">
-                 <div class="card-title">Sessions</div>
-                 <div class="card-sub">${this.sessions.length} session${this.sessions.length !== 1 ? "s" : ""} managed by AgentEngine</div>
+                 <div class="card-title">${t("sessions.title")}</div>
+                 <div class="card-sub">${t("sessions.managedByAgentEngine", { count: String(this.sessions.length) })}</div>
               </div>
               <button class="btn" style="background: var(--accent); color: var(--primary-foreground); border:none; padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600;"
-               @click=${this.createNewSession}>+ New Session</button>
+               @click=${this.createNewSession}>+ ${t("sessions.newSession")}</button>
               <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground);"
-               @click=${() => this.loadSessions()}>↻ Refresh</button>
+               @click=${() => this.loadSessions()}>↻ ${t("common.refresh")}</button>
            </div>
 
            <!-- Search + Bulk Actions -->
            <div style="margin-top: 16px; display: flex; gap: 12px; align-items: center;">
               <input style="flex: 1; background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); color: var(--foreground); font-family: var(--font-sans);"
-                     placeholder="Search sessions..."
+                     placeholder=${t("sessions.searchPlaceholder")}
                      .value=${this.searchQuery}
                      @input=${(e: Event) => this.searchQuery = (e.target as HTMLInputElement).value} />
               ${hasSelected ? html`
                  <button class="btn" style="background: var(--destructive, #ef4444); color: white; border: none; padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px;"
-                  @click=${this.deleteSelected}>Delete ${this.selectedKeys.size} selected</button>
+                  @click=${this.deleteSelected}>${t("sessions.deleteSelected", { count: String(this.selectedKeys.size) })}</button>
               ` : ""}
            </div>
         </div>
 
-        ${this.loading ? html`<div style="text-align: center; color: var(--muted); padding: 40px;">Loading sessions...</div>` : ""}
+        ${this.loading ? html`<div style="text-align: center; color: var(--muted); padding: 40px;">${t("sessions.loading")}</div>` : ""}
 
         ${!this.loading && rows.length === 0 ? html`
            <div class="card" style="text-align: center; padding: 40px;">
               <div style="font-size: 32px; margin-bottom: 12px; opacity: 0.4;">🐙</div>
-              <div style="color: var(--muted);">No sessions found</div>
-              <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Start a chat to create your first session</div>
+              <div style="color: var(--muted);">${t("sessions.emptyTitle")}</div>
+              <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">${t("sessions.emptySubtitle")}</div>
            </div>
         ` : ""}
 
@@ -184,14 +185,14 @@ export class SessionsView extends LitElement {
                                  }} />
                        </th>
                        <th style="padding: 10px 12px; text-align: left; cursor: pointer; user-select: none; color: var(--muted);"
-                           @click=${() => this.toggleSort("key")}>Session${this.renderSortIcon("key")}</th>
-                       <th style="padding: 10px 12px; text-align: left; color: var(--muted);">Model</th>
-                       <th style="padding: 10px 12px; text-align: center; color: var(--muted);">Turns</th>
+                           @click=${() => this.toggleSort("key")}>${t("sessions.columnSession")}${this.renderSortIcon("key")}</th>
+                       <th style="padding: 10px 12px; text-align: left; color: var(--muted);">${t("sessions.columnModel")}</th>
+                       <th style="padding: 10px 12px; text-align: center; color: var(--muted);">${t("sessions.columnTurns")}</th>
                        <th style="padding: 10px 12px; text-align: right; cursor: pointer; user-select: none; color: var(--muted);"
-                           @click=${() => this.toggleSort("tokens")}>Tokens${this.renderSortIcon("tokens")}</th>
+                           @click=${() => this.toggleSort("tokens")}>${t("sessions.columnTokens")}${this.renderSortIcon("tokens")}</th>
                        <th style="padding: 10px 12px; text-align: right; cursor: pointer; user-select: none; color: var(--muted);"
-                           @click=${() => this.toggleSort("updated")}>Updated${this.renderSortIcon("updated")}</th>
-                       <th style="padding: 10px 12px; text-align: center; color: var(--muted);">Actions</th>
+                           @click=${() => this.toggleSort("updated")}>${t("sessions.columnUpdated")}${this.renderSortIcon("updated")}</th>
+                       <th style="padding: 10px 12px; text-align: center; color: var(--muted);">${t("common.actions")}</th>
                     </tr>
                  </thead>
                  <tbody>
@@ -217,7 +218,7 @@ export class SessionsView extends LitElement {
                                 </div>
                              </td>
                              <td style="padding: 10px 12px;">
-                                <span style="font-size: 11px; padding: 2px 8px; background: var(--bg-elevated); border-radius: 12px; color: var(--muted);">${s.model || "default"}</span>
+                                <span style="font-size: 11px; padding: 2px 8px; background: var(--bg-elevated); border-radius: 12px; color: var(--muted);">${s.model || t("chat.defaultModel")}</span>
                              </td>
                              <td style="padding: 10px 12px; text-align: center;">${s.turnCount}</td>
                              <td style="padding: 10px 12px; text-align: right; font-family: var(--mono); font-size: 12px;">${this.formatTokens(s.totalTokens)}</td>
@@ -225,12 +226,12 @@ export class SessionsView extends LitElement {
                              <td style="padding: 10px 12px; text-align: center;">
                                 <div style="display: flex; gap: 4px; justify-content: center;">
                                    <button style="background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 8px; cursor: pointer; font-size: 11px; color: var(--foreground);"
-                                    @click=${() => this.switchToSession(s.key)} title="Open in chat">💬</button>
+                                    @click=${() => this.switchToSession(s.key)} title=${t("chat.openInChat")}>💬</button>
                                    <button style="background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 8px; cursor: pointer; font-size: 11px; color: var(--foreground);"
-                                    @click=${() => this.resetSession(s.key)} title="Reset messages">🔄</button>
+                                    @click=${() => this.resetSession(s.key)} title=${t("chat.resetMessages")}>🔄</button>
                                    <button style="background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 8px; cursor: pointer; font-size: 11px; color: var(--destructive, #ef4444);"
-                                    @click=${() => this.confirmDelete === s.key ? this.deleteSession(s.key) : (this.confirmDelete = s.key)} title="Delete">
-                                      ${this.confirmDelete === s.key ? "Confirm?" : "🗑️"}
+                                    @click=${() => this.confirmDelete === s.key ? this.deleteSession(s.key) : (this.confirmDelete = s.key)} title=${t("common.delete")}>
+                                      ${this.confirmDelete === s.key ? t("sessions.confirmDelete") : "🗑️"}
                                    </button>
                                 </div>
                              </td>

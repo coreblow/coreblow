@@ -1,5 +1,6 @@
 import { LitElement, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { t } from "../../i18n/index.ts";
 import type { CoreBlowApp } from "../app.ts";
 
 type AgentRow = {
@@ -71,7 +72,7 @@ export class AgentsView extends LitElement {
             <div style="display: flex; align-items: center; gap: 10px;">
                <span style="font-size: 24px;">🤖</span>
                <div style="flex: 1;">
-                  <div style="font-weight: 700; font-size: 14px;">Agent</div>
+                  <div style="font-weight: 700; font-size: 14px;">${t("agents.agentLabel")}</div>
                   <div style="font-size: 11px; font-family: var(--mono); color: var(--muted);">${a.id.length > 24 ? a.id.slice(0, 24) + "…" : a.id}</div>
                </div>
                <span style="width: 8px; height: 8px; border-radius: 50%; background: ${stateColor};"></span>
@@ -79,26 +80,26 @@ export class AgentsView extends LitElement {
 
             <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
                <div>
-                  <div style="color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;">Model</div>
-                  <div style="font-family: var(--mono); margin-top: 2px;">${a.model || "default"}</div>
+                  <div style="color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;">${t("agents.model")}</div>
+                  <div style="font-family: var(--mono); margin-top: 2px;">${a.model || t("chat.defaultModel")}</div>
                </div>
                <div>
-                  <div style="color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;">State</div>
+                  <div style="color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;">${t("agents.state")}</div>
                   <div style="margin-top: 2px; color: ${stateColor}; font-weight: 600;">${a.state}</div>
                </div>
                <div>
-                  <div style="color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;">Turns</div>
+                  <div style="color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;">${t("agents.turns")}</div>
                   <div style="margin-top: 2px;">${a.turnCount}</div>
                </div>
                <div>
-                  <div style="color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;">Tokens</div>
+                  <div style="color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;">${t("agents.tokens")}</div>
                   <div style="font-family: var(--mono); margin-top: 2px;">${a.totalTokens > 1000 ? (a.totalTokens / 1000).toFixed(1) + "K" : a.totalTokens}</div>
                </div>
             </div>
 
             <div style="margin-top: 12px; display: flex; gap: 6px;">
                <button style="flex: 1; background: var(--accent); color: white; border: none; padding: 6px; border-radius: var(--radius-sm); cursor: pointer; font-size: 11px; font-weight: 600;"
-                @click=${() => { this.app.chat.sessionKey = a.id; this.app.setTab("chat" as any); }}>💬 Chat</button>
+                @click=${() => { this.app.chat.sessionKey = a.id; this.app.setTab("chat" as any); }}>💬 ${t("tabs.chat")}</button>
                <button style="background: none; border: 1px solid var(--border); padding: 6px 10px; border-radius: var(--radius-sm); cursor: pointer; font-size: 11px; color: var(--destructive, #ef4444);"
                 @click=${() => this.deleteAgent(a.id)}>🗑️</button>
             </div>
@@ -116,8 +117,8 @@ export class AgentsView extends LitElement {
       }
       return html`
          <div class="card">
-            <div class="card-title" style="font-size: 14px;">🔧 Registered Tools</div>
-            <div class="card-sub">${this.tools.length} tools available</div>
+            <div class="card-title" style="font-size: 14px;">🔧 ${t("agents.registeredTools")}</div>
+            <div class="card-sub">${t("agents.toolsAvailable", { count: String(this.tools.length) })}</div>
             <div style="margin-top: 12px;">
                ${[...grouped.entries()].map(([cat, items]) => html`
                   <div style="margin-bottom: 12px;">
@@ -142,45 +143,45 @@ export class AgentsView extends LitElement {
          <div class="card">
             <div style="display: flex; align-items: center; gap: 12px;">
                <div style="flex: 1;">
-                  <div class="card-title">🤖 AI Agents</div>
-                  <div class="card-sub">${this.agents.length} active agent${this.agents.length !== 1 ? "s" : ""}</div>
+                  <div class="card-title">🤖 ${t("agents.title")}</div>
+                  <div class="card-sub">${t("agents.activeSummary", { count: String(this.agents.length) })}</div>
                </div>
                <button class="btn" style="background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600;"
-                @click=${() => this.showCreateForm = !this.showCreateForm}>+ New Agent</button>
+                @click=${() => this.showCreateForm = !this.showCreateForm}>+ ${t("agents.newAgent")}</button>
                <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground);"
-                @click=${() => this.loadData()}>↻ Refresh</button>
+                @click=${() => this.loadData()}>↻ ${t("common.refresh")}</button>
             </div>
 
             ${this.showCreateForm ? html`
                <div style="margin-top: 16px; padding: 16px; background: var(--bg-elevated); border-radius: var(--radius-sm); border: 1px solid var(--border);">
-                  <div style="font-weight: 600; font-size: 13px; margin-bottom: 10px;">Create Agent</div>
+                  <div style="font-weight: 600; font-size: 13px; margin-bottom: 10px;">${t("agents.createAgent")}</div>
                   <div style="display: grid; gap: 8px;">
                      <input style="background: var(--bg-surface, #1a1a2e); border: 1px solid var(--border); padding: 8px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-family: var(--mono); font-size: 12px;"
-                            placeholder="Model (optional, e.g. claude-sonnet-4-20250514)"
+                            placeholder=${t("agents.modelPlaceholder")}
                             .value=${this.newModel}
                             @input=${(e: Event) => this.newModel = (e.target as HTMLInputElement).value} />
                      <textarea style="background: var(--bg-surface, #1a1a2e); border: 1px solid var(--border); padding: 8px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-size: 12px; resize: vertical; min-height: 60px;"
-                               placeholder="System prompt (optional)"
+                               placeholder=${t("agents.systemPromptPlaceholder")}
                                .value=${this.newPrompt}
                                @input=${(e: Event) => this.newPrompt = (e.target as HTMLTextAreaElement).value}></textarea>
                      <div style="display: flex; gap: 8px; justify-content: flex-end;">
                         <button style="background: none; border: 1px solid var(--border); padding: 6px 14px; border-radius: var(--radius-sm); cursor: pointer; color: var(--muted); font-size: 12px;"
-                         @click=${() => this.showCreateForm = false}>Cancel</button>
+                         @click=${() => this.showCreateForm = false}>${t("agents.cancel")}</button>
                         <button style="background: var(--accent); color: white; border: none; padding: 6px 14px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; font-size: 12px;"
-                         @click=${this.createAgent}>Create</button>
+                         @click=${this.createAgent}>${t("agents.create")}</button>
                      </div>
                   </div>
                </div>
             ` : ""}
          </div>
 
-         ${this.loading ? html`<div style="text-align: center; padding: 40px; color: var(--muted);">Loading agents...</div>` : ""}
+         ${this.loading ? html`<div style="text-align: center; padding: 40px; color: var(--muted);">${t("agents.loading")}</div>` : ""}
 
          ${!this.loading && this.agents.length === 0 ? html`
             <div class="card" style="text-align: center; padding: 40px;">
                <div style="font-size: 40px; margin-bottom: 12px; opacity: 0.3;">🤖</div>
-               <div style="color: var(--muted);">No agents running</div>
-               <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Create an agent or start a chat session</div>
+               <div style="color: var(--muted);">${t("agents.emptyTitle")}</div>
+               <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">${t("agents.emptySubtitle")}</div>
             </div>
          ` : ""}
 

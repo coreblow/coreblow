@@ -1,5 +1,6 @@
 import { LitElement, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { t } from "../../i18n/index.ts";
 import type { CoreBlowApp } from "../app.ts";
 
 type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal";
@@ -68,28 +69,28 @@ export class LogsView extends LitElement {
         <div class="card">
            <div style="display: flex; align-items: center; gap: 12px;">
               <div style="flex: 1;">
-                 <div class="card-title">📜 Logs</div>
-                 <div class="card-sub">${entries.length} of ${totalCount} entries</div>
+                 <div class="card-title">📜 ${t("logs.title")}</div>
+                 <div class="card-sub">${t("logs.entriesSummary", { shown: String(entries.length), total: String(totalCount) })}</div>
               </div>
               <button style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px;"
-               @click=${this.exportLogs}>⬇ Export</button>
+               @click=${this.exportLogs}>⬇ ${t("logs.export")}</button>
               <button style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--destructive, #ef4444); font-size: 12px;"
-               @click=${this.clearLogs}>🗑 Clear</button>
+               @click=${this.clearLogs}>🗑 ${t("logs.clear")}</button>
            </div>
 
            <!-- Filters -->
            <div style="margin-top: 12px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
               <input style="flex: 1; min-width: 200px; background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-size: 12px;"
-                     placeholder="Filter logs..."
+                     placeholder=${t("logs.filterPlaceholder")}
                      .value=${this.filterText}
                      @input=${(e: Event) => this.filterText = (e.target as HTMLInputElement).value} />
               ${LEVELS.map(level => html`
                  <button style="font-size: 10px; padding: 3px 8px; border-radius: 10px; border: 1px solid ${this.levelFilters[level] ? LEVEL_COLORS[level] : 'var(--border)'}; background: ${this.levelFilters[level] ? LEVEL_COLORS[level] + '20' : 'transparent'}; color: ${this.levelFilters[level] ? LEVEL_COLORS[level] : 'var(--muted)'}; cursor: pointer; font-weight: 600; text-transform: uppercase;"
-                  @click=${() => this.toggleLevel(level)}>${level}</button>
+                 @click=${() => this.toggleLevel(level)}>${level}</button>
               `)}
               <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted); cursor: pointer; margin-left: 8px;">
                  <input type="checkbox" .checked=${this.autoFollow} @change=${(e: Event) => this.autoFollow = (e.target as HTMLInputElement).checked} />
-                 Auto-follow
+                 ${t("logs.autoFollow")}
               </label>
            </div>
         </div>
@@ -98,7 +99,7 @@ export class LogsView extends LitElement {
         <div class="card" style="padding: 0; overflow: hidden;">
            <div style="max-height: 600px; overflow-y: auto; font-family: var(--mono); font-size: 11px;" id="log-stream">
               ${entries.length === 0 ? html`
-                 <div style="padding: 40px; text-align: center; color: var(--muted);">No log entries${this.filterText ? " matching filter" : ""}</div>
+                 <div style="padding: 40px; text-align: center; color: var(--muted);">${this.filterText ? t("logs.emptyFiltered") : t("logs.empty")}</div>
               ` : ""}
               ${entries.map(e => {
                  const level = (e.level || "info") as LogLevel;

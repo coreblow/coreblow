@@ -1,5 +1,6 @@
 import { LitElement, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { t } from "../../i18n/index.ts";
 import type { CoreBlowApp } from "../app.ts";
 
 type EngineConfig = {
@@ -56,12 +57,12 @@ export class ConfigView extends LitElement {
       this.saving = true;
       try {
          await client.request("config.set", { path, value });
-         this.saveStatus = `✓ ${path} updated`;
+         this.saveStatus = `✓ ${t("config.updated", { path })}`;
          setTimeout(() => this.saveStatus = null, 2000);
          this.loadConfig();
       } catch (err: unknown) {
          const msg = err instanceof Error ? err.message : String(err);
-         this.saveStatus = `✗ Failed: ${msg}`;
+         this.saveStatus = `✗ ${t("config.saveFailed", { message: msg })}`;
       }
       this.saving = false;
   }
@@ -85,7 +86,7 @@ export class ConfigView extends LitElement {
                    @input=${(e: Event) => onInput((e.target as HTMLInputElement).value)} />
             <button style="background: var(--accent); color: white; border: none; padding: 6px 14px; border-radius: var(--radius-sm); cursor: pointer; font-size: 11px; font-weight: 600;"
                     ?disabled=${this.saving}
-                    @click=${() => this.saveField(path, value)}>Save</button>
+                    @click=${() => this.saveField(path, value)}>${t("config.save")}</button>
          </div>
       `;
   }
@@ -100,22 +101,22 @@ export class ConfigView extends LitElement {
          <div class="card">
             <div style="display: flex; align-items: center; gap: 12px;">
                <div style="flex: 1;">
-                  <div class="card-title">⚙️ Configuration</div>
-                  <div class="card-sub">AgentEngine runtime configuration</div>
+                  <div class="card-title">⚙️ ${t("config.title")}</div>
+                  <div class="card-sub">${t("config.subtitle")}</div>
                </div>
                <div style="display: flex; gap: 8px;">
                   <button class="btn" style="background: ${this.viewMode === 'visual' ? 'var(--accent)' : 'var(--bg-elevated)'}; color: ${this.viewMode === 'visual' ? 'white' : 'var(--foreground)'}; border: 1px solid var(--border); padding: 6px 14px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px;"
-                   @click=${() => this.viewMode = "visual"}>Visual</button>
+                   @click=${() => this.viewMode = "visual"}>${t("config.visual")}</button>
                   <button class="btn" style="background: ${this.viewMode === 'raw' ? 'var(--accent)' : 'var(--bg-elevated)'}; color: ${this.viewMode === 'raw' ? 'white' : 'var(--foreground)'}; border: 1px solid var(--border); padding: 6px 14px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px;"
                    @click=${() => this.viewMode = "raw"}>JSON</button>
                </div>
                <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px;"
-                @click=${() => this.loadConfig()}>↻ Refresh</button>
+                @click=${() => this.loadConfig()}>↻ ${t("common.refresh")}</button>
             </div>
             ${this.saveStatus ? html`<div style="margin-top: 8px; font-size: 12px; color: ${this.saveStatus.startsWith("✓") ? "var(--success, #22c55e)" : "var(--destructive, #ef4444)"};">${this.saveStatus}</div>` : ""}
          </div>
 
-         ${this.loading ? html`<div class="card" style="text-align: center; padding: 40px; color: var(--muted);">Loading configuration...</div>` : ""}
+         ${this.loading ? html`<div class="card" style="text-align: center; padding: 40px; color: var(--muted);">${t("config.loading")}</div>` : ""}
 
          ${!this.loading && this.viewMode === "raw" && c ? html`
             <div class="card">
@@ -126,36 +127,36 @@ export class ConfigView extends LitElement {
          ${!this.loading && this.viewMode === "visual" && c ? html`
             <!-- Model & Provider -->
             <div class="card">
-               <div class="card-title" style="font-size: 14px;">🤖 Model Configuration</div>
-               ${this.renderEditableField("Default Model", this.editModel, "defaultModel", v => this.editModel = v)}
-               ${this.renderEditableField("Default Provider", this.editProvider, "defaultProvider", v => this.editProvider = v)}
+               <div class="card-title" style="font-size: 14px;">🤖 ${t("config.modelConfiguration")}</div>
+               ${this.renderEditableField(t("agents.defaultModel"), this.editModel, "defaultModel", v => this.editModel = v)}
+               ${this.renderEditableField(t("agents.defaultProvider"), this.editProvider, "defaultProvider", v => this.editProvider = v)}
             </div>
 
             <!-- Engine Limits -->
             <div class="card">
-               <div class="card-title" style="font-size: 14px;">📊 Engine Limits</div>
-               ${this.renderField("Max Concurrent Sessions", c.maxConcurrentSessions)}
-               ${this.renderField("Max Turns Per Run", c.maxTurnsPerRun)}
-               ${this.renderField("Max Output Tokens", c.maxOutputTokens?.toLocaleString())}
-               ${this.renderField("Context Window", c.contextWindow?.toLocaleString())}
-               ${this.renderField("Sandbox Dir", c.sandboxBaseDir, true)}
+               <div class="card-title" style="font-size: 14px;">📊 ${t("config.engineLimits")}</div>
+               ${this.renderField(t("sessions.maxConcurrent"), c.maxConcurrentSessions)}
+               ${this.renderField(t("agents.maxTurns"), c.maxTurnsPerRun)}
+               ${this.renderField(t("agents.maxOutput"), c.maxOutputTokens?.toLocaleString())}
+               ${this.renderField(t("agents.contextWindow"), c.contextWindow?.toLocaleString())}
+               ${this.renderField(t("agents.sandboxDir"), c.sandboxBaseDir, true)}
             </div>
 
             <!-- Tool Policy -->
             <div class="card">
-               <div class="card-title" style="font-size: 14px;">🔧 Tool Policy</div>
+               <div class="card-title" style="font-size: 14px;">🔧 ${t("config.toolPolicy")}</div>
                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 12px;">
                   <div>
-                     <div style="font-size: 11px; color: var(--success, #22c55e); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Auto-Approve</div>
+                     <div style="font-size: 11px; color: var(--success, #22c55e); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">${t("config.autoApprove")}</div>
                      ${(c.toolApproval?.autoApprove ?? []).map(t => html`<div style="font-family: var(--mono); font-size: 12px; padding: 2px 0;">${t}</div>`)}
                   </div>
                   <div>
-                     <div style="font-size: 11px; color: var(--warning, #f59e0b); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Require Approval</div>
+                     <div style="font-size: 11px; color: var(--warning, #f59e0b); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">${t("config.requireApproval")}</div>
                      ${(c.toolApproval?.requireApproval ?? []).map(t => html`<div style="font-family: var(--mono); font-size: 12px; padding: 2px 0;">${t}</div>`)}
                   </div>
                   <div>
-                     <div style="font-size: 11px; color: var(--destructive, #ef4444); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Denied</div>
-                     ${(c.toolApproval?.deny ?? []).length === 0 ? html`<div style="font-size: 12px; color: var(--muted);">None</div>` : ""}
+                     <div style="font-size: 11px; color: var(--destructive, #ef4444); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">${t("config.denied")}</div>
+                     ${(c.toolApproval?.deny ?? []).length === 0 ? html`<div style="font-size: 12px; color: var(--muted);">${t("common.none")}</div>` : ""}
                      ${(c.toolApproval?.deny ?? []).map(t => html`<div style="font-family: var(--mono); font-size: 12px; padding: 2px 0;">${t}</div>`)}
                   </div>
                </div>
@@ -163,9 +164,9 @@ export class ConfigView extends LitElement {
 
             <!-- Runtime Info -->
             <div class="card">
-               <div class="card-title" style="font-size: 14px;">📡 Runtime Status</div>
-               ${this.renderField("Active Sessions", c.activeSessions)}
-               ${this.renderField("Registered Tools", `${c.registeredTools?.length ?? 0} tools`)}
+               <div class="card-title" style="font-size: 14px;">📡 ${t("config.runtimeStatus")}</div>
+               ${this.renderField(t("sessions.active"), c.activeSessions)}
+               ${this.renderField(t("agents.registeredTools"), t("config.toolsCount", { count: String(c.registeredTools?.length ?? 0) }))}
                ${c.registeredTools && c.registeredTools.length > 0 ? html`
                   <div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px;">
                      ${c.registeredTools.map(t => html`
@@ -177,9 +178,9 @@ export class ConfigView extends LitElement {
 
             <!-- Gateway Connection -->
             <div class="card">
-               <div class="card-title" style="font-size: 14px;">🌐 Gateway Connection</div>
-               ${this.renderField("URL", this.app.settings.gatewayUrl, true)}
-               ${this.renderField("Status", this.app.connected ? "🟢 Connected" : "🔴 Disconnected")}
+               <div class="card-title" style="font-size: 14px;">🌐 ${t("config.gatewayConnection")}</div>
+               ${this.renderField(t("common.url"), this.app.settings.gatewayUrl, true)}
+               ${this.renderField(t("common.status"), this.app.connected ? `🟢 ${t("overview.status.connected")}` : `🔴 ${t("overview.status.disconnected")}`)}
             </div>
          ` : ""}
       </div>

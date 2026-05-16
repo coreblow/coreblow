@@ -1,32 +1,33 @@
 import { LitElement, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { t } from "../../i18n/index.ts";
 import type { CoreBlowApp } from "../app.ts";
 
 type PaletteItem = {
    id: string;
-   label: string;
+   labelKey: string;
    icon: string;
    category: "navigation" | "action" | "rpc";
    action: string;
-   description?: string;
+   descriptionKey?: string;
 };
 
 const PALETTE_ITEMS: PaletteItem[] = [
-   { id: "nav-overview", label: "Overview", icon: "📊", category: "navigation", action: "nav:overview" },
-   { id: "nav-chat", label: "Chat", icon: "💬", category: "navigation", action: "nav:chat" },
-   { id: "nav-sessions", label: "Sessions", icon: "📋", category: "navigation", action: "nav:sessions" },
-   { id: "nav-agents", label: "AI Agents", icon: "🤖", category: "navigation", action: "nav:aiAgents" },
-   { id: "nav-config", label: "Configuration", icon: "⚙️", category: "navigation", action: "nav:config" },
-   { id: "nav-debug", label: "Debug Console", icon: "🔍", category: "navigation", action: "nav:debug" },
-   { id: "nav-usage", label: "Usage & Metrics", icon: "📈", category: "navigation", action: "nav:usage" },
-   { id: "nav-skills", label: "Skills", icon: "⚡", category: "navigation", action: "nav:skills" },
-   { id: "nav-logs", label: "Logs", icon: "📜", category: "navigation", action: "nav:logs" },
-   { id: "nav-cron", label: "Cron Jobs", icon: "⏰", category: "navigation", action: "nav:cron" },
-   { id: "act-reconnect", label: "Reconnect Gateway", icon: "🔌", category: "action", action: "act:reconnect", description: "Reconnect to WebSocket" },
-   { id: "act-new-session", label: "New Chat Session", icon: "➕", category: "action", action: "act:new-session", description: "Create a new chat session" },
-   { id: "rpc-health", label: "health.snapshot", icon: "💗", category: "rpc", action: "rpc:health.snapshot", description: "Check system health" },
-   { id: "rpc-sessions", label: "sessions.list", icon: "📋", category: "rpc", action: "rpc:sessions.list", description: "List active sessions" },
-   { id: "rpc-models", label: "models.list", icon: "🤖", category: "rpc", action: "rpc:models.list", description: "List available models" },
+   { id: "nav-overview", labelKey: "tabs.overview", icon: "📊", category: "navigation", action: "nav:overview" },
+   { id: "nav-chat", labelKey: "tabs.chat", icon: "💬", category: "navigation", action: "nav:chat" },
+   { id: "nav-sessions", labelKey: "tabs.sessions", icon: "📋", category: "navigation", action: "nav:sessions" },
+   { id: "nav-agents", labelKey: "tabs.aiAgents", icon: "🤖", category: "navigation", action: "nav:aiAgents" },
+   { id: "nav-config", labelKey: "config.title", icon: "⚙️", category: "navigation", action: "nav:config" },
+   { id: "nav-debug", labelKey: "debug.title", icon: "🔍", category: "navigation", action: "nav:debug" },
+   { id: "nav-usage", labelKey: "usage.title", icon: "📈", category: "navigation", action: "nav:usage" },
+   { id: "nav-skills", labelKey: "skills.title", icon: "⚡", category: "navigation", action: "nav:skills" },
+   { id: "nav-logs", labelKey: "logs.title", icon: "📜", category: "navigation", action: "nav:logs" },
+   { id: "nav-cron", labelKey: "cron.title", icon: "⏰", category: "navigation", action: "nav:cron" },
+   { id: "act-reconnect", labelKey: "overview.status.reconnect", icon: "🔌", category: "action", action: "act:reconnect", descriptionKey: "overview.status.reconnectWs" },
+   { id: "act-new-session", labelKey: "chat.newSession", icon: "➕", category: "action", action: "act:new-session", descriptionKey: "chat.createSession" },
+   { id: "rpc-health", labelKey: "debug.rpcHealth", icon: "💗", category: "rpc", action: "rpc:health.snapshot", descriptionKey: "overview.health.checkHealth" },
+   { id: "rpc-sessions", labelKey: "debug.rpcSessions", icon: "📋", category: "rpc", action: "rpc:sessions.list", descriptionKey: "sessions.list" },
+   { id: "rpc-models", labelKey: "debug.rpcModels", icon: "🤖", category: "rpc", action: "rpc:models.list", descriptionKey: "usage.listModels" },
 ];
 
 @customElement("coreblow-command-palette")
@@ -68,8 +69,16 @@ export class CommandPalette extends LitElement {
       if (!this.query) return PALETTE_ITEMS;
       const q = this.query.toLowerCase();
       return PALETTE_ITEMS.filter(item =>
-         item.label.toLowerCase().includes(q) || (item.description ?? "").toLowerCase().includes(q)
+         this.labelFor(item).toLowerCase().includes(q) || this.descriptionFor(item).toLowerCase().includes(q)
       );
+  }
+
+  private labelFor(item: PaletteItem): string {
+      return t(item.labelKey);
+  }
+
+  private descriptionFor(item: PaletteItem): string {
+      return item.descriptionKey ? t(item.descriptionKey) : "";
   }
 
   private executeItem(item?: PaletteItem) {
@@ -97,9 +106,9 @@ export class CommandPalette extends LitElement {
   }
 
   private categoryLabel(cat: string): string {
-      if (cat === "navigation") return "Navigate";
-      if (cat === "action") return "Actions";
-      if (cat === "rpc") return "RPC Calls";
+      if (cat === "navigation") return t("nav.navigate");
+      if (cat === "action") return t("common.actions");
+      if (cat === "rpc") return t("debug.rpc");
       return cat;
   }
 
@@ -122,7 +131,7 @@ export class CommandPalette extends LitElement {
             <div style="padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px;">
                <span style="color: var(--muted); font-size: 14px;">🔍</span>
                <input autofocus style="flex: 1; background: transparent; border: none; outline: none; color: var(--foreground); font-size: 14px; font-family: var(--font-sans);"
-                      placeholder="Type a command..."
+                      placeholder=${t("overview.palette.placeholder")}
                       .value=${this.query}
                       @input=${(e: Event) => { this.query = (e.target as HTMLInputElement).value; this.selectedIndex = 0; }} />
                <kbd style="font-size: 10px; padding: 2px 6px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 4px; color: var(--muted);">ESC</kbd>
@@ -131,7 +140,7 @@ export class CommandPalette extends LitElement {
             <!-- Results -->
             <div style="max-height: 400px; overflow-y: auto; padding: 8px 0;">
                ${items.length === 0 ? html`
-                  <div style="padding: 24px; text-align: center; color: var(--muted); font-size: 13px;">No commands found</div>
+                  <div style="padding: 24px; text-align: center; color: var(--muted); font-size: 13px;">${t("overview.palette.noResults")}</div>
                ` : ""}
                ${[...grouped.entries()].map(([cat, catItems]) => {
                   return html`
@@ -145,8 +154,8 @@ export class CommandPalette extends LitElement {
                                 @mouseenter=${() => this.selectedIndex = idx}>
                               <span style="font-size: 16px; min-width: 24px; text-align: center;">${item.icon}</span>
                               <div style="flex: 1;">
-                                 <div style="font-size: 13px; font-weight: ${isSelected ? '600' : '400'};">${item.label}</div>
-                                 ${item.description ? html`<div style="font-size: 11px; color: var(--muted);">${item.description}</div>` : ""}
+                                 <div style="font-size: 13px; font-weight: ${isSelected ? '600' : '400'};">${this.labelFor(item)}</div>
+                                 ${this.descriptionFor(item) ? html`<div style="font-size: 11px; color: var(--muted);">${this.descriptionFor(item)}</div>` : ""}
                               </div>
                               ${isSelected ? html`<span style="font-size: 11px; color: var(--muted);">↵</span>` : ""}
                            </div>
@@ -158,10 +167,10 @@ export class CommandPalette extends LitElement {
 
             <!-- Footer -->
             <div style="padding: 8px 16px; border-top: 1px solid var(--border); display: flex; gap: 12px; font-size: 10px; color: var(--muted);">
-               <span>↑↓ navigate</span>
-               <span>↵ select</span>
-               <span>esc close</span>
-               <span style="margin-left: auto;">⌘K to toggle</span>
+               <span>${t("overview.palette.navigateHint")}</span>
+               <span>${t("overview.palette.selectHint")}</span>
+               <span>${t("overview.palette.closeHint")}</span>
+               <span style="margin-left: auto;">${t("overview.palette.toggleHint")}</span>
             </div>
          </div>
       </div>
