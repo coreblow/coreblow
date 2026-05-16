@@ -1,8 +1,8 @@
 {
-  "name": "@coreblow/ext-matrix",
+  "name": "@coreblow/matrix",
   "type": "module",
   "version": "0.1.0",
-  "description": "Matrix protocol integration for decentralized messaging",
+  "description": "CoreBlow Matrix channel plugin",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -14,5 +14,27 @@
   "devDependencies": {
     "typescript": "^5.4.0",
     "vitest": "^4.1.4"
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "channel": {
+      "id": "matrix",
+      "label": "Matrix",
+      "selectionLabel": "Matrix (plugin)",
+      "docsPath": "/channels/matrix",
+      "docsLabel": "matrix",
+      "blurb": "open protocol; install the plugin to enable.",
+      "order": 70,
+      "quickstartAllowFrom": true
+    },
+    "setupEntry": "./setup-entry.ts",
+    "install": {
+      "npmSpec": "@coreblow/matrix",
+      "localPath": "extensions/matrix",
+      "defaultChoice": "npm",
+      "minHostVersion": ">=1.0.0"
+    }
   }
 }

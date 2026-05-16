@@ -1,8 +1,8 @@
 {
-  "name": "@coreblow/ext-irc",
+  "name": "@coreblow/irc",
   "type": "module",
   "version": "0.1.0",
-  "description": "IRC client integration for classic chat networks",
+  "description": "CoreBlow IRC channel plugin",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -14,5 +14,24 @@
   "devDependencies": {
     "typescript": "^5.4.0",
     "vitest": "^4.1.4"
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "channel": {
+      "id": "irc",
+      "label": "IRC",
+      "selectionLabel": "IRC (Server + Nick)",
+      "detailLabel": "IRC",
+      "docsPath": "/channels/irc",
+      "docsLabel": "irc",
+      "blurb": "classic IRC networks with DM/channel routing and pairing controls.",
+      "systemImage": "network"
+    },
+    "setupEntry": "./setup-entry.ts",
+    "install": {
+      "minHostVersion": ">=1.0.0"
+    }
   }
 }

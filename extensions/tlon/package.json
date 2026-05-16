@@ -1,8 +1,8 @@
 {
-  "name": "@coreblow/ext-tlon",
+  "name": "@coreblow/tlon",
   "type": "module",
   "version": "0.1.0",
-  "description": "Tlon Urbit integration",
+  "description": "CoreBlow Tlon/Urbit channel plugin",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -14,5 +14,27 @@
   "devDependencies": {
     "typescript": "^5.4.0",
     "vitest": "^4.1.4"
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "channel": {
+      "id": "tlon",
+      "label": "Tlon",
+      "selectionLabel": "Tlon (Urbit)",
+      "docsPath": "/channels/tlon",
+      "docsLabel": "tlon",
+      "blurb": "decentralized messaging on Urbit; install the plugin to enable.",
+      "order": 90,
+      "quickstartAllowFrom": true
+    },
+    "setupEntry": "./setup-entry.ts",
+    "install": {
+      "npmSpec": "@coreblow/tlon",
+      "localPath": "extensions/tlon",
+      "defaultChoice": "npm",
+      "minHostVersion": ">=1.0.0"
+    }
   }
 }

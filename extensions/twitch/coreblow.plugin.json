@@ -1,17 +1,11 @@
 {
-  "name": "twitch",
-  "version": "0.1.0",
-  "description": "Twitch extension",
-  "main": "index.ts",
-  "permissions": [
-    "messages.read",
-    "messages.write"
-  ],
+  "id": "twitch",
   "channels": [
     "twitch"
   ],
-  "hooks": [
-    "onMessage",
-    "onCommand"
-  ]
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
 }

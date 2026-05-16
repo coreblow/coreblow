@@ -1,17 +1,11 @@
 {
-  "name": "signal",
-  "version": "0.1.0",
-  "description": "Signal extension",
-  "main": "index.ts",
-  "permissions": [
-    "messages.read",
-    "messages.write"
-  ],
+  "id": "signal",
   "channels": [
     "signal"
   ],
-  "hooks": [
-    "onMessage",
-    "onCommand"
-  ]
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
 }

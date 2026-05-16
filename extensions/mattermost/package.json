@@ -1,8 +1,8 @@
 {
-  "name": "@coreblow/ext-mattermost",
+  "name": "@coreblow/mattermost",
   "type": "module",
   "version": "0.1.0",
-  "description": "Mattermost team messaging integration",
+  "description": "CoreBlow Mattermost channel plugin",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -14,5 +14,26 @@
   "devDependencies": {
     "typescript": "^5.4.0",
     "vitest": "^4.1.4"
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "channel": {
+      "id": "mattermost",
+      "label": "Mattermost",
+      "selectionLabel": "Mattermost (plugin)",
+      "docsPath": "/channels/mattermost",
+      "docsLabel": "mattermost",
+      "blurb": "self-hosted Slack-style chat; install the plugin to enable.",
+      "order": 65
+    },
+    "setupEntry": "./setup-entry.ts",
+    "install": {
+      "npmSpec": "@coreblow/mattermost",
+      "localPath": "extensions/mattermost",
+      "defaultChoice": "npm",
+      "minHostVersion": ">=1.0.0"
+    }
   }
 }

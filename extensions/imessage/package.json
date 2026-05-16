@@ -1,8 +1,8 @@
 {
-  "name": "@coreblow/ext-imessage",
+  "name": "@coreblow/imessage",
   "type": "module",
   "version": "0.1.0",
-  "description": "iMessage integration via AppleScript bridge",
+  "description": "CoreBlow iMessage channel plugin",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -14,5 +14,24 @@
   "devDependencies": {
     "typescript": "^5.4.0",
     "vitest": "^4.1.4"
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "channel": {
+      "id": "imessage",
+      "label": "iMessage",
+      "selectionLabel": "iMessage (imsg)",
+      "detailLabel": "iMessage",
+      "docsPath": "/channels/imessage",
+      "docsLabel": "imessage",
+      "blurb": "this is still a work in progress.",
+      "aliases": [
+        "imsg"
+      ],
+      "systemImage": "message.fill"
+    },
+    "setupEntry": "./setup-entry.ts"
   }
 }

@@ -1,8 +1,8 @@
 {
-  "name": "@coreblow/ext-zalouser",
+  "name": "@coreblow/zalouser",
   "type": "module",
   "version": "0.1.0",
-  "description": "Zalo user authentication adapter",
+  "description": "CoreBlow Zalo Personal Account plugin via native zca-js integration",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -17,5 +17,30 @@
   "devDependencies": {
     "typescript": "^5.4.0",
     "vitest": "^4.1.4"
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "channel": {
+      "id": "zalouser",
+      "label": "Zalo Personal",
+      "selectionLabel": "Zalo (Personal Account)",
+      "docsPath": "/channels/zalouser",
+      "docsLabel": "zalouser",
+      "blurb": "Zalo personal account via QR code login.",
+      "aliases": [
+        "zlu"
+      ],
+      "order": 85,
+      "quickstartAllowFrom": false
+    },
+    "setupEntry": "./setup-entry.ts",
+    "install": {
+      "npmSpec": "@coreblow/zalouser",
+      "localPath": "extensions/zalouser",
+      "defaultChoice": "npm",
+      "minHostVersion": ">=1.0.0"
+    }
   }
 }

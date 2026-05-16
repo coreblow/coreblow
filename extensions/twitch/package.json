@@ -1,8 +1,8 @@
 {
-  "name": "@coreblow/ext-twitch",
+  "name": "@coreblow/twitch",
   "type": "module",
   "version": "0.1.0",
-  "description": "Twitch chat bot with channel point redemptions",
+  "description": "CoreBlow Twitch channel plugin",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -14,5 +14,23 @@
   "devDependencies": {
     "typescript": "^5.4.0",
     "vitest": "^4.1.4"
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "channel": {
+      "id": "twitch",
+      "label": "Twitch",
+      "selectionLabel": "Twitch (Chat)",
+      "docsPath": "/channels/twitch",
+      "blurb": "Twitch chat integration",
+      "aliases": [
+        "twitch-chat"
+      ]
+    },
+    "install": {
+      "minHostVersion": ">=1.0.0"
+    }
   }
 }

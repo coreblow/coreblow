@@ -1,8 +1,8 @@
 {
-  "name": "@coreblow/ext-line",
+  "name": "@coreblow/line",
   "type": "module",
   "version": "0.1.0",
-  "description": "LINE messenger integration",
+  "description": "CoreBlow LINE channel plugin",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -14,5 +14,27 @@
   "devDependencies": {
     "typescript": "^5.4.0",
     "vitest": "^4.1.4"
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "channel": {
+      "id": "line",
+      "label": "LINE",
+      "selectionLabel": "LINE (Messaging API)",
+      "docsPath": "/channels/line",
+      "docsLabel": "line",
+      "blurb": "LINE Messaging API bot for Japan/Taiwan/Thailand markets.",
+      "order": 75,
+      "quickstartAllowFrom": true
+    },
+    "setupEntry": "./setup-entry.ts",
+    "install": {
+      "npmSpec": "@coreblow/line",
+      "localPath": "extensions/line",
+      "defaultChoice": "npm",
+      "minHostVersion": ">=1.0.0"
+    }
   }
 }

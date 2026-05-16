@@ -1,8 +1,8 @@
 {
-  "name": "@coreblow/ext-nextcloud-talk",
+  "name": "@coreblow/nextcloud-talk",
   "type": "module",
   "version": "0.1.0",
-  "description": "Nextcloud Talk integration",
+  "description": "CoreBlow Nextcloud Talk channel plugin",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -14,5 +14,31 @@
   "devDependencies": {
     "typescript": "^5.4.0",
     "vitest": "^4.1.4"
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "channel": {
+      "id": "nextcloud-talk",
+      "label": "Nextcloud Talk",
+      "selectionLabel": "Nextcloud Talk (self-hosted)",
+      "docsPath": "/channels/nextcloud-talk",
+      "docsLabel": "nextcloud-talk",
+      "blurb": "Self-hosted chat via Nextcloud Talk webhook bots.",
+      "aliases": [
+        "nc-talk",
+        "nc"
+      ],
+      "order": 65,
+      "quickstartAllowFrom": true
+    },
+    "setupEntry": "./setup-entry.ts",
+    "install": {
+      "npmSpec": "@coreblow/nextcloud-talk",
+      "localPath": "extensions/nextcloud-talk",
+      "defaultChoice": "npm",
+      "minHostVersion": ">=1.0.0"
+    }
   }
 }

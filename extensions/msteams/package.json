@@ -1,8 +1,8 @@
 {
-  "name": "@coreblow/ext-msteams",
+  "name": "@coreblow/msteams",
   "type": "module",
   "version": "0.1.0",
-  "description": "Microsoft Teams bot with adaptive cards",
+  "description": "CoreBlow Microsoft Teams channel plugin",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -18,5 +18,29 @@
   "devDependencies": {
     "typescript": "^5.4.0",
     "vitest": "^4.1.4"
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "channel": {
+      "id": "msteams",
+      "label": "Microsoft Teams",
+      "selectionLabel": "Microsoft Teams (Teams SDK)",
+      "docsPath": "/channels/msteams",
+      "docsLabel": "msteams",
+      "blurb": "Teams SDK; enterprise support.",
+      "aliases": [
+        "teams"
+      ],
+      "order": 60
+    },
+    "setupEntry": "./setup-entry.ts",
+    "install": {
+      "npmSpec": "@coreblow/msteams",
+      "localPath": "extensions/msteams",
+      "defaultChoice": "npm",
+      "minHostVersion": ">=1.0.0"
+    }
   }
 }

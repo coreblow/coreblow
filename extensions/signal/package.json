@@ -1,8 +1,8 @@
 {
-  "name": "@coreblow/ext-signal",
+  "name": "@coreblow/signal",
   "type": "module",
   "version": "0.1.0",
-  "description": "Signal messenger integration via signal-cli",
+  "description": "CoreBlow Signal channel plugin",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -14,5 +14,21 @@
   "devDependencies": {
     "typescript": "^5.4.0",
     "vitest": "^4.1.4"
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "channel": {
+      "id": "signal",
+      "label": "Signal",
+      "selectionLabel": "Signal (signal-cli)",
+      "detailLabel": "Signal REST",
+      "docsPath": "/channels/signal",
+      "docsLabel": "signal",
+      "blurb": "signal-cli linked device; requires additional setup.",
+      "systemImage": "antenna.radiowaves.left.and.right"
+    },
+    "setupEntry": "./setup-entry.ts"
   }
 }

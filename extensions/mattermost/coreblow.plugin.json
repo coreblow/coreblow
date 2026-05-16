@@ -1,17 +1,11 @@
 {
-  "name": "mattermost",
-  "version": "0.1.0",
-  "description": "Mattermost extension",
-  "main": "index.ts",
-  "permissions": [
-    "messages.read",
-    "messages.write"
-  ],
+  "id": "mattermost",
   "channels": [
     "mattermost"
   ],
-  "hooks": [
-    "onMessage",
-    "onCommand"
-  ]
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
 }
