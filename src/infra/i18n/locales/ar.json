@@ -364,6 +364,229 @@
             "choices": "خيارات",
             "preset": "قيمة مسبقة",
             "env": "env"
+        },
+        "channels": {
+            "description": "إدارة قنوات chat المتصلة والحسابات",
+            "commands": {
+                "list": "List configured channels + auth profiles",
+                "status": "Show gateway channel status (use status --deep for local)",
+                "capabilities": "Show provider capabilities (intents/scopes + supported features)",
+                "resolve": "Resolve channel/user names to IDs",
+                "logs": "Show recent channel logs from the gateway log file",
+                "add": "إضافة أو تحديث حساب channel",
+                "remove": "Disable or delete a channel account",
+                "login": "ربط حساب channel (إذا كان مدعوماً)",
+                "logout": "تسجيل الخروج من جلسة channel (إذا كان مدعوماً)"
+            },
+            "options": {
+                "no_usage": "Skip model provider usage/quota snapshots",
+                "probe": "Probe channel credentials",
+                "timeout_ms": "Timeout in ms",
+                "channel": "Channel ({{channels}})",
+                "account_with_channel": "Account id (only with --channel)",
+                "target": "Channel target for permission audit (Discord channel:<id>)",
+                "account": "Account id (accountId)",
+                "kind": "Target kind (auto|user|group)",
+                "lines": "Number of lines",
+                "delete": "Delete config entries (no prompt)",
+                "channel_alias": "Channel alias (auto when only one is configured)",
+                "verbose_connection": "Verbose connection logs"
+            },
+            "arguments": {
+                "entries": "Entries to resolve (names or ids)"
+            },
+            "examples": {
+                "list": "List configured channels and auth profiles.",
+                "status_probe": "Run channel status checks and probes.",
+                "add_telegram": "Add or update a channel account non-interactively.",
+                "login_whatsapp": "Link a WhatsApp Web account."
+            },
+            "errors": {
+                "login_failed": "Channel login failed",
+                "logout_failed": "Channel logout failed"
+            },
+            "add": {
+                "options": {
+                    "account": "ID الحساب (افتراضي عند الحذف)",
+                    "name": "اسم العرض لهذا الحساب",
+                    "credential": "اعتماد bot (Telegram/Discord)",
+                    "nostr_credential": "اعتماد Nostr (nsec... أو hex)",
+                    "credential_file": "ملف اعتماد bot (Telegram)",
+                    "slack_bot_credential": "اعتماد bot Slack (xoxb-...)",
+                    "slack_app_credential": "اعتماد app Slack (xapp-...)",
+                    "signal_number": "رقم حساب Signal (E.164)",
+                    "cli_path": "مسار CLI (signal-cli أو imsg)",
+                    "db_path": "مسار قاعدة بيانات iMessage",
+                    "service": "خدمة iMessage (imessage|sms|auto)",
+                    "region": "منطقة iMessage (للرسائل SMS)",
+                    "auth_dir": "تجاوز مجلد auth في WhatsApp",
+                    "http_url": "Base URL للdaemon HTTP في Signal",
+                    "http_host": "Host HTTP في Signal",
+                    "http_port": "Port HTTP في Signal",
+                    "webhook_path": "مسار webhook (Google Chat/BlueBubbles)",
+                    "webhook_url": "URL webhook في Google Chat",
+                    "audience_type": "نوع audience في Google Chat (app-url|project-number)",
+                    "audience": "قيمة audience في Google Chat (app URL أو project number)",
+                    "homeserver": "URL homeserver في Matrix",
+                    "user_id": "ID المستخدم في Matrix",
+                    "matrix_credential": "اعتماد وصول Matrix",
+                    "matrix_passphrase": "عبارة مرور Matrix",
+                    "device_name": "اسم جهاز Matrix",
+                    "initial_sync_limit": "حد initial sync في Matrix",
+                    "ship": "اسم ship في Tlon (~sampel-palnet)",
+                    "url": "URL ship في Tlon",
+                    "relay_urls": "URLs relay في Nostr (مفصولة بفواصل)",
+                    "code": "رمز login في Tlon",
+                    "group_channels": "قنوات group في Tlon (مفصولة بفواصل)",
+                    "dm_allowlist": "Allowlist DM في Tlon (ships مفصولة بفواصل)",
+                    "auto_discover_channels": "اكتشاف قنوات group في Tlon تلقائياً",
+                    "no_auto_discover_channels": "تعطيل auto-discovery في Tlon",
+                    "use_env": "استخدام اعتماد env (الحساب الافتراضي فقط)"
+                }
+            }
+        },
+        "models": {
+            "description": "Model discovery, scanning, and configuration",
+            "commands": {
+                "list": "List models (configured by default)",
+                "status": "Show configured model state",
+                "set": "Set the default model",
+                "set_image": "Set the image model",
+                "aliases": "Manage model aliases",
+                "aliases_list": "List model aliases",
+                "aliases_add": "Add or update a model alias",
+                "aliases_remove": "Remove a model alias",
+                "fallbacks": "Manage model fallback list",
+                "fallbacks_list": "List fallback models",
+                "fallbacks_add": "Add a fallback model",
+                "fallbacks_remove": "Remove a fallback model",
+                "fallbacks_clear": "Clear all fallback models",
+                "image_fallbacks": "Manage image model fallback list",
+                "image_fallbacks_list": "List image fallback models",
+                "image_fallbacks_add": "Add an image fallback model",
+                "image_fallbacks_remove": "Remove an image fallback model",
+                "image_fallbacks_clear": "Clear all image fallback models",
+                "scan": "Scan OpenRouter free models for tools + images"
+            },
+            "options": {
+                "status_json": "Output JSON (alias for models status --json)",
+                "status_plain": "Plain output (alias for models status --plain)",
+                "agent": "Agent id to inspect (overrides COREBLOW_AGENT_DIR/PI_CODING_AGENT_DIR)",
+                "all": "Show full model catalog",
+                "local": "Filter to local models",
+                "provider_filter": "Filter by provider",
+                "plain_line": "Plain line output",
+                "plain": "Plain output",
+                "check": "Exit non-zero if auth is expiring/expired (1=expired/missing, 2=expiring)",
+                "probe": "Probe configured provider auth (live)",
+                "probe_provider": "Only probe a single provider",
+                "probe_profile": "Only probe specific auth profile ids (repeat or comma-separated)",
+                "probe_timeout": "Per-probe timeout in ms",
+                "probe_concurrency": "Concurrent probes",
+                "min_params": "Minimum parameter size (billions)",
+                "max_age_days": "Skip models older than N days",
+                "provider_prefix": "Filter by provider prefix",
+                "max_candidates": "Max fallback candidates",
+                "no_probe": "Skip live probes; list free candidates only",
+                "yes": "Accept defaults without prompting",
+                "no_input": "Disable prompts (use defaults)",
+                "set_default": "Set agents.defaults.model to the first selection",
+                "set_image": "Set agents.defaults.imageModel to the first image selection",
+                "probe_max_output": "Probe max output (best-effort)"
+            },
+            "arguments": {
+                "model": "Model id or alias",
+                "alias": "Alias name"
+            },
+            "auth": {
+                "description": "Manage model auth profiles",
+                "commands": {
+                    "add": "Interactive auth helper (setup or paste flows)",
+                    "login": "Run a provider plugin auth flow (OAuth/API key)",
+                    "setup_credential": "تشغيل CLI الخاص بالprovider لإنشاء/مزامنة قيمة auth (يتطلب TTY)",
+                    "paste_credential": "لصق قيمة auth في auth-profiles.json وتحديث config",
+                    "login_github_copilot": "Login to GitHub Copilot via GitHub device flow (TTY required)"
+                },
+                "options": {
+                    "agent": "Agent id for auth order get/set/clear",
+                    "provider_registered": "Provider id registered by a plugin",
+                    "method": "Provider auth method id",
+                    "set_default": "Apply the provider default model recommendation",
+                    "provider_default": "Provider id (default: anthropic)",
+                    "provider_example": "Provider id (e.g. anthropic)",
+                    "profile_id": "Auth profile id (default: <provider>:manual)",
+                    "expires_in": "Optional expiry duration (e.g. 365d, 12h). Stored as absolute expiresAt.",
+                    "overwrite_yes": "Overwrite existing profile without prompting",
+                    "agent_default": "Agent id (default: configured default agent)"
+                },
+                "arguments": {
+                    "profile_ids": "Auth profile ids (e.g. anthropic:default)"
+                },
+                "order": {
+                    "description": "Manage per-agent auth profile order overrides",
+                    "commands": {
+                        "get": "Show per-agent auth order override (from auth-profiles.json)",
+                        "set": "Set per-agent auth order override (locks rotation to this list)",
+                        "clear": "Clear per-agent auth order override (fall back to config/round-robin)"
+                    }
+                }
+            }
+        },
+        "gateway": {
+            "description": "Run, inspect, and query the WebSocket Gateway",
+            "examples": {
+                "run": "Run the gateway in the foreground.",
+                "status": "Show service status and probe reachability.",
+                "discover": "Find local and wide-area gateway beacons.",
+                "call_health": "Call a gateway RPC method directly."
+            },
+            "commands": {
+                "run": "Run the WebSocket Gateway (foreground)",
+                "service_status": "Show gateway service status + probe the Gateway",
+                "call": "Call a Gateway method",
+                "usage_cost": "Fetch usage cost summary from session logs",
+                "health": "Fetch Gateway health",
+                "probe": "Show gateway reachability + discovery + health + status summary (local + remote)",
+                "discover": "Discover gateways via Bonjour (local + wide-area if configured)"
+            },
+            "arguments": {
+                "method": "Method name (health/status/system-presence/cron.*)"
+            },
+            "options": {
+                "params": "JSON object string for params",
+                "days": "Number of days to include",
+                "url": "Explicit Gateway WebSocket URL (still probes localhost)",
+                "ssh": "SSH target for remote gateway tunnel (user@host or user@host:port)",
+                "ssh_identity": "SSH identity file path",
+                "ssh_auto": "Try to derive an SSH target from Bonjour discovery",
+                "probe_credential": "Gateway credential (applies to all probes)",
+                "probe_passphrase": "Gateway passphrase (applies to all probes)",
+                "timeout": "Overall probe budget in ms",
+                "command_timeout": "Per-command timeout in ms"
+            },
+            "run": {
+                "options": {
+                    "port": "منفذ WebSocket للgateway",
+                    "bind": "وضع bind (\"loopback\"|\"lan\"|\"tailnet\"|\"auto\"|\"custom\"). الافتراضي config gateway.bind (أو loopback).",
+                    "shared_credential": "اعتماد مشترك مطلوب في connect.params.auth (يستخدم env COREBLOW_GATEWAY_TOKEN إذا كان مضبوطاً)",
+                    "auth": "وضع auth للgateway ({{modes}})",
+                    "passphrase": "اعتماد لوضع auth passphrase",
+                    "passphrase_file": "قراءة اعتماد gateway من ملف",
+                    "tailscale": "وضع عرض Tailscale ({{modes}})",
+                    "tailscale_reset_on_exit": "إعادة ضبط إعداد Tailscale serve/funnel عند الإيقاف",
+                    "allow_unconfigured": "السماح ببدء gateway بدون gateway.mode=local في config",
+                    "dev": "إنشاء config dev + workspace عند النقصان (بدون BOOTSTRAP.md)",
+                    "reset": "إعادة ضبط config dev + credentials + sessions + workspace (يتطلب --dev)",
+                    "force": "إنهاء أي listener موجود على المنفذ الهدف قبل البدء",
+                    "verbose": "تسجيل مفصل إلى stdout/stderr",
+                    "cli_backend_logs": "إظهار CLI backend logs فقط في console (يشمل stdout/stderr)",
+                    "claude_cli_logs": "Alias deprecated لـ --cli-backend-logs",
+                    "ws_log": "نمط log WebSocket (\"auto\"|\"full\"|\"compact\")",
+                    "compact": "Alias لـ --ws-log compact",
+                    "raw_stream": "تسجيل raw model stream events إلى jsonl",
+                    "raw_stream_path": "مسار jsonl لـ raw stream"
+                }
+            }
         }
     }
 }

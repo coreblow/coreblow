@@ -364,6 +364,229 @@
             "choices": "选项",
             "preset": "预设",
             "env": "env"
+        },
+        "channels": {
+            "description": "管理已连接的 chat channel 和账户",
+            "commands": {
+                "list": "List configured channels + auth profiles",
+                "status": "Show gateway channel status (use status --deep for local)",
+                "capabilities": "Show provider capabilities (intents/scopes + supported features)",
+                "resolve": "Resolve channel/user names to IDs",
+                "logs": "Show recent channel logs from the gateway log file",
+                "add": "添加或更新 channel 账户",
+                "remove": "Disable or delete a channel account",
+                "login": "连接 channel 账户（如果支持）",
+                "logout": "退出 channel session（如果支持）"
+            },
+            "options": {
+                "no_usage": "Skip model provider usage/quota snapshots",
+                "probe": "Probe channel credentials",
+                "timeout_ms": "Timeout in ms",
+                "channel": "Channel ({{channels}})",
+                "account_with_channel": "Account id (only with --channel)",
+                "target": "Channel target for permission audit (Discord channel:<id>)",
+                "account": "Account id (accountId)",
+                "kind": "Target kind (auto|user|group)",
+                "lines": "Number of lines",
+                "delete": "Delete config entries (no prompt)",
+                "channel_alias": "Channel alias (auto when only one is configured)",
+                "verbose_connection": "Verbose connection logs"
+            },
+            "arguments": {
+                "entries": "Entries to resolve (names or ids)"
+            },
+            "examples": {
+                "list": "List configured channels and auth profiles.",
+                "status_probe": "Run channel status checks and probes.",
+                "add_telegram": "Add or update a channel account non-interactively.",
+                "login_whatsapp": "Link a WhatsApp Web account."
+            },
+            "errors": {
+                "login_failed": "Channel login failed",
+                "logout_failed": "Channel logout failed"
+            },
+            "add": {
+                "options": {
+                    "account": "账户 ID（省略时为默认）",
+                    "name": "此账户的显示名称",
+                    "credential": "bot 凭证（Telegram/Discord）",
+                    "nostr_credential": "Nostr 凭证（nsec... 或 hex）",
+                    "credential_file": "bot 凭证文件（Telegram）",
+                    "slack_bot_credential": "Slack bot 凭证（xoxb-...）",
+                    "slack_app_credential": "Slack app 凭证（xapp-...）",
+                    "signal_number": "Signal 账户号码（E.164）",
+                    "cli_path": "CLI 路径（signal-cli 或 imsg）",
+                    "db_path": "iMessage 数据库路径",
+                    "service": "iMessage service（imessage|sms|auto）",
+                    "region": "iMessage region（用于 SMS）",
+                    "auth_dir": "WhatsApp auth 目录覆盖",
+                    "http_url": "Signal HTTP daemon base URL",
+                    "http_host": "Signal HTTP host",
+                    "http_port": "Signal HTTP port",
+                    "webhook_path": "Webhook path（Google Chat/BlueBubbles）",
+                    "webhook_url": "Google Chat webhook URL",
+                    "audience_type": "Google Chat audience type（app-url|project-number）",
+                    "audience": "Google Chat audience value（app URL 或 project number）",
+                    "homeserver": "Matrix homeserver URL",
+                    "user_id": "Matrix user ID",
+                    "matrix_credential": "Matrix access credential",
+                    "matrix_passphrase": "Matrix passphrase",
+                    "device_name": "Matrix device name",
+                    "initial_sync_limit": "Matrix initial sync limit",
+                    "ship": "Tlon ship name（~sampel-palnet）",
+                    "url": "Tlon ship URL",
+                    "relay_urls": "Nostr relay URL（逗号分隔）",
+                    "code": "Tlon login code",
+                    "group_channels": "Tlon group channels（逗号分隔）",
+                    "dm_allowlist": "Tlon DM allowlist（ship 逗号分隔）",
+                    "auto_discover_channels": "Tlon 自动发现 group channels",
+                    "no_auto_discover_channels": "禁用 Tlon auto-discovery",
+                    "use_env": "使用 env 凭证（仅默认账户）"
+                }
+            }
+        },
+        "models": {
+            "description": "Model discovery, scanning, and configuration",
+            "commands": {
+                "list": "List models (configured by default)",
+                "status": "Show configured model state",
+                "set": "Set the default model",
+                "set_image": "Set the image model",
+                "aliases": "Manage model aliases",
+                "aliases_list": "List model aliases",
+                "aliases_add": "Add or update a model alias",
+                "aliases_remove": "Remove a model alias",
+                "fallbacks": "Manage model fallback list",
+                "fallbacks_list": "List fallback models",
+                "fallbacks_add": "Add a fallback model",
+                "fallbacks_remove": "Remove a fallback model",
+                "fallbacks_clear": "Clear all fallback models",
+                "image_fallbacks": "Manage image model fallback list",
+                "image_fallbacks_list": "List image fallback models",
+                "image_fallbacks_add": "Add an image fallback model",
+                "image_fallbacks_remove": "Remove an image fallback model",
+                "image_fallbacks_clear": "Clear all image fallback models",
+                "scan": "Scan OpenRouter free models for tools + images"
+            },
+            "options": {
+                "status_json": "Output JSON (alias for models status --json)",
+                "status_plain": "Plain output (alias for models status --plain)",
+                "agent": "Agent id to inspect (overrides COREBLOW_AGENT_DIR/PI_CODING_AGENT_DIR)",
+                "all": "Show full model catalog",
+                "local": "Filter to local models",
+                "provider_filter": "Filter by provider",
+                "plain_line": "Plain line output",
+                "plain": "Plain output",
+                "check": "Exit non-zero if auth is expiring/expired (1=expired/missing, 2=expiring)",
+                "probe": "Probe configured provider auth (live)",
+                "probe_provider": "Only probe a single provider",
+                "probe_profile": "Only probe specific auth profile ids (repeat or comma-separated)",
+                "probe_timeout": "Per-probe timeout in ms",
+                "probe_concurrency": "Concurrent probes",
+                "min_params": "Minimum parameter size (billions)",
+                "max_age_days": "Skip models older than N days",
+                "provider_prefix": "Filter by provider prefix",
+                "max_candidates": "Max fallback candidates",
+                "no_probe": "Skip live probes; list free candidates only",
+                "yes": "Accept defaults without prompting",
+                "no_input": "Disable prompts (use defaults)",
+                "set_default": "Set agents.defaults.model to the first selection",
+                "set_image": "Set agents.defaults.imageModel to the first image selection",
+                "probe_max_output": "Probe max output (best-effort)"
+            },
+            "arguments": {
+                "model": "Model id or alias",
+                "alias": "Alias name"
+            },
+            "auth": {
+                "description": "管理模型 auth profiles",
+                "commands": {
+                    "add": "交互式 auth helper（setup/paste flow）",
+                    "login": "运行 provider plugin auth flow（OAuth/API key）",
+                    "setup_credential": "运行 provider CLI 以创建/同步 auth 值（需要 TTY）",
+                    "paste_credential": "将 auth 值粘贴到 auth-profiles.json 并更新 config",
+                    "login_github_copilot": "通过 GitHub device flow 登录 GitHub Copilot（需要 TTY）"
+                },
+                "options": {
+                    "agent": "auth order get/set/clear 的 agent ID",
+                    "provider_registered": "plugin 注册的 provider ID",
+                    "method": "provider auth method ID",
+                    "set_default": "应用 provider 的默认模型推荐",
+                    "provider_default": "provider ID（默认: anthropic）",
+                    "provider_example": "provider ID（例如 anthropic）",
+                    "profile_id": "auth profile ID（默认: <provider>:manual）",
+                    "expires_in": "可选 expiry duration（例如 365d, 12h）。保存为绝对 expiresAt。",
+                    "overwrite_yes": "不提示并覆盖已有 profile",
+                    "agent_default": "agent ID（默认: 已配置默认 agent）"
+                },
+                "arguments": {
+                    "profile_ids": "auth profile IDs（例如 anthropic:default）"
+                },
+                "order": {
+                    "description": "管理每个 agent 的 auth profile order override",
+                    "commands": {
+                        "get": "显示每个 agent 的 auth order override（来自 auth-profiles.json）",
+                        "set": "设置每个 agent 的 auth order override（将 rotation 锁定到此列表）",
+                        "clear": "清除每个 agent 的 auth order override（回退到 config/round-robin）"
+                    }
+                }
+            }
+        },
+        "gateway": {
+            "description": "Run, inspect, and query the WebSocket Gateway",
+            "examples": {
+                "run": "Run the gateway in the foreground.",
+                "status": "Show service status and probe reachability.",
+                "discover": "Find local and wide-area gateway beacons.",
+                "call_health": "Call a gateway RPC method directly."
+            },
+            "commands": {
+                "run": "运行 WebSocket Gateway（foreground）",
+                "service_status": "Show gateway service status + probe the Gateway",
+                "call": "Call a Gateway method",
+                "usage_cost": "Fetch usage cost summary from session logs",
+                "health": "Fetch Gateway health",
+                "probe": "Show gateway reachability + discovery + health + status summary (local + remote)",
+                "discover": "Discover gateways via Bonjour (local + wide-area if configured)"
+            },
+            "arguments": {
+                "method": "Method name (health/status/system-presence/cron.*)"
+            },
+            "options": {
+                "params": "JSON object string for params",
+                "days": "Number of days to include",
+                "url": "Explicit Gateway WebSocket URL (still probes localhost)",
+                "ssh": "SSH target for remote gateway tunnel (user@host or user@host:port)",
+                "ssh_identity": "SSH identity file path",
+                "ssh_auto": "Try to derive an SSH target from Bonjour discovery",
+                "probe_credential": "Gateway credential (applies to all probes)",
+                "probe_passphrase": "Gateway passphrase (applies to all probes)",
+                "timeout": "Overall probe budget in ms",
+                "command_timeout": "Per-command timeout in ms"
+            },
+            "run": {
+                "options": {
+                    "port": "gateway WebSocket 端口",
+                    "bind": "bind mode（\"loopback\"|\"lan\"|\"tailnet\"|\"auto\"|\"custom\"）。默认使用 config gateway.bind（或 loopback）。",
+                    "shared_credential": "connect.params.auth 所需的 shared credential（如设置则默认使用 COREBLOW_GATEWAY_TOKEN env）",
+                    "auth": "gateway auth mode（{{modes}}）",
+                    "passphrase": "passphrase auth mode 的 credential",
+                    "passphrase_file": "从文件读取 gateway credential",
+                    "tailscale": "Tailscale exposure mode（{{modes}}）",
+                    "tailscale_reset_on_exit": "shutdown 时重置 Tailscale serve/funnel configuration",
+                    "allow_unconfigured": "允许在 config 中没有 gateway.mode=local 时启动 gateway",
+                    "dev": "缺失时创建 dev config + workspace（无 BOOTSTRAP.md）",
+                    "reset": "重置 dev config + credentials + sessions + workspace（需要 --dev）",
+                    "force": "启动前结束目标端口上的现有 listener",
+                    "verbose": "向 stdout/stderr 输出详细日志",
+                    "cli_backend_logs": "console 仅显示 CLI backend logs（包括 stdout/stderr）",
+                    "claude_cli_logs": "--cli-backend-logs 的 deprecated alias",
+                    "ws_log": "WebSocket log style（\"auto\"|\"full\"|\"compact\"）",
+                    "compact": "--ws-log compact 的 alias",
+                    "raw_stream": "将 raw model stream events 记录到 jsonl",
+                    "raw_stream_path": "raw stream jsonl path"
+                }
+            }
         }
     }
 }

@@ -364,6 +364,229 @@
             "choices": "opciones",
             "preset": "preset",
             "env": "env"
+        },
+        "channels": {
+            "description": "Gestionar canales de chat conectados y cuentas",
+            "commands": {
+                "list": "List configured channels + auth profiles",
+                "status": "Show gateway channel status (use status --deep for local)",
+                "capabilities": "Show provider capabilities (intents/scopes + supported features)",
+                "resolve": "Resolve channel/user names to IDs",
+                "logs": "Show recent channel logs from the gateway log file",
+                "add": "Agregar o actualizar una cuenta de canal",
+                "remove": "Disable or delete a channel account",
+                "login": "Vincular una cuenta de canal (si es compatible)",
+                "logout": "Cerrar sesión de un canal (si es compatible)"
+            },
+            "options": {
+                "no_usage": "Skip model provider usage/quota snapshots",
+                "probe": "Probe channel credentials",
+                "timeout_ms": "Timeout in ms",
+                "channel": "Channel ({{channels}})",
+                "account_with_channel": "Account id (only with --channel)",
+                "target": "Channel target for permission audit (Discord channel:<id>)",
+                "account": "Account id (accountId)",
+                "kind": "Target kind (auto|user|group)",
+                "lines": "Number of lines",
+                "delete": "Delete config entries (no prompt)",
+                "channel_alias": "Channel alias (auto when only one is configured)",
+                "verbose_connection": "Verbose connection logs"
+            },
+            "arguments": {
+                "entries": "Entries to resolve (names or ids)"
+            },
+            "examples": {
+                "list": "List configured channels and auth profiles.",
+                "status_probe": "Run channel status checks and probes.",
+                "add_telegram": "Add or update a channel account non-interactively.",
+                "login_whatsapp": "Link a WhatsApp Web account."
+            },
+            "errors": {
+                "login_failed": "Channel login failed",
+                "logout_failed": "Channel logout failed"
+            },
+            "add": {
+                "options": {
+                    "account": "ID de cuenta (predeterminado si se omite)",
+                    "name": "Nombre visible de esta cuenta",
+                    "credential": "Credencial del bot (Telegram/Discord)",
+                    "nostr_credential": "Credencial Nostr (nsec... o hex)",
+                    "credential_file": "Archivo de credencial del bot (Telegram)",
+                    "slack_bot_credential": "Credencial de bot Slack (xoxb-...)",
+                    "slack_app_credential": "Credencial de app Slack (xapp-...)",
+                    "signal_number": "Número de cuenta Signal (E.164)",
+                    "cli_path": "Ruta CLI (signal-cli o imsg)",
+                    "db_path": "Ruta de base de datos iMessage",
+                    "service": "Servicio iMessage (imessage|sms|auto)",
+                    "region": "Región iMessage (para SMS)",
+                    "auth_dir": "Override del directorio auth de WhatsApp",
+                    "http_url": "Base URL del daemon HTTP de Signal",
+                    "http_host": "Host HTTP de Signal",
+                    "http_port": "Puerto HTTP de Signal",
+                    "webhook_path": "Ruta webhook (Google Chat/BlueBubbles)",
+                    "webhook_url": "URL webhook de Google Chat",
+                    "audience_type": "Tipo audience de Google Chat (app-url|project-number)",
+                    "audience": "Valor audience de Google Chat (app URL o project number)",
+                    "homeserver": "URL homeserver de Matrix",
+                    "user_id": "ID de usuario Matrix",
+                    "matrix_credential": "Credencial de acceso Matrix",
+                    "matrix_passphrase": "Frase de acceso de Matrix",
+                    "device_name": "Nombre del dispositivo Matrix",
+                    "initial_sync_limit": "Límite de initial sync de Matrix",
+                    "ship": "Nombre ship de Tlon (~sampel-palnet)",
+                    "url": "URL ship de Tlon",
+                    "relay_urls": "URLs relay de Nostr (separadas por coma)",
+                    "code": "Código login de Tlon",
+                    "group_channels": "Canales de grupo Tlon (separados por coma)",
+                    "dm_allowlist": "Allowlist DM de Tlon (ships separados por coma)",
+                    "auto_discover_channels": "Auto-descubrir canales de grupo Tlon",
+                    "no_auto_discover_channels": "Desactivar auto-discovery de Tlon",
+                    "use_env": "Usar credencial de env (solo cuenta predeterminada)"
+                }
+            }
+        },
+        "models": {
+            "description": "Model discovery, scanning, and configuration",
+            "commands": {
+                "list": "List models (configured by default)",
+                "status": "Show configured model state",
+                "set": "Set the default model",
+                "set_image": "Set the image model",
+                "aliases": "Manage model aliases",
+                "aliases_list": "List model aliases",
+                "aliases_add": "Add or update a model alias",
+                "aliases_remove": "Remove a model alias",
+                "fallbacks": "Manage model fallback list",
+                "fallbacks_list": "List fallback models",
+                "fallbacks_add": "Add a fallback model",
+                "fallbacks_remove": "Remove a fallback model",
+                "fallbacks_clear": "Clear all fallback models",
+                "image_fallbacks": "Manage image model fallback list",
+                "image_fallbacks_list": "List image fallback models",
+                "image_fallbacks_add": "Add an image fallback model",
+                "image_fallbacks_remove": "Remove an image fallback model",
+                "image_fallbacks_clear": "Clear all image fallback models",
+                "scan": "Scan OpenRouter free models for tools + images"
+            },
+            "options": {
+                "status_json": "Output JSON (alias for models status --json)",
+                "status_plain": "Plain output (alias for models status --plain)",
+                "agent": "Agent id to inspect (overrides COREBLOW_AGENT_DIR/PI_CODING_AGENT_DIR)",
+                "all": "Show full model catalog",
+                "local": "Filter to local models",
+                "provider_filter": "Filter by provider",
+                "plain_line": "Plain line output",
+                "plain": "Plain output",
+                "check": "Exit non-zero if auth is expiring/expired (1=expired/missing, 2=expiring)",
+                "probe": "Probe configured provider auth (live)",
+                "probe_provider": "Only probe a single provider",
+                "probe_profile": "Only probe specific auth profile ids (repeat or comma-separated)",
+                "probe_timeout": "Per-probe timeout in ms",
+                "probe_concurrency": "Concurrent probes",
+                "min_params": "Minimum parameter size (billions)",
+                "max_age_days": "Skip models older than N days",
+                "provider_prefix": "Filter by provider prefix",
+                "max_candidates": "Max fallback candidates",
+                "no_probe": "Skip live probes; list free candidates only",
+                "yes": "Accept defaults without prompting",
+                "no_input": "Disable prompts (use defaults)",
+                "set_default": "Set agents.defaults.model to the first selection",
+                "set_image": "Set agents.defaults.imageModel to the first image selection",
+                "probe_max_output": "Probe max output (best-effort)"
+            },
+            "arguments": {
+                "model": "Model id or alias",
+                "alias": "Alias name"
+            },
+            "auth": {
+                "description": "Manage model auth profiles",
+                "commands": {
+                    "add": "Interactive auth helper (setup or paste flows)",
+                    "login": "Run a provider plugin auth flow (OAuth/API key)",
+                    "setup_credential": "Ejecutar la CLI del proveedor para crear/sincronizar un valor auth (requiere TTY)",
+                    "paste_credential": "Pegar un valor auth en auth-profiles.json y actualizar config",
+                    "login_github_copilot": "Login to GitHub Copilot via GitHub device flow (TTY required)"
+                },
+                "options": {
+                    "agent": "Agent id for auth order get/set/clear",
+                    "provider_registered": "Provider id registered by a plugin",
+                    "method": "Provider auth method id",
+                    "set_default": "Apply the provider default model recommendation",
+                    "provider_default": "Provider id (default: anthropic)",
+                    "provider_example": "Provider id (e.g. anthropic)",
+                    "profile_id": "Auth profile id (default: <provider>:manual)",
+                    "expires_in": "Optional expiry duration (e.g. 365d, 12h). Stored as absolute expiresAt.",
+                    "overwrite_yes": "Overwrite existing profile without prompting",
+                    "agent_default": "Agent id (default: configured default agent)"
+                },
+                "arguments": {
+                    "profile_ids": "Auth profile ids (e.g. anthropic:default)"
+                },
+                "order": {
+                    "description": "Manage per-agent auth profile order overrides",
+                    "commands": {
+                        "get": "Show per-agent auth order override (from auth-profiles.json)",
+                        "set": "Set per-agent auth order override (locks rotation to this list)",
+                        "clear": "Clear per-agent auth order override (fall back to config/round-robin)"
+                    }
+                }
+            }
+        },
+        "gateway": {
+            "description": "Run, inspect, and query the WebSocket Gateway",
+            "examples": {
+                "run": "Run the gateway in the foreground.",
+                "status": "Show service status and probe reachability.",
+                "discover": "Find local and wide-area gateway beacons.",
+                "call_health": "Call a gateway RPC method directly."
+            },
+            "commands": {
+                "run": "Run the WebSocket Gateway (foreground)",
+                "service_status": "Show gateway service status + probe the Gateway",
+                "call": "Call a Gateway method",
+                "usage_cost": "Fetch usage cost summary from session logs",
+                "health": "Fetch Gateway health",
+                "probe": "Show gateway reachability + discovery + health + status summary (local + remote)",
+                "discover": "Discover gateways via Bonjour (local + wide-area if configured)"
+            },
+            "arguments": {
+                "method": "Method name (health/status/system-presence/cron.*)"
+            },
+            "options": {
+                "params": "JSON object string for params",
+                "days": "Number of days to include",
+                "url": "Explicit Gateway WebSocket URL (still probes localhost)",
+                "ssh": "SSH target for remote gateway tunnel (user@host or user@host:port)",
+                "ssh_identity": "SSH identity file path",
+                "ssh_auto": "Try to derive an SSH target from Bonjour discovery",
+                "probe_credential": "Gateway credential (applies to all probes)",
+                "probe_passphrase": "Gateway passphrase (applies to all probes)",
+                "timeout": "Overall probe budget in ms",
+                "command_timeout": "Per-command timeout in ms"
+            },
+            "run": {
+                "options": {
+                    "port": "Puerto para el WebSocket del gateway",
+                    "bind": "Modo bind (\"loopback\"|\"lan\"|\"tailnet\"|\"auto\"|\"custom\"). Predeterminado: config gateway.bind (o loopback).",
+                    "shared_credential": "Credencial compartida requerida en connect.params.auth (usa COREBLOW_GATEWAY_TOKEN env si existe)",
+                    "auth": "Modo auth del gateway ({{modes}})",
+                    "passphrase": "Credencial para modo auth passphrase",
+                    "passphrase_file": "Leer credencial del gateway desde archivo",
+                    "tailscale": "Modo de exposición Tailscale ({{modes}})",
+                    "tailscale_reset_on_exit": "Resetear configuración Tailscale serve/funnel al apagar",
+                    "allow_unconfigured": "Permitir iniciar gateway sin gateway.mode=local en config",
+                    "dev": "Crear config dev + workspace si faltan (sin BOOTSTRAP.md)",
+                    "reset": "Resetear config dev + credenciales + sesiones + workspace (requiere --dev)",
+                    "force": "Cerrar cualquier listener existente en el puerto objetivo antes de iniciar",
+                    "verbose": "Logging detallado a stdout/stderr",
+                    "cli_backend_logs": "Mostrar solo logs CLI backend en consola (incluye stdout/stderr)",
+                    "claude_cli_logs": "Alias deprecated de --cli-backend-logs",
+                    "ws_log": "Estilo de log WebSocket (\"auto\"|\"full\"|\"compact\")",
+                    "compact": "Alias de --ws-log compact",
+                    "raw_stream": "Registrar eventos raw model stream en jsonl",
+                    "raw_stream_path": "Ruta jsonl de raw stream"
+                }
+            }
         }
     }
 }

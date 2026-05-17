@@ -364,6 +364,229 @@
             "choices": "pilihan",
             "preset": "preset",
             "env": "env"
+        },
+        "channels": {
+            "description": "Kelola channel chat dan akun yang terhubung",
+            "commands": {
+                "list": "Daftar channel dan profil auth terkonfigurasi",
+                "status": "Tampilkan status channel gateway (pakai status --deep untuk lokal)",
+                "capabilities": "Tampilkan kapabilitas provider (intent/scope + fitur yang didukung)",
+                "resolve": "Resolve nama channel/user menjadi ID",
+                "logs": "Tampilkan log channel terbaru dari file log gateway",
+                "add": "Tambah atau update akun channel",
+                "remove": "Nonaktifkan atau hapus akun channel",
+                "login": "Hubungkan akun channel (jika didukung)",
+                "logout": "Logout dari sesi channel (jika didukung)"
+            },
+            "options": {
+                "no_usage": "Lewati snapshot usage/quota provider model",
+                "probe": "Probe kredensial channel",
+                "timeout_ms": "Timeout dalam ms",
+                "channel": "Channel ({{channels}})",
+                "account_with_channel": "ID akun (hanya dengan --channel)",
+                "target": "Target channel untuk audit permission (Discord channel:<id>)",
+                "account": "ID akun (accountId)",
+                "kind": "Jenis target (auto|user|group)",
+                "lines": "Jumlah baris",
+                "delete": "Hapus entri config (tanpa prompt)",
+                "channel_alias": "Alias channel (auto jika hanya satu yang dikonfigurasi)",
+                "verbose_connection": "Log koneksi lebih detail"
+            },
+            "arguments": {
+                "entries": "Entri yang akan di-resolve (nama atau id)"
+            },
+            "examples": {
+                "list": "Daftar channel dan profil auth terkonfigurasi.",
+                "status_probe": "Jalankan status check dan probe channel.",
+                "add_telegram": "Tambah atau update akun channel secara non-interaktif.",
+                "login_whatsapp": "Hubungkan akun WhatsApp Web."
+            },
+            "errors": {
+                "login_failed": "Login channel gagal",
+                "logout_failed": "Logout channel gagal"
+            },
+            "add": {
+                "options": {
+                    "account": "ID akun (default jika dihilangkan)",
+                    "name": "Nama tampilan untuk akun ini",
+                    "credential": "Kredensial bot (Telegram/Discord)",
+                    "nostr_credential": "Kredensial Nostr (nsec... atau hex)",
+                    "credential_file": "File kredensial bot (Telegram)",
+                    "slack_bot_credential": "Kredensial bot Slack (xoxb-...)",
+                    "slack_app_credential": "Kredensial app Slack (xapp-...)",
+                    "signal_number": "Nomor akun Signal (E.164)",
+                    "cli_path": "Path CLI (signal-cli atau imsg)",
+                    "db_path": "Path database iMessage",
+                    "service": "Service iMessage (imessage|sms|auto)",
+                    "region": "Region iMessage (untuk SMS)",
+                    "auth_dir": "Override direktori auth WhatsApp",
+                    "http_url": "Base URL daemon HTTP Signal",
+                    "http_host": "Host HTTP Signal",
+                    "http_port": "Port HTTP Signal",
+                    "webhook_path": "Path webhook (Google Chat/BlueBubbles)",
+                    "webhook_url": "URL webhook Google Chat",
+                    "audience_type": "Tipe audience Google Chat (app-url|project-number)",
+                    "audience": "Nilai audience Google Chat (app URL atau project number)",
+                    "homeserver": "URL homeserver Matrix",
+                    "user_id": "ID user Matrix",
+                    "matrix_credential": "Kredensial akses Matrix",
+                    "matrix_passphrase": "Passphrase Matrix",
+                    "device_name": "Nama device Matrix",
+                    "initial_sync_limit": "Batas initial sync Matrix",
+                    "ship": "Nama ship Tlon (~sampel-palnet)",
+                    "url": "URL ship Tlon",
+                    "relay_urls": "URL relay Nostr (dipisahkan koma)",
+                    "code": "Kode login Tlon",
+                    "group_channels": "Channel grup Tlon (dipisahkan koma)",
+                    "dm_allowlist": "Allowlist DM Tlon (ship dipisahkan koma)",
+                    "auto_discover_channels": "Auto-discover channel grup Tlon",
+                    "no_auto_discover_channels": "Nonaktifkan auto-discovery Tlon",
+                    "use_env": "Gunakan kredensial env (hanya akun default)"
+                }
+            }
+        },
+        "models": {
+            "description": "Discovery, scan, dan konfigurasi model",
+            "commands": {
+                "list": "Daftar model (default: yang terkonfigurasi)",
+                "status": "Tampilkan state model terkonfigurasi",
+                "set": "Set model default",
+                "set_image": "Set model image",
+                "aliases": "Kelola alias model",
+                "aliases_list": "Daftar alias model",
+                "aliases_add": "Tambah atau update alias model",
+                "aliases_remove": "Hapus alias model",
+                "fallbacks": "Kelola daftar fallback model",
+                "fallbacks_list": "Daftar model fallback",
+                "fallbacks_add": "Tambah model fallback",
+                "fallbacks_remove": "Hapus model fallback",
+                "fallbacks_clear": "Bersihkan semua model fallback",
+                "image_fallbacks": "Kelola daftar fallback model image",
+                "image_fallbacks_list": "Daftar fallback model image",
+                "image_fallbacks_add": "Tambah fallback model image",
+                "image_fallbacks_remove": "Hapus fallback model image",
+                "image_fallbacks_clear": "Bersihkan semua fallback model image",
+                "scan": "Scan model gratis OpenRouter untuk tools + images"
+            },
+            "options": {
+                "status_json": "Output JSON (alias untuk models status --json)",
+                "status_plain": "Output plain (alias untuk models status --plain)",
+                "agent": "ID agent yang diperiksa (override COREBLOW_AGENT_DIR/PI_CODING_AGENT_DIR)",
+                "all": "Tampilkan katalog model penuh",
+                "local": "Filter ke model lokal",
+                "provider_filter": "Filter berdasarkan provider",
+                "plain_line": "Output baris plain",
+                "plain": "Output plain",
+                "check": "Exit non-zero jika auth hampir/habis masa berlaku (1=expired/missing, 2=expiring)",
+                "probe": "Probe auth provider terkonfigurasi (live)",
+                "probe_provider": "Probe satu provider saja",
+                "probe_profile": "Probe ID profil auth tertentu saja (ulang atau pisah koma)",
+                "probe_timeout": "Timeout per probe dalam ms",
+                "probe_concurrency": "Probe bersamaan",
+                "min_params": "Ukuran parameter minimum (miliar)",
+                "max_age_days": "Lewati model lebih lama dari N hari",
+                "provider_prefix": "Filter berdasarkan prefix provider",
+                "max_candidates": "Maks kandidat fallback",
+                "no_probe": "Lewati probe live; hanya daftar kandidat gratis",
+                "yes": "Terima default tanpa prompt",
+                "no_input": "Nonaktifkan prompt (pakai default)",
+                "set_default": "Set agents.defaults.model ke pilihan pertama",
+                "set_image": "Set agents.defaults.imageModel ke pilihan image pertama",
+                "probe_max_output": "Maks output probe (best-effort)"
+            },
+            "arguments": {
+                "model": "ID model atau alias",
+                "alias": "Nama alias"
+            },
+            "auth": {
+                "description": "Kelola profil auth model",
+                "commands": {
+                    "add": "Helper auth interaktif (flow setup atau paste)",
+                    "login": "Jalankan flow auth plugin provider (OAuth/API key)",
+                    "setup_credential": "Jalankan CLI provider untuk membuat/sinkron nilai auth (wajib TTY)",
+                    "paste_credential": "Tempel nilai auth ke auth-profiles.json dan update config",
+                    "login_github_copilot": "Login ke GitHub Copilot via GitHub device flow (wajib TTY)"
+                },
+                "options": {
+                    "agent": "ID agent untuk auth order get/set/clear",
+                    "provider_registered": "ID provider yang didaftarkan plugin",
+                    "method": "ID metode auth provider",
+                    "set_default": "Terapkan rekomendasi model default dari provider",
+                    "provider_default": "ID provider (default: anthropic)",
+                    "provider_example": "ID provider (mis. anthropic)",
+                    "profile_id": "ID profil auth (default: <provider>:manual)",
+                    "expires_in": "Durasi expiry opsional (mis. 365d, 12h). Disimpan sebagai expiresAt absolut.",
+                    "overwrite_yes": "Timpa profil yang ada tanpa prompt",
+                    "agent_default": "ID agent (default: agent default terkonfigurasi)"
+                },
+                "arguments": {
+                    "profile_ids": "ID profil auth (mis. anthropic:default)"
+                },
+                "order": {
+                    "description": "Kelola override urutan profil auth per agent",
+                    "commands": {
+                        "get": "Tampilkan override urutan auth per agent (dari auth-profiles.json)",
+                        "set": "Set override urutan auth per agent (mengunci rotasi ke daftar ini)",
+                        "clear": "Bersihkan override urutan auth per agent (fallback ke config/round-robin)"
+                    }
+                }
+            }
+        },
+        "gateway": {
+            "description": "Jalankan, inspeksi, dan query WebSocket Gateway",
+            "examples": {
+                "run": "Jalankan gateway di foreground.",
+                "status": "Tampilkan status service dan probe reachability.",
+                "discover": "Temukan beacon gateway lokal dan wide-area.",
+                "call_health": "Panggil metode RPC gateway langsung."
+            },
+            "commands": {
+                "run": "Jalankan WebSocket Gateway (foreground)",
+                "service_status": "Tampilkan status service gateway + probe Gateway",
+                "call": "Panggil metode Gateway",
+                "usage_cost": "Ambil ringkasan biaya usage dari log session",
+                "health": "Ambil health Gateway",
+                "probe": "Tampilkan ringkasan reachability + discovery + health + status gateway (lokal + remote)",
+                "discover": "Discover gateway via Bonjour (lokal + wide-area jika dikonfigurasi)"
+            },
+            "arguments": {
+                "method": "Nama metode (health/status/system-presence/cron.*)"
+            },
+            "options": {
+                "params": "String object JSON untuk params",
+                "days": "Jumlah hari yang disertakan",
+                "url": "URL WebSocket Gateway eksplisit (tetap probe localhost)",
+                "ssh": "Target SSH untuk tunnel gateway remote (user@host atau user@host:port)",
+                "ssh_identity": "Path file identity SSH",
+                "ssh_auto": "Coba turunkan target SSH dari discovery Bonjour",
+                "probe_credential": "Kredensial Gateway (berlaku untuk semua probe)",
+                "probe_passphrase": "Passphrase Gateway (berlaku untuk semua probe)",
+                "timeout": "Budget probe keseluruhan dalam ms",
+                "command_timeout": "Timeout per command dalam ms"
+            },
+            "run": {
+                "options": {
+                    "port": "Port untuk WebSocket gateway",
+                    "bind": "Mode bind (\"loopback\"|\"lan\"|\"tailnet\"|\"auto\"|\"custom\"). Default ke config gateway.bind (atau loopback).",
+                    "shared_credential": "Kredensial bersama yang diperlukan di connect.params.auth (default ke env COREBLOW_GATEWAY_TOKEN jika ada)",
+                    "auth": "Mode auth gateway ({{modes}})",
+                    "passphrase": "Kredensial untuk passphrase auth mode",
+                    "passphrase_file": "Baca kredensial gateway dari file",
+                    "tailscale": "Mode exposure Tailscale ({{modes}})",
+                    "tailscale_reset_on_exit": "Reset konfigurasi Tailscale serve/funnel saat shutdown",
+                    "allow_unconfigured": "Izinkan gateway start tanpa gateway.mode=local di config",
+                    "dev": "Buat config dev + workspace jika belum ada (tanpa BOOTSTRAP.md)",
+                    "reset": "Reset config dev + kredensial + session + workspace (butuh --dev)",
+                    "force": "Matikan listener yang ada di port target sebelum start",
+                    "verbose": "Logging detail ke stdout/stderr",
+                    "cli_backend_logs": "Hanya tampilkan log CLI backend di console (termasuk stdout/stderr)",
+                    "claude_cli_logs": "Alias deprecated untuk --cli-backend-logs",
+                    "ws_log": "Style log WebSocket (\"auto\"|\"full\"|\"compact\")",
+                    "compact": "Alias untuk --ws-log compact",
+                    "raw_stream": "Log event raw model stream ke jsonl",
+                    "raw_stream_path": "Path jsonl raw stream"
+                }
+            }
         }
     }
 }
