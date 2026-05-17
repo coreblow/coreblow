@@ -11,6 +11,7 @@ import { buildGatewayConnectionDetails, callGateway } from "../gateway/call.js";
 import { info } from "../globals.js";
 import { isTruthyEnvValue } from "../infra/env.js";
 import { formatErrorMessage } from "../infra/errors.js";
+import { t } from "../infra/i18n/index.js";
 import {
   type HeartbeatSummary,
   resolveHeartbeatSummaryForAgent,
@@ -271,7 +272,7 @@ const formatProbeLine = (probe: unknown, opts: { botUsernames?: string[] } = {})
   }
 
   if (ok) {
-    let label = "ok";
+    let label = t("common.ok");
     if (usernames.size > 0) {
       label += ` (@${Array.from(usernames).join(", @")})`;
     }
@@ -279,11 +280,11 @@ const formatProbeLine = (probe: unknown, opts: { botUsernames?: string[] } = {})
       label += ` (${elapsedMs}ms)`;
     }
     if (webhookUrl) {
-      label += ` - webhook ${webhookUrl}`;
+      label += ` - ${t("health.webhook")} ${webhookUrl}`;
     }
     return label;
   }
-  let label = `failed (${status ?? "unknown"})`;
+  let label = t("health.probe_failed", { status: String(status ?? t("common.unknown")) });
   if (error) {
     label += ` - ${error}`;
   }
@@ -306,7 +307,7 @@ const formatAccountProbeTiming = (summary: ChannelAccountHealthSummary): string 
   const botUsername =
     botRecord && typeof botRecord.username === "string" ? botRecord.username : null;
   const handle = botUsername ? `@${botUsername}` : accountId;
-  const timing = elapsedMs != null ? `${elapsedMs}ms` : "ok";
+  const timing = elapsedMs != null ? `${elapsedMs}ms` : t("common.ok");
 
   return `${handle}:${accountId}:${timing}`;
 };
@@ -367,17 +368,20 @@ export const formatHealthChannelLines = (
     if (linked !== null) {
       if (linked) {
         const authAgeMs = typeof baseSummary.authAgeMs === "number" ? baseSummary.authAgeMs : null;
-        const authLabel = authAgeMs != null ? ` (auth age ${Math.round(authAgeMs / 60000)}m)` : "";
-        lines.push(`${label}: linked${authLabel}`);
+        const authLabel =
+          authAgeMs != null
+            ? ` (${t("health.auth_age", { minutes: String(Math.round(authAgeMs / 60000)) })})`
+            : "";
+        lines.push(`${label}: ${t("health.linked")}${authLabel}`);
       } else {
-        lines.push(`${label}: not linked`);
+        lines.push(`${label}: ${t("health.not_linked")}`);
       }
       continue;
     }
 
     const configured = typeof baseSummary.configured === "boolean" ? baseSummary.configured : null;
     if (configured === false) {
-      lines.push(`${label}: not configured`);
+      lines.push(`${label}: ${t("health.not_configured")}`);
       continue;
     }
 
@@ -397,7 +401,7 @@ export const formatHealthChannelLines = (
     }
 
     if (accountTimings.length > 0) {
-      lines.push(`${label}: ok (${accountTimings.join(", ")})`);
+      lines.push(`${label}: ${t("common.ok")} (${accountTimings.join(", ")})`);
       continue;
     }
 
@@ -408,10 +412,10 @@ export const formatHealthChannelLines = (
     }
 
     if (configured === true) {
-      lines.push(`${label}: configured`);
+      lines.push(`${label}: ${t("health.configured")}`);
       continue;
     }
-    lines.push(`${label}: unknown`);
+    lines.push(`${label}: ${t("common.unknown")}`);
   }
   return lines;
 };
@@ -602,7 +606,7 @@ export async function healthCommand(
   // Always query the running gateway; do not open a direct Baileys socket here.
   const summary = await withProgress(
     {
-      label: "Checking gateway health…",
+      label: t("health.checking_gateway"),
       indeterminate: true,
       enabled: opts.json !== true,
     },
@@ -624,7 +628,7 @@ export async function healthCommand(
     const rich = isRich();
     if (opts.verbose) {
       const details = buildGatewayConnectionDetails({ config: cfg });
-      runtime.log(info("Gateway connection:"));
+      runtime.log(info(t("health.gateway_connection")));
       for (const line of details.message.split("\n")) {
         runtime.log(`  ${line}`);
       }
@@ -796,28 +800,39 @@ export async function healthCommand(
 
     if (resolvedAgents.length > 0) {
       const agentLabels = resolvedAgents.map((agent) =>
-        agent.isDefault ? `${agent.agentId} (default)` : agent.agentId,
+        agent.isDefault ? `${agent.agentId} (${t("common.default")})` : agent.agentId,
       );
-      runtime.log(info(`Agents: ${agentLabels.join(", ")}`));
+      runtime.log(info(t("health.agents", { agents: agentLabels.join(", ") })));
     }
     const heartbeatParts = displayAgents
       .map((agent) => {
         const everyMs = agent.heartbeat?.everyMs;
-        const label = everyMs ? formatDurationParts(everyMs) : "disabled";
+        const label = everyMs ? formatDurationParts(everyMs) : t("common.disabled");
         return `${label} (${agent.agentId})`;
       })
       .filter(Boolean);
     if (heartbeatParts.length > 0) {
-      runtime.log(info(`Heartbeat interval: ${heartbeatParts.join(", ")}`));
+      runtime.log(info(t("health.heartbeat_interval", { interval: heartbeatParts.join(", ") })));
     }
     if (displayAgents.length === 0) {
       runtime.log(
-        info(`Session store: ${summary.sessions.path} (${summary.sessions.count} entries)`),
+        info(
+          t("health.session_store", {
+            path: summary.sessions.path,
+            count: String(summary.sessions.count),
+          }),
+        ),
       );
       if (summary.sessions.recent.length > 0) {
         for (const r of summary.sessions.recent) {
           runtime.log(
-            `- ${r.key} (${r.updatedAt ? `${Math.round((Date.now() - r.updatedAt) / 60000)}m ago` : "no activity"})`,
+            `- ${r.key} (${
+              r.updatedAt
+                ? t("common.minutes_ago", {
+                    minutes: String(Math.round((Date.now() - r.updatedAt) / 60000)),
+                  })
+                : t("common.no_activity")
+            })`,
           );
         }
       }
@@ -825,13 +840,23 @@ export async function healthCommand(
       for (const agent of displayAgents) {
         runtime.log(
           info(
-            `Session store (${agent.agentId}): ${agent.sessions.path} (${agent.sessions.count} entries)`,
+            t("health.session_store_agent", {
+              agent: agent.agentId,
+              path: agent.sessions.path,
+              count: String(agent.sessions.count),
+            }),
           ),
         );
         if (agent.sessions.recent.length > 0) {
           for (const r of agent.sessions.recent) {
             runtime.log(
-              `- ${r.key} (${r.updatedAt ? `${Math.round((Date.now() - r.updatedAt) / 60000)}m ago` : "no activity"})`,
+              `- ${r.key} (${
+                r.updatedAt
+                  ? t("common.minutes_ago", {
+                      minutes: String(Math.round((Date.now() - r.updatedAt) / 60000)),
+                    })
+                  : t("common.no_activity")
+              })`,
             );
           }
         }

@@ -2,6 +2,7 @@ import type { CoreBlowConfig } from "../config/config.js";
 import { buildGatewayConnectionDetails, callGateway } from "../gateway/call.js";
 import type { DoctorMemoryStatusPayload } from "../gateway/server-methods/doctor.js";
 import { collectChannelStatusIssues } from "../infra/channels-status-issues.js";
+import { t } from "../infra/i18n/index.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { note } from "../terminal/note.js";
 import { formatHealthCheckFailure } from "./health-format.js";
@@ -28,8 +29,8 @@ export async function checkGatewayHealth(params: {
   } catch (err) {
     const message = String(err);
     if (message.includes("gateway closed")) {
-      note("Gateway not running.", "Gateway");
-      note(gatewayDetails.message, "Gateway connection");
+      note(t("doctor.gateway_not_running"), t("doctor.sections.gateway"));
+      note(gatewayDetails.message, t("health.gateway_connection"));
     } else {
       params.runtime.error(formatHealthCheckFailure(err));
     }
@@ -53,7 +54,7 @@ export async function checkGatewayHealth(params: {
                 }`,
             )
             .join("\n"),
-          "Channel warnings",
+          t("doctor.sections.channel_warnings"),
         );
       }
     } catch {
@@ -86,7 +87,7 @@ export async function probeGatewayMemoryStatus(params: {
     return {
       checked: true,
       ready: false,
-      error: `gateway memory probe unavailable: ${message}`,
+      error: t("doctor.gateway_memory_probe_unavailable", { error: message }),
     };
   }
 }

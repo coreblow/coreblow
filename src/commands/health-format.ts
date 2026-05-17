@@ -1,4 +1,5 @@
 import { colorize, isRich, theme } from "../terminal/theme.js";
+import { t } from "../infra/i18n/index.js";
 
 const formatKv = (line: string, rich: boolean) => {
   const idx = line.indexOf(": ");
@@ -24,7 +25,7 @@ export function formatHealthCheckFailure(err: unknown, opts: { rich?: boolean } 
   const message = err instanceof Error ? err.message : raw;
 
   if (!rich) {
-    return `Health check failed: ${raw}`;
+    return `${t("health.check_failed")}: ${raw}`;
   }
 
   const lines = message
@@ -39,7 +40,7 @@ export function formatHealthCheckFailure(err: unknown, opts: { rich?: boolean } 
   const detailLines = detailsIdx >= 0 ? lines.slice(detailsIdx) : [];
 
   const summary = summaryLines.length > 0 ? summaryLines.join(" ") : message;
-  const header = colorize(rich, theme.error.bold, "Health check failed");
+  const header = colorize(rich, theme.error.bold, t("health.check_failed"));
 
   const out: string[] = [`${header}: ${summary}`];
   for (const line of detailLines) {

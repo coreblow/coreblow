@@ -8,6 +8,7 @@ import { maybeOfferUpdateBeforeDoctor } from "../commands/doctor-update.js";
 import { printWizardHeader } from "../commands/onboard-helpers.js";
 import { CONFIG_PATH } from "../config/config.js";
 import { resolveCoreBlowPackageRoot } from "../infra/coreblow-root.js";
+import { t } from "../infra/i18n/index.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { defaultRuntime } from "../runtime.js";
 import { stylePromptTitle } from "../terminal/prompt-style.js";
@@ -22,7 +23,7 @@ export async function doctorCommand(
 ) {
   const prompter = createDoctorPrompter({ runtime, options });
   printWizardHeader(runtime);
-  intro("CoreBlow doctor");
+  intro(t("doctor.title"));
 
   const root = await resolveCoreBlowPackageRoot({
     moduleUrl: import.meta.url,
@@ -61,5 +62,5 @@ export async function doctorCommand(
   };
   await runDoctorHealthContributions(ctx);
 
-  outro("Doctor complete.");
+  outro(t("doctor.complete"));
 }

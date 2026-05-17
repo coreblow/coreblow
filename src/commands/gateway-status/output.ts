@@ -1,4 +1,5 @@
 import type { RuntimeEnv } from "../../runtime.js";
+import { t } from "../../infra/i18n/index.js";
 import { writeRuntimeJson } from "../../runtime.js";
 import { colorize, theme } from "../../terminal/theme.js";
 import { serializeGatewayDiscoveryBeacon } from "./discovery.js";
@@ -42,15 +43,14 @@ export function buildGatewayStatusWarnings(params: {
     warnings.push({
       code: "ssh_tunnel_failed",
       message: params.sshTunnelError
-        ? `SSH tunnel failed: ${String(params.sshTunnelError)}`
-        : "SSH tunnel failed to start; falling back to direct probes.",
+        ? t("gateway_status.ssh_tunnel_failed", { error: String(params.sshTunnelError) })
+        : t("gateway_status.ssh_tunnel_failed_fallback"),
     });
   }
   if (reachable.length > 1) {
     warnings.push({
       code: "multiple_gateways",
-      message:
-        "Unconventional setup: multiple reachable gateways detected. Usually one gateway per network is recommended unless you intentionally run isolated profiles, like a rescue bot (see docs: /gateway#multiple-gateways-same-host).",
+      message: t("gateway_status.multiple_gateways"),
       targetIds: reachable.map((entry) => entry.target.id),
     });
   }
@@ -69,8 +69,7 @@ export function buildGatewayStatusWarnings(params: {
   for (const result of degradedScopeLimited) {
     warnings.push({
       code: "probe_scope_limited",
-      message:
-        "Probe diagnostics are limited by gateway scopes (missing operator.read). Connection succeeded, but status details may be incomplete. Hint: pair device identity or use credentials with operator.read.",
+      message: t("gateway_status.probe_scope_limited"),
       targetIds: [result.target.id],
     });
   }
@@ -141,44 +140,51 @@ export function writeGatewayStatusText(params: {
 }) {
   const reachable = params.probed.filter((entry) => isProbeReachable(entry.probe));
   const ok = reachable.length > 0;
-  params.runtime.log(colorize(params.rich, theme.heading, "Gateway Status"));
+  params.runtime.log(colorize(params.rich, theme.heading, t("gateway_status.title")));
   params.runtime.log(
     ok
-      ? `${colorize(params.rich, theme.success, "Reachable")}: yes`
-      : `${colorize(params.rich, theme.error, "Reachable")}: no`,
+      ? `${colorize(params.rich, theme.success, t("gateway_status.reachable"))}: ${t("common.yes")}`
+      : `${colorize(params.rich, theme.error, t("gateway_status.reachable"))}: ${t("common.no")}`,
   );
   params.runtime.log(
-    colorize(params.rich, theme.muted, `Probe budget: ${params.overallTimeoutMs}ms`),
+    colorize(
+      params.rich,
+      theme.muted,
+      t("gateway_status.probe_budget", { timeout: String(params.overallTimeoutMs) }),
+    ),
   );
 
   if (params.warnings.length > 0) {
     params.runtime.log("");
-    params.runtime.log(colorize(params.rich, theme.warn, "Warning:"));
+    params.runtime.log(colorize(params.rich, theme.warn, t("common.warning")));
     for (const warning of params.warnings) {
       params.runtime.log(`- ${warning.message}`);
     }
   }
 
   params.runtime.log("");
-  params.runtime.log(colorize(params.rich, theme.heading, "Discovery (this machine)"));
+  params.runtime.log(colorize(params.rich, theme.heading, t("gateway_status.discovery_local")));
   const discoveryDomains = params.wideAreaDomain ? `local. + ${params.wideAreaDomain}` : "local.";
   params.runtime.log(
     params.discovery.length > 0
-      ? `Found ${params.discovery.length} gateway(s) via Bonjour (${discoveryDomains})`
-      : `Found 0 gateways via Bonjour (${discoveryDomains})`,
+      ? t("gateway_status.discovery_found", {
+          count: String(params.discovery.length),
+          domains: discoveryDomains,
+        })
+      : t("gateway_status.discovery_found", { count: "0", domains: discoveryDomains }),
   );
   if (params.discovery.length === 0) {
     params.runtime.log(
       colorize(
         params.rich,
         theme.muted,
-        "Tip: if the gateway is remote, mDNS won’t cross networks; use Wide-Area Bonjour (split DNS) or SSH tunnels.",
+        t("gateway_status.discovery_tip"),
       ),
     );
   }
 
   params.runtime.log("");
-  params.runtime.log(colorize(params.rich, theme.heading, "Targets"));
+  params.runtime.log(colorize(params.rich, theme.heading, t("gateway_status.targets")));
   for (const result of params.probed) {
     params.runtime.log(renderTargetHeader(result.target, params.rich));
     params.runtime.log(`  ${renderProbeSummaryLine(result.probe, params.rich)}`);
@@ -188,23 +194,23 @@ export function writeGatewayStatusText(params: {
       );
     }
     if (result.probe.ok && result.self) {
-      const host = result.self.host ?? "unknown";
+      const host = result.self.host ?? t("common.unknown");
       const ip = result.self.ip ? ` (${result.self.ip})` : "";
       const platform = result.self.platform ? ` · ${result.self.platform}` : "";
-      const version = result.self.version ? ` · app ${result.self.version}` : "";
+      const version = result.self.version ? ` · ${t("status.app_version", { version: result.self.version })}` : "";
       params.runtime.log(
-        `  ${colorize(params.rich, theme.info, "Gateway")}: ${host}${ip}${platform}${version}`,
+        `  ${colorize(params.rich, theme.info, t("status.items.gateway"))}: ${host}${ip}${platform}${version}`,
       );
     }
     if (result.configSummary) {
       const wideArea =
         result.configSummary.discovery.wideAreaEnabled === true
-          ? "enabled"
+          ? t("common.enabled")
           : result.configSummary.discovery.wideAreaEnabled === false
-            ? "disabled"
-            : "unknown";
+            ? t("common.disabled")
+            : t("common.unknown");
       params.runtime.log(
-        `  ${colorize(params.rich, theme.info, "Wide-area discovery")}: ${wideArea}`,
+        `  ${colorize(params.rich, theme.info, t("gateway_status.wide_area_discovery"))}: ${wideArea}`,
       );
     }
     params.runtime.log("");

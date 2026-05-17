@@ -8,6 +8,7 @@ import {
   resolveHooksGmailModel,
 } from "../agents/model-selection.js";
 import { formatCliCommand } from "../cli/command-format.js";
+import { t } from "../infra/i18n/index.js";
 import {
   maybeRemoveDeprecatedCliAuthProfiles,
   maybeRepairLegacyOAuthProfileIds,
@@ -205,7 +206,7 @@ async function runGatewayAuthHealth(ctx: DoctorHealthFlowContext): Promise<void>
       },
     },
   };
-  note("Gateway token configured.", "Gateway auth");
+  note(t("doctor.gateway_token_configured"), t("doctor.sections.gateway_auth"));
 }
 
 async function runLegacyStateHealth(ctx: DoctorHealthFlowContext): Promise<void> {
@@ -213,12 +214,12 @@ async function runLegacyStateHealth(ctx: DoctorHealthFlowContext): Promise<void>
   if (legacyState.preview.length === 0) {
     return;
   }
-  note(legacyState.preview.join("\n"), "Legacy state detected");
+  note(legacyState.preview.join("\n"), t("doctor.sections.legacy_state_detected"));
   const migrate =
     ctx.options.nonInteractive === true
       ? true
       : await ctx.prompter.confirm({
-          message: "Migrate legacy state (sessions/agent/WhatsApp auth) now?",
+          message: t("doctor.migrate_legacy_state_prompt"),
           initialValue: true,
         });
   if (!migrate) {
@@ -228,10 +229,10 @@ async function runLegacyStateHealth(ctx: DoctorHealthFlowContext): Promise<void>
     detected: legacyState,
   });
   if (migrated.changes.length > 0) {
-    note(migrated.changes.join("\n"), "Doctor changes");
+    note(migrated.changes.join("\n"), t("doctor.sections.changes"));
   }
   if (migrated.warnings.length > 0) {
-    note(migrated.warnings.join("\n"), "Doctor warnings");
+    note(migrated.warnings.join("\n"), t("doctor.sections.warnings"));
   }
 }
 

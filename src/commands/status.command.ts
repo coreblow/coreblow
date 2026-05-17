@@ -1,5 +1,6 @@
 import { withProgress } from "../cli/progress.js";
 import type { HeartbeatEventPayload } from "../infra/heartbeat-events.js";
+import { t } from "../infra/i18n/index.js";
 import { normalizeUpdateChannel, resolveUpdateChannelDisplay } from "../infra/update-channels.js";
 import type { Tone } from "../plugin-sdk/memory-core-host-status.js";
 import { type RuntimeEnv, writeRuntimeJson } from "../runtime.js";
@@ -119,7 +120,7 @@ export async function statusCommand(
     ? await runSecurityAudit()
     : await withProgress(
         {
-          label: "Running security audit…",
+          label: t("status.progress.security_audit"),
           indeterminate: true,
           enabled: true,
         },
@@ -153,7 +154,7 @@ export async function statusCommand(
   const usage = opts.usage
     ? await withProgress(
         {
-          label: "Fetching usage snapshot…",
+          label: t("status.progress.usage_snapshot"),
           indeterminate: true,
           enabled: opts.json !== true,
         },
@@ -166,7 +167,7 @@ export async function statusCommand(
   const health: HealthSummary | undefined = opts.deep
     ? await withProgress(
         {
-          label: "Checking gateway health…",
+          label: t("health.checking_gateway"),
           indeterminate: true,
           enabled: opts.json !== true,
         },
@@ -275,7 +276,7 @@ export async function statusCommand(
   if (opts.verbose) {
     const { buildGatewayConnectionDetails } = await loadGatewayCallModule();
     const details = buildGatewayConnectionDetails({ config: scan.cfg });
-    runtime.log(info("Gateway connection:"));
+    runtime.log(info(t("health.gateway_connection")));
     for (const line of details.message.split("\n")) {
       runtime.log(`  ${line}`);
     }
@@ -285,7 +286,7 @@ export async function statusCommand(
   const tableWidth = getTerminalTableWidth();
 
   if (secretDiagnostics.length > 0) {
-    runtime.log(theme.warn("Secret diagnostics:"));
+    runtime.log(theme.warn(t("status.credential_diagnostics")));
     for (const entry of secretDiagnostics) {
       runtime.log(`- ${entry}`);
     }
@@ -300,7 +301,7 @@ export async function statusCommand(
           customBindHost: cfg.gateway?.customBindHost,
           basePath: cfg.gateway?.controlUi?.basePath,
         }).httpUrl
-      : "disabled";
+      : t("common.disabled");
 
   const gatewayValue = (() => {
     const target = remoteUrlMissing
@@ -309,18 +310,22 @@ export async function statusCommand(
     const reach = remoteUrlMissing
       ? warn("misconfigured (remote.url missing)")
       : gatewayReachable
-        ? ok(`reachable ${formatDuration(gatewayProbe?.connectLatencyMs)}`)
-        : warn(gatewayProbe?.error ? `unreachable (${gatewayProbe.error})` : "unreachable");
+        ? ok(t("status.gateway_reachable_latency", { latency: formatDuration(gatewayProbe?.connectLatencyMs) }))
+        : warn(
+            gatewayProbe?.error
+              ? t("status.gateway_unreachable_error", { error: gatewayProbe.error })
+              : t("status.gateway_unreachable"),
+          );
     const auth =
       gatewayReachable && !remoteUrlMissing
-        ? ` · auth ${formatGatewayAuthUsed(gatewayProbeAuth)}`
+        ? ` · ${t("status.auth", { value: formatGatewayAuthUsed(gatewayProbeAuth) })}`
         : "";
     const self =
       gatewaySelf?.host || gatewaySelf?.version || gatewaySelf?.platform
         ? [
             gatewaySelf?.host ? gatewaySelf.host : null,
             gatewaySelf?.ip ? `(${gatewaySelf.ip})` : null,
-            gatewaySelf?.version ? `app ${gatewaySelf.version}` : null,
+            gatewaySelf?.version ? t("status.app_version", { version: gatewaySelf.version }) : null,
             gatewaySelf?.platform ? gatewaySelf.platform : null,
           ]
             .filter(Boolean)
@@ -337,12 +342,20 @@ export async function statusCommand(
   const agentsValue = (() => {
     const pending =
       agentStatus.bootstrapPendingCount > 0
-        ? `${agentStatus.bootstrapPendingCount} bootstrap file${agentStatus.bootstrapPendingCount === 1 ? "" : "s"} present`
-        : "no bootstrap files";
+      ? t("status.bootstrap_files_present", {
+          count: String(agentStatus.bootstrapPendingCount),
+          plural: agentStatus.bootstrapPendingCount === 1 ? "" : "s",
+        })
+      : t("status.no_bootstrap_files");
     const def = agentStatus.agents.find((a) => a.id === agentStatus.defaultId);
-    const defActive = def?.lastActiveAgeMs != null ? formatTimeAgo(def.lastActiveAgeMs) : "unknown";
-    const defSuffix = def ? ` · default ${def.id} active ${defActive}` : "";
-    return `${agentStatus.agents.length} · ${pending} · sessions ${agentStatus.totalSessions}${defSuffix}`;
+    const defActive =
+      def?.lastActiveAgeMs != null ? formatTimeAgo(def.lastActiveAgeMs) : t("common.unknown");
+    const defSuffix = def
+      ? ` · ${t("status.default_agent_active", { id: def.id, age: defActive })}`
+      : "";
+    return `${agentStatus.agents.length} · ${pending} · ${t("status.sessions_count", {
+      count: String(agentStatus.totalSessions),
+    })}${defSuffix}`;
   })();
 
   const [daemon, nodeDaemon] = await Promise.all([
@@ -351,16 +364,16 @@ export async function statusCommand(
   ]);
   const daemonValue = (() => {
     if (daemon.installed === false) {
-      return `${daemon.label} not installed`;
+      return t("status.service_not_installed", { label: daemon.label });
     }
-    const installedPrefix = daemon.managedByCoreBlow ? "installed · " : "";
+    const installedPrefix = daemon.managedByCoreBlow ? `${t("common.installed")} · ` : "";
     return `${daemon.label} ${installedPrefix}${daemon.loadedText}${daemon.runtimeShort ? ` · ${daemon.runtimeShort}` : ""}`;
   })();
   const nodeDaemonValue = (() => {
     if (nodeDaemon.installed === false) {
-      return `${nodeDaemon.label} not installed`;
+      return t("status.service_not_installed", { label: nodeDaemon.label });
     }
-    const installedPrefix = nodeDaemon.managedByCoreBlow ? "installed · " : "";
+    const installedPrefix = nodeDaemon.managedByCoreBlow ? `${t("common.installed")} · ` : "";
     return `${nodeDaemon.label} ${installedPrefix}${nodeDaemon.loadedText}${nodeDaemon.runtimeShort ? ` · ${nodeDaemon.runtimeShort}` : ""}`;
   })();
 
@@ -369,73 +382,92 @@ export async function statusCommand(
     ? ` (${formatKTokens(defaults.contextTokens)} ctx)`
     : "";
   const eventsValue =
-    summary.queuedSystemEvents.length > 0 ? `${summary.queuedSystemEvents.length} queued` : "none";
+    summary.queuedSystemEvents.length > 0
+      ? t("status.events_queued", { count: String(summary.queuedSystemEvents.length) })
+      : t("common.none");
 
-  const probesValue = health ? ok("enabled") : muted("skipped (use --deep)");
+  const probesValue = health ? ok(t("common.enabled")) : muted(t("status.probes_skipped"));
 
   const heartbeatValue = (() => {
     const parts = summary.heartbeat.agents
       .map((agent) => {
         if (!agent.enabled || !agent.everyMs) {
-          return `disabled (${agent.agentId})`;
+          return `${t("common.disabled")} (${agent.agentId})`;
         }
         const everyLabel = agent.every;
         return `${everyLabel} (${agent.agentId})`;
       })
       .filter(Boolean);
-    return parts.length > 0 ? parts.join(", ") : "disabled";
+    return parts.length > 0 ? parts.join(", ") : t("common.disabled");
   })();
   const lastHeartbeatValue = (() => {
     if (!opts.deep) {
       return null;
     }
     if (!gatewayReachable) {
-      return warn("unavailable");
+      return warn(t("common.unavailable"));
     }
     if (!lastHeartbeat) {
-      return muted("none");
+      return muted(t("common.none"));
     }
     const age = formatTimeAgo(Date.now() - lastHeartbeat.ts);
-    const channel = lastHeartbeat.channel ?? "unknown";
-    const accountLabel = lastHeartbeat.accountId ? `account ${lastHeartbeat.accountId}` : null;
-    return [lastHeartbeat.status, `${age} ago`, channel, accountLabel].filter(Boolean).join(" · ");
+    const channel = lastHeartbeat.channel ?? t("common.unknown");
+    const accountLabel = lastHeartbeat.accountId
+      ? t("status.account", { id: lastHeartbeat.accountId })
+      : null;
+    return [lastHeartbeat.status, t("common.ago", { age }), channel, accountLabel]
+      .filter(Boolean)
+      .join(" · ");
   })();
 
   const storeLabel =
     summary.sessions.paths.length > 1
       ? `${summary.sessions.paths.length} stores`
-      : (summary.sessions.paths[0] ?? "unknown");
+      : (summary.sessions.paths[0] ?? t("common.unknown"));
 
   const memoryValue = (() => {
     if (!memoryPlugin.enabled) {
       const suffix = memoryPlugin.reason ? ` (${memoryPlugin.reason})` : "";
-      return muted(`disabled${suffix}`);
+      return muted(`${t("common.disabled")}${suffix}`);
     }
     if (!memory) {
-      const slot = memoryPlugin.slot ? `plugin ${memoryPlugin.slot}` : "plugin";
-      return muted(`enabled (${slot}) · unavailable`);
+      const slot = memoryPlugin.slot
+        ? t("status.plugin_slot", { slot: memoryPlugin.slot })
+        : t("status.plugin");
+      return muted(`${t("common.enabled")} (${slot}) · ${t("common.unavailable")}`);
     }
     const parts: string[] = [];
     const dirtySuffix = memory.dirty ? ` · ${warn("dirty")}` : "";
-    parts.push(`${memory.files} files · ${memory.chunks} chunks${dirtySuffix}`);
+    parts.push(
+      t("status.memory_files_chunks", {
+        files: String(memory.files),
+        chunks: String(memory.chunks),
+      }) + dirtySuffix,
+    );
     if (memory.sources?.length) {
-      parts.push(`sources ${memory.sources.join(", ")}`);
+      parts.push(t("status.sources", { sources: memory.sources.join(", ") }));
     }
     if (memoryPlugin.slot) {
-      parts.push(`plugin ${memoryPlugin.slot}`);
+      parts.push(t("status.plugin_slot", { slot: memoryPlugin.slot }));
     }
     const colorByTone = (tone: Tone, text: string) =>
       tone === "ok" ? ok(text) : tone === "warn" ? warn(text) : muted(text);
     const vector = memory.vector;
     if (vector) {
       const state = resolveMemoryVectorState(vector);
-      const label = state.state === "disabled" ? "vector off" : `vector ${state.state}`;
+      const label =
+        state.state === "disabled"
+          ? t("status.vector_off")
+          : t("status.vector_state", { state: state.state });
       parts.push(colorByTone(state.tone, label));
     }
     const fts = memory.fts;
     if (fts) {
       const state = resolveMemoryFtsState(fts);
-      const label = state.state === "disabled" ? "fts off" : `fts ${state.state}`;
+      const label =
+        state.state === "disabled"
+          ? t("status.fts_off")
+          : t("status.fts_state", { state: state.state });
       parts.push(colorByTone(state.tone, label));
     }
     const cache = memory.cache;
@@ -453,13 +485,18 @@ export async function statusCommand(
   const pluginCompatibilitySummary = summarizePluginCompatibility(pluginCompatibility);
   const pluginCompatibilityValue =
     pluginCompatibilitySummary.noticeCount === 0
-      ? ok("none")
+      ? ok(t("common.none"))
       : warn(
-          `${pluginCompatibilitySummary.noticeCount} notice${pluginCompatibilitySummary.noticeCount === 1 ? "" : "s"} · ${pluginCompatibilitySummary.pluginCount} plugin${pluginCompatibilitySummary.pluginCount === 1 ? "" : "s"}`,
+          t("status.plugin_compatibility_summary", {
+            notices: String(pluginCompatibilitySummary.noticeCount),
+            noticePlural: pluginCompatibilitySummary.noticeCount === 1 ? "" : "s",
+            plugins: String(pluginCompatibilitySummary.pluginCount),
+            pluginPlural: pluginCompatibilitySummary.pluginCount === 1 ? "" : "s",
+          }),
         );
 
   const overviewRows = [
-    { Item: "Dashboard", Value: dashboard },
+    { Item: t("status.items.dashboard"), Value: dashboard },
     { Item: "OS", Value: `${osSummary.label} · node ${process.versions.node}` },
     {
       Item: "Tailscale",
@@ -468,42 +505,47 @@ export async function statusCommand(
           ? muted("off")
           : tailscaleDns && tailscaleHttpsUrl
             ? `${tailscaleMode} · ${tailscaleDns} · ${tailscaleHttpsUrl}`
-            : warn(`${tailscaleMode} · magicdns unknown`),
+            : warn(`${tailscaleMode} · ${t("status.magicdns_unknown")}`),
     },
-    { Item: "Channel", Value: channelLabel },
-    ...(gitLabel ? [{ Item: "Git", Value: gitLabel }] : []),
+    { Item: t("status.items.channel"), Value: channelLabel },
+    ...(gitLabel ? [{ Item: t("status.items.git"), Value: gitLabel }] : []),
     {
-      Item: "Update",
+      Item: t("status.items.update"),
       Value: updateAvailability.available ? warn(`available · ${updateLine}`) : updateLine,
     },
-    { Item: "Gateway", Value: gatewayValue },
+    { Item: t("status.items.gateway"), Value: gatewayValue },
     ...(gatewayProbeAuthWarning
-      ? [{ Item: "Gateway auth warning", Value: warn(gatewayProbeAuthWarning) }]
+      ? [{ Item: t("status.items.gateway_auth_warning"), Value: warn(gatewayProbeAuthWarning) }]
       : []),
-    { Item: "Gateway service", Value: daemonValue },
-    { Item: "Node service", Value: nodeDaemonValue },
-    { Item: "Agents", Value: agentsValue },
-    { Item: "Memory", Value: memoryValue },
-    { Item: "Plugin compatibility", Value: pluginCompatibilityValue },
-    { Item: "Probes", Value: probesValue },
-    { Item: "Events", Value: eventsValue },
-    { Item: "Heartbeat", Value: heartbeatValue },
-    ...(lastHeartbeatValue ? [{ Item: "Last heartbeat", Value: lastHeartbeatValue }] : []),
+    { Item: t("status.items.gateway_service"), Value: daemonValue },
+    { Item: t("status.items.node_service"), Value: nodeDaemonValue },
+    { Item: t("status.items.agents"), Value: agentsValue },
+    { Item: t("status.items.memory"), Value: memoryValue },
+    { Item: t("status.items.plugin_compatibility"), Value: pluginCompatibilityValue },
+    { Item: t("status.items.probes"), Value: probesValue },
+    { Item: t("status.items.events"), Value: eventsValue },
+    { Item: t("status.items.heartbeat"), Value: heartbeatValue },
+    ...(lastHeartbeatValue ? [{ Item: t("status.items.last_heartbeat"), Value: lastHeartbeatValue }] : []),
     {
-      Item: "Sessions",
-      Value: `${summary.sessions.count} active · default ${defaults.model ?? "unknown"}${defaultCtx} · ${storeLabel}`,
+      Item: t("status.items.sessions"),
+      Value: t("status.sessions_overview", {
+        count: String(summary.sessions.count),
+        model: defaults.model ?? t("common.unknown"),
+        context: defaultCtx,
+        store: storeLabel,
+      }),
     },
   ];
 
-  runtime.log(theme.heading("CoreBlow status"));
+  runtime.log(theme.heading(t("status.title")));
   runtime.log("");
-  runtime.log(theme.heading("Overview"));
+  runtime.log(theme.heading(t("status.sections.overview")));
   runtime.log(
     renderTable({
       width: tableWidth,
       columns: [
-        { key: "Item", header: "Item", minWidth: 12 },
-        { key: "Value", header: "Value", flex: true, minWidth: 32 },
+        { key: "Item", header: t("status.table.item"), minWidth: 12 },
+        { key: "Value", header: t("status.table.value"), flex: true, minWidth: 32 },
       ],
       rows: overviewRows,
     }).trimEnd(),
@@ -511,46 +553,54 @@ export async function statusCommand(
 
   if (pluginCompatibility.length > 0) {
     runtime.log("");
-    runtime.log(theme.heading("Plugin compatibility"));
+    runtime.log(theme.heading(t("status.sections.plugin_compatibility")));
     for (const notice of pluginCompatibility.slice(0, 8)) {
       const label = notice.severity === "warn" ? theme.warn("WARN") : theme.muted("INFO");
       runtime.log(`  ${label} ${formatPluginCompatibilityNotice(notice)}`);
     }
     if (pluginCompatibility.length > 8) {
-      runtime.log(theme.muted(`  … +${pluginCompatibility.length - 8} more`));
+      runtime.log(theme.muted(t("common.more_count", { count: String(pluginCompatibility.length - 8) })));
     }
   }
 
   if (pairingRecovery) {
     runtime.log("");
-    runtime.log(theme.warn("Gateway pairing approval required."));
+    runtime.log(theme.warn(t("status.pairing_required")));
     if (pairingRecovery.requestId) {
       runtime.log(
         theme.muted(
-          `Recovery: ${formatCliCommand(`coreblow devices approve ${pairingRecovery.requestId}`)}`,
+          t("status.recovery", {
+            command: formatCliCommand(`coreblow devices approve ${pairingRecovery.requestId}`),
+          }),
         ),
       );
     }
-    runtime.log(theme.muted(`Fallback: ${formatCliCommand("coreblow devices approve --latest")}`));
-    runtime.log(theme.muted(`Inspect: ${formatCliCommand("coreblow devices list")}`));
+    runtime.log(
+      theme.muted(
+        t("status.fallback", { command: formatCliCommand("coreblow devices approve --latest") }),
+      ),
+    );
+    runtime.log(
+      theme.muted(t("status.inspect", { command: formatCliCommand("coreblow devices list") })),
+    );
   }
 
   runtime.log("");
-  runtime.log(theme.heading("Security audit"));
+  runtime.log(theme.heading(t("status.sections.security_audit")));
   const fmtSummary = (value: { critical: number; warn: number; info: number }) => {
     const parts = [
-      theme.error(`${value.critical} critical`),
-      theme.warn(`${value.warn} warn`),
-      theme.muted(`${value.info} info`),
+      theme.error(t("status.finding_critical", { count: String(value.critical) })),
+      theme.warn(t("status.finding_warn", { count: String(value.warn) })),
+      theme.muted(t("status.finding_info", { count: String(value.info) })),
     ];
     return parts.join(" · ");
   };
-  runtime.log(theme.muted(`Summary: ${fmtSummary(securityAudit.summary)}`));
+  runtime.log(theme.muted(t("status.summary_line", { summary: fmtSummary(securityAudit.summary) })));
   const importantFindings = securityAudit.findings.filter(
     (f) => f.severity === "critical" || f.severity === "warn",
   );
   if (importantFindings.length === 0) {
-    runtime.log(theme.muted("No critical or warn findings detected."));
+    runtime.log(theme.muted(t("status.no_security_findings")));
   } else {
     const severityLabel = (sev: "critical" | "warn" | "info") => {
       if (sev === "critical") {
@@ -571,34 +621,44 @@ export async function statusCommand(
       runtime.log(`  ${severityLabel(f.severity)} ${f.title}`);
       runtime.log(`    ${shortenText(f.detail.replaceAll("\n", " "), 160)}`);
       if (f.remediation?.trim()) {
-        runtime.log(`    ${theme.muted(`Fix: ${f.remediation.trim()}`)}`);
+        runtime.log(`    ${theme.muted(t("status.fix", { detail: f.remediation.trim() }))}`);
       }
     }
     if (sorted.length > shown.length) {
-      runtime.log(theme.muted(`… +${sorted.length - shown.length} more`));
+      runtime.log(theme.muted(t("common.more_count", { count: String(sorted.length - shown.length) })));
     }
   }
-  runtime.log(theme.muted(`Full report: ${formatCliCommand("coreblow security audit")}`));
-  runtime.log(theme.muted(`Deep probe: ${formatCliCommand("coreblow security audit --deep")}`));
+  runtime.log(
+    theme.muted(t("status.full_report", { command: formatCliCommand("coreblow security audit") })),
+  );
+  runtime.log(
+    theme.muted(
+      t("status.deep_probe", { command: formatCliCommand("coreblow security audit --deep") }),
+    ),
+  );
 
   runtime.log("");
-  runtime.log(theme.heading("Channels"));
+  runtime.log(theme.heading(t("status.sections.channels")));
   const channelIssuesByChannel = groupChannelIssuesByChannel(channelIssues);
   runtime.log(
     renderTable({
       width: tableWidth,
       columns: [
-        { key: "Channel", header: "Channel", minWidth: 10 },
-        { key: "Enabled", header: "Enabled", minWidth: 7 },
-        { key: "State", header: "State", minWidth: 8 },
-        { key: "Detail", header: "Detail", flex: true, minWidth: 24 },
+        { key: "Channel", header: t("status.table.channel"), minWidth: 10 },
+        { key: "Enabled", header: t("status.table.enabled"), minWidth: 7 },
+        { key: "State", header: t("status.table.state"), minWidth: 8 },
+        { key: "Detail", header: t("status.table.detail"), flex: true, minWidth: 24 },
       ],
       rows: channels.rows.map((row) => {
         const issues = channelIssuesByChannel.get(row.id) ?? [];
         const effectiveState = row.state === "off" ? "off" : issues.length > 0 ? "warn" : row.state;
         const issueSuffix =
           issues.length > 0
-            ? ` · ${warn(`gateway: ${shortenText(issues[0]?.message ?? "issue", 84)}`)}`
+            ? ` · ${warn(
+                t("status.gateway_issue", {
+                  message: shortenText(issues[0]?.message ?? t("common.issue"), 84),
+                }),
+              )}`
             : "";
         return {
           Channel: row.label,
@@ -618,29 +678,29 @@ export async function statusCommand(
   );
 
   runtime.log("");
-  runtime.log(theme.heading("Sessions"));
+  runtime.log(theme.heading(t("status.sections.sessions")));
   runtime.log(
     renderTable({
       width: tableWidth,
       columns: [
-        { key: "Key", header: "Key", minWidth: 20, flex: true },
-        { key: "Kind", header: "Kind", minWidth: 6 },
-        { key: "Age", header: "Age", minWidth: 9 },
-        { key: "Model", header: "Model", minWidth: 14 },
-        { key: "Tokens", header: "Tokens", minWidth: 16 },
+        { key: "Key", header: t("status.table.key"), minWidth: 20, flex: true },
+        { key: "Kind", header: t("status.table.kind"), minWidth: 6 },
+        { key: "Age", header: t("status.table.age"), minWidth: 9 },
+        { key: "Model", header: t("status.table.model"), minWidth: 14 },
+        { key: "Tokens", header: t("status.table.tokens"), minWidth: 16 },
       ],
       rows:
         summary.sessions.recent.length > 0
           ? summary.sessions.recent.map((sess) => ({
               Key: shortenText(sess.key, 32),
               Kind: sess.kind,
-              Age: sess.updatedAt ? formatTimeAgo(sess.age) : "no activity",
-              Model: sess.model ?? "unknown",
+              Age: sess.updatedAt ? formatTimeAgo(sess.age) : t("common.no_activity"),
+              Model: sess.model ?? t("common.unknown"),
               Tokens: formatTokensCompact(sess),
             }))
           : [
               {
-                Key: muted("no sessions yet"),
+                Key: muted(t("status.no_sessions_yet")),
                 Kind: "",
                 Age: "",
                 Model: "",
@@ -652,28 +712,28 @@ export async function statusCommand(
 
   if (summary.queuedSystemEvents.length > 0) {
     runtime.log("");
-    runtime.log(theme.heading("System events"));
+    runtime.log(theme.heading(t("status.sections.system_events")));
     runtime.log(
       renderTable({
         width: tableWidth,
-        columns: [{ key: "Event", header: "Event", flex: true, minWidth: 24 }],
+        columns: [{ key: "Event", header: t("status.table.event"), flex: true, minWidth: 24 }],
         rows: summary.queuedSystemEvents.slice(0, 5).map((event) => ({
           Event: event,
         })),
       }).trimEnd(),
     );
     if (summary.queuedSystemEvents.length > 5) {
-      runtime.log(muted(`… +${summary.queuedSystemEvents.length - 5} more`));
+      runtime.log(muted(t("common.more_count", { count: String(summary.queuedSystemEvents.length - 5) })));
     }
   }
 
   if (health) {
     runtime.log("");
-    runtime.log(theme.heading("Health"));
+    runtime.log(theme.heading(t("status.sections.health")));
     const rows: Array<Record<string, string>> = [];
     rows.push({
-      Item: "Gateway",
-      Status: ok("reachable"),
+      Item: t("status.items.gateway"),
+      Status: ok(t("status.reachable")),
       Detail: `${health.durationMs}ms`,
     });
 
@@ -686,22 +746,37 @@ export async function statusCommand(
       const detail = line.slice(colon + 1).trim();
       const normalized = detail.toLowerCase();
       const status = (() => {
-        if (normalized.startsWith("ok")) {
+        if (normalized.startsWith("ok") || normalized.startsWith(t("common.ok").toLowerCase())) {
           return ok("OK");
         }
-        if (normalized.startsWith("failed")) {
+        if (
+          normalized.startsWith("failed") ||
+          normalized.startsWith(t("health.failed_prefix").toLowerCase())
+        ) {
           return warn("WARN");
         }
-        if (normalized.startsWith("not configured")) {
+        if (
+          normalized.startsWith("not configured") ||
+          normalized.startsWith(t("health.not_configured").toLowerCase())
+        ) {
           return muted("OFF");
         }
-        if (normalized.startsWith("configured")) {
+        if (
+          normalized.startsWith("configured") ||
+          normalized.startsWith(t("health.configured").toLowerCase())
+        ) {
           return ok("OK");
         }
-        if (normalized.startsWith("linked")) {
+        if (
+          normalized.startsWith("linked") ||
+          normalized.startsWith(t("health.linked").toLowerCase())
+        ) {
           return ok("LINKED");
         }
-        if (normalized.startsWith("not linked")) {
+        if (
+          normalized.startsWith("not linked") ||
+          normalized.startsWith(t("health.not_linked").toLowerCase())
+        ) {
           return warn("UNLINKED");
         }
         return warn("WARN");
@@ -713,9 +788,9 @@ export async function statusCommand(
       renderTable({
         width: tableWidth,
         columns: [
-          { key: "Item", header: "Item", minWidth: 10 },
-          { key: "Status", header: "Status", minWidth: 8 },
-          { key: "Detail", header: "Detail", flex: true, minWidth: 28 },
+          { key: "Item", header: t("status.table.item"), minWidth: 10 },
+          { key: "Status", header: t("status.table.status"), minWidth: 8 },
+          { key: "Detail", header: t("status.table.detail"), flex: true, minWidth: 28 },
         ],
         rows,
       }).trimEnd(),
@@ -725,27 +800,35 @@ export async function statusCommand(
   if (usage) {
     const { formatUsageReportLines } = await loadProviderUsage();
     runtime.log("");
-    runtime.log(theme.heading("Usage"));
+    runtime.log(theme.heading(t("status.sections.usage")));
     for (const line of formatUsageReportLines(usage)) {
       runtime.log(line);
     }
   }
 
   runtime.log("");
-  runtime.log("FAQ: https://docs.coreblow.com/faq");
-  runtime.log("Troubleshooting: https://docs.coreblow.com/troubleshooting");
+  runtime.log(t("status.faq", { url: "https://docs.coreblow.com/faq" }));
+  runtime.log(t("status.troubleshooting", { url: "https://docs.coreblow.com/troubleshooting" }));
   runtime.log("");
   const updateHint = formatUpdateAvailableHint(update);
   if (updateHint) {
     runtime.log(theme.warn(updateHint));
     runtime.log("");
   }
-  runtime.log("Next steps:");
-  runtime.log(`  Need to share?      ${formatCliCommand("coreblow status --all")}`);
-  runtime.log(`  Need to debug live? ${formatCliCommand("coreblow logs --follow")}`);
+  runtime.log(t("status.next_steps"));
+  runtime.log(
+    `  ${t("status.need_share")}      ${formatCliCommand("coreblow status --all")}`,
+  );
+  runtime.log(
+    `  ${t("status.need_debug_live")} ${formatCliCommand("coreblow logs --follow")}`,
+  );
   if (gatewayReachable) {
-    runtime.log(`  Need to test channels? ${formatCliCommand("coreblow status --deep")}`);
+    runtime.log(
+      `  ${t("status.need_test_channels")} ${formatCliCommand("coreblow status --deep")}`,
+    );
   } else {
-    runtime.log(`  Fix reachability first: ${formatCliCommand("coreblow gateway probe")}`);
+    runtime.log(
+      `  ${t("status.fix_reachability_first")} ${formatCliCommand("coreblow gateway probe")}`,
+    );
   }
 }
