@@ -11,6 +11,7 @@ import { CLI_LOG_LEVEL_VALUES, parseCliLogLevelOption } from "../log-level-optio
 import type { ProgramContext } from "./context.js";
 import { getCoreCliCommandsWithSubcommands } from "./command-registry.js";
 import { getSubCliCommandsWithSubcommands } from "./register.subclis.js";
+import { translateHelpText } from "./help-text-translations.js";
 
 const CLI_NAME = resolveCliName();
 const CLI_NAME_PATTERN = escapeRegExp(CLI_NAME);
@@ -87,6 +88,7 @@ export function configureProgramHelp(program: Command, ctx: ProgramContext) {
     sortSubcommands: true,
     sortOptions: true,
     optionTerm: (option) => theme.option(option.flags),
+    commandDescription: (cmd) => translateHelpText(cmd.description()),
     optionDescription: (option: Option) => {
       const extraInfo: string[] = [];
       if (option.argChoices) {
@@ -117,9 +119,10 @@ export function configureProgramHelp(program: Command, ctx: ProgramContext) {
       if (option.envVar !== undefined) {
         extraInfo.push(formatExtraInfo("cli_help.formatter.env", option.envVar));
       }
+      const description = translateHelpText(option.description);
       return extraInfo.length > 0
-        ? `${option.description} (${extraInfo.join(", ")})`
-        : option.description;
+        ? `${description} (${extraInfo.join(", ")})`
+        : description;
     },
     argumentDescription: (argument: Argument) => {
       const extraInfo: string[] = [];
@@ -139,12 +142,14 @@ export function configureProgramHelp(program: Command, ctx: ProgramContext) {
           ),
         );
       }
+      const description = translateHelpText(argument.description);
       if (extraInfo.length === 0) {
-        return argument.description;
+        return description;
       }
       const suffix = `(${extraInfo.join(", ")})`;
-      return argument.description ? `${argument.description} ${suffix}` : suffix;
+      return description ? `${description} ${suffix}` : suffix;
     },
+    subcommandDescription: (cmd) => translateHelpText(cmd.description()),
     subcommandTerm: (cmd) => {
       const isRootCommand = cmd.parent === program;
       const hasSubcommands = isRootCommand && ROOT_COMMANDS_WITH_SUBCOMMANDS.has(cmd.name());
@@ -169,6 +174,8 @@ export function configureProgramHelp(program: Command, ctx: ProgramContext) {
       .replace(/^Usage:/gm, theme.heading(t("cli_help.labels.usage")))
       .replace(/^Options:/gm, theme.heading(t("cli_help.labels.options")))
       .replace(/^Commands:/gm, theme.heading(t("cli_help.labels.commands")))
+      .replace(/^Examples:/gm, theme.heading(t("cli_help.labels.examples")))
+      .replace(/^Docs:/gm, theme.heading(t("cli_help.labels.docs")))
       .replace(/^Arguments:/gm, theme.heading(t("cli_help.labels.arguments")))
       .replace(/^Global Options:/gm, theme.heading(t("cli_help.labels.global_options")));
   };
