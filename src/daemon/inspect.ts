@@ -109,10 +109,7 @@ function isCoreBlowGatewaySystemdService(name: string, contents: string): boolea
   if (hasGatewayServiceMarker(contents)) {
     return true;
   }
-  if (!name.startsWith("coreblow-gateway")) {
-    return false;
-  }
-  return contents.toLowerCase().includes("gateway");
+  return name === resolveGatewaySystemdServiceName() && contents.toLowerCase().includes("gateway");
 }
 
 function isCoreBlowGatewayTaskName(name: string): boolean {
