@@ -98,14 +98,14 @@ export function convertMarkdownTables(markdown: string, mode: MarkdownTableMode)
     if (!markdown || mode === "off") {
         return markdown;
     }
-    const { ir, hasTables } = markdownToIRWithMeta(markdown, {
+    const { ir, containsTables } = markdownToIRWithMeta(markdown, {
         linkify: false,
         autolink: false,
         headingStyle: "none",
         blockquotePrefix: "",
         tableMode: mode,
     });
-    if (!hasTables) {
+    if (!containsTables) {
         return markdown;
     }
     return renderMarkdownWithMarkers(ir, {

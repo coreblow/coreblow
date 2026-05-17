@@ -221,15 +221,6 @@ declare module 'file-type' {
   export function fileTypeFromFile(...args: any[]): any;
 }
 
-declare module 'qrcode-terminal' {
-  export function generate(...args: any[]): any;
-}
-
-declare module 'markdown-it' {
-  class MarkdownIt { constructor(...args: any[]); render(...args: any[]): any; [k: string]: any; }
-  export = MarkdownIt;
-}
-
 declare module '@anthropic-ai/vertex-sdk' {
   export class AnthropicVertex { constructor(...args: any[]); messages: any; [k: string]: any; }
 }

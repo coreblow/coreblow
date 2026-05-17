@@ -1,5 +1,4 @@
 import { clamp } from "../utils.js";
-// @ts-expect-error markdown-it has no bundled type declarations (install @types/markdown-it to fix)
 import MarkdownIt from "markdown-it";
 import { chunkText } from "../auto-reply/chunk.js";
 import type { MarkdownTableMode } from "../config/types.base.js";
@@ -87,7 +86,7 @@ type RenderState = RenderTarget & {
   enableSpoilers: boolean;
   tableMode: MarkdownTableMode;
   table: TableState | null;
-  hasTables: boolean;
+  containsTables: boolean;
 };
 
 export type MarkdownParseOptions = {
@@ -689,7 +688,7 @@ function renderTokens(tokens: MarkdownToken[], state: RenderState): void {
       case "table_open":
         if (state.tableMode !== "off") {
           state.table = initTableState();
-          state.hasTables = true;
+          state.containsTables = true;
         }
         break;
       case "table_close":
@@ -887,7 +886,7 @@ export function markdownToIR(markdown: string, options: MarkdownParseOptions = {
 export function markdownToIRWithMeta(
   markdown: string,
   options: MarkdownParseOptions = {},
-): { ir: MarkdownIR; hasTables: boolean } {
+): { ir: MarkdownIR; containsTables: boolean } {
   const env: RenderEnv = { listStack: [] };
   const md = createMarkdownIt(options);
   const tokens = md.parse(markdown ?? "", env as unknown as object);
@@ -909,7 +908,7 @@ export function markdownToIRWithMeta(
     enableSpoilers: options.enableSpoilers ?? false,
     tableMode,
     table: null,
-    hasTables: false,
+    containsTables: false,
   };
 
   renderTokens(tokens as MarkdownToken[], state);
@@ -936,7 +935,7 @@ export function markdownToIRWithMeta(
       styles: mergeStyleSpans(clampStyleSpans(state.styles, finalLength)),
       links: clampLinkSpans(state.links, finalLength),
     },
-    hasTables: state.hasTables,
+    containsTables: state.containsTables,
   };
 }
 
