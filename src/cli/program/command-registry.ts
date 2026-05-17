@@ -1,7 +1,7 @@
 import type { Command } from "commander";
-import { t } from "../../infra/i18n/index.js";
 import { getPrimaryCommand, hasHelpOrVersion } from "../argv.js";
 import { reparseProgramFromActionArgs } from "./action-reparse.js";
+import { commandDescription } from "./command-description.js";
 import { removeCommandByName } from "./command-tree.js";
 import type { ProgramContext } from "./context.js";
 import {
@@ -44,7 +44,7 @@ const coreEntries: CoreCliEntry[] = [
     commands: [
       {
         name: "setup",
-        description: "Initialize local config and agent workspace",
+        description: commandDescription("setup", "Initialize local config and agent workspace"),
         hasSubcommands: false,
       },
     ],
@@ -57,7 +57,10 @@ const coreEntries: CoreCliEntry[] = [
     commands: [
       {
         name: "onboard",
-        description: "Interactive onboarding for gateway, workspace, and skills",
+        description: commandDescription(
+          "onboard",
+          "Interactive onboarding for gateway, workspace, and skills",
+        ),
         hasSubcommands: false,
       },
     ],
@@ -70,8 +73,10 @@ const coreEntries: CoreCliEntry[] = [
     commands: [
       {
         name: "configure",
-        description:
+        description: commandDescription(
+          "configure",
           "Interactive configuration for credentials, channels, gateway, and agent defaults",
+        ),
         hasSubcommands: false,
       },
     ],
@@ -84,8 +89,10 @@ const coreEntries: CoreCliEntry[] = [
     commands: [
       {
         name: "config",
-        description:
+        description: commandDescription(
+          "config",
           "Non-interactive config helpers (get/set/unset/file/validate). Default: starts guided setup.",
+        ),
         hasSubcommands: true,
       },
     ],
@@ -98,7 +105,10 @@ const coreEntries: CoreCliEntry[] = [
     commands: [
       {
         name: "backup",
-        description: "Create and verify local backup archives for CoreBlow state",
+        description: commandDescription(
+          "backup",
+          "Create and verify local backup archives for CoreBlow state",
+        ),
         hasSubcommands: true,
       },
     ],
@@ -111,22 +121,28 @@ const coreEntries: CoreCliEntry[] = [
     commands: [
       {
         name: "doctor",
-        description: t("cli_help.commands.doctor"),
+        description: commandDescription(
+          "doctor",
+          "Health checks + quick fixes for the gateway and channels",
+        ),
         hasSubcommands: false,
       },
       {
         name: "dashboard",
-        description: "Open the Control UI with your current token",
+        description: commandDescription("dashboard", "Open the Control UI with your current token"),
         hasSubcommands: false,
       },
       {
         name: "reset",
-        description: "Reset local config/state (keeps the CLI installed)",
+        description: commandDescription("reset", "Reset local config/state (keeps the CLI installed)"),
         hasSubcommands: false,
       },
       {
         name: "uninstall",
-        description: "Uninstall the gateway service + local data (CLI remains)",
+        description: commandDescription(
+          "uninstall",
+          "Uninstall the gateway service + local data (CLI remains)",
+        ),
         hasSubcommands: false,
       },
     ],
@@ -139,7 +155,7 @@ const coreEntries: CoreCliEntry[] = [
     commands: [
       {
         name: "message",
-        description: "Send, read, and manage messages",
+        description: commandDescription("message", "Send, read, and manage messages"),
         hasSubcommands: true,
       },
     ],
@@ -152,7 +168,7 @@ const coreEntries: CoreCliEntry[] = [
     commands: [
       {
         name: "mcp",
-        description: "Manage CoreBlow MCP config and channel bridge",
+        description: commandDescription("mcp", "Manage CoreBlow MCP config and channel bridge"),
         hasSubcommands: true,
       },
     ],
@@ -165,12 +181,12 @@ const coreEntries: CoreCliEntry[] = [
     commands: [
       {
         name: "agent",
-        description: "Run one agent turn via the Gateway",
+        description: commandDescription("agent", "Run one agent turn via the Gateway"),
         hasSubcommands: false,
       },
       {
         name: "agents",
-        description: "Manage isolated agents (workspaces, auth, routing)",
+        description: commandDescription("agents", "Manage isolated agents (workspaces, auth, routing)"),
         hasSubcommands: true,
       },
     ],
@@ -185,17 +201,17 @@ const coreEntries: CoreCliEntry[] = [
     commands: [
       {
         name: "status",
-        description: t("cli_help.commands.status"),
+        description: commandDescription("status", "Show channel health and recent session recipients"),
         hasSubcommands: false,
       },
       {
         name: "health",
-        description: t("cli_help.commands.health"),
+        description: commandDescription("health", "Fetch health from the running gateway"),
         hasSubcommands: false,
       },
       {
         name: "sessions",
-        description: "List stored conversation sessions",
+        description: commandDescription("sessions", "List stored conversation sessions"),
         hasSubcommands: true,
       },
     ],

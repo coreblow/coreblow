@@ -3,6 +3,7 @@ import type { CoreBlowConfig } from "../../config/config.js";
 import { isTruthyEnvValue } from "../../infra/env.js";
 import { getPrimaryCommand, hasHelpOrVersion } from "../argv.js";
 import { reparseProgramFromActionArgs } from "./action-reparse.js";
+import { commandDescription } from "./command-description.js";
 import { removeCommand, removeCommandByName } from "./command-tree.js";
 import {
   getSubCliCommandsWithSubcommands,
@@ -328,7 +329,9 @@ export async function registerSubCliByName(program: Command, name: string): Prom
 }
 
 function registerLazyCommand(program: Command, entry: SubCliEntry) {
-  const placeholder = program.command(entry.name).description(entry.description);
+  const placeholder = program
+    .command(entry.name)
+    .description(commandDescription(entry.name, entry.description));
   placeholder.allowUnknownOption(true);
   placeholder.allowExcessArguments(true);
   placeholder.action(async (...actionArgs) => {

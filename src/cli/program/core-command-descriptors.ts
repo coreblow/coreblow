@@ -1,4 +1,4 @@
-import { t } from "../../infra/i18n/index.js";
+import { commandDescription } from "./command-description.js";
 
 export type CoreCliCommandDescriptor = {
   name: string;
@@ -6,37 +6,36 @@ export type CoreCliCommandDescriptor = {
   hasSubcommands: boolean;
 };
 
-function commandDescription(name: string, fallback: string): string {
-  const key = `cli_help.commands.${name}`;
-  const translated = t(key);
-  return translated === key ? fallback : translated;
-}
-
 export const CORE_CLI_COMMAND_DESCRIPTORS = [
   {
     name: "setup",
-    description: "Initialize local config and agent workspace",
+    description: commandDescription("setup", "Initialize local config and agent workspace"),
     hasSubcommands: false,
   },
   {
     name: "onboard",
-    description: "Interactive onboarding for gateway, workspace, and skills",
+    description: commandDescription("onboard", "Interactive onboarding for gateway, workspace, and skills"),
     hasSubcommands: false,
   },
   {
     name: "configure",
-    description: "Interactive configuration for credentials, channels, gateway, and agent defaults",
+    description: commandDescription(
+      "configure",
+      "Interactive configuration for credentials, channels, gateway, and agent defaults",
+    ),
     hasSubcommands: false,
   },
   {
     name: "config",
-    description:
+    description: commandDescription(
+      "config",
       "Non-interactive config helpers (get/set/unset/file/validate). Default: starts guided setup.",
+    ),
     hasSubcommands: true,
   },
   {
     name: "backup",
-    description: "Create and verify local backup archives for CoreBlow state",
+    description: commandDescription("backup", "Create and verify local backup archives for CoreBlow state"),
     hasSubcommands: true,
   },
   {
@@ -46,32 +45,32 @@ export const CORE_CLI_COMMAND_DESCRIPTORS = [
   },
   {
     name: "dashboard",
-    description: "Open the Control UI with your current token",
+    description: commandDescription("dashboard", "Open the Control UI with your current token"),
     hasSubcommands: false,
   },
   {
     name: "reset",
-    description: "Reset local config/state (keeps the CLI installed)",
+    description: commandDescription("reset", "Reset local config/state (keeps the CLI installed)"),
     hasSubcommands: false,
   },
   {
     name: "uninstall",
-    description: "Uninstall the gateway service + local data (CLI remains)",
+    description: commandDescription("uninstall", "Uninstall the gateway service + local data (CLI remains)"),
     hasSubcommands: false,
   },
   {
     name: "message",
-    description: "Send, read, and manage messages",
+    description: commandDescription("message", "Send, read, and manage messages"),
     hasSubcommands: true,
   },
   {
     name: "agent",
-    description: "Run one agent turn via the Gateway",
+    description: commandDescription("agent", "Run one agent turn via the Gateway"),
     hasSubcommands: false,
   },
   {
     name: "agents",
-    description: "Manage isolated agents (workspaces, auth, routing)",
+    description: commandDescription("agents", "Manage isolated agents (workspaces, auth, routing)"),
     hasSubcommands: true,
   },
   {
@@ -86,7 +85,7 @@ export const CORE_CLI_COMMAND_DESCRIPTORS = [
   },
   {
     name: "sessions",
-    description: "List stored conversation sessions",
+    description: commandDescription("sessions", "List stored conversation sessions"),
     hasSubcommands: true,
   },
 ] as const satisfies ReadonlyArray<CoreCliCommandDescriptor>;
