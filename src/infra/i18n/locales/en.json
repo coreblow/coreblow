@@ -313,6 +313,17 @@
                 "log_level": "Global log level override for file + console ({{values}})",
                 "no_color": "Disable ANSI colors",
                 "version": "Output the version number"
+            },
+            "examples": {
+                "models_help": "Show detailed help for the models command.",
+                "channels_login": "Link personal WhatsApp Web and show QR + connection logs.",
+                "message_web_json": "Send via your web session and print JSON result.",
+                "gateway_local": "Run the WebSocket Gateway locally.",
+                "gateway_dev": "Run a dev Gateway (isolated state/config) on ws://127.0.0.1:19001.",
+                "gateway_force": "Kill anything bound to the default gateway port, then start it.",
+                "gateway_control": "Gateway control via WebSocket.",
+                "agent_deliver": "Talk directly to the agent using the Gateway; optionally send the WhatsApp reply.",
+                "telegram_send": "Send via your Telegram bot."
             }
         },
         "doctor": {

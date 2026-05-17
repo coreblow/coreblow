@@ -20,25 +20,33 @@ const ROOT_COMMANDS_WITH_SUBCOMMANDS = new Set([
 ]);
 
 const EXAMPLES = [
-  ["coreblow models --help", "Show detailed help for the models command."],
-  [
-    "coreblow channels login --verbose",
-    "Link personal WhatsApp Web and show QR + connection logs.",
-  ],
+  ["coreblow models --help", "models_help", "Show detailed help for the models command."],
+  ["coreblow channels login --verbose", "channels_login", "Link personal WhatsApp Web and show QR + connection logs."],
   [
     'coreblow message send --target +15555550123 --message "Hi" --json',
+    "message_web_json",
     "Send via your web session and print JSON result.",
   ],
-  ["coreblow gateway --port 18789", "Run the WebSocket Gateway locally."],
-  ["coreblow --dev gateway", "Run a dev Gateway (isolated state/config) on ws://127.0.0.1:19001."],
-  ["coreblow gateway --force", "Kill anything bound to the default gateway port, then start it."],
-  ["coreblow gateway ...", "Gateway control via WebSocket."],
+  ["coreblow gateway --port 18789", "gateway_local", "Run the WebSocket Gateway locally."],
+  [
+    "coreblow --dev gateway",
+    "gateway_dev",
+    "Run a dev Gateway (isolated state/config) on ws://127.0.0.1:19001.",
+  ],
+  [
+    "coreblow gateway --force",
+    "gateway_force",
+    "Kill anything bound to the default gateway port, then start it.",
+  ],
+  ["coreblow gateway ...", "gateway_control", "Gateway control via WebSocket."],
   [
     'coreblow agent --to +15555550123 --message "Run summary" --deliver',
+    "agent_deliver",
     "Talk directly to the agent using the Gateway; optionally send the WhatsApp reply.",
   ],
   [
     'coreblow message send --channel telegram --target @mychat --message "Hi"',
+    "telegram_send",
     "Send via your Telegram bot.",
   ],
 ] as const;
@@ -196,10 +204,11 @@ export function configureProgramHelp(program: Command, ctx: ProgramContext) {
     return `\n${line}\n`;
   });
 
-  const fmtExamples = EXAMPLES.map(
-    ([cmd, desc]) =>
-      `  ${theme.command(replaceCliName(cmd, CLI_NAME))}\n    ${theme.muted(desc)}`,
-  ).join("\n");
+  const fmtExamples = EXAMPLES.map(([cmd, key, fallback]) => {
+    const translated = t(`cli_help.root.examples.${key}`);
+    const desc = translated === `cli_help.root.examples.${key}` ? fallback : translated;
+    return `  ${theme.command(replaceCliName(cmd, CLI_NAME))}\n    ${theme.muted(desc)}`;
+  }).join("\n");
 
   program.addHelpText("afterAll", ({ command }) => {
     if (command !== program) {

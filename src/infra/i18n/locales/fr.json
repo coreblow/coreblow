@@ -245,7 +245,7 @@
             "options": "Options:",
             "commands": "Commandes:",
             "examples": "Exemples:",
-            "docs": "Docs:",
+            "docs": "Documentation:",
             "arguments": "Arguments:",
             "global_options": "Options globales:"
         },
@@ -313,6 +313,17 @@
                 "log_level": "Remplacer le niveau de log global pour fichier + console ({{values}})",
                 "no_color": "Désactiver les couleurs ANSI",
                 "version": "Afficher le numéro de version"
+            },
+            "examples": {
+                "models_help": "Afficher l’aide détaillée de la commande models.",
+                "channels_login": "Lier WhatsApp Web personnel et afficher le QR + les logs de connexion.",
+                "message_web_json": "Envoyer via la session web et afficher le résultat JSON.",
+                "gateway_local": "Exécuter le WebSocket Gateway localement.",
+                "gateway_dev": "Exécuter un Gateway dev (état/config isolés) sur ws://127.0.0.1:19001.",
+                "gateway_force": "Arrêter ce qui occupe le port gateway par défaut, puis démarrer.",
+                "gateway_control": "Contrôle du Gateway via WebSocket.",
+                "agent_deliver": "Parler directement à l’agent via le Gateway ; envoyer la réponse WhatsApp en option.",
+                "telegram_send": "Envoyer via votre bot Telegram."
             }
         },
         "doctor": {

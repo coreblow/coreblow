@@ -245,7 +245,7 @@
             "options": "옵션:",
             "commands": "명령:",
             "examples": "예시:",
-            "docs": "Docs:",
+            "docs": "문서:",
             "arguments": "인수:",
             "global_options": "전역 옵션:"
         },
@@ -313,6 +313,17 @@
                 "log_level": "파일 + 콘솔 전역 로그 레벨 재정의 ({{values}})",
                 "no_color": "ANSI 색상 비활성화",
                 "version": "버전 번호 표시"
+            },
+            "examples": {
+                "models_help": "models 명령의 자세한 도움말을 표시합니다.",
+                "channels_login": "개인 WhatsApp Web을 연결하고 QR + 연결 로그를 표시합니다.",
+                "message_web_json": "web session을 통해 보내고 JSON 결과를 출력합니다.",
+                "gateway_local": "WebSocket Gateway를 로컬에서 실행합니다.",
+                "gateway_dev": "dev Gateway(격리된 state/config)를 ws://127.0.0.1:19001에서 실행합니다.",
+                "gateway_force": "기본 gateway 포트를 사용하는 프로세스를 종료한 뒤 시작합니다.",
+                "gateway_control": "WebSocket을 통해 Gateway를 제어합니다.",
+                "agent_deliver": "Gateway를 통해 agent와 직접 대화합니다. 선택적으로 WhatsApp 답장을 보냅니다.",
+                "telegram_send": "Telegram bot을 통해 보냅니다."
             }
         },
         "doctor": {

@@ -313,6 +313,17 @@
                 "log_level": "تجاوز مستوى السجل العام للملف + وحدة التحكم ({{values}})",
                 "no_color": "تعطيل ألوان ANSI",
                 "version": "عرض رقم الإصدار"
+            },
+            "examples": {
+                "models_help": "عرض مساعدة تفصيلية لأمر models.",
+                "channels_login": "ربط WhatsApp Web الشخصي وعرض QR + سجلات الاتصال.",
+                "message_web_json": "الإرسال عبر جلسة web وطباعة نتيجة JSON.",
+                "gateway_local": "تشغيل WebSocket Gateway محلياً.",
+                "gateway_dev": "تشغيل Gateway dev (state/config معزولة) على ws://127.0.0.1:19001.",
+                "gateway_force": "إنهاء أي شيء يستخدم منفذ gateway الافتراضي، ثم بدء التشغيل.",
+                "gateway_control": "التحكم في Gateway عبر WebSocket.",
+                "agent_deliver": "التحدث مباشرة مع agent عبر Gateway؛ ويمكن إرسال رد WhatsApp اختيارياً.",
+                "telegram_send": "الإرسال عبر bot Telegram الخاص بك."
             }
         },
         "doctor": {

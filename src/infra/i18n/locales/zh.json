@@ -313,6 +313,17 @@
                 "log_level": "覆盖文件 + 控制台的全局日志级别 ({{values}})",
                 "no_color": "禁用 ANSI 颜色",
                 "version": "显示版本号"
+            },
+            "examples": {
+                "models_help": "显示 models 命令的详细帮助。",
+                "channels_login": "连接个人 WhatsApp Web，并显示 QR 和连接日志。",
+                "message_web_json": "通过 web session 发送并打印 JSON 结果。",
+                "gateway_local": "在本地运行 WebSocket Gateway。",
+                "gateway_dev": "在 ws://127.0.0.1:19001 运行 dev Gateway（隔离 state/config）。",
+                "gateway_force": "结束占用默认 gateway 端口的进程，然后启动。",
+                "gateway_control": "通过 WebSocket 控制 Gateway。",
+                "agent_deliver": "通过 Gateway 直接与 agent 对话；可选择发送 WhatsApp 回复。",
+                "telegram_send": "通过你的 Telegram bot 发送。"
             }
         },
         "doctor": {

@@ -313,6 +313,17 @@
                 "log_level": "Override log level global untuk file + console ({{values}})",
                 "no_color": "Nonaktifkan warna ANSI",
                 "version": "Tampilkan nomor versi"
+            },
+            "examples": {
+                "models_help": "Tampilkan bantuan detail untuk command models.",
+                "channels_login": "Hubungkan WhatsApp Web personal dan tampilkan QR + log koneksi.",
+                "message_web_json": "Kirim via sesi web dan cetak hasil JSON.",
+                "gateway_local": "Jalankan WebSocket Gateway secara lokal.",
+                "gateway_dev": "Jalankan Gateway dev (state/config terisolasi) di ws://127.0.0.1:19001.",
+                "gateway_force": "Matikan proses yang memakai port gateway bawaan, lalu mulai gateway.",
+                "gateway_control": "Kontrol Gateway via WebSocket.",
+                "agent_deliver": "Bicara langsung ke agent via Gateway; opsional kirim balasan WhatsApp.",
+                "telegram_send": "Kirim via bot Telegram Anda."
             }
         },
         "doctor": {

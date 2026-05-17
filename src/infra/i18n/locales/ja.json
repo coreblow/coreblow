@@ -245,7 +245,7 @@
             "options": "オプション:",
             "commands": "コマンド:",
             "examples": "例:",
-            "docs": "Docs:",
+            "docs": "ドキュメント:",
             "arguments": "引数:",
             "global_options": "グローバルオプション:"
         },
@@ -313,6 +313,17 @@
                 "log_level": "ファイル + コンソールのグローバルログレベルを上書き ({{values}})",
                 "no_color": "ANSI カラーを無効化",
                 "version": "バージョン番号を表示"
+            },
+            "examples": {
+                "models_help": "models コマンドの詳細ヘルプを表示します。",
+                "channels_login": "個人用 WhatsApp Web をリンクし、QR と接続ログを表示します。",
+                "message_web_json": "web session 経由で送信し、JSON 結果を出力します。",
+                "gateway_local": "WebSocket Gateway をローカルで実行します。",
+                "gateway_dev": "dev Gateway (分離された state/config) を ws://127.0.0.1:19001 で実行します。",
+                "gateway_force": "デフォルト gateway port を使用中のプロセスを終了してから起動します。",
+                "gateway_control": "WebSocket 経由で Gateway を制御します。",
+                "agent_deliver": "Gateway 経由で agent と直接会話します。必要に応じて WhatsApp 返信も送信します。",
+                "telegram_send": "Telegram bot 経由で送信します。"
             }
         },
         "doctor": {
