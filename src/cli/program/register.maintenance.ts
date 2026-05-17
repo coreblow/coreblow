@@ -47,7 +47,7 @@ export function registerMaintenanceCommands(program: Command) {
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/dashboard", "docs.coreblow.com/cli/dashboard")}\n`,
+        `\n${theme.muted(t("cli_help.labels.docs"))} ${formatDocsLink("/cli/dashboard", "docs.coreblow.com/cli/dashboard")}\n`,
     )
     .option("--no-open", "Print URL but do not launch a browser")
     .action(async (opts) => {
@@ -64,7 +64,7 @@ export function registerMaintenanceCommands(program: Command) {
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/reset", "docs.coreblow.com/cli/reset")}\n`,
+        `\n${theme.muted(t("cli_help.labels.docs"))} ${formatDocsLink("/cli/reset", "docs.coreblow.com/cli/reset")}\n`,
     )
     .option("--scope <scope>", "config|config+creds+sessions|full (default: interactive prompt)")
     .option("--yes", "Skip confirmation prompts", false)
@@ -87,7 +87,7 @@ export function registerMaintenanceCommands(program: Command) {
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/uninstall", "docs.coreblow.com/cli/uninstall")}\n`,
+        `\n${theme.muted(t("cli_help.labels.docs"))} ${formatDocsLink("/cli/uninstall", "docs.coreblow.com/cli/uninstall")}\n`,
     )
     .option("--service", "Remove the gateway service", false)
     .option("--state", "Remove state + config", false)

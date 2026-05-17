@@ -1300,6 +1300,43 @@
             "auto_sessions_apply_maintenance_even_when_configured_mode_is_warn_d828812c": "Terapkan maintenance meski mode config adalah warn",
             "auto_sessions_remove_store_entries_whose_transcript_files_are_missin_8d2017e0": "Hapus entri store yang file transcript-nya hilang (melewati retensi usia/jumlah)",
             "auto_sessions_protect_this_session_key_from_budget_eviction_81e750d4": "Lindungi session key ini dari budget eviction"
+        },
+        "agent": {
+            "examples": {
+                "start_session": "Mulai session baru.",
+                "specific_agent": "Gunakan agent tertentu.",
+                "session_thinking": "Targetkan session dengan thinking level eksplisit.",
+                "verbose_json": "Aktifkan logging verbose dan output JSON.",
+                "deliver": "Kirim balasan.",
+                "reply_override": "Kirim balasan ke channel atau target berbeda."
+            }
+        },
+        "agents": {
+            "set_identity_examples": {
+                "name_emoji": "Atur nama dan emoji.",
+                "avatar_path": "Atur path avatar.",
+                "from_identity": "Muat nilai dari IDENTITY.md.",
+                "identity_file": "Gunakan file IDENTITY.md tertentu."
+            }
+        },
+        "sessions": {
+            "examples": {
+                "list": "Daftar semua session.",
+                "agent": "Daftar session untuk satu agent.",
+                "all_agents": "Gabungkan session lintas agent.",
+                "active": "Tampilkan hanya session dari 2 jam terakhir.",
+                "json": "Output yang mudah dibaca mesin.",
+                "store": "Gunakan session store tertentu."
+            },
+            "note": "Menampilkan penggunaan konteks per session saat dilaporkan agent; atur jendela konteks agent untuk membatasi dan menampilkan %.",
+            "cleanup_examples": {
+                "dry_run": "Preview cleanup session lama dan session yang melewati batas.",
+                "fix_missing": "Juga preview pruning entri dengan file transkrip yang hilang.",
+                "enforce": "Terapkan maintenance sekarang.",
+                "agent": "Preview satu agent store.",
+                "all_agents": "Preview semua agent store.",
+                "store": "Gunakan store tertentu."
+            }
         }
     }
 }

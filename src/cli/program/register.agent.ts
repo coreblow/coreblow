@@ -10,6 +10,7 @@ import {
   agentsUnbindCommand,
 } from "../../commands/agents.js";
 import { setVerbose } from "../../globals.js";
+import { t } from "../../infra/i18n/index.js";
 import { defaultRuntime } from "../../runtime.js";
 import { formatDocsLink } from "../../terminal/links.js";
 import { theme } from "../../terminal/theme.js";
@@ -53,24 +54,24 @@ export function registerAgentCommands(program: Command, args: { agentChannelOpti
         `
 ${theme.heading("Examples:")}
 ${formatHelpExamples([
-  ['coreblow agent --to +15555550123 --message "status update"', "Start a new session."],
-  ['coreblow agent --agent ops --message "Summarize logs"', "Use a specific agent."],
+  ['coreblow agent --to +15555550123 --message "status update"', t("cli_help.agent.examples.start_session")],
+  ['coreblow agent --agent ops --message "Summarize logs"', t("cli_help.agent.examples.specific_agent")],
   [
     'coreblow agent --session-id 1234 --message "Summarize inbox" --thinking medium',
-    "Target a session with explicit thinking level.",
+    t("cli_help.agent.examples.session_thinking"),
   ],
   [
     'coreblow agent --to +15555550123 --message "Trace logs" --verbose on --json',
-    "Enable verbose logging and JSON output.",
+    t("cli_help.agent.examples.verbose_json"),
   ],
-  ['coreblow agent --to +15555550123 --message "Summon reply" --deliver', "Deliver reply."],
+  ['coreblow agent --to +15555550123 --message "Summon reply" --deliver', t("cli_help.agent.examples.deliver")],
   [
     'coreblow agent --agent ops --message "Generate report" --deliver --reply-channel slack --reply-to "#reports"',
-    "Send reply to a different channel/target.",
+    t("cli_help.agent.examples.reply_override"),
   ],
 ])}
 
-${theme.muted("Docs:")} ${formatDocsLink("/cli/agent", "docs.coreblow.com/cli/agent")}`,
+${theme.muted(t("cli_help.labels.docs"))} ${formatDocsLink("/cli/agent", "docs.coreblow.com/cli/agent")}`,
     )
     .action(async (opts) => {
       const verboseLevel = typeof opts.verbose === "string" ? opts.verbose.toLowerCase() : "";
@@ -88,7 +89,7 @@ ${theme.muted("Docs:")} ${formatDocsLink("/cli/agent", "docs.coreblow.com/cli/ag
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/agents", "docs.coreblow.com/cli/agents")}\n`,
+        `\n${theme.muted(t("cli_help.labels.docs"))} ${formatDocsLink("/cli/agents", "docs.coreblow.com/cli/agents")}\n`,
     );
 
   agents
@@ -219,15 +220,15 @@ ${theme.muted("Docs:")} ${formatDocsLink("/cli/agent", "docs.coreblow.com/cli/ag
         `
 ${theme.heading("Examples:")}
 ${formatHelpExamples([
-  ['coreblow agents set-identity --agent main --name "CoreBlow" --emoji "🦞"', "Set name + emoji."],
-  ["coreblow agents set-identity --agent main --avatar avatars/coreblow.png", "Set avatar path."],
+  ['coreblow agents set-identity --agent main --name "CoreBlow" --emoji "🦞"', t("cli_help.agents.set_identity_examples.name_emoji")],
+  ["coreblow agents set-identity --agent main --avatar avatars/coreblow.png", t("cli_help.agents.set_identity_examples.avatar_path")],
   [
     "coreblow agents set-identity --workspace ~/.coreblow/workspace --from-identity",
-    "Load from IDENTITY.md.",
+    t("cli_help.agents.set_identity_examples.from_identity"),
   ],
   [
     "coreblow agents set-identity --identity-file ~/.coreblow/workspace/IDENTITY.md --agent main",
-    "Use a specific IDENTITY.md.",
+    t("cli_help.agents.set_identity_examples.identity_file"),
   ],
 ])}
 `,

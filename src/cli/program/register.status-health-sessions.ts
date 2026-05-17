@@ -125,21 +125,21 @@ export function registerStatusHealthSessionsCommands(program: Command) {
     .addHelpText(
       "after",
       () =>
-        `\n${theme.heading("Examples:")}\n${formatHelpExamples([
-          ["coreblow sessions", "List all sessions."],
-          ["coreblow sessions --agent work", "List sessions for one agent."],
-          ["coreblow sessions --all-agents", "Aggregate sessions across agents."],
-          ["coreblow sessions --active 120", "Only last 2 hours."],
-          ["coreblow sessions --json", "Machine-readable output."],
-          ["coreblow sessions --store ./tmp/sessions.json", "Use a specific session store."],
+        `\n${theme.heading(t("cli_help.labels.examples"))}\n${formatHelpExamples([
+          ["coreblow sessions", t("cli_help.sessions.examples.list")],
+          ["coreblow sessions --agent work", t("cli_help.sessions.examples.agent")],
+          ["coreblow sessions --all-agents", t("cli_help.sessions.examples.all_agents")],
+          ["coreblow sessions --active 120", t("cli_help.sessions.examples.active")],
+          ["coreblow sessions --json", t("cli_help.sessions.examples.json")],
+          ["coreblow sessions --store ./tmp/sessions.json", t("cli_help.sessions.examples.store")],
         ])}\n\n${theme.muted(
-          "Shows token usage per session when the agent reports it; set agents.defaults.contextTokens to cap the window and show %.",
+          t("cli_help.sessions.note"),
         )}`,
     )
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/sessions", "docs.coreblow.com/cli/sessions")}\n`,
+        `\n${theme.muted(t("cli_help.labels.docs"))} ${formatDocsLink("/cli/sessions", "docs.coreblow.com/cli/sessions")}\n`,
     )
     .action(async (opts) => {
       setVerbose(Boolean(opts.verbose));
@@ -174,18 +174,18 @@ export function registerStatusHealthSessionsCommands(program: Command) {
     .addHelpText(
       "after",
       () =>
-        `\n${theme.heading("Examples:")}\n${formatHelpExamples([
-          ["coreblow sessions cleanup --dry-run", "Preview stale/cap cleanup."],
+        `\n${theme.heading(t("cli_help.labels.examples"))}\n${formatHelpExamples([
+          ["coreblow sessions cleanup --dry-run", t("cli_help.sessions.cleanup_examples.dry_run")],
           [
             "coreblow sessions cleanup --dry-run --fix-missing",
-            "Also preview pruning entries with missing transcript files.",
+            t("cli_help.sessions.cleanup_examples.fix_missing"),
           ],
-          ["coreblow sessions cleanup --enforce", "Apply maintenance now."],
-          ["coreblow sessions cleanup --agent work --dry-run", "Preview one agent store."],
-          ["coreblow sessions cleanup --all-agents --dry-run", "Preview all agent stores."],
+          ["coreblow sessions cleanup --enforce", t("cli_help.sessions.cleanup_examples.enforce")],
+          ["coreblow sessions cleanup --agent work --dry-run", t("cli_help.sessions.cleanup_examples.agent")],
+          ["coreblow sessions cleanup --all-agents --dry-run", t("cli_help.sessions.cleanup_examples.all_agents")],
           [
             "coreblow sessions cleanup --enforce --store ./tmp/sessions.json",
-            "Use a specific store.",
+            t("cli_help.sessions.cleanup_examples.store"),
           ],
         ])}`,
     )

@@ -1300,6 +1300,43 @@
             "auto_sessions_apply_maintenance_even_when_configured_mode_is_warn_d828812c": "Apply maintenance even when configured mode is warn",
             "auto_sessions_remove_store_entries_whose_transcript_files_are_missin_8d2017e0": "Remove store entries whose transcript files are missing (bypasses age/count retention)",
             "auto_sessions_protect_this_session_key_from_budget_eviction_81e750d4": "Protect this session key from budget-eviction"
+        },
+        "agent": {
+            "examples": {
+                "start_session": "Start a new session.",
+                "specific_agent": "Use a specific agent.",
+                "session_thinking": "Target a session with an explicit thinking level.",
+                "verbose_json": "Enable verbose logging and JSON output.",
+                "deliver": "Deliver the reply.",
+                "reply_override": "Send the reply to a different channel or target."
+            }
+        },
+        "agents": {
+            "set_identity_examples": {
+                "name_emoji": "Set name and emoji.",
+                "avatar_path": "Set avatar path.",
+                "from_identity": "Load values from IDENTITY.md.",
+                "identity_file": "Use a specific IDENTITY.md file."
+            }
+        },
+        "sessions": {
+            "examples": {
+                "list": "List all sessions.",
+                "agent": "List sessions for one agent.",
+                "all_agents": "Aggregate sessions across agents.",
+                "active": "Show only sessions from the last 2 hours.",
+                "json": "Machine-readable output.",
+                "store": "Use a specific session store."
+            },
+            "note": "Shows context usage per session when the agent reports it; configure the agent context window to cap it and show %.",
+            "cleanup_examples": {
+                "dry_run": "Preview stale and capped-session cleanup.",
+                "fix_missing": "Also preview pruning entries with missing transcript files.",
+                "enforce": "Apply maintenance now.",
+                "agent": "Preview one agent store.",
+                "all_agents": "Preview all agent stores.",
+                "store": "Use a specific store."
+            }
         }
     }
 }

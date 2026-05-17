@@ -1300,6 +1300,43 @@
             "auto_sessions_apply_maintenance_even_when_configured_mode_is_warn_d828812c": "구성된 모드가 경고인 경우에도 유지 관리 적용",
             "auto_sessions_remove_store_entries_whose_transcript_files_are_missin_8d2017e0": "기록 파일이 누락된 상점 항목 제거(연령/개수 보존 우회)",
             "auto_sessions_protect_this_session_key_from_budget_eviction_81e750d4": "예산 제거로부터 이 세션 키를 보호하세요."
+        },
+        "agent": {
+            "examples": {
+                "start_session": "새 session을 시작합니다.",
+                "specific_agent": "특정 agent를 사용합니다.",
+                "session_thinking": "명시한 thinking level로 session을 지정합니다.",
+                "verbose_json": "verbose logging과 JSON output을 활성화합니다.",
+                "deliver": "응답을 전달합니다.",
+                "reply_override": "응답을 다른 channel 또는 target으로 보냅니다."
+            }
+        },
+        "agents": {
+            "set_identity_examples": {
+                "name_emoji": "name과 emoji를 설정합니다.",
+                "avatar_path": "avatar path를 설정합니다.",
+                "from_identity": "IDENTITY.md에서 값을 불러옵니다.",
+                "identity_file": "특정 IDENTITY.md file을 사용합니다."
+            }
+        },
+        "sessions": {
+            "examples": {
+                "list": "모든 session을 나열합니다.",
+                "agent": "한 agent의 session을 나열합니다.",
+                "all_agents": "agent 전체의 session을 집계합니다.",
+                "active": "최근 2시간의 session만 표시합니다.",
+                "json": "기계가 읽기 쉬운 output입니다.",
+                "store": "특정 session store를 사용합니다."
+            },
+            "note": "agent가 보고하는 경우 session별 context 사용량을 표시합니다. agent context window를 설정하면 상한과 %를 표시할 수 있습니다.",
+            "cleanup_examples": {
+                "dry_run": "오래되었거나 상한을 넘은 session cleanup을 미리 봅니다.",
+                "fix_missing": "transcript file이 없는 entry pruning도 미리 봅니다.",
+                "enforce": "maintenance를 지금 적용합니다.",
+                "agent": "한 agent store를 미리 봅니다.",
+                "all_agents": "모든 agent store를 미리 봅니다.",
+                "store": "특정 store를 사용합니다."
+            }
         }
     }
 }

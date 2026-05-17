@@ -1300,6 +1300,43 @@
             "auto_sessions_apply_maintenance_even_when_configured_mode_is_warn_d828812c": "config mode が warn でも maintenance を適用",
             "auto_sessions_remove_store_entries_whose_transcript_files_are_missin_8d2017e0": "transcript file がない store entry を削除 (age/count retention を bypass)",
             "auto_sessions_protect_this_session_key_from_budget_eviction_81e750d4": "この session key を budget eviction から保護"
+        },
+        "agent": {
+            "examples": {
+                "start_session": "新しい session を開始します。",
+                "specific_agent": "特定の agent を使います。",
+                "session_thinking": "明示した thinking level で session を指定します。",
+                "verbose_json": "verbose logging と JSON output を有効にします。",
+                "deliver": "返信を送信します。",
+                "reply_override": "別の channel または target に返信を送ります。"
+            }
+        },
+        "agents": {
+            "set_identity_examples": {
+                "name_emoji": "name と emoji を設定します。",
+                "avatar_path": "avatar path を設定します。",
+                "from_identity": "IDENTITY.md から値を読み込みます。",
+                "identity_file": "特定の IDENTITY.md file を使います。"
+            }
+        },
+        "sessions": {
+            "examples": {
+                "list": "すべての session を一覧表示します。",
+                "agent": "1 つの agent の session を一覧表示します。",
+                "all_agents": "agent 横断で session を集約します。",
+                "active": "直近 2 時間の session だけを表示します。",
+                "json": "機械処理しやすい output にします。",
+                "store": "特定の session store を使います。"
+            },
+            "note": "agent が報告する場合、session ごとの context 使用量を表示します。agent の context window を設定すると上限と % を表示できます。",
+            "cleanup_examples": {
+                "dry_run": "古い session と上限超過 session の cleanup を preview します。",
+                "fix_missing": "transcript file が見つからない entry の pruning も preview します。",
+                "enforce": "maintenance を今すぐ適用します。",
+                "agent": "1 つの agent store を preview します。",
+                "all_agents": "すべての agent store を preview します。",
+                "store": "特定の store を使います。"
+            }
         }
     }
 }

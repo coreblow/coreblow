@@ -1300,6 +1300,43 @@
             "auto_sessions_apply_maintenance_even_when_configured_mode_is_warn_d828812c": "Aplicar mantenimiento incluso cuando se advierte el modo configurado",
             "auto_sessions_remove_store_entries_whose_transcript_files_are_missin_8d2017e0": "Elimine las entradas de la tienda cuyos archivos de transcripción falten (evite la retención de edad/recuento)",
             "auto_sessions_protect_this_session_key_from_budget_eviction_81e750d4": "Proteja esta clave de sesión contra el desalojo del presupuesto"
+        },
+        "agent": {
+            "examples": {
+                "start_session": "Inicia una sesión nueva.",
+                "specific_agent": "Usa un agente específico.",
+                "session_thinking": "Apunta a una sesión con un nivel de razonamiento explícito.",
+                "verbose_json": "Activa el registro detallado y la salida JSON.",
+                "deliver": "Entrega la respuesta.",
+                "reply_override": "Envía la respuesta a otro canal o destino."
+            }
+        },
+        "agents": {
+            "set_identity_examples": {
+                "name_emoji": "Define el nombre y el emoji.",
+                "avatar_path": "Define la ruta del avatar.",
+                "from_identity": "Carga valores desde IDENTITY.md.",
+                "identity_file": "Usa un archivo IDENTITY.md específico."
+            }
+        },
+        "sessions": {
+            "examples": {
+                "list": "Lista todas las sesiones.",
+                "agent": "Lista sesiones de un agente.",
+                "all_agents": "Agrega sesiones entre agentes.",
+                "active": "Muestra solo sesiones de las últimas 2 horas.",
+                "json": "Salida legible por máquina.",
+                "store": "Usa un almacén de sesiones específico."
+            },
+            "note": "Muestra el uso de contexto por sesión cuando el agente lo informa; configura la ventana de contexto del agente para limitarlo y mostrar %.",
+            "cleanup_examples": {
+                "dry_run": "Previsualiza la limpieza de sesiones antiguas y limitadas.",
+                "fix_missing": "También previsualiza la eliminación de entradas con archivos de transcripción faltantes.",
+                "enforce": "Aplica mantenimiento ahora.",
+                "agent": "Previsualiza el almacén de un agente.",
+                "all_agents": "Previsualiza todos los almacenes de agentes.",
+                "store": "Usa un almacén específico."
+            }
         }
     }
 }

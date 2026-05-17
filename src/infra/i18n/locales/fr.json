@@ -1300,6 +1300,43 @@
             "auto_sessions_apply_maintenance_even_when_configured_mode_is_warn_d828812c": "Appliquer la maintenance même lorsque le mode configuré est averti",
             "auto_sessions_remove_store_entries_whose_transcript_files_are_missin_8d2017e0": "Supprimer les entrées du magasin dont les fichiers de transcription sont manquants (contourne la conservation de l'âge/du nombre)",
             "auto_sessions_protect_this_session_key_from_budget_eviction_81e750d4": "Protéger cette clé de session contre l'expulsion budgétaire"
+        },
+        "agent": {
+            "examples": {
+                "start_session": "Démarrer une nouvelle session.",
+                "specific_agent": "Utiliser un agent précis.",
+                "session_thinking": "Cibler une session avec un niveau de réflexion explicite.",
+                "verbose_json": "Activer les journaux détaillés et la sortie JSON.",
+                "deliver": "Distribuer la réponse.",
+                "reply_override": "Envoyer la réponse vers un autre canal ou une autre cible."
+            }
+        },
+        "agents": {
+            "set_identity_examples": {
+                "name_emoji": "Définir le nom et l’emoji.",
+                "avatar_path": "Définir le chemin de l’avatar.",
+                "from_identity": "Charger les valeurs depuis IDENTITY.md.",
+                "identity_file": "Utiliser un fichier IDENTITY.md précis."
+            }
+        },
+        "sessions": {
+            "examples": {
+                "list": "Lister toutes les sessions.",
+                "agent": "Lister les sessions d’un agent.",
+                "all_agents": "Regrouper les sessions de tous les agents.",
+                "active": "Afficher seulement les sessions des 2 dernières heures.",
+                "json": "Sortie lisible par machine.",
+                "store": "Utiliser un stockage de sessions précis."
+            },
+            "note": "Affiche l’utilisation du contexte par session quand l’agent la fournit; configurez la fenêtre de contexte de l’agent pour la limiter et afficher %.",
+            "cleanup_examples": {
+                "dry_run": "Prévisualiser le nettoyage des sessions anciennes et plafonnées.",
+                "fix_missing": "Prévisualiser aussi la suppression des entrées dont les fichiers de transcription manquent.",
+                "enforce": "Appliquer la maintenance maintenant.",
+                "agent": "Prévisualiser le stockage d’un agent.",
+                "all_agents": "Prévisualiser tous les stockages d’agents.",
+                "store": "Utiliser un stockage précis."
+            }
         }
     }
 }

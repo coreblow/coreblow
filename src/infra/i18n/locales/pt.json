@@ -1300,6 +1300,43 @@
             "auto_sessions_apply_maintenance_even_when_configured_mode_is_warn_d828812c": "Aplicar manutenção mesmo quando o modo configurado estiver avisado",
             "auto_sessions_remove_store_entries_whose_transcript_files_are_missin_8d2017e0": "Remover entradas da loja cujos arquivos de transcrição estão faltando (ignora a retenção de idade/contagem)",
             "auto_sessions_protect_this_session_key_from_budget_eviction_81e750d4": "Proteja esta chave de sessão contra despejo orçamentário"
+        },
+        "agent": {
+            "examples": {
+                "start_session": "Inicie uma nova sessão.",
+                "specific_agent": "Use um agente específico.",
+                "session_thinking": "Direcione uma sessão com nível de pensamento explícito.",
+                "verbose_json": "Ative logs detalhados e saída JSON.",
+                "deliver": "Entregue a resposta.",
+                "reply_override": "Envie a resposta para outro canal ou destino."
+            }
+        },
+        "agents": {
+            "set_identity_examples": {
+                "name_emoji": "Defina nome e emoji.",
+                "avatar_path": "Defina o caminho do avatar.",
+                "from_identity": "Carregue valores de IDENTITY.md.",
+                "identity_file": "Use um arquivo IDENTITY.md específico."
+            }
+        },
+        "sessions": {
+            "examples": {
+                "list": "Liste todas as sessões.",
+                "agent": "Liste sessões de um agente.",
+                "all_agents": "Agregue sessões entre agentes.",
+                "active": "Mostre apenas sessões das últimas 2 horas.",
+                "json": "Saída legível por máquina.",
+                "store": "Use um armazenamento de sessões específico."
+            },
+            "note": "Mostra o uso de contexto por sessão quando o agente informa; configure a janela de contexto do agente para limitar e mostrar %.",
+            "cleanup_examples": {
+                "dry_run": "Pré-visualize a limpeza de sessões antigas e limitadas.",
+                "fix_missing": "Também pré-visualize a remoção de entradas com arquivos de transcrição ausentes.",
+                "enforce": "Aplique a manutenção agora.",
+                "agent": "Pré-visualize o armazenamento de um agente.",
+                "all_agents": "Pré-visualize todos os armazenamentos de agentes.",
+                "store": "Use um armazenamento específico."
+            }
         }
     }
 }

@@ -1300,6 +1300,43 @@
             "auto_sessions_apply_maintenance_even_when_configured_mode_is_warn_d828812c": "即使配置模式为警告，也应用维护",
             "auto_sessions_remove_store_entries_whose_transcript_files_are_missin_8d2017e0": "删除转录文件丢失的商店条目（绕过年龄/计数保留）",
             "auto_sessions_protect_this_session_key_from_budget_eviction_81e750d4": "保护此会话密钥免遭预算驱逐"
+        },
+        "agent": {
+            "examples": {
+                "start_session": "启动一个新 session。",
+                "specific_agent": "使用指定 agent。",
+                "session_thinking": "用明确的 thinking level 指定 session。",
+                "verbose_json": "启用详细日志和 JSON 输出。",
+                "deliver": "发送回复。",
+                "reply_override": "将回复发送到其他 channel 或 target。"
+            }
+        },
+        "agents": {
+            "set_identity_examples": {
+                "name_emoji": "设置名称和 emoji。",
+                "avatar_path": "设置 avatar 路径。",
+                "from_identity": "从 IDENTITY.md 读取值。",
+                "identity_file": "使用指定的 IDENTITY.md 文件。"
+            }
+        },
+        "sessions": {
+            "examples": {
+                "list": "列出所有 session。",
+                "agent": "列出某个 agent 的 session。",
+                "all_agents": "汇总多个 agent 的 session。",
+                "active": "只显示最近 2 小时的 session。",
+                "json": "机器可读输出。",
+                "store": "使用指定的 session store。"
+            },
+            "note": "当 agent 报告时，显示每个 session 的 context 使用情况；配置 agent context window 后可限制并显示 %。",
+            "cleanup_examples": {
+                "dry_run": "预览旧 session 和超限 session 的 cleanup。",
+                "fix_missing": "同时预览移除缺失 transcript file 的 entry。",
+                "enforce": "立即应用 maintenance。",
+                "agent": "预览一个 agent store。",
+                "all_agents": "预览所有 agent store。",
+                "store": "使用指定 store。"
+            }
         }
     }
 }

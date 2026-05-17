@@ -1300,6 +1300,43 @@
             "auto_sessions_apply_maintenance_even_when_configured_mode_is_warn_d828812c": "Wenden Sie die Wartung an, auch wenn der konfigurierte Modus „Warnung“ ist",
             "auto_sessions_remove_store_entries_whose_transcript_files_are_missin_8d2017e0": "Entfernen Sie Store-Einträge, deren Transkriptdateien fehlen (umgeht die Alters-/Zählerhaltung)",
             "auto_sessions_protect_this_session_key_from_budget_eviction_81e750d4": "Schützen Sie diesen Sitzungsschlüssel vor einer Budgeträumung"
+        },
+        "agent": {
+            "examples": {
+                "start_session": "Eine neue Sitzung starten.",
+                "specific_agent": "Einen bestimmten Agent verwenden.",
+                "session_thinking": "Eine Sitzung mit expliziter Thinking-Stufe ansprechen.",
+                "verbose_json": "Ausführliche Protokollierung und JSON-Ausgabe aktivieren.",
+                "deliver": "Die Antwort zustellen.",
+                "reply_override": "Die Antwort an einen anderen Kanal oder ein anderes Ziel senden."
+            }
+        },
+        "agents": {
+            "set_identity_examples": {
+                "name_emoji": "Name und Emoji festlegen.",
+                "avatar_path": "Avatar-Pfad festlegen.",
+                "from_identity": "Werte aus IDENTITY.md laden.",
+                "identity_file": "Eine bestimmte IDENTITY.md-Datei verwenden."
+            }
+        },
+        "sessions": {
+            "examples": {
+                "list": "Alle Sitzungen auflisten.",
+                "agent": "Sitzungen für einen Agent auflisten.",
+                "all_agents": "Sitzungen über Agents hinweg zusammenführen.",
+                "active": "Nur Sitzungen der letzten 2 Stunden anzeigen.",
+                "json": "Maschinenlesbare Ausgabe.",
+                "store": "Einen bestimmten Sitzungsspeicher verwenden."
+            },
+            "note": "Zeigt die Kontextnutzung pro Sitzung an, wenn der Agent sie meldet; konfigurieren Sie das Agent-Kontextfenster, um sie zu begrenzen und % anzuzeigen.",
+            "cleanup_examples": {
+                "dry_run": "Bereinigung alter und begrenzter Sitzungen vorab anzeigen.",
+                "fix_missing": "Auch Einträge mit fehlenden Transkriptdateien zum Entfernen vorab anzeigen.",
+                "enforce": "Wartung jetzt anwenden.",
+                "agent": "Einen Agent-Speicher vorab anzeigen.",
+                "all_agents": "Alle Agent-Speicher vorab anzeigen.",
+                "store": "Einen bestimmten Speicher verwenden."
+            }
         }
     }
 }

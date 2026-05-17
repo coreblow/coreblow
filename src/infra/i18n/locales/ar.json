@@ -1300,6 +1300,43 @@
             "auto_sessions_apply_maintenance_even_when_configured_mode_is_warn_d828812c": "قم بتطبيق الصيانة حتى عندما يتم تحذير الوضع الذي تم تكوينه",
             "auto_sessions_remove_store_entries_whose_transcript_files_are_missin_8d2017e0": "إزالة إدخالات المتجر التي فقدت ملفاتها النصية (تجاوز الاحتفاظ بالعمر/العدد)",
             "auto_sessions_protect_this_session_key_from_budget_eviction_81e750d4": "قم بحماية مفتاح الجلسة هذا من إخلاء الميزانية"
+        },
+        "agent": {
+            "examples": {
+                "start_session": "ابدأ جلسة جديدة.",
+                "specific_agent": "استخدم وكيلا محددا.",
+                "session_thinking": "استهدف جلسة بمستوى تفكير محدد.",
+                "verbose_json": "فعّل السجلات التفصيلية وإخراج JSON.",
+                "deliver": "أرسل الرد.",
+                "reply_override": "أرسل الرد إلى قناة أو هدف مختلف."
+            }
+        },
+        "agents": {
+            "set_identity_examples": {
+                "name_emoji": "عيّن الاسم والرمز التعبيري.",
+                "avatar_path": "عيّن مسار الصورة الرمزية.",
+                "from_identity": "حمّل القيم من IDENTITY.md.",
+                "identity_file": "استخدم ملف IDENTITY.md محددا."
+            }
+        },
+        "sessions": {
+            "examples": {
+                "list": "اعرض كل الجلسات.",
+                "agent": "اعرض جلسات وكيل واحد.",
+                "all_agents": "اجمع الجلسات عبر الوكلاء.",
+                "active": "اعرض جلسات آخر ساعتين فقط.",
+                "json": "إخراج قابل للقراءة آليا.",
+                "store": "استخدم مخزن جلسات محددا."
+            },
+            "note": "يعرض استخدام السياق لكل جلسة عندما يبلّغ عنه الوكيل؛ اضبط نافذة سياق الوكيل لتحديده وعرض %.",
+            "cleanup_examples": {
+                "dry_run": "عاين تنظيف الجلسات القديمة والمحدودة.",
+                "fix_missing": "عاين أيضا إزالة الإدخالات التي تفتقد ملفات النصوص.",
+                "enforce": "طبّق الصيانة الآن.",
+                "agent": "عاين مخزن وكيل واحد.",
+                "all_agents": "عاين كل مخازن الوكلاء.",
+                "store": "استخدم مخزنا محددا."
+            }
         }
     }
 }
