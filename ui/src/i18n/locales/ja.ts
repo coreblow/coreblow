@@ -15,6 +15,16 @@ export const ja: TranslationMap = {
   logs: { title: "ログ", entriesSummary: "{total}件中{shown}件", export: "エクスポート", clear: "クリア", filterPlaceholder: "ログをフィルター...", autoFollow: "自動追従", empty: "ログエントリはありません", emptyFiltered: "フィルターに一致するログはありません" },
   usage: { title: "使用状況とメトリクス", subtitle: "トークン消費量とコスト見積もり", totalTokens: "合計トークン", estimatedCost: "推定コスト", totalTurns: "合計ターン", loading: "使用状況データを読み込み中...", byModel: "モデル別使用状況", tokensCount: "{count}トークン", sessionsCount: "{count}セッション", perSession: "セッション別内訳", input: "入力", output: "出力", total: "合計", cost: "コスト", listModels: "利用可能なモデル一覧" },
   cron: { title: "スケジュールタスク", runNow: "今すぐ実行", scheduledSummary: "スケジュール済みジョブ: {count}", loading: "Cronジョブを読み込み中...", emptyTitle: "Cronジョブが設定されていません", emptySubtitle: "Cronジョブはゲートウェイ設定で定義されます", name: "名前", schedule: "スケジュール", runs: "実行回数", lastRun: "最終実行" },
+  toolApproval: {
+    title: "Tool の承認が必要です",
+    tool: "Tool",
+    risk: { label: "リスク", low: "低", medium: "中", high: "高" },
+    session: "Session",
+    arguments: "引数",
+    expiresIn: "期限まで: {seconds}秒",
+    deny: "拒否",
+    approve: "承認 ✓",
+  },
   languages: { en: "English", ar: "العربية", de: "Deutsch", es: "Español", fr: "Français", id: "Bahasa Indonesia", ja: "日本語", ko: "한국어", pt: "Português", zh: "中文" },
   errors: { unknown: "不明なエラーが発生しました" },
 };

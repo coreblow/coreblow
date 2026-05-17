@@ -15,6 +15,16 @@ export const fr: TranslationMap = {
   logs: { title: "Journaux", entriesSummary: "{shown} sur {total} entrées", export: "Exporter", clear: "Effacer", filterPlaceholder: "Filtrer les journaux...", autoFollow: "Suivi automatique", empty: "Aucune entrée de journal", emptyFiltered: "Aucune entrée ne correspond au filtre" },
   usage: { title: "Utilisation & Métriques", subtitle: "Consommation de jetons et estimations de coût", totalTokens: "Jetons totaux", estimatedCost: "Coût estimé", totalTurns: "Tours totaux", loading: "Chargement des données d’utilisation...", byModel: "Utilisation par modèle", tokensCount: "{count} jetons", sessionsCount: "{count} sessions", perSession: "Détail par session", input: "Entrée", output: "Sortie", total: "Total", cost: "Coût", listModels: "Lister les modèles disponibles" },
   cron: { title: "Tâches Planifiées", runNow: "Exécuter maintenant", scheduledSummary: "{count} tâches planifiées", loading: "Chargement des tâches cron...", emptyTitle: "Aucune tâche cron configurée", emptySubtitle: "Les tâches cron sont définies dans la configuration de la passerelle", name: "Nom", schedule: "Planification", runs: "Exécutions", lastRun: "Dernière exécution" },
+  toolApproval: {
+    title: "Approbation de l’outil requise",
+    tool: "Outil",
+    risk: { label: "Risque", low: "FAIBLE", medium: "MOYEN", high: "ÉLEVÉ" },
+    session: "Session",
+    arguments: "Arguments",
+    expiresIn: "Expire dans : {seconds}s",
+    deny: "Refuser",
+    approve: "Approuver ✓",
+  },
   languages: { en: "English", ar: "العربية", de: "Deutsch", es: "Español", fr: "Français", id: "Bahasa Indonesia", ja: "日本語", ko: "한국어", pt: "Português", zh: "中文" },
   errors: { unknown: "Une erreur inconnue s'est produite" },
 };

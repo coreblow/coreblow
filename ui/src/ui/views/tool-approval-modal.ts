@@ -5,6 +5,7 @@
  */
 import { LitElement, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
+import { I18nController, t } from "../../i18n/index.ts";
 
 export type ToolApprovalEntry = {
    id: string;
@@ -21,6 +22,7 @@ export type ApprovalDecision = "approve" | "deny";
 
 @customElement("coreblow-tool-approval-modal")
 export class ToolApprovalModal extends LitElement {
+   private i18nController = new I18nController(this);
    @property({ attribute: false }) entry: ToolApprovalEntry | null = null;
    @property({ attribute: false }) onDecision!: (id: string, decision: ApprovalDecision) => void;
    @property({ type: Boolean }) alwaysApprove = false;
@@ -34,8 +36,12 @@ export class ToolApprovalModal extends LitElement {
 
    private getRiskBadge() {
       if (!this.entry) return "";
-      const map = { low: "🟢 LOW", medium: "🟡 MEDIUM", high: "🔴 HIGH" };
-      return map[this.entry.riskLevel] ?? "🟡 MEDIUM";
+      const map = {
+         low: `🟢 ${t("toolApproval.risk.low")}`,
+         medium: `🟡 ${t("toolApproval.risk.medium")}`,
+         high: `🔴 ${t("toolApproval.risk.high")}`,
+      };
+      return map[this.entry.riskLevel] ?? `🟡 ${t("toolApproval.risk.medium")}`;
    }
 
    private formatArgs(): string {
@@ -76,40 +82,40 @@ export class ToolApprovalModal extends LitElement {
 
                <div class="approval-header">
                   <span class="approval-icon">🔒</span>
-                  <span class="approval-title">Tool Approval Required</span>
+                  <span class="approval-title">${t("toolApproval.title")}</span>
                </div>
 
                <div class="approval-body">
                   <div class="approval-field">
-                     <span class="approval-label">Tool</span>
+                     <span class="approval-label">${t("toolApproval.tool")}</span>
                      <span class="approval-value approval-tool-name">${this.entry.name}</span>
                   </div>
 
                   <div class="approval-field">
-                     <span class="approval-label">Risk</span>
+                     <span class="approval-label">${t("toolApproval.risk.label")}</span>
                      <span class="approval-value">${this.getRiskBadge()}</span>
                   </div>
 
                   <div class="approval-field">
-                     <span class="approval-label">Session</span>
+                     <span class="approval-label">${t("toolApproval.session")}</span>
                      <span class="approval-value" style="font-size: 11px; opacity: 0.7;">${this.entry.sessionKey.slice(0, 16)}…</span>
                   </div>
 
                   <div class="approval-args">
                      <details open>
-                        <summary>Arguments</summary>
+                        <summary>${t("toolApproval.arguments")}</summary>
                         <pre>${this.formatArgs()}</pre>
                      </details>
                   </div>
 
                   <div class="approval-expiry">
-                     Expires in: <strong>${this.timeLeft}s</strong>
+                     ${t("toolApproval.expiresIn", { seconds: String(this.timeLeft) })}
                   </div>
                </div>
 
                <div class="approval-actions">
-                  <button class="btn approval-deny" @click=${this.handleDeny}>Deny</button>
-                  <button class="btn approval-approve" @click=${this.handleApprove}>Approve ✓</button>
+                  <button class="btn approval-deny" @click=${this.handleDeny}>${t("toolApproval.deny")}</button>
+                  <button class="btn approval-approve" @click=${this.handleApprove}>${t("toolApproval.approve")}</button>
                </div>
             </div>
          </div>

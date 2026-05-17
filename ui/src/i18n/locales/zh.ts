@@ -15,6 +15,16 @@ export const zh: TranslationMap = {
   logs: { title: "日志", entriesSummary: "{total} 条中的 {shown} 条", export: "导出", clear: "清除", filterPlaceholder: "筛选日志...", autoFollow: "自动跟随", empty: "没有日志条目", emptyFiltered: "没有匹配筛选条件的日志条目" },
   usage: { title: "使用量与指标", subtitle: "令牌消耗和成本估算", totalTokens: "总令牌", estimatedCost: "估算成本", totalTurns: "总轮次", loading: "正在加载使用数据...", byModel: "按模型统计使用量", tokensCount: "{count} 个令牌", sessionsCount: "{count} 个会话", perSession: "按会话细分", input: "输入", output: "输出", total: "总计", cost: "成本", listModels: "列出可用模型" },
   cron: { title: "定时任务", runNow: "立即运行", scheduledSummary: "{count} 个计划任务", loading: "正在加载 Cron 任务...", emptyTitle: "未配置 Cron 任务", emptySubtitle: "Cron 任务在网关配置中定义", name: "名称", schedule: "计划", runs: "运行次数", lastRun: "上次运行" },
+  toolApproval: {
+    title: "需要工具审批",
+    tool: "工具",
+    risk: { label: "风险", low: "低", medium: "中", high: "高" },
+    session: "Session",
+    arguments: "参数",
+    expiresIn: "过期倒计时：{seconds}秒",
+    deny: "拒绝",
+    approve: "批准 ✓",
+  },
   languages: { en: "English", ar: "العربية", de: "Deutsch", es: "Español", fr: "Français", id: "Bahasa Indonesia", ja: "日本語", ko: "한국어", pt: "Português", zh: "中文" },
   errors: { unknown: "发生未知错误" },
 };

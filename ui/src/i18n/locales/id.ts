@@ -256,6 +256,16 @@ export const id: TranslationMap = {
     runs: "Eksekusi",
     lastRun: "Eksekusi Terakhir",
   },
+  toolApproval: {
+    title: "Persetujuan Tool Diperlukan",
+    tool: "Tool",
+    risk: { label: "Risiko", low: "RENDAH", medium: "SEDANG", high: "TINGGI" },
+    session: "Session",
+    arguments: "Argumen",
+    expiresIn: "Kedaluwarsa dalam: {seconds} detik",
+    deny: "Tolak",
+    approve: "Setujui ✓",
+  },
   languages: {
     en: "English",
     ar: "العربية",

@@ -256,6 +256,16 @@ export const en: TranslationMap = {
     runs: "Runs",
     lastRun: "Last Run",
   },
+  toolApproval: {
+    title: "Tool Approval Required",
+    tool: "Tool",
+    risk: { label: "Risk", low: "LOW", medium: "MEDIUM", high: "HIGH" },
+    session: "Session",
+    arguments: "Arguments",
+    expiresIn: "Expires in: {seconds}s",
+    deny: "Deny",
+    approve: "Approve ✓",
+  },
   languages: {
     en: "English",
     ar: "العربية",

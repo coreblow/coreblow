@@ -15,6 +15,16 @@ export const ar: TranslationMap = {
   logs: { title: "السجلات", entriesSummary: "{shown} من {total} إدخالات", export: "تصدير", clear: "مسح", filterPlaceholder: "تصفية السجلات...", autoFollow: "متابعة تلقائية", empty: "لا توجد إدخالات سجل", emptyFiltered: "لا توجد إدخالات سجل تطابق الفلتر" },
   usage: { title: "الاستخدام والمقاييس", subtitle: "استهلاك الرموز وتقديرات التكلفة", totalTokens: "إجمالي الرموز", estimatedCost: "التكلفة المقدرة", totalTurns: "إجمالي الأدوار", loading: "جار تحميل بيانات الاستخدام...", byModel: "الاستخدام حسب النموذج", tokensCount: "{count} رموز", sessionsCount: "{count} جلسات", perSession: "تفصيل حسب الجلسة", input: "الإدخال", output: "الإخراج", total: "الإجمالي", cost: "التكلفة", listModels: "قائمة النماذج المتاحة" },
   cron: { title: "المهام المجدولة", runNow: "تشغيل الآن", scheduledSummary: "{count} مهام مجدولة", loading: "جار تحميل مهام cron...", emptyTitle: "لا توجد مهام cron مكونة", emptySubtitle: "يتم تعريف مهام cron في إعدادات البوابة", name: "الاسم", schedule: "الجدول", runs: "التشغيلات", lastRun: "آخر تشغيل" },
+  toolApproval: {
+    title: "موافقة الأداة مطلوبة",
+    tool: "الأداة",
+    risk: { label: "المخاطر", low: "منخفضة", medium: "متوسطة", high: "عالية" },
+    session: "الجلسة",
+    arguments: "المعاملات",
+    expiresIn: "تنتهي خلال: {seconds}ث",
+    deny: "رفض",
+    approve: "موافقة ✓",
+  },
   languages: { en: "English", ar: "العربية", de: "Deutsch", es: "Español", fr: "Français", id: "Bahasa Indonesia", ja: "日本語", ko: "한국어", pt: "Português", zh: "中文" },
   errors: { unknown: "حدث خطأ غير معروف" },
 };

@@ -15,6 +15,16 @@ export const de: TranslationMap = {
   logs: { title: "Protokolle", entriesSummary: "{shown} von {total} Einträgen", export: "Exportieren", clear: "Leeren", filterPlaceholder: "Protokolle filtern...", autoFollow: "Automatisch folgen", empty: "Keine Protokolleinträge", emptyFiltered: "Keine passenden Protokolleinträge" },
   usage: { title: "Nutzung & Metriken", subtitle: "Token-Verbrauch und Kostenschätzungen", totalTokens: "Token gesamt", estimatedCost: "Geschätzte Kosten", totalTurns: "Durchläufe gesamt", loading: "Nutzungsdaten werden geladen...", byModel: "Nutzung nach Modell", tokensCount: "{count} Token", sessionsCount: "{count} Sitzungen", perSession: "Aufschlüsselung pro Sitzung", input: "Eingabe", output: "Ausgabe", total: "Gesamt", cost: "Kosten", listModels: "Verfügbare Modelle auflisten" },
   cron: { title: "Geplante Aufgaben", runNow: "Jetzt ausführen", scheduledSummary: "{count} geplante Aufgaben", loading: "Cron-Aufgaben werden geladen...", emptyTitle: "Keine Cron-Aufgaben konfiguriert", emptySubtitle: "Cron-Aufgaben werden in der Gateway-Konfiguration definiert", name: "Name", schedule: "Zeitplan", runs: "Ausführungen", lastRun: "Letzte Ausführung" },
+  toolApproval: {
+    title: "Tool-Genehmigung erforderlich",
+    tool: "Tool",
+    risk: { label: "Risiko", low: "NIEDRIG", medium: "MITTEL", high: "HOCH" },
+    session: "Sitzung",
+    arguments: "Argumente",
+    expiresIn: "Läuft ab in: {seconds}s",
+    deny: "Ablehnen",
+    approve: "Genehmigen ✓",
+  },
   languages: { en: "English", ar: "العربية", de: "Deutsch", es: "Español", fr: "Français", id: "Bahasa Indonesia", ja: "日本語", ko: "한국어", pt: "Português", zh: "中文" },
   errors: { unknown: "Ein unbekannter Fehler ist aufgetreten" },
 };

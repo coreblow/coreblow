@@ -15,6 +15,16 @@ export const pt: TranslationMap = {
   logs: { title: "Logs", entriesSummary: "{shown} de {total} entradas", export: "Exportar", clear: "Limpar", filterPlaceholder: "Filtrar logs...", autoFollow: "Seguir automaticamente", empty: "Nenhuma entrada de log", emptyFiltered: "Nenhuma entrada de log corresponde ao filtro" },
   usage: { title: "Uso e Métricas", subtitle: "Consumo de tokens e estimativas de custo", totalTokens: "Tokens totais", estimatedCost: "Custo estimado", totalTurns: "Turnos totais", loading: "Carregando dados de uso...", byModel: "Uso por modelo", tokensCount: "{count} tokens", sessionsCount: "{count} sessões", perSession: "Detalhamento por sessão", input: "Entrada", output: "Saída", total: "Total", cost: "Custo", listModels: "Listar modelos disponíveis" },
   cron: { title: "Tarefas Agendadas", runNow: "Executar agora", scheduledSummary: "{count} tarefas agendadas", loading: "Carregando tarefas cron...", emptyTitle: "Nenhuma tarefa cron configurada", emptySubtitle: "As tarefas cron são definidas na configuração do gateway", name: "Nome", schedule: "Agenda", runs: "Execuções", lastRun: "Última execução" },
+  toolApproval: {
+    title: "Aprovação de ferramenta necessária",
+    tool: "Ferramenta",
+    risk: { label: "Risco", low: "BAIXO", medium: "MÉDIO", high: "ALTO" },
+    session: "Sessão",
+    arguments: "Argumentos",
+    expiresIn: "Expira em: {seconds}s",
+    deny: "Negar",
+    approve: "Aprovar ✓",
+  },
   languages: { en: "English", ar: "العربية", de: "Deutsch", es: "Español", fr: "Français", id: "Bahasa Indonesia", ja: "日本語", ko: "한국어", pt: "Português", zh: "中文" },
   errors: { unknown: "Ocorreu um erro desconhecido" },
 };

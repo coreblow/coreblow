@@ -15,6 +15,16 @@ export const ko: TranslationMap = {
   logs: { title: "로그", entriesSummary: "{total}개 중 {shown}개 항목", export: "내보내기", clear: "지우기", filterPlaceholder: "로그 필터...", autoFollow: "자동 따라가기", empty: "로그 항목이 없습니다", emptyFiltered: "필터와 일치하는 로그 항목이 없습니다" },
   usage: { title: "사용량 및 지표", subtitle: "토큰 사용량 및 비용 추정", totalTokens: "총 토큰", estimatedCost: "예상 비용", totalTurns: "총 턴", loading: "사용량 데이터 로딩 중...", byModel: "모델별 사용량", tokensCount: "{count} 토큰", sessionsCount: "{count} 세션", perSession: "세션별 세부 정보", input: "입력", output: "출력", total: "합계", cost: "비용", listModels: "사용 가능한 모델 목록" },
   cron: { title: "예약 작업", runNow: "지금 실행", scheduledSummary: "예약된 작업 {count}개", loading: "Cron 작업 로딩 중...", emptyTitle: "구성된 Cron 작업이 없습니다", emptySubtitle: "Cron 작업은 게이트웨이 구성에 정의됩니다", name: "이름", schedule: "일정", runs: "실행", lastRun: "마지막 실행" },
+  toolApproval: {
+    title: "도구 승인 필요",
+    tool: "도구",
+    risk: { label: "위험도", low: "낮음", medium: "보통", high: "높음" },
+    session: "Session",
+    arguments: "인수",
+    expiresIn: "만료까지: {seconds}초",
+    deny: "거부",
+    approve: "승인 ✓",
+  },
   languages: { en: "English", ar: "العربية", de: "Deutsch", es: "Español", fr: "Français", id: "Bahasa Indonesia", ja: "日本語", ko: "한국어", pt: "Português", zh: "中文" },
   errors: { unknown: "알 수 없는 오류가 발생했습니다" },
 };
