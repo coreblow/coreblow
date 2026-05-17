@@ -1,7 +1,7 @@
 /**
  * CoreBlow UI locale registry.
  *
- * Follows the OpenClaw lazy-loading pattern: English is bundled inline,
+ * Uses the reference lazy-loading pattern: English is bundled inline,
  * all other locales are loaded on-demand via dynamic import().
  */
 

@@ -2,7 +2,7 @@
  * CoreBlow UI translation engine.
  *
  * Browser-oriented: reads locale from localStorage + navigator.language.
- * Uses {placeholder} syntax (matching OpenClaw UI convention).
+ * Uses {placeholder} syntax for interpolation.
  */
 
 import { en } from "../locales/en.ts";

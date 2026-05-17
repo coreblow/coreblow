@@ -1,17 +1,17 @@
 /**
  * CoreBlow i18n translation engine.
  *
- * Follows the OpenClaw I18nManager singleton pattern:
+ * Uses the reference I18nManager singleton pattern:
  *   - English bundled inline as fallback
  *   - Lazy-load non-English locales on demand
  *   - Dot-path key resolution with fallback chain
  *   - Subscriber notification on locale change
  *
  * CoreBlow differences:
- *   - Uses {{placeholder}} (Mustache-style) instead of OpenClaw's {placeholder}
+ *   - Uses {{placeholder}} (Mustache-style) for interpolation
  *   - Reads locale preference from COREBLOW_LOCALE env var (CLI/runtime)
  *     instead of localStorage (browser)
- *   - 10 supported locales (vs OpenClaw's 6)
+ *   - 10 supported locales
  */
 
 import enTranslations from "./locales/en.json" with { type: "json" };
