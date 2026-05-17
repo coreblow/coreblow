@@ -74,19 +74,20 @@ jobs:
           print(f"All {count} workflow files are valid YAML")
           PY
 
-  no-openclaw-refs:
+  no-legacy-brand-refs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check for OpenClaw naming remnants in workflows
+      - name: Check for legacy brand naming remnants in workflows
         run: |
           set -euo pipefail
-          HITS=$(grep -rn "openclaw\|OpenClaw" .github/workflows/ --include='*.yml' | grep -v "coreblow" || true)
+          PATTERN='[Oo]pen[Cc]law'
+          HITS=$(grep -rn "$PATTERN" .github/workflows/ --include='*.yml' | grep -v "coreblow" || true)
           if [ -n "$HITS" ]; then
-            echo "::error::Found OpenClaw naming remnants in workflows:"
+            echo "::error::Found legacy brand naming remnants in workflows:"
             echo "$HITS"
             exit 1
           fi
-          echo "No OpenClaw naming remnants found in workflows"
+          echo "No legacy brand naming remnants found in workflows"
