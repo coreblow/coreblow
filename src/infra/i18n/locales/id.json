@@ -245,7 +245,9 @@
             "options": "Opsi:",
             "commands": "Perintah:",
             "examples": "Contoh:",
-            "docs": "Dokumentasi:"
+            "docs": "Dokumentasi:",
+            "arguments": "Argumen:",
+            "global_options": "Opsi Global:"
         },
         "options": {
             "help": "Tampilkan bantuan untuk perintah",
@@ -264,8 +266,8 @@
         "root": {
             "commands_hint": "Petunjuk: perintah dengan akhiran * punya subcommand. Jalankan <command> --help untuk detail.",
             "options": {
-                "container": "Jalankan CLI di dalam container Podman/Docker bernama <name> (default: env COREBLOW_CONTAINER)",
-                "dev": "Profil dev: isolasi state di ~/.coreblow-dev, port gateway default 19001, dan geser port turunan (browser/canvas)",
+                "container": "Jalankan CLI di dalam container Podman/Docker bernama <name> (bawaan: env COREBLOW_CONTAINER)",
+                "dev": "Profil dev: isolasi state di ~/.coreblow-dev, port gateway bawaan 19001, dan geser port turunan (browser/canvas)",
                 "profile": "Gunakan profil bernama (mengisolasi COREBLOW_STATE_DIR/COREBLOW_CONFIG_PATH di ~/.coreblow-<name>)",
                 "log_level": "Override log level global untuk file + console ({{values}})",
                 "no_color": "Nonaktifkan warna ANSI",
@@ -304,6 +306,12 @@
             "options": {
                 "timeout": "Timeout koneksi dalam milidetik"
             }
+        },
+        "formatter": {
+            "default": "bawaan",
+            "choices": "pilihan",
+            "preset": "preset",
+            "env": "env"
         }
     }
 }

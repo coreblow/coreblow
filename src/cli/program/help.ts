@@ -1,4 +1,4 @@
-import type { Command } from "commander";
+import type { Argument, Command, Option } from "commander";
 import { resolveCommitHash } from "../../infra/git-commit.js";
 import { t } from "../../infra/i18n/index.js";
 import { formatDocsLink } from "../../terminal/links.js";
@@ -44,6 +44,10 @@ const EXAMPLES = [
 ] as const;
 
 export function configureProgramHelp(program: Command, ctx: ProgramContext) {
+  const formatExtraInfo = (labelKey: string, value: string) =>
+    `${t(labelKey)}: ${value}`;
+  const formatDefaultValue = (value: unknown) => JSON.stringify(value);
+
   program
     .name(CLI_NAME)
     .description("")
@@ -75,6 +79,64 @@ export function configureProgramHelp(program: Command, ctx: ProgramContext) {
     sortSubcommands: true,
     sortOptions: true,
     optionTerm: (option) => theme.option(option.flags),
+    optionDescription: (option: Option) => {
+      const extraInfo: string[] = [];
+      if (option.argChoices) {
+        extraInfo.push(
+          formatExtraInfo(
+            "cli_help.formatter.choices",
+            option.argChoices.map((choice) => JSON.stringify(choice)).join(", "),
+          ),
+        );
+      }
+      if (option.defaultValue !== undefined) {
+        const showDefault =
+          option.required ||
+          option.optional ||
+          (option.isBoolean() && typeof option.defaultValue === "boolean");
+        if (showDefault) {
+          extraInfo.push(
+            formatExtraInfo(
+              "cli_help.formatter.default",
+              option.defaultValueDescription || formatDefaultValue(option.defaultValue),
+            ),
+          );
+        }
+      }
+      if (option.presetArg !== undefined && option.optional) {
+        extraInfo.push(formatExtraInfo("cli_help.formatter.preset", formatDefaultValue(option.presetArg)));
+      }
+      if (option.envVar !== undefined) {
+        extraInfo.push(formatExtraInfo("cli_help.formatter.env", option.envVar));
+      }
+      return extraInfo.length > 0
+        ? `${option.description} (${extraInfo.join(", ")})`
+        : option.description;
+    },
+    argumentDescription: (argument: Argument) => {
+      const extraInfo: string[] = [];
+      if (argument.argChoices) {
+        extraInfo.push(
+          formatExtraInfo(
+            "cli_help.formatter.choices",
+            argument.argChoices.map((choice) => JSON.stringify(choice)).join(", "),
+          ),
+        );
+      }
+      if (argument.defaultValue !== undefined) {
+        extraInfo.push(
+          formatExtraInfo(
+            "cli_help.formatter.default",
+            argument.defaultValueDescription || formatDefaultValue(argument.defaultValue),
+          ),
+        );
+      }
+      if (extraInfo.length === 0) {
+        return argument.description;
+      }
+      const suffix = `(${extraInfo.join(", ")})`;
+      return argument.description ? `${argument.description} ${suffix}` : suffix;
+    },
     subcommandTerm: (cmd) => {
       const isRootCommand = cmd.parent === program;
       const hasSubcommands = isRootCommand && ROOT_COMMANDS_WITH_SUBCOMMANDS.has(cmd.name());
@@ -98,7 +160,9 @@ export function configureProgramHelp(program: Command, ctx: ProgramContext) {
     return output
       .replace(/^Usage:/gm, theme.heading(t("cli_help.labels.usage")))
       .replace(/^Options:/gm, theme.heading(t("cli_help.labels.options")))
-      .replace(/^Commands:/gm, theme.heading(t("cli_help.labels.commands")));
+      .replace(/^Commands:/gm, theme.heading(t("cli_help.labels.commands")))
+      .replace(/^Arguments:/gm, theme.heading(t("cli_help.labels.arguments")))
+      .replace(/^Global Options:/gm, theme.heading(t("cli_help.labels.global_options")));
   };
 
   program.configureOutput({

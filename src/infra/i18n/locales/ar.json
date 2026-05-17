@@ -245,7 +245,9 @@
             "options": "الخيارات:",
             "commands": "الأوامر:",
             "examples": "أمثلة:",
-            "docs": "المستندات:"
+            "docs": "المستندات:",
+            "arguments": "المعاملات:",
+            "global_options": "الخيارات العامة:"
         },
         "options": {
             "help": "عرض مساعدة الأمر",
@@ -262,26 +264,26 @@
             "health": "جلب الصحة من البوابة العاملة"
         },
         "root": {
-            "commands_hint": "Consejo: los comandos con * tienen subcomandos. Ejecuta <command> --help para detalles.",
+            "commands_hint": "تلميح: الأوامر التي تحمل * لديها أوامر فرعية. شغّل <command> --help للتفاصيل.",
             "options": {
-                "container": "Ejecuta la CLI dentro de un contenedor Podman/Docker llamado <name> (default: env COREBLOW_CONTAINER)",
-                "dev": "Perfil dev: aísla estado en ~/.coreblow-dev, puerto gateway 19001 y desplaza puertos derivados (browser/canvas)",
-                "profile": "Usa un perfil nombrado (aísla COREBLOW_STATE_DIR/COREBLOW_CONFIG_PATH en ~/.coreblow-<name>)",
-                "log_level": "Sobrescribe el nivel de log global para archivo + consola ({{values}})",
-                "no_color": "Desactivar colores ANSI",
-                "version": "Mostrar número de versión"
+                "container": "تشغيل CLI داخل حاوية Podman/Docker عاملة باسم <name> (افتراضي: env COREBLOW_CONTAINER)",
+                "dev": "ملف dev: عزل الحالة تحت ~/.coreblow-dev، منفذ البوابة الافتراضي 19001، وتحريك المنافذ المشتقة (browser/canvas)",
+                "profile": "استخدام ملف تعريف مسمى (يعزل COREBLOW_STATE_DIR/COREBLOW_CONFIG_PATH تحت ~/.coreblow-<name>)",
+                "log_level": "تجاوز مستوى السجل العام للملف + وحدة التحكم ({{values}})",
+                "no_color": "تعطيل ألوان ANSI",
+                "version": "عرض رقم الإصدار"
             }
         },
         "doctor": {
             "options": {
-                "no_workspace_suggestions": "Desactivar sugerencias del sistema de memoria del workspace",
-                "yes": "Aceptar valores predeterminados sin preguntar",
-                "repair": "Aplicar reparaciones recomendadas sin preguntar",
-                "fix": "Aplicar reparaciones recomendadas (alias de --repair)",
-                "force": "Aplicar reparaciones agresivas (sobrescribe config custom del servicio)",
-                "non_interactive": "Ejecutar sin prompts (solo migraciones seguras)",
-                "generate_gateway_credential": "Generar y configurar credencial del gateway",
-                "deep": "Escanear servicios del sistema para instalaciones extra de gateway"
+                "no_workspace_suggestions": "تعطيل اقتراحات نظام ذاكرة workspace",
+                "yes": "قبول القيم الافتراضية دون مطالبة",
+                "repair": "تطبيق الإصلاحات الموصى بها دون مطالبة",
+                "fix": "تطبيق الإصلاحات الموصى بها (اسم بديل لـ --repair)",
+                "force": "تطبيق إصلاحات قوية (يستبدل إعداد service المخصص)",
+                "non_interactive": "التشغيل دون مطالبات (الترحيلات الآمنة فقط)",
+                "generate_gateway_credential": "إنشاء وضبط اعتماد gateway",
+                "deep": "فحص خدمات النظام بحثاً عن تثبيتات gateway إضافية"
             }
         },
         "status": {
@@ -304,6 +306,12 @@
             "options": {
                 "timeout": "مهلة الاتصال بالمللي ثانية"
             }
+        },
+        "formatter": {
+            "default": "افتراضي",
+            "choices": "خيارات",
+            "preset": "قيمة مسبقة",
+            "env": "env"
         }
     }
 }

@@ -245,7 +245,9 @@
             "options": "옵션:",
             "commands": "명령:",
             "examples": "예시:",
-            "docs": "Docs:"
+            "docs": "Docs:",
+            "arguments": "인수:",
+            "global_options": "전역 옵션:"
         },
         "options": {
             "help": "명령 도움말 표시",
@@ -262,26 +264,26 @@
             "health": "실행 중인 게이트웨이에서 health 가져오기"
         },
         "root": {
-            "commands_hint": "Consejo: los comandos con * tienen subcomandos. Ejecuta <command> --help para detalles.",
+            "commands_hint": "팁: * 표시가 있는 명령에는 하위 명령이 있습니다. 자세한 내용은 <command> --help를 실행하세요.",
             "options": {
-                "container": "Ejecuta la CLI dentro de un contenedor Podman/Docker llamado <name> (default: env COREBLOW_CONTAINER)",
-                "dev": "Perfil dev: aísla estado en ~/.coreblow-dev, puerto gateway 19001 y desplaza puertos derivados (browser/canvas)",
-                "profile": "Usa un perfil nombrado (aísla COREBLOW_STATE_DIR/COREBLOW_CONFIG_PATH en ~/.coreblow-<name>)",
-                "log_level": "Sobrescribe el nivel de log global para archivo + consola ({{values}})",
-                "no_color": "Desactivar colores ANSI",
-                "version": "Mostrar número de versión"
+                "container": "<name>이라는 실행 중인 Podman/Docker 컨테이너 안에서 CLI 실행 (기본값: env COREBLOW_CONTAINER)",
+                "dev": "Dev 프로필: 상태를 ~/.coreblow-dev 아래로 격리하고 기본 gateway 포트를 19001로 설정하며 파생 포트(browser/canvas)를 이동",
+                "profile": "이름 있는 프로필 사용 (COREBLOW_STATE_DIR/COREBLOW_CONFIG_PATH를 ~/.coreblow-<name> 아래로 격리)",
+                "log_level": "파일 + 콘솔 전역 로그 레벨 재정의 ({{values}})",
+                "no_color": "ANSI 색상 비활성화",
+                "version": "버전 번호 표시"
             }
         },
         "doctor": {
             "options": {
-                "no_workspace_suggestions": "Desactivar sugerencias del sistema de memoria del workspace",
-                "yes": "Aceptar valores predeterminados sin preguntar",
-                "repair": "Aplicar reparaciones recomendadas sin preguntar",
-                "fix": "Aplicar reparaciones recomendadas (alias de --repair)",
-                "force": "Aplicar reparaciones agresivas (sobrescribe config custom del servicio)",
-                "non_interactive": "Ejecutar sin prompts (solo migraciones seguras)",
-                "generate_gateway_credential": "Generar y configurar credencial del gateway",
-                "deep": "Escanear servicios del sistema para instalaciones extra de gateway"
+                "no_workspace_suggestions": "workspace 메모리 시스템 제안 비활성화",
+                "yes": "묻지 않고 기본값 수락",
+                "repair": "묻지 않고 권장 복구 적용",
+                "fix": "권장 복구 적용 (--repair 별칭)",
+                "force": "강제 복구 적용 (사용자 service 설정을 덮어씀)",
+                "non_interactive": "프롬프트 없이 실행 (안전한 migration만)",
+                "generate_gateway_credential": "gateway 자격 증명 생성 및 구성",
+                "deep": "추가 gateway 설치를 찾기 위해 시스템 서비스 스캔"
             }
         },
         "status": {
@@ -304,6 +306,12 @@
             "options": {
                 "timeout": "연결 제한 시간(밀리초)"
             }
+        },
+        "formatter": {
+            "default": "기본값",
+            "choices": "선택지",
+            "preset": "preset",
+            "env": "env"
         }
     }
 }

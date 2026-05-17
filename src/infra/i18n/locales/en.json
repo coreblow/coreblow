@@ -245,7 +245,9 @@
             "options": "Options:",
             "commands": "Commands:",
             "examples": "Examples:",
-            "docs": "Docs:"
+            "docs": "Docs:",
+            "arguments": "Arguments:",
+            "global_options": "Global Options:"
         },
         "options": {
             "help": "Display help for command",
@@ -304,6 +306,12 @@
             "options": {
                 "timeout": "Connection timeout in milliseconds"
             }
+        },
+        "formatter": {
+            "default": "default",
+            "choices": "choices",
+            "preset": "preset",
+            "env": "env"
         }
     }
 }

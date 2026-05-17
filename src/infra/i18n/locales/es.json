@@ -245,7 +245,9 @@
             "options": "Opciones:",
             "commands": "Comandos:",
             "examples": "Ejemplos:",
-            "docs": "Docs:"
+            "docs": "Docs:",
+            "arguments": "Argumentos:",
+            "global_options": "Opciones globales:"
         },
         "options": {
             "help": "Mostrar ayuda del comando",
@@ -264,8 +266,8 @@
         "root": {
             "commands_hint": "Consejo: los comandos con * tienen subcomandos. Ejecuta <command> --help para detalles.",
             "options": {
-                "container": "Ejecuta la CLI dentro de un contenedor Podman/Docker llamado <name> (default: env COREBLOW_CONTAINER)",
-                "dev": "Perfil dev: aísla estado en ~/.coreblow-dev, puerto gateway 19001 y desplaza puertos derivados (browser/canvas)",
+                "container": "Ejecuta la CLI dentro de un contenedor Podman/Docker llamado <name> (predeterminado: env COREBLOW_CONTAINER)",
+                "dev": "Perfil dev: aísla estado en ~/.coreblow-dev, puerto gateway predeterminado 19001 y desplaza puertos derivados (browser/canvas)",
                 "profile": "Usa un perfil nombrado (aísla COREBLOW_STATE_DIR/COREBLOW_CONFIG_PATH en ~/.coreblow-<name>)",
                 "log_level": "Sobrescribe el nivel de log global para archivo + consola ({{values}})",
                 "no_color": "Desactivar colores ANSI",
@@ -304,6 +306,12 @@
             "options": {
                 "timeout": "Timeout de conexión en milisegundos"
             }
+        },
+        "formatter": {
+            "default": "predeterminado",
+            "choices": "opciones",
+            "preset": "preset",
+            "env": "env"
         }
     }
 }

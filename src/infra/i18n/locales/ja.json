@@ -245,7 +245,9 @@
             "options": "オプション:",
             "commands": "コマンド:",
             "examples": "例:",
-            "docs": "Docs:"
+            "docs": "Docs:",
+            "arguments": "引数:",
+            "global_options": "グローバルオプション:"
         },
         "options": {
             "help": "コマンドのヘルプを表示",
@@ -262,26 +264,26 @@
             "health": "実行中 gateway から health を取得"
         },
         "root": {
-            "commands_hint": "Consejo: los comandos con * tienen subcomandos. Ejecuta <command> --help para detalles.",
+            "commands_hint": "ヒント: * 付きのコマンドにはサブコマンドがあります。詳細は <command> --help を実行してください。",
             "options": {
-                "container": "Ejecuta la CLI dentro de un contenedor Podman/Docker llamado <name> (default: env COREBLOW_CONTAINER)",
-                "dev": "Perfil dev: aísla estado en ~/.coreblow-dev, puerto gateway 19001 y desplaza puertos derivados (browser/canvas)",
-                "profile": "Usa un perfil nombrado (aísla COREBLOW_STATE_DIR/COREBLOW_CONFIG_PATH en ~/.coreblow-<name>)",
-                "log_level": "Sobrescribe el nivel de log global para archivo + consola ({{values}})",
-                "no_color": "Desactivar colores ANSI",
-                "version": "Mostrar número de versión"
+                "container": "<name> という実行中の Podman/Docker コンテナ内で CLI を実行 (デフォルト: env COREBLOW_CONTAINER)",
+                "dev": "Dev プロファイル: 状態を ~/.coreblow-dev に分離し、デフォルト gateway ポートを 19001 にして派生ポート (browser/canvas) をずらす",
+                "profile": "名前付きプロファイルを使用 (COREBLOW_STATE_DIR/COREBLOW_CONFIG_PATH を ~/.coreblow-<name> 配下に分離)",
+                "log_level": "ファイル + コンソールのグローバルログレベルを上書き ({{values}})",
+                "no_color": "ANSI カラーを無効化",
+                "version": "バージョン番号を表示"
             }
         },
         "doctor": {
             "options": {
-                "no_workspace_suggestions": "Desactivar sugerencias del sistema de memoria del workspace",
-                "yes": "Aceptar valores predeterminados sin preguntar",
-                "repair": "Aplicar reparaciones recomendadas sin preguntar",
-                "fix": "Aplicar reparaciones recomendadas (alias de --repair)",
-                "force": "Aplicar reparaciones agresivas (sobrescribe config custom del servicio)",
-                "non_interactive": "Ejecutar sin prompts (solo migraciones seguras)",
-                "generate_gateway_credential": "Generar y configurar credencial del gateway",
-                "deep": "Escanear servicios del sistema para instalaciones extra de gateway"
+                "no_workspace_suggestions": "workspace メモリシステムの提案を無効化",
+                "yes": "確認せずにデフォルト値を受け入れる",
+                "repair": "確認せずに推奨修復を適用",
+                "fix": "推奨修復を適用 (--repair のエイリアス)",
+                "force": "強力な修復を適用 (カスタム service 設定を上書き)",
+                "non_interactive": "プロンプトなしで実行 (安全な migration のみ)",
+                "generate_gateway_credential": "gateway 認証情報を生成して設定",
+                "deep": "追加の gateway インストールを system service からスキャン"
             }
         },
         "status": {
@@ -304,6 +306,12 @@
             "options": {
                 "timeout": "接続タイムアウト (ミリ秒)"
             }
+        },
+        "formatter": {
+            "default": "デフォルト",
+            "choices": "選択肢",
+            "preset": "プリセット",
+            "env": "env"
         }
     }
 }

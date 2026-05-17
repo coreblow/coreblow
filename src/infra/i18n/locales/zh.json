@@ -245,7 +245,9 @@
             "options": "选项:",
             "commands": "命令:",
             "examples": "示例:",
-            "docs": "文档:"
+            "docs": "文档:",
+            "arguments": "参数:",
+            "global_options": "全局选项:"
         },
         "options": {
             "help": "显示命令帮助",
@@ -262,26 +264,26 @@
             "health": "从正在运行的网关获取 health"
         },
         "root": {
-            "commands_hint": "Consejo: los comandos con * tienen subcomandos. Ejecuta <command> --help para detalles.",
+            "commands_hint": "提示：带 * 的命令包含子命令。运行 <command> --help 查看详情。",
             "options": {
-                "container": "Ejecuta la CLI dentro de un contenedor Podman/Docker llamado <name> (default: env COREBLOW_CONTAINER)",
-                "dev": "Perfil dev: aísla estado en ~/.coreblow-dev, puerto gateway 19001 y desplaza puertos derivados (browser/canvas)",
-                "profile": "Usa un perfil nombrado (aísla COREBLOW_STATE_DIR/COREBLOW_CONFIG_PATH en ~/.coreblow-<name>)",
-                "log_level": "Sobrescribe el nivel de log global para archivo + consola ({{values}})",
-                "no_color": "Desactivar colores ANSI",
-                "version": "Mostrar número de versión"
+                "container": "在名为 <name> 的运行中 Podman/Docker 容器内运行 CLI（默认值: env COREBLOW_CONTAINER）",
+                "dev": "Dev 配置: 将状态隔离到 ~/.coreblow-dev，默认 gateway 端口为 19001，并偏移派生端口 (browser/canvas)",
+                "profile": "使用命名配置文件（将 COREBLOW_STATE_DIR/COREBLOW_CONFIG_PATH 隔离到 ~/.coreblow-<name> 下）",
+                "log_level": "覆盖文件 + 控制台的全局日志级别 ({{values}})",
+                "no_color": "禁用 ANSI 颜色",
+                "version": "显示版本号"
             }
         },
         "doctor": {
             "options": {
-                "no_workspace_suggestions": "Desactivar sugerencias del sistema de memoria del workspace",
-                "yes": "Aceptar valores predeterminados sin preguntar",
-                "repair": "Aplicar reparaciones recomendadas sin preguntar",
-                "fix": "Aplicar reparaciones recomendadas (alias de --repair)",
-                "force": "Aplicar reparaciones agresivas (sobrescribe config custom del servicio)",
-                "non_interactive": "Ejecutar sin prompts (solo migraciones seguras)",
-                "generate_gateway_credential": "Generar y configurar credencial del gateway",
-                "deep": "Escanear servicios del sistema para instalaciones extra de gateway"
+                "no_workspace_suggestions": "禁用 workspace 内存系统建议",
+                "yes": "不提示并接受默认值",
+                "repair": "不提示并应用建议的修复",
+                "fix": "应用建议的修复（--repair 的别名）",
+                "force": "应用激进修复（覆盖自定义 service 配置）",
+                "non_interactive": "无提示运行（仅安全迁移）",
+                "generate_gateway_credential": "生成并配置 gateway 凭证",
+                "deep": "扫描系统服务以查找额外的 gateway 安装"
             }
         },
         "status": {
@@ -304,6 +306,12 @@
             "options": {
                 "timeout": "连接超时（毫秒）"
             }
+        },
+        "formatter": {
+            "default": "默认值",
+            "choices": "选项",
+            "preset": "预设",
+            "env": "env"
         }
     }
 }

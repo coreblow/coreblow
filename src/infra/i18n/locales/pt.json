@@ -245,7 +245,9 @@
             "options": "Opções:",
             "commands": "Comandos:",
             "examples": "Exemplos:",
-            "docs": "Docs:"
+            "docs": "Docs:",
+            "arguments": "Argumentos:",
+            "global_options": "Opções globais:"
         },
         "options": {
             "help": "Mostrar ajuda do comando",
@@ -262,26 +264,26 @@
             "health": "Buscar health do gateway em execução"
         },
         "root": {
-            "commands_hint": "Consejo: los comandos con * tienen subcomandos. Ejecuta <command> --help para detalles.",
+            "commands_hint": "Dica: comandos com * têm subcomandos. Execute <command> --help para detalhes.",
             "options": {
-                "container": "Ejecuta la CLI dentro de un contenedor Podman/Docker llamado <name> (default: env COREBLOW_CONTAINER)",
-                "dev": "Perfil dev: aísla estado en ~/.coreblow-dev, puerto gateway 19001 y desplaza puertos derivados (browser/canvas)",
-                "profile": "Usa un perfil nombrado (aísla COREBLOW_STATE_DIR/COREBLOW_CONFIG_PATH en ~/.coreblow-<name>)",
-                "log_level": "Sobrescribe el nivel de log global para archivo + consola ({{values}})",
-                "no_color": "Desactivar colores ANSI",
-                "version": "Mostrar número de versión"
+                "container": "Executar a CLI dentro de um contêiner Podman/Docker em execução chamado <name> (padrão: env COREBLOW_CONTAINER)",
+                "dev": "Perfil dev: isola estado em ~/.coreblow-dev, porta gateway padrão 19001 e desloca portas derivadas (browser/canvas)",
+                "profile": "Usar um perfil nomeado (isola COREBLOW_STATE_DIR/COREBLOW_CONFIG_PATH em ~/.coreblow-<name>)",
+                "log_level": "Sobrescrever nível de log global para arquivo + console ({{values}})",
+                "no_color": "Desativar cores ANSI",
+                "version": "Mostrar número da versão"
             }
         },
         "doctor": {
             "options": {
-                "no_workspace_suggestions": "Desactivar sugerencias del sistema de memoria del workspace",
-                "yes": "Aceptar valores predeterminados sin preguntar",
-                "repair": "Aplicar reparaciones recomendadas sin preguntar",
-                "fix": "Aplicar reparaciones recomendadas (alias de --repair)",
-                "force": "Aplicar reparaciones agresivas (sobrescribe config custom del servicio)",
-                "non_interactive": "Ejecutar sin prompts (solo migraciones seguras)",
-                "generate_gateway_credential": "Generar y configurar credencial del gateway",
-                "deep": "Escanear servicios del sistema para instalaciones extra de gateway"
+                "no_workspace_suggestions": "Desativar sugestões do sistema de memória do workspace",
+                "yes": "Aceitar valores padrão sem perguntar",
+                "repair": "Aplicar reparos recomendados sem perguntar",
+                "fix": "Aplicar reparos recomendados (alias de --repair)",
+                "force": "Aplicar reparos agressivos (sobrescreve config customizada do service)",
+                "non_interactive": "Executar sem prompts (somente migrações seguras)",
+                "generate_gateway_credential": "Gerar e configurar credencial do gateway",
+                "deep": "Escanear serviços do sistema por instalações extras do gateway"
             }
         },
         "status": {
@@ -304,6 +306,12 @@
             "options": {
                 "timeout": "Timeout de conexão em milissegundos"
             }
+        },
+        "formatter": {
+            "default": "padrão",
+            "choices": "opções",
+            "preset": "preset",
+            "env": "env"
         }
     }
 }
