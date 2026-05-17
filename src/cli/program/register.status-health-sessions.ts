@@ -4,6 +4,7 @@ import { sessionsCleanupCommand } from "../../commands/sessions-cleanup.js";
 import { sessionsCommand } from "../../commands/sessions.js";
 import { statusCommand } from "../../commands/status.js";
 import { setVerbose } from "../../globals.js";
+import { t } from "../../infra/i18n/index.js";
 import { defaultRuntime } from "../../runtime.js";
 import { formatDocsLink } from "../../terminal/links.js";
 import { theme } from "../../terminal/theme.js";
@@ -18,7 +19,7 @@ function resolveVerbose(opts: { verbose?: boolean; debug?: boolean }): boolean {
 function parseTimeoutMs(timeout: unknown): number | null | undefined {
   const parsed = parsePositiveIntOrUndefined(timeout);
   if (timeout !== undefined && parsed === undefined) {
-    defaultRuntime.error("--timeout must be a positive integer (milliseconds)");
+    defaultRuntime.error(t("cli_help.errors.timeout_positive_integer"));
     defaultRuntime.exit(1);
     return null;
   }
@@ -43,33 +44,33 @@ async function runWithVerboseAndTimeout(
 export function registerStatusHealthSessionsCommands(program: Command) {
   program
     .command("status")
-    .description("Show channel health and recent session recipients")
-    .option("--json", "Output JSON instead of text", false)
-    .option("--all", "Full diagnosis (read-only, pasteable)", false)
-    .option("--usage", "Show model provider usage/quota snapshots", false)
-    .option("--deep", "Probe channels (WhatsApp Web + Telegram + Discord + Slack + Signal)", false)
-    .option("--timeout <ms>", "Probe timeout in milliseconds", "10000")
-    .option("--verbose", "Verbose logging", false)
-    .option("--debug", "Alias for --verbose", false)
+    .description(t("cli_help.commands.status"))
+    .option("--json", t("cli_help.options.json_text"), false)
+    .option("--all", t("cli_help.status.options.all"), false)
+    .option("--usage", t("cli_help.status.options.usage"), false)
+    .option("--deep", t("cli_help.status.options.deep"), false)
+    .option("--timeout <ms>", t("cli_help.status.options.timeout"), "10000")
+    .option("--verbose", t("cli_help.options.verbose"), false)
+    .option("--debug", t("cli_help.options.debug_verbose"), false)
     .addHelpText(
       "after",
       () =>
-        `\n${theme.heading("Examples:")}\n${formatHelpExamples([
-          ["coreblow status", "Show channel health + session summary."],
-          ["coreblow status --all", "Full diagnosis (read-only)."],
-          ["coreblow status --json", "Machine-readable output."],
-          ["coreblow status --usage", "Show model provider usage/quota snapshots."],
+        `\n${theme.heading(t("cli_help.labels.examples"))}\n${formatHelpExamples([
+          ["coreblow status", t("cli_help.status.examples.default")],
+          ["coreblow status --all", t("cli_help.status.examples.all")],
+          ["coreblow status --json", t("cli_help.status.examples.json")],
+          ["coreblow status --usage", t("cli_help.status.examples.usage")],
           [
             "coreblow status --deep",
-            "Run channel probes (WA + Telegram + Discord + Slack + Signal).",
+            t("cli_help.status.examples.deep"),
           ],
-          ["coreblow status --deep --timeout 5000", "Tighten probe timeout."],
+          ["coreblow status --deep --timeout 5000", t("cli_help.status.examples.timeout")],
         ])}`,
     )
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/status", "docs.coreblow.com/cli/status")}\n`,
+        `\n${theme.muted(t("cli_help.labels.docs"))} ${formatDocsLink("/cli/status", "docs.coreblow.com/cli/status")}\n`,
     )
     .action(async (opts) => {
       await runWithVerboseAndTimeout(opts, async ({ verbose, timeoutMs }) => {
@@ -89,15 +90,15 @@ export function registerStatusHealthSessionsCommands(program: Command) {
 
   program
     .command("health")
-    .description("Fetch health from the running gateway")
-    .option("--json", "Output JSON instead of text", false)
-    .option("--timeout <ms>", "Connection timeout in milliseconds", "10000")
-    .option("--verbose", "Verbose logging", false)
-    .option("--debug", "Alias for --verbose", false)
+    .description(t("cli_help.commands.health"))
+    .option("--json", t("cli_help.options.json_text"), false)
+    .option("--timeout <ms>", t("cli_help.health.options.timeout"), "10000")
+    .option("--verbose", t("cli_help.options.verbose"), false)
+    .option("--debug", t("cli_help.options.debug_verbose"), false)
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/health", "docs.coreblow.com/cli/health")}\n`,
+        `\n${theme.muted(t("cli_help.labels.docs"))} ${formatDocsLink("/cli/health", "docs.coreblow.com/cli/health")}\n`,
     )
     .action(async (opts) => {
       await runWithVerboseAndTimeout(opts, async ({ verbose, timeoutMs }) => {

@@ -238,5 +238,72 @@
             "sessions": "Sesi"
         },
         "credential_diagnostics": "Diagnostik kredensial:"
+    },
+    "cli_help": {
+        "labels": {
+            "usage": "Pemakaian:",
+            "options": "Opsi:",
+            "commands": "Perintah:",
+            "examples": "Contoh:",
+            "docs": "Dokumentasi:"
+        },
+        "options": {
+            "help": "Tampilkan bantuan untuk perintah",
+            "json_text": "Output JSON, bukan teks",
+            "verbose": "Logging lebih detail",
+            "debug_verbose": "Alias untuk --verbose"
+        },
+        "errors": {
+            "timeout_positive_integer": "--timeout harus berupa integer positif (milidetik)"
+        },
+        "commands": {
+            "doctor": "Health check + perbaikan cepat untuk gateway dan channel",
+            "status": "Tampilkan health channel dan penerima sesi terbaru",
+            "health": "Ambil health dari gateway yang sedang berjalan"
+        },
+        "root": {
+            "commands_hint": "Petunjuk: perintah dengan akhiran * punya subcommand. Jalankan <command> --help untuk detail.",
+            "options": {
+                "container": "Jalankan CLI di dalam container Podman/Docker bernama <name> (default: env COREBLOW_CONTAINER)",
+                "dev": "Profil dev: isolasi state di ~/.coreblow-dev, port gateway default 19001, dan geser port turunan (browser/canvas)",
+                "profile": "Gunakan profil bernama (mengisolasi COREBLOW_STATE_DIR/COREBLOW_CONFIG_PATH di ~/.coreblow-<name>)",
+                "log_level": "Override log level global untuk file + console ({{values}})",
+                "no_color": "Nonaktifkan warna ANSI",
+                "version": "Tampilkan nomor versi"
+            }
+        },
+        "doctor": {
+            "options": {
+                "no_workspace_suggestions": "Nonaktifkan saran sistem memory workspace",
+                "yes": "Terima default tanpa prompt",
+                "repair": "Terapkan perbaikan yang direkomendasikan tanpa prompt",
+                "fix": "Terapkan perbaikan yang direkomendasikan (alias untuk --repair)",
+                "force": "Terapkan perbaikan agresif (menimpa config service custom)",
+                "non_interactive": "Jalankan tanpa prompt (hanya migrasi aman)",
+                "generate_gateway_credential": "Buat dan konfigurasi kredensial gateway",
+                "deep": "Scan service sistem untuk instalasi gateway tambahan"
+            }
+        },
+        "status": {
+            "options": {
+                "all": "Diagnosis penuh (read-only, mudah ditempel)",
+                "usage": "Tampilkan snapshot usage/quota provider model",
+                "deep": "Probe channel (WhatsApp Web + Telegram + Discord + Slack + Signal)",
+                "timeout": "Timeout probe dalam milidetik"
+            },
+            "examples": {
+                "default": "Tampilkan ringkasan health channel + sesi.",
+                "all": "Diagnosis penuh (read-only).",
+                "json": "Output untuk mesin.",
+                "usage": "Tampilkan snapshot usage/quota provider model.",
+                "deep": "Jalankan probe channel (WA + Telegram + Discord + Slack + Signal).",
+                "timeout": "Perketat timeout probe."
+            }
+        },
+        "health": {
+            "options": {
+                "timeout": "Timeout koneksi dalam milidetik"
+            }
+        }
     }
 }

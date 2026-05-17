@@ -187,8 +187,10 @@ export function tryHandleRootHelpFastPath(
     }
     return true;
   }
-  import("./cli/program/root-help.js")
-    .then(({ outputRootHelp }) => {
+  import("./infra/i18n/index.js")
+    .then(async ({ i18n }) => {
+      await i18n.initialize();
+      const { outputRootHelp } = await import("./cli/program/root-help.js");
       outputRootHelp();
     })
     .catch(handleError);

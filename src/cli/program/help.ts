@@ -1,5 +1,6 @@
 import type { Command } from "commander";
 import { resolveCommitHash } from "../../infra/git-commit.js";
+import { t } from "../../infra/i18n/index.js";
 import { formatDocsLink } from "../../terminal/links.js";
 import { isRich, theme } from "../../terminal/theme.js";
 import { escapeRegExp } from "../../utils.js";
@@ -17,8 +18,6 @@ const ROOT_COMMANDS_WITH_SUBCOMMANDS = new Set([
   ...getCoreCliCommandsWithSubcommands(),
   ...getSubCliCommandsWithSubcommands(),
 ]);
-const ROOT_COMMANDS_HINT =
-  "Hint: commands suffixed with * have subcommands. Run <command> --help for details.";
 
 const EXAMPLES = [
   ["coreblow models --help", "Show detailed help for the models command."],
@@ -48,28 +47,28 @@ export function configureProgramHelp(program: Command, ctx: ProgramContext) {
   program
     .name(CLI_NAME)
     .description("")
-    .version(ctx.programVersion)
+    .version(ctx.programVersion, "-V, --version", t("cli_help.root.options.version"))
     .option(
       "--container <name>",
-      "Run the CLI inside a running Podman/Docker container named <name> (default: env COREBLOW_CONTAINER)",
+      t("cli_help.root.options.container"),
     )
     .option(
       "--dev",
-      "Dev profile: isolate state under ~/.coreblow-dev, default gateway port 19001, and shift derived ports (browser/canvas)",
+      t("cli_help.root.options.dev"),
     )
     .option(
       "--profile <name>",
-      "Use a named profile (isolates COREBLOW_STATE_DIR/COREBLOW_CONFIG_PATH under ~/.coreblow-<name>)",
+      t("cli_help.root.options.profile"),
     )
     .option(
       "--log-level <level>",
-      `Global log level override for file + console (${CLI_LOG_LEVEL_VALUES})`,
+      t("cli_help.root.options.log_level", { values: CLI_LOG_LEVEL_VALUES }),
       parseCliLogLevelOption,
     );
 
-  program.option("--no-color", "Disable ANSI colors", false);
-  program.helpOption("-h, --help", "Display help for command");
-  program.helpCommand("help [command]", "Display help for command");
+  program.option("--no-color", t("cli_help.root.options.no_color"), false);
+  program.helpOption("-h, --help", t("cli_help.options.help"));
+  program.helpCommand("help [command]", t("cli_help.options.help"));
 
   program.configureHelp({
     // sort options and subcommands alphabetically
@@ -90,13 +89,16 @@ export function configureProgramHelp(program: Command, ctx: ProgramContext) {
       "m",
     ).test(output);
     if (isRootHelp && /^Commands:/m.test(output)) {
-      output = output.replace(/^Commands:/m, `Commands:\n  ${theme.muted(ROOT_COMMANDS_HINT)}`);
+      output = output.replace(
+        /^Commands:/m,
+        `Commands:\n  ${theme.muted(t("cli_help.root.commands_hint"))}`,
+      );
     }
 
     return output
-      .replace(/^Usage:/gm, theme.heading("Usage:"))
-      .replace(/^Options:/gm, theme.heading("Options:"))
-      .replace(/^Commands:/gm, theme.heading("Commands:"));
+      .replace(/^Usage:/gm, theme.heading(t("cli_help.labels.usage")))
+      .replace(/^Options:/gm, theme.heading(t("cli_help.labels.options")))
+      .replace(/^Commands:/gm, theme.heading(t("cli_help.labels.commands")));
   };
 
   program.configureOutput({
@@ -131,7 +133,8 @@ export function configureProgramHelp(program: Command, ctx: ProgramContext) {
   });
 
   const fmtExamples = EXAMPLES.map(
-    ([cmd, desc]) => `  ${theme.command(replaceCliName(cmd, CLI_NAME))}\n    ${theme.muted(desc)}`,
+    ([cmd, desc]) =>
+      `  ${theme.command(replaceCliName(cmd, CLI_NAME))}\n    ${theme.muted(desc)}`,
   ).join("\n");
 
   program.addHelpText("afterAll", ({ command }) => {
@@ -139,6 +142,6 @@ export function configureProgramHelp(program: Command, ctx: ProgramContext) {
       return "";
     }
     const docs = formatDocsLink("/cli", "docs.coreblow.com/cli");
-    return `\n${theme.heading("Examples:")}\n${fmtExamples}\n\n${theme.muted("Docs:")} ${docs}\n`;
+    return `\n${theme.heading(t("cli_help.labels.examples"))}\n${fmtExamples}\n\n${theme.muted(t("cli_help.labels.docs"))} ${docs}\n`;
   });
 }

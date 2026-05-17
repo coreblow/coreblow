@@ -1,8 +1,16 @@
+import { t } from "../../infra/i18n/index.js";
+
 export type CoreCliCommandDescriptor = {
   name: string;
   description: string;
   hasSubcommands: boolean;
 };
+
+function commandDescription(name: string, fallback: string): string {
+  const key = `cli_help.commands.${name}`;
+  const translated = t(key);
+  return translated === key ? fallback : translated;
+}
 
 export const CORE_CLI_COMMAND_DESCRIPTORS = [
   {
@@ -33,7 +41,7 @@ export const CORE_CLI_COMMAND_DESCRIPTORS = [
   },
   {
     name: "doctor",
-    description: "Health checks + quick fixes for the gateway and channels",
+    description: commandDescription("doctor", "Health checks + quick fixes for the gateway and channels"),
     hasSubcommands: false,
   },
   {
@@ -68,12 +76,12 @@ export const CORE_CLI_COMMAND_DESCRIPTORS = [
   },
   {
     name: "status",
-    description: "Show channel health and recent session recipients",
+    description: commandDescription("status", "Show channel health and recent session recipients"),
     hasSubcommands: false,
   },
   {
     name: "health",
-    description: "Fetch health from the running gateway",
+    description: commandDescription("health", "Fetch health from the running gateway"),
     hasSubcommands: false,
   },
   {

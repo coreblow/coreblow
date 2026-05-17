@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { t } from "../../infra/i18n/index.js";
 import { getPrimaryCommand, hasHelpOrVersion } from "../argv.js";
 import { reparseProgramFromActionArgs } from "./action-reparse.js";
 import { removeCommandByName } from "./command-tree.js";
@@ -110,7 +111,7 @@ const coreEntries: CoreCliEntry[] = [
     commands: [
       {
         name: "doctor",
-        description: "Health checks + quick fixes for the gateway and channels",
+        description: t("cli_help.commands.doctor"),
         hasSubcommands: false,
       },
       {
@@ -184,12 +185,12 @@ const coreEntries: CoreCliEntry[] = [
     commands: [
       {
         name: "status",
-        description: "Show channel health and recent session recipients",
+        description: t("cli_help.commands.status"),
         hasSubcommands: false,
       },
       {
         name: "health",
-        description: "Fetch health from the running gateway",
+        description: t("cli_help.commands.health"),
         hasSubcommands: false,
       },
       {

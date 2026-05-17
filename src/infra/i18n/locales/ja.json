@@ -238,5 +238,72 @@
             "sessions": "Sessions"
         },
         "credential_diagnostics": "Credential diagnostics:"
+    },
+    "cli_help": {
+        "labels": {
+            "usage": "Usage:",
+            "options": "Options:",
+            "commands": "Commands:",
+            "examples": "Examples:",
+            "docs": "Docs:"
+        },
+        "options": {
+            "help": "Display help for command",
+            "json_text": "Output JSON instead of text",
+            "verbose": "Verbose logging",
+            "debug_verbose": "Alias for --verbose"
+        },
+        "errors": {
+            "timeout_positive_integer": "--timeout must be a positive integer (milliseconds)"
+        },
+        "commands": {
+            "doctor": "Health checks + quick fixes for the gateway and channels",
+            "status": "Show channel health and recent session recipients",
+            "health": "Fetch health from the running gateway"
+        },
+        "root": {
+            "commands_hint": "Hint: commands suffixed with * have subcommands. Run <command> --help for details.",
+            "options": {
+                "container": "Run the CLI inside a running Podman/Docker container named <name> (default: env COREBLOW_CONTAINER)",
+                "dev": "Dev profile: isolate state under ~/.coreblow-dev, default gateway port 19001, and shift derived ports (browser/canvas)",
+                "profile": "Use a named profile (isolates COREBLOW_STATE_DIR/COREBLOW_CONFIG_PATH under ~/.coreblow-<name>)",
+                "log_level": "Global log level override for file + console ({{values}})",
+                "no_color": "Disable ANSI colors",
+                "version": "Output the version number"
+            }
+        },
+        "doctor": {
+            "options": {
+                "no_workspace_suggestions": "Disable workspace memory system suggestions",
+                "yes": "Accept defaults without prompting",
+                "repair": "Apply recommended repairs without prompting",
+                "fix": "Apply recommended repairs (alias for --repair)",
+                "force": "Apply aggressive repairs (overwrites custom service config)",
+                "non_interactive": "Run without prompts (safe migrations only)",
+                "generate_gateway_credential": "Generate and configure a gateway credential",
+                "deep": "Scan system services for extra gateway installs"
+            }
+        },
+        "status": {
+            "options": {
+                "all": "Full diagnosis (read-only, pasteable)",
+                "usage": "Show model provider usage/quota snapshots",
+                "deep": "Probe channels (WhatsApp Web + Telegram + Discord + Slack + Signal)",
+                "timeout": "Probe timeout in milliseconds"
+            },
+            "examples": {
+                "default": "Show channel health + session summary.",
+                "all": "Full diagnosis (read-only).",
+                "json": "Machine-readable output.",
+                "usage": "Show model provider usage/quota snapshots.",
+                "deep": "Run channel probes (WA + Telegram + Discord + Slack + Signal).",
+                "timeout": "Tighten probe timeout."
+            }
+        },
+        "health": {
+            "options": {
+                "timeout": "Connection timeout in milliseconds"
+            }
+        }
     }
 }

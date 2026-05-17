@@ -3,6 +3,7 @@ import { dashboardCommand } from "../../commands/dashboard.js";
 import { doctorCommand } from "../../commands/doctor.js";
 import { resetCommand } from "../../commands/reset.js";
 import { uninstallCommand } from "../../commands/uninstall.js";
+import { t } from "../../infra/i18n/index.js";
 import { defaultRuntime } from "../../runtime.js";
 import { formatDocsLink } from "../../terminal/links.js";
 import { theme } from "../../terminal/theme.js";
@@ -11,20 +12,20 @@ import { runCommandWithRuntime } from "../cli-utils.js";
 export function registerMaintenanceCommands(program: Command) {
   program
     .command("doctor")
-    .description("Health checks + quick fixes for the gateway and channels")
+    .description(t("cli_help.commands.doctor"))
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/doctor", "docs.coreblow.com/cli/doctor")}\n`,
+        `\n${theme.muted(t("cli_help.labels.docs"))} ${formatDocsLink("/cli/doctor", "docs.coreblow.com/cli/doctor")}\n`,
     )
-    .option("--no-workspace-suggestions", "Disable workspace memory system suggestions", false)
-    .option("--yes", "Accept defaults without prompting", false)
-    .option("--repair", "Apply recommended repairs without prompting", false)
-    .option("--fix", "Apply recommended repairs (alias for --repair)", false)
-    .option("--force", "Apply aggressive repairs (overwrites custom service config)", false)
-    .option("--non-interactive", "Run without prompts (safe migrations only)", false)
-    .option("--generate-gateway-token", "Generate and configure a gateway token", false)
-    .option("--deep", "Scan system services for extra gateway installs", false)
+    .option("--no-workspace-suggestions", t("cli_help.doctor.options.no_workspace_suggestions"), false)
+    .option("--yes", t("cli_help.doctor.options.yes"), false)
+    .option("--repair", t("cli_help.doctor.options.repair"), false)
+    .option("--fix", t("cli_help.doctor.options.fix"), false)
+    .option("--force", t("cli_help.doctor.options.force"), false)
+    .option("--non-interactive", t("cli_help.doctor.options.non_interactive"), false)
+    .option("--generate-gateway-token", t("cli_help.doctor.options.generate_gateway_credential"), false)
+    .option("--deep", t("cli_help.doctor.options.deep"), false)
     .action(async (opts) => {
       await runCommandWithRuntime(defaultRuntime, async () => {
         await doctorCommand(defaultRuntime, {
