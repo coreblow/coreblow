@@ -1,6 +1,3 @@
-// Auto-generated extension stub for CB
-export class TelegramExtension {
-  constructor(...args: any[]) {}
-  [k: string]: any;
-}
-export default TelegramExtension;
+export { default } from "./index.js";
+export * from "./index.js";
+export * from "./src/extension.js";

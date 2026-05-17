@@ -1,6 +1,3 @@
-// Auto-generated extension stub for CB
-export class DiagnosticsOtelExtension {
-  constructor(...args: any[]) {}
-  [k: string]: any;
-}
-export default DiagnosticsOtelExtension;
+export { default } from "./index.js";
+export * from "./index.js";
+export * from "./src/extension.js";

@@ -1,6 +1,3 @@
-// Auto-generated extension stub for CB
-export class MatrixExtension {
-  constructor(...args: any[]) {}
-  [k: string]: any;
-}
-export default MatrixExtension;
+export { default } from "./index.js";
+export * from "./index.js";
+export * from "./src/extension.js";
