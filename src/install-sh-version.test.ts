@@ -8,7 +8,7 @@ function readRepoFile(file: string): string {
 }
 
 describe("install-sh-version", () => {
-  it("runs install smoke on the supported Node release lines", () => {
+  it("runs install smoke on the supported Node release line", () => {
     const workflow = parse(readRepoFile(".github/workflows/install-smoke.yml")) as {
       jobs?: {
         "npm-install-smoke"?: {
@@ -17,7 +17,7 @@ describe("install-sh-version", () => {
       };
     };
 
-    expect(workflow.jobs?.["npm-install-smoke"]?.strategy?.matrix?.node).toEqual(["22", "24"]);
+    expect(workflow.jobs?.["npm-install-smoke"]?.strategy?.matrix?.node).toEqual(["22"]);
   });
 
   it("checks the installed CLI version through npx", () => {

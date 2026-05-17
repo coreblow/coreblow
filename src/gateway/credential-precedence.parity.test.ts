@@ -41,7 +41,7 @@ describe("credential-precedence parity", () => {
     } as CoreBlowConfig;
   }
 
-  function withGatewayAuthEnv<T>(env: NodeJS.ProcessEnv, fn: () => T): T {
+  async function withGatewayAuthEnv<T>(env: NodeJS.ProcessEnv, fn: () => Promise<T>): Promise<T> {
     const keys = [
       "COREBLOW_GATEWAY_TOKEN",
       "COREBLOW_GATEWAY_PASSWORD",
@@ -58,7 +58,7 @@ describe("credential-precedence parity", () => {
       }
     }
     try {
-      return fn();
+      return await fn();
     } finally {
       for (const key of keys) {
         const value = previous.get(key);
@@ -154,7 +154,7 @@ describe("credential-precedence parity", () => {
       mode,
       env,
     });
-    const status = await withGatewayAuthEnv(env, () => resolveStatusGatewayProbeAuth(cfg));
+    const status = await withGatewayAuthEnv({}, () => resolveStatusGatewayProbeAuth(cfg));
     const auth = resolveGatewayAuth({
       authConfig: cfg.gateway?.auth,
       env,
