@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { t } from "../infra/i18n/index.js";
 import { defaultRuntime } from "../runtime.js";
 import { formatDocsLink } from "../terminal/links.js";
 import { theme } from "../terminal/theme.js";
@@ -8,19 +9,19 @@ import { parseTimeoutMs } from "./parse-timeout.js";
 export function registerTuiCli(program: Command) {
   program
     .command("tui")
-    .description("Open a terminal UI connected to the Gateway")
-    .option("--url <url>", "Gateway WebSocket URL (defaults to gateway.remote.url when configured)")
-    .option("--token <token>", "Gateway token (if required)")
-    .option("--password <password>", "Gateway password (if required)")
-    .option("--session <key>", 'Session key (default: "main", or "global" when scope is global)')
-    .option("--deliver", "Deliver assistant replies", false)
-    .option("--thinking <level>", "Thinking level override")
-    .option("--message <text>", "Send an initial message after connecting")
-    .option("--timeout-ms <ms>", "Agent timeout in ms (defaults to agents.defaults.timeoutSeconds)")
-    .option("--history-limit <n>", "History entries to load", "200")
+    .description(t("cli_help.tui.description"))
+    .option("--url <url>", t("cli_help.tui.options.url"))
+    .option("--token <token>", t("cli_help.tui.options.credential"))
+    .option("--password <password>", t("cli_help.tui.options.passphrase"))
+    .option("--session <key>", t("cli_help.tui.options.session"))
+    .option("--deliver", t("cli_help.tui.options.deliver"), false)
+    .option("--thinking <level>", t("cli_help.tui.options.thinking"))
+    .option("--message <text>", t("cli_help.tui.options.message"))
+    .option("--timeout-ms <ms>", t("cli_help.tui.options.timeout_ms"))
+    .option("--history-limit <n>", t("cli_help.tui.options.history_limit"), "200")
     .addHelpText(
       "after",
-      () => `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/tui", "docs.coreblow.com/cli/tui")}\n`,
+      () => `\n${theme.muted(t("cli_help.labels.docs"))} ${formatDocsLink("/cli/tui", "docs.coreblow.com/cli/tui")}\n`,
     )
     .action(async (opts) => {
       try {

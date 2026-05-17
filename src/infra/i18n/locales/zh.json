@@ -587,6 +587,105 @@
                     "raw_stream_path": "raw stream jsonl path"
                 }
             }
+        },
+        "sandbox": {
+            "description": "管理 sandbox container（基于 Docker 的 agent 隔离）",
+            "commands": {
+                "list": "List sandbox containers and their status",
+                "recreate": "Remove containers to force recreation with updated config",
+                "explain": "Explain effective sandbox/tool policy for a session/agent"
+            },
+            "options": {
+                "browser": "List browser containers only",
+                "all": "Recreate all sandbox containers",
+                "session": "Recreate container for specific session",
+                "agent": "Recreate containers for specific agent",
+                "browser_only": "Only recreate browser containers",
+                "force": "Skip confirmation prompt",
+                "session_inspect": "Session key to inspect (defaults to agent main)",
+                "agent_inspect": "Agent id to inspect (defaults to derived agent)"
+            },
+            "examples": {
+                "list_all": "List all sandbox containers.",
+                "list_browser": "List only browser containers.",
+                "recreate_all": "Recreate all containers.",
+                "recreate_session": "Recreate a specific session.",
+                "recreate_agent": "Recreate agent containers.",
+                "explain_config": "Explain effective sandbox config.",
+                "json_output": "JSON output.",
+                "recreate_agent_specific": "Recreate a specific agent (includes sub-agents).",
+                "recreate_browser": "Recreate only browser containers.",
+                "skip_confirmation": "Skip confirmation.",
+                "show_effective": "Show effective sandbox config.",
+                "explain_session": "Explain a specific session.",
+                "explain_agent": "Explain an agent sandbox."
+            },
+            "output": {
+                "title": "Output includes:",
+                "container": "- Container name and status (running/stopped)",
+                "image": "- Docker image and whether it matches current config",
+                "age": "- Age (time since creation)",
+                "idle": "- Idle time (time since last use)",
+                "session": "- Associated session/agent ID"
+            },
+            "why": {
+                "title": "Why use this?",
+                "old_settings": "After updating Docker images or sandbox configuration, existing containers continue running with old settings.",
+                "recreate": "This command removes them so they'll be recreated automatically with current config when next needed."
+            },
+            "filter_options": "Filter options:",
+            "filter_all": "  --all          Remove all sandbox containers",
+            "filter_session": "  --session      Remove container for specific session key",
+            "filter_agent": "  --agent        Remove containers for agent (includes agent:id:* variants)",
+            "modifiers": "Modifiers:",
+            "modifier_browser": "  --browser      Only affect browser containers (not regular sandbox)",
+            "modifier_force": "  --force        Skip confirmation prompt"
+        },
+        "webhooks": {
+            "description": "webhook helper 和集成",
+            "gmail": {
+                "description": "Gmail Pub/Sub hooks (via gogcli)",
+                "commands": {
+                    "setup": "Configure Gmail watch + Pub/Sub + CoreBlow hooks",
+                    "run": "Run gog watch serve + auto-renew loop"
+                },
+                "options": {
+                    "account": "Gmail account to watch",
+                    "project": "GCP project id (OAuth client owner)",
+                    "topic": "Pub/Sub topic name",
+                    "topic_path": "Pub/Sub topic path (projects/.../topics/..)",
+                    "subscription": "Pub/Sub subscription name",
+                    "label": "Gmail label to watch",
+                    "hook_url": "CoreBlow hook URL",
+                    "hook_credential": "CoreBlow hook credential",
+                    "push_credential": "Push credential for gog watch serve",
+                    "bind": "gog watch serve bind host",
+                    "port": "gog watch serve port",
+                    "path": "gog watch serve path",
+                    "include_body": "Include email body snippets",
+                    "max_bytes": "Max bytes for body snippets",
+                    "renew_minutes": "Renew watch every N minutes",
+                    "tailscale": "Expose push endpoint via tailscale (funnel|serve|off)",
+                    "tailscale_path": "Path for tailscale serve/funnel",
+                    "tailscale_target": "Tailscale serve/funnel target (port, host:port, or URL)",
+                    "push_endpoint": "Explicit Pub/Sub push endpoint",
+                    "json_summary": "Output JSON summary"
+                }
+            }
+        },
+        "tui": {
+            "description": "打开连接到 Gateway 的 terminal UI",
+            "options": {
+                "url": "Gateway WebSocket URL (defaults to gateway.remote.url when configured)",
+                "credential": "Gateway credential (if required)",
+                "passphrase": "Gateway passphrase (if required)",
+                "session": "Session key (default: \"main\", or \"global\" when scope is global)",
+                "deliver": "Deliver assistant replies",
+                "thinking": "Thinking level override",
+                "message": "Send an initial message after connecting",
+                "timeout_ms": "Agent timeout in ms (defaults to agents.defaults.timeoutSeconds)",
+                "history_limit": "History entries to load"
+            }
         }
     }
 }

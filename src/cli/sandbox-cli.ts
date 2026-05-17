@@ -1,6 +1,7 @@
 import type { Command } from "commander";
 import { sandboxExplainCommand } from "../commands/sandbox-explain.js";
 import { sandboxListCommand, sandboxRecreateCommand } from "../commands/sandbox.js";
+import { t } from "../infra/i18n/index.js";
 import { defaultRuntime } from "../runtime.js";
 import { formatDocsLink } from "../terminal/links.js";
 import { theme } from "../terminal/theme.js";
@@ -14,31 +15,58 @@ type CommandOptions = Record<string, unknown>;
 
 const SANDBOX_EXAMPLES = {
   main: [
-    ["coreblow sandbox list", "List all sandbox containers."],
-    ["coreblow sandbox list --browser", "List only browser containers."],
-    ["coreblow sandbox recreate --all", "Recreate all containers."],
-    ["coreblow sandbox recreate --session main", "Recreate a specific session."],
-    ["coreblow sandbox recreate --agent mybot", "Recreate agent containers."],
-    ["coreblow sandbox explain", "Explain effective sandbox config."],
+    ["coreblow sandbox list", "list_all"],
+    ["coreblow sandbox list --browser", "list_browser"],
+    ["coreblow sandbox recreate --all", "recreate_all"],
+    ["coreblow sandbox recreate --session main", "recreate_session"],
+    ["coreblow sandbox recreate --agent mybot", "recreate_agent"],
+    ["coreblow sandbox explain", "explain_config"],
   ],
   list: [
-    ["coreblow sandbox list", "List all sandbox containers."],
-    ["coreblow sandbox list --browser", "List only browser containers."],
-    ["coreblow sandbox list --json", "JSON output."],
+    ["coreblow sandbox list", "list_all"],
+    ["coreblow sandbox list --browser", "list_browser"],
+    ["coreblow sandbox list --json", "json_output"],
   ],
   recreate: [
-    ["coreblow sandbox recreate --all", "Recreate all containers."],
-    ["coreblow sandbox recreate --session main", "Recreate a specific session."],
-    ["coreblow sandbox recreate --agent mybot", "Recreate a specific agent (includes sub-agents)."],
-    ["coreblow sandbox recreate --browser --all", "Recreate only browser containers."],
-    ["coreblow sandbox recreate --all --force", "Skip confirmation."],
+    ["coreblow sandbox recreate --all", "recreate_all"],
+    ["coreblow sandbox recreate --session main", "recreate_session"],
+    ["coreblow sandbox recreate --agent mybot", "recreate_agent_specific"],
+    ["coreblow sandbox recreate --browser --all", "recreate_browser"],
+    ["coreblow sandbox recreate --all --force", "skip_confirmation"],
   ],
   explain: [
-    ["coreblow sandbox explain", "Show effective sandbox config."],
-    ["coreblow sandbox explain --session agent:main:main", "Explain a specific session."],
-    ["coreblow sandbox explain --agent work", "Explain an agent sandbox."],
-    ["coreblow sandbox explain --json", "JSON output."],
+    ["coreblow sandbox explain", "show_effective"],
+    ["coreblow sandbox explain --session agent:main:main", "explain_session"],
+    ["coreblow sandbox explain --agent work", "explain_agent"],
+    ["coreblow sandbox explain --json", "json_output"],
   ],
+} as const;
+
+function sandboxExamples(
+  examples: readonly (readonly [string, keyof typeof SANDBOX_EXAMPLE_FALLBACKS])[],
+) {
+  return formatHelpExamples(
+    examples.map(([cmd, key]) => [
+      cmd,
+      t(`cli_help.sandbox.examples.${key}`),
+    ]),
+  );
+}
+
+const SANDBOX_EXAMPLE_FALLBACKS = {
+  list_all: true,
+  list_browser: true,
+  recreate_all: true,
+  recreate_session: true,
+  recreate_agent: true,
+  explain_config: true,
+  json_output: true,
+  recreate_agent_specific: true,
+  recreate_browser: true,
+  skip_confirmation: true,
+  show_effective: true,
+  explain_session: true,
+  explain_agent: true,
 } as const;
 
 function createRunner(
@@ -59,15 +87,15 @@ function createRunner(
 export function registerSandboxCli(program: Command) {
   const sandbox = program
     .command("sandbox")
-    .description("Manage sandbox containers (Docker-based agent isolation)")
+    .description(t("cli_help.sandbox.description"))
     .addHelpText(
       "after",
-      () => `\n${theme.heading("Examples:")}\n${formatHelpExamples(SANDBOX_EXAMPLES.main)}\n`,
+      () => `\n${theme.heading(t("cli_help.labels.examples"))}\n${sandboxExamples(SANDBOX_EXAMPLES.main)}\n`,
     )
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/sandbox", "docs.coreblow.com/cli/sandbox")}\n`,
+        `\n${theme.muted(t("cli_help.labels.docs"))} ${formatDocsLink("/cli/sandbox", "docs.coreblow.com/cli/sandbox")}\n`,
     )
     .action(() => {
       sandbox.help({ error: true });
@@ -77,19 +105,19 @@ export function registerSandboxCli(program: Command) {
 
   sandbox
     .command("list")
-    .description("List sandbox containers and their status")
-    .option("--json", "Output result as JSON", false)
-    .option("--browser", "List browser containers only", false)
+    .description(t("cli_help.sandbox.commands.list"))
+    .option("--json", t("cli_help.options.json_text"), false)
+    .option("--browser", t("cli_help.sandbox.options.browser"), false)
     .addHelpText(
       "after",
       () =>
-        `\n${theme.heading("Examples:")}\n${formatHelpExamples(SANDBOX_EXAMPLES.list)}\n\n${theme.heading(
-          "Output includes:",
-        )}\n${theme.muted("- Container name and status (running/stopped)")}\n${theme.muted(
-          "- Docker image and whether it matches current config",
-        )}\n${theme.muted("- Age (time since creation)")}\n${theme.muted(
-          "- Idle time (time since last use)",
-        )}\n${theme.muted("- Associated session/agent ID")}`,
+        `\n${theme.heading(t("cli_help.labels.examples"))}\n${sandboxExamples(SANDBOX_EXAMPLES.list)}\n\n${theme.heading(
+          t("cli_help.sandbox.output.title"),
+        )}\n${theme.muted(t("cli_help.sandbox.output.container"))}\n${theme.muted(
+          t("cli_help.sandbox.output.image"),
+        )}\n${theme.muted(t("cli_help.sandbox.output.age"))}\n${theme.muted(
+          t("cli_help.sandbox.output.idle"),
+        )}\n${theme.muted(t("cli_help.sandbox.output.session"))}`,
     )
     .action(
       createRunner((opts) =>
@@ -107,30 +135,30 @@ export function registerSandboxCli(program: Command) {
 
   sandbox
     .command("recreate")
-    .description("Remove containers to force recreation with updated config")
-    .option("--all", "Recreate all sandbox containers", false)
-    .option("--session <key>", "Recreate container for specific session")
-    .option("--agent <id>", "Recreate containers for specific agent")
-    .option("--browser", "Only recreate browser containers", false)
-    .option("--force", "Skip confirmation prompt", false)
+    .description(t("cli_help.sandbox.commands.recreate"))
+    .option("--all", t("cli_help.sandbox.options.all"), false)
+    .option("--session <key>", t("cli_help.sandbox.options.session"))
+    .option("--agent <id>", t("cli_help.sandbox.options.agent"))
+    .option("--browser", t("cli_help.sandbox.options.browser_only"), false)
+    .option("--force", t("cli_help.sandbox.options.force"), false)
     .addHelpText(
       "after",
       () =>
-        `\n${theme.heading("Examples:")}\n${formatHelpExamples(SANDBOX_EXAMPLES.recreate)}\n\n${theme.heading(
-          "Why use this?",
+        `\n${theme.heading(t("cli_help.labels.examples"))}\n${sandboxExamples(SANDBOX_EXAMPLES.recreate)}\n\n${theme.heading(
+          t("cli_help.sandbox.why.title"),
         )}\n${theme.muted(
-          "After updating Docker images or sandbox configuration, existing containers continue running with old settings.",
+          t("cli_help.sandbox.why.old_settings"),
         )}\n${theme.muted(
-          "This command removes them so they'll be recreated automatically with current config when next needed.",
-        )}\n\n${theme.heading("Filter options:")}\n${theme.muted(
-          "  --all          Remove all sandbox containers",
+          t("cli_help.sandbox.why.recreate"),
+        )}\n\n${theme.heading(t("cli_help.sandbox.filter_options"))}\n${theme.muted(
+          t("cli_help.sandbox.filter_all"),
         )}\n${theme.muted(
-          "  --session      Remove container for specific session key",
+          t("cli_help.sandbox.filter_session"),
         )}\n${theme.muted(
-          "  --agent        Remove containers for agent (includes agent:id:* variants)",
-        )}\n\n${theme.heading("Modifiers:")}\n${theme.muted(
-          "  --browser      Only affect browser containers (not regular sandbox)",
-        )}\n${theme.muted("  --force        Skip confirmation prompt")}`,
+          t("cli_help.sandbox.filter_agent"),
+        )}\n\n${theme.heading(t("cli_help.sandbox.modifiers"))}\n${theme.muted(
+          t("cli_help.sandbox.modifier_browser"),
+        )}\n${theme.muted(t("cli_help.sandbox.modifier_force"))}`,
     )
     .action(
       createRunner((opts) =>
@@ -151,13 +179,13 @@ export function registerSandboxCli(program: Command) {
 
   sandbox
     .command("explain")
-    .description("Explain effective sandbox/tool policy for a session/agent")
-    .option("--session <key>", "Session key to inspect (defaults to agent main)")
-    .option("--agent <id>", "Agent id to inspect (defaults to derived agent)")
-    .option("--json", "Output result as JSON", false)
+    .description(t("cli_help.sandbox.commands.explain"))
+    .option("--session <key>", t("cli_help.sandbox.options.session_inspect"))
+    .option("--agent <id>", t("cli_help.sandbox.options.agent_inspect"))
+    .option("--json", t("cli_help.options.json_text"), false)
     .addHelpText(
       "after",
-      () => `\n${theme.heading("Examples:")}\n${formatHelpExamples(SANDBOX_EXAMPLES.explain)}\n`,
+      () => `\n${theme.heading(t("cli_help.labels.examples"))}\n${sandboxExamples(SANDBOX_EXAMPLES.explain)}\n`,
     )
     .action(
       createRunner((opts) =>

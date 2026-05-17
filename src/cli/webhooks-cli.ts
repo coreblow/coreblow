@@ -16,6 +16,7 @@ import {
   DEFAULT_GMAIL_SUBSCRIPTION,
   DEFAULT_GMAIL_TOPIC,
 } from "../hooks/gmail.js";
+import { t } from "../infra/i18n/index.js";
 import { defaultRuntime } from "../runtime.js";
 import { formatDocsLink } from "../terminal/links.js";
 import { theme } from "../terminal/theme.js";
@@ -23,44 +24,44 @@ import { theme } from "../terminal/theme.js";
 export function registerWebhooksCli(program: Command) {
   const webhooks = program
     .command("webhooks")
-    .description("Webhook helpers and integrations")
+    .description(t("cli_help.webhooks.description"))
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/webhooks", "docs.coreblow.com/cli/webhooks")}\n`,
+        `\n${theme.muted(t("cli_help.labels.docs"))} ${formatDocsLink("/cli/webhooks", "docs.coreblow.com/cli/webhooks")}\n`,
     );
 
-  const gmail = webhooks.command("gmail").description("Gmail Pub/Sub hooks (via gogcli)");
+  const gmail = webhooks.command("gmail").description(t("cli_help.webhooks.gmail.description"));
 
   gmail
     .command("setup")
-    .description("Configure Gmail watch + Pub/Sub + CoreBlow hooks")
-    .requiredOption("--account <email>", "Gmail account to watch")
-    .option("--project <id>", "GCP project id (OAuth client owner)")
-    .option("--topic <name>", "Pub/Sub topic name", DEFAULT_GMAIL_TOPIC)
-    .option("--subscription <name>", "Pub/Sub subscription name", DEFAULT_GMAIL_SUBSCRIPTION)
-    .option("--label <label>", "Gmail label to watch", DEFAULT_GMAIL_LABEL)
-    .option("--hook-url <url>", "CoreBlow hook URL")
-    .option("--hook-token <token>", "CoreBlow hook token")
-    .option("--push-token <token>", "Push token for gog watch serve")
-    .option("--bind <host>", "gog watch serve bind host", DEFAULT_GMAIL_SERVE_BIND)
-    .option("--port <port>", "gog watch serve port", String(DEFAULT_GMAIL_SERVE_PORT))
-    .option("--path <path>", "gog watch serve path", DEFAULT_GMAIL_SERVE_PATH)
-    .option("--include-body", "Include email body snippets", true)
-    .option("--max-bytes <n>", "Max bytes for body snippets", String(DEFAULT_GMAIL_MAX_BYTES))
+    .description(t("cli_help.webhooks.gmail.commands.setup"))
+    .requiredOption("--account <email>", t("cli_help.webhooks.gmail.options.account"))
+    .option("--project <id>", t("cli_help.webhooks.gmail.options.project"))
+    .option("--topic <name>", t("cli_help.webhooks.gmail.options.topic"), DEFAULT_GMAIL_TOPIC)
+    .option("--subscription <name>", t("cli_help.webhooks.gmail.options.subscription"), DEFAULT_GMAIL_SUBSCRIPTION)
+    .option("--label <label>", t("cli_help.webhooks.gmail.options.label"), DEFAULT_GMAIL_LABEL)
+    .option("--hook-url <url>", t("cli_help.webhooks.gmail.options.hook_url"))
+    .option("--hook-token <token>", t("cli_help.webhooks.gmail.options.hook_credential"))
+    .option("--push-token <token>", t("cli_help.webhooks.gmail.options.push_credential"))
+    .option("--bind <host>", t("cli_help.webhooks.gmail.options.bind"), DEFAULT_GMAIL_SERVE_BIND)
+    .option("--port <port>", t("cli_help.webhooks.gmail.options.port"), String(DEFAULT_GMAIL_SERVE_PORT))
+    .option("--path <path>", t("cli_help.webhooks.gmail.options.path"), DEFAULT_GMAIL_SERVE_PATH)
+    .option("--include-body", t("cli_help.webhooks.gmail.options.include_body"), true)
+    .option("--max-bytes <n>", t("cli_help.webhooks.gmail.options.max_bytes"), String(DEFAULT_GMAIL_MAX_BYTES))
     .option(
       "--renew-minutes <n>",
-      "Renew watch every N minutes",
+      t("cli_help.webhooks.gmail.options.renew_minutes"),
       String(DEFAULT_GMAIL_RENEW_MINUTES),
     )
-    .option("--tailscale <mode>", "Expose push endpoint via tailscale (funnel|serve|off)", "funnel")
-    .option("--tailscale-path <path>", "Path for tailscale serve/funnel")
+    .option("--tailscale <mode>", t("cli_help.webhooks.gmail.options.tailscale"), "funnel")
+    .option("--tailscale-path <path>", t("cli_help.webhooks.gmail.options.tailscale_path"))
     .option(
       "--tailscale-target <target>",
-      "Tailscale serve/funnel target (port, host:port, or URL)",
+      t("cli_help.webhooks.gmail.options.tailscale_target"),
     )
-    .option("--push-endpoint <url>", "Explicit Pub/Sub push endpoint")
-    .option("--json", "Output JSON summary", false)
+    .option("--push-endpoint <url>", t("cli_help.webhooks.gmail.options.push_endpoint"))
+    .option("--json", t("cli_help.webhooks.gmail.options.json_summary"), false)
     .action(async (opts) => {
       try {
         const parsed = parseGmailSetupOptions(opts);
@@ -73,25 +74,25 @@ export function registerWebhooksCli(program: Command) {
 
   gmail
     .command("run")
-    .description("Run gog watch serve + auto-renew loop")
-    .option("--account <email>", "Gmail account to watch")
-    .option("--topic <topic>", "Pub/Sub topic path (projects/.../topics/..)")
-    .option("--subscription <name>", "Pub/Sub subscription name")
-    .option("--label <label>", "Gmail label to watch")
-    .option("--hook-url <url>", "CoreBlow hook URL")
-    .option("--hook-token <token>", "CoreBlow hook token")
-    .option("--push-token <token>", "Push token for gog watch serve")
-    .option("--bind <host>", "gog watch serve bind host")
-    .option("--port <port>", "gog watch serve port")
-    .option("--path <path>", "gog watch serve path")
-    .option("--include-body", "Include email body snippets")
-    .option("--max-bytes <n>", "Max bytes for body snippets")
-    .option("--renew-minutes <n>", "Renew watch every N minutes")
-    .option("--tailscale <mode>", "Expose push endpoint via tailscale (funnel|serve|off)")
-    .option("--tailscale-path <path>", "Path for tailscale serve/funnel")
+    .description(t("cli_help.webhooks.gmail.commands.run"))
+    .option("--account <email>", t("cli_help.webhooks.gmail.options.account"))
+    .option("--topic <topic>", t("cli_help.webhooks.gmail.options.topic_path"))
+    .option("--subscription <name>", t("cli_help.webhooks.gmail.options.subscription"))
+    .option("--label <label>", t("cli_help.webhooks.gmail.options.label"))
+    .option("--hook-url <url>", t("cli_help.webhooks.gmail.options.hook_url"))
+    .option("--hook-token <token>", t("cli_help.webhooks.gmail.options.hook_credential"))
+    .option("--push-token <token>", t("cli_help.webhooks.gmail.options.push_credential"))
+    .option("--bind <host>", t("cli_help.webhooks.gmail.options.bind"))
+    .option("--port <port>", t("cli_help.webhooks.gmail.options.port"))
+    .option("--path <path>", t("cli_help.webhooks.gmail.options.path"))
+    .option("--include-body", t("cli_help.webhooks.gmail.options.include_body"))
+    .option("--max-bytes <n>", t("cli_help.webhooks.gmail.options.max_bytes"))
+    .option("--renew-minutes <n>", t("cli_help.webhooks.gmail.options.renew_minutes"))
+    .option("--tailscale <mode>", t("cli_help.webhooks.gmail.options.tailscale"))
+    .option("--tailscale-path <path>", t("cli_help.webhooks.gmail.options.tailscale_path"))
     .option(
       "--tailscale-target <target>",
-      "Tailscale serve/funnel target (port, host:port, or URL)",
+      t("cli_help.webhooks.gmail.options.tailscale_target"),
     )
     .action(async (opts) => {
       try {

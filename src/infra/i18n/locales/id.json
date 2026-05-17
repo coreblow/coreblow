@@ -587,6 +587,105 @@
                     "raw_stream_path": "Path jsonl raw stream"
                 }
             }
+        },
+        "sandbox": {
+            "description": "Kelola container sandbox (isolasi agent berbasis Docker)",
+            "commands": {
+                "list": "Daftar container sandbox dan statusnya",
+                "recreate": "Hapus container untuk memaksa pembuatan ulang dengan config terbaru",
+                "explain": "Jelaskan policy sandbox/tool efektif untuk session/agent"
+            },
+            "options": {
+                "browser": "Daftar container browser saja",
+                "all": "Buat ulang semua container sandbox",
+                "session": "Buat ulang container untuk session tertentu",
+                "agent": "Buat ulang container untuk agent tertentu",
+                "browser_only": "Buat ulang container browser saja",
+                "force": "Lewati prompt konfirmasi",
+                "session_inspect": "Session key yang diperiksa (default ke agent main)",
+                "agent_inspect": "ID agent yang diperiksa (default ke agent turunan)"
+            },
+            "examples": {
+                "list_all": "Daftar semua container sandbox.",
+                "list_browser": "Daftar container browser saja.",
+                "recreate_all": "Buat ulang semua container.",
+                "recreate_session": "Buat ulang session tertentu.",
+                "recreate_agent": "Buat ulang container agent.",
+                "explain_config": "Jelaskan config sandbox efektif.",
+                "json_output": "Output JSON.",
+                "recreate_agent_specific": "Buat ulang agent tertentu (termasuk sub-agent).",
+                "recreate_browser": "Buat ulang container browser saja.",
+                "skip_confirmation": "Lewati konfirmasi.",
+                "show_effective": "Tampilkan config sandbox efektif.",
+                "explain_session": "Jelaskan session tertentu.",
+                "explain_agent": "Jelaskan sandbox agent."
+            },
+            "output": {
+                "title": "Output mencakup:",
+                "container": "- Nama dan status container (running/stopped)",
+                "image": "- Image Docker dan apakah cocok dengan config saat ini",
+                "age": "- Umur (waktu sejak dibuat)",
+                "idle": "- Waktu idle (waktu sejak terakhir dipakai)",
+                "session": "- ID session/agent terkait"
+            },
+            "why": {
+                "title": "Kenapa dipakai?",
+                "old_settings": "Setelah update image Docker atau konfigurasi sandbox, container yang ada tetap berjalan dengan setting lama.",
+                "recreate": "Command ini menghapus container agar otomatis dibuat ulang dengan config saat ini saat dibutuhkan lagi."
+            },
+            "filter_options": "Opsi filter:",
+            "filter_all": "  --all          Hapus semua container sandbox",
+            "filter_session": "  --session      Hapus container untuk session key tertentu",
+            "filter_agent": "  --agent        Hapus container untuk agent (termasuk varian agent:id:*)",
+            "modifiers": "Modifier:",
+            "modifier_browser": "  --browser      Hanya pengaruhi container browser (bukan sandbox reguler)",
+            "modifier_force": "  --force        Lewati prompt konfirmasi"
+        },
+        "webhooks": {
+            "description": "Helper dan integrasi webhook",
+            "gmail": {
+                "description": "Hook Gmail Pub/Sub (via gogcli)",
+                "commands": {
+                    "setup": "Konfigurasi Gmail watch + Pub/Sub + hook CoreBlow",
+                    "run": "Jalankan gog watch serve + loop auto-renew"
+                },
+                "options": {
+                    "account": "Akun Gmail yang dipantau",
+                    "project": "ID project GCP (pemilik OAuth client)",
+                    "topic": "Nama topic Pub/Sub",
+                    "topic_path": "Path topic Pub/Sub (projects/.../topics/..)",
+                    "subscription": "Nama subscription Pub/Sub",
+                    "label": "Label Gmail yang dipantau",
+                    "hook_url": "URL hook CoreBlow",
+                    "hook_credential": "Kredensial hook CoreBlow",
+                    "push_credential": "Kredensial push untuk gog watch serve",
+                    "bind": "Host bind gog watch serve",
+                    "port": "Port gog watch serve",
+                    "path": "Path gog watch serve",
+                    "include_body": "Sertakan snippet body email",
+                    "max_bytes": "Maks bytes untuk snippet body",
+                    "renew_minutes": "Renew watch setiap N menit",
+                    "tailscale": "Expose endpoint push via tailscale (funnel|serve|off)",
+                    "tailscale_path": "Path untuk tailscale serve/funnel",
+                    "tailscale_target": "Target Tailscale serve/funnel (port, host:port, atau URL)",
+                    "push_endpoint": "Endpoint push Pub/Sub eksplisit",
+                    "json_summary": "Output ringkasan JSON"
+                }
+            }
+        },
+        "tui": {
+            "description": "Buka terminal UI yang terhubung ke Gateway",
+            "options": {
+                "url": "URL WebSocket Gateway (default ke gateway.remote.url jika dikonfigurasi)",
+                "credential": "Kredensial Gateway (jika diperlukan)",
+                "passphrase": "Passphrase Gateway (jika diperlukan)",
+                "session": "Session key (default: \"main\", atau \"global\" saat scope global)",
+                "deliver": "Kirim balasan assistant",
+                "thinking": "Override thinking level",
+                "message": "Kirim pesan awal setelah tersambung",
+                "timeout_ms": "Timeout agent dalam ms (default ke agents.defaults.timeoutSeconds)",
+                "history_limit": "Jumlah entri history yang dimuat"
+            }
         }
     }
 }
