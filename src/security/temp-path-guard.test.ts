@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { findMessagingTmpdirCallLines } from "../../scripts/check-no-random-messaging-tmp.mjs";
+
+const { findMessagingTmpdirCallLines } = (await import(
+  new URL("../../scripts/check-no-random-messaging-tmp.mjs", import.meta.url).href
+)) as unknown as {
+  findMessagingTmpdirCallLines: (source: string) => number[];
+};
 
 describe("temp-path-guard", () => {
   it("detects namespace os.tmpdir calls in messaging runtime code", () => {

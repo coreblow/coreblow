@@ -12,7 +12,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
 
@@ -32,6 +32,7 @@ jobs:
         run: pnpm test
         env:
           CI: true
+          COREBLOW_TEST_PROFILE: serial
           NODE_OPTIONS: '--max-old-space-size=4096'
 
       - name: Publish Test Results

@@ -2,7 +2,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const { normalizeRoute, resolveRoute, runDocsLinkAuditCli } = (await import(
-  "../../scripts/docs-link-audit.mjs"
+  new URL("../../scripts/docs-link-audit.mjs", import.meta.url).href
 )) as unknown as {
   normalizeRoute: (route: string) => string;
   resolveRoute: (

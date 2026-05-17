@@ -4,7 +4,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 const { detectChangedScope, listChangedPaths } =
-  (await import("../../scripts/ci-changed-scope.mjs")) as unknown as {
+  (await import(new URL("../../scripts/ci-changed-scope.mjs", import.meta.url).href)) as unknown as {
     detectChangedScope: (paths: string[]) => {
       runNode: boolean;
       runMacos: boolean;

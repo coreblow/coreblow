@@ -9,7 +9,7 @@ import {
   resolveContextEngine,
   type ContextEngineFactory,
 } from "./registry.js";
-import type { AssembleResult, ContextEngine, IngestResult } from "./types.js";
+import type { AssembleResult, CompactResult, ContextEngine, IngestResult } from "./types.js";
 
 function uniqueEngineId(name: string): string {
   return `test-${name}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -35,6 +35,14 @@ class MockContextEngine implements ContextEngine {
       estimatedTokens: 42,
       systemPromptAddition: "mock system addition",
     };
+  }
+
+  async compact(_params: {
+    sessionId: string;
+    sessionFile: string;
+    tokenBudget?: number;
+  }): Promise<CompactResult> {
+    return { ok: true, compacted: false, reason: "mock" };
   }
 }
 

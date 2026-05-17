@@ -37,16 +37,21 @@ jobs:
           FAIL=0
 
           echo "Checking raw eval()..."
-          EVAL_COUNT=$(grep -rn 'eval(' src --include='*.ts' | grep -v 'test\|safeEvaluateMath\|sanitize\|vm\|\.eval\b\|//\|/\*' | wc -l | tr -d ' ')
+          EVAL_HITS=$(grep -rn 'eval(' src --include='*.ts' \
+            | grep -vE 'test|safeEvaluateMath|sanitize|vm|\.eval\b|^[^:]+:[0-9]+:[[:space:]]*(//|/\*|\*)|eval\(code: string\)' \
+            || true)
+          EVAL_COUNT=$(printf '%s\n' "$EVAL_HITS" | grep -c . || true)
           if [ "$EVAL_COUNT" != "0" ]; then
             echo "❌ Found $EVAL_COUNT raw eval() calls"
+            printf '%s\n' "$EVAL_HITS"
             FAIL=1
           else
             echo "✅ No raw eval() calls"
           fi
 
           echo "Checking for hardcoded secrets..."
-          SECRET_COUNT=$(grep -rn "sk-[a-zA-Z0-9]\{20,\}\|AKIA[A-Z0-9]\{16\}" src --include='*.ts' | grep -v test | wc -l | tr -d ' ')
+          SECRET_HITS=$(grep -rn "sk-[a-zA-Z0-9]\{20,\}\|AKIA[A-Z0-9]\{16\}" src --include='*.ts' | grep -v test || true)
+          SECRET_COUNT=$(printf '%s\n' "$SECRET_HITS" | grep -c . || true)
           if [ "$SECRET_COUNT" != "0" ]; then
             echo "❌ Found $SECRET_COUNT potential hardcoded secrets"
             FAIL=1
@@ -55,10 +60,10 @@ jobs:
           fi
 
           echo "Checking for unsanitized exec()..."
-          EXEC_UNSAFE=$(grep -rn "execSync\|exec(" src --include='*.ts' | grep -v test | grep "\${" | wc -l | tr -d ' ')
+          EXEC_UNSAFE=$(grep -rn "execSync\|exec(" src --include='*.ts' | grep -v test | grep -c "\${" || true)
           echo "⚠️  $EXEC_UNSAFE exec() calls with template literals (review needed)"
 
-          exit $FAIL
+          exit "$FAIL"
 
       - name: Security test suite
         run: pnpm test:security

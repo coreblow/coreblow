@@ -24,7 +24,10 @@ RUN corepack enable
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml* .npmrc* ./
-COPY gateway/package.json ./gateway/
+COPY ui/package.json ./ui/package.json
+COPY packages ./packages
+COPY extensions ./extensions
+COPY apps ./apps
 COPY patches ./patches
 
 RUN --mount=type=cache,id=coreblow-pnpm-store,target=/root/.local/share/pnpm/store,sharing=locked \

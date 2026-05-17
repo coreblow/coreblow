@@ -55,7 +55,7 @@ jobs:
   behavior-tests:
     name: "L3: Behavior Tests"
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
 
@@ -75,6 +75,7 @@ jobs:
         run: pnpm test
         env:
           CI: true
+          COREBLOW_TEST_PROFILE: serial
           NODE_OPTIONS: '--max-old-space-size=4096'
 
   # ── Level 5: Contract Tests ────────────────────────────────────────────────
@@ -139,11 +140,13 @@ jobs:
     steps:
       - name: Summary
         run: |
-          echo "## CoreBlow Parity Check Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Level | Name | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|-------|------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| L1-2 | File & Export Parity | ${{ needs.parity-audit.result == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| L3   | Behavior Tests | ${{ needs.behavior-tests.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| L5   | Contract Tests | ${{ needs.contract-tests.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| L4   | Benchmarks | ⚠️ informational |" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## CoreBlow Parity Check Results"
+            echo ""
+            echo "| Level | Name | Status |"
+            echo "|-------|------|--------|"
+            echo "| L1-2 | File & Export Parity | ${{ needs.parity-audit.result == 'success' && '✅' || '⚠️' }} |"
+            echo "| L3   | Behavior Tests | ${{ needs.behavior-tests.result == 'success' && '✅' || '❌' }} |"
+            echo "| L5   | Contract Tests | ${{ needs.contract-tests.result == 'success' && '✅' || '❌' }} |"
+            echo "| L4   | Benchmarks | ⚠️ informational |"
+          } >> "$GITHUB_STEP_SUMMARY"
