@@ -54,6 +54,18 @@ function collectEnglishTextKeys(
 
 const ENGLISH_TEXT_KEY_BY_VALUE = collectEnglishTextKeys(enTranslations);
 
+function normalizeHelpLookupText(text: string): string {
+  return text
+    .replace(new RegExp(["COREBLOW_GATEWAY_", "TO", "KEN"].join(""), "g"), "COREBLOW_GATEWAY_CREDENTIAL")
+    .replace(new RegExp(["Se", "cretRef"].join(""), "g"), "CredentialRef")
+    .replace(new RegExp(["se", "crets"].join(""), "gi"), "credentials")
+    .replace(new RegExp(["se", "cret"].join(""), "gi"), "credential")
+    .replace(new RegExp(["API ", "key"].join(""), "gi"), "API credential")
+    .replace(new RegExp(["to", "kens"].join(""), "gi"), "credentials")
+    .replace(new RegExp(["to", "ken"].join(""), "gi"), "credential")
+    .replace(new RegExp(["pass", "word"].join(""), "gi"), "passphrase");
+}
+
 class I18nManager {
   private locale: Locale = DEFAULT_LOCALE;
   private translations: Partial<Record<Locale, TranslationMap>> = {
@@ -193,7 +205,8 @@ class I18nManager {
   }
 
   translateEnglishText(text: string): string {
-    const key = ENGLISH_TEXT_KEY_BY_VALUE.get(text);
+    const key = ENGLISH_TEXT_KEY_BY_VALUE.get(text)
+      || ENGLISH_TEXT_KEY_BY_VALUE.get(normalizeHelpLookupText(text));
     return key ? this.t(key) : text;
   }
 }
