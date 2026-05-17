@@ -1,7 +1,33 @@
-import { describe, it, expect } from "vitest";
+import path from "node:path";
+import { describe, expect, it } from "vitest";
+import {
+  loadShellParserParityFixtureCases,
+  loadWrapperResolutionParityFixtureCases,
+} from "./exec-approvals-test-helpers.js";
+import { analyzeShellCommand, resolveCommandResolutionFromArgv } from "./exec-approvals.js";
 
-describe("exec-approvals-parity", () => {
-  it("module exists (stub — source file mapping pending)", () => {
-    expect(true).toBe(true);
+describe("exec approvals shell parser parity fixture", () => {
+  const fixtures = loadShellParserParityFixtureCases();
+
+  it.each(fixtures)("matches fixture: $id", (fixture) => {
+    const res = analyzeShellCommand({ command: fixture.command });
+    expect(res.ok).toBe(fixture.ok);
+    if (!fixture.ok) {
+      expect(res.segments).toHaveLength(0);
+      return;
+    }
+    const executables = res.segments.map((segment) =>
+      path.basename(segment.argv[0] ?? "").toLowerCase(),
+    );
+    expect(executables).toEqual(fixture.executables.map((entry) => entry.toLowerCase()));
+  });
+});
+
+describe("exec approvals wrapper resolution parity fixture", () => {
+  const fixtures = loadWrapperResolutionParityFixtureCases();
+
+  it.each(fixtures)("matches wrapper fixture: $id", (fixture) => {
+    const resolution = resolveCommandResolutionFromArgv(fixture.argv);
+    expect(resolution?.execution.rawExecutable ?? null).toBe(fixture.expectedRawExecutable);
   });
 });
