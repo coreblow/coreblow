@@ -1,4 +1,4 @@
-import { t } from "../../infra/i18n/index.js";
+import { t, translateEnglishText } from "../../infra/i18n/index.js";
 
 const HELP_TEXT_KEYS: Record<string, string> = {
   "Output JSON": "output_json",
@@ -64,11 +64,62 @@ const HELP_TEXT_KEYS: Record<string, string> = {
   "Search the live CoreBlow docs": "search_live_docs",
   "Tail gateway file logs via RPC": "tail_gateway_logs",
   "Expose CoreBlow channels over MCP stdio": "mcp_serve_channels",
+  "List configured MCP servers": "mcp_list",
+  "Show one configured MCP server or the full MCP config": "mcp_show",
+  "Set one configured MCP server from a JSON object": "mcp_set",
+  "Remove one configured MCP server": "mcp_remove",
+  "MCP server name": "mcp_server_name",
+  'JSON object, for example {"command":"uvx","args":["context7-mcp"]}': "mcp_json_object",
+  "Install completion script to shell profile": "completion_install",
+  "Shell to generate completion for (default: zsh)": "completion_shell",
+  "Write completion scripts to $COREBLOW_STATE_DIR/completions (no stdout)": "completion_write_state",
+  "Skip confirmation (non-interactive)": "skip_confirmation_noninteractive_short",
+  "Print URL but do not launch a browser": "dashboard_no_open",
+  "Configuration sections for guided setup (repeatable). Use with no subcommand.": "config_sections",
+  "Validate changes without writing coreblow.json (checks run in builder/json/batch modes; exec SecretRefs are skipped unless --allow-exec is set)": "config_dry_run",
+  "Dry-run only: allow exec SecretRef resolvability checks (may execute provider commands)": "config_allow_exec",
+  "Set config values by path (value mode, ref/provider builder mode, or batch JSON mode).": "config_set_description",
+  "SecretRef builder: provider alias": "config_ref_provider",
+  "SecretRef builder: source (env|file|exec)": "config_ref_source",
+  "SecretRef builder: ref id": "config_ref_id",
+  "Provider builder: source (env|file|exec)": "config_provider_source",
+  "Provider builder (env): allowlist entry (repeatable)": "config_provider_env_allowlist",
+  "Provider builder (file): path": "config_provider_file_path",
+  "Provider builder (file): mode (singleValue|json)": "config_provider_file_mode",
+  "Provider builder (file|exec): timeout ms": "config_provider_timeout",
+  "Provider builder (file): max bytes": "config_provider_max_bytes",
+  "Provider builder (exec): absolute command path": "config_provider_exec_command",
+  "Provider builder (exec): command arg (repeatable)": "config_provider_exec_arg",
+  "Provider builder (exec): no-output timeout ms": "config_provider_exec_no_output_timeout",
+  "Provider builder (exec): max output bytes": "config_provider_exec_max_output_bytes",
+  "Provider builder (exec): require JSON output": "config_provider_json_only",
+  "Provider builder (exec): env assignment (repeatable)": "config_provider_exec_env",
+  "Provider builder (exec): pass host env var (repeatable)": "config_provider_exec_pass_env",
+  "Provider builder (exec): trusted directory (repeatable)": "config_provider_exec_trusted_dir",
+  "Provider builder (exec): bypass strict path permission checks": "config_provider_exec_bypass_permissions",
+  "Provider builder (exec): allow command symlink path": "config_provider_exec_allow_symlink",
+  "Get a config value by dot path": "config_get",
+  "Remove a config value by dot path": "config_remove",
+  "Print the active config file path": "config_file_path",
+  "Print the JSON schema for coreblow.json": "config_schema",
+  "Validate the current config against the schema without starting the gateway": "config_validate",
   "Claude channel notification mode: auto, on, or off": "claude_channel_mode",
   "Follow log output": "follow_log_output",
 };
 
-export function translateHelpText(text: string): string {
+function translateSingleHelpText(text: string): string {
   const key = HELP_TEXT_KEYS[text];
-  return key ? t(`cli_help.text.${key}`) : text;
+  if (key) {
+    return t(`cli_help.text.${key}`);
+  }
+
+  return translateEnglishText(text);
+}
+
+export function translateHelpText(text: string): string {
+  if (!text.includes("\n")) {
+    return translateSingleHelpText(text);
+  }
+
+  return text.split("\n").map((line) => translateSingleHelpText(line)).join("\n");
 }

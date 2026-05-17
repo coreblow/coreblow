@@ -28,6 +28,32 @@ export { SUPPORTED_LOCALES, isSupportedLocale };
 
 type Subscriber = (locale: Locale) => void;
 
+function collectEnglishTextKeys(
+  value: unknown,
+  path: string[] = [],
+  entries: Map<string, string> = new Map(),
+): Map<string, string> {
+  if (typeof value === "string") {
+    const key = path.join(".");
+    if (!entries.has(value)) {
+      entries.set(value, key);
+    }
+    return entries;
+  }
+
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return entries;
+  }
+
+  for (const [key, child] of Object.entries(value)) {
+    collectEnglishTextKeys(child, [...path, key], entries);
+  }
+
+  return entries;
+}
+
+const ENGLISH_TEXT_KEY_BY_VALUE = collectEnglishTextKeys(enTranslations);
+
 class I18nManager {
   private locale: Locale = DEFAULT_LOCALE;
   private translations: Partial<Record<Locale, TranslationMap>> = {
@@ -165,6 +191,11 @@ class I18nManager {
 
     return value;
   }
+
+  translateEnglishText(text: string): string {
+    const key = ENGLISH_TEXT_KEY_BY_VALUE.get(text);
+    return key ? this.t(key) : text;
+  }
 }
 
 /** Singleton i18n manager instance. */
@@ -172,3 +203,6 @@ export const i18n = new I18nManager();
 
 /** Shorthand translate function. */
 export const t = (key: string, params?: Record<string, string>): string => i18n.t(key, params);
+
+/** Translate a literal English source string when it already exists in the catalog. */
+export const translateEnglishText = (text: string): string => i18n.translateEnglishText(text);
