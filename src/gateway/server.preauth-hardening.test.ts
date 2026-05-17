@@ -94,13 +94,13 @@ describe("gateway pre-auth hardening", () => {
   });
 
   it("closes idle unauthenticated sockets after the handshake timeout", async () => {
-    const previous = process.env.COREBLOW_TEST_HANDSHAKE_TIMEOUT_MS;
-    process.env.COREBLOW_TEST_HANDSHAKE_TIMEOUT_MS = "200";
+    const previous = process.env.COREBLOW_HANDSHAKE_TIMEOUT_MS;
+    process.env.COREBLOW_HANDSHAKE_TIMEOUT_MS = "200";
     cleanupEnv.push(() => {
       if (previous === undefined) {
-        delete process.env.COREBLOW_TEST_HANDSHAKE_TIMEOUT_MS;
+        delete process.env.COREBLOW_HANDSHAKE_TIMEOUT_MS;
       } else {
-        process.env.COREBLOW_TEST_HANDSHAKE_TIMEOUT_MS = previous;
+        process.env.COREBLOW_HANDSHAKE_TIMEOUT_MS = previous;
       }
     });
 

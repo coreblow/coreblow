@@ -36,7 +36,7 @@ jobs:
         continue-on-error: true
 
       - name: Check for raw eval()
-        run: "! grep -rn 'eval(' src --include='*.ts' | grep -v 'test\\|safeEvaluateMath\\|sanitize\\|vm\\|\\.eval\\b\\|//\\|/\\*'"
+        run: node scripts/check-no-raw-eval.mjs
 
       - name: Check for empty catch blocks
         run: "! grep -rn 'catch\\s*{\\s*}' src --include='*.ts' | grep -v 'intentionally'"

@@ -37,13 +37,7 @@ jobs:
           FAIL=0
 
           echo "Checking raw eval()..."
-          EVAL_HITS=$(grep -rn 'eval(' src --include='*.ts' \
-            | grep -vE 'test|safeEvaluateMath|sanitize|vm|\.eval\b|^[^:]+:[0-9]+:[[:space:]]*(//|/\*|\*)|eval\(code: string\)' \
-            || true)
-          EVAL_COUNT=$(printf '%s\n' "$EVAL_HITS" | grep -c . || true)
-          if [ "$EVAL_COUNT" != "0" ]; then
-            echo "❌ Found $EVAL_COUNT raw eval() calls"
-            printf '%s\n' "$EVAL_HITS"
+          if ! node scripts/check-no-raw-eval.mjs; then
             FAIL=1
           else
             echo "✅ No raw eval() calls"
