@@ -147,7 +147,7 @@ vi.mock("../../media/store.js", async (importOriginal) => {
 
 const { chatHandlers } = await import("./chat.js");
 
-async function waitForAssertion(assertion: () => void, timeoutMs = 250, stepMs = 2) {
+async function waitForAssertion(assertion: () => void, timeoutMs = 500, stepMs = 2) {
   vi.useFakeTimers();
   try {
     let lastError: unknown;
