@@ -1,16 +1,12 @@
-name: "CoreBlow CodeQL JavaScript/TypeScript"
+name: "CoreBlow Extensions CodeQL JavaScript/TypeScript"
 paths:
-  - src
-paths-ignore:
-  - apps
-  - docs
   - extensions
+paths-ignore:
   - "**/node_modules/**"
   - "**/dist/**"
   - "**/build/**"
   - "**/.gradle/**"
   - "**/coverage/**"
-  - vendor/**
   - "**/*.test.ts"
   - "**/*.test.tsx"
   - "**/*.test.js"
