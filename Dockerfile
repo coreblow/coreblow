@@ -93,10 +93,9 @@ COPY --from=runtime-assets --chown=node:node /app/src ./src
 COPY --from=runtime-assets --chown=node:node /app/tsconfig.json ./
 COPY --from=runtime-assets --chown=node:node /app/coreblow.mjs .
 
-# Copy extension/skill/locale assets if they exist
+# Copy extension and skill assets
 COPY --from=runtime-assets --chown=node:node /app/extensions ./extensions
 COPY --from=runtime-assets --chown=node:node /app/skills ./skills
-COPY --from=runtime-assets --chown=node:node /app/docs ./docs
 
 # Bundled plugins directory
 ENV COREBLOW_BUNDLED_PLUGINS_DIR=/app/extensions

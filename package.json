@@ -115,7 +115,6 @@
     "lint:webhook-auth-body-order": "node scripts/check-webhook-auth-body-order.mjs",
     "lint:web-search-boundaries": "node scripts/check-web-search-provider-boundaries.mjs",
     "lint:gateway-watch-regression": "node scripts/check-gateway-watch-regression.mjs",
-    "lint:docs-i18n-glossary": "node scripts/check-docs-i18n-glossary.mjs",
     "lint:no-monolithic-sdk-imports": "node --import tsx scripts/check-no-monolithic-plugin-sdk-entry-imports.ts",
     "lint:no-extension-test-core": "node --import tsx scripts/check-no-extension-test-core-imports.ts",
     "lint:no-extension-src": "node --import tsx scripts/check-no-extension-src-imports.ts",
