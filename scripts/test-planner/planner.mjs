@@ -3,6 +3,7 @@ import { isUnitConfigTestFile } from "../../test/vitest/vitest.unit-paths.mjs";
 import {
   loadChannelTimingManifest,
   loadExtensionTimingManifest,
+  loadGatewayTimingManifest,
   loadUnitMemoryHotspotManifest,
   loadUnitTimingManifest,
   packFilesByDuration,
@@ -193,6 +194,7 @@ const createPlannerContext = (request, options = {}) => {
   const unitTimingManifest = loadUnitTimingManifest();
   const channelTimingManifest = loadChannelTimingManifest();
   const extensionTimingManifest = loadExtensionTimingManifest();
+  const gatewayTimingManifest = loadGatewayTimingManifest();
   const unitMemoryHotspotManifest = loadUnitMemoryHotspotManifest();
   return {
     env,
@@ -202,6 +204,7 @@ const createPlannerContext = (request, options = {}) => {
     unitTimingManifest,
     channelTimingManifest,
     extensionTimingManifest,
+    gatewayTimingManifest,
     unitMemoryHotspotManifest,
   };
 };
@@ -256,6 +259,11 @@ const resolveEntryTimingEstimator = (entry, context) => {
     return (file) =>
       context.extensionTimingManifest.files[file]?.durationMs ??
       context.extensionTimingManifest.defaultDurationMs;
+  }
+  if (config === "test/vitest/vitest.gateway.config.ts") {
+    return (file) =>
+      context.gatewayTimingManifest.files[file]?.durationMs ??
+      context.gatewayTimingManifest.defaultDurationMs;
   }
   return null;
 };
@@ -426,6 +434,7 @@ const buildDefaultUnits = (context, request) => {
     unitTimingManifest,
     channelTimingManifest,
     extensionTimingManifest,
+    gatewayTimingManifest,
   } = context;
   const noIsolateArgs = context.noIsolateArgs;
   const selectedSurfaces = buildRequestedSurfaces(request, env);
@@ -460,6 +469,8 @@ const buildDefaultUnits = (context, request) => {
     channelTimingManifest.files[file]?.durationMs ?? channelTimingManifest.defaultDurationMs;
   const estimateExtensionDurationMs = (file) =>
     extensionTimingManifest.files[file]?.durationMs ?? extensionTimingManifest.defaultDurationMs;
+  const estimateGatewayDurationMs = (file) =>
+    gatewayTimingManifest.files[file]?.durationMs ?? gatewayTimingManifest.defaultDurationMs;
   const unitFastCandidateFiles = catalog.allKnownUnitFiles.filter(
     (file) => !new Set(unitFastExcludedFiles).has(file),
   );
@@ -470,6 +481,13 @@ const buildDefaultUnits = (context, request) => {
     (file) =>
       catalog.channelTestPrefixes.some((prefix) => file.startsWith(prefix)) &&
       !catalog.channelIsolatedFileSet.has(file),
+  );
+  const gatewaySharedCandidateFiles = catalog.allKnownTestFiles.filter(
+    (file) =>
+      file.startsWith("src/gateway/") &&
+      file.endsWith(".test.ts") &&
+      !file.endsWith(".live.test.ts") &&
+      !file.endsWith(".e2e.test.ts"),
   );
   const defaultExtensionsBatchTargetMs = executionBudget.extensionsBatchTargetMs;
   const extensionsBatchTargetMs = parseEnvNumber(
@@ -497,6 +515,12 @@ const buildDefaultUnits = (context, request) => {
     env,
     "COREBLOW_TEST_CHANNELS_BATCH_TARGET_MS",
     defaultChannelsBatchTargetMs,
+  );
+  const defaultGatewayBatchTargetMs = executionBudget.gatewayBatchTargetMs;
+  const gatewayBatchTargetMs = parseEnvNumber(
+    env,
+    "COREBLOW_TEST_GATEWAY_BATCH_TARGET_MS",
+    defaultGatewayBatchTargetMs,
   );
   const unitFastBuckets =
     unitFastLaneCount > 1
@@ -760,22 +784,45 @@ const buildDefaultUnits = (context, request) => {
   }
 
   if (selectedSurfaceSet.has("gateway")) {
-    units.push(
-      createExecutionUnit(context, {
-        id: "gateway",
-        surface: "gateway",
-        isolate: false,
-        args: [
-          "vitest",
-          "run",
-          "--config",
-          "test/vitest/vitest.gateway.config.ts",
-          "--pool=forks",
-          ...noIsolateArgs,
-        ],
-        reasons: ["gateway-surface"],
-      }),
+    const gatewayBatches = splitFilesByBalancedDurationBudget(
+      gatewaySharedCandidateFiles,
+      gatewayBatchTargetMs,
+      estimateGatewayDurationMs,
     );
+    for (const [batchIndex, batch] of gatewayBatches.entries()) {
+      if (batch.length === 0) {
+        continue;
+      }
+      const unitId =
+        gatewayBatches.length === 1 ? "gateway" : `gateway-batch-${String(batchIndex + 1)}`;
+      units.push(
+        createExecutionUnit(context, {
+          id: unitId,
+          surface: "gateway",
+          isolate: false,
+          includeFiles: batch,
+          estimatedDurationMs: estimateEntryFilesDurationMs(
+            { args: ["vitest", "run", "--config", "test/vitest/vitest.gateway.config.ts"] },
+            batch,
+            context,
+          ),
+          env: withIncludeFileEnv(
+            context,
+            `vitest-gateway-include-${String(batchIndex + 1)}`,
+            batch,
+          ),
+          args: [
+            "vitest",
+            "run",
+            "--config",
+            "test/vitest/vitest.gateway.config.ts",
+            "--pool=forks",
+            ...noIsolateArgs,
+          ],
+          reasons: ["gateway-shared"],
+        }),
+      );
+    }
   }
 
   return { units, unitMemoryIsolatedFiles };

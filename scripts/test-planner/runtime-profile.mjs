@@ -105,6 +105,7 @@ const LOCAL_MEMORY_BUDGETS = {
     unitFastBatchTargetMs: 10_000,
     channelsBatchTargetMs: 0,
     extensionsBatchTargetMs: 15_000,
+    gatewayBatchTargetMs: 45_000,
   },
   moderate: {
     vitestCap: 3,
@@ -123,6 +124,7 @@ const LOCAL_MEMORY_BUDGETS = {
     unitFastBatchTargetMs: 15_000,
     channelsBatchTargetMs: 0,
     extensionsBatchTargetMs: 120_000,
+    gatewayBatchTargetMs: 60_000,
   },
   mid: {
     vitestCap: 4,
@@ -141,6 +143,7 @@ const LOCAL_MEMORY_BUDGETS = {
     unitFastBatchTargetMs: 0,
     channelsBatchTargetMs: 0,
     extensionsBatchTargetMs: 180_000,
+    gatewayBatchTargetMs: 75_000,
   },
   high: {
     vitestCap: 6,
@@ -159,6 +162,7 @@ const LOCAL_MEMORY_BUDGETS = {
     unitFastBatchTargetMs: 45_000,
     channelsBatchTargetMs: 30_000,
     extensionsBatchTargetMs: 300_000,
+    gatewayBatchTargetMs: 120_000,
   },
 };
 
@@ -294,6 +298,7 @@ export function resolveExecutionBudget(runtimeCapabilities) {
       unitFastBatchTargetMs: runtime.isWindows ? 0 : 45_000,
       channelsBatchTargetMs: runtime.isWindows ? 0 : 30_000,
       extensionsBatchTargetMs: runtime.isWindows ? 0 : 30_000,
+      gatewayBatchTargetMs: runtime.isWindows ? 0 : 60_000,
     };
   }
 
@@ -318,6 +323,7 @@ export function resolveExecutionBudget(runtimeCapabilities) {
     unitFastBatchTargetMs: bandBudget.unitFastBatchTargetMs,
     channelsBatchTargetMs: bandBudget.channelsBatchTargetMs ?? 0,
     extensionsBatchTargetMs: bandBudget.extensionsBatchTargetMs ?? 300_000,
+    gatewayBatchTargetMs: bandBudget.gatewayBatchTargetMs ?? 0,
   };
 
   const loadAdjustedBudget = {

@@ -4,6 +4,7 @@ export const behaviorManifestPath = "test/fixtures/test-parallel.behavior.json";
 export const unitTimingManifestPath = "test/fixtures/test-timings.unit.json";
 export const channelTimingManifestPath = "test/fixtures/test-timings.channels.json";
 export const extensionTimingManifestPath = "test/fixtures/test-timings.extensions.json";
+export const gatewayTimingManifestPath = "test/fixtures/test-timings.gateway.json";
 export const unitMemoryHotspotManifestPath = "test/fixtures/test-memory-hotspots.unit.json";
 
 const defaultTimingManifest = {
@@ -18,6 +19,11 @@ const defaultChannelTimingManifest = {
 };
 const defaultExtensionTimingManifest = {
   config: "test/vitest/vitest.extensions.config.ts",
+  defaultDurationMs: 1000,
+  files: {},
+};
+const defaultGatewayTimingManifest = {
+  config: "test/vitest/vitest.gateway.config.ts",
   defaultDurationMs: 1000,
   files: {},
 };
@@ -145,6 +151,10 @@ export function loadChannelTimingManifest() {
 
 export function loadExtensionTimingManifest() {
   return loadTimingManifest(extensionTimingManifestPath, defaultExtensionTimingManifest);
+}
+
+export function loadGatewayTimingManifest() {
+  return loadTimingManifest(gatewayTimingManifestPath, defaultGatewayTimingManifest);
 }
 
 export function loadUnitMemoryHotspotManifest() {

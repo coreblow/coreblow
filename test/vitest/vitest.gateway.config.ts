@@ -1,10 +1,19 @@
+import { loadPatternListFromEnv } from './vitest.pattern-file.ts';
 import { createScopedVitestConfig } from './vitest.scoped-config.ts';
 
+export function loadIncludePatternsFromEnv(
+  env: Record<string, string | undefined> = process.env,
+): string[] | null {
+  return loadPatternListFromEnv('COREBLOW_VITEST_INCLUDE_FILE', env);
+}
+
 export function createGatewayVitestConfig(env?: Record<string, string | undefined>) {
-  return createScopedVitestConfig(['src/gateway/**/*.test.ts'], {
-    dir: 'src/gateway',
-    env,
-    exclude: [
+  return createScopedVitestConfig(
+    loadIncludePatternsFromEnv(env) ?? ['src/gateway/**/*.test.ts'],
+    {
+      dir: 'src/gateway',
+      env,
+      exclude: [
       // ── Migration debt: gateway tests requiring unbuilt infrastructure ──
       // These paths are absolute (not relative to dir) because
       // createScopedVitestConfig.relativizeScopedPatterns handles the conversion.
@@ -26,8 +35,9 @@ export function createGatewayVitestConfig(env?: Record<string, string | undefine
       'src/gateway/server.sessions-send.test.ts',
       'src/gateway/server.talk-config.test.ts',
       'src/gateway/session-utils.test.ts',
-    ],
-  });
+      ],
+    },
+  );
 }
 
 export default createGatewayVitestConfig();
