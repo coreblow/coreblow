@@ -1,216 +1,258 @@
 package ai.coreblow.app.node
 
+import android.content.Context
+import ai.coreblow.app.gateway.GatewaySession
+import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 
+@RunWith(RobolectricTestRunner::class)
 class NotificationsHandlerTest {
-    @Test fun commandName_isNotifications() { assertEquals("notifications", NotificationsHandler.COMMAND_NAME) }
-
-    @Test fun parseShowRequest_extractsRequiredFields() {
-        val json = """{"title":"Test","body":"Hello world"}"""
-        val req = NotificationsHandler.parseShowRequest(json)
-        assertNotNull(req)
-        assertEquals("Test", req?.title)
-        assertEquals("Hello world", req?.body)
-    }
-
-    @Test fun parseShowRequest_handlesOptionalFields() {
-        val json = """{"title":"T","body":"B","channelId":"alerts","priority":"high","tag":"t1","groupKey":"g1"}"""
-        val req = NotificationsHandler.parseShowRequest(json)
-        assertEquals("alerts", req?.channelId)
-        assertEquals("high", req?.priority)
-        assertEquals("t1", req?.tag)
-        assertEquals("g1", req?.groupKey)
-    }
-
-    @Test fun parseShowRequest_handlesProgress() {
-        val json = """{"title":"Download","body":"50%","progress":{"max":100,"current":50,"indeterminate":false}}"""
-        val req = NotificationsHandler.parseShowRequest(json)
-        assertNotNull(req?.progress)
-        assertEquals(100, req?.progress?.max)
-        assertEquals(50, req?.progress?.current)
-        assertFalse(req?.progress?.indeterminate ?: true)
-    }
-
-    @Test fun parseShowRequest_handlesActions() {
-        val json = """{"title":"T","body":"B","actions":[{"label":"Accept","id":"accept"},{"label":"Decline","id":"decline"}]}"""
-        val req = NotificationsHandler.parseShowRequest(json)
-        assertEquals(2, req?.actions?.size)
-        assertEquals("Accept", req?.actions?.get(0)?.label)
-        assertEquals("decline", req?.actions?.get(1)?.id)
-    }
-
-    @Test fun priorityMapping_mapsStringsToConstants() {
-        assertEquals(NotificationsHandler.Priority.Default, NotificationsHandler.parsePriority(null))
-        assertEquals(NotificationsHandler.Priority.Low, NotificationsHandler.parsePriority("low"))
-        assertEquals(NotificationsHandler.Priority.High, NotificationsHandler.parsePriority("high"))
-        assertEquals(NotificationsHandler.Priority.Max, NotificationsHandler.parsePriority("max"))
-    }
-
-    @Test fun priorityMapping_unknownDefaultsToDefault() {
-        assertEquals(NotificationsHandler.Priority.Default, NotificationsHandler.parsePriority("invalid"))
-    }
-
-    @Test fun channelId_defaultsWhenMissing() {
-        val req = NotificationsHandler.parseShowRequest("""{"title":"T","body":"B"}""")
-        val channelId = NotificationsHandler.resolveChannelId(req?.channelId)
-        assertNotNull(channelId)
-        assertTrue(channelId.isNotEmpty())
-    }
-
-    @Test fun dismissRequest_parsesId() {
-        val json = """{"notificationId":42}"""
-        val req = NotificationsHandler.parseDismissRequest(json)
-        assertEquals(42, req?.notificationId)
-    }
-
-    @Test fun dismissRequest_parsesTag() {
-        val json = """{"tag":"my-tag"}"""
-        val req = NotificationsHandler.parseDismissRequest(json)
-        assertEquals("my-tag", req?.tag)
-    }
-
-    @Test fun notificationId_generatesPositiveIds() {
-        val id = NotificationsHandler.generateNotificationId()
-        assertTrue(id > 0)
-    }
-
-    @Test fun notificationId_generatesUniqueIds() {
-        val ids = (1..100).map { NotificationsHandler.generateNotificationId() }.toSet()
-        assertEquals(100, ids.size)
-    }
-
-    @Test fun historyBuffer_capsAtMaxSize() {
-        val buffer = NotificationsHandler.NotificationHistoryBuffer(maxSize = 5)
-        repeat(10) { buffer.add("notification-$it") }
-        assertEquals(5, buffer.size())
-        assertEquals("notification-9", buffer.latest())
-    }
-
-    @Test fun historyBuffer_emptyByDefault() {
-        val buffer = NotificationsHandler.NotificationHistoryBuffer(maxSize = 10)
-        assertEquals(0, buffer.size())
-    }
-
-    // ── Listener service tests (OC parity) ──────────────
-
-    @Test fun sanitizeText_trimAndCap() {
-        val long = "A".repeat(1000)
-        val sanitized = sanitizeNotificationText(long)
-        assertNotNull(sanitized)
-        assertTrue(sanitized!!.length <= 512)
-    }
-
-    @Test fun sanitizeText_nullReturnsNull() {
-        val result = sanitizeNotificationText(null)
-        assertEquals(null, result)
-    }
-
-    @Test fun sanitizeText_emptyReturnsNull() {
-        val result = sanitizeNotificationText("")
-        assertEquals(null, result)
-    }
-
-    @Test fun sanitizeText_whitespaceOnlyReturnsNull() {
-        val result = sanitizeNotificationText("   ")
-        assertEquals(null, result)
-    }
-
-    @Test fun notificationEntry_toJson_containsRequiredFields() {
-        val entry = DeviceNotificationEntry(
-            key = "key-1", packageName = "com.test",
-            title = "Title", text = "Body", subText = null,
-            category = "msg", channelId = "chat",
-            postTimeMs = 123456789L, isOngoing = false, isClearable = true,
+  @Test
+  fun notificationsListReturnsStatusPayloadWhenDisabled() =
+    runTest {
+      val provider =
+        FakeNotificationsStateProvider(
+          DeviceNotificationSnapshot(
+            enabled = false,
+            connected = false,
+            notifications = emptyList(),
+          ),
         )
-        val json = entry.toJsonObject()
-        assertEquals("key-1", json["key"]?.jsonPrimitive?.content)
-        assertEquals("com.test", json["packageName"]?.jsonPrimitive?.content)
-        assertEquals("Title", json["title"]?.jsonPrimitive?.content)
-        assertEquals("Body", json["text"]?.jsonPrimitive?.content)
-        assertEquals(true, json["isClearable"]?.jsonPrimitive?.content?.toBooleanStrict())
+      val handler = NotificationsHandler.forTesting(appContext = appContext(), stateProvider = provider)
+
+      val result = handler.handleNotificationsList(null)
+
+      assertTrue(result.ok)
+      assertNull(result.error)
+      val payload = parsePayload(result)
+      assertFalse(payload.getValue("enabled").jsonPrimitive.boolean)
+      assertFalse(payload.getValue("connected").jsonPrimitive.boolean)
+      assertEquals(0, payload.getValue("count").jsonPrimitive.int)
+      assertEquals(0, payload.getValue("notifications").jsonArray.size)
+      assertEquals(0, provider.rebindRequests)
     }
 
-    @Test fun notificationEntry_toJson_omitsNullFields() {
-        val entry = DeviceNotificationEntry(
-            key = "key-2", packageName = "com.test",
-            title = null, text = null, subText = null,
-            category = null, channelId = null,
-            postTimeMs = 100L, isOngoing = true, isClearable = false,
+  @Test
+  fun notificationsListRequestsRebindWhenEnabledButDisconnected() =
+    runTest {
+      val provider =
+        FakeNotificationsStateProvider(
+          DeviceNotificationSnapshot(
+            enabled = true,
+            connected = false,
+            notifications = listOf(sampleEntry("n1")),
+          ),
         )
-        val json = entry.toJsonObject()
-        assertFalse(json.containsKey("title"))
-        assertFalse(json.containsKey("text"))
-        assertFalse(json.containsKey("category"))
+      val handler = NotificationsHandler.forTesting(appContext = appContext(), stateProvider = provider)
+
+      val result = handler.handleNotificationsList(null)
+
+      assertTrue(result.ok)
+      assertNull(result.error)
+      val payload = parsePayload(result)
+      assertTrue(payload.getValue("enabled").jsonPrimitive.boolean)
+      assertFalse(payload.getValue("connected").jsonPrimitive.boolean)
+      assertEquals(1, payload.getValue("count").jsonPrimitive.int)
+      assertEquals(1, payload.getValue("notifications").jsonArray.size)
+      assertEquals(1, provider.rebindRequests)
     }
 
-    @Test fun notificationSnapshot_containsEnabledFlag() {
-        val snap = DeviceNotificationSnapshot(
-            enabled = true, connected = false, notifications = emptyList(),
+  @Test
+  fun notificationsListDoesNotRequestRebindWhenConnected() =
+    runTest {
+      val provider =
+        FakeNotificationsStateProvider(
+          DeviceNotificationSnapshot(
+            enabled = true,
+            connected = true,
+            notifications = listOf(sampleEntry("n2")),
+          ),
         )
-        assertTrue(snap.enabled)
-        assertFalse(snap.connected)
-        assertEquals(0, snap.notifications.size)
+      val handler = NotificationsHandler.forTesting(appContext = appContext(), stateProvider = provider)
+
+      val result = handler.handleNotificationsList(null)
+
+      assertTrue(result.ok)
+      assertNull(result.error)
+      val payload = parsePayload(result)
+      assertTrue(payload.getValue("enabled").jsonPrimitive.boolean)
+      assertTrue(payload.getValue("connected").jsonPrimitive.boolean)
+      assertEquals(1, payload.getValue("count").jsonPrimitive.int)
+      assertEquals(0, provider.rebindRequests)
     }
 
-    @Test fun actionKind_allValuesExist() {
-        val kinds = NotificationActionKind.entries
-        assertTrue(kinds.contains(NotificationActionKind.Open))
-        assertTrue(kinds.contains(NotificationActionKind.Dismiss))
-        assertTrue(kinds.contains(NotificationActionKind.Reply))
+  @Test
+  fun notificationsActions_executesDismissAction() =
+    runTest {
+      val provider =
+        FakeNotificationsStateProvider(
+          DeviceNotificationSnapshot(
+            enabled = true,
+            connected = true,
+            notifications = listOf(sampleEntry("n2")),
+          ),
+        )
+      val handler = NotificationsHandler.forTesting(appContext = appContext(), stateProvider = provider)
+
+      val result = handler.handleNotificationsActions("""{"key":"n2","action":"dismiss"}""")
+
+      assertTrue(result.ok)
+      assertNull(result.error)
+      val payload = parsePayload(result)
+      assertTrue(payload.getValue("ok").jsonPrimitive.boolean)
+      assertEquals("n2", payload.getValue("key").jsonPrimitive.content)
+      assertEquals("dismiss", payload.getValue("action").jsonPrimitive.content)
+      assertEquals("n2", provider.lastAction?.key)
+      assertEquals(NotificationActionKind.Dismiss, provider.lastAction?.kind)
     }
 
-    @Test fun actionRequiresClearable_onlyForDismiss() {
-        assertTrue(actionRequiresClearableNotification(NotificationActionKind.Dismiss))
-        assertFalse(actionRequiresClearableNotification(NotificationActionKind.Open))
-        assertFalse(actionRequiresClearableNotification(NotificationActionKind.Reply))
+  @Test
+  fun notificationsActions_requiresReplyTextForReplyAction() =
+    runTest {
+      val provider =
+        FakeNotificationsStateProvider(
+          DeviceNotificationSnapshot(
+            enabled = true,
+            connected = true,
+            notifications = listOf(sampleEntry("n3")),
+          ),
+        )
+      val handler = NotificationsHandler.forTesting(appContext = appContext(), stateProvider = provider)
+
+      val result = handler.handleNotificationsActions("""{"key":"n3","action":"reply"}""")
+
+      assertFalse(result.ok)
+      assertEquals("INVALID_REQUEST", result.error?.code)
+      assertEquals(0, provider.actionRequests)
     }
 
-    @Test fun actionResult_okHasNoError() {
-        val result = NotificationActionResult(ok = true)
-        assertTrue(result.ok)
-        assertEquals(null, result.code)
+  @Test
+  fun notificationsActions_propagatesProviderError() =
+    runTest {
+      val provider =
+        FakeNotificationsStateProvider(
+          DeviceNotificationSnapshot(
+            enabled = true,
+            connected = true,
+            notifications = listOf(sampleEntry("n4")),
+          ),
+        ).also {
+          it.actionResult =
+            NotificationActionResult(
+              ok = false,
+              code = "NOTIFICATION_NOT_FOUND",
+              message = "NOTIFICATION_NOT_FOUND: notification key not found",
+            )
+        }
+      val handler = NotificationsHandler.forTesting(appContext = appContext(), stateProvider = provider)
+
+      val result = handler.handleNotificationsActions("""{"key":"n4","action":"open"}""")
+
+      assertFalse(result.ok)
+      assertEquals("NOTIFICATION_NOT_FOUND", result.error?.code)
+      assertEquals(1, provider.actionRequests)
     }
 
-    @Test fun actionResult_errorHasCodeAndMessage() {
-        val result = NotificationActionResult(ok = false, code = "NOT_FOUND", message = "notification not found")
-        assertFalse(result.ok)
-        assertEquals("NOT_FOUND", result.code)
+  @Test
+  fun notificationsActions_requestsRebindWhenEnabledButDisconnected() =
+    runTest {
+      val provider =
+        FakeNotificationsStateProvider(
+          DeviceNotificationSnapshot(
+            enabled = true,
+            connected = false,
+            notifications = listOf(sampleEntry("n5")),
+          ),
+        )
+      val handler = NotificationsHandler.forTesting(appContext = appContext(), stateProvider = provider)
+
+      val result = handler.handleNotificationsActions("""{"key":"n5","action":"open"}""")
+
+      assertTrue(result.ok)
+      assertEquals(1, provider.rebindRequests)
+      assertEquals(1, provider.actionRequests)
     }
 
-    @Test fun actionRequest_openKind() {
-        val req = NotificationActionRequest(key = "k1", kind = NotificationActionKind.Open)
-        assertEquals("k1", req.key)
-        assertEquals(NotificationActionKind.Open, req.kind)
-    }
+  @Test
+  fun sanitizeNotificationTextReturnsNullForBlankInput() {
+    assertNull(sanitizeNotificationText(null))
+    assertNull(sanitizeNotificationText("    "))
+  }
 
-    @Test fun actionRequest_replyIncludesText() {
-        val req = NotificationActionRequest(key = "k2", kind = NotificationActionKind.Reply, replyText = "Hello!")
-        assertEquals("Hello!", req.replyText)
-    }
+  @Test
+  fun sanitizeNotificationTextTrimsAndTruncates() {
+    val value = "  ${"x".repeat(600)}  "
+    val sanitized = sanitizeNotificationText(value)
 
-    @Test fun historyBuffer_oldestIsEvicted() {
-        val buffer = NotificationsHandler.NotificationHistoryBuffer(maxSize = 3)
-        buffer.add("a"); buffer.add("b"); buffer.add("c"); buffer.add("d")
-        assertEquals(3, buffer.size())
-        assertFalse(buffer.contains("a"))
-        assertTrue(buffer.contains("d"))
-    }
+    assertEquals(512, sanitized?.length)
+    assertTrue((sanitized ?: "").all { it == 'x' })
+  }
 
-    @Test fun parseShowRequest_emptyJsonReturnsNull() {
-        val req = NotificationsHandler.parseShowRequest("")
-        assertEquals(null, req)
-    }
+  @Test
+  fun notificationsActionClearablePolicy_onlyRequiresClearableForDismiss() {
+    assertTrue(actionRequiresClearableNotification(NotificationActionKind.Dismiss))
+    assertFalse(actionRequiresClearableNotification(NotificationActionKind.Open))
+    assertFalse(actionRequiresClearableNotification(NotificationActionKind.Reply))
+  }
 
-    @Test fun parseShowRequest_missingTitleReturnsNull() {
-        val req = NotificationsHandler.parseShowRequest("""{"body":"B"}""")
-        assertTrue(req == null || req.title.isNullOrBlank())
-    }
+  private fun parsePayload(result: GatewaySession.InvokeResult): JsonObject {
+    val payloadJson = result.payloadJson ?: error("expected payload")
+    return Json.parseToJsonElement(payloadJson).jsonObject
+  }
 
-    @Test fun priorityMapping_minPriority() {
-        assertEquals(NotificationsHandler.Priority.Min, NotificationsHandler.parsePriority("min"))
-    }
+  private fun appContext(): Context = RuntimeEnvironment.getApplication()
+
+  private fun sampleEntry(key: String): DeviceNotificationEntry =
+    DeviceNotificationEntry(
+      key = key,
+      packageName = "com.example.app",
+      title = "Title",
+      text = "Text",
+      subText = null,
+      category = null,
+      channelId = null,
+      postTimeMs = 123L,
+      isOngoing = false,
+      isClearable = true,
+    )
+}
+
+private class FakeNotificationsStateProvider(
+  private val snapshot: DeviceNotificationSnapshot,
+) : NotificationsStateProvider {
+  var rebindRequests: Int = 0
+    private set
+  var actionRequests: Int = 0
+    private set
+  var actionResult: NotificationActionResult = NotificationActionResult(ok = true)
+  var lastAction: NotificationActionRequest? = null
+
+  override fun readSnapshot(context: Context): DeviceNotificationSnapshot = snapshot
+
+  override fun requestServiceRebind(context: Context) {
+    rebindRequests += 1
+  }
+
+  override fun executeAction(
+    context: Context,
+    request: NotificationActionRequest,
+  ): NotificationActionResult {
+    actionRequests += 1
+    lastAction = request
+    return actionResult
+  }
 }

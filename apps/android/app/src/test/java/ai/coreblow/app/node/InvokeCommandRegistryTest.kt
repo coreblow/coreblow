@@ -1,181 +1,223 @@
 package ai.coreblow.app.node
 
-import ai.coreblow.app.gateway.CoreBlowProtocol
+import ai.coreblow.app.protocol.CoreBlowCalendarCommand
+import ai.coreblow.app.protocol.CoreBlowCameraCommand
+import ai.coreblow.app.protocol.CoreBlowCallLogCommand
+import ai.coreblow.app.protocol.CoreBlowCapability
+import ai.coreblow.app.protocol.CoreBlowContactsCommand
+import ai.coreblow.app.protocol.CoreBlowDeviceCommand
+import ai.coreblow.app.protocol.CoreBlowLocationCommand
+import ai.coreblow.app.protocol.CoreBlowMotionCommand
+import ai.coreblow.app.protocol.CoreBlowNotificationsCommand
+import ai.coreblow.app.protocol.CoreBlowPhotosCommand
+import ai.coreblow.app.protocol.CoreBlowSmsCommand
+import ai.coreblow.app.protocol.CoreBlowSystemCommand
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class InvokeCommandRegistryTest {
-
-    @Test
-    fun `all flags disabled returns minimal capabilities`() {
-        val flags = NodeRuntimeFlags()
-        val caps = InvokeCommandRegistry.availableCapabilities(flags)
-        assertTrue(caps.contains(CoreBlowProtocol.CAP_DEVICE))
-        assertTrue(caps.contains(CoreBlowProtocol.CAP_SYSTEM))
-        assertTrue(caps.contains(CoreBlowProtocol.CAP_CONTACTS))
-        assertFalse(caps.contains(CoreBlowProtocol.CAP_CAMERA))
-        assertFalse(caps.contains(CoreBlowProtocol.CAP_LOCATION))
-        assertFalse(caps.contains(CoreBlowProtocol.CAP_VOICE_WAKE))
-    }
-
-    @Test
-    fun `camera enabled adds camera capability`() {
-        val flags = NodeRuntimeFlags(cameraEnabled = true)
-        assertTrue(InvokeCommandRegistry.availableCapabilities(flags).contains(CoreBlowProtocol.CAP_CAMERA))
-    }
-
-    @Test
-    fun `location enabled adds location capability`() {
-        val flags = NodeRuntimeFlags(locationEnabled = true)
-        assertTrue(InvokeCommandRegistry.availableCapabilities(flags).contains(CoreBlowProtocol.CAP_LOCATION))
-    }
-
-    @Test
-    fun `voice wake enabled adds voice-wake capability`() {
-        val flags = NodeRuntimeFlags(voiceWakeEnabled = true)
-        assertTrue(InvokeCommandRegistry.availableCapabilities(flags).contains(CoreBlowProtocol.CAP_VOICE_WAKE))
-    }
-
-    @Test
-    fun `all flags enabled returns all capabilities`() {
-        val flags = NodeRuntimeFlags(
-            cameraEnabled = true, locationEnabled = true,
-            sendSmsAvailable = true, readSmsAvailable = true,
-            callLogAvailable = true, voiceWakeEnabled = true,
-            motionActivityAvailable = true, notificationsAvailable = true,
-            debugBuild = true,
-        )
-        val caps = InvokeCommandRegistry.availableCapabilities(flags)
-        assertTrue(caps.size >= 13)
-    }
-
-    @Test
-    fun `commands contain namespace dot command format`() {
-        val flags = NodeRuntimeFlags(debugBuild = true)
-        val cmds = InvokeCommandRegistry.availableCommands(flags)
-        cmds.forEach { cmd ->
-            assertTrue("Command must be namespace.command: $cmd", cmd.contains("."))
-        }
-    }
-
-    @Test
-    fun `debug commands only available in debug build`() {
-        val release = InvokeCommandRegistry.availableCommands(NodeRuntimeFlags(debugBuild = false))
-        val debug = InvokeCommandRegistry.availableCommands(NodeRuntimeFlags(debugBuild = true))
-        assertFalse(release.any { it.startsWith("debug.") })
-        assertTrue(debug.any { it.startsWith("debug.") })
-    }
-
-    @Test
-    fun `device commands always available`() {
-        val cmds = InvokeCommandRegistry.availableCommands(NodeRuntimeFlags())
-        assertTrue(cmds.contains("device.get-info"))
-        assertTrue(cmds.contains("device.get-battery"))
-        assertTrue(cmds.contains("device.get-storage"))
-    }
-
-    // ── OC-parity: motion subcommand gating ─────────────
-
-    @Test
-    fun `motion activity available without pedometer only includes activity command`() {
-        val cmds = InvokeCommandRegistry.availableCommands(NodeRuntimeFlags(
-            motionActivityAvailable = true, motionPedometerAvailable = false,
-        ))
-        assertTrue(cmds.contains("motion.get-activity"))
-        assertFalse(cmds.contains("motion.get-pedometer"))
-    }
-
-    @Test
-    fun `motion pedometer available without activity only includes pedometer command`() {
-        val cmds = InvokeCommandRegistry.availableCommands(NodeRuntimeFlags(
-            motionActivityAvailable = false, motionPedometerAvailable = true,
-        ))
-        assertFalse(cmds.contains("motion.get-activity"))
-        assertTrue(cmds.contains("motion.get-pedometer"))
-    }
-
-    @Test
-    fun `motion capability present when either motion path available`() {
-        val activityOnly = InvokeCommandRegistry.availableCapabilities(NodeRuntimeFlags(motionActivityAvailable = true))
-        val pedometerOnly = InvokeCommandRegistry.availableCapabilities(NodeRuntimeFlags(motionPedometerAvailable = true))
-        assertTrue(activityOnly.contains(CoreBlowProtocol.CAP_MOTION))
-        assertTrue(pedometerOnly.contains(CoreBlowProtocol.CAP_MOTION))
-    }
-
-    // ── OC-parity: SMS send/read split ──────────────────
-
-    @Test
-    fun `sms read only includes search but not send`() {
-        val cmds = InvokeCommandRegistry.availableCommands(NodeRuntimeFlags(readSmsAvailable = true))
-        assertTrue(cmds.contains("sms.search"))
-        assertFalse(cmds.contains("sms.send"))
-    }
-
-    @Test
-    fun `sms send only includes send but not search`() {
-        val cmds = InvokeCommandRegistry.availableCommands(NodeRuntimeFlags(sendSmsAvailable = true))
-        assertTrue(cmds.contains("sms.send"))
-        assertFalse(cmds.contains("sms.search"))
-    }
-
-    @Test
-    fun `sms capability present when either sms path available`() {
-        val readOnly = InvokeCommandRegistry.availableCapabilities(NodeRuntimeFlags(readSmsAvailable = true))
-        val sendOnly = InvokeCommandRegistry.availableCapabilities(NodeRuntimeFlags(sendSmsAvailable = true))
-        assertTrue(readOnly.contains(CoreBlowProtocol.CAP_SMS))
-        assertTrue(sendOnly.contains(CoreBlowProtocol.CAP_SMS))
-    }
-
-    // ── OC-parity: call log gating ──────────────────────
-
-    @Test
-    fun `call log commands excluded when unavailable`() {
-        val cmds = InvokeCommandRegistry.availableCommands(NodeRuntimeFlags(callLogAvailable = false))
-        assertFalse(cmds.contains("callLog.search"))
-    }
-
-    @Test
-    fun `call log capability excluded when unavailable`() {
-        val caps = InvokeCommandRegistry.availableCapabilities(NodeRuntimeFlags(callLogAvailable = false))
-        assertFalse(caps.contains(CoreBlowProtocol.CAP_CALL_LOG))
-    }
-
-    @Test
-    fun `call log capability included when available`() {
-        val caps = InvokeCommandRegistry.availableCapabilities(NodeRuntimeFlags(callLogAvailable = true))
-        assertTrue(caps.contains(CoreBlowProtocol.CAP_CALL_LOG))
-    }
-
-    // ── OC-parity: core commands always present ─────────
-
-    @Test
-    fun `core capabilities always include canvas device notifications system`() {
-        val caps = InvokeCommandRegistry.availableCapabilities(NodeRuntimeFlags())
-        val coreSet = setOf(CoreBlowProtocol.CAP_CANVAS, CoreBlowProtocol.CAP_DEVICE, CoreBlowProtocol.CAP_NOTIFICATIONS, CoreBlowProtocol.CAP_SYSTEM)
-        coreSet.forEach { cap -> assertTrue("Missing core capability: $cap", caps.contains(cap)) }
-    }
-
-    @Test
-    fun `optional capabilities absent by default`() {
-        val caps = InvokeCommandRegistry.availableCapabilities(NodeRuntimeFlags())
-        val optionalSet = setOf(CoreBlowProtocol.CAP_CAMERA, CoreBlowProtocol.CAP_LOCATION, CoreBlowProtocol.CAP_SMS, CoreBlowProtocol.CAP_CALL_LOG, CoreBlowProtocol.CAP_VOICE_WAKE, CoreBlowProtocol.CAP_MOTION)
-        optionalSet.forEach { cap -> assertFalse("Unexpected optional capability: $cap", caps.contains(cap)) }
-    }
-
-    // ── Helpers ──────────────────────────────────────────
-
-    private fun NodeRuntimeFlags(
-        cameraEnabled: Boolean = false, locationEnabled: Boolean = false,
-        sendSmsAvailable: Boolean = false, readSmsAvailable: Boolean = false,
-        callLogAvailable: Boolean = false, voiceWakeEnabled: Boolean = false,
-        motionActivityAvailable: Boolean = false, motionPedometerAvailable: Boolean = false,
-        notificationsAvailable: Boolean = true, debugBuild: Boolean = false,
-    ) = ai.coreblow.app.node.NodeRuntimeFlags(
-        cameraEnabled = cameraEnabled, locationEnabled = locationEnabled,
-        sendSmsAvailable = sendSmsAvailable, readSmsAvailable = readSmsAvailable,
-        callLogAvailable = callLogAvailable, voiceWakeEnabled = voiceWakeEnabled,
-        motionActivityAvailable = motionActivityAvailable, motionPedometerAvailable = motionPedometerAvailable,
-        notificationsAvailable = notificationsAvailable, debugBuild = debugBuild,
+  private val coreCapabilities =
+    setOf(
+      CoreBlowCapability.Canvas.rawValue,
+      CoreBlowCapability.Device.rawValue,
+      CoreBlowCapability.Notifications.rawValue,
+      CoreBlowCapability.System.rawValue,
+      CoreBlowCapability.Photos.rawValue,
+      CoreBlowCapability.Contacts.rawValue,
+      CoreBlowCapability.Calendar.rawValue,
     )
+
+  private val optionalCapabilities =
+    setOf(
+      CoreBlowCapability.Camera.rawValue,
+      CoreBlowCapability.Location.rawValue,
+      CoreBlowCapability.Sms.rawValue,
+      CoreBlowCapability.CallLog.rawValue,
+      CoreBlowCapability.VoiceWake.rawValue,
+      CoreBlowCapability.Motion.rawValue,
+    )
+
+  private val coreCommands =
+    setOf(
+      CoreBlowDeviceCommand.Status.rawValue,
+      CoreBlowDeviceCommand.Info.rawValue,
+      CoreBlowDeviceCommand.Permissions.rawValue,
+      CoreBlowDeviceCommand.Health.rawValue,
+      CoreBlowNotificationsCommand.List.rawValue,
+      CoreBlowNotificationsCommand.Actions.rawValue,
+      CoreBlowSystemCommand.Notify.rawValue,
+      CoreBlowPhotosCommand.Latest.rawValue,
+      CoreBlowContactsCommand.Search.rawValue,
+      CoreBlowContactsCommand.Add.rawValue,
+      CoreBlowCalendarCommand.Events.rawValue,
+      CoreBlowCalendarCommand.Add.rawValue,
+    )
+
+  private val optionalCommands =
+    setOf(
+      CoreBlowCameraCommand.Snap.rawValue,
+      CoreBlowCameraCommand.Clip.rawValue,
+      CoreBlowCameraCommand.List.rawValue,
+      CoreBlowLocationCommand.Get.rawValue,
+      CoreBlowMotionCommand.Activity.rawValue,
+      CoreBlowMotionCommand.Pedometer.rawValue,
+      CoreBlowSmsCommand.Send.rawValue,
+      CoreBlowSmsCommand.Search.rawValue,
+      CoreBlowCallLogCommand.Search.rawValue,
+    )
+
+  private val debugCommands = setOf("debug.logs", "debug.ed25519")
+
+  @Test
+  fun advertisedCapabilities_respectsFeatureAvailability() {
+    val capabilities = InvokeCommandRegistry.advertisedCapabilities(defaultFlags())
+
+    assertContainsAll(capabilities, coreCapabilities)
+    assertMissingAll(capabilities, optionalCapabilities)
+  }
+
+  @Test
+  fun advertisedCapabilities_includesFeatureCapabilitiesWhenEnabled() {
+    val capabilities =
+      InvokeCommandRegistry.advertisedCapabilities(
+        defaultFlags(
+          cameraEnabled = true,
+          locationEnabled = true,
+          sendSmsAvailable = true,
+          readSmsAvailable = true,
+          callLogAvailable = true,
+          voiceWakeEnabled = true,
+          motionActivityAvailable = true,
+          motionPedometerAvailable = true,
+        ),
+      )
+
+    assertContainsAll(capabilities, coreCapabilities + optionalCapabilities)
+  }
+
+  @Test
+  fun advertisedCommands_respectsFeatureAvailability() {
+    val commands = InvokeCommandRegistry.advertisedCommands(defaultFlags())
+
+    assertContainsAll(commands, coreCommands)
+    assertMissingAll(commands, optionalCommands + debugCommands)
+  }
+
+  @Test
+  fun advertisedCommands_includesFeatureCommandsWhenEnabled() {
+    val commands =
+      InvokeCommandRegistry.advertisedCommands(
+        defaultFlags(
+          cameraEnabled = true,
+          locationEnabled = true,
+          sendSmsAvailable = true,
+          readSmsAvailable = true,
+          callLogAvailable = true,
+          motionActivityAvailable = true,
+          motionPedometerAvailable = true,
+          debugBuild = true,
+        ),
+      )
+
+    assertContainsAll(commands, coreCommands + optionalCommands + debugCommands)
+  }
+
+  @Test
+  fun advertisedCommands_onlyIncludesSupportedMotionCommands() {
+    val commands =
+      InvokeCommandRegistry.advertisedCommands(
+        NodeRuntimeFlags(
+          cameraEnabled = false,
+          locationEnabled = false,
+          sendSmsAvailable = false,
+          readSmsAvailable = false,
+          callLogAvailable = false,
+          voiceWakeEnabled = false,
+          motionActivityAvailable = true,
+          motionPedometerAvailable = false,
+          debugBuild = false,
+        ),
+      )
+
+    assertTrue(commands.contains(CoreBlowMotionCommand.Activity.rawValue))
+    assertFalse(commands.contains(CoreBlowMotionCommand.Pedometer.rawValue))
+  }
+
+  @Test
+  fun advertisedCommands_splitsSmsSendAndSearchAvailability() {
+    val readOnlyCommands =
+      InvokeCommandRegistry.advertisedCommands(
+        defaultFlags(readSmsAvailable = true),
+      )
+    val sendOnlyCommands =
+      InvokeCommandRegistry.advertisedCommands(
+        defaultFlags(sendSmsAvailable = true),
+      )
+
+    assertTrue(readOnlyCommands.contains(CoreBlowSmsCommand.Search.rawValue))
+    assertFalse(readOnlyCommands.contains(CoreBlowSmsCommand.Send.rawValue))
+    assertTrue(sendOnlyCommands.contains(CoreBlowSmsCommand.Send.rawValue))
+    assertFalse(sendOnlyCommands.contains(CoreBlowSmsCommand.Search.rawValue))
+  }
+
+  @Test
+  fun advertisedCapabilities_includeSmsWhenEitherSmsPathIsAvailable() {
+    val readOnlyCapabilities =
+      InvokeCommandRegistry.advertisedCapabilities(
+        defaultFlags(readSmsAvailable = true),
+      )
+    val sendOnlyCapabilities =
+      InvokeCommandRegistry.advertisedCapabilities(
+        defaultFlags(sendSmsAvailable = true),
+      )
+
+    assertTrue(readOnlyCapabilities.contains(CoreBlowCapability.Sms.rawValue))
+    assertTrue(sendOnlyCapabilities.contains(CoreBlowCapability.Sms.rawValue))
+  }
+
+  @Test
+  fun advertisedCommands_excludesCallLogWhenUnavailable() {
+    val commands = InvokeCommandRegistry.advertisedCommands(defaultFlags(callLogAvailable = false))
+
+    assertFalse(commands.contains(CoreBlowCallLogCommand.Search.rawValue))
+  }
+
+  @Test
+  fun advertisedCapabilities_excludesCallLogWhenUnavailable() {
+    val capabilities = InvokeCommandRegistry.advertisedCapabilities(defaultFlags(callLogAvailable = false))
+
+    assertFalse(capabilities.contains(CoreBlowCapability.CallLog.rawValue))
+  }
+
+  private fun defaultFlags(
+    cameraEnabled: Boolean = false,
+    locationEnabled: Boolean = false,
+    sendSmsAvailable: Boolean = false,
+    readSmsAvailable: Boolean = false,
+    callLogAvailable: Boolean = false,
+    voiceWakeEnabled: Boolean = false,
+    motionActivityAvailable: Boolean = false,
+    motionPedometerAvailable: Boolean = false,
+    debugBuild: Boolean = false,
+  ): NodeRuntimeFlags =
+    NodeRuntimeFlags(
+      cameraEnabled = cameraEnabled,
+      locationEnabled = locationEnabled,
+      sendSmsAvailable = sendSmsAvailable,
+      readSmsAvailable = readSmsAvailable,
+      callLogAvailable = callLogAvailable,
+      voiceWakeEnabled = voiceWakeEnabled,
+      motionActivityAvailable = motionActivityAvailable,
+      motionPedometerAvailable = motionPedometerAvailable,
+      debugBuild = debugBuild,
+    )
+
+  private fun assertContainsAll(actual: List<String>, expected: Set<String>) {
+    expected.forEach { value -> assertTrue(actual.contains(value)) }
+  }
+
+  private fun assertMissingAll(actual: List<String>, forbidden: Set<String>) {
+    forbidden.forEach { value -> assertFalse(actual.contains(value)) }
+  }
 }

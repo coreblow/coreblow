@@ -1,44 +1,35 @@
 package ai.coreblow.app.gateway
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DeviceAuthPayloadTest {
-    @Test
-    fun buildPayload_containsRequiredFields() {
-        val payload = DeviceAuthPayload.build(
-            deviceName = "Pixel 8", osVersion = "Android 15", appVersion = "1.0.0",
-        )
-        assertNotNull(payload)
-        assertEquals("Pixel 8", payload.deviceName)
-        assertEquals("Android 15", payload.osVersion)
-        assertEquals("1.0.0", payload.appVersion)
-    }
+  @Test
+  fun buildV3_matchesCanonicalVector() {
+    val payload =
+      DeviceAuthPayload.buildV3(
+        deviceId = "dev-1",
+        clientId = "coreblow-macos",
+        clientMode = "ui",
+        role = "operator",
+        scopes = listOf("operator.admin", "operator.read"),
+        signedAtMs = 1_700_000_000_000,
+        token = "tok-123",
+        nonce = "nonce-abc",
+        platform = "  IOS  ",
+        deviceFamily = "  iPhone  ",
+      )
 
-    @Test
-    fun buildPayload_includesPlatformIdentifier() {
-        val payload = DeviceAuthPayload.build(
-            deviceName = "Test", osVersion = "14", appVersion = "1.0",
-        )
-        assertEquals("android", payload.platform)
-    }
+    assertEquals(
+      "v3|dev-1|coreblow-macos|ui|operator|operator.admin,operator.read|1700000000000|tok-123|nonce-abc|ios|iphone",
+      payload,
+    )
+  }
 
-    @Test
-    fun serialize_producesValidJson() {
-        val payload = DeviceAuthPayload.build(deviceName = "D", osVersion = "V", appVersion = "A")
-        val json = payload.toJson()
-        assertTrue(json.contains("deviceName"))
-        assertTrue(json.contains("platform"))
-    }
-
-    @Test
-    fun serialize_roundTrips() {
-        val original = DeviceAuthPayload.build(deviceName = "Test", osVersion = "15", appVersion = "2.0")
-        val json = original.toJson()
-        val parsed = DeviceAuthPayload.fromJson(json)
-        assertEquals(original.deviceName, parsed?.deviceName)
-        assertEquals(original.platform, parsed?.platform)
-    }
+  @Test
+  fun normalizeMetadataField_asciiOnlyLowercase() {
+    assertEquals("İos", DeviceAuthPayload.normalizeMetadataField("  İOS  "))
+    assertEquals("mac", DeviceAuthPayload.normalizeMetadataField("  MAC  "))
+    assertEquals("", DeviceAuthPayload.normalizeMetadataField(null))
+  }
 }

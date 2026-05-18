@@ -1,421 +1,507 @@
 package ai.coreblow.app.gateway
 
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.put
+import okhttp3.Response
+import okhttp3.WebSocket
+import okhttp3.WebSocketListener
+import okhttp3.mockwebserver.Dispatcher
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.RecordedRequest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.Config
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 
+private const val TEST_TIMEOUT_MS = 8_000L
+private const val CONNECT_CHALLENGE_FRAME =
+  """{"type":"event","event":"connect.challenge","payload":{"nonce":"android-test-nonce"}}"""
+
+private class InMemoryDeviceAuthStore : DeviceAuthTokenStore {
+  private val tokens = mutableMapOf<String, String>()
+
+  override fun loadToken(deviceId: String, role: String): String? = tokens["${deviceId.trim()}|${role.trim()}"]?.trim()?.takeIf { it.isNotEmpty() }
+
+  override fun saveToken(deviceId: String, role: String, token: String) {
+    tokens["${deviceId.trim()}|${role.trim()}"] = token.trim()
+  }
+
+  override fun clearToken(deviceId: String, role: String) {
+    tokens.remove("${deviceId.trim()}|${role.trim()}")
+  }
+}
+
+private data class NodeHarness(
+  val session: GatewaySession,
+  val sessionJob: Job,
+  val deviceAuthStore: InMemoryDeviceAuthStore,
+)
+
+private data class InvokeScenarioResult(
+  val request: GatewaySession.InvokeRequest,
+  val resultParams: JsonObject,
+)
+
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class GatewaySessionInvokeTest {
-    // ── Invoke request encoding ─────────────────────────
+  @Test
+  fun connect_usesBootstrapTokenWhenSharedAndDeviceTokensAreAbsent() = runBlocking {
+    val json = testJson()
+    val connected = CompletableDeferred<Unit>()
+    val connectAuth = CompletableDeferred<JsonObject?>()
+    val lastDisconnect = AtomicReference("")
+    val server =
+      startGatewayServer(json) { webSocket, id, method, frame ->
+        when (method) {
+          "connect" -> {
+            if (!connectAuth.isCompleted) {
+              connectAuth.complete(frame["params"]?.jsonObject?.get("auth")?.jsonObject)
+            }
+            webSocket.send(connectResponseFrame(id))
+            webSocket.close(1000, "done")
+          }
+        }
+      }
 
-    @Test
-    fun buildInvokeRequest_setsMethodAndParams() {
-        val req = GatewaySession.buildInvokeRequest("device.info", buildJsonObject { put("key", "val") })
-        assertEquals("device.info", req.method)
-        assertEquals("val", req.params?.get("key")?.jsonPrimitive?.content)
+    val harness =
+      createNodeHarness(
+        connected = connected,
+        lastDisconnect = lastDisconnect,
+      ) { GatewaySession.InvokeResult.ok("""{"handled":true}""") }
+
+    try {
+      connectNodeSession(
+        session = harness.session,
+        port = server.port,
+        token = null,
+        bootstrapToken = "bootstrap-token",
+      )
+      awaitConnectedOrThrow(connected, lastDisconnect, server)
+
+      val auth = withTimeout(TEST_TIMEOUT_MS) { connectAuth.await() }
+      assertEquals("bootstrap-token", auth?.get("bootstrapToken")?.jsonPrimitive?.content)
+      assertNull(auth?.get("token"))
+    } finally {
+      shutdownHarness(harness, server)
     }
+  }
 
-    @Test
-    fun buildInvokeRequest_generatesUniqueIds() {
-        val a = GatewaySession.buildInvokeRequest("test", null)
-        val b = GatewaySession.buildInvokeRequest("test", null)
-        assertNotNull(a.id)
-        assertNotNull(b.id)
-        assertFalse(a.id == b.id)
+  @Test
+  fun connect_prefersStoredDeviceTokenOverBootstrapToken() = runBlocking {
+    val json = testJson()
+    val connected = CompletableDeferred<Unit>()
+    val connectAuth = CompletableDeferred<JsonObject?>()
+    val lastDisconnect = AtomicReference("")
+    val server =
+      startGatewayServer(json) { webSocket, id, method, frame ->
+        when (method) {
+          "connect" -> {
+            if (!connectAuth.isCompleted) {
+              connectAuth.complete(frame["params"]?.jsonObject?.get("auth")?.jsonObject)
+            }
+            webSocket.send(connectResponseFrame(id))
+            webSocket.close(1000, "done")
+          }
+        }
+      }
+
+    val harness =
+      createNodeHarness(
+        connected = connected,
+        lastDisconnect = lastDisconnect,
+      ) { GatewaySession.InvokeResult.ok("""{"handled":true}""") }
+
+    try {
+      val deviceId = DeviceIdentityStore(RuntimeEnvironment.getApplication()).loadOrCreate().deviceId
+      harness.deviceAuthStore.saveToken(deviceId, "node", "device-token")
+
+      connectNodeSession(
+        session = harness.session,
+        port = server.port,
+        token = null,
+        bootstrapToken = "bootstrap-token",
+      )
+      awaitConnectedOrThrow(connected, lastDisconnect, server)
+
+      val auth = withTimeout(TEST_TIMEOUT_MS) { connectAuth.await() }
+      assertEquals("device-token", auth?.get("token")?.jsonPrimitive?.content)
+      assertNull(auth?.get("bootstrapToken"))
+    } finally {
+      shutdownHarness(harness, server)
     }
+  }
 
-    @Test
-    fun buildInvokeRequest_allowsNullParams() {
-        val req = GatewaySession.buildInvokeRequest("test.method", null)
-        assertNull(req.params)
+  @Test
+  fun connect_retriesWithStoredDeviceTokenAfterSharedTokenMismatch() = runBlocking {
+    val json = testJson()
+    val connected = CompletableDeferred<Unit>()
+    val firstConnectAuth = CompletableDeferred<JsonObject?>()
+    val secondConnectAuth = CompletableDeferred<JsonObject?>()
+    val connectAttempts = AtomicInteger(0)
+    val lastDisconnect = AtomicReference("")
+    val server =
+      startGatewayServer(json) { webSocket, id, method, frame ->
+        when (method) {
+          "connect" -> {
+            val auth = frame["params"]?.jsonObject?.get("auth")?.jsonObject
+            when (connectAttempts.incrementAndGet()) {
+              1 -> {
+                if (!firstConnectAuth.isCompleted) {
+                  firstConnectAuth.complete(auth)
+                }
+                webSocket.send(
+                  """{"type":"res","id":"$id","ok":false,"error":{"code":"INVALID_REQUEST","message":"unauthorized","details":{"code":"AUTH_TOKEN_MISMATCH","canRetryWithDeviceToken":true,"recommendedNextStep":"retry_with_device_token"}}}""",
+                )
+                webSocket.close(1000, "retry")
+              }
+              else -> {
+                if (!secondConnectAuth.isCompleted) {
+                  secondConnectAuth.complete(auth)
+                }
+                webSocket.send(connectResponseFrame(id))
+                webSocket.close(1000, "done")
+              }
+            }
+          }
+        }
+      }
+
+    val harness =
+      createNodeHarness(
+        connected = connected,
+        lastDisconnect = lastDisconnect,
+      ) { GatewaySession.InvokeResult.ok("""{"handled":true}""") }
+
+    try {
+      val deviceId = DeviceIdentityStore(RuntimeEnvironment.getApplication()).loadOrCreate().deviceId
+      harness.deviceAuthStore.saveToken(deviceId, "node", "stored-device-token")
+
+      connectNodeSession(
+        session = harness.session,
+        port = server.port,
+        token = "shared-auth-token",
+        bootstrapToken = null,
+      )
+      awaitConnectedOrThrow(connected, lastDisconnect, server)
+
+      val firstAuth = withTimeout(TEST_TIMEOUT_MS) { firstConnectAuth.await() }
+      val secondAuth = withTimeout(TEST_TIMEOUT_MS) { secondConnectAuth.await() }
+      assertEquals("shared-auth-token", firstAuth?.get("token")?.jsonPrimitive?.content)
+      assertNull(firstAuth?.get("deviceToken"))
+      assertEquals("shared-auth-token", secondAuth?.get("token")?.jsonPrimitive?.content)
+      assertEquals("stored-device-token", secondAuth?.get("deviceToken")?.jsonPrimitive?.content)
+    } finally {
+      shutdownHarness(harness, server)
     }
+  }
 
-    // ── Invoke response parsing ─────────────────────────
+  @Test
+  fun nodeInvokeRequest_roundTripsInvokeResult() = runBlocking {
+    val handshakeOrigin = AtomicReference<String?>(null)
+    val result =
+      runInvokeScenario(
+        invokeEventFrame =
+          """{"type":"event","event":"node.invoke.request","payload":{"id":"invoke-1","nodeId":"node-1","command":"debug.ping","params":{"ping":"pong"},"timeoutMs":5000}}""",
+        onHandshake = { request -> handshakeOrigin.compareAndSet(null, request.getHeader("Origin")) },
+      ) {
+        GatewaySession.InvokeResult.ok("""{"handled":true}""")
+      }
 
-    @Test
-    fun parseInvokeResponse_extractsResultPayload() {
-        val json = """{"id":"1","result":{"status":"ok"}}"""
-        val resp = GatewaySession.parseInvokeResponse(json)
-        assertNotNull(resp)
-        assertEquals("1", resp?.id)
-        assertNotNull(resp?.result)
-        assertNull(resp?.error)
+    assertEquals("invoke-1", result.request.id)
+    assertEquals("node-1", result.request.nodeId)
+    assertEquals("debug.ping", result.request.command)
+    assertEquals("""{"ping":"pong"}""", result.request.paramsJson)
+    assertNull(handshakeOrigin.get())
+    assertEquals("invoke-1", result.resultParams["id"]?.jsonPrimitive?.content)
+    assertEquals("node-1", result.resultParams["nodeId"]?.jsonPrimitive?.content)
+    assertEquals(true, result.resultParams["ok"]?.jsonPrimitive?.content?.toBooleanStrict())
+    assertEquals(
+      true,
+      result.resultParams["payload"]?.jsonObject?.get("handled")?.jsonPrimitive?.content?.toBooleanStrict(),
+    )
+  }
+
+  @Test
+  fun nodeInvokeRequest_usesParamsJsonWhenProvided() = runBlocking {
+    val result =
+      runInvokeScenario(
+        invokeEventFrame =
+          """{"type":"event","event":"node.invoke.request","payload":{"id":"invoke-2","nodeId":"node-2","command":"debug.raw","paramsJSON":"{\"raw\":true}","params":{"ignored":1},"timeoutMs":5000}}""",
+      ) {
+        GatewaySession.InvokeResult.ok("""{"handled":true}""")
+      }
+
+    assertEquals("invoke-2", result.request.id)
+    assertEquals("node-2", result.request.nodeId)
+    assertEquals("debug.raw", result.request.command)
+    assertEquals("""{"raw":true}""", result.request.paramsJson)
+    assertEquals("invoke-2", result.resultParams["id"]?.jsonPrimitive?.content)
+    assertEquals("node-2", result.resultParams["nodeId"]?.jsonPrimitive?.content)
+    assertEquals(true, result.resultParams["ok"]?.jsonPrimitive?.content?.toBooleanStrict())
+  }
+
+  @Test
+  fun nodeInvokeRequest_mapsCodePrefixedErrorsIntoInvokeResult() = runBlocking {
+    val result =
+      runInvokeScenario(
+        invokeEventFrame =
+          """{"type":"event","event":"node.invoke.request","payload":{"id":"invoke-3","nodeId":"node-3","command":"camera.snap","params":{"facing":"front"},"timeoutMs":5000}}""",
+      ) {
+        throw IllegalStateException("CAMERA_PERMISSION_REQUIRED: grant Camera permission")
+      }
+
+    assertEquals("invoke-3", result.resultParams["id"]?.jsonPrimitive?.content)
+    assertEquals("node-3", result.resultParams["nodeId"]?.jsonPrimitive?.content)
+    assertEquals(false, result.resultParams["ok"]?.jsonPrimitive?.content?.toBooleanStrict())
+    assertEquals(
+      "CAMERA_PERMISSION_REQUIRED",
+      result.resultParams["error"]?.jsonObject?.get("code")?.jsonPrimitive?.content,
+    )
+    assertEquals(
+      "grant Camera permission",
+      result.resultParams["error"]?.jsonObject?.get("message")?.jsonPrimitive?.content,
+    )
+  }
+
+  @Test
+  fun refreshNodeCanvasCapability_sendsObjectParamsAndUpdatesScopedUrl() = runBlocking {
+    val json = testJson()
+    val connected = CompletableDeferred<Unit>()
+    val refreshRequestParams = CompletableDeferred<String?>()
+    val lastDisconnect = AtomicReference("")
+
+    val server =
+      startGatewayServer(json) { webSocket, id, method, frame ->
+        when (method) {
+          "connect" -> {
+            webSocket.send(connectResponseFrame(id, canvasHostUrl = "http://127.0.0.1/__coreblow__/cap/old-cap"))
+          }
+          "node.canvas.capability.refresh" -> {
+            if (!refreshRequestParams.isCompleted) {
+              refreshRequestParams.complete(frame["params"]?.toString())
+            }
+            webSocket.send(
+              """{"type":"res","id":"$id","ok":true,"payload":{"canvasCapability":"new-cap"}}""",
+            )
+            webSocket.close(1000, "done")
+          }
+        }
+      }
+
+    val harness =
+      createNodeHarness(
+        connected = connected,
+        lastDisconnect = lastDisconnect,
+      ) { GatewaySession.InvokeResult.ok("""{"handled":true}""") }
+
+    try {
+      connectNodeSession(harness.session, server.port)
+      awaitConnectedOrThrow(connected, lastDisconnect, server)
+
+      val refreshed = harness.session.refreshNodeCanvasCapability(timeoutMs = TEST_TIMEOUT_MS)
+      val refreshParamsJson = withTimeout(TEST_TIMEOUT_MS) { refreshRequestParams.await() }
+
+      assertEquals(true, refreshed)
+      assertEquals("{}", refreshParamsJson)
+      assertEquals(
+        "http://127.0.0.1:${server.port}/__coreblow__/cap/new-cap",
+        harness.session.currentCanvasHostUrl(),
+      )
+    } finally {
+      shutdownHarness(harness, server)
     }
+  }
 
-    @Test
-    fun parseInvokeResponse_extractsErrorPayload() {
-        val json = """{"id":"2","error":{"code":-1,"message":"fail"}}"""
-        val resp = GatewaySession.parseInvokeResponse(json)
-        assertNotNull(resp)
-        assertEquals("2", resp?.id)
-        assertNull(resp?.result)
-        assertNotNull(resp?.error)
-        assertEquals(-1, resp?.error?.code)
-        assertEquals("fail", resp?.error?.message)
-    }
+  private fun testJson(): Json = Json { ignoreUnknownKeys = true }
 
-    @Test
-    fun parseInvokeResponse_returnsNullForMalformed() {
-        assertNull(GatewaySession.parseInvokeResponse(""))
-        assertNull(GatewaySession.parseInvokeResponse("not json"))
-        assertNull(GatewaySession.parseInvokeResponse("[]"))
-    }
+  private fun createNodeHarness(
+    connected: CompletableDeferred<Unit>,
+    lastDisconnect: AtomicReference<String>,
+    onInvoke: (GatewaySession.InvokeRequest) -> GatewaySession.InvokeResult,
+  ): NodeHarness {
+    val app = RuntimeEnvironment.getApplication()
+    val sessionJob = SupervisorJob()
+    val deviceAuthStore = InMemoryDeviceAuthStore()
+    val session =
+      GatewaySession(
+        scope = CoroutineScope(sessionJob + Dispatchers.Default),
+        identityStore = DeviceIdentityStore(app),
+        deviceAuthStore = deviceAuthStore,
+        onConnected = { _, _, _ ->
+          if (!connected.isCompleted) connected.complete(Unit)
+        },
+        onDisconnected = { message ->
+          lastDisconnect.set(message)
+        },
+        onEvent = { _, _ -> },
+        onInvoke = onInvoke,
+      )
 
-    // ── Invoke timeout ──────────────────────────────────
+    return NodeHarness(session = session, sessionJob = sessionJob, deviceAuthStore = deviceAuthStore)
+  }
 
-    @Test
-    fun invokeTimeoutDefault_isReasonable() {
-        val timeout = GatewaySession.DEFAULT_INVOKE_TIMEOUT_MS
-        assertTrue(timeout >= 10_000L)
-        assertTrue(timeout <= 120_000L)
-    }
-
-    // ── Message sequencing ──────────────────────────────
-
-    @Test
-    fun nextSequenceId_isMonotonicallyIncreasing() {
-        val seq1 = GatewaySession.nextSequenceId()
-        val seq2 = GatewaySession.nextSequenceId()
-        val seq3 = GatewaySession.nextSequenceId()
-        assertTrue(seq2 > seq1)
-        assertTrue(seq3 > seq2)
-    }
-
-    // ── Ping/pong ───────────────────────────────────────
-
-    @Test
-    fun pingIntervalMs_isPositive() {
-        assertTrue(GatewaySession.PING_INTERVAL_MS > 0L)
-    }
-
-    @Test
-    fun pongTimeoutMs_isGreaterThanPingInterval() {
-        assertTrue(GatewaySession.PONG_TIMEOUT_MS >= GatewaySession.PING_INTERVAL_MS)
-    }
-
-    // ── Reconnect backoff ───────────────────────────────
-
-    @Test
-    fun reconnectBackoffMs_doublesWithCeiling() {
-        val first = GatewaySession.reconnectBackoffMs(0)
-        val second = GatewaySession.reconnectBackoffMs(1)
-        val third = GatewaySession.reconnectBackoffMs(2)
-        assertTrue(second >= first)
-        assertTrue(third >= second)
-        assertTrue(third <= GatewaySession.MAX_RECONNECT_BACKOFF_MS)
-    }
-
-    @Test
-    fun reconnectBackoffMs_capsAtMaximum() {
-        val capped = GatewaySession.reconnectBackoffMs(100)
-        assertEquals(GatewaySession.MAX_RECONNECT_BACKOFF_MS, capped)
-    }
-
-    // ── Connect URL construction ────────────────────────
-
-    @Test
-    fun buildConnectUrl_includesProtocolVersion() {
-        val url = GatewaySession.buildConnectUrl("gateway.example", 443, tls = true)
-        assertTrue(url.contains("wss://"))
-        assertTrue(url.contains("gateway.example"))
-    }
-
-    @Test
-    fun buildConnectUrl_usesCleartextForNonTls() {
-        val url = GatewaySession.buildConnectUrl("local.host", 18789, tls = false)
-        assertTrue(url.startsWith("ws://"))
-        assertFalse(url.startsWith("wss://"))
-    }
-
-    // ── Session state ───────────────────────────────────
-
-    @Test
-    fun sessionState_initialIsDisconnected() {
-        assertEquals(GatewaySession.State.Disconnected, GatewaySession.State.valueOf("Disconnected"))
-    }
-
-    @Test
-    fun sessionState_allStatesAreDefined() {
-        val states = GatewaySession.State.entries
-        assertTrue(states.size >= 3) // At minimum: Disconnected, Connecting, Connected
-    }
-
-    // ── Concurrent request tracking ─────────────────────
-
-    @Test
-    fun pendingInvokes_emptyByDefault() {
-        val session = GatewaySession.createForTest()
-        assertEquals(0, session.pendingInvokeCount())
-    }
-
-    // ── Error classification ────────────────────────────
-
-    @Test
-    fun isRetryableError_includesTimeoutAndNetworkErrors() {
-        assertTrue(GatewaySession.isRetryableError(java.net.SocketTimeoutException("timeout")))
-        assertTrue(GatewaySession.isRetryableError(java.net.ConnectException("refused")))
-    }
-
-    @Test
-    fun isRetryableError_excludesAuthErrors() {
-        assertFalse(GatewaySession.isRetryableError(SecurityException("unauthorized")))
-    }
-
-    // ── Binary frame handling ───────────────────────────
-
-    @Test
-    fun isBinaryFrame_detectsByteArrayPayload() {
-        assertTrue(GatewaySession.isBinaryFrame(byteArrayOf(0x00, 0x01, 0x02)))
-    }
-
-    @Test
-    fun isBinaryFrame_rejectsEmptyPayload() {
-        assertFalse(GatewaySession.isBinaryFrame(byteArrayOf()))
-    }
-
-    // ── Flow control ────────────────────────────────────
-
-    @Test
-    fun maxConcurrentInvokes_isPositive() {
-        assertTrue(GatewaySession.MAX_CONCURRENT_INVOKES > 0)
-    }
-
-    @Test
-    fun maxMessageSizeBytes_isReasonable() {
-        assertTrue(GatewaySession.MAX_MESSAGE_SIZE_BYTES >= 1024 * 1024) // at least 1MB
-    }
-
-    // ── Auth payload construction (OC parity) ───────────
-
-    @Test
-    fun buildAuthPayload_usesBootstrapWhenNoDeviceToken() {
-        val auth = GatewaySession.buildAuthPayload(
-            token = null, bootstrapToken = "bootstrap-1", deviceToken = null, password = null,
-        )
-        assertEquals("bootstrap-1", auth["bootstrapToken"]?.jsonPrimitive?.content)
-        assertNull(auth["token"])
-        assertNull(auth["deviceToken"])
-    }
-
-    @Test
-    fun buildAuthPayload_prefersDeviceTokenOverBootstrap() {
-        val auth = GatewaySession.buildAuthPayload(
-            token = null, bootstrapToken = "bootstrap-1", deviceToken = "device-1", password = null,
-        )
-        assertEquals("device-1", auth["token"]?.jsonPrimitive?.content)
-        assertNull(auth["bootstrapToken"])
-    }
-
-    @Test
-    fun buildAuthPayload_includesSharedToken() {
-        val auth = GatewaySession.buildAuthPayload(
-            token = "shared-token", bootstrapToken = null, deviceToken = null, password = null, // pragma: allowlist secret
-        )
-        assertEquals("shared-token", auth["token"]?.jsonPrimitive?.content)
-    }
-
-    @Test
-    fun buildAuthPayload_includesPasswordWhenProvided() {
-        val auth = GatewaySession.buildAuthPayload(
-            token = null, bootstrapToken = null, deviceToken = null, password = "my-pass", // pragma: allowlist secret
-        )
-        assertEquals("my-pass", auth["password"]?.jsonPrimitive?.content)
-    }
-
-    @Test
-    fun buildAuthPayload_includesDeviceTokenWithSharedTokenForRetry() {
-        val auth = GatewaySession.buildAuthPayload(
-            token = "shared-token", bootstrapToken = null, deviceToken = "stored-device", password = null, // pragma: allowlist secret
-        )
-        assertEquals("shared-token", auth["token"]?.jsonPrimitive?.content)
-        assertEquals("stored-device", auth["deviceToken"]?.jsonPrimitive?.content)
-    }
-
-    // ── Canvas capability URL (OC parity) ───────────────
-
-    @Test
-    fun rewriteCanvasCapabilityUrl_replacesSegment() {
-        val original = "http://127.0.0.1:18789/__coreblow__/cap/old-cap"
-        val rewritten = GatewaySession.rewriteCanvasCapabilityUrl(original, "new-cap")
-        assertTrue(rewritten.contains("new-cap"))
-        assertFalse(rewritten.contains("old-cap"))
-    }
-
-    @Test
-    fun rewriteCanvasCapabilityUrl_preservesHostAndPort() {
-        val original = "http://10.0.2.2:18789/__coreblow__/cap/abc123"
-        val rewritten = GatewaySession.rewriteCanvasCapabilityUrl(original, "xyz789")
-        assertTrue(rewritten.contains("10.0.2.2:18789"))
-    }
-
-    @Test
-    fun rewriteCanvasCapabilityUrl_handlesNullOriginal() {
-        val result = GatewaySession.rewriteCanvasCapabilityUrl(null, "new-cap")
-        assertNull(result)
-    }
-
-    // ── Connect frame parsing (OC parity) ───────────────
-
-    @Test
-    fun parseConnectResponse_extractsCanvasHostUrl() {
-        val json = """{"ok":true,"payload":{"canvasHostUrl":"http://localhost:18789/__coreblow__/cap/abc","snapshot":{}}}"""
-        val parsed = GatewaySession.parseConnectResponse(json)
-        assertEquals("http://localhost:18789/__coreblow__/cap/abc", parsed?.canvasHostUrl)
-    }
-
-    @Test
-    fun parseConnectResponse_extractsSessionDefaults() {
-        val json = """{"ok":true,"payload":{"snapshot":{"sessionDefaults":{"mainSessionKey":"main"}}}}"""
-        val parsed = GatewaySession.parseConnectResponse(json)
-        assertEquals("main", parsed?.mainSessionKey)
-    }
-
-    @Test
-    fun parseConnectResponse_returnsNullForMalformed() {
-        assertNull(GatewaySession.parseConnectResponse(""))
-        assertNull(GatewaySession.parseConnectResponse("not json"))
-    }
-
-    // ── Error code classification (OC parity) ───────────
-
-    @Test
-    fun isTokenMismatchError_recognizesAuthMismatchCode() {
-        assertTrue(GatewaySession.isTokenMismatchError("AUTH_TOKEN_MISMATCH"))
-    }
-
-    @Test
-    fun isTokenMismatchError_rejectsOtherCodes() {
-        assertFalse(GatewaySession.isTokenMismatchError("INVALID_REQUEST"))
-        assertFalse(GatewaySession.isTokenMismatchError("UNKNOWN"))
-        assertFalse(GatewaySession.isTokenMismatchError(""))
-    }
-
-    @Test
-    fun isPairingRequiredError_recognizesPairingCodes() {
-        assertTrue(GatewaySession.isPairingRequiredError("DEVICE_NOT_PAIRED"))
-        assertTrue(GatewaySession.isPairingRequiredError("PAIRING_REQUIRED"))
-    }
-
-    @Test
-    fun isPairingRequiredError_rejectsOtherCodes() {
-        assertFalse(GatewaySession.isPairingRequiredError("AUTH_TOKEN_MISMATCH"))
-        assertFalse(GatewaySession.isPairingRequiredError(""))
-    }
-
-    // ── Invoke result construction (OC parity) ──────────
-
-    @Test
-    fun invokeResult_okContainsPayload() {
-        val result = GatewaySession.InvokeResult.ok("""{"status":"done"}""")
-        assertTrue(result.ok)
-        assertNull(result.error)
-        assertNotNull(result.payloadJson)
-    }
-
-    @Test
-    fun invokeResult_errorContainsCodeAndMessage() {
-        val result = GatewaySession.InvokeResult.error("TEST_ERROR", "something went wrong")
-        assertFalse(result.ok)
-        assertEquals("TEST_ERROR", result.error?.code)
-        assertEquals("something went wrong", result.error?.message)
-    }
-
-    @Test
-    fun invokeResult_fromExceptionExtractsCodePrefix() {
-        val ex = IllegalStateException("CAMERA_PERMISSION_REQUIRED: grant Camera permission")
-        val result = GatewaySession.InvokeResult.fromException(ex)
-        assertFalse(result.ok)
-        assertEquals("CAMERA_PERMISSION_REQUIRED", result.error?.code)
-        assertEquals("grant Camera permission", result.error?.message)
-    }
-
-    @Test
-    fun invokeResult_fromExceptionWithoutPrefixUsesGenericCode() {
-        val ex = RuntimeException("something broke")
-        val result = GatewaySession.InvokeResult.fromException(ex)
-        assertFalse(result.ok)
-        assertEquals("INTERNAL_ERROR", result.error?.code)
-    }
-
-    // ── Disconnect reason classification ────────────────
-
-    @Test
-    fun disconnectReason_containsCodeAndMessage() {
-        val reason = GatewaySession.DisconnectReason(code = 1000, message = "normal closure")
-        assertEquals(1000, reason.code)
-        assertEquals("normal closure", reason.message)
-    }
-
-    @Test
-    fun disconnectReason_isNormalClose() {
-        assertTrue(GatewaySession.DisconnectReason(code = 1000, message = "").isNormal)
-        assertTrue(GatewaySession.DisconnectReason(code = 1001, message = "").isNormal)
-        assertFalse(GatewaySession.DisconnectReason(code = 1006, message = "").isNormal)
-    }
-
-    // ── Connection options ──────────────────────────────
-
-    @Test
-    fun gatewayClientInfo_isComplete() {
-        val info = GatewayClientInfo(
-            id = "coreblow-android",
-            displayName = "CoreBlow Android",
-            version = "1.0.0",
-            platform = "android",
-            mode = "node",
-            instanceId = "test-instance",
-            deviceFamily = "android",
-            modelIdentifier = "Pixel 8",
-        )
-        assertEquals("coreblow-android", info.id)
-        assertEquals("android", info.platform)
-        assertEquals("node", info.mode)
-    }
-
-    @Test
-    fun gatewayConnectOptions_containsRequiredFields() {
-        val opts = GatewayConnectOptions(
-            role = "node",
-            scopes = listOf("node:invoke"),
-            caps = listOf("device", "canvas"),
-            commands = listOf("device.info"),
-            permissions = mapOf("camera" to "granted"),
-            client = GatewayClientInfo(
-                id = "test", displayName = "Test", version = "1.0",
-                platform = "android", mode = "node", instanceId = "i",
-                deviceFamily = "android", modelIdentifier = "m",
+  private suspend fun connectNodeSession(
+    session: GatewaySession,
+    port: Int,
+    token: String? = "test-token",
+    bootstrapToken: String? = null,
+  ) {
+    session.connect(
+      endpoint =
+        GatewayEndpoint(
+          stableId = "manual|127.0.0.1|$port",
+          name = "test",
+          host = "127.0.0.1",
+          port = port,
+          tlsEnabled = false,
+        ),
+      token = token,
+      bootstrapToken = bootstrapToken,
+      password = null,
+      options =
+        GatewayConnectOptions(
+          role = "node",
+          scopes = listOf("node:invoke"),
+          caps = emptyList(),
+          commands = emptyList(),
+          permissions = emptyMap(),
+          client =
+            GatewayClientInfo(
+              id = "coreblow-android-test",
+              displayName = "Android Test",
+              version = "1.0.0-test",
+              platform = "android",
+              mode = "node",
+              instanceId = "android-test-instance",
+              deviceFamily = "android",
+              modelIdentifier = "test",
             ),
-        )
-        assertEquals("node", opts.role)
-        assertEquals(listOf("node:invoke"), opts.scopes)
-        assertTrue(opts.caps.contains("device"))
+        ),
+      tls = null,
+    )
+  }
+
+  private suspend fun awaitConnectedOrThrow(
+    connected: CompletableDeferred<Unit>,
+    lastDisconnect: AtomicReference<String>,
+    server: MockWebServer,
+  ) {
+    val connectedWithinTimeout =
+      withTimeoutOrNull(TEST_TIMEOUT_MS) {
+        connected.await()
+        true
+      } == true
+    if (!connectedWithinTimeout) {
+      throw AssertionError("never connected; lastDisconnect=${lastDisconnect.get()}; requests=${server.requestCount}")
     }
+  }
 
-    // ── Endpoint construction ───────────────────────────
+  private suspend fun shutdownHarness(harness: NodeHarness, server: MockWebServer) {
+    harness.session.disconnect()
+    harness.sessionJob.cancelAndJoin()
+    server.shutdown()
+  }
 
-    @Test
-    fun gatewayEndpoint_manualFactory() {
-        val ep = GatewayEndpoint.manual(host = "10.0.0.1", port = 443)
-        assertEquals("10.0.0.1", ep.host)
-        assertEquals(443, ep.port)
-        assertTrue(ep.stableId.startsWith("manual|"))
+  private suspend fun runInvokeScenario(
+    invokeEventFrame: String,
+    onHandshake: ((RecordedRequest) -> Unit)? = null,
+    onInvoke: (GatewaySession.InvokeRequest) -> GatewaySession.InvokeResult,
+  ): InvokeScenarioResult {
+    val json = testJson()
+    val connected = CompletableDeferred<Unit>()
+    val invokeRequest = CompletableDeferred<GatewaySession.InvokeRequest>()
+    val invokeResultParams = CompletableDeferred<String>()
+    val lastDisconnect = AtomicReference("")
+    val server =
+      startGatewayServer(
+        json = json,
+        onHandshake = onHandshake,
+      ) { webSocket, id, method, frame ->
+        when (method) {
+          "connect" -> {
+            webSocket.send(connectResponseFrame(id))
+            webSocket.send(invokeEventFrame)
+          }
+          "node.invoke.result" -> {
+            if (!invokeResultParams.isCompleted) {
+              invokeResultParams.complete(frame["params"]?.toString().orEmpty())
+            }
+            webSocket.send("""{"type":"res","id":"$id","ok":true,"payload":{"ok":true}}""")
+            webSocket.close(1000, "done")
+          }
+        }
+      }
+    val harness =
+      createNodeHarness(
+        connected = connected,
+        lastDisconnect = lastDisconnect,
+      ) { req ->
+        if (!invokeRequest.isCompleted) invokeRequest.complete(req)
+        onInvoke(req)
+      }
+
+    try {
+      connectNodeSession(harness.session, server.port)
+      awaitConnectedOrThrow(connected, lastDisconnect, server)
+      val request = withTimeout(TEST_TIMEOUT_MS) { invokeRequest.await() }
+      val resultParamsJson = withTimeout(TEST_TIMEOUT_MS) { invokeResultParams.await() }
+      val resultParams = json.parseToJsonElement(resultParamsJson).jsonObject
+      return InvokeScenarioResult(request = request, resultParams = resultParams)
+    } finally {
+      shutdownHarness(harness, server)
     }
+  }
 
-    @Test
-    fun gatewayEndpoint_displayUrl() {
-        val ep = GatewayEndpoint(
-            stableId = "test", name = "Test",
-            host = "gw.example.com", port = 18789, tlsEnabled = true,
-        )
-        val url = ep.displayUrl
-        assertTrue(url.contains("gw.example.com"))
-        assertTrue(url.contains("18789"))
+  private fun connectResponseFrame(id: String, canvasHostUrl: String? = null): String {
+    val canvas = canvasHostUrl?.let { "\"canvasHostUrl\":\"$it\"," } ?: ""
+    return """{"type":"res","id":"$id","ok":true,"payload":{$canvas"snapshot":{"sessionDefaults":{"mainSessionKey":"main"}}}}"""
+  }
+
+  private fun startGatewayServer(
+    json: Json,
+    onHandshake: ((RecordedRequest) -> Unit)? = null,
+    onRequestFrame: (webSocket: WebSocket, id: String, method: String, frame: JsonObject) -> Unit,
+  ): MockWebServer =
+    MockWebServer().apply {
+      dispatcher =
+        object : Dispatcher() {
+          override fun dispatch(request: RecordedRequest): MockResponse {
+            onHandshake?.invoke(request)
+            return MockResponse().withWebSocketUpgrade(
+              object : WebSocketListener() {
+                override fun onOpen(webSocket: WebSocket, response: Response) {
+                  webSocket.send(CONNECT_CHALLENGE_FRAME)
+                }
+
+                override fun onMessage(webSocket: WebSocket, text: String) {
+                  val frame = json.parseToJsonElement(text).jsonObject
+                  if (frame["type"]?.jsonPrimitive?.content != "req") return
+                  val id = frame["id"]?.jsonPrimitive?.content ?: return
+                  val method = frame["method"]?.jsonPrimitive?.content ?: return
+                  onRequestFrame(webSocket, id, method, frame)
+                }
+              },
+            )
+          }
+        }
+      start()
     }
 }

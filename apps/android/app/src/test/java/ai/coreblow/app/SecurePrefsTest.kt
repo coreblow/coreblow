@@ -1,44 +1,38 @@
 package ai.coreblow.app
 
+import android.content.Context
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 
+@RunWith(RobolectricTestRunner::class)
 class SecurePrefsTest {
-    @Test
-    fun getAndSetGatewayToken_roundTrips() {
-        val prefs = SecurePrefs.createInMemory()
-        assertNull(prefs.getGatewayToken())
-        prefs.setGatewayToken("test-token-123")
-        assertEquals("test-token-123", prefs.getGatewayToken())
-    }
+  @Test
+  fun loadLocationMode_migratesLegacyAlwaysValue() {
+    val context = RuntimeEnvironment.getApplication()
+    val plainPrefs = context.getSharedPreferences("coreblow.node", Context.MODE_PRIVATE)
+    plainPrefs.edit().clear().putString("location.enabledMode", "always").commit()
 
-    @Test
-    fun clearAll_removesStoredValues() {
-        val prefs = SecurePrefs.createInMemory()
-        prefs.setGatewayToken("token")
-        prefs.clearAll()
-        assertNull(prefs.getGatewayToken())
-    }
+    val prefs = SecurePrefs(context)
 
-    @Test
-    fun setGatewayToken_overwritesPreviousValue() {
-        val prefs = SecurePrefs.createInMemory()
-        prefs.setGatewayToken("old")
-        prefs.setGatewayToken("new")
-        assertEquals("new", prefs.getGatewayToken())
-    }
+    assertEquals(LocationMode.WhileUsing, prefs.locationMode.value)
+    assertEquals("whileUsing", plainPrefs.getString("location.enabledMode", null))
+  }
 
-    @Test
-    fun getInstanceId_returnsStableValue() {
-        val prefs = SecurePrefs.createInMemory()
-        val id1 = prefs.getInstanceId()
-        val id2 = prefs.getInstanceId()
-        assertNotNull(id1)
-        assertTrue(id1.isNotEmpty())
-        assertEquals(id1, id2)
-    }
+  @Test
+  fun saveGatewayBootstrapToken_persistsSeparatelyFromSharedToken() {
+    val context = RuntimeEnvironment.getApplication()
+    val securePrefs = context.getSharedPreferences("coreblow.node.secure.test", Context.MODE_PRIVATE)
+    securePrefs.edit().clear().commit()
+    val prefs = SecurePrefs(context, securePrefsOverride = securePrefs)
+
+    prefs.setGatewayToken("shared-token")
+    prefs.setGatewayBootstrapToken("bootstrap-token")
+
+    assertEquals("shared-token", prefs.loadGatewayToken())
+    assertEquals("bootstrap-token", prefs.loadGatewayBootstrapToken())
+    assertEquals("bootstrap-token", prefs.gatewayBootstrapToken.value)
+  }
 }

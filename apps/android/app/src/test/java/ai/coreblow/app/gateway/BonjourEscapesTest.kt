@@ -4,25 +4,16 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class BonjourEscapesTest {
-    @Test
-    fun escapeDnsLabel_escapesBackslash() {
-        assertEquals("hello\\\\world", BonjourEscapes.escapeDnsLabel("hello\\world"))
-    }
+  @Test
+  fun decodeNoop() {
+    assertEquals("", BonjourEscapes.decode(""))
+    assertEquals("hello", BonjourEscapes.decode("hello"))
+  }
 
-    @Test
-    fun escapeDnsLabel_escapesDot() {
-        assertEquals("my\\.gateway", BonjourEscapes.escapeDnsLabel("my.gateway"))
-    }
-
-    @Test
-    fun unescapeDnsLabel_roundTrips() {
-        val original = "my.gateway\\test"
-        val escaped = BonjourEscapes.escapeDnsLabel(original)
-        assertEquals(original, BonjourEscapes.unescapeDnsLabel(escaped))
-    }
-
-    @Test
-    fun escapeDnsLabel_passesPlainThroughUnchanged() {
-        assertEquals("simple", BonjourEscapes.escapeDnsLabel("simple"))
-    }
+  @Test
+  fun decodeDecodesDecimalEscapes() {
+    assertEquals("CoreBlow Gateway", BonjourEscapes.decode("CoreBlow\\032Gateway"))
+    assertEquals("A B", BonjourEscapes.decode("A\\032B"))
+    assertEquals("Peter\u2019s Mac", BonjourEscapes.decode("Peter\\226\\128\\153s Mac"))
+  }
 }

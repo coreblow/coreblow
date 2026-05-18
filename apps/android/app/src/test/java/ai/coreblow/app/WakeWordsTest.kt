@@ -5,46 +5,46 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class WakeWordsTest {
-    @Test
-    fun parseCommaSeparatedTrimsAndDropsEmpty() {
-        assertEquals(listOf("coreblow", "claude"), WakeWords.parseCommaSeparated("  coreblow , claude, ,  "))
-    }
+  @Test
+  fun parseCommaSeparatedTrimsAndDropsEmpty() {
+    assertEquals(listOf("coreblow", "claude"), WakeWords.parseCommaSeparated("  coreblow , claude, ,  "))
+  }
 
-    @Test
-    fun sanitizeTrimsCapsAndFallsBack() {
-        val defaults = listOf("coreblow", "claude")
-        val long = "x".repeat(WakeWords.maxWordLength + 10)
-        val words = listOf(" ", "  hello  ", long)
+  @Test
+  fun sanitizeTrimsCapsAndFallsBack() {
+    val defaults = listOf("coreblow", "claude")
+    val long = "x".repeat(WakeWords.maxWordLength + 10)
+    val words = listOf(" ", "  hello  ", long)
 
-        val sanitized = WakeWords.sanitize(words, defaults)
-        assertEquals(2, sanitized.size)
-        assertEquals("hello", sanitized[0])
-        assertEquals("x".repeat(WakeWords.maxWordLength), sanitized[1])
+    val sanitized = WakeWords.sanitize(words, defaults)
+    assertEquals(2, sanitized.size)
+    assertEquals("hello", sanitized[0])
+    assertEquals("x".repeat(WakeWords.maxWordLength), sanitized[1])
 
-        assertEquals(defaults, WakeWords.sanitize(listOf(" ", ""), defaults))
-    }
+    assertEquals(defaults, WakeWords.sanitize(listOf(" ", ""), defaults))
+  }
 
-    @Test
-    fun sanitizeLimitsWordCount() {
-        val defaults = listOf("coreblow")
-        val words = (1..(WakeWords.maxWords + 5)).map { "w$it" }
-        val sanitized = WakeWords.sanitize(words, defaults)
-        assertEquals(WakeWords.maxWords, sanitized.size)
-        assertEquals("w1", sanitized.first())
-        assertEquals("w${WakeWords.maxWords}", sanitized.last())
-    }
+  @Test
+  fun sanitizeLimitsWordCount() {
+    val defaults = listOf("coreblow")
+    val words = (1..(WakeWords.maxWords + 5)).map { "w$it" }
+    val sanitized = WakeWords.sanitize(words, defaults)
+    assertEquals(WakeWords.maxWords, sanitized.size)
+    assertEquals("w1", sanitized.first())
+    assertEquals("w${WakeWords.maxWords}", sanitized.last())
+  }
 
-    @Test
-    fun parseIfChangedSkipsWhenUnchanged() {
-        val current = listOf("coreblow", "claude")
-        val parsed = WakeWords.parseIfChanged(" coreblow , claude ", current)
-        assertNull(parsed)
-    }
+  @Test
+  fun parseIfChangedSkipsWhenUnchanged() {
+    val current = listOf("coreblow", "claude")
+    val parsed = WakeWords.parseIfChanged(" coreblow , claude ", current)
+    assertNull(parsed)
+  }
 
-    @Test
-    fun parseIfChangedReturnsUpdatedList() {
-        val current = listOf("coreblow")
-        val parsed = WakeWords.parseIfChanged(" coreblow , jarvis ", current)
-        assertEquals(listOf("coreblow", "jarvis"), parsed)
-    }
+  @Test
+  fun parseIfChangedReturnsUpdatedList() {
+    val current = listOf("coreblow")
+    val parsed = WakeWords.parseIfChanged(" coreblow , jarvis ", current)
+    assertEquals(listOf("coreblow", "jarvis"), parsed)
+  }
 }

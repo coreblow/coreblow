@@ -1,83 +1,83 @@
 package ai.coreblow.app.node
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SystemHandlerTest {
-    @Test fun commandName_isSystem() { assertEquals("system", SystemHandler.COMMAND_NAME) }
+  @Test
+  fun handleSystemNotify_rejectsUnauthorized() {
+    val handler = SystemHandler.forTesting(poster = FakePoster(authorized = false))
 
-    @Test fun parseUptimeResponse_returnsPositiveValue() {
-        val uptime = SystemHandler.parseUptime("""{"uptimeMs":1234567}""")
-        assertNotNull(uptime)
-        assertTrue(uptime!!.uptimeMs > 0)
-    }
+    val result = handler.handleSystemNotify("""{"title":"CoreBlow","body":"hi"}""")
 
-    @Test fun formatUptime_handlesMinutes() {
-        assertEquals("5m 0s", SystemHandler.formatUptime(300_000L))
-    }
+    assertFalse(result.ok)
+    assertEquals("NOT_AUTHORIZED", result.error?.code)
+  }
 
-    @Test fun formatUptime_handlesHours() {
-        assertEquals("1h 30m 0s", SystemHandler.formatUptime(5_400_000L))
-    }
+  @Test
+  fun handleSystemNotify_rejectsEmptyNotification() {
+    val handler = SystemHandler.forTesting(poster = FakePoster(authorized = true))
 
-    @Test fun formatUptime_handlesDays() {
-        assertEquals("1d 0h 0m 0s", SystemHandler.formatUptime(86_400_000L))
-    }
+    val result = handler.handleSystemNotify("""{"title":"   ","body":"  "}""")
 
-    @Test fun parseMemoryInfo_extractsFields() {
-        val json = """{"totalBytes":8000000000,"availableBytes":4000000000,"usedBytes":4000000000}"""
-        val mem = SystemHandler.parseMemoryInfo(json)
-        assertNotNull(mem)
-        assertEquals(8_000_000_000L, mem!!.totalBytes)
-        assertTrue(mem.availableBytes <= mem.totalBytes)
-    }
+    assertFalse(result.ok)
+    assertEquals("INVALID_REQUEST", result.error?.code)
+  }
 
-    @Test fun memoryUsagePercent_computesCorrectly() {
-        val pct = SystemHandler.memoryUsagePercent(totalBytes = 100L, usedBytes = 75L)
-        assertEquals(75.0, pct, 0.1)
-    }
+  @Test
+  fun handleSystemNotify_postsNotification() {
+    val poster = FakePoster(authorized = true)
+    val handler = SystemHandler.forTesting(poster = poster)
 
-    @Test fun memoryUsagePercent_handlesZeroTotal() {
-        val pct = SystemHandler.memoryUsagePercent(totalBytes = 0L, usedBytes = 0L)
-        assertEquals(0.0, pct, 0.1)
-    }
+    val result = handler.handleSystemNotify("""{"title":"CoreBlow","body":"done","priority":"active"}""")
 
-    @Test fun diagnosticsResponse_containsExpectedKeys() {
-        val keys = SystemHandler.diagnosticKeys()
-        assertTrue(keys.contains("uptime"))
-        assertTrue(keys.contains("memory"))
-        assertTrue(keys.contains("storage"))
-    }
+    assertTrue(result.ok)
+    assertEquals(1, poster.posts)
+  }
 
-    @Test fun formatUptime_handlesZero() {
-        assertEquals("0s", SystemHandler.formatUptime(0L))
-    }
+  @Test
+  fun handleSystemNotify_returnsUnauthorizedWhenPostFailsPermission() {
+    val handler = SystemHandler.forTesting(poster = ThrowingPoster(authorized = true, error = SecurityException("denied")))
 
-    @Test fun formatUptime_handlesSmallMs() {
-        assertEquals("0s", SystemHandler.formatUptime(500L))
-    }
+    val result = handler.handleSystemNotify("""{"title":"CoreBlow","body":"done"}""")
 
-    @Test fun parseStorageInfo_extractsTotalAndFree() {
-        val json = """{"totalBytes":128000000000,"freeBytes":64000000000,"usedBytes":64000000000}"""
-        val storage = SystemHandler.parseStorageInfo(json)
-        assertNotNull(storage)
-        assertEquals(128_000_000_000L, storage!!.totalBytes)
-        assertEquals(64_000_000_000L, storage.freeBytes)
-    }
+    assertFalse(result.ok)
+    assertEquals("NOT_AUTHORIZED", result.error?.code)
+  }
 
-    @Test fun thermalState_mapsValues() {
-        assertEquals("nominal", SystemHandler.mapThermalState(0))
-        assertEquals("fair", SystemHandler.mapThermalState(2))
-        assertEquals("serious", SystemHandler.mapThermalState(3))
-        assertEquals("critical", SystemHandler.mapThermalState(4))
-    }
+  @Test
+  fun handleSystemNotify_returnsUnavailableWhenPostFailsUnexpectedly() {
+    val handler = SystemHandler.forTesting(poster = ThrowingPoster(authorized = true, error = IllegalStateException("boom")))
 
-    @Test fun memoryPressure_mapsFromRatio() {
-        assertEquals("normal", SystemHandler.memoryPressureLevel(total = 100, available = 60))
-        assertEquals("moderate", SystemHandler.memoryPressureLevel(total = 100, available = 25))
-        assertEquals("high", SystemHandler.memoryPressureLevel(total = 100, available = 10))
-        assertEquals("critical", SystemHandler.memoryPressureLevel(total = 100, available = 3))
-    }
+    val result = handler.handleSystemNotify("""{"title":"CoreBlow","body":"done"}""")
+
+    assertFalse(result.ok)
+    assertEquals("UNAVAILABLE", result.error?.code)
+  }
+}
+
+private class FakePoster(
+  private val authorized: Boolean,
+) : SystemNotificationPoster {
+  var posts: Int = 0
+    private set
+
+  override fun isAuthorized(): Boolean = authorized
+
+  override fun post(request: SystemNotifyRequest) {
+    posts += 1
+  }
+}
+
+private class ThrowingPoster(
+  private val authorized: Boolean,
+  private val error: Throwable,
+) : SystemNotificationPoster {
+  override fun isAuthorized(): Boolean = authorized
+
+  override fun post(request: SystemNotifyRequest) {
+    throw error
+  }
 }

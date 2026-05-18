@@ -1,51 +1,47 @@
 package ai.coreblow.app.node
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.math.min
 
 class JpegSizeLimiterTest {
-    @Test
-    fun suggestedQuality_startsAtMaxForSmallInput() {
-        val quality = JpegSizeLimiter.suggestQuality(byteCount = 10_000L, targetBytes = 100_000L)
-        assertEquals(JpegSizeLimiter.MAX_QUALITY, quality)
-    }
+  @Test
+  fun compressesLargePayloadsUnderLimit() {
+    val maxBytes = 5 * 1024 * 1024
+    val result =
+      JpegSizeLimiter.compressToLimit(
+        initialWidth = 4000,
+        initialHeight = 3000,
+        startQuality = 95,
+        maxBytes = maxBytes,
+        encode = { width, height, quality ->
+          val estimated = (width.toLong() * height.toLong() * quality.toLong()) / 100
+          val size = min(maxBytes.toLong() * 2, estimated).toInt()
+          ByteArray(size)
+        },
+      )
 
-    @Test
-    fun suggestedQuality_reducesForLargeInput() {
-        val quality = JpegSizeLimiter.suggestQuality(byteCount = 500_000L, targetBytes = 100_000L)
-        assertTrue(quality < JpegSizeLimiter.MAX_QUALITY)
-        assertTrue(quality >= JpegSizeLimiter.MIN_QUALITY)
-    }
+    assertTrue(result.bytes.size <= maxBytes)
+    assertTrue(result.width <= 4000)
+    assertTrue(result.height <= 3000)
+    assertTrue(result.quality <= 95)
+  }
 
-    @Test
-    fun suggestedQuality_neverBelowMinimum() {
-        val quality = JpegSizeLimiter.suggestQuality(byteCount = 50_000_000L, targetBytes = 100_000L)
-        assertTrue(quality >= JpegSizeLimiter.MIN_QUALITY)
-    }
+  @Test
+  fun keepsSmallPayloadsAsIs() {
+    val maxBytes = 5 * 1024 * 1024
+    val result =
+      JpegSizeLimiter.compressToLimit(
+        initialWidth = 800,
+        initialHeight = 600,
+        startQuality = 90,
+        maxBytes = maxBytes,
+        encode = { _, _, _ -> ByteArray(120_000) },
+      )
 
-    @Test
-    fun isWithinLimit_checksCorrectly() {
-        assertTrue(JpegSizeLimiter.isWithinLimit(50_000L, 100_000L))
-        assertTrue(JpegSizeLimiter.isWithinLimit(100_000L, 100_000L))
-        assertFalse(JpegSizeLimiter.isWithinLimit(100_001L, 100_000L))
-    }
-
-    @Test
-    fun scaleFactor_computesCorrectly() {
-        val factor = JpegSizeLimiter.scaleFactor(byteCount = 400_000L, targetBytes = 100_000L)
-        assertTrue(factor < 1.0)
-        assertTrue(factor > 0.0)
-    }
-
-    @Test
-    fun maxQuality_isReasonable() {
-        assertTrue(JpegSizeLimiter.MAX_QUALITY in 80..100)
-    }
-
-    @Test
-    fun minQuality_isReasonable() {
-        assertTrue(JpegSizeLimiter.MIN_QUALITY in 10..50)
-    }
+    assertEquals(800, result.width)
+    assertEquals(600, result.height)
+    assertEquals(90, result.quality)
+  }
 }

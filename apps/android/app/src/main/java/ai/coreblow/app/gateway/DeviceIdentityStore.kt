@@ -1,153 +1,174 @@
 package ai.coreblow.app.gateway
 
 import android.content.Context
-import android.os.Build
-import android.provider.Settings
-import android.util.Log
+import android.util.Base64
+import java.io.File
 import java.security.MessageDigest
-import java.util.UUID
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
-/**
- * Manages a stable, unique device identity for gateway authentication.
- * Generates a device ID from hardware fingerprints with fallback to UUID.
- * Persists the identity across app reinstalls using SharedPreferences.
- */
-object DeviceIdentityStore {
+@Serializable
+data class DeviceIdentity(
+  val deviceId: String,
+  val publicKeyRawBase64: String,
+  val privateKeyPkcs8Base64: String,
+  val createdAtMs: Long,
+)
 
-    private const val TAG = "DeviceIdentityStore"
-    private const val PREFS_NAME = "coreblow_device_identity"
-    private const val KEY_DEVICE_ID = "device_id"
-    private const val KEY_DEVICE_NAME = "device_name"
-    private const val KEY_CREATED_AT = "created_at"
-    private const val KEY_FINGERPRINT = "fingerprint"
-    private const val KEY_INSTALL_ID = "install_id"
+class DeviceIdentityStore(context: Context) {
+  private val json = Json { ignoreUnknownKeys = true }
+  private val identityFile = File(context.filesDir, "coreblow/identity/device.json")
+  @Volatile private var cachedIdentity: DeviceIdentity? = null
 
-    /**
-     * Get or create a stable device ID.
-     * Priority: persisted > hardware fingerprint > random UUID.
-     */
-    fun getOrCreateDeviceId(context: Context): String {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val existing = prefs.getString(KEY_DEVICE_ID, null)
-        if (existing != null) return existing
-
-        val deviceId = generateDeviceId(context)
-        prefs.edit()
-            .putString(KEY_DEVICE_ID, deviceId)
-            .putLong(KEY_CREATED_AT, System.currentTimeMillis())
-            .putString(KEY_FINGERPRINT, generateFingerprint())
-            .putString(KEY_INSTALL_ID, UUID.randomUUID().toString())
-            .apply()
-
-        Log.i(TAG, "New device ID created: ${deviceId.take(8)}…")
-        return deviceId
+  @Synchronized
+  fun loadOrCreate(): DeviceIdentity {
+    cachedIdentity?.let { return it }
+    val existing = load()
+    if (existing != null) {
+      val derived = deriveDeviceId(existing.publicKeyRawBase64)
+      if (derived != null && derived != existing.deviceId) {
+        val updated = existing.copy(deviceId = derived)
+        save(updated)
+        cachedIdentity = updated
+        return updated
+      }
+      cachedIdentity = existing
+      return existing
     }
+    val fresh = generate()
+    save(fresh)
+    cachedIdentity = fresh
+    return fresh
+  }
 
-    /**
-     * Get a human-readable device name.
-     */
-    fun getDeviceName(context: Context): String {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val custom = prefs.getString(KEY_DEVICE_NAME, null)
-        if (custom != null) return custom
-        return "${Build.MANUFACTURER.replaceFirstChar { it.uppercase() }} ${Build.MODEL}"
+  fun signPayload(payload: String, identity: DeviceIdentity): String? {
+    return try {
+      // Use BC lightweight API directly — JCA provider registration is broken by R8
+      val privateKeyBytes = Base64.decode(identity.privateKeyPkcs8Base64, Base64.DEFAULT)
+      val pkInfo = org.bouncycastle.asn1.pkcs.PrivateKeyInfo.getInstance(privateKeyBytes)
+      val parsed = pkInfo.parsePrivateKey()
+      val rawPrivate = org.bouncycastle.asn1.DEROctetString.getInstance(parsed).octets
+      val privateKey = org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters(rawPrivate, 0)
+      val signer = org.bouncycastle.crypto.signers.Ed25519Signer()
+      signer.init(true, privateKey)
+      val payloadBytes = payload.toByteArray(Charsets.UTF_8)
+      signer.update(payloadBytes, 0, payloadBytes.size)
+      base64UrlEncode(signer.generateSignature())
+    } catch (e: Throwable) {
+      android.util.Log.e("DeviceAuth", "signPayload FAILED: ${e.javaClass.simpleName}: ${e.message}", e)
+      null
     }
+  }
 
-    /**
-     * Set a custom device name.
-     */
-    fun setDeviceName(context: Context, name: String) {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit().putString(KEY_DEVICE_NAME, name.trim().take(50)).apply()
+  fun verifySelfSignature(payload: String, signatureBase64Url: String, identity: DeviceIdentity): Boolean {
+    return try {
+      val rawPublicKey = Base64.decode(identity.publicKeyRawBase64, Base64.DEFAULT)
+      val pubKey = org.bouncycastle.crypto.params.Ed25519PublicKeyParameters(rawPublicKey, 0)
+      val sigBytes = base64UrlDecode(signatureBase64Url)
+      val verifier = org.bouncycastle.crypto.signers.Ed25519Signer()
+      verifier.init(false, pubKey)
+      val payloadBytes = payload.toByteArray(Charsets.UTF_8)
+      verifier.update(payloadBytes, 0, payloadBytes.size)
+      verifier.verifySignature(sigBytes)
+    } catch (e: Throwable) {
+      android.util.Log.e("DeviceAuth", "self-verify exception: ${e.message}", e)
+      false
     }
+  }
 
-    /**
-     * Get the install-specific ID (changes on reinstall).
-     */
-    fun getInstallId(context: Context): String {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val existing = prefs.getString(KEY_INSTALL_ID, null)
-        if (existing != null) return existing
+  private fun base64UrlDecode(input: String): ByteArray {
+    val normalized = input.replace('-', '+').replace('_', '/')
+    val padded = normalized + "=".repeat((4 - normalized.length % 4) % 4)
+    return Base64.decode(padded, Base64.DEFAULT)
+  }
 
-        val installId = UUID.randomUUID().toString()
-        prefs.edit().putString(KEY_INSTALL_ID, installId).apply()
-        return installId
+  fun publicKeyBase64Url(identity: DeviceIdentity): String? {
+    return try {
+      val raw = Base64.decode(identity.publicKeyRawBase64, Base64.DEFAULT)
+      base64UrlEncode(raw)
+    } catch (_: Throwable) {
+      null
     }
+  }
 
-    /**
-     * Get device metadata for gateway registration.
-     */
-    fun getDeviceMetadata(context: Context): Map<String, String> {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return mapOf(
-            "deviceId" to getOrCreateDeviceId(context),
-            "deviceName" to getDeviceName(context),
-            "installId" to getInstallId(context),
-            "manufacturer" to Build.MANUFACTURER,
-            "model" to Build.MODEL,
-            "brand" to Build.BRAND,
-            "osVersion" to Build.VERSION.RELEASE,
-            "sdkInt" to Build.VERSION.SDK_INT.toString(),
-            "fingerprint" to (prefs.getString(KEY_FINGERPRINT, "") ?: ""),
-            "createdAt" to (prefs.getLong(KEY_CREATED_AT, 0)).toString(),
-        )
+  private fun load(): DeviceIdentity? {
+    return readIdentity(identityFile)
+  }
+
+  private fun readIdentity(file: File): DeviceIdentity? {
+    return try {
+      if (!file.exists()) return null
+      val raw = file.readText(Charsets.UTF_8)
+      val decoded = json.decodeFromString(DeviceIdentity.serializer(), raw)
+      if (decoded.deviceId.isBlank() ||
+        decoded.publicKeyRawBase64.isBlank() ||
+        decoded.privateKeyPkcs8Base64.isBlank()
+      ) {
+        null
+      } else {
+        decoded
+      }
+    } catch (_: Throwable) {
+      null
     }
+  }
 
-    /**
-     * Check if the hardware fingerprint has changed (possible device migration).
-     */
-    fun hasHardwareChanged(context: Context): Boolean {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val stored = prefs.getString(KEY_FINGERPRINT, null) ?: return false
-        return stored != generateFingerprint()
+  private fun save(identity: DeviceIdentity) {
+    try {
+      identityFile.parentFile?.mkdirs()
+      val encoded = json.encodeToString(DeviceIdentity.serializer(), identity)
+      identityFile.writeText(encoded, Charsets.UTF_8)
+    } catch (_: Throwable) {
+      // best-effort only
     }
+  }
 
-    /**
-     * Reset identity (use with caution — changes device ID on gateway).
-     */
-    fun resetIdentity(context: Context) {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit().clear().apply()
-        Log.w(TAG, "Device identity reset")
+  private fun generate(): DeviceIdentity {
+    // Use BC lightweight API directly to avoid JCA provider issues with R8
+    val kpGen = org.bouncycastle.crypto.generators.Ed25519KeyPairGenerator()
+    kpGen.init(org.bouncycastle.crypto.params.Ed25519KeyGenerationParameters(java.security.SecureRandom()))
+    val kp = kpGen.generateKeyPair()
+    val pubKey = kp.public as org.bouncycastle.crypto.params.Ed25519PublicKeyParameters
+    val privKey = kp.private as org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters
+    val rawPublic = pubKey.encoded  // 32 bytes
+    val deviceId = sha256Hex(rawPublic)
+    // Encode private key as PKCS8 for storage
+    val privKeyInfo = org.bouncycastle.crypto.util.PrivateKeyInfoFactory.createPrivateKeyInfo(privKey)
+    val pkcs8Bytes = privKeyInfo.encoded
+    return DeviceIdentity(
+      deviceId = deviceId,
+      publicKeyRawBase64 = Base64.encodeToString(rawPublic, Base64.NO_WRAP),
+      privateKeyPkcs8Base64 = Base64.encodeToString(pkcs8Bytes, Base64.NO_WRAP),
+      createdAtMs = System.currentTimeMillis(),
+    )
+  }
+
+  private fun deriveDeviceId(publicKeyRawBase64: String): String? {
+    return try {
+      val raw = Base64.decode(publicKeyRawBase64, Base64.DEFAULT)
+      sha256Hex(raw)
+    } catch (_: Throwable) {
+      null
     }
+  }
 
-    // MARK: - Private
-
-    @Suppress("DEPRECATION")
-    private fun generateDeviceId(context: Context): String {
-        // Try Android ID first
-        val androidId = try {
-            Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
-        } catch (_: Exception) { null }
-
-        // Combine with hardware info for stability
-        val seed = listOfNotNull(
-            androidId,
-            Build.BOARD,
-            Build.BRAND,
-            Build.DEVICE,
-            Build.HARDWARE,
-            Build.MANUFACTURER,
-            Build.MODEL,
-            Build.PRODUCT,
-            Build.SERIAL.takeIf { it != Build.UNKNOWN },
-        ).joinToString("|")
-
-        return if (seed.isNotBlank()) {
-            sha256(seed).take(32)
-        } else {
-            UUID.randomUUID().toString().replace("-", "").take(32)
-        }
+  private fun sha256Hex(data: ByteArray): String {
+    val digest = MessageDigest.getInstance("SHA-256").digest(data)
+    val out = CharArray(digest.size * 2)
+    var i = 0
+    for (byte in digest) {
+      val v = byte.toInt() and 0xff
+      out[i++] = HEX[v ushr 4]
+      out[i++] = HEX[v and 0x0f]
     }
+    return String(out)
+  }
 
-    private fun generateFingerprint(): String {
-        val data = "${Build.BOARD}|${Build.BRAND}|${Build.DEVICE}|${Build.HARDWARE}|${Build.MANUFACTURER}|${Build.MODEL}"
-        return sha256(data).take(16)
-    }
+  private fun base64UrlEncode(data: ByteArray): String {
+    return Base64.encodeToString(data, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+  }
 
-    private fun sha256(input: String): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        val hash = digest.digest(input.toByteArray(Charsets.UTF_8))
-        return hash.joinToString("") { "%02x".format(it) }
-    }
+  companion object {
+    private val HEX = "0123456789abcdef".toCharArray()
+  }
 }

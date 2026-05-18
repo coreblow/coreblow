@@ -1,15 +1,63 @@
 package ai.coreblow.app.protocol
 
-import ai.coreblow.app.node.handlers.CanvasActionTrust
-import ai.coreblow.app.node.handlers.CanvasActionTrustEvaluator
-import org.junit.Assert.*
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class CoreBlowCanvasA2UIActionTest {
-    @Test fun `set-title is safe`() = assertTrue(CanvasActionTrustEvaluator.isSafe("set-title"))
-    @Test fun `update-badge is safe`() = assertTrue(CanvasActionTrustEvaluator.isSafe("update-badge"))
-    @Test fun `download-file requires prompt`() = assertEquals(CanvasActionTrust.PROMPT, CanvasActionTrustEvaluator.evaluate("download-file"))
-    @Test fun `screenshot requires prompt`() = assertEquals(CanvasActionTrust.PROMPT, CanvasActionTrustEvaluator.evaluate("screenshot"))
-    @Test fun `access-storage is denied`() = assertEquals(CanvasActionTrust.DENY, CanvasActionTrustEvaluator.evaluate("access-storage"))
-    @Test fun `modify-settings is denied`() = assertEquals(CanvasActionTrust.DENY, CanvasActionTrustEvaluator.evaluate("modify-settings"))
+  @Test
+  fun extractActionNameAcceptsNameOrAction() {
+    val nameObj = Json.parseToJsonElement("{\"name\":\"Hello\"}").jsonObject
+    assertEquals("Hello", CoreBlowCanvasA2UIAction.extractActionName(nameObj))
+
+    val actionObj = Json.parseToJsonElement("{\"action\":\"Wave\"}").jsonObject
+    assertEquals("Wave", CoreBlowCanvasA2UIAction.extractActionName(actionObj))
+
+    val fallbackObj =
+      Json.parseToJsonElement("{\"name\":\"  \",\"action\":\"Fallback\"}").jsonObject
+    assertEquals("Fallback", CoreBlowCanvasA2UIAction.extractActionName(fallbackObj))
+  }
+
+  @Test
+  fun formatAgentMessageMatchesSharedSpec() {
+    val msg =
+      CoreBlowCanvasA2UIAction.formatAgentMessage(
+        actionName = "Get Weather",
+        sessionKey = "main",
+        surfaceId = "main",
+        sourceComponentId = "btnWeather",
+        host = "Peter’s iPad",
+        instanceId = "ipad16,6",
+        contextJson = "{\"city\":\"Vienna\"}",
+      )
+
+    assertEquals(
+      "CANVAS_A2UI action=Get_Weather session=main surface=main component=btnWeather host=Peter_s_iPad instance=ipad16_6 ctx={\"city\":\"Vienna\"} default=update_canvas",
+      msg,
+    )
+  }
+
+  @Test
+  fun jsDispatchA2uiStatusIsStable() {
+    val js = CoreBlowCanvasA2UIAction.jsDispatchA2UIActionStatus(actionId = "a1", ok = true, error = null)
+    assertEquals(
+      "window.dispatchEvent(new CustomEvent('coreblow:a2ui-action-status', { detail: { id: \"a1\", ok: true, error: \"\" } }));",
+      js,
+    )
+  }
+
+  @Test
+  fun jsDispatchA2uiStatusQuotesControlCharacters() {
+    val js =
+      CoreBlowCanvasA2UIAction.jsDispatchA2UIActionStatus(
+        actionId = "a1\n\u2028\"",
+        ok = false,
+        error = "parse failed\n\t\u2029\\",
+      )
+    assertEquals(
+      "window.dispatchEvent(new CustomEvent('coreblow:a2ui-action-status', { detail: { id: \"a1\\n\\u2028\\\"\", ok: false, error: \"parse failed\\n\\t\\u2029\\\\\" } }));",
+      js,
+    )
+  }
 }

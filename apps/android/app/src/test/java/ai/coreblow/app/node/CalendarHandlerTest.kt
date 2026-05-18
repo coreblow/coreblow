@@ -1,106 +1,110 @@
 package ai.coreblow.app.node
 
+import android.content.Context
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class CalendarHandlerTest {
-    @Test fun commandName_isCalendar() { assertEquals("calendar", CalendarHandler.COMMAND_NAME) }
+class CalendarHandlerTest : NodeHandlerRobolectricTest() {
+  @Test
+  fun handleCalendarEvents_requiresPermission() {
+    val handler = CalendarHandler.forTesting(appContext(), FakeCalendarDataSource(canRead = false))
 
-    @Test fun listEvents_returnsEmptyForEmptyProvider() {
-        val result = CalendarHandler.parseEventListResponse("[]")
-        assertNotNull(result)
-        assertEquals(0, result.size)
-    }
+    val result = handler.handleCalendarEvents(null)
 
-    @Test fun parseEvent_extractsRequiredFields() {
-        val json = """{"id":"1","title":"Meeting","start":"2026-01-01T10:00:00Z","end":"2026-01-01T11:00:00Z"}"""
-        val event = CalendarHandler.parseEvent(json)
-        assertNotNull(event)
-        assertEquals("1", event?.id)
-        assertEquals("Meeting", event?.title)
-    }
+    assertFalse(result.ok)
+    assertEquals("CALENDAR_PERMISSION_REQUIRED", result.error?.code)
+  }
 
-    @Test fun parseEvent_handlesOptionalFields() {
-        val json = """{"id":"2","title":"Lunch","start":"2026-01-01T12:00:00Z","end":"2026-01-01T13:00:00Z","location":"Cafe","description":"Team lunch"}"""
-        val event = CalendarHandler.parseEvent(json)
-        assertEquals("Cafe", event?.location)
-        assertEquals("Team lunch", event?.description)
-    }
+  @Test
+  fun handleCalendarAdd_rejectsEndBeforeStart() {
+    val handler = CalendarHandler.forTesting(appContext(), FakeCalendarDataSource(canRead = true, canWrite = true))
 
-    @Test fun dateRangeQuery_validatesStartBeforeEnd() {
-        assertFalse(CalendarHandler.isValidDateRange("2026-12-31", "2026-01-01"))
-        assertTrue(CalendarHandler.isValidDateRange("2026-01-01", "2026-12-31"))
-    }
+    val result =
+      handler.handleCalendarAdd(
+        """{"title":"Standup","startISO":"2026-02-28T10:00:00Z","endISO":"2026-02-28T09:00:00Z"}""",
+      )
 
-    @Test fun dateRangeQuery_rejectsInvalidFormats() {
-        assertFalse(CalendarHandler.isValidDateRange("not-a-date", "2026-12-31"))
-        assertFalse(CalendarHandler.isValidDateRange("2026-01-01", "invalid"))
-    }
+    assertFalse(result.ok)
+    assertEquals("CALENDAR_INVALID", result.error?.code)
+  }
 
-    @Test fun conflictDetection_findOverlaps() {
-        val events = listOf(
-            CalendarHandler.TimeSlot("2026-01-01T10:00:00Z", "2026-01-01T11:00:00Z"),
-            CalendarHandler.TimeSlot("2026-01-01T10:30:00Z", "2026-01-01T11:30:00Z"),
-        )
-        val conflicts = CalendarHandler.findConflicts(events)
-        assertEquals(1, conflicts.size)
-    }
+  @Test
+  fun handleCalendarEvents_returnsEvents() {
+    val event =
+      CalendarEventRecord(
+        identifier = "101",
+        title = "Sprint Planning",
+        startISO = "2026-02-28T10:00:00Z",
+        endISO = "2026-02-28T11:00:00Z",
+        isAllDay = false,
+        location = "Room 1",
+        calendarTitle = "Work",
+      )
+    val handler =
+      CalendarHandler.forTesting(
+        appContext(),
+        FakeCalendarDataSource(canRead = true, events = listOf(event)),
+      )
 
-    @Test fun conflictDetection_noOverlapsForSeparateEvents() {
-        val events = listOf(
-            CalendarHandler.TimeSlot("2026-01-01T10:00:00Z", "2026-01-01T11:00:00Z"),
-            CalendarHandler.TimeSlot("2026-01-01T12:00:00Z", "2026-01-01T13:00:00Z"),
-        )
-        val conflicts = CalendarHandler.findConflicts(events)
-        assertEquals(0, conflicts.size)
-    }
+    val result = handler.handleCalendarEvents("""{"limit":1}""")
 
-    @Test fun calendarPermissions_includesReadAndWrite() {
-        val perms = CalendarHandler.requiredPermissions()
-        assertTrue(perms.size >= 2)
-    }
+    assertTrue(result.ok)
+    val payload = Json.parseToJsonElement(result.payloadJson ?: error("missing payload")).jsonObject
+    val events = payload.getValue("events").jsonArray
+    assertEquals(1, events.size)
+    assertEquals("Sprint Planning", events.first().jsonObject.getValue("title").jsonPrimitive.content)
+  }
 
-    @Test fun parseEvent_handlesAllDayEvent() {
-        val json = """{"id":"3","title":"Holiday","start":"2026-07-04","end":"2026-07-05","allDay":true}"""
-        val event = CalendarHandler.parseEvent(json)
-        assertNotNull(event)
-        assertTrue(event!!.allDay)
-    }
+  @Test
+  fun handleCalendarAdd_mapsNotFoundErrorCode() {
+    val source =
+      FakeCalendarDataSource(
+        canRead = true,
+        canWrite = true,
+        addError = IllegalArgumentException("CALENDAR_NOT_FOUND: no default calendar"),
+      )
+    val handler = CalendarHandler.forTesting(appContext(), source)
 
-    @Test fun parseEvent_handlesRecurringRule() {
-        val json = """{"id":"4","title":"Standup","start":"2026-01-01T09:00:00Z","end":"2026-01-01T09:15:00Z","rrule":"FREQ=DAILY"}"""
-        val event = CalendarHandler.parseEvent(json)
-        assertEquals("FREQ=DAILY", event?.rrule)
-    }
+    val result =
+      handler.handleCalendarAdd(
+        """{"title":"Call","startISO":"2026-02-28T10:00:00Z","endISO":"2026-02-28T11:00:00Z"}""",
+      )
 
-    @Test fun dateRangeQuery_sameDayIsValid() {
-        assertTrue(CalendarHandler.isValidDateRange("2026-06-15", "2026-06-15"))
-    }
+    assertFalse(result.ok)
+    assertEquals("CALENDAR_NOT_FOUND", result.error?.code)
+  }
+}
 
-    @Test fun parseDurationMinutes_computesCorrectly() {
-        val minutes = CalendarHandler.durationMinutes("2026-01-01T10:00:00Z", "2026-01-01T11:30:00Z")
-        assertEquals(90L, minutes)
-    }
+private class FakeCalendarDataSource(
+  private val canRead: Boolean,
+  private val canWrite: Boolean = false,
+  private val events: List<CalendarEventRecord> = emptyList(),
+  private val addResult: CalendarEventRecord =
+    CalendarEventRecord(
+      identifier = "0",
+      title = "Default",
+      startISO = "2026-01-01T00:00:00Z",
+      endISO = "2026-01-01T01:00:00Z",
+      isAllDay = false,
+      location = null,
+      calendarTitle = null,
+    ),
+  private val addError: Throwable? = null,
+) : CalendarDataSource {
+  override fun hasReadPermission(context: Context): Boolean = canRead
 
-    @Test fun parseDurationMinutes_handlesZeroDuration() {
-        val minutes = CalendarHandler.durationMinutes("2026-01-01T10:00:00Z", "2026-01-01T10:00:00Z")
-        assertEquals(0L, minutes)
-    }
+  override fun hasWritePermission(context: Context): Boolean = canWrite
 
-    @Test fun conflictDetection_adjacentIsNotConflict() {
-        val events = listOf(
-            CalendarHandler.TimeSlot("2026-01-01T10:00:00Z", "2026-01-01T11:00:00Z"),
-            CalendarHandler.TimeSlot("2026-01-01T11:00:00Z", "2026-01-01T12:00:00Z"),
-        )
-        val conflicts = CalendarHandler.findConflicts(events)
-        assertEquals(0, conflicts.size)
-    }
+  override fun events(context: Context, request: CalendarEventsRequest): List<CalendarEventRecord> = events
 
-    @Test fun maxEventsPerQuery_isReasonable() {
-        assertTrue(CalendarHandler.MAX_EVENTS_PER_QUERY > 0)
-        assertTrue(CalendarHandler.MAX_EVENTS_PER_QUERY <= 1000)
-    }
+  override fun add(context: Context, request: CalendarAddRequest): CalendarEventRecord {
+    addError?.let { throw it }
+    return addResult
+  }
 }

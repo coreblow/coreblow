@@ -1,36 +1,32 @@
 package ai.coreblow.app.chat
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ChatControllerSessionPolicyTest {
-    @Test fun newSession_createsUniqueId() {
-        val s1 = ChatController.createSession()
-        val s2 = ChatController.createSession()
-        assertNotNull(s1.id)
-        assertNotNull(s2.id)
-        assertFalse(s1.id == s2.id)
-    }
+  @Test
+  fun applyMainSessionKeyMovesCurrentSessionWhenStillOnDefault() {
+    val state =
+      applyMainSessionKey(
+        currentSessionKey = "main",
+        appliedMainSessionKey = "main",
+        nextMainSessionKey = "agent:ops:node-device",
+      )
 
-    @Test fun sessionReuse_returnsSameForActiveSession() {
-        val policy = ChatController.SessionPolicy()
-        val session = policy.getOrCreateSession()
-        val same = policy.getOrCreateSession()
-        assertEquals(session.id, same.id)
-    }
+    assertEquals("agent:ops:node-device", state.currentSessionKey)
+    assertEquals("agent:ops:node-device", state.appliedMainSessionKey)
+  }
 
-    @Test fun sessionCreation_afterClear() {
-        val policy = ChatController.SessionPolicy()
-        val first = policy.getOrCreateSession()
-        policy.clearActiveSession()
-        val second = policy.getOrCreateSession()
-        assertFalse(first.id == second.id)
-    }
+  @Test
+  fun applyMainSessionKeyKeepsUserSelectedSession() {
+    val state =
+      applyMainSessionKey(
+        currentSessionKey = "custom",
+        appliedMainSessionKey = "agent:ops:node-old",
+        nextMainSessionKey = "agent:ops:node-new",
+      )
 
-    @Test fun maxSessionAge_isPositive() {
-        assertTrue(ChatController.MAX_SESSION_AGE_MS > 0L)
-    }
+    assertEquals("custom", state.currentSessionKey)
+    assertEquals("agent:ops:node-new", state.appliedMainSessionKey)
+  }
 }

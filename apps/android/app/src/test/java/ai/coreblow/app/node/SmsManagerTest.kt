@@ -1,162 +1,182 @@
 package ai.coreblow.app.node
 
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SmsManagerTest {
-    @Test fun commandName_isSms() { assertEquals("sms", SmsManager.COMMAND_NAME) }
+  private val json = SmsManager.JsonConfig
 
-    @Test fun characterCount_detectsGsm7bit() {
-        val result = SmsManager.analyzeMessage("Hello world")
-        assertEquals(SmsManager.Encoding.GSM_7BIT, result.encoding)
-        assertEquals(11, result.charCount)
-    }
+  @Test
+  fun parseParamsRejectsEmptyPayload() {
+    val result = SmsManager.parseParams("", json)
+    assertTrue(result is SmsManager.ParseResult.Error)
+    val error = result as SmsManager.ParseResult.Error
+    assertEquals("INVALID_REQUEST: paramsJSON required", error.error)
+  }
 
-    @Test fun characterCount_detectsUnicode() {
-        val result = SmsManager.analyzeMessage("Hello 🌍")
-        assertEquals(SmsManager.Encoding.UCS2, result.encoding)
-    }
+  @Test
+  fun parseParamsRejectsInvalidJson() {
+    val result = SmsManager.parseParams("not-json", json)
+    assertTrue(result is SmsManager.ParseResult.Error)
+    val error = result as SmsManager.ParseResult.Error
+    assertEquals("INVALID_REQUEST: expected JSON object", error.error)
+  }
 
-    @Test fun multipartSplit_singlePartForShortMessage() {
-        val parts = SmsManager.splitMessage("Short message")
-        assertEquals(1, parts.size)
-    }
+  @Test
+  fun parseParamsRejectsNonObjectJson() {
+    val result = SmsManager.parseParams("[]", json)
+    assertTrue(result is SmsManager.ParseResult.Error)
+    val error = result as SmsManager.ParseResult.Error
+    assertEquals("INVALID_REQUEST: expected JSON object", error.error)
+  }
 
-    @Test fun multipartSplit_splitsLongGsmMessage() {
-        val longMsg = "A".repeat(200) // Exceeds 160 char GSM limit
-        val parts = SmsManager.splitMessage(longMsg)
-        assertTrue(parts.size > 1)
-    }
+  @Test
+  fun parseParamsRejectsMissingTo() {
+    val result = SmsManager.parseParams("{\"message\":\"Hi\"}", json)
+    assertTrue(result is SmsManager.ParseResult.Error)
+    val error = result as SmsManager.ParseResult.Error
+    assertEquals("INVALID_REQUEST: 'to' phone number required", error.error)
+    assertEquals("Hi", error.message)
+  }
 
-    @Test fun multipartSplit_splitsLongUnicodeMessage() {
-        val longMsg = "あ".repeat(100) // Exceeds 70 char UCS-2 limit
-        val parts = SmsManager.splitMessage(longMsg)
-        assertTrue(parts.size > 1)
-    }
+  @Test
+  fun parseParamsRejectsMissingMessage() {
+    val result = SmsManager.parseParams("{\"to\":\"+1234\"}", json)
+    assertTrue(result is SmsManager.ParseResult.Error)
+    val error = result as SmsManager.ParseResult.Error
+    assertEquals("INVALID_REQUEST: 'message' text required", error.error)
+    assertEquals("+1234", error.to)
+  }
 
-    @Test fun phoneNumberNormalization_stripsNonDigits() {
-        assertEquals("+12345678901", SmsManager.normalizePhoneNumber("+1 (234) 567-8901"))
-        assertEquals("+12345678901", SmsManager.normalizePhoneNumber("+1.234.567.8901"))
-    }
+  @Test
+  fun parseParamsTrimsToField() {
+    val result = SmsManager.parseParams("{\"to\":\"  +1555  \",\"message\":\"Hello\"}", json)
+    assertTrue(result is SmsManager.ParseResult.Ok)
+    val ok = result as SmsManager.ParseResult.Ok
+    assertEquals("+1555", ok.params.to)
+    assertEquals("Hello", ok.params.message)
+  }
 
-    @Test fun phoneNumberNormalization_preservesPlus() {
-        assertTrue(SmsManager.normalizePhoneNumber("+12345678901").startsWith("+"))
-    }
+  @Test
+  fun buildPayloadJsonEscapesFields() {
+    val payload = SmsManager.buildPayloadJson(
+      json = json,
+      ok = false,
+      to = "+1\"23",
+      error = "SMS_SEND_FAILED: \"nope\"",
+    )
+    val parsed = json.parseToJsonElement(payload).jsonObject
+    assertEquals("false", parsed["ok"]?.jsonPrimitive?.content)
+    assertEquals("+1\"23", parsed["to"]?.jsonPrimitive?.content)
+    assertEquals("SMS_SEND_FAILED: \"nope\"", parsed["error"]?.jsonPrimitive?.content)
+  }
 
-    @Test fun parseSendRequest_extractsRequiredFields() {
-        val json = """{"to":"+12345678901","body":"Hello"}"""
-        val req = SmsManager.parseSendRequest(json)
-        assertNotNull(req)
-        assertEquals("+12345678901", req?.to)
-        assertEquals("Hello", req?.body)
-    }
+  @Test
+  fun buildSendPlanUsesMultipartWhenMultipleParts() {
+    val plan = SmsManager.buildSendPlan("hello") { listOf("a", "b") }
+    assertTrue(plan.useMultipart)
+    assertEquals(listOf("a", "b"), plan.parts)
+  }
 
-    @Test fun parseSendRequest_handlesEmptyBody() {
-        val json = """{"to":"+12345678901","body":""}"""
-        val req = SmsManager.parseSendRequest(json)
-        assertEquals("", req?.body)
-    }
+  @Test
+  fun buildSendPlanFallsBackToSinglePartWhenDividerEmpty() {
+    val plan = SmsManager.buildSendPlan("hello") { emptyList() }
+    assertFalse(plan.useMultipart)
+    assertEquals(listOf("hello"), plan.parts)
+  }
 
-    @Test fun conversationThreading_groupsByContact() {
-        val messages = listOf(
-            SmsManager.SmsEntry(address = "+111", body = "a", timestamp = 1L, type = 1),
-            SmsManager.SmsEntry(address = "+222", body = "b", timestamp = 2L, type = 1),
-            SmsManager.SmsEntry(address = "+111", body = "c", timestamp = 3L, type = 2),
-        )
-        val threads = SmsManager.groupByConversation(messages)
-        assertEquals(2, threads.size)
-        assertEquals(2, threads["+111"]?.size)
-        assertEquals(1, threads["+222"]?.size)
-    }
+  @Test
+  fun parseQueryParamsAcceptsEmptyPayload() {
+    val result = SmsManager.parseQueryParams(null, json)
+    assertTrue(result is SmsManager.QueryParseResult.Ok)
+    val ok = result as SmsManager.QueryParseResult.Ok
+    assertEquals(25, ok.params.limit)
+    assertEquals(0, ok.params.offset)
+  }
 
-    @Test fun contactNameResolution_returnsNullWhenUnknown() {
-        val name = SmsManager.resolveContactName(emptyMap(), "+99999999")
-        assertFalse(name != null)
-    }
+  @Test
+  fun parseQueryParamsRejectsInvalidJson() {
+    val result = SmsManager.parseQueryParams("not-json", json)
+    assertTrue(result is SmsManager.QueryParseResult.Error)
+    val error = result as SmsManager.QueryParseResult.Error
+    assertEquals("INVALID_REQUEST: expected JSON object", error.error)
+  }
 
-    @Test fun gsmCharacterSet_containsBasicLatin() {
-        assertTrue(SmsManager.isGsmCharacter('A'))
-        assertTrue(SmsManager.isGsmCharacter('0'))
-        assertTrue(SmsManager.isGsmCharacter(' '))
-        assertFalse(SmsManager.isGsmCharacter('あ'))
-    }
+  @Test
+  fun parseQueryParamsRejectsNonObjectJson() {
+    val result = SmsManager.parseQueryParams("[]", json)
+    assertTrue(result is SmsManager.QueryParseResult.Error)
+    val error = result as SmsManager.QueryParseResult.Error
+    assertEquals("INVALID_REQUEST: expected JSON object", error.error)
+  }
 
-    @Test fun requiredPermissions_includesSendAndRead() {
-        val perms = SmsManager.requiredPermissions()
-        assertTrue(perms.size >= 2)
-    }
+  @Test
+  fun parseQueryParamsParsesLimitAndOffset() {
+    val result = SmsManager.parseQueryParams("{\"limit\":10,\"offset\":5}", json)
+    assertTrue(result is SmsManager.QueryParseResult.Ok)
+    val ok = result as SmsManager.QueryParseResult.Ok
+    assertEquals(10, ok.params.limit)
+    assertEquals(5, ok.params.offset)
+  }
 
-    @Test fun maxMessageLength_gsm7bit() {
-        assertEquals(160, SmsManager.MAX_GSM_SINGLE_PART_LENGTH)
-    }
+  @Test
+  fun parseQueryParamsClampsLimitRange() {
+    val result = SmsManager.parseQueryParams("{\"limit\":300}", json)
+    assertTrue(result is SmsManager.QueryParseResult.Ok)
+    val ok = result as SmsManager.QueryParseResult.Ok
+    assertEquals(200, ok.params.limit)
+  }
 
-    @Test fun maxMessageLength_ucs2() {
-        assertEquals(70, SmsManager.MAX_UCS2_SINGLE_PART_LENGTH)
-    }
+  @Test
+  fun parseQueryParamsParsesPhoneNumber() {
+    val result = SmsManager.parseQueryParams("{\"phoneNumber\":\"+1234567890\"}", json)
+    assertTrue(result is SmsManager.QueryParseResult.Ok)
+    val ok = result as SmsManager.QueryParseResult.Ok
+    assertEquals("+1234567890", ok.params.phoneNumber)
+  }
 
-    @Test fun multipartSegmentLength_gsm7bit() {
-        assertEquals(153, SmsManager.GSM_MULTIPART_SEGMENT_LENGTH)
-    }
+  @Test
+  fun parseQueryParamsParsesContactName() {
+    val result = SmsManager.parseQueryParams("{\"contactName\":\"lixuankai\"}", json)
+    assertTrue(result is SmsManager.QueryParseResult.Ok)
+    val ok = result as SmsManager.QueryParseResult.Ok
+    assertEquals("lixuankai", ok.params.contactName)
+  }
 
-    @Test fun multipartSegmentLength_ucs2() {
-        assertEquals(67, SmsManager.UCS2_MULTIPART_SEGMENT_LENGTH)
-    }
+  @Test
+  fun parseQueryParamsParsesKeyword() {
+    val result = SmsManager.parseQueryParams("{\"keyword\":\"test\"}", json)
+    assertTrue(result is SmsManager.QueryParseResult.Ok)
+    val ok = result as SmsManager.QueryParseResult.Ok
+    assertEquals("test", ok.params.keyword)
+  }
 
-    @Test fun messageType_inbox() {
-        assertEquals(1, SmsManager.MESSAGE_TYPE_INBOX)
-    }
+  @Test
+  fun parseQueryParamsParsesTimeRange() {
+    val result = SmsManager.parseQueryParams("{\"startTime\":1000,\"endTime\":2000}", json)
+    assertTrue(result is SmsManager.QueryParseResult.Ok)
+    val ok = result as SmsManager.QueryParseResult.Ok
+    assertEquals(1000L, ok.params.startTime)
+    assertEquals(2000L, ok.params.endTime)
+  }
 
-    @Test fun messageType_sent() {
-        assertEquals(2, SmsManager.MESSAGE_TYPE_SENT)
-    }
+  @Test
+  fun parseQueryParamsParsesType() {
+    val result = SmsManager.parseQueryParams("{\"type\":1}", json)
+    assertTrue(result is SmsManager.QueryParseResult.Ok)
+    val ok = result as SmsManager.QueryParseResult.Ok
+    assertEquals(1, ok.params.type)
+  }
 
-    @Test fun conversationThreading_sortsByTimestamp() {
-        val messages = listOf(
-            SmsManager.SmsEntry(address = "+111", body = "old", timestamp = 100L, type = 1),
-            SmsManager.SmsEntry(address = "+111", body = "new", timestamp = 200L, type = 1),
-        )
-        val threads = SmsManager.groupByConversation(messages)
-        val thread = threads["+111"]!!
-        assertTrue(thread[0].timestamp <= thread[1].timestamp)
-    }
-
-    @Test fun filterInbox_returnsOnlyIncoming() {
-        val messages = listOf(
-            SmsManager.SmsEntry(address = "+111", body = "in", timestamp = 1L, type = 1),
-            SmsManager.SmsEntry(address = "+111", body = "out", timestamp = 2L, type = 2),
-        )
-        val inbox = SmsManager.filterByType(messages, SmsManager.MESSAGE_TYPE_INBOX)
-        assertEquals(1, inbox.size)
-        assertEquals("in", inbox[0].body)
-    }
-
-    @Test fun filterSent_returnsOnlyOutgoing() {
-        val messages = listOf(
-            SmsManager.SmsEntry(address = "+222", body = "in", timestamp = 1L, type = 1),
-            SmsManager.SmsEntry(address = "+222", body = "out", timestamp = 2L, type = 2),
-        )
-        val sent = SmsManager.filterByType(messages, SmsManager.MESSAGE_TYPE_SENT)
-        assertEquals(1, sent.size)
-        assertEquals("out", sent[0].body)
-    }
-
-    @Test fun analyzeMessage_emptyStringIsGsm() {
-        val result = SmsManager.analyzeMessage("")
-        assertEquals(SmsManager.Encoding.GSM_7BIT, result.encoding)
-        assertEquals(0, result.charCount)
-    }
-
-    @Test fun parseSendRequest_rejectsMissingTo() {
-        val json = """{"body":"Hello"}"""
-        val req = SmsManager.parseSendRequest(json)
-        assertTrue(req == null || req.to.isNullOrBlank())
-    }
-
-    @Test fun maxSearchResults_isReasonable() {
-        assertTrue(SmsManager.MAX_SEARCH_RESULTS > 0)
-        assertTrue(SmsManager.MAX_SEARCH_RESULTS <= 500)
-    }
+  @Test
+  fun parseQueryParamsParsesReadStatus() {
+    val result = SmsManager.parseQueryParams("{\"isRead\":true}", json)
+    assertTrue(result is SmsManager.QueryParseResult.Ok)
+    val ok = result as SmsManager.QueryParseResult.Ok
+    assertEquals(true, ok.params.isRead)
+  }
 }

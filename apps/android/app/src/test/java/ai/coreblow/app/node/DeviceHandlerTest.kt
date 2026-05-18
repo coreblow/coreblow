@@ -1,129 +1,148 @@
 package ai.coreblow.app.node
 
+import android.content.Context
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.double
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 
+@RunWith(RobolectricTestRunner::class)
 class DeviceHandlerTest {
-    @Test fun commandName_isDevice() { assertEquals("device", DeviceHandler.COMMAND_NAME) }
+  @Test
+  fun handleDeviceInfo_returnsStablePayload() {
+    val handler = DeviceHandler(appContext())
 
-    @Test fun parseBatteryInfo_extractsLevel() {
-        val json = """{"level":85,"status":"charging","health":"good","voltage":4200,"temperature":25.0,"technology":"Li-ion"}"""
-        val info = DeviceHandler.parseBatteryInfo(json)
-        assertNotNull(info)
-        assertEquals(85, info?.level)
-        assertEquals("charging", info?.status)
-    }
+    val result = handler.handleDeviceInfo(null)
 
-    @Test fun parseBatteryInfo_handlesEdgeLevels() {
-        val zero = DeviceHandler.parseBatteryInfo("""{"level":0,"status":"not_charging"}""")
-        assertEquals(0, zero?.level)
-        val full = DeviceHandler.parseBatteryInfo("""{"level":100,"status":"full"}""")
-        assertEquals(100, full?.level)
-    }
+    assertTrue(result.ok)
+    val payload = parsePayload(result.payloadJson)
+    assertEquals("Android", payload.getValue("systemName").jsonPrimitive.content)
+    assertTrue(payload.getValue("deviceName").jsonPrimitive.content.isNotBlank())
+    assertTrue(payload.getValue("modelIdentifier").jsonPrimitive.content.isNotBlank())
+    assertTrue(payload.getValue("systemVersion").jsonPrimitive.content.isNotBlank())
+    assertTrue(payload.getValue("appVersion").jsonPrimitive.content.isNotBlank())
+    assertTrue(payload.getValue("appBuild").jsonPrimitive.content.isNotBlank())
+    assertTrue(payload.getValue("locale").jsonPrimitive.content.isNotBlank())
+  }
 
-    @Test fun parseStorageInfo_extractsTotalAndFree() {
-        val json = """{"totalBytes":128000000000,"freeBytes":64000000000}"""
-        val info = DeviceHandler.parseStorageInfo(json)
-        assertNotNull(info)
-        assertTrue(info!!.totalBytes > 0)
-        assertTrue(info.freeBytes <= info.totalBytes)
-    }
+  @Test
+  fun handleDeviceStatus_returnsExpectedShape() {
+    val handler = DeviceHandler(appContext())
 
-    @Test fun formatBytes_handlesCommonSizes() {
-        assertEquals("0 B", DeviceHandler.formatBytes(0L))
-        assertEquals("1.0 KB", DeviceHandler.formatBytes(1024L))
-        assertEquals("1.0 MB", DeviceHandler.formatBytes(1024L * 1024L))
-        assertEquals("1.0 GB", DeviceHandler.formatBytes(1024L * 1024L * 1024L))
-    }
+    val result = handler.handleDeviceStatus(null)
 
-    @Test fun networkType_mapsStandardValues() {
-        assertEquals("WiFi", DeviceHandler.networkTypeLabel(1))
-        assertEquals("Cellular", DeviceHandler.networkTypeLabel(0))
-        assertEquals("VPN", DeviceHandler.networkTypeLabel(4))
-    }
+    assertTrue(result.ok)
+    val payload = parsePayload(result.payloadJson)
+    val battery = payload.getValue("battery").jsonObject
+    val storage = payload.getValue("storage").jsonObject
+    val thermal = payload.getValue("thermal").jsonObject
+    val network = payload.getValue("network").jsonObject
 
-    @Test fun networkType_unknownDefaultsToOther() {
-        assertEquals("Other", DeviceHandler.networkTypeLabel(999))
+    val state = battery.getValue("state").jsonPrimitive.content
+    assertTrue(state in setOf("unknown", "unplugged", "charging", "full"))
+    battery["level"]?.jsonPrimitive?.double?.let { level ->
+      assertTrue(level in 0.0..1.0)
     }
+    battery.getValue("lowPowerModeEnabled").jsonPrimitive.boolean
 
-    @Test fun displayMetrics_parsesFields() {
-        val json = """{"densityDpi":420,"widthPixels":1080,"heightPixels":2400,"refreshRate":60.0}"""
-        val metrics = DeviceHandler.parseDisplayMetrics(json)
-        assertNotNull(metrics)
-        assertEquals(1080, metrics?.widthPixels)
-        assertEquals(2400, metrics?.heightPixels)
-    }
+    val totalBytes = storage.getValue("totalBytes").jsonPrimitive.content.toLong()
+    val freeBytes = storage.getValue("freeBytes").jsonPrimitive.content.toLong()
+    val usedBytes = storage.getValue("usedBytes").jsonPrimitive.content.toLong()
+    assertTrue(totalBytes >= 0L)
+    assertTrue(freeBytes >= 0L)
+    assertTrue(usedBytes >= 0L)
+    assertEquals((totalBytes - freeBytes).coerceAtLeast(0L), usedBytes)
 
-    @Test fun sensorInfo_parsesList() {
-        val json = """[{"name":"Accelerometer","type":1},{"name":"Gyroscope","type":4}]"""
-        val sensors = DeviceHandler.parseSensorList(json)
-        assertEquals(2, sensors.size)
-        assertEquals("Accelerometer", sensors[0].name)
-    }
+    val thermalState = thermal.getValue("state").jsonPrimitive.content
+    assertTrue(thermalState in setOf("nominal", "fair", "serious", "critical"))
 
-    @Test fun buildInfo_includesExpectedFields() {
-        val fields = DeviceHandler.buildInfoFields()
-        assertTrue(fields.containsKey("manufacturer"))
-        assertTrue(fields.containsKey("model"))
-        assertTrue(fields.containsKey("sdkVersion"))
-    }
+    val networkStatus = network.getValue("status").jsonPrimitive.content
+    assertTrue(networkStatus in setOf("satisfied", "unsatisfied", "requiresConnection"))
+    val interfaces = network.getValue("interfaces").jsonArray.map { it.jsonPrimitive.content }
+    assertTrue(interfaces.all { it in setOf("wifi", "cellular", "wired", "other") })
 
-    @Test fun thermalStatus_mapsValues() {
-        assertEquals("none", DeviceHandler.thermalStatusLabel(0))
-        assertEquals("moderate", DeviceHandler.thermalStatusLabel(2))
-        assertEquals("critical", DeviceHandler.thermalStatusLabel(4))
-    }
+    assertTrue(payload.getValue("uptimeSeconds").jsonPrimitive.double >= 0.0)
+  }
 
-    @Test fun thermalStatus_unknownDefaultsToNone() {
-        assertEquals("none", DeviceHandler.thermalStatusLabel(-1))
-    }
+  @Test
+  fun handleDevicePermissions_returnsExpectedShape() {
+    val handler = DeviceHandler(appContext())
 
-    @Test fun batteryHealth_mapsValues() {
-        assertEquals("good", DeviceHandler.batteryHealthLabel(2))
-        assertEquals("overheat", DeviceHandler.batteryHealthLabel(3))
-        assertEquals("dead", DeviceHandler.batteryHealthLabel(4))
-    }
+    val result = handler.handleDevicePermissions(null)
 
-    @Test fun batteryHealth_unknownDefaultsToUnknown() {
-        assertEquals("unknown", DeviceHandler.batteryHealthLabel(0))
-        assertEquals("unknown", DeviceHandler.batteryHealthLabel(-1))
+    assertTrue(result.ok)
+    val payload = parsePayload(result.payloadJson)
+    val permissions = payload.getValue("permissions").jsonObject
+    val expected =
+      listOf(
+        "camera",
+        "microphone",
+        "location",
+        "sms",
+        "notificationListener",
+        "notifications",
+        "photos",
+        "contacts",
+        "calendar",
+        "callLog",
+        "motion",
+      )
+    for (key in expected) {
+      val state = permissions.getValue(key).jsonObject
+      val status = state.getValue("status").jsonPrimitive.content
+      assertTrue(status == "granted" || status == "denied")
+      state.getValue("promptable").jsonPrimitive.boolean
     }
+  }
 
-    @Test fun chargingType_mapsPluggedValues() {
-        assertEquals("ac", DeviceHandler.chargingTypeLabel(1))
-        assertEquals("usb", DeviceHandler.chargingTypeLabel(2))
-        assertEquals("wireless", DeviceHandler.chargingTypeLabel(4))
-        assertEquals("none", DeviceHandler.chargingTypeLabel(0))
-    }
+  @Test
+  fun handleDeviceHealth_returnsExpectedShape() {
+    val handler = DeviceHandler(appContext())
 
-    @Test fun memoryPressure_computesFromRatio() {
-        assertEquals("normal", DeviceHandler.memoryPressureLabel(100, 60))
-        assertEquals("moderate", DeviceHandler.memoryPressureLabel(100, 25))
-        assertEquals("high", DeviceHandler.memoryPressureLabel(100, 10))
-        assertEquals("critical", DeviceHandler.memoryPressureLabel(100, 3))
-    }
+    val result = handler.handleDeviceHealth(null)
 
-    @Test fun cpuArchitecture_isNonEmpty() {
-        val arch = DeviceHandler.cpuArchitectureString()
-        assertNotNull(arch)
-        assertTrue(arch.isNotEmpty())
-    }
+    assertTrue(result.ok)
+    val payload = parsePayload(result.payloadJson)
+    val memory = payload.getValue("memory").jsonObject
+    val battery = payload.getValue("battery").jsonObject
+    val power = payload.getValue("power").jsonObject
+    val system = payload.getValue("system").jsonObject
 
-    @Test fun supportedAbis_isNonEmpty() {
-        val abis = DeviceHandler.supportedAbisList()
-        assertNotNull(abis)
-        assertTrue(abis.isNotEmpty())
-    }
+    val pressure = memory.getValue("pressure").jsonPrimitive.content
+    assertTrue(pressure in setOf("normal", "moderate", "high", "critical", "unknown"))
+    val totalRamBytes = memory.getValue("totalRamBytes").jsonPrimitive.content.toLong()
+    val availableRamBytes = memory.getValue("availableRamBytes").jsonPrimitive.content.toLong()
+    val usedRamBytes = memory.getValue("usedRamBytes").jsonPrimitive.content.toLong()
+    assertTrue(totalRamBytes >= 0L)
+    assertTrue(availableRamBytes >= 0L)
+    assertTrue(usedRamBytes >= 0L)
+    memory.getValue("lowMemory").jsonPrimitive.boolean
 
-    @Test fun formatBytes_handlesTB() {
-        val tb = 1024L * 1024L * 1024L * 1024L
-        assertEquals("1.0 TB", DeviceHandler.formatBytes(tb))
-    }
+    val batteryState = battery.getValue("state").jsonPrimitive.content
+    assertTrue(batteryState in setOf("unknown", "unplugged", "charging", "full"))
+    val chargingType = battery.getValue("chargingType").jsonPrimitive.content
+    assertTrue(chargingType in setOf("none", "ac", "usb", "wireless", "dock"))
+    battery["temperatureC"]?.jsonPrimitive?.double
+    battery["currentMa"]?.jsonPrimitive?.double
 
-    @Test fun networkType_ethernet() {
-        assertEquals("Ethernet", DeviceHandler.networkTypeLabel(3))
-    }
+    power.getValue("dozeModeEnabled").jsonPrimitive.boolean
+    power.getValue("lowPowerModeEnabled").jsonPrimitive.boolean
+    system["securityPatchLevel"]?.jsonPrimitive?.content
+  }
+
+  private fun appContext(): Context = RuntimeEnvironment.getApplication()
+
+  private fun parsePayload(payloadJson: String?): JsonObject {
+    val jsonString = payloadJson ?: error("expected payload")
+    return Json.parseToJsonElement(jsonString).jsonObject
+  }
 }

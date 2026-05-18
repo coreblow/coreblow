@@ -2,65 +2,36 @@ package ai.coreblow.app
 
 import android.app.Application
 import android.os.StrictMode
-import android.util.Log
-import ai.coreblow.app.di.AppModule
-import ai.coreblow.app.receiver.BatteryReceiver
 
-/**
- * Application subclass for CoreBlow.
- * Initialises the DI graph, lazy-creates the NodeRuntime singleton,
- * and installs debug-mode StrictMode policies.
- */
 class NodeApp : Application() {
+  val prefs: SecurePrefs by lazy { SecurePrefs(this) }
 
-    companion object {
-        private const val TAG = "NodeApp"
+  @Volatile private var runtimeInstance: NodeRuntime? = null
+
+  fun ensureRuntime(): NodeRuntime {
+    runtimeInstance?.let { return it }
+    return synchronized(this) {
+      runtimeInstance ?: NodeRuntime(this, prefs).also { runtimeInstance = it }
     }
+  }
 
-    val prefs: SecurePrefs by lazy { SecurePrefs(this) }
+  fun peekRuntime(): NodeRuntime? = runtimeInstance
 
-    @Volatile private var runtimeInstance: NodeRuntime? = null
-
-    /**
-     * Return the existing NodeRuntime or create one (thread-safe DCL).
-     */
-    fun ensureRuntime(): NodeRuntime {
-        runtimeInstance?.let { return it }
-        return synchronized(this) {
-            runtimeInstance ?: NodeRuntime(this, prefs).also {
-                runtimeInstance = it
-                Log.i(TAG, "NodeRuntime created")
-            }
-        }
+  override fun onCreate() {
+    super.onCreate()
+    if (BuildConfig.DEBUG) {
+      StrictMode.setThreadPolicy(
+        StrictMode.ThreadPolicy.Builder()
+          .detectAll()
+          .penaltyLog()
+          .build(),
+      )
+      StrictMode.setVmPolicy(
+        StrictMode.VmPolicy.Builder()
+          .detectAll()
+          .penaltyLog()
+          .build(),
+      )
     }
-
-    /** Peek at the runtime without forcing creation. */
-    fun peekRuntime(): NodeRuntime? = runtimeInstance
-
-    override fun onCreate() {
-        super.onCreate()
-        Log.i(TAG, "CoreBlow starting")
-
-        // Initialise manual DI container
-        AppModule.initialize(this)
-
-        // Register battery monitor
-        BatteryReceiver.register(this)
-
-        if (BuildConfig.DEBUG) {
-            StrictMode.setThreadPolicy(
-                StrictMode.ThreadPolicy.Builder()
-                    .detectAll()
-                    .penaltyLog()
-                    .build(),
-            )
-            StrictMode.setVmPolicy(
-                StrictMode.VmPolicy.Builder()
-                    .detectAll()
-                    .penaltyLog()
-                    .build(),
-            )
-            Log.d(TAG, "StrictMode enabled (debug build)")
-        }
-    }
+  }
 }

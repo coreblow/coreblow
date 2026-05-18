@@ -1,83 +1,81 @@
 package ai.coreblow.app.chat
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ChatControllerMessageIdentityTest {
-    @Test fun generateMessageId_isNonEmpty() {
-        val id = ChatController.generateMessageId()
-        assertNotNull(id)
-        assertTrue(id.isNotEmpty())
-    }
+  @Test
+  fun reconcileMessageIdsReusesMatchingIdsAcrossHistoryReload() {
+    val previous =
+      listOf(
+        ChatMessage(
+          id = "msg-1",
+          role = "assistant",
+          content = listOf(ChatMessageContent(type = "text", text = "hello")),
+          timestampMs = 1000L,
+        ),
+        ChatMessage(
+          id = "msg-2",
+          role = "user",
+          content = listOf(ChatMessageContent(type = "text", text = "hi")),
+          timestampMs = 2000L,
+        ),
+      )
 
-    @Test fun generateMessageId_isUnique() {
-        val ids = (1..1000).map { ChatController.generateMessageId() }.toSet()
-        assertEquals(1000, ids.size)
-    }
+    val incoming =
+      listOf(
+        ChatMessage(
+          id = "new-1",
+          role = "assistant",
+          content = listOf(ChatMessageContent(type = "text", text = "hello")),
+          timestampMs = 1000L,
+        ),
+        ChatMessage(
+          id = "new-2",
+          role = "user",
+          content = listOf(ChatMessageContent(type = "text", text = "hi")),
+          timestampMs = 2000L,
+        ),
+      )
 
-    @Test fun generateMessageId_hasExpectedFormat() {
-        val id = ChatController.generateMessageId()
-        // Should contain timestamp component for ordering
-        assertTrue(id.length >= 8)
-    }
+    val reconciled = reconcileMessageIds(previous = previous, incoming = incoming)
 
-    @Test fun messageOrdering_byTimestamp() {
-        val msg1 = ChatController.createMessage(role = "user", content = "first", timestampMs = 1000L)
-        val msg2 = ChatController.createMessage(role = "assistant", content = "second", timestampMs = 2000L)
-        assertTrue(msg1.timestampMs < msg2.timestampMs)
-    }
+    assertEquals(listOf("msg-1", "msg-2"), reconciled.map { it.id })
+  }
 
-    @Test fun messageOrdering_stableForSameTimestamp() {
-        val msg1 = ChatController.createMessage(role = "user", content = "a", timestampMs = 1000L)
-        val msg2 = ChatController.createMessage(role = "user", content = "b", timestampMs = 1000L)
-        // Even with same timestamp, IDs should differ
-        assertNotEquals(msg1.id, msg2.id)
-    }
+  @Test
+  fun reconcileMessageIdsLeavesNewMessagesUntouched() {
+    val previous =
+      listOf(
+        ChatMessage(
+          id = "msg-1",
+          role = "assistant",
+          content = listOf(ChatMessageContent(type = "text", text = "hello")),
+          timestampMs = 1000L,
+        ),
+      )
 
-    @Test fun messageRole_valuesAreDistinct() {
-        val roles = setOf(
-            ChatController.ROLE_USER,
-            ChatController.ROLE_ASSISTANT,
-            ChatController.ROLE_SYSTEM,
-            ChatController.ROLE_TOOL,
-        )
-        assertEquals(4, roles.size)
-    }
+    val incoming =
+      listOf(
+        ChatMessage(
+          id = "new-1",
+          role = "assistant",
+          content = listOf(ChatMessageContent(type = "text", text = "hello")),
+          timestampMs = 1000L,
+        ),
+        ChatMessage(
+          id = "new-2",
+          role = "assistant",
+          content = listOf(ChatMessageContent(type = "text", text = "new reply")),
+          timestampMs = 3000L,
+        ),
+      )
 
-    @Test fun messageContent_preservesWhitespace() {
-        val content = "  hello\n  world  "
-        val msg = ChatController.createMessage(role = "user", content = content)
-        assertEquals(content, msg.content)
-    }
+    val reconciled = reconcileMessageIds(previous = previous, incoming = incoming)
 
-    @Test fun messageContent_handlesEmptyString() {
-        val msg = ChatController.createMessage(role = "assistant", content = "")
-        assertEquals("", msg.content)
-    }
-
-    @Test fun messageRole_toolIsValid() {
-        val msg = ChatController.createMessage(role = ChatController.ROLE_TOOL, content = "tool output")
-        assertEquals(ChatController.ROLE_TOOL, msg.role)
-    }
-
-    @Test fun messageMetadata_timestampIsPositive() {
-        val msg = ChatController.createMessage(role = "user", content = "test")
-        assertTrue(msg.timestampMs > 0L)
-    }
-
-    @Test fun generateMessageId_containsNoDashes_orIsUUID() {
-        val id = ChatController.generateMessageId()
-        // IDs should be non-blank and printable
-        assertTrue(id.all { it.isLetterOrDigit() || it == '-' || it == '_' })
-    }
-
-    @Test fun createMessage_assignsUniqueIdAutomatically() {
-        val msg = ChatController.createMessage(role = "user", content = "hi")
-        assertNotNull(msg.id)
-        assertTrue(msg.id.isNotEmpty())
-    }
+    assertEquals("msg-1", reconciled[0].id)
+    assertEquals("new-2", reconciled[1].id)
+    assertNotEquals(reconciled[0].id, reconciled[1].id)
+  }
 }

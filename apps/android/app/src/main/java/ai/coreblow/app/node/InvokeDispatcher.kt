@@ -1,262 +1,300 @@
 package ai.coreblow.app.node
 
-import android.content.Context
-import android.util.Log
-import ai.coreblow.app.node.handlers.*
-import ai.coreblow.app.voice.MicCaptureManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.jsonObject
+import ai.coreblow.app.gateway.GatewaySession
+import ai.coreblow.app.protocol.CoreBlowCalendarCommand
+import ai.coreblow.app.protocol.CoreBlowCanvasA2UICommand
+import ai.coreblow.app.protocol.CoreBlowCanvasCommand
+import ai.coreblow.app.protocol.CoreBlowCameraCommand
+import ai.coreblow.app.protocol.CoreBlowCallLogCommand
+import ai.coreblow.app.protocol.CoreBlowContactsCommand
+import ai.coreblow.app.protocol.CoreBlowDeviceCommand
+import ai.coreblow.app.protocol.CoreBlowLocationCommand
+import ai.coreblow.app.protocol.CoreBlowMotionCommand
+import ai.coreblow.app.protocol.CoreBlowNotificationsCommand
+import ai.coreblow.app.protocol.CoreBlowSmsCommand
+import ai.coreblow.app.protocol.CoreBlowSystemCommand
 
-/**
- * Central invoke dispatcher that routes gateway commands to the
- * appropriate handler. Maps command names to handler methods and
- * serializes results back to JSON for the gateway session.
- */
 class InvokeDispatcher(
-    private val appContext: Context,
-    private val scope: CoroutineScope,
-    private val cameraHandler: CameraHandler?,
-    private val locationHandler: LocationHandler?,
-    private val contactsHandler: ContactsHandler?,
-    private val calendarHandler: CalendarHandler?,
-    private val photosHandler: PhotosHandler?,
-    private val deviceHandler: DeviceHandler?,
-    private val motionHandler: MotionHandler?,
-    private val smsManager: SmsManager?,
-    private val a2uiHandler: A2UIHandler?,
-    private val canvasController: CanvasController?,
-    private val micCaptureManager: MicCaptureManager?,
+  private val canvas: CanvasController,
+  private val cameraHandler: CameraHandler,
+  private val locationHandler: LocationHandler,
+  private val deviceHandler: DeviceHandler,
+  private val notificationsHandler: NotificationsHandler,
+  private val systemHandler: SystemHandler,
+  private val photosHandler: PhotosHandler,
+  private val contactsHandler: ContactsHandler,
+  private val calendarHandler: CalendarHandler,
+  private val motionHandler: MotionHandler,
+  private val smsHandler: SmsHandler,
+  private val a2uiHandler: A2UIHandler,
+  private val debugHandler: DebugHandler,
+  private val callLogHandler: CallLogHandler,
+  private val isForeground: () -> Boolean,
+  private val cameraEnabled: () -> Boolean,
+  private val locationEnabled: () -> Boolean,
+  private val sendSmsAvailable: () -> Boolean,
+  private val readSmsAvailable: () -> Boolean,
+  private val callLogAvailable: () -> Boolean,
+  private val debugBuild: () -> Boolean,
+  private val refreshNodeCanvasCapability: suspend () -> Boolean,
+  private val onCanvasA2uiPush: () -> Unit,
+  private val onCanvasA2uiReset: () -> Unit,
+  private val motionActivityAvailable: () -> Boolean,
+  private val motionPedometerAvailable: () -> Boolean,
 ) {
-    companion object {
-        private const val TAG = "InvokeDispatcher"
+  suspend fun handleInvoke(command: String, paramsJson: String?): GatewaySession.InvokeResult {
+    val spec =
+      InvokeCommandRegistry.find(command)
+        ?: return GatewaySession.InvokeResult.error(
+          code = "INVALID_REQUEST",
+          message = "INVALID_REQUEST: unknown command",
+        )
+    if (spec.requiresForeground && !isForeground()) {
+      return GatewaySession.InvokeResult.error(
+        code = "NODE_BACKGROUND_UNAVAILABLE",
+        message = "NODE_BACKGROUND_UNAVAILABLE: canvas/camera/screen commands require foreground",
+      )
     }
+    availabilityError(spec.availability)?.let { return it }
 
-    private val json = Json { ignoreUnknownKeys = true }
-    private val registeredCommands = mutableMapOf<String, suspend (JsonObject) -> String>()
+    return when (command) {
+      // Canvas commands
+      CoreBlowCanvasCommand.Present.rawValue -> {
+        val url = CanvasController.parseNavigateUrl(paramsJson)
+        canvas.navigate(url)
+        GatewaySession.InvokeResult.ok(null)
+      }
+      CoreBlowCanvasCommand.Hide.rawValue -> GatewaySession.InvokeResult.ok(null)
+      CoreBlowCanvasCommand.Navigate.rawValue -> {
+        val url = CanvasController.parseNavigateUrl(paramsJson)
+        canvas.navigate(url)
+        GatewaySession.InvokeResult.ok(null)
+      }
+      CoreBlowCanvasCommand.Eval.rawValue -> {
+        val js =
+          CanvasController.parseEvalJs(paramsJson)
+            ?: return GatewaySession.InvokeResult.error(
+              code = "INVALID_REQUEST",
+              message = "INVALID_REQUEST: javaScript required",
+            )
+        withCanvasAvailable {
+          val result = canvas.eval(js)
+          GatewaySession.InvokeResult.ok("""{"result":${result.toJsonString()}}""")
+        }
+      }
+      CoreBlowCanvasCommand.Snapshot.rawValue -> {
+        val snapshotParams = CanvasController.parseSnapshotParams(paramsJson)
+        withCanvasAvailable {
+          val base64 =
+            canvas.snapshotBase64(
+              format = snapshotParams.format,
+              quality = snapshotParams.quality,
+              maxWidth = snapshotParams.maxWidth,
+            )
+          GatewaySession.InvokeResult.ok("""{"format":"${snapshotParams.format.rawValue}","base64":"$base64"}""")
+        }
+      }
 
-    init {
-        registerBuiltinCommands()
+      // A2UI commands
+      CoreBlowCanvasA2UICommand.Reset.rawValue ->
+        withReadyA2ui {
+          withCanvasAvailable {
+            val res = canvas.eval(A2UIHandler.a2uiResetJS)
+            onCanvasA2uiReset()
+            GatewaySession.InvokeResult.ok(res)
+          }
+        }
+      CoreBlowCanvasA2UICommand.Push.rawValue, CoreBlowCanvasA2UICommand.PushJSONL.rawValue -> {
+        val messages =
+          try {
+            a2uiHandler.decodeA2uiMessages(command, paramsJson)
+          } catch (err: Throwable) {
+            return GatewaySession.InvokeResult.error(
+              code = "INVALID_REQUEST",
+              message = err.message ?: "invalid A2UI payload"
+            )
+          }
+        withReadyA2ui {
+          withCanvasAvailable {
+            val js = A2UIHandler.a2uiApplyMessagesJS(messages)
+            val res = canvas.eval(js)
+            onCanvasA2uiPush()
+            GatewaySession.InvokeResult.ok(res)
+          }
+        }
+      }
+
+      // Camera commands
+      CoreBlowCameraCommand.List.rawValue -> cameraHandler.handleList(paramsJson)
+      CoreBlowCameraCommand.Snap.rawValue -> cameraHandler.handleSnap(paramsJson)
+      CoreBlowCameraCommand.Clip.rawValue -> cameraHandler.handleClip(paramsJson)
+
+      // Location command
+      CoreBlowLocationCommand.Get.rawValue -> locationHandler.handleLocationGet(paramsJson)
+
+      // Device commands
+      CoreBlowDeviceCommand.Status.rawValue -> deviceHandler.handleDeviceStatus(paramsJson)
+      CoreBlowDeviceCommand.Info.rawValue -> deviceHandler.handleDeviceInfo(paramsJson)
+      CoreBlowDeviceCommand.Permissions.rawValue -> deviceHandler.handleDevicePermissions(paramsJson)
+      CoreBlowDeviceCommand.Health.rawValue -> deviceHandler.handleDeviceHealth(paramsJson)
+
+      // Notifications command
+      CoreBlowNotificationsCommand.List.rawValue -> notificationsHandler.handleNotificationsList(paramsJson)
+      CoreBlowNotificationsCommand.Actions.rawValue -> notificationsHandler.handleNotificationsActions(paramsJson)
+
+      // System command
+      CoreBlowSystemCommand.Notify.rawValue -> systemHandler.handleSystemNotify(paramsJson)
+
+      // Photos command
+      ai.coreblow.app.protocol.CoreBlowPhotosCommand.Latest.rawValue -> photosHandler.handlePhotosLatest(
+        paramsJson,
+      )
+
+      // Contacts command
+      CoreBlowContactsCommand.Search.rawValue -> contactsHandler.handleContactsSearch(paramsJson)
+      CoreBlowContactsCommand.Add.rawValue -> contactsHandler.handleContactsAdd(paramsJson)
+
+      // Calendar command
+      CoreBlowCalendarCommand.Events.rawValue -> calendarHandler.handleCalendarEvents(paramsJson)
+      CoreBlowCalendarCommand.Add.rawValue -> calendarHandler.handleCalendarAdd(paramsJson)
+
+      // Motion command
+      CoreBlowMotionCommand.Activity.rawValue -> motionHandler.handleMotionActivity(paramsJson)
+      CoreBlowMotionCommand.Pedometer.rawValue -> motionHandler.handleMotionPedometer(paramsJson)
+
+      // SMS command
+      CoreBlowSmsCommand.Send.rawValue -> smsHandler.handleSmsSend(paramsJson)
+      CoreBlowSmsCommand.Search.rawValue -> smsHandler.handleSmsSearch(paramsJson)
+
+      // CallLog command
+      CoreBlowCallLogCommand.Search.rawValue -> callLogHandler.handleCallLogSearch(paramsJson)
+
+      // Debug commands
+      "debug.ed25519" -> debugHandler.handleEd25519()
+      "debug.logs" -> debugHandler.handleLogs()
+      else -> GatewaySession.InvokeResult.error(code = "INVALID_REQUEST", message = "INVALID_REQUEST: unknown command")
     }
+  }
 
-    /**
-     * All command names this dispatcher can handle.
-     */
-    fun supportedCommands(): List<String> = registeredCommands.keys.toList()
-
-    /**
-     * Register a custom command handler.
-     */
-    fun registerCommand(name: String, handler: suspend (JsonObject) -> String) {
-        registeredCommands[name] = handler
+  private suspend fun withReadyA2ui(
+    block: suspend () -> GatewaySession.InvokeResult,
+  ): GatewaySession.InvokeResult {
+    var a2uiUrl = a2uiHandler.resolveA2uiHostUrl()
+      ?: return GatewaySession.InvokeResult.error(
+        code = "A2UI_HOST_NOT_CONFIGURED",
+        message = "A2UI_HOST_NOT_CONFIGURED: gateway did not advertise canvas host",
+      )
+    val readyOnFirstCheck = a2uiHandler.ensureA2uiReady(a2uiUrl)
+    if (!readyOnFirstCheck) {
+      if (!refreshNodeCanvasCapability()) {
+        return GatewaySession.InvokeResult.error(
+          code = "A2UI_HOST_UNAVAILABLE",
+          message = "A2UI_HOST_UNAVAILABLE: A2UI host not reachable",
+        )
+      }
+      a2uiUrl = a2uiHandler.resolveA2uiHostUrl()
+        ?: return GatewaySession.InvokeResult.error(
+          code = "A2UI_HOST_NOT_CONFIGURED",
+          message = "A2UI_HOST_NOT_CONFIGURED: gateway did not advertise canvas host",
+        )
+      if (!a2uiHandler.ensureA2uiReady(a2uiUrl)) {
+        return GatewaySession.InvokeResult.error(
+          code = "A2UI_HOST_UNAVAILABLE",
+          message = "A2UI_HOST_UNAVAILABLE: A2UI host not reachable",
+        )
+      }
     }
+    return block()
+  }
 
-    /**
-     * Dispatch an invoke request. Returns the JSON result string.
-     * Throws on unknown command or handler error.
-     */
-    suspend fun dispatch(command: String, paramsJson: String): String {
-        val params = try {
-            json.parseToJsonElement(paramsJson).jsonObject
-        } catch (_: Throwable) {
-            JsonObject(emptyMap())
-        }
-
-        val handler = registeredCommands[command]
-        if (handler != null) {
-            return try {
-                handler(params)
-            } catch (e: Throwable) {
-                Log.e(TAG, "Command '$command' failed: ${e.message}")
-                errorResult("INVOKE_FAILED", e.message ?: "Unknown error")
-            }
-        }
-
-        // Prefix-based routing for namespaced commands
-        val result = dispatchNamespaced(command, params)
-        if (result != null) return result
-
-        Log.w(TAG, "Unknown command: $command")
-        return errorResult("UNKNOWN_COMMAND", "Command not recognized: $command")
+  private suspend fun withCanvasAvailable(
+    block: suspend () -> GatewaySession.InvokeResult,
+  ): GatewaySession.InvokeResult {
+    return try {
+      block()
+    } catch (_: Throwable) {
+      GatewaySession.InvokeResult.error(
+        code = "NODE_BACKGROUND_UNAVAILABLE",
+        message = "NODE_BACKGROUND_UNAVAILABLE: canvas unavailable",
+      )
     }
+  }
 
-    // MARK: - Registration
-
-    private fun registerBuiltinCommands() {
-        // Device
-        registeredCommands["device.info"] = { deviceHandler?.getDeviceInfo() ?: emptyResult() }
-        registeredCommands["device.battery"] = { deviceHandler?.getBatteryInfo() ?: emptyResult() }
-        registeredCommands["device.network"] = { deviceHandler?.getNetworkInfo() ?: emptyResult() }
-        registeredCommands["device.storage"] = { deviceHandler?.getStorageInfo() ?: emptyResult() }
-        registeredCommands["device.display"] = { deviceHandler?.getDisplayInfo() ?: emptyResult() }
-        registeredCommands["device.settings"] = { deviceHandler?.getSystemSettings() ?: emptyResult() }
-
-        // Camera
-        registeredCommands["camera.capture"] = { params ->
-            val facing = (params["facing"] as? JsonPrimitive)?.content
-            val quality = (params["quality"] as? JsonPrimitive)?.content?.toIntOrNull()
-            val flash = (params["flash"] as? JsonPrimitive)?.content?.toBoolean() != false
-            val result = cameraHandler?.capturePhoto(facing, quality, flash)
-                ?: CaptureResult(success = false, error = "Camera not available")
-            buildJsonObject {
-                put("success", JsonPrimitive(result.success))
-                result.base64?.let { put("base64", JsonPrimitive(it)) }
-                result.thumbnailBase64?.let { put("thumbnail", JsonPrimitive(it)) }
-                result.width?.let { put("width", JsonPrimitive(it)) }
-                result.height?.let { put("height", JsonPrimitive(it)) }
-                result.mimeType?.let { put("mimeType", JsonPrimitive(it)) }
-                result.error?.let { put("error", JsonPrimitive(it)) }
-            }.toString()
+  private fun availabilityError(availability: InvokeCommandAvailability): GatewaySession.InvokeResult? {
+    return when (availability) {
+      InvokeCommandAvailability.Always -> null
+      InvokeCommandAvailability.CameraEnabled ->
+        if (cameraEnabled()) {
+          null
+        } else {
+          GatewaySession.InvokeResult.error(
+            code = "CAMERA_DISABLED",
+            message = "CAMERA_DISABLED: enable Camera in Settings",
+          )
         }
-        registeredCommands["camera.info"] = { cameraHandler?.getCameraInfo() ?: "[]" }
-
-        // Location
-        registeredCommands["location.current"] = { params ->
-            val highAccuracy = (params["highAccuracy"] as? JsonPrimitive)?.content?.toBoolean() != false
-            val geocode = (params["geocode"] as? JsonPrimitive)?.content?.toBoolean() == true
-            val result = locationHandler?.getCurrentLocation(highAccuracy, geocode)
-                ?: LocationResult(success = false, error = "Location not available")
-            result.toJson()
+      InvokeCommandAvailability.LocationEnabled ->
+        if (locationEnabled()) {
+          null
+        } else {
+          GatewaySession.InvokeResult.error(
+            code = "LOCATION_DISABLED",
+            message = "LOCATION_DISABLED: enable Location in Settings",
+          )
         }
-        registeredCommands["location.enabled"] = {
-            buildJsonObject { put("enabled", JsonPrimitive(locationHandler?.isLocationEnabled() ?: false)) }.toString()
+      InvokeCommandAvailability.MotionActivityAvailable ->
+        if (motionActivityAvailable()) {
+          null
+        } else {
+          GatewaySession.InvokeResult.error(
+            code = "MOTION_UNAVAILABLE",
+            message = "MOTION_UNAVAILABLE: accelerometer not available",
+          )
         }
-        registeredCommands["location.providers"] = { locationHandler?.getProviderStatus() ?: "{}" }
-        registeredCommands["location.geocode"] = { params ->
-            val lat = (params["latitude"] as? JsonPrimitive)?.content?.toDoubleOrNull() ?: 0.0
-            val lng = (params["longitude"] as? JsonPrimitive)?.content?.toDoubleOrNull() ?: 0.0
-            locationHandler?.reverseGeocode(lat, lng) ?: "{}"
+      InvokeCommandAvailability.MotionPedometerAvailable ->
+        if (motionPedometerAvailable()) {
+          null
+        } else {
+          GatewaySession.InvokeResult.error(
+            code = "PEDOMETER_UNAVAILABLE",
+            message = "PEDOMETER_UNAVAILABLE: step counter not available",
+          )
         }
-
-        // Contacts
-        registeredCommands["contacts.list"] = { params ->
-            val limit = (params["limit"] as? JsonPrimitive)?.content?.toIntOrNull() ?: 100
-            val offset = (params["offset"] as? JsonPrimitive)?.content?.toIntOrNull() ?: 0
-            val search = (params["search"] as? JsonPrimitive)?.content
-            contactsHandler?.listContacts(limit, offset, search) ?: "[]"
+      InvokeCommandAvailability.SendSmsAvailable ->
+        if (sendSmsAvailable()) {
+          null
+        } else {
+          GatewaySession.InvokeResult.error(
+            code = "SMS_UNAVAILABLE",
+            message = "SMS_UNAVAILABLE: SMS not available on this device",
+          )
         }
-        registeredCommands["contacts.get"] = { params ->
-            val id = (params["id"] as? JsonPrimitive)?.content ?: ""
-            contactsHandler?.getContact(id) ?: "{}"
+      InvokeCommandAvailability.ReadSmsAvailable ->
+        if (readSmsAvailable()) {
+          null
+        } else {
+          GatewaySession.InvokeResult.error(
+            code = "SMS_UNAVAILABLE",
+            message = "SMS_UNAVAILABLE: SMS not available on this device",
+          )
         }
-
-        // Calendar
-        registeredCommands["calendar.events"] = { params ->
-            val startMs = (params["startMs"] as? JsonPrimitive)?.content?.toLongOrNull()
-            val endMs = (params["endMs"] as? JsonPrimitive)?.content?.toLongOrNull()
-            val limit = (params["limit"] as? JsonPrimitive)?.content?.toIntOrNull() ?: 50
-            calendarHandler?.getEvents(startMs, endMs, limit) ?: "[]"
+      InvokeCommandAvailability.CallLogAvailable ->
+        if (callLogAvailable()) {
+          null
+        } else {
+          GatewaySession.InvokeResult.error(
+            code = "CALL_LOG_UNAVAILABLE",
+            message = "CALL_LOG_UNAVAILABLE: call log not available on this build",
+          )
         }
-        registeredCommands["calendar.calendars"] = { calendarHandler?.getCalendars() ?: "[]" }
-
-        // Photos
-        registeredCommands["photos.recent"] = { params ->
-            val limit = (params["limit"] as? JsonPrimitive)?.content?.toIntOrNull() ?: 20
-            photosHandler?.getRecentPhotos(limit) ?: "[]"
-        }
-
-        // SMS
-        registeredCommands["sms.read"] = { params ->
-            val limit = (params["limit"] as? JsonPrimitive)?.content?.toIntOrNull() ?: 20
-            val address = (params["address"] as? JsonPrimitive)?.content
-            smsManager?.readMessages(limit, address) ?: "[]"
-        }
-        registeredCommands["sms.send"] = { params ->
-            val to = (params["to"] as? JsonPrimitive)?.content ?: ""
-            val body = (params["body"] as? JsonPrimitive)?.content ?: ""
-            val result = smsManager?.sendMessage(to, body) ?: false
-            buildJsonObject { put("success", JsonPrimitive(result)) }.toString()
-        }
-
-        // Motion
-        registeredCommands["motion.sensors"] = {
-            val sensors = motionHandler?.listAvailableSensors() ?: emptyList()
-            buildJsonObject {
-                put("sensors", JsonPrimitive(sensors.joinToString(",")))
-            }.toString()
-        }
-        registeredCommands["motion.read"] = { params ->
-            val sensor = (params["sensor"] as? JsonPrimitive)?.content ?: "accelerometer"
-            val result = when (sensor) {
-                "accelerometer" -> motionHandler?.readAccelerometer()
-                "gyroscope" -> motionHandler?.readGyroscope()
-                "stepCounter" -> motionHandler?.readStepCount()
-                "gravity" -> motionHandler?.readGravity()
-                "magneticField" -> motionHandler?.readMagneticField()
-                "barometer" -> motionHandler?.readPressure()
-                "light" -> motionHandler?.readLight()
-                "proximity" -> motionHandler?.readProximity()
-                else -> null
-            }
-            result?.toString() ?: buildJsonObject { put("error", JsonPrimitive("Sensor not available: $sensor")) }.toString()
-        }
-        registeredCommands["motion.all"] = {
-            motionHandler?.readAllAvailable()?.toString() ?: "{}"
-        }
-
-        // Canvas / A2UI
-        registeredCommands["canvas.render"] = { params ->
-            canvasController?.render(params.toString()) ?: emptyResult()
-        }
-        registeredCommands["a2ui.action"] = { params ->
-            a2uiHandler?.handleAction(params.toString()) ?: emptyResult()
-        }
-
-        // Mic
-        registeredCommands["mic.start"] = {
-            val started = micCaptureManager?.startCapture() ?: false
-            buildJsonObject { put("success", JsonPrimitive(started)) }.toString()
-        }
-        registeredCommands["mic.stop"] = {
-            micCaptureManager?.stopCapture()
-            buildJsonObject { put("success", JsonPrimitive(true)) }.toString()
-        }
-
-        // Ping
-        registeredCommands["ping"] = {
-            buildJsonObject {
-                put("pong", JsonPrimitive(true))
-                put("timestampMs", JsonPrimitive(System.currentTimeMillis()))
-            }.toString()
+      InvokeCommandAvailability.DebugBuild ->
+        if (debugBuild()) {
+          null
+        } else {
+          GatewaySession.InvokeResult.error(
+            code = "INVALID_REQUEST",
+            message = "INVALID_REQUEST: unknown command",
+          )
         }
     }
-
-    // MARK: - Namespaced Dispatch
-
-    private suspend fun dispatchNamespaced(command: String, params: JsonObject): String? {
-        val parts = command.split(".", limit = 2)
-        if (parts.size < 2) return null
-
-        return when (parts[0]) {
-            "device" -> deviceHandler?.handleCommand(parts[1], params)
-            "camera" -> null // already registered
-            "location" -> null
-            "contacts" -> contactsHandler?.handleCommand(parts[1], params)
-            "calendar" -> calendarHandler?.handleCommand(parts[1], params)
-            "photos" -> photosHandler?.handleCommand(parts[1], params)
-            "sms" -> null
-            "motion" -> null
-            "canvas" -> canvasController?.handleCommand(parts[1], params)
-            "a2ui" -> a2uiHandler?.handleCommand(parts[1], params)
-            else -> null
-        }
-    }
-
-    // MARK: - Helpers
-
-    private fun emptyResult(): String = "{}"
-
-    private fun errorResult(code: String, message: String): String {
-        return buildJsonObject {
-            put("error", buildJsonObject {
-                put("code", JsonPrimitive(code))
-                put("message", JsonPrimitive(message))
-            })
-        }.toString()
-    }
+  }
 }

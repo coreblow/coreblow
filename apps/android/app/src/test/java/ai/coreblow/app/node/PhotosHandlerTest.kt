@@ -1,68 +1,71 @@
 package ai.coreblow.app.node
 
+import android.content.Context
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class PhotosHandlerTest {
-    @Test fun commandName_isPhotos() { assertEquals("photos", PhotosHandler.COMMAND_NAME) }
+class PhotosHandlerTest : NodeHandlerRobolectricTest() {
+  @Test
+  fun handlePhotosLatest_requiresPermission() {
+    val handler = PhotosHandler.forTesting(appContext(), FakePhotosDataSource(hasPermission = false))
 
-    @Test fun parseLatestRequest_defaultsToRecentCount() {
-        val req = PhotosHandler.parseLatestRequest(null)
-        assertNotNull(req)
-        assertTrue(req.count > 0)
-        assertTrue(req.count <= PhotosHandler.MAX_LATEST_COUNT)
-    }
+    val result = handler.handlePhotosLatest(null)
 
-    @Test fun parseLatestRequest_clampsToMaxCount() {
-        val json = """{"count":10000}"""
-        val req = PhotosHandler.parseLatestRequest(json)
-        assertEquals(PhotosHandler.MAX_LATEST_COUNT, req.count)
-    }
+    assertFalse(result.ok)
+    assertEquals("PHOTOS_PERMISSION_REQUIRED", result.error?.code)
+  }
 
-    @Test fun parseLatestRequest_clampsToMinCount() {
-        val json = """{"count":0}"""
-        val req = PhotosHandler.parseLatestRequest(json)
-        assertTrue(req.count >= 1)
-    }
+  @Test
+  fun handlePhotosLatest_rejectsInvalidJson() {
+    val handler = PhotosHandler.forTesting(appContext(), FakePhotosDataSource(hasPermission = true))
 
-    @Test fun thumbnailSize_isReasonable() {
-        assertTrue(PhotosHandler.THUMBNAIL_SIZE > 0)
-        assertTrue(PhotosHandler.THUMBNAIL_SIZE <= 512)
-    }
+    val result = handler.handlePhotosLatest("[]")
 
-    @Test fun mimeTypeFromExtension_mapsCommonFormats() {
-        assertEquals("image/jpeg", PhotosHandler.mimeTypeFromExtension("jpg"))
-        assertEquals("image/jpeg", PhotosHandler.mimeTypeFromExtension("jpeg"))
-        assertEquals("image/png", PhotosHandler.mimeTypeFromExtension("png"))
-        assertEquals("image/webp", PhotosHandler.mimeTypeFromExtension("webp"))
-    }
+    assertFalse(result.ok)
+    assertEquals("INVALID_REQUEST", result.error?.code)
+  }
 
-    @Test fun mimeTypeFromExtension_unknownDefaultsToOctetStream() {
-        assertEquals("application/octet-stream", PhotosHandler.mimeTypeFromExtension("xyz"))
-    }
+  @Test
+  fun handlePhotosLatest_returnsPayload() {
+    val source =
+      FakePhotosDataSource(
+        hasPermission = true,
+        latest = listOf(
+          EncodedPhotoPayload(
+            format = "jpeg",
+            base64 = "abc123",
+            width = 640,
+            height = 480,
+            createdAt = "2026-02-28T00:00:00Z",
+          ),
+        ),
+      )
+    val handler = PhotosHandler.forTesting(appContext(), source)
 
-    @Test fun requiredPermissions_includesStorageOrMediaImages() {
-        val perms = PhotosHandler.requiredPermissions()
-        assertTrue(perms.isNotEmpty())
-    }
+    val result = handler.handlePhotosLatest("""{"limit":1}""")
 
-    @Test fun mimeTypeFromExtension_mapsHeif() {
-        assertEquals("image/heif", PhotosHandler.mimeTypeFromExtension("heic"))
-        assertEquals("image/heif", PhotosHandler.mimeTypeFromExtension("heif"))
-    }
+    assertTrue(result.ok)
+    val payload = Json.parseToJsonElement(result.payloadJson ?: error("missing payload")).jsonObject
+    val photos = payload.getValue("photos").jsonArray
+    assertEquals(1, photos.size)
+    val first = photos.first().jsonObject
+    assertEquals("jpeg", first.getValue("format").jsonPrimitive.content)
+    assertEquals(640, first.getValue("width").jsonPrimitive.int)
+  }
+}
 
-    @Test fun mimeTypeFromExtension_mapsBmpAndGif() {
-        assertEquals("image/bmp", PhotosHandler.mimeTypeFromExtension("bmp"))
-        assertEquals("image/gif", PhotosHandler.mimeTypeFromExtension("gif"))
-    }
+private class FakePhotosDataSource(
+  private val hasPermission: Boolean,
+  private val latest: List<EncodedPhotoPayload> = emptyList(),
+) : PhotosDataSource {
+  override fun hasPermission(context: Context): Boolean = hasPermission
 
-    @Test fun thumbnailQuality_isInRange() {
-        assertTrue(PhotosHandler.THUMBNAIL_QUALITY in 30..100)
-    }
-
-    @Test fun maxResultsCount_isPositive() {
-        assertTrue(PhotosHandler.MAX_RESULTS > 0)
-    }
+  override fun latest(context: Context, request: PhotosLatestRequest): List<EncodedPhotoPayload> = latest
 }

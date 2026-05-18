@@ -1,118 +1,130 @@
 package ai.coreblow.app.node
 
+import android.content.Context
+import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class MotionHandlerTest {
-    @Test fun commandName_isMotion() { assertEquals("motion", MotionHandler.COMMAND_NAME) }
+class MotionHandlerTest : NodeHandlerRobolectricTest() {
+  @Test
+  fun handleMotionActivity_requiresPermission() =
+    runTest {
+      val handler = MotionHandler.forTesting(appContext(), FakeMotionDataSource(hasPermission = false))
 
-    @Test fun shakeDetection_triggersAboveThreshold() {
-        val accel = floatArrayOf(0f, 0f, 25f) // Strong z-axis acceleration
-        assertTrue(MotionHandler.isShakeEvent(accel, MotionHandler.SHAKE_THRESHOLD_G))
+      val result = handler.handleMotionActivity(null)
+
+      assertFalse(result.ok)
+      assertEquals("MOTION_PERMISSION_REQUIRED", result.error?.code)
     }
 
-    @Test fun shakeDetection_ignoresBelowThreshold() {
-        val accel = floatArrayOf(0f, 0f, 9.8f) // Normal gravity
-        assertFalse(MotionHandler.isShakeEvent(accel, MotionHandler.SHAKE_THRESHOLD_G))
+  @Test
+  fun handleMotionActivity_rejectsInvalidJson() =
+    runTest {
+      val handler = MotionHandler.forTesting(appContext(), FakeMotionDataSource(hasPermission = true))
+
+      val result = handler.handleMotionActivity("[]")
+
+      assertFalse(result.ok)
+      assertEquals("INVALID_REQUEST", result.error?.code)
     }
 
-    @Test fun activityType_mapsRecognitionConstants() {
-        assertEquals("still", MotionHandler.activityLabel(3))
-        assertEquals("walking", MotionHandler.activityLabel(7))
-        assertEquals("running", MotionHandler.activityLabel(8))
-        assertEquals("in_vehicle", MotionHandler.activityLabel(0))
+  @Test
+  fun handleMotionActivity_returnsActivityPayload() =
+    runTest {
+      val activity =
+        MotionActivityRecord(
+          startISO = "2026-02-28T10:00:00Z",
+          endISO = "2026-02-28T10:00:02Z",
+          confidence = "high",
+          isWalking = true,
+          isRunning = false,
+          isCycling = false,
+          isAutomotive = false,
+          isStationary = false,
+          isUnknown = false,
+        )
+      val handler =
+        MotionHandler.forTesting(
+          appContext(),
+          FakeMotionDataSource(hasPermission = true, activityRecord = activity),
+        )
+
+      val result = handler.handleMotionActivity(null)
+
+      assertTrue(result.ok)
+      val payload = Json.parseToJsonElement(result.payloadJson ?: error("missing payload")).jsonObject
+      val activities = payload.getValue("activities").jsonArray
+      assertEquals(1, activities.size)
+      assertEquals("high", activities.first().jsonObject.getValue("confidence").jsonPrimitive.content)
     }
 
-    @Test fun activityType_unknownDefaultsToUnknown() {
-        assertEquals("unknown", MotionHandler.activityLabel(999))
-    }
+  @Test
+  fun handleMotionPedometer_mapsRangeUnsupportedError() =
+    runTest {
+      val handler =
+        MotionHandler.forTesting(
+          appContext(),
+          FakeMotionDataSource(
+            hasPermission = true,
+            pedometerError = IllegalArgumentException("PEDOMETER_RANGE_UNAVAILABLE: not supported"),
+          ),
+        )
 
-    @Test fun stepCounter_accumulatesCorrectly() {
-        val counter = MotionHandler.StepAccumulator()
-        counter.onSensorEvent(100f)
-        counter.onSensorEvent(110f)
-        assertEquals(10, counter.stepsSinceStart())
-    }
+      val result = handler.handleMotionPedometer("""{"startISO":"2026-02-01T00:00:00Z"}""")
 
-    @Test fun stepCounter_ignoresFirstReading() {
-        val counter = MotionHandler.StepAccumulator()
-        counter.onSensorEvent(50f)
-        assertEquals(0, counter.stepsSinceStart())
+      assertFalse(result.ok)
+      assertEquals("MOTION_UNAVAILABLE", result.error?.code)
+      assertTrue(result.error?.message?.contains("PEDOMETER_RANGE_UNAVAILABLE") == true)
     }
+}
 
-    @Test fun orientationTracker_computesDegrees() {
-        val azimuth = MotionHandler.computeAzimuthDegrees(0f)
-        assertTrue(azimuth in 0f..360f)
-    }
+private class FakeMotionDataSource(
+  private val hasPermission: Boolean,
+  private val activityAvailable: Boolean = true,
+  private val pedometerAvailable: Boolean = true,
+  private val activityRecord: MotionActivityRecord =
+    MotionActivityRecord(
+      startISO = "2026-02-28T00:00:00Z",
+      endISO = "2026-02-28T00:00:02Z",
+      confidence = "medium",
+      isWalking = false,
+      isRunning = false,
+      isCycling = false,
+      isAutomotive = false,
+      isStationary = true,
+      isUnknown = false,
+    ),
+  private val pedometerRecord: PedometerRecord =
+    PedometerRecord(
+      startISO = "2026-02-28T00:00:00Z",
+      endISO = "2026-02-28T01:00:00Z",
+      steps = 1234,
+      distanceMeters = null,
+      floorsAscended = null,
+      floorsDescended = null,
+    ),
+  private val activityError: Throwable? = null,
+  private val pedometerError: Throwable? = null,
+) : MotionDataSource {
+  override fun isActivityAvailable(context: Context): Boolean = activityAvailable
 
-    @Test fun sensorBatchMode_samplingRates() {
-        assertTrue(MotionHandler.SENSOR_DELAY_NORMAL_US > 0)
-        assertTrue(MotionHandler.SENSOR_DELAY_GAME_US > 0)
-        assertTrue(MotionHandler.SENSOR_DELAY_GAME_US < MotionHandler.SENSOR_DELAY_NORMAL_US)
-    }
+  override fun isPedometerAvailable(context: Context): Boolean = pedometerAvailable
 
-    @Test fun motionEventThrottling_respectsMinInterval() {
-        val throttle = MotionHandler.EventThrottle(100L)
-        assertTrue(throttle.shouldEmit(0L))
-        assertFalse(throttle.shouldEmit(50L))
-        assertTrue(throttle.shouldEmit(101L))
-    }
+  override fun hasPermission(context: Context): Boolean = hasPermission
 
-    @Test fun significantMotion_triggerOnce() {
-        // Significant motion sensor triggers once then needs re-registration
-        val trigger = MotionHandler.SignificantMotionTrigger()
-        assertFalse(trigger.hasTriggered())
-        trigger.onTrigger()
-        assertTrue(trigger.hasTriggered())
-    }
+  override suspend fun activity(context: Context, request: MotionActivityRequest): MotionActivityRecord {
+    activityError?.let { throw it }
+    return activityRecord
+  }
 
-    @Test fun requiredPermissions_includesActivityRecognition() {
-        val perms = MotionHandler.requiredPermissions()
-        assertTrue(perms.isNotEmpty())
-    }
-
-    @Test fun shakeThreshold_isReasonable() {
-        assertTrue(MotionHandler.SHAKE_THRESHOLD_G > 1.0f)
-        assertTrue(MotionHandler.SHAKE_THRESHOLD_G < 50.0f)
-    }
-
-    @Test fun accelerometerMagnitude_computesCorrectly() {
-        val magnitude = MotionHandler.accelerometerMagnitude(3f, 4f, 0f)
-        assertEquals(5.0f, magnitude, 0.01f)
-    }
-
-    @Test fun accelerometerMagnitude_handlesGravity() {
-        val magnitude = MotionHandler.accelerometerMagnitude(0f, 0f, 9.81f)
-        assertEquals(9.81f, magnitude, 0.01f)
-    }
-
-    @Test fun gravityFilter_removesStaticComponent() {
-        val filtered = MotionHandler.removeGravity(0f, 0f, 9.81f + 2.0f, 0f, 0f, 9.81f)
-        assertEquals(2.0f, filtered[2], 0.1f)
-    }
-
-    @Test fun stepAccumulator_resetClearsState() {
-        val counter = MotionHandler.StepAccumulator()
-        counter.onSensorEvent(100f)
-        counter.onSensorEvent(110f)
-        counter.reset()
-        assertEquals(0, counter.stepsSinceStart())
-    }
-
-    @Test fun eventThrottle_resetAllowsImmediate() {
-        val throttle = MotionHandler.EventThrottle(100L)
-        throttle.shouldEmit(0L)
-        throttle.reset()
-        assertTrue(throttle.shouldEmit(50L))
-    }
-
-    @Test fun pedometerAvailability_dependsOnHardware() {
-        // This is a static boolean — just verify it's accessible
-        val available = MotionHandler.isPedometerHardwareAvailable
-        // Can't assert value without context, but it shouldn't throw
-        assertNotNull(available)
-    }
+  override suspend fun pedometer(context: Context, request: MotionPedometerRequest): PedometerRecord {
+    pedometerError?.let { throw it }
+    return pedometerRecord
+  }
 }

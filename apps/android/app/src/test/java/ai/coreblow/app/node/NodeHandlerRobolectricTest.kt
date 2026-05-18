@@ -1,13 +1,11 @@
 package ai.coreblow.app.node
 
-import org.junit.Test
+import android.content.Context
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 
 @RunWith(RobolectricTestRunner::class)
-class NodeHandlerRobolectricTest {
-    @Test
-    fun robolectricContextAvailable() {
-        // Base test verifying Robolectric can create an Application context
-    }
+abstract class NodeHandlerRobolectricTest {
+  protected fun appContext(): Context = RuntimeEnvironment.getApplication()
 }

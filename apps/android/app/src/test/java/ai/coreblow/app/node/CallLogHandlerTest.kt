@@ -1,158 +1,193 @@
 package ai.coreblow.app.node
 
+import android.content.Context
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class CallLogHandlerTest {
-    @Test fun commandName_isCallLog() { assertEquals("callLog", CallLogHandler.COMMAND_NAME) }
+class CallLogHandlerTest : NodeHandlerRobolectricTest() {
+  @Test
+  fun handleCallLogSearch_requiresPermission() {
+    val handler = CallLogHandler.forTesting(appContext(), FakeCallLogDataSource(canRead = false))
 
-    @Test fun parseCallType_mapsIncomingCorrectly() {
-        assertEquals(CallLogHandler.CallType.Incoming, CallLogHandler.parseCallType(1))
-        assertEquals(CallLogHandler.CallType.Outgoing, CallLogHandler.parseCallType(2))
-        assertEquals(CallLogHandler.CallType.Missed, CallLogHandler.parseCallType(3))
-    }
+    val result = handler.handleCallLogSearch(null)
 
-    @Test fun parseCallType_unknownDefaultsToUnknown() {
-        assertEquals(CallLogHandler.CallType.Unknown, CallLogHandler.parseCallType(999))
-    }
+    assertFalse(result.ok)
+    assertEquals("CALL_LOG_PERMISSION_REQUIRED", result.error?.code)
+  }
 
-    @Test fun formatDuration_handlesZero() {
-        assertEquals("0s", CallLogHandler.formatDuration(0L))
-    }
+  @Test
+  fun handleCallLogSearch_rejectsInvalidJson() {
+    val handler = CallLogHandler.forTesting(appContext(), FakeCallLogDataSource(canRead = true))
 
-    @Test fun formatDuration_handlesMinutesAndSeconds() {
-        assertEquals("1m 30s", CallLogHandler.formatDuration(90L))
-        assertEquals("1h 0m 0s", CallLogHandler.formatDuration(3600L))
-    }
+    val result = handler.handleCallLogSearch("invalid json")
 
-    @Test fun parseRecentCallsResponse_handlesEmptyArray() {
-        val result = CallLogHandler.parseRecentCallsResponse("[]")
-        assertNotNull(result)
-        assertEquals(0, result.size)
-    }
+    assertFalse(result.ok)
+    assertEquals("INVALID_REQUEST", result.error?.code)
+  }
 
-    @Test fun parseCallEntry_extractsFields() {
-        val json = """{"number":"+1234567890","type":1,"duration":120,"date":"2026-01-01T10:00:00Z","name":"Alice"}"""
-        val entry = CallLogHandler.parseCallEntry(json)
-        assertNotNull(entry)
-        assertEquals("+1234567890", entry?.number)
-        assertEquals("Alice", entry?.name)
-        assertEquals(120L, entry?.durationSeconds)
-    }
+  @Test
+  fun handleCallLogSearch_returnsCallLogs() {
+    val callLog =
+      CallLogRecord(
+        number = "+123456",
+        cachedName = "lixuankai",
+        date = 1709280000000L,
+        duration = 60L,
+        type = 1,
+      )
+    val handler =
+      CallLogHandler.forTesting(
+        appContext(),
+        FakeCallLogDataSource(canRead = true, searchResults = listOf(callLog)),
+      )
 
-    @Test fun parseCallEntry_handlesNullName() {
-        val json = """{"number":"+1234567890","type":2,"duration":60,"date":"2026-01-01T10:00:00Z"}"""
-        val entry = CallLogHandler.parseCallEntry(json)
-        assertNull(entry?.name)
-    }
+    val result = handler.handleCallLogSearch("""{"limit":1}""")
 
-    @Test fun searchByContact_matchesPartialNumber() {
-        assertTrue(CallLogHandler.matchesContact("+12345678", "2345"))
-        assertFalse(CallLogHandler.matchesContact("+12345678", "9999"))
-    }
+    assertTrue(result.ok)
+    val payload = Json.parseToJsonElement(result.payloadJson ?: error("missing payload")).jsonObject
+    val callLogs = payload.getValue("callLogs").jsonArray
+    assertEquals(1, callLogs.size)
+    assertEquals("+123456", callLogs.first().jsonObject.getValue("number").jsonPrimitive.content)
+    assertEquals("lixuankai", callLogs.first().jsonObject.getValue("cachedName").jsonPrimitive.content)
+    assertEquals(1709280000000L, callLogs.first().jsonObject.getValue("date").jsonPrimitive.content.toLong())
+    assertEquals(60L, callLogs.first().jsonObject.getValue("duration").jsonPrimitive.content.toLong())
+    assertEquals(1, callLogs.first().jsonObject.getValue("type").jsonPrimitive.content.toInt())
+  }
 
-    @Test fun searchByContact_matchesContactName() {
-        assertTrue(CallLogHandler.matchesContact("+12345678", "1234", "Alice"))
-        assertTrue(CallLogHandler.matchesContact("+12345678", "ali", "Alice"))
-        assertFalse(CallLogHandler.matchesContact("+12345678", "bob", "Alice"))
-    }
+  @Test
+  fun handleCallLogSearch_withFilters() {
+    val callLog =
+      CallLogRecord(
+        number = "+123456",
+        cachedName = "lixuankai",
+        date = 1709280000000L,
+        duration = 120L,
+        type = 2,
+      )
+    val handler =
+      CallLogHandler.forTesting(
+        appContext(),
+        FakeCallLogDataSource(canRead = true, searchResults = listOf(callLog)),
+      )
 
-    @Test fun durationStats_computesAverageAndTotal() {
-        val durations = listOf(60L, 120L, 180L)
-        val stats = CallLogHandler.computeDurationStats(durations)
-        assertEquals(360L, stats.totalSeconds)
-        assertEquals(120L, stats.averageSeconds)
-        assertEquals(180L, stats.maxSeconds)
-        assertEquals(60L, stats.minSeconds)
-    }
+    val result = handler.handleCallLogSearch(
+        """{"number":"123456","cachedName":"lixuankai","dateStart":1709270000000,"dateEnd":1709290000000,"duration":120,"type":2}"""
+    )
 
-    @Test fun durationStats_handlesEmptyList() {
-        val stats = CallLogHandler.computeDurationStats(emptyList())
-        assertEquals(0L, stats.totalSeconds)
-        assertEquals(0L, stats.averageSeconds)
-    }
+    assertTrue(result.ok)
+    val payload = Json.parseToJsonElement(result.payloadJson ?: error("missing payload")).jsonObject
+    val callLogs = payload.getValue("callLogs").jsonArray
+    assertEquals(1, callLogs.size)
+    assertEquals("lixuankai", callLogs.first().jsonObject.getValue("cachedName").jsonPrimitive.content)
+  }
 
-    @Test fun requiredPermissions_includesReadCallLog() {
-        val perms = CallLogHandler.requiredPermissions()
-        assertTrue(perms.isNotEmpty())
-    }
+  @Test
+  fun handleCallLogSearch_withPagination() {
+    val callLogs =
+      listOf(
+        CallLogRecord(
+          number = "+123456",
+          cachedName = "lixuankai",
+          date = 1709280000000L,
+          duration = 60L,
+          type = 1,
+        ),
+        CallLogRecord(
+          number = "+654321",
+          cachedName = "lixuankai2",
+          date = 1709280001000L,
+          duration = 120L,
+          type = 2,
+        ),
+      )
+    val handler =
+      CallLogHandler.forTesting(
+        appContext(),
+        FakeCallLogDataSource(canRead = true, searchResults = callLogs),
+      )
 
-    @Test fun parseCallType_mapsVoicemail() {
-        assertEquals(CallLogHandler.CallType.Voicemail, CallLogHandler.parseCallType(4))
-    }
+    val result = handler.handleCallLogSearch("""{"limit":1,"offset":1}""")
 
-    @Test fun parseCallType_mapsRejected() {
-        assertEquals(CallLogHandler.CallType.Rejected, CallLogHandler.parseCallType(5))
-    }
+    assertTrue(result.ok)
+    val payload = Json.parseToJsonElement(result.payloadJson ?: error("missing payload")).jsonObject
+    val callLogsResult = payload.getValue("callLogs").jsonArray
+    assertEquals(1, callLogsResult.size)
+    assertEquals("lixuankai2", callLogsResult.first().jsonObject.getValue("cachedName").jsonPrimitive.content)
+  }
 
-    @Test fun parseCallType_mapsBlocked() {
-        assertEquals(CallLogHandler.CallType.Blocked, CallLogHandler.parseCallType(6))
-    }
+  @Test
+  fun handleCallLogSearch_withDefaultParams() {
+    val callLog =
+      CallLogRecord(
+        number = "+123456",
+        cachedName = "lixuankai",
+        date = 1709280000000L,
+        duration = 60L,
+        type = 1,
+      )
+    val handler =
+      CallLogHandler.forTesting(
+        appContext(),
+        FakeCallLogDataSource(canRead = true, searchResults = listOf(callLog)),
+      )
 
-    @Test fun filterByType_incoming() {
-        val entries = listOf(
-            CallLogHandler.CallEntry(number = "+111", type = CallLogHandler.CallType.Incoming, durationSeconds = 60L, dateMs = 1000L, name = null),
-            CallLogHandler.CallEntry(number = "+222", type = CallLogHandler.CallType.Outgoing, durationSeconds = 30L, dateMs = 2000L, name = null),
-            CallLogHandler.CallEntry(number = "+333", type = CallLogHandler.CallType.Incoming, durationSeconds = 90L, dateMs = 3000L, name = null),
-        )
-        val incoming = CallLogHandler.filterByCallType(entries, CallLogHandler.CallType.Incoming)
-        assertEquals(2, incoming.size)
-    }
+    val result = handler.handleCallLogSearch(null)
 
-    @Test fun filterByType_missed() {
-        val entries = listOf(
-            CallLogHandler.CallEntry(number = "+111", type = CallLogHandler.CallType.Missed, durationSeconds = 0L, dateMs = 1000L, name = null),
-            CallLogHandler.CallEntry(number = "+222", type = CallLogHandler.CallType.Incoming, durationSeconds = 60L, dateMs = 2000L, name = null),
-        )
-        val missed = CallLogHandler.filterByCallType(entries, CallLogHandler.CallType.Missed)
-        assertEquals(1, missed.size)
-        assertEquals("+111", missed[0].number)
-    }
+    assertTrue(result.ok)
+    val payload = Json.parseToJsonElement(result.payloadJson ?: error("missing payload")).jsonObject
+    val callLogs = payload.getValue("callLogs").jsonArray
+    assertEquals(1, callLogs.size)
+    assertEquals("+123456", callLogs.first().jsonObject.getValue("number").jsonPrimitive.content)
+  }
 
-    @Test fun filterByDateRange_includesInRange() {
-        val entries = listOf(
-            CallLogHandler.CallEntry(number = "+111", type = CallLogHandler.CallType.Incoming, durationSeconds = 60L, dateMs = 500L, name = null),
-            CallLogHandler.CallEntry(number = "+222", type = CallLogHandler.CallType.Incoming, durationSeconds = 60L, dateMs = 1500L, name = null),
-            CallLogHandler.CallEntry(number = "+333", type = CallLogHandler.CallType.Incoming, durationSeconds = 60L, dateMs = 2500L, name = null),
-        )
-        val filtered = CallLogHandler.filterByDateRange(entries, startMs = 1000L, endMs = 2000L)
-        assertEquals(1, filtered.size)
-        assertEquals("+222", filtered[0].number)
-    }
+  @Test
+  fun handleCallLogSearch_withNullFields() {
+    val callLog =
+      CallLogRecord(
+        number = null,
+        cachedName = null,
+        date = 1709280000000L,
+        duration = 60L,
+        type = 1,
+      )
+    val handler =
+      CallLogHandler.forTesting(
+        appContext(),
+        FakeCallLogDataSource(canRead = true, searchResults = listOf(callLog)),
+      )
 
-    @Test fun maxEntriesPerQuery_isReasonable() {
-        assertTrue(CallLogHandler.MAX_ENTRIES_PER_QUERY > 0)
-        assertTrue(CallLogHandler.MAX_ENTRIES_PER_QUERY <= 500)
-    }
+    val result = handler.handleCallLogSearch("""{"limit":1}""")
 
-    @Test fun formatDuration_handlesHoursAndMinutes() {
-        assertEquals("2h 30m 0s", CallLogHandler.formatDuration(9000L))
-    }
+    assertTrue(result.ok)
+    val payload = Json.parseToJsonElement(result.payloadJson ?: error("missing payload")).jsonObject
+    val callLogs = payload.getValue("callLogs").jsonArray
+    assertEquals(1, callLogs.size)
+    // Verify null values are properly serialized
+    val callLogObj = callLogs.first().jsonObject
+    assertTrue(callLogObj.containsKey("number"))
+    assertTrue(callLogObj.containsKey("cachedName"))
+  }
+}
 
-    @Test fun durationStats_singleEntry() {
-        val stats = CallLogHandler.computeDurationStats(listOf(45L))
-        assertEquals(45L, stats.totalSeconds)
-        assertEquals(45L, stats.averageSeconds)
-        assertEquals(45L, stats.maxSeconds)
-        assertEquals(45L, stats.minSeconds)
-    }
+private class FakeCallLogDataSource(
+  private val canRead: Boolean,
+  private val searchResults: List<CallLogRecord> = emptyList(),
+) : CallLogDataSource {
+  override fun hasReadPermission(context: Context): Boolean = canRead
 
-    @Test fun searchByContact_caseInsensitive() {
-        assertTrue(CallLogHandler.matchesContact("+12345678", "ALICE", "alice"))
-        assertTrue(CallLogHandler.matchesContact("+12345678", "alice", "ALICE"))
+  override fun search(context: Context, request: CallLogSearchRequest): List<CallLogRecord> {
+    val startIndex = request.offset.coerceAtLeast(0)
+    val endIndex = (startIndex + request.limit).coerceAtMost(searchResults.size)
+    return if (startIndex < searchResults.size) {
+      searchResults.subList(startIndex, endIndex)
+    } else {
+      emptyList()
     }
-
-    @Test fun callTypeLabel_allTypes() {
-        assertEquals("incoming", CallLogHandler.callTypeLabel(CallLogHandler.CallType.Incoming))
-        assertEquals("outgoing", CallLogHandler.callTypeLabel(CallLogHandler.CallType.Outgoing))
-        assertEquals("missed", CallLogHandler.callTypeLabel(CallLogHandler.CallType.Missed))
-        assertEquals("voicemail", CallLogHandler.callTypeLabel(CallLogHandler.CallType.Voicemail))
-        assertEquals("rejected", CallLogHandler.callTypeLabel(CallLogHandler.CallType.Rejected))
-        assertEquals("blocked", CallLogHandler.callTypeLabel(CallLogHandler.CallType.Blocked))
-        assertEquals("unknown", CallLogHandler.callTypeLabel(CallLogHandler.CallType.Unknown))
-    }
+  }
 }

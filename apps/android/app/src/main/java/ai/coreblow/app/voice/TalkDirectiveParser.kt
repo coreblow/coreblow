@@ -1,176 +1,191 @@
 package ai.coreblow.app.voice
 
-import android.util.Log
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
-/**
- * Parses talk-mode directives from gateway responses.
- * Handles structured commands for voice session control,
- * TTS playback, audio capture, and session state changes.
- */
-class TalkDirectiveParser {
+private val directiveJson = Json { ignoreUnknownKeys = true }
 
-    companion object {
-        private const val TAG = "TalkDirectiveParser"
+data class TalkDirective(
+  val voiceId: String? = null,
+  val modelId: String? = null,
+  val speed: Double? = null,
+  val rateWpm: Int? = null,
+  val stability: Double? = null,
+  val similarity: Double? = null,
+  val style: Double? = null,
+  val speakerBoost: Boolean? = null,
+  val seed: Long? = null,
+  val normalize: String? = null,
+  val language: String? = null,
+  val outputFormat: String? = null,
+  val latencyTier: Int? = null,
+  val once: Boolean? = null,
+)
+
+data class TalkDirectiveParseResult(
+  val directive: TalkDirective?,
+  val stripped: String,
+  val unknownKeys: List<String>,
+)
+
+object TalkDirectiveParser {
+  fun parse(text: String): TalkDirectiveParseResult {
+    val normalized = text.replace("\r\n", "\n")
+    val lines = normalized.split("\n").toMutableList()
+    if (lines.isEmpty()) return TalkDirectiveParseResult(null, text, emptyList())
+
+    val firstNonEmpty = lines.indexOfFirst { it.trim().isNotEmpty() }
+    if (firstNonEmpty == -1) return TalkDirectiveParseResult(null, text, emptyList())
+
+    val head = lines[firstNonEmpty].trim()
+    if (!head.startsWith("{") || !head.endsWith("}")) {
+      return TalkDirectiveParseResult(null, text, emptyList())
     }
 
-    /**
-     * Parse a raw gateway message into a TalkDirective.
-     */
-    fun parse(raw: String): TalkDirective? {
-        return try {
-            val json = Json.parseToJsonElement(raw).jsonObject
-            val type = json["type"]?.jsonPrimitive?.contentOrNull ?: return null
+    val obj = parseJsonObject(head) ?: return TalkDirectiveParseResult(null, text, emptyList())
 
-            when (type) {
-                "tts" -> parseTtsDirective(json)
-                "listen" -> parseListenDirective(json)
-                "stop" -> TalkDirective.Stop(json["reason"]?.jsonPrimitive?.contentOrNull ?: "requested")
-                "session_start" -> parseSessionStart(json)
-                "session_end" -> TalkDirective.SessionEnd(json["reason"]?.jsonPrimitive?.contentOrNull ?: "complete")
-                "thinking" -> TalkDirective.Thinking(json["text"]?.jsonPrimitive?.contentOrNull ?: "")
-                "tool_call" -> parseToolCall(json)
-                "tool_result" -> parseToolResult(json)
-                "error" -> TalkDirective.Error(
-                    code = json["code"]?.jsonPrimitive?.intOrNull ?: 0,
-                    message = json["message"]?.jsonPrimitive?.contentOrNull ?: "Unknown error",
-                )
-                "config" -> parseConfigDirective(json)
-                "interrupt" -> TalkDirective.Interrupt
-                "clear" -> TalkDirective.Clear
-                else -> {
-                    Log.w(TAG, "Unknown directive type: $type")
-                    null
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Parse error: ${e.message}")
-            null
-        }
+    val speakerBoost =
+      boolValue(obj, listOf("speaker_boost", "speakerBoost"))
+        ?: boolValue(obj, listOf("no_speaker_boost", "noSpeakerBoost"))?.not()
+
+    val directive = TalkDirective(
+      voiceId = stringValue(obj, listOf("voice", "voice_id", "voiceId")),
+      modelId = stringValue(obj, listOf("model", "model_id", "modelId")),
+      speed = doubleValue(obj, listOf("speed")),
+      rateWpm = intValue(obj, listOf("rate", "wpm")),
+      stability = doubleValue(obj, listOf("stability")),
+      similarity = doubleValue(obj, listOf("similarity", "similarity_boost", "similarityBoost")),
+      style = doubleValue(obj, listOf("style")),
+      speakerBoost = speakerBoost,
+      seed = longValue(obj, listOf("seed")),
+      normalize = stringValue(obj, listOf("normalize", "apply_text_normalization")),
+      language = stringValue(obj, listOf("lang", "language_code", "language")),
+      outputFormat = stringValue(obj, listOf("output_format", "format")),
+      latencyTier = intValue(obj, listOf("latency", "latency_tier", "latencyTier")),
+      once = boolValue(obj, listOf("once")),
+    )
+
+    val hasDirective = listOf(
+      directive.voiceId,
+      directive.modelId,
+      directive.speed,
+      directive.rateWpm,
+      directive.stability,
+      directive.similarity,
+      directive.style,
+      directive.speakerBoost,
+      directive.seed,
+      directive.normalize,
+      directive.language,
+      directive.outputFormat,
+      directive.latencyTier,
+      directive.once,
+    ).any { it != null }
+
+    if (!hasDirective) return TalkDirectiveParseResult(null, text, emptyList())
+
+    val knownKeys = setOf(
+      "voice", "voice_id", "voiceid",
+      "model", "model_id", "modelid",
+      "speed", "rate", "wpm",
+      "stability", "similarity", "similarity_boost", "similarityboost",
+      "style",
+      "speaker_boost", "speakerboost",
+      "no_speaker_boost", "nospeakerboost",
+      "seed",
+      "normalize", "apply_text_normalization",
+      "lang", "language_code", "language",
+      "output_format", "format",
+      "latency", "latency_tier", "latencytier",
+      "once",
+    )
+    val unknownKeys = obj.keys.filter { !knownKeys.contains(it.lowercase()) }.sorted()
+
+    lines.removeAt(firstNonEmpty)
+    if (firstNonEmpty < lines.size) {
+      if (lines[firstNonEmpty].trim().isEmpty()) {
+        lines.removeAt(firstNonEmpty)
+      }
     }
 
-    /**
-     * Parse multiple directives from a batch message.
-     */
-    fun parseBatch(raw: String): List<TalkDirective> {
-        return try {
-            val json = Json.parseToJsonElement(raw)
-            if (json is JsonArray) {
-                json.mapNotNull { elem ->
-                    if (elem is JsonObject) parse(elem.toString())
-                    else null
-                }
-            } else {
-                listOfNotNull(parse(raw))
-            }
-        } catch (_: Exception) {
-            listOfNotNull(parse(raw))
-        }
-    }
+    return TalkDirectiveParseResult(directive, lines.joinToString("\n"), unknownKeys)
+  }
 
-    private fun parseTtsDirective(json: JsonObject): TalkDirective.Speak {
-        return TalkDirective.Speak(
-            text = json["text"]?.jsonPrimitive?.contentOrNull ?: "",
-            voice = json["voice"]?.jsonPrimitive?.contentOrNull,
-            speed = json["speed"]?.jsonPrimitive?.floatOrNull ?: TalkDefaults.TTS_SPEECH_RATE,
-            pitch = json["pitch"]?.jsonPrimitive?.floatOrNull ?: TalkDefaults.TTS_PITCH,
-            isInterruptible = json["interruptible"]?.jsonPrimitive?.booleanOrNull ?: true,
-            isFinal = json["final"]?.jsonPrimitive?.booleanOrNull ?: false,
-            chunkIndex = json["chunkIndex"]?.jsonPrimitive?.intOrNull ?: 0,
-            totalChunks = json["totalChunks"]?.jsonPrimitive?.intOrNull ?: 1,
-        )
+  private fun parseJsonObject(line: String): JsonObject? {
+    return try {
+      directiveJson.parseToJsonElement(line) as? JsonObject
+    } catch (_: Throwable) {
+      null
     }
+  }
 
-    private fun parseListenDirective(json: JsonObject): TalkDirective.Listen {
-        return TalkDirective.Listen(
-            maxDurationMs = json["maxDurationMs"]?.jsonPrimitive?.longOrNull ?: (TalkDefaults.MAX_RECORDING_DURATION_SEC * 1000L),
-            language = json["language"]?.jsonPrimitive?.contentOrNull ?: "auto",
-            sensitivity = json["sensitivity"]?.jsonPrimitive?.floatOrNull ?: 1.0f,
-            silenceThreshold = json["silenceThreshold"]?.jsonPrimitive?.doubleOrNull ?: TalkDefaults.SILENCE_THRESHOLD_RMS,
-            autoStop = json["autoStop"]?.jsonPrimitive?.booleanOrNull ?: true,
-        )
+  private fun stringValue(obj: JsonObject, keys: List<String>): String? {
+    for (key in keys) {
+      val value = obj[key].asStringOrNull()?.trim()
+      if (!value.isNullOrEmpty()) return value
     }
+    return null
+  }
 
-    private fun parseSessionStart(json: JsonObject): TalkDirective.SessionStart {
-        return TalkDirective.SessionStart(
-            sessionId = json["sessionId"]?.jsonPrimitive?.contentOrNull ?: "",
-            model = json["model"]?.jsonPrimitive?.contentOrNull,
-            greeting = json["greeting"]?.jsonPrimitive?.contentOrNull,
-            capabilities = json["capabilities"]?.jsonArray?.map { it.jsonPrimitive.content } ?: emptyList(),
-        )
+  private fun doubleValue(obj: JsonObject, keys: List<String>): Double? {
+    for (key in keys) {
+      val value = obj[key].asDoubleOrNull()
+      if (value != null) return value
     }
+    return null
+  }
 
-    private fun parseToolCall(json: JsonObject): TalkDirective.ToolCall {
-        return TalkDirective.ToolCall(
-            id = json["id"]?.jsonPrimitive?.contentOrNull ?: "",
-            name = json["name"]?.jsonPrimitive?.contentOrNull ?: "",
-            args = json["args"]?.jsonObject ?: JsonObject(emptyMap()),
-        )
+  private fun intValue(obj: JsonObject, keys: List<String>): Int? {
+    for (key in keys) {
+      val value = obj[key].asIntOrNull()
+      if (value != null) return value
     }
+    return null
+  }
 
-    private fun parseToolResult(json: JsonObject): TalkDirective.ToolResult {
-        return TalkDirective.ToolResult(
-            id = json["id"]?.jsonPrimitive?.contentOrNull ?: "",
-            name = json["name"]?.jsonPrimitive?.contentOrNull ?: "",
-            result = json["result"]?.jsonPrimitive?.contentOrNull ?: "",
-            isSuccess = json["success"]?.jsonPrimitive?.booleanOrNull ?: true,
-        )
+  private fun longValue(obj: JsonObject, keys: List<String>): Long? {
+    for (key in keys) {
+      val value = obj[key].asLongOrNull()
+      if (value != null) return value
     }
+    return null
+  }
 
-    private fun parseConfigDirective(json: JsonObject): TalkDirective.Config {
-        return TalkDirective.Config(
-            enableTts = json["enableTts"]?.jsonPrimitive?.booleanOrNull,
-            ttsVoice = json["ttsVoice"]?.jsonPrimitive?.contentOrNull,
-            ttsSpeed = json["ttsSpeed"]?.jsonPrimitive?.floatOrNull,
-            vadSensitivity = json["vadSensitivity"]?.jsonPrimitive?.floatOrNull,
-            silenceThreshold = json["silenceThreshold"]?.jsonPrimitive?.doubleOrNull,
-            language = json["language"]?.jsonPrimitive?.contentOrNull,
-        )
+  private fun boolValue(obj: JsonObject, keys: List<String>): Boolean? {
+    for (key in keys) {
+      val value = obj[key].asBooleanOrNull()
+      if (value != null) return value
     }
+    return null
+  }
 }
 
-/**
- * Sealed hierarchy for talk-mode directives.
- */
-sealed class TalkDirective {
-    data class Speak(
-        val text: String,
-        val voice: String? = null,
-        val speed: Float = 1.0f,
-        val pitch: Float = 1.0f,
-        val isInterruptible: Boolean = true,
-        val isFinal: Boolean = false,
-        val chunkIndex: Int = 0,
-        val totalChunks: Int = 1,
-    ) : TalkDirective()
+private fun JsonElement?.asStringOrNull(): String? =
+  (this as? JsonPrimitive)?.takeIf { it.isString }?.content
 
-    data class Listen(
-        val maxDurationMs: Long = 60_000,
-        val language: String = "auto",
-        val sensitivity: Float = 1.0f,
-        val silenceThreshold: Double = 350.0,
-        val autoStop: Boolean = true,
-    ) : TalkDirective()
+private fun JsonElement?.asDoubleOrNull(): Double? {
+  val primitive = this as? JsonPrimitive ?: return null
+  return primitive.content.toDoubleOrNull()
+}
 
-    data class Stop(val reason: String) : TalkDirective()
-    data class SessionStart(val sessionId: String, val model: String?, val greeting: String?, val capabilities: List<String>) : TalkDirective()
-    data class SessionEnd(val reason: String) : TalkDirective()
-    data class Thinking(val text: String) : TalkDirective()
+private fun JsonElement?.asIntOrNull(): Int? {
+  val primitive = this as? JsonPrimitive ?: return null
+  return primitive.content.toIntOrNull()
+}
 
-    data class ToolCall(val id: String, val name: String, val args: JsonObject) : TalkDirective()
-    data class ToolResult(val id: String, val name: String, val result: String, val isSuccess: Boolean) : TalkDirective()
+private fun JsonElement?.asLongOrNull(): Long? {
+  val primitive = this as? JsonPrimitive ?: return null
+  return primitive.content.toLongOrNull()
+}
 
-    data class Error(val code: Int, val message: String) : TalkDirective()
-
-    data class Config(
-        val enableTts: Boolean? = null,
-        val ttsVoice: String? = null,
-        val ttsSpeed: Float? = null,
-        val vadSensitivity: Float? = null,
-        val silenceThreshold: Double? = null,
-        val language: String? = null,
-    ) : TalkDirective()
-
-    data object Interrupt : TalkDirective()
-    data object Clear : TalkDirective()
+private fun JsonElement?.asBooleanOrNull(): Boolean? {
+  val primitive = this as? JsonPrimitive ?: return null
+  val content = primitive.content.trim().lowercase()
+  return when (content) {
+    "true", "yes", "1" -> true
+    "false", "no", "0" -> false
+    else -> null
+  }
 }

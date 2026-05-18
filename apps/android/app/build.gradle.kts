@@ -38,12 +38,73 @@ android {
     productFlavors {
         create("play") {
             dimension = "distribution"
-            // Google Play Store distribution
+            buildConfigField("boolean", "COREBLOW_ENABLE_SMS", "false")
+            buildConfigField("boolean", "COREBLOW_ENABLE_CALL_LOG", "false")
         }
         create("thirdParty") {
             dimension = "distribution"
-            // F-Droid / direct APK distribution
+            buildConfigField("boolean", "COREBLOW_ENABLE_SMS", "true")
+            buildConfigField("boolean", "COREBLOW_ENABLE_CALL_LOG", "true")
         }
+    }
+
+    sourceSets {
+        getByName("main") {
+            assets.srcDirs("../../shared/CoreBlowKit/Sources/CoreBlowKit/Resources")
+            java.exclude(
+                "ai/coreblow/app/animation/**",
+                "ai/coreblow/app/database/**",
+                "ai/coreblow/app/di/**",
+                "ai/coreblow/app/formatter/**",
+                "ai/coreblow/app/model/**",
+                "ai/coreblow/app/navigation/**",
+                "ai/coreblow/app/network/**",
+                "ai/coreblow/app/node/handlers/**",
+                "ai/coreblow/app/node/NodeForegroundService.kt",
+                "ai/coreblow/app/node/SmsMessageManager.kt",
+                "ai/coreblow/app/provider/**",
+                "ai/coreblow/app/receiver/**",
+                "ai/coreblow/app/repository/**",
+                "ai/coreblow/app/service/**",
+                "ai/coreblow/app/ui/ChatActivity.kt",
+                "ai/coreblow/app/ui/MainActivity.kt",
+                "ai/coreblow/app/ui/compose/**",
+                "ai/coreblow/app/utils/**",
+                "ai/coreblow/app/viewmodel/**",
+                "ai/coreblow/app/wear/**",
+                "ai/coreblow/app/widget/**",
+                "ai/coreblow/app/worker/**",
+            )
+        }
+        getByName("test") {
+            java.exclude(
+                "ai/coreblow/app/APIClientTest.kt",
+                "ai/coreblow/app/ChatViewModelTest.kt",
+                "ai/coreblow/app/ConversationRepositoryTest.kt",
+                "ai/coreblow/app/MessageModelTest.kt",
+            )
+        }
+    }
+
+    packaging {
+        resources {
+            excludes +=
+                setOf(
+                    "/META-INF/{AL2.0,LGPL2.1}",
+                    "/META-INF/*.version",
+                    "/META-INF/LICENSE*.txt",
+                    "DebugProbesKt.bin",
+                    "kotlin-tooling-metadata.json",
+                    "org/bouncycastle/pqc/crypto/picnic/lowmcL1.bin.properties",
+                    "org/bouncycastle/pqc/crypto/picnic/lowmcL3.bin.properties",
+                    "org/bouncycastle/pqc/crypto/picnic/lowmcL5.bin.properties",
+                    "org/bouncycastle/x509/CertPathReviewerMessages*.properties",
+                )
+        }
+    }
+
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
     }
 
     compileOptions {
@@ -67,6 +128,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")
     implementation("androidx.activity:activity-compose:1.10.1")
+    implementation("androidx.webkit:webkit:1.15.0")
 
     // Compose
     implementation(platform("androidx.compose:compose-bom:2025.05.00"))
@@ -77,6 +139,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+    implementation("com.google.android.material:material:1.13.0")
 
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.9.0")
@@ -87,10 +150,18 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
 
     // Security
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation("androidx.biometric:biometric:1.2.0-alpha05")
+    implementation("androidx.exifinterface:exifinterface:1.4.2")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.83")
+    implementation("org.commonmark:commonmark:0.27.1")
+    implementation("org.commonmark:commonmark-ext-autolink:0.27.1")
+    implementation("org.commonmark:commonmark-ext-gfm-strikethrough:0.27.1")
+    implementation("org.commonmark:commonmark-ext-gfm-tables:0.27.1")
+    implementation("org.commonmark:commonmark-ext-task-list-items:0.27.1")
 
     // WorkManager (background workers)
     implementation("androidx.work:work-runtime-ktx:2.10.1")
@@ -98,6 +169,16 @@ dependencies {
     // Room (database)
     implementation("androidx.room:room-runtime:2.7.1")
     implementation("androidx.room:room-ktx:2.7.1")
+
+    // CameraX (for node.invoke camera.* parity)
+    implementation("androidx.camera:camera-core:1.5.2")
+    implementation("androidx.camera:camera-camera2:1.5.2")
+    implementation("androidx.camera:camera-lifecycle:1.5.2")
+    implementation("androidx.camera:camera-video:1.5.2")
+    implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
+
+    // Unicast DNS-SD (Wide-Area Bonjour) for tailnet discovery domains.
+    implementation("dnsjava:dnsjava:3.6.4")
 
     // Glance (widgets)
     implementation("androidx.glance:glance-appwidget:1.1.1")
@@ -113,8 +194,17 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
     testImplementation("io.mockk:mockk:1.14.2")
+    testImplementation("io.kotest:kotest-runner-junit5-jvm:6.1.3")
+    testImplementation("io.kotest:kotest-assertions-core-jvm:6.1.3")
+    testImplementation("com.squareup.okhttp3:mockwebserver:5.3.2")
+    testImplementation("org.robolectric:robolectric:4.16.1")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:6.0.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
     androidTestImplementation(platform("androidx.compose:compose-bom:2025.05.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }
