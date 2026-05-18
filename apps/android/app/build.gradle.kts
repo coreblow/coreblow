@@ -90,45 +90,6 @@ android {
     }
 }
 
-kotlin {
-    sourceSets {
-        getByName("main") {
-            kotlin.exclude(
-                "ai/coreblow/app/animation/**",
-                "ai/coreblow/app/database/**",
-                "ai/coreblow/app/di/**",
-                "ai/coreblow/app/formatter/**",
-                "ai/coreblow/app/model/**",
-                "ai/coreblow/app/navigation/**",
-                "ai/coreblow/app/network/**",
-                "ai/coreblow/app/node/handlers/**",
-                "ai/coreblow/app/node/NodeForegroundService.kt",
-                "ai/coreblow/app/node/SmsMessageManager.kt",
-                "ai/coreblow/app/provider/**",
-                "ai/coreblow/app/receiver/**",
-                "ai/coreblow/app/repository/**",
-                "ai/coreblow/app/service/**",
-                "ai/coreblow/app/ui/ChatActivity.kt",
-                "ai/coreblow/app/ui/MainActivity.kt",
-                "ai/coreblow/app/ui/compose/**",
-                "ai/coreblow/app/utils/**",
-                "ai/coreblow/app/viewmodel/**",
-                "ai/coreblow/app/wear/**",
-                "ai/coreblow/app/widget/**",
-                "ai/coreblow/app/worker/**",
-            )
-        }
-        getByName("test") {
-            kotlin.exclude(
-                "ai/coreblow/app/APIClientTest.kt",
-                "ai/coreblow/app/ChatViewModelTest.kt",
-                "ai/coreblow/app/ConversationRepositoryTest.kt",
-                "ai/coreblow/app/MessageModelTest.kt",
-            )
-        }
-    }
-}
-
 dependencies {
     // Core Android
     implementation("androidx.core:core-ktx:1.16.0")
