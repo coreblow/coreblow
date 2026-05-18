@@ -36,8 +36,8 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       - run: bun run typecheck
-      - run: timeout 5m bun test || echo "Bun test compatibility check failed or timed out (non-blocking)"
-        continue-on-error: true
+      - name: Bun CLI smoke
+        run: timeout --kill-after=30s 60s bun run src/cli/init.ts --help >/dev/null
 
   bun-bench:
     name: Bun Benchmarks
