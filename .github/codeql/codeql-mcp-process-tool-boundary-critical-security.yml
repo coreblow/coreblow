@@ -1,0 +1,41 @@
+name: coreblow-codeql-mcp-process-tool-boundary-critical-security
+
+disable-default-queries: true
+
+queries:
+  - uses: security-extended
+
+query-filters:
+  - include:
+      precision:
+        - high
+        - very-high
+      tags contain: security
+      security-severity: /([7-9]|10)\.(\d)+/
+
+paths:
+  - src/mcp
+  - src/process
+  - src/terminal
+  - src/sandbox
+  - src/tools
+  - src/agents/tools
+  - src/agents/pi-embedded-runner
+  - src/agents/bash-tools.exec-host-shared.ts
+  - src/agents/bash-tools.exec-types.ts
+
+paths-ignore:
+  - "**/node_modules"
+  - "**/coverage"
+  - "**/*.generated.ts"
+  - "**/*.bundle.js"
+  - "**/*-runtime.js"
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/*.e2e.test.ts"
+  - "**/*.e2e.test.tsx"
+  - "**/*test-support*"
+  - "**/*test-helper*"
+  - "**/*mock*"
+  - "**/*fixture*"
+  - "**/*bench*"

@@ -53,7 +53,10 @@ Status: in progress.
 
 Actions:
 
-- Keep main CodeQL focused on the release-core TypeScript surface only: `src/cli`, `src/commands`, `src/config`, `src/gateway`, `src/infra`, `src/plugin-sdk`, and `src/plugins`.
+- Keep main CodeQL focused on OpenClaw-style security boundaries instead of one broad TypeScript scan.
+- Run main CodeQL as a `Security High` matrix with independent categories: core auth and secrets, gateway runtime, channel runtime, network and SSRF, MCP and process tools, plugin trust, and GitHub Actions.
+- Disable default CodeQL query packs in the main workflow and run only high or very-high precision security findings from `security-extended`.
+- Do not install package dependencies or run autobuild in the main CodeQL workflow.
 - Move `src/agents` into `CodeQL Agents`, a manual workflow and future ownership boundary.
 - Move the rest of `src` into `CodeQL Source Ecosystem`, a manual workflow.
 - Move `extensions` CodeQL to `CodeQL Extensions`, a manual workflow.
@@ -62,21 +65,21 @@ Actions:
 
 Done criteria:
 
-- `CodeQL` completes without scanning all extensions or the entire source ecosystem.
+- `CodeQL` completes as small security-boundary jobs without scanning all extensions or the entire source ecosystem.
 - `CodeQL Source Ecosystem` exists as a separate workflow for migration monitoring.
 - `CodeQL Extensions` exists as a separate workflow for migration monitoring.
-- Main branch CI no longer treats extension security analysis as a core release blocker.
+- Main branch CI no longer treats extension or broad quality analysis as a core release blocker.
 
 ### Immediate cut decision
 
 The first cut is intentionally operational, not cosmetic:
 
-- `CodeQL` protects the release-core surface.
+- `CodeQL` protects critical security boundaries only.
 - `CodeQL Agents` protects agent runtime code while agent ownership is evaluated as a possible split boundary.
 - `CodeQL Source Ecosystem` protects non-release-core `src` directories while they are evaluated for extraction, consolidation, or deletion.
 - `CodeQL Extensions` protects plugins and providers while they are migrated toward `coreblow/plugins` or standalone repositories.
 
-This mirrors OpenClaw's ecosystem approach: core release checks stay bounded, while satellite surfaces keep their own validation lanes.
+This mirrors OpenClaw's ecosystem approach: critical security checks stay bounded and category-owned, while satellite surfaces keep their own validation lanes.
 
 ## Phase 1: Split Docs and Website
 

@@ -1,0 +1,41 @@
+name: coreblow-codeql-plugin-trust-boundary-critical-security
+
+disable-default-queries: true
+
+queries:
+  - uses: security-extended
+
+query-filters:
+  - include:
+      precision:
+        - high
+        - very-high
+      tags contain: security
+      security-severity: /([7-9]|10)\.(\d)+/
+
+paths:
+  - src/plugins
+  - src/plugin-sdk
+  - src/extensions
+  - src/cli/plugins-command-helpers.ts
+  - src/cli/plugins-install-command.ts
+  - src/cli/plugin-registry.ts
+  - src/cli/plugin-install-config-policy.ts
+  - src/cli/plugin-install-plan.ts
+  - src/commands/doctor
+
+paths-ignore:
+  - "**/node_modules"
+  - "**/coverage"
+  - "**/*.generated.ts"
+  - "**/*.bundle.js"
+  - "**/*-runtime.js"
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/*.e2e.test.ts"
+  - "**/*.e2e.test.tsx"
+  - "**/*test-support*"
+  - "**/*test-helper*"
+  - "**/*mock*"
+  - "**/*fixture*"
+  - "**/*bench*"
