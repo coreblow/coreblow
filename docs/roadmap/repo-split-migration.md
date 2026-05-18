@@ -53,16 +53,30 @@ Status: in progress.
 
 Actions:
 
-- Keep main CodeQL focused on `src`.
+- Keep main CodeQL focused on the release-core TypeScript surface only: `src/cli`, `src/commands`, `src/config`, `src/gateway`, `src/infra`, `src/plugin-sdk`, and `src/plugins`.
+- Move `src/agents` into `CodeQL Agents`, a manual workflow and future ownership boundary.
+- Move the rest of `src` into `CodeQL Source Ecosystem`, a manual workflow.
 - Move `extensions` CodeQL to `CodeQL Extensions`, a manual workflow.
 - Keep core release gates strict: lint/type, build, unit, gateway, Android, Docker, install smoke, security, and core CodeQL.
 - Do not publish final `1.0.0` until split foundations and green gates are confirmed.
 
 Done criteria:
 
-- `CodeQL` completes without scanning all extensions.
+- `CodeQL` completes without scanning all extensions or the entire source ecosystem.
+- `CodeQL Source Ecosystem` exists as a separate workflow for migration monitoring.
 - `CodeQL Extensions` exists as a separate workflow for migration monitoring.
 - Main branch CI no longer treats extension security analysis as a core release blocker.
+
+### Immediate cut decision
+
+The first cut is intentionally operational, not cosmetic:
+
+- `CodeQL` protects the release-core surface.
+- `CodeQL Agents` protects agent runtime code while agent ownership is evaluated as a possible split boundary.
+- `CodeQL Source Ecosystem` protects non-release-core `src` directories while they are evaluated for extraction, consolidation, or deletion.
+- `CodeQL Extensions` protects plugins and providers while they are migrated toward `coreblow/plugins` or standalone repositories.
+
+This mirrors OpenClaw's ecosystem approach: core release checks stay bounded, while satellite surfaces keep their own validation lanes.
 
 ## Phase 1: Split Docs and Website
 

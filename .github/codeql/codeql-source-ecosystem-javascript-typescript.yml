@@ -1,5 +1,7 @@
-name: "CoreBlow CodeQL JavaScript/TypeScript"
+name: "CoreBlow Source Ecosystem CodeQL JavaScript/TypeScript"
 paths:
+  - src
+paths-ignore:
   - src/cli
   - src/commands
   - src/config
@@ -7,17 +9,11 @@ paths:
   - src/infra
   - src/plugin-sdk
   - src/plugins
-paths-ignore:
-  - src/agents
-  - apps
-  - docs
-  - extensions
   - "**/node_modules/**"
   - "**/dist/**"
   - "**/build/**"
   - "**/.gradle/**"
   - "**/coverage/**"
-  - vendor/**
   - "**/*.test.ts"
   - "**/*.test.tsx"
   - "**/*.test.js"
