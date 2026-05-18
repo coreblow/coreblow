@@ -3,6 +3,8 @@ paths:
   - src
   - extensions
 paths-ignore:
+  - apps
+  - docs
   - "**/node_modules/**"
   - "**/dist/**"
   - "**/build/**"
@@ -10,4 +12,8 @@ paths-ignore:
   - "**/coverage/**"
   - vendor/**
   - "**/*.test.ts"
+  - "**/*.test.tsx"
   - "**/*.test.js"
+  - "**/*.test.jsx"
+  - "**/*.e2e.test.ts"
+  - "**/*.e2e.test.tsx"
