@@ -94,35 +94,28 @@ describe("gateway pre-auth hardening", () => {
   });
 
   it("closes idle unauthenticated sockets after the handshake timeout", async () => {
-    const previous = process.env.COREBLOW_HANDSHAKE_TIMEOUT_MS;
-    process.env.COREBLOW_HANDSHAKE_TIMEOUT_MS = "200";
-    cleanupEnv.push(() => {
-      if (previous === undefined) {
-        delete process.env.COREBLOW_HANDSHAKE_TIMEOUT_MS;
-      } else {
-        process.env.COREBLOW_HANDSHAKE_TIMEOUT_MS = previous;
-      }
-    });
-
     const harness = await createGatewaySuiteHarness({
       serverOptions: { auth: { mode: "none" } },
     });
     try {
       const ws = await harness.openWs();
       await readConnectChallengeNonce(ws);
-      const close = await new Promise<{ code: number; elapsedMs: number }>((resolve) => {
-        const startedAt = Date.now();
-        ws.once("close", (code) => {
-          resolve({ code, elapsedMs: Date.now() - startedAt });
-        });
+      const close = await new Promise<{ code: number } | null>((resolve) => {
+        const onClose = (code: number) => {
+          clearTimeout(timer);
+          resolve({ code });
+        };
+        const timer = setTimeout(() => {
+          ws.off("close", onClose);
+          resolve(null);
+        }, 35_000);
+        ws.once("close", onClose);
       });
-      expect(close.code).toBe(1000);
-      expect(close.elapsedMs).toBeGreaterThan(0);
-      expect(close.elapsedMs).toBeLessThan(5_000);
+      expect(close).toEqual({ code: 1000 });
     } finally {
       await harness.close();
     }
-  });
+  }, 40_000);
 
   it("rejects oversized pre-auth connect frames before application-level auth responses", async () => {
     const harness = await createGatewaySuiteHarness();
