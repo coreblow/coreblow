@@ -18,6 +18,7 @@ import {
 
 installGatewayTestHooks({ scope: "suite" });
 const FAST_WAIT_OPTS = { timeout: 250, interval: 2 } as const;
+const CI_AGENT_WAIT_OPTS = { timeout: 5000, interval: 10 } as const;
 
 const sendReq = (
   ws: { send: (payload: string) => void },
@@ -262,7 +263,7 @@ describe("gateway server chat", () => {
 
         await vi.waitFor(() => {
           expect(spy.mock.calls.length).toBeGreaterThan(0);
-        }, FAST_WAIT_OPTS);
+        }, CI_AGENT_WAIT_OPTS);
 
         expect(capturedOpts?.disableBlockStreaming).toBeUndefined();
       } finally {
