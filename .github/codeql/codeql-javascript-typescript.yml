@@ -1,6 +1,4 @@
 name: "CoreBlow CodeQL JavaScript/TypeScript"
-queries:
-  - uses: security-extended
 paths:
   - src
   - extensions
