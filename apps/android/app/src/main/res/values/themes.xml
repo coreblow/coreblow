@@ -1,5 +1,5 @@
 <resources>
-    <style name="Theme.CoreBlow" parent="Theme.Material3.DayNight">
+    <style name="Theme.CoreBlow" parent="@android:style/Theme.Material.Light.NoActionBar">
         <item name="colorPrimary">#6366f1</item>
     </style>
 </resources>
