@@ -61,6 +61,7 @@ android {
                     "/META-INF/{AL2.0,LGPL2.1}",
                     "/META-INF/*.version",
                     "/META-INF/LICENSE*.txt",
+                    "META-INF/versions/**/OSGI-INF/**",
                     "DebugProbesKt.bin",
                     "kotlin-tooling-metadata.json",
                     "org/bouncycastle/pqc/crypto/picnic/lowmcL1.bin.properties",
