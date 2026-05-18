@@ -7,20 +7,40 @@ name: Gateway CI
 on:
   push:
     branches: [main, develop]
-    paths: ['src/**', 'extensions/**', 'packages/**']
+    paths:
+      - 'src/**'
+      - 'extensions/**'
+      - 'packages/**'
+      - 'scripts/test-*.mjs'
+      - 'scripts/test-planner/**'
+      - 'test/vitest/vitest.gateway.config.ts'
+      - '.github/workflows/gateway-ci.yml'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
   pull_request:
     branches: [main]
-    paths: ['src/**', 'extensions/**', 'packages/**']
+    paths:
+      - 'src/**'
+      - 'extensions/**'
+      - 'packages/**'
+      - 'scripts/test-*.mjs'
+      - 'scripts/test-planner/**'
+      - 'test/vitest/vitest.gateway.config.ts'
+      - '.github/workflows/gateway-ci.yml'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
 
 jobs:
   test:
-    name: Test Suite
+    name: Test Suite (${{ matrix.gateway-shard }}/3)
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
     strategy:
+      fail-fast: false
       matrix:
         node-version: [22]
+        gateway-shard: [1, 2, 3]
 
     steps:
       - name: Checkout
@@ -42,6 +62,10 @@ jobs:
         run: pnpm test:gateway
         env:
           CI: true
+          COREBLOW_TEST_PROFILE: serial
+          COREBLOW_TEST_SHARDS: 3
+          COREBLOW_TEST_SHARD_INDEX: ${{ matrix.gateway-shard }}
+          NODE_OPTIONS: '--max-old-space-size=4096'
 
       - name: Type check
         run: pnpm typecheck
