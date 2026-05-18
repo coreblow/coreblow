@@ -4,19 +4,11 @@ title: coreblow log
 
 # coreblow log
 
-## Usage
-```bash
-coreblow log [options]
-```
+The current command is plural: `coreblow logs`.
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+Use `/cli/logs`.
 
-## Examples
-```bash
-coreblow log
-coreblow log --json
-```
+## Current Reference
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)

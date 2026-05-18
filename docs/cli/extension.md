@@ -4,19 +4,11 @@ title: coreblow extension
 
 # coreblow extension
 
-## Usage
-```bash
-coreblow extension [options]
-```
+The public command is `coreblow plugins`.
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+The repository directory is still `extensions/`, but user-facing docs use plugin terminology.
 
-## Examples
-```bash
-coreblow extension
-coreblow extension --json
-```
+## Current Reference
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)

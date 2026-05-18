@@ -11,8 +11,8 @@
 
 <p align="center">
   <a href="https://github.com/coreblow/coreblow">🤖 Gateway</a> •
-  <a href="https://github.com/coreblow/coreblow/tree/main/ultra-skills">🔧 Ultra Skills</a> •
-  <a href="https://github.com/coreblow/coreblow/tree/main/gateway#-quick-start">🚀 Quick Start</a>
+  <a href="https://docs.coreblow.com/cli">🔧 CLI</a> •
+  <a href="https://github.com/coreblow/coreblow#-quick-start">🚀 Quick Start</a>
 </p>
 
 ---
@@ -21,15 +21,14 @@
 
 | Repo | Description | Tech |
 |:---|:---|:---|
-| [**coreblow**](https://github.com/coreblow/coreblow) | AI Gateway + Ultra Skills | TypeScript + Python |
+| [**coreblow**](https://github.com/coreblow/coreblow) | Self-hosted AI gateway, CLI, plugins, and agent runtime | TypeScript |
 
 ### 🔢 By The Numbers
 
 | Metric | Value |
 |:---|:---|
-| Source files | 100+ |
-| Lines of code | 9,000+ |
-| AI Providers | 4 (Ollama, OpenAI, Anthropic, OpenRouter) |
-| Chat Channels | 5 (WhatsApp, Telegram, Discord, WebChat, +) |
-| AI Tools | 9 (exec, browser, search, scrape, cron, +) |
+| Source modules | 64 top-level `src/` modules |
+| TypeScript files | 11,000+ |
+| Plugins | 101 workspace packages |
+| Default Gateway port | 18789 |
 | License | MIT |

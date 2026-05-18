@@ -4,19 +4,11 @@ title: coreblow plugin
 
 # coreblow plugin
 
-## Usage
-```bash
-coreblow plugin [options]
-```
+The current command is plural: `coreblow plugins`.
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+Use `/cli/plugins`.
 
-## Examples
-```bash
-coreblow plugin
-coreblow plugin --json
-```
+## Current Reference
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)

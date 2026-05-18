@@ -4,19 +4,22 @@ title: coreblow agent
 
 # coreblow agent
 
+Run one agent turn through the Gateway.
+
 ## Usage
+
 ```bash
 coreblow agent [options]
+coreblow agent --help
 ```
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+## Source Checkout
 
-## Examples
 ```bash
-coreblow agent
-coreblow agent --json
+pnpm coreblow agent --help
 ```
+
+## Related
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)

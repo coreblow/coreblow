@@ -4,19 +4,11 @@ title: coreblow deploy
 
 # coreblow deploy
 
-## Usage
-```bash
-coreblow deploy [options]
-```
+No standalone `coreblow deploy` command is exposed by the current CLI.
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+Use deployment docs and `coreblow gateway run` or service commands.
 
-## Examples
-```bash
-coreblow deploy
-coreblow deploy --json
-```
+## Current Reference
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)

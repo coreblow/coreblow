@@ -1,7 +1,9 @@
 # Quick Start
 
 ```bash
-npx coreblow
+npm install -g coreblow
+coreblow onboard
+coreblow gateway run
 ```
 
-That's it! CoreBlow will guide you through setup.
+CoreBlow will guide you through provider, gateway, channel, and skills setup.

@@ -4,19 +4,11 @@ title: coreblow tool
 
 # coreblow tool
 
-## Usage
-```bash
-coreblow tool [options]
-```
+Tool access is configured through gateway, security, approvals, and plugin commands.
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+Use `/cli/security`, `/cli/approvals`, or `/cli/plugins`.
 
-## Examples
-```bash
-coreblow tool
-coreblow tool --json
-```
+## Current Reference
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)

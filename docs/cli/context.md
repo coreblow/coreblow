@@ -4,19 +4,11 @@ title: coreblow context
 
 # coreblow context
 
-## Usage
-```bash
-coreblow context [options]
-```
+No standalone `coreblow context` command is exposed by the current CLI.
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+Use `coreblow sessions`, `coreblow agent`, or `/cli/commands`.
 
-## Examples
-```bash
-coreblow context
-coreblow context --json
-```
+## Current Reference
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)

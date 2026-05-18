@@ -4,19 +4,11 @@ title: coreblow test
 
 # coreblow test
 
-## Usage
-```bash
-coreblow test [options]
-```
+No standalone `coreblow test` command is exposed by the current CLI.
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+Use repository scripts such as `pnpm test` and `pnpm test:gateway`.
 
-## Examples
-```bash
-coreblow test
-coreblow test --json
-```
+## Current Reference
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)

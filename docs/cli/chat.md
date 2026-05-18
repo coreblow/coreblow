@@ -4,19 +4,11 @@ title: coreblow chat
 
 # coreblow chat
 
-## Usage
-```bash
-coreblow chat [options]
-```
+No standalone `coreblow chat` command is exposed by the current CLI.
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+Use `coreblow agent` for an agent turn or `coreblow tui` for the terminal UI.
 
-## Examples
-```bash
-coreblow chat
-coreblow chat --json
-```
+## Current Reference
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)

@@ -4,19 +4,11 @@ title: coreblow init
 
 # coreblow init
 
-## Usage
-```bash
-coreblow init [options]
-```
+The current setup commands are `coreblow setup` and `coreblow onboard`.
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+Use `/cli/setup` or `/cli/onboard`.
 
-## Examples
-```bash
-coreblow init
-coreblow init --json
-```
+## Current Reference
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)

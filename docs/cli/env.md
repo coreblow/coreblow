@@ -4,19 +4,11 @@ title: coreblow env
 
 # coreblow env
 
-## Usage
-```bash
-coreblow env [options]
-```
+No standalone `coreblow env` command is exposed by the current CLI.
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+Use `coreblow config` and `coreblow doctor`.
 
-## Examples
-```bash
-coreblow env
-coreblow env --json
-```
+## Current Reference
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)

@@ -4,19 +4,11 @@ title: coreblow search
 
 # coreblow search
 
-## Usage
-```bash
-coreblow search [options]
-```
+No standalone `coreblow search` command is exposed by the current CLI.
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+Use `coreblow docs` for docs search or provider-specific tools through the agent runtime.
 
-## Examples
-```bash
-coreblow search
-coreblow search --json
-```
+## Current Reference
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)

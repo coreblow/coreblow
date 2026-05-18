@@ -33,6 +33,7 @@ parity with the reference architecture. Security audit clean, zero known vulnera
 - Create CoreBlowApp.swift, RootCanvas, SettingsTab, and 9 other iOS files
 - Expand 32 iOS files to ≥80% parity
 - Zero OpenClaw naming remnants in codebase
+- Add production-ready CLI, runtime, and Control UI localization across 10 languages
 
 ## v0.9.0 (2026-05-09)
 

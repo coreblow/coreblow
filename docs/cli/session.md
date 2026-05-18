@@ -4,19 +4,11 @@ title: coreblow session
 
 # coreblow session
 
-## Usage
-```bash
-coreblow session [options]
-```
+The current command is plural: `coreblow sessions`.
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+Use `/cli/sessions`.
 
-## Examples
-```bash
-coreblow session
-coreblow session --json
-```
+## Current Reference
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)

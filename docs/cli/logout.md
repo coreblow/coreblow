@@ -4,19 +4,11 @@ title: coreblow logout
 
 # coreblow logout
 
-## Usage
-```bash
-coreblow logout [options]
-```
+Channel logout flows live under `coreblow channels logout`.
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+Use `/cli/channels`.
 
-## Examples
-```bash
-coreblow logout
-coreblow logout --json
-```
+## Current Reference
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)

@@ -4,19 +4,22 @@ title: coreblow config
 
 # coreblow config
 
+Non-interactive config helpers for get, set, unset, file, schema, and validate.
+
 ## Usage
+
 ```bash
 coreblow config [options]
+coreblow config --help
 ```
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+## Source Checkout
 
-## Examples
 ```bash
-coreblow config
-coreblow config --json
+pnpm coreblow config --help
 ```
+
+## Related
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)

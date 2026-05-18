@@ -4,19 +4,11 @@ title: coreblow bench
 
 # coreblow bench
 
-## Usage
-```bash
-coreblow bench [options]
-```
+No standalone `coreblow bench` command is exposed by the current CLI.
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+Use `pnpm bench` for repository benchmarks or see `/cli/commands`.
 
-## Examples
-```bash
-coreblow bench
-coreblow bench --json
-```
+## Current Reference
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)

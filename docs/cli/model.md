@@ -4,19 +4,11 @@ title: coreblow model
 
 # coreblow model
 
-## Usage
-```bash
-coreblow model [options]
-```
+The current command is plural: `coreblow models`.
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+Use `/cli/models`.
 
-## Examples
-```bash
-coreblow model
-coreblow model --json
-```
+## Current Reference
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)

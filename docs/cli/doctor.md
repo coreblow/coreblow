@@ -4,19 +4,22 @@ title: coreblow doctor
 
 # coreblow doctor
 
+Run health checks and guided repairs for gateway and channels.
+
 ## Usage
+
 ```bash
 coreblow doctor [options]
+coreblow doctor --help
 ```
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+## Source Checkout
 
-## Examples
 ```bash
-coreblow doctor
-coreblow doctor --json
+pnpm coreblow doctor --help
 ```
+
+## Related
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)

@@ -1,14 +1,24 @@
 {
   "name": "coreblow",
   "version": "1.0.0",
-  "description": "CoreBlow — personal AI assistant with multi-channel support",
-  "keywords": [],
-  "homepage": "https://github.com/coreblow/coreblow#readme",
+  "description": "CoreBlow — enterprise AI gateway and personal assistant runtime",
+  "keywords": [
+    "ai",
+    "agents",
+    "assistant",
+    "automation",
+    "cli",
+    "gateway",
+    "plugins",
+    "self-hosted",
+    "typescript"
+  ],
+  "homepage": "https://coreblow.com",
   "bugs": {
     "url": "https://github.com/coreblow/coreblow/issues"
   },
   "license": "MIT",
-  "author": "",
+  "author": "Febrinanda and CoreBlow contributors",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/coreblow/coreblow.git"

@@ -4,19 +4,11 @@ title: coreblow completions
 
 # coreblow completions
 
-## Usage
-```bash
-coreblow completions [options]
-```
+The current command is singular: `coreblow completion`.
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+Use `/cli/completion`.
 
-## Examples
-```bash
-coreblow completions
-coreblow completions --json
-```
+## Current Reference
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)

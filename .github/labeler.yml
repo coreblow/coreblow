@@ -1,0 +1,100 @@
+"area: ci":
+  - changed-files:
+      - any-glob-to-any-file:
+          - .github/actions/**
+          - .github/workflows/**
+          - scripts/check-*.mjs
+
+"area: cli":
+  - changed-files:
+      - any-glob-to-any-file:
+          - coreblow.mjs
+          - src/cli/**
+          - src/commands/**
+          - docs/cli/**
+
+"area: docs":
+  - changed-files:
+      - any-glob-to-any-file:
+          - README.md
+          - CHANGELOG.md
+          - CONTRIBUTING.md
+          - CODE_OF_CONDUCT.md
+          - docs/**
+          - .github/profile/**
+
+"area: gateway":
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/gateway/**
+          - docs/gateway/**
+
+"area: plugins":
+  - changed-files:
+      - any-glob-to-any-file:
+          - extensions/**
+          - src/plugin-sdk/**
+          - src/plugin-sdk-internal/**
+          - src/plugins/**
+          - docs/plugins/**
+
+"area: security":
+  - changed-files:
+      - any-glob-to-any-file:
+          - SECURITY.md
+          - src/security/**
+          - src/secrets/**
+          - docs/security/**
+
+"platform: android":
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/android/**
+
+"platform: ios":
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/ios/**
+          - apps/shared/**
+
+"platform: macos":
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/macos/**
+          - apps/shared/**
+
+"channel: discord":
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/discord/**
+          - extensions/discord/**
+          - docs/channels/discord*
+
+"channel: imessage":
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/imessage/**
+          - extensions/bluebubbles/**
+          - docs/channels/bluebubbles*
+          - docs/channels/imessage*
+
+"channel: slack":
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/slack/**
+          - extensions/slack/**
+          - docs/channels/slack*
+
+"channel: telegram":
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/telegram/**
+          - extensions/telegram/**
+          - docs/channels/telegram*
+
+"channel: whatsapp":
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/web/**
+          - extensions/whatsapp/**
+          - docs/channels/whatsapp*

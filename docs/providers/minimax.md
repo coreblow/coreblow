@@ -48,7 +48,7 @@ Configure via CLI:
 
 ```json5
 {
-  env: { MINIMAX_API_KEY: "sk-..." },
+  env: { MINIMAX_API_KEY: "sk-..." }, // pragma: allowlist secret
   agents: { defaults: { model: { primary: "minimax/MiniMax-M2.7" } } },
   models: {
     mode: "merge",
@@ -90,7 +90,7 @@ Example below uses Opus as a concrete primary; swap to your preferred latest-gen
 
 ```json5
 {
-  env: { MINIMAX_API_KEY: "sk-..." },
+  env: { MINIMAX_API_KEY: "sk-..." }, // pragma: allowlist secret
   agents: {
     defaults: {
       models: {
@@ -132,7 +132,7 @@ Use the interactive config wizard to set MiniMax without editing JSON:
 - Coding Plan usage API: `https://api.minimaxi.com/v1/api/openplatform/coding_plan/remains` (requires a coding plan key).
 - Update pricing values in `models.json` if you need exact cost tracking.
 - Referral link for MiniMax Coding Plan (10% off): [https://platform.minimax.io/subscribe/coding-plan?code=DbXJTRClnb&source=link](https://platform.minimax.io/subscribe/coding-plan?code=DbXJTRClnb&source=link)
-- See [/concepts/model-providers](/concepts/model-providers) for provider rules.
+- See [Providers](/concepts/providers) for provider rules.
 - Use `coreblow models list` and `coreblow models set minimax/MiniMax-M2.7` to switch.
 
 ## Troubleshooting

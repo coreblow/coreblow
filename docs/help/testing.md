@@ -85,16 +85,16 @@ Think of the suites as “increasing realism” (and increasing flakiness/cost):
   - Unit, channel, extension, and gateway wrapper lanes all default to `forks`.
   - Unit, channel, and extension configs default to `isolate: false` for faster file startup.
   - `pnpm test` also passes `--isolate=false` at the wrapper level.
-  - Opt back into Vitest file isolation with `OPENCLAW_TEST_ISOLATE=1 pnpm test`.
-  - `OPENCLAW_TEST_NO_ISOLATE=0` or `OPENCLAW_TEST_NO_ISOLATE=false` also force isolated runs.
+  - Opt back into Vitest file isolation with `COREBLOW_TEST_ISOLATE=1 pnpm test`.
+  - `COREBLOW_TEST_NO_ISOLATE=0` or `COREBLOW_TEST_NO_ISOLATE=false` also force isolated runs.
 - Fast-local iteration note:
   - `pnpm test:changed` runs the wrapper with `--changed origin/main`.
   - `pnpm test:changed:max` keeps the same changed-file filter but uses the wrapper's aggressive local planner profile.
   - `pnpm test:max` exposes that same planner profile for a full local run.
   - On supported local Node versions, including Node 25, the normal profile can use top-level lane parallelism. `pnpm test:max` still pushes the planner harder when you want a more aggressive local run.
   - The base Vitest config marks the wrapper manifests/config files as `forceRerunTriggers` so changed-mode reruns stay correct when scheduler inputs change.
-  - The wrapper keeps `OPENCLAW_VITEST_FS_MODULE_CACHE` enabled on supported hosts, but assigns a lane-local `OPENCLAW_VITEST_FS_MODULE_CACHE_PATH` so concurrent Vitest processes do not race on one shared experimental cache directory.
-  - Set `OPENCLAW_VITEST_FS_MODULE_CACHE_PATH=/abs/path` if you want one explicit cache location for direct single-run profiling.
+  - The wrapper keeps `COREBLOW_VITEST_FS_MODULE_CACHE` enabled on supported hosts, but assigns a lane-local `COREBLOW_VITEST_FS_MODULE_CACHE_PATH` so concurrent Vitest processes do not race on one shared experimental cache directory.
+  - Set `COREBLOW_VITEST_FS_MODULE_CACHE_PATH=/abs/path` if you want one explicit cache location for direct single-run profiling.
 - Perf-debug note:
   - `pnpm test:perf:imports` enables Vitest import-duration reporting plus import-breakdown output.
   - `pnpm test:perf:imports:changed` scopes the same profiling view to files changed since `origin/main`.
@@ -111,8 +111,8 @@ Think of the suites as “increasing realism” (and increasing flakiness/cost):
   - Uses adaptive workers (CI: up to 2, local: 1 by default).
   - Runs in silent mode by default to reduce console I/O overhead.
 - Useful overrides:
-  - `OPENCLAW_E2E_WORKERS=<n>` to force worker count (capped at 16).
-  - `OPENCLAW_E2E_VERBOSE=1` to re-enable verbose console output.
+  - `COREBLOW_E2E_WORKERS=<n>` to force worker count (capped at 16).
+  - `COREBLOW_E2E_VERBOSE=1` to re-enable verbose console output.
 - Scope:
   - Multi-instance gateway end-to-end behavior
   - WebSocket/HTTP surfaces, node pairing, and heavier networking
@@ -135,15 +135,15 @@ Think of the suites as “increasing realism” (and increasing flakiness/cost):
   - Requires a local `openshell` CLI plus a working Docker daemon
   - Uses isolated `HOME` / `XDG_CONFIG_HOME`, then destroys the test gateway and sandbox
 - Useful overrides:
-  - `OPENCLAW_E2E_OPENSHELL=1` to enable the test when running the broader e2e suite manually
-  - `OPENCLAW_E2E_OPENSHELL_COMMAND=/path/to/openshell` to point at a non-default CLI binary or wrapper script
+  - `COREBLOW_E2E_OPENSHELL=1` to enable the test when running the broader e2e suite manually
+  - `COREBLOW_E2E_OPENSHELL_COMMAND=/path/to/openshell` to point at a non-default CLI binary or wrapper script
 
 ### Live (real providers + real models)
 
 - Command: `pnpm test:live`
 - Config: `test/vitest/vitest.live.config.ts`
 - Files: `src/**/*.live.test.ts`
-- Default: **enabled** by `pnpm test:live` (sets `OPENCLAW_LIVE_TEST=1`)
+- Default: **enabled** by `pnpm test:live` (sets `COREBLOW_LIVE_TEST=1`)
 - Scope:
   - “Does this provider/model actually work _today_ with real creds?”
   - Catch provider format changes, tool-calling quirks, auth issues, and rate limit behavior
@@ -152,13 +152,13 @@ Think of the suites as “increasing realism” (and increasing flakiness/cost):
   - Costs money / uses rate limits
   - Prefer running narrowed subsets instead of “everything”
 - Live runs will source `~/.profile` to pick up missing API keys
-- `pnpm test:live` now defaults to a quieter mode: it keeps `[live] ...` progress output, but suppresses the extra `~/.profile` notice and mutes gateway bootstrap logs/Bonjour chatter. Set `OPENCLAW_LIVE_TEST_QUIET=0` if you want the full startup logs back.
-- API key rotation (provider-specific): set `*_API_KEYS` with comma/semicolon format or `*_API_KEY_1`, `*_API_KEY_2` (for example `OPENAI_API_KEYS`, `ANTHROPIC_API_KEYS`, `GEMINI_API_KEYS`) or per-live override via `OPENCLAW_LIVE_*_KEY`; tests retry on rate limit responses. <!-- pragma: allowlist secret -->
+- `pnpm test:live` now defaults to a quieter mode: it keeps `[live] ...` progress output, but suppresses the extra `~/.profile` notice and mutes gateway bootstrap logs/Bonjour chatter. Set `COREBLOW_LIVE_TEST_QUIET=0` if you want the full startup logs back.
+- API key rotation (provider-specific): set `*_API_KEYS` with comma/semicolon format or `*_API_KEY_1`, `*_API_KEY_2` (for example `OPENAI_API_KEYS`, `ANTHROPIC_API_KEYS`, `GEMINI_API_KEYS`) or per-live override via `COREBLOW_LIVE_*_KEY`; tests retry on rate limit responses. <!-- pragma: allowlist secret -->
 - Progress/heartbeat output:
   - Live suites now emit progress lines to stderr so long provider calls are visibly active even when Vitest console capture is quiet.
   - `test/vitest/vitest.live.config.ts` disables Vitest console interception so provider/gateway progress lines stream immediately during live runs.
-  - Tune direct-model heartbeats with `OPENCLAW_LIVE_HEARTBEAT_MS`.
-  - Tune gateway/probe heartbeats with `OPENCLAW_LIVE_GATEWAY_HEARTBEAT_MS`.
+  - Tune direct-model heartbeats with `COREBLOW_LIVE_HEARTBEAT_MS`.
+  - Tune gateway/probe heartbeats with `COREBLOW_LIVE_GATEWAY_HEARTBEAT_MS`.
 
 ## Which suite should I run?
 
@@ -181,9 +181,9 @@ Use this decision table:
   - App kept in foreground.
   - Permissions/capture consent granted for capabilities you expect to pass.
 - Optional target overrides:
-  - `OPENCLAW_ANDROID_NODE_ID` or `OPENCLAW_ANDROID_NODE_NAME`.
-  - `OPENCLAW_ANDROID_GATEWAY_URL` / `OPENCLAW_ANDROID_GATEWAY_TOKEN` / `OPENCLAW_ANDROID_GATEWAY_PASSWORD`.
-- Full Android setup details: [Android App](/platforms/android)
+  - `COREBLOW_ANDROID_NODE_ID` or `COREBLOW_ANDROID_NODE_NAME`.
+  - `COREBLOW_ANDROID_GATEWAY_URL` / `COREBLOW_ANDROID_GATEWAY_TOKEN` / `COREBLOW_ANDROID_GATEWAY_PASSWORD`.
+- Android node setup is currently tracked through the node pairing flow and CLI docs: [Nodes](/cli/nodes)
 
 ## Live: model smoke (profile keys)
 
@@ -200,17 +200,17 @@ Live tests are split into two layers so we can isolate failures:
   - Use `getApiKeyForModel` to select models you have creds for
   - Run a small completion per model (and targeted regressions where needed)
 - How to enable:
-  - `pnpm test:live` (or `OPENCLAW_LIVE_TEST=1` if invoking Vitest directly)
-- Set `OPENCLAW_LIVE_MODELS=modern` (or `all`, alias for modern) to actually run this suite; otherwise it skips to keep `pnpm test:live` focused on gateway smoke
+  - `pnpm test:live` (or `COREBLOW_LIVE_TEST=1` if invoking Vitest directly)
+- Set `COREBLOW_LIVE_MODELS=modern` (or `all`, alias for modern) to actually run this suite; otherwise it skips to keep `pnpm test:live` focused on gateway smoke
 - How to select models:
-  - `OPENCLAW_LIVE_MODELS=modern` to run the modern allowlist (Opus/Sonnet/Haiku 4.5, GPT-5.x + Codex, Gemini 3, GLM 4.7, MiniMax M2.7, Grok 4)
-  - `OPENCLAW_LIVE_MODELS=all` is an alias for the modern allowlist
-  - or `OPENCLAW_LIVE_MODELS="openai/gpt-5.2,anthropic/claude-opus-4-6,..."` (comma allowlist)
+  - `COREBLOW_LIVE_MODELS=modern` to run the modern allowlist (Opus/Sonnet/Haiku 4.5, GPT-5.x + Codex, Gemini 3, GLM 4.7, MiniMax M2.7, Grok 4)
+  - `COREBLOW_LIVE_MODELS=all` is an alias for the modern allowlist
+  - or `COREBLOW_LIVE_MODELS="openai/gpt-5.2,anthropic/claude-opus-4-6,..."` (comma allowlist)
 - How to select providers:
-  - `OPENCLAW_LIVE_PROVIDERS="google,google-antigravity,google-gemini-cli"` (comma allowlist)
+  - `COREBLOW_LIVE_PROVIDERS="google,google-antigravity,google-gemini-cli"` (comma allowlist)
 - Where keys come from:
   - By default: profile store and env fallbacks
-  - Set `OPENCLAW_LIVE_REQUIRE_PROFILE_KEYS=1` to enforce **profile store** only
+  - Set `COREBLOW_LIVE_REQUIRE_PROFILE_KEYS=1` to enforce **profile store** only
 - Why this exists:
   - Separates “provider API is broken / key is invalid” from “gateway agent pipeline is broken”
   - Contains small, isolated regressions (example: OpenAI Responses/Codex Responses reasoning replay + tool-call flows)
@@ -232,13 +232,13 @@ Live tests are split into two layers so we can isolate failures:
   - image probe: the test attaches a generated PNG (cat + randomized code) and expects the model to return `cat <CODE>`.
   - Implementation reference: `src/gateway/gateway-models.profiles.live.test.ts` and `src/gateway/live-image-probe.ts`.
 - How to enable:
-  - `pnpm test:live` (or `OPENCLAW_LIVE_TEST=1` if invoking Vitest directly)
+  - `pnpm test:live` (or `COREBLOW_LIVE_TEST=1` if invoking Vitest directly)
 - How to select models:
   - Default: modern allowlist (Opus/Sonnet/Haiku 4.5, GPT-5.x + Codex, Gemini 3, GLM 4.7, MiniMax M2.7, Grok 4)
-  - `OPENCLAW_LIVE_GATEWAY_MODELS=all` is an alias for the modern allowlist
-  - Or set `OPENCLAW_LIVE_GATEWAY_MODELS="provider/model"` (or comma list) to narrow
+  - `COREBLOW_LIVE_GATEWAY_MODELS=all` is an alias for the modern allowlist
+  - Or set `COREBLOW_LIVE_GATEWAY_MODELS="provider/model"` (or comma list) to narrow
 - How to select providers (avoid “OpenRouter everything”):
-  - `OPENCLAW_LIVE_GATEWAY_PROVIDERS="google,google-antigravity,google-gemini-cli,openai,anthropic,zai,minimax"` (comma allowlist)
+  - `COREBLOW_LIVE_GATEWAY_PROVIDERS="google,google-antigravity,google-gemini-cli,openai,anthropic,zai,minimax"` (comma allowlist)
 - Tool + image probes are always on in this live test:
   - `read` probe + `exec+read` probe (tool stress)
   - image probe runs when the model advertises image input support
@@ -261,19 +261,19 @@ coreblow models list --json
 - Test: `src/agents/anthropic.setup-token.live.test.ts`
 - Goal: verify Claude Code CLI setup-token (or a pasted setup-token profile) can complete an Anthropic prompt.
 - Enable:
-  - `pnpm test:live` (or `OPENCLAW_LIVE_TEST=1` if invoking Vitest directly)
-  - `OPENCLAW_LIVE_SETUP_TOKEN=1`
+  - `pnpm test:live` (or `COREBLOW_LIVE_TEST=1` if invoking Vitest directly)
+  - `COREBLOW_LIVE_SETUP_TOKEN=1`
 - Token sources (pick one):
-  - Profile: `OPENCLAW_LIVE_SETUP_TOKEN_PROFILE=anthropic:setup-token-test`
-  - Raw token: `OPENCLAW_LIVE_SETUP_TOKEN_VALUE=sk-ant-oat01-...`
+  - Profile: `COREBLOW_LIVE_SETUP_TOKEN_PROFILE=anthropic:setup-token-test`
+  - Raw token: `COREBLOW_LIVE_SETUP_TOKEN_VALUE=sk-ant-oat01-...`
 - Model override (optional):
-  - `OPENCLAW_LIVE_SETUP_TOKEN_MODEL=anthropic/claude-opus-4-6`
+  - `COREBLOW_LIVE_SETUP_TOKEN_MODEL=anthropic/claude-opus-4-6`
 
 Setup example:
 
 ```bash
 coreblow models auth paste-token --provider anthropic --profile-id anthropic:setup-token-test
-OPENCLAW_LIVE_SETUP_TOKEN=1 OPENCLAW_LIVE_SETUP_TOKEN_PROFILE=anthropic:setup-token-test pnpm test:live src/agents/anthropic.setup-token.live.test.ts
+COREBLOW_LIVE_SETUP_TOKEN=1 COREBLOW_LIVE_SETUP_TOKEN_PROFILE=anthropic:setup-token-test pnpm test:live src/agents/anthropic.setup-token.live.test.ts
 ```
 
 ## Live: CLI backend smoke (Claude Code CLI or other local CLIs)
@@ -281,29 +281,29 @@ OPENCLAW_LIVE_SETUP_TOKEN=1 OPENCLAW_LIVE_SETUP_TOKEN_PROFILE=anthropic:setup-to
 - Test: `src/gateway/gateway-cli-backend.live.test.ts`
 - Goal: validate the Gateway + agent pipeline using a local CLI backend, without touching your default config.
 - Enable:
-  - `pnpm test:live` (or `OPENCLAW_LIVE_TEST=1` if invoking Vitest directly)
-  - `OPENCLAW_LIVE_CLI_BACKEND=1`
+  - `pnpm test:live` (or `COREBLOW_LIVE_TEST=1` if invoking Vitest directly)
+  - `COREBLOW_LIVE_CLI_BACKEND=1`
 - Defaults:
   - Model: `claude-cli/claude-sonnet-4-6`
   - Command: `claude`
   - Args: `["-p","--output-format","json","--permission-mode","bypassPermissions"]`
 - Overrides (optional):
-  - `OPENCLAW_LIVE_CLI_BACKEND_MODEL="claude-cli/claude-opus-4-6"`
-  - `OPENCLAW_LIVE_CLI_BACKEND_MODEL="codex-cli/gpt-5.4"`
-  - `OPENCLAW_LIVE_CLI_BACKEND_COMMAND="/full/path/to/claude"`
-  - `OPENCLAW_LIVE_CLI_BACKEND_ARGS='["-p","--output-format","json","--permission-mode","bypassPermissions"]'`
-  - `OPENCLAW_LIVE_CLI_BACKEND_CLEAR_ENV='["ANTHROPIC_API_KEY","ANTHROPIC_API_KEY_OLD"]'`
-  - `OPENCLAW_LIVE_CLI_BACKEND_IMAGE_PROBE=1` to send a real image attachment (paths are injected into the prompt).
-  - `OPENCLAW_LIVE_CLI_BACKEND_IMAGE_ARG="--image"` to pass image file paths as CLI args instead of prompt injection.
-  - `OPENCLAW_LIVE_CLI_BACKEND_IMAGE_MODE="repeat"` (or `"list"`) to control how image args are passed when `IMAGE_ARG` is set.
-  - `OPENCLAW_LIVE_CLI_BACKEND_RESUME_PROBE=1` to send a second turn and validate resume flow.
-- `OPENCLAW_LIVE_CLI_BACKEND_DISABLE_MCP_CONFIG=0` to keep Claude Code CLI MCP config enabled (default disables MCP config with a temporary empty file).
+  - `COREBLOW_LIVE_CLI_BACKEND_MODEL="claude-cli/claude-opus-4-6"`
+  - `COREBLOW_LIVE_CLI_BACKEND_MODEL="codex-cli/gpt-5.4"`
+  - `COREBLOW_LIVE_CLI_BACKEND_COMMAND="/full/path/to/claude"`
+  - `COREBLOW_LIVE_CLI_BACKEND_ARGS='["-p","--output-format","json","--permission-mode","bypassPermissions"]'`
+  - `COREBLOW_LIVE_CLI_BACKEND_CLEAR_ENV='["ANTHROPIC_API_KEY","ANTHROPIC_API_KEY_OLD"]'`
+  - `COREBLOW_LIVE_CLI_BACKEND_IMAGE_PROBE=1` to send a real image attachment (paths are injected into the prompt).
+  - `COREBLOW_LIVE_CLI_BACKEND_IMAGE_ARG="--image"` to pass image file paths as CLI args instead of prompt injection.
+  - `COREBLOW_LIVE_CLI_BACKEND_IMAGE_MODE="repeat"` (or `"list"`) to control how image args are passed when `IMAGE_ARG` is set.
+  - `COREBLOW_LIVE_CLI_BACKEND_RESUME_PROBE=1` to send a second turn and validate resume flow.
+- `COREBLOW_LIVE_CLI_BACKEND_DISABLE_MCP_CONFIG=0` to keep Claude Code CLI MCP config enabled (default disables MCP config with a temporary empty file).
 
 Example:
 
 ```bash
-OPENCLAW_LIVE_CLI_BACKEND=1 \
-  OPENCLAW_LIVE_CLI_BACKEND_MODEL="claude-cli/claude-sonnet-4-6" \
+COREBLOW_LIVE_CLI_BACKEND=1 \
+  COREBLOW_LIVE_CLI_BACKEND_MODEL="claude-cli/claude-sonnet-4-6" \
   pnpm test:live src/gateway/gateway-cli-backend.live.test.ts
 ```
 
@@ -317,8 +317,8 @@ Notes:
 
 - The Docker runner lives at `scripts/test-live-cli-backend-docker.sh`.
 - It runs the live CLI-backend smoke inside the repo Docker image as the non-root `node` user, because Claude CLI rejects `bypassPermissions` when invoked as root.
-- For `claude-cli`, it installs the Linux `@anthropic-ai/claude-code` package into a cached writable prefix at `OPENCLAW_DOCKER_CLI_TOOLS_DIR` (default: `~/.cache/coreblow/docker-cli-tools`).
-- It copies `~/.claude` into the container when available, but on machines where Claude auth is backed by `ANTHROPIC_API_KEY`, it also preserves `ANTHROPIC_API_KEY` / `ANTHROPIC_API_KEY_OLD` for the child Claude CLI via `OPENCLAW_LIVE_CLI_BACKEND_PRESERVE_ENV`.
+- For `claude-cli`, it installs the Linux `@anthropic-ai/claude-code` package into a cached writable prefix at `COREBLOW_DOCKER_CLI_TOOLS_DIR` (default: `~/.cache/coreblow/docker-cli-tools`).
+- It copies `~/.claude` into the container when available, but on machines where Claude auth is backed by `ANTHROPIC_API_KEY`, it also preserves `ANTHROPIC_API_KEY` / `ANTHROPIC_API_KEY_OLD` for the child Claude CLI via `COREBLOW_LIVE_CLI_BACKEND_PRESERVE_ENV`.
 
 ## Live: ACP bind smoke (`/acp spawn ... --bind here`)
 
@@ -330,24 +330,24 @@ Notes:
   - verify the follow-up lands in the bound ACP session transcript
 - Enable:
   - `pnpm test:live src/gateway/gateway-acp-bind.live.test.ts`
-  - `OPENCLAW_LIVE_ACP_BIND=1`
+  - `COREBLOW_LIVE_ACP_BIND=1`
 - Defaults:
   - ACP agent: `claude`
   - Synthetic channel: Slack DM-style conversation context
   - ACP backend: `acpx`
 - Overrides:
-  - `OPENCLAW_LIVE_ACP_BIND_AGENT=claude`
-  - `OPENCLAW_LIVE_ACP_BIND_AGENT=codex`
-  - `OPENCLAW_LIVE_ACP_BIND_ACPX_COMMAND=/full/path/to/acpx`
+  - `COREBLOW_LIVE_ACP_BIND_AGENT=claude`
+  - `COREBLOW_LIVE_ACP_BIND_AGENT=codex`
+  - `COREBLOW_LIVE_ACP_BIND_ACPX_COMMAND=/full/path/to/acpx`
 - Notes:
   - This lane uses the gateway `chat.send` surface with admin-only synthetic originating-route fields so tests can attach message-channel context without pretending to deliver externally.
-  - When `OPENCLAW_LIVE_ACP_BIND_ACPX_COMMAND` is unset, the test uses the configured/bundled acpx command. If your harness auth depends on env vars from `~/.profile`, prefer a custom `acpx` command that preserves provider env.
+  - When `COREBLOW_LIVE_ACP_BIND_ACPX_COMMAND` is unset, the test uses the configured/bundled acpx command. If your harness auth depends on env vars from `~/.profile`, prefer a custom `acpx` command that preserves provider env.
 
 Example:
 
 ```bash
-OPENCLAW_LIVE_ACP_BIND=1 \
-  OPENCLAW_LIVE_ACP_BIND_AGENT=claude \
+COREBLOW_LIVE_ACP_BIND=1 \
+  COREBLOW_LIVE_ACP_BIND_AGENT=claude \
   pnpm test:live src/gateway/gateway-acp-bind.live.test.ts
 ```
 
@@ -361,24 +361,24 @@ Docker notes:
 
 - The Docker runner lives at `scripts/test-live-acp-bind-docker.sh`.
 - It sources `~/.profile`, copies the matching CLI auth home (`~/.claude` or `~/.codex`) into the container, installs `acpx` into a writable npm prefix, then installs the requested live CLI (`@anthropic-ai/claude-code` or `@openai/codex`) if missing.
-- Inside Docker, the runner sets `OPENCLAW_LIVE_ACP_BIND_ACPX_COMMAND=$HOME/.npm-global/bin/acpx` so acpx keeps provider env vars from the sourced profile available to the child harness CLI.
+- Inside Docker, the runner sets `COREBLOW_LIVE_ACP_BIND_ACPX_COMMAND=$HOME/.npm-global/bin/acpx` so acpx keeps provider env vars from the sourced profile available to the child harness CLI.
 
 ### Recommended live recipes
 
 Narrow, explicit allowlists are fastest and least flaky:
 
 - Single model, direct (no gateway):
-  - `OPENCLAW_LIVE_MODELS="openai/gpt-5.2" pnpm test:live src/agents/models.profiles.live.test.ts`
+  - `COREBLOW_LIVE_MODELS="openai/gpt-5.2" pnpm test:live src/agents/models.profiles.live.test.ts`
 
 - Single model, gateway smoke:
-  - `OPENCLAW_LIVE_GATEWAY_MODELS="openai/gpt-5.2" pnpm test:live src/gateway/gateway-models.profiles.live.test.ts`
+  - `COREBLOW_LIVE_GATEWAY_MODELS="openai/gpt-5.2" pnpm test:live src/gateway/gateway-models.profiles.live.test.ts`
 
 - Tool calling across several providers:
-  - `OPENCLAW_LIVE_GATEWAY_MODELS="openai/gpt-5.2,anthropic/claude-opus-4-6,google/gemini-3-flash-preview,zai/glm-4.7,minimax/MiniMax-M2.7" pnpm test:live src/gateway/gateway-models.profiles.live.test.ts`
+  - `COREBLOW_LIVE_GATEWAY_MODELS="openai/gpt-5.2,anthropic/claude-opus-4-6,google/gemini-3-flash-preview,zai/glm-4.7,minimax/MiniMax-M2.7" pnpm test:live src/gateway/gateway-models.profiles.live.test.ts`
 
 - Google focus (Gemini API key + Antigravity):
-  - Gemini (API key): `OPENCLAW_LIVE_GATEWAY_MODELS="google/gemini-3-flash-preview" pnpm test:live src/gateway/gateway-models.profiles.live.test.ts`
-  - Antigravity (OAuth): `OPENCLAW_LIVE_GATEWAY_MODELS="google-antigravity/claude-opus-4-6-thinking,google-antigravity/gemini-3-pro-high" pnpm test:live src/gateway/gateway-models.profiles.live.test.ts`
+  - Gemini (API key): `COREBLOW_LIVE_GATEWAY_MODELS="google/gemini-3-flash-preview" pnpm test:live src/gateway/gateway-models.profiles.live.test.ts`
+  - Antigravity (OAuth): `COREBLOW_LIVE_GATEWAY_MODELS="google-antigravity/claude-opus-4-6-thinking,google-antigravity/gemini-3-pro-high" pnpm test:live src/gateway/gateway-models.profiles.live.test.ts`
 
 Notes:
 
@@ -406,7 +406,7 @@ This is the “common models” run we expect to keep working:
 - MiniMax: `minimax/MiniMax-M2.7`
 
 Run gateway smoke with tools + image:
-`OPENCLAW_LIVE_GATEWAY_MODELS="openai/gpt-5.2,openai-codex/gpt-5.4,anthropic/claude-opus-4-6,google/gemini-3.1-pro-preview,google/gemini-3-flash-preview,google-antigravity/claude-opus-4-6-thinking,google-antigravity/gemini-3-flash,zai/glm-4.7,minimax/MiniMax-M2.7" pnpm test:live src/gateway/gateway-models.profiles.live.test.ts`
+`COREBLOW_LIVE_GATEWAY_MODELS="openai/gpt-5.2,openai-codex/gpt-5.4,anthropic/claude-opus-4-6,google/gemini-3.1-pro-preview,google/gemini-3-flash-preview,google-antigravity/claude-opus-4-6-thinking,google-antigravity/gemini-3-flash,zai/glm-4.7,minimax/MiniMax-M2.7" pnpm test:live src/gateway/gateway-models.profiles.live.test.ts`
 
 ### Baseline: tool calling (Read + optional Exec)
 
@@ -427,7 +427,7 @@ Optional additional coverage (nice to have):
 
 ### Vision: image send (attachment → multimodal message)
 
-Include at least one image-capable model in `OPENCLAW_LIVE_GATEWAY_MODELS` (Claude/Gemini/OpenAI vision-capable variants, etc.) to exercise the image probe.
+Include at least one image-capable model in `COREBLOW_LIVE_GATEWAY_MODELS` (Claude/Gemini/OpenAI vision-capable variants, etc.) to exercise the image probe.
 
 ### Aggregators / alternate gateways
 
@@ -451,7 +451,7 @@ Live tests discover credentials the same way the CLI does. Practical implication
 - If a live test says “no creds”, debug the same way you’d debug `coreblow models list` / model selection.
 
 - Profile store: `~/.coreblow/credentials/` (preferred; what “profile keys” means in the tests)
-- Config: `~/.coreblow/coreblow.json` (or `OPENCLAW_CONFIG_PATH`)
+- Config: `~/.coreblow/coreblow.json` (or `COREBLOW_CONFIG_PATH`)
 
 If you want to rely on env keys (e.g. exported in your `~/.profile`), run local tests after `source ~/.profile`, or use the Docker runners below (they can mount `~/.profile` into the container).
 
@@ -484,11 +484,11 @@ If you want to rely on env keys (e.g. exported in your `~/.profile`), run local 
   - `openai`
   - `google`
 - Optional narrowing:
-  - `OPENCLAW_LIVE_IMAGE_GENERATION_PROVIDERS="openai,google"`
-  - `OPENCLAW_LIVE_IMAGE_GENERATION_MODELS="openai/gpt-image-1,google/gemini-3.1-flash-image-preview"`
-  - `OPENCLAW_LIVE_IMAGE_GENERATION_CASES="google:flash-generate,google:pro-edit"`
+  - `COREBLOW_LIVE_IMAGE_GENERATION_PROVIDERS="openai,google"`
+  - `COREBLOW_LIVE_IMAGE_GENERATION_MODELS="openai/gpt-image-1,google/gemini-3.1-flash-image-preview"`
+  - `COREBLOW_LIVE_IMAGE_GENERATION_CASES="google:flash-generate,google:pro-edit"`
 - Optional auth behavior:
-  - `OPENCLAW_LIVE_REQUIRE_PROFILE_KEYS=1` to force profile-store auth and ignore env-only overrides
+  - `COREBLOW_LIVE_REQUIRE_PROFILE_KEYS=1` to force profile-store auth and ignore env-only overrides
 
 ## Docker runners (optional "works in Linux" checks)
 
@@ -512,10 +512,10 @@ The live-model Docker runners also bind-mount only the needed CLI auth homes (or
 The live-model Docker runners also bind-mount the current checkout read-only and
 stage it into a temporary workdir inside the container. This keeps the runtime
 image slim while still running Vitest against your exact local source/config.
-They also set `OPENCLAW_SKIP_CHANNELS=1` so gateway live probes do not start
+They also set `COREBLOW_SKIP_CHANNELS=1` so gateway live probes do not start
 real Telegram/Discord/etc. channel workers inside the container.
 `test:docker:live-models` still runs `pnpm test:live`, so pass through
-`OPENCLAW_LIVE_GATEWAY_*` as well when you need to narrow or exclude gateway
+`COREBLOW_LIVE_GATEWAY_*` as well when you need to narrow or exclude gateway
 live coverage from that Docker lane.
 `test:docker:openwebui` is a higher-level compatibility smoke: it starts an
 CoreBlow gateway container with the OpenAI-compatible HTTP endpoints enabled,
@@ -524,7 +524,7 @@ Open WebUI, verifies `/api/models` exposes `coreblow/default`, then sends a
 real chat request through Open WebUI's `/api/chat/completions` proxy.
 The first run can be noticeably slower because Docker may need to pull the
 Open WebUI image and Open WebUI may need to finish its own cold-start setup.
-This lane expects a usable live model key, and `OPENCLAW_PROFILE_FILE`
+This lane expects a usable live model key, and `COREBLOW_PROFILE_FILE`
 (`~/.profile` by default) is the primary way to provide it in Dockerized runs.
 Successful runs print a small JSON payload like `{ "ok": true, "model":
 "coreblow/default", ... }`.
@@ -544,25 +544,25 @@ Manual ACP plain-language thread smoke (not CI):
 
 Useful env vars:
 
-- `OPENCLAW_CONFIG_DIR=...` (default: `~/.coreblow`) mounted to `/home/node/.coreblow`
-- `OPENCLAW_WORKSPACE_DIR=...` (default: `~/.coreblow/workspace`) mounted to `/home/node/.coreblow/workspace`
-- `OPENCLAW_PROFILE_FILE=...` (default: `~/.profile`) mounted to `/home/node/.profile` and sourced before running tests
-- `OPENCLAW_DOCKER_CLI_TOOLS_DIR=...` (default: `~/.cache/coreblow/docker-cli-tools`) mounted to `/home/node/.npm-global` for cached CLI installs inside Docker
+- `COREBLOW_CONFIG_DIR=...` (default: `~/.coreblow`) mounted to `/home/node/.coreblow`
+- `COREBLOW_WORKSPACE_DIR=...` (default: `~/.coreblow/workspace`) mounted to `/home/node/.coreblow/workspace`
+- `COREBLOW_PROFILE_FILE=...` (default: `~/.profile`) mounted to `/home/node/.profile` and sourced before running tests
+- `COREBLOW_DOCKER_CLI_TOOLS_DIR=...` (default: `~/.cache/coreblow/docker-cli-tools`) mounted to `/home/node/.npm-global` for cached CLI installs inside Docker
 - External CLI auth dirs under `$HOME` are mounted read-only under `/host-auth/...`, then copied into `/home/node/...` before tests start
   - Default: mount all supported dirs (`.codex`, `.claude`, `.minimax`)
-  - Narrowed provider runs mount only the needed dirs inferred from `OPENCLAW_LIVE_PROVIDERS` / `OPENCLAW_LIVE_GATEWAY_PROVIDERS`
-  - Override manually with `OPENCLAW_DOCKER_AUTH_DIRS=all`, `OPENCLAW_DOCKER_AUTH_DIRS=none`, or a comma list like `OPENCLAW_DOCKER_AUTH_DIRS=.claude,.codex`
-- `OPENCLAW_LIVE_GATEWAY_MODELS=...` / `OPENCLAW_LIVE_MODELS=...` to narrow the run
-- `OPENCLAW_LIVE_GATEWAY_PROVIDERS=...` / `OPENCLAW_LIVE_PROVIDERS=...` to filter providers in-container
-- `OPENCLAW_LIVE_REQUIRE_PROFILE_KEYS=1` to ensure creds come from the profile store (not env)
-- `OPENCLAW_OPENWEBUI_MODEL=...` to choose the model exposed by the gateway for the Open WebUI smoke
-- `OPENCLAW_OPENWEBUI_PROMPT=...` to override the nonce-check prompt used by the Open WebUI smoke
+  - Narrowed provider runs mount only the needed dirs inferred from `COREBLOW_LIVE_PROVIDERS` / `COREBLOW_LIVE_GATEWAY_PROVIDERS`
+  - Override manually with `COREBLOW_DOCKER_AUTH_DIRS=all`, `COREBLOW_DOCKER_AUTH_DIRS=none`, or a comma list like `COREBLOW_DOCKER_AUTH_DIRS=.claude,.codex`
+- `COREBLOW_LIVE_GATEWAY_MODELS=...` / `COREBLOW_LIVE_MODELS=...` to narrow the run
+- `COREBLOW_LIVE_GATEWAY_PROVIDERS=...` / `COREBLOW_LIVE_PROVIDERS=...` to filter providers in-container
+- `COREBLOW_LIVE_REQUIRE_PROFILE_KEYS=1` to ensure creds come from the profile store (not env)
+- `COREBLOW_OPENWEBUI_MODEL=...` to choose the model exposed by the gateway for the Open WebUI smoke
+- `COREBLOW_OPENWEBUI_PROMPT=...` to override the nonce-check prompt used by the Open WebUI smoke
 - `OPENWEBUI_IMAGE=...` to override the pinned Open WebUI image tag
 
 ## Docs sanity
 
-Run docs checks after doc edits: `pnpm check:docs`.
-Run full Mintlify anchor validation when you need in-page heading checks too: `pnpm docs:check-links:anchors`.
+Run docs checks after doc edits: `pnpm lint:docs` and `node scripts/docs-link-audit.mjs`.
+Run full Mintlify anchor validation when you need in-page heading checks too: `node scripts/docs-link-audit.mjs --anchors`.
 
 ## Offline regression (CI-safe)
 
@@ -578,7 +578,7 @@ We already have a few CI-safe tests that behave like “agent reliability evals�
 - Mock tool-calling through the real gateway + agent loop (`src/gateway/gateway.test.ts`).
 - End-to-end wizard flows that validate session wiring and config effects (`src/gateway/gateway.test.ts`).
 
-What’s still missing for skills (see [Skills](/tools/skills)):
+What’s still missing for skills (see [Skills](/concepts/skills)):
 
 - **Decisioning:** when skills are listed in the prompt, does the agent pick the right skill (or avoid irrelevant ones)?
 - **Compliance:** does the agent read `SKILL.md` before use and follow required steps/args?

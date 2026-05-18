@@ -4,19 +4,11 @@ title: coreblow provider
 
 # coreblow provider
 
-## Usage
-```bash
-coreblow provider [options]
-```
+Provider setup is handled through `coreblow models auth` and `coreblow configure`.
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+Use `/cli/models` or `/cli/configure`.
 
-## Examples
-```bash
-coreblow provider
-coreblow provider --json
-```
+## Current Reference
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)

@@ -4,19 +4,11 @@ title: coreblow run
 
 # coreblow run
 
-## Usage
-```bash
-coreblow run [options]
-```
+No standalone `coreblow run` command is exposed by the current CLI.
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+Use `coreblow gateway run` or `coreblow agent`.
 
-## Examples
-```bash
-coreblow run
-coreblow run --json
-```
+## Current Reference
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)

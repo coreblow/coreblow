@@ -4,19 +4,11 @@ title: coreblow login
 
 # coreblow login
 
-## Usage
-```bash
-coreblow login [options]
-```
+Channel and model login flows now live under specific command groups.
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+Use `coreblow channels login` or `coreblow models auth ...`.
 
-## Examples
-```bash
-coreblow login
-coreblow login --json
-```
+## Current Reference
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)

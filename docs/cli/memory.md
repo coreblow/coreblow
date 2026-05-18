@@ -4,19 +4,11 @@ title: coreblow memory
 
 # coreblow memory
 
-## Usage
-```bash
-coreblow memory [options]
-```
+No root `coreblow memory` command is exposed by the current CoreBlow CLI.
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+Use `coreblow sessions` for session storage and memory visibility.
 
-## Examples
-```bash
-coreblow memory
-coreblow memory --json
-```
+## Current Reference
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)

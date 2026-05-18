@@ -4,19 +4,11 @@ title: coreblow version
 
 # coreblow version
 
-## Usage
-```bash
-coreblow version [options]
-```
+Use the root version flag instead of a subcommand.
 
-## Options
-| Flag | Description |
-|------|------------|
-| `--help` | Show help |
-| `--json` | JSON output |
+Run `coreblow --version`.
 
-## Examples
-```bash
-coreblow version
-coreblow version --json
-```
+## Current Reference
+
+- [CLI guide](/cli)
+- [CLI commands reference](/cli/commands)
