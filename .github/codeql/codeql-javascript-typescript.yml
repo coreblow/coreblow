@@ -5,7 +5,11 @@ paths:
   - src
   - extensions
 paths-ignore:
-  - node_modules
-  - dist
+  - "**/node_modules/**"
+  - "**/dist/**"
+  - "**/build/**"
+  - "**/.gradle/**"
+  - "**/coverage/**"
+  - vendor/**
   - "**/*.test.ts"
   - "**/*.test.js"
