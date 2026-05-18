@@ -6,8 +6,12 @@ name: CI — Security Audit
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
   pull_request:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
   schedule:
     - cron: '0 6 * * MON' # Weekly Monday 6am
 

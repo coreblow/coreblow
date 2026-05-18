@@ -3,8 +3,12 @@ name: Install Smoke
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
+    paths-ignore:
+      - "docs/**"
   workflow_dispatch:
 
 concurrency:

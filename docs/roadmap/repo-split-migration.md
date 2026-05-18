@@ -95,6 +95,11 @@ Move candidates:
 - docs build/deploy workflow
 - website/install content that belongs to the public site
 
+Current cut:
+
+- Core runtime workflows ignore `docs/**` so documentation-only edits do not run build, Bun, install smoke, lint/type, parity, security, smoke, unit, or workflow sanity gates.
+- `.github/workflows/docs.yml` owns README and docs link checks until `coreblow/docs` becomes the canonical docs repo.
+
 Core repo keeps:
 
 - `README.md`

@@ -2,8 +2,12 @@ name: Workflow Sanity
 
 on:
   pull_request:
+    paths-ignore:
+      - "docs/**"
   push:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
   workflow_dispatch:
 
 concurrency:
