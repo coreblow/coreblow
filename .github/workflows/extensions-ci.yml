@@ -1,0 +1,111 @@
+name: Extensions CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "extensions/**"
+      - "src/plugin-sdk/**"
+      - "src/plugins/**"
+      - "scripts/**extension*.mjs"
+      - "scripts/**plugin*.mjs"
+      - "test/vitest/vitest.extensions.config.ts"
+      - "test/vitest/vitest.channel-paths.mjs"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/extensions-ci.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "extensions/**"
+      - "src/plugin-sdk/**"
+      - "src/plugins/**"
+      - "scripts/**extension*.mjs"
+      - "scripts/**plugin*.mjs"
+      - "test/vitest/vitest.extensions.config.ts"
+      - "test/vitest/vitest.channel-paths.mjs"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/extensions-ci.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+permissions:
+  contents: read
+
+jobs:
+  boundaries:
+    name: Extension Boundaries
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24.x"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check extension SDK boundary
+        run: pnpm lint:extension-sdk-boundary
+
+      - name: Check plugin to extension imports
+        run: pnpm lint:plugin-extension-boundary
+
+      - name: Check extension tests do not import core
+        run: pnpm lint:no-extension-test-core
+
+      - name: Check extension source imports
+        run: pnpm lint:no-extension-src
+
+  tests:
+    name: Extension Tests (${{ matrix.shard }}/${{ matrix.shards }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shards: [3]
+        shard: [1, 2, 3]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24.x"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run extension tests
+        run: pnpm test:extensions -- --reporter=dot
+        env:
+          CI: true
+          COREBLOW_TEST_PROFILE: serial
+          COREBLOW_TEST_SHARDS: ${{ matrix.shards }}
+          COREBLOW_TEST_SHARD_INDEX: ${{ matrix.shard }}
+          NODE_OPTIONS: "--max-old-space-size=4096"

@@ -167,6 +167,12 @@ Done criteria:
 - Core CI does not install or analyze every plugin by default.
 - Plugin CI owns provider/channel-specific gates.
 
+Current cut:
+
+- `.github/workflows/extensions-ci.yml` owns extension boundary checks and sharded extension tests for `extensions/**`, `src/plugin-sdk/**`, and `src/plugins/**`.
+- Core build/typecheck still includes `extensions/**/*` because `tsconfig.json` and `tsconfig.build.json` currently include extension sources. Removing that dependency is a later extraction step, not a safe first cut.
+- Extension tests are sharded with `COREBLOW_TEST_SHARDS=3` so the plugin lane can grow independently from core runtime CI.
+
 ## Phase 4: Split Platform Nodes
 
 Target repos:
