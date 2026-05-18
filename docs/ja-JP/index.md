@@ -1,3 +1,0 @@
-# CoreBlow ドキュメント
-
-CoreBlowへようこそ。

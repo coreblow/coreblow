@@ -1,3 +1,0 @@
-# Branching Strategy
-
-## Overview

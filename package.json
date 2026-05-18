@@ -30,7 +30,6 @@
     "coreblow": "./coreblow.mjs"
   },
   "directories": {
-    "doc": "docs",
     "test": "test"
   },
   "files": [
@@ -38,8 +37,6 @@
     "LICENSE",
     "README.md",
     "assets/",
-    "docs/",
-    "!docs/.generated/**",
     "skills/",
     "src",
     "!src/**/*.test.*",
