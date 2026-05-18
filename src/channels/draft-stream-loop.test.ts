@@ -1,18 +1,31 @@
-import { describe, it, expect, vi } from 'vitest';
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 import { createDraftStreamLoop } from './draft-stream-loop.js';
 
 describe('Draft Stream Loop', () => {
+    beforeEach(() => {
+        vi.useFakeTimers();
+        vi.setSystemTime(0);
+    });
+
+    afterEach(() => {
+        vi.clearAllTimers();
+        vi.useRealTimers();
+    });
+
     it('sends update after throttle', async () => {
         const sent: string[] = [];
         let stopped = false;
         const loop = createDraftStreamLoop({
             throttleMs: 10,
             isStopped: () => stopped,
-            sendOrEditStreamMessage: async (text) => { sent.push(text); },
+            sendOrEditStreamMessage: async (text) => {
+                sent.push(text);
+            },
         });
 
         loop.update('hello');
-        await new Promise((r) => setTimeout(r, 50));
+        await vi.advanceTimersByTimeAsync(10);
+        await loop.waitForInFlight();
         expect(sent).toContain('hello');
         loop.stop();
     });
@@ -22,7 +35,9 @@ describe('Draft Stream Loop', () => {
         const loop = createDraftStreamLoop({
             throttleMs: 10000, // high throttle
             isStopped: () => false,
-            sendOrEditStreamMessage: async (text) => { sent.push(text); },
+            sendOrEditStreamMessage: async (text) => {
+                sent.push(text);
+            },
         });
 
         loop.update('buffered');
@@ -37,17 +52,17 @@ describe('Draft Stream Loop', () => {
         const loop = createDraftStreamLoop({
             throttleMs: 10000,
             isStopped: () => stopped,
-            sendOrEditStreamMessage: async (text) => { sent.push(text); },
+            sendOrEditStreamMessage: async (text) => {
+                sent.push(text);
+            },
         });
 
-        // Prime: first update fires immediately (lastSentAt=0 → elapsed=huge)
         loop.update('prime');
-        await new Promise((r) => setTimeout(r, 20));
-        // Now lastSentAt is recent, so next update will be throttled
+        await vi.advanceTimersByTimeAsync(10000);
+        await loop.waitForInFlight();
         sent.length = 0;
 
         loop.update('should-clear');
-        // resetPending before the throttle timer fires
         loop.resetPending();
         await loop.flush();
         expect(sent).toHaveLength(0);
@@ -59,11 +74,13 @@ describe('Draft Stream Loop', () => {
         const loop = createDraftStreamLoop({
             throttleMs: 0,
             isStopped: () => true,
-            sendOrEditStreamMessage: async (text) => { sent.push(text); },
+            sendOrEditStreamMessage: async (text) => {
+                sent.push(text);
+            },
         });
 
         loop.update('should-not-send');
-        await new Promise((r) => setTimeout(r, 50));
+        await loop.flush();
         expect(sent).toHaveLength(0);
     });
 });
