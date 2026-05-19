@@ -48,7 +48,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
 
@@ -73,7 +73,7 @@ jobs:
             type=sha
 
       - name: Build and push main image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
@@ -84,7 +84,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
 
       - name: Build and push sandbox-common
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: Dockerfile.sandbox-common
@@ -94,7 +94,7 @@ jobs:
           cache-to: type=gha,scope=sandbox-common,mode=max
 
       - name: Build and push sandbox
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: Dockerfile.sandbox
@@ -104,7 +104,7 @@ jobs:
           cache-to: type=gha,scope=sandbox,mode=max
 
       - name: Build and push sandbox-browser
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: Dockerfile.sandbox-browser
