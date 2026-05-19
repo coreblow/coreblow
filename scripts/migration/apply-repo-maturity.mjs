@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -52,6 +52,35 @@ function displayName(repo) {
 function maturityFiles(repo) {
   const name = displayName(repo);
   const repoUrl = `https://github.com/${manifest.owner}/${repo.name}`;
+  const contributing = repo.name === "trust"
+    ? [
+        "# Contributing",
+        "",
+        "Trust policy changes should be:",
+        "",
+        "- Specific about risk and affected surfaces.",
+        "- Written without private user or customer data.",
+        "- Reviewed by maintainers before publication.",
+        "",
+      ].join("\n")
+    : [
+        `# Contributing to ${name}`,
+        "",
+        "Thank you for helping improve CoreBlow.",
+        "",
+        "## Expectations",
+        "",
+        "- Keep changes scoped and reviewable.",
+        "- Use CoreBlow branding in docs and examples.",
+        "- Do not change versions, tags, or release metadata unless a maintainer explicitly asks.",
+        "- Do not commit secrets, phone numbers, private hostnames, or live configuration.",
+        "- Prefer tests or validation commands that match this repository's CI.",
+        "",
+        "## Pull Requests",
+        "",
+        "Open a focused pull request with a short summary, validation evidence, and any known follow-up work.",
+        "",
+      ].join("\n");
   return new Map([
     [
       ".github/CODEOWNERS",
@@ -89,24 +118,7 @@ function maturityFiles(repo) {
     ],
     [
       "CONTRIBUTING.md",
-      [
-        `# Contributing to ${name}`,
-        "",
-        "Thank you for helping improve CoreBlow.",
-        "",
-        "## Expectations",
-        "",
-        "- Keep changes scoped and reviewable.",
-        "- Use CoreBlow branding in docs and examples.",
-        "- Do not change versions, tags, or release metadata unless a maintainer explicitly asks.",
-        "- Do not commit secrets, phone numbers, private hostnames, or live configuration.",
-        "- Prefer tests or validation commands that match this repository's CI.",
-        "",
-        "## Pull Requests",
-        "",
-        "Open a focused pull request with a short summary, validation evidence, and any known follow-up work.",
-        "",
-      ].join("\n"),
+      contributing,
     ],
     [
       ".github/pull_request_template.md",
@@ -169,21 +181,21 @@ function maturityFiles(repo) {
         "",
       ].join("\n"),
     ],
-    [
-      ".github/dependabot.yml",
-      [
-        "version: 2",
-        "updates:",
-        "  - package-ecosystem: github-actions",
-        "    directory: /",
-        "    schedule:",
-        "      interval: weekly",
-        "    labels:",
-        "      - dependencies",
-        "",
-      ].join("\n"),
-    ],
   ]);
+}
+
+function dependabotFile() {
+  return [
+    "version: 2",
+    "updates:",
+    "  - package-ecosystem: github-actions",
+    "    directory: /",
+    "    schedule:",
+    "      interval: weekly",
+    "    labels:",
+    "      - dependencies",
+    "",
+  ].join("\n");
 }
 
 function seedTarget(repo) {
@@ -233,6 +245,16 @@ for (const repo of manifest.repositories) {
       if (changed) {
         writes.push(`${kind}:${repo.name}:${filePath}`);
       }
+    }
+    const dependabotPath = ".github/dependabot.yml";
+    if (await exists(path.join(root, ".github/workflows"))) {
+      const changed = await writeMaturityFile(root, dependabotPath, dependabotFile());
+      if (changed) {
+        writes.push(`${kind}:${repo.name}:${dependabotPath}`);
+      }
+    } else if (force && await exists(path.join(root, dependabotPath))) {
+      await rm(path.join(root, dependabotPath));
+      writes.push(`${kind}:${repo.name}:removed:${dependabotPath}`);
     }
   }
 }
