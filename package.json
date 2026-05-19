@@ -167,7 +167,8 @@
     "bench": "vitest bench tests/bench/",
     "bench:auth": "vitest bench tests/bench/auth-profile-resolution.bench.ts",
     "bench:infra": "vitest bench tests/bench/circuit-breaker.bench.ts",
-    "migration:repo-family:maturity": "node scripts/migration/apply-repo-maturity.mjs"
+    "migration:repo-family:maturity": "node scripts/migration/apply-repo-maturity.mjs",
+    "migration:repo-family:github": "node scripts/migration/apply-github-metadata.mjs"
   },
   "dependencies": {
     "@agentclientprotocol/sdk": "^0.18.2",
