@@ -1,4 +1,4 @@
-# Contributing to Trust
+# Contributing to CoreBlow RTT
 
 Thank you for helping improve CoreBlow.
 

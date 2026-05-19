@@ -166,7 +166,8 @@
     "check:architecture-smells": "node scripts/check-architecture-smells.mjs",
     "bench": "vitest bench tests/bench/",
     "bench:auth": "vitest bench tests/bench/auth-profile-resolution.bench.ts",
-    "bench:infra": "vitest bench tests/bench/circuit-breaker.bench.ts"
+    "bench:infra": "vitest bench tests/bench/circuit-breaker.bench.ts",
+    "migration:repo-family:maturity": "node scripts/migration/apply-repo-maturity.mjs"
   },
   "dependencies": {
     "@agentclientprotocol/sdk": "^0.18.2",

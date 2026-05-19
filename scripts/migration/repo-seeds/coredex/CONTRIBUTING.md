@@ -1,4 +1,4 @@
-# Contributing to Trust
+# Contributing to Coredex
 
 Thank you for helping improve CoreBlow.
 

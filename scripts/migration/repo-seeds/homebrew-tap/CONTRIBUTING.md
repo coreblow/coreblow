@@ -1,4 +1,4 @@
-# Contributing to Trust
+# Contributing to CoreBlow Homebrew Tap
 
 Thank you for helping improve CoreBlow.
 

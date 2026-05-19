@@ -1,4 +1,4 @@
-# Contributing to Trust
+# Contributing to Dolphin
 
 Thank you for helping improve CoreBlow.
 

@@ -1,4 +1,4 @@
-# Contributing to Trust
+# Contributing to Cookbook
 
 Thank you for helping improve CoreBlow.
 

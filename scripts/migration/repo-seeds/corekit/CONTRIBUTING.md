@@ -1,4 +1,4 @@
-# Contributing to Trust
+# Contributing to Corekit
 
 Thank you for helping improve CoreBlow.
 

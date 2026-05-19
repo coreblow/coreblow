@@ -1,4 +1,4 @@
-# Contributing to Trust
+# Contributing to Corechat
 
 Thank you for helping improve CoreBlow.
 

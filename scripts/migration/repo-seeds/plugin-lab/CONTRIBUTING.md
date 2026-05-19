@@ -1,4 +1,4 @@
-# Contributing to Trust
+# Contributing to Plugin Lab
 
 Thank you for helping improve CoreBlow.
 

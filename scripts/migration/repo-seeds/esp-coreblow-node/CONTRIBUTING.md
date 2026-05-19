@@ -1,4 +1,4 @@
-# Contributing to Trust
+# Contributing to ESP CoreBlow Node
 
 Thank you for helping improve CoreBlow.
 

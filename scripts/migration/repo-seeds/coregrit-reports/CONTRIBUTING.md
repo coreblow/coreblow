@@ -1,4 +1,4 @@
-# Contributing to Trust
+# Contributing to Coregrit Reports
 
 Thank you for helping improve CoreBlow.
 

@@ -1,4 +1,4 @@
-# Contributing to Trust
+# Contributing to Corewatch State
 
 Thank you for helping improve CoreBlow.
 

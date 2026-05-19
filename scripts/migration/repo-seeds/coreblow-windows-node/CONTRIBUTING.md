@@ -1,4 +1,4 @@
-# Contributing to Trust
+# Contributing to CoreBlow Windows Node
 
 Thank you for helping improve CoreBlow.
 

@@ -1,4 +1,4 @@
-# Contributing to Trust
+# Contributing to CoreBlow Ansible
 
 Thank you for helping improve CoreBlow.
 

@@ -1,0 +1,8 @@
+# CoreBlow Code Owners
+
+* @febrinanda
+
+# Security-sensitive surfaces
+SECURITY.md @febrinanda
+.github/workflows/ @febrinanda
+.github/dependabot.yml @febrinanda

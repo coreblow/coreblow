@@ -1,4 +1,4 @@
-# Contributing to Trust
+# Contributing to Nix CoreBlow
 
 Thank you for helping improve CoreBlow.
 

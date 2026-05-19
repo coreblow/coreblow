@@ -1,4 +1,4 @@
-# Contributing to Trust
+# Contributing to Corebench
 
 Thank you for helping improve CoreBlow.
 
