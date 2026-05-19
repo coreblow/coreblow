@@ -1,0 +1,15 @@
+{
+  "name": "@coreblow/community",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Policies and documentation for the CoreBlow community",
+  "license": "MIT",
+  "author": "Febrinanda and CoreBlow contributors",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "test": "node scripts/check-docs.mjs"
+  }
+}

@@ -227,6 +227,7 @@
       "phase": 6,
       "priority": "governance",
       "kind": "policy",
+      "source": "scripts/migration/repo-seeds/trust",
       "description": "CoreBlow trust and safety resources."
     },
     {
@@ -235,6 +236,7 @@
       "phase": 6,
       "priority": "governance",
       "kind": "community",
+      "source": "scripts/migration/repo-seeds/community",
       "description": "Policies and documentation for the CoreBlow community."
     },
     {
@@ -243,6 +245,7 @@
       "phase": 6,
       "priority": "ecosystem",
       "kind": "examples",
+      "source": "scripts/migration/repo-seeds/cookbook",
       "description": "Example apps and recipes for the CoreBlow SDK."
     }
   ]

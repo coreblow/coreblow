@@ -1,0 +1,15 @@
+{
+  "name": "@coreblow/cookbook",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Example apps and recipes for the CoreBlow SDK",
+  "license": "MIT",
+  "author": "Febrinanda and CoreBlow contributors",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "test": "node test/recipes.test.mjs"
+  }
+}

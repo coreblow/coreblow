@@ -1,0 +1,17 @@
+{
+  "product": "CoreBlow",
+  "threats": [
+    {
+      "id": "secret-exposure",
+      "owner": "security",
+      "severity": "high",
+      "summary": "Credentials, tokens, phone numbers, or private configuration are exposed."
+    },
+    {
+      "id": "unsafe-plugin",
+      "owner": "plugins",
+      "severity": "medium",
+      "summary": "A plugin requests broad access or violates CoreBlow extension boundaries."
+    }
+  ]
+}

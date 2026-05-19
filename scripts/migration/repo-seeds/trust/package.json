@@ -1,0 +1,15 @@
+{
+  "name": "@coreblow/trust",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CoreBlow trust and safety resources",
+  "license": "MIT",
+  "author": "Febrinanda and CoreBlow contributors",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "test": "node scripts/check-trust.mjs"
+  }
+}
