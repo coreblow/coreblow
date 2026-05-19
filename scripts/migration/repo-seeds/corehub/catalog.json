@@ -1,0 +1,9 @@
+[
+  {
+    "id": "coreblow",
+    "kind": "plugin",
+    "name": "CoreBlow Bundled Plugins",
+    "summary": "Bundled plugin source shipped with the CoreBlow core runtime.",
+    "source": "https://github.com/coreblow/coreblow"
+  }
+]

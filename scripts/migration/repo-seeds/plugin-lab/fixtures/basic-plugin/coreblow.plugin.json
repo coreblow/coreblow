@@ -1,0 +1,9 @@
+{
+  "id": "basic-plugin",
+  "name": "Basic Plugin",
+  "version": "0.1.0",
+  "entry": "index.js",
+  "coreblow": {
+    "compatibility": ">=1.0.0"
+  }
+}

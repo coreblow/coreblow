@@ -26,7 +26,9 @@ if (!repo.source || repo.source === ".") {
   process.exit(2);
 }
 
-const sourceRoot = path.resolve(repo.source);
+const sourceRoot = path.isAbsolute(repo.source)
+  ? path.resolve(repo.source)
+  : path.resolve(__dirname, "../..", repo.source);
 const targetRoot = path.resolve("/Users/febrinanda/coreblow-split", repoName);
 
 async function exists(filePath) {

@@ -47,6 +47,7 @@
       "phase": 2,
       "priority": "ecosystem",
       "kind": "directory",
+      "source": "scripts/migration/repo-seeds/corehub",
       "description": "Skill and plugin directory for CoreBlow."
     },
     {
@@ -55,6 +56,7 @@
       "phase": 2,
       "priority": "ci-infra",
       "kind": "runner",
+      "source": "scripts/migration/repo-seeds/corebox",
       "description": "CoreBlow clean-room validation runner."
     },
     {
@@ -63,6 +65,7 @@
       "phase": 2,
       "priority": "ecosystem",
       "kind": "plugin-fixture",
+      "source": "scripts/migration/repo-seeds/plugin-lab",
       "description": "Compatibility testbed for CoreBlow community plugins and plugin seams."
     },
     {

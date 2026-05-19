@@ -1,0 +1,15 @@
+{
+  "name": "@coreblow/plugin-lab",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Compatibility testbed for CoreBlow community plugins and plugin seams",
+  "license": "MIT",
+  "author": "Febrinanda and CoreBlow contributors",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "test": "node test/manifest.test.mjs"
+  }
+}

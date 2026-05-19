@@ -1,0 +1,15 @@
+{
+  "name": "@coreblow/corehub",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Skill and plugin directory for CoreBlow",
+  "license": "MIT",
+  "author": "Febrinanda and CoreBlow contributors",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "test": "node test/catalog.test.mjs"
+  }
+}
