@@ -1,0 +1,15 @@
+{
+  "name": "@coreblow/coreblow-rtt",
+  "version": "0.1.0",
+  "private": true,
+  "description": "RTT timing measurements across CoreBlow releases",
+  "license": "MIT",
+  "author": "Febrinanda and CoreBlow contributors",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "test": "node test/rtt.test.mjs"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "@coreblow/dolphin",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CoreBlow-native typed workflow shell",
+  "license": "MIT",
+  "author": "Febrinanda and CoreBlow contributors",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "test": "node test/workflow.test.mjs"
+  },
+  "bin": {
+    "dolphin": "./src/cli.mjs"
+  }
+}

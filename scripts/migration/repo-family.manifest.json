@@ -119,6 +119,7 @@
       "phase": 4,
       "priority": "desktop",
       "kind": "control-plane",
+      "source": "scripts/migration/repo-seeds/corebar",
       "description": "Menu bar control plane for local-first CoreBlow apps."
     },
     {
@@ -127,6 +128,7 @@
       "phase": 4,
       "priority": "sdk",
       "kind": "library",
+      "source": "scripts/migration/repo-seeds/corekit",
       "description": "Shared CoreBlow local-first toolkit."
     },
     {
@@ -135,6 +137,7 @@
       "phase": 4,
       "priority": "app",
       "kind": "contacts",
+      "source": "scripts/migration/repo-seeds/coredex",
       "description": "CoreBlow contacts and identity surface."
     },
     {
@@ -143,6 +146,7 @@
       "phase": 4,
       "priority": "app",
       "kind": "chat",
+      "source": "scripts/migration/repo-seeds/corechat",
       "description": "CoreBlow chat application."
     },
     {
@@ -151,6 +155,7 @@
       "phase": 4,
       "priority": "workflow",
       "kind": "workflow-shell",
+      "source": "scripts/migration/repo-seeds/dolphin",
       "description": "CoreBlow-native typed workflow shell."
     },
     {
@@ -159,6 +164,7 @@
       "phase": 4,
       "priority": "quality",
       "kind": "measurement",
+      "source": "scripts/migration/repo-seeds/coreblow-rtt",
       "description": "RTT timing measurements across CoreBlow releases."
     },
     {

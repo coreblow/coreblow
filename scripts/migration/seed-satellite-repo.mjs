@@ -70,6 +70,7 @@ await cp(sourceRoot, targetRoot, {
 const gitignorePath = path.join(targetRoot, ".gitignore");
 const gitignore = [
   "node_modules/",
+  ".build/",
   ".wrangler/",
   ".DS_Store",
   "dist/",
