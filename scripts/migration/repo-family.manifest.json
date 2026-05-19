@@ -1,0 +1,229 @@
+{
+  "$schema": "https://coreblow.com/schemas/repo-family.v1.json",
+  "owner": "coreblow",
+  "referenceOwner": "openclaw",
+  "policy": {
+    "brand": "CoreBlow",
+    "pluginAggregatorRepo": false,
+    "bundledPluginSource": "coreblow/extensions/*",
+    "notes": [
+      "Do not create coreblow/plugins. OpenClaw does not use an openclaw/plugins repository.",
+      "Keep bundled plugin source in the core repository until a specific plugin graduates into a product repo.",
+      "Satellite repositories are public release surfaces with their own CI, README, CODEOWNERS, and ownership model."
+    ]
+  },
+  "repositories": [
+    {
+      "name": "coreblow",
+      "reference": "openclaw",
+      "phase": 1,
+      "priority": "foundation",
+      "kind": "core-runtime",
+      "source": ".",
+      "description": "CoreBlow enterprise AI gateway and personal assistant runtime."
+    },
+    {
+      "name": "docs",
+      "reference": "docs",
+      "phase": 1,
+      "priority": "foundation",
+      "kind": "documentation",
+      "source": "/Users/febrinanda/coreblow-split/docs",
+      "description": "CoreBlow documentation site and published docs mirror."
+    },
+    {
+      "name": "coreblow.com",
+      "reference": "openclaw.ai",
+      "phase": 2,
+      "priority": "foundation",
+      "kind": "website",
+      "source": "/Users/febrinanda/coreblow.com",
+      "seedIgnore": ["frontend"],
+      "description": "CoreBlow public website and install landing surface."
+    },
+    {
+      "name": "corehub",
+      "reference": "clawhub",
+      "phase": 2,
+      "priority": "ecosystem",
+      "kind": "directory",
+      "description": "Skill and plugin directory for CoreBlow."
+    },
+    {
+      "name": "corebox",
+      "reference": "crabbox",
+      "phase": 2,
+      "priority": "ci-infra",
+      "kind": "runner",
+      "description": "CoreBlow clean-room validation runner."
+    },
+    {
+      "name": "plugin-lab",
+      "reference": "crabpot",
+      "phase": 2,
+      "priority": "ecosystem",
+      "kind": "plugin-fixture",
+      "description": "Compatibility testbed for CoreBlow community plugins and plugin seams."
+    },
+    {
+      "name": "corepatch",
+      "reference": "clawpatch",
+      "phase": 3,
+      "priority": "maintenance",
+      "kind": "automation",
+      "description": "Review code, patch bugs, and land CoreBlow maintenance PRs."
+    },
+    {
+      "name": "corewatch",
+      "reference": "clawsweeper",
+      "phase": 3,
+      "priority": "maintenance",
+      "kind": "triage",
+      "description": "CoreBlow issue and pull-request triage automation."
+    },
+    {
+      "name": "corewatch-state",
+      "reference": "clawsweeper-state",
+      "phase": 3,
+      "priority": "maintenance",
+      "kind": "state",
+      "description": "State storage for CoreBlow triage automation."
+    },
+    {
+      "name": "corebench",
+      "reference": "clawbench",
+      "phase": 3,
+      "priority": "quality",
+      "kind": "benchmark",
+      "description": "CoreBlow full-stack benchmark harness and reports."
+    },
+    {
+      "name": "coregrit-reports",
+      "reference": "clawgrit-reports",
+      "phase": 3,
+      "priority": "quality",
+      "kind": "reports",
+      "description": "Performance reports for CoreBlow."
+    },
+    {
+      "name": "corebar",
+      "reference": "crawlbar",
+      "phase": 4,
+      "priority": "desktop",
+      "kind": "control-plane",
+      "description": "Menu bar control plane for local-first CoreBlow apps."
+    },
+    {
+      "name": "corekit",
+      "reference": "crawlkit",
+      "phase": 4,
+      "priority": "sdk",
+      "kind": "library",
+      "description": "Shared CoreBlow local-first toolkit."
+    },
+    {
+      "name": "coredex",
+      "reference": "clawdex",
+      "phase": 4,
+      "priority": "app",
+      "kind": "contacts",
+      "description": "CoreBlow contacts and identity surface."
+    },
+    {
+      "name": "corechat",
+      "reference": "clickclack",
+      "phase": 4,
+      "priority": "app",
+      "kind": "chat",
+      "description": "CoreBlow chat application."
+    },
+    {
+      "name": "dolphin",
+      "reference": "lobster",
+      "phase": 4,
+      "priority": "workflow",
+      "kind": "workflow-shell",
+      "description": "CoreBlow-native typed workflow shell."
+    },
+    {
+      "name": "coreblow-rtt",
+      "reference": "openclaw-rtt",
+      "phase": 4,
+      "priority": "quality",
+      "kind": "measurement",
+      "description": "RTT timing measurements across CoreBlow releases."
+    },
+    {
+      "name": "coreblow-windows-node",
+      "reference": "openclaw-windows-node",
+      "phase": 5,
+      "priority": "platform",
+      "kind": "windows",
+      "description": "Windows companion suite for CoreBlow."
+    },
+    {
+      "name": "esp-coreblow-node",
+      "reference": "esp-openclaw-node",
+      "phase": 5,
+      "priority": "platform",
+      "kind": "embedded",
+      "description": "ESP CoreBlow node."
+    },
+    {
+      "name": "coreblow-ansible",
+      "reference": "openclaw-ansible",
+      "phase": 5,
+      "priority": "infra",
+      "kind": "ansible",
+      "description": "Automated hardened CoreBlow host installation."
+    },
+    {
+      "name": "homebrew-tap",
+      "reference": "homebrew-tap",
+      "phase": 5,
+      "priority": "distribution",
+      "kind": "package-index",
+      "description": "Homebrew tap for CoreBlow."
+    },
+    {
+      "name": "nix-coreblow",
+      "reference": "nix-openclaw",
+      "phase": 5,
+      "priority": "distribution",
+      "kind": "nix",
+      "description": "Nix packaging for CoreBlow."
+    },
+    {
+      "name": "nix-coreblow-tools",
+      "reference": "nix-openclaw-tools",
+      "phase": 5,
+      "priority": "distribution",
+      "kind": "nix-tools",
+      "description": "Nix tools for CoreBlow."
+    },
+    {
+      "name": "trust",
+      "reference": "trust",
+      "phase": 6,
+      "priority": "governance",
+      "kind": "policy",
+      "description": "CoreBlow trust and safety resources."
+    },
+    {
+      "name": "community",
+      "reference": "community",
+      "phase": 6,
+      "priority": "governance",
+      "kind": "community",
+      "description": "Policies and documentation for the CoreBlow community."
+    },
+    {
+      "name": "cookbook",
+      "reference": "cookbook",
+      "phase": 6,
+      "priority": "ecosystem",
+      "kind": "examples",
+      "description": "Example apps and recipes for the CoreBlow SDK."
+    }
+  ]
+}
