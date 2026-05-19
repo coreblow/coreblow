@@ -1,0 +1,5 @@
+- name: Install CoreBlow host baseline
+  hosts: all
+  become: false
+  roles:
+    - coreblow_host

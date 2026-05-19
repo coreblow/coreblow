@@ -1,0 +1,10 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreBlow.WindowsNode", "src\CoreBlow.WindowsNode\CoreBlow.WindowsNode.csproj", "{6F899682-7242-4A4C-B2CE-864639F6681F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreBlow.WindowsNode.Tests", "tests\CoreBlow.WindowsNode.Tests\CoreBlow.WindowsNode.Tests.csproj", "{AF8E4DB5-C824-435E-BB53-A354AC1AB5F9}"
+EndProject
+Global
+EndGlobal

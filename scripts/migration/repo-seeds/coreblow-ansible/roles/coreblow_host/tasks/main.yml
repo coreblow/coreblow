@@ -1,0 +1,11 @@
+- name: Define CoreBlow service defaults
+  ansible.builtin.set_fact:
+    coreblow_service_name: coreblow
+    coreblow_gateway_port: 3000
+
+- name: Validate gateway port
+  ansible.builtin.assert:
+    that:
+      - coreblow_gateway_port | int > 0
+      - coreblow_gateway_port | int < 65536
+    fail_msg: CoreBlow gateway port must be a valid TCP port.

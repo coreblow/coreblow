@@ -1,0 +1,19 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile heartbeat example
+        run: |
+          cc -std=c11 -Wall -Wextra -Werror \
+            -Icomponents/coreblow_node/include \
+            examples/heartbeat/main.c components/coreblow_node/coreblow_node.c \
+            -o /tmp/coreblow-heartbeat
+          /tmp/coreblow-heartbeat | grep '"nodeId":"esp-coreblow-node"'

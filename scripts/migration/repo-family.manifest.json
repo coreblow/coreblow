@@ -173,6 +173,7 @@
       "phase": 5,
       "priority": "platform",
       "kind": "windows",
+      "source": "scripts/migration/repo-seeds/coreblow-windows-node",
       "description": "Windows companion suite for CoreBlow."
     },
     {
@@ -181,6 +182,7 @@
       "phase": 5,
       "priority": "platform",
       "kind": "embedded",
+      "source": "scripts/migration/repo-seeds/esp-coreblow-node",
       "description": "ESP CoreBlow node."
     },
     {
@@ -189,6 +191,7 @@
       "phase": 5,
       "priority": "infra",
       "kind": "ansible",
+      "source": "scripts/migration/repo-seeds/coreblow-ansible",
       "description": "Automated hardened CoreBlow host installation."
     },
     {
@@ -197,6 +200,7 @@
       "phase": 5,
       "priority": "distribution",
       "kind": "package-index",
+      "source": "scripts/migration/repo-seeds/homebrew-tap",
       "description": "Homebrew tap for CoreBlow."
     },
     {
@@ -205,6 +209,7 @@
       "phase": 5,
       "priority": "distribution",
       "kind": "nix",
+      "source": "scripts/migration/repo-seeds/nix-coreblow",
       "description": "Nix packaging for CoreBlow."
     },
     {
@@ -213,6 +218,7 @@
       "phase": 5,
       "priority": "distribution",
       "kind": "nix-tools",
+      "source": "scripts/migration/repo-seeds/nix-coreblow-tools",
       "description": "Nix tools for CoreBlow."
     },
     {
