@@ -1,0 +1,15 @@
+{
+  "name": "@coreblow/coregrit-reports",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Performance reports for CoreBlow",
+  "license": "MIT",
+  "author": "Febrinanda and CoreBlow contributors",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "test": "node test/reports.test.mjs"
+  }
+}

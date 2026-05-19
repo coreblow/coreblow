@@ -1,0 +1,15 @@
+{
+  "name": "@coreblow/corewatch-state",
+  "version": "0.1.0",
+  "private": true,
+  "description": "State storage for CoreBlow triage automation",
+  "license": "MIT",
+  "author": "Febrinanda and CoreBlow contributors",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "test": "node test/state.test.mjs"
+  }
+}

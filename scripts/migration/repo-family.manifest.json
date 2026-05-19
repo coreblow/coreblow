@@ -74,6 +74,7 @@
       "phase": 3,
       "priority": "maintenance",
       "kind": "automation",
+      "source": "scripts/migration/repo-seeds/corepatch",
       "description": "Review code, patch bugs, and land CoreBlow maintenance PRs."
     },
     {
@@ -82,6 +83,7 @@
       "phase": 3,
       "priority": "maintenance",
       "kind": "triage",
+      "source": "scripts/migration/repo-seeds/corewatch",
       "description": "CoreBlow issue and pull-request triage automation."
     },
     {
@@ -90,6 +92,7 @@
       "phase": 3,
       "priority": "maintenance",
       "kind": "state",
+      "source": "scripts/migration/repo-seeds/corewatch-state",
       "description": "State storage for CoreBlow triage automation."
     },
     {
@@ -98,6 +101,7 @@
       "phase": 3,
       "priority": "quality",
       "kind": "benchmark",
+      "source": "scripts/migration/repo-seeds/corebench",
       "description": "CoreBlow full-stack benchmark harness and reports."
     },
     {
@@ -106,6 +110,7 @@
       "phase": 3,
       "priority": "quality",
       "kind": "reports",
+      "source": "scripts/migration/repo-seeds/coregrit-reports",
       "description": "Performance reports for CoreBlow."
     },
     {

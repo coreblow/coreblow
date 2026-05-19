@@ -1,0 +1,15 @@
+{
+  "name": "@coreblow/corewatch",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CoreBlow issue and pull-request triage automation",
+  "license": "MIT",
+  "author": "Febrinanda and CoreBlow contributors",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "test": "node test/classifier.test.mjs"
+  }
+}

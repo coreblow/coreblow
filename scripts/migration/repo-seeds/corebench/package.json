@@ -1,0 +1,15 @@
+{
+  "name": "@coreblow/corebench",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CoreBlow full-stack benchmark harness and reports",
+  "license": "MIT",
+  "author": "Febrinanda and CoreBlow contributors",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "test": "node test/score.test.mjs"
+  }
+}
