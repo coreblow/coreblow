@@ -81,6 +81,8 @@ function expectCoreHubInstallFlow(params: {
   expect(installPluginFromArchiveMock).toHaveBeenCalledWith(
     expect.objectContaining({
       archivePath: params.archivePath,
+      expectedPluginId: "demo",
+      strictCoreHubArchive: true,
     }),
   );
 }
@@ -186,6 +188,13 @@ describe("installPluginFromCoreHub", () => {
     expect(logger.info).toHaveBeenCalledWith(
       "Compatibility: pluginApi=>=2026.3.22 minGateway=2026.3.0",
     );
+    expect(logger.info).toHaveBeenCalledWith("Registry status: available");
+    expect(logger.info).toHaveBeenCalledWith("Publisher verified: coreblow");
+    expect(logger.info).toHaveBeenCalledWith("Artifact checksum verified: demo-sha256");
+    expect(logger.info).toHaveBeenCalledWith(
+      "Artifact manifest verified: demo-manifest-sha256",
+    );
+    expect(logger.info).toHaveBeenCalledWith("Storage locator: plugins/demo/archive.zip");
     expect(logger.warn).not.toHaveBeenCalled();
   });
 

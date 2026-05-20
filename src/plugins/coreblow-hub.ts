@@ -522,7 +522,8 @@ export async function installPluginFromCoreHub(params: {
       logger: params.logger,
       mode: params.mode,
       dryRun: params.dryRun,
-      expectedPluginId: params.expectedPluginId,
+      expectedPluginId: params.expectedPluginId ?? parsed.name,
+      strictCoreHubArchive: true,
     });
     if (!installResult.ok) {
       return installResult;
@@ -538,6 +539,19 @@ export async function installPluginFromCoreHub(params: {
       );
     }
     const verifiedAt = new Date().toISOString();
+    params.logger?.info?.(`Registry status: ${versionState.status ?? "available"}`);
+    if (archive.publisherHandle ?? pkg.ownerHandle ?? detail.owner?.handle) {
+      params.logger?.info?.(
+        `Publisher verified: ${archive.publisherHandle ?? pkg.ownerHandle ?? detail.owner?.handle}`,
+      );
+    }
+    params.logger?.info?.(`Artifact checksum verified: ${archive.artifactSha256}`);
+    if (archive.artifactManifestVerified) {
+      params.logger?.info?.(`Artifact manifest verified: ${archive.artifactManifestSha256}`);
+    }
+    if (archive.artifactStorageKey) {
+      params.logger?.info?.(`Storage locator: ${archive.artifactStorageKey}`);
+    }
     return {
       ...installResult,
       packageName: parsed.name,

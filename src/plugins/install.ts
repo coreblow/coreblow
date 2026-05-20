@@ -49,6 +49,8 @@ export const PLUGIN_INSTALL_ERROR_CODE = {
   EMPTY_COREBLOW_EXTENSIONS: "empty_coreblow_extensions",
   NPM_PACKAGE_NOT_FOUND: "npm_package_not_found",
   PLUGIN_ID_MISMATCH: "plugin_id_mismatch",
+  MISSING_PLUGIN_MANIFEST: "missing_plugin_manifest",
+  MISSING_EXTENSION_ENTRY: "missing_extension_entry",
 } as const;
 
 export type PluginInstallErrorCode =
@@ -218,6 +220,7 @@ type PackageInstallCommonParams = {
   mode?: "install" | "update";
   dryRun?: boolean;
   expectedPluginId?: string;
+  strictCoreHubArchive?: boolean;
 };
 
 type FileInstallCommonParams = Pick<
@@ -235,7 +238,49 @@ function pickPackageInstallCommonParams(
     mode: params.mode,
     dryRun: params.dryRun,
     expectedPluginId: params.expectedPluginId,
+    strictCoreHubArchive: params.strictCoreHubArchive,
   };
+}
+
+async function validateStrictCoreHubPackageArchive(params: {
+  packageDir: string;
+  extensions: string[];
+  manifestPluginId?: string;
+  npmPluginId: string;
+  runtime: Awaited<ReturnType<typeof loadPluginInstallRuntime>>;
+}): Promise<{ ok: true } | { ok: false; error: string; code: PluginInstallErrorCode }> {
+  if (!params.manifestPluginId) {
+    return {
+      ok: false,
+      error: "CoreHub plugin archive missing coreblow.plugin.json",
+      code: PLUGIN_INSTALL_ERROR_CODE.MISSING_PLUGIN_MANIFEST,
+    };
+  }
+  for (const entry of params.extensions) {
+    const resolvedEntry = path.resolve(params.packageDir, entry);
+    if (!params.runtime.isPathInside(params.packageDir, resolvedEntry)) {
+      return {
+        ok: false,
+        error: `CoreHub plugin archive extension entry escapes plugin directory: ${entry}`,
+        code: PLUGIN_INSTALL_ERROR_CODE.MISSING_EXTENSION_ENTRY,
+      };
+    }
+    if (!(await params.runtime.fileExists(resolvedEntry))) {
+      return {
+        ok: false,
+        error: `CoreHub plugin archive extension entry not found: ${entry}`,
+        code: PLUGIN_INSTALL_ERROR_CODE.MISSING_EXTENSION_ENTRY,
+      };
+    }
+  }
+  if (!params.npmPluginId) {
+    return {
+      ok: false,
+      error: "CoreHub plugin archive package.json missing name",
+      code: PLUGIN_INSTALL_ERROR_CODE.MISSING_PLUGIN_MANIFEST,
+    };
+  }
+  return { ok: true };
 }
 
 function pickFileInstallCommonParams(params: FileInstallCommonParams): FileInstallCommonParams {
@@ -498,6 +543,13 @@ async function installPluginFromPackageDir(
     ocManifestResult.ok && ocManifestResult.manifest.id
       ? ocManifestResult.manifest.id.trim()
       : undefined;
+  if (params.strictCoreHubArchive && !ocManifestResult.ok) {
+    return {
+      ok: false,
+      error: `CoreHub plugin archive has invalid coreblow.plugin.json: ${ocManifestResult.error}`,
+      code: PLUGIN_INSTALL_ERROR_CODE.MISSING_PLUGIN_MANIFEST,
+    };
+  }
 
   const pluginId = manifestPluginId ?? npmPluginId;
   const pluginIdError = validatePluginId(pluginId);
@@ -523,6 +575,18 @@ async function installPluginFromPackageDir(
     logger.info?.(
       `Plugin manifest id "${manifestPluginId}" differs from npm package name "${npmPluginId}"; using manifest id as the config key.`,
     );
+  }
+  if (params.strictCoreHubArchive) {
+    const strictArchive = await validateStrictCoreHubPackageArchive({
+      packageDir: params.packageDir,
+      extensions,
+      manifestPluginId,
+      npmPluginId,
+      runtime,
+    });
+    if (!strictArchive.ok) {
+      return strictArchive;
+    }
   }
 
   const packageMetadata = runtime.getPackageManifestMetadata(manifest);
@@ -627,6 +691,7 @@ export async function installPluginFromArchive(
           mode,
           dryRun: params.dryRun,
           expectedPluginId: params.expectedPluginId,
+          strictCoreHubArchive: params.strictCoreHubArchive,
         }),
       }),
   });
