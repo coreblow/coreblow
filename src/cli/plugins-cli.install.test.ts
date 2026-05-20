@@ -63,7 +63,7 @@ function createCoreHubInstallResult(params: {
     packageName: params.packageName,
     corehub: {
       source: "corehub",
-      corehubUrl: "https://corehub.ai",
+      corehubUrl: "https://coreblow.com/corehub",
       corehubPackage: params.packageName,
       corehubFamily: "code-plugin",
       corehubChannel: params.channel,
@@ -246,6 +246,41 @@ describe("plugins cli install", () => {
     expect(writeConfigFile).toHaveBeenCalledWith(installedCfg);
     expect(runtimeLogs.some((line) => line.includes("Installed plugin: demo"))).toBe(true);
     expect(installPluginFromNpmSpec).not.toHaveBeenCalled();
+  });
+
+  it("previews CoreHub plugin installs with --dry-run without persisting config", async () => {
+    const cfg = {
+      plugins: {
+        entries: {},
+      },
+    } as CoreBlowConfig;
+
+    loadConfig.mockReturnValue(cfg);
+    parseCoreHubPluginSpec.mockReturnValue({ name: "demo" });
+    installPluginFromCoreHub.mockResolvedValue(
+      createCoreHubInstallResult({
+        pluginId: "demo",
+        packageName: "demo",
+        version: "1.2.3",
+        channel: "official",
+      }),
+    );
+
+    await runPluginsCommand(["plugins", "install", "corehub:demo", "--dry-run"]);
+
+    expect(installPluginFromCoreHub).toHaveBeenCalledWith(
+      expect.objectContaining({
+        spec: "corehub:demo",
+        dryRun: true,
+      }),
+    );
+    expect(clearPluginManifestRegistryCache).not.toHaveBeenCalled();
+    expect(recordPluginInstall).not.toHaveBeenCalled();
+    expect(writeConfigFile).not.toHaveBeenCalled();
+    expect(runtimeLogs.some((line) => line.includes('Dry run: would install plugin "demo"'))).toBe(
+      true,
+    );
+    expect(runtimeLogs.some((line) => line.includes("corehub:demo@1.2.3"))).toBe(true);
   });
 
   it("prefers CoreHub before npm for bare plugin specs", async () => {

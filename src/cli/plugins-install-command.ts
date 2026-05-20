@@ -67,10 +67,32 @@ async function installBundledPluginSource(params: {
   });
 }
 
+function logPluginInstallDryRun(params: {
+  pluginId: string;
+  targetDir: string;
+  source?: string;
+}) {
+  const source = params.source ? ` from ${params.source}` : "";
+  defaultRuntime.log(
+    `Dry run: would install plugin "${params.pluginId}"${source} to ${shortenHomePath(
+      params.targetDir,
+    )}.`,
+  );
+}
+
+function logHookInstallDryRun(params: { hookPackId: string; targetDir: string }) {
+  defaultRuntime.log(
+    `Dry run: would install hook pack "${params.hookPackId}" to ${shortenHomePath(
+      params.targetDir,
+    )}.`,
+  );
+}
+
 async function tryInstallHookPackFromLocalPath(params: {
   config: CoreBlowConfig;
   resolvedPath: string;
   link?: boolean;
+  dryRun?: boolean;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   if (params.link) {
     const stat = fs.statSync(params.resolvedPath);
@@ -87,6 +109,13 @@ async function tryInstallHookPackFromLocalPath(params: {
     });
     if (!probe.ok) {
       return probe;
+    }
+    if (params.dryRun) {
+      logHookInstallDryRun({
+        hookPackId: probe.hookPackId,
+        targetDir: params.resolvedPath,
+      });
+      return { ok: true };
     }
 
     const existing = params.config.hooks?.internal?.load?.extraDirs ?? [];
@@ -122,9 +151,17 @@ async function tryInstallHookPackFromLocalPath(params: {
   const result = await installHooksFromPath({
     path: params.resolvedPath,
     logger: createHookPackInstallLogger(),
+    dryRun: params.dryRun,
   });
   if (!result.ok) {
     return result;
+  }
+  if (params.dryRun) {
+    logHookInstallDryRun({
+      hookPackId: result.hookPackId,
+      targetDir: result.targetDir,
+    });
+    return { ok: true };
   }
 
   const source: "archive" | "path" = resolveArchiveKind(params.resolvedPath) ? "archive" : "path";
@@ -146,13 +183,22 @@ async function tryInstallHookPackFromNpmSpec(params: {
   config: CoreBlowConfig;
   spec: string;
   pin?: boolean;
+  dryRun?: boolean;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   const result = await installHooksFromNpmSpec({
     spec: params.spec,
     logger: createHookPackInstallLogger(),
+    dryRun: params.dryRun,
   });
   if (!result.ok) {
     return result;
+  }
+  if (params.dryRun) {
+    logHookInstallDryRun({
+      hookPackId: result.hookPackId,
+      targetDir: result.targetDir,
+    });
+    return { ok: true };
   }
 
   const installRecord = resolvePinnedNpmInstallRecordForCli(
@@ -231,7 +277,7 @@ export async function loadConfigForInstall(
 
 export async function runPluginInstallCommand(params: {
   raw: string;
-  opts: { link?: boolean; pin?: boolean; marketplace?: string };
+  opts: { link?: boolean; pin?: boolean; marketplace?: string; dryRun?: boolean };
 }) {
   const shorthand = !params.opts.marketplace
     ? await resolveMarketplaceInstallShortcut(params.raw)
@@ -279,10 +325,19 @@ export async function runPluginInstallCommand(params: {
       marketplace: opts.marketplace,
       plugin: raw,
       logger: createPluginInstallLogger(),
+      dryRun: opts.dryRun,
     });
     if (!result.ok) {
       defaultRuntime.error(result.error);
       return defaultRuntime.exit(1);
+    }
+    if (opts.dryRun) {
+      logPluginInstallDryRun({
+        pluginId: result.pluginId,
+        targetDir: result.targetDir,
+        source: `marketplace:${result.marketplacePlugin}`,
+      });
+      return;
     }
 
     clearPluginManifestRegistryCache();
@@ -313,6 +368,7 @@ export async function runPluginInstallCommand(params: {
           config: cfg,
           resolvedPath: resolved,
           link: true,
+          dryRun: opts.dryRun,
         });
         if (hookFallback.ok) {
           return;
@@ -321,6 +377,13 @@ export async function runPluginInstallCommand(params: {
           formatPluginInstallWithHookFallbackError(probe.error, hookFallback.error),
         );
         return defaultRuntime.exit(1);
+      }
+      if (opts.dryRun) {
+        logPluginInstallDryRun({
+          pluginId: probe.pluginId,
+          targetDir: resolved,
+        });
+        return;
       }
 
       await persistPluginInstall({
@@ -349,11 +412,13 @@ export async function runPluginInstallCommand(params: {
     const result = await installPluginFromPath({
       path: resolved,
       logger: createPluginInstallLogger(),
+      dryRun: opts.dryRun,
     });
     if (!result.ok) {
       const hookFallback = await tryInstallHookPackFromLocalPath({
         config: cfg,
         resolvedPath: resolved,
+        dryRun: opts.dryRun,
       });
       if (hookFallback.ok) {
         return;
@@ -362,6 +427,13 @@ export async function runPluginInstallCommand(params: {
         formatPluginInstallWithHookFallbackError(result.error, hookFallback.error),
       );
       return defaultRuntime.exit(1);
+    }
+    if (opts.dryRun) {
+      logPluginInstallDryRun({
+        pluginId: result.pluginId,
+        targetDir: result.targetDir,
+      });
+      return;
     }
 
     clearPluginManifestRegistryCache();
@@ -405,6 +477,14 @@ export async function runPluginInstallCommand(params: {
     findBundledSource: (lookup) => findBundledPluginSource({ lookup }),
   });
   if (bundledPreNpmPlan) {
+    if (opts.dryRun) {
+      logPluginInstallDryRun({
+        pluginId: bundledPreNpmPlan.bundledSource.pluginId,
+        targetDir: bundledPreNpmPlan.bundledSource.localPath,
+        source: raw,
+      });
+      return;
+    }
     await installBundledPluginSource({
       config: cfg,
       rawSpec: raw,
@@ -419,10 +499,22 @@ export async function runPluginInstallCommand(params: {
     const result = await installPluginFromCoreHub({
       spec: raw,
       logger: createPluginInstallLogger(),
+      dryRun: opts.dryRun,
     });
     if (!result.ok) {
       defaultRuntime.error(result.error);
       return defaultRuntime.exit(1);
+    }
+    if (opts.dryRun) {
+      logPluginInstallDryRun({
+        pluginId: result.pluginId,
+        targetDir: result.targetDir,
+        source: formatCoreHubSpecifier({
+          name: result.corehub.corehubPackage,
+          version: result.corehub.version,
+        }),
+      });
+      return;
     }
 
     clearPluginManifestRegistryCache();
@@ -453,8 +545,20 @@ export async function runPluginInstallCommand(params: {
     const corehubResult = await installPluginFromCoreHub({
       spec: preferredCoreHubSpec,
       logger: createPluginInstallLogger(),
+      dryRun: opts.dryRun,
     });
     if (corehubResult.ok) {
+      if (opts.dryRun) {
+        logPluginInstallDryRun({
+          pluginId: corehubResult.pluginId,
+          targetDir: corehubResult.targetDir,
+          source: formatCoreHubSpecifier({
+            name: corehubResult.corehub.corehubPackage,
+            version: corehubResult.corehub.version,
+          }),
+        });
+        return;
+      }
       clearPluginManifestRegistryCache();
       await persistPluginInstall({
         config: cfg,
@@ -486,6 +590,7 @@ export async function runPluginInstallCommand(params: {
   const result = await installPluginFromNpmSpec({
     spec: raw,
     logger: createPluginInstallLogger(),
+    dryRun: opts.dryRun,
   });
   if (!result.ok) {
     const bundledFallbackPlan = resolveBundledInstallPlanForNpmFailure({
@@ -498,6 +603,7 @@ export async function runPluginInstallCommand(params: {
         config: cfg,
         spec: raw,
         pin: opts.pin,
+        dryRun: opts.dryRun,
       });
       if (hookFallback.ok) {
         return;
@@ -508,11 +614,27 @@ export async function runPluginInstallCommand(params: {
       return defaultRuntime.exit(1);
     }
 
+    if (opts.dryRun) {
+      logPluginInstallDryRun({
+        pluginId: bundledFallbackPlan.bundledSource.pluginId,
+        targetDir: bundledFallbackPlan.bundledSource.localPath,
+        source: raw,
+      });
+      return;
+    }
     await installBundledPluginSource({
       config: cfg,
       rawSpec: raw,
       bundledSource: bundledFallbackPlan.bundledSource,
       warning: bundledFallbackPlan.warning,
+    });
+    return;
+  }
+  if (opts.dryRun) {
+    logPluginInstallDryRun({
+      pluginId: result.pluginId,
+      targetDir: result.targetDir,
+      source: raw,
     });
     return;
   }
