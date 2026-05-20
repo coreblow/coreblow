@@ -208,7 +208,7 @@
     "@opentelemetry/semantic-conventions": "^1.40.0",
     "@pierre/diffs": "^1.1.19",
     "@react-three/drei": "^10.7.7",
-    "@react-three/fiber": "^9.5.0",
+    "@react-three/fiber": "^9.6.1",
     "@slack/bolt": "^4.7.0",
     "@slack/web-api": "^7.15.0",
     "@splinetool/react-spline": "^4.1.0",
