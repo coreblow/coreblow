@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { gzipSync } from "node:zlib";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   downloadCoreHubPackageArchive,
@@ -15,6 +16,47 @@ import {
   satisfiesGatewayMinimum,
   satisfiesPluginApiRange,
 } from "./coreblow-hub.js";
+
+function createTarGzArchive(files: Record<string, string | Uint8Array>): Buffer {
+  const chunks: Buffer[] = [];
+  for (const [filePath, contents] of Object.entries(files).sort(([left], [right]) =>
+    left.localeCompare(right),
+  )) {
+    const bytes = Buffer.from(contents);
+    const header = Buffer.alloc(512, 0);
+    header.write(filePath, 0, 100, "utf8");
+    writeTarOctal(header, 0o644, 100, 8);
+    writeTarOctal(header, 0, 108, 8);
+    writeTarOctal(header, 0, 116, 8);
+    writeTarOctal(header, bytes.byteLength, 124, 12);
+    writeTarOctal(header, 0, 136, 12);
+    header.fill(0x20, 148, 156);
+    header[156] = "0".charCodeAt(0);
+    header.write("ustar", 257, 6, "ascii");
+    header.write("00", 263, 2, "ascii");
+    writeTarOctal(
+      header,
+      header.reduce((total, byte) => total + byte, 0),
+      148,
+      8,
+    );
+    chunks.push(header, bytes, Buffer.alloc((512 - (bytes.byteLength % 512)) % 512, 0));
+  }
+  chunks.push(Buffer.alloc(1024, 0));
+  return gzipSync(Buffer.concat(chunks));
+}
+
+function writeTarOctal(buffer: Buffer, value: number, offset: number, length: number) {
+  buffer.write(`${value.toString(8).padStart(length - 1, "0")}\0`, offset, length, "ascii");
+}
+
+function sha256Hex(bytes: Uint8Array | string): string {
+  return createHash("sha256").update(bytes).digest("hex");
+}
+
+function responseBody(bytes: Uint8Array): ArrayBuffer {
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+}
 
 describe("corehub helpers", () => {
   const originalHome = process.env.HOME;
@@ -258,7 +300,7 @@ describe("corehub helpers", () => {
         );
       }
       expect(url).toBe("https://storage.example/plugin-lab-0.1.0.coreblow-plugin.tgz");
-      return new Response(archiveBytes, { status: 200 });
+      return new Response(responseBody(archiveBytes), { status: 200 });
     };
 
     const result = await downloadCoreHubPackageArchive({
@@ -273,5 +315,130 @@ describe("corehub helpers", () => {
     } finally {
       await fs.rm(path.dirname(result.archivePath), { recursive: true, force: true });
     }
+  });
+
+  it("verifies the internal CoreHub artifact manifest when catalog metadata declares it", async () => {
+    const archiveFiles = {
+      "coreblow.plugin.json": JSON.stringify({
+        id: "plugin-lab",
+        configSchema: { type: "object", additionalProperties: false },
+      }),
+      "corehub.artifact.json": JSON.stringify({
+        schemaVersion: "corehub.plugin-artifact.v1",
+        package: { id: "plugin-lab", version: "0.1.0", kind: "plugin" },
+        publisher: { handle: "coreblow" },
+        install: {
+          packageManifest: "package.json",
+          pluginManifest: "coreblow.plugin.json",
+          entry: "index.js",
+        },
+      }),
+      "index.js": "export function activate() { return { tools: [], hooks: [] }; }\n",
+      "package.json": JSON.stringify({
+        name: "plugin-lab",
+        version: "0.1.0",
+        type: "module",
+        coreblow: { extensions: ["./index.js"], install: { minHostVersion: ">=1.0.0" } },
+      }),
+    };
+    const archiveBytes = createTarGzArchive(archiveFiles);
+    const files = Object.entries(archiveFiles).map(([filePath, contents]) => {
+      const bytes = Buffer.from(contents);
+      return { path: filePath, size: bytes.byteLength, sha256: sha256Hex(bytes) };
+    });
+    const fetchImpl = async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.startsWith("https://coreblow.com/corehub/api/v1/packages/plugin-lab/download")) {
+        return new Response(
+          JSON.stringify({
+            apiVersion: "v1",
+            data: {
+              package: { id: "plugin-lab", name: "plugin-lab" },
+              version: "0.1.0",
+              artifact: {
+                name: "plugin-lab-0.1.0.coreblow-plugin.tgz",
+                size: archiveBytes.byteLength,
+                sha256: sha256Hex(archiveBytes),
+                files,
+              },
+              download: {
+                available: true,
+                url: "https://storage.example/plugin-lab-0.1.0.coreblow-plugin.tgz",
+              },
+            },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      }
+      return new Response(responseBody(archiveBytes), { status: 200 });
+    };
+
+    const result = await downloadCoreHubPackageArchive({
+      name: "plugin-lab",
+      version: "0.1.0",
+      fetchImpl,
+    });
+    try {
+      await expect(fs.readFile(result.archivePath)).resolves.toEqual(Buffer.from(archiveBytes));
+    } finally {
+      await fs.rm(path.dirname(result.archivePath), { recursive: true, force: true });
+    }
+  });
+
+  it("rejects CoreHub artifacts when the internal manifest disagrees with registry metadata", async () => {
+    const archiveBytes = createTarGzArchive({
+      "corehub.artifact.json": JSON.stringify({
+        schemaVersion: "corehub.plugin-artifact.v1",
+        package: { id: "other-plugin", version: "0.1.0", kind: "plugin" },
+      }),
+    });
+    const manifestBytes = Buffer.from(
+      JSON.stringify({
+        schemaVersion: "corehub.plugin-artifact.v1",
+        package: { id: "other-plugin", version: "0.1.0", kind: "plugin" },
+      }),
+    );
+    const fetchImpl = async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.startsWith("https://coreblow.com/corehub/api/v1/packages/plugin-lab/download")) {
+        return new Response(
+          JSON.stringify({
+            apiVersion: "v1",
+            data: {
+              package: { id: "plugin-lab", name: "plugin-lab" },
+              version: "0.1.0",
+              artifact: {
+                name: "plugin-lab-0.1.0.coreblow-plugin.tgz",
+                size: archiveBytes.byteLength,
+                sha256: sha256Hex(archiveBytes),
+                files: [
+                  {
+                    path: "corehub.artifact.json",
+                    size: manifestBytes.byteLength,
+                    sha256: sha256Hex(manifestBytes),
+                  },
+                ],
+              },
+              download: {
+                available: true,
+                url: "https://storage.example/plugin-lab-0.1.0.coreblow-plugin.tgz",
+              },
+            },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      }
+      return new Response(responseBody(archiveBytes), { status: 200 });
+    };
+
+    await expect(
+      downloadCoreHubPackageArchive({
+        name: "plugin-lab",
+        version: "0.1.0",
+        fetchImpl,
+      }),
+    ).rejects.toThrow(
+      "CoreHub artifact manifest package id mismatch: expected plugin-lab, received other-plugin",
+    );
   });
 });

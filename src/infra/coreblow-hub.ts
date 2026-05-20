@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { gunzipSync } from "node:zlib";
 import { isAtLeast, parseSemver } from "./runtime-guard.js";
 import { compareComparableSemver, parseComparableSemver } from "./semver-compare.js";
 
@@ -202,6 +203,11 @@ type CoreHubCatalogVersion = {
     mediaType?: string;
     size?: number;
     sha256?: string;
+    files?: Array<{
+      path?: string;
+      size?: number;
+      sha256?: string;
+    }>;
     storage?: {
       key?: string;
       url?: string;
@@ -863,6 +869,125 @@ function validateCoreHubDownloadBytes(metadata: CoreHubDownloadMetadata, bytes: 
       );
     }
   }
+  validateCoreHubArtifactManifest(metadata, bytes);
+}
+
+function validateCoreHubArtifactManifest(
+  metadata: CoreHubDownloadMetadata,
+  bytes: Uint8Array,
+): void {
+  const expectedFiles = metadata.artifact?.files?.filter(
+    (file): file is { path: string; size?: number; sha256?: string } =>
+      typeof file.path === "string" && file.path.trim().length > 0,
+  );
+  const expectsInternalManifest = expectedFiles?.some((file) => file.path === "corehub.artifact.json");
+  if (!expectsInternalManifest) {
+    return;
+  }
+
+  const archiveFiles = readGzippedTarFiles(bytes, metadata.artifact?.name ?? "CoreHub artifact");
+  const internalManifestBytes = archiveFiles.get("corehub.artifact.json");
+  if (!internalManifestBytes) {
+    throw new Error("CoreHub artifact manifest missing from plugin archive: corehub.artifact.json");
+  }
+
+  for (const expected of expectedFiles ?? []) {
+    const actual = archiveFiles.get(expected.path);
+    if (!actual) {
+      throw new Error(`CoreHub artifact file missing from plugin archive: ${expected.path}`);
+    }
+    if (Number.isInteger(expected.size) && actual.byteLength !== expected.size) {
+      throw new Error(
+        `CoreHub artifact file size mismatch for ${expected.path}: expected ${expected.size}, received ${actual.byteLength}`,
+      );
+    }
+    if (expected.sha256) {
+      const digest = createHash("sha256").update(actual).digest("hex");
+      if (digest !== expected.sha256) {
+        throw new Error(
+          `CoreHub artifact file checksum mismatch for ${expected.path}: expected ${expected.sha256}, received ${digest}`,
+        );
+      }
+    }
+  }
+
+  let manifest: unknown;
+  try {
+    manifest = JSON.parse(Buffer.from(internalManifestBytes).toString("utf8"));
+  } catch (error) {
+    throw new Error(`CoreHub artifact manifest is invalid JSON: ${String(error)}`);
+  }
+  validateCoreHubArtifactManifestPayload(metadata, manifest);
+}
+
+function validateCoreHubArtifactManifestPayload(
+  metadata: CoreHubDownloadMetadata,
+  manifest: unknown,
+): void {
+  if (!manifest || typeof manifest !== "object" || Array.isArray(manifest)) {
+    throw new Error("CoreHub artifact manifest must be an object");
+  }
+  const record = manifest as Record<string, unknown>;
+  if (record.schemaVersion !== "corehub.plugin-artifact.v1") {
+    throw new Error("CoreHub artifact manifest schemaVersion must be corehub.plugin-artifact.v1");
+  }
+  const packageRecord = record.package;
+  if (!packageRecord || typeof packageRecord !== "object" || Array.isArray(packageRecord)) {
+    throw new Error("CoreHub artifact manifest package must be an object");
+  }
+  const packageData = packageRecord as Record<string, unknown>;
+  const expectedId = metadata.package?.id ?? metadata.package?.name;
+  if (expectedId && packageData.id !== expectedId) {
+    throw new Error(
+      `CoreHub artifact manifest package id mismatch: expected ${expectedId}, received ${String(packageData.id)}`,
+    );
+  }
+  if (metadata.version && packageData.version !== metadata.version) {
+    throw new Error(
+      `CoreHub artifact manifest version mismatch: expected ${metadata.version}, received ${String(packageData.version)}`,
+    );
+  }
+}
+
+function readGzippedTarFiles(bytes: Uint8Array, label: string): Map<string, Uint8Array> {
+  let tar: Buffer;
+  try {
+    tar = gunzipSync(bytes);
+  } catch (error) {
+    throw new Error(`CoreHub artifact ${label} is not a readable gzip tar archive: ${String(error)}`);
+  }
+
+  const files = new Map<string, Uint8Array>();
+  let offset = 0;
+  while (offset + 512 <= tar.byteLength) {
+    const header = tar.subarray(offset, offset + 512);
+    if (header.every((byte) => byte === 0)) {
+      break;
+    }
+    const name = readTarString(header, 0, 100);
+    const prefix = readTarString(header, 345, 155);
+    const filePath = prefix ? `${prefix}/${name}` : name;
+    const typeFlag = header.toString("ascii", 156, 157);
+    const size = Number.parseInt(readTarString(header, 124, 12) || "0", 8);
+    offset += 512;
+    if (!Number.isFinite(size) || size < 0 || offset + size > tar.byteLength) {
+      throw new Error(`CoreHub artifact ${label} has an invalid tar entry size`);
+    }
+    if (!filePath) {
+      throw new Error(`CoreHub artifact ${label} has an empty tar entry path`);
+    }
+    if (typeFlag === "0" || typeFlag === "\0" || typeFlag === "") {
+      files.set(filePath, tar.subarray(offset, offset + size));
+    }
+    offset += size + ((512 - (size % 512)) % 512);
+  }
+  return files;
+}
+
+function readTarString(buffer: Buffer, offset: number, length: number): string {
+  const raw = buffer.subarray(offset, offset + length);
+  const end = raw.indexOf(0);
+  return raw.subarray(0, end === -1 ? raw.byteLength : end).toString("utf8").trim();
 }
 
 export function isCoreHubFamilySkill(detail: CoreHubPackageDetail | CoreHubSkillDetail): boolean {
