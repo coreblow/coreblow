@@ -785,6 +785,7 @@ export const FIELD_LABELS: Record<string, string> = {
   "plugins.installs.*.artifactManifestSha256": "Plugin Artifact Manifest SHA-256",
   "plugins.installs.*.artifactStorageKey": "Plugin Artifact Storage Key",
   "plugins.installs.*.publisherHandle": "Plugin Publisher Handle",
+  "plugins.installs.*.corehubVerificationTier": "Plugin CoreHub Verification Tier",
   "plugins.installs.*.verifiedAt": "Plugin Verification Time",
   "plugins.installs.*.previousVersion": "Previous Plugin Version",
   "plugins.installs.*.previousArtifactSha256": "Previous Plugin Artifact SHA-256",

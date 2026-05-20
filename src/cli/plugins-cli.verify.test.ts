@@ -16,6 +16,12 @@ import {
 function createCoreHubConfig(): CoreBlowConfig {
   return {
     plugins: {
+      corehub: {
+        allowCommunity: false,
+        allowDeprecated: false,
+        allowedPublishers: ["coreblow"],
+        requiredVerificationTiers: ["source-linked"],
+      },
       installs: {
         "plugin-lab": {
           source: "corehub",
@@ -28,6 +34,7 @@ function createCoreHubConfig(): CoreBlowConfig {
           corehubPackage: "plugin-lab",
           corehubFamily: "code-plugin",
           corehubChannel: "official",
+          corehubVerificationTier: "source-linked",
           artifactSha256: "artifact-sha256",
           artifactSize: 736,
           artifactManifestVerified: true,
@@ -137,6 +144,9 @@ describe("plugins cli verify", () => {
       package: {
         name: "plugin-lab",
         ownerHandle: "coreblow",
+        verification: {
+          tier: "source-linked",
+        },
       },
       owner: {
         handle: "coreblow",
@@ -184,6 +194,9 @@ describe("plugins cli verify", () => {
       package: {
         name: "plugin-lab",
         ownerHandle: "coreblow",
+        verification: {
+          tier: "source-linked",
+        },
       },
       owner: {
         handle: "coreblow",
@@ -242,10 +255,46 @@ describe("plugins cli verify", () => {
 
     expect(runtimeLogs.join("\n")).toContain("Trust proof:");
     expect(runtimeLogs.join("\n")).toContain("Artifact manifest verified: yes");
+    expect(runtimeLogs.join("\n")).toContain("Verification tier: source-linked");
     expect(buildPluginInspectReport).toHaveBeenCalledWith(
       expect.objectContaining({
         id: "plugin-lab",
       }),
     );
+  });
+
+  it("prints active CoreHub install policy and installed package status", async () => {
+    await runPluginsCommand(["plugins", "policy"]);
+
+    const output = runtimeLogs.join("\n");
+    expect(output).toContain("CoreHub plugin policy");
+    expect(output).toContain("Allow community packages:");
+    expect(output).toContain("Allowed publishers:");
+    expect(output).toContain("coreblow");
+    expect(output).toContain("source-linked");
+    expect(output).toContain("plugin-lab");
+    expect(output).toContain("allowed");
+  });
+
+  it("prints active CoreHub install policy as JSON", async () => {
+    await runPluginsCommand(["plugins", "policy", "--json"]);
+
+    const payload = JSON.parse(runtimeLogs.at(-1) ?? "{}") as {
+      policy?: { allowCommunity?: boolean; requiredVerificationTiers?: string[] };
+      installed?: Array<{ pluginId?: string; status?: string; verificationTier?: string }>;
+    };
+    expect(payload).toMatchObject({
+      policy: {
+        allowCommunity: false,
+        requiredVerificationTiers: ["source-linked"],
+      },
+      installed: [
+        {
+          pluginId: "plugin-lab",
+          status: "allowed",
+          verificationTier: "source-linked",
+        },
+      ],
+    });
   });
 });

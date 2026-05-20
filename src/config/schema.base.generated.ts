@@ -9559,6 +9559,9 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
                         },
                       ],
                     },
+                    corehubVerificationTier: {
+                      type: "string",
+                    },
                     artifactSha256: {
                       type: "string",
                     },
@@ -11461,6 +11464,9 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
                       const: "private",
                     },
                   ],
+                },
+                corehubVerificationTier: {
+                  type: "string",
                 },
                 artifactSha256: {
                   type: "string",
@@ -15454,6 +15460,11 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
     "plugins.installs.*.publisherHandle": {
       label: "Plugin Publisher Handle",
       help: "CoreHub publisher handle recorded during install.",
+      tags: ["advanced"],
+    },
+    "plugins.installs.*.corehubVerificationTier": {
+      label: "Plugin CoreHub Verification Tier",
+      help: "CoreHub verification tier recorded during install or update.",
       tags: ["advanced"],
     },
     "plugins.installs.*.verifiedAt": {

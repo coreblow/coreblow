@@ -167,9 +167,11 @@ describe("registerSubCliCommands", () => {
     expect(acpAction).toHaveBeenCalledTimes(1);
   });
 
-  it("skips plugin CLI preload for plugin install management commands", async () => {
+  it.each(["install", "policy"])(
+    "skips plugin CLI preload for plugin %s management commands",
+    async (subcommand) => {
     const program = createRegisteredProgram(
-      ["node", "coreblow", "plugins", "install", "corehub:plugin-lab", "--dry-run"],
+      ["node", "coreblow", "plugins", subcommand, "corehub:plugin-lab", "--dry-run"],
       "coreblow",
     );
 
@@ -177,7 +179,7 @@ describe("registerSubCliCommands", () => {
       "node",
       "coreblow",
       "plugins",
-      "install",
+      subcommand,
       "corehub:plugin-lab",
       "--dry-run",
     ]);
@@ -185,7 +187,8 @@ describe("registerSubCliCommands", () => {
     expect(registerPluginsCli).toHaveBeenCalledTimes(1);
     expect(registerPluginCliCommands).not.toHaveBeenCalled();
     expect(configModule.readConfigFileSnapshot).not.toHaveBeenCalled();
-  });
+    },
+  );
 
   it("keeps plugin CLI preload for generic plugin command help", async () => {
     const loadedConfig = { plugins: { enabled: true } };

@@ -593,6 +593,7 @@ export async function updateNpmInstalledPlugins(params: {
         corehubPackage: corehubResult.corehub.corehubPackage,
         corehubFamily: corehubResult.corehub.corehubFamily,
         corehubChannel: corehubResult.corehub.corehubChannel,
+        corehubVerificationTier: corehubResult.corehub.corehubVerificationTier,
         artifactSha256: corehubResult.corehub.artifactSha256,
         artifactSize: corehubResult.corehub.artifactSize,
         artifactManifestVerified: corehubResult.corehub.artifactManifestVerified,

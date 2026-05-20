@@ -1025,6 +1025,8 @@ export const FIELD_HELP: Record<string, string> = {
   "plugins.installs.*.artifactStorageKey":
     "CoreHub storage locator used for the resolved artifact archive.",
   "plugins.installs.*.publisherHandle": "CoreHub publisher handle recorded during install.",
+  "plugins.installs.*.corehubVerificationTier":
+    "CoreHub verification tier recorded during install or update.",
   "plugins.installs.*.verifiedAt":
     "ISO timestamp when CoreBlow verified CoreHub artifact metadata for this install record.",
   "plugins.installs.*.previousVersion":

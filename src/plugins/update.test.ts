@@ -104,6 +104,7 @@ function createCoreHubInstallConfig(params: {
   corehubPackage: string;
   corehubFamily: "bundle-plugin" | "code-plugin";
   corehubChannel: "community" | "official" | "private";
+  corehubVerificationTier?: string;
   version?: string;
   artifactSha256?: string;
   artifactManifestSha256?: string;
@@ -123,6 +124,9 @@ function createCoreHubInstallConfig(params: {
           corehubPackage: params.corehubPackage,
           corehubFamily: params.corehubFamily,
           corehubChannel: params.corehubChannel,
+          ...(params.corehubVerificationTier
+            ? { corehubVerificationTier: params.corehubVerificationTier }
+            : {}),
           ...(params.version ? { version: params.version } : {}),
           ...(params.artifactSha256 ? { artifactSha256: params.artifactSha256 } : {}),
           ...(params.artifactManifestSha256
@@ -450,6 +454,7 @@ describe("updateNpmInstalledPlugins", () => {
         corehubPackage: "demo",
         corehubFamily: "code-plugin",
         corehubChannel: "official",
+        corehubVerificationTier: "source-linked",
         integrity: "sha256-next",
         artifactSha256: "next-sha256",
         artifactSize: 736,
@@ -470,6 +475,7 @@ describe("updateNpmInstalledPlugins", () => {
         corehubPackage: "demo",
         corehubFamily: "code-plugin",
         corehubChannel: "official",
+        corehubVerificationTier: "source-linked",
         version: "1.2.3",
         artifactSha256: "old-sha256",
         artifactManifestSha256: "old-manifest-sha256",
@@ -511,6 +517,7 @@ describe("updateNpmInstalledPlugins", () => {
       corehubPackage: "demo",
       corehubFamily: "code-plugin",
       corehubChannel: "official",
+      corehubVerificationTier: "source-linked",
       integrity: "sha256-next",
       artifactSha256: "next-sha256",
       artifactManifestVerified: true,

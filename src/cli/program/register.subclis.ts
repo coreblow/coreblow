@@ -38,6 +38,7 @@ const PLUGINS_COMMANDS_WITHOUT_PLUGIN_CLI_PRELOAD = new Set([
   "uninstall",
   "update",
   "verify",
+  "policy",
 ]);
 
 function shouldPreloadPluginCliForPluginsCommand(argv: string[]): boolean {

@@ -97,6 +97,7 @@ function expectSuccessfulCoreHubInstall(result: unknown) {
       corehubPackage: "demo",
       corehubFamily: "code-plugin",
       corehubChannel: "official",
+      corehubVerificationTier: "source-linked",
       integrity: "sha256-demo",
       artifactSha256: "demo-sha256",
       artifactSize: 1234,

@@ -47,6 +47,7 @@ export type CoreHubPluginInstallRecordFields = {
   corehubPackage: string;
   corehubFamily: Exclude<CoreHubPackageFamily, "skill">;
   corehubChannel?: CoreHubPackageChannel;
+  corehubVerificationTier?: string;
   version?: string;
   integrity?: string;
   resolvedAt?: string;
@@ -79,6 +80,7 @@ export type CoreHubInstalledTrustRecord = Partial<Pick<
   | "artifactManifestSha256"
   | "artifactStorageKey"
   | "publisherHandle"
+  | "corehubVerificationTier"
 >>;
 
 export type CoreHubInstalledTrustVerificationResult =
@@ -405,6 +407,11 @@ export async function verifyCoreHubInstalledTrustRecord(params: {
     registry: registryVersion.publisher?.handle ?? undefined,
   });
   appendTrustDrift(failures, {
+    name: "corehubVerificationTier",
+    local: record.corehubVerificationTier,
+    registry: registryVersion.verification?.tier,
+  });
+  appendTrustDrift(failures, {
     name: "artifactSha256",
     local: record.artifactSha256,
     registry: artifact?.sha256,
@@ -624,6 +631,7 @@ export async function installPluginFromCoreHub(params: {
         corehubPackage: parsed.name,
         corehubFamily,
         corehubChannel: pkg.channel,
+        corehubVerificationTier: pkg.verification?.tier,
         version: installResult.version ?? versionState.version,
         integrity: archive.integrity,
         artifactSha256: archive.artifactSha256,

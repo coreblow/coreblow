@@ -28,6 +28,7 @@ export const InstallRecordShape = {
   corehubChannel: z
     .union([z.literal("official"), z.literal("community"), z.literal("private")])
     .optional(),
+  corehubVerificationTier: z.string().optional(),
   artifactSha256: z.string().optional(),
   artifactSize: z.number().optional(),
   artifactManifestVerified: z.boolean().optional(),

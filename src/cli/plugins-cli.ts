@@ -4,7 +4,7 @@ import type { Command } from "commander";
 import type { CoreBlowConfig } from "../config/config.js";
 import { loadConfig, writeConfigFile } from "../config/config.js";
 import { resolveStateDir } from "../config/paths.js";
-import type { PluginInstallRecord } from "../config/types.plugins.js";
+import type { PluginCoreHubPolicyConfig, PluginInstallRecord } from "../config/types.plugins.js";
 import {
   fetchCoreHubPackageDetail,
   fetchCoreHubPackageVersion,
@@ -56,6 +56,10 @@ export type PluginInspectOptions = {
 export type PluginVerifyOptions = {
   json?: boolean;
   refresh?: boolean;
+};
+
+export type PluginPolicyOptions = {
+  json?: boolean;
 };
 
 export type PluginUpdateOptions = {
@@ -221,6 +225,7 @@ type PluginTrustProof = {
   corehubUrl?: string;
   version?: string;
   publisherHandle?: string;
+  corehubVerificationTier?: string;
   artifactSha256?: string;
   artifactSize?: number;
   artifactManifestVerified?: boolean;
@@ -263,6 +268,7 @@ function buildPluginTrustProof(install: PluginInstallRecord | undefined): Plugin
     corehubUrl: install.corehubUrl,
     version: install.version,
     publisherHandle: install.publisherHandle,
+    corehubVerificationTier: install.corehubVerificationTier,
     artifactSha256: install.artifactSha256,
     artifactSize: install.artifactSize,
     artifactManifestVerified: install.artifactManifestVerified,
@@ -291,6 +297,9 @@ function formatTrustProofLines(install: PluginInstallRecord | undefined): string
   }
   if (proof.publisherHandle) {
     lines.push(`Publisher: ${proof.publisherHandle}`);
+  }
+  if (proof.corehubVerificationTier) {
+    lines.push(`Verification tier: ${proof.corehubVerificationTier}`);
   }
   if (proof.artifactSha256) {
     lines.push(`Artifact SHA-256: ${proof.artifactSha256}`);
@@ -406,6 +415,11 @@ async function refreshPluginTrustProof(install: PluginInstallRecord): Promise<Pl
       registry: registryPublisher ?? undefined,
     }),
     buildTrustRefreshCheck({
+      name: "corehubVerificationTier",
+      local: install.corehubVerificationTier,
+      registry: detail.package?.verification?.tier,
+    }),
+    buildTrustRefreshCheck({
       name: "artifactSha256",
       local: install.artifactSha256,
       registry: artifact?.sha256,
@@ -489,6 +503,94 @@ function formatTrustRefreshLines(refresh: PluginTrustRefreshResult): string[] {
     }
   }
   return lines;
+}
+
+function normalizePolicyList(values: string[] | undefined): string[] {
+  return (values ?? []).map((value) => value.trim()).filter(Boolean);
+}
+
+function formatPolicyBoolean(value: boolean | undefined): string {
+  if (value === false) {
+    return "no";
+  }
+  if (value === true) {
+    return "yes";
+  }
+  return "yes (default)";
+}
+
+function formatPolicyList(values: string[]): string {
+  return values.length > 0 ? values.join(", ") : "any";
+}
+
+type CoreHubPolicyEvaluationStatus = "allowed" | "blocked" | "review";
+
+type CoreHubPolicyEvaluation = {
+  pluginId: string;
+  packageName: string;
+  version?: string;
+  channel?: string;
+  publisherHandle?: string;
+  verificationTier?: string;
+  status: CoreHubPolicyEvaluationStatus;
+  notes: string[];
+};
+
+function evaluateCoreHubInstallPolicy(params: {
+  pluginId: string;
+  install: PluginInstallRecord;
+  policy?: PluginCoreHubPolicyConfig;
+}): CoreHubPolicyEvaluation {
+  const policy = params.policy;
+  const install = params.install;
+  const notes: string[] = [];
+  const allowedPublishers = normalizePolicyList(policy?.allowedPublishers);
+  const requiredVerificationTiers = normalizePolicyList(policy?.requiredVerificationTiers);
+
+  if (policy?.allowCommunity === false && install.corehubChannel !== "official") {
+    notes.push(`requires official channel; found ${install.corehubChannel ?? "unknown"}`);
+  }
+  if (allowedPublishers.length > 0 && !allowedPublishers.includes(install.publisherHandle ?? "")) {
+    notes.push(`publisher ${install.publisherHandle ?? "unknown"} is not allowed`);
+  }
+  if (
+    requiredVerificationTiers.length > 0 &&
+    !requiredVerificationTiers.includes(install.corehubVerificationTier ?? "")
+  ) {
+    notes.push(`verification tier ${install.corehubVerificationTier ?? "unknown"} is not allowed`);
+  }
+  return {
+    pluginId: params.pluginId,
+    packageName: install.corehubPackage ?? params.pluginId,
+    version: install.version,
+    channel: install.corehubChannel,
+    publisherHandle: install.publisherHandle,
+    verificationTier: install.corehubVerificationTier,
+    status: notes.length > 0 ? "blocked" : "allowed",
+    notes,
+  };
+}
+
+function buildCoreHubPolicyReport(config: CoreBlowConfig): {
+  policy: PluginCoreHubPolicyConfig;
+  configured: boolean;
+  installed: CoreHubPolicyEvaluation[];
+} {
+  const policy = config.plugins?.corehub ?? {};
+  const installed = Object.entries(config.plugins?.installs ?? {})
+    .filter((entry): entry is [string, PluginInstallRecord] => entry[1].source === "corehub")
+    .map(([pluginId, install]) =>
+      evaluateCoreHubInstallPolicy({
+        pluginId,
+        install,
+        policy,
+      }),
+    );
+  return {
+    policy,
+    configured: Boolean(config.plugins?.corehub),
+    installed,
+  };
 }
 
 export function registerPluginsCli(program: Command) {
@@ -894,6 +996,70 @@ export function registerPluginsCli(program: Command) {
       if (refresh && !refresh.ok) {
         return defaultRuntime.exit(1);
       }
+    });
+
+  plugins
+    .command("policy")
+    .description("Show active CoreHub plugin install policy")
+    .option("--json", "Print JSON")
+    .action((opts: PluginPolicyOptions) => {
+      const cfg = loadConfig();
+      const report = buildCoreHubPolicyReport(cfg);
+      if (opts.json) {
+        defaultRuntime.writeJson(report);
+        return;
+      }
+
+      const allowedPublishers = normalizePolicyList(report.policy.allowedPublishers);
+      const requiredVerificationTiers = normalizePolicyList(report.policy.requiredVerificationTiers);
+      const lines = [
+        theme.heading("CoreHub plugin policy"),
+        `${theme.muted("Configured:")} ${report.configured ? "yes" : "no"}`,
+        `${theme.muted("Allow community packages:")} ${formatPolicyBoolean(report.policy.allowCommunity)}`,
+        `${theme.muted("Allow deprecated versions:")} ${formatPolicyBoolean(report.policy.allowDeprecated)}`,
+        `${theme.muted("Allowed publishers:")} ${formatPolicyList(allowedPublishers)}`,
+        `${theme.muted("Required verification tiers:")} ${formatPolicyList(requiredVerificationTiers)}`,
+      ];
+      if (report.installed.length === 0) {
+        lines.push("", theme.muted("No CoreHub-installed plugins recorded."));
+        defaultRuntime.log(lines.join("\n"));
+        return;
+      }
+
+      const rows = report.installed.map((entry) => ({
+        Plugin: entry.pluginId,
+        Package: entry.packageName,
+        Version: entry.version ?? "-",
+        Channel: entry.channel ?? "-",
+        Publisher: entry.publisherHandle ?? "-",
+        Verification: entry.verificationTier ?? "-",
+        Status:
+          entry.status === "allowed"
+            ? theme.success("allowed")
+            : entry.status === "blocked"
+              ? theme.error("blocked")
+              : theme.warn("review"),
+        Notes: entry.notes.length > 0 ? entry.notes.join("; ") : "-",
+      }));
+      lines.push(
+        "",
+        theme.muted("Installed CoreHub plugins:"),
+        renderTable({
+          width: getTerminalTableWidth(),
+          columns: [
+            { key: "Plugin", header: "Plugin", minWidth: 12, flex: true },
+            { key: "Package", header: "Package", minWidth: 12, flex: true },
+            { key: "Version", header: "Version", minWidth: 8 },
+            { key: "Channel", header: "Channel", minWidth: 10 },
+            { key: "Publisher", header: "Publisher", minWidth: 10 },
+            { key: "Verification", header: "Verification", minWidth: 14 },
+            { key: "Status", header: "Status", minWidth: 9 },
+            { key: "Notes", header: "Notes", minWidth: 24, flex: true },
+          ],
+          rows,
+        }).trimEnd(),
+      );
+      defaultRuntime.log(lines.join("\n"));
     });
 
   plugins
