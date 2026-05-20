@@ -92,6 +92,11 @@ export type CoreHubPackageVersion = {
         ? C
         : never
       : never;
+    status?: string | null;
+    publisher?: {
+      handle?: string | null;
+    } | null;
+    artifact?: CoreHubCatalogVersion["artifact"] | null;
   } | null;
 };
 
@@ -834,6 +839,9 @@ function normalizeCoreHubPackageVersion(
           createdAt: Date.parse(input.publishedAt ?? "") || 0,
           changelog: "",
           distTags: input.tag ? [input.tag] : [],
+          status: input.status,
+          publisher: input.publisher,
+          artifact: input.artifact,
         }
       : null,
   };

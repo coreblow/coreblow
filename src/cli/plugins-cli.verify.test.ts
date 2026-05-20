@@ -3,6 +3,8 @@ import type { CoreBlowConfig } from "../config/config.js";
 import {
   buildPluginInspectReport,
   buildPluginStatusReport,
+  fetchCoreHubPackageDetail,
+  fetchCoreHubPackageVersion,
   loadConfig,
   parseCoreHubPluginSpec,
   resetPluginsCliTestState,
@@ -128,6 +130,92 @@ describe("plugins cli verify", () => {
         publisherHandle: "coreblow",
       },
     });
+  });
+
+  it("refreshes recorded trust proof against CoreHub Registry metadata", async () => {
+    fetchCoreHubPackageDetail.mockResolvedValue({
+      package: {
+        name: "plugin-lab",
+        ownerHandle: "coreblow",
+      },
+      owner: {
+        handle: "coreblow",
+      },
+    });
+    fetchCoreHubPackageVersion.mockResolvedValue({
+      version: {
+        version: "0.1.0",
+        status: "verified",
+        publisher: {
+          handle: "coreblow",
+        },
+        artifact: {
+          size: 736,
+          sha256: "artifact-sha256",
+          storage: {
+            key: "artifacts/plugin-lab-0.1.0.coreblow-plugin.tgz",
+          },
+          files: [
+            {
+              path: "corehub.artifact.json",
+              sha256: "manifest-sha256",
+            },
+          ],
+        },
+      },
+    });
+
+    await runPluginsCommand(["plugins", "verify", "plugin-lab", "--refresh"]);
+
+    expect(fetchCoreHubPackageVersion).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "plugin-lab",
+        version: "0.1.0",
+        baseUrl: "https://coreblow.com/corehub",
+      }),
+    );
+    expect(runtimeLogs.join("\n")).toContain("Refresh: verified");
+    expect(runtimeLogs.join("\n")).toContain("artifactSha256: verified");
+    expect(runtimeLogs.join("\n")).toContain("artifactManifestDeclared: verified");
+  });
+
+  it("fails refresh when registry metadata no longer matches the installed proof", async () => {
+    fetchCoreHubPackageDetail.mockResolvedValue({
+      package: {
+        name: "plugin-lab",
+        ownerHandle: "coreblow",
+      },
+      owner: {
+        handle: "coreblow",
+      },
+    });
+    fetchCoreHubPackageVersion.mockResolvedValue({
+      version: {
+        version: "0.1.0",
+        status: "blocked",
+        artifact: {
+          size: 736,
+          sha256: "changed-sha256",
+          storage: {
+            key: "artifacts/plugin-lab-0.1.0.coreblow-plugin.tgz",
+          },
+          files: [
+            {
+              path: "corehub.artifact.json",
+              sha256: "manifest-sha256",
+            },
+          ],
+        },
+      },
+    });
+
+    await expect(runPluginsCommand(["plugins", "verify", "plugin-lab", "--refresh"])).rejects.toThrow(
+      "__exit__:1",
+    );
+
+    expect(runtimeLogs.join("\n")).toContain("Refresh: failed");
+    expect(runtimeLogs.join("\n")).toContain("artifactSha256: changed");
+    expect(runtimeLogs.join("\n")).toContain("Registry marks this version as blocked.");
   });
 
   it("fails when no CoreHub trust proof is recorded", async () => {

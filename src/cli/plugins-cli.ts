@@ -5,7 +5,11 @@ import type { CoreBlowConfig } from "../config/config.js";
 import { loadConfig, writeConfigFile } from "../config/config.js";
 import { resolveStateDir } from "../config/paths.js";
 import type { PluginInstallRecord } from "../config/types.plugins.js";
-import { parseCoreHubPluginSpec } from "../infra/coreblow-hub.js";
+import {
+  fetchCoreHubPackageDetail,
+  fetchCoreHubPackageVersion,
+  parseCoreHubPluginSpec,
+} from "../infra/coreblow-hub.js";
 import { t } from "../infra/i18n/index.js";
 import { enablePluginInConfig } from "../plugins/enable.js";
 import { listMarketplacePlugins } from "../plugins/marketplace.js";
@@ -51,6 +55,7 @@ export type PluginInspectOptions = {
 
 export type PluginVerifyOptions = {
   json?: boolean;
+  refresh?: boolean;
 };
 
 export type PluginUpdateOptions = {
@@ -226,6 +231,23 @@ type PluginTrustProof = {
   resolvedAt?: string;
 };
 
+type PluginTrustRefreshCheck = {
+  name: string;
+  status: "verified" | "changed" | "missing" | "unknown";
+  local?: string | number | boolean;
+  registry?: string | number | boolean;
+  message?: string;
+};
+
+type PluginTrustRefreshResult = {
+  ok: boolean;
+  checkedAt: string;
+  packageName: string;
+  version: string;
+  registryStatus?: string | null;
+  checks: PluginTrustRefreshCheck[];
+};
+
 function buildPluginTrustProof(install: PluginInstallRecord | undefined): PluginTrustProof | null {
   if (!install || install.source !== "corehub" || !install.corehubPackage) {
     return null;
@@ -280,6 +302,161 @@ function formatTrustProofLines(install: PluginInstallRecord | undefined): string
     lines.push(`Verified at: ${proof.verifiedAt}`);
   } else if (proof.resolvedAt) {
     lines.push(`Resolved at: ${proof.resolvedAt}`);
+  }
+  return lines;
+}
+
+function buildTrustRefreshCheck(params: {
+  name: string;
+  local?: string | number | boolean;
+  registry?: string | number | boolean;
+  missingMessage?: string;
+}): PluginTrustRefreshCheck {
+  if (params.local === undefined && params.registry === undefined) {
+    return {
+      name: params.name,
+      status: "unknown",
+      message: params.missingMessage ?? "No local or registry value was available.",
+    };
+  }
+  if (params.local === undefined || params.registry === undefined) {
+    return {
+      name: params.name,
+      status: "missing",
+      local: params.local,
+      registry: params.registry,
+      message: params.missingMessage ?? "A comparable value is missing.",
+    };
+  }
+  return {
+    name: params.name,
+    status: params.local === params.registry ? "verified" : "changed",
+    local: params.local,
+    registry: params.registry,
+  };
+}
+
+async function refreshPluginTrustProof(install: PluginInstallRecord): Promise<PluginTrustRefreshResult> {
+  if (install.source !== "corehub" || !install.corehubPackage) {
+    throw new Error("Only CoreHub install records can be refreshed.");
+  }
+  if (!install.version) {
+    throw new Error("CoreHub trust refresh requires a recorded package version.");
+  }
+
+  const [detail, version] = await Promise.all([
+    fetchCoreHubPackageDetail({
+      name: install.corehubPackage,
+      baseUrl: install.corehubUrl,
+    }),
+    fetchCoreHubPackageVersion({
+      name: install.corehubPackage,
+      version: install.version,
+      baseUrl: install.corehubUrl,
+    }),
+  ]);
+  const registryVersion = version.version;
+  if (!registryVersion) {
+    throw new Error(`CoreHub package version not found: ${install.corehubPackage}@${install.version}`);
+  }
+  const artifact = registryVersion.artifact;
+  const registryManifest = artifact?.files?.find((file) => file.path === "corehub.artifact.json");
+  const registryPublisher =
+    registryVersion.publisher?.handle ?? detail.owner?.handle ?? detail.package?.ownerHandle ?? undefined;
+  const registryStatus = registryVersion.status;
+  const checks: PluginTrustRefreshCheck[] = [
+    buildTrustRefreshCheck({
+      name: "version",
+      local: install.version,
+      registry: registryVersion.version,
+    }),
+    buildTrustRefreshCheck({
+      name: "publisherHandle",
+      local: install.publisherHandle,
+      registry: registryPublisher ?? undefined,
+    }),
+    buildTrustRefreshCheck({
+      name: "artifactSha256",
+      local: install.artifactSha256,
+      registry: artifact?.sha256,
+    }),
+    buildTrustRefreshCheck({
+      name: "artifactSize",
+      local: install.artifactSize,
+      registry: artifact?.size,
+    }),
+    buildTrustRefreshCheck({
+      name: "artifactManifestSha256",
+      local: install.artifactManifestSha256,
+      registry: registryManifest?.sha256,
+      missingMessage: "Registry metadata does not declare corehub.artifact.json.",
+    }),
+    buildTrustRefreshCheck({
+      name: "artifactStorageKey",
+      local: install.artifactStorageKey,
+      registry: artifact?.storage?.key,
+    }),
+  ];
+  if (install.artifactManifestVerified === true) {
+    checks.push(
+      buildTrustRefreshCheck({
+        name: "artifactManifestDeclared",
+        local: true,
+        registry: Boolean(registryManifest),
+        missingMessage: "Installed proof expected an internal manifest, but registry metadata omitted it.",
+      }),
+    );
+  }
+  if (registryStatus === "blocked" || registryStatus === "deprecated") {
+    checks.push({
+      name: "registryStatus",
+      status: "changed",
+      local: "installed",
+      registry: registryStatus,
+      message: `Registry marks this version as ${registryStatus}.`,
+    });
+  } else if (registryStatus) {
+    checks.push({
+      name: "registryStatus",
+      status: "verified",
+      registry: registryStatus,
+    });
+  }
+  return {
+    ok: checks.every((check) => check.status === "verified" || check.status === "unknown"),
+    checkedAt: new Date().toISOString(),
+    packageName: install.corehubPackage,
+    version: install.version,
+    registryStatus,
+    checks,
+  };
+}
+
+function formatTrustRefreshLines(refresh: PluginTrustRefreshResult): string[] {
+  const lines = [
+    `Refresh: ${refresh.ok ? theme.success("verified") : theme.error("failed")}`,
+    `Checked at: ${refresh.checkedAt}`,
+  ];
+  if (refresh.registryStatus) {
+    lines.push(`Registry status: ${refresh.registryStatus}`);
+  }
+  for (const check of refresh.checks) {
+    const marker =
+      check.status === "verified"
+        ? theme.success("verified")
+        : check.status === "changed"
+          ? theme.error("changed")
+          : check.status === "missing"
+            ? theme.warn("missing")
+            : theme.muted("unknown");
+    const values =
+      check.local !== undefined || check.registry !== undefined
+        ? ` local=${String(check.local ?? "-")} registry=${String(check.registry ?? "-")}`
+        : "";
+    lines.push(`${check.name}: ${marker}${values}`);
+    if (check.message) {
+      lines.push(`  ${check.message}`);
+    }
   }
   return lines;
 }
@@ -626,7 +803,8 @@ export function registerPluginsCli(program: Command) {
     .description("Show recorded CoreHub trust proof for an installed plugin")
     .argument("<id>", "Plugin id or CoreHub package")
     .option("--json", "Print JSON")
-    .action((id: string, opts: PluginVerifyOptions) => {
+    .option("--refresh", "Compare recorded trust proof against CoreHub Registry metadata", false)
+    .action(async (id: string, opts: PluginVerifyOptions) => {
       const cfg = loadConfig();
       const { pluginId } = resolvePluginConfigId({
         rawId: id,
@@ -636,11 +814,34 @@ export function registerPluginsCli(program: Command) {
       const install = cfg.plugins?.installs?.[pluginId];
       const proof = buildPluginTrustProof(install);
 
+      let refresh: PluginTrustRefreshResult | undefined;
+      if (opts.refresh && install) {
+        try {
+          refresh = await refreshPluginTrustProof(install);
+        } catch (error) {
+          if (opts.json) {
+            defaultRuntime.writeJson({
+              pluginId,
+              ok: false,
+              proof,
+              refresh: {
+                ok: false,
+                error: error instanceof Error ? error.message : String(error),
+              },
+            });
+            return;
+          }
+          defaultRuntime.error(error instanceof Error ? error.message : String(error));
+          return defaultRuntime.exit(1);
+        }
+      }
+
       if (opts.json) {
         defaultRuntime.writeJson({
           pluginId,
-          ok: Boolean(proof),
+          ok: Boolean(proof) && (!opts.refresh || refresh?.ok === true),
           proof,
+          ...(opts.refresh ? { refresh } : {}),
         });
         return;
       }
@@ -657,8 +858,12 @@ export function registerPluginsCli(program: Command) {
       const lines = [
         theme.heading(`Trust proof: ${pluginId}`),
         ...formatTrustProofLines(install),
+        ...(refresh ? ["", ...formatTrustRefreshLines(refresh)] : []),
       ];
       defaultRuntime.log(lines.join("\n"));
+      if (refresh && !refresh.ok) {
+        return defaultRuntime.exit(1);
+      }
     });
 
   plugins

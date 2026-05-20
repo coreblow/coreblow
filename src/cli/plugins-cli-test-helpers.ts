@@ -28,6 +28,8 @@ export const installPluginFromNpmSpec: Mock = vi.fn();
 export const installPluginFromPath: Mock = vi.fn();
 export const installPluginFromCoreHub: Mock = vi.fn();
 export const parseCoreHubPluginSpec: Mock = vi.fn();
+export const fetchCoreHubPackageDetail: Mock = vi.fn();
+export const fetchCoreHubPackageVersion: Mock = vi.fn();
 export const installHooksFromNpmSpec: Mock = vi.fn();
 export const installHooksFromPath: Mock = vi.fn();
 export const recordHookInstall: Mock = vi.fn();
@@ -136,6 +138,8 @@ vi.mock("../plugins/coreblow-hub.js", () => ({
 
 vi.mock("../infra/coreblow-hub.js", () => ({
   parseCoreHubPluginSpec: (...args: unknown[]) => parseCoreHubPluginSpec(...args),
+  fetchCoreHubPackageDetail: (...args: unknown[]) => fetchCoreHubPackageDetail(...args),
+  fetchCoreHubPackageVersion: (...args: unknown[]) => fetchCoreHubPackageVersion(...args),
 }));
 
 const { registerPluginsCli } = await import("./plugins-cli.js");
@@ -172,6 +176,8 @@ export function resetPluginsCliTestState() {
   installPluginFromPath.mockReset();
   installPluginFromCoreHub.mockReset();
   parseCoreHubPluginSpec.mockReset();
+  fetchCoreHubPackageDetail.mockReset();
+  fetchCoreHubPackageVersion.mockReset();
   installHooksFromNpmSpec.mockReset();
   installHooksFromPath.mockReset();
   recordHookInstall.mockReset();
