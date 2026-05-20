@@ -17226,15 +17226,15 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js", "runtime-api.js", "runtime-entry.js"],
+    publicSurfaceArtifacts: ["api.js", "extension.js", "runtime-api.js", "runtime-entry.js"],
     runtimeSidecarArtifacts: ["runtime-api.js"],
-    packageName: "@coreblow/voice-call",
-    packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow voice-call plugin",
+    packageName: "@coreblow/ext-voice-call",
+    packageVersion: "0.1.0",
+    packageDescription: "WebRTC voice call integration",
     packageManifest: {
       extensions: ["./index.ts"],
       install: {
-        minHostVersion: ">=2026.3.27",
+        minHostVersion: ">=1.0.0",
       },
     },
     manifest: {
