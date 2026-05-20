@@ -38,16 +38,23 @@ describe('Typing Keepalive Loop', () => {
     it('guards against overlapping ticks', async () => {
         let inFlight = 0;
         let maxInFlight = 0;
+        let releaseTick: (() => void) | undefined;
         const loop = createTypingKeepaliveLoop({
             intervalMs: 100,
             onTick: async () => {
                 inFlight++;
                 maxInFlight = Math.max(maxInFlight, inFlight);
-                await new Promise((r) => setTimeout(r, 50));
+                await new Promise<void>((resolve) => {
+                    releaseTick = resolve;
+                });
                 inFlight--;
             },
         });
-        await Promise.all([loop.tick(), loop.tick(), loop.tick()]);
+        const ticks = Promise.all([loop.tick(), loop.tick(), loop.tick()]);
+        await Promise.resolve();
+        expect(maxInFlight).toBe(1);
+        releaseTick?.();
+        await ticks;
         expect(maxInFlight).toBe(1);
     });
 });
