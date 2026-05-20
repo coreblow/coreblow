@@ -49,6 +49,10 @@ export type PluginInspectOptions = {
   all?: boolean;
 };
 
+export type PluginVerifyOptions = {
+  json?: boolean;
+};
+
 export type PluginUpdateOptions = {
   all?: boolean;
   dryRun?: boolean;
@@ -65,7 +69,7 @@ export type PluginUninstallOptions = {
   dryRun?: boolean;
 };
 
-function resolvePluginUninstallId(params: {
+function resolvePluginConfigId(params: {
   rawId: string;
   config: CoreBlowConfig;
   plugins: PluginRecord[];
@@ -203,6 +207,79 @@ function formatInstallLines(install: PluginInstallRecord | undefined): string[] 
   }
   if (install.installedAt) {
     lines.push(`Installed at: ${install.installedAt}`);
+  }
+  return lines;
+}
+
+type PluginTrustProof = {
+  corehubPackage: string;
+  corehubUrl?: string;
+  version?: string;
+  publisherHandle?: string;
+  artifactSha256?: string;
+  artifactSize?: number;
+  artifactManifestVerified?: boolean;
+  artifactManifestSha256?: string;
+  artifactStorageKey?: string;
+  integrity?: string;
+  verifiedAt?: string;
+  resolvedAt?: string;
+};
+
+function buildPluginTrustProof(install: PluginInstallRecord | undefined): PluginTrustProof | null {
+  if (!install || install.source !== "corehub" || !install.corehubPackage) {
+    return null;
+  }
+  return {
+    corehubPackage: install.corehubPackage,
+    corehubUrl: install.corehubUrl,
+    version: install.version,
+    publisherHandle: install.publisherHandle,
+    artifactSha256: install.artifactSha256,
+    artifactSize: install.artifactSize,
+    artifactManifestVerified: install.artifactManifestVerified,
+    artifactManifestSha256: install.artifactManifestSha256,
+    artifactStorageKey: install.artifactStorageKey,
+    integrity: install.integrity,
+    verifiedAt: install.verifiedAt,
+    resolvedAt: install.resolvedAt,
+  };
+}
+
+function formatTrustProofLines(install: PluginInstallRecord | undefined): string[] {
+  const proof = buildPluginTrustProof(install);
+  if (!proof) {
+    return [];
+  }
+  const lines = [`CoreHub package: ${proof.corehubPackage}`];
+  if (proof.version) {
+    lines.push(`Version: ${proof.version}`);
+  }
+  if (proof.publisherHandle) {
+    lines.push(`Publisher: ${proof.publisherHandle}`);
+  }
+  if (proof.artifactSha256) {
+    lines.push(`Artifact SHA-256: ${proof.artifactSha256}`);
+  }
+  if (typeof proof.artifactSize === "number") {
+    lines.push(`Artifact size: ${proof.artifactSize} bytes`);
+  }
+  if (typeof proof.artifactManifestVerified === "boolean") {
+    lines.push(`Artifact manifest verified: ${proof.artifactManifestVerified ? "yes" : "no"}`);
+  }
+  if (proof.artifactManifestSha256) {
+    lines.push(`Artifact manifest SHA-256: ${proof.artifactManifestSha256}`);
+  }
+  if (proof.artifactStorageKey) {
+    lines.push(`Storage locator: ${proof.artifactStorageKey}`);
+  }
+  if (proof.integrity) {
+    lines.push(`Archive integrity: ${proof.integrity}`);
+  }
+  if (proof.verifiedAt) {
+    lines.push(`Verified at: ${proof.verifiedAt}`);
+  } else if (proof.resolvedAt) {
+    lines.push(`Resolved at: ${proof.resolvedAt}`);
   }
   return lines;
 }
@@ -399,8 +476,13 @@ export function registerPluginsCli(program: Command) {
         return defaultRuntime.exit(1);
       }
 
+      const resolved = resolvePluginConfigId({
+        rawId: id,
+        config: cfg,
+        plugins: report.plugins,
+      });
       const inspect = buildPluginInspectReport({
-        id,
+        id: resolved.pluginId,
         config: cfg,
         report,
       });
@@ -532,9 +614,50 @@ export function registerPluginsCli(program: Command) {
         ),
       );
       lines.push(...formatInspectSection("Install", formatInstallLines(install)));
+      lines.push(...formatInspectSection("Trust proof", formatTrustProofLines(install)));
       if (inspect.plugin.error) {
         lines.push("", `${theme.error("Error:")} ${inspect.plugin.error}`);
       }
+      defaultRuntime.log(lines.join("\n"));
+    });
+
+  plugins
+    .command("verify")
+    .description("Show recorded CoreHub trust proof for an installed plugin")
+    .argument("<id>", "Plugin id or CoreHub package")
+    .option("--json", "Print JSON")
+    .action((id: string, opts: PluginVerifyOptions) => {
+      const cfg = loadConfig();
+      const { pluginId } = resolvePluginConfigId({
+        rawId: id,
+        config: cfg,
+        plugins: [],
+      });
+      const install = cfg.plugins?.installs?.[pluginId];
+      const proof = buildPluginTrustProof(install);
+
+      if (opts.json) {
+        defaultRuntime.writeJson({
+          pluginId,
+          ok: Boolean(proof),
+          proof,
+        });
+        return;
+      }
+
+      if (!proof) {
+        if (!install) {
+          defaultRuntime.error(`Plugin install record not found: ${id}`);
+        } else {
+          defaultRuntime.error(`No CoreHub trust proof recorded for plugin: ${pluginId}`);
+        }
+        return defaultRuntime.exit(1);
+      }
+
+      const lines = [
+        theme.heading(`Trust proof: ${pluginId}`),
+        ...formatTrustProofLines(install),
+      ];
       defaultRuntime.log(lines.join("\n"));
     });
 
@@ -590,7 +713,7 @@ export function registerPluginsCli(program: Command) {
         defaultRuntime.log(theme.warn("`--keep-config` is deprecated, use `--keep-files`."));
       }
 
-      const { plugin, pluginId } = resolvePluginUninstallId({
+      const { plugin, pluginId } = resolvePluginConfigId({
         rawId: id,
         config: cfg,
         plugins: report.plugins,

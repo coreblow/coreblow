@@ -16,6 +16,9 @@ export const enablePluginInConfig: Mock = vi.fn();
 export const recordPluginInstall: Mock = vi.fn();
 export const clearPluginManifestRegistryCache: Mock = vi.fn();
 export const buildPluginStatusReport: Mock = vi.fn();
+export const buildPluginInspectReport: Mock = vi.fn();
+export const buildAllPluginInspectReports: Mock = vi.fn();
+export const buildPluginCompatibilityNotices: Mock = vi.fn();
 export const applyExclusiveSlotSelection: Mock = vi.fn();
 export const uninstallPlugin: Mock = vi.fn();
 export const updateNpmInstalledPlugins: Mock = vi.fn();
@@ -69,6 +72,11 @@ vi.mock("../plugins/manifest-registry.js", () => ({
 
 vi.mock("../plugins/status.js", () => ({
   buildPluginStatusReport: (...args: unknown[]) => buildPluginStatusReport(...args),
+  buildPluginInspectReport: (...args: unknown[]) => buildPluginInspectReport(...args),
+  buildAllPluginInspectReports: (...args: unknown[]) => buildAllPluginInspectReports(...args),
+  buildPluginCompatibilityNotices: (...args: unknown[]) => buildPluginCompatibilityNotices(...args),
+  formatPluginCompatibilityNotice: (notice: { pluginId: string; message: string }) =>
+    `${notice.pluginId} ${notice.message}`,
 }));
 
 vi.mock("../plugins/slots.js", () => ({
@@ -152,6 +160,9 @@ export function resetPluginsCliTestState() {
   recordPluginInstall.mockReset();
   clearPluginManifestRegistryCache.mockReset();
   buildPluginStatusReport.mockReset();
+  buildPluginInspectReport.mockReset();
+  buildAllPluginInspectReports.mockReset();
+  buildPluginCompatibilityNotices.mockReset();
   applyExclusiveSlotSelection.mockReset();
   uninstallPlugin.mockReset();
   updateNpmInstalledPlugins.mockReset();
@@ -192,6 +203,9 @@ export function resetPluginsCliTestState() {
     plugins: [],
     diagnostics: [],
   });
+  buildPluginInspectReport.mockReturnValue(null);
+  buildAllPluginInspectReports.mockReturnValue([]);
+  buildPluginCompatibilityNotices.mockReturnValue([]);
   applyExclusiveSlotSelection.mockImplementation(({ config }: { config: CoreBlowConfig }) => ({
     config,
     warnings: [],
