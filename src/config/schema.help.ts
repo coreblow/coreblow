@@ -1017,6 +1017,17 @@ export const FIELD_HELP: Record<string, string> = {
   "plugins.installs.*.publisherHandle": "CoreHub publisher handle recorded during install.",
   "plugins.installs.*.verifiedAt":
     "ISO timestamp when CoreBlow verified CoreHub artifact metadata for this install record.",
+  "plugins.installs.*.previousVersion":
+    "Previous CoreHub plugin version recorded before the last successful update.",
+  "plugins.installs.*.previousArtifactSha256":
+    "Previous CoreHub artifact SHA-256 recorded before the last successful update.",
+  "plugins.installs.*.previousArtifactManifestSha256":
+    "Previous CoreHub artifact manifest SHA-256 recorded before the last successful update.",
+  "plugins.installs.*.previousArtifactStorageKey":
+    "Previous CoreHub artifact storage locator recorded before the last successful update.",
+  "plugins.installs.*.previousVerifiedAt":
+    "Previous CoreHub verification timestamp recorded before the last successful update.",
+  "plugins.installs.*.updatedAt": "ISO timestamp of the last successful plugin update.",
   "plugins.installs.*.marketplaceName":
     "Marketplace display name recorded for marketplace-backed plugin installs (if available).",
   "plugins.installs.*.marketplaceSource":

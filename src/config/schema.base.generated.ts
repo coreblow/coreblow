@@ -9580,6 +9580,24 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
                     verifiedAt: {
                       type: "string",
                     },
+                    previousVersion: {
+                      type: "string",
+                    },
+                    previousArtifactSha256: {
+                      type: "string",
+                    },
+                    previousArtifactManifestSha256: {
+                      type: "string",
+                    },
+                    previousArtifactStorageKey: {
+                      type: "string",
+                    },
+                    previousVerifiedAt: {
+                      type: "string",
+                    },
+                    updatedAt: {
+                      type: "string",
+                    },
                     hooks: {
                       type: "array",
                       items: {
@@ -11439,6 +11457,24 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
                   type: "string",
                 },
                 verifiedAt: {
+                  type: "string",
+                },
+                previousVersion: {
+                  type: "string",
+                },
+                previousArtifactSha256: {
+                  type: "string",
+                },
+                previousArtifactManifestSha256: {
+                  type: "string",
+                },
+                previousArtifactStorageKey: {
+                  type: "string",
+                },
+                previousVerifiedAt: {
+                  type: "string",
+                },
+                updatedAt: {
                   type: "string",
                 },
                 marketplaceName: {
@@ -15374,6 +15410,36 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
     "plugins.installs.*.verifiedAt": {
       label: "Plugin Verification Time",
       help: "ISO timestamp when CoreBlow verified CoreHub artifact metadata for this install record.",
+      tags: ["advanced"],
+    },
+    "plugins.installs.*.previousVersion": {
+      label: "Previous Plugin Version",
+      help: "Previous CoreHub plugin version recorded before the last successful update.",
+      tags: ["advanced"],
+    },
+    "plugins.installs.*.previousArtifactSha256": {
+      label: "Previous Plugin Artifact SHA-256",
+      help: "Previous CoreHub artifact SHA-256 recorded before the last successful update.",
+      tags: ["advanced"],
+    },
+    "plugins.installs.*.previousArtifactManifestSha256": {
+      label: "Previous Plugin Artifact Manifest SHA-256",
+      help: "Previous CoreHub artifact manifest SHA-256 recorded before the last successful update.",
+      tags: ["advanced"],
+    },
+    "plugins.installs.*.previousArtifactStorageKey": {
+      label: "Previous Plugin Artifact Storage Key",
+      help: "Previous CoreHub artifact storage locator recorded before the last successful update.",
+      tags: ["advanced"],
+    },
+    "plugins.installs.*.previousVerifiedAt": {
+      label: "Previous Plugin Verification Time",
+      help: "Previous CoreHub verification timestamp recorded before the last successful update.",
+      tags: ["advanced"],
+    },
+    "plugins.installs.*.updatedAt": {
+      label: "Plugin Update Time",
+      help: "ISO timestamp of the last successful plugin update.",
       tags: ["advanced"],
     },
     "plugins.installs.*.marketplaceName": {

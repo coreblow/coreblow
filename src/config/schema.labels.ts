@@ -781,6 +781,13 @@ export const FIELD_LABELS: Record<string, string> = {
   "plugins.installs.*.artifactStorageKey": "Plugin Artifact Storage Key",
   "plugins.installs.*.publisherHandle": "Plugin Publisher Handle",
   "plugins.installs.*.verifiedAt": "Plugin Verification Time",
+  "plugins.installs.*.previousVersion": "Previous Plugin Version",
+  "plugins.installs.*.previousArtifactSha256": "Previous Plugin Artifact SHA-256",
+  "plugins.installs.*.previousArtifactManifestSha256":
+    "Previous Plugin Artifact Manifest SHA-256",
+  "plugins.installs.*.previousArtifactStorageKey": "Previous Plugin Artifact Storage Key",
+  "plugins.installs.*.previousVerifiedAt": "Previous Plugin Verification Time",
+  "plugins.installs.*.updatedAt": "Plugin Update Time",
   "plugins.installs.*.marketplaceName": "Plugin Marketplace Name",
   "plugins.installs.*.marketplaceSource": "Plugin Marketplace Source",
   "plugins.installs.*.marketplacePlugin": "Plugin Marketplace Plugin",

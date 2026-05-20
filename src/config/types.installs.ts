@@ -22,4 +22,10 @@ export type InstallRecordBase = {
   artifactStorageKey?: string;
   publisherHandle?: string;
   verifiedAt?: string;
+  previousVersion?: string;
+  previousArtifactSha256?: string;
+  previousArtifactManifestSha256?: string;
+  previousArtifactStorageKey?: string;
+  previousVerifiedAt?: string;
+  updatedAt?: string;
 };

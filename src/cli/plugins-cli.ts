@@ -229,6 +229,12 @@ type PluginTrustProof = {
   integrity?: string;
   verifiedAt?: string;
   resolvedAt?: string;
+  previousVersion?: string;
+  previousArtifactSha256?: string;
+  previousArtifactManifestSha256?: string;
+  previousArtifactStorageKey?: string;
+  previousVerifiedAt?: string;
+  updatedAt?: string;
 };
 
 type PluginTrustRefreshCheck = {
@@ -265,6 +271,12 @@ function buildPluginTrustProof(install: PluginInstallRecord | undefined): Plugin
     integrity: install.integrity,
     verifiedAt: install.verifiedAt,
     resolvedAt: install.resolvedAt,
+    previousVersion: install.previousVersion,
+    previousArtifactSha256: install.previousArtifactSha256,
+    previousArtifactManifestSha256: install.previousArtifactManifestSha256,
+    previousArtifactStorageKey: install.previousArtifactStorageKey,
+    previousVerifiedAt: install.previousVerifiedAt,
+    updatedAt: install.updatedAt,
   };
 }
 
@@ -302,6 +314,24 @@ function formatTrustProofLines(install: PluginInstallRecord | undefined): string
     lines.push(`Verified at: ${proof.verifiedAt}`);
   } else if (proof.resolvedAt) {
     lines.push(`Resolved at: ${proof.resolvedAt}`);
+  }
+  if (proof.updatedAt) {
+    lines.push(`Updated at: ${proof.updatedAt}`);
+  }
+  if (proof.previousVersion) {
+    lines.push(`Previous version: ${proof.previousVersion}`);
+  }
+  if (proof.previousArtifactSha256) {
+    lines.push(`Previous artifact SHA-256: ${proof.previousArtifactSha256}`);
+  }
+  if (proof.previousArtifactManifestSha256) {
+    lines.push(`Previous artifact manifest SHA-256: ${proof.previousArtifactManifestSha256}`);
+  }
+  if (proof.previousArtifactStorageKey) {
+    lines.push(`Previous storage locator: ${proof.previousArtifactStorageKey}`);
+  }
+  if (proof.previousVerifiedAt) {
+    lines.push(`Previous verified at: ${proof.previousVerifiedAt}`);
   }
   return lines;
 }

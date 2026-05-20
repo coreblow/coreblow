@@ -104,6 +104,11 @@ function createCoreHubInstallConfig(params: {
   corehubPackage: string;
   corehubFamily: "bundle-plugin" | "code-plugin";
   corehubChannel: "community" | "official" | "private";
+  version?: string;
+  artifactSha256?: string;
+  artifactManifestSha256?: string;
+  artifactStorageKey?: string;
+  verifiedAt?: string;
 }): CoreBlowConfig {
   return {
     plugins: {
@@ -116,6 +121,13 @@ function createCoreHubInstallConfig(params: {
           corehubPackage: params.corehubPackage,
           corehubFamily: params.corehubFamily,
           corehubChannel: params.corehubChannel,
+          ...(params.version ? { version: params.version } : {}),
+          ...(params.artifactSha256 ? { artifactSha256: params.artifactSha256 } : {}),
+          ...(params.artifactManifestSha256
+            ? { artifactManifestSha256: params.artifactManifestSha256 }
+            : {}),
+          ...(params.artifactStorageKey ? { artifactStorageKey: params.artifactStorageKey } : {}),
+          ...(params.verifiedAt ? { verifiedAt: params.verifiedAt } : {}),
         },
       },
     },
@@ -456,6 +468,11 @@ describe("updateNpmInstalledPlugins", () => {
         corehubPackage: "demo",
         corehubFamily: "code-plugin",
         corehubChannel: "official",
+        version: "1.2.3",
+        artifactSha256: "old-sha256",
+        artifactManifestSha256: "old-manifest-sha256",
+        artifactStorageKey: "plugins/demo/1.2.3/plugin.tgz",
+        verifiedAt: "2026-03-21T00:00:00.000Z",
       }),
       pluginIds: ["demo"],
     });
@@ -490,7 +507,58 @@ describe("updateNpmInstalledPlugins", () => {
       artifactManifestSha256: "next-manifest-sha256",
       artifactStorageKey: "plugins/demo/1.2.4/plugin.tgz",
       publisherHandle: "coreblow",
+      previousVersion: "1.2.3",
+      previousArtifactSha256: "old-sha256",
+      previousArtifactManifestSha256: "old-manifest-sha256",
+      previousArtifactStorageKey: "plugins/demo/1.2.3/plugin.tgz",
+      previousVerifiedAt: "2026-03-21T00:00:00.000Z",
+      updatedAt: expect.any(String),
     });
+  });
+
+  it("keeps CoreHub install metadata unchanged when update installation fails", async () => {
+    installPluginFromCoreHubMock.mockResolvedValue({
+      ok: false,
+      error: "post-copy validation failed: CoreHub plugin archive extension entry not found",
+      code: "missing_extension_entry",
+    });
+    const config = createCoreHubInstallConfig({
+      pluginId: "demo",
+      installPath: "/tmp/demo",
+      corehubUrl: "https://corehub.ai",
+      corehubPackage: "demo",
+      corehubFamily: "code-plugin",
+      corehubChannel: "official",
+      version: "1.2.3",
+      artifactSha256: "old-sha256",
+      artifactManifestSha256: "old-manifest-sha256",
+      artifactStorageKey: "plugins/demo/1.2.3/plugin.tgz",
+      verifiedAt: "2026-03-21T00:00:00.000Z",
+    });
+
+    const result = await updateNpmInstalledPlugins({
+      config,
+      pluginIds: ["demo"],
+    });
+
+    expect(result.changed).toBe(false);
+    expect(result.config).toBe(config);
+    expect(result.config.plugins?.installs?.demo).toMatchObject({
+      version: "1.2.3",
+      artifactSha256: "old-sha256",
+      artifactManifestSha256: "old-manifest-sha256",
+      artifactStorageKey: "plugins/demo/1.2.3/plugin.tgz",
+      verifiedAt: "2026-03-21T00:00:00.000Z",
+    });
+    expect(result.config.plugins?.installs?.demo?.previousVersion).toBeUndefined();
+    expect(result.outcomes).toEqual([
+      {
+        pluginId: "demo",
+        status: "error",
+        message:
+          "Failed to update demo: post-copy validation failed: CoreHub plugin archive extension entry not found (CoreHub corehub:demo).",
+      },
+    ]);
   });
 
   it("blocks CoreHub updates when the recorded trust proof no longer verifies", async () => {

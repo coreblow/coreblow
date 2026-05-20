@@ -1,4 +1,5 @@
 import type { CoreBlowConfig } from "../config/config.js";
+import type { PluginInstallRecord } from "../config/types.plugins.js";
 import {
   expectedIntegrityForUpdate,
   readInstalledPackageVersion,
@@ -92,6 +93,27 @@ function formatCoreHubInstallFailure(params: {
   error: string;
 }): string {
   return `Failed to ${params.phase} ${params.pluginId}: ${params.error} (CoreHub ${params.spec}).`;
+}
+
+function buildCoreHubRollbackInstallFields(record: PluginInstallRecord): Pick<
+  PluginInstallRecord,
+  | "previousVersion"
+  | "previousArtifactSha256"
+  | "previousArtifactManifestSha256"
+  | "previousArtifactStorageKey"
+  | "previousVerifiedAt"
+  | "updatedAt"
+> {
+  return {
+    ...(record.version ? { previousVersion: record.version } : {}),
+    ...(record.artifactSha256 ? { previousArtifactSha256: record.artifactSha256 } : {}),
+    ...(record.artifactManifestSha256
+      ? { previousArtifactManifestSha256: record.artifactManifestSha256 }
+      : {}),
+    ...(record.artifactStorageKey ? { previousArtifactStorageKey: record.artifactStorageKey } : {}),
+    ...(record.verifiedAt ? { previousVerifiedAt: record.verifiedAt } : {}),
+    updatedAt: new Date().toISOString(),
+  };
 }
 
 type InstallIntegrityDrift = {
@@ -576,6 +598,7 @@ export async function updateNpmInstalledPlugins(params: {
         artifactStorageKey: corehubResult.corehub.artifactStorageKey,
         publisherHandle: corehubResult.corehub.publisherHandle,
         verifiedAt: corehubResult.corehub.verifiedAt,
+        ...buildCoreHubRollbackInstallFields(record),
       });
     } else {
       const marketplaceResult = result as Extract<

@@ -35,6 +35,12 @@ export const InstallRecordShape = {
   artifactStorageKey: z.string().optional(),
   publisherHandle: z.string().optional(),
   verifiedAt: z.string().optional(),
+  previousVersion: z.string().optional(),
+  previousArtifactSha256: z.string().optional(),
+  previousArtifactManifestSha256: z.string().optional(),
+  previousArtifactStorageKey: z.string().optional(),
+  previousVerifiedAt: z.string().optional(),
+  updatedAt: z.string().optional(),
 } as const;
 
 export const PluginInstallRecordShape = {
