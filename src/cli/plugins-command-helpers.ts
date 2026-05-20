@@ -3,8 +3,9 @@ import type { HookInstallRecord } from "../config/types.hooks.js";
 import type { PluginInstallRecord } from "../config/types.plugins.js";
 import { parseRegistryNpmSpec } from "../infra/npm-registry-spec.js";
 import { COREHUB_INSTALL_ERROR_CODE } from "../plugins/coreblow-hub.js";
-import { applyExclusiveSlotSelection } from "../plugins/slots.js";
+import { applyExclusiveSlotSelection, slotKeyForPluginKind } from "../plugins/slots.js";
 import { buildPluginStatusReport } from "../plugins/status.js";
+import type { PluginKind } from "../plugins/types.js";
 import { defaultRuntime } from "../runtime.js";
 import { theme } from "../terminal/theme.js";
 
@@ -39,7 +40,24 @@ export function resolveFileNpmSpecToLocalPath(
 export function applySlotSelectionForPlugin(
   config: CoreBlowConfig,
   pluginId: string,
+  pluginKind?: PluginKind | null,
 ): { config: CoreBlowConfig; warnings: string[] } {
+  if (pluginKind === null) {
+    return { config, warnings: [] };
+  }
+  if (pluginKind) {
+    if (!slotKeyForPluginKind(pluginKind)) {
+      return { config, warnings: [] };
+    }
+    const report = buildPluginStatusReport({ config });
+    const result = applyExclusiveSlotSelection({
+      config,
+      selectedId: pluginId,
+      selectedKind: pluginKind,
+      registry: report,
+    });
+    return { config: result.config, warnings: result.warnings };
+  }
   const report = buildPluginStatusReport({ config });
   const plugin = report.plugins.find((entry) => entry.id === pluginId);
   if (!plugin) {

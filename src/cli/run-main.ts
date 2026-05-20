@@ -174,7 +174,7 @@ export async function runCli(argv: string[] = process.argv) {
         await registerCoreCliByName(program, ctx, primary, parseArgv);
       }
       const { registerSubCliByName } = await import("./program/register.subclis.js");
-      await registerSubCliByName(program, primary);
+      await registerSubCliByName(program, primary, parseArgv);
     }
 
     const hasBuiltinPrimary =

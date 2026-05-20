@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 import type { CoreBlowConfig } from "../../config/config.js";
 import { isTruthyEnvValue } from "../../infra/env.js";
-import { getPrimaryCommand, hasHelpOrVersion } from "../argv.js";
+import { getCommandPathWithRootOptions, getPrimaryCommand, hasHelpOrVersion } from "../argv.js";
 import { reparseProgramFromActionArgs } from "./action-reparse.js";
 import { commandDescription } from "./command-description.js";
 import { removeCommand, removeCommandByName } from "./command-tree.js";
@@ -13,7 +13,7 @@ import {
 
 export { getSubCliCommandsWithSubcommands };
 
-type SubCliRegistrar = (program: Command) => Promise<void> | void;
+type SubCliRegistrar = (program: Command, argv: string[]) => Promise<void> | void;
 
 type SubCliEntry = SubCliDescriptor & {
   register: SubCliRegistrar;
@@ -32,6 +32,17 @@ const shouldRegisterPrimaryOnly = (argv: string[]) => {
 const shouldEagerRegisterSubcommands = (_argv: string[]) => {
   return isTruthyEnvValue(process.env.COREBLOW_DISABLE_LAZY_SUBCOMMANDS);
 };
+
+const PLUGINS_COMMANDS_WITHOUT_PLUGIN_CLI_PRELOAD = new Set([
+  "install",
+  "uninstall",
+  "update",
+]);
+
+function shouldPreloadPluginCliForPluginsCommand(argv: string[]): boolean {
+  const [, subcommand] = getCommandPathWithRootOptions(argv, 2);
+  return !subcommand || !PLUGINS_COMMANDS_WITHOUT_PLUGIN_CLI_PRELOAD.has(subcommand);
+}
 
 export const loadValidatedConfigForPluginRegistration =
   async (): Promise<CoreBlowConfig | null> => {
@@ -239,9 +250,12 @@ const entries: SubCliEntry[] = [
     name: "plugins",
     description: "Manage CoreBlow plugins and extensions",
     hasSubcommands: true,
-    register: async (program) => {
+    register: async (program, argv) => {
       const mod = await import("../plugins-cli.js");
       mod.registerPluginsCli(program);
+      if (!shouldPreloadPluginCliForPluginsCommand(argv)) {
+        return;
+      }
       const { registerPluginCliCommands } = await import("../../plugins/cli.js");
       const config = await loadValidatedConfigForPluginRegistration();
       if (config) {
@@ -318,17 +332,21 @@ export function getSubCliEntries(): ReadonlyArray<SubCliDescriptor> {
   return getSubCliEntryDescriptors();
 }
 
-export async function registerSubCliByName(program: Command, name: string): Promise<boolean> {
+export async function registerSubCliByName(
+  program: Command,
+  name: string,
+  argv: string[] = process.argv,
+): Promise<boolean> {
   const entry = entries.find((candidate) => candidate.name === name);
   if (!entry) {
     return false;
   }
   removeCommandByName(program, entry.name);
-  await entry.register(program);
+  await entry.register(program, argv);
   return true;
 }
 
-function registerLazyCommand(program: Command, entry: SubCliEntry) {
+function registerLazyCommand(program: Command, entry: SubCliEntry, argv: string[]) {
   const placeholder = program
     .command(entry.name)
     .description(commandDescription(entry.name, entry.description));
@@ -336,7 +354,7 @@ function registerLazyCommand(program: Command, entry: SubCliEntry) {
   placeholder.allowExcessArguments(true);
   placeholder.action(async (...actionArgs) => {
     removeCommand(program, placeholder);
-    await entry.register(program);
+    await entry.register(program, argv);
     await reparseProgramFromActionArgs(program, actionArgs);
   });
 }
@@ -344,7 +362,7 @@ function registerLazyCommand(program: Command, entry: SubCliEntry) {
 export function registerSubCliCommands(program: Command, argv: string[] = process.argv) {
   if (shouldEagerRegisterSubcommands(argv)) {
     for (const entry of entries) {
-      void entry.register(program);
+      void entry.register(program, argv);
     }
     return;
   }
@@ -352,11 +370,11 @@ export function registerSubCliCommands(program: Command, argv: string[] = proces
   if (primary && shouldRegisterPrimaryOnly(argv)) {
     const entry = entries.find((candidate) => candidate.name === primary);
     if (entry) {
-      registerLazyCommand(program, entry);
+      registerLazyCommand(program, entry, argv);
       return;
     }
   }
   for (const candidate of entries) {
-    registerLazyCommand(program, candidate);
+    registerLazyCommand(program, candidate, argv);
   }
 }

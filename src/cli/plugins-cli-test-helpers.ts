@@ -73,6 +73,8 @@ vi.mock("../plugins/status.js", () => ({
 
 vi.mock("../plugins/slots.js", () => ({
   applyExclusiveSlotSelection: (...args: unknown[]) => applyExclusiveSlotSelection(...args),
+  slotKeyForPluginKind: (kind?: string) =>
+    kind === "memory" ? "memory" : kind === "context-engine" ? "contextEngine" : null,
 }));
 
 vi.mock("../plugins/uninstall.js", () => ({

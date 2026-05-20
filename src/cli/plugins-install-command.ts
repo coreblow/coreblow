@@ -344,6 +344,7 @@ export async function runPluginInstallCommand(params: {
     await persistPluginInstall({
       config: cfg,
       pluginId: result.pluginId,
+      pluginKind: result.kind ?? null,
       install: {
         source: "marketplace",
         installPath: result.targetDir,
@@ -398,6 +399,7 @@ export async function runPluginInstallCommand(params: {
           },
         },
         pluginId: probe.pluginId,
+        pluginKind: probe.kind ?? null,
         install: {
           source: "path",
           sourcePath: resolved,
@@ -441,6 +443,7 @@ export async function runPluginInstallCommand(params: {
     await persistPluginInstall({
       config: cfg,
       pluginId: result.pluginId,
+      pluginKind: result.kind ?? null,
       install: {
         source,
         sourcePath: resolved,
@@ -521,6 +524,7 @@ export async function runPluginInstallCommand(params: {
     await persistPluginInstall({
       config: cfg,
       pluginId: result.pluginId,
+      pluginKind: result.kind ?? null,
       install: {
         source: "corehub",
         spec: formatCoreHubSpecifier({
@@ -563,6 +567,7 @@ export async function runPluginInstallCommand(params: {
       await persistPluginInstall({
         config: cfg,
         pluginId: corehubResult.pluginId,
+        pluginKind: corehubResult.kind ?? null,
         install: {
           source: "corehub",
           spec: formatCoreHubSpecifier({
@@ -652,6 +657,7 @@ export async function runPluginInstallCommand(params: {
   await persistPluginInstall({
     config: cfg,
     pluginId: result.pluginId,
+    pluginKind: result.kind ?? null,
     install: installRecord,
   });
 }

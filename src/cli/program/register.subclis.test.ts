@@ -18,6 +18,19 @@ const { nodesAction, registerNodesCli } = vi.hoisted(() => {
   return { nodesAction: action, registerNodesCli: register };
 });
 
+const { pluginsInstallAction, registerPluginsCli, registerPluginCliCommands } = vi.hoisted(() => {
+  const action = vi.fn();
+  const registerPlugins = vi.fn((program: Command) => {
+    const plugins = program.command("plugins");
+    plugins.command("install").argument("<spec>").action(action);
+  });
+  return {
+    pluginsInstallAction: action,
+    registerPluginsCli: registerPlugins,
+    registerPluginCliCommands: vi.fn(),
+  };
+});
+
 const configModule = vi.hoisted(() => ({
   loadConfig: vi.fn(),
   readConfigFileSnapshot: vi.fn(),
@@ -25,9 +38,17 @@ const configModule = vi.hoisted(() => ({
 
 vi.mock("../acp-cli.js", () => ({ registerAcpCli }));
 vi.mock("../nodes-cli.js", () => ({ registerNodesCli }));
+vi.mock("../plugins-cli.js", () => ({ registerPluginsCli }));
+vi.mock("../../plugins/cli.js", () => ({ registerPluginCliCommands }));
 vi.mock("../../config/config.js", () => configModule);
 
-const mockedModuleIds = ["../acp-cli.js", "../nodes-cli.js", "../../config/config.js"];
+const mockedModuleIds = [
+  "../acp-cli.js",
+  "../nodes-cli.js",
+  "../plugins-cli.js",
+  "../../plugins/cli.js",
+  "../../config/config.js",
+];
 
 const { loadValidatedConfigForPluginRegistration, registerSubCliByName, registerSubCliCommands } =
   await import("./register.subclis.js");
@@ -63,6 +84,9 @@ describe("registerSubCliCommands", () => {
     acpAction.mockClear();
     registerNodesCli.mockClear();
     nodesAction.mockClear();
+    registerPluginsCli.mockClear();
+    pluginsInstallAction.mockClear();
+    registerPluginCliCommands.mockClear();
     configModule.loadConfig.mockReset();
     configModule.readConfigFileSnapshot.mockReset();
   });
@@ -141,5 +165,40 @@ describe("registerSubCliCommands", () => {
     await program.parseAsync(["acp"], { from: "user" });
     expect(registerAcpCli).toHaveBeenCalledTimes(1);
     expect(acpAction).toHaveBeenCalledTimes(1);
+  });
+
+  it("skips plugin CLI preload for plugin install management commands", async () => {
+    const program = createRegisteredProgram(
+      ["node", "coreblow", "plugins", "install", "corehub:plugin-lab", "--dry-run"],
+      "coreblow",
+    );
+
+    await registerSubCliByName(program, "plugins", [
+      "node",
+      "coreblow",
+      "plugins",
+      "install",
+      "corehub:plugin-lab",
+      "--dry-run",
+    ]);
+
+    expect(registerPluginsCli).toHaveBeenCalledTimes(1);
+    expect(registerPluginCliCommands).not.toHaveBeenCalled();
+    expect(configModule.readConfigFileSnapshot).not.toHaveBeenCalled();
+  });
+
+  it("keeps plugin CLI preload for generic plugin command help", async () => {
+    const loadedConfig = { plugins: { enabled: true } };
+    configModule.readConfigFileSnapshot.mockResolvedValueOnce({
+      valid: true,
+      config: loadedConfig,
+    });
+    configModule.loadConfig.mockReturnValueOnce(loadedConfig);
+    const program = createRegisteredProgram(["node", "coreblow", "plugins", "--help"], "coreblow");
+
+    await registerSubCliByName(program, "plugins", ["node", "coreblow", "plugins", "--help"]);
+
+    expect(registerPluginsCli).toHaveBeenCalledTimes(1);
+    expect(registerPluginCliCommands).toHaveBeenCalledWith(program, loadedConfig);
   });
 });

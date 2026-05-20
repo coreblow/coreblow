@@ -3,6 +3,7 @@ import { writeConfigFile } from "../config/config.js";
 import { type HookInstallUpdate, recordHookInstall } from "../hooks/installs.js";
 import { enablePluginInConfig } from "../plugins/enable.js";
 import { type PluginInstallUpdate, recordPluginInstall } from "../plugins/installs.js";
+import type { PluginKind } from "../plugins/types.js";
 import { defaultRuntime } from "../runtime.js";
 import { theme } from "../terminal/theme.js";
 import {
@@ -15,6 +16,7 @@ import {
 export async function persistPluginInstall(params: {
   config: CoreBlowConfig;
   pluginId: string;
+  pluginKind?: PluginKind | null;
   install: Omit<PluginInstallUpdate, "pluginId">;
   successMessage?: string;
   warningMessage?: string;
@@ -24,7 +26,7 @@ export async function persistPluginInstall(params: {
     pluginId: params.pluginId,
     ...params.install,
   });
-  const slotResult = applySlotSelectionForPlugin(next, params.pluginId);
+  const slotResult = applySlotSelectionForPlugin(next, params.pluginId, params.pluginKind);
   next = slotResult.config;
   await writeConfigFile(next);
   logSlotWarnings(slotResult.warnings);

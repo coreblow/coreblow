@@ -12,6 +12,7 @@ import {
   resolvePackageExtensionEntries,
   type PackageManifest as PluginPackageManifest,
 } from "./manifest.js";
+import type { PluginKind } from "./types.js";
 
 let pluginInstallRuntimePromise: Promise<typeof import("./install.runtime.js")> | undefined;
 
@@ -60,6 +61,7 @@ export type InstallPluginResult =
       targetDir: string;
       manifestName?: string;
       version?: string;
+      kind?: PluginKind;
       extensions: string[];
       npmResolution?: NpmSpecResolution;
       integrityDrift?: NpmIntegrityDrift;
@@ -195,6 +197,7 @@ function buildDirectoryInstallResult(params: {
   targetDir: string;
   manifestName?: string;
   version?: string;
+  kind?: PluginKind;
   extensions: string[];
 }): InstallPluginResult {
   return {
@@ -203,6 +206,7 @@ function buildDirectoryInstallResult(params: {
     targetDir: params.targetDir,
     manifestName: params.manifestName,
     version: params.version,
+    kind: params.kind,
     extensions: params.extensions,
   };
 }
@@ -248,6 +252,7 @@ async function installPluginDirectoryIntoExtensions(params: {
   pluginId: string;
   manifestName?: string;
   version?: string;
+  kind?: PluginKind;
   extensions: string[];
   extensionsDir?: string;
   logger: PluginInstallLogger;
@@ -290,6 +295,7 @@ async function installPluginDirectoryIntoExtensions(params: {
       targetDir,
       manifestName: params.manifestName,
       version: params.version,
+      kind: params.kind,
       extensions: params.extensions,
     });
   }
@@ -314,6 +320,7 @@ async function installPluginDirectoryIntoExtensions(params: {
     targetDir,
     manifestName: params.manifestName,
     version: params.version,
+    kind: params.kind,
     extensions: params.extensions,
   });
 }
@@ -563,6 +570,7 @@ async function installPluginFromPackageDir(
     pluginId,
     manifestName: pkgName || undefined,
     version: typeof manifest.version === "string" ? manifest.version : undefined,
+    kind: ocManifestResult.ok ? ocManifestResult.manifest.kind : undefined,
     extensions,
     extensionsDir: params.extensionsDir,
     logger,

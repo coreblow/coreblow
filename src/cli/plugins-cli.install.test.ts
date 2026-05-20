@@ -164,6 +164,7 @@ describe("plugins cli install", () => {
     installPluginFromMarketplace.mockResolvedValue({
       ok: true,
       pluginId: "alpha",
+      kind: "memory",
       targetDir: "/tmp/coreblow-state/extensions/alpha",
       version: "1.2.3",
       marketplaceName: "Claude",
@@ -173,7 +174,7 @@ describe("plugins cli install", () => {
     enablePluginInConfig.mockReturnValue({ config: enabledCfg });
     recordPluginInstall.mockReturnValue(installedCfg);
     buildPluginStatusReport.mockReturnValue({
-      plugins: [{ id: "alpha", kind: "provider" }],
+      plugins: [{ id: "alpha", kind: "memory" }],
       diagnostics: [],
     });
     applyExclusiveSlotSelection.mockReturnValue({
@@ -244,6 +245,7 @@ describe("plugins cli install", () => {
       }),
     );
     expect(writeConfigFile).toHaveBeenCalledWith(installedCfg);
+    expect(buildPluginStatusReport).not.toHaveBeenCalled();
     expect(runtimeLogs.some((line) => line.includes("Installed plugin: demo"))).toBe(true);
     expect(installPluginFromNpmSpec).not.toHaveBeenCalled();
   });
