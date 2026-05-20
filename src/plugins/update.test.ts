@@ -4,6 +4,7 @@ import type { CoreBlowConfig } from "../config/config.js";
 const installPluginFromNpmSpecMock = vi.fn();
 const installPluginFromMarketplaceMock = vi.fn();
 const installPluginFromCoreHubMock = vi.fn();
+const verifyCoreHubInstalledTrustRecordMock = vi.fn();
 const resolveBundledPluginSourcesMock = vi.fn();
 
 vi.mock("./install.js", () => ({
@@ -20,6 +21,8 @@ vi.mock("./marketplace.js", () => ({
 
 vi.mock("./coreblow-hub.js", () => ({
   installPluginFromCoreHub: (...args: unknown[]) => installPluginFromCoreHubMock(...args),
+  verifyCoreHubInstalledTrustRecord: (...args: unknown[]) =>
+    verifyCoreHubInstalledTrustRecordMock(...args),
 }));
 
 vi.mock("./bundled-sources.js", () => ({
@@ -223,7 +226,9 @@ describe("updateNpmInstalledPlugins", () => {
     installPluginFromNpmSpecMock.mockReset();
     installPluginFromMarketplaceMock.mockReset();
     installPluginFromCoreHubMock.mockReset();
+    verifyCoreHubInstalledTrustRecordMock.mockReset();
     resolveBundledPluginSourcesMock.mockReset();
+    verifyCoreHubInstalledTrustRecordMock.mockResolvedValue({ ok: true, warnings: [] });
   });
 
   it.each([
@@ -463,6 +468,14 @@ describe("updateNpmInstalledPlugins", () => {
         mode: "update",
       }),
     );
+    expect(verifyCoreHubInstalledTrustRecordMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        record: expect.objectContaining({
+          corehubPackage: "demo",
+          corehubUrl: "https://corehub.ai",
+        }),
+      }),
+    );
     expect(result.config.plugins?.installs?.demo).toMatchObject({
       source: "corehub",
       spec: "corehub:demo",
@@ -478,6 +491,51 @@ describe("updateNpmInstalledPlugins", () => {
       artifactStorageKey: "plugins/demo/1.2.4/plugin.tgz",
       publisherHandle: "coreblow",
     });
+  });
+
+  it("blocks CoreHub updates when the recorded trust proof no longer verifies", async () => {
+    verifyCoreHubInstalledTrustRecordMock.mockResolvedValueOnce({
+      ok: false,
+      code: "trust_drift",
+      error: "CoreHub trust proof changed for demo@1.2.3: artifactSha256 changed.",
+    });
+
+    const result = await updateNpmInstalledPlugins({
+      config: {
+        plugins: {
+          installs: {
+            demo: {
+              source: "corehub",
+              spec: "corehub:demo",
+              installPath: "/tmp/demo",
+              version: "1.2.3",
+              corehubUrl: "https://corehub.ai",
+              corehubPackage: "demo",
+              corehubFamily: "code-plugin",
+              corehubChannel: "official",
+              artifactSha256: "old-sha256",
+              artifactSize: 736,
+              artifactManifestVerified: true,
+              artifactManifestSha256: "old-manifest-sha256",
+              artifactStorageKey: "plugins/demo/1.2.3/plugin.tgz",
+              publisherHandle: "coreblow",
+            },
+          },
+        },
+      },
+      pluginIds: ["demo"],
+    });
+
+    expect(installPluginFromCoreHubMock).not.toHaveBeenCalled();
+    expect(result.changed).toBe(false);
+    expect(result.outcomes).toEqual([
+      {
+        pluginId: "demo",
+        status: "error",
+        message:
+          "Failed to verify demo before update: CoreHub trust proof changed for demo@1.2.3: artifactSha256 changed.",
+      },
+    ]);
   });
 
   it("migrates legacy unscoped install keys when a scoped npm package updates", async () => {

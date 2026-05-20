@@ -32,8 +32,12 @@ vi.mock("./install.js", () => ({
 }));
 
 const { CoreHubRequestError } = await import("../infra/coreblow-hub.js");
-const { COREHUB_INSTALL_ERROR_CODE, formatCoreHubSpecifier, installPluginFromCoreHub } =
-  await import("./coreblow-hub.js");
+const {
+  COREHUB_INSTALL_ERROR_CODE,
+  formatCoreHubSpecifier,
+  installPluginFromCoreHub,
+  verifyCoreHubInstalledTrustRecord,
+} = await import("./coreblow-hub.js");
 
 async function expectCoreHubInstallError(params: {
   setup?: () => void;
@@ -183,6 +187,94 @@ describe("installPluginFromCoreHub", () => {
       "Compatibility: pluginApi=>=2026.3.22 minGateway=2026.3.0",
     );
     expect(logger.warn).not.toHaveBeenCalled();
+  });
+
+  it("blocks install when CoreHub marks the target version blocked", async () => {
+    fetchCoreHubPackageVersionMock.mockResolvedValueOnce({
+      version: {
+        version: "2026.3.22",
+        createdAt: 0,
+        changelog: "",
+        status: "blocked",
+        compatibility: {
+          pluginApiRange: ">=2026.3.22",
+          minGatewayVersion: "2026.3.0",
+        },
+      },
+    });
+
+    await expect(installPluginFromCoreHub({ spec: "corehub:demo" })).resolves.toMatchObject({
+      ok: false,
+      code: COREHUB_INSTALL_ERROR_CODE.MODERATION_BLOCKED,
+      error:
+        'CoreHub package "demo" version 2026.3.22 is blocked and cannot be installed or updated.',
+    });
+    expect(downloadCoreHubPackageArchiveMock).not.toHaveBeenCalled();
+    expect(installPluginFromArchiveMock).not.toHaveBeenCalled();
+  });
+
+  it("warns but allows install when CoreHub marks the target version deprecated", async () => {
+    const logger = createLoggerSpies();
+    fetchCoreHubPackageVersionMock.mockResolvedValueOnce({
+      version: {
+        version: "2026.3.22",
+        createdAt: 0,
+        changelog: "",
+        status: "deprecated",
+        compatibility: {
+          pluginApiRange: ">=2026.3.22",
+          minGatewayVersion: "2026.3.0",
+        },
+      },
+    });
+
+    const result = await installPluginFromCoreHub({
+      spec: "corehub:demo",
+      logger,
+    });
+
+    expectSuccessfulCoreHubInstall(result);
+    expect(logger.warn).toHaveBeenCalledWith(
+      'CoreHub package "demo" version 2026.3.22 is deprecated; install is allowed, but update soon.',
+    );
+  });
+
+  it("detects stored CoreHub trust proof drift before update", async () => {
+    fetchCoreHubPackageVersionMock.mockResolvedValueOnce({
+      version: {
+        version: "2026.3.22",
+        createdAt: 0,
+        changelog: "",
+        status: "available",
+        publisher: { handle: "coreblow" },
+        artifact: {
+          sha256: "changed-sha256",
+          size: 1234,
+          files: [{ path: "corehub.artifact.json", sha256: "demo-manifest-sha256" }],
+          storage: { key: "plugins/demo/archive.zip" },
+        },
+      },
+    });
+
+    await expect(
+      verifyCoreHubInstalledTrustRecord({
+        record: {
+          corehubUrl: "https://corehub.ai",
+          corehubPackage: "demo",
+          version: "2026.3.22",
+          artifactSha256: "demo-sha256",
+          artifactSize: 1234,
+          artifactManifestVerified: true,
+          artifactManifestSha256: "demo-manifest-sha256",
+          artifactStorageKey: "plugins/demo/archive.zip",
+          publisherHandle: "coreblow",
+        },
+      }),
+    ).resolves.toMatchObject({
+      ok: false,
+      code: COREHUB_INSTALL_ERROR_CODE.TRUST_DRIFT,
+      error: expect.stringContaining("artifactSha256 changed"),
+    });
   });
 
   it.each([

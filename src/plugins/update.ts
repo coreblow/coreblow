@@ -6,7 +6,7 @@ import {
 import type { UpdateChannel } from "../infra/update-channels.js";
 import { resolveUserPath } from "../utils.js";
 import { resolveBundledPluginSources } from "./bundled-sources.js";
-import { installPluginFromCoreHub } from "./coreblow-hub.js";
+import { installPluginFromCoreHub, verifyCoreHubInstalledTrustRecord } from "./coreblow-hub.js";
 import {
   installPluginFromNpmSpec,
   PLUGIN_INSTALL_ERROR_CODE,
@@ -332,6 +332,24 @@ export async function updateNpmInstalledPlugins(params: {
         message: `Skipping "${pluginId}" (missing marketplace source metadata).`,
       });
       continue;
+    }
+
+    if (record.source === "corehub") {
+      const trustCheck = await verifyCoreHubInstalledTrustRecord({
+        record,
+        logger,
+      });
+      if (!trustCheck.ok) {
+        outcomes.push({
+          pluginId,
+          status: "error",
+          message: `Failed to verify ${pluginId} before update: ${trustCheck.error}`,
+        });
+        continue;
+      }
+      for (const warning of trustCheck.warnings) {
+        logger.warn?.(warning);
+      }
     }
 
     let installPath: string;

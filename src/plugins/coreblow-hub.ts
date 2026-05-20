@@ -22,6 +22,8 @@ export const COREHUB_INSTALL_ERROR_CODE = {
   PACKAGE_NOT_FOUND: "package_not_found",
   VERSION_NOT_FOUND: "version_not_found",
   NO_INSTALLABLE_VERSION: "no_installable_version",
+  MODERATION_BLOCKED: "moderation_blocked",
+  TRUST_DRIFT: "trust_drift",
   SKILL_PACKAGE: "skill_package",
   UNSUPPORTED_FAMILY: "unsupported_family",
   PRIVATE_PACKAGE: "private_package",
@@ -61,6 +63,29 @@ type CoreHubInstallFailure = {
   error: string;
   code?: CoreHubInstallErrorCode;
 };
+
+type CoreHubVersionModerationStatus = "available" | "deprecated" | "blocked" | (string & {});
+
+export type CoreHubInstalledTrustRecord = Partial<Pick<
+  CoreHubPluginInstallRecordFields,
+  | "corehubUrl"
+  | "corehubPackage"
+  | "version"
+  | "artifactSha256"
+  | "artifactSize"
+  | "artifactManifestVerified"
+  | "artifactManifestSha256"
+  | "artifactStorageKey"
+  | "publisherHandle"
+>>;
+
+export type CoreHubInstalledTrustVerificationResult =
+  | {
+      ok: true;
+      status?: CoreHubVersionModerationStatus | null;
+      warnings: string[];
+    }
+  | CoreHubInstallFailure;
 
 export function formatCoreHubSpecifier(params: { name: string; version?: string }): string {
   return `corehub:${params.name}${params.version ? `@${params.version}` : ""}`;
@@ -112,6 +137,7 @@ async function resolveCompatiblePackageVersion(params: {
       ok: true;
       version: string;
       compatibility?: CoreHubPackageCompatibility | null;
+      status?: CoreHubVersionModerationStatus | null;
     }
   | CoreHubInstallFailure
 > {
@@ -142,7 +168,35 @@ async function resolveCompatiblePackageVersion(params: {
     version,
     compatibility:
       versionDetail.version?.compatibility ?? params.detail.package?.compatibility ?? null,
+    status: versionDetail.version?.status ?? null,
   };
+}
+
+function validateCoreHubVersionModeration(params: {
+  packageName: string;
+  version?: string;
+  status?: CoreHubVersionModerationStatus | null;
+}): CoreHubInstallFailure | null {
+  if (params.status === "blocked") {
+    return buildCoreHubInstallFailure(
+      `CoreHub package "${params.packageName}" version ${params.version ?? "unknown"} is blocked and cannot be installed or updated.`,
+      COREHUB_INSTALL_ERROR_CODE.MODERATION_BLOCKED,
+    );
+  }
+  return null;
+}
+
+function warnCoreHubVersionModeration(params: {
+  packageName: string;
+  version?: string;
+  status?: CoreHubVersionModerationStatus | null;
+  logger?: PluginInstallLogger;
+}) {
+  if (params.status === "deprecated") {
+    params.logger?.warn?.(
+      `CoreHub package "${params.packageName}" version ${params.version ?? "unknown"} is deprecated; install is allowed, but update soon.`,
+    );
+  }
 }
 
 function validateCoreHubPluginPackage(params: {
@@ -198,6 +252,143 @@ function validateCoreHubPluginPackage(params: {
     );
   }
   return null;
+}
+
+function hasRecordedCoreHubTrustProof(record: CoreHubInstalledTrustRecord): boolean {
+  return (
+    record.artifactSha256 !== undefined ||
+    record.artifactSize !== undefined ||
+    record.artifactManifestSha256 !== undefined ||
+    record.artifactStorageKey !== undefined ||
+    record.publisherHandle !== undefined ||
+    record.artifactManifestVerified === true
+  );
+}
+
+function appendTrustDrift(
+  failures: string[],
+  params: {
+    name: string;
+    local?: string | number | boolean;
+    registry?: string | number | boolean;
+  },
+) {
+  if (params.local === undefined) {
+    return;
+  }
+  if (params.registry === undefined) {
+    failures.push(`${params.name} is recorded locally but missing from CoreHub Registry metadata`);
+    return;
+  }
+  if (params.local !== params.registry) {
+    failures.push(
+      `${params.name} changed (local=${String(params.local)} registry=${String(params.registry)})`,
+    );
+  }
+}
+
+export async function verifyCoreHubInstalledTrustRecord(params: {
+  record: CoreHubInstalledTrustRecord;
+  logger?: PluginInstallLogger;
+  token?: string;
+}): Promise<CoreHubInstalledTrustVerificationResult> {
+  const record = params.record;
+  if (!record.corehubPackage || !record.version) {
+    return { ok: true, warnings: [] };
+  }
+
+  let versionDetail;
+  try {
+    versionDetail = await fetchCoreHubPackageVersion({
+      name: record.corehubPackage,
+      version: record.version,
+      baseUrl: record.corehubUrl,
+      token: params.token,
+    });
+  } catch (error) {
+    return mapCoreHubRequestError(error, {
+      stage: "version",
+      name: record.corehubPackage,
+      version: record.version,
+    });
+  }
+
+  const registryVersion = versionDetail.version;
+  if (!registryVersion) {
+    return buildCoreHubInstallFailure(
+      `Version not found on CoreHub: ${record.corehubPackage}@${record.version}.`,
+      COREHUB_INSTALL_ERROR_CODE.VERSION_NOT_FOUND,
+    );
+  }
+
+  const moderationFailure = validateCoreHubVersionModeration({
+    packageName: record.corehubPackage,
+    version: record.version,
+    status: registryVersion.status,
+  });
+  if (moderationFailure) {
+    return moderationFailure;
+  }
+
+  const warnings: string[] = [];
+  if (registryVersion.status === "deprecated") {
+    warnings.push(
+      `CoreHub package "${record.corehubPackage}" version ${record.version} is deprecated.`,
+    );
+  }
+
+  if (!hasRecordedCoreHubTrustProof(record)) {
+    return {
+      ok: true,
+      status: registryVersion.status,
+      warnings,
+    };
+  }
+
+  const artifact = registryVersion.artifact;
+  const registryManifest = artifact?.files?.find((file) => file.path === "corehub.artifact.json");
+  const failures: string[] = [];
+  appendTrustDrift(failures, {
+    name: "publisherHandle",
+    local: record.publisherHandle,
+    registry: registryVersion.publisher?.handle ?? undefined,
+  });
+  appendTrustDrift(failures, {
+    name: "artifactSha256",
+    local: record.artifactSha256,
+    registry: artifact?.sha256,
+  });
+  appendTrustDrift(failures, {
+    name: "artifactSize",
+    local: record.artifactSize,
+    registry: artifact?.size,
+  });
+  appendTrustDrift(failures, {
+    name: "artifactManifestSha256",
+    local: record.artifactManifestSha256,
+    registry: registryManifest?.sha256,
+  });
+  appendTrustDrift(failures, {
+    name: "artifactStorageKey",
+    local: record.artifactStorageKey,
+    registry: artifact?.storage?.key,
+  });
+  if (record.artifactManifestVerified === true && !registryManifest) {
+    failures.push("artifactManifestVerified is recorded locally but the registry no longer declares corehub.artifact.json");
+  }
+
+  if (failures.length > 0) {
+    return buildCoreHubInstallFailure(
+      `CoreHub trust proof changed for ${record.corehubPackage}@${record.version}: ${failures.join("; ")}.`,
+      COREHUB_INSTALL_ERROR_CODE.TRUST_DRIFT,
+    );
+  }
+
+  return {
+    ok: true,
+    status: registryVersion.status,
+    warnings,
+  };
 }
 
 function logCoreHubPackageSummary(params: {
@@ -290,6 +481,20 @@ export async function installPluginFromCoreHub(params: {
   if (validationFailure) {
     return validationFailure;
   }
+  const moderationFailure = validateCoreHubVersionModeration({
+    packageName: parsed.name,
+    version: versionState.version,
+    status: versionState.status,
+  });
+  if (moderationFailure) {
+    return moderationFailure;
+  }
+  warnCoreHubVersionModeration({
+    packageName: parsed.name,
+    version: versionState.version,
+    status: versionState.status,
+    logger: params.logger,
+  });
   logCoreHubPackageSummary({
     detail,
     version: versionState.version,
