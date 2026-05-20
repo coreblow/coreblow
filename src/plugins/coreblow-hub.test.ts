@@ -92,6 +92,12 @@ function expectSuccessfulCoreHubInstall(result: unknown) {
       corehubFamily: "code-plugin",
       corehubChannel: "official",
       integrity: "sha256-demo",
+      artifactSha256: "demo-sha256",
+      artifactSize: 1234,
+      artifactManifestVerified: true,
+      artifactManifestSha256: "demo-manifest-sha256",
+      artifactStorageKey: "plugins/demo/archive.zip",
+      publisherHandle: "coreblow",
     },
   });
 }
@@ -137,6 +143,12 @@ describe("installPluginFromCoreHub", () => {
     downloadCoreHubPackageArchiveMock.mockResolvedValue({
       archivePath: "/tmp/corehub-demo/archive.zip",
       integrity: "sha256-demo",
+      artifactSha256: "demo-sha256",
+      artifactSize: 1234,
+      artifactManifestVerified: true,
+      artifactManifestSha256: "demo-manifest-sha256",
+      artifactStorageKey: "plugins/demo/archive.zip",
+      publisherHandle: "coreblow",
     });
     resolveCompatibilityHostVersionMock.mockReturnValue("2026.3.22");
     installPluginFromArchiveMock.mockResolvedValue({

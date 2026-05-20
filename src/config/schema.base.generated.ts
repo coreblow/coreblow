@@ -9559,6 +9559,27 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
                         },
                       ],
                     },
+                    artifactSha256: {
+                      type: "string",
+                    },
+                    artifactSize: {
+                      type: "number",
+                    },
+                    artifactManifestVerified: {
+                      type: "boolean",
+                    },
+                    artifactManifestSha256: {
+                      type: "string",
+                    },
+                    artifactStorageKey: {
+                      type: "string",
+                    },
+                    publisherHandle: {
+                      type: "string",
+                    },
+                    verifiedAt: {
+                      type: "string",
+                    },
                     hooks: {
                       type: "array",
                       items: {
@@ -11398,6 +11419,27 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
                       const: "private",
                     },
                   ],
+                },
+                artifactSha256: {
+                  type: "string",
+                },
+                artifactSize: {
+                  type: "number",
+                },
+                artifactManifestVerified: {
+                  type: "boolean",
+                },
+                artifactManifestSha256: {
+                  type: "string",
+                },
+                artifactStorageKey: {
+                  type: "string",
+                },
+                publisherHandle: {
+                  type: "string",
+                },
+                verifiedAt: {
+                  type: "string",
                 },
                 marketplaceName: {
                   type: "string",
@@ -15297,6 +15339,41 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
     "plugins.installs.*.installedAt": {
       label: "Plugin Install Time",
       help: "ISO timestamp of last install/update.",
+      tags: ["advanced"],
+    },
+    "plugins.installs.*.artifactSha256": {
+      label: "Plugin Artifact SHA-256",
+      help: "SHA-256 digest of the verified CoreHub artifact archive.",
+      tags: ["advanced"],
+    },
+    "plugins.installs.*.artifactSize": {
+      label: "Plugin Artifact Size",
+      help: "Verified CoreHub artifact archive size in bytes.",
+      tags: ["advanced"],
+    },
+    "plugins.installs.*.artifactManifestVerified": {
+      label: "Plugin Artifact Manifest Verified",
+      help: "Whether CoreBlow verified the internal CoreHub artifact manifest during install.",
+      tags: ["advanced"],
+    },
+    "plugins.installs.*.artifactManifestSha256": {
+      label: "Plugin Artifact Manifest SHA-256",
+      help: "SHA-256 digest of corehub.artifact.json when present and verified.",
+      tags: ["advanced"],
+    },
+    "plugins.installs.*.artifactStorageKey": {
+      label: "Plugin Artifact Storage Key",
+      help: "CoreHub storage locator used for the resolved artifact archive.",
+      tags: ["advanced"],
+    },
+    "plugins.installs.*.publisherHandle": {
+      label: "Plugin Publisher Handle",
+      help: "CoreHub publisher handle recorded during install.",
+      tags: ["advanced"],
+    },
+    "plugins.installs.*.verifiedAt": {
+      label: "Plugin Verification Time",
+      help: "ISO timestamp when CoreBlow verified CoreHub artifact metadata for this install record.",
       tags: ["advanced"],
     },
     "plugins.installs.*.marketplaceName": {

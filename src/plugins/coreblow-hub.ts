@@ -47,6 +47,13 @@ export type CoreHubPluginInstallRecordFields = {
   integrity?: string;
   resolvedAt?: string;
   installedAt?: string;
+  artifactSha256?: string;
+  artifactSize?: number;
+  artifactManifestVerified?: boolean;
+  artifactManifestSha256?: string;
+  artifactStorageKey?: string;
+  publisherHandle?: string;
+  verifiedAt?: string;
 };
 
 type CoreHubInstallFailure = {
@@ -325,6 +332,7 @@ export async function installPluginFromCoreHub(params: {
         COREHUB_INSTALL_ERROR_CODE.UNSUPPORTED_FAMILY,
       );
     }
+    const verifiedAt = new Date().toISOString();
     return {
       ...installResult,
       packageName: parsed.name,
@@ -339,7 +347,14 @@ export async function installPluginFromCoreHub(params: {
         corehubChannel: pkg.channel,
         version: installResult.version ?? versionState.version,
         integrity: archive.integrity,
-        resolvedAt: new Date().toISOString(),
+        artifactSha256: archive.artifactSha256,
+        artifactSize: archive.artifactSize,
+        artifactManifestVerified: archive.artifactManifestVerified,
+        artifactManifestSha256: archive.artifactManifestSha256,
+        artifactStorageKey: archive.artifactStorageKey,
+        publisherHandle: archive.publisherHandle ?? pkg.ownerHandle ?? detail.owner?.handle ?? undefined,
+        resolvedAt: verifiedAt,
+        verifiedAt,
       },
     };
   } finally {

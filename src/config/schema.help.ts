@@ -1006,6 +1006,17 @@ export const FIELD_HELP: Record<string, string> = {
   "plugins.installs.*.resolvedAt":
     "ISO timestamp when npm package metadata was last resolved for this install record.",
   "plugins.installs.*.installedAt": "ISO timestamp of last install/update.",
+  "plugins.installs.*.artifactSha256": "SHA-256 digest of the verified CoreHub artifact archive.",
+  "plugins.installs.*.artifactSize": "Verified CoreHub artifact archive size in bytes.",
+  "plugins.installs.*.artifactManifestVerified":
+    "Whether CoreBlow verified the internal CoreHub artifact manifest during install.",
+  "plugins.installs.*.artifactManifestSha256":
+    "SHA-256 digest of corehub.artifact.json when present and verified.",
+  "plugins.installs.*.artifactStorageKey":
+    "CoreHub storage locator used for the resolved artifact archive.",
+  "plugins.installs.*.publisherHandle": "CoreHub publisher handle recorded during install.",
+  "plugins.installs.*.verifiedAt":
+    "ISO timestamp when CoreBlow verified CoreHub artifact metadata for this install record.",
   "plugins.installs.*.marketplaceName":
     "Marketplace display name recorded for marketplace-backed plugin installs (if available).",
   "plugins.installs.*.marketplaceSource":

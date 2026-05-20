@@ -28,6 +28,13 @@ export const InstallRecordShape = {
   corehubChannel: z
     .union([z.literal("official"), z.literal("community"), z.literal("private")])
     .optional(),
+  artifactSha256: z.string().optional(),
+  artifactSize: z.number().optional(),
+  artifactManifestVerified: z.boolean().optional(),
+  artifactManifestSha256: z.string().optional(),
+  artifactStorageKey: z.string().optional(),
+  publisherHandle: z.string().optional(),
+  verifiedAt: z.string().optional(),
 } as const;
 
 export const PluginInstallRecordShape = {

@@ -158,6 +158,12 @@ export type CoreHubSkillListResponse = {
 export type CoreHubDownloadResult = {
   archivePath: string;
   integrity: string;
+  artifactSha256: string;
+  artifactSize: number;
+  artifactManifestVerified?: boolean;
+  artifactManifestSha256?: string;
+  artifactStorageKey?: string;
+  publisherHandle?: string;
 };
 
 type CoreHubEnvelope<T> = {
@@ -219,6 +225,9 @@ type CoreHubDownloadMetadata = {
   package?: {
     id?: string;
     name?: string;
+  } | null;
+  publisher?: {
+    handle?: string | null;
   } | null;
   version?: string | null;
   artifact?: CoreHubCatalogVersion["artifact"] | null;
@@ -706,13 +715,19 @@ export async function downloadCoreHubPackageArchive(params: {
     });
   }
   const bytes = new Uint8Array(await response.arrayBuffer());
-  validateCoreHubDownloadBytes(metadata, bytes);
+  const verification = validateCoreHubDownloadBytes(metadata, bytes);
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-corehub-package-"));
   const archivePath = path.join(tmpDir, metadata.artifact?.name ?? `${params.name}.zip`);
   await fs.writeFile(archivePath, bytes);
   return {
     archivePath,
     integrity: formatSha256Integrity(bytes),
+    artifactSha256: verification.artifactSha256,
+    artifactSize: verification.artifactSize,
+    artifactManifestVerified: verification.artifactManifestVerified,
+    artifactManifestSha256: verification.artifactManifestSha256,
+    artifactStorageKey: metadata.artifact?.storage?.key,
+    publisherHandle: metadata.publisher?.handle ?? undefined,
   };
 }
 
@@ -751,6 +766,8 @@ export async function downloadCoreHubSkillArchive(params: {
   return {
     archivePath,
     integrity: formatSha256Integrity(bytes),
+    artifactSha256: createHash("sha256").update(bytes).digest("hex"),
+    artifactSize: bytes.byteLength,
   };
 }
 
@@ -854,35 +871,49 @@ function normalizeCoreHubFamily(kind?: string): CoreHubPackageFamily {
   return kind === "skill" ? "skill" : "code-plugin";
 }
 
-function validateCoreHubDownloadBytes(metadata: CoreHubDownloadMetadata, bytes: Uint8Array): void {
+type CoreHubArtifactVerification = {
+  artifactSha256: string;
+  artifactSize: number;
+  artifactManifestVerified?: boolean;
+  artifactManifestSha256?: string;
+};
+
+function validateCoreHubDownloadBytes(
+  metadata: CoreHubDownloadMetadata,
+  bytes: Uint8Array,
+): CoreHubArtifactVerification {
   const expectedSize = metadata.artifact?.size;
   if (Number.isInteger(expectedSize) && bytes.byteLength !== expectedSize) {
     throw new Error(
       `CoreHub artifact size mismatch: expected ${expectedSize}, received ${bytes.byteLength}`,
     );
   }
+  const artifactSha256 = createHash("sha256").update(bytes).digest("hex");
   if (metadata.artifact?.sha256) {
-    const digest = createHash("sha256").update(bytes).digest("hex");
-    if (digest !== metadata.artifact.sha256) {
+    if (artifactSha256 !== metadata.artifact.sha256) {
       throw new Error(
-        `CoreHub artifact checksum mismatch: expected ${metadata.artifact.sha256}, received ${digest}`,
+        `CoreHub artifact checksum mismatch: expected ${metadata.artifact.sha256}, received ${artifactSha256}`,
       );
     }
   }
-  validateCoreHubArtifactManifest(metadata, bytes);
+  return {
+    artifactSha256,
+    artifactSize: bytes.byteLength,
+    ...validateCoreHubArtifactManifest(metadata, bytes),
+  };
 }
 
 function validateCoreHubArtifactManifest(
   metadata: CoreHubDownloadMetadata,
   bytes: Uint8Array,
-): void {
+): Pick<CoreHubArtifactVerification, "artifactManifestVerified" | "artifactManifestSha256"> {
   const expectedFiles = metadata.artifact?.files?.filter(
     (file): file is { path: string; size?: number; sha256?: string } =>
       typeof file.path === "string" && file.path.trim().length > 0,
   );
   const expectsInternalManifest = expectedFiles?.some((file) => file.path === "corehub.artifact.json");
   if (!expectsInternalManifest) {
-    return;
+    return {};
   }
 
   const archiveFiles = readGzippedTarFiles(bytes, metadata.artifact?.name ?? "CoreHub artifact");
@@ -918,6 +949,10 @@ function validateCoreHubArtifactManifest(
     throw new Error(`CoreHub artifact manifest is invalid JSON: ${String(error)}`);
   }
   validateCoreHubArtifactManifestPayload(metadata, manifest);
+  return {
+    artifactManifestVerified: true,
+    artifactManifestSha256: createHash("sha256").update(internalManifestBytes).digest("hex"),
+  };
 }
 
 function validateCoreHubArtifactManifestPayload(

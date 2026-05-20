@@ -289,6 +289,12 @@ describe("corehub helpers", () => {
                 name: "plugin-lab-0.1.0.coreblow-plugin.tgz",
                 size: archiveBytes.byteLength,
                 sha256: expectedSha256,
+                storage: {
+                  key: "plugins/plugin-lab/0.1.0/plugin.tgz",
+                },
+              },
+              publisher: {
+                handle: "coreblow",
               },
               download: {
                 available: true,
@@ -312,6 +318,12 @@ describe("corehub helpers", () => {
       await expect(fs.readFile(result.archivePath)).resolves.toEqual(Buffer.from(archiveBytes));
       expect(path.basename(result.archivePath)).toBe("plugin-lab-0.1.0.coreblow-plugin.tgz");
       expect(result.integrity).toBe(formatSha256Integrity(archiveBytes));
+      expect(result).toMatchObject({
+        artifactSha256: expectedSha256,
+        artifactSize: archiveBytes.byteLength,
+        artifactStorageKey: "plugins/plugin-lab/0.1.0/plugin.tgz",
+        publisherHandle: "coreblow",
+      });
     } finally {
       await fs.rm(path.dirname(result.archivePath), { recursive: true, force: true });
     }
@@ -380,6 +392,12 @@ describe("corehub helpers", () => {
     });
     try {
       await expect(fs.readFile(result.archivePath)).resolves.toEqual(Buffer.from(archiveBytes));
+      expect(result).toMatchObject({
+        artifactSha256: sha256Hex(archiveBytes),
+        artifactSize: archiveBytes.byteLength,
+        artifactManifestVerified: true,
+        artifactManifestSha256: sha256Hex(Buffer.from(archiveFiles["corehub.artifact.json"])),
+      });
     } finally {
       await fs.rm(path.dirname(result.archivePath), { recursive: true, force: true });
     }

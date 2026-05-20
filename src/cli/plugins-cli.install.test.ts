@@ -69,7 +69,14 @@ function createCoreHubInstallResult(params: {
       corehubChannel: params.channel,
       version: params.version,
       integrity: "sha256-abc",
+      artifactSha256: "abc",
+      artifactSize: 736,
+      artifactManifestVerified: true,
+      artifactManifestSha256: "manifest-abc",
+      artifactStorageKey: "plugins/demo/1.2.3/plugin.tgz",
+      publisherHandle: "coreblow",
       resolvedAt: "2026-03-22T00:00:00.000Z",
+      verifiedAt: "2026-03-22T00:00:00.000Z",
     },
   };
 }
@@ -242,6 +249,11 @@ describe("plugins cli install", () => {
         corehubPackage: "demo",
         corehubFamily: "code-plugin",
         corehubChannel: "official",
+        artifactSha256: "abc",
+        artifactManifestVerified: true,
+        artifactManifestSha256: "manifest-abc",
+        artifactStorageKey: "plugins/demo/1.2.3/plugin.tgz",
+        publisherHandle: "coreblow",
       }),
     );
     expect(writeConfigFile).toHaveBeenCalledWith(installedCfg);

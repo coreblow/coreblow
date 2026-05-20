@@ -539,6 +539,13 @@ export async function runPluginInstallCommand(params: {
         corehubPackage: result.corehub.corehubPackage,
         corehubFamily: result.corehub.corehubFamily,
         corehubChannel: result.corehub.corehubChannel,
+        artifactSha256: result.corehub.artifactSha256,
+        artifactSize: result.corehub.artifactSize,
+        artifactManifestVerified: result.corehub.artifactManifestVerified,
+        artifactManifestSha256: result.corehub.artifactManifestSha256,
+        artifactStorageKey: result.corehub.artifactStorageKey,
+        publisherHandle: result.corehub.publisherHandle,
+        verifiedAt: result.corehub.verifiedAt,
       },
     });
     return;
@@ -582,6 +589,13 @@ export async function runPluginInstallCommand(params: {
           corehubPackage: corehubResult.corehub.corehubPackage,
           corehubFamily: corehubResult.corehub.corehubFamily,
           corehubChannel: corehubResult.corehub.corehubChannel,
+          artifactSha256: corehubResult.corehub.artifactSha256,
+          artifactSize: corehubResult.corehub.artifactSize,
+          artifactManifestVerified: corehubResult.corehub.artifactManifestVerified,
+          artifactManifestSha256: corehubResult.corehub.artifactManifestSha256,
+          artifactStorageKey: corehubResult.corehub.artifactStorageKey,
+          publisherHandle: corehubResult.corehub.publisherHandle,
+          verifiedAt: corehubResult.corehub.verifiedAt,
         },
       });
       return;

@@ -432,7 +432,14 @@ describe("updateNpmInstalledPlugins", () => {
         corehubFamily: "code-plugin",
         corehubChannel: "official",
         integrity: "sha256-next",
+        artifactSha256: "next-sha256",
+        artifactSize: 736,
+        artifactManifestVerified: true,
+        artifactManifestSha256: "next-manifest-sha256",
+        artifactStorageKey: "plugins/demo/1.2.4/plugin.tgz",
+        publisherHandle: "coreblow",
         resolvedAt: "2026-03-22T00:00:00.000Z",
+        verifiedAt: "2026-03-22T00:00:00.000Z",
       },
     });
 
@@ -465,6 +472,11 @@ describe("updateNpmInstalledPlugins", () => {
       corehubFamily: "code-plugin",
       corehubChannel: "official",
       integrity: "sha256-next",
+      artifactSha256: "next-sha256",
+      artifactManifestVerified: true,
+      artifactManifestSha256: "next-manifest-sha256",
+      artifactStorageKey: "plugins/demo/1.2.4/plugin.tgz",
+      publisherHandle: "coreblow",
     });
   });
 

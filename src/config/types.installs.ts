@@ -15,4 +15,11 @@ export type InstallRecordBase = {
   corehubPackage?: string;
   corehubFamily?: "code-plugin" | "bundle-plugin";
   corehubChannel?: "official" | "community" | "private";
+  artifactSha256?: string;
+  artifactSize?: number;
+  artifactManifestVerified?: boolean;
+  artifactManifestSha256?: string;
+  artifactStorageKey?: string;
+  publisherHandle?: string;
+  verifiedAt?: string;
 };

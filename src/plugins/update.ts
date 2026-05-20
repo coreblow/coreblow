@@ -551,6 +551,13 @@ export async function updateNpmInstalledPlugins(params: {
         corehubPackage: corehubResult.corehub.corehubPackage,
         corehubFamily: corehubResult.corehub.corehubFamily,
         corehubChannel: corehubResult.corehub.corehubChannel,
+        artifactSha256: corehubResult.corehub.artifactSha256,
+        artifactSize: corehubResult.corehub.artifactSize,
+        artifactManifestVerified: corehubResult.corehub.artifactManifestVerified,
+        artifactManifestSha256: corehubResult.corehub.artifactManifestSha256,
+        artifactStorageKey: corehubResult.corehub.artifactStorageKey,
+        publisherHandle: corehubResult.corehub.publisherHandle,
+        verifiedAt: corehubResult.corehub.verifiedAt,
       });
     } else {
       const marketplaceResult = result as Extract<
