@@ -5,7 +5,7 @@ import path from "node:path";
 import { isAtLeast, parseSemver } from "./runtime-guard.js";
 import { compareComparableSemver, parseComparableSemver } from "./semver-compare.js";
 
-const DEFAULT_COREHUB_URL = "https://corehub.ai";
+const DEFAULT_COREHUB_URL = "https://coreblow.com/corehub";
 const DEFAULT_FETCH_TIMEOUT_MS = 30_000;
 
 export type CoreHubPackageFamily = "skill" | "code-plugin" | "bundle-plugin";
@@ -157,6 +157,69 @@ export type CoreHubSkillListResponse = {
 export type CoreHubDownloadResult = {
   archivePath: string;
   integrity: string;
+};
+
+type CoreHubEnvelope<T> = {
+  apiVersion?: string;
+  data?: T;
+  meta?: unknown;
+};
+
+type CoreHubCatalogEntry = {
+  id?: string;
+  kind?: string;
+  name?: string;
+  summary?: string;
+  source?: string;
+  homepage?: string;
+  version?: string;
+  tags?: string[];
+  capabilities?: string[];
+  publisher?: {
+    handle?: string;
+    displayName?: string;
+    verified?: boolean;
+  } | null;
+  review?: {
+    state?: string;
+  } | null;
+  coreblow?: {
+    minCoreblowVersion?: string;
+  } | null;
+  versions?: CoreHubCatalogVersion[];
+};
+
+type CoreHubCatalogVersion = {
+  version?: string;
+  tag?: string;
+  publishedAt?: string;
+  status?: string;
+  publisher?: {
+    handle?: string;
+  } | null;
+  artifact?: {
+    name?: string;
+    mediaType?: string;
+    size?: number;
+    sha256?: string;
+    storage?: {
+      key?: string;
+      url?: string;
+    } | null;
+  } | null;
+};
+
+type CoreHubDownloadMetadata = {
+  package?: {
+    id?: string;
+    name?: string;
+  } | null;
+  version?: string | null;
+  artifact?: CoreHubCatalogVersion["artifact"] | null;
+  download?: {
+    available?: boolean;
+    url?: string;
+  } | null;
 };
 
 type FetchLike = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
@@ -343,7 +406,8 @@ function satisfiesSemverRange(version: string, range: string): boolean {
 }
 
 function buildUrl(params: Pick<CoreHubRequestParams, "baseUrl" | "path" | "search">): URL {
-  const url = new URL(params.path, `${normalizeBaseUrl(params.baseUrl)}/`);
+  const path = params.path.replace(/^\/+/, "");
+  const url = new URL(path, `${normalizeBaseUrl(params.baseUrl)}/`);
   for (const [key, value] of Object.entries(params.search ?? {})) {
     if (!value) {
       continue;
@@ -400,6 +464,14 @@ async function fetchJson<T>(params: CoreHubRequestParams): Promise<T> {
   return (await response.json()) as T;
 }
 
+async function fetchCoreHubData<T>(params: CoreHubRequestParams): Promise<T> {
+  const payload = await fetchJson<T | CoreHubEnvelope<T>>(params);
+  if (payload && typeof payload === "object" && "data" in payload) {
+    return (payload as CoreHubEnvelope<T>).data as T;
+  }
+  return payload as T;
+}
+
 export function resolveCoreHubBaseUrl(baseUrl?: string): string {
   return normalizeBaseUrl(baseUrl);
 }
@@ -439,13 +511,14 @@ export async function fetchCoreHubPackageDetail(params: {
   timeoutMs?: number;
   fetchImpl?: FetchLike;
 }): Promise<CoreHubPackageDetail> {
-  return await fetchJson<CoreHubPackageDetail>({
+  const data = await fetchCoreHubData<CoreHubPackageDetail | CoreHubCatalogEntry>({
     baseUrl: params.baseUrl,
     path: `/api/v1/packages/${encodeURIComponent(params.name)}`,
     token: params.token,
     timeoutMs: params.timeoutMs,
     fetchImpl: params.fetchImpl,
   });
+  return normalizeCoreHubPackageDetail(data);
 }
 
 export async function fetchCoreHubPackageVersion(params: {
@@ -456,15 +529,27 @@ export async function fetchCoreHubPackageVersion(params: {
   timeoutMs?: number;
   fetchImpl?: FetchLike;
 }): Promise<CoreHubPackageVersion> {
-  return await fetchJson<CoreHubPackageVersion>({
+  const versions = await fetchCoreHubData<CoreHubPackageVersion | CoreHubCatalogVersion[]>({
     baseUrl: params.baseUrl,
-    path: `/api/v1/packages/${encodeURIComponent(params.name)}/versions/${encodeURIComponent(
-      params.version,
-    )}`,
+    path: `/api/v1/packages/${encodeURIComponent(params.name)}/versions`,
     token: params.token,
     timeoutMs: params.timeoutMs,
     fetchImpl: params.fetchImpl,
   });
+  if (!Array.isArray(versions)) {
+    return versions;
+  }
+  const version =
+    versions.find((candidate) => candidate.version === params.version || candidate.tag === params.version) ??
+    null;
+  if (!version) {
+    throw new CoreHubRequestError({
+      path: `/api/v1/packages/${params.name}/versions`,
+      status: 404,
+      body: `CoreHub package version not found: ${params.name}@${params.version}`,
+    });
+  }
+  return normalizeCoreHubPackageVersion(params.name, version);
 }
 
 export async function searchCoreHubPackages(params: {
@@ -476,7 +561,9 @@ export async function searchCoreHubPackages(params: {
   fetchImpl?: FetchLike;
   limit?: number;
 }): Promise<CoreHubPackageSearchResult[]> {
-  const result = await fetchJson<{ results: CoreHubPackageSearchResult[] }>({
+  const result = await fetchCoreHubData<
+    { results?: CoreHubPackageSearchResult[] } | Array<CoreHubPackageSearchResult | CoreHubCatalogEntry>
+  >({
     baseUrl: params.baseUrl,
     path: "/api/v1/packages/search",
     token: params.token,
@@ -488,6 +575,9 @@ export async function searchCoreHubPackages(params: {
       limit: params.limit ? String(params.limit) : undefined,
     },
   });
+  if (Array.isArray(result)) {
+    return result.map((entry) => normalizeCoreHubPackageSearchResult(entry));
+  }
   return result.results ?? [];
 }
 
@@ -499,7 +589,9 @@ export async function searchCoreHubSkills(params: {
   fetchImpl?: FetchLike;
   limit?: number;
 }): Promise<CoreHubSkillSearchResult[]> {
-  const result = await fetchJson<{ results: CoreHubSkillSearchResult[] }>({
+  const result = await fetchCoreHubData<
+    { results?: CoreHubSkillSearchResult[] } | Array<CoreHubSkillSearchResult | CoreHubCatalogEntry>
+  >({
     baseUrl: params.baseUrl,
     path: "/api/v1/search",
     token: params.token,
@@ -510,6 +602,9 @@ export async function searchCoreHubSkills(params: {
       limit: params.limit ? String(params.limit) : undefined,
     },
   });
+  if (Array.isArray(result)) {
+    return result.map((entry) => normalizeCoreHubSkillSearchResult(entry));
+  }
   return result.results ?? [];
 }
 
@@ -520,7 +615,7 @@ export async function fetchCoreHubSkillDetail(params: {
   timeoutMs?: number;
   fetchImpl?: FetchLike;
 }): Promise<CoreHubSkillDetail> {
-  return await fetchJson<CoreHubSkillDetail>({
+  return await fetchCoreHubData<CoreHubSkillDetail>({
     baseUrl: params.baseUrl,
     path: `/api/v1/skills/${encodeURIComponent(params.slug)}`,
     token: params.token,
@@ -536,7 +631,7 @@ export async function listCoreHubSkills(params: {
   fetchImpl?: FetchLike;
   limit?: number;
 }): Promise<CoreHubSkillListResponse> {
-  return await fetchJson<CoreHubSkillListResponse>({
+  return await fetchCoreHubData<CoreHubSkillListResponse>({
     baseUrl: params.baseUrl,
     path: "/api/v1/skills",
     token: params.token,
@@ -562,24 +657,52 @@ export async function downloadCoreHubPackageArchive(params: {
     : params.tag
       ? { tag: params.tag }
       : undefined;
-  const { response, url } = await corehubRequest({
+  const metadata = await fetchCoreHubData<CoreHubDownloadMetadata>({
     baseUrl: params.baseUrl,
     path: `/api/v1/packages/${encodeURIComponent(params.name)}/download`,
-    search,
+    search: {
+      ...search,
+      redirect: "false",
+    },
     token: params.token,
     timeoutMs: params.timeoutMs,
     fetchImpl: params.fetchImpl,
   });
+  const downloadUrl = metadata.download?.url?.trim();
+  if (!metadata.download?.available || !downloadUrl) {
+    throw new CoreHubRequestError({
+      path: `/api/v1/packages/${params.name}/download`,
+      status: 501,
+      body: `CoreHub package download is not available: ${params.name}`,
+    });
+  }
+  const controller = new AbortController();
+  const timeout = setTimeout(
+    () =>
+      controller.abort(
+        new Error(
+          `CoreHub download timed out after ${params.timeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS}ms`,
+        ),
+      ),
+    params.timeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS,
+  );
+  let response: Response;
+  try {
+    response = await (params.fetchImpl ?? fetch)(downloadUrl, { signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
   if (!response.ok) {
     throw new CoreHubRequestError({
-      path: url.pathname,
+      path: new URL(downloadUrl).pathname,
       status: response.status,
       body: await readErrorBody(response),
     });
   }
   const bytes = new Uint8Array(await response.arrayBuffer());
+  validateCoreHubDownloadBytes(metadata, bytes);
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-corehub-package-"));
-  const archivePath = path.join(tmpDir, `${params.name}.zip`);
+  const archivePath = path.join(tmpDir, metadata.artifact?.name ?? `${params.name}.zip`);
   await fs.writeFile(archivePath, bytes);
   return {
     archivePath,
@@ -627,6 +750,119 @@ export async function downloadCoreHubSkillArchive(params: {
 
 export function resolveLatestVersionFromPackage(detail: CoreHubPackageDetail): string | null {
   return detail.package?.latestVersion ?? detail.package?.tags?.latest ?? null;
+}
+
+function normalizeCoreHubPackageDetail(
+  input: CoreHubPackageDetail | CoreHubCatalogEntry,
+): CoreHubPackageDetail {
+  if ("package" in input) {
+    return input as CoreHubPackageDetail;
+  }
+  const latest = input.versions?.find((version) => version.tag === "latest") ?? input.versions?.[0];
+  const family = normalizeCoreHubFamily(input.kind);
+  const channel = input.publisher?.verified ? "official" : "community";
+  return {
+    package: input.id
+      ? {
+          name: input.id,
+          displayName: input.name ?? input.id,
+          family,
+          channel,
+          isOfficial: channel === "official",
+          summary: input.summary,
+          ownerHandle: input.publisher?.handle ?? null,
+          createdAt: 0,
+          updatedAt: 0,
+          latestVersion: latest?.version ?? input.version ?? null,
+          capabilityTags: input.capabilities,
+          executesCode: family !== "skill",
+          compatibility: input.coreblow?.minCoreblowVersion
+            ? { minGatewayVersion: input.coreblow.minCoreblowVersion }
+            : null,
+          verification: {
+            tier: input.review?.state === "verified" ? "source-linked" : "structural",
+            sourceRepo: input.source,
+            scanStatus: input.review?.state,
+          },
+        }
+      : null,
+    owner: input.publisher
+      ? {
+          handle: input.publisher.handle ?? null,
+          displayName: input.publisher.displayName ?? null,
+        }
+      : null,
+  };
+}
+
+function normalizeCoreHubPackageVersion(
+  packageName: string,
+  input: CoreHubCatalogVersion,
+): CoreHubPackageVersion {
+  return {
+    package: {
+      name: packageName,
+      displayName: packageName,
+      family: "code-plugin",
+    },
+    version: input.version
+      ? {
+          version: input.version,
+          createdAt: Date.parse(input.publishedAt ?? "") || 0,
+          changelog: "",
+          distTags: input.tag ? [input.tag] : [],
+        }
+      : null,
+  };
+}
+
+function normalizeCoreHubPackageSearchResult(
+  input: CoreHubPackageSearchResult | CoreHubCatalogEntry,
+): CoreHubPackageSearchResult {
+  if ("package" in input) {
+    return input as CoreHubPackageSearchResult;
+  }
+  return {
+    score: Number((input as { score?: unknown }).score ?? 0),
+    package: normalizeCoreHubPackageDetail(input).package!,
+  };
+}
+
+function normalizeCoreHubSkillSearchResult(
+  input: CoreHubSkillSearchResult | CoreHubCatalogEntry,
+): CoreHubSkillSearchResult {
+  if ("slug" in input) {
+    return input as CoreHubSkillSearchResult;
+  }
+  return {
+    score: Number((input as { score?: unknown }).score ?? 0),
+    slug: input.id ?? "",
+    displayName: input.name ?? input.id ?? "",
+    summary: input.summary,
+    version: input.version,
+    updatedAt: 0,
+  };
+}
+
+function normalizeCoreHubFamily(kind?: string): CoreHubPackageFamily {
+  return kind === "skill" ? "skill" : "code-plugin";
+}
+
+function validateCoreHubDownloadBytes(metadata: CoreHubDownloadMetadata, bytes: Uint8Array): void {
+  const expectedSize = metadata.artifact?.size;
+  if (Number.isInteger(expectedSize) && bytes.byteLength !== expectedSize) {
+    throw new Error(
+      `CoreHub artifact size mismatch: expected ${expectedSize}, received ${bytes.byteLength}`,
+    );
+  }
+  if (metadata.artifact?.sha256) {
+    const digest = createHash("sha256").update(bytes).digest("hex");
+    if (digest !== metadata.artifact.sha256) {
+      throw new Error(
+        `CoreHub artifact checksum mismatch: expected ${metadata.artifact.sha256}, received ${digest}`,
+      );
+    }
+  }
 }
 
 export function isCoreHubFamilySkill(detail: CoreHubPackageDetail | CoreHubSkillDetail): boolean {

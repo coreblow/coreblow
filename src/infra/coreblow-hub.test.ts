@@ -1,8 +1,13 @@
+import { createHash } from "node:crypto";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  downloadCoreHubPackageArchive,
+  fetchCoreHubPackageDetail,
+  fetchCoreHubPackageVersion,
+  formatSha256Integrity,
   parseCoreHubPluginSpec,
   resolveCoreHubAuthToken,
   searchCoreHubSkills,
@@ -153,5 +158,120 @@ describe("corehub helpers", () => {
     };
 
     await expect(searchCoreHubSkills({ query: "calendar", fetchImpl })).resolves.toEqual([]);
+  });
+
+  it("maps CoreHub Registry API entry envelopes into package detail", async () => {
+    const fetchImpl = async (input: string | URL | Request) => {
+      expect(String(input)).toBe("https://coreblow.com/corehub/api/v1/packages/plugin-lab");
+      return new Response(
+        JSON.stringify({
+          apiVersion: "v1",
+          data: {
+            id: "plugin-lab",
+            kind: "plugin",
+            name: "Plugin Lab",
+            summary: "Compatibility lab",
+            source: "https://github.com/coreblow/plugin-lab",
+            publisher: {
+              handle: "coreblow",
+              displayName: "CoreBlow",
+              verified: true,
+            },
+            review: {
+              state: "verified",
+            },
+            coreblow: {
+              minCoreblowVersion: "1.0.0",
+            },
+            versions: [{ version: "0.1.0", tag: "latest" }],
+          },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    };
+
+    await expect(fetchCoreHubPackageDetail({ name: "plugin-lab", fetchImpl })).resolves.toMatchObject({
+      package: {
+        name: "plugin-lab",
+        displayName: "Plugin Lab",
+        family: "code-plugin",
+        channel: "official",
+        latestVersion: "0.1.0",
+        compatibility: {
+          minGatewayVersion: "1.0.0",
+        },
+      },
+      owner: {
+        handle: "coreblow",
+      },
+    });
+  });
+
+  it("selects versions from CoreHub Registry API version lists", async () => {
+    const fetchImpl = async (input: string | URL | Request) => {
+      expect(String(input)).toBe("https://coreblow.com/corehub/api/v1/packages/plugin-lab/versions");
+      return new Response(
+        JSON.stringify({
+          apiVersion: "v1",
+          data: [
+            { version: "0.1.0", tag: "latest", publishedAt: "2026-05-20" },
+            { version: "0.0.1", publishedAt: "2026-05-19" },
+          ],
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    };
+
+    await expect(
+      fetchCoreHubPackageVersion({ name: "plugin-lab", version: "0.1.0", fetchImpl }),
+    ).resolves.toMatchObject({
+      version: {
+        version: "0.1.0",
+        distTags: ["latest"],
+      },
+    });
+  });
+
+  it("downloads CoreHub package archives through signed metadata and verifies checksum", async () => {
+    const archiveBytes = new TextEncoder().encode("plugin archive bytes");
+    const expectedSha256 = createHash("sha256").update(archiveBytes).digest("hex");
+    const fetchImpl = async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.startsWith("https://coreblow.com/corehub/api/v1/packages/plugin-lab/download")) {
+        expect(url).toContain("redirect=false");
+        return new Response(
+          JSON.stringify({
+            apiVersion: "v1",
+            data: {
+              artifact: {
+                name: "plugin-lab-0.1.0.coreblow-plugin.tgz",
+                size: archiveBytes.byteLength,
+                sha256: expectedSha256,
+              },
+              download: {
+                available: true,
+                url: "https://storage.example/plugin-lab-0.1.0.coreblow-plugin.tgz",
+              },
+            },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      }
+      expect(url).toBe("https://storage.example/plugin-lab-0.1.0.coreblow-plugin.tgz");
+      return new Response(archiveBytes, { status: 200 });
+    };
+
+    const result = await downloadCoreHubPackageArchive({
+      name: "plugin-lab",
+      version: "0.1.0",
+      fetchImpl,
+    });
+    try {
+      await expect(fs.readFile(result.archivePath)).resolves.toEqual(Buffer.from(archiveBytes));
+      expect(path.basename(result.archivePath)).toBe("plugin-lab-0.1.0.coreblow-plugin.tgz");
+      expect(result.integrity).toBe(formatSha256Integrity(archiveBytes));
+    } finally {
+      await fs.rm(path.dirname(result.archivePath), { recursive: true, force: true });
+    }
   });
 });

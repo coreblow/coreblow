@@ -333,7 +333,7 @@ export async function installPluginFromCoreHub(params: {
         corehubUrl:
           params.baseUrl?.trim() ||
           process.env.COREBLOW_COREHUB_URL?.trim() ||
-          "https://corehub.ai",
+          "https://coreblow.com/corehub",
         corehubPackage: parsed.name,
         corehubFamily,
         corehubChannel: pkg.channel,
