@@ -28,6 +28,17 @@ export type PluginsLoadConfig = {
   paths?: string[];
 };
 
+export type PluginCoreHubPolicyConfig = {
+  /** Allow installing community CoreHub packages. Defaults to true for compatibility. */
+  allowCommunity?: boolean;
+  /** Allow installing deprecated CoreHub versions. Defaults to true for compatibility. */
+  allowDeprecated?: boolean;
+  /** Optional publisher allowlist for CoreHub installs and updates. */
+  allowedPublishers?: string[];
+  /** Optional allowed CoreHub verification tiers, for example "source-linked". */
+  requiredVerificationTiers?: string[];
+};
+
 export type PluginInstallRecord = Omit<InstallRecordBase, "source"> & {
   source: InstallRecordBase["source"] | "marketplace";
   marketplaceName?: string;
@@ -43,6 +54,7 @@ export type PluginsConfig = {
   /** Optional plugin denylist (plugin ids). */
   deny?: string[];
   load?: PluginsLoadConfig;
+  corehub?: PluginCoreHubPolicyConfig;
   slots?: PluginSlotsConfig;
   entries?: Record<string, PluginEntryConfig>;
   installs?: Record<string, PluginInstallRecord>;

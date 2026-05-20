@@ -132,6 +132,10 @@ describe("installPluginFromCoreHub", () => {
           pluginApiRange: ">=2026.3.22",
           minGatewayVersion: "2026.3.0",
         },
+        ownerHandle: "coreblow",
+        verification: {
+          tier: "source-linked",
+        },
       },
     });
     resolveLatestVersionFromPackageMock.mockReturnValue("2026.3.22");
@@ -184,7 +188,9 @@ describe("installPluginFromCoreHub", () => {
       archivePath: "/tmp/corehub-demo/archive.zip",
     });
     expectSuccessfulCoreHubInstall(result);
-    expect(logger.info).toHaveBeenCalledWith("CoreHub code-plugin demo@2026.3.22 channel=official");
+    expect(logger.info).toHaveBeenCalledWith(
+      "CoreHub code-plugin demo@2026.3.22 channel=official verification=source-linked",
+    );
     expect(logger.info).toHaveBeenCalledWith(
       "Compatibility: pluginApi=>=2026.3.22 minGateway=2026.3.0",
     );
@@ -246,6 +252,84 @@ describe("installPluginFromCoreHub", () => {
     expect(logger.warn).toHaveBeenCalledWith(
       'CoreHub package "demo" version 2026.3.22 is deprecated; install is allowed, but update soon.',
     );
+  });
+
+  it("blocks install when CoreHub policy disallows community packages", async () => {
+    fetchCoreHubPackageDetailMock.mockResolvedValueOnce({
+      package: {
+        name: "demo",
+        displayName: "Demo",
+        family: "code-plugin",
+        channel: "community",
+        isOfficial: false,
+        createdAt: 0,
+        updatedAt: 0,
+        ownerHandle: "coreblow",
+      },
+    });
+
+    await expect(
+      installPluginFromCoreHub({
+        spec: "corehub:demo",
+        policy: { allowCommunity: false },
+      }),
+    ).resolves.toMatchObject({
+      ok: false,
+      code: COREHUB_INSTALL_ERROR_CODE.POLICY_BLOCKED,
+      error: 'CoreHub policy requires official packages; "demo" is community.',
+    });
+    expect(downloadCoreHubPackageArchiveMock).not.toHaveBeenCalled();
+  });
+
+  it("blocks install when CoreHub policy disallows deprecated versions", async () => {
+    fetchCoreHubPackageVersionMock.mockResolvedValueOnce({
+      version: {
+        version: "2026.3.22",
+        createdAt: 0,
+        changelog: "",
+        status: "deprecated",
+      },
+    });
+
+    await expect(
+      installPluginFromCoreHub({
+        spec: "corehub:demo",
+        policy: { allowDeprecated: false },
+      }),
+    ).resolves.toMatchObject({
+      ok: false,
+      code: COREHUB_INSTALL_ERROR_CODE.POLICY_BLOCKED,
+      error: 'CoreHub policy blocks deprecated versions of "demo".',
+    });
+    expect(downloadCoreHubPackageArchiveMock).not.toHaveBeenCalled();
+  });
+
+  it("enforces CoreHub publisher and verification tier policy", async () => {
+    await expect(
+      installPluginFromCoreHub({
+        spec: "corehub:demo",
+        policy: {
+          allowedPublishers: ["coreblow"],
+          requiredVerificationTiers: ["source-linked"],
+        },
+      }),
+    ).resolves.toMatchObject({
+      ok: true,
+      pluginId: "demo",
+    });
+
+    await expect(
+      installPluginFromCoreHub({
+        spec: "corehub:demo",
+        policy: {
+          allowedPublishers: ["trusted-only"],
+        },
+      }),
+    ).resolves.toMatchObject({
+      ok: false,
+      code: COREHUB_INSTALL_ERROR_CODE.POLICY_BLOCKED,
+      error: 'CoreHub policy allows publishers trusted-only; "demo" is published by coreblow.',
+    });
   });
 
   it("detects stored CoreHub trust proof drift before update", async () => {

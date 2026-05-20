@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import type { PluginCoreHubPolicyConfig } from "../config/types.plugins.js";
 import {
   CoreHubRequestError,
   downloadCoreHubPackageArchive,
@@ -23,6 +24,7 @@ export const COREHUB_INSTALL_ERROR_CODE = {
   VERSION_NOT_FOUND: "version_not_found",
   NO_INSTALLABLE_VERSION: "no_installable_version",
   MODERATION_BLOCKED: "moderation_blocked",
+  POLICY_BLOCKED: "policy_blocked",
   TRUST_DRIFT: "trust_drift",
   SKILL_PACKAGE: "skill_package",
   UNSUPPORTED_FAMILY: "unsupported_family",
@@ -197,6 +199,55 @@ function warnCoreHubVersionModeration(params: {
       `CoreHub package "${params.packageName}" version ${params.version ?? "unknown"} is deprecated; install is allowed, but update soon.`,
     );
   }
+}
+
+function normalizeCoreHubPolicyList(values: string[] | undefined): string[] {
+  return (values ?? []).map((value) => value.trim()).filter(Boolean);
+}
+
+function validateCoreHubInstallPolicy(params: {
+  detail: CoreHubPackageDetail;
+  status?: CoreHubVersionModerationStatus | null;
+  policy?: PluginCoreHubPolicyConfig;
+}): CoreHubInstallFailure | null {
+  const policy = params.policy;
+  const pkg = params.detail.package;
+  if (!policy || !pkg) {
+    return null;
+  }
+  if (policy.allowCommunity === false && pkg.channel !== "official") {
+    return buildCoreHubInstallFailure(
+      `CoreHub policy requires official packages; "${pkg.name}" is ${pkg.channel}.`,
+      COREHUB_INSTALL_ERROR_CODE.POLICY_BLOCKED,
+    );
+  }
+  if (policy.allowDeprecated === false && params.status === "deprecated") {
+    return buildCoreHubInstallFailure(
+      `CoreHub policy blocks deprecated versions of "${pkg.name}".`,
+      COREHUB_INSTALL_ERROR_CODE.POLICY_BLOCKED,
+    );
+  }
+  const allowedPublishers = normalizeCoreHubPolicyList(policy.allowedPublishers);
+  if (allowedPublishers.length > 0) {
+    const publisherHandle = pkg.ownerHandle ?? params.detail.owner?.handle ?? "";
+    if (!allowedPublishers.includes(publisherHandle)) {
+      return buildCoreHubInstallFailure(
+        `CoreHub policy allows publishers ${allowedPublishers.join(", ")}; "${pkg.name}" is published by ${publisherHandle || "unknown"}.`,
+        COREHUB_INSTALL_ERROR_CODE.POLICY_BLOCKED,
+      );
+    }
+  }
+  const requiredVerificationTiers = normalizeCoreHubPolicyList(policy.requiredVerificationTiers);
+  if (requiredVerificationTiers.length > 0) {
+    const tier = pkg.verification?.tier ?? "";
+    if (!requiredVerificationTiers.includes(tier)) {
+      return buildCoreHubInstallFailure(
+        `CoreHub policy requires verification tier ${requiredVerificationTiers.join(", ")}; "${pkg.name}" has ${tier || "none"}.`,
+        COREHUB_INSTALL_ERROR_CODE.POLICY_BLOCKED,
+      );
+    }
+  }
+  return null;
 }
 
 function validateCoreHubPluginPackage(params: {
@@ -431,6 +482,7 @@ export async function installPluginFromCoreHub(params: {
   mode?: "install" | "update";
   dryRun?: boolean;
   expectedPluginId?: string;
+  policy?: PluginCoreHubPolicyConfig;
 }): Promise<
   | ({
       ok: true;
@@ -488,6 +540,14 @@ export async function installPluginFromCoreHub(params: {
   });
   if (moderationFailure) {
     return moderationFailure;
+  }
+  const policyFailure = validateCoreHubInstallPolicy({
+    detail,
+    status: versionState.status,
+    policy: params.policy,
+  });
+  if (policyFailure) {
+    return policyFailure;
   }
   warnCoreHubVersionModeration({
     packageName: parsed.name,

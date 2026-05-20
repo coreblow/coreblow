@@ -921,6 +921,15 @@ export const CoreBlowSchema = z
           })
           .strict()
           .optional(),
+        corehub: z
+          .object({
+            allowCommunity: z.boolean().optional(),
+            allowDeprecated: z.boolean().optional(),
+            allowedPublishers: z.array(z.string()).optional(),
+            requiredVerificationTiers: z.array(z.string()).optional(),
+          })
+          .strict()
+          .optional(),
         slots: z
           .object({
             memory: z.string().optional(),

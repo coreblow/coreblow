@@ -960,6 +960,16 @@ export const FIELD_HELP: Record<string, string> = {
     "Plugin loader configuration group for specifying filesystem paths where plugins are discovered. Keep load paths explicit and reviewed to avoid accidental untrusted extension loading.",
   "plugins.load.paths":
     "Additional plugin files or directories scanned by the loader beyond built-in defaults. Use dedicated extension directories and avoid broad paths with unrelated executable content.",
+  "plugins.corehub":
+    "CoreHub install policy for registry-backed plugins. Use this to enforce publisher, channel, and verification requirements before installing executable plugin artifacts.",
+  "plugins.corehub.allowCommunity":
+    "Allow CoreHub community packages. Set false to require official CoreHub packages only.",
+  "plugins.corehub.allowDeprecated":
+    "Allow deprecated CoreHub versions. Set false to block deprecated versions during install and update.",
+  "plugins.corehub.allowedPublishers":
+    "Optional allowlist of CoreHub publisher handles permitted for plugin installs and updates.",
+  "plugins.corehub.requiredVerificationTiers":
+    "Optional allowlist of CoreHub verification tiers permitted for plugin installs and updates.",
   "plugins.slots":
     "Selects which plugins own exclusive runtime slots such as memory so only one plugin provides that capability. Use explicit slot ownership to avoid overlapping providers with conflicting behavior.",
   "plugins.slots.memory":

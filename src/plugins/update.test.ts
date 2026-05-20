@@ -109,9 +109,11 @@ function createCoreHubInstallConfig(params: {
   artifactManifestSha256?: string;
   artifactStorageKey?: string;
   verifiedAt?: string;
+  corehubPolicy?: NonNullable<CoreBlowConfig["plugins"]>["corehub"];
 }): CoreBlowConfig {
   return {
     plugins: {
+      ...(params.corehubPolicy ? { corehub: params.corehubPolicy } : {}),
       installs: {
         [params.pluginId]: {
           source: "corehub" as const,
@@ -473,6 +475,10 @@ describe("updateNpmInstalledPlugins", () => {
         artifactManifestSha256: "old-manifest-sha256",
         artifactStorageKey: "plugins/demo/1.2.3/plugin.tgz",
         verifiedAt: "2026-03-21T00:00:00.000Z",
+        corehubPolicy: {
+          allowCommunity: false,
+          requiredVerificationTiers: ["source-linked"],
+        },
       }),
       pluginIds: ["demo"],
     });
@@ -483,6 +489,10 @@ describe("updateNpmInstalledPlugins", () => {
         baseUrl: "https://corehub.ai",
         expectedPluginId: "demo",
         mode: "update",
+        policy: {
+          allowCommunity: false,
+          requiredVerificationTiers: ["source-linked"],
+        },
       }),
     );
     expect(verifyCoreHubInstalledTrustRecordMock).toHaveBeenCalledWith(

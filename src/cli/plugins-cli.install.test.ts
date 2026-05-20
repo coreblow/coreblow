@@ -198,9 +198,14 @@ describe("plugins cli install", () => {
   });
 
   it("installs CoreHub plugins and persists source metadata", async () => {
+    const policy = {
+      allowCommunity: false,
+      requiredVerificationTiers: ["source-linked"],
+    };
     const cfg = {
       plugins: {
         entries: {},
+        corehub: policy,
       },
     } as CoreBlowConfig;
     const enabledCfg = createEnabledPluginConfig("demo");
@@ -238,6 +243,7 @@ describe("plugins cli install", () => {
     expect(installPluginFromCoreHub).toHaveBeenCalledWith(
       expect.objectContaining({
         spec: "corehub:demo",
+        policy,
       }),
     );
     expect(recordPluginInstall).toHaveBeenCalledWith(

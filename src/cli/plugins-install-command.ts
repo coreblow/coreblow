@@ -503,6 +503,7 @@ export async function runPluginInstallCommand(params: {
       spec: raw,
       logger: createPluginInstallLogger(),
       dryRun: opts.dryRun,
+      policy: cfg.plugins?.corehub,
     });
     if (!result.ok) {
       defaultRuntime.error(result.error);
@@ -557,6 +558,7 @@ export async function runPluginInstallCommand(params: {
       spec: preferredCoreHubSpec,
       logger: createPluginInstallLogger(),
       dryRun: opts.dryRun,
+      policy: cfg.plugins?.corehub,
     });
     if (corehubResult.ok) {
       if (opts.dryRun) {

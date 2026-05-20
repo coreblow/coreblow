@@ -11277,6 +11277,30 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
             },
             additionalProperties: false,
           },
+          corehub: {
+            type: "object",
+            properties: {
+              allowCommunity: {
+                type: "boolean",
+              },
+              allowDeprecated: {
+                type: "boolean",
+              },
+              allowedPublishers: {
+                type: "array",
+                items: {
+                  type: "string",
+                },
+              },
+              requiredVerificationTiers: {
+                type: "array",
+                items: {
+                  type: "string",
+                },
+              },
+            },
+            additionalProperties: false,
+          },
           slots: {
             type: "object",
             properties: {
@@ -15246,6 +15270,31 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
       label: "Plugin Load Paths",
       help: "Additional plugin files or directories scanned by the loader beyond built-in defaults. Use dedicated extension directories and avoid broad paths with unrelated executable content.",
       tags: ["storage"],
+    },
+    "plugins.corehub": {
+      label: "CoreHub Plugin Policy",
+      help: "CoreHub install policy for registry-backed plugins. Use this to enforce publisher, channel, and verification requirements before installing executable plugin artifacts.",
+      tags: ["security", "advanced"],
+    },
+    "plugins.corehub.allowCommunity": {
+      label: "Allow CoreHub Community Packages",
+      help: "Allow CoreHub community packages. Set false to require official CoreHub packages only.",
+      tags: ["access"],
+    },
+    "plugins.corehub.allowDeprecated": {
+      label: "Allow Deprecated CoreHub Versions",
+      help: "Allow deprecated CoreHub versions. Set false to block deprecated versions during install and update.",
+      tags: ["access"],
+    },
+    "plugins.corehub.allowedPublishers": {
+      label: "Allowed CoreHub Publishers",
+      help: "Optional allowlist of CoreHub publisher handles permitted for plugin installs and updates.",
+      tags: ["access"],
+    },
+    "plugins.corehub.requiredVerificationTiers": {
+      label: "Required CoreHub Verification Tiers",
+      help: "Optional allowlist of CoreHub verification tiers permitted for plugin installs and updates.",
+      tags: ["security"],
     },
     "plugins.slots": {
       label: "Plugin Slots",

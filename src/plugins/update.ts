@@ -416,6 +416,7 @@ export async function updateNpmInstalledPlugins(params: {
                   mode: "update",
                   dryRun: true,
                   expectedPluginId: pluginId,
+                  policy: params.config.plugins?.corehub,
                   logger,
                 })
               : await installPluginFromMarketplace({
@@ -512,6 +513,7 @@ export async function updateNpmInstalledPlugins(params: {
                 baseUrl: record.corehubUrl,
                 mode: "update",
                 expectedPluginId: pluginId,
+                policy: params.config.plugins?.corehub,
                 logger,
               })
             : await installPluginFromMarketplace({
