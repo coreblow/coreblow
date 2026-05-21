@@ -76,8 +76,9 @@ explicitly configured.
 - Use approval policy for shell execution and other sensitive tools.
 - Keep secrets in environment variables, credential refs, or configured secret
   providers rather than committing plaintext config.
-- Run `coreblow doctor` and `coreblow security audit` before exposing the
-  gateway or shipping a production image.
+- Run `coreblow doctor`, `coreblow security audit`, and
+  `coreblow plugins policy audit --refresh` before exposing the gateway or
+  shipping a production image with CoreHub-managed plugins.
 
 ## Highlights
 
@@ -143,6 +144,7 @@ Read the security guide before exposing the gateway:
 | Inspect model provider state | `coreblow models status` |
 | Send a channel message | `coreblow message send --help` |
 | Manage plugins | `coreblow plugins --help` |
+| Audit CoreHub plugin trust | `coreblow plugins policy audit --refresh` |
 | Manage exec approvals | `coreblow approvals --help` |
 | Run health checks and repairs | `coreblow doctor` |
 | Run security audit | `coreblow security audit` |
