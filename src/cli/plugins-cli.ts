@@ -66,6 +66,10 @@ export type PluginPolicyCheckOptions = {
   json?: boolean;
 };
 
+export type PluginPolicyAuditOptions = {
+  json?: boolean;
+};
+
 export type PluginUpdateOptions = {
   all?: boolean;
   dryRun?: boolean;
@@ -673,6 +677,25 @@ function buildCoreHubPolicyReport(config: CoreBlowConfig): {
   };
 }
 
+function summarizeCoreHubPolicyReport(report: ReturnType<typeof buildCoreHubPolicyReport>): {
+  ok: boolean;
+  total: number;
+  allowed: number;
+  blocked: number;
+  review: number;
+} {
+  const blocked = report.installed.filter((entry) => entry.status === "blocked").length;
+  const review = report.installed.filter((entry) => entry.status === "review").length;
+  const allowed = report.installed.filter((entry) => entry.status === "allowed").length;
+  return {
+    ok: blocked === 0,
+    total: report.installed.length,
+    allowed,
+    blocked,
+    review,
+  };
+}
+
 export function registerPluginsCli(program: Command) {
   const plugins = program
     .command("plugins")
@@ -1140,6 +1163,57 @@ export function registerPluginsCli(program: Command) {
         }).trimEnd(),
       );
       defaultRuntime.log(lines.join("\n"));
+    });
+
+  policy
+    .command("audit")
+    .description("Audit installed CoreHub plugins against the active install policy")
+    .option("--json", "Print JSON")
+    .action((opts: PluginPolicyAuditOptions) => {
+      const cfg = loadConfig();
+      const report = buildCoreHubPolicyReport(cfg);
+      const summary = summarizeCoreHubPolicyReport(report);
+      const jsonOutput = Boolean(opts.json || policy.opts<PluginPolicyOptions>().json);
+      if (jsonOutput) {
+        defaultRuntime.writeJson({
+          ...summary,
+          policy: report.policy,
+          configured: report.configured,
+          installed: report.installed,
+        });
+        if (!summary.ok) {
+          return defaultRuntime.exit(1);
+        }
+        return;
+      }
+
+      const result = summary.ok ? theme.success("passed") : theme.error("failed");
+      const lines = [
+        theme.heading("CoreHub policy audit"),
+        `${theme.muted("Result:")} ${result}`,
+        `${theme.muted("Installed CoreHub plugins:")} ${summary.total}`,
+        `${theme.muted("Allowed:")} ${summary.allowed}`,
+        `${theme.muted("Blocked:")} ${summary.blocked}`,
+      ];
+      if (summary.review > 0) {
+        lines.push(`${theme.muted("Review:")} ${summary.review}`);
+      }
+      const flagged = report.installed.filter((entry) => entry.status !== "allowed");
+      if (flagged.length > 0) {
+        lines.push("");
+        for (const entry of flagged) {
+          lines.push(
+            `${entry.status.toUpperCase()}: ${entry.pluginId} (${entry.packageName}@${entry.version ?? "unknown"})`,
+          );
+          for (const note of entry.notes) {
+            lines.push(`  - ${note}`);
+          }
+        }
+      }
+      defaultRuntime.log(lines.join("\n"));
+      if (!summary.ok) {
+        return defaultRuntime.exit(1);
+      }
     });
 
   policy

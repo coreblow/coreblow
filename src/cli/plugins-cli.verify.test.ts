@@ -298,6 +298,58 @@ describe("plugins cli verify", () => {
     });
   });
 
+  it("passes installed CoreHub policy audit when records satisfy policy", async () => {
+    await runPluginsCommand(["plugins", "policy", "audit", "--json"]);
+
+    const payload = JSON.parse(runtimeLogs.at(-1) ?? "{}") as {
+      ok?: boolean;
+      total?: number;
+      allowed?: number;
+      blocked?: number;
+    };
+    expect(payload).toMatchObject({
+      ok: true,
+      total: 1,
+      allowed: 1,
+      blocked: 0,
+    });
+  });
+
+  it("fails installed CoreHub policy audit when records violate policy", async () => {
+    loadConfig.mockReturnValue({
+      plugins: {
+        corehub: {
+          allowCommunity: false,
+          allowedPublishers: ["coreblow"],
+          requiredVerificationTiers: ["source-linked"],
+        },
+        installs: {
+          "plugin-lab": {
+            source: "corehub",
+            spec: "corehub:plugin-lab@0.1.0",
+            corehubPackage: "plugin-lab",
+            corehubFamily: "code-plugin",
+            corehubChannel: "community",
+            corehubVerificationTier: "community",
+            publisherHandle: "community-dev",
+            version: "0.1.0",
+          },
+        },
+      },
+    } as CoreBlowConfig);
+
+    await expect(runPluginsCommand(["plugins", "policy", "audit"])).rejects.toThrow(
+      "__exit__:1",
+    );
+
+    const output = runtimeLogs.join("\n");
+    expect(output).toContain("CoreHub policy audit");
+    expect(output).toContain("Result: failed");
+    expect(output).toContain("BLOCKED: plugin-lab");
+    expect(output).toContain("requires official channel; found community");
+    expect(output).toContain("publisher community-dev is not allowed");
+  });
+
   it("checks a CoreHub package against active policy before install", async () => {
     parseCoreHubPluginSpec.mockReturnValue({ name: "plugin-lab" });
     fetchCoreHubPackageDetail.mockResolvedValue({
