@@ -62,6 +62,10 @@ export type PluginPolicyOptions = {
   json?: boolean;
 };
 
+export type PluginPolicyCheckOptions = {
+  json?: boolean;
+};
+
 export type PluginUpdateOptions = {
   all?: boolean;
   dryRun?: boolean;
@@ -532,6 +536,7 @@ type CoreHubPolicyEvaluation = {
   channel?: string;
   publisherHandle?: string;
   verificationTier?: string;
+  registryStatus?: string | null;
   status: CoreHubPolicyEvaluationStatus;
   notes: string[];
 };
@@ -568,6 +573,81 @@ function evaluateCoreHubInstallPolicy(params: {
     verificationTier: install.corehubVerificationTier,
     status: notes.length > 0 ? "blocked" : "allowed",
     notes,
+  };
+}
+
+async function buildCoreHubPolicyCandidateReport(params: {
+  spec: string;
+  config: CoreBlowConfig;
+}): Promise<CoreHubPolicyEvaluation & { configured: boolean; policy: PluginCoreHubPolicyConfig }> {
+  const parsed = parseCoreHubPluginSpec(params.spec);
+  if (!parsed?.name) {
+    throw new Error(`Invalid CoreHub package spec: ${params.spec}`);
+  }
+  const policy = params.config.plugins?.corehub ?? {};
+  const detail = await fetchCoreHubPackageDetail({ name: parsed.name });
+  const pkg = detail.package;
+  if (!pkg) {
+    throw new Error(`CoreHub package not found: ${parsed.name}`);
+  }
+  const version = parsed.version ?? pkg.latestVersion ?? pkg.tags?.latest ?? null;
+  if (!version) {
+    throw new Error(`CoreHub package has no installable version: ${parsed.name}`);
+  }
+  const versionDetail = await fetchCoreHubPackageVersion({
+    name: parsed.name,
+    version,
+  });
+  const registryVersion = versionDetail.version;
+  if (!registryVersion) {
+    throw new Error(`CoreHub package version not found: ${parsed.name}@${version}`);
+  }
+  const corehubFamily =
+    pkg.family === "code-plugin" || pkg.family === "bundle-plugin" ? pkg.family : null;
+  if (!corehubFamily) {
+    throw new Error(`CoreHub package is not an installable plugin: ${parsed.name}`);
+  }
+
+  const publisherHandle =
+    registryVersion.publisher?.handle ?? detail.owner?.handle ?? pkg.ownerHandle ?? undefined;
+  const verificationTier = registryVersion.verification?.tier ?? pkg.verification?.tier;
+  const install: PluginInstallRecord = {
+    source: "corehub",
+    corehubPackage: parsed.name,
+    corehubFamily,
+    corehubChannel: pkg.channel,
+    corehubVerificationTier: verificationTier,
+    publisherHandle: publisherHandle ?? undefined,
+    version: registryVersion.version,
+  };
+  const evaluation = evaluateCoreHubInstallPolicy({
+    pluginId: parsed.name,
+    install,
+    policy,
+  });
+  const notes = [...evaluation.notes];
+  if (registryVersion.status === "blocked") {
+    notes.push("registry marks this version as blocked");
+  } else if (registryVersion.status === "deprecated" && policy.allowDeprecated === false) {
+    notes.push("deprecated versions are blocked by policy");
+  } else if (registryVersion.status === "deprecated") {
+    notes.push("registry marks this version as deprecated");
+  }
+
+  return {
+    ...evaluation,
+    registryStatus: registryVersion.status,
+    status:
+      registryVersion.status === "blocked" ||
+      (registryVersion.status === "deprecated" && policy.allowDeprecated === false) ||
+      evaluation.status === "blocked"
+        ? "blocked"
+        : notes.length > 0
+          ? "review"
+          : "allowed",
+    notes,
+    configured: Boolean(params.config.plugins?.corehub),
+    policy,
   };
 }
 
@@ -998,7 +1078,7 @@ export function registerPluginsCli(program: Command) {
       }
     });
 
-  plugins
+  const policy = plugins
     .command("policy")
     .description("Show active CoreHub plugin install policy")
     .option("--json", "Print JSON")
@@ -1060,6 +1140,66 @@ export function registerPluginsCli(program: Command) {
         }).trimEnd(),
       );
       defaultRuntime.log(lines.join("\n"));
+    });
+
+  policy
+    .command("check")
+    .description("Check a CoreHub package against the active plugin install policy")
+    .argument("<spec>", "CoreHub package spec")
+    .option("--json", "Print JSON")
+    .action(async (spec: string, opts: PluginPolicyCheckOptions) => {
+      const cfg = loadConfig();
+      const jsonOutput = Boolean(opts.json || policy.opts<PluginPolicyOptions>().json);
+      let report: Awaited<ReturnType<typeof buildCoreHubPolicyCandidateReport>>;
+      try {
+        report = await buildCoreHubPolicyCandidateReport({ spec, config: cfg });
+      } catch (error) {
+        if (jsonOutput) {
+          defaultRuntime.writeJson({
+            ok: false,
+            spec,
+            error: error instanceof Error ? error.message : String(error),
+          });
+          return;
+        }
+        defaultRuntime.error(error instanceof Error ? error.message : String(error));
+        return defaultRuntime.exit(1);
+      }
+
+      if (jsonOutput) {
+        defaultRuntime.writeJson({
+          ok: report.status === "allowed",
+          ...report,
+        });
+        if (report.status === "blocked") {
+          return defaultRuntime.exit(1);
+        }
+        return;
+      }
+
+      const status =
+        report.status === "allowed"
+          ? theme.success("allowed")
+          : report.status === "blocked"
+            ? theme.error("blocked")
+            : theme.warn("review");
+      const lines = [
+        theme.heading(`CoreHub policy check: ${report.packageName}`),
+        `${theme.muted("Configured:")} ${report.configured ? "yes" : "no"}`,
+        `${theme.muted("Version:")} ${report.version ?? "-"}`,
+        `${theme.muted("Channel:")} ${report.channel ?? "-"}`,
+        `${theme.muted("Publisher:")} ${report.publisherHandle ?? "-"}`,
+        `${theme.muted("Verification tier:")} ${report.verificationTier ?? "-"}`,
+        `${theme.muted("Registry status:")} ${report.registryStatus ?? "available"}`,
+        `${theme.muted("Policy result:")} ${status}`,
+      ];
+      if (report.notes.length > 0) {
+        lines.push("", theme.muted("Notes:"), ...report.notes.map((note) => `- ${note}`));
+      }
+      defaultRuntime.log(lines.join("\n"));
+      if (report.status === "blocked") {
+        return defaultRuntime.exit(1);
+      }
     });
 
   plugins

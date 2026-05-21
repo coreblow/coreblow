@@ -297,4 +297,104 @@ describe("plugins cli verify", () => {
       ],
     });
   });
+
+  it("checks a CoreHub package against active policy before install", async () => {
+    parseCoreHubPluginSpec.mockReturnValue({ name: "plugin-lab" });
+    fetchCoreHubPackageDetail.mockResolvedValue({
+      package: {
+        name: "plugin-lab",
+        displayName: "Plugin Lab",
+        family: "code-plugin",
+        channel: "official",
+        isOfficial: true,
+        ownerHandle: "coreblow",
+        createdAt: 0,
+        updatedAt: 0,
+        latestVersion: "0.1.0",
+        verification: {
+          tier: "source-linked",
+        },
+      },
+      owner: {
+        handle: "coreblow",
+      },
+    });
+    fetchCoreHubPackageVersion.mockResolvedValue({
+      version: {
+        version: "0.1.0",
+        createdAt: 0,
+        changelog: "",
+        status: "available",
+        publisher: {
+          handle: "coreblow",
+        },
+        verification: {
+          tier: "source-linked",
+        },
+      },
+    });
+
+    await runPluginsCommand(["plugins", "policy", "check", "corehub:plugin-lab"]);
+
+    const output = runtimeLogs.join("\n");
+    expect(fetchCoreHubPackageDetail).toHaveBeenCalledWith({ name: "plugin-lab" });
+    expect(fetchCoreHubPackageVersion).toHaveBeenCalledWith({
+      name: "plugin-lab",
+      version: "0.1.0",
+    });
+    expect(output).toContain("CoreHub policy check: plugin-lab");
+    expect(output).toContain("Policy result: allowed");
+  });
+
+  it("fails policy check when a CoreHub package violates active policy", async () => {
+    parseCoreHubPluginSpec.mockReturnValue({ name: "plugin-lab" });
+    fetchCoreHubPackageDetail.mockResolvedValue({
+      package: {
+        name: "plugin-lab",
+        displayName: "Plugin Lab",
+        family: "code-plugin",
+        channel: "community",
+        isOfficial: false,
+        ownerHandle: "community-dev",
+        createdAt: 0,
+        updatedAt: 0,
+        latestVersion: "0.1.0",
+        verification: {
+          tier: "community",
+        },
+      },
+      owner: {
+        handle: "community-dev",
+      },
+    });
+    fetchCoreHubPackageVersion.mockResolvedValue({
+      version: {
+        version: "0.1.0",
+        createdAt: 0,
+        changelog: "",
+        status: "available",
+        publisher: {
+          handle: "community-dev",
+        },
+        verification: {
+          tier: "community",
+        },
+      },
+    });
+
+    await expect(
+      runPluginsCommand(["plugins", "policy", "check", "corehub:plugin-lab", "--json"]),
+    ).rejects.toThrow("__exit__:1");
+
+    const payload = JSON.parse(runtimeLogs.at(-1) ?? "{}") as {
+      ok?: boolean;
+      status?: string;
+      notes?: string[];
+    };
+    expect(payload.ok).toBe(false);
+    expect(payload.status).toBe("blocked");
+    expect(payload.notes).toContain("requires official channel; found community");
+    expect(payload.notes).toContain("publisher community-dev is not allowed");
+    expect(payload.notes).toContain("verification tier community is not allowed");
+  });
 });
