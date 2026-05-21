@@ -315,6 +315,116 @@ describe("plugins cli verify", () => {
     });
   });
 
+  it("refreshes installed CoreHub policy audit against Registry metadata", async () => {
+    fetchCoreHubPackageDetail.mockResolvedValue({
+      package: {
+        name: "plugin-lab",
+        ownerHandle: "coreblow",
+        verification: {
+          tier: "source-linked",
+        },
+      },
+      owner: {
+        handle: "coreblow",
+      },
+    });
+    fetchCoreHubPackageVersion.mockResolvedValue({
+      version: {
+        version: "0.1.0",
+        status: "available",
+        publisher: {
+          handle: "coreblow",
+        },
+        artifact: {
+          size: 736,
+          sha256: "artifact-sha256",
+          storage: {
+            key: "artifacts/plugin-lab-0.1.0.coreblow-plugin.tgz",
+          },
+          files: [
+            {
+              path: "corehub.artifact.json",
+              sha256: "manifest-sha256",
+            },
+          ],
+        },
+      },
+    });
+
+    await runPluginsCommand(["plugins", "policy", "audit", "--refresh", "--json"]);
+
+    const payload = JSON.parse(runtimeLogs.at(-1) ?? "{}") as {
+      ok?: boolean;
+      refresh?: { ok?: boolean; refreshed?: Array<{ pluginId?: string; ok?: boolean }> };
+    };
+    expect(payload.ok).toBe(true);
+    expect(payload.refresh).toMatchObject({
+      ok: true,
+      refreshed: [
+        {
+          pluginId: "plugin-lab",
+          ok: true,
+        },
+      ],
+    });
+    expect(fetchCoreHubPackageVersion).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "plugin-lab",
+        version: "0.1.0",
+        baseUrl: "https://coreblow.com/corehub",
+      }),
+    );
+  });
+
+  it("fails installed CoreHub policy audit refresh when Registry trust changes", async () => {
+    fetchCoreHubPackageDetail.mockResolvedValue({
+      package: {
+        name: "plugin-lab",
+        ownerHandle: "coreblow",
+        verification: {
+          tier: "source-linked",
+        },
+      },
+      owner: {
+        handle: "coreblow",
+      },
+    });
+    fetchCoreHubPackageVersion.mockResolvedValue({
+      version: {
+        version: "0.1.0",
+        status: "blocked",
+        publisher: {
+          handle: "coreblow",
+        },
+        artifact: {
+          size: 736,
+          sha256: "changed-sha256",
+          storage: {
+            key: "artifacts/plugin-lab-0.1.0.coreblow-plugin.tgz",
+          },
+          files: [
+            {
+              path: "corehub.artifact.json",
+              sha256: "manifest-sha256",
+            },
+          ],
+        },
+      },
+    });
+
+    await expect(runPluginsCommand(["plugins", "policy", "audit", "--refresh"])).rejects.toThrow(
+      "__exit__:1",
+    );
+
+    const output = runtimeLogs.join("\n");
+    expect(output).toContain("CoreHub policy audit");
+    expect(output).toContain("Result: failed");
+    expect(output).toContain("Registry refresh:");
+    expect(output).toContain("plugin-lab: failed status=blocked");
+    expect(output).toContain("artifactSha256: changed");
+    expect(output).toContain("Registry marks this version as blocked.");
+  });
+
   it("fails installed CoreHub policy audit when records violate policy", async () => {
     loadConfig.mockReturnValue({
       plugins: {

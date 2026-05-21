@@ -68,6 +68,7 @@ export type PluginPolicyCheckOptions = {
 
 export type PluginPolicyAuditOptions = {
   json?: boolean;
+  refresh?: boolean;
 };
 
 export type PluginUpdateOptions = {
@@ -696,6 +697,45 @@ function summarizeCoreHubPolicyReport(report: ReturnType<typeof buildCoreHubPoli
   };
 }
 
+type CoreHubPolicyAuditRefreshEntry = {
+  pluginId: string;
+  ok: boolean;
+  refresh?: PluginTrustRefreshResult;
+  error?: string;
+};
+
+async function refreshCoreHubPolicyAudit(report: ReturnType<typeof buildCoreHubPolicyReport>, config: CoreBlowConfig): Promise<{
+  ok: boolean;
+  refreshed: CoreHubPolicyAuditRefreshEntry[];
+}> {
+  const installed = config.plugins?.installs ?? {};
+  const refreshed: CoreHubPolicyAuditRefreshEntry[] = [];
+  for (const entry of report.installed) {
+    const install = installed[entry.pluginId];
+    if (!install || install.source !== "corehub") {
+      continue;
+    }
+    try {
+      const refresh = await refreshPluginTrustProof(install);
+      refreshed.push({
+        pluginId: entry.pluginId,
+        ok: refresh.ok,
+        refresh,
+      });
+    } catch (error) {
+      refreshed.push({
+        pluginId: entry.pluginId,
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+  return {
+    ok: refreshed.every((entry) => entry.ok),
+    refreshed,
+  };
+}
+
 export function registerPluginsCli(program: Command) {
   const plugins = program
     .command("plugins")
@@ -1169,25 +1209,30 @@ export function registerPluginsCli(program: Command) {
     .command("audit")
     .description("Audit installed CoreHub plugins against the active install policy")
     .option("--json", "Print JSON")
-    .action((opts: PluginPolicyAuditOptions) => {
+    .option("--refresh", "Refresh recorded trust proofs against CoreHub Registry metadata", false)
+    .action(async (opts: PluginPolicyAuditOptions) => {
       const cfg = loadConfig();
       const report = buildCoreHubPolicyReport(cfg);
       const summary = summarizeCoreHubPolicyReport(report);
       const jsonOutput = Boolean(opts.json || policy.opts<PluginPolicyOptions>().json);
+      const refresh = opts.refresh ? await refreshCoreHubPolicyAudit(report, cfg) : undefined;
+      const ok = summary.ok && (refresh?.ok ?? true);
       if (jsonOutput) {
         defaultRuntime.writeJson({
           ...summary,
+          ok,
           policy: report.policy,
           configured: report.configured,
           installed: report.installed,
+          ...(refresh ? { refresh } : {}),
         });
-        if (!summary.ok) {
+        if (!ok) {
           return defaultRuntime.exit(1);
         }
         return;
       }
 
-      const result = summary.ok ? theme.success("passed") : theme.error("failed");
+      const result = ok ? theme.success("passed") : theme.error("failed");
       const lines = [
         theme.heading("CoreHub policy audit"),
         `${theme.muted("Result:")} ${result}`,
@@ -1210,8 +1255,31 @@ export function registerPluginsCli(program: Command) {
           }
         }
       }
+      if (refresh) {
+        lines.push("");
+        lines.push(theme.muted("Registry refresh:"));
+        for (const entry of refresh.refreshed) {
+          const marker = entry.ok ? theme.success("verified") : theme.error("failed");
+          const registryStatus = entry.refresh?.registryStatus
+            ? ` status=${entry.refresh.registryStatus}`
+            : "";
+          lines.push(`${entry.pluginId}: ${marker}${registryStatus}`);
+          if (entry.error) {
+            lines.push(`  ${entry.error}`);
+          }
+          for (const check of entry.refresh?.checks ?? []) {
+            if (check.status === "verified" || check.status === "unknown") {
+              continue;
+            }
+            lines.push(`  ${check.name}: ${check.status}`);
+            if (check.message) {
+              lines.push(`    ${check.message}`);
+            }
+          }
+        }
+      }
       defaultRuntime.log(lines.join("\n"));
-      if (!summary.ok) {
+      if (!ok) {
         return defaultRuntime.exit(1);
       }
     });
