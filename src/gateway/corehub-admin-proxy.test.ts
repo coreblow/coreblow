@@ -166,6 +166,43 @@ describe("CoreHub admin proxy", () => {
     );
   });
 
+  it("allows gated review assignment and evidence writes upstream", async () => {
+    await post(
+      "/api/corehub/v2/reviews/rev_123/assign",
+      { assignee: "github:reviewer" },
+      {
+        "x-corehub-registry-url": "https://coreblow.com/corehub/",
+        "x-corehub-token": "corehub-token",
+      },
+    );
+
+    await post(
+      "/api/corehub/v2/reviews/rev_123/evidence",
+      { type: "manual_note", summary: "verified publisher claim" },
+      {
+        "x-corehub-registry-url": "https://coreblow.com/corehub/",
+        "x-corehub-token": "corehub-token",
+      },
+    );
+
+    expect(upstreamFetchMock).toHaveBeenNthCalledWith(
+      1,
+      "https://coreblow.com/corehub/api/v2/reviews/rev_123/assign",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ assignee: "github:reviewer" }),
+      }),
+    );
+    expect(upstreamFetchMock).toHaveBeenNthCalledWith(
+      2,
+      "https://coreblow.com/corehub/api/v2/reviews/rev_123/evidence",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ type: "manual_note", summary: "verified publisher claim" }),
+      }),
+    );
+  });
+
   it("keeps non-review CoreHub writes blocked", async () => {
     const response = await fetch(`http://127.0.0.1:${port}/api/corehub/v2/submissions`, {
       method: "POST",

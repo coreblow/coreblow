@@ -15,7 +15,8 @@ export const DEFAULT_COREHUB_REGISTRY_URL = "https://coreblow.com/corehub";
 
 const COREHUB_PROXY_PREFIX = "/api/corehub/";
 const COREHUB_API_PATH_RE = /^\/api\/corehub\/(?<version>v[0-9]+)(?<path>\/.*)?$/;
-const COREHUB_REVIEW_ACTION_RE = /^\/api\/corehub\/v2\/reviews\/[^/]+\/(?:approve|block)$/;
+const COREHUB_REVIEW_ACTION_RE =
+  /^\/api\/corehub\/v2\/reviews\/[^/]+\/(?:approve|block|assign|evidence)$/;
 const COREHUB_PROXY_MAX_BODY_BYTES = 64 * 1024;
 
 function isAllowedCoreHubProxyMethod(method: string, pathname: string): boolean {

@@ -101,17 +101,38 @@ type ReviewEntry = {
   id?: string;
   submissionId?: string;
   status?: string;
+  assignee?: string;
   assignedTo?: string;
   moderationStatus?: string;
   createdAt?: string;
+  evidence?: ReviewEvidenceEntry[];
 };
 
-type CoreHubReviewAction = "approve" | "block";
+type ReviewEvidenceEntry = {
+  id?: string;
+  type?: string;
+  summary?: string;
+  actor?: string | { id?: string };
+  createdAt?: string;
+};
+
+type ReviewInspection = {
+  moderationReview?: ReviewEntry;
+  submission?: SubmissionEntry;
+  artifactUpload?: { id?: string; checksum?: string; sha256?: string; status?: string };
+  packageVersionPreview?: { id?: string; packageId?: string; version?: string };
+  packageVersion?: { id?: string; packageId?: string; version?: string; status?: string } | null;
+};
+
+type CoreHubReviewAction = "approve" | "block" | "assign" | "evidence";
 
 type PendingReviewAction = {
   reviewId: string;
   action: CoreHubReviewAction;
   reason: string;
+  assignee: string;
+  evidenceType: string;
+  evidenceSummary: string;
 };
 
 type ListResponse<T> = {
@@ -131,6 +152,10 @@ export class CoreHubView extends LitElement {
   @state() private supportBundle: SupportBundle | null = null;
   @state() private submissions: SubmissionEntry[] = [];
   @state() private reviews: ReviewEntry[] = [];
+  @state() private selectedReviewId = "";
+  @state() private reviewInspection: ReviewInspection | null = null;
+  @state() private reviewDetailLoading = false;
+  @state() private reviewDetailError = "";
   @state() private pendingReviewAction: PendingReviewAction | null = null;
   @state() private reviewActionLoading = false;
   @state() private reviewActionError = "";
@@ -237,6 +262,13 @@ export class CoreHubView extends LitElement {
     return response.data ?? response.items ?? response[key] ?? [];
   }
 
+  private extractData<T>(response: T | { data?: T }): T {
+    if (response && typeof response === "object" && "data" in response) {
+      return ((response as { data?: T }).data ?? response) as T;
+    }
+    return response as T;
+  }
+
   private openAdmin() {
     window.open(coreHubAdminUrl(this.registryUrl), "_blank", "noopener,noreferrer");
   }
@@ -253,6 +285,9 @@ export class CoreHubView extends LitElement {
       reviewId,
       action,
       reason: "",
+      assignee: review.assignee ?? review.assignedTo ?? this.actor,
+      evidenceType: "manual_note",
+      evidenceSummary: "",
     };
   }
 
@@ -264,6 +299,43 @@ export class CoreHubView extends LitElement {
   private updateReviewActionReason(value: string) {
     if (!this.pendingReviewAction) return;
     this.pendingReviewAction = { ...this.pendingReviewAction, reason: value };
+  }
+
+  private updateReviewActionAssignee(value: string) {
+    if (!this.pendingReviewAction) return;
+    this.pendingReviewAction = { ...this.pendingReviewAction, assignee: value };
+  }
+
+  private updateReviewActionEvidenceType(value: string) {
+    if (!this.pendingReviewAction) return;
+    this.pendingReviewAction = { ...this.pendingReviewAction, evidenceType: value };
+  }
+
+  private updateReviewActionEvidenceSummary(value: string) {
+    if (!this.pendingReviewAction) return;
+    this.pendingReviewAction = { ...this.pendingReviewAction, evidenceSummary: value };
+  }
+
+  private async loadReviewDetail(review: ReviewEntry) {
+    const reviewId = review.id?.trim();
+    if (!reviewId) {
+      this.reviewDetailError = "Review id is missing.";
+      return;
+    }
+    this.selectedReviewId = reviewId;
+    this.reviewInspection = null;
+    this.reviewDetailError = "";
+    this.reviewDetailLoading = true;
+    try {
+      const response = await this.fetchJson<ReviewInspection | { data?: ReviewInspection }>(
+        `/reviews/${encodeURIComponent(reviewId)}`,
+      );
+      this.reviewInspection = this.extractData(response);
+    } catch (error) {
+      this.reviewDetailError = error instanceof Error ? error.message : String(error);
+    } finally {
+      this.reviewDetailLoading = false;
+    }
   }
 
   private async confirmReviewAction() {
@@ -282,12 +354,37 @@ export class CoreHubView extends LitElement {
     this.reviewActionError = "";
     this.reviewActionNotice = "";
     try {
-      await this.postJson(`/reviews/${encodeURIComponent(pending.reviewId)}/${pending.action}`, {
-        reason: pending.reason.trim() || undefined,
-      });
-      this.reviewActionNotice = `Review ${pending.reviewId} ${pending.action === "approve" ? "approved" : "blocked"}.`;
+      if (pending.action === "assign") {
+        const assignee = pending.assignee.trim();
+        if (!assignee) {
+          this.reviewActionError = "Assignee is required.";
+          return;
+        }
+        await this.postJson(`/reviews/${encodeURIComponent(pending.reviewId)}/assign`, { assignee });
+        this.reviewActionNotice = `Review ${pending.reviewId} assigned to ${assignee}.`;
+      } else if (pending.action === "evidence") {
+        const summary = pending.evidenceSummary.trim();
+        if (!summary) {
+          this.reviewActionError = "Evidence summary is required.";
+          return;
+        }
+        await this.postJson(`/reviews/${encodeURIComponent(pending.reviewId)}/evidence`, {
+          type: pending.evidenceType.trim() || "manual_note",
+          summary,
+        });
+        this.reviewActionNotice = `Review evidence added to ${pending.reviewId}.`;
+      } else {
+        await this.postJson(`/reviews/${encodeURIComponent(pending.reviewId)}/${pending.action}`, {
+          reason: pending.reason.trim() || undefined,
+        });
+        this.reviewActionNotice = `Review ${pending.reviewId} ${pending.action === "approve" ? "approved" : "blocked"}.`;
+      }
       this.pendingReviewAction = null;
       await this.loadCoreHub();
+      const selectedReview = this.reviews.find((review) => review.id === this.selectedReviewId);
+      if (selectedReview) {
+        await this.loadReviewDetail(selectedReview);
+      }
     } catch (error) {
       this.reviewActionError = error instanceof Error ? error.message : String(error);
     } finally {
@@ -383,6 +480,8 @@ export class CoreHubView extends LitElement {
           ${this.renderSubmissions()}
           ${this.renderReviews()}
         </div>
+
+        ${this.renderReviewDetail()}
 
         <div class="card">
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
@@ -505,10 +604,28 @@ export class CoreHubView extends LitElement {
               <tr>
                 <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--foreground);">${entry.id ?? "unknown"}</td>
                 <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--foreground);">${entry.submissionId ?? "unknown"}</td>
-                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--foreground);">${entry.assignedTo ?? "unassigned"}</td>
+                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--foreground);">${entry.assignee ?? entry.assignedTo ?? "unassigned"}</td>
                 <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--foreground);">${this.formatDate(entry.createdAt)}</td>
                 <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.04);">
                   <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    <button
+                      style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 4px 8px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 11px;"
+                      ?disabled=${this.reviewDetailLoading}
+                      @click=${() => this.loadReviewDetail(entry)}>
+                      Details
+                    </button>
+                    <button
+                      style="background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.35); padding: 4px 8px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 11px;"
+                      ?disabled=${this.reviewActionLoading}
+                      @click=${() => this.requestReviewAction(entry, "assign")}>
+                      Assign
+                    </button>
+                    <button
+                      style="background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.35); padding: 4px 8px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 11px;"
+                      ?disabled=${this.reviewActionLoading}
+                      @click=${() => this.requestReviewAction(entry, "evidence")}>
+                      Evidence
+                    </button>
                     <button
                       style="background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.35); padding: 4px 8px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 11px;"
                       ?disabled=${this.reviewActionLoading}
@@ -534,19 +651,54 @@ export class CoreHubView extends LitElement {
   private renderReviewActionConfirmation() {
     const pending = this.pendingReviewAction;
     if (!pending) return nothing;
-    const actionLabel = pending.action === "approve" ? "Approve" : "Block";
+    const actionLabel = this.reviewActionLabel(pending.action);
+    const actionTone = pending.action === "approve"
+      ? "rgba(34,197,94,0.85)"
+      : pending.action === "block"
+        ? "rgba(239,68,68,0.85)"
+        : "rgba(59,130,246,0.85)";
     return html`
-      <div class="card" style="border-color: ${pending.action === 'approve' ? 'rgba(34,197,94,0.35)' : 'rgba(239,68,68,0.35)'};">
+      <div class="card" style="border-color: ${pending.action === 'block' ? 'rgba(239,68,68,0.35)' : 'rgba(59,130,246,0.35)'};">
         <div class="card-title">${actionLabel} Review</div>
         <div class="card-sub">Confirm ${pending.action} for ${pending.reviewId}. This will call CoreHub through the CoreBlow Gateway proxy.</div>
-        <label style="margin-top: 12px; display: grid; gap: 6px;">
-          <span style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Reason</span>
-          <textarea
-            style="min-height: 72px; background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-family: var(--mono); font-size: 12px;"
-            .value=${pending.reason}
-            @input=${(event: Event) => this.updateReviewActionReason((event.target as HTMLTextAreaElement).value)}
-          ></textarea>
-        </label>
+        ${pending.action === "assign" ? html`
+          <label style="margin-top: 12px; display: grid; gap: 6px;">
+            <span style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Assignee</span>
+            <input
+              style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-family: var(--mono); font-size: 12px;"
+              .value=${pending.assignee}
+              @input=${(event: Event) => this.updateReviewActionAssignee((event.target as HTMLInputElement).value)}
+            />
+          </label>
+        ` : pending.action === "evidence" ? html`
+          <div style="margin-top: 12px; display: grid; gap: 10px;">
+            <label style="display: grid; gap: 6px;">
+              <span style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Evidence Type</span>
+              <input
+                style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-family: var(--mono); font-size: 12px;"
+                .value=${pending.evidenceType}
+                @input=${(event: Event) => this.updateReviewActionEvidenceType((event.target as HTMLInputElement).value)}
+              />
+            </label>
+            <label style="display: grid; gap: 6px;">
+              <span style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Evidence Summary</span>
+              <textarea
+                style="min-height: 72px; background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-family: var(--mono); font-size: 12px;"
+                .value=${pending.evidenceSummary}
+                @input=${(event: Event) => this.updateReviewActionEvidenceSummary((event.target as HTMLTextAreaElement).value)}
+              ></textarea>
+            </label>
+          </div>
+        ` : html`
+          <label style="margin-top: 12px; display: grid; gap: 6px;">
+            <span style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Reason</span>
+            <textarea
+              style="min-height: 72px; background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-family: var(--mono); font-size: 12px;"
+              .value=${pending.reason}
+              @input=${(event: Event) => this.updateReviewActionReason((event.target as HTMLTextAreaElement).value)}
+            ></textarea>
+          </label>
+        `}
         <div style="margin-top: 12px; display: flex; gap: 8px; justify-content: flex-end;">
           <button
             style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px;"
@@ -555,12 +707,69 @@ export class CoreHubView extends LitElement {
             Cancel
           </button>
           <button
-            style="background: ${pending.action === 'approve' ? 'rgba(34,197,94,0.85)' : 'rgba(239,68,68,0.85)'}; border: 1px solid transparent; padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: white; font-size: 12px; font-weight: 700;"
+            style="background: ${actionTone}; border: 1px solid transparent; padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: white; font-size: 12px; font-weight: 700;"
             ?disabled=${this.reviewActionLoading}
             @click=${() => this.confirmReviewAction()}>
             ${this.reviewActionLoading ? "Working..." : actionLabel}
           </button>
         </div>
+      </div>
+    `;
+  }
+
+  private reviewActionLabel(action: CoreHubReviewAction): string {
+    if (action === "approve") return "Approve";
+    if (action === "block") return "Block";
+    if (action === "assign") return "Assign";
+    return "Add Evidence";
+  }
+
+  private renderReviewDetail() {
+    if (!this.selectedReviewId && !this.reviewDetailError) return nothing;
+    const inspection = this.reviewInspection;
+    const review = inspection?.moderationReview;
+    const evidence = review?.evidence ?? [];
+    return html`
+      <div class="card">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+          <div style="flex: 1;">
+            <div class="card-title">Review Detail</div>
+            <div class="card-sub">${this.selectedReviewId || "Select a review to inspect evidence and submission context."}</div>
+          </div>
+        </div>
+        ${this.reviewDetailLoading ? html`
+          <div style="padding: 24px; color: var(--muted); font-size: 12px;">Loading...</div>
+        ` : this.reviewDetailError ? html`
+          <div style="color: var(--muted); font-size: 12px;">${this.reviewDetailError}</div>
+        ` : html`
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px;">
+            ${this.renderKeyValue("Status", review?.status ?? "unknown")}
+            ${this.renderKeyValue("Assignee", review?.assignee ?? review?.assignedTo ?? "unassigned")}
+            ${this.renderKeyValue("Submission", review?.submissionId ?? inspection?.submission?.id ?? "unknown")}
+            ${this.renderKeyValue("Package", inspection?.submission?.packageId ?? inspection?.packageVersionPreview?.packageId ?? "unknown")}
+            ${this.renderKeyValue("Version", inspection?.submission?.version ?? inspection?.packageVersionPreview?.version ?? "unknown")}
+            ${this.renderKeyValue("Artifact", inspection?.artifactUpload?.id ?? "unknown")}
+          </div>
+          <div style="margin-top: 14px;">
+            <div style="font-size: 12px; font-weight: 700;">Evidence</div>
+            ${evidence.length === 0 ? html`
+              <div style="padding: 16px 0; color: var(--muted); font-size: 12px;">No evidence recorded.</div>
+            ` : html`
+              <div style="margin-top: 8px; display: grid; gap: 8px;">
+                ${evidence.map((entry) => html`
+                  <div style="border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; background: rgba(255,255,255,0.02);">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; font-size: 12px;">
+                      <span style="font-family: var(--mono);">${entry.type ?? "manual_note"}</span>
+                      <span style="color: var(--muted);">${this.formatActor(entry.actor)}</span>
+                      <span style="color: var(--muted);">${this.formatDate(entry.createdAt)}</span>
+                    </div>
+                    <div style="margin-top: 6px; font-size: 12px;">${entry.summary ?? entry.id ?? "No summary"}</div>
+                  </div>
+                `)}
+              </div>
+            `}
+          </div>
+        `}
       </div>
     `;
   }
@@ -610,5 +819,11 @@ export class CoreHubView extends LitElement {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return value;
     return date.toLocaleString();
+  }
+
+  private formatActor(value?: string | { id?: string }) {
+    if (!value) return "unknown";
+    if (typeof value === "string") return value;
+    return value.id ?? "unknown";
   }
 }

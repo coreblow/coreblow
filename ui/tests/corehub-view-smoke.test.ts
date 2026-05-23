@@ -52,6 +52,15 @@ function clickButton(label: string, position: "first" | "last" = "first"): void 
   button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 }
 
+function fillLastTextarea(value: string): void {
+  const textarea = Array.from(document.querySelectorAll("textarea")).at(-1);
+  if (!textarea) {
+    throw new Error("Missing textarea");
+  }
+  textarea.value = value;
+  textarea.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
 describe("CoreHub view authenticated Gateway proxy smoke", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
@@ -107,11 +116,47 @@ describe("CoreHub view authenticated Gateway proxy smoke", () => {
             {
               id: "review-plugin-lab-0-1-0",
               submissionId: "submission-plugin-lab-0-1-0",
-              assignedTo: "github:coreblow-admin",
+              assignee: "github:coreblow-admin",
               createdAt: "2026-05-23T00:00:00.000Z",
             },
           ],
         });
+      }
+      if (url.endsWith("/api/corehub/v2/reviews/review-plugin-lab-0-1-0") && init?.method !== "POST") {
+        return jsonResponse({
+          data: {
+            moderationReview: {
+              id: "review-plugin-lab-0-1-0",
+              submissionId: "submission-plugin-lab-0-1-0",
+              status: "open",
+              assignee: "github:coreblow-admin",
+              evidence: [
+                {
+                  id: "evidence-review-plugin-lab-0-1-0-source",
+                  type: "source_scan",
+                  summary: "Artifact checksum and publisher claim verified.",
+                  actor: "github:coreblow-admin",
+                  createdAt: "2026-05-23T00:00:00.000Z",
+                },
+              ],
+            },
+            submission: {
+              id: "submission-plugin-lab-0-1-0",
+              packageId: "plugin-lab",
+              version: "0.1.0",
+            },
+            artifactUpload: {
+              id: "upload-plugin-lab-0-1-0",
+              checksum: "sha256:test",
+            },
+          },
+        });
+      }
+      if (url.endsWith("/api/corehub/v2/reviews/review-plugin-lab-0-1-0/assign")) {
+        return jsonResponse({ ok: true, status: "assigned" });
+      }
+      if (url.endsWith("/api/corehub/v2/reviews/review-plugin-lab-0-1-0/evidence")) {
+        return jsonResponse({ ok: true, status: "evidence_added" });
       }
       if (url.endsWith("/api/corehub/v2/reviews/review-plugin-lab-0-1-0/approve")) {
         return jsonResponse({ ok: true, status: "approved" });
@@ -161,6 +206,43 @@ describe("CoreHub view authenticated Gateway proxy smoke", () => {
     expect(text).toContain("Open Reviews");
     expect(text).toContain("review-plugin-lab-0-1-0");
 
+    clickButton("Details");
+    await waitFor(() =>
+      fetchMock.mock.calls.some(([input]) =>
+        String(input).endsWith("/api/corehub/v2/reviews/review-plugin-lab-0-1-0"),
+      ),
+    );
+    await view.updateComplete;
+    expect(document.body.textContent).toContain("Review Detail");
+    await waitFor(() =>
+      (document.body.textContent ?? "").includes("Artifact checksum and publisher claim verified."),
+    );
+    expect(document.body.textContent).toContain("Artifact checksum and publisher claim verified.");
+
+    clickButton("Assign");
+    await view.updateComplete;
+    clickButton("Assign");
+    await waitFor(() =>
+      fetchMock.mock.calls.some(([input]) =>
+        String(input).endsWith("/api/corehub/v2/reviews/review-plugin-lab-0-1-0/assign"),
+      ),
+    );
+    await waitFor(() => !(document.body.textContent ?? "").includes("Working..."));
+    await view.updateComplete;
+
+    clickButton("Evidence");
+    await view.updateComplete;
+    await waitFor(() => (document.body.textContent ?? "").includes("Add Evidence Review"));
+    fillLastTextarea("Manual security note added.");
+    clickButton("Add Evidence");
+    await waitFor(() =>
+      fetchMock.mock.calls.some(([input]) =>
+        String(input).endsWith("/api/corehub/v2/reviews/review-plugin-lab-0-1-0/evidence"),
+      ),
+    );
+    await waitFor(() => !(document.body.textContent ?? "").includes("Working..."));
+    await view.updateComplete;
+
     clickButton("Approve");
     await view.updateComplete;
     await waitFor(() => (document.body.textContent ?? "").includes("Approve Review"));
@@ -182,6 +264,22 @@ describe("CoreHub view authenticated Gateway proxy smoke", () => {
         "content-type": "application/json",
       }),
       body: JSON.stringify({ reason: undefined }),
+    });
+
+    const assignCall = fetchMock.mock.calls.find(([input]) =>
+      String(input).endsWith("/api/corehub/v2/reviews/review-plugin-lab-0-1-0/assign"),
+    );
+    expect(assignCall?.[1]).toMatchObject({
+      method: "POST",
+      body: JSON.stringify({ assignee: "github:coreblow-admin" }),
+    });
+
+    const evidenceCall = fetchMock.mock.calls.find(([input]) =>
+      String(input).endsWith("/api/corehub/v2/reviews/review-plugin-lab-0-1-0/evidence"),
+    );
+    expect(evidenceCall?.[1]).toMatchObject({
+      method: "POST",
+      body: JSON.stringify({ type: "manual_note", summary: "Manual security note added." }),
     });
   });
 

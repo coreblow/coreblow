@@ -68,11 +68,55 @@ test("CoreHub admin surface uses the Gateway proxy for review actions", async ({
             {
               id: "review-plugin-lab-0-1-0",
               submissionId: "submission-plugin-lab-0-1-0",
-              assignedTo: "github:coreblow-admin",
+              assignee: "github:coreblow-admin",
               createdAt: "2026-05-23T00:00:00.000Z",
             },
           ],
         }),
+      });
+      return;
+    }
+    if (url.pathname.endsWith("/reviews/review-plugin-lab-0-1-0")) {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({
+          data: {
+            moderationReview: {
+              id: "review-plugin-lab-0-1-0",
+              submissionId: "submission-plugin-lab-0-1-0",
+              status: "open",
+              assignee: "github:coreblow-admin",
+              evidence: [
+                {
+                  type: "source_scan",
+                  summary: "Artifact checksum and publisher claim verified.",
+                  actor: "github:coreblow-admin",
+                  createdAt: "2026-05-23T00:00:00.000Z",
+                },
+              ],
+            },
+            submission: {
+              id: "submission-plugin-lab-0-1-0",
+              packageId: "plugin-lab",
+              version: "0.1.0",
+            },
+            artifactUpload: { id: "upload-plugin-lab-0-1-0" },
+          },
+        }),
+      });
+      return;
+    }
+    if (url.pathname.endsWith("/reviews/review-plugin-lab-0-1-0/assign")) {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true, status: "assigned" }),
+      });
+      return;
+    }
+    if (url.pathname.endsWith("/reviews/review-plugin-lab-0-1-0/evidence")) {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true, status: "evidence_added" }),
       });
       return;
     }
@@ -111,6 +155,25 @@ test("CoreHub admin surface uses the Gateway proxy for review actions", async ({
   await expect(main.getByText("CoreHub", { exact: true })).toBeVisible();
   await expect(page.getByRole("cell", { name: "plugin-lab", exact: true })).toBeVisible();
   await expect(page.getByRole("cell", { name: "review-plugin-lab-0-1-0", exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Details" }).click();
+  await expect(page.getByText("Review Detail")).toBeVisible();
+  await expect(page.getByText("Artifact checksum and publisher claim verified.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Assign" }).first().click();
+  await expect(page.getByText("Assign Review")).toBeVisible();
+  await page.getByRole("button", { name: "Assign" }).first().click();
+  await expect
+    .poll(() => seen.some((entry) => entry.url.endsWith("/reviews/review-plugin-lab-0-1-0/assign")))
+    .toBe(true);
+
+  await page.getByRole("button", { name: "Evidence" }).first().click();
+  await expect(page.getByText("Add Evidence Review")).toBeVisible();
+  await page.getByLabel("Evidence Summary").fill("Manual security note added.");
+  await page.getByRole("button", { name: "Add Evidence" }).click();
+  await expect
+    .poll(() => seen.some((entry) => entry.url.endsWith("/reviews/review-plugin-lab-0-1-0/evidence")))
+    .toBe(true);
 
   await page.getByRole("button", { name: "Approve" }).first().click();
   await expect(page.getByText("Approve Review")).toBeVisible();
