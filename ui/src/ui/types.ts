@@ -6,6 +6,7 @@ export type Tab =
   | "sessions"
   | "usage"
   | "cron"
+  | "coreHub"
   | "skills"
   | "nodes"
   | "config"

@@ -5,7 +5,7 @@ export const TAB_GROUPS = [
   { label: "chat", tabs: ["chat"] },
   {
     label: "control",
-    tabs: ["overview", "sessions", "usage", "cron"],
+    tabs: ["overview", "sessions", "usage", "cron", "coreHub"],
   },
   { label: "agent", tabs: ["aiAgents", "skills"] },
   {
@@ -32,6 +32,8 @@ export function iconForTab(tab: Tab): string {
       return "barChart";
     case "cron":
       return "loader";
+    case "coreHub":
+      return "globe";
     case "skills":
       return "zap";
     case "aiAgents":

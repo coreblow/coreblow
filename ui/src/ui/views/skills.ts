@@ -81,6 +81,12 @@ export class SkillsView extends LitElement {
                  <div class="card-sub">${t("skills.readySummary", { ready: String(ready), total: String(total) })}</div>
               </div>
               <button style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px;"
+               @click=${() => this.app.setTab("coreHub")}>CoreHub</button>
+              <a href="https://coreblow.com/corehub" target="_blank" rel="noopener noreferrer"
+                 style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); color: var(--foreground); font-size: 12px; text-decoration: none;">
+                Browse CoreHub
+              </a>
+              <button style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px;"
                @click=${() => this.loadSkills()}>↻ ${t("common.refresh")}</button>
            </div>
 

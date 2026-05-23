@@ -34,6 +34,7 @@ import {
   handleControlUiHttpRequest,
   type ControlUiRootState,
 } from "./control-ui.js";
+import { handleCoreHubAdminProxyRequest } from "./corehub-admin-proxy.js";
 import { handleOpenAiEmbeddingsHttpRequest } from "./embeddings-http.js";
 import { applyHookMappings } from "./hooks-mapping.js";
 import {
@@ -864,6 +865,16 @@ export function createGatewayHttpServer(opts: {
           name: "sessions-history",
           run: () =>
             handleSessionHistoryHttpRequest(req, res, {
+              auth: resolvedAuth,
+              trustedProxies,
+              allowRealIpFallback,
+              rateLimiter,
+            }),
+        },
+        {
+          name: "corehub-admin-proxy",
+          run: () =>
+            handleCoreHubAdminProxyRequest(req, res, {
               auth: resolvedAuth,
               trustedProxies,
               allowRealIpFallback,

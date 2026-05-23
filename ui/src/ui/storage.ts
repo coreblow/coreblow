@@ -12,6 +12,9 @@ export interface UiSettings {
   themeMode: ThemeMode;
   splitRatio: number;
   locale?: string;
+  coreHubRegistryUrl?: string;
+  coreHubActor?: string;
+  coreHubToken?: string;
 }
 
 const DEFAULT_SETTINGS: UiSettings = {
@@ -21,6 +24,9 @@ const DEFAULT_SETTINGS: UiSettings = {
   theme: "core",
   themeMode: "system",
   splitRatio: 0.5,
+  coreHubRegistryUrl: "https://coreblow.com/corehub",
+  coreHubActor: "github:coreblow-admin",
+  coreHubToken: "",
 };
 
 export function loadSettings(): UiSettings {
