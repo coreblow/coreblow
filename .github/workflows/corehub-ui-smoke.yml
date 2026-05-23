@@ -1,0 +1,54 @@
+name: CoreHub UI Smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/gateway/corehub-admin-proxy.ts"
+      - "src/gateway/corehub-admin-proxy.test.ts"
+      - "ui/src/ui/views/corehub.ts"
+      - "ui/tests/corehub-view-smoke.test.ts"
+      - "ui/e2e/corehub-admin.pw.test.ts"
+      - "ui/playwright.config.ts"
+      - "ui/package.json"
+      - ".github/workflows/corehub-ui-smoke.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/gateway/corehub-admin-proxy.ts"
+      - "src/gateway/corehub-admin-proxy.test.ts"
+      - "ui/src/ui/views/corehub.ts"
+      - "ui/tests/corehub-view-smoke.test.ts"
+      - "ui/e2e/corehub-admin.pw.test.ts"
+      - "ui/playwright.config.ts"
+      - "ui/package.json"
+      - ".github/workflows/corehub-ui-smoke.yml"
+  workflow_dispatch:
+
+jobs:
+  corehub-ui-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browser
+        run: pnpm --dir ui exec playwright install --with-deps chromium
+
+      - name: CoreHub component smoke
+        run: pnpm --dir ui test:corehub-smoke
+
+      - name: CoreHub browser smoke
+        run: pnpm --dir ui test:corehub-pw

@@ -80,6 +80,18 @@ function get(pathname: string, extraHeaders?: Record<string, string>) {
   });
 }
 
+function post(pathname: string, body: unknown, extraHeaders?: Record<string, string>) {
+  return fetch(`http://127.0.0.1:${port}${pathname}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${TEST_GATEWAY_TOKEN}`,
+      "content-type": "application/json",
+      ...extraHeaders,
+    },
+    body: JSON.stringify(body),
+  });
+}
+
 describe("CoreHub admin proxy", () => {
   it("normalizes supported CoreHub registry URLs", () => {
     expect(normalizeCoreHubRegistryUrl("https://coreblow.com/corehub/")).toBe(
@@ -129,8 +141,33 @@ describe("CoreHub admin proxy", () => {
     expect(upstreamFetchMock).not.toHaveBeenCalled();
   });
 
-  it("keeps CoreHub admin proxy read-only", async () => {
-    const response = await fetch(`http://127.0.0.1:${port}/api/corehub/v2/reviews/rev/approve`, {
+  it("allows gated review approval and forwards JSON body upstream", async () => {
+    const response = await post(
+      "/api/corehub/v2/reviews/rev_123/approve",
+      { reason: "looks good" },
+      {
+        "x-corehub-registry-url": "https://coreblow.com/corehub/",
+        "x-corehub-token": "corehub-token",
+        "x-corehub-user": "github:coreblow-admin",
+      },
+    );
+
+    expect(response.status).toBe(200);
+    expect(upstreamFetchMock).toHaveBeenCalledWith(
+      "https://coreblow.com/corehub/api/v2/reviews/rev_123/approve",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({
+          "content-type": "application/json",
+          authorization: "Bearer corehub-token",
+        }),
+        body: JSON.stringify({ reason: "looks good" }),
+      }),
+    );
+  });
+
+  it("keeps non-review CoreHub writes blocked", async () => {
+    const response = await fetch(`http://127.0.0.1:${port}/api/corehub/v2/submissions`, {
       method: "POST",
       headers: { Authorization: `Bearer ${TEST_GATEWAY_TOKEN}` },
     });

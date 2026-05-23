@@ -6,7 +6,9 @@
     "build": "vite build",
     "dev": "vite",
     "preview": "vite preview",
-    "test": "vitest run --config vitest.config.ts"
+    "test": "vitest run --config vitest.config.ts",
+    "test:corehub-smoke": "vitest run --config vitest.config.ts tests/corehub-view-smoke.test.ts",
+    "test:corehub-pw": "playwright test --config playwright.config.ts e2e/corehub-admin.pw.test.ts"
   },
   "dependencies": {
     "@create-markdown/preview": "^2.0.0",
@@ -16,6 +18,7 @@
     "marked": "^17.0.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@vitest/browser-playwright": "^4.1.2",
     "jsdom": "^29.0.1",
     "playwright": "^1.58.2",

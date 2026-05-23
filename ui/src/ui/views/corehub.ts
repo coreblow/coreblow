@@ -106,6 +106,14 @@ type ReviewEntry = {
   createdAt?: string;
 };
 
+type CoreHubReviewAction = "approve" | "block";
+
+type PendingReviewAction = {
+  reviewId: string;
+  action: CoreHubReviewAction;
+  reason: string;
+};
+
 type ListResponse<T> = {
   data?: T[];
   items?: T[];
@@ -123,6 +131,10 @@ export class CoreHubView extends LitElement {
   @state() private supportBundle: SupportBundle | null = null;
   @state() private submissions: SubmissionEntry[] = [];
   @state() private reviews: ReviewEntry[] = [];
+  @state() private pendingReviewAction: PendingReviewAction | null = null;
+  @state() private reviewActionLoading = false;
+  @state() private reviewActionError = "";
+  @state() private reviewActionNotice = "";
 
   createRenderRoot() { return this; }
 
@@ -181,6 +193,21 @@ export class CoreHubView extends LitElement {
     return response.json() as Promise<T>;
   }
 
+  private async postJson<T>(path: string, body: unknown): Promise<T> {
+    const response = await fetch(coreHubGatewayProxyUrl(this.app.settings.gatewayUrl, path), {
+      method: "POST",
+      headers: {
+        ...this.headers(),
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(body ?? {}),
+    });
+    if (!response.ok) {
+      throw new Error(`${response.status} ${response.statusText}`);
+    }
+    return response.json() as Promise<T>;
+  }
+
   private async loadCoreHub() {
     this.loading = true;
     this.error = "";
@@ -214,12 +241,68 @@ export class CoreHubView extends LitElement {
     window.open(coreHubAdminUrl(this.registryUrl), "_blank", "noopener,noreferrer");
   }
 
+  private requestReviewAction(review: ReviewEntry, action: CoreHubReviewAction) {
+    const reviewId = review.id?.trim();
+    if (!reviewId) {
+      this.reviewActionError = "Review id is missing.";
+      return;
+    }
+    this.reviewActionError = "";
+    this.reviewActionNotice = "";
+    this.pendingReviewAction = {
+      reviewId,
+      action,
+      reason: "",
+    };
+  }
+
+  private cancelReviewAction() {
+    this.pendingReviewAction = null;
+    this.reviewActionError = "";
+  }
+
+  private updateReviewActionReason(value: string) {
+    if (!this.pendingReviewAction) return;
+    this.pendingReviewAction = { ...this.pendingReviewAction, reason: value };
+  }
+
+  private async confirmReviewAction() {
+    const pending = this.pendingReviewAction;
+    if (!pending) return;
+    if (!this.app.settings.token?.trim()) {
+      this.reviewActionError = "Gateway token is required before CoreHub admin actions.";
+      return;
+    }
+    if (!this.token) {
+      this.reviewActionError = "CoreHub admin token is required before review actions.";
+      return;
+    }
+
+    this.reviewActionLoading = true;
+    this.reviewActionError = "";
+    this.reviewActionNotice = "";
+    try {
+      await this.postJson(`/reviews/${encodeURIComponent(pending.reviewId)}/${pending.action}`, {
+        reason: pending.reason.trim() || undefined,
+      });
+      this.reviewActionNotice = `Review ${pending.reviewId} ${pending.action === "approve" ? "approved" : "blocked"}.`;
+      this.pendingReviewAction = null;
+      await this.loadCoreHub();
+    } catch (error) {
+      this.reviewActionError = error instanceof Error ? error.message : String(error);
+    } finally {
+      this.reviewActionLoading = false;
+    }
+  }
+
   render() {
     const status = this.status;
     const readiness = status?.readiness?.status ?? status?.status ?? "unknown";
     const stateStore = status?.runtime?.stateStore?.kind ?? "unknown";
     const objectStore = status?.runtime?.objectStore?.kind ?? "unknown";
     const auditStatus = status?.audit?.valid === false ? "invalid" : status?.audit?.valid === true ? "valid" : "unknown";
+    const gatewayTokenConfigured = Boolean(this.app.settings.token?.trim());
+    const coreHubTokenConfigured = Boolean(this.token);
 
     return html`
       <div style="display: flex; flex-direction: column; gap: 16px;">
@@ -251,12 +334,38 @@ export class CoreHubView extends LitElement {
           </div>
         </div>
 
+        <div class="card" style="border-color: ${gatewayTokenConfigured && coreHubTokenConfigured ? 'rgba(34,197,94,0.25)' : 'rgba(245,158,11,0.35)'};">
+          <div class="card-title">Admin Session</div>
+          <div class="card-sub">CoreHub admin requests go through the local CoreBlow Gateway proxy.</div>
+          <div style="margin-top: 12px; display: grid; gap: 8px;">
+            ${this.renderKeyValue("Gateway token", gatewayTokenConfigured ? "configured" : "missing")}
+            ${this.renderKeyValue("CoreHub token", coreHubTokenConfigured ? "configured" : "missing")}
+            ${this.renderKeyValue("Gateway proxy", coreHubGatewayProxyUrl(this.app.settings.gatewayUrl, "/admin/status"))}
+          </div>
+        </div>
+
         ${this.error ? html`
           <div class="card" style="border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.08);">
             <div style="font-weight: 700;">CoreHub admin API unavailable</div>
             <div style="margin-top: 6px; color: var(--muted); font-size: 12px;">${this.error}</div>
+            <div style="margin-top: 6px; color: var(--muted); font-size: 12px;">Check the Gateway token, CoreHub admin token, and registry URL above.</div>
           </div>
         ` : nothing}
+
+        ${this.reviewActionNotice ? html`
+          <div class="card" style="border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.08);">
+            <div style="font-weight: 700;">${this.reviewActionNotice}</div>
+          </div>
+        ` : nothing}
+
+        ${this.reviewActionError ? html`
+          <div class="card" style="border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.08);">
+            <div style="font-weight: 700;">CoreHub review action failed</div>
+            <div style="margin-top: 6px; color: var(--muted); font-size: 12px;">${this.reviewActionError}</div>
+          </div>
+        ` : nothing}
+
+        ${this.renderReviewActionConfirmation()}
 
         <div style="display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
           ${this.renderMetric("Readiness", readiness)}
@@ -369,16 +478,89 @@ export class CoreHubView extends LitElement {
     return html`
       <div class="card">
         <div class="card-title">Open Reviews</div>
-        ${this.renderTable(
-          ["Review", "Submission", "Assigned", "Created"],
-          this.reviews,
-          (entry) => [
-            entry.id ?? "unknown",
-            entry.submissionId ?? "unknown",
-            entry.assignedTo ?? "unassigned",
-            this.formatDate(entry.createdAt),
-          ],
-        )}
+        ${this.renderReviewsTable()}
+      </div>
+    `;
+  }
+
+  private renderReviewsTable() {
+    if (this.loading) {
+      return html`<div style="padding: 24px; color: var(--muted); font-size: 12px;">Loading...</div>`;
+    }
+    if (this.reviews.length === 0) {
+      return html`<div style="padding: 24px; color: var(--muted); font-size: 12px;">No items found.</div>`;
+    }
+    return html`
+      <div style="margin-top: 12px; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+          <thead>
+            <tr>
+              ${["Review", "Submission", "Assigned", "Created", "Actions"].map((header) => html`
+                <th style="text-align: left; color: var(--muted); font-weight: 700; padding: 8px; border-bottom: 1px solid var(--border);">${header}</th>
+              `)}
+            </tr>
+          </thead>
+          <tbody>
+            ${this.reviews.map((entry) => html`
+              <tr>
+                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--foreground);">${entry.id ?? "unknown"}</td>
+                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--foreground);">${entry.submissionId ?? "unknown"}</td>
+                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--foreground);">${entry.assignedTo ?? "unassigned"}</td>
+                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--foreground);">${this.formatDate(entry.createdAt)}</td>
+                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.04);">
+                  <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    <button
+                      style="background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.35); padding: 4px 8px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 11px;"
+                      ?disabled=${this.reviewActionLoading}
+                      @click=${() => this.requestReviewAction(entry, "approve")}>
+                      Approve
+                    </button>
+                    <button
+                      style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.35); padding: 4px 8px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 11px;"
+                      ?disabled=${this.reviewActionLoading}
+                      @click=${() => this.requestReviewAction(entry, "block")}>
+                      Block
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `)}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  private renderReviewActionConfirmation() {
+    const pending = this.pendingReviewAction;
+    if (!pending) return nothing;
+    const actionLabel = pending.action === "approve" ? "Approve" : "Block";
+    return html`
+      <div class="card" style="border-color: ${pending.action === 'approve' ? 'rgba(34,197,94,0.35)' : 'rgba(239,68,68,0.35)'};">
+        <div class="card-title">${actionLabel} Review</div>
+        <div class="card-sub">Confirm ${pending.action} for ${pending.reviewId}. This will call CoreHub through the CoreBlow Gateway proxy.</div>
+        <label style="margin-top: 12px; display: grid; gap: 6px;">
+          <span style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Reason</span>
+          <textarea
+            style="min-height: 72px; background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-family: var(--mono); font-size: 12px;"
+            .value=${pending.reason}
+            @input=${(event: Event) => this.updateReviewActionReason((event.target as HTMLTextAreaElement).value)}
+          ></textarea>
+        </label>
+        <div style="margin-top: 12px; display: flex; gap: 8px; justify-content: flex-end;">
+          <button
+            style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px;"
+            ?disabled=${this.reviewActionLoading}
+            @click=${() => this.cancelReviewAction()}>
+            Cancel
+          </button>
+          <button
+            style="background: ${pending.action === 'approve' ? 'rgba(34,197,94,0.85)' : 'rgba(239,68,68,0.85)'}; border: 1px solid transparent; padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: white; font-size: 12px; font-weight: 700;"
+            ?disabled=${this.reviewActionLoading}
+            @click=${() => this.confirmReviewAction()}>
+            ${this.reviewActionLoading ? "Working..." : actionLabel}
+          </button>
+        </div>
       </div>
     `;
   }

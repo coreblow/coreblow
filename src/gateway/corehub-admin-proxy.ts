@@ -3,13 +3,27 @@ import { loadConfig } from "../config/config.js";
 import type { AuthRateLimiter } from "./auth-rate-limit.js";
 import type { ResolvedGatewayAuth } from "./auth.js";
 import { authorizeGatewayBearerRequestOrReply } from "./http-auth-helpers.js";
-import { sendInvalidRequest, sendJson, sendMethodNotAllowed } from "./http-common.js";
+import {
+  readJsonBodyOrError,
+  sendInvalidRequest,
+  sendJson,
+  sendMethodNotAllowed,
+} from "./http-common.js";
 import { getHeader } from "./http-utils.js";
 
 export const DEFAULT_COREHUB_REGISTRY_URL = "https://coreblow.com/corehub";
 
 const COREHUB_PROXY_PREFIX = "/api/corehub/";
 const COREHUB_API_PATH_RE = /^\/api\/corehub\/(?<version>v[0-9]+)(?<path>\/.*)?$/;
+const COREHUB_REVIEW_ACTION_RE = /^\/api\/corehub\/v2\/reviews\/[^/]+\/(?:approve|block)$/;
+const COREHUB_PROXY_MAX_BODY_BYTES = 64 * 1024;
+
+function isAllowedCoreHubProxyMethod(method: string, pathname: string): boolean {
+  if (method === "GET" || method === "HEAD") {
+    return true;
+  }
+  return method === "POST" && COREHUB_REVIEW_ACTION_RE.test(pathname);
+}
 
 export function normalizeCoreHubRegistryUrl(value: string | undefined): string | null {
   const trimmed = value?.trim() || DEFAULT_COREHUB_REGISTRY_URL;
@@ -64,8 +78,8 @@ export async function handleCoreHubAdminProxyRequest(
   }
 
   const method = (req.method ?? "GET").toUpperCase();
-  if (method !== "GET" && method !== "HEAD") {
-    sendMethodNotAllowed(res, "GET, HEAD");
+  if (!isAllowedCoreHubProxyMethod(method, url.pathname)) {
+    sendMethodNotAllowed(res, "GET, HEAD, POST");
     return true;
   }
 
@@ -110,11 +124,25 @@ export async function handleCoreHubAdminProxyRequest(
     headers["x-corehub-token"] = coreHubToken;
   }
 
+  let body: string | undefined;
+  if (method === "POST") {
+    const bodyUnknown = await readJsonBodyOrError(req, res, COREHUB_PROXY_MAX_BODY_BYTES);
+    if (bodyUnknown === undefined) {
+      return true;
+    }
+    headers["content-type"] = "application/json";
+    body = JSON.stringify(bodyUnknown ?? {});
+  }
+
   try {
-    const upstream = await (opts.fetchImpl ?? fetch)(upstreamUrl, {
+    const init: RequestInit = {
       method,
       headers,
-    });
+    };
+    if (body !== undefined) {
+      init.body = body;
+    }
+    const upstream = await (opts.fetchImpl ?? fetch)(upstreamUrl, init);
     res.statusCode = upstream.status;
     const contentType = upstream.headers.get("content-type");
     if (contentType) {
@@ -128,8 +156,8 @@ export async function handleCoreHubAdminProxyRequest(
       res.end();
       return true;
     }
-    const body = Buffer.from(await upstream.arrayBuffer());
-    res.end(body);
+    const responseBody = Buffer.from(await upstream.arrayBuffer());
+    res.end(responseBody);
     return true;
   } catch (error) {
     sendJson(res, 502, {

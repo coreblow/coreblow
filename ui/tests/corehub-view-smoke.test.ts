@@ -42,6 +42,16 @@ async function waitFor(predicate: () => boolean): Promise<void> {
   }
 }
 
+function clickButton(label: string, position: "first" | "last" = "first"): void {
+  const buttons = Array.from(document.querySelectorAll("button"));
+  const matches = buttons.filter((candidate) => candidate.textContent?.trim() === label);
+  const button = position === "last" ? matches.at(-1) : matches[0];
+  if (!button) {
+    throw new Error(`Missing button: ${label}`);
+  }
+  button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+}
+
 describe("CoreHub view authenticated Gateway proxy smoke", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
@@ -103,6 +113,9 @@ describe("CoreHub view authenticated Gateway proxy smoke", () => {
           ],
         });
       }
+      if (url.endsWith("/api/corehub/v2/reviews/review-plugin-lab-0-1-0/approve")) {
+        return jsonResponse({ ok: true, status: "approved" });
+      }
       throw new Error(`unexpected fetch ${url}`);
     });
     vi.stubGlobal("fetch", fetchMock);
@@ -147,6 +160,29 @@ describe("CoreHub view authenticated Gateway proxy smoke", () => {
     expect(text).toContain("plugin-lab");
     expect(text).toContain("Open Reviews");
     expect(text).toContain("review-plugin-lab-0-1-0");
+
+    clickButton("Approve");
+    await view.updateComplete;
+    await waitFor(() => (document.body.textContent ?? "").includes("Approve Review"));
+    clickButton("Approve");
+    await waitFor(() =>
+      fetchMock.mock.calls.some(([input]) =>
+        String(input).endsWith("/api/corehub/v2/reviews/review-plugin-lab-0-1-0/approve"),
+      ),
+    );
+
+    const actionCall = fetchMock.mock.calls.find(([input]) =>
+      String(input).endsWith("/api/corehub/v2/reviews/review-plugin-lab-0-1-0/approve"),
+    );
+    expect(actionCall?.[1]).toMatchObject({
+      method: "POST",
+      headers: expect.objectContaining({
+        authorization: `Bearer ${GATEWAY_TOKEN}`,
+        "x-corehub-token": COREHUB_TOKEN,
+        "content-type": "application/json",
+      }),
+      body: JSON.stringify({ reason: undefined }),
+    });
   });
 
   it("shows a clean error state when Gateway/CoreHub authentication fails", async () => {
