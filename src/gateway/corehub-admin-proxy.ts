@@ -17,13 +17,31 @@ const COREHUB_PROXY_PREFIX = "/api/corehub/";
 const COREHUB_API_PATH_RE = /^\/api\/corehub\/(?<version>v[0-9]+)(?<path>\/.*)?$/;
 const COREHUB_REVIEW_ACTION_RE =
   /^\/api\/corehub\/v2\/reviews\/[^/]+\/(?:approve|block|assign|evidence)$/;
+const COREHUB_ARTIFACT_UPLOAD_RE = /^\/api\/corehub\/v2\/artifacts\/uploads\/[^/]+$/;
+const COREHUB_ARTIFACT_VERIFY_RE = /^\/api\/corehub\/v2\/artifacts\/uploads\/[^/]+\/verify$/;
+const COREHUB_TRANSFER_DECISION_RE =
+  /^\/api\/corehub\/v2\/transfers\/[^/]+\/(?:accept|reject|cancel)$/;
+const COREHUB_AUDIT_RETENTION_PRUNE_RE = /^\/api\/corehub\/v2\/audit\/retention\/prune$/;
 const COREHUB_PROXY_MAX_BODY_BYTES = 64 * 1024;
+const COREHUB_PROXY_MAX_ARTIFACT_BYTES = 100 * 1024 * 1024;
 
 function isAllowedCoreHubProxyMethod(method: string, pathname: string): boolean {
   if (method === "GET" || method === "HEAD") {
     return true;
   }
-  return method === "POST" && COREHUB_REVIEW_ACTION_RE.test(pathname);
+  if (method === "PUT") {
+    return COREHUB_ARTIFACT_UPLOAD_RE.test(pathname);
+  }
+  return (
+    method === "POST" &&
+    (COREHUB_REVIEW_ACTION_RE.test(pathname) ||
+      pathname === "/api/corehub/v2/artifacts/uploads" ||
+      pathname === "/api/corehub/v2/submissions" ||
+      pathname === "/api/corehub/v2/transfers" ||
+      COREHUB_ARTIFACT_VERIFY_RE.test(pathname) ||
+      COREHUB_TRANSFER_DECISION_RE.test(pathname) ||
+      COREHUB_AUDIT_RETENTION_PRUNE_RE.test(pathname))
+  );
 }
 
 export function normalizeCoreHubRegistryUrl(value: string | undefined): string | null {
@@ -133,6 +151,24 @@ export async function handleCoreHubAdminProxyRequest(
     }
     headers["content-type"] = "application/json";
     body = JSON.stringify(bodyUnknown ?? {});
+  } else if (method === "PUT") {
+    const contentType = getHeader(req, "content-type");
+    const artifactSha256 = getHeader(req, "x-corehub-artifact-sha256");
+    const artifactSize = getHeader(req, "x-corehub-artifact-size");
+    if (contentType) {
+      headers["content-type"] = contentType;
+    }
+    if (artifactSha256) {
+      headers["x-corehub-artifact-sha256"] = artifactSha256;
+    }
+    if (artifactSize) {
+      headers["x-corehub-artifact-size"] = artifactSize;
+    }
+    const bytes = await readBinaryBodyOrError(req, res, COREHUB_PROXY_MAX_ARTIFACT_BYTES);
+    if (!bytes) {
+      return true;
+    }
+    body = bytes;
   }
 
   try {
@@ -170,4 +206,25 @@ export async function handleCoreHubAdminProxyRequest(
     });
     return true;
   }
+}
+
+async function readBinaryBodyOrError(
+  req: IncomingMessage,
+  res: ServerResponse,
+  maxBytes: number,
+): Promise<Uint8Array | undefined> {
+  const chunks: Buffer[] = [];
+  let total = 0;
+  for await (const chunk of req) {
+    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    total += buffer.length;
+    if (total > maxBytes) {
+      sendJson(res, 413, {
+        error: { message: "Payload too large", type: "invalid_request_error" },
+      });
+      return undefined;
+    }
+    chunks.push(buffer);
+  }
+  return Buffer.concat(chunks);
 }

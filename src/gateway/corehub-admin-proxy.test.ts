@@ -203,8 +203,152 @@ describe("CoreHub admin proxy", () => {
     );
   });
 
-  it("keeps non-review CoreHub writes blocked", async () => {
-    const response = await fetch(`http://127.0.0.1:${port}/api/corehub/v2/submissions`, {
+  it("allows publisher package submissions, artifact upload verification, and transfer requests", async () => {
+    await post(
+      "/api/corehub/v2/artifacts/uploads",
+      {
+        packageId: "plugin-lab",
+        version: "0.1.0",
+        publisherHandle: "coreblow",
+        artifact: {
+          name: "plugin-lab.tgz",
+          mediaType: "application/gzip",
+          size: 12,
+          sha256: "a".repeat(64),
+        },
+      },
+      {
+        "x-corehub-registry-url": "https://coreblow.com/corehub/",
+        "x-corehub-token": "corehub-token",
+      },
+    );
+
+    await post(
+      "/api/corehub/v2/artifacts/uploads/upload-plugin-lab-0-1-0/verify",
+      {},
+      {
+        "x-corehub-registry-url": "https://coreblow.com/corehub/",
+        "x-corehub-token": "corehub-token",
+      },
+    );
+
+    await post(
+      "/api/corehub/v2/submissions",
+      {
+        packageId: "plugin-lab",
+        version: "0.1.0",
+        publisherHandle: "coreblow",
+        kind: "plugin",
+        artifactUploadId: "artifact-plugin-lab-0-1-0",
+      },
+      {
+        "x-corehub-registry-url": "https://coreblow.com/corehub/",
+        "x-corehub-token": "corehub-token",
+      },
+    );
+
+    await post(
+      "/api/corehub/v2/transfers",
+      {
+        packageId: "plugin-lab",
+        fromPublisherHandle: "coreblow",
+        toPublisherHandle: "example-org",
+      },
+      {
+        "x-corehub-registry-url": "https://coreblow.com/corehub/",
+        "x-corehub-token": "corehub-token",
+      },
+    );
+
+    await post(
+      "/api/corehub/v2/transfers/transfer-plugin-lab-coreblow-to-example-org/accept",
+      { notes: "accepted" },
+      {
+        "x-corehub-registry-url": "https://coreblow.com/corehub/",
+        "x-corehub-token": "corehub-token",
+      },
+    );
+
+    expect(upstreamFetchMock).toHaveBeenNthCalledWith(
+      1,
+      "https://coreblow.com/corehub/api/v2/artifacts/uploads",
+      expect.objectContaining({ method: "POST" }),
+    );
+    expect(upstreamFetchMock).toHaveBeenNthCalledWith(
+      2,
+      "https://coreblow.com/corehub/api/v2/artifacts/uploads/upload-plugin-lab-0-1-0/verify",
+      expect.objectContaining({ method: "POST" }),
+    );
+    expect(upstreamFetchMock).toHaveBeenNthCalledWith(
+      3,
+      "https://coreblow.com/corehub/api/v2/submissions",
+      expect.objectContaining({ method: "POST" }),
+    );
+    expect(upstreamFetchMock).toHaveBeenNthCalledWith(
+      4,
+      "https://coreblow.com/corehub/api/v2/transfers",
+      expect.objectContaining({ method: "POST" }),
+    );
+    expect(upstreamFetchMock).toHaveBeenNthCalledWith(
+      5,
+      "https://coreblow.com/corehub/api/v2/transfers/transfer-plugin-lab-coreblow-to-example-org/accept",
+      expect.objectContaining({ method: "POST" }),
+    );
+  });
+
+  it("allows artifact bytes to be uploaded through the proxy", async () => {
+    const response = await fetch(
+      `http://127.0.0.1:${port}/api/corehub/v2/artifacts/uploads/upload-plugin-lab-0-1-0`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${TEST_GATEWAY_TOKEN}`,
+          "content-type": "application/gzip",
+          "x-corehub-artifact-sha256": "a".repeat(64),
+          "x-corehub-artifact-size": "12",
+          "x-corehub-registry-url": "https://coreblow.com/corehub/",
+          "x-corehub-token": "corehub-token",
+        },
+        body: "artifact-data",
+      },
+    );
+
+    expect(response.status).toBe(200);
+    expect(upstreamFetchMock).toHaveBeenCalledWith(
+      "https://coreblow.com/corehub/api/v2/artifacts/uploads/upload-plugin-lab-0-1-0",
+      expect.objectContaining({
+        method: "PUT",
+        headers: expect.objectContaining({
+          "content-type": "application/gzip",
+          "x-corehub-artifact-sha256": "a".repeat(64),
+          authorization: "Bearer corehub-token",
+        }),
+      }),
+    );
+  });
+
+  it("allows audit retention prune through the proxy", async () => {
+    const response = await post(
+      "/api/corehub/v2/audit/retention/prune",
+      { dryRun: true },
+      {
+        "x-corehub-registry-url": "https://coreblow.com/corehub/",
+        "x-corehub-token": "corehub-token",
+      },
+    );
+
+    expect(response.status).toBe(200);
+    expect(upstreamFetchMock).toHaveBeenCalledWith(
+      "https://coreblow.com/corehub/api/v2/audit/retention/prune",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ dryRun: true }),
+      }),
+    );
+  });
+
+  it("keeps non-allowlisted CoreHub writes blocked", async () => {
+    const response = await fetch(`http://127.0.0.1:${port}/api/corehub/v2/admin/dangerous-action`, {
       method: "POST",
       headers: { Authorization: `Bearer ${TEST_GATEWAY_TOKEN}` },
     });
