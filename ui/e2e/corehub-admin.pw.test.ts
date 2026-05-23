@@ -33,6 +33,27 @@ test("CoreHub admin surface uses the Gateway proxy for review actions", async ({
       });
       return;
     }
+    if (url.pathname.endsWith("/publishers/me")) {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({
+          data: {
+            actor: { id: "github:coreblow-admin" },
+            defaultPublisher: { handle: "coreblow", displayName: "CoreBlow", status: "verified" },
+            permissions: { admin: true },
+            memberships: [
+              {
+                publisherHandle: "coreblow",
+                role: "owner",
+                status: "active",
+                permissions: ["artifact.upload", "submission.create", "review.decide", "admin.read"],
+              },
+            ],
+          },
+        }),
+      });
+      return;
+    }
     if (url.pathname.endsWith("/admin/support-bundle")) {
       await route.fulfill({
         contentType: "application/json",
@@ -45,6 +66,25 @@ test("CoreHub admin surface uses the Gateway proxy for review actions", async ({
       return;
     }
     if (url.pathname.endsWith("/submissions")) {
+      if (!url.searchParams.has("status")) {
+        await route.fulfill({
+          contentType: "application/json",
+          body: JSON.stringify({
+            data: [
+              {
+                submission: {
+                  id: "submission-plugin-lab-0-1-0",
+                  packageId: "plugin-lab",
+                  version: "0.1.0",
+                  publisherHandle: "coreblow",
+                  status: "pending_review",
+                },
+              },
+            ],
+          }),
+        });
+        return;
+      }
       await route.fulfill({
         contentType: "application/json",
         body: JSON.stringify({
@@ -57,6 +97,30 @@ test("CoreHub admin surface uses the Gateway proxy for review actions", async ({
             },
           ],
         }),
+      });
+      return;
+    }
+    if (url.pathname.endsWith("/transfers")) {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({
+          data: [
+            {
+              id: "transfer-plugin-lab-coreblow-to-example-org",
+              packageId: "plugin-lab",
+              fromPublisherHandle: "coreblow",
+              toPublisherHandle: "example-org",
+              status: "requested",
+            },
+          ],
+        }),
+      });
+      return;
+    }
+    if (url.pathname.endsWith("/transfers/transfer-plugin-lab-coreblow-to-example-org/accept")) {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true, status: "completed" }),
       });
       return;
     }
@@ -153,8 +217,11 @@ test("CoreHub admin surface uses the Gateway proxy for review actions", async ({
   await page.goto("/#coreHub");
   const main = page.getByRole("main");
   await expect(main.getByText("CoreHub", { exact: true })).toBeVisible();
-  await expect(page.getByRole("cell", { name: "plugin-lab", exact: true })).toBeVisible();
+  await expect(page.getByRole("cell", { name: "plugin-lab", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("cell", { name: "review-plugin-lab-0-1-0", exact: true })).toBeVisible();
+  await expect(page.getByText("Publisher Session")).toBeVisible();
+  await expect(page.getByText("Publisher Portal")).toBeVisible();
+  await expect(page.getByRole("cell", { name: "transfer-plugin-lab-coreblow-to-example-org" })).toBeVisible();
 
   await page.getByRole("button", { name: "Details" }).click();
   await expect(page.getByText("Review Detail")).toBeVisible();
@@ -189,5 +256,14 @@ test("CoreHub admin surface uses the Gateway proxy for review actions", async ({
   expect(action?.method).toBe("POST");
   expect(action?.headers.authorization).toBe(`Bearer ${GATEWAY_TOKEN}`);
   expect(action?.headers["x-corehub-token"]).toBe(COREHUB_TOKEN);
+
+  await page.getByRole("button", { name: "accept" }).click();
+  await expect
+    .poll(() =>
+      seen.some((entry) =>
+        entry.url.endsWith("/transfers/transfer-plugin-lab-coreblow-to-example-org/accept"),
+      ),
+    )
+    .toBe(true);
   expect(seen.every((entry) => !entry.url.startsWith("https://coreblow.com"))).toBe(true);
 });

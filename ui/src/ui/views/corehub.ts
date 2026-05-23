@@ -352,6 +352,14 @@ export class CoreHubView extends LitElement {
   @state() private retentionLoading = false;
   @state() private retentionError = "";
   @state() private pruneResult: AuditPruneResult | null = null;
+  /* B4: Publisher management */
+  @state() private adminPublishers: PublisherAccount[] = [];
+  @state() private adminPublishersLoading = false;
+  @state() private adminPublishersError = "";
+  @state() private claimForm = { handle: "", displayName: "", kind: "organization" };
+  @state() private claimLoading = false;
+  @state() private claimError = "";
+  @state() private verifyLoadingHandle = "";
   /* B5: Catalog browser */
   @state() private catalogEntries: CatalogEntry[] = [];
   @state() private catalogLoading = false;
@@ -624,6 +632,56 @@ export class CoreHubView extends LitElement {
       this.catalogError = error instanceof Error ? error.message : String(error);
     } finally {
       this.catalogLoading = false;
+    }
+  }
+
+  private async loadAdminPublishers() {
+    this.adminPublishersLoading = true;
+    this.adminPublishersError = "";
+    try {
+      const response = await this.fetchJson<{ data: PublisherAccount[] }>("/publishers");
+      this.adminPublishers = this.extractData(response) as unknown as PublisherAccount[];
+    } catch (error) {
+      this.adminPublishersError = this.formatAuthError(error);
+    } finally {
+      this.adminPublishersLoading = false;
+    }
+  }
+
+  private async submitClaim(e: Event) {
+    e.preventDefault();
+    this.claimLoading = true;
+    this.claimError = "";
+    try {
+      const response = await this.fetchJson<{ status: string }>("/publishers/claim", {
+        method: "POST",
+        body: JSON.stringify(this.claimForm),
+      });
+      if (response.status === "already_claimed") {
+        this.claimError = `Publisher ${this.claimForm.handle} is already claimed.`;
+      } else {
+        await this.loadAdminPublishers();
+        this.claimForm = { handle: "", displayName: "", kind: "organization" };
+      }
+    } catch (error) {
+      this.claimError = this.formatAuthError(error);
+    } finally {
+      this.claimLoading = false;
+    }
+  }
+
+  private async verifyPublisher(handle: string) {
+    this.verifyLoadingHandle = handle;
+    this.adminPublishersError = "";
+    try {
+      await this.fetchJson(`/publishers/${encodeURIComponent(handle)}/verify`, {
+        method: "POST",
+      });
+      await this.loadAdminPublishers();
+    } catch (error) {
+      this.adminPublishersError = this.formatAuthError(error);
+    } finally {
+      this.verifyLoadingHandle = "";
     }
   }
 
@@ -1085,6 +1143,7 @@ export class CoreHubView extends LitElement {
         ${this.renderAuditLogViewer()}
         ${this.renderInstallAnalytics()}
         ${this.renderAuditRetention()}
+        ${this.renderPublisherManagement()}
         ${this.renderCatalogBrowser()}
 
         <div class="card">
@@ -1843,6 +1902,100 @@ export class CoreHubView extends LitElement {
             <div style="margin-top: 4px; color: var(--muted);">Pruned: ${prune.prunedCount ?? 0} · Retained: ${prune.retainedCount ?? 0}</div>
           </div>
         ` : nothing}
+      </div>
+    `;
+  }
+
+  /* ── B4: Publisher Management ── */
+  private renderPublisherManagement() {
+    return html`
+      <div class="card">
+        <div style="display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 240px;">
+            <div class="card-title">Publisher Management</div>
+            <div class="card-sub">Claim new publishers and verify pending ones for publishing access.</div>
+          </div>
+          <button
+            style="background: var(--accent); border: 1px solid var(--accent); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--primary-foreground); font-size: 12px; font-weight: 600;"
+            ?disabled=${this.adminPublishersLoading}
+            @click=${() => this.loadAdminPublishers()}>
+            ${this.adminPublishersLoading ? "Loading..." : "Load Publishers"}
+          </button>
+        </div>
+
+        ${this.adminPublishersError ? html`
+          <div style="margin-top: 12px; color: rgba(239,68,68,0.9); font-size: 12px;">${this.adminPublishersError}</div>
+        ` : nothing}
+
+        <div style="margin-top: 16px; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+          <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+            <div style="font-weight: 600; font-size: 13px; margin-bottom: 12px;">Claim Publisher</div>
+            <form @submit=${this.submitClaim} style="display: grid; gap: 8px;">
+              ${this.renderField("Handle", this.claimForm.handle, (v) => { this.claimForm = { ...this.claimForm, handle: v }; })}
+              ${this.renderField("Display Name", this.claimForm.displayName, (v) => { this.claimForm = { ...this.claimForm, displayName: v }; })}
+              <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11px; font-weight: 600; color: var(--muted);">
+                Kind
+                <select
+                  style="background: var(--bg); border: 1px solid var(--border); color: var(--foreground); padding: 8px; border-radius: var(--radius-sm); font-size: 12px;"
+                  .value=${this.claimForm.kind}
+                  @change=${(e: Event) => { this.claimForm = { ...this.claimForm, kind: (e.target as HTMLSelectElement).value }; }}>
+                  <option value="organization">Organization</option>
+                  <option value="user">User</option>
+                </select>
+              </label>
+              ${this.claimError ? html`<div style="margin-top: 4px; color: rgba(239,68,68,0.9); font-size: 11px;">${this.claimError}</div>` : nothing}
+              <button
+                type="submit"
+                style="margin-top: 4px; background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px;"
+                ?disabled=${this.claimLoading || !this.claimForm.handle}>
+                ${this.claimLoading ? "Claiming..." : "Claim Publisher"}
+              </button>
+            </form>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+            <div style="font-weight: 600; font-size: 13px; margin-bottom: 12px;">Publishers Directory</div>
+            ${this.adminPublishers.length === 0 ? html`
+              <div style="color: var(--muted); font-size: 12px;">No publishers loaded or directory is empty.</div>
+            ` : html`
+              <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px; min-width: 300px;">
+                  <thead>
+                    <tr>
+                      <th style="text-align: left; padding: 6px; border-bottom: 1px solid var(--border);">Handle</th>
+                      <th style="text-align: left; padding: 6px; border-bottom: 1px solid var(--border);">Kind</th>
+                      <th style="text-align: left; padding: 6px; border-bottom: 1px solid var(--border);">Status</th>
+                      <th style="text-align: left; padding: 6px; border-bottom: 1px solid var(--border);">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${this.adminPublishers.map((p) => html`
+                      <tr>
+                        <td style="padding: 6px; border-bottom: 1px solid rgba(255,255,255,0.04); font-weight: 600;">${p.handle}</td>
+                        <td style="padding: 6px; border-bottom: 1px solid rgba(255,255,255,0.04);">${p.kind}</td>
+                        <td style="padding: 6px; border-bottom: 1px solid rgba(255,255,255,0.04);">
+                          <span style="color: ${p.status === "verified" ? "rgba(34,197,94,0.9)" : "rgba(245,158,11,0.9)"}">
+                            ${p.status ?? "unknown"}
+                          </span>
+                        </td>
+                        <td style="padding: 6px; border-bottom: 1px solid rgba(255,255,255,0.04);">
+                          ${p.status === "pending" ? html`
+                            <button
+                              style="background: transparent; border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; color: var(--foreground);"
+                              ?disabled=${this.verifyLoadingHandle === p.handle}
+                              @click=${() => this.verifyPublisher(p.handle!)}>
+                              ${this.verifyLoadingHandle === p.handle ? "Verifying..." : "Verify"}
+                            </button>
+                          ` : html`<span style="color: var(--muted); font-size: 10px;">None</span>`}
+                        </td>
+                      </tr>
+                    `)}
+                  </tbody>
+                </table>
+              </div>
+            `}
+          </div>
+        </div>
       </div>
     `;
   }

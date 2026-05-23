@@ -203,6 +203,43 @@ describe("CoreHub admin proxy", () => {
     );
   });
 
+  it("allows publisher claim and verify operations", async () => {
+    await post(
+      "/api/corehub/v2/publishers/claim",
+      { handle: "test-publisher", displayName: "Test Publisher", kind: "organization" },
+      {
+        "x-corehub-registry-url": "https://coreblow.com/corehub/",
+        "x-corehub-token": "corehub-token",
+      }
+    );
+
+    await post(
+      "/api/corehub/v2/publishers/test-publisher/verify",
+      {},
+      {
+        "x-corehub-registry-url": "https://coreblow.com/corehub/",
+        "x-corehub-token": "corehub-token",
+      }
+    );
+
+    expect(upstreamFetchMock).toHaveBeenNthCalledWith(
+      1,
+      "https://coreblow.com/corehub/api/v2/publishers/claim",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ handle: "test-publisher", displayName: "Test Publisher", kind: "organization" }),
+      })
+    );
+
+    expect(upstreamFetchMock).toHaveBeenNthCalledWith(
+      2,
+      "https://coreblow.com/corehub/api/v2/publishers/test-publisher/verify",
+      expect.objectContaining({
+        method: "POST",
+      })
+    );
+  });
+
   it("allows publisher package submissions, artifact upload verification, and transfer requests", async () => {
     await post(
       "/api/corehub/v2/artifacts/uploads",

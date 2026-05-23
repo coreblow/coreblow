@@ -61,6 +61,15 @@ function fillLastTextarea(value: string): void {
   textarea.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
+function fillTextarea(label: string, value: string): void {
+  const textarea = document.querySelector(`textarea[aria-label="${label}"]`) as HTMLTextAreaElement | null;
+  if (!textarea) {
+    throw new Error(`Missing textarea: ${label}`);
+  }
+  textarea.value = value;
+  textarea.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
 describe("CoreHub view authenticated Gateway proxy smoke", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
@@ -91,6 +100,23 @@ describe("CoreHub view authenticated Gateway proxy smoke", () => {
           audit: { valid: true, count: 42, latestEventId: "evt_42" },
         });
       }
+      if (url.endsWith("/api/corehub/v2/publishers/me")) {
+        return jsonResponse({
+          data: {
+            actor: { id: "github:coreblow-admin" },
+            defaultPublisher: { handle: "coreblow", displayName: "CoreBlow", status: "verified" },
+            permissions: { admin: true },
+            memberships: [
+              {
+                publisherHandle: "coreblow",
+                role: "owner",
+                status: "active",
+                permissions: ["artifact.upload", "submission.create", "review.decide", "admin.read"],
+              },
+            ],
+          },
+        });
+      }
       if (url.endsWith("/api/corehub/v2/admin/support-bundle?limit=5")) {
         return jsonResponse({
           generatedAt: "2026-05-23T00:00:00.000Z",
@@ -110,6 +136,21 @@ describe("CoreHub view authenticated Gateway proxy smoke", () => {
           ],
         });
       }
+      if (url.endsWith("/api/corehub/v2/submissions?limit=25")) {
+        return jsonResponse({
+          data: [
+            {
+              submission: {
+                id: "submission-plugin-lab-0-1-0",
+                packageId: "plugin-lab",
+                version: "0.1.0",
+                publisherHandle: "coreblow",
+                status: "pending_review",
+              },
+            },
+          ],
+        });
+      }
       if (url.endsWith("/api/corehub/v2/reviews?status=open&limit=25")) {
         return jsonResponse({
           data: [
@@ -121,6 +162,22 @@ describe("CoreHub view authenticated Gateway proxy smoke", () => {
             },
           ],
         });
+      }
+      if (url.endsWith("/api/corehub/v2/transfers?status=requested&limit=25")) {
+        return jsonResponse({
+          data: [
+            {
+              id: "transfer-plugin-lab-coreblow-to-example-org",
+              packageId: "plugin-lab",
+              fromPublisherHandle: "coreblow",
+              toPublisherHandle: "example-org",
+              status: "requested",
+            },
+          ],
+        });
+      }
+      if (url.endsWith("/api/corehub/v2/transfers/transfer-plugin-lab-coreblow-to-example-org/accept")) {
+        return jsonResponse({ ok: true, status: "completed" });
       }
       if (url.endsWith("/api/corehub/v2/reviews/review-plugin-lab-0-1-0") && init?.method !== "POST") {
         return jsonResponse({
@@ -172,7 +229,7 @@ describe("CoreHub view authenticated Gateway proxy smoke", () => {
     view.app = createMockApp();
     document.body.append(view);
 
-    await waitFor(() => fetchMock.mock.calls.length === 4);
+    await waitFor(() => fetchMock.mock.calls.length === 7);
     await view.updateComplete;
     await waitFor(() => (document.body.textContent ?? "").includes("plugin-lab"));
     await view.updateComplete;
@@ -180,9 +237,12 @@ describe("CoreHub view authenticated Gateway proxy smoke", () => {
     const urls = fetchMock.mock.calls.map(([input]) => String(input));
     expect(urls).toEqual([
       "http://127.0.0.1:18789/api/corehub/v2/admin/status",
+      "http://127.0.0.1:18789/api/corehub/v2/publishers/me",
       "http://127.0.0.1:18789/api/corehub/v2/admin/support-bundle?limit=5",
       "http://127.0.0.1:18789/api/corehub/v2/submissions?status=pending_review&limit=25",
+      "http://127.0.0.1:18789/api/corehub/v2/submissions?limit=25",
       "http://127.0.0.1:18789/api/corehub/v2/reviews?status=open&limit=25",
+      "http://127.0.0.1:18789/api/corehub/v2/transfers?status=requested&limit=25",
     ]);
     expect(urls.every((url) => !url.startsWith("https://coreblow.com"))).toBe(true);
 
@@ -205,6 +265,11 @@ describe("CoreHub view authenticated Gateway proxy smoke", () => {
     expect(text).toContain("plugin-lab");
     expect(text).toContain("Open Reviews");
     expect(text).toContain("review-plugin-lab-0-1-0");
+    expect(text).toContain("Publisher Session");
+    expect(text).toContain("artifact.upload");
+    expect(text).toContain("Publisher Portal");
+    expect(text).toContain("Ownership Requests");
+    expect(text).toContain("transfer-plugin-lab-coreblow-to-example-org");
 
     clickButton("Details");
     await waitFor(() =>
@@ -233,7 +298,7 @@ describe("CoreHub view authenticated Gateway proxy smoke", () => {
     clickButton("Evidence");
     await view.updateComplete;
     await waitFor(() => (document.body.textContent ?? "").includes("Add Evidence Review"));
-    fillLastTextarea("Manual security note added.");
+    fillTextarea("Evidence Summary", "Manual security note added.");
     clickButton("Add Evidence");
     await waitFor(() =>
       fetchMock.mock.calls.some(([input]) =>
@@ -281,6 +346,13 @@ describe("CoreHub view authenticated Gateway proxy smoke", () => {
       method: "POST",
       body: JSON.stringify({ type: "manual_note", summary: "Manual security note added." }),
     });
+
+    clickButton("accept");
+    await waitFor(() =>
+      fetchMock.mock.calls.some(([input]) =>
+        String(input).endsWith("/api/corehub/v2/transfers/transfer-plugin-lab-coreblow-to-example-org/accept"),
+      ),
+    );
   });
 
   it("shows a clean error state when Gateway/CoreHub authentication fails", async () => {

@@ -22,6 +22,8 @@ const COREHUB_ARTIFACT_VERIFY_RE = /^\/api\/corehub\/v2\/artifacts\/uploads\/[^/
 const COREHUB_TRANSFER_DECISION_RE =
   /^\/api\/corehub\/v2\/transfers\/[^/]+\/(?:accept|reject|cancel)$/;
 const COREHUB_AUDIT_RETENTION_PRUNE_RE = /^\/api\/corehub\/v2\/audit\/retention\/prune$/;
+const COREHUB_PUBLISHER_CLAIM_RE = /^\/api\/corehub\/v2\/publishers\/claim$/;
+const COREHUB_PUBLISHER_VERIFY_RE = /^\/api\/corehub\/v2\/publishers\/[^/]+\/verify$/;
 const COREHUB_PROXY_MAX_BODY_BYTES = 64 * 1024;
 const COREHUB_PROXY_MAX_ARTIFACT_BYTES = 100 * 1024 * 1024;
 
@@ -40,7 +42,9 @@ function isAllowedCoreHubProxyMethod(method: string, pathname: string): boolean 
       pathname === "/api/corehub/v2/transfers" ||
       COREHUB_ARTIFACT_VERIFY_RE.test(pathname) ||
       COREHUB_TRANSFER_DECISION_RE.test(pathname) ||
-      COREHUB_AUDIT_RETENTION_PRUNE_RE.test(pathname))
+      COREHUB_AUDIT_RETENTION_PRUNE_RE.test(pathname) ||
+      COREHUB_PUBLISHER_CLAIM_RE.test(pathname) ||
+      COREHUB_PUBLISHER_VERIFY_RE.test(pathname))
   );
 }
 
