@@ -4,6 +4,7 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import type { CoreBlowConfig } from "../config/config.js";
 import { logDebug, logWarn } from "../logger.js";
+import { sanitizeForLog } from "../terminal/ansi.js";
 import { loadEmbeddedPiMcpConfig } from "./embedded-pi-mcp.js";
 import {
   describeStdioMcpServerLaunchConfig,
@@ -144,9 +145,16 @@ export async function createBundleMcpToolRuntime(params: {
 
   try {
     for (const [serverName, rawServer] of Object.entries(loaded.mcpServers)) {
-      const launch = resolveStdioMcpServerLaunchConfig(rawServer);
+      const logServerName = sanitizeForLog(serverName);
+      const launch = resolveStdioMcpServerLaunchConfig(rawServer, {
+        onDroppedEnv: (key) => {
+          logWarn(
+            `bundle-mcp: server "${logServerName}": env "${sanitizeForLog(key)}" is blocked for stdio startup safety and was ignored.`,
+          );
+        },
+      });
       if (!launch.ok) {
-        logWarn(`bundle-mcp: skipped server "${serverName}" because ${launch.reason}.`);
+        logWarn(`bundle-mcp: skipped server "${logServerName}" because ${launch.reason}.`);
         continue;
       }
       const launchConfig = launch.config;

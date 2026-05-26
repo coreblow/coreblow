@@ -1,7 +1,10 @@
 import fs from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import {
+  canonicalizeConfiguredMcpServer,
   listConfiguredMcpServers,
+  normalizeConfiguredMcpServers,
+  resolveCoreBlowMcpTransportAlias,
   setConfiguredMcpServer,
   unsetConfiguredMcpServer,
 } from "./mcp-config.js";
@@ -52,5 +55,38 @@ describe("config mcp config", () => {
       }
       expect(loaded.path).toBe(configPath);
     });
+  });
+
+  it("maps CLI-native MCP type aliases to CoreBlow transports", () => {
+    expect(resolveCoreBlowMcpTransportAlias("http")).toBe("streamable-http");
+    expect(resolveCoreBlowMcpTransportAlias(" streamable-http ")).toBe("streamable-http");
+    expect(resolveCoreBlowMcpTransportAlias("SSE")).toBe("sse");
+    expect(resolveCoreBlowMcpTransportAlias("stdio")).toBeUndefined();
+  });
+
+  it("canonicalizes configured MCP servers without mutating the original", () => {
+    const raw = {
+      context7: { type: "http", url: "https://mcp.example.com/http" },
+      stdio: { type: "stdio", command: "node" },
+      explicit: { type: "http", transport: "sse", url: "https://mcp.example.com/sse" },
+      unknown: { type: "custom", url: "https://mcp.example.com/custom" },
+      invalid: "skip",
+    };
+
+    expect(normalizeConfiguredMcpServers(raw)).toEqual({
+      context7: { transport: "streamable-http", url: "https://mcp.example.com/http" },
+      stdio: { command: "node" },
+      explicit: { transport: "sse", url: "https://mcp.example.com/sse" },
+      unknown: { type: "custom", url: "https://mcp.example.com/custom" },
+    });
+    expect(raw.context7).toEqual({ type: "http", url: "https://mcp.example.com/http" });
+  });
+
+  it("canonicalizes one configured MCP server", () => {
+    expect(canonicalizeConfiguredMcpServer({ type: "sse", url: "https://mcp.example.com/sse" }))
+      .toEqual({
+        transport: "sse",
+        url: "https://mcp.example.com/sse",
+      });
   });
 });

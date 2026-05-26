@@ -3,6 +3,17 @@ import type { CoreBlowConfig } from "./types.coreblow.js";
 import { validateConfigObjectWithPlugins } from "./validation.js";
 
 export type ConfigMcpServers = Record<string, Record<string, unknown>>;
+export type CoreBlowMcpHttpTransport = "sse" | "streamable-http";
+
+const CLI_MCP_TYPE_TO_COREBLOW_TRANSPORT: Record<
+  string,
+  CoreBlowMcpHttpTransport | "stdio"
+> = {
+  http: "streamable-http",
+  "streamable-http": "streamable-http",
+  sse: "sse",
+  stdio: "stdio",
+};
 
 type ConfigMcpReadResult =
   | { ok: true; path: string; config: CoreBlowConfig; mcpServers: ConfigMcpServers }
@@ -22,6 +33,35 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+function normalizeMcpString(value: unknown): string {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+export function resolveCoreBlowMcpTransportAlias(
+  value: unknown,
+): CoreBlowMcpHttpTransport | undefined {
+  const mapped = CLI_MCP_TYPE_TO_COREBLOW_TRANSPORT[normalizeMcpString(value)];
+  return mapped === "sse" || mapped === "streamable-http" ? mapped : undefined;
+}
+
+export function isKnownCliMcpTypeAlias(value: unknown): boolean {
+  return Object.hasOwn(CLI_MCP_TYPE_TO_COREBLOW_TRANSPORT, normalizeMcpString(value));
+}
+
+export function canonicalizeConfiguredMcpServer(
+  server: Record<string, unknown>,
+): Record<string, unknown> {
+  const next = { ...server };
+  const transportAlias = resolveCoreBlowMcpTransportAlias(next.type);
+  if (typeof next.transport !== "string" && transportAlias) {
+    next.transport = transportAlias;
+  }
+  if (isKnownCliMcpTypeAlias(next.type)) {
+    delete next.type;
+  }
+  return next;
+}
+
 export function normalizeConfiguredMcpServers(value: unknown): ConfigMcpServers {
   if (!isRecord(value)) {
     return {};
@@ -29,7 +69,10 @@ export function normalizeConfiguredMcpServers(value: unknown): ConfigMcpServers 
   return Object.fromEntries(
     Object.entries(value)
       .filter(([, server]) => isRecord(server))
-      .map(([name, server]) => [name, { ...(server as Record<string, unknown>) }]),
+      .map(([name, server]) => [
+        name,
+        canonicalizeConfiguredMcpServer(server as Record<string, unknown>),
+      ]),
   );
 }
 
