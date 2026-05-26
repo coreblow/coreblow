@@ -11,6 +11,37 @@ export type ShutdownResult = {
   warnings: string[];
 };
 
+const WEBSOCKET_CLOSE_GRACE_MS = 1_000;
+const WEBSOCKET_CLOSE_FORCE_CONTINUE_MS = 250;
+const HTTP_CLOSE_GRACE_MS = 1_000;
+const HTTP_CLOSE_FORCE_WAIT_MS = 5_000;
+
+function createTimeoutRace<T>(timeoutMs: number, onTimeout: () => T) {
+  let resolve!: (value: T) => void;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const promise = new Promise<T>((innerResolve) => {
+    resolve = innerResolve;
+  });
+  timer = setTimeout(() => {
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
+    }
+    resolve(onTimeout());
+  }, timeoutMs);
+  timer.unref?.();
+
+  return {
+    promise,
+    clear() {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+    },
+  };
+}
+
 function recordShutdownWarning(warnings: string[], name: string): void {
   if (!warnings.includes(name)) {
     warnings.push(name);
@@ -161,7 +192,35 @@ export function createGatewayCloseHandler(params: {
       }
       params.clients.clear();
       await params.configReloader.stop().catch(() => {});
-      await new Promise<void>((resolve) => params.wss.close(() => resolve()));
+      const wsClients = params.wss.clients ?? new Set();
+      const websocketClosePromise = new Promise<void>((resolve) =>
+        params.wss.close(() => resolve()),
+      );
+      const websocketGraceTimeout = createTimeoutRace(
+        WEBSOCKET_CLOSE_GRACE_MS,
+        () => false as const,
+      );
+      const websocketClosedWithinGrace = await Promise.race([
+        websocketClosePromise.then(() => true),
+        websocketGraceTimeout.promise,
+      ]);
+      websocketGraceTimeout.clear();
+      if (!websocketClosedWithinGrace) {
+        recordShutdownWarning(warnings, "websocket-server");
+        for (const client of wsClients) {
+          try {
+            client.terminate();
+          } catch {
+            /* ignore */
+          }
+        }
+        const websocketForceTimeout = createTimeoutRace(
+          WEBSOCKET_CLOSE_FORCE_CONTINUE_MS,
+          () => undefined,
+        );
+        await Promise.race([websocketClosePromise, websocketForceTimeout.promise]);
+        websocketForceTimeout.clear();
+      }
       const servers =
         params.httpServers && params.httpServers.length > 0
           ? params.httpServers
@@ -169,23 +228,53 @@ export function createGatewayCloseHandler(params: {
       for (let i = 0; i < servers.length; i += 1) {
         const server = servers[i];
         const httpServer = server as HttpServer & {
+          closeAllConnections?: () => void;
           closeIdleConnections?: () => void;
         };
         const label = servers.length > 1 ? `http-server[${i}]` : "http-server";
         if (typeof httpServer.closeIdleConnections === "function") {
           httpServer.closeIdleConnections();
         }
-        await new Promise<void>((resolve, reject) =>
+        const closePromise = new Promise<{ ok: true } | { ok: false }>((resolve) =>
           httpServer.close((err) => {
             if (!err || isServerNotRunningError(err)) {
-              resolve();
+              resolve({ ok: true });
               return;
             }
-            reject(err);
+            resolve({ ok: false });
           }),
-        ).catch(() => {
+        );
+        const httpGraceTimeout = createTimeoutRace(HTTP_CLOSE_GRACE_MS, () => false as const);
+        const closedWithinGrace = await Promise.race([
+          closePromise.then((result) => {
+            if (!result.ok) {
+              recordShutdownWarning(warnings, label);
+            }
+            return true;
+          }),
+          httpGraceTimeout.promise,
+        ]);
+        httpGraceTimeout.clear();
+        if (!closedWithinGrace) {
           recordShutdownWarning(warnings, label);
-        });
+          httpServer.closeAllConnections?.();
+          const httpForceTimeout = createTimeoutRace(HTTP_CLOSE_FORCE_WAIT_MS, () => false as const);
+          const closedAfterForce = await Promise.race([
+            closePromise.then((result) => {
+              if (!result.ok) {
+                recordShutdownWarning(warnings, label);
+              }
+              return true;
+            }),
+            httpForceTimeout.promise,
+          ]);
+          httpForceTimeout.clear();
+          if (!closedAfterForce) {
+            throw new Error(
+              `${label} close still pending after forced connection shutdown (${HTTP_CLOSE_FORCE_WAIT_MS}ms)`,
+            );
+          }
+        }
       }
     } finally {
       try {

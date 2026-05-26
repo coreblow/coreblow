@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createGatewayCloseHandler } from "./server-close.js";
 
 vi.mock("../channels/plugins/index.js", () => ({
@@ -12,7 +12,16 @@ vi.mock("../hooks/gmail-watcher.js", () => ({
 type GatewayCloseHandlerParams = Parameters<typeof createGatewayCloseHandler>[0];
 type GatewayCloseClient = GatewayCloseHandlerParams["clients"] extends Set<infer T> ? T : never;
 
+const WEBSOCKET_CLOSE_GRACE_MS = 1_000;
+const WEBSOCKET_CLOSE_FORCE_CONTINUE_MS = 250;
+const HTTP_CLOSE_GRACE_MS = 1_000;
+const HTTP_CLOSE_FORCE_WAIT_MS = 5_000;
+
 describe("createGatewayCloseHandler", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   function createCloseDeps(
     overrides: Partial<GatewayCloseHandlerParams> = {},
   ): GatewayCloseHandlerParams {
@@ -116,5 +125,99 @@ describe("createGatewayCloseHandler", () => {
 
     expect(result.warnings).toEqual(["ws-clients", "http-server"]);
     expect(clients.size).toBe(0);
+  });
+
+  it("terminates lingering websocket clients when websocket close exceeds the grace window", async () => {
+    vi.useFakeTimers();
+
+    let closeCallback: (() => void) | null = null;
+    const terminate = vi.fn(() => {
+      closeCallback?.();
+    });
+    const close = createGatewayCloseHandler(
+      createCloseDeps({
+        wss: {
+          clients: new Set([{ terminate }]),
+          close: (cb: () => void) => {
+            closeCallback = cb;
+          },
+        } as never,
+      }),
+    );
+
+    const closePromise = close({ reason: "test shutdown" });
+    await vi.advanceTimersByTimeAsync(WEBSOCKET_CLOSE_GRACE_MS);
+    const result = await closePromise;
+
+    expect(result.warnings).toContain("websocket-server");
+    expect(terminate).toHaveBeenCalledTimes(1);
+  });
+
+  it("continues shutdown when websocket close hangs without tracked clients", async () => {
+    vi.useFakeTimers();
+
+    const close = createGatewayCloseHandler(
+      createCloseDeps({
+        wss: {
+          clients: new Set(),
+          close: () => undefined,
+        } as never,
+      }),
+    );
+
+    const closePromise = close({ reason: "test shutdown" });
+    await vi.advanceTimersByTimeAsync(WEBSOCKET_CLOSE_GRACE_MS + WEBSOCKET_CLOSE_FORCE_CONTINUE_MS);
+    const result = await closePromise;
+
+    expect(result.warnings).toContain("websocket-server");
+  });
+
+  it("forces lingering HTTP connections closed and records a timeout warning", async () => {
+    vi.useFakeTimers();
+
+    let closeCallback: ((err?: Error | null) => void) | null = null;
+    const closeAllConnections = vi.fn(() => {
+      closeCallback?.(null);
+    });
+    const close = createGatewayCloseHandler(
+      createCloseDeps({
+        httpServer: {
+          close: (cb: (err?: Error | null) => void) => {
+            closeCallback = cb;
+          },
+          closeAllConnections,
+          closeIdleConnections: vi.fn(),
+        } as never,
+      }),
+    );
+
+    const closePromise = close({ reason: "test shutdown" });
+    await vi.advanceTimersByTimeAsync(HTTP_CLOSE_GRACE_MS);
+    const result = await closePromise;
+
+    expect(result.warnings).toContain("http-server");
+    expect(closeAllConnections).toHaveBeenCalledTimes(1);
+  });
+
+  it("fails shutdown when HTTP server close still hangs after force close", async () => {
+    vi.useFakeTimers();
+
+    const close = createGatewayCloseHandler(
+      createCloseDeps({
+        httpServer: {
+          close: () => undefined,
+          closeAllConnections: vi.fn(),
+          closeIdleConnections: vi.fn(),
+        } as never,
+      }),
+    );
+
+    const closePromise = close({ reason: "test shutdown" });
+    const closeExpectation = expect(closePromise).rejects.toThrow(
+      "http-server close still pending after forced connection shutdown (5000ms)",
+    );
+    await vi.advanceTimersByTimeAsync(HTTP_CLOSE_GRACE_MS);
+    await vi.advanceTimersByTimeAsync(HTTP_CLOSE_FORCE_WAIT_MS);
+    await closeExpectation;
   });
 });
