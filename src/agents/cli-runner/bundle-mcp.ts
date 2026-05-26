@@ -69,10 +69,16 @@ export async function prepareCliBundleMcpConfig(params: {
   backend: CliBackendConfig;
   workspaceDir: string;
   config?: CoreBlowConfig;
+  additionalConfig?: BundleMcpConfig;
+  env?: Record<string, string>;
   warn?: (message: string) => void;
 }): Promise<PreparedCliBundleMcpConfig> {
   if (!params.enabled) {
-    return { backend: params.backend };
+    return {
+      backend: params.env
+        ? { ...params.backend, env: { ...params.backend.env, ...params.env } }
+        : params.backend,
+    };
   }
 
   const existingMcpConfigPath =
@@ -97,6 +103,9 @@ export async function prepareCliBundleMcpConfig(params: {
     params.warn?.(`bundle MCP skipped for ${diagnostic.pluginId}: ${diagnostic.message}`);
   }
   mergedConfig = applyMergePatch(mergedConfig, bundleConfig.config) as BundleMcpConfig;
+  if (params.additionalConfig) {
+    mergedConfig = applyMergePatch(mergedConfig, params.additionalConfig) as BundleMcpConfig;
+  }
 
   // Always pass an explicit strict MCP config for background claude-cli runs.
   // Otherwise Claude may inherit ambient user/global MCP servers (for example
@@ -109,6 +118,7 @@ export async function prepareCliBundleMcpConfig(params: {
   return {
     backend: {
       ...params.backend,
+      env: params.env ? { ...params.backend.env, ...params.env } : params.backend.env,
       args: injectMcpConfigArgs(params.backend.args, mcpConfigPath),
       resumeArgs: injectMcpConfigArgs(
         params.backend.resumeArgs ?? params.backend.args ?? [],

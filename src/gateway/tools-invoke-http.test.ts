@@ -176,6 +176,7 @@ vi.mock("../agents/pi-tools.before-tool-call.js", () => ({
 }));
 
 const { handleToolsInvokeHttpRequest } = await import("./tools-invoke-http.js");
+const { resolveGatewayScopedTools } = await import("./tools-invoke-shared.js");
 
 let pluginHttpHandlers: Array<(req: IncomingMessage, res: ServerResponse) => Promise<boolean>> = [];
 
@@ -368,6 +369,7 @@ describe("POST /tools/invoke", () => {
     expect(body.ok).toBe(true);
     expect(body).toHaveProperty("result");
     expect(lastCreateCoreBlowToolsContext?.allowMediaInvokeCommands).toBe(true);
+    expect(lastCreateCoreBlowToolsContext?.senderIsOwner).toBe(true);
     expect(hookMocks.runBeforeToolCallHook).toHaveBeenCalledWith(
       expect.objectContaining({
         toolName: "agents_list",
@@ -519,6 +521,45 @@ describe("POST /tools/invoke", () => {
     const body = await res.json();
     expect(body.ok).toBe(false);
     expect(body.error.type).toBe("not_found");
+  });
+
+  it("lets loopback tool discovery bypass HTTP-only default deny while honoring explicit excludes", () => {
+    cfg = {
+      ...cfg,
+      agents: {
+        list: [
+          {
+            id: "main",
+            default: true,
+            tools: { allow: ["sessions_spawn"] },
+          },
+        ],
+      },
+    };
+
+    const httpTools = resolveGatewayScopedTools({
+      cfg: cfg as never,
+      sessionKey: "agent:main:main",
+      senderIsOwner: true,
+      surface: "http",
+    });
+    const loopbackTools = resolveGatewayScopedTools({
+      cfg: cfg as never,
+      sessionKey: "agent:main:main",
+      senderIsOwner: true,
+      surface: "loopback",
+    });
+    const excludedLoopbackTools = resolveGatewayScopedTools({
+      cfg: cfg as never,
+      sessionKey: "agent:main:main",
+      senderIsOwner: true,
+      surface: "loopback",
+      excludeToolNames: ["sessions_spawn"],
+    });
+
+    expect(httpTools.tools.map((tool) => tool.name)).not.toContain("sessions_spawn");
+    expect(loopbackTools.tools.map((tool) => tool.name)).toContain("sessions_spawn");
+    expect(excludedLoopbackTools.tools.map((tool) => tool.name)).not.toContain("sessions_spawn");
   });
 
   it("propagates message target/thread headers into tools context for sessions_spawn", async () => {

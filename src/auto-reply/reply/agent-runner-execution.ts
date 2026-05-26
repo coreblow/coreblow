@@ -313,6 +313,10 @@ export async function runAgentTurnWithFallback(params: {
                       bootstrapPromptWarningSignaturesSeen.length - 1
                     ],
                   images: params.opts?.images,
+                  senderIsOwner: params.followupRun.run.senderIsOwner,
+                  messageProvider: params.followupRun.run.messageProvider,
+                  messageChannel: params.followupRun.run.messageProvider,
+                  agentAccountId: params.followupRun.run.agentAccountId,
                 });
                 bootstrapPromptWarningSignaturesSeen = resolveBootstrapWarningSignaturesSeen(
                   result.meta?.systemPromptReport,

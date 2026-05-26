@@ -11,6 +11,10 @@ import { resolveCliBackendConfig } from "../cli-backends.js";
 import { hashCliSessionText, resolveCliSessionReuse } from "../cli-session.js";
 import { resolveCoreBlowDocsPath } from "../docs-path.js";
 import {
+  createMcpLoopbackServerConfig,
+  getActiveMcpLoopbackRuntime,
+} from "../../gateway/mcp-http.loopback-runtime.js";
+import {
   resolveBootstrapMaxChars,
   resolveBootstrapPromptTruncationWarningMode,
   resolveBootstrapTotalMaxChars,
@@ -21,6 +25,19 @@ import { prepareCliBundleMcpConfig } from "./bundle-mcp.js";
 import { buildSystemPrompt, normalizeCliModel } from "./helpers.js";
 import { cliBackendLog } from "./log.js";
 import type { PreparedCliRunContext, RunCliAgentParams } from "./types.js";
+
+const prepareDeps = {
+  ensureMcpLoopbackServer: async () => {
+    const { ensureMcpLoopbackServer } = await import("../../gateway/mcp-http.js");
+    await ensureMcpLoopbackServer();
+  },
+  getActiveMcpLoopbackRuntime,
+  createMcpLoopbackServerConfig,
+};
+
+export function setCliRunnerPrepareTestDeps(overrides: Partial<typeof prepareDeps>): void {
+  Object.assign(prepareDeps, overrides);
+}
 
 export async function prepareCliRunContext(
   params: RunCliAgentParams,
@@ -47,11 +64,42 @@ export async function prepareCliRunContext(
   if (!backendResolved) {
     throw new Error(`Unknown CLI backend: ${params.provider}`);
   }
+  const { defaultAgentId, sessionAgentId } = resolveSessionAgentIds({
+    sessionKey: params.sessionKey,
+    config: params.config,
+    agentId: params.agentId,
+  });
+  const bundleMcpEnabled = backendResolved.bundleMcp;
+  let mcpLoopbackRuntime = bundleMcpEnabled ? prepareDeps.getActiveMcpLoopbackRuntime() : undefined;
+  if (bundleMcpEnabled && !mcpLoopbackRuntime) {
+    try {
+      await prepareDeps.ensureMcpLoopbackServer();
+    } catch (error) {
+      cliBackendLog.warn(`mcp loopback server failed to start: ${String(error)}`);
+    }
+    mcpLoopbackRuntime = prepareDeps.getActiveMcpLoopbackRuntime();
+  }
   const preparedBackend = await prepareCliBundleMcpConfig({
     enabled: backendResolved.bundleMcp,
     backend: backendResolved.config,
     workspaceDir,
     config: params.config,
+    additionalConfig: mcpLoopbackRuntime
+      ? prepareDeps.createMcpLoopbackServerConfig(mcpLoopbackRuntime.port)
+      : undefined,
+    env: mcpLoopbackRuntime
+      ? {
+          COREBLOW_MCP_TOKEN:
+            params.senderIsOwner === true
+              ? mcpLoopbackRuntime.ownerToken
+              : mcpLoopbackRuntime.nonOwnerToken,
+          COREBLOW_MCP_AGENT_ID: sessionAgentId ?? "",
+          COREBLOW_MCP_ACCOUNT_ID: params.agentAccountId ?? "",
+          COREBLOW_MCP_SESSION_KEY: params.sessionKey ?? "",
+          COREBLOW_MCP_MESSAGE_CHANNEL: params.messageChannel ?? params.messageProvider ?? "",
+          COREBLOW_MCP_INBOUND_EVENT_KIND: params.currentInboundEventKind ?? "",
+        }
+      : undefined,
     warn: (message) => cliBackendLog.warn(message),
   });
   const extraSystemPrompt = params.extraSystemPrompt?.trim() ?? "";
@@ -93,11 +141,6 @@ export async function prepareCliRunContext(
     mode: bootstrapPromptWarningMode,
     seenSignatures: params.bootstrapPromptWarningSignaturesSeen,
     previousSignature: params.bootstrapPromptWarningSignature,
-  });
-  const { defaultAgentId, sessionAgentId } = resolveSessionAgentIds({
-    sessionKey: params.sessionKey,
-    config: params.config,
-    agentId: params.agentId,
   });
   const heartbeatPrompt =
     sessionAgentId === defaultAgentId

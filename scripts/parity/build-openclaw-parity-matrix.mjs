@@ -1,0 +1,233 @@
+#!/usr/bin/env node
+/**
+ * Build a domain-level OpenClaw parity matrix from audit-oc-parity JSON output.
+ *
+ * Usage:
+ *   node scripts/audit-oc-parity.mjs --json --oc-root=/path/to/openclaw > /tmp/parity.json
+ *   node scripts/parity/build-openclaw-parity-matrix.mjs --audit-json=/tmp/parity.json
+ */
+
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, relative } from "node:path";
+
+const args = process.argv.slice(2);
+
+function readFlag(name, fallback) {
+  const prefix = `--${name}=`;
+  const flag = args.find((arg) => arg.startsWith(prefix));
+  return flag ? flag.slice(prefix.length) : fallback;
+}
+
+const auditPath = readFlag("audit-json", undefined);
+const outputPath = readFlag(
+  "out",
+  "scripts/parity/openclaw-parity-matrix.json",
+);
+const openClawRoot = readFlag(
+  "oc-root",
+  process.env.OC_ROOT || "/Users/febrinanda/openclaw-refs/openclaw",
+);
+
+if (!auditPath) {
+  console.error("Missing required --audit-json=<path>");
+  process.exit(1);
+}
+
+if (!existsSync(auditPath)) {
+  console.error(`Audit JSON not found: ${auditPath}`);
+  process.exit(1);
+}
+
+const audit = JSON.parse(readFileSync(auditPath, "utf8"));
+
+function domainFor(path) {
+  const parts = path.split("/");
+  if (parts[0] === "extensions") return `extensions/${parts[1]}`;
+  if (parts[0] === "packages") return `packages/${parts[1]}`;
+  return parts.slice(0, 2).join("/");
+}
+
+function addPath(map, path) {
+  const domain = domainFor(path);
+  const existing = map.get(domain) || [];
+  existing.push(path);
+  map.set(domain, existing);
+}
+
+function collectByDomain(paths) {
+  const map = new Map();
+  for (const path of paths || []) addPath(map, path);
+  return map;
+}
+
+const sourceBoth = collectByDomain(audit.source?.both);
+const sourceCoreOnly = collectByDomain(audit.source?.cb_only);
+const sourceOpenClawOnly = collectByDomain(audit.source?.oc_only);
+const testsBoth = collectByDomain(audit.tests?.both_have_test);
+const testsCoreOnly = collectByDomain(audit.tests?.cb_has_test_oc_does_not);
+const testsOpenClawOnly = collectByDomain(audit.tests?.oc_has_test_cb_does_not);
+
+const domains = [
+  ...new Set([
+    ...sourceBoth.keys(),
+    ...sourceCoreOnly.keys(),
+    ...sourceOpenClawOnly.keys(),
+    ...testsBoth.keys(),
+    ...testsCoreOnly.keys(),
+    ...testsOpenClawOnly.keys(),
+  ]),
+].sort();
+
+const explicitSurfaces = new Map([
+  ["src/agents", "src/agents, src/auth, src/agents/turn-engine"],
+  ["src/gateway", "src/gateway GatewayServer and ServiceRegistry"],
+  ["src/plugin-sdk", "src/plugin-sdk public API"],
+  ["src/plugins", "src/plugins PluginLoader, PluginRegistry, HookRunner"],
+  ["src/channels", "src/channels, src/routing, extensions channel adapters"],
+  ["src/auto-reply", "src/auto-reply inbound reply pipeline"],
+  ["src/config", "src/config CoreBlowConfig"],
+  ["src/commands", "src/commands and src/cli command classes"],
+  ["src/cli", "src/cli program and command wiring"],
+  ["packages/memory-host-sdk", "packages/memory-host-sdk"],
+]);
+
+const intentionalBehaviorDifferences = new Map([
+  [
+    "src/gateway",
+    [
+      {
+        path: "src/gateway/models-http.ts",
+        status: "intentionally_different",
+        referenceBehavior:
+          "OpenClaw grants default OpenAI-compatible operator scopes to shared-secret bearer requests.",
+        coreBlowDecision:
+          "CoreBlow requires an explicitly declared operator.read scope for shared-secret bearer model-list requests.",
+        rationale:
+          "Preserve least-privilege scope enforcement on the model discovery surface.",
+        gate: "pnpm test -- src/gateway/models-http.test.ts",
+      },
+    ],
+  ],
+]);
+
+function implementationSurface(domain) {
+  if (explicitSurfaces.has(domain)) return explicitSurfaces.get(domain);
+  if (domain.startsWith("extensions/")) {
+    return `${domain} plus plugin-sdk channel/runtime surfaces`;
+  }
+  return domain;
+}
+
+function gateTarget(domain) {
+  if (domain.startsWith("extensions/")) return domain;
+  if (domain.startsWith("packages/")) return domain;
+  return domain;
+}
+
+function count(map, domain) {
+  return (map.get(domain) || []).length;
+}
+
+function sample(map, domain) {
+  return (map.get(domain) || []).slice(0, 12);
+}
+
+function statusFor({ both, openClawOnly, coreOnly }) {
+  if (openClawOnly > 0 && both > 0) return "partial";
+  if (openClawOnly > 0 && both === 0) return "missing";
+  if (openClawOnly === 0 && both > 0) return "done";
+  if (openClawOnly === 0 && coreOnly > 0) return "intentionally_different";
+  return "missing";
+}
+
+function priorityFor({ openClawOnly, openClawTestGap }) {
+  const totalGap = openClawOnly + openClawTestGap;
+  if (totalGap >= 200) return "P0";
+  if (totalGap >= 80) return "P1";
+  if (totalGap >= 20) return "P2";
+  return "P3";
+}
+
+const matrix = domains
+  .map((domain) => {
+    const counts = {
+      sharedSourcePaths: count(sourceBoth, domain),
+      coreBlowOnlySourcePaths: count(sourceCoreOnly, domain),
+      openClawOnlySourcePaths: count(sourceOpenClawOnly, domain),
+      sharedTestPaths: count(testsBoth, domain),
+      coreBlowOnlyTestPaths: count(testsCoreOnly, domain),
+      openClawTestGaps: count(testsOpenClawOnly, domain),
+    };
+    const status = statusFor({
+      both: counts.sharedSourcePaths,
+      coreOnly: counts.coreBlowOnlySourcePaths,
+      openClawOnly: counts.openClawOnlySourcePaths,
+    });
+
+    return {
+      domain,
+      status,
+      priority: priorityFor({
+        openClawOnly: counts.openClawOnlySourcePaths,
+        openClawTestGap: counts.openClawTestGaps,
+      }),
+      implementationSurface: implementationSurface(domain),
+      counts,
+      samples: {
+        openClawOnlySourcePaths: sample(sourceOpenClawOnly, domain),
+        openClawTestGapPaths: sample(testsOpenClawOnly, domain),
+        coreBlowOnlySourcePaths: sample(sourceCoreOnly, domain),
+      },
+      ...(intentionalBehaviorDifferences.has(domain)
+        ? { intentionalBehaviorDifferences: intentionalBehaviorDifferences.get(domain) }
+        : {}),
+      notes:
+        status === "intentionally_different"
+          ? "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture."
+          : "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      gates: [
+        `pnpm test -- ${gateTarget(domain)}`,
+        "pnpm check",
+      ],
+    };
+  })
+  .sort((a, b) => {
+    const order = { P0: 0, P1: 1, P2: 2, P3: 3 };
+    return (
+      order[a.priority] - order[b.priority] ||
+      b.counts.openClawOnlySourcePaths + b.counts.openClawTestGaps -
+        (a.counts.openClawOnlySourcePaths + a.counts.openClawTestGaps) ||
+      a.domain.localeCompare(b.domain)
+    );
+  });
+
+const result = {
+  schemaVersion: 1,
+  generatedDate: "2026-05-26",
+  reference: {
+    coreBlowRoot: ".",
+    openClawRoot,
+    auditJson: auditPath.startsWith("/tmp/") ? null : relative(process.cwd(), auditPath),
+  },
+  summary: audit.summary,
+  statusLegend: {
+    done: "Shared source exists and no OpenClaw-only source paths were found for this domain.",
+    partial: "Both repos have this domain, but OpenClaw has additional source paths or tests to map.",
+    missing: "OpenClaw has this domain and CoreBlow has no shared source path for it.",
+    intentionally_different: "CoreBlow-only domain; keep only when it is a deliberate CoreBlow product or architecture surface.",
+  },
+  behaviorDecisionLegend:
+    "A domain can remain partial while a specific shared path deliberately keeps CoreBlow behavior that differs from OpenClaw.",
+  matrix,
+};
+
+mkdirSync(dirname(outputPath), { recursive: true });
+writeFileSync(outputPath, `${JSON.stringify(result, null, 2)}\n`);
+
+const counts = matrix.reduce((acc, row) => {
+  acc[row.status] = (acc[row.status] || 0) + 1;
+  return acc;
+}, {});
+
+console.log(`Wrote ${outputPath}`);
+console.log(JSON.stringify({ rows: matrix.length, statuses: counts }, null, 2));

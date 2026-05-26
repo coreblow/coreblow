@@ -85,6 +85,58 @@ describe("prepareCliBundleMcpConfig", () => {
     }
   });
 
+  it("merges loopback MCP config and env into bundle-MCP-enabled backends", async () => {
+    const workspaceDir = await tempHarness.createTempDir("coreblow-cli-bundle-mcp-loopback-");
+
+    const prepared = await prepareCliBundleMcpConfig({
+      enabled: true,
+      backend: {
+        command: "node",
+        args: ["./fake-claude.mjs"],
+        env: { EXISTING_ENV: "1" },
+      },
+      workspaceDir,
+      additionalConfig: {
+        mcpServers: {
+          coreblow: {
+            type: "http",
+            url: "http://127.0.0.1:4567/mcp",
+            headers: {
+              Authorization: "Bearer ${COREBLOW_MCP_TOKEN}",
+              "x-coreblow-message-channel": "${COREBLOW_MCP_MESSAGE_CHANNEL}",
+            },
+          },
+        },
+      },
+      env: {
+        COREBLOW_MCP_TOKEN: "owner-token",
+        COREBLOW_MCP_MESSAGE_CHANNEL: "telegram",
+      },
+    });
+
+    const configFlagIndex = prepared.backend.args?.indexOf("--mcp-config") ?? -1;
+    const generatedConfigPath = prepared.backend.args?.[configFlagIndex + 1];
+    const raw = JSON.parse(await fs.readFile(generatedConfigPath as string, "utf-8")) as {
+      mcpServers?: Record<string, unknown>;
+    };
+
+    expect(raw.mcpServers?.coreblow).toEqual({
+      type: "http",
+      url: "http://127.0.0.1:4567/mcp",
+      headers: {
+        Authorization: "Bearer ${COREBLOW_MCP_TOKEN}",
+        "x-coreblow-message-channel": "${COREBLOW_MCP_MESSAGE_CHANNEL}",
+      },
+    });
+    expect(prepared.backend.env).toEqual({
+      EXISTING_ENV: "1",
+      COREBLOW_MCP_TOKEN: "owner-token",
+      COREBLOW_MCP_MESSAGE_CHANNEL: "telegram",
+    });
+
+    await prepared.cleanup?.();
+  });
+
   it("leaves args untouched when bundle MCP is disabled", async () => {
     const prepared = await prepareCliBundleMcpConfig({
       enabled: false,

@@ -297,6 +297,10 @@ export function runAgentAttempt(params: {
         bootstrapPromptWarningSignature,
         images: params.isFallbackRetry ? undefined : params.opts.images,
         streamParams: params.opts.streamParams,
+        senderIsOwner: params.opts.senderIsOwner,
+        messageChannel: params.messageChannel,
+        messageProvider: params.runContext.messageChannel,
+        agentAccountId: params.runContext.accountId,
       });
     return runCliWithSession(cliSessionBinding?.sessionId).catch(async (err) => {
       if (

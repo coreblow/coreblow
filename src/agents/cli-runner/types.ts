@@ -25,6 +25,11 @@ export type RunCliAgentParams = {
   cliSessionId?: string;
   cliSessionBinding?: CliSessionBinding;
   authProfileId?: string;
+  senderIsOwner?: boolean;
+  messageProvider?: string;
+  messageChannel?: string;
+  agentAccountId?: string;
+  currentInboundEventKind?: "room_event" | "user_request" | string;
   bootstrapPromptWarningSignaturesSeen?: string[];
   bootstrapPromptWarningSignature?: string;
   images?: ImageContent[];
