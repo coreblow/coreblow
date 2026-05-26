@@ -4,6 +4,7 @@ import type { CanvasHostHandler, CanvasHostServer } from "../canvas-host/server.
 import { type ChannelId, listChannelPlugins } from "../channels/plugins/index.js";
 import { stopGmailWatcher } from "../hooks/gmail-watcher.js";
 import type { HeartbeatRunner } from "../infra/heartbeat-runner.js";
+import { createSubsystemLogger } from "../logging/subsystem.js";
 import type { PluginServicesHandle } from "../plugins/services.js";
 
 export type ShutdownResult = {
@@ -11,6 +12,7 @@ export type ShutdownResult = {
   warnings: string[];
 };
 
+const shutdownLog = createSubsystemLogger("gateway/shutdown");
 const WEBSOCKET_CLOSE_GRACE_MS = 1_000;
 const WEBSOCKET_CLOSE_FORCE_CONTINUE_MS = 250;
 const HTTP_CLOSE_GRACE_MS = 1_000;
@@ -98,6 +100,7 @@ export function createGatewayCloseHandler(params: {
         typeof opts?.restartExpectedMs === "number" && Number.isFinite(opts.restartExpectedMs)
           ? Math.max(0, Math.floor(opts.restartExpectedMs))
           : null;
+      shutdownLog.info(`shutdown started: ${reason}`);
       if (params.bonjourStop) {
         try {
           await params.bonjourStop();
@@ -188,6 +191,7 @@ export function createGatewayCloseHandler(params: {
         }
       }
       if (clientCloseFailures > 0) {
+        shutdownLog.warn(`failed to close ${clientCloseFailures} WebSocket client(s)`);
         recordShutdownWarning(warnings, "ws-clients");
       }
       params.clients.clear();
@@ -206,6 +210,9 @@ export function createGatewayCloseHandler(params: {
       ]);
       websocketGraceTimeout.clear();
       if (!websocketClosedWithinGrace) {
+        shutdownLog.warn(
+          `websocket server close exceeded ${WEBSOCKET_CLOSE_GRACE_MS}ms; forcing shutdown continuation with ${wsClients.size} tracked client(s)`,
+        );
         recordShutdownWarning(warnings, "websocket-server");
         for (const client of wsClients) {
           try {
@@ -216,7 +223,11 @@ export function createGatewayCloseHandler(params: {
         }
         const websocketForceTimeout = createTimeoutRace(
           WEBSOCKET_CLOSE_FORCE_CONTINUE_MS,
-          () => undefined,
+          () => {
+            shutdownLog.warn(
+              `websocket server close still pending after ${WEBSOCKET_CLOSE_FORCE_CONTINUE_MS}ms force window; continuing shutdown`,
+            );
+          },
         );
         await Promise.race([websocketClosePromise, websocketForceTimeout.promise]);
         websocketForceTimeout.clear();
@@ -248,6 +259,7 @@ export function createGatewayCloseHandler(params: {
         const closedWithinGrace = await Promise.race([
           closePromise.then((result) => {
             if (!result.ok) {
+              shutdownLog.warn(`${label}: close failed`);
               recordShutdownWarning(warnings, label);
             }
             return true;
@@ -256,12 +268,16 @@ export function createGatewayCloseHandler(params: {
         ]);
         httpGraceTimeout.clear();
         if (!closedWithinGrace) {
+          shutdownLog.warn(
+            `${label} close exceeded ${HTTP_CLOSE_GRACE_MS}ms; forcing connection shutdown and waiting for close`,
+          );
           recordShutdownWarning(warnings, label);
           httpServer.closeAllConnections?.();
           const httpForceTimeout = createTimeoutRace(HTTP_CLOSE_FORCE_WAIT_MS, () => false as const);
           const closedAfterForce = await Promise.race([
             closePromise.then((result) => {
               if (!result.ok) {
+                shutdownLog.warn(`${label}: close failed`);
                 recordShutdownWarning(warnings, label);
               }
               return true;
@@ -283,8 +299,16 @@ export function createGatewayCloseHandler(params: {
         /* ignore */
       }
     }
+    const durationMs = Date.now() - startedAt;
+    if (warnings.length > 0) {
+      shutdownLog.warn(
+        `shutdown completed in ${durationMs}ms with warnings: ${warnings.join(", ")}`,
+      );
+    } else {
+      shutdownLog.info(`shutdown completed cleanly in ${durationMs}ms`);
+    }
     return {
-      durationMs: Date.now() - startedAt,
+      durationMs,
       warnings,
     };
   };

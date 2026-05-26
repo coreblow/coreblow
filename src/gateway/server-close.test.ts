@@ -1,12 +1,24 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createGatewayCloseHandler } from "./server-close.js";
 
+const mocks = vi.hoisted(() => ({
+  logInfo: vi.fn(),
+  logWarn: vi.fn(),
+}));
+
 vi.mock("../channels/plugins/index.js", () => ({
   listChannelPlugins: () => [],
 }));
 
 vi.mock("../hooks/gmail-watcher.js", () => ({
   stopGmailWatcher: vi.fn(async () => undefined),
+}));
+
+vi.mock("../logging/subsystem.js", () => ({
+  createSubsystemLogger: vi.fn(() => ({
+    info: mocks.logInfo,
+    warn: mocks.logWarn,
+  })),
 }));
 
 type GatewayCloseHandlerParams = Parameters<typeof createGatewayCloseHandler>[0];
@@ -18,6 +30,11 @@ const HTTP_CLOSE_GRACE_MS = 1_000;
 const HTTP_CLOSE_FORCE_WAIT_MS = 5_000;
 
 describe("createGatewayCloseHandler", () => {
+  afterEach(() => {
+    mocks.logInfo.mockClear();
+    mocks.logWarn.mockClear();
+  });
+
   afterEach(() => {
     vi.useRealTimers();
   });
@@ -79,6 +96,12 @@ describe("createGatewayCloseHandler", () => {
     expect(result.warnings).toEqual([]);
     expect(result.durationMs).toBeGreaterThanOrEqual(0);
     expect(chatRunState.clear).toHaveBeenCalledTimes(1);
+    expect(mocks.logInfo).toHaveBeenCalledWith("shutdown started: test shutdown");
+    expect(
+      mocks.logInfo.mock.calls.some(([message]) =>
+        String(message).startsWith("shutdown completed cleanly in "),
+      ),
+    ).toBe(true);
   });
 
   it("treats already-closed HTTP servers as clean shutdown", async () => {
@@ -125,6 +148,13 @@ describe("createGatewayCloseHandler", () => {
 
     expect(result.warnings).toEqual(["ws-clients", "http-server"]);
     expect(clients.size).toBe(0);
+    expect(mocks.logWarn).toHaveBeenCalledWith("failed to close 1 WebSocket client(s)");
+    expect(
+      mocks.logWarn.mock.calls.some(([message]) =>
+        String(message).includes("shutdown completed in") &&
+        String(message).includes("ws-clients, http-server"),
+      ),
+    ).toBe(true);
   });
 
   it("terminates lingering websocket clients when websocket close exceeds the grace window", async () => {
@@ -151,6 +181,11 @@ describe("createGatewayCloseHandler", () => {
 
     expect(result.warnings).toContain("websocket-server");
     expect(terminate).toHaveBeenCalledTimes(1);
+    expect(
+      mocks.logWarn.mock.calls.some(([message]) =>
+        String(message).includes("websocket server close exceeded 1000ms"),
+      ),
+    ).toBe(true);
   });
 
   it("continues shutdown when websocket close hangs without tracked clients", async () => {
@@ -170,6 +205,11 @@ describe("createGatewayCloseHandler", () => {
     const result = await closePromise;
 
     expect(result.warnings).toContain("websocket-server");
+    expect(
+      mocks.logWarn.mock.calls.some(([message]) =>
+        String(message).includes("websocket server close still pending after 250ms force window"),
+      ),
+    ).toBe(true);
   });
 
   it("forces lingering HTTP connections closed and records a timeout warning", async () => {
@@ -197,6 +237,11 @@ describe("createGatewayCloseHandler", () => {
 
     expect(result.warnings).toContain("http-server");
     expect(closeAllConnections).toHaveBeenCalledTimes(1);
+    expect(
+      mocks.logWarn.mock.calls.some(([message]) =>
+        String(message).includes("http-server close exceeded 1000ms"),
+      ),
+    ).toBe(true);
   });
 
   it("fails shutdown when HTTP server close still hangs after force close", async () => {
