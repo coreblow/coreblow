@@ -6,6 +6,26 @@ import { stopGmailWatcher } from "../hooks/gmail-watcher.js";
 import type { HeartbeatRunner } from "../infra/heartbeat-runner.js";
 import type { PluginServicesHandle } from "../plugins/services.js";
 
+export type ShutdownResult = {
+  durationMs: number;
+  warnings: string[];
+};
+
+function recordShutdownWarning(warnings: string[], name: string): void {
+  if (!warnings.includes(name)) {
+    warnings.push(name);
+  }
+}
+
+function isServerNotRunningError(err: unknown): boolean {
+  return Boolean(
+    err &&
+      typeof err === "object" &&
+      "code" in err &&
+      (err as { code?: unknown }).code === "ERR_SERVER_NOT_RUNNING",
+  );
+}
+
 export function createGatewayCloseHandler(params: {
   bonjourStop: (() => Promise<void>) | null;
   tailscaleCleanup: (() => Promise<void>) | null;
@@ -34,7 +54,12 @@ export function createGatewayCloseHandler(params: {
   httpServer: HttpServer;
   httpServers?: HttpServer[];
 }) {
-  return async (opts?: { reason?: string; restartExpectedMs?: number | null }) => {
+  return async (opts?: {
+    reason?: string;
+    restartExpectedMs?: number | null;
+  }): Promise<ShutdownResult> => {
+    const startedAt = Date.now();
+    const warnings: string[] = [];
     try {
       const reasonRaw = typeof opts?.reason === "string" ? opts.reason.trim() : "";
       const reason = reasonRaw || "gateway stopping";
@@ -123,12 +148,16 @@ export function createGatewayCloseHandler(params: {
         }
       }
       params.chatRunState.clear();
+      let clientCloseFailures = 0;
       for (const c of params.clients) {
         try {
           c.socket.close(1012, "service restart");
         } catch {
-          /* ignore */
+          clientCloseFailures += 1;
         }
+      }
+      if (clientCloseFailures > 0) {
+        recordShutdownWarning(warnings, "ws-clients");
       }
       params.clients.clear();
       await params.configReloader.stop().catch(() => {});
@@ -137,16 +166,26 @@ export function createGatewayCloseHandler(params: {
         params.httpServers && params.httpServers.length > 0
           ? params.httpServers
           : [params.httpServer];
-      for (const server of servers) {
+      for (let i = 0; i < servers.length; i += 1) {
+        const server = servers[i];
         const httpServer = server as HttpServer & {
           closeIdleConnections?: () => void;
         };
+        const label = servers.length > 1 ? `http-server[${i}]` : "http-server";
         if (typeof httpServer.closeIdleConnections === "function") {
           httpServer.closeIdleConnections();
         }
         await new Promise<void>((resolve, reject) =>
-          httpServer.close((err) => (err ? reject(err) : resolve())),
-        );
+          httpServer.close((err) => {
+            if (!err || isServerNotRunningError(err)) {
+              resolve();
+              return;
+            }
+            reject(err);
+          }),
+        ).catch(() => {
+          recordShutdownWarning(warnings, label);
+        });
       }
     } finally {
       try {
@@ -155,5 +194,9 @@ export function createGatewayCloseHandler(params: {
         /* ignore */
       }
     }
+    return {
+      durationMs: Date.now() - startedAt,
+      warnings,
+    };
   };
 }
