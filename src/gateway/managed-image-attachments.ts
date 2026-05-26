@@ -65,6 +65,11 @@ type ManagedImageRecord = {
 };
 
 type ManagedImageBlock = Record<string, unknown>;
+type CleanupManagedOutgoingImageRecordsResult = {
+  deletedRecordCount: number;
+  deletedFileCount: number;
+  retainedCount: number;
+};
 type SessionManagedOutgoingAttachmentIndex = Set<string>;
 
 export function resolveManagedImageAttachmentLimits(
@@ -479,10 +484,15 @@ function resolveTranscriptMessageContent(message: unknown): Record<string, unkno
 
 function getSessionManagedOutgoingAttachmentIndex(
   sessionKey: string,
+  cache?: Map<string, SessionManagedOutgoingAttachmentIndex | null>,
 ): SessionManagedOutgoingAttachmentIndex | null {
+  if (cache?.has(sessionKey)) {
+    return cache.get(sessionKey) ?? null;
+  }
   const { storePath, entry } = loadSessionEntry(sessionKey);
   const sessionId = entry?.sessionId;
   if (!sessionId) {
+    cache?.set(sessionKey, null);
     return null;
   }
   const messages = readSessionMessages(sessionId, storePath, entry.sessionFile);
@@ -499,16 +509,23 @@ function getSessionManagedOutgoingAttachmentIndex(
       index.add(buildManagedOutgoingAttachmentRefKey(messageId, ref.attachmentId));
     }
   }
+  cache?.set(sessionKey, index);
   return index;
 }
 
-function recordMatchesTranscriptMessage(record: ManagedImageRecord): boolean {
+function recordMatchesTranscriptMessage(
+  record: ManagedImageRecord,
+  cache?: Map<string, SessionManagedOutgoingAttachmentIndex | null>,
+): boolean {
   if (!record.messageId) {
     return false;
   }
   try {
-    const index = getSessionManagedOutgoingAttachmentIndex(record.sessionKey);
-    return index?.has(buildManagedOutgoingAttachmentRefKey(record.messageId, record.attachmentId)) ?? false;
+    const index = getSessionManagedOutgoingAttachmentIndex(record.sessionKey, cache);
+    return (
+      index?.has(buildManagedOutgoingAttachmentRefKey(record.messageId, record.attachmentId)) ??
+      false
+    );
   } catch {
     return false;
   }
@@ -543,15 +560,78 @@ export async function attachManagedOutgoingImagesToMessage(params: {
   );
 }
 
+async function deleteManagedImageRecordArtifacts(
+  record: ManagedImageRecord,
+  stateDir = resolveStateDir(),
+): Promise<number> {
+  let deletedFileCount = 0;
+  if (record.original.path) {
+    try {
+      await fs.rm(record.original.path, { force: true });
+      deletedFileCount += 1;
+    } catch {
+      // Ignore cleanup races or already-missing files.
+    }
+  }
+  try {
+    await fs.rm(resolveOutgoingRecordPath(record.attachmentId, stateDir), { force: true });
+  } catch {
+    // Ignore cleanup races or already-missing records.
+  }
+  return deletedFileCount;
+}
+
+async function deleteOrphanManagedImageFiles(params: {
+  stateDir: string;
+  referencedPaths: ReadonlySet<string>;
+}): Promise<number> {
+  let deletedFileCount = 0;
+  let names: string[] = [];
+  try {
+    names = await fs.readdir(resolveOutgoingOriginalsDir(params.stateDir));
+  } catch {
+    return deletedFileCount;
+  }
+
+  for (const name of names) {
+    const filePath = path.join(resolveOutgoingOriginalsDir(params.stateDir), name);
+    if (params.referencedPaths.has(filePath)) {
+      continue;
+    }
+    try {
+      const stat = await fs.stat(filePath);
+      if (!stat.isFile()) {
+        continue;
+      }
+    } catch {
+      continue;
+    }
+    try {
+      await fs.rm(filePath, { force: true });
+      deletedFileCount += 1;
+    } catch {
+      // Ignore cleanup races or already-missing files.
+    }
+  }
+  return deletedFileCount;
+}
+
 export async function cleanupManagedOutgoingImageRecords(params?: {
   stateDir?: string;
   sessionKey?: string;
   nowMs?: number;
   transientTtlMs?: number;
-}): Promise<{ deletedRecordCount: number; deletedFileCount: number; retainedCount: number }> {
+  transientMaxAgeMs?: number;
+  forceDeleteSessionRecords?: boolean;
+}): Promise<CleanupManagedOutgoingImageRecordsResult> {
   const stateDir = params?.stateDir ?? resolveStateDir();
   const nowMs = params?.nowMs ?? Date.now();
-  const transientTtlMs = params?.transientTtlMs ?? DEFAULT_TRANSIENT_OUTGOING_IMAGE_TTL_MS;
+  const transientTtlMs =
+    params?.transientMaxAgeMs ??
+    params?.transientTtlMs ??
+    DEFAULT_TRANSIENT_OUTGOING_IMAGE_TTL_MS;
+  const sessionKeyFilter = params?.sessionKey ?? null;
+  const forceDeleteSessionRecords = params?.forceDeleteSessionRecords === true;
   let deletedRecordCount = 0;
   let deletedFileCount = 0;
   let retainedCount = 0;
@@ -559,9 +639,14 @@ export async function cleanupManagedOutgoingImageRecords(params?: {
   try {
     entries = await fs.readdir(resolveOutgoingRecordsDir(stateDir));
   } catch {
-    return { deletedRecordCount, deletedFileCount, retainedCount };
+    entries = [];
   }
 
+  const retainedReferencedPaths = new Set<string>();
+  const transcriptAttachmentIndexCache = new Map<
+    string,
+    SessionManagedOutgoingAttachmentIndex | null
+  >();
   for (const entry of entries) {
     if (!entry.endsWith(".json")) {
       continue;
@@ -570,30 +655,47 @@ export async function cleanupManagedOutgoingImageRecords(params?: {
     const attachmentId = path.basename(entry, ".json");
     const record = await readManagedImageRecord(attachmentId, stateDir);
     if (!record) {
+      await fs.rm(recordPath, { force: true }).catch(() => undefined);
+      deletedRecordCount += 1;
       continue;
     }
-    if (params?.sessionKey && record.sessionKey !== params.sessionKey) {
+    if (sessionKeyFilter && record.sessionKey !== sessionKeyFilter) {
+      if (record.original.path) {
+        retainedReferencedPaths.add(record.original.path);
+      }
       retainedCount += 1;
       continue;
     }
-    const createdAtMs = Date.parse(record.createdAt);
-    const expired =
-      (record.retentionClass ?? "transient") === "transient" &&
-      Number.isFinite(createdAtMs) &&
-      nowMs - createdAtMs > transientTtlMs;
-    if (!expired) {
+
+    let shouldDelete = false;
+    if (
+      forceDeleteSessionRecords &&
+      (!sessionKeyFilter || record.sessionKey === sessionKeyFilter)
+    ) {
+      shouldDelete = true;
+    } else if (record.messageId || record.retentionClass === "history") {
+      shouldDelete = !recordMatchesTranscriptMessage(record, transcriptAttachmentIndexCache);
+    } else {
+      const createdAtMs = Date.parse(record.createdAt);
+      shouldDelete = Number.isFinite(createdAtMs) && nowMs - createdAtMs >= transientTtlMs;
+    }
+
+    if (!shouldDelete) {
+      if (record.original.path) {
+        retainedReferencedPaths.add(record.original.path);
+      }
       retainedCount += 1;
       continue;
     }
-    await fs.rm(record.original.path, { force: true }).then(
-      () => {
-        deletedFileCount += 1;
-      },
-      () => undefined,
-    );
-    await fs.rm(recordPath, { force: true });
+
+    deletedFileCount += await deleteManagedImageRecordArtifacts(record, stateDir);
     deletedRecordCount += 1;
   }
+
+  deletedFileCount += await deleteOrphanManagedImageFiles({
+    stateDir,
+    referencedPaths: retainedReferencedPaths,
+  });
 
   return { deletedRecordCount, deletedFileCount, retainedCount };
 }

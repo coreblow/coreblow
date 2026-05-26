@@ -23,6 +23,16 @@ async function readRecords(stateDir: string): Promise<Array<Record<string, unkno
   );
 }
 
+async function expectPathMissing(targetPath: string): Promise<void> {
+  try {
+    await fs.access(targetPath);
+  } catch (error) {
+    expect((error as NodeJS.ErrnoException).code).toBe("ENOENT");
+    return;
+  }
+  throw new Error(`expected ${targetPath} to be missing`);
+}
+
 async function withManagedImageServer<T>(
   stateDir: string,
   run: (baseUrl: string) => Promise<T>,
@@ -175,6 +185,13 @@ describe("managed image attachments", () => {
     });
     expect(transientBlocks).toHaveLength(1);
     expect(historyBlocks).toHaveLength(1);
+    await writeManagedImageTranscriptFixture({
+      stateDir,
+      sessionKey: "agent:main:main",
+      sessionId: "managed-image-session",
+      messageId: "message-1",
+      blocks: historyBlocks,
+    });
 
     const result = await cleanupManagedOutgoingImageRecords({
       stateDir,
@@ -187,6 +204,104 @@ describe("managed image attachments", () => {
       deletedFileCount: 1,
       retainedCount: 1,
     });
+    expect(await readRecords(stateDir)).toHaveLength(1);
+  });
+
+  test("cleans up history records no longer referenced by transcript messages", async () => {
+    const blocks = await createManagedOutgoingImageBlocks({
+      sessionKey: "agent:main:main",
+      mediaUrls: [`data:image/png;base64,${TINY_PNG_BASE64}`],
+      stateDir,
+      messageId: "message-1",
+    });
+    const [record] = await readRecords(stateDir);
+    const originalPath = String((record?.original as { path?: unknown } | undefined)?.path ?? "");
+    await writeManagedImageTranscriptFixture({
+      stateDir,
+      sessionKey: "agent:main:main",
+      sessionId: "managed-image-session",
+      messageId: "message-1",
+      blocks: [{ type: "text", text: "image was removed from transcript" }],
+    });
+
+    const result = await cleanupManagedOutgoingImageRecords({ stateDir });
+
+    expect(blocks).toHaveLength(1);
+    expect(result).toEqual({
+      deletedRecordCount: 1,
+      deletedFileCount: 1,
+      retainedCount: 0,
+    });
+    await expectPathMissing(originalPath);
+    expect(await readRecords(stateDir)).toHaveLength(0);
+  });
+
+  test("removes orphan managed originals during cleanup", async () => {
+    const blocks = await createManagedOutgoingImageBlocks({
+      sessionKey: "agent:main:main",
+      mediaUrls: [`data:image/png;base64,${TINY_PNG_BASE64}`],
+      stateDir,
+      messageId: "message-1",
+    });
+    await writeManagedImageTranscriptFixture({
+      stateDir,
+      sessionKey: "agent:main:main",
+      sessionId: "managed-image-session",
+      messageId: "message-1",
+      blocks,
+    });
+    const orphanPath = path.join(stateDir, "media", "outgoing", "originals", "orphan.png");
+    await fs.writeFile(orphanPath, Buffer.from(TINY_PNG_BASE64, "base64"));
+
+    const result = await cleanupManagedOutgoingImageRecords({ stateDir });
+
+    expect(result).toEqual({
+      deletedRecordCount: 0,
+      deletedFileCount: 1,
+      retainedCount: 1,
+    });
+    await expectPathMissing(orphanPath);
+  });
+
+  test("force deletes only matching session records during scoped cleanup", async () => {
+    const deletedBlocks = await createManagedOutgoingImageBlocks({
+      sessionKey: "agent:main:main",
+      mediaUrls: [`data:image/png;base64,${TINY_PNG_BASE64}`],
+      stateDir,
+      messageId: "message-1",
+    });
+    const retainedBlocks = await createManagedOutgoingImageBlocks({
+      sessionKey: "agent:other:main",
+      mediaUrls: [`data:image/png;base64,${TINY_PNG_BASE64}`],
+      stateDir,
+      messageId: "message-2",
+    });
+    const records = await readRecords(stateDir);
+    const retainedRecord = records.find((record) => record.sessionKey === "agent:other:main");
+    const retainedPath = String(
+      (retainedRecord?.original as { path?: unknown } | undefined)?.path ?? "",
+    );
+    await writeManagedImageTranscriptFixture({
+      stateDir,
+      sessionKey: "agent:other:main",
+      sessionId: "managed-other-session",
+      messageId: "message-2",
+      blocks: retainedBlocks,
+    });
+
+    const result = await cleanupManagedOutgoingImageRecords({
+      stateDir,
+      sessionKey: "agent:main:main",
+      forceDeleteSessionRecords: true,
+    });
+
+    expect(deletedBlocks).toHaveLength(1);
+    expect(result).toEqual({
+      deletedRecordCount: 1,
+      deletedFileCount: 1,
+      retainedCount: 1,
+    });
+    await expect(fs.access(retainedPath)).resolves.toBeUndefined();
     expect(await readRecords(stateDir)).toHaveLength(1);
   });
 
