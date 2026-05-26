@@ -6,6 +6,10 @@ export function hasExpectedSingleNonce(text: string, nonce: string): boolean {
   return text.includes(nonce);
 }
 
+function normalizeLowercaseStringOrEmpty(value: unknown): string {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
 const NONCE_REFUSAL_MARKERS = [
   "token",
   "secret",
@@ -20,6 +24,13 @@ const NONCE_REFUSAL_MARKERS = [
   "can't comply",
   "can’t comply",
   "cannot comply",
+  "no `read`",
+  "no read tool",
+  "no `read`/`read` tool",
+  "no read/read tool",
+  "no read tool available",
+  "won't output",
+  "won’t output",
   "isn't a real coreblow probe",
   "is not a real coreblow probe",
   "not a real coreblow probe",
@@ -31,10 +42,12 @@ const PROBE_REFUSAL_MARKERS = [
   "not a legitimate self-test",
   "not legitimate self-test",
   "authorized integration probe",
+  "authorizing me to execute",
+  "authorizing me to run",
 ];
 
 export function isLikelyToolNonceRefusal(text: string): boolean {
-  const lower = text.toLowerCase();
+  const lower = normalizeLowercaseStringOrEmpty(text);
   if (PROBE_REFUSAL_MARKERS.some((marker) => lower.includes(marker))) {
     return true;
   }
@@ -49,7 +62,7 @@ function hasMalformedToolOutput(text: string): boolean {
   if (!trimmed) {
     return true;
   }
-  const lower = trimmed.toLowerCase();
+  const lower = normalizeLowercaseStringOrEmpty(trimmed);
   if (trimmed.includes("[object Object]")) {
     return true;
   }
@@ -91,7 +104,7 @@ export function shouldRetryToolReadProbe(params: {
   if (params.provider === "anthropic" && isLikelyToolNonceRefusal(params.text)) {
     return true;
   }
-  const lower = params.text.trim().toLowerCase();
+  const lower = normalizeLowercaseStringOrEmpty(params.text);
   if (params.provider === "mistral" && (lower.includes("noncea=") || lower.includes("nonceb="))) {
     return true;
   }
