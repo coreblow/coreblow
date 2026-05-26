@@ -36,6 +36,9 @@ vi.mock("../logging/subsystem.js", () => ({
 }));
 
 type GatewayCloseHandlerParams = Parameters<typeof createGatewayCloseHandler>[0];
+type DrainActiveSessionsForShutdown = NonNullable<
+  GatewayCloseHandlerParams["drainActiveSessionsForShutdown"]
+>;
 type GatewayCloseClient = GatewayCloseHandlerParams["clients"] extends Set<infer T> ? T : never;
 
 const WEBSOCKET_CLOSE_GRACE_MS = 1_000;
@@ -203,6 +206,62 @@ describe("createGatewayCloseHandler", () => {
     expect(
       mocks.logWarn.mock.calls.some(([message]) =>
         String(message).includes("gateway:pre-restart hook timed out after 10000ms"),
+      ),
+    ).toBe(true);
+  });
+
+  it("drains the active-session tracker with reason=shutdown on normal close", async () => {
+    const drainActiveSessionsForShutdown = vi.fn<DrainActiveSessionsForShutdown>(async () => ({
+      emittedSessionIds: ["session-A", "session-B"],
+      timedOut: false,
+    }));
+    const close = createGatewayCloseHandler(
+      createCloseDeps({
+        drainActiveSessionsForShutdown,
+      }),
+    );
+
+    await close({ reason: "SIGTERM" });
+
+    expect(drainActiveSessionsForShutdown).toHaveBeenCalledTimes(1);
+    expect(drainActiveSessionsForShutdown.mock.calls[0]?.[0].reason).toBe("shutdown");
+  });
+
+  it("drains the active-session tracker with reason=restart when restartExpectedMs is set", async () => {
+    const drainActiveSessionsForShutdown = vi.fn<DrainActiveSessionsForShutdown>(async () => ({
+      emittedSessionIds: ["session-A"],
+      timedOut: false,
+    }));
+    const close = createGatewayCloseHandler(
+      createCloseDeps({
+        drainActiveSessionsForShutdown,
+      }),
+    );
+
+    await close({ reason: "gateway restarting", restartExpectedMs: 1234 });
+
+    expect(drainActiveSessionsForShutdown).toHaveBeenCalledTimes(1);
+    expect(drainActiveSessionsForShutdown.mock.calls[0]?.[0].reason).toBe("restart");
+  });
+
+  it("records a warning and continues shutdown when the session-end drain reports a timeout", async () => {
+    const drainActiveSessionsForShutdown = vi.fn<DrainActiveSessionsForShutdown>(async () => ({
+      emittedSessionIds: ["session-A"],
+      timedOut: true,
+    }));
+    const close = createGatewayCloseHandler(
+      createCloseDeps({
+        drainActiveSessionsForShutdown,
+      }),
+    );
+
+    const result = await close({ reason: "SIGTERM" });
+
+    expect(drainActiveSessionsForShutdown).toHaveBeenCalledTimes(1);
+    expect(result.warnings).toContain("session-end-drain");
+    expect(
+      mocks.logWarn.mock.calls.some(([message]) =>
+        String(message).includes("session-end-drain timed out"),
       ),
     ).toBe(true);
   });

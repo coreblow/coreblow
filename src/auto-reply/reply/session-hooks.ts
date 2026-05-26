@@ -7,6 +7,17 @@ export type SessionHookContext = {
   agentId: string;
 };
 
+export type SessionEndReason =
+  | "new"
+  | "reset"
+  | "idle"
+  | "daily"
+  | "compaction"
+  | "deleted"
+  | "shutdown"
+  | "restart"
+  | "unknown";
+
 function buildSessionHookContext(params: {
   sessionId: string;
   sessionKey: string;
@@ -47,8 +58,22 @@ export function buildSessionEndHookPayload(params: {
   sessionKey: string;
   cfg: CoreBlowConfig;
   messageCount?: number;
+  reason?: SessionEndReason;
+  sessionFile?: string;
+  transcriptArchived?: boolean;
+  nextSessionId?: string;
+  nextSessionKey?: string;
 }): {
-  event: { sessionId: string; sessionKey: string; messageCount: number };
+  event: {
+    sessionId: string;
+    sessionKey: string;
+    messageCount: number;
+    reason?: string;
+    sessionFile?: string;
+    transcriptArchived?: boolean;
+    nextSessionId?: string;
+    nextSessionKey?: string;
+  };
   context: SessionHookContext;
 } {
   return {
@@ -56,6 +81,11 @@ export function buildSessionEndHookPayload(params: {
       sessionId: params.sessionId,
       sessionKey: params.sessionKey,
       messageCount: params.messageCount ?? 0,
+      reason: params.reason,
+      sessionFile: params.sessionFile,
+      transcriptArchived: params.transcriptArchived,
+      nextSessionId: params.nextSessionId,
+      nextSessionKey: params.nextSessionKey,
     },
     context: buildSessionHookContext({
       sessionId: params.sessionId,

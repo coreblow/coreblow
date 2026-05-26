@@ -16,6 +16,7 @@ export type ShutdownResult = {
 const shutdownLog = createSubsystemLogger("gateway/shutdown");
 const GATEWAY_SHUTDOWN_HOOK_TIMEOUT_MS = 5_000;
 const GATEWAY_PRE_RESTART_HOOK_TIMEOUT_MS = 10_000;
+const ACTIVE_SESSIONS_SHUTDOWN_DRAIN_TIMEOUT_MS = 2_000;
 const WEBSOCKET_CLOSE_GRACE_MS = 1_000;
 const WEBSOCKET_CLOSE_FORCE_CONTINUE_MS = 250;
 const HTTP_CLOSE_GRACE_MS = 1_000;
@@ -134,6 +135,10 @@ export function createGatewayCloseHandler(params: {
   wss: WebSocketServer;
   httpServer: HttpServer;
   httpServers?: HttpServer[];
+  drainActiveSessionsForShutdown?: (params: {
+    reason: "shutdown" | "restart";
+    totalTimeoutMs?: number;
+  }) => Promise<{ emittedSessionIds: string[]; timedOut: boolean }>;
 }) {
   return async (opts?: {
     reason?: string;
@@ -187,6 +192,26 @@ export function createGatewayCloseHandler(params: {
             });
             if (result === "timeout") {
               recordShutdownWarning(warnings, "gateway:pre-restart");
+            }
+          },
+          warnings,
+        );
+      }
+      if (params.drainActiveSessionsForShutdown) {
+        await shutdownStep(
+          "session-end-drain",
+          async () => {
+            const drainReason: "shutdown" | "restart" =
+              restartExpectedMs !== null ? "restart" : "shutdown";
+            const result = await params.drainActiveSessionsForShutdown!({
+              reason: drainReason,
+              totalTimeoutMs: ACTIVE_SESSIONS_SHUTDOWN_DRAIN_TIMEOUT_MS,
+            });
+            if (result.timedOut) {
+              shutdownLog.warn(
+                `session-end-drain timed out after ${ACTIVE_SESSIONS_SHUTDOWN_DRAIN_TIMEOUT_MS}ms after ${result.emittedSessionIds.length} sessions; continuing shutdown`,
+              );
+              recordShutdownWarning(warnings, "session-end-drain");
             }
           },
           warnings,

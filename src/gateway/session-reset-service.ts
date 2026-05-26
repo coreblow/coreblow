@@ -8,6 +8,11 @@ import { clearBootstrapSnapshot } from "../agents/bootstrap-cache.js";
 import { abortEmbeddedPiRun, waitForEmbeddedPiRunEnd } from "../agents/pi-embedded.js";
 import { stopSubagentsForRequester } from "../auto-reply/reply/abort.js";
 import { clearSessionQueues } from "../auto-reply/reply/queue.js";
+import {
+  buildSessionEndHookPayload,
+  buildSessionStartHookPayload,
+  type SessionEndReason,
+} from "../auto-reply/reply/session-hooks.js";
 import { loadConfig } from "../config/config.js";
 import {
   snapshotSessionOrigin,
@@ -25,6 +30,11 @@ import {
   normalizeAgentId,
   parseAgentSessionKey,
 } from "../routing/session-key.js";
+import {
+  forgetActiveSessionForShutdown,
+  listActiveSessionsForShutdown,
+  noteActiveSessionForShutdown,
+} from "./active-sessions-shutdown-tracker.js";
 import { ErrorCodes, errorShape } from "./protocol/index.js";
 import {
   archiveSessionTranscripts,
@@ -35,6 +45,7 @@ import {
 } from "./session-utils.js";
 
 const ACP_RUNTIME_CLEANUP_TIMEOUT_MS = 15_000;
+const SHUTDOWN_DRAIN_DEFAULT_TOTAL_TIMEOUT_MS = 2_000;
 let cachedChannelRuntime: ReturnType<typeof createPluginRuntime>["channel"] | undefined;
 
 function getChannelRuntime() {
@@ -72,6 +83,144 @@ export function archiveSessionTranscriptsForSession(params: {
     agentId: params.agentId,
     reason: params.reason,
   });
+}
+
+export function emitGatewaySessionEndPluginHook(params: {
+  cfg: ReturnType<typeof loadConfig>;
+  sessionKey: string;
+  sessionId?: string;
+  storePath: string;
+  sessionFile?: string;
+  agentId?: string;
+  reason: SessionEndReason;
+  nextSessionId?: string;
+  nextSessionKey?: string;
+}): void {
+  if (!params.sessionId) {
+    return;
+  }
+  forgetActiveSessionForShutdown(params.sessionId);
+  const hookRunner = getGlobalHookRunner();
+  if (!hookRunner?.hasHooks("session_end")) {
+    return;
+  }
+  const payload = buildSessionEndHookPayload({
+    sessionId: params.sessionId,
+    sessionKey: params.sessionKey,
+    cfg: params.cfg,
+    reason: params.reason,
+    sessionFile: params.sessionFile,
+    transcriptArchived: false,
+    nextSessionId: params.nextSessionId,
+    nextSessionKey: params.nextSessionKey,
+  });
+  void hookRunner.runSessionEnd(payload.event, payload.context).catch((err) => {
+    logVerbose(`session_end hook failed: ${String(err)}`);
+  });
+}
+
+export function emitGatewaySessionStartPluginHook(params: {
+  cfg: ReturnType<typeof loadConfig>;
+  sessionKey: string;
+  sessionId?: string;
+  resumedFrom?: string;
+  storePath?: string;
+  sessionFile?: string;
+  agentId?: string;
+}): void {
+  if (!params.sessionId) {
+    return;
+  }
+  if (params.storePath) {
+    noteActiveSessionForShutdown({
+      cfg: params.cfg,
+      sessionKey: params.sessionKey,
+      sessionId: params.sessionId,
+      storePath: params.storePath,
+      sessionFile: params.sessionFile,
+      agentId: params.agentId,
+    });
+  }
+  const hookRunner = getGlobalHookRunner();
+  if (!hookRunner?.hasHooks("session_start")) {
+    return;
+  }
+  const payload = buildSessionStartHookPayload({
+    sessionId: params.sessionId,
+    sessionKey: params.sessionKey,
+    cfg: params.cfg,
+    resumedFrom: params.resumedFrom,
+  });
+  void hookRunner.runSessionStart(payload.event, payload.context).catch((err) => {
+    logVerbose(`session_start hook failed: ${String(err)}`);
+  });
+}
+
+export type DrainActiveSessionsForShutdownResult = {
+  emittedSessionIds: string[];
+  timedOut: boolean;
+};
+
+export async function drainActiveSessionsForShutdown(params: {
+  reason: "shutdown" | "restart";
+  totalTimeoutMs?: number;
+}): Promise<DrainActiveSessionsForShutdownResult> {
+  const tracked = listActiveSessionsForShutdown();
+  if (tracked.length === 0) {
+    return { emittedSessionIds: [], timedOut: false };
+  }
+  const totalTimeoutMs = Math.max(
+    100,
+    Math.floor(params.totalTimeoutMs ?? SHUTDOWN_DRAIN_DEFAULT_TOTAL_TIMEOUT_MS),
+  );
+  const emittedSessionIds: string[] = [];
+  const hookRunner = getGlobalHookRunner();
+  let settledEmissions = 0;
+  const drain = Promise.allSettled(
+    tracked.map(async (entry) => {
+      try {
+        forgetActiveSessionForShutdown(entry.sessionId);
+        emittedSessionIds.push(entry.sessionId);
+        if (!hookRunner?.hasHooks("session_end")) {
+          return;
+        }
+        const payload = buildSessionEndHookPayload({
+          sessionId: entry.sessionId,
+          sessionKey: entry.sessionKey,
+          cfg: entry.cfg,
+          reason: params.reason,
+          sessionFile: entry.sessionFile,
+          transcriptArchived: false,
+        });
+        await hookRunner.runSessionEnd(payload.event, payload.context);
+      } catch (err) {
+        logVerbose(`session_end hook failed during shutdown drain: ${String(err)}`);
+      } finally {
+        settledEmissions++;
+      }
+    }),
+  );
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<"timeout">((resolve) => {
+    timer = setTimeout(() => resolve("timeout"), totalTimeoutMs);
+    timer.unref?.();
+  });
+  try {
+    const result = await Promise.race([drain.then(() => "ok" as const), timeout]);
+    if (result === "timeout") {
+      logVerbose(
+        `shutdown session-end drain timed out after ${totalTimeoutMs}ms with ${
+          tracked.length - settledEmissions
+        } session_end handler(s) still pending`,
+      );
+      return { emittedSessionIds, timedOut: true };
+    }
+    return { emittedSessionIds, timedOut: false };
+  } finally {
+    if (timer) {
+      clearTimeout(timer);
+    }
+  }
 }
 
 export async function emitSessionUnboundLifecycleEvent(params: {
@@ -407,6 +556,25 @@ export async function performGatewaySessionReset(params: {
       mode: 0o600,
     });
   }
+  emitGatewaySessionEndPluginHook({
+    cfg,
+    sessionKey: target.canonicalKey ?? params.key,
+    sessionId: oldSessionId,
+    storePath,
+    sessionFile: oldSessionFile,
+    agentId: target.agentId,
+    reason: params.reason,
+    nextSessionId: next.sessionId,
+  });
+  emitGatewaySessionStartPluginHook({
+    cfg,
+    sessionKey: target.canonicalKey ?? params.key,
+    sessionId: next.sessionId,
+    resumedFrom: oldSessionId,
+    storePath,
+    sessionFile: next.sessionFile,
+    agentId: target.agentId,
+  });
   if (hadExistingEntry) {
     await emitSessionUnboundLifecycleEvent({
       targetSessionKey: target.canonicalKey ?? params.key,

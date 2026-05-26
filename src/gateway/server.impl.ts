@@ -132,6 +132,7 @@ import { resolveHookClientIpConfig } from "./server/hooks.js";
 import { createReadinessChecker } from "./server/readiness.js";
 import { loadGatewayTlsRuntime } from "./server/tls.js";
 import { resolveSessionKeyForTranscriptFile } from "./session-transcript-key.js";
+import { drainActiveSessionsForShutdown } from "./session-reset-service.js";
 import {
   attachCoreBlowTranscriptMeta,
   loadGatewaySessionRow,
@@ -799,6 +800,7 @@ export async function startGatewayServer(
       wss,
       httpServer,
       httpServers,
+      drainActiveSessionsForShutdown,
     })({ reason: "gateway startup failed" });
   };
   const nodeRegistry = new NodeRegistry();
@@ -1499,6 +1501,7 @@ export async function startGatewayServer(
     wss,
     httpServer,
     httpServers,
+    drainActiveSessionsForShutdown,
   });
 
   return {
