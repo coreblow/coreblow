@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import { createServer, type Server } from "node:http";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   DEFAULT_MANAGED_IMAGE_ATTACHMENT_LIMITS,
   attachManagedOutgoingImagesToMessage,
@@ -51,14 +51,49 @@ async function withManagedImageServer<T>(
   }
 }
 
+async function writeManagedImageTranscriptFixture(params: {
+  stateDir: string;
+  sessionKey: string;
+  sessionId: string;
+  messageId: string;
+  blocks: readonly Record<string, unknown>[];
+}): Promise<void> {
+  const sessionsDir = path.join(params.stateDir, "agents", "main", "sessions");
+  const sessionFile = path.join(sessionsDir, `${params.sessionId}.jsonl`);
+  await fs.mkdir(sessionsDir, { recursive: true });
+  await fs.writeFile(
+    path.join(sessionsDir, "sessions.json"),
+    `${JSON.stringify({
+      [params.sessionKey]: {
+        sessionId: params.sessionId,
+        updatedAt: Date.now(),
+        sessionFile,
+      },
+    })}\n`,
+  );
+  await fs.writeFile(
+    sessionFile,
+    `${JSON.stringify({
+      type: "message",
+      id: params.messageId,
+      message: {
+        role: "assistant",
+        content: params.blocks,
+      },
+    })}\n`,
+  );
+}
+
 describe("managed image attachments", () => {
   let stateDir: string;
 
   beforeEach(async () => {
     stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-managed-images-"));
+    vi.stubEnv("COREBLOW_STATE_DIR", stateDir);
   });
 
   afterEach(async () => {
+    vi.unstubAllEnvs();
     await fs.rm(stateDir, { recursive: true, force: true });
   });
 
@@ -163,6 +198,13 @@ describe("managed image attachments", () => {
       messageId: "message-1",
     });
     const url = String(blocks[0]?.url);
+    await writeManagedImageTranscriptFixture({
+      stateDir,
+      sessionKey: "agent:main:main",
+      sessionId: "managed-image-session",
+      messageId: "message-1",
+      blocks,
+    });
 
     await withManagedImageServer(stateDir, async (baseUrl) => {
       const res = await fetch(`${baseUrl}${url}`, {
@@ -173,6 +215,31 @@ describe("managed image attachments", () => {
       expect(res.headers.get("content-type")).toBe("image/png");
       expect(res.headers.get("cache-control")).toBe("private, max-age=31536000, immutable");
       expect(Buffer.from(await res.arrayBuffer())).toEqual(Buffer.from(TINY_PNG_BASE64, "base64"));
+    });
+  });
+
+  test("does not serve history records missing transcript image references", async () => {
+    const blocks = await createManagedOutgoingImageBlocks({
+      sessionKey: "agent:main:main",
+      mediaUrls: [`data:image/png;base64,${TINY_PNG_BASE64}`],
+      stateDir,
+      messageId: "message-1",
+    });
+    const url = String(blocks[0]?.url);
+    await writeManagedImageTranscriptFixture({
+      stateDir,
+      sessionKey: "agent:main:main",
+      sessionId: "managed-image-session",
+      messageId: "message-1",
+      blocks: [{ type: "text", text: "no managed image block here" }],
+    });
+
+    await withManagedImageServer(stateDir, async (baseUrl) => {
+      const res = await fetch(`${baseUrl}${url}`, {
+        headers: { authorization: "Bearer secret" },
+      });
+
+      expect(res.status).toBe(404);
     });
   });
 

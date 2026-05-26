@@ -17,6 +17,7 @@ import {
   resolveOpenAiCompatibleHttpSenderIsOwner,
 } from "./http-auth-utils.js";
 import { authorizeOperatorScopesForMethod } from "./method-scopes.js";
+import { loadSessionEntry, readSessionMessages } from "./session-utils.js";
 
 const OUTGOING_IMAGE_ROUTE_PREFIX = "/api/chat/media/outgoing";
 const DEFAULT_TRANSIENT_OUTGOING_IMAGE_TTL_MS = 15 * 60 * 1000;
@@ -64,6 +65,7 @@ type ManagedImageRecord = {
 };
 
 type ManagedImageBlock = Record<string, unknown>;
+type SessionManagedOutgoingAttachmentIndex = Set<string>;
 
 export function resolveManagedImageAttachmentLimits(
   config?: ManagedImageAttachmentLimitsConfig | null,
@@ -421,6 +423,7 @@ export async function createManagedOutgoingImageBlocks(params: {
 
 function collectManagedOutgoingAttachmentRefs(
   blocks?: readonly Record<string, unknown>[],
+  expectedSessionKey?: string,
 ): Array<{ attachmentId: string; sessionKey: string }> {
   if (!blocks) {
     return [];
@@ -435,10 +438,80 @@ function collectManagedOutgoingAttachmentRefs(
       if (!parsed) {
         continue;
       }
+      if (expectedSessionKey && parsed.sessionKey !== expectedSessionKey) {
+        continue;
+      }
       refs.set(`${parsed.sessionKey}:${parsed.attachmentId}`, parsed);
     }
   }
   return [...refs.values()];
+}
+
+function buildManagedOutgoingAttachmentRefKey(messageId: string, attachmentId: string): string {
+  return `${messageId}::${attachmentId}`;
+}
+
+function resolveTranscriptMessageId(message: unknown): string | undefined {
+  if (!message || typeof message !== "object") {
+    return undefined;
+  }
+  const meta = (message as { __coreblow?: unknown }).__coreblow;
+  if (!meta || typeof meta !== "object" || Array.isArray(meta)) {
+    return undefined;
+  }
+  const id = (meta as { id?: unknown }).id;
+  return typeof id === "string" && id ? id : undefined;
+}
+
+function resolveTranscriptMessageContent(message: unknown): Record<string, unknown>[] {
+  if (!message || typeof message !== "object") {
+    return [];
+  }
+  const content = (message as { content?: unknown }).content;
+  if (!Array.isArray(content)) {
+    return [];
+  }
+  return content.filter(
+    (block): block is Record<string, unknown> =>
+      block !== null && typeof block === "object" && !Array.isArray(block),
+  );
+}
+
+function getSessionManagedOutgoingAttachmentIndex(
+  sessionKey: string,
+): SessionManagedOutgoingAttachmentIndex | null {
+  const { storePath, entry } = loadSessionEntry(sessionKey);
+  const sessionId = entry?.sessionId;
+  if (!sessionId) {
+    return null;
+  }
+  const messages = readSessionMessages(sessionId, storePath, entry.sessionFile);
+  const index: SessionManagedOutgoingAttachmentIndex = new Set();
+  for (const message of messages) {
+    const messageId = resolveTranscriptMessageId(message);
+    if (!messageId) {
+      continue;
+    }
+    for (const ref of collectManagedOutgoingAttachmentRefs(
+      resolveTranscriptMessageContent(message),
+      sessionKey,
+    )) {
+      index.add(buildManagedOutgoingAttachmentRefKey(messageId, ref.attachmentId));
+    }
+  }
+  return index;
+}
+
+function recordMatchesTranscriptMessage(record: ManagedImageRecord): boolean {
+  if (!record.messageId) {
+    return false;
+  }
+  try {
+    const index = getSessionManagedOutgoingAttachmentIndex(record.sessionKey);
+    return index?.has(buildManagedOutgoingAttachmentRefKey(record.messageId, record.attachmentId)) ?? false;
+  } catch {
+    return false;
+  }
 }
 
 export async function attachManagedOutgoingImagesToMessage(params: {
@@ -601,7 +674,7 @@ export async function handleManagedOutgoingImageHttpRequest(
     });
     return true;
   }
-  if (!record.messageId) {
+  if (!recordMatchesTranscriptMessage(record)) {
     sendStatus(res, 404, "not found");
     return true;
   }
