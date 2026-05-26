@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
+import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 import { resolveStateDir } from "../config/paths.js";
 import { readLocalFileSafely } from "../infra/fs-safe.js";
@@ -7,9 +8,20 @@ import { safeFileURLToPath } from "../infra/local-file-access.js";
 import { assertLocalMediaAllowed } from "../media/local-media-access.js";
 import { getImageMetadata } from "../media/image-ops.js";
 import { resolveUserPath } from "../utils.js";
+import type { AuthRateLimiter } from "./auth-rate-limit.js";
+import type { ResolvedGatewayAuth } from "./auth.js";
+import { sendJson, sendMethodNotAllowed, sendMissingScopeForbidden } from "./http-common.js";
+import {
+  authorizeGatewayHttpRequestOrReply,
+  resolveOpenAiCompatibleHttpOperatorScopes,
+  resolveOpenAiCompatibleHttpSenderIsOwner,
+} from "./http-auth-utils.js";
+import { authorizeOperatorScopesForMethod } from "./method-scopes.js";
 
 const OUTGOING_IMAGE_ROUTE_PREFIX = "/api/chat/media/outgoing";
 const DEFAULT_TRANSIENT_OUTGOING_IMAGE_TTL_MS = 15 * 60 * 1000;
+const MANAGED_OUTGOING_ATTACHMENT_ID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const DATA_URL_RE = /^data:/i;
 const WINDOWS_DRIVE_RE = /^[A-Za-z]:[\\/]/;
 
@@ -95,6 +107,23 @@ function buildOutgoingVariantUrl(sessionKey: string, attachmentId: string, varia
   return `${OUTGOING_IMAGE_ROUTE_PREFIX}/${encodeURIComponent(sessionKey)}/${attachmentId}/${variant}`;
 }
 
+function parseManagedOutgoingRoute(
+  value: string,
+): { sessionKey: string; attachmentId: string } | null {
+  const match = new RegExp(`^${OUTGOING_IMAGE_ROUTE_PREFIX}/([^/]+)/([^/]+)/full$`).exec(value);
+  if (!match?.[1] || !match[2]) {
+    return null;
+  }
+  try {
+    return {
+      sessionKey: decodeURIComponent(match[1]),
+      attachmentId: match[2],
+    };
+  } catch {
+    return null;
+  }
+}
+
 function buildManagedImageBlock(record: ManagedImageRecord): ManagedImageBlock {
   const fullUrl = buildOutgoingVariantUrl(record.sessionKey, record.attachmentId, "full");
   return {
@@ -128,7 +157,12 @@ function resolveLocalMediaPath(source: string): string | undefined {
   if (source.startsWith("file:")) {
     return safeFileURLToPath(source);
   }
-  if (source.startsWith("/") || source.startsWith("~") || source.startsWith(".") || WINDOWS_DRIVE_RE.test(source)) {
+  if (
+    source.startsWith("/") ||
+    source.startsWith("~") ||
+    source.startsWith(".") ||
+    WINDOWS_DRIVE_RE.test(source)
+  ) {
     return resolveUserPath(source);
   }
   return undefined;
@@ -151,7 +185,9 @@ function parseImageDataUrl(
     return "non-image";
   }
   const body = match[3] ?? "";
-  const buffer = match[2] ? Buffer.from(body.replace(/\s+/g, ""), "base64") : Buffer.from(decodeURIComponent(body));
+  const buffer = match[2]
+    ? Buffer.from(body.replace(/\s+/g, ""), "base64")
+    : Buffer.from(decodeURIComponent(body));
   validateManagedImageBuffer(buffer, alt, limits);
   return { buffer, contentType };
 }
@@ -245,7 +281,10 @@ async function saveOriginalImage(params: {
 }): Promise<string> {
   const extension = extensionForContentType(params.contentType);
   const safeName = params.filename.replace(/[^\p{L}\p{N}._-]+/gu, "_").slice(0, 80) || "image";
-  const filePath = path.join(resolveOutgoingOriginalsDir(params.stateDir), `${randomUUID()}-${safeName}${extension}`);
+  const filePath = path.join(
+    resolveOutgoingOriginalsDir(params.stateDir),
+    `${randomUUID()}-${safeName}${extension}`,
+  );
   await fs.mkdir(path.dirname(filePath), { recursive: true, mode: 0o700 });
   await fs.writeFile(filePath, params.buffer, { mode: 0o600 });
   return filePath;
@@ -386,16 +425,20 @@ function collectManagedOutgoingAttachmentRefs(
   if (!blocks) {
     return [];
   }
-  const refs: Array<{ attachmentId: string; sessionKey: string }> = [];
+  const refs = new Map<string, { attachmentId: string; sessionKey: string }>();
   for (const block of blocks) {
-    const url = typeof block.url === "string" ? block.url : "";
-    const parsed = new RegExp(`^${OUTGOING_IMAGE_ROUTE_PREFIX}/([^/]+)/([^/]+)/full$`).exec(url);
-    if (!parsed?.[1] || !parsed[2]) {
-      continue;
+    for (const candidate of [block.url, block.openUrl]) {
+      if (typeof candidate !== "string") {
+        continue;
+      }
+      const parsed = parseManagedOutgoingRoute(candidate);
+      if (!parsed) {
+        continue;
+      }
+      refs.set(`${parsed.sessionKey}:${parsed.attachmentId}`, parsed);
     }
-    refs.push({ sessionKey: decodeURIComponent(parsed[1]), attachmentId: parsed[2] });
   }
-  return refs;
+  return [...refs.values()];
 }
 
 export async function attachManagedOutgoingImagesToMessage(params: {
@@ -475,4 +518,105 @@ export async function cleanupManagedOutgoingImageRecords(params?: {
   }
 
   return { deletedRecordCount, deletedFileCount, retainedCount };
+}
+
+function sendStatus(res: ServerResponse, statusCode: number, body: string): void {
+  if (res.writableEnded) {
+    return;
+  }
+  res.statusCode = statusCode;
+  res.setHeader("content-type", "text/plain; charset=utf-8");
+  res.end(body);
+}
+
+function safeAttachmentFilename(value: string | null): string {
+  const fallback = "generated-image";
+  const base = (value ?? fallback).replace(/[\r\n"\\]/g, "_").trim();
+  return base || fallback;
+}
+
+export async function handleManagedOutgoingImageHttpRequest(
+  req: IncomingMessage,
+  res: ServerResponse,
+  opts: {
+    auth: ResolvedGatewayAuth;
+    trustedProxies?: string[];
+    allowRealIpFallback?: boolean;
+    rateLimiter?: AuthRateLimiter;
+    stateDir?: string;
+  },
+): Promise<boolean> {
+  const requestUrl = new URL(req.url ?? "/", "http://localhost");
+  const route = parseManagedOutgoingRoute(requestUrl.pathname);
+  if (!route) {
+    return false;
+  }
+
+  if (req.method !== "GET") {
+    sendMethodNotAllowed(res, "GET");
+    return true;
+  }
+
+  const requestAuth = await authorizeGatewayHttpRequestOrReply({
+    req,
+    res,
+    auth: opts.auth,
+    trustedProxies: opts.trustedProxies,
+    allowRealIpFallback: opts.allowRealIpFallback,
+    rateLimiter: opts.rateLimiter,
+  });
+  if (!requestAuth) {
+    return true;
+  }
+
+  const requestedScopes = resolveOpenAiCompatibleHttpOperatorScopes(req, requestAuth);
+  const scopeAuth = authorizeOperatorScopesForMethod("chat.history", requestedScopes);
+  if (!scopeAuth.allowed) {
+    sendMissingScopeForbidden(res, scopeAuth.missingScope);
+    return true;
+  }
+
+  if (!MANAGED_OUTGOING_ATTACHMENT_ID_RE.test(route.attachmentId)) {
+    sendStatus(res, 404, "not found");
+    return true;
+  }
+
+  const record = await readManagedImageRecord(route.attachmentId, opts.stateDir);
+  if (!record || record.sessionKey !== route.sessionKey) {
+    sendStatus(res, 404, "not found");
+    return true;
+  }
+  if (!resolveOpenAiCompatibleHttpSenderIsOwner(req, requestAuth)) {
+    sendJson(res, 403, {
+      ok: false,
+      error: {
+        type: "forbidden",
+        message: "owner access required",
+      },
+    });
+    return true;
+  }
+  if (!record.messageId) {
+    sendStatus(res, 404, "not found");
+    return true;
+  }
+
+  let body: Buffer;
+  try {
+    body = (await readLocalFileSafely({ filePath: record.original.path })).buffer;
+  } catch {
+    sendStatus(res, 404, "not found");
+    return true;
+  }
+
+  res.statusCode = 200;
+  res.setHeader("content-type", record.original.contentType || "application/octet-stream");
+  res.setHeader("content-length", String(body.byteLength));
+  res.setHeader("cache-control", "private, max-age=31536000, immutable");
+  res.setHeader(
+    "content-disposition",
+    `inline; filename="${safeAttachmentFilename(record.original.filename)}"`,
+  );
+  res.end(body);
+  return true;
 }

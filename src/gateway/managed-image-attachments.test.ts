@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import { createServer, type Server } from "node:http";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
@@ -7,6 +8,7 @@ import {
   attachManagedOutgoingImagesToMessage,
   cleanupManagedOutgoingImageRecords,
   createManagedOutgoingImageBlocks,
+  handleManagedOutgoingImageHttpRequest,
   resolveManagedImageAttachmentLimits,
 } from "./managed-image-attachments.js";
 
@@ -19,6 +21,34 @@ async function readRecords(stateDir: string): Promise<Array<Record<string, unkno
   return await Promise.all(
     names.map(async (name) => JSON.parse(await fs.readFile(path.join(recordsDir, name), "utf-8"))),
   );
+}
+
+async function withManagedImageServer<T>(
+  stateDir: string,
+  run: (baseUrl: string) => Promise<T>,
+): Promise<T> {
+  const server = createServer(async (req, res) => {
+    const handled = await handleManagedOutgoingImageHttpRequest(req, res, {
+      auth: { mode: "token", token: "secret", allowTailscale: false },
+      stateDir,
+    });
+    if (!handled) {
+      res.statusCode = 404;
+      res.end("not found");
+    }
+  });
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  try {
+    const address = server.address();
+    if (!address || typeof address === "string") {
+      throw new Error("expected local server address");
+    }
+    return await run(`http://127.0.0.1:${address.port}`);
+  } finally {
+    await new Promise<void>((resolve, reject) =>
+      (server as Server).close((error) => (error ? reject(error) : resolve())),
+    );
+  }
 }
 
 describe("managed image attachments", () => {
@@ -123,5 +153,65 @@ describe("managed image attachments", () => {
       retainedCount: 1,
     });
     expect(await readRecords(stateDir)).toHaveLength(1);
+  });
+
+  test("serves managed image bytes for authorized history readers", async () => {
+    const blocks = await createManagedOutgoingImageBlocks({
+      sessionKey: "agent:main:main",
+      mediaUrls: [`data:image/png;base64,${TINY_PNG_BASE64}`],
+      stateDir,
+      messageId: "message-1",
+    });
+    const url = String(blocks[0]?.url);
+
+    await withManagedImageServer(stateDir, async (baseUrl) => {
+      const res = await fetch(`${baseUrl}${url}`, {
+        headers: { authorization: "Bearer secret" },
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.headers.get("content-type")).toBe("image/png");
+      expect(res.headers.get("cache-control")).toBe("private, max-age=31536000, immutable");
+      expect(Buffer.from(await res.arrayBuffer())).toEqual(Buffer.from(TINY_PNG_BASE64, "base64"));
+    });
+  });
+
+  test("rejects unauthenticated and non-GET media requests", async () => {
+    const blocks = await createManagedOutgoingImageBlocks({
+      sessionKey: "agent:main:main",
+      mediaUrls: [`data:image/png;base64,${TINY_PNG_BASE64}`],
+      stateDir,
+      messageId: "message-1",
+    });
+    const url = String(blocks[0]?.url);
+
+    await withManagedImageServer(stateDir, async (baseUrl) => {
+      const unauthenticated = await fetch(`${baseUrl}${url}`);
+      expect(unauthenticated.status).toBe(401);
+
+      const post = await fetch(`${baseUrl}${url}`, {
+        method: "POST",
+        headers: { authorization: "Bearer secret" },
+      });
+      expect(post.status).toBe(405);
+      expect(post.headers.get("allow")).toBe("GET");
+    });
+  });
+
+  test("does not serve transient media records before message attachment", async () => {
+    const blocks = await createManagedOutgoingImageBlocks({
+      sessionKey: "agent:main:main",
+      mediaUrls: [`data:image/png;base64,${TINY_PNG_BASE64}`],
+      stateDir,
+    });
+    const url = String(blocks[0]?.url);
+
+    await withManagedImageServer(stateDir, async (baseUrl) => {
+      const res = await fetch(`${baseUrl}${url}`, {
+        headers: { authorization: "Bearer secret" },
+      });
+
+      expect(res.status).toBe(404);
+    });
   });
 });
