@@ -1,9 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { InternalHookEvent } from "../hooks/internal-hooks.js";
 import { createGatewayCloseHandler } from "./server-close.js";
 
 const mocks = vi.hoisted(() => ({
   logInfo: vi.fn(),
   logWarn: vi.fn(),
+  triggerInternalHook: vi.fn<(event: unknown) => Promise<void>>(async (_event) => undefined),
 }));
 
 vi.mock("../channels/plugins/index.js", () => ({
@@ -13,6 +15,16 @@ vi.mock("../channels/plugins/index.js", () => ({
 vi.mock("../hooks/gmail-watcher.js", () => ({
   stopGmailWatcher: vi.fn(async () => undefined),
 }));
+
+vi.mock("../hooks/internal-hooks.js", async () => {
+  const actual = await vi.importActual<typeof import("../hooks/internal-hooks.js")>(
+    "../hooks/internal-hooks.js",
+  );
+  return {
+    ...actual,
+    triggerInternalHook: mocks.triggerInternalHook,
+  };
+});
 
 vi.mock("../logging/subsystem.js", () => ({
   createSubsystemLogger: vi.fn(() => ({
@@ -28,11 +40,15 @@ const WEBSOCKET_CLOSE_GRACE_MS = 1_000;
 const WEBSOCKET_CLOSE_FORCE_CONTINUE_MS = 250;
 const HTTP_CLOSE_GRACE_MS = 1_000;
 const HTTP_CLOSE_FORCE_WAIT_MS = 5_000;
+const GATEWAY_SHUTDOWN_HOOK_TIMEOUT_MS = 5_000;
+const GATEWAY_PRE_RESTART_HOOK_TIMEOUT_MS = 10_000;
 
 describe("createGatewayCloseHandler", () => {
   afterEach(() => {
     mocks.logInfo.mockClear();
     mocks.logWarn.mockClear();
+    mocks.triggerInternalHook.mockReset();
+    mocks.triggerInternalHook.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -100,6 +116,87 @@ describe("createGatewayCloseHandler", () => {
     expect(
       mocks.logInfo.mock.calls.some(([message]) =>
         String(message).startsWith("shutdown completed cleanly in "),
+      ),
+    ).toBe(true);
+  });
+
+  it("emits gateway shutdown and pre-restart hooks", async () => {
+    const close = createGatewayCloseHandler(createCloseDeps());
+
+    await close({ reason: "gateway restarting", restartExpectedMs: 123 });
+
+    const hookCalls = mocks.triggerInternalHook.mock.calls as unknown as Array<
+      [{ type?: string; action?: string; context?: Record<string, unknown> }]
+    >;
+    const shutdownEvent = hookCalls.find(
+      ([event]) => event?.type === "gateway" && event?.action === "shutdown",
+    )?.[0];
+    const preRestartEvent = hookCalls.find(
+      ([event]) => event?.type === "gateway" && event?.action === "pre-restart",
+    )?.[0];
+
+    expect(shutdownEvent?.context?.reason).toBe("gateway restarting");
+    expect(shutdownEvent?.context?.restartExpectedMs).toBe(123);
+    expect(preRestartEvent?.context?.reason).toBe("gateway restarting");
+    expect(preRestartEvent?.context?.restartExpectedMs).toBe(123);
+  });
+
+  it("emits only the shutdown hook for non-restart close", async () => {
+    const close = createGatewayCloseHandler(createCloseDeps());
+
+    await close({ reason: "test shutdown" });
+
+    const hookCalls = mocks.triggerInternalHook.mock.calls as unknown as Array<
+      [{ type?: string; action?: string }]
+    >;
+    expect(hookCalls.map(([event]) => event?.action)).toEqual(["shutdown"]);
+  });
+
+  it("continues shutdown and records a warning when gateway shutdown hook stalls", async () => {
+    vi.useFakeTimers();
+    mocks.triggerInternalHook.mockImplementation((event: unknown) => {
+      if ((event as InternalHookEvent).action === "shutdown") {
+        return new Promise<void>(() => undefined);
+      }
+      return Promise.resolve(undefined);
+    });
+    const chatRunState = { clear: vi.fn() };
+    const close = createGatewayCloseHandler(createCloseDeps({ chatRunState }));
+
+    const closePromise = close({ reason: "test shutdown" });
+    await vi.advanceTimersByTimeAsync(GATEWAY_SHUTDOWN_HOOK_TIMEOUT_MS);
+    const result = await closePromise;
+
+    expect(result.warnings).toContain("gateway:shutdown");
+    expect(chatRunState.clear).toHaveBeenCalledTimes(1);
+    expect(
+      mocks.logWarn.mock.calls.some(([message]) =>
+        String(message).includes("gateway:shutdown hook timed out after 5000ms"),
+      ),
+    ).toBe(true);
+  });
+
+  it("continues restart shutdown and records a warning when gateway pre-restart hook stalls", async () => {
+    vi.useFakeTimers();
+    mocks.triggerInternalHook.mockImplementation((event: unknown) => {
+      if ((event as InternalHookEvent).action === "pre-restart") {
+        return new Promise<void>(() => undefined);
+      }
+      return Promise.resolve(undefined);
+    });
+    const chatRunState = { clear: vi.fn() };
+    const close = createGatewayCloseHandler(createCloseDeps({ chatRunState }));
+
+    const closePromise = close({ reason: "test restart", restartExpectedMs: 123 });
+    await vi.advanceTimersByTimeAsync(GATEWAY_PRE_RESTART_HOOK_TIMEOUT_MS);
+    const result = await closePromise;
+
+    expect(result.warnings).toContain("gateway:pre-restart");
+    expect(mocks.triggerInternalHook).toHaveBeenCalledTimes(2);
+    expect(chatRunState.clear).toHaveBeenCalledTimes(1);
+    expect(
+      mocks.logWarn.mock.calls.some(([message]) =>
+        String(message).includes("gateway:pre-restart hook timed out after 10000ms"),
       ),
     ).toBe(true);
   });

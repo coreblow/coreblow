@@ -3,6 +3,7 @@ import type { WebSocketServer } from "ws";
 import type { CanvasHostHandler, CanvasHostServer } from "../canvas-host/server.js";
 import { type ChannelId, listChannelPlugins } from "../channels/plugins/index.js";
 import { stopGmailWatcher } from "../hooks/gmail-watcher.js";
+import { createInternalHookEvent, triggerInternalHook } from "../hooks/internal-hooks.js";
 import type { HeartbeatRunner } from "../infra/heartbeat-runner.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import type { PluginServicesHandle } from "../plugins/services.js";
@@ -13,6 +14,8 @@ export type ShutdownResult = {
 };
 
 const shutdownLog = createSubsystemLogger("gateway/shutdown");
+const GATEWAY_SHUTDOWN_HOOK_TIMEOUT_MS = 5_000;
+const GATEWAY_PRE_RESTART_HOOK_TIMEOUT_MS = 10_000;
 const WEBSOCKET_CLOSE_GRACE_MS = 1_000;
 const WEBSOCKET_CLOSE_FORCE_CONTINUE_MS = 250;
 const HTTP_CLOSE_GRACE_MS = 1_000;
@@ -47,6 +50,51 @@ function createTimeoutRace<T>(timeoutMs: number, onTimeout: () => T) {
 function recordShutdownWarning(warnings: string[], name: string): void {
   if (!warnings.includes(name)) {
     warnings.push(name);
+  }
+}
+
+async function shutdownStep(
+  name: string,
+  fn: () => Promise<void> | void,
+  warnings: string[],
+): Promise<boolean> {
+  try {
+    await fn();
+    return true;
+  } catch (err: unknown) {
+    const detail = err instanceof Error ? err.message : String(err);
+    shutdownLog.warn(`${name}: ${detail}`);
+    recordShutdownWarning(warnings, name);
+    return false;
+  }
+}
+
+async function triggerGatewayLifecycleHookWithTimeout(params: {
+  event: ReturnType<typeof createInternalHookEvent>;
+  hookName: "gateway:shutdown" | "gateway:pre-restart";
+  timeoutMs: number;
+}): Promise<"completed" | "timeout"> {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  const hookPromise = triggerInternalHook(params.event);
+  void hookPromise.catch(() => undefined);
+  try {
+    const result = await Promise.race([
+      hookPromise.then(() => "completed" as const),
+      new Promise<"timeout">((resolve) => {
+        timeout = setTimeout(() => resolve("timeout"), params.timeoutMs);
+        timeout.unref?.();
+      }),
+    ]);
+    if (result === "timeout") {
+      shutdownLog.warn(
+        `${params.hookName} hook timed out after ${params.timeoutMs}ms; continuing shutdown`,
+      );
+    }
+    return result;
+  } finally {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
   }
 }
 
@@ -101,6 +149,49 @@ export function createGatewayCloseHandler(params: {
           ? Math.max(0, Math.floor(opts.restartExpectedMs))
           : null;
       shutdownLog.info(`shutdown started: ${reason}`);
+      await shutdownStep(
+        "gateway:shutdown",
+        async () => {
+          const shutdownEvent = createInternalHookEvent("gateway", "shutdown", "gateway:shutdown", {
+            reason,
+            restartExpectedMs,
+          });
+          const result = await triggerGatewayLifecycleHookWithTimeout({
+            event: shutdownEvent,
+            hookName: "gateway:shutdown",
+            timeoutMs: GATEWAY_SHUTDOWN_HOOK_TIMEOUT_MS,
+          });
+          if (result === "timeout") {
+            recordShutdownWarning(warnings, "gateway:shutdown");
+          }
+        },
+        warnings,
+      );
+      if (restartExpectedMs !== null) {
+        await shutdownStep(
+          "gateway:pre-restart",
+          async () => {
+            const preRestartEvent = createInternalHookEvent(
+              "gateway",
+              "pre-restart",
+              "gateway:pre-restart",
+              {
+                reason,
+                restartExpectedMs,
+              },
+            );
+            const result = await triggerGatewayLifecycleHookWithTimeout({
+              event: preRestartEvent,
+              hookName: "gateway:pre-restart",
+              timeoutMs: GATEWAY_PRE_RESTART_HOOK_TIMEOUT_MS,
+            });
+            if (result === "timeout") {
+              recordShutdownWarning(warnings, "gateway:pre-restart");
+            }
+          },
+          warnings,
+        );
+      }
       if (params.bonjourStop) {
         try {
           await params.bonjourStop();
