@@ -6,14 +6,16 @@ const mocks = vi.hoisted(() => ({
   logInfo: vi.fn(),
   logWarn: vi.fn(),
   triggerInternalHook: vi.fn<(event: unknown) => Promise<void>>(async (_event) => undefined),
+  listChannelPlugins: vi.fn(() => [] as Array<{ id: "telegram" | "discord" }>),
+  stopGmailWatcher: vi.fn(async () => undefined),
 }));
 
 vi.mock("../channels/plugins/index.js", () => ({
-  listChannelPlugins: () => [],
+  listChannelPlugins: mocks.listChannelPlugins,
 }));
 
 vi.mock("../hooks/gmail-watcher.js", () => ({
-  stopGmailWatcher: vi.fn(async () => undefined),
+  stopGmailWatcher: mocks.stopGmailWatcher,
 }));
 
 vi.mock("../hooks/internal-hooks.js", async () => {
@@ -49,6 +51,10 @@ describe("createGatewayCloseHandler", () => {
     mocks.logWarn.mockClear();
     mocks.triggerInternalHook.mockReset();
     mocks.triggerInternalHook.mockResolvedValue(undefined);
+    mocks.listChannelPlugins.mockReset();
+    mocks.listChannelPlugins.mockReturnValue([]);
+    mocks.stopGmailWatcher.mockReset();
+    mocks.stopGmailWatcher.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -219,6 +225,105 @@ describe("createGatewayCloseHandler", () => {
     const result = await close({ reason: "test shutdown" });
 
     expect(result.warnings).toEqual([]);
+  });
+
+  it("records subsystem shutdown warnings without aborting later cleanup", async () => {
+    mocks.listChannelPlugins.mockReturnValue([{ id: "telegram" }, { id: "discord" }]);
+    const lifecycleUnsub = vi.fn();
+    const stopChannel = vi.fn(async (id: string) => {
+      if (id === "telegram") {
+        throw new Error("telegram stuck");
+      }
+    });
+    const close = createGatewayCloseHandler(
+      createCloseDeps({
+        bonjourStop: vi.fn(async () => {
+          throw new Error("mdns unavailable");
+        }),
+        canvasHost: {
+          close: vi.fn(async () => {
+            throw new Error("canvas unavailable");
+          }),
+        } as never,
+        lifecycleUnsub,
+        stopChannel: stopChannel as GatewayCloseHandlerParams["stopChannel"],
+      }),
+    );
+
+    const result = await close({ reason: "test shutdown" });
+
+    expect(result.warnings).toContain("bonjour");
+    expect(result.warnings).toContain("canvas-host");
+    expect(result.warnings).toContain("channel/telegram");
+    expect(result.warnings).not.toContain("channel/discord");
+    expect(lifecycleUnsub).toHaveBeenCalledTimes(1);
+    expect(stopChannel).toHaveBeenCalledTimes(2);
+    expect(mocks.logWarn).toHaveBeenCalledWith("bonjour: mdns unavailable");
+    expect(mocks.logWarn).toHaveBeenCalledWith("channel/telegram: telegram stuck");
+  });
+
+  it("records optional cleanup warnings without aborting later cleanup", async () => {
+    const chatRunState = { clear: vi.fn() };
+    const close = createGatewayCloseHandler(
+      createCloseDeps({
+        tailscaleCleanup: vi.fn(async () => {
+          throw new Error("tailscale down");
+        }),
+        canvasHostServer: {
+          close: vi.fn(async () => {
+            throw new Error("canvas server down");
+          }),
+        } as never,
+        pluginServices: {
+          stop: vi.fn(async () => {
+            throw new Error("plugins down");
+          }),
+        } as never,
+        configReloader: {
+          stop: vi.fn(async () => {
+            throw new Error("reload down");
+          }),
+        },
+        updateCheckStop: vi.fn(() => {
+          throw new Error("update down");
+        }),
+        agentUnsub: vi.fn(() => {
+          throw new Error("agent down");
+        }),
+        heartbeatUnsub: vi.fn(() => {
+          throw new Error("heartbeat down");
+        }),
+        transcriptUnsub: vi.fn(() => {
+          throw new Error("transcript down");
+        }),
+        lifecycleUnsub: vi.fn(() => {
+          throw new Error("lifecycle down");
+        }),
+        chatRunState,
+      }),
+    );
+    mocks.stopGmailWatcher.mockRejectedValueOnce(new Error("gmail down"));
+
+    const result = await close({ reason: "test shutdown" });
+
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        "tailscale",
+        "canvas-host-server",
+        "plugin-services",
+        "gmail-watcher",
+        "update-check",
+        "agent-unsub",
+        "heartbeat-unsub",
+        "transcript-unsub",
+        "lifecycle-unsub",
+        "config-reloader",
+      ]),
+    );
+    expect(chatRunState.clear).toHaveBeenCalledTimes(1);
+    expect(
+      mocks.logWarn.mock.calls.some(([message]) => String(message) === "config-reloader: reload down"),
+    ).toBe(true);
   });
 
   it("records client and HTTP close warnings without aborting shutdown", async () => {

@@ -193,43 +193,27 @@ export function createGatewayCloseHandler(params: {
         );
       }
       if (params.bonjourStop) {
-        try {
-          await params.bonjourStop();
-        } catch {
-          /* ignore */
-        }
+        await shutdownStep("bonjour", () => params.bonjourStop!(), warnings);
       }
       if (params.tailscaleCleanup) {
-        await params.tailscaleCleanup();
+        await shutdownStep("tailscale", () => params.tailscaleCleanup!(), warnings);
       }
       if (params.canvasHost) {
-        try {
-          await params.canvasHost.close();
-        } catch {
-          /* ignore */
-        }
+        await shutdownStep("canvas-host", () => params.canvasHost!.close(), warnings);
       }
       if (params.canvasHostServer) {
-        try {
-          await params.canvasHostServer.close();
-        } catch {
-          /* ignore */
-        }
+        await shutdownStep("canvas-host-server", () => params.canvasHostServer!.close(), warnings);
       }
       for (const plugin of listChannelPlugins()) {
-        await params.stopChannel(plugin.id);
+        await shutdownStep(`channel/${plugin.id}`, () => params.stopChannel(plugin.id), warnings);
       }
       if (params.pluginServices) {
-        await params.pluginServices.stop().catch(() => {});
+        await shutdownStep("plugin-services", () => params.pluginServices!.stop(), warnings);
       }
-      await stopGmailWatcher();
+      await shutdownStep("gmail-watcher", () => stopGmailWatcher(), warnings);
       params.cron.stop();
       params.heartbeatRunner.stop();
-      try {
-        params.updateCheckStop?.();
-      } catch {
-        /* ignore */
-      }
+      await shutdownStep("update-check", () => params.updateCheckStop?.(), warnings);
       for (const timer of params.nodePresenceTimers.values()) {
         clearInterval(timer);
       }
@@ -245,32 +229,16 @@ export function createGatewayCloseHandler(params: {
         clearInterval(params.mediaCleanup);
       }
       if (params.agentUnsub) {
-        try {
-          params.agentUnsub();
-        } catch {
-          /* ignore */
-        }
+        await shutdownStep("agent-unsub", () => params.agentUnsub!(), warnings);
       }
       if (params.heartbeatUnsub) {
-        try {
-          params.heartbeatUnsub();
-        } catch {
-          /* ignore */
-        }
+        await shutdownStep("heartbeat-unsub", () => params.heartbeatUnsub!(), warnings);
       }
       if (params.transcriptUnsub) {
-        try {
-          params.transcriptUnsub();
-        } catch {
-          /* ignore */
-        }
+        await shutdownStep("transcript-unsub", () => params.transcriptUnsub!(), warnings);
       }
       if (params.lifecycleUnsub) {
-        try {
-          params.lifecycleUnsub();
-        } catch {
-          /* ignore */
-        }
+        await shutdownStep("lifecycle-unsub", () => params.lifecycleUnsub!(), warnings);
       }
       params.chatRunState.clear();
       let clientCloseFailures = 0;
@@ -286,7 +254,7 @@ export function createGatewayCloseHandler(params: {
         recordShutdownWarning(warnings, "ws-clients");
       }
       params.clients.clear();
-      await params.configReloader.stop().catch(() => {});
+      await shutdownStep("config-reloader", () => params.configReloader.stop(), warnings);
       const wsClients = params.wss.clients ?? new Set();
       const websocketClosePromise = new Promise<void>((resolve) =>
         params.wss.close(() => resolve()),
