@@ -472,6 +472,7 @@ export async function attachManagedOutgoingImagesToMessage(params: {
 
 export async function cleanupManagedOutgoingImageRecords(params?: {
   stateDir?: string;
+  sessionKey?: string;
   nowMs?: number;
   transientTtlMs?: number;
 }): Promise<{ deletedRecordCount: number; deletedFileCount: number; retainedCount: number }> {
@@ -496,6 +497,10 @@ export async function cleanupManagedOutgoingImageRecords(params?: {
     const attachmentId = path.basename(entry, ".json");
     const record = await readManagedImageRecord(attachmentId, stateDir);
     if (!record) {
+      continue;
+    }
+    if (params?.sessionKey && record.sessionKey !== params.sessionKey) {
+      retainedCount += 1;
       continue;
     }
     const createdAtMs = Date.parse(record.createdAt);

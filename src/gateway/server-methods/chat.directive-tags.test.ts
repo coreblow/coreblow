@@ -18,6 +18,7 @@ const mockState = vi.hoisted(() => ({
   sessionId: "sess-1",
   mainSessionKey: "main",
   finalText: "[[reply_to_current]]",
+  finalMediaUrls: undefined as string[] | undefined,
   dispatchError: null as Error | null,
   triggerAgentRunStart: false,
   agentRunId: "run-agent-1",
@@ -32,6 +33,10 @@ const mockState = vi.hoisted(() => ({
   }>,
   savedMediaResults: [] as Array<{ path: string; contentType?: string }>,
   savedMediaCalls: [] as Array<{ contentType?: string; subdir?: string; size: number }>,
+  managedImageBlocks: [] as Array<Record<string, unknown>>,
+  managedImageCreateCalls: [] as Array<Record<string, unknown>>,
+  managedImageAttachCalls: [] as Array<Record<string, unknown>>,
+  managedImageCleanupCalls: [] as Array<Record<string, unknown>>,
   saveMediaWait: null as Promise<void> | null,
   activeSaveMediaCalls: 0,
   maxActiveSaveMediaCalls: 0,
@@ -78,7 +83,7 @@ vi.mock("../../auto-reply/dispatch.js", () => ({
     async (params: {
       ctx: MsgContext;
       dispatcher: {
-        sendFinalReply: (payload: { text: string }) => boolean;
+        sendFinalReply: (payload: { text: string; mediaUrls?: string[] }) => boolean;
         markComplete: () => void;
         waitForIdle: () => Promise<void>;
       };
@@ -95,7 +100,10 @@ vi.mock("../../auto-reply/dispatch.js", () => ({
       if (mockState.triggerAgentRunStart) {
         params.replyOptions?.onAgentRunStart?.(mockState.agentRunId);
       }
-      params.dispatcher.sendFinalReply({ text: mockState.finalText });
+      params.dispatcher.sendFinalReply({
+        text: mockState.finalText,
+        ...(mockState.finalMediaUrls ? { mediaUrls: mockState.finalMediaUrls } : {}),
+      });
       params.dispatcher.markComplete();
       await params.dispatcher.waitForIdle();
       return { ok: true };
@@ -144,6 +152,20 @@ vi.mock("../../media/store.js", async (importOriginal) => {
     }),
   };
 });
+
+vi.mock("../managed-image-attachments.js", () => ({
+  createManagedOutgoingImageBlocks: vi.fn(async (params: Record<string, unknown>) => {
+    mockState.managedImageCreateCalls.push(params);
+    return mockState.managedImageBlocks;
+  }),
+  attachManagedOutgoingImagesToMessage: vi.fn(async (params: Record<string, unknown>) => {
+    mockState.managedImageAttachCalls.push(params);
+  }),
+  cleanupManagedOutgoingImageRecords: vi.fn(async (params: Record<string, unknown>) => {
+    mockState.managedImageCleanupCalls.push(params);
+    return { deletedRecordCount: 0, deletedFileCount: 0, retainedCount: 0 };
+  }),
+}));
 
 const { chatHandlers } = await import("./chat.js");
 
@@ -244,6 +266,7 @@ function createChatContext(): Pick<
   | "removeChatRun"
   | "dedupe"
   | "registerToolEventRecipient"
+  | "loadGatewayModelCatalog"
   | "logGateway"
 > {
   return {
@@ -257,6 +280,7 @@ function createChatContext(): Pick<
     removeChatRun: vi.fn(),
     dedupe: new Map(),
     registerToolEventRecipient: vi.fn(),
+    loadGatewayModelCatalog: vi.fn().mockResolvedValue([]),
     logGateway: {
       warn: vi.fn(),
       debug: vi.fn(),
@@ -330,6 +354,7 @@ async function runNonStreamingChatSend(params: {
 describe("chat directive tag stripping for non-streaming final payloads", () => {
   afterEach(() => {
     mockState.finalText = "[[reply_to_current]]";
+    mockState.finalMediaUrls = undefined;
     mockState.dispatchError = null;
     mockState.mainSessionKey = "main";
     mockState.triggerAgentRunStart = false;
@@ -340,6 +365,10 @@ describe("chat directive tag stripping for non-streaming final payloads", () => 
     mockState.emittedTranscriptUpdates = [];
     mockState.savedMediaResults = [];
     mockState.savedMediaCalls = [];
+    mockState.managedImageBlocks = [];
+    mockState.managedImageCreateCalls = [];
+    mockState.managedImageAttachCalls = [];
+    mockState.managedImageCleanupCalls = [];
     mockState.saveMediaWait = null;
     mockState.activeSaveMediaCalls = 0;
     mockState.maxActiveSaveMediaCalls = 0;
@@ -456,6 +485,65 @@ describe("chat directive tag stripping for non-streaming final payloads", () => 
       }),
     );
     expect(extractFirstTextBlock(payload)).toBe("");
+  });
+
+  it("chat.send non-streaming final projects managed image attachments", async () => {
+    createTranscriptFixture("coreblow-chat-send-managed-images-");
+    mockState.finalText = "image ready";
+    mockState.finalMediaUrls = ["data:image/png;base64,abc"];
+    mockState.managedImageBlocks = [
+      {
+        type: "image",
+        url: "/api/chat/media/outgoing/agent%3Amain%3Amain/11111111-1111-4111-8111-111111111111/full",
+        openUrl:
+          "/api/chat/media/outgoing/agent%3Amain%3Amain/11111111-1111-4111-8111-111111111111/full",
+        alt: "Generated image 1",
+        mimeType: "image/png",
+      },
+    ];
+    const respond = vi.fn();
+    const context = createChatContext();
+
+    const payload = await runNonStreamingChatSend({
+      context,
+      respond,
+      idempotencyKey: "idem-managed-images",
+    });
+
+    expect(mockState.managedImageCreateCalls).toHaveLength(1);
+    expect(mockState.managedImageCreateCalls[0]).toMatchObject({
+      sessionKey: "main",
+      mediaUrls: ["data:image/png;base64,abc"],
+      continueOnPrepareError: true,
+    });
+    expect(mockState.managedImageAttachCalls).toHaveLength(1);
+    expect(mockState.managedImageAttachCalls[0]).toMatchObject({
+      blocks: mockState.managedImageBlocks,
+    });
+    const content = (payload?.message as { content?: unknown[] } | undefined)?.content;
+    expect(content).toEqual([
+      { type: "text", text: "image ready" },
+      mockState.managedImageBlocks[0],
+    ]);
+  });
+
+  it("chat.history schedules managed image cleanup for the session", async () => {
+    createTranscriptFixture("coreblow-chat-history-managed-cleanup-");
+    const respond = vi.fn();
+    const context = createChatContext();
+
+    await chatHandlers["chat.history"]({
+      params: { sessionKey: "main" },
+      respond,
+      req: {} as never,
+      client: null as never,
+      isWebchatConnect: () => false,
+      context: context as GatewayRequestContext,
+    });
+
+    await waitForAssertion(() => {
+      expect(mockState.managedImageCleanupCalls).toEqual([{ sessionKey: "main" }]);
+    });
   });
 
   it("rejects oversized chat.send session keys before dispatch", async () => {

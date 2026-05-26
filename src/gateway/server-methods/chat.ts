@@ -8,7 +8,6 @@ import { resolveAgentTimeoutMs } from "../../agents/timeout.js";
 import { dispatchInboundMessage } from "../../auto-reply/dispatch.js";
 import { createReplyDispatcher } from "../../auto-reply/reply/reply-dispatcher.js";
 import type { MsgContext } from "../../auto-reply/templating.js";
-import { isSilentReplyText, SILENT_REPLY_TOKEN } from "../../auto-reply/tokens.js";
 import type { ReplyPayload } from "../../auto-reply/types.js";
 import { resolveSessionFilePath } from "../../config/sessions.js";
 import { jsonUtf8Bytes } from "../../infra/json-utf8-bytes.js";
@@ -18,16 +17,14 @@ import { normalizeInputProvenance, type InputProvenance } from "../../sessions/i
 import { resolveSendPolicy } from "../../sessions/send-policy.js";
 import { parseAgentSessionKey } from "../../sessions/session-key-utils.js";
 import { emitSessionTranscriptUpdate } from "../../sessions/transcript-events.js";
-import {
-  stripInlineDirectiveTagsForDisplay,
-  stripInlineDirectiveTagsFromMessageForDisplay,
-} from "../../utils/directive-tags.js";
+import { stripInlineDirectiveTagsFromMessageForDisplay } from "../../utils/directive-tags.js";
 import {
   INTERNAL_MESSAGE_CHANNEL,
   isGatewayCliClient,
   isWebchatClient,
   normalizeMessageChannel,
 } from "../../utils/message-channel.js";
+import { projectChatDisplayMessages } from "../chat-display-projection.js";
 import {
   abortChatRunById,
   type ChatAbortControllerEntry,
@@ -36,8 +33,13 @@ import {
   resolveChatRunExpiresAtMs,
 } from "../chat-abort.js";
 import { type ChatImageContent, parseMessageWithAttachments } from "../chat-attachments.js";
-import { stripEnvelopeFromMessage, stripEnvelopeFromMessages } from "../chat-sanitize.js";
+import { stripEnvelopeFromMessage } from "../chat-sanitize.js";
 import { augmentChatHistoryWithCliSessionImports } from "../cli-session-history.js";
+import {
+  attachManagedOutgoingImagesToMessage,
+  cleanupManagedOutgoingImageRecords,
+  createManagedOutgoingImageBlocks,
+} from "../managed-image-attachments.js";
 import { ADMIN_SCOPE } from "../method-scopes.js";
 import {
   GATEWAY_CLIENT_CAPS,
@@ -95,10 +97,10 @@ type ChatAbortRequester = {
   isAdmin: boolean;
 };
 
-const CHAT_HISTORY_TEXT_MAX_CHARS = 12_000;
 const CHAT_HISTORY_MAX_SINGLE_MESSAGE_BYTES = 128 * 1024;
 const CHAT_HISTORY_OVERSIZED_PLACEHOLDER = "[chat.history omitted: message too large]";
 let chatHistoryPlaceholderEmitCount = 0;
+const chatHistoryManagedImageCleanupState = new Map<string, Promise<void>>();
 const CHANNEL_AGNOSTIC_SESSION_SCOPES = new Set([
   "main",
   "direct",
@@ -441,246 +443,6 @@ async function rewriteChatSendUserTurnMediaPaths(params: {
   });
 }
 
-function truncateChatHistoryText(text: string): { text: string; truncated: boolean } {
-  if (text.length <= CHAT_HISTORY_TEXT_MAX_CHARS) {
-    return { text, truncated: false };
-  }
-  return {
-    text: `${text.slice(0, CHAT_HISTORY_TEXT_MAX_CHARS)}\n...(truncated)...`,
-    truncated: true,
-  };
-}
-
-function sanitizeChatHistoryContentBlock(block: unknown): { block: unknown; changed: boolean } {
-  if (!block || typeof block !== "object") {
-    return { block, changed: false };
-  }
-  const entry = { ...(block as Record<string, unknown>) };
-  let changed = false;
-  if (typeof entry.text === "string") {
-    const stripped = stripInlineDirectiveTagsForDisplay(entry.text);
-    const res = truncateChatHistoryText(stripped.text);
-    entry.text = res.text;
-    changed ||= stripped.changed || res.truncated;
-  }
-  if (typeof entry.partialJson === "string") {
-    const res = truncateChatHistoryText(entry.partialJson);
-    entry.partialJson = res.text;
-    changed ||= res.truncated;
-  }
-  if (typeof entry.arguments === "string") {
-    const res = truncateChatHistoryText(entry.arguments);
-    entry.arguments = res.text;
-    changed ||= res.truncated;
-  }
-  if (typeof entry.thinking === "string") {
-    const res = truncateChatHistoryText(entry.thinking);
-    entry.thinking = res.text;
-    changed ||= res.truncated;
-  }
-  if ("thinkingSignature" in entry) {
-    delete entry.thinkingSignature;
-    changed = true;
-  }
-  const type = typeof entry.type === "string" ? entry.type : "";
-  if (type === "image" && typeof entry.data === "string") {
-    const bytes = Buffer.byteLength(entry.data, "utf8");
-    delete entry.data;
-    entry.omitted = true;
-    entry.bytes = bytes;
-    changed = true;
-  }
-  return { block: changed ? entry : block, changed };
-}
-
-/**
- * Validate that a value is a finite number, returning undefined otherwise.
- */
-function toFiniteNumber(x: unknown): number | undefined {
-  return typeof x === "number" && Number.isFinite(x) ? x : undefined;
-}
-
-/**
- * Sanitize usage metadata to ensure only finite numeric fields are included.
- * Prevents UI crashes from malformed transcript JSON.
- */
-function sanitizeUsage(raw: unknown): Record<string, number> | undefined {
-  if (!raw || typeof raw !== "object") {
-    return undefined;
-  }
-  const u = raw as Record<string, unknown>;
-  const out: Record<string, number> = {};
-
-  // Whitelist known usage fields and validate they're finite numbers
-  const knownFields = [
-    "input",
-    "output",
-    "totalTokens",
-    "inputTokens",
-    "outputTokens",
-    "cacheRead",
-    "cacheWrite",
-    "cache_read_input_tokens",
-    "cache_creation_input_tokens",
-  ];
-
-  for (const k of knownFields) {
-    const n = toFiniteNumber(u[k]);
-    if (n !== undefined) {
-      out[k] = n;
-    }
-  }
-
-  // Preserve nested usage.cost when present
-  if ("cost" in u && u.cost != null && typeof u.cost === "object") {
-    const sanitizedCost = sanitizeCost(u.cost);
-    if (sanitizedCost) {
-      (out as Record<string, unknown>).cost = sanitizedCost;
-    }
-  }
-
-  return Object.keys(out).length > 0 ? out : undefined;
-}
-
-/**
- * Sanitize cost metadata to ensure only finite numeric fields are included.
- * Prevents UI crashes from calling .toFixed() on non-numbers.
- */
-function sanitizeCost(raw: unknown): { total?: number } | undefined {
-  if (!raw || typeof raw !== "object") {
-    return undefined;
-  }
-  const c = raw as Record<string, unknown>;
-  const total = toFiniteNumber(c.total);
-  return total !== undefined ? { total } : undefined;
-}
-
-function sanitizeChatHistoryMessage(message: unknown): { message: unknown; changed: boolean } {
-  if (!message || typeof message !== "object") {
-    return { message, changed: false };
-  }
-  const entry = { ...(message as Record<string, unknown>) };
-  let changed = false;
-
-  if ("details" in entry) {
-    delete entry.details;
-    changed = true;
-  }
-
-  // Keep usage/cost so the chat UI can render per-message token and cost badges.
-  // Only retain usage/cost on assistant messages and validate numeric fields to prevent UI crashes.
-  if (entry.role !== "assistant") {
-    if ("usage" in entry) {
-      delete entry.usage;
-      changed = true;
-    }
-    if ("cost" in entry) {
-      delete entry.cost;
-      changed = true;
-    }
-  } else {
-    // Validate and sanitize usage/cost for assistant messages
-    if ("usage" in entry) {
-      const sanitized = sanitizeUsage(entry.usage);
-      if (sanitized) {
-        entry.usage = sanitized;
-      } else {
-        delete entry.usage;
-      }
-      changed = true;
-    }
-    if ("cost" in entry) {
-      const sanitized = sanitizeCost(entry.cost);
-      if (sanitized) {
-        entry.cost = sanitized;
-      } else {
-        delete entry.cost;
-      }
-      changed = true;
-    }
-  }
-
-  if (typeof entry.content === "string") {
-    const stripped = stripInlineDirectiveTagsForDisplay(entry.content);
-    const res = truncateChatHistoryText(stripped.text);
-    entry.content = res.text;
-    changed ||= stripped.changed || res.truncated;
-  } else if (Array.isArray(entry.content)) {
-    const updated = entry.content.map((block) => sanitizeChatHistoryContentBlock(block));
-    if (updated.some((item) => item.changed)) {
-      entry.content = updated.map((item) => item.block);
-      changed = true;
-    }
-  }
-
-  if (typeof entry.text === "string") {
-    const stripped = stripInlineDirectiveTagsForDisplay(entry.text);
-    const res = truncateChatHistoryText(stripped.text);
-    entry.text = res.text;
-    changed ||= stripped.changed || res.truncated;
-  }
-
-  return { message: changed ? entry : message, changed };
-}
-
-/**
- * Extract the visible text from an assistant history message for silent-token checks.
- * Returns `undefined` for non-assistant messages or messages with no extractable text.
- * When `entry.text` is present it takes precedence over `entry.content` to avoid
- * dropping messages that carry real text alongside a stale `content: "NO_REPLY"`.
- */
-function extractAssistantTextForSilentCheck(message: unknown): string | undefined {
-  if (!message || typeof message !== "object") {
-    return undefined;
-  }
-  const entry = message as Record<string, unknown>;
-  if (entry.role !== "assistant") {
-    return undefined;
-  }
-  if (typeof entry.text === "string") {
-    return entry.text;
-  }
-  if (typeof entry.content === "string") {
-    return entry.content;
-  }
-  if (!Array.isArray(entry.content) || entry.content.length === 0) {
-    return undefined;
-  }
-
-  const texts: string[] = [];
-  for (const block of entry.content) {
-    if (!block || typeof block !== "object") {
-      return undefined;
-    }
-    const typed = block as { type?: unknown; text?: unknown };
-    if (typed.type !== "text" || typeof typed.text !== "string") {
-      return undefined;
-    }
-    texts.push(typed.text);
-  }
-  return texts.length > 0 ? texts.join("\n") : undefined;
-}
-
-function sanitizeChatHistoryMessages(messages: unknown[]): unknown[] {
-  if (messages.length === 0) {
-    return messages;
-  }
-  let changed = false;
-  const next: unknown[] = [];
-  for (const message of messages) {
-    const res = sanitizeChatHistoryMessage(message);
-    changed ||= res.changed;
-    // Drop assistant messages whose entire visible text is the silent reply token.
-    const text = extractAssistantTextForSilentCheck(res.message);
-    if (text !== undefined && isSilentReplyText(text, SILENT_REPLY_TOKEN)) {
-      changed = true;
-      continue;
-    }
-    next.push(res.message);
-  }
-  return changed ? next : messages;
-}
-
 function buildOversizedHistoryPlaceholder(message?: unknown): Record<string, unknown> {
   const role =
     message &&
@@ -700,6 +462,76 @@ function buildOversizedHistoryPlaceholder(message?: unknown): Record<string, unk
     content: [{ type: "text", text: CHAT_HISTORY_OVERSIZED_PLACEHOLDER }],
     __coreblow: { truncated: true, reason: "oversized" },
   };
+}
+
+function scheduleChatHistoryManagedImageCleanup(params: {
+  sessionKey: string;
+  context: Pick<GatewayRequestContext, "logGateway">;
+}) {
+  if (chatHistoryManagedImageCleanupState.has(params.sessionKey)) {
+    return;
+  }
+  const pending = cleanupManagedOutgoingImageRecords({ sessionKey: params.sessionKey })
+    .then(() => undefined)
+    .catch((error) => {
+      params.context.logGateway.debug(
+        `chat.history managed image cleanup skipped sessionKey=${JSON.stringify(params.sessionKey)} error=${formatForLog(error)}`,
+      );
+    })
+    .finally(() => {
+      if (chatHistoryManagedImageCleanupState.get(params.sessionKey) === pending) {
+        chatHistoryManagedImageCleanupState.delete(params.sessionKey);
+      }
+    });
+  chatHistoryManagedImageCleanupState.set(params.sessionKey, pending);
+}
+
+function resolveReplyMediaUrls(payloads: readonly ReplyPayload[]): string[] {
+  const urls = new Set<string>();
+  for (const payload of payloads) {
+    if (typeof payload.mediaUrl === "string" && payload.mediaUrl.trim()) {
+      urls.add(payload.mediaUrl.trim());
+    }
+    if (Array.isArray(payload.mediaUrls)) {
+      for (const mediaUrl of payload.mediaUrls) {
+        if (typeof mediaUrl === "string" && mediaUrl.trim()) {
+          urls.add(mediaUrl.trim());
+        }
+      }
+    }
+  }
+  return [...urls];
+}
+
+async function createManagedReplyImageBlocks(params: {
+  sessionKey: string;
+  payloads: readonly ReplyPayload[];
+  context: Pick<GatewayRequestContext, "logGateway">;
+}): Promise<Record<string, unknown>[]> {
+  const mediaUrls = resolveReplyMediaUrls(params.payloads);
+  if (mediaUrls.length === 0) {
+    return [];
+  }
+  return await createManagedOutgoingImageBlocks({
+    sessionKey: params.sessionKey,
+    mediaUrls,
+    continueOnPrepareError: true,
+    onPrepareError: (error) => {
+      params.context.logGateway.warn(
+        `webchat image embedding skipped attachment: ${formatForLog(error)}`,
+      );
+    },
+  });
+}
+
+function buildAssistantContentWithManagedImages(params: {
+  text: string;
+  imageBlocks: readonly Record<string, unknown>[];
+}): Array<Record<string, unknown>> | undefined {
+  const content: Array<Record<string, unknown>> = [];
+  content.push({ type: "text", text: params.text });
+  content.push(...params.imageBlocks);
+  return content.length > 0 ? content : undefined;
 }
 
 function replaceOversizedChatHistoryMessages(params: {
@@ -1183,8 +1015,7 @@ export const chatHandlers: GatewayRequestHandlers = {
     const requested = typeof limit === "number" ? limit : defaultLimit;
     const max = Math.min(hardMax, requested);
     const sliced = rawMessages.length > max ? rawMessages.slice(-max) : rawMessages;
-    const sanitized = stripEnvelopeFromMessages(sliced);
-    const normalized = sanitizeChatHistoryMessages(sanitized);
+    const normalized = projectChatDisplayMessages(sliced);
     const maxHistoryBytes = getMaxChatHistoryMessagesBytes();
     const perMessageHardCap = Math.min(CHAT_HISTORY_MAX_SINGLE_MESSAGE_BYTES, maxHistoryBytes);
     const replaced = replaceOversizedChatHistoryMessages({
@@ -1200,6 +1031,7 @@ export const chatHandlers: GatewayRequestHandlers = {
         `chat.history omitted oversized payloads placeholders=${placeholderCount} total=${chatHistoryPlaceholderEmitCount}`,
       );
     }
+    scheduleChatHistoryManagedImageCleanup({ sessionKey, context });
     let thinkingLevel = entry?.thinkingLevel;
     if (!thinkingLevel) {
       const catalog = await context.loadGatewayModelCatalog();
@@ -1692,6 +1524,9 @@ export const chatHandlers: GatewayRequestHandlers = {
                 sessionKey,
               });
             } else {
+              const finalPayloads = deliveredReplies
+                .filter((entry) => entry.kind === "final")
+                .map((entry) => entry.payload);
               const combinedReply = deliveredReplies
                 .filter((entry) => entry.kind === "final")
                 .map((entry) => entry.payload)
@@ -1699,8 +1534,13 @@ export const chatHandlers: GatewayRequestHandlers = {
                 .filter(Boolean)
                 .join("\n\n")
                 .trim();
+              const imageBlocks = await createManagedReplyImageBlocks({
+                sessionKey,
+                payloads: finalPayloads,
+                context,
+              });
               let message: Record<string, unknown> | undefined;
-              if (combinedReply) {
+              if (combinedReply || imageBlocks.length > 0) {
                 const { storePath: latestStorePath, entry: latestEntry } =
                   loadSessionEntry(sessionKey);
                 const sessionId = latestEntry?.sessionId ?? entry?.sessionId ?? clientRunId;
@@ -1713,7 +1553,17 @@ export const chatHandlers: GatewayRequestHandlers = {
                   createIfMissing: true,
                 });
                 if (appended.ok) {
-                  message = appended.message;
+                  if (appended.messageId && imageBlocks.length > 0) {
+                    await attachManagedOutgoingImagesToMessage({
+                      messageId: appended.messageId,
+                      blocks: imageBlocks,
+                    });
+                  }
+                  const content = buildAssistantContentWithManagedImages({
+                    text: combinedReply,
+                    imageBlocks,
+                  });
+                  message = content?.length ? { ...appended.message, content } : appended.message;
                 } else {
                   context.logGateway.warn(
                     `webchat transcript append failed: ${appended.error ?? "unknown error"}`,
@@ -1721,7 +1571,10 @@ export const chatHandlers: GatewayRequestHandlers = {
                   const now = Date.now();
                   message = {
                     role: "assistant",
-                    content: [{ type: "text", text: combinedReply }],
+                    content: buildAssistantContentWithManagedImages({
+                      text: combinedReply,
+                      imageBlocks: [],
+                    }),
                     timestamp: now,
                     // Keep this compatible with Pi stopReason enums even though this message isn't
                     // persisted to the transcript due to the append failure.
