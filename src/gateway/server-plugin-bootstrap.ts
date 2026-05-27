@@ -11,7 +11,7 @@ import {
   setPluginSubagentOverridePolicies,
 } from "./server-plugins.js";
 
-type GatewayPluginBootstrapLog = {
+export type GatewayPluginBootstrapLog = {
   info: (msg: string) => void;
   warn: (msg: string) => void;
   error: (msg: string) => void;

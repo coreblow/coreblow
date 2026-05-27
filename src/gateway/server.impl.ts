@@ -55,11 +55,7 @@ import { createSubsystemLogger, runtimeForLogger } from "../logging/subsystem.js
 import { resolveConfiguredDeferredChannelPluginIds } from "../plugins/channel-plugin-ids.js";
 import { getGlobalHookRunner, runGlobalGatewayStopSafely } from "../plugins/hook-runner-global.js";
 import { createEmptyPluginRegistry } from "../plugins/registry.js";
-import {
-  pinActivePluginChannelRegistry,
-  pinActivePluginHttpRouteRegistry,
-  setActivePluginRegistry,
-} from "../plugins/runtime.js";
+import { setActivePluginRegistry } from "../plugins/runtime.js";
 import { createPluginRuntime } from "../plugins/runtime/index.js";
 import type { PluginServicesHandle } from "../plugins/services.js";
 import { getTotalQueueSize } from "../process/command-queue.js";
@@ -83,6 +79,7 @@ import { createAuthRateLimiter, type AuthRateLimiter } from "./auth-rate-limit.j
 import { startChannelHealthMonitor } from "./channel-health-monitor.js";
 import { startGatewayConfigReloader } from "./config-reload.js";
 import type { ControlUiRootState } from "./control-ui.js";
+import { refreshDeferredGatewayPluginRuntime } from "./deferred-plugin-reload.js";
 import {
   GATEWAY_EVENT_UPDATE_AVAILABLE,
   type GatewayUpdateAvailableEventPayload,
@@ -114,7 +111,6 @@ import { loadGatewayModelCatalog } from "./server-model-catalog.js";
 import { createNodeSubscriptionManager } from "./server-node-subscriptions.js";
 import {
   loadGatewayStartupPlugins,
-  reloadDeferredGatewayPlugins,
 } from "./server-plugin-bootstrap.js";
 import { setFallbackGatewayContextResolver } from "./server-plugins.js";
 import { createGatewayReloadHandlers } from "./server-reload-handlers.js";
@@ -1361,20 +1357,15 @@ export async function startGatewayServer(
 
     if (!minimalTestGateway) {
       if (deferredConfiguredChannelPluginIds.length > 0) {
-        const loaded = reloadDeferredGatewayPlugins({
+        const loaded = refreshDeferredGatewayPluginRuntime({
           cfg: gatewayPluginConfigAtStart,
           workspaceDir: defaultWorkspaceDir,
           log,
           coreGatewayHandlers,
           baseMethods,
-          logDiagnostics: false,
+          attachedGatewayMethodRuntime,
         });
         pluginRegistry = loaded.pluginRegistry;
-        attachedGatewayMethodRuntime.replacePluginRegistry(pluginRegistry, {
-          channelMethods: listChannelPlugins().flatMap((plugin) => plugin.gatewayMethods ?? []),
-        });
-        pinActivePluginHttpRouteRegistry(pluginRegistry);
-        pinActivePluginChannelRegistry(pluginRegistry);
       }
       ({ pluginServices } = await startGatewaySidecars({
         cfg: gatewayPluginConfigAtStart,
