@@ -52,6 +52,10 @@ import {
   type Usage,
 } from "./open-responses.schema.js";
 import { buildAgentPrompt } from "./openresponses-prompt.js";
+import {
+  createAssistantOutputItem,
+  createFunctionCallOutputItem,
+} from "./openresponses-shape.js";
 
 type OpenResponsesHttpOptions = {
   auth: ResolvedGatewayAuth;
@@ -371,37 +375,6 @@ function createResponseResource(params: {
     output: params.output,
     usage: params.usage ?? createEmptyUsage(),
     error: params.error,
-  };
-}
-
-function createAssistantOutputItem(params: {
-  id: string;
-  text: string;
-  status?: "in_progress" | "completed";
-}): OutputItem {
-  return {
-    type: "message",
-    id: params.id,
-    role: "assistant",
-    content: [{ type: "output_text", text: params.text }],
-    status: params.status,
-  };
-}
-
-function createFunctionCallOutputItem(params: {
-  id: string;
-  callId: string;
-  name: string;
-  arguments: string;
-  status?: "in_progress" | "completed";
-}): OutputItem {
-  return {
-    type: "function_call",
-    id: params.id,
-    call_id: params.callId,
-    name: params.name,
-    arguments: params.arguments,
-    status: params.status,
   };
 }
 

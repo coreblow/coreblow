@@ -92,13 +92,31 @@ export const MessageItemRoleSchema = z.enum(["system", "developer", "user", "ass
 
 export type MessageItemRole = z.infer<typeof MessageItemRoleSchema>;
 
-export const MessageItemSchema = z
+export const MessagePhaseSchema = z.enum(["commentary", "final_answer"]);
+
+export type MessagePhase = z.infer<typeof MessagePhaseSchema>;
+
+export const UserMessageItemSchema = z
   .object({
     type: z.literal("message"),
-    role: MessageItemRoleSchema,
+    role: z.enum(["system", "developer", "user"]),
     content: z.union([z.string(), z.array(ContentPartSchema)]),
   })
   .strict();
+
+export const AssistantMessageItemSchema = z
+  .object({
+    type: z.literal("message"),
+    role: z.literal("assistant"),
+    phase: MessagePhaseSchema.optional(),
+    content: z.union([z.string(), z.array(ContentPartSchema)]),
+  })
+  .strict();
+
+export const MessageItemSchema = z.discriminatedUnion("role", [
+  UserMessageItemSchema,
+  AssistantMessageItemSchema,
+]);
 
 export const FunctionCallItemSchema = z
   .object({
@@ -227,6 +245,7 @@ export const OutputItemSchema = z.discriminatedUnion("type", [
       type: z.literal("message"),
       id: z.string(),
       role: z.literal("assistant"),
+      phase: MessagePhaseSchema.optional(),
       content: z.array(OutputTextContentPartSchema),
       status: z.enum(["in_progress", "completed"]).optional(),
     })
