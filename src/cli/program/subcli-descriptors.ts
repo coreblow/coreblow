@@ -103,11 +103,6 @@ export const SUB_CLI_DESCRIPTORS = [
     hasSubcommands: true,
   },
   {
-    name: "clawbot",
-    description: commandDescription("clawbot", "Legacy clawbot command aliases"),
-    hasSubcommands: true,
-  },
-  {
     name: "pairing",
     description: commandDescription("pairing", "Secure DM pairing (approve inbound requests)"),
     hasSubcommands: true,

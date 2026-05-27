@@ -93,6 +93,20 @@ const explicitSurfaces = new Map([
 
 const intentionalBehaviorDifferences = new Map([
   [
+    "src/cli",
+    [
+      {
+        path: "src/cli/clawbot-cli.ts",
+        status: "intentionally_different",
+        referenceBehavior: "OpenClaw exposes the branded legacy command group as clawbot.",
+        coreBlowDecision:
+          "CoreBlow exposes the equivalent QR compatibility command group as corebot via src/cli/corebot-cli.ts.",
+        rationale: "Keep the public compatibility surface aligned with CoreBlow product naming.",
+        gate: "pnpm test -- src/cli/program/register.subclis.test.ts",
+      },
+    ],
+  ],
+  [
     "src/gateway",
     [
       {

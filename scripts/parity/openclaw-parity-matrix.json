@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6240,
+    "cb_source_files": 6239,
     "oc_source_files": 8443,
-    "source_parity_both": 4467,
+    "source_parity_both": 4466,
     "source_cb_exclusive": 1773,
-    "source_missing_from_cb": 3976,
-    "test_files_cb": 3989,
+    "source_missing_from_cb": 3977,
+    "test_files_cb": 3988,
     "test_files_oc": 5246,
     "tests_both_covered": 2645,
     "tests_gap_oc_has_cb_missing": 2356,
-    "tests_cb_exclusive": 1297,
+    "tests_cb_exclusive": 1296,
     "export_files_with_gaps": 74,
     "test_scenario_files_with_gaps": 37
   },
@@ -824,17 +824,18 @@
       "priority": "P1",
       "implementationSurface": "src/cli program and command wiring",
       "counts": {
-        "sharedSourcePaths": 180,
+        "sharedSourcePaths": 179,
         "coreBlowOnlySourcePaths": 62,
-        "openClawOnlySourcePaths": 75,
+        "openClawOnlySourcePaths": 76,
         "sharedTestPaths": 112,
-        "coreBlowOnlyTestPaths": 51,
+        "coreBlowOnlyTestPaths": 50,
         "openClawTestGaps": 52
       },
       "samples": {
         "openClawOnlySourcePaths": [
           "src/cli/argv-invocation.ts",
           "src/cli/capability-cli.ts",
+          "src/cli/clawbot-cli.ts",
           "src/cli/command-bootstrap.ts",
           "src/cli/command-catalog.ts",
           "src/cli/command-config-resolution.runtime.ts",
@@ -843,8 +844,7 @@
           "src/cli/command-path-matches.ts",
           "src/cli/command-path-policy.ts",
           "src/cli/command-registration-policy.ts",
-          "src/cli/command-startup-policy.ts",
-          "src/cli/completion-runtime.ts"
+          "src/cli/command-startup-policy.ts"
         ],
         "openClawTestGapPaths": [
           "src/cli/argv-invocation.test.ts",
@@ -875,6 +875,16 @@
           "src/cli/commands/configure-cmd.ts"
         ]
       },
+      "intentionalBehaviorDifferences": [
+        {
+          "path": "src/cli/clawbot-cli.ts",
+          "status": "intentionally_different",
+          "referenceBehavior": "OpenClaw exposes the branded legacy command group as clawbot.",
+          "coreBlowDecision": "CoreBlow exposes the equivalent QR compatibility command group as corebot via src/cli/corebot-cli.ts.",
+          "rationale": "Keep the public compatibility surface aligned with CoreBlow product naming.",
+          "gate": "pnpm test -- src/cli/program/register.subclis.test.ts"
+        }
+      ],
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/cli",
