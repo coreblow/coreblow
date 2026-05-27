@@ -84,6 +84,15 @@ import {
   type GatewayUpdateAvailableEventPayload,
 } from "./events.js";
 import { ExecApprovalManager } from "./exec-approval-manager.js";
+import { ADMIN_SCOPE } from "./method-scopes.js";
+import {
+  createCoreGatewayMethodDescriptors,
+  createGatewayMethodDescriptorsFromHandlers,
+  createGatewayMethodRegistry,
+  createPluginGatewayMethodDescriptors,
+  isCoreGatewayMethodClassified,
+  type GatewayMethodRegistry,
+} from "./methods/registry.js";
 import { startGatewayModelPricingRefresh } from "./model-pricing-cache.js";
 import { NodeRegistry } from "./node-registry.js";
 import { createChannelManager } from "./server-channels.js";
@@ -103,6 +112,7 @@ import { createExecApprovalHandlers } from "./server-methods/exec-approval.js";
 import { safeParseJson } from "./server-methods/nodes.helpers.js";
 import { createPluginApprovalHandlers } from "./server-methods/plugin-approval.js";
 import { createSecretsHandlers } from "./server-methods/secrets.js";
+import type { GatewayRequestHandlers } from "./server-methods/types.js";
 import { hasConnectedMobileNode } from "./server-mobile-nodes.js";
 import { loadGatewayModelCatalog } from "./server-model-catalog.js";
 import { createNodeSubscriptionManager } from "./server-node-subscriptions.js";
@@ -570,9 +580,8 @@ export async function startGatewayServer(
   const baseMethods = listGatewayMethods();
   const emptyPluginRegistry = createEmptyPluginRegistry();
   let pluginRegistry = emptyPluginRegistry;
-  let baseGatewayMethods = baseMethods;
   if (!minimalTestGateway) {
-    ({ pluginRegistry, gatewayMethods: baseGatewayMethods } = loadGatewayStartupPlugins({
+    ({ pluginRegistry } = loadGatewayStartupPlugins({
       cfg: gatewayPluginConfigAtStart,
       workspaceDir: defaultWorkspaceDir,
       log,
@@ -589,8 +598,6 @@ export async function startGatewayServer(
   const channelRuntimeEnvs = Object.fromEntries(
     Object.entries(channelLogs).map(([id, logger]) => [id, runtimeForLogger(logger)]),
   ) as unknown as Record<ChannelId, RuntimeEnv>;
-  const channelMethods = listChannelPlugins().flatMap((plugin) => plugin.gatewayMethods ?? []);
-  const gatewayMethods = Array.from(new Set([...baseGatewayMethods, ...channelMethods]));
   let pluginServices: PluginServicesHandle | null = null;
   const runtimeConfig = await resolveGatewayRuntimeConfig({
     cfg: cfgAtStart,
@@ -1198,6 +1205,41 @@ export async function startGatewayServer(
       },
     });
 
+    const extraGatewayHandlers: GatewayRequestHandlers = {
+      ...pluginRegistry.gatewayHandlers,
+      ...execApprovalHandlers,
+      ...pluginApprovalHandlers,
+      ...secretsHandlers,
+    };
+    const buildAttachedGatewayMethodRegistry = (): GatewayMethodRegistry => {
+      const coreDescriptorHandlers = { ...coreGatewayHandlers };
+      const auxHandlers: GatewayRequestHandlers = {};
+      for (const [method, handler] of Object.entries(extraGatewayHandlers)) {
+        if (pluginRegistry.gatewayHandlers[method]) {
+          continue;
+        }
+        if (isCoreGatewayMethodClassified(method)) {
+          coreDescriptorHandlers[method] = handler;
+        } else {
+          auxHandlers[method] = handler;
+        }
+      }
+      return createGatewayMethodRegistry([
+        ...createCoreGatewayMethodDescriptors(coreDescriptorHandlers),
+        ...createPluginGatewayMethodDescriptors(pluginRegistry),
+        ...createGatewayMethodDescriptorsFromHandlers({
+          handlers: auxHandlers,
+          owner: { kind: "aux", area: "gateway-extra" },
+          defaultScope: ADMIN_SCOPE,
+        }),
+      ]);
+    };
+    const attachedGatewayMethodRegistry = buildAttachedGatewayMethodRegistry();
+    const channelMethods = listChannelPlugins().flatMap((plugin) => plugin.gatewayMethods ?? []);
+    const gatewayMethods = Array.from(
+      new Set([...attachedGatewayMethodRegistry.listAdvertisedMethods(), ...channelMethods]),
+    );
+
     const canvasHostServerPort = (canvasHostServer as CanvasHostServer | null)?.port;
 
     const gatewayRequestContext: import("./server-methods/types.js").GatewayRequestContext = {
@@ -1302,12 +1344,8 @@ export async function startGatewayServer(
       logGateway: log,
       logHealth,
       logWsControl,
-      extraHandlers: {
-        ...pluginRegistry.gatewayHandlers,
-        ...execApprovalHandlers,
-        ...pluginApprovalHandlers,
-        ...secretsHandlers,
-      },
+      extraHandlers: extraGatewayHandlers,
+      getMethodRegistry: () => attachedGatewayMethodRegistry,
       broadcast,
       context: gatewayRequestContext,
     });

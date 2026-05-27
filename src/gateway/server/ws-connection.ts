@@ -9,6 +9,7 @@ import { isWebchatClient } from "../../utils/message-channel.js";
 import type { AuthRateLimiter } from "../auth-rate-limit.js";
 import type { ResolvedGatewayAuth } from "../auth.js";
 import { getPreauthHandshakeTimeoutMsFromEnv } from "../handshake-timeouts.js";
+import type { GatewayMethodRegistry } from "../methods/registry.js";
 import { isLoopbackAddress } from "../net.js";
 import type { GatewayRequestContext, GatewayRequestHandlers } from "../server-methods/types.js";
 import { formatError } from "../server-utils.js";
@@ -81,6 +82,7 @@ export type AttachGatewayWsConnectionHandlerParams = GatewayWsSharedHandlerParam
   logHealth: SubsystemLogger;
   logWsControl: SubsystemLogger;
   extraHandlers: GatewayRequestHandlers;
+  getMethodRegistry?: () => GatewayMethodRegistry;
   broadcast: (
     event: string,
     payload: unknown,
@@ -110,6 +112,7 @@ export function attachGatewayWsConnectionHandler(params: AttachGatewayWsConnecti
     logHealth,
     logWsControl,
     extraHandlers,
+    getMethodRegistry,
     broadcast,
     buildRequestContext,
   } = params;
@@ -319,6 +322,7 @@ export function attachGatewayWsConnectionHandler(params: AttachGatewayWsConnecti
       gatewayMethods,
       events,
       extraHandlers,
+      getMethodRegistry,
       buildRequestContext,
       send,
       close,

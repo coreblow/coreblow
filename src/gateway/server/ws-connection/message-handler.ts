@@ -45,6 +45,7 @@ import {
   isTrustedProxyAddress,
   resolveClientIp,
 } from "../../net.js";
+import type { GatewayMethodRegistry } from "../../methods/registry.js";
 import { resolveNodeCommandAllowlist } from "../../node-command-policy.js";
 import { checkBrowserOrigin } from "../../origin-check.js";
 import {
@@ -153,6 +154,7 @@ export function attachGatewayWsMessageHandler(params: {
   gatewayMethods: string[];
   events: string[];
   extraHandlers: GatewayRequestHandlers;
+  getMethodRegistry?: () => GatewayMethodRegistry;
   buildRequestContext: () => GatewayRequestContext;
   send: (obj: unknown) => void;
   close: (code?: number, reason?: string) => void;
@@ -186,6 +188,7 @@ export function attachGatewayWsMessageHandler(params: {
     gatewayMethods,
     events,
     extraHandlers,
+    getMethodRegistry,
     buildRequestContext,
     send,
     close,
@@ -1211,6 +1214,7 @@ export function attachGatewayWsMessageHandler(params: {
           client,
           isWebchatConnect,
           extraHandlers,
+          methodRegistry: getMethodRegistry?.(),
           context: buildRequestContext(),
         });
       })().catch((err) => {
