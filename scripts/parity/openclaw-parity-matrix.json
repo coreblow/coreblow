@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6239,
+    "cb_source_files": 6242,
     "oc_source_files": 8443,
-    "source_parity_both": 4466,
+    "source_parity_both": 4469,
     "source_cb_exclusive": 1773,
-    "source_missing_from_cb": 3977,
-    "test_files_cb": 3988,
+    "source_missing_from_cb": 3974,
+    "test_files_cb": 3990,
     "test_files_oc": 5246,
     "tests_both_covered": 2645,
     "tests_gap_oc_has_cb_missing": 2356,
-    "tests_cb_exclusive": 1296,
+    "tests_cb_exclusive": 1298,
     "export_files_with_gaps": 74,
     "test_scenario_files_with_gaps": 37
   },
@@ -462,27 +462,27 @@
       "priority": "P0",
       "implementationSurface": "src/gateway GatewayServer and ServiceRegistry",
       "counts": {
-        "sharedSourcePaths": 290,
+        "sharedSourcePaths": 293,
         "coreBlowOnlySourcePaths": 64,
-        "openClawOnlySourcePaths": 101,
+        "openClawOnlySourcePaths": 98,
         "sharedTestPaths": 200,
-        "coreBlowOnlyTestPaths": 123,
+        "coreBlowOnlyTestPaths": 125,
         "openClawTestGaps": 107
       },
       "samples": {
         "openClawOnlySourcePaths": [
           "src/gateway/exec-approval-ios-push.ts",
-          "src/gateway/hooks.types.ts",
-          "src/gateway/model-pricing-config.ts",
           "src/gateway/operator-approval-runtime-token.ts",
           "src/gateway/operator-scopes.ts",
           "src/gateway/plugin-activation-runtime-config.ts",
-          "src/gateway/probe-target.ts",
           "src/gateway/protocol/schema/artifacts.ts",
           "src/gateway/protocol/schema/commands.ts",
           "src/gateway/protocol/schema/environments.ts",
           "src/gateway/protocol/schema/plugins.ts",
-          "src/gateway/protocol/schema/tasks.ts"
+          "src/gateway/protocol/schema/tasks.ts",
+          "src/gateway/protocol/startup-unavailable.ts",
+          "src/gateway/rate-limit-attempt-serialization.ts",
+          "src/gateway/restart-trace.ts"
         ],
         "openClawTestGapPaths": [
           "src/gateway/exec-approval-ios-push.test.ts",
