@@ -1,7 +1,10 @@
 import { randomUUID } from "node:crypto";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { unwrapRemoteConfigSnapshot } from "../../test/helpers/gateway/android-node-capabilities-policy-config.js";
+import { shouldFetchRemotePolicyConfig } from "../../test/helpers/gateway/android-node-capabilities-policy-source.js";
 import { isLiveTestEnabled } from "../agents/live-test-helpers.js";
 import { loadConfig } from "../config/config.js";
+import type { CoreBlowConfig } from "../config/config.js";
 import { isTruthyEnvValue } from "../infra/env.js";
 import { parseNodeList, parsePairingList } from "../shared/node-list-parse.js";
 import type { NodeListNode } from "../shared/node-list-types.js";
@@ -9,6 +12,7 @@ import { GATEWAY_CLIENT_MODES, GATEWAY_CLIENT_NAMES } from "../utils/message-cha
 import { buildGatewayConnectionDetails } from "./call.js";
 import { GatewayClient } from "./client.js";
 import { resolveGatewayCredentialsFromConfig } from "./credentials.js";
+import { resolveNodeCommandAllowlist } from "./node-command-policy.js";
 
 const LIVE = isLiveTestEnabled();
 const LIVE_ANDROID_NODE = isTruthyEnvValue(process.env.COREBLOW_LIVE_ANDROID_NODE);
@@ -251,11 +255,69 @@ function resolveGatewayConnection() {
     },
   });
   return {
+    details,
     url: details.url,
     token: creds.token,
     password: creds.password,
   };
 }
+
+async function resolvePolicyConfigForRun(params: {
+  client: GatewayClient;
+  connectionDetails: ReturnType<typeof buildGatewayConnectionDetails>;
+  loadLocalConfig?: () => CoreBlowConfig;
+}): Promise<CoreBlowConfig> {
+  if (shouldFetchRemotePolicyConfig(params.connectionDetails)) {
+    const raw = await params.client.request("config.get", {});
+    return unwrapRemoteConfigSnapshot(raw);
+  }
+
+  const loadLocalConfig = params.loadLocalConfig ?? loadConfig;
+  return loadLocalConfig();
+}
+
+describe("resolvePolicyConfigForRun", () => {
+  it("fetches policy from the gateway for remote runs", async () => {
+    const request = vi.fn().mockResolvedValue({ config: { gateway: { bind: "loopback" } } });
+    const loadLocalConfig = vi.fn(() => {
+      throw new Error("local config should not load in remote mode");
+    });
+
+    const result = await resolvePolicyConfigForRun({
+      client: { request } as unknown as GatewayClient,
+      connectionDetails: {
+        url: "wss://gateway.example.test",
+        urlSource: "env COREBLOW_GATEWAY_URL",
+        message: "remote",
+      },
+      loadLocalConfig,
+    });
+
+    expect(loadLocalConfig).not.toHaveBeenCalled();
+    expect(request).toHaveBeenCalledWith("config.get", {});
+    expect(result.gateway).toEqual({ bind: "loopback" });
+  });
+
+  it("uses local policy config for local loopback runs", async () => {
+    const localConfig = { gateway: { bind: "loopback" } } as CoreBlowConfig;
+    const request = vi.fn();
+    const loadLocalConfig = vi.fn(() => localConfig);
+
+    const result = await resolvePolicyConfigForRun({
+      client: { request } as unknown as GatewayClient,
+      connectionDetails: {
+        url: "ws://127.0.0.1:3000",
+        urlSource: "local loopback",
+        message: "local",
+      },
+      loadLocalConfig,
+    });
+
+    expect(request).not.toHaveBeenCalled();
+    expect(loadLocalConfig).toHaveBeenCalledTimes(1);
+    expect(result).toBe(localConfig);
+  });
+});
 
 async function connectGatewayClient(params: {
   url: string;
@@ -417,7 +479,7 @@ describeLive("android node capability integration (preconditioned)", () => {
   const results = new Map<string, CommandResult>();
 
   beforeAll(async () => {
-    const { url, token, password } = resolveGatewayConnection();
+    const { details, url, token, password } = resolveGatewayConnection();
     client = await connectGatewayClient({ url, token, password });
 
     const listRaw = await client.request("node.list", {});
@@ -448,10 +510,22 @@ describeLive("android node capability integration (preconditioned)", () => {
     const describeObj = asRecord(describeRaw);
     const commands = readStringArray(describeObj.commands);
     expect(commands.length, "node.describe advertised no commands").toBeGreaterThan(0);
-    commandsToRun = commands.filter((command) => !SKIPPED_INTERACTIVE_COMMANDS.has(command));
+
+    const cfg = await resolvePolicyConfigForRun({
+      client,
+      connectionDetails: details,
+    });
+    const allowlist = resolveNodeCommandAllowlist(cfg, {
+      platform: target.platform,
+      deviceFamily: target.deviceFamily,
+    });
+
+    commandsToRun = commands.filter(
+      (command) => allowlist.has(command) && !SKIPPED_INTERACTIVE_COMMANDS.has(command),
+    );
     expect(
       commandsToRun.length,
-      "node.describe advertised only interactive commands (nothing runnable in CI/dev integration mode)",
+      "node.describe advertised no non-interactive allowlisted commands (check gateway.nodes allowCommands/denyCommands)",
     ).toBeGreaterThan(0);
 
     const missingProfiles = commandsToRun.filter((command) => !COMMAND_PROFILES[command]);
