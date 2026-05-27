@@ -1,9 +1,32 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect } from "vitest";
+import { createEmptyPluginRegistry } from "../plugins/registry-empty.js";
+import { setActivePluginRegistry } from "../plugins/runtime.js";
 import {
   resolveNodeCommandAllowlist,
   isNodeCommandAllowed,
+  isForegroundRestrictedPluginNodeCommand,
   DEFAULT_DANGEROUS_NODE_COMMANDS,
 } from "./node-command-policy.js";
+
+afterEach(() => {
+  setActivePluginRegistry(createEmptyPluginRegistry());
+});
+
+function installPluginNodePolicy(params?: { dangerous?: boolean }) {
+  const registry = createEmptyPluginRegistry();
+  registry.nodeInvokePolicies?.push({
+    pluginId: "demo",
+    source: "test",
+    policy: {
+      commands: ["demo.preview"],
+      defaultPlatforms: ["ios"],
+      dangerous: params?.dangerous,
+      foregroundRestrictedOnIos: true,
+      handle: (ctx) => ctx.invokeNode(),
+    },
+  });
+  setActivePluginRegistry(registry);
+}
 
 describe("resolveNodeCommandAllowlist", () => {
   it("returns platform-specific defaults for iOS", () => {
@@ -57,6 +80,37 @@ describe("resolveNodeCommandAllowlist", () => {
     // deviceFamily "iPhone" should resolve to iOS
     expect(allowlist.has("camera.list")).toBe(true);
     expect(allowlist.has("location.get")).toBe(true);
+  });
+
+  it("includes non-dangerous plugin policy defaults for matching platforms", () => {
+    installPluginNodePolicy();
+
+    expect(
+      resolveNodeCommandAllowlist({} as any, { platform: "ios", deviceFamily: undefined }).has(
+        "demo.preview",
+      ),
+    ).toBe(true);
+    expect(
+      resolveNodeCommandAllowlist({} as any, { platform: "linux", deviceFamily: undefined }).has(
+        "demo.preview",
+      ),
+    ).toBe(false);
+  });
+
+  it("requires explicit configuration for dangerous plugin policy commands", () => {
+    installPluginNodePolicy({ dangerous: true });
+
+    expect(
+      resolveNodeCommandAllowlist({} as any, { platform: "ios", deviceFamily: undefined }).has(
+        "demo.preview",
+      ),
+    ).toBe(false);
+    expect(
+      resolveNodeCommandAllowlist(
+        { gateway: { nodes: { allowCommands: ["demo.preview"] } } } as any,
+        { platform: "ios", deviceFamily: undefined },
+      ).has("demo.preview"),
+    ).toBe(true);
   });
 });
 
@@ -123,5 +177,16 @@ describe("DEFAULT_DANGEROUS_NODE_COMMANDS", () => {
     expect(DEFAULT_DANGEROUS_NODE_COMMANDS).toContain("sms.send");
     expect(DEFAULT_DANGEROUS_NODE_COMMANDS).toContain("contacts.add");
     expect(DEFAULT_DANGEROUS_NODE_COMMANDS).toContain("screen.record");
+  });
+});
+
+describe("plugin node foreground metadata", () => {
+  it("identifies plugin commands restricted to foreground execution on iOS", () => {
+    expect(isForegroundRestrictedPluginNodeCommand("demo.preview")).toBe(false);
+
+    installPluginNodePolicy();
+
+    expect(isForegroundRestrictedPluginNodeCommand(" demo.preview ")).toBe(true);
+    expect(isForegroundRestrictedPluginNodeCommand("system.run")).toBe(false);
   });
 });

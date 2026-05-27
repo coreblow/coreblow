@@ -4,6 +4,7 @@ import {
   NODE_SYSTEM_NOTIFY_COMMAND,
   NODE_SYSTEM_RUN_COMMANDS,
 } from "../infra/node-commands.js";
+import { getActivePluginRegistry } from "../plugins/runtime.js";
 import { normalizeDeviceMetadataForPolicy } from "./device-metadata-normalization.js";
 import type { NodeSession } from "./node-registry.js";
 
@@ -175,15 +176,62 @@ function normalizePlatformId(platform?: string, deviceFamily?: string): Platform
   return byFamily ?? "unknown";
 }
 
+export function listDangerousPluginNodeCommands(): string[] {
+  const registry = getActivePluginRegistry();
+  const commands = [
+    ...(registry?.nodeHostCommands ?? [])
+      .filter((entry) => entry.command.dangerous === true)
+      .map((entry) => entry.command.command),
+    ...(registry?.nodeInvokePolicies ?? [])
+      .filter((entry) => entry.policy.dangerous === true)
+      .flatMap((entry) => entry.policy.commands),
+  ];
+  return [...new Set(commands.map((command) => command.trim()).filter(Boolean))];
+}
+
+function listDefaultPluginNodeCommands(platformId: PlatformId): string[] {
+  const commands = (getActivePluginRegistry()?.nodeInvokePolicies ?? []).flatMap((entry) => {
+    if (entry.policy.dangerous === true) {
+      return [];
+    }
+    return (entry.policy.defaultPlatforms ?? []).includes(platformId) ? entry.policy.commands : [];
+  });
+  return [...new Set(commands.map((command) => command.trim()).filter(Boolean))];
+}
+
+export function isForegroundRestrictedPluginNodeCommand(command: string): boolean {
+  const normalizedCommand = command.trim();
+  if (!normalizedCommand) {
+    return false;
+  }
+  return (getActivePluginRegistry()?.nodeInvokePolicies ?? []).some(
+    (entry) =>
+      entry.policy.foregroundRestrictedOnIos === true &&
+      entry.policy.commands.some((policyCommand) => policyCommand.trim() === normalizedCommand),
+  );
+}
+
 export function resolveNodeCommandAllowlist(
   cfg: CoreBlowConfig,
   node?: Pick<NodeSession, "platform" | "deviceFamily">,
 ): Set<string> {
   const platformId = normalizePlatformId(node?.platform, node?.deviceFamily);
   const base = PLATFORM_DEFAULTS[platformId] ?? PLATFORM_DEFAULTS.unknown;
+  const pluginDefaults = listDefaultPluginNodeCommands(platformId);
   const extra = cfg.gateway?.nodes?.allowCommands ?? [];
   const deny = new Set(cfg.gateway?.nodes?.denyCommands ?? []);
-  const allow = new Set([...base, ...extra].map((cmd) => cmd.trim()).filter(Boolean));
+  const dangerousPluginCommands = new Set(listDangerousPluginNodeCommands());
+  const allow = new Set(
+    [...base, ...pluginDefaults, ...extra]
+      .map((cmd) => cmd.trim())
+      .filter((cmd) => cmd && !dangerousPluginCommands.has(cmd)),
+  );
+  for (const command of extra) {
+    const trimmed = command.trim();
+    if (trimmed) {
+      allow.add(trimmed);
+    }
+  }
   for (const blocked of deny) {
     const trimmed = blocked.trim();
     if (trimmed) {

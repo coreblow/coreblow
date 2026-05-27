@@ -25,7 +25,11 @@ import {
   mintCanvasCapabilityToken,
 } from "../canvas-capability.js";
 import { createKnownNodeCatalog, getKnownNode, listKnownNodes } from "../node-catalog.js";
-import { isNodeCommandAllowed, resolveNodeCommandAllowlist } from "../node-command-policy.js";
+import {
+  isForegroundRestrictedPluginNodeCommand,
+  isNodeCommandAllowed,
+  resolveNodeCommandAllowlist,
+} from "../node-command-policy.js";
 import { sanitizeNodeInvokeParamsForForwarding } from "../node-invoke-sanitize.js";
 import { applyPluginNodeInvokePolicy } from "../node-invoke-plugin-policy.js";
 import { refreshClientPluginNodeCapability } from "../plugin-node-capability.js";
@@ -136,6 +140,7 @@ async function clearStaleApnsRegistrationIfNeeded(
 
 function isForegroundRestrictedIosCommand(command: string): boolean {
   return (
+    isForegroundRestrictedPluginNodeCommand(command) ||
     command === "canvas.present" ||
     command === "canvas.navigate" ||
     command.startsWith("canvas.") ||
