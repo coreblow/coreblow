@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6221,
+    "cb_source_files": 6224,
     "oc_source_files": 8443,
-    "source_parity_both": 4450,
+    "source_parity_both": 4453,
     "source_cb_exclusive": 1771,
-    "source_missing_from_cb": 3993,
-    "test_files_cb": 3962,
+    "source_missing_from_cb": 3990,
+    "test_files_cb": 3963,
     "test_files_oc": 5246,
-    "tests_both_covered": 2623,
-    "tests_gap_oc_has_cb_missing": 2378,
+    "tests_both_covered": 2624,
+    "tests_gap_oc_has_cb_missing": 2377,
     "tests_cb_exclusive": 1292,
     "export_files_with_gaps": 74,
     "test_scenario_files_with_gaps": 37
@@ -349,27 +349,27 @@
       "priority": "P0",
       "implementationSurface": "src/gateway GatewayServer and ServiceRegistry",
       "counts": {
-        "sharedSourcePaths": 277,
+        "sharedSourcePaths": 280,
         "coreBlowOnlySourcePaths": 62,
-        "openClawOnlySourcePaths": 114,
-        "sharedTestPaths": 181,
+        "openClawOnlySourcePaths": 111,
+        "sharedTestPaths": 182,
         "coreBlowOnlyTestPaths": 119,
-        "openClawTestGaps": 126
+        "openClawTestGaps": 125
       },
       "samples": {
         "openClawOnlySourcePaths": [
           "src/gateway/exec-approval-ios-push.ts",
           "src/gateway/hooks.types.ts",
-          "src/gateway/methods/core-descriptors.ts",
-          "src/gateway/methods/descriptor.ts",
-          "src/gateway/methods/registry.ts",
           "src/gateway/model-pricing-config.ts",
           "src/gateway/node-catalog.ts",
           "src/gateway/node-connect-reconcile.ts",
           "src/gateway/node-invoke-plugin-policy.ts",
           "src/gateway/node-pairing-auto-approve.ts",
           "src/gateway/openai-compat-errors.ts",
-          "src/gateway/openresponses-file-content.ts"
+          "src/gateway/openresponses-file-content.ts",
+          "src/gateway/openresponses-shape.ts",
+          "src/gateway/operator-approval-runtime-token.ts",
+          "src/gateway/operator-scopes.ts"
         ],
         "openClawTestGapPaths": [
           "src/gateway/android-node.capabilities.policy-config.test.ts",
@@ -377,13 +377,13 @@
           "src/gateway/exec-approval-ios-push.test.ts",
           "src/gateway/exec-approval-manager.test.ts",
           "src/gateway/gateway-cli-backend.connect.test.ts",
-          "src/gateway/methods/registry.test.ts",
           "src/gateway/node-catalog.test.ts",
           "src/gateway/node-connect-reconcile.test.ts",
           "src/gateway/node-invoke-plugin-policy.test.ts",
           "src/gateway/node-pairing-auto-approve.test.ts",
           "src/gateway/node-registry.test.ts",
-          "src/gateway/openai-http.usage.test.ts"
+          "src/gateway/openai-http.usage.test.ts",
+          "src/gateway/openresponses-phase.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/gateway/api-docs.ts",
