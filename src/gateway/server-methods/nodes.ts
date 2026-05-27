@@ -27,6 +27,7 @@ import {
 import { createKnownNodeCatalog, getKnownNode, listKnownNodes } from "../node-catalog.js";
 import { isNodeCommandAllowed, resolveNodeCommandAllowlist } from "../node-command-policy.js";
 import { sanitizeNodeInvokeParamsForForwarding } from "../node-invoke-sanitize.js";
+import { refreshClientPluginNodeCapability } from "../plugin-node-capability.js";
 import {
   type ConnectParams,
   ErrorCodes,
@@ -479,6 +480,17 @@ export async function waitForNodeReconnect(params: {
   return Boolean(params.context.nodeRegistry.get(params.nodeId));
 }
 
+function normalizePluginSurfaceRefreshParams(params: unknown): { surface: string } | undefined {
+  if (!params || typeof params !== "object") {
+    return undefined;
+  }
+  const surface = (params as { surface?: unknown }).surface;
+  if (typeof surface !== "string" || !surface.trim()) {
+    return undefined;
+  }
+  return { surface: surface.trim() };
+}
+
 export const nodeHandlers: GatewayRequestHandlers = {
   "node.pair.request": async ({ params, respond, context }) => {
     if (!validateNodePairRequestParams(params)) {
@@ -751,6 +763,38 @@ export const nodeHandlers: GatewayRequestHandlers = {
         canvasCapability,
         canvasCapabilityExpiresAtMs,
         canvasHostUrl: scopedCanvasHostUrl,
+      },
+      undefined,
+    );
+  },
+  "node.pluginSurface.refresh": async ({ params, respond, client }) => {
+    const parsed = normalizePluginSurfaceRefreshParams(params);
+    if (!parsed) {
+      respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "surface required"));
+      return;
+    }
+    const refreshed = client
+      ? refreshClientPluginNodeCapability({
+          client,
+          surface: client.pluginNodeCapabilitySurfaces?.[parsed.surface] ?? {
+            surface: parsed.surface,
+          },
+        })
+      : undefined;
+    if (!refreshed) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.UNAVAILABLE, `${parsed.surface} plugin surface unavailable`),
+      );
+      return;
+    }
+    respond(
+      true,
+      {
+        surface: refreshed.surface,
+        pluginSurfaceUrls: { [refreshed.surface]: refreshed.scopedUrl },
+        expiresAtMs: refreshed.expiresAtMs,
       },
       undefined,
     );

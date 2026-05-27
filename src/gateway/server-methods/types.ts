@@ -13,10 +13,11 @@ import type { GatewayBroadcastFn, GatewayBroadcastToConnIdsFn } from "../server-
 import type { ChannelRuntimeSnapshot } from "../server-channels.js";
 import type { DedupeEntry } from "../server-shared.js";
 import type { GatewayMethodRegistryView } from "../methods/descriptor.js";
+import type { PluginNodeCapabilityClient } from "../plugin-node-capability.js";
 
 type SubsystemLogger = ReturnType<typeof createSubsystemLogger>;
 
-export type GatewayClient = {
+export type GatewayClient = PluginNodeCapabilityClient & {
   connect: ConnectParams;
   connId?: string;
   clientIp?: string;

@@ -96,6 +96,7 @@ const BASE_METHODS = [
   "node.invoke.result",
   "node.event",
   "node.canvas.capability.refresh",
+  "node.pluginSurface.refresh",
   "cron.list",
   "cron.status",
   "cron.add",
