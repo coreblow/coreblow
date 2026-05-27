@@ -12,6 +12,7 @@ import type { ConnectParams, ErrorShape, RequestFrame } from "../protocol/index.
 import type { GatewayBroadcastFn, GatewayBroadcastToConnIdsFn } from "../server-broadcast.js";
 import type { ChannelRuntimeSnapshot } from "../server-channels.js";
 import type { DedupeEntry } from "../server-shared.js";
+import type { GatewayMethodRegistryView } from "../methods/descriptor.js";
 
 type SubsystemLogger = ReturnType<typeof createSubsystemLogger>;
 
@@ -110,6 +111,7 @@ export type GatewayRequestOptions = {
   isWebchatConnect: (params: ConnectParams | null | undefined) => boolean;
   respond: RespondFn;
   context: GatewayRequestContext;
+  methodRegistry?: GatewayMethodRegistryView;
 };
 
 export type GatewayRequestHandlerOptions = {

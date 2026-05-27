@@ -11,6 +11,8 @@ import {
   type GatewayMethodScope,
 } from "./descriptor.js";
 
+const CONTROL_PLANE_WRITE_METHODS = new Set(["config.apply", "config.patch", "update.run"]);
+
 export function isCoreGatewayMethodClassified(method: string): boolean {
   return isGatewayMethodClassified(method);
 }
@@ -39,6 +41,7 @@ export function createCoreGatewayMethodDescriptors(
       handler,
       owner: { kind: "core", area: params?.area ?? "gateway" },
       scope,
+      ...(CONTROL_PLANE_WRITE_METHODS.has(name) ? { controlPlaneWrite: true } : {}),
     };
   });
 }
