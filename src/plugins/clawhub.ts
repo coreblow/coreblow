@@ -7,7 +7,7 @@ import {
   type CoreHubInstalledTrustRecord,
   type CoreHubInstalledTrustVerificationResult,
   type CoreHubPluginInstallRecordFields,
-} from "./coreblow-hub.js";
+} from "./corehub.js";
 
 export const CLAWHUB_INSTALL_ERROR_CODE = COREHUB_INSTALL_ERROR_CODE;
 

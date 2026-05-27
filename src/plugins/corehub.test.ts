@@ -8,8 +8,8 @@ const resolveLatestVersionFromPackageMock = vi.fn();
 const resolveCompatibilityHostVersionMock = vi.fn();
 const installPluginFromArchiveMock = vi.fn();
 
-vi.mock("../infra/coreblow-hub.js", async () => {
-  const actual = await vi.importActual<typeof import("../infra/coreblow-hub.js")>("../infra/coreblow-hub.js");
+vi.mock("../infra/corehub.js", async () => {
+  const actual = await vi.importActual<typeof import("../infra/corehub.js")>("../infra/corehub.js");
   return {
     ...actual,
     parseCoreHubPluginSpec: (...args: unknown[]) => parseCoreHubPluginSpecMock(...args),
@@ -31,13 +31,13 @@ vi.mock("./install.js", () => ({
   installPluginFromArchive: (...args: unknown[]) => installPluginFromArchiveMock(...args),
 }));
 
-const { CoreHubRequestError } = await import("../infra/coreblow-hub.js");
+const { CoreHubRequestError } = await import("../infra/corehub.js");
 const {
   COREHUB_INSTALL_ERROR_CODE,
   formatCoreHubSpecifier,
   installPluginFromCoreHub,
   verifyCoreHubInstalledTrustRecord,
-} = await import("./coreblow-hub.js");
+} = await import("./corehub.js");
 
 async function expectCoreHubInstallError(params: {
   setup?: () => void;

@@ -126,7 +126,7 @@ vi.mock("../hooks/installs.js", () => ({
   recordHookInstall: (...args: unknown[]) => recordHookInstall(...args),
 }));
 
-vi.mock("../plugins/coreblow-hub.js", () => ({
+vi.mock("../plugins/corehub.js", () => ({
   COREHUB_INSTALL_ERROR_CODE: {
     PACKAGE_NOT_FOUND: "package_not_found",
     VERSION_NOT_FOUND: "version_not_found",
@@ -136,7 +136,7 @@ vi.mock("../plugins/coreblow-hub.js", () => ({
     `corehub:${name}${version ? `@${version}` : ""}`,
 }));
 
-vi.mock("../infra/coreblow-hub.js", () => ({
+vi.mock("../infra/corehub.js", () => ({
   parseCoreHubPluginSpec: (...args: unknown[]) => parseCoreHubPluginSpec(...args),
   fetchCoreHubPackageDetail: (...args: unknown[]) => fetchCoreHubPackageDetail(...args),
   fetchCoreHubPackageVersion: (...args: unknown[]) => fetchCoreHubPackageVersion(...args),

@@ -9,7 +9,7 @@ import {
   searchCoreHubSkills,
   type CoreHubSkillDetail,
   type CoreHubSkillSearchResult,
-} from "../infra/coreblow-hub.js";
+} from "../infra/corehub.js";
 import { withExtractedArchiveRoot } from "../infra/install-flow.js";
 import { installPackageDir } from "../infra/install-package-dir.js";
 import { resolveSafeInstallDir } from "../infra/install-safe-path.js";

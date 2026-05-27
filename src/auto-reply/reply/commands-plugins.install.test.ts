@@ -20,9 +20,9 @@ vi.mock("../../plugins/install.js", async () => {
   };
 });
 
-vi.mock("../../plugins/coreblow-hub.js", async () => {
-  const actual = await vi.importActual<typeof import("../../plugins/coreblow-hub.js")>(
-    "../../plugins/coreblow-hub.js",
+vi.mock("../../plugins/corehub.js", async () => {
+  const actual = await vi.importActual<typeof import("../../plugins/corehub.js")>(
+    "../../plugins/corehub.js",
   );
   return {
     ...actual,

@@ -2,7 +2,7 @@ import type { CoreBlowConfig } from "../config/config.js";
 import type { HookInstallRecord } from "../config/types.hooks.js";
 import type { PluginInstallRecord } from "../config/types.plugins.js";
 import { parseRegistryNpmSpec } from "../infra/npm-registry-spec.js";
-import { COREHUB_INSTALL_ERROR_CODE } from "../plugins/coreblow-hub.js";
+import { COREHUB_INSTALL_ERROR_CODE } from "../plugins/corehub.js";
 import { applyExclusiveSlotSelection, slotKeyForPluginKind } from "../plugins/slots.js";
 import { buildPluginStatusReport } from "../plugins/status.js";
 import type { PluginKind } from "../plugins/types.js";

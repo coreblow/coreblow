@@ -12,7 +12,7 @@ const withExtractedArchiveRootMock = vi.fn();
 const installPackageDirMock = vi.fn();
 const fileExistsMock = vi.fn();
 
-vi.mock("../infra/coreblow-hub.js", () => ({
+vi.mock("../infra/corehub.js", () => ({
   fetchCoreHubSkillDetail: fetchCoreHubSkillDetailMock,
   downloadCoreHubSkillArchive: downloadCoreHubSkillArchiveMock,
   listCoreHubSkills: listCoreHubSkillsMock,

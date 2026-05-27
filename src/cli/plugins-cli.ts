@@ -9,7 +9,7 @@ import {
   fetchCoreHubPackageDetail,
   fetchCoreHubPackageVersion,
   parseCoreHubPluginSpec,
-} from "../infra/coreblow-hub.js";
+} from "../infra/corehub.js";
 import { t } from "../infra/i18n/index.js";
 import { enablePluginInConfig } from "../plugins/enable.js";
 import { listMarketplacePlugins } from "../plugins/marketplace.js";

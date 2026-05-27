@@ -14,7 +14,7 @@ import {
   type CoreHubPackageCompatibility,
   type CoreHubPackageDetail,
   type CoreHubPackageFamily,
-} from "../infra/coreblow-hub.js";
+} from "../infra/corehub.js";
 import { resolveCompatibilityHostVersion } from "../version.js";
 import { installPluginFromArchive, type InstallPluginResult } from "./install.js";
 

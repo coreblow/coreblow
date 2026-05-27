@@ -19,7 +19,7 @@ vi.mock("./marketplace.js", () => ({
   installPluginFromMarketplace: (...args: unknown[]) => installPluginFromMarketplaceMock(...args),
 }));
 
-vi.mock("./coreblow-hub.js", () => ({
+vi.mock("./corehub.js", () => ({
   installPluginFromCoreHub: (...args: unknown[]) => installPluginFromCoreHubMock(...args),
   verifyCoreHubInstalledTrustRecord: (...args: unknown[]) =>
     verifyCoreHubInstalledTrustRecordMock(...args),

@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6235,
+    "cb_source_files": 6239,
     "oc_source_files": 8443,
-    "source_parity_both": 4462,
+    "source_parity_both": 4466,
     "source_cb_exclusive": 1773,
-    "source_missing_from_cb": 3981,
-    "test_files_cb": 3984,
+    "source_missing_from_cb": 3977,
+    "test_files_cb": 3988,
     "test_files_oc": 5246,
-    "tests_both_covered": 2641,
-    "tests_gap_oc_has_cb_missing": 2360,
+    "tests_both_covered": 2645,
+    "tests_gap_oc_has_cb_missing": 2356,
     "tests_cb_exclusive": 1296,
     "export_files_with_gaps": 74,
     "test_scenario_files_with_gaps": 37
@@ -97,12 +97,12 @@
       "priority": "P0",
       "implementationSurface": "src/plugins PluginLoader, PluginRegistry, HookRunner",
       "counts": {
-        "sharedSourcePaths": 123,
+        "sharedSourcePaths": 124,
         "coreBlowOnlySourcePaths": 74,
-        "openClawOnlySourcePaths": 211,
-        "sharedTestPaths": 76,
+        "openClawOnlySourcePaths": 210,
+        "sharedTestPaths": 77,
         "coreBlowOnlyTestPaths": 51,
-        "openClawTestGaps": 140
+        "openClawTestGaps": 139
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -129,9 +129,9 @@
           "src/plugins/bundled-package-channel-metadata.test.ts",
           "src/plugins/channel-catalog-registry.test.ts",
           "src/plugins/channel-validation.test.ts",
-          "src/plugins/clawhub.test.ts",
           "src/plugins/compaction-provider.test.ts",
-          "src/plugins/compat/registry.test.ts"
+          "src/plugins/compat/registry.test.ts",
+          "src/plugins/config-contracts.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/plugins/audit-log.ts",
@@ -349,12 +349,12 @@
       "priority": "P0",
       "implementationSurface": "src/infra",
       "counts": {
-        "sharedSourcePaths": 247,
+        "sharedSourcePaths": 248,
         "coreBlowOnlySourcePaths": 75,
-        "openClawOnlySourcePaths": 132,
-        "sharedTestPaths": 252,
+        "openClawOnlySourcePaths": 131,
+        "sharedTestPaths": 253,
         "coreBlowOnlyTestPaths": 61,
-        "openClawTestGaps": 93
+        "openClawTestGaps": 92
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -397,7 +397,7 @@
           "src/infra/circuit-breaker.ts",
           "src/infra/collector.ts",
           "src/infra/coreblow-exec-env.ts",
-          "src/infra/coreblow-hub.ts"
+          "src/infra/coreblow-root.ts"
         ]
       },
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
@@ -462,12 +462,12 @@
       "priority": "P0",
       "implementationSurface": "src/gateway GatewayServer and ServiceRegistry",
       "counts": {
-        "sharedSourcePaths": 289,
+        "sharedSourcePaths": 290,
         "coreBlowOnlySourcePaths": 64,
-        "openClawOnlySourcePaths": 102,
-        "sharedTestPaths": 198,
+        "openClawOnlySourcePaths": 101,
+        "sharedTestPaths": 200,
         "coreBlowOnlyTestPaths": 123,
-        "openClawTestGaps": 109
+        "openClawTestGaps": 107
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -488,7 +488,6 @@
           "src/gateway/exec-approval-ios-push.test.ts",
           "src/gateway/exec-approval-manager.test.ts",
           "src/gateway/operator-approvals-client.test.ts",
-          "src/gateway/protocol/native-protocol-levels.guard.test.ts",
           "src/gateway/restart-trace.test.ts",
           "src/gateway/server/event-loop-health.test.ts",
           "src/gateway/server/health-state.test.ts",
@@ -496,7 +495,8 @@
           "src/gateway/server/plugin-route-runtime-scopes.test.ts",
           "src/gateway/server/plugins-http/route-capability.test.ts",
           "src/gateway/server/plugins-http.runtime-scopes.test.ts",
-          "src/gateway/server/ws-connection/auth-context.state.test.ts"
+          "src/gateway/server/ws-connection/auth-context.state.test.ts",
+          "src/gateway/server/ws-connection/auth-messages.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/gateway/api-docs.ts",
@@ -950,9 +950,9 @@
       "priority": "P1",
       "implementationSurface": "src/config CoreBlowConfig",
       "counts": {
-        "sharedSourcePaths": 140,
+        "sharedSourcePaths": 141,
         "coreBlowOnlySourcePaths": 33,
-        "openClawOnlySourcePaths": 71,
+        "openClawOnlySourcePaths": 70,
         "sharedTestPaths": 102,
         "coreBlowOnlyTestPaths": 89,
         "openClawTestGaps": 41

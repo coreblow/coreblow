@@ -3,8 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 const installPluginFromCoreHubMock = vi.fn();
 const verifyCoreHubInstalledTrustRecordMock = vi.fn();
 
-vi.mock("./coreblow-hub.js", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("./coreblow-hub.js")>();
+vi.mock("./corehub.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./corehub.js")>();
   return {
     ...actual,
     installPluginFromCoreHub: (...args: unknown[]) => installPluginFromCoreHubMock(...args),
@@ -19,7 +19,7 @@ const {
   installPluginFromClawHub,
   verifyClawHubInstalledTrustRecord,
 } = await import("./clawhub.js");
-const { COREHUB_INSTALL_ERROR_CODE } = await import("./coreblow-hub.js");
+const { COREHUB_INSTALL_ERROR_CODE } = await import("./corehub.js");
 
 describe("ClawHub plugin compatibility facade", () => {
   it("formats legacy ClawHub helper output as the CoreHub public spec", () => {

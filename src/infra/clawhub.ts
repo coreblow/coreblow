@@ -27,7 +27,7 @@ import {
   type CoreHubSkillDetail,
   type CoreHubSkillListResponse,
   type CoreHubSkillSearchResult,
-} from "./coreblow-hub.js";
+} from "./corehub.js";
 
 export { satisfiesGatewayMinimum, satisfiesPluginApiRange };
 export { CoreHubRequestError as ClawHubRequestError };

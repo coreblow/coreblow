@@ -15,7 +15,7 @@ import {
   resolveLatestVersionFromPackage,
   satisfiesGatewayMinimum,
   satisfiesPluginApiRange,
-} from "./coreblow-hub.js";
+} from "./corehub.js";
 
 function createTarGzArchive(files: Record<string, string | Uint8Array>): Buffer {
   const chunks: Buffer[] = [];
