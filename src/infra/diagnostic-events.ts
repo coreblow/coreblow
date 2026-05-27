@@ -147,6 +147,42 @@ export type DiagnosticToolLoopEvent = DiagnosticBaseEvent & {
   pairedToolName?: string;
 };
 
+export type DiagnosticMemoryUsage = {
+  rssBytes: number;
+  heapTotalBytes: number;
+  heapUsedBytes: number;
+  externalBytes: number;
+  arrayBuffersBytes: number;
+};
+
+export type DiagnosticMemorySampleEvent = DiagnosticBaseEvent & {
+  type: "diagnostic.memory.sample";
+  memory: DiagnosticMemoryUsage;
+  uptimeMs?: number;
+};
+
+export type DiagnosticMemoryPressureEvent = DiagnosticBaseEvent & {
+  type: "diagnostic.memory.pressure";
+  level: "warning" | "critical";
+  reason: "rss_threshold" | "heap_threshold" | "rss_growth";
+  memory: DiagnosticMemoryUsage;
+  thresholdBytes?: number;
+  rssGrowthBytes?: number;
+  windowMs?: number;
+};
+
+export type DiagnosticPayloadLargeEvent = DiagnosticBaseEvent & {
+  type: "payload.large";
+  surface: string;
+  action: "rejected" | "truncated" | "chunked";
+  bytes?: number;
+  limitBytes?: number;
+  count?: number;
+  channel?: string;
+  pluginId?: string;
+  reason?: string;
+};
+
 export type DiagnosticEventPayload =
   | DiagnosticUsageEvent
   | DiagnosticWebhookReceivedEvent
@@ -160,7 +196,10 @@ export type DiagnosticEventPayload =
   | DiagnosticLaneDequeueEvent
   | DiagnosticRunAttemptEvent
   | DiagnosticHeartbeatEvent
-  | DiagnosticToolLoopEvent;
+  | DiagnosticToolLoopEvent
+  | DiagnosticMemorySampleEvent
+  | DiagnosticMemoryPressureEvent
+  | DiagnosticPayloadLargeEvent;
 
 export type DiagnosticEventInput = DiagnosticEventPayload extends infer Event
   ? Event extends DiagnosticEventPayload
