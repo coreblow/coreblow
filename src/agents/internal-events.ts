@@ -2,7 +2,7 @@ export type AgentInternalEventType = "task_completion";
 
 export type AgentTaskCompletionInternalEvent = {
   type: "task_completion";
-  source: "subagent" | "cron";
+  source: "subagent" | "cron" | "image_generation" | "video_generation" | "music_generation";
   childSessionKey: string;
   childSessionId?: string;
   announceType: string;
@@ -10,6 +10,16 @@ export type AgentTaskCompletionInternalEvent = {
   status: "ok" | "timeout" | "error" | "unknown";
   statusLabel: string;
   result: string;
+  attachments?: Array<{
+    type?: "image" | "audio" | "video" | "file";
+    path?: string;
+    url?: string;
+    mediaUrl?: string;
+    filePath?: string;
+    mimeType?: string;
+    name?: string;
+  }>;
+  mediaUrls?: string[];
   statsLine?: string;
   replyInstruction: string;
 };

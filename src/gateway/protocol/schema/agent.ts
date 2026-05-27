@@ -1,10 +1,25 @@
 import { Type } from "typebox";
 import { InputProvenanceSchema, NonEmptyString, SessionLabelString } from "./primitives.js";
 
+export const AgentGeneratedAttachmentSchema = Type.Object(
+  {
+    type: Type.Optional(Type.String({ enum: ["image", "audio", "video", "file"] })),
+    path: Type.Optional(Type.String()),
+    url: Type.Optional(Type.String()),
+    mediaUrl: Type.Optional(Type.String()),
+    filePath: Type.Optional(Type.String()),
+    mimeType: Type.Optional(Type.String()),
+    name: Type.Optional(Type.String()),
+  },
+  { additionalProperties: false },
+);
+
 export const AgentInternalEventSchema = Type.Object(
   {
     type: Type.Literal("task_completion"),
-    source: Type.String({ enum: ["subagent", "cron"] }),
+    source: Type.String({
+      enum: ["subagent", "cron", "image_generation", "video_generation", "music_generation"],
+    }),
     childSessionKey: Type.String(),
     childSessionId: Type.Optional(Type.String()),
     announceType: Type.String(),
@@ -12,6 +27,8 @@ export const AgentInternalEventSchema = Type.Object(
     status: Type.String({ enum: ["ok", "timeout", "error", "unknown"] }),
     statusLabel: Type.String(),
     result: Type.String(),
+    attachments: Type.Optional(Type.Array(AgentGeneratedAttachmentSchema)),
+    mediaUrls: Type.Optional(Type.Array(Type.String())),
     statsLine: Type.Optional(Type.String()),
     replyInstruction: Type.String(),
   },

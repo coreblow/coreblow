@@ -12,10 +12,10 @@
     "source_parity_both": 4462,
     "source_cb_exclusive": 1773,
     "source_missing_from_cb": 3981,
-    "test_files_cb": 3983,
+    "test_files_cb": 3984,
     "test_files_oc": 5246,
-    "tests_both_covered": 2640,
-    "tests_gap_oc_has_cb_missing": 2361,
+    "tests_both_covered": 2641,
+    "tests_gap_oc_has_cb_missing": 2360,
     "tests_cb_exclusive": 1296,
     "export_files_with_gaps": 74,
     "test_scenario_files_with_gaps": 37
@@ -465,9 +465,9 @@
         "sharedSourcePaths": 289,
         "coreBlowOnlySourcePaths": 64,
         "openClawOnlySourcePaths": 102,
-        "sharedTestPaths": 197,
+        "sharedTestPaths": 198,
         "coreBlowOnlyTestPaths": 123,
-        "openClawTestGaps": 110
+        "openClawTestGaps": 109
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -489,14 +489,14 @@
           "src/gateway/exec-approval-manager.test.ts",
           "src/gateway/operator-approvals-client.test.ts",
           "src/gateway/protocol/native-protocol-levels.guard.test.ts",
-          "src/gateway/protocol/schema/agent.test.ts",
           "src/gateway/restart-trace.test.ts",
           "src/gateway/server/event-loop-health.test.ts",
           "src/gateway/server/health-state.test.ts",
           "src/gateway/server/hooks.agent-trust.test.ts",
           "src/gateway/server/plugin-route-runtime-scopes.test.ts",
           "src/gateway/server/plugins-http/route-capability.test.ts",
-          "src/gateway/server/plugins-http.runtime-scopes.test.ts"
+          "src/gateway/server/plugins-http.runtime-scopes.test.ts",
+          "src/gateway/server/ws-connection/auth-context.state.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/gateway/api-docs.ts",
