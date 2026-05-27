@@ -174,6 +174,25 @@ export const ChannelUiMetaSchema = Type.Object(
   { additionalProperties: false },
 );
 
+export const ChannelEventLoopHealthSchema = Type.Object(
+  {
+    degraded: Type.Boolean(),
+    reasons: Type.Array(
+      Type.Union([
+        Type.Literal("event_loop_delay"),
+        Type.Literal("event_loop_utilization"),
+        Type.Literal("cpu"),
+      ]),
+    ),
+    intervalMs: Type.Integer({ minimum: 0 }),
+    delayP99Ms: Type.Number({ minimum: 0 }),
+    delayMaxMs: Type.Number({ minimum: 0 }),
+    utilization: Type.Number({ minimum: 0 }),
+    cpuCoreRatio: Type.Number({ minimum: 0 }),
+  },
+  { additionalProperties: false },
+);
+
 export const ChannelsStatusResultSchema = Type.Object(
   {
     ts: Type.Integer({ minimum: 0 }),
@@ -185,6 +204,9 @@ export const ChannelsStatusResultSchema = Type.Object(
     channels: Type.Record(NonEmptyString, Type.Unknown()),
     channelAccounts: Type.Record(NonEmptyString, Type.Array(ChannelAccountSnapshotSchema)),
     channelDefaultAccountId: Type.Record(NonEmptyString, NonEmptyString),
+    eventLoop: Type.Optional(ChannelEventLoopHealthSchema),
+    partial: Type.Optional(Type.Boolean()),
+    warnings: Type.Optional(Type.Array(Type.String())),
   },
   { additionalProperties: false },
 );
@@ -207,10 +229,16 @@ export const WebLoginStartParamsSchema = Type.Object(
   { additionalProperties: false },
 );
 
+const QrDataUrlSchema = Type.String({
+  maxLength: 16_384,
+  pattern: "^data:image/png;base64,",
+});
+
 export const WebLoginWaitParamsSchema = Type.Object(
   {
     timeoutMs: Type.Optional(Type.Integer({ minimum: 0 })),
     accountId: Type.Optional(Type.String()),
+    currentQrDataUrl: Type.Optional(QrDataUrlSchema),
   },
   { additionalProperties: false },
 );
