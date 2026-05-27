@@ -84,15 +84,7 @@ import {
   type GatewayUpdateAvailableEventPayload,
 } from "./events.js";
 import { ExecApprovalManager } from "./exec-approval-manager.js";
-import { ADMIN_SCOPE } from "./method-scopes.js";
-import {
-  createCoreGatewayMethodDescriptors,
-  createGatewayMethodDescriptorsFromHandlers,
-  createGatewayMethodRegistry,
-  createPluginGatewayMethodDescriptors,
-  isCoreGatewayMethodClassified,
-  type GatewayMethodRegistry,
-} from "./methods/registry.js";
+import { createAttachedGatewayMethodRegistrySnapshot } from "./methods/attached-registry.js";
 import { startGatewayModelPricingRefresh } from "./model-pricing-cache.js";
 import { NodeRegistry } from "./node-registry.js";
 import { createChannelManager } from "./server-channels.js";
@@ -1211,34 +1203,13 @@ export async function startGatewayServer(
       ...pluginApprovalHandlers,
       ...secretsHandlers,
     };
-    const buildAttachedGatewayMethodRegistry = (): GatewayMethodRegistry => {
-      const coreDescriptorHandlers = { ...coreGatewayHandlers };
-      const auxHandlers: GatewayRequestHandlers = {};
-      for (const [method, handler] of Object.entries(extraGatewayHandlers)) {
-        if (pluginRegistry.gatewayHandlers[method]) {
-          continue;
-        }
-        if (isCoreGatewayMethodClassified(method)) {
-          coreDescriptorHandlers[method] = handler;
-        } else {
-          auxHandlers[method] = handler;
-        }
-      }
-      return createGatewayMethodRegistry([
-        ...createCoreGatewayMethodDescriptors(coreDescriptorHandlers),
-        ...createPluginGatewayMethodDescriptors(pluginRegistry),
-        ...createGatewayMethodDescriptorsFromHandlers({
-          handlers: auxHandlers,
-          owner: { kind: "aux", area: "gateway-extra" },
-          defaultScope: ADMIN_SCOPE,
-        }),
-      ]);
-    };
-    const attachedGatewayMethodRegistry = buildAttachedGatewayMethodRegistry();
     const channelMethods = listChannelPlugins().flatMap((plugin) => plugin.gatewayMethods ?? []);
-    const gatewayMethods = Array.from(
-      new Set([...attachedGatewayMethodRegistry.listAdvertisedMethods(), ...channelMethods]),
-    );
+    const attachedGatewayMethodSnapshot = createAttachedGatewayMethodRegistrySnapshot({
+      coreGatewayHandlers,
+      pluginRegistry,
+      extraHandlers: extraGatewayHandlers,
+      channelMethods,
+    });
 
     const canvasHostServerPort = (canvasHostServer as CanvasHostServer | null)?.port;
 
@@ -1339,13 +1310,13 @@ export async function startGatewayServer(
       resolvedAuth,
       rateLimiter: authRateLimiter,
       browserRateLimiter: browserAuthRateLimiter,
-      gatewayMethods,
+      gatewayMethods: attachedGatewayMethodSnapshot.gatewayMethods,
       events: GATEWAY_EVENTS,
       logGateway: log,
       logHealth,
       logWsControl,
       extraHandlers: extraGatewayHandlers,
-      getMethodRegistry: () => attachedGatewayMethodRegistry,
+      getMethodRegistry: () => attachedGatewayMethodSnapshot.methodRegistry,
       broadcast,
       context: gatewayRequestContext,
     });
