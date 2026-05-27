@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6234,
+    "cb_source_files": 6235,
     "oc_source_files": 8443,
-    "source_parity_both": 4461,
+    "source_parity_both": 4462,
     "source_cb_exclusive": 1773,
-    "source_missing_from_cb": 3982,
-    "test_files_cb": 3980,
+    "source_missing_from_cb": 3981,
+    "test_files_cb": 3981,
     "test_files_oc": 5246,
-    "tests_both_covered": 2637,
-    "tests_gap_oc_has_cb_missing": 2364,
+    "tests_both_covered": 2638,
+    "tests_gap_oc_has_cb_missing": 2363,
     "tests_cb_exclusive": 1296,
     "export_files_with_gaps": 74,
     "test_scenario_files_with_gaps": 37
@@ -462,12 +462,12 @@
       "priority": "P0",
       "implementationSurface": "src/gateway GatewayServer and ServiceRegistry",
       "counts": {
-        "sharedSourcePaths": 288,
+        "sharedSourcePaths": 289,
         "coreBlowOnlySourcePaths": 64,
-        "openClawOnlySourcePaths": 103,
-        "sharedTestPaths": 194,
+        "openClawOnlySourcePaths": 102,
+        "sharedTestPaths": 195,
         "coreBlowOnlyTestPaths": 123,
-        "openClawTestGaps": 113
+        "openClawTestGaps": 112
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -477,18 +477,17 @@
           "src/gateway/operator-approval-runtime-token.ts",
           "src/gateway/operator-scopes.ts",
           "src/gateway/plugin-activation-runtime-config.ts",
-          "src/gateway/plugin-channel-reload-targets.ts",
           "src/gateway/probe-target.ts",
           "src/gateway/protocol/schema/artifacts.ts",
           "src/gateway/protocol/schema/commands.ts",
           "src/gateway/protocol/schema/environments.ts",
-          "src/gateway/protocol/schema/plugins.ts"
+          "src/gateway/protocol/schema/plugins.ts",
+          "src/gateway/protocol/schema/tasks.ts"
         ],
         "openClawTestGapPaths": [
           "src/gateway/exec-approval-ios-push.test.ts",
           "src/gateway/exec-approval-manager.test.ts",
           "src/gateway/operator-approvals-client.test.ts",
-          "src/gateway/plugin-channel-reload-targets.test.ts",
           "src/gateway/protocol/channels.schema.test.ts",
           "src/gateway/protocol/exec-approvals-validators.test.ts",
           "src/gateway/protocol/native-protocol-levels.guard.test.ts",
@@ -496,7 +495,8 @@
           "src/gateway/restart-trace.test.ts",
           "src/gateway/server/event-loop-health.test.ts",
           "src/gateway/server/health-state.test.ts",
-          "src/gateway/server/hooks.agent-trust.test.ts"
+          "src/gateway/server/hooks.agent-trust.test.ts",
+          "src/gateway/server/plugin-route-runtime-scopes.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/gateway/api-docs.ts",
