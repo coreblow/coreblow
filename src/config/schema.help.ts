@@ -433,6 +433,8 @@ export const FIELD_HELP: Record<string, string> = {
   "gateway.nodes.browser.mode":
     'Node browser routing ("auto" = pick single connected browser node, "manual" = require node param, "off" = disable).',
   "gateway.nodes.browser.node": "Pin browser routing to a specific node id or name (optional).",
+  "gateway.nodes.pairing.autoApproveCidrs":
+    "Opt-in CIDR or exact-IP allowlist for automatically approving first-time node pairing without requested scopes. Leave unset unless the node network is explicitly trusted.",
   "gateway.nodes.allowCommands":
     "Extra node.invoke commands to allow beyond the gateway defaults (array of command strings). Enabling dangerous commands here is a security-sensitive override and is flagged by `coreblow security audit`.",
   "gateway.nodes.denyCommands":

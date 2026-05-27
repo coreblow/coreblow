@@ -851,6 +851,12 @@ export const CoreBlowSchema = z
               })
               .strict()
               .optional(),
+            pairing: z
+              .object({
+                autoApproveCidrs: z.array(z.string()).optional(),
+              })
+              .strict()
+              .optional(),
             allowCommands: z.array(z.string()).optional(),
             denyCommands: z.array(z.string()).optional(),
           })

@@ -51,6 +51,10 @@ import {
 } from "../../net.js";
 import type { GatewayMethodRegistry } from "../../methods/registry.js";
 import { reconcileNodePairingOnConnect } from "../../node-connect-reconcile.js";
+import {
+  resolveNodePairingClientIpSource,
+  shouldAutoApproveNodePairingFromTrustedCidrs,
+} from "../../node-pairing-auto-approve.js";
 import { checkBrowserOrigin } from "../../origin-check.js";
 import {
   ConnectErrorDetailCodes,
@@ -235,6 +239,12 @@ export function attachGatewayWsMessageHandler(params: {
       : clientIp && !isLoopbackAddress(clientIp)
         ? clientIp
         : undefined;
+  const reportedClientIpSource = resolveNodePairingClientIpSource({
+    reportedClientIp,
+    hasProxyHeaders,
+    remoteIsTrustedProxy,
+    remoteIsLoopback: isLoopbackAddress(remoteAddr),
+  });
 
   if (hasUntrustedProxyHeaders) {
     logWsControl.warn(
@@ -749,6 +759,7 @@ export function attachGatewayWsMessageHandler(params: {
           };
           const requirePairing = async (
             reason: "not-paired" | "role-upgrade" | "scope-upgrade" | "metadata-upgrade",
+            existingPairedDevice: Awaited<ReturnType<typeof getPairedDevice>> | null = null,
           ) => {
             const pairingStateAllowsRequestedAccess = (
               pairedCandidate: Awaited<ReturnType<typeof getPairedDevice>>,
@@ -788,11 +799,27 @@ export function attachGatewayWsMessageHandler(params: {
               isWebchat,
               reason,
             });
+            const allowSilentTrustedCidrsNodePairing =
+              shouldAutoApproveNodePairingFromTrustedCidrs({
+                existingPairedDevice: Boolean(existingPairedDevice),
+                role,
+                reason,
+                scopes,
+                hasBrowserOriginHeader,
+                isControlUi,
+                isWebchat,
+                reportedClientIpSource,
+                reportedClientIp,
+                autoApproveCidrs: configSnapshot.gateway?.nodes?.pairing?.autoApproveCidrs,
+              });
             const pairing = await requestDevicePairing({
               deviceId: device.id,
               publicKey: devicePublicKey,
               ...clientPairingMetadata,
-              silent: reason === "scope-upgrade" ? false : allowSilentLocalPairing,
+              silent:
+                reason === "scope-upgrade"
+                  ? false
+                  : allowSilentLocalPairing || allowSilentTrustedCidrsNodePairing,
             });
             const context = buildRequestContext();
             let approved: Awaited<ReturnType<typeof approveDevicePairing>> | undefined;
@@ -881,7 +908,7 @@ export function attachGatewayWsMessageHandler(params: {
           const paired = await getPairedDevice(device.id);
           const isPaired = paired?.publicKey === devicePublicKey;
           if (!isPaired) {
-            const ok = await requirePairing("not-paired");
+            const ok = await requirePairing("not-paired", paired);
             if (!ok) {
               return;
             }
@@ -901,7 +928,7 @@ export function attachGatewayWsMessageHandler(params: {
               logGateway.warn(
                 `security audit: device metadata upgrade requested reason=metadata-upgrade device=${device.id} ip=${reportedClientIp ?? "unknown-ip"} auth=${authMethod} payload=${deviceAuthPayloadVersion ?? "unknown"} claimedPlatform=${claimedPlatform ?? "<none>"} pinnedPlatform=${pairedPlatform ?? "<none>"} claimedDeviceFamily=${claimedDeviceFamily ?? "<none>"} pinnedDeviceFamily=${pairedDeviceFamily ?? "<none>"} client=${connectParams.client.id} conn=${connId}`,
               );
-              const ok = await requirePairing("metadata-upgrade");
+              const ok = await requirePairing("metadata-upgrade", paired);
               if (!ok) {
                 return;
               }
@@ -926,13 +953,13 @@ export function attachGatewayWsMessageHandler(params: {
             const allowedRoles = new Set(pairedRoles);
             if (allowedRoles.size === 0) {
               logUpgradeAudit("role-upgrade", pairedRoles, pairedScopes);
-              const ok = await requirePairing("role-upgrade");
+              const ok = await requirePairing("role-upgrade", paired);
               if (!ok) {
                 return;
               }
             } else if (!allowedRoles.has(role)) {
               logUpgradeAudit("role-upgrade", pairedRoles, pairedScopes);
-              const ok = await requirePairing("role-upgrade");
+              const ok = await requirePairing("role-upgrade", paired);
               if (!ok) {
                 return;
               }
@@ -941,7 +968,7 @@ export function attachGatewayWsMessageHandler(params: {
             if (scopes.length > 0) {
               if (pairedScopes.length === 0) {
                 logUpgradeAudit("scope-upgrade", pairedRoles, pairedScopes);
-                const ok = await requirePairing("scope-upgrade");
+                const ok = await requirePairing("scope-upgrade", paired);
                 if (!ok) {
                   return;
                 }
@@ -953,7 +980,7 @@ export function attachGatewayWsMessageHandler(params: {
                 });
                 if (!scopesAllowed) {
                   logUpgradeAudit("scope-upgrade", pairedRoles, pairedScopes);
-                  const ok = await requirePairing("scope-upgrade");
+                  const ok = await requirePairing("scope-upgrade", paired);
                   if (!ok) {
                     return;
                   }
