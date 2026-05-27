@@ -29,6 +29,7 @@ import { sendJson, setSseHeaders, writeDone } from "./http-common.js";
 import { handleGatewayPostJsonEndpoint } from "./http-endpoint-helpers.js";
 import { resolveGatewayRequestContext, resolveOpenAiCompatModelOverride } from "./http-utils.js";
 import { normalizeInputHostnameAllowlist } from "./input-allowlist.js";
+import { resolveOpenAiCompatError, validateOpenAiSamplingParams } from "./openai-compat-errors.js";
 
 type OpenAiHttpOptions = {
   auth: ResolvedGatewayAuth;
@@ -50,6 +51,22 @@ type OpenAiChatCompletionRequest = {
   stream?: unknown;
   messages?: unknown;
   user?: unknown;
+  temperature?: unknown;
+  top_p?: unknown;
+};
+
+type ChatCompletionUsage = {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+};
+
+type AgentUsage = {
+  input: number;
+  output: number;
+  cacheRead: number;
+  cacheWrite: number;
+  total: number;
 };
 
 const DEFAULT_OPENAI_CHAT_COMPLETIONS_BODY_BYTES = 20 * 1024 * 1024;
@@ -63,6 +80,69 @@ const DEFAULT_OPENAI_IMAGE_LIMITS: InputImageLimits = {
   maxRedirects: DEFAULT_INPUT_MAX_REDIRECTS,
   timeoutMs: DEFAULT_INPUT_TIMEOUT_MS,
 };
+
+function createEmptyChatCompletionUsage(): ChatCompletionUsage {
+  return { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
+}
+
+function coerceUsageTokenCount(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.max(0, Math.floor(value))
+    : 0;
+}
+
+function readAgentUsage(value: unknown): AgentUsage | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+  const usage = value as {
+    input?: unknown;
+    output?: unknown;
+    cacheRead?: unknown;
+    cacheWrite?: unknown;
+    total?: unknown;
+  };
+  return {
+    input: coerceUsageTokenCount(usage.input),
+    output: coerceUsageTokenCount(usage.output),
+    cacheRead: coerceUsageTokenCount(usage.cacheRead),
+    cacheWrite: coerceUsageTokenCount(usage.cacheWrite),
+    total: coerceUsageTokenCount(usage.total),
+  };
+}
+
+function isZeroAgentUsage(usage: AgentUsage): boolean {
+  return (
+    usage.input === 0 &&
+    usage.output === 0 &&
+    usage.cacheRead === 0 &&
+    usage.cacheWrite === 0 &&
+    usage.total === 0
+  );
+}
+
+function resolveChatCompletionUsage(result: unknown): ChatCompletionUsage {
+  const meta = (result as { meta?: { agentMeta?: unknown } } | null)?.meta;
+  const agentMeta = meta && typeof meta === "object" ? meta.agentMeta : undefined;
+  if (!agentMeta || typeof agentMeta !== "object") {
+    return createEmptyChatCompletionUsage();
+  }
+  const record = agentMeta as { usage?: unknown; lastCallUsage?: unknown };
+  const usage = readAgentUsage(record.usage);
+  const lastCallUsage = readAgentUsage(record.lastCallUsage);
+  const selectedUsage = usage && !isZeroAgentUsage(usage) ? usage : lastCallUsage;
+  if (!selectedUsage) {
+    return createEmptyChatCompletionUsage();
+  }
+  const promptTokens = selectedUsage.input + selectedUsage.cacheRead;
+  const completionTokens = selectedUsage.output;
+  const totalTokens = selectedUsage.total || promptTokens + completionTokens + selectedUsage.cacheWrite;
+  return {
+    prompt_tokens: promptTokens,
+    completion_tokens: completionTokens,
+    total_tokens: totalTokens,
+  };
+}
 
 type ResolvedOpenAiChatCompletionsLimits = {
   maxBodyBytes: number;
@@ -317,9 +397,12 @@ async function resolveImagesForRequest(
 }
 
 export const __testOnlyOpenAiHttp = {
+  resolveChatCompletionUsage,
   resolveImagesForRequest,
   resolveOpenAiChatCompletionsLimits,
 };
+
+export const testOnlyOpenAiHttp = __testOnlyOpenAiHttp;
 
 function buildAgentPrompt(
   messagesUnknown: unknown,
@@ -433,6 +516,16 @@ export async function handleOpenAiHttpRequest(
   const stream = Boolean(payload.stream);
   const model = typeof payload.model === "string" ? payload.model : "coreblow";
   const user = typeof payload.user === "string" ? payload.user : undefined;
+  const samplingError = validateOpenAiSamplingParams({
+    temperature: payload.temperature,
+    topP: payload.top_p,
+  });
+  if (samplingError) {
+    sendJson(res, 400, {
+      error: { message: samplingError, type: "invalid_request_error" },
+    });
+    return true;
+  }
 
   const { agentId, sessionKey, messageChannel } = resolveGatewayRequestContext({
     req,
@@ -511,10 +604,15 @@ export async function handleOpenAiHttpRequest(
             finish_reason: "stop",
           },
         ],
-        usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+        usage: resolveChatCompletionUsage(result),
       });
     } catch (err) {
       logWarn(`openai-compat: chat completion failed: ${String(err)}`);
+      const mapped = resolveOpenAiCompatError(err);
+      if (mapped) {
+        sendJson(res, mapped.status, { error: mapped.error });
+        return true;
+      }
       sendJson(res, 500, {
         error: { message: "internal error", type: "api_error" },
       });
@@ -600,6 +698,15 @@ export async function handleOpenAiHttpRequest(
     } catch (err) {
       logWarn(`openai-compat: streaming chat completion failed: ${String(err)}`);
       if (closed) {
+        return;
+      }
+      const mapped = resolveOpenAiCompatError(err);
+      if (mapped) {
+        closed = true;
+        unsubscribe();
+        writeSse(res, { error: mapped.error });
+        writeDone(res);
+        res.end();
         return;
       }
       writeAssistantContentChunk(res, {

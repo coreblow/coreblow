@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6228,
+    "cb_source_files": 6229,
     "oc_source_files": 8443,
-    "source_parity_both": 4455,
+    "source_parity_both": 4456,
     "source_cb_exclusive": 1773,
-    "source_missing_from_cb": 3988,
-    "test_files_cb": 3966,
+    "source_missing_from_cb": 3987,
+    "test_files_cb": 3967,
     "test_files_oc": 5246,
-    "tests_both_covered": 2625,
-    "tests_gap_oc_has_cb_missing": 2376,
+    "tests_both_covered": 2626,
+    "tests_gap_oc_has_cb_missing": 2375,
     "tests_cb_exclusive": 1294,
     "export_files_with_gaps": 74,
     "test_scenario_files_with_gaps": 37
@@ -349,12 +349,12 @@
       "priority": "P0",
       "implementationSurface": "src/gateway GatewayServer and ServiceRegistry",
       "counts": {
-        "sharedSourcePaths": 282,
+        "sharedSourcePaths": 283,
         "coreBlowOnlySourcePaths": 64,
-        "openClawOnlySourcePaths": 109,
-        "sharedTestPaths": 183,
+        "openClawOnlySourcePaths": 108,
+        "sharedTestPaths": 184,
         "coreBlowOnlyTestPaths": 121,
-        "openClawTestGaps": 124
+        "openClawTestGaps": 123
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -365,11 +365,11 @@
           "src/gateway/node-connect-reconcile.ts",
           "src/gateway/node-invoke-plugin-policy.ts",
           "src/gateway/node-pairing-auto-approve.ts",
-          "src/gateway/openai-compat-errors.ts",
           "src/gateway/operator-approval-runtime-token.ts",
           "src/gateway/operator-scopes.ts",
           "src/gateway/plugin-activation-runtime-config.ts",
-          "src/gateway/plugin-channel-reload-targets.ts"
+          "src/gateway/plugin-channel-reload-targets.ts",
+          "src/gateway/plugin-node-capability.ts"
         ],
         "openClawTestGapPaths": [
           "src/gateway/android-node.capabilities.policy-config.test.ts",
@@ -382,8 +382,8 @@
           "src/gateway/node-invoke-plugin-policy.test.ts",
           "src/gateway/node-pairing-auto-approve.test.ts",
           "src/gateway/node-registry.test.ts",
-          "src/gateway/openai-http.usage.test.ts",
-          "src/gateway/operator-approvals-client.test.ts"
+          "src/gateway/operator-approvals-client.test.ts",
+          "src/gateway/plugin-channel-reload-targets.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/gateway/api-docs.ts",
