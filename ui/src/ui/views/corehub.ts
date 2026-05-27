@@ -653,10 +653,7 @@ export class CoreHubView extends LitElement {
     this.claimLoading = true;
     this.claimError = "";
     try {
-      const response = await this.fetchJson<{ status: string }>("/publishers/claim", {
-        method: "POST",
-        body: JSON.stringify(this.claimForm),
-      });
+      const response = await this.postJson<{ status: string }>("/publishers/claim", this.claimForm);
       if (response.status === "already_claimed") {
         this.claimError = `Publisher ${this.claimForm.handle} is already claimed.`;
       } else {
@@ -674,9 +671,7 @@ export class CoreHubView extends LitElement {
     this.verifyLoadingHandle = handle;
     this.adminPublishersError = "";
     try {
-      await this.fetchJson(`/publishers/${encodeURIComponent(handle)}/verify`, {
-        method: "POST",
-      });
+      await this.postJson(`/publishers/${encodeURIComponent(handle)}/verify`, {});
       await this.loadAdminPublishers();
     } catch (error) {
       this.adminPublishersError = this.formatAuthError(error);

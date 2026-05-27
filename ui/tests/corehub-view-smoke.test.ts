@@ -356,7 +356,7 @@ describe("CoreHub view authenticated Gateway proxy smoke", () => {
   });
 
   it("shows a clean error state when Gateway/CoreHub authentication fails", async () => {
-    const fetchMock = vi.fn(async () =>
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
       jsonResponse(
         { error: { type: "unauthorized", message: "Unauthorized" } },
         { status: 401, statusText: "Unauthorized" },

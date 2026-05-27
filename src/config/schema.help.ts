@@ -95,6 +95,8 @@ export const FIELD_HELP: Record<string, string> = {
     "Explicit gateway-level tool allowlist when you want a narrow set of tools available at runtime. Use this for locked-down environments where tool scope must be tightly controlled.",
   "gateway.tools.deny":
     "Explicit gateway-level tool denylist to block risky tools even if lower-level policies allow them. Use deny rules for emergency response and defense-in-depth hardening.",
+  "gateway.handshakeTimeoutMs":
+    "Time in milliseconds allowed for the pre-auth Gateway WebSocket handshake before the connection closes. Increase this only for slow clients or high-latency paths. Default: 15000.",
   "gateway.channelHealthCheckMinutes":
     "Interval in minutes for automatic channel health probing and status updates. Use lower intervals for faster detection, or higher intervals to reduce periodic probe noise.",
   "gateway.channelStaleEventThresholdMinutes":

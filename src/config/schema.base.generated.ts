@@ -10216,6 +10216,11 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
             },
             additionalProperties: false,
           },
+          handshakeTimeoutMs: {
+            type: "integer",
+            minimum: 1,
+            maximum: 9007199254740991,
+          },
           channelHealthCheckMinutes: {
             type: "integer",
             minimum: 0,
@@ -12093,6 +12098,11 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
       label: "Gateway Tool Denylist",
       help: "Explicit gateway-level tool denylist to block risky tools even if lower-level policies allow them. Use deny rules for emergency response and defense-in-depth hardening.",
       tags: ["access", "network"],
+    },
+    "gateway.handshakeTimeoutMs": {
+      label: "Gateway Handshake Timeout",
+      help: "Time in milliseconds allowed for the pre-auth Gateway WebSocket handshake before the connection closes. Increase this only for slow clients or high-latency paths. Default: 15000.",
+      tags: ["network", "performance"],
     },
     "gateway.channelHealthCheckMinutes": {
       label: "Gateway Channel Health Check Interval (min)",

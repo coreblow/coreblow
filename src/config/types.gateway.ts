@@ -444,6 +444,11 @@ export type GatewayConfig = {
   /** Tool access restrictions for HTTP /tools/invoke endpoint. */
   tools?: GatewayToolsConfig;
   /**
+   * Pre-auth Gateway WebSocket handshake timeout in milliseconds.
+   * Env var COREBLOW_HANDSHAKE_TIMEOUT_MS takes precedence. Default: 15000.
+   */
+  handshakeTimeoutMs?: number;
+  /**
    * Channel health monitor interval in minutes.
    * Periodically checks channel health and restarts unhealthy channels.
    * Set to 0 to disable. Default: 5.

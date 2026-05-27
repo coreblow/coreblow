@@ -147,7 +147,7 @@ export async function handleCoreHubAdminProxyRequest(
     headers["x-corehub-token"] = coreHubToken;
   }
 
-  let body: string | undefined;
+  let body: BodyInit | undefined;
   if (method === "POST") {
     const bodyUnknown = await readJsonBodyOrError(req, res, COREHUB_PROXY_MAX_BODY_BYTES);
     if (bodyUnknown === undefined) {
@@ -172,7 +172,7 @@ export async function handleCoreHubAdminProxyRequest(
     if (!bytes) {
       return true;
     }
-    body = bytes;
+    body = Uint8Array.from(bytes).buffer;
   }
 
   try {
