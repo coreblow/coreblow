@@ -256,7 +256,12 @@ async function sendReceiptAck(params: {
   });
 }
 
-export const handleNodeEvent = async (ctx: NodeEventContext, nodeId: string, evt: NodeEvent) => {
+export const handleNodeEvent = async (
+  ctx: NodeEventContext,
+  nodeId: string,
+  evt: NodeEvent,
+  opts?: { connId?: string },
+) => {
   switch (evt.event) {
     case "voice.transcript": {
       const obj = parsePayloadObject(evt.payloadJSON);
@@ -532,6 +537,24 @@ export const handleNodeEvent = async (ctx: NodeEventContext, nodeId: string, evt
       }
       const { canonicalKey: sessionKey } = loadSessionEntry(sessionKeyRaw);
 
+      const runId = typeof obj.runId === "string" ? obj.runId.trim() : "";
+      if (
+        !ctx.authorizeNodeSystemRunEvent({
+          nodeId,
+          connId: opts?.connId,
+          ...(runId ? { runId } : {}),
+          sessionKey: sessionKeyRaw,
+          terminal: evt.event === "exec.finished" || evt.event === "exec.denied",
+        })
+      ) {
+        return {
+          ok: true,
+          event: evt.event,
+          handled: false,
+          reason: "unmatched_exec_event",
+        };
+      }
+
       // Respect tools.exec.notifyOnExit setting (default: true)
       // When false, skip system event notifications for node exec events.
       const cfg = loadConfig();
@@ -543,7 +566,6 @@ export const handleNodeEvent = async (ctx: NodeEventContext, nodeId: string, evt
         return;
       }
 
-      const runId = typeof obj.runId === "string" ? obj.runId.trim() : "";
       const command = typeof obj.command === "string" ? obj.command.trim() : "";
       const exitCode =
         typeof obj.exitCode === "number" && Number.isFinite(obj.exitCode)

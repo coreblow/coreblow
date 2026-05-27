@@ -1082,13 +1082,25 @@ export const nodeHandlers: GatewayRequestHandlers = {
         getHealthCache: context.getHealthCache,
         refreshHealthSnapshot: context.refreshHealthSnapshot,
         loadGatewayModelCatalog: context.loadGatewayModelCatalog,
+        authorizeNodeSystemRunEvent: (eventParams: {
+          nodeId: string;
+          connId?: string;
+          runId?: string;
+          sessionKey: string;
+          terminal: boolean;
+        }) => context.nodeRegistry.authorizeSystemRunEvent(eventParams),
         logGateway: { warn: context.logGateway.warn },
       };
-      await handleNodeEvent(nodeContext, nodeId, {
-        event: p.event,
-        payloadJSON,
-      });
-      respond(true, { ok: true }, undefined);
+      const result = await handleNodeEvent(
+        nodeContext,
+        nodeId,
+        {
+          event: p.event,
+          payloadJSON,
+        },
+        { connId: client?.connId },
+      );
+      respond(true, result ?? { ok: true }, undefined);
     });
   },
 };

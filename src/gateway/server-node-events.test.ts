@@ -117,7 +117,9 @@ const loadSessionEntryMock = vi.mocked(loadSessionEntry);
 const registerApnsRegistrationVi = vi.mocked(registerApnsRegistration);
 const normalizeChannelIdVi = vi.mocked(normalizeChannelId);
 
-function buildCtx(): NodeEventContext {
+function buildCtx(
+  opts: { authorizeNodeSystemRunEvent?: NodeEventContext["authorizeNodeSystemRunEvent"] } = {},
+): NodeEventContext {
   return {
     deps: {} as CliDeps,
     broadcast: () => {},
@@ -136,6 +138,7 @@ function buildCtx(): NodeEventContext {
     getHealthCache: () => null,
     refreshHealthSnapshot: async () => ({}) as HealthSummary,
     loadGatewayModelCatalog: async () => [],
+    authorizeNodeSystemRunEvent: opts.authorizeNodeSystemRunEvent ?? (() => true),
     logGateway: { warn: () => {} },
   };
 }
@@ -188,6 +191,33 @@ describe("node exec events", () => {
       { sessionKey: "node-node-2", contextKey: "exec:run-2" },
     );
     expect(requestHeartbeatNowMock).toHaveBeenCalledWith({ reason: "exec-event" });
+  });
+
+  it("rejects exec lifecycle events without a pending authorized node run", async () => {
+    const ctx = buildCtx({ authorizeNodeSystemRunEvent: () => false });
+    const result = await handleNodeEvent(
+      ctx,
+      "node-2",
+      {
+        event: "exec.finished",
+        payloadJSON: JSON.stringify({
+          sessionKey: "agent:main:main",
+          runId: "forged-run",
+          exitCode: 0,
+          output: "done",
+        }),
+      },
+      { connId: "conn-2" },
+    );
+
+    expect(result).toEqual({
+      ok: true,
+      event: "exec.finished",
+      handled: false,
+      reason: "unmatched_exec_event",
+    });
+    expect(enqueueSystemEventMock).not.toHaveBeenCalled();
+    expect(requestHeartbeatNowMock).not.toHaveBeenCalled();
   });
 
   it("canonicalizes exec session key before enqueue and wake", async () => {
