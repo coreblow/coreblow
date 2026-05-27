@@ -10,6 +10,12 @@ export * from "./types.browser.js";
 export * from "./types.channels.js";
 export * from "./types.cli.js";
 export * from "./types.coreblow.js";
+export type {
+  OpenClawConfig,
+  ResolvedSourceConfig,
+  RuntimeConfig,
+  SourceConfig,
+} from "./types.openclaw.js";
 
 export * from "./types.cron.js";
 export * from "./types.discord.js";
