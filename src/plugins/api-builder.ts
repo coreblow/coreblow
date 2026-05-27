@@ -23,6 +23,8 @@ export type BuildPluginApiParams = {
       | "registerHttpRoute"
       | "registerChannel"
       | "registerGatewayMethod"
+      | "registerNodeHostCommand"
+      | "registerNodeInvokePolicy"
       | "registerCli"
       | "registerService"
       | "registerCliBackend"
@@ -49,6 +51,8 @@ const noopRegisterHook: CoreBlowPluginApi["registerHook"] = () => {};
 const noopRegisterHttpRoute: CoreBlowPluginApi["registerHttpRoute"] = () => {};
 const noopRegisterChannel: CoreBlowPluginApi["registerChannel"] = () => {};
 const noopRegisterGatewayMethod: CoreBlowPluginApi["registerGatewayMethod"] = () => {};
+const noopRegisterNodeHostCommand: CoreBlowPluginApi["registerNodeHostCommand"] = () => {};
+const noopRegisterNodeInvokePolicy: CoreBlowPluginApi["registerNodeInvokePolicy"] = () => {};
 const noopRegisterCli: CoreBlowPluginApi["registerCli"] = () => {};
 const noopRegisterService: CoreBlowPluginApi["registerService"] = () => {};
 const noopRegisterCliBackend: CoreBlowPluginApi["registerCliBackend"] = () => {};
@@ -90,6 +94,8 @@ export function buildPluginApi(params: BuildPluginApiParams): CoreBlowPluginApi 
     registerHttpRoute: handlers.registerHttpRoute ?? noopRegisterHttpRoute,
     registerChannel: handlers.registerChannel ?? noopRegisterChannel,
     registerGatewayMethod: handlers.registerGatewayMethod ?? noopRegisterGatewayMethod,
+    registerNodeHostCommand: handlers.registerNodeHostCommand ?? noopRegisterNodeHostCommand,
+    registerNodeInvokePolicy: handlers.registerNodeInvokePolicy ?? noopRegisterNodeInvokePolicy,
     registerCli: handlers.registerCli ?? noopRegisterCli,
     registerService: handlers.registerService ?? noopRegisterService,
     registerCliBackend: handlers.registerCliBackend ?? noopRegisterCliBackend,

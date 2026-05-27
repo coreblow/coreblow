@@ -3,6 +3,11 @@ import type { AnyAgentTool } from "../agents/tools/common.js";
 import type { ChannelPlugin } from "../channels/plugins/types.js";
 import { registerContextEngineForOwner } from "../context-engine/registry.js";
 import type { OperatorScope } from "../gateway/method-scopes.js";
+import {
+  NODE_EXEC_APPROVALS_COMMANDS,
+  NODE_SYSTEM_NOTIFY_COMMAND,
+  NODE_SYSTEM_RUN_COMMANDS,
+} from "../infra/node-commands.js";
 import type {
   GatewayRequestHandler,
   GatewayRequestHandlers,
@@ -48,6 +53,8 @@ import type {
   CoreBlowPluginHttpRouteHandler,
   CoreBlowPluginHttpRouteParams,
   CoreBlowPluginHookOptions,
+  CoreBlowPluginNodeHostCommand,
+  CoreBlowPluginNodeInvokePolicy,
   MediaUnderstandingProviderPlugin,
   ProviderPlugin,
   CoreBlowPluginService,
@@ -171,6 +178,23 @@ export type PluginCommandRegistration = {
   rootDir?: string;
 };
 
+export type PluginNodeHostCommandRegistration = {
+  pluginId: string;
+  pluginName?: string;
+  command: CoreBlowPluginNodeHostCommand;
+  source: string;
+  rootDir?: string;
+};
+
+export type PluginNodeInvokePolicyRegistration = {
+  pluginId: string;
+  pluginName?: string;
+  policy: CoreBlowPluginNodeInvokePolicy;
+  pluginConfig?: Record<string, unknown>;
+  source: string;
+  rootDir?: string;
+};
+
 export type PluginConversationBindingResolvedHandlerRegistration = {
   pluginId: string;
   pluginName?: string;
@@ -235,6 +259,8 @@ export type PluginRegistry = {
   cliRegistrars: PluginCliRegistration[];
   services: PluginServiceRegistration[];
   commands: PluginCommandRegistration[];
+  nodeHostCommands?: PluginNodeHostCommandRegistration[];
+  nodeInvokePolicies?: PluginNodeInvokePolicyRegistration[];
   conversationBindingResolvedHandlers: PluginConversationBindingResolvedHandlerRegistration[];
   diagnostics: PluginDiagnostic[];
 };
@@ -410,6 +436,94 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
       registry.gatewayMethodScopes[trimmed] = opts.scope;
     }
     record.gatewayMethods.push(trimmed);
+  };
+
+  const registerNodeHostCommand = (
+    record: PluginRecord,
+    nodeCommand: CoreBlowPluginNodeHostCommand,
+  ) => {
+    const command = nodeCommand.command.trim();
+    const reserved = new Set<string>([
+      ...NODE_SYSTEM_RUN_COMMANDS,
+      ...NODE_EXEC_APPROVALS_COMMANDS,
+      NODE_SYSTEM_NOTIFY_COMMAND,
+    ]);
+    if (!command) {
+      pushDiagnostic({
+        level: "error",
+        pluginId: record.id,
+        source: record.source,
+        message: "node host command registration missing command",
+      });
+      return;
+    }
+    if (reserved.has(command)) {
+      pushDiagnostic({
+        level: "error",
+        pluginId: record.id,
+        source: record.source,
+        message: `node host command reserved by core: ${command}`,
+      });
+      return;
+    }
+    registry.nodeHostCommands ??= [];
+    const existing = registry.nodeHostCommands.find((entry) => entry.command.command === command);
+    if (existing) {
+      pushDiagnostic({
+        level: "error",
+        pluginId: record.id,
+        source: record.source,
+        message: `node host command already registered: ${command} (${existing.pluginId})`,
+      });
+      return;
+    }
+    registry.nodeHostCommands.push({
+      pluginId: record.id,
+      pluginName: record.name,
+      command: { ...nodeCommand, command, cap: nodeCommand.cap?.trim() || undefined },
+      source: record.source,
+      rootDir: record.rootDir,
+    });
+  };
+
+  const registerNodeInvokePolicy = (
+    record: PluginRecord,
+    policy: CoreBlowPluginNodeInvokePolicy,
+    pluginConfig?: Record<string, unknown>,
+  ) => {
+    const commands = policy.commands.map((command) => command.trim()).filter(Boolean);
+    if (commands.length === 0 || typeof policy.handle !== "function") {
+      pushDiagnostic({
+        level: "error",
+        pluginId: record.id,
+        source: record.source,
+        message: "node invoke policy registration requires commands and a handler",
+      });
+      return;
+    }
+    registry.nodeInvokePolicies ??= [];
+    for (const command of commands) {
+      const existing = registry.nodeInvokePolicies.find((entry) =>
+        entry.policy.commands.includes(command),
+      );
+      if (existing) {
+        pushDiagnostic({
+          level: "error",
+          pluginId: record.id,
+          source: record.source,
+          message: `node invoke policy already registered for ${command} (${existing.pluginId})`,
+        });
+        return;
+      }
+    }
+    registry.nodeInvokePolicies.push({
+      pluginId: record.id,
+      pluginName: record.name,
+      policy: { ...policy, commands },
+      pluginConfig,
+      source: record.source,
+      rootDir: record.rootDir,
+    });
   };
 
   const describeHttpRouteOwner = (entry: PluginHttpRouteRegistration): string => {
@@ -988,6 +1102,9 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
               registerWebSearchProvider: (provider) => registerWebSearchProvider(record, provider),
               registerGatewayMethod: (method, handler, opts) =>
                 registerGatewayMethod(record, method, handler, opts),
+              registerNodeHostCommand: (command) => registerNodeHostCommand(record, command),
+              registerNodeInvokePolicy: (policy) =>
+                registerNodeInvokePolicy(record, policy, params.pluginConfig),
               registerCli: (registrar, opts) => registerCli(record, registrar, opts),
               registerService: (service) => registerService(record, service),
               registerCliBackend: (backend) => registerCliBackend(record, backend),
@@ -1115,6 +1232,8 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     registerImageGenerationProvider,
     registerWebSearchProvider,
     registerGatewayMethod,
+    registerNodeHostCommand,
+    registerNodeInvokePolicy,
     registerCli,
     registerService,
     registerCommand,

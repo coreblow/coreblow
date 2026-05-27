@@ -42,6 +42,8 @@ function fakeApi(overrides: Partial<CoreBlowPluginApi> = {}): CoreBlowPluginApi 
     registerTool() {},
     registerChannel() {},
     registerGatewayMethod() {},
+    registerNodeHostCommand() {},
+    registerNodeInvokePolicy() {},
     registerCli() {},
     registerService() {},
     registerCliBackend() {},

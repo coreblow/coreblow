@@ -12,6 +12,8 @@ export function createTestPluginApi(api: TestPluginApiInput): CoreBlowPluginApi 
     registerHttpRoute() {},
     registerChannel() {},
     registerGatewayMethod() {},
+    registerNodeHostCommand() {},
+    registerNodeInvokePolicy() {},
     registerCli() {},
     registerService() {},
     registerCliBackend() {},

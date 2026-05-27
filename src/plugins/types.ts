@@ -1602,6 +1602,72 @@ export type CliBackendPlugin = {
   normalizeConfig?: (config: CliBackendConfig) => CliBackendConfig;
 };
 
+export type CoreBlowPluginNodeHostCommand = {
+  command: string;
+  cap?: string;
+  dangerous?: boolean;
+  handle: (paramsJSON?: string | null) => Promise<string>;
+};
+
+export type CoreBlowPluginNodeInvokeTransportResult =
+  | { ok: true; payload?: unknown; payloadJSON?: string | null }
+  | { ok: false; code?: string; message: string; details?: Record<string, unknown> };
+
+export type CoreBlowPluginNodeInvokePolicyContext = {
+  nodeId: string;
+  command: string;
+  params: unknown;
+  timeoutMs?: number;
+  idempotencyKey?: string;
+  config: CoreBlowConfig;
+  pluginConfig?: Record<string, unknown>;
+  node?: {
+    nodeId: string;
+    displayName?: string;
+    platform?: string;
+    deviceFamily?: string;
+    commands?: string[];
+  };
+  client?: { connId?: string; scopes?: string[] } | null;
+  approvals?: {
+    request: (input: {
+      title: string;
+      description: string;
+      severity?: "info" | "warning" | "critical";
+      toolName?: string;
+      toolCallId?: string;
+      agentId?: string;
+      sessionKey?: string;
+      timeoutMs?: number;
+    }) => Promise<{ id?: string; decision?: "allow-once" | "allow-always" | "deny" | null }>;
+  };
+  invokeNode: (input?: {
+    params?: unknown;
+    timeoutMs?: number;
+    idempotencyKey?: string;
+  }) => Promise<CoreBlowPluginNodeInvokeTransportResult>;
+};
+
+export type CoreBlowPluginNodeInvokePolicyResult =
+  | { ok: true; payload?: unknown; payloadJSON?: string | null }
+  | {
+      ok: false;
+      message: string;
+      code?: string;
+      details?: Record<string, unknown>;
+      unavailable?: boolean;
+    };
+
+export type CoreBlowPluginNodeInvokePolicy = {
+  commands: string[];
+  defaultPlatforms?: Array<"ios" | "android" | "macos" | "windows" | "linux" | "unknown">;
+  dangerous?: boolean;
+  foregroundRestrictedOnIos?: boolean;
+  handle: (
+    ctx: CoreBlowPluginNodeInvokePolicyContext,
+  ) => Promise<CoreBlowPluginNodeInvokePolicyResult> | CoreBlowPluginNodeInvokePolicyResult;
+};
+
 export type CoreBlowPluginChannelRegistration = {
   plugin: ChannelPlugin;
 };
@@ -1660,6 +1726,8 @@ export type CoreBlowPluginApi = {
     handler: GatewayRequestHandler,
     opts?: { scope?: OperatorScope },
   ) => void;
+  registerNodeHostCommand: (command: CoreBlowPluginNodeHostCommand) => void;
+  registerNodeInvokePolicy: (policy: CoreBlowPluginNodeInvokePolicy) => void;
   registerCli: (
     registrar: CoreBlowPluginCliRegistrar,
     opts?: {

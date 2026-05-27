@@ -20,6 +20,8 @@ export function createEmptyPluginRegistry(): PluginRegistry {
     cliRegistrars: [],
     services: [],
     commands: [],
+    nodeHostCommands: [],
+    nodeInvokePolicies: [],
     conversationBindingResolvedHandlers: [],
     diagnostics: [],
   };
