@@ -12,10 +12,10 @@
     "source_parity_both": 4461,
     "source_cb_exclusive": 1773,
     "source_missing_from_cb": 3982,
-    "test_files_cb": 3977,
+    "test_files_cb": 3979,
     "test_files_oc": 5246,
-    "tests_both_covered": 2634,
-    "tests_gap_oc_has_cb_missing": 2367,
+    "tests_both_covered": 2636,
+    "tests_gap_oc_has_cb_missing": 2365,
     "tests_cb_exclusive": 1296,
     "export_files_with_gaps": 74,
     "test_scenario_files_with_gaps": 37
@@ -407,79 +407,6 @@
       ]
     },
     {
-      "domain": "src/gateway",
-      "status": "partial",
-      "priority": "P0",
-      "implementationSurface": "src/gateway GatewayServer and ServiceRegistry",
-      "counts": {
-        "sharedSourcePaths": 288,
-        "coreBlowOnlySourcePaths": 64,
-        "openClawOnlySourcePaths": 103,
-        "sharedTestPaths": 191,
-        "coreBlowOnlyTestPaths": 123,
-        "openClawTestGaps": 116
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/gateway/exec-approval-ios-push.ts",
-          "src/gateway/hooks.types.ts",
-          "src/gateway/model-pricing-config.ts",
-          "src/gateway/operator-approval-runtime-token.ts",
-          "src/gateway/operator-scopes.ts",
-          "src/gateway/plugin-activation-runtime-config.ts",
-          "src/gateway/plugin-channel-reload-targets.ts",
-          "src/gateway/probe-target.ts",
-          "src/gateway/protocol/schema/artifacts.ts",
-          "src/gateway/protocol/schema/commands.ts",
-          "src/gateway/protocol/schema/environments.ts",
-          "src/gateway/protocol/schema/plugins.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/gateway/android-node.capabilities.policy-config.test.ts",
-          "src/gateway/android-node.capabilities.policy-source.test.ts",
-          "src/gateway/exec-approval-ios-push.test.ts",
-          "src/gateway/exec-approval-manager.test.ts",
-          "src/gateway/gateway-cli-backend.connect.test.ts",
-          "src/gateway/operator-approvals-client.test.ts",
-          "src/gateway/plugin-channel-reload-targets.test.ts",
-          "src/gateway/protocol/channels.schema.test.ts",
-          "src/gateway/protocol/exec-approvals-validators.test.ts",
-          "src/gateway/protocol/native-protocol-levels.guard.test.ts",
-          "src/gateway/protocol/schema/agent.test.ts",
-          "src/gateway/restart-trace.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/gateway/api-docs.ts",
-          "src/gateway/api-gateway.ts",
-          "src/gateway/api-versioning.ts",
-          "src/gateway/api.schema.ts",
-          "src/gateway/app-bootstrapper.ts",
-          "src/gateway/bootstrap-engine.ts",
-          "src/gateway/canvas-capability.ts",
-          "src/gateway/channel-bridge.ts",
-          "src/gateway/channel-health.ts",
-          "src/gateway/channel-manager.ts",
-          "src/gateway/chat-handler.ts",
-          "src/gateway/circuit-breaker.ts"
-        ]
-      },
-      "intentionalBehaviorDifferences": [
-        {
-          "path": "src/gateway/models-http.ts",
-          "status": "intentionally_different",
-          "referenceBehavior": "OpenClaw grants default OpenAI-compatible operator scopes to shared-secret bearer requests.",
-          "coreBlowDecision": "CoreBlow requires an explicitly declared operator.read scope for shared-secret bearer model-list requests.",
-          "rationale": "Preserve least-privilege scope enforcement on the model discovery surface.",
-          "gate": "pnpm test -- src/gateway/models-http.test.ts"
-        }
-      ],
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/gateway",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/qa-lab",
       "status": "missing",
       "priority": "P0",
@@ -526,6 +453,79 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/qa-lab",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/gateway",
+      "status": "partial",
+      "priority": "P0",
+      "implementationSurface": "src/gateway GatewayServer and ServiceRegistry",
+      "counts": {
+        "sharedSourcePaths": 288,
+        "coreBlowOnlySourcePaths": 64,
+        "openClawOnlySourcePaths": 103,
+        "sharedTestPaths": 193,
+        "coreBlowOnlyTestPaths": 123,
+        "openClawTestGaps": 114
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [
+          "src/gateway/exec-approval-ios-push.ts",
+          "src/gateway/hooks.types.ts",
+          "src/gateway/model-pricing-config.ts",
+          "src/gateway/operator-approval-runtime-token.ts",
+          "src/gateway/operator-scopes.ts",
+          "src/gateway/plugin-activation-runtime-config.ts",
+          "src/gateway/plugin-channel-reload-targets.ts",
+          "src/gateway/probe-target.ts",
+          "src/gateway/protocol/schema/artifacts.ts",
+          "src/gateway/protocol/schema/commands.ts",
+          "src/gateway/protocol/schema/environments.ts",
+          "src/gateway/protocol/schema/plugins.ts"
+        ],
+        "openClawTestGapPaths": [
+          "src/gateway/exec-approval-ios-push.test.ts",
+          "src/gateway/exec-approval-manager.test.ts",
+          "src/gateway/gateway-cli-backend.connect.test.ts",
+          "src/gateway/operator-approvals-client.test.ts",
+          "src/gateway/plugin-channel-reload-targets.test.ts",
+          "src/gateway/protocol/channels.schema.test.ts",
+          "src/gateway/protocol/exec-approvals-validators.test.ts",
+          "src/gateway/protocol/native-protocol-levels.guard.test.ts",
+          "src/gateway/protocol/schema/agent.test.ts",
+          "src/gateway/restart-trace.test.ts",
+          "src/gateway/server/event-loop-health.test.ts",
+          "src/gateway/server/health-state.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "src/gateway/api-docs.ts",
+          "src/gateway/api-gateway.ts",
+          "src/gateway/api-versioning.ts",
+          "src/gateway/api.schema.ts",
+          "src/gateway/app-bootstrapper.ts",
+          "src/gateway/bootstrap-engine.ts",
+          "src/gateway/canvas-capability.ts",
+          "src/gateway/channel-bridge.ts",
+          "src/gateway/channel-health.ts",
+          "src/gateway/channel-manager.ts",
+          "src/gateway/chat-handler.ts",
+          "src/gateway/circuit-breaker.ts"
+        ]
+      },
+      "intentionalBehaviorDifferences": [
+        {
+          "path": "src/gateway/models-http.ts",
+          "status": "intentionally_different",
+          "referenceBehavior": "OpenClaw grants default OpenAI-compatible operator scopes to shared-secret bearer requests.",
+          "coreBlowDecision": "CoreBlow requires an explicitly declared operator.read scope for shared-secret bearer model-list requests.",
+          "rationale": "Preserve least-privilege scope enforcement on the model discovery surface.",
+          "gate": "pnpm test -- src/gateway/models-http.test.ts"
+        }
+      ],
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/gateway",
         "pnpm check"
       ]
     },
