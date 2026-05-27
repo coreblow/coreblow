@@ -55,7 +55,11 @@ import { createSubsystemLogger, runtimeForLogger } from "../logging/subsystem.js
 import { resolveConfiguredDeferredChannelPluginIds } from "../plugins/channel-plugin-ids.js";
 import { getGlobalHookRunner, runGlobalGatewayStopSafely } from "../plugins/hook-runner-global.js";
 import { createEmptyPluginRegistry } from "../plugins/registry.js";
-import { setActivePluginRegistry } from "../plugins/runtime.js";
+import {
+  pinActivePluginChannelRegistry,
+  pinActivePluginHttpRouteRegistry,
+  setActivePluginRegistry,
+} from "../plugins/runtime.js";
 import { createPluginRuntime } from "../plugins/runtime/index.js";
 import type { PluginServicesHandle } from "../plugins/services.js";
 import { getTotalQueueSize } from "../process/command-queue.js";
@@ -84,7 +88,7 @@ import {
   type GatewayUpdateAvailableEventPayload,
 } from "./events.js";
 import { ExecApprovalManager } from "./exec-approval-manager.js";
-import { createAttachedGatewayMethodRegistrySnapshot } from "./methods/attached-registry.js";
+import { createAttachedGatewayMethodRegistryRuntime } from "./methods/attached-registry.js";
 import { startGatewayModelPricingRefresh } from "./model-pricing-cache.js";
 import { NodeRegistry } from "./node-registry.js";
 import { createChannelManager } from "./server-channels.js";
@@ -1197,17 +1201,15 @@ export async function startGatewayServer(
       },
     });
 
-    const extraGatewayHandlers: GatewayRequestHandlers = {
-      ...pluginRegistry.gatewayHandlers,
-      ...execApprovalHandlers,
-      ...pluginApprovalHandlers,
-      ...secretsHandlers,
-    };
     const channelMethods = listChannelPlugins().flatMap((plugin) => plugin.gatewayMethods ?? []);
-    const attachedGatewayMethodSnapshot = createAttachedGatewayMethodRegistrySnapshot({
+    const attachedGatewayMethodRuntime = createAttachedGatewayMethodRegistryRuntime({
       coreGatewayHandlers,
       pluginRegistry,
-      extraHandlers: extraGatewayHandlers,
+      extraHandlers: {
+        ...execApprovalHandlers,
+        ...pluginApprovalHandlers,
+        ...secretsHandlers,
+      },
       channelMethods,
     });
 
@@ -1310,13 +1312,13 @@ export async function startGatewayServer(
       resolvedAuth,
       rateLimiter: authRateLimiter,
       browserRateLimiter: browserAuthRateLimiter,
-      gatewayMethods: attachedGatewayMethodSnapshot.gatewayMethods,
+      gatewayMethods: attachedGatewayMethodRuntime.gatewayMethods,
       events: GATEWAY_EVENTS,
       logGateway: log,
       logHealth,
       logWsControl,
-      extraHandlers: extraGatewayHandlers,
-      getMethodRegistry: () => attachedGatewayMethodSnapshot.methodRegistry,
+      extraHandlers: attachedGatewayMethodRuntime.extraHandlers,
+      getMethodRegistry: attachedGatewayMethodRuntime.getMethodRegistry,
       broadcast,
       context: gatewayRequestContext,
     });
@@ -1359,14 +1361,20 @@ export async function startGatewayServer(
 
     if (!minimalTestGateway) {
       if (deferredConfiguredChannelPluginIds.length > 0) {
-        ({ pluginRegistry } = reloadDeferredGatewayPlugins({
+        const loaded = reloadDeferredGatewayPlugins({
           cfg: gatewayPluginConfigAtStart,
           workspaceDir: defaultWorkspaceDir,
           log,
           coreGatewayHandlers,
           baseMethods,
           logDiagnostics: false,
-        }));
+        });
+        pluginRegistry = loaded.pluginRegistry;
+        attachedGatewayMethodRuntime.replacePluginRegistry(pluginRegistry, {
+          channelMethods: listChannelPlugins().flatMap((plugin) => plugin.gatewayMethods ?? []),
+        });
+        pinActivePluginHttpRouteRegistry(pluginRegistry);
+        pinActivePluginChannelRegistry(pluginRegistry);
       }
       ({ pluginServices } = await startGatewaySidecars({
         cfg: gatewayPluginConfigAtStart,

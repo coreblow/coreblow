@@ -2,7 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 import { createEmptyPluginRegistry } from "../../plugins/registry-empty.js";
 import type { PluginRegistry } from "../../plugins/registry.js";
 import type { GatewayRequestHandler } from "../server-methods/types.js";
-import { createAttachedGatewayMethodRegistrySnapshot } from "./attached-registry.js";
+import {
+  createAttachedGatewayMethodRegistryRuntime,
+  createAttachedGatewayMethodRegistrySnapshot,
+} from "./attached-registry.js";
 
 const coreHandler: GatewayRequestHandler = ({ respond }) => respond(true, { source: "core" });
 const pluginHandler: GatewayRequestHandler = ({ respond }) =>
@@ -62,5 +65,50 @@ describe("attached gateway method registry snapshot", () => {
     expect(snapshot.gatewayMethods).toContain("config.patch");
     expect(snapshot.methodRegistry.getHandler("config.patch")).toBe(configPatchHandler);
     expect(snapshot.methodRegistry.isControlPlaneWrite("config.patch")).toBe(true);
+  });
+
+  it("replaces plugin handlers and advertised methods in-place during deferred reloads", () => {
+    const firstPluginHandler: GatewayRequestHandler = ({ respond }) =>
+      respond(true, { source: "first-plugin" });
+    const secondPluginHandler: GatewayRequestHandler = ({ respond }) =>
+      respond(true, { source: "second-plugin" });
+    const runtime = createAttachedGatewayMethodRegistryRuntime({
+      coreGatewayHandlers: {
+        health: coreHandler,
+      },
+      pluginRegistry: createPluginRegistry({
+        gatewayHandlers: {
+          "plugin.first": firstPluginHandler,
+        },
+      }),
+      extraHandlers: {
+        "aux.snapshot": auxHandler,
+      },
+      channelMethods: ["channel.first"],
+    });
+    const advertisedMethods = runtime.gatewayMethods;
+    const extraHandlers = runtime.extraHandlers;
+
+    runtime.replacePluginRegistry(
+      createPluginRegistry({
+        gatewayHandlers: {
+          "plugin.second": secondPluginHandler,
+        },
+      }),
+      { channelMethods: ["channel.second"] },
+    );
+
+    expect(runtime.gatewayMethods).toBe(advertisedMethods);
+    expect(runtime.extraHandlers).toBe(extraHandlers);
+    expect(runtime.gatewayMethods).toEqual(
+      expect.arrayContaining(["health", "plugin.second", "aux.snapshot", "channel.second"]),
+    );
+    expect(runtime.gatewayMethods).not.toContain("plugin.first");
+    expect(runtime.gatewayMethods).not.toContain("channel.first");
+    expect(runtime.extraHandlers["plugin.first"]).toBeUndefined();
+    expect(runtime.extraHandlers["plugin.second"]).toBe(secondPluginHandler);
+    expect(runtime.getMethodRegistry().getHandler("plugin.first")).toBeUndefined();
+    expect(runtime.getMethodRegistry().getHandler("plugin.second")).toBe(secondPluginHandler);
+    expect(runtime.getMethodRegistry().getHandler("aux.snapshot")).toBe(auxHandler);
   });
 });

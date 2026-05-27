@@ -15,6 +15,16 @@ export type AttachedGatewayMethodRegistrySnapshot = {
   gatewayMethods: string[];
 };
 
+export type AttachedGatewayMethodRegistryRuntime = {
+  extraHandlers: GatewayRequestHandlers;
+  gatewayMethods: string[];
+  getMethodRegistry: () => GatewayMethodRegistry;
+  replacePluginRegistry: (
+    pluginRegistry: PluginRegistry,
+    params?: { channelMethods?: readonly string[] },
+  ) => void;
+};
+
 export function createAttachedGatewayMethodRegistrySnapshot(params: {
   coreGatewayHandlers: GatewayRequestHandlers;
   pluginRegistry: PluginRegistry;
@@ -47,5 +57,53 @@ export function createAttachedGatewayMethodRegistrySnapshot(params: {
     gatewayMethods: Array.from(
       new Set([...methodRegistry.listAdvertisedMethods(), ...(params.channelMethods ?? [])]),
     ),
+  };
+}
+
+export function createAttachedGatewayMethodRegistryRuntime(params: {
+  coreGatewayHandlers: GatewayRequestHandlers;
+  pluginRegistry: PluginRegistry;
+  extraHandlers: GatewayRequestHandlers;
+  channelMethods?: readonly string[];
+}): AttachedGatewayMethodRegistryRuntime {
+  let pluginRegistry = params.pluginRegistry;
+  let channelMethods = params.channelMethods ?? [];
+  let pluginGatewayHandlerKeys = new Set(Object.keys(pluginRegistry.gatewayHandlers));
+  const extraHandlers: GatewayRequestHandlers = {
+    ...pluginRegistry.gatewayHandlers,
+    ...params.extraHandlers,
+  };
+  let snapshot = createAttachedGatewayMethodRegistrySnapshot({
+    coreGatewayHandlers: params.coreGatewayHandlers,
+    pluginRegistry,
+    extraHandlers,
+    channelMethods,
+  });
+  const gatewayMethods = [...snapshot.gatewayMethods];
+
+  const rebuildSnapshot = () => {
+    snapshot = createAttachedGatewayMethodRegistrySnapshot({
+      coreGatewayHandlers: params.coreGatewayHandlers,
+      pluginRegistry,
+      extraHandlers,
+      channelMethods,
+    });
+    gatewayMethods.splice(0, gatewayMethods.length, ...snapshot.gatewayMethods);
+  };
+
+  return {
+    extraHandlers,
+    gatewayMethods,
+    getMethodRegistry: () => snapshot.methodRegistry,
+    replacePluginRegistry(nextPluginRegistry, nextParams) {
+      for (const key of pluginGatewayHandlerKeys) {
+        delete extraHandlers[key];
+      }
+      pluginRegistry = nextPluginRegistry;
+      Object.assign(extraHandlers, pluginRegistry.gatewayHandlers);
+      pluginGatewayHandlerKeys = new Set(Object.keys(pluginRegistry.gatewayHandlers));
+      channelMethods = nextParams?.channelMethods ?? channelMethods;
+      rebuildSnapshot();
+    },
   };
 }
