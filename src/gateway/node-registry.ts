@@ -5,6 +5,8 @@ export type NodeSession = {
   nodeId: string;
   connId: string;
   client: GatewayWsClient;
+  clientId?: string;
+  clientMode?: string;
   displayName?: string;
   platform?: string;
   version?: string;
@@ -16,6 +18,9 @@ export type NodeSession = {
   caps: string[];
   commands: string[];
   permissions?: Record<string, boolean>;
+  declaredCaps?: string[];
+  declaredCommands?: string[];
+  declaredPermissions?: Record<string, boolean>;
   pathEnv?: string;
   connectedAtMs: number;
 };
@@ -51,6 +56,20 @@ export class NodeRegistry {
       typeof (connect as { permissions?: Record<string, boolean> }).permissions === "object"
         ? ((connect as { permissions?: Record<string, boolean> }).permissions ?? undefined)
         : undefined;
+    const declaredCaps = Array.isArray((connect as { declaredCaps?: string[] }).declaredCaps)
+      ? ((connect as { declaredCaps?: string[] }).declaredCaps ?? [])
+      : undefined;
+    const declaredCommands = Array.isArray(
+      (connect as { declaredCommands?: string[] }).declaredCommands,
+    )
+      ? ((connect as { declaredCommands?: string[] }).declaredCommands ?? [])
+      : undefined;
+    const declaredPermissions =
+      typeof (connect as { declaredPermissions?: Record<string, boolean> }).declaredPermissions ===
+      "object"
+        ? ((connect as { declaredPermissions?: Record<string, boolean> }).declaredPermissions ??
+          undefined)
+        : undefined;
     const pathEnv =
       typeof (connect as { pathEnv?: string }).pathEnv === "string"
         ? (connect as { pathEnv?: string }).pathEnv
@@ -59,6 +78,8 @@ export class NodeRegistry {
       nodeId,
       connId: client.connId,
       client,
+      clientId: connect.client.id,
+      clientMode: connect.client.mode,
       displayName: connect.client.displayName,
       platform: connect.client.platform,
       version: connect.client.version,
@@ -70,6 +91,9 @@ export class NodeRegistry {
       caps,
       commands,
       permissions,
+      declaredCaps,
+      declaredCommands,
+      declaredPermissions,
       pathEnv,
       connectedAtMs: Date.now(),
     };

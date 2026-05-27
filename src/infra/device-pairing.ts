@@ -73,6 +73,8 @@ export type PairedDevice = {
   tokens?: Record<string, DeviceAuthToken>;
   createdAtMs: number;
   approvedAtMs: number;
+  lastSeenAtMs?: number;
+  lastSeenReason?: string;
 };
 
 export type DevicePairingList = {
