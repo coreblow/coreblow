@@ -16,7 +16,11 @@ import {
   updatePairedDeviceMetadata,
   verifyDeviceToken,
 } from "../../../infra/device-pairing.js";
-import { getPairedNode, updatePairedNodeMetadata } from "../../../infra/node-pairing.js";
+import {
+  getPairedNode,
+  requestNodePairing,
+  updatePairedNodeMetadata,
+} from "../../../infra/node-pairing.js";
 import { recordRemoteNodeInfo, refreshRemoteNodeBins } from "../../../infra/skills-remote.js";
 import { upsertPresence } from "../../../infra/system-presence.js";
 import { loadVoiceWakeConfig } from "../../../infra/voicewake.js";
@@ -46,7 +50,7 @@ import {
   resolveClientIp,
 } from "../../net.js";
 import type { GatewayMethodRegistry } from "../../methods/registry.js";
-import { resolveNodeCommandAllowlist } from "../../node-command-policy.js";
+import { reconcileNodePairingOnConnect } from "../../node-connect-reconcile.js";
 import { checkBrowserOrigin } from "../../origin-check.js";
 import {
   ConnectErrorDetailCodes,
@@ -968,24 +972,33 @@ export function attachGatewayWsMessageHandler(params: {
           : null;
 
         if (role === "node") {
-          const cfg = loadConfig();
-          const nodeId = connectParams.device?.id ?? connectParams.client.id;
-          const pairedNode = await getPairedNode(nodeId);
-          const allowlist = resolveNodeCommandAllowlist(cfg, {
-            platform: connectParams.client.platform,
-            deviceFamily: connectParams.client.deviceFamily,
+          const reconciliation = await reconcileNodePairingOnConnect({
+            cfg: loadConfig(),
+            connectParams,
+            pairedNode: await getPairedNode(
+              connectParams.device?.id ?? connectParams.client.id,
+            ),
+            reportedClientIp,
+            requestPairing: async (input) => await requestNodePairing(input),
           });
-          const declared = Array.isArray(connectParams.commands) ? connectParams.commands : [];
-          const pairedCommands = pairedNode ? new Set(pairedNode.commands ?? []) : null;
-          const filtered = declared
-            .map((cmd) => cmd.trim())
-            .filter(
-              (cmd) =>
-                cmd.length > 0 &&
-                allowlist.has(cmd) &&
-                (pairedCommands === null || pairedCommands.has(cmd)),
+          if (reconciliation.pendingPairing?.created) {
+            buildRequestContext().broadcast(
+              "node.pair.requested",
+              reconciliation.pendingPairing.request,
+              { dropIfSlow: true },
             );
-          connectParams.commands = filtered;
+          }
+          const nodeConnectParams = connectParams as ConnectParams & {
+            declaredCaps?: string[];
+            declaredCommands?: string[];
+            declaredPermissions?: Record<string, boolean>;
+          };
+          nodeConnectParams.declaredCaps = reconciliation.declaredCaps;
+          nodeConnectParams.declaredCommands = reconciliation.declaredCommands;
+          nodeConnectParams.declaredPermissions = reconciliation.declaredPermissions;
+          connectParams.caps = reconciliation.effectiveCaps;
+          connectParams.commands = reconciliation.effectiveCommands;
+          connectParams.permissions = reconciliation.effectivePermissions;
         }
 
         const shouldTrackPresence = !isGatewayCliClient(connectParams.client);

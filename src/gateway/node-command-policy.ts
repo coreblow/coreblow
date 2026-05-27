@@ -241,6 +241,31 @@ export function resolveNodeCommandAllowlist(
   return allow;
 }
 
+export function normalizeDeclaredNodeCommands(params: {
+  declaredCommands?: readonly string[];
+  allowlist: Set<string>;
+}): string[] {
+  const commands: string[] = [];
+  const seen = new Set<string>();
+  for (const command of params.declaredCommands ?? []) {
+    const normalized = command.trim();
+    if (!normalized || seen.has(normalized) || !params.allowlist.has(normalized)) {
+      continue;
+    }
+    seen.add(normalized);
+    commands.push(normalized);
+  }
+  return commands;
+}
+
+export function resolveNodePairingCommandAllowlist(
+  cfg: CoreBlowConfig,
+  node?: Pick<NodeSession, "platform" | "deviceFamily">,
+): Set<string> {
+  // Pairing captures the same approved command policy used by CoreBlow node execution.
+  return resolveNodeCommandAllowlist(cfg, node);
+}
+
 export function isNodeCommandAllowed(params: {
   command: string;
   declaredCommands?: string[];
