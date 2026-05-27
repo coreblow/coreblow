@@ -20,6 +20,7 @@ export type SkillInstallRequest = {
   workspaceDir: string;
   skillName: string;
   installId: string;
+  dangerouslyForceUnsafeInstall?: boolean;
   timeoutMs?: number;
   config?: CoreBlowConfig;
 };
