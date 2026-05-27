@@ -1,5 +1,12 @@
 import { type ChannelId, listChannelPlugins } from "../channels/plugins/index.js";
-import { getActivePluginRegistry } from "../plugins/runtime.js";
+import {
+  getActivePluginChannelRegistry,
+  getActivePluginChannelRegistryVersion,
+} from "../plugins/runtime.js";
+import {
+  listChannelPluginConfigTargetIds,
+  pluginConfigTargetsChanged,
+} from "./plugin-channel-reload-targets.js";
 
 export type ChannelKind = ChannelId;
 
@@ -102,13 +109,13 @@ const BASE_RELOAD_RULES_TAIL: ReloadRule[] = [
 ];
 
 let cachedReloadRules: ReloadRule[] | null = null;
-let cachedRegistry: ReturnType<typeof getActivePluginRegistry> | null = null;
+let cachedChannelRegistryVersion = -1;
 
 function listReloadRules(): ReloadRule[] {
-  const registry = getActivePluginRegistry();
-  if (registry !== cachedRegistry) {
+  const registryVersion = getActivePluginChannelRegistryVersion();
+  if (registryVersion !== cachedChannelRegistryVersion) {
     cachedReloadRules = null;
-    cachedRegistry = registry;
+    cachedChannelRegistryVersion = registryVersion;
   }
   if (cachedReloadRules) {
     return cachedReloadRules;
@@ -132,6 +139,29 @@ function listReloadRules(): ReloadRule[] {
   const rules = [...BASE_RELOAD_RULES, ...channelReloadRules, ...BASE_RELOAD_RULES_TAIL];
   cachedReloadRules = rules;
   return rules;
+}
+
+function matchChannelPluginEntryChange(path: string): ReloadRule | null {
+  if (path !== "plugins.entries" && !path.startsWith("plugins.entries.")) {
+    return null;
+  }
+  const channelRegistry = getActivePluginChannelRegistry();
+  for (const plugin of listChannelPlugins()) {
+    const owner = channelRegistry?.channels.find((entry) => entry.plugin.id === plugin.id);
+    const targetIds = listChannelPluginConfigTargetIds({
+      channelId: plugin.id,
+      pluginId: owner?.pluginId,
+      aliases: plugin.meta.aliases,
+    });
+    if (pluginConfigTargetsChanged(targetIds, [path])) {
+      return {
+        prefix: path,
+        kind: "hot",
+        actions: [`restart-channel:${plugin.id}` as ReloadAction],
+      };
+    }
+  }
+  return null;
 }
 
 function matchRule(path: string): ReloadRule | null {
@@ -186,7 +216,7 @@ export function buildGatewayReloadPlan(changedPaths: string[]): GatewayReloadPla
   };
 
   for (const path of changedPaths) {
-    const rule = matchRule(path);
+    const rule = matchChannelPluginEntryChange(path) ?? matchRule(path);
     if (!rule) {
       plan.restartGateway = true;
       plan.restartReasons.push(path);

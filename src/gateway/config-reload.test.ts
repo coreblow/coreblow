@@ -105,9 +105,26 @@ describe("buildGatewayReloadPlan", () => {
     },
     reload: { configPrefixes: ["web"], noopPrefixes: ["channels.whatsapp"] },
   };
+  const matrixPlugin: ChannelPlugin = {
+    id: "matrix",
+    meta: {
+      id: "matrix",
+      label: "Matrix",
+      selectionLabel: "Matrix",
+      docsPath: "/channels/matrix",
+      blurb: "test",
+      aliases: ["matrix-chat"],
+    },
+    capabilities: { chatTypes: ["direct"] },
+    config: {
+      listAccountIds: () => [],
+      resolveAccount: () => ({}),
+    },
+  };
   const registry = createTestRegistry([
     { pluginId: "telegram", plugin: telegramPlugin, source: "test" },
     { pluginId: "whatsapp", plugin: whatsappPlugin, source: "test" },
+    { pluginId: "acme-chat", plugin: matrixPlugin, source: "test" },
   ]);
 
   beforeEach(() => {
@@ -153,6 +170,21 @@ describe("buildGatewayReloadPlan", () => {
     );
     expect(expected.size).toBeGreaterThan(0);
     expect(plan.restartChannels).toEqual(expected);
+  });
+
+  it("restarts a channel when its owning plugin entry config changes", () => {
+    const plan = buildGatewayReloadPlan(["plugins.entries.acme-chat.config.mode"]);
+
+    expect(plan.restartGateway).toBe(false);
+    expect(plan.hotReasons).toEqual(["plugins.entries.acme-chat.config.mode"]);
+    expect(plan.restartChannels).toEqual(new Set(["matrix"]));
+  });
+
+  it("keeps installed plugin source changes restart-backed", () => {
+    const plan = buildGatewayReloadPlan(["plugins.installs.acme-chat.source"]);
+
+    expect(plan.restartGateway).toBe(true);
+    expect(plan.restartChannels).toEqual(new Set());
   });
 
   it("restarts heartbeat when model-related config changes", () => {
