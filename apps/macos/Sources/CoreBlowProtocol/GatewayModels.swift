@@ -2,6 +2,7 @@
 // swiftlint:disable file_length
 import Foundation
 
+public let GATEWAY_MIN_PROTOCOL_VERSION = 3
 public let GATEWAY_PROTOCOL_VERSION = 3
 
 public enum ErrorCode: String, Codable, Sendable {

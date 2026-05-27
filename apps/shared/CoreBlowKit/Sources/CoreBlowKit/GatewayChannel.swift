@@ -301,7 +301,7 @@ public actor GatewayChannelActor {
         }
 
         var params: [String: FlexValue] = [
-            "minProtocol": .int(COREBLOW_PROTOCOL_VERSION),
+            "minProtocol": .int(COREBLOW_MIN_PROTOCOL_VERSION),
             "maxProtocol": .int(COREBLOW_PROTOCOL_VERSION),
             "client": .object(clientDict),
             "caps": .array(options.caps.map { .string($0) }),

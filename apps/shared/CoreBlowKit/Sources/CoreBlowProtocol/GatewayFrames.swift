@@ -7,6 +7,7 @@
 import Foundation
 
 /// Current protocol version negotiated between client and gateway.
+public let COREBLOW_MIN_PROTOCOL_VERSION: Int = 3
 public let COREBLOW_PROTOCOL_VERSION: Int = 3
 
 // MARK: - Frame Type Discriminator

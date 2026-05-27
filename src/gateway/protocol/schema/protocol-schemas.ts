@@ -1,4 +1,9 @@
 import type { TSchema } from "typebox";
+export {
+  MIN_CLIENT_PROTOCOL_VERSION,
+  MIN_PROBE_PROTOCOL_VERSION,
+  PROTOCOL_VERSION,
+} from "../version.js";
 import {
   AgentEventSchema,
   AgentIdentityParamsSchema,
@@ -325,5 +330,3 @@ export const ProtocolSchemas = {
   TickEvent: TickEventSchema,
   ShutdownEvent: ShutdownEventSchema,
 } satisfies Record<string, TSchema>;
-
-export const PROTOCOL_VERSION = 3 as const;
