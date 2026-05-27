@@ -68,6 +68,12 @@ export type AuthorizeGatewayConnectParams = {
   connectAuth?: ConnectAuth | null;
   req?: IncomingMessage;
   trustedProxies?: string[];
+  browserOriginPolicy?: {
+    requestHost?: string;
+    origin?: string;
+    allowedOrigins?: string[];
+    allowHostHeaderOriginFallback?: boolean;
+  };
   tailscaleWhois?: TailscaleWhoisLookup;
   /**
    * Explicit auth surface. HTTP keeps Tailscale forwarded-header auth disabled.
