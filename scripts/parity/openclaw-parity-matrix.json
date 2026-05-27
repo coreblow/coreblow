@@ -12,10 +12,10 @@
     "source_parity_both": 4461,
     "source_cb_exclusive": 1773,
     "source_missing_from_cb": 3982,
-    "test_files_cb": 3979,
+    "test_files_cb": 3980,
     "test_files_oc": 5246,
-    "tests_both_covered": 2636,
-    "tests_gap_oc_has_cb_missing": 2365,
+    "tests_both_covered": 2637,
+    "tests_gap_oc_has_cb_missing": 2364,
     "tests_cb_exclusive": 1296,
     "export_files_with_gaps": 74,
     "test_scenario_files_with_gaps": 37
@@ -465,9 +465,9 @@
         "sharedSourcePaths": 288,
         "coreBlowOnlySourcePaths": 64,
         "openClawOnlySourcePaths": 103,
-        "sharedTestPaths": 193,
+        "sharedTestPaths": 194,
         "coreBlowOnlyTestPaths": 123,
-        "openClawTestGaps": 114
+        "openClawTestGaps": 113
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -487,7 +487,6 @@
         "openClawTestGapPaths": [
           "src/gateway/exec-approval-ios-push.test.ts",
           "src/gateway/exec-approval-manager.test.ts",
-          "src/gateway/gateway-cli-backend.connect.test.ts",
           "src/gateway/operator-approvals-client.test.ts",
           "src/gateway/plugin-channel-reload-targets.test.ts",
           "src/gateway/protocol/channels.schema.test.ts",
@@ -496,7 +495,8 @@
           "src/gateway/protocol/schema/agent.test.ts",
           "src/gateway/restart-trace.test.ts",
           "src/gateway/server/event-loop-health.test.ts",
-          "src/gateway/server/health-state.test.ts"
+          "src/gateway/server/health-state.test.ts",
+          "src/gateway/server/hooks.agent-trust.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/gateway/api-docs.ts",
