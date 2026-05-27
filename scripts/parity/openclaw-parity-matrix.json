@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6239,
+    "cb_source_files": 6240,
     "oc_source_files": 8443,
-    "source_parity_both": 4466,
+    "source_parity_both": 4467,
     "source_cb_exclusive": 1773,
-    "source_missing_from_cb": 3977,
-    "test_files_cb": 3988,
+    "source_missing_from_cb": 3976,
+    "test_files_cb": 3989,
     "test_files_oc": 5246,
     "tests_both_covered": 2645,
     "tests_gap_oc_has_cb_missing": 2356,
-    "tests_cb_exclusive": 1296,
+    "tests_cb_exclusive": 1297,
     "export_files_with_gaps": 74,
     "test_scenario_files_with_gaps": 37
   },
@@ -824,18 +824,17 @@
       "priority": "P1",
       "implementationSurface": "src/cli program and command wiring",
       "counts": {
-        "sharedSourcePaths": 179,
+        "sharedSourcePaths": 180,
         "coreBlowOnlySourcePaths": 62,
-        "openClawOnlySourcePaths": 76,
+        "openClawOnlySourcePaths": 75,
         "sharedTestPaths": 112,
-        "coreBlowOnlyTestPaths": 50,
+        "coreBlowOnlyTestPaths": 51,
         "openClawTestGaps": 52
       },
       "samples": {
         "openClawOnlySourcePaths": [
           "src/cli/argv-invocation.ts",
           "src/cli/capability-cli.ts",
-          "src/cli/clawbot-cli.ts",
           "src/cli/command-bootstrap.ts",
           "src/cli/command-catalog.ts",
           "src/cli/command-config-resolution.runtime.ts",
@@ -844,7 +843,8 @@
           "src/cli/command-path-matches.ts",
           "src/cli/command-path-policy.ts",
           "src/cli/command-registration-policy.ts",
-          "src/cli/command-startup-policy.ts"
+          "src/cli/command-startup-policy.ts",
+          "src/cli/completion-runtime.ts"
         ],
         "openClawTestGapPaths": [
           "src/cli/argv-invocation.test.ts",
