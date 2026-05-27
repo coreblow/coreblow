@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6242,
+    "cb_source_files": 6244,
     "oc_source_files": 8443,
-    "source_parity_both": 4469,
+    "source_parity_both": 4471,
     "source_cb_exclusive": 1773,
-    "source_missing_from_cb": 3974,
-    "test_files_cb": 3990,
+    "source_missing_from_cb": 3972,
+    "test_files_cb": 3992,
     "test_files_oc": 5246,
     "tests_both_covered": 2645,
     "tests_gap_oc_has_cb_missing": 2356,
-    "tests_cb_exclusive": 1298,
+    "tests_cb_exclusive": 1300,
     "export_files_with_gaps": 74,
     "test_scenario_files_with_gaps": 37
   },
@@ -462,18 +462,16 @@
       "priority": "P0",
       "implementationSurface": "src/gateway GatewayServer and ServiceRegistry",
       "counts": {
-        "sharedSourcePaths": 293,
+        "sharedSourcePaths": 295,
         "coreBlowOnlySourcePaths": 64,
-        "openClawOnlySourcePaths": 98,
+        "openClawOnlySourcePaths": 96,
         "sharedTestPaths": 200,
-        "coreBlowOnlyTestPaths": 125,
+        "coreBlowOnlyTestPaths": 127,
         "openClawTestGaps": 107
       },
       "samples": {
         "openClawOnlySourcePaths": [
           "src/gateway/exec-approval-ios-push.ts",
-          "src/gateway/operator-approval-runtime-token.ts",
-          "src/gateway/operator-scopes.ts",
           "src/gateway/plugin-activation-runtime-config.ts",
           "src/gateway/protocol/schema/artifacts.ts",
           "src/gateway/protocol/schema/commands.ts",
@@ -482,7 +480,9 @@
           "src/gateway/protocol/schema/tasks.ts",
           "src/gateway/protocol/startup-unavailable.ts",
           "src/gateway/rate-limit-attempt-serialization.ts",
-          "src/gateway/restart-trace.ts"
+          "src/gateway/restart-trace.ts",
+          "src/gateway/server/event-loop-health.ts",
+          "src/gateway/server/hook-client-ip-config.ts"
         ],
         "openClawTestGapPaths": [
           "src/gateway/exec-approval-ios-push.test.ts",

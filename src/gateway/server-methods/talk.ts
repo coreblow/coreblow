@@ -13,11 +13,9 @@ import {
   validateTalkModeParams,
   validateTalkSpeakParams,
 } from "../protocol/index.js";
+import { ADMIN_SCOPE, TALK_SECRETS_SCOPE } from "../operator-scopes.js";
 import { formatForLog } from "../ws-log.js";
 import type { GatewayRequestHandlers } from "./types.js";
-
-const ADMIN_SCOPE = "operator.admin";
-const TALK_SECRETS_SCOPE = "operator.talk.secrets";
 
 function canReadTalkSecrets(client: { connect?: { scopes?: string[] } } | null): boolean {
   const scopes = Array.isArray(client?.connect?.scopes) ? client.connect.scopes : [];
