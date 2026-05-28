@@ -10,6 +10,7 @@ const modules = [
   { name: "gateway/server-aux-handlers",      path: "../server-aux-handlers.js" },
   { name: "gateway/server-aux-methods",       path: "../server-aux-methods.js" },
   { name: "gateway/server-broadcast-types",   path: "../server-broadcast-types.js" },
+  { name: "gateway/server-channel-runtime.types", path: "../server-channel-runtime.types.js" },
   { name: "server/tls",                     path: "./tls.js" },
   { name: "server/ws-connection",           path: "./ws-connection.js" },
   { name: "server/ws-shared-generation",    path: "./ws-shared-generation.js" },
