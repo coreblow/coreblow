@@ -21,6 +21,7 @@ type UpsertChannelPairingRequestForAccount = (
 ) => ReturnType<UpsertChannelPairingRequest>;
 
 export type PluginRuntimeChannel = {
+  runtimeContexts: import("../../channels/plugins/channel-runtime-surface.types.js").ChannelRuntimeContextRegistry;
   text: {
     chunkByNewline: typeof import("../../auto-reply/chunk.js").chunkByNewline;
     chunkMarkdownText: typeof import("../../auto-reply/chunk.js").chunkMarkdownText;

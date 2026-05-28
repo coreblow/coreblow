@@ -133,6 +133,11 @@ export function createPluginRuntimeMock(overrides: DeepPartial<PluginRuntime> = 
       transcribeAudioFile: vi.fn() as unknown as PluginRuntime["stt"]["transcribeAudioFile"],
     },
     channel: {
+      runtimeContexts: {
+        register: vi.fn(() => ({ dispose: vi.fn() })),
+        get: vi.fn(() => undefined),
+        watch: vi.fn(() => vi.fn()),
+      } as unknown as PluginRuntime["channel"]["runtimeContexts"],
       text: {
         chunkByNewline: vi.fn((text: string) => (text ? [text] : [])),
         chunkMarkdownText: vi.fn((text: string) => [text]),

@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6265,
+    "cb_source_files": 6269,
     "oc_source_files": 8443,
-    "source_parity_both": 4491,
+    "source_parity_both": 4495,
     "source_cb_exclusive": 1774,
-    "source_missing_from_cb": 3952,
-    "test_files_cb": 4015,
+    "source_missing_from_cb": 3948,
+    "test_files_cb": 4016,
     "test_files_oc": 5246,
-    "tests_both_covered": 2661,
-    "tests_gap_oc_has_cb_missing": 2340,
+    "tests_both_covered": 2662,
+    "tests_gap_oc_has_cb_missing": 2339,
     "tests_cb_exclusive": 1307,
     "export_files_with_gaps": 74,
     "test_scenario_files_with_gaps": 37
@@ -97,9 +97,9 @@
       "priority": "P0",
       "implementationSurface": "src/plugins PluginLoader, PluginRegistry, HookRunner",
       "counts": {
-        "sharedSourcePaths": 124,
+        "sharedSourcePaths": 125,
         "coreBlowOnlySourcePaths": 74,
-        "openClawOnlySourcePaths": 210,
+        "openClawOnlySourcePaths": 209,
         "sharedTestPaths": 77,
         "coreBlowOnlyTestPaths": 51,
         "openClawTestGaps": 139
@@ -349,9 +349,9 @@
       "priority": "P0",
       "implementationSurface": "src/infra",
       "counts": {
-        "sharedSourcePaths": 248,
+        "sharedSourcePaths": 250,
         "coreBlowOnlySourcePaths": 75,
-        "openClawOnlySourcePaths": 131,
+        "openClawOnlySourcePaths": 129,
         "sharedTestPaths": 253,
         "coreBlowOnlyTestPaths": 61,
         "openClawTestGaps": 92
@@ -362,14 +362,14 @@
           "src/infra/approval-errors.ts",
           "src/infra/approval-gateway-resolver.ts",
           "src/infra/approval-handler-adapter-runtime.ts",
-          "src/infra/approval-handler-bootstrap.ts",
           "src/infra/approval-handler-runtime-types.ts",
           "src/infra/approval-handler-runtime.ts",
           "src/infra/approval-handler.test-helpers.ts",
           "src/infra/approval-native-delivery.ts",
           "src/infra/approval-native-route-coordinator.ts",
           "src/infra/approval-native-route-notice.ts",
-          "src/infra/approval-native-runtime-types.ts"
+          "src/infra/approval-native-runtime-types.ts",
+          "src/infra/approval-native-runtime.ts"
         ],
         "openClawTestGapPaths": [
           "src/infra/approval-display-paths.test.ts",
@@ -578,9 +578,9 @@
         "sharedSourcePaths": 315,
         "coreBlowOnlySourcePaths": 65,
         "openClawOnlySourcePaths": 76,
-        "sharedTestPaths": 216,
+        "sharedTestPaths": 217,
         "coreBlowOnlyTestPaths": 134,
-        "openClawTestGaps": 91
+        "openClawTestGaps": 90
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -601,7 +601,6 @@
           "src/gateway/exec-approval-ios-push.test.ts",
           "src/gateway/exec-approval-manager.test.ts",
           "src/gateway/operator-approvals-client.test.ts",
-          "src/gateway/server-channels.approval-bootstrap.test.ts",
           "src/gateway/server-cron-lazy.test.ts",
           "src/gateway/server-discovery-runtime.test.ts",
           "src/gateway/server-http.request-trace.test.ts",
@@ -609,7 +608,8 @@
           "src/gateway/server-lanes.test.ts",
           "src/gateway/server-methods/approval-shared.test.ts",
           "src/gateway/server-methods/artifacts.test.ts",
-          "src/gateway/server-methods/channels.start.test.ts"
+          "src/gateway/server-methods/channels.start.test.ts",
+          "src/gateway/server-methods/chat-reply-media.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/gateway/api-docs.ts",
@@ -711,9 +711,9 @@
       "priority": "P1",
       "implementationSurface": "src/channels, src/routing, extensions channel adapters",
       "counts": {
-        "sharedSourcePaths": 107,
+        "sharedSourcePaths": 108,
         "coreBlowOnlySourcePaths": 119,
-        "openClawOnlySourcePaths": 104,
+        "openClawOnlySourcePaths": 103,
         "sharedTestPaths": 56,
         "coreBlowOnlyTestPaths": 13,
         "openClawTestGaps": 47

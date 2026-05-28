@@ -511,6 +511,17 @@ export type ChannelExecApprovalAdapter = {
   }) => ReplyPayload | null;
 };
 
+export type ChannelApprovalCapability = {
+  delivery?: unknown;
+  nativeRuntime?: unknown;
+  render?: unknown;
+  native?: unknown;
+  describeExecApprovalSetup?: unknown;
+  authorizeActorAction?: unknown;
+  getActionAvailabilityState?: unknown;
+  resolveApproveCommandBehavior?: unknown;
+};
+
 export type ChannelAllowlistAdapter = {
   applyConfigEdit?: (params: {
     cfg: CoreBlowConfig;

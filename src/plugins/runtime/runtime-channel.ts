@@ -76,6 +76,7 @@ import {
   resolveLineAccount,
 } from "../../plugin-sdk/line.js";
 import { buildAgentSessionKey, resolveAgentRoute } from "../../routing/resolve-route.js";
+import { createChannelRuntimeContextRegistry } from "./channel-runtime-contexts.js";
 import { defineCachedValue } from "./runtime-cache.js";
 import { createRuntimeDiscord } from "./runtime-discord.js";
 import { createRuntimeIMessage } from "./runtime-imessage.js";
@@ -185,6 +186,7 @@ export function createRuntimeChannel(): PluginRuntime["channel"] {
       buildTemplateMessageFromPayload,
       monitorLineProvider,
     },
+    runtimeContexts: createChannelRuntimeContextRegistry(),
   } satisfies Omit<
     PluginRuntime["channel"],
     "discord" | "slack" | "telegram" | "matrix" | "signal" | "imessage" | "whatsapp"

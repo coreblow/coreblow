@@ -2,7 +2,9 @@ import { resolveChannelDefaultAccountId } from "../channels/plugins/helpers.js";
 import { type ChannelId, getChannelPlugin, listChannelPlugins } from "../channels/plugins/index.js";
 import type { ChannelAccountSnapshot } from "../channels/plugins/types.js";
 import type { CoreBlowConfig } from "../config/config.js";
+import { startChannelApprovalHandlerBootstrap } from "../infra/approval-handler-bootstrap.js";
 import { type BackoffPolicy, computeBackoff, sleepWithAbort } from "../infra/backoff.js";
+import { createTaskScopedChannelRuntime } from "../infra/channel-runtime-context.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import { resetDirectoryCache } from "../infra/outbound/target-resolver.js";
 import type { createSubsystemLogger } from "../logging/subsystem.js";
@@ -275,6 +277,20 @@ export function createChannelManager(opts: ChannelManagerOptions): ChannelManage
         const abort = new AbortController();
         store.aborts.set(id, abort);
         let handedOffTask = false;
+        let scopedChannelRuntime: ReturnType<typeof createTaskScopedChannelRuntime> | undefined;
+        let stopApprovalBootstrap: (() => Promise<void> | void) | undefined;
+        const cleanupApprovalRuntime = async (label: string) => {
+          const stop = stopApprovalBootstrap;
+          stopApprovalBootstrap = undefined;
+          try {
+            await stop?.();
+          } catch (err) {
+            channelLogs[channelId].warn?.(`[${id}] ${label}: ${formatErrorMessage(err)}`);
+          } finally {
+            scopedChannelRuntime?.dispose();
+            scopedChannelRuntime = undefined;
+          }
+        };
 
         try {
           const account = plugin.config.resolveAccount(cfg, id);
@@ -340,6 +356,23 @@ export function createChannelManager(opts: ChannelManagerOptions): ChannelManage
 
           const log = channelLogs[channelId];
           const resolvedChannelRuntime = getChannelRuntime();
+          scopedChannelRuntime = createTaskScopedChannelRuntime({
+            channelRuntime: resolvedChannelRuntime,
+          });
+          const channelRuntimeForTask = scopedChannelRuntime.channelRuntime as
+            | PluginRuntime["channel"]
+            | undefined;
+          try {
+            stopApprovalBootstrap = await startChannelApprovalHandlerBootstrap({
+              plugin,
+              cfg,
+              accountId: id,
+              channelRuntime: channelRuntimeForTask,
+              logger: log,
+            });
+          } catch (err) {
+            log.error?.(`[${id}] native approval bootstrap failed: ${formatErrorMessage(err)}`);
+          }
           const task = startAccount({
             cfg,
             accountId: id,
@@ -349,7 +382,7 @@ export function createChannelManager(opts: ChannelManagerOptions): ChannelManage
             log,
             getStatus: () => getRuntime(channelId, id),
             setStatus: (next) => setRuntime(channelId, id, next),
-            ...(resolvedChannelRuntime ? { channelRuntime: resolvedChannelRuntime } : {}),
+            ...(channelRuntimeForTask ? { channelRuntime: channelRuntimeForTask } : {}),
           });
           const trackedPromise = Promise.resolve(task)
             .catch((err) => {
@@ -357,7 +390,8 @@ export function createChannelManager(opts: ChannelManagerOptions): ChannelManage
               setRuntime(channelId, id, { accountId: id, lastError: message });
               log.error?.(`[${id}] channel exited: ${message}`);
             })
-            .finally(() => {
+            .finally(async () => {
+              await cleanupApprovalRuntime("channel cleanup failed");
               setRuntime(channelId, id, {
                 accountId: id,
                 running: false,
@@ -421,6 +455,9 @@ export function createChannelManager(opts: ChannelManagerOptions): ChannelManage
           resolveStart?.();
           if (store.starting.get(id) === startGate) {
             store.starting.delete(id);
+          }
+          if (!handedOffTask) {
+            await cleanupApprovalRuntime("channel startup cleanup failed");
           }
           if (!handedOffTask && store.aborts.get(id) === abort) {
             store.aborts.delete(id);
