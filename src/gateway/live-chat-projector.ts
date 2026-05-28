@@ -45,6 +45,9 @@ export function resolveMergedAssistantText(params: {
   nextDelta: string;
 }): string {
   const { previousText, nextText, nextDelta } = params;
+  if (nextDelta && nextText === nextDelta) {
+    return capLiveAssistantBuffer(previousText + nextDelta);
+  }
   if (nextText && previousText) {
     if (nextText.startsWith(previousText)) {
       return capLiveAssistantBuffer(nextText);

@@ -12,10 +12,10 @@
     "source_parity_both": 4491,
     "source_cb_exclusive": 1774,
     "source_missing_from_cb": 3952,
-    "test_files_cb": 4014,
+    "test_files_cb": 4015,
     "test_files_oc": 5246,
-    "tests_both_covered": 2660,
-    "tests_gap_oc_has_cb_missing": 2341,
+    "tests_both_covered": 2661,
+    "tests_gap_oc_has_cb_missing": 2340,
     "tests_cb_exclusive": 1307,
     "export_files_with_gaps": 74,
     "test_scenario_files_with_gaps": 37
@@ -578,9 +578,9 @@
         "sharedSourcePaths": 315,
         "coreBlowOnlySourcePaths": 65,
         "openClawOnlySourcePaths": 76,
-        "sharedTestPaths": 215,
+        "sharedTestPaths": 216,
         "coreBlowOnlyTestPaths": 134,
-        "openClawTestGaps": 92
+        "openClawTestGaps": 91
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -602,14 +602,14 @@
           "src/gateway/exec-approval-manager.test.ts",
           "src/gateway/operator-approvals-client.test.ts",
           "src/gateway/server-channels.approval-bootstrap.test.ts",
-          "src/gateway/server-chat.stream-text-merge.test.ts",
           "src/gateway/server-cron-lazy.test.ts",
           "src/gateway/server-discovery-runtime.test.ts",
           "src/gateway/server-http.request-trace.test.ts",
           "src/gateway/server-http.stages.test.ts",
           "src/gateway/server-lanes.test.ts",
           "src/gateway/server-methods/approval-shared.test.ts",
-          "src/gateway/server-methods/artifacts.test.ts"
+          "src/gateway/server-methods/artifacts.test.ts",
+          "src/gateway/server-methods/channels.start.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/gateway/api-docs.ts",
