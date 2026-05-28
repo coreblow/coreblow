@@ -13,6 +13,21 @@ import {
 
 const CONTROL_PLANE_WRITE_METHODS = new Set(["config.apply", "config.patch", "update.run"]);
 
+export const STARTUP_UNAVAILABLE_GATEWAY_METHODS = [
+  "models.list",
+  "tools.effective",
+  "sessions.list",
+  "sessions.create",
+  "sessions.send",
+  "sessions.abort",
+  "agent.wait",
+  "chat.history",
+] as const;
+
+const STARTUP_UNAVAILABLE_GATEWAY_METHOD_SET = new Set<string>(
+  STARTUP_UNAVAILABLE_GATEWAY_METHODS,
+);
+
 export function isCoreGatewayMethodClassified(method: string): boolean {
   return isGatewayMethodClassified(method);
 }
@@ -41,6 +56,9 @@ export function createCoreGatewayMethodDescriptors(
       handler,
       owner: { kind: "core", area: params?.area ?? "gateway" },
       scope,
+      ...(STARTUP_UNAVAILABLE_GATEWAY_METHOD_SET.has(name)
+        ? { startup: "unavailable-until-sidecars" as const }
+        : {}),
       ...(CONTROL_PLANE_WRITE_METHODS.has(name) ? { controlPlaneWrite: true } : {}),
     };
   });

@@ -104,6 +104,7 @@ export type GatewayRequestContext = {
     prompter: import("../../wizard/prompts.js").WizardPrompter,
   ) => Promise<void>;
   broadcastVoiceWakeChanged: (triggers: string[]) => void;
+  unavailableGatewayMethods?: ReadonlySet<string>;
 };
 
 export type GatewayRequestOptions = {

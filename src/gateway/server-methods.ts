@@ -12,6 +12,10 @@ import {
   type GatewayMethodRegistry,
 } from "./methods/registry.js";
 import { ErrorCodes, errorShape } from "./protocol/index.js";
+import {
+  gatewayStartupUnavailableDetails,
+  GATEWAY_STARTUP_RETRY_AFTER_MS,
+} from "./protocol/startup-unavailable.js";
 import { isRoleAuthorizedForMethod, parseGatewayRole } from "./role-policy.js";
 import { agentHandlers } from "./server-methods/agent.js";
 import { agentsHandlers } from "./server-methods/agents.js";
@@ -155,6 +159,18 @@ export async function handleGatewayRequest(
   const authError = authorizeGatewayMethod(req.method, client);
   if (authError) {
     respond(false, undefined, authError);
+    return;
+  }
+  if (context.unavailableGatewayMethods?.has(req.method)) {
+    respond(
+      false,
+      undefined,
+      errorShape(ErrorCodes.UNAVAILABLE, `${req.method} unavailable during gateway startup`, {
+        retryable: true,
+        retryAfterMs: GATEWAY_STARTUP_RETRY_AFTER_MS,
+        details: { ...gatewayStartupUnavailableDetails(), method: req.method },
+      }),
+    );
     return;
   }
   if (methodRegistry.isControlPlaneWrite(req.method)) {
