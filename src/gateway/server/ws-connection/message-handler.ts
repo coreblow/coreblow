@@ -179,7 +179,7 @@ export function attachGatewayWsMessageHandler(params: {
   isClosed: () => boolean;
   clearHandshakeTimer: () => void;
   getClient: () => GatewayWsClient | null;
-  setClient: (next: GatewayWsClient) => void;
+  setClient: (next: GatewayWsClient) => boolean;
   setHandshakeState: (state: "pending" | "connected" | "failed") => void;
   setCloseCause: (cause: string, meta?: Record<string, unknown>) => void;
   setLastFrameMeta: (meta: { type?: string; method?: string; id?: string }) => void;

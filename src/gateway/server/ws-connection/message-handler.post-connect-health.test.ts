@@ -140,6 +140,7 @@ function createConnectHarness(params?: {
     getClient: () => client as never,
     setClient: (next) => {
       client = next;
+      return true;
     },
     setHandshakeState: vi.fn(),
     setCloseCause: vi.fn(),

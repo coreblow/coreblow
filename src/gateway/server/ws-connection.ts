@@ -27,6 +27,7 @@ type SubsystemLogger = ReturnType<typeof createSubsystemLogger>;
 
 const LOG_HEADER_MAX_LEN = 300;
 const LOG_HEADER_FORMAT_REGEX = /\p{Cf}/gu;
+const WS_PROTOCOL_PING_INTERVAL_MS = 25_000;
 
 function replaceControlChars(value: string): string {
   let cleaned = "";
@@ -167,6 +168,7 @@ export function attachGatewayWsConnectionHandler(params: AttachGatewayWsConnecti
     let lastFrameType: string | undefined;
     let lastFrameMethod: string | undefined;
     let lastFrameId: string | undefined;
+    let protocolPingTimer: ReturnType<typeof setInterval> | null = null;
 
     const setCloseCause = (cause: string, meta?: Record<string, unknown>) => {
       if (!closeCause) {
@@ -214,6 +216,10 @@ export function attachGatewayWsConnectionHandler(params: AttachGatewayWsConnecti
       }
       closed = true;
       clearTimeout(handshakeTimer);
+      if (protocolPingTimer) {
+        clearInterval(protocolPingTimer);
+        protocolPingTimer = null;
+      }
       releasePreauthBudget();
       if (client) {
         clients.delete(client);
@@ -269,19 +275,20 @@ export function attachGatewayWsConnectionHandler(params: AttachGatewayWsConnecti
           `webchat disconnected code=${code} reason=${logReason || "n/a"} conn=${connId}`,
         );
       }
-      if (client?.presenceKey) {
+      const context = buildRequestContext();
+      let activeNodeId: string | null | undefined;
+      if (client?.connect?.role === "node") {
+        activeNodeId = context.nodeRegistry.unregister(connId);
+        if (activeNodeId) {
+          removeRemoteNodeInfo(activeNodeId);
+          context.nodeUnsubscribeAll(activeNodeId);
+        }
+      }
+      if (client?.presenceKey && (client.connect.role !== "node" || activeNodeId)) {
         upsertPresence(client.presenceKey, { reason: "disconnect" });
         broadcastPresenceSnapshot({ broadcast, incrementPresenceVersion, getHealthVersion });
       }
-      const context = buildRequestContext();
       context.unsubscribeAllSessionEvents(connId);
-      if (client?.connect?.role === "node") {
-        const nodeId = context.nodeRegistry.unregister(connId);
-        if (nodeId) {
-          removeRemoteNodeInfo(nodeId);
-          context.nodeUnsubscribeAll(nodeId);
-        }
-      }
       logWs("out", "close", {
         connId,
         code,
@@ -334,9 +341,26 @@ export function attachGatewayWsConnectionHandler(params: AttachGatewayWsConnecti
       clearHandshakeTimer: () => clearTimeout(handshakeTimer),
       getClient: () => client,
       setClient: (next) => {
+        if (closed) {
+          return false;
+        }
         releasePreauthBudget();
         client = next;
         clients.add(next);
+        if (!protocolPingTimer && typeof socket.ping === "function") {
+          protocolPingTimer = setInterval(() => {
+            if (closed) {
+              return;
+            }
+            try {
+              socket.ping();
+            } catch {
+              setCloseCause("ping-failed");
+              close();
+            }
+          }, WS_PROTOCOL_PING_INTERVAL_MS);
+        }
+        return true;
       },
       setHandshakeState: (next) => {
         handshakeState = next;
