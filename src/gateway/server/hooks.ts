@@ -1,7 +1,11 @@
 import { randomUUID } from "node:crypto";
 import type { CliDeps } from "../../cli/deps.js";
 import { loadConfig } from "../../config/config.js";
-import { resolveMainSessionKeyFromConfig } from "../../config/sessions.js";
+import {
+  resolveAgentMainSessionKey,
+  resolveMainSessionKey,
+  resolveMainSessionKeyFromConfig,
+} from "../../config/sessions.js";
 import { runCronIsolatedAgentTurn } from "../../cron/isolated-agent.js";
 import type { CronJob } from "../../cron/types.js";
 import { requestHeartbeatNow } from "../../infra/heartbeat-wake.js";
@@ -18,6 +22,38 @@ import { createHooksRequestHandler, type HookClientIpConfig } from "./hooks-requ
 type SubsystemLogger = ReturnType<typeof createSubsystemLogger>;
 
 export { resolveHookClientIpConfig };
+
+function sanitizeHookEventName(name: string): string {
+  const trimmed = name.trim() || "unnamed hook";
+  return trimmed.replace(/^system\s*:/i, "System (untrusted):");
+}
+
+function resolveHookResultSummary(result: {
+  status?: string;
+  summary?: string;
+  error?: string;
+  diagnostics?: { summary?: string };
+}): string {
+  const diagnosticsSummary = result.status !== "ok" ? result.diagnostics?.summary?.trim() : "";
+  return (
+    diagnosticsSummary ||
+    result.summary?.trim() ||
+    result.error?.trim() ||
+    result.status?.trim() ||
+    "completed"
+  );
+}
+
+function buildHookAnnouncement(params: {
+  name: string;
+  status?: string;
+  summary: string;
+}): string {
+  const name = sanitizeHookEventName(params.name);
+  const status = params.status ?? "ok";
+  const prefix = status === "ok" ? `Hook ${name}` : `Hook ${name} (${status})`;
+  return `${prefix}: ${params.summary}`.trim();
+}
 
 export function createGatewayHooksRequestHandler(params: {
   deps: CliDeps;
@@ -83,22 +119,69 @@ export function createGatewayHooksRequestHandler(params: {
           lane: "cron",
           deliveryContract: "shared",
         });
-        const summary = result.summary?.trim() || result.error?.trim() || result.status;
-        const prefix =
-          result.status === "ok" ? `Hook ${value.name}` : `Hook ${value.name} (${result.status})`;
-        if (!result.delivered) {
-          enqueueSystemEvent(`${prefix}: ${summary}`.trim(), {
-            sessionKey: mainSessionKey,
-          });
+        const summary = resolveHookResultSummary(result);
+        const shouldAnnounce =
+          result.delivered !== true &&
+          result.deliveryAttempted !== true &&
+          (result.status !== "ok" || value.deliver === true);
+        const announcementSessionKey = value.agentId
+          ? resolveAgentMainSessionKey({ cfg, agentId: value.agentId })
+          : resolveMainSessionKey(cfg);
+        const logMeta = {
+          sourcePath: value.sourcePath,
+          name: sanitizeHookEventName(value.name),
+          runId,
+          jobId,
+          sessionKey,
+          completedAt: new Date().toISOString(),
+          status: result.status,
+          model: value.model,
+          summary,
+          consoleMessage: value.model ? `${summary} model=${value.model}` : summary,
+        };
+        if (shouldAnnounce) {
+          enqueueSystemEvent(
+            buildHookAnnouncement({
+              name: value.name,
+              status: result.status,
+              summary,
+            }),
+            {
+              sessionKey: announcementSessionKey,
+              forceSenderIsOwnerFalse: true,
+              trusted: false,
+            },
+          );
           if (value.wakeMode === "now") {
             requestHeartbeatNow({ reason: `hook:${jobId}` });
           }
+          if (result.status === "ok") {
+            logHooks.info("hook agent run announced fallback result", logMeta);
+          } else {
+            logHooks.warn("hook agent run returned non-ok status", logMeta);
+          }
+        } else if (result.delivered !== true && result.deliveryAttempted !== true) {
+          logHooks.info("hook agent run completed without announcement", logMeta);
         }
       } catch (err) {
-        logHooks.warn(`hook agent failed: ${String(err)}`);
-        enqueueSystemEvent(`Hook ${value.name} (error): ${String(err)}`, {
-          sessionKey: mainSessionKey,
-        });
+        const cfg = loadConfig();
+        const announcementSessionKey = value.agentId
+          ? resolveAgentMainSessionKey({ cfg, agentId: value.agentId })
+          : mainSessionKey;
+        const summary = String(err);
+        logHooks.warn(`hook agent failed: ${summary}`);
+        enqueueSystemEvent(
+          buildHookAnnouncement({
+            name: value.name,
+            status: "error",
+            summary,
+          }),
+          {
+            sessionKey: announcementSessionKey,
+            forceSenderIsOwnerFalse: true,
+            trusted: false,
+          },
+        );
         if (value.wakeMode === "now") {
           requestHeartbeatNow({ reason: `hook:${jobId}:error` });
         }
