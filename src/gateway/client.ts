@@ -41,6 +41,11 @@ import {
   validateRequestFrame,
   validateResponseFrame,
 } from "./protocol/index.js";
+import {
+  GATEWAY_STARTUP_CLOSE_CODE,
+  GATEWAY_STARTUP_CLOSE_REASON,
+  resolveGatewayStartupRetryAfterMs,
+} from "./protocol/startup-unavailable.js";
 
 type Pending = {
   resolve: (value: unknown) => void;
@@ -53,6 +58,8 @@ type GatewayClientErrorShape = {
   code?: string;
   message?: string;
   details?: unknown;
+  retryable?: boolean;
+  retryAfterMs?: number;
 };
 
 type SelectedConnectAuth = {
@@ -68,12 +75,16 @@ type SelectedConnectAuth = {
 class GatewayClientRequestError extends Error {
   readonly gatewayCode: string;
   readonly details?: unknown;
+  readonly retryable: boolean;
+  readonly retryAfterMs?: number;
 
   constructor(error: GatewayClientErrorShape) {
     super(error.message ?? "gateway request failed");
     this.name = "GatewayClientRequestError";
     this.gatewayCode = error.code ?? "UNAVAILABLE";
     this.details = error.details;
+    this.retryable = error.retryable === true;
+    this.retryAfterMs = error.retryAfterMs;
   }
 }
 
@@ -165,6 +176,7 @@ export class GatewayClient {
   private connectTimer: NodeJS.Timeout | null = null;
   private pendingDeviceTokenRetry = false;
   private deviceTokenRetryBudgetUsed = false;
+  private pendingStartupReconnectDelayMs: number | null = null;
   private pendingConnectErrorDetailCode: string | null = null;
   // Track last tick to detect silent stalls.
   private lastTick: number | null = null;
@@ -273,6 +285,10 @@ export class GatewayClient {
         this.ws = null;
       }
       this.resolvePendingStop(ws);
+      if (this.pendingStartupReconnectDelayMs !== null) {
+        this.scheduleReconnect();
+        return;
+      }
       // Clear persisted device auth state only when device-token auth was active.
       // Shared token/password failures can return the same close reason but should
       // not erase a valid cached device token.
@@ -347,6 +363,7 @@ export class GatewayClient {
     this.closed = true;
     this.pendingDeviceTokenRetry = false;
     this.deviceTokenRetryBudgetUsed = false;
+    this.pendingStartupReconnectDelayMs = null;
     this.pendingConnectErrorDetailCode = null;
     if (this.tickTimer) {
       clearInterval(this.tickTimer);
@@ -520,6 +537,13 @@ export class GatewayClient {
           this.pendingDeviceTokenRetry = true;
           this.deviceTokenRetryBudgetUsed = true;
           this.backoffMs = Math.min(this.backoffMs, 250);
+        }
+        const startupRetryAfterMs = resolveGatewayStartupRetryAfterMs(err);
+        if (startupRetryAfterMs !== null) {
+          this.pendingStartupReconnectDelayMs = startupRetryAfterMs;
+          logDebug(`gateway connect failed: ${String(err)}`);
+          this.ws?.close(GATEWAY_STARTUP_CLOSE_CODE, GATEWAY_STARTUP_CLOSE_REASON);
+          return;
         }
         this.opts.onConnectError?.(err instanceof Error ? err : new Error(String(err)));
         const msg = `gateway connect failed: ${String(err)}`;
@@ -704,6 +728,8 @@ export class GatewayClient {
               code: parsed.error?.code,
               message: parsed.error?.message ?? "unknown error",
               details: parsed.error?.details,
+              retryable: parsed.error?.retryable,
+              retryAfterMs: parsed.error?.retryAfterMs,
             }),
           );
         }
@@ -746,8 +772,12 @@ export class GatewayClient {
       clearInterval(this.tickTimer);
       this.tickTimer = null;
     }
-    const delay = this.backoffMs;
-    this.backoffMs = Math.min(this.backoffMs * 2, 30_000);
+    const startupDelay = this.pendingStartupReconnectDelayMs;
+    this.pendingStartupReconnectDelayMs = null;
+    const delay = startupDelay ?? this.backoffMs;
+    if (startupDelay === null) {
+      this.backoffMs = Math.min(this.backoffMs * 2, 30_000);
+    }
     setTimeout(() => this.start(), delay).unref();
   }
 

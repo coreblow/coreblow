@@ -26,6 +26,7 @@ class MockWebSocket {
   closeCalls = 0;
   terminateCalls = 0;
   autoCloseOnClose = true;
+  lastClose: { code: number; reason: string } | null = null;
 
   constructor(_url: string, _options?: unknown) {
     wsInstances.push(this);
@@ -56,6 +57,7 @@ class MockWebSocket {
 
   close(code?: number, reason?: string): void {
     this.closeCalls += 1;
+    this.lastClose = { code: code ?? 1000, reason: reason ?? "" };
     if (this.autoCloseOnClose) {
       this.emitClose(code ?? 1000, reason ?? "");
     }
@@ -603,6 +605,100 @@ describe("GatewayClient connect auth payload", () => {
       deviceToken: "explicit-device-token",
     });
     client.stop();
+  });
+
+  it("preserves retry metadata from gateway error responses", async () => {
+    const client = new GatewayClient({
+      url: "ws://127.0.0.1:18789",
+      deviceIdentity: null,
+    });
+
+    const { ws, connect } = startClientAndConnect({ client });
+    ws.emitMessage(
+      JSON.stringify({
+        type: "res",
+        id: connect.id,
+        ok: true,
+        payload: {
+          type: "hello-ok",
+          auth: { role: "operator", scopes: ["operator.admin"] },
+        },
+      }),
+    );
+
+    const requestPromise = client.request("chat.history", { sessionKey: "main" });
+    const requestFrame = JSON.parse(ws.sent.at(-1) ?? "{}") as { id?: string };
+    ws.emitMessage(
+      JSON.stringify({
+        type: "res",
+        id: requestFrame.id,
+        ok: false,
+        error: {
+          code: "UNAVAILABLE",
+          message: "chat.history unavailable during gateway startup",
+          details: { reason: "startup-sidecars" },
+          retryable: true,
+          retryAfterMs: 250,
+        },
+      }),
+    );
+
+    await expect(requestPromise).rejects.toMatchObject({
+      name: "GatewayClientRequestError",
+      gatewayCode: "UNAVAILABLE",
+      retryable: true,
+      retryAfterMs: 250,
+      details: { reason: "startup-sidecars" },
+    });
+    client.stop();
+  });
+
+  it("retries startup-unavailable connect failures using retryAfterMs", async () => {
+    vi.useFakeTimers();
+    try {
+      wsInstances.length = 0;
+      logDebugMock.mockClear();
+      const onClose = vi.fn();
+      const onConnectError = vi.fn();
+      const client = new GatewayClient({
+        url: "ws://127.0.0.1:18789",
+        deviceIdentity: null,
+        onClose,
+        onConnectError,
+      });
+
+      const { ws, connect } = startClientAndConnect({ client });
+      ws.emitMessage(
+        JSON.stringify({
+          type: "res",
+          id: connect.id,
+          ok: false,
+          error: {
+            code: "UNAVAILABLE",
+            message: "gateway starting; retry shortly",
+            details: { reason: "startup-sidecars" },
+            retryable: true,
+            retryAfterMs: 250,
+          },
+        }),
+      );
+
+      await vi.advanceTimersByTimeAsync(0);
+      expect(onConnectError).not.toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
+      expect(ws.lastClose).toEqual({ code: 1013, reason: "gateway starting" });
+      expect(logDebugMock).toHaveBeenCalledWith(expect.stringContaining("gateway connect failed:"));
+      expect(wsInstances).toHaveLength(1);
+
+      await vi.advanceTimersByTimeAsync(249);
+      expect(wsInstances).toHaveLength(1);
+
+      await vi.advanceTimersByTimeAsync(1);
+      expect(wsInstances).toHaveLength(2);
+      client.stop();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("retries with stored device token after shared-token mismatch on trusted endpoints", async () => {
