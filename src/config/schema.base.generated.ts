@@ -470,20 +470,8 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
                   type: "string",
                 },
                 driver: {
-                  anyOf: [
-                    {
-                      type: "string",
-                      const: "coreblow",
-                    },
-                    {
-                      type: "string",
-                      const: "cored",
-                    },
-                    {
-                      type: "string",
-                      const: "existing-session",
-                    },
-                  ],
+                  type: "string",
+                  enum: ["coreblow", "cored", "existing-session"],
                 },
                 attachOnly: {
                   type: "boolean",
@@ -10740,6 +10728,18 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
                 },
                 additionalProperties: false,
               },
+              pairing: {
+                type: "object",
+                properties: {
+                  autoApproveCidrs: {
+                    type: "array",
+                    items: {
+                      type: "string",
+                    },
+                  },
+                },
+                additionalProperties: false,
+              },
               allowCommands: {
                 type: "array",
                 items: {
@@ -13101,6 +13101,11 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
       help: "Pin browser routing to a specific node id or name (optional).",
       tags: ["network"],
     },
+    "gateway.nodes.pairing.autoApproveCidrs": {
+      label: "Gateway Node Pairing Auto-Approve CIDRs",
+      help: "Opt-in CIDR or exact-IP allowlist for automatically approving first-time node pairing without requested scopes. Leave unset unless the node network is explicitly trusted.",
+      tags: ["security", "access", "network", "advanced"],
+    },
     "gateway.nodes.allowCommands": {
       label: "Gateway Node Allowlist (Extra Commands)",
       help: "Extra node.invoke commands to allow beyond the gateway defaults (array of command strings). Enabling dangerous commands here is a security-sensitive override and is flagged by `coreblow security audit`.",
@@ -15290,7 +15295,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
     "plugins.corehub": {
       label: "CoreHub Plugin Policy",
       help: "CoreHub install policy for registry-backed plugins. Use this to enforce publisher, channel, and verification requirements before installing executable plugin artifacts.",
-      tags: ["security", "advanced"],
+      tags: ["advanced"],
     },
     "plugins.corehub.allowCommunity": {
       label: "Allow CoreHub Community Packages",
@@ -15310,7 +15315,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
     "plugins.corehub.requiredVerificationTiers": {
       label: "Required CoreHub Verification Tiers",
       help: "Optional allowlist of CoreHub verification tiers permitted for plugin installs and updates.",
-      tags: ["security"],
+      tags: ["advanced"],
     },
     "plugins.slots": {
       label: "Plugin Slots",

@@ -9,18 +9,24 @@ export function formatGeneratedModule(source, { repoRoot, outputPath, errorLabel
     resolvedRepoRoot,
     path.isAbsolute(outputPath) ? path.relative(resolvedRepoRoot, outputPath) : outputPath,
   );
-  const directFormatterPath = path.join(resolvedRepoRoot, "node_modules", ".bin", "oxfmt");
-  const useDirectFormatter = process.platform !== "win32" && fs.existsSync(directFormatterPath);
-  const command = useDirectFormatter ? directFormatterPath : "pnpm";
+  const formatterFilename = process.platform === "win32" ? "oxfmt.cmd" : "oxfmt";
+  const directFormatterPath = path.join(
+    resolvedRepoRoot,
+    "node_modules",
+    ".bin",
+    formatterFilename,
+  );
+  if (!fs.existsSync(directFormatterPath)) {
+    throw new Error(
+      `failed to format generated ${errorLabel}: missing local oxfmt binary; run pnpm install`,
+    );
+  }
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "coreblow-generated-format-"));
   const tempOutputPath = path.join(tempDir, path.basename(resolvedOutputPath));
 
   try {
     fs.writeFileSync(tempOutputPath, source, "utf8");
-    const args = useDirectFormatter
-      ? ["--write", tempOutputPath]
-      : ["exec", "oxfmt", "--write", tempOutputPath];
-    const formatter = spawnSync(command, args, {
+    const formatter = spawnSync(directFormatterPath, ["--write", tempOutputPath], {
       cwd: resolvedRepoRoot,
       encoding: "utf8",
       // Windows requires a shell to launch package-manager shim scripts reliably.
