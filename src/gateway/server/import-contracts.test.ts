@@ -12,6 +12,7 @@ const modules = [
   { name: "server/ws-types",                path: "./ws-types.js" },
   { name: "server/plugins-http/path-context", path: "./plugins-http/path-context.js" },
   { name: "server/plugins-http/route-auth",   path: "./plugins-http/route-auth.js" },
+  { name: "server/plugins-http/route-capability", path: "./plugins-http/route-capability.js" },
   { name: "server/plugins-http/route-match",  path: "./plugins-http/route-match.js" },
   { name: "server/ws-connection/auth-messages", path: "./ws-connection/auth-messages.js" },
 ];

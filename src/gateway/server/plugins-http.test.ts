@@ -13,7 +13,10 @@ import { makeMockHttpResponse } from "../test-http-response.js";
 import { createTestRegistry } from "./__tests__/test-utils.js";
 import {
   createGatewayPluginRequestHandler,
+  listPluginNodeCapabilities,
+  findMatchingPluginNodeCapabilityRoute,
   isRegisteredPluginHttpRoutePath,
+  resolvePluginRoutePathContext,
   shouldEnforceGatewayAuthForPluginPath,
 } from "./plugins-http.js";
 
@@ -44,13 +47,19 @@ function createRoute(params: {
   pluginId?: string;
   auth?: "gateway" | "plugin";
   match?: "exact" | "prefix";
+  gatewayRuntimeScopeSurface?: "write-default" | "trusted-operator";
+  gatewayMethodDispatchAllowed?: boolean;
+  nodeCapability?: { surface: string; ttlMs?: number };
   handler?: (req: IncomingMessage, res: ServerResponse) => boolean | void | Promise<boolean | void>;
 }) {
   return {
     pluginId: params.pluginId ?? "route",
     path: params.path,
-    auth: params.auth ?? "gateway",
+    auth: params.auth ?? "plugin",
     match: params.match ?? "exact",
+    gatewayRuntimeScopeSurface: params.gatewayRuntimeScopeSurface,
+    gatewayMethodDispatchAllowed: params.gatewayMethodDispatchAllowed,
+    nodeCapability: params.nodeCapability,
     handler: params.handler ?? (() => {}),
     source: params.pluginId ?? "route",
   };
@@ -132,7 +141,10 @@ async function invokeSecureGatewayRoute(params: { gatewayAuthSatisfied: boolean 
     { url: "/plugin/secure/report" } as IncomingMessage,
     res,
     undefined,
-    { gatewayAuthSatisfied: params.gatewayAuthSatisfied },
+    {
+      gatewayAuthSatisfied: params.gatewayAuthSatisfied,
+      ...(params.gatewayAuthSatisfied ? { gatewayRequestOperatorScopes: ["operator.write"] } : {}),
+    },
   );
   return { handled, exactPluginHandler, prefixGatewayHandler };
 }
@@ -181,6 +193,9 @@ async function invokeLeastPrivilegeDeleteRoute(params: {
   const response = makeMockHttpResponse();
   const handled = await handler({ url: params.path } as IncomingMessage, response.res, undefined, {
     gatewayAuthSatisfied: params.gatewayAuthSatisfied,
+    ...(params.auth === "gateway" && params.gatewayAuthSatisfied
+      ? { gatewayRequestOperatorScopes: ["operator.write"] }
+      : {}),
   });
   return { handled, log, ...response };
 }
@@ -190,16 +205,18 @@ function expectLeastPrivilegeDeleteRouteFailure(params: {
   setHeader: ReturnType<typeof makeMockHttpResponse>["setHeader"];
   end: ReturnType<typeof makeMockHttpResponse>["end"];
   log: ReturnType<typeof createPluginLog>;
+  expectedScopes: string[];
+  expectedMissingScope: string;
 }) {
   expect(params.handled).toBe(true);
   expect(handleGatewayRequest).toHaveBeenCalledTimes(1);
-  expect(handleGatewayRequest.mock.calls[0]?.[0]?.client?.connect.scopes).toEqual([
-    "operator.write",
-  ]);
+  expect(handleGatewayRequest.mock.calls[0]?.[0]?.client?.connect.scopes).toEqual(
+    params.expectedScopes,
+  );
   expect(params.setHeader).toHaveBeenCalledWith("Content-Type", "text/plain; charset=utf-8");
   expect(params.end).toHaveBeenCalledWith("Internal Server Error");
   expect(params.log.warn).toHaveBeenCalledWith(
-    expect.stringContaining("missing scope: operator.admin"),
+    expect.stringContaining(`missing scope: ${params.expectedMissingScope}`),
   );
 }
 
@@ -217,7 +234,14 @@ describe("createGatewayPluginRequestHandler", () => {
     });
 
     expect(res.statusCode).toBe(500);
-    expectLeastPrivilegeDeleteRouteFailure({ handled, setHeader, end, log });
+    expectLeastPrivilegeDeleteRouteFailure({
+      handled,
+      setHeader,
+      end,
+      log,
+      expectedScopes: [],
+      expectedMissingScope: "operator.admin",
+    });
   });
 
   it("keeps gateway-authenticated plugin routes on least-privilege runtime scopes", async () => {
@@ -228,7 +252,14 @@ describe("createGatewayPluginRequestHandler", () => {
     });
 
     expect(res.statusCode).toBe(500);
-    expectLeastPrivilegeDeleteRouteFailure({ handled, setHeader, end, log });
+    expectLeastPrivilegeDeleteRouteFailure({
+      handled,
+      setHeader,
+      end,
+      log,
+      expectedScopes: ["operator.write"],
+      expectedMissingScope: "operator.admin",
+    });
   });
 
   it("returns false when no routes are registered", async () => {
