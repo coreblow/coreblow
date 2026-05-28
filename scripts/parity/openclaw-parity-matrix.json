@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6250,
+    "cb_source_files": 6251,
     "oc_source_files": 8443,
     "source_parity_both": 4477,
-    "source_cb_exclusive": 1773,
+    "source_cb_exclusive": 1774,
     "source_missing_from_cb": 3966,
-    "test_files_cb": 3994,
+    "test_files_cb": 3995,
     "test_files_oc": 5246,
     "tests_both_covered": 2645,
     "tests_gap_oc_has_cb_missing": 2356,
-    "tests_cb_exclusive": 1302,
+    "tests_cb_exclusive": 1303,
     "export_files_with_gaps": 74,
     "test_scenario_files_with_gaps": 37
   },
@@ -463,10 +463,10 @@
       "implementationSurface": "src/gateway GatewayServer and ServiceRegistry",
       "counts": {
         "sharedSourcePaths": 301,
-        "coreBlowOnlySourcePaths": 64,
+        "coreBlowOnlySourcePaths": 65,
         "openClawOnlySourcePaths": 90,
         "sharedTestPaths": 200,
-        "coreBlowOnlyTestPaths": 129,
+        "coreBlowOnlyTestPaths": 130,
         "openClawTestGaps": 107
       },
       "samples": {

@@ -147,6 +147,10 @@ import {
   mergeGatewayTailscaleConfig,
 } from "./startup-auth.js";
 import { maybeSeedControlUiAllowedOriginsAtStartup } from "./startup-control-ui-origins.js";
+import {
+  createStartupUnavailableGatewayMethods,
+  markStartupUnavailableGatewayMethodsReady,
+} from "./startup-unavailable-methods.js";
 
 export { __resetModelCatalogCacheForTest } from "./server-model-catalog.js";
 
@@ -570,6 +574,9 @@ export async function startGatewayServer(
         env: process.env,
       });
   const baseMethods = listGatewayMethods();
+  const unavailableGatewayMethods = createStartupUnavailableGatewayMethods({
+    enabled: !minimalTestGateway,
+  });
   const emptyPluginRegistry = createEmptyPluginRegistry();
   let pluginRegistry = emptyPluginRegistry;
   if (!minimalTestGateway) {
@@ -1290,6 +1297,7 @@ export async function startGatewayServer(
       markChannelLoggedOut,
       wizardRunner,
       broadcastVoiceWakeChanged,
+      unavailableGatewayMethods,
     };
 
     // Register a lazy fallback for plugin subagent dispatch in non-WS paths
@@ -1377,6 +1385,7 @@ export async function startGatewayServer(
         logHooks,
         logChannels,
       }));
+      markStartupUnavailableGatewayMethodsReady(unavailableGatewayMethods);
     }
 
     // Run gateway_start plugin hook (fire-and-forget)
