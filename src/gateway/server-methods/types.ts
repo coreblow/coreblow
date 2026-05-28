@@ -27,6 +27,7 @@ export type GatewayClient = PluginNodeCapabilityClient & {
   /** Internal-only auth context that cannot be supplied through gateway RPC payloads. */
   internal?: {
     allowModelOverride?: boolean;
+    approvalRuntime?: boolean;
   };
 };
 

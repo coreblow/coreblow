@@ -28,6 +28,8 @@ import { rawDataToString } from "../../../infra/ws.js";
 import type { createSubsystemLogger } from "../../../logging/subsystem.js";
 import { roleScopesAllow } from "../../../shared/operator-scope-compat.js";
 import {
+  GATEWAY_CLIENT_MODES,
+  GATEWAY_CLIENT_NAMES,
   isBrowserOperatorUiClient,
   isGatewayCliClient,
   isOperatorUiClient,
@@ -55,6 +57,7 @@ import {
   resolveNodePairingClientIpSource,
   shouldAutoApproveNodePairingFromTrustedCidrs,
 } from "../../node-pairing-auto-approve.js";
+import { isOperatorApprovalRuntimeToken } from "../../operator-approval-runtime-token.js";
 import { checkBrowserOrigin } from "../../origin-check.js";
 import {
   ConnectErrorDetailCodes,
@@ -71,6 +74,13 @@ import {
   validateConnectParams,
   validateRequestFrame,
 } from "../../protocol/index.js";
+import {
+  GATEWAY_STARTUP_CLOSE_CODE,
+  GATEWAY_STARTUP_CLOSE_REASON,
+  GATEWAY_STARTUP_PENDING_CLOSE_CAUSE,
+  GATEWAY_STARTUP_RETRY_AFTER_MS,
+  gatewayStartupUnavailableDetails,
+} from "../../protocol/startup-unavailable.js";
 import { parseGatewayRole } from "../../role-policy.js";
 import {
   MAX_BUFFERED_BYTES,
@@ -177,6 +187,8 @@ export function attachGatewayWsMessageHandler(params: {
   logGateway: SubsystemLogger;
   logHealth: SubsystemLogger;
   logWsControl: SubsystemLogger;
+  isStartupPending?: () => boolean;
+  refreshHealthSnapshot?: (opts?: { probe?: boolean }) => Promise<unknown>;
 }) {
   const {
     socket,
@@ -211,6 +223,8 @@ export function attachGatewayWsMessageHandler(params: {
     logGateway,
     logHealth,
     logWsControl,
+    isStartupPending,
+    refreshHealthSnapshot = refreshGatewayHealthSnapshot,
   } = params;
 
   const configSnapshot = loadConfig();
@@ -387,6 +401,21 @@ export function attachGatewayWsMessageHandler(params: {
           });
         };
 
+        if (isStartupPending?.() === true) {
+          markHandshakeFailure(GATEWAY_STARTUP_PENDING_CLOSE_CAUSE);
+          sendHandshakeErrorResponse(
+            ErrorCodes.UNAVAILABLE,
+            "connect unavailable during gateway startup",
+            {
+              retryable: true,
+              retryAfterMs: GATEWAY_STARTUP_RETRY_AFTER_MS,
+              details: gatewayStartupUnavailableDetails(),
+            },
+          );
+          close(GATEWAY_STARTUP_CLOSE_CODE, GATEWAY_STARTUP_CLOSE_REASON);
+          return;
+        }
+
         // protocol negotiation
         const { minProtocol, maxProtocol } = connectParams;
         if (maxProtocol < PROTOCOL_VERSION || minProtocol > PROTOCOL_VERSION) {
@@ -542,11 +571,20 @@ export function attachGatewayWsMessageHandler(params: {
             authOk,
             authMethod,
           });
+          const isLocalBackendSelfPairingClient =
+            isLocalClient &&
+            role === "operator" &&
+            resolvedAuth.mode === "none" &&
+            connectParams.client.id === GATEWAY_CLIENT_NAMES.GATEWAY_CLIENT &&
+            connectParams.client.mode === GATEWAY_CLIENT_MODES.BACKEND;
           const preserveInsecureLocalControlUiScopes =
             isControlUi &&
             controlUiAuthPolicy.allowInsecureAuthConfigured &&
             isLocalClient &&
             (authMethod === "token" || authMethod === "password");
+          if (isLocalBackendSelfPairingClient) {
+            return true;
+          }
           const decision = evaluateMissingDeviceIdentity({
             hasDeviceIdentity: Boolean(device),
             role,
@@ -1118,6 +1156,10 @@ export function attachGatewayWsMessageHandler(params: {
           canvasHostUrl,
           canvasCapability,
           canvasCapabilityExpiresAtMs,
+          ...(isOperatorApprovalRuntimeToken(connectParams.auth?.approvalRuntimeToken) &&
+          scopes.includes("operator.approvals")
+            ? { internal: { approvalRuntime: true } }
+            : {}),
         };
         setSocketMaxPayload(socket, MAX_PAYLOAD_BYTES);
         setClient(nextClient);
@@ -1181,7 +1223,7 @@ export function attachGatewayWsMessageHandler(params: {
         });
 
         send({ type: "res", id: frame.id, ok: true, payload: helloOk });
-        void refreshGatewayHealthSnapshot({ probe: true }).catch((err) =>
+        void refreshHealthSnapshot({ probe: true }).catch((err) =>
           logHealth.error(`post-connect health refresh failed: ${formatError(err)}`),
         );
         return;

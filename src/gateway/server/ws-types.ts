@@ -14,4 +14,7 @@ export type GatewayWsClient = {
   pluginSurfaceUrls?: Record<string, string>;
   pluginNodeCapabilitySurfaces?: Record<string, PluginNodeCapabilitySurface>;
   pluginNodeCapabilities?: Record<string, { capability: string; expiresAtMs: number }>;
+  internal?: {
+    approvalRuntime?: boolean;
+  };
 };

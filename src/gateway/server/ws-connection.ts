@@ -75,6 +75,7 @@ export type GatewayWsSharedHandlerParams = {
   browserRateLimiter?: AuthRateLimiter;
   gatewayMethods: string[];
   events: string[];
+  isStartupPending?: () => boolean;
 };
 
 export type AttachGatewayWsConnectionHandlerParams = GatewayWsSharedHandlerParams & {
@@ -92,6 +93,7 @@ export type AttachGatewayWsConnectionHandlerParams = GatewayWsSharedHandlerParam
     },
   ) => void;
   buildRequestContext: () => GatewayRequestContext;
+  refreshHealthSnapshot?: (opts?: { probe?: boolean }) => Promise<unknown>;
 };
 
 export function attachGatewayWsConnectionHandler(params: AttachGatewayWsConnectionHandlerParams) {
@@ -108,6 +110,7 @@ export function attachGatewayWsConnectionHandler(params: AttachGatewayWsConnecti
     browserRateLimiter,
     gatewayMethods,
     events,
+    isStartupPending,
     logGateway,
     logHealth,
     logWsControl,
@@ -115,6 +118,7 @@ export function attachGatewayWsConnectionHandler(params: AttachGatewayWsConnecti
     getMethodRegistry,
     broadcast,
     buildRequestContext,
+    refreshHealthSnapshot,
   } = params;
   const originCheckMetrics: WsOriginCheckMetrics = { hostHeaderFallbackAccepted: 0 };
 
@@ -343,6 +347,8 @@ export function attachGatewayWsConnectionHandler(params: AttachGatewayWsConnecti
       logGateway,
       logHealth,
       logWsControl,
+      isStartupPending,
+      refreshHealthSnapshot,
     });
   });
 }
