@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 
 const modules = [
   { name: "server/hooks",                   path: "./hooks.js" },
+  { name: "server/hook-client-ip-config",   path: "./hook-client-ip-config.js" },
+  { name: "server/hooks-request-handler",   path: "./hooks-request-handler.js" },
   { name: "server/http-auth",               path: "./http-auth.js" },
+  { name: "server/plugin-route-runtime-scopes", path: "./plugin-route-runtime-scopes.js" },
   { name: "server/preauth-connection-budget", path: "./preauth-connection-budget.js" },
   { name: "server/tls",                     path: "./tls.js" },
   { name: "server/ws-connection",           path: "./ws-connection.js" },

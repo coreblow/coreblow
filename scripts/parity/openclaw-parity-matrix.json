@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6255,
+    "cb_source_files": 6258,
     "oc_source_files": 8443,
-    "source_parity_both": 4481,
+    "source_parity_both": 4484,
     "source_cb_exclusive": 1774,
-    "source_missing_from_cb": 3962,
-    "test_files_cb": 3999,
+    "source_missing_from_cb": 3959,
+    "test_files_cb": 4002,
     "test_files_oc": 5246,
-    "tests_both_covered": 2647,
-    "tests_gap_oc_has_cb_missing": 2354,
-    "tests_cb_exclusive": 1305,
+    "tests_both_covered": 2648,
+    "tests_gap_oc_has_cb_missing": 2353,
+    "tests_cb_exclusive": 1307,
     "export_files_with_gaps": 74,
     "test_scenario_files_with_gaps": 37
   },
@@ -512,27 +512,27 @@
       "priority": "P1",
       "implementationSurface": "src/gateway GatewayServer and ServiceRegistry",
       "counts": {
-        "sharedSourcePaths": 305,
+        "sharedSourcePaths": 308,
         "coreBlowOnlySourcePaths": 65,
-        "openClawOnlySourcePaths": 86,
-        "sharedTestPaths": 202,
-        "coreBlowOnlyTestPaths": 132,
-        "openClawTestGaps": 105
+        "openClawOnlySourcePaths": 83,
+        "sharedTestPaths": 203,
+        "coreBlowOnlyTestPaths": 134,
+        "openClawTestGaps": 104
       },
       "samples": {
         "openClawOnlySourcePaths": [
           "src/gateway/exec-approval-ios-push.ts",
-          "src/gateway/server/hook-client-ip-config.ts",
-          "src/gateway/server/hooks-request-handler.ts",
           "src/gateway/server/plugin-node-capability-auth.ts",
-          "src/gateway/server/plugin-route-runtime-scopes.ts",
           "src/gateway/server/plugins-http/route-capability.ts",
           "src/gateway/server/ws-shared-generation.ts",
           "src/gateway/server-aux-handlers.ts",
           "src/gateway/server-aux-methods.ts",
           "src/gateway/server-broadcast-types.ts",
           "src/gateway/server-channel-runtime.types.ts",
-          "src/gateway/server-chat-state.ts"
+          "src/gateway/server-chat-state.ts",
+          "src/gateway/server-chat.load-gateway-session-row.runtime.ts",
+          "src/gateway/server-chat.persist-session-lifecycle.runtime.ts",
+          "src/gateway/server-close.runtime.ts"
         ],
         "openClawTestGapPaths": [
           "src/gateway/exec-approval-ios-push.test.ts",
@@ -540,13 +540,13 @@
           "src/gateway/operator-approvals-client.test.ts",
           "src/gateway/server/health-state.test.ts",
           "src/gateway/server/hooks.agent-trust.test.ts",
-          "src/gateway/server/plugin-route-runtime-scopes.test.ts",
           "src/gateway/server/plugins-http/route-capability.test.ts",
           "src/gateway/server/plugins-http.runtime-scopes.test.ts",
           "src/gateway/server/ws-connection/auth-context.state.test.ts",
           "src/gateway/server/ws-connection/auth-messages.test.ts",
           "src/gateway/server/ws-connection/message-handler.post-connect-health.test.ts",
-          "src/gateway/server/ws-connection.startup.test.ts"
+          "src/gateway/server/ws-connection.startup.test.ts",
+          "src/gateway/server/ws-connection.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/gateway/api-docs.ts",
