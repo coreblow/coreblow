@@ -9,6 +9,7 @@ const modules = [
   { name: "server/preauth-connection-budget", path: "./preauth-connection-budget.js" },
   { name: "server/tls",                     path: "./tls.js" },
   { name: "server/ws-connection",           path: "./ws-connection.js" },
+  { name: "server/ws-shared-generation",    path: "./ws-shared-generation.js" },
   { name: "server/ws-types",                path: "./ws-types.js" },
   { name: "server/plugins-http/path-context", path: "./plugins-http/path-context.js" },
   { name: "server/plugins-http/route-auth",   path: "./plugins-http/route-auth.js" },
