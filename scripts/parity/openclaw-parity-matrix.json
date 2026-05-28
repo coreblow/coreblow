@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6264,
+    "cb_source_files": 6265,
     "oc_source_files": 8443,
-    "source_parity_both": 4490,
+    "source_parity_both": 4491,
     "source_cb_exclusive": 1774,
-    "source_missing_from_cb": 3953,
+    "source_missing_from_cb": 3952,
     "test_files_cb": 4006,
     "test_files_oc": 5246,
     "tests_both_covered": 2652,
@@ -575,9 +575,9 @@
       "priority": "P1",
       "implementationSurface": "src/gateway GatewayServer and ServiceRegistry",
       "counts": {
-        "sharedSourcePaths": 314,
+        "sharedSourcePaths": 315,
         "coreBlowOnlySourcePaths": 65,
-        "openClawOnlySourcePaths": 77,
+        "openClawOnlySourcePaths": 76,
         "sharedTestPaths": 207,
         "coreBlowOnlyTestPaths": 134,
         "openClawTestGaps": 100
@@ -586,7 +586,6 @@
         "openClawOnlySourcePaths": [
           "src/gateway/exec-approval-ios-push.ts",
           "src/gateway/server/plugin-node-capability-auth.ts",
-          "src/gateway/server-chat-state.ts",
           "src/gateway/server-chat.load-gateway-session-row.runtime.ts",
           "src/gateway/server-chat.persist-session-lifecycle.runtime.ts",
           "src/gateway/server-close.runtime.ts",
@@ -595,7 +594,8 @@
           "src/gateway/server-cron-notifications.ts",
           "src/gateway/server-json.ts",
           "src/gateway/server-live-state.ts",
-          "src/gateway/server-methods/agents-config-mutations.ts"
+          "src/gateway/server-methods/agents-config-mutations.ts",
+          "src/gateway/server-methods/approval-shared.ts"
         ],
         "openClawTestGapPaths": [
           "src/gateway/exec-approval-ios-push.test.ts",
