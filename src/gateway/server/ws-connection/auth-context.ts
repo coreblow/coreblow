@@ -145,6 +145,16 @@ export async function resolveConnectAuthState(params: {
       // primary auth flow (or deferred for device-token candidates).
       rateLimitScope: AUTH_RATE_LIMIT_SCOPE_SHARED_SECRET,
     }));
+  if (
+    hasDeviceTokenCandidate &&
+    sharedAuthResult &&
+    !sharedAuthResult.ok &&
+    params.rateLimiter &&
+    (sharedAuthResult.reason === "token_mismatch" ||
+      sharedAuthResult.reason === "password_mismatch")
+  ) {
+    params.rateLimiter.recordFailure(params.clientIp, AUTH_RATE_LIMIT_SCOPE_SHARED_SECRET);
+  }
   // Trusted-proxy auth is semantically shared: the proxy vouches for identity,
   // no per-device credential needed. Include it so operator connections
   // can skip device identity via roleCanSkipDeviceIdentity().
@@ -246,6 +256,9 @@ export async function resolveConnectAuthDecision(params: {
       authOk = true;
       authMethod = "device-token";
       params.rateLimiter?.reset(params.clientIp, AUTH_RATE_LIMIT_SCOPE_DEVICE_TOKEN);
+      if (params.state.sharedAuthProvided) {
+        params.rateLimiter?.reset(params.clientIp, AUTH_RATE_LIMIT_SCOPE_SHARED_SECRET);
+      }
     } else {
       authResult = {
         ok: false,

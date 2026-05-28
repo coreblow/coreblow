@@ -53,6 +53,11 @@ export function formatGatewayAuthFailureMessage(params: {
       return "unauthorized: tailscale identity mismatch (use Tailscale Serve auth or gateway token/password)";
     case "rate_limited":
       return "unauthorized: too many failed authentication attempts (retry later)";
+    case "scope_mismatch":
+      if (authProvided === "device-token") {
+        return "unauthorized: device token scope mismatch (re-pair or approve scope upgrade)";
+      }
+      break;
     case "device_token_mismatch":
       return "unauthorized: device token mismatch (rotate/reissue device token)";
     default:
