@@ -11,7 +11,8 @@ import type { Snapshot } from "../protocol/index.js";
 let presenceVersion = 1;
 let healthVersion = 1;
 let healthCache: HealthSummary | null = null;
-let healthRefresh: Promise<HealthSummary> | null = null;
+let publicHealthRefresh: Promise<HealthSummary> | null = null;
+let sensitiveHealthRefresh: Promise<HealthSummary> | null = null;
 let broadcastHealthUpdate: ((snap: HealthSummary) => void) | null = null;
 
 export function buildGatewaySnapshot(): Snapshot {
@@ -67,10 +68,39 @@ export function setBroadcastHealthUpdate(fn: ((snap: HealthSummary) => void) | n
   broadcastHealthUpdate = fn;
 }
 
-export async function refreshGatewayHealthSnapshot(opts?: { probe?: boolean }) {
-  if (!healthRefresh) {
-    healthRefresh = (async () => {
-      const snap = await getHealthSnapshot({ probe: opts?.probe });
+export type GatewayHealthRefreshOptions = {
+  probe?: boolean;
+  includeSensitive?: boolean;
+  getEventLoopHealth?: () => HealthSummary["eventLoop"] | undefined;
+  getRuntimeSnapshot?: () => unknown;
+};
+
+export async function refreshGatewayHealthSnapshot(opts?: GatewayHealthRefreshOptions) {
+  const includeSensitive = opts?.includeSensitive === true;
+  const currentRefresh = includeSensitive ? sensitiveHealthRefresh : publicHealthRefresh;
+  if (!currentRefresh) {
+    const refresh = (async () => {
+      let eventLoop: HealthSummary["eventLoop"] | undefined;
+      if (opts?.getEventLoopHealth) {
+        eventLoop = opts.getEventLoopHealth();
+      }
+      let runtimeSnapshot: unknown;
+      if (opts?.getRuntimeSnapshot) {
+        try {
+          runtimeSnapshot = opts.getRuntimeSnapshot();
+        } catch {
+          runtimeSnapshot = undefined;
+        }
+      }
+      const snap = await getHealthSnapshot({
+        probe: opts?.probe,
+        includeSensitive,
+        ...(eventLoop ? { eventLoop } : {}),
+        ...(runtimeSnapshot ? { runtimeSnapshot } : {}),
+      });
+      if (includeSensitive) {
+        return snap;
+      }
       healthCache = snap;
       healthVersion += 1;
       if (broadcastHealthUpdate) {
@@ -78,8 +108,17 @@ export async function refreshGatewayHealthSnapshot(opts?: { probe?: boolean }) {
       }
       return snap;
     })().finally(() => {
-      healthRefresh = null;
+      if (includeSensitive) {
+        sensitiveHealthRefresh = null;
+      } else {
+        publicHealthRefresh = null;
+      }
     });
+    if (includeSensitive) {
+      sensitiveHealthRefresh = refresh;
+    } else {
+      publicHealthRefresh = refresh;
+    }
   }
-  return healthRefresh;
+  return includeSensitive ? sensitiveHealthRefresh! : publicHealthRefresh!;
 }

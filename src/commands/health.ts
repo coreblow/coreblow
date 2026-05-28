@@ -55,6 +55,15 @@ export type HealthSummary = {
   ok: true;
   ts: number;
   durationMs: number;
+  eventLoop?: {
+    degraded: boolean;
+    reasons: string[];
+    intervalMs: number;
+    delayP99Ms: number;
+    delayMaxMs: number;
+    utilization: number;
+    cpuCoreRatio: number;
+  };
   channels: Record<string, ChannelHealthSummary>;
   channelOrder: string[];
   channelLabels: Record<string, string>;
@@ -423,6 +432,9 @@ export const formatHealthChannelLines = (
 export async function getHealthSnapshot(params?: {
   timeoutMs?: number;
   probe?: boolean;
+  includeSensitive?: boolean;
+  runtimeSnapshot?: unknown;
+  eventLoop?: HealthSummary["eventLoop"];
 }): Promise<HealthSummary> {
   const timeoutMs = params?.timeoutMs;
   const cfg = loadConfig();
