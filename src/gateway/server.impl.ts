@@ -33,7 +33,6 @@ import {
 } from "../infra/control-ui-assets.js";
 import { isDiagnosticsEnabled } from "../infra/diagnostic-events.js";
 import { logAcceptedEnvOption } from "../infra/env.js";
-import { createExecApprovalForwarder } from "../infra/exec-approval-forwarder.js";
 import { onHeartbeatEvent } from "../infra/heartbeat-events.js";
 import { startHeartbeatRunner, type HeartbeatRunner } from "../infra/heartbeat-runner.js";
 import { getMachineDisplayName } from "../infra/machine-name.js";
@@ -60,7 +59,6 @@ import { createPluginRuntime } from "../plugins/runtime/index.js";
 import type { PluginServicesHandle } from "../plugins/services.js";
 import { getTotalQueueSize } from "../process/command-queue.js";
 import type { RuntimeEnv } from "../runtime.js";
-import type { CommandSecretAssignment } from "../secrets/command-config.js";
 import {
   GATEWAY_AUTH_SURFACE_PATHS,
   evaluateGatewayAuthSurfaceStates,
@@ -70,7 +68,6 @@ import {
   clearSecretsRuntimeSnapshot,
   getActiveSecretsRuntimeSnapshot,
   prepareSecretsRuntimeSnapshot,
-  resolveCommandSecretsFromActiveRuntimeSnapshot,
 } from "../secrets/runtime.js";
 import { onSessionLifecycleEvent } from "../sessions/session-lifecycle-events.js";
 import { onSessionTranscriptUpdate } from "../sessions/transcript-events.js";
@@ -84,7 +81,6 @@ import {
   GATEWAY_EVENT_UPDATE_AVAILABLE,
   type GatewayUpdateAvailableEventPayload,
 } from "./events.js";
-import { ExecApprovalManager } from "./exec-approval-manager.js";
 import { createAttachedGatewayMethodRegistryRuntime } from "./methods/attached-registry.js";
 import { startGatewayModelPricingRefresh } from "./model-pricing-cache.js";
 import { NodeRegistry } from "./node-registry.js";
@@ -99,12 +95,10 @@ import { buildGatewayCronService } from "./server-cron.js";
 import { startGatewayDiscovery } from "./server-discovery-runtime.js";
 import { applyGatewayLaneConcurrency } from "./server-lanes.js";
 import { startGatewayMaintenanceTimers } from "./server-maintenance.js";
+import { createGatewayAuxHandlers } from "./server-aux-handlers.js";
 import { GATEWAY_EVENTS, listGatewayMethods } from "./server-methods-list.js";
 import { coreGatewayHandlers } from "./server-methods.js";
-import { createExecApprovalHandlers } from "./server-methods/exec-approval.js";
 import { safeParseJson } from "./server-methods/nodes.helpers.js";
-import { createPluginApprovalHandlers } from "./server-methods/plugin-approval.js";
-import { createSecretsHandlers } from "./server-methods/secrets.js";
 import type { GatewayRequestHandlers } from "./server-methods/types.js";
 import { hasConnectedMobileNode } from "./server-mobile-nodes.js";
 import { loadGatewayModelCatalog } from "./server-model-catalog.js";
@@ -1168,51 +1162,19 @@ export async function startGatewayServer(
       })().catch((err) => log.error(`Delivery recovery failed: ${String(err)}`));
     }
 
-    const execApprovalManager = new ExecApprovalManager();
-    const execApprovalForwarder = createExecApprovalForwarder();
-    const execApprovalHandlers = createExecApprovalHandlers(execApprovalManager, {
-      forwarder: execApprovalForwarder,
-    });
-    const pluginApprovalManager = new ExecApprovalManager<
-      import("../infra/plugin-approvals.js").PluginApprovalRequestPayload
-    >();
-    const pluginApprovalHandlers = createPluginApprovalHandlers(pluginApprovalManager, {
-      forwarder: execApprovalForwarder,
-    });
-    const secretsHandlers = createSecretsHandlers({
-      reloadSecrets: async () => {
-        const active = getActiveSecretsRuntimeSnapshot();
-        if (!active) {
-          throw new Error("Secrets runtime snapshot is not active.");
-        }
-        const prepared = await activateRuntimeSecrets(active.sourceConfig, {
-          reason: "reload",
-          activate: true,
-        });
-        return { warningCount: prepared.warnings.length };
-      },
-      resolveSecrets: async ({ commandName, targetIds }) => {
-        const { assignments, diagnostics, inactiveRefPaths } =
-          resolveCommandSecretsFromActiveRuntimeSnapshot({
-            commandName,
-            targetIds: new Set(targetIds),
-          });
-        if (assignments.length === 0) {
-          return { assignments: [] as CommandSecretAssignment[], diagnostics, inactiveRefPaths };
-        }
-        return { assignments, diagnostics, inactiveRefPaths };
-      },
+    const { execApprovalManager, pluginApprovalManager, extraHandlers } = createGatewayAuxHandlers({
+      log,
+      activateRuntimeSecrets,
+      startChannel,
+      stopChannel,
+      logChannels,
     });
 
     const channelMethods = listChannelPlugins().flatMap((plugin) => plugin.gatewayMethods ?? []);
     const attachedGatewayMethodRuntime = createAttachedGatewayMethodRegistryRuntime({
       coreGatewayHandlers,
       pluginRegistry,
-      extraHandlers: {
-        ...execApprovalHandlers,
-        ...pluginApprovalHandlers,
-        ...secretsHandlers,
-      },
+      extraHandlers,
       channelMethods,
     });
 

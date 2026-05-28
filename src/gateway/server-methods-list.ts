@@ -1,4 +1,5 @@
 import { listChannelPlugins } from "../channels/plugins/index.js";
+import { GATEWAY_AUX_METHODS } from "./server-aux-methods.js";
 import { GATEWAY_EVENT_UPDATE_AVAILABLE } from "./events.js";
 
 const BASE_METHODS = [
@@ -26,12 +27,7 @@ const BASE_METHODS = [
   "exec.approvals.set",
   "exec.approvals.node.get",
   "exec.approvals.node.set",
-  "exec.approval.request",
-  "exec.approval.waitDecision",
-  "exec.approval.resolve",
-  "plugin.approval.request",
-  "plugin.approval.waitDecision",
-  "plugin.approval.resolve",
+  ...GATEWAY_AUX_METHODS,
   "wizard.start",
   "wizard.next",
   "wizard.cancel",
@@ -56,8 +52,6 @@ const BASE_METHODS = [
   "update.run",
   "voicewake.get",
   "voicewake.set",
-  "secrets.reload",
-  "secrets.resolve",
   "sessions.list",
   "sessions.subscribe",
   "sessions.unsubscribe",
