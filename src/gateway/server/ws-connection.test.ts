@@ -46,6 +46,10 @@ function firstAttachedHandlerParams(): unknown {
   return attachGatewayWsMessageHandlerMock.mock.calls[0]?.[0];
 }
 
+async function waitForLazyMessageHandler() {
+  await vi.dynamicImportSettled();
+}
+
 type TestSocket = EventEmitter & {
   _socket: {
     remoteAddress: string;
@@ -114,6 +118,7 @@ async function connectTestWs(params?: { socket?: TestSocket; clients?: Set<unkno
     headers: { host: "127.0.0.1:19001" },
     socket: { localAddress: "127.0.0.1" },
   });
+  await waitForLazyMessageHandler();
 
   return {
     clients,

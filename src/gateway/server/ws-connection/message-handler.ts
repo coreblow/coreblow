@@ -152,7 +152,7 @@ function resolvePinnedClientMetadata(params: {
   };
 }
 
-export function attachGatewayWsMessageHandler(params: {
+export type GatewayWsMessageHandlerParams = {
   socket: WebSocket;
   upgradeReq: IncomingMessage;
   connId: string;
@@ -189,7 +189,9 @@ export function attachGatewayWsMessageHandler(params: {
   logWsControl: SubsystemLogger;
   isStartupPending?: () => boolean;
   refreshHealthSnapshot?: (opts?: { probe?: boolean }) => Promise<unknown>;
-}) {
+};
+
+export function attachGatewayWsMessageHandler(params: GatewayWsMessageHandlerParams) {
   const {
     socket,
     upgradeReq,

@@ -12,10 +12,10 @@
     "source_parity_both": 4491,
     "source_cb_exclusive": 1774,
     "source_missing_from_cb": 3952,
-    "test_files_cb": 4011,
+    "test_files_cb": 4012,
     "test_files_oc": 5246,
-    "tests_both_covered": 2657,
-    "tests_gap_oc_has_cb_missing": 2344,
+    "tests_both_covered": 2658,
+    "tests_gap_oc_has_cb_missing": 2343,
     "tests_cb_exclusive": 1307,
     "export_files_with_gaps": 74,
     "test_scenario_files_with_gaps": 37
@@ -578,9 +578,9 @@
         "sharedSourcePaths": 315,
         "coreBlowOnlySourcePaths": 65,
         "openClawOnlySourcePaths": 76,
-        "sharedTestPaths": 212,
+        "sharedTestPaths": 213,
         "coreBlowOnlyTestPaths": 134,
-        "openClawTestGaps": 95
+        "openClawTestGaps": 94
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -609,7 +609,7 @@
           "src/gateway/server-discovery-runtime.test.ts",
           "src/gateway/server-http.request-trace.test.ts",
           "src/gateway/server-http.stages.test.ts",
-          "src/gateway/server-import-boundary.test.ts"
+          "src/gateway/server-lanes.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/gateway/api-docs.ts",

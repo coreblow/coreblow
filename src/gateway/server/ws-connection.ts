@@ -17,9 +17,9 @@ import { logWs } from "../ws-log.js";
 import { getHealthVersion, incrementPresenceVersion } from "./health-state.js";
 import type { PreauthConnectionBudget } from "./preauth-connection-budget.js";
 import { broadcastPresenceSnapshot } from "./presence-events.js";
-import {
-  attachGatewayWsMessageHandler,
-  type WsOriginCheckMetrics,
+import type {
+  GatewayWsMessageHandlerParams,
+  WsOriginCheckMetrics,
 } from "./ws-connection/message-handler.js";
 import type { GatewayWsClient } from "./ws-types.js";
 
@@ -28,6 +28,44 @@ type SubsystemLogger = ReturnType<typeof createSubsystemLogger>;
 const LOG_HEADER_MAX_LEN = 300;
 const LOG_HEADER_FORMAT_REGEX = /\p{Cf}/gu;
 const WS_PROTOCOL_PING_INTERVAL_MS = 25_000;
+const MAX_QUEUED_MESSAGE_HANDLER_FRAMES = 16;
+
+function attachGatewayWsMessageHandlerOnDemand(params: GatewayWsMessageHandlerParams): void {
+  const queued: unknown[] = [];
+  const queueMessage = (data: unknown) => {
+    if (queued.length >= MAX_QUEUED_MESSAGE_HANDLER_FRAMES) {
+      params.setCloseCause("message-handler-loading-overflow", {
+        queuedFrames: queued.length,
+      });
+      params.close(1008, "gateway message handler loading");
+      return;
+    }
+    queued.push(data);
+  };
+
+  params.socket.on("message", queueMessage);
+  void import("./ws-connection/message-handler.js")
+    .then(({ attachGatewayWsMessageHandler }) => {
+      params.socket.off("message", queueMessage);
+      if (params.isClosed()) {
+        return;
+      }
+      attachGatewayWsMessageHandler(params);
+      for (const data of queued) {
+        params.socket.emit("message", data);
+      }
+    })
+    .catch((err: unknown) => {
+      params.socket.off("message", queueMessage);
+      params.setCloseCause("message-handler-load-failed", {
+        error: formatError(err),
+      });
+      params.logWsControl.warn(
+        `failed to load ws message handler conn=${params.connId}: ${formatError(err)}`,
+      );
+      params.close(1011, "gateway message handler unavailable");
+    });
+}
 
 function replaceControlChars(value: string): string {
   let cleaned = "";
@@ -315,7 +353,7 @@ export function attachGatewayWsConnectionHandler(params: AttachGatewayWsConnecti
       }
     }, handshakeTimeoutMs);
 
-    attachGatewayWsMessageHandler({
+    attachGatewayWsMessageHandlerOnDemand({
       socket,
       upgradeReq,
       connId,
