@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6277,
+    "cb_source_files": 6280,
     "oc_source_files": 8443,
-    "source_parity_both": 4503,
+    "source_parity_both": 4506,
     "source_cb_exclusive": 1774,
-    "source_missing_from_cb": 3940,
-    "test_files_cb": 4022,
+    "source_missing_from_cb": 3937,
+    "test_files_cb": 4023,
     "test_files_oc": 5246,
-    "tests_both_covered": 2667,
-    "tests_gap_oc_has_cb_missing": 2334,
+    "tests_both_covered": 2668,
+    "tests_gap_oc_has_cb_missing": 2333,
     "tests_cb_exclusive": 1308,
     "export_files_with_gaps": 74,
     "test_scenario_files_with_gaps": 37,
@@ -400,12 +400,12 @@
       "priority": "P0",
       "implementationSurface": "src/infra",
       "counts": {
-        "sharedSourcePaths": 257,
+        "sharedSourcePaths": 260,
         "coreBlowOnlySourcePaths": 75,
-        "openClawOnlySourcePaths": 122,
-        "sharedTestPaths": 258,
+        "openClawOnlySourcePaths": 119,
+        "sharedTestPaths": 259,
         "coreBlowOnlyTestPaths": 62,
-        "openClawTestGaps": 87
+        "openClawTestGaps": 86
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -419,8 +419,8 @@
           "src/infra/approval-native-route-notice.ts",
           "src/infra/approval-native-runtime-types.ts",
           "src/infra/approval-native-runtime.ts",
-          "src/infra/approval-view-model.ts",
-          "src/infra/approval-view-model.types.ts"
+          "src/infra/backup-volatile-filter.ts",
+          "src/infra/changelog-unreleased.ts"
         ],
         "openClawTestGapPaths": [
           "src/infra/approval-gateway-resolver.test.ts",
@@ -430,11 +430,11 @@
           "src/infra/approval-native-route-coordinator.test.ts",
           "src/infra/approval-native-route-notice.test.ts",
           "src/infra/approval-native-runtime.test.ts",
-          "src/infra/approval-view-model.test.ts",
           "src/infra/backup-volatile-filter.test.ts",
           "src/infra/browser-open.test.ts",
           "src/infra/changelog-unreleased.test.ts",
-          "src/infra/channel-approval-auth.test.ts"
+          "src/infra/channel-approval-auth.test.ts",
+          "src/infra/channel-runtime-context.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/infra/archive-staging.ts",

@@ -1,5 +1,6 @@
 import type { ReplyPayload } from "../auto-reply/types.js";
-import type { ExecHost } from "./exec-approvals.js";
+import type { InteractiveReplyButton } from "../interactive/payload.js";
+import { resolveExecApprovalAllowedDecisions, type ExecHost } from "./exec-approvals.js";
 
 export type ExecApprovalReplyDecision = "allow-once" | "allow-always" | "deny";
 export type ExecApprovalUnavailableReason =
@@ -10,7 +11,17 @@ export type ExecApprovalUnavailableReason =
 export type ExecApprovalReplyMetadata = {
   approvalId: string;
   approvalSlug: string;
+  approvalKind?: "exec" | "plugin";
+  agentId?: string;
   allowedDecisions?: readonly ExecApprovalReplyDecision[];
+  sessionKey?: string;
+};
+
+export type ExecApprovalActionDescriptor = {
+  decision: ExecApprovalReplyDecision;
+  label: string;
+  style: NonNullable<InteractiveReplyButton["style"]>;
+  command: string;
 };
 
 export type ExecApprovalPendingReplyParams = {
@@ -44,6 +55,67 @@ function buildFence(text: string, language?: string): string {
   }
   const languagePrefix = language ? language : "";
   return `${fence}${languagePrefix}\n${text}\n${fence}`;
+}
+
+function resolveAllowedDecisions(params: {
+  ask?: string | null;
+  allowedDecisions?: readonly ExecApprovalReplyDecision[];
+}): readonly ExecApprovalReplyDecision[] {
+  return params.allowedDecisions ?? resolveExecApprovalAllowedDecisions({ ask: params.ask });
+}
+
+export function buildExecApprovalCommandText(params: {
+  approvalCommandId: string;
+  decision: ExecApprovalReplyDecision;
+}): string {
+  return `/approve ${params.approvalCommandId} ${params.decision}`;
+}
+
+export function buildExecApprovalActionDescriptors(params: {
+  approvalCommandId: string;
+  ask?: string | null;
+  allowedDecisions?: readonly ExecApprovalReplyDecision[];
+}): ExecApprovalActionDescriptor[] {
+  const approvalCommandId = params.approvalCommandId.trim();
+  if (!approvalCommandId) {
+    return [];
+  }
+  const allowedDecisions = resolveAllowedDecisions(params);
+  const descriptors: ExecApprovalActionDescriptor[] = [];
+  if (allowedDecisions.includes("allow-once")) {
+    descriptors.push({
+      decision: "allow-once",
+      label: "Allow Once",
+      style: "success",
+      command: buildExecApprovalCommandText({
+        approvalCommandId,
+        decision: "allow-once",
+      }),
+    });
+  }
+  if (allowedDecisions.includes("allow-always")) {
+    descriptors.push({
+      decision: "allow-always",
+      label: "Allow Always",
+      style: "primary",
+      command: buildExecApprovalCommandText({
+        approvalCommandId,
+        decision: "allow-always",
+      }),
+    });
+  }
+  if (allowedDecisions.includes("deny")) {
+    descriptors.push({
+      decision: "deny",
+      label: "Deny",
+      style: "danger",
+      command: buildExecApprovalCommandText({
+        approvalCommandId,
+        decision: "deny",
+      }),
+    });
+  }
+  return descriptors;
 }
 
 export function getExecApprovalReplyMetadata(
@@ -177,6 +249,16 @@ export function buildExecApprovalUnavailableReplyPayload(
 
 import { createStandaloneSingleton } from "./service-patterns.js";
 export class ExecApprovalReplyService {
+  buildExecApprovalCommandText(...args: Parameters<typeof buildExecApprovalCommandText>) {
+    return buildExecApprovalCommandText(...args);
+  }
+
+  buildExecApprovalActionDescriptors(
+    ...args: Parameters<typeof buildExecApprovalActionDescriptors>
+  ) {
+    return buildExecApprovalActionDescriptors(...args);
+  }
+
   getExecApprovalApproverDmNoticeText() {
     return getExecApprovalApproverDmNoticeText();
   }

@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { DEFAULT_AGENT_ID } from "../routing/session-key.js";
+import type { CommandExplanationSummary } from "./command-analysis/explain.js";
 import { expandHomePrefix } from "./home-dir.js";
 import { requestJsonlSocket } from "./jsonl-socket.js";
 export * from "./exec-approvals-analysis.js";
@@ -63,6 +64,9 @@ export type ExecApprovalRequestPayload = {
   command: string;
   commandPreview?: string | null;
   commandArgv?: string[];
+  allowedDecisions?: readonly ExecApprovalDecision[] | readonly string[] | null;
+  warningText?: string | null;
+  commandAnalysis?: CommandExplanationSummary | null;
   // Optional UI-safe env key preview for approval prompts.
   envKeys?: string[];
   systemRunBinding?: SystemRunApprovalBinding | null;
@@ -555,6 +559,41 @@ export function maxAsk(a: ExecAsk, b: ExecAsk): ExecAsk {
 }
 
 export type ExecApprovalDecision = "allow-once" | "allow-always" | "deny";
+export const DEFAULT_EXEC_APPROVAL_DECISIONS = [
+  "allow-once",
+  "allow-always",
+  "deny",
+] as const satisfies readonly ExecApprovalDecision[];
+
+export function resolveExecApprovalAllowedDecisions(params?: {
+  ask?: string | null;
+}): readonly ExecApprovalDecision[] {
+  const ask = normalizeExecAsk(params?.ask);
+  if (ask === "always") {
+    return ["allow-once", "deny"];
+  }
+  return DEFAULT_EXEC_APPROVAL_DECISIONS;
+}
+
+export function resolveExecApprovalRequestAllowedDecisions(params?: {
+  ask?: string | null;
+  allowedDecisions?: readonly ExecApprovalDecision[] | readonly string[] | null;
+}): readonly ExecApprovalDecision[] {
+  const explicit = Array.isArray(params?.allowedDecisions)
+    ? params.allowedDecisions.filter(
+        (decision): decision is ExecApprovalDecision =>
+          decision === "allow-once" || decision === "allow-always" || decision === "deny",
+      )
+    : [];
+  return explicit.length > 0 ? explicit : resolveExecApprovalAllowedDecisions({ ask: params?.ask });
+}
+
+export function isExecApprovalDecisionAllowed(params: {
+  decision: ExecApprovalDecision;
+  ask?: string | null;
+}): boolean {
+  return resolveExecApprovalAllowedDecisions({ ask: params.ask }).includes(params.decision);
+}
 
 export async function requestExecApprovalViaSocket(params: {
   socketPath: string;
@@ -612,6 +651,22 @@ export class ExecApprovalsService {
 
   resolveExecApprovalsSocketPath() {
     return resolveExecApprovalsSocketPath();
+  }
+
+  resolveExecApprovalAllowedDecisions(
+    ...args: Parameters<typeof resolveExecApprovalAllowedDecisions>
+  ) {
+    return resolveExecApprovalAllowedDecisions(...args);
+  }
+
+  resolveExecApprovalRequestAllowedDecisions(
+    ...args: Parameters<typeof resolveExecApprovalRequestAllowedDecisions>
+  ) {
+    return resolveExecApprovalRequestAllowedDecisions(...args);
+  }
+
+  isExecApprovalDecisionAllowed(...args: Parameters<typeof isExecApprovalDecisionAllowed>) {
+    return isExecApprovalDecisionAllowed(...args);
   }
 }
 

@@ -7,6 +7,7 @@ export type PluginApprovalRequestPayload = {
   severity?: "info" | "warning" | "critical" | null;
   toolName?: string | null;
   toolCallId?: string | null;
+  allowedDecisions?: readonly ExecApprovalDecision[] | readonly string[] | null;
   agentId?: string | null;
   sessionKey?: string | null;
   turnSourceChannel?: string | null;
@@ -34,6 +35,28 @@ export const DEFAULT_PLUGIN_APPROVAL_TIMEOUT_MS = 120_000;
 export const MAX_PLUGIN_APPROVAL_TIMEOUT_MS = 600_000;
 export const PLUGIN_APPROVAL_TITLE_MAX_LENGTH = 80;
 export const PLUGIN_APPROVAL_DESCRIPTION_MAX_LENGTH = 256;
+export const DEFAULT_PLUGIN_APPROVAL_DECISIONS = [
+  "allow-once",
+  "allow-always",
+  "deny",
+] as const satisfies readonly ExecApprovalDecision[];
+
+export function resolvePluginApprovalRequestAllowedDecisions(params?: {
+  allowedDecisions?: readonly ExecApprovalDecision[] | readonly string[] | null;
+}): readonly ExecApprovalDecision[] {
+  const explicit: ExecApprovalDecision[] = [];
+  if (Array.isArray(params?.allowedDecisions)) {
+    for (const decision of params.allowedDecisions) {
+      if (
+        (decision === "allow-once" || decision === "allow-always" || decision === "deny") &&
+        !explicit.includes(decision)
+      ) {
+        explicit.push(decision);
+      }
+    }
+  }
+  return explicit.length > 0 ? explicit : DEFAULT_PLUGIN_APPROVAL_DECISIONS;
+}
 
 export function approvalDecisionLabel(decision: ExecApprovalDecision): string {
   if (decision === "allow-once") {
@@ -67,7 +90,11 @@ export function buildPluginApprovalRequestMessage(
   lines.push(`ID: ${request.id}`);
   const expiresIn = Math.max(0, Math.round((request.expiresAtMs - nowMsValue) / 1000));
   lines.push(`Expires in: ${expiresIn}s`);
-  lines.push("Reply with: /approve <id> allow-once|allow-always|deny");
+  lines.push(
+    `Reply with: /approve <id> ${resolvePluginApprovalRequestAllowedDecisions(request.request).join(
+      "|",
+    )}`,
+  );
   return lines.join("\n");
 }
 
@@ -87,6 +114,12 @@ export function buildPluginApprovalExpiredMessage(request: PluginApprovalRequest
 
 import { createStandaloneSingleton } from "./service-patterns.js";
 export class PluginApprovalsService {
+  resolvePluginApprovalRequestAllowedDecisions(
+    ...args: Parameters<typeof resolvePluginApprovalRequestAllowedDecisions>
+  ) {
+    return resolvePluginApprovalRequestAllowedDecisions(...args);
+  }
+
   approvalDecisionLabel(decision: Parameters<typeof approvalDecisionLabel>[0]) {
     return approvalDecisionLabel(decision);
   }
