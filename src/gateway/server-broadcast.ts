@@ -6,13 +6,31 @@ import {
   WRITE_SCOPE,
 } from "./method-scopes.js";
 import { MAX_BUFFERED_BYTES } from "./server-constants.js";
-import type {
-  GatewayBroadcastFn,
-  GatewayBroadcastOpts,
-  GatewayBroadcastToConnIdsFn,
-} from "./server-broadcast-types.js";
 import type { GatewayWsClient } from "./server/ws-types.js";
 import { logWs, shouldLogWs, summarizeAgentEventForWsLog } from "./ws-log.js";
+
+export type GatewayBroadcastStateVersion = {
+  presence?: number;
+  health?: number;
+};
+
+export type GatewayBroadcastOpts = {
+  dropIfSlow?: boolean;
+  stateVersion?: GatewayBroadcastStateVersion;
+};
+
+export type GatewayBroadcastFn = (
+  event: string,
+  payload: unknown,
+  opts?: GatewayBroadcastOpts,
+) => void;
+
+export type GatewayBroadcastToConnIdsFn = (
+  event: string,
+  payload: unknown,
+  connIds: ReadonlySet<string>,
+  opts?: GatewayBroadcastOpts,
+) => void;
 
 const EVENT_SCOPE_GUARDS: Record<string, string[]> = {
   "exec.approval.requested": [APPROVALS_SCOPE],

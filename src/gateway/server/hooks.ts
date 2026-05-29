@@ -16,12 +16,18 @@ import {
   type HookAgentDispatchPayload,
   type HooksConfigResolved,
 } from "../hooks.js";
-import { resolveHookClientIpConfig } from "./hook-client-ip-config.js";
 import { createHooksRequestHandler, type HookClientIpConfig } from "./hooks-request-handler.js";
 
 type SubsystemLogger = ReturnType<typeof createSubsystemLogger>;
 
-export { resolveHookClientIpConfig };
+export function resolveHookClientIpConfig(
+  cfg: Parameters<typeof import("./hook-client-ip-config.js").resolveHookClientIpConfig>[0],
+): HookClientIpConfig {
+  return {
+    trustedProxies: cfg.gateway?.trustedProxies,
+    allowRealIpFallback: cfg.gateway?.allowRealIpFallback === true,
+  };
+}
 
 function sanitizeHookEventName(name: string): string {
   const trimmed = name.trim() || "unnamed hook";

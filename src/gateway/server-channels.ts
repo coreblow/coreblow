@@ -16,9 +16,11 @@ import {
   normalizeOptionalAccountId,
 } from "../routing/session-key.js";
 import type { RuntimeEnv } from "../runtime.js";
-import type { ChannelRuntimeSnapshot } from "./server-channel-runtime.types.js";
 
-export type { ChannelRuntimeSnapshot } from "./server-channel-runtime.types.js";
+export type ChannelRuntimeSnapshot = {
+  channels: Partial<Record<ChannelId, ChannelAccountSnapshot>>;
+  channelAccounts: Partial<Record<ChannelId, Record<string, ChannelAccountSnapshot>>>;
+};
 
 const CHANNEL_RESTART_POLICY: BackoffPolicy = {
   initialMs: 5_000,
