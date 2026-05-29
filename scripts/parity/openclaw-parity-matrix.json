@@ -18,7 +18,8 @@
     "tests_gap_oc_has_cb_missing": 2339,
     "tests_cb_exclusive": 1307,
     "export_files_with_gaps": 74,
-    "test_scenario_files_with_gaps": 37
+    "test_scenario_files_with_gaps": 37,
+    "test_scenario_files_intentionally_different": 0
   },
   "statusLegend": {
     "done": "Shared source exists and no OpenClaw-only source paths were found for this domain.",
@@ -634,6 +635,62 @@
           "coreBlowDecision": "CoreBlow requires an explicitly declared operator.read scope for shared-secret bearer model-list requests.",
           "rationale": "Preserve least-privilege scope enforcement on the model discovery surface.",
           "gate": "pnpm test -- src/gateway/models-http.test.ts"
+        },
+        {
+          "path": "src/gateway/auth.test.ts",
+          "status": "intentionally_different",
+          "referenceBehavior": "OpenClaw validates OPENCLAW_GATEWAY_* env var compatibility scenarios.",
+          "coreBlowDecision": "CoreBlow keeps gateway auth env var contracts under COREBLOW_* naming.",
+          "rationale": "Avoid promoting OpenClaw-branded environment variables as CoreBlow public API.",
+          "gate": "pnpm audit:parity:gateway"
+        },
+        {
+          "path": "src/gateway/call.test.ts",
+          "status": "intentionally_different",
+          "referenceBehavior": "OpenClaw validates OPENCLAW_GATEWAY_URL and OPENCLAW_ALLOW_INSECURE_PRIVATE_WS.",
+          "coreBlowDecision": "CoreBlow keeps remote URL and insecure private WS opt-in under CoreBlow-branded configuration.",
+          "rationale": "Preserve CoreBlow product naming on gateway connection and security knobs.",
+          "gate": "pnpm audit:parity:gateway"
+        },
+        {
+          "path": "src/gateway/client.test.ts",
+          "status": "intentionally_different",
+          "referenceBehavior": "OpenClaw validates OPENCLAW_ALLOW_INSECURE_PRIVATE_WS client behavior.",
+          "coreBlowDecision": "CoreBlow keeps insecure WS compatibility decisions on CoreBlow-branded configuration.",
+          "rationale": "Avoid adding OpenClaw-branded security bypass flags as canonical CoreBlow API.",
+          "gate": "pnpm audit:parity:gateway"
+        },
+        {
+          "path": "src/gateway/connection-auth.test.ts",
+          "status": "intentionally_different",
+          "referenceBehavior": "OpenClaw tests SecretRef precedence against OPENCLAW env variables.",
+          "coreBlowDecision": "CoreBlow validates SecretRef precedence against CoreBlow config/env naming.",
+          "rationale": "Keep auth precedence semantics without adopting OpenClaw public env names.",
+          "gate": "pnpm audit:parity:gateway"
+        },
+        {
+          "path": "src/gateway/embeddings-http.test.ts",
+          "status": "intentionally_different",
+          "referenceBehavior": "OpenClaw rejects disallowed x-openclaw-model provider overrides.",
+          "coreBlowDecision": "CoreBlow uses CoreBlow-branded request headers for provider override behavior.",
+          "rationale": "Keep OpenAI-compatible behavior while avoiding OpenClaw-branded headers.",
+          "gate": "pnpm audit:parity:gateway"
+        },
+        {
+          "path": "src/gateway/http-utils.request-context.test.ts",
+          "status": "intentionally_different",
+          "referenceBehavior": "OpenClaw normalizes x-openclaw-message-channel request context.",
+          "coreBlowDecision": "CoreBlow request context channel headers use CoreBlow naming.",
+          "rationale": "Message-channel request context is parity behavior, but public header naming is CoreBlow-native.",
+          "gate": "pnpm audit:parity:gateway"
+        },
+        {
+          "path": "src/gateway/openai-http.message-channel.test.ts",
+          "status": "intentionally_different",
+          "referenceBehavior": "OpenClaw passes x-openclaw-message-channel through OpenAI-compatible HTTP.",
+          "coreBlowDecision": "CoreBlow preserves message-channel behavior with CoreBlow header naming.",
+          "rationale": "Avoid exposing OpenClaw-branded HTTP headers as CoreBlow contract.",
+          "gate": "pnpm audit:parity:gateway"
         }
       ],
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",

@@ -8,24 +8,38 @@
  * Usage:
  *   node scripts/audit-oc-parity.mjs
  *   node scripts/audit-oc-parity.mjs --json
+ *   node scripts/audit-oc-parity.mjs --oc-root=/Users/febrinanda/openclaw-refs/openclaw
+ *   node scripts/audit-oc-parity.mjs --domain-summary
  *   node scripts/audit-oc-parity.mjs --module src/tui
  *   node scripts/audit-oc-parity.mjs --tests-only
+ *   node scripts/audit-oc-parity.mjs --include-live
  *
  * Architecture reference baseline
  */
 
-import { readdirSync, statSync, existsSync, readFileSync } from "node:fs";
-import { join, relative, extname, basename } from "node:path";
+import { readdirSync, existsSync, readFileSync } from "node:fs";
+import { join, relative, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const CB_ROOT = join(__dirname, "..");
-const OC_ROOT = "/Users/febrinanda/openclaw-main"; // local reference only
 
 const args = process.argv.slice(2);
 const JSON_OUTPUT = args.includes("--json");
+const DOMAIN_SUMMARY_OUTPUT = args.includes("--domain-summary");
 const TESTS_ONLY = args.includes("--tests-only");
-const SKIP_LIVE = args.includes("--skip-live") || true; // always skip live/e2e by default
+const SKIP_LIVE = !args.includes("--include-live"); // skip live/e2e by default
+
+const OC_ROOT = (() => {
+  const flag = args.find((a) => a.startsWith("--oc-root="));
+  if (flag) return flag.split("=").slice(1).join("=");
+  return process.env.OC_ROOT || "/Users/febrinanda/openclaw-main";
+})();
+
+if (!existsSync(OC_ROOT)) {
+  console.error(`OpenClaw reference root not found: ${OC_ROOT}`);
+  process.exit(1);
+}
 
 // FIX: Only accept --module=X form to avoid positional arg bugs
 const MODULE_FILTER = (() => {
@@ -99,6 +113,262 @@ function extractTestScenarios(filePath) {
     scenarios.push(m[1]);
   }
   return scenarios;
+}
+
+const INTENTIONAL_TEST_SCENARIO_DIFFERENCES = new Map([
+  [
+    "src/gateway/auth.test.ts",
+    new Map([
+      [
+        "resolves token/password from OPENCLAW gateway env vars",
+        {
+          status: "intentionally_different",
+          rationale:
+            "CoreBlow keeps public gateway auth env vars under COREBLOW_* branding.",
+        },
+      ],
+      [
+        "accepts password mode when env provides OPENCLAW_GATEWAY_PASSWORD",
+        {
+          status: "intentionally_different",
+          rationale:
+            "CoreBlow does not make OPENCLAW_GATEWAY_PASSWORD a canonical auth contract.",
+        },
+      ],
+    ]),
+  ],
+  [
+    "src/gateway/call.test.ts",
+    new Map([
+      [
+        "uses OPENCLAW_GATEWAY_URL env override in remote mode when remote URL is missing",
+        {
+          status: "intentionally_different",
+          rationale: "CoreBlow remote gateway discovery uses CoreBlow-branded env vars.",
+        },
+      ],
+      [
+        "uses env OPENCLAW_GATEWAY_URL when set",
+        {
+          status: "intentionally_different",
+          rationale: "CoreBlow does not treat OPENCLAW_GATEWAY_URL as a primary public API.",
+        },
+      ],
+      [
+        "allows ws:// private remote URLs only when OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1",
+        {
+          status: "intentionally_different",
+          rationale:
+            "CoreBlow keeps insecure private WS opt-in under CoreBlow-branded configuration.",
+        },
+      ],
+      [
+        "allows ws:// hostname remote URLs when OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1",
+        {
+          status: "intentionally_different",
+          rationale:
+            "CoreBlow keeps insecure hostname WS opt-in under CoreBlow-branded configuration.",
+        },
+      ],
+    ]),
+  ],
+  [
+    "src/gateway/client.test.ts",
+    new Map([
+      [
+        "allows ws:// to private addresses only with OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1",
+        {
+          status: "intentionally_different",
+          rationale:
+            "CoreBlow keeps insecure private WS opt-in under CoreBlow-branded configuration.",
+        },
+      ],
+      [
+        "allows ws:// hostnames with OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1",
+        {
+          status: "intentionally_different",
+          rationale:
+            "CoreBlow keeps insecure hostname WS opt-in under CoreBlow-branded configuration.",
+        },
+      ],
+    ]),
+  ],
+  [
+    "src/gateway/connection-auth.test.ts",
+    new Map([
+      [
+        "resolves local SecretRef token when OPENCLAW env is absent",
+        {
+          status: "intentionally_different",
+          rationale:
+            "CoreBlow's fallback contract is validated against CoreBlow config/env naming.",
+        },
+      ],
+      [
+        "resolves config-first token SecretRef even when OPENCLAW env token exists",
+        {
+          status: "intentionally_different",
+          rationale:
+            "OpenClaw env precedence scenarios are not canonical CoreBlow auth behavior.",
+        },
+      ],
+      [
+        "resolves config-first password SecretRef even when OPENCLAW env password exists",
+        {
+          status: "intentionally_different",
+          rationale:
+            "OpenClaw env precedence scenarios are not canonical CoreBlow auth behavior.",
+        },
+      ],
+    ]),
+  ],
+  [
+    "src/gateway/embeddings-http.test.ts",
+    new Map([
+      [
+        "rejects disallowed x-openclaw-model provider overrides",
+        {
+          status: "intentionally_different",
+          rationale:
+            "CoreBlow's OpenAI-compatible provider override header uses CoreBlow naming.",
+        },
+      ],
+    ]),
+  ],
+  [
+    "src/gateway/http-utils.request-context.test.ts",
+    new Map([
+      [
+        "uses normalized x-openclaw-message-channel when enabled",
+        {
+          status: "intentionally_different",
+          rationale: "CoreBlow request-context channel headers use CoreBlow naming.",
+        },
+      ],
+    ]),
+  ],
+  [
+    "src/gateway/models-http.test.ts",
+    new Map([
+      [
+        "rejects requests with no declared operator scopes",
+        {
+          status: "intentionally_different",
+          rationale:
+            "CoreBlow intentionally keeps model-list bearer access on explicit least-privilege scopes.",
+        },
+      ],
+    ]),
+  ],
+  [
+    "src/gateway/openai-http.message-channel.test.ts",
+    new Map([
+      [
+        "passes x-openclaw-message-channel through to agentCommand",
+        {
+          status: "intentionally_different",
+          rationale:
+            "CoreBlow preserves OpenAI-compatible message-channel behavior with CoreBlow header naming.",
+        },
+      ],
+    ]),
+  ],
+]);
+
+function resolveIntentionalTestScenarioDifference(file, scenario) {
+  return INTENTIONAL_TEST_SCENARIO_DIFFERENCES.get(file)?.get(scenario);
+}
+
+function domainFor(path) {
+  const parts = path.split("/");
+  if (parts[0] === "extensions") return `extensions/${parts[1]}`;
+  if (parts[0] === "packages") return `packages/${parts[1]}`;
+  return parts.slice(0, 2).join("/");
+}
+
+function addDomainCount(map, path) {
+  const domain = domainFor(path);
+  map.set(domain, (map.get(domain) || 0) + 1);
+}
+
+function countByDomain(paths) {
+  const counts = new Map();
+  for (const path of paths) addDomainCount(counts, path);
+  return counts;
+}
+
+function countFor(map, domain) {
+  return map.get(domain) || 0;
+}
+
+function domainStatus({ shared, missing, coreOnly }) {
+  if (missing > 0 && shared > 0) return "partial";
+  if (missing > 0 && shared === 0) return "missing";
+  if (missing === 0 && shared > 0) return "done";
+  if (missing === 0 && coreOnly > 0) return "intentionally_different";
+  return "missing";
+}
+
+function domainPriority({ missingSource, missingTests }) {
+  const totalGap = missingSource + missingTests;
+  if (totalGap >= 200) return "P0";
+  if (totalGap >= 80) return "P1";
+  if (totalGap >= 20) return "P2";
+  return "P3";
+}
+
+function buildDomainSummary(results) {
+  const sharedSource = countByDomain(results.source.both);
+  const coreOnlySource = countByDomain(results.source.cb_only);
+  const missingSource = countByDomain(results.source.oc_only);
+  const sharedTests = countByDomain(results.tests.both_have_test);
+  const coreOnlyTests = countByDomain(results.tests.cb_has_test_oc_does_not);
+  const missingTests = countByDomain(results.tests.oc_has_test_cb_does_not);
+  const domains = [
+    ...new Set([
+      ...sharedSource.keys(),
+      ...coreOnlySource.keys(),
+      ...missingSource.keys(),
+      ...sharedTests.keys(),
+      ...coreOnlyTests.keys(),
+      ...missingTests.keys(),
+    ]),
+  ].sort();
+
+  return domains
+    .map((domain) => {
+      const counts = {
+        shared_source: countFor(sharedSource, domain),
+        coreblow_only_source: countFor(coreOnlySource, domain),
+        openclaw_only_source: countFor(missingSource, domain),
+        shared_tests: countFor(sharedTests, domain),
+        coreblow_only_tests: countFor(coreOnlyTests, domain),
+        openclaw_test_gaps: countFor(missingTests, domain),
+      };
+      return {
+        domain,
+        status: domainStatus({
+          shared: counts.shared_source,
+          missing: counts.openclaw_only_source,
+          coreOnly: counts.coreblow_only_source,
+        }),
+        priority: domainPriority({
+          missingSource: counts.openclaw_only_source,
+          missingTests: counts.openclaw_test_gaps,
+        }),
+        counts,
+      };
+    })
+    .sort((a, b) => {
+      const order = { P0: 0, P1: 1, P2: 2, P3: 3 };
+      const aGap = a.counts.openclaw_only_source + a.counts.openclaw_test_gaps;
+      const bGap = b.counts.openclaw_only_source + b.counts.openclaw_test_gaps;
+      return (
+        order[a.priority] - order[b.priority] ||
+        bGap - aGap ||
+        a.domain.localeCompare(b.domain)
+      );
+    });
 }
 
 // ─── collect files ──────────────────────────────────────────────────────────
@@ -210,7 +480,9 @@ const results = {
   },
   test_scenarios: {
     gaps: [],  // OC test scenarios not in CB tests
+    intentional_differences: [], // OC scenarios deliberately not ported as CoreBlow behavior
   },
+  domain_summary: [],
 };
 
 // Source file comparison
@@ -289,11 +561,32 @@ for (const k of results.tests.both_have_test) {
   if (scenarioCount >= SCENARIO_SAMPLE_LIMIT) break;
   const cbScenarios = new Set(extractTestScenarios(join(CB_ROOT, k)));
   const ocScenarios = extractTestScenarios(join(OC_ROOT, k));
-  const missingScenarios = ocScenarios.filter((s) => !cbScenarios.has(s));
+  const missingScenarios = [];
+  const intentionalDifferences = [];
+  for (const scenario of ocScenarios) {
+    if (cbScenarios.has(scenario)) {
+      continue;
+    }
+    const decision = resolveIntentionalTestScenarioDifference(k, scenario);
+    if (decision) {
+      intentionalDifferences.push({
+        scenario,
+        ...decision,
+      });
+      continue;
+    }
+    missingScenarios.push(scenario);
+  }
   if (missingScenarios.length > 0) {
     results.test_scenarios.gaps.push({
       file: k,
       oc_scenarios_missing_in_cb: missingScenarios,
+    });
+  }
+  if (intentionalDifferences.length > 0) {
+    results.test_scenarios.intentional_differences.push({
+      file: k,
+      scenarios: intentionalDifferences,
     });
   }
   scenarioCount++;
@@ -313,9 +606,43 @@ results.summary = {
   tests_cb_exclusive: results.tests.cb_has_test_oc_does_not.length,
   export_files_with_gaps: results.exports.gaps.length,
   test_scenario_files_with_gaps: results.test_scenarios.gaps.length,
+  test_scenario_files_intentionally_different:
+    results.test_scenarios.intentional_differences.length,
 };
 
+results.domain_summary = buildDomainSummary(results);
+
 // ─── output ─────────────────────────────────────────────────────────────────
+
+if (DOMAIN_SUMMARY_OUTPUT) {
+  if (JSON_OUTPUT) {
+    console.log(JSON.stringify({
+      summary: results.summary,
+      domain_summary: results.domain_summary,
+    }, null, 2));
+    process.exit(0);
+  }
+
+  console.log("CoreBlow / OpenClaw parity domain summary");
+  console.log(`OpenClaw root: ${OC_ROOT}`);
+  if (MODULE_FILTER) console.log(`Filter: ${MODULE_FILTER}`);
+  console.log();
+  console.log("priority status  oc_src oc_tests shared_src domain");
+  console.log("-------- ------- ------ -------- ---------- ------");
+  for (const row of results.domain_summary.slice(0, 40)) {
+    const c = row.counts;
+    console.log(
+      `${row.priority.padEnd(8)} ${row.status.padEnd(7)} ` +
+      `${String(c.openclaw_only_source).padStart(6)} ` +
+      `${String(c.openclaw_test_gaps).padStart(8)} ` +
+      `${String(c.shared_source).padStart(10)} ${row.domain}`,
+    );
+  }
+  if (results.domain_summary.length > 40) {
+    console.log(`... and ${results.domain_summary.length - 40} more domains`);
+  }
+  process.exit(0);
+}
 
 if (JSON_OUTPUT) {
   console.log(JSON.stringify(results, null, 2));
@@ -343,6 +670,20 @@ console.log(`  OC test files       : ${s.test_files_oc}`);
 console.log(`  Both covered ✅     : ${s.tests_both_covered}`);
 console.log(`  OC has, CB missing ❌: ${s.tests_gap_oc_has_cb_missing}`);
 console.log(`  CB-exclusive tests  : ${s.tests_cb_exclusive}`);
+console.log();
+
+console.log("TOP DOMAIN GAPS");
+console.log("─".repeat(60));
+results.domain_summary
+  .filter((row) => row.counts.openclaw_only_source > 0 || row.counts.openclaw_test_gaps > 0)
+  .slice(0, 12)
+  .forEach((row) => {
+    const c = row.counts;
+    console.log(
+      `  ${row.priority} ${row.domain}: ${c.openclaw_only_source} source, ` +
+      `${c.openclaw_test_gaps} tests missing (${row.status})`,
+    );
+  });
 console.log();
 
 if (results.source.oc_only.length > 0) {
@@ -384,6 +725,21 @@ if (results.test_scenarios.gaps.length > 0) {
     console.log(`  ${file}:`);
     oc_scenarios_missing_in_cb.forEach((s) => console.log(`    - "${s}"`));
   });
+  console.log();
+}
+
+if (results.test_scenarios.intentional_differences.length > 0) {
+  console.log("ℹ️  SCENARIO DIFFERENCES — intentionally different:");
+  console.log("─".repeat(60));
+  results.test_scenarios.intentional_differences
+    .slice(0, 20)
+    .forEach(({ file, scenarios }) => {
+      console.log(`  ${file}:`);
+      scenarios.forEach((entry) => {
+        console.log(`    - "${entry.scenario}" (${entry.status})`);
+        console.log(`      ${entry.rationale}`);
+      });
+    });
   console.log();
 }
 
