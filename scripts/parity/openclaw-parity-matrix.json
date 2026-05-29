@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6269,
+    "cb_source_files": 6272,
     "oc_source_files": 8443,
-    "source_parity_both": 4495,
+    "source_parity_both": 4498,
     "source_cb_exclusive": 1774,
-    "source_missing_from_cb": 3948,
-    "test_files_cb": 4016,
+    "source_missing_from_cb": 3945,
+    "test_files_cb": 4017,
     "test_files_oc": 5246,
-    "tests_both_covered": 2662,
-    "tests_gap_oc_has_cb_missing": 2339,
+    "tests_both_covered": 2663,
+    "tests_gap_oc_has_cb_missing": 2338,
     "tests_cb_exclusive": 1307,
     "export_files_with_gaps": 74,
     "test_scenario_files_with_gaps": 37,
@@ -350,12 +350,12 @@
       "priority": "P0",
       "implementationSurface": "src/infra",
       "counts": {
-        "sharedSourcePaths": 250,
+        "sharedSourcePaths": 252,
         "coreBlowOnlySourcePaths": 75,
-        "openClawOnlySourcePaths": 129,
-        "sharedTestPaths": 253,
+        "openClawOnlySourcePaths": 127,
+        "sharedTestPaths": 254,
         "coreBlowOnlyTestPaths": 61,
-        "openClawTestGaps": 92
+        "openClawTestGaps": 91
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -382,9 +382,9 @@
           "src/infra/approval-native-route-coordinator.test.ts",
           "src/infra/approval-native-route-notice.test.ts",
           "src/infra/approval-native-runtime.test.ts",
-          "src/infra/approval-native-target-key.test.ts",
           "src/infra/approval-request-filters.test.ts",
-          "src/infra/approval-turn-source.test.ts"
+          "src/infra/approval-turn-source.test.ts",
+          "src/infra/approval-view-model.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/infra/archive-staging.ts",
@@ -768,9 +768,9 @@
       "priority": "P1",
       "implementationSurface": "src/channels, src/routing, extensions channel adapters",
       "counts": {
-        "sharedSourcePaths": 108,
+        "sharedSourcePaths": 109,
         "coreBlowOnlySourcePaths": 119,
-        "openClawOnlySourcePaths": 103,
+        "openClawOnlySourcePaths": 102,
         "sharedTestPaths": 56,
         "coreBlowOnlyTestPaths": 13,
         "openClawTestGaps": 47
