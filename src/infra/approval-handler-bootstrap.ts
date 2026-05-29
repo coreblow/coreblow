@@ -2,13 +2,14 @@ import type { ChannelPlugin } from "../channels/plugins/types.plugin.js";
 import type { CoreBlowConfig } from "../config/config.js";
 import type { createSubsystemLogger } from "../logging/subsystem.js";
 import type { PluginRuntime } from "../plugins/runtime/types.js";
+import {
+  CHANNEL_APPROVAL_NATIVE_RUNTIME_CONTEXT_CAPABILITY,
+  createChannelApprovalHandlerFromCapability,
+  type ChannelApprovalHandler,
+} from "./approval-handler-runtime.js";
 import { getChannelRuntimeContext, watchChannelRuntimeContexts } from "./channel-runtime-context.js";
 
-export const CHANNEL_APPROVAL_NATIVE_RUNTIME_CONTEXT_CAPABILITY = "approval.native";
-
-type ApprovalBootstrapHandler = {
-  stop: () => Promise<void> | void;
-};
+type ApprovalBootstrapHandler = ChannelApprovalHandler;
 
 type ApprovalRuntimeCapability = {
   startHandler?: (params: {
@@ -21,7 +22,7 @@ type ApprovalRuntimeCapability = {
 
 function resolveNativeRuntimeCapability(
   plugin: Pick<ChannelPlugin, "approvalCapability">,
-): ApprovalRuntimeCapability | null {
+): ApprovalRuntimeCapability | unknown | null {
   const capability = plugin.approvalCapability?.nativeRuntime;
   if (!capability || typeof capability !== "object") {
     return null;
@@ -51,16 +52,19 @@ export async function startChannelApprovalHandlerBootstrap(params: {
 
   const startHandlerForContext = async (context: unknown) => {
     await stopHandler();
-    if (typeof nativeRuntime.startHandler !== "function") {
-      return;
-    }
-    const handler = await nativeRuntime.startHandler({
+    const handler = await createChannelApprovalHandlerFromCapability({
+      capability: params.plugin.approvalCapability,
+      label: `${params.plugin.id}/native-approvals`,
+      clientDisplayName: `${params.plugin.meta.label || params.plugin.id} Native Approvals (${params.accountId})`,
+      channel: params.plugin.id,
+      channelLabel: params.plugin.meta.label || params.plugin.id,
       cfg: params.cfg,
       accountId: params.accountId,
       context,
-      channelRuntime: params.channelRuntime!,
+      channelRuntime: params.channelRuntime,
     });
     activeHandler = handler ?? null;
+    await handler?.start();
   };
 
   const spawn = (promise: Promise<void>) => {

@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6281,
+    "cb_source_files": 6286,
     "oc_source_files": 8443,
-    "source_parity_both": 4507,
+    "source_parity_both": 4512,
     "source_cb_exclusive": 1774,
-    "source_missing_from_cb": 3936,
-    "test_files_cb": 4024,
+    "source_missing_from_cb": 3931,
+    "test_files_cb": 4025,
     "test_files_oc": 5246,
-    "tests_both_covered": 2669,
-    "tests_gap_oc_has_cb_missing": 2332,
+    "tests_both_covered": 2670,
+    "tests_gap_oc_has_cb_missing": 2331,
     "tests_cb_exclusive": 1308,
     "export_files_with_gaps": 74,
     "test_scenario_files_with_gaps": 37,
@@ -397,21 +397,18 @@
     {
       "domain": "src/infra",
       "status": "partial",
-      "priority": "P0",
+      "priority": "P1",
       "implementationSurface": "src/infra",
       "counts": {
-        "sharedSourcePaths": 261,
+        "sharedSourcePaths": 266,
         "coreBlowOnlySourcePaths": 75,
-        "openClawOnlySourcePaths": 118,
-        "sharedTestPaths": 260,
+        "openClawOnlySourcePaths": 113,
+        "sharedTestPaths": 261,
         "coreBlowOnlyTestPaths": 62,
-        "openClawTestGaps": 85
+        "openClawTestGaps": 84
       },
       "samples": {
         "openClawOnlySourcePaths": [
-          "src/infra/approval-handler-adapter-runtime.ts",
-          "src/infra/approval-handler-runtime-types.ts",
-          "src/infra/approval-handler-runtime.ts",
           "src/infra/approval-handler.test-helpers.ts",
           "src/infra/approval-native-delivery.ts",
           "src/infra/approval-native-route-coordinator.ts",
@@ -420,11 +417,13 @@
           "src/infra/approval-native-runtime.ts",
           "src/infra/backup-volatile-filter.ts",
           "src/infra/changelog-unreleased.ts",
-          "src/infra/channel-approval-auth.ts"
+          "src/infra/channel-approval-auth.ts",
+          "src/infra/clawhub-spec.ts",
+          "src/infra/command-analysis/inline-eval.ts",
+          "src/infra/command-analysis/policy.ts"
         ],
         "openClawTestGapPaths": [
           "src/infra/approval-handler-bootstrap.test.ts",
-          "src/infra/approval-handler-runtime.test.ts",
           "src/infra/approval-native-delivery.test.ts",
           "src/infra/approval-native-route-coordinator.test.ts",
           "src/infra/approval-native-route-notice.test.ts",
@@ -434,7 +433,8 @@
           "src/infra/changelog-unreleased.test.ts",
           "src/infra/channel-approval-auth.test.ts",
           "src/infra/channel-runtime-context.test.ts",
-          "src/infra/command-analysis/explain.lazy.test.ts"
+          "src/infra/command-analysis/explain.lazy.test.ts",
+          "src/infra/command-analysis/explain.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/infra/archive-staging.ts",
