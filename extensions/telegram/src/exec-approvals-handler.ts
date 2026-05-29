@@ -5,6 +5,7 @@ import {
   type ExecApprovalPendingReplyParams,
   type ExecApprovalRequest,
   type ExecApprovalResolved,
+  type ExecApprovalSessionTarget,
 } from "coreblow/plugin-sdk/approval-runtime";
 import type { CoreBlowConfig } from "coreblow/plugin-sdk/config-runtime";
 import { GatewayClient } from "coreblow/plugin-sdk/gateway-runtime";
@@ -119,7 +120,7 @@ function isHandlerConfigured(params: { cfg: CoreBlowConfig; accountId: string })
 function resolveRequestSessionTarget(params: {
   cfg: CoreBlowConfig;
   request: ExecApprovalRequest;
-}): { to: string; accountId?: string; threadId?: number; channel?: string } | null {
+}): ExecApprovalSessionTarget | null {
   return resolveExecApprovalSessionTarget({
     cfg: params.cfg,
     request: params.request,
@@ -128,6 +129,16 @@ function resolveRequestSessionTarget(params: {
     turnSourceAccountId: params.request.request.turnSourceAccountId ?? undefined,
     turnSourceThreadId: params.request.request.turnSourceThreadId ?? undefined,
   });
+}
+
+function normalizeTelegramThreadId(value?: string | number): number | undefined {
+  const threadId =
+    typeof value === "number"
+      ? value
+      : typeof value === "string"
+        ? Number.parseInt(value, 10)
+        : undefined;
+  return Number.isFinite(threadId) ? threadId : undefined;
 }
 
 function resolveTelegramSourceTarget(params: {
@@ -166,7 +177,7 @@ function resolveTelegramSourceTarget(params: {
   }
   return {
     to: sessionTarget.to,
-    threadId: sessionTarget.threadId,
+    threadId: normalizeTelegramThreadId(sessionTarget.threadId),
   };
 }
 
