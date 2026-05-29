@@ -1,5 +1,10 @@
 import type { ReplyPayload } from "../auto-reply/types.js";
-import type { InteractiveReplyButton } from "../interactive/payload.js";
+import type {
+  InteractiveReply,
+  InteractiveReplyButton,
+  MessagePresentation,
+  MessagePresentationButton,
+} from "../interactive/payload.js";
 import { resolveExecApprovalAllowedDecisions, type ExecHost } from "./exec-approvals.js";
 
 export type ExecApprovalReplyDecision = "allow-once" | "allow-always" | "deny";
@@ -20,7 +25,7 @@ export type ExecApprovalReplyMetadata = {
 export type ExecApprovalActionDescriptor = {
   decision: ExecApprovalReplyDecision;
   label: string;
-  style: NonNullable<InteractiveReplyButton["style"]>;
+  style: NonNullable<MessagePresentationButton["style"]>;
   command: string;
 };
 
@@ -116,6 +121,137 @@ export function buildExecApprovalActionDescriptors(params: {
     });
   }
   return descriptors;
+}
+
+function buildApprovalInteractiveButtons(
+  descriptors: readonly ExecApprovalActionDescriptor[],
+): InteractiveReplyButton[] {
+  return descriptors.map((descriptor) => ({
+    label: descriptor.label,
+    value: descriptor.command,
+    style: descriptor.style,
+  }));
+}
+
+function buildApprovalPresentationButtons(
+  descriptors: readonly ExecApprovalActionDescriptor[],
+): MessagePresentationButton[] {
+  return descriptors.map((descriptor) => ({
+    label: descriptor.label,
+    value: descriptor.command,
+    style: descriptor.style,
+  }));
+}
+
+export function buildApprovalPresentationFromActionDescriptors(
+  actions: readonly ExecApprovalActionDescriptor[],
+): MessagePresentation | undefined {
+  const buttons = buildApprovalPresentationButtons(actions);
+  return buttons.length > 0 ? { blocks: [{ type: "buttons", buttons }] } : undefined;
+}
+
+export function buildApprovalPresentation(params: {
+  approvalId: string;
+  ask?: string | null;
+  allowedDecisions?: readonly ExecApprovalReplyDecision[];
+}): MessagePresentation | undefined {
+  return buildApprovalPresentationFromActionDescriptors(
+    buildExecApprovalActionDescriptors({
+      approvalCommandId: params.approvalId,
+      ask: params.ask,
+      allowedDecisions: params.allowedDecisions,
+    }),
+  );
+}
+
+export function buildExecApprovalPresentation(params: {
+  approvalCommandId: string;
+  ask?: string | null;
+  allowedDecisions?: readonly ExecApprovalReplyDecision[];
+}): MessagePresentation | undefined {
+  return buildApprovalPresentation({
+    approvalId: params.approvalCommandId,
+    ask: params.ask,
+    allowedDecisions: params.allowedDecisions,
+  });
+}
+
+export function buildApprovalInteractiveReplyFromActionDescriptors(
+  actions: readonly ExecApprovalActionDescriptor[],
+): InteractiveReply | undefined {
+  const buttons = buildApprovalInteractiveButtons(actions);
+  return buttons.length > 0 ? { blocks: [{ type: "buttons", buttons }] } : undefined;
+}
+
+export function buildApprovalInteractiveReply(params: {
+  approvalId: string;
+  ask?: string | null;
+  allowedDecisions?: readonly ExecApprovalReplyDecision[];
+}): InteractiveReply | undefined {
+  return buildApprovalInteractiveReplyFromActionDescriptors(
+    buildExecApprovalActionDescriptors({
+      approvalCommandId: params.approvalId,
+      ask: params.ask,
+      allowedDecisions: params.allowedDecisions,
+    }),
+  );
+}
+
+export function buildExecApprovalInteractiveReply(params: {
+  approvalCommandId: string;
+  ask?: string | null;
+  allowedDecisions?: readonly ExecApprovalReplyDecision[];
+}): InteractiveReply | undefined {
+  return buildApprovalInteractiveReply({
+    approvalId: params.approvalCommandId,
+    ask: params.ask,
+    allowedDecisions: params.allowedDecisions,
+  });
+}
+
+function normalizeOptionalLowercaseString(value?: string | null): string | undefined {
+  const trimmed = value?.trim().toLowerCase();
+  return trimmed || undefined;
+}
+
+export function parseExecApprovalCommandText(
+  raw: string,
+): { approvalId: string; decision: ExecApprovalReplyDecision } | null {
+  const trimmed = raw.trim();
+  const match = trimmed.match(
+    /^\/?approve(?:@[^\s]+)?\s+([A-Za-z0-9][A-Za-z0-9._:-]*)\s+(allow-once|allow-always|always|deny)\b/i,
+  );
+  if (!match) {
+    return null;
+  }
+  const rawDecision = normalizeOptionalLowercaseString(match[2]) ?? "";
+  return {
+    approvalId: match[1],
+    decision:
+      rawDecision === "always" ? "allow-always" : (rawDecision as ExecApprovalReplyDecision),
+  };
+}
+
+export function formatExecApprovalExpiresIn(expiresAtMs: number, nowMs: number): string {
+  const totalSeconds = Math.max(0, Math.round((expiresAtMs - nowMs) / 1000));
+  if (totalSeconds < 60) {
+    return `${totalSeconds}s`;
+  }
+
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const parts: string[] = [];
+  if (hours > 0) {
+    parts.push(`${hours}h`);
+  }
+  if (minutes > 0) {
+    parts.push(`${minutes}m`);
+  }
+  if (hours === 0 && minutes < 5 && seconds > 0) {
+    parts.push(`${seconds}s`);
+  }
+  return parts.join(" ");
 }
 
 export function getExecApprovalReplyMetadata(
@@ -249,6 +385,44 @@ export function buildExecApprovalUnavailableReplyPayload(
 
 import { createStandaloneSingleton } from "./service-patterns.js";
 export class ExecApprovalReplyService {
+  buildApprovalPresentationFromActionDescriptors(
+    ...args: Parameters<typeof buildApprovalPresentationFromActionDescriptors>
+  ) {
+    return buildApprovalPresentationFromActionDescriptors(...args);
+  }
+
+  buildApprovalPresentation(...args: Parameters<typeof buildApprovalPresentation>) {
+    return buildApprovalPresentation(...args);
+  }
+
+  buildExecApprovalPresentation(...args: Parameters<typeof buildExecApprovalPresentation>) {
+    return buildExecApprovalPresentation(...args);
+  }
+
+  buildApprovalInteractiveReplyFromActionDescriptors(
+    ...args: Parameters<typeof buildApprovalInteractiveReplyFromActionDescriptors>
+  ) {
+    return buildApprovalInteractiveReplyFromActionDescriptors(...args);
+  }
+
+  buildApprovalInteractiveReply(...args: Parameters<typeof buildApprovalInteractiveReply>) {
+    return buildApprovalInteractiveReply(...args);
+  }
+
+  buildExecApprovalInteractiveReply(
+    ...args: Parameters<typeof buildExecApprovalInteractiveReply>
+  ) {
+    return buildExecApprovalInteractiveReply(...args);
+  }
+
+  parseExecApprovalCommandText(...args: Parameters<typeof parseExecApprovalCommandText>) {
+    return parseExecApprovalCommandText(...args);
+  }
+
+  formatExecApprovalExpiresIn(...args: Parameters<typeof formatExecApprovalExpiresIn>) {
+    return formatExecApprovalExpiresIn(...args);
+  }
+
   buildExecApprovalCommandText(...args: Parameters<typeof buildExecApprovalCommandText>) {
     return buildExecApprovalCommandText(...args);
   }

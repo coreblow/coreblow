@@ -1,10 +1,17 @@
 import { describe, expect, it } from "vitest";
 import type { ReplyPayload } from "../auto-reply/types.js";
 import {
+  buildApprovalPresentation,
   buildExecApprovalPendingReplyPayload,
+  buildExecApprovalInteractiveReply,
+  buildExecApprovalPresentation,
   buildExecApprovalUnavailableReplyPayload,
+  buildExecApprovalActionDescriptors,
+  buildExecApprovalCommandText,
+  formatExecApprovalExpiresIn,
   getExecApprovalApproverDmNoticeText,
   getExecApprovalReplyMetadata,
+  parseExecApprovalCommandText,
 } from "./exec-approval-reply.js";
 
 describe("exec approval reply helpers", () => {
@@ -127,6 +134,119 @@ describe("exec approval reply helpers", () => {
     });
 
     expect(payload.text).toContain("Expires in: 0s");
+  });
+
+  it("formats longer approval windows compactly", () => {
+    expect(formatExecApprovalExpiresIn(1_801_000, 1_000)).toBe("30m");
+    expect(formatExecApprovalExpiresIn(3_661_000, 1_000)).toBe("1h 1m");
+    expect(formatExecApprovalExpiresIn(91_000, 1_000)).toBe("1m 30s");
+    expect(formatExecApprovalExpiresIn(500, 1_000)).toBe("0s");
+  });
+
+  it("builds shared exec approval action descriptors and interactive replies", () => {
+    expect(
+      buildExecApprovalActionDescriptors({
+        approvalCommandId: "req-1",
+      }),
+    ).toEqual([
+      {
+        decision: "allow-once",
+        label: "Allow Once",
+        style: "success",
+        command: "/approve req-1 allow-once",
+      },
+      {
+        decision: "allow-always",
+        label: "Allow Always",
+        style: "primary",
+        command: "/approve req-1 allow-always",
+      },
+      {
+        decision: "deny",
+        label: "Deny",
+        style: "danger",
+        command: "/approve req-1 deny",
+      },
+    ]);
+
+    expect(
+      buildExecApprovalPresentation({
+        approvalCommandId: "req-1",
+        ask: "always",
+      }),
+    ).toEqual({
+      blocks: [
+        {
+          type: "buttons",
+          buttons: [
+            { label: "Allow Once", value: "/approve req-1 allow-once", style: "success" },
+            { label: "Deny", value: "/approve req-1 deny", style: "danger" },
+          ],
+        },
+      ],
+    });
+
+    expect(
+      buildApprovalPresentation({
+        approvalId: "req-2",
+        allowedDecisions: ["deny"],
+      }),
+    ).toEqual({
+      blocks: [
+        {
+          type: "buttons",
+          buttons: [{ label: "Deny", value: "/approve req-2 deny", style: "danger" }],
+        },
+      ],
+    });
+
+    expect(
+      buildExecApprovalInteractiveReply({
+        approvalCommandId: "req-3",
+      }),
+    ).toEqual({
+      blocks: [
+        {
+          type: "buttons",
+          buttons: [
+            { label: "Allow Once", value: "/approve req-3 allow-once", style: "success" },
+            { label: "Allow Always", value: "/approve req-3 allow-always", style: "primary" },
+            { label: "Deny", value: "/approve req-3 deny", style: "danger" },
+          ],
+        },
+      ],
+    });
+  });
+
+  it("builds and parses shared exec approval command text", () => {
+    expect(
+      buildExecApprovalCommandText({
+        approvalCommandId: "req-1",
+        decision: "allow-always",
+      }),
+    ).toBe("/approve req-1 allow-always");
+
+    expect(parseExecApprovalCommandText("/approve req-1 deny")).toEqual({
+      approvalId: "req-1",
+      decision: "deny",
+    });
+    expect(parseExecApprovalCommandText("approve req-1 allow-once")).toEqual({
+      approvalId: "req-1",
+      decision: "allow-once",
+    });
+    expect(parseExecApprovalCommandText("/approve@corebot req-1 allow-once")).toEqual({
+      approvalId: "req-1",
+      decision: "allow-once",
+    });
+    expect(parseExecApprovalCommandText("  /approve req-1 always")).toEqual({
+      approvalId: "req-1",
+      decision: "allow-always",
+    });
+    expect(parseExecApprovalCommandText("/approve req-1 allow-always")).toEqual({
+      approvalId: "req-1",
+      decision: "allow-always",
+    });
+    expect(parseExecApprovalCommandText("/approve req-1 maybe")).toBeNull();
   });
 
   it("builds unavailable payloads for approver DMs", () => {

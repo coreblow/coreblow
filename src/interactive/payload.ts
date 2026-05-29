@@ -36,6 +36,19 @@ export type InteractiveReply = {
   blocks: InteractiveReplyBlock[];
 };
 
+export type MessagePresentationButton = InteractiveReplyButton;
+
+export type MessagePresentationButtonsBlock = {
+  type: "buttons";
+  buttons: MessagePresentationButton[];
+};
+
+export type MessagePresentationBlock = MessagePresentationButtonsBlock;
+
+export type MessagePresentation = {
+  blocks: MessagePresentationBlock[];
+};
+
 function readTrimmedString(value: unknown): string | undefined {
   if (typeof value !== "string") {
     return undefined;
