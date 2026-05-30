@@ -336,6 +336,11 @@ export function createExecApprovalChannelRuntime<
             }
             settleReady(() => rejectReady(err));
           },
+          onReconnectPaused: (info) => {
+            settleReady(() =>
+              rejectReady(new ExecApprovalChannelRuntimeTerminalStartError(info, lastConnectError)),
+            );
+          },
           onClose: (code, reason) => {
             log.debug(`gateway closed: ${code} ${reason}`);
             settleReady(() =>

@@ -8,7 +8,12 @@ import { startGatewayClientWhenEventLoopReady } from "./client-start-readiness.j
 export async function createOperatorApprovalsGatewayClient(
   params: Pick<
     GatewayClientOptions,
-    "clientDisplayName" | "onClose" | "onConnectError" | "onEvent" | "onHelloOk"
+    | "clientDisplayName"
+    | "onClose"
+    | "onConnectError"
+    | "onEvent"
+    | "onHelloOk"
+    | "onReconnectPaused"
   > & {
     config: CoreBlowConfig;
     gatewayUrl?: string;
@@ -42,6 +47,7 @@ export async function createOperatorApprovalsGatewayClient(
     onEvent: params.onEvent,
     onHelloOk: params.onHelloOk,
     onConnectError: params.onConnectError,
+    onReconnectPaused: params.onReconnectPaused,
     onClose: params.onClose,
   });
 }
