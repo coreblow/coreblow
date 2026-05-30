@@ -75,7 +75,18 @@ describe("createChannelApprovalHandlerFromCapability", () => {
   it("delivers pending approval through the native runtime adapter", async () => {
     const nativeRuntime = makeNativeRuntime();
     const runtime = await createChannelApprovalHandlerFromCapability({
-      capability: { nativeRuntime },
+      capability: {
+        native: {
+          describeDeliveryCapabilities: vi.fn().mockReturnValue({
+            enabled: true,
+            preferredSurface: "origin",
+            supportsOriginSurface: true,
+            supportsApproverDmSurface: false,
+          }),
+          resolveOriginTarget: vi.fn().mockResolvedValue({ to: "origin-chat" }),
+        },
+        nativeRuntime,
+      },
       ...TEST_HANDLER_PARAMS,
     });
 
@@ -128,7 +139,18 @@ describe("createChannelApprovalHandlerFromCapability", () => {
       },
     });
     const runtime = await createChannelApprovalHandlerFromCapability({
-      capability: { nativeRuntime },
+      capability: {
+        native: {
+          describeDeliveryCapabilities: vi.fn().mockReturnValue({
+            enabled: true,
+            preferredSurface: "origin",
+            supportsOriginSurface: true,
+            supportsApproverDmSurface: false,
+          }),
+          resolveOriginTarget: vi.fn().mockResolvedValue({ to: "origin-chat" }),
+        },
+        nativeRuntime,
+      },
       ...TEST_HANDLER_PARAMS,
     });
     const request = makeExecApprovalRequest("exec:dup");

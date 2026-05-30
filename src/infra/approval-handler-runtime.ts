@@ -32,6 +32,7 @@ import {
   type ExecApprovalChannelRuntime,
 } from "./exec-approval-channel-runtime.js";
 import type { ExecApprovalChannelRuntimeEventKind } from "./exec-approval-channel-runtime.types.js";
+import { resolveChannelNativeApprovalDeliveryPlan } from "./approval-native-runtime.js";
 
 export type {
   ApprovalActionView,
@@ -338,24 +339,6 @@ function defaultResolveApprovalKind(request: ApprovalRequest): ChannelApprovalKi
   return request.id.startsWith("plugin:") ? "plugin" : "exec";
 }
 
-function resolveFallbackOriginTarget(request: ApprovalRequest): ChannelApprovalNativePlannedTarget | null {
-  const payload = request.request as {
-    turnSourceTo?: string | null;
-    turnSourceThreadId?: string | number | null;
-  };
-  const to = payload.turnSourceTo?.trim();
-  if (!to) {
-    return null;
-  }
-  return {
-    surface: "origin",
-    target: {
-      to,
-      threadId: payload.turnSourceThreadId ?? undefined,
-    },
-  };
-}
-
 async function resolvePlannedTargets(params: {
   cfg: CoreBlowConfig;
   accountId?: string | null;
@@ -363,62 +346,14 @@ async function resolvePlannedTargets(params: {
   request: ApprovalRequest;
   nativeAdapter?: ChannelApprovalNativeAdapter | null;
 }): Promise<ChannelApprovalNativePlannedTarget[]> {
-  const adapter = params.nativeAdapter;
-  if (!adapter) {
-    const fallback = resolveFallbackOriginTarget(params.request);
-    return fallback ? [fallback] : [];
-  }
-
-  const capabilities = adapter.describeDeliveryCapabilities({
+  const deliveryPlan = await resolveChannelNativeApprovalDeliveryPlan({
     cfg: params.cfg,
     accountId: params.accountId,
     approvalKind: params.approvalKind,
     request: params.request,
+    adapter: params.nativeAdapter,
   });
-  if (!capabilities.enabled) {
-    return [];
-  }
-
-  const targets: ChannelApprovalNativePlannedTarget[] = [];
-  const wantsOrigin =
-    capabilities.preferredSurface === "origin" || capabilities.preferredSurface === "both";
-  const wantsApproverDm =
-    capabilities.preferredSurface === "approver-dm" || capabilities.preferredSurface === "both";
-
-  if (wantsOrigin && capabilities.supportsOriginSurface && adapter.resolveOriginTarget) {
-    const target = await adapter.resolveOriginTarget({
-      cfg: params.cfg,
-      accountId: params.accountId,
-      approvalKind: params.approvalKind,
-      request: params.request,
-    });
-    if (target) {
-      targets.push({
-        surface: "origin",
-        target,
-        notifyOriginWhenDmOnly: capabilities.notifyOriginWhenDmOnly,
-      });
-    }
-  }
-
-  if (wantsApproverDm && capabilities.supportsApproverDmSurface) {
-    const dmTargets =
-      (await adapter.resolveApproverDmTargets?.({
-        cfg: params.cfg,
-        accountId: params.accountId,
-        approvalKind: params.approvalKind,
-        request: params.request,
-      })) ?? [];
-    for (const target of dmTargets) {
-      targets.push({
-        surface: "approver-dm",
-        target,
-        notifyOriginWhenDmOnly: capabilities.notifyOriginWhenDmOnly,
-      });
-    }
-  }
-
-  return targets;
+  return deliveryPlan.targets;
 }
 
 export function createChannelApprovalNativeRuntimeAdapter<

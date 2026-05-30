@@ -1,6 +1,4 @@
-import type {
-  ChannelApprovalNativeTarget,
-} from "../channels/plugins/approval-native.types.js";
+import type { ChannelApprovalNativeTarget } from "../channels/plugins/approval-native.types.js";
 import type { CoreBlowConfig } from "../config/config.js";
 import type { ChannelApprovalKind } from "./approval-types.js";
 import type {
@@ -27,7 +25,13 @@ export type ChannelApprovalCapabilityHandlerContext = {
 export type ChannelApprovalNativePlannedTarget = {
   surface: "origin" | "approver-dm";
   target: ChannelApprovalNativeTarget;
-  notifyOriginWhenDmOnly?: boolean;
+  reason: "preferred" | "fallback";
+};
+
+export type ChannelApprovalNativeDeliveryPlan = {
+  targets: ChannelApprovalNativePlannedTarget[];
+  originTarget: ChannelApprovalNativeTarget | null;
+  notifyOriginWhenDmOnly: boolean;
 };
 
 export type PreparedChannelNativeApprovalTarget<TPreparedTarget> = {
