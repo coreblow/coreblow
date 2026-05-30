@@ -1,10 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { CoreBlowConfig } from "../config/config.js";
 import { startHeartbeatRunner } from "./heartbeat-runner.js";
+import { computeNextHeartbeatPhaseDueMs, resolveHeartbeatPhaseMs } from "./heartbeat-schedule.js";
 import { requestHeartbeatNow, resetHeartbeatWakeStateForTests } from "./heartbeat-wake.js";
 
 describe("startHeartbeatRunner", () => {
   type RunOnce = Parameters<typeof startHeartbeatRunner>[0]["runOnce"];
+  const TEST_SCHEDULER_SEED = "heartbeat-runner-test-seed";
 
   function useFakeHeartbeatTime() {
     vi.useFakeTimers();
@@ -15,6 +17,7 @@ describe("startHeartbeatRunner", () => {
     return startHeartbeatRunner({
       cfg: heartbeatConfig(),
       runOnce,
+      stableSchedulerSeed: TEST_SCHEDULER_SEED,
     });
   }
 
@@ -40,6 +43,18 @@ describe("startHeartbeatRunner", () => {
     });
   }
 
+  function resolveDueFromNow(nowMs: number, intervalMs: number, agentId: string) {
+    return computeNextHeartbeatPhaseDueMs({
+      nowMs,
+      intervalMs,
+      phaseMs: resolveHeartbeatPhaseMs({
+        schedulerSeed: TEST_SCHEDULER_SEED,
+        agentId,
+        intervalMs,
+      }),
+    });
+  }
+
   async function expectWakeDispatch(params: {
     cfg: CoreBlowConfig;
     runSpy: RunOnce;
@@ -49,6 +64,7 @@ describe("startHeartbeatRunner", () => {
     const runner = startHeartbeatRunner({
       cfg: params.cfg,
       runOnce: params.runSpy,
+      stableSchedulerSeed: TEST_SCHEDULER_SEED,
     });
 
     requestHeartbeatNow(params.wake);
@@ -72,8 +88,9 @@ describe("startHeartbeatRunner", () => {
     const runSpy = vi.fn().mockResolvedValue({ status: "ran", durationMs: 1 });
 
     const runner = startDefaultRunner(runSpy);
+    const firstDueMs = resolveDueFromNow(0, 30 * 60_000, "main");
 
-    await vi.advanceTimersByTimeAsync(30 * 60_000 + 1_000);
+    await vi.advanceTimersByTimeAsync(firstDueMs + 1);
 
     expect(runSpy).toHaveBeenCalledTimes(1);
     expect(runSpy.mock.calls[0]?.[0]).toEqual(
@@ -90,19 +107,47 @@ describe("startHeartbeatRunner", () => {
       },
     } as CoreBlowConfig);
 
-    await vi.advanceTimersByTimeAsync(10 * 60_000 + 1_000);
+    const nowAfterReload = Date.now();
+    const nextMainDueMs = resolveDueFromNow(nowAfterReload, 10 * 60_000, "main");
+    const nextOpsDueMs = resolveDueFromNow(nowAfterReload, 15 * 60_000, "ops");
+    const finalDueMs = Math.max(nextMainDueMs, nextOpsDueMs);
 
-    expect(runSpy).toHaveBeenCalledTimes(2);
-    expect(runSpy.mock.calls[1]?.[0]).toEqual(
-      expect.objectContaining({ agentId: "main", heartbeat: { every: "10m" } }),
-    );
+    await vi.advanceTimersByTimeAsync(finalDueMs - Date.now() + 1);
 
-    await vi.advanceTimersByTimeAsync(5 * 60_000 + 1_000);
+    const reloadedAgentIds = runSpy.mock.calls.slice(1).map((call) => call[0]?.agentId);
+    expect(reloadedAgentIds).toContain("main");
+    expect(reloadedAgentIds).toContain("ops");
+    expect(
+      runSpy.mock.calls
+        .slice(1)
+        .some((call) => call[0]?.agentId === "main" && call[0]?.heartbeat?.every === "10m"),
+    ).toBe(true);
+    expect(
+      runSpy.mock.calls
+        .slice(1)
+        .some((call) => call[0]?.agentId === "ops" && call[0]?.heartbeat?.every === "15m"),
+    ).toBe(true);
 
-    expect(runSpy).toHaveBeenCalledTimes(3);
-    expect(runSpy.mock.calls[2]?.[0]).toEqual(
-      expect.objectContaining({ agentId: "ops", heartbeat: { every: "15m" } }),
-    );
+    runner.stop();
+  });
+
+  it("schedules every configured agent when only global heartbeat defaults exist", async () => {
+    useFakeHeartbeatTime();
+
+    const runSpy = vi.fn().mockResolvedValue({ status: "ran", durationMs: 1 });
+    const runner = startHeartbeatRunner({
+      cfg: heartbeatConfig([{ id: "main" }, { id: "ops" }]),
+      runOnce: runSpy,
+      stableSchedulerSeed: TEST_SCHEDULER_SEED,
+    });
+    const mainDueMs = resolveDueFromNow(0, 30 * 60_000, "main");
+    const opsDueMs = resolveDueFromNow(0, 30 * 60_000, "ops");
+
+    await vi.advanceTimersByTimeAsync(Math.max(mainDueMs, opsDueMs) + 1);
+
+    const agentIds = runSpy.mock.calls.map((call) => call[0]?.agentId);
+    expect(agentIds).toContain("main");
+    expect(agentIds).toContain("ops");
 
     runner.stop();
   });
@@ -121,13 +166,14 @@ describe("startHeartbeatRunner", () => {
     });
 
     const runner = startDefaultRunner(runSpy);
+    const firstDueMs = resolveDueFromNow(0, 30 * 60_000, "main");
 
     // First heartbeat fires and throws
-    await vi.advanceTimersByTimeAsync(30 * 60_000 + 1_000);
+    await vi.advanceTimersByTimeAsync(firstDueMs + 1);
     expect(runSpy).toHaveBeenCalledTimes(1);
 
     // Second heartbeat should still fire (scheduler must not be dead)
-    await vi.advanceTimersByTimeAsync(30 * 60_000 + 1_000);
+    await vi.advanceTimersByTimeAsync(30 * 60_000 + 1);
     expect(runSpy).toHaveBeenCalledTimes(2);
 
     runner.stop();
@@ -144,16 +190,25 @@ describe("startHeartbeatRunner", () => {
     } as CoreBlowConfig;
 
     // Start runner A
-    const runnerA = startHeartbeatRunner({ cfg, runOnce: runSpy1 });
+    const runnerA = startHeartbeatRunner({
+      cfg,
+      runOnce: runSpy1,
+      stableSchedulerSeed: TEST_SCHEDULER_SEED,
+    });
 
     // Start runner B (simulates lifecycle reload)
-    const runnerB = startHeartbeatRunner({ cfg, runOnce: runSpy2 });
+    const runnerB = startHeartbeatRunner({
+      cfg,
+      runOnce: runSpy2,
+      stableSchedulerSeed: TEST_SCHEDULER_SEED,
+    });
 
     // Stop runner A (stale cleanup) — should NOT kill runner B's handler
     runnerA.stop();
 
     // Runner B should still fire
-    await vi.advanceTimersByTimeAsync(30 * 60_000 + 1_000);
+    const firstDueMs = resolveDueFromNow(0, 30 * 60_000, "main");
+    await vi.advanceTimersByTimeAsync(firstDueMs + 1);
     expect(runSpy2).toHaveBeenCalledTimes(1);
     expect(runSpy1).not.toHaveBeenCalled();
 
@@ -185,10 +240,12 @@ describe("startHeartbeatRunner", () => {
     const runner = startHeartbeatRunner({
       cfg: heartbeatConfig(),
       runOnce: runSpy,
+      stableSchedulerSeed: TEST_SCHEDULER_SEED,
     });
 
     // First heartbeat returns requests-in-flight
-    await vi.advanceTimersByTimeAsync(30 * 60_000 + 1_000);
+    const firstDueMs = resolveDueFromNow(0, 30 * 60_000, "main");
+    await vi.advanceTimersByTimeAsync(firstDueMs + 1);
     expect(runSpy).toHaveBeenCalledTimes(1);
 
     // The wake layer retries after DEFAULT_RETRY_MS (1 s).  No scheduleNext()
@@ -204,15 +261,27 @@ describe("startHeartbeatRunner", () => {
 
     // Simulate a long-running heartbeat: the first 5 calls return
     // requests-in-flight (retries from the wake layer), then the 6th succeeds.
-    const runSpy = createRequestsInFlightRunSpy(5);
+    const callTimes: number[] = [];
+    let callCount = 0;
+    const runSpy = vi.fn().mockImplementation(async () => {
+      callTimes.push(Date.now());
+      callCount++;
+      if (callCount <= 5) {
+        return { status: "skipped", reason: "requests-in-flight" } as const;
+      }
+      return { status: "ran", durationMs: 1 } as const;
+    });
 
     const runner = startHeartbeatRunner({
       cfg: heartbeatConfig(),
       runOnce: runSpy,
+      stableSchedulerSeed: TEST_SCHEDULER_SEED,
     });
+    const intervalMs = 30 * 60_000;
 
-    // Trigger the first heartbeat at t=30m — returns requests-in-flight.
-    await vi.advanceTimersByTimeAsync(30 * 60_000 + 1_000);
+    // Trigger the first heartbeat at the agent's first slot.
+    const firstDueMs = resolveDueFromNow(0, intervalMs, "main");
+    await vi.advanceTimersByTimeAsync(firstDueMs + 1);
     expect(runSpy).toHaveBeenCalledTimes(1);
 
     // Simulate 4 more retries at short intervals (wake layer retries).
@@ -220,12 +289,17 @@ describe("startHeartbeatRunner", () => {
       requestHeartbeatNow({ reason: "retry", coalesceMs: 0 });
       await vi.advanceTimersByTimeAsync(1_000);
     }
-    expect(runSpy).toHaveBeenCalledTimes(5);
+    const scheduledSlotCallsBeforeInterval = callTimes.filter(
+      (time) => time >= firstDueMs + intervalMs,
+    );
+    expect(scheduledSlotCallsBeforeInterval).toStrictEqual([]);
 
-    // The next interval tick at ~t=60m should still fire — the schedule
-    // must not have been pushed to t=30m * 6 = 180m by the 5 retries.
-    await vi.advanceTimersByTimeAsync(30 * 60_000);
-    expect(runSpy).toHaveBeenCalledTimes(6);
+    // The next interval tick at the next phase slot should still fire.
+    await vi.advanceTimersByTimeAsync(firstDueMs + intervalMs - Date.now() + 1);
+    const scheduledSlotCallsAfterInterval = callTimes.filter(
+      (time) => time >= firstDueMs + intervalMs,
+    );
+    expect(scheduledSlotCallsAfterInterval.length).toBeGreaterThan(0);
 
     runner.stop();
   });

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import {
@@ -5,6 +6,7 @@ import {
   resolveSendableOutboundReplyParts,
 } from "coreblow/plugin-sdk/reply-payload";
 import {
+  listAgentIds,
   resolveAgentConfig,
   resolveAgentWorkspaceDir,
   resolveDefaultAgentId,
@@ -48,8 +50,9 @@ import {
 } from "../routing/session-key.js";
 import { defaultRuntime, type RuntimeEnv } from "../runtime.js";
 import { escapeRegExp } from "../utils.js";
+import { loadOrCreateDeviceIdentity } from "./device-identity.js";
 import { formatErrorMessage, hasErrnoCode } from "./errors.js";
-import { isWithinActiveHours } from "./heartbeat-active-hours.js";
+import { isWithinActiveHours, resolveActiveHoursTimezone } from "./heartbeat-active-hours.js";
 import {
   buildExecEventPrompt,
   buildCronEventPrompt,
@@ -58,6 +61,12 @@ import {
 } from "./heartbeat-events-filter.js";
 import { emitHeartbeatEvent, resolveIndicatorType } from "./heartbeat-events.js";
 import { resolveHeartbeatReasonKind } from "./heartbeat-reason.js";
+import {
+  computeNextHeartbeatPhaseDueMs,
+  resolveHeartbeatPhaseMs,
+  resolveNextHeartbeatDueMs,
+  seekNextActivePhaseDueMs,
+} from "./heartbeat-schedule.js";
 import {
   isHeartbeatEnabledForAgent,
   resolveHeartbeatIntervalMs,
@@ -110,15 +119,64 @@ export { isCronSystemEvent };
 type HeartbeatAgentState = {
   agentId: string;
   heartbeat?: HeartbeatConfig;
+  activeHoursSchedule?: ActiveHoursSchedule;
   intervalMs: number;
+  phaseMs: number;
   lastRunMs?: number;
   nextDueMs: number;
+};
+
+type ActiveHoursSchedule = {
+  start?: string;
+  end?: string;
+  timezone: string;
 };
 
 export type HeartbeatRunner = {
   stop: () => void;
   updateConfig: (cfg: CoreBlowConfig) => void;
 };
+
+function resolveActiveHoursSchedule(
+  cfg: CoreBlowConfig,
+  heartbeat?: HeartbeatConfig,
+): ActiveHoursSchedule | undefined {
+  const activeHours = heartbeat?.activeHours;
+  if (!activeHours) {
+    return undefined;
+  }
+  return {
+    start: activeHours.start,
+    end: activeHours.end,
+    timezone: resolveActiveHoursTimezone(cfg, activeHours.timezone),
+  };
+}
+
+function activeHoursConfigMatch(a?: ActiveHoursSchedule, b?: ActiveHoursSchedule): boolean {
+  if (a === b) {
+    return true;
+  }
+  if (!a || !b) {
+    return false;
+  }
+  return a.start === b.start && a.end === b.end && a.timezone === b.timezone;
+}
+
+function resolveHeartbeatSchedulerSeed(explicitSeed?: string) {
+  const normalized = explicitSeed?.trim();
+  if (normalized) {
+    return normalized;
+  }
+  try {
+    return loadOrCreateDeviceIdentity().deviceId;
+  } catch {
+    return createHash("sha256")
+      .update(process.env.HOME ?? "")
+      .update("\0")
+      .update(process.cwd())
+      .digest("hex");
+  }
+}
 
 function hasExplicitHeartbeatAgents(cfg: CoreBlowConfig) {
   const list = cfg.agents?.list ?? [];
@@ -150,6 +208,12 @@ function resolveHeartbeatAgents(cfg: CoreBlowConfig): HeartbeatAgent[] {
         return { agentId: id, heartbeat: resolveHeartbeatConfig(cfg, id) };
       })
       .filter((entry) => entry.agentId);
+  }
+  if (cfg.agents?.defaults?.heartbeat) {
+    return listAgentIds(cfg).map((agentId) => ({
+      agentId,
+      heartbeat: resolveHeartbeatConfig(cfg, agentId),
+    }));
   }
   const fallbackId = resolveDefaultAgentId(cfg);
   return [{ agentId: fallbackId, heartbeat: resolveHeartbeatConfig(cfg, fallbackId) }];
@@ -1006,31 +1070,58 @@ export function startHeartbeatRunner(opts: {
   runtime?: RuntimeEnv;
   abortSignal?: AbortSignal;
   runOnce?: typeof runHeartbeatOnce;
+  stableSchedulerSeed?: string;
 }): HeartbeatRunner {
   const runtime = opts.runtime ?? defaultRuntime;
   const runOnce = opts.runOnce ?? runHeartbeatOnce;
   const state = {
     cfg: opts.cfg ?? loadConfig(),
     runtime,
+    schedulerSeed: resolveHeartbeatSchedulerSeed(opts.stableSchedulerSeed),
     agents: new Map<string, HeartbeatAgentState>(),
     timer: null as NodeJS.Timeout | null,
     stopped: false,
   };
   let initialized = false;
 
-  const resolveNextDue = (now: number, intervalMs: number, prevState?: HeartbeatAgentState) => {
-    if (typeof prevState?.lastRunMs === "number") {
-      return prevState.lastRunMs + intervalMs;
-    }
-    if (prevState && prevState.intervalMs === intervalMs && prevState.nextDueMs > now) {
-      return prevState.nextDueMs;
-    }
-    return now + intervalMs;
-  };
+  const resolveNextDue = (
+    now: number,
+    intervalMs: number,
+    phaseMs: number,
+    prevState?: HeartbeatAgentState,
+  ) =>
+    resolveNextHeartbeatDueMs({
+      nowMs: now,
+      intervalMs,
+      phaseMs,
+      prev: prevState
+        ? {
+            intervalMs: prevState.intervalMs,
+            phaseMs: prevState.phaseMs,
+            nextDueMs: prevState.nextDueMs,
+          }
+        : undefined,
+    });
 
-  const advanceAgentSchedule = (agent: HeartbeatAgentState, now: number) => {
+  const seekActiveSlotForAgent = (agent: HeartbeatAgentState, rawDueMs: number) =>
+    seekNextActivePhaseDueMs({
+      startMs: rawDueMs,
+      intervalMs: agent.intervalMs,
+      phaseMs: agent.phaseMs,
+      isActive: (ms) => isWithinActiveHours(state.cfg, agent.heartbeat, ms),
+    });
+
+  const advanceAgentSchedule = (agent: HeartbeatAgentState, now: number, reason?: string) => {
     agent.lastRunMs = now;
-    agent.nextDueMs = now + agent.intervalMs;
+    const rawDueMs =
+      reason === "interval"
+        ? computeNextHeartbeatPhaseDueMs({
+            nowMs: now,
+            intervalMs: agent.intervalMs,
+            phaseMs: agent.phaseMs,
+          })
+        : now + agent.intervalMs;
+    agent.nextDueMs = seekActiveSlotForAgent(agent, rawDueMs);
   };
 
   const scheduleNext = () => {
@@ -1076,13 +1167,34 @@ export function startHeartbeatRunner(opts: {
       if (!intervalMs) {
         continue;
       }
+      const phaseMs = resolveHeartbeatPhaseMs({
+        schedulerSeed: state.schedulerSeed,
+        agentId: agent.agentId,
+        intervalMs,
+      });
       intervals.push(intervalMs);
       const prevState = prevAgents.get(agent.agentId);
-      const nextDueMs = resolveNextDue(now, intervalMs, prevState);
+      const activeHoursSchedule = resolveActiveHoursSchedule(cfg, agent.heartbeat);
+      const activeHoursChanged =
+        prevState && !activeHoursConfigMatch(prevState.activeHoursSchedule, activeHoursSchedule);
+      const rawNextDueMs = resolveNextDue(
+        now,
+        intervalMs,
+        phaseMs,
+        activeHoursChanged ? undefined : prevState,
+      );
+      const nextDueMs = seekNextActivePhaseDueMs({
+        startMs: rawNextDueMs,
+        intervalMs,
+        phaseMs,
+        isActive: (ms) => isWithinActiveHours(cfg, agent.heartbeat, ms),
+      });
       nextAgents.set(agent.agentId, {
         agentId: agent.agentId,
         heartbeat: agent.heartbeat,
+        activeHoursSchedule,
         intervalMs,
+        phaseMs,
         lastRunMs: prevState?.lastRunMs,
         nextDueMs,
       });
@@ -1157,7 +1269,7 @@ export function startHeartbeatRunner(opts: {
             deps: { runtime: state.runtime },
           });
           if (res.status !== "skipped" || res.reason !== "disabled") {
-            advanceAgentSchedule(targetAgent, now);
+            advanceAgentSchedule(targetAgent, now, reason);
           }
           return res.status === "ran" ? { status: "ran", durationMs: Date.now() - startedAt } : res;
         } catch (err) {
@@ -1165,7 +1277,7 @@ export function startHeartbeatRunner(opts: {
           log.error(`heartbeat runner: targeted runOnce threw unexpectedly: ${errMsg}`, {
             error: errMsg,
           });
-          advanceAgentSchedule(targetAgent, now);
+          advanceAgentSchedule(targetAgent, now, reason);
           return { status: "failed", reason: errMsg };
         }
       }
@@ -1187,7 +1299,7 @@ export function startHeartbeatRunner(opts: {
         } catch (err) {
           const errMsg = formatErrorMessage(err);
           log.error(`heartbeat runner: runOnce threw unexpectedly: ${errMsg}`, { error: errMsg });
-          advanceAgentSchedule(agent, now);
+          advanceAgentSchedule(agent, now, reason);
           continue;
         }
         if (res.status === "skipped" && res.reason === "requests-in-flight") {
@@ -1199,7 +1311,7 @@ export function startHeartbeatRunner(opts: {
           return res;
         }
         if (res.status !== "skipped" || res.reason !== "disabled") {
-          advanceAgentSchedule(agent, now);
+          advanceAgentSchedule(agent, now, reason);
         }
         if (res.status === "ran") {
           ran = true;
