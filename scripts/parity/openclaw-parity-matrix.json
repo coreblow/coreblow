@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6301,
+    "cb_source_files": 6302,
     "oc_source_files": 8443,
-    "source_parity_both": 4527,
+    "source_parity_both": 4528,
     "source_cb_exclusive": 1774,
-    "source_missing_from_cb": 3916,
-    "test_files_cb": 4042,
+    "source_missing_from_cb": 3915,
+    "test_files_cb": 4043,
     "test_files_oc": 5246,
-    "tests_both_covered": 2687,
-    "tests_gap_oc_has_cb_missing": 2314,
+    "tests_both_covered": 2688,
+    "tests_gap_oc_has_cb_missing": 2313,
     "tests_cb_exclusive": 1308,
     "export_files_with_gaps": 74,
     "test_scenario_files_with_gaps": 37,
@@ -642,12 +642,12 @@
       "priority": "P1",
       "implementationSurface": "src/infra",
       "counts": {
-        "sharedSourcePaths": 280,
+        "sharedSourcePaths": 281,
         "coreBlowOnlySourcePaths": 75,
-        "openClawOnlySourcePaths": 99,
-        "sharedTestPaths": 278,
+        "openClawOnlySourcePaths": 98,
+        "sharedTestPaths": 279,
         "coreBlowOnlyTestPaths": 62,
-        "openClawTestGaps": 67
+        "openClawTestGaps": 66
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -675,8 +675,8 @@
           "src/infra/command-explainer/extract.test.ts",
           "src/infra/command-explainer/format.test.ts",
           "src/infra/diagnostics-timeline.test.ts",
-          "src/infra/heartbeat-cooldown.test.ts",
-          "src/infra/heartbeat-runner.commitments.test.ts"
+          "src/infra/heartbeat-runner.commitments.test.ts",
+          "src/infra/heartbeat-runner.isolated-key-stability.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/infra/archive-staging.ts",

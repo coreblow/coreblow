@@ -9,6 +9,23 @@ export type HeartbeatRunResult =
   | { status: "skipped"; reason: string }
   | { status: "failed"; reason: string };
 
+export type HeartbeatWakeIntent = "scheduled" | "event" | "immediate" | "manual";
+
+export type HeartbeatWakeSource =
+  | "interval"
+  | "manual"
+  | "exec-event"
+  | "notifications-event"
+  | "cron"
+  | "hook"
+  | "background-task"
+  | "background-task-blocked"
+  | "acp-spawn"
+  | "cli-watchdog"
+  | "restart-sentinel"
+  | "retry"
+  | "other";
+
 export type HeartbeatWakeHandler = (opts: {
   reason?: string;
   agentId?: string;
