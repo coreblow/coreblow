@@ -260,6 +260,42 @@ function resolveHeartbeatReasoningPayloads(
   });
 }
 
+function resolveIsolatedHeartbeatSessionKey(params: {
+  sessionKey: string;
+  sessionEntry?: { heartbeatIsolatedBaseSessionKey?: string };
+}): { isolatedSessionKey: string; isolatedBaseSessionKey: string; staleSessionKey?: string } {
+  const storedBaseSessionKey = params.sessionEntry?.heartbeatIsolatedBaseSessionKey?.trim();
+  if (storedBaseSessionKey) {
+    const suffix = params.sessionKey.slice(storedBaseSessionKey.length);
+    if (
+      params.sessionKey.startsWith(storedBaseSessionKey) &&
+      suffix.length > 0 &&
+      /^(:heartbeat)+$/.test(suffix)
+    ) {
+      return {
+        isolatedSessionKey: `${storedBaseSessionKey}:heartbeat`,
+        isolatedBaseSessionKey: storedBaseSessionKey,
+        staleSessionKey:
+          params.sessionKey === `${storedBaseSessionKey}:heartbeat` ? undefined : params.sessionKey,
+      };
+    }
+  }
+
+  const collapsedBaseSessionKey = params.sessionKey.replace(/(:heartbeat){2,}$/, "");
+  if (collapsedBaseSessionKey !== params.sessionKey) {
+    return {
+      isolatedSessionKey: `${collapsedBaseSessionKey}:heartbeat`,
+      isolatedBaseSessionKey: collapsedBaseSessionKey,
+      staleSessionKey: params.sessionKey,
+    };
+  }
+
+  return {
+    isolatedSessionKey: `${params.sessionKey}:heartbeat`,
+    isolatedBaseSessionKey: params.sessionKey,
+  };
+}
+
 async function restoreHeartbeatUpdatedAt(params: {
   storePath: string;
   sessionKey: string;
@@ -587,17 +623,27 @@ export async function runHeartbeatOnce(opts: {
   let runSessionKey = sessionKey;
   let runStorePath = storePath;
   if (useIsolatedSession) {
-    const isolatedKey = `${sessionKey}:heartbeat`;
+    const { isolatedSessionKey, isolatedBaseSessionKey, staleSessionKey } =
+      resolveIsolatedHeartbeatSessionKey({
+        sessionKey,
+        sessionEntry: entry,
+      });
     const cronSession = resolveCronSession({
       cfg,
-      sessionKey: isolatedKey,
+      sessionKey: isolatedSessionKey,
       agentId,
       nowMs: startedAt,
       forceNew: true,
     });
-    cronSession.store[isolatedKey] = cronSession.sessionEntry;
+    if (staleSessionKey && staleSessionKey !== isolatedSessionKey) {
+      delete cronSession.store[staleSessionKey];
+    }
+    cronSession.store[isolatedSessionKey] = {
+      ...cronSession.sessionEntry,
+      heartbeatIsolatedBaseSessionKey: isolatedBaseSessionKey,
+    };
     await saveSessionStore(cronSession.storePath, cronSession.store);
-    runSessionKey = isolatedKey;
+    runSessionKey = isolatedSessionKey;
     runStorePath = cronSession.storePath;
   }
 
