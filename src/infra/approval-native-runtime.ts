@@ -1,5 +1,6 @@
 import type { ChannelApprovalNativeAdapter } from "../channels/plugins/approval-native.types.js";
 import type { CoreBlowConfig } from "../config/config.js";
+import { createApprovalNativeRouteReporter } from "./approval-native-route-coordinator.js";
 import {
   resolveChannelNativeApprovalDeliveryPlan,
   type ChannelApprovalNativeDeliveryPlan,
@@ -186,83 +187,164 @@ export function createChannelNativeApprovalRuntime<
   const nowMs = adapter.nowMs ?? Date.now;
   const resolveApprovalKind =
     adapter.resolveApprovalKind ?? ((request: TRequest) => defaultResolveApprovalKind(request));
+  let runtimeRequest:
+    | ((method: string, params: Record<string, unknown>) => Promise<unknown>)
+    | null = null;
+  const handledEventKinds = new Set<ExecApprovalChannelRuntimeEventKind>(
+    adapter.eventKinds ?? ["exec"],
+  );
+  const routeReporter = createApprovalNativeRouteReporter({
+    handledKinds: handledEventKinds,
+    channel: adapter.channel,
+    channelLabel: adapter.channelLabel,
+    accountId: adapter.accountId,
+    requestGateway: async <T>(method: string, params: Record<string, unknown>): Promise<T> => {
+      if (!runtimeRequest) {
+        throw new Error(`${adapter.label}: gateway client not connected`);
+      }
+      return (await runtimeRequest(method, params)) as T;
+    },
+  });
 
-  return createExecApprovalChannelRuntime<TPendingEntry, TRequest, TResolved>({
+  const runtime = createExecApprovalChannelRuntime<TPendingEntry, TRequest, TResolved>({
     label: adapter.label,
     clientDisplayName: adapter.clientDisplayName,
     cfg: adapter.cfg,
     gatewayUrl: adapter.gatewayUrl,
     eventKinds: adapter.eventKinds,
     isConfigured: adapter.isConfigured,
-    shouldHandle: adapter.shouldHandle,
+    shouldHandle: (request) => {
+      const approvalKind = resolveApprovalKind(request);
+      routeReporter.observeRequest({
+        approvalKind,
+        request,
+      });
+      let shouldHandle: boolean;
+      try {
+        shouldHandle = adapter.shouldHandle(request);
+      } catch (error) {
+        void routeReporter.reportSkipped({
+          approvalKind,
+          request,
+        });
+        throw error;
+      }
+      if (shouldHandle) {
+        return shouldHandle;
+      }
+      void routeReporter.reportSkipped({
+        approvalKind,
+        request,
+      });
+      return false;
+    },
     finalizeResolved: adapter.finalizeResolved,
     finalizeExpired: adapter.finalizeExpired,
     onStopped: adapter.onStopped,
+    beforeGatewayClientStart: async () => {
+      routeReporter.start();
+      await adapter.beforeGatewayClientStart?.();
+    },
     nowMs,
     deliverRequested: async (request) => {
       const approvalKind = resolveApprovalKind(request);
-      const pendingContent = await adapter.buildPendingContent({
-        request,
-        approvalKind,
-        nowMs: nowMs(),
-      });
-      const deliveryResult = await deliverApprovalRequestViaChannelNativePlan({
-        cfg: adapter.cfg,
-        accountId: adapter.accountId,
-        approvalKind,
-        request,
-        adapter: adapter.nativeAdapter,
-        prepareTarget: async ({ plannedTarget, request }) =>
-          await adapter.prepareTarget({
-            plannedTarget,
-            request,
-            approvalKind,
-            pendingContent,
-          }),
-        deliverTarget: async ({ plannedTarget, preparedTarget, request }) =>
-          await adapter.deliverTarget({
-            plannedTarget,
-            preparedTarget,
-            request,
-            approvalKind,
-            pendingContent,
-          }),
-        onDeliveryError: adapter.onDeliveryError
-          ? ({ error, plannedTarget, request }) => {
-              adapter.onDeliveryError?.({
-                error,
-                plannedTarget,
-                request,
-                approvalKind,
-                pendingContent,
-              });
-            }
-          : undefined,
-        onDuplicateSkipped: adapter.onDuplicateSkipped
-          ? ({ plannedTarget, preparedTarget, request }) => {
-              adapter.onDuplicateSkipped?.({
-                plannedTarget,
-                preparedTarget,
-                request,
-                approvalKind,
-                pendingContent,
-              });
-            }
-          : undefined,
-        onDelivered: adapter.onDelivered
-          ? ({ plannedTarget, preparedTarget, request, entry }) => {
-              adapter.onDelivered?.({
-                plannedTarget,
-                preparedTarget,
-                request,
-                approvalKind,
-                pendingContent,
-                entry,
-              });
-            }
-          : undefined,
-      });
-      return deliveryResult.entries;
+      let deliveryPlan: ChannelApprovalNativeDeliveryPlan = {
+        targets: [],
+        originTarget: null,
+        notifyOriginWhenDmOnly: false,
+      };
+      let deliveredTargets: ChannelApprovalNativePlannedTarget[] = [];
+      try {
+        const pendingContent = await adapter.buildPendingContent({
+          request,
+          approvalKind,
+          nowMs: nowMs(),
+        });
+        const deliveryResult = await deliverApprovalRequestViaChannelNativePlan({
+          cfg: adapter.cfg,
+          accountId: adapter.accountId,
+          approvalKind,
+          request,
+          adapter: adapter.nativeAdapter,
+          prepareTarget: async ({ plannedTarget, request }) =>
+            await adapter.prepareTarget({
+              plannedTarget,
+              request,
+              approvalKind,
+              pendingContent,
+            }),
+          deliverTarget: async ({ plannedTarget, preparedTarget, request }) =>
+            await adapter.deliverTarget({
+              plannedTarget,
+              preparedTarget,
+              request,
+              approvalKind,
+              pendingContent,
+            }),
+          onDeliveryError: adapter.onDeliveryError
+            ? ({ error, plannedTarget, request }) => {
+                adapter.onDeliveryError?.({
+                  error,
+                  plannedTarget,
+                  request,
+                  approvalKind,
+                  pendingContent,
+                });
+              }
+            : undefined,
+          onDuplicateSkipped: adapter.onDuplicateSkipped
+            ? ({ plannedTarget, preparedTarget, request }) => {
+                adapter.onDuplicateSkipped?.({
+                  plannedTarget,
+                  preparedTarget,
+                  request,
+                  approvalKind,
+                  pendingContent,
+                });
+              }
+            : undefined,
+          onDelivered: adapter.onDelivered
+            ? ({ plannedTarget, preparedTarget, request, entry }) => {
+                adapter.onDelivered?.({
+                  plannedTarget,
+                  preparedTarget,
+                  request,
+                  approvalKind,
+                  pendingContent,
+                  entry,
+                });
+              }
+            : undefined,
+        });
+        deliveryPlan = deliveryResult.deliveryPlan;
+        deliveredTargets = deliveryResult.deliveredTargets;
+        return deliveryResult.entries;
+      } finally {
+        await routeReporter.reportDelivery({
+          approvalKind,
+          request,
+          deliveryPlan,
+          deliveredTargets,
+        });
+      }
     },
   });
+
+  runtimeRequest = (method, params) => runtime.request(method, params);
+
+  return {
+    ...runtime,
+    async start() {
+      try {
+        await runtime.start();
+      } catch (error) {
+        await routeReporter.stop();
+        throw error;
+      }
+    },
+    async stop() {
+      await routeReporter.stop();
+      await runtime.stop();
+    },
+  };
 }
