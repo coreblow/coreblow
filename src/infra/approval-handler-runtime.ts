@@ -32,7 +32,7 @@ import {
   type ExecApprovalChannelRuntime,
 } from "./exec-approval-channel-runtime.js";
 import type { ExecApprovalChannelRuntimeEventKind } from "./exec-approval-channel-runtime.types.js";
-import { resolveChannelNativeApprovalDeliveryPlan } from "./approval-native-runtime.js";
+import { resolveChannelNativeApprovalDeliveryPlan } from "./approval-native-delivery.js";
 
 export type {
   ApprovalActionView,

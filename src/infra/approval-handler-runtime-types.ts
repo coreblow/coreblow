@@ -1,5 +1,8 @@
-import type { ChannelApprovalNativeTarget } from "../channels/plugins/approval-native.types.js";
 import type { CoreBlowConfig } from "../config/config.js";
+import type {
+  ChannelApprovalNativeDeliveryPlan,
+  ChannelApprovalNativePlannedTarget,
+} from "./approval-native-delivery.js";
 import type { ChannelApprovalKind } from "./approval-types.js";
 import type {
   ExpiredApprovalView,
@@ -14,24 +17,13 @@ export type { ChannelApprovalKind } from "./approval-types.js";
 
 export type ApprovalRequest = ExecApprovalRequest | PluginApprovalRequest;
 export type ApprovalResolved = ExecApprovalResolved | PluginApprovalResolved;
+export type { ChannelApprovalNativeDeliveryPlan, ChannelApprovalNativePlannedTarget };
 
 export type ChannelApprovalCapabilityHandlerContext = {
   cfg: CoreBlowConfig;
   accountId?: string | null;
   gatewayUrl?: string;
   context?: unknown;
-};
-
-export type ChannelApprovalNativePlannedTarget = {
-  surface: "origin" | "approver-dm";
-  target: ChannelApprovalNativeTarget;
-  reason: "preferred" | "fallback";
-};
-
-export type ChannelApprovalNativeDeliveryPlan = {
-  targets: ChannelApprovalNativePlannedTarget[];
-  originTarget: ChannelApprovalNativeTarget | null;
-  notifyOriginWhenDmOnly: boolean;
 };
 
 export type PreparedChannelNativeApprovalTarget<TPreparedTarget> = {

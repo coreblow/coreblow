@@ -1,4 +1,4 @@
-import type { ChannelApprovalNativePlannedTarget } from "./approval-handler-runtime-types.js";
+import type { ChannelApprovalNativePlannedTarget } from "./approval-native-delivery.js";
 import type { ChannelApprovalKind } from "./approval-types.js";
 
 export type PreparedChannelNativeApprovalTarget<TPreparedTarget> = {
