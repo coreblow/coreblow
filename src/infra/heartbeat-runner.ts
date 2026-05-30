@@ -12,7 +12,7 @@ import {
   resolveDefaultAgentId,
 } from "../agents/agent-scope.js";
 import { appendCronStyleCurrentTimeLine } from "../agents/current-time.js";
-import { resolveEffectiveMessagesConfig } from "../agents/identity.js";
+import { resolveResponsePrefixTemplate } from "../auto-reply/reply/response-prefix-template.js";
 import { DEFAULT_HEARTBEAT_FILENAME } from "../agents/workspace.js";
 import { resolveHeartbeatReplyPayload } from "../auto-reply/heartbeat-reply-payload.js";
 import {
@@ -24,6 +24,7 @@ import {
 import { getReplyFromConfig } from "../auto-reply/reply.js";
 import { HEARTBEAT_TOKEN } from "../auto-reply/tokens.js";
 import type { ReplyPayload } from "../auto-reply/types.js";
+import { createReplyPrefixContext } from "../channels/reply-prefix.js";
 import { getChannelPlugin } from "../channels/plugins/index.js";
 import type { ChannelHeartbeatDeps } from "../channels/plugins/types.js";
 import type { CoreBlowConfig } from "../config/config.js";
@@ -743,10 +744,12 @@ export async function runHeartbeatOnce(opts: {
         })
       : { showOk: false, showAlerts: true, useIndicator: true };
   const { sender } = resolveHeartbeatSenderContext({ cfg, entry, delivery });
-  const responsePrefix = resolveEffectiveMessagesConfig(cfg, agentId, {
+  const replyPrefix = createReplyPrefixContext({
+    cfg,
+    agentId,
     channel: delivery.channel !== "none" ? delivery.channel : undefined,
     accountId: delivery.accountId,
-  }).responsePrefix;
+  });
 
   const canRelayToUser = Boolean(
     delivery.channel !== "none" && delivery.to && visibility.showAlerts,
@@ -781,7 +784,15 @@ export async function runHeartbeatOnce(opts: {
     return { status: "skipped", reason: "alerts-disabled" };
   }
 
-  const heartbeatOkText = responsePrefix ? `${responsePrefix} ${HEARTBEAT_TOKEN}` : HEARTBEAT_TOKEN;
+  const resolveHeartbeatResponsePrefix = () =>
+    resolveResponsePrefixTemplate(
+      replyPrefix.responsePrefix,
+      replyPrefix.responsePrefixContextProvider(),
+    );
+  const resolveHeartbeatOkText = () => {
+    const responsePrefix = resolveHeartbeatResponsePrefix();
+    return responsePrefix ? `${responsePrefix} ${HEARTBEAT_TOKEN}` : HEARTBEAT_TOKEN;
+  };
   const outboundSession = buildOutboundSessionContext({
     cfg,
     agentId,
@@ -811,7 +822,7 @@ export async function runHeartbeatOnce(opts: {
       to: delivery.to,
       accountId: delivery.accountId,
       threadId: delivery.threadId,
-      payloads: [{ text: heartbeatOkText }],
+      payloads: [{ text: resolveHeartbeatOkText() }],
       session: outboundSession,
       deps: opts.deps,
     });
@@ -837,8 +848,14 @@ export async function runHeartbeatOnce(opts: {
           heartbeatModelOverride,
           suppressToolErrorWarnings,
           bootstrapContextMode,
+          onModelSelected: replyPrefix.onModelSelected,
         }
-      : { isHeartbeat: true, suppressToolErrorWarnings, bootstrapContextMode };
+      : {
+          isHeartbeat: true,
+          suppressToolErrorWarnings,
+          bootstrapContextMode,
+          onModelSelected: replyPrefix.onModelSelected,
+        };
     const replyResult = await getReplyFromConfig(ctx, replyOpts, cfg);
     const replyPayload = resolveHeartbeatReplyPayload(replyResult);
     const includeReasoning = heartbeat?.includeReasoning === true;
@@ -868,6 +885,7 @@ export async function runHeartbeatOnce(opts: {
     }
 
     const ackMaxChars = resolveHeartbeatAckMaxChars(cfg, heartbeat);
+    const responsePrefix = resolveHeartbeatResponsePrefix();
     const normalized = normalizeHeartbeatReply(replyPayload, responsePrefix, ackMaxChars);
     // For exec completion events, don't skip even if the response looks like HEARTBEAT_OK.
     // The model should be responding with exec results, not ack tokens.

@@ -12,10 +12,10 @@
     "source_parity_both": 4529,
     "source_cb_exclusive": 1774,
     "source_missing_from_cb": 3914,
-    "test_files_cb": 4046,
+    "test_files_cb": 4047,
     "test_files_oc": 5246,
-    "tests_both_covered": 2691,
-    "tests_gap_oc_has_cb_missing": 2310,
+    "tests_both_covered": 2692,
+    "tests_gap_oc_has_cb_missing": 2309,
     "tests_cb_exclusive": 1308,
     "export_files_with_gaps": 74,
     "test_scenario_files_with_gaps": 37,
@@ -645,9 +645,9 @@
         "sharedSourcePaths": 282,
         "coreBlowOnlySourcePaths": 75,
         "openClawOnlySourcePaths": 97,
-        "sharedTestPaths": 282,
+        "sharedTestPaths": 283,
         "coreBlowOnlyTestPaths": 62,
-        "openClawTestGaps": 63
+        "openClawTestGaps": 62
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -675,8 +675,8 @@
           "src/infra/command-explainer/extract.test.ts",
           "src/infra/command-explainer/format.test.ts",
           "src/infra/diagnostics-timeline.test.ts",
-          "src/infra/heartbeat-runner.response-prefix-template.test.ts",
-          "src/infra/heartbeat-runner.skips-busy-session-lane.test.ts"
+          "src/infra/heartbeat-runner.skips-busy-session-lane.test.ts",
+          "src/infra/heartbeat-runner.subagent-session-guard.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/infra/archive-staging.ts",
