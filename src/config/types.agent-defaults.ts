@@ -248,6 +248,8 @@ export type AgentDefaultsConfig = {
     prompt?: string;
     /** Max chars allowed after HEARTBEAT_OK before delivery (default: 30). */
     ackMaxChars?: number;
+    /** When true, skip heartbeat while this agent has attributable nested/session lane work. */
+    skipWhenBusy?: boolean;
     /** Suppress tool error warning payloads during heartbeat runs. */
     suppressToolErrorWarnings?: boolean;
     /**

@@ -47,6 +47,15 @@ type LaneState = {
   generation: number;
 };
 
+export type CommandLaneSnapshot = {
+  lane: string;
+  queuedCount: number;
+  activeCount: number;
+  maxConcurrent: number;
+  draining: boolean;
+  generation: number;
+};
+
 function isExpectedNonErrorLaneFailure(err: unknown): boolean {
   return err instanceof Error && err.name === "LiveSessionModelSwitchError";
 }
@@ -71,6 +80,17 @@ function normalizeLane(lane: string): string {
 
 function getLaneDepth(state: LaneState): number {
   return state.queue.length + state.activeTaskIds.size;
+}
+
+function createCommandLaneSnapshot(state: LaneState): CommandLaneSnapshot {
+  return {
+    lane: state.lane,
+    queuedCount: state.queue.length,
+    activeCount: state.activeTaskIds.size,
+    maxConcurrent: state.maxConcurrent,
+    draining: state.draining,
+    generation: state.generation,
+  };
 }
 
 function getLaneState(lane: string): LaneState {
@@ -238,6 +258,10 @@ export function getTotalQueueSize() {
     total += getLaneDepth(s);
   }
   return total;
+}
+
+export function getCommandLaneSnapshots(): CommandLaneSnapshot[] {
+  return Array.from(getQueueState().lanes.values(), createCommandLaneSnapshot);
 }
 
 export function clearCommandLane(lane: string = CommandLane.Main) {

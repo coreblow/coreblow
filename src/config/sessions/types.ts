@@ -80,6 +80,10 @@ export type SessionEntry = {
   lastHeartbeatText?: string;
   /** Timestamp (ms) when lastHeartbeatText was delivered. */
   lastHeartbeatSentAt?: number;
+  /** True while a final outbound delivery replay is pending. */
+  pendingFinalDelivery?: boolean;
+  /** Pending final delivery text used by heartbeat deferral. */
+  pendingFinalDeliveryText?: string;
   sessionId: string;
   updatedAt: number;
   sessionFile?: string;

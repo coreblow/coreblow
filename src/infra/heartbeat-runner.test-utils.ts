@@ -16,7 +16,7 @@ export type HeartbeatSessionSeed = {
   lastChannel: string;
   lastProvider: string;
   lastTo: string;
-};
+} & Record<string, unknown>;
 
 export async function seedSessionStore(
   storePath: string,
