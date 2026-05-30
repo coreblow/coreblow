@@ -28,6 +28,26 @@ function resolveRuntimeContextRegistry(params: {
   return params.channelRuntime?.runtimeContexts ?? null;
 }
 
+export function registerChannelRuntimeContext(
+  params: ChannelRuntimeContextKey & {
+    channelRuntime?: ChannelRuntimeSurface;
+    context: unknown;
+    abortSignal?: AbortSignal;
+  },
+): { dispose: () => void } | null {
+  const runtimeContexts = resolveRuntimeContextRegistry(params);
+  if (!runtimeContexts) {
+    return null;
+  }
+  return runtimeContexts.register({
+    channelId: params.channelId,
+    accountId: params.accountId,
+    capability: params.capability,
+    context: params.context,
+    abortSignal: params.abortSignal,
+  });
+}
+
 export function getChannelRuntimeContext<T = unknown>(
   params: ChannelRuntimeContextKey & {
     channelRuntime?: ChannelRuntimeSurface;
