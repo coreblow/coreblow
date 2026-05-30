@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createTrackedTempDirs } from "../test-utils/tracked-temp-dirs.js";
-import { runPinnedWriteHelper } from "./fs-pinned-write-helper.js";
+import { resetFsSafePythonConfigForTest, runPinnedWriteHelper } from "./fs-pinned-write-helper.js";
 
 const tempDirs = createTrackedTempDirs();
 
@@ -11,6 +11,10 @@ afterEach(async () => {
 });
 
 describe("fs pinned write helper", () => {
+  beforeEach(() => {
+    resetFsSafePythonConfigForTest();
+  });
+
   it.runIf(process.platform !== "win32")("writes through a pinned parent directory", async () => {
     const root = await tempDirs.make("coreblow-fs-pinned-root-");
 

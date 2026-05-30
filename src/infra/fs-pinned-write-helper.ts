@@ -11,6 +11,25 @@ export type PinnedWriteInput =
   | { kind: "buffer"; data: string | Buffer; encoding?: BufferEncoding }
   | { kind: "stream"; stream: Readable };
 
+export type FsSafePythonMode = "auto" | "off" | "require";
+
+let fsSafePythonMode: FsSafePythonMode = "auto";
+let cachedPinnedWritePython = "";
+
+export function configureFsSafePython(options: { mode: FsSafePythonMode }): void {
+  fsSafePythonMode = options.mode;
+  cachedPinnedWritePython = "";
+}
+
+export function isFsSafePythonDisabled(): boolean {
+  return fsSafePythonMode === "off";
+}
+
+export function resetFsSafePythonConfigForTest(): void {
+  fsSafePythonMode = "auto";
+  cachedPinnedWritePython = "";
+}
+
 const LOCAL_PINNED_WRITE_PYTHON = [
   "import errno",
   "import os",
@@ -108,8 +127,6 @@ const PINNED_WRITE_PYTHON_CANDIDATES = [
   "/usr/local/bin/python3",
 ].filter((value): value is string => Boolean(value));
 
-let cachedPinnedWritePython = "";
-
 function canExecute(binPath: string): boolean {
   try {
     fsSync.accessSync(binPath, fsSync.constants.X_OK);
@@ -119,7 +136,10 @@ function canExecute(binPath: string): boolean {
   }
 }
 
-function resolvePinnedWritePython(): string {
+function resolvePinnedWritePython(): string | null {
+  if (fsSafePythonMode === "off") {
+    return null;
+  }
   if (cachedPinnedWritePython) {
     return cachedPinnedWritePython;
   }
@@ -160,8 +180,13 @@ export async function runPinnedWriteHelper(params: {
   mode: number;
   input: PinnedWriteInput;
 }): Promise<FileIdentityStat> {
+  const python = resolvePinnedWritePython();
+  if (!python) {
+    return runPinnedWriteFallback(params);
+  }
+
   const child = spawn(
-    resolvePinnedWritePython(),
+    python,
     [
       "-c",
       LOCAL_PINNED_WRITE_PYTHON,

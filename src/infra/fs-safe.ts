@@ -1,3 +1,5 @@
+import "./fs-safe-defaults.js";
+
 import { randomUUID } from "node:crypto";
 import type { Stats } from "node:fs";
 import { constants as fsConstants } from "node:fs";
@@ -7,7 +9,7 @@ import os from "node:os";
 import path from "node:path";
 import { logWarn } from "../logger.js";
 import { sameFileIdentity } from "./file-identity.js";
-import { runPinnedWriteHelper } from "./fs-pinned-write-helper.js";
+import { isFsSafePythonDisabled, runPinnedWriteHelper } from "./fs-pinned-write-helper.js";
 import { expandHomePrefix } from "./home-dir.js";
 import { assertNoPathAliasEscape } from "./path-alias-guards.js";
 import {
@@ -551,7 +553,7 @@ export async function writeFileWithinRoot(params: {
   encoding?: BufferEncoding;
   mkdir?: boolean;
 }): Promise<void> {
-  if (process.platform === "win32") {
+  if (process.platform === "win32" || isFsSafePythonDisabled()) {
     await writeFileWithinRootLegacy(params);
     return;
   }
@@ -608,7 +610,7 @@ export async function copyFileWithinRoot(params: {
   }
 
   try {
-    if (process.platform === "win32") {
+    if (process.platform === "win32" || isFsSafePythonDisabled()) {
       await copyFileWithinRootLegacy(params, source);
       return;
     }
