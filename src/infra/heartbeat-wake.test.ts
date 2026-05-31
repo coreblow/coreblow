@@ -1,7 +1,10 @@
-import { afterEach, beforeEach, describe, expect, it, vi , Mock } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import {
+  HEARTBEAT_SKIP_CRON_IN_PROGRESS,
+  HEARTBEAT_SKIP_LANES_BUSY,
   hasHeartbeatWakeHandler,
   hasPendingHeartbeatWake,
+  requestHeartbeat,
   requestHeartbeatNow,
   resetHeartbeatWakeStateForTests,
   setHeartbeatWakeHandler,
@@ -80,6 +83,22 @@ describe("heartbeat-wake", () => {
       expectedRetryReason: "interval",
     });
   });
+
+  it.each([HEARTBEAT_SKIP_CRON_IN_PROGRESS, HEARTBEAT_SKIP_LANES_BUSY])(
+    "retries %s after the default retry delay",
+    async (reason) => {
+      vi.useFakeTimers();
+      const handler = vi
+        .fn()
+        .mockResolvedValueOnce({ status: "skipped", reason })
+        .mockResolvedValueOnce({ status: "ran", durationMs: 1 });
+      await expectRetryAfterDefaultDelay({
+        handler,
+        initialReason: "interval",
+        expectedRetryReason: "interval",
+      });
+    },
+  );
 
   it("keeps retry cooldown even when a sooner request arrives", async () => {
     vi.useFakeTimers();
@@ -280,6 +299,79 @@ describe("heartbeat-wake", () => {
       reason: "cron:job-1",
       agentId: "ops",
       sessionKey: "agent:ops:discord:channel:alerts",
+    });
+  });
+
+  it("forwards requestHeartbeat metadata and preserves override across retries", async () => {
+    vi.useFakeTimers();
+    const handler = setRetryOnceHeartbeatHandler();
+
+    requestHeartbeat({
+      source: "cron",
+      intent: "immediate",
+      reason: "cron:job-1",
+      agentId: "ops",
+      sessionKey: "agent:ops:discord:channel:alerts",
+      heartbeat: { target: "last" },
+      coalesceMs: 0,
+    });
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler.mock.calls[0]?.[0]).toEqual({
+      source: "cron",
+      intent: "immediate",
+      reason: "cron:job-1",
+      agentId: "ops",
+      sessionKey: "agent:ops:discord:channel:alerts",
+      heartbeat: { target: "last" },
+    });
+
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(handler).toHaveBeenCalledTimes(2);
+    expect(handler.mock.calls[1]?.[0]).toEqual({
+      source: "cron",
+      intent: "immediate",
+      reason: "cron:job-1",
+      agentId: "ops",
+      sessionKey: "agent:ops:discord:channel:alerts",
+      heartbeat: { target: "last" },
+    });
+  });
+
+  it("preserves heartbeat override when same-target requestHeartbeat wakes coalesce", async () => {
+    vi.useFakeTimers();
+    const handler = vi.fn().mockResolvedValue({ status: "ran", durationMs: 1 });
+    setHeartbeatWakeHandler(handler);
+
+    requestHeartbeat({
+      source: "manual",
+      intent: "manual",
+      reason: "manual",
+      agentId: "ops",
+      sessionKey: "agent:ops:discord:channel:alerts",
+      heartbeat: { target: "last" },
+      coalesceMs: 100,
+    });
+    requestHeartbeat({
+      source: "manual",
+      intent: "manual",
+      reason: "manual",
+      agentId: "ops",
+      sessionKey: "agent:ops:discord:channel:alerts",
+      coalesceMs: 100,
+    });
+
+    await vi.advanceTimersByTimeAsync(100);
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler).toHaveBeenCalledWith({
+      source: "manual",
+      intent: "manual",
+      reason: "manual",
+      agentId: "ops",
+      sessionKey: "agent:ops:discord:channel:alerts",
+      heartbeat: { target: "last" },
     });
   });
 

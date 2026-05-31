@@ -44,11 +44,22 @@ export type HeartbeatWakeSource =
   | "retry"
   | "other";
 
-export type HeartbeatWakeHandler = (opts: {
+export type HeartbeatWakeOverride = {
+  target?: string;
+  to?: string | undefined;
+  accountId?: string | undefined;
+};
+
+export type HeartbeatWakeRequest = {
+  source?: HeartbeatWakeSource;
+  intent?: HeartbeatWakeIntent;
   reason?: string;
   agentId?: string;
   sessionKey?: string;
-}) => Promise<HeartbeatRunResult>;
+  heartbeat?: HeartbeatWakeOverride;
+};
+
+export type HeartbeatWakeHandler = (opts: HeartbeatWakeRequest) => Promise<HeartbeatRunResult>;
 
 let heartbeatsEnabled = true;
 
@@ -62,11 +73,14 @@ export function areHeartbeatsEnabled(): boolean {
 
 type WakeTimerKind = "normal" | "retry";
 type PendingWakeReason = {
+  source?: HeartbeatWakeSource;
+  intent?: HeartbeatWakeIntent;
   reason: string;
   priority: number;
   requestedAt: number;
   agentId?: string;
   sessionKey?: string;
+  heartbeat?: HeartbeatWakeOverride;
 };
 
 let handler: HeartbeatWakeHandler | null = null;
@@ -87,7 +101,18 @@ const REASON_PRIORITY = {
   ACTION: 3,
 } as const;
 
-function resolveReasonPriority(reason: string): number {
+function resolveWakePriority(params: {
+  source?: HeartbeatWakeSource;
+  intent?: HeartbeatWakeIntent;
+  reason: string;
+}): number {
+  if (params.intent === "manual" || params.intent === "immediate") {
+    return REASON_PRIORITY.ACTION;
+  }
+  if (params.source === "retry") {
+    return REASON_PRIORITY.RETRY;
+  }
+  const reason = params.reason;
   const kind = resolveHeartbeatReasonKind(reason);
   if (kind === "retry") {
     return REASON_PRIORITY.RETRY;
@@ -117,10 +142,13 @@ function getWakeTargetKey(params: { agentId?: string; sessionKey?: string }) {
 }
 
 function queuePendingWakeReason(params?: {
+  source?: HeartbeatWakeSource;
+  intent?: HeartbeatWakeIntent;
   reason?: string;
   requestedAt?: number;
   agentId?: string;
   sessionKey?: string;
+  heartbeat?: HeartbeatWakeOverride;
 }) {
   const requestedAt = params?.requestedAt ?? Date.now();
   const normalizedReason = normalizeWakeReason(params?.reason);
@@ -131,23 +159,34 @@ function queuePendingWakeReason(params?: {
     sessionKey: normalizedSessionKey,
   });
   const next: PendingWakeReason = {
+    source: params?.source,
+    intent: params?.intent,
     reason: normalizedReason,
-    priority: resolveReasonPriority(normalizedReason),
+    priority: resolveWakePriority({
+      source: params?.source,
+      intent: params?.intent,
+      reason: normalizedReason,
+    }),
     requestedAt,
     agentId: normalizedAgentId,
     sessionKey: normalizedSessionKey,
+    heartbeat: params?.heartbeat,
   };
   const previous = pendingWakes.get(wakeTargetKey);
   if (!previous) {
     pendingWakes.set(wakeTargetKey, next);
     return;
   }
+  const merged =
+    (next.heartbeat ?? previous.heartbeat)
+      ? { ...next, heartbeat: next.heartbeat ?? previous.heartbeat }
+      : next;
   if (next.priority > previous.priority) {
-    pendingWakes.set(wakeTargetKey, next);
+    pendingWakes.set(wakeTargetKey, merged);
     return;
   }
   if (next.priority === previous.priority && next.requestedAt >= previous.requestedAt) {
-    pendingWakes.set(wakeTargetKey, next);
+    pendingWakes.set(wakeTargetKey, merged);
   }
 }
 
@@ -193,17 +232,23 @@ function schedule(coalesceMs: number, kind: WakeTimerKind = "normal") {
     try {
       for (const pendingWake of pendingBatch) {
         const wakeOpts = {
+          ...(pendingWake.source ? { source: pendingWake.source } : {}),
+          ...(pendingWake.intent ? { intent: pendingWake.intent } : {}),
           reason: pendingWake.reason ?? undefined,
           ...(pendingWake.agentId ? { agentId: pendingWake.agentId } : {}),
           ...(pendingWake.sessionKey ? { sessionKey: pendingWake.sessionKey } : {}),
+          ...(pendingWake.heartbeat ? { heartbeat: pendingWake.heartbeat } : {}),
         };
         const res = await active(wakeOpts);
         if (res.status === "skipped" && isRetryableHeartbeatBusySkipReason(res.reason)) {
           // A runtime lane is busy; retry this wake target soon.
           queuePendingWakeReason({
+            source: pendingWake.source,
+            intent: pendingWake.intent,
             reason: pendingWake.reason ?? "retry",
             agentId: pendingWake.agentId,
             sessionKey: pendingWake.sessionKey,
+            heartbeat: pendingWake.heartbeat,
           });
           schedule(DEFAULT_RETRY_MS, "retry");
         }
@@ -212,9 +257,12 @@ function schedule(coalesceMs: number, kind: WakeTimerKind = "normal") {
       // Error is already logged by the heartbeat runner; schedule a retry.
       for (const pendingWake of pendingBatch) {
         queuePendingWakeReason({
+          source: pendingWake.source,
+          intent: pendingWake.intent,
           reason: pendingWake.reason ?? "retry",
           agentId: pendingWake.agentId,
           sessionKey: pendingWake.sessionKey,
+          heartbeat: pendingWake.heartbeat,
         });
       }
       schedule(DEFAULT_RETRY_MS, "retry");
@@ -268,6 +316,26 @@ export function setHeartbeatWakeHandler(next: HeartbeatWakeHandler | null): () =
     handlerGeneration += 1;
     handler = null;
   };
+}
+
+export function requestHeartbeat(opts: {
+  source: HeartbeatWakeSource;
+  intent: HeartbeatWakeIntent;
+  reason?: string;
+  coalesceMs?: number;
+  agentId?: string;
+  sessionKey?: string;
+  heartbeat?: HeartbeatWakeOverride;
+}) {
+  queuePendingWakeReason({
+    source: opts.source,
+    intent: opts.intent,
+    reason: opts.reason,
+    agentId: opts.agentId,
+    sessionKey: opts.sessionKey,
+    heartbeat: opts.heartbeat,
+  });
+  schedule(opts.coalesceMs ?? DEFAULT_COALESCE_MS, "normal");
 }
 
 export function requestHeartbeatNow(opts?: {
@@ -326,6 +394,10 @@ export class HeartbeatWakeService {
 
   requestHeartbeatNow(opts?: Parameters<typeof requestHeartbeatNow>[0]) {
     return requestHeartbeatNow(opts);
+  }
+
+  requestHeartbeat(opts: Parameters<typeof requestHeartbeat>[0]) {
+    return requestHeartbeat(opts);
   }
 
   hasHeartbeatWakeHandler() {
