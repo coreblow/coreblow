@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6319,
+    "cb_source_files": 6320,
     "oc_source_files": 8443,
-    "source_parity_both": 4544,
+    "source_parity_both": 4545,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3899,
+    "source_missing_from_cb": 3898,
     "test_files_cb": 4062,
     "test_files_oc": 5246,
     "tests_both_covered": 2706,
@@ -7485,32 +7485,6 @@
       ]
     },
     {
-      "domain": "src/entry.version-fast-path.ts",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "src/entry.version-fast-path.ts",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 1,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 0
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/entry.version-fast-path.ts"
-        ],
-        "openClawTestGapPaths": [],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/entry.version-fast-path.ts",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/i18n",
       "status": "missing",
       "priority": "P3",
@@ -9177,6 +9151,30 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/entry.version-fast-path.test.ts",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/entry.version-fast-path.ts",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/entry.version-fast-path.ts",
+      "counts": {
+        "sharedSourcePaths": 1,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 0,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/entry.version-fast-path.ts",
         "pnpm check"
       ]
     },
