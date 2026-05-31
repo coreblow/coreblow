@@ -120,6 +120,8 @@ export type MessagesConfig = {
   statusReactions?: StatusReactionsConfig;
   /** When true, suppress ⚠️ tool-error warnings from being shown to the user. Default: false. */
   suppressToolErrors?: boolean;
+  /** Controls whether heartbeat runs should use message-tool-only visible replies. */
+  visibleReplies?: "automatic" | "message_tool";
   /** Text-to-speech settings for outbound replies. */
   tts?: TtsConfig;
 };

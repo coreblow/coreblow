@@ -45,6 +45,12 @@ export type GetReplyOptions = {
   bootstrapContextMode?: "full" | "lightweight";
   /** If true, suppress tool error warning payloads for this run. */
   suppressToolErrorWarnings?: boolean;
+  /** Enable the heartbeat response tool for heartbeat runs. */
+  enableHeartbeatTool?: boolean;
+  /** Require heartbeat response tool use when enabled. */
+  forceHeartbeatTool?: boolean;
+  /** Restrict delivery of source replies produced outside message tools. */
+  sourceReplyDeliveryMode?: "message_tool_only";
   onPartialReply?: (payload: ReplyPayload) => Promise<void> | void;
   onReasoningStream?: (payload: ReplyPayload) => Promise<void> | void;
   /** Called when a thinking/reasoning block ends. */
@@ -67,6 +73,8 @@ export type GetReplyOptions = {
   blockReplyTimeoutMs?: number;
   /** If provided, only load these skills for this session (empty = no skills). */
   skillFilter?: string[];
+  /** Disable tool execution for this run. */
+  disableTools?: boolean;
   /** Mutable ref to track if a reply was sent (for Slack "first" threading mode). */
   hasRepliedRef?: { value: boolean };
   /** Override agent timeout in seconds (0 = no timeout). Threads through to resolveAgentTimeoutMs. */
@@ -98,6 +106,24 @@ export type ReplyPayload = {
   /** Channel-specific payload data (per-channel envelope). */
   channelData?: Record<string, unknown>;
 };
+
+const SOURCE_SUPPRESSION_DELIVERY_KEY = "coreblowSourceSuppressionDelivery";
+
+export function markReplyPayloadForSourceSuppressionDelivery(
+  payload: ReplyPayload,
+): ReplyPayload {
+  return {
+    ...payload,
+    channelData: {
+      ...payload.channelData,
+      [SOURCE_SUPPRESSION_DELIVERY_KEY]: true,
+    },
+  };
+}
+
+export function isReplyPayloadMarkedForSourceSuppressionDelivery(payload: ReplyPayload): boolean {
+  return payload.channelData?.[SOURCE_SUPPRESSION_DELIVERY_KEY] === true;
+}
 
 // ─── Phase 8: Reply envelope for queue ────────────────────
 

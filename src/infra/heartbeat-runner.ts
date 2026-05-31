@@ -18,12 +18,24 @@ import { resolveHeartbeatReplyPayload } from "../auto-reply/heartbeat-reply-payl
 import {
   DEFAULT_HEARTBEAT_ACK_MAX_CHARS,
   isHeartbeatContentEffectivelyEmpty,
+  resolveHeartbeatPromptForResponseTool,
   resolveHeartbeatPrompt as resolveHeartbeatPromptText,
   stripHeartbeatToken,
 } from "../auto-reply/heartbeat.js";
+import {
+  getHeartbeatToolNotificationText,
+  resolveHeartbeatToolResponseFromReplyResult,
+} from "../auto-reply/heartbeat-tool-response.js";
 import { getReplyFromConfig as getReplyFromConfigDefault } from "../auto-reply/reply.js";
+import {
+  HEARTBEAT_EXTERNAL_RUN_FAILURE_TEXT,
+  replaceGenericExternalRunFailureText,
+} from "../auto-reply/reply/agent-runner-failure-copy.js";
 import { HEARTBEAT_TOKEN } from "../auto-reply/tokens.js";
-import type { ReplyPayload } from "../auto-reply/types.js";
+import {
+  isReplyPayloadMarkedForSourceSuppressionDelivery,
+  type ReplyPayload,
+} from "../auto-reply/types.js";
 import { createReplyPrefixContext } from "../channels/reply-prefix.js";
 import { getChannelPlugin } from "../channels/plugins/index.js";
 import type { ChannelHeartbeatDeps } from "../channels/plugins/types.js";
@@ -280,6 +292,40 @@ function resolveHeartbeatAgents(cfg: CoreBlowConfig): HeartbeatAgent[] {
 
 export function resolveHeartbeatPrompt(cfg: CoreBlowConfig, heartbeat?: HeartbeatConfig) {
   return resolveHeartbeatPromptText(heartbeat?.prompt ?? cfg.agents?.defaults?.heartbeat?.prompt);
+}
+
+function resolveHeartbeatResponseToolPrompt(cfg: CoreBlowConfig, heartbeat?: HeartbeatConfig) {
+  return resolveHeartbeatPromptForResponseTool(
+    heartbeat?.prompt ?? cfg.agents?.defaults?.heartbeat?.prompt,
+  );
+}
+
+function usesCodexHarness(params: { cfg: CoreBlowConfig; entry?: Record<string, unknown> }) {
+  if (params.entry?.agentHarnessId === "codex") {
+    return true;
+  }
+  const model = params.cfg.agents?.defaults?.model;
+  const primaryModel =
+    typeof model === "string"
+      ? model
+      : typeof model?.primary === "string"
+        ? model.primary
+        : undefined;
+  return typeof primaryModel === "string" && primaryModel.toLowerCase().includes("codex");
+}
+
+function shouldUseHeartbeatResponseToolPrompt(params: {
+  cfg: CoreBlowConfig;
+  entry?: Record<string, unknown>;
+}) {
+  const visibleReplies = params.cfg.messages?.visibleReplies;
+  if (visibleReplies === "message_tool") {
+    return true;
+  }
+  if (visibleReplies === "automatic") {
+    return false;
+  }
+  return usesCodexHarness(params);
 }
 
 function resolveHeartbeatAckMaxChars(cfg: CoreBlowConfig, heartbeat?: HeartbeatConfig) {
@@ -937,9 +983,12 @@ export async function runHeartbeatOnce(opts: {
     delivery.channel !== "none" && delivery.to && visibility.showAlerts,
   );
   const workspaceDir = resolveAgentWorkspaceDir(cfg, agentId);
+  const usesHeartbeatResponseTool = shouldUseHeartbeatResponseToolPrompt({ cfg, entry });
   const { prompt, hasExecCompletion, hasCronEvents } = resolveHeartbeatRunPrompt({
     cfg,
-    heartbeat,
+    heartbeat: usesHeartbeatResponseTool
+      ? { ...heartbeat, prompt: resolveHeartbeatResponseToolPrompt(cfg, heartbeat) }
+      : heartbeat,
     preflight,
     canRelayToUser,
     workspaceDir,
@@ -1054,27 +1103,46 @@ export async function runHeartbeatOnce(opts: {
     const suppressToolErrorWarnings = heartbeat?.suppressToolErrorWarnings === true;
     const bootstrapContextMode: "lightweight" | undefined =
       heartbeat?.lightContext === true ? "lightweight" : undefined;
-    const replyOpts = heartbeatModelOverride
-      ? {
-          isHeartbeat: true,
-          heartbeatModelOverride,
-          suppressToolErrorWarnings,
-          bootstrapContextMode,
-          onModelSelected: replyPrefix.onModelSelected,
-        }
-      : {
-          isHeartbeat: true,
-          suppressToolErrorWarnings,
-          bootstrapContextMode,
-          onModelSelected: replyPrefix.onModelSelected,
-        };
+    const replyOpts = {
+      isHeartbeat: true,
+      ...(heartbeatModelOverride ? { heartbeatModelOverride } : {}),
+      suppressToolErrorWarnings,
+      bootstrapContextMode,
+      ...(usesHeartbeatResponseTool ? { enableHeartbeatTool: true, forceHeartbeatTool: true } : {}),
+      ...(usesHeartbeatResponseTool
+        ? { sourceReplyDeliveryMode: "message_tool_only" as const }
+        : {}),
+      onModelSelected: replyPrefix.onModelSelected,
+    };
     const getReplyFromConfig = opts.deps?.getReplyFromConfig ?? getReplyFromConfigDefault;
     const replyResult = await getReplyFromConfig(ctx, replyOpts, cfg);
+    const heartbeatToolResponse = resolveHeartbeatToolResponseFromReplyResult(replyResult);
     const replyPayload = resolveHeartbeatReplyPayload(replyResult);
     const includeReasoning = heartbeat?.includeReasoning === true;
     const reasoningPayloads = includeReasoning
       ? resolveHeartbeatReasoningPayloads(replyResult).filter((payload) => payload !== replyPayload)
       : [];
+
+    if (heartbeatToolResponse && !heartbeatToolResponse.notify) {
+      await restoreHeartbeatUpdatedAt({
+        storePath,
+        sessionKey,
+        updatedAt: previousUpdatedAt,
+      });
+      await pruneHeartbeatTranscript(transcriptState);
+      const okSent = await maybeSendHeartbeatOk();
+      emitHeartbeatEvent({
+        status: "ok-token",
+        reason: opts.reason,
+        preview: heartbeatToolResponse.summary.slice(0, 200),
+        durationMs: Date.now() - startedAt,
+        channel: delivery.channel !== "none" ? delivery.channel : undefined,
+        accountId: delivery.accountId,
+        silent: !okSent,
+        indicatorType: visibility.useIndicator ? resolveIndicatorType("ok-token") : undefined,
+      });
+      return { status: "ran", durationMs: Date.now() - startedAt };
+    }
 
     if (!replyPayload || !hasOutboundReplyContent(replyPayload)) {
       await restoreHeartbeatUpdatedAt({
@@ -1100,6 +1168,16 @@ export async function runHeartbeatOnce(opts: {
     const ackMaxChars = resolveHeartbeatAckMaxChars(cfg, heartbeat);
     const responsePrefix = resolveHeartbeatResponsePrefix();
     const normalized = normalizeHeartbeatReply(replyPayload, responsePrefix, ackMaxChars);
+    if (heartbeatToolResponse?.notify) {
+      normalized.text = getHeartbeatToolNotificationText(heartbeatToolResponse);
+      normalized.shouldSkip = false;
+    } else if (isReplyPayloadMarkedForSourceSuppressionDelivery(replyPayload)) {
+      const replaced = replaceGenericExternalRunFailureText(normalized.text);
+      if (replaced.replaced) {
+        normalized.text = replaced.text;
+        normalized.shouldSkip = false;
+      }
+    }
     // For exec completion events, don't skip even if the response looks like HEARTBEAT_OK.
     // The model should be responding with exec results, not ack tokens.
     // Also, if normalized.text is empty due to token stripping but we have exec completion,
@@ -1169,6 +1247,10 @@ export async function runHeartbeatOnce(opts: {
       });
       return { status: "ran", durationMs: Date.now() - startedAt };
     }
+
+    const rewrittenRunnerFailure =
+      isReplyPayloadMarkedForSourceSuppressionDelivery(replyPayload) &&
+      normalized.text === HEARTBEAT_EXTERNAL_RUN_FAILURE_TEXT;
 
     // Reasoning payloads are text-only; any attachments stay on the main reply.
     const previewText = shouldSkipMain
@@ -1255,6 +1337,20 @@ export async function runHeartbeatOnce(opts: {
       ],
       deps: opts.deps,
     });
+
+    if (rewrittenRunnerFailure) {
+      emitHeartbeatEvent({
+        status: "failed",
+        reason: "agent-runner-failure",
+        preview: normalized.text.slice(0, 200),
+        durationMs: Date.now() - startedAt,
+        hasMedia: mediaUrls.length > 0,
+        channel: delivery.channel,
+        accountId: delivery.accountId,
+        indicatorType: visibility.useIndicator ? resolveIndicatorType("failed") : undefined,
+      });
+      return { status: "ran", durationMs: Date.now() - startedAt };
+    }
 
     // Record last delivered heartbeat payload for dedupe.
     if (!shouldSkipMain && normalized.text.trim()) {
