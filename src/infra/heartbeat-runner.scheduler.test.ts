@@ -2,7 +2,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { CoreBlowConfig } from "../config/config.js";
 import { startHeartbeatRunner } from "./heartbeat-runner.js";
 import { computeNextHeartbeatPhaseDueMs, resolveHeartbeatPhaseMs } from "./heartbeat-schedule.js";
-import { requestHeartbeatNow, resetHeartbeatWakeStateForTests } from "./heartbeat-wake.js";
+import {
+  HEARTBEAT_SKIP_REQUESTS_IN_FLIGHT,
+  requestHeartbeatNow,
+  resetHeartbeatWakeStateForTests,
+} from "./heartbeat-wake.js";
 
 describe("startHeartbeatRunner", () => {
   type RunOnce = Parameters<typeof startHeartbeatRunner>[0]["runOnce"];
@@ -355,6 +359,73 @@ describe("startHeartbeatRunner", () => {
     });
     expect(runSpy.mock.calls.some((call) => call[0]?.agentId === "finance")).toBe(false);
 
+    runner.stop();
+  });
+
+  it("does not bypass interval cooldown for repeated exec-event wakes within nextDueMs", async () => {
+    useFakeHeartbeatTime();
+    const runSpy = vi.fn().mockResolvedValue({ status: "ran", durationMs: 1 });
+    const runner = startHeartbeatRunner({
+      cfg: heartbeatConfig(),
+      runOnce: runSpy,
+      stableSchedulerSeed: TEST_SCHEDULER_SEED,
+    });
+
+    requestHeartbeatNow({
+      reason: "exec-event",
+      sessionKey: "agent:main:main",
+      coalesceMs: 0,
+    });
+    await vi.advanceTimersByTimeAsync(1);
+    expect(runSpy).toHaveBeenCalledTimes(1);
+
+    for (let i = 0; i < 4; i += 1) {
+      await vi.advanceTimersByTimeAsync(10_000);
+      requestHeartbeatNow({
+        reason: "exec-event",
+        sessionKey: "agent:main:main",
+        coalesceMs: 0,
+      });
+      await vi.advanceTimersByTimeAsync(1);
+    }
+
+    expect(runSpy).toHaveBeenCalledTimes(1);
+    runner.stop();
+  });
+
+  it("retryable busy skips do not poison targeted exec-event cooldown retries", async () => {
+    useFakeHeartbeatTime();
+    let attempt = 0;
+    const runSpy = vi.fn().mockImplementation(async () => {
+      attempt += 1;
+      if (attempt === 1) {
+        return { status: "skipped", reason: HEARTBEAT_SKIP_REQUESTS_IN_FLIGHT } as const;
+      }
+      return { status: "ran", durationMs: 1 } as const;
+    });
+    const runner = startHeartbeatRunner({
+      cfg: heartbeatConfig(),
+      runOnce: runSpy,
+      stableSchedulerSeed: TEST_SCHEDULER_SEED,
+    });
+
+    requestHeartbeatNow({
+      reason: "exec-event",
+      sessionKey: "agent:main:main",
+      coalesceMs: 0,
+    });
+    await vi.advanceTimersByTimeAsync(1);
+    expect(runSpy).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(1_500);
+
+    expect(runSpy).toHaveBeenCalledTimes(2);
+    expect(runSpy.mock.calls[1]?.[0]).toEqual(
+      expect.objectContaining({
+        reason: "exec-event",
+        sessionKey: "agent:main:main",
+      }),
+    );
     runner.stop();
   });
 });

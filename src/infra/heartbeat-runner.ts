@@ -75,6 +75,11 @@ import { loadOrCreateDeviceIdentity } from "./device-identity.js";
 import { formatErrorMessage, hasErrnoCode } from "./errors.js";
 import { isWithinActiveHours, resolveActiveHoursTimezone } from "./heartbeat-active-hours.js";
 import {
+  recordRunStart,
+  shouldDeferWake,
+  type DeferDecision,
+} from "./heartbeat-cooldown.js";
+import {
   buildExecEventPrompt,
   buildCronEventPrompt,
   isCronSystemEvent,
@@ -107,6 +112,7 @@ import {
   areHeartbeatsEnabled,
   type HeartbeatRunResult,
   type HeartbeatWakeHandler,
+  type HeartbeatWakeIntent,
   HEARTBEAT_SKIP_CRON_IN_PROGRESS,
   HEARTBEAT_SKIP_LANES_BUSY,
   HEARTBEAT_SKIP_REQUESTS_IN_FLIGHT,
@@ -201,6 +207,9 @@ type HeartbeatAgentState = {
   intervalMs: number;
   phaseMs: number;
   lastRunMs?: number;
+  lastRunStartedAtMs?: number;
+  recentRunStarts: number[];
+  floodLoggedSinceLastRun: boolean;
   nextDueMs: number;
 };
 
@@ -1533,6 +1542,55 @@ export function startHeartbeatRunner(opts: {
     agent.nextDueMs = seekActiveSlotForAgent(agent, rawDueMs);
   };
 
+  const resolveWakeIntent = (reason?: string): HeartbeatWakeIntent => {
+    const kind = resolveHeartbeatReasonKind(reason);
+    if (kind === "interval") {
+      return "scheduled";
+    }
+    if (kind === "manual") {
+      return "manual";
+    }
+    if (
+      kind === "wake" ||
+      reason === "background-task" ||
+      reason === "background-task-blocked" ||
+      reason === "hook:wake"
+    ) {
+      return "immediate";
+    }
+    return "event";
+  };
+
+  const evaluateWakeDeferral = (
+    agent: HeartbeatAgentState,
+    now: number,
+    reason?: string,
+  ): DeferDecision => {
+    const decision = shouldDeferWake({
+      intent: resolveWakeIntent(reason),
+      reason,
+      now,
+      nextDueMs: agent.nextDueMs,
+      lastRunStartedAtMs: agent.lastRunStartedAtMs,
+      recentRunStarts: agent.recentRunStarts,
+    });
+    if (decision.defer && decision.reason === "flood" && !agent.floodLoggedSinceLastRun) {
+      log.warn("heartbeat: flood guard tripped, deferring wake", {
+        agentId: agent.agentId,
+        reason: reason ?? "(none)",
+        recentRunCount: agent.recentRunStarts.length,
+      });
+      agent.floodLoggedSinceLastRun = true;
+    }
+    return decision;
+  };
+
+  const recordRunBookkeeping = (agent: HeartbeatAgentState, now: number) => {
+    agent.lastRunStartedAtMs = now;
+    recordRunStart(agent.recentRunStarts, now);
+    agent.floodLoggedSinceLastRun = false;
+  };
+
   const scheduleNext = () => {
     if (state.stopped) {
       return;
@@ -1613,6 +1671,9 @@ export function startHeartbeatRunner(opts: {
         intervalMs,
         phaseMs,
         lastRunMs: prevState?.lastRunMs,
+        lastRunStartedAtMs: prevState?.lastRunStartedAtMs,
+        recentRunStarts: prevState?.recentRunStarts ?? [],
+        floodLoggedSinceLastRun: prevState?.floodLoggedSinceLastRun ?? false,
         nextDueMs,
       });
     }
@@ -1676,6 +1737,10 @@ export function startHeartbeatRunner(opts: {
         if (!targetAgent) {
           return { status: "skipped", reason: "disabled" };
         }
+        const deferral = evaluateWakeDeferral(targetAgent, now, reason);
+        if (deferral.defer) {
+          return { status: "skipped", reason: deferral.reason };
+        }
         try {
           const res = await runOnce({
             cfg: state.cfg,
@@ -1685,6 +1750,11 @@ export function startHeartbeatRunner(opts: {
             sessionKey: requestedSessionKey,
             deps: { runtime: state.runtime },
           });
+          if (res.status === "skipped" && isRetryableHeartbeatBusySkipReason(res.reason)) {
+            requestsInFlight = true;
+            return res;
+          }
+          recordRunBookkeeping(targetAgent, now);
           if (res.status !== "skipped" || res.reason !== "disabled") {
             advanceAgentSchedule(targetAgent, now, reason);
           }
@@ -1694,13 +1764,15 @@ export function startHeartbeatRunner(opts: {
           log.error(`heartbeat runner: targeted runOnce threw unexpectedly: ${errMsg}`, {
             error: errMsg,
           });
+          recordRunBookkeeping(targetAgent, now);
           advanceAgentSchedule(targetAgent, now, reason);
           return { status: "failed", reason: errMsg };
         }
       }
 
       for (const agent of state.agents.values()) {
-        if (isInterval && now < agent.nextDueMs) {
+        const deferral = evaluateWakeDeferral(agent, now, reason);
+        if (deferral.defer) {
           continue;
         }
 
@@ -1727,6 +1799,7 @@ export function startHeartbeatRunner(opts: {
           requestsInFlight = true;
           return res;
         }
+        recordRunBookkeeping(agent, now);
         if (res.status !== "skipped" || res.reason !== "disabled") {
           advanceAgentSchedule(agent, now, reason);
         }
