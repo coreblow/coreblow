@@ -22,9 +22,9 @@
     "test_scenario_files_intentionally_different": 0
   },
   "statusLegend": {
-    "done": "Shared source exists and no OpenClaw-only source paths were found for this domain.",
+    "done": "Shared source or test coverage exists and no OpenClaw-only source or test paths were found for this domain.",
     "partial": "Both repos have this domain, but OpenClaw has additional source paths or tests to map.",
-    "missing": "OpenClaw has this domain and CoreBlow has no shared source path for it.",
+    "missing": "OpenClaw has this domain and CoreBlow has no shared source or test path for it.",
     "intentionally_different": "CoreBlow-only domain; keep only when it is a deliberate CoreBlow product or architecture surface."
   },
   "behaviorDecisionLegend": "A domain can remain partial while a specific shared path deliberately keeps CoreBlow behavior that differs from OpenClaw.",
@@ -4865,7 +4865,7 @@
     },
     {
       "domain": "src/scripts",
-      "status": "missing",
+      "status": "partial",
       "priority": "P3",
       "implementationSurface": "src/scripts",
       "counts": {
@@ -7112,7 +7112,7 @@
     },
     {
       "domain": "extensions/kilocode",
-      "status": "done",
+      "status": "partial",
       "priority": "P3",
       "implementationSurface": "extensions/kilocode plus plugin-sdk channel/runtime surfaces",
       "counts": {
@@ -7351,7 +7351,7 @@
     },
     {
       "domain": "extensions/qianfan",
-      "status": "done",
+      "status": "partial",
       "priority": "P3",
       "implementationSurface": "extensions/qianfan plus plugin-sdk channel/runtime surfaces",
       "counts": {
@@ -7377,7 +7377,7 @@
     },
     {
       "domain": "extensions/sglang",
-      "status": "done",
+      "status": "partial",
       "priority": "P3",
       "implementationSurface": "extensions/sglang plus plugin-sdk channel/runtime surfaces",
       "counts": {
@@ -7481,7 +7481,7 @@
     },
     {
       "domain": "src/compat",
-      "status": "done",
+      "status": "partial",
       "priority": "P3",
       "implementationSurface": "src/compat",
       "counts": {
@@ -7642,7 +7642,7 @@
     },
     {
       "domain": "src/link-understanding",
-      "status": "done",
+      "status": "partial",
       "priority": "P3",
       "implementationSurface": "src/link-understanding",
       "counts": {
@@ -8998,7 +8998,7 @@
     },
     {
       "domain": "src/docker-build-cache.test.ts",
-      "status": "missing",
+      "status": "done",
       "priority": "P3",
       "implementationSurface": "src/docker-build-cache.test.ts",
       "counts": {
@@ -9022,7 +9022,7 @@
     },
     {
       "domain": "src/docker-image-digests.test.ts",
-      "status": "missing",
+      "status": "done",
       "priority": "P3",
       "implementationSurface": "src/docker-image-digests.test.ts",
       "counts": {
@@ -9046,7 +9046,7 @@
     },
     {
       "domain": "src/dockerfile.test.ts",
-      "status": "missing",
+      "status": "done",
       "priority": "P3",
       "implementationSurface": "src/dockerfile.test.ts",
       "counts": {
@@ -9070,7 +9070,7 @@
     },
     {
       "domain": "src/entry.respawn.test.ts",
-      "status": "missing",
+      "status": "done",
       "priority": "P3",
       "implementationSurface": "src/entry.respawn.test.ts",
       "counts": {
@@ -9118,7 +9118,7 @@
     },
     {
       "domain": "src/entry.test.ts",
-      "status": "missing",
+      "status": "done",
       "priority": "P3",
       "implementationSurface": "src/entry.test.ts",
       "counts": {
@@ -9166,7 +9166,7 @@
     },
     {
       "domain": "src/entry.version-fast-path.test.ts",
-      "status": "missing",
+      "status": "done",
       "priority": "P3",
       "implementationSurface": "src/entry.version-fast-path.test.ts",
       "counts": {
@@ -9190,7 +9190,7 @@
     },
     {
       "domain": "src/exec-sandbox.test.ts",
-      "status": "missing",
+      "status": "intentionally_different",
       "priority": "P3",
       "implementationSurface": "src/exec-sandbox.test.ts",
       "counts": {
@@ -9206,7 +9206,7 @@
         "openClawTestGapPaths": [],
         "coreBlowOnlySourcePaths": []
       },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "notes": "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture.",
       "gates": [
         "pnpm test -- src/exec-sandbox.test.ts",
         "pnpm check"
@@ -9370,7 +9370,7 @@
     },
     {
       "domain": "src/index.test.ts",
-      "status": "missing",
+      "status": "done",
       "priority": "P3",
       "implementationSurface": "src/index.test.ts",
       "counts": {
@@ -9418,7 +9418,7 @@
     },
     {
       "domain": "src/install-sh-version.test.ts",
-      "status": "missing",
+      "status": "done",
       "priority": "P3",
       "implementationSurface": "src/install-sh-version.test.ts",
       "counts": {
@@ -9466,7 +9466,7 @@
     },
     {
       "domain": "src/library.test.ts",
-      "status": "missing",
+      "status": "done",
       "priority": "P3",
       "implementationSurface": "src/library.test.ts",
       "counts": {
@@ -9514,7 +9514,7 @@
     },
     {
       "domain": "src/logger.test.ts",
-      "status": "missing",
+      "status": "done",
       "priority": "P3",
       "implementationSurface": "src/logger.test.ts",
       "counts": {
@@ -9646,7 +9646,7 @@
     },
     {
       "domain": "src/poll-params.test.ts",
-      "status": "missing",
+      "status": "done",
       "priority": "P3",
       "implementationSurface": "src/poll-params.test.ts",
       "counts": {
@@ -9694,7 +9694,7 @@
     },
     {
       "domain": "src/polls.test.ts",
-      "status": "missing",
+      "status": "done",
       "priority": "P3",
       "implementationSurface": "src/polls.test.ts",
       "counts": {
@@ -9930,7 +9930,7 @@
     },
     {
       "domain": "src/test-seams",
-      "status": "missing",
+      "status": "intentionally_different",
       "priority": "P3",
       "implementationSurface": "src/test-seams",
       "counts": {
@@ -9946,7 +9946,7 @@
         "openClawTestGapPaths": [],
         "coreBlowOnlySourcePaths": []
       },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "notes": "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture.",
       "gates": [
         "pnpm test -- src/test-seams",
         "pnpm check"
@@ -9982,7 +9982,7 @@
     },
     {
       "domain": "src/utils.test.ts",
-      "status": "missing",
+      "status": "done",
       "priority": "P3",
       "implementationSurface": "src/utils.test.ts",
       "counts": {
@@ -10030,7 +10030,7 @@
     },
     {
       "domain": "src/version.test.ts",
-      "status": "missing",
+      "status": "done",
       "priority": "P3",
       "implementationSurface": "src/version.test.ts",
       "counts": {

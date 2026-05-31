@@ -223,10 +223,21 @@ function sample(map, domain) {
   return (map.get(domain) || []).slice(0, 12);
 }
 
-function statusFor({ both, openClawOnly, coreOnly }) {
-  if (openClawOnly > 0 && both > 0) return "partial";
-  if (openClawOnly > 0 && both === 0) return "missing";
-  if (openClawOnly === 0 && both > 0) return "done";
+function statusFor({
+  sharedSource,
+  sharedTests,
+  openClawOnlySource,
+  openClawOnlyTests,
+  coreOnlySource,
+  coreOnlyTests,
+}) {
+  const shared = sharedSource + sharedTests;
+  const openClawOnly = openClawOnlySource + openClawOnlyTests;
+  const coreOnly = coreOnlySource + coreOnlyTests;
+
+  if (openClawOnly > 0 && shared > 0) return "partial";
+  if (openClawOnly > 0 && shared === 0) return "missing";
+  if (openClawOnly === 0 && shared > 0) return "done";
   if (openClawOnly === 0 && coreOnly > 0) return "intentionally_different";
   return "missing";
 }
@@ -250,9 +261,12 @@ const matrix = domains
       openClawTestGaps: count(testsOpenClawOnly, domain),
     };
     const status = statusFor({
-      both: counts.sharedSourcePaths,
-      coreOnly: counts.coreBlowOnlySourcePaths,
-      openClawOnly: counts.openClawOnlySourcePaths,
+      sharedSource: counts.sharedSourcePaths,
+      sharedTests: counts.sharedTestPaths,
+      coreOnlySource: counts.coreBlowOnlySourcePaths,
+      coreOnlyTests: counts.coreBlowOnlyTestPaths,
+      openClawOnlySource: counts.openClawOnlySourcePaths,
+      openClawOnlyTests: counts.openClawTestGaps,
     });
 
     return {
@@ -302,9 +316,9 @@ const result = {
   },
   summary: audit.summary,
   statusLegend: {
-    done: "Shared source exists and no OpenClaw-only source paths were found for this domain.",
+    done: "Shared source or test coverage exists and no OpenClaw-only source or test paths were found for this domain.",
     partial: "Both repos have this domain, but OpenClaw has additional source paths or tests to map.",
-    missing: "OpenClaw has this domain and CoreBlow has no shared source path for it.",
+    missing: "OpenClaw has this domain and CoreBlow has no shared source or test path for it.",
     intentionally_different: "CoreBlow-only domain; keep only when it is a deliberate CoreBlow product or architecture surface.",
   },
   behaviorDecisionLegend:
