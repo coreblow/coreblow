@@ -33,6 +33,16 @@ function resolveTempRoot(tmpDir?: string): string {
   return tmpDir ?? resolvePreferredCoreBlowTmpDir();
 }
 
+export type TempWorkspaceOptions = {
+  rootDir?: string;
+  prefix?: string;
+};
+
+export type TempWorkspace = {
+  dir: string;
+  cleanup: () => Promise<void>;
+};
+
 function isNodeErrorWithCode(err: unknown, code: string): boolean {
   return (
     typeof err === "object" &&
@@ -84,5 +94,29 @@ export async function withTempDownloadPath<T>(
         console.warn(`temp-path cleanup failed for ${dir}: ${String(err)}`);
       }
     }
+  }
+}
+
+export async function tempWorkspace(options: TempWorkspaceOptions = {}): Promise<TempWorkspace> {
+  const rootDir = options.rootDir ?? resolvePreferredCoreBlowTmpDir();
+  const prefix = `${sanitizePrefix(options.prefix ?? "coreblow-workspace")}-`;
+  const dir = await mkdtemp(path.join(rootDir, prefix));
+  return {
+    dir,
+    cleanup: async () => {
+      await rm(dir, { recursive: true, force: true });
+    },
+  };
+}
+
+export async function withTempWorkspace<T>(
+  options: TempWorkspaceOptions,
+  fn: (workspace: TempWorkspace) => Promise<T>,
+): Promise<T> {
+  const workspace = await tempWorkspace(options);
+  try {
+    return await fn(workspace);
+  } finally {
+    await workspace.cleanup();
   }
 }

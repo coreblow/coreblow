@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6324,
+    "cb_source_files": 6325,
     "oc_source_files": 8443,
-    "source_parity_both": 4549,
+    "source_parity_both": 4550,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3894,
+    "source_missing_from_cb": 3893,
     "test_files_cb": 4062,
     "test_files_oc": 5246,
     "tests_both_covered": 2706,
@@ -7285,45 +7285,6 @@
       ]
     },
     {
-      "domain": "extensions/llm-task",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/llm-task plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 3,
-        "coreBlowOnlySourcePaths": 15,
-        "openClawOnlySourcePaths": 1,
-        "sharedTestPaths": 1,
-        "coreBlowOnlyTestPaths": 5,
-        "openClawTestGaps": 0
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/llm-task/src/runtime-api.ts"
-        ],
-        "openClawTestGapPaths": [],
-        "coreBlowOnlySourcePaths": [
-          "extensions/llm-task/src/adapter.ts",
-          "extensions/llm-task/src/channel.ts",
-          "extensions/llm-task/src/config.ts",
-          "extensions/llm-task/src/extension.ts",
-          "extensions/llm-task/src/formatter.ts",
-          "extensions/llm-task/src/handler.ts",
-          "extensions/llm-task/src/index.ts",
-          "extensions/llm-task/src/media.ts",
-          "extensions/llm-task/src/rate-limiter.ts",
-          "extensions/llm-task/src/resolve-target.ts",
-          "extensions/llm-task/src/runtime.ts",
-          "extensions/llm-task/src/subagent-hooks.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/llm-task",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/media-understanding-core",
       "status": "partial",
       "priority": "P3",
@@ -7892,6 +7853,43 @@
       "notes": "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture.",
       "gates": [
         "pnpm test -- extensions/link-understanding",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/llm-task",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/llm-task plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 4,
+        "coreBlowOnlySourcePaths": 15,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 1,
+        "coreBlowOnlyTestPaths": 5,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "extensions/llm-task/src/adapter.ts",
+          "extensions/llm-task/src/channel.ts",
+          "extensions/llm-task/src/config.ts",
+          "extensions/llm-task/src/extension.ts",
+          "extensions/llm-task/src/formatter.ts",
+          "extensions/llm-task/src/handler.ts",
+          "extensions/llm-task/src/index.ts",
+          "extensions/llm-task/src/media.ts",
+          "extensions/llm-task/src/rate-limiter.ts",
+          "extensions/llm-task/src/resolve-target.ts",
+          "extensions/llm-task/src/runtime.ts",
+          "extensions/llm-task/src/subagent-hooks.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/llm-task",
         "pnpm check"
       ]
     },
