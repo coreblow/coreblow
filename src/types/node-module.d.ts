@@ -9,4 +9,5 @@ declare module "node:module" {
     message?: string;
     directory: string;
   };
+  export function getCompileCacheDir(): string | undefined;
 }

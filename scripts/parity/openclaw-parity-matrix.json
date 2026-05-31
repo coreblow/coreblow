@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6318,
+    "cb_source_files": 6319,
     "oc_source_files": 8443,
-    "source_parity_both": 4543,
+    "source_parity_both": 4544,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3900,
-    "test_files_cb": 4061,
+    "source_missing_from_cb": 3899,
+    "test_files_cb": 4062,
     "test_files_oc": 5246,
-    "tests_both_covered": 2705,
-    "tests_gap_oc_has_cb_missing": 2296,
+    "tests_both_covered": 2706,
+    "tests_gap_oc_has_cb_missing": 2295,
     "tests_cb_exclusive": 1309,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -7485,58 +7485,6 @@
       ]
     },
     {
-      "domain": "src/entry.compile-cache.test.ts",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "src/entry.compile-cache.test.ts",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 0,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 1
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [],
-        "openClawTestGapPaths": [
-          "src/entry.compile-cache.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/entry.compile-cache.test.ts",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "src/entry.compile-cache.ts",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "src/entry.compile-cache.ts",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 1,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 0
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/entry.compile-cache.ts"
-        ],
-        "openClawTestGapPaths": [],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/entry.compile-cache.ts",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/entry.version-fast-path.ts",
       "status": "missing",
       "priority": "P3",
@@ -9061,6 +9009,54 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/dockerfile.test.ts",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/entry.compile-cache.test.ts",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/entry.compile-cache.test.ts",
+      "counts": {
+        "sharedSourcePaths": 0,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 1,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/entry.compile-cache.test.ts",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/entry.compile-cache.ts",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/entry.compile-cache.ts",
+      "counts": {
+        "sharedSourcePaths": 1,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 0,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/entry.compile-cache.ts",
         "pnpm check"
       ]
     },

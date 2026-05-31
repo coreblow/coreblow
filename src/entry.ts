@@ -1,14 +1,18 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
-import { enableCompileCache } from "node:module";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { isRootHelpInvocation, isRootVersionInvocation } from "./cli/argv.js";
 import { parseCliContainerArgs, resolveCliContainerTarget } from "./cli/container-target.js";
 import { applyCliProfileEnv, parseCliProfileArgs } from "./cli/profile.js";
 import { normalizeWindowsArgv } from "./cli/windows-argv.js";
+import {
+  enableCoreBlowCompileCache,
+  resolveEntryInstallRoot,
+  respawnWithoutCoreBlowCompileCacheIfNeeded,
+} from "./entry.compile-cache.js";
 import { buildCliRespawnPlan } from "./entry.respawn.js";
-import { isTruthyEnvValue, normalizeEnv } from "./infra/env.js";
+import { normalizeEnv } from "./infra/env.js";
 import { isMainModule } from "./infra/is-main.js";
 import { ensureCoreBlowExecMarkerOnProcess } from "./infra/coreblow-exec-env.js";
 import { installProcessWarningFilter } from "./infra/warning-filter.js";
@@ -29,6 +33,8 @@ function shouldForceReadOnlyAuthStore(argv: string[]): boolean {
   return false;
 }
 
+const entryFile = fileURLToPath(import.meta.url);
+
 // Guard: only run entry-point logic when this file is the main module.
 // The bundler may import entry.js as a shared dependency when dist/index.js
 // is the actual entry point; without this guard the top-level code below
@@ -36,122 +42,126 @@ function shouldForceReadOnlyAuthStore(argv: string[]): boolean {
 // on the lock / port and crashes the process.
 if (
   !isMainModule({
-    currentFile: fileURLToPath(import.meta.url),
+    currentFile: entryFile,
     wrapperEntryPairs: [...ENTRY_WRAPPER_PAIRS],
   })
 ) {
   // Imported as a dependency — skip all entry-point side effects.
 } else {
-  const { installGaxiosFetchCompat } = await import("./infra/gaxios-fetch-compat.js");
+  const installRoot = resolveEntryInstallRoot(entryFile);
+  const waitingForCompileCacheRespawn = respawnWithoutCoreBlowCompileCacheIfNeeded({
+    currentFile: entryFile,
+    installRoot,
+  });
 
-  await installGaxiosFetchCompat();
-  process.title = "coreblow";
-  ensureCoreBlowExecMarkerOnProcess();
-  installProcessWarningFilter();
-  normalizeEnv();
-  if (!isTruthyEnvValue(process.env.NODE_DISABLE_COMPILE_CACHE)) {
-    try {
-      enableCompileCache();
-    } catch {
-      // Best-effort only; never block startup.
-    }
-  }
-
-  if (shouldForceReadOnlyAuthStore(process.argv)) {
-    process.env.COREBLOW_AUTH_STORE_READONLY = "1";
-  }
-
-  if (process.argv.includes("--no-color")) {
-    process.env.NO_COLOR = "1";
-    process.env.FORCE_COLOR = "0";
-  }
-
-  function ensureCliRespawnReady(): boolean {
-    const plan = buildCliRespawnPlan();
-    if (!plan) {
-      return false;
-    }
-
-    const child = spawn(process.execPath, plan.argv, {
-      stdio: "inherit",
-      env: plan.env,
-    });
-
-    attachChildProcessBridge(child);
-
-    child.once("exit", (code, signal) => {
-      if (signal) {
-        process.exitCode = 1;
-        return;
-      }
-      process.exit(code ?? 1);
-    });
-
-    child.once("error", (error) => {
-      console.error(
-        "[coreblow] Failed to respawn CLI:",
-        error instanceof Error ? (error.stack ?? error.message) : error,
-      );
-      process.exit(1);
-    });
-
+  if (waitingForCompileCacheRespawn) {
     // Parent must not continue running the CLI.
-    return true;
-  }
+  } else {
+    const { installGaxiosFetchCompat } = await import("./infra/gaxios-fetch-compat.js");
 
-  function tryHandleRootVersionFastPath(argv: string[]): boolean {
-    if (resolveCliContainerTarget(argv)) {
-      return false;
+    await installGaxiosFetchCompat();
+    process.title = "coreblow";
+    ensureCoreBlowExecMarkerOnProcess();
+    installProcessWarningFilter();
+    normalizeEnv();
+    enableCoreBlowCompileCache({ installRoot });
+
+    if (shouldForceReadOnlyAuthStore(process.argv)) {
+      process.env.COREBLOW_AUTH_STORE_READONLY = "1";
     }
-    if (!isRootVersionInvocation(argv)) {
-      return false;
+
+    if (process.argv.includes("--no-color")) {
+      process.env.NO_COLOR = "1";
+      process.env.FORCE_COLOR = "0";
     }
-    Promise.all([import("./version.js"), import("./infra/git-commit.js")])
-      .then(([{ VERSION }, { resolveCommitHash }]) => {
-        const commit = resolveCommitHash({ moduleUrl: import.meta.url });
-        console.log(commit ? `CoreBlow ${VERSION} (${commit})` : `CoreBlow ${VERSION}`);
-        process.exit(0);
-      })
-      .catch((error) => {
+
+    function ensureCliRespawnReady(): boolean {
+      const plan = buildCliRespawnPlan();
+      if (!plan) {
+        return false;
+      }
+
+      const child = spawn(process.execPath, plan.argv, {
+        stdio: "inherit",
+        env: plan.env,
+      });
+
+      attachChildProcessBridge(child);
+
+      child.once("exit", (code, signal) => {
+        if (signal) {
+          process.exitCode = 1;
+          return;
+        }
+        process.exit(code ?? 1);
+      });
+
+      child.once("error", (error) => {
         console.error(
-          "[coreblow] Failed to resolve version:",
+          "[coreblow] Failed to respawn CLI:",
           error instanceof Error ? (error.stack ?? error.message) : error,
         );
-        process.exitCode = 1;
+        process.exit(1);
       });
-    return true;
-  }
 
-  process.argv = normalizeWindowsArgv(process.argv);
-
-  if (!ensureCliRespawnReady()) {
-    const parsedContainer = parseCliContainerArgs(process.argv);
-    if (!parsedContainer.ok) {
-      console.error(`[coreblow] ${parsedContainer.error}`);
-      process.exit(2);
+      // Parent must not continue running the CLI.
+      return true;
     }
 
-    const parsed = parseCliProfileArgs(parsedContainer.argv);
-    if (!parsed.ok) {
-      // Keep it simple; Commander will handle rich help/errors after we strip flags.
-      console.error(`[coreblow] ${parsed.error}`);
-      process.exit(2);
+    function tryHandleRootVersionFastPath(argv: string[]): boolean {
+      if (resolveCliContainerTarget(argv)) {
+        return false;
+      }
+      if (!isRootVersionInvocation(argv)) {
+        return false;
+      }
+      Promise.all([import("./version.js"), import("./infra/git-commit.js")])
+        .then(([{ VERSION }, { resolveCommitHash }]) => {
+          const commit = resolveCommitHash({ moduleUrl: import.meta.url });
+          console.log(commit ? `CoreBlow ${VERSION} (${commit})` : `CoreBlow ${VERSION}`);
+          process.exit(0);
+        })
+        .catch((error) => {
+          console.error(
+            "[coreblow] Failed to resolve version:",
+            error instanceof Error ? (error.stack ?? error.message) : error,
+          );
+          process.exitCode = 1;
+        });
+      return true;
     }
 
-    const containerTargetName = resolveCliContainerTarget(process.argv);
-    if (containerTargetName && parsed.profile) {
-      console.error("[coreblow] --container cannot be combined with --profile/--dev");
-      process.exit(2);
-    }
+    process.argv = normalizeWindowsArgv(process.argv);
 
-    if (parsed.profile) {
-      applyCliProfileEnv({ profile: parsed.profile });
-      // Keep Commander and ad-hoc argv checks consistent.
-      process.argv = parsed.argv;
-    }
+    if (!ensureCliRespawnReady()) {
+      const parsedContainer = parseCliContainerArgs(process.argv);
+      if (!parsedContainer.ok) {
+        console.error(`[coreblow] ${parsedContainer.error}`);
+        process.exit(2);
+      }
 
-    if (!tryHandleRootVersionFastPath(process.argv)) {
-      runMainOrRootHelp(process.argv);
+      const parsed = parseCliProfileArgs(parsedContainer.argv);
+      if (!parsed.ok) {
+        // Keep it simple; Commander will handle rich help/errors after we strip flags.
+        console.error(`[coreblow] ${parsed.error}`);
+        process.exit(2);
+      }
+
+      const containerTargetName = resolveCliContainerTarget(process.argv);
+      if (containerTargetName && parsed.profile) {
+        console.error("[coreblow] --container cannot be combined with --profile/--dev");
+        process.exit(2);
+      }
+
+      if (parsed.profile) {
+        applyCliProfileEnv({ profile: parsed.profile });
+        // Keep Commander and ad-hoc argv checks consistent.
+        process.argv = parsed.argv;
+      }
+
+      if (!tryHandleRootVersionFastPath(process.argv)) {
+        runMainOrRootHelp(process.argv);
+      }
     }
   }
 }
