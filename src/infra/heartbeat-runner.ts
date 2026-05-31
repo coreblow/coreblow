@@ -94,6 +94,13 @@ import {
   resolveHeartbeatSummaryForAgent,
   type HeartbeatSummary,
 } from "./heartbeat-summary.js";
+import {
+  appendHeartbeatFileDirectives,
+  buildHeartbeatTasksPrompt,
+  parseHeartbeatTasks,
+  resolveDueHeartbeatTasks,
+  type HeartbeatTask,
+} from "./heartbeat-tasks.js";
 import { resolveHeartbeatVisibility } from "./heartbeat-visibility.js";
 import { createHeartbeatTypingCallbacks } from "./heartbeat-typing.js";
 import {
@@ -668,6 +675,8 @@ type HeartbeatPreflight = HeartbeatReasonFlags & {
   turnSourceDeliveryContext: ReturnType<typeof resolveSystemEventDeliveryContext>;
   hasTaggedCronEvents: boolean;
   shouldInspectPendingEvents: boolean;
+  tasks?: HeartbeatTask[];
+  heartbeatFileContent?: string;
   skipReason?: HeartbeatSkipReason;
 };
 
@@ -723,12 +732,20 @@ async function resolveHeartbeatPreflight(params: {
   const heartbeatFilePath = path.join(workspaceDir, DEFAULT_HEARTBEAT_FILENAME);
   try {
     const heartbeatFileContent = await fs.readFile(heartbeatFilePath, "utf-8");
-    if (isHeartbeatContentEffectivelyEmpty(heartbeatFileContent)) {
+    const tasks = parseHeartbeatTasks(heartbeatFileContent);
+    if (isHeartbeatContentEffectivelyEmpty(heartbeatFileContent) && tasks.length === 0) {
       return {
         ...basePreflight,
         skipReason: "empty-heartbeat-file",
+        tasks,
+        heartbeatFileContent,
       };
     }
+    return {
+      ...basePreflight,
+      tasks,
+      heartbeatFileContent,
+    };
   } catch (err: unknown) {
     if (hasErrnoCode(err, "ENOENT")) {
       // Missing HEARTBEAT.md is intentional in some setups (for example, when
@@ -743,7 +760,7 @@ async function resolveHeartbeatPreflight(params: {
 }
 
 type HeartbeatPromptResolution = {
-  prompt: string;
+  prompt: string | null;
   hasExecCompletion: boolean;
   hasCronEvents: boolean;
 };
@@ -766,6 +783,8 @@ function resolveHeartbeatRunPrompt(params: {
   preflight: HeartbeatPreflight;
   canRelayToUser: boolean;
   workspaceDir: string;
+  dueTasks: readonly HeartbeatTask[];
+  useHeartbeatResponseTool: boolean;
 }): HeartbeatPromptResolution {
   const pendingEventEntries = params.preflight.pendingEventEntries;
   const pendingEvents = params.preflight.shouldInspectPendingEvents
@@ -780,12 +799,31 @@ function resolveHeartbeatRunPrompt(params: {
     .map((event) => event.text);
   const hasExecCompletion = pendingEvents.some(isExecCompletionEvent);
   const hasCronEvents = cronEvents.length > 0;
+  if (params.preflight.tasks && params.preflight.tasks.length > 0) {
+    if (params.dueTasks.length > 0) {
+      const taskPrompt = buildHeartbeatTasksPrompt({
+        tasks: params.dueTasks,
+        useHeartbeatResponseTool: params.useHeartbeatResponseTool,
+      });
+      const prompt = appendHeartbeatFileDirectives(
+        taskPrompt,
+        params.preflight.heartbeatFileContent,
+      );
+      return { prompt, hasExecCompletion: false, hasCronEvents: false };
+    }
+    if (!hasExecCompletion && !hasCronEvents) {
+      return { prompt: null, hasExecCompletion: false, hasCronEvents: false };
+    }
+  }
   const basePrompt = hasExecCompletion
     ? buildExecEventPrompt({ deliverToUser: params.canRelayToUser })
     : hasCronEvents
       ? buildCronEventPrompt(cronEvents, { deliverToUser: params.canRelayToUser })
       : resolveHeartbeatPrompt(params.cfg, params.heartbeat);
-  const prompt = appendHeartbeatWorkspacePathHint(basePrompt, params.workspaceDir);
+  const prompt = appendHeartbeatFileDirectives(
+    appendHeartbeatWorkspacePathHint(basePrompt, params.workspaceDir),
+    params.preflight.heartbeatFileContent,
+  );
 
   return { prompt, hasExecCompletion, hasCronEvents };
 }
@@ -906,6 +944,11 @@ export async function runHeartbeatOnce(opts: {
   }
 
   const previousUpdatedAt = entry?.updatedAt;
+  const dueHeartbeatTasks = resolveDueHeartbeatTasks({
+    tasks: preflight.tasks,
+    heartbeatTaskState: entry?.heartbeatTaskState,
+    nowMs: startedAt,
+  });
 
   // When isolatedSession is enabled, create a fresh session via the same
   // pattern as cron sessionTarget: "isolated". This gives the heartbeat
@@ -992,7 +1035,19 @@ export async function runHeartbeatOnce(opts: {
     preflight,
     canRelayToUser,
     workspaceDir,
+    dueTasks: dueHeartbeatTasks,
+    useHeartbeatResponseTool: usesHeartbeatResponseTool,
   });
+  if (prompt === null) {
+    emitHeartbeatEvent({
+      status: "skipped",
+      reason: "no-tasks-due",
+      durationMs: Date.now() - startedAt,
+      channel: delivery.channel !== "none" ? delivery.channel : undefined,
+      accountId: delivery.accountId,
+    });
+    return { status: "skipped", reason: "no-tasks-due" };
+  }
   const ctx = {
     Body: appendCronStyleCurrentTimeLine(prompt, cfg, startedAt),
     From: sender,
@@ -1088,6 +1143,23 @@ export async function runHeartbeatOnce(opts: {
     });
     return true;
   };
+  const updateTaskTimestamps = async () => {
+    if (dueHeartbeatTasks.length === 0) {
+      return;
+    }
+    await updateSessionStore(storePath, (store) => {
+      const current = store[sessionKey];
+      const base = current ?? {
+        sessionId: sessionKey.replace(/:/g, "_"),
+        updatedAt: startedAt,
+      };
+      const taskState = { ...base.heartbeatTaskState };
+      for (const task of dueHeartbeatTasks) {
+        taskState[task.name] = startedAt;
+      }
+      store[sessionKey] = { ...base, heartbeatTaskState: taskState };
+    });
+  };
 
   try {
     await heartbeatTyping?.onReplyStart();
@@ -1129,6 +1201,7 @@ export async function runHeartbeatOnce(opts: {
         sessionKey,
         updatedAt: previousUpdatedAt,
       });
+      await updateTaskTimestamps();
       await pruneHeartbeatTranscript(transcriptState);
       const okSent = await maybeSendHeartbeatOk();
       emitHeartbeatEvent({
@@ -1150,6 +1223,7 @@ export async function runHeartbeatOnce(opts: {
         sessionKey,
         updatedAt: previousUpdatedAt,
       });
+      await updateTaskTimestamps();
       // Prune the transcript to remove HEARTBEAT_OK turns
       await pruneHeartbeatTranscript(transcriptState);
       const okSent = await maybeSendHeartbeatOk();
@@ -1197,6 +1271,7 @@ export async function runHeartbeatOnce(opts: {
         sessionKey,
         updatedAt: previousUpdatedAt,
       });
+      await updateTaskTimestamps();
       // Prune the transcript to remove HEARTBEAT_OK turns
       await pruneHeartbeatTranscript(transcriptState);
       const okSent = await maybeSendHeartbeatOk();
@@ -1234,6 +1309,7 @@ export async function runHeartbeatOnce(opts: {
         sessionKey,
         updatedAt: previousUpdatedAt,
       });
+      await updateTaskTimestamps();
       // Prune the transcript to remove duplicate heartbeat turns
       await pruneHeartbeatTranscript(transcriptState);
       emitHeartbeatEvent({
@@ -1261,6 +1337,7 @@ export async function runHeartbeatOnce(opts: {
       : normalized.text;
 
     if (delivery.channel === "none" || !delivery.to) {
+      await updateTaskTimestamps();
       emitHeartbeatEvent({
         status: "skipped",
         reason: delivery.reason ?? "no-target",
@@ -1278,6 +1355,7 @@ export async function runHeartbeatOnce(opts: {
         sessionKey,
         updatedAt: previousUpdatedAt,
       });
+      await updateTaskTimestamps();
       emitHeartbeatEvent({
         status: "skipped",
         reason: "alerts-disabled",
@@ -1365,6 +1443,7 @@ export async function runHeartbeatOnce(opts: {
         await saveSessionStore(storePath, store);
       }
     }
+    await updateTaskTimestamps();
 
     emitHeartbeatEvent({
       status: "sent",

@@ -80,6 +80,8 @@ export type SessionEntry = {
   lastHeartbeatText?: string;
   /** Timestamp (ms) when lastHeartbeatText was delivered. */
   lastHeartbeatSentAt?: number;
+  /** Last successful run timestamp per HEARTBEAT.md task name. */
+  heartbeatTaskState?: Record<string, number>;
   /** True while a final outbound delivery replay is pending. */
   pendingFinalDelivery?: boolean;
   /** Pending final delivery text used by heartbeat deferral. */
