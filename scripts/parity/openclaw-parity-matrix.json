@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6323,
+    "cb_source_files": 6324,
     "oc_source_files": 8443,
-    "source_parity_both": 4548,
+    "source_parity_both": 4549,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3895,
+    "source_missing_from_cb": 3894,
     "test_files_cb": 4062,
     "test_files_oc": 5246,
     "tests_both_covered": 2706,
@@ -7428,37 +7428,6 @@
       ]
     },
     {
-      "domain": "src/context-engine",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "src/context-engine",
-      "counts": {
-        "sharedSourcePaths": 5,
-        "coreBlowOnlySourcePaths": 4,
-        "openClawOnlySourcePaths": 1,
-        "sharedTestPaths": 1,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 0
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/context-engine/legacy.registration.ts"
-        ],
-        "openClawTestGapPaths": [],
-        "coreBlowOnlySourcePaths": [
-          "src/context-engine/context-search.ts",
-          "src/context-engine/context-summarizer.ts",
-          "src/context-engine/context-window.ts",
-          "src/context-engine/index.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/context-engine",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/i18n",
       "status": "missing",
       "priority": "P3",
@@ -8791,6 +8760,35 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/commitments",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/context-engine",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/context-engine",
+      "counts": {
+        "sharedSourcePaths": 6,
+        "coreBlowOnlySourcePaths": 4,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 1,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "src/context-engine/context-search.ts",
+          "src/context-engine/context-summarizer.ts",
+          "src/context-engine/context-window.ts",
+          "src/context-engine/index.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/context-engine",
         "pnpm check"
       ]
     },
