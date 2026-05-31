@@ -306,6 +306,59 @@ describe("createChannelApprovalHandlerFromCapability", () => {
     expect(resolvedPayload?.entry).toEqual({ messageId: "2" });
   });
 
+  it("continues stop-time unbind cleanup when one binding throws", async () => {
+    const unbindPending = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("unbind failed"))
+      .mockResolvedValueOnce(undefined);
+    const nativeRuntime = makeNativeRuntime({
+      transport: {
+        prepareTarget: vi.fn().mockResolvedValue({
+          dedupeKey: "origin-chat",
+          target: { to: "origin-chat" },
+        }),
+        deliverPending: vi
+          .fn()
+          .mockResolvedValueOnce({ messageId: "1" })
+          .mockResolvedValueOnce({ messageId: "2" }),
+      },
+      interactions: {
+        bindPending: vi
+          .fn()
+          .mockResolvedValueOnce({ bindingId: "bound-1" })
+          .mockResolvedValueOnce({ bindingId: "bound-2" }),
+        unbindPending,
+      },
+    });
+    const runtime = await createChannelApprovalHandlerFromCapability({
+      capability: {
+        native: {
+          describeDeliveryCapabilities: vi.fn().mockReturnValue({
+            enabled: true,
+            preferredSurface: "origin",
+            supportsOriginSurface: true,
+            supportsApproverDmSurface: false,
+          }),
+          resolveOriginTarget: vi.fn().mockResolvedValue({ to: "origin-chat" }),
+        },
+        nativeRuntime,
+      },
+      ...TEST_HANDLER_PARAMS,
+    });
+    const request = makeExecApprovalRequest("exec:stop-1");
+
+    await runtime!.handleRequested(request);
+    await runtime!.handleRequested({
+      ...request,
+      id: "exec:stop-2",
+    });
+
+    await expect(runtime!.stop()).resolves.toBeUndefined();
+    expect(unbindPending).toHaveBeenCalledTimes(2);
+    await expect(runtime!.stop()).resolves.toBeUndefined();
+    expect(unbindPending).toHaveBeenCalledTimes(2);
+  });
+
   it("keeps legacy startHandler nativeRuntime compatibility", async () => {
     const stop = vi.fn();
     const runtime = await createChannelApprovalHandlerFromCapability({
