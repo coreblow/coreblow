@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6322,
+    "cb_source_files": 6323,
     "oc_source_files": 8443,
-    "source_parity_both": 4547,
+    "source_parity_both": 4548,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3896,
+    "source_missing_from_cb": 3895,
     "test_files_cb": 4062,
     "test_files_oc": 5246,
     "tests_both_covered": 2706,
@@ -7402,32 +7402,6 @@
       ]
     },
     {
-      "domain": "src/chat",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "src/chat",
-      "counts": {
-        "sharedSourcePaths": 1,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 1,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 0
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/chat/canvas-render.ts"
-        ],
-        "openClawTestGapPaths": [],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/chat",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/compat",
       "status": "partial",
       "priority": "P3",
@@ -8743,6 +8717,30 @@
       "notes": "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture.",
       "gates": [
         "pnpm test -- src/channel-web.ts",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/chat",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/chat",
+      "counts": {
+        "sharedSourcePaths": 2,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 0,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/chat",
         "pnpm check"
       ]
     },
