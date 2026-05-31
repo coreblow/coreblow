@@ -242,6 +242,70 @@ describe("createChannelApprovalHandlerFromCapability", () => {
     expect(buildResolvedResult).toHaveBeenCalledTimes(1);
   });
 
+  it("continues finalization cleanup after one resolved entry unbind failure", async () => {
+    const unbindPending = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("unbind failed"))
+      .mockResolvedValueOnce(undefined);
+    const buildResolvedResult = vi.fn().mockResolvedValue({ kind: "leave" });
+    const nativeRuntime = makeNativeRuntime({
+      presentation: {
+        buildPendingPayload: vi.fn().mockResolvedValue({ text: "pending" }),
+        buildResolvedResult,
+        buildExpiredResult: vi.fn().mockResolvedValue({ kind: "leave" }),
+      },
+      transport: {
+        prepareTarget: vi.fn().mockImplementation(async ({ plannedTarget }) => ({
+          dedupeKey: String(plannedTarget.target.to),
+          target: { to: plannedTarget.target.to },
+        })),
+        deliverPending: vi
+          .fn()
+          .mockResolvedValueOnce({ messageId: "1" })
+          .mockResolvedValueOnce({ messageId: "2" }),
+      },
+      interactions: {
+        bindPending: vi
+          .fn()
+          .mockResolvedValueOnce({ bindingId: "bound-1" })
+          .mockResolvedValueOnce({ bindingId: "bound-2" }),
+        unbindPending,
+      },
+    });
+    const runtime = await createChannelApprovalHandlerFromCapability({
+      capability: {
+        native: {
+          describeDeliveryCapabilities: vi.fn().mockReturnValue({
+            enabled: true,
+            preferredSurface: "both",
+            supportsOriginSurface: true,
+            supportsApproverDmSurface: true,
+          }),
+          resolveOriginTarget: vi.fn().mockResolvedValue({ to: "origin-chat" }),
+          resolveApproverDmTargets: vi.fn().mockResolvedValue([{ to: "approver-dm" }]),
+        },
+        nativeRuntime,
+      },
+      ...TEST_HANDLER_PARAMS,
+    });
+    const request = makeExecApprovalRequest("exec:2");
+
+    await runtime!.handleRequested(request);
+    await expect(
+      runtime!.handleResolved({
+        id: "exec:2",
+        decision: "allow-once",
+        resolvedBy: "operator",
+        ts: 2_000,
+      }),
+    ).resolves.toBeUndefined();
+
+    expect(unbindPending).toHaveBeenCalledTimes(2);
+    expect(buildResolvedResult).toHaveBeenCalledTimes(1);
+    const resolvedPayload = firstCallArg(buildResolvedResult) as { entry?: unknown } | undefined;
+    expect(resolvedPayload?.entry).toEqual({ messageId: "2" });
+  });
+
   it("keeps legacy startHandler nativeRuntime compatibility", async () => {
     const stop = vi.fn();
     const runtime = await createChannelApprovalHandlerFromCapability({
