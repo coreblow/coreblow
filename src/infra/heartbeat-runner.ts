@@ -51,6 +51,7 @@ import {
 import { CommandLane } from "../process/lanes.js";
 import { resolveEmbeddedSessionLane } from "../agents/pi-embedded-runner/lanes.js";
 import {
+  isSubagentSessionKey,
   normalizeAgentId,
   parseAgentSessionKey,
   toAgentStoreSessionKey,
@@ -307,42 +308,73 @@ function resolveHeartbeatSession(
   const mainEntry = store[mainSessionKey];
 
   if (scope === "global") {
-    return { sessionKey: mainSessionKey, storePath, store, entry: mainEntry };
+    return {
+      sessionKey: mainSessionKey,
+      storePath,
+      store,
+      entry: mainEntry,
+      suppressOriginatingContext: false,
+    };
   }
 
   const forced = forcedSessionKey?.trim();
+  if (forced && isSubagentSessionKey(forced)) {
+    return {
+      sessionKey: mainSessionKey,
+      storePath,
+      store,
+      entry: mainEntry,
+      suppressOriginatingContext: true,
+    };
+  }
+
   if (forced) {
     const forcedCandidate = toAgentStoreSessionKey({
       agentId: resolvedAgentId,
       requestKey: forced,
       mainKey: cfg.session?.mainKey,
     });
-    const forcedCanonical = canonicalizeMainSessionAlias({
-      cfg,
-      agentId: resolvedAgentId,
-      sessionKey: forcedCandidate,
-    });
-    if (forcedCanonical !== "global") {
-      const sessionAgentId = resolveAgentIdFromSessionKey(forcedCanonical);
-      if (sessionAgentId === normalizeAgentId(resolvedAgentId)) {
-        return {
-          sessionKey: forcedCanonical,
-          storePath,
-          store,
-          entry: store[forcedCanonical],
-        };
+    if (!isSubagentSessionKey(forcedCandidate)) {
+      const forcedCanonical = canonicalizeMainSessionAlias({
+        cfg,
+        agentId: resolvedAgentId,
+        sessionKey: forcedCandidate,
+      });
+      if (forcedCanonical !== "global" && !isSubagentSessionKey(forcedCanonical)) {
+        const sessionAgentId = resolveAgentIdFromSessionKey(forcedCanonical);
+        if (sessionAgentId === normalizeAgentId(resolvedAgentId)) {
+          return {
+            sessionKey: forcedCanonical,
+            storePath,
+            store,
+            entry: store[forcedCanonical],
+            suppressOriginatingContext: false,
+          };
+        }
       }
     }
   }
 
   const trimmed = heartbeat?.session?.trim() ?? "";
-  if (!trimmed) {
-    return { sessionKey: mainSessionKey, storePath, store, entry: mainEntry };
+  if (!trimmed || isSubagentSessionKey(trimmed)) {
+    return {
+      sessionKey: mainSessionKey,
+      storePath,
+      store,
+      entry: mainEntry,
+      suppressOriginatingContext: false,
+    };
   }
 
   const normalized = trimmed.toLowerCase();
   if (normalized === "main" || normalized === "global") {
-    return { sessionKey: mainSessionKey, storePath, store, entry: mainEntry };
+    return {
+      sessionKey: mainSessionKey,
+      storePath,
+      store,
+      entry: mainEntry,
+      suppressOriginatingContext: false,
+    };
   }
 
   const candidate = toAgentStoreSessionKey({
@@ -350,12 +382,21 @@ function resolveHeartbeatSession(
     requestKey: trimmed,
     mainKey: cfg.session?.mainKey,
   });
+  if (isSubagentSessionKey(candidate)) {
+    return {
+      sessionKey: mainSessionKey,
+      storePath,
+      store,
+      entry: mainEntry,
+      suppressOriginatingContext: false,
+    };
+  }
   const canonical = canonicalizeMainSessionAlias({
     cfg,
     agentId: resolvedAgentId,
     sessionKey: candidate,
   });
-  if (canonical !== "global") {
+  if (canonical !== "global" && !isSubagentSessionKey(canonical)) {
     const sessionAgentId = resolveAgentIdFromSessionKey(canonical);
     if (sessionAgentId === normalizeAgentId(resolvedAgentId)) {
       return {
@@ -363,11 +404,18 @@ function resolveHeartbeatSession(
         storePath,
         store,
         entry: store[canonical],
+        suppressOriginatingContext: false,
       };
     }
   }
 
-  return { sessionKey: mainSessionKey, storePath, store, entry: mainEntry };
+  return {
+    sessionKey: mainSessionKey,
+    storePath,
+    store,
+    entry: mainEntry,
+    suppressOriginatingContext: false,
+  };
 }
 
 function resolveHeartbeatReasoningPayloads(
@@ -773,7 +821,7 @@ export async function runHeartbeatOnce(opts: {
     });
     return { status: "skipped", reason: preflight.skipReason };
   }
-  const { entry, sessionKey, storePath } = preflight.session;
+  const { entry, sessionKey, storePath, suppressOriginatingContext } = preflight.session;
   const isReplyRunActive = opts.deps?.isReplyRunActive ?? (() => false);
   if (isReplyRunActive(sessionKey)) {
     emitHeartbeatEvent({
@@ -883,8 +931,9 @@ export async function runHeartbeatOnce(opts: {
     Body: appendCronStyleCurrentTimeLine(prompt, cfg, startedAt),
     From: sender,
     To: sender,
-    OriginatingChannel: delivery.channel !== "none" ? delivery.channel : undefined,
-    OriginatingTo: delivery.to,
+    OriginatingChannel:
+      !suppressOriginatingContext && delivery.channel !== "none" ? delivery.channel : undefined,
+    OriginatingTo: !suppressOriginatingContext ? delivery.to : undefined,
     AccountId: delivery.accountId,
     MessageThreadId: delivery.threadId,
     Provider: hasExecCompletion ? "exec-event" : hasCronEvents ? "cron-event" : "heartbeat",
