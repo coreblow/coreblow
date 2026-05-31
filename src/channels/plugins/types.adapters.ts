@@ -381,6 +381,20 @@ export type ChannelHeartbeatAdapter = {
     accountId?: string | null;
     deps?: ChannelHeartbeatDeps;
   }) => Promise<{ ok: boolean; reason: string }>;
+  sendTyping?: (params: {
+    cfg: CoreBlowConfig;
+    to: string;
+    accountId?: string | null;
+    threadId?: string | number | null;
+    deps?: ChannelHeartbeatDeps;
+  }) => Promise<void> | void;
+  clearTyping?: (params: {
+    cfg: CoreBlowConfig;
+    to: string;
+    accountId?: string | null;
+    threadId?: string | number | null;
+    deps?: ChannelHeartbeatDeps;
+  }) => Promise<void> | void;
   resolveRecipients?: (params: { cfg: CoreBlowConfig; opts?: { to?: string; all?: boolean } }) => {
     recipients: string[];
     source: string;
