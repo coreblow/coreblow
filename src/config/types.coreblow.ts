@@ -111,6 +111,12 @@ export type CoreBlowConfig = {
   messages?: MessagesConfig;
   commands?: CommandsConfig;
   approvals?: ApprovalsConfig;
+  commitments?: {
+    /** Enable inferred follow-up commitment tracking. Default: false. */
+    enabled?: boolean;
+    /** Maximum commitment follow-ups delivered per agent session in a rolling day. Default: 3. */
+    maxPerDay?: number;
+  };
   session?: SessionConfig;
   web?: WebConfig;
   channels?: ChannelsConfig;

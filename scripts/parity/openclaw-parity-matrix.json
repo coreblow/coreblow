@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6310,
+    "cb_source_files": 6313,
     "oc_source_files": 8443,
-    "source_parity_both": 4535,
+    "source_parity_both": 4538,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3908,
-    "test_files_cb": 4055,
+    "source_missing_from_cb": 3905,
+    "test_files_cb": 4056,
     "test_files_oc": 5246,
-    "tests_both_covered": 2699,
-    "tests_gap_oc_has_cb_missing": 2302,
+    "tests_both_covered": 2700,
+    "tests_gap_oc_has_cb_missing": 2301,
     "tests_cb_exclusive": 1309,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -4449,42 +4449,6 @@
       ]
     },
     {
-      "domain": "src/commitments",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "src/commitments",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 6,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 4
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/commitments/config.ts",
-          "src/commitments/extraction.ts",
-          "src/commitments/model-selection.runtime.ts",
-          "src/commitments/runtime.ts",
-          "src/commitments/store.ts",
-          "src/commitments/types.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/commitments/commitments-full-chain.integration.test.ts",
-          "src/commitments/extraction.test.ts",
-          "src/commitments/runtime.test.ts",
-          "src/commitments/store.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/commitments",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/status",
       "status": "missing",
       "priority": "P3",
@@ -5513,6 +5477,38 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/tencent",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/commitments",
+      "status": "partial",
+      "priority": "P3",
+      "implementationSurface": "src/commitments",
+      "counts": {
+        "sharedSourcePaths": 3,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 3,
+        "sharedTestPaths": 1,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 3
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [
+          "src/commitments/extraction.ts",
+          "src/commitments/model-selection.runtime.ts",
+          "src/commitments/runtime.ts"
+        ],
+        "openClawTestGapPaths": [
+          "src/commitments/commitments-full-chain.integration.test.ts",
+          "src/commitments/extraction.test.ts",
+          "src/commitments/runtime.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/commitments",
         "pnpm check"
       ]
     },
