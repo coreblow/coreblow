@@ -1,6 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import { DEFAULT_AGENTS_FILENAME } from "../agents/workspace.js";
+import {
+  resolveCanonicalRootMemoryPath,
+  resolveLegacyRootMemoryPath,
+} from "../memory/root-memory-files.js";
 import { shortenHomePath } from "../utils.js";
 
 export const MEMORY_SYSTEM_PROMPT = [
@@ -13,7 +17,10 @@ export const MEMORY_SYSTEM_PROMPT = [
 ].join("\n");
 
 export async function shouldSuggestMemorySystem(workspaceDir: string): Promise<boolean> {
-  const memoryPaths = [path.join(workspaceDir, "MEMORY.md"), path.join(workspaceDir, "memory.md")];
+  const memoryPaths = [
+    resolveCanonicalRootMemoryPath(workspaceDir),
+    resolveLegacyRootMemoryPath(workspaceDir),
+  ];
 
   for (const memoryPath of memoryPaths) {
     try {

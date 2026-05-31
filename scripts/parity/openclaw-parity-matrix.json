@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6320,
+    "cb_source_files": 6321,
     "oc_source_files": 8443,
-    "source_parity_both": 4545,
+    "source_parity_both": 4546,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3898,
+    "source_missing_from_cb": 3897,
     "test_files_cb": 4062,
     "test_files_oc": 5246,
     "tests_both_covered": 2706,
@@ -7540,45 +7540,6 @@
       ]
     },
     {
-      "domain": "src/memory",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "src/memory",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 17,
-        "openClawOnlySourcePaths": 1,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 14,
-        "openClawTestGaps": 0
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/memory/root-memory-files.ts"
-        ],
-        "openClawTestGapPaths": [],
-        "coreBlowOnlySourcePaths": [
-          "src/memory/bm25.ts",
-          "src/memory/compaction.ts",
-          "src/memory/embedding-circuit-breaker.ts",
-          "src/memory/embeddings.ts",
-          "src/memory/hybrid-search.ts",
-          "src/memory/manager.ts",
-          "src/memory/memory-bootstrap.ts",
-          "src/memory/memory-orchestrator.ts",
-          "src/memory/memory-store.ts",
-          "src/memory/mmr.ts",
-          "src/memory/query-expansion.ts",
-          "src/memory/rrf.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/memory",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/plugin-activation-boundary.test.ts",
       "status": "missing",
       "priority": "P3",
@@ -9571,6 +9532,43 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/logging.ts",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/memory",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/memory",
+      "counts": {
+        "sharedSourcePaths": 1,
+        "coreBlowOnlySourcePaths": 17,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 0,
+        "coreBlowOnlyTestPaths": 14,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "src/memory/bm25.ts",
+          "src/memory/compaction.ts",
+          "src/memory/embedding-circuit-breaker.ts",
+          "src/memory/embeddings.ts",
+          "src/memory/hybrid-search.ts",
+          "src/memory/manager.ts",
+          "src/memory/memory-bootstrap.ts",
+          "src/memory/memory-orchestrator.ts",
+          "src/memory/memory-store.ts",
+          "src/memory/mmr.ts",
+          "src/memory/query-expansion.ts",
+          "src/memory/rrf.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/memory",
         "pnpm check"
       ]
     },

@@ -4,6 +4,12 @@ import os from "node:os";
 import path from "node:path";
 import { openBoundaryFile } from "../infra/boundary-file-read.js";
 import { resolveRequiredHomeDir } from "../infra/home-dir.js";
+import {
+  CANONICAL_ROOT_MEMORY_FILENAME,
+  LEGACY_ROOT_MEMORY_FILENAME,
+  resolveCanonicalRootMemoryPath,
+  resolveLegacyRootMemoryPath,
+} from "../memory/root-memory-files.js";
 import { runCommandWithTimeout } from "../process/exec.js";
 import { isCronSessionKey, isSubagentSessionKey } from "../routing/session-key.js";
 import { resolveUserPath } from "../utils.js";
@@ -29,8 +35,8 @@ export const DEFAULT_IDENTITY_FILENAME = "IDENTITY.md";
 export const DEFAULT_USER_FILENAME = "USER.md";
 export const DEFAULT_HEARTBEAT_FILENAME = "HEARTBEAT.md";
 export const DEFAULT_BOOTSTRAP_FILENAME = "BOOTSTRAP.md";
-export const DEFAULT_MEMORY_FILENAME = "MEMORY.md";
-export const DEFAULT_MEMORY_ALT_FILENAME = "memory.md";
+export const DEFAULT_MEMORY_FILENAME = CANONICAL_ROOT_MEMORY_FILENAME;
+export const DEFAULT_MEMORY_ALT_FILENAME = LEGACY_ROOT_MEMORY_FILENAME;
 const WORKSPACE_STATE_DIRNAME = ".coreblow";
 const WORKSPACE_STATE_FILENAME = "workspace-state.json";
 const WORKSPACE_STATE_VERSION = 1;
@@ -472,11 +478,19 @@ async function resolveMemoryBootstrapEntry(
   // file systems mounted in Docker (e.g. macOS volumes), where both names pass
   // fs.access() but realpath does not normalise case through the mount layer,
   // causing the same content to be injected twice and wasting tokens.
-  for (const name of [DEFAULT_MEMORY_FILENAME, DEFAULT_MEMORY_ALT_FILENAME] as const) {
-    const filePath = path.join(resolvedDir, name);
+  for (const entry of [
+    {
+      name: DEFAULT_MEMORY_FILENAME,
+      filePath: resolveCanonicalRootMemoryPath(resolvedDir),
+    },
+    {
+      name: DEFAULT_MEMORY_ALT_FILENAME,
+      filePath: resolveLegacyRootMemoryPath(resolvedDir),
+    },
+  ] as const) {
     try {
-      await fs.access(filePath);
-      return { name, filePath };
+      await fs.access(entry.filePath);
+      return entry;
     } catch {
       // try next candidate
     }
