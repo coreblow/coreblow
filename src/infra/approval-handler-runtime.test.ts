@@ -94,6 +94,52 @@ describe("createChannelApprovalHandlerFromCapability", () => {
     expect(typeof runtime?.handleRequested).toBe("function");
   });
 
+  it("preserves the original request and resolved approval kind when stop-time cleanup unbinds", async () => {
+    const unbindPending = vi.fn();
+    const nativeRuntime = makeNativeRuntime({
+      resolveApprovalKind: vi.fn().mockReturnValue("plugin"),
+      interactions: {
+        bindPending: vi.fn().mockResolvedValue({ bindingId: "bound" }),
+        unbindPending,
+        cancelDelivered: vi.fn(),
+      },
+    });
+    const runtime = await createChannelApprovalHandlerFromCapability({
+      capability: {
+        native: {
+          describeDeliveryCapabilities: vi.fn().mockReturnValue({
+            enabled: true,
+            preferredSurface: "origin",
+            supportsOriginSurface: true,
+            supportsApproverDmSurface: false,
+          }),
+          resolveOriginTarget: vi.fn().mockResolvedValue({ to: "origin-chat" }),
+        },
+        nativeRuntime,
+      },
+      ...TEST_HANDLER_PARAMS,
+    });
+    const request = {
+      id: "custom:1",
+      expiresAtMs: 61_000,
+      request: {
+        turnSourceChannel: "test",
+        turnSourceTo: "origin-chat",
+      },
+      createdAtMs: 1_000,
+    } as never;
+
+    await runtime!.handleRequested(request);
+    await runtime!.stop();
+
+    expect(unbindPending).toHaveBeenCalledOnce();
+    const stopUnbind = firstCallArg(unbindPending) as
+      | { request?: unknown; approvalKind?: string }
+      | undefined;
+    expect(stopUnbind?.request).toBe(request);
+    expect(stopUnbind?.approvalKind).toBe("plugin");
+  });
+
   it("delivers pending approval through the native runtime adapter", async () => {
     const nativeRuntime = makeNativeRuntime();
     const runtime = await createChannelApprovalHandlerFromCapability({
