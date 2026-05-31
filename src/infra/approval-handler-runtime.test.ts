@@ -72,6 +72,28 @@ describe("createChannelApprovalHandlerFromCapability", () => {
     ).resolves.toBeNull();
   });
 
+  it("returns a runtime when the capability exposes a native runtime", async () => {
+    const runtime = await createChannelApprovalHandlerFromCapability({
+      capability: {
+        nativeRuntime: makeNativeRuntime({
+          presentation: {
+            buildPendingPayload: vi.fn(),
+            buildResolvedResult: vi.fn(),
+            buildExpiredResult: vi.fn(),
+          },
+          transport: {
+            prepareTarget: vi.fn(),
+            deliverPending: vi.fn(),
+          },
+        }),
+      },
+      ...TEST_HANDLER_PARAMS,
+    });
+
+    expect(runtime).not.toBeNull();
+    expect(typeof runtime?.handleRequested).toBe("function");
+  });
+
   it("delivers pending approval through the native runtime adapter", async () => {
     const nativeRuntime = makeNativeRuntime();
     const runtime = await createChannelApprovalHandlerFromCapability({
