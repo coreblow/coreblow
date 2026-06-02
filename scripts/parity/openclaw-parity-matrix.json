@@ -6215,7 +6215,7 @@
     },
     {
       "domain": "extensions/voyage",
-      "status": "missing",
+      "status": "intentionally_different",
       "priority": "P3",
       "implementationSurface": "extensions/voyage plus plugin-sdk channel/runtime surfaces",
       "counts": {
@@ -6236,9 +6236,20 @@
         "openClawTestGapPaths": [],
         "coreBlowOnlySourcePaths": []
       },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "intentionalDomainDifference": {
+        "status": "intentionally_different",
+        "referenceBehavior": "OpenClaw ships Voyage as a standalone extension that registers a memory embedding provider.",
+        "coreBlowDecision": "CoreBlow registers Voyage as a built-in memory embedding provider from the memory-core extension.",
+        "rationale": "Avoid loading two providers with the same id while keeping Voyage available through CoreBlow's consolidated memory provider architecture.",
+        "evidence": [
+          "extensions/memory-core/src/memory/provider-adapters.ts",
+          "extensions/memory-core/index.ts"
+        ],
+        "gate": "pnpm test -- extensions/memory-core"
+      },
+      "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
       "gates": [
-        "pnpm test -- extensions/voyage",
+        "pnpm test -- extensions/memory-core",
         "pnpm check"
       ]
     },

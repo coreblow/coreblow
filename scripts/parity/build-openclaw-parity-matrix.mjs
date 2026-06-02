@@ -201,6 +201,26 @@ const intentionalBehaviorDifferences = new Map([
   ],
 ]);
 
+const intentionalDomainDifferences = new Map([
+  [
+    "extensions/voyage",
+    {
+      status: "intentionally_different",
+      referenceBehavior:
+        "OpenClaw ships Voyage as a standalone extension that registers a memory embedding provider.",
+      coreBlowDecision:
+        "CoreBlow registers Voyage as a built-in memory embedding provider from the memory-core extension.",
+      rationale:
+        "Avoid loading two providers with the same id while keeping Voyage available through CoreBlow's consolidated memory provider architecture.",
+      evidence: [
+        "extensions/memory-core/src/memory/provider-adapters.ts",
+        "extensions/memory-core/index.ts",
+      ],
+      gate: "pnpm test -- extensions/memory-core",
+    },
+  ],
+]);
+
 function implementationSurface(domain) {
   if (explicitSurfaces.has(domain)) return explicitSurfaces.get(domain);
   if (domain.startsWith("extensions/")) {
@@ -260,7 +280,7 @@ const matrix = domains
       coreBlowOnlyTestPaths: count(testsCoreOnly, domain),
       openClawTestGaps: count(testsOpenClawOnly, domain),
     };
-    const status = statusFor({
+    const computedStatus = statusFor({
       sharedSource: counts.sharedSourcePaths,
       sharedTests: counts.sharedTestPaths,
       coreOnlySource: counts.coreBlowOnlySourcePaths,
@@ -268,6 +288,8 @@ const matrix = domains
       openClawOnlySource: counts.openClawOnlySourcePaths,
       openClawOnlyTests: counts.openClawTestGaps,
     });
+    const intentionalDomainDifference = intentionalDomainDifferences.get(domain);
+    const status = intentionalDomainDifference?.status ?? computedStatus;
 
     return {
       domain,
@@ -286,12 +308,17 @@ const matrix = domains
       ...(intentionalBehaviorDifferences.has(domain)
         ? { intentionalBehaviorDifferences: intentionalBehaviorDifferences.get(domain) }
         : {}),
+      ...(intentionalDomainDifference
+        ? { intentionalDomainDifference }
+        : {}),
       notes:
         status === "intentionally_different"
-          ? "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture."
+          ? intentionalDomainDifference
+            ? "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement."
+            : "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture."
           : "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       gates: [
-        `pnpm test -- ${gateTarget(domain)}`,
+        intentionalDomainDifference?.gate ?? `pnpm test -- ${gateTarget(domain)}`,
         "pnpm check",
       ],
     };
