@@ -12,10 +12,10 @@
     "source_parity_both": 4552,
     "source_cb_exclusive": 1775,
     "source_missing_from_cb": 3891,
-    "test_files_cb": 4066,
+    "test_files_cb": 4067,
     "test_files_oc": 5246,
-    "tests_both_covered": 2710,
-    "tests_gap_oc_has_cb_missing": 2291,
+    "tests_both_covered": 2711,
+    "tests_gap_oc_has_cb_missing": 2290,
     "tests_cb_exclusive": 1309,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -7111,35 +7111,6 @@
       ]
     },
     {
-      "domain": "extensions/kilocode",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/kilocode plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 5,
-        "coreBlowOnlySourcePaths": 1,
-        "openClawOnlySourcePaths": 0,
-        "sharedTestPaths": 2,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 2
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [],
-        "openClawTestGapPaths": [
-          "extensions/kilocode/implicit-provider.test.ts",
-          "extensions/kilocode/index.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "extensions/kilocode/shared.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/kilocode",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/tavily",
       "status": "partial",
       "priority": "P3",
@@ -7281,6 +7252,34 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/web",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/kilocode",
+      "status": "partial",
+      "priority": "P3",
+      "implementationSurface": "extensions/kilocode plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 5,
+        "coreBlowOnlySourcePaths": 1,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 3,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 1
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [
+          "extensions/kilocode/index.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "extensions/kilocode/shared.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/kilocode",
         "pnpm check"
       ]
     },
