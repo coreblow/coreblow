@@ -1,4 +1,4 @@
 import { defineSetupPluginEntry } from "coreblow/plugin-sdk/core";
-import { nostrPlugin } from "./src/channel.js";
+import { nostrSetupPlugin } from "./setup-plugin-api.js";
 
-export default defineSetupPluginEntry(nostrPlugin);
+export default defineSetupPluginEntry(nostrSetupPlugin);

@@ -8,6 +8,7 @@ import {
 import type { CoreBlowConfig } from "../runtime-api.js";
 import { nostrPlugin } from "./channel.js";
 import {
+  TEST_HEX_PUBLIC_KEY,
   TEST_HEX_PRIVATE_KEY,
   TEST_SETUP_RELAY_URLS,
   createConfiguredNostrCfg,
@@ -49,6 +50,34 @@ function requireNostrResolveDmPolicy() {
 }
 
 describe("nostrPlugin", () => {
+  describe("parity facades", () => {
+    it("exposes channel and setup entry facades", async () => {
+      const channelApi = await import("../channel-plugin-api.js");
+      const setupApi = await import("../setup-plugin-api.js");
+      const gateway = await import("./gateway.js");
+
+      expect(channelApi.nostrPlugin.id).toBe("nostr");
+      expect(setupApi.nostrSetupPlugin.id).toBe("nostr");
+      expect(typeof gateway.startNostrGatewayAccount).toBe("function");
+    });
+
+    it("exposes key, profile, and url safety helper facades", async () => {
+      const keys = await import("./nostr-key-utils.js");
+      const profileCore = await import("./nostr-profile-core.js");
+      const urlSafety = await import("./nostr-profile-url-safety.js");
+
+      expect(keys.normalizePubkey(TEST_HEX_PUBLIC_KEY)).toBe(TEST_HEX_PUBLIC_KEY);
+      expect(profileCore.profileToContent({ displayName: "Nostr Bot" })).toEqual({
+        display_name: "Nostr Bot",
+      });
+      expect(urlSafety.validateUrlSafety("https://example.com/avatar.png")).toEqual({ ok: true });
+      expect(urlSafety.validateUrlSafety("http://example.com/avatar.png")).toEqual({
+        ok: false,
+        error: "URL must use https:// protocol",
+      });
+    });
+  });
+
   describe("meta", () => {
     it("has correct id", () => {
       expect(nostrPlugin.id).toBe("nostr");

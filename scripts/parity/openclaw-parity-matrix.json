@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6373,
+    "cb_source_files": 6383,
     "oc_source_files": 8443,
-    "source_parity_both": 4598,
+    "source_parity_both": 4608,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3845,
+    "source_missing_from_cb": 3835,
     "test_files_cb": 4077,
     "test_files_oc": 5246,
     "tests_both_covered": 2717,
@@ -4365,54 +4365,6 @@
       ]
     },
     {
-      "domain": "extensions/nostr",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/nostr plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 22,
-        "coreBlowOnlySourcePaths": 12,
-        "openClawOnlySourcePaths": 10,
-        "sharedTestPaths": 12,
-        "coreBlowOnlyTestPaths": 5,
-        "openClawTestGaps": 0
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/nostr/src/channel-api.ts",
-          "extensions/nostr/src/channel.setup.ts",
-          "extensions/nostr/src/gateway.ts",
-          "extensions/nostr/src/inbound-direct-dm-runtime.ts",
-          "extensions/nostr/src/nostr-key-utils.ts",
-          "extensions/nostr/src/nostr-profile-core.ts",
-          "extensions/nostr/src/nostr-profile-http-runtime.ts",
-          "extensions/nostr/src/nostr-profile-url-safety.ts",
-          "extensions/nostr/channel-plugin-api.ts",
-          "extensions/nostr/setup-plugin-api.ts"
-        ],
-        "openClawTestGapPaths": [],
-        "coreBlowOnlySourcePaths": [
-          "extensions/nostr/src/adapter.ts",
-          "extensions/nostr/src/config.ts",
-          "extensions/nostr/src/extension.ts",
-          "extensions/nostr/src/formatter.ts",
-          "extensions/nostr/src/handler.ts",
-          "extensions/nostr/src/index.ts",
-          "extensions/nostr/src/media.ts",
-          "extensions/nostr/src/rate-limiter.ts",
-          "extensions/nostr/src/resolve-target.ts",
-          "extensions/nostr/src/subagent-hooks.ts",
-          "extensions/nostr/src/webhook.ts",
-          "extensions/nostr/extension.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/nostr",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/vydra",
       "status": "missing",
       "priority": "P3",
@@ -7662,6 +7614,43 @@
       "notes": "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture.",
       "gates": [
         "pnpm test -- extensions/mqtt",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/nostr",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/nostr plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 32,
+        "coreBlowOnlySourcePaths": 12,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 12,
+        "coreBlowOnlyTestPaths": 5,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "extensions/nostr/src/adapter.ts",
+          "extensions/nostr/src/config.ts",
+          "extensions/nostr/src/extension.ts",
+          "extensions/nostr/src/formatter.ts",
+          "extensions/nostr/src/handler.ts",
+          "extensions/nostr/src/index.ts",
+          "extensions/nostr/src/media.ts",
+          "extensions/nostr/src/rate-limiter.ts",
+          "extensions/nostr/src/resolve-target.ts",
+          "extensions/nostr/src/subagent-hooks.ts",
+          "extensions/nostr/src/webhook.ts",
+          "extensions/nostr/extension.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/nostr",
         "pnpm check"
       ]
     },

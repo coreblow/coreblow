@@ -25,6 +25,7 @@ export { isBlockedHostnameOrIp } from "../infra/net/ssrf.js";
 export { emptyPluginConfigSchema } from "../plugins/config-schema.js";
 export type { PluginRuntime } from "../plugins/runtime/types.js";
 export type { CoreBlowPluginApi } from "../plugins/types.js";
+export { getPluginRuntimeGatewayRequestScope } from "../plugins/runtime/gateway-request-scope.js";
 export { DEFAULT_ACCOUNT_ID } from "../routing/session-key.js";
 export {
   buildComputedAccountStatusSnapshot,
