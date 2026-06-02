@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6327,
+    "cb_source_files": 6329,
     "oc_source_files": 8443,
-    "source_parity_both": 4552,
+    "source_parity_both": 4554,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3891,
+    "source_missing_from_cb": 3889,
     "test_files_cb": 4067,
     "test_files_oc": 5246,
     "tests_both_covered": 2711,
@@ -7056,33 +7056,6 @@
       ]
     },
     {
-      "domain": "extensions/duckduckgo",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/duckduckgo plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 5,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 2,
-        "sharedTestPaths": 1,
-        "coreBlowOnlyTestPaths": 1,
-        "openClawTestGaps": 0
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/duckduckgo/src/ddg-search-provider.shared.ts",
-          "extensions/duckduckgo/web-search-contract-api.ts"
-        ],
-        "openClawTestGapPaths": [],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/duckduckgo",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/huggingface",
       "status": "partial",
       "priority": "P3",
@@ -7551,6 +7524,30 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/diagnostics-otel",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/duckduckgo",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/duckduckgo plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 7,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 1,
+        "coreBlowOnlyTestPaths": 1,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/duckduckgo",
         "pnpm check"
       ]
     },

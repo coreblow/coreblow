@@ -1,13 +1,11 @@
 import { Type } from "typebox";
 import {
-  enablePluginInConfig,
-  getScopedCredentialValue,
   readNumberParam,
   readStringParam,
-  setScopedCredentialValue,
   type WebSearchProviderPlugin,
 } from "coreblow/plugin-sdk/provider-web-search";
 import { runDuckDuckGoSearch } from "./ddg-client.js";
+import { createDuckDuckGoWebSearchProviderBase } from "./ddg-search-provider.shared.js";
 
 const DuckDuckGoSearchSchema = Type.Object(
   {
@@ -35,21 +33,7 @@ const DuckDuckGoSearchSchema = Type.Object(
 
 export function createDuckDuckGoWebSearchProvider(): WebSearchProviderPlugin {
   return {
-    id: "duckduckgo",
-    label: "DuckDuckGo Search (experimental)",
-    hint: "Free web search fallback with no API key required",
-    requiresCredential: false,
-    envVars: [],
-    placeholder: "(no key needed)",
-    signupUrl: "https://duckduckgo.com/",
-    docsUrl: "https://docs.coreblow.ai/tools/web",
-    autoDetectOrder: 100,
-    credentialPath: "",
-    inactiveSecretPaths: [],
-    getCredentialValue: (searchConfig) => getScopedCredentialValue(searchConfig, "duckduckgo"),
-    setCredentialValue: (searchConfigTarget, value) =>
-      setScopedCredentialValue(searchConfigTarget, "duckduckgo", value),
-    applySelectionConfig: (config) => enablePluginInConfig(config, "duckduckgo").config,
+    ...createDuckDuckGoWebSearchProviderBase(),
     createTool: (ctx) => ({
       description:
         "Search the web using DuckDuckGo. Returns titles, URLs, and snippets with no API key required.",
