@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6357,
+    "cb_source_files": 6360,
     "oc_source_files": 8443,
-    "source_parity_both": 4582,
+    "source_parity_both": 4585,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3861,
+    "source_missing_from_cb": 3858,
     "test_files_cb": 4077,
     "test_files_oc": 5246,
     "tests_both_covered": 2717,
@@ -6626,34 +6626,6 @@
       ]
     },
     {
-      "domain": "extensions/perplexity",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/perplexity plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 4,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 3,
-        "sharedTestPaths": 1,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 0
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/perplexity/src/perplexity-web-search-provider.runtime.ts",
-          "extensions/perplexity/src/perplexity-web-search-provider.shared.ts",
-          "extensions/perplexity/web-search-contract-api.ts"
-        ],
-        "openClawTestGapPaths": [],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/perplexity",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/runway",
       "status": "missing",
       "priority": "P3",
@@ -7743,6 +7715,30 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/open-prose",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/perplexity",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/perplexity plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 7,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 1,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/perplexity",
         "pnpm check"
       ]
     },
