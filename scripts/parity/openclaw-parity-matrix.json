@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6360,
+    "cb_source_files": 6363,
     "oc_source_files": 8443,
-    "source_parity_both": 4585,
+    "source_parity_both": 4588,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3858,
+    "source_missing_from_cb": 3855,
     "test_files_cb": 4077,
     "test_files_oc": 5246,
     "tests_both_covered": 2717,
@@ -6409,34 +6409,6 @@
       ]
     },
     {
-      "domain": "extensions/brave",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/brave plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 4,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 3,
-        "sharedTestPaths": 1,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 0
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/brave/src/brave-web-search-provider.runtime.ts",
-          "extensions/brave/src/brave-web-search-provider.shared.ts",
-          "extensions/brave/web-search-contract-api.ts"
-        ],
-        "openClawTestGapPaths": [],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/brave",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/deepgram",
       "status": "partial",
       "priority": "P3",
@@ -7086,6 +7058,30 @@
       "notes": "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture.",
       "gates": [
         "pnpm test -- extensions/bluesky",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/brave",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/brave plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 7,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 1,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/brave",
         "pnpm check"
       ]
     },
