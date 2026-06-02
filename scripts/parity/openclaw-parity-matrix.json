@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6326,
+    "cb_source_files": 6327,
     "oc_source_files": 8443,
-    "source_parity_both": 4551,
+    "source_parity_both": 4552,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3892,
+    "source_missing_from_cb": 3891,
     "test_files_cb": 4066,
     "test_files_oc": 5246,
     "tests_both_covered": 2710,
@@ -7363,35 +7363,6 @@
       ]
     },
     {
-      "domain": "src/web-search",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "src/web-search",
-      "counts": {
-        "sharedSourcePaths": 1,
-        "coreBlowOnlySourcePaths": 2,
-        "openClawOnlySourcePaths": 1,
-        "sharedTestPaths": 1,
-        "coreBlowOnlyTestPaths": 1,
-        "openClawTestGaps": 0
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/web-search/runtime-types.ts"
-        ],
-        "openClawTestGapPaths": [],
-        "coreBlowOnlySourcePaths": [
-          "src/web-search/credential-resolver.ts",
-          "src/web-search/types.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/web-search",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/auto-reply",
       "status": "intentionally_different",
       "priority": "P3",
@@ -10043,6 +10014,33 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/version.ts",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/web-search",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/web-search",
+      "counts": {
+        "sharedSourcePaths": 2,
+        "coreBlowOnlySourcePaths": 2,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 1,
+        "coreBlowOnlyTestPaths": 1,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "src/web-search/credential-resolver.ts",
+          "src/web-search/types.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/web-search",
         "pnpm check"
       ]
     }
