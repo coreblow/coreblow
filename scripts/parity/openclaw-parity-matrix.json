@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6333,
+    "cb_source_files": 6334,
     "oc_source_files": 8443,
-    "source_parity_both": 4558,
+    "source_parity_both": 4559,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3885,
-    "test_files_cb": 4069,
+    "source_missing_from_cb": 3884,
+    "test_files_cb": 4070,
     "test_files_oc": 5246,
-    "tests_both_covered": 2713,
-    "tests_gap_oc_has_cb_missing": 2288,
+    "tests_both_covered": 2714,
+    "tests_gap_oc_has_cb_missing": 2287,
     "tests_cb_exclusive": 1309,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -7084,34 +7084,6 @@
       ]
     },
     {
-      "domain": "packages/plugin-package-contract",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "packages/plugin-package-contract",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 1,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 1
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "packages/plugin-package-contract/src/index.ts"
-        ],
-        "openClawTestGapPaths": [
-          "packages/plugin-package-contract/src/index.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- packages/plugin-package-contract",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/web",
       "status": "missing",
       "priority": "P3",
@@ -8348,6 +8320,30 @@
       "notes": "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture.",
       "gates": [
         "pnpm test -- packages/gateway-sdk",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "packages/plugin-package-contract",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "packages/plugin-package-contract",
+      "counts": {
+        "sharedSourcePaths": 1,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 1,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- packages/plugin-package-contract",
         "pnpm check"
       ]
     },
