@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6329,
+    "cb_source_files": 6330,
     "oc_source_files": 8443,
-    "source_parity_both": 4554,
+    "source_parity_both": 4555,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3889,
-    "test_files_cb": 4067,
+    "source_missing_from_cb": 3888,
+    "test_files_cb": 4068,
     "test_files_oc": 5246,
-    "tests_both_covered": 2711,
-    "tests_gap_oc_has_cb_missing": 2290,
+    "tests_both_covered": 2712,
+    "tests_gap_oc_has_cb_missing": 2289,
     "tests_cb_exclusive": 1309,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -7056,34 +7056,6 @@
       ]
     },
     {
-      "domain": "extensions/huggingface",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/huggingface plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 5,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 1,
-        "sharedTestPaths": 1,
-        "coreBlowOnlyTestPaths": 1,
-        "openClawTestGaps": 1
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/huggingface/model-discovery-env.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/huggingface/index.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/huggingface",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/tavily",
       "status": "partial",
       "priority": "P3",
@@ -7637,6 +7609,30 @@
       "notes": "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture.",
       "gates": [
         "pnpm test -- extensions/google-gemini-cli-auth",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/huggingface",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/huggingface plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 6,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 2,
+        "coreBlowOnlyTestPaths": 1,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/huggingface",
         "pnpm check"
       ]
     },

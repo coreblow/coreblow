@@ -1,4 +1,5 @@
 import type { ModelDefinitionConfig } from "coreblow/plugin-sdk/provider-model-shared";
+import { isHuggingfaceModelDiscoveryTestEnvironment } from "./model-discovery-env.js";
 
 export const HUGGINGFACE_BASE_URL = "https://router.huggingface.co/v1";
 export const HUGGINGFACE_POLICY_SUFFIXES = ["cheapest", "fastest"] as const;
@@ -124,7 +125,7 @@ function displayNameFromApiEntry(entry: HFModelEntry, inferredName: string): str
 }
 
 export async function discoverHuggingfaceModels(apiKey: string): Promise<ModelDefinitionConfig[]> {
-  if (process.env.VITEST === "true" || process.env.NODE_ENV === "test") {
+  if (isHuggingfaceModelDiscoveryTestEnvironment()) {
     return HUGGINGFACE_MODEL_CATALOG.map(buildHuggingfaceModelDefinition);
   }
 
