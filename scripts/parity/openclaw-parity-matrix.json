@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6353,
+    "cb_source_files": 6357,
     "oc_source_files": 8443,
-    "source_parity_both": 4578,
+    "source_parity_both": 4582,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3865,
-    "test_files_cb": 4076,
+    "source_missing_from_cb": 3861,
+    "test_files_cb": 4077,
     "test_files_oc": 5246,
     "tests_both_covered": 2717,
     "tests_gap_oc_has_cb_missing": 2284,
-    "tests_cb_exclusive": 1312,
+    "tests_cb_exclusive": 1313,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
     "test_scenario_files_intentionally_different": 0
@@ -6155,35 +6155,6 @@
       ]
     },
     {
-      "domain": "extensions/test-support",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "extensions/test-support plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 4,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 0
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/test-support/debug-proxy-env-test-helpers.ts",
-          "extensions/test-support/generation-live-test-helpers.ts",
-          "extensions/test-support/provider-model-test-helpers.ts",
-          "extensions/test-support/streaming-error-response.ts"
-        ],
-        "openClawTestGapPaths": [],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/test-support",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/video-generation-core",
       "status": "missing",
       "priority": "P3",
@@ -8090,6 +8061,30 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/tencent",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/test-support",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/test-support plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 4,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 0,
+        "coreBlowOnlyTestPaths": 1,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/test-support",
         "pnpm check"
       ]
     },
