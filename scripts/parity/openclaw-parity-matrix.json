@@ -12,10 +12,10 @@
     "source_parity_both": 4551,
     "source_cb_exclusive": 1775,
     "source_missing_from_cb": 3892,
-    "test_files_cb": 4065,
+    "test_files_cb": 4066,
     "test_files_oc": 5246,
-    "tests_both_covered": 2709,
-    "tests_gap_oc_has_cb_missing": 2292,
+    "tests_both_covered": 2710,
+    "tests_gap_oc_has_cb_missing": 2291,
     "tests_cb_exclusive": 1309,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -7311,35 +7311,6 @@
       ]
     },
     {
-      "domain": "src/link-understanding",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "src/link-understanding",
-      "counts": {
-        "sharedSourcePaths": 6,
-        "coreBlowOnlySourcePaths": 2,
-        "openClawOnlySourcePaths": 0,
-        "sharedTestPaths": 1,
-        "coreBlowOnlyTestPaths": 1,
-        "openClawTestGaps": 1
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [],
-        "openClawTestGapPaths": [
-          "src/link-understanding/runner.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/link-understanding/og-parser.ts",
-          "src/link-understanding/types.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/link-understanding",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/plugin-activation-boundary.test.ts",
       "status": "missing",
       "priority": "P3",
@@ -9420,6 +9391,33 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/library.ts",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/link-understanding",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/link-understanding",
+      "counts": {
+        "sharedSourcePaths": 6,
+        "coreBlowOnlySourcePaths": 2,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 2,
+        "coreBlowOnlyTestPaths": 1,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "src/link-understanding/og-parser.ts",
+          "src/link-understanding/types.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/link-understanding",
         "pnpm check"
       ]
     },
