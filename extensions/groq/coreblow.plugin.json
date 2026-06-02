@@ -1,5 +1,14 @@
 {
   "id": "groq",
+  "enabledByDefault": true,
+  "providers": [
+    "groq"
+  ],
+  "providerAuthEnvVars": {
+    "groq": [
+      "GROQ_API_KEY"
+    ]
+  },
   "contracts": {
     "mediaUnderstandingProviders": [
       "groq"

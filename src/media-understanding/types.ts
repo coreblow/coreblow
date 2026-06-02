@@ -136,6 +136,8 @@ export type ImagesDescriptionResult = {
 export type MediaUnderstandingProvider = {
   id: string;
   capabilities?: MediaUnderstandingCapability[];
+  defaultModels?: Partial<Record<MediaUnderstandingCapability, string>>;
+  autoPriority?: Partial<Record<MediaUnderstandingCapability, number>>;
   transcribeAudio?: (req: AudioTranscriptionRequest) => Promise<AudioTranscriptionResult>;
   describeVideo?: (req: VideoDescriptionRequest) => Promise<VideoDescriptionResult>;
   describeImage?: (req: ImageDescriptionRequest) => Promise<ImageDescriptionResult>;
