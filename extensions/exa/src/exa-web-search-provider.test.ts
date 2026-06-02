@@ -5,6 +5,8 @@
  */
 import { describe, expect, it } from "vitest";
 import { createExaWebSearchProvider } from "./exa-web-search-provider.js";
+import { createExaWebSearchProviderBase } from "./exa-web-search-provider.shared.js";
+import { createExaWebSearchProvider as createExaWebSearchContractProvider } from "../web-search-contract-api.js";
 
 describe("createExaWebSearchProvider", () => {
   it("is a function", () => {
@@ -24,5 +26,29 @@ describe("createExaWebSearchProvider", () => {
 
   it("does not throw when called", () => {
     expect(() => createExaWebSearchProvider()).not.toThrow();
+  });
+
+  it("exposes contract provider metadata without runtime tools", () => {
+    const provider = createExaWebSearchContractProvider();
+
+    expect(provider.id).toBe("exa");
+    expect(provider.credentialPath).toBe("plugins.entries.exa.config.webSearch.apiKey");
+    expect(provider.onboardingScopes).toEqual(["text-inference"]);
+    expect(provider.createTool({} as never)).toBeNull();
+  });
+
+  it("uses scoped Exa credentials in the contract base", () => {
+    const provider = createExaWebSearchProviderBase();
+    const searchConfig: Record<string, unknown> = {};
+
+    provider.setCredentialValue(searchConfig, "exa-token");
+
+    expect(provider.getCredentialValue(searchConfig)).toBe("exa-token");
+  });
+
+  it("applies Exa plugin selection through the contract base", () => {
+    const provider = createExaWebSearchProviderBase();
+
+    expect(provider.applySelectionConfig?.({})?.plugins?.entries?.exa?.enabled).toBe(true);
   });
 });
