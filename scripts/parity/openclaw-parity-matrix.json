@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6339,
+    "cb_source_files": 6344,
     "oc_source_files": 8443,
-    "source_parity_both": 4564,
+    "source_parity_both": 4569,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3879,
-    "test_files_cb": 4073,
+    "source_missing_from_cb": 3874,
+    "test_files_cb": 4074,
     "test_files_oc": 5246,
     "tests_both_covered": 2717,
     "tests_gap_oc_has_cb_missing": 2284,
-    "tests_cb_exclusive": 1309,
+    "tests_cb_exclusive": 1310,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
     "test_scenario_files_intentionally_different": 0
@@ -5678,36 +5678,6 @@
       ]
     },
     {
-      "domain": "extensions/cerebras",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "extensions/cerebras plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 5,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 0
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/cerebras/api.ts",
-          "extensions/cerebras/index.ts",
-          "extensions/cerebras/models.ts",
-          "extensions/cerebras/onboard.ts",
-          "extensions/cerebras/provider-catalog.ts"
-        ],
-        "openClawTestGapPaths": [],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/cerebras",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/deepseek",
       "status": "partial",
       "priority": "P3",
@@ -7221,6 +7191,30 @@
       "notes": "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture.",
       "gates": [
         "pnpm test -- extensions/bluesky",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/cerebras",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/cerebras plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 5,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 0,
+        "coreBlowOnlyTestPaths": 1,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/cerebras",
         "pnpm check"
       ]
     },
