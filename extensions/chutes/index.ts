@@ -6,7 +6,7 @@ import {
 } from "coreblow/plugin-sdk/provider-auth";
 import { buildOauthProviderAuthResult } from "coreblow/plugin-sdk/provider-auth";
 import { createProviderApiKeyAuthMethod } from "coreblow/plugin-sdk/provider-auth-api-key";
-import { loginChutes } from "coreblow/plugin-sdk/provider-auth-login";
+import { loginChutes } from "./oauth.js";
 import {
   CHUTES_DEFAULT_MODEL_REF,
   applyChutesApiKeyConfig,

@@ -1,6 +1,7 @@
 // @ts-nocheck
 import type { ModelDefinitionConfig } from "coreblow/plugin-sdk/provider-model-shared";
 import { createSubsystemLogger } from "coreblow/plugin-sdk/runtime-env";
+import { isChutesModelDiscoveryTestEnvironment } from "./model-discovery-env.js";
 
 const log = createSubsystemLogger("chutes-models");
 
@@ -511,7 +512,7 @@ export async function discoverChutesModels(accessToken?: string): Promise<ModelD
     return cached.models;
   }
 
-  if (process.env.NODE_ENV === "test" || process.env.VITEST === "true") {
+  if (isChutesModelDiscoveryTestEnvironment()) {
     return CHUTES_MODEL_CATALOG.map(buildChutesModelDefinition);
   }
 
