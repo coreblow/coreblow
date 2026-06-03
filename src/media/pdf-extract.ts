@@ -1,8 +1,47 @@
-type CanvasModule = typeof import("@napi-rs/canvas");
+import { createRequire } from "node:module";
+import path from "node:path";
+
+type CanvasLike = {
+  toBuffer(type: "image/png"): Buffer;
+};
+
+type CanvasModule = {
+  createCanvas(width: number, height: number): CanvasLike;
+};
+
+type PdfTextItem = {
+  str: string;
+};
+
+type PdfTextContent = {
+  items: Array<PdfTextItem | object>;
+};
+
+type PdfViewport = {
+  width: number;
+  height: number;
+};
+
+type PdfPage = {
+  getTextContent(): Promise<PdfTextContent>;
+  getViewport(params: { scale: number }): PdfViewport;
+  render(params: { canvas: unknown; viewport: PdfViewport }): { promise: Promise<void> };
+};
+
+type PdfDocument = {
+  numPages: number;
+  getPage(pageNumber: number): Promise<PdfPage>;
+};
+
 type PdfJsModule = typeof import("pdfjs-dist/legacy/build/pdf.mjs");
+
+const MAX_EXTRACTED_TEXT_CHARS = 200_000;
+const MAX_RENDER_DIMENSION = 10_000;
+const require = createRequire(import.meta.url);
 
 let canvasModulePromise: Promise<CanvasModule> | null = null;
 let pdfJsModulePromise: Promise<PdfJsModule> | null = null;
+let pdfJsStandardFontDataPath: string | null = null;
 
 async function loadCanvasModule(): Promise<CanvasModule> {
   if (!canvasModulePromise) {
@@ -39,6 +78,75 @@ export type PdfExtractedContent = {
   images: PdfExtractedImage[];
 };
 
+function resolvePdfJsStandardFontDataPath(): string {
+  if (!pdfJsStandardFontDataPath) {
+    const pdfJsPackageJsonPath = require.resolve("pdfjs-dist/package.json");
+    pdfJsStandardFontDataPath =
+      path.join(path.dirname(pdfJsPackageJsonPath), "standard_fonts") + "/";
+  }
+  return pdfJsStandardFontDataPath;
+}
+
+function appendTextWithinLimit(parts: string[], pageText: string, currentLength: number): number {
+  if (!pageText) {
+    return currentLength;
+  }
+  const remaining = MAX_EXTRACTED_TEXT_CHARS - currentLength;
+  if (remaining <= 0) {
+    return currentLength;
+  }
+  const nextText = pageText.length > remaining ? pageText.slice(0, remaining) : pageText;
+  parts.push(nextText);
+  return currentLength + nextText.length;
+}
+
+function resolveRenderPlan(
+  viewport: PdfViewport,
+  remainingPixels: number,
+): { scale: number; width: number; height: number; pixels: number } | null {
+  if (
+    remainingPixels <= 0 ||
+    !Number.isFinite(viewport.width) ||
+    !Number.isFinite(viewport.height) ||
+    viewport.width <= 0 ||
+    viewport.height <= 0
+  ) {
+    return null;
+  }
+
+  const pagePixels = Math.max(1, viewport.width * viewport.height);
+  const maxScale = Math.min(
+    1,
+    Math.sqrt(remainingPixels / pagePixels),
+    MAX_RENDER_DIMENSION / viewport.width,
+    MAX_RENDER_DIMENSION / viewport.height,
+  );
+  if (!Number.isFinite(maxScale) || maxScale <= 0) {
+    return null;
+  }
+
+  let best: { scale: number; width: number; height: number; pixels: number } | null = null;
+  let low = 0;
+  let high = maxScale;
+  for (let i = 0; i < 32; i += 1) {
+    const scale = (low + high) / 2;
+    const width = Math.max(1, Math.ceil(viewport.width * scale));
+    const height = Math.max(1, Math.ceil(viewport.height * scale));
+    const pixels = width * height;
+    if (
+      width <= MAX_RENDER_DIMENSION &&
+      height <= MAX_RENDER_DIMENSION &&
+      pixels <= remainingPixels
+    ) {
+      best = { scale, width, height, pixels };
+      low = scale;
+    } else {
+      high = scale;
+    }
+  }
+  return best;
+}
+
 export async function extractPdfContent(params: {
   buffer: Buffer;
   maxPages: number;
@@ -49,22 +157,30 @@ export async function extractPdfContent(params: {
 }): Promise<PdfExtractedContent> {
   const { buffer, maxPages, maxPixels, minTextChars, pageNumbers, onImageExtractionError } = params;
   const { getDocument } = await loadPdfJsModule();
-  const pdf = await getDocument({ data: new Uint8Array(buffer), disableWorker: true }).promise;
+  const pdf = (await getDocument({
+    data: new Uint8Array(buffer),
+    disableWorker: true,
+    standardFontDataUrl: resolvePdfJsStandardFontDataPath(),
+  }).promise) as PdfDocument;
 
   const effectivePages: number[] = pageNumbers
     ? pageNumbers.filter((p) => p >= 1 && p <= pdf.numPages).slice(0, maxPages)
     : Array.from({ length: Math.min(pdf.numPages, maxPages) }, (_, i) => i + 1);
 
   const textParts: string[] = [];
+  let extractedTextLength = 0;
   for (const pageNum of effectivePages) {
     const page = await pdf.getPage(pageNum);
     const textContent = await page.getTextContent();
     const pageText = textContent.items
-      .map((item: any) => ("str" in item ? String(item.str) : ""))
+      .map((item) => ("str" in item ? item.str : ""))
       .filter(Boolean)
       .join(" ");
     if (pageText) {
-      textParts.push(pageText);
+      extractedTextLength = appendTextWithinLimit(textParts, pageText, extractedTextLength);
+      if (extractedTextLength >= MAX_EXTRACTED_TEXT_CHARS) {
+        break;
+      }
     }
   }
 
@@ -81,23 +197,28 @@ export async function extractPdfContent(params: {
     return { text, images: [] };
   }
 
-  const { createCanvas } = canvasModule;
   const images: PdfExtractedImage[] = [];
-  const pixelBudget = Math.max(1, maxPixels);
+  let remainingPixels = Math.max(1, Math.floor(maxPixels));
 
   for (const pageNum of effectivePages) {
+    if (remainingPixels <= 0) {
+      break;
+    }
     const page = await pdf.getPage(pageNum);
     const viewport = page.getViewport({ scale: 1 });
-    const pagePixels = viewport.width * viewport.height;
-    const scale = Math.min(1, Math.sqrt(pixelBudget / Math.max(1, pagePixels)));
-    const scaled = page.getViewport({ scale: Math.max(0.1, scale) });
-    const canvas = createCanvas(Math.ceil(scaled.width), Math.ceil(scaled.height));
+    const plan = resolveRenderPlan(viewport, remainingPixels);
+    if (!plan) {
+      break;
+    }
+    const scaled = page.getViewport({ scale: plan.scale });
+    const canvas = canvasModule.createCanvas(plan.width, plan.height);
     await page.render({
       canvas: canvas as unknown as HTMLCanvasElement,
       viewport: scaled,
     }).promise;
     const png = canvas.toBuffer("image/png");
     images.push({ type: "image", data: png.toString("base64"), mimeType: "image/png" });
+    remainingPixels -= plan.pixels;
   }
 
   return { text, images };

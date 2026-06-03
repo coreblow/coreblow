@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6397,
+    "cb_source_files": 6399,
     "oc_source_files": 8443,
-    "source_parity_both": 4622,
+    "source_parity_both": 4624,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3821,
-    "test_files_cb": 4092,
+    "source_missing_from_cb": 3819,
+    "test_files_cb": 4094,
     "test_files_oc": 5246,
-    "tests_both_covered": 2732,
-    "tests_gap_oc_has_cb_missing": 2269,
+    "tests_both_covered": 2734,
+    "tests_gap_oc_has_cb_missing": 2267,
     "tests_cb_exclusive": 1313,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -2201,64 +2201,6 @@
       ]
     },
     {
-      "domain": "src/media",
-      "status": "partial",
-      "priority": "P2",
-      "implementationSurface": "src/media",
-      "counts": {
-        "sharedSourcePaths": 25,
-        "coreBlowOnlySourcePaths": 7,
-        "openClawOnlySourcePaths": 16,
-        "sharedTestPaths": 17,
-        "coreBlowOnlyTestPaths": 4,
-        "openClawTestGaps": 17
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/media/audio-transcode.ts",
-          "src/media/channel-inbound-roots.ts",
-          "src/media/configured-max-bytes.ts",
-          "src/media/document-extractors.runtime.ts",
-          "src/media/file-name.ts",
-          "src/media/media-reference.ts",
-          "src/media/media-services.ts",
-          "src/media/media-source-url.ts",
-          "src/media/prompt-image-order.ts",
-          "src/media/qr-runtime.ts",
-          "src/media/qr-terminal.ts",
-          "src/media/read-byte-stream-with-limit.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/media/audio-transcode.test.ts",
-          "src/media/channel-inbound-roots.fast-path.test.ts",
-          "src/media/document-extractors.runtime.test.ts",
-          "src/media/image-ops.input-guard.test.ts",
-          "src/media/image-ops.security.test.ts",
-          "src/media/image-ops.tempdir.test.ts",
-          "src/media/local-media-access.test.ts",
-          "src/media/media-reference.test.ts",
-          "src/media/outbound-attachment.test.ts",
-          "src/media/pdf-extract.test.ts",
-          "src/media/qr-image.test.ts",
-          "src/media/qr-terminal.render.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/media/attachments.ts",
-          "src/media/handler.ts",
-          "src/media/host.ts",
-          "src/media/image-sanitization.ts",
-          "src/media/media-processor.ts",
-          "src/media/server.ts",
-          "src/media/understanding.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/media",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/canvas",
       "status": "missing",
       "priority": "P2",
@@ -2305,6 +2247,64 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/canvas",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/media",
+      "status": "partial",
+      "priority": "P2",
+      "implementationSurface": "src/media",
+      "counts": {
+        "sharedSourcePaths": 25,
+        "coreBlowOnlySourcePaths": 7,
+        "openClawOnlySourcePaths": 16,
+        "sharedTestPaths": 18,
+        "coreBlowOnlyTestPaths": 4,
+        "openClawTestGaps": 16
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [
+          "src/media/audio-transcode.ts",
+          "src/media/channel-inbound-roots.ts",
+          "src/media/configured-max-bytes.ts",
+          "src/media/document-extractors.runtime.ts",
+          "src/media/file-name.ts",
+          "src/media/media-reference.ts",
+          "src/media/media-services.ts",
+          "src/media/media-source-url.ts",
+          "src/media/prompt-image-order.ts",
+          "src/media/qr-runtime.ts",
+          "src/media/qr-terminal.ts",
+          "src/media/read-byte-stream-with-limit.ts"
+        ],
+        "openClawTestGapPaths": [
+          "src/media/audio-transcode.test.ts",
+          "src/media/channel-inbound-roots.fast-path.test.ts",
+          "src/media/document-extractors.runtime.test.ts",
+          "src/media/image-ops.input-guard.test.ts",
+          "src/media/image-ops.security.test.ts",
+          "src/media/image-ops.tempdir.test.ts",
+          "src/media/local-media-access.test.ts",
+          "src/media/media-reference.test.ts",
+          "src/media/outbound-attachment.test.ts",
+          "src/media/qr-image.test.ts",
+          "src/media/qr-terminal.render.test.ts",
+          "src/media/qr-terminal.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "src/media/attachments.ts",
+          "src/media/handler.ts",
+          "src/media/host.ts",
+          "src/media/image-sanitization.ts",
+          "src/media/media-processor.ts",
+          "src/media/server.ts",
+          "src/media/understanding.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/media",
         "pnpm check"
       ]
     },
@@ -6329,35 +6329,6 @@
       ]
     },
     {
-      "domain": "extensions/document-extract",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "extensions/document-extract plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 2,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 1
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/document-extract/document-extractor.ts",
-          "extensions/document-extract/index.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/document-extract/document-extractor.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/document-extract",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/memory-lancedb",
       "status": "partial",
       "priority": "P3",
@@ -6868,6 +6839,30 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/diagnostics-otel",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/document-extract",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/document-extract plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 2,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 1,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/document-extract",
         "pnpm check"
       ]
     },
