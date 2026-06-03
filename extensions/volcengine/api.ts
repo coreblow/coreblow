@@ -6,3 +6,5 @@ export {
   DOUBAO_CODING_MODEL_CATALOG,
   DOUBAO_MODEL_CATALOG,
 } from "./models.js";
+export { buildVolcengineSpeechProvider } from "./speech-provider.js";
+export { volcengineTTS, type VolcengineTtsEncoding } from "./tts.js";
