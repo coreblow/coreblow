@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6386,
+    "cb_source_files": 6387,
     "oc_source_files": 8443,
-    "source_parity_both": 4611,
+    "source_parity_both": 4612,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3832,
-    "test_files_cb": 4081,
+    "source_missing_from_cb": 3831,
+    "test_files_cb": 4083,
     "test_files_oc": 5246,
-    "tests_both_covered": 2721,
-    "tests_gap_oc_has_cb_missing": 2280,
+    "tests_both_covered": 2723,
+    "tests_gap_oc_has_cb_missing": 2278,
     "tests_cb_exclusive": 1313,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -6359,35 +6359,6 @@
       ]
     },
     {
-      "domain": "extensions/litellm",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/litellm plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 4,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 1,
-        "sharedTestPaths": 1,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 2
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/litellm/image-generation-provider.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/litellm/image-generation-provider.test.ts",
-          "extensions/litellm/index.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/litellm",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/memory-lancedb",
       "status": "partial",
       "priority": "P3",
@@ -7296,6 +7267,30 @@
       "notes": "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture.",
       "gates": [
         "pnpm test -- extensions/link-understanding",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/litellm",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/litellm plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 5,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 3,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/litellm",
         "pnpm check"
       ]
     },
