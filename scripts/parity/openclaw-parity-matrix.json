@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6435,
+    "cb_source_files": 6439,
     "oc_source_files": 8443,
-    "source_parity_both": 4660,
+    "source_parity_both": 4664,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3783,
-    "test_files_cb": 4122,
+    "source_missing_from_cb": 3779,
+    "test_files_cb": 4123,
     "test_files_oc": 5246,
-    "tests_both_covered": 2762,
-    "tests_gap_oc_has_cb_missing": 2239,
+    "tests_both_covered": 2763,
+    "tests_gap_oc_has_cb_missing": 2238,
     "tests_cb_exclusive": 1313,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -5488,37 +5488,6 @@
       ]
     },
     {
-      "domain": "extensions/deepseek",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/deepseek plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 5,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 4,
-        "sharedTestPaths": 1,
-        "coreBlowOnlyTestPaths": 1,
-        "openClawTestGaps": 1
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/deepseek/provider-discovery.ts",
-          "extensions/deepseek/provider-policy-api.ts",
-          "extensions/deepseek/stream.ts",
-          "extensions/deepseek/thinking.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/deepseek/provider-policy-api.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/deepseek",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/moonshot",
       "status": "partial",
       "priority": "P3",
@@ -6416,6 +6385,30 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/deepgram",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/deepseek",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/deepseek plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 9,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 2,
+        "coreBlowOnlyTestPaths": 1,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/deepseek",
         "pnpm check"
       ]
     },

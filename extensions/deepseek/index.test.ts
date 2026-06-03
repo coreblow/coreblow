@@ -43,11 +43,18 @@ describe("deepseek provider plugin", () => {
     expect(catalog.provider.api).toBe("openai-completions");
     expect(catalog.provider.baseUrl).toBe("https://api.deepseek.com");
     expect(catalog.provider.models?.map((model) => model.id)).toEqual([
+      "deepseek-v4-flash",
+      "deepseek-v4-pro",
       "deepseek-chat",
       "deepseek-reasoner",
     ]);
+    expect(catalog.provider.models?.find((model) => model.id === "deepseek-v4-flash")?.reasoning).toBe(true);
+    expect(catalog.provider.models?.find((model) => model.id === "deepseek-v4-flash")?.contextWindow).toBe(1_000_000);
+    expect(catalog.provider.models?.find((model) => model.id === "deepseek-v4-flash")?.maxTokens).toBe(384_000);
     expect(
-      catalog.provider.models?.find((model) => model.id === "deepseek-reasoner")?.reasoning,
+      catalog.provider.models?.find((model) => model.id === "deepseek-v4-flash")?.compat
+        ?.supportsReasoningEffort,
     ).toBe(true);
+    expect(catalog.provider.models?.find((model) => model.id === "deepseek-reasoner")?.reasoning).toBe(true);
   });
 });

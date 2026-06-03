@@ -1,6 +1,8 @@
 import { defineSingleProviderPluginEntry } from "coreblow/plugin-sdk/provider-entry";
 import { applyDeepSeekConfig, DEEPSEEK_DEFAULT_MODEL_REF } from "./onboard.js";
 import { buildDeepSeekProvider } from "./provider-catalog.js";
+import { normalizeConfig, resolveThinkingProfile } from "./provider-policy-api.js";
+import { createDeepSeekV4ThinkingWrapper } from "./stream.js";
 
 const PROVIDER_ID = "deepseek";
 
@@ -34,5 +36,14 @@ export default defineSingleProviderPluginEntry({
     catalog: {
       buildProvider: buildDeepSeekProvider,
     },
+    normalizeConfig: ({ providerConfig }) => normalizeConfig({ provider: PROVIDER_ID, providerConfig }),
+    wrapStreamFn: (ctx) =>
+      ctx.streamFn ? createDeepSeekV4ThinkingWrapper(ctx.streamFn, ctx.thinkingLevel) : undefined,
+    resolveDefaultThinkingLevel: ({ modelId }) => resolveThinkingProfile({ modelId })?.defaultLevel,
+    supportsXHighThinking: ({ modelId }) =>
+      resolveThinkingProfile({ modelId })?.levels.some((level) => level.id === "xhigh")
+        ? true
+        : undefined,
+    isModernModelRef: ({ modelId }) => Boolean(resolveThinkingProfile({ modelId })),
   },
 });
