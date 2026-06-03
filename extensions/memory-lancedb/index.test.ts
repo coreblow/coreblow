@@ -163,7 +163,7 @@ describe("memory plugin e2e", () => {
     delete process.env.TEST_MEMORY_API_KEY;
   });
 
-  test("config schema rejects missing apiKey", async () => {
+  test("config schema rejects empty embedding config", async () => {
     const { default: memoryPlugin } = await import("./index.js");
 
     expect(() => {
@@ -171,7 +171,7 @@ describe("memory plugin e2e", () => {
         embedding: {},
         dbPath: getDbPath(),
       });
-    }).toThrow("embedding.apiKey is required");
+    }).toThrow("embedding config must include at least one setting");
   });
 
   test("config schema validates captureMaxChars range", async () => {

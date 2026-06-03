@@ -290,11 +290,21 @@ export default definePluginEntry({
   register(api: CoreBlowPluginApi) {
     const cfg = memoryConfigSchema.parse(api.pluginConfig);
     const resolvedDbPath = api.resolvePath(cfg.dbPath!);
-    const { model, dimensions, apiKey, baseUrl } = cfg.embedding;
+    const { model, dimensions, apiKey, baseUrl, provider } = cfg.embedding;
+    const resolvedApiKey = apiKey ?? process.env.OPENAI_API_KEY;
+
+    if (provider !== "openai") {
+      throw new Error(
+        `memory-lancedb: embedding provider ${provider} is not supported by the current CoreBlow runtime yet`,
+      );
+    }
+    if (!resolvedApiKey) {
+      throw new Error("memory-lancedb: embedding.apiKey or OPENAI_API_KEY is required at runtime");
+    }
 
     const vectorDim = dimensions ?? vectorDimsForModel(model);
     const db = new MemoryDB(resolvedDbPath, vectorDim);
-    const embeddings = new Embeddings(apiKey, model, baseUrl, dimensions);
+    const embeddings = new Embeddings(resolvedApiKey, model, baseUrl, dimensions);
 
     api.logger.info(`memory-lancedb: plugin registered (db: ${resolvedDbPath}, lazy init)`);
 
