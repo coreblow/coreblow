@@ -2,6 +2,8 @@ import { isMiniMaxModernModelId } from "coreblow/plugin-sdk/minimax";
 import { definePluginEntry } from "coreblow/plugin-sdk/plugin-entry";
 import { createProviderApiKeyAuthMethod } from "coreblow/plugin-sdk/provider-auth-api-key";
 import { applyOpencodeZenConfig, OPENCODE_ZEN_DEFAULT_MODEL } from "./api.js";
+import { opencodeMediaUnderstandingProvider } from "./media-understanding-provider.js";
+import { resolveThinkingProfile } from "./provider-policy-api.js";
 
 const PROVIDER_ID = "opencode";
 
@@ -59,6 +61,12 @@ export default definePluginEntry({
         geminiThoughtSignatureModelHints: ["gemini"],
       },
       isModernModelRef: ({ modelId }) => isModernOpencodeModel(modelId),
+      resolveDefaultThinkingLevel: ({ modelId }) => resolveThinkingProfile({ modelId })?.defaultLevel,
+      supportsXHighThinking: ({ modelId }) =>
+        resolveThinkingProfile({ modelId })?.levels.some((level) => level.id === "xhigh")
+          ? true
+          : undefined,
     });
+    api.registerMediaUnderstandingProvider(opencodeMediaUnderstandingProvider);
   },
 });

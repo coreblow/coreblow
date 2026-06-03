@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6424,
+    "cb_source_files": 6429,
     "oc_source_files": 8443,
-    "source_parity_both": 4649,
+    "source_parity_both": 4654,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3794,
-    "test_files_cb": 4112,
+    "source_missing_from_cb": 3789,
+    "test_files_cb": 4117,
     "test_files_oc": 5246,
-    "tests_both_covered": 2752,
-    "tests_gap_oc_has_cb_missing": 2249,
+    "tests_both_covered": 2757,
+    "tests_gap_oc_has_cb_missing": 2244,
     "tests_cb_exclusive": 1313,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -5581,68 +5581,6 @@
       ]
     },
     {
-      "domain": "extensions/opencode",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/opencode plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 3,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 2,
-        "sharedTestPaths": 1,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 3
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/opencode/media-understanding-provider.ts",
-          "extensions/opencode/provider-policy-api.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/opencode/index.test.ts",
-          "extensions/opencode/media-understanding-provider.test.ts",
-          "extensions/opencode/provider-policy-api.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/opencode",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/opencode-go",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/opencode-go plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 3,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 3,
-        "sharedTestPaths": 1,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 2
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/opencode-go/media-understanding-provider.ts",
-          "extensions/opencode-go/provider-catalog.ts",
-          "extensions/opencode-go/stream.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/opencode-go/index.test.ts",
-          "extensions/opencode-go/media-understanding-provider.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/opencode-go",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/tokenjuice",
       "status": "missing",
       "priority": "P3",
@@ -7331,6 +7269,54 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/open-prose",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/opencode",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/opencode plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 5,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 4,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/opencode",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/opencode-go",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/opencode-go plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 6,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 3,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/opencode-go",
         "pnpm check"
       ]
     },
