@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6414,
+    "cb_source_files": 6424,
     "oc_source_files": 8443,
-    "source_parity_both": 4639,
+    "source_parity_both": 4649,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3804,
-    "test_files_cb": 4106,
+    "source_missing_from_cb": 3794,
+    "test_files_cb": 4112,
     "test_files_oc": 5246,
-    "tests_both_covered": 2746,
-    "tests_gap_oc_has_cb_missing": 2255,
+    "tests_both_covered": 2752,
+    "tests_gap_oc_has_cb_missing": 2249,
     "tests_cb_exclusive": 1313,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -5276,38 +5276,6 @@
       ]
     },
     {
-      "domain": "extensions/gradium",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "extensions/gradium plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 4,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 2
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/gradium/index.ts",
-          "extensions/gradium/shared.ts",
-          "extensions/gradium/speech-provider.ts",
-          "extensions/gradium/tts.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/gradium/speech-provider.test.ts",
-          "extensions/gradium/tts.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/gradium",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/lobster",
       "status": "partial",
       "priority": "P3",
@@ -5520,37 +5488,6 @@
       ]
     },
     {
-      "domain": "extensions/azure-speech",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "extensions/azure-speech plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 3,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 2
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/azure-speech/index.ts",
-          "extensions/azure-speech/speech-provider.ts",
-          "extensions/azure-speech/tts.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/azure-speech/speech-provider.test.ts",
-          "extensions/azure-speech/tts.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/azure-speech",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/byteplus",
       "status": "partial",
       "priority": "P3",
@@ -5609,37 +5546,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/deepseek",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/inworld",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "extensions/inworld plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 3,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 2
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/inworld/index.ts",
-          "extensions/inworld/speech-provider.ts",
-          "extensions/inworld/tts.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/inworld/speech-provider.test.ts",
-          "extensions/inworld/tts.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/inworld",
         "pnpm check"
       ]
     },
@@ -6406,6 +6312,30 @@
       ]
     },
     {
+      "domain": "extensions/azure-speech",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/azure-speech plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 3,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 2,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/azure-speech",
+        "pnpm check"
+      ]
+    },
+    {
       "domain": "extensions/bluebubbles",
       "status": "intentionally_different",
       "priority": "P3",
@@ -6878,6 +6808,30 @@
       ]
     },
     {
+      "domain": "extensions/gradium",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/gradium plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 4,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 2,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/gradium",
+        "pnpm check"
+      ]
+    },
+    {
       "domain": "extensions/groq",
       "status": "done",
       "priority": "P3",
@@ -6946,6 +6900,30 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/image-generation-core",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/inworld",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/inworld plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 3,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 2,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/inworld",
         "pnpm check"
       ]
     },
