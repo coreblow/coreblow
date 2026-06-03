@@ -237,6 +237,24 @@ const intentionalDomainDifferences = new Map([
       gate: "pnpm test -- src/agents/tools/web-tools.readability.test.ts",
     },
   ],
+  [
+    "src/ui-app-settings.agents-files-refresh.test.ts",
+    {
+      status: "intentionally_different",
+      referenceBehavior:
+        "OpenClaw keeps an older UI app-settings shell where refreshActiveTab loads agents/files panels directly from a shared settings host.",
+      coreBlowDecision:
+        "CoreBlow uses the newer web control UI with a dedicated aiAgents tab, AgentsController, and agents view instead of the legacy app-settings refresh shell.",
+      rationale:
+        "Preserve the agents UI capability in CoreBlow's current web app architecture rather than reintroducing the deprecated OpenClaw settings-host pattern.",
+      evidence: [
+        "ui/src/ui/app.ts",
+        "ui/src/ui/app-render.ts",
+        "ui/src/ui/views/agents.ts",
+      ],
+      gate: "pnpm --dir ui test -- tests/navigation.test.ts",
+    },
+  ],
 ]);
 
 function implementationSurface(domain) {

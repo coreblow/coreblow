@@ -6561,7 +6561,7 @@
     },
     {
       "domain": "src/ui-app-settings.agents-files-refresh.test.ts",
-      "status": "missing",
+      "status": "intentionally_different",
       "priority": "P3",
       "implementationSurface": "src/ui-app-settings.agents-files-refresh.test.ts",
       "counts": {
@@ -6579,9 +6579,21 @@
         ],
         "coreBlowOnlySourcePaths": []
       },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "intentionalDomainDifference": {
+        "status": "intentionally_different",
+        "referenceBehavior": "OpenClaw keeps an older UI app-settings shell where refreshActiveTab loads agents/files panels directly from a shared settings host.",
+        "coreBlowDecision": "CoreBlow uses the newer web control UI with a dedicated aiAgents tab, AgentsController, and agents view instead of the legacy app-settings refresh shell.",
+        "rationale": "Preserve the agents UI capability in CoreBlow's current web app architecture rather than reintroducing the deprecated OpenClaw settings-host pattern.",
+        "evidence": [
+          "ui/src/ui/app.ts",
+          "ui/src/ui/app-render.ts",
+          "ui/src/ui/views/agents.ts"
+        ],
+        "gate": "pnpm --dir ui test -- tests/navigation.test.ts"
+      },
+      "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
       "gates": [
-        "pnpm test -- src/ui-app-settings.agents-files-refresh.test.ts",
+        "pnpm --dir ui test -- tests/navigation.test.ts",
         "pnpm check"
       ]
     },
