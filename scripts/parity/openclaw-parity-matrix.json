@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6393,
+    "cb_source_files": 6395,
     "oc_source_files": 8443,
-    "source_parity_both": 4618,
+    "source_parity_both": 4620,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3825,
-    "test_files_cb": 4090,
+    "source_missing_from_cb": 3823,
+    "test_files_cb": 4091,
     "test_files_oc": 5246,
-    "tests_both_covered": 2730,
-    "tests_gap_oc_has_cb_missing": 2271,
+    "tests_both_covered": 2731,
+    "tests_gap_oc_has_cb_missing": 2270,
     "tests_cb_exclusive": 1313,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -6300,35 +6300,6 @@
       ]
     },
     {
-      "domain": "extensions/alibaba",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "extensions/alibaba plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 2,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 1
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/alibaba/index.ts",
-          "extensions/alibaba/video-generation-provider.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/alibaba/video-generation-provider.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/alibaba",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/deepgram",
       "status": "partial",
       "priority": "P3",
@@ -6637,6 +6608,30 @@
       "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
       "gates": [
         "pnpm --dir ui test -- tests/navigation.test.ts",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/alibaba",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/alibaba plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 2,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 1,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/alibaba",
         "pnpm check"
       ]
     },
