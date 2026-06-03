@@ -40,6 +40,14 @@ function resolveGlm5ForwardCompatModel(
     return undefined;
   }
 
+  const existing = ctx.modelRegistry.find(
+    PROVIDER_ID,
+    trimmedModelId,
+  ) as ProviderRuntimeModel | null;
+  if (existing) {
+    return existing;
+  }
+
   const template = ctx.modelRegistry.find(
     PROVIDER_ID,
     GLM5_TEMPLATE_MODEL_ID,

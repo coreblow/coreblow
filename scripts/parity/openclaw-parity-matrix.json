@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6406,
+    "cb_source_files": 6408,
     "oc_source_files": 8443,
-    "source_parity_both": 4631,
+    "source_parity_both": 4633,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3812,
-    "test_files_cb": 4098,
+    "source_missing_from_cb": 3810,
+    "test_files_cb": 4100,
     "test_files_oc": 5246,
-    "tests_both_covered": 2738,
-    "tests_gap_oc_has_cb_missing": 2263,
+    "tests_both_covered": 2740,
+    "tests_gap_oc_has_cb_missing": 2261,
     "tests_cb_exclusive": 1313,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -6085,36 +6085,6 @@
       ]
     },
     {
-      "domain": "extensions/zai",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/zai plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 7,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 2,
-        "sharedTestPaths": 2,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 2
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/zai/config-api.ts",
-          "extensions/zai/test-api.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/zai/detect.test.ts",
-          "extensions/zai/index.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/zai",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/node-host",
       "status": "partial",
       "priority": "P3",
@@ -8109,6 +8079,30 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/vllm",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/zai",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/zai plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 9,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 4,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/zai",
         "pnpm check"
       ]
     },
