@@ -2,6 +2,14 @@ import { defineSingleProviderPluginEntry } from "coreblow/plugin-sdk/provider-en
 import { PROVIDER_LABELS } from "coreblow/plugin-sdk/provider-usage";
 import { applyXiaomiConfig, XIAOMI_DEFAULT_MODEL_REF } from "./onboard.js";
 import { buildXiaomiProvider } from "./provider-catalog.js";
+import { buildXiaomiSpeechProvider } from "./speech-provider.js";
+import { createMiMoThinkingWrapper } from "./stream.js";
+import {
+  applyXiaomiModelCompat,
+  resolveMiMoDefaultThinkingLevel,
+  supportsMiMoXHighThinking,
+  isMiMoReasoningModelId,
+} from "./api.js";
 
 const PROVIDER_ID = "xiaomi";
 
@@ -28,6 +36,11 @@ export default defineSingleProviderPluginEntry({
     catalog: {
       buildProvider: buildXiaomiProvider,
     },
+    normalizeResolvedModel: ({ model }) => applyXiaomiModelCompat(model),
+    wrapStreamFn: (ctx) => createMiMoThinkingWrapper(ctx.streamFn, ctx.thinkingLevel),
+    supportsXHighThinking: ({ modelId }) => supportsMiMoXHighThinking(modelId),
+    resolveDefaultThinkingLevel: ({ modelId }) => resolveMiMoDefaultThinkingLevel(modelId),
+    isModernModelRef: ({ modelId }) => isMiMoReasoningModelId(modelId),
     resolveUsageAuth: async (ctx) => {
       const apiKey = ctx.resolveApiKeyFromConfigAndStore({
         envDirect: [ctx.env.XIAOMI_API_KEY],
@@ -39,5 +52,8 @@ export default defineSingleProviderPluginEntry({
       displayName: PROVIDER_LABELS.xiaomi,
       windows: [],
     }),
+  },
+  register(api) {
+    api.registerSpeechProvider(buildXiaomiSpeechProvider());
   },
 });

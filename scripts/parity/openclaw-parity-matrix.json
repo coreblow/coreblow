@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6411,
+    "cb_source_files": 6414,
     "oc_source_files": 8443,
-    "source_parity_both": 4636,
+    "source_parity_both": 4639,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3807,
-    "test_files_cb": 4104,
+    "source_missing_from_cb": 3804,
+    "test_files_cb": 4106,
     "test_files_oc": 5246,
-    "tests_both_covered": 2744,
-    "tests_gap_oc_has_cb_missing": 2257,
+    "tests_both_covered": 2746,
+    "tests_gap_oc_has_cb_missing": 2255,
     "tests_cb_exclusive": 1313,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -5799,37 +5799,6 @@
       ]
     },
     {
-      "domain": "extensions/xiaomi",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/xiaomi plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 4,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 3,
-        "sharedTestPaths": 1,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 2
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/xiaomi/speech-provider.ts",
-          "extensions/xiaomi/stream.ts",
-          "extensions/xiaomi/thinking.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/xiaomi/index.test.ts",
-          "extensions/xiaomi/speech-provider.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/xiaomi",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/docs",
       "status": "intentionally_different",
       "priority": "P3",
@@ -8068,6 +8037,30 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/vllm",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/xiaomi",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/xiaomi plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 7,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 3,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/xiaomi",
         "pnpm check"
       ]
     },
