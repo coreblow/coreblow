@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6384,
+    "cb_source_files": 6386,
     "oc_source_files": 8443,
-    "source_parity_both": 4609,
+    "source_parity_both": 4611,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3834,
-    "test_files_cb": 4080,
+    "source_missing_from_cb": 3832,
+    "test_files_cb": 4081,
     "test_files_oc": 5246,
-    "tests_both_covered": 2720,
-    "tests_gap_oc_has_cb_missing": 2281,
+    "tests_both_covered": 2721,
+    "tests_gap_oc_has_cb_missing": 2280,
     "tests_cb_exclusive": 1313,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -6577,35 +6577,6 @@
       ]
     },
     {
-      "domain": "extensions/vllm",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/vllm plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 4,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 2,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 1,
-        "openClawTestGaps": 1
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/vllm/register.runtime.ts",
-          "extensions/vllm/stream.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/vllm/stream.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/vllm",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/web-readability",
       "status": "missing",
       "priority": "P3",
@@ -8170,6 +8141,30 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/venice",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/vllm",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/vllm plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 6,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 1,
+        "coreBlowOnlyTestPaths": 1,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/vllm",
         "pnpm check"
       ]
     },
