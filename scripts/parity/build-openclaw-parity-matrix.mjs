@@ -219,6 +219,24 @@ const intentionalDomainDifferences = new Map([
       gate: "pnpm test -- extensions/memory-core",
     },
   ],
+  [
+    "extensions/web-readability",
+    {
+      status: "intentionally_different",
+      referenceBehavior:
+        "OpenClaw ships Readability extraction as a standalone web-readability extension with a narrow extractor artifact.",
+      coreBlowDecision:
+        "CoreBlow keeps the same readability extraction behavior inside the built-in web-fetch runtime instead of exposing a separate plugin package.",
+      rationale:
+        "Preserve behavior parity while keeping Readability on the hot web-fetch path and avoiding a duplicate plugin-only abstraction.",
+      evidence: [
+        "src/agents/tools/web-fetch-utils.ts",
+        "src/agents/tools/web-fetch.ts",
+        "src/agents/tools/web-tools.readability.test.ts",
+      ],
+      gate: "pnpm test -- src/agents/tools/web-tools.readability.test.ts",
+    },
+  ],
 ]);
 
 function implementationSurface(domain) {

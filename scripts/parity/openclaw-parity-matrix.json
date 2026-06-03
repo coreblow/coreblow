@@ -6491,7 +6491,7 @@
     },
     {
       "domain": "extensions/web-readability",
-      "status": "missing",
+      "status": "intentionally_different",
       "priority": "P3",
       "implementationSurface": "extensions/web-readability plus plugin-sdk channel/runtime surfaces",
       "counts": {
@@ -6512,9 +6512,21 @@
         ],
         "coreBlowOnlySourcePaths": []
       },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "intentionalDomainDifference": {
+        "status": "intentionally_different",
+        "referenceBehavior": "OpenClaw ships Readability extraction as a standalone web-readability extension with a narrow extractor artifact.",
+        "coreBlowDecision": "CoreBlow keeps the same readability extraction behavior inside the built-in web-fetch runtime instead of exposing a separate plugin package.",
+        "rationale": "Preserve behavior parity while keeping Readability on the hot web-fetch path and avoiding a duplicate plugin-only abstraction.",
+        "evidence": [
+          "src/agents/tools/web-fetch-utils.ts",
+          "src/agents/tools/web-fetch.ts",
+          "src/agents/tools/web-tools.readability.test.ts"
+        ],
+        "gate": "pnpm test -- src/agents/tools/web-tools.readability.test.ts"
+      },
+      "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
       "gates": [
-        "pnpm test -- extensions/web-readability",
+        "pnpm test -- src/agents/tools/web-tools.readability.test.ts",
         "pnpm check"
       ]
     },
