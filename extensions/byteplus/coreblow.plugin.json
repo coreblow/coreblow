@@ -1,10 +1,14 @@
 {
   "id": "byteplus",
   "enabledByDefault": true,
+  "providerCatalogEntry": "./provider-discovery.ts",
   "providers": [
     "byteplus",
     "byteplus-plan"
   ],
+  "providerAuthAliases": {
+    "byteplus-plan": "byteplus"
+  },
   "providerAuthEnvVars": {
     "byteplus": [
       "BYTEPLUS_API_KEY"
@@ -25,6 +29,11 @@
       "cliDescription": "BytePlus API key"
     }
   ],
+  "contracts": {
+    "videoGenerationProviders": [
+      "byteplus"
+    ]
+  },
   "configSchema": {
     "type": "object",
     "additionalProperties": false,

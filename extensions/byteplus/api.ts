@@ -6,3 +6,4 @@ export {
   BYTEPLUS_CODING_MODEL_CATALOG,
   BYTEPLUS_MODEL_CATALOG,
 } from "./models.js";
+export { buildBytePlusVideoGenerationProvider } from "./video-generation-provider.js";

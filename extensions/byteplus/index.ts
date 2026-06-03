@@ -1,10 +1,26 @@
 import { definePluginEntry } from "coreblow/plugin-sdk/plugin-entry";
 import { createProviderApiKeyAuthMethod } from "coreblow/plugin-sdk/provider-auth-api-key";
 import { ensureModelAllowlistEntry } from "coreblow/plugin-sdk/provider-onboard";
+import { BYTEPLUS_CODING_MODEL_CATALOG, BYTEPLUS_MODEL_CATALOG } from "./models.js";
 import { buildBytePlusCodingProvider, buildBytePlusProvider } from "./provider-catalog.js";
+export { buildBytePlusVideoGenerationProvider } from "./video-generation-provider.js";
 
 const PROVIDER_ID = "byteplus";
 const BYTEPLUS_DEFAULT_MODEL_REF = "byteplus-plan/ark-code-latest";
+
+function buildStaticCatalogEntries(
+  providerId: string,
+  catalog: typeof BYTEPLUS_MODEL_CATALOG | typeof BYTEPLUS_CODING_MODEL_CATALOG,
+) {
+  return catalog.map((entry) => ({
+    provider: providerId,
+    id: entry.id,
+    name: entry.name,
+    reasoning: entry.reasoning,
+    input: [...entry.input],
+    contextWindow: entry.contextWindow,
+  }));
+}
 
 export default definePluginEntry({
   id: PROVIDER_ID,
@@ -57,6 +73,10 @@ export default definePluginEntry({
           };
         },
       },
+      augmentModelCatalog: () => [
+        ...buildStaticCatalogEntries("byteplus", BYTEPLUS_MODEL_CATALOG),
+        ...buildStaticCatalogEntries("byteplus-plan", BYTEPLUS_CODING_MODEL_CATALOG),
+      ],
     });
   },
 });
