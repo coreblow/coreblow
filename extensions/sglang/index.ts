@@ -27,6 +27,9 @@ export default definePluginEntry({
       label: "SGLang",
       docsPath: "/providers/sglang",
       envVars: ["SGLANG_API_KEY"],
+      capabilities: {
+        dropThinkingBlockModelHints: ["gemma-4"],
+      },
       auth: [
         {
           id: "custom",
