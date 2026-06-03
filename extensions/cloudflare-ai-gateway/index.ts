@@ -2,43 +2,23 @@ import { definePluginEntry } from "coreblow/plugin-sdk/plugin-entry";
 import {
   applyAuthProfileConfig,
   buildApiKeyCredential,
-  coerceSecretRef,
   ensureApiKeyFromOptionEnvOrPrompt,
   ensureAuthProfileStore,
   listProfilesForProvider,
   normalizeApiKeyInput,
   normalizeOptionalSecretInput,
-  resolveNonEnvSecretRefApiKeyMarker,
   type SecretInput,
   upsertAuthProfile,
   validateApiKeyInput,
 } from "coreblow/plugin-sdk/provider-auth";
-import {
-  buildCloudflareAiGatewayModelDefinition,
-  CLOUDFLARE_AI_GATEWAY_DEFAULT_MODEL_REF,
-  resolveCloudflareAiGatewayBaseUrl,
-} from "./models.js";
+import { CLOUDFLARE_AI_GATEWAY_DEFAULT_MODEL_REF } from "./models.js";
+import { buildCloudflareAiGatewayCatalogProvider } from "./catalog-provider.js";
 import { applyCloudflareAiGatewayConfig, buildCloudflareAiGatewayConfigPatch } from "./onboard.js";
+import { wrapCloudflareAiGatewayProviderStream } from "./stream-wrappers.js";
 
 const PROVIDER_ID = "cloudflare-ai-gateway";
 const PROVIDER_ENV_VAR = "CLOUDFLARE_AI_GATEWAY_API_KEY";
 const PROFILE_ID = "cloudflare-ai-gateway:default";
-
-function resolveApiKeyFromCredential(
-  cred: ReturnType<typeof ensureAuthProfileStore>["profiles"][string] | undefined,
-): string | undefined {
-  if (!cred || cred.type !== "api_key") {
-    return undefined;
-  }
-
-  const keyRef = coerceSecretRef(cred.keyRef);
-  if (keyRef && keyRef.id.trim()) {
-    return keyRef.source === "env"
-      ? keyRef.id.trim()
-      : resolveNonEnvSecretRefApiKeyMarker(keyRef.source);
-  }
-  return cred.key?.trim() || undefined;
-}
 
 function resolveMetadataFromCredential(
   cred: ReturnType<typeof ensureAuthProfileStore>["profiles"][string] | undefined,
@@ -217,35 +197,21 @@ export default definePluginEntry({
           });
           const envManagedApiKey = ctx.env[PROVIDER_ENV_VAR]?.trim() ? PROVIDER_ENV_VAR : undefined;
           for (const profileId of listProfilesForProvider(authStore, PROVIDER_ID)) {
-            const cred = authStore.profiles[profileId];
-            if (!cred || cred.type !== "api_key") {
-              continue;
-            }
-            const apiKey = envManagedApiKey ?? resolveApiKeyFromCredential(cred);
-            if (!apiKey) {
-              continue;
-            }
-            const accountId = cred.metadata?.accountId?.trim();
-            const gatewayId = cred.metadata?.gatewayId?.trim();
-            if (!accountId || !gatewayId) {
-              continue;
-            }
-            const baseUrl = resolveCloudflareAiGatewayBaseUrl({ accountId, gatewayId });
-            if (!baseUrl) {
+            const provider = buildCloudflareAiGatewayCatalogProvider({
+              credential: authStore.profiles[profileId],
+              envApiKey: envManagedApiKey,
+            });
+            if (!provider) {
               continue;
             }
             return {
-              provider: {
-                baseUrl,
-                api: "anthropic-messages",
-                apiKey,
-                models: [buildCloudflareAiGatewayModelDefinition()],
-              },
+              provider,
             };
           }
           return null;
         },
       },
+      wrapStreamFn: wrapCloudflareAiGatewayProviderStream,
     });
   },
 });

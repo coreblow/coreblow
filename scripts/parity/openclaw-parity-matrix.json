@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6408,
+    "cb_source_files": 6410,
     "oc_source_files": 8443,
-    "source_parity_both": 4633,
+    "source_parity_both": 4635,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3810,
-    "test_files_cb": 4100,
+    "source_missing_from_cb": 3808,
+    "test_files_cb": 4102,
     "test_files_oc": 5246,
-    "tests_both_covered": 2740,
-    "tests_gap_oc_has_cb_missing": 2261,
+    "tests_both_covered": 2742,
+    "tests_gap_oc_has_cb_missing": 2259,
     "tests_cb_exclusive": 1313,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -5942,36 +5942,6 @@
       ]
     },
     {
-      "domain": "extensions/cloudflare-ai-gateway",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/cloudflare-ai-gateway plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 4,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 2,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 1,
-        "openClawTestGaps": 2
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/cloudflare-ai-gateway/catalog-provider.ts",
-          "extensions/cloudflare-ai-gateway/stream-wrappers.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/cloudflare-ai-gateway/index.test.ts",
-          "extensions/cloudflare-ai-gateway/stream-wrappers.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/cloudflare-ai-gateway",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/device-pair",
       "status": "partial",
       "priority": "P3",
@@ -6633,6 +6603,30 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/chutes",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/cloudflare-ai-gateway",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/cloudflare-ai-gateway plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 6,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 2,
+        "coreBlowOnlyTestPaths": 1,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/cloudflare-ai-gateway",
         "pnpm check"
       ]
     },
