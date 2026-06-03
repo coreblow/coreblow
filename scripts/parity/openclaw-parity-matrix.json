@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6392,
+    "cb_source_files": 6393,
     "oc_source_files": 8443,
-    "source_parity_both": 4617,
+    "source_parity_both": 4618,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3826,
-    "test_files_cb": 4087,
+    "source_missing_from_cb": 3825,
+    "test_files_cb": 4089,
     "test_files_oc": 5246,
-    "tests_both_covered": 2727,
-    "tests_gap_oc_has_cb_missing": 2274,
+    "tests_both_covered": 2729,
+    "tests_gap_oc_has_cb_missing": 2272,
     "tests_cb_exclusive": 1313,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -6531,38 +6531,6 @@
       ]
     },
     {
-      "domain": "src/markdown",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "src/markdown",
-      "counts": {
-        "sharedSourcePaths": 6,
-        "coreBlowOnlySourcePaths": 2,
-        "openClawOnlySourcePaths": 1,
-        "sharedTestPaths": 7,
-        "coreBlowOnlyTestPaths": 2,
-        "openClawTestGaps": 2
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/markdown/render-aware-chunking.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/markdown/ir.table-block.test.ts",
-          "src/markdown/render-aware-chunking.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/markdown/parser.ts",
-          "src/markdown/whatsapp.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/markdown",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/web-fetch",
       "status": "missing",
       "priority": "P3",
@@ -9309,6 +9277,33 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/logging.ts",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/markdown",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/markdown",
+      "counts": {
+        "sharedSourcePaths": 7,
+        "coreBlowOnlySourcePaths": 2,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 9,
+        "coreBlowOnlyTestPaths": 2,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "src/markdown/parser.ts",
+          "src/markdown/whatsapp.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/markdown",
         "pnpm check"
       ]
     },
