@@ -280,6 +280,27 @@ const intentionalDomainDifferences = new Map([
     },
   ],
   [
+    "src/scripts",
+    {
+      status: "intentionally_different",
+      referenceBehavior:
+        "OpenClaw keeps a broader repo-local src/scripts test family for Control UI i18n helpers, docs-link audits, Codex CI prep, plugin-version sync, live-media planning, and test-project routing helpers.",
+      coreBlowDecision:
+        "CoreBlow keeps a smaller src/scripts test surface for repo-owned script entrypoints and moves adjacent responsibilities into the root scripts directory, UI and i18n runtime tests, or the separate docs workspace.",
+      rationale:
+        "Preserve script coverage for active CoreBlow tooling without cloning OpenClaw's repo-local helper layout where those responsibilities now live in different modules or workspaces.",
+      evidence: [
+        "src/scripts/ci-changed-scope.test.ts",
+        "src/scripts/canvas-a2ui-copy.test.ts",
+        "scripts/ci-changed-scope.mjs",
+        "scripts/check-i18n.mjs",
+        "../coreblow-split/docs/scripts/docs-link-audit.mjs",
+      ],
+      gate:
+        "pnpm test -- src/scripts && pnpm --dir /Users/febrinanda/coreblow-split/docs check",
+    },
+  ],
+  [
     "src/ui-app-settings.agents-files-refresh.test.ts",
     {
       status: "intentionally_different",
