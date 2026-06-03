@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6405,
+    "cb_source_files": 6406,
     "oc_source_files": 8443,
-    "source_parity_both": 4630,
+    "source_parity_both": 4631,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3813,
-    "test_files_cb": 4096,
+    "source_missing_from_cb": 3812,
+    "test_files_cb": 4098,
     "test_files_oc": 5246,
-    "tests_both_covered": 2736,
-    "tests_gap_oc_has_cb_missing": 2265,
+    "tests_both_covered": 2738,
+    "tests_gap_oc_has_cb_missing": 2263,
     "tests_cb_exclusive": 1313,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -6355,35 +6355,6 @@
       ]
     },
     {
-      "domain": "extensions/vercel-ai-gateway",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/vercel-ai-gateway plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 5,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 1,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 1,
-        "openClawTestGaps": 2
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/vercel-ai-gateway/thinking.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/vercel-ai-gateway/provider-catalog.test.ts",
-          "extensions/vercel-ai-gateway/thinking.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/vercel-ai-gateway",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/web-readability",
       "status": "intentionally_different",
       "priority": "P3",
@@ -8090,6 +8061,30 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/venice",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/vercel-ai-gateway",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/vercel-ai-gateway plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 6,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 2,
+        "coreBlowOnlyTestPaths": 1,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/vercel-ai-gateway",
         "pnpm check"
       ]
     },

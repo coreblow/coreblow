@@ -8,5 +8,12 @@ export {
   VERCEL_AI_GATEWAY_DEFAULT_MODEL_ID,
   VERCEL_AI_GATEWAY_PROVIDER_ID,
 } from "./models.js";
-export { buildVercelAiGatewayProvider } from "./provider-catalog.js";
+export {
+  buildStaticVercelAiGatewayProvider,
+  buildVercelAiGatewayProvider,
+} from "./provider-catalog.js";
 export { applyVercelAiGatewayConfig, VERCEL_AI_GATEWAY_DEFAULT_MODEL_REF } from "./onboard.js";
+export {
+  resolveVercelAiGatewayDefaultThinkingLevel,
+  resolveVercelAiGatewaySupportsXHighThinking,
+} from "./thinking.js";
