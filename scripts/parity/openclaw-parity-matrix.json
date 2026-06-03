@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6395,
+    "cb_source_files": 6397,
     "oc_source_files": 8443,
-    "source_parity_both": 4620,
+    "source_parity_both": 4622,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3823,
-    "test_files_cb": 4091,
+    "source_missing_from_cb": 3821,
+    "test_files_cb": 4092,
     "test_files_oc": 5246,
-    "tests_both_covered": 2731,
-    "tests_gap_oc_has_cb_missing": 2270,
+    "tests_both_covered": 2732,
+    "tests_gap_oc_has_cb_missing": 2269,
     "tests_cb_exclusive": 1313,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -6431,35 +6431,6 @@
       ]
     },
     {
-      "domain": "extensions/runway",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "extensions/runway plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 2,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 1
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/runway/index.ts",
-          "extensions/runway/video-generation-provider.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/runway/video-generation-provider.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/runway",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/vercel-ai-gateway",
       "status": "partial",
       "priority": "P3",
@@ -7685,6 +7656,30 @@
       "notes": "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture.",
       "gates": [
         "pnpm test -- extensions/qwen-portal-auth",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/runway",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/runway plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 2,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 1,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/runway",
         "pnpm check"
       ]
     },
