@@ -260,6 +260,26 @@ const intentionalDomainDifferences = new Map([
     },
   ],
   [
+    "src/docs",
+    {
+      status: "intentionally_different",
+      referenceBehavior:
+        "OpenClaw keeps docs validation tests for channel examples, plugin snippets, install placeholders, and slash-command coverage inside the main repo under src/docs.",
+      coreBlowDecision:
+        "CoreBlow keeps the product docs surface in the dedicated docs workspace and validates it there, while the main repo only carries runtime docs links and docsPath metadata.",
+      rationale:
+        "Preserve docs behavior and validation in the active docs stack without reintroducing a duplicate src/docs test family into the main CoreBlow repo.",
+      evidence: [
+        "src/docs",
+        "../coreblow-split/docs/package.json",
+        "../coreblow-split/docs/scripts/build-docs-list.mjs",
+        "../coreblow-split/docs/scripts/docs-link-audit.mjs",
+        "../coreblow-split/docs/src/index.js",
+      ],
+      gate: "pnpm --dir /Users/febrinanda/coreblow-split/docs check",
+    },
+  ],
+  [
     "src/ui-app-settings.agents-files-refresh.test.ts",
     {
       status: "intentionally_different",
