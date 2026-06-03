@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6390,
+    "cb_source_files": 6392,
     "oc_source_files": 8443,
-    "source_parity_both": 4615,
+    "source_parity_both": 4617,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3828,
-    "test_files_cb": 4086,
+    "source_missing_from_cb": 3826,
+    "test_files_cb": 4087,
     "test_files_oc": 5246,
-    "tests_both_covered": 2726,
-    "tests_gap_oc_has_cb_missing": 2275,
+    "tests_both_covered": 2727,
+    "tests_gap_oc_has_cb_missing": 2274,
     "tests_cb_exclusive": 1313,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -6563,37 +6563,6 @@
       ]
     },
     {
-      "domain": "src/test-helpers",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "src/test-helpers",
-      "counts": {
-        "sharedSourcePaths": 6,
-        "coreBlowOnlySourcePaths": 1,
-        "openClawOnlySourcePaths": 2,
-        "sharedTestPaths": 1,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 1
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/test-helpers/resolve-target-error-cases.ts",
-          "src/test-helpers/windows-cmd-shim.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/test-helpers/temp-dir.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/test-helpers/whatsapp-outbound.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/test-helpers",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/web-fetch",
       "status": "missing",
       "priority": "P3",
@@ -9745,6 +9714,32 @@
       "notes": "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture.",
       "gates": [
         "pnpm test -- src/stubs",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/test-helpers",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/test-helpers",
+      "counts": {
+        "sharedSourcePaths": 8,
+        "coreBlowOnlySourcePaths": 1,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 2,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "src/test-helpers/whatsapp-outbound.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/test-helpers",
         "pnpm check"
       ]
     },
