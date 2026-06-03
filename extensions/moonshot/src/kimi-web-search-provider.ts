@@ -24,9 +24,10 @@ import {
   wrapWebContent,
   writeCachedSearchPayload,
 } from "coreblow/plugin-sdk/provider-web-search";
+import { MOONSHOT_BASE_URL, MOONSHOT_DEFAULT_MODEL_ID } from "../provider-catalog.js";
 
-const DEFAULT_KIMI_BASE_URL = "https://api.moonshot.ai/v1";
-const DEFAULT_KIMI_MODEL = "moonshot-v1-128k";
+const DEFAULT_KIMI_BASE_URL = MOONSHOT_BASE_URL;
+const DEFAULT_KIMI_MODEL = MOONSHOT_DEFAULT_MODEL_ID;
 const KIMI_WEB_SEARCH_TOOL = {
   type: "builtin_function",
   function: { name: "$web_search" },
@@ -351,4 +352,6 @@ export const __testing = {
   resolveKimiModel,
   resolveKimiBaseUrl,
   extractKimiCitations,
+  DEFAULT_KIMI_BASE_URL,
+  DEFAULT_KIMI_MODEL,
 } as const;
