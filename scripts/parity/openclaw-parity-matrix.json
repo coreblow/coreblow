@@ -6212,7 +6212,7 @@
     },
     {
       "domain": "extensions/active-memory",
-      "status": "missing",
+      "status": "intentionally_different",
       "priority": "P3",
       "implementationSurface": "extensions/active-memory plus plugin-sdk channel/runtime surfaces",
       "counts": {
@@ -6233,9 +6233,22 @@
         ],
         "coreBlowOnlySourcePaths": []
       },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "intentionalDomainDifference": {
+        "status": "intentionally_different",
+        "referenceBehavior": "OpenClaw ships Active Memory recall as a standalone extension that owns bounded recall config, memory tool guidance, and active memory runtime wiring.",
+        "coreBlowDecision": "CoreBlow folds active memory behavior into the memory-core extension and the shared memory runtime slot instead of exposing a separate active-memory plugin package.",
+        "rationale": "Keep the active memory backend, memory tools, prompt section, and runtime registration consolidated in CoreBlow's memory architecture rather than splitting a second memory plugin surface.",
+        "evidence": [
+          "extensions/memory-core/index.ts",
+          "extensions/memory-core/index.test.ts",
+          "src/plugins/memory-state.ts",
+          "src/plugins/memory-runtime.ts"
+        ],
+        "gate": "pnpm test -- extensions/memory-core"
+      },
+      "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
       "gates": [
-        "pnpm test -- extensions/active-memory",
+        "pnpm test -- extensions/memory-core",
         "pnpm check"
       ]
     },

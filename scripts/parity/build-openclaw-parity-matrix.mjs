@@ -220,6 +220,25 @@ const intentionalDomainDifferences = new Map([
     },
   ],
   [
+    "extensions/active-memory",
+    {
+      status: "intentionally_different",
+      referenceBehavior:
+        "OpenClaw ships Active Memory recall as a standalone extension that owns bounded recall config, memory tool guidance, and active memory runtime wiring.",
+      coreBlowDecision:
+        "CoreBlow folds active memory behavior into the memory-core extension and the shared memory runtime slot instead of exposing a separate active-memory plugin package.",
+      rationale:
+        "Keep the active memory backend, memory tools, prompt section, and runtime registration consolidated in CoreBlow's memory architecture rather than splitting a second memory plugin surface.",
+      evidence: [
+        "extensions/memory-core/index.ts",
+        "extensions/memory-core/index.test.ts",
+        "src/plugins/memory-state.ts",
+        "src/plugins/memory-runtime.ts",
+      ],
+      gate: "pnpm test -- extensions/memory-core",
+    },
+  ],
+  [
     "extensions/web-readability",
     {
       status: "intentionally_different",
