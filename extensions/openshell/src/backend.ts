@@ -4,11 +4,9 @@ import path from "node:path";
 import type {
   CreateSandboxBackendParams,
   CoreBlowConfig,
-  RemoteShellSandboxHandle,
   SandboxBackendCommandParams,
   SandboxBackendCommandResult,
   SandboxBackendFactory,
-  SandboxBackendHandle,
   SandboxBackendManager,
   SshSandboxSession,
 } from "coreblow/plugin-sdk/sandbox";
@@ -25,6 +23,7 @@ import {
   runOpenShellCli,
   type OpenShellExecContext,
 } from "./cli.js";
+import type { OpenShellSandboxBackend } from "./backend.types.js";
 import { resolveOpenShellPluginConfig, type ResolvedOpenShellPluginConfig } from "./config.js";
 import { createOpenShellFsBridge } from "./fs-bridge.js";
 import { replaceDirectoryContents } from "./mirror.js";
@@ -37,11 +36,39 @@ type PendingExec = {
   sshSession: SshSandboxSession;
 };
 
-export type OpenShellSandboxBackend = SandboxBackendHandle &
-  RemoteShellSandboxHandle & {
-    mode: "mirror" | "remote";
-    syncLocalPathToRemote(localPath: string, remotePath: string): Promise<void>;
-  };
+const OPEN_SHELL_BLOCKED_ENV_VAR_PATTERNS: ReadonlyArray<RegExp> = [
+  /^ANTHROPIC_API_KEY$/i,
+  /^OPENAI_API_KEY$/i,
+  /^GEMINI_API_KEY$/i,
+  /^OPENROUTER_API_KEY$/i,
+  /^MINIMAX_API_KEY$/i,
+  /^ELEVENLABS_API_KEY$/i,
+  /^SYNTHETIC_API_KEY$/i,
+  /^TELEGRAM_BOT_TOKEN$/i,
+  /^DISCORD_BOT_TOKEN$/i,
+  /^SLACK_(BOT|APP)_TOKEN$/i,
+  /^LINE_CHANNEL_SECRET$/i,
+  /^LINE_CHANNEL_ACCESS_TOKEN$/i,
+  /^COREBLOW_GATEWAY_(TOKEN|PASSWORD)$/i,
+  /^AWS_(SECRET_ACCESS_KEY|SECRET_KEY|SESSION_TOKEN)$/i,
+  /^(GH|GITHUB)_TOKEN$/i,
+  /^(AZURE|AZURE_OPENAI|COHERE|AI_GATEWAY|OPENROUTER)_API_KEY$/i,
+  /_?(API_KEY|TOKEN|PASSWORD|PRIVATE_KEY|SECRET)$/i,
+];
+
+export function buildOpenShellSshExecEnv(): NodeJS.ProcessEnv {
+  const allowed: NodeJS.ProcessEnv = {};
+  for (const [key, value] of Object.entries(process.env)) {
+    if (typeof value !== "string") {
+      continue;
+    }
+    if (OPEN_SHELL_BLOCKED_ENV_VAR_PATTERNS.some((pattern) => pattern.test(key))) {
+      continue;
+    }
+    allowed[key] = value;
+  }
+  return allowed;
+}
 
 export function createOpenShellSandboxBackendFactory(
   params: CreateOpenShellSandboxBackendFactoryParams,
@@ -119,7 +146,7 @@ async function createOpenShellSandboxBackend(params: {
       const pending = await impl.prepareExec({ command, workdir, env, usePty });
       return {
         argv: pending.argv,
-        env: process.env,
+        env: buildOpenShellSshExecEnv(),
         stdinMode: "pipe-open",
         finalizeToken: pending.token,
       };
@@ -176,7 +203,7 @@ class OpenShellSandboxBackendImpl {
         const pending = await self.prepareExec({ command, workdir, env, usePty });
         return {
           argv: pending.argv,
-          env: process.env,
+          env: buildOpenShellSshExecEnv(),
           stdinMode: "pipe-open",
           finalizeToken: pending.token,
         };

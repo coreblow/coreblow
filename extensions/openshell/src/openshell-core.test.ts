@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSandboxTestContext } from "../../../src/agents/sandbox/test-fixtures.js";
-import type { OpenShellSandboxBackend } from "./backend.js";
+import type { OpenShellSandboxBackend } from "./backend.types.js";
 import {
   buildExecRemoteCommand,
   buildOpenShellBaseArgv,
@@ -47,7 +47,37 @@ describe("openshell plugin config", () => {
       resolveOpenShellPluginConfig({
         remoteWorkspaceDir: "sandbox",
       }),
-    ).toThrow("OpenShell remote path must be absolute");
+    ).toThrow("OpenShell remoteWorkspaceDir must be absolute");
+  });
+
+  it("rejects remote paths outside managed sandbox roots", () => {
+    expect(() =>
+      resolveOpenShellPluginConfig({
+        remoteWorkspaceDir: "/tmp/victim",
+      }),
+    ).toThrow("OpenShell remoteWorkspaceDir must stay under /sandbox or /agent");
+  });
+
+  it("normalizes managed sandbox subpaths", () => {
+    expect(
+      resolveOpenShellPluginConfig({
+        remoteWorkspaceDir: "/sandbox/../sandbox/project",
+        remoteAgentWorkspaceDir: "/agent/./session",
+      }),
+    ).toEqual({
+      mode: "mirror",
+      command: "openshell",
+      gateway: undefined,
+      gatewayEndpoint: undefined,
+      from: "coreblow",
+      policy: undefined,
+      providers: [],
+      gpu: false,
+      autoProviders: true,
+      remoteWorkspaceDir: "/sandbox/project",
+      remoteAgentWorkspaceDir: "/agent/session",
+      timeoutMs: 120_000,
+    });
   });
 
   it("rejects unknown mode", () => {
@@ -234,6 +264,34 @@ describe("openshell backend manager", () => {
       }),
       args: ["sandbox", "delete", "coreblow-session-5678"],
     });
+  });
+});
+
+describe("openshell backend env", () => {
+  const originalEnv = { ...process.env };
+
+  afterEach(() => {
+    for (const key of Object.keys(process.env)) {
+      if (!(key in originalEnv)) {
+        delete process.env[key];
+      }
+    }
+    Object.assign(process.env, originalEnv);
+  });
+
+  it("filters blocked secrets from ssh exec env", async () => {
+    process.env.OPENAI_API_KEY = "sk-test-secret";
+    process.env.ANTHROPIC_API_KEY = "sk-ant-test-secret";
+    process.env.LANG = "en_US.UTF-8";
+    process.env.NODE_ENV = "test";
+
+    const { buildOpenShellSshExecEnv } = await import("./backend.js");
+    const env = buildOpenShellSshExecEnv();
+
+    expect(env.OPENAI_API_KEY).toBeUndefined();
+    expect(env.ANTHROPIC_API_KEY).toBeUndefined();
+    expect(env.LANG).toBe("en_US.UTF-8");
+    expect(env.NODE_ENV).toBe("test");
   });
 });
 

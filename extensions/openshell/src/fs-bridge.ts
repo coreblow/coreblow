@@ -7,7 +7,7 @@ import type {
   SandboxResolvedPath,
 } from "coreblow/plugin-sdk/sandbox";
 import { createWritableRenameTargetResolver } from "coreblow/plugin-sdk/sandbox";
-import type { OpenShellSandboxBackend } from "./backend.js";
+import type { OpenShellSandboxBackend } from "./backend.types.js";
 import { movePathWithCopyFallback } from "./mirror.js";
 
 type ResolvedMountPath = SandboxResolvedPath & {
