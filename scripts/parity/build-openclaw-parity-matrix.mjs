@@ -238,6 +238,28 @@ const intentionalDomainDifferences = new Map([
     },
   ],
   [
+    "src/web-fetch",
+    {
+      status: "intentionally_different",
+      referenceBehavior:
+        "OpenClaw keeps a dedicated src/web-fetch runtime for content extractors and plugin-owned web-fetch provider resolution.",
+      coreBlowDecision:
+        "CoreBlow keeps the same behavior split across the built-in web-fetch tool runtime, runtime web-tool metadata resolution, and the Firecrawl web-fetch contract surface instead of introducing a separate src/web-fetch module family.",
+      rationale:
+        "Preserve fetch behavior and Firecrawl credential parity while keeping provider-specific runtime wiring inside CoreBlow's existing tool, secrets, and extension boundaries.",
+      evidence: [
+        "src/agents/tools/web-fetch.ts",
+        "src/agents/tools/web-fetch-utils.ts",
+        "src/secrets/runtime-web-tools.ts",
+        "src/secrets/runtime-web-tools.test.ts",
+        "extensions/firecrawl/src/firecrawl-fetch-provider.ts",
+        "extensions/firecrawl/web-search-provider.test.ts",
+      ],
+      gate:
+        "pnpm test -- src/agents/tools/web-tools.fetch.test.ts src/secrets/runtime-web-tools.test.ts extensions/firecrawl/web-search-provider.test.ts",
+    },
+  ],
+  [
     "src/ui-app-settings.agents-files-refresh.test.ts",
     {
       status: "intentionally_different",

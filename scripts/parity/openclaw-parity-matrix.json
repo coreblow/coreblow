@@ -6532,7 +6532,7 @@
     },
     {
       "domain": "src/web-fetch",
-      "status": "missing",
+      "status": "intentionally_different",
       "priority": "P3",
       "implementationSurface": "src/web-fetch",
       "counts": {
@@ -6553,9 +6553,24 @@
         ],
         "coreBlowOnlySourcePaths": []
       },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "intentionalDomainDifference": {
+        "status": "intentionally_different",
+        "referenceBehavior": "OpenClaw keeps a dedicated src/web-fetch runtime for content extractors and plugin-owned web-fetch provider resolution.",
+        "coreBlowDecision": "CoreBlow keeps the same behavior split across the built-in web-fetch tool runtime, runtime web-tool metadata resolution, and the Firecrawl web-fetch contract surface instead of introducing a separate src/web-fetch module family.",
+        "rationale": "Preserve fetch behavior and Firecrawl credential parity while keeping provider-specific runtime wiring inside CoreBlow's existing tool, secrets, and extension boundaries.",
+        "evidence": [
+          "src/agents/tools/web-fetch.ts",
+          "src/agents/tools/web-fetch-utils.ts",
+          "src/secrets/runtime-web-tools.ts",
+          "src/secrets/runtime-web-tools.test.ts",
+          "extensions/firecrawl/src/firecrawl-fetch-provider.ts",
+          "extensions/firecrawl/web-search-provider.test.ts"
+        ],
+        "gate": "pnpm test -- src/agents/tools/web-tools.fetch.test.ts src/secrets/runtime-web-tools.test.ts extensions/firecrawl/web-search-provider.test.ts"
+      },
+      "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
       "gates": [
-        "pnpm test -- src/web-fetch",
+        "pnpm test -- src/agents/tools/web-tools.fetch.test.ts src/secrets/runtime-web-tools.test.ts extensions/firecrawl/web-search-provider.test.ts",
         "pnpm check"
       ]
     },
