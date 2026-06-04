@@ -2,6 +2,7 @@ import { defineSingleProviderPluginEntry } from "coreblow/plugin-sdk/provider-en
 import { applyMistralModelCompat } from "./api.js";
 import { mistralMediaUnderstandingProvider } from "./media-understanding-provider.js";
 import { applyMistralConfig, MISTRAL_DEFAULT_MODEL_REF } from "./onboard.js";
+import { contributeMistralResolvedModelCompat } from "./provider-compat.js";
 import { buildMistralProvider } from "./provider-catalog.js";
 
 const PROVIDER_ID = "mistral";
@@ -33,7 +34,8 @@ export default defineSingleProviderPluginEntry({
       buildProvider: buildMistralProvider,
       allowExplicitBaseUrl: true,
     },
-    normalizeResolvedModel: ({ model }) => applyMistralModelCompat(model),
+    normalizeResolvedModel: ({ modelId, model }) =>
+      contributeMistralResolvedModelCompat({ modelId, model }) ?? applyMistralModelCompat(model),
     capabilities: {
       transcriptToolCallIdMode: "strict9",
       transcriptToolCallIdModelHints: [
