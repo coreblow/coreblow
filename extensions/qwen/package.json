@@ -1,0 +1,15 @@
+{
+  "name": "@coreblow/qwen-provider",
+  "version": "2026.6.4",
+  "private": true,
+  "description": "CoreBlow Qwen Cloud provider plugin",
+  "type": "module",
+  "devDependencies": {
+    "coreblow": "workspace:*"
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

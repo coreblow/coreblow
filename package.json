@@ -984,6 +984,10 @@
       "types": "./dist/plugin-sdk/openrouter.d.ts",
       "default": "./dist/plugin-sdk/openrouter.js"
     },
+    "./plugin-sdk/qwen": {
+      "types": "./dist/plugin-sdk/qwen.d.ts",
+      "default": "./dist/plugin-sdk/qwen.js"
+    },
     "./plugin-sdk/optional-channel-setup": {
       "types": "./dist/plugin-sdk/optional-channel-setup.d.ts",
       "default": "./dist/plugin-sdk/optional-channel-setup.js"

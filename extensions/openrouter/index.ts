@@ -17,6 +17,10 @@ import { applyXaiModelCompat } from "coreblow/plugin-sdk/xai";
 import { openrouterMediaUnderstandingProvider } from "./media-understanding-provider.js";
 import { applyOpenrouterConfig, OPENROUTER_DEFAULT_MODEL_REF } from "./onboard.js";
 import { buildOpenrouterProvider } from "./provider-catalog.js";
+import {
+  resolveOpenRouterThinkingProfile,
+  supportsOpenRouterXHighThinking,
+} from "./thinking-policy.js";
 
 const PROVIDER_ID = "openrouter";
 const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
@@ -138,6 +142,9 @@ export default definePluginEntry({
       normalizeResolvedModel: ({ modelId, model }) =>
         isXaiOpenRouterModel(modelId) ? applyXaiModelCompat(model) : undefined,
       isModernModelRef: () => true,
+      supportsXHighThinking: ({ modelId }) => supportsOpenRouterXHighThinking(modelId),
+      resolveDefaultThinkingLevel: ({ modelId }) =>
+        resolveOpenRouterThinkingProfile(modelId)?.defaultLevel,
       wrapStreamFn: (ctx) => {
         let streamFn = ctx.streamFn;
         const providerRouting =
