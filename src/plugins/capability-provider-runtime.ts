@@ -11,12 +11,14 @@ import type { PluginRegistry } from "./registry.js";
 type CapabilityProviderRegistryKey =
   | "speechProviders"
   | "mediaUnderstandingProviders"
-  | "imageGenerationProviders";
+  | "imageGenerationProviders"
+  | "videoGenerationProviders";
 
 type CapabilityContractKey =
   | "speechProviders"
   | "mediaUnderstandingProviders"
-  | "imageGenerationProviders";
+  | "imageGenerationProviders"
+  | "videoGenerationProviders";
 
 type CapabilityProviderForKey<K extends CapabilityProviderRegistryKey> =
   PluginRegistry[K][number] extends { provider: infer T } ? T : never;
@@ -25,6 +27,7 @@ const CAPABILITY_CONTRACT_KEY: Record<CapabilityProviderRegistryKey, CapabilityC
   speechProviders: "speechProviders",
   mediaUnderstandingProviders: "mediaUnderstandingProviders",
   imageGenerationProviders: "imageGenerationProviders",
+  videoGenerationProviders: "videoGenerationProviders",
 };
 
 function resolveBundledCapabilityCompatPluginIds(params: {

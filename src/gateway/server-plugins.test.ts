@@ -68,6 +68,7 @@ const createRegistry = (diagnostics: PluginDiagnostic[]): PluginRegistry => ({
   speechProviders: [],
   mediaUnderstandingProviders: [],
   imageGenerationProviders: [],
+  videoGenerationProviders: [],
   webSearchProviders: [],
   gatewayHandlers: {},
   httpRoutes: [],

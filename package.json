@@ -644,6 +644,10 @@
       "types": "./dist/plugin-sdk/gateway-runtime.d.ts",
       "default": "./dist/plugin-sdk/gateway-runtime.js"
     },
+    "./plugin-sdk/gateway-method-runtime": {
+      "types": "./dist/plugin-sdk/gateway-method-runtime.d.ts",
+      "default": "./dist/plugin-sdk/gateway-method-runtime.js"
+    },
     "./plugin-sdk/github-copilot-login": {
       "types": "./dist/plugin-sdk/github-copilot-login.d.ts",
       "default": "./dist/plugin-sdk/github-copilot-login.js"
@@ -699,6 +703,14 @@
     "./plugin-sdk/image-generation-runtime": {
       "types": "./dist/plugin-sdk/image-generation-runtime.d.ts",
       "default": "./dist/plugin-sdk/image-generation-runtime.js"
+    },
+    "./plugin-sdk/video-generation-core": {
+      "types": "./dist/plugin-sdk/video-generation-core.d.ts",
+      "default": "./dist/plugin-sdk/video-generation-core.js"
+    },
+    "./plugin-sdk/video-generation-runtime": {
+      "types": "./dist/plugin-sdk/video-generation-runtime.d.ts",
+      "default": "./dist/plugin-sdk/video-generation-runtime.js"
     },
     "./plugin-sdk/imessage": {
       "types": "./dist/plugin-sdk/imessage.d.ts",

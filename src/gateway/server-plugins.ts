@@ -244,7 +244,11 @@ function canClientUseModelOverride(client: GatewayRequestOptions["client"]): boo
   return hasAdminScope(client) || client?.internal?.allowModelOverride === true;
 }
 
-async function dispatchGatewayMethod<T>(
+export type PluginGatewayMethodDispatchResponse<T = unknown> =
+  | { ok: true; payload: T; meta?: Record<string, unknown> }
+  | { ok: false; error: ErrorShape; meta?: Record<string, unknown> };
+
+export async function dispatchGatewayMethod<T>(
   method: string,
   params: Record<string, unknown>,
   options?: {
@@ -291,6 +295,29 @@ async function dispatchGatewayMethod<T>(
     throw new Error(result.error?.message ?? `Gateway method "${method}" failed.`);
   }
   return result.payload as T;
+}
+
+export async function dispatchGatewayMethodResponse<T = unknown>(
+  method: string,
+  params?: unknown,
+): Promise<PluginGatewayMethodDispatchResponse<T>> {
+  try {
+    const payload = await dispatchGatewayMethod<T>(
+      method,
+      params && typeof params === "object" && !Array.isArray(params)
+        ? (params as Record<string, unknown>)
+        : {},
+    );
+    return { ok: true, payload };
+  } catch (err) {
+    return {
+      ok: false,
+      error: {
+        code: "UNAVAILABLE",
+        message: err instanceof Error ? err.message : String(err),
+      },
+    };
+  }
 }
 
 export function createGatewaySubagentRuntime(): PluginRuntime["subagent"] {

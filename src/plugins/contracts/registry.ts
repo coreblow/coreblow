@@ -44,6 +44,7 @@ type PluginRegistrationContractEntry = {
   speechProviderIds: string[];
   mediaUnderstandingProviderIds: string[];
   imageGenerationProviderIds: string[];
+  videoGenerationProviderIds: string[];
   webSearchProviderIds: string[];
   toolNames: string[];
 };
@@ -324,6 +325,7 @@ function loadPluginRegistrationContractRegistry(): PluginRegistrationContractEnt
     speechProviderIds: uniqueStrings(entry.speechProviderIds),
     mediaUnderstandingProviderIds: uniqueStrings(entry.mediaUnderstandingProviderIds),
     imageGenerationProviderIds: uniqueStrings(entry.imageGenerationProviderIds),
+    videoGenerationProviderIds: uniqueStrings(entry.videoGenerationProviderIds),
     webSearchProviderIds: uniqueStrings(entry.webSearchProviderIds),
     toolNames: uniqueStrings(entry.toolNames),
   }));

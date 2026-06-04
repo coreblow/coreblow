@@ -35,6 +35,7 @@ import type { ProviderUsageSnapshot } from "../infra/provider-usage.types.js";
 import type { MediaUnderstandingProvider } from "../media-understanding/types.js";
 import type { RuntimeEnv } from "../runtime.js";
 import type { RuntimeWebSearchMetadata } from "../secrets/runtime-web-tools.types.js";
+import type { VideoGenerationProvider } from "../video-generation/types.js";
 import type {
   SpeechDirectiveTokenParseContext,
   SpeechDirectiveTokenParseResult,
@@ -1260,6 +1261,7 @@ export type PluginSpeechProviderEntry = SpeechProviderPlugin & {
 
 export type MediaUnderstandingProviderPlugin = MediaUnderstandingProvider;
 export type ImageGenerationProviderPlugin = ImageGenerationProvider;
+export type VideoGenerationProviderPlugin = VideoGenerationProvider;
 
 export type CoreBlowPluginGatewayMethod = {
   method: string;
@@ -1574,6 +1576,7 @@ export type CoreBlowPluginHttpRouteParams = {
   auth: CoreBlowPluginHttpRouteAuth;
   match?: CoreBlowPluginHttpRouteMatch;
   replaceExisting?: boolean;
+  gatewayRuntimeScopeSurface?: "write-default" | "trusted-operator";
 };
 
 export type CoreBlowPluginCliContext = {
@@ -1776,6 +1779,8 @@ export type CoreBlowPluginApi = {
   registerMediaUnderstandingProvider: (provider: MediaUnderstandingProviderPlugin) => void;
   /** Register an image generation provider (image generation capability). */
   registerImageGenerationProvider: (provider: ImageGenerationProviderPlugin) => void;
+  /** Register a video generation provider (video generation capability). */
+  registerVideoGenerationProvider: (provider: VideoGenerationProviderPlugin) => void;
   /** Register a web search provider (web search capability). */
   registerWebSearchProvider: (provider: WebSearchProviderPlugin) => void;
   registerInteractiveHandler: (registration: PluginInteractiveHandlerRegistration) => void;

@@ -1,0 +1,13 @@
+{
+  "name": "@coreblow/admin-http-rpc",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CoreBlow admin HTTP RPC endpoint",
+  "type": "module",
+  "devDependencies": {
+    "coreblow": "workspace:*"
+  },
+  "coreblow": {
+    "extensions": ["./index.ts"]
+  }
+}

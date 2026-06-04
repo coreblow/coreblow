@@ -121,6 +121,7 @@ function createCapabilityPluginRecord(params: {
     speechProviderIds: [],
     mediaUnderstandingProviderIds: [],
     imageGenerationProviderIds: [],
+    videoGenerationProviderIds: [],
     webSearchProviderIds: [],
     gatewayMethods: [],
     cliCommands: [],
@@ -273,6 +274,9 @@ export function loadBundledCapabilityRuntimeRegistry(params: {
       );
       record.imageGenerationProviderIds.push(
         ...captured.imageGenerationProviders.map((entry) => entry.id),
+      );
+      record.videoGenerationProviderIds.push(
+        ...captured.videoGenerationProviders.map((entry) => entry.id),
       );
       record.webSearchProviderIds.push(...captured.webSearchProviders.map((entry) => entry.id));
       record.toolNames.push(...captured.tools.map((entry) => entry.name));

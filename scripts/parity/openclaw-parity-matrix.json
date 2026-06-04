@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6485,
+    "cb_source_files": 6508,
     "oc_source_files": 8443,
-    "source_parity_both": 4710,
+    "source_parity_both": 4733,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3733,
-    "test_files_cb": 4150,
+    "source_missing_from_cb": 3710,
+    "test_files_cb": 4159,
     "test_files_oc": 5246,
-    "tests_both_covered": 2789,
-    "tests_gap_oc_has_cb_missing": 2212,
-    "tests_cb_exclusive": 1314,
+    "tests_both_covered": 2796,
+    "tests_gap_oc_has_cb_missing": 2205,
+    "tests_cb_exclusive": 1316,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
     "test_scenario_files_intentionally_different": 0
@@ -161,9 +161,9 @@
       "priority": "P0",
       "implementationSurface": "src/plugin-sdk public API",
       "counts": {
-        "sharedSourcePaths": 175,
+        "sharedSourcePaths": 178,
         "coreBlowOnlySourcePaths": 116,
-        "openClawOnlySourcePaths": 264,
+        "openClawOnlySourcePaths": 261,
         "sharedTestPaths": 26,
         "coreBlowOnlyTestPaths": 14,
         "openClawTestGaps": 77
@@ -3651,48 +3651,6 @@
       ]
     },
     {
-      "domain": "src/video-generation",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "src/video-generation",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 11,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 5
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/video-generation/capabilities.ts",
-          "src/video-generation/capability-overlays.ts",
-          "src/video-generation/dashscope-compatible.ts",
-          "src/video-generation/duration-support.ts",
-          "src/video-generation/live-test-helpers.ts",
-          "src/video-generation/model-ref.ts",
-          "src/video-generation/normalization.ts",
-          "src/video-generation/provider-registry.ts",
-          "src/video-generation/runtime-types.ts",
-          "src/video-generation/runtime.ts",
-          "src/video-generation/types.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/video-generation/capabilities.test.ts",
-          "src/video-generation/capability-overlays.test.ts",
-          "src/video-generation/live-test-helpers.test.ts",
-          "src/video-generation/provider-registry.test.ts",
-          "src/video-generation/runtime.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/video-generation",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/acpx",
       "status": "partial",
       "priority": "P3",
@@ -4155,6 +4113,44 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/migrate-claude",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/video-generation",
+      "status": "partial",
+      "priority": "P3",
+      "implementationSurface": "src/video-generation",
+      "counts": {
+        "sharedSourcePaths": 4,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 7,
+        "sharedTestPaths": 0,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 5
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [
+          "src/video-generation/capabilities.ts",
+          "src/video-generation/capability-overlays.ts",
+          "src/video-generation/dashscope-compatible.ts",
+          "src/video-generation/duration-support.ts",
+          "src/video-generation/live-test-helpers.ts",
+          "src/video-generation/normalization.ts",
+          "src/video-generation/runtime-types.ts"
+        ],
+        "openClawTestGapPaths": [
+          "src/video-generation/capabilities.test.ts",
+          "src/video-generation/capability-overlays.test.ts",
+          "src/video-generation/live-test-helpers.test.ts",
+          "src/video-generation/provider-registry.test.ts",
+          "src/video-generation/runtime.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/video-generation",
         "pnpm check"
       ]
     },
@@ -5223,37 +5219,6 @@
       ]
     },
     {
-      "domain": "extensions/admin-http-rpc",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "extensions/admin-http-rpc plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 3,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 2
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/admin-http-rpc/src/handler.ts",
-          "extensions/admin-http-rpc/src/methods.ts",
-          "extensions/admin-http-rpc/index.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/admin-http-rpc/src/handler.test.ts",
-          "extensions/admin-http-rpc/index.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/admin-http-rpc",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/docs",
       "status": "intentionally_different",
       "priority": "P3",
@@ -5298,104 +5263,6 @@
       ]
     },
     {
-      "domain": "src/pairing",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "src/pairing",
-      "counts": {
-        "sharedSourcePaths": 5,
-        "coreBlowOnlySourcePaths": 1,
-        "openClawOnlySourcePaths": 3,
-        "sharedTestPaths": 4,
-        "coreBlowOnlyTestPaths": 2,
-        "openClawTestGaps": 2
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/pairing/allow-from-store-file.ts",
-          "src/pairing/allow-from-store-read.ts",
-          "src/pairing/pairing-store.types.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/pairing/allow-from-store-file.test.ts",
-          "src/pairing/allow-from-store-read.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/pairing/pairing-policy.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/pairing",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "src/sessions",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "src/sessions",
-      "counts": {
-        "sharedSourcePaths": 10,
-        "coreBlowOnlySourcePaths": 3,
-        "openClawOnlySourcePaths": 3,
-        "sharedTestPaths": 5,
-        "coreBlowOnlyTestPaths": 3,
-        "openClawTestGaps": 2
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/sessions/classify-session-kind.ts",
-          "src/sessions/session-chat-type-shared.ts",
-          "src/sessions/session-chat-type.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/sessions/input-provenance.test.ts",
-          "src/sessions/session-id-resolution.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/sessions/rate-limit.ts",
-          "src/sessions/session-cleanup.ts",
-          "src/sessions/session-manager.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/sessions",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/video-generation-core",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "extensions/video-generation-core plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 3,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 1
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/video-generation-core/src/runtime.ts",
-          "extensions/video-generation-core/api.ts",
-          "extensions/video-generation-core/runtime-api.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/video-generation-core/src/runtime.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/video-generation-core",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/voyage",
       "status": "intentionally_different",
       "priority": "P3",
@@ -5432,72 +5299,6 @@
       "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
       "gates": [
         "pnpm test -- extensions/memory-core",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "src/node-host",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "src/node-host",
-      "counts": {
-        "sharedSourcePaths": 9,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 1,
-        "sharedTestPaths": 5,
-        "coreBlowOnlyTestPaths": 2,
-        "openClawTestGaps": 3
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/node-host/plugin-node-host.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/node-host/invoke.test.ts",
-          "src/node-host/plugin-node-host.test.ts",
-          "src/node-host/runner.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/node-host",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "src/process",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "src/process",
-      "counts": {
-        "sharedSourcePaths": 15,
-        "coreBlowOnlySourcePaths": 5,
-        "openClawOnlySourcePaths": 3,
-        "sharedTestPaths": 12,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 1
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/process/command-queue.types.ts",
-          "src/process/linux-oom-score.ts",
-          "src/process/supervisor/adapters/test-support.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/process/linux-oom-score.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/process/graceful-shutdown.ts",
-          "src/process/manager.ts",
-          "src/process/pool.ts",
-          "src/process/restart-recovery.ts",
-          "src/process/test-timeouts.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/process",
         "pnpm check"
       ]
     },
@@ -5659,6 +5460,64 @@
       ]
     },
     {
+      "domain": "src/node-host",
+      "status": "partial",
+      "priority": "P3",
+      "implementationSurface": "src/node-host",
+      "counts": {
+        "sharedSourcePaths": 10,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 6,
+        "coreBlowOnlyTestPaths": 2,
+        "openClawTestGaps": 2
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [
+          "src/node-host/invoke.test.ts",
+          "src/node-host/runner.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/node-host",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/sessions",
+      "status": "partial",
+      "priority": "P3",
+      "implementationSurface": "src/sessions",
+      "counts": {
+        "sharedSourcePaths": 13,
+        "coreBlowOnlySourcePaths": 3,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 5,
+        "coreBlowOnlyTestPaths": 5,
+        "openClawTestGaps": 2
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [
+          "src/sessions/input-provenance.test.ts",
+          "src/sessions/session-id-resolution.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "src/sessions/rate-limit.ts",
+          "src/sessions/session-cleanup.ts",
+          "src/sessions/session-manager.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/sessions",
+        "pnpm check"
+      ]
+    },
+    {
       "domain": "src/ui-app-settings.agents-files-refresh.test.ts",
       "status": "intentionally_different",
       "priority": "P3",
@@ -5693,6 +5552,30 @@
       "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
       "gates": [
         "pnpm --dir ui test -- tests/navigation.test.ts",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/admin-http-rpc",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/admin-http-rpc plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 3,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 2,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/admin-http-rpc",
         "pnpm check"
       ]
     },
@@ -7840,6 +7723,30 @@
       ]
     },
     {
+      "domain": "extensions/video-generation-core",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/video-generation-core plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 3,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 1,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/video-generation-core",
+        "pnpm check"
+      ]
+    },
+    {
       "domain": "extensions/vllm",
       "status": "done",
       "priority": "P3",
@@ -9214,6 +9121,32 @@
       ]
     },
     {
+      "domain": "src/pairing",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/pairing",
+      "counts": {
+        "sharedSourcePaths": 8,
+        "coreBlowOnlySourcePaths": 1,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 6,
+        "coreBlowOnlyTestPaths": 2,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "src/pairing/pairing-policy.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/pairing",
+        "pnpm check"
+      ]
+    },
+    {
       "domain": "src/param-key.ts",
       "status": "done",
       "priority": "P3",
@@ -9354,6 +9287,36 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/polls.ts",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/process",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/process",
+      "counts": {
+        "sharedSourcePaths": 18,
+        "coreBlowOnlySourcePaths": 5,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 13,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "src/process/graceful-shutdown.ts",
+          "src/process/manager.ts",
+          "src/process/pool.ts",
+          "src/process/restart-recovery.ts",
+          "src/process/test-timeouts.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/process",
         "pnpm check"
       ]
     },
