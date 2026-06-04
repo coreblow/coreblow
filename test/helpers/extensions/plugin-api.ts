@@ -8,6 +8,7 @@ export function createTestPluginApi(api: TestPluginApiInput): CoreBlowPluginApi 
     registrationMode: "full",
     logger: { info() {}, warn() {}, error() {}, debug() {} },
     registerTool() {},
+    registerAgentToolResultMiddleware() {},
     registerHook() {},
     registerHttpRoute() {},
     registerChannel() {},

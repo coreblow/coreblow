@@ -145,6 +145,32 @@ export type CoreBlowPluginToolOptions = {
   optional?: boolean;
 };
 
+export type AgentToolResultMiddlewareRuntime = "pi" | "codex";
+
+export type AgentToolResultMiddlewareEvent = {
+  runtime: AgentToolResultMiddlewareRuntime;
+  toolName: string;
+  args: Record<string, unknown>;
+  result: import("@mariozechner/pi-agent-core").AgentToolResult<unknown>;
+  cwd?: string;
+  isError?: boolean;
+};
+
+export type AgentToolResultMiddlewareResult = {
+  result: import("@mariozechner/pi-agent-core").AgentToolResult<unknown>;
+};
+
+export type AgentToolResultMiddleware = (
+  event: AgentToolResultMiddlewareEvent,
+) =>
+  | AgentToolResultMiddlewareResult
+  | void
+  | Promise<AgentToolResultMiddlewareResult | void>;
+
+export type AgentToolResultMiddlewareOptions = {
+  runtimes?: readonly AgentToolResultMiddlewareRuntime[];
+};
+
 export type CoreBlowPluginHookOptions = {
   entry?: HookEntry;
   name?: string;
@@ -1712,6 +1738,10 @@ export type CoreBlowPluginApi = {
   registerTool: (
     tool: AnyAgentTool | CoreBlowPluginToolFactory,
     opts?: CoreBlowPluginToolOptions,
+  ) => void;
+  registerAgentToolResultMiddleware: (
+    middleware: AgentToolResultMiddleware,
+    opts?: AgentToolResultMiddlewareOptions,
   ) => void;
   registerHook: (
     events: string | string[],

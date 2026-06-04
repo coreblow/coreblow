@@ -19,6 +19,7 @@ export type BuildPluginApiParams = {
     Pick<
       CoreBlowPluginApi,
       | "registerTool"
+      | "registerAgentToolResultMiddleware"
       | "registerHook"
       | "registerHttpRoute"
       | "registerChannel"
@@ -47,6 +48,8 @@ export type BuildPluginApiParams = {
 };
 
 const noopRegisterTool: CoreBlowPluginApi["registerTool"] = () => {};
+const noopRegisterAgentToolResultMiddleware: CoreBlowPluginApi["registerAgentToolResultMiddleware"] =
+  () => {};
 const noopRegisterHook: CoreBlowPluginApi["registerHook"] = () => {};
 const noopRegisterHttpRoute: CoreBlowPluginApi["registerHttpRoute"] = () => {};
 const noopRegisterChannel: CoreBlowPluginApi["registerChannel"] = () => {};
@@ -90,6 +93,8 @@ export function buildPluginApi(params: BuildPluginApiParams): CoreBlowPluginApi 
     runtime: params.runtime,
     logger: params.logger,
     registerTool: handlers.registerTool ?? noopRegisterTool,
+    registerAgentToolResultMiddleware:
+      handlers.registerAgentToolResultMiddleware ?? noopRegisterAgentToolResultMiddleware,
     registerHook: handlers.registerHook ?? noopRegisterHook,
     registerHttpRoute: handlers.registerHttpRoute ?? noopRegisterHttpRoute,
     registerChannel: handlers.registerChannel ?? noopRegisterChannel,

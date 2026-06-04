@@ -717,6 +717,16 @@ importers:
         specifier: ^4.1.4
         version: 4.1.4(@opentelemetry/api@1.9.1)(@types/node@25.7.0)(@vitest/coverage-v8@4.1.4)(jsdom@29.0.1(@noble/hashes@2.0.1))(vite@8.0.13(@types/node@25.7.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
 
+  extensions/tokenjuice:
+    dependencies:
+      tokenjuice:
+        specifier: 0.7.1
+        version: 0.7.1
+    devDependencies:
+      coreblow:
+        specifier: workspace:*
+        version: link:../..
+
   extensions/twitch:
     devDependencies:
       typescript:
@@ -773,6 +783,8 @@ importers:
 
   packages/gateway-sdk: {}
 
+  packages/plugin-package-contract: {}
+
   ui:
     dependencies:
       '@create-markdown/preview':
@@ -808,7 +820,7 @@ importers:
         version: 8.0.10(@types/node@25.7.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)
       vitest:
         specifier: ^4.1.5
-        version: 4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.7.0)(@vitest/browser-playwright@4.1.2)(@vitest/coverage-v8@4.1.6(vitest@4.1.6))(jsdom@29.0.1(@noble/hashes@2.0.1))(vite@8.0.10(@types/node@25.7.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
+        version: 4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.7.0)(@vitest/browser-playwright@4.1.2)(@vitest/coverage-v8@4.1.6)(jsdom@29.0.1(@noble/hashes@2.0.1))(vite@8.0.10(@types/node@25.7.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
 
 packages:
 
@@ -7018,6 +7030,11 @@ packages:
     resolution: {integrity: sha512-dRXchy+C0IgK8WPC6xvCHFRIWYUbqqdEIKPaKo/AcTUNzwLTK6AH7RjdLWsEZcAN/TBdtfUw3PYEgPr5VPr6ww==}
     engines: {node: '>=14.16'}
 
+  tokenjuice@0.7.1:
+    resolution: {integrity: sha512-eO048hm9UcGHASjYkIWEij8QN68amGp+S1nJyo685qB1/ol+VGEYjPglcVPvCbJbZyFHvI+BBAMvOfnqYCtpsQ==}
+    engines: {node: '>=20'}
+    hasBin: true
+
   totalist@3.0.1:
     resolution: {integrity: sha512-sf4i37nQ2LBx4m3wB74y+ubopq6W/dIzXg0FDGjsYnZHVa1Da8FH853wlL2gtUhg+xJXjfk3kUZS3BRoQeoQBQ==}
     engines: {node: '>=6'}
@@ -11783,7 +11800,7 @@ snapshots:
       '@vitest/mocker': 4.1.4(vite@8.0.10(@types/node@25.7.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
       playwright: 1.58.2
       tinyrainbow: 3.1.0
-      vitest: 4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.7.0)(@vitest/browser-playwright@4.1.2)(@vitest/coverage-v8@4.1.6(vitest@4.1.6))(jsdom@29.0.1(@noble/hashes@2.0.1))(vite@8.0.10(@types/node@25.7.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
+      vitest: 4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.7.0)(@vitest/browser-playwright@4.1.2)(@vitest/coverage-v8@4.1.6)(jsdom@29.0.1(@noble/hashes@2.0.1))(vite@8.0.10(@types/node@25.7.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
     transitivePeerDependencies:
       - bufferutil
       - msw
@@ -11799,7 +11816,7 @@ snapshots:
       pngjs: 7.0.0
       sirv: 3.0.2
       tinyrainbow: 3.1.0
-      vitest: 4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.7.0)(@vitest/browser-playwright@4.1.2)(@vitest/coverage-v8@4.1.6(vitest@4.1.6))(jsdom@29.0.1(@noble/hashes@2.0.1))(vite@8.0.10(@types/node@25.7.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
+      vitest: 4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.7.0)(@vitest/browser-playwright@4.1.2)(@vitest/coverage-v8@4.1.6)(jsdom@29.0.1(@noble/hashes@2.0.1))(vite@8.0.10(@types/node@25.7.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
       ws: 8.20.1
     transitivePeerDependencies:
       - bufferutil
@@ -15101,6 +15118,8 @@ snapshots:
       '@tokenizer/token': 0.3.0
       ieee754: 1.2.1
 
+  tokenjuice@0.7.1: {}
+
   totalist@3.0.1: {}
 
   tough-cookie@5.1.2:
@@ -15359,7 +15378,7 @@ snapshots:
     transitivePeerDependencies:
       - msw
 
-  vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.7.0)(@vitest/browser-playwright@4.1.2)(@vitest/coverage-v8@4.1.6(vitest@4.1.6))(jsdom@29.0.1(@noble/hashes@2.0.1))(vite@8.0.10(@types/node@25.7.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)):
+  vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.7.0)(@vitest/browser-playwright@4.1.2)(@vitest/coverage-v8@4.1.6)(jsdom@29.0.1(@noble/hashes@2.0.1))(vite@8.0.10(@types/node@25.7.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)):
     dependencies:
       '@vitest/expect': 4.1.5
       '@vitest/mocker': 4.1.5(vite@8.0.10(@types/node@25.7.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))

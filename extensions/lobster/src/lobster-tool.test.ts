@@ -40,6 +40,7 @@ function fakeApi(overrides: Partial<CoreBlowPluginApi> = {}): CoreBlowPluginApi 
     runtime: { version: "test" } as any,
     logger: { info() {}, warn() {}, error() {}, debug() {} },
     registerTool() {},
+    registerAgentToolResultMiddleware() {},
     registerChannel() {},
     registerGatewayMethod() {},
     registerNodeHostCommand() {},

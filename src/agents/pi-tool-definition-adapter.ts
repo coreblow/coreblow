@@ -5,6 +5,7 @@ import type {
 } from "@mariozechner/pi-agent-core";
 import type { ToolDefinition } from "@mariozechner/pi-coding-agent";
 import { logDebug, logError } from "../logger.js";
+import { runAgentToolResultMiddlewares } from "../plugins/agent-tool-result-middleware.js";
 import { isPlainObject } from "../utils.js";
 import type { ClientToolDefinition } from "./pi-embedded-runner/run/params.js";
 import type { HookContext } from "./pi-tools.before-tool-call.js";
@@ -144,7 +145,20 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
             toolName: normalizedName,
             result: rawResult,
           });
-          return result;
+          return await runAgentToolResultMiddlewares({
+            runtime: "pi",
+            toolName: normalizedName,
+            args: executeParams,
+            result,
+            cwd:
+              executeParams &&
+              typeof executeParams === "object" &&
+              !Array.isArray(executeParams) &&
+              typeof (executeParams as { workdir?: unknown }).workdir === "string"
+                ? (executeParams as { workdir: string }).workdir
+                : undefined,
+            isError: false,
+          });
         } catch (err) {
           if (signal?.aborted) {
             throw err;

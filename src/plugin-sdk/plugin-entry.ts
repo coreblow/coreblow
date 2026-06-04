@@ -1,6 +1,11 @@
 import type { CoreBlowConfig } from "../config/config.js";
 import { emptyPluginConfigSchema } from "../plugins/config-schema.js";
 import type {
+  AgentToolResultMiddleware,
+  AgentToolResultMiddlewareEvent,
+  AgentToolResultMiddlewareOptions,
+  AgentToolResultMiddlewareResult,
+  AgentToolResultMiddlewareRuntime,
   AnyAgentTool,
   MediaUnderstandingProviderPlugin,
   CoreBlowPluginApi,
@@ -50,6 +55,11 @@ import type {
 } from "../plugins/types.js";
 
 export type {
+  AgentToolResultMiddleware,
+  AgentToolResultMiddlewareEvent,
+  AgentToolResultMiddlewareOptions,
+  AgentToolResultMiddlewareResult,
+  AgentToolResultMiddlewareRuntime,
   AnyAgentTool,
   MediaUnderstandingProviderPlugin,
   CoreBlowPluginApi,

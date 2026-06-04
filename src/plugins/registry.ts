@@ -60,6 +60,8 @@ import type {
   CoreBlowPluginService,
   CoreBlowPluginToolContext,
   CoreBlowPluginToolFactory,
+  AgentToolResultMiddleware,
+  AgentToolResultMiddlewareRuntime,
   PluginConfigUiHint,
   PluginDiagnostic,
   PluginBundleFormat,
@@ -81,6 +83,15 @@ export type PluginToolRegistration = {
   factory: CoreBlowPluginToolFactory;
   names: string[];
   optional: boolean;
+  source: string;
+  rootDir?: string;
+};
+
+export type PluginAgentToolResultMiddlewareRegistration = {
+  pluginId: string;
+  pluginName?: string;
+  middleware: AgentToolResultMiddleware;
+  runtimes: readonly AgentToolResultMiddlewareRuntime[];
   source: string;
   rootDir?: string;
 };
@@ -243,6 +254,7 @@ export type PluginRecord = {
 export type PluginRegistry = {
   plugins: PluginRecord[];
   tools: PluginToolRegistration[];
+  agentToolResultMiddlewares: PluginAgentToolResultMiddlewareRegistration[];
   hooks: PluginHookRegistration[];
   typedHooks: TypedPluginHookRegistration[];
   channels: PluginChannelRegistration[];
@@ -436,6 +448,24 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
       registry.gatewayMethodScopes[trimmed] = opts.scope;
     }
     record.gatewayMethods.push(trimmed);
+  };
+
+  const registerAgentToolResultMiddleware = (
+    record: PluginRecord,
+    middleware: AgentToolResultMiddleware,
+    opts?: { runtimes?: readonly AgentToolResultMiddlewareRuntime[] },
+  ) => {
+    const runtimes: readonly AgentToolResultMiddlewareRuntime[] = opts?.runtimes?.length
+      ? [...opts.runtimes]
+      : ["pi", "codex"];
+    registry.agentToolResultMiddlewares.push({
+      pluginId: record.id,
+      pluginName: record.name,
+      middleware,
+      runtimes,
+      source: record.source,
+      rootDir: record.rootDir,
+    });
   };
 
   const registerNodeHostCommand = (
@@ -1090,6 +1120,8 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
         ...(registrationMode === "full"
           ? {
               registerTool: (tool, opts) => registerTool(record, tool, opts),
+              registerAgentToolResultMiddleware: (middleware, opts) =>
+                registerAgentToolResultMiddleware(record, middleware, opts),
               registerHook: (events, handler, opts) =>
                 registerHook(record, events, handler, opts, params.config),
               registerHttpRoute: (routeParams) => registerHttpRoute(record, routeParams),
@@ -1224,6 +1256,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     createApi,
     pushDiagnostic,
     registerTool,
+    registerAgentToolResultMiddleware,
     registerChannel,
     registerProvider,
     registerCliBackend,

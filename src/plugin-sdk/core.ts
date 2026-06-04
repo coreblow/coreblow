@@ -25,6 +25,11 @@ import type { PluginRuntime } from "../plugins/runtime/types.js";
 import type { CoreBlowPluginApi, CoreBlowPluginConfigSchema } from "../plugins/types.js";
 
 export type {
+  AgentToolResultMiddleware,
+  AgentToolResultMiddlewareEvent,
+  AgentToolResultMiddlewareOptions,
+  AgentToolResultMiddlewareResult,
+  AgentToolResultMiddlewareRuntime,
   AnyAgentTool,
   MediaUnderstandingProviderPlugin,
   CoreBlowPluginApi,

@@ -113,6 +113,7 @@ export function createPluginLoadResult(
     imageGenerationProviders: [],
     webSearchProviders: [],
     tools: [],
+    agentToolResultMiddlewares: [],
     hooks: [],
     typedHooks: [],
     httpRoutes: [],

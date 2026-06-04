@@ -1,0 +1,17 @@
+{
+  "name": "@coreblow/tokenjuice",
+  "version": "2026.5.17",
+  "description": "Bundled tokenjuice exec output compaction plugin",
+  "type": "module",
+  "dependencies": {
+    "tokenjuice": "0.7.1"
+  },
+  "devDependencies": {
+    "coreblow": "workspace:*"
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}
