@@ -154,7 +154,11 @@ function notifySubscriberKey(subscriber: {
   accountId?: string;
   messageThreadId?: string | number;
 }): string {
-  return [subscriber.to, subscriber.accountId ?? "", subscriber.messageThreadId ?? ""].join("|");
+  return JSON.stringify([
+    subscriber.to,
+    subscriber.accountId ?? "",
+    subscriber.messageThreadId != null ? String(subscriber.messageThreadId) : "",
+  ]);
 }
 
 type NotifyTarget = {

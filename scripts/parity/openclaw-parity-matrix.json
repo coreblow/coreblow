@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6479,
+    "cb_source_files": 6481,
     "oc_source_files": 8443,
-    "source_parity_both": 4704,
+    "source_parity_both": 4706,
     "source_cb_exclusive": 1775,
-    "source_missing_from_cb": 3739,
-    "test_files_cb": 4145,
+    "source_missing_from_cb": 3737,
+    "test_files_cb": 4147,
     "test_files_oc": 5246,
-    "tests_both_covered": 2785,
-    "tests_gap_oc_has_cb_missing": 2216,
+    "tests_both_covered": 2787,
+    "tests_gap_oc_has_cb_missing": 2214,
     "tests_cb_exclusive": 1313,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -5397,49 +5397,6 @@
       ]
     },
     {
-      "domain": "extensions/device-pair",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/device-pair plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 4,
-        "coreBlowOnlySourcePaths": 15,
-        "openClawOnlySourcePaths": 2,
-        "sharedTestPaths": 1,
-        "coreBlowOnlyTestPaths": 5,
-        "openClawTestGaps": 2
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/device-pair/pair-command-approve.ts",
-          "extensions/device-pair/pair-command-auth.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/device-pair/notify.test.ts",
-          "extensions/device-pair/pair-command-auth.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "extensions/device-pair/src/adapter.ts",
-          "extensions/device-pair/src/channel.ts",
-          "extensions/device-pair/src/config.ts",
-          "extensions/device-pair/src/extension.ts",
-          "extensions/device-pair/src/formatter.ts",
-          "extensions/device-pair/src/handler.ts",
-          "extensions/device-pair/src/index.ts",
-          "extensions/device-pair/src/media.ts",
-          "extensions/device-pair/src/rate-limiter.ts",
-          "extensions/device-pair/src/resolve-target.ts",
-          "extensions/device-pair/src/runtime.ts",
-          "extensions/device-pair/src/subagent-hooks.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/device-pair",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/video-generation-core",
       "status": "missing",
       "priority": "P3",
@@ -6185,6 +6142,43 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/deepseek",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/device-pair",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/device-pair plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 6,
+        "coreBlowOnlySourcePaths": 15,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 3,
+        "coreBlowOnlyTestPaths": 5,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "extensions/device-pair/src/adapter.ts",
+          "extensions/device-pair/src/channel.ts",
+          "extensions/device-pair/src/config.ts",
+          "extensions/device-pair/src/extension.ts",
+          "extensions/device-pair/src/formatter.ts",
+          "extensions/device-pair/src/handler.ts",
+          "extensions/device-pair/src/index.ts",
+          "extensions/device-pair/src/media.ts",
+          "extensions/device-pair/src/rate-limiter.ts",
+          "extensions/device-pair/src/resolve-target.ts",
+          "extensions/device-pair/src/runtime.ts",
+          "extensions/device-pair/src/subagent-hooks.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/device-pair",
         "pnpm check"
       ]
     },
