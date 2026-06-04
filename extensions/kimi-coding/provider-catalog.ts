@@ -2,9 +2,8 @@ import type { ModelProviderConfig } from "coreblow/plugin-sdk/provider-model-sha
 
 export const KIMI_BASE_URL = "https://api.kimi.com/coding/";
 const KIMI_CODING_USER_AGENT = "claude-code/0.1.0";
-export const KIMI_DEFAULT_MODEL_ID = "kimi-code";
-export const KIMI_UPSTREAM_MODEL_ID = "kimi-for-coding";
-export const KIMI_LEGACY_MODEL_ID = "k2p5";
+export const KIMI_DEFAULT_MODEL_ID = "kimi-for-coding";
+const KIMI_LEGACY_MODEL_IDS = ["kimi-code", "k2p5"] as const;
 const KIMI_CODING_DEFAULT_CONTEXT_WINDOW = 262144;
 const KIMI_CODING_DEFAULT_MAX_TOKENS = 32768;
 const KIMI_CODING_DEFAULT_COST = {
@@ -13,6 +12,7 @@ const KIMI_CODING_DEFAULT_COST = {
   cacheRead: 0,
   cacheWrite: 0,
 };
+const KIMI_CODING_INPUT = ["text", "image"] as const;
 
 export function buildKimiCodingProvider(): ModelProviderConfig {
   return {
@@ -26,25 +26,32 @@ export function buildKimiCodingProvider(): ModelProviderConfig {
         id: KIMI_DEFAULT_MODEL_ID,
         name: "Kimi Code",
         reasoning: true,
-        input: ["text", "image"],
+        input: [...KIMI_CODING_INPUT],
         cost: KIMI_CODING_DEFAULT_COST,
         contextWindow: KIMI_CODING_DEFAULT_CONTEXT_WINDOW,
         maxTokens: KIMI_CODING_DEFAULT_MAX_TOKENS,
       },
-      {
-        id: KIMI_LEGACY_MODEL_ID,
-        name: "Kimi Code (legacy model id)",
+      ...KIMI_LEGACY_MODEL_IDS.map((id) => ({
+        id,
+        name: `Kimi Code (legacy ${id})`,
         reasoning: true,
-        input: ["text", "image"],
+        input: [...KIMI_CODING_INPUT],
         cost: KIMI_CODING_DEFAULT_COST,
         contextWindow: KIMI_CODING_DEFAULT_CONTEXT_WINDOW,
         maxTokens: KIMI_CODING_DEFAULT_MAX_TOKENS,
-      },
+      })),
     ],
   };
 }
 
 export const KIMI_CODING_BASE_URL = KIMI_BASE_URL;
 export const KIMI_CODING_DEFAULT_MODEL_ID = KIMI_DEFAULT_MODEL_ID;
-export const KIMI_CODING_LEGACY_MODEL_ID = KIMI_LEGACY_MODEL_ID;
+export const KIMI_CODING_LEGACY_MODEL_IDS = KIMI_LEGACY_MODEL_IDS;
 export const buildKimiProvider = buildKimiCodingProvider;
+
+export function normalizeKimiCodingModelId(modelId: string): string {
+  const normalized = modelId.trim().toLowerCase();
+  return KIMI_LEGACY_MODEL_IDS.includes(normalized as (typeof KIMI_LEGACY_MODEL_IDS)[number])
+    ? KIMI_DEFAULT_MODEL_ID
+    : modelId;
+}

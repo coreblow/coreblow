@@ -1,13 +1,32 @@
 import { definePluginEntry } from "coreblow/plugin-sdk/plugin-entry";
-import { createProviderApiKeyAuthMethod } from "coreblow/plugin-sdk/provider-auth-api-key";
+import {
+  createProviderApiKeyAuthMethod,
+  type SecretInput,
+} from "coreblow/plugin-sdk/provider-auth-api-key";
+import { normalizeProviderId } from "coreblow/plugin-sdk/provider-model-shared";
 import { applyKimiCodeConfig, KIMI_CODING_MODEL_REF } from "./onboard.js";
-import { buildKimiCodingProvider } from "./provider-catalog.js";
+import { buildKimiCodingProvider, normalizeKimiCodingModelId } from "./provider-catalog.js";
+import { wrapKimiProviderStream } from "./stream.js";
 
 const PLUGIN_ID = "kimi";
 const PROVIDER_ID = "kimi";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function findExplicitProviderConfig(
+  providers: Record<string, unknown> | undefined,
+  providerId: string,
+): Record<string, unknown> | undefined {
+  if (!providers) {
+    return undefined;
+  }
+  const normalizedProviderId = normalizeProviderId(providerId);
+  const match = Object.entries(providers).find(
+    ([configuredProviderId]) => normalizeProviderId(configuredProviderId) === normalizedProviderId,
+  );
+  return isRecord(match?.[1]) ? match[1] : undefined;
 }
 
 export default definePluginEntry({
@@ -55,12 +74,15 @@ export default definePluginEntry({
           if (!apiKey) {
             return null;
           }
-          const explicitProvider = ctx.config.models?.providers?.[PROVIDER_ID];
+          const explicitProvider = findExplicitProviderConfig(
+            ctx.config.models?.providers as Record<string, unknown> | undefined,
+            PROVIDER_ID,
+          );
           const builtInProvider = buildKimiCodingProvider();
           const explicitBaseUrl =
             typeof explicitProvider?.baseUrl === "string" ? explicitProvider.baseUrl.trim() : "";
           const explicitHeaders = isRecord(explicitProvider?.headers)
-            ? explicitProvider.headers
+            ? (explicitProvider.headers as Record<string, SecretInput>)
             : undefined;
           return {
             provider: {
@@ -83,6 +105,13 @@ export default definePluginEntry({
         openAiPayloadNormalizationMode: "moonshot-thinking",
         preserveAnthropicThinkingSignatures: false,
       },
+      normalizeResolvedModel: ({ model }) => {
+        const normalizedId = normalizeKimiCodingModelId(model.id);
+        return normalizedId === model.id ? undefined : { ...model, id: normalizedId };
+      },
+      isBinaryThinking: () => true,
+      resolveDefaultThinkingLevel: () => "off",
+      wrapStreamFn: wrapKimiProviderStream,
     });
   },
 });
