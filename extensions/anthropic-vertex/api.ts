@@ -1,4 +1,6 @@
 import type { ModelProviderConfig } from "coreblow/plugin-sdk/provider-model-shared";
+import type { StreamFn } from "@mariozechner/pi-agent-core";
+import type { AnthropicVertexStreamDeps } from "./stream-runtime.js";
 export {
   ANTHROPIC_VERTEX_DEFAULT_MODEL_ID,
   buildAnthropicVertexProvider,
@@ -42,4 +44,33 @@ export function resolveImplicitAnthropicVertexProvider(params?: {
   }
 
   return buildAnthropicVertexProvider({ env });
+}
+
+export function createAnthropicVertexStreamFn(
+  projectId: string | undefined,
+  region: string,
+  baseURL?: string,
+  _deps?: AnthropicVertexStreamDeps,
+): StreamFn {
+  const streamFnPromise = import("./stream-runtime.js").then((runtime) =>
+    runtime.createAnthropicVertexStreamFn(projectId, region, baseURL),
+  );
+  return async (model, context, options) => {
+    const streamFn = await streamFnPromise;
+    return await streamFn(model, context, options);
+  };
+}
+
+export function createAnthropicVertexStreamFnForModel(
+  model: { baseUrl?: string },
+  env: NodeJS.ProcessEnv = process.env,
+  _deps?: AnthropicVertexStreamDeps,
+): StreamFn {
+  const streamFnPromise = import("./stream-runtime.js").then((runtime) =>
+    runtime.createAnthropicVertexStreamFnForModel(model, env),
+  );
+  return async (...args) => {
+    const streamFn = await streamFnPromise;
+    return await streamFn(...args);
+  };
 }
