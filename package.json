@@ -866,6 +866,10 @@
       "types": "./dist/plugin-sdk/mattermost-policy.d.ts",
       "default": "./dist/plugin-sdk/mattermost-policy.js"
     },
+    "./plugin-sdk/media-mime": {
+      "types": "./dist/plugin-sdk/media-mime.d.ts",
+      "default": "./dist/plugin-sdk/media-mime.js"
+    },
     "./plugin-sdk/media-runtime": {
       "types": "./dist/plugin-sdk/media-runtime.d.ts",
       "default": "./dist/plugin-sdk/media-runtime.js"
@@ -1066,6 +1070,10 @@
       "types": "./dist/plugin-sdk/plugin-test-api.d.ts",
       "default": "./dist/plugin-sdk/plugin-test-api.js"
     },
+    "./plugin-sdk/plugin-test-contracts": {
+      "types": "./dist/plugin-sdk/plugin-test-contracts.d.ts",
+      "default": "./dist/plugin-sdk/plugin-test-contracts.js"
+    },
     "./plugin-sdk/plugin-test-runtime": {
       "types": "./dist/plugin-sdk/plugin-test-runtime.d.ts",
       "default": "./dist/plugin-sdk/plugin-test-runtime.js"
@@ -1154,6 +1162,10 @@
       "types": "./dist/plugin-sdk/provider-stream.d.ts",
       "default": "./dist/plugin-sdk/provider-stream.js"
     },
+    "./plugin-sdk/provider-test-contracts": {
+      "types": "./dist/plugin-sdk/provider-test-contracts.d.ts",
+      "default": "./dist/plugin-sdk/provider-test-contracts.js"
+    },
     "./plugin-sdk/provider-tools": {
       "types": "./dist/plugin-sdk/provider-tools.d.ts",
       "default": "./dist/plugin-sdk/provider-tools.js"
@@ -1213,6 +1225,10 @@
     "./plugin-sdk/runtime": {
       "types": "./dist/plugin-sdk/runtime.d.ts",
       "default": "./dist/plugin-sdk/runtime.js"
+    },
+    "./plugin-sdk/runtime-config-snapshot": {
+      "types": "./dist/plugin-sdk/runtime-config-snapshot.d.ts",
+      "default": "./dist/plugin-sdk/runtime-config-snapshot.js"
     },
     "./plugin-sdk/runtime-env": {
       "types": "./dist/plugin-sdk/runtime-env.d.ts",
@@ -1410,6 +1426,10 @@
       "types": "./dist/plugin-sdk/text-runtime.d.ts",
       "default": "./dist/plugin-sdk/text-runtime.js"
     },
+    "./plugin-sdk/text-utility-runtime": {
+      "types": "./dist/plugin-sdk/text-utility-runtime.d.ts",
+      "default": "./dist/plugin-sdk/text-utility-runtime.js"
+    },
     "./plugin-sdk/thread-bindings-runtime": {
       "types": "./dist/plugin-sdk/thread-bindings-runtime.d.ts",
       "default": "./dist/plugin-sdk/thread-bindings-runtime.js"
@@ -1441,6 +1461,10 @@
     "./plugin-sdk/vercel-ai-gateway": {
       "types": "./dist/plugin-sdk/vercel-ai-gateway.d.ts",
       "default": "./dist/plugin-sdk/vercel-ai-gateway.js"
+    },
+    "./plugin-sdk/video-generation": {
+      "types": "./dist/plugin-sdk/video-generation.d.ts",
+      "default": "./dist/plugin-sdk/video-generation.js"
     },
     "./plugin-sdk/video-generation-core": {
       "types": "./dist/plugin-sdk/video-generation-core.d.ts",

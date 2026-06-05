@@ -1,5 +1,8 @@
 // Public auth/onboarding helpers for provider plugins.
 
+import type { CoreBlowConfig } from "../config/config.js";
+import { normalizeOptionalSecretInput } from "../utils/normalize-secret-input.js";
+
 export type { CoreBlowConfig } from "../config/config.js";
 export type { SecretInput } from "../config/types.secrets.js";
 export type { ProviderAuthResult } from "../plugins/types.js";
@@ -53,3 +56,17 @@ export {
 } from "../secrets/provider-env-vars.js";
 export { buildOauthProviderAuthResult } from "./provider-auth-result.js";
 export { generatePkceVerifierChallenge, toFormUrlEncoded } from "./oauth-utils.js";
+
+export function isProviderApiKeyConfigured(params: {
+  provider: string;
+  cfg?: CoreBlowConfig;
+  agentDir?: string;
+}): boolean {
+  const providerConfig = params.cfg?.models?.providers?.[params.provider];
+  const configuredApiKey = normalizeOptionalSecretInput(providerConfig?.apiKey);
+  if (configuredApiKey) {
+    return true;
+  }
+  const envName = `${params.provider.replace(/[^a-z0-9]+/giu, "_").toUpperCase()}_API_KEY`;
+  return Boolean(normalizeOptionalSecretInput(process.env[envName]));
+}

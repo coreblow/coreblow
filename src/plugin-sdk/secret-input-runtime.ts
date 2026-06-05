@@ -4,4 +4,7 @@ export {
   normalizeResolvedSecretInputString,
   normalizeSecretInputString,
 } from "../config/types.secrets.js";
-export { resolveSecretInputString as resolveConfiguredSecretInputString } from "./secret-input.js";
+export {
+  resolveSecretInputString,
+  resolveSecretInputString as resolveConfiguredSecretInputString,
+} from "./secret-input.js";

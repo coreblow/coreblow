@@ -1,6 +1,6 @@
 import type { GuardedFetchResult } from "../infra/net/fetch-guard.js";
 import { fetchWithSsrFGuard } from "../infra/net/fetch-guard.js";
-import type { LookupFn, SsrFPolicy } from "../infra/net/ssrf.js";
+import type { LookupFn, PinnedDispatcherPolicy, SsrFPolicy } from "../infra/net/ssrf.js";
 export { fetchWithTimeout } from "../utils/fetch-timeout.js";
 
 const MAX_ERROR_CHARS = 300;
@@ -13,12 +13,13 @@ export function normalizeBaseUrl(baseUrl: string | undefined, fallback: string):
 export async function fetchWithTimeoutGuarded(
   url: string,
   init: RequestInit,
-  timeoutMs: number,
+  timeoutMs: number | undefined,
   fetchFn: typeof fetch,
   options?: {
     ssrfPolicy?: SsrFPolicy;
     lookupFn?: LookupFn;
     pinDns?: boolean;
+    dispatcherPolicy?: PinnedDispatcherPolicy;
   },
 ): Promise<GuardedFetchResult> {
   return await fetchWithSsrFGuard({
@@ -29,6 +30,7 @@ export async function fetchWithTimeoutGuarded(
     policy: options?.ssrfPolicy,
     lookupFn: options?.lookupFn,
     pinDns: options?.pinDns,
+    dispatcherPolicy: options?.dispatcherPolicy,
   });
 }
 
@@ -36,10 +38,13 @@ export async function postTranscriptionRequest(params: {
   url: string;
   headers: Headers;
   body: BodyInit;
-  timeoutMs: number;
+  timeoutMs?: number;
   fetchFn: typeof fetch;
   allowPrivateNetwork?: boolean;
+  ssrfPolicy?: SsrFPolicy;
+  dispatcherPolicy?: PinnedDispatcherPolicy;
 }) {
+  const ssrfPolicy = params.ssrfPolicy ?? (params.allowPrivateNetwork ? { allowPrivateNetwork: true } : undefined);
   return fetchWithTimeoutGuarded(
     params.url,
     {
@@ -49,7 +54,9 @@ export async function postTranscriptionRequest(params: {
     },
     params.timeoutMs,
     params.fetchFn,
-    params.allowPrivateNetwork ? { ssrfPolicy: { allowPrivateNetwork: true } } : undefined,
+    ssrfPolicy || params.dispatcherPolicy
+      ? { ssrfPolicy, dispatcherPolicy: params.dispatcherPolicy }
+      : undefined,
   );
 }
 
@@ -57,10 +64,13 @@ export async function postJsonRequest(params: {
   url: string;
   headers: Headers;
   body: unknown;
-  timeoutMs: number;
+  timeoutMs?: number;
   fetchFn: typeof fetch;
   allowPrivateNetwork?: boolean;
+  ssrfPolicy?: SsrFPolicy;
+  dispatcherPolicy?: PinnedDispatcherPolicy;
 }) {
+  const ssrfPolicy = params.ssrfPolicy ?? (params.allowPrivateNetwork ? { allowPrivateNetwork: true } : undefined);
   return fetchWithTimeoutGuarded(
     params.url,
     {
@@ -70,7 +80,9 @@ export async function postJsonRequest(params: {
     },
     params.timeoutMs,
     params.fetchFn,
-    params.allowPrivateNetwork ? { ssrfPolicy: { allowPrivateNetwork: true } } : undefined,
+    ssrfPolicy || params.dispatcherPolicy
+      ? { ssrfPolicy, dispatcherPolicy: params.dispatcherPolicy }
+      : undefined,
   );
 }
 

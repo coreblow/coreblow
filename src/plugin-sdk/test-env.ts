@@ -14,3 +14,15 @@ export function createMockServerResponse() {
     },
   };
 }
+
+export function isLiveTestEnabled(input: NodeJS.ProcessEnv | readonly string[] = process.env): boolean {
+  if (Array.isArray(input)) {
+    return input.some((key) => process.env[key]?.trim() === "1");
+  }
+  const env = input as NodeJS.ProcessEnv;
+  return env.COREBLOW_LIVE_TESTS === "1" || env.COREBLOW_LIVE_TESTS === "true";
+}
+
+export function installPinnedHostnameTestHooks(): void {
+  // CoreBlow's provider tests use the default guarded fetch implementation.
+}

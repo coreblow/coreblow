@@ -1,5 +1,6 @@
 import type { AuthProfileStore } from "../agents/auth-profiles.js";
 import type { CoreBlowConfig } from "../config/config.js";
+import type { SsrFPolicy } from "../infra/net/ssrf.js";
 
 export type GeneratedImageAsset = {
   buffer: Buffer;
@@ -32,6 +33,7 @@ export type ImageGenerationRequest = {
   aspectRatio?: string;
   resolution?: ImageGenerationResolution;
   inputImages?: ImageGenerationSourceImage[];
+  ssrfPolicy?: SsrFPolicy;
 };
 
 export type ImageGenerationResult = {
@@ -71,6 +73,7 @@ export type ImageGenerationProvider = {
   defaultModel?: string;
   models?: string[];
   capabilities: ImageGenerationProviderCapabilities;
+  isConfigured?: (ctx: { cfg?: CoreBlowConfig; agentDir?: string }) => boolean;
   generateImage: (req: ImageGenerationRequest) => Promise<ImageGenerationResult>;
 };
 

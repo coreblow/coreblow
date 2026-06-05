@@ -9,6 +9,7 @@ import type {
   MusicGenerationProviderPlugin,
   CoreBlowPluginApi,
   ProviderPlugin,
+  RealtimeTranscriptionProviderPlugin,
   SpeechProviderPlugin,
   VideoGenerationProviderPlugin,
   WebSearchProviderPlugin,
@@ -23,6 +24,7 @@ export type CapturedPluginRegistration = {
   imageGenerationProviders: ImageGenerationProviderPlugin[];
   videoGenerationProviders: VideoGenerationProviderPlugin[];
   musicGenerationProviders: MusicGenerationProviderPlugin[];
+  realtimeTranscriptionProviders: RealtimeTranscriptionProviderPlugin[];
   webSearchProviders: WebSearchProviderPlugin[];
   tools: AnyAgentTool[];
 };
@@ -35,6 +37,7 @@ export function createCapturedPluginRegistration(): CapturedPluginRegistration {
   const imageGenerationProviders: ImageGenerationProviderPlugin[] = [];
   const videoGenerationProviders: VideoGenerationProviderPlugin[] = [];
   const musicGenerationProviders: MusicGenerationProviderPlugin[] = [];
+  const realtimeTranscriptionProviders: RealtimeTranscriptionProviderPlugin[] = [];
   const webSearchProviders: WebSearchProviderPlugin[] = [];
   const tools: AnyAgentTool[] = [];
   const noopLogger = {
@@ -52,6 +55,7 @@ export function createCapturedPluginRegistration(): CapturedPluginRegistration {
     imageGenerationProviders,
     videoGenerationProviders,
     musicGenerationProviders,
+    realtimeTranscriptionProviders,
     webSearchProviders,
     tools,
     api: buildPluginApi({
@@ -84,6 +88,9 @@ export function createCapturedPluginRegistration(): CapturedPluginRegistration {
         },
         registerMusicGenerationProvider(provider: MusicGenerationProviderPlugin) {
           musicGenerationProviders.push(provider);
+        },
+        registerRealtimeTranscriptionProvider(provider: RealtimeTranscriptionProviderPlugin) {
+          realtimeTranscriptionProviders.push(provider);
         },
         registerWebSearchProvider(provider: WebSearchProviderPlugin) {
           webSearchProviders.push(provider);

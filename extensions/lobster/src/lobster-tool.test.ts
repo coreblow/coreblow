@@ -54,6 +54,7 @@ function fakeApi(overrides: Partial<CoreBlowPluginApi> = {}): CoreBlowPluginApi 
     registerImageGenerationProvider() {},
     registerVideoGenerationProvider() {},
     registerMusicGenerationProvider() {},
+    registerRealtimeTranscriptionProvider() {},
     registerWebSearchProvider() {},
     registerInteractiveHandler() {},
     onConversationBindingResolved() {},

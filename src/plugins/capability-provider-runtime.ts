@@ -13,14 +13,16 @@ type CapabilityProviderRegistryKey =
   | "mediaUnderstandingProviders"
   | "imageGenerationProviders"
   | "videoGenerationProviders"
-  | "musicGenerationProviders";
+  | "musicGenerationProviders"
+  | "realtimeTranscriptionProviders";
 
 type CapabilityContractKey =
   | "speechProviders"
   | "mediaUnderstandingProviders"
   | "imageGenerationProviders"
   | "videoGenerationProviders"
-  | "musicGenerationProviders";
+  | "musicGenerationProviders"
+  | "realtimeTranscriptionProviders";
 
 type CapabilityProviderForKey<K extends CapabilityProviderRegistryKey> =
   NonNullable<PluginRegistry[K]>[number] extends { provider: infer T } ? T : never;
@@ -31,6 +33,7 @@ const CAPABILITY_CONTRACT_KEY: Record<CapabilityProviderRegistryKey, CapabilityC
   imageGenerationProviders: "imageGenerationProviders",
   videoGenerationProviders: "videoGenerationProviders",
   musicGenerationProviders: "musicGenerationProviders",
+  realtimeTranscriptionProviders: "realtimeTranscriptionProviders",
 };
 
 function resolveBundledCapabilityCompatPluginIds(params: {

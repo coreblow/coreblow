@@ -26,6 +26,10 @@ export * from "./vllm.js";
 export * from "../agents/agent-command.js";
 export * from "../tts/tts.js";
 
+export function resolveDefaultAgentDir(_cfg?: unknown): string {
+  return process.cwd();
+}
+
 export {
   CLAUDE_CLI_PROFILE_ID,
   CODEX_CLI_PROFILE_ID,

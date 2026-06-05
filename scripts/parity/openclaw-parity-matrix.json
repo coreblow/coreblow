@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6709,
+    "cb_source_files": 6730,
     "oc_source_files": 8443,
-    "source_parity_both": 4931,
+    "source_parity_both": 4952,
     "source_cb_exclusive": 1778,
-    "source_missing_from_cb": 3512,
-    "test_files_cb": 4227,
+    "source_missing_from_cb": 3491,
+    "test_files_cb": 4241,
     "test_files_oc": 5246,
-    "tests_both_covered": 2856,
-    "tests_gap_oc_has_cb_missing": 2145,
-    "tests_cb_exclusive": 1321,
+    "tests_both_covered": 2865,
+    "tests_gap_oc_has_cb_missing": 2136,
+    "tests_cb_exclusive": 1322,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
     "test_scenario_files_intentionally_different": 0
@@ -161,9 +161,9 @@
       "priority": "P0",
       "implementationSurface": "src/plugin-sdk public API",
       "counts": {
-        "sharedSourcePaths": 194,
+        "sharedSourcePaths": 200,
         "coreBlowOnlySourcePaths": 118,
-        "openClawOnlySourcePaths": 245,
+        "openClawOnlySourcePaths": 239,
         "sharedTestPaths": 26,
         "coreBlowOnlyTestPaths": 14,
         "openClawTestGaps": 77
@@ -3840,78 +3840,6 @@
       ]
     },
     {
-      "domain": "extensions/comfy",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "extensions/comfy plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 6,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 4
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/comfy/image-generation-provider.ts",
-          "extensions/comfy/index.ts",
-          "extensions/comfy/music-generation-provider.ts",
-          "extensions/comfy/test-helpers.ts",
-          "extensions/comfy/video-generation-provider.ts",
-          "extensions/comfy/workflow-runtime.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/comfy/image-generation-provider.test.ts",
-          "extensions/comfy/index.test.ts",
-          "extensions/comfy/music-generation-provider.test.ts",
-          "extensions/comfy/video-generation-provider.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/comfy",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/vydra",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "extensions/vydra plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 6,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 4
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/vydra/image-generation-provider.ts",
-          "extensions/vydra/index.ts",
-          "extensions/vydra/onboard.ts",
-          "extensions/vydra/shared.ts",
-          "extensions/vydra/speech-provider.ts",
-          "extensions/vydra/video-generation-provider.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/vydra/image-generation-provider.test.ts",
-          "extensions/vydra/provider-test-helpers.test.ts",
-          "extensions/vydra/speech-provider.test.ts",
-          "extensions/vydra/video-generation-provider.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/vydra",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/tools",
       "status": "partial",
       "priority": "P3",
@@ -4580,36 +4508,6 @@
       ]
     },
     {
-      "domain": "src/realtime-transcription",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "src/realtime-transcription",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 3,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 1
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/realtime-transcription/provider-registry.ts",
-          "src/realtime-transcription/provider-types.ts",
-          "src/realtime-transcription/websocket-session.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/realtime-transcription/websocket-session.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/realtime-transcription",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/active-memory",
       "status": "intentionally_different",
       "priority": "P3",
@@ -5258,6 +5156,30 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/cloudflare-ai-gateway",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/comfy",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/comfy plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 6,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 4,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/comfy",
         "pnpm check"
       ]
     },
@@ -7288,6 +7210,30 @@
       ]
     },
     {
+      "domain": "extensions/vydra",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/vydra plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 6,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 4,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/vydra",
+        "pnpm check"
+      ]
+    },
+    {
       "domain": "extensions/webhooks",
       "status": "done",
       "priority": "P3",
@@ -9093,6 +9039,30 @@
       "notes": "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture.",
       "gates": [
         "pnpm test -- src/rag",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/realtime-transcription",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/realtime-transcription",
+      "counts": {
+        "sharedSourcePaths": 3,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 1,
+        "coreBlowOnlyTestPaths": 1,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/realtime-transcription",
         "pnpm check"
       ]
     },

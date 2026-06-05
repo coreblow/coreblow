@@ -1,0 +1,21 @@
+{
+  "name": "@coreblow/vydra-provider",
+  "version": "2026.5.17",
+  "private": true,
+  "description": "CoreBlow Vydra media provider plugin",
+  "type": "module",
+  "devDependencies": {
+    "coreblow": "workspace:*"
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "install": {
+      "npmSpec": "@coreblow/vydra-provider",
+      "localPath": "extensions/vydra",
+      "defaultChoice": false,
+      "minHostVersion": "1.0.0"
+    }
+  }
+}

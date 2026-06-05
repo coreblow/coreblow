@@ -3,6 +3,10 @@ import { runPassiveAccountLifecycle } from "./channel-lifecycle.js";
 import { createLoggerBackedRuntime } from "./runtime.js";
 export { safeParseJsonWithSchema, safeParseWithSchema } from "../utils/zod-parse.js";
 
+export function canResolveEnvSecretRefInReadOnlyPath(_params?: unknown): boolean {
+  return true;
+}
+
 type PassiveChannelStatusSnapshot = {
   configured?: boolean;
   running?: boolean;

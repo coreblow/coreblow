@@ -1,0 +1,21 @@
+{
+  "name": "@coreblow/comfy-provider",
+  "version": "2026.5.17",
+  "private": true,
+  "description": "CoreBlow ComfyUI provider plugin",
+  "type": "module",
+  "devDependencies": {
+    "coreblow": "workspace:*"
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "install": {
+      "npmSpec": "@coreblow/comfy-provider",
+      "localPath": "extensions/comfy",
+      "defaultChoice": false,
+      "minHostVersion": "1.0.0"
+    }
+  }
+}

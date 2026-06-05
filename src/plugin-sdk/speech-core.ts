@@ -35,3 +35,9 @@ export {
   normalizeSpeechProviderId,
 } from "../tts/provider-registry.js";
 export { normalizeTtsAutoMode, TTS_AUTO_MODES } from "../tts/tts-auto-mode.js";
+
+export function asObject(value: unknown): Record<string, unknown> | undefined {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : undefined;
+}

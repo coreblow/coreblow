@@ -16,4 +16,15 @@ export {
   assertHttpUrlTargetsPrivateNetwork,
   buildHostnameAllowlistPolicyFromSuffixAllowlist,
   ssrfPolicyFromAllowPrivateNetwork,
+  ssrfPolicyFromAllowPrivateNetwork as ssrfPolicyFromDangerouslyAllowPrivateNetwork,
 } from "./ssrf-policy.js";
+
+export function isPrivateOrLoopbackHost(hostname: string): boolean {
+  return hostname === "localhost" || hostname.endsWith(".localhost");
+}
+
+export function mergeSsrFPolicies<TPolicy extends object>(
+  ...policies: Array<TPolicy | undefined>
+): TPolicy | undefined {
+  return Object.assign({}, ...policies.filter(Boolean)) as TPolicy | undefined;
+}

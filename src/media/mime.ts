@@ -20,6 +20,7 @@ const EXT_BY_MIME: Record<string, string> = {
   "audio/mp4": ".m4a",
   "video/mp4": ".mp4",
   "video/quicktime": ".mov",
+  "video/webm": ".webm",
   "application/pdf": ".pdf",
   "application/json": ".json",
   "application/zip": ".zip",

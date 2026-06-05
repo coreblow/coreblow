@@ -55,6 +55,7 @@ export type PluginManifestContracts = {
   imageGenerationProviders?: string[];
   videoGenerationProviders?: string[];
   musicGenerationProviders?: string[];
+  realtimeTranscriptionProviders?: string[];
   webSearchProviders?: string[];
   tools?: string[];
 };
