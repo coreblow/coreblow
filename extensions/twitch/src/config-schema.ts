@@ -44,6 +44,7 @@ const TwitchAccountSchema = z.object({
 const TwitchConfigBaseSchema = z.object({
   name: z.string().optional(),
   enabled: z.boolean().optional(),
+  defaultAccount: z.string().optional(),
   markdown: MarkdownConfigSchema.optional(),
 });
 
@@ -53,24 +54,19 @@ const TwitchConfigBaseSchema = z.object({
  * Use this for single-account setups. Properties are at the top level,
  * creating an implicit "default" account.
  */
-const SimplifiedSchema = z.intersection(TwitchConfigBaseSchema, TwitchAccountSchema);
+const SimplifiedSchema = TwitchConfigBaseSchema.extend(TwitchAccountSchema.shape);
 
 /**
  * Multi-account configuration schema
  *
  * Use this for multi-account setups. Each key is an account ID (e.g., "default", "secondary").
  */
-const MultiAccountSchema = z.intersection(
-  TwitchConfigBaseSchema,
-  z
-    .object({
-      /** Per-account configuration (for multi-account setups) */
-      accounts: z.record(z.string(), TwitchAccountSchema),
-    })
-    .refine((val) => Object.keys(val.accounts || {}).length > 0, {
-      message: "accounts must contain at least one entry",
-    }),
-);
+const MultiAccountSchema = TwitchConfigBaseSchema.extend({
+  /** Per-account configuration (for multi-account setups) */
+  accounts: z.record(z.string(), TwitchAccountSchema),
+}).refine((val) => Object.keys(val.accounts || {}).length > 0, {
+  message: "accounts must contain at least one entry",
+});
 
 /**
  * Twitch plugin configuration schema

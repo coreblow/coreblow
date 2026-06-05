@@ -130,9 +130,12 @@ export const twitchMessageActions: ChannelMessageActionAdapter = {
 
     const message = readStringParam(ctx.params, "message", { required: true });
     const to = readStringParam(ctx.params, "to", { required: false });
-    const accountId = ctx.accountId ?? DEFAULT_ACCOUNT_ID;
+    const requestedAccountId = ctx.accountId ?? undefined;
 
-    const { account, availableAccountIds } = resolveTwitchAccountContext(ctx.cfg, accountId);
+    const { accountId, account, availableAccountIds } = resolveTwitchAccountContext(
+      ctx.cfg,
+      requestedAccountId,
+    );
     if (!account) {
       return errorResponse(
         `Account not found: ${accountId}. Available accounts: ${availableAccountIds.join(", ") || "none"}`,

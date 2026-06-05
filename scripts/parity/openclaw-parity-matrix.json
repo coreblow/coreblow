@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6730,
+    "cb_source_files": 6770,
     "oc_source_files": 8443,
-    "source_parity_both": 4952,
-    "source_cb_exclusive": 1778,
-    "source_missing_from_cb": 3491,
-    "test_files_cb": 4241,
+    "source_parity_both": 4991,
+    "source_cb_exclusive": 1779,
+    "source_missing_from_cb": 3452,
+    "test_files_cb": 4254,
     "test_files_oc": 5246,
-    "tests_both_covered": 2865,
-    "tests_gap_oc_has_cb_missing": 2136,
+    "tests_both_covered": 2878,
+    "tests_gap_oc_has_cb_missing": 2123,
     "tests_cb_exclusive": 1322,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -3395,50 +3395,6 @@
       ]
     },
     {
-      "domain": "src/test-utils",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "src/test-utils",
-      "counts": {
-        "sharedSourcePaths": 29,
-        "coreBlowOnlySourcePaths": 4,
-        "openClawOnlySourcePaths": 15,
-        "sharedTestPaths": 4,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 1
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/test-utils/bundled-plugin-public-surface.ts",
-          "src/test-utils/fs-scan-assertions.ts",
-          "src/test-utils/generation-live-test-helpers.ts",
-          "src/test-utils/jiti-runtime.ts",
-          "src/test-utils/node-process.ts",
-          "src/test-utils/openclaw-test-state.ts",
-          "src/test-utils/plugin-runtime-env.ts",
-          "src/test-utils/plugin-setup-wizard.ts",
-          "src/test-utils/repo-files.ts",
-          "src/test-utils/session-conversation-registry.ts",
-          "src/test-utils/session-write-lock-module-mock.ts",
-          "src/test-utils/talk-test-provider.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/test-utils/openclaw-test-state.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/test-utils/imessage-test-plugin.ts",
-          "src/test-utils/model-auth-mock.ts",
-          "src/test-utils/repo-scan.ts",
-          "src/test-utils/runtime-source-guardrail-scan.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/test-utils",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/acpx",
       "status": "partial",
       "priority": "P3",
@@ -3573,59 +3529,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/wizard",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/irc",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/irc plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 23,
-        "coreBlowOnlySourcePaths": 12,
-        "openClawOnlySourcePaths": 12,
-        "sharedTestPaths": 14,
-        "coreBlowOnlyTestPaths": 6,
-        "openClawTestGaps": 2
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/irc/src/channel-api.ts",
-          "extensions/irc/src/channel-runtime.ts",
-          "extensions/irc/src/doctor.ts",
-          "extensions/irc/src/gateway.ts",
-          "extensions/irc/src/message-adapter.ts",
-          "extensions/irc/src/outbound-base.ts",
-          "extensions/irc/src/secret-contract.ts",
-          "extensions/irc/channel-plugin-api.ts",
-          "extensions/irc/configured-state.ts",
-          "extensions/irc/contract-api.ts",
-          "extensions/irc/runtime-api.ts",
-          "extensions/irc/secret-contract-api.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/irc/index.test.ts",
-          "extensions/irc/runtime-api.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "extensions/irc/src/adapter.ts",
-          "extensions/irc/src/config.ts",
-          "extensions/irc/src/extension.ts",
-          "extensions/irc/src/formatter.ts",
-          "extensions/irc/src/handler.ts",
-          "extensions/irc/src/index.ts",
-          "extensions/irc/src/media.ts",
-          "extensions/irc/src/rate-limiter.ts",
-          "extensions/irc/src/resolve-target.ts",
-          "extensions/irc/src/subagent-hooks.ts",
-          "extensions/irc/src/webhook.ts",
-          "extensions/irc/extension.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/irc",
         "pnpm check"
       ]
     },
@@ -3929,53 +3832,6 @@
       ]
     },
     {
-      "domain": "extensions/synology-chat",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/synology-chat plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 17,
-        "coreBlowOnlySourcePaths": 13,
-        "openClawOnlySourcePaths": 6,
-        "sharedTestPaths": 5,
-        "coreBlowOnlyTestPaths": 5,
-        "openClawTestGaps": 2
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/synology-chat/src/approval-auth.ts",
-          "extensions/synology-chat/src/inbound-event.ts",
-          "extensions/synology-chat/src/security-audit.ts",
-          "extensions/synology-chat/api.ts",
-          "extensions/synology-chat/channel-plugin-api.ts",
-          "extensions/synology-chat/contract-api.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/synology-chat/src/approval-auth.test.ts",
-          "extensions/synology-chat/src/security-audit.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "extensions/synology-chat/src/adapter.ts",
-          "extensions/synology-chat/src/config.ts",
-          "extensions/synology-chat/src/extension.ts",
-          "extensions/synology-chat/src/formatter.ts",
-          "extensions/synology-chat/src/handler.ts",
-          "extensions/synology-chat/src/inbound-turn.ts",
-          "extensions/synology-chat/src/index.ts",
-          "extensions/synology-chat/src/media.ts",
-          "extensions/synology-chat/src/rate-limiter.ts",
-          "extensions/synology-chat/src/resolve-target.ts",
-          "extensions/synology-chat/src/subagent-hooks.ts",
-          "extensions/synology-chat/src/webhook.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/synology-chat",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/mcp",
       "status": "partial",
       "priority": "P3",
@@ -4143,98 +3999,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/utils",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/diffs",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/diffs plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 16,
-        "coreBlowOnlySourcePaths": 13,
-        "openClawOnlySourcePaths": 3,
-        "sharedTestPaths": 5,
-        "coreBlowOnlyTestPaths": 5,
-        "openClawTestGaps": 4
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/diffs/src/language-hints.ts",
-          "extensions/diffs/src/plugin.ts",
-          "extensions/diffs/runtime-api.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/diffs/src/language-hints.test.ts",
-          "extensions/diffs/src/render-target.test.ts",
-          "extensions/diffs/src/render.test.ts",
-          "extensions/diffs/src/tool-render-output.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "extensions/diffs/src/adapter.ts",
-          "extensions/diffs/src/channel.ts",
-          "extensions/diffs/src/extension.ts",
-          "extensions/diffs/src/formatter.ts",
-          "extensions/diffs/src/handler.ts",
-          "extensions/diffs/src/index.ts",
-          "extensions/diffs/src/media.ts",
-          "extensions/diffs/src/rate-limiter.ts",
-          "extensions/diffs/src/resolve-target.ts",
-          "extensions/diffs/src/runtime.ts",
-          "extensions/diffs/src/subagent-hooks.ts",
-          "extensions/diffs/src/webhook.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/diffs",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/twitch",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/twitch plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 24,
-        "coreBlowOnlySourcePaths": 12,
-        "openClawOnlySourcePaths": 3,
-        "sharedTestPaths": 10,
-        "coreBlowOnlyTestPaths": 5,
-        "openClawTestGaps": 4
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/twitch/channel-plugin-api.ts",
-          "extensions/twitch/setup-entry.ts",
-          "extensions/twitch/setup-plugin-api.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/twitch/src/actions.test.ts",
-          "extensions/twitch/src/config-schema.test.ts",
-          "extensions/twitch/src/plugin.lifecycle.test.ts",
-          "extensions/twitch/index.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "extensions/twitch/src/adapter.ts",
-          "extensions/twitch/src/channel.ts",
-          "extensions/twitch/src/extension.ts",
-          "extensions/twitch/src/formatter.ts",
-          "extensions/twitch/src/handler.ts",
-          "extensions/twitch/src/index.ts",
-          "extensions/twitch/src/media.ts",
-          "extensions/twitch/src/rate-limiter.ts",
-          "extensions/twitch/src/resolve-target.ts",
-          "extensions/twitch/src/subagent-hooks.ts",
-          "extensions/twitch/src/webhook.ts",
-          "extensions/twitch/extension.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/twitch",
         "pnpm check"
       ]
     },
@@ -5393,6 +5157,43 @@
       ]
     },
     {
+      "domain": "extensions/diffs",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/diffs plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 19,
+        "coreBlowOnlySourcePaths": 13,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 9,
+        "coreBlowOnlyTestPaths": 5,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "extensions/diffs/src/adapter.ts",
+          "extensions/diffs/src/channel.ts",
+          "extensions/diffs/src/extension.ts",
+          "extensions/diffs/src/formatter.ts",
+          "extensions/diffs/src/handler.ts",
+          "extensions/diffs/src/index.ts",
+          "extensions/diffs/src/media.ts",
+          "extensions/diffs/src/rate-limiter.ts",
+          "extensions/diffs/src/resolve-target.ts",
+          "extensions/diffs/src/runtime.ts",
+          "extensions/diffs/src/subagent-hooks.ts",
+          "extensions/diffs/src/webhook.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/diffs",
+        "pnpm check"
+      ]
+    },
+    {
       "domain": "extensions/document-extract",
       "status": "done",
       "priority": "P3",
@@ -5742,6 +5543,43 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/inworld",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/irc",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/irc plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 35,
+        "coreBlowOnlySourcePaths": 12,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 16,
+        "coreBlowOnlyTestPaths": 6,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "extensions/irc/src/adapter.ts",
+          "extensions/irc/src/config.ts",
+          "extensions/irc/src/extension.ts",
+          "extensions/irc/src/formatter.ts",
+          "extensions/irc/src/handler.ts",
+          "extensions/irc/src/index.ts",
+          "extensions/irc/src/media.ts",
+          "extensions/irc/src/rate-limiter.ts",
+          "extensions/irc/src/resolve-target.ts",
+          "extensions/irc/src/subagent-hooks.ts",
+          "extensions/irc/src/webhook.ts",
+          "extensions/irc/extension.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/irc",
         "pnpm check"
       ]
     },
@@ -6785,6 +6623,43 @@
       ]
     },
     {
+      "domain": "extensions/synology-chat",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/synology-chat plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 23,
+        "coreBlowOnlySourcePaths": 13,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 7,
+        "coreBlowOnlyTestPaths": 5,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "extensions/synology-chat/src/adapter.ts",
+          "extensions/synology-chat/src/config.ts",
+          "extensions/synology-chat/src/extension.ts",
+          "extensions/synology-chat/src/formatter.ts",
+          "extensions/synology-chat/src/handler.ts",
+          "extensions/synology-chat/src/inbound-turn.ts",
+          "extensions/synology-chat/src/index.ts",
+          "extensions/synology-chat/src/media.ts",
+          "extensions/synology-chat/src/rate-limiter.ts",
+          "extensions/synology-chat/src/resolve-target.ts",
+          "extensions/synology-chat/src/subagent-hooks.ts",
+          "extensions/synology-chat/src/webhook.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/synology-chat",
+        "pnpm check"
+      ]
+    },
+    {
       "domain": "extensions/synthetic",
       "status": "done",
       "priority": "P3",
@@ -7086,6 +6961,43 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/tts-local-cli",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/twitch",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/twitch plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 27,
+        "coreBlowOnlySourcePaths": 12,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 14,
+        "coreBlowOnlyTestPaths": 5,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "extensions/twitch/src/adapter.ts",
+          "extensions/twitch/src/channel.ts",
+          "extensions/twitch/src/extension.ts",
+          "extensions/twitch/src/formatter.ts",
+          "extensions/twitch/src/handler.ts",
+          "extensions/twitch/src/index.ts",
+          "extensions/twitch/src/media.ts",
+          "extensions/twitch/src/rate-limiter.ts",
+          "extensions/twitch/src/resolve-target.ts",
+          "extensions/twitch/src/subagent-hooks.ts",
+          "extensions/twitch/src/webhook.ts",
+          "extensions/twitch/extension.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/twitch",
         "pnpm check"
       ]
     },
@@ -9260,6 +9172,36 @@
       "notes": "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture.",
       "gates": [
         "pnpm test -- src/test-seams",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/test-utils",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/test-utils",
+      "counts": {
+        "sharedSourcePaths": 44,
+        "coreBlowOnlySourcePaths": 5,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 5,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "src/test-utils/coreblow-test-state.ts",
+          "src/test-utils/imessage-test-plugin.ts",
+          "src/test-utils/model-auth-mock.ts",
+          "src/test-utils/repo-scan.ts",
+          "src/test-utils/runtime-source-guardrail-scan.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/test-utils",
         "pnpm check"
       ]
     },

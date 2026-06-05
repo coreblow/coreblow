@@ -122,7 +122,10 @@ export function resolveTwitchAccountContext(
   cfg: CoreBlowConfig,
   accountId?: string | null,
 ): ResolvedTwitchAccountContext {
-  const resolvedAccountId = accountId?.trim() || DEFAULT_ACCOUNT_ID;
+  const twitchRaw = cfg.channels?.twitch as Record<string, unknown> | undefined;
+  const configuredDefault =
+    typeof twitchRaw?.defaultAccount === "string" ? twitchRaw.defaultAccount.trim() : "";
+  const resolvedAccountId = accountId?.trim() || configuredDefault || DEFAULT_ACCOUNT_ID;
   const account = getAccountConfig(cfg, resolvedAccountId);
   const tokenResolution = resolveTwitchToken(cfg, { accountId: resolvedAccountId });
   return {
