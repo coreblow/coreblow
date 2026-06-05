@@ -33,6 +33,7 @@ import type { HookEntry } from "../hooks/types.js";
 import type { ImageGenerationProvider } from "../image-generation/types.js";
 import type { ProviderUsageSnapshot } from "../infra/provider-usage.types.js";
 import type { MediaUnderstandingProvider } from "../media-understanding/types.js";
+import type { MusicGenerationProvider } from "../music-generation/types.js";
 import type { RuntimeEnv } from "../runtime.js";
 import type { RuntimeWebSearchMetadata } from "../secrets/runtime-web-tools.types.js";
 import type { VideoGenerationProvider } from "../video-generation/types.js";
@@ -1262,6 +1263,7 @@ export type PluginSpeechProviderEntry = SpeechProviderPlugin & {
 export type MediaUnderstandingProviderPlugin = MediaUnderstandingProvider;
 export type ImageGenerationProviderPlugin = ImageGenerationProvider;
 export type VideoGenerationProviderPlugin = VideoGenerationProvider;
+export type MusicGenerationProviderPlugin = MusicGenerationProvider;
 
 export type CoreBlowPluginGatewayMethod = {
   method: string;
@@ -1781,6 +1783,8 @@ export type CoreBlowPluginApi = {
   registerImageGenerationProvider: (provider: ImageGenerationProviderPlugin) => void;
   /** Register a video generation provider (video generation capability). */
   registerVideoGenerationProvider: (provider: VideoGenerationProviderPlugin) => void;
+  /** Register a music generation provider (music generation capability). */
+  registerMusicGenerationProvider: (provider: MusicGenerationProviderPlugin) => void;
   /** Register a web search provider (web search capability). */
   registerWebSearchProvider: (provider: WebSearchProviderPlugin) => void;
   registerInteractiveHandler: (registration: PluginInteractiveHandlerRegistration) => void;

@@ -4178,6 +4178,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       ],
       contracts: {
         imageGenerationProviders: ["fal"],
+        musicGenerationProviders: ["fal"],
       },
     },
   },
@@ -11669,6 +11670,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       ],
       contracts: {
         mediaUnderstandingProviders: ["openrouter"],
+        musicGenerationProviders: ["openrouter"],
       },
     },
   },

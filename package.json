@@ -704,6 +704,18 @@
       "types": "./dist/plugin-sdk/image-generation-runtime.d.ts",
       "default": "./dist/plugin-sdk/image-generation-runtime.js"
     },
+    "./plugin-sdk/music-generation": {
+      "types": "./dist/plugin-sdk/music-generation.d.ts",
+      "default": "./dist/plugin-sdk/music-generation.js"
+    },
+    "./plugin-sdk/music-generation-core": {
+      "types": "./dist/plugin-sdk/music-generation-core.d.ts",
+      "default": "./dist/plugin-sdk/music-generation-core.js"
+    },
+    "./plugin-sdk/music-generation-runtime": {
+      "types": "./dist/plugin-sdk/music-generation-runtime.d.ts",
+      "default": "./dist/plugin-sdk/music-generation-runtime.js"
+    },
     "./plugin-sdk/video-generation-core": {
       "types": "./dist/plugin-sdk/video-generation-core.d.ts",
       "default": "./dist/plugin-sdk/video-generation-core.js"

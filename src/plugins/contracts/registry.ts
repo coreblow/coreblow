@@ -1,6 +1,7 @@
 import {
   BUNDLED_IMAGE_GENERATION_PLUGIN_IDS,
   BUNDLED_MEDIA_UNDERSTANDING_PLUGIN_IDS,
+  BUNDLED_MUSIC_GENERATION_PLUGIN_IDS,
   BUNDLED_PLUGIN_CONTRACT_SNAPSHOTS,
   BUNDLED_PROVIDER_PLUGIN_IDS,
   BUNDLED_SPEECH_PLUGIN_IDS,
@@ -11,6 +12,7 @@ import { resolvePluginProviders } from "../providers.runtime.js";
 import type {
   ImageGenerationProviderPlugin,
   MediaUnderstandingProviderPlugin,
+  MusicGenerationProviderPlugin,
   ProviderPlugin,
   SpeechProviderPlugin,
   WebSearchProviderPlugin,
@@ -36,6 +38,7 @@ type SpeechProviderContractEntry = CapabilityContractEntry<SpeechProviderPlugin>
 type MediaUnderstandingProviderContractEntry =
   CapabilityContractEntry<MediaUnderstandingProviderPlugin>;
 type ImageGenerationProviderContractEntry = CapabilityContractEntry<ImageGenerationProviderPlugin>;
+type MusicGenerationProviderContractEntry = CapabilityContractEntry<MusicGenerationProviderPlugin>;
 
 type PluginRegistrationContractEntry = {
   pluginId: string;
@@ -45,6 +48,7 @@ type PluginRegistrationContractEntry = {
   mediaUnderstandingProviderIds: string[];
   imageGenerationProviderIds: string[];
   videoGenerationProviderIds: string[];
+  musicGenerationProviderIds: string[];
   webSearchProviderIds: string[];
   toolNames: string[];
 };
@@ -83,6 +87,8 @@ let mediaUnderstandingProviderContractRegistryCache:
   | MediaUnderstandingProviderContractEntry[]
   | null = null;
 let imageGenerationProviderContractRegistryCache: ImageGenerationProviderContractEntry[] | null =
+  null;
+let musicGenerationProviderContractRegistryCache: MusicGenerationProviderContractEntry[] | null =
   null;
 const providerContractPluginIdsByProviderId = createProviderContractPluginIdsByProviderId();
 const providerContractEntriesByPluginId = new Map<string, ProviderContractEntry[]>();
@@ -221,6 +227,19 @@ function loadImageGenerationProviderContractRegistry(): ImageGenerationProviderC
   return imageGenerationProviderContractRegistryCache;
 }
 
+function loadMusicGenerationProviderContractRegistry(): MusicGenerationProviderContractEntry[] {
+  if (!musicGenerationProviderContractRegistryCache) {
+    musicGenerationProviderContractRegistryCache = loadBundledCapabilityRuntimeRegistry({
+      pluginIds: BUNDLED_MUSIC_GENERATION_PLUGIN_IDS,
+      pluginSdkResolution: "dist",
+    }).musicGenerationProviders?.map((entry) => ({
+      pluginId: entry.pluginId,
+      provider: entry.provider,
+    })) ?? [];
+  }
+  return musicGenerationProviderContractRegistryCache;
+}
+
 function createLazyArrayView<T>(load: () => T[]): T[] {
   return new Proxy([] as T[], {
     get(_target, prop) {
@@ -317,6 +336,9 @@ export const mediaUnderstandingProviderContractRegistry: MediaUnderstandingProvi
 export const imageGenerationProviderContractRegistry: ImageGenerationProviderContractEntry[] =
   createLazyArrayView(loadImageGenerationProviderContractRegistry);
 
+export const musicGenerationProviderContractRegistry: MusicGenerationProviderContractEntry[] =
+  createLazyArrayView(loadMusicGenerationProviderContractRegistry);
+
 function loadPluginRegistrationContractRegistry(): PluginRegistrationContractEntry[] {
   return BUNDLED_PLUGIN_CONTRACT_SNAPSHOTS.map((entry) => ({
     pluginId: entry.pluginId,
@@ -326,6 +348,7 @@ function loadPluginRegistrationContractRegistry(): PluginRegistrationContractEnt
     mediaUnderstandingProviderIds: uniqueStrings(entry.mediaUnderstandingProviderIds),
     imageGenerationProviderIds: uniqueStrings(entry.imageGenerationProviderIds),
     videoGenerationProviderIds: uniqueStrings(entry.videoGenerationProviderIds),
+    musicGenerationProviderIds: uniqueStrings(entry.musicGenerationProviderIds),
     webSearchProviderIds: uniqueStrings(entry.webSearchProviderIds),
     toolNames: uniqueStrings(entry.toolNames),
   }));

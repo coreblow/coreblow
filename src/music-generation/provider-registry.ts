@@ -1,9 +1,10 @@
 import { normalizeProviderId } from "../agents/provider-id.js";
 import type { CoreBlowConfig } from "../config/config.js";
 import { isBlockedObjectKey } from "../infra/prototype-keys.js";
-import type { MusicGenerationProvider } from "./types.js";
+import { resolvePluginCapabilityProviders } from "../plugins/capability-provider-runtime.js";
+import type { MusicGenerationProviderPlugin } from "../plugins/types.js";
 
-const BUILTIN_MUSIC_GENERATION_PROVIDERS: readonly MusicGenerationProvider[] = [];
+const BUILTIN_MUSIC_GENERATION_PROVIDERS: readonly MusicGenerationProviderPlugin[] = [];
 const UNSAFE_PROVIDER_IDS = new Set(["__proto__", "constructor", "prototype"]);
 
 function normalizeMusicGenerationProviderId(id: string | undefined): string | undefined {
@@ -18,17 +19,22 @@ function isSafeMusicGenerationProviderId(id: string | undefined): id is string {
   return Boolean(id && !UNSAFE_PROVIDER_IDS.has(id));
 }
 
-function resolvePluginMusicGenerationProviders(_cfg?: CoreBlowConfig): MusicGenerationProvider[] {
-  return [];
+function resolvePluginMusicGenerationProviders(
+  cfg?: CoreBlowConfig,
+): MusicGenerationProviderPlugin[] {
+  return resolvePluginCapabilityProviders({
+    key: "musicGenerationProviders",
+    cfg,
+  });
 }
 
 function buildProviderMaps(cfg?: CoreBlowConfig): {
-  canonical: Map<string, MusicGenerationProvider>;
-  aliases: Map<string, MusicGenerationProvider>;
+  canonical: Map<string, MusicGenerationProviderPlugin>;
+  aliases: Map<string, MusicGenerationProviderPlugin>;
 } {
-  const canonical = new Map<string, MusicGenerationProvider>();
-  const aliases = new Map<string, MusicGenerationProvider>();
-  const register = (provider: MusicGenerationProvider) => {
+  const canonical = new Map<string, MusicGenerationProviderPlugin>();
+  const aliases = new Map<string, MusicGenerationProviderPlugin>();
+  const register = (provider: MusicGenerationProviderPlugin) => {
     const id = normalizeMusicGenerationProviderId(provider.id);
     if (!isSafeMusicGenerationProviderId(id)) {
       return;
@@ -53,14 +59,14 @@ function buildProviderMaps(cfg?: CoreBlowConfig): {
   return { canonical, aliases };
 }
 
-export function listMusicGenerationProviders(cfg?: CoreBlowConfig): MusicGenerationProvider[] {
+export function listMusicGenerationProviders(cfg?: CoreBlowConfig): MusicGenerationProviderPlugin[] {
   return [...buildProviderMaps(cfg).canonical.values()];
 }
 
 export function getMusicGenerationProvider(
   providerId: string | undefined,
   cfg?: CoreBlowConfig,
-): MusicGenerationProvider | undefined {
+): MusicGenerationProviderPlugin | undefined {
   const normalized = normalizeMusicGenerationProviderId(providerId);
   if (!normalized) {
     return undefined;

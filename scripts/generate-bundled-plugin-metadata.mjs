@@ -130,12 +130,16 @@ function normalizeManifestContracts(raw) {
   const speechProviders = normalizeStringList(contracts.speechProviders);
   const mediaUnderstandingProviders = normalizeStringList(contracts.mediaUnderstandingProviders);
   const imageGenerationProviders = normalizeStringList(contracts.imageGenerationProviders);
+  const videoGenerationProviders = normalizeStringList(contracts.videoGenerationProviders);
+  const musicGenerationProviders = normalizeStringList(contracts.musicGenerationProviders);
   const webSearchProviders = normalizeStringList(contracts.webSearchProviders);
   const tools = normalizeStringList(contracts.tools);
   const normalized = {
     ...(speechProviders?.length ? { speechProviders } : {}),
     ...(mediaUnderstandingProviders?.length ? { mediaUnderstandingProviders } : {}),
     ...(imageGenerationProviders?.length ? { imageGenerationProviders } : {}),
+    ...(videoGenerationProviders?.length ? { videoGenerationProviders } : {}),
+    ...(musicGenerationProviders?.length ? { musicGenerationProviders } : {}),
     ...(webSearchProviders?.length ? { webSearchProviders } : {}),
     ...(tools?.length ? { tools } : {}),
   };

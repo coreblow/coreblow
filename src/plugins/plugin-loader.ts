@@ -129,6 +129,7 @@ function makePluginRecord(params: {
         mediaUnderstandingProviderIds: [],
         imageGenerationProviderIds: [],
         videoGenerationProviderIds: [],
+        musicGenerationProviderIds: [],
         webSearchProviderIds: [],
         gatewayMethods: [],
         cliCommands: [],

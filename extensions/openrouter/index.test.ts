@@ -34,6 +34,7 @@ describe("openrouter plugin", () => {
     expect(mediaUnderstandingProviders.map((provider) => provider.id)).toEqual(["openrouter"]);
     expect(imageGenerationProviders.map((provider) => provider.id)).toEqual(["openrouter"]);
     expect(captured.videoGenerationProviders.map((provider) => provider.id)).toEqual(["openrouter"]);
+    expect(captured.musicGenerationProviders.map((provider) => provider.id)).toEqual(["openrouter"]);
   });
 });
 

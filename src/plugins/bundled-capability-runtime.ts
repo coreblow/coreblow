@@ -122,6 +122,7 @@ function createCapabilityPluginRecord(params: {
     mediaUnderstandingProviderIds: [],
     imageGenerationProviderIds: [],
     videoGenerationProviderIds: [],
+    musicGenerationProviderIds: [],
     webSearchProviderIds: [],
     gatewayMethods: [],
     cliCommands: [],
@@ -278,6 +279,9 @@ export function loadBundledCapabilityRuntimeRegistry(params: {
       record.videoGenerationProviderIds.push(
         ...captured.videoGenerationProviders.map((entry) => entry.id),
       );
+      record.musicGenerationProviderIds?.push(
+        ...captured.musicGenerationProviders.map((entry) => entry.id),
+      );
       record.webSearchProviderIds.push(...captured.webSearchProviders.map((entry) => entry.id));
       record.toolNames.push(...captured.tools.map((entry) => entry.name));
 
@@ -319,6 +323,24 @@ export function loadBundledCapabilityRuntimeRegistry(params: {
       );
       registry.imageGenerationProviders.push(
         ...captured.imageGenerationProviders.map((provider) => ({
+          pluginId: record.id,
+          pluginName: record.name,
+          provider,
+          source: record.source,
+          rootDir: record.rootDir,
+        })),
+      );
+      registry.videoGenerationProviders.push(
+        ...captured.videoGenerationProviders.map((provider) => ({
+          pluginId: record.id,
+          pluginName: record.name,
+          provider,
+          source: record.source,
+          rootDir: record.rootDir,
+        })),
+      );
+      registry.musicGenerationProviders?.push(
+        ...captured.musicGenerationProviders.map((provider) => ({
           pluginId: record.id,
           pluginName: record.name,
           provider,

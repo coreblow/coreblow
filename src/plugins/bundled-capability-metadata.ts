@@ -8,6 +8,7 @@ export type BundledPluginContractSnapshot = {
   mediaUnderstandingProviderIds: string[];
   imageGenerationProviderIds: string[];
   videoGenerationProviderIds: string[];
+  musicGenerationProviderIds: string[];
   webSearchProviderIds: string[];
   toolNames: string[];
 };
@@ -35,6 +36,7 @@ export const BUNDLED_PLUGIN_CONTRACT_SNAPSHOTS: readonly BundledPluginContractSn
     mediaUnderstandingProviderIds: uniqueStrings(manifest.contracts?.mediaUnderstandingProviders),
     imageGenerationProviderIds: uniqueStrings(manifest.contracts?.imageGenerationProviders),
     videoGenerationProviderIds: uniqueStrings(manifest.contracts?.videoGenerationProviders),
+    musicGenerationProviderIds: uniqueStrings(manifest.contracts?.musicGenerationProviders),
     webSearchProviderIds: uniqueStrings(manifest.contracts?.webSearchProviders),
     toolNames: uniqueStrings(manifest.contracts?.tools),
   }))
@@ -46,6 +48,7 @@ export const BUNDLED_PLUGIN_CONTRACT_SNAPSHOTS: readonly BundledPluginContractSn
         entry.mediaUnderstandingProviderIds.length > 0 ||
         entry.imageGenerationProviderIds.length > 0 ||
         entry.videoGenerationProviderIds.length > 0 ||
+        entry.musicGenerationProviderIds.length > 0 ||
         entry.webSearchProviderIds.length > 0 ||
         entry.toolNames.length > 0,
     )
@@ -75,6 +78,10 @@ export const BUNDLED_VIDEO_GENERATION_PLUGIN_IDS = collectPluginIds(
   (entry) => entry.videoGenerationProviderIds,
 );
 
+export const BUNDLED_MUSIC_GENERATION_PLUGIN_IDS = collectPluginIds(
+  (entry) => entry.musicGenerationProviderIds,
+);
+
 export const BUNDLED_RUNTIME_CONTRACT_PLUGIN_IDS = [
   ...new Set(
     BUNDLED_PLUGIN_CONTRACT_SNAPSHOTS.filter(
@@ -84,6 +91,7 @@ export const BUNDLED_RUNTIME_CONTRACT_PLUGIN_IDS = [
         entry.mediaUnderstandingProviderIds.length > 0 ||
         entry.imageGenerationProviderIds.length > 0 ||
         entry.videoGenerationProviderIds.length > 0 ||
+        entry.musicGenerationProviderIds.length > 0 ||
         entry.webSearchProviderIds.length > 0,
     ).map((entry) => entry.pluginId),
   ),

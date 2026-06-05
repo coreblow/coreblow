@@ -109,7 +109,12 @@ function setBundledCapabilityFixture(contractKey: string) {
 }
 
 function expectCompatChainApplied(params: {
-  key: "speechProviders" | "mediaUnderstandingProviders" | "imageGenerationProviders";
+  key:
+    | "speechProviders"
+    | "mediaUnderstandingProviders"
+    | "imageGenerationProviders"
+    | "videoGenerationProviders"
+    | "musicGenerationProviders";
   contractKey: string;
   cfg: CoreBlowConfig;
   allowlistCompat: { plugins: { allow: string[] } };
@@ -212,6 +217,8 @@ describe("resolvePluginCapabilityProviders", () => {
     ["speechProviders", "speechProviders"],
     ["mediaUnderstandingProviders", "mediaUnderstandingProviders"],
     ["imageGenerationProviders", "imageGenerationProviders"],
+    ["videoGenerationProviders", "videoGenerationProviders"],
+    ["musicGenerationProviders", "musicGenerationProviders"],
   ] as const)("applies bundled compat before fallback loading for %s", (key, contractKey) => {
     const { cfg, allowlistCompat, enablementCompat } = createCompatChainConfig();
     expectCompatChainApplied({

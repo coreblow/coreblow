@@ -56,6 +56,7 @@ import type {
   CoreBlowPluginNodeHostCommand,
   CoreBlowPluginNodeInvokePolicy,
   MediaUnderstandingProviderPlugin,
+  MusicGenerationProviderPlugin,
   ProviderPlugin,
   CoreBlowPluginService,
   CoreBlowPluginToolContext,
@@ -165,6 +166,8 @@ export type PluginImageGenerationProviderRegistration =
   PluginOwnedProviderRegistration<ImageGenerationProviderPlugin>;
 export type PluginVideoGenerationProviderRegistration =
   PluginOwnedProviderRegistration<VideoGenerationProviderPlugin>;
+export type PluginMusicGenerationProviderRegistration =
+  PluginOwnedProviderRegistration<MusicGenerationProviderPlugin>;
 export type PluginWebSearchProviderRegistration =
   PluginOwnedProviderRegistration<WebSearchProviderPlugin>;
 
@@ -243,6 +246,7 @@ export type PluginRecord = {
   mediaUnderstandingProviderIds: string[];
   imageGenerationProviderIds: string[];
   videoGenerationProviderIds: string[];
+  musicGenerationProviderIds?: string[];
   webSearchProviderIds: string[];
   gatewayMethods: string[];
   cliCommands: string[];
@@ -269,6 +273,7 @@ export type PluginRegistry = {
   mediaUnderstandingProviders: PluginMediaUnderstandingProviderRegistration[];
   imageGenerationProviders: PluginImageGenerationProviderRegistration[];
   videoGenerationProviders: PluginVideoGenerationProviderRegistration[];
+  musicGenerationProviders?: PluginMusicGenerationProviderRegistration[];
   webSearchProviders: PluginWebSearchProviderRegistration[];
   gatewayHandlers: GatewayRequestHandlers;
   gatewayMethodScopes?: Partial<Record<string, OperatorScope>>;
@@ -869,6 +874,19 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     });
   };
 
+  const registerMusicGenerationProvider = (
+    record: PluginRecord,
+    provider: MusicGenerationProviderPlugin,
+  ) => {
+    registerUniqueProviderLike({
+      record,
+      provider,
+      kindLabel: "music-generation provider",
+      registrations: (registry.musicGenerationProviders ??= []),
+      ownedIds: (record.musicGenerationProviderIds ??= []),
+    });
+  };
+
   const registerWebSearchProvider = (record: PluginRecord, provider: WebSearchProviderPlugin) => {
     registerUniqueProviderLike({
       record,
@@ -1151,6 +1169,8 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
                 registerImageGenerationProvider(record, provider),
               registerVideoGenerationProvider: (provider) =>
                 registerVideoGenerationProvider(record, provider),
+              registerMusicGenerationProvider: (provider) =>
+                registerMusicGenerationProvider(record, provider),
               registerWebSearchProvider: (provider) => registerWebSearchProvider(record, provider),
               registerGatewayMethod: (method, handler, opts) =>
                 registerGatewayMethod(record, method, handler, opts),
@@ -1284,6 +1304,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     registerMediaUnderstandingProvider,
     registerImageGenerationProvider,
     registerVideoGenerationProvider,
+    registerMusicGenerationProvider,
     registerWebSearchProvider,
     registerGatewayMethod,
     registerNodeHostCommand,

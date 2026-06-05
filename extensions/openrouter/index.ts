@@ -12,6 +12,7 @@ import {
 import { applyXaiModelCompat } from "coreblow/plugin-sdk/xai";
 import { buildOpenRouterImageGenerationProvider } from "./image-generation-provider.js";
 import { openrouterMediaUnderstandingProvider } from "./media-understanding-provider.js";
+import { buildOpenRouterMusicGenerationProvider } from "./music-generation-provider.js";
 import { applyOpenrouterConfig, OPENROUTER_DEFAULT_MODEL_REF } from "./onboard.js";
 import { buildOpenrouterProvider, OPENROUTER_BASE_URL } from "./provider-catalog.js";
 import { buildOpenRouterSpeechProvider } from "./speech-provider.js";
@@ -126,5 +127,6 @@ export default definePluginEntry({
     api.registerSpeechProvider(buildOpenRouterSpeechProvider());
     api.registerImageGenerationProvider(buildOpenRouterImageGenerationProvider());
     api.registerVideoGenerationProvider(buildOpenRouterVideoGenerationProvider());
+    api.registerMusicGenerationProvider(buildOpenRouterMusicGenerationProvider());
   },
 });

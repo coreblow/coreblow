@@ -44,6 +44,7 @@ export type {
 export type {
   AnyAgentTool,
   CliBackendPlugin,
+  MusicGenerationProviderPlugin,
   MediaUnderstandingProviderPlugin,
   CoreBlowPluginApi,
   CoreBlowPluginConfigSchema,
@@ -63,6 +64,7 @@ export type { CoreBlowConfig } from "../config/config.js";
 
 export type { CliBackendConfig } from "../config/types.js";
 export * from "./image-generation.js";
+export * from "./music-generation.js";
 export type { SecretInput, SecretRef } from "../config/types.secrets.js";
 export type { RuntimeEnv } from "../runtime.js";
 export type { HookEntry } from "../hooks/types.js";

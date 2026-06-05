@@ -1,5 +1,6 @@
 import { definePluginEntry } from "coreblow/plugin-sdk/plugin-entry";
 import { buildFalImageGenerationProvider } from "./image-generation-provider.js";
+import { buildFalMusicGenerationProvider } from "./music-generation-provider.js";
 import { createFalProvider } from "./provider-registration.js";
 import { buildFalVideoGenerationProvider } from "./video-generation-provider.js";
 
@@ -13,5 +14,6 @@ export default definePluginEntry({
     api.registerProvider(createFalProvider());
     api.registerImageGenerationProvider(buildFalImageGenerationProvider());
     api.registerVideoGenerationProvider(buildFalVideoGenerationProvider());
+    api.registerMusicGenerationProvider(buildFalMusicGenerationProvider());
   },
 });

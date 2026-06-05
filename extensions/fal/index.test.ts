@@ -3,7 +3,7 @@ import { createCapturedPluginRegistration } from "../../src/plugins/captured-reg
 import plugin from "./index.js";
 
 describe("fal plugin", () => {
-  it("registers provider, image generation, and video generation surfaces", () => {
+  it("registers provider and media generation surfaces", () => {
     const captured = createCapturedPluginRegistration();
     plugin.register(captured.api);
 
@@ -13,5 +13,6 @@ describe("fal plugin", () => {
     );
     expect(captured.imageGenerationProviders.map((provider) => provider.id)).toEqual(["fal"]);
     expect(captured.videoGenerationProviders.map((provider) => provider.id)).toEqual(["fal"]);
+    expect(captured.musicGenerationProviders.map((provider) => provider.id)).toEqual(["fal"]);
   });
 });

@@ -23,6 +23,7 @@ export function createTestPluginApi(api: TestPluginApiInput): CoreBlowPluginApi 
     registerMediaUnderstandingProvider() {},
     registerImageGenerationProvider() {},
     registerVideoGenerationProvider() {},
+    registerMusicGenerationProvider() {},
     registerWebSearchProvider() {},
     registerInteractiveHandler() {},
     onConversationBindingResolved() {},

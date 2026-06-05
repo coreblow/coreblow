@@ -30,6 +30,9 @@
   "contracts": {
     "imageGenerationProviders": [
       "fal"
+    ],
+    "musicGenerationProviders": [
+      "fal"
     ]
   },
   "configSchema": {

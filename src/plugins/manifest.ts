@@ -54,6 +54,7 @@ export type PluginManifestContracts = {
   mediaUnderstandingProviders?: string[];
   imageGenerationProviders?: string[];
   videoGenerationProviders?: string[];
+  musicGenerationProviders?: string[];
   webSearchProviders?: string[];
   tools?: string[];
 };
@@ -127,6 +128,7 @@ function normalizeManifestContracts(value: unknown): PluginManifestContracts | u
   const mediaUnderstandingProviders = normalizeStringList(value.mediaUnderstandingProviders);
   const imageGenerationProviders = normalizeStringList(value.imageGenerationProviders);
   const videoGenerationProviders = normalizeStringList(value.videoGenerationProviders);
+  const musicGenerationProviders = normalizeStringList(value.musicGenerationProviders);
   const webSearchProviders = normalizeStringList(value.webSearchProviders);
   const tools = normalizeStringList(value.tools);
   const contracts = {
@@ -134,6 +136,7 @@ function normalizeManifestContracts(value: unknown): PluginManifestContracts | u
     ...(mediaUnderstandingProviders.length > 0 ? { mediaUnderstandingProviders } : {}),
     ...(imageGenerationProviders.length > 0 ? { imageGenerationProviders } : {}),
     ...(videoGenerationProviders.length > 0 ? { videoGenerationProviders } : {}),
+    ...(musicGenerationProviders.length > 0 ? { musicGenerationProviders } : {}),
     ...(webSearchProviders.length > 0 ? { webSearchProviders } : {}),
     ...(tools.length > 0 ? { tools } : {}),
   } satisfies PluginManifestContracts;

@@ -29,6 +29,7 @@ export type PluginCapabilityKind =
   | "media-understanding"
   | "image-generation"
   | "video-generation"
+  | "music-generation"
   | "web-search"
   | "channel";
 
@@ -206,6 +207,7 @@ function buildCapabilityEntries(plugin: PluginRegistry["plugins"][number]) {
     { kind: "media-understanding" as const, ids: plugin.mediaUnderstandingProviderIds },
     { kind: "image-generation" as const, ids: plugin.imageGenerationProviderIds },
     { kind: "video-generation" as const, ids: plugin.videoGenerationProviderIds },
+    { kind: "music-generation" as const, ids: plugin.musicGenerationProviderIds ?? [] },
     { kind: "web-search" as const, ids: plugin.webSearchProviderIds },
     { kind: "channel" as const, ids: plugin.channelIds },
   ].filter((entry) => entry.ids.length > 0);
