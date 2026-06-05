@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CoreBlow ACPX — MCP Server Injection Proxy
+// CoreBlow ACP runtime - MCP Server Injection Proxy
 //
 // Sits between an MCP client and a target agent subprocess, transparently
 // augmenting session-init JSONRPC calls with pre-configured MCP server entries.

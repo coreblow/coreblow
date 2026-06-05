@@ -60,7 +60,7 @@ export function createAcpxRuntimeService(
       const expectedVersionLabel = pluginConfig.expectedVersion ?? "any";
       const installLabel = pluginConfig.allowPluginLocalInstall ? "enabled" : "disabled";
       ctx.logger.info(
-        `acpx runtime backend registered (command: ${pluginConfig.command}, expectedVersion: ${expectedVersionLabel}, pluginLocalInstall: ${installLabel})`,
+        `ACP runtime backend registered (acpx command: ${pluginConfig.command}, expectedVersion: ${expectedVersionLabel}, pluginLocalInstall: ${installLabel})`,
       );
 
       lifecycleRevision += 1;
@@ -82,16 +82,16 @@ export function createAcpxRuntimeService(
           }
           await runtime?.probeAvailability();
           if (runtime?.isHealthy()) {
-            ctx.logger.info("acpx runtime backend ready");
+            ctx.logger.info("ACP runtime backend ready");
           } else {
-            ctx.logger.warn("acpx runtime backend probe failed after local install");
+            ctx.logger.warn("ACP runtime backend probe failed after local acpx install");
           }
         } catch (err) {
           if (currentRevision !== lifecycleRevision) {
             return;
           }
           ctx.logger.warn(
-            `acpx runtime setup failed: ${err instanceof Error ? err.message : String(err)}`,
+            `ACP runtime setup failed: ${err instanceof Error ? err.message : String(err)}`,
           );
         }
       })();

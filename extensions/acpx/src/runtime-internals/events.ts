@@ -301,7 +301,7 @@ export function parsePromptEventLine(line: string): AcpRuntimeEvent | null {
       };
     }
     case "error": {
-      const message = asTrimmedString(payload.message) || "acpx runtime error";
+      const message = asTrimmedString(payload.message) || "ACP runtime error";
       return {
         type: "error",
         message,

@@ -85,7 +85,7 @@ function formatAcpxExitMessage(params: {
   if (params.exitCode === ACPX_EXIT_CODE_PERMISSION_DENIED) {
     return [
       stderr || "Permission denied by ACP runtime (acpx).",
-      "ACPX blocked a write/exec permission request in a non-interactive session.",
+      "ACP runtime blocked a write/exec permission request in a non-interactive session.",
       formatPermissionModeGuidance(),
     ].join(" ");
   }
@@ -862,7 +862,7 @@ export class AcpxRuntime implements AcpRuntime {
     if (!legacyName) {
       throw new AcpRuntimeError(
         "ACP_SESSION_INIT_FAILED",
-        "Invalid acpx runtime handle: runtimeSessionName is missing.",
+        "Invalid ACP runtime handle: runtimeSessionName is missing.",
       );
     }
 

@@ -1,4 +1,4 @@
-# @coreblow/ext-acpx
+# ACP Runtime
 
 Agent Communication Protocol extensions
 

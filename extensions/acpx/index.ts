@@ -4,7 +4,7 @@ import { createAcpxRuntimeService } from "./src/service.js";
 
 const plugin = {
   id: "acpx",
-  name: "ACPX Runtime",
+  name: "ACP Runtime",
   description: "ACP runtime backend powered by the acpx CLI.",
   configSchema: createAcpxPluginConfigSchema(),
   register(api: CoreBlowPluginApi) {
