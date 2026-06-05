@@ -41,6 +41,10 @@ export {
   resolveLmstudioRuntimeApiKey,
 } from "./src/runtime.js";
 export {
+  createLmstudioSyntheticToolCallId,
+  parseLmstudioPlainTextToolCalls,
+} from "./src/plain-text-tool-calls.js";
+export {
   configureLmstudioNonInteractive,
   discoverLmstudioProvider,
   prepareLmstudioDynamicModels,
