@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7437,
+    "cb_source_files": 7461,
     "oc_source_files": 8443,
-    "source_parity_both": 5648,
-    "source_cb_exclusive": 1789,
-    "source_missing_from_cb": 2795,
-    "test_files_cb": 4610,
+    "source_parity_both": 5663,
+    "source_cb_exclusive": 1798,
+    "source_missing_from_cb": 2780,
+    "test_files_cb": 4616,
     "test_files_oc": 5246,
-    "tests_both_covered": 3225,
-    "tests_gap_oc_has_cb_missing": 1776,
+    "tests_both_covered": 3231,
+    "tests_gap_oc_has_cb_missing": 1770,
     "tests_cb_exclusive": 1328,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -161,9 +161,9 @@
       "priority": "P0",
       "implementationSurface": "src/plugin-sdk public API",
       "counts": {
-        "sharedSourcePaths": 198,
-        "coreBlowOnlySourcePaths": 120,
-        "openClawOnlySourcePaths": 241,
+        "sharedSourcePaths": 200,
+        "coreBlowOnlySourcePaths": 118,
+        "openClawOnlySourcePaths": 239,
         "sharedTestPaths": 26,
         "coreBlowOnlyTestPaths": 14,
         "openClawTestGaps": 77
@@ -176,12 +176,12 @@
           "src/plugin-sdk/acp-binding-resolve-runtime.ts",
           "src/plugin-sdk/acp-binding-runtime.ts",
           "src/plugin-sdk/acp-runtime-backend.ts",
-          "src/plugin-sdk/acp.ts",
           "src/plugin-sdk/agent-dir-compat.ts",
           "src/plugin-sdk/agent-harness-runtime.ts",
           "src/plugin-sdk/agent-harness.ts",
           "src/plugin-sdk/agent-runtime-test-contracts.ts",
-          "src/plugin-sdk/anthropic-vertex-auth-presence.ts"
+          "src/plugin-sdk/anthropic-vertex-auth-presence.ts",
+          "src/plugin-sdk/approval-approvers.ts"
         ],
         "openClawTestGapPaths": [
           "src/plugin-sdk/access-groups.test.ts",
@@ -198,7 +198,6 @@
           "src/plugin-sdk/browser-bridge.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
-          "src/plugin-sdk/acp.ts",
           "src/plugin-sdk/amazon-bedrock.ts",
           "src/plugin-sdk/bluebubbles-policy.ts",
           "src/plugin-sdk/bluebubbles.ts",
@@ -209,7 +208,8 @@
           "src/plugin-sdk/channel-helpers.ts",
           "src/plugin-sdk/chutes.ts",
           "src/plugin-sdk/cli-scaffold.ts",
-          "src/plugin-sdk/cloudflare-ai-gateway.ts"
+          "src/plugin-sdk/cloudflare-ai-gateway.ts",
+          "src/plugin-sdk/config-builder.ts"
         ]
       },
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
@@ -1982,62 +1982,6 @@
       ]
     },
     {
-      "domain": "packages/memory-host-sdk",
-      "status": "partial",
-      "priority": "P2",
-      "implementationSurface": "packages/memory-host-sdk",
-      "counts": {
-        "sharedSourcePaths": 51,
-        "coreBlowOnlySourcePaths": 11,
-        "openClawOnlySourcePaths": 24,
-        "sharedTestPaths": 16,
-        "coreBlowOnlyTestPaths": 6,
-        "openClawTestGaps": 6
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "packages/memory-host-sdk/src/host/config-utils.ts",
-          "packages/memory-host-sdk/src/host/embedding-defaults.ts",
-          "packages/memory-host-sdk/src/host/embedding-provider-adapter-utils.ts",
-          "packages/memory-host-sdk/src/host/embeddings.types.ts",
-          "packages/memory-host-sdk/src/host/error-utils.ts",
-          "packages/memory-host-sdk/src/host/hash.ts",
-          "packages/memory-host-sdk/src/host/openclaw-runtime-agent.ts",
-          "packages/memory-host-sdk/src/host/openclaw-runtime-auth.ts",
-          "packages/memory-host-sdk/src/host/openclaw-runtime-cli.ts",
-          "packages/memory-host-sdk/src/host/openclaw-runtime-config.ts",
-          "packages/memory-host-sdk/src/host/openclaw-runtime-io.ts",
-          "packages/memory-host-sdk/src/host/openclaw-runtime-memory.ts"
-        ],
-        "openClawTestGapPaths": [
-          "packages/memory-host-sdk/src/host/batch-upload.test.ts",
-          "packages/memory-host-sdk/src/host/embeddings-remote-client.test.ts",
-          "packages/memory-host-sdk/src/host/read-file.test.ts",
-          "packages/memory-host-sdk/src/host/remote-http.test.ts",
-          "packages/memory-host-sdk/src/host/session-files-yield.test.ts",
-          "packages/memory-host-sdk/src/host/sqlite-vec.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "packages/memory-host-sdk/src/host/_core-imports.ts",
-          "packages/memory-host-sdk/src/host/batch-embedding-common.ts",
-          "packages/memory-host-sdk/src/host/batch-gemini.ts",
-          "packages/memory-host-sdk/src/host/batch-openai.ts",
-          "packages/memory-host-sdk/src/host/batch-voyage.ts",
-          "packages/memory-host-sdk/src/host/embeddings-gemini.ts",
-          "packages/memory-host-sdk/src/host/embeddings-mistral.ts",
-          "packages/memory-host-sdk/src/host/embeddings-ollama.ts",
-          "packages/memory-host-sdk/src/host/embeddings-openai.ts",
-          "packages/memory-host-sdk/src/host/embeddings-voyage.ts",
-          "packages/memory-host-sdk/src/host/test-helpers/ssrf.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- packages/memory-host-sdk",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/googlechat",
       "status": "partial",
       "priority": "P2",
@@ -2154,81 +2098,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/nextcloud-talk",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/acp",
-      "status": "intentionally_different",
-      "priority": "P2",
-      "implementationSurface": "extensions/acp plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 26,
-        "openClawOnlySourcePaths": 12,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 15,
-        "openClawTestGaps": 12
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/acp/src/codex-auth-bridge.ts",
-          "extensions/acp/src/codex-trust-config.ts",
-          "extensions/acp/src/config-schema.ts",
-          "extensions/acp/src/config.ts",
-          "extensions/acp/src/process-lease.ts",
-          "extensions/acp/src/process-reaper.ts",
-          "extensions/acp/src/runtime.ts",
-          "extensions/acp/src/service.ts",
-          "extensions/acp/index.ts",
-          "extensions/acp/register.runtime.ts",
-          "extensions/acp/runtime-api.ts",
-          "extensions/acp/setup-api.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/acp/src/claude-agent-acp-completion.test.ts",
-          "extensions/acp/src/codex-auth-bridge.test.ts",
-          "extensions/acp/src/config.test.ts",
-          "extensions/acp/src/manifest.test.ts",
-          "extensions/acp/src/process-lease.test.ts",
-          "extensions/acp/src/process-reaper.test.ts",
-          "extensions/acp/src/runtime-internals/mcp-command-line.test.ts",
-          "extensions/acp/src/runtime-internals/mcp-proxy.test.ts",
-          "extensions/acp/src/runtime.test.ts",
-          "extensions/acp/src/service.test.ts",
-          "extensions/acp/index.test.ts",
-          "extensions/acp/register.runtime.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "extensions/acp/src/adapter.ts",
-          "extensions/acp/src/channel.ts",
-          "extensions/acp/src/config.ts",
-          "extensions/acp/src/ensure.ts",
-          "extensions/acp/src/extension.ts",
-          "extensions/acp/src/formatter.ts",
-          "extensions/acp/src/handler.ts",
-          "extensions/acp/src/index.ts",
-          "extensions/acp/src/media.ts",
-          "extensions/acp/src/rate-limiter.ts",
-          "extensions/acp/src/resolve-target.ts",
-          "extensions/acp/src/runtime-internals/control-errors.ts"
-        ]
-      },
-      "intentionalDomainDifference": {
-        "status": "intentionally_different",
-        "referenceBehavior": "OpenClaw names the standalone ACP runtime extension with a tool-specific suffix.",
-        "coreBlowDecision": "CoreBlow exposes the same runtime family as the canonical ACP extension and package surface.",
-        "rationale": "Keep CoreBlow public plugin naming protocol-oriented while avoiding a tool-specific extension name.",
-        "evidence": [
-          "extensions/acp/coreblow.plugin.json",
-          "extensions/acp/index.ts",
-          "src/plugin-sdk/acp.ts"
-        ],
-        "gate": "pnpm test -- extensions/acp"
-      },
-      "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
-      "gates": [
-        "pnpm test -- extensions/acp",
         "pnpm check"
       ]
     },
@@ -2707,6 +2576,72 @@
       ]
     },
     {
+      "domain": "extensions/acp",
+      "status": "intentionally_different",
+      "priority": "P3",
+      "implementationSurface": "extensions/acp plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 5,
+        "coreBlowOnlySourcePaths": 21,
+        "openClawOnlySourcePaths": 7,
+        "sharedTestPaths": 4,
+        "coreBlowOnlyTestPaths": 11,
+        "openClawTestGaps": 8
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [
+          "extensions/acp/src/codex-auth-bridge.ts",
+          "extensions/acp/src/codex-trust-config.ts",
+          "extensions/acp/src/config-schema.ts",
+          "extensions/acp/src/process-lease.ts",
+          "extensions/acp/src/process-reaper.ts",
+          "extensions/acp/register.runtime.ts",
+          "extensions/acp/setup-api.ts"
+        ],
+        "openClawTestGapPaths": [
+          "extensions/acp/src/claude-agent-acp-completion.test.ts",
+          "extensions/acp/src/codex-auth-bridge.test.ts",
+          "extensions/acp/src/manifest.test.ts",
+          "extensions/acp/src/process-lease.test.ts",
+          "extensions/acp/src/process-reaper.test.ts",
+          "extensions/acp/src/runtime-internals/mcp-command-line.test.ts",
+          "extensions/acp/index.test.ts",
+          "extensions/acp/register.runtime.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "extensions/acp/src/adapter.ts",
+          "extensions/acp/src/channel.ts",
+          "extensions/acp/src/ensure.ts",
+          "extensions/acp/src/extension.ts",
+          "extensions/acp/src/formatter.ts",
+          "extensions/acp/src/handler.ts",
+          "extensions/acp/src/index.ts",
+          "extensions/acp/src/media.ts",
+          "extensions/acp/src/rate-limiter.ts",
+          "extensions/acp/src/resolve-target.ts",
+          "extensions/acp/src/runtime-internals/control-errors.ts",
+          "extensions/acp/src/runtime-internals/events.ts"
+        ]
+      },
+      "intentionalDomainDifference": {
+        "status": "intentionally_different",
+        "referenceBehavior": "OpenClaw names the standalone ACP runtime extension with a tool-specific suffix.",
+        "coreBlowDecision": "CoreBlow exposes the same runtime family as the canonical ACP extension and package surface.",
+        "rationale": "Keep CoreBlow public plugin naming protocol-oriented while avoiding a tool-specific extension name.",
+        "evidence": [
+          "extensions/acp/coreblow.plugin.json",
+          "extensions/acp/index.ts",
+          "src/plugin-sdk/acp.ts"
+        ],
+        "gate": "pnpm test -- extensions/acp"
+      },
+      "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
+      "gates": [
+        "pnpm test -- extensions/acp",
+        "pnpm check"
+      ]
+    },
+    {
       "domain": "extensions/amazon-bedrock",
       "status": "partial",
       "priority": "P3",
@@ -2997,67 +2932,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/daemon",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/workflow-shell",
-      "status": "intentionally_different",
-      "priority": "P3",
-      "implementationSurface": "extensions/workflow-shell plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 20,
-        "openClawOnlySourcePaths": 7,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 6,
-        "openClawTestGaps": 3
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/workflow-shell/src/workflow-shell-ajv-cache.ts",
-          "extensions/workflow-shell/src/workflow-shell-runner.ts",
-          "extensions/workflow-shell/src/workflow-shell-taskflow.ts",
-          "extensions/workflow-shell/src/workflow-shell-tool.ts",
-          "extensions/workflow-shell/src/taskflow-test-helpers.ts",
-          "extensions/workflow-shell/index.ts",
-          "extensions/workflow-shell/runtime-api.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/workflow-shell/src/workflow-shell-runner.test.ts",
-          "extensions/workflow-shell/src/workflow-shell-taskflow.test.ts",
-          "extensions/workflow-shell/src/workflow-shell-tool.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "extensions/workflow-shell/src/adapter.ts",
-          "extensions/workflow-shell/src/channel.ts",
-          "extensions/workflow-shell/src/config.ts",
-          "extensions/workflow-shell/src/extension.ts",
-          "extensions/workflow-shell/src/formatter.ts",
-          "extensions/workflow-shell/src/handler.ts",
-          "extensions/workflow-shell/src/index.ts",
-          "extensions/workflow-shell/src/media.ts",
-          "extensions/workflow-shell/src/rate-limiter.ts",
-          "extensions/workflow-shell/src/resolve-target.ts",
-          "extensions/workflow-shell/src/runtime.ts",
-          "extensions/workflow-shell/src/subagent-hooks.ts"
-        ]
-      },
-      "intentionalDomainDifference": {
-        "status": "intentionally_different",
-        "referenceBehavior": "OpenClaw uses legacy workflow runtime branding for the same local typed workflow surface.",
-        "coreBlowDecision": "CoreBlow exposes the runtime as Workflow Shell with id, package, folder, SDK export, and tool name workflow-shell.",
-        "rationale": "Keep the workflow runtime professional and CoreBlow-native while preserving behavior parity.",
-        "evidence": [
-          "extensions/workflow-shell/coreblow.plugin.json",
-          "extensions/workflow-shell/index.ts",
-          "src/plugin-sdk/workflow-shell.ts"
-        ],
-        "gate": "pnpm test -- extensions/workflow-shell"
-      },
-      "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
-      "gates": [
-        "pnpm test -- extensions/workflow-shell",
         "pnpm check"
       ]
     },
@@ -3354,6 +3228,63 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/hooks",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/workflow-shell",
+      "status": "intentionally_different",
+      "priority": "P3",
+      "implementationSurface": "extensions/workflow-shell plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 3,
+        "coreBlowOnlySourcePaths": 17,
+        "openClawOnlySourcePaths": 4,
+        "sharedTestPaths": 1,
+        "coreBlowOnlyTestPaths": 5,
+        "openClawTestGaps": 2
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [
+          "extensions/workflow-shell/src/workflow-shell-ajv-cache.ts",
+          "extensions/workflow-shell/src/workflow-shell-runner.ts",
+          "extensions/workflow-shell/src/workflow-shell-taskflow.ts",
+          "extensions/workflow-shell/src/taskflow-test-helpers.ts"
+        ],
+        "openClawTestGapPaths": [
+          "extensions/workflow-shell/src/workflow-shell-runner.test.ts",
+          "extensions/workflow-shell/src/workflow-shell-taskflow.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "extensions/workflow-shell/src/adapter.ts",
+          "extensions/workflow-shell/src/channel.ts",
+          "extensions/workflow-shell/src/config.ts",
+          "extensions/workflow-shell/src/extension.ts",
+          "extensions/workflow-shell/src/formatter.ts",
+          "extensions/workflow-shell/src/handler.ts",
+          "extensions/workflow-shell/src/index.ts",
+          "extensions/workflow-shell/src/media.ts",
+          "extensions/workflow-shell/src/rate-limiter.ts",
+          "extensions/workflow-shell/src/resolve-target.ts",
+          "extensions/workflow-shell/src/runtime.ts",
+          "extensions/workflow-shell/src/subagent-hooks.ts"
+        ]
+      },
+      "intentionalDomainDifference": {
+        "status": "intentionally_different",
+        "referenceBehavior": "OpenClaw uses legacy workflow runtime branding for the same local typed workflow surface.",
+        "coreBlowDecision": "CoreBlow exposes the runtime as Workflow Shell with id, package, folder, SDK export, and tool name workflow-shell.",
+        "rationale": "Keep the workflow runtime professional and CoreBlow-native while preserving behavior parity.",
+        "evidence": [
+          "extensions/workflow-shell/coreblow.plugin.json",
+          "extensions/workflow-shell/index.ts",
+          "src/plugin-sdk/workflow-shell.ts"
+        ],
+        "gate": "pnpm test -- extensions/workflow-shell"
+      },
+      "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
+      "gates": [
+        "pnpm test -- extensions/workflow-shell",
         "pnpm check"
       ]
     },
@@ -3669,42 +3600,6 @@
       "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
       "gates": [
         "pnpm test -- src/agents/tools/web-tools.fetch.test.ts src/secrets/runtime-web-tools.test.ts extensions/firecrawl/web-search-provider.test.ts",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/codex",
-      "status": "intentionally_different",
-      "priority": "P3",
-      "implementationSurface": "extensions/codex plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 74,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 0,
-        "sharedTestPaths": 53,
-        "coreBlowOnlyTestPaths": 1,
-        "openClawTestGaps": 1
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [],
-        "openClawTestGapPaths": [
-          "extensions/codex/src/app-server/coreblow-owned-tool-runtime-contract.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "intentionalDomainDifference": {
-        "status": "intentionally_different",
-        "referenceBehavior": "OpenClaw names the Codex app-server owned-tool contract after the OpenClaw product surface.",
-        "coreBlowDecision": "CoreBlow keeps the same contract surface under CoreBlow-native owned-tool naming.",
-        "rationale": "Preserve the runtime contract while avoiding OpenClaw-branded public or test-surface names.",
-        "evidence": [
-          "extensions/codex/src/app-server/coreblow-owned-tool-runtime-contract.test.ts"
-        ],
-        "gate": "pnpm test -- extensions/codex/src/app-server/coreblow-owned-tool-runtime-contract.test.ts"
-      },
-      "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
-      "gates": [
-        "pnpm test -- extensions/codex/src/app-server/coreblow-owned-tool-runtime-contract.test.ts",
         "pnpm check"
       ]
     },
@@ -4196,6 +4091,40 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/cloudflare-ai-gateway",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/codex",
+      "status": "intentionally_different",
+      "priority": "P3",
+      "implementationSurface": "extensions/codex plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 74,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 54,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "intentionalDomainDifference": {
+        "status": "intentionally_different",
+        "referenceBehavior": "OpenClaw names the Codex app-server owned-tool contract after the OpenClaw product surface.",
+        "coreBlowDecision": "CoreBlow keeps the same contract surface under CoreBlow-native owned-tool naming.",
+        "rationale": "Preserve the runtime contract while avoiding OpenClaw-branded public or test-surface names.",
+        "evidence": [
+          "extensions/codex/src/app-server/coreblow-owned-tool-runtime-contract.test.ts"
+        ],
+        "gate": "pnpm test -- extensions/codex/src/app-server/coreblow-owned-tool-runtime-contract.test.ts"
+      },
+      "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
+      "gates": [
+        "pnpm test -- extensions/codex/src/app-server/coreblow-owned-tool-runtime-contract.test.ts",
         "pnpm check"
       ]
     },
@@ -6786,6 +6715,42 @@
       "notes": "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture.",
       "gates": [
         "pnpm test -- packages/gateway-sdk",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "packages/memory-host-sdk",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "packages/memory-host-sdk",
+      "counts": {
+        "sharedSourcePaths": 75,
+        "coreBlowOnlySourcePaths": 11,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 22,
+        "coreBlowOnlyTestPaths": 6,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "packages/memory-host-sdk/src/host/_core-imports.ts",
+          "packages/memory-host-sdk/src/host/batch-embedding-common.ts",
+          "packages/memory-host-sdk/src/host/batch-gemini.ts",
+          "packages/memory-host-sdk/src/host/batch-openai.ts",
+          "packages/memory-host-sdk/src/host/batch-voyage.ts",
+          "packages/memory-host-sdk/src/host/embeddings-gemini.ts",
+          "packages/memory-host-sdk/src/host/embeddings-mistral.ts",
+          "packages/memory-host-sdk/src/host/embeddings-ollama.ts",
+          "packages/memory-host-sdk/src/host/embeddings-openai.ts",
+          "packages/memory-host-sdk/src/host/embeddings-voyage.ts",
+          "packages/memory-host-sdk/src/host/test-helpers/ssrf.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- packages/memory-host-sdk",
         "pnpm check"
       ]
     },

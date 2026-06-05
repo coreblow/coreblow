@@ -52,7 +52,11 @@ export async function uploadBatchJsonlFile(params: {
         const text = await fileRes.text();
         throw new Error(`${params.errorPrefix}: ${fileRes.status} ${text}`);
       }
-      return (await fileRes.json()) as { id?: string };
+      try {
+        return (await fileRes.json()) as { id?: string };
+      } catch (err) {
+        throw new Error(`${params.errorPrefix}: malformed JSON response`, { cause: err });
+      }
     },
   });
   if (!filePayload.id) {

@@ -56,9 +56,12 @@ export {
   normalizeGoogleApiBaseUrl,
 } from "../../../../src/infra/google-api-base-url.js";
 export { fetchWithSsrFGuard } from "../../../../src/infra/net/fetch-guard.js";
+export type { GuardedFetchMode } from "../../../../src/infra/net/fetch-guard.js";
+export { hasEnvHttpProxyConfigured } from "../../../../src/infra/net/proxy-env.js";
 export type { SsrFPolicy } from "../../../../src/infra/net/ssrf.js";
 export { retryAsync } from "../../../../src/infra/retry.js";
 export { installProcessWarningFilter } from "../../../../src/infra/warning-filter.js";
+export type { ProcessWarning } from "../../../../src/infra/warning-filter.js";
 
 // ─── Logging ─────────────────────────────────────────────────────
 export { redactSensitiveText } from "../../../../src/logging/redact.js";
@@ -69,8 +72,20 @@ export { detectMime } from "../../../../src/media/mime.js";
 
 // ─── Plugin SDK ──────────────────────────────────────────────────
 export {
+  applyWindowsSpawnProgramPolicy,
   materializeWindowsSpawnProgram,
+  resolveWindowsExecutablePath,
   resolveWindowsSpawnProgram,
+  resolveWindowsSpawnProgramCandidate,
+} from "../../../../src/plugin-sdk/windows-spawn.js";
+export type {
+  ResolveWindowsSpawnProgramCandidateParams,
+  ResolveWindowsSpawnProgramParams,
+  WindowsSpawnCandidateResolution,
+  WindowsSpawnInvocation,
+  WindowsSpawnProgram,
+  WindowsSpawnProgramCandidate,
+  WindowsSpawnResolution,
 } from "../../../../src/plugin-sdk/windows-spawn.js";
 
 // ─── Plugins ─────────────────────────────────────────────────────
@@ -80,6 +95,14 @@ export { OPENAI_DEFAULT_EMBEDDING_MODEL } from "../../../../src/plugins/provider
 export { parseAgentSessionKey } from "../../../../src/sessions/session-key-utils.js";
 
 // ─── Utils ───────────────────────────────────────────────────────
-export { resolveUserPath } from "../../../../src/utils.js";
+export {
+  resolveUserPath,
+  shortenHomeInString,
+  shortenHomePath,
+  truncateUtf16Safe,
+} from "../../../../src/utils.js";
 export { runTasksWithConcurrency } from "../../../../src/utils/run-with-concurrency.js";
 export { splitShellArgs } from "../../../../src/utils/shell-argv.js";
+
+// ─── Version ─────────────────────────────────────────────────────
+export { VERSION } from "../../../../src/version.js";

@@ -71,7 +71,10 @@ export function extractSessionText(content: unknown): string | null {
   return parts.join(" ");
 }
 
-export async function buildSessionEntry(absPath: string): Promise<SessionFileEntry | null> {
+export async function buildSessionEntry(
+  absPath: string,
+  opts: { parseYieldEveryLines?: number } = {},
+): Promise<SessionFileEntry | null> {
   try {
     const stat = await fs.stat(absPath);
     const raw = await fs.readFile(absPath, "utf-8");
@@ -82,6 +85,14 @@ export async function buildSessionEntry(absPath: string): Promise<SessionFileEnt
       const line = lines[jsonlIdx];
       if (!line.trim()) {
         continue;
+      }
+      if (
+        typeof opts.parseYieldEveryLines === "number" &&
+        opts.parseYieldEveryLines > 0 &&
+        jsonlIdx > 0 &&
+        jsonlIdx % opts.parseYieldEveryLines === 0
+      ) {
+        await new Promise<void>((resolve) => setImmediate(resolve));
       }
       let record: unknown;
       try {

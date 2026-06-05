@@ -5,6 +5,32 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { isFileMissingError, statRegularFile } from "./fs-utils.js";
 import { isMemoryPath, normalizeExtraMemoryPaths } from "./internal.js";
+import { buildMemoryReadResult } from "./read-file-shared.js";
+import type { MemoryReadResult } from "./types.js";
+
+async function pathHasSymlinkDirectoryComponent(
+  rootDir: string,
+  targetPath: string,
+): Promise<boolean> {
+  const relative = path.relative(rootDir, targetPath);
+  if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) {
+    return false;
+  }
+  const parts = relative.split(path.sep).filter(Boolean);
+  let cursor = rootDir;
+  for (const part of parts.slice(0, -1)) {
+    cursor = path.join(cursor, part);
+    try {
+      const stat = await fs.lstat(cursor);
+      if (stat.isSymbolicLink()) {
+        return true;
+      }
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
 
 export async function readMemoryFile(params: {
   workspaceDir: string;
@@ -12,7 +38,7 @@ export async function readMemoryFile(params: {
   relPath: string;
   from?: number;
   lines?: number;
-}): Promise<{ text: string; path: string }> {
+}): Promise<MemoryReadResult> {
   const rawPath = params.relPath.trim();
   if (!rawPath) {
     throw new Error("path required");
@@ -34,6 +60,9 @@ export async function readMemoryFile(params: {
         }
         if (stat.isDirectory()) {
           if (absPath === additionalPath || absPath.startsWith(`${additionalPath}${path.sep}`)) {
+            if (await pathHasSymlinkDirectoryComponent(additionalPath, absPath)) {
+              continue;
+            }
             allowedAdditional = true;
             break;
           }
@@ -65,14 +94,12 @@ export async function readMemoryFile(params: {
     }
     throw err;
   }
-  if (!params.from && !params.lines) {
-    return { text: content, path: relPath };
-  }
-  const fileLines = content.split("\n");
-  const start = Math.max(1, params.from ?? 1);
-  const count = Math.max(1, params.lines ?? fileLines.length);
-  const slice = fileLines.slice(start - 1, start - 1 + count);
-  return { text: slice.join("\n"), path: relPath };
+  return buildMemoryReadResult({
+    content,
+    relPath,
+    from: params.from,
+    lines: params.lines,
+  });
 }
 
 export async function readAgentMemoryFile(params: {
@@ -81,7 +108,7 @@ export async function readAgentMemoryFile(params: {
   relPath: string;
   from?: number;
   lines?: number;
-}): Promise<{ text: string; path: string }> {
+}): Promise<MemoryReadResult> {
   const settings = resolveMemorySearchConfig(params.cfg, params.agentId);
   if (!settings) {
     throw new Error("memory search disabled");

@@ -15,6 +15,15 @@ export type MemoryEmbeddingProbeResult = {
   error?: string;
 };
 
+export type MemoryReadResult = {
+  text: string;
+  path: string;
+  from?: number;
+  lines?: number;
+  truncated?: boolean;
+  nextFrom?: number;
+};
+
 export type MemorySyncProgressUpdate = {
   completed: number;
   total: number;
@@ -67,7 +76,7 @@ export interface MemorySearchManager {
     relPath: string;
     from?: number;
     lines?: number;
-  }): Promise<{ text: string; path: string }>;
+  }): Promise<MemoryReadResult>;
   status(): MemoryProviderStatus;
   sync?(params?: {
     reason?: string;

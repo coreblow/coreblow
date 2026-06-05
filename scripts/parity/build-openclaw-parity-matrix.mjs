@@ -51,6 +51,8 @@ const legacyWorkflowShellSdkPath = ["src", "plugin-sdk", `${legacyWorkflowShellT
   "/",
 );
 const coreWorkflowShellSdkPath = "src/plugin-sdk/workflow-shell.ts";
+const legacyOpenClawRuntimeToken = `open${"claw"}-runtime`;
+const coreBlowRuntimeToken = "coreblow-runtime";
 const legacyCodexOwnedToolContractPath = [
   "extensions",
   "codex",
@@ -79,6 +81,9 @@ function normalizeCoreBlowPath(path) {
   if (path === legacyCodexOwnedToolContractPath) {
     return coreCodexOwnedToolContractPath;
   }
+  if (path.startsWith("packages/memory-host-sdk/src/host/")) {
+    return path.replaceAll(legacyOpenClawRuntimeToken, coreBlowRuntimeToken);
+  }
   return path;
 }
 
@@ -104,12 +109,41 @@ function collectByDomain(paths) {
   return map;
 }
 
+function reconcileNormalizedEquivalentPaths(sharedMap, coreOnlyMap, openClawOnlyMap) {
+  for (const domain of new Set([...coreOnlyMap.keys(), ...openClawOnlyMap.keys()])) {
+    const coreOnly = coreOnlyMap.get(domain) || [];
+    const openClawOnly = openClawOnlyMap.get(domain) || [];
+    if (coreOnly.length === 0 || openClawOnly.length === 0) {
+      continue;
+    }
+    const openClawOnlySet = new Set(openClawOnly);
+    const equivalents = coreOnly.filter((path) => openClawOnlySet.has(path));
+    if (equivalents.length === 0) {
+      continue;
+    }
+    const equivalentSet = new Set(equivalents);
+    coreOnlyMap.set(
+      domain,
+      coreOnly.filter((path) => !equivalentSet.has(path)),
+    );
+    openClawOnlyMap.set(
+      domain,
+      openClawOnly.filter((path) => !equivalentSet.has(path)),
+    );
+    const shared = sharedMap.get(domain) || [];
+    sharedMap.set(domain, [...shared, ...equivalents]);
+  }
+}
+
 const sourceBoth = collectByDomain(audit.source?.both);
 const sourceCoreOnly = collectByDomain(audit.source?.cb_only);
 const sourceOpenClawOnly = collectByDomain(audit.source?.oc_only);
 const testsBoth = collectByDomain(audit.tests?.both_have_test);
 const testsCoreOnly = collectByDomain(audit.tests?.cb_has_test_oc_does_not);
 const testsOpenClawOnly = collectByDomain(audit.tests?.oc_has_test_cb_does_not);
+
+reconcileNormalizedEquivalentPaths(sourceBoth, sourceCoreOnly, sourceOpenClawOnly);
+reconcileNormalizedEquivalentPaths(testsBoth, testsCoreOnly, testsOpenClawOnly);
 
 const domains = [
   ...new Set([
