@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6591,
+    "cb_source_files": 6600,
     "oc_source_files": 8443,
-    "source_parity_both": 4815,
+    "source_parity_both": 4824,
     "source_cb_exclusive": 1776,
-    "source_missing_from_cb": 3628,
-    "test_files_cb": 4188,
+    "source_missing_from_cb": 3619,
+    "test_files_cb": 4190,
     "test_files_oc": 5246,
-    "tests_both_covered": 2821,
-    "tests_gap_oc_has_cb_missing": 2180,
+    "tests_both_covered": 2823,
+    "tests_gap_oc_has_cb_missing": 2178,
     "tests_cb_exclusive": 1320,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -4039,43 +4039,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/daemon",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "src/music-generation",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "src/music-generation",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 9,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 2
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/music-generation/capabilities.ts",
-          "src/music-generation/live-test-helpers.ts",
-          "src/music-generation/model-ref.ts",
-          "src/music-generation/normalization.ts",
-          "src/music-generation/provider-assets.ts",
-          "src/music-generation/provider-registry.ts",
-          "src/music-generation/runtime-types.ts",
-          "src/music-generation/runtime.ts",
-          "src/music-generation/types.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/music-generation/capabilities.test.ts",
-          "src/music-generation/runtime.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/music-generation",
         "pnpm check"
       ]
     },
@@ -8939,6 +8902,30 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/memory-host-sdk",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/music-generation",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/music-generation",
+      "counts": {
+        "sharedSourcePaths": 9,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 2,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/music-generation",
         "pnpm check"
       ]
     },
