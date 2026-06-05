@@ -45,7 +45,7 @@ const baseCfg = {
     dispatch: {
       enabled: true,
     },
-    backend: "acpx",
+    backend: "acp",
   },
   channels: {
     discord: {
@@ -158,11 +158,11 @@ describe("Discord ACP bind here end-to-end flow", () => {
       initializeSession: async (input: { sessionKey: string; agent: string; mode: string }) => ({
         runtime: {} as never,
         handle: {
-          backend: "acpx",
+          backend: "acp",
           runtimeSessionName: `${input.sessionKey}:runtime`,
         },
         meta: {
-          backend: "acpx",
+          backend: "acp",
           agent: input.agent,
           runtimeSessionName: `${input.sessionKey}:runtime`,
           mode: input.mode,

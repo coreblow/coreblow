@@ -148,7 +148,7 @@ describe("discord native /think autocomplete", () => {
     });
     ensureConfiguredBindingRouteReadyMock.mockResolvedValue({
       ok: false,
-      error: "acpx exited",
+      error: "acp exited",
     });
     const interaction = {
       options: {
