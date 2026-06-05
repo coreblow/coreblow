@@ -1136,7 +1136,7 @@ export class AcpSessionManager {
           input.allowBackendUnavailable &&
           (acpError.code === "ACP_BACKEND_MISSING" ||
             acpError.code === "ACP_BACKEND_UNAVAILABLE" ||
-            this.isRecoverableAcpxExitError(acpError.message))
+            this.isRecoverableAcpExitError(acpError.message))
         ) {
           // Treat unavailable backends as terminal for this cached handle so it
           // cannot continue counting against maxConcurrentSessions.
@@ -1462,7 +1462,7 @@ export class AcpSessionManager {
     if (params.attempt > 0 || params.sawTurnOutput) {
       return false;
     }
-    if (!this.isRecoverableAcpxExitError(params.error.message)) {
+    if (!this.isRecoverableAcpExitError(params.error.message)) {
       return false;
     }
     this.clearCachedRuntimeState(params.sessionKey);
@@ -1472,8 +1472,8 @@ export class AcpSessionManager {
     return true;
   }
 
-  private isRecoverableAcpxExitError(message: string): boolean {
-    return /^acpx exited with code \d+/i.test(message.trim());
+  private isRecoverableAcpExitError(message: string): boolean {
+    return /^acp exited with code \d+/i.test(message.trim());
   }
 
   private async evictIdleRuntimeHandles(params: { cfg: CoreBlowConfig }): Promise<void> {
@@ -1724,7 +1724,7 @@ export class AcpSessionManager {
       a.backend === b.backend &&
       a.runtimeSessionName === b.runtimeSessionName &&
       (a.cwd ?? "") === (b.cwd ?? "") &&
-      (a.acpxRecordId ?? "") === (b.acpxRecordId ?? "") &&
+      (a.acpRecordId ?? "") === (b.acpRecordId ?? "") &&
       (a.backendSessionId ?? "") === (b.backendSessionId ?? "") &&
       (a.agentSessionId ?? "") === (b.agentSessionId ?? "")
     );

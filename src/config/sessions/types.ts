@@ -28,8 +28,8 @@ export type SessionAcpIdentityState = "pending" | "resolved";
 
 export type SessionAcpIdentity = {
   state: SessionAcpIdentityState;
-  acpxRecordId?: string;
-  acpxSessionId?: string;
+  acpRecordId?: string;
+  acpSessionId?: string;
   agentSessionId?: string;
   source: SessionAcpIdentitySource;
   lastUpdatedAt: number;

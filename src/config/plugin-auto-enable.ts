@@ -309,10 +309,10 @@ function resolveConfiguredPlugins(
   const backendRaw =
     typeof cfg.acp?.backend === "string" ? cfg.acp.backend.trim().toLowerCase() : "";
   const acpConfigured =
-    cfg.acp?.enabled === true || cfg.acp?.dispatch?.enabled === true || backendRaw === "acpx";
-  if (acpConfigured && (!backendRaw || backendRaw === "acpx")) {
+    cfg.acp?.enabled === true || cfg.acp?.dispatch?.enabled === true || backendRaw === "acp";
+  if (acpConfigured && (!backendRaw || backendRaw === "acp")) {
     changes.push({
-      pluginId: "acpx",
+      pluginId: "acp",
       reason: "ACP runtime configured",
     });
   }

@@ -99,8 +99,8 @@ describe("copyBundledPluginMetadata", () => {
   it("copies plugin manifests, package metadata, and local skill directories", () => {
     const repoRoot = makeRepoRoot("coreblow-bundled-plugin-meta-");
     const pluginDir = createPlugin(repoRoot, {
-      id: "acpx",
-      packageName: "@coreblow/acpx",
+      id: "acp",
+      packageName: "@coreblow/acp",
       manifest: { skills: ["./skills"] },
       packageCoreBlow: { extensions: ["./index.ts"] },
     });
@@ -114,16 +114,16 @@ describe("copyBundledPluginMetadata", () => {
     copyBundledPluginMetadata({ repoRoot });
 
     expect(
-      fs.existsSync(path.join(repoRoot, "dist", "extensions", "acpx", "coreblow.plugin.json")),
+      fs.existsSync(path.join(repoRoot, "dist", "extensions", "acp", "coreblow.plugin.json")),
     ).toBe(true);
     expect(
       fs.readFileSync(
-        path.join(repoRoot, "dist", "extensions", "acpx", "skills", "acp-router", "SKILL.md"),
+        path.join(repoRoot, "dist", "extensions", "acp", "skills", "acp-router", "SKILL.md"),
         "utf8",
       ),
     ).toContain("ACP Router");
-    expectBundledSkills(repoRoot, "acpx", ["./skills"]);
-    const packageJson = readBundledPackageJson(repoRoot, "acpx");
+    expectBundledSkills(repoRoot, "acp", ["./skills"]);
+    const packageJson = readBundledPackageJson(repoRoot, "acp");
     expect(packageJson.coreblow?.extensions).toEqual(["./index.js"]);
   });
 
@@ -322,8 +322,8 @@ describe("copyBundledPluginMetadata", () => {
   it.each([
     {
       name: "skips metadata for optional bundled clusters only when explicitly disabled",
-      pluginId: "acpx",
-      packageName: "@coreblow/acpx-plugin",
+      pluginId: "acp",
+      packageName: "@coreblow/acp-plugin",
       packageCoreBlow: { extensions: ["./index.ts"] },
       env: excludeOptionalEnv,
       expectedExists: false,

@@ -33,7 +33,7 @@ const DIR_ID_EXCEPTIONS = new Map<string, string>([
 ]);
 const PACKAGE_NAME_EXCEPTIONS = new Set([
   // Legacy ext-* package names are still accepted until package rename migration.
-  "acpx",
+  "acp",
   "google-gemini-cli-auth",
   "minimax-portal-auth",
   "qwen-portal-auth",

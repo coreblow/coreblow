@@ -47,7 +47,7 @@ describe("listAcpSessionEntries", () => {
       "agent:ops:acp:s1": {
         updatedAt: 123,
         acp: {
-          backend: "acpx",
+          backend: "acp",
           agent: "ops",
           mode: "persistent",
           state: "idle",
@@ -90,7 +90,7 @@ describe("listAcpSessionEntries", () => {
       "agent:main:acp:s1": {
         updatedAt: 200,
         acp: {
-          backend: "acpx",
+          backend: "acp",
           agent: "main",
           mode: "persistent",
           state: "idle",

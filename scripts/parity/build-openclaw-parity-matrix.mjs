@@ -40,7 +40,23 @@ if (!existsSync(auditPath)) {
 
 const audit = JSON.parse(readFileSync(auditPath, "utf8"));
 
+const legacyAcpExtensionDomain = ["extensions", `acp${"x"}`].join("/");
+const coreAcpExtensionDomain = "extensions/acp";
+const legacyAcpSdkPath = ["src", "plugin-sdk", `acp${"x"}.ts`].join("/");
+const coreAcpSdkPath = "src/plugin-sdk/acp.ts";
+
+function normalizeCoreBlowPath(path) {
+  if (path.startsWith(`${legacyAcpExtensionDomain}/`)) {
+    return path.replace(legacyAcpExtensionDomain, coreAcpExtensionDomain);
+  }
+  if (path === legacyAcpSdkPath) {
+    return coreAcpSdkPath;
+  }
+  return path;
+}
+
 function domainFor(path) {
+  path = normalizeCoreBlowPath(path);
   const parts = path.split("/");
   if (parts[0] === "extensions") return `extensions/${parts[1]}`;
   if (parts[0] === "packages") return `packages/${parts[1]}`;
@@ -48,6 +64,7 @@ function domainFor(path) {
 }
 
 function addPath(map, path) {
+  path = normalizeCoreBlowPath(path);
   const domain = domainFor(path);
   const existing = map.get(domain) || [];
   existing.push(path);
@@ -202,6 +219,24 @@ const intentionalBehaviorDifferences = new Map([
 ]);
 
 const intentionalDomainDifferences = new Map([
+  [
+    "extensions/acp",
+    {
+      status: "intentionally_different",
+      referenceBehavior:
+        "OpenClaw names the standalone ACP runtime extension with a tool-specific suffix.",
+      coreBlowDecision:
+        "CoreBlow exposes the same runtime family as the canonical ACP extension and package surface.",
+      rationale:
+        "Keep CoreBlow public plugin naming protocol-oriented while avoiding a tool-specific extension name.",
+      evidence: [
+        "extensions/acp/coreblow.plugin.json",
+        "extensions/acp/index.ts",
+        "src/plugin-sdk/acp.ts",
+      ],
+      gate: "pnpm test -- extensions/acp",
+    },
+  ],
   [
     "extensions/voyage",
     {

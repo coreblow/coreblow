@@ -68,7 +68,7 @@ describe("resetConfiguredBindingTargetInPlace", () => {
       acp: {
         agent: "claude",
         mode: "persistent",
-        backend: "acpx",
+        backend: "acp",
         runtimeOptions: { cwd: "/home/bob/coreblow" },
       },
     });
@@ -94,7 +94,7 @@ describe("resetConfiguredBindingTargetInPlace", () => {
       expect.objectContaining({
         sessionKey,
         agent: "claude",
-        backendId: "acpx",
+        backendId: "acp",
       }),
     );
   });

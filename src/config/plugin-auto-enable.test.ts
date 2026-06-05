@@ -422,7 +422,7 @@ describe("applyPluginAutoEnable", () => {
     expect(result.config.plugins?.entries?.acme?.enabled).toBe(true);
   });
 
-  it("auto-enables acpx plugin when ACP is configured", () => {
+  it("auto-enables acp plugin when ACP is configured", () => {
     const result = applyPluginAutoEnable({
       config: {
         acp: {
@@ -432,11 +432,11 @@ describe("applyPluginAutoEnable", () => {
       env: {},
     });
 
-    expect(result.config.plugins?.entries?.acpx?.enabled).toBe(true);
+    expect(result.config.plugins?.entries?.acp?.enabled).toBe(true);
     expect(result.changes.join("\n")).toContain("ACP runtime configured, enabled automatically.");
   });
 
-  it("does not auto-enable acpx when a different ACP backend is configured", () => {
+  it("does not auto-enable acp when a different ACP backend is configured", () => {
     const result = applyPluginAutoEnable({
       config: {
         acp: {
@@ -447,7 +447,7 @@ describe("applyPluginAutoEnable", () => {
       env: {},
     });
 
-    expect(result.config.plugins?.entries?.acpx?.enabled).toBeUndefined();
+    expect(result.config.plugins?.entries?.acp?.enabled).toBeUndefined();
   });
 
   it("skips when plugins are globally disabled", () => {

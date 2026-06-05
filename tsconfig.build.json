@@ -28,7 +28,7 @@
         "src/**/*.test-helpers.ts",
         "extensions/**/*.test.ts",
         "packages/**/*.test.ts",
-        "src/plugin-sdk/acpx.ts",
+        "src/plugin-sdk/acp.ts",
         "src/plugin-sdk/agent-config-primitives.ts",
         "src/plugin-sdk/agent-media-payload.ts",
         "src/plugin-sdk/api-baseline.ts",

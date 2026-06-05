@@ -16,7 +16,7 @@ export function createAcpTestConfig(overrides?: Partial<CoreBlowConfig>): CoreBl
 
 export function createAcpSessionMeta(overrides?: Partial<SessionAcpMeta>): SessionAcpMeta {
   return {
-    backend: "acpx",
+    backend: "acp",
     agent: "codex",
     runtimeSessionName: "runtime:1",
     mode: "persistent",
@@ -24,7 +24,7 @@ export function createAcpSessionMeta(overrides?: Partial<SessionAcpMeta>): Sessi
     lastActivityAt: Date.now(),
     identity: {
       state: "resolved",
-      acpxSessionId: "acpx-session-1",
+      acpSessionId: "acp-session-1",
       source: "status",
       lastUpdatedAt: Date.now(),
     },

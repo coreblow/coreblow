@@ -62,12 +62,12 @@ describe("normalizeBindingConfig", () => {
     const result = normalizeBindingConfig({
       mode: "oneshot",
       cwd: "/tmp/project",
-      backend: "acpx",
+      backend: "acp",
       label: "My Label",
     });
     expect(result.mode).toBe("oneshot");
     expect(result.cwd).toBe("/tmp/project");
-    expect(result.backend).toBe("acpx");
+    expect(result.backend).toBe("acp");
     expect(result.label).toBe("My Label");
   });
 
@@ -138,9 +138,9 @@ describe("toConfiguredAcpBindingRecord", () => {
   });
 
   it("includes optional backend in metadata when provided", () => {
-    const spec = { ...baseSpec, backend: "acpx" };
+    const spec = { ...baseSpec, backend: "acp" };
     const record = toConfiguredAcpBindingRecord(spec);
-    expect(record.metadata?.backend).toBe("acpx");
+    expect(record.metadata?.backend).toBe("acp");
   });
 
   it("targetSessionKey matches buildConfiguredAcpSessionKey", () => {

@@ -9,14 +9,14 @@
   "summary": {
     "cb_source_files": 7437,
     "oc_source_files": 8443,
-    "source_parity_both": 5658,
-    "source_cb_exclusive": 1779,
-    "source_missing_from_cb": 2785,
+    "source_parity_both": 5652,
+    "source_cb_exclusive": 1785,
+    "source_missing_from_cb": 2791,
     "test_files_cb": 4606,
     "test_files_oc": 5246,
-    "tests_both_covered": 3226,
-    "tests_gap_oc_has_cb_missing": 1775,
-    "tests_cb_exclusive": 1323,
+    "tests_both_covered": 3222,
+    "tests_gap_oc_has_cb_missing": 1779,
+    "tests_cb_exclusive": 1327,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
     "test_scenario_files_intentionally_different": 0
@@ -161,9 +161,9 @@
       "priority": "P0",
       "implementationSurface": "src/plugin-sdk public API",
       "counts": {
-        "sharedSourcePaths": 200,
-        "coreBlowOnlySourcePaths": 118,
-        "openClawOnlySourcePaths": 239,
+        "sharedSourcePaths": 199,
+        "coreBlowOnlySourcePaths": 119,
+        "openClawOnlySourcePaths": 240,
         "sharedTestPaths": 26,
         "coreBlowOnlyTestPaths": 14,
         "openClawTestGaps": 77
@@ -176,12 +176,12 @@
           "src/plugin-sdk/acp-binding-resolve-runtime.ts",
           "src/plugin-sdk/acp-binding-runtime.ts",
           "src/plugin-sdk/acp-runtime-backend.ts",
+          "src/plugin-sdk/acp.ts",
           "src/plugin-sdk/agent-dir-compat.ts",
           "src/plugin-sdk/agent-harness-runtime.ts",
           "src/plugin-sdk/agent-harness.ts",
           "src/plugin-sdk/agent-runtime-test-contracts.ts",
-          "src/plugin-sdk/anthropic-vertex-auth-presence.ts",
-          "src/plugin-sdk/approval-approvers.ts"
+          "src/plugin-sdk/anthropic-vertex-auth-presence.ts"
         ],
         "openClawTestGapPaths": [
           "src/plugin-sdk/access-groups.test.ts",
@@ -198,6 +198,7 @@
           "src/plugin-sdk/browser-bridge.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
+          "src/plugin-sdk/acp.ts",
           "src/plugin-sdk/amazon-bedrock.ts",
           "src/plugin-sdk/bluebubbles-policy.ts",
           "src/plugin-sdk/bluebubbles.ts",
@@ -208,8 +209,7 @@
           "src/plugin-sdk/channel-helpers.ts",
           "src/plugin-sdk/chutes.ts",
           "src/plugin-sdk/cli-scaffold.ts",
-          "src/plugin-sdk/cloudflare-ai-gateway.ts",
-          "src/plugin-sdk/config-builder.ts"
+          "src/plugin-sdk/cloudflare-ai-gateway.ts"
         ]
       },
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
@@ -2158,6 +2158,81 @@
       ]
     },
     {
+      "domain": "extensions/acp",
+      "status": "intentionally_different",
+      "priority": "P2",
+      "implementationSurface": "extensions/acp plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 0,
+        "coreBlowOnlySourcePaths": 26,
+        "openClawOnlySourcePaths": 12,
+        "sharedTestPaths": 0,
+        "coreBlowOnlyTestPaths": 15,
+        "openClawTestGaps": 12
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [
+          "extensions/acp/src/codex-auth-bridge.ts",
+          "extensions/acp/src/codex-trust-config.ts",
+          "extensions/acp/src/config-schema.ts",
+          "extensions/acp/src/config.ts",
+          "extensions/acp/src/process-lease.ts",
+          "extensions/acp/src/process-reaper.ts",
+          "extensions/acp/src/runtime.ts",
+          "extensions/acp/src/service.ts",
+          "extensions/acp/index.ts",
+          "extensions/acp/register.runtime.ts",
+          "extensions/acp/runtime-api.ts",
+          "extensions/acp/setup-api.ts"
+        ],
+        "openClawTestGapPaths": [
+          "extensions/acp/src/claude-agent-acp-completion.test.ts",
+          "extensions/acp/src/codex-auth-bridge.test.ts",
+          "extensions/acp/src/config.test.ts",
+          "extensions/acp/src/manifest.test.ts",
+          "extensions/acp/src/process-lease.test.ts",
+          "extensions/acp/src/process-reaper.test.ts",
+          "extensions/acp/src/runtime-internals/mcp-command-line.test.ts",
+          "extensions/acp/src/runtime-internals/mcp-proxy.test.ts",
+          "extensions/acp/src/runtime.test.ts",
+          "extensions/acp/src/service.test.ts",
+          "extensions/acp/index.test.ts",
+          "extensions/acp/register.runtime.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "extensions/acp/src/adapter.ts",
+          "extensions/acp/src/channel.ts",
+          "extensions/acp/src/config.ts",
+          "extensions/acp/src/ensure.ts",
+          "extensions/acp/src/extension.ts",
+          "extensions/acp/src/formatter.ts",
+          "extensions/acp/src/handler.ts",
+          "extensions/acp/src/index.ts",
+          "extensions/acp/src/media.ts",
+          "extensions/acp/src/rate-limiter.ts",
+          "extensions/acp/src/resolve-target.ts",
+          "extensions/acp/src/runtime-internals/control-errors.ts"
+        ]
+      },
+      "intentionalDomainDifference": {
+        "status": "intentionally_different",
+        "referenceBehavior": "OpenClaw names the standalone ACP runtime extension with a tool-specific suffix.",
+        "coreBlowDecision": "CoreBlow exposes the same runtime family as the canonical ACP extension and package surface.",
+        "rationale": "Keep CoreBlow public plugin naming protocol-oriented while avoiding a tool-specific extension name.",
+        "evidence": [
+          "extensions/acp/coreblow.plugin.json",
+          "extensions/acp/index.ts",
+          "src/plugin-sdk/acp.ts"
+        ],
+        "gate": "pnpm test -- extensions/acp"
+      },
+      "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
+      "gates": [
+        "pnpm test -- extensions/acp",
+        "pnpm check"
+      ]
+    },
+    {
       "domain": "extensions/line",
       "status": "partial",
       "priority": "P2",
@@ -2628,60 +2703,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/zalouser",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/acpx",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/acpx plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 5,
-        "coreBlowOnlySourcePaths": 21,
-        "openClawOnlySourcePaths": 7,
-        "sharedTestPaths": 4,
-        "coreBlowOnlyTestPaths": 11,
-        "openClawTestGaps": 8
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/acpx/src/codex-auth-bridge.ts",
-          "extensions/acpx/src/codex-trust-config.ts",
-          "extensions/acpx/src/config-schema.ts",
-          "extensions/acpx/src/process-lease.ts",
-          "extensions/acpx/src/process-reaper.ts",
-          "extensions/acpx/register.runtime.ts",
-          "extensions/acpx/setup-api.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/acpx/src/claude-agent-acp-completion.test.ts",
-          "extensions/acpx/src/codex-auth-bridge.test.ts",
-          "extensions/acpx/src/manifest.test.ts",
-          "extensions/acpx/src/process-lease.test.ts",
-          "extensions/acpx/src/process-reaper.test.ts",
-          "extensions/acpx/src/runtime-internals/mcp-command-line.test.ts",
-          "extensions/acpx/index.test.ts",
-          "extensions/acpx/register.runtime.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "extensions/acpx/src/adapter.ts",
-          "extensions/acpx/src/channel.ts",
-          "extensions/acpx/src/ensure.ts",
-          "extensions/acpx/src/extension.ts",
-          "extensions/acpx/src/formatter.ts",
-          "extensions/acpx/src/handler.ts",
-          "extensions/acpx/src/index.ts",
-          "extensions/acpx/src/media.ts",
-          "extensions/acpx/src/rate-limiter.ts",
-          "extensions/acpx/src/resolve-target.ts",
-          "extensions/acpx/src/runtime-internals/control-errors.ts",
-          "extensions/acpx/src/runtime-internals/events.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/acpx",
         "pnpm check"
       ]
     },

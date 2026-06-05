@@ -23,7 +23,7 @@ export function createExtensionsVitestConfig(
         // ── Migration debt: stub extensions with incomplete implementations ──
         'extensions/synology-chat/src/__tests__/channel.test.ts',
         'extensions/nostr/src/__tests__/channel.test.ts',
-        'extensions/acpx/src/__tests__/runtime.test.ts',
+        'extensions/acp/src/__tests__/runtime.test.ts',
         'extensions/voice-call/src/__tests__/runtime.test.ts',
       ],
     },

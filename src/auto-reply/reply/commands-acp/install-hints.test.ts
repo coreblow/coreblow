@@ -21,33 +21,33 @@ afterEach(() => {
 describe("ACP install hints", () => {
   it("prefers explicit runtime install command", () => {
     const cfg = withAcpConfig({
-      runtime: { installCommand: "pnpm coreblow plugins install acpx" },
+      runtime: { installCommand: "pnpm coreblow plugins install acp" },
     });
-    expect(resolveAcpInstallCommandHint(cfg)).toBe("pnpm coreblow plugins install acpx");
+    expect(resolveAcpInstallCommandHint(cfg)).toBe("pnpm coreblow plugins install acp");
   });
 
-  it("uses local acpx extension path when present", () => {
+  it("uses local acp extension path when present", () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "acp-install-hint-"));
     tempDirs.push(tempRoot);
-    fs.mkdirSync(path.join(tempRoot, "extensions", "acpx"), { recursive: true });
+    fs.mkdirSync(path.join(tempRoot, "extensions", "acp"), { recursive: true });
     vi.spyOn(process, "cwd").mockReturnValue(tempRoot);
 
-    const cfg = withAcpConfig({ backend: "acpx" });
+    const cfg = withAcpConfig({ backend: "acp" });
     const hint = resolveAcpInstallCommandHint(cfg);
     expect(hint).toContain("coreblow plugins install ");
-    expect(hint).toContain(path.join("extensions", "acpx"));
+    expect(hint).toContain(path.join("extensions", "acp"));
   });
 
-  it("falls back to scoped install hint for acpx when local extension is absent", () => {
+  it("falls back to scoped install hint for acp when local extension is absent", () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "acp-install-hint-"));
     tempDirs.push(tempRoot);
     vi.spyOn(process, "cwd").mockReturnValue(tempRoot);
 
-    const cfg = withAcpConfig({ backend: "acpx" });
-    expect(resolveAcpInstallCommandHint(cfg)).toBe("coreblow plugins install acpx");
+    const cfg = withAcpConfig({ backend: "acp" });
+    expect(resolveAcpInstallCommandHint(cfg)).toBe("coreblow plugins install acp");
   });
 
-  it("returns generic plugin hint for non-acpx backend", () => {
+  it("returns generic plugin hint for non-acp backend", () => {
     const cfg = withAcpConfig({ backend: "custom-backend" });
     expect(resolveConfiguredAcpBackendId(cfg)).toBe("custom-backend");
     expect(resolveAcpInstallCommandHint(cfg)).toContain('ACP backend "custom-backend"');

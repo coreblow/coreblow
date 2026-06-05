@@ -141,13 +141,13 @@ async function connectClient(params: { url: string; token: string; timeoutMs?: n
 async function waitForAcpBackendHealthy(timeoutMs = 60_000): Promise<void> {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
-    const backend = getAcpRuntimeBackend("acpx");
+    const backend = getAcpRuntimeBackend("acp");
     if (backend && (!backend.healthy || backend.healthy())) {
       return;
     }
     await sleep(250);
   }
-  throw new Error("timed out waiting for the acpx runtime backend to become healthy");
+  throw new Error("timed out waiting for the acp runtime backend to become healthy");
 }
 
 async function waitForAgentRunOk(
@@ -208,7 +208,7 @@ describeLive("gateway live (ACP bind)", () => {
         skipCanvas: process.env.COREBLOW_SKIP_CANVAS_HOST,
       };
       const liveAgent = normalizeAcpAgent(process.env.COREBLOW_LIVE_ACP_BIND_AGENT);
-      const acpxCommand = process.env.COREBLOW_LIVE_ACP_BIND_ACPX_COMMAND?.trim() || undefined;
+      const acpCommand = process.env.COREBLOW_LIVE_ACP_BIND_ACP_COMMAND?.trim() || undefined;
       const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-live-acp-bind-"));
       const tempStateDir = path.join(tempRoot, "state");
       const tempConfigPath = path.join(tempRoot, "coreblow.json");
@@ -230,7 +230,7 @@ describeLive("gateway live (ACP bind)", () => {
       process.env.COREBLOW_GATEWAY_PORT = String(port);
 
       const cfg = loadConfig();
-      const acpxEntry = cfg.plugins?.entries?.acpx;
+      const acpEntry = cfg.plugins?.entries?.acp;
       const nextCfg = {
         ...cfg,
         gateway: {
@@ -242,7 +242,7 @@ describeLive("gateway live (ACP bind)", () => {
         acp: {
           ...cfg.acp,
           enabled: true,
-          backend: "acpx",
+          backend: "acp",
           defaultAgent: liveAgent,
           allowedAgents: Array.from(new Set([...(cfg.acp?.allowedAgents ?? []), liveAgent])),
           dispatch: {
@@ -254,16 +254,16 @@ describeLive("gateway live (ACP bind)", () => {
           ...cfg.plugins,
           entries: {
             ...cfg.plugins?.entries,
-            acpx: {
-              ...acpxEntry,
+            acp: {
+              ...acpEntry,
               enabled: true,
               config: {
-                ...acpxEntry?.config,
+                ...acpEntry?.config,
                 permissionMode: "approve-all",
                 nonInteractivePermissions: "deny",
-                ...(acpxCommand
+                ...(acpCommand
                   ? {
-                      command: acpxCommand,
+                      command: acpCommand,
                       expectedVersion: "any",
                     }
                   : {}),
@@ -292,9 +292,9 @@ describeLive("gateway live (ACP bind)", () => {
       logLiveStep("gateway websocket connected");
 
       try {
-        logLiveStep("waiting for acpx backend health");
+        logLiveStep("waiting for acp backend health");
         await waitForAcpBackendHealthy();
-        logLiveStep("acpx backend healthy");
+        logLiveStep("acp backend healthy");
 
         await sendChatAndWait({
           client,

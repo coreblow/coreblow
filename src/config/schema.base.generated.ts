@@ -13724,7 +13724,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
     },
     "acp.backend": {
       label: "ACP Backend",
-      help: "Default ACP runtime backend id (for example: acpx). Must match a registered ACP runtime plugin backend.",
+      help: "Default ACP runtime backend id (for example: acp). Must match a registered ACP runtime plugin backend.",
       tags: ["advanced"],
     },
     "acp.defaultAgent": {

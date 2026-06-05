@@ -25,22 +25,22 @@ async function loadFreshPluginSkillsModuleForTest() {
 
 const tempDirs = createTrackedTempDirs();
 
-function buildRegistry(params: { acpxRoot: string; helperRoot: string }): PluginManifestRegistry {
+function buildRegistry(params: { acpRoot: string; helperRoot: string }): PluginManifestRegistry {
   return {
     diagnostics: [],
     plugins: [
       {
-        id: "acpx",
-        name: "ACPX Runtime",
+        id: "acp",
+        name: "ACP Runtime",
         channels: [],
         providers: [],
         cliBackends: [],
         skills: ["./skills"],
         hooks: [],
         origin: "workspace",
-        rootDir: params.acpxRoot,
-        source: params.acpxRoot,
-        manifestPath: path.join(params.acpxRoot, "coreblow.plugin.json"),
+        rootDir: params.acpRoot,
+        source: params.acpRoot,
+        manifestPath: path.join(params.acpRoot, "coreblow.plugin.json"),
       },
       {
         id: "helper",
@@ -85,14 +85,14 @@ function createSinglePluginRegistry(params: {
   };
 }
 
-async function setupAcpxAndHelperRegistry() {
+async function setupAcpAndHelperRegistry() {
   const workspaceDir = await tempDirs.make("coreblow-");
-  const acpxRoot = await tempDirs.make("coreblow-acpx-plugin-");
+  const acpRoot = await tempDirs.make("coreblow-acp-plugin-");
   const helperRoot = await tempDirs.make("coreblow-helper-plugin-");
-  await fs.mkdir(path.join(acpxRoot, "skills"), { recursive: true });
+  await fs.mkdir(path.join(acpRoot, "skills"), { recursive: true });
   await fs.mkdir(path.join(helperRoot, "skills"), { recursive: true });
-  hoisted.loadPluginManifestRegistry.mockReturnValue(buildRegistry({ acpxRoot, helperRoot }));
-  return { workspaceDir, acpxRoot, helperRoot };
+  hoisted.loadPluginManifestRegistry.mockReturnValue(buildRegistry({ acpRoot, helperRoot }));
+  return { workspaceDir, acpRoot, helperRoot };
 }
 
 async function setupPluginOutsideSkills() {
@@ -115,22 +115,22 @@ describe("resolvePluginSkillDirs", () => {
 
   it.each([
     {
-      name: "keeps acpx plugin skills when ACP is enabled",
+      name: "keeps acp plugin skills when ACP is enabled",
       acpEnabled: true,
-      expectedDirs: ({ acpxRoot, helperRoot }: { acpxRoot: string; helperRoot: string }) => [
-        path.resolve(acpxRoot, "skills"),
+      expectedDirs: ({ acpRoot, helperRoot }: { acpRoot: string; helperRoot: string }) => [
+        path.resolve(acpRoot, "skills"),
         path.resolve(helperRoot, "skills"),
       ],
     },
     {
-      name: "skips acpx plugin skills when ACP is disabled",
+      name: "skips acp plugin skills when ACP is disabled",
       acpEnabled: false,
-      expectedDirs: ({ helperRoot }: { acpxRoot: string; helperRoot: string }) => [
+      expectedDirs: ({ helperRoot }: { acpRoot: string; helperRoot: string }) => [
         path.resolve(helperRoot, "skills"),
       ],
     },
   ])("$name", async ({ acpEnabled, expectedDirs }) => {
-    const { workspaceDir, acpxRoot, helperRoot } = await setupAcpxAndHelperRegistry();
+    const { workspaceDir, acpRoot, helperRoot } = await setupAcpAndHelperRegistry();
 
     const dirs = resolvePluginSkillDirs({
       workspaceDir,
@@ -138,14 +138,14 @@ describe("resolvePluginSkillDirs", () => {
         acp: { enabled: acpEnabled },
         plugins: {
           entries: {
-            acpx: { enabled: true },
+            acp: { enabled: true },
             helper: { enabled: true },
           },
         },
       } as CoreBlowConfig,
     });
 
-    expect(dirs).toEqual(expectedDirs({ acpxRoot, helperRoot }));
+    expect(dirs).toEqual(expectedDirs({ acpRoot, helperRoot }));
   });
 
   it("rejects plugin skill paths that escape the plugin root", async () => {

@@ -23,8 +23,8 @@ export type AcpRuntimeHandle = {
   runtimeSessionName: string;
   /** Effective runtime working directory for this ACP session, if exposed by adapter/runtime. */
   cwd?: string;
-  /** Backend-local record identifier, if exposed by adapter/runtime (for example acpx record id). */
-  acpxRecordId?: string;
+  /** Backend-local record identifier, if exposed by adapter/runtime (for example acp record id). */
+  acpRecordId?: string;
   /** Backend-level ACP session identifier, if exposed by adapter/runtime. */
   backendSessionId?: string;
   /** Upstream harness session identifier, if exposed by adapter/runtime. */
@@ -66,7 +66,7 @@ export type AcpRuntimeCapabilities = {
 export type AcpRuntimeStatus = {
   summary?: string;
   /** Backend-local record identifier, if exposed by adapter/runtime. */
-  acpxRecordId?: string;
+  acpRecordId?: string;
   /** Backend-level ACP session identifier, if known at status time. */
   backendSessionId?: string;
   /** Upstream harness session identifier, if known at status time. */

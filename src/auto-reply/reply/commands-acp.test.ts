@@ -157,7 +157,7 @@ const baseCfg = {
   acp: {
     enabled: true,
     dispatch: { enabled: true },
-    backend: "acpx",
+    backend: "acp",
   },
   channels: {
     discord: {
@@ -187,7 +187,7 @@ const defaultThreadId = "thread-1";
 type AcpSessionIdentity = {
   state: "resolved";
   source: "status";
-  acpxSessionId: string;
+  acpSessionId: string;
   agentSessionId: string;
   lastUpdatedAt: number;
 };
@@ -218,7 +218,7 @@ function createAcpSessionEntry(options?: {
     sessionKey,
     storeSessionKey: sessionKey,
     acp: {
-      backend: "acpx",
+      backend: "acp",
       agent: "codex",
       runtimeSessionName: "runtime-1",
       ...(options?.identity ? { identity: options.identity } : {}),
@@ -494,7 +494,7 @@ describe("/acp command", () => {
       sessionId: "session-1",
       updatedAt: Date.now(),
       acp: {
-        backend: "acpx",
+        backend: "acp",
         agent: "codex",
         runtimeSessionName: "run-1",
         mode: "persistent",
@@ -521,7 +521,7 @@ describe("/acp command", () => {
       .mockReset()
       .mockImplementation(async (input: { sessionKey: string }) => ({
         sessionKey: input.sessionKey,
-        backend: "acpx",
+        backend: "acp",
         runtimeSessionName: `${input.sessionKey}:runtime`,
       }));
     hoisted.runTurnMock.mockReset().mockImplementation(async function* () {
@@ -540,11 +540,11 @@ describe("/acp command", () => {
     hoisted.setConfigOptionMock.mockReset().mockResolvedValue(undefined);
     hoisted.doctorMock.mockReset().mockResolvedValue({
       ok: true,
-      message: "acpx command available",
+      message: "acp command available",
     });
 
     const runtimeBackend = {
-      id: "acpx",
+      id: "acp",
       runtime: {
         ensureSession: hoisted.ensureSessionMock,
         runTurn: hoisted.runTurnMock,
@@ -566,7 +566,7 @@ describe("/acp command", () => {
         mode: "persistent" | "oneshot";
         cwd?: string;
       }) => {
-        const backend = hoisted.requireAcpRuntimeBackendMock("acpx") as {
+        const backend = hoisted.requireAcpRuntimeBackendMock("acp") as {
           id?: string;
           runtime: typeof runtimeBackend.runtime;
         };
@@ -578,7 +578,7 @@ describe("/acp command", () => {
         });
         const now = Date.now();
         const meta = {
-          backend: ensured.backend ?? "acpx",
+          backend: ensured.backend ?? "acp",
           agent: input.agent,
           runtimeSessionName: ensured.runtimeSessionName ?? `${input.sessionKey}:runtime`,
           mode: input.mode,
@@ -591,10 +591,10 @@ describe("/acp command", () => {
                 identity: {
                   state: "resolved" as const,
                   source: "status" as const,
-                  acpxSessionId:
+                  acpSessionId:
                     typeof ensured.backendSessionId === "string"
                       ? ensured.backendSessionId
-                      : "acpx-1",
+                      : "acp-1",
                   agentSessionId:
                     typeof ensured.agentSessionId === "string"
                       ? ensured.agentSessionId
@@ -624,7 +624,7 @@ describe("/acp command", () => {
         const meta =
           entry?.acp ??
           ({
-            backend: "acpx",
+            backend: "acp",
             agent: "codex",
             runtimeSessionName: `${input.sessionKey}:runtime`,
             mode: "persistent",
@@ -648,7 +648,7 @@ describe("/acp command", () => {
         const meta = entry?.acp ?? {};
         return {
           sessionKey: input.sessionKey,
-          backend: typeof meta.backend === "string" ? meta.backend : "acpx",
+          backend: typeof meta.backend === "string" ? meta.backend : "acp",
           agent: typeof meta.agent === "string" ? meta.agent : "codex",
           identity: meta.identity,
           state: meta.state ?? "idle",
@@ -719,17 +719,17 @@ describe("/acp command", () => {
   it("spawns an ACP session and binds a Discord thread", async () => {
     hoisted.ensureSessionMock.mockResolvedValueOnce({
       sessionKey: "agent:codex:acp:s1",
-      backend: "acpx",
+      backend: "acp",
       runtimeSessionName: "agent:codex:acp:s1:runtime",
       agentSessionId: "codex-inner-1",
-      backendSessionId: "acpx-1",
+      backendSessionId: "acp-1",
     });
 
     const result = await runDiscordAcpCommand("/acp spawn codex --cwd /home/bob/coreblow");
 
     expect(result?.reply?.text).toContain("Spawned ACP session agent:codex:acp:");
     expect(result?.reply?.text).toContain("Created thread thread-created and bound it");
-    expect(hoisted.requireAcpRuntimeBackendMock).toHaveBeenCalledWith("acpx");
+    expect(hoisted.requireAcpRuntimeBackendMock).toHaveBeenCalledWith("acp");
     expect(hoisted.ensureSessionMock).toHaveBeenCalledWith(
       expect.objectContaining({
         agent: "codex",
@@ -767,7 +767,7 @@ describe("/acp command", () => {
       | undefined;
     expect(upsertArgs?.sessionKey).toMatch(/^agent:codex:acp:/);
     const seededWithoutEntry = upsertArgs?.mutate(undefined, undefined);
-    expect(seededWithoutEntry?.backend).toBe("acpx");
+    expect(seededWithoutEntry?.backend).toBe("acp");
     expect(seededWithoutEntry?.runtimeSessionName).toContain(":runtime");
   });
 
@@ -1185,7 +1185,7 @@ describe("/acp command", () => {
         updatedAt: Date.now(),
         label: "codex-main",
         acp: {
-          backend: "acpx",
+          backend: "acp",
           agent: "codex",
           runtimeSessionName: "runtime-1",
           mode: "persistent",
@@ -1211,7 +1211,7 @@ describe("/acp command", () => {
       identity: {
         state: "resolved",
         source: "status",
-        acpxSessionId: "acpx-sid-1",
+        acpSessionId: "acp-sid-1",
         agentSessionId: "codex-sid-1",
         lastUpdatedAt: Date.now(),
       },
@@ -1221,7 +1221,7 @@ describe("/acp command", () => {
     expect(result?.reply?.text).toContain("ACP status:");
     expect(result?.reply?.text).toContain(`session: ${defaultAcpSessionKey}`);
     expect(result?.reply?.text).toContain("agent session id: codex-sid-1");
-    expect(result?.reply?.text).toContain("acpx session id: acpx-sid-1");
+    expect(result?.reply?.text).toContain("acp session id: acp-sid-1");
     expect(result?.reply?.text).toContain("capabilities:");
     expect(hoisted.getStatusMock).toHaveBeenCalledTimes(1);
   });
@@ -1266,7 +1266,7 @@ describe("/acp command", () => {
         identity: {
           state: "resolved",
           source: "status",
-          acpxSessionId: "runtime-1",
+          acpSessionId: "runtime-1",
           agentSessionId: "session-1",
           lastUpdatedAt: Date.now(),
         },
@@ -1340,7 +1340,7 @@ describe("/acp command", () => {
     hoisted.requireAcpRuntimeBackendMock.mockImplementation(() => {
       throw new AcpRuntimeError(
         "ACP_BACKEND_MISSING",
-        "ACP runtime backend is not configured. Install and enable the acpx runtime plugin.",
+        "ACP runtime backend is not configured. Install and enable the acp runtime plugin.",
       );
     });
 

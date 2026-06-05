@@ -115,15 +115,15 @@ export async function reconcileManagerRuntimeSessionIdentifiers(params: {
   if (!identityEquals(currentIdentity, nextIdentity)) {
     const currentAgentSessionId = currentIdentity?.agentSessionId ?? "<none>";
     const nextAgentSessionId = nextIdentity?.agentSessionId ?? "<none>";
-    const currentAcpxSessionId = currentIdentity?.acpxSessionId ?? "<none>";
-    const nextAcpxSessionId = nextIdentity?.acpxSessionId ?? "<none>";
-    const currentAcpxRecordId = currentIdentity?.acpxRecordId ?? "<none>";
-    const nextAcpxRecordId = nextIdentity?.acpxRecordId ?? "<none>";
+    const currentAcpSessionId = currentIdentity?.acpSessionId ?? "<none>";
+    const nextAcpSessionId = nextIdentity?.acpSessionId ?? "<none>";
+    const currentAcpRecordId = currentIdentity?.acpRecordId ?? "<none>";
+    const nextAcpRecordId = nextIdentity?.acpRecordId ?? "<none>";
     logVerbose(
       `acp-manager: session identity updated for ${params.sessionKey} ` +
         `(agentSessionId ${currentAgentSessionId} -> ${nextAgentSessionId}, ` +
-        `acpxSessionId ${currentAcpxSessionId} -> ${nextAcpxSessionId}, ` +
-        `acpxRecordId ${currentAcpxRecordId} -> ${nextAcpxRecordId})`,
+        `acpSessionId ${currentAcpSessionId} -> ${nextAcpSessionId}, ` +
+        `acpRecordId ${currentAcpRecordId} -> ${nextAcpRecordId})`,
     );
   }
   await params.writeSessionMeta({

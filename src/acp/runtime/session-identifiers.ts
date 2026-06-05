@@ -85,9 +85,9 @@ export function resolveAcpSessionIdentifierLinesFromIdentity(params: {
   const mode = params.mode ?? "status";
   const identity = params.identity;
   const agentSessionId = normalizeText(identity?.agentSessionId);
-  const acpxSessionId = normalizeText(identity?.acpxSessionId);
-  const acpxRecordId = normalizeText(identity?.acpxRecordId);
-  const hasIdentifier = Boolean(agentSessionId || acpxSessionId || acpxRecordId);
+  const acpSessionId = normalizeText(identity?.acpSessionId);
+  const acpRecordId = normalizeText(identity?.acpRecordId);
+  const hasIdentifier = Boolean(agentSessionId || acpSessionId || acpRecordId);
   if (isSessionIdentityPending(identity) && hasIdentifier) {
     if (mode === "status") {
       return ["session ids: pending (available after the first reply)"];
@@ -98,11 +98,11 @@ export function resolveAcpSessionIdentifierLinesFromIdentity(params: {
   if (agentSessionId) {
     lines.push(`agent session id: ${agentSessionId}`);
   }
-  if (acpxSessionId) {
-    lines.push(`${backend} session id: ${acpxSessionId}`);
+  if (acpSessionId) {
+    lines.push(`${backend} session id: ${acpSessionId}`);
   }
-  if (acpxRecordId) {
-    lines.push(`${backend} record id: ${acpxRecordId}`);
+  if (acpRecordId) {
+    lines.push(`${backend} record id: ${acpRecordId}`);
   }
   return lines;
 }

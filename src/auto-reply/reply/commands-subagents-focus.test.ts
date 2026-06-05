@@ -305,13 +305,13 @@ describe("/focus, /unfocus, /agents", () => {
       sessionKey: "agent:codex-acp:session-1",
       storeSessionKey: "agent:codex-acp:session-1",
       acp: {
-        backend: "acpx",
+        backend: "acp",
         agent: "codex",
         runtimeSessionName: "runtime-1",
         identity: {
           state: "resolved",
           source: "status",
-          acpxSessionId: "acpx-456",
+          acpSessionId: "acp-456",
           agentSessionId: "codex-123",
           lastUpdatedAt: Date.now(),
         },
@@ -332,7 +332,7 @@ describe("/focus, /unfocus, /agents", () => {
     expect(hoisted.sessionBindingBindMock).toHaveBeenCalledWith(
       expect.objectContaining({
         metadata: expect.objectContaining({
-          introText: expect.stringContaining("acpx session id: acpx-456"),
+          introText: expect.stringContaining("acp session id: acp-456"),
         }),
       }),
     );

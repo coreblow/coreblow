@@ -23,7 +23,7 @@ function createDefaultSpawnConfig(): CoreBlowConfig {
   return {
     acp: {
       enabled: true,
-      backend: "acpx",
+      backend: "acp",
       allowedAgents: ["codex"],
     },
     session: {
@@ -268,21 +268,21 @@ describe("spawnAcpDirect", () => {
         },
         handle: {
           sessionKey: args.sessionKey,
-          backend: "acpx",
+          backend: "acp",
           runtimeSessionName,
           ...(cwd ? { cwd } : {}),
           agentSessionId: "codex-inner-1",
-          backendSessionId: "acpx-1",
+          backendSessionId: "acp-1",
         },
         meta: {
-          backend: "acpx",
+          backend: "acp",
           agent: args.agent,
           runtimeSessionName,
           ...(cwd ? { runtimeOptions: { cwd }, cwd } : {}),
           identity: {
             state: "pending",
             source: "ensure",
-            acpxSessionId: "acpx-1",
+            acpSessionId: "acp-1",
             agentSessionId: "codex-inner-1",
             lastUpdatedAt: Date.now(),
           },
@@ -609,7 +609,7 @@ describe("spawnAcpDirect", () => {
       ...hoisted.state.cfg,
       acp: {
         enabled: true,
-        backend: "acpx",
+        backend: "acp",
         allowedAgents: ["claudecode"],
       },
     });

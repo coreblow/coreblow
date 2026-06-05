@@ -38,23 +38,23 @@ describe("doctor stale plugin config helpers", () => {
   it("finds stale plugins.allow and plugins.entries refs", () => {
     const hits = scanStalePluginConfig({
       plugins: {
-        allow: ["discord", "acpx"],
+        allow: ["discord", "acp"],
         entries: {
           "voice-call": { enabled: true },
-          acpx: { enabled: true },
+          acp: { enabled: true },
         },
       },
     } as CoreBlowConfig);
 
     expect(hits).toEqual([
       {
-        pluginId: "acpx",
+        pluginId: "acp",
         pathLabel: "plugins.allow",
         surface: "allow",
       },
       {
-        pluginId: "acpx",
-        pathLabel: "plugins.entries.acpx",
+        pluginId: "acp",
+        pathLabel: "plugins.entries.acp",
         surface: "entries",
       },
     ]);
@@ -63,17 +63,17 @@ describe("doctor stale plugin config helpers", () => {
   it("removes stale plugin ids from allow and entries without changing valid refs", () => {
     const result = maybeRepairStalePluginConfig({
       plugins: {
-        allow: ["discord", "acpx", "voice-call"],
+        allow: ["discord", "acp", "voice-call"],
         entries: {
           "voice-call": { enabled: true },
-          acpx: { enabled: true },
+          acp: { enabled: true },
         },
       },
     } as CoreBlowConfig);
 
     expect(result.changes).toEqual([
-      "- plugins.allow: removed 1 stale plugin id (acpx)",
-      "- plugins.entries: removed 1 stale plugin entry (acpx)",
+      "- plugins.allow: removed 1 stale plugin id (acp)",
+      "- plugins.entries: removed 1 stale plugin entry (acp)",
     ]);
     expect(result.config.plugins?.allow).toEqual(["discord", "voice-call"]);
     expect(result.config.plugins?.entries).toEqual({
@@ -85,7 +85,7 @@ describe("doctor stale plugin config helpers", () => {
     const warnings = collectStalePluginConfigWarnings({
       hits: [
         {
-          pluginId: "acpx",
+          pluginId: "acp",
           pathLabel: "plugins.allow",
           surface: "allow",
         },
@@ -94,7 +94,7 @@ describe("doctor stale plugin config helpers", () => {
     });
 
     expect(warnings).toEqual([
-      expect.stringContaining('plugins.allow: stale plugin reference "acpx"'),
+      expect.stringContaining('plugins.allow: stale plugin reference "acp"'),
       expect.stringContaining('Run "coreblow doctor --fix"'),
     ]);
   });
@@ -109,9 +109,9 @@ describe("doctor stale plugin config helpers", () => {
 
     const cfg = {
       plugins: {
-        allow: ["acpx"],
+        allow: ["acp"],
         entries: {
-          acpx: { enabled: true },
+          acp: { enabled: true },
         },
       },
     } as CoreBlowConfig;
@@ -119,13 +119,13 @@ describe("doctor stale plugin config helpers", () => {
     const hits = scanStalePluginConfig(cfg);
     expect(hits).toEqual([
       {
-        pluginId: "acpx",
+        pluginId: "acp",
         pathLabel: "plugins.allow",
         surface: "allow",
       },
       {
-        pluginId: "acpx",
-        pathLabel: "plugins.entries.acpx",
+        pluginId: "acp",
+        pathLabel: "plugins.entries.acp",
         surface: "entries",
       },
     ]);
@@ -145,23 +145,23 @@ describe("doctor stale plugin config helpers", () => {
   it("treats legacy plugin aliases as valid ids during scan and repair", () => {
     const cfg = {
       plugins: {
-        allow: ["openai-codex", "acpx"],
+        allow: ["openai-codex", "acp"],
         entries: {
           "openai-codex": { enabled: true },
-          acpx: { enabled: true },
+          acp: { enabled: true },
         },
       },
     } as CoreBlowConfig;
 
     expect(scanStalePluginConfig(cfg)).toEqual([
       {
-        pluginId: "acpx",
+        pluginId: "acp",
         pathLabel: "plugins.allow",
         surface: "allow",
       },
       {
-        pluginId: "acpx",
-        pathLabel: "plugins.entries.acpx",
+        pluginId: "acp",
+        pathLabel: "plugins.entries.acp",
         surface: "entries",
       },
     ]);

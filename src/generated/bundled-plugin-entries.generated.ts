@@ -2,7 +2,7 @@
 
 export async function loadGeneratedBundledPluginEntries() {
   const [
-    acpxPluginModule,
+    acpPluginModule,
     amazonBedrockPluginModule,
     anthropicPluginModule,
     bluebubblesPluginModule,
@@ -83,7 +83,7 @@ export async function loadGeneratedBundledPluginEntries() {
     zaloPluginModule,
     zalouserPluginModule,
   ] = await Promise.all([
-    import("../../extensions/acpx/index.js"),
+    import("../../extensions/acp/index.js"),
     import("../../extensions/amazon-bedrock/index.js"),
     import("../../extensions/anthropic/index.js"),
     import("../../extensions/bluebubbles/index.js"),
@@ -165,7 +165,7 @@ export async function loadGeneratedBundledPluginEntries() {
     import("../../extensions/zalouser/index.js"),
   ]);
   return [
-    acpxPluginModule.default,
+    acpPluginModule.default,
     amazonBedrockPluginModule.default,
     anthropicPluginModule.default,
     bluebubblesPluginModule.default,

@@ -2,22 +2,22 @@
 
 export const GENERATED_BUNDLED_PLUGIN_METADATA = [
   {
-    dirName: "acpx",
-    idHint: "acpx",
+    dirName: "acp",
+    idHint: "acp",
     source: {
       source: "./index.ts",
       built: "index.js",
     },
     publicSurfaceArtifacts: ["runtime-api.js"],
     runtimeSidecarArtifacts: ["runtime-api.js"],
-    packageName: "@coreblow/acpx",
+    packageName: "@coreblow/acp",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow ACP runtime backend via acpx",
+    packageDescription: "CoreBlow ACP runtime backend via acp",
     packageManifest: {
       extensions: ["./index.ts"],
     },
     manifest: {
-      id: "acpx",
+      id: "acp",
       configSchema: {
         type: "object",
         additionalProperties: false,
@@ -84,16 +84,16 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         },
       },
       skills: ["./skills"],
-      name: "ACPX Runtime",
+      name: "ACP Runtime",
       description:
-        "ACP runtime backend powered by acpx with configurable command path and version policy.",
+        "ACP runtime backend powered by acp with configurable command path and version policy.",
       uiHints: {
         command: {
-          label: "acpx Command",
-          help: "Optional path/command override for acpx (for example /home/user/repos/acpx/dist/cli.js). Leave unset to use plugin-local bundled acpx.",
+          label: "acp Command",
+          help: "Optional path/command override for acp (for example /home/user/repos/acp/dist/cli.js). Leave unset to use plugin-local bundled acp.",
         },
         expectedVersion: {
-          label: "Expected acpx Version",
+          label: "Expected acp Version",
           help: 'Exact version to enforce or "any" to skip strict version matching.',
         },
         cwd: {
@@ -102,11 +102,11 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         },
         permissionMode: {
           label: "Permission Mode",
-          help: "Default acpx permission policy for runtime prompts.",
+          help: "Default acp permission policy for runtime prompts.",
         },
         nonInteractivePermissions: {
           label: "Non-Interactive Permission Policy",
-          help: "acpx policy when interactive permission prompts are unavailable.",
+          help: "acp policy when interactive permission prompts are unavailable.",
         },
         strictWindowsCmdWrapper: {
           label: "Strict Windows cmd Wrapper",
@@ -115,17 +115,17 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         },
         timeoutSeconds: {
           label: "Prompt Timeout Seconds",
-          help: "Optional acpx timeout for each runtime turn.",
+          help: "Optional acp timeout for each runtime turn.",
           advanced: true,
         },
         queueOwnerTtlSeconds: {
           label: "Queue Owner TTL Seconds",
-          help: "Idle queue-owner TTL for acpx prompt turns. Keep this short in CoreBlow to avoid delayed completion after each turn.",
+          help: "Idle queue-owner TTL for acp prompt turns. Keep this short in CoreBlow to avoid delayed completion after each turn.",
           advanced: true,
         },
         mcpServers: {
           label: "MCP Servers",
-          help: "Named MCP server definitions to inject into ACPX-backed session bootstrap. Each entry needs a command and can include args and env.",
+          help: "Named MCP server definitions to inject into ACP-backed session bootstrap. Each entry needs a command and can include args and env.",
           advanced: true,
         },
       },

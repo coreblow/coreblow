@@ -120,7 +120,7 @@ function expectSourceContains(subpath: string, snippet: string) {
 describe("plugin-sdk subpath exports", () => {
   it("keeps the curated public list free of internal implementation subpaths", () => {
     for (const deniedSubpath of [
-      "acpx",
+      "acp",
       "device-pair",
       "lobster",
       "pairing-access",

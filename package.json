@@ -334,9 +334,9 @@
       "types": "./dist/plugin-sdk/acp-runtime.d.ts",
       "default": "./dist/plugin-sdk/acp-runtime.js"
     },
-    "./plugin-sdk/acpx": {
-      "types": "./dist/plugin-sdk/acpx.d.ts",
-      "default": "./dist/plugin-sdk/acpx.js"
+    "./plugin-sdk/acp": {
+      "types": "./dist/plugin-sdk/acp.d.ts",
+      "default": "./dist/plugin-sdk/acp.js"
     },
     "./plugin-sdk/agent-config-primitives": {
       "types": "./dist/plugin-sdk/agent-config-primitives.d.ts",

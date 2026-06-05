@@ -80,9 +80,9 @@ describe("doctor preview warnings", () => {
     const warnings = collectDoctorPreviewWarnings({
       cfg: {
         plugins: {
-          allow: ["acpx"],
+          allow: ["acp"],
           entries: {
-            acpx: { enabled: true },
+            acp: { enabled: true },
           },
         },
       },
@@ -90,9 +90,9 @@ describe("doctor preview warnings", () => {
     });
 
     expect(warnings).toEqual([
-      expect.stringContaining('plugins.allow: stale plugin reference "acpx"'),
+      expect.stringContaining('plugins.allow: stale plugin reference "acp"'),
     ]);
-    expect(warnings[0]).toContain("plugins.entries.acpx");
+    expect(warnings[0]).toContain("plugins.entries.acp");
     expect(warnings[0]).toContain('Run "coreblow doctor --fix"');
     expect(warnings[0]).not.toContain("Auto-removal is paused");
   });
@@ -146,9 +146,9 @@ describe("doctor preview warnings", () => {
     const warnings = collectDoctorPreviewWarnings({
       cfg: {
         plugins: {
-          allow: ["acpx"],
+          allow: ["acp"],
           entries: {
-            acpx: { enabled: true },
+            acp: { enabled: true },
           },
         },
       },
@@ -156,7 +156,7 @@ describe("doctor preview warnings", () => {
     });
 
     expect(warnings).toEqual([
-      expect.stringContaining('plugins.allow: stale plugin reference "acpx"'),
+      expect.stringContaining('plugins.allow: stale plugin reference "acp"'),
     ]);
     expect(warnings[0]).toContain("Auto-removal is paused");
     expect(warnings[0]).toContain('rerun "coreblow doctor --fix"');

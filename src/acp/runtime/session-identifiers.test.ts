@@ -10,14 +10,14 @@ describe("session identifier helpers", () => {
     const lines = resolveAcpThreadSessionDetailLines({
       sessionKey: "agent:codex:acp:pending-1",
       meta: {
-        backend: "acpx",
+        backend: "acp",
         agent: "codex",
         runtimeSessionName: "runtime-1",
         identity: {
           state: "pending",
           source: "ensure",
           lastUpdatedAt: Date.now(),
-          acpxSessionId: "acpx-123",
+          acpSessionId: "acp-123",
           agentSessionId: "inner-123",
         },
         mode: "persistent",
@@ -33,14 +33,14 @@ describe("session identifier helpers", () => {
     const lines = resolveAcpThreadSessionDetailLines({
       sessionKey: "agent:codex:acp:resolved-1",
       meta: {
-        backend: "acpx",
+        backend: "acp",
         agent: "codex",
         runtimeSessionName: "runtime-1",
         identity: {
           state: "resolved",
           source: "status",
           lastUpdatedAt: Date.now(),
-          acpxSessionId: "acpx-123",
+          acpSessionId: "acp-123",
           agentSessionId: "inner-123",
         },
         mode: "persistent",
@@ -50,7 +50,7 @@ describe("session identifier helpers", () => {
     });
 
     expect(lines).toContain("agent session id: inner-123");
-    expect(lines).toContain("acpx session id: acpx-123");
+    expect(lines).toContain("acp session id: acp-123");
     expect(lines).toContain(
       "resume in Codex CLI: `codex resume inner-123` (continues this conversation).",
     );
@@ -60,14 +60,14 @@ describe("session identifier helpers", () => {
     const lines = resolveAcpThreadSessionDetailLines({
       sessionKey: "agent:kimi:acp:resolved-1",
       meta: {
-        backend: "acpx",
+        backend: "acp",
         agent: "kimi",
         runtimeSessionName: "runtime-1",
         identity: {
           state: "resolved",
           source: "status",
           lastUpdatedAt: Date.now(),
-          acpxSessionId: "acpx-kimi-123",
+          acpSessionId: "acp-kimi-123",
           agentSessionId: "kimi-inner-123",
         },
         mode: "persistent",
@@ -77,7 +77,7 @@ describe("session identifier helpers", () => {
     });
 
     expect(lines).toContain("agent session id: kimi-inner-123");
-    expect(lines).toContain("acpx session id: acpx-kimi-123");
+    expect(lines).toContain("acp session id: acp-kimi-123");
     expect(lines).toContain(
       "resume in Kimi CLI: `kimi resume kimi-inner-123` (continues this conversation).",
     );
@@ -85,7 +85,7 @@ describe("session identifier helpers", () => {
 
   it("shows pending identity text for status rendering", () => {
     const lines = resolveAcpSessionIdentifierLinesFromIdentity({
-      backend: "acpx",
+      backend: "acp",
       mode: "status",
       identity: {
         state: "pending",
@@ -100,7 +100,7 @@ describe("session identifier helpers", () => {
 
   it("prefers runtimeOptions.cwd over legacy meta.cwd", () => {
     const cwd = resolveAcpSessionCwd({
-      backend: "acpx",
+      backend: "acp",
       agent: "codex",
       runtimeSessionName: "runtime-1",
       mode: "persistent",

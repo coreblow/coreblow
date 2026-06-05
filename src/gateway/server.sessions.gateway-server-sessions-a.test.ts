@@ -1768,7 +1768,7 @@ describe("gateway server sessions", () => {
           sessionId: "sess-acp",
           updatedAt: Date.now(),
           acp: {
-            backend: "acpx",
+            backend: "acp",
             agent: "codex",
             runtimeSessionName: "runtime:delete",
             mode: "persistent",
@@ -1989,7 +1989,7 @@ describe("gateway server sessions", () => {
           sessionId: "sess-main",
           updatedAt: Date.now(),
           acp: {
-            backend: "acpx",
+            backend: "acp",
             agent: "codex",
             runtimeSessionName: "runtime:reset",
             mode: "persistent",
@@ -2027,7 +2027,7 @@ describe("gateway server sessions", () => {
     });
     expect(reset.ok).toBe(true);
     expect(reset.payload?.entry.acp).toMatchObject({
-      backend: "acpx",
+      backend: "acp",
       agent: "codex",
       runtimeSessionName: "runtime:reset",
       mode: "persistent",
@@ -2063,7 +2063,7 @@ describe("gateway server sessions", () => {
       }
     >;
     expect(store["agent:main:main"]?.acp).toMatchObject({
-      backend: "acpx",
+      backend: "acp",
       agent: "codex",
       runtimeSessionName: "runtime:reset",
       mode: "persistent",
