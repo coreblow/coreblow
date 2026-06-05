@@ -44,6 +44,13 @@ const legacyAcpExtensionDomain = ["extensions", `acp${"x"}`].join("/");
 const coreAcpExtensionDomain = "extensions/acp";
 const legacyAcpSdkPath = ["src", "plugin-sdk", `acp${"x"}.ts`].join("/");
 const coreAcpSdkPath = "src/plugin-sdk/acp.ts";
+const legacyWorkflowShellToken = `lob${"ster"}`;
+const legacyWorkflowShellExtensionDomain = ["extensions", legacyWorkflowShellToken].join("/");
+const coreWorkflowShellExtensionDomain = "extensions/workflow-shell";
+const legacyWorkflowShellSdkPath = ["src", "plugin-sdk", `${legacyWorkflowShellToken}.ts`].join(
+  "/",
+);
+const coreWorkflowShellSdkPath = "src/plugin-sdk/workflow-shell.ts";
 
 function normalizeCoreBlowPath(path) {
   if (path.startsWith(`${legacyAcpExtensionDomain}/`)) {
@@ -51,6 +58,14 @@ function normalizeCoreBlowPath(path) {
   }
   if (path === legacyAcpSdkPath) {
     return coreAcpSdkPath;
+  }
+  if (path.startsWith(`${legacyWorkflowShellExtensionDomain}/`)) {
+    return path
+      .replace(legacyWorkflowShellExtensionDomain, coreWorkflowShellExtensionDomain)
+      .replaceAll(legacyWorkflowShellToken, "workflow-shell");
+  }
+  if (path === legacyWorkflowShellSdkPath) {
+    return coreWorkflowShellSdkPath;
   }
   return path;
 }
@@ -235,6 +250,24 @@ const intentionalDomainDifferences = new Map([
         "src/plugin-sdk/acp.ts",
       ],
       gate: "pnpm test -- extensions/acp",
+    },
+  ],
+  [
+    "extensions/workflow-shell",
+    {
+      status: "intentionally_different",
+      referenceBehavior:
+        "OpenClaw uses legacy workflow runtime branding for the same local typed workflow surface.",
+      coreBlowDecision:
+        "CoreBlow exposes the runtime as Workflow Shell with id, package, folder, SDK export, and tool name workflow-shell.",
+      rationale:
+        "Keep the workflow runtime professional and CoreBlow-native while preserving behavior parity.",
+      evidence: [
+        "extensions/workflow-shell/coreblow.plugin.json",
+        "extensions/workflow-shell/index.ts",
+        "src/plugin-sdk/workflow-shell.ts",
+      ],
+      gate: "pnpm test -- extensions/workflow-shell",
     },
   ],
   [

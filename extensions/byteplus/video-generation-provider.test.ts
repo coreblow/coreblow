@@ -207,7 +207,7 @@ describe("byteplus video generation provider", () => {
     await provider.generateVideo({
       provider: "byteplus",
       model: "seedance-1-0-pro-250528",
-      prompt: "A cinematic lobster montage",
+      prompt: "A cinematic workflow-shell montage",
       providerOptions: {
         seed: 42,
         draft: true,

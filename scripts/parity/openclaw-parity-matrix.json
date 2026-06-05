@@ -9,14 +9,14 @@
   "summary": {
     "cb_source_files": 7437,
     "oc_source_files": 8443,
-    "source_parity_both": 5652,
-    "source_cb_exclusive": 1785,
-    "source_missing_from_cb": 2791,
+    "source_parity_both": 5648,
+    "source_cb_exclusive": 1789,
+    "source_missing_from_cb": 2795,
     "test_files_cb": 4606,
     "test_files_oc": 5246,
-    "tests_both_covered": 3222,
-    "tests_gap_oc_has_cb_missing": 1779,
-    "tests_cb_exclusive": 1327,
+    "tests_both_covered": 3221,
+    "tests_gap_oc_has_cb_missing": 1780,
+    "tests_cb_exclusive": 1328,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
     "test_scenario_files_intentionally_different": 0
@@ -161,9 +161,9 @@
       "priority": "P0",
       "implementationSurface": "src/plugin-sdk public API",
       "counts": {
-        "sharedSourcePaths": 199,
-        "coreBlowOnlySourcePaths": 119,
-        "openClawOnlySourcePaths": 240,
+        "sharedSourcePaths": 198,
+        "coreBlowOnlySourcePaths": 120,
+        "openClawOnlySourcePaths": 241,
         "sharedTestPaths": 26,
         "coreBlowOnlyTestPaths": 14,
         "openClawTestGaps": 77
@@ -3001,6 +3001,67 @@
       ]
     },
     {
+      "domain": "extensions/workflow-shell",
+      "status": "intentionally_different",
+      "priority": "P3",
+      "implementationSurface": "extensions/workflow-shell plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 0,
+        "coreBlowOnlySourcePaths": 20,
+        "openClawOnlySourcePaths": 7,
+        "sharedTestPaths": 0,
+        "coreBlowOnlyTestPaths": 6,
+        "openClawTestGaps": 3
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [
+          "extensions/workflow-shell/src/workflow-shell-ajv-cache.ts",
+          "extensions/workflow-shell/src/workflow-shell-runner.ts",
+          "extensions/workflow-shell/src/workflow-shell-taskflow.ts",
+          "extensions/workflow-shell/src/workflow-shell-tool.ts",
+          "extensions/workflow-shell/src/taskflow-test-helpers.ts",
+          "extensions/workflow-shell/index.ts",
+          "extensions/workflow-shell/runtime-api.ts"
+        ],
+        "openClawTestGapPaths": [
+          "extensions/workflow-shell/src/workflow-shell-runner.test.ts",
+          "extensions/workflow-shell/src/workflow-shell-taskflow.test.ts",
+          "extensions/workflow-shell/src/workflow-shell-tool.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "extensions/workflow-shell/src/adapter.ts",
+          "extensions/workflow-shell/src/channel.ts",
+          "extensions/workflow-shell/src/config.ts",
+          "extensions/workflow-shell/src/extension.ts",
+          "extensions/workflow-shell/src/formatter.ts",
+          "extensions/workflow-shell/src/handler.ts",
+          "extensions/workflow-shell/src/index.ts",
+          "extensions/workflow-shell/src/media.ts",
+          "extensions/workflow-shell/src/rate-limiter.ts",
+          "extensions/workflow-shell/src/resolve-target.ts",
+          "extensions/workflow-shell/src/runtime.ts",
+          "extensions/workflow-shell/src/subagent-hooks.ts"
+        ]
+      },
+      "intentionalDomainDifference": {
+        "status": "intentionally_different",
+        "referenceBehavior": "OpenClaw uses legacy workflow runtime branding for the same local typed workflow surface.",
+        "coreBlowDecision": "CoreBlow exposes the runtime as Workflow Shell with id, package, folder, SDK export, and tool name workflow-shell.",
+        "rationale": "Keep the workflow runtime professional and CoreBlow-native while preserving behavior parity.",
+        "evidence": [
+          "extensions/workflow-shell/coreblow.plugin.json",
+          "extensions/workflow-shell/index.ts",
+          "src/plugin-sdk/workflow-shell.ts"
+        ],
+        "gate": "pnpm test -- extensions/workflow-shell"
+      },
+      "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
+      "gates": [
+        "pnpm test -- extensions/workflow-shell",
+        "pnpm check"
+      ]
+    },
+    {
       "domain": "src/tools",
       "status": "partial",
       "priority": "P3",
@@ -3293,51 +3354,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/hooks",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/lobster",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/lobster plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 3,
-        "coreBlowOnlySourcePaths": 17,
-        "openClawOnlySourcePaths": 4,
-        "sharedTestPaths": 1,
-        "coreBlowOnlyTestPaths": 5,
-        "openClawTestGaps": 2
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/lobster/src/lobster-ajv-cache.ts",
-          "extensions/lobster/src/lobster-runner.ts",
-          "extensions/lobster/src/lobster-taskflow.ts",
-          "extensions/lobster/src/taskflow-test-helpers.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/lobster/src/lobster-runner.test.ts",
-          "extensions/lobster/src/lobster-taskflow.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "extensions/lobster/src/adapter.ts",
-          "extensions/lobster/src/channel.ts",
-          "extensions/lobster/src/config.ts",
-          "extensions/lobster/src/extension.ts",
-          "extensions/lobster/src/formatter.ts",
-          "extensions/lobster/src/handler.ts",
-          "extensions/lobster/src/index.ts",
-          "extensions/lobster/src/media.ts",
-          "extensions/lobster/src/rate-limiter.ts",
-          "extensions/lobster/src/resolve-target.ts",
-          "extensions/lobster/src/runtime.ts",
-          "extensions/lobster/src/subagent-hooks.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/lobster",
         "pnpm check"
       ]
     },

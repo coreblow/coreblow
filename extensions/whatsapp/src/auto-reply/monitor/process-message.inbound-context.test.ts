@@ -222,7 +222,7 @@ describe("web processMessage inbound context", () => {
           {
             id: "main",
             default: true,
-            identity: { name: "Mainbot", emoji: "🦞", theme: "space lobster" },
+            identity: { name: "Mainbot", emoji: ":)", theme: "workflow shell" },
           },
         ],
       },

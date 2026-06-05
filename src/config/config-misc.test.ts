@@ -59,7 +59,7 @@ describe("ui.seamColor", () => {
   });
 
   it("rejects non-hex colors", () => {
-    const res = validateConfigObject({ ui: { seamColor: "lobster" } });
+    const res = validateConfigObject({ ui: { seamColor: "workflow-shell" } });
     expect(res.ok).toBe(false);
   });
 

@@ -81,7 +81,7 @@ describe("runway video generation provider", () => {
     const result = await provider.generateVideo({
       provider: "runway",
       model: "gen4.5",
-      prompt: "a tiny lobster DJ under neon lights",
+      prompt: "a tiny workflow-shell DJ under neon lights",
       cfg: {},
       durationSeconds: 4,
       aspectRatio: "16:9",
@@ -93,7 +93,7 @@ describe("runway video generation provider", () => {
     expect(fetchFn.mock.calls[0]?.[0]).toBe("https://api.dev.runwayml.com/v1/text_to_video");
     expect(readJsonBody(fetchFn.mock.calls[0]?.[1])).toEqual({
       model: "gen4.5",
-      promptText: "a tiny lobster DJ under neon lights",
+      promptText: "a tiny workflow-shell DJ under neon lights",
       ratio: "1280:720",
       duration: 4,
     });

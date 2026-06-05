@@ -2,14 +2,14 @@ import { describe, expect, it } from "vitest";
 import { stripPluginOnlyAllowlist, type PluginToolGroups } from "./tool-policy.js";
 
 const pluginGroups: PluginToolGroups = {
-  all: ["lobster", "workflow_tool"],
-  byPlugin: new Map([["lobster", ["lobster", "workflow_tool"]]]),
+  all: ["workflow-shell", "workflow_tool"],
+  byPlugin: new Map([["workflow-shell", ["workflow-shell", "workflow_tool"]]]),
 };
 const coreTools = new Set(["read", "write", "exec", "session_status"]);
 
 describe("stripPluginOnlyAllowlist", () => {
   it("strips allowlist when it only targets plugin tools", () => {
-    const policy = stripPluginOnlyAllowlist({ allow: ["lobster"] }, pluginGroups, coreTools);
+    const policy = stripPluginOnlyAllowlist({ allow: ["workflow-shell"] }, pluginGroups, coreTools);
     expect(policy.policy?.allow).toBeUndefined();
     expect(policy.unknownAllowlist).toEqual([]);
   });
@@ -28,29 +28,29 @@ describe("stripPluginOnlyAllowlist", () => {
 
   it("keeps allowlist when it mixes plugin and core entries", () => {
     const policy = stripPluginOnlyAllowlist(
-      { allow: ["lobster", "read"] },
+      { allow: ["workflow-shell", "read"] },
       pluginGroups,
       coreTools,
     );
-    expect(policy.policy?.allow).toEqual(["lobster", "read"]);
+    expect(policy.policy?.allow).toEqual(["workflow-shell", "read"]);
     expect(policy.unknownAllowlist).toEqual([]);
   });
 
   it("strips allowlist with unknown entries when no core tools match", () => {
     const emptyPlugins: PluginToolGroups = { all: [], byPlugin: new Map() };
-    const policy = stripPluginOnlyAllowlist({ allow: ["lobster"] }, emptyPlugins, coreTools);
+    const policy = stripPluginOnlyAllowlist({ allow: ["workflow-shell"] }, emptyPlugins, coreTools);
     expect(policy.policy?.allow).toBeUndefined();
-    expect(policy.unknownAllowlist).toEqual(["lobster"]);
+    expect(policy.unknownAllowlist).toEqual(["workflow-shell"]);
   });
 
   it("keeps allowlist with core tools and reports unknown entries", () => {
     const emptyPlugins: PluginToolGroups = { all: [], byPlugin: new Map() };
     const policy = stripPluginOnlyAllowlist(
-      { allow: ["read", "lobster"] },
+      { allow: ["read", "workflow-shell"] },
       emptyPlugins,
       coreTools,
     );
-    expect(policy.policy?.allow).toEqual(["read", "lobster"]);
-    expect(policy.unknownAllowlist).toEqual(["lobster"]);
+    expect(policy.policy?.allow).toEqual(["read", "workflow-shell"]);
+    expect(policy.unknownAllowlist).toEqual(["workflow-shell"]);
   });
 });

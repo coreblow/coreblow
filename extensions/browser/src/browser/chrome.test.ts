@@ -160,7 +160,7 @@ describe("browser chrome profile decoration", () => {
 
   it("best-effort writes name when color is invalid", async () => {
     const userDataDir = await createUserDataDir();
-    decorateCoreBlowProfile(userDataDir, { color: "lobster-orange" });
+    decorateCoreBlowProfile(userDataDir, { color: "coreblow-orange" });
     const def = await readDefaultProfileFromLocalState(userDataDir);
 
     expect(def.name).toBe(DEFAULT_COREBLOW_BROWSER_PROFILE_NAME);

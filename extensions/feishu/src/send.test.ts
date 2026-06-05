@@ -399,7 +399,7 @@ describe("resolveFeishuCardTemplate", () => {
   });
 
   it("drops unsupported free-form identity themes", () => {
-    expect(resolveFeishuCardTemplate("space lobster")).toBeUndefined();
+    expect(resolveFeishuCardTemplate("workflow shell")).toBeUndefined();
   });
 });
 
@@ -408,7 +408,7 @@ describe("buildStructuredCard", () => {
     const card = buildStructuredCard("hello", {
       header: {
         title: "Agent",
-        template: "space lobster",
+        template: "workflow shell",
       },
     });
 

@@ -275,7 +275,7 @@ const titleByRepo = {
   corewatch: "CoreWatch",
   "corewatch-state": "CoreWatch State",
   docs: "CoreBlow Docs",
-  dolphin: "Dolphin",
+  "workflow-shell": "Workflow Shell",
   "esp-coreblow-node": "ESP CoreBlow Node",
   "homebrew-tap": "Homebrew Tap",
   "nix-coreblow": "Nix CoreBlow",

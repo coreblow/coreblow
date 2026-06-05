@@ -126,7 +126,7 @@
   "line-surface",
   "litellm",
   "llm-task",
-  "lobster",
+  "workflow-shell",
   "logging-core",
   "matrix",
   "matrix-helper",

@@ -153,7 +153,7 @@ describe("comfy image-generation provider", () => {
     const result = await provider.generateImage({
       provider: "comfy",
       model: "workflow",
-      prompt: "draw a lobster",
+      prompt: "draw a workflow-shell",
       cfg: buildComfyConfig({
         workflow: {
           "6": { inputs: { text: "" } },
@@ -169,7 +169,7 @@ describe("comfy image-generation provider", () => {
     expect(submitRequest.auditContext).toBe("comfy-image-generate");
     expect(parseJsonBody(1)).toEqual({
       prompt: {
-        "6": { inputs: { text: "draw a lobster" } },
+        "6": { inputs: { text: "draw a workflow-shell" } },
         "9": { inputs: {} },
       },
     });
@@ -217,7 +217,7 @@ describe("comfy image-generation provider", () => {
       provider.generateImage({
         provider: "comfy",
         model: "workflow",
-        prompt: "draw a lobster",
+        prompt: "draw a workflow-shell",
         cfg: buildComfyConfig({
           workflow: {
             "6": { inputs: { text: "" } },

@@ -822,9 +822,9 @@
       "types": "./dist/plugin-sdk/lmstudio.d.ts",
       "default": "./dist/plugin-sdk/lmstudio.js"
     },
-    "./plugin-sdk/lobster": {
-      "types": "./dist/plugin-sdk/lobster.d.ts",
-      "default": "./dist/plugin-sdk/lobster.js"
+    "./plugin-sdk/workflow-shell": {
+      "types": "./dist/plugin-sdk/workflow-shell.d.ts",
+      "default": "./dist/plugin-sdk/workflow-shell.js"
     },
     "./plugin-sdk/logging-core": {
       "types": "./dist/plugin-sdk/logging-core.d.ts",

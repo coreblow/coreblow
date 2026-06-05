@@ -122,7 +122,7 @@ describe("plugin-sdk subpath exports", () => {
     for (const deniedSubpath of [
       "acp",
       "device-pair",
-      "lobster",
+      "workflow-shell",
       "pairing-access",
       "provider-model-definitions",
       "reply-prefix",

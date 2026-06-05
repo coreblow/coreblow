@@ -55,7 +55,7 @@
         "src/plugin-sdk/line-core.ts",
         "src/plugin-sdk/line-surface.ts",
         "src/plugin-sdk/litellm.ts",
-        "src/plugin-sdk/lobster.ts",
+        "src/plugin-sdk/workflow-shell.ts",
         "src/plugin-sdk/matrix-helper.ts",
         "src/plugin-sdk/matrix-runtime-surface.ts",
         "src/plugin-sdk/matrix-surface.ts",

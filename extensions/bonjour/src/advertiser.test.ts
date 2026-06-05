@@ -906,7 +906,7 @@ describe("gateway bonjour advertiser", () => {
     delete process.env.VITEST;
     process.env.NODE_ENV = "development";
     delete process.env.COREBLOW_MDNS_HOSTNAME;
-    vi.spyOn(os, "hostname").mockReturnValue("My_Lobster Host");
+    vi.spyOn(os, "hostname").mockReturnValue("My_WorkflowShell Host");
 
     const destroy = vi.fn().mockResolvedValue(undefined);
     const advertise = vi.fn().mockResolvedValue(undefined);
@@ -1002,7 +1002,7 @@ describe("gateway bonjour advertiser", () => {
     delete process.env.VITEST;
     process.env.NODE_ENV = "development";
     delete process.env.COREBLOW_MDNS_HOSTNAME;
-    vi.spyOn(os, "hostname").mockReturnValue("Lobster");
+    vi.spyOn(os, "hostname").mockReturnValue("WorkflowShell");
 
     const destroy = vi.fn().mockResolvedValue(undefined);
     const advertise = vi.fn().mockResolvedValue(undefined);
@@ -1014,8 +1014,8 @@ describe("gateway bonjour advertiser", () => {
     });
 
     const [gatewayCall] = createService.mock.calls as Array<[ServiceCall]>;
-    expect(gatewayCall?.[0]?.hostname).toBe("Lobster");
-    expect((gatewayCall?.[0]?.txt as Record<string, string>)?.lanHost).toBe("Lobster.local");
+    expect(gatewayCall?.[0]?.hostname).toBe("WorkflowShell");
+    expect((gatewayCall?.[0]?.txt as Record<string, string>)?.lanHost).toBe("WorkflowShell.local");
 
     await started.stop();
   });

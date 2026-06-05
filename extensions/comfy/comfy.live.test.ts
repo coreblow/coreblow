@@ -74,7 +74,7 @@ describeLive("comfy live", () => {
       const result = await provider.generateImage({
         provider: "comfy",
         model: "workflow",
-        prompt: "A tiny orange lobster icon on a clean background.",
+        prompt: "A tiny orange workflow-shell icon on a clean background.",
         cfg: cfg as never,
         agentDir,
       });
@@ -92,7 +92,7 @@ describeLive("comfy live", () => {
       const result = await provider.generateVideo({
         provider: "comfy",
         model: "workflow",
-        prompt: "A tiny paper lobster gently waving, cinematic motion.",
+        prompt: "A tiny paper workflow-shell gently waving, cinematic motion.",
         cfg: cfg as never,
         agentDir,
       });

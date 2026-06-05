@@ -150,12 +150,12 @@
       "description": "CoreBlow chat application."
     },
     {
-      "name": "dolphin",
-      "reference": "lobster",
+      "name": "workflow-shell",
+      "reference": "workflow-shell",
       "phase": 4,
       "priority": "workflow",
       "kind": "workflow-shell",
-      "source": "scripts/migration/repo-seeds/dolphin",
+      "source": "scripts/migration/repo-seeds/workflow-shell",
       "description": "CoreBlow-native typed workflow shell."
     },
     {

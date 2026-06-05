@@ -127,7 +127,7 @@ describe("imessage monitor gating + envelope builders", () => {
       is_from_me: false,
       text: "@coreblow ping",
       is_group: true,
-      chat_name: "Lobster Squad",
+      chat_name: "WorkflowShell Squad",
       participants: ["+1555", "+1556"],
     };
     const ctxPayload = buildDispatchContextPayload({ cfg, message });

@@ -220,7 +220,7 @@ ${theme.muted(t("cli_help.labels.docs"))} ${formatDocsLink("/cli/agent", "docs.c
         `
 ${theme.heading("Examples:")}
 ${formatHelpExamples([
-  ['coreblow agents set-identity --agent main --name "CoreBlow" --emoji "🦞"', t("cli_help.agents.set_identity_examples.name_emoji")],
+  ['coreblow agents set-identity --agent main --name "CoreBlow" --emoji "*"', t("cli_help.agents.set_identity_examples.name_emoji")],
   ["coreblow agents set-identity --agent main --avatar avatars/coreblow.png", t("cli_help.agents.set_identity_examples.avatar_path")],
   [
     "coreblow agents set-identity --workspace ~/.coreblow/workspace --from-identity",
