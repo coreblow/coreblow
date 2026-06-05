@@ -1,4 +1,3 @@
-import type { StreamFn } from "@mariozechner/pi-agent-core";
 import {
   definePluginEntry,
   type ProviderResolveDynamicModelContext,
@@ -9,21 +8,21 @@ import { DEFAULT_CONTEXT_TOKENS } from "coreblow/plugin-sdk/provider-model-share
 import {
   getOpenRouterModelCapabilities,
   loadOpenRouterModelCapabilities,
-  createOpenRouterSystemCacheWrapper,
-  createOpenRouterWrapper,
-  isProxyReasoningUnsupported,
 } from "coreblow/plugin-sdk/provider-stream";
 import { applyXaiModelCompat } from "coreblow/plugin-sdk/xai";
+import { buildOpenRouterImageGenerationProvider } from "./image-generation-provider.js";
 import { openrouterMediaUnderstandingProvider } from "./media-understanding-provider.js";
 import { applyOpenrouterConfig, OPENROUTER_DEFAULT_MODEL_REF } from "./onboard.js";
-import { buildOpenrouterProvider } from "./provider-catalog.js";
+import { buildOpenrouterProvider, OPENROUTER_BASE_URL } from "./provider-catalog.js";
+import { buildOpenRouterSpeechProvider } from "./speech-provider.js";
+import { wrapOpenRouterProviderStream } from "./stream.js";
 import {
   resolveOpenRouterThinkingProfile,
   supportsOpenRouterXHighThinking,
 } from "./thinking-policy.js";
+import { buildOpenRouterVideoGenerationProvider } from "./video-generation-provider.js";
 
 const PROVIDER_ID = "openrouter";
-const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
 const OPENROUTER_DEFAULT_MAX_TOKENS = 8192;
 const OPENROUTER_CACHE_TTL_MODEL_PREFIXES = [
   "anthropic/",
@@ -48,31 +47,6 @@ function buildDynamicOpenRouterModel(
     contextWindow: capabilities?.contextWindow ?? DEFAULT_CONTEXT_TOKENS,
     maxTokens: capabilities?.maxTokens ?? OPENROUTER_DEFAULT_MAX_TOKENS,
   };
-}
-
-function injectOpenRouterRouting(
-  baseStreamFn: StreamFn | undefined,
-  providerRouting?: Record<string, unknown>,
-): StreamFn | undefined {
-  if (!providerRouting) {
-    return baseStreamFn;
-  }
-  return (model, context, options) =>
-    (
-      baseStreamFn ??
-      ((nextModel, nextContext, nextOptions) => {
-        throw new Error(
-          `OpenRouter routing wrapper requires an underlying streamFn for ${String(nextModel.id)}.`,
-        );
-      })
-    )(
-      {
-        ...model,
-        compat: { ...model.compat, openRouterRouting: providerRouting },
-      } as typeof model,
-      context,
-      options,
-    );
 }
 
 function isOpenRouterCacheTtlModel(modelId: string): boolean {
@@ -145,24 +119,12 @@ export default definePluginEntry({
       supportsXHighThinking: ({ modelId }) => supportsOpenRouterXHighThinking(modelId),
       resolveDefaultThinkingLevel: ({ modelId }) =>
         resolveOpenRouterThinkingProfile(modelId)?.defaultLevel,
-      wrapStreamFn: (ctx) => {
-        let streamFn = ctx.streamFn;
-        const providerRouting =
-          ctx.extraParams?.provider != null && typeof ctx.extraParams.provider === "object"
-            ? (ctx.extraParams.provider as Record<string, unknown>)
-            : undefined;
-        if (providerRouting) {
-          streamFn = injectOpenRouterRouting(streamFn, providerRouting);
-        }
-        const skipReasoningInjection =
-          ctx.modelId === "auto" || isProxyReasoningUnsupported(ctx.modelId);
-        const openRouterThinkingLevel = skipReasoningInjection ? undefined : ctx.thinkingLevel;
-        streamFn = createOpenRouterWrapper(streamFn, openRouterThinkingLevel);
-        streamFn = createOpenRouterSystemCacheWrapper(streamFn);
-        return streamFn;
-      },
+      wrapStreamFn: (ctx) => wrapOpenRouterProviderStream(ctx),
       isCacheTtlEligible: (ctx) => isOpenRouterCacheTtlModel(ctx.modelId),
     });
     api.registerMediaUnderstandingProvider(openrouterMediaUnderstandingProvider);
+    api.registerSpeechProvider(buildOpenRouterSpeechProvider());
+    api.registerImageGenerationProvider(buildOpenRouterImageGenerationProvider());
+    api.registerVideoGenerationProvider(buildOpenRouterVideoGenerationProvider());
   },
 });

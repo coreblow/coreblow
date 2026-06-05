@@ -29,7 +29,11 @@ import { cloneFirstTemplateModel } from "coreblow/plugin-sdk/provider-model-shar
 import { fetchClaudeUsage } from "coreblow/plugin-sdk/provider-usage";
 import { buildAnthropicCliBackend } from "./cli-backend.js";
 import { buildAnthropicCliMigrationResult, hasClaudeCliAuth } from "./cli-migration.js";
+import { normalizeAnthropicProviderConfigForProvider } from "./config-defaults.js";
 import { anthropicMediaUnderstandingProvider } from "./media-understanding-provider.js";
+import anthropicProviderDiscovery from "./provider-discovery.js";
+import { resolveThinkingProfile } from "./provider-policy-api.js";
+import { wrapAnthropicProviderStream } from "./stream-wrappers.js";
 
 const PROVIDER_ID = "anthropic";
 const DEFAULT_ANTHROPIC_MODEL = "anthropic/claude-sonnet-4-6";
@@ -350,6 +354,7 @@ export default definePluginEntry({
   description: "Bundled Anthropic provider plugin",
   register(api) {
     api.registerCliBackend(buildAnthropicCliBackend());
+    api.registerProvider(anthropicProviderDiscovery);
     api.registerProvider({
       id: PROVIDER_ID,
       label: "Anthropic",
@@ -438,19 +443,26 @@ export default definePluginEntry({
         }),
       ],
       resolveDynamicModel: (ctx) => resolveAnthropicForwardCompatModel(ctx),
+      normalizeConfig: ({ provider, providerConfig }) =>
+        normalizeAnthropicProviderConfigForProvider({ provider, providerConfig }),
       capabilities: {
         providerFamily: "anthropic",
         dropThinkingBlockModelHints: ["claude"],
       },
       isModernModelRef: ({ modelId }) => matchesAnthropicModernModel(modelId),
+      supportsXHighThinking: ({ provider, modelId }) =>
+        resolveThinkingProfile({ provider, modelId })?.levels.some((level) => level.id === "xhigh") ||
+        undefined,
       resolveDefaultThinkingLevel: ({ modelId }) =>
-        matchesAnthropicModernModel(modelId) &&
+        resolveThinkingProfile({ provider: PROVIDER_ID, modelId })?.defaultLevel ??
+        (matchesAnthropicModernModel(modelId) &&
         (modelId.toLowerCase().startsWith(ANTHROPIC_OPUS_46_MODEL_ID) ||
           modelId.toLowerCase().startsWith(ANTHROPIC_OPUS_46_DOT_MODEL_ID) ||
           modelId.toLowerCase().startsWith(ANTHROPIC_SONNET_46_MODEL_ID) ||
           modelId.toLowerCase().startsWith(ANTHROPIC_SONNET_46_DOT_MODEL_ID))
           ? "adaptive"
-          : undefined,
+          : undefined),
+      wrapStreamFn: (ctx) => wrapAnthropicProviderStream(ctx),
       resolveUsageAuth: async (ctx) => await ctx.resolveOAuthToken(),
       fetchUsageSnapshot: async (ctx) =>
         await fetchClaudeUsage(ctx.token, ctx.timeoutMs, ctx.fetchFn),

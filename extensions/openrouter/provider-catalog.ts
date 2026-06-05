@@ -1,6 +1,6 @@
 import type { ModelProviderConfig } from "coreblow/plugin-sdk/provider-model-shared";
 
-const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
+export const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
 const OPENROUTER_DEFAULT_MODEL_ID = "auto";
 const OPENROUTER_DEFAULT_CONTEXT_WINDOW = 200000;
 const OPENROUTER_DEFAULT_MAX_TOKENS = 8192;

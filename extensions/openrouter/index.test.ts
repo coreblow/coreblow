@@ -2,6 +2,7 @@
 import { AuthStorage, ModelRegistry } from "@mariozechner/pi-coding-agent";
 import OpenAI from "openai";
 import { describe, expect, it } from "vitest";
+import { capturePluginRegistration } from "../../src/plugins/captured-registration.js";
 import {
   registerProviderPlugin,
   requireRegisteredProvider,
@@ -23,14 +24,16 @@ const registerOpenRouterPlugin = () =>
 
 describe("openrouter plugin", () => {
   it("registers the expected provider surfaces", () => {
-    const { providers, speechProviders, mediaProviders, imageProviders } =
-      registerOpenRouterPlugin();
+    const captured = capturePluginRegistration(plugin);
+    const { providers, speechProviders, mediaUnderstandingProviders, imageGenerationProviders } =
+      captured;
 
     expect(providers).toHaveLength(1);
     expect(providers.map((provider) => provider.id)).toEqual(["openrouter"]);
-    expect(speechProviders).toHaveLength(0);
-    expect(mediaProviders.map((provider) => provider.id)).toEqual(["openrouter"]);
-    expect(imageProviders).toHaveLength(0);
+    expect(speechProviders.map((provider) => provider.id)).toEqual(["openrouter"]);
+    expect(mediaUnderstandingProviders.map((provider) => provider.id)).toEqual(["openrouter"]);
+    expect(imageGenerationProviders.map((provider) => provider.id)).toEqual(["openrouter"]);
+    expect(captured.videoGenerationProviders.map((provider) => provider.id)).toEqual(["openrouter"]);
   });
 });
 

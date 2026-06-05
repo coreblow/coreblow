@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6544,
+    "cb_source_files": 6560,
     "oc_source_files": 8443,
-    "source_parity_both": 4768,
+    "source_parity_both": 4784,
     "source_cb_exclusive": 1776,
-    "source_missing_from_cb": 3675,
-    "test_files_cb": 4172,
+    "source_missing_from_cb": 3659,
+    "test_files_cb": 4180,
     "test_files_oc": 5246,
-    "tests_both_covered": 2806,
-    "tests_gap_oc_has_cb_missing": 2195,
+    "tests_both_covered": 2814,
+    "tests_gap_oc_has_cb_missing": 2187,
     "tests_cb_exclusive": 1319,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -3835,44 +3835,6 @@
       ]
     },
     {
-      "domain": "extensions/anthropic",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/anthropic plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 12,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 9,
-        "sharedTestPaths": 2,
-        "coreBlowOnlyTestPaths": 1,
-        "openClawTestGaps": 3
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/anthropic/cli-auth-seam.ts",
-          "extensions/anthropic/config-defaults.ts",
-          "extensions/anthropic/contract-api.ts",
-          "extensions/anthropic/provider-discovery.ts",
-          "extensions/anthropic/provider-policy-api.ts",
-          "extensions/anthropic/register.runtime.ts",
-          "extensions/anthropic/replay-policy.ts",
-          "extensions/anthropic/setup-api.ts",
-          "extensions/anthropic/stream-wrappers.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/anthropic/index.test.ts",
-          "extensions/anthropic/provider-policy-api.test.ts",
-          "extensions/anthropic/stream-wrappers.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/anthropic",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/elevenlabs",
       "status": "partial",
       "priority": "P3",
@@ -3983,44 +3945,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/migrate-claude",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/openrouter",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/openrouter plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 10,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 7,
-        "sharedTestPaths": 2,
-        "coreBlowOnlyTestPaths": 1,
-        "openClawTestGaps": 5
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/openrouter/image-generation-provider.ts",
-          "extensions/openrouter/music-generation-provider.ts",
-          "extensions/openrouter/speech-provider.ts",
-          "extensions/openrouter/stream.ts",
-          "extensions/openrouter/video-generation-provider.ts",
-          "extensions/openrouter/video-http.ts",
-          "extensions/openrouter/video-model-catalog.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/openrouter/image-generation-provider.test.ts",
-          "extensions/openrouter/media-understanding-provider.test.ts",
-          "extensions/openrouter/music-generation-provider.test.ts",
-          "extensions/openrouter/speech-provider.test.ts",
-          "extensions/openrouter/video-generation-provider.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/openrouter",
         "pnpm check"
       ]
     },
@@ -5536,6 +5460,30 @@
       ]
     },
     {
+      "domain": "extensions/anthropic",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/anthropic plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 21,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 5,
+        "coreBlowOnlyTestPaths": 1,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/anthropic",
+        "pnpm check"
+      ]
+    },
+    {
       "domain": "extensions/anthropic-vertex",
       "status": "done",
       "priority": "P3",
@@ -6943,6 +6891,30 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/opencode-go",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/openrouter",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/openrouter plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 17,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 7,
+        "coreBlowOnlyTestPaths": 1,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/openrouter",
         "pnpm check"
       ]
     },
