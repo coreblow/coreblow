@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6570,
+    "cb_source_files": 6579,
     "oc_source_files": 8443,
-    "source_parity_both": 4794,
+    "source_parity_both": 4803,
     "source_cb_exclusive": 1776,
-    "source_missing_from_cb": 3649,
-    "test_files_cb": 4185,
+    "source_missing_from_cb": 3640,
+    "test_files_cb": 4186,
     "test_files_oc": 5246,
-    "tests_both_covered": 2818,
-    "tests_gap_oc_has_cb_missing": 2183,
+    "tests_both_covered": 2819,
+    "tests_gap_oc_has_cb_missing": 2182,
     "tests_cb_exclusive": 1320,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -4225,42 +4225,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/vydra",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "src/status",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "src/status",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 9,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 1
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/status/agent-runtime-label.ts",
-          "src/status/fallback-notice-state.ts",
-          "src/status/status-labels.ts",
-          "src/status/status-message.runtime.ts",
-          "src/status/status-message.ts",
-          "src/status/status-queue.runtime.ts",
-          "src/status/status-subagents.runtime.ts",
-          "src/status/status-text.ts",
-          "src/status/status-text.types.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/status/status-message.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/status",
         "pnpm check"
       ]
     },
@@ -9402,6 +9366,30 @@
       "notes": "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture.",
       "gates": [
         "pnpm test -- src/skills",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/status",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/status",
+      "counts": {
+        "sharedSourcePaths": 9,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 1,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/status",
         "pnpm check"
       ]
     },
