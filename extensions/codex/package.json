@@ -1,0 +1,40 @@
+{
+  "name": "@coreblow/codex",
+  "version": "2026.5.17",
+  "description": "CoreBlow Codex harness and model provider plugin",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/coreblow/coreblow"
+  },
+  "type": "module",
+  "dependencies": {
+    "@earendil-works/pi-coding-agent": "0.75.1",
+    "@openai/codex": "0.130.0",
+    "ajv": "8.20.0",
+    "ws": "8.20.1",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@coreblow/plugin-sdk": "workspace:*"
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "install": {
+      "npmSpec": "@coreblow/codex",
+      "defaultChoice": "npm",
+      "minHostVersion": ">=2026.5.1-beta.1"
+    },
+    "compat": {
+      "pluginApi": ">=2026.5.17"
+    },
+    "build": {
+      "coreblowVersion": "2026.5.17"
+    },
+    "release": {
+      "publishToCoreHub": true,
+      "publishToNpm": true
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "@coreblow/qa-matrix",
+  "version": "2026.5.17",
+  "private": true,
+  "description": "CoreBlow Matrix QA runner plugin",
+  "type": "module",
+  "dependencies": {
+    "undici": "8.3.0"
+  },
+  "devDependencies": {
+    "@coreblow/matrix": "workspace:*",
+    "@coreblow/plugin-sdk": "workspace:*",
+    "coreblow": "workspace:*"
+  },
+  "peerDependencies": {
+    "coreblow": ">=2026.5.17"
+  },
+  "peerDependenciesMeta": {
+    "coreblow": {
+      "optional": true
+    }
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "compat": {
+      "pluginApi": ">=2026.5.17"
+    }
+  }
+}

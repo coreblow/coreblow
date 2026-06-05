@@ -1,0 +1,29 @@
+{
+  "name": "@coreblow/memory-wiki",
+  "version": "2026.5.17",
+  "private": true,
+  "description": "CoreBlow persistent wiki plugin",
+  "type": "module",
+  "dependencies": {
+    "typebox": "1.1.38",
+    "yaml": "2.9.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@coreblow/plugin-sdk": "workspace:*",
+    "coreblow": "workspace:*"
+  },
+  "peerDependencies": {
+    "coreblow": ">=2026.5.17"
+  },
+  "peerDependenciesMeta": {
+    "coreblow": {
+      "optional": true
+    }
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

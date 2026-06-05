@@ -1,0 +1,63 @@
+{
+  "name": "@coreblow/qqbot",
+  "version": "2026.5.17",
+  "private": false,
+  "description": "CoreBlow QQ Bot channel plugin",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/coreblow/coreblow"
+  },
+  "type": "module",
+  "dependencies": {
+    "@tencent-connect/qqbot-connector": "1.1.0",
+    "mpg123-decoder": "1.0.3",
+    "silk-wasm": "3.7.1",
+    "ws": "8.20.1",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@coreblow/plugin-sdk": "workspace:*",
+    "@types/ws": "8.18.1",
+    "coreblow": "workspace:*"
+  },
+  "peerDependencies": {
+    "coreblow": ">=2026.5.17"
+  },
+  "peerDependenciesMeta": {
+    "coreblow": {
+      "optional": true
+    }
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "setupEntry": "./setup-entry.ts",
+    "channel": {
+      "id": "qqbot",
+      "label": "QQ Bot",
+      "selectionLabel": "QQ Bot (Official API)",
+      "detailLabel": "QQ Bot",
+      "docsPath": "/channels/qqbot",
+      "docsLabel": "qqbot",
+      "blurb": "connect to QQ via official QQ Bot API with group chat and direct message support.",
+      "systemImage": "bubble.left.and.bubble.right"
+    },
+    "install": {
+      "npmSpec": "@coreblow/qqbot",
+      "localPath": "extensions/qqbot",
+      "defaultChoice": "npm",
+      "minHostVersion": ">=2026.4.10"
+    },
+    "compat": {
+      "pluginApi": ">=2026.5.17"
+    },
+    "build": {
+      "coreblowVersion": "2026.5.17"
+    },
+    "release": {
+      "publishToCoreHub": true,
+      "publishToNpm": true
+    }
+  }
+}

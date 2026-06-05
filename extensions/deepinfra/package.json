@@ -1,0 +1,15 @@
+{
+  "name": "@coreblow/deepinfra-provider",
+  "version": "2026.5.17",
+  "private": true,
+  "description": "CoreBlow DeepInfra provider plugin",
+  "type": "module",
+  "devDependencies": {
+    "@coreblow/plugin-sdk": "workspace:*"
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}
