@@ -17,6 +17,7 @@ export type MigrationItem = {
   message?: string;
   recommendation?: string;
   reason?: string;
+  sensitive?: boolean;
   details?: Record<string, unknown>;
 };
 
@@ -101,10 +102,11 @@ export function hasMigrationConfigPatchConflict(
 }
 
 export async function applyMigrationConfigPatchItem(
-  _ctx: { config: CoreBlowConfig },
+  ctx: { config: CoreBlowConfig; runtime?: { config?: unknown } },
   item: MigrationItem,
 ): Promise<MigrationItem> {
-  return { ...item, status: "applied" };
+  const { applyConfigPatchToRuntime } = await import("./migration-runtime.js");
+  return applyConfigPatchToRuntime(ctx, item);
 }
 
 export function redactMigrationPlan<T>(plan: T): T {
@@ -122,10 +124,19 @@ export function markMigrationItemConflict(
   return { ...item, status: "conflict", reason };
 }
 
+export function markMigrationItemSkipped(item: MigrationItem, reason?: string): MigrationItem {
+  return { ...item, status: "skipped", reason };
+}
+
 export async function copyFileIfExists(source: string, target: string): Promise<boolean> {
   try {
     await fs.mkdir(path.dirname(target), { recursive: true });
-    await fs.copyFile(source, target);
+    const stat = await fs.stat(source);
+    if (stat.isDirectory()) {
+      await fs.cp(source, target, { recursive: true, force: true });
+    } else {
+      await fs.copyFile(source, target);
+    }
     return true;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {

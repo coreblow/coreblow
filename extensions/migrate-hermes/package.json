@@ -1,0 +1,27 @@
+{
+  "name": "@coreblow/migrate-hermes",
+  "version": "2026.5.17",
+  "private": true,
+  "description": "Hermes to CoreBlow migration provider",
+  "type": "module",
+  "dependencies": {
+    "yaml": "2.9.0"
+  },
+  "devDependencies": {
+    "@coreblow/plugin-sdk": "workspace:*",
+    "coreblow": "workspace:*"
+  },
+  "peerDependencies": {
+    "coreblow": ">=2026.5.17"
+  },
+  "peerDependenciesMeta": {
+    "coreblow": {
+      "optional": true
+    }
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}
