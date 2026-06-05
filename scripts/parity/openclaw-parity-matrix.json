@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6529,
+    "cb_source_files": 6542,
     "oc_source_files": 8443,
-    "source_parity_both": 4753,
+    "source_parity_both": 4766,
     "source_cb_exclusive": 1776,
-    "source_missing_from_cb": 3690,
-    "test_files_cb": 4166,
+    "source_missing_from_cb": 3677,
+    "test_files_cb": 4169,
     "test_files_oc": 5246,
-    "tests_both_covered": 2801,
-    "tests_gap_oc_has_cb_missing": 2200,
+    "tests_both_covered": 2804,
+    "tests_gap_oc_has_cb_missing": 2197,
     "tests_cb_exclusive": 1318,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -161,9 +161,9 @@
       "priority": "P0",
       "implementationSurface": "src/plugin-sdk public API",
       "counts": {
-        "sharedSourcePaths": 178,
+        "sharedSourcePaths": 179,
         "coreBlowOnlySourcePaths": 117,
-        "openClawOnlySourcePaths": 261,
+        "openClawOnlySourcePaths": 260,
         "sharedTestPaths": 26,
         "coreBlowOnlyTestPaths": 14,
         "openClawTestGaps": 77
@@ -3289,49 +3289,6 @@
       ]
     },
     {
-      "domain": "extensions/lmstudio",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "extensions/lmstudio plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 14,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 5
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/lmstudio/src/api.ts",
-          "extensions/lmstudio/src/defaults.ts",
-          "extensions/lmstudio/src/embedding-provider.ts",
-          "extensions/lmstudio/src/models.fetch.ts",
-          "extensions/lmstudio/src/models.ts",
-          "extensions/lmstudio/src/plain-text-tool-calls.ts",
-          "extensions/lmstudio/src/provider-auth.ts",
-          "extensions/lmstudio/src/runtime.ts",
-          "extensions/lmstudio/src/setup.ts",
-          "extensions/lmstudio/src/stream.ts",
-          "extensions/lmstudio/api.ts",
-          "extensions/lmstudio/index.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/lmstudio/src/models.test.ts",
-          "extensions/lmstudio/src/runtime.test.ts",
-          "extensions/lmstudio/src/setup.test.ts",
-          "extensions/lmstudio/src/stream.test.ts",
-          "extensions/lmstudio/index.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/lmstudio",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/flows",
       "status": "partial",
       "priority": "P3",
@@ -5210,6 +5167,36 @@
       "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
       "gates": [
         "pnpm --dir /Users/febrinanda/coreblow-split/docs check",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/lmstudio",
+      "status": "partial",
+      "priority": "P3",
+      "implementationSurface": "extensions/lmstudio plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 12,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 2,
+        "sharedTestPaths": 3,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 2
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [
+          "extensions/lmstudio/src/plain-text-tool-calls.ts",
+          "extensions/lmstudio/src/setup.ts"
+        ],
+        "openClawTestGapPaths": [
+          "extensions/lmstudio/src/setup.test.ts",
+          "extensions/lmstudio/src/stream.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/lmstudio",
         "pnpm check"
       ]
     },

@@ -800,6 +800,10 @@
       "types": "./dist/plugin-sdk/litellm.d.ts",
       "default": "./dist/plugin-sdk/litellm.js"
     },
+    "./plugin-sdk/lmstudio": {
+      "types": "./dist/plugin-sdk/lmstudio.d.ts",
+      "default": "./dist/plugin-sdk/lmstudio.js"
+    },
     "./plugin-sdk/llm-task": {
       "types": "./dist/plugin-sdk/llm-task.d.ts",
       "default": "./dist/plugin-sdk/llm-task.js"

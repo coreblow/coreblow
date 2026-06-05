@@ -16,6 +16,8 @@ export {
 export { readClaudeCliCredentialsCached } from "../agents/cli-credentials.js";
 export { suggestOAuthProfileIdForLegacyDefault } from "../agents/auth-profiles/repair.js";
 export {
+  CUSTOM_LOCAL_AUTH_MARKER,
+  isKnownEnvApiKeyMarker,
   MINIMAX_OAUTH_MARKER,
   isNonSecretApiKeyMarker,
   resolveOAuthApiKeyMarker,
