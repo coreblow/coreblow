@@ -1,28 +1,43 @@
-export function normalizeStringEntries(list?: ReadonlyArray<unknown>) {
-  return (list ?? []).map((entry) => String(entry).trim()).filter(Boolean);
+export function normalizeStringEntries(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .map((entry) => String(entry).trim())
+    .filter((entry) => entry.length > 0);
 }
 
-export function normalizeStringEntriesLower(list?: ReadonlyArray<unknown>) {
-  return normalizeStringEntries(list).map((entry) => entry.toLowerCase());
+export function normalizeStringEntriesLower(value: unknown): string[] {
+  return normalizeStringEntries(value).map((entry) => entry.toLowerCase());
 }
 
-export function normalizeHyphenSlug(raw?: string | null) {
-  const trimmed = raw?.trim().toLowerCase() ?? "";
-  if (!trimmed) {
+export function normalizeTrimmedStringList(value: unknown): string[] {
+  return normalizeStringEntries(value);
+}
+
+export function normalizeHyphenSlug(value: unknown): string {
+  if (typeof value !== "string") {
     return "";
   }
-  const dashed = trimmed.replace(/\s+/g, "-");
-  const cleaned = dashed.replace(/[^a-z0-9#@._+-]+/g, "-");
-  return cleaned.replace(/-{2,}/g, "-").replace(/^[-.]+|[-.]+$/g, "");
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/gu, "-")
+    .replace(/[/\\]+/gu, "-")
+    .replace(/-{2,}/gu, "-")
+    .replace(/^[.-]+|[.-]+$/gu, "");
 }
 
-export function normalizeAtHashSlug(raw?: string | null) {
-  const trimmed = raw?.trim().toLowerCase() ?? "";
-  if (!trimmed) {
+export function normalizeAtHashSlug(value: unknown): string {
+  if (typeof value !== "string") {
     return "";
   }
-  const withoutPrefix = trimmed.replace(/^[@#]+/, "");
-  const dashed = withoutPrefix.replace(/[\s_]+/g, "-");
-  const cleaned = dashed.replace(/[^a-z0-9-]+/g, "-");
-  return cleaned.replace(/-{2,}/g, "-").replace(/^-+|-+$/g, "");
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/^[@#_\s-]+/gu, "")
+    .replace(/[@#_\s+]+/gu, "-")
+    .replace(/[^a-z0-9-]+/gu, "-")
+    .replace(/-{2,}/gu, "-")
+    .replace(/^-+|-+$/gu, "");
 }

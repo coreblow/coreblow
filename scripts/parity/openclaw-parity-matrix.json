@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6603,
+    "cb_source_files": 6648,
     "oc_source_files": 8443,
-    "source_parity_both": 4826,
-    "source_cb_exclusive": 1777,
-    "source_missing_from_cb": 3617,
-    "test_files_cb": 4191,
+    "source_parity_both": 4870,
+    "source_cb_exclusive": 1778,
+    "source_missing_from_cb": 3573,
+    "test_files_cb": 4213,
     "test_files_oc": 5246,
-    "tests_both_covered": 2823,
-    "tests_gap_oc_has_cb_missing": 2178,
+    "tests_both_covered": 2842,
+    "tests_gap_oc_has_cb_missing": 2159,
     "tests_cb_exclusive": 1321,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -768,9 +768,9 @@
       "priority": "P1",
       "implementationSurface": "src/infra",
       "counts": {
-        "sharedSourcePaths": 285,
+        "sharedSourcePaths": 287,
         "coreBlowOnlySourcePaths": 76,
-        "openClawOnlySourcePaths": 94,
+        "openClawOnlySourcePaths": 92,
         "sharedTestPaths": 290,
         "coreBlowOnlyTestPaths": 63,
         "openClawTestGaps": 55
@@ -1994,60 +1994,6 @@
       ]
     },
     {
-      "domain": "src/logging",
-      "status": "partial",
-      "priority": "P2",
-      "implementationSurface": "src/logging",
-      "counts": {
-        "sharedSourcePaths": 17,
-        "coreBlowOnlySourcePaths": 3,
-        "openClawOnlySourcePaths": 21,
-        "sharedTestPaths": 16,
-        "coreBlowOnlyTestPaths": 2,
-        "openClawTestGaps": 16
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/logging/diagnostic-memory.ts",
-          "src/logging/diagnostic-payload.ts",
-          "src/logging/diagnostic-phase.ts",
-          "src/logging/diagnostic-run-activity.ts",
-          "src/logging/diagnostic-runtime.ts",
-          "src/logging/diagnostic-session-attention.ts",
-          "src/logging/diagnostic-session-context.ts",
-          "src/logging/diagnostic-session-recovery-coordinator.ts",
-          "src/logging/diagnostic-session-recovery.ts",
-          "src/logging/diagnostic-stability-bundle.ts",
-          "src/logging/diagnostic-stuck-session-recovery.runtime.ts",
-          "src/logging/diagnostic-support-bundle.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/logging/diagnostic-log-events.test.ts",
-          "src/logging/diagnostic-memory.test.ts",
-          "src/logging/diagnostic-phase.test.ts",
-          "src/logging/diagnostic-session-attention.test.ts",
-          "src/logging/diagnostic-session-context.test.ts",
-          "src/logging/diagnostic-stability-bundle.test.ts",
-          "src/logging/diagnostic-stability.test.ts",
-          "src/logging/diagnostic-stuck-session-recovery.integration.test.ts",
-          "src/logging/diagnostic-stuck-session-recovery.runtime.test.ts",
-          "src/logging/diagnostic-support-bundle.test.ts",
-          "src/logging/diagnostic-support-export.test.ts",
-          "src/logging/level-filter.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/logging/context-logger.ts",
-          "src/logging/log-formatter.ts",
-          "src/logging/log-levels.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/logging",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/openai",
       "status": "partial",
       "priority": "P2",
@@ -2100,14 +2046,68 @@
       ]
     },
     {
+      "domain": "src/logging",
+      "status": "partial",
+      "priority": "P2",
+      "implementationSurface": "src/logging",
+      "counts": {
+        "sharedSourcePaths": 19,
+        "coreBlowOnlySourcePaths": 3,
+        "openClawOnlySourcePaths": 19,
+        "sharedTestPaths": 16,
+        "coreBlowOnlyTestPaths": 2,
+        "openClawTestGaps": 16
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [
+          "src/logging/diagnostic-memory.ts",
+          "src/logging/diagnostic-payload.ts",
+          "src/logging/diagnostic-phase.ts",
+          "src/logging/diagnostic-run-activity.ts",
+          "src/logging/diagnostic-runtime.ts",
+          "src/logging/diagnostic-session-attention.ts",
+          "src/logging/diagnostic-session-context.ts",
+          "src/logging/diagnostic-session-recovery-coordinator.ts",
+          "src/logging/diagnostic-session-recovery.ts",
+          "src/logging/diagnostic-stability-bundle.ts",
+          "src/logging/diagnostic-stuck-session-recovery.runtime.ts",
+          "src/logging/diagnostic-support-export.ts"
+        ],
+        "openClawTestGapPaths": [
+          "src/logging/diagnostic-log-events.test.ts",
+          "src/logging/diagnostic-memory.test.ts",
+          "src/logging/diagnostic-phase.test.ts",
+          "src/logging/diagnostic-session-attention.test.ts",
+          "src/logging/diagnostic-session-context.test.ts",
+          "src/logging/diagnostic-stability-bundle.test.ts",
+          "src/logging/diagnostic-stability.test.ts",
+          "src/logging/diagnostic-stuck-session-recovery.integration.test.ts",
+          "src/logging/diagnostic-stuck-session-recovery.runtime.test.ts",
+          "src/logging/diagnostic-support-bundle.test.ts",
+          "src/logging/diagnostic-support-export.test.ts",
+          "src/logging/level-filter.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "src/logging/context-logger.ts",
+          "src/logging/log-formatter.ts",
+          "src/logging/log-levels.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/logging",
+        "pnpm check"
+      ]
+    },
+    {
       "domain": "src/shared",
       "status": "partial",
       "priority": "P2",
       "implementationSurface": "src/shared",
       "counts": {
-        "sharedSourcePaths": 46,
+        "sharedSourcePaths": 47,
         "coreBlowOnlySourcePaths": 5,
-        "openClawOnlySourcePaths": 25,
+        "openClawOnlySourcePaths": 24,
         "sharedTestPaths": 32,
         "coreBlowOnlyTestPaths": 2,
         "openClawTestGaps": 10
@@ -3437,49 +3437,6 @@
       ]
     },
     {
-      "domain": "src/model-catalog",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "src/model-catalog",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 12,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 5
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/model-catalog/authority.ts",
-          "src/model-catalog/index.ts",
-          "src/model-catalog/manifest-planner.ts",
-          "src/model-catalog/normalize.ts",
-          "src/model-catalog/provider-index/index.ts",
-          "src/model-catalog/provider-index/load.ts",
-          "src/model-catalog/provider-index/normalize.ts",
-          "src/model-catalog/provider-index/openclaw-provider-index.ts",
-          "src/model-catalog/provider-index/types.ts",
-          "src/model-catalog/provider-index-planner.ts",
-          "src/model-catalog/refs.ts",
-          "src/model-catalog/types.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/model-catalog/authority.test.ts",
-          "src/model-catalog/manifest-planner.test.ts",
-          "src/model-catalog/normalize.test.ts",
-          "src/model-catalog/provider-index/normalize.test.ts",
-          "src/model-catalog/provider-index-planner.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/model-catalog",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/test-utils",
       "status": "partial",
       "priority": "P3",
@@ -3615,47 +3572,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/amazon-bedrock",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "src/proxy-capture",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "src/proxy-capture",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 9,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 6
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/proxy-capture/blob-store.ts",
-          "src/proxy-capture/ca.ts",
-          "src/proxy-capture/coverage.ts",
-          "src/proxy-capture/env.ts",
-          "src/proxy-capture/paths.ts",
-          "src/proxy-capture/proxy-server.ts",
-          "src/proxy-capture/runtime.ts",
-          "src/proxy-capture/store.sqlite.ts",
-          "src/proxy-capture/types.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/proxy-capture/coverage.test.ts",
-          "src/proxy-capture/env.test.ts",
-          "src/proxy-capture/proxy-server.managed-proxy.test.ts",
-          "src/proxy-capture/proxy-server.test.ts",
-          "src/proxy-capture/runtime.test.ts",
-          "src/proxy-capture/store.sqlite.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/proxy-capture",
         "pnpm check"
       ]
     },
@@ -4043,43 +3959,6 @@
       ]
     },
     {
-      "domain": "src/trajectory",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "src/trajectory",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 7,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 4
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/trajectory/cleanup.ts",
-          "src/trajectory/command-export.ts",
-          "src/trajectory/export.ts",
-          "src/trajectory/metadata.ts",
-          "src/trajectory/paths.ts",
-          "src/trajectory/runtime.ts",
-          "src/trajectory/types.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/trajectory/cleanup.test.ts",
-          "src/trajectory/export.test.ts",
-          "src/trajectory/metadata.test.ts",
-          "src/trajectory/runtime.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/trajectory",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/comfy",
       "status": "missing",
       "priority": "P3",
@@ -4393,40 +4272,6 @@
       ]
     },
     {
-      "domain": "src/plugin-state",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "src/plugin-state",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 5,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 3
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/plugin-state/plugin-state-store.paths.ts",
-          "src/plugin-state/plugin-state-store.sqlite.ts",
-          "src/plugin-state/plugin-state-store.test-helpers.ts",
-          "src/plugin-state/plugin-state-store.ts",
-          "src/plugin-state/plugin-state-store.types.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/plugin-state/plugin-state-store.permissions.test.ts",
-          "src/plugin-state/plugin-state-store.runtime.test.ts",
-          "src/plugin-state/plugin-state-store.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/plugin-state",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/scripts",
       "status": "intentionally_different",
       "priority": "P3",
@@ -4650,39 +4495,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/twitch",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "packages/sdk",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "packages/sdk",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 6,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 1
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "packages/sdk/src/client.ts",
-          "packages/sdk/src/event-hub.ts",
-          "packages/sdk/src/index.ts",
-          "packages/sdk/src/normalize.ts",
-          "packages/sdk/src/transport.ts",
-          "packages/sdk/src/types.ts"
-        ],
-        "openClawTestGapPaths": [
-          "packages/sdk/src/index.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- packages/sdk",
         "pnpm check"
       ]
     },
@@ -7696,6 +7508,30 @@
       ]
     },
     {
+      "domain": "packages/sdk",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "packages/sdk",
+      "counts": {
+        "sharedSourcePaths": 6,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 1,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- packages/sdk",
+        "pnpm check"
+      ]
+    },
+    {
       "domain": "src/auth",
       "status": "intentionally_different",
       "priority": "P3",
@@ -8906,6 +8742,32 @@
       ]
     },
     {
+      "domain": "src/model-catalog",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/model-catalog",
+      "counts": {
+        "sharedSourcePaths": 12,
+        "coreBlowOnlySourcePaths": 1,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 5,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "src/model-catalog/provider-index/coreblow-provider-index.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/model-catalog",
+        "pnpm check"
+      ]
+    },
+    {
       "domain": "src/music-generation",
       "status": "done",
       "priority": "P3",
@@ -9036,6 +8898,30 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/plugin-activation-boundary.test.ts",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/plugin-state",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/plugin-state",
+      "counts": {
+        "sharedSourcePaths": 5,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 3,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/plugin-state",
         "pnpm check"
       ]
     },
@@ -9223,6 +9109,30 @@
       "notes": "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture.",
       "gates": [
         "pnpm test -- src/providers",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/proxy-capture",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/proxy-capture",
+      "counts": {
+        "sharedSourcePaths": 9,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 6,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/proxy-capture",
         "pnpm check"
       ]
     },
@@ -9448,6 +9358,30 @@
       "notes": "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture.",
       "gates": [
         "pnpm test -- src/test-seams",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/trajectory",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/trajectory",
+      "counts": {
+        "sharedSourcePaths": 7,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 4,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/trajectory",
         "pnpm check"
       ]
     },
