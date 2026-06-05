@@ -110,6 +110,57 @@ export type {
   PluginInteractiveTelegramHandlerContext,
 };
 export type { CoreBlowConfig };
+export type {
+  MigrationItem,
+  MigrationSummary,
+} from "./migration.js";
+export type {
+  MigrationApplyResult,
+  MigrationPlan,
+} from "./migration-runtime.js";
+
+export type MigrationProviderContext = {
+  source?: string;
+  stateDir: string;
+  workspaceDir?: string;
+  agentDir?: string;
+  reportDir?: string;
+  backupPath?: string;
+  overwrite?: boolean;
+  includeSecrets?: boolean;
+  config: CoreBlowConfig;
+  runtime?: {
+    agent?: {
+      resolveAgentWorkspaceDir?: (config: CoreBlowConfig, agentId: string) => string;
+      resolveAgentDir?: (config: CoreBlowConfig, agentId: string) => string;
+    };
+    config?: unknown;
+  };
+  logger?: {
+    info?: (message: string) => void;
+    warn?: (message: string) => void;
+    error?: (message: string) => void;
+    debug?: (message: string) => void;
+  };
+};
+
+export type MigrationProviderPlugin = {
+  id: string;
+  label: string;
+  description?: string;
+  detect: (ctx: MigrationProviderContext) => Promise<{
+    found: boolean;
+    source?: string;
+    label?: string;
+    confidence?: string;
+    message?: string;
+  }>;
+  plan: (ctx: MigrationProviderContext) => Promise<import("./migration-runtime.js").MigrationPlan>;
+  apply: (
+    ctx: MigrationProviderContext,
+    plan?: import("./migration-runtime.js").MigrationPlan,
+  ) => Promise<import("./migration-runtime.js").MigrationApplyResult>;
+};
 
 export { emptyPluginConfigSchema } from "../plugins/config-schema.js";
 

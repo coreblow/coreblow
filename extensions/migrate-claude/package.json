@@ -1,0 +1,29 @@
+{
+  "name": "@coreblow/migrate-claude",
+  "version": "2026.5.17",
+  "private": true,
+  "description": "Claude to CoreBlow migration provider",
+  "type": "module",
+  "devDependencies": {
+    "coreblow": "workspace:*"
+  },
+  "peerDependencies": {
+    "coreblow": ">=1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "coreblow": {
+      "optional": true
+    }
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "install": {
+      "npmSpec": "@coreblow/migrate-claude",
+      "localPath": "extensions/migrate-claude",
+      "defaultChoice": "npm",
+      "minHostVersion": ">=1.0.0"
+    }
+  }
+}

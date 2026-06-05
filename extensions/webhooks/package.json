@@ -1,0 +1,24 @@
+{
+  "name": "@coreblow/webhooks",
+  "version": "2026.5.17",
+  "private": true,
+  "description": "CoreBlow webhook bridge plugin",
+  "type": "module",
+  "devDependencies": {
+    "coreblow": "workspace:*"
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "install": {
+      "npmSpec": "@coreblow/webhooks",
+      "localPath": "extensions/webhooks",
+      "defaultChoice": "npm",
+      "minHostVersion": ">=1.0.0"
+    }
+  },
+  "dependencies": {
+    "zod": "4.4.3"
+  }
+}

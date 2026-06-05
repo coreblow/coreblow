@@ -73,6 +73,18 @@ export type {
 } from "./plugin-entry.js";
 export type { CoreBlowPluginToolContext, CoreBlowPluginToolFactory } from "../plugins/types.js";
 export type { CoreBlowConfig } from "../config/config.js";
+export type PluginTrustedToolPolicyRegistration = {
+  id: string;
+  description?: string;
+  evaluate: (event: { toolName: string; params: Record<string, unknown> }) => unknown;
+};
+
+export function jsonResult(value: unknown) {
+  return {
+    content: [{ type: "text" as const, text: JSON.stringify(value) }],
+    details: value,
+  };
+}
 
 export { isSecretRef } from "../config/types.secrets.js";
 export type { GatewayRequestHandlerOptions } from "../gateway/server-methods/types.js";

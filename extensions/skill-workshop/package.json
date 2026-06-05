@@ -1,0 +1,24 @@
+{
+  "name": "@coreblow/skill-workshop",
+  "version": "2026.5.17",
+  "private": true,
+  "description": "CoreBlow skill workshop plugin",
+  "type": "module",
+  "dependencies": {
+    "typebox": "1.1.38"
+  },
+  "devDependencies": {
+    "coreblow": "workspace:*"
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "install": {
+      "npmSpec": "@coreblow/skill-workshop",
+      "localPath": "extensions/skill-workshop",
+      "defaultChoice": "npm",
+      "minHostVersion": ">=1.0.0"
+    }
+  }
+}

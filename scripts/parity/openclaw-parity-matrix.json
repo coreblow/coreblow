@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 6648,
+    "cb_source_files": 6709,
     "oc_source_files": 8443,
-    "source_parity_both": 4870,
+    "source_parity_both": 4931,
     "source_cb_exclusive": 1778,
-    "source_missing_from_cb": 3573,
-    "test_files_cb": 4213,
+    "source_missing_from_cb": 3512,
+    "test_files_cb": 4227,
     "test_files_oc": 5246,
-    "tests_both_covered": 2842,
-    "tests_gap_oc_has_cb_missing": 2159,
+    "tests_both_covered": 2856,
+    "tests_gap_oc_has_cb_missing": 2145,
     "tests_cb_exclusive": 1321,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -161,9 +161,9 @@
       "priority": "P0",
       "implementationSurface": "src/plugin-sdk public API",
       "counts": {
-        "sharedSourcePaths": 181,
+        "sharedSourcePaths": 194,
         "coreBlowOnlySourcePaths": 118,
-        "openClawOnlySourcePaths": 258,
+        "openClawOnlySourcePaths": 245,
         "sharedTestPaths": 26,
         "coreBlowOnlyTestPaths": 14,
         "openClawTestGaps": 77
@@ -3247,48 +3247,6 @@
       ]
     },
     {
-      "domain": "extensions/clickclack",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "extensions/clickclack plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 15,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 4
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/clickclack/src/accounts.ts",
-          "extensions/clickclack/src/channel.ts",
-          "extensions/clickclack/src/config-schema.ts",
-          "extensions/clickclack/src/gateway.ts",
-          "extensions/clickclack/src/http-client.ts",
-          "extensions/clickclack/src/inbound.ts",
-          "extensions/clickclack/src/outbound.ts",
-          "extensions/clickclack/src/resolve.ts",
-          "extensions/clickclack/src/runtime.ts",
-          "extensions/clickclack/src/target.ts",
-          "extensions/clickclack/src/types.ts",
-          "extensions/clickclack/api.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/clickclack/src/accounts.test.ts",
-          "extensions/clickclack/src/gateway.test.ts",
-          "extensions/clickclack/src/inbound.test.ts",
-          "extensions/clickclack/src/target.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/clickclack",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/flows",
       "status": "partial",
       "priority": "P3",
@@ -3672,45 +3630,6 @@
       ]
     },
     {
-      "domain": "extensions/skill-workshop",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "extensions/skill-workshop plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 13,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 1
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/skill-workshop/src/config.ts",
-          "extensions/skill-workshop/src/prompt.ts",
-          "extensions/skill-workshop/src/reviewer.ts",
-          "extensions/skill-workshop/src/scanner.ts",
-          "extensions/skill-workshop/src/signals.ts",
-          "extensions/skill-workshop/src/skills.ts",
-          "extensions/skill-workshop/src/store.ts",
-          "extensions/skill-workshop/src/text.ts",
-          "extensions/skill-workshop/src/tool.ts",
-          "extensions/skill-workshop/src/types.ts",
-          "extensions/skill-workshop/src/workshop.ts",
-          "extensions/skill-workshop/api.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/skill-workshop/index.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/skill-workshop",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/elevenlabs",
       "status": "partial",
       "priority": "P3",
@@ -3783,44 +3702,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/github-copilot",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/migrate-claude",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "extensions/migrate-claude plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 11,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 1
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/migrate-claude/apply.ts",
-          "extensions/migrate-claude/config.ts",
-          "extensions/migrate-claude/helpers.ts",
-          "extensions/migrate-claude/index.ts",
-          "extensions/migrate-claude/memory.ts",
-          "extensions/migrate-claude/plan.ts",
-          "extensions/migrate-claude/provider.ts",
-          "extensions/migrate-claude/skills.ts",
-          "extensions/migrate-claude/source.ts",
-          "extensions/migrate-claude/targets.ts",
-          "extensions/migrate-claude/test/provider-helpers.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/migrate-claude/provider.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/migrate-claude",
         "pnpm check"
       ]
     },
@@ -4120,41 +4001,6 @@
       ]
     },
     {
-      "domain": "extensions/bonjour",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "extensions/bonjour plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 4,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 5
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/bonjour/src/advertiser.ts",
-          "extensions/bonjour/src/ciao.ts",
-          "extensions/bonjour/src/errors.ts",
-          "extensions/bonjour/index.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/bonjour/src/advertiser.test.ts",
-          "extensions/bonjour/src/ciao.test.ts",
-          "extensions/bonjour/src/errors.test.ts",
-          "extensions/bonjour/index.test.ts",
-          "extensions/bonjour/manifest.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/bonjour",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/synology-chat",
       "status": "partial",
       "priority": "P3",
@@ -4198,40 +4044,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/synology-chat",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/webhooks",
-      "status": "missing",
-      "priority": "P3",
-      "implementationSurface": "extensions/webhooks plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 5,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 3
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/webhooks/src/config.ts",
-          "extensions/webhooks/src/http.ts",
-          "extensions/webhooks/api.ts",
-          "extensions/webhooks/index.ts",
-          "extensions/webhooks/runtime-api.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/webhooks/src/config.test.ts",
-          "extensions/webhooks/src/http.test.ts",
-          "extensions/webhooks/index.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/webhooks",
         "pnpm check"
       ]
     },
@@ -5282,6 +5094,30 @@
       ]
     },
     {
+      "domain": "extensions/bonjour",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/bonjour plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 4,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 5,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/bonjour",
+        "pnpm check"
+      ]
+    },
+    {
       "domain": "extensions/brave",
       "status": "done",
       "priority": "P3",
@@ -5374,6 +5210,30 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/chutes",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/clickclack",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/clickclack plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 15,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 4,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/clickclack",
         "pnpm check"
       ]
     },
@@ -6234,6 +6094,30 @@
       ]
     },
     {
+      "domain": "extensions/migrate-claude",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/migrate-claude plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 11,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 1,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/migrate-claude",
+        "pnpm check"
+      ]
+    },
+    {
       "domain": "extensions/minimax-auth",
       "status": "intentionally_different",
       "priority": "P3",
@@ -6907,6 +6791,30 @@
       ]
     },
     {
+      "domain": "extensions/skill-workshop",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/skill-workshop plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 13,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 1,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/skill-workshop",
+        "pnpm check"
+      ]
+    },
+    {
       "domain": "extensions/speech-core",
       "status": "done",
       "priority": "P3",
@@ -7376,6 +7284,30 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/volcengine",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/webhooks",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/webhooks plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 5,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 3,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/webhooks",
         "pnpm check"
       ]
     },
