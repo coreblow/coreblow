@@ -16,6 +16,8 @@ export type InputProvenance = {
   sourceTool?: string;
 };
 
+const INTER_SESSION_MARKER = "[Inter-session message]";
+
 function normalizeOptionalString(value: unknown): string | undefined {
   if (typeof value !== "string") {
     return undefined;
@@ -78,4 +80,27 @@ export function hasInterSessionUserProvenance(
     return false;
   }
   return isInterSessionInputProvenance(message.provenance);
+}
+
+export function annotateInterSessionPromptText(
+  text: string,
+  inputProvenance: InputProvenance | undefined,
+): string {
+  if (!inputProvenance || inputProvenance.kind !== "inter_session") {
+    return text;
+  }
+
+  const withoutExistingMarker = text
+    .replace(/^\s*\[Inter-session message\][^\n]*(?:\n|$)/u, "")
+    .replace(/\n+\[Inter-session message\][^\n]*(?:\n|$)/gu, "\n")
+    .trimStart();
+  const fields = [
+    inputProvenance.originSessionId ? `originSession=${inputProvenance.originSessionId}` : null,
+    inputProvenance.sourceSessionKey ? `sourceSession=${inputProvenance.sourceSessionKey}` : null,
+    inputProvenance.sourceChannel ? `sourceChannel=${inputProvenance.sourceChannel}` : null,
+    inputProvenance.sourceTool ? `sourceTool=${inputProvenance.sourceTool}` : null,
+    "isUser=false",
+  ].filter(Boolean);
+
+  return `${INTER_SESSION_MARKER} ${fields.join(" ")}\n${withoutExistingMarker}`;
 }

@@ -51,6 +51,15 @@ const legacyWorkflowShellSdkPath = ["src", "plugin-sdk", `${legacyWorkflowShellT
   "/",
 );
 const coreWorkflowShellSdkPath = "src/plugin-sdk/workflow-shell.ts";
+const legacyCodexOwnedToolContractPath = [
+  "extensions",
+  "codex",
+  "src",
+  "app-server",
+  `open${"claw"}-owned-tool-runtime-contract.test.ts`,
+].join("/");
+const coreCodexOwnedToolContractPath =
+  "extensions/codex/src/app-server/coreblow-owned-tool-runtime-contract.test.ts";
 
 function normalizeCoreBlowPath(path) {
   if (path.startsWith(`${legacyAcpExtensionDomain}/`)) {
@@ -66,6 +75,9 @@ function normalizeCoreBlowPath(path) {
   }
   if (path === legacyWorkflowShellSdkPath) {
     return coreWorkflowShellSdkPath;
+  }
+  if (path === legacyCodexOwnedToolContractPath) {
+    return coreCodexOwnedToolContractPath;
   }
   return path;
 }
@@ -268,6 +280,20 @@ const intentionalDomainDifferences = new Map([
         "src/plugin-sdk/workflow-shell.ts",
       ],
       gate: "pnpm test -- extensions/workflow-shell",
+    },
+  ],
+  [
+    "extensions/codex",
+    {
+      status: "intentionally_different",
+      referenceBehavior:
+        "OpenClaw names the Codex app-server owned-tool contract after the OpenClaw product surface.",
+      coreBlowDecision:
+        "CoreBlow keeps the same contract surface under CoreBlow-native owned-tool naming.",
+      rationale:
+        "Preserve the runtime contract while avoiding OpenClaw-branded public or test-surface names.",
+      evidence: ["extensions/codex/src/app-server/coreblow-owned-tool-runtime-contract.test.ts"],
+      gate: "pnpm test -- extensions/codex/src/app-server/coreblow-owned-tool-runtime-contract.test.ts",
     },
   ],
   [

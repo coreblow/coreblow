@@ -35,6 +35,32 @@ type NodeHostRunOptions = {
 
 const DEFAULT_NODE_PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
 
+export function resolveNodeHostGatewayPlatform(platform: NodeJS.Platform): string {
+  if (platform === "darwin") {
+    return "macos";
+  }
+  if (platform === "win32") {
+    return "windows";
+  }
+  if (platform === "linux") {
+    return "linux";
+  }
+  return "unknown";
+}
+
+export function resolveNodeHostGatewayDeviceFamily(platform: NodeJS.Platform): string | undefined {
+  if (platform === "darwin") {
+    return "Mac";
+  }
+  if (platform === "win32") {
+    return "Windows";
+  }
+  if (platform === "linux") {
+    return "Linux";
+  }
+  return undefined;
+}
+
 function writeStderrLine(message: string): void {
   process.stderr.write(`${message}\n`);
 }
@@ -186,7 +212,8 @@ export async function runNodeHost(opts: NodeHostRunOptions): Promise<void> {
     clientName: GATEWAY_CLIENT_NAMES.NODE_HOST,
     clientDisplayName: displayName,
     clientVersion: VERSION,
-    platform: process.platform,
+    platform: resolveNodeHostGatewayPlatform(process.platform),
+    deviceFamily: resolveNodeHostGatewayDeviceFamily(process.platform),
     mode: GATEWAY_CLIENT_MODES.NODE,
     role: "node",
     scopes: [],
