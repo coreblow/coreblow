@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7489,
+    "cb_source_files": 7501,
     "oc_source_files": 8443,
-    "source_parity_both": 5691,
+    "source_parity_both": 5703,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2752,
-    "test_files_cb": 4633,
+    "source_missing_from_cb": 2740,
+    "test_files_cb": 4642,
     "test_files_oc": 5246,
-    "tests_both_covered": 3247,
-    "tests_gap_oc_has_cb_missing": 1754,
+    "tests_both_covered": 3256,
+    "tests_gap_oc_has_cb_missing": 1745,
     "tests_cb_exclusive": 1329,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -663,69 +663,6 @@
       ]
     },
     {
-      "domain": "src/infra",
-      "status": "partial",
-      "priority": "P1",
-      "implementationSurface": "src/infra",
-      "counts": {
-        "sharedSourcePaths": 287,
-        "coreBlowOnlySourcePaths": 76,
-        "openClawOnlySourcePaths": 92,
-        "sharedTestPaths": 290,
-        "coreBlowOnlyTestPaths": 63,
-        "openClawTestGaps": 55
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/infra/backup-volatile-filter.ts",
-          "src/infra/changelog-unreleased.ts",
-          "src/infra/clawhub-spec.ts",
-          "src/infra/command-analysis/inline-eval.ts",
-          "src/infra/command-analysis/policy.ts",
-          "src/infra/command-analysis/risks.ts",
-          "src/infra/command-carriers.ts",
-          "src/infra/command-explainer/extract.ts",
-          "src/infra/command-explainer/format.ts",
-          "src/infra/command-explainer/index.ts",
-          "src/infra/command-explainer/tree-sitter-runtime.ts",
-          "src/infra/command-explainer/types.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/infra/backup-volatile-filter.test.ts",
-          "src/infra/browser-open.test.ts",
-          "src/infra/changelog-unreleased.test.ts",
-          "src/infra/command-analysis/explain.lazy.test.ts",
-          "src/infra/command-analysis/explain.test.ts",
-          "src/infra/command-analysis/inline-eval.test.ts",
-          "src/infra/command-analysis/risks.test.ts",
-          "src/infra/command-explainer/extract.test.ts",
-          "src/infra/command-explainer/format.test.ts",
-          "src/infra/diagnostics-timeline.test.ts",
-          "src/infra/host-env-security.reported-baseline.test.ts",
-          "src/infra/kysely-node-sqlite.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/infra/archive-staging.ts",
-          "src/infra/backup-manager.ts",
-          "src/infra/binaries.runtime.ts",
-          "src/infra/blue-green-deployer.ts",
-          "src/infra/bonjour-ciao.ts",
-          "src/infra/bonjour-errors.ts",
-          "src/infra/bonjour.ts",
-          "src/infra/canvas-host-url.ts",
-          "src/infra/circuit-breaker.ts",
-          "src/infra/collector.ts",
-          "src/infra/coreblow-exec-env.ts",
-          "src/infra/coreblow-root.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/infra",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/cli",
       "status": "partial",
       "priority": "P1",
@@ -795,6 +732,69 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/cli",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/infra",
+      "status": "partial",
+      "priority": "P1",
+      "implementationSurface": "src/infra",
+      "counts": {
+        "sharedSourcePaths": 299,
+        "coreBlowOnlySourcePaths": 76,
+        "openClawOnlySourcePaths": 80,
+        "sharedTestPaths": 299,
+        "coreBlowOnlyTestPaths": 63,
+        "openClawTestGaps": 46
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [
+          "src/infra/clawhub-spec.ts",
+          "src/infra/container-environment.ts",
+          "src/infra/control-ui-assets.fs.runtime.ts",
+          "src/infra/exec-approval-forwarder.runtime.ts",
+          "src/infra/exec-approvals-effective.ts",
+          "src/infra/exec-approvals.types.ts",
+          "src/infra/file-lock-manager.ts",
+          "src/infra/file-store.ts",
+          "src/infra/fs-safe-advanced.ts",
+          "src/infra/kysely-node-sqlite.ts",
+          "src/infra/net/http-connect-tunnel.ts",
+          "src/infra/net/proxy/active-proxy-state.ts"
+        ],
+        "openClawTestGapPaths": [
+          "src/infra/browser-open.test.ts",
+          "src/infra/host-env-security.reported-baseline.test.ts",
+          "src/infra/kysely-node-sqlite.test.ts",
+          "src/infra/net/http-connect-tunnel.test.ts",
+          "src/infra/net/proxy/managed-proxy-undici.test.ts",
+          "src/infra/net/proxy/proxy-lifecycle.test.ts",
+          "src/infra/net/proxy/proxy-validation.test.ts",
+          "src/infra/net/runtime-fetch.test.ts",
+          "src/infra/net/undici-runtime.test.ts",
+          "src/infra/node-pairing-authz.test.ts",
+          "src/infra/npm-install-env.test.ts",
+          "src/infra/npm-managed-root.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "src/infra/archive-staging.ts",
+          "src/infra/backup-manager.ts",
+          "src/infra/binaries.runtime.ts",
+          "src/infra/blue-green-deployer.ts",
+          "src/infra/bonjour-ciao.ts",
+          "src/infra/bonjour-errors.ts",
+          "src/infra/bonjour.ts",
+          "src/infra/canvas-host-url.ts",
+          "src/infra/circuit-breaker.ts",
+          "src/infra/collector.ts",
+          "src/infra/coreblow-exec-env.ts",
+          "src/infra/coreblow-root.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/infra",
         "pnpm check"
       ]
     },
