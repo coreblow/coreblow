@@ -38,10 +38,11 @@ function isGogAvailable(): boolean {
  */
 async function startGmailWatch(
   cfg: Pick<GmailHookRuntimeConfig, "account" | "label" | "topic">,
+  signal?: AbortSignal,
 ): Promise<boolean> {
   const args = ["gog", ...buildGogWatchStartArgs(cfg)];
   try {
-    const result = await runCommandWithTimeout(args, { timeoutMs: 120_000 });
+    const result = await runCommandWithTimeout(args, { timeoutMs: 120_000, signal });
     if (result.code !== 0) {
       const message = result.stderr || result.stdout || "gog watch start failed";
       log.error(`watch start failed: ${message}`);
@@ -120,11 +121,27 @@ export type GmailWatcherStartResult = {
   reason?: string;
 };
 
+export type GmailWatcherStartOptions = {
+  signal?: AbortSignal;
+  isCancelled?: () => boolean;
+};
+
+function isStartCancelled(options?: GmailWatcherStartOptions): boolean {
+  return Boolean(options?.signal?.aborted || options?.isCancelled?.());
+}
+
 /**
  * Start the Gmail watcher service.
  * Called automatically by the gateway if hooks.gmail is configured.
  */
-export async function startGmailWatcher(cfg: CoreBlowConfig): Promise<GmailWatcherStartResult> {
+export async function startGmailWatcher(
+  cfg: CoreBlowConfig,
+  options?: GmailWatcherStartOptions,
+): Promise<GmailWatcherStartResult> {
+  if (isStartCancelled(options)) {
+    return { started: false, reason: "startup cancelled" };
+  }
+
   // Check if gmail hooks are configured
   if (!cfg.hooks?.enabled) {
     return { started: false, reason: "hooks not enabled" };
@@ -149,6 +166,10 @@ export async function startGmailWatcher(cfg: CoreBlowConfig): Promise<GmailWatch
   const runtimeConfig = resolved.value;
   currentConfig = runtimeConfig;
 
+  if (isStartCancelled(options)) {
+    return { started: false, reason: "startup cancelled" };
+  }
+
   // Set up Tailscale endpoint if needed
   if (runtimeConfig.tailscale.mode !== "off") {
     try {
@@ -170,8 +191,15 @@ export async function startGmailWatcher(cfg: CoreBlowConfig): Promise<GmailWatch
     }
   }
 
+  if (isStartCancelled(options)) {
+    return { started: false, reason: "startup cancelled" };
+  }
+
   // Start the Gmail watch (register with Gmail API)
-  const watchStarted = await startGmailWatch(runtimeConfig);
+  const watchStarted = await startGmailWatch(runtimeConfig, options?.signal);
+  if (isStartCancelled(options)) {
+    return { started: false, reason: "startup cancelled" };
+  }
   if (!watchStarted) {
     log.warn("gmail watch start failed, but continuing with serve");
   }

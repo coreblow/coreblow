@@ -9,15 +9,51 @@ import {
   resolveDefaultAgentId,
   resolveAgentWorkspaceDir,
   resolveAgentDir,
-  resolveAgentEffectiveModelPrimary,
 } from "../agents/agent-scope.js";
-import { DEFAULT_PROVIDER, DEFAULT_MODEL } from "../types/agent-defaults.js";
-import { parseModelRef } from "../agents/model-selection.js";
+import { resolveDefaultModelForAgent } from "../agents/model-selection.js";
 import { runEmbeddedPiAgent } from "../agents/pi-embedded.js";
+import { resolveAgentTimeoutMs } from "../agents/timeout.js";
 import type { CoreBlowConfig } from "../config/config.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 
 const log = createSubsystemLogger("llm-slug-generator");
+const DEFAULT_SLUG_GENERATOR_TIMEOUT_MS = 15_000;
+
+type CoreBlowConfigWithAgentTimeout = CoreBlowConfig & {
+  agents?: {
+    defaults?: {
+      timeoutSeconds?: number;
+    };
+  };
+};
+
+function resolveSlugGeneratorTimeoutMs(cfg: CoreBlowConfig): number {
+  const configuredTimeoutSeconds = (cfg as CoreBlowConfigWithAgentTimeout).agents?.defaults
+    ?.timeoutSeconds;
+  if (typeof configuredTimeoutSeconds !== "number" || !Number.isFinite(configuredTimeoutSeconds)) {
+    return DEFAULT_SLUG_GENERATOR_TIMEOUT_MS;
+  }
+  return resolveAgentTimeoutMs({ cfg });
+}
+
+function inferUniqueConfiguredModelProvider(cfg: CoreBlowConfig, model: string): string | undefined {
+  const normalizedModel = model.trim().toLowerCase();
+  if (!normalizedModel) {
+    return undefined;
+  }
+  const providers = new Set<string>();
+  for (const [providerId, provider] of Object.entries(cfg.models?.providers ?? {})) {
+    if (
+      provider.models.some((entry) => entry.id === model || entry.id.toLowerCase() === normalizedModel)
+    ) {
+      providers.add(providerId);
+      if (providers.size > 1) {
+        return undefined;
+      }
+    }
+  }
+  return providers.size === 1 ? providers.values().next().value : undefined;
+}
 
 /**
  * Generate a short 1-2 word filename slug from session content using LLM
@@ -44,11 +80,14 @@ ${params.sessionContent.slice(0, 2000)}
 
 Reply with ONLY the slug, nothing else. Examples: "vendor-pitch", "api-design", "bug-fix"`;
 
-    // Resolve model from agent config instead of using hardcoded defaults
-    const modelRef = resolveAgentEffectiveModelPrimary(params.cfg, agentId);
-    const parsed = modelRef ? parseModelRef(modelRef, DEFAULT_PROVIDER) : null;
-    const provider = parsed?.provider ?? DEFAULT_PROVIDER;
-    const model = parsed?.model ?? DEFAULT_MODEL;
+    const resolvedModel = resolveDefaultModelForAgent({
+      cfg: params.cfg,
+      agentId,
+    });
+    const provider =
+      inferUniqueConfiguredModelProvider(params.cfg, resolvedModel.model) ?? resolvedModel.provider;
+    const model = resolvedModel.model;
+    const timeoutMs = resolveSlugGeneratorTimeoutMs(params.cfg);
 
     const result = await runEmbeddedPiAgent({
       sessionId: `slug-generator-${Date.now()}`,
@@ -61,7 +100,7 @@ Reply with ONLY the slug, nothing else. Examples: "vendor-pitch", "api-design", 
       prompt,
       provider,
       model,
-      timeoutMs: 15_000, // 15 second timeout
+      timeoutMs,
       runId: `slug-gen-${Date.now()}`,
     });
 

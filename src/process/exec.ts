@@ -169,6 +169,7 @@ export type CommandOptions = {
   cwd?: string;
   input?: string;
   env?: NodeJS.ProcessEnv;
+  signal?: AbortSignal;
   windowsVerbatimArguments?: boolean;
   noOutputTimeoutMs?: number;
 };
@@ -218,7 +219,7 @@ export async function runCommandWithTimeout(
 ): Promise<SpawnResult> {
   const options: CommandOptions =
     typeof optionsOrTimeout === "number" ? { timeoutMs: optionsOrTimeout } : optionsOrTimeout;
-  const { timeoutMs, cwd, input, env, noOutputTimeoutMs } = options;
+  const { timeoutMs, cwd, input, env, noOutputTimeoutMs, signal: abortSignal } = options;
   const { windowsVerbatimArguments } = options;
   const hasInput = input !== undefined;
   const resolvedEnv = resolveCommandEnv({ argv, env });
@@ -256,6 +257,7 @@ export async function runCommandWithTimeout(
       typeof noOutputTimeoutMs === "number" &&
       Number.isFinite(noOutputTimeoutMs) &&
       noOutputTimeoutMs > 0;
+    let abortListener: (() => void) | null = null;
 
     const clearNoOutputTimer = () => {
       if (!noOutputTimer) {
@@ -297,6 +299,21 @@ export async function runCommandWithTimeout(
     }, timeoutMs);
     armNoOutputTimer();
 
+    if (abortSignal) {
+      abortListener = () => {
+        if (settled) {
+          return;
+        }
+        if (typeof child.kill === "function") {
+          child.kill("SIGTERM");
+        }
+      };
+      abortSignal.addEventListener("abort", abortListener, { once: true });
+      if (abortSignal.aborted) {
+        abortListener();
+      }
+    }
+
     if (hasInput && child.stdin) {
       child.stdin.write(input ?? "");
       child.stdin.end();
@@ -318,6 +335,9 @@ export async function runCommandWithTimeout(
       clearTimeout(timer);
       clearNoOutputTimer();
       clearCloseFallbackTimer();
+      if (abortSignal && abortListener) {
+        abortSignal.removeEventListener("abort", abortListener);
+      }
       reject(err);
     });
     child.on("exit", (code, signal) => {
@@ -341,6 +361,9 @@ export async function runCommandWithTimeout(
       clearTimeout(timer);
       clearNoOutputTimer();
       clearCloseFallbackTimer();
+      if (abortSignal && abortListener) {
+        abortSignal.removeEventListener("abort", abortListener);
+      }
       const resolvedCode = childExitState?.code ?? code ?? child.exitCode ?? null;
       const resolvedSignal = childExitState?.signal ?? signal ?? child.signalCode ?? null;
       const termination = noOutputTimedOut
