@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7514,
+    "cb_source_files": 7516,
     "oc_source_files": 8443,
-    "source_parity_both": 5716,
+    "source_parity_both": 5718,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2727,
-    "test_files_cb": 4653,
+    "source_missing_from_cb": 2725,
+    "test_files_cb": 4655,
     "test_files_oc": 5246,
-    "tests_both_covered": 3265,
-    "tests_gap_oc_has_cb_missing": 1736,
-    "tests_cb_exclusive": 1331,
+    "tests_both_covered": 3266,
+    "tests_gap_oc_has_cb_missing": 1735,
+    "tests_cb_exclusive": 1332,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
     "test_scenario_files_intentionally_different": 0
@@ -1056,12 +1056,12 @@
       "priority": "P1",
       "implementationSurface": "src/config CoreBlowConfig",
       "counts": {
-        "sharedSourcePaths": 154,
+        "sharedSourcePaths": 156,
         "coreBlowOnlySourcePaths": 33,
-        "openClawOnlySourcePaths": 57,
-        "sharedTestPaths": 111,
-        "coreBlowOnlyTestPaths": 91,
-        "openClawTestGaps": 32
+        "openClawOnlySourcePaths": 55,
+        "sharedTestPaths": 112,
+        "coreBlowOnlyTestPaths": 92,
+        "openClawTestGaps": 31
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -1073,10 +1073,10 @@
           "src/config/legacy-config-detection.test-support.ts",
           "src/config/markdown-tables.types.ts",
           "src/config/materialize.ts",
-          "src/config/mcp-config-normalize.ts",
           "src/config/mutate.ts",
           "src/config/nix-mode-write-guard.ts",
-          "src/config/plugin-auto-enable.apply.ts"
+          "src/config/plugin-auto-enable.apply.ts",
+          "src/config/plugin-auto-enable.detect.ts"
         ],
         "openClawTestGapPaths": [
           "src/config/config.legacy-config-provider-shapes.test.ts",
@@ -1090,7 +1090,7 @@
           "src/config/plugin-auto-enable.prefer-over.test.ts",
           "src/config/plugin-auto-enable.providers.test.ts",
           "src/config/plugin-web-search-config.test.ts",
-          "src/config/recovery-policy.test.ts"
+          "src/config/redact-snapshot.raw.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/config/bundled-channel-config-runtime.ts",
