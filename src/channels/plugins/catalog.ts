@@ -30,6 +30,9 @@ export type ChannelUiCatalog = {
 export type ChannelPluginCatalogEntry = {
   id: string;
   pluginId?: string;
+  origin?: PluginOrigin;
+  rootDir?: string;
+  channel?: NonNullable<CoreBlowPackageManifest["channel"]>;
   meta: ChannelMeta;
   install: {
     npmSpec: string;
@@ -291,6 +294,9 @@ function buildCatalogEntry(candidate: {
   return {
     id,
     ...(pluginId ? { pluginId } : {}),
+    ...(candidate.origin ? { origin: candidate.origin } : {}),
+    ...(candidate.rootDir ? { rootDir: candidate.rootDir } : {}),
+    channel: manifest.channel,
     meta,
     install,
   };

@@ -360,6 +360,17 @@ export type PluginPackageChannel = {
   quickstartAllowFrom?: boolean;
   forceAccountBinding?: boolean;
   preferSessionLookupForAnnounceTarget?: boolean;
+  configuredState?: PluginPackageChannelStateProbe;
+  persistedAuthState?: PluginPackageChannelStateProbe;
+};
+
+export type PluginPackageChannelStateProbe = {
+  specifier?: string;
+  exportName?: string;
+  env?: {
+    allOf?: string[];
+    anyOf?: string[];
+  };
 };
 
 export type PluginPackageInstall = {
