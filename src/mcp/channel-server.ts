@@ -82,7 +82,9 @@ export async function serveCoreBlowChannelMcp(opts: CoreBlowMcpServeOptions = {}
     process.off("SIGINT", shutdown);
     process.off("SIGTERM", shutdown);
     transport["onclose"] = undefined;
-    void close().finally(resolveClosed);
+    void close()
+      .catch(() => {})
+      .finally(resolveClosed);
   };
 
   transport["onclose"] = shutdown;

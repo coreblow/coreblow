@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7587,
+    "cb_source_files": 7591,
     "oc_source_files": 8443,
-    "source_parity_both": 5789,
+    "source_parity_both": 5793,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2654,
-    "test_files_cb": 4696,
+    "source_missing_from_cb": 2650,
+    "test_files_cb": 4700,
     "test_files_oc": 5246,
-    "tests_both_covered": 3292,
-    "tests_gap_oc_has_cb_missing": 1709,
+    "tests_both_covered": 3296,
+    "tests_gap_oc_has_cb_missing": 1705,
     "tests_cb_exclusive": 1347,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -2934,42 +2934,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/tui",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "src/mcp",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "src/mcp",
-      "counts": {
-        "sharedSourcePaths": 4,
-        "coreBlowOnlySourcePaths": 1,
-        "openClawOnlySourcePaths": 4,
-        "sharedTestPaths": 1,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 4
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/mcp/openclaw-tools-serve.ts",
-          "src/mcp/plugin-tools-handlers.ts",
-          "src/mcp/plugin-tools-serve.ts",
-          "src/mcp/tools-stdio-server.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/mcp/channel-server.shutdown-unhandled-rejection.test.ts",
-          "src/mcp/openclaw-tools-serve.test.ts",
-          "src/mcp/plugin-tools-handlers.cancel.test.ts",
-          "src/mcp/plugin-tools-serve.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/mcp/channel-types.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/mcp",
         "pnpm check"
       ]
     },
@@ -7712,6 +7676,32 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/markdown",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/mcp",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/mcp",
+      "counts": {
+        "sharedSourcePaths": 8,
+        "coreBlowOnlySourcePaths": 1,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 5,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "src/mcp/channel-types.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/mcp",
         "pnpm check"
       ]
     },
