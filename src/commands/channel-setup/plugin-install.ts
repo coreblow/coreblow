@@ -90,6 +90,10 @@ async function promptInstallChoice(params: {
   prompter: WizardPrompter;
 }): Promise<InstallChoice> {
   const { entry, localPath, prompter, defaultChoice } = params;
+  const npmSpec = entry.install.npmSpec?.trim();
+  const npmOptions: Array<{ value: InstallChoice; label: string; hint?: string }> = npmSpec
+    ? [{ value: "npm", label: `Download from npm (${npmSpec})` }]
+    : [];
   const localOptions: Array<{ value: InstallChoice; label: string; hint?: string }> = localPath
     ? [
         {
@@ -100,12 +104,20 @@ async function promptInstallChoice(params: {
       ]
     : [];
   const options: Array<{ value: InstallChoice; label: string; hint?: string }> = [
-    { value: "npm", label: `Download from npm (${entry.install.npmSpec})` },
+    ...npmOptions,
     ...localOptions,
     { value: "skip", label: "Skip for now" },
   ];
   const initialValue: InstallChoice =
-    defaultChoice === "local" && !localPath ? "npm" : defaultChoice;
+    defaultChoice === "npm" && !npmSpec
+      ? localPath
+        ? "local"
+        : "skip"
+      : defaultChoice === "local" && !localPath
+        ? npmSpec
+          ? "npm"
+          : "skip"
+        : defaultChoice;
   return await prompter.select<InstallChoice>({
     message: `Install ${entry.meta.label} plugin?`,
     options,
@@ -125,19 +137,19 @@ function resolveInstallDefaultChoice(params: {
   }
   const updateChannel = cfg.update?.channel;
   if (updateChannel === "dev") {
-    return localPath ? "local" : "npm";
+    return localPath ? "local" : entry.install.npmSpec ? "npm" : "skip";
   }
   if (updateChannel === "stable" || updateChannel === "beta") {
-    return "npm";
+    return entry.install.npmSpec ? "npm" : localPath ? "local" : "skip";
   }
   const entryDefault = entry.install.defaultChoice;
   if (entryDefault === "local") {
-    return localPath ? "local" : "npm";
+    return localPath ? "local" : entry.install.npmSpec ? "npm" : "skip";
   }
   if (entryDefault === "npm") {
-    return "npm";
+    return entry.install.npmSpec ? "npm" : localPath ? "local" : "skip";
   }
-  return localPath ? "local" : "npm";
+  return localPath ? "local" : entry.install.npmSpec ? "npm" : "skip";
 }
 
 export async function ensureChannelSetupPluginInstalled(params: {
@@ -151,13 +163,16 @@ export async function ensureChannelSetupPluginInstalled(params: {
   let next = params.cfg;
   const allowLocal = hasGitWorkspace(workspaceDir);
   const bundledSources = resolveBundledPluginSources({ workspaceDir });
+  const npmSpec = entry.install.npmSpec?.trim();
   const bundledLocalPath =
-    resolveBundledInstallPlanForCatalogEntry({
-      pluginId: entry.id,
-      npmSpec: entry.install.npmSpec,
-      findBundledSource: (lookup) =>
-        findBundledPluginSourceInMap({ bundled: bundledSources, lookup }),
-    })?.bundledSource.localPath ?? null;
+    npmSpec
+      ? (resolveBundledInstallPlanForCatalogEntry({
+          pluginId: entry.id,
+          npmSpec,
+          findBundledSource: (lookup) =>
+            findBundledPluginSourceInMap({ bundled: bundledSources, lookup }),
+        })?.bundledSource.localPath ?? null)
+      : null;
   const localPath = bundledLocalPath ?? resolveLocalPath(entry, workspaceDir, allowLocal);
   const defaultChoice = resolveInstallDefaultChoice({
     cfg: next,
@@ -183,8 +198,16 @@ export async function ensureChannelSetupPluginInstalled(params: {
     return { cfg: next, installed: true, pluginId };
   }
 
+  if (!npmSpec) {
+    await prompter.note(
+      `No npm package is available for ${entry.meta.label}. Install from CoreHub separately or choose a local plugin path.`,
+      "Plugin install",
+    );
+    return { cfg: next, installed: false };
+  }
+
   const result = await installPluginFromNpmSpec({
-    spec: entry.install.npmSpec,
+    spec: npmSpec,
     logger: {
       info: (msg) => runtime.log?.(msg),
       warn: (msg) => runtime.log?.(msg),
@@ -196,7 +219,7 @@ export async function ensureChannelSetupPluginInstalled(params: {
     next = recordPluginInstall(next, {
       pluginId: result.pluginId,
       source: "npm",
-      spec: entry.install.npmSpec,
+      spec: npmSpec,
       installPath: result.targetDir,
       version: result.version,
       ...buildNpmResolutionInstallFields(result.npmResolution),
@@ -205,7 +228,7 @@ export async function ensureChannelSetupPluginInstalled(params: {
   }
 
   await prompter.note(
-    `Failed to install ${entry.install.npmSpec}: ${result.error}`,
+    `Failed to install ${npmSpec}: ${result.error}`,
     "Plugin install",
   );
 

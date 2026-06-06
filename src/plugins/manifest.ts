@@ -374,10 +374,13 @@ export type PluginPackageChannelStateProbe = {
 };
 
 export type PluginPackageInstall = {
+  corehubSpec?: string;
   npmSpec?: string;
   localPath?: string;
-  defaultChoice?: "npm" | "local";
+  defaultChoice?: "corehub" | "npm" | "local";
   minHostVersion?: string;
+  expectedIntegrity?: string;
+  allowInvalidConfigRecovery?: boolean;
 };
 
 export type CoreBlowPackageStartup = {

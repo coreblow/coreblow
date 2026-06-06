@@ -2,12 +2,21 @@ import fs from "node:fs";
 import path from "node:path";
 import { MANIFEST_KEY } from "../../compat/legacy-names.js";
 import { resolveCoreBlowPackageRootSync } from "../../infra/coreblow-root.js";
+import { isPrereleaseSemverVersion, parseRegistryNpmSpec } from "../../infra/npm-registry-spec.js";
 import { resolveBundledPluginsDir } from "../../plugins/bundled-dir.js";
 import { discoverCoreBlowPlugins } from "../../plugins/discovery.js";
+import {
+  describePluginInstallSource,
+  type PluginInstallSourceInfo,
+} from "../../plugins/install-source-info.js";
 import { loadPluginManifest } from "../../plugins/manifest.js";
 import type { CoreBlowPackageManifest } from "../../plugins/manifest.js";
-import type { PackageManifest as PluginPackageManifest } from "../../plugins/manifest.js";
+import type {
+  PackageManifest as PluginPackageManifest,
+  PluginPackageInstall,
+} from "../../plugins/manifest.js";
 import type { PluginOrigin } from "../../plugins/types.js";
+import { normalizeOptionalString } from "../../shared/string-coerce.js";
 import { isRecord, resolveConfigDir, resolveUserPath } from "../../utils.js";
 import type { ChannelMeta } from "./types.js";
 
@@ -34,11 +43,8 @@ export type ChannelPluginCatalogEntry = {
   rootDir?: string;
   channel?: NonNullable<CoreBlowPackageManifest["channel"]>;
   meta: ChannelMeta;
-  install: {
-    npmSpec: string;
-    localPath?: string;
-    defaultChoice?: "npm" | "local";
-  };
+  install: PluginPackageInstall & ({ corehubSpec: string } | { npmSpec: string });
+  installSource?: PluginInstallSourceInfo;
 };
 
 type CatalogOptions = {
@@ -223,22 +229,73 @@ function toChannelMeta(params: {
 function resolveInstallInfo(params: {
   manifest: CoreBlowPackageManifest;
   packageName?: string;
+  packageVersion?: string;
   packageDir?: string;
   workspaceDir?: string;
 }): ChannelPluginCatalogEntry["install"] | null {
-  const npmSpec = params.manifest.install?.npmSpec?.trim() ?? params.packageName?.trim();
-  if (!npmSpec) {
+  const corehubSpec = normalizeOptionalString(params.manifest.install?.corehubSpec);
+  let npmSpec =
+    normalizeOptionalString(params.manifest.install?.npmSpec) ??
+    normalizeOptionalString(params.packageName);
+  const packageVersion = normalizeOptionalString(params.packageVersion);
+  const parsedNpmSpec = npmSpec ? parseRegistryNpmSpec(npmSpec) : null;
+  const expectedPackageName = normalizeOptionalString(params.packageName);
+  const parsedPackageName = expectedPackageName ? parseRegistryNpmSpec(expectedPackageName) : null;
+  if (
+    npmSpec &&
+    packageVersion &&
+    isPrereleaseSemverVersion(packageVersion) &&
+    parsedNpmSpec?.selectorKind === "none" &&
+    (!parsedPackageName || parsedNpmSpec.name === parsedPackageName.name)
+  ) {
+    npmSpec = `${parsedNpmSpec.name}@${packageVersion}`;
+  }
+  if (!corehubSpec && !npmSpec) {
     return null;
   }
-  let localPath = params.manifest.install?.localPath?.trim() || undefined;
+  let localPath = normalizeOptionalString(params.manifest.install?.localPath);
   if (!localPath && params.workspaceDir && params.packageDir) {
     localPath = path.relative(params.workspaceDir, params.packageDir) || undefined;
   }
-  const defaultChoice = params.manifest.install?.defaultChoice ?? (localPath ? "local" : "npm");
+  const requestedDefaultChoice = params.manifest.install?.defaultChoice;
+  const defaultChoice: NonNullable<PluginPackageInstall["defaultChoice"]> =
+    requestedDefaultChoice === "corehub" && corehubSpec
+      ? "corehub"
+      : requestedDefaultChoice === "npm" && npmSpec
+        ? "npm"
+        : requestedDefaultChoice === "local" && localPath
+          ? "local"
+          : corehubSpec
+            ? "corehub"
+            : localPath
+              ? "local"
+              : "npm";
+  const install = {
+    ...(localPath ? { localPath } : {}),
+    defaultChoice,
+    ...(params.manifest.install?.minHostVersion
+      ? { minHostVersion: params.manifest.install.minHostVersion }
+      : {}),
+    ...(params.manifest.install?.expectedIntegrity
+      ? { expectedIntegrity: params.manifest.install.expectedIntegrity }
+      : {}),
+    ...(params.manifest.install?.allowInvalidConfigRecovery === true
+      ? { allowInvalidConfigRecovery: true }
+      : {}),
+  };
+  if (corehubSpec) {
+    return {
+      corehubSpec,
+      ...(npmSpec ? { npmSpec } : {}),
+      ...install,
+    };
+  }
+  if (!npmSpec) {
+    return null;
+  }
   return {
     npmSpec,
-    ...(localPath ? { localPath } : {}),
-    ...(defaultChoice ? { defaultChoice } : {}),
+    ...install,
   };
 }
 
@@ -259,6 +316,7 @@ function resolveCatalogPluginId(params: {
 
 function buildCatalogEntry(candidate: {
   packageName?: string;
+  packageVersion?: string;
   packageDir?: string;
   rootDir?: string;
   origin?: PluginOrigin;
@@ -280,6 +338,7 @@ function buildCatalogEntry(candidate: {
   const install = resolveInstallInfo({
     manifest,
     packageName: candidate.packageName,
+    packageVersion: candidate.packageVersion,
     packageDir: candidate.packageDir,
     workspaceDir: candidate.workspaceDir,
   });
@@ -299,6 +358,9 @@ function buildCatalogEntry(candidate: {
     channel: manifest.channel,
     meta,
     install,
+    installSource: describePluginInstallSource(install, {
+      expectedPackageName: candidate.packageName,
+    }),
   };
 }
 
@@ -306,6 +368,7 @@ function buildExternalCatalogEntry(entry: ExternalCatalogEntry): ChannelPluginCa
   const manifest = entry[MANIFEST_KEY];
   return buildCatalogEntry({
     packageName: entry.name,
+    packageVersion: entry.version,
     packageManifest: manifest,
   });
 }
@@ -336,6 +399,7 @@ function loadBundledMetadataCatalogEntries(options: CatalogOptions): ChannelPlug
 
     const entry = buildCatalogEntry({
       packageName: packageJson.name,
+      packageVersion: packageJson.version,
       packageDir: pluginDir,
       rootDir: pluginDir,
       origin: "bundled",
