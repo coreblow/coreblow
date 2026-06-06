@@ -12,6 +12,35 @@ export type GeneratedImageAsset = {
 
 export type ImageGenerationResolution = "1K" | "2K" | "4K";
 
+export type ImageGenerationQuality = "auto" | "standard" | "hd" | "low" | "medium" | "high";
+
+export type ImageGenerationOutputFormat = "png" | "jpeg" | "webp";
+
+export type ImageGenerationBackground = "auto" | "transparent" | "opaque";
+
+export type ImageGenerationIgnoredOverride = {
+  key: string;
+  value: string | number | boolean;
+};
+
+export type ImageGenerationNormalization = {
+  size?: {
+    requested?: string;
+    applied?: string;
+    derivedFrom?: string;
+  };
+  aspectRatio?: {
+    requested?: string;
+    applied?: string;
+    derivedFrom?: string;
+  };
+  resolution?: {
+    requested?: ImageGenerationResolution;
+    applied?: ImageGenerationResolution;
+    derivedFrom?: string;
+  };
+};
+
 export type ImageGenerationSourceImage = {
   buffer: Buffer;
   mimeType: string;
@@ -32,6 +61,9 @@ export type ImageGenerationRequest = {
   size?: string;
   aspectRatio?: string;
   resolution?: ImageGenerationResolution;
+  quality?: ImageGenerationQuality;
+  outputFormat?: ImageGenerationOutputFormat;
+  background?: ImageGenerationBackground;
   inputImages?: ImageGenerationSourceImage[];
   ssrfPolicy?: SsrFPolicy;
 };
@@ -60,10 +92,17 @@ export type ImageGenerationGeometryCapabilities = {
   resolutions?: ImageGenerationResolution[];
 };
 
+export type ImageGenerationOutputCapabilities = {
+  qualities?: ImageGenerationQuality[];
+  formats?: ImageGenerationOutputFormat[];
+  backgrounds?: ImageGenerationBackground[];
+};
+
 export type ImageGenerationProviderCapabilities = {
   generate: ImageGenerationModeCapabilities;
   edit: ImageGenerationEditCapabilities;
   geometry?: ImageGenerationGeometryCapabilities;
+  output?: ImageGenerationOutputCapabilities;
 };
 
 export type ImageGenerationProvider = {
@@ -76,6 +115,8 @@ export type ImageGenerationProvider = {
   isConfigured?: (ctx: { cfg?: CoreBlowConfig; agentDir?: string }) => boolean;
   generateImage: (req: ImageGenerationRequest) => Promise<ImageGenerationResult>;
 };
+
+export type ImageGenerationProviderOptions = Record<string, unknown>;
 
 // Stub exports — used by providers
 export type ImageGenerationCapabilities = { models: string[]; maxImages: number };
