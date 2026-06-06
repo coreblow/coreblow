@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7508,
+    "cb_source_files": 7511,
     "oc_source_files": 8443,
-    "source_parity_both": 5710,
+    "source_parity_both": 5713,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2733,
-    "test_files_cb": 4647,
+    "source_missing_from_cb": 2730,
+    "test_files_cb": 4650,
     "test_files_oc": 5246,
-    "tests_both_covered": 3261,
-    "tests_gap_oc_has_cb_missing": 1740,
+    "tests_both_covered": 3264,
+    "tests_gap_oc_has_cb_missing": 1737,
     "tests_cb_exclusive": 1329,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -993,12 +993,12 @@
       "priority": "P1",
       "implementationSurface": "src/config CoreBlowConfig",
       "counts": {
-        "sharedSourcePaths": 148,
+        "sharedSourcePaths": 151,
         "coreBlowOnlySourcePaths": 33,
-        "openClawOnlySourcePaths": 63,
-        "sharedTestPaths": 107,
+        "openClawOnlySourcePaths": 60,
+        "sharedTestPaths": 110,
         "coreBlowOnlyTestPaths": 89,
-        "openClawTestGaps": 36
+        "openClawTestGaps": 33
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -1007,27 +1007,27 @@
           "src/config/control-ui-css.ts",
           "src/config/doc-baseline.runtime.ts",
           "src/config/exec-command-highlighting.ts",
-          "src/config/io.audit.ts",
-          "src/config/io.clobber-snapshot.ts",
-          "src/config/io.observe-recovery.ts",
           "src/config/io.owner-display-secret.ts",
           "src/config/io.write-prepare.ts",
           "src/config/legacy-config-detection.test-support.ts",
-          "src/config/markdown-tables.types.ts"
+          "src/config/markdown-tables.types.ts",
+          "src/config/materialize.ts",
+          "src/config/mcp-config-normalize.ts",
+          "src/config/model-refs.ts"
         ],
         "openClawTestGapPaths": [
           "src/config/config.legacy-config-provider-shapes.test.ts",
           "src/config/config.model-ref-validation.test.ts",
           "src/config/heartbeat-config-honor.inventory.test.ts",
-          "src/config/io.audit.test.ts",
           "src/config/io.best-effort.test.ts",
-          "src/config/io.clobber-snapshot.test.ts",
-          "src/config/io.observe-recovery.test.ts",
           "src/config/io.write-prepare.test.ts",
           "src/config/mutate.test.ts",
           "src/config/plugin-auto-enable.channels.test.ts",
           "src/config/plugin-auto-enable.core.test.ts",
-          "src/config/plugin-auto-enable.model-support.test.ts"
+          "src/config/plugin-auto-enable.model-support.test.ts",
+          "src/config/plugin-auto-enable.prefer-over.test.ts",
+          "src/config/plugin-auto-enable.providers.test.ts",
+          "src/config/plugin-web-search-config.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/config/bundled-channel-config-runtime.ts",
