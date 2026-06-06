@@ -57,6 +57,7 @@ function buildBundledChannelPluginsById(plugins: readonly ChannelPlugin[]) {
 }
 
 const bundledChannelPluginsById = buildBundledChannelPluginsById(bundledChannelPlugins);
+const bundledChannelSetupPluginsById = buildBundledChannelPluginsById(bundledChannelSetupPlugins);
 
 const bundledChannelRuntimeSettersById = new Map<
   ChannelId,
@@ -70,6 +71,10 @@ for (const { entry } of generatedBundledChannelEntries) {
 
 export function getBundledChannelPlugin(id: ChannelId): ChannelPlugin | undefined {
   return bundledChannelPluginsById.get(id);
+}
+
+export function getBundledChannelSetupPlugin(id: ChannelId): ChannelPlugin | undefined {
+  return bundledChannelSetupPluginsById.get(id);
 }
 
 export function requireBundledChannelPlugin(id: ChannelId): ChannelPlugin {
@@ -86,4 +91,16 @@ export function setBundledChannelRuntime(id: ChannelId, runtime: PluginRuntime):
     throw new Error(`missing bundled channel runtime setter: ${id}`);
   }
   setter(runtime);
+}
+
+function readPluginSecrets(plugin: ChannelPlugin | undefined): unknown | undefined {
+  return (plugin as { secrets?: unknown } | undefined)?.secrets;
+}
+
+export function getBundledChannelSecrets(id: ChannelId): unknown | undefined {
+  return readPluginSecrets(getBundledChannelPlugin(id));
+}
+
+export function getBundledChannelSetupSecrets(id: ChannelId): unknown | undefined {
+  return readPluginSecrets(getBundledChannelSetupPlugin(id));
 }
