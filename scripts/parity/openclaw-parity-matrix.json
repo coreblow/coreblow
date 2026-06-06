@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7461,
+    "cb_source_files": 7468,
     "oc_source_files": 8443,
-    "source_parity_both": 5663,
+    "source_parity_both": 5670,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2780,
-    "test_files_cb": 4616,
+    "source_missing_from_cb": 2773,
+    "test_files_cb": 4621,
     "test_files_oc": 5246,
-    "tests_both_covered": 3231,
-    "tests_gap_oc_has_cb_missing": 1770,
+    "tests_both_covered": 3236,
+    "tests_gap_oc_has_cb_missing": 1765,
     "tests_cb_exclusive": 1328,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -3321,74 +3321,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/image-generation",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "src/routing",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "src/routing",
-      "counts": {
-        "sharedSourcePaths": 6,
-        "coreBlowOnlySourcePaths": 3,
-        "openClawOnlySourcePaths": 4,
-        "sharedTestPaths": 5,
-        "coreBlowOnlyTestPaths": 4,
-        "openClawTestGaps": 2
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/routing/binding-scope.ts",
-          "src/routing/bound-account-read.ts",
-          "src/routing/channel-route-targets.ts",
-          "src/routing/peer-kind-match.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/routing/bound-account-read.test.ts",
-          "src/routing/channel-route-targets.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/routing/channel-router.ts",
-          "src/routing/load-balance.ts",
-          "src/routing/message-router.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/routing",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "src/terminal",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "src/terminal",
-      "counts": {
-        "sharedSourcePaths": 14,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 3,
-        "sharedTestPaths": 6,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 3
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/terminal/decorative-emoji.ts",
-          "src/terminal/osc-progress.ts",
-          "src/terminal/prompt-select-styled-params.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/terminal/decorative-emoji.test.ts",
-          "src/terminal/links.test.ts",
-          "src/terminal/osc-progress.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/terminal",
         "pnpm check"
       ]
     },
@@ -8532,6 +8464,34 @@
       ]
     },
     {
+      "domain": "src/routing",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/routing",
+      "counts": {
+        "sharedSourcePaths": 10,
+        "coreBlowOnlySourcePaths": 3,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 7,
+        "coreBlowOnlyTestPaths": 4,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "src/routing/channel-router.ts",
+          "src/routing/load-balance.ts",
+          "src/routing/message-router.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/routing",
+        "pnpm check"
+      ]
+    },
+    {
       "domain": "src/runtime.ts",
       "status": "done",
       "priority": "P3",
@@ -8751,6 +8711,30 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/tasks",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/terminal",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/terminal",
+      "counts": {
+        "sharedSourcePaths": 17,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 9,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/terminal",
         "pnpm check"
       ]
     },

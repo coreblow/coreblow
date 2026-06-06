@@ -11,9 +11,11 @@ export function formatDocsLink(
   label?: string,
   opts?: { fallback?: string; force?: boolean },
 ): string {
-  const trimmed = path.trim();
   const docsRoot = resolveDocsRoot();
-  const url = trimmed.startsWith("http")
+  const trimmed = typeof path === "string" ? path.trim() : "";
+  const url = !trimmed
+    ? docsRoot
+    : trimmed.startsWith("http")
     ? trimmed
     : `${docsRoot}${trimmed.startsWith("/") ? trimmed : `/${trimmed}`}`;
   return formatTerminalLink(label ?? url, url, {
