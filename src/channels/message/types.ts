@@ -38,6 +38,42 @@ export type DurableFinalDeliveryPayload = {
   replyToId?: string;
 };
 
+export type MessageReceiptSourceResult = {
+  channel?: string;
+  messageId?: string;
+  chatId?: string;
+  channelId?: string;
+  roomId?: string;
+  conversationId?: string;
+  toJid?: string;
+  pollId?: string;
+  timestamp?: number;
+  meta?: Record<string, unknown>;
+};
+
+export type MessageReceiptPartKind = "text" | "media" | "voice" | "card" | "preview" | "unknown";
+
+export type MessageReceiptPart = {
+  platformMessageId: string;
+  kind: MessageReceiptPartKind;
+  index: number;
+  threadId?: string;
+  replyToId?: string;
+  raw?: MessageReceiptSourceResult;
+};
+
+export type MessageReceipt = {
+  primaryPlatformMessageId?: string;
+  platformMessageIds: string[];
+  parts: MessageReceiptPart[];
+  threadId?: string;
+  replyToId?: string;
+  editToken?: string;
+  deleteToken?: string;
+  sentAt: number;
+  raw?: readonly MessageReceiptSourceResult[];
+};
+
 export type DurableFinalDeliveryRequirementInput = {
   payload?: DurableFinalDeliveryPayload;
   threadId?: string | number;
