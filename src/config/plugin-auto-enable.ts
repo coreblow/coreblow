@@ -16,7 +16,7 @@ import { isChannelConfigured } from "./channel-configured.js";
 import type { CoreBlowConfig } from "./config.js";
 import { ensurePluginAllowlisted } from "./plugins-allowlist.js";
 
-type PluginEnableChange = {
+export type PluginEnableChange = {
   pluginId: string;
   reason: string;
 };
@@ -281,7 +281,7 @@ function configMayNeedPluginManifestRegistry(cfg: CoreBlowConfig): boolean {
   return false;
 }
 
-function resolveConfiguredPlugins(
+export function resolveConfiguredPluginAutoEnableCandidates(
   cfg: CoreBlowConfig,
   env: NodeJS.ProcessEnv,
   registry: PluginManifestRegistry,
@@ -363,7 +363,7 @@ function resolvePreferredOverIds(
   return resolveExternalCatalogPreferOver(pluginId, env);
 }
 
-function shouldSkipPreferredPluginAutoEnable(
+export function shouldSkipPreferredPluginAutoEnable(
   cfg: CoreBlowConfig,
   entry: PluginEnableChange,
   configured: PluginEnableChange[],
@@ -448,7 +448,7 @@ export function applyPluginAutoEnable(params: {
     (configMayNeedPluginManifestRegistry(params.config)
       ? loadPluginManifestRegistry({ config: params.config, env })
       : EMPTY_PLUGIN_MANIFEST_REGISTRY);
-  const configured = resolveConfiguredPlugins(params.config, env, registry);
+  const configured = resolveConfiguredPluginAutoEnableCandidates(params.config, env, registry);
   if (configured.length === 0) {
     return { config: params.config, changes: [] };
   }

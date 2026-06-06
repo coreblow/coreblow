@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7516,
+    "cb_source_files": 7520,
     "oc_source_files": 8443,
-    "source_parity_both": 5718,
+    "source_parity_both": 5722,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2725,
-    "test_files_cb": 4655,
+    "source_missing_from_cb": 2721,
+    "test_files_cb": 4658,
     "test_files_oc": 5246,
-    "tests_both_covered": 3266,
-    "tests_gap_oc_has_cb_missing": 1735,
-    "tests_cb_exclusive": 1332,
+    "tests_both_covered": 3267,
+    "tests_gap_oc_has_cb_missing": 1734,
+    "tests_cb_exclusive": 1334,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
     "test_scenario_files_intentionally_different": 0
@@ -1056,12 +1056,12 @@
       "priority": "P1",
       "implementationSurface": "src/config CoreBlowConfig",
       "counts": {
-        "sharedSourcePaths": 156,
+        "sharedSourcePaths": 160,
         "coreBlowOnlySourcePaths": 33,
-        "openClawOnlySourcePaths": 55,
-        "sharedTestPaths": 112,
-        "coreBlowOnlyTestPaths": 92,
-        "openClawTestGaps": 31
+        "openClawOnlySourcePaths": 51,
+        "sharedTestPaths": 113,
+        "coreBlowOnlyTestPaths": 94,
+        "openClawTestGaps": 30
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -1075,8 +1075,8 @@
           "src/config/materialize.ts",
           "src/config/mutate.ts",
           "src/config/nix-mode-write-guard.ts",
-          "src/config/plugin-auto-enable.apply.ts",
-          "src/config/plugin-auto-enable.detect.ts"
+          "src/config/plugin-auto-enable.shared.ts",
+          "src/config/plugin-auto-enable.test-helpers.ts"
         ],
         "openClawTestGapPaths": [
           "src/config/config.legacy-config-provider-shapes.test.ts",
@@ -1087,10 +1087,10 @@
           "src/config/plugin-auto-enable.channels.test.ts",
           "src/config/plugin-auto-enable.core.test.ts",
           "src/config/plugin-auto-enable.model-support.test.ts",
-          "src/config/plugin-auto-enable.prefer-over.test.ts",
           "src/config/plugin-auto-enable.providers.test.ts",
           "src/config/plugin-web-search-config.test.ts",
-          "src/config/redact-snapshot.raw.test.ts"
+          "src/config/redact-snapshot.raw.test.ts",
+          "src/config/runtime-snapshot.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/config/bundled-channel-config-runtime.ts",
