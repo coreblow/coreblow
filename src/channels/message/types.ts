@@ -74,6 +74,131 @@ export type MessageReceipt = {
   raw?: readonly MessageReceiptSourceResult[];
 };
 
+export type RenderedMessageBatchPlanKind =
+  | "text"
+  | "media"
+  | "voice"
+  | "presentation"
+  | "interactive"
+  | "channelData"
+  | "empty";
+
+export type RenderedMessageBatchPlanItem = {
+  index: number;
+  kinds: readonly RenderedMessageBatchPlanKind[];
+  text?: string;
+  mediaUrls: readonly string[];
+  audioAsVoice?: boolean;
+  presentationBlockCount?: number;
+  hasInteractive?: boolean;
+  hasChannelData?: boolean;
+};
+
+export type RenderedMessageBatchPlan = {
+  payloadCount: number;
+  textCount: number;
+  mediaCount: number;
+  voiceCount: number;
+  presentationCount: number;
+  interactiveCount: number;
+  channelDataCount: number;
+  items: readonly RenderedMessageBatchPlanItem[];
+};
+
+export type RenderedMessageBatch<TPayload = unknown> = {
+  payloads: TPayload[];
+  plan: RenderedMessageBatchPlan;
+};
+
+export type LiveMessagePhase = "idle" | "previewing" | "finalizing" | "finalized" | "cancelled";
+
+export type LiveMessageState<TPayload = unknown> = {
+  phase: LiveMessagePhase;
+  canFinalizeInPlace: boolean;
+  receipt?: MessageReceipt;
+  lastRendered?: RenderedMessageBatch<TPayload>;
+};
+
+export type MessageDurabilityPolicy = "required" | "best_effort" | "disabled";
+
+export type DurableMessageSendIntent<TPayload = unknown> = {
+  id: string;
+  channel: string;
+  to: string;
+  accountId?: string;
+  durability: Exclude<MessageDurabilityPolicy, "disabled">;
+  renderedBatch?: RenderedMessageBatch<TPayload>;
+};
+
+export type MessageSendContext<TPayload = unknown, TSendResult = unknown> = {
+  id: string;
+  channel: string;
+  to: string;
+  accountId?: string;
+  durability: Exclude<MessageDurabilityPolicy, "disabled">;
+  attempt: number;
+  signal: AbortSignal;
+  intent?: DurableMessageSendIntent;
+  previousReceipt?: MessageReceipt;
+  preview?: LiveMessageState<TPayload>;
+  render(): Promise<RenderedMessageBatch<TPayload>>;
+  previewUpdate(rendered: RenderedMessageBatch<TPayload>): Promise<LiveMessageState<TPayload>>;
+  send(rendered: RenderedMessageBatch<TPayload>): Promise<TSendResult>;
+  edit(receipt: MessageReceipt, rendered: RenderedMessageBatch<TPayload>): Promise<MessageReceipt>;
+  delete(receipt: MessageReceipt): Promise<void>;
+  commit(receipt: MessageReceipt): Promise<void>;
+  fail(error: unknown): Promise<void>;
+};
+
+export type ChannelMessageSendTextContext<TConfig = unknown> = {
+  cfg: TConfig;
+  to: string;
+  text: string;
+  accountId?: string | null;
+  deps?: OutboundSendDeps;
+  replyToId?: string | null;
+  replyToIdSource?: "explicit" | "implicit";
+  replyToMode?: string;
+  threadId?: string | number | null;
+  silent?: boolean;
+  signal?: AbortSignal;
+  gatewayClientScopes?: readonly string[];
+};
+
+export type ChannelMessageSendMediaContext<TConfig = unknown> =
+  ChannelMessageSendTextContext<TConfig> & {
+    mediaUrl: string;
+    mediaLocalRoots?: readonly string[];
+    mediaReadFile?: (filePath: string) => Promise<Buffer>;
+    audioAsVoice?: boolean;
+    gifPlayback?: boolean;
+    forceDocument?: boolean;
+  };
+
+export type ChannelMessageSendPayloadContext<TConfig = unknown> =
+  ChannelMessageSendTextContext<TConfig> & {
+    payload: ReplyPayload & {
+      presentation?: { blocks?: readonly unknown[] };
+    };
+    mediaUrl?: string;
+    mediaLocalRoots?: readonly string[];
+    mediaReadFile?: (filePath: string) => Promise<Buffer>;
+    audioAsVoice?: boolean;
+    gifPlayback?: boolean;
+    forceDocument?: boolean;
+  };
+
+export type ChannelMessageSendResult = {
+  receipt: MessageReceipt;
+  messageId?: string;
+};
+
+export type ChannelMessageSendAdapter<TConfig = unknown> = {
+  text?: (ctx: ChannelMessageSendTextContext<TConfig>) => Promise<ChannelMessageSendResult>;
+  media?: (ctx: ChannelMessageSendMediaContext<TConfig>) => Promise<ChannelMessageSendResult>;
+  payload?: (ctx: ChannelMessageSendPayloadContext<TConfig>) => Promise<ChannelMessageSendResult>;
+};
+
 export type DurableFinalDeliveryRequirementInput = {
   payload?: DurableFinalDeliveryPayload;
   threadId?: string | number;
@@ -146,9 +271,12 @@ export type ChannelMessageReceiveAdapterShape = {
   supportedAckPolicies?: readonly ChannelMessageReceiveAckPolicy[];
 };
 
-export type ChannelMessageAdapterShape = {
+export type ChannelMessageAdapterShape<TConfig = unknown> = {
   id?: string;
   durableFinal?: ChannelMessageDurableFinalAdapter;
+  send?: ChannelMessageSendAdapter<TConfig>;
   live?: ChannelMessageLiveAdapterShape;
   receive?: ChannelMessageReceiveAdapterShape;
 };
+import type { ReplyPayload } from "../../auto-reply/types.js";
+import type { OutboundDeliveryResult, OutboundSendDeps } from "../../infra/outbound/deliver.js";
