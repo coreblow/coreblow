@@ -1,8 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { AuthRateLimiter } from "./auth-rate-limit.js";
-import { authorizeHttpGatewayConnect, type ResolvedGatewayAuth } from "./auth.js";
-import { sendGatewayAuthFailure } from "./http-common.js";
-import { getBearerToken, getHeader } from "./http-utils.js";
+import type { ResolvedGatewayAuth } from "./auth.js";
+import { authorizeGatewayHttpRequestOrReply, getHeader } from "./http-auth-utils.js";
 
 const OPERATOR_SCOPES_HEADER = "x-coreblow-scopes";
 
@@ -14,20 +13,16 @@ export async function authorizeGatewayBearerRequestOrReply(params: {
   allowRealIpFallback?: boolean;
   rateLimiter?: AuthRateLimiter;
 }): Promise<boolean> {
-  const token = getBearerToken(params.req);
-  const authResult = await authorizeHttpGatewayConnect({
-    auth: params.auth,
-    connectAuth: token ? { token, password: token } : null,
-    req: params.req,
-    trustedProxies: params.trustedProxies,
-    allowRealIpFallback: params.allowRealIpFallback,
-    rateLimiter: params.rateLimiter,
-  });
-  if (!authResult.ok) {
-    sendGatewayAuthFailure(params.res, authResult);
-    return false;
-  }
-  return true;
+  return (
+    (await authorizeGatewayHttpRequestOrReply({
+      req: params.req,
+      res: params.res,
+      auth: params.auth,
+      trustedProxies: params.trustedProxies,
+      allowRealIpFallback: params.allowRealIpFallback,
+      rateLimiter: params.rateLimiter,
+    })) !== null
+  );
 }
 
 export function resolveGatewayRequestedOperatorScopes(req: IncomingMessage): string[] {

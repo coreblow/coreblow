@@ -78,7 +78,7 @@ describe("OpenAI-compatible models HTTP API (e2e)", () => {
     });
   });
 
-  it("rejects requests with no declared operator scopes", async () => {
+  it("requires an explicit read scope even for authenticated shared-secret bearer requests", async () => {
     const res = await getModels("/v1/models", { "x-coreblow-scopes": "" });
     expect(res.status).toBe(403);
     await expect(res.json()).resolves.toMatchObject({

@@ -13,7 +13,10 @@ import {
   hasGatewayTokenEnvCandidate,
   readGatewayTokenEnv,
 } from "./credentials.js";
+import { assertGatewayAuthNotKnownWeak } from "./known-weak-gateway-secrets.js";
 import { resolveRequiredConfiguredSecretRefInputString } from "./resolve-configured-secret-input-string.js";
+
+export { assertGatewayAuthNotKnownWeak } from "./known-weak-gateway-secrets.js";
 
 export function mergeGatewayAuthConfig(
   base?: GatewayAuthConfig,
@@ -249,6 +252,7 @@ export async function ensureGatewayStartupAuth(params: {
     tailscaleOverride: params.tailscaleOverride,
   });
   if (resolved.mode !== "token" || (resolved.token?.trim().length ?? 0) > 0) {
+    assertGatewayAuthNotKnownWeak(resolved);
     assertHooksTokenSeparateFromGatewayAuth({ cfg: params.cfg, auth: resolved });
     return { cfg: params.cfg, auth: resolved, persistedGeneratedToken: false };
   }
@@ -279,6 +283,7 @@ export async function ensureGatewayStartupAuth(params: {
     authOverride: params.authOverride,
     tailscaleOverride: params.tailscaleOverride,
   });
+  assertGatewayAuthNotKnownWeak(nextAuth);
   assertHooksTokenSeparateFromGatewayAuth({ cfg: nextCfg, auth: nextAuth });
   return {
     cfg: nextCfg,

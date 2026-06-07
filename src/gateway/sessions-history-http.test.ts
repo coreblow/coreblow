@@ -62,7 +62,7 @@ async function fetchSessionHistory(
     headers?: HeadersInit;
   },
 ) {
-  const headers = new Headers(AUTH_HEADER);
+  const headers = new Headers();
   for (const [key, value] of new Headers(READ_SCOPE_HEADER).entries()) {
     headers.set(key, value);
   }
@@ -80,7 +80,9 @@ async function fetchSessionHistory(
 async function withGatewayHarness<T>(
   run: (harness: Awaited<ReturnType<typeof createGatewaySuiteHarness>>) => Promise<T>,
 ) {
-  const harness = await createGatewaySuiteHarness();
+  const harness = await createGatewaySuiteHarness({
+    serverOptions: { auth: { mode: "none" } },
+  });
   try {
     return await run(harness);
   } finally {
@@ -430,6 +432,24 @@ describe("session history HTTP endpoints", () => {
       );
       expect(httpHistoryWithoutScopes.status).toBe(403);
       await expect(httpHistoryWithoutScopes.json()).resolves.toMatchObject({
+        ok: false,
+        error: {
+          type: "forbidden",
+          message: "missing scope: operator.read",
+        },
+      });
+
+      const httpHistoryWithSelfDeclaredRead = await fetch(
+        `http://127.0.0.1:${harness.port}/sessions/${encodeURIComponent("agent:main:main")}/history?limit=1`,
+        {
+          headers: {
+            ...AUTH_HEADER,
+            ...READ_SCOPE_HEADER,
+          },
+        },
+      );
+      expect(httpHistoryWithSelfDeclaredRead.status).toBe(403);
+      await expect(httpHistoryWithSelfDeclaredRead.json()).resolves.toMatchObject({
         ok: false,
         error: {
           type: "forbidden",

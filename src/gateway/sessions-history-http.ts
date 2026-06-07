@@ -2,15 +2,14 @@ import fs from "node:fs";
 import { clamp } from "../utils.js";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
-import { loadConfig } from "../config/config.js";
 import { loadSessionStore } from "../config/sessions.js";
 import { onSessionTranscriptUpdate } from "../sessions/transcript-events.js";
 import type { AuthRateLimiter } from "./auth-rate-limit.js";
 import type { ResolvedGatewayAuth } from "./auth.js";
 import {
-  authorizeGatewayBearerRequestOrReply,
-  resolveGatewayRequestedOperatorScopes,
-} from "./http-auth-helpers.js";
+  authorizeScopedGatewayHttpRequestOrReply,
+  resolveTrustedHttpOperatorScopes,
+} from "./http-auth-utils.js";
 import {
   sendInvalidRequest,
   sendJson,
@@ -18,7 +17,6 @@ import {
   setSseHeaders,
 } from "./http-common.js";
 import { getHeader } from "./http-utils.js";
-import { authorizeOperatorScopesForMethod } from "./method-scopes.js";
 import {
   attachCoreBlowTranscriptMeta,
   readSessionMessages,
@@ -158,33 +156,22 @@ export async function handleSessionHistoryHttpRequest(
     return true;
   }
 
-  const cfg = loadConfig();
-  const ok = await authorizeGatewayBearerRequestOrReply({
+  // Session history keeps declared scopes only for trusted HTTP identities.
+  // A bearer shared secret authenticates the gateway, not a narrower operator identity.
+  const authResult = await authorizeScopedGatewayHttpRequestOrReply({
     req,
     res,
     auth: opts.auth,
-    trustedProxies: opts.trustedProxies ?? cfg.gateway?.trustedProxies,
-    allowRealIpFallback: opts.allowRealIpFallback ?? cfg.gateway?.allowRealIpFallback,
+    trustedProxies: opts.trustedProxies,
+    allowRealIpFallback: opts.allowRealIpFallback,
     rateLimiter: opts.rateLimiter,
+    operatorMethod: "chat.history",
+    resolveOperatorScopes: resolveTrustedHttpOperatorScopes,
   });
-  if (!ok) {
+  if (!authResult) {
     return true;
   }
-
-  // HTTP callers must declare the same least-privilege operator scopes they
-  // intend to use over WS so both transport surfaces enforce the same gate.
-  const requestedScopes = resolveGatewayRequestedOperatorScopes(req);
-  const scopeAuth = authorizeOperatorScopesForMethod("chat.history", requestedScopes);
-  if (!scopeAuth.allowed) {
-    sendJson(res, 403, {
-      ok: false,
-      error: {
-        type: "forbidden",
-        message: `missing scope: ${scopeAuth.missingScope}`,
-      },
-    });
-    return true;
-  }
+  const { cfg } = authResult;
 
   const target = resolveGatewaySessionStoreTarget({ cfg, key: sessionKey });
   const store = loadSessionStore(target.storePath);

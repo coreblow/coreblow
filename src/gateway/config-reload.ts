@@ -1,69 +1,19 @@
-import { isDeepStrictEqual } from "node:util";
 import chokidar from "chokidar";
-import type { CoreBlowConfig, ConfigFileSnapshot, GatewayReloadMode } from "../config/config.js";
+import type { CoreBlowConfig, ConfigFileSnapshot } from "../config/config.js";
 import { formatConfigIssueLines } from "../config/issue-format.js";
-import { isPlainObject } from "../utils.js";
+import { diffConfigPaths } from "./config-diff.js";
 import { buildGatewayReloadPlan, type GatewayReloadPlan } from "./config-reload-plan.js";
+import { resolveGatewayReloadSettings } from "./config-reload-settings.js";
 
 export { buildGatewayReloadPlan };
 export type { ChannelKind, GatewayReloadPlan } from "./config-reload-plan.js";
-
-export type GatewayReloadSettings = {
-  mode: GatewayReloadMode;
-  debounceMs: number;
-};
-
-const DEFAULT_RELOAD_SETTINGS: GatewayReloadSettings = {
-  mode: "hybrid",
-  debounceMs: 300,
-};
+export { diffConfigPaths } from "./config-diff.js";
+export {
+  resolveGatewayReloadSettings,
+  type GatewayReloadSettings,
+} from "./config-reload-settings.js";
 const MISSING_CONFIG_RETRY_DELAY_MS = 150;
 const MISSING_CONFIG_MAX_RETRIES = 2;
-
-export function diffConfigPaths(prev: unknown, next: unknown, prefix = ""): string[] {
-  if (prev === next) {
-    return [];
-  }
-  if (isPlainObject(prev) && isPlainObject(next)) {
-    const keys = new Set([...Object.keys(prev), ...Object.keys(next)]);
-    const paths: string[] = [];
-    for (const key of keys) {
-      const prevValue = prev[key];
-      const nextValue = next[key];
-      if (prevValue === undefined && nextValue === undefined) {
-        continue;
-      }
-      const childPrefix = prefix ? `${prefix}.${key}` : key;
-      const childPaths = diffConfigPaths(prevValue, nextValue, childPrefix);
-      if (childPaths.length > 0) {
-        paths.push(...childPaths);
-      }
-    }
-    return paths;
-  }
-  if (Array.isArray(prev) && Array.isArray(next)) {
-    // Arrays can contain object entries (for example memory.qmd.paths/scope.rules);
-    // compare structurally so identical values are not reported as changed.
-    if (isDeepStrictEqual(prev, next)) {
-      return [];
-    }
-  }
-  return [prefix || "<root>"];
-}
-
-export function resolveGatewayReloadSettings(cfg: CoreBlowConfig): GatewayReloadSettings {
-  const rawMode = cfg.gateway?.reload?.mode;
-  const mode =
-    rawMode === "off" || rawMode === "restart" || rawMode === "hot" || rawMode === "hybrid"
-      ? rawMode
-      : DEFAULT_RELOAD_SETTINGS.mode;
-  const debounceRaw = cfg.gateway?.reload?.debounceMs;
-  const debounceMs =
-    typeof debounceRaw === "number" && Number.isFinite(debounceRaw)
-      ? Math.max(0, Math.floor(debounceRaw))
-      : DEFAULT_RELOAD_SETTINGS.debounceMs;
-  return { mode, debounceMs };
-}
 
 export type GatewayConfigReloader = {
   stop: () => Promise<void>;

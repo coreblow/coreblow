@@ -273,6 +273,18 @@ describe("callGateway url resolution", () => {
     expect(lastClientOptions?.token).toBe("explicit-token");
   });
 
+  it("skips config loading when CLI URL and explicit auth define the connection", async () => {
+    await callGateway({
+      method: "health",
+      url: "wss://override.example/ws",
+      token: "explicit-token",
+    });
+
+    expect(loadConfig).not.toHaveBeenCalled();
+    expect(lastClientOptions?.url).toBe("wss://override.example/ws");
+    expect(lastClientOptions?.token).toBe("explicit-token");
+  });
+
   it("keeps device identity enabled for local loopback shared-token auth", async () => {
     setLocalLoopbackGatewayConfig();
 

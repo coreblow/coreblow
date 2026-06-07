@@ -20,6 +20,42 @@ type ExternalCliSyncProvider = {
   readCredentials: () => OAuthCredential | null;
 };
 
+function normalizeAuthIdentityToken(value: string | undefined): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+function normalizeAuthEmailToken(value: string | undefined): string | undefined {
+  return normalizeAuthIdentityToken(value)?.toLowerCase();
+}
+
+export function isSafeToUseExternalCliCredential(
+  existing: OAuthCredential | undefined,
+  imported: OAuthCredential,
+): boolean {
+  if (!existing) {
+    return true;
+  }
+  if (existing.provider !== imported.provider) {
+    return false;
+  }
+
+  const existingAccountId = normalizeAuthIdentityToken(existing.accountId);
+  const importedAccountId = normalizeAuthIdentityToken(imported.accountId);
+  const existingEmail = normalizeAuthEmailToken(existing.email);
+  const importedEmail = normalizeAuthEmailToken(imported.email);
+
+  if (existingAccountId !== undefined && importedAccountId !== undefined) {
+    return existingAccountId === importedAccountId;
+  }
+  if (existingEmail !== undefined && importedEmail !== undefined) {
+    return existingEmail === importedEmail;
+  }
+
+  const existingHasIdentity = existingAccountId !== undefined || existingEmail !== undefined;
+  return !existingHasIdentity;
+}
+
 function areOAuthCredentialsEquivalent(
   a: OAuthCredential | undefined,
   b: OAuthCredential,
@@ -79,6 +115,33 @@ const EXTERNAL_CLI_SYNC_PROVIDERS: ExternalCliSyncProvider[] = [
     readCredentials: () => readCodexCliCredentialsCached({ ttlMs: EXTERNAL_CLI_SYNC_TTL_MS }),
   },
 ];
+
+function resolveExternalCliSyncProvider(params: {
+  profileId: string;
+  credential?: OAuthCredential;
+}): ExternalCliSyncProvider | null {
+  const provider = EXTERNAL_CLI_SYNC_PROVIDERS.find(
+    (entry) => entry.profileId === params.profileId,
+  );
+  if (!provider) {
+    return null;
+  }
+  if (params.credential && provider.provider !== params.credential.provider) {
+    return null;
+  }
+  return provider;
+}
+
+export function readManagedExternalCliCredential(params: {
+  profileId: string;
+  credential: OAuthCredential;
+}): OAuthCredential | null {
+  const provider = resolveExternalCliSyncProvider(params);
+  if (!provider) {
+    return null;
+  }
+  return provider.readCredentials();
+}
 
 /** Sync external CLI credentials into the store for a given provider. */
 function syncExternalCliCredentialsForProvider(
