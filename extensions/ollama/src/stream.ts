@@ -47,7 +47,7 @@ export function resolveOllamaBaseUrlForRun(params: {
   return OLLAMA_NATIVE_BASE_URL;
 }
 
-function resolveConfiguredOllamaProviderConfig(params: {
+export function resolveConfiguredOllamaProviderConfig(params: {
   config?: CoreBlowConfig;
   providerId?: string;
 }) {

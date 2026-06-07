@@ -61,7 +61,7 @@ function formatOllamaPullStatus(status: string): { text: string; hidePercent: bo
   return { text: trimmed, hidePercent: false };
 }
 
-async function checkOllamaCloudAuth(baseUrl: string): Promise<OllamaCloudAuthResult> {
+export async function checkOllamaCloudAuth(baseUrl: string): Promise<OllamaCloudAuthResult> {
   try {
     const apiBase = resolveOllamaApiBase(baseUrl);
     const response = await fetch(`${apiBase}/api/me`, {
@@ -246,8 +246,7 @@ function applyOllamaProviderConfig(
         ollama: {
           baseUrl,
           api: "ollama",
-          // pragma: allowlist secret
-          apiKey: "OLLAMA_API_KEY",
+          apiKey: "OLLAMA_API_KEY", // pragma: allowlist secret
           models: buildOllamaModelsConfig(modelNames, discoveredModelsByName),
         },
       },
