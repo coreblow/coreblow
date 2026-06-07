@@ -1,6 +1,12 @@
 {
   "id": "elevenlabs",
   "contracts": {
+    "mediaUnderstandingProviders": [
+      "elevenlabs"
+    ],
+    "realtimeTranscriptionProviders": [
+      "elevenlabs"
+    ],
     "speechProviders": [
       "elevenlabs"
     ]

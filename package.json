@@ -1134,6 +1134,10 @@
       "types": "./dist/plugin-sdk/provider-http.d.ts",
       "default": "./dist/plugin-sdk/provider-http.js"
     },
+    "./plugin-sdk/realtime-transcription": {
+      "types": "./dist/plugin-sdk/realtime-transcription.d.ts",
+      "default": "./dist/plugin-sdk/realtime-transcription.js"
+    },
     "./plugin-sdk/provider-model-shared": {
       "types": "./dist/plugin-sdk/provider-model-shared.d.ts",
       "default": "./dist/plugin-sdk/provider-model-shared.js"

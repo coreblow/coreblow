@@ -12,9 +12,13 @@ import {
   normalizeSeed,
   requireInRange,
 } from "coreblow/plugin-sdk/speech-core";
+import { resolveElevenLabsApiKeyWithProfileFallback } from "./config-api.js";
+import {
+  isValidElevenLabsVoiceId,
+  normalizeElevenLabsBaseUrl,
+} from "./shared.js";
 import { elevenLabsTTS } from "./tts.js";
 
-const DEFAULT_ELEVENLABS_BASE_URL = "https://api.elevenlabs.io";
 const DEFAULT_ELEVENLABS_VOICE_ID = "pMsXgVXv3BLzUgSXRplE";
 const DEFAULT_ELEVENLABS_MODEL_ID = "eleven_multilingual_v2";
 const DEFAULT_ELEVENLABS_VOICE_SETTINGS = {
@@ -83,12 +87,7 @@ function parseNumberValue(value: string): number | undefined {
 }
 
 export function isValidVoiceId(voiceId: string): boolean {
-  return /^[a-zA-Z0-9]{10,40}$/.test(voiceId);
-}
-
-function normalizeElevenLabsBaseUrl(baseUrl: string | undefined): string {
-  const trimmed = baseUrl?.trim();
-  return trimmed?.replace(/\/+$/, "") || DEFAULT_ELEVENLABS_BASE_URL;
+  return isValidElevenLabsVoiceId(voiceId);
 }
 
 function normalizeElevenLabsProviderConfig(
@@ -98,10 +97,11 @@ function normalizeElevenLabsProviderConfig(
   const raw = asObject(providers?.elevenlabs) ?? asObject(rawConfig.elevenlabs);
   const rawVoiceSettings = asObject(raw?.voiceSettings);
   return {
-    apiKey: normalizeResolvedSecretInputString({
-      value: raw?.apiKey,
-      path: "messages.tts.providers.elevenlabs.apiKey",
-    }),
+    apiKey:
+      normalizeResolvedSecretInputString({
+        value: raw?.apiKey,
+        path: "messages.tts.providers.elevenlabs.apiKey",
+      }) ?? undefined,
     baseUrl: normalizeElevenLabsBaseUrl(trimToUndefined(raw?.baseUrl)),
     voiceId: trimToUndefined(raw?.voiceId) ?? DEFAULT_ELEVENLABS_VOICE_ID,
     modelId: trimToUndefined(raw?.modelId) ?? DEFAULT_ELEVENLABS_MODEL_ID,
@@ -355,10 +355,11 @@ export function buildElevenLabsSpeechProvider(): SpeechProviderPlugin {
         ...(talkProviderConfig.apiKey === undefined
           ? {}
           : {
-              apiKey: normalizeResolvedSecretInputString({
-                value: talkProviderConfig.apiKey,
-                path: "talk.providers.elevenlabs.apiKey",
-              }),
+              apiKey:
+                normalizeResolvedSecretInputString({
+                  value: talkProviderConfig.apiKey,
+                  path: "talk.providers.elevenlabs.apiKey",
+                }) ?? undefined,
             }),
         ...(trimToUndefined(talkProviderConfig.baseUrl) == null
           ? {}
@@ -441,7 +442,10 @@ export function buildElevenLabsSpeechProvider(): SpeechProviderPlugin {
         ? readElevenLabsProviderConfig(req.providerConfig)
         : undefined;
       const apiKey =
-        req.apiKey || config?.apiKey || process.env.ELEVENLABS_API_KEY || process.env.XI_API_KEY;
+        req.apiKey ||
+        config?.apiKey ||
+        resolveElevenLabsApiKeyWithProfileFallback() ||
+        process.env.XI_API_KEY;
       if (!apiKey) {
         throw new Error("ElevenLabs API key missing");
       }
@@ -453,13 +457,14 @@ export function buildElevenLabsSpeechProvider(): SpeechProviderPlugin {
     isConfigured: ({ providerConfig }) =>
       Boolean(
         readElevenLabsProviderConfig(providerConfig).apiKey ||
-        process.env.ELEVENLABS_API_KEY ||
+        resolveElevenLabsApiKeyWithProfileFallback() ||
         process.env.XI_API_KEY,
       ),
     synthesize: async (req) => {
       const config = readElevenLabsProviderConfig(req.providerConfig);
       const overrides = req.providerOverrides ?? {};
-      const apiKey = config.apiKey || process.env.ELEVENLABS_API_KEY || process.env.XI_API_KEY;
+      const apiKey =
+        config.apiKey || resolveElevenLabsApiKeyWithProfileFallback() || process.env.XI_API_KEY;
       if (!apiKey) {
         throw new Error("ElevenLabs API key missing");
       }
@@ -511,7 +516,8 @@ export function buildElevenLabsSpeechProvider(): SpeechProviderPlugin {
     },
     synthesizeTelephony: async (req) => {
       const config = readElevenLabsProviderConfig(req.providerConfig);
-      const apiKey = config.apiKey || process.env.ELEVENLABS_API_KEY || process.env.XI_API_KEY;
+      const apiKey =
+        config.apiKey || resolveElevenLabsApiKeyWithProfileFallback() || process.env.XI_API_KEY;
       if (!apiKey) {
         throw new Error("ElevenLabs API key missing");
       }

@@ -4,20 +4,10 @@ import {
   normalizeSeed,
   requireInRange,
 } from "coreblow/plugin-sdk/speech-core";
-
-const DEFAULT_ELEVENLABS_BASE_URL = "https://api.elevenlabs.io";
-
-function isValidVoiceId(voiceId: string): boolean {
-  return /^[a-zA-Z0-9]{10,40}$/.test(voiceId);
-}
-
-function normalizeElevenLabsBaseUrl(baseUrl?: string): string {
-  const trimmed = baseUrl?.trim();
-  if (!trimmed) {
-    return DEFAULT_ELEVENLABS_BASE_URL;
-  }
-  return trimmed.replace(/\/+$/, "");
-}
+import {
+  isValidElevenLabsVoiceId,
+  normalizeElevenLabsBaseUrl,
+} from "./shared.js";
 
 function assertElevenLabsVoiceSettings(settings: {
   stability: number;
@@ -64,7 +54,7 @@ export async function elevenLabsTTS(params: {
     voiceSettings,
     timeoutMs,
   } = params;
-  if (!isValidVoiceId(voiceId)) {
+  if (!isValidElevenLabsVoiceId(voiceId)) {
     throw new Error("Invalid voiceId format");
   }
   assertElevenLabsVoiceSettings(voiceSettings);
@@ -113,4 +103,16 @@ export async function elevenLabsTTS(params: {
   } finally {
     clearTimeout(timeout);
   }
+}
+
+export async function elevenLabsTTSStream(
+  params: Parameters<typeof elevenLabsTTS>[0],
+): Promise<ReadableStream<Uint8Array>> {
+  const audioBuffer = await elevenLabsTTS(params);
+  return new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(new Uint8Array(audioBuffer));
+      controller.close();
+    },
+  });
 }
