@@ -163,6 +163,12 @@ export {
   getZaloWebhookStatusCounterSizeForTest,
 };
 
+export const testing = {
+  clearWebhookSecurityState: clearZaloWebhookSecurityStateForTest,
+  getWebhookRateLimitStateSize: getZaloWebhookRateLimitStateSizeForTest,
+  getWebhookStatusCounterSize: getZaloWebhookStatusCounterSizeForTest,
+};
+
 export async function handleZaloWebhookRequest(
   req: IncomingMessage,
   res: ServerResponse,

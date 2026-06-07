@@ -95,6 +95,28 @@ const zaloRawSendResultAdapter = createRawChannelSendResultAdapter({
       cfg,
     }),
 });
+type ZaloRawSendTextContext = Parameters<NonNullable<typeof zaloRawSendResultAdapter.sendText>>[0];
+type ZaloRawSendMediaContext = Parameters<NonNullable<typeof zaloRawSendResultAdapter.sendMedia>>[0];
+
+export const zaloMessageAdapter = {
+  deliveryMode: "direct" as const,
+  chunker: chunkTextForOutbound,
+  textChunkLimit: zaloTextChunkLimit,
+  sendPayload: async (ctx: Parameters<typeof sendPayloadWithChunkedTextAndMedia>[0]["ctx"]) =>
+    await sendPayloadWithChunkedTextAndMedia({
+      ctx,
+      textChunkLimit: zaloTextChunkLimit,
+      chunker: chunkTextForOutbound,
+      sendText: (nextCtx) =>
+        zaloRawSendResultAdapter.sendText!({ ...ctx, ...nextCtx } as unknown as ZaloRawSendTextContext),
+      sendMedia: (nextCtx) =>
+        zaloRawSendResultAdapter.sendMedia!(
+          { ...ctx, ...nextCtx } as unknown as ZaloRawSendMediaContext,
+        ),
+      emptyResult: createEmptyChannelResult("zalo"),
+    }),
+  ...zaloRawSendResultAdapter,
+};
 
 const zaloConfigAdapter = createScopedChannelConfigAdapter<ResolvedZaloAccount>({
   sectionKey: "zalo",
@@ -245,20 +267,8 @@ export const zaloPlugin: ChannelPlugin<ResolvedZaloAccount, ZaloProbeResult> =
       resolveReplyToMode: createStaticReplyToModeResolver("off"),
     },
     outbound: {
-      deliveryMode: "direct",
-      chunker: chunkTextForOutbound,
+      ...zaloMessageAdapter,
       chunkerMode: "text",
-      textChunkLimit: zaloTextChunkLimit,
-      sendPayload: async (ctx) =>
-        await sendPayloadWithChunkedTextAndMedia({
-          ctx,
-          textChunkLimit: zaloTextChunkLimit,
-          chunker: chunkTextForOutbound,
-          sendText: (nextCtx) => zaloRawSendResultAdapter.sendText!(nextCtx),
-          sendMedia: (nextCtx) => zaloRawSendResultAdapter.sendMedia!(nextCtx),
-          emptyResult: createEmptyChannelResult("zalo"),
-        }),
-      ...zaloRawSendResultAdapter,
     },
   });
 

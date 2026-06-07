@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7729,
+    "cb_source_files": 7742,
     "oc_source_files": 8443,
-    "source_parity_both": 5931,
+    "source_parity_both": 5944,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2512,
-    "test_files_cb": 4778,
+    "source_missing_from_cb": 2499,
+    "test_files_cb": 4785,
     "test_files_oc": 5246,
-    "tests_both_covered": 3373,
-    "tests_gap_oc_has_cb_missing": 1628,
+    "tests_both_covered": 3380,
+    "tests_gap_oc_has_cb_missing": 1621,
     "tests_cb_exclusive": 1348,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -2150,64 +2150,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/signal",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/zalo",
-      "status": "partial",
-      "priority": "P2",
-      "implementationSurface": "extensions/zalo plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 27,
-        "coreBlowOnlySourcePaths": 12,
-        "openClawOnlySourcePaths": 13,
-        "sharedTestPaths": 16,
-        "coreBlowOnlyTestPaths": 5,
-        "openClawTestGaps": 7
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/zalo/src/approval-auth.ts",
-          "extensions/zalo/src/monitor-durable.ts",
-          "extensions/zalo/src/monitor.types.ts",
-          "extensions/zalo/src/outbound-media.ts",
-          "extensions/zalo/src/runtime-support.ts",
-          "extensions/zalo/src/secret-contract.ts",
-          "extensions/zalo/src/setup-allow-from.ts",
-          "extensions/zalo/src/test-support/lifecycle-test-support.ts",
-          "extensions/zalo/src/test-support/monitor-mocks-test-support.ts",
-          "extensions/zalo/channel-plugin-api.ts",
-          "extensions/zalo/contract-api.ts",
-          "extensions/zalo/secret-contract-api.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/zalo/src/actions.test.ts",
-          "extensions/zalo/src/approval-auth.test.ts",
-          "extensions/zalo/src/monitor-durable.test.ts",
-          "extensions/zalo/src/monitor.polling.media-reply.test.ts",
-          "extensions/zalo/src/outbound-media.test.ts",
-          "extensions/zalo/index.test.ts",
-          "extensions/zalo/runtime-api.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "extensions/zalo/src/adapter.ts",
-          "extensions/zalo/src/config.ts",
-          "extensions/zalo/src/extension.ts",
-          "extensions/zalo/src/formatter.ts",
-          "extensions/zalo/src/handler.ts",
-          "extensions/zalo/src/index.ts",
-          "extensions/zalo/src/media.ts",
-          "extensions/zalo/src/rate-limiter.ts",
-          "extensions/zalo/src/resolve-target.ts",
-          "extensions/zalo/src/subagent-hooks.ts",
-          "extensions/zalo/src/webhook.ts",
-          "extensions/zalo/extension.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/zalo",
         "pnpm check"
       ]
     },
@@ -5929,6 +5871,43 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/zai",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/zalo",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/zalo plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 40,
+        "coreBlowOnlySourcePaths": 12,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 23,
+        "coreBlowOnlyTestPaths": 5,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "extensions/zalo/src/adapter.ts",
+          "extensions/zalo/src/config.ts",
+          "extensions/zalo/src/extension.ts",
+          "extensions/zalo/src/formatter.ts",
+          "extensions/zalo/src/handler.ts",
+          "extensions/zalo/src/index.ts",
+          "extensions/zalo/src/media.ts",
+          "extensions/zalo/src/rate-limiter.ts",
+          "extensions/zalo/src/resolve-target.ts",
+          "extensions/zalo/src/subagent-hooks.ts",
+          "extensions/zalo/src/webhook.ts",
+          "extensions/zalo/extension.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/zalo",
         "pnpm check"
       ]
     },

@@ -41,6 +41,15 @@ export type ZaloWebhookProcessUpdate = (params: {
   target: ZaloWebhookTarget;
 }) => Promise<void>;
 
+export class ZaloRetryableWebhookError extends Error {
+  readonly retryable = true;
+
+  constructor(message: string) {
+    super(message);
+    this.name = "ZaloRetryableWebhookError";
+  }
+}
+
 const webhookTargets = new Map<string, ZaloWebhookTarget[]>();
 const webhookRateLimiter = createFixedWindowRateLimiter({
   windowMs: WEBHOOK_RATE_LIMIT_DEFAULTS.windowMs,
@@ -108,6 +117,14 @@ function recordWebhookStatus(
     message: (count) =>
       `[zalo] webhook anomaly path=${path} status=${statusCode} count=${String(count)}`,
   });
+}
+
+export async function processZaloReplayGuardedUpdate(params: {
+  update: ZaloUpdate;
+  target: ZaloWebhookTarget;
+  processUpdate: ZaloWebhookProcessUpdate;
+}): Promise<void> {
+  await params.processUpdate({ update: params.update, target: params.target });
 }
 
 function headerValue(value: string | string[] | undefined): string | undefined {

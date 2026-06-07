@@ -8,6 +8,10 @@ import {
 
 const ZALO_ALLOW_FROM_PREFIX_RE = /^(zalo|zl):/i;
 
+export function normalizeZaloAllowEntry(value: string | number): string {
+  return String(value).trim().replace(ZALO_ALLOW_FROM_PREFIX_RE, "").trim();
+}
+
 export function isZaloSenderAllowed(senderId: string, allowFrom: string[]): boolean {
   return isNormalizedSenderAllowed({
     senderId,
