@@ -1,3 +1,4 @@
+import { formatErrorMessage as sharedFormatErrorMessage } from "coreblow/plugin-sdk/error-runtime";
 import { normalizeShip } from "../targets.js";
 
 // Cite types for message references
@@ -142,6 +143,26 @@ export function isDmAllowed(senderShip: string, allowlist: string[] | undefined)
   return allowlist.map((ship) => normalizeShip(ship)).some((ship) => ship === normalizedSender);
 }
 
+export async function isDmAllowedWithIngress(
+  senderShip: string,
+  allowlist: string[] | undefined,
+): Promise<boolean> {
+  return isDmAllowed(senderShip, allowlist);
+}
+
+export async function resolveTlonCommandAuthorizationWithIngress(params: {
+  senderShip: string;
+  ownerShip: string | null | undefined;
+  useAccessGroups: boolean;
+}): Promise<{ senderAccess: { allowed: boolean }; commandAccess: { allowed: boolean } }> {
+  const normalizedOwner = params.ownerShip ? normalizeShip(params.ownerShip) : null;
+  const allowed = Boolean(normalizedOwner && normalizeShip(params.senderShip) === normalizedOwner);
+  return {
+    senderAccess: { allowed },
+    commandAccess: { allowed },
+  };
+}
+
 /**
  * Check if a group invite from a ship should be auto-accepted.
  *
@@ -178,6 +199,24 @@ export async function resolveAuthorizedMessageText(params: {
   const citedContent = await resolveAllCites(content);
   return citedContent + rawText;
 }
+
+function asNullableObjectRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function readStringField(
+  record: Record<string, unknown> | null | undefined,
+  field: string,
+): string | undefined {
+  const value = record?.[field];
+  return typeof value === "string" ? value : undefined;
+}
+
+export const asRecord = asNullableObjectRecord;
+export const formatErrorMessage = sharedFormatErrorMessage;
+export const readString = readStringField;
 
 // Helper to recursively extract text from inline content
 function renderInlineItem(

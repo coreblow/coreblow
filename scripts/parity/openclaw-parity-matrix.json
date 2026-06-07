@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7615,
+    "cb_source_files": 7620,
     "oc_source_files": 8443,
-    "source_parity_both": 5817,
+    "source_parity_both": 5822,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2626,
-    "test_files_cb": 4712,
+    "source_missing_from_cb": 2621,
+    "test_files_cb": 4718,
     "test_files_oc": 5246,
-    "tests_both_covered": 3308,
-    "tests_gap_oc_has_cb_missing": 1693,
+    "tests_both_covered": 3314,
+    "tests_gap_oc_has_cb_missing": 1687,
     "tests_cb_exclusive": 1347,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -2755,56 +2755,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/github-copilot",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/tlon",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/tlon plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 40,
-        "coreBlowOnlySourcePaths": 12,
-        "openClawOnlySourcePaths": 5,
-        "sharedTestPaths": 9,
-        "coreBlowOnlyTestPaths": 6,
-        "openClawTestGaps": 6
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/tlon/src/doctor-contract.ts",
-          "extensions/tlon/src/doctor.ts",
-          "extensions/tlon/src/logger-runtime.ts",
-          "extensions/tlon/channel-plugin-api.ts",
-          "extensions/tlon/doctor-contract-api.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/tlon/src/channel.message-adapter.test.ts",
-          "extensions/tlon/src/doctor.test.ts",
-          "extensions/tlon/src/monitor/approval.test.ts",
-          "extensions/tlon/src/monitor/media.test.ts",
-          "extensions/tlon/src/tlon-api.test.ts",
-          "extensions/tlon/src/urbit/channel-ops.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "extensions/tlon/src/adapter.ts",
-          "extensions/tlon/src/config.ts",
-          "extensions/tlon/src/extension.ts",
-          "extensions/tlon/src/formatter.ts",
-          "extensions/tlon/src/handler.ts",
-          "extensions/tlon/src/index.ts",
-          "extensions/tlon/src/media.ts",
-          "extensions/tlon/src/rate-limiter.ts",
-          "extensions/tlon/src/resolve-target.ts",
-          "extensions/tlon/src/subagent-hooks.ts",
-          "extensions/tlon/src/webhook.ts",
-          "extensions/tlon/extension.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/tlon",
         "pnpm check"
       ]
     },
@@ -5828,6 +5778,43 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/thread-ownership",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/tlon",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/tlon plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 45,
+        "coreBlowOnlySourcePaths": 12,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 15,
+        "coreBlowOnlyTestPaths": 6,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "extensions/tlon/src/adapter.ts",
+          "extensions/tlon/src/config.ts",
+          "extensions/tlon/src/extension.ts",
+          "extensions/tlon/src/formatter.ts",
+          "extensions/tlon/src/handler.ts",
+          "extensions/tlon/src/index.ts",
+          "extensions/tlon/src/media.ts",
+          "extensions/tlon/src/rate-limiter.ts",
+          "extensions/tlon/src/resolve-target.ts",
+          "extensions/tlon/src/subagent-hooks.ts",
+          "extensions/tlon/src/webhook.ts",
+          "extensions/tlon/extension.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/tlon",
         "pnpm check"
       ]
     },
