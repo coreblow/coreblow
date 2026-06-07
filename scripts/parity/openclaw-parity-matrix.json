@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7605,
+    "cb_source_files": 7611,
     "oc_source_files": 8443,
-    "source_parity_both": 5807,
+    "source_parity_both": 5813,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2636,
-    "test_files_cb": 4707,
+    "source_missing_from_cb": 2630,
+    "test_files_cb": 4708,
     "test_files_oc": 5246,
-    "tests_both_covered": 3303,
-    "tests_gap_oc_has_cb_missing": 1698,
+    "tests_both_covered": 3304,
+    "tests_gap_oc_has_cb_missing": 1697,
     "tests_cb_exclusive": 1347,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -2683,49 +2683,6 @@
       ]
     },
     {
-      "domain": "src/wizard",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "src/wizard",
-      "counts": {
-        "sharedSourcePaths": 9,
-        "coreBlowOnlySourcePaths": 1,
-        "openClawOnlySourcePaths": 10,
-        "sharedTestPaths": 7,
-        "coreBlowOnlyTestPaths": 1,
-        "openClawTestGaps": 5
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/wizard/i18n/index.ts",
-          "src/wizard/i18n/locales/en.ts",
-          "src/wizard/i18n/locales/zh-CN.ts",
-          "src/wizard/i18n/locales/zh-TW.ts",
-          "src/wizard/i18n/types.ts",
-          "src/wizard/setup.migration-import.ts",
-          "src/wizard/setup.official-plugins.ts",
-          "src/wizard/setup.plugin-config.ts",
-          "src/wizard/setup.post-install-migration.ts",
-          "src/wizard/setup.security-note.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/wizard/i18n/index.test.ts",
-          "src/wizard/setup.migration-import.test.ts",
-          "src/wizard/setup.official-plugins.test.ts",
-          "src/wizard/setup.plugin-config.test.ts",
-          "src/wizard/setup.post-install-migration.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/wizard/setup-wizard.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/wizard",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/elevenlabs",
       "status": "partial",
       "priority": "P3",
@@ -2895,6 +2852,42 @@
       "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
       "gates": [
         "pnpm test -- src/scripts && pnpm --dir /Users/febrinanda/coreblow-split/docs check",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/wizard",
+      "status": "partial",
+      "priority": "P3",
+      "implementationSurface": "src/wizard",
+      "counts": {
+        "sharedSourcePaths": 15,
+        "coreBlowOnlySourcePaths": 1,
+        "openClawOnlySourcePaths": 4,
+        "sharedTestPaths": 8,
+        "coreBlowOnlyTestPaths": 1,
+        "openClawTestGaps": 4
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [
+          "src/wizard/setup.migration-import.ts",
+          "src/wizard/setup.official-plugins.ts",
+          "src/wizard/setup.plugin-config.ts",
+          "src/wizard/setup.post-install-migration.ts"
+        ],
+        "openClawTestGapPaths": [
+          "src/wizard/setup.migration-import.test.ts",
+          "src/wizard/setup.official-plugins.test.ts",
+          "src/wizard/setup.plugin-config.test.ts",
+          "src/wizard/setup.post-install-migration.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "src/wizard/setup-wizard.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/wizard",
         "pnpm check"
       ]
     },
