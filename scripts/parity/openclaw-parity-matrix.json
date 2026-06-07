@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7658,
+    "cb_source_files": 7673,
     "oc_source_files": 8443,
-    "source_parity_both": 5860,
+    "source_parity_both": 5875,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2583,
-    "test_files_cb": 4738,
+    "source_missing_from_cb": 2568,
+    "test_files_cb": 4741,
     "test_files_oc": 5246,
-    "tests_both_covered": 3334,
-    "tests_gap_oc_has_cb_missing": 1667,
+    "tests_both_covered": 3337,
+    "tests_gap_oc_has_cb_missing": 1664,
     "tests_cb_exclusive": 1347,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -2474,60 +2474,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/flows",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/zalouser",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/zalouser plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 32,
-        "coreBlowOnlySourcePaths": 12,
-        "openClawOnlySourcePaths": 15,
-        "sharedTestPaths": 17,
-        "coreBlowOnlyTestPaths": 5,
-        "openClawTestGaps": 3
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/zalouser/src/accounts.runtime.ts",
-          "extensions/zalouser/src/channel-api.ts",
-          "extensions/zalouser/src/channel.adapters.ts",
-          "extensions/zalouser/src/channel.runtime.ts",
-          "extensions/zalouser/src/directory.ts",
-          "extensions/zalouser/src/doctor-contract.ts",
-          "extensions/zalouser/src/doctor.ts",
-          "extensions/zalouser/src/security-audit.ts",
-          "extensions/zalouser/src/send-receipt.ts",
-          "extensions/zalouser/src/setup-test-helpers.ts",
-          "extensions/zalouser/channel-plugin-api.ts",
-          "extensions/zalouser/contract-api.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/zalouser/src/doctor.test.ts",
-          "extensions/zalouser/src/security-audit.test.ts",
-          "extensions/zalouser/src/zalo-js.credentials.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "extensions/zalouser/src/adapter.ts",
-          "extensions/zalouser/src/config.ts",
-          "extensions/zalouser/src/extension.ts",
-          "extensions/zalouser/src/formatter.ts",
-          "extensions/zalouser/src/handler.ts",
-          "extensions/zalouser/src/index.ts",
-          "extensions/zalouser/src/media.ts",
-          "extensions/zalouser/src/rate-limiter.ts",
-          "extensions/zalouser/src/resolve-target.ts",
-          "extensions/zalouser/src/subagent-hooks.ts",
-          "extensions/zalouser/src/webhook.ts",
-          "extensions/zalouser/extension.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/zalouser",
         "pnpm check"
       ]
     },
@@ -6101,6 +6047,43 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/zai",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/zalouser",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/zalouser plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 47,
+        "coreBlowOnlySourcePaths": 12,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 20,
+        "coreBlowOnlyTestPaths": 5,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "extensions/zalouser/src/adapter.ts",
+          "extensions/zalouser/src/config.ts",
+          "extensions/zalouser/src/extension.ts",
+          "extensions/zalouser/src/formatter.ts",
+          "extensions/zalouser/src/handler.ts",
+          "extensions/zalouser/src/index.ts",
+          "extensions/zalouser/src/media.ts",
+          "extensions/zalouser/src/rate-limiter.ts",
+          "extensions/zalouser/src/resolve-target.ts",
+          "extensions/zalouser/src/subagent-hooks.ts",
+          "extensions/zalouser/src/webhook.ts",
+          "extensions/zalouser/extension.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/zalouser",
         "pnpm check"
       ]
     },
