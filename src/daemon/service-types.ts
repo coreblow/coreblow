@@ -2,6 +2,8 @@ import type { GatewayServiceRuntime } from "./service-runtime.js";
 
 export type GatewayServiceEnv = Record<string, string | undefined>;
 
+export type GatewayServiceEnvironmentValueSource = "inline" | "file" | "inline-and-file";
+
 export type GatewayServiceInstallArgs = {
   env: GatewayServiceEnv;
   stdout: NodeJS.WritableStream;
@@ -33,8 +35,14 @@ export type GatewayServiceCommandConfig = {
   programArguments: string[];
   workingDirectory?: string;
   environment?: Record<string, string>;
-  environmentValueSources?: Record<string, "inline" | "file">;
+  environmentValueSources?: Record<string, GatewayServiceEnvironmentValueSource>;
   sourcePath?: string;
+};
+
+export type GatewayServiceStartRepairIssue = {
+  code: string;
+  message: string;
+  detail?: string;
 };
 
 export type GatewayServiceState = {

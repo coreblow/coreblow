@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7597,
+    "cb_source_files": 7605,
     "oc_source_files": 8443,
-    "source_parity_both": 5799,
+    "source_parity_both": 5807,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2644,
-    "test_files_cb": 4704,
+    "source_missing_from_cb": 2636,
+    "test_files_cb": 4707,
     "test_files_oc": 5246,
-    "tests_both_covered": 3300,
-    "tests_gap_oc_has_cb_missing": 1701,
+    "tests_both_covered": 3303,
+    "tests_gap_oc_has_cb_missing": 1698,
     "tests_cb_exclusive": 1347,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -2848,52 +2848,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/tlon",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "src/daemon",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "src/daemon",
-      "counts": {
-        "sharedSourcePaths": 35,
-        "coreBlowOnlySourcePaths": 8,
-        "openClawOnlySourcePaths": 8,
-        "sharedTestPaths": 22,
-        "coreBlowOnlyTestPaths": 1,
-        "openClawTestGaps": 3
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/daemon/future-config-guard.ts",
-          "src/daemon/gateway-entrypoint.ts",
-          "src/daemon/restart-logs.ts",
-          "src/daemon/service-env-plan.ts",
-          "src/daemon/service-env-render-policy.ts",
-          "src/daemon/service-layout.ts",
-          "src/daemon/service-managed-env.ts",
-          "src/daemon/service-path-policy.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/daemon/diagnostics.test.ts",
-          "src/daemon/restart-logs.test.ts",
-          "src/daemon/runtime-format.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/daemon/adapters/launchd-plist.ts",
-          "src/daemon/adapters/launchd-restart-handoff.ts",
-          "src/daemon/adapters/launchd.ts",
-          "src/daemon/adapters/schtasks.ts",
-          "src/daemon/adapters/systemd-hints.ts",
-          "src/daemon/adapters/systemd-unit.ts",
-          "src/daemon/adapters/systemd.ts",
-          "src/daemon/index.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/daemon",
         "pnpm check"
       ]
     },
@@ -6790,6 +6744,39 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/crestodian",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/daemon",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/daemon",
+      "counts": {
+        "sharedSourcePaths": 43,
+        "coreBlowOnlySourcePaths": 8,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 25,
+        "coreBlowOnlyTestPaths": 1,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "src/daemon/adapters/launchd-plist.ts",
+          "src/daemon/adapters/launchd-restart-handoff.ts",
+          "src/daemon/adapters/launchd.ts",
+          "src/daemon/adapters/schtasks.ts",
+          "src/daemon/adapters/systemd-hints.ts",
+          "src/daemon/adapters/systemd-unit.ts",
+          "src/daemon/adapters/systemd.ts",
+          "src/daemon/index.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/daemon",
         "pnpm check"
       ]
     },

@@ -1,5 +1,5 @@
 import fs from "node:fs/promises";
-import { resolveGatewayLogPaths } from "./launchd.js";
+import { resolveGatewaySupervisorLogPaths } from "./restart-logs.js";
 
 const GATEWAY_LOG_ERROR_PATTERNS = [
   /refusing to bind gateway/i,
@@ -24,8 +24,11 @@ async function readLastLogLine(filePath: string): Promise<string | null> {
   }
 }
 
-export async function readLastGatewayErrorLine(env: NodeJS.ProcessEnv): Promise<string | null> {
-  const { stdoutPath, stderrPath } = resolveGatewayLogPaths(env);
+export async function readLastGatewayErrorLine(
+  env: NodeJS.ProcessEnv,
+  options?: { platform?: NodeJS.Platform },
+): Promise<string | null> {
+  const { stdoutPath, stderrPath } = resolveGatewaySupervisorLogPaths(env, options);
   const stderrRaw = await fs.readFile(stderrPath, "utf8").catch(() => "");
   const stdoutRaw = await fs.readFile(stdoutPath, "utf8").catch(() => "");
   const lines = [...stderrRaw.split(/\r?\n/), ...stdoutRaw.split(/\r?\n/)].map((line) =>
