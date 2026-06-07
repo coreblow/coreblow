@@ -22,6 +22,7 @@ export {
   createOpenAIAttributionHeadersWrapper,
   createOpenAIDefaultTransportWrapper,
 } from "../agents/pi-embedded-runner/openai-stream-wrappers.js";
+export { applyAnthropicEphemeralCacheControlMarkers } from "../agents/anthropic-payload-policy.js";
 export { streamWithPayloadPatch } from "../agents/pi-embedded-runner/stream-payload-utils.js";
 export {
   createToolStreamWrapper,

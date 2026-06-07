@@ -1,50 +1,17 @@
 import { definePluginEntry, type ProviderAuthContext } from "coreblow/plugin-sdk/plugin-entry";
 import {
-  coerceSecretRef,
   ensureAuthProfileStore,
-  listProfilesForProvider,
 } from "coreblow/plugin-sdk/provider-auth";
 import { githubCopilotLoginCommand } from "coreblow/plugin-sdk/provider-auth-login";
+import { resolveFirstGithubToken } from "./auth.js";
+import { githubCopilotMemoryEmbeddingProviderAdapter } from "./embeddings.js";
 import { PROVIDER_ID, resolveCopilotForwardCompatModel } from "./models.js";
+import { wrapCopilotProviderStream } from "./stream.js";
 import { DEFAULT_COPILOT_API_BASE_URL, resolveCopilotApiToken } from "./token.js";
 import { fetchCopilotUsage } from "./usage.js";
 
 const COPILOT_ENV_VARS = ["COPILOT_GITHUB_TOKEN", "GH_TOKEN", "GITHUB_TOKEN"];
 const COPILOT_XHIGH_MODEL_IDS = ["gpt-5.2", "gpt-5.2-codex"] as const;
-
-function resolveFirstGithubToken(params: { agentDir?: string; env: NodeJS.ProcessEnv }): {
-  githubToken: string;
-  hasProfile: boolean;
-} {
-  const authStore = ensureAuthProfileStore(params.agentDir, {
-    allowKeychainPrompt: false,
-  });
-  const hasProfile = listProfilesForProvider(authStore, PROVIDER_ID).length > 0;
-  const envToken =
-    params.env.COPILOT_GITHUB_TOKEN ?? params.env.GH_TOKEN ?? params.env.GITHUB_TOKEN ?? "";
-  const githubToken = envToken.trim();
-  if (githubToken || !hasProfile) {
-    return { githubToken, hasProfile };
-  }
-
-  const profileId = listProfilesForProvider(authStore, PROVIDER_ID)[0];
-  const profile = profileId ? authStore.profiles[profileId] : undefined;
-  if (profile?.type !== "token") {
-    return { githubToken: "", hasProfile };
-  }
-  const directToken = profile.token?.trim() ?? "";
-  if (directToken) {
-    return { githubToken: directToken, hasProfile };
-  }
-  const tokenRef = coerceSecretRef(profile.tokenRef);
-  if (tokenRef?.source === "env" && tokenRef.id.trim()) {
-    return {
-      githubToken: (params.env[tokenRef.id] ?? process.env[tokenRef.id] ?? "").trim(),
-      hasProfile,
-    };
-  }
-  return { githubToken: "", hasProfile };
-}
 
 async function runGitHubCopilotAuth(ctx: ProviderAuthContext) {
   await ctx.prompter.note(
@@ -91,6 +58,7 @@ export default definePluginEntry({
   name: "GitHub Copilot Provider",
   description: "Bundled GitHub Copilot provider plugin",
   register(api) {
+    api.registerMemoryEmbeddingProvider(githubCopilotMemoryEmbeddingProviderAdapter);
     api.registerProvider({
       id: PROVIDER_ID,
       label: "GitHub Copilot",
@@ -116,8 +84,9 @@ export default definePluginEntry({
       catalog: {
         order: "late",
         run: async (ctx) => {
-          const { githubToken, hasProfile } = resolveFirstGithubToken({
+          const { githubToken, hasProfile } = await resolveFirstGithubToken({
             agentDir: ctx.agentDir,
+            config: ctx.config,
             env: ctx.env,
           });
           if (!hasProfile && !githubToken) {
@@ -163,6 +132,7 @@ export default definePluginEntry({
       resolveUsageAuth: async (ctx) => await ctx.resolveOAuthToken(),
       fetchUsageSnapshot: async (ctx) =>
         await fetchCopilotUsage(ctx.token, ctx.timeoutMs, ctx.fetchFn),
+      wrapStreamFn: wrapCopilotProviderStream,
     });
   },
 });

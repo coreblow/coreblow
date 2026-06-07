@@ -3,6 +3,11 @@ import type {
   ProviderRuntimeModel,
 } from "coreblow/plugin-sdk/core";
 import { normalizeModelCompat } from "coreblow/plugin-sdk/provider-model-shared";
+import {
+  resolveCopilotModelCompat,
+  resolveCopilotTransportApi,
+  resolveStaticCopilotModelOverride,
+} from "./model-metadata.js";
 
 export const PROVIDER_ID = "github-copilot";
 const CODEX_GPT_54_MODEL_ID = "gpt-5.4";
@@ -51,12 +56,14 @@ export function resolveCopilotForwardCompatModel(
   // by simply adding them to agents.defaults.models in coreblow.json — no
   // code change required.
   const lowerModelId = trimmedModelId.toLowerCase();
-  const reasoning = /^o[13](\b|$)/.test(lowerModelId);
+  const staticOverride = resolveStaticCopilotModelOverride(trimmedModelId);
+  const reasoning = staticOverride?.reasoning ?? /^o[13](\b|$)/.test(lowerModelId);
   return normalizeModelCompat({
+    ...staticOverride,
     id: trimmedModelId,
-    name: trimmedModelId,
+    name: staticOverride?.name ?? trimmedModelId,
     provider: PROVIDER_ID,
-    api: "openai-responses",
+    api: resolveCopilotTransportApi(trimmedModelId),
     reasoning,
     // Optimistic: most Copilot models support images, and the API rejects
     // image payloads for text-only models rather than failing silently.
@@ -64,5 +71,6 @@ export function resolveCopilotForwardCompatModel(
     cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
     contextWindow: DEFAULT_CONTEXT_WINDOW,
     maxTokens: DEFAULT_MAX_TOKENS,
+    compat: resolveCopilotModelCompat(trimmedModelId),
   } as ProviderRuntimeModel);
 }

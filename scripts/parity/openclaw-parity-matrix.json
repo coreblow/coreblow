@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7629,
+    "cb_source_files": 7636,
     "oc_source_files": 8443,
-    "source_parity_both": 5831,
+    "source_parity_both": 5838,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2612,
-    "test_files_cb": 4722,
+    "source_missing_from_cb": 2605,
+    "test_files_cb": 4727,
     "test_files_oc": 5246,
-    "tests_both_covered": 3318,
-    "tests_gap_oc_has_cb_missing": 1683,
+    "tests_both_covered": 3323,
+    "tests_gap_oc_has_cb_missing": 1678,
     "tests_cb_exclusive": 1347,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -2683,44 +2683,6 @@
       ]
     },
     {
-      "domain": "extensions/github-copilot",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/github-copilot plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 7,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 7,
-        "sharedTestPaths": 1,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 5
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/github-copilot/auth.ts",
-          "extensions/github-copilot/connection-bound-ids.ts",
-          "extensions/github-copilot/embeddings.ts",
-          "extensions/github-copilot/model-metadata.ts",
-          "extensions/github-copilot/register.runtime.ts",
-          "extensions/github-copilot/replay-policy.ts",
-          "extensions/github-copilot/stream.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/github-copilot/auth.test.ts",
-          "extensions/github-copilot/connection-bound-ids.test.ts",
-          "extensions/github-copilot/embeddings.test.ts",
-          "extensions/github-copilot/index.test.ts",
-          "extensions/github-copilot/stream.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/github-copilot",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/scripts",
       "status": "intentionally_different",
       "priority": "P3",
@@ -4069,6 +4031,30 @@
       "notes": "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture.",
       "gates": [
         "pnpm test -- extensions/gemini-auth",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/github-copilot",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/github-copilot plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 14,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 6,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/github-copilot",
         "pnpm check"
       ]
     },
