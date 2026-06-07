@@ -87,6 +87,20 @@
     "imageGenerationProviders": [
       "minimax",
       "minimax-portal"
+    ],
+    "musicGenerationProviders": [
+      "minimax",
+      "minimax-portal"
+    ],
+    "speechProviders": [
+      "minimax"
+    ],
+    "videoGenerationProviders": [
+      "minimax",
+      "minimax-portal"
+    ],
+    "webSearchProviders": [
+      "minimax"
     ]
   },
   "configSchema": {

@@ -13,17 +13,10 @@ import { buildOauthProviderAuthResult } from "coreblow/plugin-sdk/provider-auth"
 import { createProviderApiKeyAuthMethod } from "coreblow/plugin-sdk/provider-auth-api-key";
 import { fetchMinimaxUsage } from "coreblow/plugin-sdk/provider-usage";
 import { isMiniMaxModernModelId, MINIMAX_DEFAULT_MODEL_ID } from "./api.js";
-import {
-  buildMinimaxImageGenerationProvider,
-  buildMinimaxPortalImageGenerationProvider,
-} from "./image-generation-provider.js";
-import {
-  minimaxMediaUnderstandingProvider,
-  minimaxPortalMediaUnderstandingProvider,
-} from "./media-understanding-provider.js";
 import type { MiniMaxRegion } from "./oauth.js";
 import { applyMinimaxApiConfig, applyMinimaxApiConfigCn } from "./onboard.js";
 import { buildMinimaxPortalProvider, buildMinimaxProvider } from "./provider-catalog.js";
+import { registerMinimaxCapabilityProviders } from "./provider-registration.js";
 
 const API_PROVIDER_ID = "minimax";
 const PORTAL_PROVIDER_ID = "minimax-portal";
@@ -232,9 +225,6 @@ export default definePluginEntry({
         await fetchMinimaxUsage(ctx.token, ctx.timeoutMs, ctx.fetchFn),
     });
 
-    api.registerMediaUnderstandingProvider(minimaxMediaUnderstandingProvider);
-    api.registerMediaUnderstandingProvider(minimaxPortalMediaUnderstandingProvider);
-
     api.registerProvider({
       id: PORTAL_PROVIDER_ID,
       label: PROVIDER_LABEL,
@@ -277,7 +267,6 @@ export default definePluginEntry({
       ],
       isModernModelRef: ({ modelId }) => isMiniMaxModernModelId(modelId),
     });
-    api.registerImageGenerationProvider(buildMinimaxImageGenerationProvider());
-    api.registerImageGenerationProvider(buildMinimaxPortalImageGenerationProvider());
+    registerMinimaxCapabilityProviders(api);
   },
 });
