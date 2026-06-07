@@ -50,6 +50,12 @@ function resolveSearchProviderCredentialLabel(
 export const SEARCH_PROVIDER_OPTIONS: readonly PluginWebSearchProviderEntry[] =
   resolveSearchProviderSetupContributions().map((contribution) => contribution.provider);
 
+export function listSearchProviderOptions(
+  config?: CoreBlowConfig,
+): readonly PluginWebSearchProviderEntry[] {
+  return resolveSearchProviderOptions(config);
+}
+
 function showsSearchProviderInSetup(
   entry: Pick<PluginWebSearchProviderEntry, "onboardingScopes">,
 ): boolean {

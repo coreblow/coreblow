@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7673,
+    "cb_source_files": 7682,
     "oc_source_files": 8443,
-    "source_parity_both": 5875,
+    "source_parity_both": 5884,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2568,
-    "test_files_cb": 4741,
+    "source_missing_from_cb": 2559,
+    "test_files_cb": 4751,
     "test_files_oc": 5246,
-    "tests_both_covered": 3337,
-    "tests_gap_oc_has_cb_missing": 1664,
+    "tests_both_covered": 3347,
+    "tests_gap_oc_has_cb_missing": 1654,
     "tests_cb_exclusive": 1347,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -2424,56 +2424,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/media-understanding",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "src/flows",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "src/flows",
-      "counts": {
-        "sharedSourcePaths": 9,
-        "coreBlowOnlySourcePaths": 4,
-        "openClawOnlySourcePaths": 9,
-        "sharedTestPaths": 1,
-        "coreBlowOnlyTestPaths": 2,
-        "openClawTestGaps": 10
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/flows/channel-setup.test-helpers.ts",
-          "src/flows/doctor-core-checks.ts",
-          "src/flows/doctor-error-message.ts",
-          "src/flows/doctor-lint-flow.ts",
-          "src/flows/doctor-repair-flow.ts",
-          "src/flows/doctor-startup-channel-maintenance.ts",
-          "src/flows/health-check-registry.ts",
-          "src/flows/health-checks.ts",
-          "src/flows/provider-flow.runtime.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/flows/channel-setup.prompts.test.ts",
-          "src/flows/channel-setup.status.test.ts",
-          "src/flows/channel-setup.test.ts",
-          "src/flows/doctor-core-browser-residue-check.test.ts",
-          "src/flows/doctor-core-checks.test.ts",
-          "src/flows/doctor-health-contributions.test.ts",
-          "src/flows/doctor-lint-flow.test.ts",
-          "src/flows/doctor-repair-flow.test.ts",
-          "src/flows/doctor-startup-channel-maintenance.test.ts",
-          "src/flows/search-setup.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/flows/channel-setup-flow.ts",
-          "src/flows/contributions.ts",
-          "src/flows/flow-engine.ts",
-          "src/flows/flow-registry.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/flows",
         "pnpm check"
       ]
     },
@@ -7035,6 +6985,35 @@
       "notes": "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture.",
       "gates": [
         "pnpm test -- src/extensions",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/flows",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/flows",
+      "counts": {
+        "sharedSourcePaths": 18,
+        "coreBlowOnlySourcePaths": 4,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 11,
+        "coreBlowOnlyTestPaths": 2,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "src/flows/channel-setup-flow.ts",
+          "src/flows/contributions.ts",
+          "src/flows/flow-engine.ts",
+          "src/flows/flow-registry.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/flows",
         "pnpm check"
       ]
     },

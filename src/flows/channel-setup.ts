@@ -18,6 +18,7 @@ import type {
   ChannelSetupConfiguredResult,
   ChannelSetupResult,
   ChannelOnboardingPostWriteHook,
+  ChannelSetupWizardAdapter,
   SetupChannelsOptions,
 } from "../commands/channel-setup/types.js";
 import type { ChannelChoice } from "../commands/onboard-types.js";
@@ -71,6 +72,28 @@ export async function runCollectedChannelOnboardingPostWriteHooks(params: {
       );
     }
   }
+}
+
+export function createChannelOnboardingPostWriteHook(params: {
+  accountId?: string;
+  adapter?: Pick<ChannelSetupWizardAdapter, "afterConfigWritten">;
+  channel: ChannelChoice;
+  previousCfg: CoreBlowConfig;
+}): ChannelOnboardingPostWriteHook | undefined {
+  if (!params.accountId || !params.adapter?.afterConfigWritten) {
+    return undefined;
+  }
+  return {
+    channel: params.channel,
+    accountId: params.accountId,
+    run: async ({ cfg, runtime }) =>
+      await params.adapter?.afterConfigWritten?.({
+        previousCfg: params.previousCfg,
+        cfg,
+        accountId: params.accountId!,
+        runtime,
+      }),
+  };
 }
 
 // Channel-specific prompts moved into setup flow adapters.

@@ -18,6 +18,11 @@ import type {
 import type { ChannelChoice } from "../commands/onboard-types.js";
 import { isChannelConfigured } from "../config/channel-configured.js";
 import type { CoreBlowConfig } from "../config/config.js";
+import {
+  findBundledPluginSourceInMap,
+  resolveBundledPluginSources,
+  type BundledPluginSource,
+} from "../plugins/bundled-sources.js";
 import { formatDocsLink } from "../terminal/links.js";
 import type { WizardPrompter } from "../wizard/prompts.js";
 import type { FlowContribution } from "./types.js";
@@ -211,6 +216,46 @@ export function resolveQuickstartDefault(
     }
   }
   return best?.channel;
+}
+
+export function findBundledSourceForCatalogChannel(params: {
+  channel: ChannelChoice;
+  pluginId?: string;
+  npmSpec?: string;
+  bundled?: ReadonlyMap<string, BundledPluginSource>;
+  workspaceDir?: string;
+}): BundledPluginSource | undefined {
+  const bundled =
+    params.bundled ?? resolveBundledPluginSources({ workspaceDir: params.workspaceDir });
+  const lookups = [
+    params.pluginId ? ({ kind: "pluginId", value: params.pluginId } as const) : undefined,
+    { kind: "pluginId", value: params.channel } as const,
+    params.npmSpec ? ({ kind: "npmSpec", value: params.npmSpec } as const) : undefined,
+  ].filter((lookup): lookup is NonNullable<typeof lookup> => lookup !== undefined);
+  for (const lookup of lookups) {
+    const source = findBundledPluginSourceInMap({ bundled, lookup });
+    if (source) {
+      return source;
+    }
+  }
+  return undefined;
+}
+
+export function resolveCatalogChannelSelectionHint(params: {
+  channel: ChannelChoice;
+  entry?: { pluginId?: string; install?: { npmSpec?: string } };
+  bundledSource?: BundledPluginSource;
+  workspaceDir?: string;
+}): string {
+  const source =
+    params.bundledSource ??
+    findBundledSourceForCatalogChannel({
+      channel: params.channel,
+      pluginId: params.entry?.pluginId,
+      npmSpec: params.entry?.install?.npmSpec,
+      workspaceDir: params.workspaceDir,
+    });
+  return source ? "bundled · enable to use" : "plugin · install";
 }
 
 export function resolveChannelSelectionNoteLines(params: {
