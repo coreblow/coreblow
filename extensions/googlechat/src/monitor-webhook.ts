@@ -24,6 +24,22 @@ function extractBearerToken(header: unknown): string {
 const ADD_ON_PREAUTH_MAX_BYTES = 16 * 1024;
 const ADD_ON_PREAUTH_TIMEOUT_MS = 3_000;
 
+export function warnAppPrincipalMisconfiguration(params: {
+  audienceType?: string | null;
+  appPrincipal?: string | null;
+  warn?: (message: string) => void;
+}): void {
+  if (params.audienceType?.trim() !== "app-url") {
+    return;
+  }
+  const appPrincipal = params.appPrincipal?.trim();
+  if (!appPrincipal || appPrincipal.includes("@")) {
+    params.warn?.(
+      "Google Chat appPrincipal should be a numeric app principal for app-url audience.",
+    );
+  }
+}
+
 type ParsedGoogleChatInboundPayload =
   | { ok: true; event: GoogleChatEvent; addOnBearerToken: string }
   | { ok: false };

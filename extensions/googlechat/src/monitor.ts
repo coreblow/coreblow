@@ -43,6 +43,12 @@ const googleChatWebhookRequestHandler = createGoogleChatWebhookRequestHandler({
   },
 });
 
+export const testing = {
+  clearWebhookTargets() {
+    webhookTargets.clear();
+  },
+};
+
 function logVerbose(core: GoogleChatCoreRuntime, runtime: GoogleChatRuntimeEnv, message: string) {
   if (core.logging.shouldLogVerbose()) {
     runtime.log?.(`[googlechat] ${message}`);

@@ -107,6 +107,31 @@ export function createImageMessage(
   };
 }
 
+export function createVideoMessage(params: {
+  originalContentUrl: string;
+  previewImageUrl: string;
+  trackingId?: string;
+}): Message {
+  const trackingId = params.trackingId?.trim();
+  return {
+    type: "video",
+    originalContentUrl: params.originalContentUrl,
+    previewImageUrl: params.previewImageUrl,
+    ...(trackingId ? { trackingId } : {}),
+  } as Message;
+}
+
+export function createAudioMessage(params: {
+  originalContentUrl: string;
+  durationMs?: number;
+}): Message {
+  return {
+    type: "audio",
+    originalContentUrl: params.originalContentUrl,
+    duration: params.durationMs ?? 60_000,
+  } as Message;
+}
+
 export function createLocationMessage(location: {
   title: string;
   address: string;

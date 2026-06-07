@@ -22,6 +22,8 @@ export type ResolvedGoogleChatAccount = {
   credentialsFile?: string;
 };
 
+export type GoogleChatConfigAccessorAccount = ResolvedGoogleChatAccount;
+
 const ENV_SERVICE_ACCOUNT = "GOOGLE_CHAT_SERVICE_ACCOUNT";
 const ENV_SERVICE_ACCOUNT_FILE = "GOOGLE_CHAT_SERVICE_ACCOUNT_FILE";
 const JsonRecordSchema = z.record(z.string(), z.unknown());
@@ -146,6 +148,13 @@ export function resolveGoogleChatAccount(params: {
     credentials: credentials.credentials,
     credentialsFile: credentials.credentialsFile,
   };
+}
+
+export function resolveGoogleChatConfigAccessorAccount(params: {
+  cfg: CoreBlowConfig;
+  accountId?: string | null;
+}): GoogleChatConfigAccessorAccount {
+  return resolveGoogleChatAccount(params);
 }
 
 export function listEnabledGoogleChatAccounts(cfg: CoreBlowConfig): ResolvedGoogleChatAccount[] {

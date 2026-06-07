@@ -86,6 +86,15 @@ export interface LineHandlerContext {
 const LINE_WEBHOOK_REPLAY_WINDOW_MS = 10 * 60 * 1000;
 const LINE_WEBHOOK_REPLAY_MAX_ENTRIES = 4096;
 const LINE_WEBHOOK_REPLAY_PRUNE_INTERVAL_MS = 1000;
+
+export class LineRetryableWebhookError extends Error {
+  readonly retryable = true;
+
+  constructor(message: string) {
+    super(message);
+    this.name = "LineRetryableWebhookError";
+  }
+}
 export type LineWebhookReplayCache = {
   seenEvents: Map<string, number>;
   inFlightEvents: Map<string, Promise<void>>;

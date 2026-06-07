@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7682,
+    "cb_source_files": 7717,
     "oc_source_files": 8443,
-    "source_parity_both": 5884,
+    "source_parity_both": 5919,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2559,
-    "test_files_cb": 4751,
+    "source_missing_from_cb": 2524,
+    "test_files_cb": 4766,
     "test_files_oc": 5246,
-    "tests_both_covered": 3347,
-    "tests_gap_oc_has_cb_missing": 1654,
+    "tests_both_covered": 3362,
+    "tests_gap_oc_has_cb_missing": 1639,
     "tests_cb_exclusive": 1347,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -1982,66 +1982,6 @@
       ]
     },
     {
-      "domain": "extensions/googlechat",
-      "status": "partial",
-      "priority": "P2",
-      "implementationSurface": "extensions/googlechat plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 24,
-        "coreBlowOnlySourcePaths": 12,
-        "openClawOnlySourcePaths": 18,
-        "sharedTestPaths": 7,
-        "coreBlowOnlyTestPaths": 5,
-        "openClawTestGaps": 9
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/googlechat/src/approval-auth.ts",
-          "extensions/googlechat/src/channel.adapters.ts",
-          "extensions/googlechat/src/channel.deps.runtime.ts",
-          "extensions/googlechat/src/channel.setup.ts",
-          "extensions/googlechat/src/doctor-contract.ts",
-          "extensions/googlechat/src/doctor.ts",
-          "extensions/googlechat/src/gateway.ts",
-          "extensions/googlechat/src/google-auth.runtime.ts",
-          "extensions/googlechat/src/monitor-durable.ts",
-          "extensions/googlechat/src/monitor-reply-delivery.ts",
-          "extensions/googlechat/src/monitor-routing.ts",
-          "extensions/googlechat/src/secret-contract.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/googlechat/src/approval-auth.test.ts",
-          "extensions/googlechat/src/channel-config.test.ts",
-          "extensions/googlechat/src/config-schema.test.ts",
-          "extensions/googlechat/src/doctor-contract.test.ts",
-          "extensions/googlechat/src/google-auth.runtime.test.ts",
-          "extensions/googlechat/src/monitor-durable.test.ts",
-          "extensions/googlechat/src/monitor.reply-delivery.test.ts",
-          "extensions/googlechat/src/monitor.test.ts",
-          "extensions/googlechat/src/secret-contract.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "extensions/googlechat/src/adapter.ts",
-          "extensions/googlechat/src/config.ts",
-          "extensions/googlechat/src/extension.ts",
-          "extensions/googlechat/src/formatter.ts",
-          "extensions/googlechat/src/handler.ts",
-          "extensions/googlechat/src/index.ts",
-          "extensions/googlechat/src/media.ts",
-          "extensions/googlechat/src/rate-limiter.ts",
-          "extensions/googlechat/src/resolve-target.ts",
-          "extensions/googlechat/src/subagent-hooks.ts",
-          "extensions/googlechat/src/webhook.ts",
-          "extensions/googlechat/extension.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/googlechat",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/nextcloud-talk",
       "status": "partial",
       "priority": "P2",
@@ -2098,62 +2038,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/nextcloud-talk",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/line",
-      "status": "partial",
-      "priority": "P2",
-      "implementationSurface": "extensions/line plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 46,
-        "coreBlowOnlySourcePaths": 11,
-        "openClawOnlySourcePaths": 17,
-        "sharedTestPaths": 16,
-        "coreBlowOnlyTestPaths": 5,
-        "openClawTestGaps": 6
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/line/src/bindings.ts",
-          "extensions/line/src/channel-api.ts",
-          "extensions/line/src/channel.runtime.ts",
-          "extensions/line/src/gateway.ts",
-          "extensions/line/src/monitor-durable.ts",
-          "extensions/line/src/monitor.runtime.ts",
-          "extensions/line/src/outbound-media.ts",
-          "extensions/line/src/outbound.runtime.ts",
-          "extensions/line/src/outbound.ts",
-          "extensions/line/src/probe.runtime.ts",
-          "extensions/line/src/quick-reply-fallback.ts",
-          "extensions/line/src/reply-payload-transform.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/line/src/channel.status.test.ts",
-          "extensions/line/src/config-schema.test.ts",
-          "extensions/line/src/monitor-durable.test.ts",
-          "extensions/line/src/outbound-media.test.ts",
-          "extensions/line/src/reply-payload-transform.test.ts",
-          "extensions/line/src/signature.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "extensions/line/src/adapter.ts",
-          "extensions/line/src/config.ts",
-          "extensions/line/src/extension.ts",
-          "extensions/line/src/formatter.ts",
-          "extensions/line/src/handler.ts",
-          "extensions/line/src/index.ts",
-          "extensions/line/src/media.ts",
-          "extensions/line/src/rate-limiter.ts",
-          "extensions/line/src/resolve-target.ts",
-          "extensions/line/src/subagent-hooks.ts",
-          "extensions/line/extension.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/line",
         "pnpm check"
       ]
     },
@@ -3981,6 +3865,43 @@
       ]
     },
     {
+      "domain": "extensions/googlechat",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/googlechat plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 42,
+        "coreBlowOnlySourcePaths": 12,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 16,
+        "coreBlowOnlyTestPaths": 5,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "extensions/googlechat/src/adapter.ts",
+          "extensions/googlechat/src/config.ts",
+          "extensions/googlechat/src/extension.ts",
+          "extensions/googlechat/src/formatter.ts",
+          "extensions/googlechat/src/handler.ts",
+          "extensions/googlechat/src/index.ts",
+          "extensions/googlechat/src/media.ts",
+          "extensions/googlechat/src/rate-limiter.ts",
+          "extensions/googlechat/src/resolve-target.ts",
+          "extensions/googlechat/src/subagent-hooks.ts",
+          "extensions/googlechat/src/webhook.ts",
+          "extensions/googlechat/extension.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/googlechat",
+        "pnpm check"
+      ]
+    },
+    {
       "domain": "extensions/gradium",
       "status": "done",
       "priority": "P3",
@@ -4184,6 +4105,42 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/kimi-coding",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/line",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/line plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 63,
+        "coreBlowOnlySourcePaths": 11,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 22,
+        "coreBlowOnlyTestPaths": 5,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "extensions/line/src/adapter.ts",
+          "extensions/line/src/config.ts",
+          "extensions/line/src/extension.ts",
+          "extensions/line/src/formatter.ts",
+          "extensions/line/src/handler.ts",
+          "extensions/line/src/index.ts",
+          "extensions/line/src/media.ts",
+          "extensions/line/src/rate-limiter.ts",
+          "extensions/line/src/resolve-target.ts",
+          "extensions/line/src/subagent-hooks.ts",
+          "extensions/line/extension.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/line",
         "pnpm check"
       ]
     },
