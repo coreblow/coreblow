@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7636,
+    "cb_source_files": 7646,
     "oc_source_files": 8443,
-    "source_parity_both": 5838,
+    "source_parity_both": 5848,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2605,
-    "test_files_cb": 4727,
+    "source_missing_from_cb": 2595,
+    "test_files_cb": 4732,
     "test_files_oc": 5246,
-    "tests_both_covered": 3323,
-    "tests_gap_oc_has_cb_missing": 1678,
+    "tests_both_covered": 3328,
+    "tests_gap_oc_has_cb_missing": 1673,
     "tests_cb_exclusive": 1347,
     "export_files_with_gaps": 73,
     "test_scenario_files_with_gaps": 37,
@@ -2642,47 +2642,6 @@
       ]
     },
     {
-      "domain": "extensions/amazon-bedrock",
-      "status": "partial",
-      "priority": "P3",
-      "implementationSurface": "extensions/amazon-bedrock plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 3,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 10,
-        "sharedTestPaths": 2,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 5
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/amazon-bedrock/aws-credential-refresh.ts",
-          "extensions/amazon-bedrock/config-api.ts",
-          "extensions/amazon-bedrock/config-compat.ts",
-          "extensions/amazon-bedrock/discovery-shared.ts",
-          "extensions/amazon-bedrock/embedding-provider.ts",
-          "extensions/amazon-bedrock/memory-embedding-adapter.ts",
-          "extensions/amazon-bedrock/provider-policy-api.ts",
-          "extensions/amazon-bedrock/register.sync.runtime.ts",
-          "extensions/amazon-bedrock/setup-api.ts",
-          "extensions/amazon-bedrock/thinking-policy.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/amazon-bedrock/config-compat.test.ts",
-          "extensions/amazon-bedrock/embedding-provider.test.ts",
-          "extensions/amazon-bedrock/lazy-import.test.ts",
-          "extensions/amazon-bedrock/memory-embedding-adapter.test.ts",
-          "extensions/amazon-bedrock/provider-policy-api.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/amazon-bedrock",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/scripts",
       "status": "intentionally_different",
       "priority": "P3",
@@ -3080,6 +3039,30 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/alibaba",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/amazon-bedrock",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/amazon-bedrock plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 13,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 7,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": []
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/amazon-bedrock",
         "pnpm check"
       ]
     },

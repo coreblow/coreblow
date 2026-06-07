@@ -8,6 +8,7 @@ import {
   resolveBedrockConfigApiKey,
   resolveImplicitBedrockProvider,
 } from "./api.js";
+import { bedrockMemoryEmbeddingProviderAdapter } from "./memory-embedding-adapter.js";
 
 const PROVIDER_ID = "amazon-bedrock";
 const CLAUDE_46_MODEL_RE = /claude-(?:opus|sonnet)-4(?:\.|-)6(?:$|[-.])/i;
@@ -17,6 +18,7 @@ export default definePluginEntry({
   name: "Amazon Bedrock Provider",
   description: "Bundled Amazon Bedrock provider policy plugin",
   register(api) {
+    api.registerMemoryEmbeddingProvider(bedrockMemoryEmbeddingProviderAdapter);
     api.registerProvider({
       id: PROVIDER_ID,
       label: "Amazon Bedrock",
