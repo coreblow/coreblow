@@ -299,24 +299,64 @@ export function buildRuntimeControlSignature(options: AcpSessionRuntimeOptions):
 
 export function buildRuntimeConfigOptionPairs(
   options: AcpSessionRuntimeOptions,
+  advertisedConfigOptionKeys?: readonly string[],
 ): Array<[string, string]> {
   const normalized = normalizeRuntimeOptions(options);
   const pairs = new Map<string, string>();
   if (normalized.model) {
-    pairs.set("model", normalized.model);
+    pairs.set(resolveRuntimeConfigOptionKey("model", advertisedConfigOptionKeys), normalized.model);
   }
   if (normalized.permissionProfile) {
-    pairs.set("approval_policy", normalized.permissionProfile);
+    pairs.set(
+      resolveRuntimeConfigOptionKey("approval_policy", advertisedConfigOptionKeys),
+      normalized.permissionProfile,
+    );
   }
   if (typeof normalized.timeoutSeconds === "number") {
-    pairs.set("timeout", String(normalized.timeoutSeconds));
+    pairs.set(
+      resolveRuntimeConfigOptionKey("timeout", advertisedConfigOptionKeys),
+      String(normalized.timeoutSeconds),
+    );
   }
   for (const [key, value] of Object.entries(normalized.backendExtras ?? {})) {
-    if (!pairs.has(key)) {
-      pairs.set(key, value);
+    const wireKey = resolveRuntimeConfigOptionKey(key, advertisedConfigOptionKeys);
+    if (!pairs.has(wireKey)) {
+      pairs.set(wireKey, value);
     }
   }
   return [...pairs.entries()];
+}
+
+const RUNTIME_CONFIG_OPTION_ALIASES: Record<string, readonly string[]> = {
+  model: ["model"],
+  approval_policy: ["approval_policy", "permission_profile", "permissions", "permission_mode"],
+  timeout: ["timeout", "timeout_seconds"],
+  cwd: ["cwd", "working_directory"],
+};
+
+export function resolveRuntimeConfigOptionKey(
+  key: string,
+  advertisedConfigOptionKeys?: readonly string[],
+): string {
+  const normalizedKey = normalizeText(key) ?? "";
+  if (!normalizedKey || !advertisedConfigOptionKeys?.length) {
+    return normalizedKey;
+  }
+  const advertised = new Map(
+    advertisedConfigOptionKeys
+      .map((item) => normalizeText(item))
+      .filter((item): item is string => Boolean(item))
+      .map((item) => [item.toLowerCase(), item]),
+  );
+  const exact = advertised.get(normalizedKey.toLowerCase());
+  if (exact) {
+    return exact;
+  }
+  const aliases =
+    Object.values(RUNTIME_CONFIG_OPTION_ALIASES).find((items) =>
+      items.some((item) => item.toLowerCase() === normalizedKey.toLowerCase()),
+    ) ?? [normalizedKey];
+  return aliases.map((alias) => advertised.get(alias.toLowerCase())).find(Boolean) ?? normalizedKey;
 }
 
 export function inferRuntimeOptionPatchFromConfigOption(

@@ -29,6 +29,7 @@ import {
   applyManagerRuntimeControls,
   resolveManagerRuntimeCapabilities,
 } from "./manager.runtime-controls.js";
+import { consumeAcpTurnStream } from "./manager.turn-stream.js";
 import {
   type AcpCloseSessionInput,
   type AcpCloseSessionResult,
@@ -671,40 +672,27 @@ export class AcpSessionManager {
             this.activeTurnBySession.set(actorKey, activeTurn);
             activeTurnStarted = true;
 
-            let streamError: AcpRuntimeError | null = null;
             const combinedSignal =
               input.signal && typeof AbortSignal.any === "function"
                 ? AbortSignal.any([input.signal, internalAbortController.signal])
                 : internalAbortController.signal;
             const eventGate = { open: true };
-            const turnPromise = (async () => {
-              for await (const event of runtime.runTurn({
+            const turnPromise = consumeAcpTurnStream({
+              runtime,
+              turn: {
                 handle,
                 text: input.text,
                 attachments: input.attachments,
                 mode: input.mode,
                 requestId: input.requestId,
                 signal: combinedSignal,
-              })) {
-                if (!eventGate.open) {
-                  continue;
-                }
-                if (event.type === "error") {
-                  streamError = new AcpRuntimeError(
-                    normalizeAcpErrorCode(event.code),
-                    event.message?.trim() || "ACP turn failed before completion.",
-                  );
-                } else if (event.type === "text_delta" || event.type === "tool_call") {
-                  sawTurnOutput = true;
-                }
-                if (input.onEvent) {
-                  await input.onEvent(event);
-                }
-              }
-              if (eventGate.open && streamError) {
-                throw streamError;
-              }
-            })();
+              },
+              eventGate,
+              onEvent: input.onEvent,
+              onOutputEvent: () => {
+                sawTurnOutput = true;
+              },
+            });
             const turnTimeoutMs = this.resolveTurnTimeoutMs({
               cfg: input.cfg,
               meta,
@@ -728,9 +716,6 @@ export class AcpSessionManager {
                 });
               },
             });
-            if (streamError) {
-              throw streamError;
-            }
             this.recordTurnCompletion({
               startedAt: turnStartedAt,
             });
