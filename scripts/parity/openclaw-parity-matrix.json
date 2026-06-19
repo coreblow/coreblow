@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7753,
+    "cb_source_files": 7764,
     "oc_source_files": 8443,
-    "source_parity_both": 5955,
+    "source_parity_both": 5966,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2488,
-    "test_files_cb": 4797,
+    "source_missing_from_cb": 2477,
+    "test_files_cb": 4806,
     "test_files_oc": 5246,
-    "tests_both_covered": 3392,
-    "tests_gap_oc_has_cb_missing": 1609,
+    "tests_both_covered": 3401,
+    "tests_gap_oc_has_cb_missing": 1600,
     "tests_cb_exclusive": 1348,
     "export_files_with_gaps": 71,
     "test_scenario_files_with_gaps": 40,
@@ -2098,57 +2098,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/signal",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "src/media-understanding",
-      "status": "partial",
-      "priority": "P2",
-      "implementationSurface": "src/media-understanding",
-      "counts": {
-        "sharedSourcePaths": 30,
-        "coreBlowOnlySourcePaths": 4,
-        "openClawOnlySourcePaths": 11,
-        "sharedTestPaths": 18,
-        "coreBlowOnlyTestPaths": 4,
-        "openClawTestGaps": 9
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/media-understanding/active-model.types.ts",
-          "src/media-understanding/config-provider-models.ts",
-          "src/media-understanding/defaults.constants.ts",
-          "src/media-understanding/entry-capabilities.ts",
-          "src/media-understanding/manifest-metadata.ts",
-          "src/media-understanding/openai-compatible-video.ts",
-          "src/media-understanding/provider-capability-registry.ts",
-          "src/media-understanding/provider-supports.ts",
-          "src/media-understanding/runner.attachments.ts",
-          "src/media-understanding/runner.test-mocks.ts",
-          "src/media-understanding/runtime-types.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/media-understanding/apply.sanitize-mime.test.ts",
-          "src/media-understanding/audio-preflight.test.ts",
-          "src/media-understanding/echo-transcript.test.ts",
-          "src/media-understanding/media-understanding-url-fallback.test.ts",
-          "src/media-understanding/openai-compatible-audio.pin-dns.test.ts",
-          "src/media-understanding/openai-compatible-audio.test.ts",
-          "src/media-understanding/provider-capability-registry.test.ts",
-          "src/media-understanding/runner.cli-audio.test.ts",
-          "src/media-understanding/shared.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/media-understanding/audio.ts",
-          "src/media-understanding/document-parser.ts",
-          "src/media-understanding/image-analysis.ts",
-          "src/media-understanding/transcribe-audio.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/media-understanding",
         "pnpm check"
       ]
     },
@@ -7400,6 +7349,35 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/media-generation",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/media-understanding",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/media-understanding",
+      "counts": {
+        "sharedSourcePaths": 41,
+        "coreBlowOnlySourcePaths": 4,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 27,
+        "coreBlowOnlyTestPaths": 4,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "src/media-understanding/audio.ts",
+          "src/media-understanding/document-parser.ts",
+          "src/media-understanding/image-analysis.ts",
+          "src/media-understanding/transcribe-audio.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/media-understanding",
         "pnpm check"
       ]
     },

@@ -142,7 +142,35 @@ export type MediaUnderstandingProvider = {
   describeVideo?: (req: VideoDescriptionRequest) => Promise<VideoDescriptionResult>;
   describeImage?: (req: ImageDescriptionRequest) => Promise<ImageDescriptionResult>;
   describeImages?: (req: ImagesDescriptionRequest) => Promise<ImagesDescriptionResult>;
+  extractStructured?: (req: StructuredExtractionRequest) => Promise<StructuredExtractionResult>;
+  nativeDocumentInputs?: string[];
 };
+
+export type MediaUnderstandingCapabilityRegistry = Map<
+  string,
+  Pick<MediaUnderstandingProvider, "capabilities">
+>;
+
+export type StructuredExtractionTextInput = { type: "text"; text: string };
+export type StructuredExtractionImageInput = {
+  type: "image";
+  buffer: Buffer;
+  fileName?: string;
+  mime?: string;
+};
+export type StructuredExtractionInput =
+  | StructuredExtractionTextInput
+  | StructuredExtractionImageInput;
+export type StructuredExtractionRequest = {
+  input: StructuredExtractionInput[];
+  instructions: string;
+  model: string;
+  provider: string;
+  jsonSchema?: unknown;
+  jsonMode?: boolean;
+  timeoutMs?: number;
+};
+export type StructuredExtractionResult = { text: string; value?: unknown; model?: string };
 
 
 // Stub types — used by audio.ts, image-analysis.ts, video.ts, resolve.ts etc.
