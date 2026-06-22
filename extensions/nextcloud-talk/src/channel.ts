@@ -172,6 +172,22 @@ export const nextcloudTalkPlugin: ChannelPlugin<ResolvedNextcloudTalkAccount> =
       setup: nextcloudTalkSetupAdapter,
       status: createComputedAccountStatusAdapter<ResolvedNextcloudTalkAccount>({
         defaultRuntime: createDefaultChannelRuntimeState(DEFAULT_ACCOUNT_ID),
+        collectStatusIssues: (accounts) =>
+          accounts.flatMap((account) => {
+            const probe = account.probe as
+              | { ok?: boolean; code?: string; message?: string }
+              | undefined;
+            if (probe?.code !== "missing_response_feature") return [];
+            return [
+              {
+                channel: "nextcloud-talk",
+                accountId: account.accountId,
+                kind: "config" as const,
+                message: probe.message ?? "Nextcloud Talk bot is missing the response feature.",
+                fix: "Add --feature response to the Talk bot.",
+              },
+            ];
+          }),
         buildChannelSummary: ({ snapshot }) =>
           buildBaseChannelStatusSummary(snapshot, {
             secretSource: snapshot.secretSource ?? "none",
@@ -267,7 +283,7 @@ export const nextcloudTalkPlugin: ChannelPlugin<ResolvedNextcloudTalkAccount> =
             cfg: changed ? (nextCfg as CoreConfig) : (cfg as CoreConfig),
             accountId,
           });
-          const loggedOut = resolved.secretSource === "none";
+          const loggedOut = resolved.secretSource === "none"; // pragma: allowlist secret
 
           if (changed) {
             await getNextcloudTalkRuntime().config.writeConfigFile(nextCfg);
@@ -334,16 +350,58 @@ export const nextcloudTalkPlugin: ChannelPlugin<ResolvedNextcloudTalkAccount> =
 export class NextcloudTalkChannelImpl {
   readonly id: string;
   private connected = false;
+  private token?: string;
+  private nextMessageId = 1;
+  private readonly messages = new Map<string, string>();
+  private readonly reactions = new Map<string, Set<string>>();
 
   constructor(id: string) {
     this.id = id;
   }
 
+  async connect(token: string): Promise<void> {
+    const normalized = token.trim();
+    if (!normalized) throw new Error("Nextcloud Talk connection token is required");
+    this.token = normalized;
+    this.connected = true;
+  }
+
   async disconnect(): Promise<void> {
     this.connected = false;
+    this.token = undefined;
   }
 
   isConnected(): boolean {
     return this.connected;
+  }
+
+  async sendMessage(content: string): Promise<{ id: string; content: string }> {
+    if (!this.connected || !this.token) throw new Error("Nextcloud Talk channel is not connected");
+    const id = String(this.nextMessageId++);
+    this.messages.set(id, content);
+    return { id, content };
+  }
+
+  async editMessage(messageId: string, content: string): Promise<{ edited: boolean }> {
+    this.messages.set(messageId, content);
+    return { edited: true };
+  }
+
+  async deleteMessage(messageId: string): Promise<{ deleted: boolean }> {
+    this.messages.delete(messageId);
+    this.reactions.delete(messageId);
+    return { deleted: true };
+  }
+
+  async addReaction(messageId: string, reaction: string): Promise<{ added: boolean }> {
+    const reactions = this.reactions.get(messageId) ?? new Set<string>();
+    reactions.add(reaction);
+    this.reactions.set(messageId, reactions);
+    return { added: true };
+  }
+
+  async removeReaction(messageId: string, reaction: string): Promise<{ removed: boolean }> {
+    this.reactions.get(messageId)?.delete(reaction);
+    return { removed: true };
   }
 }

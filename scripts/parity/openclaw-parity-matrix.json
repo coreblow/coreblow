@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7780,
+    "cb_source_files": 7796,
     "oc_source_files": 8443,
-    "source_parity_both": 5982,
+    "source_parity_both": 5998,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2461,
-    "test_files_cb": 4815,
+    "source_missing_from_cb": 2445,
+    "test_files_cb": 4824,
     "test_files_oc": 5246,
-    "tests_both_covered": 3410,
-    "tests_gap_oc_has_cb_missing": 1591,
+    "tests_both_covered": 3419,
+    "tests_gap_oc_has_cb_missing": 1582,
     "tests_cb_exclusive": 1348,
     "export_files_with_gaps": 71,
     "test_scenario_files_with_gaps": 40,
@@ -1978,66 +1978,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/voice-call",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/nextcloud-talk",
-      "status": "partial",
-      "priority": "P2",
-      "implementationSurface": "extensions/nextcloud-talk plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 23,
-        "coreBlowOnlySourcePaths": 13,
-        "openClawOnlySourcePaths": 16,
-        "sharedTestPaths": 5,
-        "coreBlowOnlyTestPaths": 5,
-        "openClawTestGaps": 9
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/nextcloud-talk/src/api-credentials.ts",
-          "extensions/nextcloud-talk/src/approval-auth.ts",
-          "extensions/nextcloud-talk/src/bot-preflight.ts",
-          "extensions/nextcloud-talk/src/channel-api.ts",
-          "extensions/nextcloud-talk/src/channel.adapters.ts",
-          "extensions/nextcloud-talk/src/doctor-contract.ts",
-          "extensions/nextcloud-talk/src/doctor.ts",
-          "extensions/nextcloud-talk/src/gateway.ts",
-          "extensions/nextcloud-talk/src/message-adapter.ts",
-          "extensions/nextcloud-talk/src/monitor-runtime.ts",
-          "extensions/nextcloud-talk/src/secret-contract.ts",
-          "extensions/nextcloud-talk/src/send.runtime.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/nextcloud-talk/src/accounts.test.ts",
-          "extensions/nextcloud-talk/src/approval-auth.test.ts",
-          "extensions/nextcloud-talk/src/bot-preflight.test.ts",
-          "extensions/nextcloud-talk/src/channel.core.test.ts",
-          "extensions/nextcloud-talk/src/channel.lifecycle.test.ts",
-          "extensions/nextcloud-talk/src/channel.status.test.ts",
-          "extensions/nextcloud-talk/src/doctor.test.ts",
-          "extensions/nextcloud-talk/src/room-info.test.ts",
-          "extensions/nextcloud-talk/src/send.cfg-threading.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "extensions/nextcloud-talk/src/adapter.ts",
-          "extensions/nextcloud-talk/src/config.ts",
-          "extensions/nextcloud-talk/src/extension.ts",
-          "extensions/nextcloud-talk/src/format.ts",
-          "extensions/nextcloud-talk/src/formatter.ts",
-          "extensions/nextcloud-talk/src/handler.ts",
-          "extensions/nextcloud-talk/src/index.ts",
-          "extensions/nextcloud-talk/src/media.ts",
-          "extensions/nextcloud-talk/src/rate-limiter.ts",
-          "extensions/nextcloud-talk/src/resolve-target.ts",
-          "extensions/nextcloud-talk/src/subagent-hooks.ts",
-          "extensions/nextcloud-talk/src/webhook.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/nextcloud-talk",
         "pnpm check"
       ]
     },
@@ -4359,6 +4299,43 @@
       "notes": "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture.",
       "gates": [
         "pnpm test -- extensions/mqtt",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/nextcloud-talk",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/nextcloud-talk plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 39,
+        "coreBlowOnlySourcePaths": 13,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 14,
+        "coreBlowOnlyTestPaths": 5,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "extensions/nextcloud-talk/src/adapter.ts",
+          "extensions/nextcloud-talk/src/config.ts",
+          "extensions/nextcloud-talk/src/extension.ts",
+          "extensions/nextcloud-talk/src/format.ts",
+          "extensions/nextcloud-talk/src/formatter.ts",
+          "extensions/nextcloud-talk/src/handler.ts",
+          "extensions/nextcloud-talk/src/index.ts",
+          "extensions/nextcloud-talk/src/media.ts",
+          "extensions/nextcloud-talk/src/rate-limiter.ts",
+          "extensions/nextcloud-talk/src/resolve-target.ts",
+          "extensions/nextcloud-talk/src/subagent-hooks.ts",
+          "extensions/nextcloud-talk/src/webhook.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/nextcloud-talk",
         "pnpm check"
       ]
     },

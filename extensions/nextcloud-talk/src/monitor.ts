@@ -64,6 +64,29 @@ const WEBHOOK_ERRORS = {
   internalServerError: "Internal server error",
 } as const;
 
+export class NextcloudTalkRetryableWebhookError extends Error {
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = "NextcloudTalkRetryableWebhookError";
+  }
+}
+
+export async function processNextcloudTalkReplayGuardedMessage(params: {
+  replayGuard: ReturnType<typeof createNextcloudTalkReplayGuard>;
+  accountId: string;
+  message: NextcloudTalkInboundMessage;
+  handleMessage: () => Promise<void>;
+}): Promise<"processed" | "duplicate"> {
+  const shouldProcess = await params.replayGuard.shouldProcessMessage({
+    accountId: params.accountId,
+    roomToken: params.message.roomToken,
+    messageId: params.message.messageId,
+  });
+  if (!shouldProcess) return "duplicate";
+  await params.handleMessage();
+  return "processed";
+}
+
 function formatError(err: unknown): string {
   if (err instanceof Error) {
     return err.message;
