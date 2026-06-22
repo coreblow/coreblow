@@ -3,7 +3,7 @@ import { resolveMarkdownTableMode } from "coreblow/plugin-sdk/config-runtime";
 import { kindFromMime } from "coreblow/plugin-sdk/media-runtime";
 import { resolveOutboundAttachmentFromUrl } from "coreblow/plugin-sdk/media-runtime";
 import { resolveSignalAccount } from "./accounts.js";
-import { signalRpcRequest } from "./client.js";
+import { signalRpcRequest } from "./client-adapter.js";
 import { markdownToSignalText, type SignalTextStyleRange } from "./format.js";
 import { resolveSignalRpcContext } from "./rpc-context.js";
 
@@ -106,7 +106,7 @@ export async function sendMessageSignal(
     cfg,
     accountId: opts.accountId,
   });
-  const { baseUrl, account } = resolveSignalRpcContext(opts, accountInfo);
+  const { baseUrl, account, apiMode } = resolveSignalRpcContext(opts, accountInfo);
   const target = parseTarget(to);
   let message = text ?? "";
   let messageFromPlaceholder = false;
@@ -184,6 +184,7 @@ export async function sendMessageSignal(
   const result = await signalRpcRequest<{ timestamp?: number }>("send", params, {
     baseUrl,
     timeoutMs: opts.timeoutMs,
+    apiMode,
   });
   const timestamp = result?.timestamp;
   return {
@@ -196,7 +197,7 @@ export async function sendTypingSignal(
   to: string,
   opts: SignalRpcOpts & { stop?: boolean } = {},
 ): Promise<boolean> {
-  const { baseUrl, account } = resolveSignalRpcContext(opts);
+  const { baseUrl, account, apiMode } = resolveSignalRpcContext(opts);
   const targetParams = buildTargetParams(parseTarget(to), {
     recipient: true,
     group: true,
@@ -214,6 +215,7 @@ export async function sendTypingSignal(
   await signalRpcRequest("sendTyping", params, {
     baseUrl,
     timeoutMs: opts.timeoutMs,
+    apiMode,
   });
   return true;
 }
@@ -226,7 +228,7 @@ export async function sendReadReceiptSignal(
   if (!Number.isFinite(targetTimestamp) || targetTimestamp <= 0) {
     return false;
   }
-  const { baseUrl, account } = resolveSignalRpcContext(opts);
+  const { baseUrl, account, apiMode } = resolveSignalRpcContext(opts);
   const targetParams = buildTargetParams(parseTarget(to), {
     recipient: true,
   });
@@ -244,6 +246,7 @@ export async function sendReadReceiptSignal(
   await signalRpcRequest("sendReceipt", params, {
     baseUrl,
     timeoutMs: opts.timeoutMs,
+    apiMode,
   });
   return true;
 }

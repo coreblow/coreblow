@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7764,
+    "cb_source_files": 7780,
     "oc_source_files": 8443,
-    "source_parity_both": 5966,
+    "source_parity_both": 5982,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2477,
-    "test_files_cb": 4806,
+    "source_missing_from_cb": 2461,
+    "test_files_cb": 4815,
     "test_files_oc": 5246,
-    "tests_both_covered": 3401,
-    "tests_gap_oc_has_cb_missing": 1600,
+    "tests_both_covered": 3410,
+    "tests_gap_oc_has_cb_missing": 1591,
     "tests_cb_exclusive": 1348,
     "export_files_with_gaps": 71,
     "test_scenario_files_with_gaps": 40,
@@ -161,9 +161,9 @@
       "priority": "P0",
       "implementationSurface": "src/plugin-sdk public API",
       "counts": {
-        "sharedSourcePaths": 201,
+        "sharedSourcePaths": 203,
         "coreBlowOnlySourcePaths": 118,
-        "openClawOnlySourcePaths": 238,
+        "openClawOnlySourcePaths": 236,
         "sharedTestPaths": 26,
         "coreBlowOnlyTestPaths": 14,
         "openClawTestGaps": 77
@@ -1486,9 +1486,9 @@
       "priority": "P2",
       "implementationSurface": "src/security",
       "counts": {
-        "sharedSourcePaths": 22,
+        "sharedSourcePaths": 23,
         "coreBlowOnlySourcePaths": 32,
-        "openClawOnlySourcePaths": 16,
+        "openClawOnlySourcePaths": 15,
         "sharedTestPaths": 9,
         "coreBlowOnlyTestPaths": 38,
         "openClawTestGaps": 34
@@ -1504,9 +1504,9 @@
           "src/security/audit-plugins-trust.ts",
           "src/security/audit-workspace-skills.ts",
           "src/security/audit.types.ts",
-          "src/security/context-visibility.ts",
           "src/security/core-dangerous-config-flags.ts",
-          "src/security/dangerous-config-flags-core.ts"
+          "src/security/dangerous-config-flags-core.ts",
+          "src/security/exec-filesystem-policy.ts"
         ],
         "openClawTestGapPaths": [
           "src/security/audit-channel-account-metadata.test.ts",
@@ -2038,66 +2038,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/nextcloud-talk",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/signal",
-      "status": "partial",
-      "priority": "P2",
-      "implementationSurface": "extensions/signal plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 37,
-        "coreBlowOnlySourcePaths": 16,
-        "openClawOnlySourcePaths": 13,
-        "sharedTestPaths": 12,
-        "coreBlowOnlyTestPaths": 7,
-        "openClawTestGaps": 9
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/signal/src/account-types.ts",
-          "extensions/signal/src/approval-auth.ts",
-          "extensions/signal/src/client-adapter.ts",
-          "extensions/signal/src/client-container.ts",
-          "extensions/signal/src/install-signal-cli.ts",
-          "extensions/signal/src/monitor/inbound-context.ts",
-          "extensions/signal/src/send.runtime.ts",
-          "extensions/signal/src/uuid.ts",
-          "extensions/signal/channel-entry.ts",
-          "extensions/signal/channel-plugin-api.ts",
-          "extensions/signal/config-api.ts",
-          "extensions/signal/contract-api.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/signal/src/accounts.test.ts",
-          "extensions/signal/src/approval-auth.test.ts",
-          "extensions/signal/src/client-adapter.test.ts",
-          "extensions/signal/src/client-container.test.ts",
-          "extensions/signal/src/config-schema.test.ts",
-          "extensions/signal/src/install-signal-cli.test.ts",
-          "extensions/signal/src/monitor/event-handler.silent-ingest.test.ts",
-          "extensions/signal/src/normalize.test.ts",
-          "extensions/signal/src/send.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "extensions/signal/src/adapter.ts",
-          "extensions/signal/src/config.ts",
-          "extensions/signal/src/extension.ts",
-          "extensions/signal/src/formatter.ts",
-          "extensions/signal/src/handler.ts",
-          "extensions/signal/src/index.ts",
-          "extensions/signal/src/media.ts",
-          "extensions/signal/src/outbound-adapter.ts",
-          "extensions/signal/src/plugin-shared.ts",
-          "extensions/signal/src/rate-limiter.ts",
-          "extensions/signal/src/resolve-target.ts",
-          "extensions/signal/src/subagent-hooks.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/signal",
         "pnpm check"
       ]
     },
@@ -5064,6 +5004,43 @@
       "notes": "CoreBlow-owned surface. Keep only if it supports CoreBlow product architecture.",
       "gates": [
         "pnpm test -- extensions/shared",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/signal",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/signal plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 50,
+        "coreBlowOnlySourcePaths": 16,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 21,
+        "coreBlowOnlyTestPaths": 7,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "extensions/signal/src/adapter.ts",
+          "extensions/signal/src/config.ts",
+          "extensions/signal/src/extension.ts",
+          "extensions/signal/src/formatter.ts",
+          "extensions/signal/src/handler.ts",
+          "extensions/signal/src/index.ts",
+          "extensions/signal/src/media.ts",
+          "extensions/signal/src/outbound-adapter.ts",
+          "extensions/signal/src/plugin-shared.ts",
+          "extensions/signal/src/rate-limiter.ts",
+          "extensions/signal/src/resolve-target.ts",
+          "extensions/signal/src/subagent-hooks.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/signal",
         "pnpm check"
       ]
     },

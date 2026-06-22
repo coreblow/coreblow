@@ -5,7 +5,7 @@
 import { loadConfig } from "coreblow/plugin-sdk/config-runtime";
 import type { CoreBlowConfig } from "coreblow/plugin-sdk/config-runtime";
 import { resolveSignalAccount } from "./accounts.js";
-import { signalRpcRequest } from "./client.js";
+import { signalRpcRequest } from "./client-adapter.js";
 import { resolveSignalRpcContext } from "./rpc-context.js";
 
 export type SignalReactionOpts = {
@@ -82,7 +82,7 @@ async function sendReactionSignalCore(params: {
     cfg,
     accountId: params.opts.accountId,
   });
-  const { baseUrl, account } = resolveSignalRpcContext(params.opts, accountInfo);
+  const { baseUrl, account, apiMode } = resolveSignalRpcContext(params.opts, accountInfo);
 
   const normalizedRecipient = normalizeSignalUuid(params.recipient);
   const groupId = params.opts.groupId?.trim();
@@ -125,6 +125,7 @@ async function sendReactionSignalCore(params: {
   const result = await signalRpcRequest<{ timestamp?: number }>("sendReaction", requestParams, {
     baseUrl,
     timeoutMs: params.opts.timeoutMs,
+    apiMode,
   });
 
   return {

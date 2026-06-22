@@ -11,6 +11,7 @@ export type SignalGroupConfig = {
 };
 
 export type SignalAccountConfig = CommonChannelMessagingConfig & {
+  contextVisibility?: "all" | "allowlist" | "allowlist_quote";
   /** Optional explicit E.164 account for signal-cli. */
   account?: string;
   /** Optional account UUID for signal-cli (used for loop protection). */
@@ -55,6 +56,8 @@ export type SignalAccountConfig = CommonChannelMessagingConfig & {
 };
 
 export type SignalConfig = {
+  /** Select native signal-cli, container REST, or automatic detection. */
+  apiMode?: "auto" | "native" | "container";
   /** Optional per-account Signal configuration (multi-account). */
   accounts?: Record<string, SignalAccountConfig>;
   /** Optional default account id when multiple accounts are configured. */

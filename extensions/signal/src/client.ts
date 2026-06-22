@@ -5,6 +5,7 @@ import { fetchWithTimeout } from "coreblow/plugin-sdk/text-runtime";
 export type SignalRpcOptions = {
   baseUrl: string;
   timeoutMs?: number;
+  apiMode?: "auto" | "native" | "container";
 };
 
 export type SignalRpcError = {

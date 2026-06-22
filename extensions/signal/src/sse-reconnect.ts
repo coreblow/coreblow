@@ -6,7 +6,7 @@ import {
   type BackoffPolicy,
   type RuntimeEnv,
 } from "coreblow/plugin-sdk/runtime-env";
-import { type SignalSseEvent, streamSignalEvents } from "./client.js";
+import { type SignalSseEvent, streamSignalEvents } from "./client-adapter.js";
 
 const DEFAULT_RECONNECT_POLICY: BackoffPolicy = {
   initialMs: 1_000,
@@ -22,6 +22,7 @@ type RunSignalSseLoopParams = {
   runtime: RuntimeEnv;
   onEvent: (event: SignalSseEvent) => void;
   policy?: Partial<BackoffPolicy>;
+  apiMode?: "auto" | "native" | "container";
 };
 
 export async function runSignalSseLoop({
@@ -31,6 +32,7 @@ export async function runSignalSseLoop({
   runtime,
   onEvent,
   policy,
+  apiMode,
 }: RunSignalSseLoopParams) {
   const reconnectPolicy = {
     ...DEFAULT_RECONNECT_POLICY,
@@ -51,6 +53,7 @@ export async function runSignalSseLoop({
         baseUrl,
         account,
         abortSignal,
+        apiMode,
         onEvent: (event) => {
           reconnectAttempts = 0;
           onEvent(event);

@@ -13,6 +13,7 @@ export type ResolvedSignalAccount = {
   baseUrl: string;
   configured: boolean;
   config: SignalAccountConfig;
+  apiMode?: "auto" | "native" | "container";
 };
 
 const { listAccountIds, resolveDefaultAccountId } = createAccountListHelpers("signal");
@@ -56,6 +57,7 @@ export function resolveSignalAccount(params: {
     baseUrl,
     configured,
     config: merged,
+    apiMode: params.cfg.channels?.signal?.apiMode,
   };
 }
 

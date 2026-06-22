@@ -27,7 +27,7 @@ import {
 import { normalizeStringEntries } from "coreblow/plugin-sdk/text-runtime";
 import { normalizeE164 } from "coreblow/plugin-sdk/text-runtime";
 import { resolveSignalAccount } from "./accounts.js";
-import { signalCheck, signalRpcRequest } from "./client.js";
+import { signalCheck, signalRpcRequest } from "./client-adapter.js";
 import { formatSignalDaemonExit, spawnSignalDaemon, type SignalDaemonHandle } from "./daemon.js";
 import { isSignalSenderAllowed, type resolveSignalSender } from "./identity.js";
 import { createSignalEventHandler } from "./monitor/event-handler.js";
@@ -60,6 +60,7 @@ export type MonitorSignalOpts = {
   mediaMaxMb?: number;
   reconnectPolicy?: Partial<BackoffPolicy>;
   waitForTransportReady?: typeof waitForTransportReady;
+  apiMode?: "auto" | "native" | "container";
 };
 
 function resolveRuntime(opts: MonitorSignalOpts): RuntimeEnv {
@@ -381,8 +382,11 @@ export async function monitorSignalProvider(opts: MonitorSignalOpts = {}): Promi
   const ignoreAttachments = opts.ignoreAttachments ?? accountInfo.config.ignoreAttachments ?? false;
   const sendReadReceipts = Boolean(opts.sendReadReceipts ?? accountInfo.config.sendReadReceipts);
   const waitForTransportReadyFn = opts.waitForTransportReady ?? waitForTransportReady;
+  const apiMode = opts.apiMode ?? accountInfo.apiMode;
 
-  const autoStart = opts.autoStart ?? accountInfo.config.autoStart ?? !accountInfo.config.httpUrl;
+  const autoStart =
+    opts.autoStart ??
+    (apiMode === "container" ? false : (accountInfo.config.autoStart ?? !accountInfo.config.httpUrl));
   const startupTimeoutMs = Math.min(
     120_000,
     Math.max(1_000, opts.startupTimeoutMs ?? accountInfo.config.startupTimeoutMs ?? 30_000),
@@ -466,6 +470,7 @@ export async function monitorSignalProvider(opts: MonitorSignalOpts = {}): Promi
       abortSignal: daemonLifecycle.abortSignal,
       runtime,
       policy: opts.reconnectPolicy,
+      apiMode,
       onEvent: (event) => {
         void handleEvent(event).catch((err) => {
           runtime.error?.(`event handler failed: ${String(err)}`);

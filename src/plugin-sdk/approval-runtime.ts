@@ -1,6 +1,12 @@
 // Approval request/reply helpers for exec and plugin approval flows.
 
 export {
+  createResolvedApproverActionAuthAdapter,
+  isImplicitSameChatApprovalAuthorization,
+  type ApprovalAuthorizationResult,
+} from "./approval-auth-helpers.js";
+
+export {
   DEFAULT_EXEC_APPROVAL_TIMEOUT_MS,
   type ExecApprovalDecision,
   type ExecApprovalRequest,

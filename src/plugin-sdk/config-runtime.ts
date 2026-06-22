@@ -10,6 +10,14 @@ export {
 export { logConfigUpdated } from "../config/logging.js";
 export { updateConfig } from "../commands/models/shared.js";
 export { resolveChannelModelOverride } from "../channels/model-overrides.js";
+export { resolveChannelContextVisibilityMode } from "../config/context-visibility.js";
+export {
+  evaluateSupplementalContextVisibility,
+  shouldIncludeSupplementalContext,
+  type ContextVisibilityDecision,
+  type ContextVisibilityDecisionReason,
+  type ContextVisibilityKind,
+} from "../security/context-visibility.js";
 export { resolveMarkdownTableMode } from "../config/markdown-tables.js";
 export {
   resolveChannelGroupPolicy,
