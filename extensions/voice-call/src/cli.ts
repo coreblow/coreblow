@@ -94,6 +94,11 @@ function resolveCallMode(mode?: string): "notify" | "conversation" | undefined {
   return mode === "notify" || mode === "conversation" ? mode : undefined;
 }
 
+function isGatewayUnavailableForLocalFallback(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  return /gateway closed \(1006 abnormal closure/i.test(message);
+}
+
 async function initiateCallAndPrintId(params: {
   runtime: VoiceCallRuntime;
   to: string;
@@ -109,6 +114,10 @@ async function initiateCallAndPrintId(params: {
   }
   writeStdoutJson({ callId: result.callId });
 }
+
+export const testing = {
+  isGatewayUnavailableForLocalFallback,
+};
 
 export function registerVoiceCallCli(params: {
   program: Command;

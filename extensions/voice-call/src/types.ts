@@ -214,6 +214,12 @@ export type InitiateCallInput = {
   clientState?: Record<string, string>;
   /** Inline TwiML to execute (skips webhook, used for notify mode) */
   inlineTwiml?: string;
+  /** TwiML to serve once before normal webhook-driven handling resumes. */
+  preConnectTwiml?: string;
+  /** Optional ws URL the carrier can open for streaming at dial/answer time. */
+  streamUrl?: string;
+  /** Per-call auth token echoed back on the websocket upgrade. */
+  streamAuthToken?: string;
 };
 
 export type InitiateCallResult = {
@@ -227,12 +233,25 @@ export type HangupCallInput = {
   reason: EndReason;
 };
 
+export type AnswerCallInput = {
+  callId: CallId;
+  providerCallId: ProviderCallId;
+  streamUrl?: string;
+  streamAuthToken?: string;
+};
+
 export type PlayTtsInput = {
   callId: CallId;
   providerCallId: ProviderCallId;
   text: string;
   voice?: string;
   locale?: string;
+};
+
+export type SendDtmfInput = {
+  callId: CallId;
+  providerCallId: ProviderCallId;
+  digits: string;
 };
 
 export type StartListeningInput = {
@@ -274,6 +293,10 @@ export type OutboundCallOptions = {
   message?: string;
   /** Call mode (overrides config default) */
   mode?: CallMode;
+  /** Optional DTMF digits to play before connect in conversation mode. */
+  dtmfSequence?: string;
+  /** Session key of the caller/requester that initiated the call. */
+  requesterSessionKey?: string;
 };
 
 // -----------------------------------------------------------------------------

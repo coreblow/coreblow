@@ -10,6 +10,7 @@ export function createVoiceCallBaseConfig(params?: {
     fromNumber: "+15550001234",
     inboundPolicy: "disabled",
     allowFrom: [],
+    numbers: {},
     outbound: { defaultMode: "notify", notifyHangupDelaySec: 3 },
     maxDurationSeconds: 300,
     staleCallReaperSeconds: 600,
@@ -30,6 +31,7 @@ export function createVoiceCallBaseConfig(params?: {
     },
     streaming: {
       enabled: false,
+      providers: {},
       sttProvider: "openai-realtime",
       sttModel: "gpt-4o-transcribe",
       silenceDurationMs: 800,
@@ -40,7 +42,32 @@ export function createVoiceCallBaseConfig(params?: {
       maxPendingConnectionsPerIp: 4,
       maxConnections: 128,
     },
+    realtime: {
+      enabled: false,
+      instructions:
+        "You are CoreBlow's phone-call realtime voice interface. Keep spoken replies brief and natural. When a question needs deeper reasoning, current information, or tools, call coreblow_agent_consult before answering.",
+      toolPolicy: "safe-read-only",
+      consultPolicy: "auto",
+      tools: [],
+      fastContext: {
+        enabled: false,
+        timeoutMs: 800,
+        maxResults: 3,
+        sources: ["memory", "sessions"],
+        fallbackToConsult: false,
+      },
+      agentContext: {
+        enabled: false,
+        maxChars: 6000,
+        includeIdentity: true,
+        includeSystemPrompt: true,
+        includeWorkspaceFiles: true,
+        files: ["SOUL.md", "IDENTITY.md", "USER.md"],
+      },
+      providers: {},
+    },
     skipSignatureVerification: false,
+    sessionScope: "per-phone",
     stt: { provider: "openai", model: "whisper-1" },
     tts: {
       provider: "openai",

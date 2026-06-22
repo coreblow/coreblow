@@ -1,6 +1,13 @@
 import { z } from "coreblow/plugin-sdk/zod";
+import {
+  buildSecretInputSchema,
+  hasConfiguredSecretInput,
+  normalizeResolvedSecretInputString,
+  type SecretInput,
+} from "coreblow/plugin-sdk/secret-input";
 import { TtsAutoSchema, TtsConfigSchema, TtsModeSchema, TtsProviderSchema } from "../api.js";
 import { deepMergeDefined } from "./deep-merge.js";
+import { DEFAULT_VOICE_CALL_REALTIME_INSTRUCTIONS } from "./realtime-defaults.js";
 
 // -----------------------------------------------------------------------------
 // Phone Number Validation
@@ -49,7 +56,7 @@ export const TwilioConfigSchema = z
     /** Twilio Account SID */
     accountSid: z.string().min(1).optional(),
     /** Twilio Auth Token */
-    authToken: z.string().min(1).optional(),
+    authToken: buildSecretInputSchema().optional(),
   })
   .strict();
 export type TwilioConfig = z.infer<typeof TwilioConfigSchema>;
@@ -81,6 +88,18 @@ export type SttConfig = z.infer<typeof SttConfigSchema>;
 
 export { TtsAutoSchema, TtsConfigSchema, TtsModeSchema, TtsProviderSchema };
 export type VoiceCallTtsConfig = z.infer<typeof TtsConfigSchema>;
+
+export const VoiceCallNumberRouteConfigSchema = z
+  .object({
+    inboundGreeting: z.string().optional(),
+    tts: TtsConfigSchema.optional(),
+    agentId: z.string().min(1).optional(),
+    responseModel: z.string().optional(),
+    responseSystemPrompt: z.string().optional(),
+    responseTimeoutMs: z.number().int().positive().optional(),
+  })
+  .strict();
+export type VoiceCallNumberRouteConfig = z.infer<typeof VoiceCallNumberRouteConfigSchema>;
 
 // -----------------------------------------------------------------------------
 // Webhook Server Configuration
@@ -184,6 +203,9 @@ export type WebhookSecurityConfig = z.infer<typeof VoiceCallWebhookSecurityConfi
 export const CallModeSchema = z.enum(["notify", "conversation"]);
 export type CallMode = z.infer<typeof CallModeSchema>;
 
+export const VoiceCallSessionScopeSchema = z.enum(["per-phone", "per-call"]);
+export type VoiceCallSessionScope = z.infer<typeof VoiceCallSessionScopeSchema>;
+
 export const OutboundConfigSchema = z
   .object({
     /** Default call mode for outbound calls */
@@ -195,6 +217,122 @@ export const OutboundConfigSchema = z
   .default({ defaultMode: "notify", notifyHangupDelaySec: 3 });
 export type OutboundConfig = z.infer<typeof OutboundConfigSchema>;
 
+export const VoiceCallRealtimeToolPolicySchema = z.enum([
+  "disabled",
+  "safe-read-only",
+  "safe-write",
+  "allow-all",
+]);
+export type VoiceCallRealtimeToolPolicy = z.infer<typeof VoiceCallRealtimeToolPolicySchema>;
+
+export const VoiceCallRealtimeConsultPolicySchema = z.enum(["auto", "substantive", "always"]);
+export type VoiceCallRealtimeConsultPolicy = z.infer<typeof VoiceCallRealtimeConsultPolicySchema>;
+
+export const VoiceCallRealtimeFastContextSourceSchema = z.enum(["memory", "sessions"]);
+export type VoiceCallRealtimeFastContextSource = z.infer<
+  typeof VoiceCallRealtimeFastContextSourceSchema
+>;
+
+export const VoiceCallRealtimeFastContextConfigSchema = z
+  .object({
+    enabled: z.boolean().default(false),
+    timeoutMs: z.number().int().positive().default(800),
+    maxResults: z.number().int().positive().default(3),
+    sources: z.array(VoiceCallRealtimeFastContextSourceSchema).min(1).default([
+      "memory",
+      "sessions",
+    ]),
+    fallbackToConsult: z.boolean().default(false),
+  })
+  .strict()
+  .default({
+    enabled: false,
+    timeoutMs: 800,
+    maxResults: 3,
+    sources: ["memory", "sessions"],
+    fallbackToConsult: false,
+  });
+export type VoiceCallRealtimeFastContextConfig = z.infer<
+  typeof VoiceCallRealtimeFastContextConfigSchema
+>;
+
+export const VoiceCallRealtimeAgentContextConfigSchema = z
+  .object({
+    enabled: z.boolean().default(false),
+    maxChars: z.number().int().positive().default(6000),
+    includeIdentity: z.boolean().default(true),
+    includeSystemPrompt: z.boolean().default(true),
+    includeWorkspaceFiles: z.boolean().default(true),
+    files: z.array(z.string().min(1)).default(["SOUL.md", "IDENTITY.md", "USER.md"]),
+  })
+  .strict()
+  .default({
+    enabled: false,
+    maxChars: 6000,
+    includeIdentity: true,
+    includeSystemPrompt: true,
+    includeWorkspaceFiles: true,
+    files: ["SOUL.md", "IDENTITY.md", "USER.md"],
+  });
+export type VoiceCallRealtimeAgentContextConfig = z.infer<
+  typeof VoiceCallRealtimeAgentContextConfigSchema
+>;
+
+export const VoiceCallRealtimeConsultThinkingLevelSchema = z.enum([
+  "off",
+  "minimal",
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+  "adaptive",
+  "max",
+]);
+export type VoiceCallRealtimeConsultThinkingLevel = z.infer<
+  typeof VoiceCallRealtimeConsultThinkingLevelSchema
+>;
+
+export const VoiceCallRealtimeConfigSchema = z
+  .object({
+    enabled: z.boolean().default(false),
+    provider: z.string().min(1).optional(),
+    streamPath: z.string().min(1).optional(),
+    instructions: z.string().default(DEFAULT_VOICE_CALL_REALTIME_INSTRUCTIONS),
+    toolPolicy: VoiceCallRealtimeToolPolicySchema.default("safe-read-only"),
+    consultPolicy: VoiceCallRealtimeConsultPolicySchema.default("auto"),
+    consultThinkingLevel: VoiceCallRealtimeConsultThinkingLevelSchema.optional(),
+    consultFastMode: z.boolean().optional(),
+    tools: z.array(z.record(z.string(), z.unknown())).default([]),
+    fastContext: VoiceCallRealtimeFastContextConfigSchema,
+    agentContext: VoiceCallRealtimeAgentContextConfigSchema,
+    providers: z.record(z.string(), z.record(z.string(), z.unknown())).default({}),
+  })
+  .strict()
+  .default({
+    enabled: false,
+    instructions: DEFAULT_VOICE_CALL_REALTIME_INSTRUCTIONS,
+    toolPolicy: "safe-read-only",
+    consultPolicy: "auto",
+    tools: [],
+    fastContext: {
+      enabled: false,
+      timeoutMs: 800,
+      maxResults: 3,
+      sources: ["memory", "sessions"],
+      fallbackToConsult: false,
+    },
+    agentContext: {
+      enabled: false,
+      maxChars: 6000,
+      includeIdentity: true,
+      includeSystemPrompt: true,
+      includeWorkspaceFiles: true,
+      files: ["SOUL.md", "IDENTITY.md", "USER.md"],
+    },
+    providers: {},
+  });
+export type VoiceCallRealtimeConfig = z.infer<typeof VoiceCallRealtimeConfigSchema>;
+
 // -----------------------------------------------------------------------------
 // Streaming Configuration (OpenAI Realtime STT)
 // -----------------------------------------------------------------------------
@@ -203,6 +341,8 @@ export const VoiceCallStreamingConfigSchema = z
   .object({
     /** Enable real-time audio streaming (requires WebSocket support) */
     enabled: z.boolean().default(false),
+    /** Provider id from registered streaming providers */
+    provider: z.string().min(1).optional(),
     /** STT provider for real-time transcription */
     sttProvider: z.enum(["openai-realtime"]).default("openai-realtime"),
     /** OpenAI API key for Realtime API (uses OPENAI_API_KEY env if not set) */
@@ -226,10 +366,13 @@ export const VoiceCallStreamingConfigSchema = z
     maxPendingConnectionsPerIp: z.number().int().positive().default(4),
     /** Hard cap for all open media stream sockets (pending + active). */
     maxConnections: z.number().int().positive().default(128),
+    /** Provider-owned config blobs keyed by provider id. */
+    providers: z.record(z.string(), z.record(z.string(), z.unknown())).default({}),
   })
   .strict()
   .default({
     enabled: false,
+    providers: {},
     sttProvider: "openai-realtime",
     sttModel: "gpt-4o-transcribe",
     silenceDurationMs: 800,
@@ -278,6 +421,9 @@ export const VoiceCallConfigSchema = z
     /** Greeting message for inbound calls */
     inboundGreeting: z.string().optional(),
 
+    /** Per-dialed-number overrides for inbound calls */
+    numbers: z.record(E164Schema, VoiceCallNumberRouteConfigSchema).default({}),
+
     /** Outbound call configuration */
     outbound: OutboundConfigSchema,
 
@@ -319,6 +465,12 @@ export const VoiceCallConfigSchema = z
     /** Real-time audio streaming configuration */
     streaming: VoiceCallStreamingConfigSchema,
 
+    /** Realtime voice-to-voice configuration */
+    realtime: VoiceCallRealtimeConfigSchema,
+
+    /** Session memory scope for voice conversations. */
+    sessionScope: VoiceCallSessionScopeSchema.default("per-phone"),
+
     /** Public webhook URL override (if set, bypasses tunnel auto-detection) */
     publicUrl: z.string().url().optional(),
 
@@ -334,8 +486,11 @@ export const VoiceCallConfigSchema = z
     /** Store path for call logs */
     store: z.string().optional(),
 
-    /** Model for generating voice responses (e.g., "anthropic/claude-sonnet-4", "openai/gpt-4o") */
-    responseModel: z.string().default("openai/gpt-4o-mini"),
+    /** Agent ID to use for voice response generation. */
+    agentId: z.string().min(1).optional(),
+
+    /** Model for generating voice responses */
+    responseModel: z.string().optional(),
 
     /** System prompt for voice responses */
     responseSystemPrompt: z.string().optional(),
@@ -346,13 +501,20 @@ export const VoiceCallConfigSchema = z
   .strict();
 
 export type VoiceCallConfig = z.infer<typeof VoiceCallConfigSchema>;
+export type VoiceCallEffectiveConfigResult = {
+  config: VoiceCallConfig;
+  numberRouteKey?: string;
+};
 type DeepPartial<T> =
-  T extends Array<infer U>
+  T extends SecretInput
+    ? T
+    : T extends Array<infer U>
     ? DeepPartial<U>[]
     : T extends object
       ? { [K in keyof T]?: DeepPartial<T[K]> }
       : T;
 export type VoiceCallConfigInput = DeepPartial<VoiceCallConfig>;
+const TWILIO_AUTH_TOKEN_PATH = "plugins.entries.voice-call.config.twilio.authToken";
 
 // -----------------------------------------------------------------------------
 // Configuration Helpers
@@ -381,6 +543,7 @@ export function normalizeVoiceCallConfig(config: VoiceCallConfigInput): VoiceCal
     ...defaults,
     ...config,
     allowFrom: config.allowFrom ?? defaults.allowFrom,
+    numbers: (config.numbers ?? defaults.numbers) as VoiceCallConfig["numbers"],
     outbound: { ...defaults.outbound, ...config.outbound },
     serve: { ...defaults.serve, ...config.serve },
     tailscale: { ...defaults.tailscale, ...config.tailscale },
@@ -392,7 +555,30 @@ export function normalizeVoiceCallConfig(config: VoiceCallConfigInput): VoiceCal
       trustedProxyIPs:
         config.webhookSecurity?.trustedProxyIPs ?? defaults.webhookSecurity.trustedProxyIPs,
     },
-    streaming: { ...defaults.streaming, ...config.streaming },
+    streaming: {
+      ...defaults.streaming,
+      ...config.streaming,
+      providers: (config.streaming?.providers ??
+        defaults.streaming.providers) as VoiceCallConfig["streaming"]["providers"],
+    },
+    realtime: {
+      ...defaults.realtime,
+      ...config.realtime,
+      fastContext: {
+        ...defaults.realtime.fastContext,
+        ...config.realtime?.fastContext,
+        sources:
+          config.realtime?.fastContext?.sources ?? defaults.realtime.fastContext.sources,
+      },
+      agentContext: {
+        ...defaults.realtime.agentContext,
+        ...config.realtime?.agentContext,
+        files: config.realtime?.agentContext?.files ?? defaults.realtime.agentContext.files,
+      },
+      tools: config.realtime?.tools ?? defaults.realtime.tools,
+      providers: (config.realtime?.providers ??
+        defaults.realtime.providers) as VoiceCallConfig["realtime"]["providers"],
+    },
     stt: { ...defaults.stt, ...config.stt },
     tts: normalizeVoiceCallTtsConfig(defaults.tts, config.tts),
   };
@@ -448,7 +634,111 @@ export function resolveVoiceCallConfig(config: VoiceCallConfigInput): VoiceCallC
     resolved.webhookSecurity.trustForwardingHeaders ?? false;
   resolved.webhookSecurity.trustedProxyIPs = resolved.webhookSecurity.trustedProxyIPs ?? [];
 
+  resolved.streaming = resolved.streaming ?? {
+    enabled: false,
+    sttProvider: "openai-realtime",
+    sttModel: "gpt-4o-transcribe",
+    silenceDurationMs: 800,
+    vadThreshold: 0.5,
+    streamPath: "/voice/stream",
+    preStartTimeoutMs: 5000,
+    maxPendingConnections: 32,
+    maxPendingConnectionsPerIp: 4,
+    maxConnections: 128,
+    providers: {},
+  };
+  resolved.streaming.providers = resolved.streaming.providers ?? {};
+  const openaiCompat = resolved.streaming.providers.openai;
+  const openaiConfig =
+    openaiCompat && typeof openaiCompat === "object"
+      ? { ...(openaiCompat as Record<string, unknown>) }
+      : {};
+  if (!resolved.streaming.provider && resolved.streaming.sttProvider) {
+    resolved.streaming.provider = resolved.streaming.sttProvider;
+  }
+  if (!openaiConfig.apiKey && resolved.streaming.openaiApiKey) {
+    openaiConfig.apiKey = resolved.streaming.openaiApiKey;
+  }
+  if (!openaiConfig.model && resolved.streaming.sttModel) {
+    openaiConfig.model = resolved.streaming.sttModel;
+  }
+  if (!openaiConfig.silenceDurationMs && resolved.streaming.silenceDurationMs) {
+    openaiConfig.silenceDurationMs = resolved.streaming.silenceDurationMs;
+  }
+  if (!openaiConfig.vadThreshold && resolved.streaming.vadThreshold) {
+    openaiConfig.vadThreshold = resolved.streaming.vadThreshold;
+  }
+  resolved.streaming.providers.openai = openaiConfig;
+
   return normalizeVoiceCallConfig(resolved);
+}
+
+export function resolveTwilioAuthToken(config: VoiceCallConfig): string | undefined {
+  const token = config.twilio?.authToken;
+  const normalized = normalizeResolvedSecretInputString({
+    value: token,
+    path: TWILIO_AUTH_TOKEN_PATH,
+  });
+  if (normalized) {
+    return normalized;
+  }
+  return typeof token === "string" ? token : undefined;
+}
+
+export function resolveVoiceCallSessionKey(params: {
+  config: VoiceCallConfig;
+  callId: string;
+  phone?: string;
+  explicitSessionKey?: string;
+}): string {
+  const explicit = params.explicitSessionKey?.trim();
+  if (explicit) {
+    return explicit;
+  }
+  if (params.config.sessionScope === "per-call") {
+    return `voice:${params.callId}`;
+  }
+  const normalizedPhone = params.phone?.replace(/[^\d+]/g, "")?.trim();
+  if (normalizedPhone) {
+    return `voice:${normalizedPhone}`;
+  }
+  return `voice:${params.callId}`;
+}
+
+export function resolveVoiceCallNumberRouteKey(
+  config: VoiceCallConfig,
+  phone?: string,
+): string | undefined {
+  if (!phone) {
+    return undefined;
+  }
+  return phone in config.numbers ? phone : undefined;
+}
+
+export function resolveVoiceCallEffectiveConfig(
+  config: VoiceCallConfig,
+  phone?: string,
+): VoiceCallEffectiveConfigResult {
+  const numberRouteKey = resolveVoiceCallNumberRouteKey(config, phone);
+  if (!numberRouteKey) {
+    return { config };
+  }
+  const route = config.numbers[numberRouteKey];
+  if (!route) {
+    return { config };
+  }
+  return {
+    numberRouteKey,
+    config: {
+      ...config,
+      inboundGreeting: route.inboundGreeting ?? config.inboundGreeting,
+      tts: normalizeVoiceCallTtsConfig(config.tts, route.tts),
+      agentId: route.agentId ?? config.agentId,
+      responseModel: route.responseModel ?? config.responseModel,
+      responseSystemPrompt: route.responseSystemPrompt ?? config.responseSystemPrompt,
+      responseTimeoutMs: route.responseTimeoutMs ?? config.responseTimeoutMs,
+    },
+  };
 }
 
 /**
@@ -496,7 +786,7 @@ export function validateProviderConfig(config: VoiceCallConfig): {
         "plugins.entries.voice-call.config.twilio.accountSid is required (or set TWILIO_ACCOUNT_SID env)",
       );
     }
-    if (!config.twilio?.authToken) {
+    if (!resolveTwilioAuthToken(config) && !hasConfiguredSecretInput(config.twilio?.authToken)) {
       errors.push(
         "plugins.entries.voice-call.config.twilio.authToken is required (or set TWILIO_AUTH_TOKEN env)",
       );

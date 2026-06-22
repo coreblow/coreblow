@@ -8,6 +8,11 @@ export type {
   RealtimeTranscriptionSessionCreateRequest,
 } from "../realtime-transcription/provider-types.js";
 
+export {
+  getRealtimeTranscriptionProvider,
+  listRealtimeTranscriptionProviders,
+} from "../realtime-transcription/provider-registry.js";
+
 export type {
   RealtimeTranscriptionWebSocketSessionOptions,
   RealtimeTranscriptionWebSocketTransport,

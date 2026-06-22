@@ -86,4 +86,41 @@ describe("twilioApiRequest", () => {
       }),
     ).rejects.toThrow("Twilio API error: 400 bad request");
   });
+
+  it("wraps malformed json success responses with an owned error", async () => {
+    globalThis.fetch = vi.fn(
+      async () => new Response("not-json", { status: 200 }),
+    ) as unknown as typeof fetch;
+
+    await expect(
+      twilioApiRequest({
+        baseUrl: "https://api.twilio.com",
+        accountSid: "AC123",
+        authToken: "secret",
+        endpoint: "/Calls.json",
+        body: {},
+      }),
+    ).rejects.toThrow("Twilio API returned malformed JSON.");
+  });
+
+  it("exposes structured Twilio error codes from json error bodies", async () => {
+    globalThis.fetch = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ code: 21211, message: "invalid number" }), { status: 400 }),
+    ) as unknown as typeof fetch;
+
+    await expect(
+      twilioApiRequest({
+        baseUrl: "https://api.twilio.com",
+        accountSid: "AC123",
+        authToken: "secret",
+        endpoint: "/Calls.json",
+        body: {},
+      }),
+    ).rejects.toMatchObject({
+      name: "TwilioApiError",
+      httpStatus: 400,
+      twilioCode: 21211,
+    });
+  });
 });

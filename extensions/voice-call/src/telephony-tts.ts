@@ -21,6 +21,8 @@ export type TelephonyTtsProvider = {
   synthesizeForTelephony: (text: string) => Promise<Buffer>;
 };
 
+export const TELEPHONY_DEFAULT_TTS_TIMEOUT_MS = 30_000;
+
 export function createTelephonyTtsProvider(params: {
   coreConfig: CoreConfig;
   ttsOverride?: VoiceCallTtsConfig;

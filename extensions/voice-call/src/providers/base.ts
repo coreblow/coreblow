@@ -1,4 +1,5 @@
 import type {
+  AnswerCallInput,
   GetCallStatusInput,
   GetCallStatusResult,
   HangupCallInput,
@@ -6,6 +7,7 @@ import type {
   InitiateCallResult,
   PlayTtsInput,
   ProviderName,
+  SendDtmfInput,
   WebhookParseOptions,
   ProviderWebhookParseResult,
   StartListeningInput,
@@ -29,6 +31,8 @@ export interface VoiceCallProvider {
   /** Provider identifier */
   readonly name: ProviderName;
 
+  setPublicUrl?(url: string): void;
+
   /**
    * Verify webhook signature/HMAC before processing.
    * Must be called before parseWebhookEvent.
@@ -41,11 +45,15 @@ export interface VoiceCallProvider {
    */
   parseWebhookEvent(ctx: WebhookContext, options?: WebhookParseOptions): ProviderWebhookParseResult;
 
+  consumeInitialTwiML?: (ctx: WebhookContext) => string | null;
+
   /**
    * Initiate an outbound call.
    * @returns Provider call ID and status
    */
   initiateCall(input: InitiateCallInput): Promise<InitiateCallResult>;
+
+  answerCall?: (input: AnswerCallInput) => Promise<void>;
 
   /**
    * Hang up an active call.
@@ -57,6 +65,8 @@ export interface VoiceCallProvider {
    * The provider should handle streaming if supported.
    */
   playTts(input: PlayTtsInput): Promise<void>;
+
+  sendDtmf?: (input: SendDtmfInput) => Promise<void>;
 
   /**
    * Start listening for user speech (activate STT).

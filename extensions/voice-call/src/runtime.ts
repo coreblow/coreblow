@@ -1,5 +1,5 @@
 import type { VoiceCallConfig } from "./config.js";
-import { resolveVoiceCallConfig, validateProviderConfig } from "./config.js";
+import { resolveTwilioAuthToken, resolveVoiceCallConfig, validateProviderConfig } from "./config.js";
 import type { CoreAgentDeps, CoreConfig } from "./core-bridge.js";
 import { CallManager } from "./manager.js";
 import type { VoiceCallProvider } from "./providers/base.js";
@@ -102,7 +102,7 @@ function resolveProvider(config: VoiceCallConfig): VoiceCallProvider {
       return new TwilioProvider(
         {
           accountSid: config.twilio?.accountSid,
-          authToken: config.twilio?.authToken,
+          authToken: resolveTwilioAuthToken(config),
         },
         {
           allowNgrokFreeTierLoopbackBypass,

@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7819,
+    "cb_source_files": 7838,
     "oc_source_files": 8443,
-    "source_parity_both": 6021,
+    "source_parity_both": 6040,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2422,
-    "test_files_cb": 4832,
+    "source_missing_from_cb": 2403,
+    "test_files_cb": 4843,
     "test_files_oc": 5246,
-    "tests_both_covered": 3426,
-    "tests_gap_oc_has_cb_missing": 1575,
+    "tests_both_covered": 3437,
+    "tests_gap_oc_has_cb_missing": 1564,
     "tests_cb_exclusive": 1348,
     "export_files_with_gaps": 71,
     "test_scenario_files_with_gaps": 40,
@@ -1858,68 +1858,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/media",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/voice-call",
-      "status": "partial",
-      "priority": "P2",
-      "implementationSurface": "extensions/voice-call plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 45,
-        "coreBlowOnlySourcePaths": 14,
-        "openClawOnlySourcePaths": 19,
-        "sharedTestPaths": 34,
-        "coreBlowOnlyTestPaths": 7,
-        "openClawTestGaps": 11
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/voice-call/src/config-compat.ts",
-          "extensions/voice-call/src/gateway-continue-operation.ts",
-          "extensions/voice-call/src/providers/twilio.types.ts",
-          "extensions/voice-call/src/realtime-agent-context.ts",
-          "extensions/voice-call/src/realtime-defaults.ts",
-          "extensions/voice-call/src/realtime-fast-context.ts",
-          "extensions/voice-call/src/realtime-transcription.runtime.ts",
-          "extensions/voice-call/src/realtime-voice.runtime.ts",
-          "extensions/voice-call/src/response-model.ts",
-          "extensions/voice-call/src/tts-provider-voice.ts",
-          "extensions/voice-call/src/webhook/realtime-audio-pacer.ts",
-          "extensions/voice-call/src/webhook/realtime-handler.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/voice-call/src/cli.test.ts",
-          "extensions/voice-call/src/config-compat.test.ts",
-          "extensions/voice-call/src/realtime-agent-context.test.ts",
-          "extensions/voice-call/src/realtime-fast-context.test.ts",
-          "extensions/voice-call/src/response-model.test.ts",
-          "extensions/voice-call/src/tts-provider-voice.test.ts",
-          "extensions/voice-call/src/tunnel.test.ts",
-          "extensions/voice-call/src/webhook/realtime-audio-pacer.test.ts",
-          "extensions/voice-call/src/webhook/realtime-handler.test.ts",
-          "extensions/voice-call/src/webhook/stream-frame-adapter.test.ts",
-          "extensions/voice-call/src/webhook-exposure.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "extensions/voice-call/src/adapter.ts",
-          "extensions/voice-call/src/channel.ts",
-          "extensions/voice-call/src/extension.ts",
-          "extensions/voice-call/src/formatter.ts",
-          "extensions/voice-call/src/handler.ts",
-          "extensions/voice-call/src/index.ts",
-          "extensions/voice-call/src/media.ts",
-          "extensions/voice-call/src/providers/index.ts",
-          "extensions/voice-call/src/providers/stt-openai-realtime.ts",
-          "extensions/voice-call/src/providers/tts-openai.ts",
-          "extensions/voice-call/src/rate-limiter.ts",
-          "extensions/voice-call/src/resolve-target.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/voice-call",
         "pnpm check"
       ]
     },
@@ -5581,6 +5519,43 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/vllm",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/voice-call",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/voice-call plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 64,
+        "coreBlowOnlySourcePaths": 14,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 45,
+        "coreBlowOnlyTestPaths": 7,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "extensions/voice-call/src/adapter.ts",
+          "extensions/voice-call/src/channel.ts",
+          "extensions/voice-call/src/extension.ts",
+          "extensions/voice-call/src/formatter.ts",
+          "extensions/voice-call/src/handler.ts",
+          "extensions/voice-call/src/index.ts",
+          "extensions/voice-call/src/media.ts",
+          "extensions/voice-call/src/providers/index.ts",
+          "extensions/voice-call/src/providers/stt-openai-realtime.ts",
+          "extensions/voice-call/src/providers/tts-openai.ts",
+          "extensions/voice-call/src/rate-limiter.ts",
+          "extensions/voice-call/src/resolve-target.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/voice-call",
         "pnpm check"
       ]
     },

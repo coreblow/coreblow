@@ -9,7 +9,7 @@
 
 import type { IncomingMessage } from "node:http";
 import type { Duplex } from "node:stream";
-import { WebSocket, WebSocketServer } from "ws";
+import { type RawData, WebSocket, WebSocketServer } from "ws";
 import type {
   OpenAIRealtimeSTTProvider,
   RealtimeSTTSession,
@@ -90,6 +90,25 @@ export function sanitizeLogText(value: string, maxChars: number): string {
   return `${sanitized.slice(0, maxChars)}...`;
 }
 
+function normalizeWsMessageData(data: RawData): Buffer {
+  if (Buffer.isBuffer(data)) {
+    return data;
+  }
+  if (Array.isArray(data)) {
+    return Buffer.concat(data);
+  }
+  return Buffer.from(data);
+}
+
+export function parseTwilioMediaMessage(data: RawData): TwilioMediaMessage {
+  const raw = normalizeWsMessageData(data);
+  try {
+    return JSON.parse(raw.toString("utf8")) as TwilioMediaMessage;
+  } catch (cause) {
+    throw new Error("Twilio media stream message was malformed JSON", { cause });
+  }
+}
+
 /**
  * Manages WebSocket connections for Twilio media streams.
  */
@@ -156,7 +175,7 @@ export class MediaStreamHandler {
 
     ws.on("message", async (data: Buffer) => {
       try {
-        const message = JSON.parse(data.toString()) as TwilioMediaMessage;
+        const message = parseTwilioMediaMessage(data);
 
         switch (message.event) {
           case "connected":

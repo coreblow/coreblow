@@ -9,6 +9,7 @@ import {
   continueCall as continueCallWithContext,
   endCall as endCallWithContext,
   initiateCall as initiateCallWithContext,
+  sendDtmf as sendDtmfWithContext,
   speak as speakWithContext,
   speakInitialMessage as speakInitialMessageWithContext,
 } from "./manager/outbound.js";
@@ -237,6 +238,10 @@ export class CallManager {
     return continueCallWithContext(this.getContext(), callId, prompt);
   }
 
+  async sendDtmf(callId: CallId, digits: string): Promise<{ success: boolean; error?: string }> {
+    return sendDtmfWithContext(this.getContext(), callId, digits);
+  }
+
   /**
    * End an active call.
    */
@@ -258,6 +263,7 @@ export class CallManager {
       transcriptWaiters: this.transcriptWaiters,
       maxDurationTimers: this.maxDurationTimers,
       initialMessageInFlight: this.initialMessageInFlight,
+      streamSessionIssuer: undefined,
       onCallAnswered: (call) => {
         this.maybeSpeakInitialMessageOnAnswered(call);
       },

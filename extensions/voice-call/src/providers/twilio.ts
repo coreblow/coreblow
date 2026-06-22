@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import type { TwilioConfig, WebhookSecurityConfig } from "../config.js";
+import type { WebhookSecurityConfig } from "../config.js";
 import { getHeader } from "../http-headers.js";
 import type { MediaStreamHandler } from "../media-stream.js";
 import { chunkAudio } from "../telephony-audio.js";
@@ -33,6 +33,11 @@ import { verifyTwilioProviderWebhook } from "./twilio/webhook.js";
 
 type StreamSendResult = {
   sent: boolean;
+};
+
+type TwilioRuntimeConfig = {
+  accountSid?: string;
+  authToken?: string;
 };
 
 function createTwilioRequestDedupeKey(ctx: WebhookContext, verifiedRequestKey?: string): string {
@@ -139,7 +144,7 @@ export class TwilioProvider implements VoiceCallProvider {
     this.streamAuthTokens.delete(providerCallId);
   }
 
-  constructor(config: TwilioConfig, options: TwilioProviderOptions = {}) {
+  constructor(config: TwilioRuntimeConfig, options: TwilioProviderOptions = {}) {
     if (!config.accountSid) {
       throw new Error("Twilio Account SID is required");
     }
