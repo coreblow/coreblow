@@ -1,7 +1,9 @@
-import { createMessageReceiptFromOutboundResults } from "coreblow/plugin-sdk/channel-message";
+import {
+  createMessageReceiptFromOutboundResults,
+  type MessageReceiptPartKind,
+} from "coreblow/plugin-sdk/channel-message";
 
 type MessageReceipt = ReturnType<typeof createMessageReceiptFromOutboundResults>;
-type MessageReceiptPartKind = string;
 
 export function createZalouserSendReceipt(params: {
   messageId?: string;

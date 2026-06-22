@@ -19,6 +19,8 @@ type SendMattermostMessage = (
   },
 ) => Promise<unknown>;
 
+export type MattermostReplyDeliveryOutcome = "reasoning_skipped" | "empty" | "text" | "media";
+
 export async function deliverMattermostReplyPayload(params: {
   core: PluginRuntime;
   cfg: CoreBlowConfig;
@@ -30,7 +32,10 @@ export async function deliverMattermostReplyPayload(params: {
   textLimit: number;
   tableMode: MarkdownTableMode;
   sendMessage: SendMattermostMessage;
-}): Promise<void> {
+}): Promise<MattermostReplyDeliveryOutcome> {
+  if (params.payload.isReasoning) {
+    return "reasoning_skipped";
+  }
   const reply = resolveSendableOutboundReplyParts(params.payload, {
     text: params.core.channel.text.convertMarkdownTables(
       params.payload.text ?? "",
@@ -43,7 +48,7 @@ export async function deliverMattermostReplyPayload(params: {
     "mattermost",
     params.accountId,
   );
-  await deliverTextOrMediaReply({
+  return await deliverTextOrMediaReply({
     payload: params.payload,
     text: reply.text,
     chunkText: (value) =>

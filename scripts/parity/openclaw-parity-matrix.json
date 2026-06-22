@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7796,
+    "cb_source_files": 7819,
     "oc_source_files": 8443,
-    "source_parity_both": 5998,
+    "source_parity_both": 6021,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2445,
-    "test_files_cb": 4824,
+    "source_missing_from_cb": 2422,
+    "test_files_cb": 4832,
     "test_files_oc": 5246,
-    "tests_both_covered": 3419,
-    "tests_gap_oc_has_cb_missing": 1582,
+    "tests_both_covered": 3426,
+    "tests_gap_oc_has_cb_missing": 1575,
     "tests_cb_exclusive": 1348,
     "export_files_with_gaps": 71,
     "test_scenario_files_with_gaps": 40,
@@ -1858,64 +1858,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/media",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/mattermost",
-      "status": "partial",
-      "priority": "P2",
-      "implementationSurface": "extensions/mattermost plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 40,
-        "coreBlowOnlySourcePaths": 15,
-        "openClawOnlySourcePaths": 23,
-        "sharedTestPaths": 32,
-        "coreBlowOnlyTestPaths": 5,
-        "openClawTestGaps": 7
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/mattermost/src/approval-auth.ts",
-          "extensions/mattermost/src/channel-api.ts",
-          "extensions/mattermost/src/channel-config-shared.ts",
-          "extensions/mattermost/src/channel.runtime.ts",
-          "extensions/mattermost/src/channel.setup.ts",
-          "extensions/mattermost/src/config-ui-hints.ts",
-          "extensions/mattermost/src/doctor-contract.ts",
-          "extensions/mattermost/src/doctor.ts",
-          "extensions/mattermost/src/gateway-auth-bypass.ts",
-          "extensions/mattermost/src/mattermost/draft-stream.ts",
-          "extensions/mattermost/src/mattermost/no-visible-reply-diagnostic.ts",
-          "extensions/mattermost/src/secret-contract.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/mattermost/src/approval-auth.test.ts",
-          "extensions/mattermost/src/channel.message-adapter.test.ts",
-          "extensions/mattermost/src/doctor.test.ts",
-          "extensions/mattermost/src/gateway-auth-bypass.test.ts",
-          "extensions/mattermost/src/mattermost/draft-stream.test.ts",
-          "extensions/mattermost/src/mattermost/monitor.inbound-system-event.test.ts",
-          "extensions/mattermost/src/mattermost/no-visible-reply-diagnostic.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "extensions/mattermost/src/adapter.ts",
-          "extensions/mattermost/src/config-runtime.ts",
-          "extensions/mattermost/src/config-schema.ts",
-          "extensions/mattermost/src/config.ts",
-          "extensions/mattermost/src/extension.ts",
-          "extensions/mattermost/src/formatter.ts",
-          "extensions/mattermost/src/handler.ts",
-          "extensions/mattermost/src/index.ts",
-          "extensions/mattermost/src/mattermost/index.ts",
-          "extensions/mattermost/src/media.ts",
-          "extensions/mattermost/src/rate-limiter.ts",
-          "extensions/mattermost/src/resolve-target.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/mattermost",
         "pnpm check"
       ]
     },
@@ -3922,6 +3864,43 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/lmstudio",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/mattermost",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "extensions/mattermost plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 63,
+        "coreBlowOnlySourcePaths": 15,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 39,
+        "coreBlowOnlyTestPaths": 5,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "extensions/mattermost/src/adapter.ts",
+          "extensions/mattermost/src/config-runtime.ts",
+          "extensions/mattermost/src/config-schema.ts",
+          "extensions/mattermost/src/config.ts",
+          "extensions/mattermost/src/extension.ts",
+          "extensions/mattermost/src/formatter.ts",
+          "extensions/mattermost/src/handler.ts",
+          "extensions/mattermost/src/index.ts",
+          "extensions/mattermost/src/mattermost/index.ts",
+          "extensions/mattermost/src/media.ts",
+          "extensions/mattermost/src/rate-limiter.ts",
+          "extensions/mattermost/src/resolve-target.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/mattermost",
         "pnpm check"
       ]
     },

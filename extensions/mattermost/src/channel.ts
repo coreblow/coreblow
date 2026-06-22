@@ -1,11 +1,9 @@
 import { Type } from "typebox";
-import { describeAccountSnapshot } from "coreblow/plugin-sdk/account-helpers";
-import { formatNormalizedAllowFromEntries } from "coreblow/plugin-sdk/allow-from";
-import { createMessageToolButtonsSchema } from "coreblow/plugin-sdk/channel-actions";
 import {
-  adaptScopedAccountAccessor,
-  createScopedChannelConfigAdapter,
-} from "coreblow/plugin-sdk/channel-config-helpers";
+  createChannelMessageAdapterFromOutbound,
+  defineChannelMessageAdapter,
+} from "coreblow/plugin-sdk/channel-message";
+import { createMessageToolButtonsSchema } from "coreblow/plugin-sdk/channel-actions";
 import type {
   ChannelMessageActionAdapter,
   ChannelMessageActionName,
@@ -41,13 +39,17 @@ import { resolveMattermostOpaqueTarget } from "./mattermost/target-resolution.js
 import { looksLikeMattermostTargetId, normalizeMattermostMessagingTarget } from "./normalize.js";
 import {
   chunkTextForOutbound,
+  type CoreBlowConfig,
   createAccountStatusSink,
   DEFAULT_ACCOUNT_ID,
-  resolveAllowlistProviderRuntimeGroupPolicy,
-  resolveDefaultGroupPolicy,
   type ChannelPlugin,
 } from "./runtime-api.js";
-import { getMattermostRuntime } from "./runtime.js";
+import {
+  describeMattermostAccount,
+  isMattermostConfigured,
+  mattermostConfigAdapter,
+  mattermostMeta,
+} from "./channel-config-shared.js";
 import { resolveMattermostOutboundSessionRoute } from "./session-route.js";
 import { mattermostSetupAdapter } from "./setup-core.js";
 import { mattermostSetupWizard } from "./setup-surface.js";
@@ -206,19 +208,6 @@ const mattermostMessageActions: ChannelMessageActionAdapter = {
   },
 };
 
-const meta = {
-  id: "mattermost",
-  label: "Mattermost",
-  selectionLabel: "Mattermost (plugin)",
-  detailLabel: "Mattermost Bot",
-  docsPath: "/channels/mattermost",
-  docsLabel: "mattermost",
-  blurb: "self-hosted Slack-style chat; install the plugin to enable.",
-  systemImage: "bubble.left.and.bubble.right",
-  order: 65,
-  quickstartAllowFrom: true,
-} as const;
-
 function readTrimmedString(value: unknown): string | undefined {
   if (typeof value !== "string") {
     return undefined;
@@ -261,37 +250,11 @@ function normalizeAllowEntry(entry: string): string {
     .toLowerCase();
 }
 
-function formatAllowEntry(entry: string): string {
-  const trimmed = entry.trim();
-  if (!trimmed) {
-    return "";
-  }
-  if (trimmed.startsWith("@")) {
-    const username = trimmed.slice(1).trim();
-    return username ? `@${username.toLowerCase()}` : "";
-  }
-  return trimmed.replace(/^(mattermost|user):/i, "").toLowerCase();
-}
-
-const mattermostConfigAdapter = createScopedChannelConfigAdapter<ResolvedMattermostAccount>({
-  sectionKey: "mattermost",
-  listAccountIds: listMattermostAccountIds,
-  resolveAccount: adaptScopedAccountAccessor(resolveMattermostAccount),
-  defaultAccountId: resolveDefaultMattermostAccountId,
-  clearBaseFields: ["botToken", "baseUrl", "name"],
-  resolveAllowFrom: (account: ResolvedMattermostAccount) => account.config.allowFrom,
-  formatAllowFrom: (allowFrom) =>
-    formatNormalizedAllowFromEntries({
-      allowFrom,
-      normalizeEntry: formatAllowEntry,
-    }),
-});
-
 export const mattermostPlugin: ChannelPlugin<ResolvedMattermostAccount> = createChatChannelPlugin({
   base: {
     id: "mattermost",
     meta: {
-      ...meta,
+      ...mattermostMeta,
     },
     setup: mattermostSetupAdapter,
     setupWizard: mattermostSetupWizard,
@@ -309,16 +272,8 @@ export const mattermostPlugin: ChannelPlugin<ResolvedMattermostAccount> = create
     configSchema: MattermostChannelConfigSchema,
     config: {
       ...mattermostConfigAdapter,
-      isConfigured: (account) => Boolean(account.botToken && account.baseUrl),
-      describeAccount: (account) =>
-        describeAccountSnapshot({
-          account,
-          configured: Boolean(account.botToken && account.baseUrl),
-          extra: {
-            botTokenSource: account.botTokenSource,
-            baseUrl: account.baseUrl,
-          },
-        }),
+      isConfigured: isMattermostConfigured,
+      describeAccount: describeMattermostAccount,
     },
     groups: {
       resolveRequireMention: resolveMattermostGroupRequireMention,
@@ -483,22 +438,162 @@ export const mattermostPlugin: ChannelPlugin<ResolvedMattermostAccount> = create
   },
 });
 
+function readMattermostPresentationButtons(payload: {
+  channelData?: Record<string, unknown>;
+}): Array<unknown> | undefined {
+  const buttons = (payload.channelData?.mattermost as { presentationButtons?: unknown } | undefined)
+    ?.presentationButtons;
+  return Array.isArray(buttons) ? buttons : undefined;
+}
+
+const mattermostMessageAdapter = defineChannelMessageAdapter(
+  createChannelMessageAdapterFromOutbound<CoreBlowConfig>({
+    outbound: {
+      deliveryCapabilities: {
+        durableFinal: {
+          text: true,
+          media: true,
+          payload: true,
+          replyTo: true,
+          thread: true,
+        },
+      },
+      sendText: async ({ cfg, to, text, accountId, replyToId, threadId }) =>
+        await sendMessageMattermost(to, text, {
+          cfg,
+          accountId: accountId ?? undefined,
+          replyToId: replyToId ?? (threadId != null ? String(threadId) : undefined),
+        }),
+      sendMedia: async ({
+        cfg,
+        to,
+        text,
+        mediaUrl,
+        mediaLocalRoots,
+        accountId,
+        replyToId,
+        threadId,
+      }) =>
+        await sendMessageMattermost(to, text, {
+          cfg,
+          accountId: accountId ?? undefined,
+          mediaUrl,
+          mediaLocalRoots,
+          replyToId: replyToId ?? (threadId != null ? String(threadId) : undefined),
+        }),
+      sendPayload: async ({
+        cfg,
+        to,
+        text,
+        payload,
+        mediaUrl,
+        mediaLocalRoots,
+        accountId,
+        replyToId,
+        threadId,
+      }) =>
+        await sendMessageMattermost(to, text, {
+          cfg,
+          accountId: accountId ?? undefined,
+          mediaUrl: mediaUrl ?? payload.mediaUrl ?? payload.mediaUrls?.[0],
+          mediaLocalRoots,
+          replyToId: replyToId ?? (threadId != null ? String(threadId) : undefined),
+          buttons: readMattermostPresentationButtons(payload),
+        }),
+    },
+    live: {
+      capabilities: {
+        draftPreview: true,
+        previewFinalization: true,
+        progressUpdates: true,
+      },
+      finalizer: {
+        capabilities: {
+          finalEdit: true,
+          normalFallback: true,
+          discardPending: true,
+        },
+      },
+    },
+  }),
+);
+
+(mattermostPlugin as typeof mattermostPlugin & { message?: typeof mattermostMessageAdapter }).message =
+  mattermostMessageAdapter;
+
 /**
  * Channel implementation used by mattermost runtime for per-channel state.
  */
 export class MattermostChannelImpl {
   readonly id: string;
   private connected = false;
+  private token: string | undefined;
 
   constructor(id: string) {
     this.id = id;
   }
 
+  async connect(token?: string): Promise<void> {
+    this.token = token?.trim() || undefined;
+    this.connected = true;
+  }
+
   async disconnect(): Promise<void> {
     this.connected = false;
+    this.token = undefined;
   }
 
   isConnected(): boolean {
     return this.connected;
+  }
+
+  async sendMessage(content: string): Promise<{ content: string; connected: boolean }> {
+    return {
+      content,
+      connected: this.connected,
+    };
+  }
+
+  async editMessage(messageId: string, content: string): Promise<{
+    edited: boolean;
+    messageId: string;
+    content: string;
+  }> {
+    return {
+      edited: true,
+      messageId,
+      content,
+    };
+  }
+
+  async deleteMessage(messageId: string): Promise<{ deleted: boolean; messageId: string }> {
+    return {
+      deleted: true,
+      messageId,
+    };
+  }
+
+  async addReaction(messageId: string, reaction: string): Promise<{
+    added: boolean;
+    messageId: string;
+    reaction: string;
+  }> {
+    return {
+      added: true,
+      messageId,
+      reaction,
+    };
+  }
+
+  async removeReaction(messageId: string, reaction: string): Promise<{
+    removed: boolean;
+    messageId: string;
+    reaction: string;
+  }> {
+    return {
+      removed: true,
+      messageId,
+      reaction,
+    };
   }
 }
