@@ -53,9 +53,91 @@ export function isValidOpenAIVoice(voice: string, baseUrl?: string): voice is Op
 export function resolveOpenAITtsInstructions(
   model: string,
   instructions?: string,
+  baseUrl?: string,
 ): string | undefined {
   const next = instructions?.trim();
-  return next && model.includes("gpt-4o-mini-tts") ? next : undefined;
+  if (!next) {
+    return undefined;
+  }
+  if (isCustomOpenAIEndpoint(baseUrl)) {
+    return next;
+  }
+  return model.includes("gpt-4o-mini-tts") ? next : undefined;
+}
+
+function sanitizeExtraBody(extraBody?: Record<string, unknown>): Record<string, unknown> {
+  if (!extraBody) {
+    return {};
+  }
+  const sanitized: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(extraBody)) {
+    if (key === "__proto__" || key === "constructor" || key === "prototype") {
+      continue;
+    }
+    sanitized[key] = value;
+  }
+  return sanitized;
+}
+
+async function readErrorBody(response: Response, maxBytes = 8192): Promise<string | undefined> {
+  if (!response.body) {
+    return undefined;
+  }
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  try {
+    while (size < maxBytes) {
+      const { done, value } = await reader.read();
+      if (done || !value) {
+        break;
+      }
+      const remaining = maxBytes - size;
+      const chunk = value.byteLength > remaining ? value.slice(0, remaining) : value;
+      chunks.push(chunk);
+      size += chunk.byteLength;
+      if (value.byteLength > remaining) {
+        break;
+      }
+    }
+  } finally {
+    await reader.cancel().catch(() => {});
+  }
+  if (chunks.length === 0) {
+    return undefined;
+  }
+  return new TextDecoder().decode(Buffer.concat(chunks)).trim() || undefined;
+}
+
+async function buildTtsError(response: Response): Promise<Error> {
+  const body = await readErrorBody(response);
+  let detail = body;
+  let metadata = "";
+  if (body?.length) {
+    try {
+      const parsed = JSON.parse(body) as {
+        error?: { message?: unknown; type?: unknown; code?: unknown };
+      };
+      const error = parsed.error;
+      if (error && typeof error.message === "string") {
+        detail = error.message;
+        const parts = [
+          typeof error.type === "string" ? `type=${error.type}` : undefined,
+          typeof error.code === "string" ? `code=${error.code}` : undefined,
+        ].filter((part): part is string => part !== undefined);
+        if (parts.length > 0) {
+          metadata = ` [${parts.join(", ")}]`;
+        }
+      }
+    } catch {
+      // Keep the raw body text for non-JSON upstream errors.
+    }
+  }
+  const requestId = response.headers.get("x-request-id");
+  const requestMetadata = requestId ? ` [request_id=${requestId}]` : "";
+  return new Error(
+    `OpenAI TTS API error (${response.status})${detail ? `: ${detail}` : ""}${metadata}${requestMetadata}`,
+  );
 }
 
 export async function openaiTTS(params: {
@@ -66,12 +148,24 @@ export async function openaiTTS(params: {
   voice: string;
   speed?: number;
   instructions?: string;
+  extraBody?: Record<string, unknown>;
   responseFormat: "mp3" | "opus" | "pcm";
   timeoutMs: number;
 }): Promise<Buffer> {
-  const { text, apiKey, baseUrl, model, voice, speed, instructions, responseFormat, timeoutMs } =
-    params;
-  const effectiveInstructions = resolveOpenAITtsInstructions(model, instructions);
+  const {
+    text,
+    apiKey,
+    baseUrl,
+    model,
+    voice,
+    speed,
+    instructions,
+    extraBody,
+    responseFormat,
+    timeoutMs,
+  } = params;
+  const normalizedBaseUrl = normalizeOpenAITtsBaseUrl(baseUrl);
+  const effectiveInstructions = resolveOpenAITtsInstructions(model, instructions, normalizedBaseUrl);
 
   if (!isValidOpenAIModel(model, baseUrl)) {
     throw new Error(`Invalid model: ${model}`);
@@ -84,11 +178,15 @@ export async function openaiTTS(params: {
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetch(`${baseUrl}/audio/speech`, {
+    const version = process.env.COREBLOW_VERSION?.trim() || "dev";
+    const response = await fetch(`${normalizedBaseUrl}/audio/speech`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
+        originator: "coreblow",
+        version,
+        "User-Agent": `coreblow/${version}`,
       },
       body: JSON.stringify({
         model,
@@ -97,12 +195,13 @@ export async function openaiTTS(params: {
         response_format: responseFormat,
         ...(speed != null && { speed }),
         ...(effectiveInstructions != null && { instructions: effectiveInstructions }),
+        ...sanitizeExtraBody(extraBody),
       }),
       signal: controller.signal,
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI TTS API error (${response.status})`);
+      throw await buildTtsError(response);
     }
 
     return Buffer.from(await response.arrayBuffer());
