@@ -19,7 +19,7 @@ describe("OpenAI setup auth provider", () => {
     expect(apiKey?.wizard?.choiceId).toBe("openai-api-key");
   });
 
-  it("keeps the legacy openai-codex setup provider available with backup API key auth", () => {
+  it("keeps the legacy openai-codex setup provider available", () => {
     const provider = buildOpenAICodexSetupProvider();
     const apiKey = provider.auth.find((method) => method.id === "api-key");
 
