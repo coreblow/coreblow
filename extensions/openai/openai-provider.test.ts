@@ -75,6 +75,41 @@ function resolveLiveModelCases(raw?: string): LiveModelCase[] {
   return [...new Set(modelIds)].map((modelId) => resolveLiveModelCase(modelId));
 }
 
+function createOpenAITemplate(overrides: Record<string, unknown> = {}) {
+  const id = typeof overrides.id === "string" ? overrides.id : "gpt-5.4";
+  return {
+    id,
+    name: id,
+    provider: "openai",
+    api: "openai-responses",
+    baseUrl: "https://api.openai.com/v1",
+    reasoning: true,
+    input: ["text", "image"],
+    cost: { input: 2.5, output: 15, cacheRead: 0.25, cacheWrite: 0 },
+    contextWindow: 1_050_000,
+    maxTokens: 128_000,
+    ...overrides,
+  };
+}
+
+function createOpenAIRegistry(...models: Array<ReturnType<typeof createOpenAITemplate> | null>) {
+  return {
+    find(providerId: string, modelId: string) {
+      if (providerId !== "openai") {
+        return null;
+      }
+      return models.find((model) => model?.id === modelId) ?? null;
+    },
+  };
+}
+
+function requireCatalogEntries(entries: unknown) {
+  if (!Array.isArray(entries)) {
+    throw new Error("expected synchronous catalog entries");
+  }
+  return entries;
+}
+
 describe("buildOpenAIProvider", () => {
   it("exposes grouped model/auth picker labels for API key setup", () => {
     const provider = buildOpenAIProvider();
@@ -206,8 +241,8 @@ describe("buildOpenAIProvider", () => {
       id: "gpt-5.4-nano",
       api: "openai-responses",
       baseUrl: "https://api.openai.com/v1",
-      contextWindow: 200_000,
-      maxTokens: 64_000,
+      contextWindow: 400_000,
+      maxTokens: 128_000,
     });
   });
 
@@ -227,27 +262,132 @@ describe("buildOpenAIProvider", () => {
       } as never),
     ).toBe(true);
 
-    const entries = provider.augmentModelCatalog?.({
+    const entries = requireCatalogEntries(provider.augmentModelCatalog?.({
       env: process.env,
       entries: [
         { provider: "openai", id: "gpt-5-mini", name: "GPT-5 mini" },
         { provider: "openai", id: "gpt-5-nano", name: "GPT-5 nano" },
       ],
-    } as never);
+    } as never));
 
-    expect(entries).toContainEqual({
+    expect(entries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          provider: "openai",
+          id: "gpt-5.4-mini",
+          name: "gpt-5.4-mini",
+          reasoning: true,
+          input: ["text", "image"],
+          contextWindow: 400_000,
+          cost: { input: 0.75, output: 4.5, cacheRead: 0.075, cacheWrite: 0 },
+        }),
+        expect.objectContaining({
+          provider: "openai",
+          id: "gpt-5.4-nano",
+          name: "gpt-5.4-nano",
+          reasoning: true,
+          input: ["text", "image"],
+          contextWindow: 400_000,
+          cost: { input: 0.2, output: 1.25, cacheRead: 0.02, cacheWrite: 0 },
+        }),
+      ]),
+    );
+  });
+
+  it("resolves chat-latest as an explicit direct API model override", () => {
+    const provider = buildOpenAIProvider();
+
+    const model = provider.resolveDynamicModel?.({
       provider: "openai",
-      id: "gpt-5.4-mini",
-      name: "gpt-5.4-mini",
+      modelId: "chat-latest",
+      modelRegistry: createOpenAIRegistry(
+        createOpenAITemplate({
+          id: "gpt-5.5",
+          name: "GPT-5.5",
+          cost: { input: 5, output: 30, cacheRead: 0.5, cacheWrite: 0 },
+        }),
+      ) as never,
     });
-    expect(entries).toContainEqual({
+    const fallback = provider.resolveDynamicModel?.({
       provider: "openai",
-      id: "gpt-5.4-nano",
-      name: "gpt-5.4-nano",
+      modelId: "chat-latest",
+      modelRegistry: createOpenAIRegistry(null) as never,
+    });
+
+    expect(model).toMatchObject({
+      provider: "openai",
+      id: "chat-latest",
+      api: "openai-responses",
+      baseUrl: "https://api.openai.com/v1",
+      reasoning: false,
+      input: ["text", "image"],
+      contextWindow: 400_000,
+      maxTokens: 128_000,
+      cost: { input: 5, output: 30, cacheRead: 0.5, cacheWrite: 0 },
+    });
+    expect(fallback).toMatchObject({
+      provider: "openai",
+      id: "chat-latest",
+      api: "openai-responses",
+      reasoning: false,
+      contextWindow: 400_000,
+      maxTokens: 128_000,
+      cost: { input: 5, output: 30, cacheRead: 0.5, cacheWrite: 0 },
     });
   });
 
-  it("keeps modern live selection on OpenAI 5.2+ and Codex 5.2+", () => {
+  it("leaves gpt-5.5 to Pi and resolves gpt-5.5-pro locally", () => {
+    const provider = buildOpenAIProvider();
+
+    const model = provider.resolveDynamicModel?.({
+      provider: "openai",
+      modelId: "gpt-5.5",
+      modelRegistry: createOpenAIRegistry(createOpenAITemplate({ id: "gpt-5.4" })) as never,
+    });
+    const pro = provider.resolveDynamicModel?.({
+      provider: "openai",
+      modelId: "gpt-5.5-pro",
+      modelRegistry: createOpenAIRegistry(
+        createOpenAITemplate({
+          id: "gpt-5.4-pro",
+          name: "GPT-5.4 Pro",
+          cost: { input: 30, output: 180, cacheRead: 0, cacheWrite: 0 },
+        }),
+      ) as never,
+    });
+
+    expect(model).toBeUndefined();
+    expect(pro).toMatchObject({
+      provider: "openai",
+      id: "gpt-5.5-pro",
+      api: "openai-responses",
+      baseUrl: "https://api.openai.com/v1",
+      contextWindow: 1_000_000,
+      maxTokens: 128_000,
+      cost: { input: 30, output: 180, cacheRead: 0, cacheWrite: 0 },
+    });
+  });
+
+  it("keeps chat-latest and gpt-5.5 out of synthetic catalog metadata", () => {
+    const provider = buildOpenAIProvider();
+
+    expect(
+      provider.supportsXHighThinking?.({
+        provider: "openai",
+        modelId: "gpt-5.5",
+      } as never),
+    ).toBe(true);
+
+    const entries = requireCatalogEntries(provider.augmentModelCatalog?.({
+      env: process.env,
+      entries: [{ provider: "openai", id: "gpt-5.4", name: "GPT-5.4" }],
+    } as never));
+
+    expect(entries?.some((entry) => entry.id === "gpt-5.5")).toBe(false);
+    expect(entries?.some((entry) => entry.id === "chat-latest")).toBe(false);
+  });
+
+  it("keeps modern live selection on OpenAI 5.2+ and current Codex models", () => {
     const provider = buildOpenAIProvider();
     const codexProvider = buildOpenAICodexProviderPlugin();
 
@@ -267,6 +407,18 @@ describe("buildOpenAIProvider", () => {
       provider.isModernModelRef?.({
         provider: "openai",
         modelId: "gpt-5.4",
+      } as never),
+    ).toBe(true);
+    expect(
+      provider.isModernModelRef?.({
+        provider: "openai",
+        modelId: "chat-latest",
+      } as never),
+    ).toBe(true);
+    expect(
+      provider.isModernModelRef?.({
+        provider: "openai",
+        modelId: "gpt-5.5",
       } as never),
     ).toBe(true);
 
