@@ -40,6 +40,7 @@ let resolveProviderBuiltInModelSuppression: typeof import("./provider-runtime.js
 let createProviderEmbeddingProvider: typeof import("./provider-runtime.js").createProviderEmbeddingProvider;
 let resolveProviderDefaultThinkingLevel: typeof import("./provider-runtime.js").resolveProviderDefaultThinkingLevel;
 let resolveProviderModernModelRef: typeof import("./provider-runtime.js").resolveProviderModernModelRef;
+let resolveProviderReasoningOutputModeWithPlugin: typeof import("./provider-runtime.js").resolveProviderReasoningOutputModeWithPlugin;
 let resolveProviderSyntheticAuthWithPlugin: typeof import("./provider-runtime.js").resolveProviderSyntheticAuthWithPlugin;
 let resolveProviderUsageSnapshotWithPlugin: typeof import("./provider-runtime.js").resolveProviderUsageSnapshotWithPlugin;
 let resolveProviderCapabilitiesWithPlugin: typeof import("./provider-runtime.js").resolveProviderCapabilitiesWithPlugin;
@@ -225,6 +226,7 @@ describe("provider-runtime", () => {
       createProviderEmbeddingProvider,
       resolveProviderDefaultThinkingLevel,
       resolveProviderModernModelRef,
+      resolveProviderReasoningOutputModeWithPlugin,
       resolveProviderSyntheticAuthWithPlugin,
       resolveProviderUsageSnapshotWithPlugin,
       resolveProviderCapabilitiesWithPlugin,
@@ -504,6 +506,7 @@ describe("provider-runtime", () => {
           supportsXHighThinking: ({ modelId }) => modelId === "gpt-5.4",
           resolveDefaultThinkingLevel: ({ reasoning }) => (reasoning ? "low" : "off"),
           isModernModelRef: ({ modelId }) => modelId.startsWith("gpt-5"),
+          resolveReasoningOutputMode: () => "native",
         },
         {
           ...createOpenAiCatalogProviderPlugin({
@@ -806,6 +809,17 @@ describe("provider-runtime", () => {
             }),
           }),
         expected: true,
+      },
+      {
+        actual: () =>
+          resolveProviderReasoningOutputModeWithPlugin({
+            provider: DEMO_PROVIDER_ID,
+            context: createDemoProviderContext({
+              modelId: "gpt-5.4",
+              modelApi: "openai-responses",
+            }),
+          }),
+        expected: "native",
       },
       {
         actual: () =>

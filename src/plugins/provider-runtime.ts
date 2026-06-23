@@ -29,6 +29,8 @@ import type {
   ProviderPrepareRuntimeAuthContext,
   ProviderResolveConfigApiKeyContext,
   ProviderResolveUsageAuthContext,
+  ProviderReasoningOutputMode,
+  ProviderReasoningOutputModeContext,
   ProviderPlugin,
   ProviderResolveDynamicModelContext,
   ProviderRuntimeModel,
@@ -222,6 +224,17 @@ export function normalizeProviderResolvedModelWithPlugin(params: {
   return (
     resolveProviderRuntimePlugin(params)?.normalizeResolvedModel?.(params.context) ?? undefined
   );
+}
+
+export function resolveProviderReasoningOutputModeWithPlugin(params: {
+  provider: string;
+  config?: CoreBlowConfig;
+  workspaceDir?: string;
+  env?: NodeJS.ProcessEnv;
+  context: ProviderReasoningOutputModeContext;
+}): ProviderReasoningOutputMode | undefined {
+  const mode = resolveProviderHookPlugin(params)?.resolveReasoningOutputMode?.(params.context);
+  return mode === "native" || mode === "tagged" ? mode : undefined;
 }
 
 function resolveProviderHookPlugin(params: {

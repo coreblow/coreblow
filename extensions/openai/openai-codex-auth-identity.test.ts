@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { resolveCodexAuthIdentity } from "./openai-codex-auth-identity.js";
+import {
+  resolveCodexAccessTokenExpiry,
+  resolveCodexAuthIdentity,
+} from "./openai-codex-auth-identity.js";
 
 function createJwt(payload: Record<string, unknown>): string {
   const header = Buffer.from(JSON.stringify({ alg: "none", typ: "JWT" })).toString("base64url");
@@ -19,6 +22,27 @@ describe("resolveCodexAuthIdentity", () => {
     });
 
     expect(identity).toEqual({
+      email: "jwt-user@example.com",
+      profileName: "jwt-user@example.com",
+    });
+  });
+
+  it("extracts account and plan metadata from the JWT auth claim", () => {
+    const identity = resolveCodexAuthIdentity({
+      accessToken: createJwt({
+        "https://api.openai.com/profile": {
+          email: "jwt-user@example.com",
+        },
+        "https://api.openai.com/auth": {
+          chatgpt_account_id: "acct-123",
+          chatgpt_plan_type: "prolite",
+        },
+      }),
+    });
+
+    expect(identity).toEqual({
+      accountId: "acct-123",
+      chatgptPlanType: "prolite",
       email: "jwt-user@example.com",
       profileName: "jwt-user@example.com",
     });
@@ -52,5 +76,11 @@ describe("resolveCodexAuthIdentity", () => {
 
   it("returns no metadata when token parsing yields no identity", () => {
     expect(resolveCodexAuthIdentity({ accessToken: "not-a-jwt-token" })).toEqual({});
+  });
+
+  it("resolves JWT expiry to epoch milliseconds", () => {
+    expect(resolveCodexAccessTokenExpiry(createJwt({ exp: 1735689600 }))).toBe(1735689600000);
+    expect(resolveCodexAccessTokenExpiry(createJwt({ exp: "1735689600" }))).toBe(1735689600000);
+    expect(resolveCodexAccessTokenExpiry("not-a-jwt-token")).toBeUndefined();
   });
 });

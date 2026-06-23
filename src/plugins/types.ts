@@ -347,7 +347,9 @@ export type ProviderPluginCatalog = {
  * Runtime hooks below operate on the final `pi-ai` model object after
  * discovery/override merging, just before inference runs.
  */
-export type ProviderRuntimeModel = Model<Api>;
+export type ProviderRuntimeModel = Model<Api> & {
+  contextTokens?: number;
+};
 
 export type ProviderRuntimeProviderConfig = {
   baseUrl?: string;
@@ -708,6 +710,18 @@ export type ProviderBuiltInModelSuppressionResult = {
 export type ProviderThinkingPolicyContext = {
   provider: string;
   modelId: string;
+};
+
+export type ProviderReasoningOutputMode = "native" | "tagged";
+
+export type ProviderReasoningOutputModeContext = {
+  config?: CoreBlowConfig;
+  workspaceDir?: string;
+  env?: NodeJS.ProcessEnv;
+  provider: string;
+  modelId?: string;
+  modelApi?: string | null;
+  model?: ProviderRuntimeModel;
 };
 
 /**
@@ -1091,6 +1105,15 @@ export type ProviderPlugin = {
     | Promise<Array<ModelCatalogEntry> | ReadonlyArray<ModelCatalogEntry> | null | undefined>
     | null
     | undefined;
+  /**
+   * Provider-owned reasoning output mode.
+   *
+   * Use this when a provider requires tagged reasoning/final output instead of
+   * native structured reasoning fields.
+   */
+  resolveReasoningOutputMode?: (
+    ctx: ProviderReasoningOutputModeContext,
+  ) => ProviderReasoningOutputMode | null | undefined;
   /**
    * Provider-owned binary thinking toggle.
    *

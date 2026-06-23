@@ -76,6 +76,73 @@ function resolveLiveModelCases(raw?: string): LiveModelCase[] {
 }
 
 describe("buildOpenAIProvider", () => {
+  it("exposes grouped model/auth picker labels for API key setup", () => {
+    const provider = buildOpenAIProvider();
+    const apiKey = provider.auth.find((method) => method.id === "api-key");
+
+    expect(apiKey?.wizard).toMatchObject({
+      choiceLabel: "OpenAI API Key",
+      choiceHint: "Use your OpenAI API key directly",
+      groupId: "openai",
+      groupLabel: "OpenAI",
+      groupHint: "ChatGPT/Codex sign-in or API key",
+    });
+  });
+
+  it("owns native reasoning output mode for OpenAI and Azure OpenAI responses", () => {
+    const provider = buildOpenAIProvider();
+
+    expect(
+      provider.resolveReasoningOutputMode?.({
+        provider: "openai",
+        modelApi: "openai-responses",
+        modelId: "gpt-5.4",
+      }),
+    ).toBe("native");
+    expect(
+      provider.resolveReasoningOutputMode?.({
+        provider: "azure-openai-responses",
+        modelApi: "azure-openai-responses",
+        modelId: "gpt-5.4",
+      }),
+    ).toBe("native");
+  });
+
+  it("keeps GPT-5.4 family metadata aligned with native OpenAI docs", () => {
+    const provider = buildOpenAIProvider();
+    const codexProvider = buildOpenAICodexProviderPlugin();
+
+    expect(
+      provider.resolveDynamicModel?.({
+        provider: "openai",
+        modelId: "gpt-5.4",
+        modelRegistry: { find: () => null } as never,
+      }),
+    ).toMatchObject({
+      provider: "openai",
+      id: "gpt-5.4",
+      api: "openai-responses",
+      baseUrl: "https://api.openai.com/v1",
+      contextWindow: 1_050_000,
+      maxTokens: 128_000,
+    });
+    expect(
+      codexProvider.resolveDynamicModel?.({
+        provider: "openai-codex",
+        modelId: "gpt-5.4",
+        modelRegistry: { find: () => null } as never,
+      }),
+    ).toMatchObject({
+      provider: "openai-codex",
+      id: "gpt-5.4",
+      api: "openai-codex-responses",
+      baseUrl: "https://chatgpt.com/backend-api/codex",
+      contextWindow: 1_050_000,
+      contextTokens: 272_000,
+      maxTokens: 128_000,
+    });
+  });
+
   it("resolves gpt-5.4 mini and nano from GPT-5 small-model templates", () => {
     const provider = buildOpenAIProvider();
     const registry = {

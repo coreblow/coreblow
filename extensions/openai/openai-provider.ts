@@ -10,9 +10,13 @@ import {
   type ProviderPlugin,
 } from "coreblow/plugin-sdk/provider-model-shared";
 import {
-  createOpenAIAttributionHeadersWrapper,
-  createOpenAIDefaultTransportWrapper,
-} from "coreblow/plugin-sdk/provider-stream";
+  buildOpenAIResponsesProviderHooks,
+  buildOpenAISyntheticCatalogEntry,
+} from "./shared.js";
+import {
+  OPENAI_ACCOUNT_WIZARD_GROUP,
+  OPENAI_API_KEY_LABEL,
+} from "./auth-choice-copy.js";
 import { applyOpenAIConfig, OPENAI_DEFAULT_MODEL } from "./default-models.js";
 import {
   cloneFirstTemplateModel,
@@ -143,7 +147,7 @@ export function buildOpenAIProvider(): ProviderPlugin {
       createProviderApiKeyAuthMethod({
         providerId: PROVIDER_ID,
         methodId: "api-key",
-        label: "OpenAI API key",
+        label: OPENAI_API_KEY_LABEL,
         hint: "Direct OpenAI API key",
         optionKey: "openaiApiKey",
         flagName: "--openai-api-key",
@@ -154,10 +158,9 @@ export function buildOpenAIProvider(): ProviderPlugin {
         applyConfig: (cfg) => applyOpenAIConfig(cfg),
         wizard: {
           choiceId: "openai-api-key",
-          choiceLabel: "OpenAI API key",
-          groupId: "openai",
-          groupLabel: "OpenAI",
-          groupHint: "Codex OAuth + API key",
+          choiceLabel: OPENAI_API_KEY_LABEL,
+          choiceHint: "Use your OpenAI API key directly",
+          ...OPENAI_ACCOUNT_WIZARD_GROUP,
         },
       }),
     ],
@@ -171,8 +174,7 @@ export function buildOpenAIProvider(): ProviderPlugin {
     capabilities: {
       providerFamily: "openai",
     },
-    wrapStreamFn: (ctx) =>
-      createOpenAIAttributionHeadersWrapper(createOpenAIDefaultTransportWrapper(ctx.streamFn)),
+    resolveReasoningOutputMode: () => "native",
     supportsXHighThinking: ({ modelId }) => matchesExactOrPrefix(modelId, OPENAI_XHIGH_MODEL_IDS),
     isModernModelRef: ({ modelId }) => matchesExactOrPrefix(modelId, OPENAI_MODERN_MODEL_IDS),
     buildMissingAuthMessage: (ctx) => {
@@ -215,35 +217,20 @@ export function buildOpenAIProvider(): ProviderPlugin {
         templateIds: OPENAI_GPT_54_NANO_TEMPLATE_MODEL_IDS,
       });
       return [
-        openAiGpt54Template
-          ? {
-              ...openAiGpt54Template,
-              id: OPENAI_GPT_54_MODEL_ID,
-              name: OPENAI_GPT_54_MODEL_ID,
-            }
-          : undefined,
-        openAiGpt54ProTemplate
-          ? {
-              ...openAiGpt54ProTemplate,
-              id: OPENAI_GPT_54_PRO_MODEL_ID,
-              name: OPENAI_GPT_54_PRO_MODEL_ID,
-            }
-          : undefined,
-        openAiGpt54MiniTemplate
-          ? {
-              ...openAiGpt54MiniTemplate,
-              id: OPENAI_GPT_54_MINI_MODEL_ID,
-              name: OPENAI_GPT_54_MINI_MODEL_ID,
-            }
-          : undefined,
-        openAiGpt54NanoTemplate
-          ? {
-              ...openAiGpt54NanoTemplate,
-              id: OPENAI_GPT_54_NANO_MODEL_ID,
-              name: OPENAI_GPT_54_NANO_MODEL_ID,
-            }
-          : undefined,
+        buildOpenAISyntheticCatalogEntry(openAiGpt54Template, {
+          id: OPENAI_GPT_54_MODEL_ID,
+        }),
+        buildOpenAISyntheticCatalogEntry(openAiGpt54ProTemplate, {
+          id: OPENAI_GPT_54_PRO_MODEL_ID,
+        }),
+        buildOpenAISyntheticCatalogEntry(openAiGpt54MiniTemplate, {
+          id: OPENAI_GPT_54_MINI_MODEL_ID,
+        }),
+        buildOpenAISyntheticCatalogEntry(openAiGpt54NanoTemplate, {
+          id: OPENAI_GPT_54_NANO_MODEL_ID,
+        }),
       ].filter((entry): entry is NonNullable<typeof entry> => entry !== undefined);
     },
+    ...buildOpenAIResponsesProviderHooks({ applyDefaultTransportWrapper: true }),
   };
 }
