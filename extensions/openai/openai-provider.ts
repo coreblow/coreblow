@@ -12,6 +12,7 @@ import {
 import {
   buildOpenAIResponsesProviderHooks,
   buildOpenAISyntheticCatalogEntry,
+  buildOpenAIToolCompatProviderHooks,
 } from "./shared.js";
 import {
   OPENAI_ACCOUNT_WIZARD_GROUP,
@@ -328,5 +329,6 @@ export function buildOpenAIProvider(): ProviderPlugin {
       ].filter((entry): entry is NonNullable<typeof entry> => entry !== undefined);
     },
     ...buildOpenAIResponsesProviderHooks({ applyDefaultTransportWrapper: true }),
+    ...buildOpenAIToolCompatProviderHooks(),
   };
 }

@@ -24,6 +24,7 @@ import type {
   ProviderNormalizeModelIdContext,
   ProviderNormalizeTransportContext,
   ProviderModernModelPolicyContext,
+  ProviderNormalizeToolSchemasContext,
   ProviderPrepareExtraParamsContext,
   ProviderPrepareDynamicModelContext,
   ProviderPrepareRuntimeAuthContext,
@@ -516,6 +517,26 @@ export function resolveProviderSyntheticAuthWithPlugin(params: {
   context: ProviderResolveSyntheticAuthContext;
 }) {
   return resolveProviderRuntimePlugin(params)?.resolveSyntheticAuth?.(params.context) ?? undefined;
+}
+
+export function normalizeProviderToolSchemasWithPlugin(params: {
+  provider: string;
+  config?: CoreBlowConfig;
+  workspaceDir?: string;
+  env?: NodeJS.ProcessEnv;
+  context: ProviderNormalizeToolSchemasContext;
+}) {
+  return resolveProviderRuntimePlugin(params)?.normalizeToolSchemas?.(params.context) ?? undefined;
+}
+
+export function inspectProviderToolSchemasWithPlugin(params: {
+  provider: string;
+  config?: CoreBlowConfig;
+  workspaceDir?: string;
+  env?: NodeJS.ProcessEnv;
+  context: ProviderNormalizeToolSchemasContext;
+}) {
+  return resolveProviderRuntimePlugin(params)?.inspectToolSchemas?.(params.context) ?? undefined;
 }
 
 export function resolveProviderBuiltInModelSuppression(params: {

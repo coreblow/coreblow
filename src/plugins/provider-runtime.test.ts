@@ -30,8 +30,10 @@ let applyProviderNativeStreamingUsageCompatWithPlugin: typeof import("./provider
 let formatProviderAuthProfileApiKeyWithPlugin: typeof import("./provider-runtime.js").formatProviderAuthProfileApiKeyWithPlugin;
 let normalizeProviderConfigWithPlugin: typeof import("./provider-runtime.js").normalizeProviderConfigWithPlugin;
 let normalizeProviderModelIdWithPlugin: typeof import("./provider-runtime.js").normalizeProviderModelIdWithPlugin;
+let normalizeProviderToolSchemasWithPlugin: typeof import("./provider-runtime.js").normalizeProviderToolSchemasWithPlugin;
 let normalizeProviderTransportWithPlugin: typeof import("./provider-runtime.js").normalizeProviderTransportWithPlugin;
 let prepareProviderExtraParams: typeof import("./provider-runtime.js").prepareProviderExtraParams;
+let inspectProviderToolSchemasWithPlugin: typeof import("./provider-runtime.js").inspectProviderToolSchemasWithPlugin;
 let resolveProviderConfigApiKeyWithPlugin: typeof import("./provider-runtime.js").resolveProviderConfigApiKeyWithPlugin;
 let resolveProviderStreamFn: typeof import("./provider-runtime.js").resolveProviderStreamFn;
 let resolveProviderCacheTtlEligibility: typeof import("./provider-runtime.js").resolveProviderCacheTtlEligibility;
@@ -216,8 +218,10 @@ describe("provider-runtime", () => {
       formatProviderAuthProfileApiKeyWithPlugin,
       normalizeProviderConfigWithPlugin,
       normalizeProviderModelIdWithPlugin,
+      normalizeProviderToolSchemasWithPlugin,
       normalizeProviderTransportWithPlugin,
       prepareProviderExtraParams,
+      inspectProviderToolSchemasWithPlugin,
       resolveProviderConfigApiKeyWithPlugin,
       resolveProviderStreamFn,
       resolveProviderCacheTtlEligibility,
@@ -361,7 +365,58 @@ describe("provider-runtime", () => {
     ).toEqual({
       api: "google-generative-ai",
       baseUrl: "https://generativelanguage.googleapis.com/v1beta",
-    });
+      });
+  });
+
+  it("routes provider-owned tool schema hooks through runtime provider lookup", () => {
+    const tool = {
+      name: "ping",
+      description: "",
+      parameters: {},
+      execute: vi.fn(),
+    } as never;
+    const normalizedTool = {
+      ...tool,
+      parameters: {
+        type: "object",
+        properties: {},
+        required: [],
+        additionalProperties: false,
+      },
+    } as never;
+    const normalizeToolSchemas = vi.fn(() => [normalizedTool]);
+    const inspectToolSchemas = vi.fn(() => [] as { toolName: string; violations: string[] }[]);
+    resolveOwningPluginIdsForProviderMock.mockReturnValue(["openai"]);
+    resolvePluginProvidersMock.mockReturnValue([
+      createOpenAiCatalogProviderPlugin({
+        normalizeToolSchemas,
+        inspectToolSchemas,
+      }),
+    ]);
+
+    const context = {
+      provider: "openai",
+      modelId: "gpt-5.4",
+      modelApi: "openai-responses",
+      model: MODEL,
+      tools: [tool],
+    } as never;
+
+    expect(
+      normalizeProviderToolSchemasWithPlugin({
+        provider: "openai",
+        context,
+      }),
+    ).toEqual([normalizedTool]);
+    expect(
+      inspectProviderToolSchemasWithPlugin({
+        provider: "openai",
+        context,
+      }),
+    ).toEqual([]);
+    expect(normalizeToolSchemas).toHaveBeenCalledWith(context);
+    expect(inspectToolSchemas).toHaveBeenCalledWith(context);
+    expect(resolvePluginProvidersMock).toHaveBeenCalledTimes(1);
   });
 
   it("invalidates cached runtime providers when config mutates in place", () => {

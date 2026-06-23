@@ -351,6 +351,23 @@ export type ProviderRuntimeModel = Model<Api> & {
   contextTokens?: number;
 };
 
+export type ProviderNormalizeToolSchemasContext = {
+  config?: CoreBlowConfig;
+  agentDir?: string;
+  workspaceDir?: string;
+  provider: string;
+  modelId: string;
+  modelApi?: ModelProviderConfig["api"];
+  model?: ProviderRuntimeModel;
+  tools: AnyAgentTool[];
+};
+
+export type ProviderToolSchemaDiagnostic = {
+  toolName: string;
+  toolIndex?: number;
+  violations: string[];
+};
+
 export type ProviderRuntimeProviderConfig = {
   baseUrl?: string;
   api?: ModelProviderConfig["api"];
@@ -981,6 +998,24 @@ export type ProviderPlugin = {
    * sanitization quirks, or requires provider-family hints.
    */
   capabilities?: Partial<ProviderCapabilities>;
+  /**
+   * Provider-owned tool-schema normalization.
+   *
+   * Use this for transport-family schema cleanup before CoreBlow registers
+   * tools with the embedded runner.
+   */
+  normalizeToolSchemas?: (
+    ctx: ProviderNormalizeToolSchemasContext,
+  ) => AnyAgentTool[] | null | undefined;
+  /**
+   * Provider-owned tool-schema diagnostics after normalization.
+   *
+   * Use this when a provider wants to surface transport-specific schema
+   * warnings without teaching core about provider-specific keyword rules.
+   */
+  inspectToolSchemas?: (
+    ctx: ProviderNormalizeToolSchemasContext,
+  ) => ProviderToolSchemaDiagnostic[] | null | undefined;
   /**
    * Provider-owned extra-param normalization before generic stream option
    * wrapping.

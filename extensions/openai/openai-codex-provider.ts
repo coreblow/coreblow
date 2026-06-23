@@ -37,6 +37,7 @@ import { buildOpenAICodexProvider } from "./openai-codex-catalog.js";
 import {
   buildOpenAIResponsesProviderHooks,
   buildOpenAISyntheticCatalogEntry,
+  buildOpenAIToolCompatProviderHooks,
   cloneFirstTemplateModel,
   findCatalogTemplate,
   matchesExactOrPrefix,
@@ -475,6 +476,7 @@ export function buildOpenAICodexProviderPlugin(): ProviderPlugin {
       matchesExactOrPrefix(modelId, OPENAI_CODEX_XHIGH_MODEL_IDS),
     isModernModelRef: ({ modelId }) => matchesExactOrPrefix(modelId, OPENAI_CODEX_MODERN_MODEL_IDS),
     ...buildOpenAIResponsesProviderHooks(),
+    ...buildOpenAIToolCompatProviderHooks(),
     normalizeResolvedModel: (ctx) => {
       if (normalizeProviderId(ctx.provider) !== PROVIDER_ID) {
         return undefined;
