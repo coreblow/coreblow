@@ -5,6 +5,7 @@ import { markCronJobActive, resetCronActiveJobsForTests } from "../cron/active-j
 import { getActivePluginRegistry, setActivePluginRegistry } from "../plugins/runtime.js";
 import type { CommandLaneSnapshot } from "../process/command-queue.js";
 import { CommandLane } from "../process/lanes.js";
+import { resolveEmbeddedSessionLane } from "../agents/pi-embedded-runner/lanes.js";
 import { createOutboundTestPlugin, createTestRegistry } from "../test-utils/channel-plugins.js";
 import { runHeartbeatOnce, type HeartbeatDeps } from "./heartbeat-runner.js";
 import { seedMainSessionStore, withTempHeartbeatSandbox } from "./heartbeat-runner.test-utils.js";
@@ -125,6 +126,7 @@ describe("heartbeat runner skips when target session lane is busy", () => {
       const cfg = createHeartbeatTelegramConfig(storePath);
       cfg.agents!.defaults!.heartbeat = { every: "30m", skipWhenBusy: true };
       await seedHeartbeatTelegramSession(storePath, cfg);
+      replySpy.mockResolvedValue({ text: "HEARTBEAT_OK" });
 
       const result = await runHeartbeatOnce({
         cfg,
@@ -144,8 +146,8 @@ describe("heartbeat runner skips when target session lane is busy", () => {
     await withTempHeartbeatSandbox(async ({ storePath, replySpy }) => {
       const cfg = createHeartbeatTelegramConfig(storePath);
       cfg.agents!.defaults!.heartbeat = { every: "30m", skipWhenBusy: true };
-      await seedHeartbeatTelegramSession(storePath, cfg);
-      const nestedSessionLane = resolveNestedAgentLaneForSession("agent:main:telegram:123");
+      const sessionKey = await seedHeartbeatTelegramSession(storePath, cfg);
+      const nestedSessionLane = resolveNestedAgentLaneForSession(sessionKey);
 
       const result = await runHeartbeatOnce({
         cfg,
@@ -168,6 +170,7 @@ describe("heartbeat runner skips when target session lane is busy", () => {
       cfg.agents!.defaults!.heartbeat = { every: "30m", skipWhenBusy: true };
       await seedHeartbeatTelegramSession(storePath, cfg);
       const nestedSessionLane = resolveNestedAgentLaneForSession("agent:other:telegram:123");
+      replySpy.mockResolvedValue({ text: "HEARTBEAT_OK" });
 
       const result = await runHeartbeatOnce({
         cfg,
@@ -187,6 +190,7 @@ describe("heartbeat runner skips when target session lane is busy", () => {
     await withTempHeartbeatSandbox(async ({ storePath, replySpy }) => {
       const cfg = createHeartbeatTelegramConfig(storePath);
       const sessionKey = await seedHeartbeatTelegramSession(storePath, cfg);
+      const sessionLane = resolveEmbeddedSessionLane(sessionKey);
 
       enqueueSystemEvent("Exec completed (test-id, code 0) :: test output", {
         sessionKey,
@@ -196,7 +200,7 @@ describe("heartbeat runner skips when target session lane is busy", () => {
         if (!lane || lane === CommandLane.Main) {
           return 0;
         }
-        if (lane.startsWith("session:")) {
+        if (lane === sessionLane) {
           return 1;
         }
         return 0;

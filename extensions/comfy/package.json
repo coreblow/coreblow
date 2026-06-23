@@ -15,7 +15,7 @@
       "npmSpec": "@coreblow/comfy-provider",
       "localPath": "extensions/comfy",
       "defaultChoice": false,
-      "minHostVersion": "1.0.0"
+      "minHostVersion": ">=1.0.0"
     }
   }
 }

@@ -15,7 +15,7 @@
       "npmSpec": "@coreblow/vydra-provider",
       "localPath": "extensions/vydra",
       "defaultChoice": false,
-      "minHostVersion": "1.0.0"
+      "minHostVersion": ">=1.0.0"
     }
   }
 }
