@@ -1,5 +1,6 @@
 import type { ImageGenerationProvider } from "coreblow/plugin-sdk/image-generation";
 import { resolveApiKeyForProvider } from "coreblow/plugin-sdk/provider-auth-runtime";
+import { fetchWithTimeoutGuarded, postJsonRequest } from "coreblow/plugin-sdk/provider-http";
 import { OPENAI_DEFAULT_IMAGE_MODEL as DEFAULT_OPENAI_IMAGE_MODEL } from "./default-models.js";
 
 const DEFAULT_OPENAI_IMAGE_BASE_URL = "https://api.openai.com/v1";
@@ -16,7 +17,55 @@ type OpenAIImageApiResponse = {
 
 function resolveOpenAIBaseUrl(cfg: Parameters<typeof resolveApiKeyForProvider>[0]["cfg"]): string {
   const direct = cfg?.models?.providers?.openai?.baseUrl?.trim();
-  return direct || DEFAULT_OPENAI_IMAGE_BASE_URL;
+  return (direct || DEFAULT_OPENAI_IMAGE_BASE_URL).replace(/\/+$/, "");
+}
+
+function resolveOpenAIImageFileName(index: number, fileName?: string): string {
+  return fileName?.trim() || `image-${index + 1}.png`;
+}
+
+function toOpenAIImageBlobPart(buffer: Buffer): Uint8Array<ArrayBuffer> {
+  const copy = new Uint8Array(buffer.byteLength);
+  copy.set(buffer);
+  return copy;
+}
+
+function appendOpenAIImageEditBody(
+  form: FormData,
+  req: Parameters<ImageGenerationProvider["generateImage"]>[0],
+): void {
+  form.set("model", req.model || DEFAULT_OPENAI_IMAGE_MODEL);
+  form.set("prompt", req.prompt);
+  form.set("n", String(req.count ?? 1));
+  form.set("size", req.size ?? DEFAULT_SIZE);
+  for (const [index, image] of (req.inputImages ?? []).entries()) {
+    form.append(
+      "image[]",
+      new File([toOpenAIImageBlobPart(image.buffer)], resolveOpenAIImageFileName(index, image.fileName), {
+        type: image.mimeType,
+      }),
+    );
+  }
+}
+
+async function parseOpenAIImageResponse(response: Response): Promise<OpenAIImageApiResponse> {
+  return (await response.json()) as OpenAIImageApiResponse;
+}
+
+function toOpenAIImageResult(data: OpenAIImageApiResponse) {
+  return (data.data ?? [])
+    .map((entry, index) => {
+      if (!entry.b64_json) {
+        return null;
+      }
+      return {
+        buffer: Buffer.from(entry.b64_json, "base64"),
+        mimeType: DEFAULT_OUTPUT_MIME,
+        fileName: `image-${index + 1}.png`,
+        ...(entry.revised_prompt ? { revisedPrompt: entry.revised_prompt } : {}),
+      };
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => entry !== null);
 }
 
 export function buildOpenAIImageGenerationProvider(): ImageGenerationProvider {
@@ -33,10 +82,10 @@ export function buildOpenAIImageGenerationProvider(): ImageGenerationProvider {
         supportsResolution: false,
       },
       edit: {
-        enabled: false,
-        maxCount: 0,
-        maxInputImages: 0,
-        supportsSize: false,
+        enabled: true,
+        maxCount: 4,
+        maxInputImages: 16,
+        supportsSize: true,
         supportsAspectRatio: false,
         supportsResolution: false,
       },
@@ -45,9 +94,6 @@ export function buildOpenAIImageGenerationProvider(): ImageGenerationProvider {
       },
     },
     async generateImage(req) {
-      if ((req.inputImages?.length ?? 0) > 0) {
-        throw new Error("OpenAI image generation provider does not support reference-image edits");
-      }
       const auth = await resolveApiKeyForProvider({
         provider: "openai",
         cfg: req.cfg,
@@ -58,56 +104,61 @@ export function buildOpenAIImageGenerationProvider(): ImageGenerationProvider {
         throw new Error("OpenAI API key missing");
       }
 
-      const controller = new AbortController();
-      const timeoutMs = req.timeoutMs;
-      const timeout =
-        typeof timeoutMs === "number" && Number.isFinite(timeoutMs) && timeoutMs > 0
-          ? setTimeout(() => controller.abort(), timeoutMs)
-          : undefined;
-
-      const response = await fetch(`${resolveOpenAIBaseUrl(req.cfg)}/images/generations`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${auth.apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: req.model || DEFAULT_OPENAI_IMAGE_MODEL,
-          prompt: req.prompt,
-          n: req.count ?? 1,
-          size: req.size ?? DEFAULT_SIZE,
-        }),
-        signal: controller.signal,
-      }).finally(() => {
-        clearTimeout(timeout);
+      const baseUrl = resolveOpenAIBaseUrl(req.cfg);
+      const headers = new Headers({
+        Authorization: `Bearer ${auth.apiKey}`,
       });
+      const hasReferenceImages = (req.inputImages?.length ?? 0) > 0;
+      const result = hasReferenceImages
+        ? await fetchWithTimeoutGuarded(
+            `${baseUrl}/images/edits`,
+            {
+              method: "POST",
+              headers,
+              body: (() => {
+                const form = new FormData();
+                appendOpenAIImageEditBody(form, req);
+                return form;
+              })(),
+            },
+            req.timeoutMs,
+            fetch,
+          )
+        : await postJsonRequest({
+            url: `${baseUrl}/images/generations`,
+            headers: new Headers({
+              Authorization: `Bearer ${auth.apiKey}`,
+              "Content-Type": "application/json",
+            }),
+            body: {
+              model: req.model || DEFAULT_OPENAI_IMAGE_MODEL,
+              prompt: req.prompt,
+              n: req.count ?? 1,
+              size: req.size ?? DEFAULT_SIZE,
+            },
+            timeoutMs: req.timeoutMs,
+            fetchFn: fetch,
+          });
 
-      if (!response.ok) {
-        const text = await response.text().catch(() => "");
-        throw new Error(
-          `OpenAI image generation failed (${response.status}): ${text || response.statusText}`,
-        );
+      const { response, release } = result;
+      try {
+        if (!response.ok) {
+          const text = await response.text().catch(() => "");
+          throw new Error(
+            `OpenAI image generation failed (${response.status}): ${text || response.statusText}`,
+          );
+        }
+
+        const data = await parseOpenAIImageResponse(response);
+        const images = toOpenAIImageResult(data);
+
+        return {
+          images,
+          model: req.model || DEFAULT_OPENAI_IMAGE_MODEL,
+        };
+      } finally {
+        await release();
       }
-
-      const data = (await response.json()) as OpenAIImageApiResponse;
-      const images = (data.data ?? [])
-        .map((entry, index) => {
-          if (!entry.b64_json) {
-            return null;
-          }
-          return {
-            buffer: Buffer.from(entry.b64_json, "base64"),
-            mimeType: DEFAULT_OUTPUT_MIME,
-            fileName: `image-${index + 1}.png`,
-            ...(entry.revised_prompt ? { revisedPrompt: entry.revised_prompt } : {}),
-          };
-        })
-        .filter((entry): entry is NonNullable<typeof entry> => entry !== null);
-
-      return {
-        images,
-        model: req.model || DEFAULT_OPENAI_IMAGE_MODEL,
-      };
     },
   };
 }
