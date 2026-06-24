@@ -85,6 +85,7 @@ export type ReplyPayload = {
   text?: string;
   mediaUrl?: string;
   mediaUrls?: string[];
+  presentation?: { blocks?: readonly unknown[] };
   interactive?: InteractiveReply;
   btw?: {
     question: string;

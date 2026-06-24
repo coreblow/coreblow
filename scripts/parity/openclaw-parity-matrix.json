@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7856,
+    "cb_source_files": 7865,
     "oc_source_files": 8443,
-    "source_parity_both": 6058,
+    "source_parity_both": 6067,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2385,
-    "test_files_cb": 4858,
+    "source_missing_from_cb": 2376,
+    "test_files_cb": 4861,
     "test_files_oc": 5246,
-    "tests_both_covered": 3450,
-    "tests_gap_oc_has_cb_missing": 1551,
-    "tests_cb_exclusive": 1350,
+    "tests_both_covered": 3452,
+    "tests_gap_oc_has_cb_missing": 1549,
+    "tests_cb_exclusive": 1351,
     "export_files_with_gaps": 71,
     "test_scenario_files_with_gaps": 40,
     "test_scenario_files_intentionally_different": 0
@@ -161,12 +161,12 @@
       "priority": "P0",
       "implementationSurface": "src/plugin-sdk public API",
       "counts": {
-        "sharedSourcePaths": 218,
+        "sharedSourcePaths": 227,
         "coreBlowOnlySourcePaths": 118,
-        "openClawOnlySourcePaths": 221,
-        "sharedTestPaths": 37,
-        "coreBlowOnlyTestPaths": 16,
-        "openClawTestGaps": 66
+        "openClawOnlySourcePaths": 212,
+        "sharedTestPaths": 39,
+        "coreBlowOnlyTestPaths": 17,
+        "openClawTestGaps": 64
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -175,27 +175,27 @@
           "src/plugin-sdk/agent-harness-runtime.ts",
           "src/plugin-sdk/agent-harness.ts",
           "src/plugin-sdk/agent-runtime-test-contracts.ts",
-          "src/plugin-sdk/approval-approvers.ts",
-          "src/plugin-sdk/approval-client-helpers.ts",
-          "src/plugin-sdk/approval-client-runtime.ts",
           "src/plugin-sdk/approval-delivery-helpers.ts",
           "src/plugin-sdk/approval-delivery-runtime.ts",
-          "src/plugin-sdk/approval-gateway-runtime.ts",
-          "src/plugin-sdk/approval-handler-adapter-runtime.ts"
+          "src/plugin-sdk/approval-native-helpers.ts",
+          "src/plugin-sdk/async-lock-runtime.ts",
+          "src/plugin-sdk/browser-facade-test-helpers.ts",
+          "src/plugin-sdk/bundled-channel-config-schema.ts",
+          "src/plugin-sdk/channel-access-compat.ts"
         ],
         "openClawTestGapPaths": [
           "src/plugin-sdk/acp-runtime.test.ts",
           "src/plugin-sdk/agent-harness-runtime.test.ts",
           "src/plugin-sdk/api-baseline.test.ts",
           "src/plugin-sdk/approval-auth-helpers.test.ts",
-          "src/plugin-sdk/approval-client-helpers.test.ts",
           "src/plugin-sdk/approval-delivery-helpers.test.ts",
           "src/plugin-sdk/approval-native-helpers.test.ts",
-          "src/plugin-sdk/approval-renderers.test.ts",
           "src/plugin-sdk/channel-contract-testing.test.ts",
           "src/plugin-sdk/channel-entry-contract.test.ts",
           "src/plugin-sdk/channel-inbound.test.ts",
-          "src/plugin-sdk/channel-ingress-runtime.test.ts"
+          "src/plugin-sdk/channel-ingress-runtime.test.ts",
+          "src/plugin-sdk/channel-lifecycle.queue.test.ts",
+          "src/plugin-sdk/channel-message.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/plugin-sdk/amazon-bedrock.ts",
