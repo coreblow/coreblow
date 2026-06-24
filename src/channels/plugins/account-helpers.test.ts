@@ -121,6 +121,50 @@ describe("createAccountListHelpers", () => {
         expected,
       });
     });
+
+    it("keeps an implicit default account when root credentials coexist with named accounts", () => {
+      const helpers = createAccountListHelpers("testchannel", {
+        implicitDefaultAccount: { channelKeys: ["token"] },
+      });
+
+      expect(
+        helpers.listAccountIds({
+          channels: {
+            testchannel: {
+              token: "root-token",
+              accounts: { work: {} },
+            },
+          },
+        } as unknown as CoreBlowConfig),
+      ).toEqual(["default", "work"]);
+    });
+
+    it("keeps an implicit default account when env credentials coexist with named accounts", () => {
+      const previous = process.env.TESTCHANNEL_TOKEN;
+      process.env.TESTCHANNEL_TOKEN = "env-token";
+      try {
+        const helpers = createAccountListHelpers("testchannel", {
+          implicitDefaultAccount: { envVars: ["TESTCHANNEL_TOKEN"] },
+        });
+
+        expect(helpers.listAccountIds(cfg({ work: {} }))).toEqual(["default", "work"]);
+      } finally {
+        if (previous === undefined) {
+          delete process.env.TESTCHANNEL_TOKEN;
+        } else {
+          process.env.TESTCHANNEL_TOKEN = previous;
+        }
+      }
+    });
+
+    it("supports a channel-specific implicit default account resolver", () => {
+      const helpers = createAccountListHelpers("testchannel", {
+        hasImplicitDefaultAccount: (config) =>
+          config.channels?.testchannel !== undefined,
+      });
+
+      expect(helpers.listAccountIds(cfg({ work: {} }))).toEqual(["default", "work"]);
+    });
   });
 
   describe("resolveDefaultAccountId", () => {

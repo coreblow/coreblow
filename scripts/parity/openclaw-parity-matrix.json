@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7842,
+    "cb_source_files": 7844,
     "oc_source_files": 8443,
-    "source_parity_both": 6044,
+    "source_parity_both": 6046,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2399,
-    "test_files_cb": 4847,
+    "source_missing_from_cb": 2397,
+    "test_files_cb": 4848,
     "test_files_oc": 5246,
     "tests_both_covered": 3441,
     "tests_gap_oc_has_cb_missing": 1560,
-    "tests_cb_exclusive": 1348,
+    "tests_cb_exclusive": 1349,
     "export_files_with_gaps": 71,
     "test_scenario_files_with_gaps": 40,
     "test_scenario_files_intentionally_different": 0
@@ -161,17 +161,15 @@
       "priority": "P0",
       "implementationSurface": "src/plugin-sdk public API",
       "counts": {
-        "sharedSourcePaths": 204,
+        "sharedSourcePaths": 206,
         "coreBlowOnlySourcePaths": 118,
-        "openClawOnlySourcePaths": 235,
+        "openClawOnlySourcePaths": 233,
         "sharedTestPaths": 28,
-        "coreBlowOnlyTestPaths": 14,
+        "coreBlowOnlyTestPaths": 15,
         "openClawTestGaps": 75
       },
       "samples": {
         "openClawOnlySourcePaths": [
-          "src/plugin-sdk/account-configured-ids.ts",
-          "src/plugin-sdk/account-resolution-runtime.ts",
           "src/plugin-sdk/acp-binding-resolve-runtime.ts",
           "src/plugin-sdk/acp-binding-runtime.ts",
           "src/plugin-sdk/acp-runtime-backend.ts",
@@ -181,7 +179,9 @@
           "src/plugin-sdk/agent-runtime-test-contracts.ts",
           "src/plugin-sdk/anthropic-vertex-auth-presence.ts",
           "src/plugin-sdk/approval-approvers.ts",
-          "src/plugin-sdk/approval-client-helpers.ts"
+          "src/plugin-sdk/approval-client-helpers.ts",
+          "src/plugin-sdk/approval-client-runtime.ts",
+          "src/plugin-sdk/approval-delivery-helpers.ts"
         ],
         "openClawTestGapPaths": [
           "src/plugin-sdk/acp-runtime.test.ts",

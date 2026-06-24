@@ -3,6 +3,7 @@
   "account-helpers",
   "account-id",
   "account-resolution",
+  "account-resolution-runtime",
   "access-groups",
   "acp-runtime",
   "acp",
