@@ -338,6 +338,14 @@
       "types": "./dist/plugin-sdk/access-groups.d.ts",
       "default": "./dist/plugin-sdk/access-groups.js"
     },
+    "./plugin-sdk/acp-binding-resolve-runtime": {
+      "types": "./dist/plugin-sdk/acp-binding-resolve-runtime.d.ts",
+      "default": "./dist/plugin-sdk/acp-binding-resolve-runtime.js"
+    },
+    "./plugin-sdk/acp-binding-runtime": {
+      "types": "./dist/plugin-sdk/acp-binding-runtime.d.ts",
+      "default": "./dist/plugin-sdk/acp-binding-runtime.js"
+    },
     "./plugin-sdk/acp-runtime": {
       "types": "./dist/plugin-sdk/acp-runtime.d.ts",
       "default": "./dist/plugin-sdk/acp-runtime.js"

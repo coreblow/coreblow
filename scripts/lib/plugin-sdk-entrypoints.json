@@ -5,6 +5,8 @@
   "account-resolution",
   "account-resolution-runtime",
   "access-groups",
+  "acp-binding-resolve-runtime",
+  "acp-binding-runtime",
   "acp-runtime",
   "acp",
   "agent-config-primitives",
