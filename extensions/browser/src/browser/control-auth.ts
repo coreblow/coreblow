@@ -25,7 +25,7 @@ export function resolveBrowserControlAuth(
   };
 }
 
-function shouldAutoGenerateBrowserAuth(env: NodeJS.ProcessEnv): boolean {
+export function shouldAutoGenerateBrowserAuth(env: NodeJS.ProcessEnv): boolean {
   const nodeEnv = (env.NODE_ENV ?? "").trim().toLowerCase();
   if (nodeEnv === "test") {
     return false;

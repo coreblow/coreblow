@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7847,
+    "cb_source_files": 7856,
     "oc_source_files": 8443,
-    "source_parity_both": 6049,
+    "source_parity_both": 6058,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2394,
-    "test_files_cb": 4851,
+    "source_missing_from_cb": 2385,
+    "test_files_cb": 4858,
     "test_files_oc": 5246,
-    "tests_both_covered": 3443,
-    "tests_gap_oc_has_cb_missing": 1558,
+    "tests_both_covered": 3450,
+    "tests_gap_oc_has_cb_missing": 1551,
     "tests_cb_exclusive": 1350,
     "export_files_with_gaps": 71,
     "test_scenario_files_with_gaps": 40,
@@ -161,12 +161,12 @@
       "priority": "P0",
       "implementationSurface": "src/plugin-sdk public API",
       "counts": {
-        "sharedSourcePaths": 209,
+        "sharedSourcePaths": 218,
         "coreBlowOnlySourcePaths": 118,
-        "openClawOnlySourcePaths": 230,
-        "sharedTestPaths": 30,
+        "openClawOnlySourcePaths": 221,
+        "sharedTestPaths": 37,
         "coreBlowOnlyTestPaths": 16,
-        "openClawTestGaps": 73
+        "openClawTestGaps": 66
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -192,10 +192,10 @@
           "src/plugin-sdk/approval-delivery-helpers.test.ts",
           "src/plugin-sdk/approval-native-helpers.test.ts",
           "src/plugin-sdk/approval-renderers.test.ts",
-          "src/plugin-sdk/browser-bridge.test.ts",
-          "src/plugin-sdk/browser-config.test.ts",
-          "src/plugin-sdk/browser-facades.test.ts",
-          "src/plugin-sdk/browser-host-inspection.test.ts"
+          "src/plugin-sdk/channel-contract-testing.test.ts",
+          "src/plugin-sdk/channel-entry-contract.test.ts",
+          "src/plugin-sdk/channel-inbound.test.ts",
+          "src/plugin-sdk/channel-ingress-runtime.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/plugin-sdk/amazon-bedrock.ts",

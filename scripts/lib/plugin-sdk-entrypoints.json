@@ -24,6 +24,7 @@
   "boolean-param",
   "browser",
   "browser-runtime",
+  "browser-config",
   "browser-support",
   "byteplus",
   "channel-actions",
