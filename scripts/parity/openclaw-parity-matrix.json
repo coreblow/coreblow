@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7865,
+    "cb_source_files": 7869,
     "oc_source_files": 8443,
-    "source_parity_both": 6067,
+    "source_parity_both": 6071,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2376,
-    "test_files_cb": 4861,
+    "source_missing_from_cb": 2372,
+    "test_files_cb": 4862,
     "test_files_oc": 5246,
     "tests_both_covered": 3452,
     "tests_gap_oc_has_cb_missing": 1549,
-    "tests_cb_exclusive": 1351,
+    "tests_cb_exclusive": 1352,
     "export_files_with_gaps": 71,
     "test_scenario_files_with_gaps": 40,
     "test_scenario_files_intentionally_different": 0
@@ -161,27 +161,27 @@
       "priority": "P0",
       "implementationSurface": "src/plugin-sdk public API",
       "counts": {
-        "sharedSourcePaths": 227,
+        "sharedSourcePaths": 231,
         "coreBlowOnlySourcePaths": 118,
-        "openClawOnlySourcePaths": 212,
+        "openClawOnlySourcePaths": 208,
         "sharedTestPaths": 39,
-        "coreBlowOnlyTestPaths": 17,
+        "coreBlowOnlyTestPaths": 18,
         "openClawTestGaps": 64
       },
       "samples": {
         "openClawOnlySourcePaths": [
           "src/plugin-sdk/acp-runtime-backend.ts",
-          "src/plugin-sdk/agent-dir-compat.ts",
           "src/plugin-sdk/agent-harness-runtime.ts",
           "src/plugin-sdk/agent-harness.ts",
           "src/plugin-sdk/agent-runtime-test-contracts.ts",
           "src/plugin-sdk/approval-delivery-helpers.ts",
           "src/plugin-sdk/approval-delivery-runtime.ts",
           "src/plugin-sdk/approval-native-helpers.ts",
-          "src/plugin-sdk/async-lock-runtime.ts",
           "src/plugin-sdk/browser-facade-test-helpers.ts",
-          "src/plugin-sdk/bundled-channel-config-schema.ts",
-          "src/plugin-sdk/channel-access-compat.ts"
+          "src/plugin-sdk/channel-activity-runtime.ts",
+          "src/plugin-sdk/channel-config-schema-legacy.ts",
+          "src/plugin-sdk/channel-contract-testing.ts",
+          "src/plugin-sdk/channel-envelope.ts"
         ],
         "openClawTestGapPaths": [
           "src/plugin-sdk/acp-runtime.test.ts",

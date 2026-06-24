@@ -422,6 +422,14 @@
       "types": "./dist/plugin-sdk/approval-auth-runtime.d.ts",
       "import": "./dist/plugin-sdk/approval-auth-runtime.js"
     },
+    "./plugin-sdk/async-lock-runtime": {
+      "types": "./dist/plugin-sdk/async-lock-runtime.d.ts",
+      "default": "./dist/plugin-sdk/async-lock-runtime.js"
+    },
+    "./plugin-sdk/bundled-channel-config-schema": {
+      "types": "./dist/plugin-sdk/bundled-channel-config-schema.d.ts",
+      "default": "./dist/plugin-sdk/bundled-channel-config-schema.js"
+    },
     "./plugin-sdk/context-visibility-runtime": {
       "types": "./dist/plugin-sdk/context-visibility-runtime.d.ts",
       "import": "./dist/plugin-sdk/context-visibility-runtime.js"
