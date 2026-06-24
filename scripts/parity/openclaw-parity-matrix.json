@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7846,
+    "cb_source_files": 7847,
     "oc_source_files": 8443,
-    "source_parity_both": 6048,
+    "source_parity_both": 6049,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2395,
-    "test_files_cb": 4849,
+    "source_missing_from_cb": 2394,
+    "test_files_cb": 4851,
     "test_files_oc": 5246,
-    "tests_both_covered": 3441,
-    "tests_gap_oc_has_cb_missing": 1560,
+    "tests_both_covered": 3443,
+    "tests_gap_oc_has_cb_missing": 1558,
     "tests_cb_exclusive": 1350,
     "export_files_with_gaps": 71,
     "test_scenario_files_with_gaps": 40,
@@ -161,12 +161,12 @@
       "priority": "P0",
       "implementationSurface": "src/plugin-sdk public API",
       "counts": {
-        "sharedSourcePaths": 208,
+        "sharedSourcePaths": 209,
         "coreBlowOnlySourcePaths": 118,
-        "openClawOnlySourcePaths": 231,
-        "sharedTestPaths": 28,
+        "openClawOnlySourcePaths": 230,
+        "sharedTestPaths": 30,
         "coreBlowOnlyTestPaths": 16,
-        "openClawTestGaps": 75
+        "openClawTestGaps": 73
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -175,19 +175,17 @@
           "src/plugin-sdk/agent-harness-runtime.ts",
           "src/plugin-sdk/agent-harness.ts",
           "src/plugin-sdk/agent-runtime-test-contracts.ts",
-          "src/plugin-sdk/anthropic-vertex-auth-presence.ts",
           "src/plugin-sdk/approval-approvers.ts",
           "src/plugin-sdk/approval-client-helpers.ts",
           "src/plugin-sdk/approval-client-runtime.ts",
           "src/plugin-sdk/approval-delivery-helpers.ts",
           "src/plugin-sdk/approval-delivery-runtime.ts",
-          "src/plugin-sdk/approval-gateway-runtime.ts"
+          "src/plugin-sdk/approval-gateway-runtime.ts",
+          "src/plugin-sdk/approval-handler-adapter-runtime.ts"
         ],
         "openClawTestGapPaths": [
           "src/plugin-sdk/acp-runtime.test.ts",
           "src/plugin-sdk/agent-harness-runtime.test.ts",
-          "src/plugin-sdk/anthropic-vertex-auth-presence.preflight.test.ts",
-          "src/plugin-sdk/anthropic-vertex-auth-presence.test.ts",
           "src/plugin-sdk/api-baseline.test.ts",
           "src/plugin-sdk/approval-auth-helpers.test.ts",
           "src/plugin-sdk/approval-client-helpers.test.ts",
@@ -195,7 +193,9 @@
           "src/plugin-sdk/approval-native-helpers.test.ts",
           "src/plugin-sdk/approval-renderers.test.ts",
           "src/plugin-sdk/browser-bridge.test.ts",
-          "src/plugin-sdk/browser-config.test.ts"
+          "src/plugin-sdk/browser-config.test.ts",
+          "src/plugin-sdk/browser-facades.test.ts",
+          "src/plugin-sdk/browser-host-inspection.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/plugin-sdk/amazon-bedrock.ts",
