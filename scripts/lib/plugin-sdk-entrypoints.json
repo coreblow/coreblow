@@ -3,6 +3,7 @@
   "account-helpers",
   "account-id",
   "account-resolution",
+  "access-groups",
   "acp-runtime",
   "acp",
   "agent-config-primitives",

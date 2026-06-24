@@ -135,6 +135,55 @@ describe("plugins.entries.*.subagent", () => {
   });
 });
 
+describe("accessGroups config", () => {
+  it("accepts Discord channel audience access groups", () => {
+    const result = CoreBlowSchema.safeParse({
+      accessGroups: {
+        maintainers: {
+          type: "discord.channelAudience",
+          guildId: "guild",
+          channelId: "channel",
+          membership: "canViewChannel",
+        },
+      },
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects unknown access group membership modes", () => {
+    const result = CoreBlowSchema.safeParse({
+      accessGroups: {
+        maintainers: {
+          type: "discord.channelAudience",
+          guildId: "guild",
+          channelId: "channel",
+          membership: "roleMember",
+        },
+      },
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts message sender access groups for any channel", () => {
+    const result = CoreBlowSchema.safeParse({
+      accessGroups: {
+        owners: {
+          type: "message.senders",
+          members: {
+            "*": ["global-owner"],
+            telegram: ["12345"],
+            discord: ["discord:67890"],
+          },
+        },
+      },
+    });
+
+    expect(result.success).toBe(true);
+  });
+});
+
 describe("web search provider config", () => {
   it("accepts kimi provider and config", () => {
     const res = validateConfigObject(
