@@ -470,6 +470,66 @@
       "types": "./dist/plugin-sdk/channel-actions.d.ts",
       "default": "./dist/plugin-sdk/channel-actions.js"
     },
+    "./plugin-sdk/channel-activity-runtime": {
+      "types": "./dist/plugin-sdk/channel-activity-runtime.d.ts",
+      "default": "./dist/plugin-sdk/channel-activity-runtime.js"
+    },
+    "./plugin-sdk/channel-config-schema-legacy": {
+      "types": "./dist/plugin-sdk/channel-config-schema-legacy.d.ts",
+      "default": "./dist/plugin-sdk/channel-config-schema-legacy.js"
+    },
+    "./plugin-sdk/channel-contract-testing": {
+      "types": "./dist/plugin-sdk/channel-contract-testing.d.ts",
+      "default": "./dist/plugin-sdk/channel-contract-testing.js"
+    },
+    "./plugin-sdk/channel-envelope": {
+      "types": "./dist/plugin-sdk/channel-envelope.d.ts",
+      "default": "./dist/plugin-sdk/channel-envelope.js"
+    },
+    "./plugin-sdk/channel-inbound-debounce": {
+      "types": "./dist/plugin-sdk/channel-inbound-debounce.d.ts",
+      "default": "./dist/plugin-sdk/channel-inbound-debounce.js"
+    },
+    "./plugin-sdk/channel-inbound-roots": {
+      "types": "./dist/plugin-sdk/channel-inbound-roots.d.ts",
+      "default": "./dist/plugin-sdk/channel-inbound-roots.js"
+    },
+    "./plugin-sdk/channel-ingress-runtime": {
+      "types": "./dist/plugin-sdk/channel-ingress-runtime.d.ts",
+      "default": "./dist/plugin-sdk/channel-ingress-runtime.js"
+    },
+    "./plugin-sdk/channel-location": {
+      "types": "./dist/plugin-sdk/channel-location.d.ts",
+      "default": "./dist/plugin-sdk/channel-location.js"
+    },
+    "./plugin-sdk/channel-logging": {
+      "types": "./dist/plugin-sdk/channel-logging.d.ts",
+      "default": "./dist/plugin-sdk/channel-logging.js"
+    },
+    "./plugin-sdk/channel-mention-gating": {
+      "types": "./dist/plugin-sdk/channel-mention-gating.d.ts",
+      "default": "./dist/plugin-sdk/channel-mention-gating.js"
+    },
+    "./plugin-sdk/channel-message-runtime": {
+      "types": "./dist/plugin-sdk/channel-message-runtime.d.ts",
+      "default": "./dist/plugin-sdk/channel-message-runtime.js"
+    },
+    "./plugin-sdk/channel-pairing-paths": {
+      "types": "./dist/plugin-sdk/channel-pairing-paths.d.ts",
+      "default": "./dist/plugin-sdk/channel-pairing-paths.js"
+    },
+    "./plugin-sdk/channel-reply-options-runtime": {
+      "types": "./dist/plugin-sdk/channel-reply-options-runtime.d.ts",
+      "default": "./dist/plugin-sdk/channel-reply-options-runtime.js"
+    },
+    "./plugin-sdk/channel-runtime-context": {
+      "types": "./dist/plugin-sdk/channel-runtime-context.d.ts",
+      "default": "./dist/plugin-sdk/channel-runtime-context.js"
+    },
+    "./plugin-sdk/channel-target-testing": {
+      "types": "./dist/plugin-sdk/channel-target-testing.d.ts",
+      "default": "./dist/plugin-sdk/channel-target-testing.js"
+    },
     "./plugin-sdk/channel-config-helpers": {
       "types": "./dist/plugin-sdk/channel-config-helpers.d.ts",
       "default": "./dist/plugin-sdk/channel-config-helpers.js"
