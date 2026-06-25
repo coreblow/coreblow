@@ -706,6 +706,42 @@
       "types": "./dist/plugin-sdk/poll-runtime.d.ts",
       "default": "./dist/plugin-sdk/poll-runtime.js"
     },
+    "./plugin-sdk/command-auth-native": {
+      "types": "./dist/plugin-sdk/command-auth-native.d.ts",
+      "default": "./dist/plugin-sdk/command-auth-native.js"
+    },
+    "./plugin-sdk/command-status": {
+      "types": "./dist/plugin-sdk/command-status.d.ts",
+      "default": "./dist/plugin-sdk/command-status.js"
+    },
+    "./plugin-sdk/command-surface": {
+      "types": "./dist/plugin-sdk/command-surface.d.ts",
+      "default": "./dist/plugin-sdk/command-surface.js"
+    },
+    "./plugin-sdk/config-mutation": {
+      "types": "./dist/plugin-sdk/config-mutation.d.ts",
+      "default": "./dist/plugin-sdk/config-mutation.js"
+    },
+    "./plugin-sdk/config-schema": {
+      "types": "./dist/plugin-sdk/config-schema.d.ts",
+      "default": "./dist/plugin-sdk/config-schema.js"
+    },
+    "./plugin-sdk/direct-dm-guard-policy": {
+      "types": "./dist/plugin-sdk/direct-dm-guard-policy.d.ts",
+      "default": "./dist/plugin-sdk/direct-dm-guard-policy.js"
+    },
+    "./plugin-sdk/directory-config-runtime": {
+      "types": "./dist/plugin-sdk/directory-config-runtime.d.ts",
+      "default": "./dist/plugin-sdk/directory-config-runtime.js"
+    },
+    "./plugin-sdk/json-schema-runtime": {
+      "types": "./dist/plugin-sdk/json-schema-runtime.d.ts",
+      "default": "./dist/plugin-sdk/json-schema-runtime.js"
+    },
+    "./plugin-sdk/lazy-value": {
+      "types": "./dist/plugin-sdk/lazy-value.d.ts",
+      "default": "./dist/plugin-sdk/lazy-value.js"
+    },
     "./plugin-sdk/chutes": {
       "types": "./dist/plugin-sdk/chutes.d.ts",
       "default": "./dist/plugin-sdk/chutes.js"
