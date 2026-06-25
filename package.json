@@ -618,6 +618,94 @@
       "types": "./dist/plugin-sdk/channel-test-helpers.d.ts",
       "default": "./dist/plugin-sdk/channel-test-helpers.js"
     },
+    "./plugin-sdk/command-detection": {
+      "types": "./dist/plugin-sdk/command-detection.d.ts",
+      "default": "./dist/plugin-sdk/command-detection.js"
+    },
+    "./plugin-sdk/command-gating": {
+      "types": "./dist/plugin-sdk/command-gating.d.ts",
+      "default": "./dist/plugin-sdk/command-gating.js"
+    },
+    "./plugin-sdk/command-primitives-runtime": {
+      "types": "./dist/plugin-sdk/command-primitives-runtime.d.ts",
+      "default": "./dist/plugin-sdk/command-primitives-runtime.js"
+    },
+    "./plugin-sdk/concurrency-runtime": {
+      "types": "./dist/plugin-sdk/concurrency-runtime.d.ts",
+      "default": "./dist/plugin-sdk/concurrency-runtime.js"
+    },
+    "./plugin-sdk/config-types": {
+      "types": "./dist/plugin-sdk/config-types.d.ts",
+      "default": "./dist/plugin-sdk/config-types.js"
+    },
+    "./plugin-sdk/conversation-binding-runtime": {
+      "types": "./dist/plugin-sdk/conversation-binding-runtime.d.ts",
+      "default": "./dist/plugin-sdk/conversation-binding-runtime.js"
+    },
+    "./plugin-sdk/cron-store-runtime": {
+      "types": "./dist/plugin-sdk/cron-store-runtime.d.ts",
+      "default": "./dist/plugin-sdk/cron-store-runtime.js"
+    },
+    "./plugin-sdk/dangerous-name-runtime": {
+      "types": "./dist/plugin-sdk/dangerous-name-runtime.d.ts",
+      "default": "./dist/plugin-sdk/dangerous-name-runtime.js"
+    },
+    "./plugin-sdk/dedupe-runtime": {
+      "types": "./dist/plugin-sdk/dedupe-runtime.d.ts",
+      "default": "./dist/plugin-sdk/dedupe-runtime.js"
+    },
+    "./plugin-sdk/delivery-queue-runtime": {
+      "types": "./dist/plugin-sdk/delivery-queue-runtime.d.ts",
+      "default": "./dist/plugin-sdk/delivery-queue-runtime.js"
+    },
+    "./plugin-sdk/file-access-runtime": {
+      "types": "./dist/plugin-sdk/file-access-runtime.d.ts",
+      "default": "./dist/plugin-sdk/file-access-runtime.js"
+    },
+    "./plugin-sdk/group-activation": {
+      "types": "./dist/plugin-sdk/group-activation.d.ts",
+      "default": "./dist/plugin-sdk/group-activation.js"
+    },
+    "./plugin-sdk/heartbeat-runtime": {
+      "types": "./dist/plugin-sdk/heartbeat-runtime.d.ts",
+      "default": "./dist/plugin-sdk/heartbeat-runtime.js"
+    },
+    "./plugin-sdk/markdown-table-runtime": {
+      "types": "./dist/plugin-sdk/markdown-table-runtime.d.ts",
+      "default": "./dist/plugin-sdk/markdown-table-runtime.js"
+    },
+    "./plugin-sdk/media-generation-runtime": {
+      "types": "./dist/plugin-sdk/media-generation-runtime.d.ts",
+      "default": "./dist/plugin-sdk/media-generation-runtime.js"
+    },
+    "./plugin-sdk/media-store": {
+      "types": "./dist/plugin-sdk/media-store.d.ts",
+      "default": "./dist/plugin-sdk/media-store.js"
+    },
+    "./plugin-sdk/model-session-runtime": {
+      "types": "./dist/plugin-sdk/model-session-runtime.d.ts",
+      "default": "./dist/plugin-sdk/model-session-runtime.js"
+    },
+    "./plugin-sdk/models-provider-runtime": {
+      "types": "./dist/plugin-sdk/models-provider-runtime.d.ts",
+      "default": "./dist/plugin-sdk/models-provider-runtime.js"
+    },
+    "./plugin-sdk/native-command-config-runtime": {
+      "types": "./dist/plugin-sdk/native-command-config-runtime.d.ts",
+      "default": "./dist/plugin-sdk/native-command-config-runtime.js"
+    },
+    "./plugin-sdk/number-runtime": {
+      "types": "./dist/plugin-sdk/number-runtime.d.ts",
+      "default": "./dist/plugin-sdk/number-runtime.js"
+    },
+    "./plugin-sdk/outbound-send-deps": {
+      "types": "./dist/plugin-sdk/outbound-send-deps.d.ts",
+      "default": "./dist/plugin-sdk/outbound-send-deps.js"
+    },
+    "./plugin-sdk/poll-runtime": {
+      "types": "./dist/plugin-sdk/poll-runtime.d.ts",
+      "default": "./dist/plugin-sdk/poll-runtime.js"
+    },
     "./plugin-sdk/chutes": {
       "types": "./dist/plugin-sdk/chutes.d.ts",
       "default": "./dist/plugin-sdk/chutes.js"
