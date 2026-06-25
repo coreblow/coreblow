@@ -742,6 +742,46 @@
       "types": "./dist/plugin-sdk/lazy-value.d.ts",
       "default": "./dist/plugin-sdk/lazy-value.js"
     },
+    "./plugin-sdk/reply-chunking": {
+      "types": "./dist/plugin-sdk/reply-chunking.d.ts",
+      "default": "./dist/plugin-sdk/reply-chunking.js"
+    },
+    "./plugin-sdk/reply-dedupe": {
+      "types": "./dist/plugin-sdk/reply-dedupe.d.ts",
+      "default": "./dist/plugin-sdk/reply-dedupe.js"
+    },
+    "./plugin-sdk/response-limit-runtime": {
+      "types": "./dist/plugin-sdk/response-limit-runtime.d.ts",
+      "default": "./dist/plugin-sdk/response-limit-runtime.js"
+    },
+    "./plugin-sdk/secure-random-runtime": {
+      "types": "./dist/plugin-sdk/secure-random-runtime.d.ts",
+      "default": "./dist/plugin-sdk/secure-random-runtime.js"
+    },
+    "./plugin-sdk/session-key-runtime": {
+      "types": "./dist/plugin-sdk/session-key-runtime.d.ts",
+      "default": "./dist/plugin-sdk/session-key-runtime.js"
+    },
+    "./plugin-sdk/string-normalization-runtime": {
+      "types": "./dist/plugin-sdk/string-normalization-runtime.d.ts",
+      "default": "./dist/plugin-sdk/string-normalization-runtime.js"
+    },
+    "./plugin-sdk/system-event-runtime": {
+      "types": "./dist/plugin-sdk/system-event-runtime.d.ts",
+      "default": "./dist/plugin-sdk/system-event-runtime.js"
+    },
+    "./plugin-sdk/target-resolver-runtime": {
+      "types": "./dist/plugin-sdk/target-resolver-runtime.d.ts",
+      "default": "./dist/plugin-sdk/target-resolver-runtime.js"
+    },
+    "./plugin-sdk/time-runtime": {
+      "types": "./dist/plugin-sdk/time-runtime.d.ts",
+      "default": "./dist/plugin-sdk/time-runtime.js"
+    },
+    "./plugin-sdk/transport-ready-runtime": {
+      "types": "./dist/plugin-sdk/transport-ready-runtime.d.ts",
+      "default": "./dist/plugin-sdk/transport-ready-runtime.js"
+    },
     "./plugin-sdk/chutes": {
       "types": "./dist/plugin-sdk/chutes.d.ts",
       "default": "./dist/plugin-sdk/chutes.js"
