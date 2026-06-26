@@ -236,3 +236,81 @@ export type IdentityConfig = {
   /** Avatar image: workspace-relative path, http(s) URL, or data URI. */
   avatar?: string;
 };
+
+// ---------------------------------------------------------------------------
+// Streaming config types (Phase 4 parity additions)
+// ---------------------------------------------------------------------------
+
+export type StreamingMode = "off" | "partial" | "block" | "progress";
+
+// ---------------------------------------------------------------------------
+
+export type TextChunkMode = "length" | "newline";
+
+export type ChannelStreamingCommandTextMode = "raw" | "status";
+
+export type ChannelStreamingProgressConfig = {
+  /** Initial progress title. "auto" picks from labels; false hides the title. Default: "auto". */
+  label?: string | false;
+  /** Candidate labels for label="auto". Defaults to CoreBlow's built-in progress labels. */
+  labels?: string[];
+  /** Maximum number of progress lines to keep below the label. Default: 8. */
+  maxLines?: number;
+  /** Maximum characters per progress line before truncation. Default: 120. */
+  maxLineChars?: number;
+  /** Render mode for progress lines. "text" = plain text; "rich" = formatted. Default: "text". */
+  render?: "text" | "rich";
+  /** Whether to include tool progress items. Default: true. */
+  toolProgress?: boolean;
+  /** How command tool output is shown in progress. Default: "raw". */
+  commandText?: ChannelStreamingCommandTextMode;
+};
+
+export type ChannelStreamingPreviewConfig = {
+  /** Chunking thresholds for preview-draft updates while streaming. */
+  chunk?: BlockStreamingChunkConfig;
+  /** Whether to include tool progress items in the preview draft. Default: true. */
+  toolProgress?: boolean;
+  /** How command tool output is shown in the preview draft. Default: "raw". */
+  commandText?: ChannelStreamingCommandTextMode;
+};
+
+export type ChannelStreamingBlockConfig = {
+  /** Enable chunked block-reply delivery for channels that support it. */
+  enabled?: boolean;
+  /** Merge streamed block replies before sending. */
+  coalesce?: BlockStreamingCoalesceConfig;
+};
+
+export type ChannelStreamingConfig = {
+  /**
+   * Preview streaming mode:
+   * - "off": disable preview updates
+   * - "partial": update one preview in place
+   * - "block": emit larger chunked preview updates
+   * - "progress": emit tool progress updates
+   */
+  mode?: StreamingMode;
+  /** Chunking mode for outbound text delivery. */
+  chunkMode?: TextChunkMode;
+  /**
+   * Channel-specific native transport streaming toggle.
+   * Used today by Slack's native stream API.
+   */
+  nativeTransport?: boolean;
+  preview?: ChannelStreamingPreviewConfig;
+  progress?: ChannelStreamingProgressConfig;
+  block?: ChannelStreamingBlockConfig;
+};
+
+export type ChannelDeliveryStreamingConfig = Pick<ChannelStreamingConfig, "chunkMode" | "block">;
+
+export type ChannelPreviewStreamingConfig = Pick<
+  ChannelStreamingConfig,
+  "mode" | "chunkMode" | "preview" | "progress" | "block"
+>;
+
+export type SlackChannelStreamingConfig = Pick<
+  ChannelStreamingConfig,
+  "mode" | "chunkMode" | "preview" | "progress" | "block" | "nativeTransport"
+>;

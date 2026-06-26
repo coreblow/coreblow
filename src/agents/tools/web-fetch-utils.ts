@@ -48,7 +48,7 @@ function stripTags(value: string): string {
   return decodeEntities(value.replace(/<[^>]+>/g, ""));
 }
 
-function normalizeWhitespace(value: string): string {
+export function normalizeWhitespace(value: string): string {
   return value
     .replace(/\r/g, "")
     .replace(/[ \t]+\n/g, "\n")

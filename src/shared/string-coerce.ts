@@ -10,3 +10,10 @@ export function normalizeOptionalLowercaseString(value: unknown): string | undef
   const normalized = normalizeLowercaseStringOrEmpty(value);
   return normalized || undefined;
 }
+
+export function normalizeOptionalThreadValue(value: unknown): string | number | undefined {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? Math.trunc(value) : undefined;
+  }
+  return normalizeOptionalString(value);
+}
