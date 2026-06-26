@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7926,
+    "cb_source_files": 7939,
     "oc_source_files": 8443,
-    "source_parity_both": 6128,
+    "source_parity_both": 6141,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2315,
+    "source_missing_from_cb": 2302,
     "test_files_cb": 4869,
     "test_files_oc": 5246,
     "tests_both_covered": 3455,
@@ -98,9 +98,9 @@
       "priority": "P0",
       "implementationSurface": "src/plugins PluginLoader, PluginRegistry, HookRunner",
       "counts": {
-        "sharedSourcePaths": 127,
+        "sharedSourcePaths": 129,
         "coreBlowOnlySourcePaths": 74,
-        "openClawOnlySourcePaths": 207,
+        "openClawOnlySourcePaths": 205,
         "sharedTestPaths": 77,
         "coreBlowOnlyTestPaths": 51,
         "openClawTestGaps": 139
@@ -287,9 +287,9 @@
       "priority": "P0",
       "implementationSurface": "src/plugin-sdk public API",
       "counts": {
-        "sharedSourcePaths": 288,
+        "sharedSourcePaths": 298,
         "coreBlowOnlySourcePaths": 118,
-        "openClawOnlySourcePaths": 151,
+        "openClawOnlySourcePaths": 141,
         "sharedTestPaths": 42,
         "coreBlowOnlyTestPaths": 22,
         "openClawTestGaps": 61
@@ -305,9 +305,9 @@
           "src/plugin-sdk/approval-native-helpers.ts",
           "src/plugin-sdk/browser-facade-test-helpers.ts",
           "src/plugin-sdk/channel-ingress.ts",
-          "src/plugin-sdk/channel-lifecycle.core.ts",
-          "src/plugin-sdk/channel-route.ts",
-          "src/plugin-sdk/channel-secret-basic-runtime.ts"
+          "src/plugin-sdk/channel-secret-basic-runtime.ts",
+          "src/plugin-sdk/channel-secret-runtime.ts",
+          "src/plugin-sdk/channel-secret-tts-runtime.ts"
         ],
         "openClawTestGapPaths": [
           "src/plugin-sdk/acp-runtime.test.ts",
@@ -1119,9 +1119,9 @@
       "priority": "P2",
       "implementationSurface": "src/channels, src/routing, extensions channel adapters",
       "counts": {
-        "sharedSourcePaths": 163,
+        "sharedSourcePaths": 164,
         "coreBlowOnlySourcePaths": 119,
-        "openClawOnlySourcePaths": 48,
+        "openClawOnlySourcePaths": 47,
         "sharedTestPaths": 73,
         "coreBlowOnlyTestPaths": 24,
         "openClawTestGaps": 30
