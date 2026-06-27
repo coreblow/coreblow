@@ -1762,6 +1762,10 @@
       "types": "./dist/plugin-sdk/test-helpers.d.ts",
       "default": "./dist/plugin-sdk/test-helpers.js"
     },
+    "./plugin-sdk/test-node-mocks": {
+      "types": "./dist/plugin-sdk/test-node-mocks.d.ts",
+      "default": "./dist/plugin-sdk/test-node-mocks.js"
+    },
     "./plugin-sdk/test-utils": {
       "types": "./dist/plugin-sdk/test-utils.d.ts",
       "default": "./dist/plugin-sdk/test-utils.js"

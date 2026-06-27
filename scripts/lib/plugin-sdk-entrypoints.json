@@ -362,6 +362,7 @@
   "temp-path",
   "test-env",
   "test-helpers",
+  "test-node-mocks",
   "test-utils",
   "testing",
   "text-autolink-runtime",
