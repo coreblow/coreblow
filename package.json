@@ -310,10 +310,6 @@
     ".": "./dist/index.js",
     "./cli-entry": "./coreblow.mjs",
     "./extension-api": "./dist/extensionAPI.js",
-    "./plugin-sdk": {
-      "types": "./dist/plugin-sdk/index.d.ts",
-      "default": "./dist/plugin-sdk/index.js"
-    },
     "./plugin-sdk/access-groups": {
       "types": "./dist/plugin-sdk/access-groups.d.ts",
       "default": "./dist/plugin-sdk/access-groups.js"
@@ -392,7 +388,7 @@
     },
     "./plugin-sdk/approval-auth-runtime": {
       "types": "./dist/plugin-sdk/approval-auth-runtime.d.ts",
-      "import": "./dist/plugin-sdk/approval-auth-runtime.js"
+      "default": "./dist/plugin-sdk/approval-auth-runtime.js"
     },
     "./plugin-sdk/approval-client-runtime": {
       "types": "./dist/plugin-sdk/approval-client-runtime.d.ts",
@@ -716,7 +712,7 @@
     },
     "./plugin-sdk/context-visibility-runtime": {
       "types": "./dist/plugin-sdk/context-visibility-runtime.d.ts",
-      "import": "./dist/plugin-sdk/context-visibility-runtime.js"
+      "default": "./dist/plugin-sdk/context-visibility-runtime.js"
     },
     "./plugin-sdk/conversation-binding-runtime": {
       "types": "./dist/plugin-sdk/conversation-binding-runtime.d.ts",
@@ -977,6 +973,10 @@
     "./plugin-sdk/inbound-reply-dispatch": {
       "types": "./dist/plugin-sdk/inbound-reply-dispatch.d.ts",
       "default": "./dist/plugin-sdk/inbound-reply-dispatch.js"
+    },
+    "./plugin-sdk": {
+      "types": "./dist/plugin-sdk/index.d.ts",
+      "default": "./dist/plugin-sdk/index.js"
     },
     "./plugin-sdk/infra-runtime": {
       "types": "./dist/plugin-sdk/infra-runtime.d.ts",
@@ -1757,6 +1757,10 @@
     "./plugin-sdk/test-env": {
       "types": "./dist/plugin-sdk/test-env.d.ts",
       "default": "./dist/plugin-sdk/test-env.js"
+    },
+    "./plugin-sdk/test-helpers": {
+      "types": "./dist/plugin-sdk/test-helpers.d.ts",
+      "default": "./dist/plugin-sdk/test-helpers.js"
     },
     "./plugin-sdk/test-utils": {
       "types": "./dist/plugin-sdk/test-utils.d.ts",
