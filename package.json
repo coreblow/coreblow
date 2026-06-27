@@ -314,6 +314,10 @@
       "types": "./dist/plugin-sdk/index.d.ts",
       "default": "./dist/plugin-sdk/index.js"
     },
+    "./plugin-sdk/access-groups": {
+      "types": "./dist/plugin-sdk/access-groups.d.ts",
+      "default": "./dist/plugin-sdk/access-groups.js"
+    },
     "./plugin-sdk/account-core": {
       "types": "./dist/plugin-sdk/account-core.d.ts",
       "default": "./dist/plugin-sdk/account-core.js"
@@ -334,9 +338,9 @@
       "types": "./dist/plugin-sdk/account-resolution-runtime.d.ts",
       "default": "./dist/plugin-sdk/account-resolution-runtime.js"
     },
-    "./plugin-sdk/access-groups": {
-      "types": "./dist/plugin-sdk/access-groups.d.ts",
-      "default": "./dist/plugin-sdk/access-groups.js"
+    "./plugin-sdk/acp": {
+      "types": "./dist/plugin-sdk/acp.d.ts",
+      "default": "./dist/plugin-sdk/acp.js"
     },
     "./plugin-sdk/acp-binding-resolve-runtime": {
       "types": "./dist/plugin-sdk/acp-binding-resolve-runtime.d.ts",
@@ -349,10 +353,6 @@
     "./plugin-sdk/acp-runtime": {
       "types": "./dist/plugin-sdk/acp-runtime.d.ts",
       "default": "./dist/plugin-sdk/acp-runtime.js"
-    },
-    "./plugin-sdk/acp": {
-      "types": "./dist/plugin-sdk/acp.d.ts",
-      "default": "./dist/plugin-sdk/acp.js"
     },
     "./plugin-sdk/agent-config-primitives": {
       "types": "./dist/plugin-sdk/agent-config-primitives.d.ts",
@@ -390,9 +390,9 @@
       "types": "./dist/plugin-sdk/api-baseline.d.ts",
       "default": "./dist/plugin-sdk/api-baseline.js"
     },
-    "./plugin-sdk/approval-runtime": {
-      "types": "./dist/plugin-sdk/approval-runtime.d.ts",
-      "default": "./dist/plugin-sdk/approval-runtime.js"
+    "./plugin-sdk/approval-auth-runtime": {
+      "types": "./dist/plugin-sdk/approval-auth-runtime.d.ts",
+      "import": "./dist/plugin-sdk/approval-auth-runtime.js"
     },
     "./plugin-sdk/approval-client-runtime": {
       "types": "./dist/plugin-sdk/approval-client-runtime.d.ts",
@@ -418,21 +418,13 @@
       "types": "./dist/plugin-sdk/approval-reply-runtime.d.ts",
       "default": "./dist/plugin-sdk/approval-reply-runtime.js"
     },
-    "./plugin-sdk/approval-auth-runtime": {
-      "types": "./dist/plugin-sdk/approval-auth-runtime.d.ts",
-      "import": "./dist/plugin-sdk/approval-auth-runtime.js"
+    "./plugin-sdk/approval-runtime": {
+      "types": "./dist/plugin-sdk/approval-runtime.d.ts",
+      "default": "./dist/plugin-sdk/approval-runtime.js"
     },
     "./plugin-sdk/async-lock-runtime": {
       "types": "./dist/plugin-sdk/async-lock-runtime.d.ts",
       "default": "./dist/plugin-sdk/async-lock-runtime.js"
-    },
-    "./plugin-sdk/bundled-channel-config-schema": {
-      "types": "./dist/plugin-sdk/bundled-channel-config-schema.d.ts",
-      "default": "./dist/plugin-sdk/bundled-channel-config-schema.js"
-    },
-    "./plugin-sdk/context-visibility-runtime": {
-      "types": "./dist/plugin-sdk/context-visibility-runtime.d.ts",
-      "import": "./dist/plugin-sdk/context-visibility-runtime.js"
     },
     "./plugin-sdk/bluebubbles": {
       "types": "./dist/plugin-sdk/bluebubbles.d.ts",
@@ -450,17 +442,21 @@
       "types": "./dist/plugin-sdk/browser.d.ts",
       "default": "./dist/plugin-sdk/browser.js"
     },
-    "./plugin-sdk/browser-runtime": {
-      "types": "./dist/plugin-sdk/browser-runtime.d.ts",
-      "default": "./dist/plugin-sdk/browser-runtime.js"
-    },
     "./plugin-sdk/browser-config": {
       "types": "./dist/plugin-sdk/browser-config.d.ts",
       "default": "./dist/plugin-sdk/browser-config.js"
     },
+    "./plugin-sdk/browser-runtime": {
+      "types": "./dist/plugin-sdk/browser-runtime.d.ts",
+      "default": "./dist/plugin-sdk/browser-runtime.js"
+    },
     "./plugin-sdk/browser-support": {
       "types": "./dist/plugin-sdk/browser-support.d.ts",
       "default": "./dist/plugin-sdk/browser-support.js"
+    },
+    "./plugin-sdk/bundled-channel-config-schema": {
+      "types": "./dist/plugin-sdk/bundled-channel-config-schema.d.ts",
+      "default": "./dist/plugin-sdk/bundled-channel-config-schema.js"
     },
     "./plugin-sdk/byteplus": {
       "types": "./dist/plugin-sdk/byteplus.d.ts",
@@ -474,62 +470,6 @@
       "types": "./dist/plugin-sdk/channel-activity-runtime.d.ts",
       "default": "./dist/plugin-sdk/channel-activity-runtime.js"
     },
-    "./plugin-sdk/channel-config-schema-legacy": {
-      "types": "./dist/plugin-sdk/channel-config-schema-legacy.d.ts",
-      "default": "./dist/plugin-sdk/channel-config-schema-legacy.js"
-    },
-    "./plugin-sdk/channel-contract-testing": {
-      "types": "./dist/plugin-sdk/channel-contract-testing.d.ts",
-      "default": "./dist/plugin-sdk/channel-contract-testing.js"
-    },
-    "./plugin-sdk/channel-envelope": {
-      "types": "./dist/plugin-sdk/channel-envelope.d.ts",
-      "default": "./dist/plugin-sdk/channel-envelope.js"
-    },
-    "./plugin-sdk/channel-inbound-debounce": {
-      "types": "./dist/plugin-sdk/channel-inbound-debounce.d.ts",
-      "default": "./dist/plugin-sdk/channel-inbound-debounce.js"
-    },
-    "./plugin-sdk/channel-inbound-roots": {
-      "types": "./dist/plugin-sdk/channel-inbound-roots.d.ts",
-      "default": "./dist/plugin-sdk/channel-inbound-roots.js"
-    },
-    "./plugin-sdk/channel-ingress-runtime": {
-      "types": "./dist/plugin-sdk/channel-ingress-runtime.d.ts",
-      "default": "./dist/plugin-sdk/channel-ingress-runtime.js"
-    },
-    "./plugin-sdk/channel-location": {
-      "types": "./dist/plugin-sdk/channel-location.d.ts",
-      "default": "./dist/plugin-sdk/channel-location.js"
-    },
-    "./plugin-sdk/channel-logging": {
-      "types": "./dist/plugin-sdk/channel-logging.d.ts",
-      "default": "./dist/plugin-sdk/channel-logging.js"
-    },
-    "./plugin-sdk/channel-mention-gating": {
-      "types": "./dist/plugin-sdk/channel-mention-gating.d.ts",
-      "default": "./dist/plugin-sdk/channel-mention-gating.js"
-    },
-    "./plugin-sdk/channel-message-runtime": {
-      "types": "./dist/plugin-sdk/channel-message-runtime.d.ts",
-      "default": "./dist/plugin-sdk/channel-message-runtime.js"
-    },
-    "./plugin-sdk/channel-pairing-paths": {
-      "types": "./dist/plugin-sdk/channel-pairing-paths.d.ts",
-      "default": "./dist/plugin-sdk/channel-pairing-paths.js"
-    },
-    "./plugin-sdk/channel-reply-options-runtime": {
-      "types": "./dist/plugin-sdk/channel-reply-options-runtime.d.ts",
-      "default": "./dist/plugin-sdk/channel-reply-options-runtime.js"
-    },
-    "./plugin-sdk/channel-runtime-context": {
-      "types": "./dist/plugin-sdk/channel-runtime-context.d.ts",
-      "default": "./dist/plugin-sdk/channel-runtime-context.js"
-    },
-    "./plugin-sdk/channel-target-testing": {
-      "types": "./dist/plugin-sdk/channel-target-testing.d.ts",
-      "default": "./dist/plugin-sdk/channel-target-testing.js"
-    },
     "./plugin-sdk/channel-config-helpers": {
       "types": "./dist/plugin-sdk/channel-config-helpers.d.ts",
       "default": "./dist/plugin-sdk/channel-config-helpers.js"
@@ -542,6 +482,10 @@
       "types": "./dist/plugin-sdk/channel-config-schema.d.ts",
       "default": "./dist/plugin-sdk/channel-config-schema.js"
     },
+    "./plugin-sdk/channel-config-schema-legacy": {
+      "types": "./dist/plugin-sdk/channel-config-schema-legacy.d.ts",
+      "default": "./dist/plugin-sdk/channel-config-schema-legacy.js"
+    },
     "./plugin-sdk/channel-config-writes": {
       "types": "./dist/plugin-sdk/channel-config-writes.d.ts",
       "default": "./dist/plugin-sdk/channel-config-writes.js"
@@ -550,6 +494,10 @@
       "types": "./dist/plugin-sdk/channel-contract.d.ts",
       "default": "./dist/plugin-sdk/channel-contract.js"
     },
+    "./plugin-sdk/channel-contract-testing": {
+      "types": "./dist/plugin-sdk/channel-contract-testing.d.ts",
+      "default": "./dist/plugin-sdk/channel-contract-testing.js"
+    },
     "./plugin-sdk/channel-core": {
       "types": "./dist/plugin-sdk/channel-core.d.ts",
       "default": "./dist/plugin-sdk/channel-core.js"
@@ -557,6 +505,10 @@
     "./plugin-sdk/channel-entry-contract": {
       "types": "./dist/plugin-sdk/channel-entry-contract.d.ts",
       "default": "./dist/plugin-sdk/channel-entry-contract.js"
+    },
+    "./plugin-sdk/channel-envelope": {
+      "types": "./dist/plugin-sdk/channel-envelope.d.ts",
+      "default": "./dist/plugin-sdk/channel-envelope.js"
     },
     "./plugin-sdk/channel-feedback": {
       "types": "./dist/plugin-sdk/channel-feedback.d.ts",
@@ -570,17 +522,53 @@
       "types": "./dist/plugin-sdk/channel-inbound.d.ts",
       "default": "./dist/plugin-sdk/channel-inbound.js"
     },
+    "./plugin-sdk/channel-inbound-debounce": {
+      "types": "./dist/plugin-sdk/channel-inbound-debounce.d.ts",
+      "default": "./dist/plugin-sdk/channel-inbound-debounce.js"
+    },
+    "./plugin-sdk/channel-inbound-roots": {
+      "types": "./dist/plugin-sdk/channel-inbound-roots.d.ts",
+      "default": "./dist/plugin-sdk/channel-inbound-roots.js"
+    },
+    "./plugin-sdk/channel-ingress-runtime": {
+      "types": "./dist/plugin-sdk/channel-ingress-runtime.d.ts",
+      "default": "./dist/plugin-sdk/channel-ingress-runtime.js"
+    },
     "./plugin-sdk/channel-lifecycle": {
       "types": "./dist/plugin-sdk/channel-lifecycle.d.ts",
       "default": "./dist/plugin-sdk/channel-lifecycle.js"
+    },
+    "./plugin-sdk/channel-lifecycle.core": {
+      "types": "./dist/plugin-sdk/channel-lifecycle.core.d.ts",
+      "default": "./dist/plugin-sdk/channel-lifecycle.core.js"
+    },
+    "./plugin-sdk/channel-location": {
+      "types": "./dist/plugin-sdk/channel-location.d.ts",
+      "default": "./dist/plugin-sdk/channel-location.js"
+    },
+    "./plugin-sdk/channel-logging": {
+      "types": "./dist/plugin-sdk/channel-logging.d.ts",
+      "default": "./dist/plugin-sdk/channel-logging.js"
+    },
+    "./plugin-sdk/channel-mention-gating": {
+      "types": "./dist/plugin-sdk/channel-mention-gating.d.ts",
+      "default": "./dist/plugin-sdk/channel-mention-gating.js"
     },
     "./plugin-sdk/channel-message": {
       "types": "./dist/plugin-sdk/channel-message.d.ts",
       "default": "./dist/plugin-sdk/channel-message.js"
     },
+    "./plugin-sdk/channel-message-runtime": {
+      "types": "./dist/plugin-sdk/channel-message-runtime.d.ts",
+      "default": "./dist/plugin-sdk/channel-message-runtime.js"
+    },
     "./plugin-sdk/channel-pairing": {
       "types": "./dist/plugin-sdk/channel-pairing.d.ts",
       "default": "./dist/plugin-sdk/channel-pairing.js"
+    },
+    "./plugin-sdk/channel-pairing-paths": {
+      "types": "./dist/plugin-sdk/channel-pairing-paths.d.ts",
+      "default": "./dist/plugin-sdk/channel-pairing-paths.js"
     },
     "./plugin-sdk/channel-plugin-common": {
       "types": "./dist/plugin-sdk/channel-plugin-common.d.ts",
@@ -590,13 +578,25 @@
       "types": "./dist/plugin-sdk/channel-policy.d.ts",
       "default": "./dist/plugin-sdk/channel-policy.js"
     },
+    "./plugin-sdk/channel-reply-options-runtime": {
+      "types": "./dist/plugin-sdk/channel-reply-options-runtime.d.ts",
+      "default": "./dist/plugin-sdk/channel-reply-options-runtime.js"
+    },
     "./plugin-sdk/channel-reply-pipeline": {
       "types": "./dist/plugin-sdk/channel-reply-pipeline.d.ts",
       "default": "./dist/plugin-sdk/channel-reply-pipeline.js"
     },
+    "./plugin-sdk/channel-route": {
+      "types": "./dist/plugin-sdk/channel-route.d.ts",
+      "default": "./dist/plugin-sdk/channel-route.js"
+    },
     "./plugin-sdk/channel-runtime": {
       "types": "./dist/plugin-sdk/channel-runtime.d.ts",
       "default": "./dist/plugin-sdk/channel-runtime.js"
+    },
+    "./plugin-sdk/channel-runtime-context": {
+      "types": "./dist/plugin-sdk/channel-runtime-context.d.ts",
+      "default": "./dist/plugin-sdk/channel-runtime-context.js"
     },
     "./plugin-sdk/channel-send-result": {
       "types": "./dist/plugin-sdk/channel-send-result.d.ts",
@@ -610,6 +610,14 @@
       "types": "./dist/plugin-sdk/channel-status.d.ts",
       "default": "./dist/plugin-sdk/channel-status.js"
     },
+    "./plugin-sdk/channel-streaming": {
+      "types": "./dist/plugin-sdk/channel-streaming.d.ts",
+      "default": "./dist/plugin-sdk/channel-streaming.js"
+    },
+    "./plugin-sdk/channel-target-testing": {
+      "types": "./dist/plugin-sdk/channel-target-testing.d.ts",
+      "default": "./dist/plugin-sdk/channel-target-testing.js"
+    },
     "./plugin-sdk/channel-targets": {
       "types": "./dist/plugin-sdk/channel-targets.d.ts",
       "default": "./dist/plugin-sdk/channel-targets.js"
@@ -617,170 +625,6 @@
     "./plugin-sdk/channel-test-helpers": {
       "types": "./dist/plugin-sdk/channel-test-helpers.d.ts",
       "default": "./dist/plugin-sdk/channel-test-helpers.js"
-    },
-    "./plugin-sdk/command-detection": {
-      "types": "./dist/plugin-sdk/command-detection.d.ts",
-      "default": "./dist/plugin-sdk/command-detection.js"
-    },
-    "./plugin-sdk/command-gating": {
-      "types": "./dist/plugin-sdk/command-gating.d.ts",
-      "default": "./dist/plugin-sdk/command-gating.js"
-    },
-    "./plugin-sdk/command-primitives-runtime": {
-      "types": "./dist/plugin-sdk/command-primitives-runtime.d.ts",
-      "default": "./dist/plugin-sdk/command-primitives-runtime.js"
-    },
-    "./plugin-sdk/concurrency-runtime": {
-      "types": "./dist/plugin-sdk/concurrency-runtime.d.ts",
-      "default": "./dist/plugin-sdk/concurrency-runtime.js"
-    },
-    "./plugin-sdk/config-types": {
-      "types": "./dist/plugin-sdk/config-types.d.ts",
-      "default": "./dist/plugin-sdk/config-types.js"
-    },
-    "./plugin-sdk/conversation-binding-runtime": {
-      "types": "./dist/plugin-sdk/conversation-binding-runtime.d.ts",
-      "default": "./dist/plugin-sdk/conversation-binding-runtime.js"
-    },
-    "./plugin-sdk/cron-store-runtime": {
-      "types": "./dist/plugin-sdk/cron-store-runtime.d.ts",
-      "default": "./dist/plugin-sdk/cron-store-runtime.js"
-    },
-    "./plugin-sdk/dangerous-name-runtime": {
-      "types": "./dist/plugin-sdk/dangerous-name-runtime.d.ts",
-      "default": "./dist/plugin-sdk/dangerous-name-runtime.js"
-    },
-    "./plugin-sdk/dedupe-runtime": {
-      "types": "./dist/plugin-sdk/dedupe-runtime.d.ts",
-      "default": "./dist/plugin-sdk/dedupe-runtime.js"
-    },
-    "./plugin-sdk/delivery-queue-runtime": {
-      "types": "./dist/plugin-sdk/delivery-queue-runtime.d.ts",
-      "default": "./dist/plugin-sdk/delivery-queue-runtime.js"
-    },
-    "./plugin-sdk/file-access-runtime": {
-      "types": "./dist/plugin-sdk/file-access-runtime.d.ts",
-      "default": "./dist/plugin-sdk/file-access-runtime.js"
-    },
-    "./plugin-sdk/group-activation": {
-      "types": "./dist/plugin-sdk/group-activation.d.ts",
-      "default": "./dist/plugin-sdk/group-activation.js"
-    },
-    "./plugin-sdk/heartbeat-runtime": {
-      "types": "./dist/plugin-sdk/heartbeat-runtime.d.ts",
-      "default": "./dist/plugin-sdk/heartbeat-runtime.js"
-    },
-    "./plugin-sdk/markdown-table-runtime": {
-      "types": "./dist/plugin-sdk/markdown-table-runtime.d.ts",
-      "default": "./dist/plugin-sdk/markdown-table-runtime.js"
-    },
-    "./plugin-sdk/media-generation-runtime": {
-      "types": "./dist/plugin-sdk/media-generation-runtime.d.ts",
-      "default": "./dist/plugin-sdk/media-generation-runtime.js"
-    },
-    "./plugin-sdk/media-store": {
-      "types": "./dist/plugin-sdk/media-store.d.ts",
-      "default": "./dist/plugin-sdk/media-store.js"
-    },
-    "./plugin-sdk/model-session-runtime": {
-      "types": "./dist/plugin-sdk/model-session-runtime.d.ts",
-      "default": "./dist/plugin-sdk/model-session-runtime.js"
-    },
-    "./plugin-sdk/models-provider-runtime": {
-      "types": "./dist/plugin-sdk/models-provider-runtime.d.ts",
-      "default": "./dist/plugin-sdk/models-provider-runtime.js"
-    },
-    "./plugin-sdk/native-command-config-runtime": {
-      "types": "./dist/plugin-sdk/native-command-config-runtime.d.ts",
-      "default": "./dist/plugin-sdk/native-command-config-runtime.js"
-    },
-    "./plugin-sdk/number-runtime": {
-      "types": "./dist/plugin-sdk/number-runtime.d.ts",
-      "default": "./dist/plugin-sdk/number-runtime.js"
-    },
-    "./plugin-sdk/outbound-send-deps": {
-      "types": "./dist/plugin-sdk/outbound-send-deps.d.ts",
-      "default": "./dist/plugin-sdk/outbound-send-deps.js"
-    },
-    "./plugin-sdk/poll-runtime": {
-      "types": "./dist/plugin-sdk/poll-runtime.d.ts",
-      "default": "./dist/plugin-sdk/poll-runtime.js"
-    },
-    "./plugin-sdk/command-auth-native": {
-      "types": "./dist/plugin-sdk/command-auth-native.d.ts",
-      "default": "./dist/plugin-sdk/command-auth-native.js"
-    },
-    "./plugin-sdk/command-status": {
-      "types": "./dist/plugin-sdk/command-status.d.ts",
-      "default": "./dist/plugin-sdk/command-status.js"
-    },
-    "./plugin-sdk/command-surface": {
-      "types": "./dist/plugin-sdk/command-surface.d.ts",
-      "default": "./dist/plugin-sdk/command-surface.js"
-    },
-    "./plugin-sdk/config-mutation": {
-      "types": "./dist/plugin-sdk/config-mutation.d.ts",
-      "default": "./dist/plugin-sdk/config-mutation.js"
-    },
-    "./plugin-sdk/config-schema": {
-      "types": "./dist/plugin-sdk/config-schema.d.ts",
-      "default": "./dist/plugin-sdk/config-schema.js"
-    },
-    "./plugin-sdk/direct-dm-guard-policy": {
-      "types": "./dist/plugin-sdk/direct-dm-guard-policy.d.ts",
-      "default": "./dist/plugin-sdk/direct-dm-guard-policy.js"
-    },
-    "./plugin-sdk/directory-config-runtime": {
-      "types": "./dist/plugin-sdk/directory-config-runtime.d.ts",
-      "default": "./dist/plugin-sdk/directory-config-runtime.js"
-    },
-    "./plugin-sdk/json-schema-runtime": {
-      "types": "./dist/plugin-sdk/json-schema-runtime.d.ts",
-      "default": "./dist/plugin-sdk/json-schema-runtime.js"
-    },
-    "./plugin-sdk/lazy-value": {
-      "types": "./dist/plugin-sdk/lazy-value.d.ts",
-      "default": "./dist/plugin-sdk/lazy-value.js"
-    },
-    "./plugin-sdk/reply-chunking": {
-      "types": "./dist/plugin-sdk/reply-chunking.d.ts",
-      "default": "./dist/plugin-sdk/reply-chunking.js"
-    },
-    "./plugin-sdk/reply-dedupe": {
-      "types": "./dist/plugin-sdk/reply-dedupe.d.ts",
-      "default": "./dist/plugin-sdk/reply-dedupe.js"
-    },
-    "./plugin-sdk/response-limit-runtime": {
-      "types": "./dist/plugin-sdk/response-limit-runtime.d.ts",
-      "default": "./dist/plugin-sdk/response-limit-runtime.js"
-    },
-    "./plugin-sdk/secure-random-runtime": {
-      "types": "./dist/plugin-sdk/secure-random-runtime.d.ts",
-      "default": "./dist/plugin-sdk/secure-random-runtime.js"
-    },
-    "./plugin-sdk/session-key-runtime": {
-      "types": "./dist/plugin-sdk/session-key-runtime.d.ts",
-      "default": "./dist/plugin-sdk/session-key-runtime.js"
-    },
-    "./plugin-sdk/string-normalization-runtime": {
-      "types": "./dist/plugin-sdk/string-normalization-runtime.d.ts",
-      "default": "./dist/plugin-sdk/string-normalization-runtime.js"
-    },
-    "./plugin-sdk/system-event-runtime": {
-      "types": "./dist/plugin-sdk/system-event-runtime.d.ts",
-      "default": "./dist/plugin-sdk/system-event-runtime.js"
-    },
-    "./plugin-sdk/target-resolver-runtime": {
-      "types": "./dist/plugin-sdk/target-resolver-runtime.d.ts",
-      "default": "./dist/plugin-sdk/target-resolver-runtime.js"
-    },
-    "./plugin-sdk/time-runtime": {
-      "types": "./dist/plugin-sdk/time-runtime.d.ts",
-      "default": "./dist/plugin-sdk/time-runtime.js"
-    },
-    "./plugin-sdk/transport-ready-runtime": {
-      "types": "./dist/plugin-sdk/transport-ready-runtime.d.ts",
-      "default": "./dist/plugin-sdk/transport-ready-runtime.js"
     },
     "./plugin-sdk/chutes": {
       "types": "./dist/plugin-sdk/chutes.d.ts",
@@ -810,9 +654,37 @@
       "types": "./dist/plugin-sdk/command-auth.d.ts",
       "default": "./dist/plugin-sdk/command-auth.js"
     },
+    "./plugin-sdk/command-auth-native": {
+      "types": "./dist/plugin-sdk/command-auth-native.d.ts",
+      "default": "./dist/plugin-sdk/command-auth-native.js"
+    },
+    "./plugin-sdk/command-detection": {
+      "types": "./dist/plugin-sdk/command-detection.d.ts",
+      "default": "./dist/plugin-sdk/command-detection.js"
+    },
+    "./plugin-sdk/command-gating": {
+      "types": "./dist/plugin-sdk/command-gating.d.ts",
+      "default": "./dist/plugin-sdk/command-gating.js"
+    },
+    "./plugin-sdk/command-primitives-runtime": {
+      "types": "./dist/plugin-sdk/command-primitives-runtime.d.ts",
+      "default": "./dist/plugin-sdk/command-primitives-runtime.js"
+    },
+    "./plugin-sdk/command-status": {
+      "types": "./dist/plugin-sdk/command-status.d.ts",
+      "default": "./dist/plugin-sdk/command-status.js"
+    },
+    "./plugin-sdk/command-surface": {
+      "types": "./dist/plugin-sdk/command-surface.d.ts",
+      "default": "./dist/plugin-sdk/command-surface.js"
+    },
     "./plugin-sdk/compat": {
       "types": "./dist/plugin-sdk/compat.d.ts",
       "default": "./dist/plugin-sdk/compat.js"
+    },
+    "./plugin-sdk/concurrency-runtime": {
+      "types": "./dist/plugin-sdk/concurrency-runtime.d.ts",
+      "default": "./dist/plugin-sdk/concurrency-runtime.js"
     },
     "./plugin-sdk/config-builder": {
       "types": "./dist/plugin-sdk/config-builder.d.ts",
@@ -822,6 +694,10 @@
       "types": "./dist/plugin-sdk/config-contracts.d.ts",
       "default": "./dist/plugin-sdk/config-contracts.js"
     },
+    "./plugin-sdk/config-mutation": {
+      "types": "./dist/plugin-sdk/config-mutation.d.ts",
+      "default": "./dist/plugin-sdk/config-mutation.js"
+    },
     "./plugin-sdk/config-paths": {
       "types": "./dist/plugin-sdk/config-paths.d.ts",
       "default": "./dist/plugin-sdk/config-paths.js"
@@ -829,6 +705,22 @@
     "./plugin-sdk/config-runtime": {
       "types": "./dist/plugin-sdk/config-runtime.d.ts",
       "default": "./dist/plugin-sdk/config-runtime.js"
+    },
+    "./plugin-sdk/config-schema": {
+      "types": "./dist/plugin-sdk/config-schema.d.ts",
+      "default": "./dist/plugin-sdk/config-schema.js"
+    },
+    "./plugin-sdk/config-types": {
+      "types": "./dist/plugin-sdk/config-types.d.ts",
+      "default": "./dist/plugin-sdk/config-types.js"
+    },
+    "./plugin-sdk/context-visibility-runtime": {
+      "types": "./dist/plugin-sdk/context-visibility-runtime.d.ts",
+      "import": "./dist/plugin-sdk/context-visibility-runtime.js"
+    },
+    "./plugin-sdk/conversation-binding-runtime": {
+      "types": "./dist/plugin-sdk/conversation-binding-runtime.d.ts",
+      "default": "./dist/plugin-sdk/conversation-binding-runtime.js"
     },
     "./plugin-sdk/conversation-runtime": {
       "types": "./dist/plugin-sdk/conversation-runtime.d.ts",
@@ -842,9 +734,25 @@
       "types": "./dist/plugin-sdk/core.d.ts",
       "default": "./dist/plugin-sdk/core.js"
     },
+    "./plugin-sdk/cron-store-runtime": {
+      "types": "./dist/plugin-sdk/cron-store-runtime.d.ts",
+      "default": "./dist/plugin-sdk/cron-store-runtime.js"
+    },
+    "./plugin-sdk/dangerous-name-runtime": {
+      "types": "./dist/plugin-sdk/dangerous-name-runtime.d.ts",
+      "default": "./dist/plugin-sdk/dangerous-name-runtime.js"
+    },
+    "./plugin-sdk/dedupe-runtime": {
+      "types": "./dist/plugin-sdk/dedupe-runtime.d.ts",
+      "default": "./dist/plugin-sdk/dedupe-runtime.js"
+    },
     "./plugin-sdk/deepseek": {
       "types": "./dist/plugin-sdk/deepseek.d.ts",
       "default": "./dist/plugin-sdk/deepseek.js"
+    },
+    "./plugin-sdk/delivery-queue-runtime": {
+      "types": "./dist/plugin-sdk/delivery-queue-runtime.d.ts",
+      "default": "./dist/plugin-sdk/delivery-queue-runtime.js"
     },
     "./plugin-sdk/device-bootstrap": {
       "types": "./dist/plugin-sdk/device-bootstrap.d.ts",
@@ -865,6 +773,18 @@
     "./plugin-sdk/direct-dm": {
       "types": "./dist/plugin-sdk/direct-dm.d.ts",
       "default": "./dist/plugin-sdk/direct-dm.js"
+    },
+    "./plugin-sdk/direct-dm-access": {
+      "types": "./dist/plugin-sdk/direct-dm-access.d.ts",
+      "default": "./dist/plugin-sdk/direct-dm-access.js"
+    },
+    "./plugin-sdk/direct-dm-guard-policy": {
+      "types": "./dist/plugin-sdk/direct-dm-guard-policy.d.ts",
+      "default": "./dist/plugin-sdk/direct-dm-guard-policy.js"
+    },
+    "./plugin-sdk/directory-config-runtime": {
+      "types": "./dist/plugin-sdk/directory-config-runtime.d.ts",
+      "default": "./dist/plugin-sdk/directory-config-runtime.js"
     },
     "./plugin-sdk/directory-runtime": {
       "types": "./dist/plugin-sdk/directory-runtime.d.ts",
@@ -906,6 +826,10 @@
       "types": "./dist/plugin-sdk/discord-timeouts.d.ts",
       "default": "./dist/plugin-sdk/discord-timeouts.js"
     },
+    "./plugin-sdk/document-extractor": {
+      "types": "./dist/plugin-sdk/document-extractor.d.ts",
+      "default": "./dist/plugin-sdk/document-extractor.js"
+    },
     "./plugin-sdk/entrypoints": {
       "types": "./dist/plugin-sdk/entrypoints.d.ts",
       "default": "./dist/plugin-sdk/entrypoints.js"
@@ -946,6 +870,10 @@
       "types": "./dist/plugin-sdk/fetch-runtime.d.ts",
       "default": "./dist/plugin-sdk/fetch-runtime.js"
     },
+    "./plugin-sdk/file-access-runtime": {
+      "types": "./dist/plugin-sdk/file-access-runtime.d.ts",
+      "default": "./dist/plugin-sdk/file-access-runtime.js"
+    },
     "./plugin-sdk/file-lock": {
       "types": "./dist/plugin-sdk/file-lock.d.ts",
       "default": "./dist/plugin-sdk/file-lock.js"
@@ -985,6 +913,14 @@
     "./plugin-sdk/group-access": {
       "types": "./dist/plugin-sdk/group-access.d.ts",
       "default": "./dist/plugin-sdk/group-access.js"
+    },
+    "./plugin-sdk/group-activation": {
+      "types": "./dist/plugin-sdk/group-activation.d.ts",
+      "default": "./dist/plugin-sdk/group-activation.js"
+    },
+    "./plugin-sdk/heartbeat-runtime": {
+      "types": "./dist/plugin-sdk/heartbeat-runtime.d.ts",
+      "default": "./dist/plugin-sdk/heartbeat-runtime.js"
     },
     "./plugin-sdk/hook-runtime": {
       "types": "./dist/plugin-sdk/hook-runtime.d.ts",
@@ -1058,6 +994,10 @@
       "types": "./dist/plugin-sdk/irc-surface.d.ts",
       "default": "./dist/plugin-sdk/irc-surface.js"
     },
+    "./plugin-sdk/json-schema-runtime": {
+      "types": "./dist/plugin-sdk/json-schema-runtime.d.ts",
+      "default": "./dist/plugin-sdk/json-schema-runtime.js"
+    },
     "./plugin-sdk/json-store": {
       "types": "./dist/plugin-sdk/json-store.d.ts",
       "default": "./dist/plugin-sdk/json-store.js"
@@ -1077,6 +1017,10 @@
     "./plugin-sdk/lazy-runtime": {
       "types": "./dist/plugin-sdk/lazy-runtime.d.ts",
       "default": "./dist/plugin-sdk/lazy-runtime.js"
+    },
+    "./plugin-sdk/lazy-value": {
+      "types": "./dist/plugin-sdk/lazy-value.d.ts",
+      "default": "./dist/plugin-sdk/lazy-value.js"
     },
     "./plugin-sdk/line": {
       "types": "./dist/plugin-sdk/line.d.ts",
@@ -1106,13 +1050,13 @@
       "types": "./dist/plugin-sdk/lmstudio.d.ts",
       "default": "./dist/plugin-sdk/lmstudio.js"
     },
-    "./plugin-sdk/workflow-shell": {
-      "types": "./dist/plugin-sdk/workflow-shell.d.ts",
-      "default": "./dist/plugin-sdk/workflow-shell.js"
-    },
     "./plugin-sdk/logging-core": {
       "types": "./dist/plugin-sdk/logging-core.d.ts",
       "default": "./dist/plugin-sdk/logging-core.js"
+    },
+    "./plugin-sdk/markdown-table-runtime": {
+      "types": "./dist/plugin-sdk/markdown-table-runtime.d.ts",
+      "default": "./dist/plugin-sdk/markdown-table-runtime.js"
     },
     "./plugin-sdk/matrix": {
       "types": "./dist/plugin-sdk/matrix.d.ts",
@@ -1150,6 +1094,10 @@
       "types": "./dist/plugin-sdk/mattermost-policy.d.ts",
       "default": "./dist/plugin-sdk/mattermost-policy.js"
     },
+    "./plugin-sdk/media-generation-runtime": {
+      "types": "./dist/plugin-sdk/media-generation-runtime.d.ts",
+      "default": "./dist/plugin-sdk/media-generation-runtime.js"
+    },
     "./plugin-sdk/media-mime": {
       "types": "./dist/plugin-sdk/media-mime.d.ts",
       "default": "./dist/plugin-sdk/media-mime.js"
@@ -1157,6 +1105,10 @@
     "./plugin-sdk/media-runtime": {
       "types": "./dist/plugin-sdk/media-runtime.d.ts",
       "default": "./dist/plugin-sdk/media-runtime.js"
+    },
+    "./plugin-sdk/media-store": {
+      "types": "./dist/plugin-sdk/media-store.d.ts",
+      "default": "./dist/plugin-sdk/media-store.js"
     },
     "./plugin-sdk/media-understanding": {
       "types": "./dist/plugin-sdk/media-understanding.d.ts",
@@ -1222,6 +1174,10 @@
       "types": "./dist/plugin-sdk/memory-lancedb.d.ts",
       "default": "./dist/plugin-sdk/memory-lancedb.js"
     },
+    "./plugin-sdk/messaging-targets": {
+      "types": "./dist/plugin-sdk/messaging-targets.d.ts",
+      "default": "./dist/plugin-sdk/messaging-targets.js"
+    },
     "./plugin-sdk/migration": {
       "types": "./dist/plugin-sdk/migration.d.ts",
       "default": "./dist/plugin-sdk/migration.js"
@@ -1237,6 +1193,14 @@
     "./plugin-sdk/mistral": {
       "types": "./dist/plugin-sdk/mistral.d.ts",
       "default": "./dist/plugin-sdk/mistral.js"
+    },
+    "./plugin-sdk/model-session-runtime": {
+      "types": "./dist/plugin-sdk/model-session-runtime.d.ts",
+      "default": "./dist/plugin-sdk/model-session-runtime.js"
+    },
+    "./plugin-sdk/models-provider-runtime": {
+      "types": "./dist/plugin-sdk/models-provider-runtime.d.ts",
+      "default": "./dist/plugin-sdk/models-provider-runtime.js"
     },
     "./plugin-sdk/modelstudio": {
       "types": "./dist/plugin-sdk/modelstudio.d.ts",
@@ -1266,6 +1230,10 @@
       "types": "./dist/plugin-sdk/music-generation-runtime.d.ts",
       "default": "./dist/plugin-sdk/music-generation-runtime.js"
     },
+    "./plugin-sdk/native-command-config-runtime": {
+      "types": "./dist/plugin-sdk/native-command-config-runtime.d.ts",
+      "default": "./dist/plugin-sdk/native-command-config-runtime.js"
+    },
     "./plugin-sdk/nextcloud-talk": {
       "types": "./dist/plugin-sdk/nextcloud-talk.d.ts",
       "default": "./dist/plugin-sdk/nextcloud-talk.js"
@@ -1273,6 +1241,10 @@
     "./plugin-sdk/nostr": {
       "types": "./dist/plugin-sdk/nostr.d.ts",
       "default": "./dist/plugin-sdk/nostr.js"
+    },
+    "./plugin-sdk/number-runtime": {
+      "types": "./dist/plugin-sdk/number-runtime.d.ts",
+      "default": "./dist/plugin-sdk/number-runtime.js"
     },
     "./plugin-sdk/nvidia": {
       "types": "./dist/plugin-sdk/nvidia.d.ts",
@@ -1322,6 +1294,10 @@
       "types": "./dist/plugin-sdk/outbound-runtime.d.ts",
       "default": "./dist/plugin-sdk/outbound-runtime.js"
     },
+    "./plugin-sdk/outbound-send-deps": {
+      "types": "./dist/plugin-sdk/outbound-send-deps.d.ts",
+      "default": "./dist/plugin-sdk/outbound-send-deps.js"
+    },
     "./plugin-sdk/pairing-access": {
       "types": "./dist/plugin-sdk/pairing-access.d.ts",
       "default": "./dist/plugin-sdk/pairing-access.js"
@@ -1362,6 +1338,10 @@
       "types": "./dist/plugin-sdk/plugin-test-runtime.d.ts",
       "default": "./dist/plugin-sdk/plugin-test-runtime.js"
     },
+    "./plugin-sdk/poll-runtime": {
+      "types": "./dist/plugin-sdk/poll-runtime.d.ts",
+      "default": "./dist/plugin-sdk/poll-runtime.js"
+    },
     "./plugin-sdk/process-runtime": {
       "types": "./dist/plugin-sdk/process-runtime.d.ts",
       "default": "./dist/plugin-sdk/process-runtime.js"
@@ -1394,9 +1374,17 @@
       "types": "./dist/plugin-sdk/provider-catalog.d.ts",
       "default": "./dist/plugin-sdk/provider-catalog.js"
     },
+    "./plugin-sdk/provider-catalog-runtime": {
+      "types": "./dist/plugin-sdk/provider-catalog-runtime.d.ts",
+      "default": "./dist/plugin-sdk/provider-catalog-runtime.js"
+    },
     "./plugin-sdk/provider-catalog-shared": {
       "types": "./dist/plugin-sdk/provider-catalog-shared.d.ts",
       "default": "./dist/plugin-sdk/provider-catalog-shared.js"
+    },
+    "./plugin-sdk/provider-enable-config": {
+      "types": "./dist/plugin-sdk/provider-enable-config.d.ts",
+      "default": "./dist/plugin-sdk/provider-enable-config.js"
     },
     "./plugin-sdk/provider-entry": {
       "types": "./dist/plugin-sdk/provider-entry.d.ts",
@@ -1418,13 +1406,17 @@
       "types": "./dist/plugin-sdk/provider-http.d.ts",
       "default": "./dist/plugin-sdk/provider-http.js"
     },
-    "./plugin-sdk/realtime-transcription": {
-      "types": "./dist/plugin-sdk/realtime-transcription.d.ts",
-      "default": "./dist/plugin-sdk/realtime-transcription.js"
+    "./plugin-sdk/provider-model-id-normalize": {
+      "types": "./dist/plugin-sdk/provider-model-id-normalize.d.ts",
+      "default": "./dist/plugin-sdk/provider-model-id-normalize.js"
     },
     "./plugin-sdk/provider-model-shared": {
       "types": "./dist/plugin-sdk/provider-model-shared.d.ts",
       "default": "./dist/plugin-sdk/provider-model-shared.js"
+    },
+    "./plugin-sdk/provider-model-types": {
+      "types": "./dist/plugin-sdk/provider-model-types.d.ts",
+      "default": "./dist/plugin-sdk/provider-model-types.js"
     },
     "./plugin-sdk/provider-models": {
       "types": "./dist/plugin-sdk/provider-models.d.ts",
@@ -1442,6 +1434,10 @@
       "types": "./dist/plugin-sdk/provider-reasoning.d.ts",
       "default": "./dist/plugin-sdk/provider-reasoning.js"
     },
+    "./plugin-sdk/provider-selection-runtime": {
+      "types": "./dist/plugin-sdk/provider-selection-runtime.d.ts",
+      "default": "./dist/plugin-sdk/provider-selection-runtime.js"
+    },
     "./plugin-sdk/provider-setup": {
       "types": "./dist/plugin-sdk/provider-setup.d.ts",
       "default": "./dist/plugin-sdk/provider-setup.js"
@@ -1449,6 +1445,10 @@
     "./plugin-sdk/provider-stream": {
       "types": "./dist/plugin-sdk/provider-stream.d.ts",
       "default": "./dist/plugin-sdk/provider-stream.js"
+    },
+    "./plugin-sdk/provider-stream-family": {
+      "types": "./dist/plugin-sdk/provider-stream-family.d.ts",
+      "default": "./dist/plugin-sdk/provider-stream-family.js"
     },
     "./plugin-sdk/provider-test-contracts": {
       "types": "./dist/plugin-sdk/provider-test-contracts.d.ts",
@@ -1462,9 +1462,29 @@
       "types": "./dist/plugin-sdk/provider-usage.d.ts",
       "default": "./dist/plugin-sdk/provider-usage.js"
     },
+    "./plugin-sdk/provider-web-fetch": {
+      "types": "./dist/plugin-sdk/provider-web-fetch.d.ts",
+      "default": "./dist/plugin-sdk/provider-web-fetch.js"
+    },
+    "./plugin-sdk/provider-web-fetch-contract": {
+      "types": "./dist/plugin-sdk/provider-web-fetch-contract.d.ts",
+      "default": "./dist/plugin-sdk/provider-web-fetch-contract.js"
+    },
     "./plugin-sdk/provider-web-search": {
       "types": "./dist/plugin-sdk/provider-web-search.d.ts",
       "default": "./dist/plugin-sdk/provider-web-search.js"
+    },
+    "./plugin-sdk/provider-web-search-config-contract": {
+      "types": "./dist/plugin-sdk/provider-web-search-config-contract.d.ts",
+      "default": "./dist/plugin-sdk/provider-web-search-config-contract.js"
+    },
+    "./plugin-sdk/provider-web-search-contract": {
+      "types": "./dist/plugin-sdk/provider-web-search-contract.d.ts",
+      "default": "./dist/plugin-sdk/provider-web-search-contract.js"
+    },
+    "./plugin-sdk/provider-web-search-contract-fields": {
+      "types": "./dist/plugin-sdk/provider-web-search-contract-fields.d.ts",
+      "default": "./dist/plugin-sdk/provider-web-search-contract-fields.js"
     },
     "./plugin-sdk/provider-zai-endpoint": {
       "types": "./dist/plugin-sdk/provider-zai-endpoint.d.ts",
@@ -1477,6 +1497,18 @@
     "./plugin-sdk/qwen": {
       "types": "./dist/plugin-sdk/qwen.d.ts",
       "default": "./dist/plugin-sdk/qwen.js"
+    },
+    "./plugin-sdk/realtime-transcription": {
+      "types": "./dist/plugin-sdk/realtime-transcription.d.ts",
+      "default": "./dist/plugin-sdk/realtime-transcription.js"
+    },
+    "./plugin-sdk/reply-chunking": {
+      "types": "./dist/plugin-sdk/reply-chunking.d.ts",
+      "default": "./dist/plugin-sdk/reply-chunking.js"
+    },
+    "./plugin-sdk/reply-dedupe": {
+      "types": "./dist/plugin-sdk/reply-dedupe.d.ts",
+      "default": "./dist/plugin-sdk/reply-dedupe.js"
     },
     "./plugin-sdk/reply-history": {
       "types": "./dist/plugin-sdk/reply-history.d.ts",
@@ -1497,6 +1529,10 @@
     "./plugin-sdk/resolution-notes": {
       "types": "./dist/plugin-sdk/resolution-notes.d.ts",
       "default": "./dist/plugin-sdk/resolution-notes.js"
+    },
+    "./plugin-sdk/response-limit-runtime": {
+      "types": "./dist/plugin-sdk/response-limit-runtime.d.ts",
+      "default": "./dist/plugin-sdk/response-limit-runtime.js"
     },
     "./plugin-sdk/retry-runtime": {
       "types": "./dist/plugin-sdk/retry-runtime.d.ts",
@@ -1522,6 +1558,10 @@
       "types": "./dist/plugin-sdk/runtime-env.d.ts",
       "default": "./dist/plugin-sdk/runtime-env.js"
     },
+    "./plugin-sdk/runtime-logger": {
+      "types": "./dist/plugin-sdk/runtime-logger.d.ts",
+      "default": "./dist/plugin-sdk/runtime-logger.js"
+    },
     "./plugin-sdk/runtime-store": {
       "types": "./dist/plugin-sdk/runtime-store.d.ts",
       "default": "./dist/plugin-sdk/runtime-store.js"
@@ -1546,6 +1586,10 @@
       "types": "./dist/plugin-sdk/secret-input-schema.d.ts",
       "default": "./dist/plugin-sdk/secret-input-schema.js"
     },
+    "./plugin-sdk/secure-random-runtime": {
+      "types": "./dist/plugin-sdk/secure-random-runtime.d.ts",
+      "default": "./dist/plugin-sdk/secure-random-runtime.js"
+    },
     "./plugin-sdk/security-runtime": {
       "types": "./dist/plugin-sdk/security-runtime.d.ts",
       "default": "./dist/plugin-sdk/security-runtime.js"
@@ -1553,6 +1597,10 @@
     "./plugin-sdk/self-hosted-provider-setup": {
       "types": "./dist/plugin-sdk/self-hosted-provider-setup.d.ts",
       "default": "./dist/plugin-sdk/self-hosted-provider-setup.js"
+    },
+    "./plugin-sdk/session-key-runtime": {
+      "types": "./dist/plugin-sdk/session-key-runtime.d.ts",
+      "default": "./dist/plugin-sdk/session-key-runtime.js"
     },
     "./plugin-sdk/setup": {
       "types": "./dist/plugin-sdk/setup.d.ts",
@@ -1654,13 +1702,25 @@
       "types": "./dist/plugin-sdk/string-coerce-runtime.d.ts",
       "default": "./dist/plugin-sdk/string-coerce-runtime.js"
     },
+    "./plugin-sdk/string-normalization-runtime": {
+      "types": "./dist/plugin-sdk/string-normalization-runtime.d.ts",
+      "default": "./dist/plugin-sdk/string-normalization-runtime.js"
+    },
     "./plugin-sdk/synthetic": {
       "types": "./dist/plugin-sdk/synthetic.d.ts",
       "default": "./dist/plugin-sdk/synthetic.js"
     },
+    "./plugin-sdk/system-event-runtime": {
+      "types": "./dist/plugin-sdk/system-event-runtime.d.ts",
+      "default": "./dist/plugin-sdk/system-event-runtime.js"
+    },
     "./plugin-sdk/talk-voice": {
       "types": "./dist/plugin-sdk/talk-voice.d.ts",
       "default": "./dist/plugin-sdk/talk-voice.js"
+    },
+    "./plugin-sdk/target-resolver-runtime": {
+      "types": "./dist/plugin-sdk/target-resolver-runtime.d.ts",
+      "default": "./dist/plugin-sdk/target-resolver-runtime.js"
     },
     "./plugin-sdk/telegram": {
       "types": "./dist/plugin-sdk/telegram.d.ts",
@@ -1706,6 +1766,10 @@
       "types": "./dist/plugin-sdk/testing.d.ts",
       "default": "./dist/plugin-sdk/testing.js"
     },
+    "./plugin-sdk/text-autolink-runtime": {
+      "types": "./dist/plugin-sdk/text-autolink-runtime.d.ts",
+      "default": "./dist/plugin-sdk/text-autolink-runtime.js"
+    },
     "./plugin-sdk/text-chunking": {
       "types": "./dist/plugin-sdk/text-chunking.d.ts",
       "default": "./dist/plugin-sdk/text-chunking.js"
@@ -1726,6 +1790,10 @@
       "types": "./dist/plugin-sdk/thread-ownership.d.ts",
       "default": "./dist/plugin-sdk/thread-ownership.js"
     },
+    "./plugin-sdk/time-runtime": {
+      "types": "./dist/plugin-sdk/time-runtime.d.ts",
+      "default": "./dist/plugin-sdk/time-runtime.js"
+    },
     "./plugin-sdk/tlon": {
       "types": "./dist/plugin-sdk/tlon.d.ts",
       "default": "./dist/plugin-sdk/tlon.js"
@@ -1734,9 +1802,17 @@
       "types": "./dist/plugin-sdk/together.d.ts",
       "default": "./dist/plugin-sdk/together.js"
     },
+    "./plugin-sdk/tool-payload": {
+      "types": "./dist/plugin-sdk/tool-payload.d.ts",
+      "default": "./dist/plugin-sdk/tool-payload.js"
+    },
     "./plugin-sdk/tool-send": {
       "types": "./dist/plugin-sdk/tool-send.d.ts",
       "default": "./dist/plugin-sdk/tool-send.js"
+    },
+    "./plugin-sdk/transport-ready-runtime": {
+      "types": "./dist/plugin-sdk/transport-ready-runtime.d.ts",
+      "default": "./dist/plugin-sdk/transport-ready-runtime.js"
     },
     "./plugin-sdk/twitch": {
       "types": "./dist/plugin-sdk/twitch.d.ts",
@@ -1773,6 +1849,10 @@
     "./plugin-sdk/volcengine": {
       "types": "./dist/plugin-sdk/volcengine.d.ts",
       "default": "./dist/plugin-sdk/volcengine.js"
+    },
+    "./plugin-sdk/web-content-extractor": {
+      "types": "./dist/plugin-sdk/web-content-extractor.d.ts",
+      "default": "./dist/plugin-sdk/web-content-extractor.js"
     },
     "./plugin-sdk/web-media": {
       "types": "./dist/plugin-sdk/web-media.d.ts",
@@ -1833,6 +1913,10 @@
     "./plugin-sdk/windows-spawn": {
       "types": "./dist/plugin-sdk/windows-spawn.d.ts",
       "default": "./dist/plugin-sdk/windows-spawn.js"
+    },
+    "./plugin-sdk/workflow-shell": {
+      "types": "./dist/plugin-sdk/workflow-shell.d.ts",
+      "default": "./dist/plugin-sdk/workflow-shell.js"
     },
     "./plugin-sdk/xai": {
       "types": "./dist/plugin-sdk/xai.d.ts",

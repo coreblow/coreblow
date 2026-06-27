@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7939,
+    "cb_source_files": 7950,
     "oc_source_files": 8443,
-    "source_parity_both": 6141,
+    "source_parity_both": 6152,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2302,
-    "test_files_cb": 4869,
+    "source_missing_from_cb": 2291,
+    "test_files_cb": 4870,
     "test_files_oc": 5246,
     "tests_both_covered": 3455,
     "tests_gap_oc_has_cb_missing": 1546,
-    "tests_cb_exclusive": 1356,
+    "tests_cb_exclusive": 1357,
     "export_files_with_gaps": 71,
     "test_scenario_files_with_gaps": 40,
     "test_scenario_files_intentionally_different": 0
@@ -284,14 +284,14 @@
     {
       "domain": "src/plugin-sdk",
       "status": "partial",
-      "priority": "P0",
+      "priority": "P1",
       "implementationSurface": "src/plugin-sdk public API",
       "counts": {
-        "sharedSourcePaths": 298,
+        "sharedSourcePaths": 309,
         "coreBlowOnlySourcePaths": 118,
-        "openClawOnlySourcePaths": 141,
+        "openClawOnlySourcePaths": 130,
         "sharedTestPaths": 42,
-        "coreBlowOnlyTestPaths": 22,
+        "coreBlowOnlyTestPaths": 23,
         "openClawTestGaps": 61
       },
       "samples": {
