@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7956,
+    "cb_source_files": 7965,
     "oc_source_files": 8443,
-    "source_parity_both": 6158,
+    "source_parity_both": 6167,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2285,
-    "test_files_cb": 4874,
+    "source_missing_from_cb": 2276,
+    "test_files_cb": 4882,
     "test_files_oc": 5246,
-    "tests_both_covered": 3457,
-    "tests_gap_oc_has_cb_missing": 1544,
-    "tests_cb_exclusive": 1359,
+    "tests_both_covered": 3461,
+    "tests_gap_oc_has_cb_missing": 1540,
+    "tests_cb_exclusive": 1363,
     "export_files_with_gaps": 71,
     "test_scenario_files_with_gaps": 40,
     "test_scenario_files_intentionally_different": 0
@@ -98,12 +98,12 @@
       "priority": "P0",
       "implementationSurface": "src/plugins PluginLoader, PluginRegistry, HookRunner",
       "counts": {
-        "sharedSourcePaths": 132,
+        "sharedSourcePaths": 140,
         "coreBlowOnlySourcePaths": 74,
-        "openClawOnlySourcePaths": 202,
-        "sharedTestPaths": 78,
-        "coreBlowOnlyTestPaths": 51,
-        "openClawTestGaps": 138
+        "openClawOnlySourcePaths": 194,
+        "sharedTestPaths": 82,
+        "coreBlowOnlyTestPaths": 54,
+        "openClawTestGaps": 134
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -1703,11 +1703,11 @@
       "priority": "P2",
       "implementationSurface": "src/shared",
       "counts": {
-        "sharedSourcePaths": 47,
+        "sharedSourcePaths": 48,
         "coreBlowOnlySourcePaths": 5,
-        "openClawOnlySourcePaths": 24,
+        "openClawOnlySourcePaths": 23,
         "sharedTestPaths": 32,
-        "coreBlowOnlyTestPaths": 2,
+        "coreBlowOnlyTestPaths": 3,
         "openClawTestGaps": 10
       },
       "samples": {
@@ -1720,10 +1720,10 @@
           "src/shared/google-models.ts",
           "src/shared/google-turn-ordering.ts",
           "src/shared/human-list.ts",
-          "src/shared/import-specifier.ts",
           "src/shared/json-schema.types.ts",
           "src/shared/lazy-promise.ts",
-          "src/shared/message-content-blocks.ts"
+          "src/shared/message-content-blocks.ts",
+          "src/shared/net/redact-sensitive-url.ts"
         ],
         "openClawTestGapPaths": [
           "src/shared/agent-run-status.test.ts",
