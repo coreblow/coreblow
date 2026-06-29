@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7972,
+    "cb_source_files": 7973,
     "oc_source_files": 8443,
-    "source_parity_both": 6174,
+    "source_parity_both": 6175,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2269,
-    "test_files_cb": 4889,
+    "source_missing_from_cb": 2268,
+    "test_files_cb": 4890,
     "test_files_oc": 5246,
     "tests_both_covered": 3463,
     "tests_gap_oc_has_cb_missing": 1538,
-    "tests_cb_exclusive": 1368,
+    "tests_cb_exclusive": 1369,
     "export_files_with_gaps": 71,
     "test_scenario_files_with_gaps": 40,
     "test_scenario_files_intentionally_different": 0
@@ -98,11 +98,11 @@
       "priority": "P0",
       "implementationSurface": "src/plugins PluginLoader, PluginRegistry, HookRunner",
       "counts": {
-        "sharedSourcePaths": 147,
+        "sharedSourcePaths": 148,
         "coreBlowOnlySourcePaths": 74,
-        "openClawOnlySourcePaths": 187,
+        "openClawOnlySourcePaths": 186,
         "sharedTestPaths": 84,
-        "coreBlowOnlyTestPaths": 59,
+        "coreBlowOnlyTestPaths": 60,
         "openClawTestGaps": 132
       },
       "samples": {
@@ -115,10 +115,10 @@
           "src/plugins/agent-tool-result-middleware-loader.ts",
           "src/plugins/agent-tool-result-middleware-types.ts",
           "src/plugins/api-facades.ts",
-          "src/plugins/api-lifecycle.ts",
           "src/plugins/bundled-channel-config-metadata.ts",
           "src/plugins/bundled-channel-runtime.ts",
-          "src/plugins/bundled-load-path-aliases.ts"
+          "src/plugins/bundled-load-path-aliases.ts",
+          "src/plugins/bundled-manifest-contract-plugins.ts"
         ],
         "openClawTestGapPaths": [
           "src/plugins/activation-context.test.ts",
