@@ -158,7 +158,7 @@ describe("resolveEffectiveEnableState", () => {
   }
 
   it.each([
-    [{ enabled: true }, { enabled: true }],
+    [{ enabled: true }, { enabled: true, cause: "bundled-channel-configured" }],
     [
       {
         enabled: true,
@@ -168,7 +168,7 @@ describe("resolveEffectiveEnableState", () => {
           },
         },
       },
-      { enabled: false, reason: "disabled in config" },
+      { enabled: false, reason: "disabled in config", cause: "disabled-in-config" },
     ],
   ] as const)("resolves bundled telegram state for %o", (config, expected) => {
     expect(resolveBundledTelegramState(config)).toEqual(expected);
@@ -182,11 +182,33 @@ describe("resolveEnableState", () => {
       "bundled",
       normalizePluginsConfig({}),
       undefined,
-      { enabled: false, reason: "bundled (disabled by default)" },
+      {
+        enabled: false,
+        reason: "bundled (disabled by default)",
+        cause: "bundled-disabled-by-default",
+      },
     ],
-    ["openai", "bundled", normalizePluginsConfig({}), true, { enabled: true }],
-    ["google", "bundled", normalizePluginsConfig({}), true, { enabled: true }],
-    ["profile-aware", "bundled", normalizePluginsConfig({}), true, { enabled: true }],
+    [
+      "openai",
+      "bundled",
+      normalizePluginsConfig({}),
+      true,
+      { enabled: true, cause: "bundled-default-enablement" },
+    ],
+    [
+      "google",
+      "bundled",
+      normalizePluginsConfig({}),
+      true,
+      { enabled: true, cause: "bundled-default-enablement" },
+    ],
+    [
+      "profile-aware",
+      "bundled",
+      normalizePluginsConfig({}),
+      true,
+      { enabled: true, cause: "bundled-default-enablement" },
+    ],
   ] as const)(
     "resolves %s enable state for origin=%s manifestEnabledByDefault=%s",
     (id, origin, config, manifestEnabledByDefault, expected) => {
@@ -201,7 +223,7 @@ describe("resolveEnableState", () => {
         allow: ["telegram"],
         slots: { memory: "memory-core" },
       },
-      expected: { enabled: true },
+      expected: { enabled: true, cause: "selected-memory-slot" },
     },
     {
       name: "keeps explicit disable authoritative for the selected memory slot plugin",
@@ -214,7 +236,7 @@ describe("resolveEnableState", () => {
           },
         },
       },
-      expected: { enabled: false, reason: "disabled in config" },
+      expected: { enabled: false, reason: "disabled in config", cause: "disabled-in-config" },
     },
   ] as const)("$name", ({ config, expected }) => {
     expectNormalizedEnableState({
@@ -231,12 +253,16 @@ describe("resolveEnableState", () => {
       {
         enabled: false,
         reason: "workspace plugin (disabled by default)",
+        cause: "workspace-disabled-by-default",
       },
     ],
     [
       normalizePluginsConfig({
         allow: ["workspace-helper"],
       }),
+      // Falls through to the final unconditional fallback branch (allowlisted,
+      // not bundled, no explicit entry) -- intentionally has no cause, same as
+      // the upstream reference implementation's equivalent terminal fallback.
       { enabled: true },
     ],
     [
@@ -247,7 +273,10 @@ describe("resolveEnableState", () => {
           },
         },
       }),
-      { enabled: true },
+      // entries[id].enabled === true: CoreBlow has no separate source/effective
+      // config layer, so this is always "enabled-in-config" (see the
+      // PluginActivationCause doc comment in config-state.ts).
+      { enabled: true, cause: "enabled-in-config" },
     ],
   ] as const)("resolves workspace-helper enable state for %o", (config, expected) => {
     expect(resolveEnableState("workspace-helper", "workspace", config)).toEqual(expected);
@@ -263,7 +292,29 @@ describe("resolveEnableState", () => {
       expected: {
         enabled: false,
         reason: "workspace plugin (disabled by default)",
+        cause: "workspace-disabled-by-default",
       },
+    });
+  });
+
+  it("maps an explicit entries[id].enabled = true to the enabled-in-config cause", () => {
+    // CoreBlow has no separate source/effective plugin activation config
+    // layer (unlike the upstream reference implementation's
+    // activationSource/sourceConfig split), so an
+    // explicit entries[id].enabled === true is always "enabled-in-config",
+    // never "enabled-by-effective-config" -- see the PluginActivationCause
+    // doc comment in config-state.ts.
+    expectNormalizedEnableState({
+      id: "workspace-helper",
+      origin: "workspace",
+      config: {
+        entries: {
+          "workspace-helper": {
+            enabled: true,
+          },
+        },
+      },
+      expected: { enabled: true, cause: "enabled-in-config" },
     });
   });
 });

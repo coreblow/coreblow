@@ -7,6 +7,39 @@ import {
 import type { PluginRecord } from "./registry.js";
 import { defaultSlotIdForKey } from "./slots.js";
 
+// Granular taxonomy for *why* a plugin activation decision came out the way
+// it did, additive alongside the existing free-text `reason` strings (which
+// are intentionally left unchanged for backward compatibility with existing
+// callers/tests). Mirrors the upstream reference implementation's plugin
+// activation cause taxonomy.
+//
+// NOTE: "enabled-by-effective-config" is part of the taxonomy for forward
+// compatibility, but is NOT currently produced by CoreBlow's resolveEnableState.
+// The upstream reference implementation distinguishes a "source/explicit"
+// config layer from a separately computed "effective" config layer (see its
+// activationSource/sourceConfig concept): "enabled-in-config" fires when the
+// explicit/source layer has entries[id].enabled === true, while
+// "enabled-by-effective-config" fires when only the effective/merged layer
+// does. CoreBlow's resolveEnableState takes a single NormalizedPluginsConfig
+// with no separate source/effective layering, so entries[id].enabled === true
+// is always mapped to "enabled-in-config" here. If CoreBlow ever adopts a
+// genuine source/effective config split, this mapping should be revisited.
+export type PluginActivationCause =
+  | "enabled-in-config"
+  | "bundled-channel-enabled-in-config"
+  | "selected-memory-slot"
+  | "selected-context-engine-slot"
+  | "selected-in-allowlist"
+  | "plugins-disabled"
+  | "blocked-by-denylist"
+  | "disabled-in-config"
+  | "workspace-disabled-by-default"
+  | "not-in-allowlist"
+  | "enabled-by-effective-config"
+  | "bundled-channel-configured"
+  | "bundled-default-enablement"
+  | "bundled-disabled-by-default";
+
 export type NormalizedPluginsConfig = {
   enabled: boolean;
   allow: string[];
@@ -240,35 +273,47 @@ export function resolveEnableState(
   origin: PluginRecord["origin"],
   config: NormalizedPluginsConfig,
   enabledByDefault?: boolean,
-): { enabled: boolean; reason?: string } {
+): { enabled: boolean; reason?: string; cause?: PluginActivationCause } {
   if (!config.enabled) {
-    return { enabled: false, reason: "plugins disabled" };
+    return { enabled: false, reason: "plugins disabled", cause: "plugins-disabled" };
   }
   if (config.deny.includes(id)) {
-    return { enabled: false, reason: "blocked by denylist" };
+    return { enabled: false, reason: "blocked by denylist", cause: "blocked-by-denylist" };
   }
   const entry = config.entries[id];
   if (entry?.enabled === false) {
-    return { enabled: false, reason: "disabled in config" };
+    return { enabled: false, reason: "disabled in config", cause: "disabled-in-config" };
   }
   const explicitlyAllowed = config.allow.includes(id);
   if (origin === "workspace" && !explicitlyAllowed && entry?.enabled !== true) {
-    return { enabled: false, reason: "workspace plugin (disabled by default)" };
+    return {
+      enabled: false,
+      reason: "workspace plugin (disabled by default)",
+      cause: "workspace-disabled-by-default",
+    };
   }
   if (config.slots.memory === id) {
-    return { enabled: true };
+    return { enabled: true, cause: "selected-memory-slot" };
   }
   if (config.allow.length > 0 && !explicitlyAllowed) {
-    return { enabled: false, reason: "not in allowlist" };
+    return { enabled: false, reason: "not in allowlist", cause: "not-in-allowlist" };
   }
   if (entry?.enabled === true) {
-    return { enabled: true };
+    // CoreBlow has no separate source/effective config layer (see the
+    // PluginActivationCause doc comment above), so an explicit
+    // entries[id].enabled === true is always treated as the explicit/source
+    // cause, never "enabled-by-effective-config".
+    return { enabled: true, cause: "enabled-in-config" };
   }
   if (origin === "bundled" && enabledByDefault === true) {
-    return { enabled: true };
+    return { enabled: true, cause: "bundled-default-enablement" };
   }
   if (origin === "bundled") {
-    return { enabled: false, reason: "bundled (disabled by default)" };
+    return {
+      enabled: false,
+      reason: "bundled (disabled by default)",
+      cause: "bundled-disabled-by-default",
+    };
   }
   return { enabled: true };
 }
@@ -298,14 +343,14 @@ export function resolveEffectiveEnableState(params: {
   config: NormalizedPluginsConfig;
   rootConfig?: CoreBlowConfig;
   enabledByDefault?: boolean;
-}): { enabled: boolean; reason?: string } {
+}): { enabled: boolean; reason?: string; cause?: PluginActivationCause } {
   const base = resolveEnableState(params.id, params.origin, params.config, params.enabledByDefault);
   if (
     !base.enabled &&
     base.reason === "bundled (disabled by default)" &&
     isBundledChannelEnabledByChannelConfig(params.rootConfig, params.id)
   ) {
-    return { enabled: true };
+    return { enabled: true, cause: "bundled-channel-configured" };
   }
   return base;
 }
