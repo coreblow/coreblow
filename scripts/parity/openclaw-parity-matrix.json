@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7986,
+    "cb_source_files": 7988,
     "oc_source_files": 8443,
-    "source_parity_both": 6188,
+    "source_parity_both": 6190,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2255,
-    "test_files_cb": 4900,
+    "source_missing_from_cb": 2253,
+    "test_files_cb": 4901,
     "test_files_oc": 5246,
-    "tests_both_covered": 3466,
-    "tests_gap_oc_has_cb_missing": 1535,
+    "tests_both_covered": 3467,
+    "tests_gap_oc_has_cb_missing": 1534,
     "tests_cb_exclusive": 1376,
     "export_files_with_gaps": 71,
     "test_scenario_files_with_gaps": 40,
@@ -98,9 +98,9 @@
       "priority": "P0",
       "implementationSurface": "src/plugins PluginLoader, PluginRegistry, HookRunner",
       "counts": {
-        "sharedSourcePaths": 161,
+        "sharedSourcePaths": 162,
         "coreBlowOnlySourcePaths": 74,
-        "openClawOnlySourcePaths": 173,
+        "openClawOnlySourcePaths": 172,
         "sharedTestPaths": 87,
         "coreBlowOnlyTestPaths": 67,
         "openClawTestGaps": 129
@@ -1053,15 +1053,15 @@
     {
       "domain": "src/config",
       "status": "partial",
-      "priority": "P1",
+      "priority": "P2",
       "implementationSurface": "src/config CoreBlowConfig",
       "counts": {
-        "sharedSourcePaths": 161,
+        "sharedSourcePaths": 162,
         "coreBlowOnlySourcePaths": 33,
-        "openClawOnlySourcePaths": 50,
-        "sharedTestPaths": 113,
+        "openClawOnlySourcePaths": 49,
+        "sharedTestPaths": 114,
         "coreBlowOnlyTestPaths": 94,
-        "openClawTestGaps": 30
+        "openClawTestGaps": 29
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -1090,7 +1090,7 @@
           "src/config/plugin-auto-enable.providers.test.ts",
           "src/config/plugin-web-search-config.test.ts",
           "src/config/redact-snapshot.raw.test.ts",
-          "src/config/runtime-snapshot.test.ts"
+          "src/config/session-parent-fork-config-keys.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/config/bundled-channel-config-runtime.ts",
