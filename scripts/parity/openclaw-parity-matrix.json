@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7969,
+    "cb_source_files": 7972,
     "oc_source_files": 8443,
-    "source_parity_both": 6171,
+    "source_parity_both": 6174,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2272,
-    "test_files_cb": 4886,
+    "source_missing_from_cb": 2269,
+    "test_files_cb": 4889,
     "test_files_oc": 5246,
-    "tests_both_covered": 3462,
-    "tests_gap_oc_has_cb_missing": 1539,
-    "tests_cb_exclusive": 1366,
+    "tests_both_covered": 3463,
+    "tests_gap_oc_has_cb_missing": 1538,
+    "tests_cb_exclusive": 1368,
     "export_files_with_gaps": 71,
     "test_scenario_files_with_gaps": 40,
     "test_scenario_files_intentionally_different": 0
@@ -98,12 +98,12 @@
       "priority": "P0",
       "implementationSurface": "src/plugins PluginLoader, PluginRegistry, HookRunner",
       "counts": {
-        "sharedSourcePaths": 144,
+        "sharedSourcePaths": 147,
         "coreBlowOnlySourcePaths": 74,
-        "openClawOnlySourcePaths": 190,
-        "sharedTestPaths": 83,
-        "coreBlowOnlyTestPaths": 57,
-        "openClawTestGaps": 133
+        "openClawOnlySourcePaths": 187,
+        "sharedTestPaths": 84,
+        "coreBlowOnlyTestPaths": 59,
+        "openClawTestGaps": 132
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -130,9 +130,9 @@
           "src/plugins/bundled-package-channel-metadata.test.ts",
           "src/plugins/channel-catalog-registry.test.ts",
           "src/plugins/channel-validation.test.ts",
-          "src/plugins/compaction-provider.test.ts",
           "src/plugins/compat/registry.test.ts",
-          "src/plugins/config-contracts.test.ts"
+          "src/plugins/config-contracts.test.ts",
+          "src/plugins/config-policy.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/plugins/audit-log.ts",
