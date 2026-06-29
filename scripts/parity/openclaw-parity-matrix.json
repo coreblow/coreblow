@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7973,
+    "cb_source_files": 7974,
     "oc_source_files": 8443,
-    "source_parity_both": 6175,
+    "source_parity_both": 6176,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2268,
+    "source_missing_from_cb": 2267,
     "test_files_cb": 4890,
     "test_files_oc": 5246,
     "tests_both_covered": 3463,
@@ -98,9 +98,9 @@
       "priority": "P0",
       "implementationSurface": "src/plugins PluginLoader, PluginRegistry, HookRunner",
       "counts": {
-        "sharedSourcePaths": 148,
+        "sharedSourcePaths": 149,
         "coreBlowOnlySourcePaths": 74,
-        "openClawOnlySourcePaths": 186,
+        "openClawOnlySourcePaths": 185,
         "sharedTestPaths": 84,
         "coreBlowOnlyTestPaths": 60,
         "openClawTestGaps": 132
