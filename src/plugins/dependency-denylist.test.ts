@@ -16,7 +16,8 @@ type RootPackageManifest = {
   overrides?: Record<string, string | Record<string, string>>;
   peerDependencies?: Record<string, string>;
   // CoreBlow declares its dependency overrides under the pnpm-specific key
-  // (package.json -> "pnpm" -> "overrides"), unlike OpenClaw's top-level "overrides".
+  // (package.json -> "pnpm" -> "overrides"), unlike the upstream reference
+  // implementation's top-level "overrides".
   pnpm?: {
     overrides?: Record<string, string | Record<string, string>>;
   };
@@ -84,11 +85,12 @@ describe("dependency denylist guardrails", () => {
     ]);
   });
 
-  // NOTE: OpenClaw enforces an exact-version pin for the axios override. CoreBlow
-  // intentionally does not enforce exact pinning yet -- it currently enforces a
-  // minimum safe axios range (">=1.15.2") via package.json "pnpm.overrides" instead.
-  // pnpm-workspace.yaml has no "overrides" section in CoreBlow, so that part of the
-  // OpenClaw assertion is not applicable here and is intentionally skipped.
+  // NOTE: the upstream reference implementation enforces an exact-version pin
+  // for the axios override. CoreBlow intentionally does not enforce exact pinning
+  // yet -- it currently enforces a minimum safe axios range (">=1.15.2") via
+  // package.json "pnpm.overrides" instead. pnpm-workspace.yaml has no "overrides"
+  // section in CoreBlow, so that part of the upstream assertion is not applicable
+  // here and is intentionally skipped.
   it("enforces a minimum safe axios override range in package.json pnpm.overrides", () => {
     const manifest = readRootManifest();
     expect(manifest.pnpm?.overrides?.axios).toBeDefined();
