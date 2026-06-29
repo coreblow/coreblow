@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 7983,
+    "cb_source_files": 7984,
     "oc_source_files": 8443,
-    "source_parity_both": 6185,
+    "source_parity_both": 6186,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2258,
-    "test_files_cb": 4897,
+    "source_missing_from_cb": 2257,
+    "test_files_cb": 4898,
     "test_files_oc": 5246,
     "tests_both_covered": 3465,
     "tests_gap_oc_has_cb_missing": 1536,
-    "tests_cb_exclusive": 1374,
+    "tests_cb_exclusive": 1375,
     "export_files_with_gaps": 71,
     "test_scenario_files_with_gaps": 40,
     "test_scenario_files_intentionally_different": 0
@@ -98,11 +98,11 @@
       "priority": "P0",
       "implementationSurface": "src/plugins PluginLoader, PluginRegistry, HookRunner",
       "counts": {
-        "sharedSourcePaths": 158,
+        "sharedSourcePaths": 159,
         "coreBlowOnlySourcePaths": 74,
-        "openClawOnlySourcePaths": 176,
+        "openClawOnlySourcePaths": 175,
         "sharedTestPaths": 86,
-        "coreBlowOnlyTestPaths": 65,
+        "coreBlowOnlyTestPaths": 66,
         "openClawTestGaps": 130
       },
       "samples": {
