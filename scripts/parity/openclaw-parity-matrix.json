@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8003,
+    "cb_source_files": 8005,
     "oc_source_files": 8443,
-    "source_parity_both": 6205,
+    "source_parity_both": 6207,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2238,
+    "source_missing_from_cb": 2236,
     "test_files_cb": 4905,
     "test_files_oc": 5246,
     "tests_both_covered": 3469,
@@ -413,9 +413,9 @@
       "priority": "P1",
       "implementationSurface": "src/gateway GatewayServer and ServiceRegistry",
       "counts": {
-        "sharedSourcePaths": 317,
+        "sharedSourcePaths": 319,
         "coreBlowOnlySourcePaths": 65,
-        "openClawOnlySourcePaths": 74,
+        "openClawOnlySourcePaths": 72,
         "sharedTestPaths": 217,
         "coreBlowOnlyTestPaths": 134,
         "openClawTestGaps": 90
