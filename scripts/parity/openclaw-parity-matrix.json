@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8001,
+    "cb_source_files": 8003,
     "oc_source_files": 8443,
-    "source_parity_both": 6203,
+    "source_parity_both": 6205,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2240,
+    "source_missing_from_cb": 2238,
     "test_files_cb": 4905,
     "test_files_oc": 5246,
     "tests_both_covered": 3469,
@@ -413,9 +413,9 @@
       "priority": "P1",
       "implementationSurface": "src/gateway GatewayServer and ServiceRegistry",
       "counts": {
-        "sharedSourcePaths": 315,
+        "sharedSourcePaths": 317,
         "coreBlowOnlySourcePaths": 65,
-        "openClawOnlySourcePaths": 76,
+        "openClawOnlySourcePaths": 74,
         "sharedTestPaths": 217,
         "coreBlowOnlyTestPaths": 134,
         "openClawTestGaps": 90
@@ -430,10 +430,10 @@
           "src/gateway/server-control-ui-root.ts",
           "src/gateway/server-cron-lazy.ts",
           "src/gateway/server-cron-notifications.ts",
-          "src/gateway/server-json.ts",
           "src/gateway/server-live-state.ts",
           "src/gateway/server-methods/agents-config-mutations.ts",
-          "src/gateway/server-methods/approval-shared.ts"
+          "src/gateway/server-methods/approval-shared.ts",
+          "src/gateway/server-methods/artifacts.ts"
         ],
         "openClawTestGapPaths": [
           "src/gateway/exec-approval-ios-push.test.ts",
