@@ -1,1 +1,1 @@
-export { resolveUserPath } from "../utils.js";
+export { escapeRegExp, resolveUserPath } from "../utils.js";

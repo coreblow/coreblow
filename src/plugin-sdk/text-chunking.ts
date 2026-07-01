@@ -9,3 +9,5 @@ export function chunkTextForOutbound(text: string, limit: number): string[] {
     return lastNewline > 0 ? lastNewline : lastSpace;
   });
 }
+
+export { stripInlineDirectiveTagsForDisplay } from "../utils/directive-tags.js";
