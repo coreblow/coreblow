@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8028,
+    "cb_source_files": 8031,
     "oc_source_files": 8443,
-    "source_parity_both": 6230,
+    "source_parity_both": 6233,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2213,
+    "source_missing_from_cb": 2210,
     "test_files_cb": 4905,
     "test_files_oc": 5246,
     "tests_both_covered": 3469,
@@ -224,9 +224,9 @@
       "priority": "P0",
       "implementationSurface": "extensions/discord plus plugin-sdk channel/runtime surfaces",
       "counts": {
-        "sharedSourcePaths": 174,
+        "sharedSourcePaths": 177,
         "coreBlowOnlySourcePaths": 17,
-        "openClawOnlySourcePaths": 189,
+        "openClawOnlySourcePaths": 186,
         "sharedTestPaths": 93,
         "coreBlowOnlyTestPaths": 1,
         "openClawTestGaps": 50
