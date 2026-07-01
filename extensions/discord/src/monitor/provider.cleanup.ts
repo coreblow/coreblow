@@ -27,7 +27,7 @@ export function cleanupDiscordProviderStartup(params: {
   }
   if (!params.lifecycleStarted) {
     try {
-      (params.lifecycleGateway as any)?.disconnect();
+      params.lifecycleGateway?.disconnect();
     } catch (err) {
       params.runtime.error?.(
         danger(`discord: failed to disconnect gateway during startup cleanup: ${String(err)}`),

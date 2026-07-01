@@ -16,6 +16,7 @@ export type DiscordGatewaySocket = {
 };
 
 export type MutableDiscordGateway = GatewayPlugin & {
+  disconnect(): void;
   emitter?: EventEmitter;
   options: Record<string, unknown> & {
     reconnect?: {
