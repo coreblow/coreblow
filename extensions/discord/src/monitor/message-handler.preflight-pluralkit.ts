@@ -1,17 +1,16 @@
-// @ts-nocheck
 import { logVerbose } from "coreblow/plugin-sdk/runtime-env";
+import type { PluralKitMessageInfo } from "../pluralkit.js";
 import { isPreflightAborted, loadPluralKitRuntime } from "./message-handler.preflight-runtime.js";
-import type { DiscordMessageEvent } from "./message-handler.preflight.types.js";
 
 export async function resolveDiscordPreflightPluralKitInfo(params: {
-  message: DiscordMessageEvent["message"];
+  message: { id: string };
   config?: NonNullable<
     NonNullable<
       import("coreblow/plugin-sdk/config-contracts").CoreBlowConfig["channels"]
     >["discord"]
   >["pluralkit"];
   abortSignal?: AbortSignal;
-}): Promise<Awaited<ReturnType<typeof import("../pluralkit.js").fetchPluralKitMessageInfo>>> {
+}): Promise<PluralKitMessageInfo | null> {
   if (!params.config?.enabled) {
     return null;
   }
