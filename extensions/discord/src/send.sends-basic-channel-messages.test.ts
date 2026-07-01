@@ -20,7 +20,7 @@ let searchMessagesDiscord: typeof import("./send.js").searchMessagesDiscord;
 let sendMessageDiscord: typeof import("./send.js").sendMessageDiscord;
 let unpinMessageDiscord: typeof import("./send.js").unpinMessageDiscord;
 let loadWebMedia: typeof import("coreblow/plugin-sdk/web-media").loadWebMedia;
-let __resetDiscordDirectoryCacheForTest: typeof import("./directory-cache.js").__resetDiscordDirectoryCacheForTest;
+let resetDiscordDirectoryCacheForTest: typeof import("./directory-cache.js").resetDiscordDirectoryCacheForTest;
 let rememberDiscordDirectoryUser: typeof import("./directory-cache.js").rememberDiscordDirectoryUser;
 
 beforeAll(async () => {
@@ -40,13 +40,13 @@ beforeAll(async () => {
     unpinMessageDiscord,
   } = await import("./send.js"));
   ({ loadWebMedia } = await import("coreblow/plugin-sdk/web-media"));
-  ({ __resetDiscordDirectoryCacheForTest, rememberDiscordDirectoryUser } =
+  ({ resetDiscordDirectoryCacheForTest, rememberDiscordDirectoryUser } =
     await import("./directory-cache.js"));
 });
 
 beforeEach(() => {
   vi.clearAllMocks();
-  __resetDiscordDirectoryCacheForTest();
+  resetDiscordDirectoryCacheForTest();
 });
 
 describe("sendMessageDiscord", () => {

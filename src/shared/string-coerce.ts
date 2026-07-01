@@ -17,3 +17,8 @@ export function normalizeOptionalThreadValue(value: unknown): string | number | 
   }
   return normalizeOptionalString(value);
 }
+
+export function normalizeOptionalStringifiedId(value: unknown): string | undefined {
+  const normalized = normalizeOptionalThreadValue(value);
+  return normalized == null ? undefined : String(normalized);
+}

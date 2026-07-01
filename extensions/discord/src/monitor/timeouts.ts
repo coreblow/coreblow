@@ -118,3 +118,22 @@ export async function runDiscordTaskWithTimeout(params: {
     }
   }
 }
+
+export async function raceWithTimeout<T, U>(params: {
+  promise: Promise<T>;
+  timeoutMs: number;
+  onTimeout: () => U;
+}): Promise<T | U> {
+  let timeoutTimer: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<U>((resolve) => {
+    timeoutTimer = setTimeout(() => resolve(params.onTimeout()), Math.max(1, params.timeoutMs));
+    timeoutTimer.unref?.();
+  });
+  try {
+    return await Promise.race([params.promise, timeoutPromise]);
+  } finally {
+    if (timeoutTimer) {
+      clearTimeout(timeoutTimer);
+    }
+  }
+}
