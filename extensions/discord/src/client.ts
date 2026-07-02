@@ -1,7 +1,8 @@
 import { RequestClient } from "@buape/carbon";
-import { loadConfig } from "coreblow/plugin-sdk/config-runtime";
+import { loadConfig, type CoreBlowConfig } from "coreblow/plugin-sdk/config-runtime";
 import type { RetryConfig, RetryRunner } from "coreblow/plugin-sdk/retry-runtime";
 import { normalizeAccountId } from "coreblow/plugin-sdk/routing";
+import type { DiscordRuntimeAccountContext } from "./send.types.js";
 import {
   mergeDiscordAccountConfig,
   resolveDiscordAccount,
@@ -9,6 +10,16 @@ import {
 } from "./accounts.js";
 import { createDiscordRetryRunner } from "./retry.js";
 import { normalizeDiscordToken } from "./token.js";
+
+export function createDiscordRuntimeAccountContext(params: {
+  cfg: CoreBlowConfig;
+  accountId: string;
+}): DiscordRuntimeAccountContext {
+  return {
+    cfg: params.cfg,
+    accountId: normalizeAccountId(params.accountId),
+  };
+}
 
 export type DiscordClientOpts = {
   cfg?: ReturnType<typeof loadConfig>;
