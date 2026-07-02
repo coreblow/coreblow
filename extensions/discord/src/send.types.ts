@@ -1,6 +1,7 @@
 import type { RequestClient } from "@buape/carbon";
 import type { CoreBlowConfig } from "coreblow/plugin-sdk/config-runtime";
 import type { RetryConfig } from "coreblow/plugin-sdk/retry-runtime";
+import type { MessageReceipt } from "coreblow/plugin-sdk/channel-message";
 
 export class DiscordSendError extends Error {
   kind?: "missing-permissions" | "dm-blocked";
@@ -26,6 +27,7 @@ export const DISCORD_MAX_STICKER_BYTES = 512 * 1024;
 export type DiscordSendResult = {
   messageId: string;
   channelId: string;
+  receipt?: MessageReceipt;
 };
 
 export type DiscordReactOpts = {
