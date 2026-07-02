@@ -14,7 +14,7 @@ export type DiscordTargetKind = MessagingTargetKind;
 
 export type DiscordTarget = MessagingTarget;
 
-type DiscordTargetParseOptions = MessagingTargetParseOptions;
+export type DiscordTargetParseOptions = MessagingTargetParseOptions;
 
 export function parseDiscordTarget(
   raw: string,
