@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8112,
+    "cb_source_files": 8113,
     "oc_source_files": 8443,
-    "source_parity_both": 6314,
+    "source_parity_both": 6315,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2129,
+    "source_missing_from_cb": 2128,
     "test_files_cb": 4905,
     "test_files_oc": 5246,
     "tests_both_covered": 3469,
@@ -350,9 +350,9 @@
       "priority": "P1",
       "implementationSurface": "extensions/discord plus plugin-sdk channel/runtime surfaces",
       "counts": {
-        "sharedSourcePaths": 253,
+        "sharedSourcePaths": 254,
         "coreBlowOnlySourcePaths": 17,
-        "openClawOnlySourcePaths": 110,
+        "openClawOnlySourcePaths": 109,
         "sharedTestPaths": 93,
         "coreBlowOnlyTestPaths": 1,
         "openClawTestGaps": 50
@@ -364,13 +364,13 @@
           "extensions/discord/src/actions/runtime.messaging.runtime.ts",
           "extensions/discord/src/actions/runtime.messaging.send.ts",
           "extensions/discord/src/actions/runtime.messaging.shared.ts",
-          "extensions/discord/src/components.builders.ts",
           "extensions/discord/src/doctor-contract.ts",
           "extensions/discord/src/doctor-shared.ts",
           "extensions/discord/src/doctor.ts",
           "extensions/discord/src/inbound-event-delivery.ts",
           "extensions/discord/src/interactive-dispatch.ts",
-          "extensions/discord/src/internal/test-builders.test-support.ts"
+          "extensions/discord/src/internal/test-builders.test-support.ts",
+          "extensions/discord/src/monitor/ack-reactions.ts"
         ],
         "openClawTestGapPaths": [
           "extensions/discord/src/api-barrel.test.ts",
