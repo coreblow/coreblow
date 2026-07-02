@@ -12,3 +12,9 @@ export {
   resolveApprovalRequestAccountId,
   resolveApprovalRequestChannelAccountId,
 } from "../infra/approval-request-account-binding.js";
+export {
+  createChannelApproverDmTargetResolver,
+  createChannelNativeOriginTargetResolver,
+  nativeApprovalTargetsMatch,
+  type NativeApprovalTarget,
+} from "./approval-native-helpers.js";

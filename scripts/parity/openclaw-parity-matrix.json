@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8102,
+    "cb_source_files": 8103,
     "oc_source_files": 8443,
-    "source_parity_both": 6304,
+    "source_parity_both": 6305,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2139,
+    "source_missing_from_cb": 2138,
     "test_files_cb": 4905,
     "test_files_oc": 5246,
     "tests_both_covered": 3469,
@@ -224,9 +224,9 @@
       "priority": "P1",
       "implementationSurface": "src/plugin-sdk public API",
       "counts": {
-        "sharedSourcePaths": 314,
+        "sharedSourcePaths": 315,
         "coreBlowOnlySourcePaths": 118,
-        "openClawOnlySourcePaths": 125,
+        "openClawOnlySourcePaths": 124,
         "sharedTestPaths": 43,
         "coreBlowOnlyTestPaths": 25,
         "openClawTestGaps": 60
@@ -239,12 +239,12 @@
           "src/plugin-sdk/agent-runtime-test-contracts.ts",
           "src/plugin-sdk/approval-delivery-helpers.ts",
           "src/plugin-sdk/approval-delivery-runtime.ts",
-          "src/plugin-sdk/approval-native-helpers.ts",
           "src/plugin-sdk/browser-facade-test-helpers.ts",
           "src/plugin-sdk/channel-ingress.ts",
           "src/plugin-sdk/channel-secret-basic-runtime.ts",
           "src/plugin-sdk/channel-secret-runtime.ts",
-          "src/plugin-sdk/channel-secret-tts-runtime.ts"
+          "src/plugin-sdk/channel-secret-tts-runtime.ts",
+          "src/plugin-sdk/codex-mcp-projection.ts"
         ],
         "openClawTestGapPaths": [
           "src/plugin-sdk/acp-runtime.test.ts",
