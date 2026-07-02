@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8105,
+    "cb_source_files": 8111,
     "oc_source_files": 8443,
-    "source_parity_both": 6307,
+    "source_parity_both": 6313,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2136,
+    "source_missing_from_cb": 2130,
     "test_files_cb": 4905,
     "test_files_oc": 5246,
     "tests_both_covered": 3469,
@@ -224,9 +224,9 @@
       "priority": "P1",
       "implementationSurface": "src/plugin-sdk public API",
       "counts": {
-        "sharedSourcePaths": 315,
+        "sharedSourcePaths": 317,
         "coreBlowOnlySourcePaths": 118,
-        "openClawOnlySourcePaths": 124,
+        "openClawOnlySourcePaths": 122,
         "sharedTestPaths": 43,
         "coreBlowOnlyTestPaths": 25,
         "openClawTestGaps": 60
@@ -237,14 +237,14 @@
           "src/plugin-sdk/agent-harness-runtime.ts",
           "src/plugin-sdk/agent-harness.ts",
           "src/plugin-sdk/agent-runtime-test-contracts.ts",
-          "src/plugin-sdk/approval-delivery-helpers.ts",
-          "src/plugin-sdk/approval-delivery-runtime.ts",
           "src/plugin-sdk/browser-facade-test-helpers.ts",
           "src/plugin-sdk/channel-ingress.ts",
           "src/plugin-sdk/channel-secret-basic-runtime.ts",
           "src/plugin-sdk/channel-secret-runtime.ts",
           "src/plugin-sdk/channel-secret-tts-runtime.ts",
-          "src/plugin-sdk/codex-mcp-projection.ts"
+          "src/plugin-sdk/codex-mcp-projection.ts",
+          "src/plugin-sdk/codex-native-task-runtime.ts",
+          "src/plugin-sdk/command-status-runtime.ts"
         ],
         "openClawTestGapPaths": [
           "src/plugin-sdk/acp-runtime.test.ts",
@@ -350,9 +350,9 @@
       "priority": "P1",
       "implementationSurface": "extensions/discord plus plugin-sdk channel/runtime surfaces",
       "counts": {
-        "sharedSourcePaths": 248,
+        "sharedSourcePaths": 252,
         "coreBlowOnlySourcePaths": 17,
-        "openClawOnlySourcePaths": 115,
+        "openClawOnlySourcePaths": 111,
         "sharedTestPaths": 93,
         "coreBlowOnlyTestPaths": 1,
         "openClawTestGaps": 50
@@ -364,13 +364,13 @@
           "extensions/discord/src/actions/runtime.messaging.runtime.ts",
           "extensions/discord/src/actions/runtime.messaging.send.ts",
           "extensions/discord/src/actions/runtime.messaging.shared.ts",
-          "extensions/discord/src/approval-handler.runtime.ts",
-          "extensions/discord/src/approval-native.ts",
-          "extensions/discord/src/approval-runtime.ts",
-          "extensions/discord/src/approval-shared.ts",
           "extensions/discord/src/channel.conversation.ts",
           "extensions/discord/src/components.builders.ts",
-          "extensions/discord/src/doctor-contract.ts"
+          "extensions/discord/src/doctor-contract.ts",
+          "extensions/discord/src/doctor-shared.ts",
+          "extensions/discord/src/doctor.ts",
+          "extensions/discord/src/inbound-event-delivery.ts",
+          "extensions/discord/src/interactive-dispatch.ts"
         ],
         "openClawTestGapPaths": [
           "extensions/discord/src/api-barrel.test.ts",

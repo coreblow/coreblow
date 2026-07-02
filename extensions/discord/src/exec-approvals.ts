@@ -24,6 +24,17 @@ export function isDiscordExecApprovalApprover(params: {
   return approvers.some((approverId) => String(approverId) === senderId);
 }
 
+export function getDiscordExecApprovalApprovers(params: {
+  cfg: CoreBlowConfig;
+  accountId?: string | null;
+  configOverride?: { enabled?: boolean; approvers?: unknown[] } | null;
+}): string[] {
+  const config =
+    params.configOverride ?? resolveDiscordAccount(params).config.execApprovals ?? {};
+  const approvers = config.approvers ?? [];
+  return approvers.map((id) => String(id)).filter((id) => id.trim());
+}
+
 export function shouldSuppressLocalDiscordExecApprovalPrompt(params: {
   cfg: CoreBlowConfig;
   accountId?: string | null;
