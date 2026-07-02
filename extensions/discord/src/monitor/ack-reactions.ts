@@ -4,7 +4,7 @@ import {
   type StatusReactionAdapter,
 } from "coreblow/plugin-sdk/channel-feedback";
 import type { CoreBlowConfig } from "coreblow/plugin-sdk/discord-core";
-import { logVerbose } from "../../../../globals.js";
+import { logVerbose } from "coreblow/plugin-sdk/runtime-env";
 import { createDiscordRuntimeAccountContext } from "../client.js";
 import type { RequestClient } from "../internal/discord.js";
 import { reactMessageDiscord, removeReactionDiscord } from "../send.js";

@@ -9,16 +9,9 @@ import {
 } from "../runtime-api.js";
 import type { DiscordReactOpts } from "../send.types.js";
 import { discordMessagingActionRuntime } from "./runtime.messaging.runtime.js";
-import { createDiscordActionOptions } from "./runtime.shared.js";
 
 export type DiscordMessagingActionOptions = {
-  mediaAccess?: {
-    localRoots?: readonly string[];
-    readFile?: (filePath: string) => Promise<Buffer>;
-    workspaceDir?: string;
-  };
   mediaLocalRoots?: readonly string[];
-  mediaReadFile?: (filePath: string) => Promise<Buffer>;
 };
 
 export type DiscordMessagingActionContext = {
@@ -27,6 +20,7 @@ export type DiscordMessagingActionContext = {
   isActionEnabled: ActionGate<DiscordActionConfig>;
   cfg: CoreBlowConfig;
   options?: DiscordMessagingActionOptions;
+  hasConfig: boolean;
   accountId?: string;
   resolveChannelId: () => string;
   resolveReactionChannelId: () => Promise<string>;
@@ -43,17 +37,25 @@ export function createDiscordMessagingActionContext(params: {
   isActionEnabled: ActionGate<DiscordActionConfig>;
   cfg: CoreBlowConfig;
   options?: DiscordMessagingActionOptions;
+  hasConfig?: boolean;
 }): DiscordMessagingActionContext {
   const accountId = readStringParam(params.input, "accountId");
-  const cfgOptions = { cfg: params.cfg };
+  const hasConfig = params.hasConfig ?? true;
+  const cfgOptions = hasConfig ? { cfg: params.cfg } : {};
   const withOpts = (extra?: Record<string, unknown>) =>
-    createDiscordActionOptions({ cfg: params.cfg, accountId, extra });
-  const resolvedReactionAccountId = accountId ?? resolveDefaultDiscordAccountId(params.cfg);
+    ({
+      ...cfgOptions,
+      ...(accountId ? { accountId } : {}),
+      ...(extra ?? {}),
+    }) as { cfg: CoreBlowConfig; accountId?: string } & Record<string, unknown>;
+  const resolvedReactionAccountId = accountId ?? (hasConfig ? resolveDefaultDiscordAccountId(params.cfg) : undefined);
   const reactionRuntimeOptions = resolvedReactionAccountId
-    ? createDiscordRuntimeAccountContext({
-        cfg: params.cfg,
-        accountId: resolvedReactionAccountId,
-      })
+    ? hasConfig
+      ? createDiscordRuntimeAccountContext({
+          cfg: params.cfg,
+          accountId: resolvedReactionAccountId,
+        })
+      : { accountId: resolvedReactionAccountId }
     : cfgOptions;
   return {
     action: params.action,
@@ -61,6 +63,7 @@ export function createDiscordMessagingActionContext(params: {
     isActionEnabled: params.isActionEnabled,
     cfg: params.cfg,
     options: params.options,
+    hasConfig,
     accountId,
     resolveChannelId: () =>
       discordMessagingActionRuntime.resolveDiscordChannelId(

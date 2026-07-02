@@ -1,4 +1,10 @@
-import type { Guild, User } from "@buape/carbon";
+import type { Guild } from "@buape/carbon";
+
+export type DiscordUserLike = {
+  id: string;
+  username?: string;
+  discriminator?: string;
+};
 
 export function resolveDiscordSystemLocation(params: {
   isDirectMessage: boolean;
@@ -28,7 +34,7 @@ export function formatDiscordReactionEmoji(emoji: { id?: string | null; name?: s
   return emoji.name ?? "emoji";
 }
 
-export function formatDiscordUserTag(user: User) {
+export function formatDiscordUserTag(user: DiscordUserLike) {
   const discriminator = (user.discriminator ?? "").trim();
   if (discriminator && discriminator !== "0") {
     return `${user.username}#${discriminator}`;

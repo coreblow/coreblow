@@ -12,11 +12,11 @@ import {
 import { normalizeDiscordDisplaySlug, normalizeDiscordSlug } from "./allow-list.js";
 import { resolveDiscordChannelInfoSafe } from "./channel-access.js";
 
-function formatUsername(user: { username: string; discriminator?: string | null }): string {
+function formatUsername(user: { id: string; username?: string; discriminator?: string | null }): string {
   if (user.discriminator && user.discriminator !== "0") {
-    return `${user.username}#${user.discriminator}`;
+    return `${user.username ?? user.id}#${user.discriminator}`;
   }
-  return user.username;
+  return user.username ?? user.id;
 }
 
 function isThreadChannelType(channelType: number | undefined): boolean {

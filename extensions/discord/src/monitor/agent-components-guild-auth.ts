@@ -1,6 +1,6 @@
 import { resolveCommandAuthorizedFromAuthorizers } from "coreblow/plugin-sdk/command-auth-native";
 import { isDangerousNameMatchingEnabled } from "coreblow/plugin-sdk/dangerous-name-runtime";
-import { logVerbose } from "../../../../globals.js";
+import { logVerbose } from "coreblow/plugin-sdk/runtime-env";
 import { resolveOpenProviderRuntimeGroupPolicy } from "coreblow/plugin-sdk/config-runtime";
 import type { DiscordComponentEntry } from "../components.js";
 import { resolveDiscordChannelContext } from "./agent-components-context.js";

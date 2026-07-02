@@ -1,6 +1,6 @@
 import { createChannelPairingChallengeIssuer } from "coreblow/plugin-sdk/channel-pairing";
 import { isDangerousNameMatchingEnabled } from "coreblow/plugin-sdk/dangerous-name-runtime";
-import { logVerbose } from "../../../../globals.js";
+import { logVerbose } from "coreblow/plugin-sdk/runtime-env";
 import {
   resolveComponentInteractionContext,
   resolveDiscordChannelContext,
@@ -43,20 +43,18 @@ async function ensureDmComponentAuthorized(params: {
       tag: formatDiscordUserTag(user),
     },
     allowNameMatching: isDangerousNameMatchingEnabled(ctx.discordConfig),
-    cfg: ctx.cfg,
-    token: ctx.token,
-    readStoreAllowFrom: async ({ accountId, dmPolicy }) =>
+    useAccessGroups: ctx.cfg.commands?.useAccessGroups !== false,
+    readStoreAllowFrom: async () =>
       await readChannelIngressStoreAllowFromForDmPolicy({
         provider: "discord",
-        accountId,
+        accountId: ctx.accountId,
         dmPolicy,
       }),
-    eventKind: "button",
   });
-  if (access.senderAccess.decision === "allow") {
+  if (access.decision === "allow") {
     return true;
   }
-  if (access.senderAccess.decision !== "pairing") {
+  if (access.decision !== "pairing") {
     logVerbose(`agent ${componentLabel}: blocked DM user ${user.id} (not in allowFrom)`);
     await replySilently(interaction, {
       content: `You are not authorized to use this ${componentLabel}.`,

@@ -24,7 +24,7 @@ import {
   sendVoiceMessageDiscord,
   unpinMessageDiscord,
 } from "../send.js";
-import { resolveDiscordTargetChannelId } from "../send.shared.js";
+import { parseAndResolveDiscordTarget } from "../target-resolver.js";
 import { resolveDiscordChannelId } from "../targets.js";
 
 export const discordMessagingActionRuntime = {
@@ -63,11 +63,17 @@ async function resolveDiscordReactionTargetChannelId(params: {
   try {
     return resolveDiscordChannelId(params.target);
   } catch {
-    return (
-      await resolveDiscordTargetChannelId(params.target, {
+    const resolved = await parseAndResolveDiscordTarget(
+      params.target,
+      {
         cfg: params.cfg,
         accountId: params.accountId,
-      })
-    ).channelId;
+      },
+      { defaultKind: "channel" },
+    );
+    if (resolved.kind !== "channel") {
+      throw new Error("Discord reaction targets must resolve to a channel.");
+    }
+    return resolved.id;
   }
 }

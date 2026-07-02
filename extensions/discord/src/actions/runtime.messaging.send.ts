@@ -1,4 +1,4 @@
-import { formatErrorMessage } from "../../../../infra/errors.js";
+import { formatErrorMessage } from "../../../../src/infra/errors.js";
 import {
   assertMediaNotDataUrl,
   jsonResult,
@@ -8,7 +8,6 @@ import {
   readStringParam,
   resolvePollMaxSelections,
 } from "../runtime-api.js";
-import { DiscordThreadInitialMessageError } from "../send.js";
 import { isThreadChannelType } from "../send.permissions.js";
 import type { DiscordSendComponents, DiscordSendEmbeds } from "../send.shared.js";
 import { discordMessagingActionRuntime } from "./runtime.messaging.runtime.js";
@@ -185,9 +184,7 @@ export async function handleDiscordMessageSendAction(ctx: DiscordMessagingAction
             agentId: agentId ?? undefined,
             mediaUrl: mediaUrl ?? undefined,
             filename: filename ?? undefined,
-            mediaAccess: ctx.options?.mediaAccess,
             mediaLocalRoots: ctx.options?.mediaLocalRoots,
-            mediaReadFile: ctx.options?.mediaReadFile,
             ...(suppressEmbeds === undefined ? {} : { suppressEmbeds }),
           },
         );
@@ -228,11 +225,9 @@ export async function handleDiscordMessageSendAction(ctx: DiscordMessagingAction
 
       const result = await discordMessagingActionRuntime.sendMessageDiscord(to, content ?? "", {
         ...ctx.withOpts(),
-        mediaAccess: ctx.options?.mediaAccess,
         mediaUrl,
         filename: filename ?? undefined,
         mediaLocalRoots: ctx.options?.mediaLocalRoots,
-        mediaReadFile: ctx.options?.mediaReadFile,
         replyTo,
         components,
         embeds,
@@ -272,15 +267,6 @@ export async function handleDiscordMessageSendAction(ctx: DiscordMessagingAction
         );
         return jsonResult({ ok: true, thread });
       } catch (error) {
-        if (error instanceof DiscordThreadInitialMessageError) {
-          return jsonResult({
-            ok: true,
-            partial: true,
-            thread: error.thread,
-            warning: "Discord thread was created, but sending the initial message failed.",
-            initialMessageError: error.initialMessageError,
-          });
-        }
         throw error;
       }
     }
@@ -324,7 +310,6 @@ export async function handleDiscordMessageSendAction(ctx: DiscordMessagingAction
           ...ctx.withOpts(),
           mediaUrl,
           mediaLocalRoots: ctx.options?.mediaLocalRoots,
-          mediaReadFile: ctx.options?.mediaReadFile,
           replyTo,
         },
       );

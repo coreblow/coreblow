@@ -39,6 +39,10 @@ export type DiscordReactOpts = {
   retry?: RetryConfig;
 };
 
+export type DiscordReactionRuntimeContext = DiscordReactOpts & {
+  rest: RequestClient;
+};
+
 export type DiscordRuntimeAccountContext = {
   cfg: CoreBlowConfig;
   accountId: string;
