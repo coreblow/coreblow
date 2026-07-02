@@ -46,6 +46,20 @@ export {
 } from "../security/dm-policy-shared.js";
 export { createAllowlistProviderRestrictSendersWarningCollector };
 
+export function normalizeAllowFromList(list: Array<string | number> | undefined | null): string[] {
+  if (!Array.isArray(list)) {
+    return [];
+  }
+  return list.map((value) => String(value).trim()).filter(Boolean);
+}
+
+export function coerceNativeSetting(value: unknown): boolean | "auto" | undefined {
+  if (value === true || value === false || value === "auto") {
+    return value;
+  }
+  return undefined;
+}
+
 /** Compose the common DM policy resolver with restrict-senders group warnings. */
 export function createRestrictSendersChannelSecurity<
   ResolvedAccount extends { accountId?: string | null },
