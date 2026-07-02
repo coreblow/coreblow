@@ -45,3 +45,37 @@ export function looksLikeDiscordTargetId(raw: string): boolean {
   }
   return false;
 }
+
+export function allowFromContainsDiscordUserId(
+  allowFrom: readonly string[] | undefined,
+  userId: string,
+): boolean {
+  const normalizedUserId = userId.trim();
+  if (!normalizedUserId) {
+    return false;
+  }
+  return (allowFrom ?? []).some(
+    (entry) => normalizeAllowFromDiscordUserId(entry) === normalizedUserId,
+  );
+}
+
+function normalizeAllowFromDiscordUserId(entry: string): string | undefined {
+  const trimmed = entry.trim().toLowerCase();
+  if (!trimmed || trimmed === "*") {
+    return undefined;
+  }
+  const mentionMatch = /^<@!?(\d+)>$/.exec(trimmed);
+  if (mentionMatch) {
+    return mentionMatch[1];
+  }
+  // Accept both current and legacy allowFrom forms for Discord user IDs.
+  const prefixedMatch = /^(?:discord:)?user:(\d+)$/.exec(trimmed);
+  if (prefixedMatch) {
+    return prefixedMatch[1];
+  }
+  const discordMatch = /^discord:(\d+)$/.exec(trimmed);
+  if (discordMatch) {
+    return discordMatch[1];
+  }
+  return /^\d+$/.test(trimmed) ? trimmed : undefined;
+}

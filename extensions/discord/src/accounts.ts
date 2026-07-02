@@ -91,3 +91,11 @@ export function listEnabledDiscordAccounts(cfg: CoreBlowConfig): ResolvedDiscord
     .map((accountId) => resolveDiscordAccount({ cfg, accountId }))
     .filter((account) => account.enabled);
 }
+
+export function resolveDiscordAccountAllowFrom(params: {
+  cfg: CoreBlowConfig;
+  accountId?: string | null;
+}): string[] | undefined {
+  const account = resolveDiscordAccount(params);
+  return account.config.allowFrom ?? account.config.dm?.allowFrom;
+}
