@@ -93,6 +93,18 @@ export function normalizeDiscordSlug(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+export function normalizeDiscordDisplaySlug(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize("NFC")
+    .replace(/^#/, "")
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^\p{L}\p{M}\p{N}-]+/gu, "-")
+    .replace(/-{2,}/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 function resolveDiscordAllowListNameMatch(
   list: DiscordAllowList,
   candidate: { name?: string; tag?: string },
