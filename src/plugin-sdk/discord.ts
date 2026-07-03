@@ -165,3 +165,5 @@ export {
 } from "./discord-runtime-surface.js";
 export { discordMessageActions } from "./discord-runtime-surface.js";
 export { resolveDiscordOutboundSessionRoute } from "./discord-runtime-surface.js";
+export { createClaimableDedupe } from "./persistent-dedupe.js";
+export type { ClaimableDedupe, ClaimableDedupeClaimResult } from "./persistent-dedupe.js";
