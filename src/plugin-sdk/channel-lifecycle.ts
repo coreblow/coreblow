@@ -7,6 +7,11 @@ export {
   type ArmableStallWatchdog,
   type StallWatchdogTimeoutMeta,
 } from "../channels/transport/stall-watchdog.js";
+export {
+  createChannelRunQueue,
+  type ChannelRunQueue,
+  type ChannelRunQueueParams,
+} from "./channel-lifecycle.core.js";
 
 type CloseAwareServer = {
   once: (event: "close", listener: () => void) => unknown;
