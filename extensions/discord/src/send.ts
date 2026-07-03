@@ -51,6 +51,7 @@ export {
 } from "./send.components.js";
 export { sendTypingDiscord } from "./send.typing.js";
 export {
+  canViewDiscordGuildChannel,
   fetchChannelPermissionsDiscord,
   hasAllGuildPermissionsDiscord,
   hasAnyGuildPermissionDiscord,

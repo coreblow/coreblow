@@ -151,6 +151,87 @@ export async function hasAllGuildPermissionsDiscord(
  */
 export const hasGuildPermissionDiscord = hasAnyGuildPermissionDiscord;
 
+function resolveMemberChannelPermissionBits(params: {
+  guildId: string;
+  userId: string;
+  guild: Pick<APIGuild, "id" | "roles">;
+  member: Pick<APIGuildMember, "roles">;
+  channel: APIChannel;
+}) {
+  const rolesById = new Map<string, APIRole>(
+    (params.guild.roles ?? []).map((role) => [role.id, role]),
+  );
+  const everyoneRole = rolesById.get(params.guild.id);
+  let permissions = 0n;
+  if (everyoneRole?.permissions) {
+    permissions = addPermissionBits(permissions, everyoneRole.permissions);
+  }
+  for (const roleId of params.member.roles ?? []) {
+    const role = rolesById.get(roleId);
+    if (role?.permissions) {
+      permissions = addPermissionBits(permissions, role.permissions);
+    }
+  }
+  if (hasAdministrator(permissions)) {
+    return ALL_PERMISSIONS;
+  }
+  const overwrites =
+    "permission_overwrites" in params.channel ? (params.channel.permission_overwrites ?? []) : [];
+  for (const overwrite of overwrites) {
+    if (overwrite.id === params.guildId) {
+      permissions = removePermissionBits(permissions, overwrite.deny ?? "0");
+      permissions = addPermissionBits(permissions, overwrite.allow ?? "0");
+    }
+  }
+  let roleDeny = 0n;
+  let roleAllow = 0n;
+  for (const overwrite of overwrites) {
+    if (params.member.roles?.includes(overwrite.id)) {
+      roleDeny = addPermissionBits(roleDeny, overwrite.deny ?? "0");
+      roleAllow = addPermissionBits(roleAllow, overwrite.allow ?? "0");
+    }
+  }
+  permissions = permissions & ~roleDeny;
+  permissions = permissions | roleAllow;
+  for (const overwrite of overwrites) {
+    if (overwrite.id === params.userId) {
+      permissions = removePermissionBits(permissions, overwrite.deny ?? "0");
+      permissions = addPermissionBits(permissions, overwrite.allow ?? "0");
+    }
+  }
+  return permissions;
+}
+
+export async function canViewDiscordGuildChannel(
+  guildId: string,
+  channelId: string,
+  userId: string,
+  opts: DiscordReactOpts,
+): Promise<boolean> {
+  const rest = resolveDiscordRest(opts);
+  try {
+    const channel = (await rest.get(Routes.channel(channelId))) as APIChannel;
+    const channelGuildId = "guild_id" in channel ? channel.guild_id : undefined;
+    if (channelGuildId !== guildId) {
+      return false;
+    }
+    const [guild, member] = await Promise.all([
+      rest.get(Routes.guild(guildId)) as Promise<APIGuild>,
+      rest.get(Routes.guildMember(guildId, userId)) as Promise<APIGuildMember>,
+    ]);
+    const permissions = resolveMemberChannelPermissionBits({
+      guildId,
+      userId,
+      guild,
+      member,
+      channel,
+    });
+    return hasPermissionBit(permissions, PermissionFlagsBits.ViewChannel);
+  } catch {
+    return false;
+  }
+}
+
 export async function fetchChannelPermissionsDiscord(
   channelId: string,
   opts: DiscordReactOpts = {},
