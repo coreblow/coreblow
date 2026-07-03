@@ -18,6 +18,80 @@ type RecordInboundSessionFn = typeof import("../channels/session.js").recordInbo
 type DispatchReplyWithBufferedBlockDispatcherFn =
   typeof import("../auto-reply/reply/provider-dispatcher.js").dispatchReplyWithBufferedBlockDispatcher;
 
+/** Minimal adapter interface for runInboundReplyTurn compatibility bridge. */
+export type ChannelTurnIngestResult<TRaw = unknown> = {
+  id: string;
+  rawText: string;
+  textForAgent: string;
+  textForCommands: string;
+  raw: TRaw;
+};
+
+export type ChannelTurnResolved = {
+  cfg: CoreBlowConfig;
+  channel: string;
+  accountId?: string;
+  agentId: string;
+  routeSessionKey: string;
+  storePath: string;
+  ctxPayload: FinalizedMsgContext;
+  recordInboundSession: RecordInboundSessionFn;
+  dispatchReplyWithBufferedBlockDispatcherFn: DispatchReplyWithBufferedBlockDispatcherFn;
+  record?: {
+    updateLastRoute?: unknown;
+    onRecordError?: (err: unknown) => void;
+  };
+  delivery: {
+    deliver: (payload: OutboundReplyPayload, info?: { kind?: string }) => Promise<void>;
+  };
+  replyOptions?: ReplyOptionsWithoutModelSelected;
+};
+
+export type ChannelTurnAdapter<TRaw = unknown, TDispatchResult = unknown> = {
+  ingest: (raw: TRaw) => ChannelTurnIngestResult<TRaw>;
+  resolveTurn: (ingestResult: ChannelTurnIngestResult<TRaw>) => ChannelTurnResolved;
+};
+
+export type RunChannelTurnParams<TRaw = unknown, TDispatchResult = unknown> = {
+  channel: string;
+  accountId?: string;
+  raw: TRaw;
+  adapter: ChannelTurnAdapter<TRaw, TDispatchResult>;
+  log?: (event: unknown) => void;
+};
+
+/**
+ * CoreBlow-native compatibility bridge for OpenClaw's runInboundReplyTurn.
+ * Delegates to CoreBlow's existing recordInboundSessionAndDispatchReply infrastructure.
+ */
+export async function runInboundReplyTurn<TRaw = unknown, TDispatchResult = unknown>(
+  params: RunChannelTurnParams<TRaw, TDispatchResult>,
+): Promise<void> {
+  const ingestResult = params.adapter.ingest(params.raw);
+  const resolved = params.adapter.resolveTurn(ingestResult);
+
+  const onRecordError = resolved.record?.onRecordError ?? (() => {});
+  const onDispatchError = (err: unknown, info: { kind: string }) => {
+    params.log?.({ type: "dispatch-error", error: err, info });
+  };
+
+  await recordInboundSessionAndDispatchReply({
+    cfg: resolved.cfg,
+    channel: resolved.channel,
+    accountId: resolved.accountId,
+    agentId: resolved.agentId,
+    routeSessionKey: resolved.routeSessionKey,
+    storePath: resolved.storePath,
+    ctxPayload: resolved.ctxPayload,
+    recordInboundSession: resolved.recordInboundSession,
+    dispatchReplyWithBufferedBlockDispatcher: resolved.dispatchReplyWithBufferedBlockDispatcherFn,
+    deliver: resolved.delivery.deliver,
+    onRecordError,
+    onDispatchError,
+    replyOptions: resolved.replyOptions,
+  });
+}
+
 type ReplyDispatchFromConfigOptions = Omit<GetReplyOptions, "onToolResult" | "onBlockReply">;
 
 /** Run `dispatchReplyFromConfig` with a dispatcher that always gets its settled callback. */
