@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8142,
+    "cb_source_files": 8143,
     "oc_source_files": 8443,
-    "source_parity_both": 6344,
+    "source_parity_both": 6345,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2099,
+    "source_missing_from_cb": 2098,
     "test_files_cb": 4906,
     "test_files_oc": 5246,
     "tests_both_covered": 3470,
@@ -542,9 +542,9 @@
       "priority": "P1",
       "implementationSurface": "extensions/discord plus plugin-sdk channel/runtime surfaces",
       "counts": {
-        "sharedSourcePaths": 282,
+        "sharedSourcePaths": 283,
         "coreBlowOnlySourcePaths": 17,
-        "openClawOnlySourcePaths": 81,
+        "openClawOnlySourcePaths": 80,
         "sharedTestPaths": 94,
         "coreBlowOnlyTestPaths": 1,
         "openClawTestGaps": 49
@@ -554,7 +554,6 @@
           "extensions/discord/src/doctor-contract.ts",
           "extensions/discord/src/doctor-shared.ts",
           "extensions/discord/src/doctor.ts",
-          "extensions/discord/src/interactive-dispatch.ts",
           "extensions/discord/src/monitor/agent-components.handlers.ts",
           "extensions/discord/src/monitor/agent-components.modal.ts",
           "extensions/discord/src/monitor/agent-components.plugin-interactive.ts",
@@ -562,7 +561,8 @@
           "extensions/discord/src/monitor/agent-components.wildcard-controls.ts",
           "extensions/discord/src/monitor/gateway-metadata.ts",
           "extensions/discord/src/monitor/inbound-dedupe.ts",
-          "extensions/discord/src/monitor/listeners.reactions.ts"
+          "extensions/discord/src/monitor/listeners.reactions.ts",
+          "extensions/discord/src/monitor/message-handler.context.ts"
         ],
         "openClawTestGapPaths": [
           "extensions/discord/src/api-barrel.test.ts",
