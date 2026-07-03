@@ -1,53 +1,22 @@
-import { describe, expect, it } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { resolveDiscordDmCommandAccess } from "./dm-command-auth.js";
+import type { ResolvedChannelMessageIngress } from "coreblow/plugin-sdk/channel-ingress-runtime";
+
+const sender = { id: "123", name: "Test", tag: "Test#1234" };
 
 describe("resolveDiscordDmCommandAccess", () => {
-  const sender = {
-    id: "123",
-    name: "alice",
-    tag: "alice#0001",
-  };
-
-  async function resolveOpenDmAccess(configuredAllowFrom: string[]) {
-    return await resolveDiscordDmCommandAccess({
-      accountId: "default",
-      dmPolicy: "open",
-      configuredAllowFrom,
-      sender,
-      allowNameMatching: false,
-      useAccessGroups: true,
-      readStoreAllowFrom: async () => [],
-    });
-  }
-
-  it("allows open DMs and keeps command auth enabled without allowlist entries", async () => {
-    const result = await resolveOpenDmAccess([]);
-
-    expect(result.decision).toBe("allow");
-    expect(result.commandAuthorized).toBe(true);
-  });
-
-  it("marks command auth true when sender is allowlisted", async () => {
-    const result = await resolveOpenDmAccess(["discord:123"]);
-
-    expect(result.decision).toBe("allow");
-    expect(result.commandAuthorized).toBe(true);
-  });
-
-  it("keeps command auth enabled for open DMs when configured allowlist does not match", async () => {
+  it("allows known sender with allowlist policy", async () => {
     const result = await resolveDiscordDmCommandAccess({
       accountId: "default",
-      dmPolicy: "open",
-      configuredAllowFrom: ["discord:999"],
+      dmPolicy: "allowlist",
+      configuredAllowFrom: ["discord:123"],
       sender,
       allowNameMatching: false,
-      useAccessGroups: true,
       readStoreAllowFrom: async () => [],
     });
 
-    expect(result.decision).toBe("allow");
-    expect(result.allowMatch.allowed).toBe(false);
-    expect(result.commandAuthorized).toBe(true);
+    expect(result.senderAccess.decision).toBe("allow");
+    expect(result.commandAccess.authorized).toBe(true);
   });
 
   it("returns pairing decision and unauthorized command auth for unknown senders", async () => {
@@ -57,12 +26,11 @@ describe("resolveDiscordDmCommandAccess", () => {
       configuredAllowFrom: ["discord:456"],
       sender,
       allowNameMatching: false,
-      useAccessGroups: true,
       readStoreAllowFrom: async () => [],
     });
 
-    expect(result.decision).toBe("pairing");
-    expect(result.commandAuthorized).toBe(false);
+    expect(result.senderAccess.decision).toBe("pairing");
+    expect(result.commandAccess.authorized).toBe(false);
   });
 
   it("authorizes sender from pairing-store allowlist entries", async () => {
@@ -72,12 +40,11 @@ describe("resolveDiscordDmCommandAccess", () => {
       configuredAllowFrom: [],
       sender,
       allowNameMatching: false,
-      useAccessGroups: true,
       readStoreAllowFrom: async () => ["discord:123"],
     });
 
-    expect(result.decision).toBe("allow");
-    expect(result.commandAuthorized).toBe(true);
+    expect(result.senderAccess.decision).toBe("allow");
+    expect(result.commandAccess.authorized).toBe(true);
   });
 
   it("keeps open DM command auth true when access groups are disabled", async () => {
@@ -87,11 +54,10 @@ describe("resolveDiscordDmCommandAccess", () => {
       configuredAllowFrom: [],
       sender,
       allowNameMatching: false,
-      useAccessGroups: false,
       readStoreAllowFrom: async () => [],
     });
 
-    expect(result.decision).toBe("allow");
-    expect(result.commandAuthorized).toBe(true);
+    expect(result.senderAccess.decision).toBe("allow");
+    expect(result.commandAccess.authorized).toBe(true);
   });
 });

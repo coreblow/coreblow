@@ -1,9 +1,9 @@
 import { createChannelPairingChallengeIssuer } from "coreblow/plugin-sdk/channel-pairing";
 import { upsertChannelPairingRequest } from "coreblow/plugin-sdk/conversation-runtime";
-import type { DiscordDmCommandAccess } from "./dm-command-auth.js";
+import type { ResolvedChannelMessageIngress } from "coreblow/plugin-sdk/channel-ingress-runtime";
 
 export async function handleDiscordDmCommandDecision(params: {
-  dmAccess: DiscordDmCommandAccess;
+  senderAccess: Pick<ResolvedChannelMessageIngress["senderAccess"], "decision">;
   accountId: string;
   sender: {
     id: string;
@@ -14,11 +14,11 @@ export async function handleDiscordDmCommandDecision(params: {
   onUnauthorized: () => Promise<void>;
   upsertPairingRequest?: typeof upsertChannelPairingRequest;
 }): Promise<boolean> {
-  if (params.dmAccess.decision === "allow") {
+  if (params.senderAccess.decision === "allow") {
     return true;
   }
 
-  if (params.dmAccess.decision === "pairing") {
+  if (params.senderAccess.decision === "pairing") {
     const upsertPairingRequest = params.upsertPairingRequest ?? upsertChannelPairingRequest;
     const result = await createChannelPairingChallengeIssuer({
       channel: "discord",
