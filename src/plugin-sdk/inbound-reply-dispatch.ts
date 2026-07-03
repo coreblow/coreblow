@@ -36,7 +36,7 @@ export type ChannelTurnResolved = {
   storePath: string;
   ctxPayload: FinalizedMsgContext;
   recordInboundSession: RecordInboundSessionFn;
-  dispatchReplyWithBufferedBlockDispatcherFn: DispatchReplyWithBufferedBlockDispatcherFn;
+  dispatchReplyWithBufferedBlockDispatcher: DispatchReplyWithBufferedBlockDispatcherFn;
   record?: {
     updateLastRoute?: unknown;
     onRecordError?: (err: unknown) => void;
@@ -84,7 +84,7 @@ export async function runInboundReplyTurn<TRaw = unknown, TDispatchResult = unkn
     storePath: resolved.storePath,
     ctxPayload: resolved.ctxPayload,
     recordInboundSession: resolved.recordInboundSession,
-    dispatchReplyWithBufferedBlockDispatcher: resolved.dispatchReplyWithBufferedBlockDispatcherFn,
+    dispatchReplyWithBufferedBlockDispatcher: resolved.dispatchReplyWithBufferedBlockDispatcher,
     deliver: resolved.delivery.deliver,
     onRecordError,
     onDispatchError,
