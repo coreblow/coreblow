@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8143,
+    "cb_source_files": 8148,
     "oc_source_files": 8443,
-    "source_parity_both": 6345,
+    "source_parity_both": 6350,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2098,
+    "source_missing_from_cb": 2093,
     "test_files_cb": 4906,
     "test_files_oc": 5246,
     "tests_both_covered": 3470,
@@ -537,69 +537,6 @@
       ]
     },
     {
-      "domain": "extensions/discord",
-      "status": "partial",
-      "priority": "P1",
-      "implementationSurface": "extensions/discord plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 283,
-        "coreBlowOnlySourcePaths": 17,
-        "openClawOnlySourcePaths": 80,
-        "sharedTestPaths": 94,
-        "coreBlowOnlyTestPaths": 1,
-        "openClawTestGaps": 49
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/discord/src/doctor-contract.ts",
-          "extensions/discord/src/doctor-shared.ts",
-          "extensions/discord/src/doctor.ts",
-          "extensions/discord/src/monitor/agent-components.handlers.ts",
-          "extensions/discord/src/monitor/agent-components.modal.ts",
-          "extensions/discord/src/monitor/agent-components.plugin-interactive.ts",
-          "extensions/discord/src/monitor/agent-components.system-controls.ts",
-          "extensions/discord/src/monitor/agent-components.wildcard-controls.ts",
-          "extensions/discord/src/monitor/gateway-metadata.ts",
-          "extensions/discord/src/monitor/inbound-dedupe.ts",
-          "extensions/discord/src/monitor/listeners.reactions.ts",
-          "extensions/discord/src/monitor/message-handler.context.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/discord/src/api-barrel.test.ts",
-          "extensions/discord/src/approval-handler.runtime.test.ts",
-          "extensions/discord/src/approval-native.test.ts",
-          "extensions/discord/src/channel.message-adapter.test.ts",
-          "extensions/discord/src/client.proxy.test.ts",
-          "extensions/discord/src/config-schema.test.ts",
-          "extensions/discord/src/directory-contract.test.ts",
-          "extensions/discord/src/doctor.test.ts",
-          "extensions/discord/src/durable-delivery.test.ts",
-          "extensions/discord/src/exec-approvals.test.ts",
-          "extensions/discord/src/internal/api.test.ts",
-          "extensions/discord/src/internal/client.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "extensions/discord/src/adapter.ts",
-          "extensions/discord/src/config.ts",
-          "extensions/discord/src/extension.ts",
-          "extensions/discord/src/formatter.ts",
-          "extensions/discord/src/handler.ts",
-          "extensions/discord/src/index.ts",
-          "extensions/discord/src/media.ts",
-          "extensions/discord/src/message-tool-schema.ts",
-          "extensions/discord/src/monitor/inbound-worker.ts",
-          "extensions/discord/src/monitor/provider.lifecycle.reconnect.ts",
-          "extensions/discord/src/monitor.tool-result.test-harness.ts",
-          "extensions/discord/src/monitor.tool-result.test-helpers.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/discord",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/cli",
       "status": "partial",
       "priority": "P1",
@@ -732,6 +669,69 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/infra",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/discord",
+      "status": "partial",
+      "priority": "P1",
+      "implementationSurface": "extensions/discord plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 288,
+        "coreBlowOnlySourcePaths": 17,
+        "openClawOnlySourcePaths": 75,
+        "sharedTestPaths": 94,
+        "coreBlowOnlyTestPaths": 1,
+        "openClawTestGaps": 49
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [
+          "extensions/discord/src/doctor-contract.ts",
+          "extensions/discord/src/doctor-shared.ts",
+          "extensions/discord/src/doctor.ts",
+          "extensions/discord/src/monitor/gateway-metadata.ts",
+          "extensions/discord/src/monitor/inbound-dedupe.ts",
+          "extensions/discord/src/monitor/listeners.reactions.ts",
+          "extensions/discord/src/monitor/message-handler.context.ts",
+          "extensions/discord/src/monitor/message-handler.dm-preflight.ts",
+          "extensions/discord/src/monitor/message-handler.draft-preview.ts",
+          "extensions/discord/src/monitor/message-handler.hydration.ts",
+          "extensions/discord/src/monitor/message-handler.preflight-channel-access.ts",
+          "extensions/discord/src/monitor/message-handler.preflight-context.ts"
+        ],
+        "openClawTestGapPaths": [
+          "extensions/discord/src/api-barrel.test.ts",
+          "extensions/discord/src/approval-handler.runtime.test.ts",
+          "extensions/discord/src/approval-native.test.ts",
+          "extensions/discord/src/channel.message-adapter.test.ts",
+          "extensions/discord/src/client.proxy.test.ts",
+          "extensions/discord/src/config-schema.test.ts",
+          "extensions/discord/src/directory-contract.test.ts",
+          "extensions/discord/src/doctor.test.ts",
+          "extensions/discord/src/durable-delivery.test.ts",
+          "extensions/discord/src/exec-approvals.test.ts",
+          "extensions/discord/src/internal/api.test.ts",
+          "extensions/discord/src/internal/client.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "extensions/discord/src/adapter.ts",
+          "extensions/discord/src/config.ts",
+          "extensions/discord/src/extension.ts",
+          "extensions/discord/src/formatter.ts",
+          "extensions/discord/src/handler.ts",
+          "extensions/discord/src/index.ts",
+          "extensions/discord/src/media.ts",
+          "extensions/discord/src/message-tool-schema.ts",
+          "extensions/discord/src/monitor/inbound-worker.ts",
+          "extensions/discord/src/monitor/provider.lifecycle.reconnect.ts",
+          "extensions/discord/src/monitor.tool-result.test-harness.ts",
+          "extensions/discord/src/monitor.tool-result.test-helpers.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/discord",
         "pnpm check"
       ]
     },
