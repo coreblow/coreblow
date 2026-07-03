@@ -1,3 +1,4 @@
+import type { ReplyToMode } from "coreblow/plugin-sdk/account-resolution";
 import { parseSlackTarget } from "./targets.js";
 
 export function resolveSlackAutoThreadId(params: {
@@ -5,7 +6,7 @@ export function resolveSlackAutoThreadId(params: {
   toolContext?: {
     currentChannelId?: string;
     currentThreadTs?: string;
-    replyToMode?: "off" | "first" | "all";
+    replyToMode?: ReplyToMode;
     hasRepliedRef?: { value: boolean };
   };
 }): string | undefined {

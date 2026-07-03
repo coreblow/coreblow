@@ -1,4 +1,5 @@
 import type { CoreBlowConfig } from "../config/config.js";
+import type { ReplyToMode } from "../config/types.base.js";
 import type { ModelCompatConfig } from "../config/types.models.js";
 import { getPluginToolMeta } from "../plugins/tools.js";
 import { resolveAgentDir, resolveAgentWorkspaceDir, resolveSessionAgentId } from "./agent-scope.js";
@@ -56,7 +57,7 @@ export type ResolveEffectiveToolInventoryParams = {
   groupId?: string | null;
   groupChannel?: string | null;
   groupSpace?: string | null;
-  replyToMode?: "off" | "first" | "all";
+  replyToMode?: ReplyToMode;
   modelHasVision?: boolean;
   requireExplicitMessageTarget?: boolean;
   disableMessageTool?: boolean;

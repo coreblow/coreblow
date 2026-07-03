@@ -1,5 +1,6 @@
 import { createCodingTools, createReadTool } from "@mariozechner/pi-coding-agent";
 import type { CoreBlowConfig } from "../config/config.js";
+import type { ReplyToMode } from "../config/types.base.js";
 import type { ModelCompatConfig } from "../config/types.models.js";
 import type { ToolLoopDetectionConfig } from "../config/types.tools.js";
 import { resolveMergedSafeBinProfileFixtures } from "../infra/exec-safe-bin-runtime-policy.js";
@@ -260,7 +261,7 @@ export function createCoreBlowCodingTools(options?: {
   senderUsername?: string | null;
   senderE164?: string | null;
   /** Reply-to mode for Slack auto-threading. */
-  replyToMode?: "off" | "first" | "all";
+  replyToMode?: ReplyToMode;
   /** Mutable ref to track if a reply was sent (for "first" mode). */
   hasRepliedRef?: { value: boolean };
   /** Allow plugin tools for this run to late-bind the gateway subagent. */

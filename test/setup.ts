@@ -56,6 +56,7 @@ import type {
   ChannelPlugin,
 } from "../src/channels/plugins/types.js";
 import type { CoreBlowConfig } from "../src/config/config.js";
+import type { ReplyToMode } from "../src/config/types.base.js";
 import type { OutboundSendDeps } from "../src/infra/outbound/deliver.js";
 import { installProcessWarningFilter } from "../src/infra/warning-filter.js";
 import type { PluginRegistry } from "../src/plugins/registry.js";
@@ -101,17 +102,17 @@ const pickSendFn = (id: ChannelId, deps?: OutboundSendDeps) => {
 function resolveSlackStubReplyToMode(params: {
   cfg: CoreBlowConfig;
   chatType?: string | null;
-}): "off" | "first" | "all" {
+}): ReplyToMode {
   const entry = (
     params.cfg.channels as
       | Record<
           string,
           {
-            replyToMode?: "off" | "first" | "all";
+            replyToMode?: ReplyToMode;
             replyToModeByChatType?: Partial<
-              Record<"direct" | "group" | "channel", "off" | "first" | "all">
+              Record<"direct" | "group" | "channel", ReplyToMode>
             >;
-            dm?: { replyToMode?: "off" | "first" | "all" };
+            dm?: { replyToMode?: ReplyToMode };
           }
         >
       | undefined
@@ -172,7 +173,7 @@ const createStubPlugin = (params: {
     cfg: CoreBlowConfig;
     accountId?: string | null;
     chatType?: string | null;
-  }) => "off" | "first" | "all";
+  }) => ReplyToMode;
 }): ChannelPlugin => ({
   id: params.id,
   meta: {

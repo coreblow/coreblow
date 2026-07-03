@@ -1,4 +1,5 @@
 import type { CoreBlowConfig } from "../config/config.js";
+import type { ReplyToMode } from "../config/types.base.js";
 import { callGateway } from "../gateway/call.js";
 import { resolvePluginTools } from "../plugins/tools.js";
 import { getActiveRuntimeWebToolsMetadata } from "../secrets/runtime.js";
@@ -66,7 +67,7 @@ export function createCoreBlowTools(
     /** Current inbound message id for action fallbacks (e.g. Telegram react). */
     currentMessageId?: string | number;
     /** Reply-to mode for Slack auto-threading. */
-    replyToMode?: "off" | "first" | "all";
+    replyToMode?: ReplyToMode;
     /** Mutable ref to track if a reply was sent (for "first" mode). */
     hasRepliedRef?: { value: boolean };
     /** If true, the model has native vision capability */

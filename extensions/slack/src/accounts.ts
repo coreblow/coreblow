@@ -5,6 +5,7 @@ import {
   normalizeChatType,
   resolveMergedAccountConfig,
   type CoreBlowConfig,
+  type ReplyToMode,
 } from "coreblow/plugin-sdk/account-resolution";
 import type { SlackAccountSurfaceFields } from "./account-surface-fields.js";
 import type { SlackAccountConfig } from "./runtime-api.js";
@@ -108,7 +109,7 @@ export function listEnabledSlackAccounts(cfg: CoreBlowConfig): ResolvedSlackAcco
 export function resolveSlackReplyToMode(
   account: ResolvedSlackAccount,
   chatType?: string | null,
-): "off" | "first" | "all" {
+): ReplyToMode {
   const normalized = normalizeChatType(chatType ?? undefined);
   if (normalized && account.replyToModeByChatType?.[normalized] !== undefined) {
     return account.replyToModeByChatType[normalized] ?? "off";
