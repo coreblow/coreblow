@@ -11,3 +11,4 @@ export function chunkTextForOutbound(text: string, limit: number): string[] {
 }
 
 export { stripInlineDirectiveTagsForDisplay } from "../utils/directive-tags.js";
+export { chunkItems } from "../utils/chunk-items.js";

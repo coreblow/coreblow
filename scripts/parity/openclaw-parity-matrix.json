@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8164,
+    "cb_source_files": 8170,
     "oc_source_files": 8443,
-    "source_parity_both": 6366,
+    "source_parity_both": 6372,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2077,
+    "source_missing_from_cb": 2071,
     "test_files_cb": 4906,
     "test_files_oc": 5246,
     "tests_both_covered": 3470,
@@ -219,69 +219,6 @@
       ]
     },
     {
-      "domain": "src/plugin-sdk",
-      "status": "partial",
-      "priority": "P1",
-      "implementationSurface": "src/plugin-sdk public API",
-      "counts": {
-        "sharedSourcePaths": 318,
-        "coreBlowOnlySourcePaths": 118,
-        "openClawOnlySourcePaths": 121,
-        "sharedTestPaths": 43,
-        "coreBlowOnlyTestPaths": 25,
-        "openClawTestGaps": 60
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/plugin-sdk/acp-runtime-backend.ts",
-          "src/plugin-sdk/agent-harness-runtime.ts",
-          "src/plugin-sdk/agent-harness.ts",
-          "src/plugin-sdk/agent-runtime-test-contracts.ts",
-          "src/plugin-sdk/browser-facade-test-helpers.ts",
-          "src/plugin-sdk/channel-ingress.ts",
-          "src/plugin-sdk/channel-secret-basic-runtime.ts",
-          "src/plugin-sdk/channel-secret-runtime.ts",
-          "src/plugin-sdk/channel-secret-tts-runtime.ts",
-          "src/plugin-sdk/codex-mcp-projection.ts",
-          "src/plugin-sdk/codex-native-task-runtime.ts",
-          "src/plugin-sdk/command-status-runtime.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/plugin-sdk/acp-runtime.test.ts",
-          "src/plugin-sdk/agent-harness-runtime.test.ts",
-          "src/plugin-sdk/api-baseline.test.ts",
-          "src/plugin-sdk/approval-auth-helpers.test.ts",
-          "src/plugin-sdk/approval-delivery-helpers.test.ts",
-          "src/plugin-sdk/approval-native-helpers.test.ts",
-          "src/plugin-sdk/channel-entry-contract.test.ts",
-          "src/plugin-sdk/channel-inbound.test.ts",
-          "src/plugin-sdk/channel-lifecycle.queue.test.ts",
-          "src/plugin-sdk/channel-message.test.ts",
-          "src/plugin-sdk/channel-route.test.ts",
-          "src/plugin-sdk/channel-streaming.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/plugin-sdk/amazon-bedrock.ts",
-          "src/plugin-sdk/bluebubbles-policy.ts",
-          "src/plugin-sdk/bluebubbles.ts",
-          "src/plugin-sdk/browser-runtime.ts",
-          "src/plugin-sdk/browser-support.ts",
-          "src/plugin-sdk/browser.ts",
-          "src/plugin-sdk/byteplus.ts",
-          "src/plugin-sdk/channel-helpers.ts",
-          "src/plugin-sdk/chutes.ts",
-          "src/plugin-sdk/cli-scaffold.ts",
-          "src/plugin-sdk/cloudflare-ai-gateway.ts",
-          "src/plugin-sdk/config-builder.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/plugin-sdk",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/auto-reply",
       "status": "partial",
       "priority": "P1",
@@ -341,6 +278,69 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/auto-reply",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/plugin-sdk",
+      "status": "partial",
+      "priority": "P1",
+      "implementationSurface": "src/plugin-sdk public API",
+      "counts": {
+        "sharedSourcePaths": 322,
+        "coreBlowOnlySourcePaths": 118,
+        "openClawOnlySourcePaths": 117,
+        "sharedTestPaths": 43,
+        "coreBlowOnlyTestPaths": 25,
+        "openClawTestGaps": 60
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [
+          "src/plugin-sdk/acp-runtime-backend.ts",
+          "src/plugin-sdk/agent-harness-runtime.ts",
+          "src/plugin-sdk/agent-harness.ts",
+          "src/plugin-sdk/agent-runtime-test-contracts.ts",
+          "src/plugin-sdk/browser-facade-test-helpers.ts",
+          "src/plugin-sdk/channel-ingress.ts",
+          "src/plugin-sdk/channel-secret-basic-runtime.ts",
+          "src/plugin-sdk/channel-secret-runtime.ts",
+          "src/plugin-sdk/channel-secret-tts-runtime.ts",
+          "src/plugin-sdk/codex-mcp-projection.ts",
+          "src/plugin-sdk/codex-native-task-runtime.ts",
+          "src/plugin-sdk/facade-activation-check.runtime.ts"
+        ],
+        "openClawTestGapPaths": [
+          "src/plugin-sdk/acp-runtime.test.ts",
+          "src/plugin-sdk/agent-harness-runtime.test.ts",
+          "src/plugin-sdk/api-baseline.test.ts",
+          "src/plugin-sdk/approval-auth-helpers.test.ts",
+          "src/plugin-sdk/approval-delivery-helpers.test.ts",
+          "src/plugin-sdk/approval-native-helpers.test.ts",
+          "src/plugin-sdk/channel-entry-contract.test.ts",
+          "src/plugin-sdk/channel-inbound.test.ts",
+          "src/plugin-sdk/channel-lifecycle.queue.test.ts",
+          "src/plugin-sdk/channel-message.test.ts",
+          "src/plugin-sdk/channel-route.test.ts",
+          "src/plugin-sdk/channel-streaming.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "src/plugin-sdk/amazon-bedrock.ts",
+          "src/plugin-sdk/bluebubbles-policy.ts",
+          "src/plugin-sdk/bluebubbles.ts",
+          "src/plugin-sdk/browser-runtime.ts",
+          "src/plugin-sdk/browser-support.ts",
+          "src/plugin-sdk/browser.ts",
+          "src/plugin-sdk/byteplus.ts",
+          "src/plugin-sdk/channel-helpers.ts",
+          "src/plugin-sdk/chutes.ts",
+          "src/plugin-sdk/cli-scaffold.ts",
+          "src/plugin-sdk/cloudflare-ai-gateway.ts",
+          "src/plugin-sdk/config-builder.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/plugin-sdk",
         "pnpm check"
       ]
     },
@@ -804,9 +804,9 @@
       "priority": "P1",
       "implementationSurface": "extensions/discord plus plugin-sdk channel/runtime surfaces",
       "counts": {
-        "sharedSourcePaths": 304,
+        "sharedSourcePaths": 306,
         "coreBlowOnlySourcePaths": 17,
-        "openClawOnlySourcePaths": 59,
+        "openClawOnlySourcePaths": 57,
         "sharedTestPaths": 94,
         "coreBlowOnlyTestPaths": 1,
         "openClawTestGaps": 49
