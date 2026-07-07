@@ -28,3 +28,5 @@ export function resolveBatchedReplyThreadingPolicy(
     implicitCurrentMessage: isBatched ? "allow" : "deny",
   };
 }
+
+export { createReplyReferencePlanner } from "../auto-reply/reply/reply-reference.js";
