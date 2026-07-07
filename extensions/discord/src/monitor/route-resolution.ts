@@ -1,11 +1,14 @@
 import type { CoreBlowConfig } from "coreblow/plugin-sdk/config-runtime";
 import {
   deriveLastRoutePolicy,
+  isAcpSessionKey,
+  isSubagentSessionKey,
+  parseAgentSessionKey,
   resolveAgentRoute,
+  resolveAgentIdFromSessionKey,
   type ResolvedAgentRoute,
   type RoutePeer,
 } from "coreblow/plugin-sdk/routing";
-import { resolveAgentIdFromSessionKey } from "coreblow/plugin-sdk/routing";
 
 export function buildDiscordRoutePeer(params: {
   isDirectMessage: boolean;
@@ -97,4 +100,41 @@ export function resolveDiscordEffectiveRoute(params: {
     }),
     ...(params.matchedBy ? { matchedBy: params.matchedBy } : {}),
   };
+}
+
+export function shouldIgnoreStaleDiscordRouteBinding(params: {
+  bindingRecord?: import("coreblow/plugin-sdk/conversation-binding-runtime").SessionBindingRecord | null;
+  route: ResolvedAgentRoute;
+}): boolean {
+  const bindingRecord = params.bindingRecord;
+  const boundSessionKey = bindingRecord?.targetSessionKey?.trim();
+  if (!bindingRecord || !boundSessionKey) {
+    return false;
+  }
+  if (bindingRecord.targetKind === "subagent") {
+    return false;
+  }
+  if (
+    isAcpSessionKey(bindingRecord.targetSessionKey) ||
+    isSubagentSessionKey(bindingRecord.targetSessionKey)
+  ) {
+    return false;
+  }
+  const metadata = bindingRecord.metadata;
+  if (metadata && typeof metadata === "object") {
+    if (
+      typeof (metadata as Record<string, unknown>).boundBy === "string" ||
+      typeof (metadata as Record<string, unknown>).label === "string" ||
+      typeof (metadata as Record<string, unknown>).threadName === "string" ||
+      (metadata as Record<string, unknown>).pluginBindingOwner === "plugin"
+    ) {
+      return false;
+    }
+  }
+  const bound = parseAgentSessionKey(boundSessionKey);
+  const routed = parseAgentSessionKey(params.route.sessionKey);
+  if (!bound || !routed || bound.rest !== routed.rest) {
+    return false;
+  }
+  return bound.agentId !== params.route.agentId;
 }

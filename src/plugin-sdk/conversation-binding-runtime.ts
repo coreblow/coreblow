@@ -1,7 +1,9 @@
 export {
   ensureConfiguredBindingRouteReady,
   resolveConfiguredBindingRoute,
+  resolveRuntimeConversationBindingRoute,
   type ConfiguredBindingRouteResult,
+  type RuntimeConversationBindingRouteResult,
 } from "../channels/plugins/binding-routing.js";
 export {
   getSessionBindingService,

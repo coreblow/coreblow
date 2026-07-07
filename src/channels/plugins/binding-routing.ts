@@ -1,8 +1,14 @@
 import type { CoreBlowConfig } from "../../config/config.js";
-import type { ConversationRef } from "../../infra/outbound/session-binding-service.js";
+import {
+  getSessionBindingService,
+  type ConversationRef,
+  type SessionBindingRecord,
+} from "../../infra/outbound/session-binding-service.js";
+import { logVerbose } from "../../globals.js";
 import type { ResolvedAgentRoute } from "../../routing/resolve-route.js";
 import { deriveLastRoutePolicy } from "../../routing/resolve-route.js";
 import { resolveAgentIdFromSessionKey } from "../../routing/session-key.js";
+import { isCronRunSessionKey } from "../../sessions/session-key-utils.js";
 import { resolveConfiguredBinding } from "./binding-registry.js";
 import { ensureConfiguredBindingTargetReady } from "./binding-targets.js";
 import type { ConfiguredBindingResolution } from "./binding-types.js";
@@ -88,4 +94,76 @@ export async function ensureConfiguredBindingRouteReady(params: {
   bindingResolution: ConfiguredBindingResolution | null;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   return await ensureConfiguredBindingTargetReady(params);
+}
+
+export type RuntimeConversationBindingRouteResult = {
+  bindingRecord: SessionBindingRecord | null;
+  route: ResolvedAgentRoute;
+  boundSessionKey?: string;
+  boundAgentId?: string;
+};
+
+function isPluginOwnedRuntimeBindingRecord(record: SessionBindingRecord | null): boolean {
+  const metadata = record?.metadata;
+  if (!metadata || typeof metadata !== "object") {
+    return false;
+  }
+  const m = metadata as Record<string, unknown>;
+  return (
+    m.pluginBindingOwner === "plugin" &&
+    typeof m.pluginId === "string" &&
+    typeof m.pluginRoot === "string"
+  );
+}
+
+export function resolveRuntimeConversationBindingRoute(
+  params: {
+    route: ResolvedAgentRoute;
+  } & ConfiguredBindingRouteConversationInput,
+): RuntimeConversationBindingRouteResult {
+  const bindingRecord = getSessionBindingService().resolveByConversation(
+    resolveConfiguredBindingConversationRef(params),
+  );
+  const boundSessionKey = bindingRecord?.targetSessionKey?.trim();
+  if (!bindingRecord || !boundSessionKey) {
+    return {
+      bindingRecord: null,
+      route: params.route,
+    };
+  }
+
+  if (isCronRunSessionKey(boundSessionKey)) {
+    logVerbose(
+      `ignored runtime conversation binding ${bindingRecord.bindingId} to isolated cron run session ${boundSessionKey}`,
+    );
+    return {
+      bindingRecord: null,
+      route: params.route,
+    };
+  }
+
+  getSessionBindingService().touch(bindingRecord.bindingId);
+  if (isPluginOwnedRuntimeBindingRecord(bindingRecord)) {
+    return {
+      bindingRecord,
+      route: params.route,
+    };
+  }
+
+  const boundAgentId = resolveAgentIdFromSessionKey(boundSessionKey) || params.route.agentId;
+  return {
+    bindingRecord,
+    boundSessionKey,
+    boundAgentId,
+    route: {
+      ...params.route,
+      sessionKey: boundSessionKey,
+      agentId: boundAgentId,
+      lastRoutePolicy: deriveLastRoutePolicy({
+        sessionKey: boundSessionKey,
+        mainSessionKey: params.route.mainSessionKey,
+      }),
+      matchedBy: "binding.channel",
+    },
+  };
 }
