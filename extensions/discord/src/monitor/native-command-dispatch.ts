@@ -1,5 +1,5 @@
 import type { ChatCommandDefinition, CommandArgs } from "coreblow/plugin-sdk/command-auth-native";
-import type { CoreBlowConfig } from "coreblow/plugin-sdk/discord-core";
+import type { CoreBlowConfig } from "coreblow/plugin-sdk/config-contracts";
 import type { ResolvedAgentRoute } from "coreblow/plugin-sdk/routing";
 import type {
   ButtonInteraction,
