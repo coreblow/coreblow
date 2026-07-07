@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8193,
+    "cb_source_files": 8196,
     "oc_source_files": 8443,
-    "source_parity_both": 6395,
+    "source_parity_both": 6398,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2048,
+    "source_missing_from_cb": 2045,
     "test_files_cb": 4906,
     "test_files_oc": 5246,
     "tests_both_covered": 3470,
@@ -287,9 +287,9 @@
       "priority": "P1",
       "implementationSurface": "src/plugin-sdk public API",
       "counts": {
-        "sharedSourcePaths": 323,
+        "sharedSourcePaths": 325,
         "coreBlowOnlySourcePaths": 118,
-        "openClawOnlySourcePaths": 116,
+        "openClawOnlySourcePaths": 114,
         "sharedTestPaths": 43,
         "coreBlowOnlyTestPaths": 25,
         "openClawTestGaps": 60
@@ -302,12 +302,12 @@
           "src/plugin-sdk/agent-runtime-test-contracts.ts",
           "src/plugin-sdk/browser-facade-test-helpers.ts",
           "src/plugin-sdk/channel-ingress.ts",
-          "src/plugin-sdk/channel-secret-basic-runtime.ts",
           "src/plugin-sdk/channel-secret-runtime.ts",
-          "src/plugin-sdk/channel-secret-tts-runtime.ts",
           "src/plugin-sdk/codex-mcp-projection.ts",
           "src/plugin-sdk/codex-native-task-runtime.ts",
-          "src/plugin-sdk/facade-activation-check.runtime.ts"
+          "src/plugin-sdk/facade-activation-check.runtime.ts",
+          "src/plugin-sdk/facade-loader.ts",
+          "src/plugin-sdk/facade-resolution-shared.ts"
         ],
         "openClawTestGapPaths": [
           "src/plugin-sdk/acp-runtime.test.ts",
@@ -930,9 +930,9 @@
       "priority": "P1",
       "implementationSurface": "extensions/discord plus plugin-sdk channel/runtime surfaces",
       "counts": {
-        "sharedSourcePaths": 327,
+        "sharedSourcePaths": 328,
         "coreBlowOnlySourcePaths": 17,
-        "openClawOnlySourcePaths": 36,
+        "openClawOnlySourcePaths": 35,
         "sharedTestPaths": 94,
         "coreBlowOnlyTestPaths": 1,
         "openClawTestGaps": 49
@@ -947,10 +947,10 @@
           "extensions/discord/src/monitor/message-handler.draft-preview.ts",
           "extensions/discord/src/monitor/model-picker.view.ts",
           "extensions/discord/src/monitor/provider.interactions.ts",
-          "extensions/discord/src/secret-config-contract.ts",
           "extensions/discord/src/send.voice.ts",
           "extensions/discord/src/test-support/component-runtime.ts",
-          "extensions/discord/src/test-support/provider.test-support.ts"
+          "extensions/discord/src/test-support/provider.test-support.ts",
+          "extensions/discord/src/voice/audio.ts"
         ],
         "openClawTestGapPaths": [
           "extensions/discord/src/api-barrel.test.ts",

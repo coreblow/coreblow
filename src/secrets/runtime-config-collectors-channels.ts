@@ -22,21 +22,21 @@ type GoogleChatAccountLike = {
   accounts?: Record<string, unknown>;
 };
 
-type ChannelAccountEntry = {
+export type ChannelAccountEntry = {
   accountId: string;
   account: Record<string, unknown>;
   enabled: boolean;
 };
 
-type ChannelAccountSurface = {
+export type ChannelAccountSurface = {
   hasExplicitAccounts: boolean;
   channelEnabled: boolean;
   accounts: ChannelAccountEntry[];
 };
 
-type ChannelAccountPredicate = (entry: ChannelAccountEntry) => boolean;
+export type ChannelAccountPredicate = (entry: ChannelAccountEntry) => boolean;
 
-function getChannelRecord(
+export function getChannelRecord(
   config: CoreBlowConfig,
   channelKey: string,
 ): Record<string, unknown> | undefined {
@@ -48,7 +48,7 @@ function getChannelRecord(
   return isRecord(channel) ? channel : undefined;
 }
 
-function getChannelSurface(
+export function getChannelSurface(
   config: CoreBlowConfig,
   channelKey: string,
 ): { channel: Record<string, unknown>; surface: ChannelAccountSurface } | null {
@@ -62,7 +62,7 @@ function getChannelSurface(
   };
 }
 
-function resolveChannelAccountSurface(channel: Record<string, unknown>): ChannelAccountSurface {
+export function resolveChannelAccountSurface(channel: Record<string, unknown>): ChannelAccountSurface {
   const channelEnabled = isEnabledFlag(channel);
   const accounts = channel.accounts;
   if (!isRecord(accounts) || Object.keys(accounts).length === 0) {
@@ -90,7 +90,7 @@ function resolveChannelAccountSurface(channel: Record<string, unknown>): Channel
   };
 }
 
-function isBaseFieldActiveForChannelSurface(
+export function isBaseFieldActiveForChannelSurface(
   surface: ChannelAccountSurface,
   rootKey: string,
 ): boolean {
@@ -105,18 +105,18 @@ function isBaseFieldActiveForChannelSurface(
   );
 }
 
-function normalizeSecretStringValue(value: unknown): string {
+export function normalizeSecretStringValue(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function hasConfiguredSecretInputValue(
+export function hasConfiguredSecretInputValue(
   value: unknown,
   defaults: SecretDefaults | undefined,
 ): boolean {
   return normalizeSecretStringValue(value).length > 0 || coerceSecretRef(value, defaults) !== null;
 }
 
-function collectSimpleChannelFieldAssignments(params: {
+export function collectSimpleChannelFieldAssignments(params: {
   channelKey: string;
   field: string;
   channel: Record<string, unknown>;
@@ -174,7 +174,7 @@ function isConditionalTopLevelFieldActive(params: {
   return params.surface.accounts.some(params.inheritedAccountActive);
 }
 
-function collectConditionalChannelFieldAssignments(params: {
+export function collectConditionalChannelFieldAssignments(params: {
   channelKey: string;
   field: string;
   channel: Record<string, unknown>;
@@ -228,7 +228,7 @@ function collectConditionalChannelFieldAssignments(params: {
   }
 }
 
-function collectNestedChannelFieldAssignments(params: {
+export function collectNestedChannelFieldAssignments(params: {
   channelKey: string;
   nestedKey: string;
   field: string;
@@ -282,7 +282,7 @@ function collectNestedChannelFieldAssignments(params: {
   }
 }
 
-function collectNestedChannelTtsAssignments(params: {
+export function collectNestedChannelTtsAssignments(params: {
   channelKey: string;
   nestedKey: string;
   channel: Record<string, unknown>;
