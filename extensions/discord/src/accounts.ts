@@ -99,3 +99,21 @@ export function resolveDiscordAccountAllowFrom(params: {
   const account = resolveDiscordAccount(params);
   return account.config.allowFrom ?? account.config.dm?.allowFrom;
 }
+
+export type ChannelDmPolicy = "open" | "pairing" | "allowlist" | "disabled";
+
+export function resolveDiscordAccountDmPolicy(params: {
+  cfg: CoreBlowConfig;
+  accountId?: string | null;
+}): ChannelDmPolicy | undefined {
+  const account = resolveDiscordAccount(params);
+  const policy = account.config.dm?.policy;
+  if (policy === "pairing" || policy === "allowlist" || policy === "open" || policy === "disabled") {
+    return policy;
+  }
+  const rootPolicy = params.cfg.channels?.discord?.dm?.policy;
+  if (rootPolicy === "pairing" || rootPolicy === "allowlist" || rootPolicy === "open" || rootPolicy === "disabled") {
+    return rootPolicy;
+  }
+  return "pairing";
+}
