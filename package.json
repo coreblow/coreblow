@@ -240,7 +240,7 @@
     "jszip": "^3.10.1",
     "linkedom": "^0.18.12",
     "markdown-it": "^14.1.1",
-    "matrix-js-sdk": "^41.3.0",
+    "matrix-js-sdk": "^41.9.0",
     "music-metadata": "^11.12.3",
     "node-edge-tts": "^1.2.10",
     "nostr-tools": "^2.23.3",
