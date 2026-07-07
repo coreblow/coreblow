@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8186,
+    "cb_source_files": 8187,
     "oc_source_files": 8443,
-    "source_parity_both": 6388,
+    "source_parity_both": 6389,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2055,
+    "source_missing_from_cb": 2054,
     "test_files_cb": 4906,
     "test_files_oc": 5246,
     "tests_both_covered": 3470,
@@ -1119,9 +1119,9 @@
       "priority": "P2",
       "implementationSurface": "src/channels, src/routing, extensions channel adapters",
       "counts": {
-        "sharedSourcePaths": 164,
+        "sharedSourcePaths": 165,
         "coreBlowOnlySourcePaths": 119,
-        "openClawOnlySourcePaths": 47,
+        "openClawOnlySourcePaths": 46,
         "sharedTestPaths": 73,
         "coreBlowOnlyTestPaths": 24,
         "openClawTestGaps": 30

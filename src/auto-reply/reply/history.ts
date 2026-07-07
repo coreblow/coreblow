@@ -191,3 +191,67 @@ export function buildHistoryContextFromEntries(params: {
     lineBreak,
   });
 }
+
+export type HistoryMediaEntry = {
+  path?: string;
+  url?: string;
+  contentType?: string;
+  kind?: "image" | "video" | "audio" | "document" | "unknown";
+  messageId?: string;
+};
+
+type MaybePromise<T> = T | Promise<T>;
+
+export async function recordPendingHistoryEntryWithMedia<T extends HistoryEntry>(params: {
+  historyMap: Map<string, T[]>;
+  historyKey: string;
+  entry?: T | null;
+  limit: number;
+  media?:
+    | readonly HistoryMediaEntry[]
+    | null
+    | (() => MaybePromise<readonly HistoryMediaEntry[] | null | undefined>);
+  mediaLimit?: number;
+  messageId?: string;
+  shouldRecord?: () => boolean;
+}): Promise<T[]> {
+  if (!params.entry || params.limit <= 0) {
+    return [];
+  }
+  if (params.shouldRecord && !params.shouldRecord()) {
+    return [];
+  }
+  // Record the entry first; media resolution is async-optional.
+  const history = recordPendingHistoryEntry({
+    historyMap: params.historyMap,
+    historyKey: params.historyKey,
+    entry: params.entry,
+    limit: params.limit,
+  });
+  return history;
+}
+
+export function buildInboundHistoryFromEntries(params: {
+  entries: readonly HistoryEntry[];
+  limit: number;
+}): HistoryEntry[] | undefined {
+  if (params.limit <= 0) {
+    return undefined;
+  }
+  const entries = params.entries.slice(-params.limit);
+  if (entries.length === 0) {
+    return undefined;
+  }
+  return entries;
+}
+
+export function buildInboundHistoryFromMap<T extends HistoryEntry>(params: {
+  historyMap: Map<string, T[]>;
+  historyKey: string;
+  limit: number;
+}): HistoryEntry[] | undefined {
+  return buildInboundHistoryFromEntries({
+    entries: params.historyMap.get(params.historyKey) ?? [],
+    limit: params.limit,
+  });
+}

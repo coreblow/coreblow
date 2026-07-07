@@ -39,3 +39,10 @@ export type { NormalizedLocation } from "../channels/location.js";
 export { formatLocationText, toLocationContext } from "../channels/location.js";
 export { logInboundDrop } from "../channels/logging.js";
 export { resolveInboundSessionEnvelopeContext } from "../channels/session-envelope.js";
+export {
+  buildChannelInboundEventContext,
+} from "../channels/inbound-event/context.js";
+export {
+  toInboundMediaFacts,
+  toHistoryMediaEntries,
+} from "../channels/inbound-event/media.js";
