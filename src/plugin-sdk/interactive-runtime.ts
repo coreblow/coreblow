@@ -8,6 +8,10 @@ export type {
   InteractiveReplySelectBlock,
   InteractiveReplyTextBlock,
 } from "../interactive/payload.js";
+export type {
+  MessagePresentation,
+  MessagePresentationButton,
+} from "../interactive/payload.js";
 export {
   hasInteractiveReplyBlocks,
   hasReplyChannelData,

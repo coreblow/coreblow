@@ -58,3 +58,7 @@ export function createReplyReferencePlanner(options: {
     hasReplied: () => hasReplied,
   };
 }
+
+export function isSingleUseReplyToMode(mode: ReplyToMode): boolean {
+  return mode === "first" || mode === "batched";
+}

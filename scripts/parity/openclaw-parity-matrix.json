@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8190,
+    "cb_source_files": 8193,
     "oc_source_files": 8443,
-    "source_parity_both": 6392,
+    "source_parity_both": 6395,
     "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2051,
+    "source_missing_from_cb": 2048,
     "test_files_cb": 4906,
     "test_files_oc": 5246,
     "tests_both_covered": 3470,
@@ -930,9 +930,9 @@
       "priority": "P1",
       "implementationSurface": "extensions/discord plus plugin-sdk channel/runtime surfaces",
       "counts": {
-        "sharedSourcePaths": 324,
+        "sharedSourcePaths": 327,
         "coreBlowOnlySourcePaths": 17,
-        "openClawOnlySourcePaths": 39,
+        "openClawOnlySourcePaths": 36,
         "sharedTestPaths": 94,
         "coreBlowOnlyTestPaths": 1,
         "openClawTestGaps": 49
@@ -947,10 +947,10 @@
           "extensions/discord/src/monitor/message-handler.draft-preview.ts",
           "extensions/discord/src/monitor/model-picker.view.ts",
           "extensions/discord/src/monitor/provider.interactions.ts",
-          "extensions/discord/src/outbound-components.ts",
-          "extensions/discord/src/outbound-payload.ts",
-          "extensions/discord/src/outbound-send-context.ts",
-          "extensions/discord/src/secret-config-contract.ts"
+          "extensions/discord/src/secret-config-contract.ts",
+          "extensions/discord/src/send.voice.ts",
+          "extensions/discord/src/test-support/component-runtime.ts",
+          "extensions/discord/src/test-support/provider.test-support.ts"
         ],
         "openClawTestGapPaths": [
           "extensions/discord/src/api-barrel.test.ts",

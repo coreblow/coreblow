@@ -30,3 +30,4 @@ export function resolveBatchedReplyThreadingPolicy(
 }
 
 export { createReplyReferencePlanner } from "../auto-reply/reply/reply-reference.js";
+export { isSingleUseReplyToMode } from "../auto-reply/reply/reply-reference.js";

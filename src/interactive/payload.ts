@@ -4,6 +4,7 @@ export type InteractiveReplyButton = {
   label: string;
   value: string;
   style?: InteractiveButtonStyle;
+  url?: string;
 };
 
 export type InteractiveReplyOption = {
@@ -38,14 +39,42 @@ export type InteractiveReply = {
 
 export type MessagePresentationButton = InteractiveReplyButton;
 
+export type MessagePresentationOption = InteractiveReplyOption;
+
+export type MessagePresentationTextBlock = {
+  type: "text";
+  text: string;
+};
+
+export type MessagePresentationContextBlock = {
+  type: "context";
+  text: string;
+};
+
+export type MessagePresentationDividerBlock = {
+  type: "divider";
+};
+
 export type MessagePresentationButtonsBlock = {
   type: "buttons";
   buttons: MessagePresentationButton[];
 };
 
-export type MessagePresentationBlock = MessagePresentationButtonsBlock;
+export type MessagePresentationSelectBlock = {
+  type: "select";
+  placeholder?: string;
+  options: MessagePresentationOption[];
+};
+
+export type MessagePresentationBlock =
+  | MessagePresentationTextBlock
+  | MessagePresentationContextBlock
+  | MessagePresentationDividerBlock
+  | MessagePresentationButtonsBlock
+  | MessagePresentationSelectBlock;
 
 export type MessagePresentation = {
+  title?: string;
   blocks: MessagePresentationBlock[];
 };
 
