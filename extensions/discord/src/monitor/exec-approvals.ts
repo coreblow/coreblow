@@ -1093,3 +1093,22 @@ export class ExecApprovalButton extends Button {
 export function createExecApprovalButton(ctx: ExecApprovalButtonContext): Button {
   return new ExecApprovalButton(ctx);
 }
+
+export function createDiscordExecApprovalButtonContext(params: {
+  cfg: CoreBlowConfig;
+  accountId: string;
+  config: DiscordExecApprovalConfig;
+  token?: string;
+  gatewayUrl?: string;
+  runtime?: RuntimeEnv;
+}): ExecApprovalButtonContext {
+  const handler = new DiscordExecApprovalHandler({
+    cfg: params.cfg,
+    accountId: params.accountId,
+    config: params.config,
+    token: params.token ?? "",
+    gatewayUrl: params.gatewayUrl,
+    runtime: params.runtime,
+  });
+  return { handler };
+}

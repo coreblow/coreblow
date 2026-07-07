@@ -16,6 +16,7 @@ export type {
   ChannelThreadingContext,
   ChannelThreadingToolContext,
 } from "../channels/plugins/types.js";
+export type { ChannelRuntimeSurface } from "../channels/plugins/channel-runtime-surface.types.js";
 
 export type ChannelGatewayContext<TAccount = unknown> = {
   cfg: Record<string, unknown>;

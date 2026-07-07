@@ -1362,3 +1362,17 @@ export function createDiscordComponentChannelSelect(ctx: AgentComponentContext):
 export function createDiscordComponentModal(ctx: AgentComponentContext): Modal {
   return new DiscordComponentModal(ctx);
 }
+
+export const createAgentComponentControls = [
+  createAgentComponentButton,
+  createAgentSelectMenu,
+] as const;
+
+export const createDiscordComponentControls = [
+  createDiscordComponentButton,
+  createDiscordComponentStringSelect,
+  createDiscordComponentUserSelect,
+  createDiscordComponentRoleSelect,
+  createDiscordComponentMentionableSelect,
+  createDiscordComponentChannelSelect,
+] as const;
