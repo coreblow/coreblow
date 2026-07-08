@@ -2,6 +2,7 @@ import type { ReplyPayload } from "../../auto-reply/types.js";
 /** Stub: planned binding rule type */
 type ConfiguredBindingRule = Record<string, unknown>;
 import type { CoreBlowConfig } from "../../config/config.js";
+import type { LegacyConfigRule } from "../../config/legacy.shared.js";
 import type { GroupToolPolicyConfig } from "../../config/types.tools.js";
 import type { ExecApprovalRequest, ExecApprovalResolved } from "../../infra/exec-approvals.js";
 import type { OutboundDeliveryResult, OutboundSendDeps } from "../../infra/outbound/deliver.js";
@@ -638,4 +639,61 @@ export type ChannelSecurityAdapter<ResolvedAccount = unknown> = {
     ctx: ChannelSecurityContext<ResolvedAccount>,
   ) => ChannelSecurityDmPolicy | null;
   collectWarnings?: (ctx: ChannelSecurityContext<ResolvedAccount>) => Promise<string[]> | string[];
+};
+
+export type ChannelDoctorConfigMutation = {
+  config: CoreBlowConfig;
+  changes: string[];
+  warnings?: string[];
+};
+
+export type ChannelDoctorLegacyConfigRule = LegacyConfigRule;
+
+export type ChannelDoctorSequenceResult = {
+  changeNotes: string[];
+  warningNotes: string[];
+};
+
+export type ChannelDoctorEmptyAllowlistAccountContext = {
+  account: Record<string, unknown>;
+  channelName: string;
+  dmPolicy?: string;
+  effectiveAllowFrom?: Array<string | number>;
+  parent?: Record<string, unknown>;
+  prefix: string;
+};
+
+export type ChannelDoctorAdapter = {
+  dmAllowFromMode?: "topOnly" | "topOrNested" | "nestedOnly";
+  groupModel?: "sender" | "route" | "hybrid";
+  groupAllowFromFallbackToAllowFrom?: boolean;
+  warnOnEmptyGroupSenderAllowlist?: boolean;
+  legacyConfigRules?: LegacyConfigRule[];
+  normalizeCompatibilityConfig?: (params: { cfg: CoreBlowConfig }) => ChannelDoctorConfigMutation;
+  collectPreviewWarnings?: (params: {
+    cfg: CoreBlowConfig;
+    doctorFixCommand: string;
+    env?: NodeJS.ProcessEnv;
+  }) => string[] | Promise<string[]>;
+  collectMutableAllowlistWarnings?: (params: {
+    cfg: CoreBlowConfig;
+  }) => string[] | Promise<string[]>;
+  repairConfig?: (params: {
+    cfg: CoreBlowConfig;
+    doctorFixCommand: string;
+  }) => ChannelDoctorConfigMutation | Promise<ChannelDoctorConfigMutation>;
+  runConfigSequence?: (params: {
+    cfg: CoreBlowConfig;
+    env: NodeJS.ProcessEnv;
+    shouldRepair: boolean;
+  }) => ChannelDoctorSequenceResult | Promise<ChannelDoctorSequenceResult>;
+  cleanStaleConfig?: (params: {
+    cfg: CoreBlowConfig;
+  }) => ChannelDoctorConfigMutation | Promise<ChannelDoctorConfigMutation>;
+  collectEmptyAllowlistExtraWarnings?: (
+    params: ChannelDoctorEmptyAllowlistAccountContext,
+  ) => string[];
+  shouldSkipDefaultEmptyGroupAllowlistWarning?: (
+    params: ChannelDoctorEmptyAllowlistAccountContext,
+  ) => boolean;
 };

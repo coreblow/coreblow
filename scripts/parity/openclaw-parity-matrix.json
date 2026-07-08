@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8226,
+    "cb_source_files": 8233,
     "oc_source_files": 8443,
-    "source_parity_both": 6427,
+    "source_parity_both": 6434,
     "source_cb_exclusive": 1799,
-    "source_missing_from_cb": 2016,
+    "source_missing_from_cb": 2009,
     "test_files_cb": 4906,
     "test_files_oc": 5246,
     "tests_both_covered": 3470,
@@ -287,9 +287,9 @@
       "priority": "P1",
       "implementationSurface": "src/plugin-sdk public API",
       "counts": {
-        "sharedSourcePaths": 326,
+        "sharedSourcePaths": 327,
         "coreBlowOnlySourcePaths": 118,
-        "openClawOnlySourcePaths": 113,
+        "openClawOnlySourcePaths": 112,
         "sharedTestPaths": 43,
         "coreBlowOnlyTestPaths": 25,
         "openClawTestGaps": 60
@@ -993,16 +993,15 @@
       "priority": "P2",
       "implementationSurface": "src/config CoreBlowConfig",
       "counts": {
-        "sharedSourcePaths": 162,
+        "sharedSourcePaths": 163,
         "coreBlowOnlySourcePaths": 33,
-        "openClawOnlySourcePaths": 49,
+        "openClawOnlySourcePaths": 48,
         "sharedTestPaths": 114,
         "coreBlowOnlyTestPaths": 94,
         "openClawTestGaps": 29
       },
       "samples": {
         "openClawOnlySourcePaths": [
-          "src/config/channel-compat-normalization.ts",
           "src/config/channel-configured-shared.ts",
           "src/config/control-ui-css.ts",
           "src/config/doc-baseline.runtime.ts",
@@ -1013,7 +1012,8 @@
           "src/config/mutate.ts",
           "src/config/nix-mode-write-guard.ts",
           "src/config/plugin-auto-enable.shared.ts",
-          "src/config/plugin-auto-enable.test-helpers.ts"
+          "src/config/plugin-auto-enable.test-helpers.ts",
+          "src/config/plugin-install-config-migration.ts"
         ],
         "openClawTestGapPaths": [
           "src/config/config.legacy-config-provider-shapes.test.ts",
@@ -1056,9 +1056,9 @@
       "priority": "P2",
       "implementationSurface": "src/channels, src/routing, extensions channel adapters",
       "counts": {
-        "sharedSourcePaths": 165,
+        "sharedSourcePaths": 166,
         "coreBlowOnlySourcePaths": 119,
-        "openClawOnlySourcePaths": 46,
+        "openClawOnlySourcePaths": 45,
         "sharedTestPaths": 73,
         "coreBlowOnlyTestPaths": 24,
         "openClawTestGaps": 30
@@ -1074,9 +1074,9 @@
           "src/channels/plugins/contracts/test-helpers/threading-directory-contract-suites.ts",
           "src/channels/plugins/contracts/test-helpers.ts",
           "src/channels/plugins/conversation-bindings.ts",
-          "src/channels/plugins/dm-access.ts",
           "src/channels/plugins/doctor-contract-api.ts",
-          "src/channels/plugins/exposure.ts"
+          "src/channels/plugins/exposure.ts",
+          "src/channels/plugins/gateway-auth-bypass.ts"
         ],
         "openClawTestGapPaths": [
           "src/channels/bundled-channel-catalog-read.fail-soft.test.ts",
@@ -1423,21 +1423,17 @@
       "priority": "P2",
       "implementationSurface": "extensions/discord plus plugin-sdk channel/runtime surfaces",
       "counts": {
-        "sharedSourcePaths": 356,
+        "sharedSourcePaths": 360,
         "coreBlowOnlySourcePaths": 18,
-        "openClawOnlySourcePaths": 7,
+        "openClawOnlySourcePaths": 3,
         "sharedTestPaths": 94,
         "coreBlowOnlyTestPaths": 1,
         "openClawTestGaps": 49
       },
       "samples": {
         "openClawOnlySourcePaths": [
-          "extensions/discord/src/doctor-contract.ts",
-          "extensions/discord/src/doctor-shared.ts",
-          "extensions/discord/src/doctor.ts",
           "extensions/discord/src/monitor/listeners.reactions.ts",
           "extensions/discord/src/voice/realtime.ts",
-          "extensions/discord/doctor-contract-api.ts",
           "extensions/discord/subagent-hooks-api.ts"
         ],
         "openClawTestGapPaths": [
