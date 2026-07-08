@@ -1362,6 +1362,10 @@
       "types": "./dist/plugin-sdk/provider-auth-login.runtime.d.ts",
       "default": "./dist/plugin-sdk/provider-auth-login.runtime.js"
     },
+    "./plugin-sdk/proxy-capture": {
+      "types": "./dist/plugin-sdk/proxy-capture.d.ts",
+      "default": "./dist/plugin-sdk/proxy-capture.js"
+    },
     "./plugin-sdk/provider-auth-result": {
       "types": "./dist/plugin-sdk/provider-auth-result.d.ts",
       "default": "./dist/plugin-sdk/provider-auth-result.js"
@@ -1502,6 +1506,10 @@
       "types": "./dist/plugin-sdk/realtime-transcription.d.ts",
       "default": "./dist/plugin-sdk/realtime-transcription.js"
     },
+    "./plugin-sdk/realtime-voice": {
+      "types": "./dist/plugin-sdk/realtime-voice.d.ts",
+      "default": "./dist/plugin-sdk/realtime-voice.js"
+    },
     "./plugin-sdk/reply-chunking": {
       "types": "./dist/plugin-sdk/reply-chunking.d.ts",
       "default": "./dist/plugin-sdk/reply-chunking.js"
@@ -1561,6 +1569,10 @@
     "./plugin-sdk/runtime-logger": {
       "types": "./dist/plugin-sdk/runtime-logger.d.ts",
       "default": "./dist/plugin-sdk/runtime-logger.js"
+    },
+    "./plugin-sdk/runtime-doctor": {
+      "types": "./dist/plugin-sdk/runtime-doctor.d.ts",
+      "default": "./dist/plugin-sdk/runtime-doctor.js"
     },
     "./plugin-sdk/runtime-store": {
       "types": "./dist/plugin-sdk/runtime-store.d.ts",

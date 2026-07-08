@@ -84,6 +84,14 @@ function normalizeCoreBlowPath(path) {
   if (path.startsWith("packages/memory-host-sdk/src/host/")) {
     return path.replaceAll(legacyOpenClawRuntimeToken, coreBlowRuntimeToken);
   }
+  // CoreBlow inlines Discord reaction listener logic in listeners.ts instead of
+  // a separate listeners.reactions.ts file.
+  if (
+    path ===
+    "extensions/discord/src/monitor/listeners.reactions.ts"
+  ) {
+    return "extensions/discord/src/monitor/listeners.ts";
+  }
   return path;
 }
 
@@ -144,6 +152,20 @@ const testsOpenClawOnly = collectByDomain(audit.tests?.oc_has_test_cb_does_not);
 
 reconcileNormalizedEquivalentPaths(sourceBoth, sourceCoreOnly, sourceOpenClawOnly);
 reconcileNormalizedEquivalentPaths(testsBoth, testsCoreOnly, testsOpenClawOnly);
+
+// Remove openClawOnly paths that are already in shared after normalization.
+function deduplicateNormalizedPaths(sharedMap, openClawOnlyMap) {
+  for (const domain of openClawOnlyMap.keys()) {
+    const shared = new Set(sharedMap.get(domain) || []);
+    const openClawOnly = openClawOnlyMap.get(domain) || [];
+    const filtered = openClawOnly.filter((path) => !shared.has(path));
+    if (filtered.length !== openClawOnly.length) {
+      openClawOnlyMap.set(domain, filtered);
+    }
+  }
+}
+deduplicateNormalizedPaths(sourceBoth, sourceOpenClawOnly);
+deduplicateNormalizedPaths(testsBoth, testsOpenClawOnly);
 
 const domains = [
   ...new Set([

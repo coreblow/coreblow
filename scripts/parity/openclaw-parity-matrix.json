@@ -1425,15 +1425,13 @@
       "counts": {
         "sharedSourcePaths": 362,
         "coreBlowOnlySourcePaths": 18,
-        "openClawOnlySourcePaths": 1,
+        "openClawOnlySourcePaths": 0,
         "sharedTestPaths": 94,
         "coreBlowOnlyTestPaths": 1,
         "openClawTestGaps": 49
       },
       "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/discord/src/monitor/listeners.reactions.ts"
-        ],
+        "openClawOnlySourcePaths": [],
         "openClawTestGapPaths": [
           "extensions/discord/src/api-barrel.test.ts",
           "extensions/discord/src/approval-handler.runtime.test.ts",
