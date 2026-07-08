@@ -3,7 +3,7 @@ import path from "node:path";
 import { saveJsonFile } from "../../infra/json-file.js";
 import { resolveUserPath } from "../../utils.js";
 import { resolveCoreBlowAgentDir } from "../agent-paths.js";
-import { AUTH_PROFILE_FILENAME, AUTH_STORE_VERSION, LEGACY_AUTH_FILENAME } from "./constants.js";
+import { AUTH_PROFILE_FILENAME, AUTH_STATE_FILENAME, AUTH_STORE_VERSION, LEGACY_AUTH_FILENAME } from "./constants.js";
 import type { AuthProfileStore } from "./types.js";
 
 export function resolveAuthStorePath(agentDir?: string): string {
@@ -30,4 +30,9 @@ export function ensureAuthStoreFile(pathname: string) {
     profiles: {},
   };
   saveJsonFile(pathname, payload);
+}
+
+export function resolveAuthStatePath(agentDir?: string): string {
+  const resolved = resolveUserPath(agentDir ?? resolveCoreBlowAgentDir());
+  return path.join(resolved, AUTH_STATE_FILENAME);
 }
