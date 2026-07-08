@@ -436,3 +436,61 @@ export function shouldPreferNativeJiti(modulePath: string): boolean {
       return false;
   }
 }
+
+import { PluginLruCache } from "./plugin-cache-primitives.js";
+
+const pluginLoaderModuleConfigCache = new PluginLruCache<{
+  tryNative: boolean;
+  aliasMap: Record<string, string>;
+  cacheKey: string;
+}>(64);
+
+export function createPluginLoaderModuleCacheKey(params: {
+  tryNative: boolean;
+  aliasMap: Record<string, string>;
+}): string {
+  return JSON.stringify({
+    tryNative: params.tryNative,
+    aliasMap: Object.entries(params.aliasMap).toSorted(([left], [right]) =>
+      left.localeCompare(right),
+    ),
+  });
+}
+
+export function resolvePluginLoaderTryNative(
+  modulePath: string,
+  options?: {
+    preferBuiltDist?: boolean;
+  },
+): boolean {
+  // In CoreBlow, prefer native for dist artifacts when available.
+  if (options?.preferBuiltDist === true && modulePath.includes(`${path.sep}dist${path.sep}`)) {
+    return shouldPreferNativeJiti(modulePath);
+  }
+  return shouldPreferNativeJiti(modulePath);
+}
+
+export function resolvePluginLoaderModuleConfig(params: {
+  modulePath: string;
+  argv1?: string;
+  moduleUrl: string;
+  preferBuiltDist?: boolean;
+  pluginSdkResolution?: PluginSdkResolutionPreference;
+}): {
+  tryNative: boolean;
+  aliasMap: Record<string, string>;
+  cacheKey: string;
+} {
+  const tryNative = resolvePluginLoaderTryNative(
+    params.modulePath,
+    params.preferBuiltDist ? { preferBuiltDist: true } : {},
+  );
+  const aliasMap = buildPluginLoaderAliasMap(
+    params.modulePath,
+    params.argv1,
+    params.moduleUrl,
+    params.pluginSdkResolution,
+  );
+  const cacheKey = createPluginLoaderModuleCacheKey({ tryNative, aliasMap });
+  return { tryNative, aliasMap, cacheKey };
+}
