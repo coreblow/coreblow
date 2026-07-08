@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8233,
+    "cb_source_files": 8234,
     "oc_source_files": 8443,
-    "source_parity_both": 6434,
+    "source_parity_both": 6435,
     "source_cb_exclusive": 1799,
-    "source_missing_from_cb": 2009,
+    "source_missing_from_cb": 2008,
     "test_files_cb": 4906,
     "test_files_oc": 5246,
     "tests_both_covered": 3470,
@@ -1423,9 +1423,9 @@
       "priority": "P2",
       "implementationSurface": "extensions/discord plus plugin-sdk channel/runtime surfaces",
       "counts": {
-        "sharedSourcePaths": 360,
+        "sharedSourcePaths": 361,
         "coreBlowOnlySourcePaths": 18,
-        "openClawOnlySourcePaths": 3,
+        "openClawOnlySourcePaths": 2,
         "sharedTestPaths": 94,
         "coreBlowOnlyTestPaths": 1,
         "openClawTestGaps": 49
@@ -1433,8 +1433,7 @@
       "samples": {
         "openClawOnlySourcePaths": [
           "extensions/discord/src/monitor/listeners.reactions.ts",
-          "extensions/discord/src/voice/realtime.ts",
-          "extensions/discord/subagent-hooks-api.ts"
+          "extensions/discord/src/voice/realtime.ts"
         ],
         "openClawTestGapPaths": [
           "extensions/discord/src/api-barrel.test.ts",
