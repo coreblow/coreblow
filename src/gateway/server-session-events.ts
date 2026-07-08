@@ -111,9 +111,10 @@ async function handleTranscriptUpdateBroadcast(
     sessionRow: loadGatewaySessionRow(sessionKey),
     includeSession: true,
   });
-  const rawMessage = attachCoreBlowTranscriptMeta(update.message, {
-    ...(typeof update.messageId === "string" ? { id: update.messageId } : {}),
-  });
+  const rawMessage = attachCoreBlowTranscriptMeta(
+    update.message,
+    typeof update.messageId === "string" ? { id: update.messageId } : {},
+  );
   const message = projectChatDisplayMessage(rawMessage);
   if (message) {
     params.broadcastToConnIds(
