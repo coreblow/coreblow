@@ -1982,7 +1982,9 @@ export type PluginHookName =
   | "subagent_ended"
   | "gateway_start"
   | "gateway_stop"
-  | "before_dispatch";
+  | "before_dispatch"
+  | "reply_dispatch"
+  | "before_install";
 
 export const PLUGIN_HOOK_NAMES = [
   "before_model_resolve",
@@ -2014,6 +2016,8 @@ export const PLUGIN_HOOK_NAMES = [
   "gateway_start",
   "gateway_stop",
   "before_dispatch",
+  "reply_dispatch",
+  "before_install",
 ] as const satisfies readonly PluginHookName[];
 
 type MissingPluginHookNames = Exclude<PluginHookName, (typeof PLUGIN_HOOK_NAMES)[number]>;
@@ -2584,6 +2588,294 @@ export type PluginHookGatewayStopEvent = {
   timestamp?: number;
 };
 
+// before_install hook types
+export type PluginInstallTargetType = "skill" | "plugin";
+export type PluginInstallRequestKind =
+  | "skill-install"
+  | "plugin-dir"
+  | "plugin-archive"
+  | "plugin-file"
+  | "plugin-npm"
+  | "plugin-git";
+export type PluginInstallSourcePathKind = "file" | "directory";
+
+export type PluginInstallFinding = {
+  ruleId: string;
+  severity: "info" | "warn" | "critical";
+  file: string;
+  line: number;
+  message: string;
+};
+
+export type PluginHookBeforeInstallRequest = {
+  kind: PluginInstallRequestKind;
+  mode: "install" | "update";
+  requestedSpecifier?: string;
+};
+
+export type PluginHookBeforeInstallBuiltinScan = {
+  status: "ok" | "error";
+  scannedFiles: number;
+  critical: number;
+  warn: number;
+  info: number;
+  findings: PluginInstallFinding[];
+  error?: string;
+};
+
+export type PluginHookBeforeInstallSkillInstallSpec = {
+  id?: string;
+  kind: "brew" | "node" | "go" | "uv" | "download";
+  label?: string;
+  bins?: string[];
+  os?: string[];
+  formula?: string;
+  package?: string;
+  module?: string;
+  url?: string;
+  archive?: string;
+  extract?: boolean;
+  stripComponents?: number;
+  targetDir?: string;
+};
+
+export type PluginHookBeforeInstallSkill = {
+  installId: string;
+  installSpec?: PluginHookBeforeInstallSkillInstallSpec;
+};
+
+export type PluginHookBeforeInstallPlugin = {
+  pluginId: string;
+  contentType: "bundle" | "package" | "file";
+  packageName?: string;
+  manifestId?: string;
+  version?: string;
+  extensions?: string[];
+};
+
+export type PluginHookBeforeInstallContext = {
+  targetType: PluginInstallTargetType;
+  requestKind: PluginInstallRequestKind;
+  origin?: string;
+};
+
+export type PluginHookBeforeInstallEvent = {
+  targetType: PluginInstallTargetType;
+  targetName: string;
+  sourcePath: string;
+  sourcePathKind: PluginInstallSourcePathKind;
+  origin?: string;
+  request: PluginHookBeforeInstallRequest;
+  builtinScan: PluginHookBeforeInstallBuiltinScan;
+  skill?: PluginHookBeforeInstallSkill;
+  plugin?: PluginHookBeforeInstallPlugin;
+};
+
+export type PluginHookBeforeInstallResult = {
+  findings?: PluginInstallFinding[];
+  block?: boolean;
+  blockReason?: string;
+};
+
+// session_end reason
+export type PluginHookSessionEndReason =
+  | "new"
+  | "reset"
+  | "idle"
+  | "daily"
+  | "compaction"
+  | "deleted"
+  | "shutdown"
+  | "restart"
+  | "unknown";
+
+// before_agent_run event/result
+export type InputGateDecision = "pass" | "block";
+
+export type PluginHookBeforeAgentRunEvent = {
+  prompt: string;
+  messages: unknown[];
+  systemPrompt?: string;
+  accountId?: string;
+  channelId?: string;
+  senderId?: string;
+  senderIsOwner?: boolean;
+};
+
+export type PluginHookBeforeAgentRunResult = InputGateDecision | void;
+
+// before_agent_finalize event/result
+export type PluginHookBeforeAgentFinalizeEvent = {
+  runId?: string;
+  sessionId: string;
+  sessionKey?: string;
+  turnId?: string;
+  provider?: string;
+  model?: string;
+  cwd?: string;
+  transcriptPath?: string;
+  stopHookActive: boolean;
+  lastAssistantMessage?: string;
+  messages?: unknown[];
+};
+
+export type PluginHookBeforeAgentFinalizeResult = {
+  action?: "continue" | "revise" | "finalize";
+  reason?: string;
+  retry?: {
+    instruction: string;
+    idempotencyKey?: string;
+    maxAttempts?: number;
+  };
+};
+
+// cron hook types
+export type PluginHookGatewayCronRunStatus = "ok" | "error" | "skipped";
+
+export type PluginHookGatewayCronDeliveryStatus =
+  | "not-requested"
+  | "delivered"
+  | "not-delivered"
+  | "unknown";
+
+export type PluginHookGatewayCronJobState = {
+  nextRunAtMs?: number;
+  runningAtMs?: number;
+  lastRunAtMs?: number;
+  lastRunStatus?: PluginHookGatewayCronRunStatus;
+  lastError?: string;
+  lastDurationMs?: number;
+  lastDelivered?: boolean;
+  lastDeliveryStatus?: PluginHookGatewayCronDeliveryStatus;
+  lastDeliveryError?: string;
+  lastFailureNotificationDelivered?: boolean;
+  lastFailureNotificationDeliveryStatus?: PluginHookGatewayCronDeliveryStatus;
+  lastFailureNotificationDeliveryError?: string;
+};
+
+export type PluginHookGatewayCronJob = {
+  id: string;
+  agentId?: string;
+  name?: string;
+  description?: string;
+  enabled?: boolean;
+  schedule?:
+    | {
+        kind: "cron";
+        expr?: string;
+        tz?: string;
+        staggerMs?: number;
+      }
+    | {
+        kind: "at";
+        at?: string;
+      }
+    | {
+        kind: "every";
+        everyMs?: number;
+        anchorMs?: number;
+      };
+  sessionTarget?: string;
+  wakeMode?: string;
+  payload?: {
+    kind?: string;
+    text?: string;
+  };
+  state?: PluginHookGatewayCronJobState;
+  createdAtMs?: number;
+  updatedAtMs?: number;
+};
+
+export type PluginHookCronChangedEvent = {
+  action: "added" | "updated" | "removed" | "started" | "finished";
+  jobId: string;
+  job?: PluginHookGatewayCronJob;
+  sessionTarget?: string;
+  agentId?: string;
+  runAtMs?: number;
+  durationMs?: number;
+  status?: PluginHookGatewayCronRunStatus;
+  error?: string;
+  summary?: string;
+  delivered?: boolean;
+  deliveryStatus?: PluginHookGatewayCronDeliveryStatus;
+  deliveryError?: string;
+  sessionId?: string;
+  sessionKey?: string;
+  runId?: string;
+  nextRunAtMs?: number;
+  model?: string;
+  provider?: string;
+};
+
+export type PluginHookGatewayCronCreateInput = {
+  name: string;
+  description: string;
+  enabled: boolean;
+  schedule: {
+    kind: string;
+    expr: string;
+    tz?: string;
+  };
+  sessionTarget: string;
+  wakeMode: string;
+  payload: {
+    kind: string;
+    text?: string;
+  };
+};
+
+export type PluginHookGatewayCronUpdateInput = Partial<PluginHookGatewayCronCreateInput>;
+
+export type PluginHookGatewayCronRemoveResult = {
+  removed?: boolean;
+};
+
+export type PluginHookGatewayCronService = {
+  list: (opts?: { includeDisabled?: boolean }) => Promise<PluginHookGatewayCronJob[]>;
+  add: (input: PluginHookGatewayCronCreateInput) => Promise<unknown>;
+  update: (id: string, patch: PluginHookGatewayCronUpdateInput) => Promise<unknown>;
+  remove: (id: string) => Promise<PluginHookGatewayCronRemoveResult>;
+};
+
+// reply_dispatch hook types
+export type PluginHookReplyDispatchEvent = {
+  ctx: unknown; // FinalizedMsgContext
+  runId?: string;
+  sessionKey?: string;
+  images?: Array<{ data: string; mimeType: string }>;
+  inboundAudio: boolean;
+  sessionTtsAuto?: string; // TtsAutoMode
+  ttsChannel?: string;
+  suppressUserDelivery?: boolean;
+  suppressReplyLifecycle?: boolean;
+  sourceReplyDeliveryMode?: string;
+  shouldRouteToOriginating: boolean;
+  originatingChannel?: string;
+  originatingTo?: string;
+  shouldSendToolSummaries: boolean;
+  sendPolicy: "allow" | "deny";
+  isTailDispatch?: boolean;
+};
+
+export type PluginHookReplyDispatchContext = {
+  cfg: unknown; // CoreBlowConfig
+  dispatcher: unknown; // ReplyDispatcher
+  abortSignal?: AbortSignal;
+  onReplyStart?: () => Promise<void> | void;
+  recordProcessed: (
+    outcome: "completed" | "skipped" | "error",
+    opts?: { reason?: string; error?: string },
+  ) => void;
+  markIdle: (reason: string) => void;
+};
+
+export type PluginHookReplyDispatchResult = {
+  handled: boolean;
+  queuedFinal: boolean;
+  counts: Record<string, number>; // ReplyDispatchKind
+};
+
 // Hook handler types mapped by hook name
 export type PluginHookHandlerMap = {
   before_model_resolve: (
@@ -2606,13 +2898,13 @@ export type PluginHookHandlerMap = {
     ctx: PluginHookAgentContext,
   ) => Promise<PluginHookBeforeAgentReplyResult | void> | PluginHookBeforeAgentReplyResult | void;
   before_agent_finalize: (
-    event: PluginHookLlmOutputEvent,
+    event: PluginHookBeforeAgentFinalizeEvent,
     ctx: PluginHookAgentContext,
-  ) => Promise<void> | void;
+  ) => Promise<PluginHookBeforeAgentFinalizeResult | void> | PluginHookBeforeAgentFinalizeResult | void;
   before_agent_run: (
-    event: PluginHookBeforeModelResolveEvent,
+    event: PluginHookBeforeAgentRunEvent,
     ctx: PluginHookAgentContext,
-  ) => Promise<void> | void;
+  ) => Promise<PluginHookBeforeAgentRunResult> | PluginHookBeforeAgentRunResult;
   llm_input: (event: PluginHookLlmInputEvent, ctx: PluginHookAgentContext) => Promise<void> | void;
   llm_output: (
     event: PluginHookLlmOutputEvent,
@@ -2702,6 +2994,14 @@ export type PluginHookHandlerMap = {
     event: PluginHookGatewayStopEvent,
     ctx: PluginHookGatewayContext,
   ) => Promise<void> | void;
+  reply_dispatch: (
+    event: PluginHookReplyDispatchEvent,
+    ctx: PluginHookReplyDispatchContext,
+  ) => Promise<PluginHookReplyDispatchResult | void> | PluginHookReplyDispatchResult | void;
+  before_install: (
+    event: PluginHookBeforeInstallEvent,
+    ctx: PluginHookBeforeInstallContext,
+  ) => Promise<PluginHookBeforeInstallResult | void> | PluginHookBeforeInstallResult | void;
 };
 
 export type PluginHookRegistration<K extends PluginHookName = PluginHookName> = {
