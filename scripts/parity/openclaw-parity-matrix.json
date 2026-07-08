@@ -7,17 +7,17 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8353,
+    "cb_source_files": 8458,
     "oc_source_files": 8443,
-    "source_parity_both": 6554,
+    "source_parity_both": 6659,
     "source_cb_exclusive": 1799,
-    "source_missing_from_cb": 1889,
+    "source_missing_from_cb": 1784,
     "test_files_cb": 4931,
     "test_files_oc": 5246,
     "tests_both_covered": 3495,
     "tests_gap_oc_has_cb_missing": 1506,
     "tests_cb_exclusive": 1378,
-    "export_files_with_gaps": 71,
+    "export_files_with_gaps": 61,
     "test_scenario_files_with_gaps": 40,
     "test_scenario_files_intentionally_different": 0
   },
@@ -35,27 +35,27 @@
       "priority": "P0",
       "implementationSurface": "src/agents, src/auth, src/agents/turn-engine",
       "counts": {
-        "sharedSourcePaths": 486,
+        "sharedSourcePaths": 589,
         "coreBlowOnlySourcePaths": 205,
-        "openClawOnlySourcePaths": 388,
+        "openClawOnlySourcePaths": 285,
         "sharedTestPaths": 406,
         "coreBlowOnlyTestPaths": 199,
         "openClawTestGaps": 316
       },
       "samples": {
         "openClawOnlySourcePaths": [
-          "src/agents/acp-runtime-overlay.ts",
           "src/agents/agent-delete-safety.ts",
           "src/agents/agent-runtime-config.ts",
           "src/agents/agent-runtime-metadata.ts",
           "src/agents/agent-scope-config.ts",
           "src/agents/anthropic-transport-stream.ts",
-          "src/agents/auth-profiles/clone.ts",
           "src/agents/auth-profiles/external-auth.ts",
           "src/agents/auth-profiles/external-cli-discovery.ts",
           "src/agents/auth-profiles/external-cli-scope.ts",
           "src/agents/auth-profiles/legacy-oauth-sidecar.ts",
-          "src/agents/auth-profiles/oauth-common-mocks.test-support.ts"
+          "src/agents/auth-profiles/oauth-common-mocks.test-support.ts",
+          "src/agents/auth-profiles/oauth-external-auth-passthrough.test-support.ts",
+          "src/agents/auth-profiles/oauth-file-lock-passthrough.test-support.ts"
         ],
         "openClawTestGapPaths": [
           "src/agents/agent-command.live-model-switch.test.ts",
@@ -1635,60 +1635,6 @@
       ]
     },
     {
-      "domain": "src/shared",
-      "status": "partial",
-      "priority": "P2",
-      "implementationSurface": "src/shared",
-      "counts": {
-        "sharedSourcePaths": 48,
-        "coreBlowOnlySourcePaths": 5,
-        "openClawOnlySourcePaths": 23,
-        "sharedTestPaths": 32,
-        "coreBlowOnlyTestPaths": 3,
-        "openClawTestGaps": 10
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/shared/agent-run-status.ts",
-          "src/shared/balanced-json.ts",
-          "src/shared/custom-command-config.ts",
-          "src/shared/device-pairing-access.ts",
-          "src/shared/gateway-method-policy.ts",
-          "src/shared/google-models.ts",
-          "src/shared/google-turn-ordering.ts",
-          "src/shared/human-list.ts",
-          "src/shared/json-schema.types.ts",
-          "src/shared/lazy-promise.ts",
-          "src/shared/message-content-blocks.ts",
-          "src/shared/net/redact-sensitive-url.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/shared/agent-run-status.test.ts",
-          "src/shared/device-bootstrap-profile.test.ts",
-          "src/shared/device-pairing-access.test.ts",
-          "src/shared/lazy-promise.test.ts",
-          "src/shared/net/redact-sensitive-url.test.ts",
-          "src/shared/record-coerce.test.ts",
-          "src/shared/runtime-import.test.ts",
-          "src/shared/silent-reply-policy.test.ts",
-          "src/shared/text/tool-call-shaped-text.test.ts",
-          "src/shared/thread-binding-lifecycle.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/shared/index.ts",
-          "src/shared/model-param.ts",
-          "src/shared/operator-scope.ts",
-          "src/shared/process-scoped-map.ts",
-          "src/shared/usage-tracker.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/shared",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/media",
       "status": "partial",
       "priority": "P2",
@@ -1743,6 +1689,60 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/media",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/shared",
+      "status": "partial",
+      "priority": "P2",
+      "implementationSurface": "src/shared",
+      "counts": {
+        "sharedSourcePaths": 50,
+        "coreBlowOnlySourcePaths": 5,
+        "openClawOnlySourcePaths": 21,
+        "sharedTestPaths": 32,
+        "coreBlowOnlyTestPaths": 3,
+        "openClawTestGaps": 10
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [
+          "src/shared/agent-run-status.ts",
+          "src/shared/balanced-json.ts",
+          "src/shared/custom-command-config.ts",
+          "src/shared/device-pairing-access.ts",
+          "src/shared/gateway-method-policy.ts",
+          "src/shared/google-models.ts",
+          "src/shared/google-turn-ordering.ts",
+          "src/shared/human-list.ts",
+          "src/shared/json-schema.types.ts",
+          "src/shared/lazy-promise.ts",
+          "src/shared/message-content-blocks.ts",
+          "src/shared/net/redact-sensitive-url.ts"
+        ],
+        "openClawTestGapPaths": [
+          "src/shared/agent-run-status.test.ts",
+          "src/shared/device-bootstrap-profile.test.ts",
+          "src/shared/device-pairing-access.test.ts",
+          "src/shared/lazy-promise.test.ts",
+          "src/shared/net/redact-sensitive-url.test.ts",
+          "src/shared/record-coerce.test.ts",
+          "src/shared/runtime-import.test.ts",
+          "src/shared/silent-reply-policy.test.ts",
+          "src/shared/text/tool-call-shaped-text.test.ts",
+          "src/shared/thread-binding-lifecycle.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "src/shared/index.ts",
+          "src/shared/model-param.ts",
+          "src/shared/operator-scope.ts",
+          "src/shared/process-scoped-map.ts",
+          "src/shared/usage-tracker.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/shared",
         "pnpm check"
       ]
     },
