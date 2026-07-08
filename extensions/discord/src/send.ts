@@ -83,5 +83,7 @@ export type {
   DiscordThreadCreate,
   DiscordThreadList,
   DiscordTimeoutTarget,
+  DiscordReactionRuntimeContext,
+  DiscordRuntimeAccountContext,
 } from "./send.types.js";
 export { DiscordSendError } from "./send.types.js";
