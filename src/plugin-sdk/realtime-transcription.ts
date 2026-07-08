@@ -7,6 +7,7 @@ export type {
   RealtimeTranscriptionSessionCallbacks,
   RealtimeTranscriptionSessionCreateRequest,
 } from "../realtime-transcription/provider-types.js";
+export type { RealtimeTranscriptionProviderPlugin } from "../plugins/types.js";
 
 export {
   getRealtimeTranscriptionProvider,

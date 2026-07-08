@@ -30,9 +30,14 @@ export type ChannelGatewayContext<TAccount = unknown> = {
   setStatus: (status: Record<string, unknown>) => void;
 };
 export type {
+  ChannelDirectoryAdapter,
   ChannelDoctorAdapter,
   ChannelDoctorConfigMutation,
   ChannelDoctorEmptyAllowlistAccountContext,
   ChannelDoctorLegacyConfigRule,
   ChannelDoctorSequenceResult,
 } from "../channels/plugins/types.adapters.js";
+export type {
+  ChannelDirectoryEntry,
+  ChannelDirectoryEntryKind,
+} from "../channels/plugins/types.core.js";
