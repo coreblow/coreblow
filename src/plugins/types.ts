@@ -1957,6 +1957,9 @@ export type PluginHookName =
   | "before_model_resolve"
   | "before_prompt_build"
   | "before_agent_start"
+  | "before_agent_reply"
+  | "before_agent_finalize"
+  | "before_agent_run"
   | "llm_input"
   | "llm_output"
   | "agent_end"
@@ -1985,6 +1988,9 @@ export const PLUGIN_HOOK_NAMES = [
   "before_model_resolve",
   "before_prompt_build",
   "before_agent_start",
+  "before_agent_reply",
+  "before_agent_finalize",
+  "before_agent_run",
   "llm_input",
   "llm_output",
   "agent_end",
@@ -2031,6 +2037,23 @@ const promptInjectionHookNameSet = new Set<PluginHookName>(PROMPT_INJECTION_HOOK
 
 export const isPromptInjectionHookName = (hookName: PluginHookName): boolean =>
   promptInjectionHookNameSet.has(hookName);
+
+export const CONVERSATION_HOOK_NAMES = [
+  "before_model_resolve",
+  "before_agent_reply",
+  "llm_input",
+  "llm_output",
+  "before_agent_finalize",
+  "agent_end",
+  "before_agent_run",
+] as const satisfies readonly PluginHookName[];
+
+export type ConversationHookName = (typeof CONVERSATION_HOOK_NAMES)[number];
+
+const conversationHookNameSet = new Set<PluginHookName>(CONVERSATION_HOOK_NAMES);
+
+export const isConversationHookName = (hookName: PluginHookName): boolean =>
+  conversationHookNameSet.has(hookName);
 
 // Agent context shared across agent hooks
 export type PluginHookAgentContext = {
@@ -2126,6 +2149,48 @@ export const stripPromptMutationFieldsFromLegacyHookResult = (
   return Object.keys(remaining).length > 0
     ? (remaining as PluginHookBeforeAgentStartOverrideResult)
     : undefined;
+};
+
+// before_agent_reply hook
+export type PluginHookBeforeAgentReplyEvent = {
+  cleanedBody: string;
+};
+
+export type PluginHookBeforeAgentReplyResult = {
+  handled: boolean;
+};
+
+// model_call hooks
+export type PluginHookContextWindowSource =
+  | "model"
+  | "modelsConfig"
+  | "agentContextTokens"
+  | "default";
+
+export type PluginHookModelCallBaseEvent = {
+  runId: string;
+  callId: string;
+  sessionKey?: string;
+  sessionId?: string;
+  provider: string;
+  model: string;
+  /** Token budget for context window when known before model call. */
+  contextWindowTokens?: number;
+  /** How the context window source was determined. */
+  contextWindowSource?: PluginHookContextWindowSource;
+  /** Native/configured reference window when a lower cap wins. */
+  contextWindowReferenceTokens?: number;
+};
+
+export type PluginHookModelCallStartedEvent = PluginHookModelCallBaseEvent;
+
+export type PluginHookModelCallEndedEvent = PluginHookModelCallBaseEvent & {
+  finishReason?: string;
+  usage?: {
+    promptTokens?: number;
+    completionTokens?: number;
+    totalTokens?: number;
+  };
 };
 
 // llm_input hook
@@ -2536,6 +2601,18 @@ export type PluginHookHandlerMap = {
     event: PluginHookBeforeAgentStartEvent,
     ctx: PluginHookAgentContext,
   ) => Promise<PluginHookBeforeAgentStartResult | void> | PluginHookBeforeAgentStartResult | void;
+  before_agent_reply: (
+    event: PluginHookBeforeAgentReplyEvent,
+    ctx: PluginHookAgentContext,
+  ) => Promise<PluginHookBeforeAgentReplyResult | void> | PluginHookBeforeAgentReplyResult | void;
+  before_agent_finalize: (
+    event: PluginHookLlmOutputEvent,
+    ctx: PluginHookAgentContext,
+  ) => Promise<void> | void;
+  before_agent_run: (
+    event: PluginHookBeforeModelResolveEvent,
+    ctx: PluginHookAgentContext,
+  ) => Promise<void> | void;
   llm_input: (event: PluginHookLlmInputEvent, ctx: PluginHookAgentContext) => Promise<void> | void;
   llm_output: (
     event: PluginHookLlmOutputEvent,
