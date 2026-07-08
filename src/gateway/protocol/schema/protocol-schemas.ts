@@ -48,6 +48,9 @@ import {
   ToolsEffectiveGroupSchema,
   ToolsEffectiveParamsSchema,
   ToolsEffectiveResultSchema,
+  ToolsInvokeParamsSchema,
+  ToolsInvokeErrorSchema,
+  ToolsInvokeResultSchema,
 } from "./agents-models-skills.js";
 import {
   ChannelsLogoutParamsSchema,
@@ -145,6 +148,13 @@ import {
   PluginApprovalRequestParamsSchema,
   PluginApprovalResolveParamsSchema,
 } from "./plugin-approvals.js";
+import {
+  EnvironmentSummarySchema,
+  EnvironmentsListParamsSchema,
+  EnvironmentsListResultSchema,
+  EnvironmentsStatusParamsSchema,
+  EnvironmentsStatusResultSchema,
+} from "./environments.js";
 import { PushTestParamsSchema, PushTestResultSchema } from "./push.js";
 import {
   SecretsReloadParamsSchema,
@@ -289,6 +299,9 @@ export const ProtocolSchemas = {
   ToolsEffectiveEntry: ToolsEffectiveEntrySchema,
   ToolsEffectiveGroup: ToolsEffectiveGroupSchema,
   ToolsEffectiveResult: ToolsEffectiveResultSchema,
+  ToolsInvokeParams: ToolsInvokeParamsSchema,
+  ToolsInvokeError: ToolsInvokeErrorSchema,
+  ToolsInvokeResult: ToolsInvokeResultSchema,
   SkillsBinsParams: SkillsBinsParamsSchema,
   SkillsBinsResult: SkillsBinsResultSchema,
   SkillsInstallParams: SkillsInstallParamsSchema,
@@ -321,6 +334,11 @@ export const ProtocolSchemas = {
   DeviceTokenRevokeParams: DeviceTokenRevokeParamsSchema,
   DevicePairRequestedEvent: DevicePairRequestedEventSchema,
   DevicePairResolvedEvent: DevicePairResolvedEventSchema,
+  EnvironmentSummary: EnvironmentSummarySchema,
+  EnvironmentsListParams: EnvironmentsListParamsSchema,
+  EnvironmentsListResult: EnvironmentsListResultSchema,
+  EnvironmentsStatusParams: EnvironmentsStatusParamsSchema,
+  EnvironmentsStatusResult: EnvironmentsStatusResultSchema,
   ChatHistoryParams: ChatHistoryParamsSchema,
   ChatSendParams: ChatSendParamsSchema,
   ChatAbortParams: ChatAbortParamsSchema,

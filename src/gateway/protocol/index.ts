@@ -239,6 +239,18 @@ import {
   type ToolsEffectiveParams,
   ToolsEffectiveParamsSchema,
   type ToolsEffectiveResult,
+  type ToolsInvokeParams,
+  ToolsInvokeParamsSchema,
+  type ToolsInvokeResult,
+  type ToolsInvokeError,
+  ToolsInvokeErrorSchema,
+  ToolsInvokeResultSchema,
+  type EnvironmentSummary,
+  EnvironmentSummarySchema,
+  type EnvironmentsListParams,
+  EnvironmentsListParamsSchema,
+  type EnvironmentsStatusParams,
+  EnvironmentsStatusParamsSchema,
   type Snapshot,
   SnapshotSchema,
   type StateVersion,
@@ -401,6 +413,13 @@ export const validateSkillsStatusParams = ajv.compile<SkillsStatusParams>(Skills
 export const validateToolsCatalogParams = ajv.compile<ToolsCatalogParams>(ToolsCatalogParamsSchema);
 export const validateToolsEffectiveParams = ajv.compile<ToolsEffectiveParams>(
   ToolsEffectiveParamsSchema,
+);
+export const validateToolsInvokeParams = ajv.compile<ToolsInvokeParams>(ToolsInvokeParamsSchema);
+export const validateEnvironmentsListParams = ajv.compile<EnvironmentsListParams>(
+  EnvironmentsListParamsSchema,
+);
+export const validateEnvironmentsStatusParams = ajv.compile<EnvironmentsStatusParams>(
+  EnvironmentsStatusParamsSchema,
 );
 export const validateSkillsBinsParams = ajv.compile<SkillsBinsParams>(SkillsBinsParamsSchema);
 export const validateSkillsInstallParams =
@@ -591,6 +610,11 @@ export {
   SkillsStatusParamsSchema,
   ToolsCatalogParamsSchema,
   ToolsEffectiveParamsSchema,
+  ToolsInvokeParamsSchema,
+  ToolsInvokeResultSchema,
+  EnvironmentSummarySchema,
+  EnvironmentsListParamsSchema,
+  EnvironmentsStatusParamsSchema,
   SkillsInstallParamsSchema,
   SkillsUpdateParamsSchema,
   CronJobSchema,
@@ -687,6 +711,11 @@ export type {
   ToolsCatalogResult,
   ToolsEffectiveParams,
   ToolsEffectiveResult,
+  ToolsInvokeParams,
+  ToolsInvokeResult,
+  EnvironmentSummary,
+  EnvironmentsListParams,
+  EnvironmentsStatusParams,
   SkillsBinsParams,
   SkillsBinsResult,
   SkillsInstallParams,
