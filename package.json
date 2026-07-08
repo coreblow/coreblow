@@ -1969,6 +1969,38 @@
     "./plugin-sdk/zod": {
       "types": "./dist/plugin-sdk/zod.d.ts",
       "default": "./dist/plugin-sdk/zod.js"
+    },
+    "./plugin-sdk/channel-secret-runtime": {
+      "types": "./dist/plugin-sdk/channel-secret-runtime.d.ts",
+      "default": "./dist/plugin-sdk/channel-secret-runtime.js"
+    },
+    "./plugin-sdk/pair-loop-guard-runtime": {
+      "types": "./dist/plugin-sdk/pair-loop-guard-runtime.d.ts",
+      "default": "./dist/plugin-sdk/pair-loop-guard-runtime.js"
+    },
+    "./plugin-sdk/runtime-secret-resolution": {
+      "types": "./dist/plugin-sdk/runtime-secret-resolution.d.ts",
+      "default": "./dist/plugin-sdk/runtime-secret-resolution.js"
+    },
+    "./plugin-sdk/secret-file-runtime": {
+      "types": "./dist/plugin-sdk/secret-file-runtime.d.ts",
+      "default": "./dist/plugin-sdk/secret-file-runtime.js"
+    },
+    "./plugin-sdk/secret-ref-runtime": {
+      "types": "./dist/plugin-sdk/secret-ref-runtime.d.ts",
+      "default": "./dist/plugin-sdk/secret-ref-runtime.js"
+    },
+    "./plugin-sdk/session-binding-runtime": {
+      "types": "./dist/plugin-sdk/session-binding-runtime.d.ts",
+      "default": "./dist/plugin-sdk/session-binding-runtime.js"
+    },
+    "./plugin-sdk/session-transcript-hit": {
+      "types": "./dist/plugin-sdk/session-transcript-hit.d.ts",
+      "default": "./dist/plugin-sdk/session-transcript-hit.js"
+    },
+    "./plugin-sdk/thread-bindings-session-runtime": {
+      "types": "./dist/plugin-sdk/thread-bindings-session-runtime.d.ts",
+      "default": "./dist/plugin-sdk/thread-bindings-session-runtime.js"
     }
   },
   "pnpm": {

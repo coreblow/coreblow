@@ -95,7 +95,7 @@ export function resolveThreadBindingMaxAgeMs(params: {
   return Math.floor(maxAgeHours * 60 * 60 * 1000);
 }
 
-type ThreadBindingLifecycleRecord = {
+export type ThreadBindingLifecycleRecord = {
   boundAt: number;
   lastActivityAt: number;
   idleTimeoutMs?: number;
