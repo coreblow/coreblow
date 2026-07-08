@@ -5,3 +5,9 @@ export { normalizeTtsAutoMode } from "./tts-auto-mode.js";
 export function resolveConfiguredTtsMode(cfg: CoreBlowConfig): TtsMode {
   return cfg.messages?.tts?.mode ?? "final";
 }
+
+export type TtsConfigResolutionContext = {
+  agentId?: string;
+  channelId?: string;
+  accountId?: string;
+};
