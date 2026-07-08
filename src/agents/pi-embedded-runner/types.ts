@@ -91,6 +91,8 @@ export type EmbeddedPiCompactResult = {
   };
 };
 
+export type EmbeddedRunLivenessState = "working" | "paused" | "blocked" | "abandoned";
+
 export type EmbeddedSandboxInfo = {
   enabled: boolean;
   workspaceDir?: string;
