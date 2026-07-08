@@ -135,6 +135,8 @@ export type DiscordVoiceConfig = {
   daveEncryption?: boolean;
   /** Consecutive decrypt failures before DAVE session reinitialization (default: 24). */
   decryptionFailureTolerance?: number;
+  /** Optional LLM model override for Discord voice channel responses. */
+  model?: string;
   /** Optional TTS overrides for Discord voice output. */
   tts?: TtsConfig;
 };
