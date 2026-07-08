@@ -46,6 +46,11 @@ export type DiscordMessagePreflightContext = DiscordMessagePreflightSharedFields
   author: User;
   sender: DiscordSenderIdentity;
 
+  canonicalMessageId?: string;
+  memberRoleIds: string[];
+  preflightAudioTranscript?: string;
+  inboundEventKind: "user_request" | "room_event";
+
   channelInfo: DiscordChannelInfo | null;
   channelName?: string;
 

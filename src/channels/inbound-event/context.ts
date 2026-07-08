@@ -64,10 +64,16 @@ export type MessageFacts = {
 export type AccessFacts = {
   commands?: {
     authorized?: boolean;
+    allowTextCommands?: boolean;
+    useAccessGroups?: boolean;
     authorizers?: Array<{ allowed?: boolean }>;
   };
   mentions?: {
     wasMentioned?: boolean;
+    canDetectMention?: boolean;
+    hasAnyMention?: boolean;
+    requireMention?: boolean;
+    effectiveWasMentioned?: boolean;
   };
 };
 

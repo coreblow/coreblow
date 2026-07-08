@@ -7,6 +7,10 @@ export type DiscordReplyContext = {
   id: string;
   channelId: string;
   sender: string;
+  senderId?: string;
+  senderName?: string;
+  senderTag?: string;
+  memberRoleIds?: string[];
   body: string;
   timestamp?: number;
 };

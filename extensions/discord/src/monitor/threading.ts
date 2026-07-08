@@ -30,6 +30,10 @@ export type DiscordThreadChannel = {
 export type DiscordThreadStarter = {
   text: string;
   author: string;
+  authorId?: string;
+  authorName?: string;
+  authorTag?: string;
+  memberRoleIds?: string[];
   timestamp?: number;
 };
 
@@ -276,6 +280,7 @@ export type DiscordAutoThreadContext = {
   OriginatingTo: string;
   SessionKey: string;
   ParentSessionKey: string;
+  ModelParentSessionKey?: string;
 };
 
 export function resolveDiscordAutoThreadContext(params: {
