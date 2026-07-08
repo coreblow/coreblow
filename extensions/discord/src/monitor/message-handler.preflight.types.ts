@@ -17,7 +17,7 @@ export type LoadedConfig = ReturnType<
 >;
 export type RuntimeEnv = import("coreblow/plugin-sdk/runtime-env").RuntimeEnv;
 
-export type DiscordMessageEvent = import("./listeners.js").DiscordMessageEvent;
+export type { DiscordMessageEvent, DiscordMessageHandler } from "./event-types.js";
 
 type DiscordMessagePreflightSharedFields = {
   cfg: LoadedConfig;

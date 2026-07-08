@@ -320,6 +320,11 @@ export type DiscordAccountConfig = {
   slashCommand?: DiscordSlashCommandConfig;
   /** Thread binding lifecycle settings (focus/subagent thread sessions). */
   threadBindings?: DiscordThreadBindingsConfig;
+  /** Thread session behavior overrides. */
+  thread?: {
+    /** If true, Discord thread sessions inherit the parent channel transcript. Default: false. */
+    inheritParent?: boolean;
+  };
   /** Privileged Gateway Intents (must also be enabled in Discord Developer Portal). */
   intents?: DiscordIntentsConfig;
   /** Voice channel conversation settings. */

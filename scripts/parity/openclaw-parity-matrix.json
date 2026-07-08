@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8197,
+    "cb_source_files": 8199,
     "oc_source_files": 8443,
-    "source_parity_both": 6399,
-    "source_cb_exclusive": 1798,
-    "source_missing_from_cb": 2044,
+    "source_parity_both": 6400,
+    "source_cb_exclusive": 1799,
+    "source_missing_from_cb": 2043,
     "test_files_cb": 4906,
     "test_files_oc": 5246,
     "tests_both_covered": 3470,
@@ -930,9 +930,9 @@
       "priority": "P1",
       "implementationSurface": "extensions/discord plus plugin-sdk channel/runtime surfaces",
       "counts": {
-        "sharedSourcePaths": 329,
-        "coreBlowOnlySourcePaths": 17,
-        "openClawOnlySourcePaths": 34,
+        "sharedSourcePaths": 330,
+        "coreBlowOnlySourcePaths": 18,
+        "openClawOnlySourcePaths": 33,
         "sharedTestPaths": 94,
         "coreBlowOnlyTestPaths": 1,
         "openClawTestGaps": 49
@@ -943,14 +943,14 @@
           "extensions/discord/src/doctor-shared.ts",
           "extensions/discord/src/doctor.ts",
           "extensions/discord/src/monitor/listeners.reactions.ts",
-          "extensions/discord/src/monitor/message-handler.context.ts",
           "extensions/discord/src/monitor/message-handler.draft-preview.ts",
           "extensions/discord/src/monitor/model-picker.view.ts",
           "extensions/discord/src/send.voice.ts",
           "extensions/discord/src/test-support/component-runtime.ts",
           "extensions/discord/src/test-support/provider.test-support.ts",
           "extensions/discord/src/voice/audio.ts",
-          "extensions/discord/src/voice/ingress.ts"
+          "extensions/discord/src/voice/ingress.ts",
+          "extensions/discord/src/voice/realtime.ts"
         ],
         "openClawTestGapPaths": [
           "extensions/discord/src/api-barrel.test.ts",
@@ -975,10 +975,10 @@
           "extensions/discord/src/index.ts",
           "extensions/discord/src/media.ts",
           "extensions/discord/src/message-tool-schema.ts",
+          "extensions/discord/src/monitor/event-types.ts",
           "extensions/discord/src/monitor/inbound-worker.ts",
           "extensions/discord/src/monitor/provider.lifecycle.reconnect.ts",
-          "extensions/discord/src/monitor.tool-result.test-harness.ts",
-          "extensions/discord/src/monitor.tool-result.test-helpers.ts"
+          "extensions/discord/src/monitor.tool-result.test-harness.ts"
         ]
       },
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",

@@ -11,7 +11,7 @@ import { buildAgentSessionKey } from "coreblow/plugin-sdk/routing";
 import { logVerbose } from "coreblow/plugin-sdk/runtime-env";
 import { truncateUtf16Safe } from "coreblow/plugin-sdk/text-runtime";
 import type { DiscordChannelConfigResolved } from "./allow-list.js";
-import type { DiscordMessageEvent } from "./listeners.js";
+import type { DiscordMessageEvent } from "./event-types.js";
 import {
   resolveDiscordChannelInfo,
   resolveDiscordEmbedText,
@@ -339,6 +339,7 @@ type MaybeCreateDiscordAutoThreadParams = {
   combinedBody: string;
   cfg?: CoreBlowConfig;
   agentId?: string;
+  threadParentInheritanceEnabled?: boolean;
 };
 
 export async function resolveDiscordAutoThreadReplyPlan(
