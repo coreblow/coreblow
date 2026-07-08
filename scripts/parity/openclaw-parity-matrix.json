@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8323,
+    "cb_source_files": 8326,
     "oc_source_files": 8443,
-    "source_parity_both": 6524,
+    "source_parity_both": 6527,
     "source_cb_exclusive": 1799,
-    "source_missing_from_cb": 1919,
+    "source_missing_from_cb": 1916,
     "test_files_cb": 4931,
     "test_files_oc": 5246,
     "tests_both_covered": 3495,
@@ -413,9 +413,9 @@
       "priority": "P1",
       "implementationSurface": "src/gateway GatewayServer and ServiceRegistry",
       "counts": {
-        "sharedSourcePaths": 347,
+        "sharedSourcePaths": 350,
         "coreBlowOnlySourcePaths": 65,
-        "openClawOnlySourcePaths": 44,
+        "openClawOnlySourcePaths": 41,
         "sharedTestPaths": 217,
         "coreBlowOnlyTestPaths": 134,
         "openClawTestGaps": 90
@@ -432,8 +432,8 @@
           "src/gateway/server-methods/chat-webchat-media.ts",
           "src/gateway/server-methods/commands.ts",
           "src/gateway/server-methods/config-write-flow.ts",
-          "src/gateway/server-methods/config.test-helpers.ts",
-          "src/gateway/server-methods/deleted-agent-guard.test-helpers.ts"
+          "src/gateway/server-methods/deleted-agent-guard.test-helpers.ts",
+          "src/gateway/server-methods/doctor.memory-core-runtime.ts"
         ],
         "openClawTestGapPaths": [
           "src/gateway/exec-approval-ios-push.test.ts",
