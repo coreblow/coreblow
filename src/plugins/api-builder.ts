@@ -36,6 +36,7 @@ export type BuildPluginApiParams = {
       | "registerVideoGenerationProvider"
       | "registerMusicGenerationProvider"
       | "registerRealtimeTranscriptionProvider"
+      | "registerRealtimeVoiceProvider"
       | "registerWebSearchProvider"
       | "registerInteractiveHandler"
       | "onConversationBindingResolved"
@@ -73,6 +74,8 @@ const noopRegisterVideoGenerationProvider: CoreBlowPluginApi["registerVideoGener
 const noopRegisterMusicGenerationProvider: CoreBlowPluginApi["registerMusicGenerationProvider"] =
   () => {};
 const noopRegisterRealtimeTranscriptionProvider: CoreBlowPluginApi["registerRealtimeTranscriptionProvider"] =
+  () => {};
+const noopRegisterRealtimeVoiceProvider: CoreBlowPluginApi["registerRealtimeVoiceProvider"] =
   () => {};
 const noopRegisterWebSearchProvider: CoreBlowPluginApi["registerWebSearchProvider"] = () => {};
 const noopRegisterInteractiveHandler: CoreBlowPluginApi["registerInteractiveHandler"] = () => {};
@@ -125,6 +128,8 @@ export function buildPluginApi(params: BuildPluginApiParams): CoreBlowPluginApi 
       handlers.registerMusicGenerationProvider ?? noopRegisterMusicGenerationProvider,
     registerRealtimeTranscriptionProvider:
       handlers.registerRealtimeTranscriptionProvider ?? noopRegisterRealtimeTranscriptionProvider,
+    registerRealtimeVoiceProvider:
+      handlers.registerRealtimeVoiceProvider ?? noopRegisterRealtimeVoiceProvider,
     registerWebSearchProvider: handlers.registerWebSearchProvider ?? noopRegisterWebSearchProvider,
     registerInteractiveHandler:
       handlers.registerInteractiveHandler ?? noopRegisterInteractiveHandler,

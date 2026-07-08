@@ -14,7 +14,8 @@ type CapabilityProviderRegistryKey =
   | "imageGenerationProviders"
   | "videoGenerationProviders"
   | "musicGenerationProviders"
-  | "realtimeTranscriptionProviders";
+  | "realtimeTranscriptionProviders"
+  | "realtimeVoiceProviders";
 
 type CapabilityContractKey =
   | "speechProviders"
@@ -22,7 +23,8 @@ type CapabilityContractKey =
   | "imageGenerationProviders"
   | "videoGenerationProviders"
   | "musicGenerationProviders"
-  | "realtimeTranscriptionProviders";
+  | "realtimeTranscriptionProviders"
+  | "realtimeVoiceProviders";
 
 type CapabilityProviderForKey<K extends CapabilityProviderRegistryKey> =
   NonNullable<PluginRegistry[K]>[number] extends { provider: infer T } ? T : never;
@@ -34,6 +36,7 @@ const CAPABILITY_CONTRACT_KEY: Record<CapabilityProviderRegistryKey, CapabilityC
   videoGenerationProviders: "videoGenerationProviders",
   musicGenerationProviders: "musicGenerationProviders",
   realtimeTranscriptionProviders: "realtimeTranscriptionProviders",
+  realtimeVoiceProviders: "realtimeVoiceProviders",
 };
 
 function resolveBundledCapabilityCompatPluginIds(params: {
@@ -70,6 +73,32 @@ function resolveCapabilityProviderConfig(params: {
     pluginIds,
     env: process.env,
   });
+}
+
+export function resolvePluginCapabilityProvider<K extends CapabilityProviderRegistryKey>(params: {
+  key: K;
+  providerId: string;
+  cfg?: CoreBlowConfig;
+}): CapabilityProviderForKey<K> | undefined {
+  const activeRegistry = resolveRuntimePluginRegistry();
+  const activeProviders = activeRegistry?.[params.key] ?? [];
+  const activeMatch = activeProviders.find(
+    (entry) => entry.provider.id === params.providerId,
+  ) as { provider: CapabilityProviderForKey<K> } | undefined;
+  if (activeMatch) {
+    return activeMatch.provider;
+  }
+  const loadOptions =
+    params.cfg === undefined
+      ? undefined
+      : {
+          config: resolveCapabilityProviderConfig({ key: params.key, cfg: params.cfg }),
+        };
+  const registry = resolveRuntimePluginRegistry(loadOptions);
+  const match = (registry?.[params.key] ?? []).find(
+    (entry) => entry.provider.id === params.providerId,
+  ) as { provider: CapabilityProviderForKey<K> } | undefined;
+  return match?.provider;
 }
 
 export function resolvePluginCapabilityProviders<K extends CapabilityProviderRegistryKey>(params: {

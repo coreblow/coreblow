@@ -25,6 +25,7 @@ export function createTestPluginApi(api: TestPluginApiInput): CoreBlowPluginApi 
     registerVideoGenerationProvider() {},
     registerMusicGenerationProvider() {},
     registerRealtimeTranscriptionProvider() {},
+    registerRealtimeVoiceProvider() {},
     registerWebSearchProvider() {},
     registerInteractiveHandler() {},
     onConversationBindingResolved() {},

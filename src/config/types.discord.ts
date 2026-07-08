@@ -126,17 +126,59 @@ export type DiscordVoiceAutoJoinConfig = {
   channelId: string;
 };
 
+export type DiscordVoiceAllowedChannelConfig = {
+  /** Guild ID that owns the voice channel. */
+  guildId: string;
+  /** Voice channel ID allowed for realtime voice sessions. */
+  channelId: string;
+};
+
+export type DiscordVoiceMode = "stt-tts" | "agent-proxy" | "bidi";
+
+export type DiscordVoiceRealtimeConsultPolicy = "auto" | "always";
+
+export type DiscordVoiceRealtimeToolPolicy = "safe-read-only" | "owner" | "none";
+
+export type DiscordVoiceRealtimeConfig = {
+  /** Realtime voice provider id, for example "openai". */
+  provider?: string;
+  /** Provider realtime session model, for example "gpt-realtime-2". */
+  model?: string;
+  /** Provider realtime output voice, for example "cedar". */
+  voice?: string;
+  /** System instructions passed to the realtime provider. */
+  instructions?: string;
+  /** Tool policy for bidi realtime consult calls. */
+  toolPolicy?: DiscordVoiceRealtimeToolPolicy;
+  /** Whether bidi should force the CoreBlow agent brain for every substantive turn. */
+  consultPolicy?: DiscordVoiceRealtimeConsultPolicy;
+  /** Allow Discord speaker-start events to interrupt active realtime playback. */
+  bargeIn?: boolean;
+  /** Minimum assistant playback duration before a barge-in truncates audio. Default: 250ms; set 0 for immediate interruption. */
+  minBargeInAudioEndMs?: number;
+  /** Debounce window before buffered transcripts are sent to the CoreBlow agent. */
+  debounceMs?: number;
+  /** Provider-specific realtime voice config keyed by provider id. */
+  providers?: Record<string, Record<string, unknown> | undefined>;
+};
+
 export type DiscordVoiceConfig = {
   /** Enable Discord voice channel conversations (default: true). */
   enabled?: boolean;
+  /** Voice conversation mode. Default: agent-proxy. */
+  mode?: DiscordVoiceMode;
+  /** Optional LLM model override for Discord voice channel responses. */
+  model?: string;
+  /** Realtime provider settings for agent-proxy or bidi modes. */
+  realtime?: DiscordVoiceRealtimeConfig;
   /** Voice channels to auto-join on startup. */
   autoJoin?: DiscordVoiceAutoJoinConfig[];
+  /** Voice channels the bot is allowed to join or remain in. Unset means any voice channel is allowed. */
+  allowedChannels?: DiscordVoiceAllowedChannelConfig[];
   /** Enable/disable DAVE end-to-end encryption (default: true; Discord may require this). */
   daveEncryption?: boolean;
   /** Consecutive decrypt failures before DAVE session reinitialization (default: 24). */
   decryptionFailureTolerance?: number;
-  /** Optional LLM model override for Discord voice channel responses. */
-  model?: string;
   /** Optional TTS overrides for Discord voice output. */
   tts?: TtsConfig;
 };

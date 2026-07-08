@@ -59,6 +59,7 @@ import type {
   MusicGenerationProviderPlugin,
   ProviderPlugin,
   RealtimeTranscriptionProviderPlugin,
+  RealtimeVoiceProviderPlugin,
   CoreBlowPluginService,
   CoreBlowPluginToolContext,
   CoreBlowPluginToolFactory,
@@ -171,6 +172,8 @@ export type PluginMusicGenerationProviderRegistration =
   PluginOwnedProviderRegistration<MusicGenerationProviderPlugin>;
 export type PluginRealtimeTranscriptionProviderRegistration =
   PluginOwnedProviderRegistration<RealtimeTranscriptionProviderPlugin>;
+export type PluginRealtimeVoiceProviderRegistration =
+  PluginOwnedProviderRegistration<RealtimeVoiceProviderPlugin>;
 export type PluginWebSearchProviderRegistration =
   PluginOwnedProviderRegistration<WebSearchProviderPlugin>;
 
@@ -251,6 +254,7 @@ export type PluginRecord = {
   videoGenerationProviderIds: string[];
   musicGenerationProviderIds?: string[];
   realtimeTranscriptionProviderIds?: string[];
+  realtimeVoiceProviderIds?: string[];
   webSearchProviderIds: string[];
   gatewayMethods: string[];
   cliCommands: string[];
@@ -279,6 +283,7 @@ export type PluginRegistry = {
   videoGenerationProviders: PluginVideoGenerationProviderRegistration[];
   musicGenerationProviders?: PluginMusicGenerationProviderRegistration[];
   realtimeTranscriptionProviders?: PluginRealtimeTranscriptionProviderRegistration[];
+  realtimeVoiceProviders?: PluginRealtimeVoiceProviderRegistration[];
   webSearchProviders: PluginWebSearchProviderRegistration[];
   gatewayHandlers: GatewayRequestHandlers;
   gatewayMethodScopes?: Partial<Record<string, OperatorScope>>;
@@ -905,6 +910,19 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     });
   };
 
+  const registerRealtimeVoiceProvider = (
+    record: PluginRecord,
+    provider: RealtimeVoiceProviderPlugin,
+  ) => {
+    registerUniqueProviderLike({
+      record,
+      provider,
+      kindLabel: "realtime voice provider",
+      registrations: (registry.realtimeVoiceProviders ??= []),
+      ownedIds: (record.realtimeVoiceProviderIds ??= []),
+    });
+  };
+
   const registerWebSearchProvider = (record: PluginRecord, provider: WebSearchProviderPlugin) => {
     registerUniqueProviderLike({
       record,
@@ -1191,6 +1209,8 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
                 registerMusicGenerationProvider(record, provider),
               registerRealtimeTranscriptionProvider: (provider) =>
                 registerRealtimeTranscriptionProvider(record, provider),
+              registerRealtimeVoiceProvider: (provider: RealtimeVoiceProviderPlugin) =>
+                registerRealtimeVoiceProvider(record, provider),
               registerWebSearchProvider: (provider) => registerWebSearchProvider(record, provider),
               registerGatewayMethod: (method, handler, opts) =>
                 registerGatewayMethod(record, method, handler, opts),

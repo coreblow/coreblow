@@ -42,6 +42,17 @@ import type {
   RealtimeTranscriptionSession,
   RealtimeTranscriptionSessionCreateRequest,
 } from "../realtime-transcription/provider-types.js";
+import type {
+  RealtimeVoiceBrowserSession,
+  RealtimeVoiceBrowserSessionCreateRequest,
+  RealtimeVoiceBridge,
+  RealtimeVoiceBridgeCreateRequest,
+  RealtimeVoiceProviderCapabilities,
+  RealtimeVoiceProviderConfig,
+  RealtimeVoiceProviderConfiguredContext,
+  RealtimeVoiceProviderId,
+  RealtimeVoiceProviderResolveConfigContext,
+} from "../talk/provider-types.js";
 import type { RuntimeEnv } from "../runtime.js";
 import type { RuntimeWebSearchMetadata } from "../secrets/runtime-web-tools.types.js";
 import type { VideoGenerationProvider } from "../video-generation/types.js";
@@ -1343,6 +1354,26 @@ export type RealtimeTranscriptionProviderPlugin = {
   createSession: (req: RealtimeTranscriptionSessionCreateRequest) => RealtimeTranscriptionSession;
 };
 
+/** Realtime voice capability registered by a plugin. */
+export type RealtimeVoiceProviderPlugin = {
+  id: RealtimeVoiceProviderId;
+  label: string;
+  aliases?: string[];
+  defaultModel?: string;
+  autoSelectOrder?: number;
+  capabilities?: RealtimeVoiceProviderCapabilities;
+  resolveConfig?: (ctx: RealtimeVoiceProviderResolveConfigContext) => RealtimeVoiceProviderConfig;
+  isConfigured: (ctx: RealtimeVoiceProviderConfiguredContext) => boolean;
+  createBridge: (req: RealtimeVoiceBridgeCreateRequest) => RealtimeVoiceBridge;
+  createBrowserSession?: (
+    req: RealtimeVoiceBrowserSessionCreateRequest,
+  ) => Promise<RealtimeVoiceBrowserSession>;
+};
+
+export type PluginRealtimeVoiceProviderEntry = RealtimeVoiceProviderPlugin & {
+  pluginId: string;
+};
+
 export type CoreBlowPluginGatewayMethod = {
   method: string;
   handler: GatewayRequestHandler;
@@ -1865,6 +1896,8 @@ export type CoreBlowPluginApi = {
   registerMusicGenerationProvider: (provider: MusicGenerationProviderPlugin) => void;
   /** Register a realtime transcription provider (streaming speech-to-text capability). */
   registerRealtimeTranscriptionProvider: (provider: RealtimeTranscriptionProviderPlugin) => void;
+  /** Register a realtime voice provider (bidirectional realtime voice bridge capability). */
+  registerRealtimeVoiceProvider: (provider: RealtimeVoiceProviderPlugin) => void;
   /** Register a web search provider (web search capability). */
   registerWebSearchProvider: (provider: WebSearchProviderPlugin) => void;
   registerInteractiveHandler: (registration: PluginInteractiveHandlerRegistration) => void;
