@@ -68,6 +68,10 @@ export type ProfileUsageStats = {
   cooldownUntil?: number;
   cooldownReason?: AuthProfileFailureReason;
   cooldownModel?: string;
+  blockedUntil?: number;
+  blockedReason?: AuthProfileFailureReason;
+  blockedSource?: string;
+  blockedModel?: string;
   disabledUntil?: number;
   disabledReason?: AuthProfileFailureReason;
   errorCount?: number;
