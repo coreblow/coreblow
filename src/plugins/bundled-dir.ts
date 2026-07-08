@@ -116,3 +116,8 @@ export function resolveBundledPluginsDir(env: NodeJS.ProcessEnv = process.env): 
 
   return undefined;
 }
+
+export function areBundledPluginsDisabled(env: NodeJS.ProcessEnv = process.env): boolean {
+  const raw = env.COREBLOW_DISABLE_BUNDLED_PLUGINS?.trim().toLowerCase();
+  return raw === "1" || raw === "true";
+}
