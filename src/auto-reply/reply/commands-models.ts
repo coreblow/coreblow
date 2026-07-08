@@ -25,12 +25,19 @@ import type { CommandHandler } from "./commands-types.js";
 const PAGE_SIZE_DEFAULT = 20;
 const PAGE_SIZE_MAX = 100;
 
+export type ModelsRuntimeChoice = {
+  id: string;
+  label: string;
+  description: string;
+};
+
 export type ModelsProviderData = {
   byProvider: Map<string, Set<string>>;
   providers: string[];
   resolvedDefault: { provider: string; model: string };
   /** Map from provider/model to human-readable display name (when different from model ID). */
   modelNames: Map<string, string>;
+  runtimeChoicesByProvider?: Map<string, ModelsRuntimeChoice[]>;
 };
 
 /**
