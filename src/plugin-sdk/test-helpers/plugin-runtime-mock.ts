@@ -1,4 +1,4 @@
-import { vi } from "vitest";
+import { vi, type Mock } from "vitest";
 import type { PluginRuntime } from "../testing.js";
 
 const DEFAULT_PROVIDER = "anthropic";
@@ -19,210 +19,191 @@ function isObject(value: unknown): value is Record<string, unknown> {
 }
 
 function mergeDeep<T>(base: T, overrides: DeepPartial<T>): T {
-  const result: Record<string, unknown> = { ...(base as Record<string, unknown>) };
   for (const [key, overrideValue] of Object.entries(overrides as Record<string, unknown>)) {
     if (overrideValue === undefined) {
       continue;
     }
-    const baseValue = result[key];
+    const baseValue = (base as Record<string, unknown>)[key];
     if (isObject(baseValue) && isObject(overrideValue)) {
-      result[key] = mergeDeep(baseValue, overrideValue);
+      (base as Record<string, unknown>)[key] = mergeDeep(baseValue, overrideValue);
       continue;
     }
-    result[key] = overrideValue;
+    (base as Record<string, unknown>)[key] = overrideValue;
   }
-  return result as T;
+  return base as T;
+}
+
+/**
+ * Centralized mock helper to avoid widespread unsafe casts.
+ * Invariant: vi.fn() provides a callable interface that satisfies
+ * the structural requirements of runtime function properties in tests.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+export function typedMock<T extends Function>(impl?: T): T & Mock {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (impl ? vi.fn(impl as any) : vi.fn()) as unknown as T & Mock;
+}
+
+/**
+ * Creates a generic Proxy-based stub for massive channel ops surfaces
+ * (like channel.discord, channel.slack) to avoid hundreds of manual stubs.
+ * Invariant: Returns a stable callable vi.fn() for any string property accessed,
+ * recursively satisfying deeply nested optional function surfaces in test environments.
+ */
+export function createProxySurface<T extends object>(): T {
+  const cache = new Map<string, unknown>();
+  const handler: ProxyHandler<object> = {
+    get(_target, prop) {
+      if (prop in _target) return Reflect.get(_target, prop);
+      if (typeof prop !== "string" || prop === "then") {
+        return undefined;
+      }
+      if (!cache.has(prop)) {
+        cache.set(prop, new Proxy(vi.fn(), handler));
+      }
+      return cache.get(prop);
+    },
+  };
+  return new Proxy({}, handler) as T;
 }
 
 export function createPluginRuntimeMediaMock(
   overrides: Record<string, unknown> = {},
 ): PluginRuntime["channel"]["media"] {
-  return {
-    fetchRemoteMedia:
-      vi.fn() as unknown as PluginRuntime["channel"]["media"]["fetchRemoteMedia"],
-    saveMediaBuffer: vi.fn().mockResolvedValue({
+  const base: PluginRuntime["channel"]["media"] = {
+    fetchRemoteMedia: typedMock(),
+    saveMediaBuffer: typedMock().mockResolvedValue({
       path: "/tmp/test-media.jpg",
       contentType: "image/jpeg",
-    }) as unknown as PluginRuntime["channel"]["media"]["saveMediaBuffer"],
-    ...overrides,
+    }),
   };
-}
-
-/**
- * Creates a generic Proxy-based stub for massive channel ops surfaces
- * (like channel.discord, channel.slack) so we don't have to manual stub
- * hundreds of methods.
- */
-function createChannelOpsStub<T extends object>(): T {
-  return new Proxy({} as T, {
-    get(_target, prop) {
-      if (typeof prop === "string") {
-        return vi.fn();
-      }
-      return undefined;
-    },
-  });
+  return mergeDeep(base, overrides);
 }
 
 export function createPluginRuntimeMock(overrides: DeepPartial<PluginRuntime> = {}): PluginRuntime {
   const base: PluginRuntime = {
     version: "0.0.0-test",
     config: {
-      loadConfig: vi.fn(() => ({})) as unknown as PluginRuntime["config"]["loadConfig"],
-      writeConfigFile:
-        vi.fn() as unknown as PluginRuntime["config"]["writeConfigFile"],
+      loadConfig: typedMock(() => ({})),
+      writeConfigFile: typedMock(),
     },
     agent: {
       defaults: {
         model: DEFAULT_MODEL,
         provider: DEFAULT_PROVIDER,
       },
-      resolveAgentDir:
-        vi.fn(() => "/tmp/agent") as unknown as PluginRuntime["agent"]["resolveAgentDir"],
-      resolveAgentWorkspaceDir:
-        vi.fn(() => "/tmp/workspace") as unknown as PluginRuntime["agent"]["resolveAgentWorkspaceDir"],
-      resolveAgentIdentity: vi.fn(() => ({
-        name: "test-agent",
-      })) as unknown as PluginRuntime["agent"]["resolveAgentIdentity"],
-      resolveThinkingDefault:
-        vi.fn(() => "off") as unknown as PluginRuntime["agent"]["resolveThinkingDefault"],
-      runEmbeddedPiAgent: vi.fn().mockResolvedValue({
-        payloads: [],
-        meta: {},
-      }) as unknown as PluginRuntime["agent"]["runEmbeddedPiAgent"],
-      resolveAgentTimeoutMs:
-        vi.fn(() => 30_000) as unknown as PluginRuntime["agent"]["resolveAgentTimeoutMs"],
-      ensureAgentWorkspace:
-        vi.fn().mockResolvedValue(undefined) as unknown as PluginRuntime["agent"]["ensureAgentWorkspace"],
+      resolveAgentDir: typedMock(() => "/tmp/agent"),
+      resolveAgentWorkspaceDir: typedMock(() => "/tmp/workspace"),
+      resolveAgentIdentity: typedMock(() => ({ name: "test-agent" })),
+      resolveThinkingDefault: typedMock(() => "off"),
+      runEmbeddedPiAgent: typedMock().mockResolvedValue({ payloads: [], meta: {} }),
+      resolveAgentTimeoutMs: typedMock(() => 30_000),
+      ensureAgentWorkspace: typedMock().mockResolvedValue(undefined),
       session: {
-        resolveStorePath:
-          vi.fn(() => "/tmp/agent-sessions.json") as unknown as PluginRuntime["agent"]["session"]["resolveStorePath"],
-        loadSessionStore:
-          vi.fn(() => ({})) as unknown as PluginRuntime["agent"]["session"]["loadSessionStore"],
-        saveSessionStore:
-          vi.fn().mockResolvedValue(undefined) as unknown as PluginRuntime["agent"]["session"]["saveSessionStore"],
-        resolveSessionFilePath:
-          vi.fn((sessionId: string) => `/tmp/${sessionId}.json`) as unknown as PluginRuntime["agent"]["session"]["resolveSessionFilePath"],
+        resolveStorePath: typedMock(() => "/tmp/agent-sessions.json"),
+        loadSessionStore: typedMock(() => ({})),
+        saveSessionStore: typedMock().mockResolvedValue(undefined),
+        resolveSessionFilePath: typedMock((sessionId: string) => `/tmp/${sessionId}.json`),
       },
     },
     system: {
-      enqueueSystemEvent: vi.fn() as unknown as PluginRuntime["system"]["enqueueSystemEvent"],
-      requestHeartbeatNow: vi.fn() as unknown as PluginRuntime["system"]["requestHeartbeatNow"],
-      runHeartbeatOnce: vi.fn(async () => ({
-        status: "ran" as const,
-        durationMs: 0,
-      })) as unknown as PluginRuntime["system"]["runHeartbeatOnce"],
-      runCommandWithTimeout:
-        vi.fn() as unknown as PluginRuntime["system"]["runCommandWithTimeout"],
-      formatNativeDependencyHint:
-        vi.fn(() => "") as unknown as PluginRuntime["system"]["formatNativeDependencyHint"],
+      enqueueSystemEvent: typedMock(),
+      requestHeartbeatNow: typedMock(),
+      runHeartbeatOnce: typedMock(async () => ({ status: "ran" as const, durationMs: 0 })),
+      runCommandWithTimeout: typedMock(),
+      formatNativeDependencyHint: typedMock(() => ""),
     },
     media: {
-      loadWebMedia: vi.fn() as unknown as PluginRuntime["media"]["loadWebMedia"],
-      detectMime: vi.fn() as unknown as PluginRuntime["media"]["detectMime"],
-      mediaKindFromMime: vi.fn() as unknown as PluginRuntime["media"]["mediaKindFromMime"],
-      isVoiceCompatibleAudio:
-        vi.fn() as unknown as PluginRuntime["media"]["isVoiceCompatibleAudio"],
-      getImageMetadata: vi.fn() as unknown as PluginRuntime["media"]["getImageMetadata"],
-      resizeToJpeg: vi.fn() as unknown as PluginRuntime["media"]["resizeToJpeg"],
+      loadWebMedia: typedMock(),
+      detectMime: typedMock(),
+      mediaKindFromMime: typedMock(),
+      isVoiceCompatibleAudio: typedMock(),
+      getImageMetadata: typedMock(),
+      resizeToJpeg: typedMock(),
     },
     tts: {
-      textToSpeech: vi.fn() as unknown as PluginRuntime["tts"]["textToSpeech"],
-      textToSpeechTelephony:
-        vi.fn() as unknown as PluginRuntime["tts"]["textToSpeechTelephony"],
-      listVoices: vi.fn() as unknown as PluginRuntime["tts"]["listVoices"],
+      textToSpeech: typedMock(),
+      textToSpeechTelephony: typedMock(),
+      listVoices: typedMock(),
     },
     mediaUnderstanding: {
-      runFile: vi.fn() as unknown as PluginRuntime["mediaUnderstanding"]["runFile"],
-      describeImageFile:
-        vi.fn() as unknown as PluginRuntime["mediaUnderstanding"]["describeImageFile"],
-      describeImageFileWithModel:
-        vi.fn() as unknown as PluginRuntime["mediaUnderstanding"]["describeImageFileWithModel"],
-      describeVideoFile:
-        vi.fn() as unknown as PluginRuntime["mediaUnderstanding"]["describeVideoFile"],
-      transcribeAudioFile:
-        vi.fn() as unknown as PluginRuntime["mediaUnderstanding"]["transcribeAudioFile"],
+      runFile: typedMock(),
+      describeImageFile: typedMock(),
+      describeImageFileWithModel: typedMock(),
+      describeVideoFile: typedMock(),
+      transcribeAudioFile: typedMock(),
     },
     imageGeneration: {
-      generate: vi.fn() as unknown as PluginRuntime["imageGeneration"]["generate"],
-      listProviders: vi.fn() as unknown as PluginRuntime["imageGeneration"]["listProviders"],
+      generate: typedMock(),
+      listProviders: typedMock(),
     },
     webSearch: {
-      listProviders: vi.fn() as unknown as PluginRuntime["webSearch"]["listProviders"],
-      search: vi.fn() as unknown as PluginRuntime["webSearch"]["search"],
+      listProviders: typedMock(),
+      search: typedMock(),
     },
     stt: {
-      transcribeAudioFile:
-        vi.fn() as unknown as PluginRuntime["stt"]["transcribeAudioFile"],
+      transcribeAudioFile: typedMock(),
     },
     events: {
-      onAgentEvent: vi.fn(() => () => {}) as unknown as PluginRuntime["events"]["onAgentEvent"],
-      onSessionTranscriptUpdate:
-        vi.fn(() => () => {}) as unknown as PluginRuntime["events"]["onSessionTranscriptUpdate"],
+      onAgentEvent: typedMock(() => () => {}),
+      onSessionTranscriptUpdate: typedMock(() => () => {}),
     },
     logging: {
-      shouldLogVerbose: vi.fn(() => false),
-      getChildLogger: vi.fn(() => ({
+      shouldLogVerbose: typedMock(() => false),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      getChildLogger: typedMock(() => ({
         info: vi.fn(),
         warn: vi.fn(),
         error: vi.fn(),
         debug: vi.fn(),
-      })) as unknown as PluginRuntime["logging"]["getChildLogger"],
+      } as any)),
     },
     state: {
-      resolveStateDir: vi.fn(() => "/tmp/coreblow") as unknown as PluginRuntime["state"]["resolveStateDir"],
+      resolveStateDir: typedMock(() => "/tmp/coreblow"),
     },
     modelAuth: {
-      getApiKeyForModel:
-        vi.fn() as unknown as PluginRuntime["modelAuth"]["getApiKeyForModel"],
-      resolveApiKeyForProvider:
-        vi.fn() as unknown as PluginRuntime["modelAuth"]["resolveApiKeyForProvider"],
+      getApiKeyForModel: typedMock(),
+      resolveApiKeyForProvider: typedMock(),
     },
     subagent: {
-      run: vi.fn() as unknown as PluginRuntime["subagent"]["run"],
-      waitForRun: vi.fn() as unknown as PluginRuntime["subagent"]["waitForRun"],
-      getSessionMessages: vi.fn() as unknown as PluginRuntime["subagent"]["getSessionMessages"],
-      getSession: vi.fn() as unknown as PluginRuntime["subagent"]["getSession"],
-      deleteSession: vi.fn() as unknown as PluginRuntime["subagent"]["deleteSession"],
+      run: typedMock(),
+      waitForRun: typedMock(),
+      getSessionMessages: typedMock(),
+      getSession: typedMock(),
+      deleteSession: typedMock(),
     },
     channel: {
       runtimeContexts: {
-        register: vi.fn(({ abortSignal }: { abortSignal?: AbortSignal }) => {
+        register: typedMock(({ abortSignal }: { abortSignal?: AbortSignal }) => {
           const lease = { dispose: vi.fn() };
           abortSignal?.addEventListener("abort", lease.dispose, { once: true });
           return lease;
-        }) as unknown as PluginRuntime["channel"]["runtimeContexts"]["register"],
-        get: vi.fn() as unknown as PluginRuntime["channel"]["runtimeContexts"]["get"],
-        watch: vi.fn(() =>
-          vi.fn(),
-        ) as unknown as PluginRuntime["channel"]["runtimeContexts"]["watch"],
+        }),
+        get: typedMock(),
+        watch: typedMock(() => vi.fn()),
       },
       text: {
-        chunkByNewline: vi.fn((text: string) => (text ? [text] : [])),
-        chunkMarkdownText: vi.fn((text: string) => [text]),
-        chunkMarkdownTextWithMode: vi.fn((text: string) => (text ? [text] : [])),
-        chunkText: vi.fn((text: string) => (text ? [text] : [])),
-        chunkTextWithMode: vi.fn((text: string) => (text ? [text] : [])),
-        resolveChunkMode:
-          vi.fn(() => "length") as unknown as PluginRuntime["channel"]["text"]["resolveChunkMode"],
-        resolveTextChunkLimit: vi.fn(() => 4000),
-        hasControlCommand: vi.fn(() => false),
-        resolveMarkdownTableMode:
-          vi.fn(() => "code") as unknown as PluginRuntime["channel"]["text"]["resolveMarkdownTableMode"],
-        convertMarkdownTables: vi.fn((text: string) => text),
+        chunkByNewline: typedMock((text: string) => (text ? [text] : [])),
+        chunkMarkdownText: typedMock((text: string) => [text]),
+        chunkMarkdownTextWithMode: typedMock((text: string) => (text ? [text] : [])),
+        chunkText: typedMock((text: string) => (text ? [text] : [])),
+        chunkTextWithMode: typedMock((text: string) => (text ? [text] : [])),
+        resolveChunkMode: typedMock(() => "length"),
+        resolveTextChunkLimit: typedMock(() => 4000),
+        hasControlCommand: typedMock(() => false),
+        resolveMarkdownTableMode: typedMock(() => "code"),
+        convertMarkdownTables: typedMock((text: string) => text),
       },
       reply: {
-        dispatchReplyWithBufferedBlockDispatcher:
-          vi.fn(async () => undefined) as unknown as PluginRuntime["channel"]["reply"]["dispatchReplyWithBufferedBlockDispatcher"],
-        createReplyDispatcherWithTyping:
-          vi.fn() as unknown as PluginRuntime["channel"]["reply"]["createReplyDispatcherWithTyping"],
-        resolveEffectiveMessagesConfig:
-          vi.fn() as unknown as PluginRuntime["channel"]["reply"]["resolveEffectiveMessagesConfig"],
-        resolveHumanDelayConfig:
-          vi.fn() as unknown as PluginRuntime["channel"]["reply"]["resolveHumanDelayConfig"],
-        dispatchReplyFromConfig:
-          vi.fn() as unknown as PluginRuntime["channel"]["reply"]["dispatchReplyFromConfig"],
-        withReplyDispatcher: vi.fn(async ({ dispatcher, run, onSettled }) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        dispatchReplyWithBufferedBlockDispatcher: typedMock(async () => ({} as any)),
+        createReplyDispatcherWithTyping: typedMock(),
+        resolveEffectiveMessagesConfig: typedMock(),
+        resolveHumanDelayConfig: typedMock(),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        dispatchReplyFromConfig: typedMock(async () => ({} as any)),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        withReplyDispatcher: typedMock(async ({ dispatcher, run, onSettled }: any) => {
           try {
             return await run();
           } finally {
@@ -233,118 +214,84 @@ export function createPluginRuntimeMock(overrides: DeepPartial<PluginRuntime> = 
               await onSettled?.();
             }
           }
-        }) as unknown as PluginRuntime["channel"]["reply"]["withReplyDispatcher"],
-        finalizeInboundContext:
-          vi.fn((ctx: Record<string, unknown>) => ctx) as unknown as PluginRuntime["channel"]["reply"]["finalizeInboundContext"],
-        formatAgentEnvelope:
-          vi.fn((opts: { body: string }) => opts.body) as unknown as PluginRuntime["channel"]["reply"]["formatAgentEnvelope"],
-        formatInboundEnvelope:
-          vi.fn((opts: { body: string }) => opts.body) as unknown as PluginRuntime["channel"]["reply"]["formatInboundEnvelope"],
-        resolveEnvelopeFormatOptions:
-          vi.fn(() => ({
-            template: "channel+name+time",
-          })) as unknown as PluginRuntime["channel"]["reply"]["resolveEnvelopeFormatOptions"],
+        }),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        finalizeInboundContext: typedMock((ctx: any) => ctx),
+        formatAgentEnvelope: typedMock((opts: { body: string }) => opts.body),
+        formatInboundEnvelope: typedMock((opts: { body: string }) => opts.body),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        resolveEnvelopeFormatOptions: typedMock(() => ({} as any)),
       },
       routing: {
-        buildAgentSessionKey: vi.fn(
-          ({
-            agentId,
-            channel,
-            peer,
-          }: {
-            agentId: string;
-            channel: string;
-            peer?: { kind?: string; id?: string };
-          }) => `agent:${agentId}:${channel}:${peer?.kind ?? "direct"}:${peer?.id ?? "peer"}`,
-        ) as unknown as PluginRuntime["channel"]["routing"]["buildAgentSessionKey"],
-        resolveAgentRoute: vi.fn(() => ({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        buildAgentSessionKey: typedMock(({ agentId, channel, peer }: any) =>
+          `agent:${agentId}:${channel}:${peer?.kind ?? "direct"}:${peer?.id ?? "peer"}`
+        ),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        resolveAgentRoute: typedMock(() => ({
           agentId: "main",
           accountId: "default",
           sessionKey: "agent:main:test:dm:peer",
-        })) as unknown as PluginRuntime["channel"]["routing"]["resolveAgentRoute"],
+        } as any)),
       },
       pairing: {
-        buildPairingReply: vi.fn(() => "Pairing code: TESTCODE") as unknown as PluginRuntime["channel"]["pairing"]["buildPairingReply"],
-        readAllowFromStore:
-          vi.fn().mockResolvedValue([]) as unknown as PluginRuntime["channel"]["pairing"]["readAllowFromStore"],
-        upsertPairingRequest: vi.fn().mockResolvedValue({
-          code: "TESTCODE",
-          created: true,
-        }) as unknown as PluginRuntime["channel"]["pairing"]["upsertPairingRequest"],
+        buildPairingReply: typedMock(() => "Pairing code: TESTCODE"),
+        readAllowFromStore: typedMock().mockResolvedValue([]),
+        upsertPairingRequest: typedMock().mockResolvedValue({ code: "TESTCODE", created: true }),
       },
       media: createPluginRuntimeMediaMock(),
       activity: {
-        record: vi.fn() as unknown as PluginRuntime["channel"]["activity"]["record"],
-        get: vi.fn() as unknown as PluginRuntime["channel"]["activity"]["get"],
+        record: typedMock(),
+        get: typedMock(),
       },
       session: {
-        resolveStorePath:
-          vi.fn(() => "/tmp/sessions.json") as unknown as PluginRuntime["channel"]["session"]["resolveStorePath"],
-        readSessionUpdatedAt:
-          vi.fn(() => undefined) as unknown as PluginRuntime["channel"]["session"]["readSessionUpdatedAt"],
-        recordSessionMetaFromInbound:
-          vi.fn() as unknown as PluginRuntime["channel"]["session"]["recordSessionMetaFromInbound"],
-        recordInboundSession:
-          vi.fn() as unknown as PluginRuntime["channel"]["session"]["recordInboundSession"],
-        updateLastRoute:
-          vi.fn() as unknown as PluginRuntime["channel"]["session"]["updateLastRoute"],
+        resolveStorePath: typedMock(() => "/tmp/sessions.json"),
+        readSessionUpdatedAt: typedMock(() => undefined),
+        recordSessionMetaFromInbound: typedMock(),
+        recordInboundSession: typedMock(),
+        updateLastRoute: typedMock(),
       },
       mentions: {
-        buildMentionRegexes: vi.fn(() => [
-          /\bbert\b/i,
-        ]) as unknown as PluginRuntime["channel"]["mentions"]["buildMentionRegexes"],
-        matchesMentionPatterns: vi.fn((text: string, regexes: RegExp[]) =>
-          regexes.some((regex) => regex.test(text)),
-        ) as unknown as PluginRuntime["channel"]["mentions"]["matchesMentionPatterns"],
-        matchesMentionWithExplicit: vi.fn(
-          (params: { text: string; mentionRegexes: RegExp[]; explicitWasMentioned?: boolean }) =>
-            params.explicitWasMentioned === true
-              ? true
-              : params.mentionRegexes.some((regex) => regex.test(params.text)),
-        ) as unknown as PluginRuntime["channel"]["mentions"]["matchesMentionWithExplicit"],
+        buildMentionRegexes: typedMock(() => [/\bbert\b/i]),
+        matchesMentionPatterns: typedMock((text: string, regexes: RegExp[]) => regexes.some((r) => r.test(text))),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        matchesMentionWithExplicit: typedMock((params: any) =>
+          params.explicitWasMentioned ? true : params.mentionRegexes.some((r: RegExp) => r.test(params.text))
+        ),
       },
       reactions: {
-        shouldAckReaction: vi.fn(() => false) as unknown as PluginRuntime["channel"]["reactions"]["shouldAckReaction"],
-        removeAckReactionAfterReply: vi.fn() as unknown as PluginRuntime["channel"]["reactions"]["removeAckReactionAfterReply"],
+        shouldAckReaction: typedMock(() => false),
+        removeAckReactionAfterReply: typedMock(),
       },
       groups: {
-        resolveGroupPolicy:
-          vi.fn(() => "open") as unknown as PluginRuntime["channel"]["groups"]["resolveGroupPolicy"],
-        resolveRequireMention:
-          vi.fn(() => false) as unknown as PluginRuntime["channel"]["groups"]["resolveRequireMention"],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        resolveGroupPolicy: typedMock(() => "open" as any),
+        resolveRequireMention: typedMock(() => false),
       },
       debounce: {
-        createInboundDebouncer: vi.fn(
-          (params: { onFlush: (items: unknown[]) => Promise<void> }) => ({
-            enqueue: async (item: unknown) => {
-              await params.onFlush([item]);
-            },
-            flushKey: vi.fn(),
-            cancelKey: vi.fn(() => false),
-          }),
-        ) as unknown as PluginRuntime["channel"]["debounce"]["createInboundDebouncer"],
-        resolveInboundDebounceMs:
-          vi.fn(() => 0) as unknown as PluginRuntime["channel"]["debounce"]["resolveInboundDebounceMs"],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        createInboundDebouncer: typedMock((params: any) => ({
+          enqueue: async (item: unknown) => { await params.onFlush([item]); },
+          flushKey: vi.fn(),
+          cancelKey: vi.fn(() => false),
+        })),
+        resolveInboundDebounceMs: typedMock(() => 0),
       },
       commands: {
-        resolveCommandAuthorizedFromAuthorizers:
-          vi.fn(() => false) as unknown as PluginRuntime["channel"]["commands"]["resolveCommandAuthorizedFromAuthorizers"],
-        isControlCommandMessage:
-          vi.fn() as unknown as PluginRuntime["channel"]["commands"]["isControlCommandMessage"],
-        shouldComputeCommandAuthorized:
-          vi.fn() as unknown as PluginRuntime["channel"]["commands"]["shouldComputeCommandAuthorized"],
-        shouldHandleTextCommands:
-          vi.fn() as unknown as PluginRuntime["channel"]["commands"]["shouldHandleTextCommands"],
+        resolveCommandAuthorizedFromAuthorizers: typedMock(() => false),
+        isControlCommandMessage: typedMock(),
+        shouldComputeCommandAuthorized: typedMock(),
+        shouldHandleTextCommands: typedMock(),
       },
-      discord: createChannelOpsStub<PluginRuntime["channel"]["discord"]>(),
-      slack: createChannelOpsStub<PluginRuntime["channel"]["slack"]>(),
-      telegram: createChannelOpsStub<PluginRuntime["channel"]["telegram"]>(),
-      matrix: createChannelOpsStub<PluginRuntime["channel"]["matrix"]>(),
-      signal: createChannelOpsStub<PluginRuntime["channel"]["signal"]>(),
-      imessage: createChannelOpsStub<PluginRuntime["channel"]["imessage"]>(),
-      whatsapp: createChannelOpsStub<PluginRuntime["channel"]["whatsapp"]>(),
-      line: createChannelOpsStub<PluginRuntime["channel"]["line"]>(),
-    } as PluginRuntime["channel"],
+      discord: createProxySurface(),
+      slack: createProxySurface(),
+      telegram: createProxySurface(),
+      matrix: createProxySurface(),
+      signal: createProxySurface(),
+      imessage: createProxySurface(),
+      whatsapp: createProxySurface(),
+      line: createProxySurface(),
+    },
   };
 
   return mergeDeep(base, overrides);
