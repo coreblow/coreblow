@@ -13,6 +13,7 @@ import type {
 import type { ModelCatalogEntry } from "../agents/model-catalog.js";
 import type { ProviderCapabilities } from "../agents/provider-capabilities.js";
 import type { AnyAgentTool } from "../agents/tools/common.js";
+import type { PromptMode } from "../agents/system-prompt.types.js";
 import type { ThinkLevel } from "../auto-reply/thinking.js";
 import type { ReplyPayload } from "../auto-reply/types.js";
 import type {
@@ -360,6 +361,25 @@ export type ProviderPluginCatalog = {
  */
 export type ProviderRuntimeModel = Model<Api> & {
   contextTokens?: number;
+};
+
+/** Context passed to provider system prompt contribution hooks. */
+export type ProviderSystemPromptContributionContext = {
+  config?: CoreBlowConfig;
+  agentDir?: string;
+  workspaceDir?: string;
+  provider: string;
+  modelId: string;
+  promptMode: PromptMode;
+  runtimeChannel?: string;
+  runtimeCapabilities?: string[];
+  agentId?: string;
+  trigger?: "cron" | "heartbeat" | "manual" | "memory" | "overflow" | "user";
+};
+
+/** Context for transforming a system prompt via a provider hook. */
+export type ProviderTransformSystemPromptContext = ProviderSystemPromptContributionContext & {
+  systemPrompt: string;
 };
 
 export type ProviderNormalizeToolSchemasContext = {
