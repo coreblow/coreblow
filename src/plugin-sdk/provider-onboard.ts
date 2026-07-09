@@ -532,3 +532,4 @@ export function ensureModelAllowlistEntry(params: {
     },
   };
 }
+export { resolveAgentModelPrimaryValue, resolveAgentModelFallbackValues } from "../config/model-input.js";

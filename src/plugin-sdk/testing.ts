@@ -5,12 +5,91 @@ import { expect, it } from "vitest";
 // Narrow public testing surface for plugin authors.
 // Keep this list additive and limited to helpers we are willing to support.
 
-export { removeAckReactionAfterReply, shouldAckReaction } from "../channels/ack-reactions.js";
-export type { ChannelAccountSnapshot, ChannelGatewayContext } from "../channels/plugins/types.js";
+export {
+  removeAckReactionAfterReply,
+  shouldAckReaction,
+} from "../channels/ack-reactions.js";
+export type { ChannelAccountSnapshot } from "../channels/plugins/types.public.js";
+export type { ChannelGatewayContext } from "../channels/plugins/types.adapters.js";
 export type { CoreBlowConfig } from "../config/config.js";
+export {
+  isAtLeast,
+  parseSemver,
+} from "../infra/runtime-guard.js";
+export {
+  deliverOutboundPayloads,
+} from "../infra/outbound/deliver.js";
+export {
+  createEmptyPluginRegistry,
+  createPluginRegistry,
+  type PluginRecord,
+} from "../plugins/registry.js";
+export {
+  providerContractLoadError,
+  pluginRegistrationContractRegistry,
+  resolveProviderContractProvidersForPluginIds,
+} from "../plugins/contracts/registry.js";
+export { loadPluginManifestRegistry } from "../plugins/manifest-registry.js";
+export { parseMinHostVersionRequirement } from "../plugins/min-host-version.js";
+export {
+  initializeGlobalHookRunner,
+  resetGlobalHookRunner,
+} from "../plugins/hook-runner-global.js";
+export { addTestHook } from "../plugins/hooks.test-helpers.js";
+export { createPluginRecord } from "../plugins/status.test-helpers.js";
+export {
+  getActivePluginRegistry,
+  releasePinnedPluginChannelRegistry,
+  resetPluginRuntimeStateForTest,
+  setActivePluginRegistry,
+} from "../plugins/runtime.js";
+export {
+  listImportedBundledPluginFacadeIds,
+  resetFacadeRuntimeStateForTest,
+} from "./facade-runtime.js";
+export {
+  capturePluginRegistration,
+  createCapturedPluginRegistration,
+} from "../plugins/captured-registration.js";
+export { runProviderCatalog } from "../plugins/provider-discovery.js";
+export {
+  buildProviderPluginMethodChoice,
+  resolveProviderModelPickerEntries,
+  resolveProviderWizardOptions,
+} from "../plugins/provider-wizard.js";
+export { resolveProviderPluginChoice } from "../plugins/provider-auth-choice.runtime.js";
 export type { PluginRuntime } from "../plugins/runtime/types.js";
+export type { PluginHookRegistration } from "../plugins/hook-types.js";
 export type { RuntimeEnv } from "../runtime.js";
 export type { MockFn } from "../test-utils/vitest-mock-fn.js";
+export {
+  createOutboundTestPlugin,
+  createTestRegistry,
+} from "../test-utils/channel-plugins.js";
+export {
+  registerProviderPlugins,
+  requireRegisteredProvider,
+} from "../test-utils/plugin-registration.js";
+export {
+  registerProviderPlugin,
+  registerSingleProviderPlugin,
+} from "./plugin-test-runtime.js";
+export { createTempHomeEnv, type TempHomeEnv } from "../test-utils/temp-home.js";
+export {
+  createRuntimeEnv,
+} from "../test-utils/plugin-runtime-env.js";
+export {
+  createQueuedWizardPrompter,
+  createTestWizardPrompter,
+  type WizardPrompter,
+} from "../test-utils/plugin-setup-wizard.js";
+export { createMockPluginRegistry } from "../plugins/hooks.test-helpers.js";
+export { buildPluginApi } from "../plugins/api-builder.js";
+export {
+  expectAugmentedCodexCatalog,
+  expectedAugmentedOpenaiCodexCatalogEntries,
+  expectCodexMissingAuthHint,
+} from "../plugins/provider-runtime.test-support.js";
 
 /** Create a tiny Windows `.cmd` shim fixture for plugin tests that spawn CLIs. */
 export async function createWindowsCmdShimFixture(params: {
