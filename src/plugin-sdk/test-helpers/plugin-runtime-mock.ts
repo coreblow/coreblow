@@ -235,7 +235,8 @@ export function createPluginRuntimeMock(overrides: DeepPartial<PluginRuntime> = 
         resolveHumanDelayConfig: typedMock(),
         dispatchReplyFromConfig: typedMock(async () => emptyDispatchResult),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        withReplyDispatcher: typedMock(async ({ dispatcher, run, onSettled }: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        withReplyDispatcher: typedMock<PluginRuntime["channel"]["reply"]["withReplyDispatcher"]>(async ({ dispatcher, run, onSettled }: any) => {
           try {
             return await run();
           } finally {
@@ -248,14 +249,15 @@ export function createPluginRuntimeMock(overrides: DeepPartial<PluginRuntime> = 
           }
         }),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        finalizeInboundContext: typedMock((ctx: any) => ctx),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        finalizeInboundContext: typedMock<PluginRuntime["channel"]["reply"]["finalizeInboundContext"]>((ctx: any) => ctx),
         formatAgentEnvelope: typedMock((opts: { body: string }) => opts.body),
         formatInboundEnvelope: typedMock((opts: { body: string }) => opts.body),
         resolveEnvelopeFormatOptions: typedMock(() => emptyEnvelopeOptions),
       },
       routing: {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        buildAgentSessionKey: typedMock(({ agentId, channel, peer }: any) =>
+        buildAgentSessionKey: typedMock(({ agentId, channel, peer }: Parameters<PluginRuntime["channel"]["routing"]["buildAgentSessionKey"]>[0]) =>
           `agent:${agentId}:${channel}:${peer?.kind ?? "direct"}:${peer?.id ?? "peer"}`
         ),
         resolveAgentRoute: typedMock(() => emptyAgentRoute),
@@ -281,8 +283,8 @@ export function createPluginRuntimeMock(overrides: DeepPartial<PluginRuntime> = 
         buildMentionRegexes: typedMock(() => [/\bbert\b/i]),
         matchesMentionPatterns: typedMock((text: string, regexes: RegExp[]) => regexes.some((r) => r.test(text))),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        matchesMentionWithExplicit: typedMock((params: any) =>
-          params.explicitWasMentioned ? true : params.mentionRegexes.some((r: RegExp) => r.test(params.text))
+        matchesMentionWithExplicit: typedMock((params: Parameters<PluginRuntime["channel"]["mentions"]["matchesMentionWithExplicit"]>[0]) =>
+          params.explicit?.isExplicitlyMentioned ? true : params.mentionRegexes.some((r: RegExp) => r.test(params.text))
         ),
       },
       reactions: {
@@ -295,7 +297,8 @@ export function createPluginRuntimeMock(overrides: DeepPartial<PluginRuntime> = 
       },
       debounce: {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        createInboundDebouncer: typedMock((params: any) => ({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        createInboundDebouncer: typedMock<PluginRuntime["channel"]["debounce"]["createInboundDebouncer"]>((params: any) => ({
           enqueue: async (item: unknown) => { await params.onFlush([item]); },
           flushKey: vi.fn(),
           cancelKey: vi.fn(() => false),
