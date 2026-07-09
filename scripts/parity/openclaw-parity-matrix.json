@@ -12,10 +12,10 @@
     "source_parity_both": 6760,
     "source_cb_exclusive": 1799,
     "source_missing_from_cb": 1683,
-    "test_files_cb": 4931,
+    "test_files_cb": 4932,
     "test_files_oc": 5246,
-    "tests_both_covered": 3495,
-    "tests_gap_oc_has_cb_missing": 1506,
+    "tests_both_covered": 3496,
+    "tests_gap_oc_has_cb_missing": 1505,
     "tests_cb_exclusive": 1378,
     "export_files_with_gaps": 60,
     "test_scenario_files_with_gaps": 40,
@@ -1300,9 +1300,9 @@
         "sharedSourcePaths": 439,
         "coreBlowOnlySourcePaths": 120,
         "openClawOnlySourcePaths": 0,
-        "sharedTestPaths": 43,
+        "sharedTestPaths": 44,
         "coreBlowOnlyTestPaths": 25,
-        "openClawTestGaps": 60
+        "openClawTestGaps": 59
       },
       "samples": {
         "openClawOnlySourcePaths": [],
