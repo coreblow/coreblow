@@ -26,3 +26,5 @@ export function isLiveTestEnabled(input: NodeJS.ProcessEnv | readonly string[] =
 export function installPinnedHostnameTestHooks(): void {
   // CoreBlow's provider tests use the default guarded fetch implementation.
 }
+
+export { createProviderUsageFetch, makeResponse } from "../test-utils/provider-usage-fetch.js";

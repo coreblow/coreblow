@@ -8,7 +8,7 @@ import {
 type OpenRouterStreamWrapContext = {
   streamFn?: StreamFn;
   modelId: string;
-  thinkingLevel?: "off" | "minimal" | "low" | "medium" | "high" | "xhigh" | "adaptive";
+  thinkingLevel?: "off" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max" | "adaptive";
   extraParams?: Record<string, unknown>;
 };
 

@@ -21,7 +21,7 @@ import { createHash, createHmac } from 'node:crypto';
  */
 export type PromptMode = 'full' | 'minimal' | 'none';
 export type OwnerIdDisplay = 'raw' | 'hash';
-export type ThinkLevel = 'off' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh' | 'adaptive';
+export type ThinkLevel = 'off' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh' | 'max' | 'adaptive';
 export type ReasoningLevel = 'off' | 'on' | 'stream';
 export type MemoryCitationsMode = 'inline' | 'footnote' | 'off';
 

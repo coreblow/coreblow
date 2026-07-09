@@ -1,6 +1,6 @@
 import { matchesExactOrPrefix } from "../plugin-sdk/provider-model-shared.js";
 
-export type ThinkLevel = "off" | "minimal" | "low" | "medium" | "high" | "xhigh" | "adaptive";
+export type ThinkLevel = "off" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max" | "adaptive";
 export type VerboseLevel = "off" | "on" | "full";
 export type NoticeLevel = "off" | "on" | "full";
 export type ElevatedLevel = "off" | "on" | "ask" | "full";
