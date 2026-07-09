@@ -1265,6 +1265,31 @@ export type ProviderPlugin = {
     ctx: ProviderResolveSyntheticAuthContext,
   ) => ProviderSyntheticAuthResult | null | undefined;
   onModelSelected?: (ctx: ProviderModelSelectedContext) => Promise<void>;
+  /**
+   * Provider-owned replay/compaction transcript policy.
+   *
+   * Return only the fields the provider wants to override; core fills the rest
+   * with its default policy.
+   */
+  buildReplayPolicy?: (ctx: ProviderReplayPolicyContext) => ProviderReplayPolicy | null | undefined;
+};
+
+/** Provider-owned replay/compaction transcript policy. */
+export type ProviderReplayPolicy = {
+  applyAssistantFirstOrderingFix?: boolean;
+  validateGeminiTurns?: boolean;
+  validateAnthropicTurns?: boolean;
+  sanitizeThoughtSignatures?: {
+    allowBase64Only?: boolean;
+    includeCamelCase?: boolean;
+  };
+};
+
+/** Input context for buildReplayPolicy hook. */
+export type ProviderReplayPolicyContext = {
+  provider: string;
+  modelApi?: string | null;
+  modelId?: string;
 };
 
 export type WebSearchProviderId = string;
