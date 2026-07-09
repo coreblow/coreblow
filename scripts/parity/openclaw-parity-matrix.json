@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8538,
+    "cb_source_files": 8545,
     "oc_source_files": 8443,
-    "source_parity_both": 6739,
+    "source_parity_both": 6746,
     "source_cb_exclusive": 1799,
-    "source_missing_from_cb": 1704,
+    "source_missing_from_cb": 1697,
     "test_files_cb": 4931,
     "test_files_oc": 5246,
     "tests_both_covered": 3495,
@@ -35,9 +35,9 @@
       "priority": "P0",
       "implementationSurface": "src/agents, src/auth, src/agents/turn-engine",
       "counts": {
-        "sharedSourcePaths": 589,
+        "sharedSourcePaths": 591,
         "coreBlowOnlySourcePaths": 205,
-        "openClawOnlySourcePaths": 285,
+        "openClawOnlySourcePaths": 283,
         "sharedTestPaths": 406,
         "coreBlowOnlyTestPaths": 199,
         "openClawTestGaps": 316
@@ -1111,14 +1111,69 @@
       ]
     },
     {
+      "domain": "src/secrets",
+      "status": "partial",
+      "priority": "P2",
+      "implementationSurface": "src/secrets",
+      "counts": {
+        "sharedSourcePaths": 35,
+        "coreBlowOnlySourcePaths": 4,
+        "openClawOnlySourcePaths": 31,
+        "sharedTestPaths": 17,
+        "coreBlowOnlyTestPaths": 4,
+        "openClawTestGaps": 38
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [
+          "src/secrets/channel-contract-api.ts",
+          "src/secrets/channel-env-var-names.ts",
+          "src/secrets/channel-env-vars.ts",
+          "src/secrets/channel-secret-basic-runtime.ts",
+          "src/secrets/channel-secret-collector-runtime.ts",
+          "src/secrets/channel-secret-tts-runtime.ts",
+          "src/secrets/legacy-secretref-env-marker.ts",
+          "src/secrets/resolve-types.ts",
+          "src/secrets/runtime-auth.integration.test-helpers.ts",
+          "src/secrets/runtime-channel-inactive-variants.test-support.ts",
+          "src/secrets/runtime-command-secrets.ts",
+          "src/secrets/runtime-config-collectors-plugins.ts"
+        ],
+        "openClawTestGapPaths": [
+          "src/secrets/channel-contract-api.external.test.ts",
+          "src/secrets/channel-contract-api.fast-path.test.ts",
+          "src/secrets/channel-contract-surface-guardrails.test.ts",
+          "src/secrets/channel-env-vars.dynamic.test.ts",
+          "src/secrets/provider-env-vars.dynamic.test.ts",
+          "src/secrets/runtime-auth-profiles-oauth-policy.test.ts",
+          "src/secrets/runtime-auth-refresh-failure.test.ts",
+          "src/secrets/runtime-auth-store-inline-refs.test.ts",
+          "src/secrets/runtime-channel-inactive-variants.test.ts",
+          "src/secrets/runtime-command-secrets.test.ts",
+          "src/secrets/runtime-config-collectors-channels.test.ts",
+          "src/secrets/runtime-config-collectors-plugins.bundled.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "src/secrets/encryption.ts",
+          "src/secrets/env-secrets.ts",
+          "src/secrets/key-rotation.ts",
+          "src/secrets/types.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/secrets",
+        "pnpm check"
+      ]
+    },
+    {
       "domain": "extensions/feishu",
       "status": "partial",
       "priority": "P2",
       "implementationSurface": "extensions/feishu plus plugin-sdk channel/runtime surfaces",
       "counts": {
-        "sharedSourcePaths": 76,
+        "sharedSourcePaths": 78,
         "coreBlowOnlySourcePaths": 12,
-        "openClawOnlySourcePaths": 51,
+        "openClawOnlySourcePaths": 49,
         "sharedTestPaths": 44,
         "coreBlowOnlyTestPaths": 11,
         "openClawTestGaps": 18
@@ -1179,9 +1234,9 @@
       "priority": "P2",
       "implementationSurface": "src/plugin-sdk public API",
       "counts": {
-        "sharedSourcePaths": 430,
+        "sharedSourcePaths": 433,
         "coreBlowOnlySourcePaths": 120,
-        "openClawOnlySourcePaths": 9,
+        "openClawOnlySourcePaths": 6,
         "sharedTestPaths": 43,
         "coreBlowOnlyTestPaths": 25,
         "openClawTestGaps": 60
@@ -1190,9 +1245,6 @@
         "openClawOnlySourcePaths": [
           "src/plugin-sdk/agent-harness-runtime.ts",
           "src/plugin-sdk/channel-ingress.ts",
-          "src/plugin-sdk/codex-mcp-projection.ts",
-          "src/plugin-sdk/codex-native-task-runtime.ts",
-          "src/plugin-sdk/feishu-security.ts",
           "src/plugin-sdk/provider-transport-runtime.ts",
           "src/plugin-sdk/test-helpers/plugin-runtime-mock.ts",
           "src/plugin-sdk/test-helpers/provider-discovery-contract.ts",
@@ -1230,61 +1282,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/plugin-sdk",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "src/secrets",
-      "status": "partial",
-      "priority": "P2",
-      "implementationSurface": "src/secrets",
-      "counts": {
-        "sharedSourcePaths": 35,
-        "coreBlowOnlySourcePaths": 4,
-        "openClawOnlySourcePaths": 31,
-        "sharedTestPaths": 17,
-        "coreBlowOnlyTestPaths": 4,
-        "openClawTestGaps": 38
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/secrets/channel-contract-api.ts",
-          "src/secrets/channel-env-var-names.ts",
-          "src/secrets/channel-env-vars.ts",
-          "src/secrets/channel-secret-basic-runtime.ts",
-          "src/secrets/channel-secret-collector-runtime.ts",
-          "src/secrets/channel-secret-tts-runtime.ts",
-          "src/secrets/legacy-secretref-env-marker.ts",
-          "src/secrets/resolve-types.ts",
-          "src/secrets/runtime-auth.integration.test-helpers.ts",
-          "src/secrets/runtime-channel-inactive-variants.test-support.ts",
-          "src/secrets/runtime-command-secrets.ts",
-          "src/secrets/runtime-config-collectors-plugins.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/secrets/channel-contract-api.external.test.ts",
-          "src/secrets/channel-contract-api.fast-path.test.ts",
-          "src/secrets/channel-contract-surface-guardrails.test.ts",
-          "src/secrets/channel-env-vars.dynamic.test.ts",
-          "src/secrets/provider-env-vars.dynamic.test.ts",
-          "src/secrets/runtime-auth-profiles-oauth-policy.test.ts",
-          "src/secrets/runtime-auth-refresh-failure.test.ts",
-          "src/secrets/runtime-auth-store-inline-refs.test.ts",
-          "src/secrets/runtime-channel-inactive-variants.test.ts",
-          "src/secrets/runtime-command-secrets.test.ts",
-          "src/secrets/runtime-config-collectors-channels.test.ts",
-          "src/secrets/runtime-config-collectors-plugins.bundled.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/secrets/encryption.ts",
-          "src/secrets/env-secrets.ts",
-          "src/secrets/key-rotation.ts",
-          "src/secrets/types.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/secrets",
         "pnpm check"
       ]
     },
