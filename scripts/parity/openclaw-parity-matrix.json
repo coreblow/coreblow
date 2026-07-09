@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8504,
+    "cb_source_files": 8510,
     "oc_source_files": 8443,
-    "source_parity_both": 6705,
+    "source_parity_both": 6711,
     "source_cb_exclusive": 1799,
-    "source_missing_from_cb": 1738,
+    "source_missing_from_cb": 1732,
     "test_files_cb": 4931,
     "test_files_oc": 5246,
     "tests_both_covered": 3495,
@@ -804,9 +804,9 @@
       "priority": "P1",
       "implementationSurface": "src/plugin-sdk public API",
       "counts": {
-        "sharedSourcePaths": 397,
+        "sharedSourcePaths": 403,
         "coreBlowOnlySourcePaths": 120,
-        "openClawOnlySourcePaths": 42,
+        "openClawOnlySourcePaths": 36,
         "sharedTestPaths": 43,
         "coreBlowOnlyTestPaths": 25,
         "openClawTestGaps": 60
@@ -818,13 +818,13 @@
           "src/plugin-sdk/codex-mcp-projection.ts",
           "src/plugin-sdk/codex-native-task-runtime.ts",
           "src/plugin-sdk/feishu-security.ts",
-          "src/plugin-sdk/matrix-deps.ts",
           "src/plugin-sdk/provider-http-test-mocks.ts",
           "src/plugin-sdk/provider-stream-shared.ts",
           "src/plugin-sdk/provider-transport-runtime.ts",
           "src/plugin-sdk/test-helpers/agents/auth-profile-runtime-contract.ts",
           "src/plugin-sdk/test-helpers/agents/openclaw-owned-tool-runtime-contract.ts",
-          "src/plugin-sdk/test-helpers/agents/prompt-overlay-runtime-contract.ts"
+          "src/plugin-sdk/test-helpers/agents/prompt-overlay-runtime-contract.ts",
+          "src/plugin-sdk/test-helpers/agents/transcript-repair-runtime-contract.ts"
         ],
         "openClawTestGapPaths": [
           "src/plugin-sdk/acp-runtime.test.ts",
