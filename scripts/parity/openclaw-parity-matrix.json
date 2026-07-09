@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8536,
+    "cb_source_files": 8538,
     "oc_source_files": 8443,
-    "source_parity_both": 6737,
+    "source_parity_both": 6739,
     "source_cb_exclusive": 1799,
-    "source_missing_from_cb": 1706,
+    "source_missing_from_cb": 1704,
     "test_files_cb": 4931,
     "test_files_oc": 5246,
     "tests_both_covered": 3495,
@@ -1051,68 +1051,6 @@
       ]
     },
     {
-      "domain": "src/plugin-sdk",
-      "status": "partial",
-      "priority": "P2",
-      "implementationSurface": "src/plugin-sdk public API",
-      "counts": {
-        "sharedSourcePaths": 428,
-        "coreBlowOnlySourcePaths": 120,
-        "openClawOnlySourcePaths": 11,
-        "sharedTestPaths": 43,
-        "coreBlowOnlyTestPaths": 25,
-        "openClawTestGaps": 60
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/plugin-sdk/agent-harness-runtime.ts",
-          "src/plugin-sdk/channel-ingress.ts",
-          "src/plugin-sdk/codex-mcp-projection.ts",
-          "src/plugin-sdk/codex-native-task-runtime.ts",
-          "src/plugin-sdk/feishu-security.ts",
-          "src/plugin-sdk/provider-stream-shared.ts",
-          "src/plugin-sdk/provider-transport-runtime.ts",
-          "src/plugin-sdk/test-helpers/plugin-runtime-mock.ts",
-          "src/plugin-sdk/test-helpers/provider-discovery-contract.ts",
-          "src/plugin-sdk/test-helpers/provider-runtime-contract.ts",
-          "src/plugin-sdk/test-helpers/web-fetch-provider-contract.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/plugin-sdk/acp-runtime.test.ts",
-          "src/plugin-sdk/agent-harness-runtime.test.ts",
-          "src/plugin-sdk/api-baseline.test.ts",
-          "src/plugin-sdk/approval-auth-helpers.test.ts",
-          "src/plugin-sdk/approval-delivery-helpers.test.ts",
-          "src/plugin-sdk/approval-native-helpers.test.ts",
-          "src/plugin-sdk/channel-entry-contract.test.ts",
-          "src/plugin-sdk/channel-inbound.test.ts",
-          "src/plugin-sdk/channel-lifecycle.queue.test.ts",
-          "src/plugin-sdk/channel-message.test.ts",
-          "src/plugin-sdk/channel-route.test.ts",
-          "src/plugin-sdk/channel-streaming.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/plugin-sdk/acp.ts",
-          "src/plugin-sdk/amazon-bedrock.ts",
-          "src/plugin-sdk/bluebubbles-policy.ts",
-          "src/plugin-sdk/bluebubbles.ts",
-          "src/plugin-sdk/browser-runtime.ts",
-          "src/plugin-sdk/browser-support.ts",
-          "src/plugin-sdk/browser.ts",
-          "src/plugin-sdk/byteplus.ts",
-          "src/plugin-sdk/channel-helpers.ts",
-          "src/plugin-sdk/chutes.ts",
-          "src/plugin-sdk/cli-scaffold.ts",
-          "src/plugin-sdk/cloudflare-ai-gateway.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/plugin-sdk",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/cron",
       "status": "partial",
       "priority": "P2",
@@ -1232,6 +1170,66 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/feishu",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/plugin-sdk",
+      "status": "partial",
+      "priority": "P2",
+      "implementationSurface": "src/plugin-sdk public API",
+      "counts": {
+        "sharedSourcePaths": 430,
+        "coreBlowOnlySourcePaths": 120,
+        "openClawOnlySourcePaths": 9,
+        "sharedTestPaths": 43,
+        "coreBlowOnlyTestPaths": 25,
+        "openClawTestGaps": 60
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [
+          "src/plugin-sdk/agent-harness-runtime.ts",
+          "src/plugin-sdk/channel-ingress.ts",
+          "src/plugin-sdk/codex-mcp-projection.ts",
+          "src/plugin-sdk/codex-native-task-runtime.ts",
+          "src/plugin-sdk/feishu-security.ts",
+          "src/plugin-sdk/provider-transport-runtime.ts",
+          "src/plugin-sdk/test-helpers/plugin-runtime-mock.ts",
+          "src/plugin-sdk/test-helpers/provider-discovery-contract.ts",
+          "src/plugin-sdk/test-helpers/web-fetch-provider-contract.ts"
+        ],
+        "openClawTestGapPaths": [
+          "src/plugin-sdk/acp-runtime.test.ts",
+          "src/plugin-sdk/agent-harness-runtime.test.ts",
+          "src/plugin-sdk/api-baseline.test.ts",
+          "src/plugin-sdk/approval-auth-helpers.test.ts",
+          "src/plugin-sdk/approval-delivery-helpers.test.ts",
+          "src/plugin-sdk/approval-native-helpers.test.ts",
+          "src/plugin-sdk/channel-entry-contract.test.ts",
+          "src/plugin-sdk/channel-inbound.test.ts",
+          "src/plugin-sdk/channel-lifecycle.queue.test.ts",
+          "src/plugin-sdk/channel-message.test.ts",
+          "src/plugin-sdk/channel-route.test.ts",
+          "src/plugin-sdk/channel-streaming.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "src/plugin-sdk/acp.ts",
+          "src/plugin-sdk/amazon-bedrock.ts",
+          "src/plugin-sdk/bluebubbles-policy.ts",
+          "src/plugin-sdk/bluebubbles.ts",
+          "src/plugin-sdk/browser-runtime.ts",
+          "src/plugin-sdk/browser-support.ts",
+          "src/plugin-sdk/browser.ts",
+          "src/plugin-sdk/byteplus.ts",
+          "src/plugin-sdk/channel-helpers.ts",
+          "src/plugin-sdk/chutes.ts",
+          "src/plugin-sdk/cli-scaffold.ts",
+          "src/plugin-sdk/cloudflare-ai-gateway.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/plugin-sdk",
         "pnpm check"
       ]
     },
