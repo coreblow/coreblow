@@ -121,11 +121,32 @@ export function buildProviderPluginMethodChoice(providerId: string, methodId: st
   return `${PROVIDER_PLUGIN_CHOICE_PREFIX}${providerId.trim()}:${methodId.trim()}`;
 }
 
+type ProviderWizardProvidersResolver = (params: {
+  config?: CoreBlowConfig;
+  workspaceDir?: string;
+  env?: NodeJS.ProcessEnv;
+}) => ProviderPlugin[];
+
+let providerWizardProvidersResolverForTest: ProviderWizardProvidersResolver | undefined;
+
+export function setProviderWizardProvidersResolverForTest(
+  resolver: ProviderWizardProvidersResolver | undefined,
+): () => void {
+  const previous = providerWizardProvidersResolverForTest;
+  providerWizardProvidersResolverForTest = resolver;
+  return () => {
+    providerWizardProvidersResolverForTest = previous;
+  };
+}
+
 function resolveProviderWizardProviders(params: {
   config?: CoreBlowConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 }): ProviderPlugin[] {
+  if (providerWizardProvidersResolverForTest) {
+    return providerWizardProvidersResolverForTest(params);
+  }
   if (!params.config) {
     return resolvePluginProviders(params);
   }

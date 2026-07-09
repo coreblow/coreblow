@@ -1,10 +1,19 @@
 export type {
+  InboundImplicitMentionKind,
+  InboundMentionDecision,
+  InboundMentionFacts,
+  InboundMentionPolicy,
   MentionGateParams,
   MentionGateResult,
   MentionGateWithBypassParams,
   MentionGateWithBypassResult,
+  ResolveInboundMentionDecisionFlatParams,
+  ResolveInboundMentionDecisionNestedParams,
+  ResolveInboundMentionDecisionParams,
 } from "../channels/mention-gating.js";
 export {
+  implicitMentionKindWhen,
+  resolveInboundMentionDecision,
   resolveMentionGating,
   resolveMentionGatingWithBypass,
 } from "../channels/mention-gating.js";

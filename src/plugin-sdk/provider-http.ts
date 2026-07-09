@@ -161,3 +161,53 @@ export async function fetchProviderDownloadResponse(params: {
   await assertOkOrThrowHttpError(response, params.requestFailedMessage);
   return response;
 }
+
+import { readProviderJsonObjectResponse } from "../agents/provider-http-errors.js";
+
+export async function pollProviderOperationJson<TPayload>(params: {
+  url: string;
+  headers: Headers;
+  deadline: ProviderOperationDeadline;
+  defaultTimeoutMs: number;
+  fetchFn: typeof fetch;
+  maxAttempts: number;
+  pollIntervalMs: number;
+  requestFailedMessage: string;
+  timeoutMessage: string;
+  isComplete: (payload: TPayload) => boolean;
+  getFailureMessage?: (payload: TPayload) => string | undefined;
+}): Promise<TPayload> {
+  for (let attempt = 0; attempt < params.maxAttempts; attempt += 1) {
+    const response = await fetchProviderOperationResponse({
+      stage: "poll",
+      url: params.url,
+      init: {
+        method: "GET",
+        headers: params.headers,
+      },
+      timeoutMs: createProviderOperationTimeoutResolver({
+        deadline: params.deadline,
+        defaultTimeoutMs: params.defaultTimeoutMs,
+      }),
+      fetchFn: params.fetchFn,
+      provider: "provider-http",
+      requestFailedMessage: params.requestFailedMessage,
+    });
+    const payload = (await readProviderJsonObjectResponse(
+      response,
+      params.requestFailedMessage,
+    )) as TPayload;
+    if (params.isComplete(payload)) {
+      return payload;
+    }
+    const failureMessage = params.getFailureMessage?.(payload);
+    if (failureMessage) {
+      throw new Error(failureMessage);
+    }
+    await waitProviderOperationPollInterval({
+      deadline: params.deadline,
+      pollIntervalMs: params.pollIntervalMs,
+    });
+  }
+  throw new Error(params.timeoutMessage);
+}

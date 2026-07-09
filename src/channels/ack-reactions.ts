@@ -101,3 +101,59 @@ export function removeAckReactionAfterReply(params: {
     params.remove().catch((err) => params.onError?.(err));
   });
 }
+
+export type AckReactionHandle = {
+  ackReactionPromise: Promise<boolean>;
+  ackReactionValue: string;
+  remove: () => Promise<void>;
+};
+
+export function createAckReactionHandle(params: {
+  ackReactionValue: string;
+  send: () => Promise<void>;
+  remove: () => Promise<void>;
+  onSendError?: (err: unknown) => void;
+}): AckReactionHandle | null {
+  const ackReactionValue = params.ackReactionValue.trim();
+  if (!ackReactionValue) {
+    return null;
+  }
+
+  let sendPromise: Promise<void>;
+  try {
+    sendPromise = params.send();
+  } catch (err) {
+    sendPromise = Promise.reject(err);
+  }
+
+  return {
+    ackReactionPromise: sendPromise.then(
+      () => true,
+      (err) => {
+        params.onSendError?.(err);
+        return false;
+      },
+    ),
+    ackReactionValue,
+    remove: params.remove,
+  };
+}
+
+export function removeAckReactionHandleAfterReply(params: {
+  removeAfterReply: boolean;
+  ackReaction: AckReactionHandle | null | undefined;
+  onError?: (err: unknown) => void;
+}) {
+  if (!params.removeAfterReply) {
+    return;
+  }
+  if (!params.ackReaction) {
+    return;
+  }
+  void params.ackReaction.ackReactionPromise.then((didAck) => {
+    if (!didAck) {
+      return;
+    }
+    params.ackReaction!.remove().catch((err) => params.onError?.(err));
+  });
+}

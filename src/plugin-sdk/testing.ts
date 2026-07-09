@@ -6,7 +6,9 @@ import { expect, it } from "vitest";
 // Keep this list additive and limited to helpers we are willing to support.
 
 export {
+  createAckReactionHandle,
   removeAckReactionAfterReply,
+  removeAckReactionHandleAfterReply,
   shouldAckReaction,
 } from "../channels/ack-reactions.js";
 export type { ChannelAccountSnapshot } from "../channels/plugins/types.public.js";
@@ -56,6 +58,7 @@ export {
   buildProviderPluginMethodChoice,
   resolveProviderModelPickerEntries,
   resolveProviderWizardOptions,
+  setProviderWizardProvidersResolverForTest,
 } from "../plugins/provider-wizard.js";
 export { resolveProviderPluginChoice } from "../plugins/provider-auth-choice.runtime.js";
 export type { PluginRuntime } from "../plugins/runtime/types.js";
