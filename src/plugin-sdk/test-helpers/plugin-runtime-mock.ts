@@ -1,5 +1,9 @@
-import { vi, type Mock } from "vitest";
+import { vi, type MockedFunction } from "vitest";
 import type { PluginRuntime } from "../testing.js";
+import type { DispatchFromConfigResult } from "../../auto-reply/reply/dispatch-from-config.js";
+import type { EnvelopeFormatOptions } from "../../auto-reply/envelope.js";
+import type { ChannelGroupPolicy } from "../../config/group-policy.js";
+import type { ResolvedAgentRoute } from "../../routing/resolve-route.js";
 
 const DEFAULT_PROVIDER = "anthropic";
 const DEFAULT_MODEL = "claude-opus-4-6";
@@ -33,15 +37,19 @@ function mergeDeep<T>(base: T, overrides: DeepPartial<T>): T {
   return base as T;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyFn = (...args: any[]) => any;
+
 /**
  * Centralized mock helper to avoid widespread unsafe casts.
  * Invariant: vi.fn() provides a callable interface that satisfies
  * the structural requirements of runtime function properties in tests.
  */
-// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-export function typedMock<T extends Function>(impl?: T): T & Mock {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (impl ? vi.fn(impl as any) : vi.fn()) as unknown as T & Mock;
+export function typedMock<T extends AnyFn>(): MockedFunction<T>;
+export function typedMock<T extends AnyFn>(impl: T): MockedFunction<T>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function typedMock(impl?: any): any {
+  return impl ? vi.fn(impl) : vi.fn();
 }
 
 /**
@@ -54,7 +62,9 @@ export function createProxySurface<T extends object>(): T {
   const cache = new Map<string, unknown>();
   const handler: ProxyHandler<object> = {
     get(_target, prop) {
-      if (prop in _target) return Reflect.get(_target, prop);
+      if (prop in _target) {
+        return Reflect.get(_target, prop);
+      }
       if (typeof prop !== "string" || prop === "then") {
         return undefined;
       }
@@ -64,6 +74,7 @@ export function createProxySurface<T extends object>(): T {
       return cache.get(prop);
     },
   };
+  // Internal isolated cast since Proxy generically maps unknown object properties
   return new Proxy({}, handler) as T;
 }
 
@@ -79,6 +90,30 @@ export function createPluginRuntimeMediaMock(
   };
   return mergeDeep(base, overrides);
 }
+
+const emptyDispatchResult: DispatchFromConfigResult = {
+  queuedFinal: false,
+  counts: { tool: 0, block: 0, final: 0 },
+};
+
+const emptyAgentRoute: ResolvedAgentRoute = {
+  agentId: "main",
+  accountId: "default",
+  sessionKey: "agent:main:test:dm:peer",
+  mainSessionKey: "agent:main:test:dm:peer",
+  lastRoutePolicy: "session",
+  matchedBy: "default",
+  channel: "test",
+};
+
+const emptyGroupPolicy: ChannelGroupPolicy = {
+  allowlistEnabled: false,
+  allowed: true,
+};
+
+const emptyEnvelopeOptions: EnvelopeFormatOptions = {
+  timezone: "utc",
+};
 
 export function createPluginRuntimeMock(overrides: DeepPartial<PluginRuntime> = {}): PluginRuntime {
   const base: PluginRuntime = {
@@ -150,13 +185,12 @@ export function createPluginRuntimeMock(overrides: DeepPartial<PluginRuntime> = 
     },
     logging: {
       shouldLogVerbose: typedMock(() => false),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       getChildLogger: typedMock(() => ({
         info: vi.fn(),
         warn: vi.fn(),
         error: vi.fn(),
         debug: vi.fn(),
-      } as any)),
+      })),
     },
     state: {
       resolveStateDir: typedMock(() => "/tmp/coreblow"),
@@ -195,13 +229,11 @@ export function createPluginRuntimeMock(overrides: DeepPartial<PluginRuntime> = 
         convertMarkdownTables: typedMock((text: string) => text),
       },
       reply: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        dispatchReplyWithBufferedBlockDispatcher: typedMock(async () => ({} as any)),
+        dispatchReplyWithBufferedBlockDispatcher: typedMock(async () => emptyDispatchResult),
         createReplyDispatcherWithTyping: typedMock(),
         resolveEffectiveMessagesConfig: typedMock(),
         resolveHumanDelayConfig: typedMock(),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        dispatchReplyFromConfig: typedMock(async () => ({} as any)),
+        dispatchReplyFromConfig: typedMock(async () => emptyDispatchResult),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         withReplyDispatcher: typedMock(async ({ dispatcher, run, onSettled }: any) => {
           try {
@@ -219,20 +251,14 @@ export function createPluginRuntimeMock(overrides: DeepPartial<PluginRuntime> = 
         finalizeInboundContext: typedMock((ctx: any) => ctx),
         formatAgentEnvelope: typedMock((opts: { body: string }) => opts.body),
         formatInboundEnvelope: typedMock((opts: { body: string }) => opts.body),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        resolveEnvelopeFormatOptions: typedMock(() => ({} as any)),
+        resolveEnvelopeFormatOptions: typedMock(() => emptyEnvelopeOptions),
       },
       routing: {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         buildAgentSessionKey: typedMock(({ agentId, channel, peer }: any) =>
           `agent:${agentId}:${channel}:${peer?.kind ?? "direct"}:${peer?.id ?? "peer"}`
         ),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        resolveAgentRoute: typedMock(() => ({
-          agentId: "main",
-          accountId: "default",
-          sessionKey: "agent:main:test:dm:peer",
-        } as any)),
+        resolveAgentRoute: typedMock(() => emptyAgentRoute),
       },
       pairing: {
         buildPairingReply: typedMock(() => "Pairing code: TESTCODE"),
@@ -264,8 +290,7 @@ export function createPluginRuntimeMock(overrides: DeepPartial<PluginRuntime> = 
         removeAckReactionAfterReply: typedMock(),
       },
       groups: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        resolveGroupPolicy: typedMock(() => "open" as any),
+        resolveGroupPolicy: typedMock(() => emptyGroupPolicy),
         resolveRequireMention: typedMock(() => false),
       },
       debounce: {
