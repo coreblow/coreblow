@@ -7,11 +7,11 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8545,
+    "cb_source_files": 8549,
     "oc_source_files": 8443,
-    "source_parity_both": 6746,
+    "source_parity_both": 6750,
     "source_cb_exclusive": 1799,
-    "source_missing_from_cb": 1697,
+    "source_missing_from_cb": 1693,
     "test_files_cb": 4931,
     "test_files_oc": 5246,
     "tests_both_covered": 3495,
@@ -35,9 +35,9 @@
       "priority": "P0",
       "implementationSurface": "src/agents, src/auth, src/agents/turn-engine",
       "counts": {
-        "sharedSourcePaths": 591,
+        "sharedSourcePaths": 593,
         "coreBlowOnlySourcePaths": 205,
-        "openClawOnlySourcePaths": 283,
+        "openClawOnlySourcePaths": 281,
         "sharedTestPaths": 406,
         "coreBlowOnlyTestPaths": 199,
         "openClawTestGaps": 316
@@ -993,9 +993,9 @@
       "priority": "P2",
       "implementationSurface": "src/channels, src/routing, extensions channel adapters",
       "counts": {
-        "sharedSourcePaths": 166,
+        "sharedSourcePaths": 167,
         "coreBlowOnlySourcePaths": 119,
-        "openClawOnlySourcePaths": 45,
+        "openClawOnlySourcePaths": 44,
         "sharedTestPaths": 73,
         "coreBlowOnlyTestPaths": 24,
         "openClawTestGaps": 30
@@ -1234,9 +1234,9 @@
       "priority": "P2",
       "implementationSurface": "src/plugin-sdk public API",
       "counts": {
-        "sharedSourcePaths": 433,
+        "sharedSourcePaths": 434,
         "coreBlowOnlySourcePaths": 120,
-        "openClawOnlySourcePaths": 6,
+        "openClawOnlySourcePaths": 5,
         "sharedTestPaths": 43,
         "coreBlowOnlyTestPaths": 25,
         "openClawTestGaps": 60
@@ -1244,7 +1244,6 @@
       "samples": {
         "openClawOnlySourcePaths": [
           "src/plugin-sdk/agent-harness-runtime.ts",
-          "src/plugin-sdk/channel-ingress.ts",
           "src/plugin-sdk/provider-transport-runtime.ts",
           "src/plugin-sdk/test-helpers/plugin-runtime-mock.ts",
           "src/plugin-sdk/test-helpers/provider-discovery-contract.ts",
