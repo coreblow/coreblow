@@ -271,7 +271,7 @@
     "@anthropic-ai/sdk": "^0.94.0",
     "@types/express": "^5.0.6",
     "@types/ws": "^8.18.1",
-    "@typescript/native-preview": "7.0.0-dev.20260326.1",
+    "@typescript/native-preview": "7.0.0-dev.20260707.2",
     "@vitejs/plugin-react": "^5.1.1",
     "@vitest/coverage-v8": "^4.1.6",
     "ai": "^6.0.168",
