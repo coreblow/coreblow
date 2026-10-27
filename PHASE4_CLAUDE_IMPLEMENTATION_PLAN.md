@@ -11,6 +11,7 @@ Purpose: finish the remaining Phase 4 OpenClaw parity work in CoreBlow using dis
 - Treat reference trees as valid disk source even if `git -C <ref> ...` says `not a git repository`.
 - Preserve CoreBlow-native public names: `CoreBlow`, `coreblow`, `corebot`, `corehub`, `acp`.
 - Do not introduce public `clawbot`, `clawhub`, or `acpx` names unless Febri explicitly asks for compatibility aliases.
+- Anti-Bloat & Deprecation Policy (docs/PRD.md & docs/ARCHITECTURE.md): "Prune First, Document Fast, Execute Lean". Do NOT port dead legacy migration chains (e.g. `src/commands/doctor/shared/legacy-config-migrations.*.ts`, `legacy-config-repair.ts`, `clawhub.ts`, `migration-provider-runtime.ts`). Implement ONLY clean, active CoreBlow features (`coreblow`, `corehub`, `corebot`, `acp`).
 - Do not copy OpenClaw code blindly. Read CoreBlow target first, read OpenClaw counterpart second, then translate behavior into CoreBlow OOP/DI boundaries.
 - Do not edit security-focused CODEOWNERS surfaces as drive-by cleanup.
 - Do not change versions, publish, push, switch branches, stash, or alter worktrees unless Febri explicitly asks.
@@ -293,6 +294,11 @@ src/plugins/channel-*
 src/plugins/config-*
 ```
 
+Explicitly excluded (Deprecation Policy):
+- `src/plugins/clawhub.ts` & `src/plugins/clawhub.test.ts` (replaced by `src/infra/corehub.ts` and `src/plugins/corehub-install-records.ts`)
+- `src/plugins/migration-provider-runtime.ts` (replaced by clean typed `src/plugins/manifest.ts`)
+- `src/plugins/legacy-npm-declaration.ts` (retained as minimal OOP stub `LegacyNpmPluginDeclarationReader`)
+
 Gate with:
 
 ```sh
@@ -315,7 +321,14 @@ src/commands/daemon-*
 src/commands/commitments.ts
 ```
 
-Do not change CLI branding from CoreBlow to OpenClaw.
+Explicitly excluded (Deprecation Policy — Option 2 / Batch 2.3 Legacy Migrations Pruned):
+- `src/commands/doctor/legacy-config-repair.ts`
+- `src/commands/doctor/shared/legacy-config-migrations.*.ts` (all 13 migration file variants)
+- `src/commands/doctor/shared/legacy-config-*.ts`
+- `src/commands/doctor-state-migrations.ts` & `src/commands/doctor-cron-*.migration.ts`
+- `src/commands/auth-choice-legacy.ts`
+
+Do not change CLI branding from CoreBlow to OpenClaw. Focus purely on clean active CoreBlow CLI features (`coreblow`, `corehub`, `corebot`, `acp`).
 
 ### Batch F: `src/agents` Runtime Contracts
 

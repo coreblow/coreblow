@@ -275,6 +275,79 @@ const INTENTIONAL_TEST_SCENARIO_DIFFERENCES = new Map([
   ],
 ]);
 
+// Anti-bloat policy (docs/PRD.md & docs/ARCHITECTURE.md):
+// Exclude obsolete legacy migration chains and deprecated upstream wrappers
+// from parity gap counts.
+const INTENTIONALLY_DEPRECATED_UPSTREAM_PATHS = new Set([
+  // src/commands doctor legacy-config migration chains & obsolete helpers
+  "src/commands/auth-choice-legacy.ts",
+  "src/commands/auth-choice-legacy.test.ts",
+  "src/commands/doctor-auth-legacy-oauth.ts",
+  "src/commands/doctor-cron-dreaming-payload-migration.constants-drift.test.ts",
+  "src/commands/doctor-cron-dreaming-payload-migration.test.ts",
+  "src/commands/doctor-cron-dreaming-payload-migration.ts",
+  "src/commands/doctor-cron-legacy-delivery.test.ts",
+  "src/commands/doctor-cron-legacy-delivery.ts",
+  "src/commands/doctor-cron-payload-migration.ts",
+  "src/commands/doctor-cron-store-migration.test.ts",
+  "src/commands/doctor-cron-store-migration.ts",
+  "src/commands/doctor-legacy-config.migrations.test.ts",
+  "src/commands/doctor-legacy-config.test.ts",
+  "src/commands/doctor-legacy-config.ts",
+  "src/commands/doctor-state-migrations.test.ts",
+  "src/commands/doctor-state-migrations.ts",
+  "src/commands/doctor.runs-legacy-state-migrations-yes-mode-without.e2e.test.ts",
+  "src/commands/doctor/legacy-config-repair.ts",
+  "src/commands/doctor/shared/allowfrom-fallback-migration.test.ts",
+  "src/commands/doctor/shared/allowfrom-fallback-migration.ts",
+  "src/commands/doctor/shared/channel-legacy-config-migrate.test.ts",
+  "src/commands/doctor/shared/channel-legacy-config-migrate.ts",
+  "src/commands/doctor/shared/legacy-config-compat.ts",
+  "src/commands/doctor/shared/legacy-config-compatibility-base.ts",
+  "src/commands/doctor/shared/legacy-config-core-migrate.ts",
+  "src/commands/doctor/shared/legacy-config-core-normalizers.ts",
+  "src/commands/doctor/shared/legacy-config-issues.ts",
+  "src/commands/doctor/shared/legacy-config-migrate.provider-shapes.test.ts",
+  "src/commands/doctor/shared/legacy-config-migrate.test.ts",
+  "src/commands/doctor/shared/legacy-config-migrate.ts",
+  "src/commands/doctor/shared/legacy-config-migrate.validation.test.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.audio.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.channels.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.queue.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.runtime.agents.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.runtime.diagnostics.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.runtime.gateway.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.runtime.mcp.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.runtime.providers.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.runtime.session.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.runtime.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.runtime.tts.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.web-search.ts",
+  "src/commands/doctor/shared/legacy-config-record-shared.ts",
+  "src/commands/doctor/shared/legacy-config-rules.ts",
+  "src/commands/doctor/shared/legacy-config-write-ownership.test.ts",
+  "src/commands/doctor/shared/legacy-models-add-metadata.test.ts",
+  "src/commands/doctor/shared/legacy-models-add-metadata.ts",
+  "src/commands/doctor/shared/legacy-talk-config-normalizer.ts",
+  "src/commands/doctor/shared/legacy-tools-by-sender.test.ts",
+  "src/commands/doctor/shared/legacy-tools-by-sender.ts",
+  "src/commands/doctor/shared/legacy-web-fetch-migrate.test.ts",
+  "src/commands/doctor/shared/legacy-web-fetch-migrate.ts",
+  "src/commands/doctor/shared/legacy-web-search-migrate.test.ts",
+  "src/commands/doctor/shared/legacy-web-search-migrate.ts",
+  "src/commands/doctor/shared/legacy-x-search-migrate.test.ts",
+  "src/commands/doctor/shared/legacy-x-search-migrate.ts",
+  "src/commands/doctor/shared/plugin-registry-migration.test.ts",
+  "src/commands/doctor/shared/plugin-registry-migration.ts",
+
+  // src/plugins legacy OpenClaw marketplace & migration providers
+  "src/plugins/clawhub.ts",
+  "src/plugins/clawhub.test.ts",
+  "src/plugins/migration-provider-runtime.ts",
+  "src/plugins/migration-provider-runtime.test.ts",
+]);
+
 function resolveIntentionalTestScenarioDifference(file, scenario) {
   return INTENTIONAL_TEST_SCENARIO_DIFFERENCES.get(file)?.get(scenario);
 }
@@ -499,7 +572,12 @@ if (!TESTS_ONLY) {
   }
   for (const k of ocSrcKeys) {
     if (!cbSrcKeys.has(k)) {
-      results.source.oc_only.push(k);
+      if (INTENTIONALLY_DEPRECATED_UPSTREAM_PATHS.has(k)) {
+        results.source.intentionally_deprecated = results.source.intentionally_deprecated || [];
+        results.source.intentionally_deprecated.push(k);
+      } else {
+        results.source.oc_only.push(k);
+      }
     }
   }
 }
@@ -519,6 +597,9 @@ for (const k of ocTestKeys) {
   if (SKIP_LIVE && isLiveOrE2e(k)) continue; // skip live/e2e tests
   if (cbTestKeys.has(k)) {
     results.tests.both_have_test.push(k);
+  } else if (INTENTIONALLY_DEPRECATED_UPSTREAM_PATHS.has(k)) {
+    results.tests.intentionally_deprecated = results.tests.intentionally_deprecated || [];
+    results.tests.intentionally_deprecated.push(k);
   } else {
     results.tests.oc_has_test_cb_does_not.push(k);
   }
@@ -599,10 +680,12 @@ results.summary = {
   source_parity_both: results.source.both.length,
   source_cb_exclusive: results.source.cb_only.length,
   source_missing_from_cb: results.source.oc_only.length,
+  source_intentionally_deprecated: results.source.intentionally_deprecated?.length ?? 0,
   test_files_cb: cbTestKeys.size,
   test_files_oc: ocTestKeys.size,
   tests_both_covered: results.tests.both_have_test.length,
   tests_gap_oc_has_cb_missing: results.tests.oc_has_test_cb_does_not.length,
+  tests_intentionally_deprecated: results.tests.intentionally_deprecated?.length ?? 0,
   tests_cb_exclusive: results.tests.cb_has_test_oc_does_not.length,
   export_files_with_gaps: results.exports.gaps.length,
   test_scenario_files_with_gaps: results.test_scenarios.gaps.length,

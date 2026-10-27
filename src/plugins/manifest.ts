@@ -107,14 +107,17 @@ export type PluginManifest = {
 
 export type PluginManifestContracts = {
   speechProviders?: string[];
+  realtimeTranscriptionProviders?: string[];
+  realtimeVoiceProviders?: string[];
   mediaUnderstandingProviders?: string[];
+  documentExtractors?: string[];
   imageGenerationProviders?: string[];
   videoGenerationProviders?: string[];
   musicGenerationProviders?: string[];
-  realtimeTranscriptionProviders?: string[];
-  realtimeVoiceProviders?: string[];
-  webSearchProviders?: string[];
   webContentExtractors?: string[];
+  webFetchProviders?: string[];
+  webSearchProviders?: string[];
+  migrationProviders?: string[];
   agentToolResultMiddleware?: string[];
   tools?: string[];
 };
@@ -187,19 +190,33 @@ function normalizeManifestContracts(value: unknown): PluginManifestContracts | u
   }
 
   const speechProviders = normalizeStringList(value.speechProviders);
+  const realtimeTranscriptionProviders = normalizeStringList(value.realtimeTranscriptionProviders);
+  const realtimeVoiceProviders = normalizeStringList(value.realtimeVoiceProviders);
   const mediaUnderstandingProviders = normalizeStringList(value.mediaUnderstandingProviders);
+  const documentExtractors = normalizeStringList(value.documentExtractors);
   const imageGenerationProviders = normalizeStringList(value.imageGenerationProviders);
   const videoGenerationProviders = normalizeStringList(value.videoGenerationProviders);
   const musicGenerationProviders = normalizeStringList(value.musicGenerationProviders);
+  const webContentExtractors = normalizeStringList(value.webContentExtractors);
+  const webFetchProviders = normalizeStringList(value.webFetchProviders);
   const webSearchProviders = normalizeStringList(value.webSearchProviders);
+  const migrationProviders = normalizeStringList(value.migrationProviders);
+  const agentToolResultMiddleware = normalizeStringList(value.agentToolResultMiddleware);
   const tools = normalizeStringList(value.tools);
   const contracts = {
     ...(speechProviders.length > 0 ? { speechProviders } : {}),
+    ...(realtimeTranscriptionProviders.length > 0 ? { realtimeTranscriptionProviders } : {}),
+    ...(realtimeVoiceProviders.length > 0 ? { realtimeVoiceProviders } : {}),
     ...(mediaUnderstandingProviders.length > 0 ? { mediaUnderstandingProviders } : {}),
+    ...(documentExtractors.length > 0 ? { documentExtractors } : {}),
     ...(imageGenerationProviders.length > 0 ? { imageGenerationProviders } : {}),
     ...(videoGenerationProviders.length > 0 ? { videoGenerationProviders } : {}),
     ...(musicGenerationProviders.length > 0 ? { musicGenerationProviders } : {}),
+    ...(webContentExtractors.length > 0 ? { webContentExtractors } : {}),
+    ...(webFetchProviders.length > 0 ? { webFetchProviders } : {}),
     ...(webSearchProviders.length > 0 ? { webSearchProviders } : {}),
+    ...(migrationProviders.length > 0 ? { migrationProviders } : {}),
+    ...(agentToolResultMiddleware.length > 0 ? { agentToolResultMiddleware } : {}),
     ...(tools.length > 0 ? { tools } : {}),
   } satisfies PluginManifestContracts;
 

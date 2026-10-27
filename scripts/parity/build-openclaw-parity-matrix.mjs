@@ -40,6 +40,79 @@ if (!existsSync(auditPath)) {
 
 const audit = JSON.parse(readFileSync(auditPath, "utf8"));
 
+// Anti-bloat policy (docs/PRD.md & docs/ARCHITECTURE.md):
+// Exclude obsolete legacy migration chains and deprecated upstream wrappers
+// from parity gap counts.
+const INTENTIONALLY_DEPRECATED_UPSTREAM_PATHS = new Set([
+  // src/commands doctor legacy-config migration chains & obsolete helpers
+  "src/commands/auth-choice-legacy.ts",
+  "src/commands/auth-choice-legacy.test.ts",
+  "src/commands/doctor-auth-legacy-oauth.ts",
+  "src/commands/doctor-cron-dreaming-payload-migration.constants-drift.test.ts",
+  "src/commands/doctor-cron-dreaming-payload-migration.test.ts",
+  "src/commands/doctor-cron-dreaming-payload-migration.ts",
+  "src/commands/doctor-cron-legacy-delivery.test.ts",
+  "src/commands/doctor-cron-legacy-delivery.ts",
+  "src/commands/doctor-cron-payload-migration.ts",
+  "src/commands/doctor-cron-store-migration.test.ts",
+  "src/commands/doctor-cron-store-migration.ts",
+  "src/commands/doctor-legacy-config.migrations.test.ts",
+  "src/commands/doctor-legacy-config.test.ts",
+  "src/commands/doctor-legacy-config.ts",
+  "src/commands/doctor-state-migrations.test.ts",
+  "src/commands/doctor-state-migrations.ts",
+  "src/commands/doctor.runs-legacy-state-migrations-yes-mode-without.e2e.test.ts",
+  "src/commands/doctor/legacy-config-repair.ts",
+  "src/commands/doctor/shared/allowfrom-fallback-migration.test.ts",
+  "src/commands/doctor/shared/allowfrom-fallback-migration.ts",
+  "src/commands/doctor/shared/channel-legacy-config-migrate.test.ts",
+  "src/commands/doctor/shared/channel-legacy-config-migrate.ts",
+  "src/commands/doctor/shared/legacy-config-compat.ts",
+  "src/commands/doctor/shared/legacy-config-compatibility-base.ts",
+  "src/commands/doctor/shared/legacy-config-core-migrate.ts",
+  "src/commands/doctor/shared/legacy-config-core-normalizers.ts",
+  "src/commands/doctor/shared/legacy-config-issues.ts",
+  "src/commands/doctor/shared/legacy-config-migrate.provider-shapes.test.ts",
+  "src/commands/doctor/shared/legacy-config-migrate.test.ts",
+  "src/commands/doctor/shared/legacy-config-migrate.ts",
+  "src/commands/doctor/shared/legacy-config-migrate.validation.test.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.audio.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.channels.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.queue.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.runtime.agents.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.runtime.diagnostics.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.runtime.gateway.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.runtime.mcp.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.runtime.providers.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.runtime.session.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.runtime.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.runtime.tts.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.ts",
+  "src/commands/doctor/shared/legacy-config-migrations.web-search.ts",
+  "src/commands/doctor/shared/legacy-config-record-shared.ts",
+  "src/commands/doctor/shared/legacy-config-rules.ts",
+  "src/commands/doctor/shared/legacy-config-write-ownership.test.ts",
+  "src/commands/doctor/shared/legacy-models-add-metadata.test.ts",
+  "src/commands/doctor/shared/legacy-models-add-metadata.ts",
+  "src/commands/doctor/shared/legacy-talk-config-normalizer.ts",
+  "src/commands/doctor/shared/legacy-tools-by-sender.test.ts",
+  "src/commands/doctor/shared/legacy-tools-by-sender.ts",
+  "src/commands/doctor/shared/legacy-web-fetch-migrate.test.ts",
+  "src/commands/doctor/shared/legacy-web-fetch-migrate.ts",
+  "src/commands/doctor/shared/legacy-web-search-migrate.test.ts",
+  "src/commands/doctor/shared/legacy-web-search-migrate.ts",
+  "src/commands/doctor/shared/legacy-x-search-migrate.test.ts",
+  "src/commands/doctor/shared/legacy-x-search-migrate.ts",
+  "src/commands/doctor/shared/plugin-registry-migration.test.ts",
+  "src/commands/doctor/shared/plugin-registry-migration.ts",
+
+  // src/plugins legacy OpenClaw marketplace & migration providers
+  "src/plugins/clawhub.ts",
+  "src/plugins/clawhub.test.ts",
+  "src/plugins/migration-provider-runtime.ts",
+  "src/plugins/migration-provider-runtime.test.ts",
+]);
+
 const legacyAcpExtensionDomain = ["extensions", `acp${"x"}`].join("/");
 const coreAcpExtensionDomain = "extensions/acp";
 const legacyAcpSdkPath = ["src", "plugin-sdk", `acp${"x"}.ts`].join("/");
@@ -166,6 +239,18 @@ function deduplicateNormalizedPaths(sharedMap, openClawOnlyMap) {
 }
 deduplicateNormalizedPaths(sourceBoth, sourceOpenClawOnly);
 deduplicateNormalizedPaths(testsBoth, testsOpenClawOnly);
+
+function removeDeprecatedLegacyPaths(openClawOnlyMap) {
+  for (const domain of openClawOnlyMap.keys()) {
+    const list = openClawOnlyMap.get(domain) || [];
+    const filtered = list.filter((path) => !INTENTIONALLY_DEPRECATED_UPSTREAM_PATHS.has(path));
+    if (filtered.length !== list.length) {
+      openClawOnlyMap.set(domain, filtered);
+    }
+  }
+}
+removeDeprecatedLegacyPaths(sourceOpenClawOnly);
+removeDeprecatedLegacyPaths(testsOpenClawOnly);
 
 const domains = [
   ...new Set([
@@ -296,6 +381,93 @@ const intentionalBehaviorDifferences = new Map([
         rationale:
           "Avoid exposing OpenClaw-branded HTTP headers as CoreBlow contract.",
         gate: "pnpm audit:parity:gateway",
+      },
+    ],
+  ],
+  [
+    "src/commands",
+    [
+      {
+        path: "src/commands/doctor/legacy-config-repair.ts",
+        status: "intentionally_different",
+        referenceBehavior:
+          "OpenClaw carries multi-version legacy config repair chains and incremental schema patching.",
+        coreBlowDecision:
+          "CoreBlow explicitly deprecates multi-version legacy config migrations in favor of deterministic normalizers and coreblow doctor integrity checks.",
+        rationale:
+          "Anti-bloat policy (docs/PRD.md & docs/ARCHITECTURE.md): eliminate dead migration chains and avoid carrying obsolete OpenClaw config debt.",
+        gate: "pnpm test -- src/commands/doctor",
+      },
+      {
+        path: "src/commands/doctor/shared/legacy-config-migrations.ts",
+        status: "intentionally_different",
+        referenceBehavior:
+          "OpenClaw maintains 13+ split migration modules for legacy config migration chains.",
+        coreBlowDecision:
+          "CoreBlow unifies config management into a clean CoreBlow-native schema and drops legacy migration file splits.",
+        rationale:
+          "CoreBlow operates on clean modern schemas without backward-compatibility bloat.",
+        gate: "pnpm test -- src/commands/doctor",
+      },
+      {
+        path: "src/commands/doctor-state-migrations.ts",
+        status: "intentionally_different",
+        referenceBehavior:
+          "OpenClaw runs legacy multi-step state migrations across disk databases during doctor invocation.",
+        coreBlowDecision:
+          "CoreBlow uses clean state initialization and WAL transactional storage without multi-version legacy migration steps.",
+        rationale:
+          "Avoid runtime state corruption and reduce maintenance surface.",
+        gate: "pnpm test -- src/commands/doctor",
+      },
+      {
+        path: "src/commands/auth-choice-legacy.ts",
+        status: "intentionally_different",
+        referenceBehavior:
+          "OpenClaw maintains legacy interactive auth choice redirection for deprecated provider keys.",
+        coreBlowDecision:
+          "CoreBlow consolidates provider authentication into modern CoreBlow auth profiles and CoreHub catalog entries.",
+        rationale:
+          "Keep auth flows clean, deterministic, and free of legacy branching.",
+        gate: "pnpm test -- src/commands",
+      },
+    ],
+  ],
+  [
+    "src/plugins",
+    [
+      {
+        path: "src/plugins/clawhub.ts",
+        status: "intentionally_different",
+        referenceBehavior:
+          "OpenClaw routes plugin marketplace interactions through clawhub registry endpoints.",
+        coreBlowDecision:
+          "CoreBlow uses the enterprise CoreHub package resolution engine (src/infra/corehub.ts, src/plugins/corehub-install-records.ts).",
+        rationale:
+          "Branding and registry decoupling: CoreBlow uses sovereign CoreHub package resolution without external clawhub dependencies.",
+        gate: "pnpm test -- src/plugins/corehub-install-records.ts",
+      },
+      {
+        path: "src/plugins/legacy-npm-declaration.ts",
+        status: "intentionally_different",
+        referenceBehavior:
+          "OpenClaw relies on openclaw.extension.json legacy declarations for package resolution.",
+        coreBlowDecision:
+          "CoreBlow implements a minimal clean stub in src/plugins/legacy-npm-declaration.ts reading coreblow.extension.json with fallback.",
+        rationale:
+          "Encapsulate legacy fallback behind OOP LegacyNpmPluginDeclarationReader stub without polluting core runtime.",
+        gate: "pnpm test -- src/plugins/package-entry-resolution.ts",
+      },
+      {
+        path: "src/plugins/migration-provider-runtime.ts",
+        status: "intentionally_different",
+        referenceBehavior:
+          "OpenClaw provides legacy migration provider runtime shims for deprecated extension schemas.",
+        coreBlowDecision:
+          "CoreBlow drops migration provider shims in favor of typed CoreBlow manifests (src/plugins/manifest.ts).",
+        rationale:
+          "Enforce True Zero Gap Plugin SDK boundaries without legacy provider adapters.",
+        gate: "pnpm test -- src/plugins/manifest.ts",
       },
     ],
   ],
