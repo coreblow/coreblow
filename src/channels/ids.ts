@@ -16,3 +16,11 @@ export const CHAT_CHANNEL_ORDER = [
 export type ChatChannelId = (typeof CHAT_CHANNEL_ORDER)[number];
 
 export const CHANNEL_IDS = [...CHAT_CHANNEL_ORDER] as const;
+
+export function normalizeChatChannelId(raw?: string | null): ChatChannelId | null {
+  if (!raw) return null;
+  const lower = raw.trim().toLowerCase();
+  return (CHAT_CHANNEL_ORDER as readonly string[]).includes(lower)
+    ? (lower as ChatChannelId)
+    : null;
+}

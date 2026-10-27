@@ -1,9 +1,20 @@
-// CoreBlow compat bridge for installed-plugin-index-policy.
-// Skips listPluginCompatRecords dependency (compat/registry.ts not ported).
-
 import type { CoreBlowConfig } from "../config/types.coreblow.js";
+import { listPluginCompatRecords } from "./compat/registry.js";
 import { normalizePluginsConfig } from "./config-state.js";
 import { hashJson } from "./installed-plugin-index-hash.js";
+
+export function resolveCompatRegistryVersion(): string {
+  return hashJson(
+    listPluginCompatRecords().map((record) => ({
+      code: record.code,
+      status: record.status,
+      deprecated: record.deprecated,
+      warningStarts: record.warningStarts,
+      removeAfter: record.removeAfter,
+      replacement: record.replacement,
+    })),
+  );
+}
 
 export function resolveInstalledPluginIndexPolicyHash(config: CoreBlowConfig | undefined): string {
   const normalized = normalizePluginsConfig(config?.plugins);

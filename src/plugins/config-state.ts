@@ -47,6 +47,7 @@ export type NormalizedPluginsConfig = {
   loadPaths: string[];
   slots: {
     memory?: string | null;
+    contextEngine?: string | null;
   };
   entries: Record<
     string,
@@ -173,6 +174,7 @@ export const normalizePluginsConfig = (
   config?: CoreBlowConfig["plugins"],
 ): NormalizedPluginsConfig => {
   const memorySlot = normalizeSlotValue(config?.slots?.memory);
+  const contextEngineSlot = normalizeSlotValue(config?.slots?.contextEngine);
   return {
     enabled: config?.enabled !== false,
     allow: normalizeList(config?.allow),
@@ -180,6 +182,10 @@ export const normalizePluginsConfig = (
     loadPaths: normalizeList(config?.load?.paths),
     slots: {
       memory: memorySlot === undefined ? defaultSlotIdForKey("memory") : memorySlot,
+      contextEngine:
+        contextEngineSlot === undefined
+          ? defaultSlotIdForKey("contextEngine")
+          : contextEngineSlot,
     },
     entries: normalizePluginEntries(config?.entries),
   };
@@ -370,6 +376,17 @@ export function resolveEffectiveEnableState(params: {
   return base;
 }
 
+export type PluginActivationSource = "explicit" | "default" | "fallback";
+
+export type PluginActivationState = {
+  enabled: boolean;
+  activated: boolean;
+  explicitlyEnabled: boolean;
+  source: PluginActivationSource;
+  reason?: string;
+  cause?: PluginActivationCause;
+};
+
 export function resolveEffectivePluginActivationState(params: {
   id: string;
   origin: PluginRecord["origin"];
@@ -378,14 +395,35 @@ export function resolveEffectivePluginActivationState(params: {
   enabledByDefault?: boolean;
   activationSource?: PluginActivationConfigSource;
   autoEnabledReason?: string;
-}): { enabled: boolean; reason?: string; cause?: PluginActivationCause } {
-  return resolveEffectiveEnableState({
+}): PluginActivationState {
+  const activeConfig = params.activationSource?.plugins ?? params.config;
+  const activeRoot = params.activationSource?.rootConfig ?? params.rootConfig;
+  const base = resolveEffectiveEnableState({
     id: params.id,
     origin: params.origin,
-    config: params.activationSource?.plugins ?? params.config,
-    rootConfig: params.activationSource?.rootConfig ?? params.rootConfig,
+    config: activeConfig,
+    rootConfig: activeRoot,
     enabledByDefault: params.enabledByDefault,
   });
+  const entry = activeConfig.entries[params.id];
+  const explicitlyEnabled =
+    entry?.enabled === true ||
+    (params.origin === "bundled" && isBundledChannelEnabledByChannelConfig(activeRoot, params.id)) ||
+    activeConfig.slots.memory === params.id ||
+    activeConfig.slots.contextEngine === params.id ||
+    (params.origin !== "bundled" && activeConfig.allow.includes(params.id));
+  const source: PluginActivationSource =
+    entry?.enabled !== undefined || activeConfig.deny.includes(params.id) || explicitlyEnabled
+      ? "explicit"
+      : params.origin === "bundled" && params.enabledByDefault === true
+        ? "default"
+        : "fallback";
+  return {
+    ...base,
+    activated: base.enabled,
+    explicitlyEnabled,
+    source,
+  };
 }
 
 export function resolveMemorySlotDecision(params: {

@@ -24,6 +24,7 @@ export type PluginEnableChange = {
 export type PluginAutoEnableResult = {
   config: CoreBlowConfig;
   changes: string[];
+  autoEnabledReasons?: Record<string, string[]>;
 };
 
 const EMPTY_PLUGIN_MANIFEST_REGISTRY: PluginManifestRegistry = {

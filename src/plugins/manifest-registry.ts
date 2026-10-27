@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { CoreBlowConfig } from "../config/config.js";
+import type { PluginInstallRecord } from "../config/types.plugins.js";
 import { resolveUserPath } from "../utils.js";
 import { resolveCompatibilityHostVersion } from "../version.js";
 import { loadBundleManifest } from "./bundle-manifest.js";
@@ -13,8 +14,10 @@ import {
   type PluginManifestActivation,
   type PluginManifestActivationCapability,
   type PluginManifestChannelConfig,
+  type PluginManifestConfigContracts,
   type PluginManifestContracts,
   type PluginManifestContractListKey,
+  type PluginManifestModelCatalog,
   type PluginManifestSetup,
   type PluginManifestSetupProvider,
 } from "./manifest.js";
@@ -88,6 +91,8 @@ export type PluginManifestRecord = {
   configSchema?: Record<string, unknown>;
   configUiHints?: Record<string, PluginConfigUiHint>;
   contracts?: PluginManifestContracts;
+  configContracts?: PluginManifestConfigContracts;
+  modelCatalog?: PluginManifestModelCatalog;
   channelConfigs?: Record<string, PluginManifestChannelConfig>;
   channelCatalogMeta?: {
     id: string;
@@ -101,6 +106,12 @@ export type PluginManifestRegistry = {
   plugins: PluginManifestRecord[];
   diagnostics: PluginDiagnostic[];
 };
+
+export type BundledChannelConfigCollector = (params: {
+  pluginDir: string;
+  manifest: PluginManifest;
+  packageManifest?: CoreBlowPackageManifest;
+}) => Record<string, PluginManifestChannelConfig> | undefined;
 
 const registryCache = new Map<string, { expiresAt: number; registry: PluginManifestRegistry }>();
 
@@ -265,6 +276,8 @@ function buildRecord(params: {
     configSchema: params.configSchema,
     configUiHints: params.manifest.uiHints,
     contracts: params.manifest.contracts,
+    configContracts: params.manifest.configContracts,
+    modelCatalog: params.manifest.modelCatalog,
     channelConfigs,
     ...(params.candidate.packageManifest?.channel?.id
       ? {
@@ -388,6 +401,8 @@ export function loadPluginManifestRegistry(
     env?: NodeJS.ProcessEnv;
     candidates?: PluginCandidate[];
     diagnostics?: PluginDiagnostic[];
+    installRecords?: Record<string, PluginInstallRecord>;
+    bundledChannelConfigCollector?: BundledChannelConfigCollector;
   } = {},
 ): PluginManifestRegistry {
   const config = params.config ?? {};

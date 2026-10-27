@@ -3,11 +3,31 @@ import path from "node:path";
 import type { ChannelConfigRuntimeSchema } from "../channels/plugins/types.plugin.js";
 import { MANIFEST_KEY } from "../compat/legacy-names.js";
 import { matchBoundaryFileOpenFailure, openBoundaryFileSync } from "../infra/boundary-file-read.js";
+import type { ModelCatalog } from "../model-catalog/index.js";
 import { isRecord } from "../utils.js";
 import type { PluginConfigUiHint, PluginKind } from "./types.js";
 
 export const PLUGIN_MANIFEST_FILENAME = "coreblow.plugin.json";
 export const PLUGIN_MANIFEST_FILENAMES = [PLUGIN_MANIFEST_FILENAME] as const;
+
+export type PluginManifestModelCatalog = ModelCatalog;
+
+export type PluginManifestDangerousConfigFlag = {
+  path: string;
+  expected?: "string";
+};
+
+export type PluginManifestSecretInputContracts = {
+  bundledDefaultEnabled?: boolean;
+  paths?: string[];
+};
+
+export type PluginManifestConfigContracts = {
+  compatibilityMigrationPaths?: string[];
+  compatibilityRuntimePaths?: string[];
+  dangerousFlags?: PluginManifestDangerousConfigFlag[];
+  secretInputs?: PluginManifestSecretInputContracts;
+};
 
 export type PluginManifestChannelCommandDefaults = {
   nativeCommandsAutoEnabled?: boolean;
@@ -80,6 +100,8 @@ export type PluginManifest = {
    * compat wiring, and contract coverage without importing plugin runtime.
    */
   contracts?: PluginManifestContracts;
+  configContracts?: PluginManifestConfigContracts;
+  modelCatalog?: PluginManifestModelCatalog;
   channelConfigs?: Record<string, PluginManifestChannelConfig>;
 };
 
@@ -459,6 +481,8 @@ export type PackageManifest = {
   name?: string;
   version?: string;
   description?: string;
+  dependencies?: Record<string, string>;
+  optionalDependencies?: Record<string, string>;
 } & Partial<Record<ManifestKey, CoreBlowPackageManifest>>;
 
 export function getPackageManifestMetadata(

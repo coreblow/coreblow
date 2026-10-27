@@ -1,6 +1,5 @@
-// Barrel: re-exports plugin registry surface for consumers expecting this path.
-// In OpenClaw this re-exports plugin-registry-contributions.js and plugin-registry-snapshot.js.
-// CoreBlow has PluginRegistry/PluginRecord in registry.ts.
+export * from "./plugin-registry-contributions.js";
+export * from "./plugin-registry-snapshot.js";
 
 export type {
   PluginRecord,

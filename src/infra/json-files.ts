@@ -38,6 +38,20 @@ export async function writeJsonAtomic(
   });
 }
 
+export const writeJson = writeJsonAtomic;
+
+export function writeJsonSync(
+  filePath: string,
+  value: unknown,
+  options?: { mode?: number; trailingNewline?: boolean; ensureDirMode?: number },
+): void {
+  const text = JSON.stringify(value, null, 2);
+  const mode = options?.mode ?? 0o600;
+  const payload = options?.trailingNewline && !text.endsWith("\n") ? `${text}\n` : text;
+  fsSync.mkdirSync(path.dirname(filePath), { recursive: true, mode: options?.ensureDirMode });
+  fsSync.writeFileSync(filePath, payload, { mode, encoding: "utf8" });
+}
+
 export async function writeTextAtomic(
   filePath: string,
   content: string,

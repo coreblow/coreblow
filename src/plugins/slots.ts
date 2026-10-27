@@ -26,6 +26,32 @@ export function slotKeyForPluginKind(kind?: PluginKind): PluginSlotKey | null {
   return SLOT_BY_KIND[kind] ?? null;
 }
 
+export function hasKind(kind: PluginKind | PluginKind[] | undefined, target: PluginKind): boolean {
+  if (!kind) {
+    return false;
+  }
+  return Array.isArray(kind) ? kind.includes(target) : kind === target;
+}
+
+export function kindsEqual(
+  a: PluginKind | PluginKind[] | undefined,
+  b: PluginKind | PluginKind[] | undefined,
+): boolean {
+  if (a === b) {
+    return true;
+  }
+  if (!a || !b) {
+    return false;
+  }
+  const arrayA = Array.isArray(a) ? a : [a];
+  const arrayB = Array.isArray(b) ? b : [b];
+  if (arrayA.length !== arrayB.length) {
+    return false;
+  }
+  const setA = new Set(arrayA);
+  return arrayB.every((k) => setA.has(k));
+}
+
 export function defaultSlotIdForKey(slotKey: PluginSlotKey): string {
   return DEFAULT_SLOT_BY_KEY[slotKey];
 }

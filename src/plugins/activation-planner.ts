@@ -4,13 +4,13 @@ import { normalizeOptionalLowercaseString } from "../shared/string-coerce.js";
 import { normalizePluginsConfig } from "./config-state.js";
 import { passesManifestOwnerBasePolicy } from "./manifest-owner-policy.js";
 import {
-  loadPluginManifestRegistry,
   type PluginManifestActivation,
   type PluginManifestActivationCapability,
   type PluginManifestRecord,
   type PluginManifestSetup,
   type PluginManifestSetupProvider,
 } from "./manifest-registry.js";
+import { loadPluginManifestRegistryForPluginRegistry } from "./plugin-registry-contributions.js";
 import type { PluginManifestCommandAlias } from "./manifest-command-aliases.js";
 import type { PluginOrigin } from "./plugin-origin.types.js";
 import { createPluginIdScopeSet, normalizePluginIdScope } from "./plugin-scope.js";
@@ -234,7 +234,7 @@ export class PluginActivationPlanner {
     const normalizedConfig = normalizePluginsConfig(params.config?.plugins);
     const registry = params.manifestRecords
       ? { plugins: params.manifestRecords, diagnostics: [] as PluginDiagnostic[] }
-      : loadPluginManifestRegistry({
+      : loadPluginManifestRegistryForPluginRegistry({
           config: params.config,
           workspaceDir: params.workspaceDir,
           env: params.env,

@@ -15,6 +15,14 @@ export function normalizeTrimmedStringList(value: unknown): string[] {
   return normalizeStringEntries(value);
 }
 
+export function normalizeOptionalTrimmedStringList(value: unknown): string[] | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  const list = normalizeTrimmedStringList(value);
+  return list.length > 0 ? list : undefined;
+}
+
 export function normalizeHyphenSlug(value: unknown): string {
   if (typeof value !== "string") {
     return "";

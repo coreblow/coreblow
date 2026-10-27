@@ -53,6 +53,11 @@ export type PluginsConfig = {
   allow?: string[];
   /** Optional plugin denylist (plugin ids). */
   deny?: string[];
+  /**
+   * Controls how bundled plugins participate in runtime provider discovery when
+   * `allow` is configured.
+   */
+  bundledDiscovery?: "allowlist" | "compat";
   load?: PluginsLoadConfig;
   corehub?: PluginCoreHubPolicyConfig;
   slots?: PluginSlotsConfig;
