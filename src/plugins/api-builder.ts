@@ -30,6 +30,8 @@ export type BuildPluginApiParams = {
       | "registerCli"
       | "registerService"
       | "registerCliBackend"
+      | "registerConfigMigration"
+      | "registerAutoEnableProbe"
       | "registerProvider"
       | "registerSpeechProvider"
       | "registerMediaUnderstandingProvider"
@@ -80,6 +82,8 @@ const noopRegisterNodeInvokePolicy: CoreBlowPluginApi["registerNodeInvokePolicy"
 const noopRegisterCli: CoreBlowPluginApi["registerCli"] = () => {};
 const noopRegisterService: CoreBlowPluginApi["registerService"] = () => {};
 const noopRegisterCliBackend: CoreBlowPluginApi["registerCliBackend"] = () => {};
+const noopRegisterConfigMigration: NonNullable<CoreBlowPluginApi["registerConfigMigration"]> = () => {};
+const noopRegisterAutoEnableProbe: NonNullable<CoreBlowPluginApi["registerAutoEnableProbe"]> = () => {};
 const noopRegisterProvider: CoreBlowPluginApi["registerProvider"] = () => {};
 const noopRegisterSpeechProvider: CoreBlowPluginApi["registerSpeechProvider"] = () => {};
 const noopRegisterMediaUnderstandingProvider: CoreBlowPluginApi["registerMediaUnderstandingProvider"] =
@@ -161,6 +165,8 @@ export function buildPluginApi(params: BuildPluginApiParams): CoreBlowPluginApi 
     registerCli: handlers.registerCli ?? noopRegisterCli,
     registerService: handlers.registerService ?? noopRegisterService,
     registerCliBackend: handlers.registerCliBackend ?? noopRegisterCliBackend,
+    registerConfigMigration: handlers.registerConfigMigration ?? noopRegisterConfigMigration,
+    registerAutoEnableProbe: handlers.registerAutoEnableProbe ?? noopRegisterAutoEnableProbe,
     registerProvider: handlers.registerProvider ?? noopRegisterProvider,
     registerSpeechProvider: handlers.registerSpeechProvider ?? noopRegisterSpeechProvider,
     registerMediaUnderstandingProvider:

@@ -437,9 +437,10 @@ export type PluginPackageChannelStateProbe = {
 
 export type PluginPackageInstall = {
   corehubSpec?: string;
+  clawhubSpec?: string;
   npmSpec?: string;
   localPath?: string;
-  defaultChoice?: "corehub" | "npm" | "local";
+  defaultChoice?: "corehub" | "clawhub" | "npm" | "local";
   minHostVersion?: string;
   expectedIntegrity?: string;
   allowInvalidConfigRecovery?: boolean;
@@ -453,9 +454,21 @@ export type CoreBlowPackageStartup = {
   deferConfiguredChannelFullLoadUntilAfterListen?: boolean;
 };
 
+export type CoreBlowPackageSetupFeatures = {
+  cliBackends?: string[];
+  providers?: string[];
+};
+
 export type CoreBlowPackageManifest = {
   extensions?: string[];
+  runtimeExtensions?: string[];
   setupEntry?: string;
+  runtimeSetupEntry?: string;
+  setupFeatures?: CoreBlowPackageSetupFeatures;
+  plugin?: {
+    id?: string;
+    label?: string;
+  };
   channel?: PluginPackageChannel;
   install?: PluginPackageInstall;
   startup?: CoreBlowPackageStartup;
@@ -483,7 +496,7 @@ export type PackageManifest = {
   description?: string;
   dependencies?: Record<string, string>;
   optionalDependencies?: Record<string, string>;
-} & Partial<Record<ManifestKey, CoreBlowPackageManifest>>;
+} & Partial<Record<ManifestKey | "openclaw", CoreBlowPackageManifest>>;
 
 export function getPackageManifestMetadata(
   manifest: PackageManifest | undefined,
@@ -491,7 +504,7 @@ export function getPackageManifestMetadata(
   if (!manifest) {
     return undefined;
   }
-  return manifest[MANIFEST_KEY];
+  return manifest[MANIFEST_KEY] ?? manifest["openclaw" as ManifestKey];
 }
 
 export function resolvePackageExtensionEntries(

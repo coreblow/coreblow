@@ -5,7 +5,10 @@ export {
   normalizeModelCatalogProviderId,
 } from "./refs.js";
 export { normalizeModelCatalog, normalizeModelCatalogRows } from "./normalize.js";
-export { loadCoreBlowProviderIndex } from "./provider-index/index.js";
+export {
+  loadCoreBlowProviderIndex,
+  loadCoreBlowProviderIndex as loadOpenClawProviderIndex,
+} from "./provider-index/index.js";
 export {
   planManifestModelCatalogRows,
   planManifestModelCatalogSuppressions,
@@ -29,4 +32,7 @@ export type {
   UnifiedModelCatalogKind,
   UnifiedModelCatalogSource,
 } from "./types.js";
-export type { CoreBlowProviderIndexProvider } from "./provider-index/index.js";
+export type {
+  CoreBlowProviderIndexProvider,
+  CoreBlowProviderIndexProvider as OpenClawProviderIndexProvider,
+} from "./provider-index/index.js";

@@ -9,7 +9,7 @@ import type { ProviderPlugin } from "../plugins/types.js";
 import type { FlowContribution, FlowOption } from "./types.js";
 import { mergeFlowContributions, sortFlowContributionsByLabel } from "./types.js";
 
-export type ProviderFlowScope = "text-inference" | "image-generation";
+export type ProviderFlowScope = "text-inference" | "image-generation" | "music-generation";
 
 const DEFAULT_PROVIDER_FLOW_SCOPE: ProviderFlowScope = "text-inference";
 

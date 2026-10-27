@@ -6,6 +6,8 @@ async function loadInstallSecurityScanRuntime() {
   return await import("./install-security-scan.runtime.js");
 }
 
+export type { InstallSafetyOverrides } from "./install-security-scan.types.js";
+
 export async function scanBundleInstallSource(params: {
   logger: InstallScanLogger;
   pluginId: string;

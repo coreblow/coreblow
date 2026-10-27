@@ -5,10 +5,12 @@ import type { PluginPackageInstall } from "./manifest.js";
 
 export type PluginInstallSourceWarning =
   | "invalid-corehub-spec"
+  | "invalid-clawhub-spec"
   | "invalid-npm-spec"
   | "invalid-default-choice"
   | "default-choice-missing-source"
   | "corehub-spec-floating"
+  | "clawhub-spec-floating"
   | "npm-integrity-without-source"
   | "npm-spec-floating"
   | "npm-spec-missing-integrity"
@@ -42,9 +44,17 @@ export type PluginInstallCoreHubSourceInfo = {
   exactVersion: boolean;
 };
 
+export type PluginInstallClawHubSourceInfo = {
+  spec: string;
+  packageName: string;
+  version?: string;
+  exactVersion: boolean;
+};
+
 export type PluginInstallSourceInfo = {
   defaultChoice?: PluginPackageInstall["defaultChoice"];
   corehub?: PluginInstallCoreHubSourceInfo;
+  clawhub?: PluginInstallClawHubSourceInfo;
   npm?: PluginInstallNpmSourceInfo;
   local?: PluginInstallLocalSourceInfo;
   warnings: readonly PluginInstallSourceWarning[];
@@ -65,7 +75,9 @@ function resolveNpmPinState(params: {
 }
 
 function resolveDefaultChoice(value: unknown): PluginPackageInstall["defaultChoice"] | undefined {
-  return value === "corehub" || value === "npm" || value === "local" ? value : undefined;
+  return value === "corehub" || value === "clawhub" || value === "npm" || value === "local"
+    ? value
+    : undefined;
 }
 
 function normalizeExpectedPackageName(value: string | null | undefined): string | undefined {
@@ -81,6 +93,7 @@ export function describePluginInstallSource(
   options?: DescribePluginInstallSourceOptions,
 ): PluginInstallSourceInfo {
   const corehubSpec = normalizeOptionalString(install.corehubSpec);
+  const clawhubSpec = normalizeOptionalString(install.clawhubSpec);
   const npmSpec = normalizeOptionalString(install.npmSpec);
   const localPath = normalizeOptionalString(install.localPath);
   const defaultChoice = resolveDefaultChoice(install.defaultChoice);
@@ -88,6 +101,7 @@ export function describePluginInstallSource(
   const expectedPackageName = normalizeExpectedPackageName(options?.expectedPackageName);
   const warnings: PluginInstallSourceWarning[] = [];
   let corehub: PluginInstallCoreHubSourceInfo | undefined;
+  let clawhub: PluginInstallClawHubSourceInfo | undefined;
   let npm: PluginInstallNpmSourceInfo | undefined;
 
   if (install.defaultChoice !== undefined && !defaultChoice) {
@@ -108,6 +122,23 @@ export function describePluginInstallSource(
       };
     } else {
       warnings.push("invalid-corehub-spec");
+    }
+  }
+
+  if (clawhubSpec) {
+    const parsed = parseCoreHubPluginSpec(clawhubSpec);
+    if (parsed) {
+      if (!parsed.version) {
+        warnings.push("clawhub-spec-floating");
+      }
+      clawhub = {
+        spec: clawhubSpec,
+        packageName: parsed.name,
+        ...(parsed.version ? { version: parsed.version } : {}),
+        exactVersion: Boolean(parsed.version),
+      };
+    } else {
+      warnings.push("invalid-clawhub-spec");
     }
   }
 
@@ -145,6 +176,9 @@ export function describePluginInstallSource(
   if (defaultChoice === "corehub" && !corehub) {
     warnings.push("default-choice-missing-source");
   }
+  if (defaultChoice === "clawhub" && !clawhub) {
+    warnings.push("default-choice-missing-source");
+  }
   if (defaultChoice === "npm" && !npm) {
     warnings.push("default-choice-missing-source");
   }
@@ -158,6 +192,7 @@ export function describePluginInstallSource(
   return {
     ...(defaultChoice ? { defaultChoice } : {}),
     ...(corehub ? { corehub } : {}),
+    ...(clawhub ? { clawhub } : {}),
     ...(npm ? { npm } : {}),
     ...(localPath ? { local: { path: localPath } } : {}),
     warnings,

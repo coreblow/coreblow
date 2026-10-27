@@ -1,5 +1,5 @@
 export type InstallRecordBase = {
-  source: "npm" | "archive" | "path" | "corehub";
+  source: "npm" | "archive" | "path" | "corehub" | "clawhub";
   spec?: string;
   sourcePath?: string;
   installPath?: string;
@@ -16,6 +16,19 @@ export type InstallRecordBase = {
   corehubFamily?: "code-plugin" | "bundle-plugin";
   corehubChannel?: "official" | "community" | "private";
   corehubVerificationTier?: string;
+  clawhubUrl?: string;
+  clawhubPackage?: string;
+  clawhubFamily?: "code-plugin" | "bundle-plugin";
+  clawhubChannel?: "official" | "community" | "private";
+  artifactKind?: "legacy-zip" | "npm-pack";
+  artifactFormat?: "zip" | "tgz";
+  npmIntegrity?: string;
+  npmShasum?: string;
+  npmTarballName?: string;
+  clawpackSha256?: string;
+  clawpackSpecVersion?: number;
+  clawpackManifestSha256?: string;
+  clawpackSize?: number;
   artifactSha256?: string;
   artifactSize?: number;
   artifactManifestVerified?: boolean;

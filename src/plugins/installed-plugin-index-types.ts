@@ -45,6 +45,23 @@ export type InstalledPluginInstallRecordInfo = Pick<
   | "shasum"
   | "resolvedAt"
   | "installedAt"
+  | "corehubUrl"
+  | "corehubPackage"
+  | "corehubFamily"
+  | "corehubChannel"
+  | "clawhubUrl"
+  | "clawhubPackage"
+  | "clawhubFamily"
+  | "clawhubChannel"
+  | "artifactKind"
+  | "artifactFormat"
+  | "npmIntegrity"
+  | "npmShasum"
+  | "npmTarballName"
+  | "clawpackSha256"
+  | "clawpackSpecVersion"
+  | "clawpackManifestSha256"
+  | "clawpackSize"
 >;
 
 export type InstalledPluginPackageChannelInfo = PluginPackageChannel;

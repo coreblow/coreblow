@@ -2004,6 +2004,26 @@ export type CoreBlowPluginDefinition = {
 export type CoreBlowPluginModule =
   | CoreBlowPluginDefinition
   | ((api: CoreBlowPluginApi) => void | Promise<void>);
+export type OpenClawPluginModule = CoreBlowPluginModule;
+
+export type PluginConfigMigrationResult = {
+  config: CoreBlowConfig;
+  changes: string[];
+};
+
+export type PluginConfigMigration = (config: CoreBlowConfig) =>
+  | PluginConfigMigrationResult
+  | null
+  | undefined;
+
+export type PluginSetupAutoEnableContext = {
+  config: CoreBlowConfig;
+  env: NodeJS.ProcessEnv;
+};
+
+export type PluginSetupAutoEnableProbe = (
+  ctx: PluginSetupAutoEnableContext,
+) => string | string[] | null | undefined;
 
 export type CoreBlowPluginSessionStateApi = {
   /** Register plugin-owned session state projected into Gateway session rows. */
@@ -2137,6 +2157,10 @@ export type CoreBlowPluginApi = {
   registerService: (service: CoreBlowPluginService) => void;
   /** Register a text-only CLI backend used by the local CLI runner. */
   registerCliBackend: (backend: CliBackendPlugin) => void;
+  /** Register a lightweight config migration that can run before plugin runtime loads. */
+  registerConfigMigration?: (migrate: PluginConfigMigration) => void;
+  /** Register a lightweight config probe that can auto-enable this plugin generically. */
+  registerAutoEnableProbe?: (probe: PluginSetupAutoEnableProbe) => void;
   /** Register a native model/provider plugin (text inference capability). */
   registerProvider: (provider: ProviderPlugin) => void;
   /** Register a speech synthesis provider (speech capability). */

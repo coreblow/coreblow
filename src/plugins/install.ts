@@ -221,6 +221,8 @@ type PackageInstallCommonParams = {
   dryRun?: boolean;
   expectedPluginId?: string;
   strictCoreHubArchive?: boolean;
+  dangerouslyForceUnsafeInstall?: boolean;
+  installPolicyRequest?: unknown;
 };
 
 type FileInstallCommonParams = Pick<
@@ -829,6 +831,77 @@ export async function installPluginFromNpmSpec(params: {
     };
   }
   return finalized;
+}
+
+export async function installPluginFromInstalledPackageDir(
+  params: {
+    packageDir: string;
+    additionalDependencyPackageDirs?: string[];
+    dependencyScanRootDir?: string;
+  } & PackageInstallCommonParams,
+): Promise<InstallPluginResult> {
+  const runtime = await loadPluginInstallRuntime();
+  const manifestPath = path.join(params.packageDir, "package.json");
+  if (!(await runtime.fileExists(manifestPath))) {
+    return { ok: false, error: "extracted package missing package.json" };
+  }
+
+  let manifest: PackageManifest;
+  try {
+    manifest = await runtime.readJsonFile<PackageManifest>(manifestPath);
+  } catch (err) {
+    return { ok: false, error: `invalid package.json: ${String(err)}` };
+  }
+
+  const extensionsResult = ensureCoreBlowExtensions({
+    manifest,
+  });
+  if (!extensionsResult.ok) {
+    return {
+      ok: false,
+      error: extensionsResult.error,
+      code: extensionsResult.code,
+    };
+  }
+  const extensions = extensionsResult.entries;
+  const pkgName = typeof manifest.name === "string" ? manifest.name.trim() : "";
+  const npmPluginId = pkgName || "plugin";
+
+  const ocManifestResult = runtime.loadPluginManifest(params.packageDir);
+  const manifestPluginId =
+    ocManifestResult.ok && ocManifestResult.manifest.id
+      ? ocManifestResult.manifest.id.trim()
+      : undefined;
+
+  const pluginId = manifestPluginId ?? npmPluginId;
+  const pluginIdError = validatePluginId(pluginId);
+  if (pluginIdError) {
+    return { ok: false, error: pluginIdError };
+  }
+
+  if (
+    !matchesExpectedPluginId({
+      expectedPluginId: params.expectedPluginId,
+      pluginId,
+      manifestPluginId,
+      npmPluginId,
+    })
+  ) {
+    return {
+      ok: false,
+      error: `plugin id mismatch: expected ${params.expectedPluginId}, got ${pluginId}`,
+      code: PLUGIN_INSTALL_ERROR_CODE.PLUGIN_ID_MISMATCH,
+    };
+  }
+
+  return {
+    ok: true,
+    pluginId,
+    targetDir: params.packageDir,
+    manifestName: pkgName || undefined,
+    version: typeof manifest.version === "string" ? manifest.version : undefined,
+    extensions,
+  };
 }
 
 export async function installPluginFromPath(

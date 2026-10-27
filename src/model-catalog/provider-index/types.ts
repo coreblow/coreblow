@@ -2,8 +2,9 @@ import type { ModelCatalogProvider } from "../types.js";
 
 export type CoreBlowProviderIndexPluginInstall = {
   corehubSpec?: string;
+  clawhubSpec?: string;
   npmSpec?: string;
-  defaultChoice?: "corehub" | "npm";
+  defaultChoice?: "corehub" | "clawhub" | "npm";
   minHostVersion?: string;
   expectedIntegrity?: string;
 };

@@ -507,10 +507,15 @@ export function parseCoreHubPluginSpec(raw: string): {
   baseUrl?: string;
 } | null {
   const trimmed = raw.trim();
-  if (!trimmed.toLowerCase().startsWith("corehub:")) {
+  const lower = trimmed.toLowerCase();
+  let spec: string;
+  if (lower.startsWith("corehub:")) {
+    spec = trimmed.slice("corehub:".length).trim();
+  } else if (lower.startsWith("clawhub:")) {
+    spec = trimmed.slice("clawhub:".length).trim();
+  } else {
     return null;
   }
-  const spec = trimmed.slice("corehub:".length).trim();
   if (!spec) {
     return null;
   }

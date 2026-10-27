@@ -874,3 +874,5 @@ const { getInstance: getBoundaryPathService, __testing: __testing_boundaryPath }
   createStandaloneSingleton({ create: () => new BoundaryPathService(), defaultDeps: {} });
 
 export { getBoundaryPathService, __testing_boundaryPath };
+export const resolveRootPath = resolveBoundaryPath;
+export const resolveRootPathSync = resolveBoundaryPathSync;

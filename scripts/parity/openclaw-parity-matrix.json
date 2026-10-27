@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8623,
+    "cb_source_files": 8637,
     "oc_source_files": 8443,
-    "source_parity_both": 6824,
-    "source_cb_exclusive": 1799,
-    "source_missing_from_cb": 1619,
-    "test_files_cb": 4946,
+    "source_parity_both": 6837,
+    "source_cb_exclusive": 1800,
+    "source_missing_from_cb": 1606,
+    "test_files_cb": 4952,
     "test_files_oc": 5246,
-    "tests_both_covered": 3504,
-    "tests_gap_oc_has_cb_missing": 1497,
+    "tests_both_covered": 3510,
+    "tests_gap_oc_has_cb_missing": 1491,
     "tests_cb_exclusive": 1379,
     "export_files_with_gaps": 60,
     "test_scenario_files_with_gaps": 40,
@@ -156,69 +156,6 @@
       ]
     },
     {
-      "domain": "src/plugins",
-      "status": "partial",
-      "priority": "P1",
-      "implementationSurface": "src/plugins PluginLoader, PluginRegistry, HookRunner",
-      "counts": {
-        "sharedSourcePaths": 261,
-        "coreBlowOnlySourcePaths": 74,
-        "openClawOnlySourcePaths": 73,
-        "sharedTestPaths": 97,
-        "coreBlowOnlyTestPaths": 70,
-        "openClawTestGaps": 119
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/plugins/capability-runtime-vitest-shims/config-runtime.ts",
-          "src/plugins/clawhub-install-records.ts",
-          "src/plugins/cli-gateway-nodes-runtime.ts",
-          "src/plugins/cli-registry-loader.ts",
-          "src/plugins/codex-app-server-extension-factory.ts",
-          "src/plugins/command-specs.ts",
-          "src/plugins/contracts/inventory/bundled-capability-metadata.ts",
-          "src/plugins/contracts/test-helpers/bundled-plugin-roots.ts",
-          "src/plugins/contracts/tts-contract-suites.ts",
-          "src/plugins/doctor-contract-registry.ts",
-          "src/plugins/document-extractor-public-artifacts.ts",
-          "src/plugins/document-extractors.runtime.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/plugins/active-runtime-registry.test.ts",
-          "src/plugins/bundled-capability-metadata.test.ts",
-          "src/plugins/bundled-channel-runtime.test.ts",
-          "src/plugins/bundled-package-channel-metadata.test.ts",
-          "src/plugins/compat/registry.test.ts",
-          "src/plugins/config-contracts.test.ts",
-          "src/plugins/config-policy.test.ts",
-          "src/plugins/contracts/boundary-invariants.test.ts",
-          "src/plugins/contracts/bundled-extension-config-api-guardrails.test.ts",
-          "src/plugins/contracts/config-boundary-guard.test.ts",
-          "src/plugins/contracts/config-footprint-guardrails.test.ts",
-          "src/plugins/contracts/core-extension-facade-boundary.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/plugins/audit-log.ts",
-          "src/plugins/bundled-capability-metadata.ts",
-          "src/plugins/bundled-plugin-entries.ts",
-          "src/plugins/bundled-plugin-metadata.generated.ts",
-          "src/plugins/bundled-provider-auth-env-vars.generated.ts",
-          "src/plugins/bundled-provider-auth-env-vars.ts",
-          "src/plugins/bundled-web-search-ids.ts",
-          "src/plugins/bundled-web-search-provider-ids.ts",
-          "src/plugins/bundled-web-search.ts",
-          "src/plugins/cache-controls.ts",
-          "src/plugins/capability-runtime-vitest-shims/llm-task.ts",
-          "src/plugins/config-editor.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/plugins",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/auto-reply",
       "status": "partial",
       "priority": "P1",
@@ -278,6 +215,69 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/auto-reply",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/plugins",
+      "status": "partial",
+      "priority": "P1",
+      "implementationSurface": "src/plugins PluginLoader, PluginRegistry, HookRunner",
+      "counts": {
+        "sharedSourcePaths": 270,
+        "coreBlowOnlySourcePaths": 75,
+        "openClawOnlySourcePaths": 64,
+        "sharedTestPaths": 103,
+        "coreBlowOnlyTestPaths": 70,
+        "openClawTestGaps": 113
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [
+          "src/plugins/capability-runtime-vitest-shims/config-runtime.ts",
+          "src/plugins/cli-gateway-nodes-runtime.ts",
+          "src/plugins/cli-registry-loader.ts",
+          "src/plugins/codex-app-server-extension-factory.ts",
+          "src/plugins/command-specs.ts",
+          "src/plugins/contracts/inventory/bundled-capability-metadata.ts",
+          "src/plugins/contracts/test-helpers/bundled-plugin-roots.ts",
+          "src/plugins/contracts/tts-contract-suites.ts",
+          "src/plugins/doctor-contract-registry.ts",
+          "src/plugins/document-extractor-public-artifacts.ts",
+          "src/plugins/document-extractors.runtime.ts",
+          "src/plugins/effective-plugin-ids.ts"
+        ],
+        "openClawTestGapPaths": [
+          "src/plugins/active-runtime-registry.test.ts",
+          "src/plugins/bundled-capability-metadata.test.ts",
+          "src/plugins/bundled-channel-runtime.test.ts",
+          "src/plugins/bundled-package-channel-metadata.test.ts",
+          "src/plugins/compat/registry.test.ts",
+          "src/plugins/config-contracts.test.ts",
+          "src/plugins/config-policy.test.ts",
+          "src/plugins/contracts/boundary-invariants.test.ts",
+          "src/plugins/contracts/bundled-extension-config-api-guardrails.test.ts",
+          "src/plugins/contracts/config-boundary-guard.test.ts",
+          "src/plugins/contracts/config-footprint-guardrails.test.ts",
+          "src/plugins/contracts/core-extension-facade-boundary.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "src/plugins/audit-log.ts",
+          "src/plugins/bundled-capability-metadata.ts",
+          "src/plugins/bundled-plugin-entries.ts",
+          "src/plugins/bundled-plugin-metadata.generated.ts",
+          "src/plugins/bundled-provider-auth-env-vars.generated.ts",
+          "src/plugins/bundled-provider-auth-env-vars.ts",
+          "src/plugins/bundled-web-search-ids.ts",
+          "src/plugins/bundled-web-search-provider-ids.ts",
+          "src/plugins/bundled-web-search.ts",
+          "src/plugins/cache-controls.ts",
+          "src/plugins/capability-runtime-vitest-shims/llm-task.ts",
+          "src/plugins/config-editor.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/plugins",
         "pnpm check"
       ]
     },
@@ -552,9 +552,9 @@
       "priority": "P1",
       "implementationSurface": "src/infra",
       "counts": {
-        "sharedSourcePaths": 300,
+        "sharedSourcePaths": 303,
         "coreBlowOnlySourcePaths": 76,
-        "openClawOnlySourcePaths": 79,
+        "openClawOnlySourcePaths": 76,
         "sharedTestPaths": 299,
         "coreBlowOnlyTestPaths": 63,
         "openClawTestGaps": 46
@@ -1736,9 +1736,9 @@
       "priority": "P2",
       "implementationSurface": "src/shared",
       "counts": {
-        "sharedSourcePaths": 51,
+        "sharedSourcePaths": 52,
         "coreBlowOnlySourcePaths": 5,
-        "openClawOnlySourcePaths": 20,
+        "openClawOnlySourcePaths": 19,
         "sharedTestPaths": 32,
         "coreBlowOnlyTestPaths": 3,
         "openClawTestGaps": 10
@@ -1755,8 +1755,8 @@
           "src/shared/json-schema.types.ts",
           "src/shared/lazy-promise.ts",
           "src/shared/message-content-blocks.ts",
-          "src/shared/net/redact-sensitive-url.ts",
-          "src/shared/node-presence.ts"
+          "src/shared/node-presence.ts",
+          "src/shared/regexp.ts"
         ],
         "openClawTestGapPaths": [
           "src/shared/agent-run-status.test.ts",

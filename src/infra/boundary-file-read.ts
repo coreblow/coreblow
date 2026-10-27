@@ -236,3 +236,6 @@ const { getInstance: getBoundaryFileReadService, __testing: __testing_boundaryFi
   createStandaloneSingleton({ create: () => new BoundaryFileReadService(), defaultDeps: {} });
 
 export { getBoundaryFileReadService, __testing_boundaryFileRead };
+export const openRootFile = openBoundaryFile;
+export const openRootFileSync = openBoundaryFileSync;
+export const matchRootFileOpenFailure = matchBoundaryFileOpenFailure;
