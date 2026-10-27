@@ -8,6 +8,10 @@
 import { concatOptionalTextSegments } from "../shared/text/join-segments.js";
 import type { PluginRegistry } from "./registry.js";
 import type {
+  PluginAgentTurnPrepareEvent,
+  PluginAgentTurnPrepareResult,
+  PluginHeartbeatPromptContributionEvent,
+  PluginHeartbeatPromptContributionResult,
   PluginHookAfterCompactionEvent,
   PluginHookAfterToolCallEvent,
   PluginHookAgentContext,
@@ -209,6 +213,23 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
       right: next.appendSystemContext,
     }),
   });
+
+  const mergeAgentTurnPrepare = <
+    TResult extends { prependContext?: string; appendContext?: string },
+  >(
+    acc: TResult | undefined,
+    next: TResult,
+  ): TResult =>
+    ({
+      prependContext: concatOptionalTextSegments({
+        left: acc?.prependContext,
+        right: next.prependContext,
+      }),
+      appendContext: concatOptionalTextSegments({
+        left: acc?.appendContext,
+        right: next.appendContext,
+      }),
+    }) as TResult;
 
   const mergeSubagentSpawningResult = (
     acc: PluginHookSubagentSpawningResult | undefined,
@@ -483,6 +504,28 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
       ctx,
       { mergeResults: mergeBeforePromptBuild },
     );
+  }
+
+  async function runAgentTurnPrepare(
+    event: PluginAgentTurnPrepareEvent,
+    ctx: PluginHookAgentContext,
+  ): Promise<PluginAgentTurnPrepareResult | undefined> {
+    return runModifyingHook<"agent_turn_prepare", PluginAgentTurnPrepareResult>(
+      "agent_turn_prepare",
+      event,
+      ctx,
+      { mergeResults: mergeAgentTurnPrepare },
+    );
+  }
+
+  async function runHeartbeatPromptContribution(
+    event: PluginHeartbeatPromptContributionEvent,
+    ctx: PluginHookAgentContext,
+  ): Promise<PluginHeartbeatPromptContributionResult | undefined> {
+    return runModifyingHook<
+      "heartbeat_prompt_contribution",
+      PluginHeartbeatPromptContributionResult
+    >("heartbeat_prompt_contribution", event, ctx, { mergeResults: mergeAgentTurnPrepare });
   }
 
   /**
@@ -1002,6 +1045,8 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
   return {
     // Agent hooks
     runBeforeModelResolve,
+    runAgentTurnPrepare,
+    runHeartbeatPromptContribution,
     runBeforePromptBuild,
     runBeforeAgentStart,
     runLlmInput,

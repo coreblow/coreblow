@@ -2124,6 +2124,10 @@ export function clearRuntimeConfigSnapshot(): void {
   clearConfigCache();
 }
 
+export function getRuntimeConfig(): CoreBlowConfig {
+  return loadConfig();
+}
+
 export function getRuntimeConfigSnapshot(): CoreBlowConfig | null {
   return runtimeConfigSnapshot;
 }

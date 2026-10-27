@@ -1,4 +1,5 @@
 import type { CoreBlowConfig } from "../config/config.js";
+import { attachPluginApiFacades, type CoreBlowPluginApiWithoutFacades } from "./api-facades.js";
 import type { PluginRuntime } from "./runtime/types.js";
 import type { CoreBlowPluginApi, PluginLogger } from "./types.js";
 
@@ -46,6 +47,22 @@ export type BuildPluginApiParams = {
       | "registerMemoryFlushPlan"
       | "registerMemoryRuntime"
       | "registerMemoryEmbeddingProvider"
+      | "registerSessionExtension"
+      | "enqueueNextTurnInjection"
+      | "registerTrustedToolPolicy"
+      | "registerToolMetadata"
+      | "registerControlUiDescriptor"
+      | "registerRuntimeLifecycle"
+      | "registerAgentEventSubscription"
+      | "emitAgentEvent"
+      | "setRunContext"
+      | "getRunContext"
+      | "clearRunContext"
+      | "registerSessionSchedulerJob"
+      | "registerSessionAction"
+      | "sendSessionAttachment"
+      | "scheduleSessionTurn"
+      | "unscheduleSessionTurnsByTag"
       | "on"
     >
   >;
@@ -88,11 +105,38 @@ const noopRegisterMemoryFlushPlan: CoreBlowPluginApi["registerMemoryFlushPlan"] 
 const noopRegisterMemoryRuntime: CoreBlowPluginApi["registerMemoryRuntime"] = () => {};
 const noopRegisterMemoryEmbeddingProvider: CoreBlowPluginApi["registerMemoryEmbeddingProvider"] =
   () => {};
+const noopRegisterSessionExtension: CoreBlowPluginApi["registerSessionExtension"] = () => {};
+const noopEnqueueNextTurnInjection: CoreBlowPluginApi["enqueueNextTurnInjection"] = async (
+  injection,
+) => ({ enqueued: false, id: "", sessionKey: injection.sessionKey });
+const noopRegisterTrustedToolPolicy: CoreBlowPluginApi["registerTrustedToolPolicy"] = () => {};
+const noopRegisterToolMetadata: CoreBlowPluginApi["registerToolMetadata"] = () => {};
+const noopRegisterControlUiDescriptor: CoreBlowPluginApi["registerControlUiDescriptor"] = () => {};
+const noopRegisterRuntimeLifecycle: CoreBlowPluginApi["registerRuntimeLifecycle"] = () => {};
+const noopRegisterAgentEventSubscription: CoreBlowPluginApi["registerAgentEventSubscription"] =
+  () => {};
+const noopEmitAgentEvent: CoreBlowPluginApi["emitAgentEvent"] = () => ({
+  emitted: false,
+  reason: "not wired",
+});
+const noopSetRunContext: CoreBlowPluginApi["setRunContext"] = () => false;
+const noopGetRunContext: CoreBlowPluginApi["getRunContext"] = () => undefined;
+const noopClearRunContext: CoreBlowPluginApi["clearRunContext"] = () => {};
+const noopRegisterSessionSchedulerJob: CoreBlowPluginApi["registerSessionSchedulerJob"] = () =>
+  undefined;
+const noopRegisterSessionAction: CoreBlowPluginApi["registerSessionAction"] = () => {};
+const noopSendSessionAttachment: CoreBlowPluginApi["sendSessionAttachment"] = async () => ({
+  ok: false,
+  error: "not wired",
+});
+const noopScheduleSessionTurn: CoreBlowPluginApi["scheduleSessionTurn"] = async () => undefined;
+const noopUnscheduleSessionTurnsByTag: CoreBlowPluginApi["unscheduleSessionTurnsByTag"] =
+  async () => ({ removed: 0, failed: 0 });
 const noopOn: CoreBlowPluginApi["on"] = () => {};
 
 export function buildPluginApi(params: BuildPluginApiParams): CoreBlowPluginApi {
   const handlers = params.handlers ?? {};
-  return {
+  const api: CoreBlowPluginApiWithoutFacades = {
     id: params.id,
     name: params.name,
     version: params.version,
@@ -104,6 +148,7 @@ export function buildPluginApi(params: BuildPluginApiParams): CoreBlowPluginApi 
     pluginConfig: params.pluginConfig,
     runtime: params.runtime,
     logger: params.logger,
+    resolvePath: params.resolvePath,
     registerTool: handlers.registerTool ?? noopRegisterTool,
     registerAgentToolResultMiddleware:
       handlers.registerAgentToolResultMiddleware ?? noopRegisterAgentToolResultMiddleware,
@@ -143,7 +188,27 @@ export function buildPluginApi(params: BuildPluginApiParams): CoreBlowPluginApi 
     registerMemoryRuntime: handlers.registerMemoryRuntime ?? noopRegisterMemoryRuntime,
     registerMemoryEmbeddingProvider:
       handlers.registerMemoryEmbeddingProvider ?? noopRegisterMemoryEmbeddingProvider,
-    resolvePath: params.resolvePath,
+    registerSessionExtension: handlers.registerSessionExtension ?? noopRegisterSessionExtension,
+    enqueueNextTurnInjection: handlers.enqueueNextTurnInjection ?? noopEnqueueNextTurnInjection,
+    registerTrustedToolPolicy: handlers.registerTrustedToolPolicy ?? noopRegisterTrustedToolPolicy,
+    registerToolMetadata: handlers.registerToolMetadata ?? noopRegisterToolMetadata,
+    registerControlUiDescriptor:
+      handlers.registerControlUiDescriptor ?? noopRegisterControlUiDescriptor,
+    registerRuntimeLifecycle: handlers.registerRuntimeLifecycle ?? noopRegisterRuntimeLifecycle,
+    registerAgentEventSubscription:
+      handlers.registerAgentEventSubscription ?? noopRegisterAgentEventSubscription,
+    emitAgentEvent: handlers.emitAgentEvent ?? noopEmitAgentEvent,
+    setRunContext: handlers.setRunContext ?? noopSetRunContext,
+    getRunContext: handlers.getRunContext ?? noopGetRunContext,
+    clearRunContext: handlers.clearRunContext ?? noopClearRunContext,
+    registerSessionSchedulerJob:
+      handlers.registerSessionSchedulerJob ?? noopRegisterSessionSchedulerJob,
+    registerSessionAction: handlers.registerSessionAction ?? noopRegisterSessionAction,
+    sendSessionAttachment: handlers.sendSessionAttachment ?? noopSendSessionAttachment,
+    scheduleSessionTurn: handlers.scheduleSessionTurn ?? noopScheduleSessionTurn,
+    unscheduleSessionTurnsByTag:
+      handlers.unscheduleSessionTurnsByTag ?? noopUnscheduleSessionTurnsByTag,
     on: handlers.on ?? noopOn,
   };
+  return attachPluginApiFacades(api);
 }

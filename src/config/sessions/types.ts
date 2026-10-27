@@ -72,6 +72,26 @@ export type CliSessionBinding = {
   mcpConfigHash?: string;
 };
 
+export type SessionPluginJsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | SessionPluginJsonValue[]
+  | { [key: string]: SessionPluginJsonValue };
+
+export type SessionPluginNextTurnInjection = {
+  id: string;
+  pluginId: string;
+  pluginName?: string;
+  text: string;
+  idempotencyKey?: string;
+  placement: "prepend_context" | "append_context";
+  ttlMs?: number;
+  createdAt: number;
+  metadata?: SessionPluginJsonValue;
+};
+
 export type SessionEntry = {
   /**
    * Last delivered heartbeat payload (used to suppress duplicate heartbeat notifications).
@@ -82,6 +102,12 @@ export type SessionEntry = {
   lastHeartbeatSentAt?: number;
   /** Last successful run timestamp per HEARTBEAT.md task name. */
   heartbeatTaskState?: Record<string, number>;
+  /** Plugin-owned session state, grouped by plugin id then extension namespace. */
+  pluginExtensions?: Record<string, Record<string, SessionPluginJsonValue>>;
+  /** Top-level SessionEntry mirror slots owned by plugin session extensions. */
+  pluginExtensionSlotKeys?: Record<string, Record<string, string>>;
+  /** Durable one-shot prompt additions drained before the next agent turn. */
+  pluginNextTurnInjections?: Record<string, SessionPluginNextTurnInjection[]>;
   /** True while a final outbound delivery replay is pending. */
   pendingFinalDelivery?: boolean;
   /** Pending final delivery text used by heartbeat deferral. */

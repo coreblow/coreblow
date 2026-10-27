@@ -1,5 +1,6 @@
 import type { ChatType } from "../channels/chat-type.js";
 import type { SessionEntry } from "../config/sessions.js";
+import type { PluginSessionExtensionProjection } from "../plugins/host-hooks.js";
 import type {
   GatewayAgentRow as SharedGatewayAgentRow,
   SessionsListResultBase,
@@ -64,6 +65,7 @@ export type GatewaySessionRow = {
   lastTo?: string;
   lastAccountId?: string;
   lastThreadId?: SessionEntry["lastThreadId"];
+  pluginExtensions?: PluginSessionExtensionProjection[];
 };
 
 export type GatewayAgentRow = SharedGatewayAgentRow;

@@ -25,8 +25,15 @@ export function parseSessionThreadInfo(sessionKey: string | undefined): {
   return { baseSessionKey, threadId };
 }
 
-export function extractDeliveryInfo(sessionKey: string | undefined): {
-  deliveryContext: { channel?: string; to?: string; accountId?: string } | undefined;
+import type { CoreBlowConfig } from "../types.coreblow.js";
+
+export function extractDeliveryInfo(
+  sessionKey: string | undefined,
+  options?: { cfg?: CoreBlowConfig },
+): {
+  deliveryContext:
+    | { channel?: string; to?: string; accountId?: string; threadId?: string | number }
+    | undefined;
   threadId: string | undefined;
 } {
   const { baseSessionKey, threadId } = parseSessionThreadInfo(sessionKey);
@@ -34,9 +41,11 @@ export function extractDeliveryInfo(sessionKey: string | undefined): {
     return { deliveryContext: undefined, threadId };
   }
 
-  let deliveryContext: { channel?: string; to?: string; accountId?: string } | undefined;
+  let deliveryContext:
+    | { channel?: string; to?: string; accountId?: string; threadId?: string | number }
+    | undefined;
   try {
-    const cfg = loadConfig();
+    const cfg = options?.cfg ?? loadConfig();
     const storePath = resolveStorePath(cfg.session?.store);
     const store = loadSessionStore(storePath);
     let entry = store[sessionKey];
@@ -48,6 +57,7 @@ export function extractDeliveryInfo(sessionKey: string | undefined): {
         channel: entry.deliveryContext.channel,
         to: entry.deliveryContext.to,
         accountId: entry.deliveryContext.accountId,
+        threadId: entry.deliveryContext.threadId,
       };
     }
   } catch {

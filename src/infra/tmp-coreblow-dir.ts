@@ -182,3 +182,4 @@ const { getInstance: getTmpCoreblowDirService, __testing: __testing_tmpCoreblowD
   createStandaloneSingleton({ create: () => new TmpCoreblowDirService(), defaultDeps: {} });
 
 export { getTmpCoreblowDirService, __testing_tmpCoreblowDir };
+export const resolvePreferredOpenClawTmpDir = resolvePreferredCoreBlowTmpDir;

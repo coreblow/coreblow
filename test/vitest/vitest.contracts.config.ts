@@ -48,5 +48,6 @@ export default defineConfig({
         // Allow heavy first-import chains (google/matrix/telegram extensions).
         testTimeout: 30_000,
         hookTimeout: 60_000,
+        setupFiles: [path.resolve(repoRoot, 'test/setup.ts')],
     },
 });

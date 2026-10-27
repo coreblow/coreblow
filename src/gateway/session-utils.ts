@@ -32,6 +32,7 @@ import {
   type SessionScope,
 } from "../config/sessions.js";
 import { openBoundaryFileSync } from "../infra/boundary-file-read.js";
+import { projectPluginSessionExtensionsSync } from "../plugins/host-hook-state.js";
 import {
   normalizeAgentId,
   normalizeMainKey,
@@ -686,7 +687,7 @@ export function resolveSessionStoreKey(params: {
   return canonicalizeSessionKeyForAgent(agentId, lowered);
 }
 
-function resolveSessionStoreAgentId(cfg: CoreBlowConfig, canonicalKey: string): string {
+export function resolveSessionStoreAgentId(cfg: CoreBlowConfig, canonicalKey: string): string {
   if (canonicalKey === "global" || canonicalKey === "unknown") {
     return resolveDefaultStoreAgentId(cfg);
   }
@@ -1191,6 +1192,8 @@ export function buildGatewaySessionRow(params: {
     }
   }
 
+  const pluginExtensions = entry ? projectPluginSessionExtensionsSync({ sessionKey: key, entry }) : [];
+
   return {
     key,
     spawnedBy: subagentOwner || entry?.spawnedBy,
@@ -1240,6 +1243,7 @@ export function buildGatewaySessionRow(params: {
     lastTo: deliveryFields.lastTo ?? entry?.lastTo,
     lastAccountId: deliveryFields.lastAccountId ?? entry?.lastAccountId,
     lastThreadId: deliveryFields.lastThreadId ?? entry?.lastThreadId,
+    pluginExtensions: pluginExtensions.length > 0 ? pluginExtensions : undefined,
   };
 }
 

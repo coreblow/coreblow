@@ -4,6 +4,7 @@
 export type {
   PluginRecord,
   PluginRegistry,
+  PluginRegistryParams,
   PluginToolRegistration,
   PluginChannelRegistration,
   PluginChannelSetupRegistration,
@@ -15,4 +16,12 @@ export type {
   PluginVideoGenerationProviderRegistration,
   PluginWebSearchProviderRegistration,
   PluginAgentToolResultMiddlewareRegistration,
+  PluginSessionExtensionRegistryRegistration,
+  PluginTrustedToolPolicyRegistryRegistration,
+  PluginToolMetadataRegistryRegistration,
+  PluginControlUiDescriptorRegistryRegistration,
+  PluginRuntimeLifecycleRegistryRegistration,
+  PluginAgentEventSubscriptionRegistryRegistration,
+  PluginSessionSchedulerJobRegistryRegistration,
+  PluginSessionActionRegistryRegistration,
 } from "./registry.js";

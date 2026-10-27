@@ -149,6 +149,12 @@ import {
   PluginApprovalResolveParamsSchema,
 } from "./plugin-approvals.js";
 import {
+  PluginControlUiDescriptorSchema,
+  PluginsUiDescriptorsParamsSchema,
+  PluginsUiDescriptorsResultSchema,
+  PluginsSessionActionParamsSchema,
+} from "./plugins.js";
+import {
   EnvironmentSummarySchema,
   EnvironmentsListParamsSchema,
   EnvironmentsListResultSchema,
@@ -171,6 +177,8 @@ import {
   SessionsMessagesSubscribeParamsSchema,
   SessionsMessagesUnsubscribeParamsSchema,
   SessionsPatchParamsSchema,
+  SessionsPluginPatchParamsSchema,
+  SessionsPluginPatchResultSchema,
   SessionsPreviewParamsSchema,
   SessionsResetParamsSchema,
   SessionsResolveParamsSchema,
@@ -240,6 +248,8 @@ export const ProtocolSchemas = {
   SessionsMessagesUnsubscribeParams: SessionsMessagesUnsubscribeParamsSchema,
   SessionsAbortParams: SessionsAbortParamsSchema,
   SessionsPatchParams: SessionsPatchParamsSchema,
+  SessionsPluginPatchParams: SessionsPluginPatchParamsSchema,
+  SessionsPluginPatchResult: SessionsPluginPatchResultSchema,
   SessionsResetParams: SessionsResetParamsSchema,
   SessionsDeleteParams: SessionsDeleteParamsSchema,
   SessionsCompactParams: SessionsCompactParamsSchema,
@@ -326,6 +336,10 @@ export const ProtocolSchemas = {
   ExecApprovalResolveParams: ExecApprovalResolveParamsSchema,
   PluginApprovalRequestParams: PluginApprovalRequestParamsSchema,
   PluginApprovalResolveParams: PluginApprovalResolveParamsSchema,
+  PluginControlUiDescriptor: PluginControlUiDescriptorSchema,
+  PluginsUiDescriptorsParams: PluginsUiDescriptorsParamsSchema,
+  PluginsUiDescriptorsResult: PluginsUiDescriptorsResultSchema,
+  PluginsSessionActionParams: PluginsSessionActionParamsSchema,
   DevicePairListParams: DevicePairListParamsSchema,
   DevicePairApproveParams: DevicePairApproveParamsSchema,
   DevicePairRejectParams: DevicePairRejectParamsSchema,

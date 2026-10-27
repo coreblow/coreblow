@@ -7,6 +7,7 @@
 
 import { parseExplicitTargetForChannel } from "../channels/plugins/target-parsing.js";
 import type { CoreBlowConfig } from "../config/config.js";
+import { ADMIN_SCOPE, isOperatorScope, type OperatorScope } from "../gateway/operator-scopes.js";
 import { logVerbose } from "../globals.js";
 import { parseTelegramTarget } from "../plugin-sdk/telegram-runtime.js";
 import {
@@ -220,7 +221,11 @@ export async function executePluginCommand(params: {
   channel: string;
   channelId?: PluginCommandContext["channelId"];
   isAuthorizedSender: boolean;
+  senderIsOwner?: boolean;
   gatewayClientScopes?: PluginCommandContext["gatewayClientScopes"];
+  sessionKey?: PluginCommandContext["sessionKey"];
+  sessionId?: PluginCommandContext["sessionId"];
+  sessionFile?: PluginCommandContext["sessionFile"];
   commandBody: string;
   config: CoreBlowConfig;
   from?: PluginCommandContext["from"];
@@ -240,6 +245,34 @@ export async function executePluginCommand(params: {
     return { text: "⚠️ This command requires authorization." };
   }
 
+  if (command.requiredScopes !== undefined && !Array.isArray(command.requiredScopes)) {
+    logVerbose(`Plugin command /${command.name} blocked: invalid requiredScopes configuration`);
+    return { text: "⚠️ This command has invalid gateway scope configuration." };
+  }
+  const requiredScopes = (command.requiredScopes ?? []) as OperatorScope[];
+  const unknownScope = (requiredScopes as readonly unknown[]).find(
+    (scope) => !isOperatorScope(scope),
+  );
+  if (unknownScope) {
+    logVerbose(`Plugin command /${command.name} blocked: unknown gateway scope`);
+    return { text: "⚠️ This command has invalid gateway scope configuration." };
+  }
+  if (requiredScopes.length > 0) {
+    const senderIsOwner = params.senderIsOwner === true;
+    const scopes = Array.isArray(params.gatewayClientScopes)
+      ? new Set(params.gatewayClientScopes)
+      : undefined;
+    const hasGatewayScopeContext = scopes !== undefined;
+    const hasAdmin = scopes?.has(ADMIN_SCOPE) === true;
+    const missingScope = scopes
+      ? requiredScopes.find((scope) => !hasAdmin && !scopes.has(scope))
+      : requiredScopes[0];
+    if (missingScope && (hasGatewayScopeContext || !senderIsOwner)) {
+      logVerbose(`Plugin command /${command.name} blocked: missing gateway scope ${missingScope}`);
+      return { text: `⚠️ This command requires gateway scope: ${missingScope}.` };
+    }
+  }
+
   // Sanitize args before passing to handler
   const sanitizedArgs = sanitizeArgs(args);
   const bindingConversation = resolveBindingConversationFromCommand({
@@ -256,6 +289,10 @@ export async function executePluginCommand(params: {
     channel,
     channelId: params.channelId,
     isAuthorizedSender,
+    senderIsOwner: params.senderIsOwner,
+    sessionKey: params.sessionKey,
+    sessionId: params.sessionId,
+    sessionFile: params.sessionFile,
     gatewayClientScopes: params.gatewayClientScopes,
     args: sanitizedArgs,
     commandBody,

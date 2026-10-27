@@ -16,6 +16,7 @@ export { registerProviders, requireProvider, uniqueSortedStrings };
 
 export function createPluginRegistryFixture(
   config = {} as CoreBlowConfig,
+  params: { hostServices?: PluginRegistryParams["hostServices"] } = {},
 ) {
   return {
     config,
@@ -27,6 +28,7 @@ export function createPluginRegistryFixture(
         debug() {},
       },
       runtime: {} as PluginRuntime,
+      ...(params.hostServices ? { hostServices: params.hostServices } : {}),
     }),
   };
 }

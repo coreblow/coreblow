@@ -35,7 +35,12 @@ import {
   restoreMemoryPluginState,
 } from "./memory-state.js";
 import { isPathInside, safeStatSync } from "./path-safety.js";
-import { createPluginRegistry, type PluginRecord, type PluginRegistry } from "./registry.js";
+import {
+  createPluginRegistry,
+  type PluginRecord,
+  type PluginRegistry,
+  type PluginRegistryParams,
+} from "./registry.js";
 import { resolvePluginCacheInputs } from "./roots.js";
 import {
   getActivePluginRegistry,
@@ -76,6 +81,7 @@ export type PluginLoadOptions = {
   // instead of the process-global environment.
   env?: NodeJS.ProcessEnv;
   logger?: PluginLogger;
+  hostServices?: PluginRegistryParams["hostServices"];
   coreGatewayHandlers?: Record<string, GatewayRequestHandler>;
   runtimeOptions?: CreatePluginRuntimeOptions;
   pluginSdkResolution?: PluginSdkResolutionPreference;
@@ -931,6 +937,10 @@ export function loadCoreBlowPlugins(options: PluginLoadOptions = {}): PluginRegi
     logger,
     runtime,
     coreGatewayHandlers: options.coreGatewayHandlers as Record<string, GatewayRequestHandler>,
+    ...(options.hostServices !== undefined && {
+      hostServices: options.hostServices,
+    }),
+    activateGlobalSideEffects: shouldActivate,
     suppressGlobalCommands: !shouldActivate,
   });
 

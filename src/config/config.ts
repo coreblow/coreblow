@@ -3,6 +3,7 @@ export {
   ConfigRuntimeRefreshError,
   clearRuntimeConfigSnapshot,
   createConfigIO,
+  getRuntimeConfig,
   getRuntimeConfigSnapshot,
   getRuntimeConfigSourceSnapshot,
   projectConfigOntoRuntimeSourceSnapshot,

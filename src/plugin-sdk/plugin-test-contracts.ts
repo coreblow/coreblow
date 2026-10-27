@@ -67,3 +67,13 @@ export function describePluginRegistrationContract(params: {
     });
   });
 }
+
+export {
+  assertNoImportTimeSideEffects,
+  createPluginRegistryFixture,
+  registerProviders,
+  registerTestPlugin,
+  registerVirtualTestPlugin,
+  requireProvider,
+  uniqueSortedStrings,
+} from "./test-helpers/contracts-testkit.js";

@@ -15,7 +15,7 @@ import type { ProviderPlugin } from "./types.js";
 
 const log = createSubsystemLogger("plugins");
 
-export function resolvePluginProviders(params: {
+export type ResolvePluginProvidersParams = {
   config?: PluginLoadOptions["config"];
   workspaceDir?: string;
   /** Use an explicit env when plugin roots should resolve independently from process.env. */
@@ -23,10 +23,23 @@ export function resolvePluginProviders(params: {
   bundledProviderAllowlistCompat?: boolean;
   bundledProviderVitestCompat?: boolean;
   onlyPluginIds?: string[];
+  providerRefs?: readonly string[];
+  modelRefs?: readonly string[];
   activate?: boolean;
   cache?: boolean;
+  applyAutoEnable?: boolean;
   pluginSdkResolution?: PluginLoadOptions["pluginSdkResolution"];
-}): ProviderPlugin[] {
+  mode?: "runtime" | "setup";
+  includeUntrustedWorkspacePlugins?: boolean;
+};
+
+export function isPluginProvidersLoadInFlight(
+  _params: ResolvePluginProvidersParams,
+): boolean {
+  return false;
+}
+
+export function resolvePluginProviders(params: ResolvePluginProvidersParams): ProviderPlugin[] {
   const env = params.env ?? process.env;
   const autoEnabledConfig =
     params.config !== undefined

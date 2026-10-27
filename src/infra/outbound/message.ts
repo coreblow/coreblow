@@ -36,6 +36,8 @@ type MessageSendParams = {
   content: string;
   /** Active agent id for per-agent outbound media root scoping. */
   agentId?: string;
+  /** Originating session key used for requester-scoped outbound media policy. */
+  requesterSessionKey?: string;
   channel?: string;
   mediaUrl?: string;
   mediaUrls?: string[];
@@ -44,6 +46,7 @@ type MessageSendParams = {
   accountId?: string;
   replyToId?: string;
   threadId?: string | number;
+  parseMode?: string;
   dryRun?: boolean;
   bestEffort?: boolean;
   deps?: OutboundSendDeps;

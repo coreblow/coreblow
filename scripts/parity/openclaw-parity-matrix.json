@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8607,
+    "cb_source_files": 8623,
     "oc_source_files": 8443,
-    "source_parity_both": 6808,
+    "source_parity_both": 6824,
     "source_cb_exclusive": 1799,
-    "source_missing_from_cb": 1635,
-    "test_files_cb": 4939,
+    "source_missing_from_cb": 1619,
+    "test_files_cb": 4946,
     "test_files_oc": 5246,
-    "tests_both_covered": 3502,
-    "tests_gap_oc_has_cb_missing": 1499,
+    "tests_both_covered": 3504,
+    "tests_gap_oc_has_cb_missing": 1497,
     "tests_cb_exclusive": 1379,
     "export_files_with_gaps": 60,
     "test_scenario_files_with_gaps": 40,
@@ -158,30 +158,30 @@
     {
       "domain": "src/plugins",
       "status": "partial",
-      "priority": "P0",
+      "priority": "P1",
       "implementationSurface": "src/plugins PluginLoader, PluginRegistry, HookRunner",
       "counts": {
-        "sharedSourcePaths": 248,
+        "sharedSourcePaths": 261,
         "coreBlowOnlySourcePaths": 74,
-        "openClawOnlySourcePaths": 86,
-        "sharedTestPaths": 95,
+        "openClawOnlySourcePaths": 73,
+        "sharedTestPaths": 97,
         "coreBlowOnlyTestPaths": 70,
-        "openClawTestGaps": 121
+        "openClawTestGaps": 119
       },
       "samples": {
         "openClawOnlySourcePaths": [
-          "src/plugins/api-facades.ts",
           "src/plugins/capability-runtime-vitest-shims/config-runtime.ts",
           "src/plugins/clawhub-install-records.ts",
           "src/plugins/cli-gateway-nodes-runtime.ts",
           "src/plugins/cli-registry-loader.ts",
           "src/plugins/codex-app-server-extension-factory.ts",
           "src/plugins/command-specs.ts",
-          "src/plugins/contracts/host-hook-fixture.ts",
           "src/plugins/contracts/inventory/bundled-capability-metadata.ts",
           "src/plugins/contracts/test-helpers/bundled-plugin-roots.ts",
           "src/plugins/contracts/tts-contract-suites.ts",
-          "src/plugins/doctor-contract-registry.ts"
+          "src/plugins/doctor-contract-registry.ts",
+          "src/plugins/document-extractor-public-artifacts.ts",
+          "src/plugins/document-extractors.runtime.ts"
         ],
         "openClawTestGapPaths": [
           "src/plugins/active-runtime-registry.test.ts",
@@ -350,9 +350,9 @@
       "priority": "P1",
       "implementationSurface": "src/gateway GatewayServer and ServiceRegistry",
       "counts": {
-        "sharedSourcePaths": 350,
+        "sharedSourcePaths": 351,
         "coreBlowOnlySourcePaths": 65,
-        "openClawOnlySourcePaths": 41,
+        "openClawOnlySourcePaths": 40,
         "sharedTestPaths": 217,
         "coreBlowOnlyTestPaths": 134,
         "openClawTestGaps": 90
@@ -552,9 +552,9 @@
       "priority": "P1",
       "implementationSurface": "src/infra",
       "counts": {
-        "sharedSourcePaths": 299,
+        "sharedSourcePaths": 300,
         "coreBlowOnlySourcePaths": 76,
-        "openClawOnlySourcePaths": 80,
+        "openClawOnlySourcePaths": 79,
         "sharedTestPaths": 299,
         "coreBlowOnlyTestPaths": 63,
         "openClawTestGaps": 46
@@ -1056,9 +1056,9 @@
       "priority": "P2",
       "implementationSurface": "src/cron",
       "counts": {
-        "sharedSourcePaths": 44,
+        "sharedSourcePaths": 45,
         "coreBlowOnlySourcePaths": 9,
-        "openClawOnlySourcePaths": 40,
+        "openClawOnlySourcePaths": 39,
         "sharedTestPaths": 64,
         "coreBlowOnlyTestPaths": 45,
         "openClawTestGaps": 30

@@ -1,3 +1,4 @@
+import { isOperatorScope } from "../gateway/operator-scopes.js";
 import { logVerbose } from "../globals.js";
 import {
   clearPluginCommands,
@@ -20,28 +21,13 @@ import type { CoreBlowPluginCommandDefinition } from "./types.js";
 // eslint-disable-next-line no-var -- var avoids TDZ when bundler reorders module bodies in a chunk
 var reservedCommands: Set<string> | undefined;
 
-export type CommandRegistrationResult = {
-  ok: boolean;
-  error?: string;
-};
-
-export function validateCommandName(name: string): string | null {
-  const trimmed = name.trim().toLowerCase();
-
-  if (!trimmed) {
-    return "Command name cannot be empty";
-  }
-
-  // Must start with a letter, contain only letters, numbers, hyphens, underscores
-  // Note: trimmed is already lowercased, so no need for /i flag
-  if (!/^[a-z][a-z0-9_-]*$/.test(trimmed)) {
-    return "Command name must start with a letter and contain only letters, numbers, hyphens, and underscores";
-  }
-
+function getReservedCommands(): Set<string> {
   reservedCommands ??= new Set([
     "help",
     "commands",
     "status",
+    "diagnostics",
+    "codex",
     "whoami",
     "context",
     "btw",
@@ -71,8 +57,36 @@ export function validateCommandName(name: string): string | null {
     "elevated",
     "usage",
   ]);
+  return reservedCommands;
+}
 
-  if (reservedCommands.has(trimmed)) {
+export type CommandRegistrationResult = {
+  ok: boolean;
+  error?: string;
+};
+
+export function isReservedCommandName(name: string): boolean {
+  const trimmed = name.trim().toLowerCase();
+  return Boolean(trimmed && getReservedCommands().has(trimmed));
+}
+
+export function validateCommandName(
+  name: string,
+  opts?: { allowReservedCommandNames?: boolean },
+): string | null {
+  const trimmed = name.trim().toLowerCase();
+
+  if (!trimmed) {
+    return "Command name cannot be empty";
+  }
+
+  // Must start with a letter, contain only letters, numbers, hyphens, underscores
+  // Note: trimmed is already lowercased, so no need for /i flag
+  if (!/^[a-z][a-z0-9_-]*$/.test(trimmed)) {
+    return "Command name must start with a letter and contain only letters, numbers, hyphens, and underscores";
+  }
+
+  if (!opts?.allowReservedCommandNames && getReservedCommands().has(trimmed)) {
     return `Command name "${trimmed}" is reserved by a built-in command`;
   }
 
@@ -86,6 +100,7 @@ export function validateCommandName(name: string): string | null {
  */
 export function validatePluginCommandDefinition(
   command: CoreBlowPluginCommandDefinition,
+  opts?: { allowReservedCommandNames?: boolean },
 ): string | null {
   if (typeof command.handler !== "function") {
     return "Command handler must be a function";
@@ -99,7 +114,15 @@ export function validatePluginCommandDefinition(
   if (!command.description.trim()) {
     return "Command description cannot be empty";
   }
-  const nameError = validateCommandName(command.name.trim());
+  if (command.ownership === "reserved") {
+    if (!opts?.allowReservedCommandNames) {
+      return "Reserved command ownership is only available to bundled reserved commands";
+    }
+    if (!isReservedCommandName(command.name)) {
+      return `Reserved command ownership requires a reserved command name: ${command.name.trim().toLowerCase()}`;
+    }
+  }
+  const nameError = validateCommandName(command.name.trim(), opts);
   if (nameError) {
     return nameError;
   }
@@ -110,6 +133,19 @@ export function validatePluginCommandDefinition(
     const aliasError = validateCommandName(alias.trim());
     if (aliasError) {
       return `Native command alias "${label}" invalid: ${aliasError}`;
+    }
+  }
+  if (command.requiredScopes !== undefined) {
+    if (!Array.isArray(command.requiredScopes)) {
+      return "Command requiredScopes must be an array of operator scopes";
+    }
+    const unknownScope = (command.requiredScopes as readonly unknown[]).find(
+      (scope) => !isOperatorScope(scope),
+    );
+    if (unknownScope) {
+      return typeof unknownScope === "string"
+        ? `Command requiredScopes contains unknown operator scope: ${unknownScope}`
+        : "Command requiredScopes contains unknown operator scope";
     }
   }
   return null;
@@ -136,14 +172,20 @@ export function listPluginInvocationKeys(command: CoreBlowPluginCommandDefinitio
 export function registerPluginCommand(
   pluginId: string,
   command: CoreBlowPluginCommandDefinition,
-  opts?: { pluginName?: string; pluginRoot?: string },
+  opts?: { pluginName?: string; pluginRoot?: string; allowReservedCommandNames?: boolean },
 ): CommandRegistrationResult {
   // Prevent registration while commands are being processed
   if (isPluginCommandRegistryLocked()) {
     return { ok: false, error: "Cannot register commands while processing is in progress" };
   }
+  if (command.ownership === "reserved") {
+    return {
+      ok: false,
+      error: "Reserved command ownership is only available to bundled reserved commands",
+    };
+  }
 
-  const definitionError = validatePluginCommandDefinition(command);
+  const definitionError = validatePluginCommandDefinition(command, opts);
   if (definitionError) {
     return { ok: false, error: definitionError };
   }

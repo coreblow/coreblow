@@ -128,6 +128,8 @@ import {
   PluginApprovalRequestParamsSchema,
   type PluginApprovalResolveParams,
   PluginApprovalResolveParamsSchema,
+  type PluginsUiDescriptorsParams,
+  PluginsUiDescriptorsParamsSchema,
   ErrorCodes,
   type ErrorShape,
   ErrorShapeSchema,
@@ -212,6 +214,8 @@ import {
   SessionsMessagesUnsubscribeParamsSchema,
   type SessionsPatchParams,
   SessionsPatchParamsSchema,
+  type SessionsPluginPatchParams,
+  SessionsPluginPatchParamsSchema,
   type SessionsPreviewParams,
   SessionsPreviewParamsSchema,
   type SessionsResetParams,
@@ -372,6 +376,8 @@ export const validateSessionsAbortParams =
   ajv.compile<SessionsAbortParams>(SessionsAbortParamsSchema);
 export const validateSessionsPatchParams =
   ajv.compile<SessionsPatchParams>(SessionsPatchParamsSchema);
+export const validateSessionsPluginPatchParams =
+  ajv.compile<SessionsPluginPatchParams>(SessionsPluginPatchParamsSchema);
 export const validateSessionsResetParams =
   ajv.compile<SessionsResetParams>(SessionsResetParamsSchema);
 export const validateSessionsDeleteParams = ajv.compile<SessionsDeleteParams>(
@@ -468,6 +474,9 @@ export const validatePluginApprovalRequestParams = ajv.compile<PluginApprovalReq
 export const validatePluginApprovalResolveParams = ajv.compile<PluginApprovalResolveParams>(
   PluginApprovalResolveParamsSchema,
 );
+export const validatePluginsUiDescriptorsParams = ajv.compile<PluginsUiDescriptorsParams>(
+  PluginsUiDescriptorsParamsSchema,
+);
 export const validateExecApprovalsNodeGetParams = ajv.compile<ExecApprovalsNodeGetParams>(
   ExecApprovalsNodeGetParamsSchema,
 );
@@ -561,6 +570,8 @@ export {
   SessionsSendParamsSchema,
   SessionsAbortParamsSchema,
   SessionsPatchParamsSchema,
+  SessionsPluginPatchParamsSchema,
+  PluginsUiDescriptorsParamsSchema,
   SessionsResetParamsSchema,
   SessionsDeleteParamsSchema,
   SessionsCompactParamsSchema,
@@ -734,6 +745,8 @@ export type {
   SessionsPreviewParams,
   SessionsResolveParams,
   SessionsPatchParams,
+  SessionsPluginPatchParams,
+  PluginsUiDescriptorsParams,
   SessionsPatchResult,
   SessionsResetParams,
   SessionsDeleteParams,

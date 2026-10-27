@@ -78,9 +78,44 @@ import type { WizardPrompter } from "../wizard/prompts.js";
 import type { SecretInputMode } from "./provider-auth-types.js";
 import type { createVpsAwareOAuthHandlers } from "./provider-oauth-flow.js";
 import type { PluginRuntime } from "./runtime/types.js";
+import type {
+  PluginAgentTurnPrepareEvent,
+  PluginAgentTurnPrepareResult,
+  PluginHeartbeatPromptContributionEvent,
+  PluginHeartbeatPromptContributionResult,
+} from "./host-hook-turn-types.js";
+import type {
+  PluginAgentEventEmitParams,
+  PluginAgentEventEmitResult,
+  PluginAgentEventSubscriptionRegistration,
+  PluginControlUiDescriptor,
+  PluginJsonValue,
+  PluginNextTurnInjection,
+  PluginNextTurnInjectionEnqueueResult,
+  PluginRunContextGetParams,
+  PluginRunContextPatch,
+  PluginRuntimeLifecycleRegistration,
+  PluginSessionActionRegistration,
+  PluginSessionAttachmentParams,
+  PluginSessionAttachmentResult,
+  PluginSessionExtensionRegistration,
+  PluginSessionSchedulerJobHandle,
+  PluginSessionSchedulerJobRegistration,
+  PluginSessionTurnScheduleParams,
+  PluginSessionTurnUnscheduleByTagParams,
+  PluginSessionTurnUnscheduleByTagResult,
+  PluginToolMetadataRegistration,
+  PluginTrustedToolPolicyRegistration,
+} from "./host-hooks.js";
 
 export type { PluginRuntime } from "./runtime/types.js";
 export type { AnyAgentTool } from "../agents/tools/common.js";
+export type {
+  PluginAgentTurnPrepareEvent,
+  PluginAgentTurnPrepareResult,
+  PluginHeartbeatPromptContributionEvent,
+  PluginHeartbeatPromptContributionResult,
+};
 
 export type ProviderAuthOptionBag = {
   token?: string;
@@ -612,6 +647,49 @@ export type ProviderPrepareExtraParamsContext = {
   thinkingLevel?: ThinkLevel;
 };
 
+export type ProviderExtraParamsForTransportContext = Omit<
+  ProviderPrepareExtraParamsContext,
+  "extraParams"
+> & {
+  model?: ProviderRuntimeModel;
+  transport?: "sse" | "websocket" | "auto";
+  extraParams: Record<string, unknown>;
+};
+
+export type ProviderExtraParamsForTransportResult = {
+  patch?: Record<string, unknown> | null;
+};
+
+export type ProviderFollowupFallbackRouteContext = {
+  config?: CoreBlowConfig;
+  agentDir?: string;
+  workspaceDir?: string;
+  provider: string;
+  modelId: string;
+  payload: ReplyPayload;
+  originatingChannel?: string;
+  originatingTo?: string;
+  originRoutable: boolean;
+  dispatcherAvailable: boolean;
+};
+
+export type ProviderFollowupFallbackRouteResult = {
+  route?: "origin" | "dispatcher" | "drop";
+  reason?: string;
+};
+
+export type ProviderResolveAuthProfileIdContext = {
+  config?: CoreBlowConfig;
+  agentDir?: string;
+  workspaceDir?: string;
+  provider: string;
+  modelId: string;
+  preferredProfileId?: string;
+  lockedProfileId?: string;
+  profileOrder: string[];
+  authStore: AuthProfileStore;
+};
+
 /**
  * Provider-owned transport creation.
  *
@@ -1052,6 +1130,13 @@ export type ProviderPlugin = {
   prepareExtraParams?: (
     ctx: ProviderPrepareExtraParamsContext,
   ) => Record<string, unknown> | null | undefined;
+  extraParamsForTransport?: (
+    ctx: ProviderExtraParamsForTransportContext,
+  ) => ProviderExtraParamsForTransportResult | null | undefined;
+  resolveAuthProfileId?: (ctx: ProviderResolveAuthProfileIdContext) => string | null | undefined;
+  followupFallbackRoute?: (
+    ctx: ProviderFollowupFallbackRouteContext,
+  ) => ProviderFollowupFallbackRouteResult | null | undefined;
   /**
    * Provider-owned transport factory.
    *
@@ -1476,6 +1561,10 @@ export type PluginCommandContext = {
   channelId?: ChannelId;
   /** Whether the sender is on the allowlist */
   isAuthorizedSender: boolean;
+  senderIsOwner?: boolean;
+  sessionKey?: string;
+  sessionId?: string;
+  sessionFile?: string;
   /** Gateway client scopes for internal control-plane callers */
   gatewayClientScopes?: string[];
   /** Raw command arguments after the command name */
@@ -1586,6 +1675,13 @@ export type CoreBlowPluginCommandDefinition = {
   acceptsArgs?: boolean;
   /** Whether only authorized senders can use this command (default: true) */
   requireAuth?: boolean;
+  /** Operator scopes required by gateway clients; command owners may satisfy this on chat surfaces. */
+  requiredScopes?: OperatorScope[] | string[] | string;
+  /**
+   * Allows a bundled plugin to claim a command name that is otherwise reserved
+   * by core. External plugins cannot use this field.
+   */
+  ownership?: "plugin" | "reserved";
   /** The handler function */
   handler: PluginCommandHandler;
 };
@@ -1909,6 +2005,80 @@ export type CoreBlowPluginModule =
   | CoreBlowPluginDefinition
   | ((api: CoreBlowPluginApi) => void | Promise<void>);
 
+export type CoreBlowPluginSessionStateApi = {
+  /** Register plugin-owned session state projected into Gateway session rows. */
+  registerSessionExtension: (extension: PluginSessionExtensionRegistration) => void;
+};
+export type OpenClawPluginSessionStateApi = CoreBlowPluginSessionStateApi;
+
+export type CoreBlowPluginSessionWorkflowApi = {
+  /** Queue one plugin-owned context injection for the next agent turn in a session. */
+  enqueueNextTurnInjection: (
+    injection: PluginNextTurnInjection,
+  ) => Promise<PluginNextTurnInjectionEnqueueResult>;
+  /** Register cleanup metadata for a plugin-owned session scheduler job. */
+  registerSessionSchedulerJob: (
+    job: PluginSessionSchedulerJobRegistration,
+  ) => PluginSessionSchedulerJobHandle | undefined;
+  /** Send host-validated files to the active direct-outbound route for a session. */
+  sendSessionAttachment: (
+    params: PluginSessionAttachmentParams,
+  ) => Promise<PluginSessionAttachmentResult>;
+  /** Schedule a future agent turn in a session through Cron. */
+  scheduleSessionTurn: (
+    params: PluginSessionTurnScheduleParams,
+  ) => Promise<PluginSessionSchedulerJobHandle | undefined>;
+  /** Remove Cron-backed scheduled session turns that share a plugin-owned tag. */
+  unscheduleSessionTurnsByTag: (
+    params: PluginSessionTurnUnscheduleByTagParams,
+  ) => Promise<PluginSessionTurnUnscheduleByTagResult>;
+};
+export type OpenClawPluginSessionWorkflowApi = CoreBlowPluginSessionWorkflowApi;
+
+export type CoreBlowPluginSessionControlsApi = {
+  /** Register a typed session action that clients can dispatch through the Gateway. */
+  registerSessionAction: (action: PluginSessionActionRegistration) => void;
+  /** Register a generic Control UI contribution descriptor. */
+  registerControlUiDescriptor: (descriptor: PluginControlUiDescriptor) => void;
+};
+export type OpenClawPluginSessionControlsApi = CoreBlowPluginSessionControlsApi;
+
+export type CoreBlowPluginSessionApi = {
+  state: CoreBlowPluginSessionStateApi;
+  workflow: CoreBlowPluginSessionWorkflowApi;
+  controls: CoreBlowPluginSessionControlsApi;
+};
+export type OpenClawPluginSessionApi = CoreBlowPluginSessionApi;
+
+export type CoreBlowPluginAgentEventsApi = {
+  /** Subscribe to sanitized agent events through the host-owned plugin lifecycle. */
+  registerAgentEventSubscription: (subscription: PluginAgentEventSubscriptionRegistration) => void;
+  /** Emit a host-routed, plugin-attributed event for workflow/UI subscribers. */
+  emitAgentEvent: (params: PluginAgentEventEmitParams) => PluginAgentEventEmitResult;
+};
+export type OpenClawPluginAgentEventsApi = CoreBlowPluginAgentEventsApi;
+
+export type CoreBlowPluginAgentApi = {
+  events: CoreBlowPluginAgentEventsApi;
+};
+export type OpenClawPluginAgentApi = CoreBlowPluginAgentApi;
+
+export type CoreBlowPluginRunContextApi = {
+  /** Store namespaced, JSON-compatible data for the active run. Cleared on run end/error. */
+  setRunContext: (patch: PluginRunContextPatch) => boolean;
+  /** Read namespaced plugin data for a run. */
+  getRunContext: (params: PluginRunContextGetParams) => PluginJsonValue | undefined;
+  /** Clear one namespace or all namespaces this plugin owns for a run. */
+  clearRunContext: (params: { runId: string; namespace?: string }) => void;
+};
+export type OpenClawPluginRunContextApi = CoreBlowPluginRunContextApi;
+
+export type CoreBlowPluginLifecycleApi = {
+  /** Register cleanup hooks for plugin-owned host state and background work. */
+  registerRuntimeLifecycle: (lifecycle: PluginRuntimeLifecycleRegistration) => void;
+};
+export type OpenClawPluginLifecycleApi = CoreBlowPluginLifecycleApi;
+
 export type PluginRegistrationMode = "full" | "setup-only" | "setup-runtime";
 
 /** Main registration API injected into native plugin entry files. */
@@ -1922,6 +2092,10 @@ export type CoreBlowPluginApi = {
   registrationMode: PluginRegistrationMode;
   config: CoreBlowConfig;
   pluginConfig?: Record<string, unknown>;
+  session: CoreBlowPluginSessionApi;
+  agent: CoreBlowPluginAgentApi;
+  runContext: CoreBlowPluginRunContextApi;
+  lifecycle: CoreBlowPluginLifecycleApi;
   /**
    * In-process runtime helpers for trusted native plugins.
    *
@@ -2009,6 +2183,32 @@ export type CoreBlowPluginApi = {
     adapter: import("./memory-embedding-providers.js").MemoryEmbeddingProviderAdapter,
   ) => void;
   resolvePath: (input: string) => string;
+  registerTrustedToolPolicy: (policy: PluginTrustedToolPolicyRegistration) => void;
+  registerToolMetadata: (metadata: PluginToolMetadataRegistration) => void;
+  registerSessionExtension: (extension: PluginSessionExtensionRegistration) => void;
+  enqueueNextTurnInjection: (
+    injection: PluginNextTurnInjection,
+  ) => Promise<PluginNextTurnInjectionEnqueueResult>;
+  registerSessionSchedulerJob: (
+    job: PluginSessionSchedulerJobRegistration,
+  ) => PluginSessionSchedulerJobHandle | undefined;
+  sendSessionAttachment: (
+    params: PluginSessionAttachmentParams,
+  ) => Promise<PluginSessionAttachmentResult>;
+  scheduleSessionTurn: (
+    params: PluginSessionTurnScheduleParams,
+  ) => Promise<PluginSessionSchedulerJobHandle | undefined>;
+  unscheduleSessionTurnsByTag: (
+    params: PluginSessionTurnUnscheduleByTagParams,
+  ) => Promise<PluginSessionTurnUnscheduleByTagResult>;
+  registerSessionAction: (action: PluginSessionActionRegistration) => void;
+  registerControlUiDescriptor: (descriptor: PluginControlUiDescriptor) => void;
+  registerRuntimeLifecycle: (lifecycle: PluginRuntimeLifecycleRegistration) => void;
+  registerAgentEventSubscription: (subscription: PluginAgentEventSubscriptionRegistration) => void;
+  emitAgentEvent: (params: PluginAgentEventEmitParams) => PluginAgentEventEmitResult;
+  setRunContext: (patch: PluginRunContextPatch) => boolean;
+  getRunContext: (params: PluginRunContextGetParams) => PluginJsonValue | undefined;
+  clearRunContext: (params: { runId: string; namespace?: string }) => void;
   /** Register a lifecycle hook handler */
   on: <K extends PluginHookName>(
     hookName: K,
@@ -2016,6 +2216,8 @@ export type CoreBlowPluginApi = {
     opts?: { priority?: number },
   ) => void;
 };
+
+export type OpenClawPluginApi = CoreBlowPluginApi;
 
 export type PluginOrigin = "bundled" | "global" | "workspace" | "config";
 
@@ -2036,9 +2238,12 @@ export type PluginDiagnostic = {
 
 export type PluginHookName =
   | "before_model_resolve"
+  | "agent_turn_prepare"
   | "before_prompt_build"
   | "before_agent_start"
   | "before_agent_reply"
+  | "model_call_started"
+  | "model_call_ended"
   | "before_agent_finalize"
   | "before_agent_run"
   | "llm_input"
@@ -2061,17 +2266,23 @@ export type PluginHookName =
   | "subagent_delivery_target"
   | "subagent_spawned"
   | "subagent_ended"
+  | "deactivate"
   | "gateway_start"
   | "gateway_stop"
+  | "heartbeat_prompt_contribution"
+  | "cron_changed"
   | "before_dispatch"
   | "reply_dispatch"
   | "before_install";
 
 export const PLUGIN_HOOK_NAMES = [
   "before_model_resolve",
+  "agent_turn_prepare",
   "before_prompt_build",
   "before_agent_start",
   "before_agent_reply",
+  "model_call_started",
+  "model_call_ended",
   "before_agent_finalize",
   "before_agent_run",
   "llm_input",
@@ -2094,8 +2305,11 @@ export const PLUGIN_HOOK_NAMES = [
   "subagent_delivery_target",
   "subagent_spawned",
   "subagent_ended",
+  "deactivate",
   "gateway_start",
   "gateway_stop",
+  "heartbeat_prompt_contribution",
+  "cron_changed",
   "before_dispatch",
   "reply_dispatch",
   "before_install",
@@ -2112,8 +2326,10 @@ export const isPluginHookName = (hookName: unknown): hookName is PluginHookName 
   typeof hookName === "string" && pluginHookNameSet.has(hookName as PluginHookName);
 
 export const PROMPT_INJECTION_HOOK_NAMES = [
+  "agent_turn_prepare",
   "before_prompt_build",
   "before_agent_start",
+  "heartbeat_prompt_contribution",
 ] as const satisfies readonly PluginHookName[];
 
 export type PromptInjectionHookName = (typeof PROMPT_INJECTION_HOOK_NAMES)[number];
@@ -2456,6 +2672,8 @@ export type PluginHookToolContext = {
   toolName: string;
   /** Provider-specific tool call ID when available. */
   toolCallId?: string;
+  getSessionExtension?: (namespace: string) => PluginJsonValue | undefined;
+  channelId?: string;
 };
 
 // before_tool_call hook
@@ -2466,6 +2684,10 @@ export type PluginHookBeforeToolCallEvent = {
   runId?: string;
   /** Provider-specific tool call ID when available. */
   toolCallId?: string;
+  /**
+   * Optional best-effort destination path hints the host derived from `params`.
+   */
+  derivedPaths?: readonly string[];
 };
 
 export const PluginApprovalResolutions = {
@@ -2959,6 +3181,10 @@ export type PluginHookReplyDispatchResult = {
 
 // Hook handler types mapped by hook name
 export type PluginHookHandlerMap = {
+  agent_turn_prepare: (
+    event: PluginAgentTurnPrepareEvent,
+    ctx: PluginHookAgentContext,
+  ) => Promise<PluginAgentTurnPrepareResult | void> | PluginAgentTurnPrepareResult | void;
   before_model_resolve: (
     event: PluginHookBeforeModelResolveEvent,
     ctx: PluginHookAgentContext,
@@ -2978,6 +3204,14 @@ export type PluginHookHandlerMap = {
     event: PluginHookBeforeAgentReplyEvent,
     ctx: PluginHookAgentContext,
   ) => Promise<PluginHookBeforeAgentReplyResult | void> | PluginHookBeforeAgentReplyResult | void;
+  model_call_started: (
+    event: PluginHookModelCallStartedEvent,
+    ctx: PluginHookAgentContext,
+  ) => Promise<void> | void;
+  model_call_ended: (
+    event: PluginHookModelCallEndedEvent,
+    ctx: PluginHookAgentContext,
+  ) => Promise<void> | void;
   before_agent_finalize: (
     event: PluginHookBeforeAgentFinalizeEvent,
     ctx: PluginHookAgentContext,
@@ -3075,6 +3309,18 @@ export type PluginHookHandlerMap = {
     event: PluginHookGatewayStopEvent,
     ctx: PluginHookGatewayContext,
   ) => Promise<void> | void;
+  heartbeat_prompt_contribution: (
+    event: PluginHeartbeatPromptContributionEvent,
+    ctx: PluginHookAgentContext,
+  ) =>
+    | Promise<PluginHeartbeatPromptContributionResult | void>
+    | PluginHeartbeatPromptContributionResult
+    | void;
+  cron_changed: (
+    event: PluginHookCronChangedEvent,
+    ctx: PluginHookGatewayContext,
+  ) => Promise<void> | void;
+  deactivate: (event: Record<string, unknown>, ctx: Record<string, unknown>) => Promise<void> | void;
   reply_dispatch: (
     event: PluginHookReplyDispatchEvent,
     ctx: PluginHookReplyDispatchContext,

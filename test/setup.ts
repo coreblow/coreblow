@@ -43,13 +43,6 @@ if (process.getMaxListeners() > 0 && process.getMaxListeners() < TEST_PROCESS_MA
   process.setMaxListeners(TEST_PROCESS_MAX_LISTENERS);
 }
 
-import { resetContextWindowCacheForTest } from "../src/agents/context.js";
-import { resetModelsJsonReadyCacheForTest } from "../src/agents/models-config.js";
-import {
-  drainSessionWriteLockStateForTest,
-  resetSessionWriteLockStateForTest,
-} from "../src/agents/session-write-lock.js";
-import { createTopLevelChannelReplyToModeResolver } from "../src/channels/plugins/threading-helpers.js";
 import type {
   ChannelId,
   ChannelOutboundAdapter,
@@ -61,7 +54,6 @@ import type { OutboundSendDeps } from "../src/infra/outbound/deliver.js";
 import { installProcessWarningFilter } from "../src/infra/warning-filter.js";
 import type { PluginRegistry } from "../src/plugins/registry.js";
 import { createTestRegistry } from "../src/test-utils/channel-plugins.js";
-import { cleanupSessionStateForTest } from "../src/test-utils/session-state-cleanup.js";
 import { withIsolatedTestHome } from "./test-env.js";
 
 // Set HOME/state isolation before importing any runtime CoreBlow modules.
@@ -69,31 +61,44 @@ const testEnv = withIsolatedTestHome();
 
 installProcessWarningFilter();
 
-const REGISTRY_STATE = Symbol.for("coreblow.pluginRegistryState");
+const WORKER_RUNTIME_STATE = Symbol.for("coreblow.testSetupRuntimeState");
+const WORKER_PLUGIN_RUNTIME_HELPERS = Symbol.for("coreblow.testSetupPluginRuntimeHelpers");
 
-type RegistryState = {
-  registry: PluginRegistry | null;
-  httpRouteRegistry: PluginRegistry | null;
-  httpRouteRegistryPinned: boolean;
-  key: string | null;
-  version: number;
+type WorkerRuntimeState = {
+  defaultPluginRegistry: PluginRegistry | null;
+  materializedDefaultPluginRegistry: PluginRegistry | null;
 };
 
-const globalRegistryState = (() => {
+type WorkerPluginRuntimeHelpers = {
+  resetPluginRuntimeStateForTest: typeof import("../src/plugins/runtime.js").resetPluginRuntimeStateForTest;
+  setActivePluginRegistry: typeof import("../src/plugins/runtime.js").setActivePluginRegistry;
+};
+
+const workerRuntimeState = (() => {
   const globalState = globalThis as typeof globalThis & {
-    [REGISTRY_STATE]?: RegistryState;
+    [WORKER_RUNTIME_STATE]?: WorkerRuntimeState;
   };
-  if (!globalState[REGISTRY_STATE]) {
-    globalState[REGISTRY_STATE] = {
-      registry: null,
-      httpRouteRegistry: null,
-      httpRouteRegistryPinned: false,
-      key: null,
-      version: 0,
+  if (!globalState[WORKER_RUNTIME_STATE]) {
+    globalState[WORKER_RUNTIME_STATE] = {
+      defaultPluginRegistry: null,
+      materializedDefaultPluginRegistry: null,
     };
   }
-  return globalState[REGISTRY_STATE];
+  return globalState[WORKER_RUNTIME_STATE];
 })();
+
+function loadWorkerPluginRuntimeHelpers(): Promise<WorkerPluginRuntimeHelpers> {
+  const globalState = globalThis as typeof globalThis & {
+    [WORKER_PLUGIN_RUNTIME_HELPERS]?: Promise<WorkerPluginRuntimeHelpers>;
+  };
+  globalState[WORKER_PLUGIN_RUNTIME_HELPERS] ??= import("../src/plugins/runtime.js").then(
+    (pluginRuntime) => ({
+      resetPluginRuntimeStateForTest: pluginRuntime.resetPluginRuntimeStateForTest,
+      setActivePluginRegistry: pluginRuntime.setActivePluginRegistry,
+    }),
+  );
+  return globalState[WORKER_PLUGIN_RUNTIME_HELPERS];
+}
 
 const pickSendFn = (id: ChannelId, deps?: OutboundSendDeps) => {
   return deps?.[id] as ((...args: unknown[]) => Promise<unknown>) | undefined;
@@ -220,6 +225,15 @@ const createStubPlugin = (params: {
   outbound: createStubOutbound(params.id, params.deliveryMode),
 });
 
+const createTopLevelChannelReplyToModeResolverForTest =
+  (channelId: string) =>
+  ({ cfg }: { cfg: CoreBlowConfig }) => {
+    const channelConfig = (
+      cfg.channels as Record<string, { replyToMode?: ReplyToMode }> | undefined
+    )?.[channelId];
+    return channelConfig?.replyToMode ?? "off";
+  };
+
 const createDefaultRegistry = () =>
   createTestRegistry([
     {
@@ -227,7 +241,7 @@ const createDefaultRegistry = () =>
       plugin: createStubPlugin({
         id: "discord",
         label: "Discord",
-        resolveReplyToMode: createTopLevelChannelReplyToModeResolver("discord"),
+        resolveReplyToMode: createTopLevelChannelReplyToModeResolverForTest("discord"),
       }),
       source: "test",
     },
@@ -246,7 +260,7 @@ const createDefaultRegistry = () =>
         ...createStubPlugin({
           id: "telegram",
           label: "Telegram",
-          resolveReplyToMode: createTopLevelChannelReplyToModeResolver("telegram"),
+          resolveReplyToMode: createTopLevelChannelReplyToModeResolverForTest("telegram"),
         }),
         status: {
           buildChannelSummary: async () => ({
@@ -279,63 +293,77 @@ const createDefaultRegistry = () =>
     },
   ]);
 
-let materializedDefaultPluginRegistry: PluginRegistry | null = null;
-
 function getDefaultPluginRegistry(): PluginRegistry {
-  materializedDefaultPluginRegistry ??= createDefaultRegistry();
-  return materializedDefaultPluginRegistry;
+  workerRuntimeState.materializedDefaultPluginRegistry ??= createDefaultRegistry();
+  return workerRuntimeState.materializedDefaultPluginRegistry;
 }
 
-// Most unit suites never touch the plugin registry. Keep the default test registry
-// behind a lazy proxy so those files avoid allocating channel fixtures up front.
-const DEFAULT_PLUGIN_REGISTRY = new Proxy({} as PluginRegistry, {
-  defineProperty(_target, property, attributes) {
-    return Reflect.defineProperty(getDefaultPluginRegistry() as object, property, attributes);
-  },
-  deleteProperty(_target, property) {
-    return Reflect.deleteProperty(getDefaultPluginRegistry() as object, property);
-  },
-  get(_target, property, receiver) {
-    return Reflect.get(getDefaultPluginRegistry() as object, property, receiver);
-  },
-  getOwnPropertyDescriptor(_target, property) {
-    return Reflect.getOwnPropertyDescriptor(getDefaultPluginRegistry() as object, property);
-  },
-  has(_target, property) {
-    return Reflect.has(getDefaultPluginRegistry() as object, property);
-  },
-  ownKeys() {
-    return Reflect.ownKeys(getDefaultPluginRegistry() as object);
-  },
-  set(_target, property, value, receiver) {
-    return Reflect.set(getDefaultPluginRegistry() as object, property, value, receiver);
-  },
-});
-
-function installDefaultPluginRegistry(): void {
-  globalRegistryState.registry = DEFAULT_PLUGIN_REGISTRY;
-  if (!globalRegistryState.httpRouteRegistryPinned) {
-    globalRegistryState.httpRouteRegistry = DEFAULT_PLUGIN_REGISTRY;
-  }
+function resolveDefaultPluginRegistryProxy(): PluginRegistry {
+  workerRuntimeState.defaultPluginRegistry ??= new Proxy({} as PluginRegistry, {
+    defineProperty(_target, property, attributes) {
+      return Reflect.defineProperty(getDefaultPluginRegistry() as object, property, attributes);
+    },
+    deleteProperty(_target, property) {
+      return Reflect.deleteProperty(getDefaultPluginRegistry() as object, property);
+    },
+    get(_target, property, receiver) {
+      return Reflect.get(getDefaultPluginRegistry() as object, property, receiver);
+    },
+    getOwnPropertyDescriptor(_target, property) {
+      return Reflect.getOwnPropertyDescriptor(getDefaultPluginRegistry() as object, property);
+    },
+    has(_target, property) {
+      return Reflect.has(getDefaultPluginRegistry() as object, property);
+    },
+    ownKeys() {
+      return Reflect.ownKeys(getDefaultPluginRegistry() as object);
+    },
+    set(_target, property, value, receiver) {
+      return Reflect.set(getDefaultPluginRegistry() as object, property, value, receiver);
+    },
+  });
+  return workerRuntimeState.defaultPluginRegistry;
 }
 
-beforeAll(() => {
-  installDefaultPluginRegistry();
+async function installDefaultPluginRegistry(): Promise<void> {
+  const { resetPluginRuntimeStateForTest, setActivePluginRegistry } =
+    await loadWorkerPluginRuntimeHelpers();
+  workerRuntimeState.materializedDefaultPluginRegistry = null;
+  resetPluginRuntimeStateForTest();
+  setActivePluginRegistry(resolveDefaultPluginRegistryProxy());
+}
+
+beforeAll(async () => {
+  await installDefaultPluginRegistry();
 });
 
 afterEach(async () => {
+  const [
+    { cleanupSessionStateForTest },
+    { resetContextWindowCacheForTest },
+    { resetModelsJsonReadyCacheForTest },
+    { resetSessionWriteLockStateForTest },
+  ] = await Promise.all([
+    import("../src/test-utils/session-state-cleanup.js"),
+    import("../src/agents/context.js"),
+    import("../src/agents/models-config.js"),
+    import("../src/agents/session-write-lock.js"),
+  ]);
   await cleanupSessionStateForTest();
   resetContextWindowCacheForTest();
   resetModelsJsonReadyCacheForTest();
   resetSessionWriteLockStateForTest();
-  if (globalRegistryState.registry !== DEFAULT_PLUGIN_REGISTRY) {
-    installDefaultPluginRegistry();
-    globalRegistryState.key = null;
-    globalRegistryState.version += 1;
-  }
+  await installDefaultPluginRegistry();
 });
 
 afterAll(async () => {
+  const [
+    { cleanupSessionStateForTest },
+    { drainSessionWriteLockStateForTest },
+  ] = await Promise.all([
+    import("../src/test-utils/session-state-cleanup.js"),
+    import("../src/agents/session-write-lock.js"),
+  ]);
   await cleanupSessionStateForTest();
   await drainSessionWriteLockStateForTest();
   testEnv.cleanup();
