@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8578,
+    "cb_source_files": 8588,
     "oc_source_files": 8443,
-    "source_parity_both": 6779,
+    "source_parity_both": 6789,
     "source_cb_exclusive": 1799,
-    "source_missing_from_cb": 1664,
-    "test_files_cb": 4934,
+    "source_missing_from_cb": 1654,
+    "test_files_cb": 4936,
     "test_files_oc": 5246,
-    "tests_both_covered": 3497,
-    "tests_gap_oc_has_cb_missing": 1504,
+    "tests_both_covered": 3499,
+    "tests_gap_oc_has_cb_missing": 1502,
     "tests_cb_exclusive": 1379,
     "export_files_with_gaps": 60,
     "test_scenario_files_with_gaps": 40,
@@ -98,27 +98,27 @@
       "priority": "P0",
       "implementationSurface": "src/plugins PluginLoader, PluginRegistry, HookRunner",
       "counts": {
-        "sharedSourcePaths": 222,
+        "sharedSourcePaths": 230,
         "coreBlowOnlySourcePaths": 74,
-        "openClawOnlySourcePaths": 112,
-        "sharedTestPaths": 90,
+        "openClawOnlySourcePaths": 104,
+        "sharedTestPaths": 92,
         "coreBlowOnlyTestPaths": 70,
-        "openClawTestGaps": 126
+        "openClawTestGaps": 124
       },
       "samples": {
         "openClawOnlySourcePaths": [
           "src/plugins/activation-context.ts",
-          "src/plugins/activation-planner.ts",
           "src/plugins/api-facades.ts",
-          "src/plugins/bundled-channel-config-metadata.ts",
-          "src/plugins/bundled-channel-runtime.ts",
-          "src/plugins/bundled-load-path-aliases.ts",
-          "src/plugins/bundled-plugin-scan.ts",
-          "src/plugins/bundled-source-overlays.ts",
           "src/plugins/capability-runtime-vitest-shims/config-runtime.ts",
-          "src/plugins/channel-presence-policy.ts",
-          "src/plugins/channel-validation.ts",
-          "src/plugins/clawhub-install-records.ts"
+          "src/plugins/clawhub-install-records.ts",
+          "src/plugins/cli-gateway-nodes-runtime.ts",
+          "src/plugins/cli-registry-loader.ts",
+          "src/plugins/codex-app-server-extension-factory.ts",
+          "src/plugins/command-specs.ts",
+          "src/plugins/compat/registry.ts",
+          "src/plugins/config-contracts.ts",
+          "src/plugins/contracts/host-hook-fixture.ts",
+          "src/plugins/contracts/inventory/bundled-capability-metadata.ts"
         ],
         "openClawTestGapPaths": [
           "src/plugins/activation-context.test.ts",
@@ -127,12 +127,12 @@
           "src/plugins/bundled-capability-metadata.test.ts",
           "src/plugins/bundled-channel-runtime.test.ts",
           "src/plugins/bundled-package-channel-metadata.test.ts",
-          "src/plugins/channel-catalog-registry.test.ts",
-          "src/plugins/channel-validation.test.ts",
           "src/plugins/compat/registry.test.ts",
           "src/plugins/config-contracts.test.ts",
           "src/plugins/config-policy.test.ts",
-          "src/plugins/contracts/boundary-invariants.test.ts"
+          "src/plugins/contracts/boundary-invariants.test.ts",
+          "src/plugins/contracts/bundled-extension-config-api-guardrails.test.ts",
+          "src/plugins/contracts/config-boundary-guard.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/plugins/audit-log.ts",
@@ -993,9 +993,9 @@
       "priority": "P2",
       "implementationSurface": "src/channels, src/routing, extensions channel adapters",
       "counts": {
-        "sharedSourcePaths": 167,
+        "sharedSourcePaths": 168,
         "coreBlowOnlySourcePaths": 119,
-        "openClawOnlySourcePaths": 44,
+        "openClawOnlySourcePaths": 43,
         "sharedTestPaths": 73,
         "coreBlowOnlyTestPaths": 24,
         "openClawTestGaps": 30
@@ -1116,9 +1116,9 @@
       "priority": "P2",
       "implementationSurface": "src/secrets",
       "counts": {
-        "sharedSourcePaths": 35,
+        "sharedSourcePaths": 36,
         "coreBlowOnlySourcePaths": 4,
-        "openClawOnlySourcePaths": 31,
+        "openClawOnlySourcePaths": 30,
         "sharedTestPaths": 17,
         "coreBlowOnlyTestPaths": 4,
         "openClawTestGaps": 38
@@ -1126,7 +1126,6 @@
       "samples": {
         "openClawOnlySourcePaths": [
           "src/secrets/channel-contract-api.ts",
-          "src/secrets/channel-env-var-names.ts",
           "src/secrets/channel-env-vars.ts",
           "src/secrets/channel-secret-basic-runtime.ts",
           "src/secrets/channel-secret-collector-runtime.ts",
@@ -1136,7 +1135,8 @@
           "src/secrets/runtime-auth.integration.test-helpers.ts",
           "src/secrets/runtime-channel-inactive-variants.test-support.ts",
           "src/secrets/runtime-command-secrets.ts",
-          "src/secrets/runtime-config-collectors-plugins.ts"
+          "src/secrets/runtime-config-collectors-plugins.ts",
+          "src/secrets/runtime-discord.test-support.ts"
         ],
         "openClawTestGapPaths": [
           "src/secrets/channel-contract-api.external.test.ts",

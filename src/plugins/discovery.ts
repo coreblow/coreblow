@@ -944,3 +944,5 @@ export function discoverCoreBlowPlugins(params: {
   }
   return result;
 }
+
+export const discoverOpenClawPlugins = discoverCoreBlowPlugins;

@@ -7,7 +7,7 @@ import { CoreBlowSchema } from "./zod-schema.js";
 
 type ConfigSchema = Record<string, unknown>;
 
-type JsonSchemaObject = Record<string, unknown> & {
+export type JsonSchemaObject = Record<string, unknown> & {
   properties?: Record<string, JsonSchemaObject>;
   required?: string[];
   additionalProperties?: JsonSchemaObject | boolean;

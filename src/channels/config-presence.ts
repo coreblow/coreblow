@@ -3,6 +3,7 @@ import path from "node:path";
 import type { CoreBlowConfig } from "../config/config.js";
 import { resolveOAuthDir } from "../config/paths.js";
 import { DEFAULT_ACCOUNT_ID } from "../routing/session-key.js";
+import { normalizeOptionalLowercaseString } from "../shared/string-coerce.js";
 
 const IGNORED_CHANNEL_CONFIG_KEYS = new Set(["defaults", "modelByChannel"]);
 
@@ -37,6 +38,37 @@ export function hasMeaningfulChannelConfig(value: unknown): boolean {
   return Object.keys(value).some((key) => key !== "enabled");
 }
 
+export function listExplicitlyDisabledChannelIdsForConfig(cfg: CoreBlowConfig): string[] {
+  const channels = isRecord(cfg.channels) ? cfg.channels : null;
+  if (!channels) {
+    return [];
+  }
+  return Object.entries(channels)
+    .filter(([, value]) => isRecord(value) && value.enabled === false)
+    .map(([channelId]) => normalizeOptionalLowercaseString(channelId))
+    .filter((channelId): channelId is string => Boolean(channelId));
+}
+
+export type ChannelPresenceSignalSource = "config" | "env" | "persisted-auth";
+
+export type ChannelPresenceSignal = {
+  channelId: string;
+  source: ChannelPresenceSignalSource;
+};
+
+export type ChannelPresenceOptions = {
+  channelIds?: readonly string[];
+  includePersistedAuthState?: boolean;
+  persistedAuthStateProbe?: {
+    listChannelIds: () => readonly string[];
+    hasState: (params: {
+      channelId: string;
+      cfg: CoreBlowConfig;
+      env: NodeJS.ProcessEnv;
+    }) => boolean;
+  };
+};
+
 function hasWhatsAppAuthState(env: NodeJS.ProcessEnv): boolean {
   try {
     const oauthDir = resolveOAuthDir(env);
@@ -66,8 +98,38 @@ function hasWhatsAppAuthState(env: NodeJS.ProcessEnv): boolean {
 export function listPotentialConfiguredChannelIds(
   cfg: CoreBlowConfig,
   env: NodeJS.ProcessEnv = process.env,
+  options: ChannelPresenceOptions = {},
 ): string[] {
+  return [
+    ...new Set(
+      listPotentialConfiguredChannelPresenceSignals(cfg, env, options).map(
+        (signal) => signal.channelId,
+      ),
+    ),
+  ];
+}
+
+export function listPotentialConfiguredChannelPresenceSignals(
+  cfg: CoreBlowConfig,
+  env: NodeJS.ProcessEnv = process.env,
+  options: ChannelPresenceOptions = {},
+): ChannelPresenceSignal[] {
+  const signals: ChannelPresenceSignal[] = [];
+  const seenSignals = new Set<string>();
+  const addSignal = (channelId: string, source: ChannelPresenceSignalSource) => {
+    const key = `${source}:${channelId}`;
+    if (seenSignals.has(key)) {
+      return;
+    }
+    seenSignals.add(key);
+    signals.push({ channelId, source });
+  };
   const configuredChannelIds = new Set<string>();
+  const channelEnvPrefixes = options.channelIds
+    ? options.channelIds.map(
+        (id) => [`${id.replace(/[^a-z0-9]+/gi, "_").toUpperCase()}_`, id] as const,
+      )
+    : CHANNEL_ENV_PREFIXES;
   const channels = isRecord(cfg.channels) ? cfg.channels : null;
   if (channels) {
     for (const [key, value] of Object.entries(channels)) {
@@ -76,6 +138,7 @@ export function listPotentialConfiguredChannelIds(
       }
       if (hasMeaningfulChannelConfig(value)) {
         configuredChannelIds.add(key);
+        addSignal(key, "config");
       }
     }
   }
@@ -84,19 +147,24 @@ export function listPotentialConfiguredChannelIds(
     if (!hasNonEmptyString(value)) {
       continue;
     }
-    for (const [prefix, channelId] of CHANNEL_ENV_PREFIXES) {
+    for (const [prefix, channelId] of channelEnvPrefixes) {
       if (key.startsWith(prefix)) {
         configuredChannelIds.add(channelId);
+        addSignal(channelId, "env");
       }
     }
     if (key === "TELEGRAM_BOT_TOKEN") {
       configuredChannelIds.add("telegram");
+      addSignal("telegram", "env");
     }
   }
-  if (hasWhatsAppAuthState(env)) {
+
+  if (options.includePersistedAuthState !== false && hasWhatsAppAuthState(env)) {
     configuredChannelIds.add("whatsapp");
+    addSignal("whatsapp", "persisted-auth");
   }
-  return [...configuredChannelIds];
+
+  return signals.filter((signal) => configuredChannelIds.has(signal.channelId));
 }
 
 function hasEnvConfiguredChannel(env: NodeJS.ProcessEnv): boolean {

@@ -185,6 +185,21 @@ export const normalizePluginsConfig = (
   };
 };
 
+export type PluginActivationConfigSource = {
+  plugins: NormalizedPluginsConfig;
+  rootConfig?: CoreBlowConfig;
+};
+
+export function createPluginActivationSource(params: {
+  config?: CoreBlowConfig;
+  plugins?: NormalizedPluginsConfig;
+}): PluginActivationConfigSource {
+  return {
+    plugins: params.plugins ?? normalizePluginsConfig(params.config?.plugins),
+    rootConfig: params.config,
+  };
+};
+
 const hasExplicitMemorySlot = (plugins?: CoreBlowConfig["plugins"]) =>
   Boolean(plugins?.slots && Object.prototype.hasOwnProperty.call(plugins.slots, "memory"));
 
@@ -353,6 +368,24 @@ export function resolveEffectiveEnableState(params: {
     return { enabled: true, cause: "bundled-channel-configured" };
   }
   return base;
+}
+
+export function resolveEffectivePluginActivationState(params: {
+  id: string;
+  origin: PluginRecord["origin"];
+  config: NormalizedPluginsConfig;
+  rootConfig?: CoreBlowConfig;
+  enabledByDefault?: boolean;
+  activationSource?: PluginActivationConfigSource;
+  autoEnabledReason?: string;
+}): { enabled: boolean; reason?: string; cause?: PluginActivationCause } {
+  return resolveEffectiveEnableState({
+    id: params.id,
+    origin: params.origin,
+    config: params.activationSource?.plugins ?? params.config,
+    rootConfig: params.activationSource?.rootConfig ?? params.rootConfig,
+    enabledByDefault: params.enabledByDefault,
+  });
 }
 
 export function resolveMemorySlotDecision(params: {

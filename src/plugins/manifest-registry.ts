@@ -10,12 +10,23 @@ import {
   loadPluginManifest,
   type CoreBlowPackageManifest,
   type PluginManifest,
+  type PluginManifestActivation,
+  type PluginManifestActivationCapability,
   type PluginManifestChannelConfig,
   type PluginManifestContracts,
   type PluginManifestContractListKey,
+  type PluginManifestSetup,
+  type PluginManifestSetupProvider,
 } from "./manifest.js";
+import type { PluginManifestCommandAlias } from "./manifest-command-aliases.js";
 
-export type { PluginManifestContractListKey };
+export type {
+  PluginManifestActivation,
+  PluginManifestActivationCapability,
+  PluginManifestContractListKey,
+  PluginManifestSetup,
+  PluginManifestSetupProvider,
+};
 import { checkMinHostVersion } from "./min-host-version.js";
 import { isPathInside, safeRealpathSync } from "./path-safety.js";
 import { resolvePluginCacheInputs } from "./roots.js";
@@ -56,8 +67,13 @@ export type PluginManifestRecord = {
   channels: string[];
   providers: string[];
   cliBackends: string[];
+  commandAliases?: PluginManifestCommandAlias[];
   providerAuthEnvVars?: Record<string, string[]>;
+  channelEnvVars?: Record<string, string[]>;
   providerAuthChoices?: PluginManifest["providerAuthChoices"];
+  activation?: PluginManifestActivation;
+  setup?: PluginManifestSetup;
+  packageManifest?: CoreBlowPackageManifest;
   skills: string[];
   settingsFiles?: string[];
   hooks: string[];

@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import type { ChannelConfigRuntimeSchema } from "../channels/plugins/types.plugin.js";
 import { MANIFEST_KEY } from "../compat/legacy-names.js";
 import { matchBoundaryFileOpenFailure, openBoundaryFileSync } from "../infra/boundary-file-read.js";
 import { isRecord } from "../utils.js";
@@ -8,12 +9,45 @@ import type { PluginConfigUiHint, PluginKind } from "./types.js";
 export const PLUGIN_MANIFEST_FILENAME = "coreblow.plugin.json";
 export const PLUGIN_MANIFEST_FILENAMES = [PLUGIN_MANIFEST_FILENAME] as const;
 
+export type PluginManifestChannelCommandDefaults = {
+  nativeCommandsAutoEnabled?: boolean;
+  nativeSkillsAutoEnabled?: boolean;
+};
+
 export type PluginManifestChannelConfig = {
   schema: Record<string, unknown>;
   uiHints?: Record<string, PluginConfigUiHint>;
+  runtime?: ChannelConfigRuntimeSchema;
   label?: string;
   description?: string;
   preferOver?: string[];
+  commands?: PluginManifestChannelCommandDefaults;
+};
+
+export type PluginManifestActivationCapability = "provider" | "channel" | "tool" | "hook";
+
+export type PluginManifestActivation = {
+  onStartup?: boolean;
+  onProviders?: string[];
+  onAgentHarnesses?: string[];
+  onCommands?: string[];
+  onChannels?: string[];
+  onRoutes?: string[];
+  onConfigPaths?: string[];
+  onCapabilities?: PluginManifestActivationCapability[];
+};
+
+export type PluginManifestSetupProvider = {
+  id: string;
+  authMethods?: string[];
+  envVars?: string[];
+};
+
+export type PluginManifestSetup = {
+  providers?: PluginManifestSetupProvider[];
+  cliBackends?: string[];
+  configMigrations?: string[];
+  requiresRuntime?: boolean;
 };
 
 export type PluginManifest = {
@@ -365,6 +399,7 @@ export type PluginPackageChannel = {
   quickstartAllowFrom?: boolean;
   forceAccountBinding?: boolean;
   preferSessionLookupForAnnounceTarget?: boolean;
+  commands?: PluginManifestChannelCommandDefaults;
   configuredState?: PluginPackageChannelStateProbe;
   persistedAuthState?: PluginPackageChannelStateProbe;
 };
@@ -403,6 +438,8 @@ export type CoreBlowPackageManifest = {
   install?: PluginPackageInstall;
   startup?: CoreBlowPackageStartup;
 };
+
+export type OpenClawPackageManifest = CoreBlowPackageManifest;
 
 export const DEFAULT_PLUGIN_ENTRY_CANDIDATES = [
   "index.ts",

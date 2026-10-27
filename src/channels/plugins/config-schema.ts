@@ -41,6 +41,25 @@ type BuildChannelConfigSchemaOptions = {
   uiHints?: Record<string, ChannelConfigUiHint>;
 };
 
+export type BuildJsonChannelConfigSchemaOptions = {
+  uiHints?: Record<string, ChannelConfigUiHint>;
+  runtime?: ChannelConfigSchema["runtime"];
+  cacheKey?: string;
+};
+
+export function buildJsonChannelConfigSchema(
+  schema: Record<string, unknown>,
+  options?: BuildJsonChannelConfigSchemaOptions,
+): ChannelConfigSchema {
+  return {
+    schema,
+    ...(options?.uiHints ? { uiHints: options.uiHints } : {}),
+    runtime: options?.runtime ?? {
+      safeParse: (value: unknown) => ({ success: true, data: value }),
+    },
+  };
+}
+
 function cloneRuntimeIssue(issue: unknown): ChannelConfigRuntimeIssue {
   const record = issue && typeof issue === "object" ? (issue as Record<string, unknown>) : {};
   const path = Array.isArray(record.path)
