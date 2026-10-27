@@ -59,6 +59,7 @@ export type PluginManifestContracts = {
   realtimeVoiceProviders?: string[];
   webSearchProviders?: string[];
   webContentExtractors?: string[];
+  agentToolResultMiddleware?: string[];
   tools?: string[];
 };
 

@@ -1403,6 +1403,9 @@ export function loadCoreBlowPlugins(options: PluginLoadOptions = {}): PluginRegi
   return registry;
 }
 
+/** Backward-compatibility alias for loadCoreBlowPlugins */
+export const loadOpenClawPlugins = loadCoreBlowPlugins;
+
 function safeRealpathOrResolve(value: string): string {
   try {
     return fs.realpathSync(value);

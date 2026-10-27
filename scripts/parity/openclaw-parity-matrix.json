@@ -7,15 +7,15 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8576,
+    "cb_source_files": 8578,
     "oc_source_files": 8443,
-    "source_parity_both": 6777,
+    "source_parity_both": 6779,
     "source_cb_exclusive": 1799,
-    "source_missing_from_cb": 1666,
-    "test_files_cb": 4933,
+    "source_missing_from_cb": 1664,
+    "test_files_cb": 4934,
     "test_files_oc": 5246,
-    "tests_both_covered": 3496,
-    "tests_gap_oc_has_cb_missing": 1505,
+    "tests_both_covered": 3497,
+    "tests_gap_oc_has_cb_missing": 1504,
     "tests_cb_exclusive": 1379,
     "export_files_with_gaps": 60,
     "test_scenario_files_with_gaps": 40,
@@ -98,19 +98,17 @@
       "priority": "P0",
       "implementationSurface": "src/plugins PluginLoader, PluginRegistry, HookRunner",
       "counts": {
-        "sharedSourcePaths": 220,
+        "sharedSourcePaths": 222,
         "coreBlowOnlySourcePaths": 74,
-        "openClawOnlySourcePaths": 114,
-        "sharedTestPaths": 89,
+        "openClawOnlySourcePaths": 112,
+        "sharedTestPaths": 90,
         "coreBlowOnlyTestPaths": 70,
-        "openClawTestGaps": 127
+        "openClawTestGaps": 126
       },
       "samples": {
         "openClawOnlySourcePaths": [
           "src/plugins/activation-context.ts",
           "src/plugins/activation-planner.ts",
-          "src/plugins/agent-tool-result-middleware-loader.ts",
-          "src/plugins/agent-tool-result-middleware-types.ts",
           "src/plugins/api-facades.ts",
           "src/plugins/bundled-channel-config-metadata.ts",
           "src/plugins/bundled-channel-runtime.ts",
@@ -118,13 +116,14 @@
           "src/plugins/bundled-plugin-scan.ts",
           "src/plugins/bundled-source-overlays.ts",
           "src/plugins/capability-runtime-vitest-shims/config-runtime.ts",
-          "src/plugins/channel-presence-policy.ts"
+          "src/plugins/channel-presence-policy.ts",
+          "src/plugins/channel-validation.ts",
+          "src/plugins/clawhub-install-records.ts"
         ],
         "openClawTestGapPaths": [
           "src/plugins/activation-context.test.ts",
           "src/plugins/activation-planner.test.ts",
           "src/plugins/active-runtime-registry.test.ts",
-          "src/plugins/agent-tool-result-middleware.test.ts",
           "src/plugins/bundled-capability-metadata.test.ts",
           "src/plugins/bundled-channel-runtime.test.ts",
           "src/plugins/bundled-package-channel-metadata.test.ts",
@@ -132,7 +131,8 @@
           "src/plugins/channel-validation.test.ts",
           "src/plugins/compat/registry.test.ts",
           "src/plugins/config-contracts.test.ts",
-          "src/plugins/config-policy.test.ts"
+          "src/plugins/config-policy.test.ts",
+          "src/plugins/contracts/boundary-invariants.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/plugins/audit-log.ts",

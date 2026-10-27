@@ -95,6 +95,7 @@ export type PluginAgentToolResultMiddlewareRegistration = {
   pluginId: string;
   pluginName?: string;
   middleware: AgentToolResultMiddleware;
+  handler?: AgentToolResultMiddleware;
   runtimes: readonly AgentToolResultMiddlewareRuntime[];
   source: string;
   rootDir?: string;

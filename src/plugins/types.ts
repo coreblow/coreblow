@@ -167,30 +167,24 @@ export type CoreBlowPluginToolOptions = {
   optional?: boolean;
 };
 
-export type AgentToolResultMiddlewareRuntime = "pi" | "codex";
+import type {
+  AgentToolResultMiddleware,
+  AgentToolResultMiddlewareContext,
+  AgentToolResultMiddlewareEvent,
+  AgentToolResultMiddlewareHarness,
+  AgentToolResultMiddlewareOptions,
+  AgentToolResultMiddlewareResult,
+  AgentToolResultMiddlewareRuntime,
+} from "./agent-tool-result-middleware-types.js";
 
-export type AgentToolResultMiddlewareEvent = {
-  runtime: AgentToolResultMiddlewareRuntime;
-  toolName: string;
-  args: Record<string, unknown>;
-  result: import("@mariozechner/pi-agent-core").AgentToolResult<unknown>;
-  cwd?: string;
-  isError?: boolean;
-};
-
-export type AgentToolResultMiddlewareResult = {
-  result: import("@mariozechner/pi-agent-core").AgentToolResult<unknown>;
-};
-
-export type AgentToolResultMiddleware = (
-  event: AgentToolResultMiddlewareEvent,
-) =>
-  | AgentToolResultMiddlewareResult
-  | void
-  | Promise<AgentToolResultMiddlewareResult | void>;
-
-export type AgentToolResultMiddlewareOptions = {
-  runtimes?: readonly AgentToolResultMiddlewareRuntime[];
+export type {
+  AgentToolResultMiddleware,
+  AgentToolResultMiddlewareContext,
+  AgentToolResultMiddlewareEvent,
+  AgentToolResultMiddlewareHarness,
+  AgentToolResultMiddlewareOptions,
+  AgentToolResultMiddlewareResult,
+  AgentToolResultMiddlewareRuntime,
 };
 
 export type CoreBlowPluginHookOptions = {
