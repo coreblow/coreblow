@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8559,
+    "cb_source_files": 8576,
     "oc_source_files": 8443,
-    "source_parity_both": 6760,
+    "source_parity_both": 6777,
     "source_cb_exclusive": 1799,
-    "source_missing_from_cb": 1683,
-    "test_files_cb": 4932,
+    "source_missing_from_cb": 1666,
+    "test_files_cb": 4933,
     "test_files_oc": 5246,
     "tests_both_covered": 3496,
     "tests_gap_oc_has_cb_missing": 1505,
-    "tests_cb_exclusive": 1378,
+    "tests_cb_exclusive": 1379,
     "export_files_with_gaps": 60,
     "test_scenario_files_with_gaps": 40,
     "test_scenario_files_intentionally_different": 0
@@ -35,9 +35,9 @@
       "priority": "P0",
       "implementationSurface": "src/agents, src/auth, src/agents/turn-engine",
       "counts": {
-        "sharedSourcePaths": 596,
+        "sharedSourcePaths": 599,
         "coreBlowOnlySourcePaths": 205,
-        "openClawOnlySourcePaths": 278,
+        "openClawOnlySourcePaths": 275,
         "sharedTestPaths": 406,
         "coreBlowOnlyTestPaths": 199,
         "openClawTestGaps": 316
@@ -98,27 +98,27 @@
       "priority": "P0",
       "implementationSurface": "src/plugins PluginLoader, PluginRegistry, HookRunner",
       "counts": {
-        "sharedSourcePaths": 206,
+        "sharedSourcePaths": 220,
         "coreBlowOnlySourcePaths": 74,
-        "openClawOnlySourcePaths": 128,
+        "openClawOnlySourcePaths": 114,
         "sharedTestPaths": 89,
-        "coreBlowOnlyTestPaths": 69,
+        "coreBlowOnlyTestPaths": 70,
         "openClawTestGaps": 127
       },
       "samples": {
         "openClawOnlySourcePaths": [
           "src/plugins/activation-context.ts",
           "src/plugins/activation-planner.ts",
-          "src/plugins/active-runtime-registry.ts",
           "src/plugins/agent-tool-result-middleware-loader.ts",
           "src/plugins/agent-tool-result-middleware-types.ts",
           "src/plugins/api-facades.ts",
           "src/plugins/bundled-channel-config-metadata.ts",
           "src/plugins/bundled-channel-runtime.ts",
           "src/plugins/bundled-load-path-aliases.ts",
-          "src/plugins/bundled-manifest-contract-plugins.ts",
-          "src/plugins/bundled-package-channel-metadata.ts",
-          "src/plugins/bundled-plugin-scan.ts"
+          "src/plugins/bundled-plugin-scan.ts",
+          "src/plugins/bundled-source-overlays.ts",
+          "src/plugins/capability-runtime-vitest-shims/config-runtime.ts",
+          "src/plugins/channel-presence-policy.ts"
         ],
         "openClawTestGapPaths": [
           "src/plugins/activation-context.test.ts",

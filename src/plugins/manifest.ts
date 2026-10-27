@@ -58,8 +58,11 @@ export type PluginManifestContracts = {
   realtimeTranscriptionProviders?: string[];
   realtimeVoiceProviders?: string[];
   webSearchProviders?: string[];
+  webContentExtractors?: string[];
   tools?: string[];
 };
+
+export type PluginManifestContractListKey = keyof PluginManifestContracts;
 
 export type PluginManifestProviderAuthChoice = {
   /** Provider id owned by this manifest entry. */

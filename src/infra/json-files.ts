@@ -1,6 +1,20 @@
 import { randomUUID } from "node:crypto";
+import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
+
+export function tryReadJsonSync<T = unknown>(filePath: string): T | null {
+  try {
+    const raw = fsSync.readFileSync(filePath, "utf8");
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
+export async function tryReadJson<T = unknown>(filePath: string): Promise<T | null> {
+  return readJsonFile<T>(filePath);
+}
 
 export async function readJsonFile<T>(filePath: string): Promise<T | null> {
   try {

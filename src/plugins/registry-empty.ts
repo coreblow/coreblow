@@ -18,6 +18,7 @@ export function createEmptyPluginRegistry(): PluginRegistry {
     musicGenerationProviders: [],
     realtimeTranscriptionProviders: [],
     webSearchProviders: [],
+    textTransforms: [],
     gatewayHandlers: {},
     gatewayMethodScopes: {},
     httpRoutes: [],

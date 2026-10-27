@@ -267,6 +267,13 @@ export type PluginRecord = {
   configJsonSchema?: Record<string, unknown>;
 };
 
+import type { PluginTextTransforms } from "./cli-backend.types.js";
+
+export type PluginTextTransformsRegistration = {
+  pluginId: string;
+  transforms: PluginTextTransforms;
+};
+
 export type PluginRegistry = {
   plugins: PluginRecord[];
   tools: PluginToolRegistration[];
@@ -285,6 +292,7 @@ export type PluginRegistry = {
   realtimeTranscriptionProviders?: PluginRealtimeTranscriptionProviderRegistration[];
   realtimeVoiceProviders?: PluginRealtimeVoiceProviderRegistration[];
   webSearchProviders: PluginWebSearchProviderRegistration[];
+  textTransforms?: PluginTextTransformsRegistration[];
   gatewayHandlers: GatewayRequestHandlers;
   gatewayMethodScopes?: Partial<Record<string, OperatorScope>>;
   httpRoutes: PluginHttpRouteRegistration[];

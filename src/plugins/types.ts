@@ -1356,6 +1356,48 @@ export type PluginWebSearchProviderEntry = WebSearchProviderPlugin & {
   pluginId: string;
 };
 
+export type WebFetchProviderId = string;
+
+export type WebFetchProviderToolDefinition = {
+  description: string;
+  parameters: unknown;
+  execute: (args: Record<string, unknown>) => Promise<Record<string, unknown>>;
+};
+
+export type WebFetchProviderContext = {
+  config?: unknown;
+  fetchConfig?: Record<string, unknown>;
+  runtimeMetadata?: unknown;
+};
+
+export type WebFetchRuntimeMetadataContext = {
+  config?: unknown;
+  fetchConfig?: Record<string, unknown>;
+  env?: NodeJS.ProcessEnv;
+};
+
+export type WebFetchProviderPlugin = {
+  id: WebFetchProviderId;
+  label: string;
+  hint?: string;
+  autoDetectOrder?: number;
+  environmentVariables?: readonly string[];
+  placeholder?: string;
+  docsPath?: string;
+  resolveConfig?: (ctx: WebFetchProviderContext) => Record<string, unknown> | undefined;
+  resolveRuntimeMetadata?: (
+    ctx: WebFetchRuntimeMetadataContext,
+  ) => unknown | Promise<unknown>;
+  createTool: (ctx: WebFetchProviderContext) => WebFetchProviderToolDefinition | null;
+};
+
+export type PluginWebFetchProviderEntry = WebFetchProviderPlugin & {
+  pluginId: string;
+};
+
+export type { PluginTextReplacement, PluginTextTransforms } from "./cli-backend.types.js";
+
+
 /** Speech capability registered by a plugin. */
 export type SpeechProviderPlugin = {
   id: SpeechProviderId;

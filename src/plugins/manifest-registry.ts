@@ -12,7 +12,10 @@ import {
   type PluginManifest,
   type PluginManifestChannelConfig,
   type PluginManifestContracts,
+  type PluginManifestContractListKey,
 } from "./manifest.js";
+
+export type { PluginManifestContractListKey };
 import { checkMinHostVersion } from "./min-host-version.js";
 import { isPathInside, safeRealpathSync } from "./path-safety.js";
 import { resolvePluginCacheInputs } from "./roots.js";
