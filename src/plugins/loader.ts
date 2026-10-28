@@ -98,6 +98,7 @@ export type PluginLoadOptions = {
    */
   preferSetupRuntimeForChannelPlugins?: boolean;
   activate?: boolean;
+  loadModules?: boolean;
   throwOnLoadError?: boolean;
 };
 
@@ -343,6 +344,12 @@ function getCompatibleActivePluginRegistry(
   return resolvePluginLoadCacheContext(options).cacheKey === activeCacheKey
     ? activeRegistry
     : undefined;
+}
+
+export function resolveCompatibleRuntimePluginRegistry(
+  options?: PluginLoadOptions,
+): PluginRegistry | undefined {
+  return getCompatibleActivePluginRegistry(options);
 }
 
 export function resolveRuntimePluginRegistry(

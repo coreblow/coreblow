@@ -93,6 +93,7 @@ export type ContextEngineRuntimeContext = Record<string, unknown> & {
   rewriteTranscriptEntries?: (
     request: TranscriptRewriteRequest,
   ) => Promise<TranscriptRewriteResult>;
+  llm?: import("../plugins/runtime/types-core.js").PluginRuntimeLlm;
 };
 
 /**

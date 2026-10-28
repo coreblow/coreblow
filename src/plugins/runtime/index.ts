@@ -1,16 +1,18 @@
+import { loadConfig } from "../../config/config.js";
 import { resolveStateDir } from "../../config/paths.js";
 import {
   listRuntimeImageGenerationProviders,
   generateImage,
 } from "../../plugin-sdk/image-generation-runtime.js";
-import { resolveGlobalSingleton } from "../../shared/global-singleton.js";
 import {
   createLazyRuntimeMethod,
   createLazyRuntimeMethodBinder,
   createLazyRuntimeModule,
+  createLazyRuntimeSurface,
 } from "../../shared/lazy-runtime.js";
 import { VERSION } from "../../version.js";
 import { listWebSearchProviders, runWebSearch } from "../../web-search/runtime.js";
+import { gatewaySubagentState } from "./gateway-bindings.js";
 import { createRuntimeAgent } from "./runtime-agent.js";
 import { defineCachedValue } from "./runtime-cache.js";
 import { createRuntimeChannel } from "./runtime-channel.js";
@@ -19,7 +21,16 @@ import { createRuntimeEvents } from "./runtime-events.js";
 import { createRuntimeLogging } from "./runtime-logging.js";
 import { createRuntimeMedia } from "./runtime-media.js";
 import { createRuntimeSystem } from "./runtime-system.js";
-import type { PluginRuntime } from "./types.js";
+import { createRuntimeTaskFlow } from "./runtime-taskflow.js";
+import { createRuntimeTasks } from "./runtime-tasks.js";
+import type { CreatePluginRuntimeOptions, PluginRuntime } from "./types.js";
+
+export type { CreatePluginRuntimeOptions } from "./types.js";
+export {
+  clearGatewaySubagentRuntime,
+  setGatewayNodesRuntime,
+  setGatewaySubagentRuntime,
+} from "./gateway-bindings.js";
 
 const loadTtsRuntime = createLazyRuntimeModule(() => import("./runtime-tts.runtime.js"));
 const loadMediaUnderstandingRuntime = createLazyRuntimeModule(
@@ -76,6 +87,25 @@ function createRuntimeModelAuth(): PluginRuntime["modelAuth"] {
   };
 }
 
+function createRuntimeLlmFacade(): PluginRuntime["llm"] {
+  const loadLlm = createLazyRuntimeSurface(
+    () => import("./runtime-llm.runtime.js"),
+    (m) =>
+      m.createRuntimeLlm({
+        getConfig: loadConfig,
+        authority: {
+          allowComplete: true,
+        },
+      }),
+  );
+  return {
+    complete: async (params) => {
+      const llm = await loadLlm();
+      return llm.complete(params);
+    },
+  };
+}
+
 function createUnavailableSubagentRuntime(): PluginRuntime["subagent"] {
   const unavailable = () => {
     throw new Error("Plugin runtime subagent methods are only available during a gateway request.");
@@ -89,52 +119,6 @@ function createUnavailableSubagentRuntime(): PluginRuntime["subagent"] {
   };
 }
 
-// ── Process-global gateway subagent runtime ─────────────────────────
-// The gateway creates a real subagent runtime during startup, but gateway-owned
-// plugin registries may be loaded (and cached) before the gateway path runs.
-// A process-global holder lets explicitly gateway-bindable runtimes resolve the
-// active gateway subagent dynamically without changing the default behavior for
-// ordinary plugin runtimes.
-
-const GATEWAY_SUBAGENT_SYMBOL: unique symbol = Symbol.for(
-  "coreblow.plugin.gatewaySubagentRuntime",
-) as unknown as typeof GATEWAY_SUBAGENT_SYMBOL;
-
-type GatewaySubagentState = {
-  subagent: PluginRuntime["subagent"] | undefined;
-};
-
-const gatewaySubagentState = resolveGlobalSingleton<GatewaySubagentState>(
-  GATEWAY_SUBAGENT_SYMBOL,
-  () => ({
-    subagent: undefined,
-  }),
-);
-
-/**
- * Set the process-global gateway subagent runtime.
- * Called during gateway startup so that gateway-bindable plugin runtimes can
- * resolve subagent methods dynamically even when their registry was cached
- * before the gateway finished loading plugins.
- */
-export function setGatewaySubagentRuntime(subagent: PluginRuntime["subagent"]): void {
-  gatewaySubagentState.subagent = subagent;
-}
-
-/**
- * Reset the process-global gateway subagent runtime.
- * Used by tests to avoid leaking gateway state across module reloads.
- */
-export function clearGatewaySubagentRuntime(): void {
-  gatewaySubagentState.subagent = undefined;
-}
-
-/**
- * Create a late-binding subagent that resolves to:
- * 1. An explicitly provided subagent (from runtimeOptions), OR
- * 2. The process-global gateway subagent when the caller explicitly opts in, OR
- * 3. The unavailable fallback (throws with a clear error message).
- */
 function createLateBindingSubagent(
   explicit?: PluginRuntime["subagent"],
   allowGatewaySubagentBinding = false,
@@ -156,13 +140,35 @@ function createLateBindingSubagent(
   });
 }
 
-export type CreatePluginRuntimeOptions = {
-  subagent?: PluginRuntime["subagent"];
-  allowGatewaySubagentBinding?: boolean;
-};
+function createUnavailableNodesRuntime(): PluginRuntime["nodes"] {
+  const unavailable = () => {
+    throw new Error("Plugin node runtime is only available inside the Gateway.");
+  };
+  return {
+    list: unavailable,
+    invoke: unavailable,
+  };
+}
+
+function createLateBindingNodes(allowGatewayBinding = false): PluginRuntime["nodes"] {
+  const unavailable = createUnavailableNodesRuntime();
+  if (!allowGatewayBinding) {
+    return unavailable;
+  }
+  return new Proxy(unavailable, {
+    get(_target, prop, _receiver) {
+      const resolved = gatewaySubagentState.nodes ?? unavailable;
+      return Reflect.get(resolved, prop, resolved);
+    },
+  });
+}
 
 export function createPluginRuntime(_options: CreatePluginRuntimeOptions = {}): PluginRuntime {
   const mediaUnderstanding = createRuntimeMediaUnderstandingFacade();
+  const taskFlow = createRuntimeTaskFlow();
+  const tasks = createRuntimeTasks({
+    legacyTaskFlow: taskFlow,
+  });
   const runtime = {
     // Sourced from the shared CoreBlow version resolver (#52899) so plugins
     // always see the same version the CLI reports, avoiding API-version drift.
@@ -173,6 +179,7 @@ export function createPluginRuntime(_options: CreatePluginRuntimeOptions = {}): 
       _options.subagent,
       _options.allowGatewaySubagentBinding === true,
     ),
+    nodes: _options.nodes ?? createLateBindingNodes(_options.allowGatewaySubagentBinding === true),
     system: createRuntimeSystem(),
     media: createRuntimeMedia(),
     imageGeneration: {
@@ -187,8 +194,18 @@ export function createPluginRuntime(_options: CreatePluginRuntimeOptions = {}): 
     events: createRuntimeEvents(),
     logging: createRuntimeLogging(),
     state: { resolveStateDir },
-  } satisfies Omit<PluginRuntime, "tts" | "mediaUnderstanding" | "stt" | "modelAuth"> &
-    Partial<Pick<PluginRuntime, "tts" | "mediaUnderstanding" | "stt" | "modelAuth">>;
+    tasks,
+    taskFlow,
+  } satisfies Omit<
+    PluginRuntime,
+    "tts" | "mediaUnderstanding" | "stt" | "modelAuth" | "llm"
+  > &
+    Partial<
+      Pick<
+        PluginRuntime,
+        "tts" | "mediaUnderstanding" | "stt" | "modelAuth" | "llm"
+      >
+    >;
 
   defineCachedValue(runtime, "tts", createRuntimeTts);
   defineCachedValue(runtime, "mediaUnderstanding", () => mediaUnderstanding);
@@ -196,8 +213,9 @@ export function createPluginRuntime(_options: CreatePluginRuntimeOptions = {}): 
     transcribeAudioFile: mediaUnderstanding.transcribeAudioFile,
   }));
   defineCachedValue(runtime, "modelAuth", createRuntimeModelAuth);
+  defineCachedValue(runtime, "llm", createRuntimeLlmFacade);
 
-  return runtime as PluginRuntime;
+  return runtime as unknown as PluginRuntime;
 }
 
 export type { PluginRuntime } from "./types.js";

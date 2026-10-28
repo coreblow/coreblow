@@ -13,6 +13,14 @@ export type PluginEntryConfig = {
      */
     allowedModels?: string[];
   };
+  llm?: {
+    /** Explicitly allow this plugin to request agentId overrides. */
+    allowAgentIdOverride?: boolean;
+    /** Explicitly allow this plugin to request model overrides. */
+    allowModelOverride?: boolean;
+    /** Allowed override targets as canonical provider/model refs. Use "*" to allow any model. */
+    allowedModels?: string[];
+  };
   config?: Record<string, unknown>;
 };
 

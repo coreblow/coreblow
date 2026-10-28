@@ -121,6 +121,19 @@ export function createPluginRuntimeMock(overrides: DeepPartial<PluginRuntime> = 
     config: {
       loadConfig: typedMock(() => ({})),
       writeConfigFile: typedMock(),
+      current: typedMock(() => ({})),
+      mutateConfigFile: typedMock().mockResolvedValue({
+        nextConfig: {},
+        previousHash: null,
+        persistedHash: null,
+        followUp: { mode: "auto", requiresRestart: false },
+      }),
+      replaceConfigFile: typedMock().mockResolvedValue({
+        nextConfig: {},
+        previousHash: null,
+        persistedHash: null,
+        followUp: { mode: "auto", requiresRestart: false },
+      }),
     },
     agent: {
       defaults: {
@@ -320,6 +333,70 @@ export function createPluginRuntimeMock(overrides: DeepPartial<PluginRuntime> = 
       whatsapp: createProxySurface(),
       line: createProxySurface(),
     },
+    nodes: {
+      list: typedMock().mockResolvedValue({ nodes: [] }),
+      invoke: typedMock().mockResolvedValue({}),
+    },
+    llm: {
+      complete: typedMock().mockResolvedValue({
+        text: "",
+        provider: "mock",
+        model: "mock",
+        agentId: "mock",
+        usage: {},
+        audit: { caller: { kind: "host" } },
+      }),
+    },
+    tasks: {
+      runs: {
+        bindSession: typedMock(() => ({
+          sessionKey: "test",
+          get: typedMock(),
+          list: typedMock(() => []),
+          findLatest: typedMock(),
+          resolve: typedMock(),
+          cancel: typedMock().mockResolvedValue({ found: false, cancelled: false }),
+        })),
+        fromToolContext: typedMock(() => ({
+          sessionKey: "test",
+          get: typedMock(),
+          list: typedMock(() => []),
+          findLatest: typedMock(),
+          resolve: typedMock(),
+          cancel: typedMock().mockResolvedValue({ found: false, cancelled: false }),
+        })),
+      },
+      flows: {
+        bindSession: typedMock(() => ({
+          sessionKey: "test",
+          get: typedMock(),
+          list: typedMock(() => []),
+          findLatest: typedMock(),
+          resolve: typedMock(),
+          getTaskSummary: typedMock(),
+        })),
+        fromToolContext: typedMock(() => ({
+          sessionKey: "test",
+          get: typedMock(),
+          list: typedMock(() => []),
+          findLatest: typedMock(),
+          resolve: typedMock(),
+          getTaskSummary: typedMock(),
+        })),
+      },
+      managedFlows: {
+        bindSession: typedMock(),
+        fromToolContext: typedMock(),
+      } as unknown as PluginRuntime["tasks"]["managedFlows"],
+      flow: {
+        bindSession: typedMock(),
+        fromToolContext: typedMock(),
+      } as unknown as PluginRuntime["tasks"]["flow"],
+    },
+    taskFlow: {
+      bindSession: typedMock(),
+      fromToolContext: typedMock(),
+    } as unknown as PluginRuntime["taskFlow"],
   };
 
   return mergeDeep(base, overrides);

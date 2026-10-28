@@ -18,21 +18,7 @@ import {
 } from "../runtime-api.js";
 import type { WebhookSecretInput } from "./config.js";
 
-type BoundTaskFlowRuntime = {
-  createManaged: (params: Record<string, unknown>) => any;
-  get: (flowId: string) => any;
-  list: () => any[];
-  findLatest: () => any;
-  resolve: (token: string) => any;
-  getTaskSummary: (flowId: string) => any;
-  setWaiting: (params: Record<string, unknown>) => any;
-  resume: (params: Record<string, unknown>) => any;
-  finish: (params: Record<string, unknown>) => any;
-  fail: (params: Record<string, unknown>) => any;
-  requestCancel: (params: Record<string, unknown>) => any;
-  cancel: (params: Record<string, unknown>) => Promise<any>;
-  runTask: (params: Record<string, unknown>) => any;
-};
+type BoundTaskFlowRuntime = ReturnType<PluginRuntime["tasks"]["managedFlows"]["bindSession"]>;
 
 type JsonValue = null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
 

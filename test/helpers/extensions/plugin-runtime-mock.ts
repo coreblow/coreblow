@@ -39,6 +39,19 @@ export function createPluginRuntimeMock(overrides: DeepPartial<PluginRuntime> = 
     config: {
       loadConfig: vi.fn(() => ({})) as unknown as PluginRuntime["config"]["loadConfig"],
       writeConfigFile: vi.fn() as unknown as PluginRuntime["config"]["writeConfigFile"],
+      current: vi.fn(() => ({})) as unknown as PluginRuntime["config"]["current"],
+      mutateConfigFile: vi.fn().mockResolvedValue({
+        nextConfig: {},
+        previousHash: null,
+        persistedHash: null,
+        followUp: { mode: "auto", requiresRestart: false },
+      }) as unknown as PluginRuntime["config"]["mutateConfigFile"],
+      replaceConfigFile: vi.fn().mockResolvedValue({
+        nextConfig: {},
+        previousHash: null,
+        persistedHash: null,
+        followUp: { mode: "auto", requiresRestart: false },
+      }) as unknown as PluginRuntime["config"]["replaceConfigFile"],
     },
     agent: {
       defaults: {
@@ -335,6 +348,61 @@ export function createPluginRuntimeMock(overrides: DeepPartial<PluginRuntime> = 
       getSession: vi.fn(),
       deleteSession: vi.fn(),
     },
+    nodes: {
+      list: vi.fn().mockResolvedValue({ nodes: [] }) as unknown as PluginRuntime["nodes"]["list"],
+      invoke: vi.fn().mockResolvedValue({}) as unknown as PluginRuntime["nodes"]["invoke"],
+    },
+    llm: {
+      complete: vi.fn().mockResolvedValue({
+        text: "",
+        provider: "mock",
+        model: "mock",
+        agentId: "mock",
+        usage: {},
+        audit: { caller: { kind: "host" } },
+      }) as unknown as PluginRuntime["llm"]["complete"],
+    },
+    tasks: {
+      runs: {
+        bindSession: vi.fn(() => ({
+          sessionKey: "test",
+          get: vi.fn(),
+          list: vi.fn(() => []),
+          findLatest: vi.fn(),
+          resolve: vi.fn(),
+          cancel: vi.fn().mockResolvedValue({ found: false, cancelled: false }),
+        })),
+        fromToolContext: vi.fn(() => ({
+          sessionKey: "test",
+          get: vi.fn(),
+          list: vi.fn(() => []),
+          findLatest: vi.fn(),
+          resolve: vi.fn(),
+          cancel: vi.fn().mockResolvedValue({ found: false, cancelled: false }),
+        })),
+      },
+      flows: {
+        bindSession: vi.fn(() => ({
+          sessionKey: "test",
+          get: vi.fn(),
+          list: vi.fn(() => []),
+          findLatest: vi.fn(),
+          resolve: vi.fn(),
+          getTaskSummary: vi.fn(),
+        })),
+        fromToolContext: vi.fn(() => ({
+          sessionKey: "test",
+          get: vi.fn(),
+          list: vi.fn(() => []),
+          findLatest: vi.fn(),
+          resolve: vi.fn(),
+          getTaskSummary: vi.fn(),
+        })),
+      },
+      managedFlows: {} as unknown as PluginRuntime["tasks"]["managedFlows"],
+      flow: {} as unknown as PluginRuntime["tasks"]["flow"],
+    } as unknown as PluginRuntime["tasks"],
+    taskFlow: {} as unknown as PluginRuntime["taskFlow"],
   };
 
   return mergeDeep(base, overrides);

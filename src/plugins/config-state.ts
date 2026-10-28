@@ -61,6 +61,12 @@ export type NormalizedPluginsConfig = {
         allowedModels?: string[];
         hasAllowedModelsConfig?: boolean;
       };
+      llm?: {
+        allowAgentIdOverride?: boolean;
+        allowModelOverride?: boolean;
+        allowedModels?: string[];
+        hasAllowedModelsConfig?: boolean;
+      };
       config?: unknown;
     }
   >;
@@ -158,12 +164,50 @@ const normalizePluginEntries = (entries: unknown): NormalizedPluginsConfig["entr
               : {}),
           }
         : undefined;
+    const llmRaw = entry.llm;
+    const llm =
+      llmRaw && typeof llmRaw === "object" && !Array.isArray(llmRaw)
+        ? {
+            allowAgentIdOverride: (llmRaw as { allowAgentIdOverride?: unknown })
+              .allowAgentIdOverride,
+            allowModelOverride: (llmRaw as { allowModelOverride?: unknown })
+              .allowModelOverride,
+            hasAllowedModelsConfig: Array.isArray(
+              (llmRaw as { allowedModels?: unknown }).allowedModels,
+            ),
+            allowedModels: Array.isArray((llmRaw as { allowedModels?: unknown }).allowedModels)
+              ? ((llmRaw as { allowedModels?: unknown }).allowedModels as unknown[])
+                  .map((model) => (typeof model === "string" ? model.trim() : ""))
+                  .filter(Boolean)
+              : undefined,
+          }
+        : undefined;
+    const normalizedLlm =
+      llm &&
+      (typeof llm.allowAgentIdOverride === "boolean" ||
+        typeof llm.allowModelOverride === "boolean" ||
+        llm.hasAllowedModelsConfig ||
+        (Array.isArray(llm.allowedModels) && llm.allowedModels.length > 0))
+        ? {
+            ...(typeof llm.allowAgentIdOverride === "boolean"
+              ? { allowAgentIdOverride: llm.allowAgentIdOverride }
+              : {}),
+            ...(typeof llm.allowModelOverride === "boolean"
+              ? { allowModelOverride: llm.allowModelOverride }
+              : {}),
+            ...(llm.hasAllowedModelsConfig ? { hasAllowedModelsConfig: true } : {}),
+            ...(Array.isArray(llm.allowedModels) && llm.allowedModels.length > 0
+              ? { allowedModels: llm.allowedModels }
+              : {}),
+          }
+        : undefined;
     normalized[normalizedKey] = {
       ...normalized[normalizedKey],
       enabled:
         typeof entry.enabled === "boolean" ? entry.enabled : normalized[normalizedKey]?.enabled,
       hooks: normalizedHooks ?? normalized[normalizedKey]?.hooks,
       subagent: normalizedSubagent ?? normalized[normalizedKey]?.subagent,
+      llm: normalizedLlm ?? normalized[normalizedKey]?.llm,
       config: "config" in entry ? entry.config : normalized[normalizedKey]?.config,
     };
   }

@@ -19,12 +19,76 @@ export type RunHeartbeatOnceOptions = {
   heartbeat?: { target?: string };
 };
 
+export type LlmCompleteMessage = {
+  role: "system" | "user" | "assistant";
+  content: string;
+};
+
+export type LlmCompleteCaller = {
+  kind: "plugin" | "context-engine" | "host" | "unknown";
+  id?: string;
+  name?: string;
+};
+
+export type LlmCompleteUsage = {
+  inputTokens?: number;
+  outputTokens?: number;
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
+  totalTokens?: number;
+  costUsd?: number;
+};
+
+export type LlmCompleteParams = {
+  messages: LlmCompleteMessage[];
+  /** Model ref (e.g. "anthropic/claude-sonnet-4-6"); defaults to the target agent's configured model. */
+  model?: string;
+  maxTokens?: number;
+  temperature?: number;
+  systemPrompt?: string;
+  signal?: AbortSignal;
+  /** Human-readable reason for audit/debug output. */
+  purpose?: string;
+  /** Agent whose model/credentials to use. Session-bound capabilities may disallow overrides. */
+  agentId?: string;
+};
+
+export type LlmCompleteResult = {
+  text: string;
+  provider: string;
+  model: string;
+  agentId: string;
+  usage: LlmCompleteUsage;
+  audit: {
+    caller: LlmCompleteCaller;
+    purpose?: string;
+    sessionKey?: string;
+  };
+};
+
+export type PluginRuntimeLlm = {
+  complete: (params: LlmCompleteParams) => Promise<LlmCompleteResult>;
+};
+
 /** Core runtime helpers exposed to trusted native plugins. */
 export type PluginRuntimeCore = {
   version: string;
+  llm: PluginRuntimeLlm;
+  tasks: import("./runtime-tasks.types.js").PluginRuntimeTasks;
+  taskFlow: import("./runtime-taskflow.types.js").PluginRuntimeTaskFlow;
   config: {
     loadConfig: typeof import("../../config/config.js").loadConfig;
-    writeConfigFile: typeof import("../../config/config.js").writeConfigFile;
+    writeConfigFile: (
+      cfg: import("../../config/types.coreblow.js").CoreBlowConfig,
+      options?: import("../../config/io.js").ConfigWriteOptions,
+    ) => Promise<void>;
+    current: () => import("../../config/types.coreblow.js").CoreBlowConfig;
+    mutateConfigFile: <T = unknown>(
+      params: import("../../config/mutate.js").MutateConfigFileParams<T>,
+    ) => Promise<import("../../config/mutate.js").MutateConfigFileResult<T>>;
+    replaceConfigFile: (
+      params: import("../../config/mutate.js").ReplaceConfigFileParams,
+    ) => Promise<import("../../config/mutate.js").MutateConfigFileResult<void>>;
   };
   agent: {
     defaults: {

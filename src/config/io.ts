@@ -227,6 +227,10 @@ export type ConfigWriteOptions = {
    * even if schema/default normalization reintroduces them.
    */
   unsetPaths?: string[][];
+  /**
+   * Post-write hook intent.
+   */
+  afterWrite?: { mode?: string; reason?: string } | unknown;
 };
 
 export type ReadConfigFileSnapshotForWriteResult = {
