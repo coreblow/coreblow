@@ -1,7 +1,13 @@
+import type { CoreBlowConfig } from "../config/types.coreblow.js";
 import { resolveProviderBuiltInModelSuppression } from "../plugins/provider-runtime.js";
 import { normalizeProviderId } from "./provider-id.js";
 
-function resolveBuiltInModelSuppression(params: { provider?: string | null; id?: string | null }) {
+function resolveBuiltInModelSuppression(params: {
+  provider?: string | null;
+  id?: string | null;
+  baseUrl?: string | null;
+  config?: CoreBlowConfig;
+}) {
   const provider = normalizeProviderId(params.provider?.trim().toLowerCase() ?? "");
   const modelId = params.id?.trim().toLowerCase() ?? "";
   if (!provider || !modelId) {
@@ -20,6 +26,16 @@ function resolveBuiltInModelSuppression(params: { provider?: string | null; id?:
 export function shouldSuppressBuiltInModel(params: {
   provider?: string | null;
   id?: string | null;
+  baseUrl?: string | null;
+  config?: CoreBlowConfig;
+}) {
+  return resolveBuiltInModelSuppression(params)?.suppress ?? false;
+}
+
+export function shouldSuppressBuiltInModelFromManifest(params: {
+  provider?: string | null;
+  id?: string | null;
+  config?: CoreBlowConfig;
 }) {
   return resolveBuiltInModelSuppression(params)?.suppress ?? false;
 }

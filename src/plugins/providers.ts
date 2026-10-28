@@ -2,7 +2,11 @@ import { normalizeProviderId } from "../types/provider-id.js";
 import { withBundledPluginVitestCompat } from "./bundled-compat.js";
 import { normalizePluginsConfig, resolveEffectiveEnableState } from "./config-state.js";
 import type { PluginLoadOptions } from "./loader.js";
-import { loadPluginManifestRegistry } from "./manifest-registry.js";
+import {
+  loadPluginManifestRegistry,
+  type PluginManifestRecord,
+  type PluginManifestRegistry,
+} from "./manifest-registry.js";
 
 export function withBundledProviderVitestCompat(params: {
   config: PluginLoadOptions["config"];
@@ -17,13 +21,16 @@ export function resolveBundledProviderCompatPluginIds(params: {
   workspaceDir?: string;
   env?: PluginLoadOptions["env"];
   onlyPluginIds?: string[];
+  manifestRegistry?: PluginManifestRegistry;
 }): string[] {
   const onlyPluginIdSet = params.onlyPluginIds ? new Set(params.onlyPluginIds) : null;
-  const registry = loadPluginManifestRegistry({
-    config: params.config,
-    workspaceDir: params.workspaceDir,
-    env: params.env,
-  });
+  const registry =
+    params.manifestRegistry ??
+    loadPluginManifestRegistry({
+      config: params.config,
+      workspaceDir: params.workspaceDir,
+      env: params.env,
+    });
   return registry.plugins
     .filter(
       (plugin) =>
@@ -40,13 +47,16 @@ export function resolveEnabledProviderPluginIds(params: {
   workspaceDir?: string;
   env?: PluginLoadOptions["env"];
   onlyPluginIds?: string[];
+  manifestRegistry?: PluginManifestRegistry;
 }): string[] {
   const onlyPluginIdSet = params.onlyPluginIds ? new Set(params.onlyPluginIds) : null;
-  const registry = loadPluginManifestRegistry({
-    config: params.config,
-    workspaceDir: params.workspaceDir,
-    env: params.env,
-  });
+  const registry =
+    params.manifestRegistry ??
+    loadPluginManifestRegistry({
+      config: params.config,
+      workspaceDir: params.workspaceDir,
+      env: params.env,
+    });
   const normalizedConfig = normalizePluginsConfig(params.config?.plugins);
   return registry.plugins
     .filter(
@@ -75,22 +85,25 @@ export function resolveOwningPluginIdsForProvider(params: {
   config?: PluginLoadOptions["config"];
   workspaceDir?: string;
   env?: PluginLoadOptions["env"];
+  manifestRegistry?: PluginManifestRegistry;
 }): string[] | undefined {
   const normalizedProvider = normalizeProviderId(params.provider);
   if (!normalizedProvider) {
     return undefined;
   }
 
-  const registry = loadPluginManifestRegistry({
-    config: params.config,
-    workspaceDir: params.workspaceDir,
-    env: params.env,
-  });
+  const registry =
+    params.manifestRegistry ??
+    loadPluginManifestRegistry({
+      config: params.config,
+      workspaceDir: params.workspaceDir,
+      env: params.env,
+    });
   const pluginIds = registry.plugins
-    .filter((plugin) =>
-      plugin.providers.some((providerId) => normalizeProviderId(providerId) === normalizedProvider),
+    .filter((plugin: PluginManifestRecord) =>
+      plugin.providers.some((providerId: string) => normalizeProviderId(providerId) === normalizedProvider),
     )
-    .map((plugin) => plugin.id);
+    .map((plugin: PluginManifestRecord) => plugin.id);
 
   return pluginIds.length > 0 ? pluginIds : undefined;
 }

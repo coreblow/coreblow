@@ -14,8 +14,16 @@ export type EnvApiKeyResult = {
 export function resolveEnvApiKey(
   provider: string,
   env: NodeJS.ProcessEnv = process.env,
+  options?: {
+    aliasMap?: Readonly<Record<string, string>>;
+    candidateMap?: Readonly<Record<string, readonly string[]>>;
+    [key: string]: unknown;
+  },
 ): EnvApiKeyResult | null {
-  const normalized = normalizeProviderIdForAuth(provider);
+  let normalized = normalizeProviderIdForAuth(provider);
+  if (options?.aliasMap && options.aliasMap[normalized]) {
+    normalized = options.aliasMap[normalized];
+  }
   const applied = new Set(getShellEnvAppliedKeys());
   const pick = (envVar: string): EnvApiKeyResult | null => {
     const value = normalizeOptionalSecretInput(env[envVar]);
@@ -26,7 +34,8 @@ export function resolveEnvApiKey(
     return { apiKey: value, source };
   };
 
-  const candidates = PROVIDER_ENV_API_KEY_CANDIDATES[normalized];
+  const candidates =
+    options?.candidateMap?.[normalized] ?? PROVIDER_ENV_API_KEY_CANDIDATES[normalized];
   if (candidates) {
     for (const envVar of candidates) {
       const resolved = pick(envVar);

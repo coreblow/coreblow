@@ -302,6 +302,12 @@ export function resolveProviderContractPluginIdsForProvider(
   return pluginIds.length > 0 ? pluginIds : undefined;
 }
 
+export function resolveProviderContractPluginIdsForProviderAlias(
+  providerId: string,
+): string[] | undefined {
+  return resolveProviderContractPluginIdsForProvider(providerId);
+}
+
 export function resolveProviderContractProvidersForPluginIds(
   pluginIds: readonly string[],
 ): ProviderPlugin[] {

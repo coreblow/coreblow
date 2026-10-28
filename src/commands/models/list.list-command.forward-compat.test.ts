@@ -140,6 +140,7 @@ function installModelsListCommandForwardCompatMocks() {
 
   vi.doMock("../../agents/models-config.js", () => ({
     ensureCoreBlowModelsJson: vi.fn(async () => ({ wrote: false })),
+    resetModelsJsonReadyCacheForTest: vi.fn(),
   }));
 
   vi.doMock("../../agents/model-catalog.js", () => ({

@@ -147,6 +147,8 @@ export function __setModelCatalogImportForTest(loader?: () => Promise<PiSdkModul
 export async function loadModelCatalog(params?: {
   config?: CoreBlowConfig;
   useCache?: boolean;
+  readOnly?: boolean;
+  metadataSnapshot?: unknown;
 }): Promise<ModelCatalogEntry[]> {
   if (params?.useCache === false) {
     modelCatalogPromise = null;

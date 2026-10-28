@@ -9,6 +9,18 @@ export { formatAuthDoctorHint } from "./auth-profiles/doctor.js";
 export { resolveApiKeyForProfile } from "./auth-profiles/oauth.js";
 export { resolveAuthProfileEligibility, resolveAuthProfileOrder } from "./auth-profiles/order.js";
 export { resolveAuthStorePathForDisplay } from "./auth-profiles/paths.js";
+export function externalCliDiscoveryForProviderAuth(params: {
+  cfg?: unknown;
+  provider: string;
+  profileId?: string;
+  preferredProfile?: string;
+  allowKeychainPrompt?: boolean;
+}): { mode: string; [key: string]: unknown } {
+  return {
+    mode: "scoped",
+    providerIds: [params.provider],
+  };
+}
 export {
   dedupeProfileIds,
   listProfilesForProvider,

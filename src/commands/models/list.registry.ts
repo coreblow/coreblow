@@ -98,7 +98,7 @@ function loadAvailableModels(registry: ModelRegistry): Model<Api>[] {
 
 export async function loadModelRegistry(
   _cfg: CoreBlowConfig,
-  _opts?: { sourceConfig?: CoreBlowConfig },
+  _opts?: { sourceConfig?: CoreBlowConfig; [key: string]: unknown },
 ) {
   const agentDir = resolveCoreBlowAgentDir();
   const authStorage = discoverAuthStorage(agentDir);

@@ -591,3 +591,25 @@ export function saveAuthProfileStore(store: AuthProfileStore, agentDir?: string)
   saveJsonFile(authPath, payload);
   writeCachedAuthProfileStore(authPath, readAuthStoreMtimeMs(authPath), payload);
 }
+
+export function loadAuthProfileStoreWithoutExternalProfiles(
+  agentDir?: string,
+  _loadOptions?: { allowKeychainPrompt?: boolean; resolveLegacyOAuthSidecars?: boolean },
+): AuthProfileStore {
+  const authPath = resolveAuthStorePath(agentDir);
+  const asStore = loadCoercedStore(authPath);
+  if (asStore) {
+    return asStore;
+  }
+  const legacyRaw = loadJsonFile(resolveLegacyAuthStorePath());
+  const legacy = coerceLegacyStore(legacyRaw);
+  if (legacy) {
+    const store: AuthProfileStore = {
+      version: AUTH_STORE_VERSION,
+      profiles: {},
+    };
+    applyLegacyStore(store, legacy);
+    return store;
+  }
+  return { version: AUTH_STORE_VERSION, profiles: {} };
+}

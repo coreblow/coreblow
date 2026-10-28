@@ -157,6 +157,23 @@ function isCustomLocalProviderConfig(providerConfig: ModelProviderConfig): boole
   );
 }
 
+export function hasSyntheticLocalProviderAuthConfig(
+  paramsOrCfg: { cfg?: CoreBlowConfig; provider: string } | CoreBlowConfig | undefined,
+  maybeProvider?: string,
+): boolean {
+  if (paramsOrCfg && typeof paramsOrCfg === "object" && "provider" in paramsOrCfg) {
+    return Boolean(
+      resolveSyntheticLocalProviderAuth({ cfg: paramsOrCfg.cfg, provider: paramsOrCfg.provider }),
+    );
+  }
+  return Boolean(
+    resolveSyntheticLocalProviderAuth({
+      cfg: paramsOrCfg as CoreBlowConfig | undefined,
+      provider: maybeProvider ?? "",
+    }),
+  );
+}
+
 function resolveSyntheticLocalProviderAuth(params: {
   cfg: CoreBlowConfig | undefined;
   provider: string;

@@ -208,7 +208,7 @@ export function normalizeConfiguredProviderApiKey(params: {
     };
   }
 
-  if (typeof configuredApiKey !== "string") {
+  if (typeof configuredApiKey !== "string") { // pragma: allowlist secret
     return params.provider;
   }
 
@@ -240,7 +240,7 @@ export function normalizeResolvedEnvApiKey(params: {
 }): ProviderConfig {
   const currentApiKey = params.provider.apiKey;
   if (
-    typeof currentApiKey !== "string" ||
+    typeof currentApiKey !== "string" || // pragma: allowlist secret
     !currentApiKey.trim() ||
     ENV_VAR_NAME_RE.test(currentApiKey.trim())
   ) {
@@ -304,6 +304,7 @@ export function resolveMissingProviderApiKey(params: {
 export function createProviderApiKeyResolver(
   env: NodeJS.ProcessEnv,
   authStore: ReturnType<typeof ensureAuthProfileStore>,
+  _cfg?: CoreBlowConfig,
 ): ProviderApiKeyResolver {
   return (provider: string): { apiKey: string | undefined; discoveryApiKey?: string } => {
     const envVar = resolveEnvApiKeyVarName(provider, env);
@@ -324,6 +325,7 @@ export function createProviderApiKeyResolver(
 export function createProviderAuthResolver(
   env: NodeJS.ProcessEnv,
   authStore: ReturnType<typeof ensureAuthProfileStore>,
+  _cfg?: CoreBlowConfig,
 ): ProviderAuthResolver {
   return (provider: string, options?: { oauthMarker?: string }) => {
     const ids = listProfilesForProvider(authStore, provider);

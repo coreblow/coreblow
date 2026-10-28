@@ -20,11 +20,19 @@ export async function resolvePluginDiscoveryProviders(params: {
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   onlyPluginIds?: string[];
+  index?: unknown;
+  includeDisabled?: boolean;
+  includeUntrustedWorkspacePlugins?: boolean;
+  requireCompleteDiscoveryEntryCoverage?: boolean;
+  discoveryEntriesOnly?: boolean;
+  pluginMetadataSnapshot?: unknown;
 }): Promise<ProviderPlugin[]> {
   return (await loadProviderRuntime())
-    .resolvePluginDiscoveryProvidersRuntime(params)
+    .resolvePluginDiscoveryProvidersRuntime(params as any)
     .filter((provider) => resolveProviderCatalogHook(provider));
 }
+
+export const resolveRuntimePluginDiscoveryProviders = resolvePluginDiscoveryProviders;
 
 export function groupPluginDiscoveryProvidersByOrder(
   providers: ProviderPlugin[],
@@ -105,4 +113,34 @@ export function runProviderCatalog(params: {
     resolveProviderApiKey: params.resolveProviderApiKey,
     resolveProviderAuth: params.resolveProviderAuth,
   });
+}
+
+export function runProviderStaticCatalog(params: {
+  provider: ProviderPlugin;
+  config: CoreBlowConfig;
+  agentDir?: string;
+  workspaceDir?: string;
+  env: NodeJS.ProcessEnv;
+}) {
+  return (
+    params.provider.staticCatalog?.run({
+      config: {},
+      env: {},
+      resolveProviderApiKey: () => ({
+        apiKey: undefined,
+      }),
+      resolveProviderAuth: () => ({
+        apiKey: undefined,
+        mode: "none",
+        source: "none",
+      }),
+    }) ?? resolveProviderCatalogHook(params.provider)?.run?.({
+      config: params.config,
+      agentDir: params.agentDir,
+      workspaceDir: params.workspaceDir,
+      env: params.env,
+      resolveProviderApiKey: () => ({ apiKey: undefined }),
+      resolveProviderAuth: () => ({ apiKey: undefined, mode: "none", source: "none" }),
+    })
+  );
 }
