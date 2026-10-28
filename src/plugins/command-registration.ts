@@ -225,5 +225,18 @@ export function registerPluginCommand(
   return { ok: true };
 }
 
+export function pluginCommandSupportsChannel(
+  command: CoreBlowPluginCommandDefinition,
+  channel?: string,
+): boolean {
+  if (!command.channels || command.channels.length === 0 || !channel) {
+    return true;
+  }
+  const normalizedChannel = channel.trim().toLowerCase();
+  return command.channels.some(
+    (entry) => entry.trim().toLowerCase() === normalizedChannel,
+  );
+}
+
 export { clearPluginCommands, clearPluginCommandsForPlugin, getPluginCommandSpecs };
 export type { RegisteredPluginCommand };

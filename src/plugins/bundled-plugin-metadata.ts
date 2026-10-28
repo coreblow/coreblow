@@ -25,6 +25,15 @@ export type GeneratedBundledPluginMetadata = {
 export const BUNDLED_PLUGIN_METADATA =
   GENERATED_BUNDLED_PLUGIN_METADATA as unknown as readonly GeneratedBundledPluginMetadata[];
 
+export function listBundledPluginMetadata(_params?: {
+  rootDir?: string;
+  scanDir?: string;
+  includeChannelConfigs?: boolean;
+  includeSyntheticChannelConfigs?: boolean;
+}): readonly GeneratedBundledPluginMetadata[] {
+  return BUNDLED_PLUGIN_METADATA;
+}
+
 export function resolveBundledPluginGeneratedPath(
   rootDir: string,
   entry: GeneratedBundledPluginPathPair | undefined,

@@ -1,6 +1,9 @@
 import path from "node:path";
 import type { AnyAgentTool } from "../agents/tools/common.js";
 import type { ChannelPlugin } from "../channels/plugins/types.js";
+import type { CodexAppServerExtensionFactory } from "./codex-app-server-extension-types.js";
+import type { MemoryEmbeddingProviderAdapter } from "./memory-embedding-providers.js";
+import type { GatewayMethodDescriptor } from "../gateway/methods/descriptor.js";
 import type { CoreBlowConfig } from "../config/types.coreblow.js";
 import { registerContextEngineForOwner } from "../context-engine/registry.js";
 import type { OperatorScope } from "../gateway/method-scopes.js";
@@ -119,6 +122,7 @@ import type {
   PluginHookHandlerMap,
   PluginHookRegistration as TypedPluginHookRegistration,
   SpeechProviderPlugin,
+  UnifiedModelCatalogProviderPlugin,
   VideoGenerationProviderPlugin,
   WebFetchProviderPlugin,
   WebSearchProviderPlugin,
@@ -148,6 +152,7 @@ export type PluginCliRegistration = {
   pluginId: string;
   pluginName?: string;
   register: CoreBlowPluginCliRegistrar;
+  parentPath?: string[];
   commands: string[];
   descriptors: CoreBlowPluginCliCommandDescriptor[];
   source: string;
@@ -184,6 +189,14 @@ export type PluginProviderRegistration = {
   pluginId: string;
   pluginName?: string;
   provider: ProviderPlugin;
+  source: string;
+  rootDir?: string;
+};
+
+export type PluginModelCatalogProviderRegistration = {
+  pluginId: string;
+  pluginName?: string;
+  provider: UnifiedModelCatalogProviderPlugin;
   source: string;
   rootDir?: string;
 };
@@ -291,13 +304,21 @@ export type PluginRecord = {
   workspaceDir?: string;
   trustedOfficialInstall?: boolean;
   enabled: boolean;
+  explicitlyEnabled?: boolean;
+  activated?: boolean;
+  activationSource?: string;
+  activationReason?: string;
+  compat?: readonly string[];
   status: "loaded" | "disabled" | "error";
   error?: string;
+  failedAt?: Date;
+  failurePhase?: "validation" | "load" | "register";
   toolNames: string[];
   hookNames: string[];
   channelIds: string[];
   cliBackendIds: string[];
   providerIds: string[];
+  syntheticAuthRefs?: string[];
   speechProviderIds: string[];
   mediaUnderstandingProviderIds: string[];
   imageGenerationProviderIds: string[];
@@ -305,7 +326,13 @@ export type PluginRecord = {
   musicGenerationProviderIds?: string[];
   realtimeTranscriptionProviderIds?: string[];
   realtimeVoiceProviderIds?: string[];
+  webFetchProviderIds?: string[];
   webSearchProviderIds: string[];
+  migrationProviderIds?: string[];
+  contextEngineIds?: string[];
+  memoryEmbeddingProviderIds?: string[];
+  agentHarnessIds?: string[];
+  gatewayDiscoveryServiceIds?: string[];
   gatewayMethods: string[];
   cliCommands: string[];
   services: string[];
@@ -404,6 +431,21 @@ export type PluginAgentEventSubscriptionRegistryRegistration = {
   rootDir?: string;
 };
 
+export type PluginCodexAppServerExtensionFactoryRegistration = {
+  pluginId: string;
+  pluginName?: string;
+  factory: CodexAppServerExtensionFactory;
+  source?: string;
+};
+
+export type PluginMemoryEmbeddingProviderRegistration = {
+  pluginId: string;
+  pluginName?: string;
+  provider: MemoryEmbeddingProviderAdapter;
+  source?: string;
+  rootDir?: string;
+};
+
 export type PluginSessionSchedulerJobRegistryRegistration = {
   pluginId: string;
   pluginName?: string;
@@ -430,6 +472,7 @@ export type PluginRegistry = {
   channels: PluginChannelRegistration[];
   channelSetups: PluginChannelSetupRegistration[];
   providers: PluginProviderRegistration[];
+  modelCatalogProviders?: PluginModelCatalogProviderRegistration[];
   cliBackends?: PluginCliBackendRegistration[];
   speechProviders: PluginSpeechProviderRegistration[];
   mediaUnderstandingProviders: PluginMediaUnderstandingProviderRegistration[];
@@ -440,8 +483,11 @@ export type PluginRegistry = {
   realtimeVoiceProviders?: PluginRealtimeVoiceProviderRegistration[];
   webSearchProviders: PluginWebSearchProviderRegistration[];
   webFetchProviders?: PluginWebFetchProviderRegistration[];
+  codexAppServerExtensionFactories?: PluginCodexAppServerExtensionFactoryRegistration[];
+  memoryEmbeddingProviders?: PluginMemoryEmbeddingProviderRegistration[];
   textTransforms?: PluginTextTransformsRegistration[];
   gatewayHandlers: GatewayRequestHandlers;
+  gatewayMethodDescriptors?: GatewayMethodDescriptor[];
   gatewayMethodScopes?: Partial<Record<string, OperatorScope>>;
   httpRoutes: PluginHttpRouteRegistration[];
   cliRegistrars: PluginCliRegistration[];

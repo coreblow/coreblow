@@ -352,6 +352,17 @@ export function resolveCompatibleRuntimePluginRegistry(
   return getCompatibleActivePluginRegistry(options);
 }
 
+export async function loadCoreBlowPluginCliRegistry(
+  options: PluginLoadOptions = {},
+): Promise<PluginRegistry> {
+  return loadCoreBlowPlugins({
+    ...options,
+    activate: false,
+    cache: false,
+  });
+}
+export { loadCoreBlowPluginCliRegistry as loadOpenClawPluginCliRegistry };
+
 export function resolveRuntimePluginRegistry(
   options?: PluginLoadOptions,
 ): PluginRegistry | undefined {

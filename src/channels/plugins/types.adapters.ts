@@ -465,6 +465,9 @@ export type ChannelElevatedAdapter = {
 export type ChannelCommandAdapter = {
   enforceOwnerForCommands?: boolean;
   skipWhenConfigEmpty?: boolean;
+  nativeCommandsAutoEnabled?: boolean;
+  nativeSkillsAutoEnabled?: boolean;
+  preferSenderE164ForCommands?: boolean;
 };
 
 export type ChannelLifecycleAdapter = {
@@ -661,6 +664,20 @@ export type ChannelDoctorEmptyAllowlistAccountContext = {
   effectiveAllowFrom?: Array<string | number>;
   parent?: Record<string, unknown>;
   prefix: string;
+};
+
+export type ChannelSecretsAdapter = {
+  secretTargetRegistryEntries?: readonly unknown[];
+  unsupportedSecretRefSurfacePatterns?: readonly string[];
+  collectUnsupportedSecretRefConfigCandidates?: (raw: unknown) => Array<{
+    path: string;
+    value: unknown;
+  }>;
+  collectRuntimeConfigAssignments?: (params: {
+    config: CoreBlowConfig;
+    defaults?: unknown;
+    context?: unknown;
+  }) => void;
 };
 
 export type ChannelDoctorAdapter = {

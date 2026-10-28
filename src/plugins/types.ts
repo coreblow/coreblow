@@ -34,6 +34,7 @@ import type { HookEntry } from "../hooks/types.js";
 import type { ImageGenerationProvider } from "../image-generation/types.js";
 import type { ProviderUsageSnapshot } from "../infra/provider-usage.types.js";
 import type { MediaUnderstandingProvider } from "../media-understanding/types.js";
+import type { UnifiedModelCatalogEntry, UnifiedModelCatalogKind } from "../model-catalog/types.js";
 import type { MusicGenerationProvider } from "../music-generation/types.js";
 import type {
   RealtimeTranscriptionProviderConfig,
@@ -171,12 +172,21 @@ export type CoreBlowPluginConfigSchema = {
 /** Trusted execution context passed to plugin-owned agent tool factories. */
 export type CoreBlowPluginToolContext = {
   config?: CoreBlowConfig;
+  runtimeConfig?: CoreBlowConfig;
+  getRuntimeConfig?: () => CoreBlowConfig | undefined;
+  fsPolicy?: unknown;
   workspaceDir?: string;
   agentDir?: string;
   agentId?: string;
   sessionKey?: string;
   /** Ephemeral session UUID — regenerated on /new and /reset. Use for per-conversation isolation. */
   sessionId?: string;
+  activeModel?: {
+    provider?: string;
+    modelId?: string;
+    modelName?: string;
+    api?: string;
+  };
   browser?: {
     sandboxBridgeUrl?: string;
     allowHostControl?: boolean;
@@ -379,6 +389,31 @@ export type ProviderCatalogResult =
 export type ProviderPluginCatalog = {
   order?: ProviderCatalogOrder;
   run: (ctx: ProviderCatalogContext) => Promise<ProviderCatalogResult>;
+};
+
+export type UnifiedModelCatalogProviderContext = ProviderCatalogContext & {
+  signal?: AbortSignal;
+  includeLive?: boolean;
+  timeoutMs?: number;
+};
+
+export type UnifiedModelCatalogProviderPlugin = {
+  provider: string;
+  kinds: readonly UnifiedModelCatalogKind[];
+  staticCatalog?: (
+    ctx: UnifiedModelCatalogProviderContext,
+  ) =>
+    | readonly UnifiedModelCatalogEntry[]
+    | Promise<readonly UnifiedModelCatalogEntry[] | null | undefined>
+    | null
+    | undefined;
+  liveCatalog?: (
+    ctx: UnifiedModelCatalogProviderContext,
+  ) =>
+    | readonly UnifiedModelCatalogEntry[]
+    | Promise<readonly UnifiedModelCatalogEntry[] | null | undefined>
+    | null
+    | undefined;
 };
 
 /**
@@ -1016,6 +1051,7 @@ export type ProviderPlugin = {
    * Returns provider config/model definitions that merge into models.providers.
    */
   catalog?: ProviderPluginCatalog;
+  staticCatalog?: ProviderPluginCatalog;
   /**
    * Legacy alias for catalog.
    * Kept for compatibility with existing provider plugins.
@@ -1353,15 +1389,28 @@ export type ProviderPlugin = {
   buildReplayPolicy?: (ctx: ProviderReplayPolicyContext) => ProviderReplayPolicy | null | undefined;
 };
 
+export type ProviderReplaySanitizeMode = "standard" | "full" | "minimal";
+export type ProviderReplayToolCallIdMode = "strict" | "lenient" | "passthrough";
+
 /** Provider-owned replay/compaction transcript policy. */
 export type ProviderReplayPolicy = {
-  applyAssistantFirstOrderingFix?: boolean;
-  validateGeminiTurns?: boolean;
-  validateAnthropicTurns?: boolean;
+  sanitizeMode?: ProviderReplaySanitizeMode;
+  sanitizeToolCallIds?: boolean;
+  toolCallIdMode?: ProviderReplayToolCallIdMode;
+  preserveNativeAnthropicToolUseIds?: boolean;
+  preserveSignatures?: boolean;
   sanitizeThoughtSignatures?: {
     allowBase64Only?: boolean;
     includeCamelCase?: boolean;
   };
+  dropThinkingBlocks?: boolean;
+  dropReasoningFromHistory?: boolean;
+  repairToolUseResultPairing?: boolean;
+  applyAssistantFirstOrderingFix?: boolean;
+  validateGeminiTurns?: boolean;
+  validateAnthropicTurns?: boolean;
+  allowSyntheticToolResults?: boolean;
+  reasoningOutputMode?: ProviderReasoningOutputMode;
 };
 
 /** Input context for buildReplayPolicy hook. */
@@ -1369,6 +1418,29 @@ export type ProviderReplayPolicyContext = {
   provider: string;
   modelApi?: string | null;
   modelId?: string;
+};
+
+export type ProviderReplaySessionEntry = {
+  customType: string;
+  data?: unknown;
+};
+
+export type ProviderReplaySessionState = {
+  getCustomEntries(): ProviderReplaySessionEntry[];
+  appendCustomEntry(customType: string, data: unknown): void;
+};
+
+export type ProviderSanitizeReplayHistoryContext = ProviderReplayPolicyContext & {
+  sessionId: string;
+  messages: AgentMessage[];
+  allowedToolNames?: Iterable<string>;
+  sessionState?: ProviderReplaySessionState;
+};
+
+export type ProviderValidateReplayTurnsContext = ProviderReplayPolicyContext & {
+  sessionId?: string;
+  messages: AgentMessage[];
+  sessionState?: ProviderReplaySessionState;
 };
 
 export type WebSearchProviderId = string;
@@ -1671,6 +1743,13 @@ export type CoreBlowPluginCommandDefinition = {
   nativeNames?: Partial<Record<string, string>> & { default?: string };
   /** Description shown in /help and command menus */
   description: string;
+  /** Localized descriptions for native command surfaces that support them. */
+  descriptionLocalizations?: Record<string, string>;
+  /**
+   * Optional channel ids this command belongs to.
+   * Omit to keep the command available on every channel surface.
+   */
+  channels?: readonly string[];
   /** Whether this command accepts arguments */
   acceptsArgs?: boolean;
   /** Whether only authorized senders can use this command (default: true) */
@@ -1869,6 +1948,7 @@ export type CoreBlowPluginHttpRouteParams = {
 
 export type CoreBlowPluginCliContext = {
   program: Command;
+  parentPath?: readonly string[];
   config: CoreBlowConfig;
   workspaceDir?: string;
   logger: PluginLogger;

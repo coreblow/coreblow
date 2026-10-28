@@ -104,6 +104,10 @@ export type PluginManifestRecord = {
     label?: string;
     blurb?: string;
     preferOver?: string[];
+    commands?: {
+      nativeCommandsAutoEnabled?: boolean;
+      nativeSkillsAutoEnabled?: boolean;
+    };
   };
 };
 

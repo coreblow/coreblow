@@ -30,3 +30,69 @@ export function resolveActionArgs(actionCommand?: import("commander").Command): 
   const args = (actionCommand as import("commander").Command & { args?: string[] }).args;
   return Array.isArray(args) ? args : [];
 }
+
+function isDefaultOptionValue(command: import("commander").Command, name: string): boolean {
+  if (typeof command.getOptionValueSource !== "function") {
+    return false;
+  }
+  return command.getOptionValueSource(name) === "default";
+}
+
+function stringifyOptionValue(value: unknown): string | undefined {
+  if (typeof value === "string") {
+    return value;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+  if (typeof value === "bigint") {
+    return value.toString();
+  }
+  return undefined;
+}
+
+function appendOptionValue(out: string[], flag: string, value: unknown): void {
+  if (value === undefined) {
+    return;
+  }
+  if (value === false) {
+    if (flag.startsWith("--no-")) {
+      out.push(flag);
+    }
+    return;
+  }
+  if (value === true) {
+    out.push(flag);
+    return;
+  }
+  const arg = stringifyOptionValue(value);
+  if (arg !== undefined) {
+    out.push(flag, arg);
+  }
+}
+
+export function resolveCommandOptionArgs(command?: import("commander").Command): string[] {
+  if (!command) {
+    return [];
+  }
+  const out: string[] = [];
+  for (const option of command.options) {
+    const name = option.attributeName();
+    if (isDefaultOptionValue(command, name)) {
+      continue;
+    }
+    const flag = option.long ?? option.short;
+    if (!flag) {
+      continue;
+    }
+    const value = command.getOptionValue(name);
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        appendOptionValue(out, flag, item);
+      }
+      continue;
+    }
+    appendOptionValue(out, flag, value);
+  }
+  return out;
+}

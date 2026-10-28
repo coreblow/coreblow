@@ -77,6 +77,8 @@ export function getChannelPlugin(id: ChannelId): ChannelPlugin | undefined {
   return resolveCachedChannelPlugins().byId.get(resolvedId);
 }
 
+export const getLoadedChannelPlugin = getChannelPlugin;
+
 export function normalizeChannelId(raw?: string | null): ChannelId | null {
   return normalizeAnyChannelId(raw);
 }
