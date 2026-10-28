@@ -113,6 +113,8 @@ export function resolveCoreBlowPackageRootSync(opts: {
   return null;
 }
 
+export const resolveOpenClawPackageRootSync = resolveCoreBlowPackageRootSync;
+
 function buildCandidates(opts: { cwd?: string; argv1?: string; moduleUrl?: string }): string[] {
   const candidates: string[] = [];
 

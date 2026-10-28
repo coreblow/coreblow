@@ -1,6 +1,11 @@
 import type { ChatType } from "../channels/chat-type.js";
-import type { AgentDefaultsConfig } from "./types.agent-defaults.js";
-import type { AgentModelConfig, AgentSandboxConfig } from "./types.agents-shared.js";
+import type { AgentDefaultsConfig, AgentModelEntryConfig } from "./types.agent-defaults.js";
+import type {
+  AgentEmbeddedHarnessConfig,
+  AgentModelConfig,
+  AgentRuntimePolicyConfig,
+  AgentSandboxConfig,
+} from "./types.agents-shared.js";
 import type { HumanDelayConfig, IdentityConfig } from "./types.base.js";
 import type { GroupChatConfig } from "./types.messages.js";
 import type { AgentToolsConfig, MemorySearchConfig } from "./types.tools.js";
@@ -64,7 +69,15 @@ export type AgentConfig = {
   name?: string;
   workspace?: string;
   agentDir?: string;
+  /** Optional per-agent agent runtime policy override. */
+  agentRuntime?: AgentRuntimePolicyConfig;
+  /** @deprecated Use agentRuntime. */
+  embeddedHarness?: AgentEmbeddedHarnessConfig;
   model?: AgentModelConfig;
+  /** Per-model metadata overrides for this agent. */
+  models?: Record<string, AgentModelEntryConfig>;
+  /** @deprecated Legacy per-agent compaction config is kept for raw doctor migration/repair. */
+  compaction?: AgentDefaultsConfig["compaction"];
   /** Optional per-agent default thinking level (overrides agents.defaults.thinkingDefault). */
   thinkingDefault?: "off" | "minimal" | "low" | "medium" | "high" | "xhigh" | "adaptive";
   /** Optional per-agent default reasoning visibility. */

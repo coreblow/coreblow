@@ -236,7 +236,7 @@ function coerceLegacyStore(raw: unknown): LegacyAuthStore | null {
   return Object.keys(entries).length > 0 ? entries : null;
 }
 
-function coerceAuthStore(raw: unknown): AuthProfileStore | null {
+export function coerceAuthStore(raw: unknown): AuthProfileStore | null {
   if (!raw || typeof raw !== "object") {
     return null;
   }

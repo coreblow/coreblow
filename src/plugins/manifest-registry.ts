@@ -68,6 +68,7 @@ export type PluginManifestRecord = {
   modelIdNormalization?: PluginManifestModelIdNormalization;
   toolMetadata?: Record<string, PluginManifestToolMetadata>;
   autoEnableWhenConfiguredProviders?: string[];
+  legacyPluginIds?: string[];
   format?: PluginFormat;
   bundleFormat?: PluginBundleFormat;
   bundleCapabilities?: string[];
@@ -262,6 +263,7 @@ function buildRecord(params: {
     version: normalizeManifestLabel(params.manifest.version) ?? params.candidate.packageVersion,
     enabledByDefault: params.manifest.enabledByDefault === true ? true : undefined,
     autoEnableWhenConfiguredProviders: params.manifest.autoEnableWhenConfiguredProviders,
+    legacyPluginIds: params.manifest.legacyPluginIds,
     format: params.candidate.format ?? "coreblow",
     bundleFormat: params.candidate.bundleFormat,
     kind: params.manifest.kind,

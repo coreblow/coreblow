@@ -100,6 +100,8 @@ export function compareCoreBlowVersions(
   return 0;
 }
 
+export const compareOpenClawVersions = compareCoreBlowVersions;
+
 export function shouldWarnOnTouchedVersion(
   current: string | null | undefined,
   touched: string | null | undefined,

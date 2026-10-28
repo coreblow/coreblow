@@ -14,6 +14,16 @@ export type AgentModelConfig =
       fallbacks?: string[];
     };
 
+export type AgentEmbeddedHarnessConfig = {
+  /** Agent runtime id. Omitted uses "pi"; "auto" opts into plugin harness auto-selection. */
+  runtime?: string;
+};
+
+export type AgentRuntimePolicyConfig = {
+  /** Agent runtime id. Omitted uses "pi"; "auto" opts into plugin harness auto-selection. */
+  id?: string;
+};
+
 export type AgentSandboxConfig = {
   mode?: "off" | "non-main" | "all";
   /** Sandbox runtime backend id. Default: "docker". */

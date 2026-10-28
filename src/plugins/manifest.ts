@@ -8,7 +8,10 @@ import { isRecord } from "../utils.js";
 import type { PluginConfigUiHint, PluginKind } from "./types.js";
 
 export const PLUGIN_MANIFEST_FILENAME = "coreblow.plugin.json";
-export const PLUGIN_MANIFEST_FILENAMES = [PLUGIN_MANIFEST_FILENAME] as const;
+export const PLUGIN_MANIFEST_FILENAMES = [
+  PLUGIN_MANIFEST_FILENAME,
+  "openclaw.plugin.json",
+] as const;
 
 export type PluginManifestModelCatalog = ModelCatalog;
 

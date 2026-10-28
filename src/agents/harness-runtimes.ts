@@ -1,5 +1,6 @@
 import type { CoreBlowConfig } from "../config/types.coreblow.js";
 import { normalizeOptionalLowercaseString } from "../shared/string-coerce.js";
+import { modelSelectionShouldEnsureCodexPlugin } from "./openai-codex-routing.js";
 import { normalizeEmbeddedAgentRuntime } from "./pi-embedded-runner/runtime.js";
 import { normalizeProviderId } from "./provider-id.js";
 
@@ -112,6 +113,8 @@ function pushConfiguredAgentModelRuntimeIds(
       if (parsed) {
         // If provider specifies codex, add it
         if (parsed.provider === "openai-codex" || parsed.provider === "codex") {
+          runtimes.add("codex");
+        } else if (modelSelectionShouldEnsureCodexPlugin({ model: modelRef, config })) {
           runtimes.add("codex");
         }
       }

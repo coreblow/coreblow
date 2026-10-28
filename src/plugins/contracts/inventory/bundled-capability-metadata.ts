@@ -68,10 +68,12 @@ function readJsonRecord(filePath: string): Record<string, unknown> | undefined {
 
 function readBundledCapabilityManifest(pluginDir: string): BundledCapabilityManifest | undefined {
   const packageJson = readJsonRecord(path.join(pluginDir, "package.json"));
-  const packageManifest = getPackageManifestMetadata(packageJson as PackageManifest);
-  const extensions = normalizeBundledPluginStringList(packageManifest?.extensions);
-  if (extensions.length === 0) {
-    return undefined;
+  if (packageJson) {
+    const packageManifest = getPackageManifestMetadata(packageJson as PackageManifest);
+    const extensions = normalizeBundledPluginStringList(packageManifest?.extensions);
+    if (packageManifest && extensions.length === 0) {
+      return undefined;
+    }
   }
 
   const raw =

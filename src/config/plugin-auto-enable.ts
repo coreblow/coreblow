@@ -502,3 +502,5 @@ export function applyPluginAutoEnable(params: {
 
   return { config: next, changes };
 }
+
+export { detectPluginAutoEnableCandidates } from "./plugin-auto-enable.detect.js";

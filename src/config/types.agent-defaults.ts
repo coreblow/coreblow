@@ -1,5 +1,10 @@
 import type { ChannelId } from "../channels/plugins/types.js";
-import type { AgentModelConfig, AgentSandboxConfig } from "./types.agents-shared.js";
+import type {
+  AgentEmbeddedHarnessConfig,
+  AgentModelConfig,
+  AgentRuntimePolicyConfig,
+  AgentSandboxConfig,
+} from "./types.agents-shared.js";
 import type {
   BlockStreamingChunkConfig,
   BlockStreamingCoalesceConfig,
@@ -12,6 +17,8 @@ export type AgentModelEntryConfig = {
   alias?: string;
   /** Provider-specific API parameters (e.g., GLM-4.7 thinking mode). */
   params?: Record<string, unknown>;
+  /** Optional agent execution runtime for this specific provider/model entry. */
+  agentRuntime?: AgentRuntimePolicyConfig;
   /** Enable streaming for this model (default: true, false for Ollama to avoid SDK issue #1205). */
   streaming?: boolean;
 };
@@ -118,6 +125,10 @@ export type CliBackendConfig = {
 };
 
 export type AgentDefaultsConfig = {
+  /** Default agent runtime policy. */
+  agentRuntime?: AgentRuntimePolicyConfig;
+  /** @deprecated Use agentRuntime. */
+  embeddedHarness?: AgentEmbeddedHarnessConfig;
   /** Primary model and fallbacks (provider/model). Accepts string or {primary,fallbacks}. */
   model?: AgentModelConfig;
   /** Optional image-capable model and fallbacks (provider/model). Accepts string or {primary,fallbacks}. */
@@ -355,6 +366,8 @@ export type AgentCompactionConfig = {
 export type AgentCompactionMemoryFlushConfig = {
   /** Enable the pre-compaction memory flush (default: true). */
   enabled?: boolean;
+  /** Optional provider/model override used only for pre-compaction memory flush turns. */
+  model?: string;
   /** Run the memory flush when context is within this many tokens of the compaction threshold. */
   softThresholdTokens?: number;
   /**

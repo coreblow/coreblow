@@ -1,4 +1,5 @@
 import type { OpenAICompletionsCompat } from "@mariozechner/pi-ai";
+import type { AgentRuntimePolicyConfig } from "./types.agents-shared.js";
 import type { SecretInput } from "./types.secrets.js";
 
 export const MODEL_APIS = [
@@ -62,6 +63,8 @@ export type ModelDefinitionConfig = {
   };
   contextWindow: number;
   maxTokens: number;
+  /** Optional agent execution runtime override for this provider/model pair. */
+  agentRuntime?: AgentRuntimePolicyConfig;
   headers?: Record<string, string>;
   compat?: ModelCompatConfig;
 };
@@ -72,6 +75,8 @@ export type ModelProviderConfig = {
   auth?: ModelProviderAuthMode;
   api?: ModelApi;
   injectNumCtxForOpenAICompat?: boolean;
+  /** Optional default agent execution runtime for models under this provider. */
+  agentRuntime?: AgentRuntimePolicyConfig;
   headers?: Record<string, SecretInput>;
   authHeader?: boolean;
   models: ModelDefinitionConfig[];
