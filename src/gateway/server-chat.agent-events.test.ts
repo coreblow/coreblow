@@ -22,9 +22,13 @@ import {
   createToolEventRecipientRegistry,
 } from "./server-chat.js";
 
-vi.mock("../config/config.js", () => ({
-  loadConfig: vi.fn(() => ({})),
-}));
+vi.mock("../config/config.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../config/config.js")>();
+  return {
+    ...actual,
+    loadConfig: vi.fn(() => ({})),
+  };
+});
 
 vi.mock("../infra/heartbeat-visibility.js", () => ({
   resolveHeartbeatVisibility: vi.fn(() => ({

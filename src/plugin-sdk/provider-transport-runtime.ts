@@ -6,8 +6,7 @@
  * This surface adapts legacy transport structures to CoreBlow's equivalents.
  */
 
-import { fetchWithSsrFGuard } from "../infra/net/fetch-guard.js";
-
+export { buildGuardedModelFetch } from "../agents/provider-transport-fetch.js";
 export { stripSystemPromptCacheBoundary } from "../agents/system-prompt-cache-boundary.js";
 export { transformTransportMessages } from "../agents/transport-message-transform.js";
 export {
@@ -21,25 +20,6 @@ export {
   type WritableTransportStream,
 } from "../agents/transport-stream-shared.js";
 
-/**
- * CoreBlow providers generally execute using the platform's \`fetchWithSsrFGuard\`
- * rather than a shared generic builder. This adapter maps the legacy shape
- * to the actual hardened fetch execution pathway used by CoreBlow.
- */
-export function buildGuardedModelFetch(
-  _model: unknown, // Model<Api>
-  _timeoutMs?: number,
-  options?: { sanitizeSse?: boolean },
-): typeof fetch {
-  return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-    const result = await fetchWithSsrFGuard({
-      url: typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url,
-      init,
-      mode: "strict",
-    });
-    return result.response;
-  };
-}
 
 /**
  * CoreBlow delegates completions conversions to its specialized subsystems

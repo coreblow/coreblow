@@ -200,3 +200,5 @@ export async function ensureCoreBlowModelsJson(
 export function resetModelsJsonReadyCacheForTest(): void {
   MODELS_JSON_READY_CACHE.clear();
 }
+
+export const ensureOpenClawModelsJson = ensureCoreBlowModelsJson;

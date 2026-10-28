@@ -22,3 +22,6 @@ export function ensureCoreBlowAgentEnv(): string {
   }
   return dir;
 }
+
+export const resolveOpenClawAgentDir = resolveCoreBlowAgentDir;
+export const ensureOpenClawAgentEnv = ensureCoreBlowAgentEnv;

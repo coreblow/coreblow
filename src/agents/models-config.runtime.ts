@@ -1,1 +1,4 @@
-export { ensureCoreBlowModelsJson } from "./models-config.js";
+export {
+  ensureCoreBlowModelsJson,
+  ensureCoreBlowModelsJson as ensureOpenClawModelsJson,
+} from "./models-config.js";

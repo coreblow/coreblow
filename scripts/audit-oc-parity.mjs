@@ -100,6 +100,21 @@ function extractExports(filePath) {
       exports.push(m[1]);
     }
   }
+  const blockPattern = /^export\s+(?:type\s+)?\{([^}]+)\}/gm;
+  let bm;
+  while ((bm = blockPattern.exec(src)) !== null) {
+    const rawTokens = bm[1].split(",");
+    for (const token of rawTokens) {
+      const trimmed = token.trim();
+      if (!trimmed) continue;
+      const withoutType = trimmed.replace(/^type\s+/, "");
+      const [orig, alias] = withoutType.split(/\s+as\s+/);
+      const name = alias ? alias.trim() : orig.trim();
+      if (name && /^\w+$/.test(name)) {
+        exports.push(name);
+      }
+    }
+  }
   return [...new Set(exports)];
 }
 

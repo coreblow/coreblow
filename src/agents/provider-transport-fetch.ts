@@ -88,7 +88,7 @@ export function buildGuardedModelFetch(
   options?: { sanitizeSse?: boolean },
 ): typeof fetch {
   const requestTimeoutMs = resolveModelRequestTimeoutMs(model, timeoutMs);
-  return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+  const guardedFetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const url =
       typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
     const endpointResolution = resolveProviderEndpoint(model?.baseUrl);
@@ -117,4 +117,5 @@ export function buildGuardedModelFetch(
     }
     return response;
   };
+  return guardedFetch as unknown as typeof fetch;
 }

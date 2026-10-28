@@ -24,15 +24,7 @@ export const attachmentProbeFs = {
 };
 const MAX_ATTACHMENT_FILES = 10;
 
-type SendMessage = typeof import("../infra/outbound/message.js").sendMessage;
-let sendMessagePromise: Promise<SendMessage> | undefined;
-
-async function loadSendMessage(): Promise<SendMessage> {
-  sendMessagePromise ??= import("../infra/outbound/message.js").then(
-    (module) => module.sendMessage,
-  );
-  return sendMessagePromise;
-}
+import { sendMessage } from "../infra/outbound/message.js";
 
 type GetChannelPlugin = typeof import("../channels/plugins/index.js").getChannelPlugin;
 let getChannelPluginPromise: Promise<GetChannelPlugin> | undefined;
@@ -309,9 +301,8 @@ export class PluginSessionAttachmentManager {
       fallbackThreadId: threadId,
       hintThreadTs: resolvedDelivery.threadTs,
     });
-    let result: Awaited<ReturnType<SendMessage>>;
+    let result: Awaited<ReturnType<typeof sendMessage>>;
     try {
-      const sendMessage = await loadSendMessage();
       result = await sendMessage({
         to: deliveryContext.to,
         content: resolvedDelivery.escapePlainHtmlCaption ? escapeHtmlText(rawText) : rawText,

@@ -265,7 +265,6 @@ export default defineConfig({
             'src/gateway/server-session-key.test.ts',
             'src/gateway/ws-handler.test.ts',
             'src/gateway/probe-auth.test.ts',
-            'src/gateway/method-scopes.test.ts',
 
             // ── Hooks ──
             'src/hooks/install.test.ts',
