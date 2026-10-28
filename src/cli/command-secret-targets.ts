@@ -109,8 +109,18 @@ export function getModelsCommandSecretTargetIds(): Set<string> {
   return toTargetIdSet(COMMAND_SECRET_TARGETS.models);
 }
 
-export function getAgentRuntimeCommandSecretTargetIds(): Set<string> {
-  return toTargetIdSet(COMMAND_SECRET_TARGETS.agentRuntime);
+export function getAgentRuntimeCommandSecretTargetIds(params?: {
+  includeChannelTargets?: boolean;
+}): Set<string> {
+  const ids = toTargetIdSet(COMMAND_SECRET_TARGETS.agentRuntime);
+  if (params?.includeChannelTargets !== true) {
+    for (const id of ids) {
+      if (id.startsWith("channels.")) {
+        ids.delete(id);
+      }
+    }
+  }
+  return ids;
 }
 
 export function getStatusCommandSecretTargetIds(): Set<string> {

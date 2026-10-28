@@ -8,7 +8,13 @@ import { computeBackoff, type BackoffPolicy } from "../infra/backoff.js";
 import { consumeRootOptionToken, FLAG_TERMINATOR } from "../infra/cli-root-options.js";
 import { resolveCoreBlowAgentDir } from "./agent-paths.js";
 import { lookupCachedContextTokens, MODEL_CONTEXT_TOKEN_CACHE } from "./context-cache.js";
+import {
+  CONTEXT_WINDOW_RUNTIME_STATE,
+  resetContextWindowCacheForTest,
+} from "./context-runtime-state.js";
 import { normalizeProviderId } from "./model-selection.js";
+
+export { resetContextWindowCacheForTest };
 
 type ModelEntry = { id: string; contextWindow?: number };
 type ModelRegistryLike = {
@@ -79,15 +85,8 @@ export function applyConfiguredContextWindows(params: {
   }
 }
 
-let loadPromise: Promise<void> | null = null;
-let configuredConfig: CoreBlowConfig | undefined;
-let configLoadFailures = 0;
-let nextConfigLoadAttemptAtMs = 0;
-let modelsConfigRuntimePromise: Promise<typeof import("./models-config.runtime.js")> | undefined;
-
 function loadModelsConfigRuntime() {
-  modelsConfigRuntimePromise ??= import("./models-config.runtime.js");
-  return modelsConfigRuntimePromise;
+  return CONTEXT_WINDOW_RUNTIME_STATE.modelsConfigRuntimeLoader.load();
 }
 
 function isLikelyCoreBlowCliProcess(argv: string[] = process.argv): boolean {
@@ -160,10 +159,10 @@ function shouldEagerWarmContextWindowCache(argv: string[] = process.argv): boole
 }
 
 function primeConfiguredContextWindows(): CoreBlowConfig | undefined {
-  if (configuredConfig) {
-    return configuredConfig;
+  if (CONTEXT_WINDOW_RUNTIME_STATE.configuredConfig) {
+    return CONTEXT_WINDOW_RUNTIME_STATE.configuredConfig;
   }
-  if (Date.now() < nextConfigLoadAttemptAtMs) {
+  if (Date.now() < CONTEXT_WINDOW_RUNTIME_STATE.nextConfigLoadAttemptAtMs) {
     return undefined;
   }
   try {
@@ -172,22 +171,25 @@ function primeConfiguredContextWindows(): CoreBlowConfig | undefined {
       cache: MODEL_CONTEXT_TOKEN_CACHE,
       modelsConfig: cfg.models as ModelsConfig | undefined,
     });
-    configuredConfig = cfg;
-    configLoadFailures = 0;
-    nextConfigLoadAttemptAtMs = 0;
+    CONTEXT_WINDOW_RUNTIME_STATE.configuredConfig = cfg;
+    CONTEXT_WINDOW_RUNTIME_STATE.configLoadFailures = 0;
+    CONTEXT_WINDOW_RUNTIME_STATE.nextConfigLoadAttemptAtMs = 0;
     return cfg;
   } catch {
-    configLoadFailures += 1;
-    const backoffMs = computeBackoff(CONFIG_LOAD_RETRY_POLICY, configLoadFailures);
-    nextConfigLoadAttemptAtMs = Date.now() + backoffMs;
+    CONTEXT_WINDOW_RUNTIME_STATE.configLoadFailures += 1;
+    const backoffMs = computeBackoff(
+      CONFIG_LOAD_RETRY_POLICY,
+      CONTEXT_WINDOW_RUNTIME_STATE.configLoadFailures,
+    );
+    CONTEXT_WINDOW_RUNTIME_STATE.nextConfigLoadAttemptAtMs = Date.now() + backoffMs;
     // If config can't be loaded, leave cache empty and retry after backoff.
     return undefined;
   }
 }
 
 function ensureContextWindowCacheLoaded(): Promise<void> {
-  if (loadPromise) {
-    return loadPromise;
+  if (CONTEXT_WINDOW_RUNTIME_STATE.loadPromise) {
+    return CONTEXT_WINDOW_RUNTIME_STATE.loadPromise;
   }
 
   const cfg = primeConfiguredContextWindows();
@@ -195,7 +197,7 @@ function ensureContextWindowCacheLoaded(): Promise<void> {
     return Promise.resolve();
   }
 
-  loadPromise = (async () => {
+  CONTEXT_WINDOW_RUNTIME_STATE.loadPromise = (async () => {
     try {
       await (await loadModelsConfigRuntime()).ensureCoreBlowModelsJson(cfg);
     } catch {
@@ -227,16 +229,7 @@ function ensureContextWindowCacheLoaded(): Promise<void> {
   })().catch(() => {
     // Keep lookup best-effort.
   });
-  return loadPromise;
-}
-
-export function resetContextWindowCacheForTest(): void {
-  loadPromise = null;
-  configuredConfig = undefined;
-  configLoadFailures = 0;
-  nextConfigLoadAttemptAtMs = 0;
-  modelsConfigRuntimePromise = undefined;
-  MODEL_CONTEXT_TOKEN_CACHE.clear();
+  return CONTEXT_WINDOW_RUNTIME_STATE.loadPromise;
 }
 
 export function lookupContextTokens(

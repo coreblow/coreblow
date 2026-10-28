@@ -26,6 +26,7 @@ import {
   normalizePathPrepend,
   renderExecHostLabel,
   resolveApprovalRunningNoticeMs,
+  resolveExecTarget,
   runExecProcess,
   execSchema,
 } from "./bash-tools.exec-runtime.js";
@@ -329,19 +330,13 @@ export function createExecTool(
       if (elevatedRequested) {
         logInfo(`exec: elevated command ${truncateMiddle(params.command, 120)}`);
       }
-      const configuredHost = defaults?.host ?? "sandbox";
-      const sandboxHostConfigured = defaults?.host === "sandbox";
-      const requestedHost = normalizeExecHost(params.host) ?? null;
-      let host: ExecHost = requestedHost ?? configuredHost;
-      if (!elevatedRequested && requestedHost && requestedHost !== configuredHost) {
-        throw new Error(
-          `exec host not allowed (requested ${renderExecHostLabel(requestedHost)}; ` +
-            `configure tools.exec.host=${renderExecHostLabel(configuredHost)} to allow).`,
-        );
-      }
-      if (elevatedRequested) {
-        host = "gateway";
-      }
+      const target = resolveExecTarget({
+        configuredTarget: defaults?.host,
+        requestedTarget: normalizeExecHost(params.host) ?? null,
+        elevatedRequested,
+        sandboxAvailable: Boolean(defaults?.sandbox),
+      });
+      let host: ExecHost = target.effectiveHost;
 
       const configuredSecurity = defaults?.security ?? (host === "sandbox" ? "deny" : "allowlist");
       const requestedSecurity = normalizeExecSecurity(params.security);
@@ -359,15 +354,11 @@ export function createExecTool(
       }
 
       const sandbox = host === "sandbox" ? defaults?.sandbox : undefined;
-      if (
-        host === "sandbox" &&
-        !sandbox &&
-        (sandboxHostConfigured || requestedHost === "sandbox")
-      ) {
+      if (target.selectedTarget === "sandbox" && !sandbox) {
         throw new Error(
           [
-            "exec host=sandbox is configured, but sandbox runtime is unavailable for this session.",
-            'Enable sandbox mode (`agents.defaults.sandbox.mode="non-main"` or `"all"`) or set tools.exec.host to "gateway"/"node".',
+            "exec host=sandbox requires a sandbox runtime for this session.",
+            'Enable sandbox mode (`agents.defaults.sandbox.mode="non-main"` or `"all"`) or use host=auto/gateway/node.',
           ].join("\n"),
         );
       }

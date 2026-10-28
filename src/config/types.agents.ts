@@ -1,5 +1,9 @@
 import type { ChatType } from "../channels/chat-type.js";
-import type { AgentDefaultsConfig, AgentModelEntryConfig } from "./types.agent-defaults.js";
+import type {
+  AgentContextLimitsConfig,
+  AgentDefaultsConfig,
+  AgentModelEntryConfig,
+} from "./types.agent-defaults.js";
 import type {
   AgentEmbeddedHarnessConfig,
   AgentModelConfig,
@@ -78,6 +82,8 @@ export type AgentConfig = {
   models?: Record<string, AgentModelEntryConfig>;
   /** @deprecated Legacy per-agent compaction config is kept for raw doctor migration/repair. */
   compaction?: AgentDefaultsConfig["compaction"];
+  /** Optional per-agent context limits override. */
+  contextLimits?: AgentContextLimitsConfig;
   /** Optional per-agent default thinking level (overrides agents.defaults.thinkingDefault). */
   thinkingDefault?: "off" | "minimal" | "low" | "medium" | "high" | "xhigh" | "adaptive";
   /** Optional per-agent default reasoning visibility. */

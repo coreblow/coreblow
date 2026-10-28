@@ -1,3 +1,11 @@
+export function lowercasePreservingWhitespace(value: string): string {
+  return value.toLowerCase();
+}
+
+export function readStringValue(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
+}
+
 export function normalizeOptionalString(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }

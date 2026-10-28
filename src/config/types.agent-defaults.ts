@@ -124,7 +124,20 @@ export type CliBackendConfig = {
   };
 };
 
+export type AgentContextLimitsConfig = {
+  /** Default max chars returned by memory_get before truncation metadata/notice (default: 12000). */
+  memoryGetMaxChars?: number;
+  /** Default line window for memory_get when lines is omitted (default: 120). */
+  memoryGetDefaultLines?: number;
+  /** Max chars kept for a single live tool result before truncation (default: 16000). */
+  toolResultMaxChars?: number;
+  /** Max chars retained from post-compaction AGENTS.md context injection (default: 1800). */
+  postCompactionMaxChars?: number;
+};
+
 export type AgentDefaultsConfig = {
+  /** Tunable context size limits for tool output and injection. */
+  contextLimits?: AgentContextLimitsConfig;
   /** Default agent runtime policy. */
   agentRuntime?: AgentRuntimePolicyConfig;
   /** @deprecated Use agentRuntime. */

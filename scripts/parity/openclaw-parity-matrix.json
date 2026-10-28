@@ -7,19 +7,19 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8837,
+    "cb_source_files": 8844,
     "oc_source_files": 8443,
-    "source_parity_both": 7037,
+    "source_parity_both": 7044,
     "source_cb_exclusive": 1800,
-    "source_missing_from_cb": 1383,
+    "source_missing_from_cb": 1376,
     "source_intentionally_deprecated": 23,
-    "test_files_cb": 5044,
+    "test_files_cb": 5047,
     "test_files_oc": 5246,
-    "tests_both_covered": 3596,
-    "tests_gap_oc_has_cb_missing": 1390,
+    "tests_both_covered": 3598,
+    "tests_gap_oc_has_cb_missing": 1388,
     "tests_intentionally_deprecated": 15,
-    "tests_cb_exclusive": 1385,
-    "export_files_with_gaps": 52,
+    "tests_cb_exclusive": 1386,
+    "export_files_with_gaps": 48,
     "test_scenario_files_with_gaps": 38,
     "test_scenario_files_intentionally_different": 0
   },
@@ -37,18 +37,15 @@
       "priority": "P0",
       "implementationSurface": "src/agents, src/auth, src/agents/turn-engine",
       "counts": {
-        "sharedSourcePaths": 631,
+        "sharedSourcePaths": 638,
         "coreBlowOnlySourcePaths": 205,
-        "openClawOnlySourcePaths": 243,
-        "sharedTestPaths": 411,
-        "coreBlowOnlyTestPaths": 199,
-        "openClawTestGaps": 311
+        "openClawOnlySourcePaths": 236,
+        "sharedTestPaths": 413,
+        "coreBlowOnlyTestPaths": 200,
+        "openClawTestGaps": 309
       },
       "samples": {
         "openClawOnlySourcePaths": [
-          "src/agents/agent-delete-safety.ts",
-          "src/agents/agent-runtime-config.ts",
-          "src/agents/agent-scope-config.ts",
           "src/agents/anthropic-transport-stream.ts",
           "src/agents/bash-process-references.ts",
           "src/agents/bash-tools.descriptions.ts",
@@ -57,7 +54,10 @@
           "src/agents/bash-tools.process-send-keys.ts",
           "src/agents/btw-transcript.ts",
           "src/agents/bundle-mcp-shared.test-harness.ts",
-          "src/agents/cli-auth-epoch.ts"
+          "src/agents/cli-runner/bundle-mcp-claude.ts",
+          "src/agents/cli-runner/bundle-mcp-gemini.ts",
+          "src/agents/cli-runner/bundle-mcp.test-support.ts",
+          "src/agents/cli-runner/claude-live-session.ts"
         ],
         "openClawTestGapPaths": [
           "src/agents/agent-command.live-model-switch.test.ts",
