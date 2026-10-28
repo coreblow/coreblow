@@ -70,6 +70,22 @@ export function resolveSessionAgentId(params: {
   return resolveSessionAgentIds(params).sessionAgentId;
 }
 
+export function resolveAgentExecutionContract(
+  cfg: CoreBlowConfig | undefined,
+  agentId?: string | null,
+): "default" | "strict-agentic" | undefined {
+  const defaultContract = cfg?.agents?.defaults?.embeddedPi?.executionContract;
+  if (!cfg || !agentId) {
+    return defaultContract;
+  }
+  const agentContract = (
+    resolveAgentConfig(cfg, agentId) as
+      | { embeddedPi?: { executionContract?: "default" | "strict-agentic" } }
+      | undefined
+  )?.embeddedPi?.executionContract;
+  return agentContract ?? defaultContract;
+}
+
 export function resolveAgentSkillsFilter(
   cfg: CoreBlowConfig,
   agentId: string,

@@ -486,17 +486,14 @@ export function createProcessTool(
             hex: params.hex,
             literal: params.literal,
           };
-          // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
           if (resolved.session.cursorKeyMode === "unknown" && hasCursorModeSensitiveKeys(request)) {
             return failText(
               `Session ${params.sessionId} cursor key mode is not known yet. Poll or log until startup output appears, then retry send-keys.`,
             );
           }
           const cursorKeyMode =
-            // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
             resolved.session.cursorKeyMode === "unknown"
               ? undefined
-              // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
               : resolved.session.cursorKeyMode;
           const { data, warnings } = encodeKeySequence(request, cursorKeyMode);
           if (!data) {

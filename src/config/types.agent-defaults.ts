@@ -206,6 +206,8 @@ export type AgentDefaultsConfig = {
      * - trusted: trust project settings as-is
      */
     projectSettingsPolicy?: "trusted" | "sanitize" | "ignore";
+    /** Optional execution contract policy ("default" | "strict-agentic"). */
+    executionContract?: "default" | "strict-agentic";
   };
   /** Vector memory search configuration (per-agent overrides supported). */
   memorySearch?: MemorySearchConfig;
@@ -276,6 +278,8 @@ export type AgentDefaultsConfig = {
     skipWhenBusy?: boolean;
     /** Suppress tool error warning payloads during heartbeat runs. */
     suppressToolErrorWarnings?: boolean;
+    /** Whether to include the heartbeat section in the system prompt. Default: true. */
+    includeSystemPromptSection?: boolean;
     /**
      * If true, run heartbeat turns with lightweight bootstrap context.
      * Lightweight mode keeps only HEARTBEAT.md from workspace bootstrap files.

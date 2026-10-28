@@ -47,6 +47,7 @@ export interface ProcessSession {
     pendingStderrChars: number;
     aggregated: string;
     tail: string;
+    cursorKeyMode?: "application" | "normal" | "unknown";
     exitCode?: number | null;
     exitSignal?: string | number | null;
     exited: boolean;
