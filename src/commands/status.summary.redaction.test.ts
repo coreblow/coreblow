@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { createEmptyTaskAuditSummary } from "../tasks/task-registry.audit.shared.js";
+import { createEmptyTaskRegistrySummary } from "../tasks/task-registry.summary.js";
 import { redactSensitiveStatusSummary } from "./status.summary.js";
 import type { StatusSummary } from "./status.types.js";
 
@@ -29,6 +31,8 @@ describe("redactSensitiveStatusSummary", () => {
       },
       channelSummary: ["ok"],
       queuedSystemEvents: ["none"],
+      tasks: createEmptyTaskRegistrySummary(),
+      taskAudit: createEmptyTaskAuditSummary(),
       sessions: {
         paths: ["/tmp/coreblow/sessions.json"],
         count: 1,

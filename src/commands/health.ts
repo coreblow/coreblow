@@ -46,6 +46,24 @@ export type AgentHealthSummary = {
   sessions: HealthSummary["sessions"];
 };
 
+export type PluginHealthErrorSummary = {
+  id: string;
+  origin: string;
+  activated: boolean;
+  activationSource?: string;
+  activationReason?: string;
+  failurePhase?: string;
+  error: string;
+};
+
+export type PluginHealthSummary = {
+  loaded: string[];
+  errors: PluginHealthErrorSummary[];
+};
+
+export type ModelPricingHealthSummary =
+  import("../gateway/model-pricing-cache-state.js").GatewayModelPricingHealth;
+
 export type HealthSummary = {
   /**
    * Convenience top-level flag for UIs (e.g. WebChat) that only need a binary
@@ -64,6 +82,8 @@ export type HealthSummary = {
     utilization: number;
     cpuCoreRatio: number;
   };
+  plugins?: PluginHealthSummary;
+  modelPricing?: ModelPricingHealthSummary;
   channels: Record<string, ChannelHealthSummary>;
   channelOrder: string[];
   channelLabels: Record<string, string>;

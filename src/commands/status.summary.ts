@@ -11,6 +11,8 @@ import { peekSystemEvents } from "../infra/system-events.js";
 import { parseAgentSessionKey } from "../routing/session-key.js";
 import { createLazyRuntimeSurface } from "../shared/lazy-runtime.js";
 import { resolveRuntimeServiceVersion } from "../version.js";
+import { createEmptyTaskAuditSummary } from "../tasks/task-registry.audit.shared.js";
+import { createEmptyTaskRegistrySummary } from "../tasks/task-registry.summary.js";
 import type { HeartbeatStatus, SessionStatus, StatusSummary } from "./status.types.js";
 
 let channelSummaryModulePromise: Promise<typeof import("../infra/channel-summary.js")> | undefined;
@@ -263,6 +265,8 @@ export async function getStatusSummary(
     },
     channelSummary,
     queuedSystemEvents,
+    tasks: createEmptyTaskRegistrySummary(),
+    taskAudit: createEmptyTaskAuditSummary(),
     sessions: {
       paths: Array.from(paths),
       count: totalSessions,

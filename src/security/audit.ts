@@ -75,6 +75,7 @@ export type SecurityAuditOptions = {
   deep?: boolean;
   includeFilesystem?: boolean;
   includeChannelSecurity?: boolean;
+  loadPluginSecurityCollectors?: boolean;
   /** Override where to check state (default: resolveStateDir()). */
   stateDir?: string;
   /** Override config path check (default: resolveConfigPath()). */
@@ -104,6 +105,7 @@ type AuditExecutionContext = {
   platform: NodeJS.Platform;
   includeFilesystem: boolean;
   includeChannelSecurity: boolean;
+  loadPluginSecurityCollectors: boolean;
   deep: boolean;
   deepTimeoutMs: number;
   stateDir: string;
@@ -1358,6 +1360,7 @@ async function createAuditExecutionContext(
     platform,
     includeFilesystem,
     includeChannelSecurity,
+    loadPluginSecurityCollectors: opts.loadPluginSecurityCollectors ?? deep,
     deep,
     deepTimeoutMs,
     stateDir,

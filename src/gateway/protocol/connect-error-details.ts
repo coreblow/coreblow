@@ -27,6 +27,16 @@ export const ConnectErrorDetailCodes = {
   PAIRING_REQUIRED: "PAIRING_REQUIRED",
 } as const;
 
+export const ConnectPairingRequiredReasons = {
+  NOT_PAIRED: "not-paired",
+  ROLE_UPGRADE: "role-upgrade",
+  SCOPE_UPGRADE: "scope-upgrade",
+  METADATA_UPGRADE: "metadata-upgrade",
+} as const;
+
+export type ConnectPairingRequiredReason =
+  (typeof ConnectPairingRequiredReasons)[keyof typeof ConnectPairingRequiredReasons];
+
 export type ConnectErrorDetailCode =
   (typeof ConnectErrorDetailCodes)[keyof typeof ConnectErrorDetailCodes];
 
@@ -41,6 +51,81 @@ export type ConnectErrorRecoveryAdvice = {
   canRetryWithDeviceToken?: boolean;
   recommendedNextStep?: ConnectRecoveryNextStep;
 };
+
+export type PairingConnectErrorDetails = {
+  code: typeof ConnectErrorDetailCodes.PAIRING_REQUIRED;
+  reason?: ConnectPairingRequiredReason;
+  requestId?: string;
+  remediationHint?: string;
+  recommendedNextStep?: ConnectRecoveryNextStep;
+  retryable?: boolean;
+  pauseReconnect?: boolean;
+  deviceId?: string;
+  requestedRole?: string;
+  requestedScopes?: string[];
+  approvedRoles?: string[];
+  approvedScopes?: string[];
+};
+
+export type ConnectPairingRequiredDetails = Pick<
+  PairingConnectErrorDetails,
+  "reason" | "requestId"
+>;
+
+const CONNECT_PAIRING_REQUIRED_REASON_VALUES: ReadonlySet<ConnectPairingRequiredReason> = new Set([
+  "not-paired",
+  "role-upgrade",
+  "scope-upgrade",
+  "metadata-upgrade",
+]);
+
+const PAIRING_CONNECT_REASON_METADATA: Readonly<
+  Record<
+    ConnectPairingRequiredReason,
+    {
+      requirement: string;
+      remediationHint: string;
+      recoveryTitle: string;
+    }
+  >
+> = {
+  "not-paired": {
+    requirement: "device is not approved yet",
+    remediationHint: "Approve this device from the pending pairing requests.",
+    recoveryTitle: "Gateway pairing approval required.",
+  },
+  "role-upgrade": {
+    requirement: "device is asking for a higher role than currently approved",
+    remediationHint: "Review the requested role upgrade, then approve the pending request.",
+    recoveryTitle: "Gateway role upgrade approval required.",
+  },
+  "scope-upgrade": {
+    requirement: "device is asking for more scopes than currently approved",
+    remediationHint: "Review the requested scopes, then approve the pending upgrade.",
+    recoveryTitle: "Gateway scope upgrade approval required.",
+  },
+  "metadata-upgrade": {
+    requirement: "device identity changed and must be re-approved",
+    remediationHint: "Review the refreshed device details, then approve the pending request.",
+    recoveryTitle: "Gateway device refresh approval required.",
+  },
+};
+
+export function describePairingConnectRequirement(
+  reason: ConnectPairingRequiredReason | undefined,
+): string {
+  return reason
+    ? PAIRING_CONNECT_REASON_METADATA[reason].requirement
+    : "device approval is required";
+}
+
+export function buildPairingConnectRecoveryTitle(
+  reason: ConnectPairingRequiredReason | undefined,
+): string {
+  return reason
+    ? PAIRING_CONNECT_REASON_METADATA[reason].recoveryTitle
+    : "Gateway pairing approval required.";
+}
 
 const CONNECT_RECOVERY_NEXT_STEP_VALUES: ReadonlySet<ConnectRecoveryNextStep> = new Set([
   "retry_with_device_token",

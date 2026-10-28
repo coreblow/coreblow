@@ -4,6 +4,8 @@ import { buildGatewayConnectionDetailsWithResolvers } from "../gateway/connectio
 import { normalizeControlUiBasePath } from "../gateway/control-ui-shared.js";
 import { probeGateway } from "../gateway/probe.js";
 import type { MemoryProviderStatus } from "../plugin-sdk/memory-core-host-engine-storage.js";
+import { pickGatewaySelfPresence } from "./gateway-presence.js";
+import { isProbeReachable } from "./gateway-status/helpers.js";
 export { pickGatewaySelfPresence } from "./gateway-presence.js";
 
 let gatewayProbeModulePromise: Promise<typeof import("./status.gateway-probe.js")> | undefined;
@@ -33,6 +35,13 @@ export type GatewayProbeSnapshot = {
   };
   gatewayProbeAuthWarning?: string;
   gatewayProbe: Awaited<ReturnType<typeof probeGateway>> | null;
+  gatewayReachable: boolean;
+  gatewaySelf: ReturnType<typeof pickGatewaySelfPresence>;
+  gatewayCallOverrides?: {
+    url: string;
+    token?: string;
+    password?: string;
+  };
 };
 
 export function hasExplicitMemorySearchConfig(cfg: CoreBlowConfig, agentId: string): boolean {
@@ -78,6 +87,15 @@ export async function resolveGatewayProbeSnapshot(params: {
       gatewayProbeAuth: {},
       gatewayProbeAuthWarning: undefined,
       gatewayProbe: null,
+      gatewayReachable: false,
+      gatewaySelf: null,
+      ...(remoteUrlMissing
+        ? {
+            gatewayCallOverrides: {
+              url: gatewayConnection.url,
+            },
+          }
+        : {}),
     };
   }
   const { resolveGatewayProbeAuthResolution } = await loadGatewayProbeModule();
@@ -95,6 +113,8 @@ export async function resolveGatewayProbeSnapshot(params: {
       : gatewayProbeAuthWarning;
     gatewayProbeAuthWarning = undefined;
   }
+  const gatewayReachable = gatewayProbe ? isProbeReachable(gatewayProbe) : false;
+  const gatewaySelf = gatewayProbe?.presence ? pickGatewaySelfPresence(gatewayProbe.presence) : null;
   return {
     gatewayConnection,
     remoteUrlMissing,
@@ -102,6 +122,17 @@ export async function resolveGatewayProbeSnapshot(params: {
     gatewayProbeAuth: gatewayProbeAuthResolution.auth,
     gatewayProbeAuthWarning,
     gatewayProbe,
+    gatewayReachable,
+    gatewaySelf,
+    ...(remoteUrlMissing
+      ? {
+          gatewayCallOverrides: {
+            url: gatewayConnection.url,
+            token: gatewayProbeAuthResolution.auth.token,
+            password: gatewayProbeAuthResolution.auth.password,
+          },
+        }
+      : {}),
   };
 }
 

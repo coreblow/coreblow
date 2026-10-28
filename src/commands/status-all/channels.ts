@@ -471,7 +471,12 @@ function summarizeTokenConfig(params: {
 // Keep this generic: channel-specific rules belong in the channel plugin.
 export async function buildChannelsTable(
   cfg: CoreBlowConfig,
-  opts?: { showSecrets?: boolean; sourceConfig?: CoreBlowConfig },
+  opts?: {
+    showSecrets?: boolean;
+    sourceConfig?: CoreBlowConfig;
+    includeSetupFallbackPlugins?: boolean;
+    liveChannelStatus?: unknown;
+  },
 ): Promise<{
   rows: ChannelRow[];
   details: Array<{

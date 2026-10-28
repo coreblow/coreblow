@@ -8,6 +8,20 @@ export type CachedModelPricing = {
   cacheWrite: number;
 };
 
+export type GatewayModelPricingHealthSource = "openrouter" | "litellm" | "bootstrap" | "refresh";
+
+export type GatewayModelPricingHealth = {
+  state: "ok" | "degraded" | "disabled";
+  sources: Array<{
+    source: GatewayModelPricingHealthSource;
+    state: "ok" | "degraded";
+    lastFailureAt?: number;
+    detail?: string;
+  }>;
+  lastFailureAt?: number;
+  detail?: string;
+};
+
 let cachedPricing = new Map<string, CachedModelPricing>();
 let cachedAt = 0;
 
