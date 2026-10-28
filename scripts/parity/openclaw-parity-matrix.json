@@ -7,18 +7,18 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8894,
+    "cb_source_files": 8897,
     "oc_source_files": 8443,
-    "source_parity_both": 7094,
-    "source_cb_exclusive": 1800,
-    "source_missing_from_cb": 1317,
-    "source_intentionally_deprecated": 32,
-    "test_files_cb": 5066,
+    "source_parity_both": 7125,
+    "source_cb_exclusive": 1772,
+    "source_missing_from_cb": 1296,
+    "source_intentionally_deprecated": 27,
+    "test_files_cb": 5071,
     "test_files_oc": 5246,
-    "tests_both_covered": 3615,
-    "tests_gap_oc_has_cb_missing": 1352,
-    "tests_intentionally_deprecated": 34,
-    "tests_cb_exclusive": 1388,
+    "tests_both_covered": 3643,
+    "tests_gap_oc_has_cb_missing": 1341,
+    "tests_intentionally_deprecated": 17,
+    "tests_cb_exclusive": 1362,
     "export_files_with_gaps": 46,
     "test_scenario_files_with_gaps": 38,
     "test_scenario_files_intentionally_different": 0
@@ -37,11 +37,11 @@
       "priority": "P0",
       "implementationSurface": "src/agents, src/auth, src/agents/turn-engine",
       "counts": {
-        "sharedSourcePaths": 687,
-        "coreBlowOnlySourcePaths": 205,
+        "sharedSourcePaths": 692,
+        "coreBlowOnlySourcePaths": 200,
         "openClawOnlySourcePaths": 179,
-        "sharedTestPaths": 430,
-        "coreBlowOnlyTestPaths": 202,
+        "sharedTestPaths": 447,
+        "coreBlowOnlyTestPaths": 185,
         "openClawTestGaps": 273
       },
       "samples": {
@@ -418,9 +418,9 @@
       "priority": "P1",
       "implementationSurface": "src/cli program and command wiring",
       "counts": {
-        "sharedSourcePaths": 187,
-        "coreBlowOnlySourcePaths": 62,
-        "openClawOnlySourcePaths": 68,
+        "sharedSourcePaths": 189,
+        "coreBlowOnlySourcePaths": 61,
+        "openClawOnlySourcePaths": 67,
         "sharedTestPaths": 113,
         "coreBlowOnlyTestPaths": 51,
         "openClawTestGaps": 51
@@ -429,7 +429,6 @@
         "openClawOnlySourcePaths": [
           "src/cli/argv-invocation.ts",
           "src/cli/capability-cli.ts",
-          "src/cli/clawbot-cli.ts",
           "src/cli/command-bootstrap.ts",
           "src/cli/command-catalog.ts",
           "src/cli/command-execution-startup.ts",
@@ -438,7 +437,8 @@
           "src/cli/command-registration-policy.ts",
           "src/cli/command-startup-policy.ts",
           "src/cli/completion-runtime.ts",
-          "src/cli/config-recovery-hints.ts"
+          "src/cli/config-recovery-hints.ts",
+          "src/cli/cron-cli/thread-id-shared.ts"
         ],
         "openClawTestGapPaths": [
           "src/cli/argv-invocation.test.ts",
@@ -491,12 +491,12 @@
       "priority": "P1",
       "implementationSurface": "src/infra",
       "counts": {
-        "sharedSourcePaths": 306,
-        "coreBlowOnlySourcePaths": 76,
-        "openClawOnlySourcePaths": 73,
-        "sharedTestPaths": 299,
-        "coreBlowOnlyTestPaths": 63,
-        "openClawTestGaps": 46
+        "sharedSourcePaths": 311,
+        "coreBlowOnlySourcePaths": 73,
+        "openClawOnlySourcePaths": 71,
+        "sharedTestPaths": 302,
+        "coreBlowOnlyTestPaths": 60,
+        "openClawTestGaps": 43
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -538,8 +538,8 @@
           "src/infra/canvas-host-url.ts",
           "src/infra/circuit-breaker.ts",
           "src/infra/collector.ts",
-          "src/infra/coreblow-exec-env.ts",
-          "src/infra/coreblow-root.ts"
+          "src/infra/corehub.ts",
+          "src/infra/cron-scheduler.ts"
         ]
       },
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
@@ -1249,8 +1249,8 @@
       "priority": "P2",
       "implementationSurface": "src/plugin-sdk public API",
       "counts": {
-        "sharedSourcePaths": 439,
-        "coreBlowOnlySourcePaths": 120,
+        "sharedSourcePaths": 441,
+        "coreBlowOnlySourcePaths": 118,
         "openClawOnlySourcePaths": 0,
         "sharedTestPaths": 44,
         "coreBlowOnlyTestPaths": 25,
@@ -1273,7 +1273,6 @@
           "src/plugin-sdk/channel-streaming.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
-          "src/plugin-sdk/acp.ts",
           "src/plugin-sdk/amazon-bedrock.ts",
           "src/plugin-sdk/bluebubbles-policy.ts",
           "src/plugin-sdk/bluebubbles.ts",
@@ -1284,7 +1283,8 @@
           "src/plugin-sdk/channel-helpers.ts",
           "src/plugin-sdk/chutes.ts",
           "src/plugin-sdk/cli-scaffold.ts",
-          "src/plugin-sdk/cloudflare-ai-gateway.ts"
+          "src/plugin-sdk/cloudflare-ai-gateway.ts",
+          "src/plugin-sdk/config-builder.ts"
         ]
       },
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
@@ -1945,16 +1945,15 @@
         "sharedSourcePaths": 0,
         "coreBlowOnlySourcePaths": 0,
         "openClawOnlySourcePaths": 0,
-        "sharedTestPaths": 1,
+        "sharedTestPaths": 2,
         "coreBlowOnlyTestPaths": 1,
-        "openClawTestGaps": 8
+        "openClawTestGaps": 7
       },
       "samples": {
         "openClawOnlySourcePaths": [],
         "openClawTestGapPaths": [
           "src/scripts/control-ui-i18n-report.test.ts",
           "src/scripts/control-ui-i18n.test.ts",
-          "src/scripts/docs-link-audit.test.ts",
           "src/scripts/prepare-codex-ci-auth.test.ts",
           "src/scripts/prepare-codex-ci-config.test.ts",
           "src/scripts/sync-plugin-versions.test.ts",
@@ -2041,50 +2040,6 @@
       ]
     },
     {
-      "domain": "src/docs",
-      "status": "intentionally_different",
-      "priority": "P3",
-      "implementationSurface": "src/docs",
-      "counts": {
-        "sharedSourcePaths": 0,
-        "coreBlowOnlySourcePaths": 0,
-        "openClawOnlySourcePaths": 0,
-        "sharedTestPaths": 0,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 5
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [],
-        "openClawTestGapPaths": [
-          "src/docs/channel-config-examples.test.ts",
-          "src/docs/clawhub-plugin-docs.test.ts",
-          "src/docs/install-cloud-secrets.test.ts",
-          "src/docs/plugin-doc-examples.test.ts",
-          "src/docs/slash-commands-doc.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": []
-      },
-      "intentionalDomainDifference": {
-        "status": "intentionally_different",
-        "referenceBehavior": "OpenClaw keeps docs validation tests for channel examples, plugin snippets, install placeholders, and slash-command coverage inside the main repo under src/docs.",
-        "coreBlowDecision": "CoreBlow keeps the product docs surface in the dedicated docs workspace and validates it there, while the main repo only carries runtime docs links and docsPath metadata.",
-        "rationale": "Preserve docs behavior and validation in the active docs stack without reintroducing a duplicate src/docs test family into the main CoreBlow repo.",
-        "evidence": [
-          "src/docs",
-          "../coreblow-split/docs/package.json",
-          "../coreblow-split/docs/scripts/build-docs-list.mjs",
-          "../coreblow-split/docs/scripts/docs-link-audit.mjs",
-          "../coreblow-split/docs/src/index.js"
-        ],
-        "gate": "pnpm --dir /Users/febrinanda/coreblow-split/docs check"
-      },
-      "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
-      "gates": [
-        "pnpm --dir /Users/febrinanda/coreblow-split/docs check",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/voyage",
       "status": "intentionally_different",
       "priority": "P3",
@@ -2121,6 +2076,49 @@
       "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
       "gates": [
         "pnpm test -- extensions/memory-core",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/docs",
+      "status": "intentionally_different",
+      "priority": "P3",
+      "implementationSurface": "src/docs",
+      "counts": {
+        "sharedSourcePaths": 0,
+        "coreBlowOnlySourcePaths": 0,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 1,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 4
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [
+          "src/docs/channel-config-examples.test.ts",
+          "src/docs/clawhub-plugin-docs.test.ts",
+          "src/docs/install-cloud-secrets.test.ts",
+          "src/docs/plugin-doc-examples.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": []
+      },
+      "intentionalDomainDifference": {
+        "status": "intentionally_different",
+        "referenceBehavior": "OpenClaw keeps docs validation tests for channel examples, plugin snippets, install placeholders, and slash-command coverage inside the main repo under src/docs.",
+        "coreBlowDecision": "CoreBlow keeps the product docs surface in the dedicated docs workspace and validates it there, while the main repo only carries runtime docs links and docsPath metadata.",
+        "rationale": "Preserve docs behavior and validation in the active docs stack without reintroducing a duplicate src/docs test family into the main CoreBlow repo.",
+        "evidence": [
+          "src/docs",
+          "../coreblow-split/docs/package.json",
+          "../coreblow-split/docs/scripts/build-docs-list.mjs",
+          "../coreblow-split/docs/scripts/docs-link-audit.mjs",
+          "../coreblow-split/docs/src/index.js"
+        ],
+        "gate": "pnpm --dir /Users/febrinanda/coreblow-split/docs check"
+      },
+      "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
+      "gates": [
+        "pnpm --dir /Users/febrinanda/coreblow-split/docs check",
         "pnpm check"
       ]
     },

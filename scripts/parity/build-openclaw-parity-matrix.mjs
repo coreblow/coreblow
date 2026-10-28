@@ -209,6 +209,27 @@ function normalizeCoreBlowPath(path) {
   if (path === "src/agents/skills-clawhub.ts") {
     return "src/agents/skills-hub.ts";
   }
+  if (path === "src/cli/clawbot-cli.ts") {
+    return "src/cli/corebot-cli.ts";
+  }
+  if (path === "src/infra/openclaw-exec-env.ts") {
+    return "src/infra/coreblow-exec-env.ts";
+  }
+  if (path === "src/infra/openclaw-exec-env.test.ts") {
+    return "src/infra/coreblow-exec-env.test.ts";
+  }
+  if (path === "src/infra/openclaw-root.ts") {
+    return "src/infra/coreblow-root.ts";
+  }
+  if (path === "src/infra/openclaw-root.test.ts") {
+    return "src/infra/coreblow-root.test.ts";
+  }
+  if (path === "src/infra/tmp-openclaw-dir.ts") {
+    return "src/infra/tmp-coreblow-dir.ts";
+  }
+  if (path === "src/infra/tmp-openclaw-dir.test.ts") {
+    return "src/infra/tmp-coreblow-dir.test.ts";
+  }
   // CoreBlow inlines Discord reaction listener logic in listeners.ts instead of
   // a separate listeners.reactions.ts file.
   if (

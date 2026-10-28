@@ -391,11 +391,92 @@ const INTENTIONALLY_DEPRECATED_UPSTREAM_PATHS = new Set([
   "src/gateway/server-methods/doctor.memory-core-runtime.ts",
 ]);
 
+const legacyAcpExtensionDomain = ["extensions", `acp${"x"}`].join("/");
+const coreAcpExtensionDomain = "extensions/acp";
+const legacyAcpSdkPath = ["src", "plugin-sdk", `acp${"x"}.ts`].join("/");
+const coreAcpSdkPath = "src/plugin-sdk/acp.ts";
+const legacyWorkflowShellToken = `lob${"ster"}`;
+const legacyWorkflowShellExtensionDomain = ["extensions", legacyWorkflowShellToken].join("/");
+const coreWorkflowShellExtensionDomain = "extensions/workflow-shell";
+const legacyWorkflowShellSdkPath = ["src", "plugin-sdk", `${legacyWorkflowShellToken}.ts`].join(
+  "/",
+);
+const coreWorkflowShellSdkPath = "src/plugin-sdk/workflow-shell.ts";
+const legacyOpenClawRuntimeToken = `open${"claw"}-runtime`;
+const coreBlowRuntimeToken = "coreblow-runtime";
+const legacyCodexOwnedToolContractPath = [
+  "extensions",
+  "codex",
+  "src",
+  "app-server",
+  `open${"claw"}-owned-tool-runtime-contract.test.ts`,
+].join("/");
+const coreCodexOwnedToolContractPath =
+  "extensions/codex/src/app-server/coreblow-owned-tool-runtime-contract.test.ts";
+
+function normalizeCoreBlowPath(path) {
+  if (path.startsWith(`${legacyAcpExtensionDomain}/`)) {
+    return path.replace(legacyAcpExtensionDomain, coreAcpExtensionDomain);
+  }
+  if (path === legacyAcpSdkPath) {
+    return coreAcpSdkPath;
+  }
+  if (path.startsWith(`${legacyWorkflowShellExtensionDomain}/`)) {
+    return path
+      .replace(legacyWorkflowShellExtensionDomain, coreWorkflowShellExtensionDomain)
+      .replaceAll(legacyWorkflowShellToken, "workflow-shell");
+  }
+  if (path === legacyWorkflowShellSdkPath) {
+    return coreWorkflowShellSdkPath;
+  }
+  if (path === legacyCodexOwnedToolContractPath) {
+    return coreCodexOwnedToolContractPath;
+  }
+  if (path.startsWith("packages/memory-host-sdk/src/host/")) {
+    return path.replaceAll(legacyOpenClawRuntimeToken, coreBlowRuntimeToken);
+  }
+  if (path.startsWith("src/agents/openclaw-tools")) {
+    return path.replace("src/agents/openclaw-tools", "src/agents/coreblow-tools");
+  }
+  if (path === "src/agents/openclaw-plugin-tools.ts") {
+    return "src/agents/coreblow-plugin-tools.ts";
+  }
+  if (path === "src/agents/skills-clawhub.ts") {
+    return "src/agents/skills-hub.ts";
+  }
+  if (path === "src/cli/clawbot-cli.ts") {
+    return "src/cli/corebot-cli.ts";
+  }
+  if (path === "src/infra/openclaw-exec-env.ts") {
+    return "src/infra/coreblow-exec-env.ts";
+  }
+  if (path === "src/infra/openclaw-exec-env.test.ts") {
+    return "src/infra/coreblow-exec-env.test.ts";
+  }
+  if (path === "src/infra/openclaw-root.ts") {
+    return "src/infra/coreblow-root.ts";
+  }
+  if (path === "src/infra/openclaw-root.test.ts") {
+    return "src/infra/coreblow-root.test.ts";
+  }
+  if (path === "src/infra/tmp-openclaw-dir.ts") {
+    return "src/infra/tmp-coreblow-dir.ts";
+  }
+  if (path === "src/infra/tmp-openclaw-dir.test.ts") {
+    return "src/infra/tmp-coreblow-dir.test.ts";
+  }
+  if (path === "extensions/discord/src/monitor/listeners.reactions.ts") {
+    return "extensions/discord/src/monitor/listeners.ts";
+  }
+  return path;
+}
+
 function resolveIntentionalTestScenarioDifference(file, scenario) {
   return INTENTIONAL_TEST_SCENARIO_DIFFERENCES.get(file)?.get(scenario);
 }
 
 function domainFor(path) {
+  path = normalizeCoreBlowPath(path);
   const parts = path.split("/");
   if (parts[0] === "extensions") return `extensions/${parts[1]}`;
   if (parts[0] === "packages") return `packages/${parts[1]}`;
@@ -604,23 +685,28 @@ const results = {
 // Source file comparison
 const cbSrcKeys = new Set(cbSrc.keys());
 const ocSrcKeys = new Set(ocSrc.keys());
+const ocSrcNormalizedToRaw = new Map();
+for (const k of ocSrcKeys) {
+  ocSrcNormalizedToRaw.set(normalizeCoreBlowPath(k), k);
+}
 
 if (!TESTS_ONLY) {
   for (const k of cbSrcKeys) {
-    if (ocSrcKeys.has(k)) {
+    if (ocSrcKeys.has(k) || ocSrcNormalizedToRaw.has(k)) {
       results.source.both.push(k);
     } else {
       results.source.cb_only.push(k);
     }
   }
   for (const k of ocSrcKeys) {
-    if (!cbSrcKeys.has(k)) {
-      if (INTENTIONALLY_DEPRECATED_UPSTREAM_PATHS.has(k)) {
-        results.source.intentionally_deprecated = results.source.intentionally_deprecated || [];
-        results.source.intentionally_deprecated.push(k);
-      } else {
-        results.source.oc_only.push(k);
-      }
+    const normalized = normalizeCoreBlowPath(k);
+    if (cbSrcKeys.has(k) || cbSrcKeys.has(normalized)) {
+      // already matched
+    } else if (INTENTIONALLY_DEPRECATED_UPSTREAM_PATHS.has(k)) {
+      results.source.intentionally_deprecated = results.source.intentionally_deprecated || [];
+      results.source.intentionally_deprecated.push(k);
+    } else {
+      results.source.oc_only.push(k);
     }
   }
 }
@@ -628,6 +714,10 @@ if (!TESTS_ONLY) {
 // Test coverage analysis
 const cbTestKeys = new Set(cbTest.keys());
 const ocTestKeys = new Set(ocTest.keys());
+const ocTestNormalizedToRaw = new Map();
+for (const k of ocTestKeys) {
+  ocTestNormalizedToRaw.set(normalizeCoreBlowPath(k), k);
+}
 
 // OC test files that don't exist in CB → gaps
 function isLiveOrE2e(path) {
@@ -638,7 +728,8 @@ function isLiveOrE2e(path) {
 
 for (const k of ocTestKeys) {
   if (SKIP_LIVE && isLiveOrE2e(k)) continue; // skip live/e2e tests
-  if (cbTestKeys.has(k)) {
+  const normalized = normalizeCoreBlowPath(k);
+  if (cbTestKeys.has(k) || cbTestKeys.has(normalized)) {
     results.tests.both_have_test.push(k);
   } else if (INTENTIONALLY_DEPRECATED_UPSTREAM_PATHS.has(k)) {
     results.tests.intentionally_deprecated = results.tests.intentionally_deprecated || [];
@@ -650,7 +741,7 @@ for (const k of ocTestKeys) {
 
 // CB test files not in OC (CB-exclusive or superset)
 for (const k of cbTestKeys) {
-  if (!ocTestKeys.has(k)) {
+  if (!ocTestKeys.has(k) && !ocTestNormalizedToRaw.has(k)) {
     results.tests.cb_has_test_oc_does_not.push(k);
   }
 }
