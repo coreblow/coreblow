@@ -111,12 +111,13 @@ function resolveVersionFromRuntimeSources(params: {
 }): string {
   const preferredCandidates =
     params.preference === "env-first"
-      ? [params.env["COREBLOW_VERSION"], params.runtimeVersion]
-      : [params.runtimeVersion, params.env["COREBLOW_VERSION"]];
+      ? [params.env["COREBLOW_VERSION"], params.env["OPENCLAW_VERSION"], params.runtimeVersion]
+      : [params.runtimeVersion, params.env["COREBLOW_VERSION"], params.env["OPENCLAW_VERSION"]];
   return (
     firstNonEmpty(
       ...preferredCandidates,
       params.env["COREBLOW_SERVICE_VERSION"],
+      params.env["OPENCLAW_SERVICE_VERSION"],
       params.env["npm_package_version"],
     ) ?? params.fallback
   );

@@ -64,6 +64,15 @@ export function resolveUnsupportedToolSchemaKeywords(
   );
 }
 
+export function shouldOmitEmptyArrayItems(
+  modelOrCompat: { compat?: unknown } | ModelCompatConfig | undefined,
+): boolean {
+  const compat = extractModelCompat(modelOrCompat) as
+    | (ModelCompatConfig & { omitEmptyArrayItems?: unknown })
+    | undefined;
+  return compat?.omitEmptyArrayItems === true;
+}
+
 function isOpenAiCompletionsModel(model: Model<Api>): model is Model<"openai-completions"> {
   return model.api === "openai-completions";
 }

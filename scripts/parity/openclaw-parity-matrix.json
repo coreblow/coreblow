@@ -7,18 +7,18 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8883,
+    "cb_source_files": 8894,
     "oc_source_files": 8443,
-    "source_parity_both": 7083,
+    "source_parity_both": 7094,
     "source_cb_exclusive": 1800,
-    "source_missing_from_cb": 1332,
-    "source_intentionally_deprecated": 28,
-    "test_files_cb": 5059,
+    "source_missing_from_cb": 1317,
+    "source_intentionally_deprecated": 32,
+    "test_files_cb": 5066,
     "test_files_oc": 5246,
-    "tests_both_covered": 3609,
-    "tests_gap_oc_has_cb_missing": 1376,
-    "tests_intentionally_deprecated": 16,
-    "tests_cb_exclusive": 1387,
+    "tests_both_covered": 3615,
+    "tests_gap_oc_has_cb_missing": 1352,
+    "tests_intentionally_deprecated": 34,
+    "tests_cb_exclusive": 1388,
     "export_files_with_gaps": 46,
     "test_scenario_files_with_gaps": 38,
     "test_scenario_files_intentionally_different": 0
@@ -37,16 +37,15 @@
       "priority": "P0",
       "implementationSurface": "src/agents, src/auth, src/agents/turn-engine",
       "counts": {
-        "sharedSourcePaths": 680,
-        "coreBlowOnlySourcePaths": 201,
-        "openClawOnlySourcePaths": 190,
-        "sharedTestPaths": 441,
-        "coreBlowOnlyTestPaths": 184,
-        "openClawTestGaps": 280
+        "sharedSourcePaths": 687,
+        "coreBlowOnlySourcePaths": 205,
+        "openClawOnlySourcePaths": 179,
+        "sharedTestPaths": 430,
+        "coreBlowOnlyTestPaths": 202,
+        "openClawTestGaps": 273
       },
       "samples": {
         "openClawOnlySourcePaths": [
-          "src/agents/anthropic-transport-stream.ts",
           "src/agents/bash-tools.exec-approval-request.runtime.ts",
           "src/agents/bash-tools.exec-host-node-phases.ts",
           "src/agents/bundle-mcp-shared.test-harness.ts",
@@ -57,11 +56,11 @@
           "src/agents/cli-runner/claude-skills-plugin.ts",
           "src/agents/cli-runner/session-history.ts",
           "src/agents/code-mode.ts",
-          "src/agents/code-mode.worker.ts"
+          "src/agents/code-mode.worker.ts",
+          "src/agents/command/attempt-execution.helpers.ts"
         ],
         "openClawTestGapPaths": [
           "src/agents/agent-command.live-model-switch.test.ts",
-          "src/agents/anthropic-transport-stream.test.ts",
           "src/agents/auth-profile-runtime-contract.test.ts",
           "src/agents/auth-profiles/oauth-lock-path.test.ts",
           "src/agents/auth-profiles/oauth-manager.test.ts",
@@ -71,7 +70,8 @@
           "src/agents/auth-profiles/oauth.adopt-identity.test.ts",
           "src/agents/auth-profiles/oauth.concurrent-agents.test.ts",
           "src/agents/auth-profiles/oauth.mirror-refresh.test.ts",
-          "src/agents/auth-profiles/paths-direct-import.test.ts"
+          "src/agents/auth-profiles/paths-direct-import.test.ts",
+          "src/agents/auth-profiles/persisted-boundary.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/agents/agent-engine-config.ts",
