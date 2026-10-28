@@ -7,17 +7,17 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8877,
+    "cb_source_files": 8883,
     "oc_source_files": 8443,
-    "source_parity_both": 7077,
+    "source_parity_both": 7083,
     "source_cb_exclusive": 1800,
-    "source_missing_from_cb": 1343,
-    "source_intentionally_deprecated": 23,
-    "test_files_cb": 5055,
+    "source_missing_from_cb": 1332,
+    "source_intentionally_deprecated": 28,
+    "test_files_cb": 5059,
     "test_files_oc": 5246,
-    "tests_both_covered": 3605,
-    "tests_gap_oc_has_cb_missing": 1381,
-    "tests_intentionally_deprecated": 15,
+    "tests_both_covered": 3609,
+    "tests_gap_oc_has_cb_missing": 1376,
+    "tests_intentionally_deprecated": 16,
     "tests_cb_exclusive": 1387,
     "export_files_with_gaps": 46,
     "test_scenario_files_with_gaps": 38,
@@ -37,12 +37,12 @@
       "priority": "P0",
       "implementationSurface": "src/agents, src/auth, src/agents/turn-engine",
       "counts": {
-        "sharedSourcePaths": 675,
-        "coreBlowOnlySourcePaths": 200,
-        "openClawOnlySourcePaths": 199,
-        "sharedTestPaths": 437,
+        "sharedSourcePaths": 680,
+        "coreBlowOnlySourcePaths": 201,
+        "openClawOnlySourcePaths": 190,
+        "sharedTestPaths": 441,
         "coreBlowOnlyTestPaths": 184,
-        "openClawTestGaps": 285
+        "openClawTestGaps": 280
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -228,7 +228,7 @@
       "counts": {
         "sharedSourcePaths": 351,
         "coreBlowOnlySourcePaths": 65,
-        "openClawOnlySourcePaths": 40,
+        "openClawOnlySourcePaths": 39,
         "sharedTestPaths": 217,
         "coreBlowOnlyTestPaths": 134,
         "openClawTestGaps": 90
@@ -246,7 +246,7 @@
           "src/gateway/server-methods/commands.ts",
           "src/gateway/server-methods/config-write-flow.ts",
           "src/gateway/server-methods/deleted-agent-guard.test-helpers.ts",
-          "src/gateway/server-methods/doctor.memory-core-runtime.ts"
+          "src/gateway/server-methods/models-auth-status.ts"
         ],
         "openClawTestGapPaths": [
           "src/gateway/exec-approval-ios-push.test.ts",

@@ -346,6 +346,18 @@ const INTENTIONALLY_DEPRECATED_UPSTREAM_PATHS = new Set([
   "src/plugins/clawhub.test.ts",
   "src/plugins/migration-provider-runtime.ts",
   "src/plugins/migration-provider-runtime.test.ts",
+
+  // src/agents legacy OpenClaw shims & marketplace
+  "src/agents/skills-clawhub.ts",
+  "src/agents/skills-clawhub.test.ts",
+  "src/agents/openclaw-plugin-tools.ts",
+  "src/agents/openclaw-plugin-tools.test.ts",
+  "src/agents/test-helpers/fast-openclaw-tools-sessions.ts",
+  "src/agents/test-helpers/fast-openclaw-tools.ts",
+  "src/agents/test-helpers/fast-openclaw-tools.test.ts",
+
+  // src/gateway legacy dreaming migration repair shim
+  "src/gateway/server-methods/doctor.memory-core-runtime.ts",
 ]);
 
 function resolveIntentionalTestScenarioDifference(file, scenario) {
