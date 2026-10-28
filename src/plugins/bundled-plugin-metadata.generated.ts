@@ -838,6 +838,9 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       contracts: {
         webSearchProviders: ["brave"],
       },
+      configContracts: {
+        compatibilityRuntimePaths: ["tools.web.search.apiKey"],
+      },
     },
   },
   {
@@ -4132,6 +4135,9 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       contracts: {
         webSearchProviders: ["exa"],
       },
+      configContracts: {
+        compatibilityRuntimePaths: ["tools.web.search.apiKey"],
+      },
     },
   },
   {
@@ -5393,8 +5399,12 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         },
       },
       contracts: {
+        webFetchProviders: ["firecrawl"],
         webSearchProviders: ["firecrawl"],
         tools: ["firecrawl_search", "firecrawl_scrape"],
+      },
+      configContracts: {
+        compatibilityRuntimePaths: ["tools.web.search.apiKey"],
       },
     },
   },
@@ -5546,6 +5556,9 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         mediaUnderstandingProviders: ["google"],
         imageGenerationProviders: ["google"],
         webSearchProviders: ["gemini"],
+      },
+      configContracts: {
+        compatibilityRuntimePaths: ["tools.web.search.apiKey"],
       },
     },
   },
@@ -10013,6 +10026,9 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         mediaUnderstandingProviders: ["moonshot"],
         webSearchProviders: ["kimi"],
       },
+      configContracts: {
+        compatibilityRuntimePaths: ["tools.web.search.apiKey"],
+      },
     },
   },
   {
@@ -11862,6 +11878,9 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       },
       contracts: {
         webSearchProviders: ["perplexity"],
+      },
+      configContracts: {
+        compatibilityRuntimePaths: ["tools.web.search.apiKey"],
       },
     },
   },
@@ -14655,6 +14674,9 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       contracts: {
         webSearchProviders: ["tavily"],
         tools: ["tavily_search", "tavily_extract"],
+      },
+      configContracts: {
+        compatibilityRuntimePaths: ["tools.web.search.apiKey"],
       },
     },
   },
@@ -18730,6 +18752,9 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       },
       contracts: {
         webSearchProviders: ["grok"],
+      },
+      configContracts: {
+        compatibilityRuntimePaths: ["tools.web.search.apiKey"],
       },
     },
   },

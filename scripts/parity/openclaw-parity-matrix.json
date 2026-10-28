@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8649,
+    "cb_source_files": 8661,
     "oc_source_files": 8443,
-    "source_parity_both": 6849,
+    "source_parity_both": 6861,
     "source_cb_exclusive": 1800,
-    "source_missing_from_cb": 1568,
+    "source_missing_from_cb": 1556,
     "source_intentionally_deprecated": 26,
-    "test_files_cb": 4959,
+    "test_files_cb": 4964,
     "test_files_oc": 5246,
-    "tests_both_covered": 3517,
-    "tests_gap_oc_has_cb_missing": 1468,
+    "tests_both_covered": 3522,
+    "tests_gap_oc_has_cb_missing": 1463,
     "tests_intentionally_deprecated": 16,
     "tests_cb_exclusive": 1379,
     "export_files_with_gaps": 60,
@@ -323,12 +323,12 @@
       "priority": "P1",
       "implementationSurface": "src/plugins PluginLoader, PluginRegistry, HookRunner",
       "counts": {
-        "sharedSourcePaths": 282,
+        "sharedSourcePaths": 294,
         "coreBlowOnlySourcePaths": 75,
-        "openClawOnlySourcePaths": 51,
-        "sharedTestPaths": 110,
+        "openClawOnlySourcePaths": 39,
+        "sharedTestPaths": 115,
         "coreBlowOnlyTestPaths": 70,
-        "openClawTestGaps": 105
+        "openClawTestGaps": 100
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -338,12 +338,12 @@
           "src/plugins/codex-app-server-extension-factory.ts",
           "src/plugins/command-specs.ts",
           "src/plugins/doctor-contract-registry.ts",
-          "src/plugins/document-extractor-public-artifacts.ts",
-          "src/plugins/document-extractors.runtime.ts",
           "src/plugins/inspect-shape.ts",
           "src/plugins/install-channel-specs.ts",
           "src/plugins/install-overrides.ts",
-          "src/plugins/interactive-contract.test-helpers.ts"
+          "src/plugins/interactive-contract.test-helpers.ts",
+          "src/plugins/loader-channel-setup.ts",
+          "src/plugins/loader-provenance.ts"
         ],
         "openClawTestGapPaths": [
           "src/plugins/active-runtime-registry.test.ts",

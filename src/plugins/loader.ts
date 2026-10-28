@@ -21,7 +21,7 @@ import {
 import { discoverCoreBlowPlugins } from "./discovery.js";
 import { initializeGlobalHookRunner } from "./hook-runner-global.js";
 import { clearPluginInteractiveHandlers } from "./interactive.js";
-import { loadPluginManifestRegistry } from "./manifest-registry.js";
+import { loadPluginManifestRegistry, type PluginManifestRegistry } from "./manifest-registry.js";
 import {
   clearMemoryEmbeddingProviders,
   listRegisteredMemoryEmbeddingProviders,
@@ -76,11 +76,14 @@ export type PluginLoadResult = PluginRegistry;
 
 export type PluginLoadOptions = {
   config?: CoreBlowConfig;
+  activationSourceConfig?: CoreBlowConfig;
+  autoEnabledReasons?: Readonly<Record<string, string[]>>;
   workspaceDir?: string;
   // Allows callers to resolve plugin roots and load paths against an explicit env
   // instead of the process-global environment.
   env?: NodeJS.ProcessEnv;
   logger?: PluginLogger;
+  manifestRegistry?: PluginManifestRegistry;
   hostServices?: PluginRegistryParams["hostServices"];
   coreGatewayHandlers?: Record<string, GatewayRequestHandler>;
   runtimeOptions?: CreatePluginRuntimeOptions;
@@ -174,6 +177,18 @@ export const __testing = {
         : MAX_PLUGIN_REGISTRY_CACHE_ENTRIES;
   },
 };
+
+export const testing = __testing;
+
+const inFlightLoads = new Set<string>();
+
+export function resolvePluginRegistryLoadCacheKey(options: PluginLoadOptions = {}): string {
+  return resolvePluginLoadCacheContext(options).cacheKey;
+}
+
+export function isPluginRegistryLoadInFlight(options: PluginLoadOptions = {}): boolean {
+  return inFlightLoads.has(resolvePluginRegistryLoadCacheKey(options));
+}
 
 function getCachedPluginRegistry(cacheKey: string): CachedPluginState | undefined {
   const cached = registryCache.get(cacheKey);
@@ -827,7 +842,9 @@ export function loadCoreBlowPlugins(options: PluginLoadOptions = {}): PluginRegi
     clearMemoryPluginState();
   }
 
-  // Lazy: avoid creating the Jiti loader when all plugins are disabled (common in unit tests).
+  inFlightLoads.add(cacheKey);
+  try {
+    // Lazy: avoid creating the Jiti loader when all plugins are disabled (common in unit tests).
   const jitiLoaders = new Map<string, ReturnType<typeof createJiti>>();
   const getJiti = (modulePath: string) => {
     const tryNative = shouldPreferNativeJiti(modulePath);
@@ -1398,19 +1415,22 @@ export function loadCoreBlowPlugins(options: PluginLoadOptions = {}): PluginRegi
 
   maybeThrowOnPluginLoadError(registry, options.throwOnLoadError);
 
-  if (cacheEnabled) {
-    setCachedPluginRegistry(cacheKey, {
-      registry,
-      memoryEmbeddingProviders: listRegisteredMemoryEmbeddingProviders(),
-      memoryFlushPlanResolver: getMemoryFlushPlanResolver(),
-      memoryPromptBuilder: getMemoryPromptSectionBuilder(),
-      memoryRuntime: getMemoryRuntime(),
-    });
+    if (cacheEnabled) {
+      setCachedPluginRegistry(cacheKey, {
+        registry,
+        memoryEmbeddingProviders: listRegisteredMemoryEmbeddingProviders(),
+        memoryFlushPlanResolver: getMemoryFlushPlanResolver(),
+        memoryPromptBuilder: getMemoryPromptSectionBuilder(),
+        memoryRuntime: getMemoryRuntime(),
+      });
+    }
+    if (shouldActivate) {
+      activatePluginRegistry(registry, cacheKey);
+    }
+    return registry;
+  } finally {
+    inFlightLoads.delete(cacheKey);
   }
-  if (shouldActivate) {
-    activatePluginRegistry(registry, cacheKey);
-  }
-  return registry;
 }
 
 /** Backward-compatibility alias for loadCoreBlowPlugins */

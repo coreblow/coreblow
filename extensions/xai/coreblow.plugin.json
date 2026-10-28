@@ -44,6 +44,11 @@
       "grok"
     ]
   },
+  "configContracts": {
+    "compatibilityRuntimePaths": [
+      "tools.web.search.apiKey"
+    ]
+  },
   "configSchema": {
     "type": "object",
     "additionalProperties": false,

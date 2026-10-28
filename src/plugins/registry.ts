@@ -120,6 +120,7 @@ import type {
   PluginHookRegistration as TypedPluginHookRegistration,
   SpeechProviderPlugin,
   VideoGenerationProviderPlugin,
+  WebFetchProviderPlugin,
   WebSearchProviderPlugin,
 } from "./types.js";
 
@@ -219,6 +220,8 @@ export type PluginRealtimeVoiceProviderRegistration =
   PluginOwnedProviderRegistration<RealtimeVoiceProviderPlugin>;
 export type PluginWebSearchProviderRegistration =
   PluginOwnedProviderRegistration<WebSearchProviderPlugin>;
+export type PluginWebFetchProviderRegistration =
+  PluginOwnedProviderRegistration<WebFetchProviderPlugin>;
 
 export type PluginHookRegistration = {
   pluginId: string;
@@ -436,6 +439,7 @@ export type PluginRegistry = {
   realtimeTranscriptionProviders?: PluginRealtimeTranscriptionProviderRegistration[];
   realtimeVoiceProviders?: PluginRealtimeVoiceProviderRegistration[];
   webSearchProviders: PluginWebSearchProviderRegistration[];
+  webFetchProviders?: PluginWebFetchProviderRegistration[];
   textTransforms?: PluginTextTransformsRegistration[];
   gatewayHandlers: GatewayRequestHandlers;
   gatewayMethodScopes?: Partial<Record<string, OperatorScope>>;

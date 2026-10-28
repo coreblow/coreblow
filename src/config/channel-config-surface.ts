@@ -1,6 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
-import { buildChannelConfigSchema } from "../channels/plugins/config-schema.js";
+import {
+  buildChannelConfigSchema,
+  buildJsonChannelConfigSchema,
+} from "../channels/plugins/config-schema.js";
 import type { ChannelConfigSchema } from "../channels/plugins/types.plugin.js";
 
 export type BuiltChannelConfigSurface = ChannelConfigSchema;
@@ -23,14 +26,18 @@ export function resolveChannelConfigSurfaceExport(
   }
 
   for (const [name, value] of Object.entries(imported)) {
-    if (!name.endsWith("ConfigSchema") || name.endsWith("AccountConfigSchema")) {
+    const lower = name.toLowerCase();
+    if (!lower.endsWith("configschema") || lower.endsWith("accountconfigschema")) {
       continue;
     }
     if (isBuiltChannelConfigSchema(value)) {
       return value;
     }
     if (value && typeof value === "object") {
-      return buildChannelConfigSchema(value as never);
+      if (typeof (value as { safeParse?: unknown }).safeParse === "function") {
+        return buildChannelConfigSchema(value as never);
+      }
+      return buildJsonChannelConfigSchema(value as Record<string, unknown>);
     }
   }
 

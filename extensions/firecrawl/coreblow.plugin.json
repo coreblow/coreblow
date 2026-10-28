@@ -18,12 +18,20 @@
     }
   },
   "contracts": {
+    "webFetchProviders": [
+      "firecrawl"
+    ],
     "webSearchProviders": [
       "firecrawl"
     ],
     "tools": [
       "firecrawl_search",
       "firecrawl_scrape"
+    ]
+  },
+  "configContracts": {
+    "compatibilityRuntimePaths": [
+      "tools.web.search.apiKey"
     ]
   },
   "configSchema": {

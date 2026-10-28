@@ -454,6 +454,35 @@ export function resolvePluginManifestPath(rootDir: string): string {
   return path.join(rootDir, PLUGIN_MANIFEST_FILENAME);
 }
 
+function normalizeManifestConfigContracts(
+  value: unknown,
+): PluginManifestConfigContracts | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+  const compatibilityMigrationPaths = normalizeStringList(value.compatibilityMigrationPaths);
+  const compatibilityRuntimePaths = normalizeStringList(value.compatibilityRuntimePaths);
+  const rawSecretInputs = isRecord(value.secretInputs) ? value.secretInputs : undefined;
+  const dangerousFlags = Array.isArray(value.dangerousFlags)
+    ? (value.dangerousFlags as PluginManifestDangerousConfigFlag[])
+    : undefined;
+  const secretInputs: PluginManifestSecretInputContracts | undefined = rawSecretInputs
+    ? {
+        ...(typeof rawSecretInputs.bundledDefaultEnabled === "boolean"
+          ? { bundledDefaultEnabled: rawSecretInputs.bundledDefaultEnabled }
+          : {}),
+        paths: normalizeStringList(rawSecretInputs.paths),
+      }
+    : undefined;
+  const configContracts: PluginManifestConfigContracts = {
+    ...(compatibilityMigrationPaths.length > 0 ? { compatibilityMigrationPaths } : {}),
+    ...(compatibilityRuntimePaths.length > 0 ? { compatibilityRuntimePaths } : {}),
+    ...(dangerousFlags && dangerousFlags.length > 0 ? { dangerousFlags } : {}),
+    ...(secretInputs ? { secretInputs } : {}),
+  };
+  return Object.keys(configContracts).length > 0 ? configContracts : undefined;
+}
+
 export function loadPluginManifest(
   rootDir: string,
   rejectHardlinks = true,
@@ -519,6 +548,7 @@ export function loadPluginManifest(
   const providerAuthChoices = normalizeProviderAuthChoices(raw.providerAuthChoices);
   const skills = normalizeStringList(raw.skills);
   const contracts = normalizeManifestContracts(raw.contracts);
+  const configContracts = normalizeManifestConfigContracts(raw.configContracts);
   const channelConfigs = normalizeChannelConfigs(raw.channelConfigs);
   const modelIdNormalization = normalizeManifestModelIdNormalization(raw.modelIdNormalization, {
     ownedProviders: new Set(providers),
@@ -555,6 +585,7 @@ export function loadPluginManifest(
       version,
       uiHints,
       contracts,
+      configContracts,
       modelCatalog,
       modelIdNormalization,
       toolMetadata,

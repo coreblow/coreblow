@@ -21,16 +21,24 @@ export type RuntimeWebSearchMetadata = {
   diagnostics: RuntimeWebDiagnostic[];
 };
 
+export type RuntimeWebFetchMetadata = {
+  providerConfigured?: string;
+  providerSource: "configured" | "auto-detect" | "none";
+  selectedProvider?: string;
+  selectedProviderKeySource?: "config" | "secretRef" | "env" | "missing";
+  diagnostics: RuntimeWebDiagnostic[];
+};
+
 export type RuntimeWebFetchFirecrawlMetadata = {
   active: boolean;
-  apiKeySource: "config" | "secretRef" | "env" | "missing";
+  apiKeySource: "config" | "secretRef" | "env" | "missing"; // pragma: allowlist secret
   diagnostics: RuntimeWebDiagnostic[];
 };
 
 export type RuntimeWebToolsMetadata = {
   search: RuntimeWebSearchMetadata;
   fetch: {
-    firecrawl: RuntimeWebFetchFirecrawlMetadata;
-  };
+    firecrawl?: RuntimeWebFetchFirecrawlMetadata;
+  } & Partial<RuntimeWebFetchMetadata>;
   diagnostics: RuntimeWebDiagnostic[];
 };
