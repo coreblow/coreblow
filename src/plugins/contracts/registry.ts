@@ -2,11 +2,14 @@ import {
   BUNDLED_IMAGE_GENERATION_PLUGIN_IDS,
   BUNDLED_MEDIA_UNDERSTANDING_PLUGIN_IDS,
   BUNDLED_MUSIC_GENERATION_PLUGIN_IDS,
-  BUNDLED_PLUGIN_CONTRACT_SNAPSHOTS,
   BUNDLED_PROVIDER_PLUGIN_IDS,
   BUNDLED_SPEECH_PLUGIN_IDS,
   BUNDLED_WEB_SEARCH_PLUGIN_IDS,
 } from "../bundled-capability-metadata.js";
+import {
+  BUNDLED_PLUGIN_CONTRACT_SNAPSHOTS,
+  type BundledPluginContractSnapshot,
+} from "./inventory/bundled-capability-metadata.js";
 import { loadBundledCapabilityRuntimeRegistry } from "../bundled-capability-runtime.js";
 import { resolvePluginProviders } from "../providers.runtime.js";
 import type {
@@ -40,18 +43,7 @@ type MediaUnderstandingProviderContractEntry =
 type ImageGenerationProviderContractEntry = CapabilityContractEntry<ImageGenerationProviderPlugin>;
 type MusicGenerationProviderContractEntry = CapabilityContractEntry<MusicGenerationProviderPlugin>;
 
-type PluginRegistrationContractEntry = {
-  pluginId: string;
-  cliBackendIds: string[];
-  providerIds: string[];
-  speechProviderIds: string[];
-  mediaUnderstandingProviderIds: string[];
-  imageGenerationProviderIds: string[];
-  videoGenerationProviderIds: string[];
-  musicGenerationProviderIds: string[];
-  webSearchProviderIds: string[];
-  toolNames: string[];
-};
+type PluginRegistrationContractEntry = BundledPluginContractSnapshot;
 
 function createProviderContractPluginIdsByProviderId(): Map<string, string[]> {
   const result = new Map<string, string[]>();
@@ -342,15 +334,22 @@ export const musicGenerationProviderContractRegistry: MusicGenerationProviderCon
 function loadPluginRegistrationContractRegistry(): PluginRegistrationContractEntry[] {
   return BUNDLED_PLUGIN_CONTRACT_SNAPSHOTS.map((entry) => ({
     pluginId: entry.pluginId,
-    cliBackendIds: uniqueStrings(entry.cliBackendIds),
-    providerIds: uniqueStrings(entry.providerIds),
-    speechProviderIds: uniqueStrings(entry.speechProviderIds),
-    mediaUnderstandingProviderIds: uniqueStrings(entry.mediaUnderstandingProviderIds),
-    imageGenerationProviderIds: uniqueStrings(entry.imageGenerationProviderIds),
-    videoGenerationProviderIds: uniqueStrings(entry.videoGenerationProviderIds),
-    musicGenerationProviderIds: uniqueStrings(entry.musicGenerationProviderIds),
-    webSearchProviderIds: uniqueStrings(entry.webSearchProviderIds),
-    toolNames: uniqueStrings(entry.toolNames),
+    cliBackendIds: [...entry.cliBackendIds],
+    providerIds: [...entry.providerIds],
+    providerAuthEnvVars: { ...entry.providerAuthEnvVars },
+    speechProviderIds: [...entry.speechProviderIds],
+    realtimeTranscriptionProviderIds: [...entry.realtimeTranscriptionProviderIds],
+    realtimeVoiceProviderIds: [...entry.realtimeVoiceProviderIds],
+    mediaUnderstandingProviderIds: [...entry.mediaUnderstandingProviderIds],
+    documentExtractorIds: [...entry.documentExtractorIds],
+    imageGenerationProviderIds: [...entry.imageGenerationProviderIds],
+    videoGenerationProviderIds: [...entry.videoGenerationProviderIds],
+    musicGenerationProviderIds: [...entry.musicGenerationProviderIds],
+    webContentExtractorIds: [...entry.webContentExtractorIds],
+    webFetchProviderIds: [...entry.webFetchProviderIds],
+    webSearchProviderIds: [...entry.webSearchProviderIds],
+    migrationProviderIds: [...entry.migrationProviderIds],
+    toolNames: [...entry.toolNames],
   }));
 }
 

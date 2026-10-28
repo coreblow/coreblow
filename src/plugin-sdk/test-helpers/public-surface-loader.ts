@@ -39,6 +39,7 @@ function resolveExtensionDirByManifestId(pluginId: string): string {
 }
 
 function resolveWorkspacePackageDir(packageName: string): string {
+  const normalizedName = packageName.replace(/^@(coreblow|openclaw)\//, "");
   const extensionsDir = path.resolve(repoRoot, "extensions");
   for (const entry of fs.readdirSync(extensionsDir, { withFileTypes: true })) {
     if (!entry.isDirectory()) {
@@ -48,7 +49,12 @@ function resolveWorkspacePackageDir(packageName: string): string {
     const manifest = readJson(path.join(packageDir, "package.json")) as
       | { name?: unknown }
       | undefined;
-    if (manifest?.name === packageName) {
+    if (
+      manifest?.name === packageName ||
+      manifest?.name === `@coreblow/${normalizedName}` ||
+      manifest?.name === `@openclaw/${normalizedName}` ||
+      entry.name === normalizedName
+    ) {
       return packageDir;
     }
   }

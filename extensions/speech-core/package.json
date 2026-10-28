@@ -1,0 +1,15 @@
+{
+  "name": "@coreblow/speech-core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CoreBlow speech runtime package",
+  "type": "module",
+  "devDependencies": {
+    "coreblow": "workspace:*"
+  },
+  "coreblow": {
+    "extensions": [
+      "./api.ts"
+    ]
+  }
+}

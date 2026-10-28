@@ -1,17 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { resolveBundledWebSearchPluginIds } from "../bundled-web-search.js";
-import { loadPluginManifestRegistry } from "../manifest-registry.js";
+import { loadPluginManifestRegistry, type PluginManifestRecord } from "../manifest-registry.js";
+import { resolveManifestContractPluginIds } from "../plugin-registry.js";
+import { BUNDLED_PLUGIN_CONTRACT_SNAPSHOTS } from "./inventory/bundled-capability-metadata.js";
 import {
-  imageGenerationProviderContractRegistry,
-  mediaUnderstandingProviderContractRegistry,
   pluginRegistrationContractRegistry,
   providerContractLoadError,
   providerContractPluginIds,
-  speechProviderContractRegistry,
 } from "./registry.js";
 import { uniqueSortedStrings } from "./testkit.js";
-
-const REGISTRY_CONTRACT_TIMEOUT_MS = 300_000;
 
 describe("plugin contract registry", () => {
   function expectUniqueIds(ids: readonly string[]) {
@@ -20,33 +16,28 @@ describe("plugin contract registry", () => {
 
   function expectRegistryPluginIds(params: {
     actualPluginIds: readonly string[];
-    predicate: (plugin: {
-      origin: string;
-      providers: unknown[];
-      contracts?: { speechProviders?: unknown[] };
-    }) => boolean;
+    predicate: (plugin: PluginManifestRecord) => boolean;
   }) {
     expect(uniqueSortedStrings(params.actualPluginIds)).toEqual(
       resolveBundledManifestPluginIds(params.predicate),
     );
   }
 
-  function resolveBundledManifestPluginIds(
-    predicate: (plugin: {
-      origin: string;
-      providers: unknown[];
-      contracts?: { speechProviders?: unknown[] };
-    }) => boolean,
-  ) {
+  function resolveBundledManifestPluginIds(predicate: (plugin: PluginManifestRecord) => boolean) {
+    const snapshotPluginIds = new Set(
+      BUNDLED_PLUGIN_CONTRACT_SNAPSHOTS.map((entry) => entry.pluginId),
+    );
     return loadPluginManifestRegistry({})
-      .plugins.filter(predicate)
+      .plugins.filter((plugin) => snapshotPluginIds.has(plugin.id) && predicate(plugin))
       .map((plugin) => plugin.id)
       .toSorted((left, right) => left.localeCompare(right));
   }
 
   it("loads bundled non-provider capability registries without import-time failure", () => {
     expect(providerContractLoadError).toBeUndefined();
-    expect(pluginRegistrationContractRegistry.length).toBeGreaterThan(0);
+    expect(Array.from(pluginRegistrationContractRegistry)).toStrictEqual(
+      BUNDLED_PLUGIN_CONTRACT_SNAPSHOTS,
+    );
   });
 
   it.each([
@@ -55,29 +46,46 @@ describe("plugin contract registry", () => {
       ids: () => pluginRegistrationContractRegistry.flatMap((entry) => entry.providerIds),
     },
     {
+      name: "does not duplicate bundled web fetch provider ids",
+      ids: () => pluginRegistrationContractRegistry.flatMap((entry) => entry.webFetchProviderIds),
+    },
+    {
       name: "does not duplicate bundled web search provider ids",
       ids: () => pluginRegistrationContractRegistry.flatMap((entry) => entry.webSearchProviderIds),
     },
     {
+      name: "does not duplicate bundled migration provider ids",
+      ids: () => pluginRegistrationContractRegistry.flatMap((entry) => entry.migrationProviderIds),
+    },
+    {
       name: "does not duplicate bundled media provider ids",
-      ids: () => mediaUnderstandingProviderContractRegistry.map((entry) => entry.provider.id),
+      ids: () =>
+        pluginRegistrationContractRegistry.flatMap((entry) => entry.mediaUnderstandingProviderIds),
+    },
+    {
+      name: "does not duplicate bundled realtime transcription provider ids",
+      ids: () =>
+        pluginRegistrationContractRegistry.flatMap(
+          (entry) => entry.realtimeTranscriptionProviderIds,
+        ),
+    },
+    {
+      name: "does not duplicate bundled realtime voice provider ids",
+      ids: () =>
+        pluginRegistrationContractRegistry.flatMap((entry) => entry.realtimeVoiceProviderIds),
     },
     {
       name: "does not duplicate bundled image-generation provider ids",
-      ids: () => imageGenerationProviderContractRegistry.map((entry) => entry.provider.id),
+      ids: () =>
+        pluginRegistrationContractRegistry.flatMap((entry) => entry.imageGenerationProviderIds),
     },
   ] as const)("$name", ({ ids }) => {
     expectUniqueIds(ids());
   });
 
-  // Skip: requires native node-edge-tts runtime for Microsoft speech manifest
-  it.skip(
-    "does not duplicate bundled speech provider ids",
-    { timeout: REGISTRY_CONTRACT_TIMEOUT_MS },
-    () => {
-      expectUniqueIds(speechProviderContractRegistry.map((entry) => entry.provider.id));
-    },
-  );
+  it("does not duplicate bundled speech provider ids", () => {
+    expectUniqueIds(pluginRegistrationContractRegistry.flatMap((entry) => entry.speechProviderIds));
+  });
 
   it("covers every bundled provider plugin discovered from manifests", () => {
     expectRegistryPluginIds({
@@ -86,17 +94,60 @@ describe("plugin contract registry", () => {
     });
   });
 
-  // Skip: requires native node-edge-tts runtime for Microsoft speech manifest
-  it.skip("covers every bundled speech plugin discovered from manifests", () => {
+  it("covers every bundled speech plugin discovered from manifests", () => {
     expectRegistryPluginIds({
-      actualPluginIds: speechProviderContractRegistry.map((entry) => entry.pluginId),
+      actualPluginIds: pluginRegistrationContractRegistry
+        .filter((entry) => entry.speechProviderIds.length > 0)
+        .map((entry) => entry.pluginId),
       predicate: (plugin) =>
         plugin.origin === "bundled" && (plugin.contracts?.speechProviders?.length ?? 0) > 0,
     });
   });
 
+  it("covers every bundled realtime voice plugin discovered from manifests", () => {
+    expectRegistryPluginIds({
+      actualPluginIds: pluginRegistrationContractRegistry
+        .filter((entry) => entry.realtimeVoiceProviderIds.length > 0)
+        .map((entry) => entry.pluginId),
+      predicate: (plugin) =>
+        plugin.origin === "bundled" && (plugin.contracts?.realtimeVoiceProviders?.length ?? 0) > 0,
+    });
+  });
+
+  it("covers every bundled realtime transcription plugin discovered from manifests", () => {
+    expectRegistryPluginIds({
+      actualPluginIds: pluginRegistrationContractRegistry
+        .filter((entry) => entry.realtimeTranscriptionProviderIds.length > 0)
+        .map((entry) => entry.pluginId),
+      predicate: (plugin) =>
+        plugin.origin === "bundled" &&
+        (plugin.contracts?.realtimeTranscriptionProviders?.length ?? 0) > 0,
+    });
+  });
+
+  it("covers every bundled web fetch plugin from the shared resolver", () => {
+    const bundledWebFetchPluginIds = resolveManifestContractPluginIds({
+      contract: "webFetchProviders",
+      origin: "bundled",
+    });
+
+    expect(
+      uniqueSortedStrings(
+        pluginRegistrationContractRegistry
+          .filter((entry) => entry.webFetchProviderIds.length > 0)
+          .map((entry) => entry.pluginId),
+      ),
+    ).toEqual(bundledWebFetchPluginIds);
+  });
+
   it("covers every bundled web search plugin from the shared resolver", () => {
-    const bundledWebSearchPluginIds = resolveBundledWebSearchPluginIds({});
+    const snapshotPluginIds = new Set(
+      BUNDLED_PLUGIN_CONTRACT_SNAPSHOTS.map((entry) => entry.pluginId),
+    );
+    const bundledWebSearchPluginIds = resolveManifestContractPluginIds({
+      contract: "webSearchProviders",
+      origin: "bundled",
+    }).filter((pluginId) => snapshotPluginIds.has(pluginId));
 
     expect(
       uniqueSortedStrings(
