@@ -17,6 +17,60 @@ export type PluginManifestDangerousConfigFlag = {
   expected?: "string";
 };
 
+export type PluginManifestModelIdPrefixRule = {
+  modelPrefix: string;
+  prefix: string;
+};
+
+export type PluginManifestModelIdNormalizationProvider = {
+  aliases?: Record<string, string>;
+  stripPrefixes?: string[];
+  prefixWhenBare?: string;
+  prefixWhenBareAfterAliasStartsWith?: PluginManifestModelIdPrefixRule[];
+};
+
+export type PluginManifestModelIdNormalization = {
+  providers?: Record<string, PluginManifestModelIdNormalizationProvider>;
+};
+
+export type PluginManifestProviderBaseUrlGuard = {
+  provider: string;
+  defaultBaseUrl?: string;
+  allowedBaseUrls: string[];
+};
+
+export type PluginManifestCapabilityProviderAuthSignal = {
+  provider: string;
+  providerBaseUrl?: PluginManifestProviderBaseUrlGuard;
+};
+
+export type PluginManifestCapabilityProviderModeConfigSignal = {
+  path?: string;
+  default?: string;
+  allowed?: string[];
+  disallowed?: string[];
+};
+
+export type PluginManifestCapabilityProviderConfigSignal = {
+  rootPath: string;
+  overlayPath?: string;
+  required?: string[];
+  requiredAny?: string[];
+  mode?: PluginManifestCapabilityProviderModeConfigSignal;
+};
+
+export type PluginManifestCapabilityProviderMetadata = {
+  aliases?: string[];
+  authProviders?: string[];
+  authSignals?: PluginManifestCapabilityProviderAuthSignal[];
+  configSignals?: PluginManifestCapabilityProviderConfigSignal[];
+  referenceAudioInputs?: boolean;
+};
+
+export type PluginManifestToolMetadata = PluginManifestCapabilityProviderMetadata & {
+  optional?: boolean;
+};
+
 export type PluginManifestSecretInputContracts = {
   bundledDefaultEnabled?: boolean;
   paths?: string[];
@@ -74,6 +128,9 @@ export type PluginManifest = {
   id: string;
   configSchema: Record<string, unknown>;
   enabledByDefault?: boolean;
+  enabledByDefaultOnPlatforms?: string[];
+  modelIdNormalization?: PluginManifestModelIdNormalization;
+  toolMetadata?: Record<string, PluginManifestToolMetadata>;
   /** Legacy plugin ids that should normalize to this plugin id. */
   legacyPluginIds?: string[];
   /** Provider ids that should auto-enable this plugin when referenced in auth/config/models. */
@@ -275,6 +332,85 @@ function normalizeProviderAuthChoices(
   return normalized.length > 0 ? normalized : undefined;
 }
 
+function normalizeManifestModelIdPrefixRules(
+  value: unknown,
+): PluginManifestModelIdPrefixRule[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+  const rules: PluginManifestModelIdPrefixRule[] = [];
+  for (const rawRule of value) {
+    if (!isRecord(rawRule)) {
+      continue;
+    }
+    const modelPrefix = typeof rawRule.modelPrefix === "string" && rawRule.modelPrefix.trim() ? rawRule.modelPrefix.trim() : undefined;
+    const prefix = typeof rawRule.prefix === "string" && rawRule.prefix.trim() ? rawRule.prefix.trim() : undefined;
+    if (!modelPrefix || !prefix) {
+      continue;
+    }
+    rules.push({ modelPrefix, prefix });
+  }
+  return rules.length > 0 ? rules : undefined;
+}
+
+function normalizeManifestModelIdNormalizationProvider(
+  value: unknown,
+): PluginManifestModelIdNormalizationProvider | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const aliases: Record<string, string> = {};
+  if (isRecord(value.aliases)) {
+    for (const [rawAlias, rawCanonical] of Object.entries(value.aliases)) {
+      const alias = typeof rawAlias === "string" ? rawAlias.trim().toLowerCase() : "";
+      const canonical = typeof rawCanonical === "string" && rawCanonical.trim() ? rawCanonical.trim() : undefined;
+      if (alias && canonical) {
+        aliases[alias] = canonical;
+      }
+    }
+  }
+  const stripPrefixes = normalizeStringList(value.stripPrefixes);
+  const prefixWhenBare = typeof value.prefixWhenBare === "string" && value.prefixWhenBare.trim() ? value.prefixWhenBare.trim() : undefined;
+  const prefixWhenBareAfterAliasStartsWith = normalizeManifestModelIdPrefixRules(
+    value.prefixWhenBareAfterAliasStartsWith,
+  );
+  const normalization: PluginManifestModelIdNormalizationProvider = {
+    ...(Object.keys(aliases).length > 0 ? { aliases } : {}),
+    ...(stripPrefixes.length > 0 ? { stripPrefixes } : {}),
+    ...(prefixWhenBare ? { prefixWhenBare } : {}),
+    ...(prefixWhenBareAfterAliasStartsWith ? { prefixWhenBareAfterAliasStartsWith } : {}),
+  };
+
+  return Object.keys(normalization).length > 0 ? normalization : undefined;
+}
+
+function normalizeManifestModelIdNormalization(
+  value: unknown,
+  params: { ownedProviders: ReadonlySet<string> },
+): PluginManifestModelIdNormalization | undefined {
+  if (!isRecord(value) || !isRecord(value.providers)) {
+    return undefined;
+  }
+  const ownedProviders = new Set(
+    [...params.ownedProviders]
+      .map((provider) => provider.trim().toLowerCase())
+      .filter(Boolean),
+  );
+  const providers: Record<string, PluginManifestModelIdNormalizationProvider> = {};
+  for (const [rawProviderId, rawPolicy] of Object.entries(value.providers)) {
+    const providerId = rawProviderId.trim().toLowerCase();
+    if (!providerId || !ownedProviders.has(providerId)) {
+      continue;
+    }
+    const policy = normalizeManifestModelIdNormalizationProvider(rawPolicy);
+    if (policy) {
+      providers[providerId] = policy;
+    }
+  }
+  return Object.keys(providers).length > 0 ? { providers } : undefined;
+}
+
 function normalizeChannelConfigs(
   value: unknown,
 ): Record<string, PluginManifestChannelConfig> | undefined {
@@ -384,6 +520,12 @@ export function loadPluginManifest(
   const skills = normalizeStringList(raw.skills);
   const contracts = normalizeManifestContracts(raw.contracts);
   const channelConfigs = normalizeChannelConfigs(raw.channelConfigs);
+  const modelIdNormalization = normalizeManifestModelIdNormalization(raw.modelIdNormalization, {
+    ownedProviders: new Set(providers),
+  });
+  const modelCatalog = isRecord(raw.modelCatalog) ? (raw.modelCatalog as PluginManifestModelCatalog) : undefined;
+  const toolMetadata = isRecord(raw.toolMetadata) ? (raw.toolMetadata as Record<string, PluginManifestToolMetadata>) : undefined;
+  const enabledByDefaultOnPlatforms = normalizeStringList(raw.enabledByDefaultOnPlatforms);
 
   let uiHints: Record<string, PluginConfigUiHint> | undefined;
   if (isRecord(raw.uiHints)) {
@@ -396,6 +538,7 @@ export function loadPluginManifest(
       id,
       configSchema,
       ...(enabledByDefault ? { enabledByDefault } : {}),
+      ...(enabledByDefaultOnPlatforms.length > 0 ? { enabledByDefaultOnPlatforms } : {}),
       ...(legacyPluginIds.length > 0 ? { legacyPluginIds } : {}),
       ...(autoEnableWhenConfiguredProviders.length > 0
         ? { autoEnableWhenConfiguredProviders }
@@ -412,6 +555,9 @@ export function loadPluginManifest(
       version,
       uiHints,
       contracts,
+      modelCatalog,
+      modelIdNormalization,
+      toolMetadata,
       channelConfigs,
     },
     manifestPath,

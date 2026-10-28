@@ -18,8 +18,10 @@ import {
   type PluginManifestContracts,
   type PluginManifestContractListKey,
   type PluginManifestModelCatalog,
+  type PluginManifestModelIdNormalization,
   type PluginManifestSetup,
   type PluginManifestSetupProvider,
+  type PluginManifestToolMetadata,
 } from "./manifest.js";
 import type { PluginManifestCommandAlias } from "./manifest-command-aliases.js";
 
@@ -62,6 +64,9 @@ export type PluginManifestRecord = {
   description?: string;
   version?: string;
   enabledByDefault?: boolean;
+  enabledByDefaultOnPlatforms?: string[];
+  modelIdNormalization?: PluginManifestModelIdNormalization;
+  toolMetadata?: Record<string, PluginManifestToolMetadata>;
   autoEnableWhenConfiguredProviders?: string[];
   format?: PluginFormat;
   bundleFormat?: PluginBundleFormat;
@@ -278,6 +283,9 @@ function buildRecord(params: {
     contracts: params.manifest.contracts,
     configContracts: params.manifest.configContracts,
     modelCatalog: params.manifest.modelCatalog,
+    modelIdNormalization: params.manifest.modelIdNormalization,
+    enabledByDefaultOnPlatforms: params.manifest.enabledByDefaultOnPlatforms,
+    toolMetadata: params.manifest.toolMetadata,
     channelConfigs,
     ...(params.candidate.packageManifest?.channel?.id
       ? {
@@ -409,7 +417,7 @@ export function loadPluginManifestRegistry(
   const normalized = normalizePluginsConfig(config.plugins);
   const env = params.env ?? process.env;
   const cacheKey = buildCacheKey({ workspaceDir: params.workspaceDir, plugins: normalized, env });
-  const cacheEnabled = params.cache !== false && shouldUseManifestCache(env);
+  const cacheEnabled = params.cache !== false && !params.candidates && shouldUseManifestCache(env);
   if (cacheEnabled) {
     const cached = registryCache.get(cacheKey);
     if (cached && cached.expiresAt > Date.now()) {
