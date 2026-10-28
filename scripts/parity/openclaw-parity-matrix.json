@@ -7,18 +7,18 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8897,
+    "cb_source_files": 8899,
     "oc_source_files": 8443,
     "source_parity_both": 7125,
-    "source_cb_exclusive": 1772,
+    "source_cb_exclusive": 1774,
     "source_missing_from_cb": 1296,
     "source_intentionally_deprecated": 27,
-    "test_files_cb": 5071,
+    "test_files_cb": 5073,
     "test_files_oc": 5246,
     "tests_both_covered": 3643,
     "tests_gap_oc_has_cb_missing": 1341,
     "tests_intentionally_deprecated": 17,
-    "tests_cb_exclusive": 1362,
+    "tests_cb_exclusive": 1364,
     "export_files_with_gaps": 47,
     "test_scenario_files_with_gaps": 38,
     "test_scenario_files_intentionally_different": 0
@@ -38,10 +38,10 @@
       "implementationSurface": "src/agents, src/auth, src/agents/turn-engine",
       "counts": {
         "sharedSourcePaths": 692,
-        "coreBlowOnlySourcePaths": 200,
+        "coreBlowOnlySourcePaths": 201,
         "openClawOnlySourcePaths": 179,
         "sharedTestPaths": 447,
-        "coreBlowOnlyTestPaths": 185,
+        "coreBlowOnlyTestPaths": 186,
         "openClawTestGaps": 273
       },
       "samples": {
@@ -492,10 +492,10 @@
       "implementationSurface": "src/infra",
       "counts": {
         "sharedSourcePaths": 311,
-        "coreBlowOnlySourcePaths": 73,
+        "coreBlowOnlySourcePaths": 74,
         "openClawOnlySourcePaths": 71,
         "sharedTestPaths": 302,
-        "coreBlowOnlyTestPaths": 60,
+        "coreBlowOnlyTestPaths": 61,
         "openClawTestGaps": 43
       },
       "samples": {
