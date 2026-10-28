@@ -7,18 +7,18 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8904,
+    "cb_source_files": 8906,
     "oc_source_files": 8443,
     "source_parity_both": 7125,
-    "source_cb_exclusive": 1779,
+    "source_cb_exclusive": 1781,
     "source_missing_from_cb": 1296,
     "source_intentionally_deprecated": 27,
-    "test_files_cb": 5078,
+    "test_files_cb": 5080,
     "test_files_oc": 5246,
     "tests_both_covered": 3643,
     "tests_gap_oc_has_cb_missing": 1341,
     "tests_intentionally_deprecated": 17,
-    "tests_cb_exclusive": 1369,
+    "tests_cb_exclusive": 1371,
     "export_files_with_gaps": 47,
     "test_scenario_files_with_gaps": 38,
     "test_scenario_files_intentionally_different": 0
@@ -38,10 +38,10 @@
       "implementationSurface": "src/agents, src/auth, src/agents/turn-engine",
       "counts": {
         "sharedSourcePaths": 692,
-        "coreBlowOnlySourcePaths": 201,
+        "coreBlowOnlySourcePaths": 202,
         "openClawOnlySourcePaths": 179,
         "sharedTestPaths": 447,
-        "coreBlowOnlyTestPaths": 186,
+        "coreBlowOnlyTestPaths": 187,
         "openClawTestGaps": 273
       },
       "samples": {
@@ -681,10 +681,10 @@
       "implementationSurface": "src/plugins PluginLoader, PluginRegistry, HookRunner",
       "counts": {
         "sharedSourcePaths": 334,
-        "coreBlowOnlySourcePaths": 76,
+        "coreBlowOnlySourcePaths": 77,
         "openClawOnlySourcePaths": 0,
         "sharedTestPaths": 123,
-        "coreBlowOnlyTestPaths": 73,
+        "coreBlowOnlyTestPaths": 74,
         "openClawTestGaps": 92
       },
       "samples": {
