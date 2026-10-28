@@ -16,10 +16,7 @@ export type PlannedTargets = {
 export function resolveTargets(ctx: MigrationProviderContext): PlannedTargets {
   const cfg = ctx.config;
   const agentId = resolveDefaultAgentId(cfg);
-  const workspaceDir =
-    typeof resolveAgentWorkspaceDir === "function"
-      ? resolveAgentWorkspaceDir(cfg, agentId)
-      : (ctx.workspaceDir ?? process.cwd());
+  const workspaceDir = resolveAgentWorkspaceDir(cfg, agentId);
   const configuredAgentDir = resolveAgentConfig(cfg, agentId)?.agentDir?.trim();
   const resolveRuntimeAgentDir = ctx.runtime?.agent?.resolveAgentDir;
   const agentDir =

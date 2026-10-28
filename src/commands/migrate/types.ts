@@ -1,4 +1,5 @@
-import type { CoreBlowConfig } from "../../config/types.coreblow.js";
+import type { CoreBlowConfig } from "../../config/config.js";
+import type { MigrationPlan } from "../../plugins/types.js";
 
 export type MigrationConfigPatchMode = "return";
 
@@ -11,45 +12,17 @@ export type MigrateCommonOptions = {
   plugins?: string[];
   verifyPluginApps?: boolean;
   json?: boolean;
+  // Suppress the formatted plan dump that `migrate plan` normally prints
+  // before any interactive selection. Used by onboarding flows that have
+  // already secured user consent and do not want to re-render the plan.
+  // The interactive selection picker and apply confirmation still run.
   suppressPlanLog?: boolean;
+  // Internal embedded migration source of truth. Standalone CLI callers should
+  // omit this so migration uses the current runtime config from disk.
   configOverride?: CoreBlowConfig;
+  // Internal embedded mode for config patch items. Default CLI behavior persists
+  // patches when this is omitted; onboarding can request returned patch details.
   configPatchMode?: MigrationConfigPatchMode;
-};
-
-export type MigrationSummary = {
-  totalItems: number;
-  selectedItems: number;
-  skippedItems: number;
-  sections?: Array<{ label: string; count: number }>;
-};
-
-export type MigrationItem = {
-  id: string;
-  label: string;
-  description?: string;
-  kind?: string;
-  current?: unknown;
-  proposed?: unknown;
-  selected?: boolean;
-  readonly?: boolean;
-  skipped?: boolean;
-  skipReason?: string;
-};
-
-export type MigrationPlan = {
-  providerId: string;
-  source: string;
-  target?: string;
-  summary: MigrationSummary;
-  items: MigrationItem[];
-  warnings?: string[];
-  nextSteps?: string[];
-  metadata?: Record<string, unknown>;
-};
-
-export type MigrationApplyResult = MigrationPlan & {
-  backupPath?: string;
-  reportDir?: string;
 };
 
 export type MigrateApplyOptions = MigrateCommonOptions & {

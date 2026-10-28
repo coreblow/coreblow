@@ -15,6 +15,7 @@ export type {
   PluginImageGenerationProviderRegistration,
   PluginVideoGenerationProviderRegistration,
   PluginWebSearchProviderRegistration,
+  PluginMigrationProviderRegistration,
   PluginAgentToolResultMiddlewareRegistration,
   PluginSessionExtensionRegistryRegistration,
   PluginTrustedToolPolicyRegistryRegistration,

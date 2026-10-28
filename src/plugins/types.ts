@@ -2259,6 +2259,8 @@ export type CoreBlowPluginApi = {
   registerRealtimeVoiceProvider: (provider: RealtimeVoiceProviderPlugin) => void;
   /** Register a web search provider (web search capability). */
   registerWebSearchProvider: (provider: WebSearchProviderPlugin) => void;
+  /** Register an importer for `coreblow migrate` (migration capability). */
+  registerMigrationProvider: (provider: MigrationProviderPlugin) => void;
   registerInteractiveHandler: (registration: PluginInteractiveHandlerRegistration) => void;
   onConversationBindingResolved: (
     handler: (event: PluginConversationBindingResolvedEvent) => void | Promise<void>,
@@ -3443,6 +3445,122 @@ export type PluginHookRegistration<K extends PluginHookName = PluginHookName> = 
   source: string;
 };
 
+
+export type MigrationItemStatus =
+  | "planned"
+  | "migrated"
+  | "skipped"
+  | "warning"
+  | "conflict"
+  | "error";
+export type MigrationItemKind =
+  | "config"
+  | "secret"
+  | "memory"
+  | "skill"
+  | "workspace"
+  | "session"
+  | "file"
+  | "archive"
+  | "manual";
+export type MigrationItemAction =
+  | "copy"
+  | "create"
+  | "update"
+  | "merge"
+  | "append"
+  | "archive"
+  | "skip"
+  | "manual";
+
+export type MigrationItem = {
+  id: string;
+  kind: MigrationItemKind | (string & {});
+  action: MigrationItemAction | (string & {});
+  status: MigrationItemStatus;
+  source?: string;
+  target?: string;
+  message?: string;
+  reason?: string;
+  sensitive?: boolean;
+  details?: Record<string, unknown>;
+  label?: string;
+  description?: string;
+  current?: unknown;
+  proposed?: unknown;
+  selected?: boolean;
+  readonly?: boolean;
+  skipped?: boolean;
+  skipReason?: string;
+};
+
+export type MigrationSummary = {
+  total: number;
+  planned: number;
+  migrated: number;
+  skipped: number;
+  conflicts: number;
+  errors: number;
+  sensitive: number;
+};
+
+export type MigrationDetection = {
+  found: boolean;
+  source?: string;
+  label?: string;
+  confidence?: "low" | "medium" | "high";
+  message?: string;
+};
+
+export type MigrationPlan = {
+  providerId: string;
+  source: string;
+  target?: string;
+  summary: MigrationSummary;
+  items: MigrationItem[];
+  warnings?: string[];
+  nextSteps?: string[];
+  metadata?: Record<string, unknown>;
+};
+
+export type MigrationApplyResult = MigrationPlan & {
+  backupPath?: string;
+  reportDir?: string;
+};
+
+export type MigrationProviderPreparation = {
+  dispose?: () => void | Promise<void>;
+};
+
+export type MigrationProviderContext = {
+  config: CoreBlowConfig;
+  runtime?: PluginRuntime;
+  logger: PluginLogger;
+  stateDir: string;
+  source?: string;
+  includeSecrets?: boolean;
+  overwrite?: boolean;
+  providerOptions?: Record<string, unknown>;
+  backupPath?: string;
+  reportDir?: string;
+  signal?: AbortSignal;
+};
+
+/** Migration source implemented by a plugin and orchestrated by `coreblow migrate`. */
+export type MigrationProviderPlugin = {
+  id: string;
+  label: string;
+  description?: string;
+  detect?: (ctx: MigrationProviderContext) => MigrationDetection | Promise<MigrationDetection>;
+  prepareApply?: (
+    ctx: MigrationProviderContext,
+  ) => MigrationProviderPreparation | Promise<MigrationProviderPreparation | undefined> | undefined;
+  plan: (ctx: MigrationProviderContext) => MigrationPlan | Promise<MigrationPlan>;
+  apply: (
+    ctx: MigrationProviderContext,
+    plan?: MigrationPlan,
+  ) => MigrationApplyResult | Promise<MigrationApplyResult>;
+};
 
 // Stub types — used by plugin-sdk/hooks-api.ts
 export type PluginHook = {

@@ -1,14 +1,15 @@
 import path from "node:path";
-import { getRuntimeConfigSnapshot } from "../../config/config.js";
+import { getRuntimeConfig } from "../../config/config.js";
 import { resolveStateDir } from "../../config/paths.js";
-import type { CoreBlowConfig } from "../../config/types.coreblow.js";
+import type { CoreBlowConfig } from "../../config/config.js";
+import type { MigrationProviderContext } from "../../plugins/types.js";
 import type { RuntimeEnv } from "../../runtime.js";
 
 export function createMigrationLogger(runtime: RuntimeEnv, opts: { json?: boolean } = {}) {
   const info = opts.json ? runtime.error : runtime.log;
   return {
     debug: (message: string) => {
-      if (process.env.OPENCLAW_VERBOSE === "1") {
+      if (process.env.COREBLOW_VERBOSE === "1" || process.env.OPENCLAW_VERBOSE === "1") {
         info(message);
       }
     },
@@ -27,18 +28,6 @@ export function buildMigrationReportDir(
   return path.join(stateDir, "migration", providerId, stamp);
 }
 
-export type MigrationProviderContext = {
-  config: CoreBlowConfig;
-  stateDir: string;
-  source?: string;
-  includeSecrets: boolean;
-  overwrite: boolean;
-  providerOptions?: Record<string, unknown>;
-  backupPath?: string;
-  reportDir?: string;
-  logger: ReturnType<typeof createMigrationLogger>;
-};
-
 export function buildMigrationContext(params: {
   source?: string;
   includeSecrets?: boolean;
@@ -50,7 +39,7 @@ export function buildMigrationContext(params: {
   reportDir?: string;
   json?: boolean;
 }): MigrationProviderContext {
-  const config = params.configOverride ?? getRuntimeConfigSnapshot() ?? {};
+  const config = params.configOverride ?? getRuntimeConfig();
   const stateDir = resolveStateDir();
   return {
     config,

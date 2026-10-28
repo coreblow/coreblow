@@ -20,6 +20,7 @@ export function createEmptyPluginRegistry(): PluginRegistry {
     realtimeTranscriptionProviders: [],
     webSearchProviders: [],
     webFetchProviders: [],
+    migrationProviders: [],
     textTransforms: [],
     gatewayHandlers: {},
     gatewayMethodScopes: {},

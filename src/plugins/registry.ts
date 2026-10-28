@@ -101,6 +101,7 @@ import type {
   CoreBlowPluginNodeHostCommand,
   CoreBlowPluginNodeInvokePolicy,
   MediaUnderstandingProviderPlugin,
+  MigrationProviderPlugin,
   MusicGenerationProviderPlugin,
   ProviderPlugin,
   RealtimeTranscriptionProviderPlugin,
@@ -235,6 +236,8 @@ export type PluginWebSearchProviderRegistration =
   PluginOwnedProviderRegistration<WebSearchProviderPlugin>;
 export type PluginWebFetchProviderRegistration =
   PluginOwnedProviderRegistration<WebFetchProviderPlugin>;
+export type PluginMigrationProviderRegistration =
+  PluginOwnedProviderRegistration<MigrationProviderPlugin>;
 
 export type PluginHookRegistration = {
   pluginId: string;
@@ -483,6 +486,7 @@ export type PluginRegistry = {
   realtimeVoiceProviders?: PluginRealtimeVoiceProviderRegistration[];
   webSearchProviders: PluginWebSearchProviderRegistration[];
   webFetchProviders?: PluginWebFetchProviderRegistration[];
+  migrationProviders?: PluginMigrationProviderRegistration[];
   codexAppServerExtensionFactories?: PluginCodexAppServerExtensionFactoryRegistration[];
   memoryEmbeddingProviders?: PluginMemoryEmbeddingProviderRegistration[];
   textTransforms?: PluginTextTransformsRegistration[];
@@ -1145,6 +1149,16 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
       kindLabel: "web search provider",
       registrations: registry.webSearchProviders,
       ownedIds: record.webSearchProviderIds,
+    });
+  };
+
+  const registerMigrationProvider = (record: PluginRecord, provider: MigrationProviderPlugin) => {
+    registerUniqueProviderLike({
+      record,
+      provider,
+      kindLabel: "migration provider",
+      registrations: (registry.migrationProviders ??= []),
+      ownedIds: (record.migrationProviderIds ??= []),
     });
   };
 
@@ -2224,6 +2238,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
               registerRealtimeVoiceProvider: (provider: RealtimeVoiceProviderPlugin) =>
                 registerRealtimeVoiceProvider(record, provider),
               registerWebSearchProvider: (provider) => registerWebSearchProvider(record, provider),
+              registerMigrationProvider: (provider: MigrationProviderPlugin) => registerMigrationProvider(record, provider),
               registerGatewayMethod: (method, handler, opts) =>
                 registerGatewayMethod(record, method, handler, opts),
               registerNodeHostCommand: (command) => registerNodeHostCommand(record, command),
@@ -2358,6 +2373,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     registerVideoGenerationProvider,
     registerMusicGenerationProvider,
     registerWebSearchProvider,
+    registerMigrationProvider,
     registerGatewayMethod,
     registerNodeHostCommand,
     registerNodeInvokePolicy,
