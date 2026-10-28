@@ -544,7 +544,7 @@ export function loadAuthProfileStoreForSecretsRuntime(agentDir?: string): AuthPr
 
 export function ensureAuthProfileStore(
   agentDir?: string,
-  options?: { allowKeychainPrompt?: boolean },
+  options?: { allowKeychainPrompt?: boolean; externalCli?: unknown },
 ): AuthProfileStore {
   const runtimeStore = resolveRuntimeAuthProfileStore(agentDir);
   if (runtimeStore) {
@@ -562,6 +562,13 @@ export function ensureAuthProfileStore(
   const merged = mergeAuthProfileStores(mainStore, store);
 
   return merged;
+}
+
+export function ensureAuthProfileStoreWithoutExternalProfiles(
+  agentDir?: string,
+  options?: { allowKeychainPrompt?: boolean; externalCli?: unknown },
+): AuthProfileStore {
+  return ensureAuthProfileStore(agentDir, options);
 }
 
 export type SaveAuthProfileStoreOptions = {

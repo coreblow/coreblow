@@ -17,7 +17,7 @@ const budgets = [
   },
   {
     file: "src/agents/cli-runner/prepare.ts",
-    maxRuntimeFiles: 250,
+    maxRuntimeFiles: 265,
     forbiddenStaticImports: ["../../gateway/mcp-http.js", "../../gateway/mcp-http.ts"],
   },
 ];

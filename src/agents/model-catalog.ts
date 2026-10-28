@@ -2,21 +2,13 @@ import { type CoreBlowConfig, loadConfig } from "../config/config.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { augmentModelCatalogWithProviderPlugins } from "../plugins/provider-runtime.runtime.js";
 import { resolveCoreBlowAgentDir } from "./agent-paths.js";
+import type { ModelCatalogEntry, ModelInputType } from "./model-catalog.types.js";
 import { ensureCoreBlowModelsJson } from "./models-config.js";
 import { normalizeProviderId } from "./provider-id.js";
 
 const log = createSubsystemLogger("model-catalog");
 
-export type ModelInputType = "text" | "image" | "document";
-
-export type ModelCatalogEntry = {
-  id: string;
-  name: string;
-  provider: string;
-  contextWindow?: number;
-  reasoning?: boolean;
-  input?: ModelInputType[];
-};
+export type { ModelCatalogEntry, ModelInputType };
 
 type DiscoveredModel = {
   id: string;
@@ -55,7 +47,12 @@ function normalizeConfiguredModelInput(input: unknown): ModelInputType[] | undef
     return undefined;
   }
   const normalized = input.filter(
-    (item): item is ModelInputType => item === "text" || item === "image" || item === "document",
+    (item): item is ModelInputType =>
+      item === "text" ||
+      item === "image" ||
+      item === "audio" ||
+      item === "video" ||
+      item === "document",
   );
   return normalized.length > 0 ? normalized : undefined;
 }

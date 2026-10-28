@@ -62,6 +62,7 @@ export type ModelDefinitionConfig = {
     cacheWrite: number;
   };
   contextWindow: number;
+  contextTokens?: number;
   maxTokens: number;
   /** Optional agent execution runtime override for this provider/model pair. */
   agentRuntime?: AgentRuntimePolicyConfig;

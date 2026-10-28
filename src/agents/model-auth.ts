@@ -509,6 +509,41 @@ export async function hasAvailableAuthForProvider(params: {
   return authOverride === undefined && normalizeProviderId(provider) === "amazon-bedrock";
 }
 
+export function hasRuntimeAvailableProviderAuth(params: {
+  provider: string;
+  cfg?: CoreBlowConfig;
+  workspaceDir?: string;
+  env?: NodeJS.ProcessEnv;
+  allowPluginSyntheticAuth?: boolean;
+}): boolean {
+  const provider = normalizeProviderId(params.provider);
+  const authOverride = resolveProviderAuthOverride(params.cfg, provider);
+  if (authOverride === "aws-sdk") {
+    return true;
+  }
+  if (authOverride === undefined && provider === "amazon-bedrock") {
+    return true;
+  }
+  if (
+    resolveEnvApiKey(provider, params.env, {
+      config: params.cfg,
+      workspaceDir: params.workspaceDir,
+    })
+  ) {
+    return true;
+  }
+  if (resolveUsableCustomProviderApiKey({ cfg: params.cfg, provider, env: params.env })) {
+    return true;
+  }
+  if (
+    params.allowPluginSyntheticAuth !== false &&
+    resolveSyntheticLocalProviderAuth({ cfg: params.cfg, provider })
+  ) {
+    return true;
+  }
+  return false;
+}
+
 export async function getApiKeyForModel(params: {
   model: Model<Api>;
   cfg?: CoreBlowConfig;

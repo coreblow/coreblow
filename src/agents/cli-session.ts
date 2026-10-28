@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import type { CliSessionBinding, SessionEntry } from "../config/sessions.js";
 import { CLAUDE_CLI_BACKEND_ID } from "../plugin-sdk/anthropic-cli.js";
-import { normalizeProviderId } from "./model-selection.js";
+import { normalizeProviderId } from "./provider-id.js";
 
 function trimOptional(value: string | undefined): string | undefined {
   const trimmed = value?.trim();

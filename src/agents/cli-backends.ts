@@ -1,7 +1,7 @@
 import type { CoreBlowConfig } from "../config/config.js";
 import type { CliBackendConfig } from "../config/types.js";
 import { resolveRuntimeCliBackends } from "../plugins/cli-backends.runtime.js";
-import { normalizeProviderId } from "./model-selection.js";
+import { normalizeProviderId } from "./provider-id.js";
 
 export type ResolvedCliBackend = {
   id: string;
