@@ -1,7 +1,7 @@
 # Product Requirements Document (PRD): CoreBlow Agent-OS
 
-**Document Version:** 1.0.0<br />
-**Status:** Active / Engineering Baseline<br />
+**Document Version:** 1.0.0 (GA Certified)<br />
+**Status:** Production GA Certified (CoreBlow v1.0.0 GA Baseline)<br />
 **Product Canonical URLs:** [https://coreblow.com](https://coreblow.com) | [https://github.com/coreblow](https://github.com/coreblow)<br />
 **Documentation Portal:** [https://docs.coreblow.com](https://docs.coreblow.com)
 

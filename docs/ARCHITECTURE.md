@@ -1,7 +1,7 @@
 # Architecture & Security Blueprint: CoreBlow Agent-OS
 
-**Document Version:** 1.0.0<br />
-**Status:** Active Engineering Ground Truth<br />
+**Document Version:** 1.0.0 (Production GA Baseline)<br />
+**Status:** Production GA Certified (CoreBlow v1.0.0 GA Baseline)<br />
 **Related Documents:** [PRD](/PRD)<br />
 **Product Canonical URLs:** [https://coreblow.com](https://coreblow.com) | [https://github.com/coreblow](https://github.com/coreblow)<br />
 **Documentation Portal:** [https://docs.coreblow.com](https://docs.coreblow.com)
