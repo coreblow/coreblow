@@ -31,6 +31,10 @@ export const COREHUB_INSTALL_ERROR_CODE = {
   PRIVATE_PACKAGE: "private_package",
   INCOMPATIBLE_PLUGIN_API: "incompatible_plugin_api",
   INCOMPATIBLE_GATEWAY: "incompatible_gateway",
+  ARTIFACT_UNAVAILABLE: "artifact_unavailable",
+  MISSING_ARCHIVE_INTEGRITY: "missing_archive_integrity",
+  ARTIFACT_DOWNLOAD_UNAVAILABLE: "artifact_download_unavailable",
+  ARCHIVE_INTEGRITY_MISMATCH: "archive_integrity_mismatch",
 } as const;
 
 export type CoreHubInstallErrorCode =
@@ -490,6 +494,8 @@ export async function installPluginFromCoreHub(params: {
   dryRun?: boolean;
   expectedPluginId?: string;
   policy?: PluginCoreHubPolicyConfig;
+  timeoutMs?: number;
+  extensionsDir?: string;
 }): Promise<
   | ({
       ok: true;

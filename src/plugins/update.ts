@@ -281,6 +281,7 @@ export async function updateNpmInstalledPlugins(params: {
   skipIds?: Set<string>;
   dryRun?: boolean;
   specOverrides?: Record<string, string>;
+  updateChannel?: UpdateChannel;
   onIntegrityDrift?: (params: PluginUpdateIntegrityDriftParams) => boolean | Promise<boolean>;
 }): Promise<PluginUpdateSummary> {
   const logger = params.logger ?? {};

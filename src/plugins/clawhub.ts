@@ -8,6 +8,7 @@ import {
   type CoreHubInstalledTrustVerificationResult,
   type CoreHubPluginInstallRecordFields,
 } from "./corehub.js";
+import type { InstallPluginResult } from "./install.js";
 
 export const CLAWHUB_INSTALL_ERROR_CODE = COREHUB_INSTALL_ERROR_CODE;
 
@@ -28,13 +29,29 @@ export function formatClawHubSpecifier(params: { name: string; version?: string 
   return formatCoreHubSpecifier(params);
 }
 
+export type InstallPluginFromClawHubResult =
+  | ({
+      ok: true;
+    } & Extract<InstallPluginResult, { ok: true }> & {
+        clawhub: ClawHubPluginInstallRecordFields;
+        packageName: string;
+      })
+  | Extract<Awaited<ReturnType<typeof installPluginFromCoreHub>>, { ok: false }>;
+
 export async function installPluginFromClawHub(
   params: Parameters<typeof installPluginFromCoreHub>[0],
-): ReturnType<typeof installPluginFromCoreHub> {
-  return installPluginFromCoreHub({
+): Promise<InstallPluginFromClawHubResult> {
+  const result = await installPluginFromCoreHub({
     ...params,
     spec: normalizeLegacyClawHubSpec(params.spec),
   });
+  if (result.ok && "corehub" in result) {
+    return {
+      ...result,
+      clawhub: result.corehub,
+    };
+  }
+  return result as InstallPluginFromClawHubResult;
 }
 
 export const verifyClawHubInstalledTrustRecord = verifyCoreHubInstalledTrustRecord;

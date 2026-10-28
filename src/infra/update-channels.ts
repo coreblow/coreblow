@@ -34,6 +34,21 @@ export function isStableTag(tag: string): boolean {
   return !isBetaTag(tag);
 }
 
+export function resolveRegistryUpdateChannel(params: {
+  configChannel?: UpdateChannel | null;
+  currentVersion?: string | null;
+}): UpdateChannel {
+  if (
+    params.currentVersion &&
+    isBetaTag(params.currentVersion) &&
+    params.configChannel !== "beta" &&
+    params.configChannel !== "dev"
+  ) {
+    return "beta";
+  }
+  return params.configChannel ?? DEFAULT_PACKAGE_CHANNEL;
+}
+
 export function resolveEffectiveUpdateChannel(params: {
   configChannel?: UpdateChannel | null;
   installKind: "git" | "package" | "unknown";

@@ -45,7 +45,9 @@ export function resolveWizardLocale(value: string | undefined): WizardLocale {
 }
 
 export function resolveWizardLocaleFromEnv(env: NodeJS.ProcessEnv = process.env): WizardLocale {
-  return resolveWizardLocale(env.COREBLOW_LOCALE ?? env.LC_ALL ?? env.LC_MESSAGES ?? env.LANG);
+  return resolveWizardLocale(
+    env.COREBLOW_LOCALE ?? env.OPENCLAW_LOCALE ?? env.LC_ALL ?? env.LC_MESSAGES ?? env.LANG,
+  );
 }
 
 function readKey(map: WizardTranslationMap, key: string): string | undefined {
@@ -75,7 +77,12 @@ export function wizardT(
   options?: { locale?: WizardLocale },
 ): string {
   const locale = options?.locale ?? resolveWizardLocaleFromEnv();
-  const localized = readKey(LOCALES[locale], key);
+  const effectiveKey =
+    key === "wizard.plugins.downloadFromClawHub" ? "wizard.plugins.downloadFromCoreHub" : key;
+  let localized = readKey(LOCALES[locale], effectiveKey);
+  if (key === "wizard.plugins.downloadFromClawHub" && localized) {
+    localized = localized.replace(/CoreHub/g, "ClawHub");
+  }
   const fallback = localized ?? readKey(LOCALES[WIZARD_DEFAULT_LOCALE], key) ?? key;
   return interpolate(fallback, params);
 }

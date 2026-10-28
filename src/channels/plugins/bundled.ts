@@ -73,6 +73,10 @@ export function getBundledChannelPlugin(id: ChannelId): ChannelPlugin | undefine
   return bundledChannelPluginsById.get(id);
 }
 
+export function listBundledChannelPluginIds(): readonly ChannelId[] {
+  return Array.from(bundledChannelPluginsById.keys());
+}
+
 export function getBundledChannelSetupPlugin(id: ChannelId): ChannelPlugin | undefined {
   return bundledChannelSetupPluginsById.get(id);
 }

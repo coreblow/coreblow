@@ -778,6 +778,7 @@ export async function installPluginFromFile(params: {
 export async function installPluginFromNpmSpec(params: {
   spec: string;
   extensionsDir?: string;
+  npmDir?: string;
   timeoutMs?: number;
   logger?: PluginInstallLogger;
   mode?: "install" | "update";
@@ -902,6 +903,31 @@ export async function installPluginFromInstalledPackageDir(
     version: typeof manifest.version === "string" ? manifest.version : undefined,
     extensions,
   };
+}
+
+export async function installPluginFromNpmPackArchive(
+  params: {
+    archivePath: string;
+    extensionsDir?: string;
+    npmDir?: string;
+    timeoutMs?: number;
+    logger?: PluginInstallLogger;
+    mode?: "install" | "update";
+    dryRun?: boolean;
+    expectedPluginId?: string;
+    expectedIntegrity?: string;
+    onIntegrityDrift?: (params: PluginNpmIntegrityDriftParams) => boolean | Promise<boolean>;
+  },
+): Promise<InstallPluginResult & { npmTarballName?: string }> {
+  return await installPluginFromArchive({
+    archivePath: params.archivePath,
+    extensionsDir: params.extensionsDir,
+    timeoutMs: params.timeoutMs,
+    logger: params.logger,
+    mode: params.mode,
+    dryRun: params.dryRun,
+    expectedPluginId: params.expectedPluginId,
+  });
 }
 
 export async function installPluginFromPath(

@@ -103,19 +103,26 @@ async function canonicalizeExistingPath(targetPath: string): Promise<string> {
   }
 }
 
-export async function resolveBackupPlanFromDisk(
-  params: {
-    includeWorkspace?: boolean;
-    onlyConfig?: boolean;
-    nowMs?: number;
-  } = {},
-): Promise<BackupPlan> {
+export async function resolveBackupPlanFromPaths(params: {
+  stateDir: string;
+  configPath: string;
+  oauthDir: string;
+  workspaceDirs?: string[];
+  includeWorkspace?: boolean;
+  onlyConfig?: boolean;
+  configInsideState?: boolean;
+  oauthInsideState?: boolean;
+  nowMs?: number;
+}): Promise<BackupPlan> {
   const includeWorkspace = params.includeWorkspace ?? true;
   const onlyConfig = params.onlyConfig ?? false;
-  const stateDir = resolveStateDir();
-  const configPath = resolveConfigPath();
-  const oauthDir = resolveOAuthDir();
+  const stateDir = params.stateDir;
+  const configPath = params.configPath;
+  const oauthDir = params.oauthDir;
   const archiveRoot = buildBackupArchiveRoot(params.nowMs);
+  const workspaceDirs = includeWorkspace ? (params.workspaceDirs ?? []) : [];
+  const configInsideState = params.configInsideState ?? false;
+  const oauthInsideState = params.oauthInsideState ?? false;
 
   if (onlyConfig) {
     const resolvedConfigPath = path.resolve(configPath);
@@ -155,26 +162,12 @@ export async function resolveBackupPlanFromDisk(
     };
   }
 
-  const configSnapshot = await readConfigFileSnapshot();
-  if (includeWorkspace && configSnapshot.exists && !configSnapshot.valid) {
-    throw new Error(
-      `Config invalid at ${shortenHomePath(configSnapshot.path)}. CoreBlow cannot reliably discover custom workspaces for backup. Fix the config or rerun with --no-include-workspace for a partial backup.`,
-    );
-  }
-  const cleanupPlan = buildCleanupPlan({
-    cfg: configSnapshot.config,
-    stateDir,
-    configPath,
-    oauthDir,
-  });
-  const workspaceDirs = includeWorkspace ? cleanupPlan.workspaceDirs : [];
-
   const rawCandidates: Array<Pick<BackupAssetCandidate, "kind" | "sourcePath">> = [
     { kind: "state", sourcePath: path.resolve(stateDir) },
-    ...(cleanupPlan.configInsideState
+    ...(configInsideState
       ? []
       : [{ kind: "config" as const, sourcePath: path.resolve(configPath) }]),
-    ...(cleanupPlan.oauthInsideState
+    ...(oauthInsideState
       ? []
       : [{ kind: "credentials" as const, sourcePath: path.resolve(oauthDir) }]),
     ...(includeWorkspace
@@ -251,4 +244,42 @@ export async function resolveBackupPlanFromDisk(
     included,
     skipped,
   };
+}
+
+export async function resolveBackupPlanFromDisk(
+  params: {
+    includeWorkspace?: boolean;
+    onlyConfig?: boolean;
+    nowMs?: number;
+  } = {},
+): Promise<BackupPlan> {
+  const includeWorkspace = params.includeWorkspace ?? true;
+  const onlyConfig = params.onlyConfig ?? false;
+  const stateDir = resolveStateDir();
+  const configPath = resolveConfigPath();
+  const oauthDir = resolveOAuthDir();
+
+  const configSnapshot = await readConfigFileSnapshot();
+  if (includeWorkspace && configSnapshot.exists && !configSnapshot.valid) {
+    throw new Error(
+      `Config invalid at ${shortenHomePath(configSnapshot.path)}. CoreBlow cannot reliably discover custom workspaces for backup. Fix the config or rerun with --no-include-workspace for a partial backup.`,
+    );
+  }
+  const cleanupPlan = buildCleanupPlan({
+    cfg: configSnapshot.config,
+    stateDir,
+    configPath,
+    oauthDir,
+  });
+  return await resolveBackupPlanFromPaths({
+    stateDir,
+    configPath,
+    oauthDir,
+    workspaceDirs: includeWorkspace ? cleanupPlan.workspaceDirs : [],
+    includeWorkspace,
+    onlyConfig,
+    configInsideState: cleanupPlan.configInsideState,
+    oauthInsideState: cleanupPlan.oauthInsideState,
+    nowMs: params.nowMs,
+  });
 }

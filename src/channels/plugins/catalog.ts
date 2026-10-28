@@ -41,6 +41,7 @@ export type ChannelPluginCatalogEntry = {
   pluginId?: string;
   origin?: PluginOrigin;
   rootDir?: string;
+  trustedSourceLinkedOfficialInstall?: boolean;
   channel?: NonNullable<CoreBlowPackageManifest["channel"]>;
   meta: ChannelMeta;
   install: PluginPackageInstall & ({ corehubSpec: string } | { npmSpec: string });
@@ -52,6 +53,7 @@ type CatalogOptions = {
   catalogPaths?: string[];
   officialCatalogPaths?: string[];
   env?: NodeJS.ProcessEnv;
+  excludeWorkspace?: boolean;
 };
 
 const ORIGIN_PRIORITY: Record<PluginOrigin, number> = {
@@ -452,6 +454,9 @@ export function listChannelPluginCatalogEntries(
   const resolved = new Map<string, { entry: ChannelPluginCatalogEntry; priority: number }>();
 
   for (const candidate of discovery.candidates) {
+    if (options.excludeWorkspace && candidate.origin === "workspace") {
+      continue;
+    }
     const entry = buildCatalogEntry(candidate);
     if (!entry) {
       continue;
