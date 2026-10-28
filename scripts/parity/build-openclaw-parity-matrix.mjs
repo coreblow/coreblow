@@ -157,6 +157,15 @@ function normalizeCoreBlowPath(path) {
   if (path.startsWith("packages/memory-host-sdk/src/host/")) {
     return path.replaceAll(legacyOpenClawRuntimeToken, coreBlowRuntimeToken);
   }
+  if (path.startsWith("src/agents/openclaw-tools")) {
+    return path.replace("src/agents/openclaw-tools", "src/agents/coreblow-tools");
+  }
+  if (path === "src/agents/openclaw-plugin-tools.ts") {
+    return "src/agents/coreblow-plugin-tools.ts";
+  }
+  if (path === "src/agents/skills-clawhub.ts") {
+    return "src/agents/skills-hub.ts";
+  }
   // CoreBlow inlines Discord reaction listener logic in listeners.ts instead of
   // a separate listeners.reactions.ts file.
   if (
