@@ -1,9 +1,9 @@
 # CoreBlow Phase 5–7 Sequential Master Roadmap
 
-**Document Version:** 1.1.0<br />
+**Document Version:** 1.2.0<br />
 **Status:** Approved / Active Execution<br />
-**Current Milestone:** Phase 5.3 (In Progress)<br />
-**Completed Milestones:** Phase 5.1 (`7a4ddf7a0`), Phase 5.2<br />
+**Current Milestone:** Phase 6.1 (In Progress)<br />
+**Completed Milestones:** Phase 5.1 (`7a4ddf7a0`), Phase 5.2 (`b289d9f62`), Phase 5.3<br />
 **Baseline Parity:** 100% Phase 4 Parity Complete (`6db6a05f9`)<br />
 **Product Canonical URLs:** [https://coreblow.com](https://coreblow.com) | [https://github.com/coreblow](https://github.com/coreblow)<br />
 **Documentation Portal:** [https://docs.coreblow.com](https://docs.coreblow.com)
@@ -69,8 +69,8 @@ flowchart TD
   - Capability-based security grants for community plugins installed via CoreHub.
   - Strict filesystem path-traversal virtualization and outbound network allowlisting.
 
-### Phase 5.3: Visual Cockpit UI (`ui/`) & Desktop GUI
-**Target Surface:** `ui/src/`, `apps/macos/`, `apps/ios/`, `apps/android/`
+### Phase 5.3: Visual Cockpit UI (`ui/`) & Desktop GUI (COMPLETE)
+**Target Surface:** `src/gateway/`, `ui/src/`, `apps/macos/`, `apps/ios/`, `apps/android/`
 
 - **Real-Time ACP Subagent Visualizer:**
   - Interactive tree rendering of active primary agents and nested parallel ACP subagents.
