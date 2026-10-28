@@ -9,6 +9,7 @@ import {
   listTasksForFlowId,
 } from "./runtime-internal.js";
 import { getTaskFlowByIdForOwner } from "./task-flow-owner-access.js";
+import { getTaskFlowById } from "./task-flow-registry.js";
 import type { TaskFlowRecord } from "./task-flow-registry.types.js";
 import { summarizeTaskRecords } from "./task-registry.summary.js";
 import type {
@@ -23,37 +24,18 @@ export function getFlowTaskSummary(flowId: string): TaskRegistrySummary {
   return summarizeTaskRecords(listTasksForFlowId(flowId));
 }
 
-export function createRunningTaskRun(params: {
-  runtime: TaskRuntime;
-  task: string;
-  requesterSessionKey?: string;
-  ownerKey?: string;
-  childSessionKey?: string;
-  parentFlowId?: string;
-  agentId?: string;
-  runId?: string;
-  label?: string;
-  startedAt?: number;
-  lastEventAt?: number;
-  progressSummary?: string | null;
-}): TaskRecord {
+export function createRunningTaskRun(
+  params: Omit<Parameters<typeof createTaskRecord>[0], "status">,
+): TaskRecord {
   return createTaskRecord({
     ...params,
     status: "running",
   });
 }
 
-export function createQueuedTaskRun(params: {
-  runtime: TaskRuntime;
-  task: string;
-  requesterSessionKey?: string;
-  ownerKey?: string;
-  childSessionKey?: string;
-  parentFlowId?: string;
-  agentId?: string;
-  runId?: string;
-  label?: string;
-}): TaskRecord {
+export function createQueuedTaskRun(
+  params: Omit<Parameters<typeof createTaskRecord>[0], "status">,
+): TaskRecord {
   return createTaskRecord({
     ...params,
     status: "queued",
@@ -127,6 +109,54 @@ export function runTaskInFlowForOwner(params: {
     created: true,
     flow,
     task: createdTask,
+  };
+}
+
+export type CancelFlowResult = {
+  found: boolean;
+  cancelled: boolean;
+  reason?: string;
+  flow?: TaskFlowRecord;
+  tasks?: TaskRecord[];
+};
+
+export async function cancelFlowById(params: {
+  cfg: CoreBlowConfig;
+  flowId: string;
+}): Promise<CancelFlowResult> {
+  const flow = getTaskFlowById(params.flowId);
+  if (!flow) {
+    return {
+      found: false,
+      cancelled: false,
+      reason: "Flow not found.",
+    };
+  }
+  if (
+    flow.status === "succeeded" ||
+    flow.status === "failed" ||
+    flow.status === "cancelled" ||
+    flow.status === "lost"
+  ) {
+    return {
+      found: true,
+      cancelled: false,
+      reason: `Flow is already ${flow.status}.`,
+      flow,
+      tasks: listTasksForFlowId(flow.flowId),
+    };
+  }
+  const tasksInFlow = listTasksForFlowId(flow.flowId);
+  for (const t of tasksInFlow) {
+    await cancelDetachedTaskRunById({ cfg: params.cfg, taskId: t.taskId });
+  }
+  flow.status = "cancelled";
+  flow.endedAt = Date.now();
+  return {
+    found: true,
+    cancelled: true,
+    flow,
+    tasks: tasksInFlow,
   };
 }
 

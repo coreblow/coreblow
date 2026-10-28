@@ -106,6 +106,60 @@ export async function loadCronStore(storePath: string): Promise<CronStoreFile> {
   }
 }
 
+function resolveStatePath(storePath: string): string {
+  if (storePath.endsWith(".json")) {
+    return storePath.replace(/\.json$/, "-state.json");
+  }
+  return `${storePath}-state.json`;
+}
+
+function loadStateFileSync(statePath: string): { jobs?: Record<string, { state?: Record<string, unknown> }> } | null {
+  try {
+    const raw = fs.readFileSync(statePath, "utf-8");
+    return parseJsonWithJson5Fallback(raw) as { jobs?: Record<string, { state?: Record<string, unknown> }> };
+  } catch {
+    return null;
+  }
+}
+
+export function loadCronStoreSync(storePath: string): CronStoreFile {
+  try {
+    const raw = fs.readFileSync(storePath, "utf-8");
+    let parsed: unknown;
+    try {
+      parsed = parseJsonWithJson5Fallback(raw);
+    } catch (err) {
+      throw new Error(`Failed to parse cron store at ${storePath}: ${String(err)}`, {
+        cause: err,
+      });
+    }
+    const parsedRecord =
+      parsed && typeof parsed === "object" && !Array.isArray(parsed)
+        ? (parsed as Record<string, unknown>)
+        : {};
+    const jobs = Array.isArray(parsedRecord.jobs) ? (parsedRecord.jobs as never[]) : [];
+    const store = {
+      version: 1 as const,
+      jobs: jobs.filter(Boolean) as never as CronStoreFile["jobs"],
+    };
+    const stateFile = loadStateFileSync(resolveStatePath(storePath));
+    if (stateFile?.jobs) {
+      for (const job of store.jobs) {
+        const stateEntry = stateFile.jobs[job.id];
+        if (stateEntry?.state) {
+          job.state = { ...job.state, ...stateEntry.state } as typeof job.state;
+        }
+      }
+    }
+    return store;
+  } catch (err) {
+    if ((err as { code?: unknown })?.code === "ENOENT") {
+      return { version: 1, jobs: [] };
+    }
+    throw err;
+  }
+}
+
 type SaveCronStoreOptions = {
   skipBackup?: boolean;
 };

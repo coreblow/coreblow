@@ -873,4 +873,5 @@ export class FsSafeService {
 const { getInstance: getFsSafeService, __testing: __testing_fsSafe } =
   createStandaloneSingleton({ create: () => new FsSafeService(), defaultDeps: {} });
 
+export { pathExists } from "../utils.js";
 export { getFsSafeService, __testing_fsSafe };

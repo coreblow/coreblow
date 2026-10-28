@@ -26,6 +26,8 @@ export function createManagedTaskFlow(params: {
   status?: TaskFlowStatus;
   notifyPolicy?: TaskNotifyPolicy;
   currentStep?: string | null;
+  blockedTaskId?: string | null;
+  blockedSummary?: string | null;
   stateJson?: JsonValue | null;
   waitJson?: JsonValue | null;
   cancelRequestedAt?: number | null;
@@ -46,6 +48,8 @@ export function createManagedTaskFlow(params: {
     notifyPolicy: params.notifyPolicy ?? "done_only",
     goal: params.goal,
     currentStep: params.currentStep ?? undefined,
+    blockedTaskId: params.blockedTaskId ?? undefined,
+    blockedSummary: params.blockedSummary ?? undefined,
     stateJson: params.stateJson ?? undefined,
     waitJson: params.waitJson ?? undefined,
     cancelRequestedAt: params.cancelRequestedAt ?? undefined,
@@ -192,8 +196,26 @@ export function requestFlowCancel(params: {
 export function createTaskFlowForTask(): TaskFlowRecord | undefined { return undefined; }
 export function deleteTaskFlowRecordById(flowId: string): boolean { return flows.delete(flowId); }
 export function syncFlowFromTask(): void {}
-export function updateFlowRecordByIdExpectedRevision(): TaskFlowUpdateResult {
-  return { applied: false, reason: "not_found" };
+export function updateFlowRecordByIdExpectedRevision(params?: {
+  flowId: string;
+  expectedRevision: number;
+  patch?: Partial<TaskFlowRecord>;
+}): TaskFlowUpdateResult {
+  if (!params) return { applied: false, reason: "not_found" };
+  const flow = flows.get(params.flowId);
+  if (!flow) return { applied: false, reason: "not_found" };
+  if (flow.syncMode !== "managed") return { applied: false, reason: "not_managed", current: flow };
+  if (flow.revision !== params.expectedRevision) return { applied: false, reason: "revision_conflict", current: flow };
+
+  flow.revision += 1;
+  if (params.patch) {
+    Object.assign(flow, params.patch);
+  }
+  return { applied: true, flow };
+}
+
+export function getTaskFlowRegistryRestoreFailure(): string | null {
+  return null;
 }
 
 export type TaskFlowRegistryFacade = Record<string, unknown>;

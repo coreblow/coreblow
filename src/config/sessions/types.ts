@@ -92,6 +92,19 @@ export type SessionPluginNextTurnInjection = {
   metadata?: SessionPluginJsonValue;
 };
 
+export type SubagentRecoveryState = {
+  /** Consecutive accepted automatic orphan-recovery resumes in the rapid re-wedge window. */
+  automaticAttempts?: number;
+  /** Timestamp (ms) of the latest accepted automatic orphan-recovery resume. */
+  lastAttemptAt?: number;
+  /** Registry run id that triggered the latest automatic orphan-recovery resume. */
+  lastRunId?: string;
+  /** Timestamp (ms) when automatic recovery was tombstoned for this session. */
+  wedgedAt?: number;
+  /** Human-readable reason automatic recovery was tombstoned. */
+  wedgedReason?: string;
+};
+
 export type SessionEntry = {
   /**
    * Last delivered heartbeat payload (used to suppress duplicate heartbeat notifications).
@@ -131,6 +144,7 @@ export type SessionEntry = {
   subagentRole?: "orchestrator" | "leaf";
   /** Explicit control scope assigned at spawn time for subagent control decisions. */
   subagentControlScope?: "children" | "none";
+  subagentRecovery?: SubagentRecoveryState;
   systemSent?: boolean;
   abortedLastRun?: boolean;
   /** Stable first-run start time for subagent sessions, persisted after completion. */

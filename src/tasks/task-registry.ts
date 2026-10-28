@@ -135,7 +135,9 @@ export function markTaskTerminalById(params: {
   taskId: string;
   status: TaskStatus;
   endedAt: number;
+  lastEventAt?: number;
   terminalSummary?: string | null;
+  error?: string;
 }): TaskRecord | null {
   const task = tasks.get(params.taskId);
   if (!task) {
@@ -143,8 +145,14 @@ export function markTaskTerminalById(params: {
   }
   task.status = params.status;
   task.endedAt = params.endedAt;
+  if (params.lastEventAt !== undefined) {
+    task.lastEventAt = params.lastEventAt;
+  }
   if (params.terminalSummary !== undefined) {
     task.terminalSummary = params.terminalSummary ?? undefined;
+  }
+  if (params.error !== undefined) {
+    task.error = params.error;
   }
   return task;
 }
@@ -209,9 +217,16 @@ export function findLatestTaskForFlowId(flowId: string): TaskRecord | undefined 
 export function finalizeTaskRunByRunId(): TaskRecord[] {
   return [];
 }
-export function hasActiveTaskForChildSessionKey(key: string): boolean {
+export function hasActiveTaskForChildSessionKey(
+  input: string | { sessionKey: string; excludeTaskId?: string },
+): boolean {
+  const sessionKey = typeof input === "string" ? input : input.sessionKey;
+  const excludeTaskId = typeof input === "string" ? undefined : input.excludeTaskId;
   for (const t of tasks.values()) {
-    if (t.childSessionKey === key && (t.status === "queued" || t.status === "running")) {
+    if (excludeTaskId && t.taskId === excludeTaskId) {
+      continue;
+    }
+    if (t.childSessionKey === sessionKey && (t.status === "queued" || t.status === "running")) {
       return true;
     }
   }
@@ -223,10 +238,19 @@ export function linkTaskToFlowById(params: { taskId: string; flowId: string }): 
   task.parentFlowId = params.flowId;
   return task;
 }
-export function markTaskLostById(taskId: string): TaskRecord | null {
+export function markTaskLostById(
+  input: string | { taskId: string; endedAt?: number; lastEventAt?: number; error?: string; cleanupAfter?: number },
+): TaskRecord | null {
+  const taskId = typeof input === "string" ? input : input.taskId;
   const task = tasks.get(taskId);
   if (!task) return null;
   task.status = "lost";
+  if (typeof input !== "string") {
+    if (input.endedAt !== undefined) task.endedAt = input.endedAt;
+    if (input.lastEventAt !== undefined) task.lastEventAt = input.lastEventAt;
+    if (input.error !== undefined) task.error = input.error;
+    if (input.cleanupAfter !== undefined) task.cleanupAfter = input.cleanupAfter;
+  }
   return task;
 }
 export function markTaskRunningByRunId(runId: string): TaskRecord | null {
@@ -235,7 +259,10 @@ export function markTaskRunningByRunId(runId: string): TaskRecord | null {
   task.status = "running";
   return task;
 }
-export function maybeDeliverTaskTerminalUpdate(): void {}
+export async function maybeDeliverTaskTerminalUpdate(taskId?: string): Promise<TaskRecord | null> {
+  if (!taskId) return null;
+  return tasks.get(taskId) ?? null;
+}
 export function recordTaskProgressByRunId(params: { runId: string; progressSummary?: string }): TaskRecord | null {
   const task = findTaskByRunId(params.runId);
   if (!task) return null;

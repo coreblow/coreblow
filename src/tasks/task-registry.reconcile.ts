@@ -1,5 +1,4 @@
-export type TaskRegistryReconcileFacade = Record<string, unknown>;
-
-export const taskRegistryReconcile = Object.freeze({
-  id: "src/tasks/task-registry.reconcile.ts",
-});
+export {
+  reconcileInspectableTasks,
+  reconcileTaskLookupToken,
+} from "./task-registry.maintenance.js";

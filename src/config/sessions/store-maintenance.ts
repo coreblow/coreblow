@@ -155,12 +155,19 @@ export function resolveMaintenanceConfig(): ResolvedSessionMaintenanceConfig {
 export function pruneStaleEntries(
   store: Record<string, SessionEntry>,
   overrideMaxAgeMs?: number,
-  opts: { log?: boolean; onPruned?: (params: { key: string; entry: SessionEntry }) => void } = {},
+  opts: {
+    log?: boolean;
+    preserveKeys?: ReadonlySet<string> | Set<string>;
+    onPruned?: (params: { key: string; entry: SessionEntry }) => void;
+  } = {},
 ): number {
   const maxAgeMs = overrideMaxAgeMs ?? resolveMaintenanceConfig().pruneAfterMs;
   const cutoffMs = Date.now() - maxAgeMs;
   let pruned = 0;
   for (const [key, entry] of Object.entries(store)) {
+    if (opts.preserveKeys?.has(key)) {
+      continue;
+    }
     if (entry?.updatedAt != null && entry.updatedAt < cutoffMs) {
       opts.onPruned?.({ key, entry });
       delete store[key];

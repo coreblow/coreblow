@@ -201,6 +201,7 @@ export async function withSessionStoreLockForTest<T>(
 
 type LoadSessionStoreOptions = {
   skipCache?: boolean;
+  clone?: boolean;
 };
 
 export function loadSessionStore(
@@ -221,7 +222,7 @@ export function loadSessionStore(
   }
 
   // Cache miss or disabled - load from disk.
-  // Retry up to 3 times when the file is empty or unparseable.  On Windows the
+  // Retry up to 3 times when the file is empty or unparsable.  On Windows the
   // temp-file + rename write is not fully atomic: a concurrent reader can briefly
   // observe a 0-byte file (between truncate and write) or a stale/locked state.
   // A short synchronous backoff (50 ms via `Atomics.wait`) is enough for the
