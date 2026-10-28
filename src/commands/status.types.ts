@@ -1,4 +1,5 @@
 import type { ChannelId } from "../channels/plugins/types.js";
+import type { GatewayEventLoopHealth } from "../gateway/server/event-loop-health.js";
 import type { TaskAuditSummary } from "../tasks/task-registry.audit.shared.js";
 import type { TaskRegistrySummary } from "../tasks/task-registry.types.js";
 
@@ -39,6 +40,7 @@ export type HeartbeatStatus = {
 
 export type StatusSummary = {
   runtimeVersion?: string | null;
+  eventLoop?: GatewayEventLoopHealth | null;
   linkChannel?: {
     id: ChannelId;
     label: string;

@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8810,
+    "cb_source_files": 8824,
     "oc_source_files": 8443,
-    "source_parity_both": 7010,
+    "source_parity_both": 7024,
     "source_cb_exclusive": 1800,
-    "source_missing_from_cb": 1410,
+    "source_missing_from_cb": 1396,
     "source_intentionally_deprecated": 23,
-    "test_files_cb": 5030,
+    "test_files_cb": 5039,
     "test_files_oc": 5246,
-    "tests_both_covered": 3582,
-    "tests_gap_oc_has_cb_missing": 1404,
+    "tests_both_covered": 3591,
+    "tests_gap_oc_has_cb_missing": 1395,
     "tests_intentionally_deprecated": 15,
     "tests_cb_exclusive": 1385,
     "export_files_with_gaps": 59,
@@ -37,9 +37,9 @@
       "priority": "P0",
       "implementationSurface": "src/agents, src/auth, src/agents/turn-engine",
       "counts": {
-        "sharedSourcePaths": 615,
+        "sharedSourcePaths": 618,
         "coreBlowOnlySourcePaths": 205,
-        "openClawOnlySourcePaths": 259,
+        "openClawOnlySourcePaths": 256,
         "sharedTestPaths": 406,
         "coreBlowOnlyTestPaths": 199,
         "openClawTestGaps": 316
@@ -100,9 +100,9 @@
       "priority": "P1",
       "implementationSurface": "src/auto-reply inbound reply pipeline",
       "counts": {
-        "sharedSourcePaths": 237,
+        "sharedSourcePaths": 238,
         "coreBlowOnlySourcePaths": 21,
-        "openClawOnlySourcePaths": 100,
+        "openClawOnlySourcePaths": 99,
         "sharedTestPaths": 111,
         "coreBlowOnlyTestPaths": 81,
         "openClawTestGaps": 79
@@ -119,8 +119,8 @@
           "src/auto-reply/dispatch-dispatcher.ts",
           "src/auto-reply/get-reply-options.types.ts",
           "src/auto-reply/handoff-summarizer.ts",
-          "src/auto-reply/heartbeat-filter.ts",
-          "src/auto-reply/inbound.group-require-mention-test-plugins.ts"
+          "src/auto-reply/inbound.group-require-mention-test-plugins.ts",
+          "src/auto-reply/reply/abort.runtime-types.ts"
         ],
         "openClawTestGapPaths": [
           "src/auto-reply/command-turn-context.test.ts",
@@ -882,9 +882,9 @@
       "priority": "P2",
       "implementationSurface": "src/config CoreBlowConfig",
       "counts": {
-        "sharedSourcePaths": 167,
+        "sharedSourcePaths": 168,
         "coreBlowOnlySourcePaths": 33,
-        "openClawOnlySourcePaths": 44,
+        "openClawOnlySourcePaths": 43,
         "sharedTestPaths": 114,
         "coreBlowOnlyTestPaths": 94,
         "openClawTestGaps": 29
@@ -1357,100 +1357,6 @@
       ]
     },
     {
-      "domain": "src/commands",
-      "status": "partial",
-      "priority": "P2",
-      "implementationSurface": "src/commands and src/cli command classes",
-      "counts": {
-        "sharedSourcePaths": 338,
-        "coreBlowOnlySourcePaths": 54,
-        "openClawOnlySourcePaths": 9,
-        "sharedTestPaths": 211,
-        "coreBlowOnlyTestPaths": 72,
-        "openClawTestGaps": 48
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/commands/doctor-heartbeat-main-session-repair.ts",
-          "src/commands/doctor-heartbeat-session-target.ts",
-          "src/commands/doctor-lint.ts",
-          "src/commands/doctor-plugin-registry.ts",
-          "src/commands/doctor-session-snapshots.ts",
-          "src/commands/doctor-session-state-providers.ts",
-          "src/commands/doctor-session-transcripts.ts",
-          "src/commands/doctor-skills.ts",
-          "src/commands/doctor-whatsapp-responsiveness.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/commands/agent.runtime-config.test.ts",
-          "src/commands/agent.session.test.ts",
-          "src/commands/agents.delete.test.ts",
-          "src/commands/auth-choice.apply.api-providers.test.ts",
-          "src/commands/backup.create-verify.test.ts",
-          "src/commands/channel-setup/channel-plugin-resolution.test.ts",
-          "src/commands/channel-setup/workspace-shadow-bypass.test.ts",
-          "src/commands/channels.list.test.ts",
-          "src/commands/channels.logs.test.ts",
-          "src/commands/channels.status.external-env.test.ts",
-          "src/commands/doctor-browser.facade.test.ts",
-          "src/commands/doctor-command-owner.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/commands/agent/delivery.ts",
-          "src/commands/agent/run-context.ts",
-          "src/commands/agent/session-store.ts",
-          "src/commands/agent/types.ts",
-          "src/commands/alias.ts",
-          "src/commands/auth-choice.api-key.ts",
-          "src/commands/auth-choice.apply.oauth.ts",
-          "src/commands/auth-choice.apply.plugin-provider.runtime.ts",
-          "src/commands/auth-choice.apply.plugin-provider.ts",
-          "src/commands/auth-choice.default-model.ts",
-          "src/commands/autocomplete.ts",
-          "src/commands/batch.ts"
-        ]
-      },
-      "intentionalBehaviorDifferences": [
-        {
-          "path": "src/commands/doctor/legacy-config-repair.ts",
-          "status": "intentionally_different",
-          "referenceBehavior": "OpenClaw carries multi-version legacy config repair chains and incremental schema patching.",
-          "coreBlowDecision": "CoreBlow explicitly deprecates multi-version legacy config migrations in favor of deterministic normalizers and coreblow doctor integrity checks.",
-          "rationale": "Anti-bloat policy (docs/PRD.md & docs/ARCHITECTURE.md): eliminate dead migration chains and avoid carrying obsolete OpenClaw config debt.",
-          "gate": "pnpm test -- src/commands/doctor"
-        },
-        {
-          "path": "src/commands/doctor/shared/legacy-config-migrations.ts",
-          "status": "intentionally_different",
-          "referenceBehavior": "OpenClaw maintains 13+ split migration modules for legacy config migration chains.",
-          "coreBlowDecision": "CoreBlow unifies config management into a clean CoreBlow-native schema and drops legacy migration file splits.",
-          "rationale": "CoreBlow operates on clean modern schemas without backward-compatibility bloat.",
-          "gate": "pnpm test -- src/commands/doctor"
-        },
-        {
-          "path": "src/commands/doctor-state-migrations.ts",
-          "status": "intentionally_different",
-          "referenceBehavior": "OpenClaw runs legacy multi-step state migrations across disk databases during doctor invocation.",
-          "coreBlowDecision": "CoreBlow uses clean state initialization and WAL transactional storage without multi-version legacy migration steps.",
-          "rationale": "Avoid runtime state corruption and reduce maintenance surface.",
-          "gate": "pnpm test -- src/commands/doctor"
-        },
-        {
-          "path": "src/commands/auth-choice-legacy.ts",
-          "status": "intentionally_different",
-          "referenceBehavior": "OpenClaw maintains legacy interactive auth choice redirection for deprecated provider keys.",
-          "coreBlowDecision": "CoreBlow consolidates provider authentication into modern CoreBlow auth profiles and CoreHub catalog entries.",
-          "rationale": "Keep auth flows clean, deterministic, and free of legacy branching.",
-          "gate": "pnpm test -- src/commands"
-        }
-      ],
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/commands",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/security",
       "status": "partial",
       "priority": "P2",
@@ -1610,6 +1516,90 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/google",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/commands",
+      "status": "partial",
+      "priority": "P2",
+      "implementationSurface": "src/commands and src/cli command classes",
+      "counts": {
+        "sharedSourcePaths": 347,
+        "coreBlowOnlySourcePaths": 54,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 220,
+        "coreBlowOnlyTestPaths": 72,
+        "openClawTestGaps": 39
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [
+          "src/commands/agent.runtime-config.test.ts",
+          "src/commands/agent.session.test.ts",
+          "src/commands/agents.delete.test.ts",
+          "src/commands/auth-choice.apply.api-providers.test.ts",
+          "src/commands/backup.create-verify.test.ts",
+          "src/commands/channel-setup/channel-plugin-resolution.test.ts",
+          "src/commands/channel-setup/workspace-shadow-bypass.test.ts",
+          "src/commands/channels.list.test.ts",
+          "src/commands/channels.logs.test.ts",
+          "src/commands/channels.status.external-env.test.ts",
+          "src/commands/doctor-browser.facade.test.ts",
+          "src/commands/doctor-command-owner.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "src/commands/agent/delivery.ts",
+          "src/commands/agent/run-context.ts",
+          "src/commands/agent/session-store.ts",
+          "src/commands/agent/types.ts",
+          "src/commands/alias.ts",
+          "src/commands/auth-choice.api-key.ts",
+          "src/commands/auth-choice.apply.oauth.ts",
+          "src/commands/auth-choice.apply.plugin-provider.runtime.ts",
+          "src/commands/auth-choice.apply.plugin-provider.ts",
+          "src/commands/auth-choice.default-model.ts",
+          "src/commands/autocomplete.ts",
+          "src/commands/batch.ts"
+        ]
+      },
+      "intentionalBehaviorDifferences": [
+        {
+          "path": "src/commands/doctor/legacy-config-repair.ts",
+          "status": "intentionally_different",
+          "referenceBehavior": "OpenClaw carries multi-version legacy config repair chains and incremental schema patching.",
+          "coreBlowDecision": "CoreBlow explicitly deprecates multi-version legacy config migrations in favor of deterministic normalizers and coreblow doctor integrity checks.",
+          "rationale": "Anti-bloat policy (docs/PRD.md & docs/ARCHITECTURE.md): eliminate dead migration chains and avoid carrying obsolete OpenClaw config debt.",
+          "gate": "pnpm test -- src/commands/doctor"
+        },
+        {
+          "path": "src/commands/doctor/shared/legacy-config-migrations.ts",
+          "status": "intentionally_different",
+          "referenceBehavior": "OpenClaw maintains 13+ split migration modules for legacy config migration chains.",
+          "coreBlowDecision": "CoreBlow unifies config management into a clean CoreBlow-native schema and drops legacy migration file splits.",
+          "rationale": "CoreBlow operates on clean modern schemas without backward-compatibility bloat.",
+          "gate": "pnpm test -- src/commands/doctor"
+        },
+        {
+          "path": "src/commands/doctor-state-migrations.ts",
+          "status": "intentionally_different",
+          "referenceBehavior": "OpenClaw runs legacy multi-step state migrations across disk databases during doctor invocation.",
+          "coreBlowDecision": "CoreBlow uses clean state initialization and WAL transactional storage without multi-version legacy migration steps.",
+          "rationale": "Avoid runtime state corruption and reduce maintenance surface.",
+          "gate": "pnpm test -- src/commands/doctor"
+        },
+        {
+          "path": "src/commands/auth-choice-legacy.ts",
+          "status": "intentionally_different",
+          "referenceBehavior": "OpenClaw maintains legacy interactive auth choice redirection for deprecated provider keys.",
+          "coreBlowDecision": "CoreBlow consolidates provider authentication into modern CoreBlow auth profiles and CoreHub catalog entries.",
+          "rationale": "Keep auth flows clean, deterministic, and free of legacy branching.",
+          "gate": "pnpm test -- src/commands"
+        }
+      ],
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/commands",
         "pnpm check"
       ]
     },

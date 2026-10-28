@@ -113,6 +113,8 @@ export type SessionEntry = {
   lastHeartbeatText?: string;
   /** Timestamp (ms) when lastHeartbeatText was delivered. */
   lastHeartbeatSentAt?: number;
+  /** Timestamp (ms) of the last recorded human/user interaction. */
+  lastInteractionAt?: number;
   /** Last successful run timestamp per HEARTBEAT.md task name. */
   heartbeatTaskState?: Record<string, number>;
   /** Plugin-owned session state, grouped by plugin id then extension namespace. */

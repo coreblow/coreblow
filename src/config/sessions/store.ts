@@ -199,7 +199,7 @@ export async function withSessionStoreLockForTest<T>(
   return await withSessionStoreLock(storePath, fn, opts);
 }
 
-type LoadSessionStoreOptions = {
+export type LoadSessionStoreOptions = {
   skipCache?: boolean;
   clone?: boolean;
 };

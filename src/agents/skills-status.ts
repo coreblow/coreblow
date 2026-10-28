@@ -3,6 +3,7 @@ import type { CoreBlowConfig } from "../config/config.js";
 import { evaluateEntryRequirementsForCurrentPlatform } from "../shared/entry-status.js";
 import type { RequirementConfigCheck, Requirements } from "../shared/requirements.js";
 import { CONFIG_DIR } from "../utils.js";
+import { resolveAgentSkillsFilter } from "./agent-scope.js";
 import {
   hasBinary,
   isBundledSkillAllowed,
@@ -41,6 +42,10 @@ export type SkillStatusEntry = {
   always: boolean;
   disabled: boolean;
   blockedByAllowlist: boolean;
+  blockedByAgentFilter?: boolean;
+  modelVisible?: boolean;
+  userInvocable?: boolean;
+  commandVisible?: boolean;
   eligible: boolean;
   requirements: Requirements;
   missing: Requirements;
@@ -51,6 +56,7 @@ export type SkillStatusEntry = {
 export type SkillStatusReport = {
   workspaceDir: string;
   managedSkillsDir: string;
+  agentId?: string;
   skills: SkillStatusEntry[];
 };
 
@@ -172,6 +178,7 @@ function buildSkillStatus(
   prefs?: SkillsInstallPreferences,
   eligibility?: SkillEligibilityContext,
   bundledNames?: Set<string>,
+  agentFilterSet?: Set<string>,
 ): SkillStatusEntry {
   const skillKey = resolveSkillKey(entry);
   const skillConfig = resolveSkillConfig(config, skillKey);
@@ -201,6 +208,12 @@ function buildSkillStatus(
       isConfigSatisfied,
     });
   const eligible = !disabled && !blockedByAllowlist && requirementsSatisfied;
+  const blockedByAgentFilter =
+    agentFilterSet !== undefined ? !agentFilterSet.has(entry.skill.name) : false;
+  const userInvocable = entry.invocation?.userInvocable !== false;
+  const modelVisible =
+    eligible && !blockedByAgentFilter && entry.skill.disableModelInvocation !== true;
+  const commandVisible = eligible && !blockedByAgentFilter && userInvocable;
 
   return {
     name: entry.skill.name,
@@ -216,6 +229,10 @@ function buildSkillStatus(
     always,
     disabled,
     blockedByAllowlist,
+    blockedByAgentFilter,
+    modelVisible,
+    userInvocable,
+    commandVisible,
     eligible,
     requirements: required,
     missing,
@@ -231,6 +248,7 @@ export function buildWorkspaceSkillStatus(
     managedSkillsDir?: string;
     entries?: SkillEntry[];
     eligibility?: SkillEligibilityContext;
+    agentId?: string;
   },
 ): SkillStatusReport {
   const managedSkillsDir = opts?.managedSkillsDir ?? path.join(CONFIG_DIR, "skills");
@@ -243,11 +261,24 @@ export function buildWorkspaceSkillStatus(
       bundledSkillsDir: bundledContext.dir,
     });
   const prefs = resolveSkillsInstallPreferences(opts?.config);
+  const agentFilter =
+    opts?.config && opts?.agentId
+      ? resolveAgentSkillsFilter(opts.config, opts.agentId)
+      : undefined;
+  const agentFilterSet = agentFilter ? new Set(agentFilter) : undefined;
   return {
     workspaceDir,
     managedSkillsDir,
+    ...(opts?.agentId ? { agentId: opts.agentId } : {}),
     skills: skillEntries.map((entry) =>
-      buildSkillStatus(entry, opts?.config, prefs, opts?.eligibility, bundledContext.names),
+      buildSkillStatus(
+        entry,
+        opts?.config,
+        prefs,
+        opts?.eligibility,
+        bundledContext.names,
+        agentFilterSet,
+      ),
     ),
   };
 }
