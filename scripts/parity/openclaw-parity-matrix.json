@@ -7,18 +7,18 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8899,
+    "cb_source_files": 8902,
     "oc_source_files": 8443,
     "source_parity_both": 7125,
-    "source_cb_exclusive": 1774,
+    "source_cb_exclusive": 1777,
     "source_missing_from_cb": 1296,
     "source_intentionally_deprecated": 27,
-    "test_files_cb": 5073,
+    "test_files_cb": 5076,
     "test_files_oc": 5246,
     "tests_both_covered": 3643,
     "tests_gap_oc_has_cb_missing": 1341,
     "tests_intentionally_deprecated": 17,
-    "tests_cb_exclusive": 1364,
+    "tests_cb_exclusive": 1367,
     "export_files_with_gaps": 47,
     "test_scenario_files_with_gaps": 38,
     "test_scenario_files_intentionally_different": 0
@@ -681,10 +681,10 @@
       "implementationSurface": "src/plugins PluginLoader, PluginRegistry, HookRunner",
       "counts": {
         "sharedSourcePaths": 334,
-        "coreBlowOnlySourcePaths": 75,
+        "coreBlowOnlySourcePaths": 76,
         "openClawOnlySourcePaths": 0,
         "sharedTestPaths": 123,
-        "coreBlowOnlyTestPaths": 72,
+        "coreBlowOnlyTestPaths": 73,
         "openClawTestGaps": 92
       },
       "samples": {
@@ -1363,10 +1363,10 @@
       "implementationSurface": "src/security",
       "counts": {
         "sharedSourcePaths": 23,
-        "coreBlowOnlySourcePaths": 32,
+        "coreBlowOnlySourcePaths": 33,
         "openClawOnlySourcePaths": 15,
         "sharedTestPaths": 9,
-        "coreBlowOnlyTestPaths": 38,
+        "coreBlowOnlyTestPaths": 39,
         "openClawTestGaps": 34
       },
       "samples": {
@@ -5931,10 +5931,10 @@
       "implementationSurface": "src/acp",
       "counts": {
         "sharedSourcePaths": 45,
-        "coreBlowOnlySourcePaths": 2,
+        "coreBlowOnlySourcePaths": 3,
         "openClawOnlySourcePaths": 0,
         "sharedTestPaths": 33,
-        "coreBlowOnlyTestPaths": 6,
+        "coreBlowOnlyTestPaths": 7,
         "openClawTestGaps": 0
       },
       "samples": {
@@ -5942,7 +5942,8 @@
         "openClawTestGapPaths": [],
         "coreBlowOnlySourcePaths": [
           "src/acp/capability.ts",
-          "src/acp/session-store.ts"
+          "src/acp/session-store.ts",
+          "src/acp/worker-timeout-guard.ts"
         ]
       },
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",

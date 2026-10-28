@@ -1,8 +1,9 @@
 # CoreBlow Phase 5–7 Sequential Master Roadmap
 
-**Document Version:** 1.0.0<br />
+**Document Version:** 1.1.0<br />
 **Status:** Approved / Active Execution<br />
-**Current Milestone:** Phase 5.1 (In Progress)<br />
+**Current Milestone:** Phase 5.3 (In Progress)<br />
+**Completed Milestones:** Phase 5.1 (`7a4ddf7a0`), Phase 5.2<br />
 **Baseline Parity:** 100% Phase 4 Parity Complete (`6db6a05f9`)<br />
 **Product Canonical URLs:** [https://coreblow.com](https://coreblow.com) | [https://github.com/coreblow](https://github.com/coreblow)<br />
 **Documentation Portal:** [https://docs.coreblow.com](https://docs.coreblow.com)
@@ -41,7 +42,7 @@ flowchart TD
 
 ## 2. Phase 5: Resiliency, Trust Boundaries & Cockpit Interface
 
-### Phase 5.1: High-Concurrency WAL Session Storage & Reversible Compaction (ACTIVE)
+### Phase 5.1: High-Concurrency WAL Session Storage & Reversible Compaction (COMPLETE)
 **Target Surface:** `src/infra/storage/`, `src/agents/compaction/`
 
 - **High-Concurrency WAL Session Ledger (`src/infra/storage/wal-session-ledger.ts`):**
@@ -54,7 +55,7 @@ flowchart TD
   - Two-way `content_hash` pointer resolution to `~/.coreblow/scratchpad/` so compacted tool outputs and context blocks can be inspected, audited, or losslessly re-expanded on demand.
   - Compaction audit ledger maintaining history of all summarization cycles with token metrics.
 
-### Phase 5.2: Cryptographic Trust Zones, Worker Timeout Hardening & CoreHub Sandboxing
+### Phase 5.2: Cryptographic Trust Zones, Worker Timeout Hardening & CoreHub Sandboxing (COMPLETE)
 **Target Surface:** `src/security/`, `src/acp/`, `src/plugins/sandbox/`
 
 - **Cryptographic Trust Zones (Zone 0, Zone 1, Zone 2):**
