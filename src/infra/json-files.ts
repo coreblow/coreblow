@@ -3,6 +3,34 @@ import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 
+export class JsonFileReadError extends Error {
+  readonly filePath: string;
+  readonly reason: "read" | "parse";
+  constructor(filePath: string, reason: "read" | "parse", cause: unknown) {
+    super(`Failed to ${reason} JSON file: ${filePath}`, { cause });
+    this.name = "JsonFileReadError";
+    this.filePath = filePath;
+    this.reason = reason;
+  }
+}
+
+export async function readJsonIfExists<T = unknown>(filePath: string): Promise<T | null> {
+  let raw: string;
+  try {
+    raw = await fs.readFile(filePath, "utf8");
+  } catch (err: unknown) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+      return null;
+    }
+    throw new JsonFileReadError(filePath, "read", err);
+  }
+  try {
+    return JSON.parse(raw) as T;
+  } catch (err: unknown) {
+    throw new JsonFileReadError(filePath, "parse", err);
+  }
+}
+
 export function tryReadJsonSync<T = unknown>(filePath: string): T | null {
   try {
     const raw = fsSync.readFileSync(filePath, "utf8");

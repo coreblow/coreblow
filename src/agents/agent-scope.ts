@@ -265,21 +265,25 @@ export function resolveEffectiveModelFallbacks(params: {
   return agentFallbacksOverride ?? defaultFallbacks;
 }
 
-export function resolveAgentWorkspaceDir(cfg: CoreBlowConfig, agentId: string) {
+export function resolveAgentWorkspaceDir(
+  cfg: CoreBlowConfig,
+  agentId: string,
+  env: NodeJS.ProcessEnv = process.env,
+) {
   const id = normalizeAgentId(agentId);
   const configured = resolveAgentConfig(cfg, id)?.workspace?.trim();
   if (configured) {
-    return stripNullBytes(resolveUserPath(configured));
+    return stripNullBytes(resolveUserPath(configured, env));
   }
   const defaultAgentId = resolveDefaultAgentId(cfg);
   if (id === defaultAgentId) {
     const fallback = cfg.agents?.defaults?.workspace?.trim();
     if (fallback) {
-      return stripNullBytes(resolveUserPath(fallback));
+      return stripNullBytes(resolveUserPath(fallback, env));
     }
-    return stripNullBytes(resolveDefaultAgentWorkspaceDir(process.env));
+    return stripNullBytes(resolveDefaultAgentWorkspaceDir(env));
   }
-  const stateDir = resolveStateDir(process.env);
+  const stateDir = resolveStateDir(env);
   return stripNullBytes(path.join(stateDir, `workspace-${id}`));
 }
 

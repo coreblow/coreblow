@@ -5,6 +5,7 @@ import {
   createAsyncLock,
   pruneExpiredPending,
   readJsonFile,
+  readJsonIfExists,
   resolvePairingPaths,
   writeJsonAtomic,
 } from "./pairing-files.js";
@@ -100,8 +101,8 @@ const withLock = createAsyncLock();
 async function loadState(baseDir?: string): Promise<DevicePairingStateFile> {
   const { pendingPath, pairedPath } = resolvePairingPaths(baseDir, "devices");
   const [pending, paired] = await Promise.all([
-    readJsonFile<Record<string, DevicePairingPendingRequest>>(pendingPath),
-    readJsonFile<Record<string, PairedDevice>>(pairedPath),
+    readJsonIfExists<Record<string, DevicePairingPendingRequest>>(pendingPath),
+    readJsonIfExists<Record<string, PairedDevice>>(pairedPath),
   ]);
   const state: DevicePairingStateFile = {
     pendingById: pending ?? {},
@@ -184,6 +185,12 @@ function sameStringSet(left: readonly string[], right: readonly string[]): boole
     }
   }
   return true;
+}
+
+export function listApprovedPairedDeviceRoles(
+  device: Pick<PairedDevice, "role" | "roles">,
+): string[] {
+  return mergeRoles(device.roles, device.role) ?? [];
 }
 
 function resolveRequestedRoles(input: { role?: string; roles?: string[] }): string[] {

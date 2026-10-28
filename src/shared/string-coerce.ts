@@ -32,3 +32,17 @@ export function normalizeOptionalStringifiedId(value: unknown): string | undefin
   const normalized = normalizeOptionalThreadValue(value);
   return normalized == null ? undefined : String(normalized);
 }
+
+export function resolvePrimaryStringValue(value: unknown): string | undefined {
+  if (typeof value === "string") {
+    return normalizeOptionalString(value);
+  }
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+  return normalizeOptionalString((value as { primary?: unknown }).primary);
+}
+
+export function hasNonEmptyString(value: unknown): value is string {
+  return normalizeOptionalString(value) !== undefined;
+}

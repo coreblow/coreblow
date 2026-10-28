@@ -349,3 +349,6 @@ export async function withCoreBlowTestState<T>(
     await state.cleanup();
   }
 }
+
+export type OpenClawTestState = CoreBlowTestState;
+export const createOpenClawTestState = createCoreBlowTestState;

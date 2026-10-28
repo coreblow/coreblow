@@ -564,7 +564,16 @@ export function ensureAuthProfileStore(
   return merged;
 }
 
-export function saveAuthProfileStore(store: AuthProfileStore, agentDir?: string): void {
+export type SaveAuthProfileStoreOptions = {
+  filterExternalAuthProfiles?: boolean;
+  syncExternalCli?: boolean;
+};
+
+export function saveAuthProfileStore(
+  store: AuthProfileStore,
+  agentDir?: string,
+  _options?: SaveAuthProfileStoreOptions,
+): void {
   const authPath = resolveAuthStorePath(agentDir);
   const profiles = Object.fromEntries(
     Object.entries(store.profiles).map(([profileId, credential]) => {
