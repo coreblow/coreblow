@@ -1,4 +1,9 @@
 import type { AuthProfileCredential, OAuthCredential } from "../agents/auth-profiles/types.js";
+import type {
+  ProviderExternalAuthProfile,
+  ProviderResolveExternalAuthProfilesContext,
+  ProviderResolveExternalOAuthProfilesContext,
+} from "./provider-external-auth.types.js";
 import { normalizeProviderId } from "../types/provider-id.js";
 import type { CoreBlowConfig } from "../config/config.js";
 import type { ModelProviderConfig } from "../config/types.js";
@@ -569,4 +574,32 @@ export async function augmentModelCatalogWithProviderPlugins(params: {
     supplemental.push(...next);
   }
   return supplemental;
+}
+
+export function resolveExternalAuthProfilesWithPlugins(params: {
+  config?: CoreBlowConfig;
+  workspaceDir?: string;
+  env?: NodeJS.ProcessEnv;
+  context: ProviderResolveExternalAuthProfilesContext;
+}): ProviderExternalAuthProfile[] {
+  const matches: ProviderExternalAuthProfile[] = [];
+  for (const plugin of resolveProviderPluginsForCatalogHooks(params)) {
+    const profiles =
+      plugin.resolveExternalAuthProfiles?.(params.context) ??
+      plugin.resolveExternalOAuthProfiles?.(params.context);
+    if (!profiles || profiles.length === 0) {
+      continue;
+    }
+    matches.push(...profiles);
+  }
+  return matches;
+}
+
+export function resolveExternalOAuthProfilesWithPlugins(params: {
+  config?: CoreBlowConfig;
+  workspaceDir?: string;
+  env?: NodeJS.ProcessEnv;
+  context: ProviderResolveExternalOAuthProfilesContext;
+}): ProviderExternalAuthProfile[] {
+  return resolveExternalAuthProfilesWithPlugins(params);
 }

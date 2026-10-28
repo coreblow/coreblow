@@ -541,6 +541,7 @@ export function readCodexCliCredentials(options?: {
 }
 
 export function readCodexCliCredentialsCached(options?: {
+  allowKeychainPrompt?: boolean;
   ttlMs?: number;
   platform?: NodeJS.Platform;
   execSync?: ExecSyncFn;

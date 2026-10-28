@@ -5,6 +5,12 @@ import type { Api, Model } from "@mariozechner/pi-ai";
 import type { ModelRegistry } from "@mariozechner/pi-coding-agent";
 import type { Command } from "commander";
 import type {
+  ProviderExternalAuthProfile,
+  ProviderExternalOAuthProfile,
+  ProviderResolveExternalAuthProfilesContext,
+  ProviderResolveExternalOAuthProfilesContext,
+} from "./provider-external-auth.types.js";
+import type {
   ApiKeyCredential,
   AuthProfileCredential,
   OAuthCredential,
@@ -1379,6 +1385,20 @@ export type ProviderPlugin = {
   resolveSyntheticAuth?: (
     ctx: ProviderResolveSyntheticAuthContext,
   ) => ProviderSyntheticAuthResult | null | undefined;
+  resolveExternalAuthProfiles?: (
+    ctx: ProviderResolveExternalAuthProfilesContext,
+  ) =>
+    | Array<ProviderExternalAuthProfile>
+    | ReadonlyArray<ProviderExternalAuthProfile>
+    | null
+    | undefined;
+  resolveExternalOAuthProfiles?: (
+    ctx: ProviderResolveExternalOAuthProfilesContext,
+  ) =>
+    | Array<ProviderExternalOAuthProfile>
+    | ReadonlyArray<ProviderExternalOAuthProfile>
+    | null
+    | undefined;
   onModelSelected?: (ctx: ProviderModelSelectedContext) => Promise<void>;
   /**
    * Provider-owned replay/compaction transcript policy.
@@ -3576,3 +3596,10 @@ export type PluginExports = { hooks?: PluginHook[]; commands?: PluginCommand[]; 
 export type PluginCommand = { name: string; description?: string; execute?: (...args: unknown[]) => unknown; handler?: (...args: unknown[]) => unknown };
 export type PluginProvider = { id: string; name?: string; models?: string[]; chat?: (...args: unknown[]) => unknown };
 export type PluginTool = { name: string; description?: string; handler?: (...args: unknown[]) => unknown; execute?: (...args: unknown[]) => unknown; parameters?: Record<string, unknown> };
+
+export type {
+  ProviderExternalAuthProfile,
+  ProviderExternalOAuthProfile,
+  ProviderResolveExternalAuthProfilesContext,
+  ProviderResolveExternalOAuthProfilesContext,
+} from "./provider-external-auth.types.js";

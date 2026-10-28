@@ -36,3 +36,8 @@ export function resolveAuthStatePath(agentDir?: string): string {
   const resolved = resolveUserPath(agentDir ?? resolveCoreBlowAgentDir());
   return path.join(resolved, AUTH_STATE_FILENAME);
 }
+
+export {
+  resolveAuthStatePathForDisplay,
+  resolveOAuthRefreshLockPath,
+} from "./path-resolve.js";

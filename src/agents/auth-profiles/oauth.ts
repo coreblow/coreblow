@@ -6,6 +6,7 @@ import {
 } from "@mariozechner/pi-ai/oauth";
 import { loadConfig, type CoreBlowConfig } from "../../config/config.js";
 import { coerceSecretRef } from "../../config/types.secrets.js";
+import { formatErrorMessage } from "../../infra/errors.js";
 import { withFileLock } from "../../infra/file-lock.js";
 import {
   formatProviderAuthProfileApiKeyWithPlugin,
@@ -121,6 +122,15 @@ type ResolveApiKeyForProfileParams = {
 
 type SecretDefaults = NonNullable<CoreBlowConfig["secrets"]>["defaults"];
 
+export function isRefreshTokenReusedError(error: unknown): boolean {
+  const message = formatErrorMessage(error).toLowerCase();
+  return (
+    message.includes("refresh_token_reused") ||
+    message.includes("refresh token has already been used") ||
+    message.includes("already been used to generate a new access token")
+  );
+}
+
 function adoptNewerMainOAuthCredential(params: {
   store: AuthProfileStore;
   profileId: string;
@@ -204,7 +214,7 @@ async function refreshOAuthTokenWithLock(params: {
             if (!oauthProvider) {
               return null;
             }
-            if (typeof getOAuthApiKey !== "function") {
+            if (typeof getOAuthApiKey !== "function") { // pragma: allowlist secret
               return null;
             }
             return await getOAuthApiKey(oauthProvider, oauthCreds);

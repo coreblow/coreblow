@@ -12,6 +12,7 @@ export type OAuthCredentials = {
   enterpriseUrl?: string;
   projectId?: string;
   accountId?: string;
+  copyToAgents?: boolean;
 };
 
 export type ApiKeyCredential = {
@@ -21,6 +22,7 @@ export type ApiKeyCredential = {
   keyRef?: SecretRef;
   email?: string;
   displayName?: string;
+  copyToAgents?: boolean;
   /** Optional provider-specific metadata (e.g., account IDs, gateway IDs). */
   metadata?: Record<string, string>;
 };
@@ -38,6 +40,7 @@ export type TokenCredential = {
   expires?: number;
   email?: string;
   displayName?: string;
+  copyToAgents?: boolean;
 };
 
 export type OAuthCredential = OAuthCredentials & {
@@ -94,14 +97,16 @@ export type AuthProfileState = {
   usageStats?: Record<string, ProfileUsageStats>;
 };
 
+export type AuthProfileSecretsStore = {
+  version: number;
+  profiles: Record<string, AuthProfileCredential>;
+};
+
 export type AuthProfileStateStore = {
   version: number;
 } & AuthProfileState;
 
-export type AuthProfileStore = {
-  version: number;
-  profiles: Record<string, AuthProfileCredential>;
-} & AuthProfileState;
+export type AuthProfileStore = AuthProfileSecretsStore & AuthProfileState;
 
 export type AuthProfileIdRepairResult = {
   config: CoreBlowConfig;

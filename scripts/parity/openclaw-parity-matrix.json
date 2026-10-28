@@ -7,20 +7,20 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8824,
+    "cb_source_files": 8837,
     "oc_source_files": 8443,
-    "source_parity_both": 7024,
+    "source_parity_both": 7037,
     "source_cb_exclusive": 1800,
-    "source_missing_from_cb": 1396,
+    "source_missing_from_cb": 1383,
     "source_intentionally_deprecated": 23,
-    "test_files_cb": 5039,
+    "test_files_cb": 5044,
     "test_files_oc": 5246,
-    "tests_both_covered": 3591,
-    "tests_gap_oc_has_cb_missing": 1395,
+    "tests_both_covered": 3596,
+    "tests_gap_oc_has_cb_missing": 1390,
     "tests_intentionally_deprecated": 15,
     "tests_cb_exclusive": 1385,
-    "export_files_with_gaps": 59,
-    "test_scenario_files_with_gaps": 40,
+    "export_files_with_gaps": 52,
+    "test_scenario_files_with_gaps": 38,
     "test_scenario_files_intentionally_different": 0
   },
   "statusLegend": {
@@ -37,12 +37,12 @@
       "priority": "P0",
       "implementationSurface": "src/agents, src/auth, src/agents/turn-engine",
       "counts": {
-        "sharedSourcePaths": 618,
+        "sharedSourcePaths": 631,
         "coreBlowOnlySourcePaths": 205,
-        "openClawOnlySourcePaths": 256,
-        "sharedTestPaths": 406,
+        "openClawOnlySourcePaths": 243,
+        "sharedTestPaths": 411,
         "coreBlowOnlyTestPaths": 199,
-        "openClawTestGaps": 316
+        "openClawTestGaps": 311
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -50,28 +50,28 @@
           "src/agents/agent-runtime-config.ts",
           "src/agents/agent-scope-config.ts",
           "src/agents/anthropic-transport-stream.ts",
-          "src/agents/auth-profiles/external-auth.ts",
-          "src/agents/auth-profiles/external-cli-discovery.ts",
-          "src/agents/auth-profiles/external-cli-scope.ts",
-          "src/agents/auth-profiles/oauth-common-mocks.test-support.ts",
-          "src/agents/auth-profiles/oauth-external-auth-passthrough.test-support.ts",
-          "src/agents/auth-profiles/oauth-file-lock-passthrough.test-support.ts",
-          "src/agents/auth-profiles/oauth-identity.ts",
-          "src/agents/auth-profiles/oauth-refresh-failure.ts"
+          "src/agents/bash-process-references.ts",
+          "src/agents/bash-tools.descriptions.ts",
+          "src/agents/bash-tools.exec-approval-request.runtime.ts",
+          "src/agents/bash-tools.exec-host-node-phases.ts",
+          "src/agents/bash-tools.process-send-keys.ts",
+          "src/agents/btw-transcript.ts",
+          "src/agents/bundle-mcp-shared.test-harness.ts",
+          "src/agents/cli-auth-epoch.ts"
         ],
         "openClawTestGapPaths": [
           "src/agents/agent-command.live-model-switch.test.ts",
           "src/agents/anthropic-transport-stream.test.ts",
           "src/agents/auth-profile-runtime-contract.test.ts",
-          "src/agents/auth-profiles/external-oauth.test.ts",
-          "src/agents/auth-profiles/oauth-identity.test.ts",
           "src/agents/auth-profiles/oauth-lock-path.test.ts",
-          "src/agents/auth-profiles/oauth-lock-timeout-classification.test.ts",
           "src/agents/auth-profiles/oauth-manager.test.ts",
-          "src/agents/auth-profiles/oauth-refresh-error.test.ts",
           "src/agents/auth-profiles/oauth-refresh-queue.test.ts",
           "src/agents/auth-profiles/oauth-refresh-timeout.test.ts",
-          "src/agents/auth-profiles/oauth-shared.test.ts"
+          "src/agents/auth-profiles/oauth-shared.test.ts",
+          "src/agents/auth-profiles/oauth.adopt-identity.test.ts",
+          "src/agents/auth-profiles/oauth.concurrent-agents.test.ts",
+          "src/agents/auth-profiles/oauth.mirror-refresh.test.ts",
+          "src/agents/auth-profiles/paths-direct-import.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/agents/agent-engine-config.ts",

@@ -16,6 +16,19 @@ export type FileLockOptions = {
   stale: number;
 };
 
+export const FILE_LOCK_TIMEOUT_ERROR_CODE = "file_lock_timeout";
+export const FILE_LOCK_STALE_ERROR_CODE = "file_lock_stale";
+
+export type FileLockTimeoutError = Error & {
+  code: typeof FILE_LOCK_TIMEOUT_ERROR_CODE;
+  lockPath: string;
+};
+
+export type FileLockStaleError = Error & {
+  code: typeof FILE_LOCK_STALE_ERROR_CODE;
+  lockPath: string;
+};
+
 type LockFilePayload = {
   pid: number;
   createdAt: string;
@@ -192,7 +205,10 @@ export async function acquireFileLock(
     }
   }
 
-  throw new Error(`file lock timeout for ${normalizedFile}`);
+  throw Object.assign(new Error(`file lock timeout for ${normalizedFile}`), {
+    code: FILE_LOCK_TIMEOUT_ERROR_CODE,
+    lockPath: `${normalizedFile}.lock`,
+  }) as FileLockTimeoutError;
 }
 
 /** Run an async callback while holding a file lock, always releasing the lock afterward. */
