@@ -91,7 +91,7 @@ export default defineConfig({
             'packages/**/*.test.ts',
             // Wave 3/4: extension pure-logic tests (non-e2e, non-live)
             'extensions/discord/src/**/*.test.ts',
-            'extensions/telegram/src/**/*.test.ts',
+            'extensions/telegram/**/*.test.ts',
             'extensions/slack/src/**/*.test.ts',
             'extensions/matrix/src/**/*.test.ts',
             'extensions/browser/src/**/*.test.ts',

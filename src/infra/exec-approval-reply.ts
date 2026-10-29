@@ -40,6 +40,7 @@ export type ExecApprovalPendingReplyParams = {
   nodeId?: string;
   expiresAtMs?: number;
   nowMs?: number;
+  allowedDecisions?: readonly ExecApprovalReplyDecision[];
 };
 
 export type ExecApprovalUnavailableReplyParams = {
@@ -288,23 +289,35 @@ export function buildExecApprovalPendingReplyPayload(
   params: ExecApprovalPendingReplyParams,
 ): ReplyPayload {
   const approvalCommandId = params.approvalCommandId?.trim() || params.approvalSlug;
+  const allowedDecisions = params.allowedDecisions ?? ["allow-once", "allow-always", "deny"];
   const lines: string[] = [];
   const warningText = params.warningText?.trim();
   if (warningText) {
     lines.push(warningText);
   }
   lines.push("Approval required.");
-  lines.push("Run:");
-  lines.push(buildFence(`/approve ${approvalCommandId} allow-once`, "txt"));
+  if (allowedDecisions.includes("allow-once")) {
+    lines.push("Run:");
+    lines.push(buildFence(`/approve ${approvalCommandId} allow-once`, "txt"));
+  }
   lines.push("Pending command:");
   lines.push(buildFence(params.command, "sh"));
-  lines.push("Other options:");
-  lines.push(
-    buildFence(
-      `/approve ${approvalCommandId} allow-always\n/approve ${approvalCommandId} deny`,
-      "txt",
-    ),
-  );
+  const otherOptions: string[] = [];
+  if (allowedDecisions.includes("allow-always")) {
+    otherOptions.push(`/approve ${approvalCommandId} allow-always`);
+  }
+  if (allowedDecisions.includes("deny")) {
+    otherOptions.push(`/approve ${approvalCommandId} deny`);
+  }
+  if (otherOptions.length > 0) {
+    lines.push("Other options:");
+    lines.push(buildFence(otherOptions.join("\n"), "txt"));
+  }
+  if (!allowedDecisions.includes("allow-always")) {
+    lines.push(
+      "The effective approval policy requires approval every time, so Allow Always is unavailable.",
+    );
+  }
   const info: string[] = [];
   info.push(`Host: ${params.host}`);
   if (params.nodeId) {
@@ -329,7 +342,7 @@ export function buildExecApprovalPendingReplyPayload(
       execApproval: {
         approvalId: params.approvalId,
         approvalSlug: params.approvalSlug,
-        allowedDecisions: ["allow-once", "allow-always", "deny"],
+        allowedDecisions: [...allowedDecisions],
       },
     },
   };

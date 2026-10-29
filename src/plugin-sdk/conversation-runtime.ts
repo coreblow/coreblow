@@ -2,6 +2,12 @@
 // config-driven channel bindings.
 
 export {
+  createScopedAccountReplyToModeResolver,
+  createStaticReplyToModeResolver,
+  createTopLevelChannelReplyToModeResolver,
+} from "../channels/plugins/threading-helpers.js";
+
+export {
   createConversationBindingRecord,
   getConversationBindingCapabilities,
   listSessionBindingRecords,
@@ -30,11 +36,6 @@ export { resolveConversationLabel } from "../channels/conversation-label.js";
 export { recordInboundSession } from "../channels/session.js";
 export { recordInboundSessionMetaSafe } from "../channels/session-meta.js";
 export { resolveThreadBindingConversationIdFromBindingId } from "../channels/thread-binding-id.js";
-export {
-  createScopedAccountReplyToModeResolver,
-  createStaticReplyToModeResolver,
-  createTopLevelChannelReplyToModeResolver,
-} from "../channels/plugins/threading-helpers.js";
 export {
   formatThreadBindingDurationLabel,
   resolveThreadBindingFarewellText,

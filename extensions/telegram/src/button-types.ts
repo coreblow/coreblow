@@ -65,11 +65,45 @@ export function buildTelegramInteractiveButtons(
   return rows.length > 0 ? rows : undefined;
 }
 
+export function buildTelegramPresentationButtons(
+  presentation?: unknown,
+): TelegramInlineButtons | undefined {
+  if (!presentation || typeof presentation !== "object") {
+    return undefined;
+  }
+  const blocks = (presentation as { blocks?: unknown[] }).blocks;
+  if (!Array.isArray(blocks)) {
+    return undefined;
+  }
+  const rows: TelegramInlineButton[][] = [];
+  for (const block of blocks) {
+    if (!block || typeof block !== "object") {
+      continue;
+    }
+    const b = block as Record<string, unknown>;
+    if (b.type === "buttons" && Array.isArray(b.buttons)) {
+      chunkInteractiveButtons(b.buttons as InteractiveReplyButton[], rows);
+    } else if (b.type === "select" && Array.isArray(b.options)) {
+      chunkInteractiveButtons(
+        (b.options as Array<{ label: string; value: string }>).map((opt) => ({
+          label: opt.label,
+          value: opt.value,
+        })),
+        rows,
+      );
+    }
+  }
+  return rows.length > 0 ? rows : undefined;
+}
+
 export function resolveTelegramInlineButtons(params: {
   buttons?: TelegramInlineButtons;
+  presentation?: unknown;
   interactive?: unknown;
 }): TelegramInlineButtons | undefined {
   return (
-    params.buttons ?? buildTelegramInteractiveButtons(normalizeInteractiveReply(params.interactive))
+    params.buttons ??
+    buildTelegramInteractiveButtons(normalizeInteractiveReply(params.interactive)) ??
+    buildTelegramPresentationButtons(params.presentation)
   );
 }

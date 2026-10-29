@@ -2,9 +2,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const sendMessageTelegramMock = vi.fn();
 
-vi.mock("./send.js", () => ({
-  sendMessageTelegram: (...args: unknown[]) => sendMessageTelegramMock(...args),
-}));
+vi.mock("./send.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./send.js")>();
+  return {
+    ...actual,
+    sendMessageTelegram: (...args: unknown[]) => sendMessageTelegramMock(...args),
+  };
+});
 
 import { telegramOutbound } from "./outbound-adapter.js";
 

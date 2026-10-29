@@ -93,6 +93,8 @@ function redactMediaUrl(url: string): string {
   return redactSensitiveText(url);
 }
 
+export const readRemoteMediaBuffer = fetchRemoteMedia;
+export const saveRemoteMedia = fetchRemoteMedia;
 export async function fetchRemoteMedia(options: FetchMediaOptions): Promise<FetchMediaResult> {
   const {
     url,

@@ -11,7 +11,7 @@ import {
   normalizeAccountId,
   type ChannelPlugin,
   type CoreBlowConfig,
-} from "../runtime-api.js";
+} from "coreblow/plugin-sdk/telegram-core";
 import { inspectTelegramAccount } from "./account-inspect.js";
 import {
   listTelegramAccountIds,
