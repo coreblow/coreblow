@@ -16,8 +16,8 @@ import {
   type UpdateChannel,
 } from "../../../infra/update-channels.js";
 import { resolveConfiguredChannelPresencePolicy } from "../../../plugins/channel-plugin-ids.js";
-import { buildClawHubPluginInstallRecordFields } from "../../../plugins/clawhub-install-records.js";
-import { CLAWHUB_INSTALL_ERROR_CODE, installPluginFromClawHub } from "../../../plugins/clawhub.js";
+import { buildCoreHubPluginInstallRecordFields } from "../../../plugins/corehub-install-records.js";
+import { CLAWHUB_INSTALL_ERROR_CODE, installPluginFromClawHub } from "../../../plugins/corehub.js";
 import {
   resolveClawHubInstallSpecsForUpdateChannel,
   resolveNpmInstallSpecsForUpdateChannel,
@@ -803,7 +803,9 @@ async function installCandidate(params: {
         records: {
           ...params.records,
           [pluginId]: {
-            ...buildClawHubPluginInstallRecordFields(clawhubResult.clawhub),
+            ...buildCoreHubPluginInstallRecordFields(
+              clawhubResult.corehub ?? (clawhubResult as { clawhub?: unknown }).clawhub ?? {},
+            ),
             spec: clawhubSpecs?.recordSpec ?? clawhubInstallSpec,
             installPath: clawhubResult.targetDir,
             installedAt: new Date().toISOString(),

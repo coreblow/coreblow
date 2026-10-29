@@ -625,30 +625,31 @@ export async function installPluginFromCoreHub(params: {
     if (archive.artifactStorageKey) {
       params.logger?.info?.(`Storage locator: ${archive.artifactStorageKey}`);
     }
+    const corehubRecord = {
+      source: "corehub" as const,
+      corehubUrl:
+        params.baseUrl?.trim() ||
+        process.env.COREBLOW_COREHUB_URL?.trim() ||
+        "https://coreblow.com/corehub",
+      corehubPackage: parsed.name,
+      corehubFamily,
+      corehubChannel: pkg.channel,
+      corehubVerificationTier: pkg.verification?.tier,
+      version: installResult.version ?? versionState.version,
+      integrity: archive.integrity,
+      artifactSha256: archive.artifactSha256,
+      artifactSize: archive.artifactSize,
+      artifactManifestVerified: archive.artifactManifestVerified,
+      artifactManifestSha256: archive.artifactManifestSha256,
+      artifactStorageKey: archive.artifactStorageKey,
+      publisherHandle: archive.publisherHandle ?? pkg.ownerHandle ?? detail.owner?.handle ?? undefined,
+      resolvedAt: verifiedAt,
+      verifiedAt,
+    };
     return {
       ...installResult,
       packageName: parsed.name,
-      corehub: {
-        source: "corehub",
-        corehubUrl:
-          params.baseUrl?.trim() ||
-          process.env.COREBLOW_COREHUB_URL?.trim() ||
-          "https://coreblow.com/corehub",
-        corehubPackage: parsed.name,
-        corehubFamily,
-        corehubChannel: pkg.channel,
-        corehubVerificationTier: pkg.verification?.tier,
-        version: installResult.version ?? versionState.version,
-        integrity: archive.integrity,
-        artifactSha256: archive.artifactSha256,
-        artifactSize: archive.artifactSize,
-        artifactManifestVerified: archive.artifactManifestVerified,
-        artifactManifestSha256: archive.artifactManifestSha256,
-        artifactStorageKey: archive.artifactStorageKey,
-        publisherHandle: archive.publisherHandle ?? pkg.ownerHandle ?? detail.owner?.handle ?? undefined,
-        resolvedAt: verifiedAt,
-        verifiedAt,
-      },
+      corehub: corehubRecord,
     };
   } finally {
     await fs.rm(archive.archivePath, { force: true }).catch(() => undefined);
@@ -657,3 +658,12 @@ export async function installPluginFromCoreHub(params: {
       .catch(() => undefined);
   }
 }
+
+export const CLAWHUB_INSTALL_ERROR_CODE = COREHUB_INSTALL_ERROR_CODE;
+export type ClawHubInstallErrorCode = CoreHubInstallErrorCode;
+export type ClawHubPluginInstallRecordFields = CoreHubPluginInstallRecordFields;
+export type ClawHubInstalledTrustRecord = CoreHubInstalledTrustRecord;
+export type ClawHubInstalledTrustVerificationResult = CoreHubInstalledTrustVerificationResult;
+export const formatClawHubSpecifier = formatCoreHubSpecifier;
+export const installPluginFromClawHub = installPluginFromCoreHub;
+export const verifyClawHubInstalledTrustRecord = verifyCoreHubInstalledTrustRecord;

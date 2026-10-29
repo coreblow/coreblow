@@ -34,9 +34,13 @@ vi.mock("./install.js", () => ({
 const { CoreHubRequestError } = await import("../infra/corehub.js");
 const {
   COREHUB_INSTALL_ERROR_CODE,
+  CLAWHUB_INSTALL_ERROR_CODE,
   formatCoreHubSpecifier,
+  formatClawHubSpecifier,
   installPluginFromCoreHub,
+  installPluginFromClawHub,
   verifyCoreHubInstalledTrustRecord,
+  verifyClawHubInstalledTrustRecord,
 } = await import("./corehub.js");
 
 async function expectCoreHubInstallError(params: {
@@ -446,5 +450,27 @@ describe("installPluginFromCoreHub", () => {
     },
   ] as const)("$name", async ({ setup, spec, expected }) => {
     await expectCoreHubInstallError({ setup, spec, expected });
+  });
+
+  describe("legacy ClawHub alias exports", () => {
+    it("formats legacy ClawHub helper output as the CoreHub public spec", () => {
+      expect(formatClawHubSpecifier({ name: "demo" })).toBe("corehub:demo");
+      expect(formatClawHubSpecifier({ name: "demo", version: "1.2.3" })).toBe(
+        "corehub:demo@1.2.3",
+      );
+    });
+
+    it("re-exports CoreHub install error codes for legacy imports", () => {
+      expect(CLAWHUB_INSTALL_ERROR_CODE).toBe(COREHUB_INSTALL_ERROR_CODE);
+      expect(CLAWHUB_INSTALL_ERROR_CODE.PACKAGE_NOT_FOUND).toBe("package_not_found");
+    });
+
+    it("exports installPluginFromClawHub referencing installPluginFromCoreHub", () => {
+      expect(installPluginFromClawHub).toBe(installPluginFromCoreHub);
+    });
+
+    it("exports verifyClawHubInstalledTrustRecord referencing verifyCoreHubInstalledTrustRecord", () => {
+      expect(verifyClawHubInstalledTrustRecord).toBe(verifyCoreHubInstalledTrustRecord);
+    });
   });
 });

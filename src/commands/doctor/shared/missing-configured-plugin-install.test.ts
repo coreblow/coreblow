@@ -112,13 +112,20 @@ vi.mock("../../../plugins/install.js", () => ({
   installPluginFromNpmSpec: mocks.installPluginFromNpmSpec,
 }));
 
-vi.mock("../../../plugins/clawhub.js", () => ({
+vi.mock("../../../plugins/corehub.js", () => ({
+  COREHUB_INSTALL_ERROR_CODE: {
+    PACKAGE_NOT_FOUND: "package_not_found",
+    VERSION_NOT_FOUND: "version_not_found",
+    ARTIFACT_UNAVAILABLE: "artifact_unavailable",
+    ARTIFACT_DOWNLOAD_UNAVAILABLE: "artifact_download_unavailable",
+  },
   CLAWHUB_INSTALL_ERROR_CODE: {
     PACKAGE_NOT_FOUND: "package_not_found",
     VERSION_NOT_FOUND: "version_not_found",
     ARTIFACT_UNAVAILABLE: "artifact_unavailable",
     ARTIFACT_DOWNLOAD_UNAVAILABLE: "artifact_download_unavailable",
   },
+  installPluginFromCoreHub: mocks.installPluginFromClawHub,
   installPluginFromClawHub: mocks.installPluginFromClawHub,
 }));
 

@@ -165,6 +165,8 @@ const INTENTIONALLY_DEPRECATED_UPSTREAM_PATHS = new Set([
   "src/infra/tmp-openclaw-dir.test.ts",
   "src/mcp/openclaw-tools-serve.ts",
   "src/mcp/openclaw-tools-serve.test.ts",
+  "src/plugins/clawhub.ts",
+  "src/plugins/clawhub.test.ts",
 ]);
 
 const legacyAcpExtensionDomain = ["extensions", `acp${"x"}`].join("/");
@@ -246,6 +248,12 @@ function normalizeCoreBlowPath(path) {
   }
   if (path === "src/mcp/openclaw-tools-serve.test.ts") {
     return "src/mcp/coreblow-tools-serve.test.ts";
+  }
+  if (path === "src/plugins/clawhub.ts") {
+    return "src/plugins/corehub.ts";
+  }
+  if (path === "src/plugins/clawhub.test.ts") {
+    return "src/plugins/corehub.test.ts";
   }
   // CoreBlow inlines Discord reaction listener logic in listeners.ts instead of
   // a separate listeners.reactions.ts file.

@@ -44,13 +44,20 @@ vi.mock("../plugins/install.js", () => ({
 }));
 
 const installPluginFromClawHub = vi.hoisted(() => vi.fn());
-vi.mock("../plugins/clawhub.js", () => ({
+vi.mock("../plugins/corehub.js", () => ({
+  COREHUB_INSTALL_ERROR_CODE: {
+    PACKAGE_NOT_FOUND: "package_not_found",
+    VERSION_NOT_FOUND: "version_not_found",
+    ARTIFACT_UNAVAILABLE: "artifact_unavailable",
+    ARTIFACT_DOWNLOAD_UNAVAILABLE: "artifact_download_unavailable",
+  },
   CLAWHUB_INSTALL_ERROR_CODE: {
     PACKAGE_NOT_FOUND: "package_not_found",
     VERSION_NOT_FOUND: "version_not_found",
     ARTIFACT_UNAVAILABLE: "artifact_unavailable",
     ARTIFACT_DOWNLOAD_UNAVAILABLE: "artifact_download_unavailable",
   },
+  installPluginFromCoreHub: installPluginFromClawHub,
   installPluginFromClawHub,
 }));
 
@@ -723,7 +730,7 @@ describe("ensureOnboardingPluginInstalled", () => {
     });
 
     expect(captured?.options).toEqual([
-      { value: "clawhub", label: "Download from ClawHub (clawhub:demo-plugin@2026.5.2)" },
+      { value: "clawhub", label: "Download from CoreHub (clawhub:demo-plugin@2026.5.2)" },
       { value: "npm", label: "Download from npm (@openclaw/demo-plugin@2026.5.2)" },
       { value: "skip", label: "Skip for now" },
     ]);

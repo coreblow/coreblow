@@ -10,8 +10,8 @@ import {
   findBundledPluginSourceInMap,
   resolveBundledPluginSources,
 } from "../plugins/bundled-sources.js";
-import { buildClawHubPluginInstallRecordFields } from "../plugins/clawhub-install-records.js";
-import { CLAWHUB_INSTALL_ERROR_CODE } from "../plugins/clawhub.js";
+import { buildCoreHubPluginInstallRecordFields } from "../plugins/corehub-install-records.js";
+import { CLAWHUB_INSTALL_ERROR_CODE } from "../plugins/corehub.js";
 import { enablePluginInConfig, type PluginEnableResult } from "../plugins/enable.js";
 import {
   resolveClawHubInstallSpecsForUpdateChannel,
@@ -40,7 +40,7 @@ import type { WizardPrompter } from "../wizard/prompts.js";
 
 type InstallChoice = "clawhub" | "npm" | "local" | "skip";
 type InstallPluginFromClawHubResult = Awaited<
-  ReturnType<(typeof import("../plugins/clawhub.js"))["installPluginFromClawHub"]>
+  ReturnType<(typeof import("../plugins/corehub.js"))["installPluginFromCoreHub"]>
 >;
 const ONBOARDING_PLUGIN_INSTALL_TIMEOUT_MS = 5 * 60 * 1000;
 const ONBOARDING_PLUGIN_INSTALL_WATCHDOG_TIMEOUT_MS = ONBOARDING_PLUGIN_INSTALL_TIMEOUT_MS + 5_000;
@@ -915,7 +915,9 @@ async function installPluginFromClawHubSpecWithProgress(params: {
   };
 
   try {
-    const { installPluginFromClawHub } = await import("../plugins/clawhub.js");
+    const { installPluginFromCoreHub: installPluginFromClawHub } = await import(
+      "../plugins/corehub.js"
+    );
     const result = await withTimeout(
       installPluginFromClawHub({
         spec: params.clawhubSpec,
@@ -1126,7 +1128,9 @@ export async function ensureOnboardingPluginInstalled(params: {
       next = enableResult.config;
       next = recordPluginInstall(next, {
         pluginId: result.pluginId,
-        ...buildClawHubPluginInstallRecordFields(result.clawhub),
+        ...buildCoreHubPluginInstallRecordFields(
+          result.corehub ?? (result as { clawhub?: unknown }).clawhub ?? {},
+        ),
         spec: clawhubSpecs?.recordSpec ?? clawhubInstallSpec,
         installPath: result.targetDir,
       });
