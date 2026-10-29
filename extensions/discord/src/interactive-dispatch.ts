@@ -1,8 +1,10 @@
-import { dispatchPluginInteractiveHandler } from "coreblow/plugin-sdk/plugin-runtime";
-import type {
-  PluginConversationBinding,
-  PluginConversationBindingRequestParams,
-  PluginConversationBindingRequestResult,
+import {
+  createInteractiveConversationBindingHelpers,
+  dispatchPluginInteractiveHandler,
+  type PluginConversationBinding,
+  type PluginConversationBindingRequestParams,
+  type PluginConversationBindingRequestResult,
+  type PluginInteractiveRegistration,
 } from "coreblow/plugin-sdk/plugin-runtime";
 
 export type DiscordInteractiveHandlerContext = {
@@ -40,6 +42,11 @@ export type DiscordInteractiveHandlerContext = {
   getCurrentConversationBinding: () => Promise<PluginConversationBinding | null>;
 };
 
+export type DiscordInteractiveHandlerRegistration = PluginInteractiveRegistration<
+  DiscordInteractiveHandlerContext,
+  "discord"
+>;
+
 type DiscordInteractiveDispatchContext = Omit<
   DiscordInteractiveHandlerContext,
   | "interaction"
@@ -61,16 +68,33 @@ export async function dispatchDiscordPluginInteractiveHandler(params: {
   ctx: DiscordInteractiveDispatchContext;
   respond: DiscordInteractiveHandlerContext["respond"];
   onMatched?: () => Promise<void> | void;
-}): ReturnType<typeof dispatchPluginInteractiveHandler> {
-  const { dispatchPluginInteractiveHandler: dispatch } = await import(
-    "coreblow/plugin-sdk/plugin-runtime"
-  );
-  return dispatch({
+}) {
+  return await dispatchPluginInteractiveHandler<DiscordInteractiveHandlerRegistration>({
     channel: "discord",
     data: params.data,
-    interactionId: params.interactionId,
-    ctx: params.ctx,
-    respond: params.respond,
+    dedupeId: params.interactionId,
     onMatched: params.onMatched,
+    invoke: ({ registration, namespace, payload }) =>
+      registration.handler({
+        ...params.ctx,
+        channel: "discord",
+        interaction: {
+          ...params.ctx.interaction,
+          data: params.data,
+          namespace,
+          payload,
+        },
+        respond: params.respond,
+        ...createInteractiveConversationBindingHelpers({
+          registration,
+          senderId: params.ctx.senderId,
+          conversation: {
+            channel: "discord",
+            accountId: params.ctx.accountId,
+            conversationId: params.ctx.conversationId,
+            parentConversationId: params.ctx.parentConversationId,
+          },
+        }),
+      }),
   });
 }

@@ -21,6 +21,8 @@ export type ChannelDefaultsConfig = {
   groupPolicy?: GroupPolicy;
   /** Default heartbeat visibility for all channels. */
   heartbeat?: ChannelHeartbeatVisibilityConfig;
+  /** Sliding-window bot-pair loop guard for accepted bot-authored messages. */
+  botLoopProtection?: import("./types.bot-loop-protection.js").ChannelBotLoopProtectionConfig;
 };
 
 export type ChannelModelByChannelConfig = Record<string, Record<string, string>>;

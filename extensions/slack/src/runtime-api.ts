@@ -4,21 +4,30 @@ export {
   projectCredentialSnapshotFields,
   resolveConfiguredFromRequiredCredentialStatuses,
 } from "coreblow/plugin-sdk/channel-status";
+export { buildChannelConfigSchema, SlackConfigSchema } from "../config-api.js";
+export type { ChannelMessageActionContext } from "coreblow/plugin-sdk/channel-contract";
 export { DEFAULT_ACCOUNT_ID } from "coreblow/plugin-sdk/account-id";
+export type {
+  ChannelPlugin,
+  CoreBlowPluginApi,
+  CoreBlowPluginApi as OpenClawPluginApi,
+  PluginRuntime,
+} from "coreblow/plugin-sdk/channel-plugin-common";
+export type { CoreBlowConfig, CoreBlowConfig as OpenClawConfig } from "coreblow/plugin-sdk/config-contracts";
+export type { SlackAccountConfig } from "coreblow/plugin-sdk/config-contracts";
 export {
-  looksLikeSlackTargetId,
-  normalizeSlackMessagingTarget,
-} from "coreblow/plugin-sdk/slack-targets";
-export type { ChannelPlugin, CoreBlowConfig, SlackAccountConfig } from "coreblow/plugin-sdk/slack";
+  emptyPluginConfigSchema,
+  formatPairingApproveHint,
+} from "coreblow/plugin-sdk/channel-plugin-common";
+export { loadOutboundMediaFromUrl } from "coreblow/plugin-sdk/outbound-media";
+export { looksLikeSlackTargetId, normalizeSlackMessagingTarget } from "./target-parsing.js";
+export { getChatChannelMeta } from "./channel-api.js";
 export {
-  buildChannelConfigSchema,
-  getChatChannelMeta,
   createActionGate,
   imageResultFromFile,
   jsonResult,
   readNumberParam,
   readReactionParams,
   readStringParam,
-  SlackConfigSchema,
   withNormalizedTimestamp,
-} from "coreblow/plugin-sdk/slack-core";
+} from "coreblow/plugin-sdk/channel-actions";

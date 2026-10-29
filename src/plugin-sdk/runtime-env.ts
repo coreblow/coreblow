@@ -28,3 +28,4 @@ export { retryAsync } from "../infra/retry.js";
 export { ensureGlobalUndiciEnvProxyDispatcher } from "../infra/net/undici-global-dispatcher.js";
 export { registerUnhandledRejectionHandler } from "../infra/unhandled-rejections.js";
 export { isWSL2Sync } from "../infra/wsl.js";
+export { sleep } from "../utils.js";

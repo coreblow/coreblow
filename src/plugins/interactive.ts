@@ -30,9 +30,15 @@ type InteractiveRegistrationResult = {
   error?: string;
 };
 
-type InteractiveDispatchResult =
+export type InteractiveDispatchResult<TResult = unknown> =
   | { matched: false; handled: false; duplicate: false }
-  | { matched: true; handled: boolean; duplicate: boolean };
+  | { matched: true; handled: boolean; duplicate: boolean; result?: TResult };
+
+export type PluginInteractiveMatch<TRegistration extends { channel: string; namespace: string }> = {
+  registration: RegisteredInteractiveHandler & TRegistration;
+  namespace: string;
+  payload: string;
+};
 
 type InteractiveState = {
   interactiveHandlers: Map<string, RegisteredInteractiveHandler>;
@@ -195,16 +201,27 @@ export async function dispatchPluginInteractiveHandler(params: {
   respond: PluginInteractiveSlackHandlerContext["respond"];
   onMatched?: () => Promise<void> | void;
 }): Promise<InteractiveDispatchResult>;
+export async function dispatchPluginInteractiveHandler<
+  TRegistration extends { channel: string; namespace: string } = { channel: string; namespace: string },
+  TResult extends { handled?: boolean } | void = { handled?: boolean } | void,
+>(params: {
+  channel: TRegistration["channel"];
+  data: string;
+  dedupeId?: string;
+  onMatched?: () => Promise<void> | void;
+  invoke: (match: PluginInteractiveMatch<TRegistration>) => Promise<TResult> | TResult;
+}): Promise<InteractiveDispatchResult<TResult>>;
 export async function dispatchPluginInteractiveHandler(params: {
   channel: "telegram" | "discord" | "slack";
   data: string;
+  dedupeId?: string;
   callbackId?: string;
   interactionId?: string;
-  ctx:
+  ctx?:
     | TelegramInteractiveDispatchContext
     | DiscordInteractiveDispatchContext
     | SlackInteractiveDispatchContext;
-  respond:
+  respond?:
     | {
         reply: (params: { text: string; buttons?: PluginInteractiveButtons }) => Promise<void>;
         editMessage: (params: {
@@ -217,8 +234,9 @@ export async function dispatchPluginInteractiveHandler(params: {
       }
     | PluginInteractiveDiscordHandlerContext["respond"]
     | PluginInteractiveSlackHandlerContext["respond"];
+  invoke?: (match: any) => Promise<any> | any;
   onMatched?: () => Promise<void> | void;
-}): Promise<InteractiveDispatchResult> {
+}): Promise<InteractiveDispatchResult<any>> {
   const callbackDedupe = getCallbackDedupe();
   const match = resolveNamespaceMatch(params.channel, params.data);
   if (!match) {
@@ -226,12 +244,31 @@ export async function dispatchPluginInteractiveHandler(params: {
   }
 
   const dedupeKey =
-    params.channel === "telegram" ? params.callbackId?.trim() : params.interactionId?.trim();
+    params.dedupeId?.trim() ||
+    (params.channel === "telegram" ? params.callbackId?.trim() : params.interactionId?.trim());
   if (dedupeKey && callbackDedupe.peek(dedupeKey)) {
     return { matched: true, handled: true, duplicate: true };
   }
 
   await params.onMatched?.();
+
+  if (typeof params.invoke === "function") {
+    const resolved = await params.invoke(match);
+    if (dedupeKey) {
+      callbackDedupe.check(dedupeKey);
+    }
+    const shouldExposeResult =
+      !!resolved &&
+      typeof resolved === "object" &&
+      Object.keys(resolved as Record<string, unknown>).some((key) => key !== "handled");
+
+    return {
+      matched: true,
+      handled: resolved?.handled ?? true,
+      duplicate: false,
+      ...(shouldExposeResult ? { result: resolved } : {}),
+    };
+  }
 
   let result:
     | ReturnType<PluginInteractiveTelegramHandlerRegistration["handler"]>

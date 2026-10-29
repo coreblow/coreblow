@@ -166,6 +166,9 @@ export type PluginRuntimeCore = {
   };
   state: {
     resolveStateDir: typeof import("../../config/paths.js").resolveStateDir;
+    openKeyedStore?: <T>(
+      options: import("../../plugin-state/plugin-state-store.types.js").OpenKeyedStoreOptions,
+    ) => import("../../plugin-state/plugin-state-store.types.js").PluginStateKeyedStore<T>;
   };
   modelAuth: {
     /** Resolve auth for a model. Only provider/model and optional cfg are used. */

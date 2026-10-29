@@ -1,4 +1,6 @@
 import type { ReplyPayload } from "../../auto-reply/types.js";
+import type { OutboundMediaAccess } from "../../media/load-options.js";
+import type { MessagePresentation } from "../../interactive/payload.js";
 /** Stub: planned binding rule type */
 type ConfiguredBindingRule = Record<string, unknown>;
 import type { CoreBlowConfig } from "../../config/config.js";
@@ -13,6 +15,8 @@ import type {
 } from "../../infra/plugin-approvals.js";
 import type { PluginRuntime } from "../../plugins/runtime/types.js";
 import type { RuntimeEnv } from "../../runtime.js";
+import type { ChannelApprovalKind } from "../../infra/approval-types.js";
+import type { ChannelApprovalNativeAdapter } from "./approval-native.types.js";
 import type { ConfigWriteTarget } from "./config-writes.js";
 import type {
   ChannelAccountSnapshot,
@@ -30,10 +34,18 @@ import type {
   ChannelStatusIssue,
 } from "./types.core.js";
 
-export type ChannelExecApprovalInitiatingSurfaceState =
+export type ChannelActionAvailabilityState =
   | { kind: "enabled" }
   | { kind: "disabled" }
   | { kind: "unsupported" };
+
+export type ChannelApprovalInitiatingSurfaceState = ChannelActionAvailabilityState;
+export type ChannelExecApprovalInitiatingSurfaceState = ChannelActionAvailabilityState;
+
+export type ChannelApproveCommandBehavior =
+  | { kind: "allow" }
+  | { kind: "ignore" }
+  | { kind: "reply"; text: string };
 
 export type ChannelExecApprovalForwardTarget = {
   channel: string;
@@ -139,7 +151,9 @@ export type ChannelOutboundContext = {
   text: string;
   mediaUrl?: string;
   audioAsVoice?: boolean;
+  mediaAccess?: OutboundMediaAccess;
   mediaLocalRoots?: readonly string[];
+  mediaReadFile?: (filePath: string) => Promise<Buffer>;
   gifPlayback?: boolean;
   /** Send image as document to avoid Telegram compression. */
   forceDocument?: boolean;
@@ -150,6 +164,7 @@ export type ChannelOutboundContext = {
   deps?: OutboundSendDeps;
   silent?: boolean;
   gatewayClientScopes?: readonly string[];
+  deliveredByPipeline?: boolean;
 };
 
 export type ChannelOutboundPayloadContext = ChannelOutboundContext & {
@@ -158,6 +173,37 @@ export type ChannelOutboundPayloadContext = ChannelOutboundContext & {
 
 export type ChannelOutboundFormattedContext = ChannelOutboundContext & {
   abortSignal?: AbortSignal;
+};
+
+export type ChannelPresentationCapabilities = {
+  supported?: boolean;
+  buttons?: boolean;
+  selects?: boolean;
+  context?: boolean;
+  divider?: boolean;
+  limits?: {
+    actions?: {
+      maxActions?: number;
+      maxActionsPerRow?: number;
+      maxRows?: number;
+      maxLabelLength?: number;
+      maxValueBytes?: number;
+      supportsStyles?: boolean;
+      supportsDisabled?: boolean;
+      supportsLayoutHints?: boolean;
+    };
+    selects?: {
+      maxOptions?: number;
+      maxLabelLength?: number;
+      maxValueBytes?: number;
+    };
+    text?: {
+      maxLength?: number;
+      encoding?: "characters" | "utf8-bytes";
+      markdownDialect?: "slack-mrkdwn" | "standard" | "telegram" | string;
+      supportsEdit?: boolean;
+    };
+  };
 };
 
 export type ChannelOutboundAdapter = {
@@ -171,7 +217,13 @@ export type ChannelOutboundAdapter = {
     cfg?: CoreBlowConfig;
     accountId?: string | null;
   }) => ReplyPayload | null;
+  presentationCapabilities?: ChannelPresentationCapabilities;
   deliveryCapabilities?: Record<string, unknown>;
+  renderPresentation?: (params: {
+    payload: ReplyPayload;
+    presentation: MessagePresentation;
+    ctx: ChannelOutboundPayloadContext;
+  }) => Promise<ReplyPayload | null> | ReplyPayload | null;
   shouldSuppressLocalPayloadPrompt?: (params: {
     cfg: CoreBlowConfig;
     accountId?: string | null;
@@ -520,6 +572,7 @@ export type ChannelExecApprovalAdapter = {
   hasConfiguredDmRoute?: (params: { cfg: CoreBlowConfig }) => boolean;
   shouldSuppressForwardingFallback?: (params: {
     cfg: CoreBlowConfig;
+    approvalKind: ChannelApprovalKind;
     target: ChannelExecApprovalForwardTarget;
     request: ExecApprovalRequest;
   }) => boolean;
@@ -552,15 +605,49 @@ export type ChannelExecApprovalAdapter = {
   }) => ReplyPayload | null;
 };
 
-export type ChannelApprovalCapability = {
-  delivery?: unknown;
+export type ChannelApprovalDeliveryAdapter = ChannelExecApprovalAdapter;
+
+export type ChannelApprovalAdapter = {
+  delivery?: ChannelApprovalDeliveryAdapter;
   nativeRuntime?: unknown;
   render?: unknown;
-  native?: unknown;
-  describeExecApprovalSetup?: unknown;
-  authorizeActorAction?: unknown;
-  getActionAvailabilityState?: unknown;
-  resolveApproveCommandBehavior?: unknown;
+  native?: ChannelApprovalNativeAdapter;
+  describeExecApprovalSetup?: (params: {
+    channel: string;
+    channelLabel: string;
+    accountId?: string;
+  }) => string | null | undefined;
+};
+
+export type ChannelApprovalCapability = ChannelApprovalAdapter & {
+  authorizeActorAction?: (params: {
+    cfg: CoreBlowConfig;
+    accountId?: string | null;
+    senderId?: string | null;
+    action: "approve";
+    approvalKind: "exec" | "plugin";
+  }) => {
+    authorized: boolean;
+    reason?: string;
+  };
+  getActionAvailabilityState?: (params: {
+    cfg: CoreBlowConfig;
+    accountId?: string | null;
+    action: "approve";
+    approvalKind?: ChannelApprovalKind;
+  }) => ChannelActionAvailabilityState;
+  /** Exec-native client availability for the initiating surface; distinct from same-chat auth. */
+  getExecInitiatingSurfaceState?: (params: {
+    cfg: CoreBlowConfig;
+    accountId?: string | null;
+    action: "approve";
+  }) => ChannelActionAvailabilityState;
+  resolveApproveCommandBehavior?: (params: {
+    cfg: CoreBlowConfig;
+    accountId?: string | null;
+    senderId?: string | null;
+    approvalKind: ChannelApprovalKind;
+  }) => ChannelApproveCommandBehavior | undefined;
 };
 
 export type ChannelAllowlistAdapter = {

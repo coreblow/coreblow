@@ -1949,6 +1949,20 @@ export type PluginInteractiveHandlerRegistration =
   | PluginInteractiveDiscordHandlerRegistration
   | PluginInteractiveSlackHandlerRegistration;
 
+export type PluginInteractiveHandlerResult = {
+  handled?: boolean;
+} | void;
+
+export type PluginInteractiveRegistration<
+  TContext = unknown,
+  TChannel extends string = string,
+  TResult = PluginInteractiveHandlerResult,
+> = {
+  channel: TChannel;
+  namespace: string;
+  handler: (ctx: TContext) => Promise<TResult> | TResult;
+};
+
 export type CoreBlowPluginHttpRouteAuth = "gateway" | "plugin";
 export type CoreBlowPluginHttpRouteMatch = "exact" | "prefix";
 

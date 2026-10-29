@@ -5,6 +5,7 @@ import type {
   MarkdownConfig,
   ReplyToMode,
 } from "./types.base.js";
+import type { ChannelBotLoopProtectionConfig } from "./types.bot-loop-protection.js";
 import type {
   ChannelHealthMonitorConfig,
   ChannelHeartbeatVisibilityConfig,
@@ -37,8 +38,10 @@ export type SlackChannelConfig = {
   /** Optional tool policy overrides for this channel. */
   tools?: GroupToolPolicyConfig;
   toolsBySender?: GroupToolPolicyBySenderConfig;
-  /** Allow bot-authored messages to trigger replies (default: false). */
-  allowBots?: boolean;
+  /** Allow bot-authored messages to trigger replies (default: false). Set to "mentions" to only allow bot messages that @mention this bot. */
+  allowBots?: boolean | "mentions";
+  /** Sliding-window bot-pair loop guard for accepted bot-authored Slack messages. */
+  botLoopProtection?: ChannelBotLoopProtectionConfig;
   /** Allowlist of users that can invoke the bot in this channel. */
   users?: Array<string | number>;
   /** Optional skill filter for this channel. */
@@ -50,6 +53,19 @@ export type SlackChannelConfig = {
 export type SlackReactionNotificationMode = "off" | "own" | "all" | "allowlist";
 export type SlackStreamingMode = "off" | "partial" | "block" | "progress";
 export type SlackLegacyStreamMode = "replace" | "status_final" | "append";
+export type SlackExecApprovalTarget = "dm" | "channel" | "both";
+export type SlackExecApprovalConfig = {
+  /** Enable mode for Slack exec approvals on this account. Default: auto when approvers can be resolved; false disables. */
+  enabled?: import("./types.approvals.js").NativeExecApprovalEnableMode;
+  /** Slack user IDs allowed to approve exec requests. Optional: falls back to commands.ownerAllowFrom when possible. */
+  approvers?: Array<string | number>;
+  /** Only forward approvals for these agent IDs. Omit = all agents. */
+  agentFilter?: string[];
+  /** Only forward approvals matching these session key patterns (substring or regex). */
+  sessionFilter?: string[];
+  /** Where to send approval prompts. Default: "dm". */
+  target?: SlackExecApprovalTarget;
+};
 export type SlackCapabilitiesConfig =
   | string[]
   | {
@@ -85,6 +101,23 @@ export type SlackThreadConfig = {
   inheritParent?: boolean;
   /** Maximum number of thread messages to fetch as context when starting a new thread session (default: 20). Set to 0 to disable thread history fetching. */
   initialHistoryLimit?: number;
+  /**
+   * If true, require explicit @mention even inside threads where the bot has
+   * previously participated. By default (false), replying in a thread where
+   * the bot is a participant counts as an implicit mention and bypasses
+   * requireMention gating. Set to true to suppress implicit thread mentions
+   * so only explicit @bot mentions trigger replies in threads.
+   */
+  requireExplicitMention?: boolean;
+};
+
+export type SlackSocketModeConfig = {
+  /** Slack SDK pong timeout in milliseconds. Socket Mode only. Default: 15000. */
+  clientPingTimeout?: number;
+  /** Slack SDK server ping timeout in milliseconds. Socket Mode only. */
+  serverPingTimeout?: number;
+  /** Enable Slack SDK ping/pong heartbeat logging. Socket Mode only. */
+  pingPongLogging?: boolean;
 };
 
 export type SlackAccountConfig = {
@@ -92,12 +125,16 @@ export type SlackAccountConfig = {
   name?: string;
   /** Slack connection mode (socket|http). Default: socket. */
   mode?: "socket" | "http";
+  /** Optional Socket Mode configuration overrides. */
+  socketMode?: SlackSocketModeConfig;
   /** Slack signing secret (required for HTTP mode). */
   signingSecret?: string;
   /** Slack Events API webhook path (default: /slack/events). */
   webhookPath?: string;
   /** Optional provider capability tags used for agent/runtime guidance. */
   capabilities?: SlackCapabilitiesConfig;
+  /** Slack-native exec approval delivery + approver authorization. */
+  execApprovals?: SlackExecApprovalConfig;
   /** Markdown formatting overrides (tables). */
   markdown?: MarkdownConfig;
   /** Override native command registration for Slack (bool or "auto"). */
@@ -111,8 +148,10 @@ export type SlackAccountConfig = {
   userToken?: string;
   /** If true, restrict user token to read operations only. Default: true. */
   userTokenReadOnly?: boolean;
-  /** Allow bot-authored messages to trigger replies (default: false). */
-  allowBots?: boolean;
+  /** Allow bot-authored messages to trigger replies (default: false). Set to "mentions" to only allow bot messages that @mention this bot. */
+  allowBots?: boolean | "mentions";
+  /** Sliding-window bot-pair loop guard for accepted bot-authored Slack messages. */
+  botLoopProtection?: ChannelBotLoopProtectionConfig;
   /**
    * Break-glass override: allow mutable identity matching (name/slug) in allowlists.
    * Default behavior is ID-only matching.
@@ -134,6 +173,10 @@ export type SlackAccountConfig = {
   /** Per-DM config overrides keyed by user ID. */
   dms?: Record<string, DmConfig>;
   textChunkLimit?: number;
+  /** Pass through Slack chat.postMessage link unfurl control. Default: false. */
+  unfurlLinks?: boolean;
+  /** Pass through Slack chat.postMessage media unfurl control. Omitted by default. */
+  unfurlMedia?: boolean;
   /** Chunking mode: "length" (default) splits by size; "newline" splits on every newline. */
   chunkMode?: "length" | "newline";
   blockStreaming?: boolean;

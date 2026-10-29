@@ -166,11 +166,13 @@ function createPluginHandler(
     replyToId?: string | null;
     threadId?: string | number | null;
     audioAsVoice?: boolean;
+    deliveredByPipeline?: boolean;
   }): Omit<ChannelOutboundContext, "text" | "mediaUrl"> => ({
     ...baseCtx,
     replyToId: overrides?.replyToId ?? baseCtx.replyToId,
     threadId: overrides?.threadId ?? baseCtx.threadId,
     audioAsVoice: overrides?.audioAsVoice,
+    deliveredByPipeline: true,
   });
   return {
     chunker,
@@ -692,6 +694,7 @@ async function deliverOutboundPayloadsCore(
         threadId: params.threadId ?? undefined,
         audioAsVoice: effectivePayload.audioAsVoice === true ? true : undefined,
         forceDocument: params.forceDocument,
+        deliveredByPipeline: true,
       };
       if (
         handler.sendPayload &&

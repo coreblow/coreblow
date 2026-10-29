@@ -4,6 +4,8 @@ export type {
   BaseTokenResolution,
   ChannelAgentTool,
   ChannelAccountSnapshot,
+  ChannelApprovalCapability,
+  ChannelCapabilities,
   ChannelCommandConversationContext,
   ChannelGroupContext,
   ChannelMessageActionAdapter,
@@ -12,23 +14,13 @@ export type {
   ChannelMessageActionName,
   ChannelMessageToolDiscovery,
   ChannelMessageToolSchemaContribution,
+  ChannelMeta,
   ChannelStatusIssue,
   ChannelThreadingContext,
   ChannelThreadingToolContext,
 } from "../channels/plugins/types.js";
 export type { ChannelRuntimeSurface } from "../channels/plugins/channel-runtime-surface.types.js";
 
-export type ChannelGatewayContext<TAccount = unknown> = {
-  cfg: Record<string, unknown>;
-  account: TAccount;
-  abortSignal: AbortSignal;
-  log?: {
-    warn?: (message: string) => void;
-    info?: (message: string) => void;
-    error?: (message: string) => void;
-  };
-  setStatus: (status: Record<string, unknown>) => void;
-};
 export type {
   ChannelDirectoryAdapter,
   ChannelDoctorAdapter,
@@ -36,6 +28,7 @@ export type {
   ChannelDoctorEmptyAllowlistAccountContext,
   ChannelDoctorLegacyConfigRule,
   ChannelDoctorSequenceResult,
+  ChannelGatewayContext,
 } from "../channels/plugins/types.adapters.js";
 export type {
   ChannelDirectoryEntry,

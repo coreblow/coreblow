@@ -185,12 +185,6 @@ declare module '@mariozechner/pi-ai/oauth' {
   export function refreshOAuthToken(...args: any[]): any;
 }
 
-declare module '@slack/bolt' {
-  export class App { constructor(opts: any); start(...args: any[]): any; }
-  export type SlackEventMiddlewareArgs<T = any> = any;
-  export type SlackActionMiddlewareArgs = any;
-  export type SlackCommandMiddlewareArgs = any;
-}
 
 declare module '@homebridge/ciao' {
   export function getResponder(...args: any[]): Responder;

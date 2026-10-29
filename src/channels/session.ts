@@ -6,6 +6,8 @@ import {
   updateLastRoute,
 } from "../config/sessions.js";
 
+export type { GroupKeyResolution } from "../config/sessions.js";
+
 function normalizeSessionStoreKey(sessionKey: string): string {
   return sessionKey.trim().toLowerCase();
 }
@@ -46,16 +48,19 @@ export async function recordInboundSession(params: {
   createIfMissing?: boolean;
   updateLastRoute?: InboundLastRouteUpdate;
   onRecordError: (err: unknown) => void;
+  trackSessionMetaTask?: (task: Promise<unknown>) => void;
 }): Promise<void> {
   const { storePath, sessionKey, ctx, groupResolution, createIfMissing } = params;
   const canonicalSessionKey = normalizeSessionStoreKey(sessionKey);
-  void recordSessionMetaFromInbound({
+  const task = recordSessionMetaFromInbound({
     storePath,
     sessionKey: canonicalSessionKey,
     ctx,
     groupResolution,
     createIfMissing,
   }).catch(params.onRecordError);
+  params.trackSessionMetaTask?.(task);
+  void task;
 
   const update = params.updateLastRoute;
   if (!update) {

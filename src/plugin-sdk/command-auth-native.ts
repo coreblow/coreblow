@@ -34,3 +34,4 @@ export {
 export { resolveStoredModelOverride } from "../auto-reply/reply/model-selection.js";
 export type { ModelsProviderData } from "../auto-reply/reply/commands-models.js";
 export { listSkillCommandsForAgents } from "../auto-reply/skill-commands.js";
+export { listProviderPluginCommandSpecs } from "../plugins/command-specs.js";

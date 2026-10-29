@@ -1,4 +1,5 @@
 import { Mock, vi } from "vitest";
+import { clearSlackInboundDeliveryStateForTest } from "./monitor/inbound-delivery-state.js";
 
 type SlackHandler = (args: unknown) => Promise<void>;
 type SlackMiddleware = (args: { next: () => Promise<void> } & Record<string, unknown>) => unknown;
@@ -191,6 +192,7 @@ export const defaultSlackTestConfig = () => ({
 });
 
 export function resetSlackTestState(config: Record<string, unknown> = defaultSlackTestConfig()) {
+  clearSlackInboundDeliveryStateForTest();
   slackTestState.config = config;
   slackTestState.sendMock.mockReset().mockResolvedValue(undefined);
   slackTestState.replyMock.mockReset();
@@ -231,10 +233,8 @@ vi.mock("./monitor/reply.runtime.js", async () => {
   );
   type DispatchParams = Parameters<typeof actual.dispatchInboundMessage>[0];
   type ReplyResolver = NonNullable<DispatchParams["replyResolver"]>;
-  const replyResolver: ReplyResolver = (...args) => {
-    slackTestState.replyMock(...args);
-    return Promise.resolve({ text: "ok" } as ReturnType<ReplyResolver>);
-  };
+  const replyResolver: ReplyResolver = (...args) =>
+    slackTestState.replyMock(...args) as ReturnType<ReplyResolver>;
   return {
     ...actual,
     dispatchInboundMessage: (params: Parameters<typeof actual.dispatchInboundMessage>[0]) =>

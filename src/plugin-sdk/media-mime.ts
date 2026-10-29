@@ -1,1 +1,7 @@
-export { detectMime, extensionForMime, kindFromMime, normalizeMimeType } from "../media/mime.js";
+export {
+  detectMime,
+  extensionForMime,
+  kindFromMime,
+  mimeTypeFromFilePath,
+  normalizeMimeType,
+} from "../media/mime.js";

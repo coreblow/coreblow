@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { CoreBlowConfig } from "../../../src/config/config.js";
+import type { CoreBlowConfig } from "./runtime-api.js";
 
 const sendMessageSlackMock = vi.hoisted(() => vi.fn());
 const getGlobalHookRunnerMock = vi.hoisted(() => vi.fn());
@@ -8,7 +8,8 @@ vi.mock("./send.js", () => ({
   sendMessageSlack: sendMessageSlackMock,
 }));
 
-vi.mock("coreblow/plugin-sdk/plugin-runtime", () => ({
+vi.mock("coreblow/plugin-sdk/plugin-runtime", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
   getGlobalHookRunner: getGlobalHookRunnerMock,
 }));
 

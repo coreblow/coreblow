@@ -400,3 +400,76 @@ export async function deliverFormattedTextWithAttachments(params: {
   });
   return true;
 }
+
+export type { ReplyPayload, ReplyPayloadTtsSupplement } from "../auto-reply/types.js";
+
+function normalizeTtsSupplementSpokenText(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value : undefined;
+}
+
+function hasReplyPayloadMedia(payload: Pick<import("../auto-reply/types.js").ReplyPayload, "mediaUrl" | "mediaUrls">): boolean {
+  return Boolean(payload.mediaUrl?.trim() || payload.mediaUrls?.some((url) => url.trim()));
+}
+
+export function getReplyPayloadTtsSupplement(
+  payload: Pick<import("../auto-reply/types.js").ReplyPayload, "mediaUrl" | "mediaUrls" | "ttsSupplement">,
+): import("../auto-reply/types.js").ReplyPayloadTtsSupplement | undefined {
+  const spokenText = normalizeTtsSupplementSpokenText(payload.ttsSupplement?.spokenText);
+  if (!spokenText || !hasReplyPayloadMedia(payload)) {
+    return undefined;
+  }
+  return {
+    spokenText,
+    ...(payload.ttsSupplement?.visibleTextAlreadyDelivered === true
+      ? { visibleTextAlreadyDelivered: true }
+      : {}),
+  };
+}
+
+export function isReplyPayloadTtsSupplement(
+  payload: Pick<import("../auto-reply/types.js").ReplyPayload, "mediaUrl" | "mediaUrls" | "ttsSupplement">,
+): boolean {
+  return Boolean(getReplyPayloadTtsSupplement(payload));
+}
+
+export function markReplyPayloadAsTtsSupplement<T extends import("../auto-reply/types.js").ReplyPayload>(
+  payload: T,
+  spokenText: string = payload.spokenText ?? payload.text ?? "",
+  options?: { visibleTextAlreadyDelivered?: boolean },
+): T {
+  const normalizedSpokenText = normalizeTtsSupplementSpokenText(spokenText);
+  if (!normalizedSpokenText) {
+    return payload;
+  }
+  return {
+    ...payload,
+    spokenText: normalizedSpokenText,
+    ttsSupplement: {
+      spokenText: normalizedSpokenText,
+      ...(options?.visibleTextAlreadyDelivered === true
+        ? { visibleTextAlreadyDelivered: true }
+        : {}),
+    },
+  };
+}
+
+export function buildTtsSupplementMediaPayload(
+  payload: import("../auto-reply/types.js").ReplyPayload,
+): import("../auto-reply/types.js").ReplyPayload {
+  const supplement = getReplyPayloadTtsSupplement(payload);
+  if (!supplement) {
+    return payload;
+  }
+  const {
+    text: _text,
+    presentation: _presentation,
+    interactive: _interactive,
+    btw: _btw,
+    ...mediaPayload
+  } = payload;
+  return {
+    ...mediaPayload,
+    spokenText: supplement.spokenText,
+    ttsSupplement: supplement,
+  };
+}

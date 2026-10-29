@@ -1058,7 +1058,11 @@ export async function prepareSlackMessage(params: {
   const sourceRepliesAreToolOnly =
     resolveChannelMessageSourceReplyDeliveryMode({
       cfg,
-      ctx: { ChatType: chatType, InboundEventKind: inboundEventKind },
+      ctx: {
+        ChatType: chatType,
+        InboundEventKind: inboundEventKind,
+        WasMentioned: effectiveWasMentioned,
+      },
     }) === "message_tool_only";
   const statusReactionsExplicitlyEnabled = cfg.messages?.statusReactions?.enabled === true;
   const shouldAckReaction = () =>

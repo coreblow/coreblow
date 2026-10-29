@@ -1,5 +1,5 @@
 import { resolveCommandAuthorizedFromAuthorizers } from "../command-gating.js";
-import { resolveMentionGatingWithBypass } from "../mention-gating.js";
+import { resolveInboundMentionDecision } from "../mention-gating.js";
 import { applyMutableIdentifierPolicy, redactedAllowlistDiagnostics } from "./allowlist.js";
 import {
   applyEventAuthModeToSenderGate,
@@ -14,38 +14,6 @@ import type {
   InboundMentionFacts,
   RedactedIngressMatch,
 } from "./types.js";
-
-function resolveInboundMentionDecision(params: {
-  facts: InboundMentionFacts;
-  policy: {
-    isGroup: boolean;
-    requireMention: boolean;
-    allowedImplicitMentionKinds?: readonly string[];
-    allowTextCommands: boolean;
-    hasControlCommand: boolean;
-    commandAuthorized: boolean;
-  };
-}): {
-  shouldSkip: boolean;
-  effectiveWasMentioned: boolean;
-  shouldBypassMention: boolean;
-} {
-  const implicitMention =
-    params.facts.implicitMentionKinds?.some((kind) =>
-      params.policy.allowedImplicitMentionKinds?.includes(kind),
-    ) ?? false;
-  return resolveMentionGatingWithBypass({
-    isGroup: params.policy.isGroup,
-    requireMention: params.policy.requireMention,
-    canDetectMention: params.facts.canDetectMention ?? false,
-    wasMentioned: params.facts.wasMentioned ?? false,
-    implicitMention,
-    hasAnyMention: params.facts.hasAnyMention,
-    allowTextCommands: params.policy.allowTextCommands,
-    hasControlCommand: params.policy.hasControlCommand,
-    commandAuthorized: params.policy.commandAuthorized,
-  });
-}
 
 function decisiveDecision(params: {
   admission: ChannelIngressDecision["admission"];

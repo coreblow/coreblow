@@ -11,11 +11,15 @@ export type {
 export type {
   MessagePresentation,
   MessagePresentationButton,
+  MessagePresentationButtonsBlock,
+  MessagePresentationOption,
+  MessagePresentationSelectBlock,
 } from "../interactive/payload.js";
 export {
   hasInteractiveReplyBlocks,
   hasReplyChannelData,
   hasReplyContent,
   normalizeInteractiveReply,
+  normalizeMessagePresentation,
   resolveInteractiveTextFallback,
 } from "../interactive/payload.js";

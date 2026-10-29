@@ -5,6 +5,7 @@ import type { LookupFn, PinnedDispatcherPolicy, SsrFPolicy } from "../infra/net/
 import { redactSensitiveText } from "../logging/redact.js";
 import { detectMime, extensionForMime } from "./mime.js";
 import { readResponseTextSnippet, readResponseWithLimit } from "./read-response-with-limit.js";
+import { saveMediaBuffer, type SavedMedia } from "./store.js";
 
 type FetchMediaResult = {
   buffer: Buffer;
@@ -93,8 +94,34 @@ function redactMediaUrl(url: string): string {
   return redactSensitiveText(url);
 }
 
+export type SavedRemoteMedia = SavedMedia & {
+  fileName?: string;
+};
+
+export type SaveRemoteMediaOptions = FetchMediaOptions & {
+  fallbackContentType?: string;
+  subdir?: string;
+  originalFilename?: string;
+};
+
 export const readRemoteMediaBuffer = fetchRemoteMedia;
-export const saveRemoteMedia = fetchRemoteMedia;
+
+export async function saveRemoteMedia(options: SaveRemoteMediaOptions): Promise<SavedRemoteMedia> {
+  const fetched = await fetchRemoteMedia(options);
+  const contentType = fetched.contentType ?? options.fallbackContentType;
+  const fileName = options.originalFilename ?? fetched.fileName ?? options.filePathHint;
+  const saved = await saveMediaBuffer(
+    fetched.buffer,
+    contentType,
+    options.subdir ?? "inbound",
+    options.maxBytes,
+    fileName,
+  );
+  return {
+    ...saved,
+    ...(fileName ? { fileName } : {}),
+  };
+}
 export async function fetchRemoteMedia(options: FetchMediaOptions): Promise<FetchMediaResult> {
   const {
     url,

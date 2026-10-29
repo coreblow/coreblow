@@ -92,7 +92,7 @@ export default defineConfig({
             // Wave 3/4: extension pure-logic tests (non-e2e, non-live)
             'extensions/discord/src/**/*.test.ts',
             'extensions/telegram/**/*.test.ts',
-            'extensions/slack/src/**/*.test.ts',
+            'extensions/slack/**/*.test.ts',
             'extensions/matrix/src/**/*.test.ts',
             'extensions/browser/src/**/*.test.ts',
             // Wave 4 Batch 4A-4D: flat extension tests (constants, pure logic)

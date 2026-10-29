@@ -41,8 +41,11 @@ export type SlackMessageEvent = {
   parent_user_id?: string;
   channel: string;
   channel_type?: "im" | "mpim" | "channel" | "group";
+  blocks?: unknown[];
   files?: SlackFile[];
   attachments?: SlackAttachment[];
+  assistant_thread?: Record<string, unknown>;
+  _ambiguousThreadReply?: boolean;
 };
 
 export type SlackAppMentionEvent = {
@@ -58,4 +61,13 @@ export type SlackAppMentionEvent = {
   channel: string;
   channel_type?: "im" | "mpim" | "channel" | "group";
   attachments?: SlackAttachment[];
+};
+
+export type SlackAppHomeOpenedEvent = {
+  type: "app_home_opened";
+  user?: string;
+  channel?: string;
+  tab?: string;
+  view?: unknown;
+  event_ts?: string;
 };

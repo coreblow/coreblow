@@ -1,14 +1,8 @@
 import type { AccessGroupConfig } from "../../config/types.access-groups.js";
+import type { InboundImplicitMentionKind, InboundMentionFacts } from "../mention-gating.js";
 import type { ChannelId } from "../plugins/types.js";
 
-export type InboundImplicitMentionKind = "text-command" | "reply" | "thread" | "channel-default";
-
-export type InboundMentionFacts = {
-  canDetectMention?: boolean;
-  wasMentioned?: boolean;
-  hasAnyMention?: boolean;
-  implicitMentionKinds?: readonly InboundImplicitMentionKind[];
-};
+export type { InboundImplicitMentionKind, InboundMentionFacts };
 
 /** Channel identifier used in ingress diagnostics and config lookups. */
 export type ChannelIngressChannelId = ChannelId;

@@ -5,3 +5,4 @@ export {
   createPinnedDispatcher,
   resolvePinnedHostnameWithPolicy,
 } from "../infra/net/ssrf.js";
+export { fetchWithRuntimeDispatcher } from "../infra/net/runtime-fetch.js";

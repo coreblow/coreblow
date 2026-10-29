@@ -51,10 +51,10 @@ async function loadDiscordSecurityAuditModule() {
 export const discordSecurityAdapter = {
   resolveDmPolicy: resolveDiscordDmPolicy,
   collectWarnings: collectDiscordSecurityWarnings,
-  collectAuditFindings: async (
-    params: Parameters<
-      typeof import("./security-audit.runtime.js").collectDiscordSecurityAuditFindings
-    >[0],
-  ) =>
-    (await loadDiscordSecurityAuditModule()).collectDiscordSecurityAuditFindings(params),
+  collectAuditFindings: async (params) =>
+    (await loadDiscordSecurityAuditModule()).collectDiscordSecurityAuditFindings({
+      ...params,
+      orderedAccountIds: params.orderedAccountIds ?? [],
+      hasExplicitAccountPath: params.hasExplicitAccountPath ?? false,
+    }),
 } satisfies NonNullable<ChannelPlugin<ResolvedDiscordAccount>["security"]>;

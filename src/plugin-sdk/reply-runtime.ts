@@ -43,6 +43,7 @@ export {
   createReplyDispatcherWithTyping,
 } from "../auto-reply/reply/reply-dispatcher.js";
 export type {
+  ReplyDispatchKind,
   ReplyDispatcher,
   ReplyDispatcherOptions,
   ReplyDispatcherWithTypingOptions,

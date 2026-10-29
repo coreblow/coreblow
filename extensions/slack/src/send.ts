@@ -6,6 +6,7 @@ import {
   type MessageReceiptPartKind,
   type MessageReceiptSourceResult,
 } from "coreblow/plugin-sdk/channel-message";
+import { loadConfig } from "coreblow/plugin-sdk/config-runtime";
 import type { CoreBlowConfig } from "coreblow/plugin-sdk/config-contracts";
 import { withTrustedEnvProxyGuardedFetchMode } from "coreblow/plugin-sdk/fetch-runtime";
 import { resolveMarkdownTableMode } from "coreblow/plugin-sdk/markdown-table-runtime";
@@ -36,7 +37,6 @@ import { parseSlackTarget } from "./targets.js";
 import { normalizeSlackThreadTsCandidate } from "./thread-ts.js";
 import { resolveSlackBotToken } from "./token.js";
 import { truncateSlackText } from "./truncate.js";
-
 const SLACK_UPLOAD_SSRF_POLICY = {
   allowedHostnames: ["*.slack.com", "*.slack-edge.com", "*.slack-files.com"],
   allowRfc2544BenchmarkRange: true,
@@ -92,7 +92,7 @@ type SlackBasePostMessagePayload = SlackPostThreadPayload & {
   unfurl_media?: boolean;
 };
 
-type SlackSendOpts = {
+export type SlackSendOpts = {
   cfg?: CoreBlowConfig;
   token?: string;
   accountId?: string;
@@ -148,87 +148,167 @@ function buildSlackPostMessagePayload(params: {
   blocks?: (Block | KnownBlock)[];
   metadata?: MessageMetadata;
   unfurl?: SlackUnfurlOptions;
-}) {
-  const basePayload = {
+}): SlackBasePostMessagePayload {
+  const threadPayload =
+    params.replyBroadcast && params.threadTs
+      ? { thread_ts: params.threadTs, reply_broadcast: true as const }
+      : params.threadTs
+        ? { thread_ts: params.threadTs }
+        : {};
+  const unfurlPayload = buildSlackUnfurlPayload(params.unfurl);
+  if (params.blocks?.length) {
+    return {
+      channel: params.channelId,
+      text: params.text,
+      blocks: params.blocks,
+      ...(params.metadata ? { metadata: params.metadata } : {}),
+      ...threadPayload,
+      ...unfurlPayload,
+    };
+  }
+  return {
     channel: params.channelId,
     text: params.text,
-    ...(params.threadTs
-      ? {
-          thread_ts: params.threadTs,
-          ...(params.replyBroadcast ? { reply_broadcast: true } : {}),
-        }
-      : {}),
-    ...(params.blocks?.length ? { blocks: params.blocks } : {}),
     ...(params.metadata ? { metadata: params.metadata } : {}),
-    ...buildSlackUnfurlPayload(params.unfurl),
-  } as SlackBasePostMessagePayload;
-  return basePayload;
+    ...threadPayload,
+    ...unfurlPayload,
+  };
 }
 
-function extractStringArray(value: unknown): string[] {
-  if (Array.isArray(value)) {
-    return value.filter((entry): entry is string => typeof entry === "string" && entry.length > 0);
-  }
-  if (typeof value === "string") {
-    return value
-      .split(",")
-      .map((entry) => entry.trim())
-      .filter((entry) => entry.length > 0);
-  }
-  return [];
+function normalizeSlackApiString(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
-function formatMissingScopeDetails(data: SlackWebApiErrorData): string {
-  const needed = typeof data.needed === "string" ? data.needed.trim() : "";
-  const granted = extractStringArray(data.response_metadata?.scopes);
-  const accepted = extractStringArray(data.response_metadata?.acceptedScopes);
-  const parts: string[] = [];
+function normalizeSlackScopeList(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.flatMap((scope) => {
+    const normalized = normalizeSlackApiString(scope);
+    return normalized ? [normalized] : [];
+  });
+}
+
+function getSlackWebApiErrorData(err: unknown): SlackWebApiErrorData | undefined {
+  if (!(err instanceof Error)) {
+    return undefined;
+  }
+  const data = (err as SlackWebApiError).data;
+  if (!data || typeof data !== "object") {
+    return undefined;
+  }
+  return data;
+}
+
+function formatSlackWebApiErrorMessage(err: unknown): string | undefined {
+  if (!(err instanceof Error)) {
+    return undefined;
+  }
+  const data = getSlackWebApiErrorData(err);
+  const code = normalizeSlackApiString(data?.error);
+  if (!code) {
+    return undefined;
+  }
+  const details: string[] = [];
+  const needed = normalizeSlackApiString(data?.needed);
   if (needed) {
-    parts.push(`needed: ${needed}`);
+    details.push(`needed: ${needed}`);
   }
-  if (granted.length > 0) {
-    parts.push(`granted: ${granted.join(", ")}`);
+  const scopes = normalizeSlackScopeList(data?.response_metadata?.scopes);
+  if (scopes.length) {
+    details.push(`granted: ${scopes.join(", ")}`);
   }
-  if (accepted.length > 0) {
-    parts.push(`accepted: ${accepted.join(", ")}`);
+  const acceptedScopes = normalizeSlackScopeList(data?.response_metadata?.acceptedScopes);
+  if (acceptedScopes.length) {
+    details.push(`accepted: ${acceptedScopes.join(", ")}`);
   }
-  return parts.length > 0 ? ` (${parts.join("; ")})` : "";
+  return `${err.message || `An API error occurred: ${code}`}${
+    details.length ? ` (${details.join("; ")})` : ""
+  }`;
 }
 
-function normalizeSlackWebApiError(err: unknown): unknown {
-  if (!(err instanceof Error)) {
+function enrichSlackWebApiError(err: unknown): unknown {
+  const message = formatSlackWebApiErrorMessage(err);
+  if (!message || !(err instanceof Error) || message === err.message) {
     return err;
   }
-  const apiError = err as SlackWebApiError;
-  const data = apiError.data;
-  if (!data || data.error !== "missing_scope") {
-    return err;
-  }
-  const details = formatMissingScopeDetails(data);
-  if (!details || apiError.message.includes(details)) {
-    return err;
-  }
-  apiError.message = `${apiError.message}${details}`;
-  return apiError;
+  return new Error(message);
 }
 
-function canRetryWithoutIdentity(err: unknown): boolean {
-  if (!(err instanceof Error)) {
+function readSlackRequestErrorCode(value: unknown): string | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+  const code = (value as { code?: unknown }).code;
+  return typeof code === "string" ? code.toUpperCase() : undefined;
+}
+
+function readSlackRequestErrorMessage(value: unknown): string {
+  if (value instanceof Error) {
+    return value.message;
+  }
+  return typeof value === "string" ? value : "";
+}
+
+function hasSlackDnsRequestSignal(err: unknown): boolean {
+  let current: unknown = err;
+  const seen = new Set<unknown>();
+  for (let depth = 0; current && typeof current === "object" && depth < 6; depth += 1) {
+    if (seen.has(current)) {
+      return false;
+    }
+    seen.add(current);
+    const code = readSlackRequestErrorCode(current);
+    if (code && SLACK_DNS_RETRY_CODES.has(code)) {
+      return true;
+    }
+    const message = readSlackRequestErrorMessage(current);
+    if (/\b(EAI_AGAIN|ENOTFOUND|UND_ERR_DNS_RESOLVE_FAILED)\b/i.test(message)) {
+      return true;
+    }
+    current =
+      (current as { original?: unknown; cause?: unknown }).original ??
+      (current as { cause?: unknown }).cause;
+  }
+  return false;
+}
+
+function delaySlackDnsRetry(attempt: number): Promise<void> {
+  return new Promise((resolve) =>
+    setTimeout(resolve, SLACK_DNS_RETRY_BASE_DELAY_MS * Math.max(1, attempt)),
+  );
+}
+
+async function withSlackDnsRequestRetry<T>(operation: string, fn: () => Promise<T>): Promise<T> {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (attempt >= SLACK_DNS_RETRY_ATTEMPTS || !hasSlackDnsRequestSignal(err)) {
+        throw err;
+      }
+      logVerbose(
+        `slack send: retrying ${operation} after transient DNS request error (${attempt + 1}/${SLACK_DNS_RETRY_ATTEMPTS})`,
+      );
+      await delaySlackDnsRetry(attempt + 1);
+    }
+  }
+}
+
+function isSlackCustomizeScopeError(err: unknown): boolean {
+  const data = getSlackWebApiErrorData(err);
+  const code = normalizeLowercaseStringOrEmpty(normalizeSlackApiString(data?.error));
+  if (code !== "missing_scope") {
     return false;
   }
-  const apiError = err as SlackWebApiError;
-  const data = apiError.data;
-  if (!data || data.error !== "missing_scope") {
-    return false;
-  }
-  if (typeof data.needed === "string" && data.needed.split(",").includes("chat:write.customize")) {
+  const needed = normalizeLowercaseStringOrEmpty(normalizeSlackApiString(data?.needed));
+  if (needed?.includes("chat:write.customize")) {
     return true;
   }
-  const acceptedScopes = extractStringArray(data.response_metadata?.acceptedScopes);
-  if (acceptedScopes.includes("chat:write.customize")) {
-    return true;
-  }
-  const scopes = extractStringArray(data.response_metadata?.scopes);
+  const scopes = [
+    ...normalizeSlackScopeList(data?.response_metadata?.scopes),
+    ...normalizeSlackScopeList(data?.response_metadata?.acceptedScopes),
+  ].map((scope) => normalizeLowercaseStringOrEmpty(scope));
   return scopes.includes("chat:write.customize");
 }
 
@@ -243,281 +323,42 @@ async function postSlackMessageBestEffort(params: {
   metadata?: MessageMetadata;
   unfurl?: SlackUnfurlOptions;
 }) {
-  const { client, identity } = params;
   const basePayload = buildSlackPostMessagePayload(params);
-  const applyIdentity = (
-    payload: SlackBasePostMessagePayload,
-    targetIdentity: SlackSendIdentity | undefined,
-  ) => ({
-    ...payload,
-    ...(targetIdentity?.username ? { username: targetIdentity.username } : {}),
-    ...(targetIdentity?.iconUrl
-      ? { icon_url: targetIdentity.iconUrl }
-      : targetIdentity?.iconEmoji
-        ? { icon_emoji: targetIdentity.iconEmoji }
-        : {}),
-  });
-
+  const postChatMessage = params.client.chat.postMessage.bind(params.client.chat);
   try {
-    return await client.chat.postMessage(applyIdentity(basePayload, identity));
-  } catch (err) {
-    if (hasCustomIdentity(identity) && canRetryWithoutIdentity(err)) {
-      logVerbose("slack send: missing chat:write.customize, retrying without custom identity");
-      try {
-        return await client.chat.postMessage(applyIdentity(basePayload, undefined));
-      } catch (retryErr) {
-        throw normalizeSlackWebApiError(retryErr);
-      }
+    // Slack Web API types model icon_url and icon_emoji as mutually exclusive.
+    // Build payloads in explicit branches so TS and runtime stay aligned.
+    const identity = params.identity;
+    if (identity?.iconUrl) {
+      return await withSlackDnsRequestRetry("chat.postMessage", () =>
+        postChatMessage({
+          ...basePayload,
+          ...(identity.username ? { username: identity.username } : {}),
+          icon_url: identity.iconUrl,
+        }),
+      );
     }
-    throw normalizeSlackWebApiError(err);
-  }
-}
-
-function isDnsRetryableError(err: unknown): boolean {
-  if (!err || typeof err !== "object") {
-    return false;
-  }
-  const code = "code" in err ? String((err as { code?: unknown }).code ?? "") : "";
-  if (code && SLACK_DNS_RETRY_CODES.has(code)) {
-    return true;
-  }
-  const cause = "cause" in err ? (err as { cause?: unknown }).cause : undefined;
-  return isDnsRetryableError(cause);
-}
-
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function withDnsRetry<T>(operation: () => Promise<T>): Promise<T> {
-  let attempt = 0;
-  for (;;) {
-    try {
-      return await operation();
-    } catch (err) {
-      if (!isDnsRetryableError(err) || attempt >= SLACK_DNS_RETRY_ATTEMPTS) {
-        throw err;
-      }
-      attempt += 1;
-      await delay(SLACK_DNS_RETRY_BASE_DELAY_MS * attempt);
+    if (identity?.iconEmoji) {
+      return await withSlackDnsRequestRetry("chat.postMessage", () =>
+        postChatMessage({
+          ...basePayload,
+          ...(identity.username ? { username: identity.username } : {}),
+          icon_emoji: identity.iconEmoji,
+        }),
+      );
     }
-  }
-}
-
-function parseRecipient(target: string): SlackRecipient {
-  const parsed = parseSlackTarget(target, { defaultKind: "channel" });
-  if (parsed?.kind === "user") {
-    return { kind: "user", id: parsed.id };
-  }
-  if (parsed?.kind === "channel") {
-    return { kind: "channel", id: parsed.id };
-  }
-  const trimmed = target.trim();
-  if (trimmed.startsWith("#")) {
-    return { kind: "channel", id: trimmed.slice(1).trim() };
-  }
-  return { kind: "channel", id: trimmed };
-}
-
-function createDmChannelCacheKey(params: {
-  accountId: string;
-  token: string;
-  userId: string;
-}): string {
-  return `${params.accountId}:${createSlackTokenCacheKey(params.token)}:${params.userId}`;
-}
-
-function readCachedDmChannelId(params: {
-  accountId: string;
-  token: string;
-  userId: string;
-}): string | undefined {
-  const key = createDmChannelCacheKey(params);
-  const cached = slackDmChannelCache.get(key);
-  if (!cached) {
-    return undefined;
-  }
-  slackDmChannelCache.delete(key);
-  slackDmChannelCache.set(key, cached);
-  return cached;
-}
-
-function setCachedDmChannelId(params: {
-  accountId: string;
-  token: string;
-  userId: string;
-  channelId: string;
-}): void {
-  const key = createDmChannelCacheKey(params);
-  if (slackDmChannelCache.has(key)) {
-    slackDmChannelCache.delete(key);
-  } else if (slackDmChannelCache.size >= SLACK_DM_CHANNEL_CACHE_MAX) {
-    const oldestKey = slackDmChannelCache.keys().next().value;
-    if (oldestKey) {
-      slackDmChannelCache.delete(oldestKey);
-    }
-  }
-  slackDmChannelCache.set(key, params.channelId);
-}
-
-function isSlackUserRecipient(recipient: SlackRecipient): boolean {
-  return recipient.kind === "user" || /^U[A-Z0-9]+$/i.test(recipient.id);
-}
-
-function resolveDirectUserPostChannelId(params: {
-  recipient: SlackRecipient;
-  hasMedia: boolean;
-  threadTs?: string;
-}): string | undefined {
-  if (!isSlackUserRecipient(params.recipient) || params.hasMedia || params.threadTs) {
-    return undefined;
-  }
-  return params.recipient.id;
-}
-
-async function resolveChannelId(
-  client: WebClient,
-  recipient: SlackRecipient,
-  context: { accountId: string; token: string },
-): Promise<{ channelId: string; cached: boolean }> {
-  if (recipient.kind === "channel") {
-    return { channelId: recipient.id, cached: false };
-  }
-  const cachedChannelId = readCachedDmChannelId({
-    accountId: context.accountId,
-    token: context.token,
-    userId: recipient.id,
-  });
-  if (cachedChannelId) {
-    return { channelId: cachedChannelId, cached: true };
-  }
-  try {
-    const res = await client.conversations.open({ users: recipient.id });
-    const channelId = res.channel?.id;
-    if (!channelId) {
-      throw new Error(`Failed to open DM channel for user: ${recipient.id}`);
-    }
-    setCachedDmChannelId({
-      accountId: context.accountId,
-      token: context.token,
-      userId: recipient.id,
-      channelId,
-    });
-    return { channelId, cached: false };
-  } catch (err) {
-    throw normalizeSlackWebApiError(err);
-  }
-}
-
-function buildUploadUrl(uploadUrl: string): URL {
-  const parsed = new URL(uploadUrl);
-  if (!parsed.protocol.startsWith("http")) {
-    throw new Error(`Invalid upload URL protocol: ${parsed.protocol}`);
-  }
-  return parsed;
-}
-
-async function uploadSlackFile(params: {
-  client: WebClient;
-  channelId: string;
-  mediaUrl: string;
-  mediaAccess?: {
-    localRoots?: readonly string[];
-    readFile?: (filePath: string) => Promise<Buffer>;
-  };
-  uploadFileName?: string;
-  uploadTitle?: string;
-  mediaLocalRoots?: readonly string[];
-  mediaReadFile?: (filePath: string) => Promise<Buffer>;
-  caption?: string;
-  threadTs?: string;
-  maxBytes?: number;
-}): Promise<string> {
-  const { buffer, contentType, fileName } = await loadOutboundMediaFromUrl(params.mediaUrl, {
-    maxBytes: params.maxBytes,
-    localRoots: params.mediaAccess?.localRoots ?? params.mediaLocalRoots,
-    readFile: params.mediaAccess?.readFile ?? params.mediaReadFile,
-  });
-  const length = buffer.byteLength;
-  const filename = params.uploadFileName || fileName || "file";
-  const title = params.uploadTitle || filename;
-
-  const urlRes = await params.client.filesExternal.getUploadURLExternal({
-    filename,
-    length,
-  });
-  const uploadUrl = urlRes.upload_url;
-  const fileId = urlRes.file_id;
-  if (!uploadUrl || !fileId) {
-    throw new Error("Slack did not return an upload URL or file ID");
-  }
-
-  const parsedUrl = buildUploadUrl(uploadUrl);
-  const uploadResponse = await withDnsRetry(async () =>
-    withTrustedEnvProxyGuardedFetchMode(parsedUrl, async () =>
-      fetchWithSsrFGuard(
-        {
-          url: parsedUrl.toString(),
-          init: {
-            method: "POST",
-            headers: {
-              ...(contentType ? { "content-type": contentType } : {}),
-            },
-            body: buffer,
-          },
-        },
-        SLACK_UPLOAD_SSRF_POLICY,
-      ),
-    ),
-  );
-  if (!uploadResponse.ok) {
-    throw new Error(
-      `Failed to upload file to Slack storage: ${uploadResponse.status} ${uploadResponse.statusText}`,
+    return await withSlackDnsRequestRetry("chat.postMessage", () =>
+      postChatMessage({
+        ...basePayload,
+        ...(identity?.username ? { username: identity.username } : {}),
+      }),
     );
-  }
-
-  const completeRes = await params.client.filesExternal.completeUploadExternal({
-    files: [{ id: fileId, title }],
-    channel_id: params.channelId,
-    ...(params.caption ? { initial_comment: params.caption } : {}),
-    ...(params.threadTs ? { thread_ts: params.threadTs } : {}),
-  });
-
-  const files = completeRes.files;
-  const firstFile = Array.isArray(files) ? files[0] : undefined;
-  const messageId =
-    (firstFile && typeof firstFile === "object" && "id" in firstFile ? firstFile.id : undefined) ??
-    fileId;
-  return String(messageId);
-}
-
-function resolveSlackSendQueueKey(params: {
-  account: ReturnType<typeof resolveSlackAccount>;
-  token: string;
-  recipient: SlackRecipient;
-  threadTs?: string;
-}): string {
-  const threadKey = params.threadTs?.trim() ? `thread:${params.threadTs.trim()}` : "root";
-  return `${params.account.accountId}:${createSlackTokenCacheKey(params.token)}:${params.recipient.kind}:${params.recipient.id}:${threadKey}`;
-}
-
-async function enqueueSlackSend<T>(queueKey: string, task: () => Promise<T>): Promise<T> {
-  const previous = slackSendQueues.get(queueKey) ?? Promise.resolve();
-  let releaseCurrent!: () => void;
-  const current = new Promise<void>((resolve) => {
-    releaseCurrent = resolve;
-  });
-  const queued = previous.catch(() => {}).then(() => current);
-  slackSendQueues.set(queueKey, queued);
-
-  try {
-    await previous.catch(() => {});
-    return await task();
-  } finally {
-    releaseCurrent();
-    if (slackSendQueues.get(queueKey) === queued) {
-      slackSendQueues.delete(queueKey);
+  } catch (err) {
+    if (!hasCustomIdentity(params.identity) || !isSlackCustomizeScopeError(err)) {
+      throw err;
     }
+    logVerbose("slack send: missing chat:write.customize, retrying without custom identity");
+    return withSlackDnsRequestRetry("chat.postMessage", () => postChatMessage(basePayload));
   }
 }
 
@@ -552,38 +393,263 @@ function createSlackSendReceipt(params: {
   });
 }
 
-export async function sendMessageSlack(
-  target: string,
-  message: string,
-  opts: SlackSendOpts = { cfg: {} as CoreBlowConfig },
-): Promise<SlackSendResult> {
-  const cfg = opts.cfg ?? requireRuntimeConfig();
-  const account = resolveSlackAccount({ cfg, accountId: opts.accountId });
-  const token = resolveSlackBotToken(opts.token ?? account.botToken ?? account.userToken);
-  if (!token) {
+function resolveToken(params: {
+  explicit?: string;
+  accountId: string;
+  fallbackToken?: string;
+  fallbackSource?: SlackTokenSource;
+}) {
+  const explicit = resolveSlackBotToken(params.explicit);
+  if (explicit) {
+    return explicit;
+  }
+  const fallback = resolveSlackBotToken(params.fallbackToken);
+  if (!fallback) {
+    logVerbose(
+      `slack send: missing bot token for account=${params.accountId} explicit=${Boolean(
+        params.explicit,
+      )} source=${params.fallbackSource ?? "unknown"}`,
+    );
     throw new Error(
-      `Slack bot token is missing for account "${account.accountId}". Configure channels.slack.botToken, channels.slack.accounts.${account.accountId}.botToken, or SLACK_BOT_TOKEN.`,
+      `Slack bot token missing for account "${params.accountId}" (set channels.slack.accounts.${params.accountId}.botToken or SLACK_BOT_TOKEN for default).`,
     );
   }
-  const recipient = parseRecipient(target);
-  const blocks = opts.blocks ? validateSlackBlocksArray(opts.blocks) : undefined;
-  const trimmedMessage = message.trim();
-  if (isSilentReplyText(trimmedMessage) && !opts.mediaUrl && !blocks) {
-    return { messageId: "silent", channelId: recipient.id };
+  return fallback;
+}
+
+function parseRecipient(raw: string): SlackRecipient {
+  const target = parseSlackTarget(raw);
+  if (!target) {
+    throw new Error("Recipient is required for Slack sends");
   }
-  if (!trimmedMessage && !opts.mediaUrl && !blocks) {
-    throw new Error("Message is empty, but neither mediaUrl nor blocks was provided");
+  return { kind: target.kind, id: target.id };
+}
+
+function createSlackSendQueueKey(params: {
+  accountId: string;
+  token: string;
+  recipient: SlackRecipient;
+  threadTs?: string;
+}): string {
+  const isUserId = params.recipient.kind === "user" || /^U[A-Z0-9]+$/i.test(params.recipient.id);
+  const recipientKey = `${isUserId ? "user" : params.recipient.kind}:${params.recipient.id}`;
+  return `${params.accountId}:${createSlackTokenCacheKey(params.token)}:${recipientKey}:${
+    params.threadTs ?? ""
+  }`;
+}
+
+async function runQueuedSlackSend<T>(key: string, task: () => Promise<T>): Promise<T> {
+  const previous = slackSendQueues.get(key) ?? Promise.resolve();
+  let releaseCurrent!: () => void;
+  const current = new Promise<void>((resolve) => {
+    releaseCurrent = resolve;
+  });
+  const queuedCurrent = previous.catch(() => undefined).then(() => current);
+  slackSendQueues.set(key, queuedCurrent);
+  await previous.catch(() => undefined);
+  try {
+    return await task();
+  } finally {
+    releaseCurrent();
+    if (slackSendQueues.get(key) === queuedCurrent) {
+      slackSendQueues.delete(key);
+    }
+  }
+}
+
+function createSlackDmCacheKey(params: {
+  accountId?: string;
+  token: string;
+  recipientId: string;
+}): string {
+  return `${params.accountId ?? "default"}:${createSlackTokenCacheKey(params.token)}:${
+    params.recipientId
+  }`;
+}
+
+function setSlackDmChannelCache(key: string, channelId: string): void {
+  if (slackDmChannelCache.has(key)) {
+    slackDmChannelCache.delete(key);
+  } else if (slackDmChannelCache.size >= SLACK_DM_CHANNEL_CACHE_MAX) {
+    const oldest = slackDmChannelCache.keys().next().value;
+    if (oldest) {
+      slackDmChannelCache.delete(oldest);
+    }
+  }
+  slackDmChannelCache.set(key, channelId);
+}
+
+function isSlackUserRecipient(recipient: SlackRecipient): boolean {
+  return recipient.kind === "user" || /^U[A-Z0-9]+$/i.test(recipient.id);
+}
+
+function resolveDirectUserPostChannelId(params: {
+  recipient: SlackRecipient;
+  hasMedia: boolean;
+  threadTs?: string;
+}): string | undefined {
+  if (!isSlackUserRecipient(params.recipient) || params.hasMedia || params.threadTs) {
+    return undefined;
+  }
+  return params.recipient.id;
+}
+
+async function resolveChannelId(
+  client: WebClient,
+  recipient: SlackRecipient,
+  params: { accountId?: string; token: string },
+): Promise<{ channelId: string; isDm?: boolean; cacheHit?: boolean }> {
+  // Bare Slack user IDs (U-prefix) may arrive with kind="channel" when the
+  // target string had no explicit prefix (parseSlackTarget defaults bare IDs
+  // to "channel"). chat.postMessage tolerates user IDs directly, but
+  // files.uploadV2 → completeUploadExternal validates channel_id against
+  // ^[CGDZ][A-Z0-9]{8,}$ and rejects U-prefixed IDs. Resolve user IDs via
+  // conversations.open only for paths that require the concrete DM channel ID.
+  if (!isSlackUserRecipient(recipient)) {
+    return { channelId: recipient.id };
+  }
+  const cacheKey = createSlackDmCacheKey({
+    accountId: params.accountId,
+    token: params.token,
+    recipientId: recipient.id,
+  });
+  const cachedChannelId = slackDmChannelCache.get(cacheKey);
+  if (cachedChannelId) {
+    return { channelId: cachedChannelId, isDm: true, cacheHit: true };
+  }
+  const response = await withSlackDnsRequestRetry("conversations.open", () =>
+    client.conversations.open({ users: recipient.id }),
+  );
+  const channelId = response.channel?.id;
+  if (!channelId) {
+    throw new Error("Failed to open Slack DM channel");
+  }
+  setSlackDmChannelCache(cacheKey, channelId);
+  return { channelId, isDm: true, cacheHit: false };
+}
+
+export function clearSlackDmChannelCache(): void {
+  slackDmChannelCache.clear();
+}
+
+export function clearSlackSendQueuesForTest(): void {
+  slackSendQueues.clear();
+}
+
+async function uploadSlackFile(params: {
+  client: WebClient;
+  channelId: string;
+  mediaUrl: string;
+  mediaAccess?: {
+    localRoots?: readonly string[];
+    readFile?: (filePath: string) => Promise<Buffer>;
+  };
+  uploadFileName?: string;
+  uploadTitle?: string;
+  mediaLocalRoots?: readonly string[];
+  mediaReadFile?: (filePath: string) => Promise<Buffer>;
+  caption?: string;
+  threadTs?: string;
+  maxBytes?: number;
+}): Promise<string> {
+  const { buffer, contentType, fileName } = await loadOutboundMediaFromUrl(params.mediaUrl, {
+    maxBytes: params.maxBytes,
+    mediaAccess: params.mediaAccess,
+    mediaLocalRoots: params.mediaLocalRoots,
+    mediaReadFile: params.mediaReadFile,
+  });
+  const uploadFileName = params.uploadFileName ?? fileName ?? "upload";
+  const uploadTitle = params.uploadTitle ?? uploadFileName;
+  // Use the 3-step upload flow (getUploadURLExternal -> POST -> completeUploadExternal)
+  // instead of files.uploadV2 which relies on the deprecated files.upload endpoint
+  // and can fail with missing_scope even when files:write is granted.
+  const uploadUrlResp = await withSlackDnsRequestRetry("files.getUploadURLExternal", () =>
+    params.client.files.getUploadURLExternal({
+      filename: uploadFileName,
+      length: buffer.length,
+    }),
+  );
+  if (!uploadUrlResp.ok || !uploadUrlResp.upload_url || !uploadUrlResp.file_id) {
+    throw new Error(`Failed to get upload URL: ${uploadUrlResp.error ?? "unknown error"}`);
+  }
+  const uploadFileId = uploadUrlResp.file_id;
+
+  // Upload the file content to the presigned URL
+  const uploadBody = new Uint8Array(buffer) as BodyInit;
+  const { response: uploadResp, release } = await fetchWithSsrFGuard(
+    withTrustedEnvProxyGuardedFetchMode({
+      url: uploadUrlResp.upload_url,
+      init: {
+        method: "POST",
+        ...(contentType ? { headers: { "Content-Type": contentType } } : {}),
+        body: uploadBody,
+      },
+      policy: SLACK_UPLOAD_SSRF_POLICY,
+      auditContext: "slack-upload-file",
+    }),
+  );
+  try {
+    if (!uploadResp.ok) {
+      throw new Error(`Failed to upload file: HTTP ${uploadResp.status}`);
+    }
+  } finally {
+    await release();
   }
 
-  const queueKey = resolveSlackSendQueueKey({
-    account,
+  // Complete the upload and share to channel/thread
+  const completeResp = await withSlackDnsRequestRetry("files.completeUploadExternal", () =>
+    params.client.files.completeUploadExternal({
+      files: [{ id: uploadFileId, title: uploadTitle }],
+      channel_id: params.channelId,
+      ...(params.caption ? { initial_comment: params.caption } : {}),
+      ...(params.threadTs ? { thread_ts: params.threadTs } : {}),
+    }),
+  );
+  if (!completeResp.ok) {
+    throw new Error(`Failed to complete upload: ${completeResp.error ?? "unknown error"}`);
+  }
+
+  return uploadFileId;
+}
+
+export async function sendMessageSlack(
+  to: string,
+  message: string,
+  opts: SlackSendOpts,
+): Promise<SlackSendResult> {
+  const trimmedMessage = normalizeOptionalString(message) ?? "";
+  if (isSilentReplyText(trimmedMessage) && !opts.mediaUrl && !opts.blocks) {
+    logVerbose("slack send: suppressed NO_REPLY token before API call");
+    return {
+      messageId: "suppressed",
+      channelId: "",
+      receipt: createSlackSendReceipt({ platformMessageIds: [], kind: "unknown" }),
+    };
+  }
+  const blocks = opts.blocks == null ? undefined : validateSlackBlocksArray(opts.blocks);
+  if (!trimmedMessage && !opts.mediaUrl && !blocks) {
+    throw new Error("Slack send requires text, blocks, or media");
+  }
+  const cfg = opts.cfg ?? loadConfig();
+  const account = resolveSlackAccount({
+    cfg,
+    accountId: opts.accountId,
+  });
+  const token = resolveToken({
+    explicit: opts.token,
+    accountId: account.accountId,
+    fallbackToken: account.botToken,
+    fallbackSource: account.botTokenSource,
+  });
+  const recipient = parseRecipient(to);
+  const queueKey = createSlackSendQueueKey({
+    accountId: account.accountId,
     token,
     recipient,
     threadTs: opts.threadTs,
   });
-
-  const result = await enqueueSlackSend(queueKey, async () => {
-    return await sendMessageSlackQueuedInner({
+  const result = await runQueuedSlackSend(queueKey, () =>
+    sendMessageSlackQueued({
       trimmedMessage,
       opts,
       cfg,
@@ -591,18 +657,29 @@ export async function sendMessageSlack(
       token,
       recipient,
       blocks,
-    });
-  });
-
-  if (result.messageId && result.messageId !== "unknown" && result.messageId !== "silent") {
-    recordSlackThreadParticipation({
-      channelId: result.channelId,
-      threadTs: opts.threadTs ?? result.messageId,
-      accountId: account.accountId,
-    });
+    }),
+  );
+  const threadTs = normalizeSlackThreadTsCandidate(opts.threadTs);
+  if (threadTs && result.channelId && account.accountId) {
+    recordSlackThreadParticipation(account.accountId, result.channelId, threadTs);
   }
-
   return result;
+}
+
+async function sendMessageSlackQueued(params: {
+  trimmedMessage: string;
+  opts: SlackSendOpts;
+  cfg: CoreBlowConfig;
+  account: ReturnType<typeof resolveSlackAccount>;
+  token: string;
+  recipient: SlackRecipient;
+  blocks?: (Block | KnownBlock)[];
+}): Promise<SlackSendResult> {
+  try {
+    return await sendMessageSlackQueuedInner(params);
+  } catch (err) {
+    throw enrichSlackWebApiError(err);
+  }
 }
 
 async function sendMessageSlackQueuedInner(params: {

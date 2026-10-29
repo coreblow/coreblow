@@ -13,37 +13,25 @@ import {
   type CreateTypingCallbacksParams,
   type TypingCallbacks,
 } from "../typing.js";
-
-export type SourceReplyDeliveryMode = "automatic" | "message_tool_only";
-export type SourceReplyDeliveryModeContext = {
-  channel?: string | null;
-  source?: string | null;
-  messageToolAvailable?: boolean;
-};
+import {
+  resolveSourceReplyDeliveryMode,
+  type SourceReplyDeliveryMode,
+  type SourceReplyDeliveryModeContext,
+} from "../../auto-reply/reply/source-reply-delivery-mode.js";
 
 export type ReplyPrefixContext = ReplyPrefixContextBundle["prefixContext"];
 export type { ReplyPrefixContextBundle, ReplyPrefixOptions };
 export type { CreateTypingCallbacksParams, TypingCallbacks };
 export { createReplyPrefixContext, createReplyPrefixOptions, createTypingCallbacks };
-
-type ChannelMessageTransform = (params: {
-  payload: ReplyPayload;
-  cfg: CoreBlowConfig;
-  accountId?: string;
-}) => ReplyPayload | null;
+export type { SourceReplyDeliveryMode, SourceReplyDeliveryModeContext };
 
 export function resolveChannelSourceReplyDeliveryMode(params: {
   cfg: CoreBlowConfig;
   ctx: SourceReplyDeliveryModeContext;
   requested?: SourceReplyDeliveryMode;
   messageToolAvailable?: boolean;
-}): SourceReplyDeliveryMode | undefined {
-  if (params.requested === "message_tool_only") {
-    return "message_tool_only";
-  }
-  return params.messageToolAvailable || params.ctx.messageToolAvailable
-    ? "message_tool_only"
-    : undefined;
+}): SourceReplyDeliveryMode {
+  return resolveSourceReplyDeliveryMode(params);
 }
 
 export type ChannelReplyPipeline = ReplyPrefixOptions & {
@@ -61,35 +49,27 @@ export type CreateChannelReplyPipelineParams = {
   transformReplyPayload?: (payload: ReplyPayload) => ReplyPayload | null;
 };
 
-function resolvePluginTransform(channelId: string | undefined): ChannelMessageTransform | undefined {
-  if (!channelId) {
-    return undefined;
-  }
-  const plugin = getChannelPlugin(channelId as Parameters<typeof getChannelPlugin>[0]);
-  return (plugin?.messaging as { transformReplyPayload?: ChannelMessageTransform } | undefined)
-    ?.transformReplyPayload;
-}
-
 export function createChannelReplyPipeline(
   params: CreateChannelReplyPipelineParams,
 ): ChannelReplyPipeline {
   const channelId = params.channel
     ? (normalizeAnyChannelId(params.channel) ?? params.channel)
     : undefined;
-  let pluginTransform: ChannelMessageTransform | undefined;
+  let plugin: ReturnType<typeof getChannelPlugin> | undefined;
   let pluginTransformResolved = false;
-  const getPluginTransform = () => {
-    if (!pluginTransformResolved) {
-      pluginTransformResolved = true;
-      pluginTransform = resolvePluginTransform(channelId);
+  const resolvePluginTransform = () => {
+    if (pluginTransformResolved) {
+      return plugin?.messaging?.transformReplyPayload;
     }
-    return pluginTransform;
+    pluginTransformResolved = true;
+    plugin = channelId ? getChannelPlugin(channelId as Parameters<typeof getChannelPlugin>[0]) : undefined;
+    return plugin?.messaging?.transformReplyPayload;
   };
   const transformReplyPayload = params.transformReplyPayload
     ? params.transformReplyPayload
     : channelId
       ? (payload: ReplyPayload) =>
-          getPluginTransform()?.({
+          resolvePluginTransform()?.({
             payload,
             cfg: params.cfg,
             accountId: params.accountId,

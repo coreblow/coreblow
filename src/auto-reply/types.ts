@@ -1,5 +1,5 @@
 import type { ImageContent } from "@mariozechner/pi-ai";
-import type { InteractiveReply } from "../interactive/payload.js";
+import type { InteractiveReply, MessagePresentation } from "../interactive/payload.js";
 import type { TypingController } from "./reply/typing.js";
 
 export type BlockReplyContext = {
@@ -49,8 +49,13 @@ export type GetReplyOptions = {
   enableHeartbeatTool?: boolean;
   /** Require heartbeat response tool use when enabled. */
   forceHeartbeatTool?: boolean;
+  /**
+   * If true, dispatch skips default tool/progress text messages and expects the
+   * channel to surface progress via its own streaming/edit UX.
+   */
+  suppressDefaultToolProgressMessages?: boolean;
   /** Restrict delivery of source replies produced outside message tools. */
-  sourceReplyDeliveryMode?: "message_tool_only";
+  sourceReplyDeliveryMode?: "message_tool_only" | "automatic";
   onPartialReply?: (payload: ReplyPayload) => Promise<void> | void;
   onReasoningStream?: (payload: ReplyPayload) => Promise<void> | void;
   /** Called when a thinking/reasoning block ends. */
@@ -60,7 +65,75 @@ export type GetReplyOptions = {
   onBlockReply?: (payload: ReplyPayload, context?: BlockReplyContext) => Promise<void> | void;
   onToolResult?: (payload: ReplyPayload) => Promise<void> | void;
   /** Called when a tool phase starts/updates, before summary payloads are emitted. */
-  onToolStart?: (payload: { name?: string; phase?: string }) => Promise<void> | void;
+  onToolStart?: (payload: {
+    name?: string;
+    phase?: string;
+    args?: Record<string, unknown>;
+    detailMode?: "explain" | "raw";
+  }) => Promise<void> | void;
+  /** Called when a concrete work item starts, updates, or completes. */
+  onItemEvent?: (payload: {
+    itemId?: string;
+    kind?: string;
+    title?: string;
+    name?: string;
+    phase?: string;
+    status?: string;
+    summary?: string;
+    progressText?: string;
+    meta?: string;
+    approvalId?: string;
+    approvalSlug?: string;
+  }) => Promise<void> | void;
+  /** Called when the agent emits a structured plan update. */
+  onPlanUpdate?: (payload: {
+    phase?: string;
+    title?: string;
+    explanation?: string;
+    steps?: string[];
+    source?: string;
+  }) => Promise<void> | void;
+  /** Called when an approval becomes pending or resolves. */
+  onApprovalEvent?: (payload: {
+    phase?: string;
+    kind?: string;
+    status?: string;
+    title?: string;
+    itemId?: string;
+    toolCallId?: string;
+    approvalId?: string;
+    approvalSlug?: string;
+    command?: string;
+    host?: string;
+    reason?: string;
+    scope?: "turn" | "session";
+    message?: string;
+  }) => Promise<void> | void;
+  /** Called when command output streams or completes. */
+  onCommandOutput?: (payload: {
+    itemId?: string;
+    phase?: string;
+    title?: string;
+    toolCallId?: string;
+    name?: string;
+    output?: string;
+    status?: string;
+    exitCode?: number | null;
+    durationMs?: number;
+    cwd?: string;
+  }) => Promise<void> | void;
+  /** Called when a patch completes with a file summary. */
+  onPatchSummary?: (payload: {
+    itemId?: string;
+    phase?: string;
+    title?: string;
+    toolCallId?: string;
+    name?: string;
+    added?: string[];
+    modified?: string[];
+    deleted?: string[];
+    summary?: string;
+  }) => Promise<void> | void;
   /** Called when context auto-compaction starts (allows UX feedback during the pause). */
   onCompactionStart?: () => Promise<void> | void;
   /** Called when context auto-compaction completes. */
@@ -81,11 +154,16 @@ export type GetReplyOptions = {
   timeoutOverrideSeconds?: number;
 };
 
+export type ReplyPayloadTtsSupplement = {
+  spokenText: string;
+  visibleTextAlreadyDelivered?: boolean;
+};
+
 export type ReplyPayload = {
   text?: string;
   mediaUrl?: string;
   mediaUrls?: string[];
-  presentation?: { blocks?: readonly unknown[] };
+  presentation?: MessagePresentation;
   interactive?: InteractiveReply;
   btw?: {
     question: string;
@@ -96,6 +174,8 @@ export type ReplyPayload = {
   replyToCurrent?: boolean;
   /** Send audio as voice message (bubble) instead of audio file. Defaults to false. */
   audioAsVoice?: boolean;
+  spokenText?: string;
+  ttsSupplement?: ReplyPayloadTtsSupplement;
   isError?: boolean;
   /** Marks this payload as a reasoning/thinking block. Channels that do not
    *  have a dedicated reasoning lane (e.g. WhatsApp, web) should suppress it. */
@@ -104,6 +184,7 @@ export type ReplyPayload = {
    *  Should be excluded from TTS transcript accumulation so compaction
    *  status lines are not synthesised into the spoken assistant reply. */
   isCompactionNotice?: boolean;
+  isFallbackNotice?: boolean;
   /** Channel-specific payload data (per-channel envelope). */
   channelData?: Record<string, unknown>;
 };

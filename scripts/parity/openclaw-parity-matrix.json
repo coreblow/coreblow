@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 9032,
+    "cb_source_files": 9105,
     "oc_source_files": 8443,
-    "source_parity_both": 7248,
+    "source_parity_both": 7321,
     "source_cb_exclusive": 1784,
-    "source_missing_from_cb": 1168,
+    "source_missing_from_cb": 1095,
     "source_intentionally_deprecated": 28,
-    "test_files_cb": 5152,
+    "test_files_cb": 5194,
     "test_files_oc": 5246,
-    "tests_both_covered": 3715,
-    "tests_gap_oc_has_cb_missing": 1264,
+    "tests_both_covered": 3755,
+    "tests_gap_oc_has_cb_missing": 1224,
     "tests_intentionally_deprecated": 22,
     "tests_cb_exclusive": 1374,
     "export_files_with_gaps": 41,
@@ -100,18 +100,17 @@
       "priority": "P1",
       "implementationSurface": "src/auto-reply inbound reply pipeline",
       "counts": {
-        "sharedSourcePaths": 238,
+        "sharedSourcePaths": 239,
         "coreBlowOnlySourcePaths": 21,
-        "openClawOnlySourcePaths": 99,
-        "sharedTestPaths": 111,
+        "openClawOnlySourcePaths": 98,
+        "sharedTestPaths": 112,
         "coreBlowOnlyTestPaths": 81,
-        "openClawTestGaps": 79
+        "openClawTestGaps": 78
       },
       "samples": {
         "openClawOnlySourcePaths": [
           "src/auto-reply/command-detection.runtime-types.ts",
           "src/auto-reply/command-status-builders.ts",
-          "src/auto-reply/command-turn-context.ts",
           "src/auto-reply/commands-args.types.ts",
           "src/auto-reply/commands-registry-list.ts",
           "src/auto-reply/commands-registry-normalize.ts",
@@ -120,10 +119,10 @@
           "src/auto-reply/get-reply-options.types.ts",
           "src/auto-reply/handoff-summarizer.ts",
           "src/auto-reply/inbound.group-require-mention-test-plugins.ts",
-          "src/auto-reply/reply/abort.runtime-types.ts"
+          "src/auto-reply/reply/abort.runtime-types.ts",
+          "src/auto-reply/reply/agent-runner-cli-dispatch.ts"
         ],
         "openClawTestGapPaths": [
-          "src/auto-reply/command-turn-context.test.ts",
           "src/auto-reply/dispatch.freshness.test.ts",
           "src/auto-reply/heartbeat-filter.browser-import.test.ts",
           "src/auto-reply/heartbeat-filter.test.ts",
@@ -134,7 +133,8 @@
           "src/auto-reply/reply/agent-runner-utils.secret-resolution.test.ts",
           "src/auto-reply/reply/before-deliver.test.ts",
           "src/auto-reply/reply/commands-abort-trigger.test.ts",
-          "src/auto-reply/reply/commands-allowlist.test.ts"
+          "src/auto-reply/reply/commands-allowlist.test.ts",
+          "src/auto-reply/reply/commands-bash-alias.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/auto-reply/inbound-context.ts",
@@ -409,69 +409,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/whatsapp",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/slack",
-      "status": "partial",
-      "priority": "P1",
-      "implementationSurface": "extensions/slack plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 101,
-        "coreBlowOnlySourcePaths": 14,
-        "openClawOnlySourcePaths": 70,
-        "sharedTestPaths": 55,
-        "coreBlowOnlyTestPaths": 5,
-        "openClawTestGaps": 39
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/slack/src/account-reply-mode.ts",
-          "extensions/slack/src/accounts.runtime.ts",
-          "extensions/slack/src/action-runtime.runtime.ts",
-          "extensions/slack/src/actions.runtime.ts",
-          "extensions/slack/src/approval-auth.ts",
-          "extensions/slack/src/approval-handler.runtime.ts",
-          "extensions/slack/src/approval-native.ts",
-          "extensions/slack/src/channel-api.ts",
-          "extensions/slack/src/client-options.ts",
-          "extensions/slack/src/doctor-contract.ts",
-          "extensions/slack/src/doctor.ts",
-          "extensions/slack/src/edit-text.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/slack/src/action-threading.test.ts",
-          "extensions/slack/src/actions.reactions.test.ts",
-          "extensions/slack/src/approval-auth.test.ts",
-          "extensions/slack/src/approval-handler.runtime.test.ts",
-          "extensions/slack/src/approval-native.test.ts",
-          "extensions/slack/src/blocks.test.ts",
-          "extensions/slack/src/channel-type.test.ts",
-          "extensions/slack/src/channel.lazy-seams.test.ts",
-          "extensions/slack/src/channel.message-adapter.test.ts",
-          "extensions/slack/src/config-schema.test.ts",
-          "extensions/slack/src/directory-contract.test.ts",
-          "extensions/slack/src/doctor.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "extensions/slack/src/adapter.ts",
-          "extensions/slack/src/channel.runtime.ts",
-          "extensions/slack/src/config.ts",
-          "extensions/slack/src/extension.ts",
-          "extensions/slack/src/formatter.ts",
-          "extensions/slack/src/handler.ts",
-          "extensions/slack/src/media.ts",
-          "extensions/slack/src/message-tool-schema.ts",
-          "extensions/slack/src/plugin-shared.ts",
-          "extensions/slack/src/rate-limiter.ts",
-          "extensions/slack/src/resolve-target.ts",
-          "extensions/slack/src/subagent-hooks.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/slack",
         "pnpm check"
       ]
     },
@@ -877,69 +814,6 @@
       ]
     },
     {
-      "domain": "src/channels",
-      "status": "partial",
-      "priority": "P2",
-      "implementationSurface": "src/channels, src/routing, extensions channel adapters",
-      "counts": {
-        "sharedSourcePaths": 172,
-        "coreBlowOnlySourcePaths": 119,
-        "openClawOnlySourcePaths": 39,
-        "sharedTestPaths": 73,
-        "coreBlowOnlyTestPaths": 24,
-        "openClawTestGaps": 30
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/channels/plugins/acp-stateful-target-reset.runtime.ts",
-          "src/channels/plugins/contracts/test-helpers/imessage-test-plugin.ts",
-          "src/channels/plugins/contracts/test-helpers/registry-backed-contract-shards.ts",
-          "src/channels/plugins/contracts/test-helpers/registry-session-binding.ts",
-          "src/channels/plugins/contracts/test-helpers/runtime-artifacts.ts",
-          "src/channels/plugins/contracts/test-helpers/session-binding-registry-backed-contract.ts",
-          "src/channels/plugins/contracts/test-helpers/threading-directory-contract-suites.ts",
-          "src/channels/plugins/contracts/test-helpers.ts",
-          "src/channels/plugins/conversation-bindings.ts",
-          "src/channels/plugins/doctor-contract-api.ts",
-          "src/channels/plugins/exposure.ts",
-          "src/channels/plugins/gateway-auth-bypass.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/channels/bundled-channel-catalog-read.fail-soft.test.ts",
-          "src/channels/bundled-channel-catalog-read.test.ts",
-          "src/channels/conversation-binding-context.test.ts",
-          "src/channels/ids.test.ts",
-          "src/channels/plugins/acp-stateful-target-driver.test.ts",
-          "src/channels/plugins/binding-routing.test.ts",
-          "src/channels/plugins/catalog.test.ts",
-          "src/channels/plugins/contracts/channel-import-guardrails.test.ts",
-          "src/channels/plugins/doctor-contract-api.fast-path.test.ts",
-          "src/channels/plugins/gateway-auth-bypass.test.ts",
-          "src/channels/plugins/legacy-config.test.ts",
-          "src/channels/plugins/message-tool-api.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/channels/adapter.ts",
-          "src/channels/capabilities.ts",
-          "src/channels/directory.ts",
-          "src/channels/discord/attachments/downloader.ts",
-          "src/channels/discord/attachments/processor.ts",
-          "src/channels/discord/channel-types.ts",
-          "src/channels/discord/channel.ts",
-          "src/channels/discord/client.ts",
-          "src/channels/discord/commands/ask.ts",
-          "src/channels/discord/commands/clear.ts",
-          "src/channels/discord/commands/help.ts",
-          "src/channels/discord/commands/index.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/channels",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/cron",
       "status": "partial",
       "priority": "P2",
@@ -1114,6 +988,69 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/feishu",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/channels",
+      "status": "partial",
+      "priority": "P2",
+      "implementationSurface": "src/channels, src/routing, extensions channel adapters",
+      "counts": {
+        "sharedSourcePaths": 174,
+        "coreBlowOnlySourcePaths": 119,
+        "openClawOnlySourcePaths": 37,
+        "sharedTestPaths": 73,
+        "coreBlowOnlyTestPaths": 24,
+        "openClawTestGaps": 30
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [
+          "src/channels/plugins/acp-stateful-target-reset.runtime.ts",
+          "src/channels/plugins/contracts/test-helpers/imessage-test-plugin.ts",
+          "src/channels/plugins/contracts/test-helpers/registry-backed-contract-shards.ts",
+          "src/channels/plugins/contracts/test-helpers/registry-session-binding.ts",
+          "src/channels/plugins/contracts/test-helpers/runtime-artifacts.ts",
+          "src/channels/plugins/contracts/test-helpers/session-binding-registry-backed-contract.ts",
+          "src/channels/plugins/contracts/test-helpers/threading-directory-contract-suites.ts",
+          "src/channels/plugins/contracts/test-helpers.ts",
+          "src/channels/plugins/conversation-bindings.ts",
+          "src/channels/plugins/doctor-contract-api.ts",
+          "src/channels/plugins/exposure.ts",
+          "src/channels/plugins/gateway-auth-bypass.ts"
+        ],
+        "openClawTestGapPaths": [
+          "src/channels/bundled-channel-catalog-read.fail-soft.test.ts",
+          "src/channels/bundled-channel-catalog-read.test.ts",
+          "src/channels/conversation-binding-context.test.ts",
+          "src/channels/ids.test.ts",
+          "src/channels/plugins/acp-stateful-target-driver.test.ts",
+          "src/channels/plugins/binding-routing.test.ts",
+          "src/channels/plugins/catalog.test.ts",
+          "src/channels/plugins/contracts/channel-import-guardrails.test.ts",
+          "src/channels/plugins/doctor-contract-api.fast-path.test.ts",
+          "src/channels/plugins/gateway-auth-bypass.test.ts",
+          "src/channels/plugins/legacy-config.test.ts",
+          "src/channels/plugins/message-tool-api.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "src/channels/adapter.ts",
+          "src/channels/capabilities.ts",
+          "src/channels/directory.ts",
+          "src/channels/discord/attachments/downloader.ts",
+          "src/channels/discord/attachments/processor.ts",
+          "src/channels/discord/channel-types.ts",
+          "src/channels/discord/channel.ts",
+          "src/channels/discord/client.ts",
+          "src/channels/discord/commands/ask.ts",
+          "src/channels/discord/commands/clear.ts",
+          "src/channels/discord/commands/help.ts",
+          "src/channels/discord/commands/index.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/channels",
         "pnpm check"
       ]
     },
@@ -4903,6 +4840,43 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/skill-workshop",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/slack",
+      "status": "done",
+      "priority": "P1",
+      "implementationSurface": "extensions/slack plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 171,
+        "coreBlowOnlySourcePaths": 14,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 94,
+        "coreBlowOnlyTestPaths": 5,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "extensions/slack/src/adapter.ts",
+          "extensions/slack/src/channel.runtime.ts",
+          "extensions/slack/src/config.ts",
+          "extensions/slack/src/extension.ts",
+          "extensions/slack/src/formatter.ts",
+          "extensions/slack/src/handler.ts",
+          "extensions/slack/src/media.ts",
+          "extensions/slack/src/message-tool-schema.ts",
+          "extensions/slack/src/plugin-shared.ts",
+          "extensions/slack/src/rate-limiter.ts",
+          "extensions/slack/src/resolve-target.ts",
+          "extensions/slack/src/subagent-hooks.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/slack",
         "pnpm check"
       ]
     },

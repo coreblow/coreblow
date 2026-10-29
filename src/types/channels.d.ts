@@ -30,15 +30,6 @@ declare module 'matrix-js-sdk' {
     export function createClient(options: any): any;
 }
 
-declare module '@slack/bolt' {
-    export class App {
-        constructor(options: any);
-        start(port?: number): Promise<void>;
-        stop(): Promise<void>;
-        message(handler: (...args: any[]) => void): void;
-        event(event: string, handler: (...args: any[]) => void): void;
-    }
-}
 
 declare module '@whiskeysockets/baileys' {
     export default function makeWASocket(options: any): any;

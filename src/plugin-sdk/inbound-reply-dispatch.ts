@@ -1,4 +1,5 @@
 import { withReplyDispatcher } from "../auto-reply/dispatch.js";
+import { recordPendingHistoryEntryWithMedia } from "../auto-reply/reply/history.js";
 import {
   dispatchReplyFromConfig,
   type DispatchFromConfigResult,
@@ -33,12 +34,23 @@ export {
   type ChannelBotLoopProtectionFacts,
 } from "../channels/turn/bot-loop-protection.js";
 
+import type { GroupKeyResolution, InboundLastRouteUpdate } from "../channels/session.js";
+
 export type ChannelTurnRecordOptions = {
-  groupResolution?: boolean;
+  groupResolution?: GroupKeyResolution | null;
   createIfMissing?: boolean;
-  updateLastRoute?: boolean;
+  updateLastRoute?: InboundLastRouteUpdate;
   onRecordError?: (err: unknown) => void;
-  trackSessionMetaTask?: boolean;
+  trackSessionMetaTask?: (task: Promise<unknown>) => void;
+};
+
+export type ChannelTurnHistoryFinalizeOptions = {
+  isGroup?: boolean;
+  historyKey?: string;
+  historyMap?: Map<string, any[]>;
+  limit?: number;
+  clearPending?: () => void;
+  clearPendingHistory?: () => void;
 };
 
 export type PreparedChannelTurn<TDispatchResult = unknown> = {
@@ -47,21 +59,9 @@ export type PreparedChannelTurn<TDispatchResult = unknown> = {
   routeSessionKey: string;
   storePath: string;
   ctxPayload: FinalizedMsgContext;
-  recordInboundSession: (params: {
-    storePath: string;
-    sessionKey: string;
-    ctx: FinalizedMsgContext;
-    groupResolution?: boolean;
-    createIfMissing?: boolean;
-    updateLastRoute?: boolean;
-    onRecordError?: (err: unknown) => void;
-    trackSessionMetaTask?: boolean;
-  }) => Promise<unknown>;
+  recordInboundSession: typeof import("../channels/session.js").recordInboundSession;
   record?: ChannelTurnRecordOptions;
-  history?: {
-    clearPending?: () => void;
-    clearPendingHistory?: () => void;
-  };
+  history?: ChannelTurnHistoryFinalizeOptions;
   botLoopProtection?: ChannelBotLoopProtectionFacts;
   onPreDispatchFailure?: (err: unknown) => Promise<void> | void;
   runDispatch: () => Promise<TDispatchResult>;
@@ -149,15 +149,40 @@ export async function recordDroppedChannelTurnHistory(params: {
   if (!history || history.limit <= 0 || !(history.recordOnDrop || admission.recordHistory)) {
     return;
   }
-  const body = params.input.rawText || params.input.textForAgent || "";
+  const body =
+    params.preflight?.message?.bodyForAgent ??
+    params.preflight?.message?.body ??
+    params.preflight?.message?.rawBody ??
+    params.input.textForAgent ??
+    params.input.rawText ??
+    "";
   if (!body.trim()) {
     return;
   }
-  history.historyMap?.append?.(params.preflight?.historyKey, {
-    sender: params.preflight?.sender ?? params.preflight?.user,
+  const sender =
+    params.preflight?.message?.senderLabel ??
+    params.preflight?.message?.envelopeFrom ??
+    params.preflight?.sender ??
+    params.preflight?.user ??
+    "unknown";
+  const entry = {
+    sender,
     body,
     timestamp: params.input.timestamp,
     messageId: params.input.id,
+  };
+  const historyKey = history.key ?? params.preflight?.historyKey;
+  if (!historyKey || !history.historyMap) {
+    return;
+  }
+  await recordPendingHistoryEntryWithMedia({
+    historyMap: history.historyMap,
+    historyKey,
+    limit: history.limit,
+    entry,
+    mediaLimit: history.mediaLimit,
+    messageId: params.input.id,
+    media: params.preflight?.media,
   });
 }
 

@@ -1,3 +1,4 @@
+import type { InboundEventKind } from "../channels/inbound-event/kind.js";
 import type { ChannelId } from "../channels/plugins/types.js";
 import type {
   MediaUnderstandingDecision,
@@ -13,6 +14,7 @@ export type OriginatingChannelType = ChannelId | InternalMessageChannel;
 
 export type MsgContext = {
   Body?: string;
+  InboundEventKind?: InboundEventKind;
   /**
    * Agent prompt body (may include envelope/history/context). Prefer this for prompt shaping.
    * Should use real newlines (`\n`), not escaped `\\n`.
@@ -135,6 +137,12 @@ export type MsgContext = {
   /** Platform bot username when command mentions should be normalized. */
   BotUsername?: string;
   WasMentioned?: boolean;
+  ExplicitlyMentionedBot?: boolean;
+  MentionedUserIds?: string[];
+  MentionedSubteamIds?: string[];
+  ImplicitMentionKinds?: readonly string[];
+  MentionSource?: string;
+  TransportThreadId?: string | number;
   CommandAuthorized?: boolean;
   CommandSource?: "text" | "native";
   CommandTargetSessionKey?: string;

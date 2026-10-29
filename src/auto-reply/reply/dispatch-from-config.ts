@@ -1,10 +1,12 @@
 import { resolveSendableOutboundReplyParts } from "coreblow/plugin-sdk/reply-payload";
+import { resolveSourceReplyVisibilityPolicy } from "./source-reply-delivery-mode.js";
 import { resolveSessionAgentId } from "../../agents/agent-scope.js";
 import {
   resolveConversationBindingRecord,
   touchConversationBindingRecord,
 } from "../../bindings/records.js";
 import { shouldSuppressLocalExecApprovalPrompt } from "../../channels/plugins/exec-approval-local.js";
+import { normalizeChatType } from "../../channels/chat-type.js";
 import type { CoreBlowConfig } from "../../config/config.js";
 import { parseSessionThreadInfo } from "../../config/sessions/delivery-info.js";
 import { resolveStorePath } from "../../config/sessions/paths.js";
@@ -93,7 +95,7 @@ async function maybeApplyTtsToReplyPayload(params: {
   agentId?: string;
   accountId?: string;
 }): Promise<ReplyPayload> {
-  if (params.payload.isCompactionNotice || params.payload.isFallbackNotice) {
+  if (params.payload.isCompactionNotice || params.payload.isFallbackNotice || !params.cfg) {
     return params.payload;
   }
   if (
@@ -108,7 +110,10 @@ async function maybeApplyTtsToReplyPayload(params: {
     return params.payload;
   }
   const { maybeApplyTtsToPayload } = await loadTtsRuntime();
-  return maybeApplyTtsToPayload(params);
+  return maybeApplyTtsToPayload({
+    ...params,
+    cfg: params.cfg,
+  });
 }
 
 const AUDIO_PLACEHOLDER_RE = /^<media:audio>(\s*\([^)]*\))?$/i;
@@ -300,6 +305,26 @@ export async function dispatchReplyFromConfig(params: {
   const shouldSuppressTyping =
     shouldRouteToOriginating || originatingChannel === INTERNAL_MESSAGE_CHANNEL;
   const ttsChannel = shouldRouteToOriginating ? originatingChannel : currentSurface;
+  const sendPolicy = resolveSendPolicy({
+    cfg,
+    sessionKey: acpDispatchSessionKey,
+    channel: currentSurface,
+    chatType: normalizeChatType(ctx.ChatType),
+  });
+  const sourceReplyPolicy = resolveSourceReplyVisibilityPolicy({
+    cfg,
+    ctx,
+    requested: params.replyOptions?.sourceReplyDeliveryMode,
+    strictMessageToolOnly: ctx.InboundEventKind === "room_event",
+    sendPolicy,
+    shouldSuppressTyping,
+  });
+  const {
+    sourceReplyDeliveryMode,
+    suppressAutomaticSourceDelivery,
+    suppressDelivery,
+    deliverySuppressionReason,
+  } = sourceReplyPolicy;
 
   /**
    * Helper to send a payload via route-reply (async).
@@ -751,6 +776,9 @@ export async function dispatchReplyFromConfig(params: {
               agentId: resolvedAgentId,
               accountId: ctx.AccountId,
             });
+            if (suppressDelivery) {
+              return;
+            }
             if (shouldRouteToOriginating) {
               await sendPayloadAsync(ttsPayload, context?.abortSignal, false);
             } else {
@@ -798,6 +826,12 @@ export async function dispatchReplyFromConfig(params: {
       // Suppress reasoning payloads from channel delivery — channels using this
       // generic dispatch path do not have a dedicated reasoning lane.
       if (reply.isReasoning === true) {
+        continue;
+      }
+      if (suppressDelivery) {
+        logVerbose(
+          `dispatch-from-config: final reply suppressed by ${deliverySuppressionReason || "source delivery policy"}`,
+        );
         continue;
       }
       const finalReply = await sendFinalPayload(reply);

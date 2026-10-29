@@ -74,6 +74,9 @@ export type AccessFacts = {
     hasAnyMention?: boolean;
     requireMention?: boolean;
     effectiveWasMentioned?: boolean;
+    implicitMentionKinds?: Array<
+      "reply_to_bot" | "quoted_bot" | "bot_thread_participant" | "native"
+    >;
   };
 };
 

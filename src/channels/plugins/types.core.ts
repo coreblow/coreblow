@@ -51,6 +51,7 @@ export type ChannelMessageActionDiscoveryContext = {
  */
 export type ChannelMessageToolSchemaContribution = {
   properties: Record<string, TSchema>;
+  actions?: readonly ChannelMessageActionName[] | null;
   visibility?: "current-channel" | "all-configured";
 };
 
@@ -380,6 +381,7 @@ export type ChannelThreadingContext = {
   ReplyToIdFull?: string;
   ThreadLabel?: string;
   MessageThreadId?: string | number;
+  TransportThreadId?: string | number;
   /** Platform-native channel/conversation id (e.g. Slack DM channel "D…" id). */
   NativeChannelId?: string;
 };
@@ -391,6 +393,7 @@ export type ChannelThreadingToolContext = {
   currentMessageId?: string | number;
   replyToMode?: ReplyToMode;
   hasRepliedRef?: { value: boolean };
+  sameChannelThreadRequired?: boolean;
   /**
    * When true, skip cross-context decoration (e.g., "[from X]" prefix).
    * Use this for direct tool invocations where the agent is composing a new message,
@@ -458,6 +461,12 @@ export type ChannelMessagingAdapter = {
     to?: string;
     threadId?: string;
   } | null;
+  resolveSessionConversation?: (params: { kind: "group" | "channel"; rawId: string }) => {
+    id: string;
+    threadId?: string | null;
+    baseConversationId?: string | null;
+    parentConversationCandidates?: string[];
+  } | null;
   transformReplyPayload?: (params: {
     payload: ReplyPayload;
     cfg?: CoreBlowConfig;
@@ -472,6 +481,7 @@ export type ChannelMessagingAdapter = {
     agentId: string;
     accountId?: string | null;
     target: string;
+    currentSessionKey?: string;
     resolvedTarget?: {
       to: string;
       kind: ChannelDirectoryEntryKind | "channel";

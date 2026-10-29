@@ -58,10 +58,10 @@ export const DEFAULT_EMOJIS: Required<StatusReactionEmojis> = {
   tool: "🔥",
   coding: "👨‍💻",
   web: "⚡",
-  done: "👍",
-  error: "😱",
-  stallSoft: "🥱",
-  stallHard: "😨",
+  done: "✅",
+  error: "❌",
+  stallSoft: "⏳",
+  stallHard: "⚠️",
   compacting: "✍",
 };
 
@@ -379,7 +379,19 @@ export function createStatusReactionController(params: {
       return;
     }
 
+    const alreadyInitial = currentEmoji === initialEmoji;
+    const pendingBeforeClear = pendingEmoji;
+    const hadDebouncedPending = debounceTimer !== null;
     clearAllTimers();
+    if (alreadyInitial && (!pendingBeforeClear || hadDebouncedPending)) {
+      pendingEmoji = "";
+      return;
+    }
+    if (pendingBeforeClear === initialEmoji && !hadDebouncedPending) {
+      await chainPromise;
+      return;
+    }
+
     await enqueue(async () => {
       await applyEmoji(initialEmoji);
       pendingEmoji = "";

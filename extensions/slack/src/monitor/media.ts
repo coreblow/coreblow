@@ -99,7 +99,7 @@ function createSlackMediaFetch(): FetchLike {
   };
 }
 
-function resolveSlackFetchForRuntime(): typeof fetch {
+function resolveSlackFetchForRuntime(): FetchLike {
   return isMockedFetch(globalThis.fetch) ? globalThis.fetch : fetchWithRuntimeDispatcher;
 }
 

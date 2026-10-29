@@ -158,10 +158,15 @@ export function resolveStoredModelOverride(params: {
   sessionStore?: Record<string, SessionEntry>;
   sessionKey?: string;
   parentSessionKey?: string;
+  defaultProvider?: string;
 }): StoredModelOverride | null {
   const direct = resolveModelOverrideFromEntry(params.sessionEntry);
   if (direct) {
-    return { ...direct, source: "session" };
+    return {
+      provider: direct.provider ?? params.defaultProvider,
+      model: direct.model,
+      source: "session",
+    };
   }
   const parentKey = resolveParentSessionKeyCandidate({
     sessionKey: params.sessionKey,
@@ -175,7 +180,11 @@ export function resolveStoredModelOverride(params: {
   if (!parentOverride) {
     return null;
   }
-  return { ...parentOverride, source: "parent" };
+  return {
+    provider: parentOverride.provider ?? params.defaultProvider,
+    model: parentOverride.model,
+    source: "parent",
+  };
 }
 
 function scoreFuzzyMatch(params: {

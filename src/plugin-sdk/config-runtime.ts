@@ -77,6 +77,7 @@ export type {
   SignalReactionNotificationMode,
   SlackAccountConfig,
   SlackChannelConfig,
+  ChannelBotLoopProtectionConfig,
   SlackReactionNotificationMode,
   SlackSlashCommandConfig,
   TelegramAccountConfig,

@@ -128,6 +128,7 @@ function shouldSkipForwardingFallback(params: {
   return (
     adapter?.shouldSuppressForwardingFallback?.({
       cfg: params.cfg,
+      approvalKind: "exec",
       target: params.target,
       request: params.request,
     }) ?? false

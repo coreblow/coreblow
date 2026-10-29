@@ -1,16 +1,18 @@
 import type { Block, KnownBlock, WebClient } from "@slack/web-api";
+import type { CoreBlowConfig } from "coreblow/plugin-sdk/config-contracts";
 import { loadConfig } from "coreblow/plugin-sdk/config-runtime";
 import { logVerbose } from "coreblow/plugin-sdk/runtime-env";
 import { resolveSlackAccount } from "./accounts.js";
 import { buildSlackBlocksFallbackText } from "./blocks-fallback.js";
 import { validateSlackBlocksArray } from "./blocks-input.js";
-import { createSlackWebClient } from "./client.js";
+import { createSlackWebClient, getSlackWriteClient } from "./client.js";
 import { resolveSlackMedia } from "./monitor/media.js";
 import type { SlackMediaResult } from "./monitor/media.js";
 import { sendMessageSlack } from "./send.js";
 import { resolveSlackBotToken } from "./token.js";
 
 export type SlackActionClientOpts = {
+  cfg?: CoreBlowConfig;
   accountId?: string;
   token?: string;
   client?: WebClient;
@@ -41,8 +43,8 @@ export type SlackPin = {
   file?: { id?: string; name?: string };
 };
 
-function resolveToken(explicit?: string, accountId?: string) {
-  const cfg = loadConfig();
+function resolveToken(explicit?: string, accountId?: string, cfgParam?: CoreBlowConfig) {
+  const cfg = cfgParam ?? loadConfig();
   const account = resolveSlackAccount({ cfg, accountId });
   const token = resolveSlackBotToken(explicit ?? account.botToken ?? undefined);
   if (!token) {
@@ -64,9 +66,12 @@ function normalizeEmoji(raw: string) {
   return trimmed.replace(/^:+|:+$/g, "");
 }
 
-async function getClient(opts: SlackActionClientOpts = {}) {
-  const token = resolveToken(opts.token, opts.accountId);
-  return opts.client ?? createSlackWebClient(token);
+async function getClient(opts: SlackActionClientOpts = {}, mode: "read" | "write" = "read") {
+  if (opts.client) {
+    return opts.client;
+  }
+  const token = resolveToken(opts.token, opts.accountId, opts.cfg);
+  return mode === "write" ? getSlackWriteClient(token) : createSlackWebClient(token);
 }
 
 async function resolveBotUserId(client: WebClient) {
@@ -77,18 +82,36 @@ async function resolveBotUserId(client: WebClient) {
   return auth.user_id;
 }
 
+function hasSlackPlatformError(err: unknown, code: string): boolean {
+  if (!err || typeof err !== "object") {
+    return false;
+  }
+  const data = (err as { data?: unknown }).data;
+  if (!data || typeof data !== "object") {
+    return false;
+  }
+  return (data as { error?: unknown }).error === code;
+}
+
 export async function reactSlackMessage(
   channelId: string,
   messageId: string,
   emoji: string,
   opts: SlackActionClientOpts = {},
 ) {
-  const client = await getClient(opts);
-  await client.reactions.add({
-    channel: channelId,
-    timestamp: messageId,
-    name: normalizeEmoji(emoji),
-  });
+  const client = await getClient(opts, "write");
+  try {
+    await client.reactions.add({
+      channel: channelId,
+      timestamp: messageId,
+      name: normalizeEmoji(emoji),
+    });
+  } catch (err) {
+    if (hasSlackPlatformError(err, "already_reacted")) {
+      return;
+    }
+    throw err;
+  }
 }
 
 export async function removeSlackReaction(
@@ -97,12 +120,19 @@ export async function removeSlackReaction(
   emoji: string,
   opts: SlackActionClientOpts = {},
 ) {
-  const client = await getClient(opts);
-  await client.reactions.remove({
-    channel: channelId,
-    timestamp: messageId,
-    name: normalizeEmoji(emoji),
-  });
+  const client = await getClient(opts, "write");
+  try {
+    await client.reactions.remove({
+      channel: channelId,
+      timestamp: messageId,
+      name: normalizeEmoji(emoji),
+    });
+  } catch (err) {
+    if (hasSlackPlatformError(err, "no_reaction")) {
+      return;
+    }
+    throw err;
+  }
 }
 
 export async function removeOwnSlackReactions(
@@ -110,7 +140,7 @@ export async function removeOwnSlackReactions(
   messageId: string,
   opts: SlackActionClientOpts = {},
 ): Promise<string[]> {
-  const client = await getClient(opts);
+  const client = await getClient(opts, "write");
   const userId = await resolveBotUserId(client);
   const reactions = await listSlackReactions(channelId, messageId, { client });
   const toRemove = new Set<string>();
@@ -129,10 +159,9 @@ export async function removeOwnSlackReactions(
   }
   await Promise.all(
     Array.from(toRemove, (name) =>
-      client.reactions.remove({
-        channel: channelId,
-        timestamp: messageId,
-        name,
+      removeSlackReaction(channelId, messageId, name, {
+        ...opts,
+        client,
       }),
     ),
   );
@@ -166,7 +195,9 @@ export async function sendSlackMessage(
     blocks?: (Block | KnownBlock)[];
   } = {},
 ) {
+  const cfg = opts.cfg ?? loadConfig();
   return await sendMessageSlack(to, content, {
+    cfg,
     accountId: opts.accountId,
     token: opts.token,
     mediaUrl: opts.mediaUrl,

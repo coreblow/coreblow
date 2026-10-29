@@ -126,13 +126,10 @@ const telegramNativeApprovalCapability = createApproverRestrictedNativeApprovalC
   }),
 });
 
-const resolveTelegramApproveCommandBehavior = (
-  params: {
-    cfg: any;
-    accountId?: string | null;
-    senderId?: string;
-    approvalKind: "exec" | "plugin";
-  },
+const resolveTelegramApproveCommandBehavior: NonNullable<
+  ChannelApprovalCapability["resolveApproveCommandBehavior"]
+> = (
+  params: Parameters<NonNullable<ChannelApprovalCapability["resolveApproveCommandBehavior"]>>[0],
 ) => {
   const { cfg, accountId, senderId, approvalKind } = params;
   if (approvalKind !== "exec") {

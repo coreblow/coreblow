@@ -22,11 +22,12 @@ import { formatDocsLink } from "coreblow/plugin-sdk/setup-tools";
 import { inspectSlackAccount } from "./account-inspect.js";
 import { listSlackAccountIds, resolveSlackAccount, type ResolvedSlackAccount } from "./accounts.js";
 import {
+  buildSlackManifest,
   buildSlackSetupLines,
   isSlackSetupAccountConfigured,
-  setSlackChannelAllowlist,
   SLACK_CHANNEL as channel,
-} from "./shared.js";
+  setSlackChannelAllowlist,
+} from "./setup-shared.js";
 
 function enableSlackAccount(cfg: CoreBlowConfig, accountId: string): CoreBlowConfig {
   return patchChannelConfigForAccount({

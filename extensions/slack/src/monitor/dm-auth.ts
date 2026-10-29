@@ -1,8 +1,8 @@
 import { formatAllowlistMatchMeta } from "coreblow/plugin-sdk/allow-from";
 import { createChannelPairingChallengeIssuer } from "coreblow/plugin-sdk/channel-pairing";
-import { upsertChannelPairingRequest } from "coreblow/plugin-sdk/conversation-runtime";
 import { resolveSlackAllowListMatch } from "./allow-list.js";
 import type { SlackMonitorContext } from "./context.js";
+import { upsertChannelPairingRequest } from "./conversation.runtime.js";
 
 export async function authorizeSlackDirectMessage(params: {
   ctx: SlackMonitorContext;

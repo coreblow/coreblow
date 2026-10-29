@@ -197,3 +197,11 @@ export function imageMimeFromFormat(format?: string | null): string | undefined 
 export function kindFromMime(mime?: string | null): MediaKind | undefined {
   return mediaKindFromMime(normalizeMimeType(mime));
 }
+
+export function mimeTypeFromFilePath(filePath?: string | null): string | undefined {
+  const ext = getFileExtension(filePath);
+  if (!ext) {
+    return undefined;
+  }
+  return MIME_BY_EXT[ext];
+}
