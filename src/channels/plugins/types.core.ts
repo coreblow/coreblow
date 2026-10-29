@@ -454,6 +454,15 @@ export type ChannelMessagingAdapter = {
     display?: string;
     kind?: ChannelDirectoryEntryKind;
   }) => string;
+  resolveDeliveryTarget?: (params: { conversationId: string; parentConversationId?: string }) => {
+    to?: string;
+    threadId?: string;
+  } | null;
+  transformReplyPayload?: (params: {
+    payload: ReplyPayload;
+    cfg?: CoreBlowConfig;
+    accountId?: string | null;
+  }) => ReplyPayload;
   /**
    * Provider-specific session-route builder used after target resolution.
    * Keep session-key orchestration in core and channel-native routing rules here.
@@ -499,6 +508,7 @@ export type ChannelMessageActionContext = {
   cfg: CoreBlowConfig;
   params: Record<string, unknown>;
   mediaLocalRoots?: readonly string[];
+  mediaReadFile?: (filePath: string) => Promise<Buffer>;
   accountId?: string | null;
   /**
    * Trusted sender id from inbound context. This is server-injected and must
@@ -542,6 +552,10 @@ export type ChannelMessageActionAdapter = {
     toolContext?: ChannelThreadingToolContext;
   }) => boolean;
   extractToolSend?: (params: { args: Record<string, unknown> }) => ChannelToolSend | null;
+  prepareSendPayload?: (params: {
+    ctx: ChannelMessageActionContext;
+    payload: ReplyPayload;
+  }) => ReplyPayload | null;
   /**
    * Prefer this for channel-specific poll semantics or extra poll parameters.
    * Core only parses the shared poll model when falling back to `outbound.sendPoll`.

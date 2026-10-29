@@ -1,3 +1,4 @@
+import type { ChannelMessageAdapterShape } from "../message/types.js";
 import type { ChannelSetupWizard } from "./setup-wizard.js";
 import type {
   ChannelApprovalCapability,
@@ -112,6 +113,8 @@ export type ChannelPlugin<ResolvedAccount = any, Probe = unknown, Audit = unknow
   conversationBindings?: ChannelConversationBindingSupport;
   streaming?: ChannelStreamingAdapter;
   threading?: ChannelThreadingAdapter;
+  // oxlint-disable-next-line typescript/no-explicit-any
+  message?: ChannelMessageAdapterShape<any>;
   messaging?: ChannelMessagingAdapter;
   agentPrompt?: ChannelAgentPromptAdapter;
   directory?: ChannelDirectoryAdapter;

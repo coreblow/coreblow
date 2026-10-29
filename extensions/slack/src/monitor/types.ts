@@ -1,3 +1,4 @@
+import type { ChannelRuntimeSurface } from "coreblow/plugin-sdk/channel-contract";
 import type { CoreBlowConfig, SlackSlashCommandConfig } from "coreblow/plugin-sdk/config-runtime";
 import type { RuntimeEnv } from "coreblow/plugin-sdk/runtime-env";
 import type { SlackFile, SlackMessageEvent } from "../types.js";
@@ -9,6 +10,7 @@ export type MonitorSlackOpts = {
   mode?: "socket" | "http";
   config?: CoreBlowConfig;
   runtime?: RuntimeEnv;
+  channelRuntime?: ChannelRuntimeSurface;
   abortSignal?: AbortSignal;
   mediaMaxMb?: number;
   slashCommand?: SlackSlashCommandConfig;

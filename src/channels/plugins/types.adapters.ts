@@ -123,6 +123,8 @@ export type ChannelConfigAdapter<ResolvedAccount> = {
     cfg: CoreBlowConfig;
     accountId?: string | null;
   }) => string | undefined;
+  hasConfiguredState?: (params: { cfg?: CoreBlowConfig; env?: NodeJS.ProcessEnv }) => boolean;
+  hasPersistedAuthState?: (params: { cfg?: CoreBlowConfig; env?: NodeJS.ProcessEnv }) => boolean;
 };
 
 export type ChannelGroupAdapter = {
@@ -164,7 +166,21 @@ export type ChannelOutboundAdapter = {
   chunkerMode?: "text" | "markdown";
   textChunkLimit?: number;
   pollMaxOptions?: number;
-  normalizePayload?: (params: { payload: ReplyPayload }) => ReplyPayload | null;
+  normalizePayload?: (params: {
+    payload: ReplyPayload;
+    cfg?: CoreBlowConfig;
+    accountId?: string | null;
+  }) => ReplyPayload | null;
+  deliveryCapabilities?: Record<string, unknown>;
+  shouldSuppressLocalPayloadPrompt?: (params: {
+    cfg: CoreBlowConfig;
+    accountId?: string | null;
+    payload: ReplyPayload;
+  }) => boolean;
+  shouldTreatDeliveredTextAsVisible?: (params: {
+    kind: "tool" | "block" | "final";
+    text?: string;
+  }) => boolean;
   shouldSkipPlainTextSanitization?: (params: { payload: ReplyPayload }) => boolean;
   resolveEffectiveTextChunkLimit?: (params: {
     cfg: CoreBlowConfig;
@@ -468,6 +484,13 @@ export type ChannelCommandAdapter = {
   nativeCommandsAutoEnabled?: boolean;
   nativeSkillsAutoEnabled?: boolean;
   preferSenderE164ForCommands?: boolean;
+  resolveNativeCommandName?: (params: {
+    commandKey: string;
+    defaultName: string;
+  }) => string | undefined;
+  buildCommandsListChannelData?: (params: {
+    commands: Array<{ name: string; description: string }>;
+  }) => Record<string, unknown> | undefined;
 };
 
 export type ChannelLifecycleAdapter = {
@@ -642,6 +665,13 @@ export type ChannelSecurityAdapter<ResolvedAccount = unknown> = {
     ctx: ChannelSecurityContext<ResolvedAccount>,
   ) => ChannelSecurityDmPolicy | null;
   collectWarnings?: (ctx: ChannelSecurityContext<ResolvedAccount>) => Promise<string[]> | string[];
+  collectAuditFindings?: (
+    ctx: ChannelSecurityContext<ResolvedAccount> & {
+      sourceConfig?: CoreBlowConfig;
+      orderedAccountIds?: string[];
+      hasExplicitAccountPath?: boolean;
+    },
+  ) => Promise<unknown[]> | unknown[];
 };
 
 export type ChannelDoctorConfigMutation = {
