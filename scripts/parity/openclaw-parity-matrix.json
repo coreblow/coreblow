@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 9105,
+    "cb_source_files": 9107,
     "oc_source_files": 8443,
-    "source_parity_both": 7321,
+    "source_parity_both": 7323,
     "source_cb_exclusive": 1784,
-    "source_missing_from_cb": 1095,
+    "source_missing_from_cb": 1093,
     "source_intentionally_deprecated": 28,
-    "test_files_cb": 5194,
+    "test_files_cb": 5195,
     "test_files_oc": 5246,
-    "tests_both_covered": 3755,
-    "tests_gap_oc_has_cb_missing": 1224,
+    "tests_both_covered": 3756,
+    "tests_gap_oc_has_cb_missing": 1223,
     "tests_intentionally_deprecated": 22,
     "tests_cb_exclusive": 1374,
     "export_files_with_gaps": 41,
@@ -100,9 +100,9 @@
       "priority": "P1",
       "implementationSurface": "src/auto-reply inbound reply pipeline",
       "counts": {
-        "sharedSourcePaths": 239,
+        "sharedSourcePaths": 240,
         "coreBlowOnlySourcePaths": 21,
-        "openClawOnlySourcePaths": 98,
+        "openClawOnlySourcePaths": 97,
         "sharedTestPaths": 112,
         "coreBlowOnlyTestPaths": 81,
         "openClawTestGaps": 78
@@ -678,69 +678,6 @@
       ]
     },
     {
-      "domain": "src/config",
-      "status": "partial",
-      "priority": "P2",
-      "implementationSurface": "src/config CoreBlowConfig",
-      "counts": {
-        "sharedSourcePaths": 168,
-        "coreBlowOnlySourcePaths": 33,
-        "openClawOnlySourcePaths": 43,
-        "sharedTestPaths": 114,
-        "coreBlowOnlyTestPaths": 94,
-        "openClawTestGaps": 29
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/config/channel-configured-shared.ts",
-          "src/config/control-ui-css.ts",
-          "src/config/doc-baseline.runtime.ts",
-          "src/config/exec-command-highlighting.ts",
-          "src/config/legacy-config-detection.test-support.ts",
-          "src/config/markdown-tables.types.ts",
-          "src/config/materialize.ts",
-          "src/config/plugin-auto-enable.shared.ts",
-          "src/config/plugin-auto-enable.test-helpers.ts",
-          "src/config/plugin-web-search-config.ts",
-          "src/config/provider-policy.ts",
-          "src/config/read-best-effort-config.runtime.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/config/config.legacy-config-provider-shapes.test.ts",
-          "src/config/config.model-ref-validation.test.ts",
-          "src/config/heartbeat-config-honor.inventory.test.ts",
-          "src/config/io.best-effort.test.ts",
-          "src/config/mutate.test.ts",
-          "src/config/plugin-auto-enable.channels.test.ts",
-          "src/config/plugin-auto-enable.core.test.ts",
-          "src/config/plugin-auto-enable.model-support.test.ts",
-          "src/config/plugin-auto-enable.providers.test.ts",
-          "src/config/plugin-web-search-config.test.ts",
-          "src/config/redact-snapshot.raw.test.ts",
-          "src/config/session-parent-fork-config-keys.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/config/bundled-channel-config-runtime.ts",
-          "src/config/channel-config-surface.ts",
-          "src/config/channel-config.ts",
-          "src/config/config-env-map.ts",
-          "src/config/config-exporter.ts",
-          "src/config/config-hot-reload.ts",
-          "src/config/config-io.ts",
-          "src/config/config-loader.ts",
-          "src/config/config-redact.ts",
-          "src/config/config.schema.ts",
-          "src/config/discord-preview-streaming.ts",
-          "src/config/dotenv.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/config",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "src/cli",
       "status": "partial",
       "priority": "P2",
@@ -810,6 +747,69 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/cli",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/config",
+      "status": "partial",
+      "priority": "P2",
+      "implementationSurface": "src/config CoreBlowConfig",
+      "counts": {
+        "sharedSourcePaths": 169,
+        "coreBlowOnlySourcePaths": 33,
+        "openClawOnlySourcePaths": 42,
+        "sharedTestPaths": 114,
+        "coreBlowOnlyTestPaths": 94,
+        "openClawTestGaps": 29
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [
+          "src/config/channel-configured-shared.ts",
+          "src/config/control-ui-css.ts",
+          "src/config/doc-baseline.runtime.ts",
+          "src/config/exec-command-highlighting.ts",
+          "src/config/legacy-config-detection.test-support.ts",
+          "src/config/markdown-tables.types.ts",
+          "src/config/materialize.ts",
+          "src/config/plugin-auto-enable.shared.ts",
+          "src/config/plugin-auto-enable.test-helpers.ts",
+          "src/config/plugin-web-search-config.ts",
+          "src/config/provider-policy.ts",
+          "src/config/read-best-effort-config.runtime.ts"
+        ],
+        "openClawTestGapPaths": [
+          "src/config/config.legacy-config-provider-shapes.test.ts",
+          "src/config/config.model-ref-validation.test.ts",
+          "src/config/heartbeat-config-honor.inventory.test.ts",
+          "src/config/io.best-effort.test.ts",
+          "src/config/mutate.test.ts",
+          "src/config/plugin-auto-enable.channels.test.ts",
+          "src/config/plugin-auto-enable.core.test.ts",
+          "src/config/plugin-auto-enable.model-support.test.ts",
+          "src/config/plugin-auto-enable.providers.test.ts",
+          "src/config/plugin-web-search-config.test.ts",
+          "src/config/redact-snapshot.raw.test.ts",
+          "src/config/session-parent-fork-config-keys.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "src/config/bundled-channel-config-runtime.ts",
+          "src/config/channel-config-surface.ts",
+          "src/config/channel-config.ts",
+          "src/config/config-env-map.ts",
+          "src/config/config-exporter.ts",
+          "src/config/config-hot-reload.ts",
+          "src/config/config-io.ts",
+          "src/config/config-loader.ts",
+          "src/config/config-redact.ts",
+          "src/config/config.schema.ts",
+          "src/config/discord-preview-streaming.ts",
+          "src/config/dotenv.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/config",
         "pnpm check"
       ]
     },
@@ -1118,56 +1118,6 @@
       ]
     },
     {
-      "domain": "src/plugin-sdk",
-      "status": "partial",
-      "priority": "P2",
-      "implementationSurface": "src/plugin-sdk public API",
-      "counts": {
-        "sharedSourcePaths": 441,
-        "coreBlowOnlySourcePaths": 118,
-        "openClawOnlySourcePaths": 0,
-        "sharedTestPaths": 44,
-        "coreBlowOnlyTestPaths": 25,
-        "openClawTestGaps": 59
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [],
-        "openClawTestGapPaths": [
-          "src/plugin-sdk/acp-runtime.test.ts",
-          "src/plugin-sdk/agent-harness-runtime.test.ts",
-          "src/plugin-sdk/api-baseline.test.ts",
-          "src/plugin-sdk/approval-auth-helpers.test.ts",
-          "src/plugin-sdk/approval-delivery-helpers.test.ts",
-          "src/plugin-sdk/approval-native-helpers.test.ts",
-          "src/plugin-sdk/channel-entry-contract.test.ts",
-          "src/plugin-sdk/channel-inbound.test.ts",
-          "src/plugin-sdk/channel-lifecycle.queue.test.ts",
-          "src/plugin-sdk/channel-message.test.ts",
-          "src/plugin-sdk/channel-route.test.ts",
-          "src/plugin-sdk/channel-streaming.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/plugin-sdk/amazon-bedrock.ts",
-          "src/plugin-sdk/bluebubbles-policy.ts",
-          "src/plugin-sdk/bluebubbles.ts",
-          "src/plugin-sdk/browser-runtime.ts",
-          "src/plugin-sdk/browser-support.ts",
-          "src/plugin-sdk/browser.ts",
-          "src/plugin-sdk/byteplus.ts",
-          "src/plugin-sdk/channel-helpers.ts",
-          "src/plugin-sdk/chutes.ts",
-          "src/plugin-sdk/cli-scaffold.ts",
-          "src/plugin-sdk/cloudflare-ai-gateway.ts",
-          "src/plugin-sdk/config-builder.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/plugin-sdk",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/msteams",
       "status": "partial",
       "priority": "P2",
@@ -1227,6 +1177,56 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/msteams",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/plugin-sdk",
+      "status": "partial",
+      "priority": "P2",
+      "implementationSurface": "src/plugin-sdk public API",
+      "counts": {
+        "sharedSourcePaths": 441,
+        "coreBlowOnlySourcePaths": 118,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 45,
+        "coreBlowOnlyTestPaths": 25,
+        "openClawTestGaps": 58
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [
+          "src/plugin-sdk/acp-runtime.test.ts",
+          "src/plugin-sdk/agent-harness-runtime.test.ts",
+          "src/plugin-sdk/api-baseline.test.ts",
+          "src/plugin-sdk/approval-auth-helpers.test.ts",
+          "src/plugin-sdk/approval-delivery-helpers.test.ts",
+          "src/plugin-sdk/approval-native-helpers.test.ts",
+          "src/plugin-sdk/channel-entry-contract.test.ts",
+          "src/plugin-sdk/channel-inbound.test.ts",
+          "src/plugin-sdk/channel-lifecycle.queue.test.ts",
+          "src/plugin-sdk/channel-message.test.ts",
+          "src/plugin-sdk/channel-route.test.ts",
+          "src/plugin-sdk/channel-streaming.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "src/plugin-sdk/amazon-bedrock.ts",
+          "src/plugin-sdk/bluebubbles-policy.ts",
+          "src/plugin-sdk/bluebubbles.ts",
+          "src/plugin-sdk/browser-runtime.ts",
+          "src/plugin-sdk/browser-support.ts",
+          "src/plugin-sdk/browser.ts",
+          "src/plugin-sdk/byteplus.ts",
+          "src/plugin-sdk/channel-helpers.ts",
+          "src/plugin-sdk/chutes.ts",
+          "src/plugin-sdk/cli-scaffold.ts",
+          "src/plugin-sdk/cloudflare-ai-gateway.ts",
+          "src/plugin-sdk/config-builder.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/plugin-sdk",
         "pnpm check"
       ]
     },
@@ -4846,7 +4846,7 @@
     {
       "domain": "extensions/slack",
       "status": "done",
-      "priority": "P1",
+      "priority": "P3",
       "implementationSurface": "extensions/slack plus plugin-sdk channel/runtime surfaces",
       "counts": {
         "sharedSourcePaths": 171,
