@@ -1,6 +1,7 @@
 export { resolveChannelContextVisibilityMode } from "../config/context-visibility.js";
 export {
   evaluateSupplementalContextVisibility,
+  filterSupplementalContextItems,
   shouldIncludeSupplementalContext,
   type ContextVisibilityDecision,
   type ContextVisibilityDecisionReason,

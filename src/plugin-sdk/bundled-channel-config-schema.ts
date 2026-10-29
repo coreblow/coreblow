@@ -25,7 +25,9 @@ export {
   IMessageConfigSchema,
   MSTeamsConfigSchema,
   SignalConfigSchema,
+  SlackAccountSchema,
   SlackConfigSchema,
+  SlackSocketModeSchema,
   TelegramConfigSchema,
 } from "../config/zod-schema.providers-core.js";
 export { WhatsAppConfigSchema } from "../config/zod-schema.providers-whatsapp.js";

@@ -9,6 +9,8 @@ export type InboundMediaInput = {
   transcribed?: boolean;
 };
 
+export type ChannelInboundMediaInput = InboundMediaInput;
+
 export type InboundMediaFacts = {
   path?: string;
   url?: string;
@@ -42,9 +44,12 @@ function cleanString(value: string | undefined): string | undefined {
 }
 
 export function toInboundMediaFacts(
-  media: readonly InboundMediaInput[],
+  media: readonly InboundMediaInput[] | null | undefined,
   defaults: InboundMediaDefaults = {},
 ): InboundMediaFacts[] {
+  if (!Array.isArray(media)) {
+    return [];
+  }
   return media.map((entry, index) => ({
     path: cleanString(entry.path),
     url: cleanString(entry.url),
@@ -63,16 +68,17 @@ export function toHistoryMediaEntries(
 }
 
 export function buildChannelInboundMediaPayload(
-  media: readonly InboundMediaFacts[],
+  media: readonly InboundMediaFacts[] | null | undefined,
 ): ChannelInboundMediaPayload {
-  if (media.length === 0) {
+  const entries = Array.isArray(media) ? media : [];
+  if (entries.length === 0) {
     return {};
   }
 
-  const urls = media.map((entry) => entry.path ?? entry.url ?? "");
-  const paths = media.map((entry) => entry.path ?? "");
-  const types = media.map((entry) => entry.contentType ?? "");
-  const transcribed = media.flatMap((entry, index) => entry.transcribed === true ? [index] : []);
+  const urls = entries.map((entry) => entry.path ?? entry.url ?? "");
+  const paths = entries.map((entry) => entry.path ?? "");
+  const types = entries.map((entry) => entry.contentType ?? "");
+  const transcribed = entries.flatMap((entry, index) => entry.transcribed === true ? [index] : []);
 
   return {
     MediaPath: paths.find((path) => path.length > 0),

@@ -141,6 +141,13 @@ export type ChannelMeta = {
   preferOver?: string[];
 };
 
+export type ChannelLegacyStateMigrationPlan = {
+  kind: "copy" | "move";
+  label: string;
+  sourcePath: string;
+  targetPath: string;
+};
+
 /** Snapshot row returned by channel status and lifecycle surfaces. */
 export type ChannelAccountSnapshot = {
   accountId: string;

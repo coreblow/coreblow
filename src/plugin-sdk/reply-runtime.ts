@@ -14,6 +14,8 @@ export {
   dispatchInboundMessage,
   dispatchInboundMessageWithBufferedDispatcher,
   dispatchInboundMessageWithDispatcher,
+  settleReplyDispatcher,
+  withReplyDispatcher,
 } from "../auto-reply/dispatch.js";
 export {
   normalizeGroupActivation,

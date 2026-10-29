@@ -10,6 +10,16 @@ import { resolveAccountEntry } from "../routing/account-lookup.js";
 import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "../routing/session-key.js";
 import { normalizeStringEntries } from "../shared/string-normalization.js";
 
+export {
+  normalizeChannelDmPolicy,
+  resolveChannelDmAccess,
+  resolveChannelDmAllowFrom,
+  resolveChannelDmPolicy,
+  type ChannelDmAccess,
+  type ChannelDmAllowFromMode,
+  type ChannelDmPolicy,
+} from "../channels/plugins/dm-access.js";
+
 type SimpleDirectMessageConfig = {
   allowFrom?: Array<string | number>;
   defaultTo?: string | number | null;

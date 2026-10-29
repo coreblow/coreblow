@@ -25,7 +25,13 @@ import { summarizeAllowedValues } from "./allowed-values.js";
 function appendAllowedValuesHint(msg: string, summary: unknown): string {
   return summary ? `${msg} (see allowed values)` : msg;
 };
-import { getBundledChannelConfigSchemaMap } from "./bundled-channel-config-runtime.js";
+import { GENERATED_BUNDLED_CHANNEL_CONFIG_METADATA } from "./bundled-channel-config-metadata.generated.js";
+
+const bundledChannelSchemaById = new Map<string, unknown>(
+  GENERATED_BUNDLED_CHANNEL_CONFIG_METADATA.map(
+    (entry) => [entry.channelId, entry.schema] as const,
+  ),
+);
 import { collectChannelSchemaMetadata } from "./channel-config-metadata.js";
 import { applyAgentDefaults, applyModelDefaults, applySessionDefaults } from "./defaults.js";
 import {
@@ -175,8 +181,8 @@ function collectAllowedValuesFromConfigPath(
   path: readonly ConfigPathSegment[],
 ): AllowedValuesCollection {
   if (path[0] === "channels" && typeof path[1] === "string") {
-    const channelSchema = getBundledChannelConfigSchemaMap().get(path[1]);
-    const schemaRoot = toJsonSchemaNode(channelSchema?.schema);
+    const channelSchema = bundledChannelSchemaById.get(path[1]);
+    const schemaRoot = toJsonSchemaNode(channelSchema);
     if (schemaRoot) {
       return collectAllowedValuesFromSchemaPath(schemaRoot, path.slice(2));
     }

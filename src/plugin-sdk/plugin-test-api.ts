@@ -1,18 +1,100 @@
 import type { CoreBlowConfig } from "../config/config.js";
-import { buildPluginApi } from "../plugins/api-builder.js";
-import type { PluginRuntime } from "../plugins/runtime/types.js";
+import {
+  attachPluginApiFacades,
+  type CoreBlowPluginApiWithoutFacades,
+} from "../plugins/api-facades.js";
+import type { CoreBlowPluginApi } from "./plugin-runtime.js";
 
-export function createTestPluginApi(overrides: Record<string, unknown> = {}) {
-  return buildPluginApi({
-    id: "test",
-    name: "Test",
+export type TestPluginApiInput = Partial<CoreBlowPluginApi>;
+
+export function createTestPluginApi(api: TestPluginApiInput = {}): CoreBlowPluginApi {
+  const { agent, lifecycle, runContext, session, ...flatApi } = api;
+  const mergedApi = {
+    id: "test-plugin",
+    name: "test-plugin",
     source: "test",
     registrationMode: "full",
     config: {} as CoreBlowConfig,
-    pluginConfig: {},
-    runtime: {} as PluginRuntime,
-    logger: console,
-    resolvePath: (input) => input,
-    ...(overrides as Partial<Parameters<typeof buildPluginApi>[0]>),
-  });
+    runtime: {} as CoreBlowPluginApi["runtime"],
+    logger: { info() {}, warn() {}, error() {}, debug() {} },
+    registerTool() {},
+    registerHook() {},
+    registerHttpRoute() {},
+    registerHostedMediaResolver() {},
+    registerChannel() {},
+    registerGatewayMethod() {},
+    registerCli() {},
+    registerNodeCliFeature() {},
+    registerCliBackend() {},
+    registerTextTransforms() {},
+    registerService() {},
+    registerGatewayDiscoveryService() {},
+    registerReload() {},
+    registerNodeHostCommand() {},
+    registerNodeInvokePolicy() {},
+    registerSecurityAuditCollector() {},
+    registerConfigMigration() {},
+    registerMigrationProvider() {},
+    registerAutoEnableProbe() {},
+    registerProvider() {},
+    registerModelCatalogProvider() {},
+    registerSpeechProvider() {},
+    registerRealtimeTranscriptionProvider() {},
+    registerRealtimeVoiceProvider() {},
+    registerMediaUnderstandingProvider() {},
+    registerImageGenerationProvider() {},
+    registerMusicGenerationProvider() {},
+    registerVideoGenerationProvider() {},
+    registerWebFetchProvider() {},
+    registerWebSearchProvider() {},
+    registerInteractiveHandler() {},
+    onConversationBindingResolved() {},
+    registerCommand() {},
+    registerContextEngine() {},
+    registerCompactionProvider() {},
+    registerAgentHarness() {},
+    registerCodexAppServerExtensionFactory() {},
+    registerAgentToolResultMiddleware() {},
+    registerDetachedTaskRuntime() {},
+    registerSessionExtension() {},
+    enqueueNextTurnInjection: async (injection) => ({
+      enqueued: false,
+      id: "",
+      sessionKey: injection.sessionKey,
+    }),
+    registerTrustedToolPolicy() {},
+    registerToolMetadata() {},
+    registerControlUiDescriptor() {},
+    registerRuntimeLifecycle() {},
+    registerAgentEventSubscription() {},
+    emitAgentEvent: () => ({ emitted: false as const, reason: "test api" }),
+    setRunContext: () => false,
+    getRunContext: () => undefined,
+    clearRunContext() {},
+    registerSessionSchedulerJob: () => undefined,
+    registerSessionAction() {},
+    sendSessionAttachment: async () => ({ ok: false, error: "test plugin api" }),
+    scheduleSessionTurn: async () => undefined,
+    unscheduleSessionTurnsByTag: async () => ({ removed: 0, failed: 0 }),
+    registerMemoryCapability() {},
+    registerMemoryPromptSection() {},
+    registerMemoryPromptSupplement() {},
+    registerMemoryCorpusSupplement() {},
+    registerMemoryFlushPlan() {},
+    registerMemoryRuntime() {},
+    registerMemoryEmbeddingProvider() {},
+    resolvePath(input: string) {
+      return input;
+    },
+    on() {},
+    ...flatApi,
+  } as CoreBlowPluginApiWithoutFacades;
+  const withFacades = attachPluginApiFacades(mergedApi);
+  return {
+    ...withFacades,
+    ...(agent ? { agent } : {}),
+    ...(lifecycle ? { lifecycle } : {}),
+    ...(runContext ? { runContext } : {}),
+    ...(session ? { session } : {}),
+  };
 }

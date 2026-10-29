@@ -2,6 +2,30 @@
 // CoreBlow uses channels/inbound-event/context.ts for runtime AccessFacts.
 // This module defines the ingress projection shape expected by channel-ingress.ts.
 
+export type CommandTurnKind = "none" | "slash" | "text" | "native" | "mention";
+
+export type CommandFacts = {
+  kind: CommandTurnKind;
+  body?: string;
+  name?: string;
+  authorized?: boolean;
+};
+
+export type InboundMediaFacts = {
+  path?: string;
+  mimeType?: string;
+  sizeBytes?: number;
+  durationSeconds?: number;
+  width?: number;
+  height?: number;
+  isVoice?: boolean;
+  isAudio?: boolean;
+  isVideo?: boolean;
+  isImage?: boolean;
+  isAnimated?: boolean;
+  hasMedia?: boolean;
+};
+
 export type ChannelTurnAdmission =
   | { kind: "dispatch"; reason?: string }
   | { kind: "observeOnly"; reason: string }

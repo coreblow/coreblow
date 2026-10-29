@@ -1,2 +1,8 @@
-export { loadSessionStore, readSessionUpdatedAt, updateSessionStore, updateSessionStoreEntry } from "../config/sessions/store.js";
+export {
+  clearSessionStoreCacheForTest,
+  loadSessionStore,
+  readSessionUpdatedAt,
+  updateSessionStore,
+  updateSessionStoreEntry,
+} from "../config/sessions/store.js";
 export { resolveStorePath } from "../config/sessions/paths.js";

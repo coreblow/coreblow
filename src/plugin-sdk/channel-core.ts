@@ -1,35 +1,31 @@
-export type ChannelPlugin<TAccount = unknown> = {
-  id?: string;
-  meta?: Record<string, unknown>;
-  [key: string]: unknown;
-};
+export type {
+  ChannelConfigUiHint,
+  ChannelPlugin,
+  CoreBlowConfig,
+  CoreBlowPluginApi,
+  PluginCommandContext,
+  PluginRuntime,
+  ChannelOutboundSessionRouteParams,
+  ThreadAwareOutboundSessionRouteRecoveryContext,
+  ThreadAwareOutboundSessionRouteThreadSource,
+} from "./core.js";
 
-export function createChatChannelPlugin<TAccount>(params: {
-  base: ChannelPlugin<TAccount>;
-  outbound?: Record<string, unknown>;
-}): ChannelPlugin<TAccount> {
-  return { ...params.base, outbound: params.outbound };
-}
+import { createChannelPluginBase as createChannelPluginBaseFromCore } from "./core.js";
 
-export { buildChannelOutboundSessionRoute } from "./core.js";
+export const createChannelPluginBase: typeof createChannelPluginBaseFromCore = (params) =>
+  createChannelPluginBaseFromCore(params);
 
-import type { ChannelOutboundSessionRoute } from "../channels/plugins/types.core.js";
-
-export function buildThreadAwareOutboundSessionRoute<
-  TRoute extends ChannelOutboundSessionRoute = ChannelOutboundSessionRoute,
->(params: {
-  route: TRoute;
-  replyToId?: unknown;
-  threadId?: unknown;
-  currentSessionKey?: unknown;
-  canRecoverCurrentThread?: () => boolean;
-  precedence?: readonly string[];
-  useSuffix?: boolean;
-}): TRoute {
-  return {
-    ...params.route,
-    ...(params.threadId !== undefined && params.threadId !== null
-      ? { threadId: params.threadId as string | number }
-      : {}),
-  };
-}
+export {
+  buildChannelConfigSchema,
+  buildChannelOutboundSessionRoute,
+  buildThreadAwareOutboundSessionRoute,
+  clearAccountEntryFields,
+  createChatChannelPlugin,
+  defineChannelPluginEntry,
+  defineSetupPluginEntry,
+  parseOptionalDelimitedEntries,
+  recoverCurrentThreadSessionId,
+  stripChannelTargetPrefix,
+  stripTargetKindPrefix,
+  tryReadSecretFileSync,
+} from "./core.js";

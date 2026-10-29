@@ -29,3 +29,22 @@ export function shouldIncludeSupplementalContext(
 ): boolean {
   return evaluateSupplementalContextVisibility(params).include;
 }
+
+export function filterSupplementalContextItems<T>(params: {
+  items: readonly T[];
+  mode: ContextVisibilityMode;
+  kind: ContextVisibilityKind;
+  isSenderAllowed: (item: T) => boolean;
+}): { items: T[]; omitted: number } {
+  const items = params.items.filter((item) =>
+    shouldIncludeSupplementalContext({
+      mode: params.mode,
+      kind: params.kind,
+      senderAllowed: params.isSenderAllowed(item),
+    }),
+  );
+  return {
+    items,
+    omitted: params.items.length - items.length,
+  };
+}

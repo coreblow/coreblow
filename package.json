@@ -394,6 +394,10 @@
       "types": "./dist/plugin-sdk/approval-client-runtime.d.ts",
       "default": "./dist/plugin-sdk/approval-client-runtime.js"
     },
+    "./plugin-sdk/approval-delivery-runtime": {
+      "types": "./dist/plugin-sdk/approval-delivery-runtime.d.ts",
+      "default": "./dist/plugin-sdk/approval-delivery-runtime.js"
+    },
     "./plugin-sdk/approval-gateway-runtime": {
       "types": "./dist/plugin-sdk/approval-gateway-runtime.d.ts",
       "default": "./dist/plugin-sdk/approval-gateway-runtime.js"
@@ -593,6 +597,10 @@
     "./plugin-sdk/channel-runtime-context": {
       "types": "./dist/plugin-sdk/channel-runtime-context.d.ts",
       "default": "./dist/plugin-sdk/channel-runtime-context.js"
+    },
+    "./plugin-sdk/channel-secret-runtime": {
+      "types": "./dist/plugin-sdk/channel-secret-runtime.d.ts",
+      "default": "./dist/plugin-sdk/channel-secret-runtime.js"
     },
     "./plugin-sdk/channel-send-result": {
       "types": "./dist/plugin-sdk/channel-send-result.d.ts",
@@ -1298,6 +1306,10 @@
       "types": "./dist/plugin-sdk/outbound-send-deps.d.ts",
       "default": "./dist/plugin-sdk/outbound-send-deps.js"
     },
+    "./plugin-sdk/pair-loop-guard-runtime": {
+      "types": "./dist/plugin-sdk/pair-loop-guard-runtime.d.ts",
+      "default": "./dist/plugin-sdk/pair-loop-guard-runtime.js"
+    },
     "./plugin-sdk/pairing-access": {
       "types": "./dist/plugin-sdk/pairing-access.d.ts",
       "default": "./dist/plugin-sdk/pairing-access.js"
@@ -1361,10 +1373,6 @@
     "./plugin-sdk/provider-auth-login.runtime": {
       "types": "./dist/plugin-sdk/provider-auth-login.runtime.d.ts",
       "default": "./dist/plugin-sdk/provider-auth-login.runtime.js"
-    },
-    "./plugin-sdk/proxy-capture": {
-      "types": "./dist/plugin-sdk/proxy-capture.d.ts",
-      "default": "./dist/plugin-sdk/proxy-capture.js"
     },
     "./plugin-sdk/provider-auth-result": {
       "types": "./dist/plugin-sdk/provider-auth-result.d.ts",
@@ -1494,6 +1502,10 @@
       "types": "./dist/plugin-sdk/provider-zai-endpoint.d.ts",
       "default": "./dist/plugin-sdk/provider-zai-endpoint.js"
     },
+    "./plugin-sdk/proxy-capture": {
+      "types": "./dist/plugin-sdk/proxy-capture.d.ts",
+      "default": "./dist/plugin-sdk/proxy-capture.js"
+    },
     "./plugin-sdk/qianfan": {
       "types": "./dist/plugin-sdk/qianfan.d.ts",
       "default": "./dist/plugin-sdk/qianfan.js"
@@ -1518,6 +1530,10 @@
       "types": "./dist/plugin-sdk/reply-dedupe.d.ts",
       "default": "./dist/plugin-sdk/reply-dedupe.js"
     },
+    "./plugin-sdk/reply-dispatch-runtime": {
+      "types": "./dist/plugin-sdk/reply-dispatch-runtime.d.ts",
+      "default": "./dist/plugin-sdk/reply-dispatch-runtime.js"
+    },
     "./plugin-sdk/reply-history": {
       "types": "./dist/plugin-sdk/reply-history.d.ts",
       "default": "./dist/plugin-sdk/reply-history.js"
@@ -1525,6 +1541,10 @@
     "./plugin-sdk/reply-payload": {
       "types": "./dist/plugin-sdk/reply-payload.d.ts",
       "default": "./dist/plugin-sdk/reply-payload.js"
+    },
+    "./plugin-sdk/reply-reference": {
+      "types": "./dist/plugin-sdk/reply-reference.d.ts",
+      "default": "./dist/plugin-sdk/reply-reference.js"
     },
     "./plugin-sdk/reply-runtime": {
       "types": "./dist/plugin-sdk/reply-runtime.d.ts",
@@ -1562,17 +1582,29 @@
       "types": "./dist/plugin-sdk/runtime-config-snapshot.d.ts",
       "default": "./dist/plugin-sdk/runtime-config-snapshot.js"
     },
+    "./plugin-sdk/runtime-doctor": {
+      "types": "./dist/plugin-sdk/runtime-doctor.d.ts",
+      "default": "./dist/plugin-sdk/runtime-doctor.js"
+    },
     "./plugin-sdk/runtime-env": {
       "types": "./dist/plugin-sdk/runtime-env.d.ts",
       "default": "./dist/plugin-sdk/runtime-env.js"
+    },
+    "./plugin-sdk/runtime-fetch": {
+      "types": "./dist/plugin-sdk/runtime-fetch.d.ts",
+      "default": "./dist/plugin-sdk/runtime-fetch.js"
+    },
+    "./plugin-sdk/runtime-group-policy": {
+      "types": "./dist/plugin-sdk/runtime-group-policy.d.ts",
+      "default": "./dist/plugin-sdk/runtime-group-policy.js"
     },
     "./plugin-sdk/runtime-logger": {
       "types": "./dist/plugin-sdk/runtime-logger.d.ts",
       "default": "./dist/plugin-sdk/runtime-logger.js"
     },
-    "./plugin-sdk/runtime-doctor": {
-      "types": "./dist/plugin-sdk/runtime-doctor.d.ts",
-      "default": "./dist/plugin-sdk/runtime-doctor.js"
+    "./plugin-sdk/runtime-secret-resolution": {
+      "types": "./dist/plugin-sdk/runtime-secret-resolution.d.ts",
+      "default": "./dist/plugin-sdk/runtime-secret-resolution.js"
     },
     "./plugin-sdk/runtime-store": {
       "types": "./dist/plugin-sdk/runtime-store.d.ts",
@@ -1586,6 +1618,10 @@
       "types": "./dist/plugin-sdk/sdk.d.ts",
       "default": "./dist/plugin-sdk/sdk.js"
     },
+    "./plugin-sdk/secret-file-runtime": {
+      "types": "./dist/plugin-sdk/secret-file-runtime.d.ts",
+      "default": "./dist/plugin-sdk/secret-file-runtime.js"
+    },
     "./plugin-sdk/secret-input": {
       "types": "./dist/plugin-sdk/secret-input.d.ts",
       "default": "./dist/plugin-sdk/secret-input.js"
@@ -1597,6 +1633,10 @@
     "./plugin-sdk/secret-input-schema": {
       "types": "./dist/plugin-sdk/secret-input-schema.d.ts",
       "default": "./dist/plugin-sdk/secret-input-schema.js"
+    },
+    "./plugin-sdk/secret-ref-runtime": {
+      "types": "./dist/plugin-sdk/secret-ref-runtime.d.ts",
+      "default": "./dist/plugin-sdk/secret-ref-runtime.js"
     },
     "./plugin-sdk/secure-random-runtime": {
       "types": "./dist/plugin-sdk/secure-random-runtime.d.ts",
@@ -1610,9 +1650,21 @@
       "types": "./dist/plugin-sdk/self-hosted-provider-setup.d.ts",
       "default": "./dist/plugin-sdk/self-hosted-provider-setup.js"
     },
+    "./plugin-sdk/session-binding-runtime": {
+      "types": "./dist/plugin-sdk/session-binding-runtime.d.ts",
+      "default": "./dist/plugin-sdk/session-binding-runtime.js"
+    },
     "./plugin-sdk/session-key-runtime": {
       "types": "./dist/plugin-sdk/session-key-runtime.d.ts",
       "default": "./dist/plugin-sdk/session-key-runtime.js"
+    },
+    "./plugin-sdk/session-store-runtime": {
+      "types": "./dist/plugin-sdk/session-store-runtime.d.ts",
+      "default": "./dist/plugin-sdk/session-store-runtime.js"
+    },
+    "./plugin-sdk/session-transcript-hit": {
+      "types": "./dist/plugin-sdk/session-transcript-hit.d.ts",
+      "default": "./dist/plugin-sdk/session-transcript-hit.js"
     },
     "./plugin-sdk/setup": {
       "types": "./dist/plugin-sdk/setup.d.ts",
@@ -1770,6 +1822,10 @@
       "types": "./dist/plugin-sdk/test-env.d.ts",
       "default": "./dist/plugin-sdk/test-env.js"
     },
+    "./plugin-sdk/test-fixtures": {
+      "types": "./dist/plugin-sdk/test-fixtures.d.ts",
+      "default": "./dist/plugin-sdk/test-fixtures.js"
+    },
     "./plugin-sdk/test-helpers": {
       "types": "./dist/plugin-sdk/test-helpers.d.ts",
       "default": "./dist/plugin-sdk/test-helpers.js"
@@ -1805,6 +1861,10 @@
     "./plugin-sdk/thread-bindings-runtime": {
       "types": "./dist/plugin-sdk/thread-bindings-runtime.d.ts",
       "default": "./dist/plugin-sdk/thread-bindings-runtime.js"
+    },
+    "./plugin-sdk/thread-bindings-session-runtime": {
+      "types": "./dist/plugin-sdk/thread-bindings-session-runtime.d.ts",
+      "default": "./dist/plugin-sdk/thread-bindings-session-runtime.js"
     },
     "./plugin-sdk/thread-ownership": {
       "types": "./dist/plugin-sdk/thread-ownership.d.ts",
@@ -1969,38 +2029,6 @@
     "./plugin-sdk/zod": {
       "types": "./dist/plugin-sdk/zod.d.ts",
       "default": "./dist/plugin-sdk/zod.js"
-    },
-    "./plugin-sdk/channel-secret-runtime": {
-      "types": "./dist/plugin-sdk/channel-secret-runtime.d.ts",
-      "default": "./dist/plugin-sdk/channel-secret-runtime.js"
-    },
-    "./plugin-sdk/pair-loop-guard-runtime": {
-      "types": "./dist/plugin-sdk/pair-loop-guard-runtime.d.ts",
-      "default": "./dist/plugin-sdk/pair-loop-guard-runtime.js"
-    },
-    "./plugin-sdk/runtime-secret-resolution": {
-      "types": "./dist/plugin-sdk/runtime-secret-resolution.d.ts",
-      "default": "./dist/plugin-sdk/runtime-secret-resolution.js"
-    },
-    "./plugin-sdk/secret-file-runtime": {
-      "types": "./dist/plugin-sdk/secret-file-runtime.d.ts",
-      "default": "./dist/plugin-sdk/secret-file-runtime.js"
-    },
-    "./plugin-sdk/secret-ref-runtime": {
-      "types": "./dist/plugin-sdk/secret-ref-runtime.d.ts",
-      "default": "./dist/plugin-sdk/secret-ref-runtime.js"
-    },
-    "./plugin-sdk/session-binding-runtime": {
-      "types": "./dist/plugin-sdk/session-binding-runtime.d.ts",
-      "default": "./dist/plugin-sdk/session-binding-runtime.js"
-    },
-    "./plugin-sdk/session-transcript-hit": {
-      "types": "./dist/plugin-sdk/session-transcript-hit.d.ts",
-      "default": "./dist/plugin-sdk/session-transcript-hit.js"
-    },
-    "./plugin-sdk/thread-bindings-session-runtime": {
-      "types": "./dist/plugin-sdk/thread-bindings-session-runtime.d.ts",
-      "default": "./dist/plugin-sdk/thread-bindings-session-runtime.js"
     }
   },
   "pnpm": {

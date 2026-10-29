@@ -1,3 +1,5 @@
+import { normalizeOptionalString } from "./string-coerce.js";
+
 export function normalizeStringEntries(value: unknown): string[] {
   if (!Array.isArray(value)) {
     return [];
@@ -21,6 +23,14 @@ export function normalizeOptionalTrimmedStringList(value: unknown): string[] | u
   }
   const list = normalizeTrimmedStringList(value);
   return list.length > 0 ? list : undefined;
+}
+
+export function normalizeSingleOrTrimmedStringList(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return normalizeTrimmedStringList(value);
+  }
+  const normalized = normalizeOptionalString(value);
+  return normalized ? [normalized] : [];
 }
 
 export function normalizeHyphenSlug(value: unknown): string {

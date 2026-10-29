@@ -859,10 +859,19 @@ const SlackReplyToModeByChatTypeSchema = z
   })
   .strict();
 
+export const SlackSocketModeSchema = z
+  .object({
+    clientPingTimeout: z.number().int().positive().optional(),
+    serverPingTimeout: z.number().int().positive().optional(),
+    pingPongLoggingEnabled: z.boolean().optional(),
+  })
+  .strict();
+
 export const SlackAccountSchema = z
   .object({
     name: z.string().optional(),
     mode: z.enum(["socket", "http"]).optional(),
+    socketMode: SlackSocketModeSchema.optional(),
     signingSecret: SecretInputSchema.optional().register(sensitive),
     webhookPath: z.string().optional(),
     capabilities: SlackCapabilitiesSchema.optional(),
@@ -882,6 +891,8 @@ export const SlackAccountSchema = z
     dmHistoryLimit: z.number().int().min(0).optional(),
     dms: z.record(z.string(), DmConfigSchema.optional()).optional(),
     textChunkLimit: z.number().int().positive().optional(),
+    unfurlLinks: z.boolean().optional(),
+    unfurlMedia: z.boolean().optional(),
     chunkMode: z.enum(["length", "newline"]).optional(),
     blockStreaming: z.boolean().optional(),
     blockStreamingCoalesce: BlockStreamingCoalesceSchema.optional(),

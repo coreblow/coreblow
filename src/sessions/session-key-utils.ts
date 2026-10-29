@@ -169,6 +169,27 @@ export function isAcpSessionKey(sessionKey: string | undefined | null): boolean 
 
 const THREAD_SESSION_MARKERS = [":thread:", ":topic:"];
 
+export function parseThreadSessionSuffix(
+  sessionKey: string | undefined | null,
+): ParsedThreadSessionSuffix {
+  const raw = normalizeOptionalString(sessionKey);
+  if (!raw) {
+    return { baseSessionKey: undefined, threadId: undefined };
+  }
+
+  const lowerRaw = normalizeLowercaseStringOrEmpty(raw);
+  const threadMarker = ":thread:";
+  const threadIndex = lowerRaw.lastIndexOf(threadMarker);
+  const markerIndex = threadIndex;
+  const marker = threadMarker;
+
+  const baseSessionKey = markerIndex === -1 ? raw : raw.slice(0, markerIndex);
+  const threadIdRaw = markerIndex === -1 ? undefined : raw.slice(markerIndex + marker.length);
+  const threadId = normalizeOptionalString(threadIdRaw);
+
+  return { baseSessionKey, threadId };
+}
+
 export function resolveThreadParentSessionKey(
   sessionKey: string | undefined | null,
 ): string | null {

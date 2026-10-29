@@ -224,6 +224,11 @@ export function createChannelApprovalCapability(params: {
 }
 
 export function splitChannelApprovalCapability(capability: ChannelApprovalCapability): {
+  auth: {
+    authorizeActorAction?: ChannelApprovalCapability["authorizeActorAction"];
+    getActionAvailabilityState?: ChannelApprovalCapability["getActionAvailabilityState"];
+    resolveApproveCommandBehavior?: ChannelApprovalCapability["resolveApproveCommandBehavior"];
+  };
   command: {
     authorizeActorAction?: ChannelApprovalCapability["authorizeActorAction"];
     getActionAvailabilityState?: ChannelApprovalCapability["getActionAvailabilityState"];
@@ -235,12 +240,14 @@ export function splitChannelApprovalCapability(capability: ChannelApprovalCapabi
   native: ChannelApprovalCapability["native"];
   describeExecApprovalSetup: ChannelApprovalCapability["describeExecApprovalSetup"];
 } {
+  const authSurfaces = {
+    authorizeActorAction: capability.authorizeActorAction,
+    getActionAvailabilityState: capability.getActionAvailabilityState,
+    resolveApproveCommandBehavior: capability.resolveApproveCommandBehavior,
+  };
   return {
-    command: {
-      authorizeActorAction: capability.authorizeActorAction,
-      getActionAvailabilityState: capability.getActionAvailabilityState,
-      resolveApproveCommandBehavior: capability.resolveApproveCommandBehavior,
-    },
+    auth: authSurfaces,
+    command: authSurfaces,
     delivery: capability.delivery,
     nativeRuntime: capability.nativeRuntime,
     render: capability.render,

@@ -10,6 +10,157 @@ import type { CoreBlowConfig } from "../config/config.js";
 import { createChannelReplyPipeline } from "./channel-reply-pipeline.js";
 import { createNormalizedOutboundDeliverer, type OutboundReplyPayload } from "./reply-payload.js";
 
+export {
+  hasFinalChannelTurnDispatch as hasFinalInboundReplyDispatch,
+  hasVisibleChannelTurnDispatch as hasVisibleInboundReplyDispatch,
+  resolveChannelTurnDispatchCounts as resolveInboundReplyDispatchCounts,
+  hasFinalChannelTurnDispatch,
+  hasVisibleChannelTurnDispatch,
+  resolveChannelTurnDispatchCounts,
+  EMPTY_CHANNEL_TURN_DISPATCH_COUNTS,
+  type ChannelTurnDispatchResultLike,
+  type ChannelTurnVisibleDeliverySignals,
+} from "../channels/turn/dispatch-result.js";
+import {
+  recordChannelBotPairLoopAndCheckSuppression,
+  type ChannelBotLoopProtectionFacts,
+} from "../channels/turn/bot-loop-protection.js";
+
+export {
+  clearChannelBotPairLoopGuardForTests,
+  listTrackedChannelBotPairsForTests,
+  recordChannelBotPairLoopAndCheckSuppression,
+  type ChannelBotLoopProtectionFacts,
+} from "../channels/turn/bot-loop-protection.js";
+
+export type ChannelTurnRecordOptions = {
+  groupResolution?: boolean;
+  createIfMissing?: boolean;
+  updateLastRoute?: boolean;
+  onRecordError?: (err: unknown) => void;
+  trackSessionMetaTask?: boolean;
+};
+
+export type PreparedChannelTurn<TDispatchResult = unknown> = {
+  channel: string;
+  accountId?: string;
+  routeSessionKey: string;
+  storePath: string;
+  ctxPayload: FinalizedMsgContext;
+  recordInboundSession: (params: {
+    storePath: string;
+    sessionKey: string;
+    ctx: FinalizedMsgContext;
+    groupResolution?: boolean;
+    createIfMissing?: boolean;
+    updateLastRoute?: boolean;
+    onRecordError?: (err: unknown) => void;
+    trackSessionMetaTask?: boolean;
+  }) => Promise<unknown>;
+  record?: ChannelTurnRecordOptions;
+  history?: {
+    clearPending?: () => void;
+    clearPendingHistory?: () => void;
+  };
+  botLoopProtection?: ChannelBotLoopProtectionFacts;
+  onPreDispatchFailure?: (err: unknown) => Promise<void> | void;
+  runDispatch: () => Promise<TDispatchResult>;
+  messageId?: string;
+  admission?: { kind: string; reason?: string };
+};
+
+export type ChannelTurnResult<TDispatchResult = unknown> =
+  | {
+      dispatched: true;
+      admission?: { kind: string; reason?: string };
+      ctxPayload: FinalizedMsgContext;
+      routeSessionKey: string;
+      dispatchResult: TDispatchResult;
+    }
+  | {
+      dispatched: false;
+      admission: { kind: string; reason?: string };
+    };
+
+export async function runPreparedInboundReplyTurn<TDispatchResult = unknown>(
+  params: PreparedChannelTurn<TDispatchResult>,
+): Promise<ChannelTurnResult<TDispatchResult>> {
+  if (params.botLoopProtection) {
+    const botLoopResult = recordChannelBotPairLoopAndCheckSuppression(params.botLoopProtection);
+    if (botLoopResult.suppressed) {
+      params.history?.clearPending?.();
+      params.history?.clearPendingHistory?.();
+      return {
+        dispatched: false,
+        admission: { kind: "drop", reason: "bot-loop-protection" },
+      };
+    }
+  }
+
+  try {
+    await params.recordInboundSession({
+      storePath: params.storePath,
+      sessionKey: params.ctxPayload.SessionKey ?? params.routeSessionKey,
+      ctx: params.ctxPayload,
+      groupResolution: params.record?.groupResolution,
+      createIfMissing: params.record?.createIfMissing,
+      updateLastRoute: params.record?.updateLastRoute,
+      onRecordError: params.record?.onRecordError ?? (() => undefined),
+      trackSessionMetaTask: params.record?.trackSessionMetaTask,
+    });
+  } catch (err) {
+    try {
+      await params.onPreDispatchFailure?.(err);
+    } catch {
+      // Preserve the original session-recording error.
+    }
+    throw err;
+  }
+
+  const dispatchResult = await params.runDispatch();
+  params.history?.clearPending?.();
+  params.history?.clearPendingHistory?.();
+
+  return {
+    dispatched: true,
+    admission: params.admission ?? { kind: "dispatch" },
+    ctxPayload: params.ctxPayload,
+    routeSessionKey: params.routeSessionKey,
+    dispatchResult,
+  };
+}
+
+export async function recordDroppedChannelTurnHistory(params: {
+  input: {
+    id: string;
+    timestamp?: number;
+    rawText: string;
+    textForAgent?: string;
+    raw?: unknown;
+  };
+  admission?: { kind: string; reason?: string; recordHistory?: boolean };
+  preflight?: any;
+}): Promise<void> {
+  const admission = params.admission ?? params.preflight?.admission;
+  if (admission?.kind !== "drop") {
+    return;
+  }
+  const history = params.preflight?.history;
+  if (!history || history.limit <= 0 || !(history.recordOnDrop || admission.recordHistory)) {
+    return;
+  }
+  const body = params.input.rawText || params.input.textForAgent || "";
+  if (!body.trim()) {
+    return;
+  }
+  history.historyMap?.append?.(params.preflight?.historyKey, {
+    sender: params.preflight?.sender ?? params.preflight?.user,
+    body,
+    timestamp: params.input.timestamp,
+    messageId: params.input.id,
+  });
+}
+
 type ReplyOptionsWithoutModelSelected = Omit<
   Omit<GetReplyOptions, "onToolResult" | "onBlockReply">,
   "onModelSelected"

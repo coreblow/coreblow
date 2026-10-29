@@ -6,6 +6,11 @@ export {
 } from "../channels/message/contracts.js";
 export { createMessageReceiptFromOutboundResults } from "../channels/message/receipt.js";
 export { createChannelMessageAdapterFromOutbound } from "../channels/message/outbound-bridge.js";
+export { resolveChannelSourceReplyDeliveryMode as resolveChannelMessageSourceReplyDeliveryMode } from "./channel-reply-core.js";
+export {
+  defineFinalizableLivePreviewAdapter,
+  deliverWithFinalizableLivePreviewAdapter,
+} from "../channels/message/live.js";
 export type {
   MessageReceipt,
   MessageReceiptPart,
@@ -17,10 +22,4 @@ export function defineChannelMessageAdapter<T extends Record<string, unknown>>(a
   return adapter;
 }
 
-export function createChannelMessageReplyPipeline() {
-  return {
-    async dispatch() {
-      return undefined;
-    },
-  };
-}
+export { createChannelReplyPipeline as createChannelMessageReplyPipeline } from "./channel-reply-core.js";

@@ -91,6 +91,8 @@ export function createPluginRuntimeMediaMock(
   return mergeDeep(base, overrides);
 }
 
+export type PluginRuntimeMediaMock = ReturnType<typeof createPluginRuntimeMediaMock>;
+
 const emptyDispatchResult: DispatchFromConfigResult = {
   queuedFinal: false,
   counts: { tool: 0, block: 0, final: 0 },

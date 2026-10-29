@@ -2199,7 +2199,13 @@ export type CoreBlowPluginLifecycleApi = {
 };
 export type OpenClawPluginLifecycleApi = CoreBlowPluginLifecycleApi;
 
-export type PluginRegistrationMode = "full" | "setup-only" | "setup-runtime";
+export type PluginRegistrationMode =
+  | "full"
+  | "discovery"
+  | "tool-discovery"
+  | "setup-only"
+  | "setup-runtime"
+  | "cli-metadata";
 
 /** Main registration API injected into native plugin entry files. */
 export type CoreBlowPluginApi = {
@@ -2771,6 +2777,8 @@ export type PluginHookMessageReceivedEvent = {
 export type PluginHookMessageSendingEvent = {
   to: string;
   content: string;
+  replyToId?: string | number;
+  threadId?: string | number;
   metadata?: Record<string, unknown>;
 };
 
