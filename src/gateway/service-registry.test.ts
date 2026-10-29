@@ -201,4 +201,19 @@ describe("ServiceRegistry", () => {
     const resolved = registry.resolveTyped("typed");
     expect(resolved).toBe(svc);
   });
+
+  it("registerInfraServices registers Tier-2 services including Phase 5-7 services", async () => {
+    const { registerInfraServices, getGatewayRegistry, __testing_resetGatewayRegistry } =
+      await import("./gateway-services.js");
+    __testing_resetGatewayRegistry();
+    await registerInfraServices();
+    const gwRegistry = getGatewayRegistry();
+    expect(gwRegistry.resolve("ssh-tunnel")).not.toBeNull();
+    expect(gwRegistry.resolve("wal-session-ledger")).not.toBeNull();
+    expect(gwRegistry.resolve("cockpit-telemetry-bridge")).not.toBeNull();
+    expect(gwRegistry.resolve("cockpit-model-switcher")).not.toBeNull();
+    expect(gwRegistry.resolve("ga-release-certifier")).not.toBeNull();
+    expect(gwRegistry.count()).toBeGreaterThanOrEqual(12);
+    __testing_resetGatewayRegistry();
+  });
 });

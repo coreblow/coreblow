@@ -1,4 +1,4 @@
-import type { ProviderRuntimeModel } from "../../src/plugins/types.js";
+import type { ProviderRuntimeModel } from "coreblow/plugin-sdk/core";
 
 const PROVIDER_ID = "opencode-go";
 const OPENCODE_GO_OPENAI_BASE_URL = "https://opencode.ai/zen/go/v1";

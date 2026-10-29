@@ -18,19 +18,30 @@ vi.mock('../config/commands.js', () => ({
     resolveNativeCommandsEnabled: vi.fn(() => false),
     resolveNativeSkillsEnabled: vi.fn(() => false),
 }));
-vi.mock('../config/config.js', () => ({}));
+vi.mock('../config/config.js', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../config/config.js')>();
+    return { ...actual };
+});
 vi.mock('../config/dangerous-name-matching.js', () => ({
     isDangerousNameMatchingEnabled: vi.fn(() => false),
 }));
 vi.mock('../infra/errors.js', () => ({
     formatErrorMessage: (e: any) => String(e),
 }));
-vi.mock('../shared/lazy-runtime.js', () => ({
-    createLazyRuntimeSurface: () => vi.fn(async () => ({})),
-}));
-vi.mock('../shared/string-normalization.js', () => ({
-    normalizeStringEntries: (arr: any) => (arr || []).map(String),
-}));
+vi.mock('../shared/lazy-runtime.js', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../shared/lazy-runtime.js')>();
+    return {
+        ...actual,
+        createLazyRuntimeSurface: () => vi.fn(async () => ({})),
+    };
+});
+vi.mock('../shared/string-normalization.js', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../shared/string-normalization.js')>();
+    return {
+        ...actual,
+        normalizeStringEntries: (arr: any) => (arr || []).map(String),
+    };
+});
 vi.mock('./audit.js', () => ({}));
 vi.mock('./dm-policy-shared.js', () => ({
     resolveDmAllowState: vi.fn(async () => ({ hasWildcard: false, isMultiUserDm: false })),

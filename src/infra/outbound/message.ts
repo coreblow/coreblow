@@ -1,6 +1,6 @@
 import { resolveSendableOutboundReplyParts } from "coreblow/plugin-sdk/reply-payload";
 import type { CoreBlowConfig } from "../../config/config.js";
-import { loadConfig } from "../../config/config.js";
+import { loadConfig } from "../../config/io.js";
 import { callGatewayLeastPrivilege, randomIdempotencyKey } from "../../gateway/call.js";
 import type { PollInput } from "../../polls.js";
 import { normalizePollInput } from "../../polls.js";

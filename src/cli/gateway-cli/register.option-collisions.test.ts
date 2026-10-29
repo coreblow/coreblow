@@ -60,10 +60,14 @@ vi.mock("../../commands/health.js", () => ({
   formatHealthChannelLines: () => [],
 }));
 
-vi.mock("../../config/config.js", () => ({
-  loadConfig: () => ({}),
-  readBestEffortConfig: async () => ({}),
-}));
+vi.mock("../../config/config.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../config/config.js")>();
+  return {
+    ...actual,
+    loadConfig: () => ({}),
+    readBestEffortConfig: async () => ({}),
+  };
+});
 
 vi.mock("../../infra/bonjour-discovery.js", () => ({
   discoverGatewayBeacons: async () => [],

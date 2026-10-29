@@ -2,7 +2,7 @@ import type { StreamFn } from "@mariozechner/pi-agent-core";
 import { streamSimple } from "@mariozechner/pi-ai";
 import type { ProviderWrapStreamFnContext } from "coreblow/plugin-sdk/plugin-entry";
 import { streamWithPayloadPatch } from "coreblow/plugin-sdk/provider-stream";
-import { createSubsystemLogger } from "../../src/logging/subsystem.js";
+import { createSubsystemLogger } from "coreblow/plugin-sdk/core";
 
 const log = createSubsystemLogger("cloudflare-ai-gateway-stream");
 

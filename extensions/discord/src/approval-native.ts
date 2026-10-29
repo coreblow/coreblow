@@ -1,7 +1,10 @@
 import { createLazyChannelApprovalNativeRuntimeAdapter } from "coreblow/plugin-sdk/approval-handler-adapter-runtime";
 import type { ChannelApprovalNativeRuntimeAdapter } from "coreblow/plugin-sdk/approval-handler-runtime";
 import { resolveApprovalRequestSessionConversation } from "coreblow/plugin-sdk/approval-native-runtime";
-import type { ChannelApprovalCapability } from "../../../src/channels/plugins/types.adapters.js";
+import {
+  createChannelApprovalCapability,
+  type ChannelApprovalCapability,
+} from "coreblow/plugin-sdk/approval-delivery-runtime";
 import type { DiscordExecApprovalConfig } from "coreblow/plugin-sdk/config-runtime";
 import {
   normalizeLowercaseStringOrEmpty,

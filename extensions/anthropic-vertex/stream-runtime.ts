@@ -1,6 +1,6 @@
 export {
   createAnthropicVertexStreamFn,
   createAnthropicVertexStreamFnForModel,
-} from "../../src/agents/anthropic-vertex-stream.js";
+} from "coreblow/plugin-sdk/provider-stream";
 
 export type AnthropicVertexStreamDeps = never;

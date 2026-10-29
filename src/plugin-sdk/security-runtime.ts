@@ -8,6 +8,7 @@ export * from "../security/channel-metadata.js";
 export * from "../security/dm-policy-shared.js";
 export * from "../security/external-content.js";
 export * from "../security/safe-regex.js";
+export * from "../security/trust-zones.js";
 
 export async function pathExists(filePath: string): Promise<boolean> {
   try {

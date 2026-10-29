@@ -8,13 +8,21 @@ import {
 const discoverCoreBlowPluginsMock = vi.fn();
 const loadPluginManifestMock = vi.fn();
 
-vi.mock("./discovery.js", () => ({
-  discoverCoreBlowPlugins: (...args: unknown[]) => discoverCoreBlowPluginsMock(...args),
-}));
+vi.mock("./discovery.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./discovery.js")>();
+  return {
+    ...actual,
+    discoverCoreBlowPlugins: (...args: unknown[]) => discoverCoreBlowPluginsMock(...args),
+  };
+});
 
-vi.mock("./manifest.js", () => ({
-  loadPluginManifest: (...args: unknown[]) => loadPluginManifestMock(...args),
-}));
+vi.mock("./manifest.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./manifest.js")>();
+  return {
+    ...actual,
+    loadPluginManifest: (...args: unknown[]) => loadPluginManifestMock(...args),
+  };
+});
 
 function createBundledCandidate(params: {
   rootDir: string;

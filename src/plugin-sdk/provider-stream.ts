@@ -29,6 +29,10 @@ export {
   createZaiToolStreamWrapper,
 } from "../agents/pi-embedded-runner/zai-stream-wrappers.js";
 export {
+  createAnthropicVertexStreamFn,
+  createAnthropicVertexStreamFnForModel,
+} from "../agents/anthropic-vertex-stream.js";
+export {
   getOpenRouterModelCapabilities,
   loadOpenRouterModelCapabilities,
 } from "../agents/pi-embedded-runner/openrouter-model-capabilities.js";

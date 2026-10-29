@@ -5,10 +5,14 @@ const resolveBoundaryPathSyncMock = vi.hoisted(() => vi.fn());
 const resolveBoundaryPathMock = vi.hoisted(() => vi.fn());
 const openVerifiedFileSyncMock = vi.hoisted(() => vi.fn());
 
-vi.mock("./boundary-path.js", () => ({
-  resolveBoundaryPathSync: (...args: unknown[]) => resolveBoundaryPathSyncMock(...args),
-  resolveBoundaryPath: (...args: unknown[]) => resolveBoundaryPathMock(...args),
-}));
+vi.mock("./boundary-path.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./boundary-path.js")>();
+  return {
+    ...actual,
+    resolveBoundaryPathSync: (...args: unknown[]) => resolveBoundaryPathSyncMock(...args),
+    resolveBoundaryPath: (...args: unknown[]) => resolveBoundaryPathMock(...args),
+  };
+});
 
 vi.mock("./safe-open-sync.js", () => ({
   openVerifiedFileSync: (...args: unknown[]) => openVerifiedFileSyncMock(...args),

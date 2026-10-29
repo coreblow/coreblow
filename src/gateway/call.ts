@@ -1,17 +1,11 @@
 import { clamp } from "../utils.js";
 import { randomUUID } from "node:crypto";
 import type { CoreBlowConfig } from "../config/config.js";
+import { loadConfig } from "../config/io.js";
 import {
-  loadConfig,
   resolveConfigPath,
   resolveGatewayPort,
   resolveStateDir,
-} from "../config/config.js";
-import { loadConfig as loadConfigFromIo } from "../config/io.js";
-import {
-  resolveConfigPath as resolveConfigPathFromPaths,
-  resolveGatewayPort as resolveGatewayPortFromPaths,
-  resolveStateDir as resolveStateDirFromPaths,
 } from "../config/paths.js";
 import { resolveSecretInputRef } from "../config/types.secrets.js";
 import { loadOrCreateDeviceIdentity } from "../infra/device-identity.js";
@@ -105,7 +99,7 @@ function loadGatewayConfig(): CoreBlowConfig {
       ? gatewayCallDeps.loadConfig
       : typeof defaultGatewayCallDeps.loadConfig === "function"
         ? defaultGatewayCallDeps.loadConfig
-        : loadConfigFromIo;
+        : loadConfig;
   return loadConfigFn();
 }
 
@@ -113,7 +107,7 @@ function resolveGatewayStateDir(env: NodeJS.ProcessEnv): string {
   const resolveStateDirFn =
     typeof gatewayCallDeps.resolveStateDir === "function"
       ? gatewayCallDeps.resolveStateDir
-      : resolveStateDirFromPaths;
+      : resolveStateDir;
   return resolveStateDirFn(env);
 }
 
@@ -121,7 +115,7 @@ function resolveGatewayConfigPath(env: NodeJS.ProcessEnv): string {
   const resolveConfigPathFn =
     typeof gatewayCallDeps.resolveConfigPath === "function"
       ? gatewayCallDeps.resolveConfigPath
-      : resolveConfigPathFromPaths;
+      : resolveConfigPath;
   return resolveConfigPathFn(env, resolveGatewayStateDir(env));
 }
 
@@ -129,7 +123,7 @@ function resolveGatewayPortValue(config?: CoreBlowConfig, env?: NodeJS.ProcessEn
   const resolveGatewayPortFn =
     typeof gatewayCallDeps.resolveGatewayPort === "function"
       ? gatewayCallDeps.resolveGatewayPort
-      : resolveGatewayPortFromPaths;
+      : resolveGatewayPort;
   return resolveGatewayPortFn(config, env);
 }
 

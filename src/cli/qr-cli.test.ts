@@ -20,7 +20,13 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("../runtime.js", () => ({ defaultRuntime: runtime }));
-vi.mock("../config/config.js", () => ({ loadConfig: mocks.loadConfig }));
+vi.mock("../config/config.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../config/config.js")>();
+  return {
+    ...actual,
+    loadConfig: mocks.loadConfig,
+  };
+});
 vi.mock("../process/exec.js", () => ({ runCommandWithTimeout: mocks.runCommandWithTimeout }));
 vi.mock("./command-secret-gateway.js", () => ({
   resolveCommandSecretRefsViaGateway: mocks.resolveCommandSecretRefsViaGateway,

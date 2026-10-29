@@ -1,9 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
 
 // Mock external-content to isolate channel-metadata logic
-vi.mock('./external-content.js', () => ({
-    wrapExternalContent: (content: string, _opts: any) => `[WRAPPED]${content}[/WRAPPED]`,
-}));
+vi.mock('./external-content.js', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('./external-content.js')>();
+    return {
+        ...actual,
+        wrapExternalContent: (content: string, _opts: any) => `[WRAPPED]${content}[/WRAPPED]`,
+    };
+});
 
 import { buildUntrustedChannelMetadata } from './channel-metadata.js';
 

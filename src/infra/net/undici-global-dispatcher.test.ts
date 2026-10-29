@@ -55,9 +55,13 @@ vi.mock("undici", () => ({
   setGlobalDispatcher,
 }));
 
-vi.mock("node:net", () => ({
-  getDefaultAutoSelectFamily,
-}));
+vi.mock("node:net", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:net")>();
+  return {
+    ...actual,
+    getDefaultAutoSelectFamily,
+  };
+});
 
 vi.mock("./proxy-env.js", () => ({
   hasEnvHttpProxyConfigured: vi.fn(() => false),

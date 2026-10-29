@@ -33,9 +33,13 @@ vi.mock("../../config/sessions.js", () => ({
   },
 }));
 
-vi.mock("../../infra/coreblow-root.js", () => ({
-  resolveCoreBlowPackageRoot: async () => "/tmp/coreblow",
-}));
+vi.mock("../../infra/coreblow-root.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../infra/coreblow-root.js")>();
+  return {
+    ...actual,
+    resolveCoreBlowPackageRoot: async () => "/tmp/coreblow",
+  };
+});
 
 vi.mock("../../infra/restart-sentinel.js", async (importOriginal) => {
   const actual = await importOriginal();

@@ -254,3 +254,5 @@ export function createApproverRestrictedNativeApprovalCapability(
 ): ChannelApprovalCapability {
   return buildApproverRestrictedNativeApprovalCapability(params);
 }
+
+export type { ChannelApprovalCapability };

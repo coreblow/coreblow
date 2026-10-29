@@ -2,6 +2,12 @@ import type { CoreBlowConfig } from "../config/types.coreblow.js";
 import { resolveProviderBuiltInModelSuppression } from "../plugins/provider-runtime.js";
 import { normalizeProviderId } from "./provider-id.js";
 
+const suppressionCache = new Map<string, ReturnType<typeof resolveProviderBuiltInModelSuppression>>();
+
+export function resetModelSuppressionCacheForTest(): void {
+  suppressionCache.clear();
+}
+
 function resolveBuiltInModelSuppression(params: {
   provider?: string | null;
   id?: string | null;
@@ -13,7 +19,11 @@ function resolveBuiltInModelSuppression(params: {
   if (!provider || !modelId) {
     return undefined;
   }
-  return resolveProviderBuiltInModelSuppression({
+  const cacheKey = `${provider}::${modelId}`;
+  if (suppressionCache.has(cacheKey)) {
+    return suppressionCache.get(cacheKey);
+  }
+  const result = resolveProviderBuiltInModelSuppression({
     env: process.env,
     context: {
       env: process.env,
@@ -21,6 +31,8 @@ function resolveBuiltInModelSuppression(params: {
       modelId,
     },
   });
+  suppressionCache.set(cacheKey, result);
+  return result;
 }
 
 export function shouldSuppressBuiltInModel(params: {

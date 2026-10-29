@@ -35,6 +35,35 @@ vi.mock("../logging/subsystem.js", () => {
   };
 });
 
+const { mockLoadModelCatalog, mockRunEmbeddedPiAgent } = vi.hoisted(() => ({
+  mockLoadModelCatalog: vi.fn(async () => []),
+  mockRunEmbeddedPiAgent: vi.fn(async (_options?: { provider?: string; model?: string }) => ({
+    payloads: [{ text: "ok" }],
+    meta: {
+      durationMs: 5,
+      agentMeta: { sessionId: "s", provider: "p", model: "m" },
+    },
+  })),
+}));
+
+vi.mock("../agents/model-catalog.js", () => ({
+  loadModelCatalog: mockLoadModelCatalog,
+}));
+
+vi.mock("../agents/pi-embedded.js", () => ({
+  abortEmbeddedPiRun: vi.fn().mockReturnValue(false),
+  runEmbeddedPiAgent: mockRunEmbeddedPiAgent,
+  resolveEmbeddedSessionLane: (key: string) => `session:${key.trim() || "main"}`,
+}));
+
+vi.mock("../agents/subagent-announce.js", () => ({
+  runSubagentAnnounceFlow: vi.fn(),
+}));
+
+vi.mock("../gateway/call.js", () => ({
+  callGateway: vi.fn(),
+}));
+
 vi.mock("../agents/workspace.js", () => ({
   DEFAULT_AGENT_WORKSPACE_DIR: "/tmp/coreblow-workspace",
   DEFAULT_AGENTS_FILENAME: "AGENTS.md",
@@ -119,7 +148,7 @@ function createDefaultAgentResult() {
 }
 
 function expectLastEmbeddedProviderModel(provider: string, model: string): void {
-  const callArgs = vi.mocked(runEmbeddedPiAgent).mock.calls.at(-1)?.[0];
+  const callArgs = mockRunEmbeddedPiAgent.mock.calls.at(-1)?.[0];
   expect(callArgs?.provider).toBe(provider);
   expect(callArgs?.model).toBe(model);
 }

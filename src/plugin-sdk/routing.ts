@@ -33,3 +33,12 @@ export {
 export { buildOutboundBaseSessionKey } from "../infra/outbound/base-session-key.js";
 export { normalizeOutboundThreadId } from "../infra/outbound/thread-id.js";
 export { normalizeMessageChannel, resolveGatewayMessageChannel } from "../utils/message-channel.js";
+export {
+  HybridSovereignRouter,
+  SovereigntyViolationError,
+  type DataPrivacyClassification,
+  type TaskComplexity,
+  type RoutingQuery,
+  type RoutingDecision,
+  type HybridRouterOptions,
+} from "../agents/routing/hybrid-sovereign-router.js";

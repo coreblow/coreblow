@@ -43,15 +43,23 @@ vi.mock("../infra/update-runner.js", () => ({
   runGatewayUpdate: vi.fn(),
 }));
 
-vi.mock("../infra/coreblow-root.js", () => ({
-  resolveCoreBlowPackageRoot: vi.fn(),
-}));
+vi.mock("../infra/coreblow-root.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../infra/coreblow-root.js")>();
+  return {
+    ...actual,
+    resolveCoreBlowPackageRoot: vi.fn(),
+  };
+});
 
-vi.mock("../config/config.js", () => ({
-  readConfigFileSnapshot: vi.fn(),
-  resolveGatewayPort: vi.fn(() => 18789),
-  writeConfigFile: vi.fn(),
-}));
+vi.mock("../config/config.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../config/config.js")>();
+  return {
+    ...actual,
+    readConfigFileSnapshot: vi.fn(),
+    resolveGatewayPort: vi.fn(() => 18789),
+    writeConfigFile: vi.fn(),
+  };
+});
 
 vi.mock("../infra/update-check.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../infra/update-check.js")>();

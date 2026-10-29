@@ -1,17 +1,22 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 
-vi.mock('node:fs', () => ({
-    default: {
+vi.mock('node:fs', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('node:fs')>();
+    return {
+        ...actual,
+        default: {
+            ...actual,
+            existsSync: vi.fn(() => false),
+            readFileSync: vi.fn(() => '{}'),
+            writeFileSync: vi.fn(),
+            mkdirSync: vi.fn(),
+        },
         existsSync: vi.fn(() => false),
         readFileSync: vi.fn(() => '{}'),
         writeFileSync: vi.fn(),
         mkdirSync: vi.fn(),
-    },
-    existsSync: vi.fn(() => false),
-    readFileSync: vi.fn(() => '{}'),
-    writeFileSync: vi.fn(),
-    mkdirSync: vi.fn(),
-}));
+    };
+});
 
 vi.mock('../utils/logger.js', () => ({
     createChildLogger: () => ({ info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() }),

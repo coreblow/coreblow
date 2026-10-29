@@ -6,10 +6,14 @@ const cryptoMocks = vi.hoisted(() => ({
   randomUUID: vi.fn(),
 }));
 
-vi.mock("node:crypto", () => ({
-  randomBytes: cryptoMocks.randomBytes,
-  randomUUID: cryptoMocks.randomUUID,
-}));
+vi.mock("node:crypto", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:crypto")>();
+  return {
+    ...actual,
+    randomBytes: cryptoMocks.randomBytes,
+    randomUUID: cryptoMocks.randomUUID,
+  };
+});
 
 let generateSecureToken: typeof import("./secure-random.js").generateSecureToken;
 let generateSecureUuid: typeof import("./secure-random.js").generateSecureUuid;

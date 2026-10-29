@@ -12,9 +12,13 @@ const getSecurityAuditCommandSecretTargetIds = vi.fn(
 
 const { defaultRuntime, runtimeLogs, resetRuntimeCapture } = createCliRuntimeCapture();
 
-vi.mock("../config/config.js", () => ({
-  loadConfig: () => loadConfig(),
-}));
+vi.mock("../config/config.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../config/config.js")>();
+  return {
+    ...actual,
+    loadConfig: () => loadConfig(),
+  };
+});
 
 vi.mock("../runtime.js", () => ({
   defaultRuntime,

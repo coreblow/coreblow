@@ -1,12 +1,34 @@
 import { describe, it, expect, vi } from 'vitest';
 
 // Mock ALL deep dependencies
-vi.mock('node:fs/promises', () => ({
-    default: { readFile: vi.fn(), readdir: vi.fn(), lstat: vi.fn(), stat: vi.fn(), realpath: vi.fn() },
-}));
+vi.mock('node:fs/promises', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('node:fs/promises')>();
+    return {
+        ...actual,
+        default: {
+            ...actual,
+            readFile: vi.fn(),
+            readdir: vi.fn(),
+            lstat: vi.fn(),
+            stat: vi.fn(),
+            realpath: vi.fn(),
+        },
+        readFile: vi.fn(),
+        readdir: vi.fn(),
+        lstat: vi.fn(),
+        stat: vi.fn(),
+        realpath: vi.fn(),
+    };
+});
 vi.mock('../agents/agent-scope.js', () => ({ resolveDefaultAgentId: vi.fn() }));
 vi.mock('../agents/sandbox/config.js', () => ({ resolveSandboxConfigForAgent: vi.fn(() => ({ mode: 'off' })) }));
-vi.mock('../agents/sandbox/constants.js', () => ({ SANDBOX_BROWSER_SECURITY_HASH_EPOCH: 'test-epoch' }));
+vi.mock('../agents/sandbox/constants.js', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../agents/sandbox/constants.js')>();
+    return {
+        ...actual,
+        SANDBOX_BROWSER_SECURITY_HASH_EPOCH: 'test-epoch',
+    };
+});
 vi.mock('../agents/sandbox/docker.js', () => ({ execDockerRaw: vi.fn() }));
 vi.mock('../agents/sandbox/tool-policy.js', () => ({ resolveSandboxToolPolicyForAgent: vi.fn() }));
 vi.mock('../agents/tool-policy-match.js', () => ({ isToolAllowedByPolicies: vi.fn(() => false) }));
@@ -15,12 +37,24 @@ vi.mock('../agents/workspace-dirs.js', () => ({ listAgentWorkspaceDirs: vi.fn(as
 vi.mock('../cli/command-format.js', () => ({ formatCliCommand: (cmd: string) => cmd }));
 vi.mock('../compat/legacy-names.js', () => ({ MANIFEST_KEY: 'coreblow' }));
 vi.mock('../config/commands.js', () => ({ resolveNativeSkillsEnabled: vi.fn(() => false) }));
-vi.mock('../config/config.js', () => ({}));
+vi.mock('../config/config.js', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../config/config.js')>();
+    return { ...actual };
+});
 vi.mock('../config/includes-scan.js', () => ({ collectIncludePathsRecursive: vi.fn(async () => []) }));
-vi.mock('../config/paths.js', () => ({ resolveOAuthDir: vi.fn(() => '/tmp/oauth') }));
-vi.mock('../config/types.secrets.js', () => ({ hasConfiguredSecretInput: vi.fn(() => false) }));
+vi.mock('../config/paths.js', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../config/paths.js')>();
+    return { ...actual, resolveOAuthDir: vi.fn(() => '/tmp/oauth') };
+});
+vi.mock('../config/types.secrets.js', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../config/types.secrets.js')>();
+    return { ...actual, hasConfiguredSecretInput: vi.fn(() => false) };
+});
 vi.mock('../plugins/config-state.js', () => ({ normalizePluginsConfig: vi.fn(() => ({ enabled: false, allow: [], deny: [], entries: {} })) }));
-vi.mock('../routing/session-key.js', () => ({ normalizeAgentId: vi.fn() }));
+vi.mock('../routing/session-key.js', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../routing/session-key.js')>();
+    return { ...actual, normalizeAgentId: vi.fn() };
+});
 vi.mock('./audit-fs.js', () => ({
     formatPermissionDetail: vi.fn(),
     formatPermissionRemediation: vi.fn(),

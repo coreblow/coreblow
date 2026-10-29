@@ -8,9 +8,13 @@ vi.mock("../../commands/doctor-config-preflight.js", () => ({
   runDoctorConfigPreflight: loadAndMaybeMigrateDoctorConfigMock,
 }));
 
-vi.mock("../../config/config.js", () => ({
-  readConfigFileSnapshot: readConfigFileSnapshotMock,
-}));
+vi.mock("../../config/config.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../config/config.js")>();
+  return {
+    ...actual,
+    readConfigFileSnapshot: readConfigFileSnapshotMock,
+  };
+});
 
 const mockedModuleIds = ["../../commands/doctor-config-preflight.js", "../../config/config.js"];
 

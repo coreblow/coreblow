@@ -87,3 +87,19 @@ export { emptyPluginConfigSchema } from "../plugins/config-schema.js";
 export { registerContextEngine } from "../context-engine/registry.js";
 export { delegateCompactionToRuntime } from "../context-engine/delegate.js";
 export { onDiagnosticEvent } from "../infra/diagnostic-events.js";
+export {
+  ReversibleCompactionLedger,
+  ImmutableGovernanceViolationError,
+  type GovernanceTag,
+  type ScratchpadPointer,
+  type CompactionNode,
+  type ReversibleCompactionOptions,
+  type CompactionSummary,
+  type ReversibleCompactionResult,
+} from "../agents/compaction/reversible-compaction-ledger.js";
+export {
+  WalSessionLedger,
+  type WalEventType,
+  type WalSessionRecord,
+  type WalSessionMeta,
+} from "../infra/storage/wal-session-ledger.js";

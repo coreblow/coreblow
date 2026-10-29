@@ -57,17 +57,25 @@ vi.mock("../../bootstrap/node-startup-env.js", () => ({
   resolveNodeStartupTlsEnvironment: resolveNodeStartupTlsEnvironmentMock,
 }));
 
-vi.mock("../../config/config.js", () => ({
-  loadConfig: loadConfigMock,
-  readBestEffortConfig: loadConfigMock,
-  readConfigFileSnapshot: readConfigFileSnapshotMock,
-  resolveGatewayPort: resolveGatewayPortMock,
-  writeConfigFile: writeConfigFileMock,
-}));
+vi.mock("../../config/config.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../config/config.js")>();
+  return {
+    ...actual,
+    loadConfig: loadConfigMock,
+    readBestEffortConfig: loadConfigMock,
+    readConfigFileSnapshot: readConfigFileSnapshotMock,
+    resolveGatewayPort: resolveGatewayPortMock,
+    writeConfigFile: writeConfigFileMock,
+  };
+});
 
-vi.mock("../../config/paths.js", () => ({
-  resolveIsNixMode: resolveIsNixModeMock,
-}));
+vi.mock("../../config/paths.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../config/paths.js")>();
+  return {
+    ...actual,
+    resolveIsNixMode: resolveIsNixModeMock,
+  };
+});
 
 vi.mock("../../config/types.secrets.js", () => ({
   resolveSecretInputRef: resolveSecretInputRefMock,

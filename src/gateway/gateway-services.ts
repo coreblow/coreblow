@@ -55,6 +55,10 @@ export async function registerInfraServices(): Promise<void> {
   const { getHeartbeatRunnerService } = await import("../infra/heartbeat-runner.js");
   const { getOutboundDeliveryService } = await import("../infra/outbound/deliver.js");
   const { getExecApprovalForwarderService } = await import("../infra/exec-approval-forwarder.js");
+  const { WalSessionLedger } = await import("../infra/storage/wal-session-ledger.js");
+  const { CockpitTelemetryBridge } = await import("./cockpit-telemetry-bridge.js");
+  const { CockpitModelSwitcher } = await import("./cockpit-model-switcher.js");
+  const { GaReleaseCertifier } = await import("../infra/release/ga-release-certifier.js");
 
   // Register in dependency order (none have cross-deps currently)
   registry.register("ssh-tunnel", getSshTunnelService());
@@ -65,6 +69,10 @@ export async function registerInfraServices(): Promise<void> {
   registry.register("heartbeat", getHeartbeatRunnerService());
   registry.register("outbound-delivery", getOutboundDeliveryService());
   registry.register("exec-approval-forwarder", getExecApprovalForwarderService());
+  registry.register("wal-session-ledger", new WalSessionLedger());
+  registry.register("cockpit-telemetry-bridge", new CockpitTelemetryBridge());
+  registry.register("cockpit-model-switcher", new CockpitModelSwitcher());
+  registry.register("ga-release-certifier", new GaReleaseCertifier());
 }
 
 /**

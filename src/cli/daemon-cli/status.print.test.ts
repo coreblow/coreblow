@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { formatCliCommand } from "../command-format.js";
 
@@ -43,9 +42,13 @@ vi.mock("../../infra/wsl.js", () => ({
   isWSLEnv: () => false,
 }));
 
-vi.mock("../../logging.js", () => ({
-  getResolvedLoggerSettings: () => ({ file: "/tmp/coreblow.log" }),
-}));
+vi.mock("../../logging.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../logging.js")>();
+  return {
+    ...actual,
+    getResolvedLoggerSettings: () => ({ file: "/tmp/coreblow.log" }),
+  };
+});
 
 vi.mock("./shared.js", () => ({
   createCliStatusTextStyles: () => ({

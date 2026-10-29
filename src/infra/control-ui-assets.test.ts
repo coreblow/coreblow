@@ -66,10 +66,14 @@ vi.mock("node:fs", async (importOriginal) => {
   return { ...wrapped, default: wrapped };
 });
 
-vi.mock("./coreblow-root.js", () => ({
-  resolveCoreBlowPackageRoot: vi.fn(async () => null),
-  resolveCoreBlowPackageRootSync: vi.fn(() => null),
-}));
+vi.mock("./coreblow-root.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./coreblow-root.js")>();
+  return {
+    ...actual,
+    resolveCoreBlowPackageRoot: vi.fn(async () => null),
+    resolveCoreBlowPackageRootSync: vi.fn(() => null),
+  };
+});
 
 let resolveControlUiRepoRoot: typeof import("./control-ui-assets.js").resolveControlUiRepoRoot;
 let resolveControlUiDistIndexPath: typeof import("./control-ui-assets.js").resolveControlUiDistIndexPath;

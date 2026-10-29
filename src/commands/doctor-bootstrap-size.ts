@@ -35,9 +35,16 @@ export async function noteBootstrapFileSize(cfg: CoreBlowConfig) {
   const workspaceDir = resolveAgentWorkspaceDir(cfg, resolveDefaultAgentId(cfg));
   const bootstrapMaxChars = resolveBootstrapMaxChars(cfg);
   const bootstrapTotalMaxChars = resolveBootstrapTotalMaxChars(cfg);
-  const { files: bootstrapFiles, content: contextFiles } = await resolveBootstrapContextForRun({
+  const rawContext = (await resolveBootstrapContextForRun({
     workspaceDir,
-  } as Parameters<typeof resolveBootstrapContextForRun>[0]);
+  } as Parameters<typeof resolveBootstrapContextForRun>[0])) as unknown as {
+    bootstrapFiles?: unknown[];
+    files?: unknown[];
+    contextFiles?: unknown[];
+    content?: unknown[];
+  };
+  const bootstrapFiles = rawContext.bootstrapFiles ?? rawContext.files ?? [];
+  const contextFiles = rawContext.contextFiles ?? rawContext.content ?? [];
   const stats = buildBootstrapInjectionStats({
     bootstrapFiles: bootstrapFiles as never,
     injectedFiles: contextFiles as never,

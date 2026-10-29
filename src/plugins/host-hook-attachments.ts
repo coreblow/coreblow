@@ -24,9 +24,28 @@ export const attachmentProbeFs = {
 };
 const MAX_ATTACHMENT_FILES = 10;
 
-import { sendMessage } from "../infra/outbound/message.js";
+import { sendMessage as defaultSendMessage } from "../infra/outbound/message.js";
 
 type GetChannelPlugin = typeof import("../channels/plugins/index.js").getChannelPlugin;
+type SendMessageFn = typeof defaultSendMessage;
+
+let getChannelPluginResolverForTest: (() => Promise<GetChannelPlugin>) | undefined;
+let sendMessageForTest: SendMessageFn | undefined;
+
+export function setAttachmentTestOverrides(overrides?: {
+  getChannelPlugin?: () => Promise<GetChannelPlugin>;
+  sendMessage?: SendMessageFn;
+}): () => void {
+  const prevChannel = getChannelPluginResolverForTest;
+  const prevSend = sendMessageForTest;
+  getChannelPluginResolverForTest = overrides?.getChannelPlugin;
+  sendMessageForTest = overrides?.sendMessage;
+  return () => {
+    getChannelPluginResolverForTest = prevChannel;
+    sendMessageForTest = prevSend;
+  };
+}
+
 let getChannelPluginPromise: Promise<GetChannelPlugin> | undefined;
 
 type AttachmentDeliveryChannelPlugin = {
@@ -36,6 +55,9 @@ type AttachmentDeliveryChannelPlugin = {
 };
 
 async function loadGetChannelPlugin(): Promise<GetChannelPlugin> {
+  if (getChannelPluginResolverForTest) {
+    return await getChannelPluginResolverForTest();
+  }
   getChannelPluginPromise ??= import("../channels/plugins/index.js").then(
     (module) => module.getChannelPlugin,
   );
@@ -301,9 +323,10 @@ export class PluginSessionAttachmentManager {
       fallbackThreadId: threadId,
       hintThreadTs: resolvedDelivery.threadTs,
     });
-    let result: Awaited<ReturnType<typeof sendMessage>>;
+    let result: Awaited<ReturnType<SendMessageFn>>;
     try {
-      result = await sendMessage({
+      const activeSendMessage = sendMessageForTest ?? defaultSendMessage;
+      result = await activeSendMessage({
         to: deliveryContext.to,
         content: resolvedDelivery.escapePlainHtmlCaption ? escapeHtmlText(rawText) : rawText,
         channel: deliveryContext.channel,

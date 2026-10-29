@@ -1,5 +1,5 @@
 export { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
-export { readConfigFileSnapshot } from "../config/config.js";
+export { readConfigFileSnapshot } from "../config/io.js";
 export type { CoreBlowConfig } from "../config/config.js";
 export {
   configValidationIssuesToHealthFindings,

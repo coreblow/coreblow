@@ -1,11 +1,10 @@
-export { loadConfig } from "../config/config.js";
 export {
   createConfigIO,
   getRuntimeConfigSnapshot,
+  loadConfig,
   writeConfigFile,
-  type BrowserConfig,
-  type BrowserProfileConfig,
-} from "../config/config.js";
+} from "../config/io.js";
+export type { BrowserConfig, BrowserProfileConfig } from "../config/types.browser.js";
 export { resolveGatewayPort } from "../config/paths.js";
 export {
   DEFAULT_BROWSER_CONTROL_PORT,

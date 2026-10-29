@@ -1,4 +1,4 @@
-import { loadConfig } from "../config/config.js";
+import { loadConfig } from "../config/io.js";
 
 export function getRuntimeConfig() {
   return loadConfig();

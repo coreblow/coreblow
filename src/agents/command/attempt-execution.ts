@@ -326,6 +326,7 @@ export function runAgentAttempt(params: {
             sessionKey: params.sessionKey,
             storePath: params.storePath,
             entry: updatedEntry,
+            clearedFields: ["claudeCliSessionId", "cliSessionIds", "cliSessionBindings"],
           });
 
           params.sessionEntry = updatedEntry;

@@ -28,10 +28,14 @@ let buildPluginRuntimeLoadOptions: typeof import("./load-context.js").buildPlugi
 let clearRuntimeConfigSnapshot: typeof import("../../config/runtime-snapshot.js").clearRuntimeConfigSnapshot;
 let setRuntimeConfigSnapshot: typeof import("../../config/runtime-snapshot.js").setRuntimeConfigSnapshot;
 
-vi.mock("../../config/config.js", () => ({
-  getRuntimeConfig: loadConfigMock,
-  loadConfig: loadConfigMock,
-}));
+vi.mock("../../config/config.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../config/config.js")>();
+  return {
+    ...actual,
+    getRuntimeConfig: loadConfigMock,
+    loadConfig: loadConfigMock,
+  };
+});
 
 vi.mock("../../config/plugin-auto-enable.js", () => ({
   applyPluginAutoEnable: applyPluginAutoEnableMock,

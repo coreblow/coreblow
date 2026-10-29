@@ -1,4 +1,4 @@
-import { formatErrorMessage } from "../../../../src/infra/errors.js";
+import { formatErrorMessage } from "coreblow/plugin-sdk/error-runtime";
 import {
   assertMediaNotDataUrl,
   jsonResult,

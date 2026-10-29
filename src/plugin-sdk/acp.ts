@@ -37,3 +37,9 @@ export {
   listKnownProviderAuthEnvVarNames,
   omitEnvKeysCaseInsensitive,
 } from "../secrets/provider-env-vars.js";
+export {
+  AcpWorkerTimeoutGuard,
+  AcpWorkerTimeoutError,
+  type AcpExecutionOptions,
+  type AcpTaskMetrics,
+} from "../acp/worker-timeout-guard.js";

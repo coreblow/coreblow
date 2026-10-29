@@ -60,12 +60,14 @@ function sanitizeModelWarningValue(value: string): string {
 }
 
 function mergeModelCatalogEntries(params: {
-  primary: readonly ModelCatalogEntry[];
-  secondary: readonly ModelCatalogEntry[];
+  primary?: readonly ModelCatalogEntry[];
+  secondary?: readonly ModelCatalogEntry[];
 }): ModelCatalogEntry[] {
-  const merged = [...params.primary];
+  const primary = Array.isArray(params?.primary) ? params.primary : [];
+  const secondary = Array.isArray(params?.secondary) ? params.secondary : [];
+  const merged = [...primary];
   const seen = new Set(merged.map((entry) => modelKey(entry.provider, entry.id)));
-  for (const entry of params.secondary) {
+  for (const entry of secondary) {
     const key = modelKey(entry.provider, entry.id);
     if (seen.has(key)) {
       continue;

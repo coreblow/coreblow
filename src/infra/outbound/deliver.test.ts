@@ -73,18 +73,25 @@ vi.mock("./delivery-queue.js", () => ({
   ackDelivery: queueMocks.ackDelivery,
   failDelivery: queueMocks.failDelivery,
 }));
-vi.mock("../../logging/subsystem.js", () => ({
-  createSubsystemLogger: () => {
-    const makeLogger = () => ({
-      warn: logMocks.warn,
-      info: vi.fn(),
-      error: vi.fn(),
-      debug: vi.fn(),
-      child: vi.fn(() => makeLogger()),
-    });
-    return makeLogger();
-  },
-}));
+vi.mock("../../logging/subsystem.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../logging/subsystem.js")>();
+  const makeLogger = () => ({
+    subsystem: "deliver",
+    isEnabled: () => true,
+    trace: vi.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: logMocks.warn,
+    error: vi.fn(),
+    fatal: vi.fn(),
+    raw: vi.fn(),
+    child: vi.fn(() => makeLogger()),
+  });
+  return {
+    ...actual,
+    createSubsystemLogger: () => makeLogger(),
+  };
+});
 
 type DeliverModule = typeof import("./deliver.js");
 

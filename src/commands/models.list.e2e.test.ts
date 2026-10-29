@@ -52,6 +52,14 @@ vi.mock("../agents/models-config.js", async (importOriginal) => {
   };
 });
 
+vi.mock("../agents/model-catalog.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../agents/model-catalog.js")>();
+  return {
+    ...actual,
+    loadModelCatalog: vi.fn().mockResolvedValue([]),
+  };
+});
+
 vi.mock("../agents/agent-paths.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../agents/agent-paths.js")>();
   return {
@@ -69,6 +77,18 @@ vi.mock("../agents/auth-profiles.js", async (importOriginal) => {
     resolveAuthProfileDisplayLabel,
     resolveAuthStorePathForDisplay,
     resolveProfileUnusableUntilForDisplay,
+  };
+});
+
+vi.mock("../agents/auth-profiles.runtime.js", () => ({
+  ensureAuthProfileStore,
+}));
+
+vi.mock("../agents/auth-profiles/store.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../agents/auth-profiles/store.js")>();
+  return {
+    ...actual,
+    ensureAuthProfileStore,
   };
 });
 

@@ -40,7 +40,13 @@ vi.mock("../acp-cli.js", () => ({ registerAcpCli }));
 vi.mock("../nodes-cli.js", () => ({ registerNodesCli }));
 vi.mock("../plugins-cli.js", () => ({ registerPluginsCli }));
 vi.mock("../../plugins/cli.js", () => ({ registerPluginCliCommands }));
-vi.mock("../../config/config.js", () => configModule);
+vi.mock("../../config/config.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../config/config.js")>();
+  return {
+    ...actual,
+    ...configModule,
+  };
+});
 
 const mockedModuleIds = [
   "../acp-cli.js",

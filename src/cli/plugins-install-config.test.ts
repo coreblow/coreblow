@@ -6,10 +6,14 @@ const loadConfigMock = vi.fn();
 const readConfigFileSnapshotMock = vi.fn();
 const cleanStaleMatrixPluginConfigMock = vi.fn();
 
-vi.mock("../config/config.js", () => ({
-  loadConfig: () => loadConfigMock(),
-  readConfigFileSnapshot: () => readConfigFileSnapshotMock(),
-}));
+vi.mock("../config/config.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../config/config.js")>();
+  return {
+    ...actual,
+    loadConfig: () => loadConfigMock(),
+    readConfigFileSnapshot: () => readConfigFileSnapshotMock(),
+  };
+});
 
 vi.mock("../commands/doctor/providers/matrix.js", () => ({
   cleanStaleMatrixPluginConfig: (cfg: CoreBlowConfig) => cleanStaleMatrixPluginConfigMock(cfg),

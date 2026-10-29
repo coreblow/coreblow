@@ -25,9 +25,28 @@ vi.mock("../gateway/client-start-readiness.js", () => ({
   startGatewayClientWhenEventLoopReady: mockStartGatewayClientWhenEventLoopReady,
 }));
 
-vi.mock("../logging/subsystem.js", () => ({
-  createSubsystemLogger: () => loggerMocks,
-}));
+vi.mock("../logging/subsystem.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../logging/subsystem.js")>();
+  const makeLogger = () => {
+    const logger = {
+      subsystem: "exec-approval-channel-runtime",
+      isEnabled: () => true,
+      trace: vi.fn(),
+      debug: loggerMocks.debug,
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: loggerMocks.error,
+      fatal: vi.fn(),
+      raw: vi.fn(),
+      child: () => logger,
+    };
+    return logger;
+  };
+  return {
+    ...actual,
+    createSubsystemLogger: vi.fn(() => makeLogger()),
+  };
+});
 
 let createExecApprovalChannelRuntime: typeof import("./exec-approval-channel-runtime.js").createExecApprovalChannelRuntime;
 let ExecApprovalChannelRuntimeTerminalStartError: typeof import("./exec-approval-channel-runtime.js").ExecApprovalChannelRuntimeTerminalStartError;

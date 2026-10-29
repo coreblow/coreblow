@@ -6,9 +6,13 @@ const mutateConfigFileMock = vi.fn();
 const replaceConfigFileMock = vi.fn();
 const logWarnMock = vi.fn();
 
-vi.mock("../../config/config.js", () => ({
-  getRuntimeConfig: () => getRuntimeConfigMock(),
-}));
+vi.mock("../../config/config.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../config/config.js")>();
+  return {
+    ...actual,
+    getRuntimeConfig: () => getRuntimeConfigMock(),
+  };
+});
 
 vi.mock("../../config/mutate.js", () => ({
   mutateConfigFile: (...args: unknown[]) => mutateConfigFileMock(...args),

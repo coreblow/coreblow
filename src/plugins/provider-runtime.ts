@@ -249,14 +249,23 @@ function resolveProviderHookPlugin(params: {
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 }): ProviderPlugin | undefined {
-  return (
-    resolveProviderRuntimePlugin(params) ??
-    resolveProviderPluginsForHooks({
-      config: params.config,
-      workspaceDir: params.workspaceDir,
-      env: params.env,
-    }).find((candidate) => matchesProviderId(candidate, params.provider))
-  );
+  const runtimePlugin = resolveProviderRuntimePlugin(params);
+  if (runtimePlugin) {
+    return runtimePlugin;
+  }
+  const manifestOwners = resolveOwningPluginIdsForProvider({
+    provider: params.provider,
+    config: params.config,
+    workspaceDir: params.workspaceDir,
+    env: params.env,
+  });
+  if (!manifestOwners || manifestOwners.length === 0) {
+    return undefined;
+  }
+  return resolveProviderPluginsForHooks({
+    ...params,
+    onlyPluginIds: manifestOwners,
+  }).find((candidate) => matchesProviderId(candidate, params.provider));
 }
 
 export function normalizeProviderModelIdWithPlugin(params: {
@@ -550,7 +559,21 @@ export function resolveProviderBuiltInModelSuppression(params: {
   env?: NodeJS.ProcessEnv;
   context: ProviderBuiltInModelSuppressionContext;
 }) {
-  for (const plugin of resolveProviderPluginsForCatalogHooks(params)) {
+  const provider = normalizeProviderId(params.context.provider);
+  const hookPluginIds = resolveCatalogHookProviderPluginIds(params);
+  const onlyPluginIds = hookPluginIds.filter((pluginId) => {
+    if (pluginId === provider) {
+      return true;
+    }
+    if (pluginId === "openai" && (provider === "openai" || provider === "azure-openai-responses")) {
+      return true;
+    }
+    return false;
+  });
+  if (onlyPluginIds.length === 0) {
+    return undefined;
+  }
+  for (const plugin of resolveProviderPluginsForHooks({ ...params, onlyPluginIds })) {
     const result = plugin.suppressBuiltInModel?.(params.context);
     if (result?.suppress) {
       return result;

@@ -32,3 +32,8 @@ export { buildVeniceProvider } from "./venice.js";
 export { buildVercelAiGatewayProvider } from "./vercel-ai-gateway.js";
 export { buildDoubaoCodingProvider, buildDoubaoProvider } from "./volcengine.js";
 export { XIAOMI_DEFAULT_MODEL_ID, buildXiaomiProvider } from "./xiaomi.js";
+export {
+  ConsolidatedOpenAiRegistry,
+  type OpenAiCompatibleProviderSpec,
+  type ProviderRequestConfig,
+} from "../agents/providers/consolidated-openai-registry.js";

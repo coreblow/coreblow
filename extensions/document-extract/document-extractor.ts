@@ -1,4 +1,4 @@
-import { extractPdfContent } from "../../src/media/pdf-extract.js";
+import { extractPdfContent } from "coreblow/plugin-sdk/document-extractor";
 
 export type DocumentExtractedImage = {
   type: "image";

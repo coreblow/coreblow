@@ -58,32 +58,40 @@ vi.mock("@agentclientprotocol/sdk", () => ({
   ndJsonStream: vi.fn(() => ({ type: "mock-stream" })),
 }));
 
-vi.mock("../config/config.js", () => ({
-  loadConfig: () => ({
-    gateway: {
-      mode: "local",
-    },
-  }),
-}));
+vi.mock("../config/config.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../config/config.js")>();
+  return {
+    ...actual,
+    loadConfig: () => ({
+      gateway: {
+        mode: "local",
+      },
+    }),
+  };
+});
 
 vi.mock("../gateway/auth.js", () => ({
   resolveGatewayAuth: () => ({}),
 }));
 
-vi.mock("../gateway/call.js", () => ({
-  buildGatewayConnectionDetails: ({ url }: { url?: string }) => {
-    if (typeof url === "string" && url.trim().length > 0) {
+vi.mock("../gateway/call.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../gateway/call.js")>();
+  return {
+    ...actual,
+    buildGatewayConnectionDetails: ({ url }: { url?: string }) => {
+      if (typeof url === "string" && url.trim().length > 0) {
+        return {
+          url: url.trim(),
+          urlSource: "cli --url",
+        };
+      }
       return {
-        url: url.trim(),
-        urlSource: "cli --url",
+        url: "ws://127.0.0.1:18789",
+        urlSource: "local loopback",
       };
-    }
-    return {
-      url: "ws://127.0.0.1:18789",
-      urlSource: "local loopback",
-    };
-  },
-}));
+    },
+  };
+});
 
 vi.mock("../gateway/connection-auth.js", () => ({
   resolveGatewayConnectionAuth: (params: unknown) => mockState.resolveGatewayConnectionAuth(params),

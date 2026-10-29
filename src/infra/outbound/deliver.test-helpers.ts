@@ -130,18 +130,25 @@ vi.mock("./delivery-queue.js", () => ({
   ackDelivery: _queueMocks.ackDelivery,
   failDelivery: _queueMocks.failDelivery,
 }));
-vi.mock("../../logging/subsystem.js", () => ({
-  createSubsystemLogger: () => {
-    const makeLogger = () => ({
-      warn: _logMocks.warn,
-      info: vi.fn(),
-      error: vi.fn(),
-      debug: vi.fn(),
-      child: vi.fn(() => makeLogger()),
-    });
-    return makeLogger();
-  },
-}));
+vi.mock("../../logging/subsystem.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../logging/subsystem.js")>();
+  const makeLogger = () => ({
+    subsystem: "deliver-helpers",
+    isEnabled: () => true,
+    trace: vi.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: _logMocks.warn,
+    error: vi.fn(),
+    fatal: vi.fn(),
+    raw: vi.fn(),
+    child: vi.fn(() => makeLogger()),
+  });
+  return {
+    ...actual,
+    createSubsystemLogger: () => makeLogger(),
+  };
+});
 
 export const whatsappChunkConfig: CoreBlowConfig = {
   channels: { whatsapp: { textChunkLimit: 4000 } },

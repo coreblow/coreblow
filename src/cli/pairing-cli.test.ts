@@ -40,9 +40,13 @@ vi.mock("../channels/plugins/index.js", () => ({
   normalizeChannelId,
 }));
 
-vi.mock("../config/config.js", () => ({
-  loadConfig: vi.fn().mockReturnValue({}),
-}));
+vi.mock("../config/config.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../config/config.js")>();
+  return {
+    ...actual,
+    loadConfig: vi.fn().mockReturnValue({}),
+  };
+});
 
 describe("pairing cli", () => {
   let registerPairingCli: typeof import("./pairing-cli.js").registerPairingCli;

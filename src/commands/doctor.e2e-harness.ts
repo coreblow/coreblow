@@ -262,9 +262,13 @@ vi.mock("../process/exec.js", () => ({
   runCommandWithTimeout,
 }));
 
-vi.mock("../infra/coreblow-root.js", () => ({
-  resolveCoreBlowPackageRoot,
-}));
+vi.mock("../infra/coreblow-root.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../infra/coreblow-root.js")>();
+  return {
+    ...actual,
+    resolveCoreBlowPackageRoot,
+  };
+});
 
 vi.mock("../infra/update-runner.js", () => ({
   runGatewayUpdate,

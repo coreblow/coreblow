@@ -1,6 +1,6 @@
-// @ts-nocheck
-import { describe, expect, it, vi , Mock } from "vitest";
+import { describe, expect, it, vi, type Mock } from "vitest";
 import type { GatewayBonjourBeacon } from "../../infra/bonjour-discovery.js";
+import type { GatewayRespawnResult } from "../../infra/process-respawn.js";
 import { pickBeaconHost, pickGatewayPort } from "./discover.js";
 
 const acquireGatewayLock = vi.fn(async (_opts?: { port?: number }) => ({
@@ -22,18 +22,31 @@ const getActiveTaskCount = vi.fn(() => 0);
 const markGatewayDraining = vi.fn();
 const waitForActiveTasks = vi.fn(async (_timeoutMs: number) => ({ drained: true }));
 const resetAllLanes = vi.fn();
-const restartGatewayProcessWithFreshPid = vi.fn(() => ({ mode: "disabled" }));
+const restartGatewayProcessWithFreshPid = vi.fn<() => GatewayRespawnResult>(() => ({ mode: "disabled" }));
 const abortEmbeddedPiRun = vi.fn(
   (_sessionId?: string, _opts?: { mode?: "all" | "compacting" }) => false,
 );
 const getActiveEmbeddedRunCount = vi.fn(() => 0);
 const waitForActiveEmbeddedRuns = vi.fn(async (_timeoutMs: number) => ({ drained: true }));
 const DRAIN_TIMEOUT_LOG = "drain timeout reached; proceeding with restart";
-const gatewayLog = {
-  info: vi.fn(),
-  warn: vi.fn(),
-  error: vi.fn(),
+
+const createMockLogger = (): Record<string, unknown> => {
+  const logger: Record<string, unknown> = {
+    subsystem: "gateway",
+    isEnabled: vi.fn(() => true),
+    trace: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    fatal: vi.fn(),
+    raw: vi.fn(),
+    child: vi.fn(() => createMockLogger()),
+  };
+  return logger;
 };
+
+const gatewayLog = createMockLogger();
 
 vi.mock("../../infra/gateway-lock.js", () => ({
   acquireGatewayLock: (opts?: { port?: number }) => acquireGatewayLock(opts),
@@ -51,23 +64,35 @@ vi.mock("../../infra/process-respawn.js", () => ({
   restartGatewayProcessWithFreshPid: () => restartGatewayProcessWithFreshPid(),
 }));
 
-vi.mock("../../process/command-queue.js", () => ({
-  getActiveTaskCount: () => getActiveTaskCount(),
-  markGatewayDraining: () => markGatewayDraining(),
-  waitForActiveTasks: (timeoutMs: number) => waitForActiveTasks(timeoutMs),
-  resetAllLanes: () => resetAllLanes(),
-}));
+vi.mock("../../process/command-queue.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../process/command-queue.js")>();
+  return {
+    ...actual,
+    getActiveTaskCount: () => getActiveTaskCount(),
+    markGatewayDraining: () => markGatewayDraining(),
+    waitForActiveTasks: (timeoutMs: number) => waitForActiveTasks(timeoutMs),
+    resetAllLanes: () => resetAllLanes(),
+  };
+});
 
-vi.mock("../../agents/pi-embedded-runner/runs.js", () => ({
-  abortEmbeddedPiRun: (sessionId?: string, opts?: { mode?: "all" | "compacting" }) =>
-    abortEmbeddedPiRun(sessionId, opts),
-  getActiveEmbeddedRunCount: () => getActiveEmbeddedRunCount(),
-  waitForActiveEmbeddedRuns: (timeoutMs: number) => waitForActiveEmbeddedRuns(timeoutMs),
-}));
+vi.mock("../../agents/pi-embedded-runner/runs.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../agents/pi-embedded-runner/runs.js")>();
+  return {
+    ...actual,
+    abortEmbeddedPiRun: (sessionId?: string, opts?: { mode?: "all" | "compacting" }) =>
+      abortEmbeddedPiRun(sessionId, opts),
+    getActiveEmbeddedRunCount: () => getActiveEmbeddedRunCount(),
+    waitForActiveEmbeddedRuns: (timeoutMs: number) => waitForActiveEmbeddedRuns(timeoutMs),
+  };
+});
 
-vi.mock("../../logging/subsystem.js", () => ({
-  createSubsystemLogger: () => gatewayLog,
-}));
+vi.mock("../../logging/subsystem.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../logging/subsystem.js")>();
+  return {
+    ...actual,
+    createSubsystemLogger: () => gatewayLog,
+  };
+});
 
 const LOOP_SIGNALS = ["SIGTERM", "SIGINT", "SIGUSR1"] as const;
 type LoopSignal = (typeof LOOP_SIGNALS)[number];

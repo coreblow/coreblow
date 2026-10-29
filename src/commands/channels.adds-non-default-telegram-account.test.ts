@@ -428,7 +428,7 @@ describe("channels command", () => {
       patterns: [
         /Warnings:/,
         /Message Content Intent is disabled/i,
-        /Run: (?:coreblow|coreblow)( --profile isolated)? doctor/,
+        /Run: `?(?:coreblow|coreblow)(?: --profile isolated)? doctor`?/,
       ],
     },
     {

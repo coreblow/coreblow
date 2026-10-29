@@ -47,3 +47,9 @@ export {
   type PluginCommandRunResult,
 } from "./run-command.js";
 export { resolvePreferredCoreBlowTmpDir } from "../infra/tmp-coreblow-dir.js";
+export {
+  PluginCapabilitySandbox,
+  PluginCapabilityViolationError,
+  type PluginCapability,
+  type PluginCapabilityManifest,
+} from "../plugins/sandbox/capability-sandbox.js";

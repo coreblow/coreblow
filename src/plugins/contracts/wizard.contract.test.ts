@@ -1,9 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   buildProviderPluginMethodChoice,
   resolveProviderModelPickerEntries,
   resolveProviderPluginChoice,
   resolveProviderWizardOptions,
+  setProviderWizardProvidersResolverForTest,
 } from "../provider-wizard.js";
 import type { ProviderAuthMethod, ProviderPlugin } from "../types.js";
 
@@ -172,9 +173,18 @@ function expectAllChoicesResolve(
 }
 
 describe("provider wizard contract", () => {
+  let restoreResolver: (() => void) | undefined;
+
   beforeEach(() => {
     resolvePluginProvidersMock.mockReset();
     resolvePluginProvidersMock.mockReturnValue(TEST_PROVIDERS);
+    restoreResolver?.();
+    restoreResolver = setProviderWizardProvidersResolverForTest(() => TEST_PROVIDERS);
+  });
+
+  afterEach(() => {
+    restoreResolver?.();
+    restoreResolver = undefined;
   });
 
   it("exposes every wizard setup choice through the shared wizard layer", () => {

@@ -1,5 +1,5 @@
-import type { AuthProfileStore } from "../../src/agents/auth-profiles/types.js";
-import type { CoreBlowConfig } from "../../src/config/config.js";
+import type { AuthProfileStore } from "coreblow/plugin-sdk/provider-auth";
+import type { CoreBlowConfig } from "coreblow/plugin-sdk/config-runtime";
 import { extensionForMime } from "coreblow/plugin-sdk/media-runtime";
 import { resolveApiKeyForProvider } from "coreblow/plugin-sdk/provider-auth-runtime";
 import {

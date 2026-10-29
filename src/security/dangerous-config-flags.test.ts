@@ -1,9 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from "vitest";
 
-// Mock the config module to avoid deep dependency chains
-vi.mock('../config/config.js', () => ({}));
-
-import { collectEnabledInsecureOrDangerousFlags } from './dangerous-config-flags.js';
+import { collectEnabledInsecureOrDangerousFlags } from "./dangerous-config-flags.js";
 
 describe('collectEnabledInsecureOrDangerousFlags', () => {
     it('should return empty array for safe config', () => {

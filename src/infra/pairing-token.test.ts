@@ -7,7 +7,8 @@ vi.mock("node:crypto", async () => {
   const actual = await vi.importActual<typeof import("node:crypto")>("node:crypto");
   return {
     ...actual,
-    randomBytes: (...args: unknown[]) => randomBytesMock(...args),
+    randomBytes: (...args: unknown[]) =>
+      randomBytesMock(...args) ?? (actual.randomBytes as Function)(...args),
   };
 });
 

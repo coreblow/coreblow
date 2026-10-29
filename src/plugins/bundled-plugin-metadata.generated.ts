@@ -8,11 +8,11 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["runtime-api.js"],
+    publicSurfaceArtifacts: ["extension.js", "runtime-api.js"],
     runtimeSidecarArtifacts: ["runtime-api.js"],
-    packageName: "@coreblow/acp",
-    packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow ACP runtime backend via acp",
+    packageName: "@coreblow/ext-acp",
+    packageVersion: "0.1.0",
+    packageDescription: "Agent Communication Protocol extensions",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -87,47 +87,27 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       name: "ACP Runtime",
       description:
         "ACP runtime backend powered by acp with configurable command path and version policy.",
-      uiHints: {
-        command: {
-          label: "acp Command",
-          help: "Optional path/command override for acp (for example /home/user/repos/acp/dist/cli.js). Leave unset to use plugin-local bundled acp.",
-        },
-        expectedVersion: {
-          label: "Expected acp Version",
-          help: 'Exact version to enforce or "any" to skip strict version matching.',
-        },
-        cwd: {
-          label: "Default Working Directory",
-          help: "Default cwd for ACP session operations when not set per session.",
-        },
-        permissionMode: {
-          label: "Permission Mode",
-          help: "Default acp permission policy for runtime prompts.",
-        },
-        nonInteractivePermissions: {
-          label: "Non-Interactive Permission Policy",
-          help: "acp policy when interactive permission prompts are unavailable.",
-        },
-        strictWindowsCmdWrapper: {
-          label: "Strict Windows cmd Wrapper",
-          help: "Enabled by default. On Windows, reject unresolved .cmd/.bat wrappers instead of shell fallback. Disable only for compatibility with non-standard wrappers.",
-          advanced: true,
-        },
-        timeoutSeconds: {
-          label: "Prompt Timeout Seconds",
-          help: "Optional acp timeout for each runtime turn.",
-          advanced: true,
-        },
-        queueOwnerTtlSeconds: {
-          label: "Queue Owner TTL Seconds",
-          help: "Idle queue-owner TTL for acp prompt turns. Keep this short in CoreBlow to avoid delayed completion after each turn.",
-          advanced: true,
-        },
-        mcpServers: {
-          label: "MCP Servers",
-          help: "Named MCP server definitions to inject into ACP-backed session bootstrap. Each entry needs a command and can include args and env.",
-          advanced: true,
-        },
+    },
+  },
+  {
+    dirName: "admin-http-rpc",
+    idHint: "admin-http-rpc",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    packageName: "@coreblow/admin-http-rpc",
+    packageVersion: "0.1.0",
+    packageDescription: "CoreBlow admin HTTP RPC endpoint",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "admin-http-rpc",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {},
       },
     },
   },
@@ -138,10 +118,23 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js", "discovery.js"],
-    packageName: "@coreblow/amazon-bedrock-provider",
+    publicSurfaceArtifacts: [
+      "api.js",
+      "aws-credential-refresh.js",
+      "config-api.js",
+      "config-compat.js",
+      "discovery-shared.js",
+      "discovery.js",
+      "embedding-provider.js",
+      "memory-embedding-adapter.js",
+      "provider-policy-api.js",
+      "register.sync.runtime.js",
+      "setup-api.js",
+      "thinking-policy.js",
+    ],
+    packageName: "@coreblow/amazon-bedrock",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Amazon Bedrock provider plugin",
+    packageDescription: "CoreBlow amazon-bedrock plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -157,6 +150,57 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
   },
   {
+    dirName: "amazon-bedrock-mantle",
+    idHint: "amazon-bedrock-mantle",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: [
+      "api.js",
+      "discovery.js",
+      "mantle-anthropic.runtime.js",
+      "register.sync.runtime.js",
+    ],
+    packageName: "@coreblow/amazon-bedrock-mantle",
+    packageVersion: "2026.3.27",
+    packageDescription: "CoreBlow amazon-bedrock-mantle plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "amazon-bedrock-mantle",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          discovery: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              enabled: {
+                type: "boolean",
+                description: "When false, skip implicit Mantle model discovery.",
+              },
+            },
+          },
+        },
+      },
+      enabledByDefault: true,
+      providers: ["amazon-bedrock-mantle"],
+      uiHints: {
+        discovery: {
+          label: "Model Discovery",
+          help: "Plugin-owned controls for Amazon Bedrock Mantle model auto-discovery.",
+        },
+        "discovery.enabled": {
+          label: "Enable Discovery",
+          help: "When false, CoreBlow keeps the Amazon Bedrock Mantle plugin available but skips implicit startup discovery. Leave unset for default auto-detect behavior.",
+        },
+      },
+    },
+  },
+  {
     dirName: "anthropic",
     idHint: "anthropic",
     source: {
@@ -165,14 +209,28 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
     publicSurfaceArtifacts: [
       "api.js",
+      "cli-auth-seam.js",
+      "cli-backend-api.js",
       "cli-backend.js",
+      "cli-catalog.js",
+      "cli-constants.js",
       "cli-migration.js",
       "cli-shared.js",
+      "config-defaults.js",
+      "contract-api.js",
+      "doctor-contract-api.js",
       "media-understanding-provider.js",
+      "provider-contract-api.js",
+      "provider-discovery.js",
+      "provider-policy-api.js",
+      "register.runtime.js",
+      "replay-policy.js",
+      "setup-api.js",
+      "stream-wrappers.js",
     ],
-    packageName: "@coreblow/anthropic-provider",
+    packageName: "@coreblow/anthropic",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Anthropic provider plugin",
+    packageDescription: "CoreBlow anthropic plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -231,6 +289,110 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
   },
   {
+    dirName: "anthropic-vertex",
+    idHint: "anthropic-vertex",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: [
+      "api.js",
+      "provider-catalog.js",
+      "provider-discovery.js",
+      "region.js",
+      "setup-api.js",
+      "stream-runtime.js",
+    ],
+    packageName: "@coreblow/anthropic-vertex",
+    packageVersion: "2026.3.27",
+    packageDescription: "CoreBlow anthropic-vertex plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "anthropic-vertex",
+      configSchema: {},
+      name: "Anthropic Vertex",
+    },
+  },
+  {
+    dirName: "arcee",
+    idHint: "arcee",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: ["api.js", "models.js", "onboard.js", "provider-catalog.js"],
+    packageName: "@coreblow/arcee",
+    packageVersion: "2026.3.27",
+    packageDescription: "CoreBlow arcee plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "arcee",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {},
+      },
+      enabledByDefault: true,
+      providers: ["arcee"],
+      providerAuthEnvVars: {
+        arcee: ["ARCEEAI_API_KEY"],
+      },
+      providerAuthChoices: [
+        {
+          provider: "arcee",
+          method: "arcee-platform",
+          choiceId: "arceeai-api-key",
+          choiceLabel: "Arcee AI API key",
+          choiceHint: "Direct (chat.arcee.ai)",
+          groupId: "arcee",
+          groupLabel: "Arcee AI",
+          groupHint: "Direct API or OpenRouter",
+          optionKey: "arceeaiApiKey",
+          cliFlag: "--arceeai-api-key",
+          cliOption: "--arceeai-api-key <key>",
+          cliDescription: "Arcee AI API key",
+        },
+        {
+          provider: "arcee",
+          method: "openrouter",
+          choiceId: "arceeai-openrouter",
+          choiceLabel: "OpenRouter API key",
+          choiceHint: "Via OpenRouter (openrouter.ai)",
+          groupId: "arcee",
+          groupLabel: "Arcee AI",
+          groupHint: "Direct API or OpenRouter",
+          optionKey: "openrouterApiKey",
+          cliFlag: "--openrouter-api-key",
+          cliOption: "--openrouter-api-key <key>",
+          cliDescription: "OpenRouter API key for Arcee AI models",
+        },
+      ],
+    },
+  },
+  {
+    dirName: "auto-reply",
+    idHint: "auto-reply",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    packageName: "@coreblow/auto-reply",
+    packageVersion: "2026.3.27",
+    packageDescription: "CoreBlow auto-reply plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "auto-reply",
+      configSchema: {},
+      name: "Auto Reply",
+    },
+  },
+  {
     dirName: "bluebubbles",
     idHint: "bluebubbles",
     source: {
@@ -241,10 +403,10 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./setup-entry.ts",
       built: "setup-entry.js",
     },
-    publicSurfaceArtifacts: ["api.js", "channel-config-api.js", "runtime-api.js"],
+    publicSurfaceArtifacts: ["api.js", "channel-config-api.js", "extension.js", "runtime-api.js"],
     runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/bluebubbles",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow BlueBubbles channel plugin",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -266,7 +428,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         npmSpec: "@coreblow/bluebubbles",
         localPath: "extensions/bluebubbles",
         defaultChoice: "npm",
-        minHostVersion: ">=2026.3.27",
+        minHostVersion: ">=1.0.0",
       },
     },
     manifest: {
@@ -294,7 +456,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                 properties: {
                   tables: {
                     type: "string",
-                    enum: ["off", "bullets", "code"],
+                    enum: ["off", "bullets", "code", "block"],
                   },
                 },
                 additionalProperties: false,
@@ -502,7 +664,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                       properties: {
                         tables: {
                           type: "string",
-                          enum: ["off", "bullets", "code"],
+                          enum: ["off", "bullets", "code", "block"],
                         },
                       },
                       additionalProperties: false,
@@ -786,16 +948,47 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
   },
   {
+    dirName: "bonjour",
+    idHint: "bonjour",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    packageName: "@coreblow/bonjour",
+    packageVersion: "2026.5.17",
+    packageDescription: "CoreBlow Bonjour/mDNS gateway discovery",
+    packageManifest: {
+      extensions: ["./index.ts"],
+      install: {
+        npmSpec: "@coreblow/bonjour",
+        localPath: "extensions/bonjour",
+        defaultChoice: "npm",
+        minHostVersion: ">=1.0.0",
+      },
+    },
+    manifest: {
+      id: "bonjour",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {},
+      },
+      name: "Bonjour Gateway Discovery",
+      description: "Advertise the local CoreBlow gateway over Bonjour/mDNS.",
+      enabledByDefaultOnPlatforms: ["darwin"],
+    },
+  },
+  {
     dirName: "brave",
     idHint: "brave",
     source: {
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["web-search-provider.js"],
-    packageName: "@coreblow/brave-plugin",
+    publicSurfaceArtifacts: ["web-search-contract-api.js", "web-search-provider.js"],
+    packageName: "@coreblow/brave",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Brave plugin",
+    packageDescription: "CoreBlow brave plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -850,11 +1043,11 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["browser-runtime-api.js", "runtime-api.js"],
+    publicSurfaceArtifacts: ["browser-runtime-api.js", "extension.js", "runtime-api.js"],
     runtimeSidecarArtifacts: ["runtime-api.js"],
-    packageName: "@coreblow/browser-plugin",
+    packageName: "@coreblow/browser",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow browser tool plugin",
+    packageDescription: "CoreBlow browser plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -875,10 +1068,16 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js", "models.js", "provider-catalog.js"],
-    packageName: "@coreblow/byteplus-provider",
+    publicSurfaceArtifacts: [
+      "api.js",
+      "models.js",
+      "provider-catalog.js",
+      "provider-discovery.js",
+      "video-generation-provider.js",
+    ],
+    packageName: "@coreblow/byteplus",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow BytePlus provider plugin",
+    packageDescription: "CoreBlow byteplus plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -909,6 +1108,172 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
           cliDescription: "BytePlus API key",
         },
       ],
+      contracts: {
+        videoGenerationProviders: ["byteplus"],
+      },
+    },
+  },
+  {
+    dirName: "canvas",
+    idHint: "canvas",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: ["cli-metadata.js", "runtime-api.js", "setup-api.js"],
+    runtimeSidecarArtifacts: ["runtime-api.js"],
+    packageName: "@coreblow/canvas-plugin",
+    packageVersion: "2026.5.17",
+    packageDescription: "CoreBlow Canvas plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "canvas",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          host: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              enabled: {
+                type: "boolean",
+              },
+              root: {
+                type: "string",
+              },
+              port: {
+                type: "integer",
+                minimum: 1,
+              },
+              liveReload: {
+                type: "boolean",
+              },
+            },
+          },
+        },
+      },
+      enabledByDefault: true,
+      name: "Canvas",
+      description: "Experimental Canvas control and A2UI rendering surfaces for paired nodes.",
+      contracts: {
+        tools: ["canvas"],
+      },
+      configContracts: {
+        compatibilityMigrationPaths: ["canvasHost"],
+      },
+    },
+  },
+  {
+    dirName: "cerebras",
+    idHint: "cerebras",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: ["api.js", "models.js", "onboard.js", "provider-catalog.js"],
+    packageName: "@coreblow/cerebras",
+    packageVersion: "2026.3.27",
+    packageDescription: "CoreBlow cerebras plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "cerebras",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {},
+      },
+      enabledByDefault: true,
+      providers: ["cerebras"],
+      providerAuthEnvVars: {
+        cerebras: ["CEREBRAS_API_KEY"],
+      },
+      providerAuthChoices: [
+        {
+          provider: "cerebras",
+          method: "api-key",
+          choiceId: "cerebras-api-key",
+          choiceLabel: "Cerebras API key",
+          groupId: "cerebras",
+          groupLabel: "Cerebras",
+          groupHint: "Fast OpenAI-compatible inference",
+          optionKey: "cerebrasApiKey",
+          cliFlag: "--cerebras-api-key",
+          cliOption: "--cerebras-api-key <key>",
+          cliDescription: "Cerebras API key",
+        },
+      ],
+      modelCatalog: {
+        providers: {
+          cerebras: {
+            baseUrl: "https://api.cerebras.ai/v1",
+            api: "openai-completions",
+            models: [
+              {
+                id: "zai-glm-4.7",
+                name: "Z.ai GLM 4.7",
+                input: ["text"],
+                reasoning: true,
+                contextWindow: 128000,
+                maxTokens: 8192,
+                cost: {
+                  input: 2.25,
+                  output: 2.75,
+                  cacheRead: 2.25,
+                  cacheWrite: 2.75,
+                },
+              },
+              {
+                id: "gpt-oss-120b",
+                name: "GPT OSS 120B",
+                input: ["text"],
+                reasoning: true,
+                contextWindow: 128000,
+                maxTokens: 8192,
+                cost: {
+                  input: 0.35,
+                  output: 0.75,
+                  cacheRead: 0.35,
+                  cacheWrite: 0.75,
+                },
+              },
+              {
+                id: "qwen-3-235b-a22b-instruct-2507",
+                name: "Qwen 3 235B Instruct",
+                input: ["text"],
+                contextWindow: 128000,
+                maxTokens: 8192,
+                cost: {
+                  input: 0.6,
+                  output: 1.2,
+                  cacheRead: 0.6,
+                  cacheWrite: 1.2,
+                },
+              },
+              {
+                id: "llama3.1-8b",
+                name: "Llama 3.1 8B",
+                input: ["text"],
+                contextWindow: 128000,
+                maxTokens: 8192,
+                cost: {
+                  input: 0.1,
+                  output: 0.1,
+                  cacheRead: 0.1,
+                  cacheWrite: 0.1,
+                },
+              },
+            ],
+          },
+        },
+        discovery: {
+          cerebras: "static",
+        },
+      },
     },
   },
   {
@@ -918,10 +1283,17 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js", "models.js", "onboard.js", "provider-catalog.js"],
-    packageName: "@coreblow/chutes-provider",
+    publicSurfaceArtifacts: [
+      "api.js",
+      "model-discovery-env.js",
+      "models.js",
+      "oauth.js",
+      "onboard.js",
+      "provider-catalog.js",
+    ],
+    packageName: "@coreblow/chutes",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Chutes.ai provider plugin",
+    packageDescription: "CoreBlow chutes plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -966,16 +1338,344 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
   },
   {
+    dirName: "clickclack",
+    idHint: "clickclack",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: ["api.js", "channel-plugin-api.js", "runtime-api.js"],
+    runtimeSidecarArtifacts: ["runtime-api.js"],
+    packageName: "@coreblow/clickclack",
+    packageVersion: "2026.5.17",
+    packageDescription: "CoreBlow ClickClack channel plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+      channel: {
+        id: "clickclack",
+        label: "ClickClack",
+        selectionLabel: "ClickClack",
+        detailLabel: "ClickClack Bot",
+        docsPath: "/channels/clickclack",
+        docsLabel: "clickclack",
+        blurb: "self-hosted chat via first-class ClickClack bot tokens.",
+        systemImage: "bubble.left.and.bubble.right",
+        markdownCapable: true,
+        preferSessionLookupForAnnounceTarget: true,
+        order: 85,
+        commands: {
+          nativeCommandsAutoEnabled: false,
+          nativeSkillsAutoEnabled: false,
+        },
+      },
+      install: {
+        npmSpec: "@coreblow/clickclack",
+        localPath: "extensions/clickclack",
+        defaultChoice: "npm",
+        minHostVersion: ">=1.0.0",
+      },
+    },
+    manifest: {
+      id: "clickclack",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {},
+      },
+      channels: ["clickclack"],
+      channelConfigs: {
+        clickclack: {
+          schema: {
+            $schema: "http://json-schema.org/draft-07/schema#",
+            type: "object",
+            properties: {
+              name: {
+                type: "string",
+              },
+              enabled: {
+                type: "boolean",
+              },
+              baseUrl: {
+                type: "string",
+                format: "uri",
+              },
+              token: {
+                anyOf: [
+                  {
+                    type: "string",
+                  },
+                  {
+                    oneOf: [
+                      {
+                        type: "object",
+                        properties: {
+                          source: {
+                            type: "string",
+                            const: "env",
+                          },
+                          provider: {
+                            type: "string",
+                            pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                          },
+                          id: {
+                            type: "string",
+                            pattern: "^[A-Z][A-Z0-9_]{0,127}$",
+                          },
+                        },
+                        required: ["source", "provider", "id"],
+                        additionalProperties: false,
+                      },
+                      {
+                        type: "object",
+                        properties: {
+                          source: {
+                            type: "string",
+                            const: "file",
+                          },
+                          provider: {
+                            type: "string",
+                            pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                          },
+                          id: {
+                            type: "string",
+                          },
+                        },
+                        required: ["source", "provider", "id"],
+                        additionalProperties: false,
+                      },
+                      {
+                        type: "object",
+                        properties: {
+                          source: {
+                            type: "string",
+                            const: "exec",
+                          },
+                          provider: {
+                            type: "string",
+                            pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                          },
+                          id: {
+                            type: "string",
+                          },
+                        },
+                        required: ["source", "provider", "id"],
+                        additionalProperties: false,
+                      },
+                    ],
+                  },
+                ],
+              },
+              workspace: {
+                type: "string",
+              },
+              botUserId: {
+                type: "string",
+              },
+              agentId: {
+                type: "string",
+              },
+              replyMode: {
+                type: "string",
+                enum: ["agent", "model"],
+              },
+              model: {
+                type: "string",
+              },
+              systemPrompt: {
+                type: "string",
+              },
+              timeoutSeconds: {
+                type: "integer",
+                minimum: 1,
+                maximum: 3600,
+              },
+              toolsAllow: {
+                type: "array",
+                items: {
+                  type: "string",
+                },
+              },
+              senderIsOwner: {
+                type: "boolean",
+              },
+              defaultTo: {
+                type: "string",
+              },
+              allowFrom: {
+                type: "array",
+                items: {
+                  type: "string",
+                },
+              },
+              reconnectMs: {
+                type: "integer",
+                minimum: 100,
+                maximum: 60000,
+              },
+              accounts: {
+                type: "object",
+                propertyNames: {
+                  type: "string",
+                },
+                additionalProperties: {
+                  type: "object",
+                  properties: {
+                    name: {
+                      type: "string",
+                    },
+                    enabled: {
+                      type: "boolean",
+                    },
+                    baseUrl: {
+                      type: "string",
+                      format: "uri",
+                    },
+                    token: {
+                      anyOf: [
+                        {
+                          type: "string",
+                        },
+                        {
+                          oneOf: [
+                            {
+                              type: "object",
+                              properties: {
+                                source: {
+                                  type: "string",
+                                  const: "env",
+                                },
+                                provider: {
+                                  type: "string",
+                                  pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                                },
+                                id: {
+                                  type: "string",
+                                  pattern: "^[A-Z][A-Z0-9_]{0,127}$",
+                                },
+                              },
+                              required: ["source", "provider", "id"],
+                              additionalProperties: false,
+                            },
+                            {
+                              type: "object",
+                              properties: {
+                                source: {
+                                  type: "string",
+                                  const: "file",
+                                },
+                                provider: {
+                                  type: "string",
+                                  pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                                },
+                                id: {
+                                  type: "string",
+                                },
+                              },
+                              required: ["source", "provider", "id"],
+                              additionalProperties: false,
+                            },
+                            {
+                              type: "object",
+                              properties: {
+                                source: {
+                                  type: "string",
+                                  const: "exec",
+                                },
+                                provider: {
+                                  type: "string",
+                                  pattern: "^[a-z][a-z0-9_-]{0,63}$",
+                                },
+                                id: {
+                                  type: "string",
+                                },
+                              },
+                              required: ["source", "provider", "id"],
+                              additionalProperties: false,
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                    workspace: {
+                      type: "string",
+                    },
+                    botUserId: {
+                      type: "string",
+                    },
+                    agentId: {
+                      type: "string",
+                    },
+                    replyMode: {
+                      type: "string",
+                      enum: ["agent", "model"],
+                    },
+                    model: {
+                      type: "string",
+                    },
+                    systemPrompt: {
+                      type: "string",
+                    },
+                    timeoutSeconds: {
+                      type: "integer",
+                      minimum: 1,
+                      maximum: 3600,
+                    },
+                    toolsAllow: {
+                      type: "array",
+                      items: {
+                        type: "string",
+                      },
+                    },
+                    senderIsOwner: {
+                      type: "boolean",
+                    },
+                    defaultTo: {
+                      type: "string",
+                    },
+                    allowFrom: {
+                      type: "array",
+                      items: {
+                        type: "string",
+                      },
+                    },
+                    reconnectMs: {
+                      type: "integer",
+                      minimum: 100,
+                      maximum: 60000,
+                    },
+                  },
+                  additionalProperties: false,
+                },
+              },
+              defaultAccount: {
+                type: "string",
+              },
+            },
+            additionalProperties: false,
+          },
+          label: "ClickClack",
+          description: "self-hosted chat via first-class ClickClack bot tokens.",
+        },
+      },
+    },
+  },
+  {
     dirName: "cloudflare-ai-gateway",
     idHint: "cloudflare-ai-gateway",
     source: {
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js", "models.js", "onboard.js"],
-    packageName: "@coreblow/cloudflare-ai-gateway-provider",
+    publicSurfaceArtifacts: [
+      "api.js",
+      "catalog-provider.js",
+      "models.js",
+      "onboard.js",
+      "stream-wrappers.js",
+    ],
+    packageName: "@coreblow/cloudflare-ai-gateway",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Cloudflare AI Gateway provider plugin",
+    packageDescription: "CoreBlow cloudflare-ai-gateway plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -1010,16 +1710,619 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
   },
   {
+    dirName: "codex",
+    idHint: "codex",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: [
+      "doctor-contract-api.js",
+      "harness.js",
+      "media-understanding-provider.js",
+      "prompt-overlay.js",
+      "provider-catalog.js",
+      "provider-discovery.js",
+      "provider.js",
+    ],
+    packageName: "@coreblow/codex",
+    packageVersion: "2026.5.17",
+    packageDescription: "CoreBlow Codex harness and model provider plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+      install: {
+        npmSpec: "@coreblow/codex",
+        defaultChoice: "npm",
+        minHostVersion: ">=1.0.0",
+      },
+    },
+    manifest: {
+      id: "codex",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          codexDynamicToolsLoading: {
+            type: "string",
+            enum: ["searchable", "direct"],
+            default: "searchable",
+          },
+          codexDynamicToolsExclude: {
+            type: "array",
+            items: {
+              type: "string",
+            },
+            default: [],
+          },
+          discovery: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              enabled: {
+                type: "boolean",
+              },
+              timeoutMs: {
+                type: "number",
+                minimum: 1,
+                default: 2500,
+              },
+            },
+          },
+          computerUse: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              enabled: {
+                type: "boolean",
+                default: false,
+              },
+              autoInstall: {
+                type: "boolean",
+                default: false,
+              },
+              marketplaceDiscoveryTimeoutMs: {
+                type: "number",
+                minimum: 1,
+                default: 60000,
+              },
+              marketplaceSource: {
+                type: "string",
+              },
+              marketplacePath: {
+                type: "string",
+              },
+              marketplaceName: {
+                type: "string",
+              },
+              pluginName: {
+                type: "string",
+                default: "computer-use",
+              },
+              mcpServerName: {
+                type: "string",
+                default: "computer-use",
+              },
+            },
+          },
+          codexPlugins: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              enabled: {
+                type: "boolean",
+                default: false,
+              },
+              allow_destructive_actions: {
+                type: "boolean",
+                default: true,
+              },
+              plugins: {
+                type: "object",
+                additionalProperties: {
+                  type: "object",
+                  additionalProperties: false,
+                  properties: {
+                    enabled: {
+                      type: "boolean",
+                    },
+                    marketplaceName: {
+                      type: "string",
+                      enum: ["openai-curated"],
+                    },
+                    pluginName: {
+                      type: "string",
+                    },
+                    allow_destructive_actions: {
+                      type: "boolean",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          appServer: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              mode: {
+                type: "string",
+                enum: ["yolo", "guardian"],
+                default: "yolo",
+              },
+              transport: {
+                type: "string",
+                enum: ["stdio", "websocket"],
+                default: "stdio",
+              },
+              command: {
+                type: "string",
+              },
+              args: {
+                oneOf: [
+                  {
+                    type: "array",
+                    items: {
+                      type: "string",
+                    },
+                  },
+                  {
+                    type: "string",
+                  },
+                ],
+              },
+              url: {
+                type: "string",
+              },
+              authToken: {
+                type: "string",
+              },
+              headers: {
+                type: "object",
+                additionalProperties: {
+                  type: "string",
+                },
+              },
+              clearEnv: {
+                type: "array",
+                items: {
+                  type: "string",
+                },
+              },
+              codeModeOnly: {
+                type: "boolean",
+                default: false,
+              },
+              requestTimeoutMs: {
+                type: "number",
+                minimum: 1,
+                default: 60000,
+              },
+              turnCompletionIdleTimeoutMs: {
+                type: "number",
+                minimum: 1,
+                default: 60000,
+              },
+              approvalPolicy: {
+                type: "string",
+                enum: ["never", "on-request", "on-failure", "untrusted"],
+              },
+              sandbox: {
+                type: "string",
+                enum: ["read-only", "workspace-write", "danger-full-access"],
+              },
+              approvalsReviewer: {
+                type: "string",
+                enum: ["user", "auto_review", "guardian_subagent"],
+              },
+              serviceTier: {
+                type: ["string", "null"],
+              },
+              defaultWorkspaceDir: {
+                type: "string",
+              },
+            },
+          },
+        },
+      },
+      providers: ["codex"],
+      name: "Codex",
+      description: "Codex app-server harness and Codex-managed GPT model catalog.",
+      uiHints: {
+        codexDynamicToolsLoading: {
+          label: "Dynamic Tools Loading",
+          help: "Use searchable to defer CoreBlow dynamic tools behind Codex tool search, or direct to expose them in the initial context.",
+          advanced: true,
+        },
+        codexDynamicToolsExclude: {
+          label: "Dynamic Tool Excludes",
+          help: "Additional CoreBlow dynamic tool names to omit from Codex app-server turns.",
+          advanced: true,
+        },
+        discovery: {
+          label: "Model Discovery",
+          help: "Plugin-owned controls for discovering Codex app-server models.",
+        },
+        "discovery.enabled": {
+          label: "Enable Discovery",
+          help: "When false, CoreBlow keeps the Codex harness available but uses the bundled fallback model list.",
+        },
+        "discovery.timeoutMs": {
+          label: "Discovery Timeout",
+          help: "Maximum time to wait for Codex app-server model discovery before falling back to the bundled model list.",
+          advanced: true,
+        },
+        computerUse: {
+          label: "Computer Use",
+          help: "Controls Codex app-server setup for the Computer Use plugin.",
+          advanced: true,
+        },
+        "computerUse.enabled": {
+          label: "Enable Computer Use",
+          help: "When true, Codex-mode turns require the configured Computer Use MCP server to be available.",
+          advanced: true,
+        },
+        "computerUse.autoInstall": {
+          label: "Auto Install",
+          help: "Install the configured Computer Use plugin when Codex-mode turns start.",
+          advanced: true,
+        },
+        "computerUse.marketplaceDiscoveryTimeoutMs": {
+          label: "Marketplace Discovery Timeout",
+          help: "Maximum time to wait for Codex app-server to finish loading marketplaces during Computer Use install.",
+          advanced: true,
+        },
+        "computerUse.marketplaceSource": {
+          label: "Marketplace Source",
+          help: "Optional Codex marketplace source to add before installing Computer Use.",
+          advanced: true,
+        },
+        "computerUse.marketplacePath": {
+          label: "Marketplace Path",
+          help: "Optional local Codex marketplace file path containing the Computer Use plugin.",
+          advanced: true,
+        },
+        "computerUse.marketplaceName": {
+          label: "Marketplace Name",
+          help: "Optional registered Codex marketplace name containing the Computer Use plugin.",
+          advanced: true,
+        },
+        "computerUse.pluginName": {
+          label: "Plugin Name",
+          help: "Codex marketplace plugin name for Computer Use.",
+          advanced: true,
+        },
+        "computerUse.mcpServerName": {
+          label: "MCP Server Name",
+          help: "MCP server name exposed by the Computer Use plugin.",
+          advanced: true,
+        },
+        codexPlugins: {
+          label: "Native Codex Plugins",
+          help: "Controls native Codex plugin availability for Codex harness turns.",
+          advanced: true,
+        },
+        "codexPlugins.enabled": {
+          label: "Enable Native Plugins",
+          help: "Expose explicit migrated Codex plugin entries to Codex harness turns.",
+          advanced: true,
+        },
+        "codexPlugins.allow_destructive_actions": {
+          label: "Allow Destructive Plugin Actions",
+          help: "Default policy for plugin app write or destructive action elicitations. Defaults to true.",
+          advanced: true,
+        },
+        "codexPlugins.plugins": {
+          label: "Migrated Plugin Entries",
+          help: "Explicit migration-authored plugin entries. The wildcard key * is not supported.",
+          advanced: true,
+        },
+        appServer: {
+          label: "App Server",
+          help: "Runtime controls for connecting to Codex app-server.",
+          advanced: true,
+        },
+        "appServer.mode": {
+          label: "Execution Mode",
+          help: "Use yolo for unchained local execution or guardian for Codex guardian-reviewed approvals.",
+          advanced: true,
+        },
+        "appServer.transport": {
+          label: "Transport",
+          help: "Use stdio to spawn Codex locally, or websocket to connect to an already-running app-server.",
+          advanced: true,
+        },
+        "appServer.command": {
+          label: "Command",
+          help: "Executable used for stdio transport. Leave unset to use CoreBlow's managed Codex binary.",
+          advanced: true,
+        },
+        "appServer.args": {
+          label: "Arguments",
+          help: "Arguments used for stdio transport. Defaults to app-server --listen stdio://.",
+          advanced: true,
+        },
+        "appServer.url": {
+          label: "WebSocket URL",
+          help: "Codex app-server WebSocket URL when transport is websocket.",
+          advanced: true,
+        },
+        "appServer.authToken": {
+          label: "Auth Token",
+          help: "Bearer token sent to the WebSocket app-server.",
+          sensitive: true,
+          advanced: true,
+        },
+        "appServer.headers": {
+          label: "Headers",
+          help: "Additional headers sent to the WebSocket app-server.",
+          advanced: true,
+        },
+        "appServer.clearEnv": {
+          label: "Clear Environment",
+          help: "Environment variable names removed from the spawned stdio app-server process after overrides are applied.",
+          advanced: true,
+        },
+        "appServer.codeModeOnly": {
+          label: "Code Mode Only",
+          help: "Expose Codex's code-mode-only tool surface. CoreBlow dynamic tools remain available through Codex nested tool calls.",
+          advanced: true,
+        },
+        "appServer.requestTimeoutMs": {
+          label: "Request Timeout",
+          help: "Maximum time to wait for Codex app-server control-plane requests.",
+          advanced: true,
+        },
+        "appServer.turnCompletionIdleTimeoutMs": {
+          label: "Turn Completion Idle Timeout",
+          help: "Maximum quiet time after Codex accepts a turn or after a turn-scoped app-server request before CoreBlow interrupts the turn while waiting for turn/completed.",
+          advanced: true,
+        },
+        "appServer.approvalPolicy": {
+          label: "Approval Policy",
+          help: "Codex native approval policy sent to thread start, resume, and turns.",
+          advanced: true,
+        },
+        "appServer.sandbox": {
+          label: "Sandbox",
+          help: "Codex native sandbox mode sent to thread start and resume.",
+          advanced: true,
+        },
+        "appServer.approvalsReviewer": {
+          label: "Approvals Reviewer",
+          help: "Use user approvals or Codex auto_review for native app-server approvals. guardian_subagent remains accepted for compatibility.",
+          advanced: true,
+        },
+        "appServer.serviceTier": {
+          label: "Service Tier",
+          help: "Optional Codex app-server service tier. Use priority, flex, or null. Legacy fast is accepted as priority.",
+          advanced: true,
+        },
+        "appServer.defaultWorkspaceDir": {
+          label: "Default Workspace",
+          help: "Workspace used by /codex bind when --cwd is omitted.",
+          advanced: true,
+        },
+      },
+      contracts: {
+        mediaUnderstandingProviders: ["codex"],
+        migrationProviders: ["codex"],
+      },
+    },
+  },
+  {
+    dirName: "comfy",
+    idHint: "comfy",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: [
+      "image-generation-provider.js",
+      "music-generation-provider.js",
+      "video-generation-provider.js",
+      "workflow-runtime.js",
+    ],
+    packageName: "@coreblow/comfy-provider",
+    packageVersion: "2026.5.17",
+    packageDescription: "CoreBlow ComfyUI provider plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+      install: {
+        npmSpec: "@coreblow/comfy-provider",
+        localPath: "extensions/comfy",
+        defaultChoice: false,
+        minHostVersion: ">=1.0.0",
+      },
+    },
+    manifest: {
+      id: "comfy",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          mode: {
+            type: "string",
+            enum: ["local", "cloud"],
+          },
+          baseUrl: {
+            type: "string",
+          },
+          apiKey: {
+            type: ["string", "object"],
+          },
+          allowPrivateNetwork: {
+            type: "boolean",
+          },
+          workflowPath: {
+            type: "string",
+          },
+          workflow: {
+            type: "object",
+          },
+          promptNodeId: {
+            type: "string",
+          },
+          promptInputName: {
+            type: "string",
+          },
+          inputImageNodeId: {
+            type: "string",
+          },
+          inputImageInputName: {
+            type: "string",
+          },
+          outputNodeId: {
+            type: "string",
+          },
+          pollIntervalMs: {
+            type: "integer",
+            minimum: 100,
+          },
+          timeoutMs: {
+            type: "integer",
+            minimum: 1000,
+          },
+          image: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              workflowPath: {
+                type: "string",
+              },
+              workflow: {
+                type: "object",
+              },
+              promptNodeId: {
+                type: "string",
+              },
+              promptInputName: {
+                type: "string",
+              },
+              inputImageNodeId: {
+                type: "string",
+              },
+              inputImageInputName: {
+                type: "string",
+              },
+              outputNodeId: {
+                type: "string",
+              },
+              pollIntervalMs: {
+                type: "integer",
+                minimum: 100,
+              },
+              timeoutMs: {
+                type: "integer",
+                minimum: 1000,
+              },
+            },
+          },
+          video: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              workflowPath: {
+                type: "string",
+              },
+              workflow: {
+                type: "object",
+              },
+              promptNodeId: {
+                type: "string",
+              },
+              promptInputName: {
+                type: "string",
+              },
+              inputImageNodeId: {
+                type: "string",
+              },
+              inputImageInputName: {
+                type: "string",
+              },
+              outputNodeId: {
+                type: "string",
+              },
+              pollIntervalMs: {
+                type: "integer",
+                minimum: 100,
+              },
+              timeoutMs: {
+                type: "integer",
+                minimum: 1000,
+              },
+            },
+          },
+          music: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              workflowPath: {
+                type: "string",
+              },
+              workflow: {
+                type: "object",
+              },
+              promptNodeId: {
+                type: "string",
+              },
+              promptInputName: {
+                type: "string",
+              },
+              outputNodeId: {
+                type: "string",
+              },
+              pollIntervalMs: {
+                type: "integer",
+                minimum: 100,
+              },
+              timeoutMs: {
+                type: "integer",
+                minimum: 1000,
+              },
+            },
+          },
+        },
+      },
+      enabledByDefault: true,
+      providers: ["comfy"],
+      providerAuthEnvVars: {
+        comfy: ["COMFY_API_KEY", "COMFY_CLOUD_API_KEY"],
+      },
+      providerAuthChoices: [
+        {
+          provider: "comfy",
+          method: "cloud-api-key",
+          choiceId: "comfy-cloud-api-key",
+          choiceLabel: "Comfy Cloud API key",
+          choiceHint: "Required for cloud workflows",
+          groupId: "comfy",
+          groupLabel: "ComfyUI",
+          groupHint: "Local or cloud workflows",
+          optionKey: "comfyApiKey",
+          cliFlag: "--comfy-api-key",
+          cliOption: "--comfy-api-key <key>",
+          cliDescription: "Comfy Cloud API key",
+          onboardingScopes: ["image-generation"],
+        },
+      ],
+      contracts: {
+        imageGenerationProviders: ["comfy"],
+        videoGenerationProviders: ["comfy"],
+        musicGenerationProviders: ["comfy"],
+      },
+    },
+  },
+  {
     dirName: "copilot-proxy",
     idHint: "copilot-proxy",
     source: {
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["runtime-api.js"],
+    publicSurfaceArtifacts: ["extension.js", "runtime-api.js"],
     runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/copilot-proxy",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow Copilot Proxy provider plugin",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -1055,10 +2358,14 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["audio.js", "media-understanding-provider.js"],
-    packageName: "@coreblow/deepgram-provider",
+    publicSurfaceArtifacts: [
+      "audio.js",
+      "media-understanding-provider.js",
+      "realtime-transcription-provider.js",
+    ],
+    packageName: "@coreblow/deepgram",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Deepgram media-understanding provider",
+    packageDescription: "CoreBlow deepgram plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -1075,16 +2382,217 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
   },
   {
+    dirName: "deepinfra",
+    idHint: "deepinfra",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: [
+      "api.js",
+      "embedding-provider.js",
+      "image-generation-provider.js",
+      "media-models.js",
+      "media-understanding-provider.js",
+      "memory-embedding-adapter.js",
+      "onboard.js",
+      "provider-catalog.js",
+      "provider-models.js",
+      "provider-policy-api.js",
+      "speech-provider.js",
+      "video-generation-provider.js",
+    ],
+    packageName: "@coreblow/deepinfra-provider",
+    packageVersion: "2026.5.17",
+    packageDescription: "CoreBlow DeepInfra provider plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "deepinfra",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {},
+      },
+      enabledByDefault: true,
+      providers: ["deepinfra"],
+      providerAuthChoices: [
+        {
+          provider: "deepinfra",
+          method: "api-key",
+          choiceId: "deepinfra-api-key",
+          choiceLabel: "DeepInfra API key",
+          choiceHint: "Unified API for open source models",
+          groupId: "deepinfra",
+          groupLabel: "DeepInfra",
+          groupHint: "Unified API for open source models",
+          optionKey: "deepinfraApiKey",
+          cliFlag: "--deepinfra-api-key",
+          cliOption: "--deepinfra-api-key <key>",
+          cliDescription: "DeepInfra API key",
+        },
+      ],
+      contracts: {
+        speechProviders: ["deepinfra"],
+        mediaUnderstandingProviders: ["deepinfra"],
+        imageGenerationProviders: ["deepinfra"],
+        videoGenerationProviders: ["deepinfra"],
+      },
+      modelCatalog: {
+        providers: {
+          deepinfra: {
+            baseUrl: "https://api.deepinfra.com/v1/openai",
+            api: "openai-completions",
+            models: [
+              {
+                id: "deepseek-ai/DeepSeek-V3.2",
+                name: "DeepSeek V3.2",
+                reasoning: false,
+                input: ["text"],
+                contextWindow: 163840,
+                maxTokens: 163840,
+                cost: {
+                  input: 0.26,
+                  output: 0.38,
+                  cacheRead: 0.13,
+                  cacheWrite: 0,
+                },
+                compat: {
+                  supportsUsageInStreaming: true,
+                },
+              },
+              {
+                id: "zai-org/GLM-5.1",
+                name: "GLM-5.1",
+                reasoning: true,
+                input: ["text"],
+                contextWindow: 202752,
+                maxTokens: 202752,
+                cost: {
+                  input: 1.05,
+                  output: 3.5,
+                  cacheRead: 0.205000005,
+                  cacheWrite: 0,
+                },
+                compat: {
+                  supportsUsageInStreaming: true,
+                },
+              },
+              {
+                id: "stepfun-ai/Step-3.5-Flash",
+                name: "Step 3.5 Flash",
+                reasoning: false,
+                input: ["text"],
+                contextWindow: 262144,
+                maxTokens: 262144,
+                cost: {
+                  input: 0.1,
+                  output: 0.3,
+                  cacheRead: 0.02,
+                  cacheWrite: 0,
+                },
+                compat: {
+                  supportsUsageInStreaming: true,
+                },
+              },
+              {
+                id: "MiniMaxAI/MiniMax-M2.5",
+                name: "MiniMax M2.5",
+                reasoning: true,
+                input: ["text"],
+                contextWindow: 196608,
+                maxTokens: 196608,
+                cost: {
+                  input: 0.15,
+                  output: 1.15,
+                  cacheRead: 0.03,
+                  cacheWrite: 0,
+                },
+                compat: {
+                  supportsUsageInStreaming: true,
+                },
+              },
+              {
+                id: "moonshotai/Kimi-K2.5",
+                name: "Kimi K2.5",
+                reasoning: true,
+                input: ["text", "image"],
+                contextWindow: 262144,
+                maxTokens: 262144,
+                cost: {
+                  input: 0.45,
+                  output: 2.25,
+                  cacheRead: 0.070000002,
+                  cacheWrite: 0,
+                },
+                compat: {
+                  supportsUsageInStreaming: true,
+                },
+              },
+              {
+                id: "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B",
+                name: "NVIDIA Nemotron 3 Super 120B A12B",
+                reasoning: true,
+                input: ["text"],
+                contextWindow: 262144,
+                maxTokens: 262144,
+                cost: {
+                  input: 0.1,
+                  output: 0.5,
+                  cacheRead: 0,
+                  cacheWrite: 0,
+                },
+                compat: {
+                  supportsUsageInStreaming: true,
+                },
+              },
+              {
+                id: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+                name: "Llama 3.3 70B Instruct Turbo",
+                reasoning: false,
+                input: ["text"],
+                contextWindow: 131072,
+                maxTokens: 131072,
+                cost: {
+                  input: 0.1,
+                  output: 0.32,
+                  cacheRead: 0,
+                  cacheWrite: 0,
+                },
+                compat: {
+                  supportsUsageInStreaming: true,
+                },
+              },
+            ],
+          },
+        },
+        discovery: {
+          deepinfra: "refreshable",
+        },
+      },
+    },
+  },
+  {
     dirName: "deepseek",
     idHint: "deepseek",
     source: {
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js", "models.js", "onboard.js", "provider-catalog.js"],
-    packageName: "@coreblow/deepseek-provider",
+    publicSurfaceArtifacts: [
+      "api.js",
+      "models.js",
+      "onboard.js",
+      "provider-catalog.js",
+      "provider-discovery.js",
+      "provider-policy-api.js",
+      "stream.js",
+      "thinking.js",
+    ],
+    packageName: "@coreblow/deepseek",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow DeepSeek provider plugin",
+    packageDescription: "CoreBlow deepseek plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -1118,15 +2626,77 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
   },
   {
+    dirName: "device-pair",
+    idHint: "device-pair",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: [
+      "api.js",
+      "extension.js",
+      "notify.js",
+      "pair-command-approve.js",
+      "pair-command-auth.js",
+      "qr-image.js",
+    ],
+    packageName: "@coreblow/device-pair",
+    packageVersion: "0.1.0",
+    packageDescription: "CoreBlow device pairing plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "device-pair",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          publicUrl: {
+            type: "string",
+          },
+        },
+      },
+      enabledByDefault: true,
+      name: "Device Pairing",
+      description: "Generate setup codes and approve device pairing requests.",
+      uiHints: {
+        publicUrl: {
+          label: "Gateway URL",
+          help: "Public WebSocket URL used for /pair setup codes (ws/wss or http/https).",
+        },
+      },
+    },
+  },
+  {
+    dirName: "diagnostics",
+    idHint: "diagnostics",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    packageName: "@coreblow/diagnostics",
+    packageVersion: "2026.3.27",
+    packageDescription: "CoreBlow diagnostics plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "diagnostics",
+      configSchema: {},
+      name: "Diagnostics",
+    },
+  },
+  {
     dirName: "diagnostics-otel",
     idHint: "diagnostics-otel",
     source: {
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js"],
+    publicSurfaceArtifacts: ["api.js", "extension.js"],
     packageName: "@coreblow/diagnostics-otel",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow diagnostics OpenTelemetry exporter",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -1147,9 +2717,10 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js"],
+    publicSurfaceArtifacts: ["api.js", "extension.js", "runtime-api.js"],
+    runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/diffs",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow diff viewer plugin",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -1270,7 +2841,6 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
           },
         },
       },
-      skills: ["./skills"],
       name: "Diffs",
       description: "Read-only diff viewer and file renderer for agents.",
       uiHints: {
@@ -1349,16 +2919,36 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       built: "setup-entry.js",
     },
     publicSurfaceArtifacts: [
+      "account-inspect-api.js",
       "action-runtime-api.js",
       "api.js",
       "channel-config-api.js",
+      "channel-plugin-api.js",
+      "config-api.js",
+      "configured-state.js",
+      "contract-api.js",
+      "directory-contract-api.js",
+      "doctor-contract-api.js",
+      "extension.js",
+      "runtime-api.actions.js",
       "runtime-api.js",
+      "runtime-api.lookup.js",
+      "runtime-api.monitor.js",
+      "runtime-api.send.js",
+      "runtime-api.threads.js",
+      "runtime-setter-api.js",
+      "secret-contract-api.js",
+      "security-audit-contract-api.js",
+      "security-contract-api.js",
       "session-key-api.js",
+      "setup-plugin-api.js",
+      "subagent-hooks-api.js",
+      "thread-binding-api.js",
       "timeouts.js",
     ],
     runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/discord",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow Discord channel plugin",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -1377,7 +2967,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         npmSpec: "@coreblow/discord",
         localPath: "extensions/discord",
         defaultChoice: "npm",
-        minHostVersion: ">=2026.3.27",
+        minHostVersion: ">=1.0.0",
       },
     },
     manifest: {
@@ -1408,7 +2998,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                 properties: {
                   tables: {
                     type: "string",
-                    enum: ["off", "bullets", "code"],
+                    enum: ["off", "bullets", "code", "block"],
                   },
                 },
                 additionalProperties: false,
@@ -2616,7 +4206,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                       properties: {
                         tables: {
                           type: "string",
-                          enum: ["off", "bullets", "code"],
+                          enum: ["off", "bullets", "code", "block"],
                         },
                       },
                       additionalProperties: false,
@@ -4021,10 +5611,10 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["web-search-provider.js"],
-    packageName: "@coreblow/duckduckgo-plugin",
+    publicSurfaceArtifacts: ["web-search-contract-api.js", "web-search-provider.js"],
+    packageName: "@coreblow/duckduckgo",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow DuckDuckGo plugin",
+    packageDescription: "CoreBlow duckduckgo plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -4071,10 +5661,21 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["speech-provider.js", "tts.js"],
-    packageName: "@coreblow/elevenlabs-speech",
+    publicSurfaceArtifacts: [
+      "config-api.js",
+      "config-compat.js",
+      "contract-api.js",
+      "doctor-contract.js",
+      "media-understanding-provider.js",
+      "realtime-transcription-provider.js",
+      "setup-api.js",
+      "shared.js",
+      "speech-provider.js",
+      "tts.js",
+    ],
+    packageName: "@coreblow/elevenlabs",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow ElevenLabs speech plugin",
+    packageDescription: "CoreBlow elevenlabs plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -4087,6 +5688,8 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       },
       contracts: {
         speechProviders: ["elevenlabs"],
+        mediaUnderstandingProviders: ["elevenlabs"],
+        realtimeTranscriptionProviders: ["elevenlabs"],
       },
     },
   },
@@ -4097,10 +5700,10 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["web-search-provider.js"],
-    packageName: "@coreblow/exa-plugin",
+    publicSurfaceArtifacts: ["web-search-contract-api.js", "web-search-provider.js"],
+    packageName: "@coreblow/exa",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Exa plugin",
+    packageDescription: "CoreBlow exa plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -4147,10 +5750,17 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["image-generation-provider.js", "onboard.js"],
-    packageName: "@coreblow/fal-provider",
+    publicSurfaceArtifacts: [
+      "image-generation-provider.js",
+      "music-generation-provider.js",
+      "onboard.js",
+      "provider-contract-api.js",
+      "provider-registration.js",
+      "video-generation-provider.js",
+    ],
+    packageName: "@coreblow/fal",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow fal provider plugin",
+    packageDescription: "CoreBlow fal plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -4199,11 +5809,17 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./setup-entry.ts",
       built: "setup-entry.js",
     },
-    publicSurfaceArtifacts: ["api.js", "runtime-api.js", "setup-api.js"],
+    publicSurfaceArtifacts: [
+      "api.js",
+      "extension.js",
+      "runtime-api.js",
+      "security-contract-api.js",
+      "setup-api.js",
+    ],
     runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/feishu",
-    packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Feishu/Lark channel plugin (community maintained by @m1heng)",
+    packageVersion: "0.1.0",
+    packageDescription: "CoreBlow Feishu/Lark channel plugin",
     packageManifest: {
       extensions: ["./index.ts"],
       setupEntry: "./setup-entry.ts",
@@ -4222,7 +5838,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         npmSpec: "@coreblow/feishu",
         localPath: "extensions/feishu",
         defaultChoice: "npm",
-        minHostVersion: ">=2026.3.27",
+        minHostVersion: ">=1.0.0",
       },
     },
     manifest: {
@@ -4233,7 +5849,6 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         properties: {},
       },
       channels: ["feishu"],
-      skills: ["./skills"],
       channelConfigs: {
         feishu: {
           schema: {
@@ -5350,16 +6965,91 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
   },
   {
+    dirName: "file-transfer",
+    idHint: "file-transfer",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    packageName: "@coreblow/file-transfer",
+    packageVersion: "2026.5.17",
+    packageDescription:
+      "CoreBlow file transfer plugin (file_fetch, dir_list, dir_fetch, file_write)",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "file-transfer",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          nodes: {
+            type: "object",
+            additionalProperties: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                ask: {
+                  type: "string",
+                  enum: ["off", "on-miss", "always"],
+                },
+                allowReadPaths: {
+                  type: "array",
+                  items: {
+                    type: "string",
+                  },
+                },
+                allowWritePaths: {
+                  type: "array",
+                  items: {
+                    type: "string",
+                  },
+                },
+                denyPaths: {
+                  type: "array",
+                  items: {
+                    type: "string",
+                  },
+                },
+                maxBytes: {
+                  type: "number",
+                },
+                followSymlinks: {
+                  type: "boolean",
+                  default: false,
+                },
+              },
+            },
+          },
+        },
+      },
+      enabledByDefault: true,
+      name: "File Transfer",
+      description:
+        "Fetch, list, and write files on paired nodes via dedicated node commands. Bypasses bash stdout truncation by using base64 over node.invoke for binaries up to 16 MB.",
+      contracts: {
+        tools: ["file_fetch", "dir_list", "dir_fetch", "file_write"],
+      },
+    },
+  },
+  {
     dirName: "firecrawl",
     idHint: "firecrawl",
     source: {
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["web-search-provider.js"],
-    packageName: "@coreblow/firecrawl-plugin",
+    publicSurfaceArtifacts: [
+      "api.js",
+      "web-fetch-contract-api.js",
+      "web-fetch-provider.js",
+      "web-search-contract-api.js",
+      "web-search-provider.js",
+    ],
+    packageName: "@coreblow/firecrawl",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Firecrawl plugin",
+    packageDescription: "CoreBlow firecrawl plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -5399,13 +7089,82 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         },
       },
       contracts: {
-        webFetchProviders: ["firecrawl"],
         webSearchProviders: ["firecrawl"],
+        webFetchProviders: ["firecrawl"],
         tools: ["firecrawl_search", "firecrawl_scrape"],
       },
       configContracts: {
         compatibilityRuntimePaths: ["tools.web.search.apiKey"],
       },
+    },
+  },
+  {
+    dirName: "fireworks",
+    idHint: "fireworks",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: [
+      "model-id.js",
+      "onboard.js",
+      "provider-catalog.js",
+      "provider-policy-api.js",
+      "stream.js",
+      "thinking-policy.js",
+    ],
+    packageName: "@coreblow/fireworks",
+    packageVersion: "2026.3.27",
+    packageDescription: "CoreBlow fireworks plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "fireworks",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {},
+      },
+      enabledByDefault: true,
+      providers: ["fireworks"],
+      providerAuthEnvVars: {
+        fireworks: ["FIREWORKS_API_KEY"],
+      },
+      providerAuthChoices: [
+        {
+          provider: "fireworks",
+          method: "api-key",
+          choiceId: "fireworks-api-key",
+          choiceLabel: "Fireworks API key",
+          groupId: "fireworks",
+          groupLabel: "Fireworks",
+          groupHint: "API key",
+          optionKey: "fireworksApiKey",
+          cliFlag: "--fireworks-api-key",
+          cliOption: "--fireworks-api-key <key>",
+          cliDescription: "Fireworks API key",
+        },
+      ],
+    },
+  },
+  {
+    dirName: "gemini-auth",
+    idHint: "gemini-auth",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    packageName: "@coreblow/gemini-auth",
+    packageVersion: "2026.3.27",
+    packageDescription: "CoreBlow gemini-auth plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "gemini-auth",
+      configSchema: {},
+      name: "Gemini Auth",
     },
   },
   {
@@ -5417,15 +7176,22 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
     publicSurfaceArtifacts: [
       "api.js",
+      "auth.js",
+      "connection-bound-ids.js",
+      "embeddings.js",
       "login.js",
+      "model-metadata.js",
       "models-defaults.js",
       "models.js",
+      "register.runtime.js",
+      "replay-policy.js",
+      "stream.js",
       "token.js",
       "usage.js",
     ],
-    packageName: "@coreblow/github-copilot-provider",
+    packageName: "@coreblow/github-copilot",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow GitHub Copilot provider plugin",
+    packageDescription: "CoreBlow github-copilot plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -5482,9 +7248,9 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       "web-search-provider.js",
     ],
     runtimeSidecarArtifacts: ["runtime-api.js"],
-    packageName: "@coreblow/google-plugin",
+    packageName: "@coreblow/google",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Google plugin",
+    packageDescription: "CoreBlow google plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -5563,6 +7329,572 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
   },
   {
+    dirName: "google-chat",
+    idHint: "google-chat",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    packageName: "@coreblow/google-chat",
+    packageVersion: "2026.3.27",
+    packageDescription: "CoreBlow google-chat plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "google-chat",
+      configSchema: {},
+      name: "Google Chat",
+    },
+  },
+  {
+    dirName: "google-meet",
+    idHint: "google-meet",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: ["doctor-contract-api.js"],
+    packageName: "@coreblow/google-meet",
+    packageVersion: "2026.5.17",
+    packageDescription: "CoreBlow Google Meet participant plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+      install: {
+        npmSpec: "@coreblow/google-meet",
+        defaultChoice: "npm",
+        minHostVersion: ">=2026.4.20",
+      },
+    },
+    manifest: {
+      id: "google-meet",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          enabled: {
+            type: "boolean",
+          },
+          defaults: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              meeting: {
+                type: "string",
+              },
+            },
+          },
+          preview: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              enrollmentAcknowledged: {
+                type: "boolean",
+              },
+            },
+          },
+          defaultTransport: {
+            type: "string",
+            enum: ["chrome", "chrome-node", "twilio"],
+            default: "chrome",
+          },
+          defaultMode: {
+            type: "string",
+            enum: ["agent", "bidi", "transcribe"],
+            default: "agent",
+          },
+          chrome: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              audioBackend: {
+                type: "string",
+                enum: ["blackhole-2ch"],
+                default: "blackhole-2ch",
+              },
+              launch: {
+                type: "boolean",
+                default: true,
+              },
+              browserProfile: {
+                type: "string",
+              },
+              guestName: {
+                type: "string",
+                default: "CoreBlow Agent",
+              },
+              reuseExistingTab: {
+                type: "boolean",
+                default: true,
+              },
+              autoJoin: {
+                type: "boolean",
+                default: true,
+              },
+              joinTimeoutMs: {
+                type: "number",
+                default: 30000,
+              },
+              waitForInCallMs: {
+                type: "number",
+                default: 20000,
+              },
+              audioFormat: {
+                type: "string",
+                enum: ["pcm16-24khz", "g711-ulaw-8khz"],
+                default: "pcm16-24khz",
+              },
+              audioBufferBytes: {
+                type: "number",
+                default: 4096,
+              },
+              audioInputCommand: {
+                type: "array",
+                default: [
+                  "sox",
+                  "-q",
+                  "--buffer",
+                  "4096",
+                  "-t",
+                  "coreaudio",
+                  "BlackHole 2ch",
+                  "-t",
+                  "raw",
+                  "-r",
+                  "24000",
+                  "-c",
+                  "1",
+                  "-e",
+                  "signed-integer",
+                  "-b",
+                  "16",
+                  "-L",
+                  "-",
+                ],
+                items: {
+                  type: "string",
+                },
+              },
+              audioOutputCommand: {
+                type: "array",
+                default: [
+                  "sox",
+                  "-q",
+                  "--buffer",
+                  "4096",
+                  "-t",
+                  "raw",
+                  "-r",
+                  "24000",
+                  "-c",
+                  "1",
+                  "-e",
+                  "signed-integer",
+                  "-b",
+                  "16",
+                  "-L",
+                  "-",
+                  "-t",
+                  "coreaudio",
+                  "BlackHole 2ch",
+                ],
+                items: {
+                  type: "string",
+                },
+              },
+              bargeInInputCommand: {
+                type: "array",
+                items: {
+                  type: "string",
+                },
+              },
+              bargeInRmsThreshold: {
+                type: "number",
+                default: 650,
+              },
+              bargeInPeakThreshold: {
+                type: "number",
+                default: 2500,
+              },
+              bargeInCooldownMs: {
+                type: "number",
+                default: 900,
+              },
+              audioBridgeCommand: {
+                type: "array",
+                items: {
+                  type: "string",
+                },
+              },
+              audioBridgeHealthCommand: {
+                type: "array",
+                items: {
+                  type: "string",
+                },
+              },
+            },
+          },
+          chromeNode: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              node: {
+                type: "string",
+              },
+            },
+          },
+          twilio: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              defaultDialInNumber: {
+                type: "string",
+              },
+              defaultPin: {
+                type: "string",
+              },
+              defaultDtmfSequence: {
+                type: "string",
+              },
+            },
+          },
+          voiceCall: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              enabled: {
+                type: "boolean",
+                default: true,
+              },
+              gatewayUrl: {
+                type: "string",
+              },
+              token: {
+                type: "string",
+              },
+              requestTimeoutMs: {
+                type: "number",
+                default: 30000,
+              },
+              dtmfDelayMs: {
+                type: "number",
+                default: 2500,
+              },
+              postDtmfSpeechDelayMs: {
+                type: "number",
+                default: 5000,
+              },
+              introMessage: {
+                type: "string",
+              },
+            },
+          },
+          realtime: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              strategy: {
+                type: "string",
+                enum: ["agent", "bidi"],
+                default: "agent",
+              },
+              provider: {
+                type: "string",
+                default: "openai",
+              },
+              transcriptionProvider: {
+                type: "string",
+                default: "openai",
+              },
+              voiceProvider: {
+                type: "string",
+              },
+              model: {
+                type: "string",
+              },
+              instructions: {
+                type: "string",
+                default:
+                  "You are joining a private Google Meet as an CoreBlow voice transport. Keep spoken replies brief and natural. In agent mode, wait for CoreBlow consult results and speak them exactly. In bidi mode, answer directly and call coreblow_agent_consult for deeper reasoning, current information, or tools.",
+              },
+              introMessage: {
+                type: "string",
+                default: "Say exactly: I'm here and listening.",
+              },
+              agentId: {
+                type: "string",
+                description:
+                  'CoreBlow agent id used by coreblow_agent_consult. Defaults to "main".',
+              },
+              toolPolicy: {
+                type: "string",
+                enum: ["safe-read-only", "owner", "none"],
+                default: "safe-read-only",
+              },
+              providers: {
+                type: "object",
+                additionalProperties: {
+                  type: "object",
+                  additionalProperties: true,
+                },
+              },
+            },
+          },
+          oauth: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              clientId: {
+                type: "string",
+              },
+              clientSecret: {
+                type: "string",
+              },
+              refreshToken: {
+                type: "string",
+              },
+              accessToken: {
+                type: "string",
+              },
+              expiresAt: {
+                type: "number",
+              },
+            },
+          },
+          auth: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              provider: {
+                type: "string",
+                enum: ["google-oauth"],
+              },
+              clientId: {
+                type: "string",
+              },
+              clientSecret: {
+                type: "string",
+              },
+              tokenPath: {
+                type: "string",
+              },
+            },
+          },
+        },
+      },
+      name: "Google Meet",
+      description: "Join Google Meet calls through Chrome or Twilio transports.",
+      uiHints: {
+        "defaults.meeting": {
+          label: "Default Meeting",
+          help: "Meet URL, meeting code, or spaces/{id} used when commands omit a meeting.",
+        },
+        "preview.enrollmentAcknowledged": {
+          label: "Preview Acknowledged",
+          help: "Confirms you understand the Google Meet Media API is still Developer Preview.",
+          advanced: true,
+        },
+        defaultTransport: {
+          label: "Default Transport",
+          help: "Chrome uses a signed-in browser profile. Chrome-node runs Chrome on a paired node. Twilio uses Meet dial-in numbers.",
+        },
+        defaultMode: {
+          label: "Default Mode",
+          help: "Agent uses realtime transcription plus regular CoreBlow TTS. Bidi uses the realtime voice model directly. Transcribe observes only.",
+        },
+        "chrome.audioBackend": {
+          label: "Chrome Audio Backend",
+          help: "BlackHole 2ch is required for local duplex audio routing.",
+        },
+        "chrome.launch": {
+          label: "Launch Chrome",
+        },
+        "chrome.browserProfile": {
+          label: "Chrome Profile",
+          advanced: true,
+        },
+        "chrome.guestName": {
+          label: "Guest Name",
+          help: "Used when Chrome lands on the signed-out Meet guest-name screen.",
+        },
+        "chrome.reuseExistingTab": {
+          label: "Reuse Existing Meet Tab",
+          help: "Avoids opening duplicate tabs for the same Meet URL.",
+        },
+        "chrome.autoJoin": {
+          label: "Auto Join Guest Screen",
+          help: "Best-effort guest-name fill and Join Now click through CoreBlow browser automation.",
+        },
+        "chrome.waitForInCallMs": {
+          label: "Wait For In-Call (ms)",
+          help: "Waits for Chrome to report that the Meet tab is in-call before the realtime intro speaks.",
+          advanced: true,
+        },
+        "chrome.audioInputCommand": {
+          label: "Audio Input Command",
+          help: "Command that writes meeting audio to stdout in chrome.audioFormat.",
+          advanced: true,
+        },
+        "chrome.audioOutputCommand": {
+          label: "Audio Output Command",
+          help: "Command that reads assistant audio from stdin in chrome.audioFormat.",
+          advanced: true,
+        },
+        "chrome.bargeInInputCommand": {
+          label: "Barge-In Input Command",
+          help: "Optional Gateway-hosted microphone command that writes signed 16-bit little-endian mono PCM for human interruption detection while assistant playback is active.",
+          advanced: true,
+        },
+        "chrome.bargeInRmsThreshold": {
+          label: "Barge-In RMS Threshold",
+          help: "RMS level on chrome.bargeInInputCommand that counts as a human interruption.",
+          advanced: true,
+        },
+        "chrome.bargeInPeakThreshold": {
+          label: "Barge-In Peak Threshold",
+          help: "Peak level on chrome.bargeInInputCommand that counts as a human interruption.",
+          advanced: true,
+        },
+        "chrome.bargeInCooldownMs": {
+          label: "Barge-In Cooldown (ms)",
+          help: "Minimum delay between repeated barge-in clears.",
+          advanced: true,
+        },
+        "chrome.audioFormat": {
+          label: "Audio Format",
+          help: "Command-pair audio format. PCM16 24 kHz is the default Chrome/Meet path; G.711 mu-law 8 kHz remains available for legacy command pairs.",
+          advanced: true,
+        },
+        "chrome.audioBufferBytes": {
+          label: "Audio Buffer Bytes",
+          help: "SoX processing buffer for generated Chrome command-pair audio commands. Lower values reduce latency but may underrun on busy hosts.",
+          advanced: true,
+        },
+        "chrome.audioBridgeCommand": {
+          label: "Audio Bridge Command",
+          advanced: true,
+        },
+        "chrome.audioBridgeHealthCommand": {
+          label: "Audio Bridge Health Command",
+          advanced: true,
+        },
+        "chromeNode.node": {
+          label: "Chrome Node",
+          help: "Node id/name/IP that owns Chrome, BlackHole, and SoX for chrome-node transport.",
+          advanced: true,
+        },
+        "twilio.defaultDialInNumber": {
+          label: "Default Dial-In Number",
+          placeholder: "+15551234567",
+        },
+        "twilio.defaultPin": {
+          label: "Default PIN",
+          advanced: true,
+        },
+        "twilio.defaultDtmfSequence": {
+          label: "Default DTMF Sequence",
+          advanced: true,
+        },
+        "voiceCall.enabled": {
+          label: "Delegate To Voice Call",
+        },
+        "voiceCall.gatewayUrl": {
+          label: "Voice Call Gateway URL",
+          advanced: true,
+        },
+        "voiceCall.token": {
+          label: "Voice Call Gateway Token",
+          sensitive: true,
+          advanced: true,
+        },
+        "voiceCall.requestTimeoutMs": {
+          label: "Voice Call Request Timeout (ms)",
+          advanced: true,
+        },
+        "voiceCall.dtmfDelayMs": {
+          label: "Legacy DTMF Delay (ms)",
+          help: "Compatibility setting from the old post-connect DTMF flow. Twilio Meet joins now play DTMF before realtime connect.",
+          advanced: true,
+        },
+        "voiceCall.postDtmfSpeechDelayMs": {
+          label: "Legacy Post-DTMF Speech Delay (ms)",
+          help: "Compatibility setting from the old delayed-speech flow. Twilio Meet joins now carry the intro as the initial Voice Call message.",
+          advanced: true,
+        },
+        "voiceCall.introMessage": {
+          label: "Voice Call Intro Message",
+          advanced: true,
+        },
+        "realtime.strategy": {
+          label: "Realtime Strategy",
+          help: "Legacy realtime alias setting. Use mode=agent or mode=bidi for new Meet joins.",
+        },
+        "realtime.provider": {
+          label: "Speech Provider",
+          help: "Compatibility fallback for both realtime transcription and bidi voice. Prefer realtime.transcriptionProvider and realtime.voiceProvider for new configs.",
+        },
+        "realtime.transcriptionProvider": {
+          label: "Realtime Transcription Provider",
+          help: "Agent mode uses this provider to transcribe meeting audio before regular CoreBlow TTS answers.",
+        },
+        "realtime.voiceProvider": {
+          label: "Bidi Voice Provider",
+          help: "Bidi mode uses this realtime voice provider. Falls back to realtime.provider when unset.",
+        },
+        "realtime.model": {
+          label: "Bidi Realtime Model",
+          help: "Only used by mode=bidi. Agent mode answers with the configured CoreBlow agent and regular TTS.",
+          advanced: true,
+        },
+        "realtime.instructions": {
+          label: "Realtime Instructions",
+          advanced: true,
+        },
+        "realtime.introMessage": {
+          label: "Realtime Intro Message",
+          help: "Spoken once when the realtime bridge is ready. Set to an empty string to join silently.",
+        },
+        "realtime.agentId": {
+          label: "Realtime Consult Agent",
+          help: 'CoreBlow agent id used by coreblow_agent_consult. Defaults to "main".',
+          advanced: true,
+        },
+        "realtime.toolPolicy": {
+          label: "Realtime Tool Policy",
+          help: "Safe read-only tools are available by default; owner requests can unlock broader tools.",
+          advanced: true,
+        },
+        "oauth.clientId": {
+          label: "OAuth Client ID",
+        },
+        "oauth.clientSecret": {
+          label: "OAuth Client Secret",
+          sensitive: true,
+        },
+        "oauth.refreshToken": {
+          label: "OAuth Refresh Token",
+          sensitive: true,
+        },
+        "oauth.accessToken": {
+          label: "Cached Access Token",
+          sensitive: true,
+          advanced: true,
+        },
+        "oauth.expiresAt": {
+          label: "Cached Access Token Expiry",
+          help: "Unix epoch milliseconds used only for the cached access-token fast path.",
+          advanced: true,
+        },
+      },
+      contracts: {
+        tools: ["google_meet"],
+      },
+      configContracts: {
+        compatibilityMigrationPaths: ["plugins.entries.google-meet.config.realtime.provider"],
+      },
+    },
+  },
+  {
     dirName: "googlechat",
     idHint: "googlechat",
     source: {
@@ -5573,10 +7905,21 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./setup-entry.ts",
       built: "setup-entry.js",
     },
-    publicSurfaceArtifacts: ["api.js", "channel-config-api.js", "runtime-api.js"],
+    publicSurfaceArtifacts: [
+      "api.js",
+      "channel-config-api.js",
+      "channel-plugin-api.js",
+      "config-api.js",
+      "contract-api.js",
+      "doctor-contract-api.js",
+      "extension.js",
+      "runtime-api.js",
+      "secret-contract-api.js",
+      "setup-plugin-api.js",
+    ],
     runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/googlechat",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow Google Chat channel plugin",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -5596,7 +7939,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         npmSpec: "@coreblow/googlechat",
         localPath: "extensions/googlechat",
         defaultChoice: "npm",
-        minHostVersion: ">=2026.3.27",
+        minHostVersion: ">=1.0.0",
       },
     },
     manifest: {
@@ -6394,10 +8737,10 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["media-understanding-provider.js"],
-    packageName: "@coreblow/groq-provider",
+    publicSurfaceArtifacts: ["api.js", "media-understanding-provider.js"],
+    packageName: "@coreblow/groq",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Groq media-understanding provider",
+    packageDescription: "CoreBlow groq plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -6407,6 +8750,11 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         type: "object",
         additionalProperties: false,
         properties: {},
+      },
+      enabledByDefault: true,
+      providers: ["groq"],
+      providerAuthEnvVars: {
+        groq: ["GROQ_API_KEY"],
       },
       contracts: {
         mediaUnderstandingProviders: ["groq"],
@@ -6420,10 +8768,16 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js", "models.js", "onboard.js", "provider-catalog.js"],
-    packageName: "@coreblow/huggingface-provider",
+    publicSurfaceArtifacts: [
+      "api.js",
+      "model-discovery-env.js",
+      "models.js",
+      "onboard.js",
+      "provider-catalog.js",
+    ],
+    packageName: "@coreblow/huggingface",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Hugging Face provider plugin",
+    packageDescription: "CoreBlow huggingface plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -6468,10 +8822,10 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./setup-entry.ts",
       built: "setup-entry.js",
     },
-    publicSurfaceArtifacts: ["api.js", "channel-config-api.js", "runtime-api.js"],
+    publicSurfaceArtifacts: ["api.js", "channel-config-api.js", "extension.js", "runtime-api.js"],
     runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/imessage",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow iMessage channel plugin",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -6516,7 +8870,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                 properties: {
                   tables: {
                     type: "string",
-                    enum: ["off", "bullets", "code"],
+                    enum: ["off", "bullets", "code", "block"],
                   },
                 },
                 additionalProperties: false,
@@ -6792,7 +9146,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                       properties: {
                         tables: {
                           type: "string",
-                          enum: ["off", "bullets", "code"],
+                          enum: ["off", "bullets", "code", "block"],
                         },
                       },
                       additionalProperties: false,
@@ -7093,9 +9447,19 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./setup-entry.ts",
       built: "setup-entry.js",
     },
-    publicSurfaceArtifacts: ["api.js", "channel-config-api.js"],
+    publicSurfaceArtifacts: [
+      "api.js",
+      "channel-config-api.js",
+      "channel-plugin-api.js",
+      "configured-state.js",
+      "contract-api.js",
+      "extension.js",
+      "runtime-api.js",
+      "secret-contract-api.js",
+    ],
+    runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/irc",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow IRC channel plugin",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -7111,7 +9475,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         systemImage: "network",
       },
       install: {
-        minHostVersion: ">=2026.3.27",
+        minHostVersion: ">=1.0.0",
       },
     },
     manifest: {
@@ -7334,7 +9698,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                 properties: {
                   tables: {
                     type: "string",
-                    enum: ["off", "bullets", "code"],
+                    enum: ["off", "bullets", "code", "block"],
                   },
                 },
                 additionalProperties: false,
@@ -7620,7 +9984,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                       properties: {
                         tables: {
                           type: "string",
-                          enum: ["off", "bullets", "code"],
+                          enum: ["off", "bullets", "code", "block"],
                         },
                       },
                       additionalProperties: false,
@@ -7762,9 +10126,9 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       "provider-models.js",
       "shared.js",
     ],
-    packageName: "@coreblow/kilocode-provider",
+    packageName: "@coreblow/kilocode",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Kilo Gateway provider plugin",
+    packageDescription: "CoreBlow kilocode plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -7805,10 +10169,16 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js", "onboard.js", "provider-catalog.js"],
-    packageName: "@coreblow/kimi-provider",
+    publicSurfaceArtifacts: [
+      "api.js",
+      "onboard.js",
+      "provider-catalog.js",
+      "replay-policy.js",
+      "stream.js",
+    ],
+    packageName: "@coreblow/kimi-coding",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Kimi provider plugin",
+    packageDescription: "CoreBlow kimi-coding plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -7853,10 +10223,18 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./setup-entry.ts",
       built: "setup-entry.js",
     },
-    publicSurfaceArtifacts: ["api.js", "runtime-api.js", "setup-api.js"],
+    publicSurfaceArtifacts: [
+      "api.js",
+      "channel-plugin-api.js",
+      "contract-api.js",
+      "extension.js",
+      "runtime-api.js",
+      "secret-contract-api.js",
+      "setup-api.js",
+    ],
     runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/line",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow LINE channel plugin",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -7875,7 +10253,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         npmSpec: "@coreblow/line",
         localPath: "extensions/line",
         defaultChoice: "npm",
-        minHostVersion: ">=2026.3.27",
+        minHostVersion: ">=1.0.0",
       },
     },
     manifest: {
@@ -8125,16 +10503,40 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
   },
   {
+    dirName: "link-understanding",
+    idHint: "link-understanding",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    packageName: "@coreblow/link-understanding",
+    packageVersion: "2026.3.27",
+    packageDescription: "CoreBlow link-understanding plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "link-understanding",
+      configSchema: {},
+      name: "Link Understanding",
+    },
+  },
+  {
     dirName: "litellm",
     idHint: "litellm",
     source: {
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js", "onboard.js", "provider-catalog.js"],
-    packageName: "@coreblow/litellm-provider",
+    publicSurfaceArtifacts: [
+      "api.js",
+      "image-generation-provider.js",
+      "onboard.js",
+      "provider-catalog.js",
+    ],
+    packageName: "@coreblow/litellm",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow LiteLLM provider plugin",
+    packageDescription: "CoreBlow litellm plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -8166,6 +10568,54 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
           cliDescription: "LiteLLM API key",
         },
       ],
+    },
+  },
+  {
+    dirName: "llm-task",
+    idHint: "llm-task",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: ["api.js", "extension.js"],
+    packageName: "@coreblow/llm-task",
+    packageVersion: "0.1.0",
+    packageDescription: "CoreBlow JSON-only LLM task plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "llm-task",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          defaultProvider: {
+            type: "string",
+          },
+          defaultModel: {
+            type: "string",
+          },
+          defaultAuthProfileId: {
+            type: "string",
+          },
+          allowedModels: {
+            type: "array",
+            items: {
+              type: "string",
+            },
+            description: "Allowlist of provider/model keys like openai-codex/gpt-5.2.",
+          },
+          maxTokens: {
+            type: "number",
+          },
+          timeoutMs: {
+            type: "number",
+          },
+        },
+      },
+      name: "LLM Task",
+      description: "Generic JSON-only LLM tool for structured tasks callable from workflows.",
     },
   },
   {
@@ -8210,80 +10660,6 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
   },
   {
-    dirName: "llm-task",
-    idHint: "llm-task",
-    source: {
-      source: "./index.ts",
-      built: "index.js",
-    },
-    publicSurfaceArtifacts: ["api.js"],
-    packageName: "@coreblow/llm-task",
-    packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow JSON-only LLM task plugin",
-    packageManifest: {
-      extensions: ["./index.ts"],
-    },
-    manifest: {
-      id: "llm-task",
-      configSchema: {
-        type: "object",
-        additionalProperties: false,
-        properties: {
-          defaultProvider: {
-            type: "string",
-          },
-          defaultModel: {
-            type: "string",
-          },
-          defaultAuthProfileId: {
-            type: "string",
-          },
-          allowedModels: {
-            type: "array",
-            items: {
-              type: "string",
-            },
-            description: "Allowlist of provider/model keys like openai-codex/gpt-5.2.",
-          },
-          maxTokens: {
-            type: "number",
-          },
-          timeoutMs: {
-            type: "number",
-          },
-        },
-      },
-      name: "LLM Task",
-      description: "Generic JSON-only LLM tool for structured tasks callable from workflows.",
-    },
-  },
-  {
-    dirName: "workflow-shell",
-    idHint: "workflow-shell",
-    source: {
-      source: "./index.ts",
-      built: "index.js",
-    },
-    publicSurfaceArtifacts: ["runtime-api.js"],
-    runtimeSidecarArtifacts: ["runtime-api.js"],
-    packageName: "@coreblow/workflow-shell",
-    packageVersion: "2026.3.27",
-    packageDescription: "Workflow Shell workflow tool plugin (typed pipelines + resumable approvals)",
-    packageManifest: {
-      extensions: ["./index.ts"],
-    },
-    manifest: {
-      id: "workflow-shell",
-      configSchema: {
-        type: "object",
-        additionalProperties: false,
-        properties: {},
-      },
-      name: "Workflow Shell",
-      description: "Typed workflow tool with resumable approvals.",
-    },
-  },
-  {
     dirName: "matrix",
     idHint: "matrix",
     source: {
@@ -8296,6 +10672,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
     publicSurfaceArtifacts: [
       "api.js",
+      "extension.js",
       "helper-api.js",
       "legacy-crypto-inspector.js",
       "runtime-api.js",
@@ -8303,7 +10680,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     ],
     runtimeSidecarArtifacts: ["helper-api.js", "runtime-api.js", "thread-bindings-runtime.js"],
     packageName: "@coreblow/matrix",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow Matrix channel plugin",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -8322,7 +10699,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         npmSpec: "@coreblow/matrix",
         localPath: "extensions/matrix",
         defaultChoice: "npm",
-        minHostVersion: ">=2026.3.27",
+        minHostVersion: ">=1.0.0",
       },
     },
     manifest: {
@@ -8360,7 +10737,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                 properties: {
                   tables: {
                     type: "string",
-                    enum: ["off", "bullets", "code"],
+                    enum: ["off", "bullets", "code", "block"],
                   },
                 },
                 additionalProperties: false,
@@ -8862,10 +11239,22 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./setup-entry.ts",
       built: "setup-entry.js",
     },
-    publicSurfaceArtifacts: ["api.js", "runtime-api.js"],
+    publicSurfaceArtifacts: [
+      "api.js",
+      "channel-plugin-api.js",
+      "channel-plugin-runtime.js",
+      "contract-api.js",
+      "doctor-contract-api.js",
+      "extension.js",
+      "gateway-auth-api.js",
+      "policy-api.js",
+      "runtime-api.js",
+      "secret-contract-api.js",
+      "slash-route-api.js",
+    ],
     runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/mattermost",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow Mattermost channel plugin",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -8883,7 +11272,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         npmSpec: "@coreblow/mattermost",
         localPath: "extensions/mattermost",
         defaultChoice: "npm",
-        minHostVersion: ">=2026.3.27",
+        minHostVersion: ">=1.0.0",
       },
     },
     manifest: {
@@ -8917,7 +11306,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                 properties: {
                   tables: {
                     type: "string",
-                    enum: ["off", "bullets", "code"],
+                    enum: ["off", "bullets", "code", "block"],
                   },
                 },
                 additionalProperties: false,
@@ -9198,7 +11587,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                       properties: {
                         tables: {
                           type: "string",
-                          enum: ["off", "bullets", "code"],
+                          enum: ["off", "bullets", "code", "block"],
                         },
                       },
                       additionalProperties: false,
@@ -9479,10 +11868,10 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js", "runtime-api.js"],
+    publicSurfaceArtifacts: ["api.js", "extension.js", "runtime-api.js"],
     runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/memory-core",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow core memory search plugin",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -9504,9 +11893,15 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js", "config.js", "lancedb-runtime.js"],
+    publicSurfaceArtifacts: [
+      "api.js",
+      "cli-metadata.js",
+      "config.js",
+      "extension.js",
+      "lancedb-runtime.js",
+    ],
     packageName: "@coreblow/memory-lancedb",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow LanceDB-backed long-term memory plugin with auto-recall/capture",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -9514,7 +11909,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         npmSpec: "@coreblow/memory-lancedb",
         localPath: "extensions/memory-lancedb",
         defaultChoice: "npm",
-        minHostVersion: ">=2026.3.27",
+        minHostVersion: ">=1.0.0",
       },
     },
     manifest: {
@@ -9525,9 +11920,13 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         properties: {
           embedding: {
             type: "object",
+            minProperties: 1,
             additionalProperties: false,
             properties: {
               apiKey: {
+                type: "string",
+              },
+              provider: {
                 type: "string",
               },
               model: {
@@ -9540,7 +11939,6 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                 type: "number",
               },
             },
-            required: ["apiKey"],
           },
           dbPath: {
             type: "string",
@@ -9551,21 +11949,48 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
           autoRecall: {
             type: "boolean",
           },
+          dreaming: {
+            type: "object",
+          },
           captureMaxChars: {
             type: "number",
             minimum: 100,
             maximum: 10000,
           },
+          customTriggers: {
+            type: "array",
+            maxItems: 50,
+            items: {
+              type: "string",
+              minLength: 1,
+              maxLength: 100,
+            },
+          },
+          recallMaxChars: {
+            type: "number",
+            minimum: 100,
+            maximum: 10000,
+          },
+          storageOptions: {
+            type: "object",
+            additionalProperties: {
+              type: "string",
+            },
+          },
         },
-        required: ["embedding"],
       },
       kind: "memory",
       uiHints: {
         "embedding.apiKey": {
-          label: "OpenAI API Key",
+          label: "Embedding API Key",
           sensitive: true,
           placeholder: "sk-proj-...",
-          help: "API key for OpenAI embeddings (or use ${OPENAI_API_KEY})",
+          help: "Optional API key override for OpenAI-compatible embeddings; omit to use configured provider auth",
+        },
+        "embedding.provider": {
+          label: "Embedding Provider",
+          placeholder: "openai",
+          help: "Memory embedding provider adapter to use (for example openai, github-copilot, ollama)",
         },
         "embedding.model": {
           label: "Embedding Model",
@@ -9575,7 +12000,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         "embedding.baseUrl": {
           label: "Base URL",
           placeholder: "https://api.openai.com/v1",
-          help: "Base URL for compatible providers (e.g. http://localhost:11434/v1)",
+          help: "Optional provider or OpenAI-compatible embedding endpoint base URL",
           advanced: true,
         },
         "embedding.dimensions": {
@@ -9597,12 +12022,236 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
           label: "Auto-Recall",
           help: "Automatically inject relevant memories into context",
         },
+        dreaming: {
+          label: "Dreaming",
+          help: "Optional dreaming config consumed when this plugin owns the memory slot",
+        },
         captureMaxChars: {
           label: "Capture Max Chars",
           help: "Maximum message length eligible for auto-capture",
           advanced: true,
           placeholder: "500",
         },
+        customTriggers: {
+          label: "Custom Triggers",
+          help: "Literal phrases that should make auto-capture consider a message memory-worthy",
+          advanced: true,
+        },
+        recallMaxChars: {
+          label: "Recall Query Max Chars",
+          help: "Maximum prompt/query length embedded for memory recall. Lower for small local embedding models.",
+          advanced: true,
+          placeholder: "1000",
+        },
+        storageOptions: {
+          label: "Storage Options",
+          advanced: true,
+          help: "Storage configuration options (access_key, secret_key, endpoint, etc.); supports ${ENV_VAR} values",
+        },
+      },
+      contracts: {
+        tools: ["memory_forget", "memory_recall", "memory_store"],
+      },
+    },
+  },
+  {
+    dirName: "memory-wiki",
+    idHint: "memory-wiki",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: [
+      "api.js",
+      "cli-metadata.js",
+      "contract-api.js",
+      "doctor-contract-api.js",
+      "setup-api.js",
+    ],
+    packageName: "@coreblow/memory-wiki",
+    packageVersion: "2026.5.17",
+    packageDescription: "CoreBlow persistent wiki plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "memory-wiki",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          vaultMode: {
+            type: "string",
+            enum: ["isolated", "bridge", "unsafe-local"],
+          },
+          vault: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              path: {
+                type: "string",
+              },
+              renderMode: {
+                type: "string",
+                enum: ["native", "obsidian"],
+              },
+            },
+          },
+          obsidian: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              enabled: {
+                type: "boolean",
+              },
+              useOfficialCli: {
+                type: "boolean",
+              },
+              vaultName: {
+                type: "string",
+              },
+              openAfterWrites: {
+                type: "boolean",
+              },
+            },
+          },
+          bridge: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              enabled: {
+                type: "boolean",
+              },
+              readMemoryArtifacts: {
+                type: "boolean",
+              },
+              indexDreamReports: {
+                type: "boolean",
+              },
+              indexDailyNotes: {
+                type: "boolean",
+              },
+              indexMemoryRoot: {
+                type: "boolean",
+              },
+              followMemoryEvents: {
+                type: "boolean",
+              },
+            },
+          },
+          unsafeLocal: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              allowPrivateMemoryCoreAccess: {
+                type: "boolean",
+              },
+              paths: {
+                type: "array",
+                items: {
+                  type: "string",
+                },
+              },
+            },
+          },
+          ingest: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              autoCompile: {
+                type: "boolean",
+              },
+              maxConcurrentJobs: {
+                type: "number",
+                minimum: 1,
+              },
+              allowUrlIngest: {
+                type: "boolean",
+              },
+            },
+          },
+          search: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              backend: {
+                type: "string",
+                enum: ["shared", "local"],
+              },
+              corpus: {
+                type: "string",
+                enum: ["wiki", "memory", "all"],
+              },
+            },
+          },
+          context: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              includeCompiledDigestPrompt: {
+                type: "boolean",
+              },
+            },
+          },
+          render: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              preserveHumanBlocks: {
+                type: "boolean",
+              },
+              createBacklinks: {
+                type: "boolean",
+              },
+              createDashboards: {
+                type: "boolean",
+              },
+            },
+          },
+        },
+      },
+      skills: ["./skills"],
+      name: "Memory Wiki",
+      description: "Persistent wiki compiler and Obsidian-friendly knowledge vault for CoreBlow.",
+      uiHints: {
+        vaultMode: {
+          label: "Vault Mode",
+          help: "Choose isolated, bridge, or unsafe-local mode for the wiki vault.",
+        },
+        "vault.path": {
+          label: "Vault Path",
+          help: "Filesystem path for the wiki vault root.",
+        },
+        "vault.renderMode": {
+          label: "Render Mode",
+          help: "Render markdown in native CoreBlow format or Obsidian-friendly format.",
+        },
+        "obsidian.useOfficialCli": {
+          label: "Use Obsidian CLI",
+          help: "Probe and use the official Obsidian CLI when available.",
+        },
+        "bridge.enabled": {
+          label: "Enable Bridge Mode",
+          help: "Read public memory artifacts and events from the active memory plugin in bridge mode.",
+        },
+        "bridge.readMemoryArtifacts": {
+          label: "Read Memory Artifacts",
+          help: "Enable bridge reads from the active memory plugin's public artifact export.",
+        },
+        "unsafeLocal.allowPrivateMemoryCoreAccess": {
+          label: "Allow Private Memory Access",
+          help: "Experimental same-repo escape hatch for reading memory-core private paths.",
+        },
+        "context.includeCompiledDigestPrompt": {
+          label: "Include Compiled Digest In Prompt",
+          help: "Append a compact compiled wiki digest snapshot to memory prompt sections for context engines and legacy prompt assembly.",
+        },
+      },
+      contracts: {
+        tools: ["wiki_apply", "wiki_get", "wiki_lint", "wiki_search", "wiki_status"],
+      },
+      configContracts: {
+        compatibilityMigrationPaths: ["plugins.entries.memory-wiki.config.bridge.readMemoryCore"],
       },
     },
   },
@@ -9614,9 +12263,9 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       built: "index.js",
     },
     publicSurfaceArtifacts: ["speech-provider.js", "tts.js"],
-    packageName: "@coreblow/microsoft-speech",
+    packageName: "@coreblow/microsoft",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Microsoft speech plugin",
+    packageDescription: "CoreBlow microsoft plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -9650,7 +12299,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     ],
     packageName: "@coreblow/microsoft-foundry",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Microsoft Foundry provider plugin",
+    packageDescription: "CoreBlow microsoft-foundry plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -9691,6 +12340,92 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
   },
   {
+    dirName: "migrate-claude",
+    idHint: "migrate-claude",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: [
+      "apply.js",
+      "config.js",
+      "helpers.js",
+      "memory.js",
+      "plan.js",
+      "provider.js",
+      "skills.js",
+      "source.js",
+      "targets.js",
+    ],
+    packageName: "@coreblow/migrate-claude",
+    packageVersion: "2026.5.17",
+    packageDescription: "Claude to CoreBlow migration provider",
+    packageManifest: {
+      extensions: ["./index.ts"],
+      install: {
+        npmSpec: "@coreblow/migrate-claude",
+        localPath: "extensions/migrate-claude",
+        defaultChoice: "npm",
+        minHostVersion: ">=1.0.0",
+      },
+    },
+    manifest: {
+      id: "migrate-claude",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {},
+      },
+      name: "Claude Migration",
+      description:
+        "Imports Claude Code and Claude Desktop instructions, MCP servers, skills, and safe configuration into CoreBlow.",
+      contracts: {
+        migrationProviders: ["claude"],
+      },
+    },
+  },
+  {
+    dirName: "migrate-hermes",
+    idHint: "migrate-hermes",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: [
+      "apply.js",
+      "config.js",
+      "helpers.js",
+      "items.js",
+      "model.js",
+      "plan.js",
+      "provider.js",
+      "secrets.js",
+      "skills.js",
+      "source.js",
+      "targets.js",
+    ],
+    packageName: "@coreblow/migrate-hermes",
+    packageVersion: "2026.5.17",
+    packageDescription: "Hermes to CoreBlow migration provider",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "migrate-hermes",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {},
+      },
+      name: "Hermes Migration",
+      description:
+        "Imports Hermes configuration, memories, skills, and supported credentials into CoreBlow.",
+      contracts: {
+        migrationProviders: ["hermes"],
+      },
+    },
+  },
+  {
     dirName: "minimax",
     idHint: "minimax",
     source: {
@@ -9702,15 +12437,23 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       "image-generation-provider.js",
       "media-understanding-provider.js",
       "model-definitions.js",
+      "music-generation-provider.js",
       "oauth.js",
       "oauth.runtime.js",
       "onboard.js",
       "provider-catalog.js",
+      "provider-contract-api.js",
       "provider-models.js",
+      "provider-registration.js",
+      "speech-provider.js",
+      "tts.js",
+      "video-generation-provider.js",
+      "web-search-contract-api.js",
+      "web-search-provider.js",
     ],
-    packageName: "@coreblow/minimax-provider",
+    packageName: "@coreblow/minimax",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow MiniMax provider and OAuth plugin",
+    packageDescription: "CoreBlow minimax plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -9782,9 +12525,32 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         },
       ],
       contracts: {
+        speechProviders: ["minimax"],
         mediaUnderstandingProviders: ["minimax", "minimax-portal"],
         imageGenerationProviders: ["minimax", "minimax-portal"],
+        videoGenerationProviders: ["minimax", "minimax-portal"],
+        musicGenerationProviders: ["minimax", "minimax-portal"],
+        webSearchProviders: ["minimax"],
       },
+    },
+  },
+  {
+    dirName: "minimax-auth",
+    idHint: "minimax-auth",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    packageName: "@coreblow/minimax-auth",
+    packageVersion: "2026.3.27",
+    packageDescription: "CoreBlow minimax-auth plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "minimax-auth",
+      configSchema: {},
+      name: "Minimax Auth",
     },
   },
   {
@@ -9796,14 +12562,18 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
     publicSurfaceArtifacts: [
       "api.js",
+      "embedding-provider.js",
       "media-understanding-provider.js",
+      "memory-embedding-adapter.js",
       "model-definitions.js",
       "onboard.js",
       "provider-catalog.js",
+      "provider-compat.js",
+      "realtime-transcription-provider.js",
     ],
-    packageName: "@coreblow/mistral-provider",
+    packageName: "@coreblow/mistral",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Mistral provider plugin",
+    packageDescription: "CoreBlow mistral plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -9853,9 +12623,9 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       "onboard.js",
       "provider-catalog.js",
     ],
-    packageName: "@coreblow/modelstudio-provider",
+    packageName: "@coreblow/modelstudio",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Model Studio provider plugin",
+    packageDescription: "CoreBlow modelstudio plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -9943,11 +12713,14 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       "media-understanding-provider.js",
       "onboard.js",
       "provider-catalog.js",
+      "provider-contract-api.js",
+      "provider-discovery.js",
+      "web-search-contract-api.js",
       "web-search-provider.js",
     ],
-    packageName: "@coreblow/moonshot-provider",
+    packageName: "@coreblow/moonshot",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Moonshot provider plugin",
+    packageDescription: "CoreBlow moonshot plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -9977,7 +12750,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       enabledByDefault: true,
       providers: ["moonshot"],
       providerAuthEnvVars: {
-        moonshot: ["MOONSHOT_API_KEY"],
+        moonshot: ["MOONSHOT_API_KEY", "KIMI_API_KEY"],
       },
       providerAuthChoices: [
         {
@@ -9986,8 +12759,8 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
           choiceId: "moonshot-api-key",
           choiceLabel: "Moonshot API key (.ai)",
           groupId: "moonshot",
-          groupLabel: "Moonshot AI (Kimi K2.5)",
-          groupHint: "Kimi K2.5",
+          groupLabel: "Moonshot AI (Kimi K2.6)",
+          groupHint: "Kimi K2.6",
           optionKey: "moonshotApiKey",
           cliFlag: "--moonshot-api-key",
           cliOption: "--moonshot-api-key <key>",
@@ -9999,8 +12772,8 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
           choiceId: "moonshot-api-key-cn",
           choiceLabel: "Moonshot API key (.cn)",
           groupId: "moonshot",
-          groupLabel: "Moonshot AI (Kimi K2.5)",
-          groupHint: "Kimi K2.5",
+          groupLabel: "Moonshot AI (Kimi K2.6)",
+          groupHint: "Kimi K2.6",
           optionKey: "moonshotApiKey",
           cliFlag: "--moonshot-api-key",
           cliOption: "--moonshot-api-key <key>",
@@ -10042,10 +12815,10 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./setup-entry.ts",
       built: "setup-entry.js",
     },
-    publicSurfaceArtifacts: ["api.js", "channel-config-api.js", "runtime-api.js"],
+    publicSurfaceArtifacts: ["api.js", "channel-config-api.js", "extension.js", "runtime-api.js"],
     runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/msteams",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow Microsoft Teams channel plugin",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -10064,7 +12837,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         npmSpec: "@coreblow/msteams",
         localPath: "extensions/msteams",
         defaultChoice: "npm",
-        minHostVersion: ">=2026.3.27",
+        minHostVersion: ">=1.0.0",
       },
     },
     manifest: {
@@ -10098,7 +12871,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                 properties: {
                   tables: {
                     type: "string",
-                    enum: ["off", "bullets", "code"],
+                    enum: ["off", "bullets", "code", "block"],
                   },
                 },
                 additionalProperties: false,
@@ -10530,10 +13303,18 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./setup-entry.ts",
       built: "setup-entry.js",
     },
-    publicSurfaceArtifacts: ["api.js", "runtime-api.js"],
+    publicSurfaceArtifacts: [
+      "api.js",
+      "channel-plugin-api.js",
+      "contract-api.js",
+      "doctor-contract-api.js",
+      "extension.js",
+      "runtime-api.js",
+      "secret-contract-api.js",
+    ],
     runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/nextcloud-talk",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow Nextcloud Talk channel plugin",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -10553,7 +13334,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         npmSpec: "@coreblow/nextcloud-talk",
         localPath: "extensions/nextcloud-talk",
         defaultChoice: "npm",
-        minHostVersion: ">=2026.3.27",
+        minHostVersion: ">=1.0.0",
       },
     },
     manifest: {
@@ -10581,7 +13362,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                 properties: {
                   tables: {
                     type: "string",
-                    enum: ["off", "bullets", "code"],
+                    enum: ["off", "bullets", "code", "block"],
                   },
                 },
                 additionalProperties: false,
@@ -10912,7 +13693,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                       properties: {
                         tables: {
                           type: "string",
-                          enum: ["off", "bullets", "code"],
+                          enum: ["off", "bullets", "code", "block"],
                         },
                       },
                       additionalProperties: false,
@@ -11253,10 +14034,17 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./setup-entry.ts",
       built: "setup-entry.js",
     },
-    publicSurfaceArtifacts: ["api.js", "runtime-api.js", "setup-api.js"],
+    publicSurfaceArtifacts: [
+      "api.js",
+      "channel-plugin-api.js",
+      "extension.js",
+      "runtime-api.js",
+      "setup-api.js",
+      "setup-plugin-api.js",
+    ],
     runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/nostr",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow Nostr channel plugin for NIP-04 encrypted DMs",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -11275,7 +14063,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         npmSpec: "@coreblow/nostr",
         localPath: "extensions/nostr",
         defaultChoice: "npm",
-        minHostVersion: ">=2026.3.27",
+        minHostVersion: ">=1.0.0",
       },
     },
     manifest: {
@@ -11306,7 +14094,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                 properties: {
                   tables: {
                     type: "string",
-                    enum: ["off", "bullets", "code"],
+                    enum: ["off", "bullets", "code", "block"],
                   },
                 },
                 additionalProperties: false,
@@ -11389,10 +14177,10 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js", "provider-catalog.js"],
-    packageName: "@coreblow/nvidia-provider",
+    publicSurfaceArtifacts: ["api.js", "onboard.js", "provider-catalog.js"],
+    packageName: "@coreblow/nvidia",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow NVIDIA provider plugin",
+    packageDescription: "CoreBlow nvidia plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -11408,6 +14196,123 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       providerAuthEnvVars: {
         nvidia: ["NVIDIA_API_KEY"],
       },
+      providerAuthChoices: [
+        {
+          provider: "nvidia",
+          method: "api-key",
+          choiceId: "nvidia-api-key",
+          choiceLabel: "NVIDIA API key",
+          groupId: "nvidia",
+          groupLabel: "NVIDIA",
+          groupHint: "Direct API key",
+          optionKey: "nvidiaApiKey",
+          cliFlag: "--nvidia-api-key",
+          cliOption: "--nvidia-api-key <key>",
+          cliDescription: "NVIDIA API key",
+        },
+      ],
+      modelCatalog: {
+        providers: {
+          nvidia: {
+            baseUrl: "https://integrate.api.nvidia.com/v1",
+            api: "openai-completions",
+            models: [
+              {
+                id: "nvidia/nemotron-3-super-120b-a12b",
+                name: "NVIDIA Nemotron 3 Super 120B",
+                input: ["text"],
+                contextWindow: 262144,
+                maxTokens: 8192,
+                cost: {
+                  input: 0,
+                  output: 0,
+                  cacheRead: 0,
+                  cacheWrite: 0,
+                },
+                compat: {
+                  requiresStringContent: true,
+                },
+              },
+              {
+                id: "moonshotai/kimi-k2.5",
+                name: "Kimi K2.5",
+                input: ["text"],
+                contextWindow: 262144,
+                maxTokens: 8192,
+                cost: {
+                  input: 0,
+                  output: 0,
+                  cacheRead: 0,
+                  cacheWrite: 0,
+                },
+                compat: {
+                  requiresStringContent: true,
+                },
+              },
+              {
+                id: "minimaxai/minimax-m2.5",
+                name: "MiniMax M2.5",
+                input: ["text"],
+                contextWindow: 196608,
+                maxTokens: 8192,
+                cost: {
+                  input: 0,
+                  output: 0,
+                  cacheRead: 0,
+                  cacheWrite: 0,
+                },
+                compat: {
+                  requiresStringContent: true,
+                },
+              },
+              {
+                id: "z-ai/glm5",
+                name: "GLM-5",
+                input: ["text"],
+                contextWindow: 202752,
+                maxTokens: 8192,
+                cost: {
+                  input: 0,
+                  output: 0,
+                  cacheRead: 0,
+                  cacheWrite: 0,
+                },
+                compat: {
+                  requiresStringContent: true,
+                },
+              },
+            ],
+          },
+        },
+        discovery: {
+          nvidia: "static",
+        },
+      },
+    },
+  },
+  {
+    dirName: "oc-path",
+    idHint: "oc-path",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: ["cli-metadata.js", "cli-registration.js"],
+    packageName: "@coreblow/oc-path",
+    packageVersion: "2026.5.17",
+    packageDescription: "CoreBlow oc:// workspace path plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "oc-path",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {},
+      },
+      name: "OC Path",
+      description: "Adds the coreblow path CLI for oc:// workspace file addressing.",
     },
   },
   {
@@ -11417,11 +14322,18 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js", "runtime-api.js"],
+    publicSurfaceArtifacts: [
+      "api.js",
+      "provider-discovery.js",
+      "provider-policy-api.js",
+      "runtime-api.js",
+      "web-search-contract-api.js",
+      "web-search-provider.js",
+    ],
     runtimeSidecarArtifacts: ["runtime-api.js"],
-    packageName: "@coreblow/ollama-provider",
+    packageName: "@coreblow/ollama",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Ollama provider plugin",
+    packageDescription: "CoreBlow ollama plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -11458,11 +14370,11 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["runtime-api.js"],
+    publicSurfaceArtifacts: ["extension.js", "runtime-api.js"],
     runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/open-prose",
-    packageVersion: "2026.3.27",
-    packageDescription: "OpenProse VM skill pack plugin (slash command + telemetry).",
+    packageVersion: "0.1.0",
+    packageDescription: "CoreBlow OpenProse VM skill pack plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -11473,7 +14385,6 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         additionalProperties: false,
         properties: {},
       },
-      skills: ["./skills"],
       name: "OpenProse",
       description: "OpenProse VM skill pack with a /prose slash command.",
     },
@@ -11487,6 +14398,8 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
     publicSurfaceArtifacts: [
       "api.js",
+      "auth-choice-copy.js",
+      "base-url.js",
       "cli-backend.js",
       "default-models.js",
       "image-generation-provider.js",
@@ -11496,13 +14409,14 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       "openai-codex-provider.js",
       "openai-codex-provider.runtime.js",
       "openai-provider.js",
+      "setup-api.js",
       "shared.js",
       "speech-provider.js",
       "tts.js",
     ],
-    packageName: "@coreblow/openai-provider",
+    packageName: "@coreblow/openai",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow OpenAI provider plugins",
+    packageDescription: "CoreBlow openai plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -11559,10 +14473,15 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js", "onboard.js"],
-    packageName: "@coreblow/opencode-provider",
+    publicSurfaceArtifacts: [
+      "api.js",
+      "media-understanding-provider.js",
+      "onboard.js",
+      "provider-policy-api.js",
+    ],
+    packageName: "@coreblow/opencode",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow OpenCode Zen provider plugin",
+    packageDescription: "CoreBlow opencode plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -11602,10 +14521,16 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js", "onboard.js"],
-    packageName: "@coreblow/opencode-go-provider",
+    publicSurfaceArtifacts: [
+      "api.js",
+      "media-understanding-provider.js",
+      "onboard.js",
+      "provider-catalog.js",
+      "stream.js",
+    ],
+    packageName: "@coreblow/opencode-go",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow OpenCode Go provider plugin",
+    packageDescription: "CoreBlow opencode-go plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -11647,13 +14572,24 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
     publicSurfaceArtifacts: [
       "api.js",
+      "image-generation-provider.js",
       "media-understanding-provider.js",
+      "models.js",
+      "music-generation-provider.js",
       "onboard.js",
       "provider-catalog.js",
+      "provider-contract-api.js",
+      "provider-policy-api.js",
+      "speech-provider.js",
+      "stream.js",
+      "thinking-policy.js",
+      "video-generation-provider.js",
+      "video-http.js",
+      "video-model-catalog.js",
     ],
-    packageName: "@coreblow/openrouter-provider",
+    packageName: "@coreblow/openrouter",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow OpenRouter provider plugin",
+    packageDescription: "CoreBlow openrouter plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -11697,9 +14633,9 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    packageName: "@coreblow/openshell-sandbox",
+    packageName: "@coreblow/openshell",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow OpenShell sandbox backend",
+    packageDescription: "CoreBlow openshell plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -11827,10 +14763,10 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["web-search-provider.js"],
-    packageName: "@coreblow/perplexity-plugin",
+    publicSurfaceArtifacts: ["web-search-contract-api.js", "web-search-provider.js"],
+    packageName: "@coreblow/perplexity",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Perplexity plugin",
+    packageDescription: "CoreBlow perplexity plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -11885,6 +14821,152 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
   },
   {
+    dirName: "phone-control",
+    idHint: "phone-control",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: ["extension.js", "runtime-api.js"],
+    runtimeSidecarArtifacts: ["runtime-api.js"],
+    packageName: "@coreblow/phone-control",
+    packageVersion: "0.1.0",
+    packageDescription: "CoreBlow phone control plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "phone-control",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {},
+      },
+      enabledByDefault: true,
+      name: "Phone Control",
+      description:
+        "Arm/disarm high-risk phone node commands (camera/screen/writes) with an optional auto-expiry.",
+    },
+  },
+  {
+    dirName: "qa-channel",
+    idHint: "qa-channel",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    setupSource: {
+      source: "./setup-entry.ts",
+      built: "setup-entry.js",
+    },
+    publicSurfaceArtifacts: [
+      "api.js",
+      "channel-plugin-api.js",
+      "runtime-api.js",
+      "setup-plugin-api.js",
+    ],
+    runtimeSidecarArtifacts: ["runtime-api.js"],
+    packageName: "@coreblow/qa-channel",
+    packageVersion: "2026.5.17",
+    packageDescription: "CoreBlow QA synthetic channel plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+      setupEntry: "./setup-entry.ts",
+      channel: {
+        id: "qa-channel",
+        label: "QA Channel",
+        selectionLabel: "QA Channel (Synthetic)",
+        detailLabel: "QA Channel",
+        docsPath: "/channels/qa-channel",
+        docsLabel: "qa-channel",
+        blurb: "Synthetic Slack-class transport for automated CoreBlow QA scenarios.",
+        systemImage: "checklist",
+        order: 999,
+        exposure: {
+          configured: false,
+          setup: false,
+          docs: false,
+        },
+      },
+    },
+    manifest: {
+      id: "qa-channel",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {},
+      },
+      channels: ["qa-channel"],
+      channelConfigs: {
+        "qa-channel": {
+          schema: {
+            type: "object",
+            properties: {},
+          },
+          label: "QA Channel",
+          description: "Synthetic Slack-class transport for automated CoreBlow QA scenarios.",
+        },
+      },
+    },
+  },
+  {
+    dirName: "qa-lab",
+    idHint: "qa-lab",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: [
+      "api.js",
+      "bus-api.js",
+      "cli-metadata.js",
+      "cli.js",
+      "model-selection.js",
+      "runtime-api.js",
+    ],
+    runtimeSidecarArtifacts: ["runtime-api.js"],
+    packageName: "@coreblow/qa-lab",
+    packageVersion: "2026.5.17",
+    packageDescription: "CoreBlow QA lab plugin with private debugger UI and scenario runner",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "qa-lab",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {},
+      },
+    },
+  },
+  {
+    dirName: "qa-matrix",
+    idHint: "qa-matrix",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: ["cli.js", "cli.runtime.js", "runtime-api.js", "runtime.js"],
+    runtimeSidecarArtifacts: ["runtime-api.js"],
+    packageName: "@coreblow/qa-matrix",
+    packageVersion: "2026.5.17",
+    packageDescription: "CoreBlow Matrix QA runner plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "qa-matrix",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {},
+      },
+      name: "QA Matrix",
+      description: "Matrix QA transport runner and substrate",
+    },
+  },
+  {
     dirName: "qianfan",
     idHint: "qianfan",
     source: {
@@ -11892,9 +14974,9 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       built: "index.js",
     },
     publicSurfaceArtifacts: ["api.js", "onboard.js", "provider-catalog.js"],
-    packageName: "@coreblow/qianfan-provider",
+    packageName: "@coreblow/qianfan",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Qianfan provider plugin",
+    packageDescription: "CoreBlow qianfan plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -11928,6 +15010,302 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
   },
   {
+    dirName: "qqbot",
+    idHint: "qqbot",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    setupSource: {
+      source: "./setup-entry.ts",
+      built: "setup-entry.js",
+    },
+    publicSurfaceArtifacts: [
+      "api.js",
+      "channel-plugin-api.js",
+      "runtime-api.js",
+      "secret-contract-api.js",
+      "setup-plugin-api.js",
+    ],
+    runtimeSidecarArtifacts: ["runtime-api.js"],
+    packageName: "@coreblow/qqbot",
+    packageVersion: "2026.5.17",
+    packageDescription: "CoreBlow QQ Bot channel plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+      setupEntry: "./setup-entry.ts",
+      channel: {
+        id: "qqbot",
+        label: "QQ Bot",
+        selectionLabel: "QQ Bot (Official API)",
+        detailLabel: "QQ Bot",
+        docsPath: "/channels/qqbot",
+        docsLabel: "qqbot",
+        blurb: "connect to QQ via official QQ Bot API with group chat and direct message support.",
+        systemImage: "bubble.left.and.bubble.right",
+      },
+      install: {
+        npmSpec: "@coreblow/qqbot",
+        localPath: "extensions/qqbot",
+        defaultChoice: "npm",
+        minHostVersion: ">=2026.4.10",
+      },
+    },
+    manifest: {
+      id: "qqbot",
+      configSchema: {
+        type: "object",
+        additionalProperties: true,
+        $defs: {
+          audioFormatPolicy: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              sttDirectFormats: {
+                type: "array",
+                items: {
+                  type: "string",
+                },
+              },
+              uploadDirectFormats: {
+                type: "array",
+                items: {
+                  type: "string",
+                },
+              },
+              transcodeEnabled: {
+                type: "boolean",
+              },
+            },
+          },
+          stt: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              enabled: {
+                type: "boolean",
+              },
+              provider: {
+                type: "string",
+              },
+              baseUrl: {
+                type: "string",
+              },
+              apiKey: {
+                type: "string",
+              },
+              model: {
+                type: "string",
+              },
+            },
+          },
+          secretRef: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              source: {
+                type: "string",
+                enum: ["env", "file", "exec"],
+              },
+              provider: {
+                type: "string",
+              },
+              id: {
+                type: "string",
+              },
+            },
+            required: ["source", "provider", "id"],
+          },
+          secretInput: {
+            anyOf: [
+              {
+                type: "string",
+                minLength: 1,
+              },
+              {
+                $ref: "#/$defs/secretRef",
+              },
+            ],
+          },
+          account: {
+            type: "object",
+            additionalProperties: true,
+            properties: {
+              enabled: {
+                type: "boolean",
+              },
+              name: {
+                type: "string",
+              },
+              appId: {
+                type: "string",
+              },
+              clientSecret: {
+                $ref: "#/$defs/secretInput",
+              },
+              clientSecretFile: {
+                type: "string",
+              },
+              allowFrom: {
+                type: "array",
+                items: {
+                  type: "string",
+                },
+              },
+              systemPrompt: {
+                type: "string",
+              },
+              markdownSupport: {
+                type: "boolean",
+              },
+              voiceDirectUploadFormats: {
+                type: "array",
+                items: {
+                  type: "string",
+                },
+              },
+              audioFormatPolicy: {
+                $ref: "#/$defs/audioFormatPolicy",
+              },
+              urlDirectUpload: {
+                type: "boolean",
+              },
+              upgradeUrl: {
+                type: "string",
+              },
+              upgradeMode: {
+                type: "string",
+                enum: ["doc", "hot-reload"],
+              },
+              streaming: {
+                anyOf: [
+                  {
+                    type: "boolean",
+                  },
+                  {
+                    type: "object",
+                    additionalProperties: true,
+                    properties: {
+                      mode: {
+                        type: "string",
+                        enum: ["off", "partial"],
+                        default: "partial",
+                      },
+                      c2cStreamApi: {
+                        type: "boolean",
+                        description:
+                          "Use QQ C2C official stream_messages API (single-message typing-style updates).",
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+        properties: {
+          enabled: {
+            type: "boolean",
+          },
+          name: {
+            type: "string",
+          },
+          appId: {
+            type: "string",
+          },
+          clientSecret: {
+            $ref: "#/$defs/secretInput",
+          },
+          clientSecretFile: {
+            type: "string",
+          },
+          allowFrom: {
+            type: "array",
+            items: {
+              type: "string",
+            },
+          },
+          systemPrompt: {
+            type: "string",
+          },
+          markdownSupport: {
+            type: "boolean",
+          },
+          voiceDirectUploadFormats: {
+            type: "array",
+            items: {
+              type: "string",
+            },
+          },
+          audioFormatPolicy: {
+            $ref: "#/$defs/audioFormatPolicy",
+          },
+          stt: {
+            $ref: "#/$defs/stt",
+          },
+          urlDirectUpload: {
+            type: "boolean",
+          },
+          upgradeUrl: {
+            type: "string",
+          },
+          upgradeMode: {
+            type: "string",
+            enum: ["doc", "hot-reload"],
+          },
+          streaming: {
+            anyOf: [
+              {
+                type: "boolean",
+              },
+              {
+                type: "object",
+                additionalProperties: false,
+                properties: {
+                  mode: {
+                    type: "string",
+                    enum: ["off", "partial"],
+                    default: "partial",
+                  },
+                  c2cStreamApi: {
+                    type: "boolean",
+                    description:
+                      "Use QQ C2C official stream_messages API (single-message typing-style updates).",
+                  },
+                },
+              },
+            ],
+          },
+          accounts: {
+            type: "object",
+            additionalProperties: {
+              $ref: "#/$defs/account",
+            },
+          },
+          defaultAccount: {
+            type: "string",
+          },
+        },
+      },
+      enabledByDefault: true,
+      channels: ["qqbot"],
+      skills: ["./skills"],
+      contracts: {
+        tools: ["qqbot_channel_api", "qqbot_remind"],
+      },
+      channelConfigs: {
+        qqbot: {
+          schema: {
+            id: "extensions/qqbot/src/config-schema.ts",
+          },
+          label: "QQ Bot",
+          description:
+            "connect to QQ via official QQ Bot API with group chat and direct message support.",
+        },
+      },
+    },
+  },
+  {
     dirName: "qwen",
     idHint: "qwen",
     source: {
@@ -11942,7 +15320,6 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       "onboard.js",
       "provider-catalog.js",
       "stream.js",
-      "test-api.js",
       "video-generation-provider.js",
     ],
     packageName: "@coreblow/qwen-provider",
@@ -11959,7 +15336,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         properties: {},
       },
       enabledByDefault: true,
-      providers: ["qwen", "qwencloud", "modelstudio", "dashscope"],
+      providers: ["qwen", "qwencloud", "dashscope"],
       providerAuthEnvVars: {
         qwen: ["QWEN_API_KEY", "MODELSTUDIO_API_KEY", "DASHSCOPE_API_KEY"],
       },
@@ -11968,6 +15345,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
           provider: "qwen",
           method: "standard-api-key-cn",
           choiceId: "qwen-standard-api-key-cn",
+          deprecatedChoiceIds: ["modelstudio-standard-api-key-cn"],
           choiceLabel: "Standard API Key for China (pay-as-you-go)",
           choiceHint: "Endpoint: dashscope.aliyuncs.com",
           groupId: "qwen",
@@ -11982,6 +15360,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
           provider: "qwen",
           method: "standard-api-key",
           choiceId: "qwen-standard-api-key",
+          deprecatedChoiceIds: ["modelstudio-standard-api-key"],
           choiceLabel: "Standard API Key for Global/Intl (pay-as-you-go)",
           choiceHint: "Endpoint: dashscope-intl.aliyuncs.com",
           groupId: "qwen",
@@ -11996,6 +15375,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
           provider: "qwen",
           method: "api-key-cn",
           choiceId: "qwen-api-key-cn",
+          deprecatedChoiceIds: ["modelstudio-api-key-cn"],
           choiceLabel: "Coding Plan API Key for China (subscription)",
           choiceHint: "Endpoint: coding.dashscope.aliyuncs.com",
           groupId: "qwen",
@@ -12010,6 +15390,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
           provider: "qwen",
           method: "api-key",
           choiceId: "qwen-api-key",
+          deprecatedChoiceIds: ["modelstudio-api-key"],
           choiceLabel: "Coding Plan API Key for Global/Intl (subscription)",
           choiceHint: "Endpoint: coding-intl.dashscope.aliyuncs.com",
           groupId: "qwen",
@@ -12028,6 +15409,81 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
   },
   {
+    dirName: "qwen-auth",
+    idHint: "qwen-auth",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    packageName: "@coreblow/qwen-auth",
+    packageVersion: "2026.3.27",
+    packageDescription: "CoreBlow qwen-auth plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "qwen-auth",
+      configSchema: {},
+      name: "Qwen Auth",
+    },
+  },
+  {
+    dirName: "searxng",
+    idHint: "searxng",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: ["web-search-provider.js"],
+    packageName: "@coreblow/searxng",
+    packageVersion: "2026.3.27",
+    packageDescription: "CoreBlow searxng plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "searxng",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          webSearch: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              baseUrl: {
+                type: ["string", "object"],
+              },
+              categories: {
+                type: "string",
+              },
+              language: {
+                type: "string",
+              },
+            },
+          },
+        },
+      },
+      uiHints: {
+        "webSearch.baseUrl": {
+          label: "SearXNG Base URL",
+          help: "Base URL of your SearXNG instance, such as http://localhost:8080 or https://search.example.com/searxng.",
+        },
+        "webSearch.categories": {
+          label: "SearXNG Categories",
+          help: "Optional comma-separated categories such as general, news, or science.",
+        },
+        "webSearch.language": {
+          label: "SearXNG Language",
+          help: "Optional language code for results such as en, de, or fr.",
+        },
+      },
+      contracts: {
+        webSearchProviders: ["searxng"],
+      },
+    },
+  },
+  {
     dirName: "sglang",
     idHint: "sglang",
     source: {
@@ -12035,9 +15491,9 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       built: "index.js",
     },
     publicSurfaceArtifacts: ["api.js", "defaults.js", "models.js"],
-    packageName: "@coreblow/sglang-provider",
+    packageName: "@coreblow/sglang",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow SGLang provider plugin",
+    packageDescription: "CoreBlow sglang plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -12081,12 +15537,18 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     publicSurfaceArtifacts: [
       "api.js",
       "channel-config-api.js",
+      "channel-entry.js",
+      "channel-plugin-api.js",
+      "config-api.js",
+      "contract-api.js",
+      "extension.js",
       "reaction-runtime-api.js",
       "runtime-api.js",
+      "secret-contract-api.js",
     ],
     runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/signal",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow Signal channel plugin",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -12098,7 +15560,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         detailLabel: "Signal REST",
         docsPath: "/channels/signal",
         docsLabel: "signal",
-        blurb: 'signal-cli linked device; more setup (David Reagans: "Hop on Discord.").',
+        blurb: "signal-cli linked device; requires additional setup.",
         systemImage: "antenna.radiowaves.left.and.right",
       },
     },
@@ -12130,7 +15592,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                 properties: {
                   tables: {
                     type: "string",
-                    enum: ["off", "bullets", "code"],
+                    enum: ["off", "bullets", "code", "block"],
                   },
                 },
                 additionalProperties: false,
@@ -12189,6 +15651,10 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
               },
               sendReadReceipts: {
                 type: "boolean",
+              },
+              contextVisibility: {
+                type: "string",
+                enum: ["all", "allowlist", "allowlist_quote"],
               },
               dmPolicy: {
                 default: "pairing",
@@ -12420,6 +15886,10 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
               responsePrefix: {
                 type: "string",
               },
+              apiMode: {
+                type: "string",
+                enum: ["auto", "native", "container"],
+              },
               accounts: {
                 type: "object",
                 propertyNames: {
@@ -12442,7 +15912,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                       properties: {
                         tables: {
                           type: "string",
-                          enum: ["off", "bullets", "code"],
+                          enum: ["off", "bullets", "code", "block"],
                         },
                       },
                       additionalProperties: false,
@@ -12501,6 +15971,10 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                     },
                     sendReadReceipts: {
                       type: "boolean",
+                    },
+                    contextVisibility: {
+                      type: "string",
+                      enum: ["all", "allowlist", "allowlist_quote"],
                     },
                     dmPolicy: {
                       default: "pairing",
@@ -12763,8 +16237,110 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
             },
           },
           label: "Signal",
-          description: 'signal-cli linked device; more setup (David Reagans: "Hop on Discord.").',
+          description: "signal-cli linked device; requires additional setup.",
         },
+      },
+    },
+  },
+  {
+    dirName: "skill-workshop",
+    idHint: "skill-workshop",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: ["api.js"],
+    packageName: "@coreblow/skill-workshop",
+    packageVersion: "2026.5.17",
+    packageDescription: "CoreBlow skill workshop plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+      install: {
+        npmSpec: "@coreblow/skill-workshop",
+        localPath: "extensions/skill-workshop",
+        defaultChoice: "npm",
+        minHostVersion: ">=1.0.0",
+      },
+    },
+    manifest: {
+      id: "skill-workshop",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          enabled: {
+            type: "boolean",
+            default: true,
+          },
+          autoCapture: {
+            type: "boolean",
+            default: true,
+          },
+          approvalPolicy: {
+            type: "string",
+            enum: ["pending", "auto"],
+            default: "pending",
+          },
+          reviewMode: {
+            type: "string",
+            enum: ["off", "heuristic", "llm", "hybrid"],
+            default: "hybrid",
+          },
+          reviewInterval: {
+            type: "integer",
+            minimum: 1,
+            maximum: 200,
+            default: 15,
+          },
+          reviewMinToolCalls: {
+            type: "integer",
+            minimum: 1,
+            maximum: 500,
+            default: 8,
+          },
+          reviewTimeoutMs: {
+            type: "integer",
+            minimum: 5000,
+            maximum: 180000,
+            default: 45000,
+          },
+          maxPending: {
+            type: "integer",
+            minimum: 1,
+            maximum: 200,
+            default: 50,
+          },
+          maxSkillBytes: {
+            type: "integer",
+            minimum: 1024,
+            maximum: 200000,
+            default: 40000,
+          },
+        },
+      },
+      name: "Skill Workshop",
+      description:
+        "Captures repeatable workflows as workspace skills, with pending review, safe writes, and skill prompt refresh.",
+      uiHints: {
+        autoCapture: {
+          label: "Auto Capture",
+          help: "Detect user corrections and reusable workflow instructions after agent turns.",
+        },
+        approvalPolicy: {
+          label: "Approval Policy",
+          help: "Store learned skill changes as pending suggestions, or write them automatically.",
+        },
+        reviewMode: {
+          label: "Review Mode",
+          help: "Choose heuristic capture, threshold LLM review, both, or no automatic capture.",
+        },
+        maxPending: {
+          label: "Max Pending",
+          help: "Maximum pending skill suggestions to keep per workspace.",
+        },
+      },
+      contracts: {
+        tools: ["skill_workshop"],
       },
     },
   },
@@ -12779,10 +16355,10 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./setup-entry.ts",
       built: "setup-entry.js",
     },
-    publicSurfaceArtifacts: ["api.js", "channel-config-api.js", "runtime-api.js"],
+    publicSurfaceArtifacts: ["api.js", "channel-config-api.js", "extension.js", "runtime-api.js"],
     runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/slack",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow Slack channel plugin",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -12794,7 +16370,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         detailLabel: "Slack Bot",
         docsPath: "/channels/slack",
         docsLabel: "slack",
-        blurb: "supported (Socket Mode).",
+        blurb: "supported via Socket Mode.",
         systemImage: "number",
       },
     },
@@ -12914,7 +16490,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                 properties: {
                   tables: {
                     type: "string",
-                    enum: ["off", "bullets", "code"],
+                    enum: ["off", "bullets", "code", "block"],
                   },
                 },
                 additionalProperties: false,
@@ -13723,7 +17299,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                       properties: {
                         tables: {
                           type: "string",
-                          enum: ["off", "bullets", "code"],
+                          enum: ["off", "bullets", "code", "block"],
                         },
                       },
                       additionalProperties: false,
@@ -14510,7 +18086,174 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
             },
           },
           label: "Slack",
-          description: "supported (Socket Mode).",
+          description: "supported via Socket Mode.",
+        },
+      },
+    },
+  },
+  {
+    dirName: "speech-core",
+    idHint: "speech-core",
+    source: {
+      source: "./api.ts",
+      built: "api.js",
+    },
+    publicSurfaceArtifacts: ["runtime-api.js"],
+    runtimeSidecarArtifacts: ["runtime-api.js"],
+    packageName: "@coreblow/speech-core",
+    packageVersion: "0.1.0",
+    packageDescription: "CoreBlow speech runtime package",
+    packageManifest: {
+      extensions: ["./api.ts"],
+    },
+    manifest: {
+      id: "speech-core",
+      configSchema: {},
+      name: "Speech Core",
+    },
+  },
+  {
+    dirName: "stepfun",
+    idHint: "stepfun",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: ["onboard.js", "provider-catalog.js"],
+    packageName: "@coreblow/stepfun",
+    packageVersion: "2026.3.27",
+    packageDescription: "CoreBlow stepfun plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "stepfun",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {},
+      },
+      enabledByDefault: true,
+      providers: ["stepfun", "stepfun-plan"],
+      autoEnableWhenConfiguredProviders: ["stepfun", "stepfun-plan"],
+      providerAuthChoices: [
+        {
+          provider: "stepfun",
+          method: "standard-api-key-cn",
+          choiceId: "stepfun-standard-api-key-cn",
+          choiceLabel: "StepFun Standard API key (China)",
+          choiceHint: "Endpoint: api.stepfun.com/v1",
+          groupId: "stepfun",
+          groupLabel: "StepFun",
+          groupHint: "Standard / Step Plan (China / Global)",
+          optionKey: "stepfunApiKey",
+          cliFlag: "--stepfun-api-key",
+          cliOption: "--stepfun-api-key <key>",
+          cliDescription: "StepFun API key",
+        },
+        {
+          provider: "stepfun",
+          method: "standard-api-key-intl",
+          choiceId: "stepfun-standard-api-key-intl",
+          choiceLabel: "StepFun Standard API key (Global/Intl)",
+          choiceHint: "Endpoint: api.stepfun.ai/v1",
+          groupId: "stepfun",
+          groupLabel: "StepFun",
+          groupHint: "Standard / Step Plan (China / Global)",
+          optionKey: "stepfunApiKey",
+          cliFlag: "--stepfun-api-key",
+          cliOption: "--stepfun-api-key <key>",
+          cliDescription: "StepFun API key",
+        },
+        {
+          provider: "stepfun-plan",
+          method: "plan-api-key-cn",
+          choiceId: "stepfun-plan-api-key-cn",
+          choiceLabel: "StepFun Step Plan API key (China)",
+          choiceHint: "Endpoint: api.stepfun.com/step_plan/v1",
+          groupId: "stepfun",
+          groupLabel: "StepFun",
+          groupHint: "Standard / Step Plan (China / Global)",
+          optionKey: "stepfunApiKey",
+          cliFlag: "--stepfun-api-key",
+          cliOption: "--stepfun-api-key <key>",
+          cliDescription: "StepFun API key",
+        },
+        {
+          provider: "stepfun-plan",
+          method: "plan-api-key-intl",
+          choiceId: "stepfun-plan-api-key-intl",
+          choiceLabel: "StepFun Step Plan API key (Global/Intl)",
+          choiceHint: "Endpoint: api.stepfun.ai/step_plan/v1",
+          groupId: "stepfun",
+          groupLabel: "StepFun",
+          groupHint: "Standard / Step Plan (China / Global)",
+          optionKey: "stepfunApiKey",
+          cliFlag: "--stepfun-api-key",
+          cliOption: "--stepfun-api-key <key>",
+          cliDescription: "StepFun API key",
+        },
+      ],
+      modelCatalog: {
+        providers: {
+          stepfun: {
+            baseUrl: "https://api.stepfun.ai/v1",
+            api: "openai-completions",
+            models: [
+              {
+                id: "step-3.5-flash",
+                name: "Step 3.5 Flash",
+                reasoning: true,
+                input: ["text"],
+                contextWindow: 262144,
+                maxTokens: 65536,
+                cost: {
+                  input: 0,
+                  output: 0,
+                  cacheRead: 0,
+                  cacheWrite: 0,
+                },
+              },
+            ],
+          },
+          "stepfun-plan": {
+            baseUrl: "https://api.stepfun.ai/step_plan/v1",
+            api: "openai-completions",
+            models: [
+              {
+                id: "step-3.5-flash",
+                name: "Step 3.5 Flash",
+                reasoning: true,
+                input: ["text"],
+                contextWindow: 262144,
+                maxTokens: 65536,
+                cost: {
+                  input: 0,
+                  output: 0,
+                  cacheRead: 0,
+                  cacheWrite: 0,
+                },
+              },
+              {
+                id: "step-3.5-flash-2603",
+                name: "Step 3.5 Flash 2603",
+                reasoning: true,
+                input: ["text"],
+                contextWindow: 262144,
+                maxTokens: 65536,
+                cost: {
+                  input: 0,
+                  output: 0,
+                  cacheRead: 0,
+                  cacheWrite: 0,
+                },
+              },
+            ],
+          },
+        },
+        discovery: {
+          stepfun: "static",
+          "stepfun-plan": "static",
         },
       },
     },
@@ -14526,9 +18269,15 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./setup-entry.ts",
       built: "setup-entry.js",
     },
-    publicSurfaceArtifacts: ["setup-api.js"],
+    publicSurfaceArtifacts: [
+      "api.js",
+      "channel-plugin-api.js",
+      "contract-api.js",
+      "extension.js",
+      "setup-api.js",
+    ],
     packageName: "@coreblow/synology-chat",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "Synology Chat channel plugin for CoreBlow",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -14546,7 +18295,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         npmSpec: "@coreblow/synology-chat",
         localPath: "extensions/synology-chat",
         defaultChoice: "npm",
-        minHostVersion: ">=2026.3.27",
+        minHostVersion: ">=1.0.0",
       },
     },
     manifest: {
@@ -14586,9 +18335,9 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       built: "index.js",
     },
     publicSurfaceArtifacts: ["api.js", "models.js", "onboard.js", "provider-catalog.js"],
-    packageName: "@coreblow/synthetic-provider",
+    packageName: "@coreblow/synthetic",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Synthetic provider plugin",
+    packageDescription: "CoreBlow synthetic plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -14622,16 +18371,42 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
   },
   {
+    dirName: "talk-voice",
+    idHint: "talk-voice",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: ["api.js", "extension.js"],
+    packageName: "@coreblow/talk-voice",
+    packageVersion: "0.1.0",
+    packageDescription: "CoreBlow Talk voice selection plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "talk-voice",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {},
+      },
+      enabledByDefault: true,
+      name: "Talk Voice",
+      description: "Manage Talk voice selection (list/set).",
+    },
+  },
+  {
     dirName: "tavily",
     idHint: "tavily",
     source: {
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["web-search-provider.js"],
-    packageName: "@coreblow/tavily-plugin",
+    publicSurfaceArtifacts: ["web-search-contract-api.js", "web-search-provider.js"],
+    packageName: "@coreblow/tavily",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Tavily plugin",
+    packageDescription: "CoreBlow tavily plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -14695,12 +18470,13 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       "allow-from.js",
       "api.js",
       "channel-config-api.js",
+      "extension.js",
       "runtime-api.js",
       "update-offset-runtime-api.js",
     ],
     runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/telegram",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow Telegram channel plugin",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -14712,7 +18488,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         detailLabel: "Telegram Bot",
         docsPath: "/channels/telegram",
         docsLabel: "telegram",
-        blurb: "simplest way to get started — register a bot with @BotFather and get going.",
+        blurb: "simplest way to get started - register a bot with @BotFather and get going.",
         systemImage: "paperplane",
       },
     },
@@ -14796,7 +18572,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                 properties: {
                   tables: {
                     type: "string",
-                    enum: ["off", "bullets", "code"],
+                    enum: ["off", "bullets", "code", "block"],
                   },
                 },
                 additionalProperties: false,
@@ -15747,7 +19523,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                       properties: {
                         tables: {
                           type: "string",
-                          enum: ["off", "bullets", "code"],
+                          enum: ["off", "bullets", "code", "block"],
                         },
                       },
                       additionalProperties: false,
@@ -16764,7 +20540,133 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
           },
           label: "Telegram",
           description:
-            "simplest way to get started — register a bot with @BotFather and get going.",
+            "simplest way to get started - register a bot with @BotFather and get going.",
+        },
+      },
+    },
+  },
+  {
+    dirName: "tencent",
+    idHint: "tencent",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: [
+      "api.js",
+      "models.js",
+      "onboard.js",
+      "provider-catalog.js",
+      "provider-discovery.js",
+    ],
+    packageName: "@coreblow/tencent",
+    packageVersion: "2026.3.27",
+    packageDescription: "CoreBlow tencent plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "tencent",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {},
+      },
+      enabledByDefault: true,
+      providers: ["tencent-tokenhub"],
+      providerAuthEnvVars: {
+        "tencent-tokenhub": ["TOKENHUB_API_KEY"],
+      },
+      providerAuthChoices: [
+        {
+          provider: "tencent-tokenhub",
+          method: "api-key",
+          choiceId: "tokenhub-api-key",
+          choiceLabel: "Tencent TokenHub",
+          groupId: "tencent",
+          groupLabel: "Tencent Cloud",
+          groupHint: "Tencent TokenHub",
+          optionKey: "tokenhubApiKey",
+          cliFlag: "--tokenhub-api-key",
+          cliOption: "--tokenhub-api-key <key>",
+          cliDescription: "Tencent TokenHub API key",
+        },
+      ],
+      modelCatalog: {
+        providers: {
+          "tencent-tokenhub": {
+            baseUrl: "https://tokenhub.tencentmaas.com/v1",
+            api: "openai-completions",
+            models: [
+              {
+                id: "hy3-preview",
+                name: "Hy3 preview (TokenHub)",
+                reasoning: true,
+                input: ["text"],
+                contextWindow: 256000,
+                maxTokens: 64000,
+                cost: {
+                  input: 0.176,
+                  output: 0.587,
+                  cacheRead: 0.059,
+                  cacheWrite: 0,
+                },
+                compat: {
+                  supportsUsageInStreaming: true,
+                  supportsReasoningEffort: true,
+                },
+              },
+            ],
+          },
+        },
+        discovery: {
+          "tencent-tokenhub": "static",
+        },
+      },
+    },
+  },
+  {
+    dirName: "thread-ownership",
+    idHint: "thread-ownership",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: ["api.js", "extension.js"],
+    packageName: "@coreblow/thread-ownership",
+    packageVersion: "0.1.0",
+    packageDescription: "CoreBlow thread ownership plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "thread-ownership",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          forwarderUrl: {
+            type: "string",
+          },
+          abTestChannels: {
+            type: "array",
+            items: {
+              type: "string",
+            },
+          },
+        },
+      },
+      name: "Thread Ownership",
+      description:
+        "Prevents multiple agents from responding in the same Slack thread. Uses HTTP calls to the slack-forwarder ownership API.",
+      uiHints: {
+        forwarderUrl: {
+          label: "Forwarder URL",
+          help: "Base URL of the slack-forwarder ownership API (default: http://slack-forwarder:8750)",
+        },
+        abTestChannels: {
+          label: "A/B Test Channels",
+          help: "Slack channel IDs where thread ownership is enforced",
         },
       },
     },
@@ -16780,10 +20682,17 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./setup-entry.ts",
       built: "setup-entry.js",
     },
-    publicSurfaceArtifacts: ["api.js", "runtime-api.js", "setup-api.js"],
+    publicSurfaceArtifacts: [
+      "api.js",
+      "channel-plugin-api.js",
+      "doctor-contract-api.js",
+      "extension.js",
+      "runtime-api.js",
+      "setup-api.js",
+    ],
     runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/tlon",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow Tlon/Urbit channel plugin",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -16802,7 +20711,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         npmSpec: "@coreblow/tlon",
         localPath: "extensions/tlon",
         defaultChoice: "npm",
-        minHostVersion: ">=2026.3.27",
+        minHostVersion: ">=1.0.0",
       },
     },
     manifest: {
@@ -16988,10 +20897,16 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js", "models.js", "onboard.js", "provider-catalog.js"],
-    packageName: "@coreblow/together-provider",
+    publicSurfaceArtifacts: [
+      "api.js",
+      "models.js",
+      "onboard.js",
+      "provider-catalog.js",
+      "video-generation-provider.js",
+    ],
+    packageName: "@coreblow/together",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Together provider plugin",
+    packageDescription: "CoreBlow together plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -17025,16 +20940,95 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
   },
   {
+    dirName: "tokenjuice",
+    idHint: "tokenjuice",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: ["runtime-api.js", "tool-result-middleware.js"],
+    runtimeSidecarArtifacts: ["runtime-api.js"],
+    packageName: "@coreblow/tokenjuice",
+    packageVersion: "2026.5.17",
+    packageDescription: "Bundled tokenjuice exec output compaction plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "tokenjuice",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {},
+      },
+      name: "tokenjuice",
+      description: "Compacts exec and bash tool results with tokenjuice reducers.",
+    },
+  },
+  {
+    dirName: "tts",
+    idHint: "tts",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    packageName: "@coreblow/tts",
+    packageVersion: "2026.3.27",
+    packageDescription: "CoreBlow tts plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "tts",
+      configSchema: {},
+      name: "Tts",
+    },
+  },
+  {
+    dirName: "tts-local-cli",
+    idHint: "tts-local-cli",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: ["speech-provider.js"],
+    packageName: "@coreblow/tts-local-cli",
+    packageVersion: "2026.3.27",
+    packageDescription: "CoreBlow tts-local-cli plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "tts-local-cli",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {},
+      },
+      enabledByDefault: true,
+      contracts: {
+        speechProviders: ["tts-local-cli", "cli"],
+      },
+    },
+  },
+  {
     dirName: "twitch",
     idHint: "twitch",
     source: {
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js", "runtime-api.js"],
+    publicSurfaceArtifacts: [
+      "api.js",
+      "channel-plugin-api.js",
+      "extension.js",
+      "runtime-api.js",
+      "setup-entry.js",
+      "setup-plugin-api.js",
+    ],
     runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/twitch",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow Twitch channel plugin",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -17047,7 +21041,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         aliases: ["twitch-chat"],
       },
       install: {
-        minHostVersion: ">=2026.3.27",
+        minHostVersion: ">=1.0.0",
       },
     },
     manifest: {
@@ -17064,191 +21058,174 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
             $schema: "http://json-schema.org/draft-07/schema#",
             anyOf: [
               {
-                allOf: [
-                  {
+                type: "object",
+                properties: {
+                  name: {
+                    type: "string",
+                  },
+                  enabled: {
+                    type: "boolean",
+                  },
+                  defaultAccount: {
+                    type: "string",
+                  },
+                  markdown: {
                     type: "object",
                     properties: {
-                      name: {
+                      tables: {
                         type: "string",
-                      },
-                      enabled: {
-                        type: "boolean",
-                      },
-                      markdown: {
-                        type: "object",
-                        properties: {
-                          tables: {
-                            type: "string",
-                            enum: ["off", "bullets", "code"],
-                          },
-                        },
-                        additionalProperties: false,
+                        enum: ["off", "bullets", "code", "block"],
                       },
                     },
                     additionalProperties: false,
                   },
-                  {
-                    type: "object",
-                    properties: {
-                      username: {
-                        type: "string",
-                      },
-                      accessToken: {
-                        type: "string",
-                      },
-                      clientId: {
-                        type: "string",
-                      },
-                      channel: {
-                        type: "string",
-                        minLength: 1,
-                      },
-                      enabled: {
-                        type: "boolean",
-                      },
-                      allowFrom: {
-                        type: "array",
-                        items: {
-                          type: "string",
-                        },
-                      },
-                      allowedRoles: {
-                        type: "array",
-                        items: {
-                          type: "string",
-                          enum: ["moderator", "owner", "vip", "subscriber", "all"],
-                        },
-                      },
-                      requireMention: {
-                        type: "boolean",
-                      },
-                      responsePrefix: {
-                        type: "string",
-                      },
-                      clientSecret: {
-                        type: "string",
-                      },
-                      refreshToken: {
-                        type: "string",
-                      },
-                      expiresIn: {
-                        anyOf: [
-                          {
-                            type: "number",
-                          },
-                          {
-                            type: "null",
-                          },
-                        ],
-                      },
-                      obtainmentTimestamp: {
+                  username: {
+                    type: "string",
+                  },
+                  accessToken: {
+                    type: "string",
+                  },
+                  clientId: {
+                    type: "string",
+                  },
+                  channel: {
+                    type: "string",
+                    minLength: 1,
+                  },
+                  allowFrom: {
+                    type: "array",
+                    items: {
+                      type: "string",
+                    },
+                  },
+                  allowedRoles: {
+                    type: "array",
+                    items: {
+                      type: "string",
+                      enum: ["moderator", "owner", "vip", "subscriber", "all"],
+                    },
+                  },
+                  requireMention: {
+                    type: "boolean",
+                  },
+                  responsePrefix: {
+                    type: "string",
+                  },
+                  clientSecret: {
+                    type: "string",
+                  },
+                  refreshToken: {
+                    type: "string",
+                  },
+                  expiresIn: {
+                    anyOf: [
+                      {
                         type: "number",
                       },
-                    },
-                    required: ["username", "accessToken", "channel"],
-                    additionalProperties: false,
+                      {
+                        type: "null",
+                      },
+                    ],
                   },
-                ],
+                  obtainmentTimestamp: {
+                    type: "number",
+                  },
+                },
+                required: ["username", "accessToken", "channel"],
+                additionalProperties: false,
               },
               {
-                allOf: [
-                  {
+                type: "object",
+                properties: {
+                  name: {
+                    type: "string",
+                  },
+                  enabled: {
+                    type: "boolean",
+                  },
+                  defaultAccount: {
+                    type: "string",
+                  },
+                  markdown: {
                     type: "object",
                     properties: {
-                      name: {
+                      tables: {
                         type: "string",
-                      },
-                      enabled: {
-                        type: "boolean",
-                      },
-                      markdown: {
-                        type: "object",
-                        properties: {
-                          tables: {
-                            type: "string",
-                            enum: ["off", "bullets", "code"],
-                          },
-                        },
-                        additionalProperties: false,
+                        enum: ["off", "bullets", "code", "block"],
                       },
                     },
                     additionalProperties: false,
                   },
-                  {
+                  accounts: {
                     type: "object",
-                    properties: {
-                      accounts: {
-                        type: "object",
-                        propertyNames: {
+                    propertyNames: {
+                      type: "string",
+                    },
+                    additionalProperties: {
+                      type: "object",
+                      properties: {
+                        username: {
                           type: "string",
                         },
-                        additionalProperties: {
-                          type: "object",
-                          properties: {
-                            username: {
-                              type: "string",
-                            },
-                            accessToken: {
-                              type: "string",
-                            },
-                            clientId: {
-                              type: "string",
-                            },
-                            channel: {
-                              type: "string",
-                              minLength: 1,
-                            },
-                            enabled: {
-                              type: "boolean",
-                            },
-                            allowFrom: {
-                              type: "array",
-                              items: {
-                                type: "string",
-                              },
-                            },
-                            allowedRoles: {
-                              type: "array",
-                              items: {
-                                type: "string",
-                                enum: ["moderator", "owner", "vip", "subscriber", "all"],
-                              },
-                            },
-                            requireMention: {
-                              type: "boolean",
-                            },
-                            responsePrefix: {
-                              type: "string",
-                            },
-                            clientSecret: {
-                              type: "string",
-                            },
-                            refreshToken: {
-                              type: "string",
-                            },
-                            expiresIn: {
-                              anyOf: [
-                                {
-                                  type: "number",
-                                },
-                                {
-                                  type: "null",
-                                },
-                              ],
-                            },
-                            obtainmentTimestamp: {
+                        accessToken: {
+                          type: "string",
+                        },
+                        clientId: {
+                          type: "string",
+                        },
+                        channel: {
+                          type: "string",
+                          minLength: 1,
+                        },
+                        enabled: {
+                          type: "boolean",
+                        },
+                        allowFrom: {
+                          type: "array",
+                          items: {
+                            type: "string",
+                          },
+                        },
+                        allowedRoles: {
+                          type: "array",
+                          items: {
+                            type: "string",
+                            enum: ["moderator", "owner", "vip", "subscriber", "all"],
+                          },
+                        },
+                        requireMention: {
+                          type: "boolean",
+                        },
+                        responsePrefix: {
+                          type: "string",
+                        },
+                        clientSecret: {
+                          type: "string",
+                        },
+                        refreshToken: {
+                          type: "string",
+                        },
+                        expiresIn: {
+                          anyOf: [
+                            {
                               type: "number",
                             },
-                          },
-                          required: ["username", "accessToken", "channel"],
-                          additionalProperties: false,
+                            {
+                              type: "null",
+                            },
+                          ],
+                        },
+                        obtainmentTimestamp: {
+                          type: "number",
                         },
                       },
+                      required: ["username", "accessToken", "channel"],
+                      additionalProperties: false,
                     },
-                    required: ["accounts"],
-                    additionalProperties: false,
                   },
-                ],
+                },
+                required: ["accounts"],
+                additionalProperties: false,
               },
             ],
           },
@@ -17265,10 +21242,16 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js", "models.js", "onboard.js", "provider-catalog.js"],
-    packageName: "@coreblow/venice-provider",
+    publicSurfaceArtifacts: [
+      "api.js",
+      "models.js",
+      "onboard.js",
+      "provider-catalog.js",
+      "stream.js",
+    ],
+    packageName: "@coreblow/venice",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Venice provider plugin",
+    packageDescription: "CoreBlow venice plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -17308,10 +21291,16 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js", "models.js", "onboard.js", "provider-catalog.js"],
-    packageName: "@coreblow/vercel-ai-gateway-provider",
+    publicSurfaceArtifacts: [
+      "api.js",
+      "models.js",
+      "onboard.js",
+      "provider-catalog.js",
+      "thinking.js",
+    ],
+    packageName: "@coreblow/vercel-ai-gateway",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Vercel AI Gateway provider plugin",
+    packageDescription: "CoreBlow vercel-ai-gateway plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -17345,16 +21334,43 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
   },
   {
+    dirName: "video-generation-core",
+    idHint: "video-generation-core",
+    source: {
+      source: "./api.ts",
+      built: "api.js",
+    },
+    publicSurfaceArtifacts: ["runtime-api.js"],
+    runtimeSidecarArtifacts: ["runtime-api.js"],
+    packageName: "@coreblow/video-generation-core",
+    packageVersion: "0.1.0",
+    packageDescription: "CoreBlow video generation runtime package",
+    packageManifest: {
+      extensions: ["./api.ts"],
+    },
+    manifest: {
+      id: "video-generation-core",
+      configSchema: {},
+      name: "Video Generation Core",
+    },
+  },
+  {
     dirName: "vllm",
     idHint: "vllm",
     source: {
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js", "defaults.js", "models.js"],
-    packageName: "@coreblow/vllm-provider",
+    publicSurfaceArtifacts: [
+      "api.js",
+      "defaults.js",
+      "models.js",
+      "register.runtime.js",
+      "stream.js",
+    ],
+    packageName: "@coreblow/vllm",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow vLLM provider plugin",
+    packageDescription: "CoreBlow vllm plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -17391,7 +21407,15 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js", "extension.js", "runtime-api.js", "runtime-entry.js"],
+    publicSurfaceArtifacts: [
+      "api.js",
+      "cli-metadata.js",
+      "config-api.js",
+      "extension.js",
+      "runtime-api.js",
+      "runtime-entry.js",
+      "setup-api.js",
+    ],
     runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/ext-voice-call",
     packageVersion: "0.1.0",
@@ -18020,10 +22044,17 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js", "models.js", "provider-catalog.js"],
-    packageName: "@coreblow/volcengine-provider",
+    publicSurfaceArtifacts: [
+      "api.js",
+      "models.js",
+      "provider-catalog.js",
+      "provider-discovery.js",
+      "speech-provider.js",
+      "tts.js",
+    ],
+    packageName: "@coreblow/volcengine",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Volcengine provider plugin",
+    packageDescription: "CoreBlow volcengine plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -18054,6 +22085,168 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
           cliDescription: "Volcano Engine API key",
         },
       ],
+      contracts: {
+        speechProviders: ["volcengine"],
+      },
+    },
+  },
+  {
+    dirName: "vydra",
+    idHint: "vydra",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: [
+      "image-generation-provider.js",
+      "onboard.js",
+      "shared.js",
+      "speech-provider.js",
+      "video-generation-provider.js",
+    ],
+    packageName: "@coreblow/vydra-provider",
+    packageVersion: "2026.5.17",
+    packageDescription: "CoreBlow Vydra media provider plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+      install: {
+        npmSpec: "@coreblow/vydra-provider",
+        localPath: "extensions/vydra",
+        defaultChoice: false,
+        minHostVersion: ">=1.0.0",
+      },
+    },
+    manifest: {
+      id: "vydra",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {},
+      },
+      enabledByDefault: true,
+      providers: ["vydra"],
+      providerAuthEnvVars: {
+        vydra: ["VYDRA_API_KEY"],
+      },
+      providerAuthChoices: [
+        {
+          provider: "vydra",
+          method: "api-key",
+          choiceId: "vydra-api-key",
+          choiceLabel: "Vydra API key",
+          groupId: "vydra",
+          groupLabel: "Vydra",
+          groupHint: "Image, video, and speech",
+          onboardingScopes: ["image-generation"],
+          optionKey: "vydraApiKey",
+          cliFlag: "--vydra-api-key",
+          cliOption: "--vydra-api-key <key>",
+          cliDescription: "Vydra API key",
+        },
+      ],
+      contracts: {
+        speechProviders: ["vydra"],
+        imageGenerationProviders: ["vydra"],
+        videoGenerationProviders: ["vydra"],
+      },
+    },
+  },
+  {
+    dirName: "webhooks",
+    idHint: "webhooks",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: ["api.js", "runtime-api.js"],
+    runtimeSidecarArtifacts: ["runtime-api.js"],
+    packageName: "@coreblow/webhooks",
+    packageVersion: "2026.5.17",
+    packageDescription: "CoreBlow webhook bridge plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+      install: {
+        npmSpec: "@coreblow/webhooks",
+        localPath: "extensions/webhooks",
+        defaultChoice: "npm",
+        minHostVersion: ">=1.0.0",
+      },
+    },
+    manifest: {
+      id: "webhooks",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        $defs: {
+          secretRef: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              source: {
+                type: "string",
+                enum: ["env", "file", "exec"],
+              },
+              provider: {
+                type: "string",
+              },
+              id: {
+                type: "string",
+              },
+            },
+            required: ["source", "provider", "id"],
+          },
+          secretInput: {
+            anyOf: [
+              {
+                type: "string",
+                minLength: 1,
+              },
+              {
+                $ref: "#/$defs/secretRef",
+              },
+            ],
+          },
+          route: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              enabled: {
+                type: "boolean",
+              },
+              path: {
+                type: "string",
+                minLength: 1,
+              },
+              sessionKey: {
+                type: "string",
+                minLength: 1,
+              },
+              secret: {
+                $ref: "#/$defs/secretInput",
+              },
+              controllerId: {
+                type: "string",
+                minLength: 1,
+              },
+              description: {
+                type: "string",
+              },
+            },
+            required: ["sessionKey", "secret"],
+          },
+        },
+        properties: {
+          routes: {
+            type: "object",
+            additionalProperties: {
+              $ref: "#/$defs/route",
+            },
+          },
+        },
+      },
+      name: "Webhooks",
+      description:
+        "Authenticated inbound webhooks that bind external automation to CoreBlow TaskFlows.",
     },
   },
   {
@@ -18073,13 +22266,14 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       "api.js",
       "auth-presence.js",
       "channel-config-api.js",
+      "extension.js",
       "light-runtime-api.js",
       "login-qr-api.js",
       "runtime-api.js",
     ],
     runtimeSidecarArtifacts: ["light-runtime-api.js", "runtime-api.js"],
     packageName: "@coreblow/whatsapp",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow WhatsApp channel plugin",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -18098,7 +22292,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         npmSpec: "@coreblow/whatsapp",
         localPath: "extensions/whatsapp",
         defaultChoice: "npm",
-        minHostVersion: ">=2026.3.27",
+        minHostVersion: ">=1.0.0",
       },
     },
     manifest: {
@@ -18129,7 +22323,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                 properties: {
                   tables: {
                     type: "string",
-                    enum: ["off", "bullets", "code"],
+                    enum: ["off", "bullets", "code", "block"],
                   },
                 },
                 additionalProperties: false,
@@ -18374,7 +22568,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                       properties: {
                         tables: {
                           type: "string",
-                          enum: ["off", "bullets", "code"],
+                          enum: ["off", "bullets", "code", "block"],
                         },
                       },
                       additionalProperties: false,
@@ -18670,6 +22864,32 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
   },
   {
+    dirName: "workflow-shell",
+    idHint: "workflow-shell",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    publicSurfaceArtifacts: ["extension.js", "runtime-api.js"],
+    runtimeSidecarArtifacts: ["runtime-api.js"],
+    packageName: "@coreblow/workflow-shell",
+    packageVersion: "0.1.0",
+    packageDescription: "CoreBlow Workflow Shell workflow tool plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "workflow-shell",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {},
+      },
+      name: "Workflow Shell",
+      description: "Typed workflow tool with resumable approvals.",
+    },
+  },
+  {
     dirName: "xai",
     idHint: "xai",
     source: {
@@ -18686,9 +22906,9 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       "stream.js",
       "web-search.js",
     ],
-    packageName: "@coreblow/xai-plugin",
+    packageName: "@coreblow/xai",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow xAI plugin",
+    packageDescription: "CoreBlow xai plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -18765,10 +22985,17 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./index.ts",
       built: "index.js",
     },
-    publicSurfaceArtifacts: ["api.js", "onboard.js", "provider-catalog.js"],
-    packageName: "@coreblow/xiaomi-provider",
+    publicSurfaceArtifacts: [
+      "api.js",
+      "onboard.js",
+      "provider-catalog.js",
+      "speech-provider.js",
+      "stream.js",
+      "thinking.js",
+    ],
+    packageName: "@coreblow/xiaomi",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Xiaomi provider plugin",
+    packageDescription: "CoreBlow xiaomi plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -18810,6 +23037,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
     publicSurfaceArtifacts: [
       "api.js",
+      "config-api.js",
       "detect.js",
       "media-understanding-provider.js",
       "model-definitions.js",
@@ -18817,9 +23045,9 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       "runtime-api.js",
     ],
     runtimeSidecarArtifacts: ["runtime-api.js"],
-    packageName: "@coreblow/zai-provider",
+    packageName: "@coreblow/zai",
     packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow Z.AI provider plugin",
+    packageDescription: "CoreBlow zai plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -18922,10 +23150,18 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./setup-entry.ts",
       built: "setup-entry.js",
     },
-    publicSurfaceArtifacts: ["api.js", "runtime-api.js"],
+    publicSurfaceArtifacts: [
+      "api.js",
+      "channel-plugin-api.js",
+      "contract-api.js",
+      "extension.js",
+      "runtime-api.js",
+      "secret-contract-api.js",
+      "setup-api.js",
+    ],
     runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/zalo",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow Zalo channel plugin",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -18945,7 +23181,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         npmSpec: "@coreblow/zalo",
         localPath: "extensions/zalo",
         defaultChoice: "npm",
-        minHostVersion: ">=2026.3.27",
+        minHostVersion: ">=1.0.0",
       },
     },
     manifest: {
@@ -18973,7 +23209,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                 properties: {
                   tables: {
                     type: "string",
-                    enum: ["off", "bullets", "code"],
+                    enum: ["off", "bullets", "code", "block"],
                   },
                 },
                 additionalProperties: false,
@@ -19179,7 +23415,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                       properties: {
                         tables: {
                           type: "string",
-                          enum: ["off", "bullets", "code"],
+                          enum: ["off", "bullets", "code", "block"],
                         },
                       },
                       additionalProperties: false,
@@ -19395,10 +23631,19 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./setup-entry.ts",
       built: "setup-entry.js",
     },
-    publicSurfaceArtifacts: ["api.js", "runtime-api.js"],
+    publicSurfaceArtifacts: [
+      "api.js",
+      "channel-plugin-api.js",
+      "contract-api.js",
+      "doctor-contract-api.js",
+      "extension.js",
+      "runtime-api.js",
+      "secret-contract-api.js",
+      "setup-plugin-api.js",
+    ],
     runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/zalouser",
-    packageVersion: "2026.3.27",
+    packageVersion: "0.1.0",
     packageDescription: "CoreBlow Zalo Personal Account plugin via native zca-js integration",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -19418,7 +23663,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         npmSpec: "@coreblow/zalouser",
         localPath: "extensions/zalouser",
         defaultChoice: "npm",
-        minHostVersion: ">=2026.3.27",
+        minHostVersion: ">=1.0.0",
       },
     },
     manifest: {
@@ -19446,7 +23691,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                 properties: {
                   tables: {
                     type: "string",
-                    enum: ["off", "bullets", "code"],
+                    enum: ["off", "bullets", "code", "block"],
                   },
                 },
                 additionalProperties: false,
@@ -19563,7 +23808,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                       properties: {
                         tables: {
                           type: "string",
-                          enum: ["off", "bullets", "code"],
+                          enum: ["off", "bullets", "code", "block"],
                         },
                       },
                       additionalProperties: false,

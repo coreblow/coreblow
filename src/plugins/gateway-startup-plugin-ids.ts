@@ -47,6 +47,32 @@ type ConfiguredGenerationProviderIds = Record<GenerationProviderContractKey, Rea
 
 type ManifestRegistryLookup = ReadonlyMap<string, PluginManifestRecord>;
 
+function collectCandidatePlugins(
+  index: PluginRegistrySnapshot,
+  manifestRegistry: PluginManifestRegistry,
+): readonly InstalledPluginIndexRecord[] {
+  const indexPluginIds = new Set(index.plugins.map((p) => p.pluginId));
+  const missingFromManifest = manifestRegistry.plugins
+    .filter((m) => !indexPluginIds.has(m.id))
+    .map(
+      (m) =>
+        ({
+          pluginId: m.id,
+          origin: m.origin,
+          enabledByDefault: m.enabledByDefault,
+          channels: m.channels,
+          providers: m.providers,
+          cliBackends: m.cliBackends,
+          startup: {
+            memory: false,
+            deferConfiguredChannelFullLoadUntilAfterListen:
+              m.startupDeferConfiguredChannelFullLoadUntilAfterListen ?? false,
+          },
+        }) as unknown as InstalledPluginIndexRecord,
+    );
+  return missingFromManifest.length > 0 ? [...index.plugins, ...missingFromManifest] : index.plugins;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
@@ -138,11 +164,21 @@ function shouldConsiderForGatewayStartup(params: {
   startupDreamingPluginIds: ReadonlySet<string>;
   memorySlotStartupPluginId?: string;
   contextEngineSlotStartupPluginId?: string;
+  pluginsConfig: NormalizedPluginsConfig;
 }): boolean {
+  if (params.plugin.origin !== "bundled") {
+    return true;
+  }
   if (params.manifest?.activation?.onStartup === true) {
     return true;
   }
   if (params.contextEngineSlotStartupPluginId === params.plugin.pluginId) {
+    return true;
+  }
+  if (
+    params.pluginsConfig.allow.includes(params.plugin.pluginId) ||
+    params.pluginsConfig.entries[params.plugin.pluginId]?.enabled === true
+  ) {
     return true;
   }
   if (!isGatewayStartupMemoryPlugin(params.plugin)) {
@@ -305,6 +341,87 @@ function manifestOwnsConfiguredGenerationProvider(params: {
     }
   }
   return false;
+}
+
+function collectConfiguredModelOrProviderIds(config: CoreBlowConfig): Set<string> {
+  const ids = new Set<string>();
+  const addRef = (raw?: string) => {
+    if (!raw) return;
+    const trimmed = raw.trim().toLowerCase();
+    const slash = trimmed.indexOf("/");
+    if (slash > 0) {
+      ids.add(trimmed.slice(0, slash));
+    } else {
+      ids.add(trimmed);
+    }
+  };
+  for (const p of Object.keys(config.models?.providers ?? {})) {
+    ids.add(p.trim().toLowerCase());
+  }
+  for (const b of Object.keys(config.agents?.defaults?.cliBackends ?? {})) {
+    ids.add(b.trim().toLowerCase());
+  }
+  for (const m of Object.keys(config.agents?.defaults?.models ?? {})) {
+    addRef(m);
+  }
+  const defaultModel = config.agents?.defaults?.model;
+  if (typeof defaultModel === "string") {
+    addRef(defaultModel);
+  } else if (defaultModel && typeof defaultModel === "object") {
+    if (typeof (defaultModel as { primary?: string }).primary === "string") {
+      addRef((defaultModel as { primary?: string }).primary);
+    }
+    if (Array.isArray((defaultModel as { fallbacks?: string[] }).fallbacks)) {
+      for (const fb of (defaultModel as { fallbacks?: string[] }).fallbacks ?? []) {
+        if (typeof fb === "string") addRef(fb);
+      }
+    }
+  }
+  return ids;
+}
+
+function canStartConfiguredProviderOrBackendPlugin(params: {
+  plugin: InstalledPluginIndexRecord;
+  manifest: PluginManifestRecord | undefined;
+  configuredActivationIds: ReadonlySet<string>;
+  pluginsConfig: ReturnType<typeof normalizePluginsConfigWithRegistry>;
+  activationSource: {
+    plugins: ReturnType<typeof normalizePluginsConfigWithRegistry>;
+    rootConfig?: CoreBlowConfig;
+  };
+}): boolean {
+  if (params.configuredActivationIds.size === 0) {
+    return false;
+  }
+  if (!params.pluginsConfig.enabled || !params.activationSource.plugins.enabled) {
+    return false;
+  }
+  if (
+    params.pluginsConfig.deny.includes(params.plugin.pluginId) ||
+    params.activationSource.plugins.deny.includes(params.plugin.pluginId)
+  ) {
+    return false;
+  }
+  if (
+    params.pluginsConfig.entries[params.plugin.pluginId]?.enabled === false ||
+    params.activationSource.plugins.entries[params.plugin.pluginId]?.enabled === false
+  ) {
+    return false;
+  }
+  const pluginRecord = params.plugin as { providers?: string[]; cliBackends?: string[] };
+  const providers = [
+    ...(pluginRecord.providers ?? []),
+    ...(params.manifest?.providers ?? []),
+  ].map((p) => p.trim().toLowerCase());
+  const cliBackends = [
+    ...(pluginRecord.cliBackends ?? []),
+    ...(params.manifest?.cliBackends ?? []),
+  ].map((b) => b.trim().toLowerCase());
+
+  return (
+    providers.some((p) => params.configuredActivationIds.has(p)) ||
+    cliBackends.some((b) => params.configuredActivationIds.has(b))
+  );
 }
 
 function canStartConfiguredGenerationProviderPlugin(params: {
@@ -693,7 +810,7 @@ export class GatewayStartupPluginResolver {
       rootConfig: params.config,
     };
     const manifestLookup = createManifestRegistryLookup(params.manifestRegistry);
-    return params.index.plugins
+    return collectCandidatePlugins(params.index, params.manifestRegistry)
       .filter(
         (plugin) =>
           hasConfiguredStartupChannel({
@@ -756,6 +873,7 @@ export class GatewayStartupPluginResolver {
       plugins: activationSourcePlugins,
       rootConfig: activationSourceConfig,
     };
+    const configuredActivationIds = collectConfiguredModelOrProviderIds(activationSourceConfig);
     const requiredAgentHarnessRuntimes = new Set(
       collectConfiguredAgentHarnessRuntimes(activationSourceConfig, params.env, {
         includeEnvRuntime: false,
@@ -782,7 +900,7 @@ export class GatewayStartupPluginResolver {
       activationSourcePlugins,
       normalizePluginId,
     });
-    const pluginIds = params.index.plugins
+    const pluginIds = collectCandidatePlugins(params.index, params.manifestRegistry)
       .filter((plugin) => {
         const manifest = findManifestPlugin(manifestLookup, plugin.pluginId);
         if (
@@ -877,12 +995,24 @@ export class GatewayStartupPluginResolver {
           return true;
         }
         if (
+          canStartConfiguredProviderOrBackendPlugin({
+            plugin,
+            manifest,
+            configuredActivationIds,
+            pluginsConfig,
+            activationSource,
+          })
+        ) {
+          return true;
+        }
+        if (
           !shouldConsiderForGatewayStartup({
             plugin,
             manifest,
             startupDreamingPluginIds,
             memorySlotStartupPluginId,
             contextEngineSlotStartupPluginId,
+            pluginsConfig,
           })
         ) {
           return false;
@@ -899,9 +1029,14 @@ export class GatewayStartupPluginResolver {
           return false;
         }
         if (plugin.origin !== "bundled") {
-          return activationState.explicitlyEnabled;
+          return true;
         }
-        return activationState.source === "explicit" || activationState.source === "default";
+        return (
+          activationState.source === "explicit" ||
+          activationState.source === "default" ||
+          pluginsConfig.allow.includes(plugin.pluginId) ||
+          pluginsConfig.entries[plugin.pluginId]?.enabled === true
+        );
       })
       .map((plugin) => plugin.pluginId);
     return {

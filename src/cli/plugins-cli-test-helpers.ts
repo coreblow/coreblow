@@ -43,15 +43,23 @@ vi.mock("../runtime.js", () => ({
   defaultRuntime,
 }));
 
-vi.mock("../config/config.js", () => ({
-  loadConfig: () => loadConfig(),
-  readConfigFileSnapshot: () => readConfigFileSnapshot(),
-  writeConfigFile: (config: CoreBlowConfig) => writeConfigFile(config),
-}));
+vi.mock("../config/config.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../config/config.js")>();
+  return {
+    ...actual,
+    loadConfig: () => loadConfig(),
+    readConfigFileSnapshot: () => readConfigFileSnapshot(),
+    writeConfigFile: (config: CoreBlowConfig) => writeConfigFile(config),
+  };
+});
 
-vi.mock("../config/paths.js", () => ({
-  resolveStateDir: () => resolveStateDir(),
-}));
+vi.mock("../config/paths.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../config/paths.js")>();
+  return {
+    ...actual,
+    resolveStateDir: () => resolveStateDir(),
+  };
+});
 
 vi.mock("../plugins/marketplace.js", () => ({
   installPluginFromMarketplace: (...args: unknown[]) => installPluginFromMarketplace(...args),

@@ -10,10 +10,14 @@ import {
 const readConfigFileSnapshotMock = vi.fn();
 const loadConfig = vi.fn(() => ({}));
 
-vi.mock("../../config/config.js", () => ({
-  loadConfig: () => loadConfig(),
-  readConfigFileSnapshot: () => readConfigFileSnapshotMock(),
-}));
+vi.mock("../../config/config.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../config/config.js")>();
+  return {
+    ...actual,
+    loadConfig: () => loadConfig(),
+    readConfigFileSnapshot: () => readConfigFileSnapshotMock(),
+  };
+});
 
 vi.mock("../../config/issue-format.js", () => ({
   formatConfigIssueLines: (

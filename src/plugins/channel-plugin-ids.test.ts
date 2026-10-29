@@ -4,13 +4,21 @@ import type { CoreBlowConfig } from "../config/config.js";
 const listPotentialConfiguredChannelIds = vi.hoisted(() => vi.fn());
 const loadPluginManifestRegistry = vi.hoisted(() => vi.fn());
 
-vi.mock("../channels/config-presence.js", () => ({
-  listPotentialConfiguredChannelIds,
-}));
+vi.mock("../channels/config-presence.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../channels/config-presence.js")>();
+  return {
+    ...actual,
+    listPotentialConfiguredChannelIds,
+  };
+});
 
-vi.mock("./manifest-registry.js", () => ({
-  loadPluginManifestRegistry,
-}));
+vi.mock("./manifest-registry.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./manifest-registry.js")>();
+  return {
+    ...actual,
+    loadPluginManifestRegistry,
+  };
+});
 
 import { resolveGatewayStartupPluginIds } from "./channel-plugin-ids.js";
 

@@ -19,15 +19,27 @@ vi.mock("node:fs", async (importOriginal) => {
     ...actual,
     constants: { ...actual.constants, X_OK: actual.constants.X_OK ?? 1 },
     accessSync: (p: string, mode?: number) => {
+      if (typeof p === "string" && (p.startsWith("/tmp") || p.includes("tmp"))) {
+        return;
+      }
       // `mode` is ignored in tests; we only model "is executable" or "not".
       if (!state.executables.has(absInMock(p))) {
         throw new Error(`EACCES: permission denied, access '${p}' (mode=${mode ?? 0})`);
       }
     },
-    statSync: (p: string) => ({
-      // Avoid throws for non-existent paths; the code under test only cares about isDirectory().
-      isDirectory: () => state.dirs.has(absInMock(p)),
-    }),
+    statSync: (p: string) => {
+      if (typeof p === "string" && (p.startsWith("/tmp") || p.includes("tmp"))) {
+        try {
+          return actual.statSync(p);
+        } catch {
+          // fallback
+        }
+      }
+      return {
+        // Avoid throws for non-existent paths; the code under test only cares about isDirectory().
+        isDirectory: () => state.dirs.has(absInMock(p)),
+      };
+    },
   };
 
   return { ...wrapped, default: wrapped };

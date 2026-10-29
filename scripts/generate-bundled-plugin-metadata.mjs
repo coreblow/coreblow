@@ -133,6 +133,12 @@ function normalizeManifestContracts(raw) {
   const videoGenerationProviders = normalizeStringList(contracts.videoGenerationProviders);
   const musicGenerationProviders = normalizeStringList(contracts.musicGenerationProviders);
   const webSearchProviders = normalizeStringList(contracts.webSearchProviders);
+  const realtimeTranscriptionProviders = normalizeStringList(contracts.realtimeTranscriptionProviders);
+  const realtimeVoiceProviders = normalizeStringList(contracts.realtimeVoiceProviders);
+  const webFetchProviders = normalizeStringList(contracts.webFetchProviders);
+  const documentExtractors = normalizeStringList(contracts.documentExtractors);
+  const webContentExtractors = normalizeStringList(contracts.webContentExtractors);
+  const migrationProviders = normalizeStringList(contracts.migrationProviders);
   const tools = normalizeStringList(contracts.tools);
   const normalized = {
     ...(speechProviders?.length ? { speechProviders } : {}),
@@ -141,6 +147,12 @@ function normalizeManifestContracts(raw) {
     ...(videoGenerationProviders?.length ? { videoGenerationProviders } : {}),
     ...(musicGenerationProviders?.length ? { musicGenerationProviders } : {}),
     ...(webSearchProviders?.length ? { webSearchProviders } : {}),
+    ...(realtimeTranscriptionProviders?.length ? { realtimeTranscriptionProviders } : {}),
+    ...(realtimeVoiceProviders?.length ? { realtimeVoiceProviders } : {}),
+    ...(webFetchProviders?.length ? { webFetchProviders } : {}),
+    ...(documentExtractors?.length ? { documentExtractors } : {}),
+    ...(webContentExtractors?.length ? { webContentExtractors } : {}),
+    ...(migrationProviders?.length ? { migrationProviders } : {}),
     ...(tools?.length ? { tools } : {}),
   };
   return Object.keys(normalized).length > 0 ? normalized : undefined;
@@ -224,6 +236,15 @@ function normalizePluginManifest(raw) {
     ...(normalizeManifestContracts(raw.contracts)
       ? { contracts: normalizeManifestContracts(raw.contracts) }
       : {}),
+    ...(normalizeObject(raw.configContracts) ? { configContracts: raw.configContracts } : {}),
+    ...(normalizeObject(raw.modelCatalog) ? { modelCatalog: raw.modelCatalog } : {}),
+    ...(normalizeObject(raw.modelIdNormalization)
+      ? { modelIdNormalization: raw.modelIdNormalization }
+      : {}),
+    ...(normalizeStringList(raw.enabledByDefaultOnPlatforms)
+      ? { enabledByDefaultOnPlatforms: normalizeStringList(raw.enabledByDefaultOnPlatforms) }
+      : {}),
+    ...(normalizeObject(raw.toolMetadata) ? { toolMetadata: raw.toolMetadata } : {}),
   };
 }
 
@@ -410,7 +431,7 @@ function resolveBundledChannelEntries(entries) {
 export async function collectBundledPluginMetadata(params = {}) {
   const repoRoot = path.resolve(params.repoRoot ?? process.cwd());
   const entries = [];
-  for (const source of collectBundledPluginSources({ repoRoot, requirePackageJson: true })) {
+  for (const source of collectBundledPluginSources({ repoRoot, requirePackageJson: false })) {
     const manifest = normalizePluginManifest(source.manifest);
     if (!manifest) {
       continue;
@@ -418,9 +439,17 @@ export async function collectBundledPluginMetadata(params = {}) {
 
     const packageJson = source.packageJson;
     const packageManifest = normalizePackageManifest(packageJson);
-    const extensions = Array.isArray(packageManifest?.extensions)
+    const rawExtensions = Array.isArray(packageManifest?.extensions)
       ? packageManifest.extensions.filter((entry) => typeof entry === "string" && entry.trim())
       : [];
+    const extensions =
+      rawExtensions.length > 0
+        ? rawExtensions
+        : fs.existsSync(path.join(source.pluginDir, "index.ts"))
+          ? ["./index.ts"]
+          : fs.existsSync(path.join(source.pluginDir, "index.js"))
+            ? ["./index.js"]
+            : [];
     if (extensions.length === 0) {
       continue;
     }
@@ -449,12 +478,25 @@ export async function collectBundledPluginMetadata(params = {}) {
       manifest.channelConfigs = channelConfigs;
     }
 
+    const candidatePackageName =
+      typeof packageJson?.name === "string" && packageJson.name.trim()
+        ? packageJson.name.trim()
+        : `@coreblow/${source.dirName}`;
+    const candidatePackageVersion =
+      typeof packageJson?.version === "string" && packageJson.version.trim()
+        ? packageJson.version.trim()
+        : "2026.3.27";
+    const candidatePackageDescription =
+      typeof packageJson?.description === "string" && packageJson.description.trim()
+        ? packageJson.description.trim()
+        : `CoreBlow ${source.dirName} plugin`;
+
     entries.push({
       dirName: source.dirName,
       idHint: deriveIdHint({
         filePath: sourceEntry,
         manifestId: manifest.id,
-        packageName: typeof packageJson.name === "string" ? packageJson.name : undefined,
+        packageName: candidatePackageName,
         hasMultipleExtensions: extensions.length > 1,
       }),
       source: {
@@ -466,14 +508,10 @@ export async function collectBundledPluginMetadata(params = {}) {
         : {}),
       ...(publicSurfaceArtifacts ? { publicSurfaceArtifacts } : {}),
       ...(runtimeSidecarArtifacts ? { runtimeSidecarArtifacts } : {}),
-      ...(typeof packageJson.name === "string" ? { packageName: packageJson.name.trim() } : {}),
-      ...(typeof packageJson.version === "string"
-        ? { packageVersion: packageJson.version.trim() }
-        : {}),
-      ...(typeof packageJson.description === "string"
-        ? { packageDescription: packageJson.description.trim() }
-        : {}),
-      ...(packageManifest ? { packageManifest } : {}),
+      packageName: candidatePackageName,
+      packageVersion: candidatePackageVersion,
+      packageDescription: candidatePackageDescription,
+      packageManifest: packageManifest ?? { extensions: [sourceEntry] },
       manifest,
     });
   }

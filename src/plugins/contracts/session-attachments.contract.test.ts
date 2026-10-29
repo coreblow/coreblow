@@ -4,7 +4,7 @@ import {
   createPluginRegistryFixture,
   registerTestPlugin,
 } from "../../plugin-sdk/plugin-test-contracts.js";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { updateSessionStore, type SessionEntry } from "../../config/sessions.js";
 import { withTempConfig } from "../../gateway/test-temp-config.js";
 import { resolvePreferredOpenClawTmpDir } from "../../infra/tmp-coreblow-dir.js";
@@ -15,6 +15,7 @@ import {
   resolveAttachmentDelivery,
   resolveSessionAttachmentThreadId,
   sendPluginSessionAttachment,
+  setAttachmentTestOverrides,
 } from "../host-hook-attachments.js";
 import { clearPluginLoaderCache } from "../loader.js";
 import { createEmptyPluginRegistry } from "../registry-empty.js";
@@ -42,13 +43,21 @@ type TestSessionEntry = {
   deliveryContext?: Record<string, unknown>;
 };
 
-vi.mock("../../channels/plugins/index.js", () => ({
-  getChannelPlugin: workflowMocks.getChannelPlugin,
-}));
+vi.mock("../../channels/plugins/index.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../channels/plugins/index.js")>();
+  return {
+    ...actual,
+    getChannelPlugin: workflowMocks.getChannelPlugin,
+  };
+});
 
-vi.mock("../../infra/outbound/message.js", () => ({
-  sendMessage: workflowMocks.sendMessage,
-}));
+vi.mock("../../infra/outbound/message.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../infra/outbound/message.js")>();
+  return {
+    ...actual,
+    sendMessage: workflowMocks.sendMessage,
+  };
+});
 
 function createSilentPluginLogger() {
   return {
@@ -68,18 +77,25 @@ async function withSessionStore(
   const storePath = path.join(stateDir, "sessions.json");
   const filePath = path.join(stateDir, "x.txt");
   await fs.writeFile(filePath, "x", "utf8");
-  const previousStateDir = process.env.OPENCLAW_STATE_DIR;
+  const previousOpenClawStateDir = process.env.OPENCLAW_STATE_DIR;
+  const previousCoreBlowStateDir = process.env.COREBLOW_STATE_DIR;
   process.env.OPENCLAW_STATE_DIR = stateDir;
+  process.env.COREBLOW_STATE_DIR = stateDir;
   try {
     await withTempConfig({
       cfg: { session: { store: storePath } },
       run: async () => await run({ stateDir, storePath, filePath }),
     });
   } finally {
-    if (previousStateDir === undefined) {
+    if (previousOpenClawStateDir === undefined) {
       delete process.env.OPENCLAW_STATE_DIR;
     } else {
-      process.env.OPENCLAW_STATE_DIR = previousStateDir;
+      process.env.OPENCLAW_STATE_DIR = previousOpenClawStateDir;
+    }
+    if (previousCoreBlowStateDir === undefined) {
+      delete process.env.COREBLOW_STATE_DIR;
+    } else {
+      process.env.COREBLOW_STATE_DIR = previousCoreBlowStateDir;
     }
     await fs.rm(stateDir, { recursive: true, force: true });
   }
@@ -139,7 +155,18 @@ function requireFirstSendMessageParams() {
 }
 
 describe("plugin session attachments", () => {
+  let restoreOverrides: (() => void) | undefined;
+
+  beforeEach(() => {
+    restoreOverrides = setAttachmentTestOverrides({
+      getChannelPlugin: async () => workflowMocks.getChannelPlugin,
+      sendMessage: workflowMocks.sendMessage as never,
+    });
+  });
+
   afterEach(() => {
+    restoreOverrides?.();
+    restoreOverrides = undefined;
     workflowMocks.getChannelPlugin.mockReset();
     workflowMocks.sendMessage.mockReset();
     setActivePluginRegistry(createEmptyPluginRegistry());

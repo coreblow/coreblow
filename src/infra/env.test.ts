@@ -5,11 +5,28 @@ const loggerMocks = vi.hoisted(() => ({
   info: vi.fn(),
 }));
 
-vi.mock("../logging/subsystem.js", () => ({
-  createSubsystemLogger: () => ({
-    info: loggerMocks.info,
-  }),
-}));
+vi.mock("../logging/subsystem.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../logging/subsystem.js")>();
+  const makeLogger = () => {
+    const logger = {
+      subsystem: "env",
+      isEnabled: () => true,
+      trace: vi.fn(),
+      debug: vi.fn(),
+      info: loggerMocks.info,
+      warn: vi.fn(),
+      error: vi.fn(),
+      fatal: vi.fn(),
+      raw: vi.fn(),
+      child: () => logger,
+    };
+    return logger;
+  };
+  return {
+    ...actual,
+    createSubsystemLogger: vi.fn(() => makeLogger()),
+  };
+});
 
 type EnvModule = typeof import("./env.js");
 

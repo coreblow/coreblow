@@ -93,9 +93,13 @@ vi.mock("../runtime.js", async (importOriginal) => ({
   defaultRuntime,
 }));
 
-vi.mock("../config/config.js", () => ({
-  loadConfig: () => ({}),
-}));
+vi.mock("../config/config.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../config/config.js")>();
+  return {
+    ...actual,
+    loadConfig: () => ({}),
+  };
+});
 
 vi.mock("../infra/exec-approvals.js", async () => {
   const actual = await vi.importActual<typeof import("../infra/exec-approvals.js")>(
