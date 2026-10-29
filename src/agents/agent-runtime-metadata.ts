@@ -31,7 +31,7 @@ export function resolveModelAgentRuntimeMetadata(params: {
   /**
    * The ACP backend identifier stored on the session entry (`entry.acp.backend`).
    * When provided for an ACP-keyed session, the overlay reports this value as the
-   * runtime id instead of the generic fallback "acpx", so sessions backed by a
+   * runtime id instead of the generic fallback "acp", so sessions backed by a
    * non-default registered ACP backend are classified correctly.
    */
   acpBackend?: string;

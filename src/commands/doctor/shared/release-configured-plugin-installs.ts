@@ -207,11 +207,14 @@ function collectAcpRuntimePluginIds(cfg: CoreBlowConfig): string[] {
   }
   const backend = normalizeId(acp.backend)?.toLowerCase() ?? "";
   const configured =
-    acp.enabled === true || asObjectRecord(acp.dispatch)?.enabled === true || backend === "acpx";
-  if (!configured || (backend && backend !== "acpx")) {
+    acp.enabled === true ||
+    asObjectRecord(acp.dispatch)?.enabled === true ||
+    backend === "acpx" ||
+    backend === "acp";
+  if (!configured || (backend && backend !== "acpx" && backend !== "acp")) {
     return [];
   }
-  return ["acpx"];
+  return [backend === "acp" ? "acp" : "acpx"];
 }
 
 function collectAllowOnlyOfficialPluginIds(cfg: CoreBlowConfig): string[] {

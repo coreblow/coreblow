@@ -3,7 +3,8 @@ import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 const TOOL_CALL_NAME_MAX_CHARS = 64;
 const TOOL_CALL_NAME_RE = /^[A-Za-z0-9_:.-]+$/;
 
-export const REDACTED_SESSIONS_SPAWN_ATTACHMENT_CONTENT = "__OPENCLAW_REDACTED__";
+export const REDACTED_SESSIONS_SPAWN_ATTACHMENT_CONTENT = "__COREBLOW_REDACTED__";
+export const LEGACY_REDACTED_SESSIONS_SPAWN_ATTACHMENT_CONTENT = "__OPENCLAW_REDACTED__";
 export const SESSIONS_SPAWN_ATTACHMENT_METADATA_KEYS = ["name", "encoding", "mimeType"] as const;
 
 export function normalizeAllowedToolNames(allowedToolNames?: Iterable<string>): Set<string> | null {
@@ -49,7 +50,10 @@ export function isRedactedSessionsSpawnAttachment(item: unknown): boolean {
     return false;
   }
   const attachment = item as Record<string, unknown>;
-  if (attachment.content !== REDACTED_SESSIONS_SPAWN_ATTACHMENT_CONTENT) {
+  if (
+    attachment.content !== REDACTED_SESSIONS_SPAWN_ATTACHMENT_CONTENT &&
+    attachment.content !== LEGACY_REDACTED_SESSIONS_SPAWN_ATTACHMENT_CONTENT
+  ) {
     return false;
   }
   for (const key of Object.keys(attachment)) {

@@ -18,6 +18,12 @@ export type ConfiguredRuntimePluginInstallCandidate = {
 export const CONFIGURED_RUNTIME_PLUGIN_INSTALL_CANDIDATES: readonly ConfiguredRuntimePluginInstallCandidate[] =
   [
     {
+      pluginId: "acp",
+      label: "ACP Runtime",
+      npmSpec: "@coreblow/ext-acp",
+      trustedSourceLinkedOfficialInstall: true,
+    },
+    {
       pluginId: "acpx",
       label: "ACPX Runtime",
       npmSpec: "@coreblow/acpx",
@@ -50,8 +56,11 @@ function acpxRuntimeIsConfigured(cfg: CoreBlowConfig): boolean {
   const acp = asRecord(cfg.acp);
   const backend = typeof acp?.backend === "string" ? acp.backend.trim().toLowerCase() : "";
   return (
-    (backend === "acpx" || acp?.enabled === true || asRecord(acp?.dispatch)?.enabled === true) &&
-    (!backend || backend === "acpx")
+    (backend === "acp" ||
+      backend === "acpx" ||
+      acp?.enabled === true ||
+      asRecord(acp?.dispatch)?.enabled === true) &&
+    (!backend || backend === "acp" || backend === "acpx")
   );
 }
 
@@ -62,7 +71,13 @@ export function collectConfiguredRuntimePluginIds(
 ): string[] {
   const ids = new Set(collectConfiguredAgentHarnessRuntimes(cfg, env, options));
   if (acpxRuntimeIsConfigured(cfg)) {
-    ids.add("acpx");
+    const acp = asRecord(cfg.acp);
+    const backend = typeof acp?.backend === "string" ? acp.backend.trim().toLowerCase() : "";
+    if (backend === "acp") {
+      ids.add("acp");
+    } else {
+      ids.add("acpx");
+    }
   }
   return [...ids].toSorted((left, right) => left.localeCompare(right));
 }

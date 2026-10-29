@@ -1,4 +1,5 @@
-const SESSION_WRITE_LOCK_TIMEOUT_CODE = "OPENCLAW_SESSION_WRITE_LOCK_TIMEOUT";
+const SESSION_WRITE_LOCK_TIMEOUT_CODE = "COREBLOW_SESSION_WRITE_LOCK_TIMEOUT";
+const LEGACY_SESSION_WRITE_LOCK_TIMEOUT_CODE = "OPENCLAW_SESSION_WRITE_LOCK_TIMEOUT";
 
 export class SessionWriteLockTimeoutError extends Error {
   readonly code = SESSION_WRITE_LOCK_TIMEOUT_CODE;
@@ -23,7 +24,8 @@ export function isSessionWriteLockTimeoutError(err: unknown): boolean {
     Boolean(
       err &&
       typeof err === "object" &&
-      (err as { code?: unknown }).code === SESSION_WRITE_LOCK_TIMEOUT_CODE,
+      ((err as { code?: unknown }).code === SESSION_WRITE_LOCK_TIMEOUT_CODE ||
+        (err as { code?: unknown }).code === LEGACY_SESSION_WRITE_LOCK_TIMEOUT_CODE),
     )
   );
 }

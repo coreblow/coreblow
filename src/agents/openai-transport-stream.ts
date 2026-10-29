@@ -1000,7 +1000,7 @@ function createResponsesFirstEventTimeoutError(model: Model<Api>, timeoutMs: num
   return new Error(
     `Azure OpenAI Responses stream did not deliver a first event within ${timeoutMs}ms after HTTP streaming headers. ` +
       `provider=${model.provider} model=${model.id}. ` +
-      "The provider may be stalled while parsing the tool payload; retry with a smaller tool surface or enable OPENCLAW_DEBUG_MODEL_PAYLOAD=tools to inspect exposed tools.",
+      "The provider may be stalled while parsing the tool payload; retry with a smaller tool surface or enable COREBLOW_DEBUG_MODEL_PAYLOAD=tools to inspect exposed tools.",
   );
 }
 

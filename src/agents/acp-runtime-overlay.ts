@@ -27,8 +27,8 @@ export type AgentRuntimeMetadata = {
  *
  * When `acpBackend` is provided and non-empty, it is used as the runtime id so that
  * sessions backed by a configured non-default ACP backend (e.g. a custom registered
- * backend) are reported faithfully instead of always being labelled "acpx".
- * Falls back to "acpx" when no backend is known.
+ * backend) are reported faithfully instead of always being labelled "acp".
+ * Falls back to "acp" when no backend is known.
  */
 export function applyAcpRuntimeOverlay(
   meta: AgentRuntimeMetadata,
@@ -37,7 +37,7 @@ export function applyAcpRuntimeOverlay(
   acpBackend?: string,
 ): AgentRuntimeMetadata {
   if (acpRuntime === true && isAcpSessionKey(sessionKey)) {
-    const id = acpBackend && acpBackend.length > 0 ? acpBackend : "acpx";
+    const id = acpBackend && acpBackend.length > 0 ? acpBackend : "acp";
     return { id, source: "session-key" };
   }
   return meta;
