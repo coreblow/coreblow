@@ -149,6 +149,9 @@ function resolveReportedPluginVersion(
   );
 }
 
+export const buildPluginRegistrySnapshotReport = buildPluginStatusReport;
+export type PluginRegistryStatusReport = PluginStatusReport;
+
 export function buildPluginStatusReport(params?: {
   config?: ReturnType<typeof loadConfig>;
   workspaceDir?: string;

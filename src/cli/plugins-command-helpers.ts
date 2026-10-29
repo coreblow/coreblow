@@ -5,9 +5,16 @@ import { parseRegistryNpmSpec } from "../infra/npm-registry-spec.js";
 import { COREHUB_INSTALL_ERROR_CODE } from "../plugins/corehub.js";
 import { applyExclusiveSlotSelection, slotKeyForPluginKind } from "../plugins/slots.js";
 import { buildPluginStatusReport } from "../plugins/status.js";
-import type { PluginKind } from "../plugins/types.js";
+import type { PluginKind, PluginLogger } from "../plugins/types.js";
 import { defaultRuntime } from "../runtime.js";
 import { theme } from "../terminal/theme.js";
+
+export const quietPluginJsonLogger: PluginLogger = {
+  debug: () => undefined,
+  info: () => undefined,
+  warn: () => undefined,
+  error: () => undefined,
+};
 
 type HookInternalEntryLike = Record<string, unknown> & { enabled?: boolean };
 

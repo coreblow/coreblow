@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
 import type { CoreBlowConfig } from "../config/config.js";
-import { loadConfig } from "../config/config.js";
+import { loadConfig, readConfigFileSnapshot } from "../config/config.js";
 import { applyPluginAutoEnable } from "../config/plugin-auto-enable.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { loadCoreBlowPlugins, type PluginLoadOptions } from "./loader.js";
@@ -9,6 +9,15 @@ import type { CoreBlowPluginCliCommandDescriptor } from "./types.js";
 import type { PluginLogger } from "./types.js";
 
 const log = createSubsystemLogger("plugins");
+
+export const loadValidatedConfigForPluginRegistration =
+  async (): Promise<CoreBlowConfig | null> => {
+    const snapshot = await readConfigFileSnapshot();
+    if (!snapshot.valid) {
+      return null;
+    }
+    return loadConfig();
+  };
 
 function loadPluginCliRegistry(
   cfg?: CoreBlowConfig,
@@ -105,4 +114,18 @@ export function registerPluginCliCommands(
       log.warn(`plugin CLI register failed (${entry.pluginId}): ${String(err)}`);
     }
   }
+}
+
+export async function registerPluginCliCommandsFromValidatedConfig(
+  program: Command,
+  env?: NodeJS.ProcessEnv,
+  loaderOptions?: Pick<PluginLoadOptions, "pluginSdkResolution">,
+  _options?: { mode?: "eager" | "lazy"; primary?: string | null },
+): Promise<CoreBlowConfig | null> {
+  const config = await loadValidatedConfigForPluginRegistration();
+  if (!config) {
+    return null;
+  }
+  registerPluginCliCommands(program, config, env, loaderOptions);
+  return config;
 }

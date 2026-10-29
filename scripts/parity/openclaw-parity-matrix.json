@@ -7,20 +7,20 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8904,
+    "cb_source_files": 8958,
     "oc_source_files": 8443,
-    "source_parity_both": 7121,
+    "source_parity_both": 7175,
     "source_cb_exclusive": 1783,
-    "source_missing_from_cb": 1296,
+    "source_missing_from_cb": 1242,
     "source_intentionally_deprecated": 27,
-    "test_files_cb": 5079,
+    "test_files_cb": 5114,
     "test_files_oc": 5246,
-    "tests_both_covered": 3643,
-    "tests_gap_oc_has_cb_missing": 1341,
+    "tests_both_covered": 3677,
+    "tests_gap_oc_has_cb_missing": 1307,
     "tests_intentionally_deprecated": 17,
-    "tests_cb_exclusive": 1373,
-    "export_files_with_gaps": 47,
-    "test_scenario_files_with_gaps": 38,
+    "tests_cb_exclusive": 1374,
+    "export_files_with_gaps": 41,
+    "test_scenario_files_with_gaps": 39,
     "test_scenario_files_intentionally_different": 0
   },
   "statusLegend": {
@@ -40,9 +40,9 @@
         "sharedSourcePaths": 692,
         "coreBlowOnlySourcePaths": 203,
         "openClawOnlySourcePaths": 179,
-        "sharedTestPaths": 447,
+        "sharedTestPaths": 455,
         "coreBlowOnlyTestPaths": 188,
-        "openClawTestGaps": 273
+        "openClawTestGaps": 265
       },
       "samples": {
         "openClawOnlySourcePaths": [
@@ -62,16 +62,16 @@
         "openClawTestGapPaths": [
           "src/agents/agent-command.live-model-switch.test.ts",
           "src/agents/auth-profile-runtime-contract.test.ts",
-          "src/agents/auth-profiles/oauth-lock-path.test.ts",
           "src/agents/auth-profiles/oauth-manager.test.ts",
-          "src/agents/auth-profiles/oauth-refresh-queue.test.ts",
-          "src/agents/auth-profiles/oauth-refresh-timeout.test.ts",
-          "src/agents/auth-profiles/oauth-shared.test.ts",
           "src/agents/auth-profiles/oauth.adopt-identity.test.ts",
           "src/agents/auth-profiles/oauth.concurrent-agents.test.ts",
           "src/agents/auth-profiles/oauth.mirror-refresh.test.ts",
-          "src/agents/auth-profiles/paths-direct-import.test.ts",
-          "src/agents/auth-profiles/persisted-boundary.test.ts"
+          "src/agents/auth-profiles.external-cli-scope.test.ts",
+          "src/agents/bash-tools.exec-host-gateway.test.ts",
+          "src/agents/bash-tools.exec-host-shared.test.ts",
+          "src/agents/bash-tools.exec-runtime.pty-fallback.test.ts",
+          "src/agents/bash-tools.exec.security-floor.test.ts",
+          "src/agents/bash-tools.process-send-keys.test.ts"
         ],
         "coreBlowOnlySourcePaths": [
           "src/agents/agent-engine-config.ts",
@@ -154,69 +154,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/auto-reply",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/telegram",
-      "status": "partial",
-      "priority": "P1",
-      "implementationSurface": "extensions/telegram plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 110,
-        "coreBlowOnlySourcePaths": 16,
-        "openClawOnlySourcePaths": 101,
-        "sharedTestPaths": 62,
-        "coreBlowOnlyTestPaths": 9,
-        "openClawTestGaps": 55
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/telegram/src/access-groups.ts",
-          "extensions/telegram/src/account-config.ts",
-          "extensions/telegram/src/account-selection.ts",
-          "extensions/telegram/src/account-throttler.ts",
-          "extensions/telegram/src/agent-config.ts",
-          "extensions/telegram/src/api-root.ts",
-          "extensions/telegram/src/approval-callback-data.ts",
-          "extensions/telegram/src/approval-handler.runtime.ts",
-          "extensions/telegram/src/approval-native.ts",
-          "extensions/telegram/src/audit.types.ts",
-          "extensions/telegram/src/auto-topic-label-config.ts",
-          "extensions/telegram/src/auto-topic-label.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/telegram/src/account-throttler.test.ts",
-          "extensions/telegram/src/action-threading.test.ts",
-          "extensions/telegram/src/api-root.test.ts",
-          "extensions/telegram/src/approval-callback-data.test.ts",
-          "extensions/telegram/src/approval-handler.runtime.test.ts",
-          "extensions/telegram/src/approval-native.test.ts",
-          "extensions/telegram/src/auto-topic-label.test.ts",
-          "extensions/telegram/src/bot/native-quote.test.ts",
-          "extensions/telegram/src/bot-core.raw-update-log.test.ts",
-          "extensions/telegram/src/bot-handlers.runtime.test.ts",
-          "extensions/telegram/src/bot-info-cache.test.ts",
-          "extensions/telegram/src/bot-message-context.body.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "extensions/telegram/src/adapter.ts",
-          "extensions/telegram/src/approval-buttons.ts",
-          "extensions/telegram/src/bot-handlers.buffers.ts",
-          "extensions/telegram/src/bot-handlers.ts",
-          "extensions/telegram/src/config.ts",
-          "extensions/telegram/src/exec-approvals-handler.ts",
-          "extensions/telegram/src/extension.ts",
-          "extensions/telegram/src/formatter.ts",
-          "extensions/telegram/src/handler.ts",
-          "extensions/telegram/src/index.ts",
-          "extensions/telegram/src/media.ts",
-          "extensions/telegram/src/rate-limiter.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/telegram",
         "pnpm check"
       ]
     },
@@ -350,6 +287,69 @@
       ]
     },
     {
+      "domain": "extensions/telegram",
+      "status": "partial",
+      "priority": "P1",
+      "implementationSurface": "extensions/telegram plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 133,
+        "coreBlowOnlySourcePaths": 16,
+        "openClawOnlySourcePaths": 78,
+        "sharedTestPaths": 72,
+        "coreBlowOnlyTestPaths": 9,
+        "openClawTestGaps": 45
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [
+          "extensions/telegram/src/audit.types.ts",
+          "extensions/telegram/src/bot-core.ts",
+          "extensions/telegram/src/bot-handlers.agent.runtime.ts",
+          "extensions/telegram/src/bot-handlers.debounce-key.ts",
+          "extensions/telegram/src/bot-message-context.audio-transcript.test-support.ts",
+          "extensions/telegram/src/bot-message-context.implicit-mention.test-support.ts",
+          "extensions/telegram/src/bot-message-context.named-account-dm.test-support.ts",
+          "extensions/telegram/src/bot-message-context.runtime.ts",
+          "extensions/telegram/src/bot-message-context.sender-prefix.test-support.ts",
+          "extensions/telegram/src/bot-message-context.session-recreate.test-support.ts",
+          "extensions/telegram/src/bot-message-context.session.runtime.ts",
+          "extensions/telegram/src/bot-message-context.silent-ingest.test-support.ts"
+        ],
+        "openClawTestGapPaths": [
+          "extensions/telegram/src/action-threading.test.ts",
+          "extensions/telegram/src/bot-core.raw-update-log.test.ts",
+          "extensions/telegram/src/bot-handlers.runtime.test.ts",
+          "extensions/telegram/src/bot-message-context.body.test.ts",
+          "extensions/telegram/src/bot-message-context.dm-session.test.ts",
+          "extensions/telegram/src/bot-message-context.group-body.test.ts",
+          "extensions/telegram/src/bot-message-context.reactions.test.ts",
+          "extensions/telegram/src/bot-message-context.require-mention.test.ts",
+          "extensions/telegram/src/bot-message-dispatch.media-dedup.test.ts",
+          "extensions/telegram/src/bot-update-tracker.test.ts",
+          "extensions/telegram/src/bot.command-menu.test.ts",
+          "extensions/telegram/src/bot.create-telegram-bot.media-group-skip-warning.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "extensions/telegram/src/adapter.ts",
+          "extensions/telegram/src/approval-buttons.ts",
+          "extensions/telegram/src/bot-handlers.buffers.ts",
+          "extensions/telegram/src/bot-handlers.ts",
+          "extensions/telegram/src/config.ts",
+          "extensions/telegram/src/exec-approvals-handler.ts",
+          "extensions/telegram/src/extension.ts",
+          "extensions/telegram/src/formatter.ts",
+          "extensions/telegram/src/handler.ts",
+          "extensions/telegram/src/index.ts",
+          "extensions/telegram/src/media.ts",
+          "extensions/telegram/src/rate-limiter.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/telegram",
+        "pnpm check"
+      ]
+    },
+    {
       "domain": "extensions/whatsapp",
       "status": "partial",
       "priority": "P1",
@@ -409,79 +409,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/whatsapp",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "src/cli",
-      "status": "partial",
-      "priority": "P1",
-      "implementationSurface": "src/cli program and command wiring",
-      "counts": {
-        "sharedSourcePaths": 188,
-        "coreBlowOnlySourcePaths": 61,
-        "openClawOnlySourcePaths": 67,
-        "sharedTestPaths": 113,
-        "coreBlowOnlyTestPaths": 51,
-        "openClawTestGaps": 51
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "src/cli/argv-invocation.ts",
-          "src/cli/capability-cli.ts",
-          "src/cli/command-bootstrap.ts",
-          "src/cli/command-catalog.ts",
-          "src/cli/command-execution-startup.ts",
-          "src/cli/command-path-matches.ts",
-          "src/cli/command-path-policy.ts",
-          "src/cli/command-registration-policy.ts",
-          "src/cli/command-startup-policy.ts",
-          "src/cli/completion-runtime.ts",
-          "src/cli/config-recovery-hints.ts",
-          "src/cli/cron-cli/thread-id-shared.ts"
-        ],
-        "openClawTestGapPaths": [
-          "src/cli/argv-invocation.test.ts",
-          "src/cli/capability-cli.test.ts",
-          "src/cli/channels-cli.test.ts",
-          "src/cli/command-bootstrap.test.ts",
-          "src/cli/command-execution-startup.test.ts",
-          "src/cli/command-path-matches.test.ts",
-          "src/cli/command-path-policy.test.ts",
-          "src/cli/command-registration-policy.test.ts",
-          "src/cli/command-secret-targets.import.test.ts",
-          "src/cli/command-startup-policy.test.ts",
-          "src/cli/completion-cli.write-state.test.ts",
-          "src/cli/completion-runtime.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/cli/auth/auth-store.ts",
-          "src/cli/cli-banner.ts",
-          "src/cli/command-parser.ts",
-          "src/cli/commands/agent-cmd.ts",
-          "src/cli/commands/agents-cmd.ts",
-          "src/cli/commands/auth-cmd.ts",
-          "src/cli/commands/backup-cmd.ts",
-          "src/cli/commands/channels-cmd.ts",
-          "src/cli/commands/chat-cmd.ts",
-          "src/cli/commands/completion-cmd.ts",
-          "src/cli/commands/config-cmd.ts",
-          "src/cli/commands/configure-cmd.ts"
-        ]
-      },
-      "intentionalBehaviorDifferences": [
-        {
-          "path": "src/cli/clawbot-cli.ts",
-          "status": "intentionally_different",
-          "referenceBehavior": "OpenClaw exposes the branded legacy command group as clawbot.",
-          "coreBlowDecision": "CoreBlow exposes the equivalent QR compatibility command group as corebot via src/cli/corebot-cli.ts.",
-          "rationale": "Keep the public compatibility surface aligned with CoreBlow product naming.",
-          "gate": "pnpm test -- src/cli/program/register.subclis.test.ts"
-        }
-      ],
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/cli",
         "pnpm check"
       ]
     },
@@ -999,6 +926,79 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/channels",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/cli",
+      "status": "partial",
+      "priority": "P2",
+      "implementationSurface": "src/cli program and command wiring",
+      "counts": {
+        "sharedSourcePaths": 219,
+        "coreBlowOnlySourcePaths": 61,
+        "openClawOnlySourcePaths": 36,
+        "sharedTestPaths": 129,
+        "coreBlowOnlyTestPaths": 52,
+        "openClawTestGaps": 35
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [
+          "src/cli/capability-cli.ts",
+          "src/cli/daemon-cli/launchd-recovery.ts",
+          "src/cli/daemon-cli/lifecycle.runtime.ts",
+          "src/cli/daemon-cli/start-repair.ts",
+          "src/cli/daemon-cli/status.runtime.ts",
+          "src/cli/deps.types.ts",
+          "src/cli/devices-cli.runtime.ts",
+          "src/cli/exec-policy-cli.ts",
+          "src/cli/gateway-cli/lifecycle.runtime.ts",
+          "src/cli/gateway-cli/qa-parent-watchdog.ts",
+          "src/cli/gateway-rpc.runtime.ts",
+          "src/cli/gateway-rpc.types.ts"
+        ],
+        "openClawTestGapPaths": [
+          "src/cli/capability-cli.test.ts",
+          "src/cli/channels-cli.test.ts",
+          "src/cli/command-secret-targets.import.test.ts",
+          "src/cli/daemon-cli/launchd-recovery.test.ts",
+          "src/cli/devices-cli.lazy.test.ts",
+          "src/cli/exec-policy-cli.test.ts",
+          "src/cli/gateway-cli/qa-parent-watchdog.test.ts",
+          "src/cli/gateway-cli/run.supervised-lock.test.ts",
+          "src/cli/help-cold-imports.test.ts",
+          "src/cli/model-auth-runtime-boundary.test.ts",
+          "src/cli/models-cli.lazy.test.ts",
+          "src/cli/native-hook-relay-cli.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "src/cli/auth/auth-store.ts",
+          "src/cli/cli-banner.ts",
+          "src/cli/command-parser.ts",
+          "src/cli/commands/agent-cmd.ts",
+          "src/cli/commands/agents-cmd.ts",
+          "src/cli/commands/auth-cmd.ts",
+          "src/cli/commands/backup-cmd.ts",
+          "src/cli/commands/channels-cmd.ts",
+          "src/cli/commands/chat-cmd.ts",
+          "src/cli/commands/completion-cmd.ts",
+          "src/cli/commands/config-cmd.ts",
+          "src/cli/commands/configure-cmd.ts"
+        ]
+      },
+      "intentionalBehaviorDifferences": [
+        {
+          "path": "src/cli/clawbot-cli.ts",
+          "status": "intentionally_different",
+          "referenceBehavior": "OpenClaw exposes the branded legacy command group as clawbot.",
+          "coreBlowDecision": "CoreBlow exposes the equivalent QR compatibility command group as corebot via src/cli/corebot-cli.ts.",
+          "rationale": "Keep the public compatibility surface aligned with CoreBlow product naming.",
+          "gate": "pnpm test -- src/cli/program/register.subclis.test.ts"
+        }
+      ],
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/cli",
         "pnpm check"
       ]
     },

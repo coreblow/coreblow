@@ -136,7 +136,7 @@ export function hasEmittedCliBanner(): boolean {
  * Emit the CLI banner with an explicit version string.
  * Alias used by preaction hooks that pass the program version.
  */
-export function emitCliBanner(programVersion?: string): void {
+export function emitCliBanner(programVersion?: string, _opts?: { argv?: string[] }): void {
     if (bannerEmitted) return;
     bannerEmitted = true;
     const ver = programVersion ? `v${programVersion}` : `v${version}`;

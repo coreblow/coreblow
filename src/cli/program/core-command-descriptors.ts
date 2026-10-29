@@ -94,7 +94,17 @@ export function getCoreCliCommandDescriptors(): ReadonlyArray<CoreCliCommandDesc
   return CORE_CLI_COMMAND_DESCRIPTORS;
 }
 
+export function getCoreCliCommandNames(): string[] {
+  return CORE_CLI_COMMAND_DESCRIPTORS.map((command) => command.name);
+}
+
 export function getCoreCliCommandsWithSubcommands(): string[] {
+  return CORE_CLI_COMMAND_DESCRIPTORS.filter((command) => command.hasSubcommands).map(
+    (command) => command.name,
+  );
+}
+
+export function getCoreCliParentDefaultHelpCommands(): string[] {
   return CORE_CLI_COMMAND_DESCRIPTORS.filter((command) => command.hasSubcommands).map(
     (command) => command.name,
   );

@@ -162,3 +162,11 @@ export function getSubCliEntries(): ReadonlyArray<SubCliDescriptor> {
 export function getSubCliCommandsWithSubcommands(): string[] {
   return SUB_CLI_DESCRIPTORS.filter((entry) => entry.hasSubcommands).map((entry) => entry.name);
 }
+
+export function getSubCliCommandNames(): string[] {
+  return SUB_CLI_DESCRIPTORS.map((entry) => entry.name);
+}
+
+export function getSubCliParentDefaultHelpCommands(): string[] {
+  return SUB_CLI_DESCRIPTORS.filter((entry) => entry.hasSubcommands).map((entry) => entry.name);
+}
