@@ -3,7 +3,7 @@ import { tmpdir as getOsTmpDir } from "node:os";
 import path from "node:path";
 
 export const POSIX_COREBLOW_TMP_DIR = "/tmp/coreblow";
-const TMP_DIR_ACCESS_MODE = fs.constants.W_OK | fs.constants.X_OK;
+const TMP_DIR_ACCESS_MODE = (fs.constants?.W_OK ?? 0o2) | (fs.constants?.X_OK ?? 0o1);
 
 type ResolvePreferredCoreBlowTmpDirOptions = {
   accessSync?: (path: string, mode?: number) => void;

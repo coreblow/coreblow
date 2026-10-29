@@ -356,6 +356,14 @@ const INTENTIONALLY_DEPRECATED_UPSTREAM_PATHS = new Set([
   "src/commands/doctor/shared/plugin-registry-migration.test.ts",
   "src/commands/doctor/shared/plugin-registry-migration.ts",
 
+  // src/infra kysely sqlite dialect (CoreBlow uses native node:sqlite directly without kysely)
+  "src/infra/kysely-node-sqlite.ts",
+  "src/infra/kysely-node-sqlite.test.ts",
+  "src/infra/host-env-security.reported-baseline.test.ts",
+  "src/infra/vitest-config.test.ts",
+  "src/infra/vitest-e2e-config.test.ts",
+  "src/infra/vitest-live-config.test.ts",
+
   // src/plugins legacy OpenClaw marketplace & migration providers
   "src/plugins/clawhub.ts",
   "src/plugins/clawhub.test.ts",
@@ -484,11 +492,17 @@ function normalizeCoreBlowPath(path) {
   if (path === "src/infra/openclaw-root.ts") {
     return "src/infra/coreblow-root.ts";
   }
+  if (path === "src/infra/openclaw-root.fs.runtime.ts") {
+    return "src/infra/coreblow-root.fs.runtime.ts";
+  }
   if (path === "src/infra/openclaw-root.test.ts") {
     return "src/infra/coreblow-root.test.ts";
   }
   if (path === "src/infra/tmp-openclaw-dir.ts") {
     return "src/infra/tmp-coreblow-dir.ts";
+  }
+  if (path === "src/infra/tmp-openclaw-dir.browser-import.test.ts") {
+    return "src/infra/tmp-coreblow-dir.browser-import.test.ts";
   }
   if (path === "src/infra/tmp-openclaw-dir.test.ts") {
     return "src/infra/tmp-coreblow-dir.test.ts";

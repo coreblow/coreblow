@@ -33,7 +33,7 @@ export type MessageCliJsonEnvelope = {
   action: ChannelMessageActionName;
   channel: ChannelId;
   dryRun: boolean;
-  handledBy: "plugin" | "core" | "dry-run";
+  handledBy: "plugin" | "core" | "dry-run" | "internal-source";
   payload: unknown;
 };
 

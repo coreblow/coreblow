@@ -73,8 +73,11 @@ export type MessagePresentationBlock =
   | MessagePresentationButtonsBlock
   | MessagePresentationSelectBlock;
 
+export type MessagePresentationTone = "info" | "success" | "warn" | "error";
+
 export type MessagePresentation = {
   title?: string;
+  tone?: MessagePresentationTone;
   blocks: MessagePresentationBlock[];
 };
 
@@ -161,6 +164,76 @@ function normalizeInteractiveBlock(raw: unknown): InteractiveReplyBlock | undefi
   return undefined;
 }
 
+function normalizePresentationTone(value: unknown): MessagePresentationTone | undefined {
+  const tone = readTrimmedString(value)?.toLowerCase();
+  return tone === "info" || tone === "success" || tone === "warn" || tone === "error"
+    ? tone
+    : undefined;
+}
+
+function normalizePresentationBlock(raw: unknown): MessagePresentationBlock | undefined {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    return undefined;
+  }
+  const record = raw as Record<string, unknown>;
+  const type = readTrimmedString(record.type)?.toLowerCase();
+  if (type === "text" || type === "context") {
+    const text = readTrimmedString(record.text);
+    return text ? { type, text } : undefined;
+  }
+  if (type === "divider") {
+    return { type: "divider" };
+  }
+  if (type === "buttons") {
+    const buttons = Array.isArray(record.buttons)
+      ? record.buttons
+          .map((entry) => normalizeInteractiveButton(entry))
+          .filter((entry): entry is MessagePresentationButton => Boolean(entry))
+      : [];
+    return buttons.length > 0 ? { type: "buttons", buttons } : undefined;
+  }
+  if (type === "select") {
+    const options = Array.isArray(record.options)
+      ? record.options
+          .map((entry) => normalizeInteractiveOption(entry))
+          .filter((entry): entry is MessagePresentationOption => Boolean(entry))
+      : [];
+    return options.length > 0
+      ? {
+          type: "select",
+          placeholder: readTrimmedString(record.placeholder),
+          options,
+        }
+      : undefined;
+  }
+  return undefined;
+}
+
+export function normalizeMessagePresentation(raw: unknown): MessagePresentation | undefined {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    return undefined;
+  }
+  const record = raw as Record<string, unknown>;
+  const blocks = Array.isArray(record.blocks)
+    ? record.blocks
+        .map((entry) => normalizePresentationBlock(entry))
+        .filter((entry): entry is MessagePresentationBlock => Boolean(entry))
+    : [];
+  const title = readTrimmedString(record.title);
+  if (!title && blocks.length === 0) {
+    return undefined;
+  }
+  return {
+    ...(title ? { title } : {}),
+    ...(normalizePresentationTone(record.tone) ? { tone: normalizePresentationTone(record.tone) } : {}),
+    blocks,
+  };
+}
+
+export function hasMessagePresentationBlocks(value: unknown): value is MessagePresentation {
+  return Boolean(normalizeMessagePresentation(value));
+}
+
 export function normalizeInteractiveReply(raw: unknown): InteractiveReply | undefined {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
     return undefined;
@@ -189,6 +262,7 @@ export function hasReplyContent(params: {
   mediaUrl?: string | null;
   mediaUrls?: ReadonlyArray<string | null | undefined>;
   interactive?: unknown;
+  presentation?: unknown;
   hasChannelData?: boolean;
   extraContent?: boolean;
 }): boolean {
@@ -197,6 +271,7 @@ export function hasReplyContent(params: {
     params.mediaUrl?.trim() ||
     params.mediaUrls?.some((entry) => Boolean(entry?.trim())) ||
     hasInteractiveReplyBlocks(params.interactive) ||
+    hasMessagePresentationBlocks(params.presentation) ||
     params.hasChannelData ||
     params.extraContent,
   );
@@ -208,6 +283,7 @@ export function hasReplyPayloadContent(
     mediaUrl?: string | null;
     mediaUrls?: ReadonlyArray<string | null | undefined>;
     interactive?: unknown;
+    presentation?: unknown;
     channelData?: unknown;
   },
   options?: {
@@ -221,6 +297,7 @@ export function hasReplyPayloadContent(
     mediaUrl: payload.mediaUrl,
     mediaUrls: payload.mediaUrls,
     interactive: payload.interactive,
+    presentation: payload.presentation,
     hasChannelData: options?.hasChannelData ?? hasReplyChannelData(payload.channelData),
     extraContent: options?.extraContent,
   });

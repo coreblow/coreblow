@@ -118,6 +118,102 @@ export function createTelegramRetryRunner(params: {
 }
 
 // ---------------------------------------------------------------------------
+// RetryPolicy — Standalone OOP Policy
+// ---------------------------------------------------------------------------
+
+export type RetryPolicyOptions = {
+  maxRetries?: number;
+  baseDelayMs?: number;
+  jitter?: boolean;
+};
+
+export type RetryPolicyExecuteOptions = {
+  retryOn?: (err: unknown, attempt: number) => boolean;
+};
+
+export type RetryPolicyResult<T> = {
+  success: boolean;
+  data?: T;
+  error?: Error;
+  attempts: number;
+};
+
+export class RetryPolicy {
+  private maxRetries: number;
+  private baseDelayMs: number;
+  private jitter: boolean;
+  private totalCalls = 0;
+  private totalSuccess = 0;
+  private totalFailed = 0;
+
+  constructor(options: RetryPolicyOptions = {}) {
+    this.maxRetries = options.maxRetries ?? 3;
+    this.baseDelayMs = options.baseDelayMs ?? 100;
+    this.jitter = options.jitter ?? true;
+  }
+
+  static noRetry(): RetryPolicy {
+    return new RetryPolicy({ maxRetries: 0 });
+  }
+
+  static aggressive(): RetryPolicy {
+    return new RetryPolicy({ maxRetries: 5 });
+  }
+
+  static conservative(): RetryPolicy {
+    return new RetryPolicy({ maxRetries: 2 });
+  }
+
+  getStats(): { totalCalls: number; totalSuccess: number; totalFailed: number } {
+    return {
+      totalCalls: this.totalCalls,
+      totalSuccess: this.totalSuccess,
+      totalFailed: this.totalFailed,
+    };
+  }
+
+  resetStats(): void {
+    this.totalCalls = 0;
+    this.totalSuccess = 0;
+    this.totalFailed = 0;
+  }
+
+  async execute<T>(
+    fn: () => Promise<T>,
+    options: RetryPolicyExecuteOptions = {},
+  ): Promise<RetryPolicyResult<T>> {
+    this.totalCalls++;
+    let attempts = 0;
+    let lastError: Error | undefined;
+
+    while (attempts <= this.maxRetries) {
+      try {
+        const data = await fn();
+        attempts++;
+        this.totalSuccess++;
+        return { success: true, data, attempts };
+      } catch (err) {
+        lastError = err instanceof Error ? err : new Error(String(err));
+        if (options.retryOn && !options.retryOn(err, attempts)) {
+          attempts++;
+          break;
+        }
+        attempts++;
+        if (attempts > this.maxRetries) {
+          break;
+        }
+        if (this.baseDelayMs > 0) {
+          await new Promise((resolve) => setTimeout(resolve, this.baseDelayMs));
+        }
+      }
+    }
+
+    this.totalFailed++;
+    return { success: false, error: lastError, attempts };
+  }
+}
+
+// ---------------------------------------------------------------------------
 // RetryPolicyService — Tier-1 Standalone Singleton
 // ---------------------------------------------------------------------------
 

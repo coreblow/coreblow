@@ -14,7 +14,7 @@ import {
   type TypingCallbacks,
 } from "../typing.js";
 
-export type SourceReplyDeliveryMode = "message_tool_only";
+export type SourceReplyDeliveryMode = "automatic" | "message_tool_only";
 export type SourceReplyDeliveryModeContext = {
   channel?: string | null;
   source?: string | null;

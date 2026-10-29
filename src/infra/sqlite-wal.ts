@@ -1,5 +1,7 @@
 import type { DatabaseSync } from "node:sqlite";
 
+export const DEFAULT_SQLITE_WAL_AUTOCHECKPOINT_PAGES = 1000;
+
 export type SqliteWalMaintenance = {
   checkpoint: () => boolean;
   close: () => boolean;

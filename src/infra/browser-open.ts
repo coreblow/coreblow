@@ -1,5 +1,7 @@
+import path from "node:path";
 import { runCommandWithTimeout } from "../process/exec.js";
 import { detectBinary } from "./detect-binary.js";
+import { getWindowsInstallRoots } from "./windows-install-roots.js";
 import { isWSL } from "./wsl.js";
 
 export type BrowserOpenCommand = {
@@ -22,6 +24,11 @@ function shouldSkipBrowserOpenInTests(): boolean {
   return process.env.NODE_ENV === "test";
 }
 
+function resolveWindowsRundll32Path(): string {
+  const { systemRoot } = getWindowsInstallRoots();
+  return path.win32.join(systemRoot, "System32", "rundll32.exe");
+}
+
 export async function resolveBrowserOpenCommand(): Promise<BrowserOpenCommand> {
   const platform = process.platform;
   const hasDisplay = Boolean(process.env.DISPLAY || process.env.WAYLAND_DISPLAY);
@@ -35,10 +42,10 @@ export async function resolveBrowserOpenCommand(): Promise<BrowserOpenCommand> {
   }
 
   if (platform === "win32") {
+    const rundll32 = resolveWindowsRundll32Path();
     return {
-      argv: ["cmd", "/c", "start", ""],
-      command: "cmd",
-      quoteUrl: true,
+      argv: [rundll32, "url.dll,FileProtocolHandler"],
+      command: rundll32,
     };
   }
 

@@ -369,6 +369,23 @@ export function parseComponentsParam(params: Record<string, unknown>): void {
   }
 }
 
+export function parseJsonMessageParam(params: Record<string, unknown>, key: string): void {
+  const raw = params[key];
+  if (typeof raw !== "string") {
+    return;
+  }
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    delete params[key];
+    return;
+  }
+  try {
+    params[key] = JSON.parse(trimmed) as unknown;
+  } catch {
+    throw new Error(`--${key} must be valid JSON`);
+  }
+}
+
 export function parseInteractiveParam(params: Record<string, unknown>): void {
   const raw = params.interactive;
   if (typeof raw !== "string") {

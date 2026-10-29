@@ -153,3 +153,13 @@ export function resetGlobalUndiciStreamTimeoutsForTests(): void {
   lastAppliedTimeoutKey = null;
   lastAppliedProxyBootstrap = false;
 }
+
+export function forceResetGlobalDispatcher(_opts?: { preserveProxylineManaged?: boolean }): void {
+  lastAppliedTimeoutKey = null;
+  lastAppliedProxyBootstrap = false;
+  try {
+    setGlobalDispatcher(new Agent());
+  } catch {
+    // Best-effort
+  }
+}

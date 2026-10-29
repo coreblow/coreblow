@@ -8,10 +8,20 @@ export type ReplaceDirectoryAtomicOptions = {
   backupPrefix?: string;
 };
 
+export type ReplaceFileAtomicObjectOptions = {
+  filePath: string;
+  content: string | Buffer;
+  mode?: number;
+  tempPrefix?: string;
+  tmpPrefix?: string;
+  encoding?: BufferEncoding;
+};
+
 export type ReplaceFileAtomicOptions = {
   encoding?: BufferEncoding;
   mode?: number;
   tmpPrefix?: string;
+  tempPrefix?: string;
 };
 
 export type ReplaceFileAtomicSyncOptions = ReplaceFileAtomicOptions;
@@ -104,21 +114,39 @@ export async function replaceDirectoryAtomic(
 }
 
 export async function replaceFileAtomic(
-  targetPath: string,
-  content: string | Buffer,
+  targetPathOrOpts: string | ReplaceFileAtomicObjectOptions,
+  content?: string | Buffer,
   options: ReplaceFileAtomicOptions = {},
 ): Promise<void> {
+  let targetPath: string;
+  let fileContent: string | Buffer;
+  let opts: ReplaceFileAtomicOptions;
+
+  if (typeof targetPathOrOpts === "object" && targetPathOrOpts !== null) {
+    targetPath = targetPathOrOpts.filePath;
+    fileContent = targetPathOrOpts.content;
+    opts = {
+      encoding: targetPathOrOpts.encoding,
+      mode: targetPathOrOpts.mode,
+      tmpPrefix: targetPathOrOpts.tempPrefix ?? targetPathOrOpts.tmpPrefix,
+    };
+  } else {
+    targetPath = targetPathOrOpts;
+    fileContent = content!;
+    opts = options;
+  }
+
   const parentDir = path.dirname(targetPath);
   await fs.mkdir(parentDir, { recursive: true });
-  const prefix = options.tmpPrefix ?? ".tmp-atomic-";
+  const prefix = opts.tmpPrefix ?? opts.tempPrefix ?? ".tmp-atomic-";
   const tmpPath = path.join(
     parentDir,
     `${prefix}${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
 
-  await fs.writeFile(tmpPath, content, {
-    encoding: options.encoding ?? "utf8",
-    mode: options.mode,
+  await fs.writeFile(tmpPath, fileContent, {
+    encoding: opts.encoding ?? "utf8",
+    mode: opts.mode,
   });
 
   try {
@@ -136,21 +164,39 @@ export async function replaceFileAtomic(
 }
 
 export function replaceFileAtomicSync(
-  targetPath: string,
-  content: string | Buffer,
+  targetPathOrOpts: string | ReplaceFileAtomicObjectOptions,
+  content?: string | Buffer,
   options: ReplaceFileAtomicSyncOptions = {},
 ): void {
+  let targetPath: string;
+  let fileContent: string | Buffer;
+  let opts: ReplaceFileAtomicSyncOptions;
+
+  if (typeof targetPathOrOpts === "object" && targetPathOrOpts !== null) {
+    targetPath = targetPathOrOpts.filePath;
+    fileContent = targetPathOrOpts.content;
+    opts = {
+      encoding: targetPathOrOpts.encoding,
+      mode: targetPathOrOpts.mode,
+      tmpPrefix: targetPathOrOpts.tempPrefix ?? targetPathOrOpts.tmpPrefix,
+    };
+  } else {
+    targetPath = targetPathOrOpts;
+    fileContent = content!;
+    opts = options;
+  }
+
   const parentDir = path.dirname(targetPath);
   fsSync.mkdirSync(parentDir, { recursive: true });
-  const prefix = options.tmpPrefix ?? ".tmp-atomic-";
+  const prefix = opts.tmpPrefix ?? opts.tempPrefix ?? ".tmp-atomic-";
   const tmpPath = path.join(
     parentDir,
     `${prefix}${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
 
-  fsSync.writeFileSync(tmpPath, content, {
-    encoding: options.encoding ?? "utf8",
-    mode: options.mode,
+  fsSync.writeFileSync(tmpPath, fileContent, {
+    encoding: opts.encoding ?? "utf8",
+    mode: opts.mode,
   });
 
   try {

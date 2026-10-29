@@ -10,7 +10,7 @@ const QUEUE_DIRNAME = "delivery-queue";
 const FAILED_DIRNAME = "failed";
 
 export type QueuedDeliveryPayload = {
-  channel: Exclude<OutboundChannel, "none">;
+  channel: Exclude<OutboundChannel, "none"> | (string & {});
   to: string;
   accountId?: string;
   /**
@@ -36,9 +36,11 @@ export interface QueuedDelivery extends QueuedDeliveryPayload {
   retryCount: number;
   lastAttemptAt?: number;
   lastError?: string;
+  platformSendStartedAt?: number;
+  recoveryState?: "send_attempt_started" | "unknown_after_send";
 }
 
-function resolveQueueDir(stateDir?: string): string {
+export function resolveQueueDir(stateDir?: string): string {
   const base = stateDir ?? resolveStateDir();
   return path.join(base, QUEUE_DIRNAME);
 }
@@ -186,6 +188,51 @@ export async function failDelivery(id: string, error: string, stateDir?: string)
   entry.lastAttemptAt = Date.now();
   entry.lastError = error;
   await writeQueueEntry(filePath, entry);
+}
+
+export async function markDeliveryPlatformSendAttemptStarted(
+  id: string,
+  stateDir?: string,
+): Promise<void> {
+  const filePath = path.join(resolveQueueDir(stateDir), `${id}.json`);
+  const entry = await readQueueEntry(filePath);
+  entry.platformSendStartedAt = entry.platformSendStartedAt ?? Date.now();
+  entry.recoveryState = "send_attempt_started";
+  await writeQueueEntry(filePath, entry);
+}
+
+export async function markDeliveryPlatformOutcomeUnknown(
+  id: string,
+  stateDir?: string,
+): Promise<void> {
+  const filePath = path.join(resolveQueueDir(stateDir), `${id}.json`);
+  const entry = await readQueueEntry(filePath);
+  entry.platformSendStartedAt = entry.platformSendStartedAt ?? Date.now();
+  entry.recoveryState = "unknown_after_send";
+  await writeQueueEntry(filePath, entry);
+}
+
+/** Load a single pending delivery entry by ID from the queue directory. */
+export async function loadPendingDelivery(
+  id: string,
+  stateDir?: string,
+): Promise<QueuedDelivery | null> {
+  const filePath = path.join(resolveQueueDir(stateDir), `${id}.json`);
+  try {
+    const stat = await fs.promises.stat(filePath);
+    if (!stat.isFile()) {
+      return null;
+    }
+    const { entry, migrated } = normalizeLegacyQueuedDeliveryEntry(
+      await readQueueEntry(filePath),
+    );
+    if (migrated) {
+      await writeQueueEntry(filePath, entry);
+    }
+    return entry;
+  } catch {
+    return null;
+  }
 }
 
 /** Load all pending delivery entries from the queue directory. */

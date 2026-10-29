@@ -145,6 +145,11 @@ export type ExecApprovalsResolved = {
   token: string;
   defaults: Required<ExecApprovalsDefaults>;
   agent: Required<ExecApprovalsDefaults>;
+  agentSources?: {
+    security: string | null;
+    ask: string | null;
+    askFallback: string | null;
+  };
   allowlist: ExecAllowlistEntry[];
   file: ExecApprovalsFile;
 };
@@ -155,6 +160,7 @@ export const DEFAULT_EXEC_APPROVAL_TIMEOUT_MS = 120_000;
 const DEFAULT_SECURITY: ExecSecurity = "deny";
 const DEFAULT_ASK: ExecAsk = "on-miss";
 const DEFAULT_ASK_FALLBACK: ExecSecurity = "deny";
+export const DEFAULT_EXEC_APPROVAL_ASK_FALLBACK: ExecSecurity = DEFAULT_ASK_FALLBACK;
 const DEFAULT_AUTO_ALLOW_SKILLS = false;
 const DEFAULT_SOCKET = "~/.coreblow/exec-approvals.sock";
 const DEFAULT_FILE = "~/.coreblow/exec-approvals.json";
@@ -482,6 +488,11 @@ export function resolveExecApprovalsFromFile(params: {
     token: params.token ?? file.socket?.token ?? "",
     defaults: resolvedDefaults,
     agent: resolvedAgent,
+    agentSources: {
+      security: agent.security !== undefined ? `agents.${agentKey}.security` : null,
+      ask: agent.ask !== undefined ? `agents.${agentKey}.ask` : null,
+      askFallback: agent.askFallback !== undefined ? `agents.${agentKey}.askFallback` : null,
+    },
     allowlist,
     file,
   };

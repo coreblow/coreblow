@@ -13,19 +13,23 @@ export function createChatChannelPlugin<TAccount>(params: {
 
 export { buildChannelOutboundSessionRoute } from "./core.js";
 
-export function buildThreadAwareOutboundSessionRoute(params: {
-  route: Record<string, unknown>;
+import type { ChannelOutboundSessionRoute } from "../channels/plugins/types.core.js";
+
+export function buildThreadAwareOutboundSessionRoute<
+  TRoute extends ChannelOutboundSessionRoute = ChannelOutboundSessionRoute,
+>(params: {
+  route: TRoute;
   replyToId?: unknown;
   threadId?: unknown;
   currentSessionKey?: unknown;
   canRecoverCurrentThread?: () => boolean;
-}): Record<string, unknown> {
+  precedence?: readonly string[];
+  useSuffix?: boolean;
+}): TRoute {
   return {
     ...params.route,
-    ...(params.replyToId !== undefined ? { replyToId: params.replyToId } : {}),
-    ...(params.threadId !== undefined ? { threadId: params.threadId } : {}),
-    ...(params.currentSessionKey !== undefined
-      ? { currentSessionKey: params.currentSessionKey }
+    ...(params.threadId !== undefined && params.threadId !== null
+      ? { threadId: params.threadId as string | number }
       : {}),
   };
 }

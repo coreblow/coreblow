@@ -3,7 +3,12 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const CORE_PACKAGE_NAMES = new Set(["coreblow", "@coreblow/coreblow"]);
+const CORE_PACKAGE_NAMES = new Set([
+  "coreblow",
+  "@coreblow/coreblow",
+  "openclaw",
+  "@openclaw/openclaw",
+]);
 
 function parsePackageName(raw: string): string | null {
   const parsed = JSON.parse(raw) as { name?: unknown };
@@ -147,3 +152,5 @@ const { getInstance: getCoreblowRootService, __testing: __testing_coreblowRoot }
   createStandaloneSingleton({ create: () => new CoreblowRootService(), defaultDeps: {} });
 
 export { getCoreblowRootService, __testing_coreblowRoot };
+export const resolveOpenClawPackageRootSync = resolveCoreBlowPackageRootSync;
+export const resolveOpenClawPackageRoot = resolveCoreBlowPackageRoot;

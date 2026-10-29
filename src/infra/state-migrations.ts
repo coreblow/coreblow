@@ -21,7 +21,10 @@ import {
   DEFAULT_ACCOUNT_ID,
   DEFAULT_MAIN_KEY,
   normalizeAgentId,
+  normalizeMainKey,
+  parseAgentSessionKey,
 } from "../routing/session-key.js";
+import { expandHomePrefix } from "./home-dir.js";
 import { isWithinDir } from "./path-safety.js";
 import {
   ensureDir,
@@ -133,14 +136,29 @@ function canonicalizeSessionKeyForAgent(params: {
   agentId: string;
   mainKey: string;
   scope?: SessionScope;
+  skipCrossAgentRemap?: boolean;
 }): string {
   const agentId = normalizeAgentId(params.agentId);
   const raw = params.key.trim();
   if (!raw) {
     return raw;
   }
-  if (raw.toLowerCase() === "global" || raw.toLowerCase() === "unknown") {
-    return raw.toLowerCase();
+  const rawLower = raw.toLowerCase();
+  if (rawLower === "global" || rawLower === "unknown") {
+    return rawLower;
+  }
+
+  if (params.skipCrossAgentRemap) {
+    const parsed = parseAgentSessionKey(raw);
+    if (parsed && normalizeAgentId(parsed.agentId) !== agentId) {
+      return rawLower;
+    }
+    if (
+      agentId !== "main" &&
+      (rawLower === DEFAULT_MAIN_KEY || rawLower === params.mainKey)
+    ) {
+      return rawLower;
+    }
   }
 
   const canonicalMain = canonicalizeMainSessionAlias({
@@ -150,6 +168,25 @@ function canonicalizeSessionKeyForAgent(params: {
   });
   if (canonicalMain !== raw) {
     return canonicalMain.toLowerCase();
+  }
+
+  const defaultPrefix = `agent:main:`;
+  if (
+    rawLower.startsWith(defaultPrefix) &&
+    agentId !== "main" &&
+    !params.skipCrossAgentRemap
+  ) {
+    const rest = rawLower.slice(defaultPrefix.length);
+    const isOrphanAlias = rest === DEFAULT_MAIN_KEY || rest === params.mainKey;
+    if (isOrphanAlias) {
+      const remapped = `agent:${agentId}:${rest}`;
+      const canonicalized = canonicalizeMainSessionAlias({
+        cfg: { session: { scope: params.scope, mainKey: params.mainKey } },
+        agentId,
+        sessionKey: remapped,
+      });
+      return canonicalized.toLowerCase();
+    }
   }
 
   if (raw.toLowerCase().startsWith("agent:")) {
@@ -265,6 +302,7 @@ function canonicalizeSessionStore(params: {
   agentId: string;
   mainKey: string;
   scope?: SessionScope;
+  skipCrossAgentRemap?: boolean;
 }): { store: Record<string, SessionEntryLike>; legacyKeys: string[] } {
   const canonical: Record<string, SessionEntryLike> = {};
   const meta = new Map<string, { isCanonical: boolean; updatedAt: number }>();
@@ -279,6 +317,7 @@ function canonicalizeSessionStore(params: {
       agentId: params.agentId,
       mainKey: params.mainKey,
       scope: params.scope,
+      skipCrossAgentRemap: params.skipCrossAgentRemap,
     });
     const isCanonical = canonicalKey === key;
     if (!isCanonical) {
@@ -966,6 +1005,120 @@ export async function runLegacyStateMigrations(params: {
   };
 }
 
+export async function migrateOrphanedSessionKeys(params: {
+  cfg: CoreBlowConfig;
+  env?: NodeJS.ProcessEnv;
+}): Promise<{ changes: string[]; warnings: string[] }> {
+  const changes: string[] = [];
+  const warnings: string[] = [];
+  const env = params.env ?? process.env;
+  const stateDir = resolveStateDir(env);
+  const agentId = normalizeAgentId(resolveDefaultAgentId(params.cfg));
+  const mainKey = normalizeMainKey(params.cfg.session?.mainKey);
+  const scope = params.cfg.session?.scope as SessionScope | undefined;
+  const storeConfig = params.cfg.session?.store;
+
+  const storeMap = new Map<string, Set<string>>();
+  const addToStoreMap = (p: string, id: string) => {
+    const existing = storeMap.get(p);
+    if (existing) {
+      existing.add(id);
+    } else {
+      storeMap.set(p, new Set([id]));
+    }
+  };
+
+  const defaultStorePath = storeConfig
+    ? resolveStorePathFromTemplate(storeConfig, agentId, env)
+    : path.join(stateDir, "agents", agentId, "sessions", "sessions.json");
+  addToStoreMap(defaultStorePath, agentId);
+
+  for (const entry of params.cfg.agents?.list ?? []) {
+    if (entry?.id) {
+      const id = normalizeAgentId(entry.id);
+      const p = storeConfig
+        ? resolveStorePathFromTemplate(storeConfig, id, env)
+        : path.join(stateDir, "agents", id, "sessions", "sessions.json");
+      addToStoreMap(p, id);
+    }
+  }
+
+  const agentsDir = path.join(stateDir, "agents");
+  if (existsDir(agentsDir)) {
+    for (const dirEntry of safeReadDir(agentsDir)) {
+      if (dirEntry.isDirectory()) {
+        const diskAgentId = normalizeAgentId(dirEntry.name);
+        if (diskAgentId) {
+          const diskPath = path.join(agentsDir, diskAgentId, "sessions", "sessions.json");
+          addToStoreMap(diskPath, diskAgentId);
+        }
+      }
+    }
+  }
+
+  for (const [storePath, storeAgentIds] of storeMap) {
+    if (!fileExists(storePath)) {
+      continue;
+    }
+    let parsed: ReturnType<typeof readSessionStoreJson5>;
+    try {
+      parsed = readSessionStoreJson5(storePath);
+    } catch (err) {
+      warnings.push(`Could not read ${storePath}: ${String(err)}`);
+      continue;
+    }
+    if (!parsed.ok) {
+      continue;
+    }
+
+    let working = parsed.store;
+    let totalLegacy = 0;
+    for (const storeAgentId of storeAgentIds) {
+      const { store: canonicalized, legacyKeys } = canonicalizeSessionStore({
+        store: working,
+        agentId: storeAgentId,
+        mainKey,
+        scope,
+        skipCrossAgentRemap: storeAgentIds.size > 1 && storeAgentIds.has("main"),
+      });
+      working = canonicalized;
+      totalLegacy += legacyKeys.length;
+    }
+    if (totalLegacy === 0) {
+      continue;
+    }
+
+    const normalized: Record<string, SessionEntry> = {};
+    for (const [key, entry] of Object.entries(working)) {
+      const ne = normalizeSessionEntry(entry);
+      if (ne) {
+        normalized[key] = ne;
+      }
+    }
+    try {
+      await saveSessionStore(storePath, normalized, { skipMaintenance: true });
+      changes.push(`Canonicalized ${totalLegacy} orphaned session key(s) in ${storePath}`);
+    } catch (err) {
+      warnings.push(`Failed to write canonicalized store ${storePath}: ${String(err)}`);
+    }
+  }
+
+  return { changes, warnings };
+}
+
+function resolveStorePathFromTemplate(
+  template: string,
+  agentId: string,
+  env?: NodeJS.ProcessEnv,
+): string {
+  const expand = (s: string) =>
+    s.startsWith("~") ? expandHomePrefix(s, { env: env ?? process.env, homedir: os.homedir }) : s;
+  if (template.includes("{agentId}")) {
+    return path.resolve(expand(template.replaceAll("{agentId}", agentId)));
+  }
+  return path.resolve(expand(template));
+}
+
 export async function autoMigrateLegacyAgentDir(params: {
   cfg: CoreBlowConfig;
   env?: NodeJS.ProcessEnv;
@@ -1004,12 +1157,35 @@ export async function autoMigrateLegacyState(params: {
     homedir: params.homedir,
     log: params.log,
   });
+
+  const orphanKeys = await migrateOrphanedSessionKeys({
+    cfg: params.cfg,
+    env,
+  });
+
+  const logMigrationResults = (changes: string[], warnings: string[]) => {
+    const logger = params.log ?? createSubsystemLogger("state-migrations");
+    if (changes.length > 0) {
+      logger.info(
+        `Auto-migrated legacy state:\n${changes.map((entry) => `- ${entry}`).join("\n")}`,
+      );
+    }
+    if (warnings.length > 0) {
+      logger.warn(
+        `Legacy state migration warnings:\n${warnings.map((entry) => `- ${entry}`).join("\n")}`,
+      );
+    }
+  };
+
   if (env.COREBLOW_AGENT_DIR?.trim() || env.PI_CODING_AGENT_DIR?.trim()) {
+    const changes = [...stateDirResult.changes, ...orphanKeys.changes];
+    const warnings = [...stateDirResult.warnings, ...orphanKeys.warnings];
+    logMigrationResults(changes, warnings);
     return {
-      migrated: stateDirResult.migrated,
+      migrated: stateDirResult.migrated || orphanKeys.changes.length > 0,
       skipped: true,
-      changes: stateDirResult.changes,
-      warnings: stateDirResult.warnings,
+      changes,
+      warnings,
     };
   }
 
@@ -1019,29 +1195,34 @@ export async function autoMigrateLegacyState(params: {
     homedir: params.homedir,
   });
   if (!detected.sessions.hasLegacy && !detected.agentDir.hasLegacy) {
+    const changes = [...stateDirResult.changes, ...orphanKeys.changes];
+    const warnings = [...stateDirResult.warnings, ...orphanKeys.warnings];
+    logMigrationResults(changes, warnings);
     return {
-      migrated: stateDirResult.migrated,
+      migrated: stateDirResult.migrated || orphanKeys.changes.length > 0,
       skipped: false,
-      changes: stateDirResult.changes,
-      warnings: stateDirResult.warnings,
+      changes,
+      warnings,
     };
   }
 
   const now = params.now ?? (() => Date.now());
   const sessions = await migrateLegacySessions(detected, now);
   const agentDir = await migrateLegacyAgentDir(detected, now);
-  const changes = [...stateDirResult.changes, ...sessions.changes, ...agentDir.changes];
-  const warnings = [...stateDirResult.warnings, ...sessions.warnings, ...agentDir.warnings];
+  const changes = [
+    ...stateDirResult.changes,
+    ...orphanKeys.changes,
+    ...sessions.changes,
+    ...agentDir.changes,
+  ];
+  const warnings = [
+    ...stateDirResult.warnings,
+    ...orphanKeys.warnings,
+    ...sessions.warnings,
+    ...agentDir.warnings,
+  ];
 
-  const logger = params.log ?? createSubsystemLogger("state-migrations");
-  if (changes.length > 0) {
-    logger.info(`Auto-migrated legacy state:\n${changes.map((entry) => `- ${entry}`).join("\n")}`);
-  }
-  if (warnings.length > 0) {
-    logger.warn(
-      `Legacy state migration warnings:\n${warnings.map((entry) => `- ${entry}`).join("\n")}`,
-    );
-  }
+  logMigrationResults(changes, warnings);
 
   return {
     migrated: changes.length > 0,
@@ -1075,6 +1256,10 @@ export class StateMigrationService {
 
   async autoMigrateLegacyAgentDir(params: Parameters<typeof autoMigrateLegacyAgentDir>[0]) {
     return autoMigrateLegacyAgentDir(params);
+  }
+
+  async migrateOrphanedSessionKeys(params: Parameters<typeof migrateOrphanedSessionKeys>[0]) {
+    return migrateOrphanedSessionKeys(params);
   }
 }
 

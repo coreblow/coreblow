@@ -14,6 +14,11 @@ export class JsonFileReadError extends Error {
   }
 }
 
+export async function readJson<T = unknown>(filePath: string): Promise<T> {
+  const content = await fs.readFile(filePath, "utf8");
+  return JSON.parse(content) as T;
+}
+
 export async function readJsonIfExists<T = unknown>(filePath: string): Promise<T | null> {
   let raw: string;
   try {

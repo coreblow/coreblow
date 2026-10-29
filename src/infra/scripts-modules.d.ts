@@ -23,3 +23,10 @@ declare module "../../scripts/ci-changed-scope.mjs" {
     runChangedSmoke: boolean;
   };
 }
+
+declare module "../../scripts/lib/local-build-metadata-paths.mjs" {
+  export const BUILD_STAMP_FILE: string;
+  export const RUNTIME_POSTBUILD_STAMP_FILE: string;
+  export const LOCAL_BUILD_METADATA_DIST_PATHS: readonly string[];
+  export function isLocalBuildMetadataDistPath(relativePath: string): boolean;
+}

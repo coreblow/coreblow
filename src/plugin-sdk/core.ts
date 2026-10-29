@@ -195,6 +195,8 @@ export function stripTargetKindPrefix(raw: string): string {
   return raw.replace(/^(user|channel|group|conversation|room|dm):/i, "").trim();
 }
 
+export { buildThreadAwareOutboundSessionRoute } from "./channel-core.js";
+
 /**
  * Build the canonical outbound session route payload returned by channel
  * message adapters.
