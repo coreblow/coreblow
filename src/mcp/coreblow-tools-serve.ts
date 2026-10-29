@@ -9,8 +9,6 @@ export function resolveCoreBlowToolsForMcp(): AnyAgentTool[] {
   return [createCronTool()];
 }
 
-export const resolveOpenClawToolsForMcp = resolveCoreBlowToolsForMcp;
-
 export function createCoreBlowToolsMcpServer(
   params: {
     tools?: AnyAgentTool[];

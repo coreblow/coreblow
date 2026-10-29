@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveCoreBlowToolsForMcp } from "./openclaw-tools-serve.js";
+import { resolveCoreBlowToolsForMcp } from "./coreblow-tools-serve.js";
 import { createPluginToolsMcpHandlers } from "./plugin-tools-handlers.js";
 
 describe("CoreBlow tools MCP server", () => {

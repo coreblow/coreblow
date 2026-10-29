@@ -7,13 +7,13 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 8909,
+    "cb_source_files": 8905,
     "oc_source_files": 8443,
-    "source_parity_both": 7125,
+    "source_parity_both": 7121,
     "source_cb_exclusive": 1784,
     "source_missing_from_cb": 1296,
     "source_intentionally_deprecated": 27,
-    "test_files_cb": 5083,
+    "test_files_cb": 5080,
     "test_files_oc": 5246,
     "tests_both_covered": 3643,
     "tests_gap_oc_has_cb_missing": 1341,
@@ -418,7 +418,7 @@
       "priority": "P1",
       "implementationSurface": "src/cli program and command wiring",
       "counts": {
-        "sharedSourcePaths": 189,
+        "sharedSourcePaths": 188,
         "coreBlowOnlySourcePaths": 61,
         "openClawOnlySourcePaths": 67,
         "sharedTestPaths": 113,
@@ -491,7 +491,7 @@
       "priority": "P1",
       "implementationSurface": "src/infra",
       "counts": {
-        "sharedSourcePaths": 311,
+        "sharedSourcePaths": 308,
         "coreBlowOnlySourcePaths": 75,
         "openClawOnlySourcePaths": 71,
         "sharedTestPaths": 302,

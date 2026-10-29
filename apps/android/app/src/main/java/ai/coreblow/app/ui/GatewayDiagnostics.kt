@@ -7,7 +7,7 @@ import android.os.Build
 import android.widget.Toast
 import ai.coreblow.app.BuildConfig
 
-internal fun openClawAndroidVersionLabel(): String {
+internal fun coreBlowAndroidVersionLabel(): String {
   val versionName = BuildConfig.VERSION_NAME.trim().ifEmpty { "dev" }
   return if (BuildConfig.DEBUG && !versionName.contains("dev", ignoreCase = true)) {
     "$versionName-dev"
@@ -56,7 +56,7 @@ internal fun buildGatewayDiagnosticsReport(
 
     Debug info:
     - screen: $screen
-    - app version: ${openClawAndroidVersionLabel()}
+    - app version: ${coreBlowAndroidVersionLabel()}
     - device: $device
     - android: $androidVersion (SDK ${Build.VERSION.SDK_INT})
     - gateway address: $endpoint

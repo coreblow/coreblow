@@ -302,7 +302,7 @@ describe("Client.deployCommands", () => {
 
   it("skips unchanged command deploys across client restarts using the hash store", async () => {
     const hashStorePath = path.join(
-      await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-discord-command-deploy-")),
+      await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-discord-command-deploy-")),
       "hashes.json",
     );
     const first = createInternalTestClient([createTestCommand({ name: "one" })], {

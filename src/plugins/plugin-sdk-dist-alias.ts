@@ -53,5 +53,3 @@ export function ensureCoreBlowPluginSdkAlias(distRoot: string): void {
     writeRuntimeModuleWrapper(sourcePath, targetPath);
   }
 }
-
-export { ensureCoreBlowPluginSdkAlias as ensureOpenClawPluginSdkAlias };

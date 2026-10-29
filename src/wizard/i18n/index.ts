@@ -79,11 +79,8 @@ export function wizardT(
   const locale = options?.locale ?? resolveWizardLocaleFromEnv();
   const effectiveKey =
     key === "wizard.plugins.downloadFromClawHub" ? "wizard.plugins.downloadFromCoreHub" : key;
-  let localized = readKey(LOCALES[locale], effectiveKey);
-  if (key === "wizard.plugins.downloadFromClawHub" && localized) {
-    localized = localized.replace(/CoreHub/g, "ClawHub");
-  }
-  const fallback = localized ?? readKey(LOCALES[WIZARD_DEFAULT_LOCALE], key) ?? key;
+  const localized = readKey(LOCALES[locale], effectiveKey);
+  const fallback = localized ?? readKey(LOCALES[WIZARD_DEFAULT_LOCALE], effectiveKey) ?? effectiveKey;
   return interpolate(fallback, params);
 }
 

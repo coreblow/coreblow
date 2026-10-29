@@ -137,5 +137,3 @@ export async function planCoreBlowModelsJson(params: {
     contents: nextContents,
   };
 }
-
-export const planOpenClawModelsJson = planCoreBlowModelsJson;

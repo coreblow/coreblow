@@ -404,6 +404,17 @@ const INTENTIONALLY_DEPRECATED_UPSTREAM_PATHS = new Set([
 
   // src/gateway legacy dreaming migration repair shim
   "src/gateway/server-methods/doctor.memory-core-runtime.ts",
+
+  // Purged legacy compatibility shims (CoreBlow-native equivalents exist)
+  "src/cli/clawbot-cli.ts",
+  "src/infra/openclaw-exec-env.ts",
+  "src/infra/openclaw-exec-env.test.ts",
+  "src/infra/openclaw-root.ts",
+  "src/infra/openclaw-root.test.ts",
+  "src/infra/tmp-openclaw-dir.ts",
+  "src/infra/tmp-openclaw-dir.test.ts",
+  "src/mcp/openclaw-tools-serve.ts",
+  "src/mcp/openclaw-tools-serve.test.ts",
 ]);
 
 const legacyAcpExtensionDomain = ["extensions", `acp${"x"}`].join("/");
@@ -479,6 +490,12 @@ function normalizeCoreBlowPath(path) {
   }
   if (path === "src/infra/tmp-openclaw-dir.test.ts") {
     return "src/infra/tmp-coreblow-dir.test.ts";
+  }
+  if (path === "src/mcp/openclaw-tools-serve.ts") {
+    return "src/mcp/coreblow-tools-serve.ts";
+  }
+  if (path === "src/mcp/openclaw-tools-serve.test.ts") {
+    return "src/mcp/coreblow-tools-serve.test.ts";
   }
   if (path === "extensions/discord/src/monitor/listeners.reactions.ts") {
     return "extensions/discord/src/monitor/listeners.ts";
@@ -773,12 +790,30 @@ if (!TESTS_ONLY) {
   }
 }
 
+function normalizeExportSymbol(symbol) {
+  return symbol
+    .replaceAll("OPENCLAW", "COREBLOW")
+    .replaceAll("OpenClaw", "CoreBlow")
+    .replaceAll("openclaw", "coreblow")
+    .replaceAll("clawbot", "corebot")
+    .replaceAll("ClawBot", "CoreBot")
+    .replaceAll("CLAWBOT", "COREBOT")
+    .replaceAll("clawhub", "corehub")
+    .replaceAll("ClawHub", "CoreHub")
+    .replaceAll("CLAWHUB", "COREHUB")
+    .replaceAll("POSIX_OPENCLAW_TMP_DIR", "POSIX_COREBLOW_TMP_DIR");
+}
+
 // Export gap analysis (functions in OC not in CB) — scan all shared files
 const EXPORT_GAP_LIMIT = 200; // increased from 100
 for (const commonSrc of results.source.both.slice(0, EXPORT_GAP_LIMIT)) {
   const cbExports = extractExports(join(CB_ROOT, commonSrc));
   const ocExports = extractExports(join(OC_ROOT, commonSrc));
-  const missing = ocExports.filter((e) => !cbExports.includes(e));
+  const cbNormalizedSet = new Set([
+    ...cbExports,
+    ...cbExports.map(normalizeExportSymbol),
+  ]);
+  const missing = ocExports.filter((e) => !cbNormalizedSet.has(normalizeExportSymbol(e)));
   if (missing.length > 0) {
     results.exports.gaps.push({ file: commonSrc, missing_in_cb: missing });
   }

@@ -1693,7 +1693,7 @@ private fun FinalStep(
               )
             }
             Text(
-              "CoreBlow Android ${openClawAndroidVersionLabel()}",
+              "CoreBlow Android ${coreBlowAndroidVersionLabel()}",
               style = onboardingCaption1Style,
               color = onboardingTextSecondary,
             )

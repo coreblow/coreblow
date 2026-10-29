@@ -173,11 +173,9 @@ let manifestProviderRequestCache: Map<string, ManifestProviderRequestCacheEntry>
 
 function formatCoreBlowUserAgent(
   version: string,
-  env: RuntimeVersionEnv = process.env as RuntimeVersionEnv,
+  _env: RuntimeVersionEnv = process.env as RuntimeVersionEnv,
 ): string {
-  const isOC = Boolean(env.OPENCLAW_VERSION) && !env.COREBLOW_VERSION;
-  const originator = isOC ? "openclaw" : COREBLOW_ATTRIBUTION_ORIGINATOR;
-  return `${originator}/${version}`;
+  return `${COREBLOW_ATTRIBUTION_ORIGINATOR}/${version}`;
 }
 
 function tryParseHostname(value: string): string | undefined {
@@ -506,9 +504,8 @@ function isOpenAIResponsesApi(api: string | null | undefined): boolean {
 export function resolveProviderAttributionIdentity(
   env: RuntimeVersionEnv = process.env as RuntimeVersionEnv,
 ): ProviderAttributionIdentity {
-  const isOC = Boolean(env.OPENCLAW_VERSION) && !env.COREBLOW_VERSION;
   return {
-    product: isOC ? "OpenClaw" : COREBLOW_ATTRIBUTION_PRODUCT,
+    product: COREBLOW_ATTRIBUTION_PRODUCT,
     version: resolveRuntimeServiceVersion(env),
   };
 }
@@ -537,8 +534,7 @@ function buildOpenAIAttributionPolicy(
   env: RuntimeVersionEnv = process.env as RuntimeVersionEnv,
 ): ProviderAttributionPolicy {
   const identity = resolveProviderAttributionIdentity(env);
-  const isOC = Boolean(env.OPENCLAW_VERSION) && !env.COREBLOW_VERSION;
-  const originator = isOC ? "openclaw" : COREBLOW_ATTRIBUTION_ORIGINATOR;
+  const originator = COREBLOW_ATTRIBUTION_ORIGINATOR;
   return {
     provider: "openai",
     enabledByDefault: true,
@@ -559,8 +555,7 @@ function buildOpenAICodexAttributionPolicy(
   env: RuntimeVersionEnv = process.env as RuntimeVersionEnv,
 ): ProviderAttributionPolicy {
   const identity = resolveProviderAttributionIdentity(env);
-  const isOC = Boolean(env.OPENCLAW_VERSION) && !env.COREBLOW_VERSION;
-  const originator = isOC ? "openclaw" : COREBLOW_ATTRIBUTION_ORIGINATOR;
+  const originator = COREBLOW_ATTRIBUTION_ORIGINATOR;
   return {
     provider: "openai-codex",
     enabledByDefault: true,
@@ -581,8 +576,7 @@ function buildXaiAttributionPolicy(
   env: RuntimeVersionEnv = process.env as RuntimeVersionEnv,
 ): ProviderAttributionPolicy {
   const identity = resolveProviderAttributionIdentity(env);
-  const isOC = Boolean(env.OPENCLAW_VERSION) && !env.COREBLOW_VERSION;
-  const originator = isOC ? "openclaw" : COREBLOW_ATTRIBUTION_ORIGINATOR;
+  const originator = COREBLOW_ATTRIBUTION_ORIGINATOR;
   return {
     provider: "xai",
     enabledByDefault: true,

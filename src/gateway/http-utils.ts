@@ -14,8 +14,6 @@ import { loadGatewayModelCatalog } from "./server-model-catalog.js";
 
 export const COREBLOW_MODEL_ID = "coreblow";
 export const COREBLOW_DEFAULT_MODEL_ID = "coreblow/default";
-export const OPENCLAW_MODEL_ID = COREBLOW_MODEL_ID;
-export const OPENCLAW_DEFAULT_MODEL_ID = COREBLOW_DEFAULT_MODEL_ID;
 
 export function getHeader(req: IncomingMessage, name: string): string | undefined {
   const raw = req.headers[name.toLowerCase()];

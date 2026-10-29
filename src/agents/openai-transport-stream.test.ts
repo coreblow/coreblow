@@ -374,8 +374,8 @@ describe("openai transport stream", () => {
     ).toThrow(/Code mode payload tool surface violation/);
   });
 
-  it("adds OpenClaw attribution to native OpenAI transport headers and protects it from pi", () => {
-    vi.stubEnv("OPENCLAW_VERSION", "2026.3.22");
+  it("adds CoreBlow attribution to native OpenAI transport headers and protects it from pi", () => {
+    vi.stubEnv("COREBLOW_VERSION", "2026.3.22");
     const headers = testing.buildOpenAIClientHeaders(
       {
         id: "gpt-5.4",
@@ -403,16 +403,16 @@ describe("openai transport stream", () => {
     );
 
     expectRecordFields(headers, {
-      originator: "openclaw",
+      originator: "coreblow",
       version: "2026.3.22",
-      "User-Agent": "openclaw/2026.3.22",
+      "User-Agent": "coreblow/2026.3.22",
       "X-Provider": "model",
       "X-Caller": "request",
     });
   });
 
-  it("adds OpenClaw attribution to native OpenAI Codex transport headers", () => {
-    vi.stubEnv("OPENCLAW_VERSION", "2026.3.22");
+  it("adds CoreBlow attribution to native OpenAI Codex transport headers", () => {
+    vi.stubEnv("COREBLOW_VERSION", "2026.3.22");
     const headers = testing.buildOpenAIClientHeaders(
       {
         id: "gpt-5.4-codex",
@@ -434,9 +434,9 @@ describe("openai transport stream", () => {
     );
 
     expectRecordFields(headers, {
-      originator: "openclaw",
+      originator: "coreblow",
       version: "2026.3.22",
-      "User-Agent": "openclaw/2026.3.22",
+      "User-Agent": "coreblow/2026.3.22",
     });
   });
 

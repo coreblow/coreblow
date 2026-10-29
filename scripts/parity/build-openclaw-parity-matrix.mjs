@@ -154,6 +154,17 @@ const INTENTIONALLY_DEPRECATED_UPSTREAM_PATHS = new Set([
 
   // src/gateway legacy dreaming migration repair shim
   "src/gateway/server-methods/doctor.memory-core-runtime.ts",
+
+  // Purged legacy compatibility shims (CoreBlow-native equivalents exist)
+  "src/cli/clawbot-cli.ts",
+  "src/infra/openclaw-exec-env.ts",
+  "src/infra/openclaw-exec-env.test.ts",
+  "src/infra/openclaw-root.ts",
+  "src/infra/openclaw-root.test.ts",
+  "src/infra/tmp-openclaw-dir.ts",
+  "src/infra/tmp-openclaw-dir.test.ts",
+  "src/mcp/openclaw-tools-serve.ts",
+  "src/mcp/openclaw-tools-serve.test.ts",
 ]);
 
 const legacyAcpExtensionDomain = ["extensions", `acp${"x"}`].join("/");
@@ -229,6 +240,12 @@ function normalizeCoreBlowPath(path) {
   }
   if (path === "src/infra/tmp-openclaw-dir.test.ts") {
     return "src/infra/tmp-coreblow-dir.test.ts";
+  }
+  if (path === "src/mcp/openclaw-tools-serve.ts") {
+    return "src/mcp/coreblow-tools-serve.ts";
+  }
+  if (path === "src/mcp/openclaw-tools-serve.test.ts") {
+    return "src/mcp/coreblow-tools-serve.test.ts";
   }
   // CoreBlow inlines Discord reaction listener logic in listeners.ts instead of
   // a separate listeners.reactions.ts file.

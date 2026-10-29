@@ -98,7 +98,7 @@ Text + native (when enabled):
 - `/mcp show|get|set|unset` (manage CoreBlow MCP server config, owner-only; requires `commands.mcp: true`)
 - `/plugins list|show|get|install|enable|disable` (inspect discovered plugins, install new ones, and toggle enablement; owner-only for writes; requires `commands.plugins: true`)
   - `/plugin` is an alias for `/plugins`.
-  - `/plugin install <spec>` accepts the same plugin specs as `coreblow plugins install`: local path/archive, npm package, or `clawhub:<pkg>`.
+  - `/plugin install <spec>` accepts the same plugin specs as `coreblow plugins install`: local path/archive, npm package, or `corehub:<pkg>`.
   - Enable/disable writes still reply with a restart hint. On a watched foreground gateway, CoreBlow may perform that restart automatically right after the write.
 - `/debug show|set|unset|reset` (runtime overrides, owner-only; requires `commands.debug: true`)
 - `/usage off|tokens|full|cost` (per-response usage footer or local cost summary)

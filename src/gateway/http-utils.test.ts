@@ -2,8 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   COREBLOW_MODEL_ID,
   COREBLOW_DEFAULT_MODEL_ID,
-  OPENCLAW_MODEL_ID,
-  OPENCLAW_DEFAULT_MODEL_ID,
   getHeader,
   getBearerToken,
 } from "./http-utils.js";
@@ -11,12 +9,10 @@ import {
 describe("model ID constants", () => {
   it("COREBLOW_MODEL_ID equals 'coreblow'", () => {
     expect(COREBLOW_MODEL_ID).toBe("coreblow");
-    expect(OPENCLAW_MODEL_ID).toBe(COREBLOW_MODEL_ID);
   });
 
   it("COREBLOW_DEFAULT_MODEL_ID equals 'coreblow/default'", () => {
     expect(COREBLOW_DEFAULT_MODEL_ID).toBe("coreblow/default");
-    expect(OPENCLAW_DEFAULT_MODEL_ID).toBe(COREBLOW_DEFAULT_MODEL_ID);
   });
 
   it("COREBLOW_DEFAULT_MODEL_ID starts with COREBLOW_MODEL_ID", () => {
