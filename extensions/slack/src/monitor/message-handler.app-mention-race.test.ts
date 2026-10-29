@@ -1,8 +1,7 @@
 // @ts-nocheck — structural test type mismatches (vitest mock compat)
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const prepareSlackMessageMock =
-  vi.fn();
+const prepareSlackMessageMock = vi.fn();
 const dispatchPreparedSlackMessageMock = vi.fn();
 
 vi.mock("../../../../src/channels/inbound-debounce-policy.js", () => ({

@@ -4,14 +4,18 @@ import {
   resolveChannelEntryMatchWithFallback,
   type ChannelMatchSource,
 } from "coreblow/plugin-sdk/channel-targets";
-import type { SlackReactionNotificationMode } from "coreblow/plugin-sdk/config-runtime";
+import type {
+  ChannelBotLoopProtectionConfig,
+  SlackReactionNotificationMode,
+} from "coreblow/plugin-sdk/config-runtime";
 import type { SlackMessageEvent } from "../types.js";
 import { allowListMatches, normalizeAllowListLower, normalizeSlackSlug } from "./allow-list.js";
 
 export type SlackChannelConfigResolved = {
   allowed: boolean;
   requireMention: boolean;
-  allowBots?: boolean;
+  allowBots?: boolean | "mentions";
+  botLoopProtection?: ChannelBotLoopProtectionConfig;
   users?: Array<string | number>;
   skills?: string[];
   systemPrompt?: string;
@@ -23,7 +27,8 @@ export type SlackChannelConfigEntry = {
   enabled?: boolean;
   allow?: boolean;
   requireMention?: boolean;
-  allowBots?: boolean;
+  allowBots?: boolean | "mentions";
+  botLoopProtection?: ChannelBotLoopProtectionConfig;
   users?: Array<string | number>;
   skills?: string[];
   systemPrompt?: string;
@@ -145,10 +150,12 @@ export function resolveSlackChannelConfig(params: {
   const users = firstDefined(resolved.users, fallback?.users);
   const skills = firstDefined(resolved.skills, fallback?.skills);
   const systemPrompt = firstDefined(resolved.systemPrompt, fallback?.systemPrompt);
+  const botLoopProtection = firstDefined(resolved.botLoopProtection, fallback?.botLoopProtection);
   const result: SlackChannelConfigResolved = {
     allowed,
     requireMention,
     allowBots,
+    botLoopProtection,
     users,
     skills,
     systemPrompt,

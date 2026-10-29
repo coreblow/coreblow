@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, describe, expect, it, vi , Mock } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi, Mock } from "vitest";
 import { getSlackSlashMocks, resetSlackSlashMocks } from "./slash.test-harness.js";
 
 vi.mock("./slash-commands.runtime.js", () => {
@@ -224,7 +224,7 @@ function createDeferred<T>() {
 
 function createArgMenusHarness() {
   const commands = new Map<string, (args: unknown) => Promise<void>>();
-  const actions = new Map<string, (args: unknown) => Promise<void>>();
+  const actions = new Map<string | RegExp, (args: unknown) => Promise<void>>();
   const options = new Map<string, (args: unknown) => Promise<void>>();
   const optionsReceiverContexts: unknown[] = [];
 
@@ -234,7 +234,7 @@ function createArgMenusHarness() {
     command: (name: string, handler: (args: unknown) => Promise<void>) => {
       commands.set(name, handler);
     },
-    action: (id: string, handler: (args: unknown) => Promise<void>) => {
+    action: (id: string | RegExp, handler: (args: unknown) => Promise<void>) => {
       actions.set(id, handler);
     },
     options: function (this: unknown, id: string, handler: (args: unknown) => Promise<void>) {
@@ -289,11 +289,16 @@ function createArgMenusHarness() {
 }
 
 function requireHandler(
-  handlers: Map<string, (args: unknown) => Promise<void>>,
-  key: string,
+  handlers: Map<string | RegExp, (args: unknown) => Promise<void>>,
+  key: string | RegExp,
   label: string,
 ): (args: unknown) => Promise<void> {
-  const handler = handlers.get(key);
+  const handler =
+    key instanceof RegExp
+      ? Array.from(handlers.entries()).find(
+          ([candidate]) => candidate instanceof RegExp && String(candidate) === String(key),
+        )?.[1]
+      : handlers.get(key);
   if (!handler) {
     throw new Error(`Missing ${label} handler`);
   }
@@ -418,7 +423,7 @@ describe("Slack native command argument menus", () => {
     reportLongHandler = requireHandler(harness.commands, "/reportlong", "/reportlong");
     unsafeConfirmHandler = requireHandler(harness.commands, "/unsafeconfirm", "/unsafeconfirm");
     agentStatusHandler = requireHandler(harness.commands, "/agentstatus", "/agentstatus");
-    argMenuHandler = requireHandler(harness.actions, "coreblow_cmdarg", "arg-menu action");
+    argMenuHandler = requireHandler(harness.actions, /^coreblow_cmdarg/, "arg-menu action");
     argMenuOptionsHandler = requireHandler(harness.options, "coreblow_cmdarg", "arg-menu options");
   });
 
@@ -430,21 +435,25 @@ describe("Slack native command argument menus", () => {
     const testHarness = createArgMenusHarness();
     await registerCommands(testHarness.ctx, testHarness.account);
     expect(testHarness.commands.size).toBeGreaterThan(0);
-    expect(testHarness.actions.has("coreblow_cmdarg")).toBe(true);
+    expect(
+      Array.from(testHarness.actions.keys()).some(
+        (key) => key instanceof RegExp && String(key) === String(/^coreblow_cmdarg/),
+      ),
+    ).toBe(true);
     expect(testHarness.options.has("coreblow_cmdarg")).toBe(true);
     expect(testHarness.optionsReceiverContexts[0]).toBe(testHarness.app);
   });
 
   it("falls back to static menus when app.options() throws during registration", async () => {
     const commands = new Map<string, (args: unknown) => Promise<void>>();
-    const actions = new Map<string, (args: unknown) => Promise<void>>();
+    const actions = new Map<string | RegExp, (args: unknown) => Promise<void>>();
     const postEphemeral = vi.fn().mockResolvedValue({ ok: true });
     const app = {
       client: { chat: { postEphemeral } },
       command: (name: string, handler: (args: unknown) => Promise<void>) => {
         commands.set(name, handler);
       },
-      action: (id: string, handler: (args: unknown) => Promise<void>) => {
+      action: (id: string | RegExp, handler: (args: unknown) => Promise<void>) => {
         actions.set(id, handler);
       },
       // Simulate Bolt throwing during options registration (e.g. receiver not initialized)
@@ -487,7 +496,11 @@ describe("Slack native command argument menus", () => {
     // Registration should not throw despite app.options() throwing
     await registerCommands(ctx, account);
     expect(commands.size).toBeGreaterThan(0);
-    expect(actions.has("coreblow_cmdarg")).toBe(true);
+    expect(
+      Array.from(actions.keys()).some(
+        (key) => key instanceof RegExp && String(key) === String(/^coreblow_cmdarg/),
+      ),
+    ).toBe(true);
 
     // The /reportexternal command (140 choices) should fall back to static_select
     // instead of external_select since options registration failed
@@ -524,10 +537,19 @@ describe("Slack native command argument menus", () => {
     expect(element?.confirm).toBeTruthy();
   });
 
-  it("falls back to buttons when static_select value limit would be exceeded", async () => {
-    const firstElement = await getFirstActionElementFromCommand(reportLongHandler);
-    expect(firstElement?.type).toBe("button");
-    expect(firstElement?.confirm).toBeTruthy();
+  it("uses static_select when encoded values fit Slack option limits", async () => {
+    const firstElement = (await getFirstActionElementFromCommand(reportLongHandler)) as
+      | {
+          type?: string;
+          options?: Array<{ value?: string }>;
+          confirm?: unknown;
+        }
+      | undefined;
+    expect(firstElement?.type).toBe("static_select");
+    const longOption = firstElement?.options?.find((option) => option.value?.includes("xxx"));
+    expect(longOption?.value?.length).toBeGreaterThan(75);
+    expect(longOption?.value?.length).toBeLessThanOrEqual(150);
+    expect(firstElement).toHaveProperty("confirm");
   });
 
   it("shows an overflow menu when choices fit compact range", async () => {

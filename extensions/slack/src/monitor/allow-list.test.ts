@@ -49,9 +49,9 @@ describe("normalizeAllowListLower", () => {
 
 describe("resolveSlackAllowListMatch", () => {
   it("matches wildcard '*'", () => {
-    expect(
-      resolveSlackAllowListMatch({ allowList: ["*"], id: "u1", name: "alice" }),
-    ).toMatchObject({ allowed: true, matchSource: "wildcard" });
+    expect(resolveSlackAllowListMatch({ allowList: ["*"], id: "u1", name: "alice" })).toMatchObject(
+      { allowed: true, matchSource: "wildcard" },
+    );
   });
 
   it("matches by id", () => {
@@ -78,9 +78,9 @@ describe("resolveSlackAllowListMatch", () => {
   });
 
   it("returns not-allowed for unmatched entries", () => {
-    expect(
-      resolveSlackAllowListMatch({ allowList: ["u2"], id: "u1", name: "alice" }),
-    ).toEqual({ allowed: false });
+    expect(resolveSlackAllowListMatch({ allowList: ["u2"], id: "u1", name: "alice" })).toEqual({
+      allowed: false,
+    });
   });
 });
 
@@ -90,14 +90,14 @@ describe("resolveSlackUserAllowed", () => {
   });
 
   it("allows user in list", () => {
-    expect(
-      resolveSlackUserAllowed({ allowList: ["u1"], userId: "u1", userName: "alice" }),
-    ).toBe(true);
+    expect(resolveSlackUserAllowed({ allowList: ["u1"], userId: "u1", userName: "alice" })).toBe(
+      true,
+    );
   });
 
   it("denies user not in list", () => {
-    expect(
-      resolveSlackUserAllowed({ allowList: ["u2"], userId: "u1", userName: "alice" }),
-    ).toBe(false);
+    expect(resolveSlackUserAllowed({ allowList: ["u2"], userId: "u1", userName: "alice" })).toBe(
+      false,
+    );
   });
 });

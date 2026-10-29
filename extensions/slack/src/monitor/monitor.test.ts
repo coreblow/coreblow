@@ -1,6 +1,6 @@
 // @ts-nocheck — structural test type mismatches (vitest mock compat)
 import type { App } from "@slack/bolt";
-import { afterEach, describe, expect, it, vi , Mock } from "vitest";
+import { afterEach, describe, expect, it, vi, Mock } from "vitest";
 import type { CoreBlowConfig } from "../../../../src/config/config.js";
 import type { RuntimeEnv } from "../../../../src/runtime.js";
 import type { SlackMessageEvent } from "../types.js";

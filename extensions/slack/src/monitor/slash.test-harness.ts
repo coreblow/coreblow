@@ -1,4 +1,4 @@
-import { vi , Mock } from "vitest";
+import { vi, Mock } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   dispatchMock: vi.fn(),

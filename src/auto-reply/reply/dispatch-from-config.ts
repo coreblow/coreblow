@@ -38,7 +38,11 @@ import {
 } from "../../plugins/conversation-binding.js";
 import { getGlobalHookRunner, getGlobalPluginRegistry } from "../../plugins/hook-runner-global.js";
 import { resolveSendPolicy } from "../../sessions/send-policy.js";
-import { normalizeTtsAutoMode, resolveConfiguredTtsMode } from "../../tts/tts-config.js";
+import {
+  normalizeTtsAutoMode,
+  resolveConfiguredTtsMode,
+  shouldAttemptTtsPayload,
+} from "../../tts/tts-config.js";
 import { INTERNAL_MESSAGE_CHANNEL, normalizeMessageChannel } from "../../utils/message-channel.js";
 import type { FinalizedMsgContext } from "../templating.js";
 import type { BlockReplyContext, GetReplyOptions, ReplyPayload } from "../types.js";
@@ -77,6 +81,34 @@ function loadDispatchAcpRuntime() {
 function loadTtsRuntime() {
   ttsRuntimePromise ??= import("../../tts/tts.runtime.js");
   return ttsRuntimePromise;
+}
+
+async function maybeApplyTtsToReplyPayload(params: {
+  payload: ReplyPayload;
+  cfg?: CoreBlowConfig;
+  channel?: string;
+  kind?: "final" | "tool" | "block";
+  inboundAudio?: boolean;
+  ttsAuto?: string;
+  agentId?: string;
+  accountId?: string;
+}): Promise<ReplyPayload> {
+  if (params.payload.isCompactionNotice || params.payload.isFallbackNotice) {
+    return params.payload;
+  }
+  if (
+    !shouldAttemptTtsPayload({
+      cfg: params.cfg,
+      ttsAuto: params.ttsAuto,
+      agentId: params.agentId,
+      channelId: params.channel,
+      accountId: params.accountId,
+    })
+  ) {
+    return params.payload;
+  }
+  const { maybeApplyTtsToPayload } = await loadTtsRuntime();
+  return maybeApplyTtsToPayload(params);
 }
 
 const AUDIO_PLACEHOLDER_RE = /^<media:audio>(\s*\([^)]*\))?$/i;
@@ -216,6 +248,7 @@ export async function dispatchReplyFromConfig(params: {
 
   const sessionStoreEntry = resolveSessionStoreLookup(ctx, cfg);
   const acpDispatchSessionKey = sessionStoreEntry.sessionKey ?? sessionKey;
+  const resolvedAgentId = resolveSessionAgentId({ sessionKey: acpDispatchSessionKey, config: cfg });
   // Restore route thread context only from the active turn or the thread-scoped session key.
   // Do not read thread ids from the normalised session store here: `origin.threadId` can be
   // folded back into lastThreadId/deliveryContext during store normalisation and resurrect a
@@ -510,17 +543,18 @@ export async function dispatchReplyFromConfig(params: {
       return { queuedFinal: false, counts };
     }
 
-    const { maybeApplyTtsToPayload } = await loadTtsRuntime();
     const sendFinalPayload = async (
       payload: ReplyPayload,
     ): Promise<{ queuedFinal: boolean; routedFinalCount: number }> => {
-      const ttsPayload = await maybeApplyTtsToPayload({
+      const ttsPayload = await maybeApplyTtsToReplyPayload({
         payload,
         cfg,
         channel: ttsChannel,
         kind: "final",
         inboundAudio,
         ttsAuto: sessionTtsAuto,
+        agentId: resolvedAgentId,
+        accountId: ctx.AccountId,
       });
       if (shouldRouteToOriginating && originatingChannel && originatingTo) {
         const result = await routeReplyRuntime.routeReply({
@@ -659,7 +693,7 @@ export async function dispatchReplyFromConfig(params: {
 
     const replyResolver =
       params.replyResolver ?? (await loadGetReplyFromConfigRuntime()).getReplyFromConfig;
-    const replyResult = await replyResolver(
+    const replyResult: unknown = await replyResolver(
       ctx,
       {
         ...params.replyOptions,
@@ -667,13 +701,15 @@ export async function dispatchReplyFromConfig(params: {
         suppressTyping: typing.suppressTyping,
         onToolResult: (payload: ReplyPayload) => {
           const run = async () => {
-            const ttsPayload = await maybeApplyTtsToPayload({
+            const ttsPayload = await maybeApplyTtsToReplyPayload({
               payload,
               cfg,
               channel: ttsChannel,
               kind: "tool",
               inboundAudio,
               ttsAuto: sessionTtsAuto,
+              agentId: resolvedAgentId,
+              accountId: ctx.AccountId,
             });
             const deliveryPayload = resolveToolDeliveryPayload(ttsPayload);
             if (!deliveryPayload) {
@@ -705,13 +741,15 @@ export async function dispatchReplyFromConfig(params: {
               accumulatedBlockText += payload.text;
               blockCount++;
             }
-            const ttsPayload = await maybeApplyTtsToPayload({
+            const ttsPayload = await maybeApplyTtsToReplyPayload({
               payload,
               cfg,
               channel: ttsChannel,
               kind: "block",
               inboundAudio,
               ttsAuto: sessionTtsAuto,
+              agentId: resolvedAgentId,
+              accountId: ctx.AccountId,
             });
             if (shouldRouteToOriginating) {
               await sendPayloadAsync(ttsPayload, context?.abortSignal, false);
@@ -778,13 +816,15 @@ export async function dispatchReplyFromConfig(params: {
       accumulatedBlockText.trim()
     ) {
       try {
-        const ttsSyntheticReply = await maybeApplyTtsToPayload({
+        const ttsSyntheticReply = await maybeApplyTtsToReplyPayload({
           payload: { text: accumulatedBlockText },
           cfg,
           channel: ttsChannel,
           kind: "final",
           inboundAudio,
           ttsAuto: sessionTtsAuto,
+          agentId: resolvedAgentId,
+          accountId: ctx.AccountId,
         });
         // Only send if TTS was actually applied (mediaUrl exists)
         if (ttsSyntheticReply.mediaUrl) {

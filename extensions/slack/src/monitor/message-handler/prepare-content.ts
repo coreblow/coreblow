@@ -40,8 +40,13 @@ export async function resolveSlackMessageContent(params: {
   isThreadReply: boolean;
   threadStarter: SlackThreadStarter | null;
   isBotMessage: boolean;
+  client?: any;
   botToken: string;
   mediaMaxBytes: number;
+  resolveUserName?: (userId: string) => Promise<{ name?: string }>;
+  mediaReadIdleTimeoutMs?: number;
+  mediaTotalTimeoutMs?: number;
+  abortSignal?: AbortSignal;
 }): Promise<SlackResolvedMessageContent | null> {
   const ownFiles = filterInheritedParentFiles({
     files: params.message.files,
@@ -51,14 +56,22 @@ export async function resolveSlackMessageContent(params: {
 
   const media = await resolveSlackMedia({
     files: ownFiles,
+    client: params.client,
     token: params.botToken,
     maxBytes: params.mediaMaxBytes,
+    readIdleTimeoutMs: params.mediaReadIdleTimeoutMs,
+    totalTimeoutMs: params.mediaTotalTimeoutMs,
+    abortSignal: params.abortSignal,
   });
 
   const attachmentContent = await resolveSlackAttachmentContent({
     attachments: params.message.attachments,
+    client: params.client,
     token: params.botToken,
     maxBytes: params.mediaMaxBytes,
+    readIdleTimeoutMs: params.mediaReadIdleTimeoutMs,
+    totalTimeoutMs: params.mediaTotalTimeoutMs,
+    abortSignal: params.abortSignal,
   });
 
   const mergedMedia = [...(media ?? []), ...(attachmentContent?.media ?? [])];
