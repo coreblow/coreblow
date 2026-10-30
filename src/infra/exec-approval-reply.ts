@@ -34,10 +34,13 @@ export type ExecApprovalPendingReplyParams = {
   approvalId: string;
   approvalSlug: string;
   approvalCommandId?: string;
+  ask?: string | null;
+  agentId?: string | null;
   command: string;
   cwd?: string;
   host: ExecHost;
   nodeId?: string;
+  sessionKey?: string | null;
   expiresAtMs?: number;
   nowMs?: number;
   allowedDecisions?: readonly ExecApprovalReplyDecision[];
@@ -272,16 +275,22 @@ export function getExecApprovalReplyMetadata(
   if (!approvalId || !approvalSlug) {
     return null;
   }
+  const approvalKind = record.approvalKind === "plugin" ? "plugin" : "exec";
   const allowedDecisions = Array.isArray(record.allowedDecisions)
     ? record.allowedDecisions.filter(
         (value): value is ExecApprovalReplyDecision =>
           value === "allow-once" || value === "allow-always" || value === "deny",
       )
     : undefined;
+  const agentId = typeof record.agentId === "string" && record.agentId.trim() ? record.agentId.trim() : undefined;
+  const sessionKey = typeof record.sessionKey === "string" && record.sessionKey.trim() ? record.sessionKey.trim() : undefined;
   return {
     approvalId,
     approvalSlug,
+    approvalKind,
+    agentId,
     allowedDecisions,
+    sessionKey,
   };
 }
 

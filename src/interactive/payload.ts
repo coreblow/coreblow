@@ -251,6 +251,54 @@ export function hasInteractiveReplyBlocks(value: unknown): value is InteractiveR
   return Boolean(normalizeInteractiveReply(value));
 }
 
+export function renderMessagePresentationFallbackText(params: {
+  presentation?: MessagePresentation;
+  emptyFallback?: string | null;
+  text?: string | null;
+}): string {
+  const lines: string[] = [];
+  const text = typeof params.text === "string" && params.text.trim() ? params.text.trim() : "";
+  if (text) {
+    lines.push(text);
+  }
+  const presentation = params.presentation;
+  if (!presentation) {
+    return lines.join("\n\n");
+  }
+  if (presentation.title) {
+    lines.push(presentation.title);
+  }
+  for (const block of presentation.blocks) {
+    if (block.type === "text" || block.type === "context") {
+      lines.push(block.text);
+      continue;
+    }
+    if (block.type === "buttons") {
+      const labels = block.buttons
+        .map((button) => {
+          const btn = button as { url?: string; webApp?: { url?: string }; web_app?: { url?: string } };
+          const targetUrl = btn.url ?? btn.webApp?.url ?? btn.web_app?.url;
+          return targetUrl ? `${button.label}: ${targetUrl}` : button.label;
+        })
+        .filter(Boolean);
+      if (labels.length > 0) {
+        lines.push(labels.map((label) => `- ${label}`).join("\n"));
+      }
+      continue;
+    }
+    if (block.type === "select") {
+      const labels = block.options.map((option) => option.label).filter(Boolean);
+      if (labels.length > 0) {
+        const heading = block.placeholder ? `${block.placeholder}:` : "Options:";
+        lines.push(`${heading}\n${labels.map((label) => `- ${label}`).join("\n")}`);
+      }
+    }
+  }
+  const rendered = lines.join("\n\n");
+  const fallback = typeof params.emptyFallback === "string" && params.emptyFallback.trim() ? params.emptyFallback.trim() : "";
+  return rendered || fallback || "";
+}
+
 export function hasReplyChannelData(value: unknown): value is Record<string, unknown> {
   return Boolean(
     value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).length > 0,

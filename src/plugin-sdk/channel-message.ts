@@ -4,7 +4,11 @@ export {
   verifyChannelMessageLiveFinalizerProofs,
   verifyChannelMessageReceiveAckPolicyAdapterProofs,
 } from "../channels/message/contracts.js";
-export { createMessageReceiptFromOutboundResults } from "../channels/message/receipt.js";
+export {
+  createMessageReceiptFromOutboundResults,
+  listMessageReceiptPlatformIds,
+  resolveMessageReceiptPrimaryId,
+} from "../channels/message/receipt.js";
 export { createChannelMessageAdapterFromOutbound } from "../channels/message/outbound-bridge.js";
 export { resolveChannelSourceReplyDeliveryMode as resolveChannelMessageSourceReplyDeliveryMode } from "./channel-reply-core.js";
 export {

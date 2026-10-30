@@ -295,6 +295,7 @@ export async function createMatrixThreadBindingManager(params: {
 
   const manager: MatrixThreadBindingManager = {
     accountId: params.accountId,
+    persist,
     getIdleTimeoutMs: () => defaults.idleTimeoutMs,
     getMaxAgeMs: () => defaults.maxAgeMs,
     getByConversation: ({ conversationId, parentConversationId }) =>

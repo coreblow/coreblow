@@ -11,6 +11,7 @@ export type { ChannelSetupInput } from "../channels/plugins/types.core.js";
 export type {
   ChannelSetupDmPolicy,
   ChannelSetupWizardAdapter,
+  SetupChannelsOptions,
 } from "../channels/plugins/setup-wizard-types.js";
 export type {
   ChannelSetupWizard,
@@ -65,6 +66,7 @@ export {
   patchNestedChannelConfigSection,
   patchTopLevelChannelConfigSection,
   patchChannelConfigForAccount,
+  promptAccountId,
   promptLegacyChannelAllowFrom,
   promptLegacyChannelAllowFromForAccount,
   promptParsedAllowFromForAccount,
@@ -104,3 +106,4 @@ export {
 } from "../channels/plugins/setup-wizard-binary.js";
 
 export { formatResolvedUnresolvedNote } from "./resolution-notes.js";
+export { promptChannelAccessConfig } from "../channels/plugins/setup-group-access.js";

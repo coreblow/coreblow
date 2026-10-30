@@ -125,6 +125,7 @@ function buildApproverRestrictedNativeApprovalCapability(
       accountId?: string | null;
       action: "approve";
     }) => availabilityState(hasConfiguredApprovers({ cfg, accountId })),
+    getExecInitiatingSurfaceState: resolveExecInitiatingSurfaceState,
     describeExecApprovalSetup: params.describeExecApprovalSetup,
     delivery: {
       hasConfiguredDmRoute: ({ cfg }: { cfg: CoreBlowConfig }) =>
@@ -196,6 +197,7 @@ export function createApproverRestrictedNativeApprovalAdapter(
 export function createChannelApprovalCapability(params: {
   authorizeActorAction?: ChannelApprovalCapability["authorizeActorAction"];
   getActionAvailabilityState?: ChannelApprovalCapability["getActionAvailabilityState"];
+  getExecInitiatingSurfaceState?: ChannelApprovalCapability["getExecInitiatingSurfaceState"];
   resolveApproveCommandBehavior?: ChannelApprovalCapability["resolveApproveCommandBehavior"];
   describeExecApprovalSetup?: ChannelApprovalCapability["describeExecApprovalSetup"];
   delivery?: ChannelApprovalCapability["delivery"];
@@ -214,6 +216,7 @@ export function createChannelApprovalCapability(params: {
   return {
     authorizeActorAction: params.authorizeActorAction,
     getActionAvailabilityState: params.getActionAvailabilityState,
+    getExecInitiatingSurfaceState: params.getExecInitiatingSurfaceState,
     resolveApproveCommandBehavior: params.resolveApproveCommandBehavior,
     describeExecApprovalSetup: params.describeExecApprovalSetup,
     delivery: surfaces.delivery,
@@ -227,11 +230,13 @@ export function splitChannelApprovalCapability(capability: ChannelApprovalCapabi
   auth: {
     authorizeActorAction?: ChannelApprovalCapability["authorizeActorAction"];
     getActionAvailabilityState?: ChannelApprovalCapability["getActionAvailabilityState"];
+    getExecInitiatingSurfaceState?: ChannelApprovalCapability["getExecInitiatingSurfaceState"];
     resolveApproveCommandBehavior?: ChannelApprovalCapability["resolveApproveCommandBehavior"];
   };
   command: {
     authorizeActorAction?: ChannelApprovalCapability["authorizeActorAction"];
     getActionAvailabilityState?: ChannelApprovalCapability["getActionAvailabilityState"];
+    getExecInitiatingSurfaceState?: ChannelApprovalCapability["getExecInitiatingSurfaceState"];
     resolveApproveCommandBehavior?: ChannelApprovalCapability["resolveApproveCommandBehavior"];
   };
   delivery: ChannelApprovalCapability["delivery"];
@@ -243,6 +248,7 @@ export function splitChannelApprovalCapability(capability: ChannelApprovalCapabi
   const authSurfaces = {
     authorizeActorAction: capability.authorizeActorAction,
     getActionAvailabilityState: capability.getActionAvailabilityState,
+    getExecInitiatingSurfaceState: capability.getExecInitiatingSurfaceState,
     resolveApproveCommandBehavior: capability.resolveApproveCommandBehavior,
   };
   return {

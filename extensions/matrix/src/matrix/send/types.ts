@@ -1,3 +1,4 @@
+import type { MessageReceipt } from "coreblow/plugin-sdk/channel-message";
 import type { CoreConfig } from "../../types.js";
 import {
   MATRIX_ANNOTATION_RELATION_TYPE,
@@ -79,20 +80,31 @@ export type MatrixOutboundContent = MatrixTextContent | MatrixMediaContent;
 
 export type ReactionEventContent = MatrixReactionEventContent;
 
+export const MATRIX_COREBLOW_FINALIZED_PREVIEW_KEY = "com.coreblow.finalized_preview" as const;
+
 export type MatrixSendResult = {
   messageId: string;
   roomId: string;
+  primaryMessageId?: string;
+  receipt: MessageReceipt;
 };
 
 export type MatrixSendOpts = {
   client?: import("../sdk.js").MatrixClient;
   cfg?: CoreConfig;
   mediaUrl?: string;
+  mediaAccess?: {
+    localRoots?: readonly string[];
+    readFile?: (filePath: string) => Promise<Buffer>;
+  };
   mediaLocalRoots?: readonly string[];
+  mediaReadFile?: (filePath: string) => Promise<Buffer>;
   accountId?: string;
   replyToId?: string;
   threadId?: string | number | null;
   timeoutMs?: number;
+  /** Additional Matrix event content fields to merge into the first sent event. */
+  extraContent?: MatrixExtraContentFields;
   /** Send audio as voice message instead of audio file. Defaults to false. */
   audioAsVoice?: boolean;
 };
@@ -103,9 +115,15 @@ export type MatrixMediaMsgType =
   | typeof MsgType.Video
   | typeof MsgType.File;
 
+export type MatrixTextMsgType = typeof MsgType.Text | typeof MsgType.Notice;
+
 export type MediaKind = "image" | "audio" | "video" | "document" | "unknown";
 
 export type MatrixFormattedContent = MessageEventContent & {
   format?: string;
   formatted_body?: string;
 };
+
+export type MatrixExtraContentFields = Record<string, unknown>;
+
+export const MSC4357_LIVE_KEY = "org.matrix.msc4357.live" as const;

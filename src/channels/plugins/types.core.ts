@@ -3,7 +3,7 @@ import type { TSchema } from "typebox";
 import type { MsgContext } from "../../auto-reply/templating.js";
 import type { ReplyPayload } from "../../auto-reply/types.js";
 import type { CoreBlowConfig } from "../../config/config.js";
-import type { ReplyToMode } from "../../config/types.base.js";
+import type { MarkdownTableMode, ReplyToMode } from "../../config/types.base.js";
 import type { PollInput } from "../../polls.js";
 import type { GatewayClientMode, GatewayClientName } from "../../utils/message-channel.js";
 import type { ChatType } from "../chat-type.js";
@@ -84,14 +84,19 @@ export type ChannelSetupInput = {
   audience?: string;
   useEnv?: boolean;
   homeserver?: string;
+  dangerouslyAllowPrivateNetwork?: boolean;
+  /** @deprecated Compatibility alias; prefer dangerouslyAllowPrivateNetwork. */
   allowPrivateNetwork?: boolean;
+  proxy?: string;
   userId?: string;
   accessToken?: string;
   password?: string;
   deviceName?: string;
+  avatarUrl?: string;
   initialSyncLimit?: number;
   ship?: string;
   url?: string;
+  baseUrl?: string;
   relayUrls?: string;
   code?: string;
   groupChannels?: string[];
@@ -235,6 +240,12 @@ export type ChannelGroupContext = {
   senderE164?: string | null;
 };
 
+export type ChannelTtsVoiceDeliveryCapabilities = {
+  synthesisTarget: "audio-file" | "voice-note";
+  transcodesAudio?: boolean;
+  audioFileFormats?: readonly string[];
+};
+
 /** Static capability flags advertised by a channel plugin. */
 export type ChannelCapabilities = {
   chatTypes: Array<ChatType | "thread">;
@@ -247,6 +258,9 @@ export type ChannelCapabilities = {
   groupManagement?: boolean;
   threads?: boolean;
   media?: boolean;
+  tts?: {
+    voice?: ChannelTtsVoiceDeliveryCapabilities;
+  };
   nativeCommands?: boolean;
   blockStreaming?: boolean;
 };
@@ -411,6 +425,17 @@ export type ChannelMessagingAdapter = {
    */
   targetPrefixes?: readonly string[];
   normalizeTarget?: (raw: string) => string | undefined;
+  defaultMarkdownTableMode?: MarkdownTableMode;
+  resolveInboundConversation?: (params: {
+    from?: string;
+    to?: string;
+    conversationId?: string;
+    threadId?: string | number;
+    isGroup?: boolean;
+  }) => {
+    conversationId?: string;
+    parentConversationId?: string;
+  } | null;
   resolveSessionTarget?: (params: {
     kind: "group" | "channel";
     id: string;

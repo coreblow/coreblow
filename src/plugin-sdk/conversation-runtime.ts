@@ -48,6 +48,7 @@ export {
   DISCORD_THREAD_BINDING_CHANNEL,
   MATRIX_THREAD_BINDING_CHANNEL,
   formatThreadBindingDisabledError,
+  formatThreadBindingSpawnDisabledError,
   resolveThreadBindingEffectiveExpiresAt,
   resolveThreadBindingIdleTimeoutMs,
   resolveThreadBindingIdleTimeoutMsForChannel,

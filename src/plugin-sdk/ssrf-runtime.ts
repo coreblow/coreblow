@@ -15,8 +15,13 @@ export { fetchWithSsrFGuard } from "../infra/net/fetch-guard.js";
 export {
   assertHttpUrlTargetsPrivateNetwork,
   buildHostnameAllowlistPolicyFromSuffixAllowlist,
+  hasLegacyFlatAllowPrivateNetworkAlias,
+  isPrivateNetworkOptInEnabled,
+  migrateLegacyFlatAllowPrivateNetworkAlias,
   ssrfPolicyFromAllowPrivateNetwork,
   ssrfPolicyFromAllowPrivateNetwork as ssrfPolicyFromDangerouslyAllowPrivateNetwork,
+  ssrfPolicyFromPrivateNetworkOptIn,
+  type PrivateNetworkOptInInput,
 } from "./ssrf-policy.js";
 
 export function isPrivateOrLoopbackHost(hostname: string): boolean {

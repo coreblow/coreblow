@@ -23,7 +23,9 @@ import type { PluginRuntime } from "../plugins/runtime/types.js";
 import { resolveLoaderPackageRoot } from "../plugins/sdk-alias.js";
 import type {
   AnyAgentTool,
+  CoreBlowPluginApi,
   CoreBlowPluginApi as OpenClawPluginApi,
+  CoreBlowPluginCommandDefinition,
   CoreBlowPluginCommandDefinition as OpenClawPluginCommandDefinition,
   PluginCommandContext,
 } from "../plugins/types.js";
@@ -32,6 +34,8 @@ import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 
 export type {
   AnyAgentTool,
+  CoreBlowPluginApi,
+  CoreBlowPluginCommandDefinition,
   OpenClawPluginApi,
   OpenClawPluginCommandDefinition,
   PluginCommandContext,

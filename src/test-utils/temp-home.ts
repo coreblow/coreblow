@@ -43,3 +43,31 @@ export async function createTempHomeEnv(prefix: string): Promise<TempHomeEnv> {
     },
   };
 }
+
+export async function withTempHome<T>(
+  fn: (home: string) => Promise<T>,
+  opts: {
+    prefix?: string;
+    env?: Record<string, string | undefined | ((home: string) => string | undefined)>;
+  } = {},
+): Promise<T> {
+  const env = await createTempHomeEnv(opts.prefix ?? "coreblow-test-home-");
+  const envKeys = Object.keys(opts.env ?? {});
+  const envSnapshot = captureEnv(envKeys);
+  if (opts.env) {
+    for (const [key, raw] of Object.entries(opts.env)) {
+      const value = typeof raw === "function" ? raw(env.home) : raw;
+      if (value === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = value;
+      }
+    }
+  }
+  try {
+    return await fn(env.home);
+  } finally {
+    envSnapshot.restore();
+    await env.restore();
+  }
+}

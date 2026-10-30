@@ -12,6 +12,7 @@ type SessionThreadBindingsConfigShape = {
   maxAgeHours?: unknown;
   spawnSubagentSessions?: unknown;
   spawnAcpSessions?: unknown;
+  spawnSessions?: unknown;
 };
 
 type ChannelThreadBindingsContainerShape = {
@@ -201,8 +202,12 @@ export function resolveThreadBindingSpawnPolicy(params: {
     true;
   const spawnFlagKey = resolveSpawnFlagKey(params.kind);
   const spawnEnabledRaw =
-    normalizeBoolean(account?.[spawnFlagKey]) ?? normalizeBoolean(root?.[spawnFlagKey]);
-  const spawnEnabled = spawnEnabledRaw ?? !supportsAutomaticThreadBindingSpawn(channel);
+    normalizeBoolean(account?.[spawnFlagKey]) ??
+    normalizeBoolean(account?.spawnSessions) ??
+    normalizeBoolean(root?.[spawnFlagKey]) ??
+    normalizeBoolean(root?.spawnSessions) ??
+    normalizeBoolean(params.cfg.session?.threadBindings?.spawnSessions);
+  const spawnEnabled = spawnEnabledRaw ?? true;
   return {
     channel,
     accountId,
@@ -268,17 +273,5 @@ export function formatThreadBindingSpawnDisabledError(params: {
   accountId: string;
   kind: ThreadBindingSpawnKind;
 }): string {
-  if (params.channel === DISCORD_THREAD_BINDING_CHANNEL && params.kind === "acp") {
-    return "Discord thread-bound ACP spawns are disabled for this account (set channels.discord.threadBindings.spawnAcpSessions=true to enable).";
-  }
-  if (params.channel === DISCORD_THREAD_BINDING_CHANNEL && params.kind === "subagent") {
-    return "Discord thread-bound subagent spawns are disabled for this account (set channels.discord.threadBindings.spawnSubagentSessions=true to enable).";
-  }
-  if (params.channel === MATRIX_THREAD_BINDING_CHANNEL && params.kind === "acp") {
-    return "Matrix thread-bound ACP spawns are disabled for this account (set channels.matrix.threadBindings.spawnAcpSessions=true to enable).";
-  }
-  if (params.channel === MATRIX_THREAD_BINDING_CHANNEL && params.kind === "subagent") {
-    return "Matrix thread-bound subagent spawns are disabled for this account (set channels.matrix.threadBindings.spawnSubagentSessions=true to enable).";
-  }
-  return `Thread-bound ${params.kind} spawns are disabled for ${params.channel}.`;
+  return `Thread-bound session spawns are disabled for ${params.channel} (set channels.${params.channel}.threadBindings.spawnSessions=true to enable).`;
 }

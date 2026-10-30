@@ -7,16 +7,16 @@
     "auditJson": null
   },
   "summary": {
-    "cb_source_files": 9107,
+    "cb_source_files": 9153,
     "oc_source_files": 8443,
-    "source_parity_both": 7323,
+    "source_parity_both": 7369,
     "source_cb_exclusive": 1784,
-    "source_missing_from_cb": 1093,
+    "source_missing_from_cb": 1047,
     "source_intentionally_deprecated": 28,
-    "test_files_cb": 5195,
+    "test_files_cb": 5215,
     "test_files_oc": 5246,
-    "tests_both_covered": 3756,
-    "tests_gap_oc_has_cb_missing": 1223,
+    "tests_both_covered": 3776,
+    "tests_gap_oc_has_cb_missing": 1203,
     "tests_intentionally_deprecated": 22,
     "tests_cb_exclusive": 1374,
     "export_files_with_gaps": 41,
@@ -409,69 +409,6 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/whatsapp",
-        "pnpm check"
-      ]
-    },
-    {
-      "domain": "extensions/matrix",
-      "status": "partial",
-      "priority": "P1",
-      "implementationSurface": "extensions/matrix plus plugin-sdk channel/runtime surfaces",
-      "counts": {
-        "sharedSourcePaths": 135,
-        "coreBlowOnlySourcePaths": 15,
-        "openClawOnlySourcePaths": 71,
-        "sharedTestPaths": 83,
-        "coreBlowOnlyTestPaths": 0,
-        "openClawTestGaps": 35
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [
-          "extensions/matrix/src/approval-auth.ts",
-          "extensions/matrix/src/approval-handler.runtime.ts",
-          "extensions/matrix/src/approval-ids.ts",
-          "extensions/matrix/src/approval-native.ts",
-          "extensions/matrix/src/approval-reaction-auth.ts",
-          "extensions/matrix/src/approval-reactions.ts",
-          "extensions/matrix/src/channel-account-paths.ts",
-          "extensions/matrix/src/channel.setup.ts",
-          "extensions/matrix/src/cli-metadata.ts",
-          "extensions/matrix/src/config-adapter.ts",
-          "extensions/matrix/src/config-ui-hints.ts",
-          "extensions/matrix/src/doctor-contract.ts"
-        ],
-        "openClawTestGapPaths": [
-          "extensions/matrix/src/account-selection.test.ts",
-          "extensions/matrix/src/approval-auth.test.ts",
-          "extensions/matrix/src/approval-handler.runtime.test.ts",
-          "extensions/matrix/src/approval-native.test.ts",
-          "extensions/matrix/src/approval-reactions.test.ts",
-          "extensions/matrix/src/channel.message-adapter.test.ts",
-          "extensions/matrix/src/doctor.test.ts",
-          "extensions/matrix/src/exec-approval-resolver.test.ts",
-          "extensions/matrix/src/exec-approvals.test.ts",
-          "extensions/matrix/src/group-mentions.test.ts",
-          "extensions/matrix/src/legacy-crypto-inspector-availability.test.ts",
-          "extensions/matrix/src/legacy-crypto.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "extensions/matrix/src/adapter.ts",
-          "extensions/matrix/src/config.ts",
-          "extensions/matrix/src/extension.ts",
-          "extensions/matrix/src/formatter.ts",
-          "extensions/matrix/src/handler.ts",
-          "extensions/matrix/src/index.ts",
-          "extensions/matrix/src/matrix/index.ts",
-          "extensions/matrix/src/media.ts",
-          "extensions/matrix/src/rate-limiter.ts",
-          "extensions/matrix/src/resolve-target.ts",
-          "extensions/matrix/src/subagent-hooks.ts",
-          "extensions/matrix/src/test-mocks.ts"
-        ]
-      },
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- extensions/matrix",
         "pnpm check"
       ]
     },
@@ -1390,6 +1327,69 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- extensions/google",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "extensions/matrix",
+      "status": "partial",
+      "priority": "P2",
+      "implementationSurface": "extensions/matrix plus plugin-sdk channel/runtime surfaces",
+      "counts": {
+        "sharedSourcePaths": 181,
+        "coreBlowOnlySourcePaths": 15,
+        "openClawOnlySourcePaths": 25,
+        "sharedTestPaths": 103,
+        "coreBlowOnlyTestPaths": 0,
+        "openClawTestGaps": 15
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [
+          "extensions/matrix/src/matrix/client/config-runtime-api.ts",
+          "extensions/matrix/src/matrix/client/config-secret-input.runtime.ts",
+          "extensions/matrix/src/matrix/client/migration-snapshot.runtime.ts",
+          "extensions/matrix/src/matrix/config-paths.ts",
+          "extensions/matrix/src/matrix/media-errors.ts",
+          "extensions/matrix/src/matrix/monitor/recent-invite.ts",
+          "extensions/matrix/src/matrix/monitor/room-history.ts",
+          "extensions/matrix/src/matrix/monitor/runtime-api.ts",
+          "extensions/matrix/src/matrix/monitor/status.ts",
+          "extensions/matrix/src/matrix/monitor/sync-lifecycle.ts",
+          "extensions/matrix/src/matrix/monitor/task-runner.ts",
+          "extensions/matrix/src/matrix/monitor/test-events.ts"
+        ],
+        "openClawTestGapPaths": [
+          "extensions/matrix/src/matrix/client/config.test.ts",
+          "extensions/matrix/src/matrix/client/create-client.test.ts",
+          "extensions/matrix/src/matrix/client/logging.test.ts",
+          "extensions/matrix/src/matrix/monitor/handler.group-history.test.ts",
+          "extensions/matrix/src/matrix/monitor/handler.strip-mention.test.ts",
+          "extensions/matrix/src/matrix/monitor/location.test.ts",
+          "extensions/matrix/src/matrix/monitor/reaction-events.test.ts",
+          "extensions/matrix/src/matrix/monitor/recent-invite.test.ts",
+          "extensions/matrix/src/matrix/monitor/room-history.test.ts",
+          "extensions/matrix/src/matrix/monitor/sync-lifecycle.test.ts",
+          "extensions/matrix/src/matrix/monitor/threads.test.ts",
+          "extensions/matrix/src/matrix/sdk/crypto-node.runtime.test.ts"
+        ],
+        "coreBlowOnlySourcePaths": [
+          "extensions/matrix/src/adapter.ts",
+          "extensions/matrix/src/config.ts",
+          "extensions/matrix/src/extension.ts",
+          "extensions/matrix/src/formatter.ts",
+          "extensions/matrix/src/handler.ts",
+          "extensions/matrix/src/index.ts",
+          "extensions/matrix/src/matrix/index.ts",
+          "extensions/matrix/src/media.ts",
+          "extensions/matrix/src/rate-limiter.ts",
+          "extensions/matrix/src/resolve-target.ts",
+          "extensions/matrix/src/subagent-hooks.ts",
+          "extensions/matrix/src/test-mocks.ts"
+        ]
+      },
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- extensions/matrix",
         "pnpm check"
       ]
     },

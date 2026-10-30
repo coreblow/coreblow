@@ -21,5 +21,6 @@ export {
   hasReplyContent,
   normalizeInteractiveReply,
   normalizeMessagePresentation,
+  renderMessagePresentationFallbackText,
   resolveInteractiveTextFallback,
 } from "../interactive/payload.js";

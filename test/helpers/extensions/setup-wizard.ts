@@ -111,26 +111,26 @@ export function createSetupWizardAdapter(params: SetupWizardAdapterParams) {
 }
 
 export function createPluginSetupWizardAdapter<
-  TPlugin extends SetupWizardPlugin & { setupWizard?: SetupWizard },
+  TPlugin extends { id: any; setupWizard?: any },
 >(plugin: TPlugin) {
-  const wizard = plugin.setupWizard;
+  const wizard = plugin.setupWizard as SetupWizard | undefined;
   if (!wizard) {
     throw new Error(`${plugin.id} is missing setupWizard`);
   }
   return createSetupWizardAdapter({
-    plugin,
+    plugin: plugin as unknown as SetupWizardPlugin,
     wizard,
   });
 }
 
 export function createPluginSetupWizardConfigure<
-  TPlugin extends SetupWizardPlugin & { setupWizard?: SetupWizard },
+  TPlugin extends { id: any; setupWizard?: any },
 >(plugin: TPlugin) {
   return createPluginSetupWizardAdapter(plugin).configure;
 }
 
 export function createPluginSetupWizardStatus<
-  TPlugin extends SetupWizardPlugin & { setupWizard?: SetupWizard },
+  TPlugin extends { id: any; setupWizard?: any },
 >(plugin: TPlugin) {
   return createPluginSetupWizardAdapter(plugin).getStatus;
 }

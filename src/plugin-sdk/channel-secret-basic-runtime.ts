@@ -18,6 +18,7 @@ export type {
 } from "../secrets/runtime-config-collectors-channels.js";
 export {
   collectSecretInputAssignment,
+  hasOwnProperty,
   isEnabledFlag,
 } from "../secrets/runtime-shared.js";
 export type { ResolverContext, SecretDefaults } from "../secrets/runtime-shared.js";

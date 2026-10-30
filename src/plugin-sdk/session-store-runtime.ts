@@ -3,6 +3,7 @@ export {
   loadSessionStore,
   readSessionUpdatedAt,
   recordSessionMetaFromInbound,
+  resolveSessionStoreEntry,
   updateLastRoute,
   updateSessionStore,
   updateSessionStoreEntry,

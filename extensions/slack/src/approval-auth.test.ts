@@ -41,7 +41,7 @@ describe("slackApprovalAuth", () => {
       }),
     ).toEqual({
       authorized: false,
-      reason: "You are not authorized to approve plugin requests on Slack.",
+      reason: "❌ You are not authorized to approve plugin requests on Slack.",
     });
 
     expect(
@@ -53,7 +53,7 @@ describe("slackApprovalAuth", () => {
       }),
     ).toEqual({
       authorized: false,
-      reason: "You are not authorized to approve exec requests on Slack.",
+      reason: "❌ You are not authorized to approve exec requests on Slack.",
     });
   });
 });

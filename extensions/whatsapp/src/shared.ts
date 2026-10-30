@@ -6,7 +6,7 @@ import {
 } from "coreblow/plugin-sdk/channel-config-helpers";
 import { createAllowlistProviderRouteAllowlistWarningCollector } from "coreblow/plugin-sdk/channel-policy";
 import { createChannelPluginBase } from "coreblow/plugin-sdk/core";
-import { createDelegatedSetupWizardProxy } from "coreblow/plugin-sdk/setup";
+import { createDelegatedSetupWizardProxy, type ChannelSetupWizard } from "coreblow/plugin-sdk/setup";
 import {
   listWhatsAppAccountIds,
   resolveDefaultWhatsAppAccountId,
@@ -55,8 +55,8 @@ const whatsappResolveDmPolicy = createScopedDmSecurityResolver<ResolvedWhatsAppA
 });
 
 export function createWhatsAppSetupWizardProxy(
-  loadWizard: () => Promise<NonNullable<ChannelPlugin<ResolvedWhatsAppAccount>["setupWizard"]>>,
-): NonNullable<ChannelPlugin<ResolvedWhatsAppAccount>["setupWizard"]> {
+  loadWizard: () => Promise<ChannelSetupWizard>,
+): ChannelSetupWizard {
   return createDelegatedSetupWizardProxy({
     channel: WHATSAPP_CHANNEL,
     loadWizard,

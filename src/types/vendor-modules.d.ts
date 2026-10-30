@@ -3,12 +3,46 @@ declare module "qrcode-terminal" {
 }
 
 declare module "markdown-it" {
+  export interface Token {
+    type: string;
+    tag: string;
+    attrs: [string, string][] | null;
+    map: [number, number] | null;
+    nesting: number;
+    level: number;
+    children: Token[] | null;
+    content: string;
+    markup: string;
+    info: string;
+    meta: unknown;
+    block: boolean;
+    hidden: boolean;
+    attrIndex(name: string): number;
+    attrPush(attrData: [string, string]): void;
+    attrSet(name: string, value: string): void;
+    attrGet(name: string): string | null;
+    attrJoin(name: string, value: string): void;
+    constructor: new (type: string, tag: string, nesting: number) => Token;
+  }
+
+  export interface Renderer {
+    rules: Record<string, (tokens: Token[], idx: number, options: Record<string, unknown>, env: unknown, self: Renderer) => string>;
+    render(tokens: Token[], options: Record<string, unknown>, env: unknown): string;
+    renderToken(tokens: Token[], idx: number, options: Record<string, unknown>): string;
+  }
+
   class MarkdownIt {
-    constructor(...args: unknown[]);
+    constructor(presetName?: string | Record<string, unknown>, options?: Record<string, unknown>);
     enable(...args: unknown[]): this;
     disable(...args: unknown[]): this;
-    render(...args: unknown[]): string;
-    parse(...args: unknown[]): unknown[];
+    render(src: string, env?: unknown): string;
+    parse(src: string, env?: unknown): Token[];
+    renderer: Renderer;
+    options: Record<string, unknown>;
+    utils: {
+      escapeHtml(str: string): string;
+      [key: string]: unknown;
+    };
   }
 
   export = MarkdownIt;

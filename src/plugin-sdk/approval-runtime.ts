@@ -37,3 +37,4 @@ export {
   type PluginApprovalRequestPayload,
   type PluginApprovalResolved,
 } from "../infra/plugin-approvals.js";
+export { buildPluginApprovalResolvedReplyPayload } from "./approval-renderers.js";

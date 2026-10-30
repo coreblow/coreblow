@@ -1,5 +1,8 @@
 import type { ChannelMessageAdapterShape } from "../message/types.js";
 import type { ChannelSetupWizard } from "./setup-wizard.js";
+import type { ChannelSetupWizardAdapter } from "./setup-wizard-types.js";
+
+export type ChannelPluginSetupWizard = ChannelSetupWizard | ChannelSetupWizardAdapter;
 import type {
   ChannelApprovalCapability,
   ChannelAuthAdapter,
@@ -88,7 +91,7 @@ export type ChannelPlugin<ResolvedAccount = any, Probe = unknown, Audit = unknow
     };
   };
   reload?: { configPrefixes: string[]; noopPrefixes?: string[] };
-  setupWizard?: ChannelSetupWizard;
+  setupWizard?: ChannelPluginSetupWizard;
   config: ChannelConfigAdapter<ResolvedAccount>;
   configSchema?: ChannelConfigSchema;
   setup?: ChannelSetupAdapter;

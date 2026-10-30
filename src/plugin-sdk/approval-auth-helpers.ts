@@ -69,7 +69,7 @@ export function createResolvedApproverActionAuthAdapter(params: {
       }
       return {
         authorized: false,
-        reason: `You are not authorized to approve ${approvalKind} requests on ${params.channelLabel}.`,
+        reason: `❌ You are not authorized to approve ${approvalKind} requests on ${params.channelLabel}.`,
       } as const;
     },
   };

@@ -7,6 +7,44 @@ import {
   type SsrFPolicy,
 } from "../infra/net/ssrf.js";
 
+export type PrivateNetworkOptInInput =
+  | boolean
+  | null
+  | undefined
+  | Pick<SsrFPolicy, "allowPrivateNetwork" | "dangerouslyAllowPrivateNetwork">
+  | {
+      dangerouslyAllowPrivateNetwork?: boolean | null;
+      /** @deprecated Compatibility alias; prefer dangerouslyAllowPrivateNetwork. */
+      allowPrivateNetwork?: boolean | null;
+      network?:
+        | Pick<SsrFPolicy, "allowPrivateNetwork" | "dangerouslyAllowPrivateNetwork">
+        | null
+        | undefined;
+    };
+
+export function isPrivateNetworkOptInEnabled(input: PrivateNetworkOptInInput): boolean {
+  if (input === true) {
+    return true;
+  }
+  const record = asNullableRecord(input);
+  if (!record) {
+    return false;
+  }
+  const network = asNullableRecord(record.network);
+  return (
+    record.allowPrivateNetwork === true ||
+    record.dangerouslyAllowPrivateNetwork === true ||
+    network?.allowPrivateNetwork === true ||
+    network?.dangerouslyAllowPrivateNetwork === true
+  );
+}
+
+export function ssrfPolicyFromPrivateNetworkOptIn(
+  input: PrivateNetworkOptInInput,
+): SsrFPolicy | undefined {
+  return isPrivateNetworkOptInEnabled(input) ? { allowPrivateNetwork: true } : undefined;
+}
+
 export function ssrfPolicyFromAllowPrivateNetwork(
   allowPrivateNetwork: boolean | null | undefined,
 ): SsrFPolicy | undefined {
@@ -16,6 +54,7 @@ export function ssrfPolicyFromAllowPrivateNetwork(
 export async function assertHttpUrlTargetsPrivateNetwork(
   url: string,
   params: {
+    dangerouslyAllowPrivateNetwork?: boolean | null;
     allowPrivateNetwork?: boolean | null;
     lookupFn?: LookupFn;
     errorMessage?: string;
@@ -38,7 +77,11 @@ export async function assertHttpUrlTargetsPrivateNetwork(
     return;
   }
 
-  if (params.allowPrivateNetwork !== true) {
+  const allowPrivateNetwork =
+    typeof params.dangerouslyAllowPrivateNetwork === "boolean"
+      ? params.dangerouslyAllowPrivateNetwork
+      : params.allowPrivateNetwork;
+  if (allowPrivateNetwork !== true) {
     throw new Error(errorMessage);
   }
 
@@ -137,4 +180,58 @@ export function buildHostnameAllowlistPolicyFromSuffixAllowlist(
     return undefined;
   }
   return { hostnameAllowlist: Array.from(patterns) };
+}
+
+function asNullableRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+export function hasLegacyFlatAllowPrivateNetworkAlias(value: unknown): boolean {
+  const entry = asNullableRecord(value);
+  return Boolean(entry && Object.prototype.hasOwnProperty.call(entry, "allowPrivateNetwork"));
+}
+
+export function migrateLegacyFlatAllowPrivateNetworkAlias(params: {
+  entry: Record<string, unknown>;
+  pathPrefix: string;
+  changes: string[];
+}): { entry: Record<string, unknown>; changed: boolean } {
+  if (!hasLegacyFlatAllowPrivateNetworkAlias(params.entry)) {
+    return { entry: params.entry, changed: false };
+  }
+
+  const legacyAllowPrivateNetwork = params.entry.allowPrivateNetwork;
+  const currentNetworkRecord = asNullableRecord(params.entry.network);
+  const currentNetwork = currentNetworkRecord ? { ...currentNetworkRecord } : {};
+  const currentDangerousAllowPrivateNetwork = currentNetwork.dangerouslyAllowPrivateNetwork;
+
+  let resolvedDangerousAllowPrivateNetwork: unknown = currentDangerousAllowPrivateNetwork;
+  if (typeof currentDangerousAllowPrivateNetwork === "boolean") {
+    // The canonical key wins when both shapes are present.
+    resolvedDangerousAllowPrivateNetwork = currentDangerousAllowPrivateNetwork;
+  } else if (typeof legacyAllowPrivateNetwork === "boolean") {
+    resolvedDangerousAllowPrivateNetwork = legacyAllowPrivateNetwork;
+  } else if (currentDangerousAllowPrivateNetwork === undefined) {
+    resolvedDangerousAllowPrivateNetwork = legacyAllowPrivateNetwork;
+  }
+
+  delete currentNetwork.dangerouslyAllowPrivateNetwork;
+  if (resolvedDangerousAllowPrivateNetwork !== undefined) {
+    currentNetwork.dangerouslyAllowPrivateNetwork = resolvedDangerousAllowPrivateNetwork;
+  }
+
+  const nextEntry = { ...params.entry };
+  delete nextEntry.allowPrivateNetwork;
+  if (Object.keys(currentNetwork).length > 0) {
+    nextEntry.network = currentNetwork;
+  } else {
+    delete nextEntry.network;
+  }
+
+  params.changes.push(
+    `Moved ${params.pathPrefix}.allowPrivateNetwork → ${params.pathPrefix}.network.dangerouslyAllowPrivateNetwork (${String(resolvedDangerousAllowPrivateNetwork)}).`,
+  );
+  return { entry: nextEntry, changed: true };
 }

@@ -158,7 +158,7 @@ export type ChannelMessageSendTextContext<TConfig = unknown> = {
   deps?: OutboundSendDeps;
   replyToId?: string | null;
   replyToIdSource?: "explicit" | "implicit";
-  replyToMode?: string;
+  replyToMode?: ReplyToMode;
   threadId?: string | number | null;
   silent?: boolean;
   signal?: AbortSignal;
@@ -279,4 +279,5 @@ export type ChannelMessageAdapterShape<TConfig = unknown> = {
   receive?: ChannelMessageReceiveAdapterShape;
 };
 import type { ReplyPayload } from "../../auto-reply/types.js";
+import type { ReplyToMode } from "../../config/types.base.js";
 import type { OutboundDeliveryResult, OutboundSendDeps } from "../../infra/outbound/deliver.js";

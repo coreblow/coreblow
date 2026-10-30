@@ -27,5 +27,5 @@ export function installPinnedHostnameTestHooks(): void {
   // CoreBlow's provider tests use the default guarded fetch implementation.
 }
 
-export { createTempHomeEnv, type TempHomeEnv } from "../test-utils/temp-home.js";
+export { createTempHomeEnv, withTempHome, type TempHomeEnv } from "../test-utils/temp-home.js";
 export { createProviderUsageFetch, makeResponse } from "../test-utils/provider-usage-fetch.js";

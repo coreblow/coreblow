@@ -1,6 +1,7 @@
 import type { ReplyPayload } from "../../auto-reply/types.js";
 import type { OutboundMediaAccess } from "../../media/load-options.js";
 import type { MessagePresentation } from "../../interactive/payload.js";
+import type { ReplyToMode } from "../../config/types.base.js";
 /** Stub: planned binding rule type */
 type ConfiguredBindingRule = Record<string, unknown>;
 import type { CoreBlowConfig } from "../../config/config.js";
@@ -104,6 +105,11 @@ export type ChannelSetupAdapter = {
     accountId: string;
     input: ChannelSetupInput;
   }) => string | null;
+  singleAccountKeysToMove?: readonly string[];
+  namedAccountPromotionKeys?: readonly string[];
+  resolveSingleAccountPromotionTarget?: (params: {
+    channel: Record<string, unknown>;
+  }) => string | undefined;
 };
 
 export type ChannelConfigAdapter<ResolvedAccount> = {
@@ -158,6 +164,8 @@ export type ChannelOutboundContext = {
   /** Send image as document to avoid Telegram compression. */
   forceDocument?: boolean;
   replyToId?: string | null;
+  replyToIdSource?: "explicit" | "implicit";
+  replyToMode?: ReplyToMode;
   threadId?: string | number | null;
   accountId?: string | null;
   identity?: OutboundIdentity;
@@ -557,6 +565,16 @@ export type ChannelLifecycleAdapter = {
     accountId: string;
     runtime: RuntimeEnv;
   }) => Promise<void> | void;
+  runStartupMaintenance?: (params: {
+    cfg: CoreBlowConfig;
+    env?: NodeJS.ProcessEnv;
+    log: {
+      info?: (message: string) => void;
+      warn?: (message: string) => void;
+    };
+    trigger?: string;
+    logPrefix?: string;
+  }) => Promise<void> | void;
 };
 
 export type ChannelExecApprovalAdapter = {
@@ -745,6 +763,27 @@ export type ChannelConfiguredBindingProvider = {
 
 export type ChannelConversationBindingSupport = {
   supportsCurrentConversationBinding?: boolean;
+  defaultTopLevelPlacement?: "current" | "child";
+  setIdleTimeoutBySessionKey?: (params: {
+    targetSessionKey: string;
+    accountId?: string | null;
+    idleTimeoutMs: number;
+  }) => Array<{
+    boundAt: number;
+    lastActivityAt: number;
+    idleTimeoutMs?: number;
+    maxAgeMs?: number;
+  }>;
+  setMaxAgeBySessionKey?: (params: {
+    targetSessionKey: string;
+    accountId?: string | null;
+    maxAgeMs: number;
+  }) => Array<{
+    boundAt: number;
+    lastActivityAt: number;
+    idleTimeoutMs?: number;
+    maxAgeMs?: number;
+  }>;
 };
 
 export type ChannelSecurityAdapter<ResolvedAccount = unknown> = {
@@ -791,9 +830,9 @@ export type ChannelSecretsAdapter = {
     value: unknown;
   }>;
   collectRuntimeConfigAssignments?: (params: {
-    config: CoreBlowConfig;
-    defaults?: unknown;
-    context?: unknown;
+    config: any;
+    defaults?: any;
+    context: any;
   }) => void;
 };
 

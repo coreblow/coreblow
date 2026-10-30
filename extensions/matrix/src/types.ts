@@ -10,6 +10,8 @@ export type MatrixDmConfig = {
   policy?: DmPolicy;
   /** Allowlist for DM senders (matrix user IDs or "*"). */
   allowFrom?: Array<string | number>;
+  sessionScope?: "per-user" | "per-room";
+  threadReplies?: "off" | "inbound" | "always";
 };
 
 export type MatrixRoomConfig = {
@@ -54,6 +56,21 @@ export type MatrixThreadBindingsConfig = {
   spawnAcpSessions?: boolean;
 };
 
+export type MatrixExecApprovalTarget = "dm" | "channel" | "both";
+
+export type MatrixExecApprovalConfig = {
+  /** If true, deliver exec approvals through Matrix-native prompts. */
+  enabled?: boolean;
+  /** Optional approver Matrix user IDs. Falls back to dm.allowFrom. */
+  approvers?: Array<string | number>;
+  /** Optional agent allowlist for approval delivery. */
+  agentFilter?: string[];
+  /** Optional session allowlist for approval delivery. */
+  sessionFilter?: string[];
+  /** Where approval prompts should go. Default: dm. */
+  target?: MatrixExecApprovalTarget;
+};
+
 /** Per-account Matrix config (excludes the accounts field to prevent recursion). */
 export type MatrixAccountConfig = Omit<MatrixConfig, "accounts">;
 
@@ -68,6 +85,13 @@ export type MatrixConfig = {
   defaultAccount?: string;
   /** Matrix homeserver URL (https://matrix.example.org). */
   homeserver?: string;
+  /** Network policy overrides for trusted private/internal Matrix homeservers. */
+  network?: {
+    /** Dangerous opt-in for trusted private/internal Matrix homeservers. */
+    dangerouslyAllowPrivateNetwork?: boolean;
+  };
+  /** Optional HTTP(S) proxy URL for Matrix connections (e.g. http://127.0.0.1:7890). */
+  proxy?: string;
   /** Allow Matrix homeserver traffic to private/internal hosts. */
   allowPrivateNetwork?: boolean;
   /** Matrix user id (@user:server). */
@@ -127,6 +151,8 @@ export type MatrixConfig = {
   autoJoinAllowlist?: Array<string | number>;
   /** Direct message policy + allowlist overrides. */
   dm?: MatrixDmConfig;
+  /** Matrix-native exec approval delivery config. */
+  execApprovals?: MatrixExecApprovalConfig;
   /** Room config allowlist keyed by room ID or alias (names resolved to IDs when possible). */
   groups?: Record<string, MatrixRoomConfig>;
   /** Room config allowlist keyed by room ID or alias. Legacy; use groups. */

@@ -1,13 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
 
-export function loadJsonFile(pathname: string): unknown {
+export function loadJsonFile<T = unknown>(pathname: string): T | undefined {
   try {
     if (!fs.existsSync(pathname)) {
       return undefined;
     }
     const raw = fs.readFileSync(pathname, "utf8");
-    return JSON.parse(raw) as unknown;
+    return JSON.parse(raw) as T;
   } catch {
     return undefined;
   }

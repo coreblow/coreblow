@@ -14,7 +14,7 @@ function clean(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function resolveGlobalMatrixEnvConfig(env: NodeJS.ProcessEnv): MatrixEnvConfig {
+export function resolveGlobalMatrixEnvConfig(env: NodeJS.ProcessEnv): MatrixEnvConfig {
   return {
     homeserver: clean(env.MATRIX_HOMESERVER),
     userId: clean(env.MATRIX_USER_ID),

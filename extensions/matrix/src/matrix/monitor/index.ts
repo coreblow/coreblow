@@ -32,11 +32,13 @@ import { runMatrixStartupMaintenance } from "./startup.js";
 
 export type MonitorMatrixOpts = {
   runtime?: RuntimeEnv;
+  channelRuntime?: unknown;
   abortSignal?: AbortSignal;
   mediaMaxMb?: number;
   initialSyncLimit?: number;
   replyToMode?: ReplyToMode;
   accountId?: string | null;
+  setStatus?: (next: any) => void;
 };
 
 const DEFAULT_MEDIA_MAX_MB = 20;

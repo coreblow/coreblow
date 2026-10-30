@@ -100,6 +100,7 @@ export type SessionThreadBindingsConfig = {
    * Session auto-unfocuses once this age is reached even if active. Set to 0 to disable. Default: 0.
    */
   maxAgeHours?: number;
+  spawnSessions?: boolean;
 };
 
 export type SessionConfig = {

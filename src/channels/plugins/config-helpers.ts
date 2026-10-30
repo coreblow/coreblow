@@ -93,7 +93,7 @@ export function deleteAccountFromConfigSection(params: {
     const baseRecord = { ...(base as Record<string, unknown>) };
     for (const field of params.clearBaseFields ?? []) {
       if (field in baseRecord) {
-        baseRecord[field] = undefined;
+        delete baseRecord[field];
       }
     }
     return {

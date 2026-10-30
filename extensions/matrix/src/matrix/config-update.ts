@@ -10,6 +10,7 @@ export type MatrixAccountPatch = {
   enabled?: boolean;
   homeserver?: string | null;
   allowPrivateNetwork?: boolean | null;
+  proxy?: string | null;
   userId?: string | null;
   accessToken?: MatrixConfig["accessToken"] | null;
   password?: MatrixConfig["password"] | null;
@@ -19,6 +20,8 @@ export type MatrixAccountPatch = {
   encryption?: boolean | null;
   initialSyncLimit?: number | null;
   allowBots?: MatrixConfig["allowBots"] | null;
+  autoJoin?: MatrixConfig["autoJoin"] | null;
+  autoJoinAllowlist?: MatrixConfig["autoJoinAllowlist"] | null;
   dm?: MatrixConfig["dm"] | null;
   groupPolicy?: MatrixConfig["groupPolicy"] | null;
   groupAllowFrom?: MatrixConfig["groupAllowFrom"] | null;
@@ -171,6 +174,7 @@ export function updateMatrixAccountConfig(
   }
 
   applyNullableStringField(nextAccount, "homeserver", patch.homeserver);
+  applyNullableStringField(nextAccount, "proxy", patch.proxy);
   applyNullableStringField(nextAccount, "userId", patch.userId);
   applyNullableSecretInputField(
     nextAccount,
@@ -213,6 +217,14 @@ export function updateMatrixAccountConfig(
       nextAccount.allowBots = patch.allowBots;
     }
   }
+  if (patch.autoJoin !== undefined) {
+    if (patch.autoJoin === null) {
+      delete nextAccount.autoJoin;
+    } else {
+      nextAccount.autoJoin = patch.autoJoin;
+    }
+  }
+  applyNullableArrayField(nextAccount, "autoJoinAllowlist", patch.autoJoinAllowlist);
   if (patch.dm !== undefined) {
     if (patch.dm === null) {
       delete nextAccount.dm;
@@ -255,16 +267,20 @@ export function updateMatrixAccountConfig(
   );
 
   if (shouldStoreMatrixAccountAtTopLevel(cfg, normalizedAccountId)) {
-    const { accounts: _ignoredAccounts, defaultAccount, ...baseMatrix } = matrix;
+    const { accounts: _ignoredAccounts, defaultAccount } = matrix;
+    const {
+      accounts: _ignoredNextAccounts,
+      defaultAccount: _ignoredNextDefaultAccount,
+      ...topLevelAccount
+    } = nextAccount;
     return {
       ...cfg,
       channels: {
         ...cfg.channels,
         matrix: {
-          ...baseMatrix,
           ...(defaultAccount ? { defaultAccount } : {}),
           enabled: true,
-          ...nextAccount,
+          ...topLevelAccount,
         },
       },
     };
