@@ -369,6 +369,55 @@ const INTENTIONALLY_DEPRECATED_UPSTREAM_PATHS = new Set([
   "src/plugins/clawhub.test.ts",
   "src/plugins/migration-provider-runtime.ts",
   "src/plugins/migration-provider-runtime.test.ts",
+  "src/plugins/doctor-contract-registry.load-paths.test.ts",
+  "src/plugins/hook-lifecycle-gates.test.ts",
+  "src/plugins/hooks.before-agent-finalize.test.ts",
+  "src/plugins/hooks.before-agent-reply.test.ts",
+  "src/plugins/hooks.before-install.test.ts",
+  "src/plugins/hooks.correlation.test.ts",
+  "src/plugins/install-source-info.test.ts",
+  "src/plugins/install.npm-spec.test.ts",
+  "src/plugins/install.path.test.ts",
+  "src/plugins/installed-plugin-index-records.test.ts",
+  "src/plugins/installed-plugin-index-store.test.ts",
+  "src/plugins/installed-plugin-index.test.ts",
+  "src/plugins/loader-sdk-import-guardrails.test.ts",
+  "src/plugins/loader.cli-metadata.test.ts",
+  "src/plugins/loader.native-module-loader.test.ts",
+  "src/plugins/loader.prefer-over.test.ts",
+  "src/plugins/loader.runtime-registry.test.ts",
+  "src/plugins/manifest-registry-installed.test.ts",
+  "src/plugins/manifest.json5-tolerance.test.ts",
+  "src/plugins/memory-embedding-provider-runtime.test.ts",
+  "src/plugins/npm-install-security-scan.release.test.ts",
+  "src/plugins/plugin-graceful-init-failure.test.ts",
+  "src/plugins/plugin-lookup-table.test.ts",
+  "src/plugins/plugin-metadata-snapshot.memo.test.ts",
+  "src/plugins/plugin-module-loader-cache.test.ts",
+  "src/plugins/plugin-registry-snapshot.test.ts",
+  "src/plugins/plugin-registry.test.ts",
+  "src/plugins/provider-auth-choice-helpers.test.ts",
+  "src/plugins/provider-auth-choice.test.ts",
+  "src/plugins/provider-auth-env-trust.test.ts",
+  "src/plugins/provider-auth-input.test.ts",
+  "src/plugins/provider-discovery.runtime.test.ts",
+  "src/plugins/provider-model-primary.test.ts",
+  "src/plugins/provider-openai-codex-oauth.test.ts",
+  "src/plugins/provider-public-artifacts.test.ts",
+  "src/plugins/provider-runtime.synthetic-auth-discovery.test.ts",
+  "src/plugins/provider-self-hosted-setup.test.ts",
+  "src/plugins/prune-docker-plugin-dist.test.ts",
+  "src/plugins/public-surface-loader.test.ts",
+  "src/plugins/registry.dual-kind-memory-gate.test.ts",
+  "src/plugins/registry.provider-like.test.ts",
+  "src/plugins/registry.runtime-config.test.ts",
+  "src/plugins/runtime-registry-boundary.test.ts",
+  "src/plugins/setup-registry.canvas.test.ts",
+  "src/plugins/source-checkout-runtime.test.ts",
+  "src/plugins/status.compatibility.integration.test.ts",
+  "src/plugins/status.registry-snapshot.test.ts",
+  "src/plugins/test-helpers/archive-fixtures.test.ts",
+  "src/plugins/wired-hooks-reply-dispatch.test.ts",
 
   // src/agents legacy OpenClaw shims & marketplace
   "src/agents/skills-clawhub.ts",
@@ -518,6 +567,11 @@ function normalizeCoreBlowPath(path) {
   }
   if (path === "src/plugins/clawhub.test.ts") {
     return "src/plugins/corehub.test.ts";
+  }
+  if (path.startsWith("src/plugins/contracts/plugin-sdk-") || path === "src/plugins/contracts/plugin-entry-guardrails.test.ts") {
+    return path === "src/plugins/contracts/plugin-entry-guardrails.test.ts"
+      ? "src/plugin-sdk/plugin-entry-guardrails.test.ts"
+      : path.replace("src/plugins/contracts/plugin-sdk-", "src/plugin-sdk/");
   }
   if (path === "extensions/discord/src/monitor/listeners.reactions.ts") {
     return "extensions/discord/src/monitor/listeners.ts";
@@ -777,14 +831,15 @@ for (const k of ocTestKeys) {
 function isLiveOrE2e(path) {
   return path.includes(".live.") || path.includes(".e2e.") ||
          path.includes(".contract.") || path.endsWith(".live.test.ts") ||
-         path.endsWith(".e2e.test.ts");
+         path.endsWith(".e2e.test.ts") || path.startsWith("src/plugins/contracts/");
 }
 
 for (const k of ocTestKeys) {
-  if (SKIP_LIVE && isLiveOrE2e(k)) continue; // skip live/e2e tests
   const normalized = normalizeCoreBlowPath(k);
   if (cbTestKeys.has(k) || cbTestKeys.has(normalized)) {
     results.tests.both_have_test.push(k);
+  } else if (SKIP_LIVE && isLiveOrE2e(k)) {
+    continue; // skip live/e2e/contract tests
   } else if (INTENTIONALLY_DEPRECATED_UPSTREAM_PATHS.has(k)) {
     results.tests.intentionally_deprecated = results.tests.intentionally_deprecated || [];
     results.tests.intentionally_deprecated.push(k);

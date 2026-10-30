@@ -3,9 +3,13 @@ import { emitPluginAgentEvent } from "./agent-event-emission.js";
 import type { PluginAgentEventEmitParams } from "./host-hooks.js";
 import * as agentEvents from "../infra/agent-events.js";
 
-vi.mock("../infra/agent-events.js", () => ({
-  emitAgentEvent: vi.fn(),
-}));
+vi.mock("../infra/agent-events.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../infra/agent-events.js")>();
+  return {
+    ...actual,
+    emitAgentEvent: vi.fn(),
+  };
+});
 
 describe("emitPluginAgentEvent", () => {
   beforeEach(() => {

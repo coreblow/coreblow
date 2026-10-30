@@ -1,5 +1,6 @@
 // Legacy compat surface for external plugins that still depend on older
 // broad plugin-sdk imports. Keep this file intentionally small.
+/** @deprecated Use `coreblow/plugin-sdk/channel-message`. */
 
 const shouldWarnCompatImport =
   process.env.VITEST !== "true" &&

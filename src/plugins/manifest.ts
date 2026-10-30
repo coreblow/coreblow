@@ -74,9 +74,14 @@ export type PluginManifestToolMetadata = PluginManifestCapabilityProviderMetadat
   optional?: boolean;
 };
 
+export type PluginManifestSecretInputPath = {
+  path: string;
+  expected?: "string";
+};
+
 export type PluginManifestSecretInputContracts = {
   bundledDefaultEnabled?: boolean;
-  paths?: string[];
+  paths?: Array<string | PluginManifestSecretInputPath>;
 };
 
 export type PluginManifestConfigContracts = {
@@ -246,6 +251,26 @@ function normalizeStringListRecord(value: unknown): Record<string, string[]> | u
     normalized[providerId] = values;
   }
   return Object.keys(normalized).length > 0 ? normalized : undefined;
+}
+
+function normalizeManifestSecretInputPaths(
+  value: unknown,
+): Array<string | PluginManifestSecretInputPath> | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+  const result: Array<string | PluginManifestSecretInputPath> = [];
+  for (const item of value) {
+    if (typeof item === "string" && item.trim()) {
+      result.push(item.trim());
+    } else if (isRecord(item) && typeof item.path === "string" && item.path.trim()) {
+      result.push({
+        path: item.path.trim(),
+        ...(item.expected === "string" ? { expected: "string" } : {}),
+      });
+    }
+  }
+  return result.length > 0 ? result : undefined;
 }
 
 function normalizeManifestContracts(value: unknown): PluginManifestContracts | undefined {
@@ -473,12 +498,15 @@ function normalizeManifestConfigContracts(
   const dangerousFlags = Array.isArray(value.dangerousFlags)
     ? (value.dangerousFlags as PluginManifestDangerousConfigFlag[])
     : undefined;
+  const secretInputPaths = rawSecretInputs
+    ? normalizeManifestSecretInputPaths(rawSecretInputs.paths)
+    : undefined;
   const secretInputs: PluginManifestSecretInputContracts | undefined = rawSecretInputs
     ? {
         ...(typeof rawSecretInputs.bundledDefaultEnabled === "boolean"
           ? { bundledDefaultEnabled: rawSecretInputs.bundledDefaultEnabled }
           : {}),
-        paths: normalizeStringList(rawSecretInputs.paths),
+        ...(secretInputPaths ? { paths: secretInputPaths } : {}),
       }
     : undefined;
   const configContracts: PluginManifestConfigContracts = {

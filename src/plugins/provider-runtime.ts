@@ -259,12 +259,19 @@ function resolveProviderHookPlugin(params: {
     workspaceDir: params.workspaceDir,
     env: params.env,
   });
-  if (!manifestOwners || manifestOwners.length === 0) {
-    return undefined;
+  if (manifestOwners && manifestOwners.length > 0) {
+    const ownerPlugin = resolveProviderPluginsForHooks({
+      ...params,
+      onlyPluginIds: manifestOwners,
+    }).find((candidate) => matchesProviderId(candidate, params.provider));
+    if (ownerPlugin) {
+      return ownerPlugin;
+    }
   }
   return resolveProviderPluginsForHooks({
-    ...params,
-    onlyPluginIds: manifestOwners,
+    config: params.config,
+    workspaceDir: params.workspaceDir,
+    env: params.env,
   }).find((candidate) => matchesProviderId(candidate, params.provider));
 }
 

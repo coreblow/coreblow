@@ -191,6 +191,7 @@ export type CoreBlowPluginToolContext = {
     provider?: string;
     modelId?: string;
     modelName?: string;
+    modelRef?: string;
     api?: string;
   };
   browser?: {
@@ -1141,6 +1142,8 @@ export type ProviderPlugin = {
    *
    * Use this when the provider behaves like OpenAI/Anthropic, needs transcript
    * sanitization quirks, or requires provider-family hints.
+   *
+   * @deprecated Legacy static provider capability bag.
    */
   capabilities?: Partial<ProviderCapabilities>;
   /**
@@ -1317,6 +1320,7 @@ export type ProviderPlugin = {
   /**
    * Provider-owned default thinking level.
    *
+   * @deprecated Prefer `resolveThinkingProfile`.
    * Use this to keep model-family defaults (for example Claude 4.6 =>
    * adaptive) out of core command logic.
    */

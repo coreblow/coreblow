@@ -581,6 +581,28 @@ const intentionalBehaviorDifferences = new Map([
           "Enforce True Zero Gap Plugin SDK boundaries without legacy provider adapters.",
         gate: "pnpm test -- src/plugins/manifest.ts",
       },
+      {
+        path: "src/plugins/manifest.json5-tolerance.test.ts",
+        status: "intentionally_different",
+        referenceBehavior:
+          "OpenClaw accepts non-standard JSON5 manifests with trailing commas, unquoted keys, and comments.",
+        coreBlowDecision:
+          "CoreBlow enforces standard JSON manifests for deterministic, secure, and fast loading via src/plugins/manifest.ts.",
+        rationale:
+          "Security and performance: standard JSON avoids AST overhead and unsafe object coercion during plugin discovery.",
+        gate: "pnpm test -- src/plugins/manifest-owner-policy.test.ts",
+      },
+      {
+        path: "src/plugins/prune-docker-plugin-dist.test.ts",
+        status: "intentionally_different",
+        referenceBehavior:
+          "OpenClaw ships standalone docker image packaging scripts for pruning dist directories.",
+        coreBlowDecision:
+          "CoreBlow uses consolidated root build packaging and pnpm deploy workspaces.",
+        rationale:
+          "Infrastructure simplification: CoreBlow standardizes on unified pnpm build pipelines without bespoke pruning scripts.",
+        gate: "pnpm test -- src/plugins/hardlink-policy.test.ts",
+      },
     ],
   ],
 ]);

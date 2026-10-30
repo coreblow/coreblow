@@ -308,8 +308,6 @@
   },
   "exports": {
     ".": "./dist/index.js",
-    "./cli-entry": "./coreblow.mjs",
-    "./extension-api": "./dist/extensionAPI.js",
     "./plugin-sdk/access-groups": {
       "types": "./dist/plugin-sdk/access-groups.d.ts",
       "default": "./dist/plugin-sdk/access-groups.js"
@@ -333,10 +331,6 @@
     "./plugin-sdk/account-resolution-runtime": {
       "types": "./dist/plugin-sdk/account-resolution-runtime.d.ts",
       "default": "./dist/plugin-sdk/account-resolution-runtime.js"
-    },
-    "./plugin-sdk/acp": {
-      "types": "./dist/plugin-sdk/acp.d.ts",
-      "default": "./dist/plugin-sdk/acp.js"
     },
     "./plugin-sdk/acp-binding-resolve-runtime": {
       "types": "./dist/plugin-sdk/acp-binding-resolve-runtime.d.ts",
@@ -2037,7 +2031,9 @@
     "./plugin-sdk/zod": {
       "types": "./dist/plugin-sdk/zod.d.ts",
       "default": "./dist/plugin-sdk/zod.js"
-    }
+    },
+    "./cli-entry": "./coreblow.mjs",
+    "./extension-api": "./dist/extensionAPI.js"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

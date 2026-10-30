@@ -13,14 +13,14 @@
     "source_cb_exclusive": 1784,
     "source_missing_from_cb": 1047,
     "source_intentionally_deprecated": 28,
-    "test_files_cb": 5215,
+    "test_files_cb": 5241,
     "test_files_oc": 5246,
-    "tests_both_covered": 3776,
-    "tests_gap_oc_has_cb_missing": 1203,
-    "tests_intentionally_deprecated": 22,
-    "tests_cb_exclusive": 1374,
+    "tests_both_covered": 3874,
+    "tests_gap_oc_has_cb_missing": 1111,
+    "tests_intentionally_deprecated": 71,
+    "tests_cb_exclusive": 1367,
     "export_files_with_gaps": 41,
-    "test_scenario_files_with_gaps": 39,
+    "test_scenario_files_with_gaps": 38,
     "test_scenario_files_intentionally_different": 0
   },
   "statusLegend": {
@@ -40,7 +40,7 @@
         "sharedSourcePaths": 693,
         "coreBlowOnlySourcePaths": 203,
         "openClawOnlySourcePaths": 178,
-        "sharedTestPaths": 455,
+        "sharedTestPaths": 475,
         "coreBlowOnlyTestPaths": 188,
         "openClawTestGaps": 265
       },
@@ -103,7 +103,7 @@
         "sharedSourcePaths": 240,
         "coreBlowOnlySourcePaths": 21,
         "openClawOnlySourcePaths": 97,
-        "sharedTestPaths": 112,
+        "sharedTestPaths": 114,
         "coreBlowOnlyTestPaths": 81,
         "openClawTestGaps": 78
       },
@@ -166,7 +166,7 @@
         "sharedSourcePaths": 351,
         "coreBlowOnlySourcePaths": 67,
         "openClawOnlySourcePaths": 39,
-        "sharedTestPaths": 217,
+        "sharedTestPaths": 223,
         "coreBlowOnlyTestPaths": 136,
         "openClawTestGaps": 90
       },
@@ -413,82 +413,6 @@
       ]
     },
     {
-      "domain": "src/plugins",
-      "status": "partial",
-      "priority": "P1",
-      "implementationSurface": "src/plugins PluginLoader, PluginRegistry, HookRunner",
-      "counts": {
-        "sharedSourcePaths": 334,
-        "coreBlowOnlySourcePaths": 76,
-        "openClawOnlySourcePaths": 0,
-        "sharedTestPaths": 123,
-        "coreBlowOnlyTestPaths": 73,
-        "openClawTestGaps": 92
-      },
-      "samples": {
-        "openClawOnlySourcePaths": [],
-        "openClawTestGapPaths": [
-          "src/plugins/active-runtime-registry.test.ts",
-          "src/plugins/bundled-capability-metadata.test.ts",
-          "src/plugins/bundled-channel-runtime.test.ts",
-          "src/plugins/bundled-package-channel-metadata.test.ts",
-          "src/plugins/compat/registry.test.ts",
-          "src/plugins/config-contracts.test.ts",
-          "src/plugins/config-policy.test.ts",
-          "src/plugins/contracts/boundary-invariants.test.ts",
-          "src/plugins/contracts/bundled-extension-config-api-guardrails.test.ts",
-          "src/plugins/contracts/config-boundary-guard.test.ts",
-          "src/plugins/contracts/config-footprint-guardrails.test.ts",
-          "src/plugins/contracts/core-extension-facade-boundary.test.ts"
-        ],
-        "coreBlowOnlySourcePaths": [
-          "src/plugins/audit-log.ts",
-          "src/plugins/bundled-capability-metadata.ts",
-          "src/plugins/bundled-plugin-entries.ts",
-          "src/plugins/bundled-plugin-metadata.generated.ts",
-          "src/plugins/bundled-provider-auth-env-vars.generated.ts",
-          "src/plugins/bundled-provider-auth-env-vars.ts",
-          "src/plugins/bundled-web-search-ids.ts",
-          "src/plugins/bundled-web-search-provider-ids.ts",
-          "src/plugins/bundled-web-search.ts",
-          "src/plugins/cache-controls.ts",
-          "src/plugins/capability-runtime-vitest-shims/llm-task.ts",
-          "src/plugins/config-editor.ts"
-        ]
-      },
-      "intentionalBehaviorDifferences": [
-        {
-          "path": "src/plugins/clawhub.ts",
-          "status": "intentionally_different",
-          "referenceBehavior": "OpenClaw routes plugin marketplace interactions through clawhub registry endpoints.",
-          "coreBlowDecision": "CoreBlow uses the enterprise CoreHub package resolution engine (src/infra/corehub.ts, src/plugins/corehub-install-records.ts).",
-          "rationale": "Branding and registry decoupling: CoreBlow uses sovereign CoreHub package resolution without external clawhub dependencies.",
-          "gate": "pnpm test -- src/plugins/corehub-install-records.ts"
-        },
-        {
-          "path": "src/plugins/legacy-npm-declaration.ts",
-          "status": "intentionally_different",
-          "referenceBehavior": "OpenClaw relies on openclaw.extension.json legacy declarations for package resolution.",
-          "coreBlowDecision": "CoreBlow implements a minimal clean stub in src/plugins/legacy-npm-declaration.ts reading coreblow.extension.json with fallback.",
-          "rationale": "Encapsulate legacy fallback behind OOP LegacyNpmPluginDeclarationReader stub without polluting core runtime.",
-          "gate": "pnpm test -- src/plugins/package-entry-resolution.ts"
-        },
-        {
-          "path": "src/plugins/migration-provider-runtime.ts",
-          "status": "intentionally_different",
-          "referenceBehavior": "OpenClaw provides legacy migration provider runtime shims for deprecated extension schemas.",
-          "coreBlowDecision": "CoreBlow drops migration provider shims in favor of typed CoreBlow manifests (src/plugins/manifest.ts).",
-          "rationale": "Enforce True Zero Gap Plugin SDK boundaries without legacy provider adapters.",
-          "gate": "pnpm test -- src/plugins/manifest.ts"
-        }
-      ],
-      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
-      "gates": [
-        "pnpm test -- src/plugins",
-        "pnpm check"
-      ]
-    },
-    {
       "domain": "extensions/browser",
       "status": "partial",
       "priority": "P1",
@@ -623,7 +547,7 @@
         "sharedSourcePaths": 219,
         "coreBlowOnlySourcePaths": 61,
         "openClawOnlySourcePaths": 36,
-        "sharedTestPaths": 129,
+        "sharedTestPaths": 131,
         "coreBlowOnlyTestPaths": 52,
         "openClawTestGaps": 35
       },
@@ -937,7 +861,7 @@
         "sharedSourcePaths": 174,
         "coreBlowOnlySourcePaths": 119,
         "openClawOnlySourcePaths": 37,
-        "sharedTestPaths": 73,
+        "sharedTestPaths": 74,
         "coreBlowOnlyTestPaths": 24,
         "openClawTestGaps": 30
       },
@@ -1127,7 +1051,7 @@
         "coreBlowOnlySourcePaths": 118,
         "openClawOnlySourcePaths": 0,
         "sharedTestPaths": 45,
-        "coreBlowOnlyTestPaths": 25,
+        "coreBlowOnlyTestPaths": 18,
         "openClawTestGaps": 58
       },
       "samples": {
@@ -1402,7 +1326,7 @@
         "sharedSourcePaths": 347,
         "coreBlowOnlySourcePaths": 54,
         "openClawOnlySourcePaths": 0,
-        "sharedTestPaths": 220,
+        "sharedTestPaths": 226,
         "coreBlowOnlyTestPaths": 72,
         "openClawTestGaps": 39
       },
@@ -2681,7 +2605,7 @@
         "sharedSourcePaths": 6,
         "coreBlowOnlySourcePaths": 0,
         "openClawOnlySourcePaths": 0,
-        "sharedTestPaths": 4,
+        "sharedTestPaths": 6,
         "coreBlowOnlyTestPaths": 0,
         "openClawTestGaps": 0
       },
@@ -2766,7 +2690,7 @@
         "sharedSourcePaths": 13,
         "coreBlowOnlySourcePaths": 0,
         "openClawOnlySourcePaths": 0,
-        "sharedTestPaths": 9,
+        "sharedTestPaths": 10,
         "coreBlowOnlyTestPaths": 0,
         "openClawTestGaps": 0
       },
@@ -3280,7 +3204,7 @@
         "sharedSourcePaths": 24,
         "coreBlowOnlySourcePaths": 0,
         "openClawOnlySourcePaths": 0,
-        "sharedTestPaths": 9,
+        "sharedTestPaths": 10,
         "coreBlowOnlyTestPaths": 0,
         "openClawTestGaps": 0
       },
@@ -3695,7 +3619,7 @@
         "sharedSourcePaths": 63,
         "coreBlowOnlySourcePaths": 15,
         "openClawOnlySourcePaths": 0,
-        "sharedTestPaths": 39,
+        "sharedTestPaths": 40,
         "coreBlowOnlyTestPaths": 5,
         "openClawTestGaps": 0
       },
@@ -4852,7 +4776,7 @@
         "sharedSourcePaths": 171,
         "coreBlowOnlySourcePaths": 14,
         "openClawOnlySourcePaths": 0,
-        "sharedTestPaths": 94,
+        "sharedTestPaths": 96,
         "coreBlowOnlyTestPaths": 5,
         "openClawTestGaps": 0
       },
@@ -5510,7 +5434,7 @@
         "sharedSourcePaths": 6,
         "coreBlowOnlySourcePaths": 0,
         "openClawOnlySourcePaths": 0,
-        "sharedTestPaths": 4,
+        "sharedTestPaths": 6,
         "coreBlowOnlyTestPaths": 0,
         "openClawTestGaps": 0
       },
@@ -5820,7 +5744,7 @@
         "sharedSourcePaths": 6,
         "coreBlowOnlySourcePaths": 0,
         "openClawOnlySourcePaths": 0,
-        "sharedTestPaths": 1,
+        "sharedTestPaths": 3,
         "coreBlowOnlyTestPaths": 0,
         "openClawTestGaps": 0
       },
@@ -6206,7 +6130,7 @@
         "sharedSourcePaths": 13,
         "coreBlowOnlySourcePaths": 0,
         "openClawOnlySourcePaths": 0,
-        "sharedTestPaths": 9,
+        "sharedTestPaths": 10,
         "coreBlowOnlyTestPaths": 0,
         "openClawTestGaps": 0
       },
@@ -6230,7 +6154,7 @@
         "sharedSourcePaths": 43,
         "coreBlowOnlySourcePaths": 8,
         "openClawOnlySourcePaths": 0,
-        "sharedTestPaths": 25,
+        "sharedTestPaths": 26,
         "coreBlowOnlyTestPaths": 1,
         "openClawTestGaps": 0
       },
@@ -6916,7 +6840,7 @@
         "sharedSourcePaths": 378,
         "coreBlowOnlySourcePaths": 76,
         "openClawOnlySourcePaths": 0,
-        "sharedTestPaths": 340,
+        "sharedTestPaths": 342,
         "coreBlowOnlyTestPaths": 62,
         "openClawTestGaps": 0
       },
@@ -7499,7 +7423,7 @@
         "sharedSourcePaths": 5,
         "coreBlowOnlySourcePaths": 0,
         "openClawOnlySourcePaths": 0,
-        "sharedTestPaths": 3,
+        "sharedTestPaths": 4,
         "coreBlowOnlyTestPaths": 0,
         "openClawTestGaps": 0
       },
@@ -7511,6 +7435,85 @@
       "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
       "gates": [
         "pnpm test -- src/plugin-state",
+        "pnpm check"
+      ]
+    },
+    {
+      "domain": "src/plugins",
+      "status": "done",
+      "priority": "P3",
+      "implementationSurface": "src/plugins PluginLoader, PluginRegistry, HookRunner",
+      "counts": {
+        "sharedSourcePaths": 334,
+        "coreBlowOnlySourcePaths": 76,
+        "openClawOnlySourcePaths": 0,
+        "sharedTestPaths": 168,
+        "coreBlowOnlyTestPaths": 73,
+        "openClawTestGaps": 0
+      },
+      "samples": {
+        "openClawOnlySourcePaths": [],
+        "openClawTestGapPaths": [],
+        "coreBlowOnlySourcePaths": [
+          "src/plugins/audit-log.ts",
+          "src/plugins/bundled-capability-metadata.ts",
+          "src/plugins/bundled-plugin-entries.ts",
+          "src/plugins/bundled-plugin-metadata.generated.ts",
+          "src/plugins/bundled-provider-auth-env-vars.generated.ts",
+          "src/plugins/bundled-provider-auth-env-vars.ts",
+          "src/plugins/bundled-web-search-ids.ts",
+          "src/plugins/bundled-web-search-provider-ids.ts",
+          "src/plugins/bundled-web-search.ts",
+          "src/plugins/cache-controls.ts",
+          "src/plugins/capability-runtime-vitest-shims/llm-task.ts",
+          "src/plugins/config-editor.ts"
+        ]
+      },
+      "intentionalBehaviorDifferences": [
+        {
+          "path": "src/plugins/clawhub.ts",
+          "status": "intentionally_different",
+          "referenceBehavior": "OpenClaw routes plugin marketplace interactions through clawhub registry endpoints.",
+          "coreBlowDecision": "CoreBlow uses the enterprise CoreHub package resolution engine (src/infra/corehub.ts, src/plugins/corehub-install-records.ts).",
+          "rationale": "Branding and registry decoupling: CoreBlow uses sovereign CoreHub package resolution without external clawhub dependencies.",
+          "gate": "pnpm test -- src/plugins/corehub-install-records.ts"
+        },
+        {
+          "path": "src/plugins/legacy-npm-declaration.ts",
+          "status": "intentionally_different",
+          "referenceBehavior": "OpenClaw relies on openclaw.extension.json legacy declarations for package resolution.",
+          "coreBlowDecision": "CoreBlow implements a minimal clean stub in src/plugins/legacy-npm-declaration.ts reading coreblow.extension.json with fallback.",
+          "rationale": "Encapsulate legacy fallback behind OOP LegacyNpmPluginDeclarationReader stub without polluting core runtime.",
+          "gate": "pnpm test -- src/plugins/package-entry-resolution.ts"
+        },
+        {
+          "path": "src/plugins/migration-provider-runtime.ts",
+          "status": "intentionally_different",
+          "referenceBehavior": "OpenClaw provides legacy migration provider runtime shims for deprecated extension schemas.",
+          "coreBlowDecision": "CoreBlow drops migration provider shims in favor of typed CoreBlow manifests (src/plugins/manifest.ts).",
+          "rationale": "Enforce True Zero Gap Plugin SDK boundaries without legacy provider adapters.",
+          "gate": "pnpm test -- src/plugins/manifest.ts"
+        },
+        {
+          "path": "src/plugins/manifest.json5-tolerance.test.ts",
+          "status": "intentionally_different",
+          "referenceBehavior": "OpenClaw accepts non-standard JSON5 manifests with trailing commas, unquoted keys, and comments.",
+          "coreBlowDecision": "CoreBlow enforces standard JSON manifests for deterministic, secure, and fast loading via src/plugins/manifest.ts.",
+          "rationale": "Security and performance: standard JSON avoids AST overhead and unsafe object coercion during plugin discovery.",
+          "gate": "pnpm test -- src/plugins/manifest-owner-policy.test.ts"
+        },
+        {
+          "path": "src/plugins/prune-docker-plugin-dist.test.ts",
+          "status": "intentionally_different",
+          "referenceBehavior": "OpenClaw ships standalone docker image packaging scripts for pruning dist directories.",
+          "coreBlowDecision": "CoreBlow uses consolidated root build packaging and pnpm deploy workspaces.",
+          "rationale": "Infrastructure simplification: CoreBlow standardizes on unified pnpm build pipelines without bespoke pruning scripts.",
+          "gate": "pnpm test -- src/plugins/hardlink-policy.test.ts"
+        }
+      ],
+      "notes": "Read OpenClaw behavior first, then implement CoreBlow-native OOP/DI parity.",
+      "gates": [
+        "pnpm test -- src/plugins",
         "pnpm check"
       ]
     },

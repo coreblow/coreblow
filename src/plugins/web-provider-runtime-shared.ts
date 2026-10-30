@@ -121,7 +121,7 @@ function resolveWebProviderLoadOptions(
       logger: createPluginRuntimeLoaderLogger(),
     },
     {
-      cache: params.activate ? (params.cache ?? true) : false,
+      cache: params.mode === "setup" || params.activate ? (params.cache ?? true) : false,
       activate: params.activate ?? false,
       ...(hasExplicitPluginIdScope(context.loadPluginIds)
         ? { onlyPluginIds: context.loadPluginIds }
@@ -213,7 +213,7 @@ export function resolvePluginWebProviders<TEntry>(
         },
         {
           onlyPluginIds: pluginIds,
-          cache: params.activate ? (params.cache ?? true) : false,
+          cache: params.mode === "setup" || params.activate ? (params.cache ?? true) : false,
           activate: params.activate ?? false,
         },
       ),

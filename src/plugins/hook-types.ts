@@ -112,3 +112,6 @@ export {
   CONVERSATION_HOOK_NAMES,
   isConversationHookName,
 } from "./types.js";
+
+/** @deprecated Use gateway_stop. */
+export type PluginHookDeactivateEvent = unknown;

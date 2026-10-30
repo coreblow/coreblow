@@ -23,7 +23,7 @@ const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const CB_ROOT = join(__dirname, "..");
 // NOTE: This script intentionally contains "openclaw" strings as regex
 // patterns for find-replace during migration. These are NOT branding leaks.
-const OC_ROOT = "/Users/febrinanda/openclaw-main";
+const OC_ROOT = process.env.OC_ROOT || "/Users/febrinanda/openclaw-refs/openclaw";
 
 // ─── CLI args ───────────────────────────────────────────────────────────────
 
@@ -166,9 +166,11 @@ function applyBranding(content) {
 // ─── File discovery ─────────────────────────────────────────────────────────
 
 function getGapFiles() {
-  const auditPath = join(CB_ROOT, "audit-parity-full.json");
+  const auditPath = existsSync(join(CB_ROOT, "audit-parity-full.json"))
+    ? join(CB_ROOT, "audit-parity-full.json")
+    : "/tmp/coreblow-openclaw-ref-audit.json";
   if (!existsSync(auditPath)) {
-    console.error("❌ audit-parity-full.json not found. Run: node scripts/audit-oc-parity.mjs --json > audit-parity-full.json");
+    console.error("❌ audit file not found. Run: node scripts/audit-oc-parity.mjs --json > /tmp/coreblow-openclaw-ref-audit.json");
     process.exit(1);
   }
   const audit = JSON.parse(readFileSync(auditPath, "utf8"));

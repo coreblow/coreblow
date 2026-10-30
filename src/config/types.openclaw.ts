@@ -17,7 +17,7 @@ export type SourceConfig = BrandedConfigState<"source">;
 export type ResolvedSourceConfig = BrandedConfigState<"resolved-source">;
 export type RuntimeConfig = BrandedConfigState<"runtime">;
 
-export type { ConfigValidationIssue, LegacyConfigIssue };
+export type { ConfigValidationIssue, CoreBlowConfig, LegacyConfigIssue };
 
 export type ConfigFileSnapshot = Omit<
   CoreBlowConfigFileSnapshot,

@@ -1,10 +1,7 @@
 import type { PluginCompatRecord } from "./types.js";
 
 const CHANNEL_RUNTIME_SDK_SURFACE = ["coreblow/plugin-sdk/channel", "runtime"].join("-");
-const LEGACY_CONFIG_MIGRATE_TEST_PATH = [
-  "src/commands/doctor/shared/legacy-config",
-  "migrate.test.ts",
-].join("-");
+const LEGACY_CONFIG_MIGRATE_TEST_PATH = "src/config/legacy-migrate.test.ts";
 
 export const PLUGIN_COMPAT_RECORDS = [
   {
@@ -63,9 +60,9 @@ export const PLUGIN_COMPAT_RECORDS = [
     surfaces: ["coreblow/plugin-sdk", "coreblow/plugin-sdk/compat"],
     diagnostics: ["COREBLOW_PLUGIN_SDK_COMPAT_DEPRECATED"],
     tests: [
-      "src/plugins/contracts/plugin-sdk-index.test.ts",
-      "src/plugins/contracts/plugin-sdk-root-alias.test.ts",
-      "src/plugins/contracts/plugin-sdk-subpaths.test.ts",
+      "src/plugin-sdk/index.test.ts",
+      "src/plugin-sdk/root-alias.test.ts",
+      "src/plugin-sdk/subpaths.test.ts",
     ],
   },
   {
@@ -114,7 +111,7 @@ export const PLUGIN_COMPAT_RECORDS = [
     surfaces: ["api.registerChannel", "channel setup metadata", "channel message envelope"],
     diagnostics: ["channel runtime contract probe"],
     tests: [
-      "src/plugin-sdk/channel-entry-contract.test.ts",
+      "src/plugin-sdk/channel-contract-testing.test.ts",
       "src/plugins/captured-registration.test.ts",
     ],
   },
@@ -132,9 +129,9 @@ export const PLUGIN_COMPAT_RECORDS = [
     ],
     diagnostics: ["plugin SDK compatibility registry"],
     tests: [
-      "src/plugin-sdk/discord.test.ts",
-      "src/plugin-sdk/telegram-account.test.ts",
-      "src/plugins/contracts/plugin-sdk-package-contract-guardrails.test.ts",
+      "src/plugins/runtime/runtime-discord.test.ts",
+      "src/plugins/runtime/runtime-telegram.test.ts",
+      "src/plugin-sdk/package-contract-guardrails.test.ts",
     ],
   },
   {
@@ -151,8 +148,7 @@ export const PLUGIN_COMPAT_RECORDS = [
     surfaces: ["coreblow/plugin-sdk/channel-config-schema-legacy"],
     diagnostics: ["plugin SDK compatibility warning"],
     tests: [
-      "src/plugins/contracts/config-footprint-guardrails.test.ts",
-      "test/extension-test-boundary.test.ts",
+      "src/config/plugins-runtime-boundary.test.ts",
     ],
   },
   {
@@ -171,7 +167,7 @@ export const PLUGIN_COMPAT_RECORDS = [
     tests: [
       "src/plugins/compat/registry.test.ts",
       "scripts/check-no-extension-test-core-imports.ts",
-      "test/extension-test-boundary.test.ts",
+      "src/config/plugins-runtime-boundary.test.ts",
     ],
   },
   {
@@ -190,8 +186,8 @@ export const PLUGIN_COMPAT_RECORDS = [
     ],
     diagnostics: ["plugin SDK compatibility warning"],
     tests: [
-      "src/plugin-sdk/channel-route.test.ts",
-      "src/plugins/contracts/plugin-sdk-subpaths.test.ts",
+      "src/routing/channel-route-targets.test.ts",
+      "src/plugin-sdk/subpaths.test.ts",
     ],
   },
   {
@@ -214,7 +210,7 @@ export const PLUGIN_COMPAT_RECORDS = [
     diagnostics: ["plugin SDK compatibility warning"],
     tests: [
       "src/channels/plugins/target-parsing.test.ts",
-      "src/plugins/contracts/plugin-sdk-subpaths.test.ts",
+      "src/plugin-sdk/subpaths.test.ts",
     ],
   },
   {
@@ -385,7 +381,7 @@ export const PLUGIN_COMPAT_RECORDS = [
     docsPath: "/plugins/sdk-agent-harness",
     surfaces: ["coreblow/plugin-sdk/agent-harness", "coreblow/plugin-sdk/agent-harness-runtime"],
     diagnostics: ["plugin SDK compatibility warning"],
-    tests: ["src/plugins/contracts/plugin-sdk-subpaths.test.ts"],
+    tests: ["src/plugin-sdk/subpaths.test.ts"],
   },
   {
     code: "agent-harness-id-alias",
@@ -410,7 +406,7 @@ export const PLUGIN_COMPAT_RECORDS = [
     docsPath: "/plugins/manifest",
     surfaces: ["generated bundled channel config metadata", "channel config validation"],
     diagnostics: ["channel config metadata fallback"],
-    tests: ["src/plugins/contracts/config-footprint-guardrails.test.ts"],
+    tests: ["src/config/plugins-runtime-boundary.test.ts"],
   },
   {
     code: "disable-persisted-plugin-registry-env",
@@ -424,7 +420,7 @@ export const PLUGIN_COMPAT_RECORDS = [
     docsPath: "/cli/plugins#registry",
     surfaces: ["COREBLOW_DISABLE_PERSISTED_PLUGIN_REGISTRY", "plugin registry reads"],
     diagnostics: ["persisted-registry-disabled"],
-    tests: ["src/plugins/plugin-registry.test.ts"],
+    tests: ["src/plugins/manifest-registry.test.ts"],
   },
   {
     code: "plugin-registry-install-migration-env",
@@ -487,7 +483,7 @@ export const PLUGIN_COMPAT_RECORDS = [
     docsPath: "/tools/web",
     surfaces: ["tools.web.search.apiKey", "tools.web.search.<provider>"],
     diagnostics: ["doctor legacy web-search config migration"],
-    tests: ["src/commands/doctor/shared/legacy-web-search-migrate.test.ts"],
+    tests: ["src/commands/doctor/shared/deprecation-compat.test.ts"],
   },
   {
     code: "plugin-owned-web-fetch-config",
@@ -501,7 +497,7 @@ export const PLUGIN_COMPAT_RECORDS = [
     docsPath: "/tools/web-fetch",
     surfaces: ["tools.web.fetch.firecrawl"],
     diagnostics: ["doctor legacy web-fetch config migration"],
-    tests: ["src/commands/doctor/shared/legacy-web-fetch-migrate.test.ts"],
+    tests: ["src/commands/doctor/shared/deprecation-compat.test.ts"],
   },
   {
     code: "plugin-owned-x-search-config",
@@ -516,7 +512,7 @@ export const PLUGIN_COMPAT_RECORDS = [
     surfaces: ["tools.web.x_search.apiKey"],
     diagnostics: ["doctor legacy x_search config migration"],
     tests: [
-      "src/commands/doctor/shared/legacy-x-search-migrate.test.ts",
+      "src/commands/doctor/shared/deprecation-compat.test.ts",
       LEGACY_CONFIG_MIGRATE_TEST_PATH,
     ],
   },
@@ -586,7 +582,7 @@ export const PLUGIN_COMPAT_RECORDS = [
     docsPath: "/plugins/sdk-migration",
     surfaces: [CHANNEL_RUNTIME_SDK_SURFACE],
     diagnostics: ["plugin SDK compatibility warning"],
-    tests: ["src/plugins/contracts/plugin-sdk-subpaths.test.ts"],
+    tests: ["src/plugin-sdk/subpaths.test.ts"],
   },
   {
     code: "command-auth-status-builders",
@@ -618,7 +614,7 @@ export const PLUGIN_COMPAT_RECORDS = [
     docsPath: "/plugins/sdk-migration",
     surfaces: ["coreblow/plugin-sdk `ClawdbotConfig` type export"],
     diagnostics: ["plugin SDK compatibility warning"],
-    tests: ["src/plugins/contracts/plugin-sdk-index.test.ts"],
+    tests: ["src/plugin-sdk/index.test.ts"],
   },
   {
     code: "openclaw-schema-type-alias",
@@ -632,7 +628,7 @@ export const PLUGIN_COMPAT_RECORDS = [
     docsPath: "/plugins/sdk-migration",
     surfaces: ["coreblow/plugin-sdk `OpenClawSchemaType` type export"],
     diagnostics: ["plugin SDK compatibility warning"],
-    tests: ["src/plugins/contracts/plugin-sdk-index.test.ts"],
+    tests: ["src/plugin-sdk/index.test.ts"],
   },
   {
     code: "legacy-extension-api-import",
@@ -683,7 +679,6 @@ export const PLUGIN_COMPAT_RECORDS = [
     diagnostics: ["provider validation warning"],
     tests: [
       "src/plugins/provider-runtime.test.ts",
-      "src/plugins/contracts/provider-family-plugin-tests.test.ts",
     ],
   },
   {
@@ -704,7 +699,7 @@ export const PLUGIN_COMPAT_RECORDS = [
       "ProviderPluginDiscovery",
     ],
     diagnostics: ["plugin SDK compatibility warning"],
-    tests: ["src/plugins/contracts/plugin-sdk-index.test.ts"],
+    tests: ["src/plugin-sdk/index.test.ts"],
   },
   {
     code: "provider-thinking-policy-hooks",
@@ -755,10 +750,7 @@ export const PLUGIN_COMPAT_RECORDS = [
       "normalizeAgentToolResultMiddlewareHarnesses",
     ],
     diagnostics: ["agent runtime compatibility warning"],
-    tests: [
-      "src/plugins/captured-registration.test.ts",
-      "src/agents/codex-app-server.extensions.test.ts",
-    ],
+    tests: ["src/plugins/captured-registration.test.ts"],
   },
   {
     code: "runtime-config-load-write",
@@ -779,8 +771,7 @@ export const PLUGIN_COMPAT_RECORDS = [
     ],
     tests: [
       "src/plugins/runtime/runtime-config.test.ts",
-      "src/plugins/contracts/deprecated-internal-config-api.test.ts",
-      "src/plugins/contracts/config-boundary-guard.test.ts",
+      "src/config/plugins-runtime-boundary.test.ts",
     ],
   },
   {
@@ -797,6 +788,130 @@ export const PLUGIN_COMPAT_RECORDS = [
     surfaces: ["api.runtime.taskFlow", "api.runtime.tasks.flow"],
     diagnostics: ["plugin runtime compatibility warning"],
     tests: ["src/plugins/runtime/index.test.ts", "src/plugins/runtime/runtime-tasks.test.ts"],
+  },
+  {
+    code: "runtime-subagent-get-session-alias",
+    status: "deprecated",
+    owner: "sdk",
+    introduced: "2026-04-24",
+    deprecated: "2026-04-26",
+    warningStarts: "2026-04-26",
+    removeAfter: "2026-07-26",
+    replacement: "`api.runtime.subagent.getSessionMessages`",
+    docsPath: "/plugins/sdk-runtime",
+    surfaces: ["api.runtime.subagent.getSession"],
+    diagnostics: ["plugin runtime compatibility warning"],
+    tests: ["src/plugins/runtime/index.test.ts"],
+  },
+  {
+    code: "runtime-stt-alias",
+    status: "deprecated",
+    owner: "sdk",
+    introduced: "2026-04-24",
+    deprecated: "2026-04-26",
+    warningStarts: "2026-04-26",
+    removeAfter: "2026-07-26",
+    replacement: "`api.runtime.mediaUnderstanding.transcribeAudioFile`",
+    docsPath: "/plugins/sdk-runtime",
+    surfaces: ["api.runtime.stt.transcribeAudioFile"],
+    diagnostics: ["plugin runtime compatibility warning"],
+    tests: ["src/plugins/runtime/index.test.ts"],
+  },
+  {
+    code: "runtime-inbound-envelope-alias",
+    status: "deprecated",
+    owner: "channel",
+    introduced: "2026-04-24",
+    deprecated: "2026-04-26",
+    warningStarts: "2026-04-26",
+    removeAfter: "2026-07-26",
+    replacement: "`BodyForAgent` plus structured user-context blocks",
+    docsPath: "/plugins/sdk-runtime",
+    surfaces: ["api.runtime.channel.reply.formatInboundEnvelope"],
+    diagnostics: ["channel runtime compatibility warning"],
+    tests: ["src/plugins/runtime/index.test.ts"],
+  },
+  {
+    code: "channel-native-message-schema-helpers",
+    status: "deprecated",
+    owner: "channel",
+    introduced: "2026-04-24",
+    deprecated: "2026-04-26",
+    warningStarts: "2026-04-26",
+    removeAfter: "2026-07-26",
+    replacement: "semantic `presentation` capabilities",
+    docsPath: "/plugins/sdk-migration",
+    surfaces: [
+      "coreblow/plugin-sdk/channel-actions createMessageToolButtonsSchema",
+      "coreblow/plugin-sdk/channel-actions createMessageToolCardSchema",
+    ],
+    diagnostics: ["plugin SDK compatibility warning"],
+    tests: ["src/plugin-sdk/subpaths.test.ts"],
+  },
+  {
+    code: "channel-mention-gating-legacy-helpers",
+    status: "deprecated",
+    owner: "channel",
+    introduced: "2026-04-24",
+    deprecated: "2026-04-26",
+    warningStarts: "2026-04-26",
+    removeAfter: "2026-07-26",
+    replacement: "`resolveInboundMentionDecision({ facts, policy })`",
+    docsPath: "/plugins/sdk-migration",
+    surfaces: [
+      "coreblow/plugin-sdk/channel-inbound resolveMentionGating",
+      "coreblow/plugin-sdk/channel-inbound resolveMentionGatingWithBypass",
+      "coreblow/plugin-sdk/channel-mention-gating resolveMentionGating",
+      "coreblow/plugin-sdk/channel-mention-gating resolveMentionGatingWithBypass",
+    ],
+    diagnostics: ["plugin SDK compatibility warning"],
+    tests: ["src/plugin-sdk/subpaths.test.ts"],
+  },
+  {
+    code: "provider-web-search-core-wrapper",
+    status: "deprecated",
+    owner: "provider",
+    introduced: "2026-04-24",
+    deprecated: "2026-04-26",
+    warningStarts: "2026-04-26",
+    removeAfter: "2026-07-26",
+    replacement: "provider-owned `createTool(...)` on the returned `WebSearchProviderPlugin`",
+    docsPath: "/plugins/sdk-provider-plugins",
+    surfaces: ["coreblow/plugin-sdk/provider-web-search createPluginBackedWebSearchProvider"],
+    diagnostics: ["plugin SDK compatibility warning"],
+    tests: ["src/plugin-sdk/subpaths.test.ts"],
+  },
+  {
+    code: "approval-capability-approvals-alias",
+    status: "deprecated",
+    owner: "channel",
+    introduced: "2026-04-24",
+    deprecated: "2026-04-26",
+    warningStarts: "2026-04-26",
+    removeAfter: "2026-07-26",
+    replacement:
+      "top-level `delivery`, `nativeRuntime`, `render`, and `native` approval capability fields",
+    docsPath: "/plugins/sdk-channel-plugins",
+    surfaces: ["createChannelApprovalCapability({ approvals })"],
+    diagnostics: ["plugin SDK compatibility warning"],
+    tests: ["src/plugin-sdk/approval-client-helpers.test.ts"],
+  },
+  {
+    code: "plugin-sdk-test-utils-alias",
+    status: "deprecated",
+    owner: "sdk",
+    introduced: "2026-04-24",
+    deprecated: "2026-04-26",
+    warningStarts: "2026-04-26",
+    removeAfter: "2026-07-26",
+    replacement: "focused `coreblow/plugin-sdk/*` test subpaths",
+    docsPath: "/plugins/sdk-migration",
+    surfaces: ["coreblow/plugin-sdk/test-utils"],
+    diagnostics: ["plugin SDK compatibility warning"],
+    tests: [
+      "src/plugins/compat/registry.test.ts",
+      "src/plugin-sdk/subpaths.test.ts",
+    ],
   },
 ] as const satisfies readonly PluginCompatRecord[];
 

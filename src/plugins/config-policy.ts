@@ -29,11 +29,7 @@ export type PluginActivationState = {
 
 export type NormalizedPluginsConfig = SharedNormalizedPluginsConfig;
 
-export function normalizePluginsConfigWithResolver(
-  config?: CoreBlowConfig["plugins"],
-): NormalizedPluginsConfig {
-  return normalizePluginsConfigShared(config);
-}
+export { normalizePluginsConfigWithResolver } from "./config-normalization-shared.js";
 
 export function resolvePluginActivationState(params: {
   id: string;

@@ -4,6 +4,7 @@ import { expect, it } from "vitest";
 
 // Narrow public testing surface for plugin authors.
 // Keep this list additive and limited to helpers we are willing to support.
+/** @deprecated Broad compatibility barrel. Prefer focused test subpaths. */
 
 export {
   createAckReactionHandle,
