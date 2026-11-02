@@ -122,11 +122,11 @@
       }
     },
     {
-      "name": "@openclaw/discord",
-      "description": "OpenClaw Discord channel plugin",
+      "name": "@coreblow/discord",
+      "description": "CoreBlow Discord channel plugin",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "coreblow": {
         "channel": {
           "id": "discord",
           "label": "Discord",
@@ -140,19 +140,20 @@
           "preferSessionLookupForAnnounceTarget": true
         },
         "install": {
-          "npmSpec": "@openclaw/discord",
-          "defaultChoice": "npm",
-          "minHostVersion": ">=2026.4.10",
+          "corehubSpec": "corehub:@coreblow/discord",
+          "npmSpec": "@coreblow/discord",
+          "defaultChoice": "corehub",
+          "minHostVersion": ">=1.0.0",
           "allowInvalidConfigRecovery": true
         }
       }
     },
     {
-      "name": "@openclaw/feishu",
-      "description": "OpenClaw Feishu/Lark channel plugin",
+      "name": "@coreblow/feishu",
+      "description": "CoreBlow Feishu/Lark channel plugin",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "coreblow": {
         "channel": {
           "id": "feishu",
           "label": "Feishu",
@@ -165,18 +166,19 @@
           "quickstartAllowFrom": true
         },
         "install": {
-          "npmSpec": "@openclaw/feishu",
-          "defaultChoice": "npm",
-          "minHostVersion": ">=2026.4.25"
+          "corehubSpec": "corehub:@coreblow/feishu",
+          "npmSpec": "@coreblow/feishu",
+          "defaultChoice": "corehub",
+          "minHostVersion": ">=1.0.0"
         }
       }
     },
     {
-      "name": "@openclaw/googlechat",
-      "description": "OpenClaw Google Chat channel plugin",
+      "name": "@coreblow/googlechat",
+      "description": "CoreBlow Google Chat channel plugin",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "coreblow": {
         "channel": {
           "id": "googlechat",
           "label": "Google Chat",
@@ -215,18 +217,45 @@
           ]
         },
         "install": {
-          "npmSpec": "@openclaw/googlechat",
-          "defaultChoice": "npm",
-          "minHostVersion": ">=2026.4.10"
+          "corehubSpec": "corehub:@coreblow/googlechat",
+          "npmSpec": "@coreblow/googlechat",
+          "defaultChoice": "corehub",
+          "minHostVersion": ">=1.0.0"
         }
       }
     },
     {
-      "name": "@openclaw/line",
-      "description": "OpenClaw LINE channel plugin",
+      "name": "@coreblow/irc",
+      "description": "CoreBlow IRC channel plugin",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "coreblow": {
+        "channel": {
+          "id": "irc",
+          "label": "IRC",
+          "selectionLabel": "IRC (Internet Relay Chat)",
+          "detailLabel": "IRC Bot",
+          "docsPath": "/channels/irc",
+          "docsLabel": "irc",
+          "blurb": "Classic Internet Relay Chat network connector.",
+          "aliases": ["internet-relay-chat"],
+          "order": 95,
+          "quickstartAllowFrom": true
+        },
+        "install": {
+          "corehubSpec": "corehub:@coreblow/irc",
+          "npmSpec": "@coreblow/irc",
+          "defaultChoice": "corehub",
+          "minHostVersion": ">=1.0.0"
+        }
+      }
+    },
+    {
+      "name": "@coreblow/line",
+      "description": "CoreBlow LINE channel plugin",
+      "source": "official",
+      "kind": "channel",
+      "coreblow": {
         "channel": {
           "id": "line",
           "label": "LINE",
@@ -240,18 +269,19 @@
           "quickstartAllowFrom": true
         },
         "install": {
-          "npmSpec": "@openclaw/line",
-          "defaultChoice": "npm",
-          "minHostVersion": ">=2026.4.10"
+          "corehubSpec": "corehub:@coreblow/line",
+          "npmSpec": "@coreblow/line",
+          "defaultChoice": "corehub",
+          "minHostVersion": ">=1.0.0"
         }
       }
     },
     {
-      "name": "@openclaw/matrix",
-      "description": "OpenClaw Matrix channel plugin",
+      "name": "@coreblow/matrix",
+      "description": "CoreBlow Matrix channel plugin",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "coreblow": {
         "channel": {
           "id": "matrix",
           "label": "Matrix",
@@ -291,20 +321,46 @@
           ]
         },
         "install": {
-          "clawhubSpec": "clawhub:@openclaw/matrix",
-          "npmSpec": "@openclaw/matrix",
-          "defaultChoice": "clawhub",
-          "minHostVersion": ">=2026.4.10",
+          "corehubSpec": "corehub:@coreblow/matrix",
+          "npmSpec": "@coreblow/matrix",
+          "defaultChoice": "corehub",
+          "minHostVersion": ">=1.0.0",
           "allowInvalidConfigRecovery": true
         }
       }
     },
     {
-      "name": "@openclaw/msteams",
-      "description": "OpenClaw Microsoft Teams channel plugin",
+      "name": "@coreblow/mattermost",
+      "description": "CoreBlow Mattermost channel plugin",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "coreblow": {
+        "channel": {
+          "id": "mattermost",
+          "label": "Mattermost",
+          "selectionLabel": "Mattermost (Bot / Webhook)",
+          "detailLabel": "Mattermost Bot",
+          "docsPath": "/channels/mattermost",
+          "docsLabel": "mattermost",
+          "blurb": "Self-hosted team messaging via Mattermost bot.",
+          "aliases": ["mm"],
+          "order": 68,
+          "quickstartAllowFrom": true
+        },
+        "install": {
+          "corehubSpec": "corehub:@coreblow/mattermost",
+          "npmSpec": "@coreblow/mattermost",
+          "defaultChoice": "corehub",
+          "minHostVersion": ">=1.0.0"
+        }
+      }
+    },
+    {
+      "name": "@coreblow/msteams",
+      "description": "CoreBlow Microsoft Teams channel plugin",
+      "source": "official",
+      "kind": "channel",
+      "coreblow": {
         "channel": {
           "id": "msteams",
           "label": "Microsoft Teams",
@@ -316,18 +372,19 @@
           "order": 60
         },
         "install": {
-          "npmSpec": "@openclaw/msteams",
-          "defaultChoice": "npm",
-          "minHostVersion": ">=2026.4.10"
+          "corehubSpec": "corehub:@coreblow/msteams",
+          "npmSpec": "@coreblow/msteams",
+          "defaultChoice": "corehub",
+          "minHostVersion": ">=1.0.0"
         }
       }
     },
     {
-      "name": "@openclaw/nextcloud-talk",
-      "description": "OpenClaw Nextcloud Talk channel plugin",
+      "name": "@coreblow/nextcloud-talk",
+      "description": "CoreBlow Nextcloud Talk channel plugin",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "coreblow": {
         "channel": {
           "id": "nextcloud-talk",
           "label": "Nextcloud Talk",
@@ -340,18 +397,19 @@
           "quickstartAllowFrom": true
         },
         "install": {
-          "npmSpec": "@openclaw/nextcloud-talk",
-          "defaultChoice": "npm",
-          "minHostVersion": ">=2026.4.10"
+          "corehubSpec": "corehub:@coreblow/nextcloud-talk",
+          "npmSpec": "@coreblow/nextcloud-talk",
+          "defaultChoice": "corehub",
+          "minHostVersion": ">=1.0.0"
         }
       }
     },
     {
-      "name": "@openclaw/nostr",
-      "description": "OpenClaw Nostr channel plugin for NIP-04 encrypted DMs",
+      "name": "@coreblow/nostr",
+      "description": "CoreBlow Nostr channel plugin for NIP-04 encrypted DMs",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "coreblow": {
         "channel": {
           "id": "nostr",
           "label": "Nostr",
@@ -363,18 +421,19 @@
           "quickstartAllowFrom": true
         },
         "install": {
-          "npmSpec": "@openclaw/nostr",
-          "defaultChoice": "npm",
-          "minHostVersion": ">=2026.4.10"
+          "corehubSpec": "corehub:@coreblow/nostr",
+          "npmSpec": "@coreblow/nostr",
+          "defaultChoice": "corehub",
+          "minHostVersion": ">=1.0.0"
         }
       }
     },
     {
-      "name": "@openclaw/qqbot",
-      "description": "OpenClaw QQ Bot channel plugin",
+      "name": "@coreblow/qqbot",
+      "description": "CoreBlow QQ Bot channel plugin",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "coreblow": {
         "channel": {
           "id": "qqbot",
           "label": "QQ Bot",
@@ -386,18 +445,19 @@
           "systemImage": "bubble.left.and.bubble.right"
         },
         "install": {
-          "npmSpec": "@openclaw/qqbot",
-          "defaultChoice": "npm",
-          "minHostVersion": ">=2026.4.10"
+          "corehubSpec": "corehub:@coreblow/qqbot",
+          "npmSpec": "@coreblow/qqbot",
+          "defaultChoice": "corehub",
+          "minHostVersion": ">=1.0.0"
         }
       }
     },
     {
-      "name": "@openclaw/slack",
-      "description": "OpenClaw Slack channel plugin",
+      "name": "@coreblow/slack",
+      "description": "CoreBlow Slack channel plugin",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "coreblow": {
         "channel": {
           "id": "slack",
           "label": "Slack",
@@ -410,41 +470,43 @@
           "markdownCapable": true
         },
         "install": {
-          "npmSpec": "@openclaw/slack",
-          "defaultChoice": "npm",
-          "minHostVersion": ">=2026.5.12-beta.1",
+          "corehubSpec": "corehub:@coreblow/slack",
+          "npmSpec": "@coreblow/slack",
+          "defaultChoice": "corehub",
+          "minHostVersion": ">=1.0.0",
           "allowInvalidConfigRecovery": true
         }
       }
     },
     {
-      "name": "@openclaw/synology-chat",
-      "description": "Synology Chat channel plugin for OpenClaw",
+      "name": "@coreblow/synology-chat",
+      "description": "Synology Chat channel plugin for CoreBlow",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "coreblow": {
         "channel": {
           "id": "synology-chat",
           "label": "Synology Chat",
           "selectionLabel": "Synology Chat (Webhook)",
           "docsPath": "/channels/synology-chat",
           "docsLabel": "synology-chat",
-          "blurb": "Connect your Synology NAS Chat to OpenClaw with full agent capabilities.",
+          "blurb": "Connect your Synology NAS Chat to CoreBlow with full agent capabilities.",
           "order": 90
         },
         "install": {
-          "npmSpec": "@openclaw/synology-chat",
-          "defaultChoice": "npm",
-          "minHostVersion": ">=2026.4.10"
+          "corehubSpec": "corehub:@coreblow/synology-chat",
+          "npmSpec": "@coreblow/synology-chat",
+          "defaultChoice": "corehub",
+          "minHostVersion": ">=1.0.0"
         }
       }
     },
     {
-      "name": "@openclaw/tlon",
-      "description": "OpenClaw Tlon/Urbit channel plugin",
+      "name": "@coreblow/tlon",
+      "description": "CoreBlow Tlon/Urbit channel plugin",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "coreblow": {
         "channel": {
           "id": "tlon",
           "label": "Tlon",
@@ -456,18 +518,19 @@
           "quickstartAllowFrom": true
         },
         "install": {
-          "npmSpec": "@openclaw/tlon",
-          "defaultChoice": "npm",
-          "minHostVersion": ">=2026.4.10"
+          "corehubSpec": "corehub:@coreblow/tlon",
+          "npmSpec": "@coreblow/tlon",
+          "defaultChoice": "corehub",
+          "minHostVersion": ">=1.0.0"
         }
       }
     },
     {
-      "name": "@openclaw/twitch",
-      "description": "OpenClaw Twitch channel plugin",
+      "name": "@coreblow/twitch",
+      "description": "CoreBlow Twitch channel plugin",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "coreblow": {
         "channel": {
           "id": "twitch",
           "label": "Twitch",
@@ -477,18 +540,19 @@
           "aliases": ["twitch-chat"]
         },
         "install": {
-          "npmSpec": "@openclaw/twitch",
-          "defaultChoice": "npm",
-          "minHostVersion": ">=2026.4.10"
+          "corehubSpec": "corehub:@coreblow/twitch",
+          "npmSpec": "@coreblow/twitch",
+          "defaultChoice": "corehub",
+          "minHostVersion": ">=1.0.0"
         }
       }
     },
     {
-      "name": "@openclaw/whatsapp",
-      "description": "OpenClaw WhatsApp channel plugin",
+      "name": "@coreblow/whatsapp",
+      "description": "CoreBlow WhatsApp channel plugin",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "coreblow": {
         "channel": {
           "id": "whatsapp",
           "label": "WhatsApp",
@@ -500,19 +564,19 @@
           "systemImage": "message"
         },
         "install": {
-          "clawhubSpec": "clawhub:@openclaw/whatsapp",
-          "npmSpec": "@openclaw/whatsapp",
-          "defaultChoice": "clawhub",
-          "minHostVersion": ">=2026.4.25"
+          "corehubSpec": "corehub:@coreblow/whatsapp",
+          "npmSpec": "@coreblow/whatsapp",
+          "defaultChoice": "corehub",
+          "minHostVersion": ">=1.0.0"
         }
       }
     },
     {
-      "name": "@openclaw/zalo",
-      "description": "OpenClaw Zalo channel plugin",
+      "name": "@coreblow/zalo",
+      "description": "CoreBlow Zalo channel plugin",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "coreblow": {
         "channel": {
           "id": "zalo",
           "label": "Zalo",
@@ -525,18 +589,19 @@
           "quickstartAllowFrom": true
         },
         "install": {
-          "npmSpec": "@openclaw/zalo",
-          "defaultChoice": "npm",
-          "minHostVersion": ">=2026.4.10"
+          "corehubSpec": "corehub:@coreblow/zalo",
+          "npmSpec": "@coreblow/zalo",
+          "defaultChoice": "corehub",
+          "minHostVersion": ">=1.0.0"
         }
       }
     },
     {
-      "name": "@openclaw/zalouser",
-      "description": "OpenClaw Zalo Personal Account plugin via native zca-js integration",
+      "name": "@coreblow/zalouser",
+      "description": "CoreBlow Zalo Personal Account plugin via native zca-js integration",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "coreblow": {
         "channel": {
           "id": "zalouser",
           "label": "Zalo Personal",
@@ -549,9 +614,10 @@
           "quickstartAllowFrom": false
         },
         "install": {
-          "npmSpec": "@openclaw/zalouser",
-          "defaultChoice": "npm",
-          "minHostVersion": ">=2026.4.10"
+          "corehubSpec": "corehub:@coreblow/zalouser",
+          "npmSpec": "@coreblow/zalouser",
+          "defaultChoice": "corehub",
+          "minHostVersion": ">=1.0.0"
         }
       }
     }

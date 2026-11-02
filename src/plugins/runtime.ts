@@ -148,6 +148,36 @@ export function recordImportedPluginId(pluginId: string): void {
   state.importedPluginIds.add(pluginId);
 }
 
+export function unregisterImportedPluginId(pluginId: string): void {
+  state.importedPluginIds.delete(pluginId);
+  const active = asPluginRegistry(state.activeRegistry);
+  if (active) {
+    active.plugins = active.plugins.filter((p) => p.id !== pluginId);
+    active.channels = active.channels.filter(
+      (c: any) => c.pluginId !== pluginId && c.id !== pluginId,
+    );
+    active.tools = active.tools.filter((t: any) => t.pluginId !== pluginId);
+    active.hooks = active.hooks.filter((h: any) => h.pluginId !== pluginId);
+    active.typedHooks = active.typedHooks.filter((h: any) => h.pluginId !== pluginId);
+    active.providers = active.providers.filter((p: any) => p.pluginId !== pluginId);
+    active.commands = active.commands.filter((c: any) => c.pluginId !== pluginId);
+    active.services = active.services.filter((s: any) => s.pluginId !== pluginId);
+    active.httpRoutes = active.httpRoutes.filter((r: any) => r.pluginId !== pluginId);
+  }
+  const channel = asPluginRegistry(state.channel.registry);
+  if (channel) {
+    channel.plugins = channel.plugins.filter((p) => p.id !== pluginId);
+    channel.channels = channel.channels.filter(
+      (c: any) => c.pluginId !== pluginId && c.id !== pluginId,
+    );
+  }
+  const httpRoute = asPluginRegistry(state.httpRoute.registry);
+  if (httpRoute) {
+    httpRoute.plugins = httpRoute.plugins.filter((p) => p.id !== pluginId);
+    httpRoute.httpRoutes = httpRoute.httpRoutes.filter((r: any) => r.pluginId !== pluginId);
+  }
+}
+
 function installSurfaceRegistry(
   surface: RegistrySurfaceState,
   registry: RegistryState["activeRegistry"],

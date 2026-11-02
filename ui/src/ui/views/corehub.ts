@@ -50,6 +50,20 @@ export function coreHubGatewayProxyUrl(gatewayUrl: string | undefined, path: str
   return `${coreBlowGatewayHttpBaseUrl(gatewayUrl)}/api/corehub/v2${cleanPath}`;
 }
 
+export function formatStorefrontCapabilityBadge(capability: string): string {
+  const trimmed = capability.trim();
+  if (!trimmed) return "";
+  return trimmed.toLowerCase();
+}
+
+export function resolveStorefrontActivationLabel(hotReloadSafe?: boolean): string {
+  return hotReloadSafe ? "Hot-Reload Ready" : "Staged Restart Required";
+}
+
+export function isKernelCapability(entry: { tier?: string; isKernel?: boolean }): boolean {
+  return entry.isKernel === true || entry.tier === "core";
+}
+
 type CountMap = Record<string, number | undefined>;
 
 type CoreHubAdminStatus = {
@@ -224,6 +238,11 @@ type CatalogEntry = {
   versions?: CatalogVersion[];
   tags?: string[];
   score?: number;
+  capabilities?: string[];
+  tier?: "core" | "corehub_on_demand";
+  isKernel?: boolean;
+  hotReloadSafe?: boolean;
+  installed?: boolean;
 };
 
 type CatalogVersion = {
@@ -620,6 +639,21 @@ export class CoreHubView extends LitElement {
     this.catalogError = "";
     try {
       const query = this.catalogSearchQuery.trim();
+      // First check local Storefront API
+      try {
+        const sfUrl = `/api/corehub/storefront${query ? `?q=${encodeURIComponent(query)}` : ""}`;
+        const sfRes = await fetch(sfUrl);
+        if (sfRes.ok) {
+          const sfData = await sfRes.json();
+          if (Array.isArray(sfData.apps) && sfData.apps.length > 0) {
+            this.catalogEntries = sfData.apps;
+            return;
+          }
+        }
+      } catch {
+        // Fallback to proxy
+      }
+
       // The gateway proxies /api/corehub/v2/* so we route catalog through v2 search or entries
       const path = query
         ? `/catalog/search?q=${encodeURIComponent(query)}&limit=50`
@@ -632,6 +666,28 @@ export class CoreHubView extends LitElement {
       this.catalogError = error instanceof Error ? error.message : String(error);
     } finally {
       this.catalogLoading = false;
+    }
+  }
+
+  private async triggerStorefrontRollback(pluginId: string) {
+    if (!globalThis.confirm?.(`Are you sure you want to rollback ${pluginId} to its previous version?`)) {
+      return;
+    }
+    try {
+      const res = await fetch("/api/corehub/rollback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pluginId }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        if (globalThis.alert) globalThis.alert(`Successfully rolled back plugin ${pluginId}.`);
+        await this.loadCatalog();
+      } else {
+        if (globalThis.alert) globalThis.alert(`Rollback failed: ${data.error ?? "Unknown error"}`);
+      }
+    } catch (err) {
+      if (globalThis.alert) globalThis.alert(`Rollback error: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 
@@ -2022,12 +2078,25 @@ export class CoreHubView extends LitElement {
 
         ${this.catalogEntries.length > 0 ? html`
           <div style="margin-top: 14px; display: grid; gap: 10px;">
-            ${this.catalogEntries.map((entry) => html`
+            ${this.catalogEntries.map((entry) => {
+              const rawId = entry.id ?? entry.name ?? "";
+              const cleanId = rawId.replace(/^@coreblow\//, "");
+              const isKernel = isKernelCapability(entry);
+              const tierBadgeText = isKernel ? "Built-in Kernel" : "CoreHub On-Demand";
+              const activationLabel = resolveStorefrontActivationLabel(entry.hotReloadSafe);
+              const capabilities = entry.capabilities ?? [];
+              const installSnippet = `coreblow plugins install corehub:${cleanId}`;
+
+              return html`
               <div style="border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; background: rgba(255,255,255,0.02);">
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                   <span style="font-weight: 700; font-size: 13px;">${entry.name ?? entry.id ?? "unknown"}</span>
                   <span style="font-family: var(--mono); font-size: 11px; color: var(--muted);">${entry.id ?? ""}</span>
                   <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: rgba(99,102,241,0.12); color: rgba(99,102,241,0.9);">${entry.kind ?? "unknown"}</span>
+                  <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: ${isKernel ? "rgba(59,130,246,0.12)" : "rgba(245,158,11,0.12)"}; color: ${isKernel ? "rgba(59,130,246,0.9)" : "rgba(245,158,11,0.9)"}; font-weight: 600;">${tierBadgeText}</span>
+                  ${!isKernel ? html`
+                    <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: ${entry.hotReloadSafe ? "rgba(34,197,94,0.12)" : "rgba(168,85,247,0.12)"}; color: ${entry.hotReloadSafe ? "rgba(34,197,94,0.9)" : "rgba(168,85,247,0.9)"};">${activationLabel}</span>
+                  ` : nothing}
                   ${entry.publisher?.verified ? html`
                     <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: rgba(34,197,94,0.12); color: rgba(34,197,94,0.9);">✓ verified</span>
                   ` : nothing}
@@ -2036,6 +2105,37 @@ export class CoreHubView extends LitElement {
                   ` : nothing}
                 </div>
                 <div style="margin-top: 6px; font-size: 12px; color: var(--muted);">${entry.summary ?? "No summary"}</div>
+
+                ${capabilities.length > 0 ? html`
+                  <div style="margin-top: 8px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                    <span style="font-size: 11px; color: var(--muted); font-weight: 600;">Capabilities:</span>
+                    ${capabilities.map((cap) => html`
+                      <span style="font-size: 10px; padding: 1px 6px; border-radius: 4px; background: rgba(255,255,255,0.06); color: var(--foreground); border: 1px solid var(--border);">${formatStorefrontCapabilityBadge(cap)}</span>
+                    `)}
+                  </div>
+                ` : nothing}
+
+                ${isKernel ? html`
+                  <div style="margin-top: 10px; font-size: 11px; color: var(--muted); font-style: italic;">
+                    Native Kernel Capability — Shipped directly with CoreBlow microkernel distribution.
+                  </div>
+                ` : html`
+                  <div style="margin-top: 10px; display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                      <span style="font-size: 11px; color: var(--muted);">Install:</span>
+                      <code style="font-family: var(--mono); font-size: 11px; padding: 3px 6px; background: rgba(0,0,0,0.25); border-radius: 4px; border: 1px solid var(--border); user-select: all;">${installSnippet}</code>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                      <button
+                        type="button"
+                        style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.25); color: rgba(239,68,68,0.9); font-size: 11px; padding: 4px 10px; border-radius: var(--radius-sm); cursor: pointer;"
+                        @click=${() => this.triggerStorefrontRollback(cleanId)}>
+                        Rollback
+                      </button>
+                    </div>
+                  </div>
+                `}
+
                 <div style="margin-top: 8px; display: flex; gap: 10px; flex-wrap: wrap; font-size: 11px; color: var(--muted);">
                   <span>Publisher: ${entry.publisher?.handle ?? "unknown"}</span>
                   ${(entry.versions ?? []).length > 0 ? html`
@@ -2046,7 +2146,7 @@ export class CoreHubView extends LitElement {
                   ` : nothing}
                 </div>
               </div>
-            `)}
+            `;})}
           </div>
         ` : this.catalogEntries.length === 0 && !this.catalogLoading && !this.catalogError ? html`
           <div style="margin-top: 12px; padding: 24px 0; color: var(--muted); font-size: 12px;">Enter a search query or press "Search" to browse all entries.</div>

@@ -4,6 +4,30 @@
   "private": true,
   "type": "module",
   "exports": {
+    ".": {
+      "types": "./dist/src/plugin-sdk/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./channel": {
+      "types": "./dist/src/plugin-sdk/channel.d.ts",
+      "default": "../../src/plugin-sdk/channel.ts"
+    },
+    "./provider": {
+      "types": "./dist/src/plugin-sdk/provider.d.ts",
+      "default": "../../src/plugin-sdk/provider.ts"
+    },
+    "./tool": {
+      "types": "./dist/src/plugin-sdk/tool.d.ts",
+      "default": "../../src/plugin-sdk/tool.ts"
+    },
+    "./memory": {
+      "types": "./dist/src/plugin-sdk/memory.d.ts",
+      "default": "../../src/plugin-sdk/memory.ts"
+    },
+    "./approval": {
+      "types": "./dist/src/plugin-sdk/approval.d.ts",
+      "default": "../../src/plugin-sdk/approval.ts"
+    },
     "./account-id": {
       "types": "./dist/src/plugin-sdk/account-id.d.ts",
       "default": "./src/account-id.ts"

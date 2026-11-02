@@ -11,6 +11,13 @@
 import { loadConfig, type CoreBlowConfig } from '../config/config.js';
 import { AgentRuntime, type ModelProvider } from '../agents/runtime.js';
 import { OpenAIProvider } from '../providers/openai.js';
+import { ProviderRegistry } from '../providers/provider-registry.js';
+import { RAGPipeline } from '../rag/rag-pipeline.js';
+import { ToolRegistry } from '../tools/tool-registry.js';
+import { ToolExecutor } from '../tools/tool-executor.js';
+import { TtsEngine } from '../tts/engine.js';
+import { BrowserTool, createBrowserToolDefinition } from '../tools/builtin/browser.js';
+import { safeEvaluateMath } from '../tools/builtin/calculator.js';
 
 // ─── Provider ID Detection ──────────────────────────────────────
 
@@ -156,7 +163,7 @@ export function createProvider(providerId: string, apiKey: string, defaultModel:
 
         case 'ollama':
             return new OpenAIProvider({
-                apiKey: 'ollama',
+                apiKey: 'ollama', // pragma: allowlist secret
                 baseUrl: process.env.OLLAMA_HOST ?? 'http://localhost:11434/v1',
                 defaultModel: defaultModel || 'llama3.2',
             });
@@ -174,6 +181,12 @@ export interface BootstrapResult {
     provider: string;
     model: string;
     configured: boolean;
+    providerRegistry: ProviderRegistry;
+    ragPipeline: RAGPipeline;
+    toolRegistry: ToolRegistry;
+    toolExecutor: ToolExecutor;
+    ttsEngine: TtsEngine;
+    browserTool: BrowserTool;
 }
 
 /**
@@ -186,14 +199,73 @@ export function bootstrapRuntime(): BootstrapResult {
     const apiKey = resolveApiKey(provider);
 
     const runtime = new AgentRuntime();
+    const providerRegistry = new ProviderRegistry();
+
+    const openaiKey = resolveApiKey('openai');
+    const ragPipeline = new RAGPipeline({
+        openaiKey: openaiKey ?? undefined,
+        embeddingBackend: openaiKey ? 'openai' : 'local',
+    });
+
+    const toolRegistry = new ToolRegistry();
+    const browserTool = new BrowserTool();
+    toolRegistry.register(createBrowserToolDefinition(browserTool));
+    toolRegistry.register({
+        name: 'calculator',
+        description: 'Safely evaluate math expressions without eval.',
+        category: 'utility',
+        parameters: {
+            type: 'object',
+            properties: {
+                expression: { type: 'string', description: 'The math expression to evaluate' },
+            },
+            required: ['expression'],
+        },
+        handler: async (args) => {
+            const expr = String(args.expression ?? '');
+            return String(safeEvaluateMath(expr));
+        },
+    });
+
+    const toolExecutor = new ToolExecutor(toolRegistry);
+
+    const ttsEngine = new TtsEngine({
+        apiKeys: {
+            openai: openaiKey ?? undefined,
+            elevenlabs: resolveApiKey('elevenlabs') ?? undefined,
+        },
+    });
 
     if (!apiKey && provider !== 'ollama') {
         // No API key — runtime won't be functional but gateway still starts
-        return { runtime, provider, model, configured: false };
+        return {
+            runtime,
+            provider,
+            model,
+            configured: false,
+            providerRegistry,
+            ragPipeline,
+            toolRegistry,
+            toolExecutor,
+            ttsEngine,
+            browserTool,
+        };
     }
 
     const providerInstance = createProvider(provider, apiKey ?? '', model);
     runtime.registerProvider(providerInstance, true);
+    providerRegistry.register(providerInstance, [model], 100);
 
-    return { runtime, provider, model, configured: true };
+    return {
+        runtime,
+        provider,
+        model,
+        configured: true,
+        providerRegistry,
+        ragPipeline,
+        toolRegistry,
+        toolExecutor,
+        ttsEngine,
+        browserTool,
+    };
 }

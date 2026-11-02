@@ -45,6 +45,11 @@ export function loadExtraExcludePatternsFromEnv(
 }
 
 export function createUnitVitestConfig(env: Record<string, string | undefined> = process.env) {
+  const argv = process.argv.join(' ');
+  const additionalExcludes = argv.includes('microkernel')
+    ? unitTestAdditionalExcludePatterns.filter((p) => p !== 'src/gateway/**')
+    : unitTestAdditionalExcludePatterns;
+
   return defineConfig({
     ...base,
     test: {
@@ -56,7 +61,7 @@ export function createUnitVitestConfig(env: Record<string, string | undefined> =
         ...new Set([
           ...exclude,
           '**/*.e2e.test.ts',
-          ...unitTestAdditionalExcludePatterns,
+          ...additionalExcludes,
           ...loadExtraExcludePatternsFromEnv(env),
 
           // ── Migration debt: tests requiring unbuilt infrastructure ──

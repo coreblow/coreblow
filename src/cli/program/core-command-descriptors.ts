@@ -8,6 +8,11 @@ export type CoreCliCommandDescriptor = {
 
 export const CORE_CLI_COMMAND_DESCRIPTORS = [
   {
+    name: "crestodian",
+    description: commandDescription("crestodian", "Open the ring-zero setup and repair helper"),
+    hasSubcommands: false,
+  },
+  {
     name: "setup",
     description: commandDescription("setup", "Initialize local config and agent workspace"),
     hasSubcommands: false,
@@ -86,6 +91,16 @@ export const CORE_CLI_COMMAND_DESCRIPTORS = [
   {
     name: "sessions",
     description: commandDescription("sessions", "List stored conversation sessions"),
+    hasSubcommands: true,
+  },
+  {
+    name: "migrate",
+    description: commandDescription("migrate", "Import state from another agent system"),
+    hasSubcommands: false,
+  },
+  {
+    name: "mcp",
+    description: commandDescription("mcp", "Manage CoreBlow MCP config and channel bridge"),
     hasSubcommands: true,
   },
 ] as const satisfies ReadonlyArray<CoreCliCommandDescriptor>;

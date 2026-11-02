@@ -380,6 +380,10 @@
       "types": "./dist/plugin-sdk/api-baseline.d.ts",
       "default": "./dist/plugin-sdk/api-baseline.js"
     },
+    "./plugin-sdk/approval": {
+      "types": "./dist/plugin-sdk/approval.d.ts",
+      "default": "./dist/plugin-sdk/approval.js"
+    },
     "./plugin-sdk/approval-auth-runtime": {
       "types": "./dist/plugin-sdk/approval-auth-runtime.d.ts",
       "default": "./dist/plugin-sdk/approval-auth-runtime.js"
@@ -455,6 +459,10 @@
     "./plugin-sdk/byteplus": {
       "types": "./dist/plugin-sdk/byteplus.d.ts",
       "default": "./dist/plugin-sdk/byteplus.js"
+    },
+    "./plugin-sdk/channel": {
+      "types": "./dist/plugin-sdk/channel.d.ts",
+      "default": "./dist/plugin-sdk/channel.js"
     },
     "./plugin-sdk/channel-actions": {
       "types": "./dist/plugin-sdk/channel-actions.d.ts",
@@ -679,6 +687,10 @@
     "./plugin-sdk/command-status": {
       "types": "./dist/plugin-sdk/command-status.d.ts",
       "default": "./dist/plugin-sdk/command-status.js"
+    },
+    "./plugin-sdk/command-status-runtime": {
+      "types": "./dist/plugin-sdk/command-status-runtime.d.ts",
+      "default": "./dist/plugin-sdk/command-status-runtime.js"
     },
     "./plugin-sdk/command-surface": {
       "types": "./dist/plugin-sdk/command-surface.d.ts",
@@ -1128,6 +1140,10 @@
       "types": "./dist/plugin-sdk/media-understanding-runtime.d.ts",
       "default": "./dist/plugin-sdk/media-understanding-runtime.js"
     },
+    "./plugin-sdk/memory": {
+      "types": "./dist/plugin-sdk/memory.d.ts",
+      "default": "./dist/plugin-sdk/memory.js"
+    },
     "./plugin-sdk/memory-core": {
       "types": "./dist/plugin-sdk/memory-core.d.ts",
       "default": "./dist/plugin-sdk/memory-core.js"
@@ -1244,6 +1260,10 @@
       "types": "./dist/plugin-sdk/native-command-config-runtime.d.ts",
       "default": "./dist/plugin-sdk/native-command-config-runtime.js"
     },
+    "./plugin-sdk/native-command-registry": {
+      "types": "./dist/plugin-sdk/native-command-registry.d.ts",
+      "default": "./dist/plugin-sdk/native-command-registry.js"
+    },
     "./plugin-sdk/nextcloud-talk": {
       "types": "./dist/plugin-sdk/nextcloud-talk.d.ts",
       "default": "./dist/plugin-sdk/nextcloud-talk.js"
@@ -1359,6 +1379,10 @@
     "./plugin-sdk/process-runtime": {
       "types": "./dist/plugin-sdk/process-runtime.d.ts",
       "default": "./dist/plugin-sdk/process-runtime.js"
+    },
+    "./plugin-sdk/provider": {
+      "types": "./dist/plugin-sdk/provider.d.ts",
+      "default": "./dist/plugin-sdk/provider.js"
     },
     "./plugin-sdk/provider-auth": {
       "types": "./dist/plugin-sdk/provider-auth.d.ts",
@@ -1748,6 +1772,10 @@
       "types": "./dist/plugin-sdk/speech-runtime.d.ts",
       "default": "./dist/plugin-sdk/speech-runtime.js"
     },
+    "./plugin-sdk/ssrf-dispatcher": {
+      "types": "./dist/plugin-sdk/ssrf-dispatcher.d.ts",
+      "default": "./dist/plugin-sdk/ssrf-dispatcher.js"
+    },
     "./plugin-sdk/ssrf-policy": {
       "types": "./dist/plugin-sdk/ssrf-policy.d.ts",
       "default": "./dist/plugin-sdk/ssrf-policy.js"
@@ -1883,6 +1911,10 @@
     "./plugin-sdk/together": {
       "types": "./dist/plugin-sdk/together.d.ts",
       "default": "./dist/plugin-sdk/together.js"
+    },
+    "./plugin-sdk/tool": {
+      "types": "./dist/plugin-sdk/tool.d.ts",
+      "default": "./dist/plugin-sdk/tool.js"
     },
     "./plugin-sdk/tool-payload": {
       "types": "./dist/plugin-sdk/tool-payload.d.ts",

@@ -85,6 +85,10 @@ export class ChatHandler {
         const method = (req.method ?? 'GET').toUpperCase();
         const path = url.pathname;
 
+        if (!path.startsWith('/api/chat') && !path.startsWith('/api/sessions')) {
+            return false;
+        }
+
         // CORS headers for browser access
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');

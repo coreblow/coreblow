@@ -40,6 +40,8 @@ import {
 import { setPluginEnabledInConfig } from "./plugins-config.js";
 import { runPluginInstallCommand } from "./plugins-install-command.js";
 import { runPluginUpdateCommand } from "./plugins-update-command.js";
+import { isCoreHubCapability, type CoreHubCapability } from "../plugins/app-store-contract.js";
+import { CoreHubAppStoreRuntime } from "../plugins/app-store-runtime.js";
 import { promptYesNo } from "./prompt.js";
 
 export type PluginsListOptions = {
@@ -1376,6 +1378,78 @@ export function registerPluginsCli(program: Command) {
       const next = setPluginEnabledInConfig(cfg, id, false);
       await writeConfigFile(next);
       defaultRuntime.log(t("extensions.disabled", { name: id }));
+    });
+
+  plugins
+    .command("rollback")
+    .description("Rollback a plugin to a prior snapshot")
+    .argument("<id>", "Plugin id")
+    .option("--version <ver>", "Target backup version")
+    .action((id: string, opts: { version?: string }) => {
+      const stateDir = resolveStateDir(process.env, os.homedir);
+      const runtime = new CoreHubAppStoreRuntime({ baseDir: stateDir });
+      const success = runtime.rollbackApp(id, opts.version);
+      if (success) {
+        defaultRuntime.log(
+          theme.success(
+            `Successfully rolled back plugin "${id}"${opts.version ? ` to version ${opts.version}` : ""}.`,
+          ),
+        );
+      } else {
+        defaultRuntime.error(`No valid rollback snapshot found for plugin "${id}".`);
+        process.exitCode = 1;
+      }
+    });
+
+  plugins
+    .command("consent")
+    .description("Inspect, grant, or revoke capability consent for a plugin")
+    .argument("<id>", "Plugin id")
+    .option(
+      "--grant <caps...>",
+      "Grant specific capabilities (e.g. network filesystem shell credentials webhook)",
+    )
+    .option("--revoke", "Revoke all capability consent for the plugin", false)
+    .action((id: string, opts: { grant?: string[]; revoke?: boolean }) => {
+      const stateDir = resolveStateDir(process.env, os.homedir);
+      const runtime = new CoreHubAppStoreRuntime({ baseDir: stateDir });
+      const ledger = runtime.getConsentLedger();
+
+      if (opts.revoke) {
+        ledger.revokeConsent(id);
+        defaultRuntime.log(theme.success(`Revoked all capability consent for "${id}".`));
+        return;
+      }
+
+      if (opts.grant && opts.grant.length > 0) {
+        const validCaps: CoreHubCapability[] = [];
+        for (const c of opts.grant) {
+          if (isCoreHubCapability(c)) {
+            validCaps.push(c);
+          } else {
+            defaultRuntime.log(theme.warn(`Skipping unsupported capability: "${c}".`));
+          }
+        }
+        const record = ledger.grantConsent(id, validCaps);
+        defaultRuntime.log(
+          theme.success(
+            `Granted capabilities [${record.approvedCapabilities.join(", ")}] to "${id}".`,
+          ),
+        );
+        return;
+      }
+
+      const current = ledger.getConsent(id);
+      if (!current) {
+        defaultRuntime.log(theme.muted(`No capability consent recorded for "${id}".`));
+      } else {
+        defaultRuntime.log(`Plugin: ${theme.command(current.pluginId)}`);
+        defaultRuntime.log(
+          `Approved Capabilities: ${current.approvedCapabilities.join(", ") || "none"}`,
+        );
+        defaultRuntime.log(`Approved At: ${current.approvedAt}`);
+        defaultRuntime.log(`Operator: ${current.operator}`);
+      }
     });
 
   plugins

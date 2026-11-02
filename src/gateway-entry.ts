@@ -35,6 +35,8 @@ import type { ChannelMessage } from './channels/adapter.js';
 import { SSEHandler } from './gateway/sse-handler.js';
 import { WsHandler } from './gateway/ws-handler.js';
 import { SessionManager } from './gateway/session-manager.js';
+import { handleControlUiHttpRequest } from './gateway/control-ui.js';
+import { createMicrokernelServiceRegistry, handleCoreHubRoute } from './gateway/microkernel-services.js';
 
 // ─── Constants ────────────────────────────────────────────────────
 
@@ -68,6 +70,8 @@ export interface GatewayStartOptions {
     port?: number;
     host?: string;
     allowUnconfigured?: boolean;
+    stateDir?: string;
+    skipLegacyServer?: boolean;
 }
 
 // ─── Helper: Read JSON Body ─────────────────────────────────────
@@ -507,7 +511,48 @@ export async function startGateway(opts?: GatewayStartOptions): Promise<void> {
     const host = opts?.host ?? '0.0.0.0';
 
     // ── Step 1: Bootstrap Agent Runtime ───────────────────────
-    const { runtime, provider, model, configured } = bootstrapRuntime();
+    const {
+        runtime,
+        provider,
+        model,
+        configured,
+        providerRegistry,
+        ragPipeline,
+        toolRegistry,
+        toolExecutor,
+        ttsEngine,
+        browserTool,
+    } = bootstrapRuntime();
+    const sessionMgr = new SessionManager();
+
+    // ── Step 1b: Microkernel Hybrid Services Registry ──────────
+    const effectiveStateDir = opts?.stateDir ?? process.env.COREBLOW_STATE_DIR;
+    const microkernel = createMicrokernelServiceRegistry({
+        stateDir: effectiveStateDir,
+        coryDir: effectiveStateDir ? path.join(effectiveStateDir, 'memory') : undefined,
+        providerRegistry,
+        activeProvider: provider,
+        activeModel: model,
+        isProviderConfigured: configured,
+        ragPipeline,
+        toolRegistry,
+        toolExecutor,
+        ttsEngine,
+        browserTool,
+        getActiveSessionKeys: () => [
+            ...runtime.listSessions().map((s) => s.id),
+            ...sessionMgr.listSessions().map((s) => s.id),
+        ],
+    });
+    const startupResult = await microkernel.registry.startAll();
+    const mandatoryServices = ['provider-runtime', 'cory-memory', 'extension-tier-policy'];
+    const failedMandatory = startupResult.failed.filter((s) => mandatoryServices.includes(s));
+    if (failedMandatory.length > 0) {
+        throw new Error(`Mandatory kernel service bootstrap failed for: ${failedMandatory.join(', ')}`);
+    }
+    if (startupResult.failed.length > 0) {
+        console.warn(`  ${c.yellow}⚠${c.reset} Optional microkernel services failed to start: ${startupResult.failed.join(', ')}`);
+    }
 
     // ── Step 2: Create Handlers ──────────────────────────────
     const chatHandler = new ChatHandler(runtime, {
@@ -569,7 +614,6 @@ export async function startGateway(opts?: GatewayStartOptions): Promise<void> {
     // ── Step 2c: Create SSE + WS Handlers ────────────────────
     const sseHandler = new SSEHandler();
     const wsHandler = new WsHandler();
-    const sessionMgr = new SessionManager();
 
     // Register WS methods for channel bridge
     wsHandler.registerMethod('chat', async (_client, params) => {
@@ -616,6 +660,9 @@ export async function startGateway(opts?: GatewayStartOptions): Promise<void> {
         try {
             // Health probes — always available, no auth required
             if (await handleProbeRequest(req, res)) return;
+
+            // CoreHub Storefront API (/api/corehub/storefront, /api/corehub/consent, /api/corehub/rollback)
+            if (await handleCoreHubRoute(req, res, microkernel)) return;
 
             // Chat API routes (/api/chat, /api/sessions)
             if (await chatHandler.handle(req, res)) return;
@@ -826,9 +873,17 @@ export async function startGateway(opts?: GatewayStartOptions): Promise<void> {
                 return;
             }
 
-            // ─── Dashboard ───────────────────────────────────
+            // ─── Dashboard & Cockpit Control UI ─────────────
 
-            // GET / — serve WebChat dashboard
+            // Serve Cockpit Control UI SPA when built assets are present
+            const controlUiRoot = path.resolve(process.cwd(), 'dist/control-ui');
+            if (fs.existsSync(path.join(controlUiRoot, 'index.html'))) {
+                if (handleControlUiHttpRequest(req, res, { basePath: '', root: { kind: 'resolved', path: controlUiRoot } })) {
+                    return;
+                }
+            }
+
+            // GET / — fallback to serve WebChat dashboard
             if (method === 'GET' && (pathname === '/' || pathname === '/index.html')) {
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -847,23 +902,7 @@ export async function startGateway(opts?: GatewayStartOptions): Promise<void> {
         }
     }
 
-    // ── Step 5: Boot CoreBlowServer (service registry) ────────
-    // @ts-expect-error — startGatewayServer signature varies between builds
-    const gwServer = await startGatewayServer({
-            cfg: loadConfig(),
-            bindHost: host,
-            port,
-            log: {
-                info: (msg: string) => console.log(`  ${c.dim}[server]${c.reset} ${msg}`),
-                warn: (msg: string) => console.log(`  ${c.yellow}[server]${c.reset} ${msg}`),
-            },
-            isNixMode: false,
-        }).catch(() => {
-        // Non-fatal: CoreBlowServer boot may fail if external deps are missing,
-        // but we still want the HTTP server to come up for healthchecks.
-    });
-
-    // ── Step 6: Listen ────────────────────────────────────────
+    // ── Step 5: Listen ────────────────────────────────────────
     await new Promise<void>((resolve, reject) => {
         httpServer.once('error', (err: NodeJS.ErrnoException) => {
             if (err.code === 'EADDRINUSE') {
@@ -878,6 +917,23 @@ export async function startGateway(opts?: GatewayStartOptions): Promise<void> {
         });
         httpServer.listen(port, host, () => resolve());
     });
+
+    // ── Step 5b: Boot CoreBlowServer (service registry) ────────
+    const shouldBootLegacy = !opts?.skipLegacyServer && process.env.COREBLOW_SKIP_LEGACY_SERVER !== '1';
+    // @ts-expect-error — startGatewayServer signature varies between builds
+    const gwServer = shouldBootLegacy ? await startGatewayServer({
+            cfg: loadConfig(),
+            bindHost: host,
+            port,
+            log: {
+                info: (msg: string) => console.log(`  ${c.dim}[server]${c.reset} ${msg}`),
+                warn: (msg: string) => console.log(`  ${c.yellow}[server]${c.reset} ${msg}`),
+            },
+            isNixMode: false,
+        }).catch(() => {
+        // Non-fatal: CoreBlowServer boot may fail if external deps are missing,
+        // but we still want the HTTP server to come up for healthchecks.
+    }) : undefined;
 
     // ── Step 6b: Start all configured channels ───────────────
     try {
@@ -924,6 +980,13 @@ export async function startGateway(opts?: GatewayStartOptions): Promise<void> {
         // Stop all channels
         try {
             await channelMgr.stop();
+        } catch {
+            // Best-effort
+        }
+
+        // Stop microkernel services
+        try {
+            await microkernel.registry.stopAll();
         } catch {
             // Best-effort
         }

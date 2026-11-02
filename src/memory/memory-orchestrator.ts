@@ -1,32 +1,36 @@
 /**
- * CoreBlow — Memory Orchestrator
+ * CoreBlow — Memory Orchestrator (Powered by Cory Built-in Memory)
  *
- * Unified memory interface: JSONL (always-on) + RAG (optional).
- *
- * Architecture:
- *  - JSONL TranscriptStore: always active, zero config, zero RAM
- *  - VectorStore + Embedding: opt-in via config, semantic search
- *
- * Critical fixes applied:
- *  🔴 (A) Stream tail-read for JSONL (not readFileSync)
- *  🔴 (B) RAG embedding is async non-blocking (fire-and-forget queue)
- *  🔴 (C) SHA256 content hash dedup
- *  🔴 (D) Hard maxDocuments limit on VectorStore
- *  🔴 (E) Error isolation — RAG failure → JSONL fallback
+ * Unified memory interface backed by Cory (`src/memory/cory.ts`) by default:
+ *  - Cory 4-Layer Canonical Markdown + Disposable SQLite WAL Lexical Index: always active, zero config, offline-first
+ *  - JSONL TranscriptStore: always active, stream tail-read
+ *  - Optional VectorStore + Embedding: opt-in semantic ranking with automatic lexical fallback
  */
 
 import * as crypto from 'node:crypto';
+import * as path from 'node:path';
 import { TranscriptStore, type TranscriptEntry, type TranscriptStoreConfig } from './transcript-store.js';
-import { VectorStore, type VectorSearchResult, toFloat32 } from './vector-store.js';
+import { VectorStore, type VectorSearchResult } from './vector-store.js';
 import { createEmbeddingProvider, type EmbeddingProvider } from './embeddings.js';
 import { EmbeddingCircuitBreaker } from './embedding-circuit-breaker.js';
+import {
+    CoryBootstrapService,
+    type CoryMemoryItem,
+    type CoryMemoryLayer,
+    type CoryScope,
+    type CorySessionSummaryRecord,
+    type CoryStartupSnapshot,
+} from './cory.js';
 import { logCaughtError } from '../utils/error-boundary.js';
 
 // ─── Types ──────────────────────────────────────────────────────
 
 export interface MemoryConfig {
-    /** Directory for JSONL transcripts (required) */
+    /** Directory for JSONL transcripts and Cory state (required) */
     transcriptDir: string;
+
+    /** Optional dedicated Cory state directory (defaults to transcriptDir/cory) */
+    coryStateDir?: string;
 
     /** JSONL store config overrides */
     transcript?: Partial<Omit<TranscriptStoreConfig, 'storeDir'>>;
@@ -37,7 +41,7 @@ export interface MemoryConfig {
         engine: 'local' | 'ollama' | 'openai' | 'gemini' | 'voyage' | 'mistral' | 'auto';
         /** API key (only needed for remote engines) */
         apiKey?: string;
-        /** 🔴 FIX (D): Hard limit — WAJIB ada cap */
+        /** Hard document limit on VectorStore */
         maxDocuments: number;
     };
 }
@@ -47,6 +51,10 @@ export interface MemoryContext {
     recentMessages: TranscriptEntry[];
     /** Semantic search results from RAG (only if enabled) */
     semanticMatches?: VectorSearchResult[];
+    /** Cory startup snapshot (Identity + Durable Workspace + Active Constraints) */
+    coryStartupSnapshot?: CoryStartupSnapshot;
+    /** Cory lexical/hybrid recalled items */
+    coryMatches?: CoryMemoryItem[];
     /** Combined context string for LLM prompt */
     contextText: string;
     /** Whether RAG was used */
@@ -67,26 +75,27 @@ export class MemoryOrchestrator {
     private transcript: TranscriptStore;
     private vectorStore: VectorStore | null = null;
     private embedder: EmbeddingProvider | null = null;
+    public readonly cory: CoryBootstrapService;
 
-    // 🔴 FIX (B): Async embedding queue
+    // Async embedding queue
     private embeddingQueue: EmbeddingJob[] = [];
     private queueTimer: ReturnType<typeof setTimeout> | null = null;
     private drainPromise: Promise<void> | null = null;
 
-    // 🔴 FIX (C): Content hash dedup
+    // Content hash dedup
     private contentHashes = new Set<string>();
 
     // Circuit breaker for embedding API
     private circuitBreaker = new EmbeddingCircuitBreaker();
 
     constructor(config: MemoryConfig) {
-        // JSONL — always initialized
+        // 1. JSONL — always initialized
         this.transcript = new TranscriptStore({
             storeDir: config.transcriptDir,
             ...config.transcript,
         });
 
-        // RAG — only if enabled
+        // 2. RAG — only if enabled
         if (config.rag?.enabled) {
             try {
                 this.embedder = createEmbeddingProvider({
@@ -95,26 +104,72 @@ export class MemoryOrchestrator {
                 });
                 this.vectorStore = new VectorStore({
                     dimensions: this.embedder.dimensions,
-                    // 🔴 FIX (D): Hard limit enforced
                     maxDocuments: config.rag.maxDocuments,
                 });
             } catch (err) {
-                // 🔴 FIX (E): RAG init failure → degrade to JSONL only
+                // RAG init failure → degrade to Cory lexical + JSONL only
                 logCaughtError('memory-orchestrator:rag-init', err);
                 this.embedder = null;
                 this.vectorStore = null;
             }
         }
+
+        // 3. Cory Built-in Memory — always initialized, offline-first, zero config
+        const coryDir = config.coryStateDir ?? path.join(config.transcriptDir, 'cory');
+        this.cory = new CoryBootstrapService({
+            stateDir: coryDir,
+            embeddingProvider: null, // Keep Cory baseline strictly local & fast; VectorStore handles optional RAG above
+        });
+    }
+
+    // ─── Cory First-Class Memory Operations ─────────────────────
+
+    /**
+     * Store a preference, workspace decision, episodic note, or active constraint in Cory.
+     */
+    remember(params: {
+        layer: CoryMemoryLayer;
+        content: string;
+        scope?: CoryScope;
+        source?: string;
+        artifactRef?: string;
+        tags?: readonly string[];
+    }): CoryMemoryItem | null {
+        return this.cory.memoryStore.remember(params);
+    }
+
+    /**
+     * Forget a memory item by ID or text substring.
+     */
+    forget(params: { idOrQuery: string; layer?: CoryMemoryLayer; scope?: CoryScope }): number {
+        return this.cory.memoryStore.forget(params);
+    }
+
+    /**
+     * Summarize a completed session and preserve Decisions & Active Constraints in Cory.
+     */
+    summarizeSession(params: {
+        sessionId: string;
+        messages: ReadonlyArray<{ role: string; content: string }>;
+        explicitDecisions?: readonly string[];
+        explicitConstraints?: readonly string[];
+        scope?: CoryScope;
+        artifactRef?: string;
+    }): CorySessionSummaryRecord {
+        return this.cory.summaryService.summarizeAndConsolidateSession(params);
+    }
+
+    /**
+     * Pause or resume persistent Cory memory writes/reads.
+     */
+    setPaused(paused: boolean): void {
+        this.cory.memoryStore.setPaused(paused);
     }
 
     // ─── Record ─────────────────────────────────────────────────
 
     /**
      * Record a message. Always writes to JSONL. Optionally queues for RAG.
-     *
-     * 🔴 FIX (B): RAG embedding is ASYNC NON-BLOCKING.
-     *    JSONL write = synchronous (fast, O(1) append).
-     *    RAG embed = queued, fire-and-forget (won't block user response).
      */
     recordMessage(sessionId: string, message: {
         role: 'user' | 'assistant';
@@ -127,14 +182,14 @@ export class MemoryOrchestrator {
             message,
         });
 
-        // 2. 🔴 FIX (C): Hash-based dedup check
+        // 2. Hash-based dedup check
         const contentHash = this.hashContent(message.content);
         if (this.contentHashes.has(contentHash)) {
-            return; // already indexed, skip RAG
+            return;
         }
         this.contentHashes.add(contentHash);
 
-        // 3. 🔴 FIX (B): Queue embedding job — FIRE AND FORGET
+        // 3. Queue embedding job — FIRE AND FORGET
         if (this.vectorStore && this.embedder) {
             this.queueEmbeddingJob({
                 id: `${sessionId}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -149,23 +204,29 @@ export class MemoryOrchestrator {
     // ─── Retrieve ───────────────────────────────────────────────
 
     /**
-     * Build context for LLM prompt.
-     * JSONL: recent messages (always).
-     * RAG: semantic matches (if enabled).
-     *
-     * 🔴 FIX (E): RAG failure → fallback to JSONL only.
-     * 🔴 FIX (C): Hash-based dedup between JSONL and RAG results.
+     * Build context for LLM prompt combining:
+     *  - Cory frozen startup snapshot (Identity + Durable Workspace + Active Constraints)
+     *  - Cory lexical FTS/BM25 recall
+     *  - JSONL recent messages
+     *  - Optional RAG semantic matches
      */
     async buildContext(sessionId: string, query: string, opts?: {
         recentCount?: number;
         ragTopK?: number;
+        scope?: CoryScope;
     }): Promise<MemoryContext> {
-        // 1. Always: get recent messages from JSONL (stream tail-read)
+        // 1. Capture Cory session-stable startup snapshot
+        const coryStartupSnapshot = this.cory.contextAssembler.getOrCreateStartupSnapshot(
+            sessionId,
+            opts?.scope,
+        );
+
+        // 2. Always: get recent messages from JSONL (stream tail-read)
         const recent = await this.transcript.getRecentMessages(
             sessionId, opts?.recentCount ?? 20,
         );
 
-        // 2. 🔴 FIX (C): Build hash set of recent messages for dedup
+        // 3. Build hash set of recent messages for dedup
         const recentHashes = new Set<string>();
         for (const entry of recent) {
             if (entry.message?.content) {
@@ -173,7 +234,25 @@ export class MemoryOrchestrator {
             }
         }
 
-        // 3. 🔴 FIX (E): RAG search wrapped in try/catch
+        // 4. Cory lexical recall (best-effort, never throws)
+        let coryMatches: CoryMemoryItem[] = [];
+        if (query.trim() && !this.cory.memoryStore.isPaused()) {
+            const coryRecall = await this.cory.retriever.retrieve({
+                query,
+                scope: opts?.scope,
+                topK: opts?.ragTopK ?? 5,
+            });
+            const snapshotIds = new Set([
+                ...coryStartupSnapshot.identityItems.map((i) => i.id),
+                ...coryStartupSnapshot.durableItems.map((d) => d.id),
+                ...coryStartupSnapshot.activeConstraints.map((c) => c.id),
+            ]);
+            coryMatches = coryRecall.hits
+                .map((h) => h.item)
+                .filter((item) => !snapshotIds.has(item.id));
+        }
+
+        // 5. RAG search wrapped in try/catch
         let semantic: VectorSearchResult[] | undefined;
         const ragTopK = opts?.ragTopK ?? 5;
 
@@ -181,28 +260,33 @@ export class MemoryOrchestrator {
             try {
                 const queryEmbedding = await this.embedder.embed(query);
                 const rawResults = this.vectorStore.search(queryEmbedding, {
-                    topK: ragTopK + recentHashes.size, // over-fetch for dedup
+                    topK: ragTopK + recentHashes.size,
                     minScore: 0.3,
                 });
 
-                // 🔴 FIX (C): Filter out docs already in recent JSONL
                 semantic = rawResults.filter(r => {
                     const hash = this.hashContent(r.document.content);
                     return !recentHashes.has(hash);
                 }).slice(0, ragTopK);
             } catch (err) {
-                // 🔴 FIX (E): RAG down → JSONL still works
                 logCaughtError('memory-orchestrator:rag-search', err);
                 semantic = undefined;
             }
         }
 
-        // 4. Format context
-        const contextText = this.formatContext(recent, semantic);
+        // 6. Format context
+        const contextText = this.formatContext(
+            recent,
+            semantic,
+            coryStartupSnapshot,
+            coryMatches,
+        );
 
         return {
             recentMessages: recent,
             semanticMatches: semantic,
+            coryStartupSnapshot,
+            coryMatches,
             contextText,
             ragUsed: semantic !== undefined && semantic.length > 0,
         };
@@ -210,14 +294,9 @@ export class MemoryOrchestrator {
 
     // ─── Queue Management ───────────────────────────────────────
 
-    /**
-     * 🔴 FIX (B): Async embedding queue.
-     * Processes embeddings in background, debounced, batch-friendly.
-     */
     private queueEmbeddingJob(job: EmbeddingJob): void {
         this.embeddingQueue.push(job);
 
-        // Debounce: process queue after 100ms of no new jobs
         if (this.queueTimer) clearTimeout(this.queueTimer);
         this.queueTimer = setTimeout(() => {
             this.drainPromise = this.drainEmbeddingQueue();
@@ -227,9 +306,8 @@ export class MemoryOrchestrator {
     private async drainEmbeddingQueue(): Promise<void> {
         if (!this.embedder || !this.vectorStore) return;
 
-        // Circuit breaker: if API is down, skip embedding
         if (this.circuitBreaker.isOpen()) {
-            this.embeddingQueue.splice(0); // discard — JSONL has the data
+            this.embeddingQueue.splice(0);
             return;
         }
 
@@ -252,17 +330,11 @@ export class MemoryOrchestrator {
                 }
             }
         } catch (err) {
-            // 🔴 FIX (E): RAG failure = log, don't crash
             this.circuitBreaker.recordFailure();
             logCaughtError('memory-orchestrator:embed', err);
-            // Jobs are lost — acceptable, JSONL has the data
         }
     }
 
-    /**
-     * Wait for all pending embedding jobs to complete.
-     * Useful for tests and graceful shutdown.
-     */
     async flush(): Promise<void> {
         if (this.queueTimer) {
             clearTimeout(this.queueTimer);
@@ -278,10 +350,18 @@ export class MemoryOrchestrator {
 
     // ─── Formatting ─────────────────────────────────────────────
 
-    private formatContext(recent: TranscriptEntry[], semantic?: VectorSearchResult[]): string {
+    private formatContext(
+        recent: TranscriptEntry[],
+        semantic?: VectorSearchResult[],
+        corySnapshot?: CoryStartupSnapshot,
+        coryMatches?: CoryMemoryItem[],
+    ): string {
         const parts: string[] = [];
 
-        // Recent messages
+        if (corySnapshot?.formattedSnapshot) {
+            parts.push(corySnapshot.formattedSnapshot);
+        }
+
         if (recent.length > 0) {
             const recentText = recent
                 .filter(e => e.message?.content)
@@ -292,7 +372,13 @@ export class MemoryOrchestrator {
             }
         }
 
-        // Semantic matches
+        if (coryMatches && coryMatches.length > 0) {
+            const coryText = coryMatches
+                .map(m => `- [${m.layer}] ${m.content}`)
+                .join('\n');
+            parts.push(`## Relevant Cory Memory\n${coryText}`);
+        }
+
         if (semantic && semantic.length > 0) {
             const semanticText = semantic
                 .map(r => `- [score: ${r.score.toFixed(3)}] ${r.document.content}`)
@@ -312,16 +398,19 @@ export class MemoryOrchestrator {
             .slice(0, 16);
     }
 
-    /**
-     * Get stats about the memory system.
-     */
     stats(): {
         jsonl: { sessions: number };
+        cory: { documents: number; paused: boolean };
         rag: { enabled: boolean; documents: number; provider: string } | null;
     } {
+        const coryStats = this.cory.searchIndex.stats();
         return {
             jsonl: {
                 sessions: this.transcript.listSessions().length,
+            },
+            cory: {
+                documents: coryStats.documents,
+                paused: this.cory.memoryStore.isPaused(),
             },
             rag: this.vectorStore ? {
                 enabled: true,
@@ -331,17 +420,15 @@ export class MemoryOrchestrator {
         };
     }
 
-    /**
-     * Access the underlying TranscriptStore (for advanced use).
-     */
     getTranscriptStore(): TranscriptStore {
         return this.transcript;
     }
 
-    /**
-     * Access the underlying VectorStore (for advanced use). May be null.
-     */
     getVectorStore(): VectorStore | null {
         return this.vectorStore;
+    }
+
+    getCoryService(): CoryBootstrapService {
+        return this.cory;
     }
 }

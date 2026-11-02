@@ -1,12 +1,13 @@
 /**
- * CoreBlow — Memory Bootstrap
+ * CoreBlow — Memory Bootstrap (Powered by Cory Built-in Memory)
  *
- * Factory that creates a MemoryOrchestrator from CoreBlow config.
- * Resolves ~ paths, validates config, and wires everything up.
+ * Factory that creates a CoryBootstrapService and MemoryOrchestrator from CoreBlow config.
+ * Resolves ~ paths, validates config, and wires zero-config Cory memory by default.
  */
 
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { CoryBootstrapService, type CoryConfig } from './cory.js';
 import { MemoryOrchestrator, type MemoryConfig } from './memory-orchestrator.js';
 
 /**
@@ -28,6 +29,7 @@ function resolvePath(p: string): string {
  */
 export interface MemorySchemaConfig {
     transcriptDir: string;
+    coryStateDir?: string;
     defaultRetrievalCount: number;
     maxFileSizeBytes: number;
     compactionStrategy: 'truncate' | 'summarize';
@@ -40,29 +42,24 @@ export interface MemorySchemaConfig {
 }
 
 /**
- * Create a MemoryOrchestrator from CoreBlow config.
- *
- * Usage:
- * ```ts
- * import { validateConfig } from './config/config.schema.js';
- * import { createMemoryOrchestrator } from './memory/memory-bootstrap.js';
- *
- * const config = validateConfig(rawConfig);
- * const memory = createMemoryOrchestrator(config.memory);
- *
- * // Record messages
- * memory.recordMessage('session-1', { role: 'user', content: 'Hello' });
- *
- * // Build context for LLM
- * const ctx = await memory.buildContext('session-1', 'current query');
- * console.log(ctx.contextText);
- * ```
+ * Create a standalone CoryBootstrapService (registered with ServiceRegistry on startup).
+ */
+export function createCoryMemoryService(config?: CoryConfig): CoryBootstrapService {
+    return new CoryBootstrapService(config);
+}
+
+/**
+ * Create a MemoryOrchestrator (backed by Cory Built-in Memory) from CoreBlow config.
  */
 export function createMemoryOrchestrator(memoryConfig: MemorySchemaConfig): MemoryOrchestrator {
     const transcriptDir = resolvePath(memoryConfig.transcriptDir);
+    const coryStateDir = memoryConfig.coryStateDir
+        ? resolvePath(memoryConfig.coryStateDir)
+        : path.join(transcriptDir, 'cory');
 
     const config: MemoryConfig = {
         transcriptDir,
+        coryStateDir,
         transcript: {
             defaultRetrievalCount: memoryConfig.defaultRetrievalCount,
             maxFileSizeBytes: memoryConfig.maxFileSizeBytes,
@@ -70,7 +67,6 @@ export function createMemoryOrchestrator(memoryConfig: MemorySchemaConfig): Memo
         },
     };
 
-    // Wire RAG if enabled
     if (memoryConfig.rag.enabled) {
         config.rag = {
             enabled: true,
@@ -84,17 +80,15 @@ export function createMemoryOrchestrator(memoryConfig: MemorySchemaConfig): Memo
 }
 
 /**
- * Create a default MemoryOrchestrator with sensible defaults.
- * Useful for quick setup without a config file.
- *
- * Default: JSONL-only, no RAG, ~/.coreblow/sessions/
+ * Create a default MemoryOrchestrator with zero-config Cory Built-in Memory enabled.
  */
 export function createDefaultMemoryOrchestrator(): MemoryOrchestrator {
     return createMemoryOrchestrator({
         transcriptDir: '~/.coreblow/sessions',
+        coryStateDir: '~/.coreblow/memory',
         defaultRetrievalCount: 20,
         maxFileSizeBytes: 512 * 1024,
-        compactionStrategy: 'truncate',
+        compactionStrategy: 'summarize',
         rag: {
             enabled: false,
             engine: 'local',

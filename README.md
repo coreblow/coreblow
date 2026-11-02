@@ -31,6 +31,30 @@ Anthropic, Gemini, OpenRouter-style routing, and plugin-backed providers.
 Supported runtime surfaces include built-in channels, plugin channels,
 WebSocket clients, Control UI, cron, nodes, and MCP/ACP integration.
 
+## Product Direction
+
+CoreBlow is designed as a lightweight, local-first AI operating runtime rather
+than an all-in-one bundle. Its kernel provides the capabilities required for a
+useful first run: Cory built-in memory, AI provider routing, vector/RAG,
+browser, voice, tools, security, and the plugin host.
+
+The kernel uses a Hybrid OOP/DOP model: OOP owns stateful resources and
+lifecycle boundaries such as services, registries, connections, and plugin
+hosts; DOP owns immutable data contracts and pure high-throughput transforms
+such as routing, context assembly, and policy evaluation. This keeps runtime
+ownership explicit without making hot paths depend on unnecessary object state.
+
+CoreHub is the separate on-demand application layer. Community channels and
+third-party applications are installed only when an operator needs them, so
+they do not become default runtime cost or configuration burden. Kernel
+capabilities are never installed or rolled back through CoreHub.
+
+CoreBlow also follows an evidence-first engineering method: clarify intent,
+approve a design, make small testable changes, verify runtime behavior, and
+only then declare completion. The goal is to combine immediate usability,
+extensibility, and rigorous verification without copying another product's
+architecture.
+
 ## Install
 
 Runtime: Node.js 22.12 or newer.
