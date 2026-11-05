@@ -17,12 +17,18 @@ import "./views/cron.ts";
 
 export function renderApp(app: CoreBlowApp) {
   return html`
-    <div class="shell ${app.navDrawerOpen ? "shell--nav-open" : ""}">
+    <div class="shell ${app.navDrawerOpen ? "shell--nav-drawer-open" : ""}">
 
       <!-- Topbar -->
       <header class="topbar">
         <div class="topnav-shell">
           <div class="topnav-shell__content">
+            <button class="nav-drawer-toggle pill"
+                    style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; min-width: 32px; padding: 0; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-inline-end: 10px; color: var(--text);"
+                    aria-label="Toggle Navigation"
+                    @click=${() => app.toggleNavDrawer()}>
+               ${renderIcon("menu", "16px")}
+            </button>
             <div class="dashboard-header">
               <div class="dashboard-header__breadcrumb">
                 <span class="dashboard-header__breadcrumb-current">${titleForTab(app.tab)}</span>
@@ -97,6 +103,11 @@ export function renderApp(app: CoreBlowApp) {
           </div>
         </div>
       </nav>
+
+      <!-- Drawer Backdrop -->
+      <button class="shell-nav-backdrop"
+              @click=${() => app.toggleNavDrawer(false)}
+              aria-label="Close navigation drawer"></button>
 
       <!-- Main Content Area -->
       <main class="content" style="padding: var(--shell-pad); overflow-y: auto;">
