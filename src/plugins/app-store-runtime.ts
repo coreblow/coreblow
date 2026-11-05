@@ -104,6 +104,8 @@ export class CoreHubAppStoreRuntime implements GatewayService {
     fs.mkdirSync(path.join(this.baseDir, "extensions"), { recursive: true });
     fs.mkdirSync(path.join(this.baseDir, "backups"), { recursive: true });
     fs.mkdirSync(path.join(this.baseDir, "plugins"), { recursive: true });
+    // Recover from incomplete/interrupted staging state by cleaning orphaned tmp stages
+    this.stageManager.cleanupOrphanedStages();
   }
 
   public async stop(): Promise<void> {

@@ -21,6 +21,7 @@ export class ExtensionTierPolicy implements GatewayService {
     "memory-core",
     "cory",
     "cory-memory",
+    "cory-skill-synthesizer",
     "rag",
     "rag-runtime",
     "tools",

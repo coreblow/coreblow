@@ -116,7 +116,7 @@ describe("Microkernel Services Registry & Storefront Endpoints", () => {
     fs.rmSync(testDir, { recursive: true, force: true });
   });
 
-  it("registers all 8 microkernel services with deterministic topological dependencies", () => {
+  it("registers all 9 microkernel services with deterministic topological dependencies", () => {
     const microkernel = createMicrokernelServiceRegistry({
       stateDir: testDir,
       coryDir,
@@ -128,11 +128,12 @@ describe("Microkernel Services Registry & Storefront Endpoints", () => {
     expect(microkernel.browser.name).toBe("browser-runtime");
     expect(microkernel.voice.name).toBe("voice-runtime");
     expect(microkernel.cory.name).toBe("cory-memory");
+    expect(microkernel.skillSynthesizer.name).toBe("cory-skill-synthesizer");
     expect(microkernel.tierPolicy.name).toBe("extension-tier-policy");
     expect(microkernel.appStore.name).toBe("corehub-app-store");
 
     const list = microkernel.registry.list();
-    expect(list).toHaveLength(8);
+    expect(list).toHaveLength(9);
 
     const providerEntry = list.find((s) => s.name === "provider-runtime")!;
     expect(providerEntry.deps).toEqual([]);
@@ -154,6 +155,9 @@ describe("Microkernel Services Registry & Storefront Endpoints", () => {
     expect(coryEntry.deps).toEqual(["provider-runtime"]);
     expect(coryEntry.deps).not.toContain("corehub-app-store");
 
+    const skillSynthesizerEntry = list.find((s) => s.name === "cory-skill-synthesizer")!;
+    expect(skillSynthesizerEntry.deps).toEqual(["cory-memory"]);
+
     const tierPolicyEntry = list.find((s) => s.name === "extension-tier-policy")!;
     expect(tierPolicyEntry.deps).toEqual([]);
 
@@ -173,6 +177,8 @@ describe("Microkernel Services Registry & Storefront Endpoints", () => {
     expect(microkernel.tool.health().status).toBe("down");
     expect(microkernel.browser.health().status).toBe("down");
     expect(microkernel.voice.health().status).toBe("down");
+    expect(microkernel.cory.health().status).toBe("down");
+    expect(microkernel.skillSynthesizer.health().status).toBe("down");
     expect(microkernel.tierPolicy.health().status).toBe("down");
     expect(microkernel.appStore.health().status).toBe("down");
 
@@ -186,6 +192,7 @@ describe("Microkernel Services Registry & Storefront Endpoints", () => {
       "browser-runtime",
       "voice-runtime",
       "cory-memory",
+      "cory-skill-synthesizer",
       "extension-tier-policy",
       "corehub-app-store",
     ]);
@@ -196,6 +203,7 @@ describe("Microkernel Services Registry & Storefront Endpoints", () => {
     expect(microkernel.browser.health().status).toBe("healthy");
     expect(microkernel.voice.health().status).toBe("healthy");
     expect(microkernel.cory.health().status).toBe("healthy");
+    expect(microkernel.skillSynthesizer.health().status).toBe("healthy");
     expect(microkernel.tierPolicy.health().status).toBe("healthy");
     expect(microkernel.appStore.health().status).toBe("healthy");
 
@@ -567,6 +575,247 @@ describe("Microkernel Services Registry & Storefront Endpoints", () => {
       const storeResult = await getStoreResult();
       expect(storeResult.statusCode).toBe(200);
       expect(storeResult.headers["access-control-allow-origin"]).toBe("*");
+
+      await microkernel.registry.stopAll();
+    });
+
+    it("handles GET /api/corehub/skills/learned with scope authorization and filtering", async () => {
+      const microkernel = createMicrokernelServiceRegistry({
+        stateDir: testDir,
+        coryDir,
+      });
+      await microkernel.registry.startAll();
+
+      // 1. Unauthenticated request rejected with 401
+      const { req: unauthReq, res: unauthRes, getResult: getUnauthResult } = createMockReqRes({
+        method: "GET",
+        url: "/api/corehub/skills/learned",
+      });
+      await handleCoreHubRoute(unauthReq, unauthRes, microkernel, { auth: testAuth });
+      const unauthResult = await getUnauthResult();
+      expect(unauthResult.statusCode).toBe(401);
+
+      // 2. Authenticated request with READ_SCOPE returns 200 and empty list initially
+      const { req: authReq, res: authRes, getResult: getAuthResult } = createMockReqRes({
+        method: "GET",
+        url: "/api/corehub/skills/learned",
+        headers: {
+          authorization: "Bearer test-admin-secret-token",
+          "x-coreblow-scopes": "operator.read",
+        },
+      });
+      await handleCoreHubRoute(authReq, authRes, microkernel, { auth: testAuth });
+      const authResult = await getAuthResult();
+      expect(authResult.statusCode).toBe(200);
+      expect(authResult.data.ok).toBe(true);
+      expect(authResult.data.count).toBe(0);
+      expect(Array.isArray(authResult.data.skills)).toBe(true);
+
+      await microkernel.registry.stopAll();
+    });
+
+    it("handles POST /api/corehub/skills/ingest: rejects Zone 0 and ingests valid trajectories", async () => {
+      const microkernel = createMicrokernelServiceRegistry({
+        stateDir: testDir,
+        coryDir,
+      });
+      await microkernel.registry.startAll();
+
+      // 1. Zone 0 public channel trajectory rejected with 403
+      const { req: zone0Req, res: zone0Res, getResult: getZone0Result } = createMockReqRes({
+        method: "POST",
+        url: "/api/corehub/skills/ingest",
+        headers: {
+          authorization: "Bearer test-admin-secret-token",
+          "x-coreblow-scopes": "operator.admin",
+        },
+        body: {
+          trajectory: {
+            id: "traj-zone-0",
+            sessionId: "sess-1",
+            userGoal: "Public channel action",
+            userScope: "public",
+            workspaceId: "ws-pub",
+            trustZone: "public",
+            isPublicChannel: true,
+            steps: [
+              {
+                toolName: "run_command",
+                commandSummary: "pnpm test",
+                succeeded: false,
+                outputSummary: "FAIL",
+                durationMs: 100,
+              },
+              {
+                toolName: "run_command",
+                commandSummary: "pnpm test:fix",
+                succeeded: true,
+                outputSummary: "PASS",
+                durationMs: 100,
+              },
+            ],
+            succeeded: true,
+            correctionDetails: "Use test fix command instead of raw test run",
+            timestampMs: Date.now(),
+          },
+        },
+      });
+      await handleCoreHubRoute(zone0Req, zone0Res, microkernel, { auth: testAuth });
+      const zone0Result = await getZone0Result();
+      expect(zone0Result.statusCode).toBe(403);
+      expect(zone0Result.data.ok).toBe(false);
+      expect(zone0Result.data.code).toBe("ZONE_0_BLOCKED");
+
+      // 2. Valid operator trajectory synthesizes skill candidate with 200
+      const { req: validReq, res: validRes, getResult: getValidResult } = createMockReqRes({
+        method: "POST",
+        url: "/api/corehub/skills/ingest",
+        headers: {
+          authorization: "Bearer test-admin-secret-token",
+          "x-coreblow-scopes": "operator.admin",
+        },
+        body: {
+          trajectory: {
+            id: "traj-valid-1",
+            sessionId: "sess-valid",
+            userGoal: "Fix hanging vitest runner in CI",
+            userScope: "operator",
+            workspaceId: "ws-valid",
+            trustZone: "operator",
+            isPublicChannel: false,
+            steps: [
+              {
+                toolName: "run_command",
+                commandSummary: "pnpm exec vitest",
+                succeeded: false,
+                outputSummary: "hanging interactive prompt",
+                durationMs: 15000,
+              },
+              {
+                toolName: "run_command",
+                commandSummary: "./node_modules/.bin/vitest run",
+                succeeded: true,
+                outputSummary: "Tests 10 passed",
+                durationMs: 1200,
+              },
+            ],
+            succeeded: true,
+            correctionDetails: "Invoke local vitest binary directly to bypass corepack prompts",
+            timestampMs: Date.now(),
+          },
+        },
+      });
+      await handleCoreHubRoute(validReq, validRes, microkernel, { auth: testAuth });
+      const validResult = await getValidResult();
+      expect(validResult.statusCode).toBe(200);
+      expect(validResult.data.ok).toBe(true);
+      expect(validResult.data.skill.id).toBeDefined();
+
+      // 3. Verify GET /api/corehub/skills/learned now returns the newly synthesized skill
+      const { req: listReq, res: listRes, getResult: getListResult } = createMockReqRes({
+        method: "GET",
+        url: "/api/corehub/skills/learned",
+        headers: {
+          authorization: "Bearer test-admin-secret-token",
+          "x-coreblow-scopes": "operator.read",
+        },
+      });
+      await handleCoreHubRoute(listReq, listRes, microkernel, { auth: testAuth });
+      const listResult = await getListResult();
+      expect(listResult.statusCode).toBe(200);
+      expect(listResult.data.count).toBe(1);
+      expect(listResult.data.skills[0].id).toBe(validResult.data.skill.id);
+
+      await microkernel.registry.stopAll();
+    });
+
+    it("handles POST /api/corehub/skills/outcome: records fitness metrics and supports auto-promotion", async () => {
+      const microkernel = createMicrokernelServiceRegistry({
+        stateDir: testDir,
+        coryDir,
+      });
+      await microkernel.registry.startAll();
+
+      // 1. Synthesize a skill first
+      const { req: ingestReq, res: ingestRes, getResult: getIngestResult } = createMockReqRes({
+        method: "POST",
+        url: "/api/corehub/skills/ingest",
+        headers: {
+          authorization: "Bearer test-admin-secret-token",
+          "x-coreblow-scopes": "operator.admin",
+        },
+        body: {
+          trajectory: {
+            id: "traj-outcome-1",
+            sessionId: "sess-outcome",
+            userGoal: "Clean node module lockfile contention",
+            userScope: "operator",
+            workspaceId: "ws-outcome",
+            trustZone: "operator",
+            isPublicChannel: false,
+            steps: [
+              {
+                toolName: "run_command",
+                commandSummary: "pnpm install",
+                succeeded: false,
+                outputSummary: "lockfile contention",
+                durationMs: 500,
+              },
+              {
+                toolName: "run_command",
+                commandSummary: "pnpm install --frozen-lockfile",
+                succeeded: true,
+                outputSummary: "install complete",
+                durationMs: 200,
+              },
+            ],
+            succeeded: true,
+            correctionDetails: "Use frozen lockfile parameter for repeatable installation",
+            timestampMs: Date.now(),
+          },
+        },
+      });
+      await handleCoreHubRoute(ingestReq, ingestRes, microkernel, { auth: testAuth });
+      const ingestResult = await getIngestResult();
+      expect(ingestResult.statusCode).toBe(200);
+      const skillId = ingestResult.data.skill.id;
+
+      // 2. Record outcome via POST /api/corehub/skills/outcome
+      const { req: outcomeReq, res: outcomeRes, getResult: getOutcomeResult } = createMockReqRes({
+        method: "POST",
+        url: "/api/corehub/skills/outcome",
+        headers: {
+          authorization: "Bearer test-admin-secret-token",
+          "x-coreblow-scopes": "operator.admin",
+        },
+        body: {
+          skillId,
+          outcome: "success",
+        },
+      });
+      await handleCoreHubRoute(outcomeReq, outcomeRes, microkernel, { auth: testAuth });
+      const outcomeResult = await getOutcomeResult();
+      expect(outcomeResult.statusCode).toBe(200);
+      expect(outcomeResult.data.ok).toBe(true);
+      expect(outcomeResult.data.skillId).toBe(skillId);
+      expect(outcomeResult.data.fitness.totalInvocations).toBe(1);
+
+      // 3. Test non-existent skill returns 404
+      const { req: missingReq, res: missingRes, getResult: getMissingResult } = createMockReqRes({
+        method: "POST",
+        url: "/api/corehub/skills/outcome",
+        headers: {
+          authorization: "Bearer test-admin-secret-token",
+          "x-coreblow-scopes": "operator.admin",
+        },
+        body: {
+          skillId: "non-existent-skill",
+          outcome: "success",
+        },
+      });
+      await handleCoreHubRoute(missingReq, missingRes, microkernel, { auth: testAuth });
+      const missingResult = await getMissingResult();
+      expect(missingResult.statusCode).toBe(404);
 
       await microkernel.registry.stopAll();
     });

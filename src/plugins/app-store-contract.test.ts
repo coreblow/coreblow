@@ -286,5 +286,20 @@ describe("CoreHub 7-Pillar App Store Contract", () => {
       expect(degradedError?.message).toBe("Failed to connect to backend cluster");
       expect(lifecycle.getState("crashing-plugin")).toBe("degraded");
     });
+
+    it("recovers from incomplete staging state by discarding and cleaning orphaned tmp stages", () => {
+      const stageManager = new AtomicPluginStageManager({ baseDir: testDir });
+      const tmpDir = path.join(testDir, "tmp");
+      const orphanDir1 = path.join(tmpDir, "orphan-uuid-1");
+      const orphanDir2 = path.join(tmpDir, "orphan-uuid-2");
+      fs.mkdirSync(orphanDir1, { recursive: true });
+      fs.mkdirSync(orphanDir2, { recursive: true });
+      fs.writeFileSync(path.join(orphanDir1, "leftover.tar"), "corrupt");
+
+      const cleaned = stageManager.cleanupOrphanedStages();
+      expect(cleaned).toBe(2);
+      expect(fs.existsSync(orphanDir1)).toBe(false);
+      expect(fs.existsSync(orphanDir2)).toBe(false);
+    });
   });
 });

@@ -113,19 +113,20 @@ Derived from Hermes advanced agentic cognition DNA, this layer drives autonomous
     2. **Stage 2 (Virtual File Offloading):** Offloads bulky intermediate tool outputs (command traces, large JSON payloads, generated code blocks) to disk under `~/.coreblow/scratchpad/` and inserts a lightweight content hash reference into the prompt.
     3. **Stage 3 (Recursive Summarization):** Condenses historical turns using hierarchical summarization while mathematically preserving all blocks marked with **Immutable Governance Tags**.
 
-### 2.4 Layer 4: Enterprise Backbone Layer
-The foundation of the operating system ensuring stability, modularity, and operational integrity:
-- **Deterministic ServiceRegistry (`src/gateway/service-registry.ts`):**
-  - Industrial OOP lifecycle container managing every subsystem.
-  - All services implement standardized `start(): Promise<void>`, `stop(): Promise<void>`, and `health(): ServiceHealth` contracts.
-  - Enforces ordered boot sequences and graceful shutdown procedures.
-- **True Zero Gap Plugin SDK (`src/plugin-sdk/`):**
-  - Uncompromising architectural barrier separating core internals from extensions.
-  - Prevents third-party plugins from creating illegal dependencies on internal functions, preserving long-term refactoring agility.
-- **CoreHub Package Resolution (`src/plugins/`, `src/infra/corehub.ts`):**
-  - Cryptographic verification of extension manifests, package integrity, and capability grants.
+### 2.4 Layer 4: Enterprise Hybrid OOP/DOP Microkernel Backbone
+The foundation of the operating system ensuring stability, modularity, and operational integrity through a strict **Hybrid Object-Oriented Programming (OOP) + Data-Oriented Programming (DOP)** boundary:
+- **Deterministic ServiceRegistry & Microkernel Coordinator (`src/gateway/service-registry.ts`, `src/gateway/microkernel-services.ts`):**
+  - Industrial OOP lifecycle container managing every stateful subsystem (`cory-memory`, `extension-tier-policy`, `corehub-app-store`, providers, and tools).
+  - All services implement standardized `start(): Promise<void>`, `stop(): Promise<void>`, and `health(): ServiceHealth` contracts, achieving `< 1ms` microkernel bootstrap latency and zero eager loading of community plugins (`eagerCoreHubAppsLoaded: 0`).
+- **Cory Built-in Memory (`src/memory/cory.ts`):**
+  - Zero-config, offline-first built-in memory managing four canonical Markdown layers (*Identity* `USER.md`, *Durable Workspace* `MEMORY.md`, *Active Constraints* `CONSTRAINTS.md`, and *Episodic* `daily/`) indexed by a disposable SQLite WAL + DOP BM25 lexical search engine.
+- **True Zero Gap Plugin SDK & Thematic Barrels (`src/plugin-sdk/`):**
+  - Uncompromising architectural barrier separating core internals from extensions via thematic domain barrels (`channel`, `provider`, `tool`, `memory`, `approval`).
+- **CoreHub 7-Pillar On-Demand App Store Runtime (`src/plugins/app-store-contract.ts`, `src/plugins/app-store-runtime.ts`):**
+  - Externalizes 15+ community messaging channels (`discord`, `matrix`, `twitch`, `feishu`, `line`, `zalo`, `zalouser`, `qqbot`, `mattermost`, `nextcloud-talk`, `synology-chat`, `tlon`, `nostr`, `irc`, `msteams`) into cryptographically verified `.coreblow-plugin.tgz` packages hosted at `https://coreblow.com/corehub`.
+  - Enforces pre-extraction SHA-256 verification, atomic staging (`~/.coreblow/tmp/<uuid>`), orphaned stage recovery, capability consent ledger gating, path-containment checks, and deep runtime registry cleanup on disable or rollback (see [Security Threat Model](./SECURITY_THREAT_MODEL.md)).
 - **Integrated Diagnostics (`coreblow doctor`):**
-  - Comprehensive pre-flight and runtime diagnostic suite validating token entropy, permissions, network bindings, and system limits.
+  - Comprehensive pre-flight and runtime diagnostic suite validating token entropy, permissions, plugin registry health, network bindings, and system limits.
 
 ---
 

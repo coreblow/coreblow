@@ -33,6 +33,16 @@ export const BUILTIN_KERNEL_CAPABILITY_ENTRIES: readonly StorefrontCatalogEntry[
     hotReloadSafe: true,
   },
   {
+    id: "cory-skill-synthesizer",
+    name: "Cory EvoLoop Skill Synthesizer",
+    summary: "Closed-loop skill synthesizer and self-learning engine for CoreBlow.",
+    description: "Closed-loop skill synthesizer and self-learning engine for CoreBlow.",
+    version: "1.0.0",
+    capabilities: [],
+    publisher: { displayName: "CoreBlow Kernel", name: "CoreBlow" },
+    hotReloadSafe: true,
+  },
+  {
     id: "provider-runtime",
     name: "AI Provider Runtime",
     summary: "Native AI model provider runtime and streaming execution.",

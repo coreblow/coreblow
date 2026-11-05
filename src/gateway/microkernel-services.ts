@@ -18,6 +18,12 @@ import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { ServiceRegistry, type GatewayService, type ServiceHealth } from "./service-registry.js";
 import { CoryBootstrapService } from "../memory/cory.js";
+import {
+  CorySkillSynthesizerService,
+  type SkillIngestOptions,
+  type SkillLifecycleStatus,
+  type TurnTrajectoryRecord,
+} from "../learning/index.js";
 import { ExtensionTierPolicy } from "../plugins/extension-tier-policy.js";
 import { CoreHubAppStoreRuntime } from "../plugins/app-store-runtime.js";
 import {
@@ -320,6 +326,7 @@ export class NativeVoiceRuntimeService implements GatewayService {
 export interface MicrokernelServiceRegistryOptions {
   readonly stateDir?: string;
   readonly coryDir?: string;
+  readonly skillsDir?: string;
   readonly catalogPath?: string;
   readonly catalogEntries?: readonly StorefrontCatalogEntry[];
   readonly providerRegistry?: ProviderRegistry;
@@ -346,6 +353,7 @@ export interface MicrokernelServicesResult {
   readonly browser: NativeBrowserRuntimeService;
   readonly voice: NativeVoiceRuntimeService;
   readonly cory: CoryBootstrapService;
+  readonly skillSynthesizer: CorySkillSynthesizerService;
   readonly tierPolicy: ExtensionTierPolicy;
   readonly appStore: CoreHubAppStoreRuntime;
 }
@@ -375,6 +383,11 @@ export function createMicrokernelServiceRegistry(
   });
   const voice = new NativeVoiceRuntimeService(options.ttsEngine);
   const cory = new CoryBootstrapService({ stateDir: coryDir });
+  const skillsDir = options.skillsDir ?? options.stateDir ?? path.join(stateDir, "skills");
+  const skillSynthesizer = new CorySkillSynthesizerService({
+    stateDir: skillsDir,
+    coryService: cory,
+  });
   const tierPolicy = new ExtensionTierPolicy();
   const appStore = new CoreHubAppStoreRuntime({
     baseDir: stateDir,
@@ -394,9 +407,11 @@ export function createMicrokernelServiceRegistry(
   registry.register("voice-runtime", voice, []);
   // 6. Cory built-in memory (dep: provider-runtime ONLY, never CoreHub)
   registry.register("cory-memory", cory, ["provider-runtime"]);
-  // 7. Extension tier policy (0 deps)
+  // 7. Cory skill synthesizer (dep: cory-memory)
+  registry.register("cory-skill-synthesizer", skillSynthesizer, ["cory-memory"]);
+  // 8. Extension tier policy (0 deps)
   registry.register("extension-tier-policy", tierPolicy, []);
-  // 8. CoreHub app store runtime (dep: extension-tier-policy)
+  // 9. CoreHub app store runtime (dep: extension-tier-policy)
   registry.register("corehub-app-store", appStore, ["extension-tier-policy"]);
 
   return {
@@ -407,6 +422,7 @@ export function createMicrokernelServiceRegistry(
     browser,
     voice,
     cory,
+    skillSynthesizer,
     tierPolicy,
     appStore,
   };
@@ -551,11 +567,17 @@ export async function handleCoreHubRoute(
     tool?: NativeToolRuntimeService;
     browser?: NativeBrowserRuntimeService;
     voice?: NativeVoiceRuntimeService;
+    skillSynthesizer?: CorySkillSynthesizerService;
   },
   options: HandleCoreHubRouteOptions = {},
 ): Promise<boolean> {
   const url = new URL(req.url ?? "/", "http://localhost");
-  const pathname = url.pathname;
+  const rawPathname = url.pathname;
+  const pathname = rawPathname.startsWith("/api/corehub/v2/")
+    ? "/api/corehub/" + rawPathname.slice("/api/corehub/v2/".length)
+    : rawPathname === "/api/corehub/v2"
+      ? "/api/corehub"
+      : rawPathname;
   const method = (req.method ?? "GET").toUpperCase();
 
   if (!pathname.startsWith("/api/corehub/")) {
@@ -566,7 +588,9 @@ export async function handleCoreHubRoute(
     pathname === "/api/corehub/consent" ||
     pathname === "/api/corehub/rollback" ||
     pathname === "/api/corehub/install" ||
-    pathname === "/api/corehub/activate";
+    pathname === "/api/corehub/activate" ||
+    pathname === "/api/corehub/skills/ingest" ||
+    pathname === "/api/corehub/skills/outcome";
   const cfg = options.cfg ?? loadConfig();
 
   // Validate browser origin for CORS / cross-origin protection
@@ -660,14 +684,16 @@ export async function handleCoreHubRoute(
         ...(services.tool ? { tool: services.tool.health() } : {}),
         ...(services.browser ? { browser: services.browser.health() } : {}),
         ...(services.voice ? { voice: services.voice.health() } : {}),
+        ...(services.skillSynthesizer ? { skillSynthesizer: services.skillSynthesizer.health() } : {}),
       },
     });
     return true;
   }
 
-  // Privileged Mutations: Origin verification + Authentication + Admin Scope Authorization
-  if (isMutation) {
-    if (!checkOrigin()) {
+  // GET /api/corehub/skills/learned (and /api/corehub/v2/skills/learned)
+  if (method === "GET" && pathname === "/api/corehub/skills/learned") {
+    if (!services.skillSynthesizer) {
+      sendJson(res, 503, { ok: false, error: "Cory Skill Synthesizer service not available" });
       return true;
     }
 
@@ -682,7 +708,55 @@ export async function handleCoreHubRoute(
       trustedProxies: options.trustedProxies ?? cfg.gateway?.trustedProxies,
       allowRealIpFallback: options.allowRealIpFallback ?? cfg.gateway?.allowRealIpFallback,
       rateLimiter: options.rateLimiter,
-      operatorMethod: "plugin.install",
+      operatorMethod: "skills.status",
+      resolveOperatorScopes: resolveCoreHubOperatorScopes,
+    });
+
+    if (!authResult) {
+      return true;
+    }
+
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+
+    const statusParam = url.searchParams.get("status");
+    const status = statusParam === "all" ? undefined : (statusParam as SkillLifecycleStatus | undefined);
+    const query = url.searchParams.get("q") ?? url.searchParams.get("query");
+
+    const skills = query
+      ? await services.skillSynthesizer.matchSkillsForQuery(query)
+      : await services.skillSynthesizer.listSkills(status ? { status } : undefined);
+
+    sendJson(res, 200, {
+      ok: true,
+      count: skills.length,
+      skills,
+    });
+    return true;
+  }
+
+  // Privileged Mutations: Origin verification + Authentication + Admin Scope Authorization
+  if (isMutation) {
+    if (!checkOrigin()) {
+      return true;
+    }
+
+    const auth =
+      options.auth ??
+      resolveGatewayAuth({ authConfig: cfg.gateway?.auth, env: process.env });
+
+    const operatorMethod = pathname.startsWith("/api/corehub/skills/")
+      ? "skills.install"
+      : "plugin.install";
+
+    const authResult = await authorizeScopedGatewayHttpRequestOrReply({
+      req,
+      res,
+      auth,
+      trustedProxies: options.trustedProxies ?? cfg.gateway?.trustedProxies,
+      allowRealIpFallback: options.allowRealIpFallback ?? cfg.gateway?.allowRealIpFallback,
+      rateLimiter: options.rateLimiter,
+      operatorMethod,
       resolveOperatorScopes: resolveCoreHubOperatorScopes,
     });
 
@@ -816,6 +890,137 @@ export async function handleCoreHubRoute(
         sendJson(res, 400, {
           ok: false,
           error: err instanceof Error ? err.message : String(err),
+        });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/skills/ingest
+    if (pathname === "/api/corehub/skills/ingest") {
+      if (!services.skillSynthesizer) {
+        sendJson(res, 503, { ok: false, error: "Cory Skill Synthesizer service not available" });
+        return true;
+      }
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const rawTraj = (body.trajectory ?? body) as Record<string, unknown>;
+        if (!rawTraj || typeof rawTraj !== "object") {
+          sendJson(res, 400, { ok: false, error: "Missing trajectory record in request body." });
+          return true;
+        }
+
+        const rawSteps = Array.isArray(rawTraj.steps)
+          ? rawTraj.steps
+          : Array.isArray(rawTraj.toolSteps)
+            ? rawTraj.toolSteps
+            : [];
+
+        const normalizedSteps = rawSteps.map((step: Record<string, unknown>) => ({
+          toolName: String(step.toolName ?? "tool"),
+          input: step.input ?? step.argsSummary,
+          output: step.output ?? step.outputSummary,
+          isError: step.isError === true || step.succeeded === false,
+          succeeded: step.succeeded === true || step.isError === false,
+          executionDurationMs: typeof step.executionDurationMs === "number" ? step.executionDurationMs : typeof step.durationMs === "number" ? step.durationMs : undefined,
+          errorCode: typeof step.errorCode === "string" ? step.errorCode : undefined,
+        }));
+
+        const finalOutcome: "success" | "failure" | "aborted" | "partial" | boolean =
+          typeof rawTraj.finalOutcome === "string" &&
+          (rawTraj.finalOutcome === "success" ||
+            rawTraj.finalOutcome === "failure" ||
+            rawTraj.finalOutcome === "aborted" ||
+            rawTraj.finalOutcome === "partial")
+            ? rawTraj.finalOutcome
+            : typeof rawTraj.finalOutcome === "boolean"
+              ? rawTraj.finalOutcome
+              : rawTraj.succeeded === true || rawTraj.verificationPassed === true
+                ? "success"
+                : "failure";
+
+        const userGoal = String(rawTraj.userGoal ?? rawTraj.taskSummary ?? "Synthesized Task Skill");
+        const userCorrectionText = typeof rawTraj.userCorrectionText === "string"
+          ? rawTraj.userCorrectionText
+          : typeof rawTraj.userCorrection === "string"
+            ? rawTraj.userCorrection
+            : typeof rawTraj.correctionDetails === "string"
+              ? rawTraj.correctionDetails
+              : undefined;
+
+        const trajectory: TurnTrajectoryRecord = {
+          ...rawTraj,
+          id: String(rawTraj.id ?? `traj_${Date.now()}`),
+          userGoal,
+          steps: normalizedSteps,
+          finalOutcome,
+          userCorrectionText,
+        };
+
+        const ingestOptions = (typeof body.options === "object" && body.options !== null ? body.options : undefined) as SkillIngestOptions | undefined;
+        const result = await services.skillSynthesizer.ingestTrajectory(trajectory, ingestOptions);
+
+        if (!result.ok && result.error === "ZONE_0_BLOCKED") {
+          sendJson(res, 403, {
+            ...result,
+            code: "ZONE_0_BLOCKED",
+            error: result.reason ?? "Zone 0 public trajectory rejected",
+          });
+          return true;
+        }
+
+        if (!result.ok && result.status === "rejected") {
+          sendJson(res, 400, {
+            ...result,
+            code: result.error ?? "INGEST_REJECTED",
+            error: result.reason ?? "Trajectory ingestion rejected",
+          });
+          return true;
+        }
+
+        sendJson(res, 200, result);
+        return true;
+      } catch (err) {
+        sendJson(res, 400, {
+          ok: false,
+          error: err instanceof Error ? err.message : String(err),
+        });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/skills/outcome
+    if (pathname === "/api/corehub/skills/outcome") {
+      if (!services.skillSynthesizer) {
+        sendJson(res, 503, { ok: false, error: "Cory Skill Synthesizer service not available" });
+        return true;
+      }
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const skillId = typeof body.skillId === "string" ? body.skillId.trim() : "";
+        if (!skillId) {
+          sendJson(res, 400, { ok: false, error: "Missing required 'skillId' field." });
+          return true;
+        }
+
+        const rawOutcome = body.outcome ?? (body.succeeded === true ? "success" : body.succeeded === false ? "failure" : undefined);
+        const outcome = rawOutcome === "failure" ? "failure" : "success";
+
+        const updatedSkill = await services.skillSynthesizer.recordSkillOutcome(skillId, outcome);
+        sendJson(res, 200, {
+          ok: true,
+          skillId: updatedSkill.id,
+          status: updatedSkill.status,
+          version: updatedSkill.version,
+          fitness: updatedSkill.metrics,
+          skill: updatedSkill,
+        });
+        return true;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        const statusCode = msg.includes("SKILL_NOT_FOUND") ? 404 : 400;
+        sendJson(res, statusCode, {
+          ok: false,
+          error: msg,
         });
         return true;
       }

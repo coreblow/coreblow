@@ -221,6 +221,30 @@ export class AtomicPluginStageManager {
 
     return targetDir;
   }
+
+  public discardStage(stageDir: string): void {
+    if (fs.existsSync(stageDir)) {
+      try {
+        fs.rmSync(stageDir, { recursive: true, force: true });
+      } catch {}
+    }
+  }
+
+  public cleanupOrphanedStages(): number {
+    if (!fs.existsSync(this.tmpDir)) return 0;
+    let count = 0;
+    try {
+      const entries = fs.readdirSync(this.tmpDir);
+      for (const entry of entries) {
+        const fullPath = path.join(this.tmpDir, entry);
+        try {
+          fs.rmSync(fullPath, { recursive: true, force: true });
+          count++;
+        } catch {}
+      }
+    } catch {}
+    return count;
+  }
 }
 
 // ============================================================================
@@ -391,6 +415,11 @@ export class PluginLifecycleManager {
     }
 
     if (!snapshotDir || !fs.existsSync(snapshotDir)) {
+      if (fs.existsSync(targetDir)) {
+        fs.rmSync(targetDir, { recursive: true, force: true });
+        this.transitionTo(pluginId, "rolled_back");
+        return true;
+      }
       return false;
     }
 

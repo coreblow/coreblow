@@ -44,10 +44,11 @@ CoreBlow unifies these capabilities into a single deterministic runtime:
 
 ## 2. Core Pillars & Value Proposition
 
-### 2.1 Omnipresent Unified Memory
-CoreBlow provides continuous session persistence across 142 channel workspaces and native companion applications:
-- **Cross-Surface Identity Resolution:** A user interacting via Slack, Discord, Telegram, WhatsApp, macOS desktop app (`apps/macos`), iOS app (`apps/ios`), Android app (`apps/android`), or Web UI (`ui/`) maps to a unified cryptographic session identity.
-- **Continuous Working Memory:** Conversations, tool execution artifacts, active plans, and user preferences are retained in structured storage, surviving process restarts, network splits, and channel switches.
+### 2.1 Cory Built-in Memory & Omnipresent Session Continuity
+CoreBlow ships with **Cory (`cory-memory`)**, a zero-config, offline-first built-in memory system (`src/memory/cory.ts`) paired with continuous session persistence across channels and native companion applications:
+- **Four-Layer Canonical Markdown Memory:** Separates *Identity Memory* (`USER.md`), *Durable Workspace Memory* (`MEMORY.md`), *Episodic Daily Summaries* (`daily/<YYYY-MM-DD>.md`), and *Active Constraints* (`CONSTRAINTS.md`), backed by a disposable, self-healing SQLite WAL + BM25 lexical search index (`cory-search.sqlite`).
+- **Prompt Cache Stability & Scope Isolation:** Memory written mid-session persists immediately to disk while keeping the active session's startup snapshot frozen; workspace facts are strictly isolated per workspace, and untrusted public channels (Zone 0) are blocked from mutating private or durable memory.
+- **Cross-Surface Identity Resolution:** A user interacting via Slack, Telegram, WhatsApp, on-demand CoreHub channels (such as Discord or Matrix), macOS desktop app (`apps/macos`), iOS app (`apps/ios`), Android app (`apps/android`), or Web UI (`ui/`) maps to a unified cryptographic session identity.
 - **Deterministic Scratchpad:** Intermediate task files, code generation scratchpads, and execution logs persist in `~/.coreblow/scratchpad/`, allowing long-running multi-day tasks to resume without prompt bloat.
 
 ### 2.2 Industrial Resiliency & OOP Lifecycle

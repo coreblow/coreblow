@@ -3,6 +3,7 @@
 // ============================================================================
 
 export * from "../memory/index.js";
+export * from "../learning/index.js";
 export {
   listMemoryFiles,
   normalizeExtraMemoryPaths,

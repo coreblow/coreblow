@@ -83,14 +83,18 @@ flowchart TD
 
 ## 3. Phase 6: Sovereign AI, Provider Consolidation & Chaos Engineering
 
-### Phase 6.1: Provider Consolidation & Extension Tiering (COMPLETE)
-**Target Surface:** `src/agents/providers/`, `src/plugins/`, `src/plugin-sdk/`
+### Phase 6.1: Provider Consolidation, Cory Built-in Memory & Core/CoreHub Extension Tiering (COMPLETE)
+**Target Surface:** `src/providers/`, `src/memory/`, `src/plugins/`, `src/plugin-sdk/`, `src/gateway/microkernel-services.ts`
 
-- **OpenAI-Compatible Transport Consolidation:**
-  - Consolidate redundant boilerplate adapters into a unified, parameterized transport runtime (`provider-stream-family.ts`).
-  - Tier extensions into **Core Workspace Bundles** (`extensions/discord`, `extensions/telegram`, `extensions/whatsapp`, `extensions/slack`) vs. **CoreHub Dynamic Plugins**.
-- **Public API Surface Verification:**
-  - Enforce strict `coreblow/plugin-sdk/*` import boundaries across all workspace extensions.
+- **Unified DOP OpenAI-Compatible Streaming Engine:**
+  - Consolidate redundant boilerplate adapters into a pure Data-Oriented Programming (DOP) streaming runtime (`src/providers/dop-openai-stream.ts` & `provider-stream-family.ts`) supporting 17+ providers natively.
+- **Cory Built-in Memory (`src/memory/cory.ts`):**
+  - Zero-config, offline-first 4-layer canonical Markdown memory (`USER.md`, `MEMORY.md`, `CONSTRAINTS.md`, `daily/`) indexed by a disposable SQLite WAL + BM25 lexical engine with session-pinned prompt stability and Zone 0 write protection.
+- **Microkernel vs. CoreHub On-Demand Tiering:**
+  - Retain essential kernel capabilities (`cory-memory`, `telegram`, `whatsapp`, `slack`, `webhooks`, `browser`, `acp`) in `coreExtensions`.
+  - Externalize all 15 community channels (`discord`, `matrix`, `twitch`, `feishu`, `line`, `zalo`, `zalouser`, `qqbot`, `mattermost`, `nextcloud-talk`, `synology-chat`, `tlon`, `nostr`, `irc`, `msteams`) to `corehub_on_demand` as cryptographically verified `.coreblow-plugin.tgz` packages hosted at `https://coreblow.com/corehub` and governed by the 7-pillar App Store contract (`src/plugins/app-store-contract.ts`, `src/plugins/app-store-runtime.ts`, and [`docs/SECURITY_THREAT_MODEL.md`](./SECURITY_THREAT_MODEL.md)).
+- **Thematic Plugin-SDK Barrels:**
+  - Expose cohesive domain barrels (`channel`, `provider`, `tool`, `memory`, `approval`) under `coreblow/plugin-sdk/*` while preserving full backward compatibility.
 
 ### Phase 6.2: Hybrid Sovereign AI & Chaos Certification (COMPLETE)
 **Target Surface:** `src/agents/routing/`, `src/tts/`, `apps/macos-mlx-tts/`
