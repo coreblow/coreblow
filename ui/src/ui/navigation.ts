@@ -29,11 +29,11 @@ export function iconForTab(tab: Tab): string {
     case "sessions":
       return "fileText";
     case "usage":
-      return "barChart";
+      return "activity";
     case "cron":
-      return "loader";
+      return "clock";
     case "coreHub":
-      return "globe";
+      return "package";
     case "skills":
       return "zap";
     case "aiAgents":

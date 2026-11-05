@@ -2,6 +2,7 @@ import { LitElement, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { t } from "../../i18n/index.ts";
 import type { CoreBlowApp } from "../app.ts";
+import { renderIcon } from "../icons.ts";
 
 type RpcLogEntry = {
    id: number;
@@ -73,7 +74,10 @@ export class DebugView extends LitElement {
   private renderRpcConsole() {
      return html`
         <div class="card">
-           <div class="card-title">🔧 ${t("debug.rpcConsole")}</div>
+           <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+              ${renderIcon("terminal", "16px", "color: var(--muted);")}
+              <span>${t("debug.rpcConsole")}</span>
+           </div>
            <div class="card-sub">${t("debug.rpcConsoleSubtitle")}</div>
            <div style="margin-top: 12px; display: grid; gap: 8px;">
               <div style="display: flex; gap: 8px;">
@@ -93,12 +97,18 @@ export class DebugView extends LitElement {
 
               ${this.rpcResult ? html`
                  <details open>
-                    <summary style="cursor: pointer; font-size: 12px; color: var(--success, #22c55e); font-weight: 600;">✓ ${t("debug.response")}</summary>
+                    <summary style="cursor: pointer; font-size: 12px; color: var(--success, #22c55e); font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                       ${renderIcon("check", "13px")}
+                       <span>${t("debug.response")}</span>
+                    </summary>
                     <pre style="margin-top: 4px; background: var(--bg-elevated); padding: 10px 12px; border-radius: var(--radius-sm); font-size: 11px; font-family: var(--mono); max-height: 300px; overflow: auto; border: 1px solid rgba(34,197,94,0.2); color: var(--foreground);">${this.rpcResult}</pre>
                  </details>
               ` : ""}
               ${this.rpcError ? html`
-                 <div style="padding: 8px 12px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: var(--radius-sm); font-size: 12px; color: var(--destructive, #ef4444);">✗ ${this.rpcError}</div>
+                 <div style="padding: 8px 12px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: var(--radius-sm); font-size: 12px; color: var(--destructive, #ef4444); display: flex; align-items: center; gap: 6px;">
+                    ${renderIcon("x", "13px")}
+                    <span>${this.rpcError}</span>
+                 </div>
               ` : ""}
            </div>
         </div>
@@ -112,7 +122,10 @@ export class DebugView extends LitElement {
      ];
      return html`
         <div class="card">
-           <div class="card-title" style="font-size: 14px;">⚡ ${t("debug.quickRpc")}</div>
+           <div class="card-title" style="font-size: 14px; display: flex; align-items: center; gap: 8px;">
+              ${renderIcon("zap", "15px", "color: var(--muted);")}
+              <span>${t("debug.quickRpc")}</span>
+           </div>
            <div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px;">
               ${methods.map(m => html`
                  <button style="font-family: var(--mono); font-size: 11px; padding: 4px 10px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; color: var(--accent, #6366f1); transition: border-color 0.15s;"
@@ -128,7 +141,10 @@ export class DebugView extends LitElement {
      return html`
         <div class="card">
            <div style="display: flex; align-items: center; gap: 8px;">
-              <div class="card-title" style="flex: 1; font-size: 14px;">📋 ${t("debug.rpcHistory")}</div>
+              <div class="card-title" style="flex: 1; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                 ${renderIcon("fileText", "15px", "color: var(--muted);")}
+                 <span>${t("debug.rpcHistory")}</span>
+              </div>
               <span style="font-size: 11px; color: var(--muted);">${t("debug.callsSummary", { count: String(this.rpcLog.length) })}</span>
               <button style="font-size: 11px; background: none; border: 1px solid var(--border); padding: 2px 8px; border-radius: var(--radius-sm); cursor: pointer; color: var(--muted);"
                @click=${this.clearLog}>${t("logs.clear")}</button>
@@ -138,7 +154,7 @@ export class DebugView extends LitElement {
                  <div style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 12px; display: flex; gap: 8px; align-items: center;">
                     <span style="font-family: var(--mono); color: var(--muted); min-width: 60px;">${new Date(entry.ts).toLocaleTimeString()}</span>
                     <span style="font-family: var(--mono); color: var(--accent, #6366f1); font-weight: 600; min-width: 140px;">${entry.method}</span>
-                    <span style="font-size: 11px; color: ${entry.error ? 'var(--destructive, #ef4444)' : 'var(--success, #22c55e)'};">${entry.error ? "✗" : "✓"}</span>
+                    <span style="font-size: 11px; display: inline-flex; align-items: center; color: ${entry.error ? 'var(--destructive, #ef4444)' : 'var(--success, #22c55e)'};">${entry.error ? renderIcon("x", "12px") : renderIcon("check", "12px")}</span>
                     ${entry.durationMs != null ? html`<span style="font-size: 11px; color: var(--muted);">${entry.durationMs}ms</span>` : ""}
                  </div>
               `)}
@@ -152,7 +168,10 @@ export class DebugView extends LitElement {
      return html`
         <div class="card">
            <div style="display: flex; align-items: center; gap: 8px;">
-              <div class="card-title" style="flex: 1; font-size: 14px;">📡 ${t("debug.eventStream")}</div>
+              <div class="card-title" style="flex: 1; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                 ${renderIcon("radio", "15px", "color: var(--muted);")}
+                 <span>${t("debug.eventStream")}</span>
+              </div>
               <input style="width: 180px; background: var(--bg-elevated); border: 1px solid var(--border); padding: 4px 8px; border-radius: var(--radius-sm); color: var(--foreground); font-size: 11px;"
                      placeholder=${t("debug.filterEventsPlaceholder")}
                      .value=${this.filterQuery}
@@ -176,7 +195,10 @@ export class DebugView extends LitElement {
      const connected = this.app.connected;
      return html`
         <div class="card">
-           <div class="card-title" style="font-size: 14px;">🌐 ${t("debug.connection")}</div>
+           <div class="card-title" style="font-size: 14px; display: flex; align-items: center; gap: 8px;">
+              ${renderIcon("globe", "15px", "color: var(--muted);")}
+              <span>${t("debug.connection")}</span>
+           </div>
            <div style="margin-top: 8px;">
               <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0;">
                  <span style="width: 10px; height: 10px; border-radius: 50%; background: ${connected ? 'var(--success, #22c55e)' : 'var(--destructive, #ef4444)'}; ${connected ? 'box-shadow: 0 0 8px rgba(34,197,94,0.4);' : ''}"></span>

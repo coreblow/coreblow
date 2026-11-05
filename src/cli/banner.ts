@@ -11,16 +11,16 @@ const { version } = pkg;
 export type TaglineMode = 'random' | 'default' | 'off';
 
 const TAGLINES = [
-    '🧠 Thinking at the speed of light',
-    '🚀 Multi-agent orchestration, reimagined',
-    '🔒 Security-first AI gateway',
-    '⚡ Your AI, your rules',
-    '🌐 Connect any channel, any model',
-    '🔧 Built for operators, loved by developers',
-    '🎯 Production-grade from day one',
-    '💎 Diamond-cut code quality',
-    '🌊 Riding the wave of AI innovation',
-    '🔥 Blazingly fast, unfailingly reliable',
+    'Thinking at the speed of light',
+    'Multi-agent orchestration, reimagined',
+    'Security-first AI gateway',
+    'Your AI, your rules',
+    'Connect any channel, any model',
+    'Built for operators, loved by developers',
+    'Production-grade from day one',
+    'Diamond-cut code quality',
+    'Riding the wave of AI innovation',
+    'Blazingly fast, unfailingly reliable',
 ];
 
 const graphemeSegmenter =

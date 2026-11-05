@@ -48,8 +48,8 @@ describe('ConversationExporter', () => {
         it('generates markdown headers', () => {
             const result = exporter.export(MESSAGES, { format: 'markdown' });
             expect(result.content).toContain('# CoreBlow Conversation');
-            expect(result.content).toContain('### 👤 User');
-            expect(result.content).toContain('### 🤖 Assistant');
+            expect(result.content).toContain('### User');
+            expect(result.content).toContain('### Assistant');
         });
 
         it('includes custom title', () => {

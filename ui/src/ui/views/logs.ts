@@ -2,6 +2,7 @@ import { LitElement, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { t } from "../../i18n/index.ts";
 import type { CoreBlowApp } from "../app.ts";
+import { renderIcon } from "../icons.ts";
 
 type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal";
 const LEVELS: LogLevel[] = ["trace", "debug", "info", "warn", "error", "fatal"];
@@ -69,13 +70,16 @@ export class LogsView extends LitElement {
         <div class="card">
            <div style="display: flex; align-items: center; gap: 12px;">
               <div style="flex: 1;">
-                 <div class="card-title">📜 ${t("logs.title")}</div>
+                 <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                    ${renderIcon("scrollText", "16px")}
+                    <span>${t("logs.title")}</span>
+                 </div>
                  <div class="card-sub">${t("logs.entriesSummary", { shown: String(entries.length), total: String(totalCount) })}</div>
               </div>
-              <button style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px;"
-               @click=${this.exportLogs}>⬇ ${t("logs.export")}</button>
-              <button style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--destructive, #ef4444); font-size: 12px;"
-               @click=${this.clearLogs}>🗑 ${t("logs.clear")}</button>
+              <button style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px; display: inline-flex; align-items: center; gap: 6px;"
+               @click=${this.exportLogs}>${renderIcon("download", "13px")} ${t("logs.export")}</button>
+              <button style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--destructive, #ef4444); font-size: 12px; display: inline-flex; align-items: center; gap: 6px;"
+               @click=${this.clearLogs}>${renderIcon("trash", "13px")} ${t("logs.clear")}</button>
            </div>
 
            <!-- Filters -->

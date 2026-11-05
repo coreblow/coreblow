@@ -2,6 +2,7 @@ import { LitElement, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { t } from "../../i18n/index.ts";
 import type { CoreBlowApp } from "../app.ts";
+import { renderIcon } from "../icons.ts";
 
 type SkillEntry = {
    key: string;
@@ -77,7 +78,10 @@ export class SkillsView extends LitElement {
         <div class="card">
            <div style="display: flex; align-items: center; gap: 12px;">
               <div style="flex: 1;">
-                 <div class="card-title">⚡ ${t("skills.title")}</div>
+                 <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                    ${renderIcon("zap", "16px")}
+                    <span>${t("skills.title")}</span>
+                 </div>
                  <div class="card-sub">${t("skills.readySummary", { ready: String(ready), total: String(total) })}</div>
               </div>
               <button style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px;"
@@ -86,8 +90,8 @@ export class SkillsView extends LitElement {
                  style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); color: var(--foreground); font-size: 12px; text-decoration: none;">
                 Browse CoreHub
               </a>
-              <button style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px;"
-               @click=${() => this.loadSkills()}>↻ ${t("common.refresh")}</button>
+              <button style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px; display: inline-flex; align-items: center; gap: 6px;"
+               @click=${() => this.loadSkills()}>${renderIcon("refresh", "12px")} ${t("common.refresh")}</button>
            </div>
 
            <div style="margin-top: 12px; display: flex; gap: 8px; align-items: center;">
@@ -106,7 +110,7 @@ export class SkillsView extends LitElement {
 
         ${!this.loading && this.filteredSkills.length === 0 ? html`
            <div class="card" style="text-align: center; padding: 40px;">
-              <div style="font-size: 32px; opacity: 0.3; margin-bottom: 8px;">⚡</div>
+              <div style="margin-bottom: 8px;">${renderIcon("zap", "36px", "color: var(--muted); opacity: 0.4;")}</div>
               <div style="color: var(--muted);">${total === 0 ? t("skills.noRegistered") : t("skills.noMatch")}</div>
            </div>
         ` : ""}

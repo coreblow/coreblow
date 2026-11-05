@@ -1,6 +1,7 @@
 import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { CoreBlowApp } from "../app.ts";
+import { renderIcon } from "../icons.ts";
 
 export const DEFAULT_COREHUB_REGISTRY_URL = "https://coreblow.com/corehub";
 
@@ -1790,7 +1791,12 @@ export class CoreHubView extends LitElement {
 
         ${this.auditVerify ? html`
           <div style="margin-top: 12px; padding: 10px; border-radius: var(--radius-sm); background: ${this.auditVerify.valid ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)'}; border: 1px solid ${this.auditVerify.valid ? 'rgba(34,197,94,0.25)' : 'rgba(239,68,68,0.25)'}; font-size: 12px;">
-            <div style="font-weight: 700;">Chain integrity: ${this.auditVerify.valid ? "✓ valid" : "✗ invalid"}</div>
+            <div style="font-weight: 700; display: flex; align-items: center; gap: 6px;">
+              <span>Chain integrity:</span>
+              ${this.auditVerify.valid
+                ? html`<span style="color: var(--success, #22c55e); display: inline-flex; align-items: center; gap: 4px;">${renderIcon("checkCircle", "13px")} valid</span>`
+                : html`<span style="color: var(--destructive, #ef4444); display: inline-flex; align-items: center; gap: 4px;">${renderIcon("xCircle", "13px")} invalid</span>`}
+            </div>
             <div style="margin-top: 4px; color: var(--muted);">Events: ${this.auditVerify.count ?? 0} · Head: ${(this.auditVerify.head ?? "none").slice(0, 16)}…</div>
             ${(this.auditVerify.errors ?? []).length > 0 ? html`
               <div style="margin-top: 6px; color: rgba(239,68,68,0.9);">${(this.auditVerify.errors ?? []).join(", ")}</div>
@@ -2098,7 +2104,9 @@ export class CoreHubView extends LitElement {
                     <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: ${entry.hotReloadSafe ? "rgba(34,197,94,0.12)" : "rgba(168,85,247,0.12)"}; color: ${entry.hotReloadSafe ? "rgba(34,197,94,0.9)" : "rgba(168,85,247,0.9)"};">${activationLabel}</span>
                   ` : nothing}
                   ${entry.publisher?.verified ? html`
-                    <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: rgba(34,197,94,0.12); color: rgba(34,197,94,0.9);">✓ verified</span>
+                    <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: rgba(34,197,94,0.12); color: rgba(34,197,94,0.9); display: inline-flex; align-items: center; gap: 4px;">
+                      ${renderIcon("checkCircle", "11px")} verified
+                    </span>
                   ` : nothing}
                   ${entry.score != null ? html`
                     <span style="font-size: 11px; color: var(--muted);">score: ${entry.score.toFixed(2)}</span>

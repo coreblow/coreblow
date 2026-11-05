@@ -137,10 +137,10 @@ ${msgHTML}
 
     private roleLabel(role: string): string {
         switch (role) {
-            case 'user': return '👤 User';
-            case 'assistant': return '🤖 Assistant';
-            case 'system': return '⚙️ System';
-            case 'tool': return '🔧 Tool';
+            case 'user': return 'User';
+            case 'assistant': return 'Assistant';
+            case 'system': return 'System';
+            case 'tool': return 'Tool';
             default: return role;
         }
     }

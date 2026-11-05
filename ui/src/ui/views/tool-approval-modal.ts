@@ -6,6 +6,7 @@
 import { LitElement, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { I18nController, t } from "../../i18n/index.ts";
+import { renderIcon } from "../icons.ts";
 
 export type ToolApprovalEntry = {
    id: string;
@@ -36,12 +37,16 @@ export class ToolApprovalModal extends LitElement {
 
    private getRiskBadge() {
       if (!this.entry) return "";
-      const map = {
-         low: `🟢 ${t("toolApproval.risk.low")}`,
-         medium: `🟡 ${t("toolApproval.risk.medium")}`,
-         high: `🔴 ${t("toolApproval.risk.high")}`,
-      };
-      return map[this.entry.riskLevel] ?? `🟡 ${t("toolApproval.risk.medium")}`;
+      const level = this.entry.riskLevel ?? "medium";
+      const color = level === "low" ? "var(--success, #22c55e)" : level === "high" ? "var(--destructive, #ef4444)" : "var(--warning, #f59e0b)";
+      const bg = level === "low" ? "rgba(34,197,94,0.12)" : level === "high" ? "rgba(239,68,68,0.12)" : "rgba(245,158,11,0.12)";
+      const label = level === "low" ? t("toolApproval.risk.low") : level === "high" ? t("toolApproval.risk.high") : t("toolApproval.risk.medium");
+      return html`
+         <span style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; color: ${color}; background: ${bg}; border: 1px solid ${color}33;">
+            <span style="width: 6px; height: 6px; border-radius: 50%; background: ${color};"></span>
+            <span>${label}</span>
+         </span>
+      `;
    }
 
    private formatArgs(): string {
@@ -81,7 +86,7 @@ export class ToolApprovalModal extends LitElement {
             <div class="approval-modal" @click=${(e: Event) => e.stopPropagation()}>
 
                <div class="approval-header">
-                  <span class="approval-icon">🔒</span>
+                  <span class="approval-icon" style="display: inline-flex; align-items: center; justify-content: center;">${renderIcon("lock", "18px")}</span>
                   <span class="approval-title">${t("toolApproval.title")}</span>
                </div>
 

@@ -84,7 +84,7 @@ export class ChatController {
       if (!client || !client.connected) {
          this.messages = [...this.messages, {
             id: generateUUID(), role: "system", ts: Date.now(),
-            content: "⚠️ Not connected to Gateway."
+            content: "Not connected to Gateway."
          }];
          this.app.requestUpdate();
          return;
@@ -168,7 +168,7 @@ export class ChatController {
          const errorText = payload.message?.text ?? "Unknown error";
          this.messages = [...this.messages, {
             id: generateUUID(), role: "system", ts: Date.now(),
-            content: `⚠️ ${errorText}`
+            content: errorText
          }];
          this.resetStreamState();
          this.app.requestUpdate();

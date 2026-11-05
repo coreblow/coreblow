@@ -3,6 +3,7 @@ import { customElement, property, state, query } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { t } from "../../i18n/index.ts";
 import type { CoreBlowApp } from "../app.ts";
+import { renderIcon } from "../icons.ts";
 import { renderMarkdown } from "../markdown.ts";
 import type { ChatMessage, ToolStreamEntry } from "../app-chat.ts";
 import { resolveChatModelSelectState, switchChatModel } from "../chat-model-select.ts";
@@ -71,7 +72,7 @@ export class ChatView extends LitElement {
 
   private renderToolCard(tool: ToolStreamEntry) {
      const isRunning = tool.phase === "start" || tool.phase === "update";
-     const icon = isRunning ? "⏳" : "✅";
+     const icon = isRunning ? renderIcon("loader", "14px") : renderIcon("check", "14px", "color: var(--ok, #22c55e);");
      const statusClass = isRunning ? "tool-card--running" : "tool-card--done";
 
      return html`
@@ -104,8 +105,8 @@ export class ChatView extends LitElement {
 
      return html`
        <div class="chat-message chat-message--${msg.role}" style="display: flex; gap: 12px; ${isUser ? 'flex-direction: row-reverse' : ''}">
-          <div class="chat-avatar" style="width: 32px; height: 32px; border-radius: 50%; background: ${isUser ? 'var(--accent)' : isSystem ? 'var(--warning, #f59e0b)' : 'var(--bg-elevated)'}; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-             ${isUser ? "👤" : isSystem ? "⚠️" : "🐙"}
+          <div class="chat-avatar" style="width: 32px; height: 32px; border-radius: 50%; background: ${isUser ? 'var(--accent)' : isSystem ? 'rgba(245, 158, 11, 0.15)' : 'var(--bg-elevated)'}; color: ${isUser ? 'var(--primary-foreground)' : isSystem ? 'var(--warn, #f59e0b)' : 'var(--accent)'}; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+             ${isUser ? renderIcon("user", "16px") : isSystem ? renderIcon("alertTriangle", "16px") : renderIcon("coreblow", "16px")}
           </div>
           <div class="chat-bubble" style="background: ${isUser ? 'var(--accent)' : 'var(--bg-elevated)'}; color: ${isUser ? 'var(--primary-foreground)' : 'var(--foreground)'}; padding: 12px 16px; border-radius: var(--radius-md); max-width: 80%;">
              ${unsafeHTML(renderMarkdown(msg.content))}
@@ -127,8 +128,8 @@ export class ChatView extends LitElement {
 
      return html`
        <div class="chat-message chat-message--assistant" style="display: flex; gap: 12px;">
-          <div class="chat-avatar" style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-elevated); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-             🐙
+          <div class="chat-avatar" style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-elevated); color: var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+             ${renderIcon("coreblow", "16px")}
           </div>
           <div class="chat-bubble streaming-bubble" style="background: var(--bg-elevated); padding: 12px 16px; border-radius: var(--radius-md); max-width: 80%;">
              ${chat.chatStream ? unsafeHTML(renderMarkdown(chat.chatStream)) : html`<span class="typing-dots"><span>·</span><span>·</span><span>·</span></span>`}
@@ -193,18 +194,26 @@ export class ChatView extends LitElement {
 
          <!-- Header -->
          <div class="chat-header" style="padding: 12px var(--shell-pad); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px;">
-            <span style="font-weight: 600; flex: 1;">💬 ${t("tabs.chat")}</span>
+            <span style="font-weight: 600; flex: 1; display: flex; align-items: center; gap: 8px;">
+               ${renderIcon("messageSquare", "16px", "color: var(--accent);")}
+               <span>${t("tabs.chat")}</span>
+            </span>
             ${this.renderModelSelect()}
             ${chat.sessionKey ? html`<span style="font-size: 11px; color: var(--muted);">${chat.sessionKey.slice(0, 12)}…</span>` : ""}
-            <button class="btn btn-sm" style="font-size: 11px; padding: 4px 12px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground);"
-             @click=${this.handleNewSession}>+ ${t("chat.newShort")}</button>
+            <button class="btn btn-sm" style="font-size: 11px; padding: 4px 12px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); display: flex; align-items: center; gap: 6px;"
+             @click=${this.handleNewSession}>
+               ${renderIcon("plus", "12px")}
+               <span>${t("chat.newShort")}</span>
+            </button>
          </div>
 
          <!-- Messages -->
          <div class="chat-history" style="flex: 1; overflow-y: auto; padding: var(--shell-pad); display: flex; flex-direction: column; gap: 16px;">
             ${chat.messages.length === 0 && !busy ? html`
                <div style="margin: auto; text-align: center; color: var(--muted); opacity: 0.6;">
-                 <div style="font-size: 48px; margin-bottom: 16px;">🐙</div>
+                 <div style="display: flex; justify-content: center; margin-bottom: 16px; color: var(--accent);">
+                    ${renderIcon("coreblow", "48px")}
+                 </div>
                  <div>${t("chat.empty")}</div>
                </div>
             ` : ""}

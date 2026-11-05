@@ -8,6 +8,7 @@ import {
   t,
 } from "../../i18n/index.ts";
 import type { CoreBlowApp } from "../app.ts";
+import { renderIcon, type IconName } from "../icons.ts";
 
 @customElement("coreblow-overview-view")
 export class OverviewView extends LitElement {
@@ -47,12 +48,14 @@ export class OverviewView extends LitElement {
       <div style="display: flex; flex-direction: column; gap: 16px;">
 
         <!-- Status Banner -->
-        <div class="card" style="background: ${connected ? 'linear-gradient(135deg, rgba(34,197,94,0.08), rgba(99,102,241,0.08))' : 'linear-gradient(135deg, rgba(239,68,68,0.08), rgba(239,68,68,0.04))'}; border: 1px solid ${connected ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.3)'};">
-           <div style="display: flex; align-items: center; gap: 12px;">
-              <span style="font-size: 32px;">${connected ? "🐙" : "⚠️"}</span>
+        <div class="card" style="background: ${connected ? 'linear-gradient(135deg, rgba(34,197,94,0.06), rgba(99,102,241,0.06))' : 'linear-gradient(135deg, rgba(239,68,68,0.06), rgba(239,68,68,0.03))'}; border: 1px solid ${connected ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.25)'};">
+           <div style="display: flex; align-items: center; gap: 14px;">
+              <div style="width: 44px; height: 44px; border-radius: var(--radius-md); background: ${connected ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)'}; color: ${connected ? 'var(--ok, #22c55e)' : 'var(--danger, #ef4444)'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                 ${renderIcon(connected ? "coreblow" : "alertTriangle", "24px")}
+              </div>
               <div>
                  <div style="font-weight: 700; font-size: 16px;">${connected ? t("overview.status.coreblowOnline") : t("overview.status.notConnected")}</div>
-                 <div style="font-size: 12px; color: var(--muted);">${connected ? `${t("overview.status.connected")} ${this.app.settings.gatewayUrl}` : t("chat.connectToChat")}</div>
+                 <div style="font-size: 12px; color: var(--muted); margin-top: 2px;">${connected ? `${t("overview.status.connected")} ${this.app.settings.gatewayUrl}` : t("chat.connectToChat")}</div>
               </div>
               ${approvalCount > 0 ? html`
                  <div style="margin-left: auto; background: var(--warning, #f59e0b); color: #000; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700;">${approvalCount} pending approval</div>
@@ -62,12 +65,12 @@ export class OverviewView extends LitElement {
 
         <!-- Stats Grid -->
         <div style="display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
-           ${this.renderStatCard("🔌", t("common.status"), connected ? t("overview.status.connected") : t("common.offline"))}
-           ${this.renderStatCard("📊", t("tabs.sessions"), String(this.app.sessionsCount))}
-           ${this.renderStatCard("👥", t("tabs.peers"), String(this.app.presenceCount))}
-           ${this.renderStatCard("🤖", t("common.models"), String(modelCount))}
-           ${this.renderStatCard("💬", t("chat.activeChat"), sessionKey ? sessionKey.slice(0, 12) + "…" : t("common.none"))}
-           ${this.renderStatCard("📝", t("common.events"), String(this.app.eventLog.length))}
+           ${this.renderStatCard("activity", t("common.status"), connected ? t("overview.status.connected") : t("common.offline"))}
+           ${this.renderStatCard("fileText", t("tabs.sessions"), String(this.app.sessionsCount))}
+           ${this.renderStatCard("users", t("tabs.peers"), String(this.app.presenceCount))}
+           ${this.renderStatCard("bot", t("common.models"), String(modelCount))}
+           ${this.renderStatCard("messageSquare", t("chat.activeChat"), sessionKey ? sessionKey.slice(0, 12) + "…" : t("common.none"))}
+           ${this.renderStatCard("scrollText", t("common.events"), String(this.app.eventLog.length))}
         </div>
 
         <!-- Quick Actions + Connection -->
@@ -75,7 +78,10 @@ export class OverviewView extends LitElement {
 
            <!-- Gateway Connection -->
            <div class="card">
-              <div class="card-title">🌐 ${t("overview.access.title")}</div>
+              <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                 ${renderIcon("globe", "16px", "color: var(--muted);")}
+                 <span>${t("overview.access.title")}</span>
+              </div>
               <div style="margin-top: 12px; display: grid; gap: 10px;">
                 <label class="field">
                    <span style="font-size: 12px; color: var(--muted);">${t("overview.access.wsUrl")}</span>
@@ -113,23 +119,30 @@ export class OverviewView extends LitElement {
 
            <!-- Quick Actions -->
            <div class="card">
-              <div class="card-title">⚡ ${t("common.actions")}</div>
+              <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                 ${renderIcon("zap", "16px", "color: var(--accent);")}
+                 <span>${t("common.actions")}</span>
+              </div>
               <div style="margin-top: 12px; display: grid; gap: 8px;">
-                 <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 10px 16px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); text-align: left; transition: border-color 0.15s;"
+                 <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 10px 14px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); display: flex; align-items: center; gap: 10px; text-align: left; transition: border-color 0.15s;"
                   @click=${() => this.app.setTab("chat" as any)}>
-                    💬 ${t("chat.openInChat")}
+                    ${renderIcon("messageSquare", "15px", "color: var(--accent);")}
+                    <span>${t("chat.openInChat")}</span>
                  </button>
-                 <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 10px 16px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); text-align: left; transition: border-color 0.15s;"
+                 <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 10px 14px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); display: flex; align-items: center; gap: 10px; text-align: left; transition: border-color 0.15s;"
                   @click=${() => this.app.setTab("sessions" as any)}>
-                    📋 ${t("tabs.sessions")}
+                    ${renderIcon("fileText", "15px", "color: var(--accent);")}
+                    <span>${t("tabs.sessions")}</span>
                  </button>
-                 <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 10px 16px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); text-align: left; transition: border-color 0.15s;"
+                 <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 10px 14px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); display: flex; align-items: center; gap: 10px; text-align: left; transition: border-color 0.15s;"
                   @click=${() => this.app.setTab("config" as any)}>
-                    ⚙️ ${t("config.title")}
+                    ${renderIcon("settings", "15px", "color: var(--accent);")}
+                    <span>${t("config.title")}</span>
                  </button>
-                 <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 10px 16px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); text-align: left; transition: border-color 0.15s;"
+                 <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 10px 14px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); display: flex; align-items: center; gap: 10px; text-align: left; transition: border-color 0.15s;"
                   @click=${() => this.app.setTab("debug" as any)}>
-                    🔍 ${t("debug.title")}
+                    ${renderIcon("bug", "15px", "color: var(--accent);")}
+                    <span>${t("debug.title")}</span>
                  </button>
               </div>
            </div>
@@ -138,7 +151,10 @@ export class OverviewView extends LitElement {
         <!-- Event Log -->
         <div class="card">
            <div style="display: flex; align-items: center; gap: 8px;">
-              <div class="card-title" style="flex: 1;">📜 ${t("common.events")}</div>
+              <div class="card-title" style="flex: 1; display: flex; align-items: center; gap: 8px;">
+                 ${renderIcon("scrollText", "16px", "color: var(--muted);")}
+                 <span>${t("common.events")}</span>
+              </div>
               <span style="font-size: 11px; color: var(--muted);">${this.app.eventLog.length} entries</span>
            </div>
            <div style="margin-top: 12px; background: var(--bg-elevated); border-radius: var(--radius-sm); max-height: 300px; overflow-y: auto;">
@@ -155,12 +171,14 @@ export class OverviewView extends LitElement {
     `;
   }
 
-  private renderStatCard(icon: string, label: string, value: string) {
+  private renderStatCard(icon: IconName, label: string, value: string) {
      return html`
-        <div class="card" style="padding: 16px; display: flex; align-items: center; gap: 12px;">
-           <span style="font-size: 24px;">${icon}</span>
+        <div class="card" style="padding: 16px; display: flex; align-items: center; gap: 14px;">
+           <div style="width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--accent-subtle); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              ${renderIcon(icon, "18px")}
+           </div>
            <div>
-              <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">${label}</div>
+              <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500;">${label}</div>
               <div style="font-size: 16px; font-weight: 700; margin-top: 2px;">${value}</div>
            </div>
         </div>

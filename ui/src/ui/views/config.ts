@@ -2,6 +2,7 @@ import { LitElement, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { t } from "../../i18n/index.ts";
 import type { CoreBlowApp } from "../app.ts";
+import { renderIcon } from "../icons.ts";
 
 type EngineConfig = {
    defaultModel?: string;
@@ -27,7 +28,7 @@ export class ConfigView extends LitElement {
   @state() editProvider = "";
   @state() apiKeyInput = "";
   @state() viewMode: "visual" | "raw" = "visual";
-  @state() saveStatus: string | null = null;
+  @state() saveStatus: { success: boolean; message: string } | null = null;
 
   createRenderRoot() { return this; }
 
@@ -57,12 +58,12 @@ export class ConfigView extends LitElement {
       this.saving = true;
       try {
          await client.request("config.set", { path, value });
-         this.saveStatus = `✓ ${t("config.updated", { path })}`;
+         this.saveStatus = { success: true, message: t("config.updated", { path }) };
          setTimeout(() => this.saveStatus = null, 2000);
          this.loadConfig();
       } catch (err: unknown) {
          const msg = err instanceof Error ? err.message : String(err);
-         this.saveStatus = `✗ ${t("config.saveFailed", { message: msg })}`;
+         this.saveStatus = { success: false, message: t("config.saveFailed", { message: msg }) };
       }
       this.saving = false;
   }
@@ -101,7 +102,10 @@ export class ConfigView extends LitElement {
          <div class="card">
             <div style="display: flex; align-items: center; gap: 12px;">
                <div style="flex: 1;">
-                  <div class="card-title">⚙️ ${t("config.title")}</div>
+                  <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                     ${renderIcon("settings", "18px", "color: var(--accent);")}
+                     <span>${t("config.title")}</span>
+                  </div>
                   <div class="card-sub">${t("config.subtitle")}</div>
                </div>
                <div style="display: flex; gap: 8px;">
@@ -110,10 +114,18 @@ export class ConfigView extends LitElement {
                   <button class="btn" style="background: ${this.viewMode === 'raw' ? 'var(--accent)' : 'var(--bg-elevated)'}; color: ${this.viewMode === 'raw' ? 'white' : 'var(--foreground)'}; border: 1px solid var(--border); padding: 6px 14px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px;"
                    @click=${() => this.viewMode = "raw"}>JSON</button>
                </div>
-               <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px;"
-                @click=${() => this.loadConfig()}>↻ ${t("common.refresh")}</button>
+               <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px; display: flex; align-items: center; gap: 6px;"
+                @click=${() => this.loadConfig()}>
+                  ${renderIcon("refresh", "13px")}
+                  <span>${t("common.refresh")}</span>
+               </button>
             </div>
-            ${this.saveStatus ? html`<div style="margin-top: 8px; font-size: 12px; color: ${this.saveStatus.startsWith("✓") ? "var(--success, #22c55e)" : "var(--destructive, #ef4444)"};">${this.saveStatus}</div>` : ""}
+            ${this.saveStatus ? html`
+               <div style="margin-top: 8px; font-size: 12px; display: flex; align-items: center; gap: 6px; color: ${this.saveStatus.success ? "var(--success, #22c55e)" : "var(--destructive, #ef4444)"};">
+                  ${renderIcon(this.saveStatus.success ? "check" : "x", "14px")}
+                  <span>${this.saveStatus.message}</span>
+               </div>
+            ` : ""}
          </div>
 
          ${this.loading ? html`<div class="card" style="text-align: center; padding: 40px; color: var(--muted);">${t("config.loading")}</div>` : ""}
@@ -127,14 +139,20 @@ export class ConfigView extends LitElement {
          ${!this.loading && this.viewMode === "visual" && c ? html`
             <!-- Model & Provider -->
             <div class="card">
-               <div class="card-title" style="font-size: 14px;">🤖 ${t("config.modelConfiguration")}</div>
+               <div class="card-title" style="font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                  ${renderIcon("bot", "16px", "color: var(--accent);")}
+                  <span>${t("config.modelConfiguration")}</span>
+               </div>
                ${this.renderEditableField(t("agents.defaultModel"), this.editModel, "defaultModel", v => this.editModel = v)}
                ${this.renderEditableField(t("agents.defaultProvider"), this.editProvider, "defaultProvider", v => this.editProvider = v)}
             </div>
 
             <!-- Engine Limits -->
             <div class="card">
-               <div class="card-title" style="font-size: 14px;">📊 ${t("config.engineLimits")}</div>
+               <div class="card-title" style="font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                  ${renderIcon("barChart", "16px", "color: var(--muted);")}
+                  <span>${t("config.engineLimits")}</span>
+               </div>
                ${this.renderField(t("sessions.maxConcurrent"), c.maxConcurrentSessions)}
                ${this.renderField(t("agents.maxTurns"), c.maxTurnsPerRun)}
                ${this.renderField(t("agents.maxOutput"), c.maxOutputTokens?.toLocaleString())}
@@ -144,7 +162,10 @@ export class ConfigView extends LitElement {
 
             <!-- Tool Policy -->
             <div class="card">
-               <div class="card-title" style="font-size: 14px;">🔧 ${t("config.toolPolicy")}</div>
+               <div class="card-title" style="font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                  ${renderIcon("wrench", "16px", "color: var(--muted);")}
+                  <span>${t("config.toolPolicy")}</span>
+               </div>
                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 12px;">
                   <div>
                      <div style="font-size: 11px; color: var(--success, #22c55e); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">${t("config.autoApprove")}</div>
@@ -164,7 +185,10 @@ export class ConfigView extends LitElement {
 
             <!-- Runtime Info -->
             <div class="card">
-               <div class="card-title" style="font-size: 14px;">📡 ${t("config.runtimeStatus")}</div>
+               <div class="card-title" style="font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                  ${renderIcon("radio", "16px", "color: var(--muted);")}
+                  <span>${t("config.runtimeStatus")}</span>
+               </div>
                ${this.renderField(t("sessions.active"), c.activeSessions)}
                ${this.renderField(t("agents.registeredTools"), t("config.toolsCount", { count: String(c.registeredTools?.length ?? 0) }))}
                ${c.registeredTools && c.registeredTools.length > 0 ? html`
@@ -178,9 +202,12 @@ export class ConfigView extends LitElement {
 
             <!-- Gateway Connection -->
             <div class="card">
-               <div class="card-title" style="font-size: 14px;">🌐 ${t("config.gatewayConnection")}</div>
+               <div class="card-title" style="font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                  ${renderIcon("globe", "16px", "color: var(--muted);")}
+                  <span>${t("config.gatewayConnection")}</span>
+               </div>
                ${this.renderField(t("common.url"), this.app.settings.gatewayUrl, true)}
-               ${this.renderField(t("common.status"), this.app.connected ? `🟢 ${t("overview.status.connected")}` : `🔴 ${t("overview.status.disconnected")}`)}
+               ${this.renderField(t("common.status"), html`<span style="display:inline-flex; align-items:center; gap:6px;"><span class="statusDot ${this.app.connected ? "stat-ok" : "stat-error"}"></span><span>${this.app.connected ? t("overview.status.connected") : t("overview.status.disconnected")}</span></span>`)}
             </div>
          ` : ""}
       </div>

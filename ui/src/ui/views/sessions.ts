@@ -2,6 +2,7 @@ import { LitElement, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { t } from "../../i18n/index.ts";
 import type { CoreBlowApp } from "../app.ts";
+import { renderIcon } from "../icons.ts";
 
 type SessionRow = {
    key: string;
@@ -165,7 +166,7 @@ export class SessionsView extends LitElement {
 
         ${!this.loading && rows.length === 0 ? html`
            <div class="card" style="text-align: center; padding: 40px;">
-              <div style="font-size: 32px; margin-bottom: 12px; opacity: 0.4;">🐙</div>
+              <div style="margin-bottom: 12px;">${renderIcon("coreblow", "44px", "color: var(--muted); opacity: 0.4;")}</div>
               <div style="color: var(--muted);">${t("sessions.emptyTitle")}</div>
               <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">${t("sessions.emptySubtitle")}</div>
            </div>
@@ -207,7 +208,7 @@ export class SessionsView extends LitElement {
                                 <input type="checkbox" .checked=${isSelected}
                                        @change=${() => {
                                           const next = new Set(this.selectedKeys);
-                                          isSelected ? next.delete(s.key) : next.add(s.key);
+                                          if (isSelected) { next.delete(s.key); } else { next.add(s.key); }
                                           this.selectedKeys = next;
                                        }} />
                              </td>
@@ -225,13 +226,13 @@ export class SessionsView extends LitElement {
                              <td style="padding: 10px 12px; text-align: right; font-size: 12px; color: var(--muted);">${this.formatTime(s.updatedAt)}</td>
                              <td style="padding: 10px 12px; text-align: center;">
                                 <div style="display: flex; gap: 4px; justify-content: center;">
-                                   <button style="background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 8px; cursor: pointer; font-size: 11px; color: var(--foreground);"
-                                    @click=${() => this.switchToSession(s.key)} title=${t("chat.openInChat")}>💬</button>
-                                   <button style="background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 8px; cursor: pointer; font-size: 11px; color: var(--foreground);"
-                                    @click=${() => this.resetSession(s.key)} title=${t("chat.resetMessages")}>🔄</button>
-                                   <button style="background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 8px; cursor: pointer; font-size: 11px; color: var(--destructive, #ef4444);"
-                                    @click=${() => this.confirmDelete === s.key ? this.deleteSession(s.key) : (this.confirmDelete = s.key)} title=${t("common.delete")}>
-                                      ${this.confirmDelete === s.key ? t("sessions.confirmDelete") : "🗑️"}
+                                   <button style="background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 8px; cursor: pointer; font-size: 11px; color: var(--foreground); display: inline-flex; align-items: center;"
+                                    @click=${() => this.switchToSession(s.key)} title=${t("chat.openInChat")} aria-label=${t("chat.openInChat")}>${renderIcon("messageSquare", "12px")}</button>
+                                   <button style="background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 8px; cursor: pointer; font-size: 11px; color: var(--foreground); display: inline-flex; align-items: center;"
+                                    @click=${() => this.resetSession(s.key)} title=${t("chat.resetMessages")} aria-label=${t("chat.resetMessages")}>${renderIcon("refresh", "12px")}</button>
+                                   <button style="background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 8px; cursor: pointer; font-size: 11px; color: var(--destructive, #ef4444); display: inline-flex; align-items: center;"
+                                    @click=${() => this.confirmDelete === s.key ? this.deleteSession(s.key) : (this.confirmDelete = s.key)} title=${t("common.delete")} aria-label=${t("common.delete")}>
+                                      ${this.confirmDelete === s.key ? t("sessions.confirmDelete") : renderIcon("trash", "12px")}
                                    </button>
                                 </div>
                              </td>

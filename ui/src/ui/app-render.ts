@@ -1,7 +1,7 @@
 import { html } from "lit";
 import { CoreBlowApp } from "./app.ts";
 import { TAB_GROUPS, iconForTab, titleForTab } from "./navigation.ts";
-import { icons } from "./icons.ts";
+import { icons, renderIcon } from "./icons.ts";
 import "./views/overview.ts";
 import "./views/chat.ts";
 import "./views/sessions.ts";
@@ -36,7 +36,7 @@ export function renderApp(app: CoreBlowApp) {
                <div class="theme-orb__trigger pill" style="cursor: pointer" @click=${() => {
                  app.setTheme(app.theme === "core" ? "knot" : app.theme === "knot" ? "coredash" : "core");
                }}>
-                  🎨
+                  ${renderIcon("palette", "14px")}
                </div>
             </div>
             <!-- Status Pill -->
@@ -56,7 +56,9 @@ export function renderApp(app: CoreBlowApp) {
           <div class="sidebar-shell">
              <div class="sidebar-shell__header">
                 <div class="sidebar-brand">
-                   <div class="sidebar-brand__logo" style="background: var(--accent); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">CB</div>
+                   <div class="sidebar-brand__logo" style="background: var(--accent); display:flex; align-items:center; justify-content:center; color:white; border-radius: var(--radius-sm);">
+                      ${renderIcon("coreblow", "18px", "color: white;")}
+                   </div>
                    <div class="sidebar-brand__copy">
                       <div class="sidebar-brand__eyebrow">Gateway</div>
                       <div class="sidebar-brand__title">CoreBlow</div>

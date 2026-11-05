@@ -169,17 +169,7 @@ export function registerMigrateCommand(program: Command) {
   addMigrationOptions(
     migrate
       .command("plan <provider>")
-      .description("Inspect migration dry-run plan without writing changes")
-      .option(
-        "--skill <name>",
-        "Select one skill to migrate by name or item id; repeat for multiple skills",
-        collectMigrationSkill,
-      )
-      .option(
-        "--plugin <name>",
-        "Select one Codex plugin to migrate by name or item id; repeat for multiple plugins",
-        collectMigrationPlugin,
-      ),
+      .description("Inspect migration dry-run plan without writing changes"),
   ).action(async (provider: string, opts) => {
     await runCommandWithRuntime(defaultRuntime, async () => {
       await migratePlanCommand(
@@ -203,16 +193,6 @@ export function registerMigrateCommand(program: Command) {
       .command("apply <provider>")
       .description("Apply migration changes")
       .option("--yes", "Apply without interactive confirmation", false)
-      .option(
-        "--skill <name>",
-        "Select one skill to migrate by name or item id; repeat for multiple skills",
-        collectMigrationSkill,
-      )
-      .option(
-        "--plugin <name>",
-        "Select one Codex plugin to migrate by name or item id; repeat for multiple plugins",
-        collectMigrationPlugin,
-      )
       .option("--backup-output <path>", "Pre-migration backup archive path or directory")
       .option("--no-backup", "Skip the pre-migration CoreBlow backup")
       .option("--force", "Allow dangerous options such as --no-backup", false),

@@ -2,32 +2,33 @@ import { LitElement, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { t } from "../../i18n/index.ts";
 import type { CoreBlowApp } from "../app.ts";
+import { renderIcon, type IconName } from "../icons.ts";
 
 type PaletteItem = {
    id: string;
    labelKey: string;
-   icon: string;
+   icon: IconName;
    category: "navigation" | "action" | "rpc";
    action: string;
    descriptionKey?: string;
 };
 
 const PALETTE_ITEMS: PaletteItem[] = [
-   { id: "nav-overview", labelKey: "tabs.overview", icon: "📊", category: "navigation", action: "nav:overview" },
-   { id: "nav-chat", labelKey: "tabs.chat", icon: "💬", category: "navigation", action: "nav:chat" },
-   { id: "nav-sessions", labelKey: "tabs.sessions", icon: "📋", category: "navigation", action: "nav:sessions" },
-   { id: "nav-agents", labelKey: "tabs.aiAgents", icon: "🤖", category: "navigation", action: "nav:aiAgents" },
-   { id: "nav-config", labelKey: "config.title", icon: "⚙️", category: "navigation", action: "nav:config" },
-   { id: "nav-debug", labelKey: "debug.title", icon: "🔍", category: "navigation", action: "nav:debug" },
-   { id: "nav-usage", labelKey: "usage.title", icon: "📈", category: "navigation", action: "nav:usage" },
-   { id: "nav-skills", labelKey: "skills.title", icon: "⚡", category: "navigation", action: "nav:skills" },
-   { id: "nav-logs", labelKey: "logs.title", icon: "📜", category: "navigation", action: "nav:logs" },
-   { id: "nav-cron", labelKey: "cron.title", icon: "⏰", category: "navigation", action: "nav:cron" },
-   { id: "act-reconnect", labelKey: "overview.status.reconnect", icon: "🔌", category: "action", action: "act:reconnect", descriptionKey: "overview.status.reconnectWs" },
-   { id: "act-new-session", labelKey: "chat.newSession", icon: "➕", category: "action", action: "act:new-session", descriptionKey: "chat.createSession" },
-   { id: "rpc-health", labelKey: "debug.rpcHealth", icon: "💗", category: "rpc", action: "rpc:health.snapshot", descriptionKey: "overview.health.checkHealth" },
-   { id: "rpc-sessions", labelKey: "debug.rpcSessions", icon: "📋", category: "rpc", action: "rpc:sessions.list", descriptionKey: "sessions.list" },
-   { id: "rpc-models", labelKey: "debug.rpcModels", icon: "🤖", category: "rpc", action: "rpc:models.list", descriptionKey: "usage.listModels" },
+   { id: "nav-overview", labelKey: "tabs.overview", icon: "barChart", category: "navigation", action: "nav:overview" },
+   { id: "nav-chat", labelKey: "tabs.chat", icon: "messageSquare", category: "navigation", action: "nav:chat" },
+   { id: "nav-sessions", labelKey: "tabs.sessions", icon: "fileText", category: "navigation", action: "nav:sessions" },
+   { id: "nav-agents", labelKey: "tabs.aiAgents", icon: "bot", category: "navigation", action: "nav:aiAgents" },
+   { id: "nav-config", labelKey: "config.title", icon: "settings", category: "navigation", action: "nav:config" },
+   { id: "nav-debug", labelKey: "debug.title", icon: "search", category: "navigation", action: "nav:debug" },
+   { id: "nav-usage", labelKey: "usage.title", icon: "activity", category: "navigation", action: "nav:usage" },
+   { id: "nav-skills", labelKey: "skills.title", icon: "zap", category: "navigation", action: "nav:skills" },
+   { id: "nav-logs", labelKey: "logs.title", icon: "scrollText", category: "navigation", action: "nav:logs" },
+   { id: "nav-cron", labelKey: "cron.title", icon: "clock", category: "navigation", action: "nav:cron" },
+   { id: "act-reconnect", labelKey: "overview.status.reconnect", icon: "refresh", category: "action", action: "act:reconnect", descriptionKey: "overview.status.reconnectWs" },
+   { id: "act-new-session", labelKey: "chat.newSession", icon: "plus", category: "action", action: "act:new-session", descriptionKey: "chat.createSession" },
+   { id: "rpc-health", labelKey: "debug.rpcHealth", icon: "heart", category: "rpc", action: "rpc:health.snapshot", descriptionKey: "overview.health.checkHealth" },
+   { id: "rpc-sessions", labelKey: "debug.rpcSessions", icon: "fileText", category: "rpc", action: "rpc:sessions.list", descriptionKey: "sessions.list" },
+   { id: "rpc-models", labelKey: "debug.rpcModels", icon: "bot", category: "rpc", action: "rpc:models.list", descriptionKey: "usage.listModels" },
 ];
 
 @customElement("coreblow-command-palette")
@@ -129,7 +130,7 @@ export class CommandPalette extends LitElement {
 
             <!-- Search Input -->
             <div style="padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px;">
-               <span style="color: var(--muted); font-size: 14px;">🔍</span>
+               <span style="color: var(--muted); font-size: 14px; display: inline-flex; align-items: center;">${renderIcon("search", "15px")}</span>
                <input autofocus style="flex: 1; background: transparent; border: none; outline: none; color: var(--foreground); font-size: 14px; font-family: var(--font-sans);"
                       placeholder=${t("overview.palette.placeholder")}
                       .value=${this.query}
@@ -152,7 +153,7 @@ export class CommandPalette extends LitElement {
                            <div style="padding: 8px 16px; display: flex; align-items: center; gap: 10px; cursor: pointer; ${isSelected ? 'background: var(--bg-elevated);' : ''} transition: background 0.1s;"
                                 @click=${() => this.executeItem(item)}
                                 @mouseenter=${() => this.selectedIndex = idx}>
-                              <span style="font-size: 16px; min-width: 24px; text-align: center;">${item.icon}</span>
+                              <span style="font-size: 14px; min-width: 24px; display: flex; align-items: center; justify-content: center; color: var(--muted);">${renderIcon(item.icon, "16px")}</span>
                               <div style="flex: 1;">
                                  <div style="font-size: 13px; font-weight: ${isSelected ? '600' : '400'};">${this.labelFor(item)}</div>
                                  ${this.descriptionFor(item) ? html`<div style="font-size: 11px; color: var(--muted);">${this.descriptionFor(item)}</div>` : ""}

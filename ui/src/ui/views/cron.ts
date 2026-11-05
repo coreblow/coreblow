@@ -2,6 +2,7 @@ import { LitElement, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { t } from "../../i18n/index.ts";
 import type { CoreBlowApp } from "../app.ts";
+import { renderIcon } from "../icons.ts";
 
 type CronJob = {
    id: string;
@@ -74,11 +75,14 @@ export class CronView extends LitElement {
          <div class="card">
             <div style="display: flex; align-items: center; gap: 12px;">
                <div style="flex: 1;">
-                  <div class="card-title">⏰ ${t("cron.title")}</div>
+                  <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                     ${renderIcon("clock", "16px")}
+                     <span>${t("cron.title")}</span>
+                  </div>
                   <div class="card-sub">${t("cron.scheduledSummary", { count: String(this.jobs.length) })}</div>
                </div>
-               <button style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px;"
-                @click=${() => this.loadJobs()}>↻ ${t("common.refresh")}</button>
+               <button style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px; display: inline-flex; align-items: center; gap: 6px;"
+                @click=${() => this.loadJobs()}>${renderIcon("refresh", "12px")} ${t("common.refresh")}</button>
             </div>
          </div>
 
@@ -86,7 +90,7 @@ export class CronView extends LitElement {
 
          ${!this.loading && this.jobs.length === 0 ? html`
             <div class="card" style="text-align: center; padding: 40px;">
-               <div style="font-size: 32px; opacity: 0.3; margin-bottom: 8px;">⏰</div>
+               <div style="margin-bottom: 8px;">${renderIcon("clock", "36px", "color: var(--muted); opacity: 0.4;")}</div>
                <div style="color: var(--muted);">${t("cron.emptyTitle")}</div>
                <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">${t("cron.emptySubtitle")}</div>
             </div>

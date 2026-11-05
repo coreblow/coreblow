@@ -2,6 +2,7 @@ import { LitElement, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { t } from "../../i18n/index.ts";
 import type { CoreBlowApp } from "../app.ts";
+import { renderIcon } from "../icons.ts";
 
 type UsageEntry = {
    sessionKey: string;
@@ -100,11 +101,14 @@ export class UsageView extends LitElement {
          <div class="card">
             <div style="display: flex; align-items: center; gap: 12px;">
                <div style="flex: 1;">
-                  <div class="card-title">📊 ${t("usage.title")}</div>
+                  <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                     ${renderIcon("barChart", "16px")}
+                     <span>${t("usage.title")}</span>
+                  </div>
                   <div class="card-sub">${t("usage.subtitle")}</div>
                </div>
-               <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground);"
-                @click=${() => this.loadUsage()}>↻ ${t("common.refresh")}</button>
+               <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); display: inline-flex; align-items: center; gap: 6px;"
+                @click=${() => this.loadUsage()}>${renderIcon("refresh", "12px")} ${t("common.refresh")}</button>
             </div>
          </div>
 
@@ -133,7 +137,10 @@ export class UsageView extends LitElement {
          <!-- Model Breakdown -->
          ${breakdown.length > 0 ? html`
             <div class="card">
-               <div class="card-title" style="font-size: 14px;">📈 ${t("usage.byModel")}</div>
+               <div class="card-title" style="font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                  ${renderIcon("activity", "15px", "color: var(--muted);")}
+                  <span>${t("usage.byModel")}</span>
+               </div>
                <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 12px;">
                   ${breakdown.map(b => {
                      const pct = Math.round((b.tokens / maxTokens) * 100);
@@ -159,7 +166,10 @@ export class UsageView extends LitElement {
          ${this.entries.length > 0 ? html`
             <div class="card" style="padding: 0; overflow: hidden;">
                <div style="padding: 12px 16px; border-bottom: 1px solid var(--border);">
-                  <div class="card-title" style="font-size: 14px;">📋 ${t("usage.perSession")}</div>
+                  <div class="card-title" style="font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                     ${renderIcon("fileText", "15px", "color: var(--muted);")}
+                     <span>${t("usage.perSession")}</span>
+                  </div>
                </div>
                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
                   <thead>

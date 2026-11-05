@@ -2,6 +2,7 @@ import { LitElement, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { t } from "../../i18n/index.ts";
 import type { CoreBlowApp } from "../app.ts";
+import { renderIcon } from "../icons.ts";
 
 type AgentRow = {
    id: string;
@@ -70,7 +71,9 @@ export class AgentsView extends LitElement {
       return html`
          <div style="background: var(--bg-elevated); padding: 16px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border); transition: border-color 0.15s;">
             <div style="display: flex; align-items: center; gap: 10px;">
-               <span style="font-size: 24px;">🤖</span>
+               <div style="width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--accent-subtle); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                  ${renderIcon("bot", "18px")}
+               </div>
                <div style="flex: 1;">
                   <div style="font-weight: 700; font-size: 14px;">${t("agents.agentLabel")}</div>
                   <div style="font-size: 11px; font-family: var(--mono); color: var(--muted);">${a.id.length > 24 ? a.id.slice(0, 24) + "…" : a.id}</div>
@@ -98,10 +101,15 @@ export class AgentsView extends LitElement {
             </div>
 
             <div style="margin-top: 12px; display: flex; gap: 6px;">
-               <button style="flex: 1; background: var(--accent); color: white; border: none; padding: 6px; border-radius: var(--radius-sm); cursor: pointer; font-size: 11px; font-weight: 600;"
-                @click=${() => { this.app.chat.sessionKey = a.id; this.app.setTab("chat" as any); }}>💬 ${t("tabs.chat")}</button>
-               <button style="background: none; border: 1px solid var(--border); padding: 6px 10px; border-radius: var(--radius-sm); cursor: pointer; font-size: 11px; color: var(--destructive, #ef4444);"
-                @click=${() => this.deleteAgent(a.id)}>🗑️</button>
+               <button style="flex: 1; background: var(--accent); color: white; border: none; padding: 6px; border-radius: var(--radius-sm); cursor: pointer; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;"
+                @click=${() => { this.app.chat.sessionKey = a.id; this.app.setTab("chat" as any); }}>
+                  ${renderIcon("messageSquare", "12px")}
+                  <span>${t("tabs.chat")}</span>
+               </button>
+               <button style="background: none; border: 1px solid var(--border); padding: 6px 10px; border-radius: var(--radius-sm); cursor: pointer; font-size: 11px; color: var(--destructive, #ef4444); display: flex; align-items: center; justify-content: center;"
+                @click=${() => this.deleteAgent(a.id)}>
+                  ${renderIcon("trash", "13px")}
+               </button>
             </div>
          </div>
       `;
@@ -117,7 +125,10 @@ export class AgentsView extends LitElement {
       }
       return html`
          <div class="card">
-            <div class="card-title" style="font-size: 14px;">🔧 ${t("agents.registeredTools")}</div>
+            <div class="card-title" style="font-size: 14px; display: flex; align-items: center; gap: 8px;">
+               ${renderIcon("wrench", "16px", "color: var(--muted);")}
+               <span>${t("agents.registeredTools")}</span>
+            </div>
             <div class="card-sub">${t("agents.toolsAvailable", { count: String(this.tools.length) })}</div>
             <div style="margin-top: 12px;">
                ${[...grouped.entries()].map(([cat, items]) => html`
@@ -143,13 +154,22 @@ export class AgentsView extends LitElement {
          <div class="card">
             <div style="display: flex; align-items: center; gap: 12px;">
                <div style="flex: 1;">
-                  <div class="card-title">🤖 ${t("agents.title")}</div>
+                  <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                     ${renderIcon("bot", "18px", "color: var(--accent);")}
+                     <span>${t("agents.title")}</span>
+                  </div>
                   <div class="card-sub">${t("agents.activeSummary", { count: String(this.agents.length) })}</div>
                </div>
-               <button class="btn" style="background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600;"
-                @click=${() => this.showCreateForm = !this.showCreateForm}>+ ${t("agents.newAgent")}</button>
-               <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground);"
-                @click=${() => this.loadData()}>↻ ${t("common.refresh")}</button>
+               <button class="btn" style="background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;"
+                @click=${() => this.showCreateForm = !this.showCreateForm}>
+                  ${renderIcon("plus", "13px")}
+                  <span>${t("agents.newAgent")}</span>
+               </button>
+               <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); display: flex; align-items: center; gap: 6px;"
+                @click=${() => this.loadData()}>
+                  ${renderIcon("refresh", "13px")}
+                  <span>${t("common.refresh")}</span>
+               </button>
             </div>
 
             ${this.showCreateForm ? html`
@@ -179,7 +199,9 @@ export class AgentsView extends LitElement {
 
          ${!this.loading && this.agents.length === 0 ? html`
             <div class="card" style="text-align: center; padding: 40px;">
-               <div style="font-size: 40px; margin-bottom: 12px; opacity: 0.3;">🤖</div>
+               <div style="display: flex; justify-content: center; margin-bottom: 12px; opacity: 0.3; color: var(--accent);">
+                  ${renderIcon("bot", "40px")}
+               </div>
                <div style="color: var(--muted);">${t("agents.emptyTitle")}</div>
                <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">${t("agents.emptySubtitle")}</div>
             </div>
