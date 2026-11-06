@@ -9,3 +9,4 @@ export * from "./provider-stream-family.js";
 export * from "./provider-models.js";
 export * from "./provider-entry.js";
 export * from "../providers/dop-openai-stream.js";
+export * from "../providers/decision-router.js";

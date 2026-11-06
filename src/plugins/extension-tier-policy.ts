@@ -22,6 +22,9 @@ export class ExtensionTierPolicy implements GatewayService {
     "cory",
     "cory-memory",
     "cory-skill-synthesizer",
+    "cory-knowledge-scribe",
+    "war-room-orchestrator",
+    "pr-workflow-orchestrator",
     "rag",
     "rag-runtime",
     "tools",
@@ -135,7 +138,10 @@ export class ExtensionTierPolicy implements GatewayService {
   }
 
   public getExtensionTier(extensionId: string): ExtensionTier {
-    const normalized = extensionId.toLowerCase().trim().replace(/^extensions\//, "");
+    const normalized = extensionId
+      .toLowerCase()
+      .trim()
+      .replace(/^extensions\//, "");
     if (this.coreExtensions.has(normalized)) {
       return "core";
     }
@@ -151,7 +157,10 @@ export class ExtensionTierPolicy implements GatewayService {
   }
 
   public registerExtensionTier(extensionId: string, tier: ExtensionTier): void {
-    const normalized = extensionId.toLowerCase().trim().replace(/^extensions\//, "");
+    const normalized = extensionId
+      .toLowerCase()
+      .trim()
+      .replace(/^extensions\//, "");
     if (tier === "core") {
       this.coreExtensions.add(normalized);
       this.onDemandExtensions.delete(normalized);

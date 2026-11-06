@@ -1,0 +1,14 @@
+{
+  "name": "@coreblow/anthropic-vertex",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "CoreBlow Anthropic Vertex provider plugin",
+  "main": "index.ts",
+  "dependencies": {
+    "@anthropic-ai/vertex-sdk": "^0.16.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^4.1.4"
+  }
+}

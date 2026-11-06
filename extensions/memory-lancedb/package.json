@@ -11,7 +11,7 @@
     "lint": "eslint src/"
   },
   "dependencies": {
-    "@lancedb/lancedb": "^0.27.1",
+    "@lancedb/lancedb": "^0.27.2",
     "@sinclair/typebox": "0.34.48",
     "openai": "^6.33.0"
   },

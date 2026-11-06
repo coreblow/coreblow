@@ -6,6 +6,7 @@
  */
 
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import type { GatewayService, ServiceHealth } from "../gateway/service-registry.js";
 import type { CoryBootstrapService } from "../memory/cory.js";
@@ -30,15 +31,30 @@ import {
 export interface SkillIngestOptions {
   readonly syncConstraints?: boolean;
   readonly targetStatus?: SkillLifecycleStatus;
+  readonly activeConstraints?: readonly string[];
 }
 
 export interface SkillSynthesizerServiceOptions {
-  readonly stateDir: string;
+  readonly stateDir?: string;
   readonly coryService?: CoryBootstrapService;
   readonly cory?: CoryBootstrapService;
+  readonly approvalPolicy?: "auto" | "prompt";
   readonly autoPromoteMinInvocations?: number;
   readonly autoPromoteWilsonScoreThreshold?: number;
   readonly autoRollbackConsecutiveFailures?: number;
+}
+
+export interface EvaluateSkillSecurityParams {
+  readonly markdown: string;
+  readonly skillId: string;
+  readonly trajectory?: TurnTrajectoryRecord;
+}
+
+export interface SecurityEvaluationResult {
+  readonly allowed: boolean;
+  readonly findings: readonly SkillScanFinding[];
+  readonly reason?: string;
+  readonly error?: string;
 }
 
 export interface IngestSkillResult {
@@ -72,6 +88,18 @@ export interface RollbackResult {
   readonly error?: string;
 }
 
+export interface PrepareAheadCompactionOptions {
+  readonly maxRevisionsPerSkill?: number;
+  readonly workspaceId?: string;
+}
+
+export interface PrepareAheadCompactionResult {
+  readonly compactedSkillsCount: number;
+  readonly prunedRevisionsCount: number;
+  readonly precomputedPromptLength: number;
+  readonly activeSkillsPrompt: string;
+}
+
 interface FitnessLedgerData {
   version: number;
   skills: Record<string, SkillFitnessMetrics>;
@@ -88,7 +116,7 @@ const RAW_SECRET_PATTERNS: ReadonlyArray<{ name: string; pattern: RegExp }> = [
   { name: "anthropic-api-key", pattern: /sk-ant-[A-Za-z0-9_-]{20,}/ },
   {
     name: "generic-api-key",
-    pattern: /(?:api[_-]?key|secret|token)\s*[:=]\s*["'][A-Za-z0-9_-]{20,}["']/i,
+    pattern: /(?:\\?["']?(?:api[_-]?key|secret|token)\\?["']?)\s*[:=]\s*\\?["'][A-Za-z0-9_-]{20,}\\?["']/i,
   },
 ];
 
@@ -132,6 +160,7 @@ export class CorySkillSynthesizerService implements GatewayService {
   private readonly ledgerPath: string;
   private readonly options: SkillSynthesizerServiceOptions;
   private readonly coryBootstrap: CoryBootstrapService | undefined;
+  public readonly approvalPolicy: "auto" | "prompt";
 
   private isStarted = false;
   private readonly skills = new Map<string, EvolvingSkillRecord>();
@@ -141,14 +170,22 @@ export class CorySkillSynthesizerService implements GatewayService {
     updatedAtMs: Date.now(),
   };
 
-  constructor(options: SkillSynthesizerServiceOptions) {
+  constructor(options: SkillSynthesizerServiceOptions = {}) {
     this.options = options;
-    this.stateDir = options.stateDir;
+    const defaultStateDir = path.join(os.homedir(), ".coreblow", "skills");
+    const rawDir = options.stateDir ?? defaultStateDir;
+    this.stateDir = rawDir.startsWith("~/") ? path.join(os.homedir(), rawDir.slice(2)) : rawDir;
+
     this.learnedDir = path.join(this.stateDir, "learned");
     this.revisionsDir = path.join(this.stateDir, ".revisions");
     this.quarantineDir = path.join(this.stateDir, "quarantine");
     this.ledgerPath = path.join(this.stateDir, "fitness-ledger.json");
     this.coryBootstrap = options.coryService ?? options.cory;
+    this.approvalPolicy = options.approvalPolicy ?? "auto";
+  }
+
+  public get cory(): CoryBootstrapService | undefined {
+    return this.coryBootstrap;
   }
 
   // -------------------------------------------------------------------------
@@ -196,7 +233,7 @@ export class CorySkillSynthesizerService implements GatewayService {
             this.indexSkill(skill, content);
           }
         } catch {
-          // Skip corrupt or unparsable files
+          // Skip corrupt or unparseable files
         }
       }
     } catch {
@@ -226,6 +263,148 @@ export class CorySkillSynthesizerService implements GatewayService {
   }
 
   // -------------------------------------------------------------------------
+  // 3-Gate Zero-Trust Security Check
+  // -------------------------------------------------------------------------
+
+  /**
+   * Evaluates a skill and its execution context through the 3-Gate Zero-Trust security boundary.
+   * Gate 1: Rejects Zone 0 / public channels.
+   * Gate 2: Runs AST scanner + checks raw secret patterns.
+   * Gate 3: Verifies semantic and markdown structure integrity.
+   */
+  public evaluateSkillSecurity(
+    params: EvaluateSkillSecurityParams | string,
+    maybeId?: string,
+  ): SecurityEvaluationResult {
+    const isParamObject = typeof params === "object" && params !== null;
+    const markdown = isParamObject ? params.markdown : params;
+    const skillId = isParamObject ? params.skillId : (maybeId ?? "skill_eval");
+    const trajectory = isParamObject ? params.trajectory : undefined;
+
+    // Gate 1: Zero-Trust Zone 0 Defense
+    if (trajectory && isZone0PublicTrajectory(trajectory)) {
+      return {
+        allowed: false,
+        findings: [],
+        reason: "Zone 0 public trajectory rejected",
+        error: "ZONE_0_BLOCKED",
+      };
+    }
+
+    // Gate 2: AST Rule Scanning & Secret Redaction
+    const findings: SkillScanFinding[] = [...scanSource(markdown, `${skillId}.md`)];
+
+    // Scan raw trajectory step inputs/outputs if trajectory provided
+    if (trajectory) {
+      const steps = trajectory.toolSteps ?? trajectory.steps ?? [];
+      for (const step of steps) {
+        if (step.argsSummary) {
+          findings.push(...scanSource(step.argsSummary, `step_${step.toolName}_args.js`));
+        }
+        if (typeof step.input === "string") {
+          findings.push(...scanSource(step.input, `step_${step.toolName}_input.js`));
+        } else if (step.input) {
+          findings.push(...scanSource(JSON.stringify(step.input), `step_${step.toolName}_input.js`));
+        }
+
+        if (typeof step.outputSummary === "string") {
+          findings.push(...scanSource(step.outputSummary, `step_${step.toolName}_outsummary.js`));
+        }
+        if (typeof step.output === "string") {
+          findings.push(...scanSource(step.output, `step_${step.toolName}_output.js`));
+        } else if (step.output) {
+          findings.push(...scanSource(JSON.stringify(step.output), `step_${step.toolName}_output.js`));
+        }
+      }
+    }
+
+    // Check for hardcoded raw secret patterns
+    const corpusToCheck: string[] = [markdown];
+    if (trajectory) {
+      if (trajectory.taskGoal) corpusToCheck.push(trajectory.taskGoal);
+      if (trajectory.userCorrection) corpusToCheck.push(trajectory.userCorrection);
+      if (trajectory.userCorrectionText) corpusToCheck.push(trajectory.userCorrectionText);
+      const steps = trajectory.toolSteps ?? trajectory.steps ?? [];
+      for (const s of steps) {
+        if (s.argsSummary) corpusToCheck.push(s.argsSummary);
+        if (typeof s.input === "string") {
+          corpusToCheck.push(s.input);
+        }
+        if (s.input) {
+          corpusToCheck.push(JSON.stringify(s.input));
+        }
+        if (s.outputSummary) corpusToCheck.push(s.outputSummary);
+        if (typeof s.output === "string") {
+          corpusToCheck.push(s.output);
+        }
+        if (s.output) {
+          corpusToCheck.push(JSON.stringify(s.output));
+        }
+        if (s.errorMessage) corpusToCheck.push(s.errorMessage);
+      }
+    }
+
+    for (const text of corpusToCheck) {
+      for (const { name, pattern } of RAW_SECRET_PATTERNS) {
+        if (pattern.test(text)) {
+          findings.push({
+            ruleId: "secret-leak-detected",
+            severity: "critical",
+            file: `${skillId}.md`,
+            line: 1,
+            message: `Hardcoded secret pattern detected (${name})`,
+            evidence: "[REDACTED_SECRET]",
+          });
+        }
+      }
+    }
+
+    const hasCritical = findings.some(
+      (f) => f.severity === "critical" || CRITICAL_RULE_IDS.has(f.ruleId),
+    );
+
+    if (hasCritical) {
+      const reason = findings
+        .filter((f) => f.severity === "critical" || CRITICAL_RULE_IDS.has(f.ruleId))
+        .map((f) => f.message)
+        .join("; ");
+      return {
+        allowed: false,
+        findings,
+        reason: `Security violation: ${reason}`,
+        error: "SECURITY_QUARANTINED",
+      };
+    }
+
+    // Gate 3: Semantic & Markdown Integrity Verification
+    try {
+      const parsed = parseEvolvingSkillMarkdown(markdown);
+      const procedure = parsed.verifiedProcedure ?? parsed.executionStrategy ?? [];
+      if (!parsed.version || (!parsed.slug && !parsed.id) || procedure.length === 0) {
+        return {
+          allowed: false,
+          findings,
+          reason:
+            "Missing mandatory skill structural sections (version, slug, or verified procedure)",
+          error: "GATE_3_INTEGRITY_FAILED",
+        };
+      }
+    } catch (err) {
+      return {
+        allowed: false,
+        findings,
+        reason: `Gate 3 integrity verification failed: ${err instanceof Error ? err.message : String(err)}`,
+        error: "GATE_3_INTEGRITY_FAILED",
+      };
+    }
+
+    return {
+      allowed: true,
+      findings: Object.freeze(findings),
+    };
+  }
+
+  // -------------------------------------------------------------------------
   // Skill Ingestion Pipeline (3-Gate Security & Evolution)
   // -------------------------------------------------------------------------
 
@@ -247,10 +426,52 @@ export class CorySkillSynthesizerService implements GatewayService {
     // Resolve existing skill candidate if updating an established procedure
     const existingSkill = this.findExistingSkillForTrajectory(trajectory);
 
+    if (existingSkill?.locked === true) {
+      return {
+        ok: false,
+        success: false,
+        status: "rejected",
+        reason: "Skill is locked against autonomous writes",
+        error: "SKILL_LOCKED",
+        skill: existingSkill,
+      };
+    }
+
+    // ─── Fetch Active Constraints from Cory Memory ──────────────────────────
+    const fetchedConstraints: string[] = [];
+    if (options?.syncConstraints !== false && this.coryBootstrap?.memoryStore) {
+      try {
+        const scope = {
+          workspaceId: trajectory.workspaceId ?? "default",
+          userScope: trajectory.userScope ?? "default",
+        };
+        const items = this.coryBootstrap.memoryStore.listLayerItems("constraint", scope);
+        for (const item of items) {
+          fetchedConstraints.push(item.content);
+        }
+      } catch {
+        // Memory constraint sync is non-fatal
+      }
+    }
+
+    const mergedConstraints = Array.from(
+      new Set([...(options?.activeConstraints ?? []), ...fetchedConstraints]),
+    );
+
     // ─── DOP Distillation ──────────────────────────────────────────────────
-    const targetStatus = options?.targetStatus ?? "canary";
+    const defaultStatus =
+      trajectory.trustZone === "operator" ||
+      (typeof trajectory.userScope === "string" &&
+        trajectory.userScope.toLowerCase().includes("operator"))
+        ? "canary"
+        : trajectory.trustZone === "authenticated"
+          ? "candidate"
+          : "canary";
+
+    const targetStatus = options?.targetStatus ?? defaultStatus;
     const distillResult = distillTrajectoryToSkillCandidate(trajectory, existingSkill, {
       initialStatus: targetStatus,
+      activeConstraints: mergedConstraints,
     });
 
     if (!distillResult.ok) {
@@ -268,129 +489,58 @@ export class CorySkillSynthesizerService implements GatewayService {
       candidate = Object.freeze({ ...candidate, status: options.targetStatus });
     }
 
-    // ─── Sync Active Constraints from Cory Memory ──────────────────────────
-    if (options?.syncConstraints !== false && this.coryBootstrap?.memoryStore) {
-      try {
-        const scope = {
-          workspaceId: trajectory.workspaceId ?? "default",
-          userScope: trajectory.userScope ?? "default",
-        };
-        const constraints = this.coryBootstrap.memoryStore.listLayerItems("constraint", scope);
-        if (constraints.length > 0) {
-          const mergedPitfalls = [...candidate.pitfallsConstraints];
-          for (const item of constraints) {
-            const rawContent = item.content.trim();
-            const formatted = rawContent.startsWith("[CONSTRAINT]")
-              ? rawContent
-              : `[CONSTRAINT] ${rawContent}`;
-            if (!mergedPitfalls.includes(formatted)) {
-              mergedPitfalls.push(formatted);
-            }
-          }
-          candidate = Object.freeze({
-            ...candidate,
-            pitfallsConstraints: Object.freeze(mergedPitfalls),
-          });
-        }
-      } catch {
-        // Memory constraint sync is non-fatal
-      }
-    }
-
     const markdownText = serializeEvolvingSkillMarkdown(candidate);
 
-    // ─── GATE 2: Security & Secret Scanning ─────────────────────────────────
-    const findings: SkillScanFinding[] = [...scanSource(markdownText, `${candidate.slug}.md`)];
+    // ─── GATE 2 & 3: 3-Gate Zero-Trust Security Boundary ─────────────────────
+    const securityCheck = this.evaluateSkillSecurity({
+      markdown: markdownText,
+      skillId: candidate.id,
+      trajectory,
+    });
 
-    // Scan raw trajectory step inputs/outputs
-    for (const step of trajectory.steps ?? []) {
-      const inputStr =
-        typeof step.input === "string" ? step.input : step.input ? JSON.stringify(step.input) : "";
-      if (inputStr) {
-        findings.push(...scanSource(inputStr, `step_${step.toolName}.js`));
+    if (!securityCheck.allowed) {
+      if (securityCheck.error === "ZONE_0_BLOCKED") {
+        return {
+          ok: false,
+          success: false,
+          status: "rejected",
+          reason: securityCheck.reason ?? "Zone 0 public trajectory rejected",
+          error: "ZONE_0_BLOCKED",
+        };
       }
 
-      const outputStr =
-        typeof step.output === "string"
-          ? step.output
-          : step.output
-            ? JSON.stringify(step.output)
-            : "";
-      if (outputStr) {
-        findings.push(...scanSource(outputStr, `step_${step.toolName}_out.js`));
+      if (securityCheck.error === "SECURITY_QUARANTINED") {
+        const quarantinedRecord: EvolvingSkillRecord = Object.freeze({
+          ...candidate,
+          status: "quarantined",
+        });
+
+        const quarantinedMarkdown = serializeEvolvingSkillMarkdown(quarantinedRecord);
+        const quarantinePath = path.join(this.quarantineDir, `${quarantinedRecord.id}.md`);
+        await fs.writeFile(quarantinePath, quarantinedMarkdown, "utf-8");
+
+        this.skills.set(quarantinedRecord.id, quarantinedRecord);
+        this.ledger.skills[quarantinedRecord.id] = quarantinedRecord.metrics;
+        await this.persistLedger();
+
+        return {
+          ok: false,
+          success: false,
+          status: "quarantined",
+          skill: quarantinedRecord,
+          reason: "Security violation: quarantined",
+          quarantineReason: securityCheck.reason,
+          findings: securityCheck.findings,
+          markdown: quarantinedMarkdown,
+        };
       }
-    }
 
-    // Check for hardcoded secrets
-    const corpusToCheck: string[] = [
-      markdownText,
-      ...trajectory.steps.map((s) => JSON.stringify(s.input ?? "")),
-      ...trajectory.steps.map((s) => JSON.stringify(s.output ?? "")),
-    ];
-
-    for (const text of corpusToCheck) {
-      for (const { name, pattern } of RAW_SECRET_PATTERNS) {
-        if (pattern.test(text)) {
-          findings.push({
-            ruleId: "secret-leak-detected",
-            severity: "critical",
-            file: `${candidate.slug}.md`,
-            line: 1,
-            message: `Hardcoded secret pattern detected (${name})`,
-            evidence: "[REDACTED_SECRET]",
-          });
-        }
-      }
-    }
-
-    const hasCritical = findings.some(
-      (f) => f.severity === "critical" || CRITICAL_RULE_IDS.has(f.ruleId),
-    );
-
-    if (hasCritical) {
-      const quarantinedRecord: EvolvingSkillRecord = Object.freeze({
-        ...candidate,
-        status: "quarantined",
-      });
-
-      const quarantinedMarkdown = serializeEvolvingSkillMarkdown(quarantinedRecord);
-      const quarantinePath = path.join(this.quarantineDir, `${quarantinedRecord.id}.md`);
-      await fs.writeFile(quarantinePath, quarantinedMarkdown, "utf-8");
-
-      this.skills.set(quarantinedRecord.id, quarantinedRecord);
-      this.ledger.skills[quarantinedRecord.id] = quarantinedRecord.metrics;
-      await this.persistLedger();
-
-      const quarantineReason = findings
-        .filter((f) => f.severity === "critical" || CRITICAL_RULE_IDS.has(f.ruleId))
-        .map((f) => f.message)
-        .join("; ");
-
-      return {
-        ok: false,
-        success: false,
-        status: "quarantined",
-        skill: quarantinedRecord,
-        reason: "Security violation: quarantined",
-        quarantineReason,
-        findings,
-        markdown: quarantinedMarkdown,
-      };
-    }
-
-    // ─── GATE 3: Semantic & Markdown Integrity Verification ────────────────
-    try {
-      const parsed = parseEvolvingSkillMarkdown(markdownText);
-      if (!parsed.version || !parsed.slug || parsed.executionStrategy.length === 0) {
-        throw new Error("Missing mandatory skill structural sections");
-      }
-    } catch (err) {
       return {
         ok: false,
         success: false,
         status: "rejected",
-        reason: `Gate 3 integrity verification failed: ${err instanceof Error ? err.message : String(err)}`,
-        error: "GATE_3_INTEGRITY_FAILED",
+        reason: securityCheck.reason ?? "Gate 3 integrity verification failed",
+        error: securityCheck.error ?? "GATE_3_INTEGRITY_FAILED",
       };
     }
 
@@ -414,7 +564,7 @@ export class CorySkillSynthesizerService implements GatewayService {
     this.ledger.skills[candidate.id] = candidate.metrics;
     await this.persistLedger();
 
-    // Index into Cory search index
+    // Index into Cory memory store AND search index
     this.indexSkill(candidate, markdownText);
 
     return {
@@ -427,12 +577,47 @@ export class CorySkillSynthesizerService implements GatewayService {
   }
 
   // -------------------------------------------------------------------------
+  // Lock Management
+  // -------------------------------------------------------------------------
+
+  public async setSkillLock(skillId: string, locked: boolean): Promise<EvolvingSkillRecord> {
+    const skill = this.skills.get(skillId);
+    if (!skill) {
+      throw new Error(`SKILL_NOT_FOUND: Skill with id '${skillId}' does not exist.`);
+    }
+
+    const now = Date.now();
+    const updatedSkill: EvolvingSkillRecord = Object.freeze({
+      ...skill,
+      locked: Boolean(locked),
+      updatedAt: now,
+      updatedAtMs: now,
+    });
+
+    this.skills.set(skillId, updatedSkill);
+    this.ledger.skills[skillId] = updatedSkill.metrics;
+    await this.persistLedger();
+
+    const markdown = serializeEvolvingSkillMarkdown(updatedSkill);
+    const learnedPath = path.join(this.learnedDir, `${skillId}.md`);
+    await fs.writeFile(learnedPath, markdown, "utf-8");
+
+    this.indexSkill(updatedSkill, markdown);
+
+    return updatedSkill;
+  }
+
+  // -------------------------------------------------------------------------
   // Outcome Telemetry & Bayesian Evolution
   // -------------------------------------------------------------------------
 
   public async recordSkillOutcome(
     skillId: string,
-    outcome: "success" | "failure",
+    outcome:
+      | { readonly succeeded: boolean; readonly turnsSaved?: number; readonly nowIso?: string }
+      | "success"
+      | "failure"
+      | boolean,
   ): Promise<EvolvingSkillRecord> {
     const skill = this.skills.get(skillId);
     if (!skill) {
@@ -442,37 +627,43 @@ export class CorySkillSynthesizerService implements GatewayService {
     const prevStatus = skill.status;
     const updatedMetrics = updateSkillFitnessMetrics(skill.metrics, outcome);
 
-    // Auto-promotion logic: canary -> verified_active
+    // Auto-promotion logic: canary/candidate/draft -> verified_active
     let newStatus = prevStatus;
     const minInvocations = this.options.autoPromoteMinInvocations ?? 3;
     const minWilson = this.options.autoPromoteWilsonScoreThreshold ?? 0.65;
+    const totalInvocations = updatedMetrics.invocations ?? updatedMetrics.totalInvocations ?? 0;
+    const consecutiveFailures = updatedMetrics.consecutiveFailures;
+    const failedInvocations = updatedMetrics.failures ?? updatedMetrics.failedInvocations ?? 0;
 
     if (
-      (prevStatus === "canary" || prevStatus === "draft") &&
-      updatedMetrics.totalInvocations >= minInvocations &&
+      (prevStatus === "canary" || prevStatus === "candidate" || prevStatus === "draft") &&
+      totalInvocations >= minInvocations &&
       (updatedMetrics.wilsonScore >= minWilson ||
-        (updatedMetrics.totalInvocations >= minInvocations &&
-          updatedMetrics.consecutiveFailures === 0 &&
-          updatedMetrics.failedInvocations === 0)) &&
-      updatedMetrics.consecutiveFailures === 0
+        (totalInvocations >= minInvocations &&
+          consecutiveFailures === 0 &&
+          failedInvocations === 0)) &&
+      consecutiveFailures === 0
     ) {
       newStatus = "verified_active";
     }
 
     // Auto-rollback regression circuit breaker
     const maxConsecutiveFailures = this.options.autoRollbackConsecutiveFailures ?? 2;
-    if (
-      updatedMetrics.consecutiveFailures >= maxConsecutiveFailures ||
-      shouldAutoRollbackSkill(updatedMetrics)
-    ) {
-      const rollbackRecord = await this.rollbackSkill(skillId);
-      return rollbackRecord;
+    if (consecutiveFailures >= maxConsecutiveFailures || shouldAutoRollbackSkill(updatedMetrics)) {
+      if (skill.locked === true) {
+        // Locked skills must NEVER auto-rollback or deprecate!
+      } else {
+        const rollbackRecord = await this.rollbackSkill(skillId);
+        return rollbackRecord;
+      }
     }
 
     const updatedSkill: EvolvingSkillRecord = Object.freeze({
       ...skill,
-      status: newStatus,
+      status: skill.locked === true ? skill.status : newStatus,
+      fitness: updatedMetrics,
       metrics: updatedMetrics,
+      updatedAt: Date.now(),
       updatedAtMs: Date.now(),
     });
 
@@ -493,10 +684,17 @@ export class CorySkillSynthesizerService implements GatewayService {
   // Atomic Rollback Mechanism
   // -------------------------------------------------------------------------
 
-  public async rollbackSkill(skillId: string): Promise<EvolvingSkillRecord> {
+  public async rollbackSkill(
+    skillId: string,
+    targetVersion?: string,
+  ): Promise<EvolvingSkillRecord> {
     const skill = this.skills.get(skillId);
     if (!skill) {
       throw new Error(`SKILL_NOT_FOUND: Skill with id '${skillId}' does not exist.`);
+    }
+
+    if (skill.locked === true) {
+      throw new Error(`SKILL_LOCKED: Cannot rollback locked skill '${skillId}'.`);
     }
 
     try {
@@ -510,21 +708,30 @@ export class CorySkillSynthesizerService implements GatewayService {
         });
 
       if (matchingRevisions.length > 0) {
-        // Sort descending by semver to pick latest prior snapshot
-        matchingRevisions.sort((a, b) => compareSemver(b.version, a.version));
-        const target = matchingRevisions[0]!;
+        let target = matchingRevisions.find((r) => r.version === targetVersion);
+        if (!target) {
+          // Sort descending by semver to pick latest prior snapshot
+          matchingRevisions.sort((a, b) => compareSemver(b.version, a.version));
+          target = matchingRevisions[0]!;
+        }
+
         const revisionPath = path.join(this.revisionsDir, target.filename);
         const restoredMarkdown = await fs.readFile(revisionPath, "utf-8");
         const restoredSkill = parseEvolvingSkillMarkdown(restoredMarkdown);
 
         // Reset consecutive failures counter on restored skill
+        const restoredMetrics: SkillFitnessMetrics = Object.freeze({
+          ...restoredSkill.metrics,
+          consecutiveFailures: 0,
+          lastVerifiedAt: new Date().toISOString(),
+          lastUpdatedMs: Date.now(),
+        });
+
         const cleanRestoredSkill: EvolvingSkillRecord = Object.freeze({
           ...restoredSkill,
-          metrics: Object.freeze({
-            ...restoredSkill.metrics,
-            consecutiveFailures: 0,
-            lastUpdatedMs: Date.now(),
-          }),
+          fitness: restoredMetrics,
+          metrics: restoredMetrics,
+          updatedAt: Date.now(),
           updatedAtMs: Date.now(),
         });
 
@@ -547,6 +754,7 @@ export class CorySkillSynthesizerService implements GatewayService {
     const deprecatedSkill: EvolvingSkillRecord = Object.freeze({
       ...skill,
       status: "deprecated",
+      updatedAt: Date.now(),
       updatedAtMs: Date.now(),
     });
 
@@ -574,9 +782,17 @@ export class CorySkillSynthesizerService implements GatewayService {
   // Sub-2ms Retrieval & Prompt Assembly
   // -------------------------------------------------------------------------
 
-  public async matchSkillsForQuery(query: string, limit = 5): Promise<EvolvingSkillRecord[]> {
+  public async matchSkillsForQuery(
+    query: string,
+    workspaceIdOrLimit?: string | number,
+    topK?: number,
+  ): Promise<EvolvingSkillRecord[]> {
     const trimmed = query.trim().toLowerCase();
     if (!trimmed) return [];
+
+    const limit = typeof workspaceIdOrLimit === "number" ? workspaceIdOrLimit : (topK ?? 5);
+
+    const targetWorkspace = typeof workspaceIdOrLimit === "string" ? workspaceIdOrLimit : undefined;
 
     const queryTokens = trimmed.split(/\s+/).filter((t) => t.length > 1);
     const candidateScores = new Map<string, number>();
@@ -584,6 +800,15 @@ export class CorySkillSynthesizerService implements GatewayService {
     // Fast-path in-memory matching (< 1ms)
     for (const skill of this.skills.values()) {
       if (skill.status !== "verified_active" && skill.status !== "canary") {
+        continue;
+      }
+
+      if (
+        targetWorkspace &&
+        skill.workspaceId &&
+        skill.workspaceId !== targetWorkspace &&
+        skill.workspaceId !== "default"
+      ) {
         continue;
       }
 
@@ -598,7 +823,8 @@ export class CorySkillSynthesizerService implements GatewayService {
       }
 
       // 2. Token overlap in title, slug, and description
-      const corpus = `${skill.title} ${skill.slug} ${skill.description}`.toLowerCase();
+      const corpus =
+        `${skill.title ?? skill.name} ${skill.slug} ${skill.description}`.toLowerCase();
       for (const token of queryTokens) {
         if (corpus.includes(token)) {
           score += 2;
@@ -619,7 +845,7 @@ export class CorySkillSynthesizerService implements GatewayService {
         const searchResults = this.coryBootstrap.searchIndex.searchLexical({
           query: trimmed,
           userScope: "default",
-          workspaceId: "default",
+          workspaceId: targetWorkspace ?? "default",
           layers: ["durable"],
           topK: limit * 2,
         });
@@ -646,8 +872,20 @@ export class CorySkillSynthesizerService implements GatewayService {
     return sorted.slice(0, limit);
   }
 
-  public async buildActiveSkillsPrompt(skills?: EvolvingSkillRecord[]): Promise<string> {
-    const targetSkills = skills ?? (await this.listSkills({ status: "verified_active" }));
+  public async buildActiveSkillsPrompt(
+    queryOrSkills?: string | EvolvingSkillRecord[],
+    workspaceId?: string,
+    topK?: number,
+  ): Promise<string> {
+    let targetSkills: EvolvingSkillRecord[];
+
+    if (typeof queryOrSkills === "string") {
+      targetSkills = await this.matchSkillsForQuery(queryOrSkills, workspaceId, topK);
+    } else if (Array.isArray(queryOrSkills)) {
+      targetSkills = queryOrSkills;
+    } else {
+      targetSkills = await this.listSkills({ status: "verified_active" });
+    }
 
     if (!targetSkills || targetSkills.length === 0) {
       return "";
@@ -661,18 +899,21 @@ export class CorySkillSynthesizerService implements GatewayService {
     ];
 
     for (const skill of targetSkills) {
-      lines.push(`## Skill: ${skill.title} (v${skill.version}, ${skill.status})`);
+      const title = skill.name ?? skill.title ?? "Evolving Skill";
+      lines.push(`## Skill: ${title} (v${skill.version}, ${skill.status})`);
       if (skill.triggers.length > 0) {
         lines.push(`Triggers: ${skill.triggers.join(", ")}`);
       }
       lines.push(skill.description);
       lines.push("");
       lines.push("### Verified Procedure");
-      lines.push(skill.executionStrategy.join("\n"));
+      const procedure = skill.verifiedProcedure ?? skill.executionStrategy ?? [];
+      lines.push(procedure.join("\n"));
       lines.push("");
       lines.push("### Pitfalls & Active Constraints");
-      if (skill.pitfallsConstraints.length > 0) {
-        for (const p of skill.pitfallsConstraints) {
+      const pitfalls = skill.pitfallsAndConstraints ?? skill.pitfallsConstraints ?? [];
+      if (pitfalls.length > 0) {
+        for (const p of pitfalls) {
           lines.push(`- ${p}`);
         }
       } else {
@@ -680,8 +921,10 @@ export class CorySkillSynthesizerService implements GatewayService {
       }
       lines.push("");
       lines.push("### Verification Standard");
-      if (skill.verificationCriteria.length > 0) {
-        for (const v of skill.verificationCriteria) {
+      const criteria =
+        skill.verificationCriteria ?? (skill.verificationGate ? [skill.verificationGate] : []);
+      if (criteria.length > 0) {
+        for (const v of criteria) {
           lines.push(`- ${v}`);
         }
       } else {
@@ -694,6 +937,73 @@ export class CorySkillSynthesizerService implements GatewayService {
 
     lines.push("</learned_skills>");
     return lines.join("\n").trim();
+  }
+
+  // -------------------------------------------------------------------------
+  // Ahead-of-Time Background Compaction
+  // -------------------------------------------------------------------------
+
+  public async prepareAheadCompaction(
+    options?: PrepareAheadCompactionOptions,
+  ): Promise<PrepareAheadCompactionResult> {
+    const maxRevisions = options?.maxRevisionsPerSkill ?? 5;
+    let prunedRevisionsCount = 0;
+
+    try {
+      const entries = await fs.readdir(this.revisionsDir);
+      const skillRevisions = new Map<
+        string,
+        Array<{ filename: string; version: string; fullPath: string }>
+      >();
+
+      for (const entry of entries) {
+        if (!entry.endsWith(".md") || !entry.includes("@")) {
+          continue;
+        }
+        const atIdx = entry.lastIndexOf("@");
+        const skillId = entry.slice(0, atIdx);
+        const version = entry.slice(atIdx + 1, -3);
+        const fullPath = path.join(this.revisionsDir, entry);
+
+        let list = skillRevisions.get(skillId);
+        if (!list) {
+          list = [];
+          skillRevisions.set(skillId, list);
+        }
+        list.push({ filename: entry, version, fullPath });
+      }
+
+      for (const revisions of skillRevisions.values()) {
+        if (revisions.length > maxRevisions) {
+          // Sort descending by semver: latest versions first
+          revisions.sort((a, b) => compareSemver(b.version, a.version));
+          const toPrune = revisions.slice(maxRevisions);
+          for (const item of toPrune) {
+            try {
+              await fs.unlink(item.fullPath);
+              prunedRevisionsCount++;
+            } catch {
+              // Non-fatal unlinking error
+            }
+          }
+        }
+      }
+    } catch {
+      // Revisions reading error is non-fatal
+    }
+
+    await this.persistLedger();
+
+    const activeSkillsPrompt = await this.buildActiveSkillsPrompt(undefined, options?.workspaceId);
+    const precomputedPromptLength = activeSkillsPrompt.length;
+    const compactedSkillsCount = this.skills.size;
+
+    return {
+      compactedSkillsCount,
+      prunedRevisionsCount,
+      precomputedPromptLength,
+      activeSkillsPrompt,
+    };
   }
 
   // -------------------------------------------------------------------------
@@ -724,9 +1034,12 @@ export class CorySkillSynthesizerService implements GatewayService {
     if (trajectory.id && this.skills.has(trajectory.id)) {
       return this.skills.get(trajectory.id);
     }
-    const cleanGoal = trajectory.userGoal.trim().toLowerCase();
+    const rawGoal = (trajectory.taskGoal ?? trajectory.userGoal ?? "").trim().toLowerCase();
+    if (!rawGoal) return undefined;
+
     for (const skill of this.skills.values()) {
-      if (skill.title.toLowerCase() === cleanGoal || skill.slug === cleanGoal) {
+      const skillTitle = (skill.name ?? skill.title ?? "").toLowerCase();
+      if (skillTitle === rawGoal || skill.slug === rawGoal) {
         return skill;
       }
     }
@@ -743,21 +1056,43 @@ export class CorySkillSynthesizerService implements GatewayService {
   }
 
   private indexSkill(skill: EvolvingSkillRecord, markdown?: string): void {
-    if (!this.coryBootstrap?.searchIndex) return;
-    try {
-      const md = markdown ?? serializeEvolvingSkillMarkdown(skill);
-      this.coryBootstrap.searchIndex.upsertItem({
-        id: `skill:${skill.id}`,
-        layer: "durable",
-        content: `${skill.title}\n${skill.description}\n${skill.triggers.join(" ")}\n${skill.executionStrategy.join("\n")}\n${md}`,
-        userScope: "default",
-        workspaceId: "default",
-        createdAt: skill.createdAtMs,
-        updatedAt: skill.updatedAtMs,
-        tags: ["learned-skill", skill.status, ...skill.triggers],
-      });
-    } catch {
-      // Search index upsert is non-fatal
+    const md = markdown ?? serializeEvolvingSkillMarkdown(skill);
+    const title = skill.name ?? skill.title ?? "Evolving Skill";
+    const procedure = (skill.verifiedProcedure ?? skill.executionStrategy ?? []).join("\n");
+
+    // Index into SQLite WAL BM25 search index
+    if (this.coryBootstrap?.searchIndex) {
+      try {
+        this.coryBootstrap.searchIndex.upsertItem({
+          id: `skill:${skill.id}`,
+          layer: "durable",
+          content: `${title}\n${skill.description}\n${skill.triggers.join(" ")}\n${procedure}\n${md}`,
+          userScope: "default",
+          workspaceId: skill.workspaceId ?? "default",
+          createdAt: skill.createdAtMs ?? Date.now(),
+          updatedAt: skill.updatedAt ?? skill.updatedAtMs ?? Date.now(),
+          tags: ["learned-skill", skill.status, ...skill.triggers],
+        });
+      } catch {
+        // Search index upsert is non-fatal
+      }
+    }
+
+    // Index into Cory durable memory store
+    if (this.coryBootstrap?.memoryStore) {
+      try {
+        this.coryBootstrap.memoryStore.remember({
+          layer: "durable",
+          content: `[LEARNED_SKILL] ${title} (v${skill.version}): ${skill.description}`,
+          scope: {
+            workspaceId: skill.workspaceId ?? "default",
+            userScope: "default",
+          },
+          tags: ["skill", skill.id, skill.status],
+        });
+      } catch {
+        // Memory store remember is non-fatal
+      }
     }
   }
 }

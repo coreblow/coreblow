@@ -1,7 +1,7 @@
 {
   "name": "@coreblow/matrix",
   "type": "module",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "CoreBlow Matrix channel plugin",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,7 +10,10 @@
     "test": "vitest run",
     "lint": "eslint src/"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@matrix-org/matrix-sdk-crypto-nodejs": "^0.5.1",
+    "matrix-js-sdk": "^41.3.0"
+  },
   "devDependencies": {
     "typescript": "^5.4.0",
     "vitest": "^4.1.4"
@@ -33,7 +36,8 @@
     "install": {
       "npmSpec": "@coreblow/matrix",
       "localPath": "extensions/matrix",
-      "defaultChoice": "npm",
+      "defaultChoice": "corehub",
+      "corehubSpec": "corehub:@coreblow/matrix",
       "minHostVersion": ">=1.0.0"
     }
   }

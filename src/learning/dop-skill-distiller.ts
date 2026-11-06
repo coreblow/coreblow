@@ -13,77 +13,126 @@ import YAML from "yaml";
 
 /**
  * 5-state lifecycle model governing skill evolution and safety boundaries.
+ * Includes "candidate", "canary", "verified_active", "deprecated", "quarantined",
+ * and supports "draft" as an accepted alias.
  */
 export type SkillLifecycleStatus =
-  | "quarantined"
-  | "draft"
+  | "candidate"
   | "canary"
   | "verified_active"
-  | "deprecated";
+  | "deprecated"
+  | "quarantined"
+  | "draft";
 
 /**
  * Execution trace of an individual tool call within an agent turn.
+ * Native R1 fields + optional dual-compatibility fields.
  */
 export interface TrajectoryToolStep {
   readonly toolName: string;
+  readonly argsSummary?: string;
+  readonly succeeded?: boolean;
+  readonly errorMessage?: string;
+  readonly outputSummary?: string;
+  readonly durationMs?: number;
+
+  // Dual-compatibility & legacy fields
   readonly input?: unknown;
   readonly output?: unknown;
-  readonly isError: boolean;
+  readonly isError?: boolean;
   readonly executionDurationMs?: number;
   readonly errorCode?: string;
-  readonly succeeded?: boolean;
 }
 
 /**
  * Complete immutable trace of an agent turn submitted for skill distillation.
+ * Native R1 fields + optional dual-compatibility fields.
  */
 export interface TurnTrajectoryRecord {
-  readonly id: string;
-  readonly userGoal: string;
-  readonly steps: readonly TrajectoryToolStep[];
-  readonly finalOutcome: "success" | "failure" | "aborted" | "partial" | boolean;
-  readonly trustZone?: "internal" | "trusted_partner" | "public" | "operator" | "authenticated";
-  readonly isPublicChannel?: boolean;
-  readonly userCorrectionText?: string;
-  readonly workspaceId?: string;
-  readonly userScope?: string;
+  // R1 native fields
   readonly sessionId?: string;
+  readonly userScope?: string;
+  readonly workspaceId?: string;
+  readonly trustZone?: "operator" | "authenticated" | "public" | "internal" | "trusted_partner";
+  readonly isPublicChannel?: boolean;
+  readonly taskGoal?: string;
+  readonly userCorrection?: string;
+  readonly toolSteps?: readonly TrajectoryToolStep[];
+  readonly verificationPassed?: boolean;
+  readonly verificationCommand?: string;
+
+  // Dual-compatibility & legacy fields
+  readonly id?: string;
+  readonly userGoal?: string;
+  readonly steps?: readonly TrajectoryToolStep[];
+  readonly finalOutcome?: "success" | "failure" | "aborted" | "partial" | boolean;
+  readonly userCorrectionText?: string;
   readonly timestampMs?: number;
 }
 
 /**
  * Bayesian statistical telemetry associated with an evolving skill.
+ * Native R1 fields + dual-compatibility aliases.
  */
 export interface SkillFitnessMetrics {
+  // R1 native fields
+  readonly invocations: number;
+  readonly successes: number;
+  readonly failures: number;
+  readonly consecutiveFailures: number;
+  readonly wilsonScore: number;
+  readonly avgTurnsSaved: number;
+  readonly lastVerifiedAt: string;
+
+  // Dual-compatibility & legacy aliases
   readonly totalInvocations: number;
   readonly successfulInvocations: number;
   readonly failedInvocations: number;
-  readonly consecutiveFailures: number;
-  readonly wilsonScore: number;
   readonly lastUpdatedMs: number;
 }
 
 /**
  * Canonical evolving skill record representation in memory and on disk.
+ * Native R1 fields + dual-compatibility aliases.
  */
 export interface EvolvingSkillRecord {
   readonly id: string;
+  readonly name: string;
+  readonly title: string;
   readonly slug: string;
   readonly version: string;
-  readonly title: string;
   readonly description: string;
   readonly status: SkillLifecycleStatus;
+  readonly category: string;
   readonly triggers: readonly string[];
+  readonly tools: readonly string[];
+  readonly whenToUse: string;
+  readonly verifiedProcedure: readonly string[];
   readonly executionStrategy: readonly string[];
+  readonly pitfallsAndConstraints: readonly string[];
   readonly pitfallsConstraints: readonly string[];
+  readonly verificationGate: string;
   readonly verificationCriteria: readonly string[];
+  readonly fitness: SkillFitnessMetrics;
   readonly metrics: SkillFitnessMetrics;
+  readonly workspaceId: string;
   readonly createdAtMs: number;
+  readonly updatedAt: number;
   readonly updatedAtMs: number;
+  readonly locked?: boolean;
 }
 
 /**
- * Result returned by distillTrajectoryToSkillCandidate.
+ * Input parameter shape for R1 distillTrajectoryToSkillCandidate.
+ */
+export interface DistillSkillCandidateParams {
+  readonly trajectory: TurnTrajectoryRecord;
+  readonly activeConstraints?: readonly string[];
+  readonly existingSkill?: EvolvingSkillRecord;
+}
+
+/**
+ * Result returned by distillTrajectoryToSkillCandidate in legacy positional mode.
  */
 export type DistillTrajectoryResult =
   | { readonly ok: true; readonly candidate: EvolvingSkillRecord }
@@ -185,31 +234,37 @@ export function isZone0PublicTrajectory(
  *
  * Penalizes small sample sizes gracefully, ensuring a single fluke doesn't
  * skew confidence scores inappropriately.
+ * Returns 0 if invocations === 0, rounded to 4 decimals.
+ * If 3rd argument is < 1 (e.g. 0.95), maps confidence level to z. Default z = 1.28.
  */
 export function computeWilsonLowerBound(
   successes: number,
-  total: number,
-  confidence = 0.95,
+  invocations: number,
+  z: number = 1.28,
 ): number {
-  if (total <= 0 || successes <= 0) {
+  if (invocations <= 0 || successes <= 0) {
     return 0;
   }
-  const n = total;
-  const s = Math.min(successes, total);
+  const n = invocations;
+  const s = Math.min(successes, invocations);
   const pHat = s / n;
 
-  let z = 1.95996;
-  if (confidence === 0.99) z = 2.57583;
-  else if (confidence === 0.9) z = 1.64485;
-  else if (confidence === 0.85) z = 1.43953;
-  else if (confidence === 0.8) z = 1.28155;
-  else if (confidence === 0.7) z = 1.03643;
+  let zVal = z;
+  if (z < 1) {
+    if (z === 0.99) zVal = 2.57583;
+    else if (z === 0.95) zVal = 1.95996;
+    else if (z === 0.9) zVal = 1.64485;
+    else if (z === 0.85) zVal = 1.43953;
+    else if (z === 0.8) zVal = 1.28155;
+    else if (z === 0.7) zVal = 1.03643;
+    else zVal = 1.95996;
+  }
 
-  const z2 = z * z;
+  const z2 = zVal * zVal;
   const denominator = 1 + z2 / n;
   const centerAdjustment = pHat + z2 / (2 * n);
   const varianceTerm = (pHat * (1 - pHat)) / n + z2 / (4 * n * n);
-  const marginOfError = z * Math.sqrt(Math.max(0, varianceTerm));
+  const marginOfError = zVal * Math.sqrt(Math.max(0, varianceTerm));
 
   const lowerBound = (centerAdjustment - marginOfError) / denominator;
   return Math.max(0, Math.min(1, Number(lowerBound.toFixed(4))));
@@ -218,55 +273,148 @@ export function computeWilsonLowerBound(
 /**
  * Pure function that calculates updated fitness metrics for an evolving skill
  * given a new invocation outcome.
+ *
+ * Dual-compatible: accepts { succeeded, turnsSaved?, nowIso? } or "success" | "failure" | boolean.
  */
 export function updateSkillFitnessMetrics(
-  current: SkillFitnessMetrics,
-  outcome: "success" | "failure" | boolean,
+  current: SkillFitnessMetrics | Partial<SkillFitnessMetrics>,
+  outcome:
+    | { readonly succeeded: boolean; readonly turnsSaved?: number; readonly nowIso?: string }
+    | "success"
+    | "failure"
+    | boolean,
   timestampMs?: number,
 ): SkillFitnessMetrics {
-  const isSuccess = outcome === "success" || outcome === true;
-  const totalInvocations = current.totalInvocations + 1;
-  const successfulInvocations = current.successfulInvocations + (isSuccess ? 1 : 0);
-  const failedInvocations = current.failedInvocations + (isSuccess ? 0 : 1);
-  const consecutiveFailures = isSuccess ? 0 : current.consecutiveFailures + 1;
-  const wilsonScore = computeWilsonLowerBound(successfulInvocations, totalInvocations, 0.95);
+  const isSuccess =
+    typeof outcome === "object" && outcome !== null
+      ? outcome.succeeded === true
+      : outcome === "success" || outcome === true;
+
+  const turnsSaved =
+    typeof outcome === "object" && outcome !== null && typeof outcome.turnsSaved === "number"
+      ? outcome.turnsSaved
+      : undefined;
+
+  const currentTotal = current.invocations ?? current.totalInvocations ?? 0;
+  const currentSuccesses = current.successes ?? current.successfulInvocations ?? 0;
+  const currentFailures = current.failures ?? current.failedInvocations ?? 0;
+  const currentConsecutiveFailures = current.consecutiveFailures ?? 0;
+  const currentAvgTurns = current.avgTurnsSaved ?? 0;
+
+  const invocations = currentTotal + 1;
+  const successes = currentSuccesses + (isSuccess ? 1 : 0);
+  const failures = currentFailures + (isSuccess ? 0 : 1);
+  const consecutiveFailures = isSuccess ? 0 : currentConsecutiveFailures + 1;
+  const wilsonScore = computeWilsonLowerBound(successes, invocations, 1.28);
+
+  const avgTurnsSaved =
+    turnsSaved !== undefined
+      ? currentTotal === 0
+        ? turnsSaved
+        : Number(((currentAvgTurns * currentTotal + turnsSaved) / invocations).toFixed(2))
+      : currentAvgTurns;
+
+  const nowIso =
+    typeof outcome === "object" && outcome !== null && outcome.nowIso
+      ? outcome.nowIso
+      : timestampMs !== undefined
+        ? new Date(timestampMs).toISOString()
+        : new Date().toISOString();
+
+  const nowMs =
+    timestampMs !== undefined
+      ? timestampMs
+      : typeof outcome === "object" && outcome !== null && outcome.nowIso
+        ? Date.parse(outcome.nowIso)
+        : Date.now();
 
   return Object.freeze({
-    totalInvocations,
-    successfulInvocations,
-    failedInvocations,
+    invocations,
+    successes,
+    failures,
     consecutiveFailures,
     wilsonScore,
-    lastUpdatedMs: timestampMs ?? Date.now(),
+    avgTurnsSaved,
+    lastVerifiedAt: nowIso,
+    totalInvocations: invocations,
+    successfulInvocations: successes,
+    failedInvocations: failures,
+    lastUpdatedMs: nowMs,
   });
 }
 
 /**
  * Pure circuit-breaker evaluator determining if a skill should be rolled back
- * due to runtime performance regression (consecutive failures >= 2).
+ * due to runtime performance regression (consecutiveFailures >= 2 OR (invocations >= 3 && wilsonScore < 0.35)).
  */
 export function shouldAutoRollbackSkill(metrics: SkillFitnessMetrics): boolean {
-  return metrics.consecutiveFailures >= 2;
+  if (metrics.consecutiveFailures >= 2) {
+    return true;
+  }
+  const total = metrics.invocations ?? metrics.totalInvocations ?? 0;
+  if (total >= 3 && metrics.wilsonScore < 0.35) {
+    return true;
+  }
+  return false;
 }
 
 /**
  * Distills an immutable turn trajectory into an evolving skill candidate.
  *
- * Zero-Trust Gate 1: Trajectories marked with trustZone === "public" or
- * isPublicChannel === true are immediately rejected.
- *
- * Qualification Criteria:
- *   a) Overcome Friction: At least one step with isError === true followed later
- *      by a step with isError === false AND finalOutcome === "success", OR
- *   b) Explicit User Correction: userCorrectionText is present and >= 16 chars.
+ * Supports both R1 object parameter:
+ *   distillTrajectoryToSkillCandidate({ trajectory, activeConstraints?, existingSkill? })
+ * and legacy positional parameters:
+ *   distillTrajectoryToSkillCandidate(trajectory, existingSkill?, options?)
  */
+export function distillTrajectoryToSkillCandidate(
+  params: DistillSkillCandidateParams,
+): EvolvingSkillRecord | null;
 export function distillTrajectoryToSkillCandidate(
   trajectory: TurnTrajectoryRecord,
   existingSkill?: EvolvingSkillRecord,
-  options?: { initialStatus?: SkillLifecycleStatus; timestampMs?: number },
-): DistillTrajectoryResult {
+  options?: {
+    readonly initialStatus?: SkillLifecycleStatus;
+    readonly timestampMs?: number;
+    readonly activeConstraints?: readonly string[];
+  },
+): DistillTrajectoryResult;
+export function distillTrajectoryToSkillCandidate(
+  paramOrTrajectory: DistillSkillCandidateParams | TurnTrajectoryRecord,
+  legacyExistingSkill?: EvolvingSkillRecord,
+  legacyOptions?: {
+    readonly initialStatus?: SkillLifecycleStatus;
+    readonly timestampMs?: number;
+    readonly activeConstraints?: readonly string[];
+  },
+): EvolvingSkillRecord | null | DistillTrajectoryResult {
+  const isObjectParam = Boolean(
+    paramOrTrajectory &&
+    typeof paramOrTrajectory === "object" &&
+    "trajectory" in paramOrTrajectory &&
+    typeof (paramOrTrajectory as { trajectory?: unknown }).trajectory === "object" &&
+    !("steps" in paramOrTrajectory) &&
+    !("toolSteps" in paramOrTrajectory) &&
+    !("userGoal" in paramOrTrajectory) &&
+    !("taskGoal" in paramOrTrajectory),
+  );
+
+  const trajectory: TurnTrajectoryRecord = isObjectParam
+    ? (paramOrTrajectory as DistillSkillCandidateParams).trajectory
+    : (paramOrTrajectory as TurnTrajectoryRecord);
+
+  const existingSkill: EvolvingSkillRecord | undefined = isObjectParam
+    ? (paramOrTrajectory as DistillSkillCandidateParams).existingSkill
+    : legacyExistingSkill;
+
+  const activeConstraints: readonly string[] | undefined = isObjectParam
+    ? (paramOrTrajectory as DistillSkillCandidateParams).activeConstraints
+    : legacyOptions?.activeConstraints;
+
   // Gate 1: Zero-Trust Public Channel Rejection
   if (isZone0PublicTrajectory(trajectory)) {
+    if (isObjectParam) {
+      return null;
+    }
     return {
       ok: false,
       reason: "Zone 0 public trajectory rejected",
@@ -275,7 +423,7 @@ export function distillTrajectoryToSkillCandidate(
   }
 
   // Trajectory Qualification Check
-  const steps = trajectory.steps ?? [];
+  const steps = trajectory.toolSteps ?? trajectory.steps ?? [];
   let hasFailedStep = false;
   let hasRecoveryStepAfterFailure = false;
   let lastStepFailed = false;
@@ -295,14 +443,23 @@ export function distillTrajectoryToSkillCandidate(
   const normalizedOutcome = String(trajectory.finalOutcome ?? "")
     .trim()
     .toLowerCase();
-  const isFinalSuccess = normalizedOutcome === "success" || trajectory.finalOutcome === true;
-  const pathAQualified =
-    hasFailedStep && hasRecoveryStepAfterFailure && !lastStepFailed && isFinalSuccess;
+  const isFinalSuccess =
+    trajectory.verificationPassed === true ||
+    normalizedOutcome === "success" ||
+    trajectory.finalOutcome === true;
 
-  const correctionText = (trajectory.userCorrectionText ?? "").trim();
+  const frictionRecovered = hasFailedStep && hasRecoveryStepAfterFailure && !lastStepFailed;
+  const hasThreeOrMoreSteps = steps.length >= 3;
+
+  const pathAQualified = isFinalSuccess && (frictionRecovered || hasThreeOrMoreSteps);
+
+  const correctionText = (trajectory.userCorrection ?? trajectory.userCorrectionText ?? "").trim();
   const pathBQualified = correctionText.length >= 16;
 
   if (!pathAQualified && !pathBQualified) {
+    if (isObjectParam) {
+      return null;
+    }
     return {
       ok: false,
       reason: "Trajectory not qualified for distillation",
@@ -310,8 +467,12 @@ export function distillTrajectoryToSkillCandidate(
     };
   }
 
-  // Slug derivation
-  const rawGoal = trajectory.userGoal.trim() || trajectory.id || "unnamed-evolving-skill";
+  // Slug & Goal derivation
+  const rawGoal =
+    (trajectory.taskGoal ?? trajectory.userGoal ?? "").trim() ||
+    trajectory.id ||
+    (trajectory.sessionId ? `session-${trajectory.sessionId}` : "unnamed-evolving-skill");
+
   const slug = existingSkill?.slug ?? (normalizeHyphenSlug(rawGoal) || "unnamed-evolving-skill");
   const id = existingSkill?.id ?? `skill_${slug}`;
 
@@ -324,12 +485,18 @@ export function distillTrajectoryToSkillCandidate(
     version = `${major}.${minor}.0`;
   }
 
-  // Synthesize Execution Strategy
-  const successfulSteps = steps.filter((s) => s.isError === false && s.succeeded !== false);
+  // Synthesize Execution Strategy / Verified Procedure
+  const successfulSteps = steps.filter(
+    (s) => (s.succeeded === true || s.isError === false) && s.isError !== true && s.succeeded !== false,
+  );
   const executionStrategy: string[] =
     successfulSteps.length > 0
       ? successfulSteps.map((s, idx) => {
-          const inputPart = s.input ? ` with: ${JSON.stringify(s.input)}` : "";
+          const inputPart = s.argsSummary
+            ? ` with: ${s.argsSummary}`
+            : s.input
+              ? ` with: ${JSON.stringify(s.input)}`
+              : "";
           return `${idx + 1}. Execute ${s.toolName}${inputPart}`;
         })
       : [`1. Execute verified recovery sequence for "${rawGoal}".`];
@@ -339,33 +506,50 @@ export function distillTrajectoryToSkillCandidate(
   for (const step of steps) {
     if (step.isError === true || step.succeeded === false) {
       const errOut =
-        typeof step.output === "string"
-          ? step.output
-          : step.output
-            ? JSON.stringify(step.output)
-            : "unhandled error";
+        step.errorMessage ??
+        (typeof step.outputSummary === "string"
+          ? step.outputSummary
+          : typeof step.output === "string"
+            ? step.output
+            : step.output
+              ? JSON.stringify(step.output)
+              : "unhandled error");
       pitfalls.push(`Avoid tool failure in ${step.toolName}: ${step.errorCode ?? errOut}`);
     }
   }
   if (pathBQualified) {
     pitfalls.push(`User Correction: ${correctionText}`);
   }
-  if (existingSkill?.pitfallsConstraints) {
-    for (const p of existingSkill.pitfallsConstraints) {
+  if (activeConstraints && activeConstraints.length > 0) {
+    for (const item of activeConstraints) {
+      const rawContent = item.trim();
+      const formatted = rawContent.startsWith("[CONSTRAINT]")
+        ? rawContent
+        : `[CONSTRAINT] ${rawContent}`;
+      if (!pitfalls.includes(formatted)) {
+        pitfalls.push(formatted);
+      }
+    }
+  }
+  const existingPitfalls =
+    existingSkill?.pitfallsAndConstraints ?? existingSkill?.pitfallsConstraints;
+  if (existingPitfalls) {
+    for (const p of existingPitfalls) {
       if (!pitfalls.includes(p)) {
         pitfalls.push(p);
       }
     }
   }
 
-  // Synthesize Verification Standard
-  const verificationCriteria: string[] = [
-    isFinalSuccess
+  // Synthesize Verification Gate / Verification Criteria
+  const verificationGate =
+    trajectory.verificationCommand ??
+    (isFinalSuccess
       ? "Confirm exit code 0 and parse the test/verification summary before reporting completion."
-      : "Verify execution completes with 0 errors and clean output.",
-  ];
+      : "Verify execution completes with 0 errors and clean output.");
+  const verificationCriteria: string[] = [verificationGate];
 
-  // Derive Triggers
+  // Derive Triggers & Tools
   const rawWords = rawGoal
     .toLowerCase()
     .split(/\s+/)
@@ -374,33 +558,76 @@ export function distillTrajectoryToSkillCandidate(
   const candidateTriggers = Array.from(new Set([slug, ...rawWords.slice(0, 4)]));
   const triggers = existingSkill?.triggers ?? Object.freeze(candidateTriggers);
 
-  const now = options?.timestampMs ?? trajectory.timestampMs ?? Date.now();
-  const status: SkillLifecycleStatus = options?.initialStatus ?? existingSkill?.status ?? "canary";
+  const extractedTools = Array.from(new Set(steps.map((s) => s.toolName).filter(Boolean)));
+  const tools = existingSkill?.tools ?? Object.freeze(extractedTools);
+
+  const now = legacyOptions?.timestampMs ?? trajectory.timestampMs ?? Date.now();
+  const nowIso = new Date(now).toISOString();
+
+  const isOperator =
+    trajectory.trustZone === "operator" ||
+    (typeof trajectory.userScope === "string" &&
+      trajectory.userScope.toLowerCase().includes("operator"));
+
+  const defaultStatus: SkillLifecycleStatus = isOperator
+    ? "canary"
+    : trajectory.trustZone === "authenticated"
+      ? "candidate"
+      : "canary";
+
+  const status: SkillLifecycleStatus =
+    legacyOptions?.initialStatus ?? existingSkill?.status ?? defaultStatus;
 
   const metrics: SkillFitnessMetrics = Object.freeze({
+    invocations: 0,
+    successes: 0,
+    failures: 0,
+    consecutiveFailures: 0,
+    wilsonScore: 0,
+    avgTurnsSaved: 0,
+    lastVerifiedAt: nowIso,
     totalInvocations: 0,
     successfulInvocations: 0,
     failedInvocations: 0,
-    consecutiveFailures: 0,
-    wilsonScore: 0,
     lastUpdatedMs: now,
   });
 
+  const title = existingSkill?.name ?? existingSkill?.title ?? rawGoal;
+  const description =
+    existingSkill?.description ?? `Auto-synthesized evolving skill for: ${rawGoal}`;
+  const whenToUse = existingSkill?.whenToUse ?? description;
+  const workspaceId = trajectory.workspaceId ?? existingSkill?.workspaceId ?? "default";
+
   const candidate: EvolvingSkillRecord = Object.freeze({
     id,
+    name: title,
+    title,
     slug,
     version,
-    title: existingSkill?.title ?? rawGoal,
-    description: existingSkill?.description ?? `Auto-synthesized evolving skill for: ${rawGoal}`,
+    description,
     status,
+    category: existingSkill?.category ?? "workflow",
     triggers,
+    tools,
+    whenToUse,
+    verifiedProcedure: Object.freeze(executionStrategy),
     executionStrategy: Object.freeze(executionStrategy),
+    pitfallsAndConstraints: Object.freeze(pitfalls),
     pitfallsConstraints: Object.freeze(pitfalls),
+    verificationGate,
     verificationCriteria: Object.freeze(verificationCriteria),
+    fitness: metrics,
     metrics,
+    workspaceId,
     createdAtMs: existingSkill?.createdAtMs ?? now,
+    updatedAt: now,
     updatedAtMs: now,
+    locked: existingSkill?.locked ?? false,
   });
+
+  if (isObjectParam) {
+    return candidate;
+  }
 
   return {
     ok: true,
@@ -416,53 +643,99 @@ export function distillTrajectoryToSkillCandidate(
  * Serializes an EvolvingSkillRecord into standard SKILL.md Markdown format
  * with YAML frontmatter and 4 canonical H2 sections.
  */
-export function serializeEvolvingSkillMarkdown(skill: EvolvingSkillRecord): string {
+export function serializeEvolvingSkillMarkdown(
+  skill: EvolvingSkillRecord | (Partial<EvolvingSkillRecord> & { readonly id: string }),
+): string {
+  const title = skill.name ?? skill.title ?? "Evolving Skill";
+  const slug = skill.slug ?? normalizeHyphenSlug(title);
+  const whenToUse = skill.whenToUse ?? skill.description ?? "";
+  const procedure = skill.verifiedProcedure ?? skill.executionStrategy ?? [];
+  const pitfalls = skill.pitfallsAndConstraints ?? skill.pitfallsConstraints ?? [];
+  const verificationGate =
+    skill.verificationGate ??
+    (skill.verificationCriteria && skill.verificationCriteria.length > 0
+      ? skill.verificationCriteria.join("\n")
+      : "Verify exit code 0 and clean output.");
+
+  const totalInvocations =
+    skill.fitness?.invocations ??
+    skill.metrics?.totalInvocations ??
+    skill.metrics?.invocations ??
+    0;
+  const successfulInvocations =
+    skill.fitness?.successes ??
+    skill.metrics?.successfulInvocations ??
+    skill.metrics?.successes ??
+    0;
+  const failedInvocations =
+    skill.fitness?.failures ?? skill.metrics?.failedInvocations ?? skill.metrics?.failures ?? 0;
+  const consecutiveFailures =
+    skill.fitness?.consecutiveFailures ?? skill.metrics?.consecutiveFailures ?? 0;
+  const wilsonScore = skill.fitness?.wilsonScore ?? skill.metrics?.wilsonScore ?? 0;
+  const avgTurnsSaved = skill.fitness?.avgTurnsSaved ?? skill.metrics?.avgTurnsSaved ?? 0;
+  const lastUpdatedMs =
+    skill.metrics?.lastUpdatedMs ??
+    (skill.fitness?.lastVerifiedAt ? Date.parse(skill.fitness.lastVerifiedAt) : Date.now());
+  const lastVerifiedAt = skill.fitness?.lastVerifiedAt ?? new Date(lastUpdatedMs).toISOString();
+
   const frontmatterData = {
     id: skill.id,
-    slug: skill.slug,
-    version: skill.version,
-    status: skill.status,
-    title: skill.title,
-    description: skill.description,
-    triggers: Array.from(skill.triggers),
-    metrics: {
-      totalInvocations: skill.metrics.totalInvocations,
-      successfulInvocations: skill.metrics.successfulInvocations,
-      failedInvocations: skill.metrics.failedInvocations,
-      consecutiveFailures: skill.metrics.consecutiveFailures,
-      wilsonScore: skill.metrics.wilsonScore,
-      lastUpdatedMs: skill.metrics.lastUpdatedMs,
+    name: title,
+    title,
+    slug,
+    version: skill.version ?? "1.0.0",
+    status: skill.status ?? "candidate",
+    category: skill.category ?? "workflow",
+    description: skill.description ?? whenToUse,
+    triggers: Array.from(skill.triggers ?? []),
+    tools: Array.from(skill.tools ?? []),
+    fitness: {
+      invocations: totalInvocations,
+      successes: successfulInvocations,
+      failures: failedInvocations,
+      consecutiveFailures,
+      wilsonScore,
+      avgTurnsSaved,
+      lastVerifiedAt,
     },
-    createdAtMs: skill.createdAtMs,
-    updatedAtMs: skill.updatedAtMs,
+    metrics: {
+      totalInvocations,
+      successfulInvocations,
+      failedInvocations,
+      consecutiveFailures,
+      wilsonScore,
+      lastUpdatedMs,
+    },
+    workspaceId: skill.workspaceId ?? "default",
+    createdAtMs: skill.createdAtMs ?? Date.now(),
+    updatedAt: skill.updatedAt ?? skill.updatedAtMs ?? Date.now(),
+    updatedAtMs: skill.updatedAtMs ?? skill.updatedAt ?? Date.now(),
+    locked: skill.locked === true,
   };
 
   const yamlHeader = YAML.stringify(frontmatterData).trim();
   const pitfallsList =
-    skill.pitfallsConstraints.length > 0
-      ? skill.pitfallsConstraints.map((p) => `- ${p}`).join("\n")
-      : "- None recorded.";
-  const verificationList =
-    skill.verificationCriteria.length > 0
-      ? skill.verificationCriteria.map((v) => (v.startsWith("- ") ? v : `- ${v}`)).join("\n")
-      : "- Verify exitCode === 0 and clean output.";
+    pitfalls.length > 0 ? pitfalls.map((p) => `- ${p}`).join("\n") : "- None recorded.";
+  const verificationList = verificationGate.startsWith("- ")
+    ? verificationGate
+    : `- ${verificationGate.split("\n").join("\n- ")}`;
 
   return `---
 ${yamlHeader}
 ---
 
-# ${skill.title}
+# ${title}
 
-## Intent & Trigger Heuristics
-${skill.description}
+## When to Use
+${whenToUse}
 
-## Execution Strategy
-${skill.executionStrategy.join("\n")}
+## Verified Procedure
+${procedure.join("\n")}
 
 ## Pitfalls & Active Constraints
 ${pitfallsList}
 
-## Verification Standard
+## Verification Gate
 ${verificationList}
 `;
 }
@@ -474,17 +747,22 @@ function toSafeFiniteNumber(val: unknown, fallback: number): number {
 }
 
 const VALID_STATUSES: ReadonlySet<SkillLifecycleStatus> = new Set([
-  "quarantined",
-  "draft",
+  "candidate",
   "canary",
   "verified_active",
   "deprecated",
+  "quarantined",
+  "draft",
 ]);
 
 /**
  * Parses a serialized SKILL.md Markdown string into an immutable EvolvingSkillRecord.
+ * Supports both R1 and legacy frontmatter and markdown sections.
  */
-export function parseEvolvingSkillMarkdown(markdown: string): EvolvingSkillRecord {
+export function parseEvolvingSkillMarkdown(
+  markdown: string,
+  workspaceIdOverride?: string,
+): EvolvingSkillRecord {
   if (typeof markdown !== "string") {
     throw new Error("INVALID_SKILL_FORMAT: Input markdown must be a string");
   }
@@ -557,8 +835,8 @@ export function parseEvolvingSkillMarkdown(markdown: string): EvolvingSkillRecor
     sections[sec] = sLines.join("\n").trim();
   }
 
-  // Parse Execution Strategy lines
-  const strategyRaw = sections["Execution Strategy"] ?? "";
+  // Parse Verified Procedure / Execution Strategy
+  const strategyRaw = sections["Verified Procedure"] ?? sections["Execution Strategy"] ?? "";
   const executionStrategy = strategyRaw
     .split("\n")
     .map((l) => l.trim())
@@ -571,22 +849,62 @@ export function parseEvolvingSkillMarkdown(markdown: string): EvolvingSkillRecor
     .map((l) => l.replace(/^[-*]\s*/, "").trim())
     .filter((l) => l.length > 0 && l !== "None recorded.");
 
-  // Parse Verification Standard lines
-  const verificationRaw = sections["Verification Standard"] ?? "";
+  // Parse Verification Gate / Verification Standard lines
+  const verificationRaw = sections["Verification Gate"] ?? sections["Verification Standard"] ?? "";
   const verificationCriteria = verificationRaw
     .split("\n")
     .map((l) => l.replace(/^[-*]\s*/, "").trim())
     .filter(Boolean);
+  const verificationGate =
+    verificationCriteria.length > 0
+      ? verificationCriteria.join("; ")
+      : "Confirm exit code 0 and clean output.";
 
-  const metricsRaw = (parsedFrontmatter.metrics ?? {}) as Record<string, unknown>;
+  // When to Use / Intent & Trigger Heuristics
+  const whenToUse = sections["When to Use"] ?? sections["Intent & Trigger Heuristics"] ?? "";
+
+  const metricsRaw = (parsedFrontmatter.fitness ?? parsedFrontmatter.metrics ?? {}) as Record<
+    string,
+    unknown
+  >;
   const now = Date.now();
+
+  const totalInvocations = Math.max(
+    0,
+    toSafeFiniteNumber(metricsRaw.invocations ?? metricsRaw.totalInvocations, 0),
+  );
+  const successfulInvocations = Math.max(
+    0,
+    toSafeFiniteNumber(metricsRaw.successes ?? metricsRaw.successfulInvocations, 0),
+  );
+  const failedInvocations = Math.max(
+    0,
+    toSafeFiniteNumber(metricsRaw.failures ?? metricsRaw.failedInvocations, 0),
+  );
+  const consecutiveFailures = Math.max(0, toSafeFiniteNumber(metricsRaw.consecutiveFailures, 0));
+  const wilsonScore = Math.min(1, Math.max(0, toSafeFiniteNumber(metricsRaw.wilsonScore, 0)));
+  const avgTurnsSaved = toSafeFiniteNumber(metricsRaw.avgTurnsSaved, 0);
+  const lastUpdatedMs = toSafeFiniteNumber(
+    metricsRaw.lastUpdatedMs,
+    metricsRaw.lastVerifiedAt ? Date.parse(String(metricsRaw.lastVerifiedAt)) : now,
+  );
+  const lastVerifiedAt =
+    typeof metricsRaw.lastVerifiedAt === "string"
+      ? metricsRaw.lastVerifiedAt
+      : new Date(lastUpdatedMs).toISOString();
+
   const metrics: SkillFitnessMetrics = Object.freeze({
-    totalInvocations: Math.max(0, toSafeFiniteNumber(metricsRaw.totalInvocations, 0)),
-    successfulInvocations: Math.max(0, toSafeFiniteNumber(metricsRaw.successfulInvocations, 0)),
-    failedInvocations: Math.max(0, toSafeFiniteNumber(metricsRaw.failedInvocations, 0)),
-    consecutiveFailures: Math.max(0, toSafeFiniteNumber(metricsRaw.consecutiveFailures, 0)),
-    wilsonScore: Math.min(1, Math.max(0, toSafeFiniteNumber(metricsRaw.wilsonScore, 0))),
-    lastUpdatedMs: toSafeFiniteNumber(metricsRaw.lastUpdatedMs, now),
+    invocations: totalInvocations,
+    successes: successfulInvocations,
+    failures: failedInvocations,
+    consecutiveFailures,
+    wilsonScore,
+    avgTurnsSaved,
+    lastVerifiedAt,
+    totalInvocations,
+    successfulInvocations,
+    failedInvocations,
+    lastUpdatedMs,
   });
 
   const triggersRaw = parsedFrontmatter.triggers;
@@ -594,37 +912,203 @@ export function parseEvolvingSkillMarkdown(markdown: string): EvolvingSkillRecor
     ? Object.freeze(triggersRaw.map(String))
     : Object.freeze([]);
 
+  const toolsRaw = parsedFrontmatter.tools;
+  const tools: readonly string[] = Array.isArray(toolsRaw)
+    ? Object.freeze(toolsRaw.map(String))
+    : Object.freeze([]);
+
   // Extract H1 title fallback if frontmatter title is omitted
   const h1Match = /^#\s+([^\n]+)$/m.exec(body);
   const titleFromBody = h1Match ? h1Match[1]?.trim() : undefined;
 
   const id = String(parsedFrontmatter.id ?? `skill_${parsedFrontmatter.slug ?? "unnamed"}`);
-  const slug = String(parsedFrontmatter.slug ?? "unnamed");
-  const version = String(parsedFrontmatter.version ?? "1.0.0");
-  const title = String(parsedFrontmatter.title ?? titleFromBody ?? "Evolving Skill");
-  const description = String(
-    parsedFrontmatter.description ?? sections["Intent & Trigger Heuristics"] ?? "",
+  const slug = String(
+    parsedFrontmatter.slug ??
+      normalizeHyphenSlug(String(parsedFrontmatter.name ?? parsedFrontmatter.title ?? "unnamed")),
   );
+  const version = String(parsedFrontmatter.version ?? "1.0.0");
+  const title = String(
+    parsedFrontmatter.title ?? parsedFrontmatter.name ?? titleFromBody ?? "Evolving Skill",
+  );
+  const description = String(parsedFrontmatter.description ?? whenToUse ?? "");
   const rawStatus = String(parsedFrontmatter.status ?? "");
   const status: SkillLifecycleStatus = VALID_STATUSES.has(rawStatus as SkillLifecycleStatus)
     ? (rawStatus as SkillLifecycleStatus)
     : "canary";
+
+  const category = String(parsedFrontmatter.category ?? "workflow");
+  const workspaceId = String(workspaceIdOverride ?? parsedFrontmatter.workspaceId ?? "default");
   const createdAtMs = toSafeFiniteNumber(parsedFrontmatter.createdAtMs, now);
-  const updatedAtMs = toSafeFiniteNumber(parsedFrontmatter.updatedAtMs, now);
+  const updatedAt = toSafeFiniteNumber(
+    parsedFrontmatter.updatedAt ?? parsedFrontmatter.updatedAtMs,
+    now,
+  );
+  const rawLocked = parsedFrontmatter.locked;
+  const locked =
+    rawLocked === true || rawLocked === "true" || rawLocked === 1 || rawLocked === "1";
 
   return Object.freeze({
     id,
+    name: title,
+    title,
     slug,
     version,
-    title,
     description,
     status,
+    category,
     triggers,
+    tools,
+    whenToUse: whenToUse || description,
+    verifiedProcedure: Object.freeze(executionStrategy),
     executionStrategy: Object.freeze(executionStrategy),
+    pitfallsAndConstraints: Object.freeze(pitfallsConstraints),
     pitfallsConstraints: Object.freeze(pitfallsConstraints),
+    verificationGate,
     verificationCriteria: Object.freeze(verificationCriteria),
+    fitness: metrics,
     metrics,
+    workspaceId,
     createdAtMs,
-    updatedAtMs,
+    updatedAt,
+    updatedAtMs: updatedAt,
+    locked,
   });
 }
+
+// ---------------------------------------------------------------------------
+// Pre-LLM Call Interceptor & Guardrails (Pure DOP)
+// ---------------------------------------------------------------------------
+
+export interface EvaluatePreLlmCallHookParams {
+  readonly prompt: string;
+  readonly trustZone?: string;
+  readonly activeConstraints?: readonly string[];
+  readonly maxPromptChars?: number;
+}
+
+export interface EvaluatePreLlmCallHookResult {
+  readonly allowed: boolean;
+  readonly blockedReason?: string;
+  readonly injectedSkillsPrompt?: string;
+  readonly sanitizedPrompt: string;
+}
+
+const CRITICAL_PROMPT_INJECTION_PATTERNS: readonly RegExp[] = [
+  /ignore\s+(?:all\s+)?(?:previous|prior|above)\s+(?:instructions?|prompts?|rules?)/i,
+  /disregard\s+(?:all\s+)?(?:previous|prior|above)/i,
+  /forget\s+(?:everything|all|your)\s+(?:instructions?|rules?|guidelines?)/i,
+  /system\s*:?\s*(?:override|command|prompt\s*injection)/i,
+  /<\/?system>/i,
+  /\[\s*(?:System\s*Message|System\s*Override|JAILBREAK)\s*\]/i,
+  /^\s*System:\s+/im,
+  /you\s+are\s+now\s+(?:a|an|in)\s+(?:unrestricted|developer\s+mode|jailbreak|DAN\s+mode)/i,
+  /\bjailbreak\b/i,
+  /bypass\s+(?:all\s+)?(?:safety|guardrails|filters)/i,
+];
+
+const SECRET_EXFILTRATION_PATTERNS: readonly RegExp[] = [
+  /(?:cat|head|tail|grep)\s+.*(?:\.ssh\/(?:id_rsa|id_ed25519)|[\/\\]etc[\/\\](?:shadow|passwd)|\.env\b)/i,
+  /(?:cat|head|tail|grep|strings)\s+.*(?:id_rsa|\.ssh)/i,
+  /\bprintenv\b/i,
+  /(?:printenv|env)\b.*(?:\||>|curl|wget|nc)/i,
+  /(?:curl|wget|fetch|nc)\b.*(?:\bwebhook\.site\b|\brequestbin\b|\bngrok\b|\bpipedream\b|\bpastebin\b|\btransfer\.sh\b|\battacker\b)/i,
+  /(?:exfiltrate|leak|steal|dump|transmit)\s+(?:all\s+)?(?:secrets?|tokens?|api[_-]?keys?|credentials?)/i,
+  /-----BEGIN\s+.*PRIVATE\s+KEY-----/i,
+];
+
+const ZONE_0_PRIVILEGE_ESCALATION_PATTERNS: readonly RegExp[] = [
+  /elevated\s*=\s*true/i,
+  /role:\s*operator/i,
+  /\bsudo\b/i,
+  /grant\s+operator/i,
+  /assume\s+role/i,
+  /trustZone:\s*(?:operator|internal|admin)/i,
+];
+
+/**
+ * Pure DOP pre-LLM call gate.
+ * Blocks inference on hard budget violations, critical prompt injections,
+ * secret exfiltrations, and Zone 0 privilege escalations.
+ * Sanitizes allowed prompts and injects <active_constraints>.
+ */
+export function evaluatePreLlmCallHook(
+  params: EvaluatePreLlmCallHookParams,
+): EvaluatePreLlmCallHookResult {
+  const prompt = typeof params?.prompt === "string" ? params.prompt : "";
+  const maxPromptChars =
+    typeof params?.maxPromptChars === "number" ? params.maxPromptChars : 250_000;
+
+  // 1. Hard Budget Violation
+  if (prompt.length > maxPromptChars) {
+    return {
+      allowed: false,
+      blockedReason: `Hard prompt budget exceeded: ${prompt.length} chars exceeds limit of ${maxPromptChars}`,
+      sanitizedPrompt: prompt,
+    };
+  }
+
+  // 2. Critical Prompt Injection
+  for (const pattern of CRITICAL_PROMPT_INJECTION_PATTERNS) {
+    if (pattern.test(prompt)) {
+      return {
+        allowed: false,
+        blockedReason: "Critical prompt injection detected: instruction override or jailbreak pattern",
+        sanitizedPrompt: prompt,
+      };
+    }
+  }
+
+  // 3. Secret Exfiltration
+  for (const pattern of SECRET_EXFILTRATION_PATTERNS) {
+    if (pattern.test(prompt)) {
+      return {
+        allowed: false,
+        blockedReason: "Secret exfiltration trigger detected: unauthorized credential/system access pattern",
+        sanitizedPrompt: prompt,
+      };
+    }
+  }
+
+  // 4. Zone 0 Privilege Escalation
+  const trustZone =
+    typeof params?.trustZone === "string" ? params.trustZone.trim().toLowerCase() : "";
+  if (
+    trustZone === "public" ||
+    trustZone === "0" ||
+    trustZone === "zone0" ||
+    trustZone === "untrusted"
+  ) {
+    for (const pattern of ZONE_0_PRIVILEGE_ESCALATION_PATTERNS) {
+      if (pattern.test(prompt)) {
+        return {
+          allowed: false,
+          blockedReason: "Zone 0 untrusted channel privilege escalation attempt blocked",
+          sanitizedPrompt: prompt,
+        };
+      }
+    }
+  }
+
+  // 5. Prompt Sanitization
+  const sanitizedPrompt = prompt
+    .replace(/\0/g, "")
+    .replace(/[\u202A-\u202E\u2066-\u2069]/g, "")
+    .replace(/\b(sk-[A-Za-z0-9_-]{20,})\b/g, "[REDACTED_API_KEY]");
+
+  // 6. Injected Constraints
+  let injectedSkillsPrompt: string | undefined;
+  if (params?.activeConstraints && params.activeConstraints.length > 0) {
+    injectedSkillsPrompt = [
+      "<active_constraints>",
+      ...params.activeConstraints.map((c) => `- ${c}`),
+      "</active_constraints>",
+    ].join("\n");
+  }
+
+  return {
+    allowed: true,
+    injectedSkillsPrompt,
+    sanitizedPrompt,
+  };
+}
+

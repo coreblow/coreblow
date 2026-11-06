@@ -10,7 +10,9 @@
     "test": "vitest run",
     "lint": "eslint src/"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@larksuiteoapi/node-sdk": "^1.64.0"
+  },
   "devDependencies": {
     "typescript": "^5.4.0",
     "vitest": "^4.1.4"

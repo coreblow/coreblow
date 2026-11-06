@@ -747,7 +747,7 @@ select {
 
 /* Style query for elements configuring a start icon */
 @container style(--icon-start) {
-  :is(.icon, .css-icon, [data-icon])::before {
+  ::before {
     --icon-start: inherit;
     content: "" / var(--icon-style-alt, "");
     display: inline-block;
@@ -762,14 +762,14 @@ select {
     forced-color-adjust: none;
   }
 
-  :is(.icon, .css-icon, [data-icon]):where(:not(:empty))::before {
+  :where(:not(.icon, :empty))::before {
     margin-inline-end: var(--icon-style-spacing, 0.35em);
   }
 }
 
 /* Style query for elements configuring a trailing icon */
 @container style(--icon-end) {
-  :is(.icon, .css-icon, [data-icon])::after {
+  ::after {
     --icon-end: inherit;
     content: "" / var(--icon-style-alt, "");
     display: inline-block;
@@ -784,7 +784,7 @@ select {
     forced-color-adjust: none;
   }
 
-  :is(.icon, .css-icon, [data-icon]):where(:not(:empty))::after {
+  :where(:not(.icon, :empty))::after {
     margin-inline-start: var(--icon-style-spacing, 0.35em);
   }
 }

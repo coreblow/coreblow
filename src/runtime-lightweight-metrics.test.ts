@@ -66,7 +66,7 @@ describe("Lightweight Runtime & Packaging Smoke Tests", () => {
 
       // 1. Enforced service health & lifecycle gates
       expect(startResult.failed).toHaveLength(0);
-      expect(startResult.started).toHaveLength(9);
+      expect(startResult.started).toHaveLength(12);
       // Fast microkernel bootstrap gate: target is < 100ms; enforced CI gate is < 200ms
       expect(bootstrapTimeMs).toBeLessThan(200);
 
@@ -108,6 +108,7 @@ describe("Lightweight Runtime & Packaging Smoke Tests", () => {
     const coreList = tierPolicy.listCoreExtensions();
     expect(coreList).toContain("cory");
     expect(coreList).toContain("cory-memory");
+    expect(coreList).toContain("pr-workflow-orchestrator");
     expect(coreList).toContain("browser");
     expect(coreList).toContain("openai");
     expect(coreList).not.toContain("discord");

@@ -10,7 +10,7 @@ import {
 } from './vitest.unit-paths.mjs';
 
 /**
- * Unit test config — matches OpenClaw split-config architecture.
+ * Unit test config — matches CoreBlow split-config architecture.
  *
  * This config runs ONLY core infrastructure tests (config, infra, cli,
  * plugin-sdk, plugins). Domain tests (agents, auto-reply, commands,
@@ -46,9 +46,13 @@ export function loadExtraExcludePatternsFromEnv(
 
 export function createUnitVitestConfig(env: Record<string, string | undefined> = process.env) {
   const argv = process.argv.join(' ');
-  const additionalExcludes = argv.includes('microkernel')
-    ? unitTestAdditionalExcludePatterns.filter((p) => p !== 'src/gateway/**')
-    : unitTestAdditionalExcludePatterns;
+  const allowGateway = argv.includes('microkernel');
+  const allowAgents = argv.includes('pr-workflow') || argv.includes('war-room');
+  const additionalExcludes = unitTestAdditionalExcludePatterns.filter((p) => {
+    if (allowGateway && p === 'src/gateway/**') return false;
+    if (allowAgents && p === 'src/agents/**') return false;
+    return true;
+  });
 
   return defineConfig({
     ...base,

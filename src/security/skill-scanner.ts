@@ -149,14 +149,20 @@ const LINE_RULES: LineRule[] = [
     ruleId: "dangerous-exec",
     severity: "critical",
     message: "Shell command execution detected (child_process)",
-    pattern: /\b(exec|execSync|spawn|spawnSync|execFile|execFileSync)\s*\(/,
+    pattern: /\b(execSync|spawnSync|execFileSync)\s*\(/,
+  },
+  {
+    ruleId: "dangerous-exec",
+    severity: "critical",
+    message: "Shell command execution detected (child_process)",
+    pattern: /\b(exec|spawn|execFile)\s*\(/,
     requiresContext: /child_process/,
   },
   {
     ruleId: "dynamic-code-execution",
     severity: "critical",
     message: "Dynamic code execution detected",
-    pattern: /\beval\s*\(|new\s+Function\s*\(/,
+    pattern: /\beval\s*\(|\b(?:new\s+)?Function\s*\(/,
   },
   {
     ruleId: "crypto-mining",

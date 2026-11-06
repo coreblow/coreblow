@@ -12,6 +12,10 @@ export interface StorefrontCatalogEntry {
   readonly summary?: string;
   readonly description?: string;
   readonly version?: string;
+  readonly category?: string;
+  readonly tier?: string;
+  readonly installed?: boolean;
+  readonly author?: string;
   readonly capabilities?: readonly string[];
   readonly publisher?: {
     readonly displayName?: string;
@@ -41,6 +45,41 @@ export const BUILTIN_KERNEL_CAPABILITY_ENTRIES: readonly StorefrontCatalogEntry[
     capabilities: [],
     publisher: { displayName: "CoreBlow Kernel", name: "CoreBlow" },
     hotReloadSafe: true,
+  },
+  {
+    id: "cory-knowledge-scribe",
+    name: "Cory Knowledge Scribe & Memory Wiki",
+    summary:
+      "Browsable memory wiki, zero-stall prepared compaction, and reusable knowledge scribe engine.",
+    description:
+      "Browsable memory wiki, zero-stall prepared compaction, and reusable knowledge scribe engine.",
+    version: "1.0.0",
+    capabilities: [],
+    publisher: { displayName: "CoreBlow Kernel", name: "CoreBlow" },
+    hotReloadSafe: true,
+  },
+  {
+    id: "war-room-orchestrator",
+    name: "Multi-Agent War Room Orchestrator",
+    summary: "Collective multi-agent war room, lead agent routing, and Kanban DAG orchestration.",
+    description:
+      "Collective multi-agent war room, lead agent routing, and Kanban DAG orchestration.",
+    version: "1.0.0",
+    capabilities: [],
+    publisher: { displayName: "CoreBlow Kernel", name: "CoreBlow" },
+    hotReloadSafe: true,
+  },
+  {
+    id: "pr-workflow-orchestrator",
+    name: "Autonomous Git & PR Workflow Orchestrator",
+    description:
+      "Automated git diff analysis, pre-flight gate enforcement, PR blueprint compilation, and approval management.",
+    category: "agents",
+    tier: "core",
+    installed: true,
+    author: "CoreBlow Sovereign Team",
+    version: "1.0.0",
+    capabilities: ["git-workflow", "pr-blueprint", "pre-flight-gates", "operator-approval"],
   },
   {
     id: "provider-runtime",
@@ -156,8 +195,9 @@ export function buildStorefrontCatalogView(
       installedStates[rawId] ?? installedStates[shortId] ?? (isKernel ? "active" : "uninstalled");
 
     // 3. Required Capabilities
-    const requiredCapabilities: CoreHubCapability[] = (entry.capabilities ?? [])
-      .filter((cap): cap is CoreHubCapability => isCoreHubCapability(cap));
+    const requiredCapabilities: CoreHubCapability[] = (entry.capabilities ?? []).filter(
+      (cap): cap is CoreHubCapability => isCoreHubCapability(cap),
+    );
 
     // 4. Consent status
     let consentGranted = false;
@@ -184,10 +224,14 @@ export function buildStorefrontCatalogView(
         : `corehub:@coreblow/${rawId}`;
 
     const label = entry.name?.trim() || shortId;
-    const description = entry.summary?.trim() || entry.description?.trim() || `CoreBlow ${shortId} plugin`;
+    const description =
+      entry.summary?.trim() || entry.description?.trim() || `CoreBlow ${shortId} plugin`;
     const version = entry.version?.trim() || "1.0.0";
     const publisher =
-      entry.publisher?.displayName || entry.publisher?.name || entry.publisher?.handle;
+      entry.publisher?.displayName ||
+      entry.publisher?.name ||
+      entry.publisher?.handle ||
+      entry.author;
 
     // 8. Search query filter
     if (normalizedQuery && normalizedQuery.length > 0) {

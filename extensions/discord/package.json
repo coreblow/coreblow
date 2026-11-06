@@ -1,7 +1,7 @@
 {
   "name": "@coreblow/discord",
   "type": "module",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "CoreBlow Discord channel plugin",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,7 +10,11 @@
     "test": "vitest run",
     "lint": "eslint src/"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@buape/carbon": "^0.15.0",
+    "@discordjs/voice": "^0.19.2",
+    "discord-api-types": "^0.38.47"
+  },
   "devDependencies": {
     "typescript": "^5.4.0",
     "vitest": "^4.1.4"
@@ -33,7 +37,8 @@
     "install": {
       "npmSpec": "@coreblow/discord",
       "localPath": "extensions/discord",
-      "defaultChoice": "npm",
+      "defaultChoice": "corehub",
+      "corehubSpec": "corehub:@coreblow/discord",
       "minHostVersion": ">=1.0.0"
     },
     "bundle": {

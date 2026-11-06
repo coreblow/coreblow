@@ -10,7 +10,9 @@
     "test": "vitest run",
     "lint": "eslint src/"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@urbit/aura": "^3.0.0"
+  },
   "devDependencies": {
     "typescript": "^5.4.0",
     "vitest": "^4.1.4"

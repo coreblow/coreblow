@@ -1,0 +1,14 @@
+{
+  "name": "@coreblow/amazon-bedrock",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "CoreBlow Amazon Bedrock provider plugin",
+  "main": "index.ts",
+  "dependencies": {
+    "@aws-sdk/client-bedrock": "^3.1047.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^4.1.4"
+  }
+}

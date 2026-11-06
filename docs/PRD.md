@@ -1,8 +1,9 @@
-# Product Requirements Document (PRD): CoreBlow Agent-OS
+# Product Requirements Document (PRD): CoreBlow Sovereign Agent-OS
 
-**Document Version:** 1.0.0 (GA Certified)<br />
-**Status:** Production GA Certified (CoreBlow v1.0.0 GA Baseline)<br />
+**Document Version:** 2.0.0 (Sovereign Hybrid OOP/DOP Microkernel Baseline)<br />
+**Status:** Production Certified (Stages 1–6 Complete | Stage 7 Active)<br />
 **Product Canonical URLs:** [https://coreblow.com](https://coreblow.com) | [https://github.com/coreblow](https://github.com/coreblow)<br />
+**Marketplace Registry:** [https://coreblow.com/corehub](https://coreblow.com/corehub)<br />
 **Documentation Portal:** [https://docs.coreblow.com](https://docs.coreblow.com)
 
 ---
@@ -10,187 +11,81 @@
 ## 1. Executive Summary & Vision
 
 ### 1.1 Product Vision
-CoreBlow is an **Enterprise Autonomous Agent Operating System (Agent-OS)** engineered to run mission-critical autonomous agents across enterprise communication channels, sovereign local hardware, and distributed cloud backends. CoreBlow converges the multi-channel gateway routing of OpenClaw, the cognitive reasoning and agent control protocols of Hermes, and the enterprise-grade object-oriented foundation of CoreBlow.
+**CoreBlow** is a sovereign, open-source **Enterprise Autonomous Agent Operating System (Agent-OS)** engineered to run self-learning, multi-agent autonomous workflows across enterprise communication channels, local hardware, and distributed cloud backends.
 
-Modern enterprise agent deployments suffer from three structural failure modes:
-1. **Stateless Fragility:** Chatbots and basic ReAct wrappers treat conversations as transient message arrays, dropping multi-day workflows, context state, and tool execution history across channels.
-2. **The Lethal Trifecta:** Autonomous agents that combine host machine access, exposure to untrusted public channels, and unconstrained tool execution expose enterprises to severe security vulnerabilities, including prompt injection, data exfiltration, and unauthorized lateral movement.
-3. **Architectural Bloat and Fragmentation:** Legacy tools accumulate brittle Python sidecars, duplicate provider wrappers, ad-hoc JSONL file locks, and endless backward-compatibility migration chains that impede reliability and maintainability.
+Modern autonomous agent platforms suffer from four structural failure modes:
+1. **Stateless Fragility & Amnesia:** Basic ReAct wrappers treat conversations as transient message arrays, dropping multi-day workflows, user preferences, and learned tool recovery patterns across sessions.
+2. **Static Skill Decay ("Skill Rot"):** Traditional agents cannot synthesize new procedural skills from their own error-recovery trajectories or automatically roll back broken skills when workflows change.
+3. **The Lethal Trifecta:** Combining host shell/filesystem access, untrusted public channel ingress, and autonomous tool execution without cryptographic trust zones exposes users to prompt injection and credential exfiltration.
+4. **Monolithic Dependency Bloat:** Bundling dozens of niche chat SDKs and native binaries into the core runtime inflates memory usage, slows startup, and expands the attack surface.
 
-CoreBlow solves these challenges through a unified, high-performance monorepo (**1.88M+ LOC**, **~70% test-to-code ratio**, pure **TypeScript ESM**) operating under the engineering discipline of **"Prune First, Document Fast, Execute Lean"**.
+CoreBlow solves these challenges through a **Hybrid Object-Oriented Programming (OOP) + Data-Oriented Programming (DOP) Microkernel** paired with the **CoreHub On-Demand Application Ecosystem (`https://coreblow.com/corehub`)**.
 
-### 1.2 Strategic Convergence
-
-```
-   ┌─────────────────────────────────────────────────────────────────┐
-   │                       CoreBlow Agent-OS                         │
-   └─────────────────────────────────────────────────────────────────┘
-                                   │
-         ┌─────────────────────────┼─────────────────────────┐
-         ▼                         ▼                         ▼
-  OpenClaw Heritage         Hermes Heritage           CoreBlow Foundation
-  • 142 Channel Adapters    • ReAct Cognition         • OOP ServiceRegistry
-  • Webhook Normalization   • ACP Protocol            • True Zero Gap SDK
-  • Pairing Guard           • Parallel Subagents      • Sovereign MLX TTS
-  • Ingress Routing         • Dynamic Compaction      • Fail-Closed Security
-```
-
-CoreBlow unifies these capabilities into a single deterministic runtime:
-- **From OpenClaw:** Battle-tested channel normalization, multi-platform webhook routing, and pairing authorization.
-- **From Hermes:** Advanced autonomous task execution, headless ReAct cognitive loop, parallel subagent orchestration via Agent Control Protocol (ACP), and context compaction.
-- **From CoreBlow:** Rigid object-oriented lifecycles (`ServiceRegistry`), strict public SDK barriers (`src/plugin-sdk/`), native Apple Silicon MLX inference, and enterprise governance.
-
----
-
-## 2. Core Pillars & Value Proposition
-
-### 2.1 Cory Built-in Memory & Omnipresent Session Continuity
-CoreBlow ships with **Cory (`cory-memory`)**, a zero-config, offline-first built-in memory system (`src/memory/cory.ts`) paired with continuous session persistence across channels and native companion applications:
-- **Four-Layer Canonical Markdown Memory:** Separates *Identity Memory* (`USER.md`), *Durable Workspace Memory* (`MEMORY.md`), *Episodic Daily Summaries* (`daily/<YYYY-MM-DD>.md`), and *Active Constraints* (`CONSTRAINTS.md`), backed by a disposable, self-healing SQLite WAL + BM25 lexical search index (`cory-search.sqlite`).
-- **Prompt Cache Stability & Scope Isolation:** Memory written mid-session persists immediately to disk while keeping the active session's startup snapshot frozen; workspace facts are strictly isolated per workspace, and untrusted public channels (Zone 0) are blocked from mutating private or durable memory.
-- **Cross-Surface Identity Resolution:** A user interacting via Slack, Telegram, WhatsApp, on-demand CoreHub channels (such as Discord or Matrix), macOS desktop app (`apps/macos`), iOS app (`apps/ios`), Android app (`apps/android`), or Web UI (`ui/`) maps to a unified cryptographic session identity.
-- **Deterministic Scratchpad:** Intermediate task files, code generation scratchpads, and execution logs persist in `~/.coreblow/scratchpad/`, allowing long-running multi-day tasks to resume without prompt bloat.
-
-### 2.2 Industrial Resiliency & OOP Lifecycle
-CoreBlow replaces loose script execution with an industrial object-oriented lifecycle:
-- **Deterministic ServiceRegistry:** Every subsystem (gateway, channels, cognitive turn engine, model providers, telemetry) implements explicit `start()`, `stop()`, and `health()` lifecycles managed by `src/gateway/service-registry.ts`.
-- **Fail-Closed Security:** In the event of a configuration fault, signature mismatch, or network partition, subsystems drop into a deterministic degraded state or fail closed rather than continuing with unsafe defaults.
-- **Self-Healing Diagnostics:** The integrated `coreblow doctor` subsystem validates environment integrity, detects port conflicts, verifies token entropy, and validates socket connections in real time.
-
-### 2.3 Hybrid & Sovereign AI
-CoreBlow maximizes cost efficiency, data sovereignty, and performance through cascaded hybrid model routing:
-- **Zero-Cost Edge Inference:** Local Apple Silicon acceleration via `apps/macos-mlx-tts` delivering real-time factor (RTF) <= 0.4 for speech synthesis, coupled with local vLLM, Ollama, and MLX model inference.
-- **Cascaded Cloud Routing:** Dynamic model dispatch prioritizing zero-cost local inference for classification, filtering, and simple tasks, cascading to frontier models (Anthropic Claude, Google Gemini, OpenAI GPT) only when high reasoning thresholds are required.
-- **Deterministic Fallbacks:** Automated failover to secondary providers on rate-limit (HTTP 429) or server errors (HTTP 5xx) with zero message loss.
-
-### 2.4 True Zero Gap Plugin SDK
-CoreBlow enforces an uncompromised isolation barrier between core internals and extensions:
-- **Strict Module Boundaries:** Extensions (`extensions/*`) and third-party plugins must import exclusively from `coreblow/plugin-sdk/*` or local barrels (`./api.ts`). Direct imports of `src/**` or cross-extension internals are strictly prohibited and enforced by static analysis gates.
-- **Typed Plugin Capabilities:** Manifest-driven capabilities (CLI backends, channels, providers, speech synthesis, document extractors, web fetch) are strongly typed via `src/plugins/manifest.ts` and registered through deterministic contract suites.
-- **Safe Sandboxing:** Untrusted community plugins run within capability-gated sandboxes with restricted filesystem, process, and network access.
-
----
-
-## 3. Deprecation & Anti-Bloat Policy
-
-To maintain high velocity and codebase health, CoreBlow enforces a strict **Deprecation and Anti-Bloat Policy**. Upstream features that add technical debt or compromise determinism are pruned rather than ported.
-
-### 3.1 Hermes Upstream Deprecations
-CoreBlow drops legacy standalone wrappers and non-TypeScript runtimes from Hermes:
-- **Drop Python Sidecars and Wrappers:** CoreBlow does not use Python subprocesses, virtual environments, or shell glue for cognitive execution. The Hermes cognitive engine is implemented natively in TypeScript ESM under `src/agents/`.
-- **Drop Standalone Chat Adapters:** Hermes standalone chat adapters are deprecated in favor of CoreBlow unified channel routing (`src/channels/` and `src/routing/`).
-- **Drop Standalone TUI/CLI (`hermes-cli`):** Terminal UI and command-line execution are consolidated into the unified `coreblow` CLI (`src/cli/` and `src/commands/`). Hermes operates purely as a headless cognitive engine communicating over ACP.
-
-### 3.2 OpenClaw Upstream Deprecations
-CoreBlow drops legacy compatibility bloat and redundant abstractions from OpenClaw:
-- **Drop Sliding-Window Prompt Builders in `src/auto-reply/`:** Primitive message-array slicing in `src/auto-reply/` is deprecated. All memory compaction, context budgeting, and history pruning are centralized in the cognitive orchestration engine (`src/agents/`).
-- **Drop Permanent Legacy Compatibility (`openclaw.extension.json`, `clawhub`, `clawbot`, `acpx`):** Legacy manifests, obsolete registry endpoints, branded aliases, and deprecated protocol variants are eliminated. CoreBlow uses canonical names: `coreblow`, `corehub`, `corebot`, and `acp`.
-- **Drop Multi-File Legacy Config Migration Chains (`legacy-config-migrations.*.ts`):** OpenClaw maintained dozens of incremental config migration files spanning hundreds of releases. CoreBlow deprecates multi-file migration chains in favor of a single deterministic configuration normalizer and clean CoreBlow-native schema.
-
-### 3.3 Storage & Extension Consolidation
-- **Transition to Structured WAL Storage:** Raw concurrent JSONL file writes that suffer from file-lock contention during parallel ACP subagent execution are transitioned to structured Write-Ahead Logging (WAL) and transactional session storage.
-- **Consolidate OpenAI-Compatible Boilerplates:** Duplicate provider adapters that merely wrap standard OpenAI-compatible endpoints are consolidated into a single parameterized provider runtime (`src/plugin-sdk/provider-stream-family.ts`).
-
----
-
-## 4. Product Requirements & Capability Matrix
-
-### 4.1 Functional Requirements
-
-| Capability | Requirement Description | Implementation Surface | Priority |
-| :--- | :--- | :--- | :--- |
-| **Unified Messaging** | Ingest, normalize, and dispatch messages across 142 channels with thread and media continuity. | `src/channels/`, `src/routing/`, `extensions/*` | P0 |
-| **ACP Protocol** | Orchestrate primary agents and parallel subagents over typed Agent Control Protocol envelopes. | `src/acp/`, `src/plugin-sdk/acp.ts` | P0 |
-| **ReAct Cognitive Loop** | Multi-turn reasoning with strict JSON schema tool validation, step budgeting, and execution recovery. | `src/agents/`, `src/agents/turn-engine/` | P0 |
-| **Dynamic Compaction** | 3-stage context management: verbatim pruning, scratchpad offloading, and recursive summarization. | `src/agents/compaction/` | P0 |
-| **ServiceRegistry** | Centralized dependency injection, health monitoring, and graceful shutdown orchestration. | `src/gateway/service-registry.ts` | P0 |
-| **Sovereign TTS** | Native Apple Silicon voice synthesis delivering RTF <= 0.4 with zero cloud dependencies. | `apps/macos-mlx-tts/`, `src/tts/` | P1 |
-| **CoreHub Marketplace** | Cryptographically verified plugin installation, capability grants, and dependency resolution. | `src/plugins/corehub-install-records.ts`, `src/infra/corehub.ts` | P1 |
-| **Native Companion Apps** | Full-featured companion clients for desktop and mobile with background gateway sync. | `apps/macos/`, `apps/ios/`, `apps/android/`, `ui/` | P1 |
-
-### 4.2 Non-Functional Requirements
-- **Performance & Latency:**
-  - Gateway ingress overhead: < 15ms p99 for webhook normalization.
-  - Subagent spawn latency: < 50ms via in-process workers over ACP.
-  - Local speech synthesis: Real-Time Factor (RTF) <= 0.4 on Apple Silicon M-series.
-- **Reliability & Availability:**
-  - 99.99% uptime for core gateway daemon.
-  - Zero state loss during abnormal process termination via WAL persistence.
-  - Graceful degradation on model provider outages with automatic fallback cascade.
-- **Test Coverage:**
-  - Strict V8 coverage enforcement (> 70% lines, branches, functions, and statements).
-  - Colocated unit tests (`*.test.ts`) and end-to-end integration suites (`*.e2e.test.ts`).
-
----
-
-## 5. Security & Threat Mitigation: The Lethal Trifecta
-
-Autonomous agents face a unique security threat landscape termed **The Lethal Trifecta**:
-1. **Direct Host and Tool Access:** Ability to execute shell commands, read/write filesystem paths, and make arbitrary network requests.
-2. **Exposure to Untrusted Public Ingress:** Direct connectivity to public messaging channels (Discord, Slack, Telegram, WhatsApp, Webhooks) where arbitrary third parties can supply input.
-3. **Autonomous Agency:** Unsupervised execution loops that interpret natural language and execute tools without human-in-the-loop approval.
-
-CoreBlow systematically neutralizes this trifecta in alignment with the **OWASP Top 10 for Agentic AI Systems**:
+### 1.2 CoreBlow Sovereign Architecture Pillars
 
 ```
- ┌────────────────────────────────────────────────────────────────────────┐
- │                      THE LETHAL TRIFECTA                               │
- │                                                                        │
- │   Untrusted Channel Ingress  +  Host Execution  +  Autonomous Agency   │
- └────────────────────────────────────────────────────────────────────────┘
-                                     │
-                  MITIGATION VIA COREBLOW GUARDRAILS
-                                     │
- ┌───────────────────┬──────────────────────┬────────────────────────────┐
- │  Cryptographic    │  Capability Sandboxes│   Immutable Governance     │
- │  Context Isolation│  & Execution Timeouts│   Tags & Pairing Guard     │
- │  (OWASP ASI01)    │  (OWASP ASI04/ASI08) │   (OWASP ASI05/ASI06)      │
- └───────────────────┴──────────────────────┴────────────────────────────┘
+   ┌───────────────────────────────────────────────────────────────────────┐
+   │                     CoreBlow Sovereign Agent-OS                       │
+   └───────────────────────────────────────────────────────────────────────┘
+                                       │
+         ┌─────────────────────────────┼─────────────────────────────┐
+         ▼                             ▼                             ▼
+  OOP Stateful Supervision      DOP Stateless Hot Paths      Autonomous Intelligence
+  • ServiceRegistry Lifecycle   • Pure SSE Provider Engine   • Cory 4-Layer Memory & Wiki
+  • CoreHub 7-Pillar Sandbox    • 6-Tier Decision Router     • Cory EvoLoop Skill Distiller
+  • WAL Session Ledger          • 3-Stage Compaction         • Multi-Agent War Room & DAG
+  • Cryptographic Trust Zones   • Pre-LLM Security Hook      • Universal Workspace Importer
 ```
-
-### 5.1 OWASP Agentic AI Risk Mitigations
-
-#### ASI01: Prompt Injection & Context Pollution
-- **Cryptographic Channel Demarcation:** Ingress messages from public channels are cryptographically signed and tagged with trust zone markers (`public-untrusted`, `authorized-user`, `system-operator`).
-- **Prompt Isolation Boundary:** Untrusted input is strictly segregated into fenced user content blocks. System directives and tool definitions reside in isolated token spaces that user prompts cannot override.
-
-#### ASI02: Sensitive Information Disclosure
-- **Automated PII/Secret Redaction:** Outbound message streams pass through `redactSensitiveText` and identifier masking routines (`src/logging/redact.ts`) before reaching channel transport.
-- **Vaulted Credential Management:** Credentials and API keys are stored in encrypted system keychains or environment secret references (`SecretRef`), never written to disk logs or context windows.
-
-#### ASI03: Supply Chain Vulnerabilities
-- **CoreHub Manifest Signing:** Plugins installed via CoreHub undergo cryptographic signature verification, manifest hash audits, and dependency vulnerability scans prior to activation.
-
-#### ASI04: Insecure Output Handling & Autonomous Execution
-- **Least-Privilege Tool Sandboxing:** Tools executing filesystem or shell operations run inside constrained sandboxes with path traversal guards (`src/infra/boundary-path.ts`) preventing access outside approved workspace roots.
-- **Strict Schema Enforcement:** Model tool calls are validated against rigid JSON schemas prior to execution; malformed or ambiguous arguments trigger immediate execution abortion.
-
-#### ASI05: Improper Authorization & Privilege Escalation
-- **Pairing Guard:** Public channel contacts must complete an explicit pairing handshake before agent tools or memory write access are unlocked.
-- **Operator Scopes:** Dangerous operations (system reconfiguration, plugin installation, process management) require authenticated `operator.write` scopes.
-
-#### ASI06: Excessive Agency & Unbounded Loops
-- **Step and Cost Budgeting:** Every agent turn is constrained by strict step counters, execution timeouts, and maximum token budgets.
-- **Circuit Breakers:** Repetitive tool failures or cyclical reasoning trigger automatic loop termination and administrative alerting.
-
-#### ASI07: Insufficient Guardrails on Memory & Compaction
-- **Immutable Governance Tags:** System instructions, security guardrails, and compliance constraints are tagged as immutable. During 3-stage context compaction, governance tags are mathematically protected from eviction or summarization degradation.
-
-#### ASI08: Denial of Service & Resource Exhaustion
-- **Worker Execution Timeouts:** Subagent ACP worker threads are bounded by strict memory caps and CPU timeouts, neutralizing unbounded loop and resource exhaustion vulnerabilities (including patterns such as CVE-2026-84288).
-- **Rate-Limited Webhook Ingress:** Public ingress endpoints enforce strict IP-based and user-based token bucket rate limits.
-
-#### ASI09: Insecure Inter-Agent Communication
-- **Authenticated ACP Envelopes:** Inter-agent messages exchanged via ACP use signed message envelopes with nonce validation to prevent replay attacks and message tampering.
-
-#### ASI10: Shadow Agents & Unmonitored Execution
-- **Centralized ServiceRegistry Tracking:** All active agents, subagents, and background worker threads register with `ServiceRegistry`. Unmonitored execution threads are terminated immediately.
 
 ---
 
-## 6. Release & Parity Strategy
+## 2. Core Pillars & Innovations
 
-CoreBlow transitions from legacy parity accumulation to a lean production baseline:
-1. **Prune First:** Eliminate dead code, obsolete migration chains, and unneeded legacy stubs before touching production code.
-2. **Document Fast:** Establish canonical architectural blueprints (`docs/ARCHITECTURE.md`) and requirements before executing features.
-3. **Execute Lean:** Deliver tightly scoped, fully tested batches adhering strictly to CoreBlow naming (`coreblow`, `corehub`, `corebot`, `acp`) and the True Zero Gap SDK.
+### 2.1 Cory Built-in Memory, Knowledge Scribes & Browsable Memory Wiki (`src/memory/`)
+CoreBlow ships with **Cory (`cory-memory` & `cory-knowledge-scribe`)**, a zero-config, offline-first memory and knowledge architecture:
+- **Four-Layer Canonical Markdown Memory (`src/memory/cory.ts`):** Separates *Identity Memory* (`USER.md`), *Durable Workspace Memory* (`MEMORY.md`), *Episodic Daily Summaries* (`daily/<YYYY-MM-DD>.md`), and *Active Constraints* (`CONSTRAINTS.md`), indexed by a self-healing SQLite WAL + BM25 lexical engine (`cory-search.sqlite`) with `< 2ms` retrieval latency.
+- **Knowledge Scribes & Browsable Memory Wiki (`src/memory/knowledge-scribe.ts`):** Automatically compiles durable decisions, constraints, and learned skills into human-readable, cross-linked Markdown Wiki topic pages (`~/.coreblow/memory/wiki/`) with a read-only audit panel.
+- **Zero-Stall Prepared Compaction:** Pre-computes context summaries in the background while pinning the user's `activeHumanRequest` and deterministic `toolDefinitionsHash` so prompt caches never invalidate across compactions.
+
+### 2.2 Cory EvoLoop: Autonomous Skill Synthesizer & Self-Learning Engine (`src/learning/`)
+CoreBlow continuously improves from real execution experience without external Python sidecars:
+- **DOP Trajectory Distillation (`src/learning/dop-skill-distiller.ts`):** Automatically extracts reusable `SKILL.md` V2 procedures whenever an agent overcomes tool friction (*Failed Step $\rightarrow$ Recovery $\rightarrow$ Verification Pass*) or receives an explicit operator workflow rule.
+- **Bayesian Wilson-Score Fitness Ledger:** Tracks invocations, successes, and turns saved using the Wilson lower-bound confidence interval ($z = 1.28$), automatically promoting proven skills (`candidate -> canary -> verified_active`) and rolling back regressing versions (`fitnessScore < 0.40`).
+- **Immutable Per-Skill Locks & 3-Gate Zero-Trust Security:** Operators can lock mission-critical skills (`locked: true` / `SKILL_LOCKED`) against mutation or deprecation, while Zone 0 public-channel blocking and AST/regex static scanning quarantine unsafe code before activation.
+
+### 2.3 Collective Multi-Agent War Room & Adaptive 6-Tier Decision Router (`src/agents/war-room/`, `src/providers/`)
+- **Multi-Agent War Room (`src/agents/war-room/war-room-service.ts`):** Lead Agents decompose complex objectives across specialist subagents (`architect`, `coder`, `auditor`, `researcher`, `security`) tracked on a shared **Kanban DAG Board** (`backlog -> in_progress -> review -> verified`), complete with **Sibling Thread Forking**, **Child Approval Relay**, and **Collective Skill Mesh** sharing.
+- **Adaptive 6-Tier Decision Router (`src/providers/decision-router.ts`):** Deterministically routes tasks across `fast`, `deep`, `local`, `coding`, `vision`, and `decision` tiers with **Daybreak Quota-Window Failover**—automatically switching to fallback cloud providers or local inference (`ollama` / `vllm`) when rate-limit windows approach exhaustion.
+
+### 2.4 CoreHub 7-Pillar On-Demand Marketplace (`src/plugins/`)
+- **Lean Microkernel by Default:** Essential capabilities (`cory-memory`, `cory-skill-synthesizer`, `war-room-orchestrator`, `cory-knowledge-scribe`, `telegram`, `whatsapp`, `slack`, `webhooks`, `browser`, `acp`) boot in `< 1ms` while 15+ community channels are distributed as cryptographically signed `.coreblow-plugin.tgz` packages via `https://coreblow.com/corehub`.
+- **Atomic Staging, Consent Ledger & Instant Rollback:** Every CoreHub package verifies SHA-256 integrity, enforces explicit capability consent (`network`, `filesystem`, `shell`, `credentials`, `webhook`), isolates runtime faults, and supports one-command version rollback.
+
+---
+
+## 3. Product Requirements & Capability Matrix
+
+| Capability | Requirement Description | Implementation Surface | Priority | Status |
+| :--- | :--- | :--- | :---: | :---: |
+| **Hybrid Microkernel** | Sub-millisecond `ServiceRegistry` boot with strict OOP lifecycle and DOP hot paths. | `src/gateway/service-registry.ts`, `src/gateway/microkernel-services.ts` | P0 | ✅ Certified |
+| **Zero-SDK Provider Engine** | Pure DOP OpenAI-compatible SSE streaming covering 17+ cloud and local AI providers. | `src/providers/dop-openai-stream.ts` | P0 | ✅ Certified |
+| **Cory Built-in Memory** | 4-layer Markdown truth + SQLite WAL/BM25 lexical search with Zone 0 write protection. | `src/memory/cory.ts` | P0 | ✅ Certified |
+| **Cory EvoLoop** | Closed-loop trajectory skill distillation, Bayesian Wilson fitness, auto-rollback & skill locks. | `src/learning/` | P0 | ✅ Certified |
+| **6-Tier Decision Router** | Deterministic task classification + Daybreak quota-window failover to fallback/local AI. | `src/providers/decision-router.ts` | P0 | ✅ Certified |
+| **Multi-Agent War Room** | Lead routing, Kanban DAG task board, sibling thread forking & child approval relay. | `src/agents/war-room/` | P0 | ✅ Certified |
+| **CoreHub App Store** | 7-pillar on-demand plugin packaging, SHA-256 verification, consent gate & rollback. | `src/plugins/app-store-runtime.ts` | P0 | ✅ Certified |
+| **Knowledge Scribes & Wiki** | Browsable Markdown Memory Wiki + Zero-Stall Prepared Compaction preserving user intent. | `src/memory/knowledge-scribe.ts` | P0 | ✅ Certified |
+| **Universal Importer** | Preview-first workspace profile importer with automatic API key/secret redaction. | `src/migration/universal-agent-importer.ts` | P1 | ✅ Certified |
+| **Autonomous PR & Chat Views** | Chat-native Git/PR workflow engine + interactive DOP plugin cards in chat. | `src/agents/pr-workflow/`, `src/plugins/chat-views/` | P0 | ✅ Certified |
+| **Sovereign Local TTS** | Native Apple Silicon MLX voice synthesis (`RTF <= 0.4`) and desktop companion. | `src/tts/sovereign-voice-companion.ts`, `apps/macos-mlx-tts/` | P1 | ✅ Certified |
+| **Sovereign Release Certifier** | Automated 12-service GA readiness gate, brand purity scanner & SHA-256 release manifest. | `src/infra/release/sovereign-release-certifier.ts` | P0 | ✅ Certified |
+
+---
+
+## 4. Security & Threat Mitigation: Neutralizing The Lethal Trifecta
+
+CoreBlow systematically neutralizes **The Lethal Trifecta** (*Untrusted Channel Ingress + Host Execution + Autonomous Agency*) across all layers:
+1. **Cryptographic Trust Zones (`Zone 0` Public Untrusted, `Zone 1` Authenticated User, `Zone 2` System Operator):** Untrusted public channels are strictly blocked from mutating `USER.md`, `MEMORY.md`, `CONSTRAINTS.md`, Memory Wiki pages, or EvoLoop learned skills.
+2. **Pre-LLM Call Interceptor (`evaluatePreLlmCallHook`):** Pure DOP security gate that inspects outbound prompt payloads prior to model invocation, blocking prompt injection markers, secret exfiltration patterns, and token budget overruns.
+3. **Automated Secret Redaction (`redactSensitiveText`):** Strips raw API keys, bearer tokens, and credentials from logs, outbound chat messages, synthesized skills, and imported workspace bundles.
+4. **Bounded Execution & Emergency Kill-Switch:** Hard 120-second ACP worker thread timeouts and hardware/UI emergency kill-switches prevent runaway autonomous loops.

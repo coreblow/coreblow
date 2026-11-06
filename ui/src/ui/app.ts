@@ -88,12 +88,7 @@ export class CoreBlowApp extends LitElement {
 
   setTab(next: Tab) {
     this.tab = next;
-    this.navDrawerOpen = false;
     window.location.hash = `#${next}`;
-  }
-
-  toggleNavDrawer(open?: boolean) {
-    this.navDrawerOpen = typeof open === "boolean" ? open : !this.navDrawerOpen;
   }
 
   setTheme(next: ThemeName) {

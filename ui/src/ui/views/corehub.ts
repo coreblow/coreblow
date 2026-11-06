@@ -30,7 +30,7 @@ export function coreHubDirectoryUrl(registryUrl: string): string {
 }
 
 export function coreBlowGatewayHttpBaseUrl(gatewayUrl?: string): string {
-  const fallback = globalThis.location?.origin ?? "http://127.0.0.1:3000";
+  const fallback = globalThis.location?.origin ?? "http://127.0.0.1:18789";
   const trimmed = gatewayUrl?.trim();
   if (!trimmed) return fallback;
   try {

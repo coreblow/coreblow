@@ -69,7 +69,10 @@ export type { SecretInput, SecretRef } from "../config/types.secrets.js";
 export type { RuntimeEnv } from "../runtime.js";
 export type { HookEntry } from "../hooks/types.js";
 export type { ReplyPayload } from "../auto-reply/types.js";
-export { resolveBatchedReplyThreadingPolicy, type ReplyThreadingPolicy } from "./reply-reference.js";
+export {
+  resolveBatchedReplyThreadingPolicy,
+  type ReplyThreadingPolicy,
+} from "./reply-reference.js";
 export type { WizardPrompter } from "../wizard/prompts.js";
 export type { ContextEngineFactory } from "../context-engine/registry.js";
 export type { DiagnosticEventPayload } from "../infra/diagnostic-events.js";
@@ -103,3 +106,18 @@ export {
   type WalSessionRecord,
   type WalSessionMeta,
 } from "../infra/storage/wal-session-ledger.js";
+export * from "./agents.js";
+export * from "./plugins.js";
+export {
+  type VoiceSynthesisTelemetry,
+  computeVoiceRealTimeFactor,
+} from "../tts/sovereign-voice-companion.js";
+export {
+  type ReleaseGateCategory,
+  type ReleaseGateCheckResult,
+  type CoreBlowReleaseManifest,
+  REQUIRED_MICROKERNEL_SERVICES,
+  evaluateSovereignReleaseGates,
+  compileSovereignReleaseManifest,
+} from "../infra/release/index.js";
+

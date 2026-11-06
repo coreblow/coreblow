@@ -13,30 +13,40 @@
  */
 
 import fs from "node:fs";
+import type { IncomingMessage, ServerResponse } from "node:http";
 import os from "node:os";
 import path from "node:path";
-import type { IncomingMessage, ServerResponse } from "node:http";
-import { ServiceRegistry, type GatewayService, type ServiceHealth } from "./service-registry.js";
-import { CoryBootstrapService } from "../memory/cory.js";
+import { PrWorkflowOrchestratorService } from "../agents/pr-workflow/index.js";
+import {
+  WarRoomOrchestratorService,
+  type WarRoomMember,
+  type WarRoomSession,
+} from "../agents/war-room/index.js";
+import { cleanupBrowserSessionsForLifecycleEnd } from "../browser-lifecycle-cleanup.js";
+import { loadConfig, type CoreBlowConfig } from "../config/config.js";
+import { compileSovereignReleaseManifest } from "../infra/release/index.js";
 import {
   CorySkillSynthesizerService,
   type SkillIngestOptions,
   type SkillLifecycleStatus,
   type TurnTrajectoryRecord,
 } from "../learning/index.js";
-import { ExtensionTierPolicy } from "../plugins/extension-tier-policy.js";
+import { CoryBootstrapService, CoryKnowledgeScribeService } from "../memory/index.js";
+import { UniversalAgentImporterService, type ExternalAgentSource } from "../migration/index.js";
+import {
+  isCoreHubCapability,
+  type CoreHubAppManifest,
+  type CoreHubCapability,
+} from "../plugins/app-store-contract.js";
 import { CoreHubAppStoreRuntime } from "../plugins/app-store-runtime.js";
+import { renderChatNativeView, type ChatNativePluginView } from "../plugins/chat-views/index.js";
 import {
   buildStorefrontCatalogView,
   BUILTIN_KERNEL_CAPABILITY_ENTRIES,
   type StorefrontAppCard,
   type StorefrontCatalogEntry,
 } from "../plugins/cockpit-storefront-model.js";
-import {
-  isCoreHubCapability,
-  type CoreHubAppManifest,
-  type CoreHubCapability,
-} from "../plugins/app-store-contract.js";
+import { ExtensionTierPolicy } from "../plugins/extension-tier-policy.js";
 import {
   listOfficialExternalPluginCatalogEntries,
   resolveOfficialExternalPluginId,
@@ -45,27 +55,22 @@ import {
 } from "../plugins/official-external-plugin-catalog.js";
 import { ProviderRegistry } from "../providers/provider-registry.js";
 import { RAGPipeline } from "../rag/rag-pipeline.js";
-import { ToolRegistry } from "../tools/tool-registry.js";
-import { ToolExecutor } from "../tools/tool-executor.js";
 import { BrowserTool } from "../tools/builtin/browser.js";
-import { cleanupBrowserSessionsForLifecycleEnd } from "../browser-lifecycle-cleanup.js";
+import { ToolExecutor } from "../tools/tool-executor.js";
+import { ToolRegistry } from "../tools/tool-registry.js";
 import { TtsEngine } from "../tts/engine.js";
-import { loadConfig, type CoreBlowConfig } from "../config/config.js";
-import {
-  isLocalDirectRequest,
-  resolveGatewayAuth,
-  type ResolvedGatewayAuth,
-} from "./auth.js";
-import { checkBrowserOrigin } from "./origin-check.js";
+import type { AuthRateLimiter } from "./auth-rate-limit.js";
+import { isLocalDirectRequest, resolveGatewayAuth, type ResolvedGatewayAuth } from "./auth.js";
 import {
   authorizeScopedGatewayHttpRequestOrReply,
   resolveTrustedHttpOperatorScopes,
   getHeader,
   type AuthorizedGatewayHttpRequest,
 } from "./http-auth-utils.js";
-import { CLI_DEFAULT_OPERATOR_SCOPES } from "./method-scopes.js";
 import { sendJson } from "./http-common.js";
-import type { AuthRateLimiter } from "./auth-rate-limit.js";
+import { CLI_DEFAULT_OPERATOR_SCOPES } from "./method-scopes.js";
+import { checkBrowserOrigin } from "./origin-check.js";
+import { ServiceRegistry, type GatewayService, type ServiceHealth } from "./service-registry.js";
 
 // ── Native Kernel Capability Services (OOP GatewayService Adapters) ──
 
@@ -278,7 +283,10 @@ export class NativeBrowserRuntimeService implements GatewayService {
       return { status: "down", detail: "Browser runtime stopped" };
     }
     if (!this.isOperational) {
-      return { status: "degraded", detail: "Browser runtime degraded or browser binary unavailable" };
+      return {
+        status: "degraded",
+        detail: "Browser runtime degraded or browser binary unavailable",
+      };
     }
     const pageCount = this.tool.listPages().length;
     const isConnected = this.tool.isConnected();
@@ -343,6 +351,10 @@ export interface MicrokernelServiceRegistryOptions {
   readonly trustedProxies?: readonly string[];
   readonly allowRealIpFallback?: boolean;
   readonly rateLimiter?: AuthRateLimiter;
+  readonly warRoomService?: WarRoomOrchestratorService;
+  readonly knowledgeScribeService?: CoryKnowledgeScribeService;
+  readonly wikiDir?: string;
+  readonly prWorkflowService?: PrWorkflowOrchestratorService;
 }
 
 export interface MicrokernelServicesResult {
@@ -356,7 +368,12 @@ export interface MicrokernelServicesResult {
   readonly skillSynthesizer: CorySkillSynthesizerService;
   readonly tierPolicy: ExtensionTierPolicy;
   readonly appStore: CoreHubAppStoreRuntime;
+  readonly warRoom: WarRoomOrchestratorService;
+  readonly knowledgeScribe: CoryKnowledgeScribeService;
+  readonly prWorkflow: PrWorkflowOrchestratorService;
 }
+
+export type MicrokernelServiceRegistry = MicrokernelServicesResult;
 
 /**
  * Creates and configures the microkernel services in the Gateway ServiceRegistry.
@@ -393,6 +410,20 @@ export function createMicrokernelServiceRegistry(
     baseDir: stateDir,
     tierPolicy,
   });
+  const warRoom =
+    options.warRoomService ??
+    new WarRoomOrchestratorService({
+      skillSynthesizer,
+      providerRuntime: provider,
+    });
+  const knowledgeScribe =
+    options.knowledgeScribeService ??
+    new CoryKnowledgeScribeService({
+      cory,
+      skillSynthesizer,
+      wikiDir: options.wikiDir,
+    });
+  const prWorkflow = options.prWorkflowService ?? new PrWorkflowOrchestratorService();
 
   // Explicit registration with deterministic topological dependencies:
   // 1. AI provider runtime (0 deps)
@@ -413,6 +444,21 @@ export function createMicrokernelServiceRegistry(
   registry.register("extension-tier-policy", tierPolicy, []);
   // 9. CoreHub app store runtime (dep: extension-tier-policy)
   registry.register("corehub-app-store", appStore, ["extension-tier-policy"]);
+  // 10. War Room orchestrator (deps: cory-skill-synthesizer, provider-runtime)
+  registry.register("war-room-orchestrator", warRoom, [
+    "cory-skill-synthesizer",
+    "provider-runtime",
+  ]);
+  // 11. Cory knowledge scribe & memory wiki (deps: cory-memory, cory-skill-synthesizer)
+  registry.register("cory-knowledge-scribe", knowledgeScribe, [
+    "cory-memory",
+    "cory-skill-synthesizer",
+  ]);
+  // 12. Autonomous Git & PR Workflow Orchestrator (deps: tool-runtime, war-room-orchestrator)
+  registry.register("pr-workflow-orchestrator", prWorkflow, [
+    "tool-runtime",
+    "war-room-orchestrator",
+  ]);
 
   return {
     registry,
@@ -425,6 +471,9 @@ export function createMicrokernelServiceRegistry(
     skillSynthesizer,
     tierPolicy,
     appStore,
+    warRoom,
+    knowledgeScribe,
+    prWorkflow,
   };
 }
 
@@ -454,12 +503,17 @@ export function loadStorefrontCatalogEntries(
           loadedEntries = entries.map((e) => ({
             id: String(e.id ?? e.name ?? "").trim(),
             name: e.name ? String(e.name) : undefined,
-            summary: e.summary ? String(e.summary) : e.description ? String(e.description) : undefined,
+            summary: e.summary
+              ? String(e.summary)
+              : e.description
+                ? String(e.description)
+                : undefined,
             description: e.description ? String(e.description) : undefined,
             version: e.version ? String(e.version) : "1.0.0",
             capabilities: Array.isArray(e.capabilities) ? e.capabilities : [],
             publisher: e.publisher,
-            installSpec: e.install?.npmSpec ?? e.installSpec ?? (e.id ? `corehub:${e.id}` : undefined),
+            installSpec:
+              e.install?.npmSpec ?? e.installSpec ?? (e.id ? `corehub:${e.id}` : undefined),
             hotReloadSafe: Boolean(e.hotReloadSafe),
           }));
           break;
@@ -547,11 +601,14 @@ export interface HandleCoreHubRouteOptions {
   readonly trustedProxies?: string[];
   readonly allowRealIpFallback?: boolean;
   readonly rateLimiter?: AuthRateLimiter;
+  readonly stagedFilePaths?: readonly string[];
+  readonly sourceSnippets?: readonly string[];
 }
 
 /**
  * Handles CoreHub Storefront HTTP API requests:
  * - GET  /api/corehub/storefront
+ * - GET  /api/corehub/release/readiness (and /api/corehub/v2/release/readiness)
  * - POST /api/corehub/consent (Authenticated & Authorized operator.admin, non-wildcard CORS)
  * - POST /api/corehub/rollback (Authenticated & Authorized operator.admin, non-wildcard CORS)
  */
@@ -568,6 +625,11 @@ export async function handleCoreHubRoute(
     browser?: NativeBrowserRuntimeService;
     voice?: NativeVoiceRuntimeService;
     skillSynthesizer?: CorySkillSynthesizerService;
+    warRoom?: WarRoomOrchestratorService;
+    knowledgeScribe?: CoryKnowledgeScribeService;
+    importer?: UniversalAgentImporterService;
+    prWorkflow?: PrWorkflowOrchestratorService;
+    registry?: ServiceRegistry;
   },
   options: HandleCoreHubRouteOptions = {},
 ): Promise<boolean> {
@@ -590,7 +652,16 @@ export async function handleCoreHubRoute(
     pathname === "/api/corehub/install" ||
     pathname === "/api/corehub/activate" ||
     pathname === "/api/corehub/skills/ingest" ||
-    pathname === "/api/corehub/skills/outcome";
+    pathname === "/api/corehub/skills/outcome" ||
+    pathname === "/api/corehub/skills/lock" ||
+    (pathname === "/api/corehub/war-room/rooms" && method === "POST") ||
+    pathname === "/api/corehub/war-room/delegate" ||
+    pathname === "/api/corehub/war-room/fork" ||
+    pathname === "/api/corehub/memory-wiki/scribe" ||
+    pathname === "/api/corehub/import-agent" ||
+    (pathname === "/api/corehub/pr-workflow/drafts" && method === "POST") ||
+    pathname === "/api/corehub/pr-workflow/approve" ||
+    pathname === "/api/corehub/chat-views/render";
   const cfg = options.cfg ?? loadConfig();
 
   // Validate browser origin for CORS / cross-origin protection
@@ -625,7 +696,10 @@ export async function handleCoreHubRoute(
       if (!checkOrigin()) return true;
       res.statusCode = 204;
       res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-      res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-CoreBlow-Scopes");
+      res.setHeader(
+        "Access-Control-Allow-Headers",
+        "Content-Type, Authorization, X-CoreBlow-Scopes",
+      );
       res.setHeader("Vary", "Origin");
       res.end();
       return true;
@@ -651,13 +725,100 @@ export async function handleCoreHubRoute(
     return true;
   }
 
+  // GET /api/corehub/release/readiness (and /api/corehub/v2/release/readiness)
+  if (method === "GET" && pathname === "/api/corehub/release/readiness") {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+
+    // 1. Query live service health across the 12 canonical services
+    const activeServices: Array<{
+      name: string;
+      healthy: boolean;
+      status: string;
+      detail?: string;
+    }> = [];
+
+    if (services.registry) {
+      for (const entry of services.registry.getHealth()) {
+        activeServices.push({
+          name: entry.name,
+          healthy: entry.status === "healthy",
+          status: entry.status,
+          detail: entry.detail,
+        });
+      }
+    } else {
+      const serviceList: Array<[string, { health(): { status: string; detail?: string } } | undefined]> = [
+        ["provider-runtime", services.provider],
+        ["rag-runtime", services.rag],
+        ["tool-runtime", services.tool],
+        ["browser-runtime", services.browser],
+        ["voice-runtime", services.voice],
+        ["cory-memory", services.cory],
+        ["cory-skill-synthesizer", services.skillSynthesizer],
+        ["extension-tier-policy", services.tierPolicy],
+        ["corehub-app-store", services.appStore],
+        ["war-room-orchestrator", services.warRoom],
+        ["cory-knowledge-scribe", services.knowledgeScribe],
+        ["pr-workflow-orchestrator", services.prWorkflow],
+      ];
+      for (const [name, svc] of serviceList) {
+        if (svc) {
+          const h = svc.health();
+          activeServices.push({
+            name,
+            healthy: h.status === "healthy",
+            status: h.status,
+            detail: h.detail,
+          });
+        } else {
+          activeServices.push({
+            name,
+            healthy: false,
+            status: "down",
+            detail: "Service not available",
+          });
+        }
+      }
+    }
+
+    // 2. Load catalog entry count
+    const catalogEntries =
+      options.catalogEntries ?? loadStorefrontCatalogEntries(options.catalogPath);
+    const coreHubArtifactCount = catalogEntries.length;
+
+    // 3. Query parameter overrides
+    const version = url.searchParams.get("version") ?? undefined;
+    const releaseChannel =
+      url.searchParams.get("channel") ?? url.searchParams.get("releaseChannel") ?? "ga";
+
+    // 4. Compile sovereign release manifest
+    const manifest = compileSovereignReleaseManifest({
+      activeServices,
+      serviceRegistry: services.registry,
+      coreHubArtifactCount,
+      version,
+      releaseChannel,
+      stagedFilePaths: options.stagedFilePaths ?? [],
+      sourceSnippets: options.sourceSnippets ?? [],
+    });
+
+    sendJson(res, 200, {
+      ok: true,
+      manifest,
+    });
+    return true;
+  }
+
   // GET /api/corehub/storefront
   if (method === "GET" && pathname === "/api/corehub/storefront") {
     const searchQuery = url.searchParams.get("q") ?? url.searchParams.get("search") ?? undefined;
     const tierParam = url.searchParams.get("tier");
-    const tierFilter = tierParam === "core" || tierParam === "corehub_on_demand" ? tierParam : "all";
+    const tierFilter =
+      tierParam === "core" || tierParam === "corehub_on_demand" ? tierParam : "all";
 
-    const catalogEntries = options.catalogEntries ?? loadStorefrontCatalogEntries(options.catalogPath);
+    const catalogEntries =
+      options.catalogEntries ?? loadStorefrontCatalogEntries(options.catalogPath);
     const consentLedger = services.appStore.getConsentLedger();
     const tierPolicy = services.tierPolicy;
 
@@ -684,7 +845,12 @@ export async function handleCoreHubRoute(
         ...(services.tool ? { tool: services.tool.health() } : {}),
         ...(services.browser ? { browser: services.browser.health() } : {}),
         ...(services.voice ? { voice: services.voice.health() } : {}),
-        ...(services.skillSynthesizer ? { skillSynthesizer: services.skillSynthesizer.health() } : {}),
+        ...(services.skillSynthesizer
+          ? { skillSynthesizer: services.skillSynthesizer.health() }
+          : {}),
+        ...(services.warRoom ? { warRoom: services.warRoom.health() } : {}),
+        ...(services.knowledgeScribe ? { knowledgeScribe: services.knowledgeScribe.health() } : {}),
+        ...(services.prWorkflow ? { prWorkflow: services.prWorkflow.health() } : {}),
       },
     });
     return true;
@@ -698,8 +864,7 @@ export async function handleCoreHubRoute(
     }
 
     const auth =
-      options.auth ??
-      resolveGatewayAuth({ authConfig: cfg.gateway?.auth, env: process.env });
+      options.auth ?? resolveGatewayAuth({ authConfig: cfg.gateway?.auth, env: process.env });
 
     const authResult = await authorizeScopedGatewayHttpRequestOrReply({
       req,
@@ -720,7 +885,8 @@ export async function handleCoreHubRoute(
     res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
 
     const statusParam = url.searchParams.get("status");
-    const status = statusParam === "all" ? undefined : (statusParam as SkillLifecycleStatus | undefined);
+    const status =
+      statusParam === "all" ? undefined : (statusParam as SkillLifecycleStatus | undefined);
     const query = url.searchParams.get("q") ?? url.searchParams.get("query");
 
     const skills = query
@@ -735,6 +901,116 @@ export async function handleCoreHubRoute(
     return true;
   }
 
+  // GET /api/corehub/war-room/rooms
+  if (method === "GET" && pathname === "/api/corehub/war-room/rooms") {
+    if (!services.warRoom) {
+      sendJson(res, 503, { ok: false, error: "War Room Orchestrator service not available" });
+      return true;
+    }
+
+    const auth =
+      options.auth ?? resolveGatewayAuth({ authConfig: cfg.gateway?.auth, env: process.env });
+
+    const authResult = await authorizeScopedGatewayHttpRequestOrReply({
+      req,
+      res,
+      auth,
+      trustedProxies: options.trustedProxies ?? cfg.gateway?.trustedProxies,
+      allowRealIpFallback: options.allowRealIpFallback ?? cfg.gateway?.allowRealIpFallback,
+      rateLimiter: options.rateLimiter,
+      operatorMethod: "agents.list",
+      resolveOperatorScopes: resolveCoreHubOperatorScopes,
+    });
+
+    if (!authResult) {
+      return true;
+    }
+
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    const rooms = services.warRoom.listWarRooms();
+    sendJson(res, 200, {
+      ok: true,
+      count: rooms.length,
+      rooms,
+    });
+    return true;
+  }
+
+  // GET /api/corehub/memory-wiki
+  if (method === "GET" && pathname === "/api/corehub/memory-wiki") {
+    if (!services.knowledgeScribe) {
+      sendJson(res, 503, { ok: false, error: "Cory Knowledge Scribe service not available" });
+      return true;
+    }
+
+    const auth =
+      options.auth ?? resolveGatewayAuth({ authConfig: cfg.gateway?.auth, env: process.env });
+
+    const authResult = await authorizeScopedGatewayHttpRequestOrReply({
+      req,
+      res,
+      auth,
+      trustedProxies: options.trustedProxies ?? cfg.gateway?.trustedProxies,
+      allowRealIpFallback: options.allowRealIpFallback ?? cfg.gateway?.allowRealIpFallback,
+      rateLimiter: options.rateLimiter,
+      operatorMethod: "doctor.memory.status",
+      resolveOperatorScopes: resolveCoreHubOperatorScopes,
+    });
+
+    if (!authResult) {
+      return true;
+    }
+
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    const workspaceId = url.searchParams.get("workspaceId") ?? undefined;
+    const scope = workspaceId ? { workspaceId } : undefined;
+    const snapshot = await services.knowledgeScribe.getMemoryWikiSnapshot(scope);
+    sendJson(res, 200, {
+      ok: true,
+      pages: snapshot.pages,
+      auditPanel: snapshot.auditPanel,
+    });
+    return true;
+  }
+
+  // GET /api/corehub/pr-workflow/drafts
+  if (method === "GET" && pathname === "/api/corehub/pr-workflow/drafts") {
+    if (!services.prWorkflow) {
+      sendJson(res, 503, { ok: false, error: "PR Workflow Orchestrator service not available" });
+      return true;
+    }
+
+    const auth =
+      options.auth ?? resolveGatewayAuth({ authConfig: cfg.gateway?.auth, env: process.env });
+
+    const authResult = await authorizeScopedGatewayHttpRequestOrReply({
+      req,
+      res,
+      auth,
+      trustedProxies: options.trustedProxies ?? cfg.gateway?.trustedProxies,
+      allowRealIpFallback: options.allowRealIpFallback ?? cfg.gateway?.allowRealIpFallback,
+      rateLimiter: options.rateLimiter,
+      operatorMethod: "agents.list",
+      resolveOperatorScopes: resolveCoreHubOperatorScopes,
+    });
+
+    if (!authResult) {
+      return true;
+    }
+
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    const workspaceId = url.searchParams.get("workspaceId") ?? undefined;
+    const drafts = services.prWorkflow.listPullRequestDrafts(workspaceId);
+    sendJson(res, 200, {
+      ok: true,
+      drafts,
+    });
+    return true;
+  }
+
   // Privileged Mutations: Origin verification + Authentication + Admin Scope Authorization
   if (isMutation) {
     if (!checkOrigin()) {
@@ -742,12 +1018,18 @@ export async function handleCoreHubRoute(
     }
 
     const auth =
-      options.auth ??
-      resolveGatewayAuth({ authConfig: cfg.gateway?.auth, env: process.env });
+      options.auth ?? resolveGatewayAuth({ authConfig: cfg.gateway?.auth, env: process.env });
 
     const operatorMethod = pathname.startsWith("/api/corehub/skills/")
       ? "skills.install"
-      : "plugin.install";
+      : pathname.startsWith("/api/corehub/war-room/") ||
+          pathname.startsWith("/api/corehub/import-agent") ||
+          pathname === "/api/corehub/pr-workflow/drafts" ||
+          pathname === "/api/corehub/pr-workflow/approve"
+        ? "agents.create"
+        : pathname === "/api/corehub/chat-views/render"
+          ? "plugins.view"
+          : "plugin.install";
 
     const authResult = await authorizeScopedGatewayHttpRequestOrReply({
       req,
@@ -851,9 +1133,10 @@ export async function handleCoreHubRoute(
           sendJson(res, 400, { ok: false, error: "Missing required 'manifest' field." });
           return true;
         }
-        const archiveBuffer = typeof body.archiveBase64 === "string"
-          ? Buffer.from(body.archiveBase64, "base64")
-          : Buffer.alloc(0);
+        const archiveBuffer =
+          typeof body.archiveBase64 === "string"
+            ? Buffer.from(body.archiveBase64, "base64")
+            : Buffer.alloc(0);
         const result = services.appStore.installAppFromBuffer({
           archiveBuffer,
           manifest,
@@ -878,7 +1161,10 @@ export async function handleCoreHubRoute(
         const pluginId = typeof body.pluginId === "string" ? body.pluginId.trim() : "";
         const manifest = body.manifest as CoreHubAppManifest;
         if (!pluginId || !manifest) {
-          sendJson(res, 400, { ok: false, error: "Missing required 'pluginId' or 'manifest' field." });
+          sendJson(res, 400, {
+            ok: false,
+            error: "Missing required 'pluginId' or 'manifest' field.",
+          });
           return true;
         }
         const activation = await services.appStore.enableApp(pluginId, manifest, {
@@ -921,7 +1207,12 @@ export async function handleCoreHubRoute(
           output: step.output ?? step.outputSummary,
           isError: step.isError === true || step.succeeded === false,
           succeeded: step.succeeded === true || step.isError === false,
-          executionDurationMs: typeof step.executionDurationMs === "number" ? step.executionDurationMs : typeof step.durationMs === "number" ? step.durationMs : undefined,
+          executionDurationMs:
+            typeof step.executionDurationMs === "number"
+              ? step.executionDurationMs
+              : typeof step.durationMs === "number"
+                ? step.durationMs
+                : undefined,
           errorCode: typeof step.errorCode === "string" ? step.errorCode : undefined,
         }));
 
@@ -938,14 +1229,17 @@ export async function handleCoreHubRoute(
                 ? "success"
                 : "failure";
 
-        const userGoal = String(rawTraj.userGoal ?? rawTraj.taskSummary ?? "Synthesized Task Skill");
-        const userCorrectionText = typeof rawTraj.userCorrectionText === "string"
-          ? rawTraj.userCorrectionText
-          : typeof rawTraj.userCorrection === "string"
-            ? rawTraj.userCorrection
-            : typeof rawTraj.correctionDetails === "string"
-              ? rawTraj.correctionDetails
-              : undefined;
+        const userGoal = String(
+          rawTraj.userGoal ?? rawTraj.taskSummary ?? "Synthesized Task Skill",
+        );
+        const userCorrectionText =
+          typeof rawTraj.userCorrectionText === "string"
+            ? rawTraj.userCorrectionText
+            : typeof rawTraj.userCorrection === "string"
+              ? rawTraj.userCorrection
+              : typeof rawTraj.correctionDetails === "string"
+                ? rawTraj.correctionDetails
+                : undefined;
 
         const trajectory: TurnTrajectoryRecord = {
           ...rawTraj,
@@ -956,7 +1250,9 @@ export async function handleCoreHubRoute(
           userCorrectionText,
         };
 
-        const ingestOptions = (typeof body.options === "object" && body.options !== null ? body.options : undefined) as SkillIngestOptions | undefined;
+        const ingestOptions = (
+          typeof body.options === "object" && body.options !== null ? body.options : undefined
+        ) as SkillIngestOptions | undefined;
         const result = await services.skillSynthesizer.ingestTrajectory(trajectory, ingestOptions);
 
         if (!result.ok && result.error === "ZONE_0_BLOCKED") {
@@ -1002,7 +1298,9 @@ export async function handleCoreHubRoute(
           return true;
         }
 
-        const rawOutcome = body.outcome ?? (body.succeeded === true ? "success" : body.succeeded === false ? "failure" : undefined);
+        const rawOutcome =
+          body.outcome ??
+          (body.succeeded === true ? "success" : body.succeeded === false ? "failure" : undefined);
         const outcome = rawOutcome === "failure" ? "failure" : "success";
 
         const updatedSkill = await services.skillSynthesizer.recordSkillOutcome(skillId, outcome);
@@ -1022,6 +1320,296 @@ export async function handleCoreHubRoute(
           ok: false,
           error: msg,
         });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/skills/lock
+    if (pathname === "/api/corehub/skills/lock") {
+      if (!services.skillSynthesizer) {
+        sendJson(res, 503, { ok: false, error: "Cory Skill Synthesizer service not available" });
+        return true;
+      }
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const skillId = typeof body.skillId === "string" ? body.skillId.trim() : "";
+        if (!skillId) {
+          sendJson(res, 400, { ok: false, error: "Missing required 'skillId' field." });
+          return true;
+        }
+        const locked = body.locked !== false;
+        const updatedSkill = await (services.skillSynthesizer as any).setSkillLock(skillId, locked);
+        sendJson(res, 200, {
+          ok: true,
+          skillId,
+          locked: updatedSkill?.locked === true,
+          skill: updatedSkill,
+        });
+        return true;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        const statusCode = msg.includes("SKILL_NOT_FOUND") || msg.includes("not found") ? 404 : 400;
+        sendJson(res, statusCode, { ok: false, error: msg });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/war-room/rooms
+    if (pathname === "/api/corehub/war-room/rooms") {
+      if (!services.warRoom) {
+        sendJson(res, 503, { ok: false, error: "War Room Orchestrator service not available" });
+        return true;
+      }
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const title = typeof body.title === "string" ? body.title.trim() : "";
+        const purpose = typeof body.purpose === "string" ? body.purpose.trim() : "";
+        if (!title || !purpose) {
+          sendJson(res, 400, { ok: false, error: "Missing required 'title' or 'purpose' field." });
+          return true;
+        }
+        const roomId = typeof body.roomId === "string" ? body.roomId.trim() : undefined;
+        const leadAgentId =
+          typeof body.leadAgentId === "string" ? body.leadAgentId.trim() : undefined;
+        const members = Array.isArray(body.members) ? (body.members as WarRoomMember[]) : undefined;
+        const inheritedSkills = Array.isArray(body.inheritedSkills)
+          ? (body.inheritedSkills as string[])
+          : undefined;
+        const room = services.warRoom.createWarRoom({
+          roomId,
+          title,
+          purpose,
+          leadAgentId,
+          members,
+          inheritedSkills,
+        });
+        sendJson(res, 200, { ok: true, roomId: room.roomId, room });
+        return true;
+      } catch (err) {
+        sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/war-room/delegate
+    if (pathname === "/api/corehub/war-room/delegate") {
+      if (!services.warRoom) {
+        sendJson(res, 503, { ok: false, error: "War Room Orchestrator service not available" });
+        return true;
+      }
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const roomId = typeof body.roomId === "string" ? body.roomId.trim() : "";
+        const prompt =
+          typeof body.prompt === "string"
+            ? body.prompt.trim()
+            : typeof body.message === "string"
+              ? body.message.trim()
+              : "";
+        if (!roomId || !prompt) {
+          sendJson(res, 400, { ok: false, error: "Missing required 'roomId' or 'prompt' field." });
+          return true;
+        }
+        const result = await services.warRoom.routeMessageViaLead(roomId, prompt);
+        sendJson(res, 200, { ok: true, ...result });
+        return true;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        const statusCode = msg.includes("not found") ? 404 : 400;
+        sendJson(res, statusCode, { ok: false, error: msg });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/war-room/fork
+    if (pathname === "/api/corehub/war-room/fork") {
+      if (!services.warRoom) {
+        sendJson(res, 503, { ok: false, error: "War Room Orchestrator service not available" });
+        return true;
+      }
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const roomId = typeof body.roomId === "string" ? body.roomId.trim() : "";
+        const topicTitle =
+          typeof body.topicTitle === "string"
+            ? body.topicTitle.trim()
+            : typeof body.title === "string"
+              ? body.title.trim()
+              : "";
+        if (!roomId || !topicTitle) {
+          sendJson(res, 400, {
+            ok: false,
+            error: "Missing required 'roomId' or 'topicTitle' field.",
+          });
+          return true;
+        }
+        const result = services.warRoom.forkSiblingThread(roomId, topicTitle);
+        sendJson(res, 200, { ok: true, ...result });
+        return true;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        const statusCode = msg.includes("not found") ? 404 : 400;
+        sendJson(res, statusCode, { ok: false, error: msg });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/memory-wiki/scribe
+    if (pathname === "/api/corehub/memory-wiki/scribe") {
+      if (!services.knowledgeScribe) {
+        sendJson(res, 503, { ok: false, error: "Cory Knowledge Scribe service not available" });
+        return true;
+      }
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const sessionId = typeof body.sessionId === "string" ? body.sessionId.trim() : "";
+        const title = typeof body.title === "string" ? body.title.trim() : "";
+        if (!sessionId || !title) {
+          sendJson(res, 400, {
+            ok: false,
+            error: "Missing required 'sessionId' or 'title' field.",
+          });
+          return true;
+        }
+
+        const rawScope = body.scope as Record<string, unknown> | undefined;
+        const trustZone = (rawScope?.trustZone ?? body.trustZone) as string | undefined;
+        const isPublicChannel = (rawScope?.isPublicChannel ?? body.isPublicChannel) as
+          | boolean
+          | undefined;
+
+        if (trustZone === "public" || isPublicChannel === true) {
+          sendJson(res, 403, {
+            ok: false,
+            error: "ZONE_0_BLOCKED: Public channels cannot mutate durable memory wiki pages.",
+          });
+          return true;
+        }
+
+        const category = typeof body.category === "string" ? (body.category as any) : undefined;
+        const insights = Array.isArray(body.insights) ? (body.insights as string[]) : [];
+        const decisions = Array.isArray(body.decisions) ? (body.decisions as string[]) : undefined;
+        const constraints = Array.isArray(body.constraints)
+          ? (body.constraints as string[])
+          : undefined;
+        const scope = rawScope as any;
+
+        const page = await services.knowledgeScribe.captureScribeNote({
+          sessionId,
+          title,
+          category,
+          insights,
+          decisions,
+          constraints,
+          scope,
+        });
+
+        sendJson(res, 200, { ok: true, page });
+        return true;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        const statusCode = msg.includes("ZONE_0_BLOCKED") ? 403 : 400;
+        sendJson(res, statusCode, { ok: false, error: msg });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/import-agent
+    if (pathname === "/api/corehub/import-agent") {
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const source =
+          typeof body.source === "string" ? (body.source.trim() as ExternalAgentSource) : undefined;
+        const sourceDir = typeof body.sourceDir === "string" ? body.sourceDir.trim() : "";
+        if (!source || !sourceDir) {
+          sendJson(res, 400, {
+            ok: false,
+            error: "Missing required 'source' or 'sourceDir' field.",
+          });
+          return true;
+        }
+
+        const dryRun = body.dryRun !== false;
+        const workspaceId =
+          typeof body.workspaceId === "string" ? body.workspaceId.trim() : undefined;
+        const importer = services.importer ?? new UniversalAgentImporterService();
+
+        if (dryRun) {
+          const bundle = await importer.previewImport({ source, sourceDir });
+          sendJson(res, 200, { ok: true, bundle });
+          return true;
+        }
+
+        const bundle = await importer.applyImport({
+          source,
+          sourceDir,
+          workspaceId,
+          cory: services.cory,
+          skillSynthesizer: services.skillSynthesizer,
+        });
+        sendJson(res, 200, { ok: true, bundle });
+        return true;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        sendJson(res, 400, { ok: false, error: msg });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/pr-workflow/drafts
+    if (pathname === "/api/corehub/pr-workflow/drafts") {
+      if (!services.prWorkflow) {
+        sendJson(res, 503, { ok: false, error: "PR Workflow Orchestrator service not available" });
+        return true;
+      }
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const draft = services.prWorkflow.createPullRequestDraft(body as any);
+        sendJson(res, 201, { ok: true, draft });
+        return true;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        const statusCode = msg.includes("ZONE_0_BLOCKED") ? 403 : 400;
+        sendJson(res, statusCode, { ok: false, error: msg });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/pr-workflow/approve
+    if (pathname === "/api/corehub/pr-workflow/approve") {
+      if (!services.prWorkflow) {
+        sendJson(res, 503, { ok: false, error: "PR Workflow Orchestrator service not available" });
+        return true;
+      }
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const prId = typeof body.prId === "string" ? body.prId.trim() : "";
+        const approverId =
+          typeof body.approverId === "string" && body.approverId.trim()
+            ? body.approverId.trim()
+            : operator;
+        const draft = services.prWorkflow.approvePullRequestDraft({ prId, approverId });
+        sendJson(res, 200, { ok: true, draft });
+        return true;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        const statusCode = msg.includes("ZONE_0_BLOCKED") ? 403 : 400;
+        sendJson(res, statusCode, { ok: false, error: msg });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/chat-views/render
+    if (pathname === "/api/corehub/chat-views/render") {
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const view = (body.view ?? body) as ChatNativePluginView;
+        const rendered = renderChatNativeView(view);
+        sendJson(res, 200, { ok: true, rendered });
+        return true;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        sendJson(res, 400, { ok: false, error: msg });
         return true;
       }
     }

@@ -120,12 +120,6 @@
 .topnav-shell__content {
   min-width: 0;
   flex: 1;
-  display: flex;
-  align-items: center;
-}
-
-.nav-drawer-toggle {
-  display: none;
 }
 
 .topbar .nav-collapse-toggle {
