@@ -313,6 +313,9 @@ final class AppState {
 
         if !isPreview {
             startConfigWatcher()
+            DispatchQueue.main.async {
+                CoreBlowStudioWindowController.shared.show()
+            }
         }
     }
 

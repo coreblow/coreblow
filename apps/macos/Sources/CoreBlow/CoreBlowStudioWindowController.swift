@@ -31,8 +31,11 @@ public final class CoreBlowStudioWindowController: NSWindowController, NSWindowD
 
         guard let window = self.studioWindow else { return }
 
+        NSApp.setActivationPolicy(.regular)
         window.makeKeyAndOrderFront(nil)
+        window.orderFrontRegardless()
         NSApp.activate(ignoringOtherApps: true)
+        DockIconManager.shared.updateDockVisibility()
         studioWindowLogger.info("CoreBlow Studio window shown")
     }
 

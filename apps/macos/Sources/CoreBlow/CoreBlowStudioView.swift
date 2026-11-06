@@ -174,8 +174,8 @@ public final class CoreBlowStudioViewModel {
             name: "tradingview",
             isExpanded: true,
             threads: [
-                StudioProjectThread(id: "thread_tv_1", title: "Cek Cloudflare Worker Rel..."),
-                StudioProjectThread(id: "thread_tv_2", title: "coba pahami secara mend..."),
+                StudioProjectThread(id: "thread_tv_1", title: "Check Cloudflare Worker Relay..."),
+                StudioProjectThread(id: "thread_tv_2", title: "Deep architectural analysis..."),
             ]
         ),
         StudioProjectFolder(
@@ -189,9 +189,9 @@ public final class CoreBlowStudioViewModel {
             name: "Dnda.my.id",
             isExpanded: true,
             threads: [
-                StudioProjectThread(id: "thread_dnda_1", title: "Balas halo"),
-                StudioProjectThread(id: "thread_dnda_2", title: "Perbaiki tidak muncul"),
-                StudioProjectThread(id: "thread_dnda_3", title: "Balas halo"),
+                StudioProjectThread(id: "thread_dnda_1", title: "Reply to greeting"),
+                StudioProjectThread(id: "thread_dnda_2", title: "Fix display issue"),
+                StudioProjectThread(id: "thread_dnda_3", title: "Follow up message"),
             ]
         ),
         StudioProjectFolder(
@@ -199,11 +199,11 @@ public final class CoreBlowStudioViewModel {
             name: "dxm-scanner",
             isExpanded: true,
             threads: [
-                StudioProjectThread(id: "thread_dxm_1", title: "Tinjau struktur profesional"),
-                StudioProjectThread(id: "thread_dxm_2", title: "Balas sapaan"),
-                StudioProjectThread(id: "thread_dxm_3", title: "Analyze decolua/9router"),
-                StudioProjectThread(id: "thread_dxm_4", title: "Audit worktree kotor"),
-                StudioProjectThread(id: "thread_dxm_5", title: "Pahami kinerja DXM Scanner"),
+                StudioProjectThread(id: "thread_dxm_1", title: "Review professional structure"),
+                StudioProjectThread(id: "thread_dxm_2", title: "Reply to greeting"),
+                StudioProjectThread(id: "thread_dxm_3", title: "Analyze routing engine"),
+                StudioProjectThread(id: "thread_dxm_4", title: "Audit dirty worktree"),
+                StudioProjectThread(id: "thread_dxm_5", title: "Understand scanner performance"),
             ]
         ),
         StudioProjectFolder(
@@ -211,7 +211,7 @@ public final class CoreBlowStudioViewModel {
             name: "coreblow.com",
             isExpanded: true,
             threads: [
-                StudioProjectThread(id: "thread_com_1", title: "aktifkan server lokal dan ja..."),
+                StudioProjectThread(id: "thread_com_1", title: "activate local server and run..."),
             ]
         ),
     ]
@@ -262,11 +262,11 @@ public final class CoreBlowStudioViewModel {
         self.selectedThreadId = id
         if self.messages.isEmpty {
             self.messages = [
-                StudioChatMessage(id: "m1", sender: "user", text: "Tinjau implementasi Stage 11 CoreBlow Studio & Companion Bar.", timestamp: "12:00 PM"),
+                StudioChatMessage(id: "m1", sender: "user", text: "Review Stage 11 CoreBlow Studio & Companion Bar implementation.", timestamp: "12:00 PM"),
                 StudioChatMessage(
                     id: "m2",
                     sender: "cory",
-                    text: "Selesai diimplementasikan! CoreBlow Studio kini memiliki tampilan desktop modern 3-pane dengan Nav Rail samping, Project Tree, dan Floating Composer yang terhubung langsung ke 12-Service Microkernel.",
+                    text: "Successfully implemented! CoreBlow Studio now features a modern 3-pane desktop view with side Nav Rail, Project Tree, and Floating Composer connected directly to the 12-Service Microkernel.",
                     toolTraceSummary: "Evaluated 12 Microkernel services in 1.2ms · All 5 PR gates green",
                     timestamp: "12:01 PM"
                 ),
@@ -284,7 +284,7 @@ public final class CoreBlowStudioViewModel {
             self.messages.append(StudioChatMessage(
                 id: UUID().uuidString,
                 sender: "cory",
-                text: "Memproses permintaan di repositori [\(self.currentProjectName)] pada branch [\(self.currentBranch)] menggunakan [\(self.selectedModel)].",
+                text: "Processing request in repository [\(self.currentProjectName)] on branch [\(self.currentBranch)] using [\(self.selectedModel)].",
                 toolTraceSummary: "Checked active context • Daybreak failover ready"
             ))
         }
@@ -324,12 +324,12 @@ public struct CoreBlowStudioView: View {
             VisualEffectView(material: .underWindowBackground, blendingMode: .behindWindow)
                 .ignoresSafeArea()
 
-            // Translucent ambient glow bleeding through the glass canvas
+            // Translucent ambient glow bleeding through the glass canvas (Deep Muted Teal & Dark Slate)
             LinearGradient(
                 colors: [
-                    Color(red: 0.38, green: 0.14, blue: 0.48).opacity(0.18),
-                    Color(red: 0.12, green: 0.18, blue: 0.45).opacity(0.12),
-                    Color(red: 0.28, green: 0.12, blue: 0.25).opacity(0.15)
+                    Color(red: 0.04, green: 0.14, blue: 0.16).opacity(0.38), // Deep Muted Teal #0A2429
+                    Color(red: 0.03, green: 0.09, blue: 0.11).opacity(0.35), // Dark Slate #08171C
+                    Color(red: 0.02, green: 0.05, blue: 0.07).opacity(0.48)  // Dark Obsidian #050D12
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -429,7 +429,7 @@ struct StudioNavRailView: View {
             // User Profile Avatar Chip (Bottom)
             ZStack(alignment: .bottomTrailing) {
                 Circle()
-                    .fill(Color(red: 0.35, green: 0.40, blue: 0.48))
+                    .fill(Color(red: 0.12, green: 0.25, blue: 0.28))
                     .frame(width: 30, height: 30)
                     .overlay(
                         Text("RU")
@@ -629,16 +629,17 @@ struct StudioMainCanvasView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "sparkles")
                             .font(.system(size: 11))
-                            .foregroundStyle(Color(red: 0.4, green: 0.7, blue: 1.0))
+                            .foregroundStyle(Color(red: 0.45, green: 0.85, blue: 0.80))
                         Text("Sovereign GA")
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(Color(red: 0.6, green: 0.8, blue: 1.0))
+                            .foregroundStyle(Color(red: 0.65, green: 0.92, blue: 0.88))
                     }
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
                     .background(
                         Capsule()
-                            .fill(Color(red: 0.15, green: 0.25, blue: 0.38).opacity(0.8))
+                            .fill(Color(red: 0.06, green: 0.20, blue: 0.22).opacity(0.85))
+                            .overlay(Capsule().stroke(Color(red: 0.45, green: 0.85, blue: 0.80).opacity(0.2), lineWidth: 1))
                     )
 
                     // Right Inspector Toggle Button
@@ -665,12 +666,16 @@ struct StudioMainCanvasView: View {
                 VStack(spacing: 20) {
                     Spacer()
 
-                    // Glowing CoreBlow Brain / Neural Emblem
+                    // Glowing CoreBlow Brain / Neural Emblem (Deep Muted Teal & Ice-Cyan)
                     ZStack {
                         Circle()
                             .fill(
                                 RadialGradient(
-                                    colors: [Color.purple.opacity(0.35), Color.cyan.opacity(0.15), Color.clear],
+                                    colors: [
+                                        Color(red: 0.08, green: 0.28, blue: 0.30).opacity(0.45),
+                                        Color(red: 0.04, green: 0.14, blue: 0.16).opacity(0.20),
+                                        Color.clear
+                                    ],
                                     center: .center,
                                     startRadius: 10,
                                     endRadius: 55
@@ -684,7 +689,10 @@ struct StudioMainCanvasView: View {
                             .frame(width: 50, height: 50)
                             .foregroundStyle(
                                 LinearGradient(
-                                    colors: [Color(red: 0.4, green: 0.8, blue: 1.0), Color(red: 0.85, green: 0.45, blue: 1.0)],
+                                    colors: [
+                                        Color(red: 0.38, green: 0.85, blue: 0.80),
+                                        Color(red: 0.18, green: 0.55, blue: 0.52)
+                                    ],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
@@ -888,7 +896,7 @@ struct StudioMainCanvasView: View {
                                 Text(self.viewModel.executionProfile)
                                     .font(.system(size: 11, weight: .medium))
                             }
-                            .foregroundStyle(Color(red: 0.95, green: 0.55, blue: 0.25))
+                            .foregroundStyle(Color(red: 0.45, green: 0.85, blue: 0.80))
                         }
                         .menuStyle(.borderlessButton)
 
@@ -923,13 +931,13 @@ struct StudioMainCanvasView: View {
                         .buttonStyle(.plain)
                         .help("Voice companion (⌥Space)")
 
-                        // Send Button (Blue circle with upward arrow)
+                        // Send Button (Teal circle with upward arrow)
                         Button(action: {
                             self.viewModel.sendMessage()
                         }) {
                             ZStack {
                                 Circle()
-                                    .fill(Color(red: 0.15, green: 0.45, blue: 0.95))
+                                    .fill(Color(red: 0.10, green: 0.52, blue: 0.48))
                                     .frame(width: 26, height: 26)
 
                                 Image(systemName: "arrow.up")
@@ -976,12 +984,12 @@ struct StudioMessageBubbleView: View {
                 // Agent Avatar
                 ZStack {
                     Circle()
-                        .fill(Color(red: 0.2, green: 0.35, blue: 0.55))
+                        .fill(Color(red: 0.08, green: 0.24, blue: 0.26))
                         .frame(width: 30, height: 30)
 
                     Image(systemName: "brain.head.profile")
                         .font(.system(size: 13))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color(red: 0.45, green: 0.85, blue: 0.80))
                 }
             } else {
                 Spacer(minLength: 40)
@@ -1006,7 +1014,7 @@ struct StudioMessageBubbleView: View {
                     .padding(.vertical, 10)
                     .background(
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(self.isUser ? Color(red: 0.15, green: 0.45, blue: 0.95) : Color(white: 0.22))
+                            .fill(self.isUser ? Color(red: 0.08, green: 0.28, blue: 0.30) : Color(white: 0.18))
                     )
 
                 // Collapsible Tool Trace Card
@@ -1048,7 +1056,7 @@ struct StudioMessageBubbleView: View {
                 // User Avatar
                 ZStack {
                     Circle()
-                        .fill(Color(red: 0.35, green: 0.40, blue: 0.48))
+                        .fill(Color(red: 0.12, green: 0.25, blue: 0.28))
                         .frame(width: 30, height: 30)
 
                     Text("RU")
