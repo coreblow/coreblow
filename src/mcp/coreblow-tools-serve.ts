@@ -29,3 +29,11 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
     process.exit(1);
   });
 }
+
+export {
+  createSovereignMicrokernelMcpTools,
+  executeSovereignMcpJsonRpc,
+  type SovereignMcpBridgeOptions,
+  type SovereignMcpToolsResult,
+  type ExecuteSovereignMcpJsonRpcParams,
+} from "./sovereign-mcp-bridge.js";

@@ -48,6 +48,11 @@ export function createUnitVitestConfig(env: Record<string, string | undefined> =
   const argv = process.argv.join(' ');
   const allowGateway = argv.includes('microkernel');
   const allowAgents = argv.includes('pr-workflow') || argv.includes('war-room');
+  const allowMcpLive = argv.includes('sovereign-mcp-live');
+  const baseExcludes = exclude.filter((p) => {
+    if (allowMcpLive && p === '**/*.e2e.test.ts') return false;
+    return true;
+  });
   const additionalExcludes = unitTestAdditionalExcludePatterns.filter((p) => {
     if (allowGateway && p === 'src/gateway/**') return false;
     if (allowAgents && p === 'src/agents/**') return false;
@@ -63,8 +68,8 @@ export function createUnitVitestConfig(env: Record<string, string | undefined> =
       include: loadIncludePatternsFromEnv(env) ?? unitTestIncludePatterns,
       exclude: [
         ...new Set([
-          ...exclude,
-          '**/*.e2e.test.ts',
+          ...baseExcludes,
+          ...(allowMcpLive ? [] : ['**/*.e2e.test.ts']),
           ...additionalExcludes,
           ...loadExtraExcludePatternsFromEnv(env),
 

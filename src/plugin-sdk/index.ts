@@ -120,4 +120,11 @@ export {
   evaluateSovereignReleaseGates,
   compileSovereignReleaseManifest,
 } from "../infra/release/index.js";
+export {
+  createSovereignMicrokernelMcpTools,
+  executeSovereignMcpJsonRpc,
+  type SovereignMcpBridgeOptions,
+  type SovereignMcpToolsResult,
+  type ExecuteSovereignMcpJsonRpcParams,
+} from "../mcp/sovereign-mcp-bridge.js";
 
