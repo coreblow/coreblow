@@ -127,4 +127,25 @@ export {
   type SovereignMcpToolsResult,
   type ExecuteSovereignMcpJsonRpcParams,
 } from "../mcp/sovereign-mcp-bridge.js";
+export {
+  type PairedDesktopAppContext,
+  type DesktopStudioRouteTier,
+  type DesktopStudioLiveStatus,
+  type DesktopStudioThreadSummary,
+  type DesktopWorktreeChangedFile,
+  type DesktopWorktreeGateCheck,
+  type DesktopWorktreeDiffView,
+  type DesktopVoiceTelemetry,
+  type DesktopStudioSnapshot,
+  type CompileDesktopStudioSnapshotParams,
+  type DesktopQuickLaunchParams,
+  type DesktopQuickLaunchResult,
+  redactRawSecrets,
+  hasPathTraversal,
+  sanitizePairedAppContext,
+  parseUnifiedDiffStats,
+  evaluateDesktopWorktreeDiff,
+  compileDesktopStudioSnapshot,
+  executeDesktopQuickLaunch,
+} from "../gateway/macos-codex-companion-bridge.js";
 

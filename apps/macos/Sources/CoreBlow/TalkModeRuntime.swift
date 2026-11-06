@@ -163,13 +163,23 @@ actor TalkModeRuntime {
             return
         }
 
+        guard AVCaptureDevice.default(for: .audio) != nil else {
+            talkLogger.warning("Talk mode: no audio capture device available")
+            return
+        }
+
         let engine = AVAudioEngine()
         let request = SFSpeechAudioBufferRecognitionRequest()
         Self.configureRecognitionRequest(request)
 
         let inputNode = engine.inputNode
         let format = inputNode.outputFormat(forBus: 0)
+        guard format.channelCount > 0, format.sampleRate > 0 else {
+            talkLogger.warning("Audio input node has invalid format (sampleRate: \(format.sampleRate), channels: \(format.channelCount))")
+            return
+        }
 
+        inputNode.removeTap(onBus: 0)
         let meter = rmsMeter
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
             request.append(buffer)

@@ -304,7 +304,9 @@ final class AppState {
         // Start runtimes
         if !isPreview {
             Task { await VoiceWakeRuntime.shared.refresh(state: self) }
-            Task { await TalkModeRuntime.shared.start() }
+            if self.talkEnabled {
+                Task { await TalkModeRuntime.shared.start() }
+            }
         }
 
         self.isInitializing = false

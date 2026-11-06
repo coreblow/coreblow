@@ -46,7 +46,7 @@ export function loadExtraExcludePatternsFromEnv(
 
 export function createUnitVitestConfig(env: Record<string, string | undefined> = process.env) {
   const argv = process.argv.join(' ');
-  const allowGateway = argv.includes('microkernel');
+  const allowGateway = argv.includes('microkernel') || argv.includes('macos-codex-companion-bridge');
   const allowAgents = argv.includes('pr-workflow') || argv.includes('war-room');
   const allowMcpLive = argv.includes('sovereign-mcp-live');
   const baseExcludes = exclude.filter((p) => {

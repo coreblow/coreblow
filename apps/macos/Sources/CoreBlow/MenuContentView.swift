@@ -153,6 +153,22 @@ struct MenuContentView: View {
             .disabled(!voiceWakeSupported)
             .opacity(voiceWakeSupported ? 1 : 0.5)
 
+            Button {
+                Task { @MainActor in
+                    CoreBlowStudioWindowController.shared.show()
+                }
+            } label: {
+                Label("Open CoreBlow Studio", systemImage: "macwindow.on.rectangle")
+            }
+
+            Button {
+                Task { @MainActor in
+                    StudioCompanionBarController.shared.toggle()
+                }
+            } label: {
+                Label("Companion Bar (⌥Space)", systemImage: "sparkles")
+            }
+
             Divider()
 
             // MARK: - Sessions

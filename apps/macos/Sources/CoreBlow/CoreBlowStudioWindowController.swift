@@ -1,0 +1,75 @@
+import AppKit
+import Foundation
+import Observation
+import OSLog
+import SwiftUI
+
+private let studioWindowLogger = Logger(subsystem: "ai.coreblow", category: "CoreBlowStudioWindow")
+
+@MainActor
+@Observable
+public final class CoreBlowStudioWindowController: NSWindowController, NSWindowDelegate {
+    public static let shared = CoreBlowStudioWindowController()
+
+    private var studioWindow: NSWindow?
+
+    private init() {
+        super.init(window: nil)
+    }
+
+    public required init?(coder: NSCoder) {
+        super.init(coder: coder)
+    }
+
+    public func show(initialPrompt: String? = nil) {
+        if self.studioWindow == nil {
+            self.createStudioWindow(initialPrompt: initialPrompt)
+        } else if let initialPrompt, !initialPrompt.isEmpty {
+            // Re-create or pass initialPrompt
+            self.createStudioWindow(initialPrompt: initialPrompt)
+        }
+
+        guard let window = self.studioWindow else { return }
+
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+        studioWindowLogger.info("CoreBlow Studio window shown")
+    }
+
+    private func createStudioWindow(initialPrompt: String? = nil) {
+        let contentRect = NSRect(x: 0, y: 0, width: 1280, height: 820)
+        let window = NSWindow(
+            contentRect: contentRect,
+            styleMask: [
+                .titled,
+                .closable,
+                .miniaturizable,
+                .resizable,
+                .fullSizeContentView,
+            ],
+            backing: .buffered,
+            defer: false
+        )
+
+        window.minSize = NSSize(width: 1000, height: 600)
+        window.isOpaque = false
+        window.backgroundColor = .clear
+        window.title = "CoreBlow Studio"
+        window.titleVisibility = .hidden
+        window.titlebarAppearsTransparent = true
+        window.isReleasedWhenClosed = false
+        window.delegate = self
+        window.center()
+
+        let studioView = CoreBlowStudioView(initialPrompt: initialPrompt)
+        let hostingController = NSHostingController(rootView: studioView)
+        window.contentViewController = hostingController
+
+        self.studioWindow = window
+        self.window = window
+    }
+
+    public func windowWillClose(_ notification: Notification) {
+        studioWindowLogger.info("CoreBlow Studio window closed")
+    }
+}

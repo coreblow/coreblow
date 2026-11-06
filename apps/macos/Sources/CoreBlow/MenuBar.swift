@@ -291,6 +291,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 WebChatManager.shared.show(sessionKey: sessionKey)
             }
         }
+
+        // CoreBlow Studio: auto-open 3-pane native desktop window when launched with --studio.
+        if CommandLine.arguments.contains("--studio") {
+            self.webChatAutoLogger.debug("Auto-opening CoreBlow Studio via CLI flag")
+            Task { @MainActor in
+                CoreBlowStudioWindowController.shared.show()
+            }
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {

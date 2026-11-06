@@ -41,6 +41,12 @@ import {
 import { CoreHubAppStoreRuntime } from "../plugins/app-store-runtime.js";
 import { renderChatNativeView, type ChatNativePluginView } from "../plugins/chat-views/index.js";
 import {
+  compileDesktopStudioSnapshot,
+  executeDesktopQuickLaunch,
+  evaluateDesktopWorktreeDiff,
+  type PairedDesktopAppContext,
+} from "./macos-codex-companion-bridge.js";
+import {
   buildStorefrontCatalogView,
   BUILTIN_KERNEL_CAPABILITY_ENTRIES,
   type StorefrontAppCard,
@@ -661,7 +667,9 @@ export async function handleCoreHubRoute(
     pathname === "/api/corehub/import-agent" ||
     (pathname === "/api/corehub/pr-workflow/drafts" && method === "POST") ||
     pathname === "/api/corehub/pr-workflow/approve" ||
-    pathname === "/api/corehub/chat-views/render";
+    pathname === "/api/corehub/chat-views/render" ||
+    pathname === "/api/corehub/desktop/quick-launch" ||
+    pathname === "/api/corehub/desktop/diff-inspector";
   const cfg = options.cfg ?? loadConfig();
 
   // Validate browser origin for CORS / cross-origin protection
@@ -723,6 +731,22 @@ export async function handleCoreHubRoute(
       activatedApps: services.appStore.getActivatedAppIds(),
     });
     return true;
+  }
+
+  // GET /api/corehub/desktop/state
+  if (method === "GET" && pathname === "/api/corehub/desktop/state") {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    try {
+      const snapshot = await compileDesktopStudioSnapshot({
+        services: services as unknown as MicrokernelServicesResult,
+      });
+      sendJson(res, 200, { ok: true, snapshot });
+      return true;
+    } catch (err) {
+      sendJson(res, 500, { ok: false, error: err instanceof Error ? err.message : String(err) });
+      return true;
+    }
   }
 
   // GET /api/corehub/release/readiness (and /api/corehub/v2/release/readiness)
@@ -1025,7 +1049,8 @@ export async function handleCoreHubRoute(
       : pathname.startsWith("/api/corehub/war-room/") ||
           pathname.startsWith("/api/corehub/import-agent") ||
           pathname === "/api/corehub/pr-workflow/drafts" ||
-          pathname === "/api/corehub/pr-workflow/approve"
+          pathname === "/api/corehub/pr-workflow/approve" ||
+          pathname.startsWith("/api/corehub/desktop/")
         ? "agents.create"
         : pathname === "/api/corehub/chat-views/render"
           ? "plugins.view"
@@ -1610,6 +1635,62 @@ export async function handleCoreHubRoute(
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         sendJson(res, 400, { ok: false, error: msg });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/desktop/quick-launch
+    if (pathname === "/api/corehub/desktop/quick-launch") {
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
+        if (!prompt) {
+          sendJson(res, 400, { ok: false, error: "Missing required 'prompt' field." });
+          return true;
+        }
+        const pairedApp =
+          body.pairedApp && typeof body.pairedApp === "object"
+            ? (body.pairedApp as PairedDesktopAppContext)
+            : undefined;
+        const spawnWarRoom = body.spawnWarRoom === true;
+
+        const result = await executeDesktopQuickLaunch(
+          services as unknown as MicrokernelServicesResult,
+          {
+            prompt,
+            pairedApp,
+            spawnWarRoom,
+          },
+        );
+        sendJson(res, 200, result);
+        return true;
+      } catch (err) {
+        sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/desktop/diff-inspector
+    if (pathname === "/api/corehub/desktop/diff-inspector") {
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const diffText = typeof body.diffText === "string" ? body.diffText : "";
+        const branchName = typeof body.branchName === "string" ? body.branchName : "main";
+        const prId = typeof body.prId === "string" ? body.prId : undefined;
+        const changedFiles = Array.isArray(body.changedFiles)
+          ? (body.changedFiles as string[])
+          : undefined;
+
+        const diffView = evaluateDesktopWorktreeDiff({
+          diffText,
+          branchName,
+          prId,
+          changedFiles,
+        });
+        sendJson(res, 200, { ok: true, diffView });
+        return true;
+      } catch (err) {
+        sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
         return true;
       }
     }
