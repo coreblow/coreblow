@@ -106,37 +106,56 @@ explicitly configured.
 
 ## Highlights
 
-- Self-hosted gateway for agent sessions, channels, tools, cron, nodes, and
-  operator clients.
-- Gateway-first product model: the gateway is the control plane for assistants,
-  plugins, channels, and operator workflows.
-- OOP runtime architecture with `ServiceRegistry`, plugin registries, typed
-  config surfaces, and explicit lifecycle boundaries.
-- Public plugin SDK for providers, tools, hooks, commands, and channel
-  integrations.
-- Multi-provider model configuration with provider auth profiles, fallbacks,
-  image model selection, and model scanning.
-- Controlled tool execution for shell, browser, web fetch/search, messaging,
-  cron, media, canvas, RAG, and background processes.
-- Persistent sessions, workspace bootstrap files, skills, and context
-  management for long-running agents.
-- Operational surfaces for health checks, logs, service lifecycle, update
-  checks, Docker, and CI-friendly test wrappers.
+- **12-Service Hybrid OOP/DOP Microkernel**: Enterprise OOP lifecycle boundaries with lightweight Data-Oriented Programming (DOP) on hot paths, achieving `< 1ms` sub-millisecond cold boot.
+- **Cory Long-Term Memory & Scribes**: Persistent semantic memories, episodic journals, entity graph, browsable Wiki (`docs/wiki/`), and zero-stall prepared compaction (`src/memory/`).
+- **EvoLoop Skill Synthesizer**: Continuous closed-loop distillation, validation, and automated promotion of reusable skills (`src/learning/`).
+- **6-Tier Adaptive Decision Router**: Dynamic routing with Daybreak failover across local Ollama, cloud LLMs, and specialized reasoning models with quota-window tracking (`src/providers/decision-router.ts`).
+- **War Room & Kanban DAG**: Multi-agent consensus room, hierarchical delegation, DAG turn coordinator, and round-robin dispute resolver (`src/agents/war-room/`).
+- **5-Gate Autonomous PR Workflow**: Autonomous git/PR workflow engine with lint, type-check, test, security, and cleanliness validation gates (`src/agents/pr-workflow/`).
+- **Live Sovereign MCP Bridge**: Stdio and JSON-RPC Model Context Protocol server exposing microkernel tools and resources to external AI clients (`src/mcp/`).
+- **Controlled Plugin Host & Store**: CoreHub cryptographic signing, granular capability sandboxing, and dynamic chat views (`src/plugins/`).
+- **Sovereign Local Voice Companion**: Low-latency voice companion runtime with audio frame telemetry and local neural TTS (`src/tts/`).
+- **Omni-Platform Native Companions**: Native Swift apps for macOS (with local MLX TTS) & iOS, Jetpack Compose for Android, plus hardware edge nodes (ESP32, Windows).
 
 ## Architecture
 
-| Path | Responsibility |
-| --- | --- |
-| `src/agents/` | Agent engine integration, embedded runner, turn execution, and session flow. |
-| `src/gateway/` | Gateway server, RPC/API surface, WebSocket control plane, and DI registration. |
-| `src/cli/` | CLI command groups, profiles, help, and command-specific utilities. |
-| `src/config/` | Config schemas, validation, defaults, migrations, and config I/O. |
-| `src/plugins/` | Internal plugin loader, registry, metadata, lifecycle, and runtime integration. |
-| `src/plugin-sdk/` | Public plugin API for third-party integrations. |
-| `src/security/` | Audits, policy checks, profiles, approvals, and guardrails. |
-| `src/channels/` | Shared channel abstractions, routing, directory, and policy logic. |
-| `extensions/` | Workspace plugin packages. |
-| `packages/` | Shared packages used by CoreBlow and plugin-facing surfaces. |
+CoreBlow is structured as a modular 12-Service Microkernel with explicit module boundaries:
+
+| Path | Responsibility | Microkernel Tier |
+| --- | --- | --- |
+| `src/gateway/` | Gateway server, RPC/API surface, WebSocket control plane, and 12-Service DI container (`MicrokernelRegistryService`). | Kernel Host |
+| `src/memory/` | Cory long-term semantic memory, entity graph, Knowledge Scribes, browsable wiki, and compaction (`CoryMemoryService`, `KnowledgeScribeService`). | Cognitive Subsystem |
+| `src/learning/` | EvoLoop Skill Synthesizer, DOP skill distiller, and per-skill lock registry (`SkillSynthesizerService`). | Cognitive Subsystem |
+| `src/providers/` | 6-Tier Adaptive Decision Router, Daybreak failover, quota windows, and streaming handlers (`DecisionRouterService`). | Inference Routing |
+| `src/agents/` | Single-agent turn coordinator, War Room multi-agent DAG, and autonomous PR workflow engine (`WarRoomService`, `PrWorkflowService`). | Agent Orchestration |
+| `src/plugins/` | Plugin registry, CoreHub App Store lifecycle, trust policies, and interactive chat views (`AppStoreRuntimeService`, `ChatViewService`). | Extensibility Host |
+| `src/tts/` | Sovereign local voice companion runtime, audio frame buffers, and neural synthesis (`SovereignVoiceService`). | Sensory & Voice |
+| `src/mcp/` | Model Context Protocol (MCP) bridge, live JSON-RPC & stdio tool server (`SovereignMcpBridgeService`). | Protocol & Tools |
+| `src/migration/` | Universal Workspace Profile Importer for external agent configs (`UniversalAgentImporterService`). | Interoperability |
+| `src/infra/release/` | Release certification, brand purity audit, and GA readiness verification (`ReleaseCertifierService`). | Governance |
+| `src/cli/` | Operator CLI commands, interactive onboard wizard, and health audits. | User Interface |
+| `src/security/` | Audits, policy checks, profiles, approvals, and sandboxing guardrails. | Governance |
+| `apps/` | Omni-platform native companion clients (macOS, macOS MLX TTS, iOS, Android, shared Swift). | Native Clients |
+| `extensions/` | Controlled workspace plugin packages managed via CoreHub. | App Store Layer |
+
+## Omni-Platform Client Surfaces & 26-Repo Ecosystem
+
+CoreBlow operates as the sovereign microkernel at the center of a coordinated 26-repository ecosystem:
+
+| Tier | Ecosystem Scope | Key Repositories & Surfaces |
+| --- | --- | --- |
+| **Monorepo** | Core Operating Kernel & Native Clients | `coreblow` (Monorepo with `apps/macos`, `apps/macos-mlx-tts`, `apps/ios`, `apps/android`) |
+| **Tier 1** | Native Desktop & Menubar Clients | `corebar`, `corechat`, `corekit`, `coredex` |
+| **Tier 2** | Lightweight Nodes & Hardware Edges | `coreblow-windows-node`, `esp-coreblow-node`, `dolphin`, `corebox` |
+| **Tier 3** | App Store, Trust & Distribution | `corehub`, `trust`, `plugin-lab` |
+| **Tier 4** | Packaging, Telemetry & Infrastructure | `homebrew-tap`, `nix-coreblow`, `nix-coreblow-tools`, `coreblow-ansible`, `corebench`, `coreblow-rtt`, `coregrit-reports`, `corewatch`, `corewatch-state`, `corepatch` |
+| **Tier 5** | Documentation, Community & Recipes | `coreblow.com`, `docs`, `community`, `cookbook` |
+
+For the complete architectural blueprint and extensibility guide, see:
+- [Ecosystem & Extensibility Blueprint](docs/ECOSYSTEM_MAP.md) - Full 26-repo fleet mapping, Two-Tier extensibility (CoreHub plugins vs. open community `SKILL.md` V2), and step-by-step developer guide.
+- [Architecture Blueprint](docs/ARCHITECTURE.md) - Deep architectural specification of the 12 microkernel services.
+- [Master PRD](docs/PRD.md) - Product Requirements Document and capability breakdown.
+- [Phased Roadmap](docs/PHASE5_TO_7_ROADMAP.md) - Completed and future milestones.
 
 ## Security Model
 
