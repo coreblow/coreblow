@@ -141,7 +141,6 @@ public final class CoreBlowStudioViewModel {
     public var activeNavTab: StudioNavRailTab = .chat
     public var isSidebarVisible: Bool = true
     public var isInspectorVisible: Bool = false
-    public var isProfileMenuPresented: Bool = false
     public var showAPIKeysSheet: Bool = false
 
     // Active Project & Worktree Context Chips (Clean Initial State — No Hardcoded Dummy Projects)
@@ -537,9 +536,10 @@ struct StudioNavRailView: View {
 
             Spacer()
 
-            // User Profile Avatar Chip (Bottom — Opens StudioProfileMenuPopover)
+            // User Profile Avatar Chip (Bottom — Opens Settings directly without floating popover)
             Button(action: {
-                self.viewModel.isProfileMenuPresented.toggle()
+                SettingsTabRouter.open(tab: .general)
+                SettingsWindowOpener.shared.open()
             }) {
                 ZStack(alignment: .bottomTrailing) {
                     Circle()
@@ -556,15 +556,9 @@ struct StudioNavRailView: View {
                         .frame(width: 8, height: 8)
                         .overlay(Circle().stroke(Color(red: 0.11, green: 0.11, blue: 0.12), lineWidth: 1.5))
                 }
-                .overlay(
-                    Circle()
-                        .stroke(Color(red: 0.38, green: 0.85, blue: 0.80).opacity(self.viewModel.isProfileMenuPresented ? 0.8 : 0), lineWidth: 1.5)
-                )
             }
             .buttonStyle(.plain)
-            .popover(isPresented: self.$viewModel.isProfileMenuPresented, arrowEdge: .trailing) {
-                StudioProfileMenuPopover(viewModel: self.viewModel)
-            }
+            .help("Settings (⌘,)")
             .padding(.bottom, 16)
         }
     }
@@ -1025,56 +1019,9 @@ struct StudioMainCanvasView: View {
                 }
             }
 
-            // Bottom Floating Stack
-            VStack(spacing: 8) {
-                // 1. Compact Luminous Microkernel & Router Status Bar (Height: 28px, Clean Dark Slate)
-                HStack(spacing: 8) {
-                    Circle()
-                        .fill(Color(red: 0.35, green: 0.72, blue: 0.51))
-                        .frame(width: 6, height: 6)
-                    Text("12 Microkernel Services Green")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(Color(white: 0.75))
-
-                    Text("·")
-                        .foregroundStyle(Color(white: 0.35))
-
-                    Text("Router: \(self.viewModel.decisionRouterTier.uppercased())")
-                        .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(Color(red: 0.38, green: 0.85, blue: 0.80))
-
-                    Spacer()
-
-                    Button(action: {
-                        self.viewModel.isInspectorVisible = true
-                        self.viewModel.selectedInspectorTab = .diffAndGate
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "sparkles")
-                                .font(.system(size: 9))
-                            Text("PR Gates")
-                                .font(.system(size: 10, weight: .medium))
-                        }
-                        .foregroundStyle(Color.white.opacity(0.85))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(
-                            Capsule().fill(Color.white.opacity(0.08))
-                        )
-                    }
-                    .buttonStyle(.plain)
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 4)
-                .background(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color(red: 0.03, green: 0.09, blue: 0.11).opacity(0.65))
-                        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(Color.white.opacity(0.06), lineWidth: 0.5))
-                )
-
-                // 2. Floating Composer Box
-                VStack(spacing: 0) {
-                    // Top Context Chips Bar
+            // Floating Composer Box (Clean — No Status Bar)
+            VStack(spacing: 0) {
+                // Top Context Chips Bar
                     HStack(spacing: 8) {
                         Button(action: {
                             self.viewModel.openProjectFolderPicker()
@@ -1230,9 +1177,8 @@ struct StudioMainCanvasView: View {
                         )
                         .shadow(color: Color.black.opacity(0.25), radius: 14, x: 0, y: 7)
                 )
-            }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 20)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 20)
         }
     }
 }
@@ -2128,9 +2074,10 @@ public struct StudioCoreHubManagerView: View {
                 }
             }
 
-            // Profile Avatar Chip (Opens StudioProfileMenuPopover)
+            // Profile Avatar Chip (Opens Settings directly without floating popover)
             Button(action: {
-                self.viewModel.isProfileMenuPresented.toggle()
+                SettingsTabRouter.open(tab: .general)
+                SettingsWindowOpener.shared.open()
             }) {
                 ZStack(alignment: .bottomTrailing) {
                     Circle()
@@ -2155,9 +2102,7 @@ public struct StudioCoreHubManagerView: View {
                 }
             }
             .buttonStyle(.plain)
-            .popover(isPresented: self.$viewModel.isProfileMenuPresented, arrowEdge: .bottom) {
-                StudioProfileMenuPopover(viewModel: self.viewModel)
-            }
+            .help("Settings (⌘,)")
         }
         .padding(.horizontal, 18)
         .padding(.top, 40)
@@ -2780,242 +2725,7 @@ public struct StudioCoreHubManagerView: View {
 }
 
 // ============================================================================
-// 6. Studio Profile & System Control Popover (Option 1 Clean Architecture)
-// ============================================================================
-
-struct StudioProfileMenuPopover: View {
-    @Bindable var viewModel: CoreBlowStudioViewModel
-    @AppStorage("coreblow.studio.language") private var studioLanguage: String = "EN"
-
-    // Option 1 Palette
-    private let darkObsidian = Color(red: 0.02, green: 0.05, blue: 0.07) // #050D12
-    private let darkSlate = Color(red: 0.03, green: 0.09, blue: 0.11) // #08171C
-    private let deepMutedTeal = Color(red: 0.04, green: 0.14, blue: 0.16) // #0A2429
-    private let mutedCyan = Color(red: 0.10, green: 0.52, blue: 0.48) // #1A857A
-    private let iceCyan = Color(red: 0.38, green: 0.85, blue: 0.80) // #60D9CC
-    private let sageGreen = Color(red: 0.35, green: 0.72, blue: 0.51) // #5AB982
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Profile & Node Identity Header
-            HStack(spacing: 10) {
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [self.mutedCyan, self.deepMutedTeal],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 32, height: 32)
-                    Text(self.viewModel.userInitials)
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(.white)
-                }
-
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 6) {
-                        Text(NSFullUserName().isEmpty ? NSUserName() : NSFullUserName())
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .lineLimit(1)
-
-                        Circle()
-                            .fill(self.sageGreen)
-                            .frame(width: 6, height: 6)
-                    }
-
-                    Text("Local Microkernel · Port 18789")
-                        .font(.system(size: 10))
-                        .foregroundStyle(Color(white: 0.65))
-                }
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .background(self.darkSlate.opacity(0.85))
-
-            Divider().overlay(Color.white.opacity(0.08))
-
-            // Group 1: Preferences & System
-            VStack(alignment: .leading, spacing: 2) {
-                Text(self.studioLanguage == "ID" ? "PREFERENSI" : "PREFERENCES & SYSTEM")
-                    .font(.system(size: 9, weight: .bold))
-                    .foregroundStyle(Color(white: 0.45))
-                    .padding(.horizontal, 12)
-                    .padding(.top, 8)
-                    .padding(.bottom, 2)
-
-                // Settings
-                self.popoverRow(
-                    icon: "gearshape",
-                    title: "Settings...",
-                    shortcut: "⌘,"
-                ) {
-                    self.viewModel.isProfileMenuPresented = false
-                    SettingsTabRouter.open(tab: .general)
-                    SettingsWindowOpener.shared.open()
-                }
-
-                // Language Segmented Selector
-                HStack(spacing: 8) {
-                    Image(systemName: "globe")
-                        .font(.system(size: 12))
-                        .foregroundStyle(self.iceCyan)
-                        .frame(width: 20)
-
-                    Text(self.studioLanguage == "ID" ? "Bahasa" : "Language")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(.white)
-
-                    Spacer()
-
-                    HStack(spacing: 2) {
-                        Button("EN") {
-                            self.studioLanguage = "EN"
-                        }
-                        .font(.system(size: 10, weight: self.studioLanguage == "EN" ? .bold : .regular))
-                        .foregroundStyle(self.studioLanguage == "EN" ? .black : Color(white: 0.7))
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Capsule().fill(self.studioLanguage == "EN" ? self.iceCyan : Color.white.opacity(0.08)))
-                        .buttonStyle(.plain)
-
-                        Button("ID") {
-                            self.studioLanguage = "ID"
-                        }
-                        .font(.system(size: 10, weight: self.studioLanguage == "ID" ? .bold : .regular))
-                        .foregroundStyle(self.studioLanguage == "ID" ? .black : Color(white: 0.7))
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Capsule().fill(self.studioLanguage == "ID" ? self.iceCyan : Color.white.opacity(0.08)))
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-
-                // Documentation & Help
-                self.popoverRow(
-                    icon: "questionmark.circle",
-                    title: self.studioLanguage == "ID" ? "Dokumentasi & Bantuan" : "Documentation & Help",
-                    shortcut: "⇧⌘/"
-                ) {
-                    self.viewModel.isProfileMenuPresented = false
-                    if let url = URL(string: "https://docs.coreblow.com") {
-                        NSWorkspace.shared.open(url)
-                    }
-                }
-            }
-            .padding(.bottom, 6)
-
-            Divider().overlay(Color.white.opacity(0.08))
-
-            // Group 2: Ecosystem & Models
-            VStack(alignment: .leading, spacing: 2) {
-                Text(self.studioLanguage == "ID" ? "EKOSISTEM & MODEL" : "ECOSYSTEM & MODELS")
-                    .font(.system(size: 9, weight: .bold))
-                    .foregroundStyle(Color(white: 0.45))
-                    .padding(.horizontal, 12)
-                    .padding(.top, 6)
-                    .padding(.bottom, 2)
-
-                self.popoverRow(
-                    icon: "square.grid.2x2",
-                    title: "CoreHub Store (Plugins & Skills)",
-                    shortcut: "⌘P"
-                ) {
-                    self.viewModel.isProfileMenuPresented = false
-                    self.viewModel.activeNavTab = .coreHub
-                }
-
-                self.popoverRow(
-                    icon: "key",
-                    title: "Provider API Keys...",
-                    shortcut: "⌘K"
-                ) {
-                    self.viewModel.isProfileMenuPresented = false
-                    self.viewModel.showAPIKeysSheet = true
-                }
-            }
-            .padding(.bottom, 6)
-
-            Divider().overlay(Color.white.opacity(0.08))
-
-            // Group 3: Session & Workspace
-            VStack(alignment: .leading, spacing: 2) {
-                Text(self.studioLanguage == "ID" ? "SESI & WORKSPACE" : "SESSION & WORKSPACE")
-                    .font(.system(size: 9, weight: .bold))
-                    .foregroundStyle(Color(white: 0.45))
-                    .padding(.horizontal, 12)
-                    .padding(.top, 6)
-                    .padding(.bottom, 2)
-
-                self.popoverRow(
-                    icon: "arrow.clockwise",
-                    title: self.studioLanguage == "ID" ? "Restart Microkernel" : "Restart Microkernel"
-                ) {
-                    self.viewModel.isProfileMenuPresented = false
-                    Task {
-                        await GatewayConnection.shared.shutdown()
-                    }
-                }
-
-                self.popoverRow(
-                    icon: "folder",
-                    title: self.studioLanguage == "ID" ? "Ganti Workspace..." : "Switch Workspace...",
-                    shortcut: "⌘O"
-                ) {
-                    self.viewModel.isProfileMenuPresented = false
-                    self.viewModel.openProjectFolderPicker()
-                }
-            }
-            .padding(.bottom, 8)
-        }
-        .frame(width: 250)
-        .background(self.darkObsidian.opacity(0.96))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(self.darkSlate, lineWidth: 1)
-        )
-    }
-
-    private func popoverRow(
-        icon: String,
-        title: String,
-        shortcut: String? = nil,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            HStack(spacing: 8) {
-                Image(systemName: icon)
-                    .font(.system(size: 12))
-                    .foregroundStyle(self.iceCyan)
-                    .frame(width: 20)
-
-                Text(title)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.white)
-
-                Spacer()
-
-                if let shortcut {
-                    Text(shortcut)
-                        .font(.system(size: 10, weight: .medium, design: .monospaced))
-                        .foregroundStyle(Color(white: 0.5))
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-// ============================================================================
-// 7. Quick Modal Sheet for Provider API Keys
+// 6. Quick Modal Sheet for Provider API Keys
 // ============================================================================
 
 struct StudioProviderAPIKeysSheet: View {
