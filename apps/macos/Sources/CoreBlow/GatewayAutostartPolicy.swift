@@ -16,10 +16,6 @@ enum GatewayAutostartPolicy {
         self.shouldStartGateway(mode: mode, paused: paused)
     }
 
-    static func shouldAutoStart(config: ConfigStore) -> Bool {
-        config.autoStart && !config.gatewayHost.isEmpty
-    }
-
     static func shouldAutoStart(state: AppState) -> Bool {
         state.connectionMode != .unconfigured
     }

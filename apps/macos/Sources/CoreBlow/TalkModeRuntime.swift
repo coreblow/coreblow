@@ -796,7 +796,7 @@ enum ElevenLabsError: Error, LocalizedError {
 
 // MARK: - System TTS Delegate
 
-private final class SystemTTSDelegate: NSObject, AVSpeechSynthesizerDelegate {
+private final class SystemTTSDelegate: NSObject, AVSpeechSynthesizerDelegate, @unchecked Sendable {
     var onFinish: (() -> Void)?
 
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
@@ -810,7 +810,7 @@ private final class SystemTTSDelegate: NSObject, AVSpeechSynthesizerDelegate {
 
 // MARK: - Audio Player Delegate
 
-private final class AudioPlayerDelegate: NSObject, AVAudioPlayerDelegate {
+private final class AudioPlayerDelegate: NSObject, AVAudioPlayerDelegate, @unchecked Sendable {
     var onFinish: (() -> Void)?
 
     func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {

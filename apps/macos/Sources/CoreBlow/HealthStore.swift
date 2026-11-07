@@ -242,8 +242,7 @@ final class HealthStore {
         if let error = self.lastError, !error.isEmpty {
             let lower = error.lowercased()
             if lower.contains("connection refused") {
-                let port = GatewayEnvironment.gatewayPort()
-                let host = GatewayConnectivityCoordinator.shared.localEndpointHostLabel ?? "127.0.0.1:\(port)"
+                let host = GatewayConnectivityCoordinator.shared.localEndpointHostLabel
                 return "The gateway control port (\(host)) isn’t listening — restart CoreBlow to bring it back."
             }
             if lower.contains("timeout") {

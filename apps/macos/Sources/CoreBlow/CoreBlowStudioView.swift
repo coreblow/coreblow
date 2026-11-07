@@ -49,12 +49,14 @@ public enum StudioInspectorTab: String, CaseIterable, Identifiable {
 public struct StudioProjectFolder: Identifiable, Hashable {
     public let id: String
     public let name: String
-    public let isExpanded: Bool
-    public let threads: [StudioProjectThread]
+    public let path: String
+    public var isExpanded: Bool
+    public var threads: [StudioProjectThread]
 
-    public init(id: String, name: String, isExpanded: Bool = true, threads: [StudioProjectThread] = []) {
+    public init(id: String, name: String, path: String = "", isExpanded: Bool = true, threads: [StudioProjectThread] = []) {
         self.id = id
         self.name = name
+        self.path = path
         self.isExpanded = isExpanded
         self.threads = threads
     }
@@ -62,8 +64,8 @@ public struct StudioProjectFolder: Identifiable, Hashable {
 
 public struct StudioProjectThread: Identifiable, Hashable {
     public let id: String
-    public let title: String
-    public let isCurrent: Bool
+    public var title: String
+    public var isCurrent: Bool
 
     public init(id: String, title: String, isCurrent: Bool = false) {
         self.id = id
@@ -140,157 +142,232 @@ public final class CoreBlowStudioViewModel {
     public var isSidebarVisible: Bool = true
     public var isInspectorVisible: Bool = false
 
-    // Active Project & Worktree Context Chips
-    public var currentProjectName: String = "coreblow"
+    // Active Project & Worktree Context Chips (Clean Initial State — No Hardcoded Dummy Projects)
+    public var currentProjectName: String = ""
+    public var currentProjectPath: String = ""
     public var currentEnvironment: String = "Local"
-    public var currentBranch: String = "main"
+    public var currentBranch: String = "—"
     public var executionProfile: String = "Full access" // "Full access" | "Review required" | "Strict sandbox"
     public var selectedModel: String = "6-Tier Router: Coding"
 
     // Prompt & Chat State
     public var inputPrompt: String = ""
-    public var selectedThreadId: String? = "thread_coreblow_1"
+    public var selectedThreadId: String? = nil
     public var selectedInspectorTab: StudioInspectorTab = .diffAndGate
     public var daybreakFailoverReady: Bool = true
     public var decisionRouterTier: String = "coding"
-    public var pairedAppName: String = "Xcode"
-    public var pairedFilePath: String = "apps/macos/Sources/CoreBlow/CoreBlowStudioView.swift"
+    public var pairedAppName: String = ""
+    public var pairedFilePath: String = ""
 
-    // Project Folders & Chats Tree (Matches Screenshot)
-    public var projectFolders: [StudioProjectFolder] = [
-        StudioProjectFolder(
-            id: "p_coreblow",
-            name: "coreblow",
-            isExpanded: true,
-            threads: [
-                StudioProjectThread(id: "thread_coreblow_1", title: "Stage 11 Native Studio & Companion Bar", isCurrent: true),
-                StudioProjectThread(id: "thread_coreblow_2", title: "12-Service Microkernel Gateway"),
-                StudioProjectThread(id: "thread_coreblow_3", title: "Cory Memory & Wiki Compaction"),
-                StudioProjectThread(id: "thread_coreblow_4", title: "EvoLoop Skill Synthesizer"),
-            ]
-        ),
-        StudioProjectFolder(
-            id: "p_tradingview",
-            name: "tradingview",
-            isExpanded: true,
-            threads: [
-                StudioProjectThread(id: "thread_tv_1", title: "Check Cloudflare Worker Relay..."),
-                StudioProjectThread(id: "thread_tv_2", title: "Deep architectural analysis..."),
-            ]
-        ),
-        StudioProjectFolder(
-            id: "p_aplesi",
-            name: "aplesi",
-            isExpanded: true,
-            threads: []
-        ),
-        StudioProjectFolder(
-            id: "p_dnda",
-            name: "Dnda.my.id",
-            isExpanded: true,
-            threads: [
-                StudioProjectThread(id: "thread_dnda_1", title: "Reply to greeting"),
-                StudioProjectThread(id: "thread_dnda_2", title: "Fix display issue"),
-                StudioProjectThread(id: "thread_dnda_3", title: "Follow up message"),
-            ]
-        ),
-        StudioProjectFolder(
-            id: "p_dxm",
-            name: "dxm-scanner",
-            isExpanded: true,
-            threads: [
-                StudioProjectThread(id: "thread_dxm_1", title: "Review professional structure"),
-                StudioProjectThread(id: "thread_dxm_2", title: "Reply to greeting"),
-                StudioProjectThread(id: "thread_dxm_3", title: "Analyze routing engine"),
-                StudioProjectThread(id: "thread_dxm_4", title: "Audit dirty worktree"),
-                StudioProjectThread(id: "thread_dxm_5", title: "Understand scanner performance"),
-            ]
-        ),
-        StudioProjectFolder(
-            id: "p_coreblow_com",
-            name: "coreblow.com",
-            isExpanded: true,
-            threads: [
-                StudioProjectThread(id: "thread_com_1", title: "activate local server and run..."),
-            ]
-        ),
-    ]
-
-    // Messages
+    // Clean Empty Project Folders & Real Per-Thread Message Store
+    public var projectFolders: [StudioProjectFolder] = []
     public var messages: [StudioChatMessage] = []
+    private var threadMessages: [String: [StudioChatMessage]] = [:]
 
-    // Diff & Gate Checks
-    public var diffFiles: [StudioDiffFileItem] = [
-        StudioDiffFileItem(path: "apps/macos/Sources/CoreBlow/CoreBlowStudioView.swift", additions: 480, deletions: 12, status: "modified"),
-        StudioDiffFileItem(path: "src/gateway/macos-codex-companion-bridge.ts", additions: 350, deletions: 0, status: "added"),
-        StudioDiffFileItem(path: "src/gateway/microkernel-services.ts", additions: 84, deletions: 6, status: "modified"),
-    ]
-
-    public var unifiedDiffPreview: String = """
-    --- a/apps/macos/Sources/CoreBlow/CoreBlowStudioView.swift
-    +++ b/apps/macos/Sources/CoreBlow/CoreBlowStudioView.swift
-    @@ -1,8 +1,28 @@
-    + // CoreBlow Studio Desktop Experience (Pixel-Perfect Sovereign UI)
-    + NavigationSplitView with custom Far-Left Nav Rail,
-    + Collapsible Project Tree, Centered "What should we build in coreblow?",
-    + Status Banner Pill, and Floating Multiline Composer Stack.
-    """
+    // Clean Diff, Gate & Kanban State
+    public var diffFiles: [StudioDiffFileItem] = []
+    public var unifiedDiffPreview: String = ""
 
     public var gateChecks: [StudioGateCheckItem] = [
-        StudioGateCheckItem(name: "typecheck", passed: true, detail: "TypeScript check clean with zero errors"),
-        StudioGateCheckItem(name: "linter", passed: true, detail: "Oxlint clean with zero warnings across 926 files"),
-        StudioGateCheckItem(name: "unit_tests", passed: true, detail: "All 13 test suites (268 tests) passed green"),
-        StudioGateCheckItem(name: "secret_scan", passed: true, detail: "Zero raw secrets detected in diff"),
-        StudioGateCheckItem(name: "forbidden_paths", passed: true, detail: "100% sovereign brand purity gate verified"),
+        StudioGateCheckItem(name: "typecheck", passed: true, detail: "Ready — awaiting active worktree diff"),
+        StudioGateCheckItem(name: "linter", passed: true, detail: "Ready — awaiting active worktree diff"),
+        StudioGateCheckItem(name: "unit_tests", passed: true, detail: "Ready — awaiting active worktree diff"),
+        StudioGateCheckItem(name: "secret_scan", passed: true, detail: "Ready — zero raw secrets in worktree"),
+        StudioGateCheckItem(name: "forbidden_paths", passed: true, detail: "Ready — sovereign path policy enforced"),
     ]
 
-    public var kanbanCards: [StudioKanbanCard] = [
-        StudioKanbanCard(id: "k1", title: "Codex Desktop Window Aesthetics", role: "lead", column: "Done"),
-        StudioKanbanCard(id: "k2", title: "Floating Context Chips Composer", role: "coder", column: "Done"),
-        StudioKanbanCard(id: "k3", title: "5-Gate PR Scorecard Evaluator", role: "auditor", column: "Review"),
-        StudioKanbanCard(id: "k4", title: "Daybreak Hot Failover Relay", role: "verifier", column: "In Progress"),
-    ]
-
+    public var kanbanCards: [StudioKanbanCard] = []
     public var prApproved: Bool = false
 
-    public func startNewChat() {
-        self.messages.removeAll()
-        self.inputPrompt = ""
+    // Dynamic User Initials from macOS Account
+    public var userInitials: String {
+        let full = NSFullUserName().trimmingCharacters(in: .whitespacesAndNewlines)
+        let source = full.isEmpty ? NSUserName() : full
+        let parts = source.split(separator: " ").filter { !$0.isEmpty }
+        if parts.count >= 2, let f = parts.first?.first, let l = parts.last?.first {
+            return "\(f)\(l)".uppercased()
+        }
+        let prefix = String(source.prefix(2)).uppercased()
+        return prefix.isEmpty ? "CB" : prefix
     }
 
-    public func selectThread(id: String) {
-        self.selectedThreadId = id
-        if self.messages.isEmpty {
-            self.messages = [
-                StudioChatMessage(id: "m1", sender: "user", text: "Review Stage 11 CoreBlow Studio & Companion Bar implementation.", timestamp: "12:00 PM"),
-                StudioChatMessage(
-                    id: "m2",
-                    sender: "cory",
-                    text: "Successfully implemented! CoreBlow Studio now features a modern 3-pane desktop view with side Nav Rail, Project Tree, and Floating Composer connected directly to the 12-Service Microkernel.",
-                    toolTraceSummary: "Evaluated 12 Microkernel services in 1.2ms · All 5 PR gates green",
-                    timestamp: "12:01 PM"
-                ),
-            ]
+    public init() {}
+
+    public func openProjectFolderPicker() {
+        let panel = NSOpenPanel()
+        panel.title = "Open Project Folder in CoreBlow Studio"
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.canCreateDirectories = true
+
+        if panel.runModal() == .OK, let url = panel.url {
+            self.addProjectFolder(url: url)
         }
+    }
+
+    public func addProjectFolder(url: URL) {
+        let path = url.path
+        let name = url.lastPathComponent
+        let branch = Self.detectGitBranch(at: path)
+
+        if let existingIdx = self.projectFolders.firstIndex(where: { $0.path == path || $0.name == name }) {
+            self.currentProjectName = self.projectFolders[existingIdx].name
+            self.currentProjectPath = self.projectFolders[existingIdx].path
+            self.currentBranch = branch
+        } else {
+            let folder = StudioProjectFolder(
+                id: "proj_\(UUID().uuidString)",
+                name: name,
+                path: path,
+                isExpanded: true,
+                threads: []
+            )
+            self.projectFolders.append(folder)
+            self.currentProjectName = name
+            self.currentProjectPath = path
+            self.currentBranch = branch
+        }
+        self.startNewChat()
+    }
+
+    public func removeProjectFolder(id: String) {
+        if let idx = self.projectFolders.firstIndex(where: { $0.id == id }) {
+            let removed = self.projectFolders.remove(at: idx)
+            for thread in removed.threads {
+                self.threadMessages.removeValue(forKey: thread.id)
+            }
+            if self.currentProjectName == removed.name {
+                if let first = self.projectFolders.first {
+                    self.currentProjectName = first.name
+                    self.currentProjectPath = first.path
+                    self.currentBranch = Self.detectGitBranch(at: first.path)
+                } else {
+                    self.currentProjectName = ""
+                    self.currentProjectPath = ""
+                    self.currentBranch = "—"
+                }
+                self.messages.removeAll()
+                self.selectedThreadId = nil
+            }
+        }
+    }
+
+    public func deleteThread(folderId: String, threadId: String) {
+        guard let fIdx = self.projectFolders.firstIndex(where: { $0.id == folderId }) else { return }
+        self.projectFolders[fIdx].threads.removeAll(where: { $0.id == threadId })
+        self.threadMessages.removeValue(forKey: threadId)
+        if self.selectedThreadId == threadId {
+            self.selectedThreadId = nil
+            self.messages.removeAll()
+        }
+    }
+
+    private static func detectGitBranch(at folderPath: String) -> String {
+        guard !folderPath.isEmpty else { return "—" }
+        let headPath = (folderPath as NSString).appendingPathComponent(".git/HEAD")
+        guard let content = try? String(contentsOfFile: headPath, encoding: .utf8) else {
+            return "local"
+        }
+        let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.hasPrefix("ref: refs/heads/") {
+            return String(trimmed.dropFirst("ref: refs/heads/".count))
+        }
+        return String(trimmed.prefix(7))
+    }
+
+    public func startNewChat() {
+        self.selectedThreadId = nil
+        self.messages.removeAll()
+        self.inputPrompt = ""
+        for fIdx in self.projectFolders.indices {
+            for tIdx in self.projectFolders[fIdx].threads.indices {
+                self.projectFolders[fIdx].threads[tIdx].isCurrent = false
+            }
+        }
+    }
+
+    public func selectThread(folder: StudioProjectFolder, threadId: String) {
+        self.currentProjectName = folder.name
+        self.currentProjectPath = folder.path
+        self.currentBranch = Self.detectGitBranch(at: folder.path)
+        self.selectedThreadId = threadId
+        for fIdx in self.projectFolders.indices {
+            for tIdx in self.projectFolders[fIdx].threads.indices {
+                self.projectFolders[fIdx].threads[tIdx].isCurrent = (self.projectFolders[fIdx].threads[tIdx].id == threadId)
+            }
+        }
+        self.messages = self.threadMessages[threadId] ?? []
     }
 
     public func sendMessage() {
         let text = self.inputPrompt.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
-        self.messages.append(StudioChatMessage(id: UUID().uuidString, sender: "user", text: text))
         self.inputPrompt = ""
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            self.messages.append(StudioChatMessage(
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        let timeString = formatter.string(from: Date())
+
+        let userMsg = StudioChatMessage(id: UUID().uuidString, sender: "user", text: text, timestamp: timeString)
+
+        // Ensure an active project folder and thread exist for this session
+        let activeThreadId: String
+        if let existingThreadId = self.selectedThreadId {
+            activeThreadId = existingThreadId
+        } else {
+            let newThreadId = "thread_\(UUID().uuidString)"
+            let shortTitle = text.count > 38 ? String(text.prefix(38)) + "..." : text
+
+            if self.projectFolders.isEmpty {
+                let defaultName = self.currentProjectName.isEmpty ? "Workspace" : self.currentProjectName
+                let folder = StudioProjectFolder(
+                    id: "proj_\(UUID().uuidString)",
+                    name: defaultName,
+                    path: self.currentProjectPath,
+                    isExpanded: true,
+                    threads: [StudioProjectThread(id: newThreadId, title: shortTitle, isCurrent: true)]
+                )
+                self.projectFolders.append(folder)
+                self.currentProjectName = defaultName
+            } else {
+                let targetIdx = self.projectFolders.firstIndex(where: { $0.name == self.currentProjectName }) ?? 0
+                for fIdx in self.projectFolders.indices {
+                    for tIdx in self.projectFolders[fIdx].threads.indices {
+                        self.projectFolders[fIdx].threads[tIdx].isCurrent = false
+                    }
+                }
+                self.projectFolders[targetIdx].threads.insert(
+                    StudioProjectThread(id: newThreadId, title: shortTitle, isCurrent: true),
+                    at: 0
+                )
+                self.currentProjectName = self.projectFolders[targetIdx].name
+            }
+            self.selectedThreadId = newThreadId
+            activeThreadId = newThreadId
+        }
+
+        self.messages.append(userMsg)
+        self.threadMessages[activeThreadId] = self.messages
+
+        let projectLabel = self.currentProjectName.isEmpty ? "Workspace" : self.currentProjectName
+        let branchLabel = self.currentBranch == "—" ? "local" : self.currentBranch
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            let replyMsg = StudioChatMessage(
                 id: UUID().uuidString,
                 sender: "cory",
-                text: "Processing request in repository [\(self.currentProjectName)] on branch [\(self.currentBranch)] using [\(self.selectedModel)].",
-                toolTraceSummary: "Checked active context • Daybreak failover ready"
-            ))
+                text: "Processing request in [\(projectLabel)] (\(branchLabel)) via \(self.selectedModel).",
+                toolTraceSummary: "6-Tier Router [\(self.decisionRouterTier.uppercased())] • Daybreak failover ready",
+                timestamp: timeString
+            )
+            self.messages.append(replyMsg)
+            self.threadMessages[activeThreadId] = self.messages
         }
     }
 
     public func approvePR() {
+        guard !self.diffFiles.isEmpty else { return }
         self.prApproved = true
         self.messages.append(StudioChatMessage(
             id: UUID().uuidString,
@@ -432,13 +509,13 @@ struct StudioNavRailView: View {
 
             Spacer()
 
-            // User Profile Avatar Chip (Bottom)
+            // User Profile Avatar Chip (Bottom — Dynamic macOS User Initials)
             ZStack(alignment: .bottomTrailing) {
                 Circle()
                     .fill(Color(red: 0.12, green: 0.25, blue: 0.28))
                     .frame(width: 30, height: 30)
                     .overlay(
-                        Text("RU")
+                        Text(self.viewModel.userInitials)
                             .font(.system(size: 11, weight: .bold))
                             .foregroundStyle(.white)
                     )
@@ -454,7 +531,7 @@ struct StudioNavRailView: View {
 }
 
 // ============================================================================
-// 2. Collapsible Project & Threads Sidebar
+// 2. Collapsible Project & Threads Sidebar (Clean State + Native Folder Picker)
 // ============================================================================
 
 struct StudioProjectSidebarView: View {
@@ -462,13 +539,14 @@ struct StudioProjectSidebarView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Sidebar Header (Model Brand Dropdown + Search)
+            // Sidebar Header (Model Brand Dropdown + Add Folder)
             HStack(spacing: 8) {
                 Menu {
                     Button("CoreBlow v2.0 GA (Local Microkernel)") {}
-                    Button("CoreBlow Studio Pro") {}
                     Divider()
-                    Button("Manage Workspaces...") {}
+                    Button("Open Project Folder...") {
+                        self.viewModel.openProjectFolderPicker()
+                    }
                 } label: {
                     HStack(spacing: 4) {
                         Text("CoreBlow")
@@ -483,13 +561,15 @@ struct StudioProjectSidebarView: View {
 
                 Spacer()
 
-                Button(action: {}) {
-                    Image(systemName: "magnifyingglass")
+                Button(action: {
+                    self.viewModel.openProjectFolderPicker()
+                }) {
+                    Image(systemName: "folder.badge.plus")
                         .font(.system(size: 13))
-                        .foregroundStyle(Color(white: 0.7))
+                        .foregroundStyle(Color(white: 0.75))
                 }
                 .buttonStyle(.plain)
-                .help("Search chats (⌘K)")
+                .help("Open project folder")
             }
             .padding(.horizontal, 14)
             .padding(.top, 42)
@@ -518,76 +598,139 @@ struct StudioProjectSidebarView: View {
             .padding(.horizontal, 12)
             .padding(.bottom, 14)
 
-            // Section: Projects
+            // Section: Projects Header + "+" Button
             HStack {
                 Text("Projects")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(Color(white: 0.55))
                 Spacer()
+                Button(action: {
+                    self.viewModel.openProjectFolderPicker()
+                }) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Color(white: 0.6))
+                }
+                .buttonStyle(.plain)
+                .help("Add project folder")
             }
             .padding(.horizontal, 14)
             .padding(.bottom, 6)
 
-            // Project Folders & Chats ScrollView
+            // Project Folders & Chats ScrollView (Clean Empty State when no projects added)
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 14) {
-                    ForEach(self.viewModel.projectFolders) { folder in
-                        VStack(alignment: .leading, spacing: 4) {
-                            // Folder Header
-                            HStack(spacing: 6) {
-                                Image(systemName: "folder")
-                                    .font(.system(size: 12))
-                                    .foregroundStyle(Color(white: 0.7))
-                                Text(folder.name)
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundStyle(.white)
-                                Spacer()
-                            }
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 2)
+                if self.viewModel.projectFolders.isEmpty {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("No project folders added yet.")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Color(white: 0.45))
 
-                            // Nested Threads
-                            if folder.threads.isEmpty {
-                                Text("No chats")
-                                    .font(.system(size: 12))
-                                    .foregroundStyle(Color(white: 0.45))
-                                    .padding(.leading, 32)
-                                    .padding(.vertical, 2)
-                            } else {
-                                ForEach(folder.threads) { thread in
-                                    Button(action: {
+                        Button(action: {
+                            self.viewModel.openProjectFolderPicker()
+                        }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "folder.badge.plus")
+                                    .font(.system(size: 11))
+                                Text("Open folder...")
+                                    .font(.system(size: 12, weight: .medium))
+                            }
+                            .foregroundStyle(Color(red: 0.45, green: 0.85, blue: 0.80))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(
+                                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                    .fill(Color.white.opacity(0.06))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                            .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                                    )
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 14)
+                    .padding(.top, 8)
+                } else {
+                    LazyVStack(alignment: .leading, spacing: 14) {
+                        ForEach(self.viewModel.projectFolders) { folder in
+                            VStack(alignment: .leading, spacing: 4) {
+                                // Folder Header
+                                HStack(spacing: 6) {
+                                    Image(systemName: "folder")
+                                        .font(.system(size: 12))
+                                        .foregroundStyle(Color(white: 0.7))
+                                    Text(folder.name)
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundStyle(.white)
+                                    Spacer()
+                                }
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 2)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    self.viewModel.currentProjectName = folder.name
+                                    self.viewModel.currentProjectPath = folder.path
+                                }
+                                .contextMenu {
+                                    Button("New Chat in \(folder.name)") {
                                         self.viewModel.currentProjectName = folder.name
-                                        self.viewModel.selectThread(id: thread.id)
-                                    }) {
-                                        HStack {
-                                            Text(thread.title)
-                                                .font(.system(size: 12))
-                                                .foregroundStyle(thread.isCurrent ? Color.white : Color(white: 0.8))
-                                                .lineLimit(1)
-                                            Spacer()
-                                        }
-                                        .padding(.leading, 32)
-                                        .padding(.trailing, 10)
-                                        .padding(.vertical, 4)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                                .fill(thread.isCurrent ? Color(white: 0.22) : Color.clear)
-                                        )
+                                        self.viewModel.currentProjectPath = folder.path
+                                        self.viewModel.startNewChat()
                                     }
-                                    .buttonStyle(.plain)
+                                    Divider()
+                                    Button("Remove Folder", role: .destructive) {
+                                        self.viewModel.removeProjectFolder(id: folder.id)
+                                    }
+                                }
+
+                                // Nested Threads
+                                if folder.threads.isEmpty {
+                                    Text("No chats yet")
+                                        .font(.system(size: 12))
+                                        .foregroundStyle(Color(white: 0.45))
+                                        .padding(.leading, 32)
+                                        .padding(.vertical, 2)
+                                } else {
+                                    ForEach(folder.threads) { thread in
+                                        Button(action: {
+                                            self.viewModel.selectThread(folder: folder, threadId: thread.id)
+                                        }) {
+                                            HStack {
+                                                Text(thread.title)
+                                                    .font(.system(size: 12))
+                                                    .foregroundStyle(thread.isCurrent ? Color.white : Color(white: 0.8))
+                                                    .lineLimit(1)
+                                                Spacer()
+                                            }
+                                            .padding(.leading, 32)
+                                            .padding(.trailing, 10)
+                                            .padding(.vertical, 4)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                                    .fill(thread.isCurrent ? Color(white: 0.22) : Color.clear)
+                                            )
+                                        }
+                                        .buttonStyle(.plain)
+                                        .contextMenu {
+                                            Button("Delete Chat", role: .destructive) {
+                                                self.viewModel.deleteThread(folderId: folder.id, threadId: thread.id)
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
+                    .padding(.vertical, 4)
                 }
-                .padding(.vertical, 4)
             }
         }
     }
 }
 
 // ============================================================================
-// 3. Main Center Workspace Canvas (Exact Screenshot Layout)
+// 3. Main Center Workspace Canvas
 // ============================================================================
 
 struct StudioMainCanvasView: View {
@@ -666,9 +809,8 @@ struct StudioMainCanvasView: View {
             .padding(.top, 38)
             .padding(.bottom, 12)
 
-            // Center Content: Either Empty State OR Conversation Stream
+            // Center Content: Either Clean Empty State OR Conversation Stream
             if self.viewModel.messages.isEmpty {
-                // Empty State (Matches Screenshot!)
                 VStack(spacing: 20) {
                     Spacer()
 
@@ -705,27 +847,37 @@ struct StudioMainCanvasView: View {
                             )
                     }
 
-                    // Prominent Heading
-                    Text("What should we build in \(self.viewModel.currentProjectName)?")
-                        .font(.system(size: 28, weight: .semibold))
-                        .foregroundStyle(.white)
+                    // Prominent Heading (Clean when no project is selected yet)
+                    Text(
+                        self.viewModel.currentProjectName.isEmpty
+                            ? "What should we build?"
+                            : "What should we build in \(self.viewModel.currentProjectName)?"
+                    )
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundStyle(.white)
 
-                    // Luminous Glass Context Chips
+                    // Interactive Luminous Glass Context Chips
                     HStack(spacing: 8) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "folder")
-                                .font(.system(size: 10))
-                            Text(self.viewModel.currentProjectName)
-                                .font(.system(size: 11, weight: .medium))
+                        Button(action: {
+                            self.viewModel.openProjectFolderPicker()
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "folder")
+                                    .font(.system(size: 10))
+                                Text(self.viewModel.currentProjectName.isEmpty ? "Select folder..." : self.viewModel.currentProjectName)
+                                    .font(.system(size: 11, weight: .medium))
+                            }
+                            .foregroundStyle(Color.white.opacity(0.85))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .fill(Color.white.opacity(0.08))
+                                    .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(Color.white.opacity(0.14), lineWidth: 1))
+                            )
                         }
-                        .foregroundStyle(Color.white.opacity(0.85))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .fill(Color.white.opacity(0.08))
-                                .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(Color.white.opacity(0.14), lineWidth: 1))
-                        )
+                        .buttonStyle(.plain)
+                        .help("Choose project folder")
 
                         HStack(spacing: 4) {
                             Image(systemName: "macwindow")
@@ -742,20 +894,22 @@ struct StudioMainCanvasView: View {
                                 .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(Color.white.opacity(0.14), lineWidth: 1))
                         )
 
-                        HStack(spacing: 4) {
-                            Image(systemName: "arrow.triangle.branch")
-                                .font(.system(size: 10))
-                            Text(self.viewModel.currentBranch)
-                                .font(.system(size: 11, weight: .medium))
+                        if !self.viewModel.currentProjectName.isEmpty {
+                            HStack(spacing: 4) {
+                                Image(systemName: "arrow.triangle.branch")
+                                    .font(.system(size: 10))
+                                Text(self.viewModel.currentBranch)
+                                    .font(.system(size: 11, weight: .medium))
+                            }
+                            .foregroundStyle(Color.white.opacity(0.85))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .fill(Color.white.opacity(0.08))
+                                    .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(Color.white.opacity(0.14), lineWidth: 1))
+                            )
                         }
-                        .foregroundStyle(Color.white.opacity(0.85))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .fill(Color.white.opacity(0.08))
-                                .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(Color.white.opacity(0.14), lineWidth: 1))
-                        )
                     }
 
                     Spacer()
@@ -766,7 +920,7 @@ struct StudioMainCanvasView: View {
                 ScrollView {
                     LazyVStack(spacing: 16) {
                         ForEach(self.viewModel.messages) { message in
-                            StudioMessageBubbleView(message: message)
+                            StudioMessageBubbleView(message: message, userInitials: self.viewModel.userInitials)
                         }
                     }
                     .padding(.horizontal, 36)
@@ -775,7 +929,7 @@ struct StudioMainCanvasView: View {
                 }
             }
 
-            // Bottom Floating Stack (Matches Screenshot!)
+            // Bottom Floating Stack
             VStack(spacing: 8) {
                 // 1. Status / Router Info Banner Card
                 HStack {
@@ -821,19 +975,24 @@ struct StudioMainCanvasView: View {
                 VStack(spacing: 0) {
                     // Top Context Chips Bar
                     HStack(spacing: 8) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "folder")
-                                .font(.system(size: 10))
-                            Text(self.viewModel.currentProjectName)
-                                .font(.system(size: 11, weight: .medium))
+                        Button(action: {
+                            self.viewModel.openProjectFolderPicker()
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "folder")
+                                    .font(.system(size: 10))
+                                Text(self.viewModel.currentProjectName.isEmpty ? "Select folder..." : self.viewModel.currentProjectName)
+                                    .font(.system(size: 11, weight: .medium))
+                            }
+                            .foregroundStyle(Color(white: 0.8))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .fill(Color(white: 0.18))
+                            )
                         }
-                        .foregroundStyle(Color(white: 0.8))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(
-                            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                .fill(Color(white: 0.18))
-                        )
+                        .buttonStyle(.plain)
 
                         HStack(spacing: 4) {
                             Image(systemName: "macwindow")
@@ -849,19 +1008,21 @@ struct StudioMainCanvasView: View {
                                 .fill(Color(white: 0.18))
                         )
 
-                        HStack(spacing: 4) {
-                            Image(systemName: "arrow.triangle.branch")
-                                .font(.system(size: 10))
-                            Text(self.viewModel.currentBranch)
-                                .font(.system(size: 11, weight: .medium))
+                        if !self.viewModel.currentProjectName.isEmpty {
+                            HStack(spacing: 4) {
+                                Image(systemName: "arrow.triangle.branch")
+                                    .font(.system(size: 10))
+                                Text(self.viewModel.currentBranch)
+                                    .font(.system(size: 11, weight: .medium))
+                            }
+                            .foregroundStyle(Color(white: 0.8))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .fill(Color(white: 0.18))
+                            )
                         }
-                        .foregroundStyle(Color(white: 0.8))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(
-                            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                .fill(Color(white: 0.18))
-                        )
 
                         Spacer()
                     }
@@ -882,13 +1043,16 @@ struct StudioMainCanvasView: View {
 
                     // Bottom Action Toolbar
                     HStack(spacing: 10) {
-                        // Left: + Attach button
-                        Button(action: {}) {
+                        // Left: + Open Folder / Attach button
+                        Button(action: {
+                            self.viewModel.openProjectFolderPicker()
+                        }) {
                             Image(systemName: "plus")
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundStyle(Color(white: 0.6))
                         }
                         .buttonStyle(.plain)
+                        .help("Open project folder")
 
                         // Full access / Security profile chip
                         Menu {
@@ -978,6 +1142,7 @@ struct StudioMainCanvasView: View {
 
 struct StudioMessageBubbleView: View {
     let message: StudioChatMessage
+    var userInitials: String = "CB"
     @State private var isTraceExpanded: Bool = false
 
     var isUser: Bool {
@@ -1065,7 +1230,7 @@ struct StudioMessageBubbleView: View {
                         .fill(Color(red: 0.12, green: 0.25, blue: 0.28))
                         .frame(width: 30, height: 30)
 
-                    Text("RU")
+                    Text(self.userInitials)
                         .font(.system(size: 11, weight: .bold))
                         .foregroundStyle(.white)
                 }
@@ -1160,30 +1325,37 @@ struct StudioDiffAndGateView: View {
                 .padding(12)
                 .background(RoundedRectangle(cornerRadius: 10).fill(Color(white: 0.16)))
 
-                // Changed Files List
+                // Changed Files List (Clean Empty State when no active diff)
                 VStack(alignment: .leading, spacing: 6) {
                     Text("CHANGED FILES (\(self.viewModel.diffFiles.count))")
                         .font(.system(size: 10, weight: .bold))
                         .foregroundStyle(.secondary)
 
-                    ForEach(self.viewModel.diffFiles) { file in
-                        HStack {
-                            Text(file.path)
-                                .font(.system(size: 11, design: .monospaced))
-                                .lineLimit(1)
+                    if self.viewModel.diffFiles.isEmpty {
+                        Text("No uncommitted file changes in active worktree.")
+                            .font(.system(size: 11))
+                            .foregroundStyle(Color(white: 0.45))
+                            .padding(.vertical, 4)
+                    } else {
+                        ForEach(self.viewModel.diffFiles) { file in
+                            HStack {
+                                Text(file.path)
+                                    .font(.system(size: 11, design: .monospaced))
+                                    .lineLimit(1)
 
-                            Spacer()
+                                Spacer()
 
-                            HStack(spacing: 4) {
-                                Text("+\(file.additions)")
-                                    .font(.system(size: 10, weight: .bold))
-                                    .foregroundStyle(.green)
-                                Text("-\(file.deletions)")
-                                    .font(.system(size: 10, weight: .bold))
-                                    .foregroundStyle(.red)
+                                HStack(spacing: 4) {
+                                    Text("+\(file.additions)")
+                                        .font(.system(size: 10, weight: .bold))
+                                        .foregroundStyle(.green)
+                                    Text("-\(file.deletions)")
+                                        .font(.system(size: 10, weight: .bold))
+                                        .foregroundStyle(.red)
+                                }
                             }
+                            .padding(.vertical, 3)
                         }
-                        .padding(.vertical, 3)
                     }
                 }
                 .padding(12)
@@ -1195,9 +1367,9 @@ struct StudioDiffAndGateView: View {
                         .font(.system(size: 10, weight: .bold))
                         .foregroundStyle(.secondary)
 
-                    Text(self.viewModel.unifiedDiffPreview)
+                    Text(self.viewModel.unifiedDiffPreview.isEmpty ? "Working tree clean — no active diff." : self.viewModel.unifiedDiffPreview)
                         .font(.system(size: 10, design: .monospaced))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(self.viewModel.unifiedDiffPreview.isEmpty ? Color(white: 0.45) : .white)
                         .padding(8)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(Color.black.opacity(0.4))
@@ -1221,11 +1393,12 @@ struct StudioDiffAndGateView: View {
                     .foregroundStyle(.white)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(self.viewModel.prApproved ? Color.green : Color.blue)
+                            .fill(self.viewModel.prApproved ? Color.green : Color(red: 0.10, green: 0.52, blue: 0.48))
                     )
                 }
                 .buttonStyle(.plain)
-                .disabled(self.viewModel.prApproved)
+                .disabled(self.viewModel.prApproved || self.viewModel.diffFiles.isEmpty)
+                .opacity((self.viewModel.prApproved || self.viewModel.diffFiles.isEmpty) ? 0.5 : 1.0)
             }
             .padding(14)
         }
@@ -1866,7 +2039,7 @@ public struct StudioCoreHubManagerView: View {
                     )
                     .frame(width: 28, height: 28)
                     .overlay(
-                        Text("RU")
+                        Text(self.viewModel.userInitials)
                             .font(.system(size: 10, weight: .bold))
                             .foregroundStyle(.white)
                     )

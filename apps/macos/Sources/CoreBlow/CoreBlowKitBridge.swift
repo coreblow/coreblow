@@ -91,7 +91,7 @@ let currentOnboardingVersion = 1
 // browserControlEnabled() is defined in CoreBlowConfigFile.swift
 
 // MARK: - GatewayResponseError
-struct GatewayResponseError: Codable, Sendable {
+struct GatewayResponseError: Error, Codable, Sendable {
     var code: String
     var message: String
     var details: AnyCodable?
@@ -293,8 +293,9 @@ struct CoreBlowChatSessionsDefaults: Codable {
 // MARK: - PeekabooBridgeHostCoordinator
 class PeekabooBridgeHostCoordinator: @unchecked Sendable {
     static let shared = PeekabooBridgeHostCoordinator()
-    func start() {}
-    func stop() {}
+    func start() async {}
+    func stop() async {}
+    func setEnabled(_ enabled: Bool) async {}
 }
 
 // MARK: - Camera Session

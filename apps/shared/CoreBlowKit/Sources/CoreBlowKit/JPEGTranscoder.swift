@@ -57,7 +57,7 @@ public struct CoreBlowImageTranscoder {
         }
 
         // Compute Downsampling
-        var downsampleOptions: [CFString: Any] = [
+        let downsampleOptions: [CFString: Any] = [
             kCGImageSourceCreateThumbnailFromImageAlways: true,
             kCGImageSourceCreateThumbnailWithTransform: true, // Handle orientation naturally
             kCGImageSourceThumbnailMaxPixelSize: profile.maxDimension

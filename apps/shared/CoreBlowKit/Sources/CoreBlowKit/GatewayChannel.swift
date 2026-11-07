@@ -516,10 +516,14 @@ public actor GatewayChannelActor {
                 if await self.reconnectPausedForAuth { continue }
                 if await self.connected { continue }
                 do { try await self.connect() } catch {
-                    await self.logger.error("watchdog reconnect failed \(error.localizedDescription, privacy: .public)")
+                    await self.logWatchdogError("watchdog reconnect failed \(error.localizedDescription)")
                 }
             }
         }
+    }
+
+    private func logWatchdogError(_ message: String) {
+        logger.error("\(message, privacy: .public)")
     }
 
     private func startTickWatchdog() {
@@ -533,7 +537,7 @@ public actor GatewayChannelActor {
                 if let last = await self.lastTick {
                     let delta = Date().timeIntervalSince(last) * 1000
                     if delta > tolerance {
-                        await self.logger.error("tick missed; reconnecting")
+                        await self.logWatchdogError("tick missed; reconnecting")
                         await self.forceDisconnect("tick missed")
                         return
                     }
@@ -547,7 +551,8 @@ public actor GatewayChannelActor {
         keepaliveTask = Task { [weak self] in
             guard let self else { return }
             while await self.shouldReconnect {
-                guard await self.sleepUnlessCancelled(seconds: await self.keepaliveIntervalSec)
+                let interval = self.keepaliveIntervalSec
+                guard await self.sleepUnlessCancelled(seconds: interval)
                 else { return }
                 guard await self.connected, let ws = await self.task else { continue }
                 do {

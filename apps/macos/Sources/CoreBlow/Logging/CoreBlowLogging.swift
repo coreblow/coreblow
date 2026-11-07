@@ -162,6 +162,17 @@ struct CoreBlowOSLogHandler: AppLogLevelBackedHandler {
         self.osLogger = os.Logger(subsystem: subsystem, category: category)
     }
 
+    func log(event: LogEvent) {
+        self.log(
+            level: event.level,
+            message: event.message,
+            metadata: event.metadata,
+            source: event.source,
+            file: event.file,
+            function: event.function,
+            line: event.line)
+    }
+
     func log(
         level: Logger.Level,
         message: Logger.Message,
@@ -212,6 +223,17 @@ struct CoreBlowOSLogHandler: AppLogLevelBackedHandler {
 struct CoreBlowFileLogHandler: AppLogLevelBackedHandler {
     let label: String
     var metadata: Logger.Metadata = [:]
+
+    func log(event: LogEvent) {
+        self.log(
+            level: event.level,
+            message: event.message,
+            metadata: event.metadata,
+            source: event.source,
+            file: event.file,
+            function: event.function,
+            line: event.line)
+    }
 
     func log(
         level: Logger.Level,
