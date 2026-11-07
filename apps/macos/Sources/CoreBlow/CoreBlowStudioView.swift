@@ -141,6 +141,7 @@ public final class CoreBlowStudioViewModel {
     public var activeNavTab: StudioNavRailTab = .chat
     public var isSidebarVisible: Bool = true
     public var isInspectorVisible: Bool = false
+    public var isProfileMenuPresented: Bool = false
     public var showAPIKeysSheet: Bool = false
 
     // Active Project & Worktree Context Chips (Clean Initial State — No Hardcoded Dummy Projects)
@@ -480,6 +481,28 @@ public struct CoreBlowStudioView: View {
         }
         .frame(minWidth: 1080, minHeight: 700)
         .preferredColorScheme(.dark)
+        .overlay(alignment: .bottomLeading) {
+            if self.viewModel.isProfileMenuPresented {
+                ZStack(alignment: .bottomLeading) {
+                    // Invisible dismiss backdrop across window
+                    Color.black.opacity(0.001)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            withAnimation(.easeInOut(duration: 0.15)) {
+                                self.viewModel.isProfileMenuPresented = false
+                            }
+                        }
+
+                    // Anchored Profile Menu Card (Directly above the bottom-left button)
+                    StudioAnchoredProfileMenuCard(viewModel: self.viewModel)
+                        .padding(.leading, 8)
+                        .padding(.bottom, 58)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                .transition(.opacity)
+            }
+        }
         .onAppear {
             SettingsWindowOpener.shared.register(openSettings: self.openSettings)
         }
@@ -536,30 +559,34 @@ struct StudioNavRailView: View {
 
             Spacer()
 
-            // User Profile Avatar Chip (Bottom — Opens Settings directly without floating popover)
+            // User Profile Avatar Button (Anchored bottom-left button matching reference)
             Button(action: {
-                SettingsTabRouter.open(tab: .general)
-                SettingsWindowOpener.shared.open()
+                withAnimation(.easeInOut(duration: 0.15)) {
+                    self.viewModel.isProfileMenuPresented.toggle()
+                }
             }) {
-                ZStack(alignment: .bottomTrailing) {
-                    Circle()
-                        .fill(Color(red: 0.12, green: 0.25, blue: 0.28))
-                        .frame(width: 30, height: 30)
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(self.viewModel.isProfileMenuPresented ? Color(white: 0.28) : Color(white: 0.18))
+                        .frame(width: 36, height: 36)
                         .overlay(
-                            Text(self.viewModel.userInitials)
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundStyle(.white)
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .stroke(self.viewModel.isProfileMenuPresented ? Color.white.opacity(0.35) : Color.white.opacity(0.08), lineWidth: 1)
                         )
 
                     Circle()
-                        .fill(Color.green)
-                        .frame(width: 8, height: 8)
-                        .overlay(Circle().stroke(Color(red: 0.11, green: 0.11, blue: 0.12), lineWidth: 1.5))
+                        .fill(Color(red: 0.12, green: 0.25, blue: 0.28))
+                        .frame(width: 26, height: 26)
+                        .overlay(
+                            Text(self.viewModel.userInitials)
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(.white)
+                        )
                 }
             }
             .buttonStyle(.plain)
-            .help("Settings (⌘,)")
-            .padding(.bottom, 16)
+            .help("Account & Settings")
+            .padding(.bottom, 14)
         }
     }
 }
@@ -2725,7 +2752,173 @@ public struct StudioCoreHubManagerView: View {
 }
 
 // ============================================================================
-// 6. Quick Modal Sheet for Provider API Keys
+// 6. Anchored Studio Profile & Account Menu Card (1:1 Reference Match)
+// ============================================================================
+
+struct StudioAnchoredProfileMenuCard: View {
+    @Bindable var viewModel: CoreBlowStudioViewModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // User Account Header
+            HStack(spacing: 10) {
+                Circle()
+                    .fill(Color(red: 0.28, green: 0.35, blue: 0.38))
+                    .frame(width: 28, height: 28)
+                    .overlay(
+                        Text(self.viewModel.userInitials)
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(.white)
+                    )
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(NSFullUserName().isEmpty ? NSUserName() : NSFullUserName())
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+
+                    Text("Free")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Color(white: 0.55))
+                }
+
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+
+            Divider().overlay(Color.white.opacity(0.08))
+
+            // Menu Items List (Matching Reference Image)
+            VStack(spacing: 1) {
+                // Usage remaining 0% >
+                self.menuRow(icon: "gauge.with.needle", title: "Usage remaining", trailingText: "0% >") {
+                    self.close()
+                }
+
+                // Show Pet ⌥Space
+                self.menuRow(icon: "face.smiling", title: "Show Pet", trailingText: "⌥Space") {
+                    self.close()
+                    StudioCompanionBarController.shared.toggle()
+                }
+
+                // Rejoin Plus ↗
+                self.menuRow(icon: "sparkles", title: "Rejoin Plus", trailingText: "↗") {
+                    self.close()
+                    self.viewModel.activeNavTab = .coreHub
+                }
+
+                // Personalization
+                self.menuRow(icon: "slider.horizontal.3", title: "Personalization") {
+                    self.close()
+                    self.viewModel.showAPIKeysSheet = true
+                }
+
+                // Profile
+                self.menuRow(icon: "person.crop.circle", title: "Profile") {
+                    self.close()
+                    SettingsTabRouter.open(tab: .general)
+                    SettingsWindowOpener.shared.open()
+                }
+
+                // Settings ⌘,
+                self.menuRow(icon: "gearshape", title: "Settings", trailingText: "⌘,") {
+                    self.close()
+                    SettingsTabRouter.open(tab: .general)
+                    SettingsWindowOpener.shared.open()
+                }
+            }
+            .padding(.vertical, 4)
+
+            Divider().overlay(Color.white.opacity(0.08))
+
+            // Footer Items
+            VStack(spacing: 1) {
+                // Help >
+                self.menuRow(icon: "globe", title: "Help", trailingText: ">") {
+                    self.close()
+                    if let url = URL(string: "https://docs.coreblow.com") {
+                        NSWorkspace.shared.open(url)
+                    }
+                }
+
+                // Log out
+                self.menuRow(icon: "rectangle.portrait.and.arrow.right", title: "Log out") {
+                    self.close()
+                    Task {
+                        await GatewayConnection.shared.shutdown()
+                    }
+                }
+            }
+            .padding(.vertical, 4)
+        }
+        .frame(width: 232)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color(red: 0.12, green: 0.13, blue: 0.15).opacity(0.98))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(Color.white.opacity(0.12), lineWidth: 0.5)
+                )
+                .shadow(color: Color.black.opacity(0.5), radius: 20, x: 2, y: 10)
+        )
+    }
+
+    private func close() {
+        withAnimation(.easeInOut(duration: 0.15)) {
+            self.viewModel.isProfileMenuPresented = false
+        }
+    }
+
+    private func menuRow(icon: String, title: String, trailingText: String? = nil, action: @escaping () -> Void) -> some View {
+        StudioMenuRowButton(icon: icon, title: title, trailingText: trailingText, action: action)
+    }
+}
+
+struct StudioMenuRowButton: View {
+    let icon: String
+    let title: String
+    var trailingText: String? = nil
+    let action: () -> Void
+    @State private var isHovered: Bool = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Image(systemName: icon)
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color(white: 0.75))
+                    .frame(width: 18)
+
+                Text(title)
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundStyle(.white)
+
+                Spacer()
+
+                if let trailingText {
+                    Text(trailingText)
+                        .font(.system(size: 11, weight: .regular))
+                        .foregroundStyle(Color(white: 0.5))
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Color.white.opacity(self.isHovered ? 0.08 : 0))
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            self.isHovered = hovering
+        }
+    }
+}
+
+// ============================================================================
+// 7. Quick Modal Sheet for Provider API Keys
 // ============================================================================
 
 struct StudioProviderAPIKeysSheet: View {
