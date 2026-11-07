@@ -1369,24 +1369,70 @@ public enum CoreHubCategory: String, CaseIterable, Identifiable {
 
 public struct CoreHubInstalledAppItem: Identifiable {
     public let id: String
-    public let name: String
-    public let description: String
-    public let version: String
+    public var name: String
+    public var description: String
+    public var version: String
     public let icon: String
-    public let isUpdateAvailable: Bool
+    public var isUpdateAvailable: Bool
     public let category: CoreHubCategory
+    public let platforms: Set<CoreHubPlatformFilter>
+
+    public init(
+        id: String,
+        name: String,
+        description: String,
+        version: String,
+        icon: String,
+        isUpdateAvailable: Bool,
+        category: CoreHubCategory,
+        platforms: Set<CoreHubPlatformFilter> = [.desktop]
+    ) {
+        self.id = id
+        self.name = name
+        self.description = description
+        self.version = version
+        self.icon = icon
+        self.isUpdateAvailable = isUpdateAvailable
+        self.category = category
+        self.platforms = platforms
+    }
 }
 
 public struct CoreHubPackageItem: Identifiable {
     public let id: String
-    public let name: String
-    public let description: String
+    public var name: String
+    public var description: String
     public let tierBadge: String
     public let icon: String
     public let isLocked: Bool
     public let wilsonScore: Double?
-    public let isInstalled: Bool
+    public var isInstalled: Bool
     public let category: CoreHubCategory
+    public let platforms: Set<CoreHubPlatformFilter>
+
+    public init(
+        id: String,
+        name: String,
+        description: String,
+        tierBadge: String,
+        icon: String,
+        isLocked: Bool,
+        wilsonScore: Double?,
+        isInstalled: Bool,
+        category: CoreHubCategory,
+        platforms: Set<CoreHubPlatformFilter> = [.desktop]
+    ) {
+        self.id = id
+        self.name = name
+        self.description = description
+        self.tierBadge = tierBadge
+        self.icon = icon
+        self.isLocked = isLocked
+        self.wilsonScore = wilsonScore
+        self.isInstalled = isInstalled
+        self.category = category
+        self.platforms = platforms
+    }
 }
 
 public struct StudioCoreHubManagerView: View {
@@ -1406,8 +1452,8 @@ public struct StudioCoreHubManagerView: View {
     private let iceCyan = Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0)        // #60D9CC
     private let sageGreen = Color(red: 90/255.0, green: 185/255.0, blue: 130/255.0)      // Updated dot
 
-    // Installed Microkernel & Desktop Apps
-    private let installedApps: [CoreHubInstalledAppItem] = [
+    // Installed Microkernel & Desktop Apps (Dynamic State)
+    @State private var installedApps: [CoreHubInstalledAppItem] = [
         CoreHubInstalledAppItem(
             id: "app_studio",
             name: "CoreBlow Studio",
@@ -1415,7 +1461,8 @@ public struct StudioCoreHubManagerView: View {
             version: "v2.0.0 GA",
             icon: "macwindow.on.rectangle",
             isUpdateAvailable: false,
-            category: .devTools
+            category: .devTools,
+            platforms: [.desktop]
         ),
         CoreHubInstalledAppItem(
             id: "app_companion",
@@ -1424,7 +1471,8 @@ public struct StudioCoreHubManagerView: View {
             version: "v2.0.0 GA",
             icon: "command.square.fill",
             isUpdateAvailable: false,
-            category: .devTools
+            category: .devTools,
+            platforms: [.desktop]
         ),
         CoreHubInstalledAppItem(
             id: "app_memory",
@@ -1433,7 +1481,8 @@ public struct StudioCoreHubManagerView: View {
             version: "v2.0.1",
             icon: "brain",
             isUpdateAvailable: true,
-            category: .memoryWiki
+            category: .memoryWiki,
+            platforms: [.desktop, .mobile, .web]
         ),
         CoreHubInstalledAppItem(
             id: "app_evoloop",
@@ -1442,7 +1491,8 @@ public struct StudioCoreHubManagerView: View {
             version: "v2.0.0 GA",
             icon: "bolt.fill",
             isUpdateAvailable: false,
-            category: .evoLoopSkills
+            category: .evoLoopSkills,
+            platforms: [.desktop, .mobile, .web]
         ),
         CoreHubInstalledAppItem(
             id: "app_war_room",
@@ -1451,21 +1501,23 @@ public struct StudioCoreHubManagerView: View {
             version: "v2.0.2",
             icon: "person.3.fill",
             isUpdateAvailable: true,
-            category: .autonomousAgents
+            category: .autonomousAgents,
+            platforms: [.desktop, .web]
         ),
         CoreHubInstalledAppItem(
             id: "app_mlx_voice",
             name: "Sovereign MLX Voice",
             description: "Local Apple Silicon Neural Engine TTS with real-time telemetry (RTF ≤ 0.4)",
-            version: "v2.0.0 GA",
+            version: "v2.0.0",
             icon: "waveform",
-            isUpdateAvailable: false,
-            category: .devTools
+            isUpdateAvailable: true,
+            category: .devTools,
+            platforms: [.desktop]
         )
     ]
 
-    // Available Two-Tier Packages
-    private let availablePackages: [CoreHubPackageItem] = [
+    // Available Two-Tier Packages (Dynamic State)
+    @State private var availablePackages: [CoreHubPackageItem] = [
         CoreHubPackageItem(
             id: "pkg_mcp",
             name: "@coreblow/mcp-bridge",
@@ -1475,7 +1527,8 @@ public struct StudioCoreHubManagerView: View {
             isLocked: false,
             wilsonScore: nil,
             isInstalled: true,
-            category: .mcpBridges
+            category: .mcpBridges,
+            platforms: [.desktop, .web]
         ),
         CoreHubPackageItem(
             id: "pkg_discord",
@@ -1486,7 +1539,8 @@ public struct StudioCoreHubManagerView: View {
             isLocked: false,
             wilsonScore: nil,
             isInstalled: false,
-            category: .devTools
+            category: .devTools,
+            platforms: [.desktop, .web, .mobile]
         ),
         CoreHubPackageItem(
             id: "pkg_telegram",
@@ -1497,7 +1551,8 @@ public struct StudioCoreHubManagerView: View {
             isLocked: false,
             wilsonScore: nil,
             isInstalled: false,
-            category: .devTools
+            category: .devTools,
+            platforms: [.desktop, .web, .mobile]
         ),
         CoreHubPackageItem(
             id: "pkg_git_supercharged",
@@ -1508,7 +1563,8 @@ public struct StudioCoreHubManagerView: View {
             isLocked: true,
             wilsonScore: 0.98,
             isInstalled: false,
-            category: .evoLoopSkills
+            category: .evoLoopSkills,
+            platforms: [.desktop]
         ),
         CoreHubPackageItem(
             id: "pkg_rust_advisor",
@@ -1519,7 +1575,8 @@ public struct StudioCoreHubManagerView: View {
             isLocked: true,
             wilsonScore: 0.95,
             isInstalled: false,
-            category: .evoLoopSkills
+            category: .evoLoopSkills,
+            platforms: [.desktop]
         ),
         CoreHubPackageItem(
             id: "pkg_audit_guard",
@@ -1530,9 +1587,134 @@ public struct StudioCoreHubManagerView: View {
             isLocked: true,
             wilsonScore: 0.99,
             isInstalled: false,
-            category: .autonomousAgents
+            category: .autonomousAgents,
+            platforms: [.desktop, .web]
         )
     ]
+
+    private var updatesCount: Int {
+        self.installedApps.filter { $0.isUpdateAvailable }.count
+    }
+
+    private func categoryCount(for category: CoreHubCategory) -> Int? {
+        switch category {
+        case .allApps:
+            return self.installedApps.count + self.availablePackages.count
+        case .updates:
+            return self.updatesCount
+        case .autonomousAgents:
+            let installed = self.installedApps.filter { $0.category == .autonomousAgents }.count
+            let available = self.availablePackages.filter { $0.category == .autonomousAgents }.count
+            return installed + available
+        case .evoLoopSkills:
+            let installed = self.installedApps.filter { $0.category == .evoLoopSkills }.count
+            let available = self.availablePackages.filter { $0.category == .evoLoopSkills }.count
+            return installed + available
+        case .devTools:
+            let installed = self.installedApps.filter { $0.category == .devTools }.count
+            let available = self.availablePackages.filter { $0.category == .devTools }.count
+            return installed + available
+        case .mcpBridges:
+            let installed = self.installedApps.filter { $0.category == .mcpBridges }.count
+            let available = self.availablePackages.filter { $0.category == .mcpBridges }.count
+            return installed + available
+        case .memoryWiki:
+            let installed = self.installedApps.filter { $0.category == .memoryWiki }.count
+            let available = self.availablePackages.filter { $0.category == .memoryWiki }.count
+            return installed + available
+        }
+    }
+
+    private var filteredInstalledApps: [CoreHubInstalledAppItem] {
+        self.installedApps.filter { app in
+            if self.selectedTopTab == .market {
+                return false
+            }
+            if self.selectedCategory == .updates {
+                if !app.isUpdateAvailable { return false }
+            } else if self.selectedCategory != .allApps {
+                if app.category != self.selectedCategory { return false }
+            }
+            if self.selectedPlatform != .all {
+                if !app.platforms.contains(self.selectedPlatform) { return false }
+            }
+            let trimmedSearch = self.searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmedSearch.isEmpty {
+                let term = trimmedSearch.lowercased()
+                let matchesName = app.name.localizedCaseInsensitiveContains(term)
+                let matchesDesc = app.description.localizedCaseInsensitiveContains(term)
+                let matchesCategory = app.category.rawValue.localizedCaseInsensitiveContains(term)
+                if !matchesName && !matchesDesc && !matchesCategory {
+                    return false
+                }
+            }
+            return true
+        }
+    }
+
+    private var filteredAvailablePackages: [CoreHubPackageItem] {
+        self.availablePackages.filter { pkg in
+            if self.selectedCategory == .updates {
+                return false
+            } else if self.selectedCategory != .allApps {
+                if pkg.category != self.selectedCategory { return false }
+            }
+            if self.selectedPlatform != .all {
+                if !pkg.platforms.contains(self.selectedPlatform) { return false }
+            }
+            if self.selectedTopTab == .yourWork {
+                if !pkg.isInstalled { return false }
+            }
+            let trimmedSearch = self.searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmedSearch.isEmpty {
+                let term = trimmedSearch.lowercased()
+                let matchesName = pkg.name.localizedCaseInsensitiveContains(term)
+                let matchesDesc = pkg.description.localizedCaseInsensitiveContains(term)
+                let matchesTier = pkg.tierBadge.localizedCaseInsensitiveContains(term)
+                let matchesCategory = pkg.category.rawValue.localizedCaseInsensitiveContains(term)
+                if !matchesName && !matchesDesc && !matchesTier && !matchesCategory {
+                    return false
+                }
+            }
+            return true
+        }
+    }
+
+    private func updateApp(id: String) {
+        if let idx = self.installedApps.firstIndex(where: { $0.id == id }) {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+                self.installedApps[idx].isUpdateAvailable = false
+                self.installedApps[idx].version = "\(self.installedApps[idx].version) GA"
+            }
+        }
+    }
+
+    private func installPackage(id: String) {
+        if let idx = self.availablePackages.firstIndex(where: { $0.id == id }) {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+                self.availablePackages[idx].isInstalled = true
+            }
+        }
+    }
+
+    private func openApp(id: String) {
+        switch id {
+        case "app_studio":
+            self.viewModel.activeNavTab = .chat
+        case "app_war_room":
+            self.viewModel.activeNavTab = .warRoom
+            self.viewModel.isInspectorVisible = true
+            self.viewModel.selectedInspectorTab = .warRoomKanban
+        case "app_memory":
+            self.viewModel.activeNavTab = .memoryWiki
+            self.viewModel.isInspectorVisible = true
+            self.viewModel.selectedInspectorTab = .memoryWiki
+        case "app_companion":
+            NotificationCenter.default.post(name: NSNotification.Name("ToggleCompanionBar"), object: nil)
+        default:
+            break
+        }
+    }
 
     public var body: some View {
         VStack(spacing: 0) {
@@ -1578,7 +1760,9 @@ public struct StudioCoreHubManagerView: View {
             HStack(spacing: 4) {
                 ForEach(CoreHubTopNavTab.allCases) { tab in
                     Button(action: {
-                        self.selectedTopTab = tab
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            self.selectedTopTab = tab
+                        }
                     }) {
                         Text(tab.rawValue)
                             .font(.system(size: 13, weight: self.selectedTopTab == tab ? .semibold : .medium))
@@ -1620,9 +1804,9 @@ public struct StudioCoreHubManagerView: View {
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .fill(self.darkObsidian.opacity(0.85))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                    )
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                )
             )
             .frame(maxWidth: 320)
 
@@ -1645,9 +1829,13 @@ public struct StudioCoreHubManagerView: View {
                     .overlay(Capsule().stroke(self.mutedCyan.opacity(0.3), lineWidth: 1))
             )
 
-            // Notification Bell with Badge (3)
+            // Notification Bell with Badge (dynamic updates count)
             ZStack(alignment: .topTrailing) {
-                Button(action: {}) {
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        self.selectedCategory = .updates
+                    }
+                }) {
                     Image(systemName: "bell.fill")
                         .font(.system(size: 14))
                         .foregroundStyle(Color.white.opacity(0.8))
@@ -1655,13 +1843,15 @@ public struct StudioCoreHubManagerView: View {
                 }
                 .buttonStyle(.plain)
 
-                Text("3")
-                    .font(.system(size: 9, weight: .bold))
-                    .foregroundStyle(.black)
-                    .padding(.horizontal, 4)
-                    .padding(.vertical, 1)
-                    .background(Capsule().fill(self.iceCyan))
-                    .offset(x: 4, y: -2)
+                if self.updatesCount > 0 {
+                    Text("\(self.updatesCount)")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(.black)
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 1)
+                        .background(Capsule().fill(self.iceCyan))
+                        .offset(x: 4, y: -2)
+                }
             }
 
             // Profile Avatar Chip
@@ -1726,7 +1916,7 @@ public struct StudioCoreHubManagerView: View {
                 Image(systemName: "cpu")
                     .font(.system(size: 10))
                     .foregroundStyle(self.iceCyan)
-                Text("6 Installed • 6 Available • Two-Tier Sandbox")
+                Text("\(self.installedApps.count) Installed • \(self.availablePackages.count) Available • Two-Tier Sandbox")
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(Color.white.opacity(0.7))
             }
@@ -1744,8 +1934,8 @@ public struct StudioCoreHubManagerView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 4) {
                 // Section: Main Quick Links
-                categoryButton(category: .allApps, count: 12)
-                categoryButton(category: .updates, count: 3, badgeColor: self.iceCyan)
+                categoryButton(category: .allApps, count: self.categoryCount(for: .allApps))
+                categoryButton(category: .updates, count: self.updatesCount > 0 ? self.updatesCount : nil, badgeColor: self.iceCyan)
 
                 Divider()
                     .padding(.vertical, 8)
@@ -1757,11 +1947,11 @@ public struct StudioCoreHubManagerView: View {
                     .padding(.horizontal, 12)
                     .padding(.bottom, 4)
 
-                categoryButton(category: .autonomousAgents)
-                categoryButton(category: .evoLoopSkills)
-                categoryButton(category: .devTools)
-                categoryButton(category: .mcpBridges)
-                categoryButton(category: .memoryWiki)
+                categoryButton(category: .autonomousAgents, count: self.categoryCount(for: .autonomousAgents))
+                categoryButton(category: .evoLoopSkills, count: self.categoryCount(for: .evoLoopSkills))
+                categoryButton(category: .devTools, count: self.categoryCount(for: .devTools))
+                categoryButton(category: .mcpBridges, count: self.categoryCount(for: .mcpBridges))
+                categoryButton(category: .memoryWiki, count: self.categoryCount(for: .memoryWiki))
 
                 Spacer()
             }
@@ -1772,7 +1962,9 @@ public struct StudioCoreHubManagerView: View {
 
     private func categoryButton(category: CoreHubCategory, count: Int? = nil, badgeColor: Color? = nil) -> some View {
         Button(action: {
-            self.selectedCategory = category
+            withAnimation(.easeInOut(duration: 0.15)) {
+                self.selectedCategory = category
+            }
         }) {
             HStack(spacing: 8) {
                 Image(systemName: category.icon)
@@ -1817,11 +2009,20 @@ public struct StudioCoreHubManagerView: View {
                 // 1. Hero Banner
                 heroBanner
 
-                // 2. Installed Section
-                installedSection
+                // Empty Search / Filter State
+                if self.filteredInstalledApps.isEmpty && self.filteredAvailablePackages.isEmpty {
+                    emptyFilterStateView
+                } else {
+                    // 2. Installed Section
+                    if !self.filteredInstalledApps.isEmpty || self.selectedCategory == .allApps || self.selectedCategory == .updates {
+                        installedSection
+                    }
 
-                // 3. Available CoreHub Plugins & Skills Section
-                availablePackagesSection
+                    // 3. Available CoreHub Plugins & Skills Section
+                    if !self.filteredAvailablePackages.isEmpty || self.selectedCategory == .allApps {
+                        availablePackagesSection
+                    }
+                }
             }
             .padding(20)
         }
@@ -1927,6 +2128,49 @@ public struct StudioCoreHubManagerView: View {
         )
     }
 
+    // Empty Filter State View
+    private var emptyFilterStateView: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 32))
+                .foregroundStyle(self.iceCyan.opacity(0.6))
+                .padding(.top, 36)
+
+            Text("No Matching Items Found")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(.white)
+
+            Text("No installed apps or community packages match '\(self.searchText.isEmpty ? self.selectedCategory.rawValue : self.searchText)' for platform '\(self.selectedPlatform.rawValue)'")
+                .font(.system(size: 12))
+                .foregroundStyle(Color.white.opacity(0.6))
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 380)
+
+            Button(action: {
+                withAnimation {
+                    self.searchText = ""
+                    self.selectedCategory = .allApps
+                    self.selectedPlatform = .all
+                    self.selectedTopTab = .apps
+                }
+            }) {
+                Text("Reset Filters")
+                    .font(.system(size: 11, weight: .semibold))
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 6)
+                    .foregroundStyle(.white)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .fill(self.mutedCyan)
+                    )
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 4)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 20)
+    }
+
     // 2. Installed Section
     private var installedSection: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -1935,7 +2179,7 @@ public struct StudioCoreHubManagerView: View {
                     .font(.system(size: 12, weight: .bold))
                     .foregroundStyle(Color.white.opacity(0.85))
 
-                Text("(\(self.installedApps.count))")
+                Text("(\(self.filteredInstalledApps.count))")
                     .font(.system(size: 11, weight: .semibold, design: .monospaced))
                     .foregroundStyle(self.iceCyan)
 
@@ -1946,9 +2190,16 @@ public struct StudioCoreHubManagerView: View {
                     .foregroundStyle(Color.white.opacity(0.45))
             }
 
-            VStack(spacing: 8) {
-                ForEach(self.installedApps) { app in
-                    installedAppRow(app: app)
+            if self.filteredInstalledApps.isEmpty {
+                Text(self.selectedCategory == .updates ? "All installed microkernel modules and apps are currently up to date." : "No installed apps match current filter criteria.")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.white.opacity(0.5))
+                    .padding(.vertical, 8)
+            } else {
+                VStack(spacing: 8) {
+                    ForEach(self.filteredInstalledApps) { app in
+                        installedAppRow(app: app)
+                    }
                 }
             }
         }
@@ -2006,7 +2257,9 @@ public struct StudioCoreHubManagerView: View {
             // Action Buttons
             if app.isUpdateAvailable {
                 // Filled Muted Cyan "Update this app" Button
-                Button(action: {}) {
+                Button(action: {
+                    self.updateApp(id: app.id)
+                }) {
                     HStack(spacing: 4) {
                         Image(systemName: "arrow.triangle.2.circlepath")
                             .font(.system(size: 10))
@@ -2024,7 +2277,9 @@ public struct StudioCoreHubManagerView: View {
                 .buttonStyle(.plain)
             } else {
                 // Outline "Open" Button
-                Button(action: {}) {
+                Button(action: {
+                    self.openApp(id: app.id)
+                }) {
                     Text("Open")
                         .font(.system(size: 11, weight: .medium))
                         .padding(.horizontal, 14)
@@ -2090,9 +2345,16 @@ public struct StudioCoreHubManagerView: View {
                     .foregroundStyle(Color.white.opacity(0.6))
             }
 
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
-                ForEach(self.availablePackages) { pkg in
-                    packageCard(pkg: pkg)
+            if self.filteredAvailablePackages.isEmpty {
+                Text("No available packages or skills match current filter criteria.")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.white.opacity(0.5))
+                    .padding(.vertical, 8)
+            } else {
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+                    ForEach(self.filteredAvailablePackages) { pkg in
+                        packageCard(pkg: pkg)
+                    }
                 }
             }
         }
@@ -2143,12 +2405,12 @@ public struct StudioCoreHubManagerView: View {
                             .background(Capsule().fill(self.mutedCyan.opacity(0.35)))
                         }
 
-                        // Wilson Score Badge
+                        // Wilson Score Badge (Strict Ergonomic Ice-Cyan)
                         if let score = pkg.wilsonScore {
                             HStack(spacing: 2) {
                                 Image(systemName: "star.fill")
                                     .font(.system(size: 8))
-                                    .foregroundStyle(.yellow)
+                                    .foregroundStyle(self.iceCyan)
                                 Text(String(format: "%.2f", score))
                                     .font(.system(size: 9, weight: .bold))
                                     .foregroundStyle(.white)
@@ -2183,7 +2445,9 @@ public struct StudioCoreHubManagerView: View {
                                 .stroke(Color.white.opacity(0.18), lineWidth: 1)
                         )
                 } else if pkg.tierBadge.contains("Skill") {
-                    Button(action: {}) {
+                    Button(action: {
+                        self.installPackage(id: pkg.id)
+                    }) {
                         HStack(spacing: 4) {
                             Image(systemName: "arrow.down.circle")
                                 .font(.system(size: 10))
@@ -2200,7 +2464,9 @@ public struct StudioCoreHubManagerView: View {
                     }
                     .buttonStyle(.plain)
                 } else {
-                    Button(action: {}) {
+                    Button(action: {
+                        self.installPackage(id: pkg.id)
+                    }) {
                         HStack(spacing: 4) {
                             Image(systemName: "plus.circle")
                                 .font(.system(size: 10))

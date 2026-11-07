@@ -630,6 +630,18 @@ Binary files a/assets/legacy.bin and /dev/null differ
       expect(diRes.statusCode).toBe(200);
       expect(diRes.data.ok).toBe(true);
       expect(diRes.data.diffView).toBeDefined();
+
+      // 3. /desktop/state and /state aliases
+      const stateAlias = createMockReqRes({
+        method: "GET",
+        url: "/desktop/state",
+      });
+      const stateHandled = await handleCoreHubRoute(stateAlias.req, stateAlias.res, microkernel, { auth: testAuth });
+      expect(stateHandled).toBe(true);
+      const stateRes = await stateAlias.getResult();
+      expect(stateRes.statusCode).toBe(200);
+      expect(stateRes.data.ok).toBe(true);
+      expect(stateRes.data.snapshot).toBeDefined();
     });
   });
 });

@@ -651,7 +651,11 @@ export async function handleCoreHubRoute(
     normalizedPath = "/api/corehub/desktop/quick-launch";
   } else if (normalizedPath === "/diff-inspector" || normalizedPath === "/api/corehub/diff-inspector") {
     normalizedPath = "/api/corehub/desktop/diff-inspector";
-  } else if (normalizedPath === "/desktop/state") {
+  } else if (
+    normalizedPath === "/desktop/state" ||
+    normalizedPath === "/state" ||
+    normalizedPath === "/api/corehub/state"
+  ) {
     normalizedPath = "/api/corehub/desktop/state";
   }
   const pathname = normalizedPath;
