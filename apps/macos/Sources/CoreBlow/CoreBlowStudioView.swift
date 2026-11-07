@@ -509,6 +509,13 @@ public struct CoreBlowStudioView: View {
         .sheet(isPresented: self.$viewModel.showAPIKeysSheet) {
             StudioProviderAPIKeysSheet()
         }
+        .background {
+            Button("") {
+                self.viewModel.showAPIKeysSheet.toggle()
+            }
+            .keyboardShortcut("k", modifiers: .command)
+            .opacity(0)
+        }
     }
 }
 
@@ -2808,8 +2815,8 @@ struct StudioAnchoredProfileMenuCard: View {
                     self.viewModel.activeNavTab = .coreHub
                 }
 
-                // Personalization
-                self.menuRow(icon: "slider.horizontal.3", title: "Personalization") {
+                // Personalization (Provider API Keys)
+                self.menuRow(icon: "slider.horizontal.3", title: "Personalization", trailingText: "⌘K") {
                     self.close()
                     self.viewModel.showAPIKeysSheet = true
                 }
